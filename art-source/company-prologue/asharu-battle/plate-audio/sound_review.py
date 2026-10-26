@@ -7,7 +7,8 @@ plays, its options heard in context, and the owner's approve / deny and notes.
 Writes build/asharu-sound-review/: index.html (from sound-review.html), media/<shot>.mp4 (the plate with
 the current mix, about 3.5 Mb/s so each stays under an Artifact file's 15 MB) and
 media/<shot>-<family>-<option>.mp3 (the whole shot's mix with that one option swapped in; the page
-plays it against the muted picture). Publish index.html with the Artifact tool, declaring `db` and
+plays it against the muted picture), and media/solo-<shot>-<family>[-<option>].mp3 (that family's
+sounds alone, for the page's Play solo). Publish index.html with the Artifact tool, declaring `db` and
 `user`, and pass media/ through `files`. Answers are `db` documents verdicts/<family>:
 {options: {<key>: "approve" | "deny"}, note, at}.
 """
@@ -42,13 +43,17 @@ FAMILIES = {
     "beds": ("The room and the set", "The operations room's air and the CRT's hum, under everything."),
 }
 ORDER = list(FAMILIES)
+ROUND = 4
+# the owner's notes from the round before, shown on the card they were left on
+PRIOR = {}
 
 
-def mp3(x, path):
+def mp3(x, path, solo=False):
+    """x as an mp3; a solo (one family alone, mostly silence) as a small mono one."""
     wav = path.with_suffix(".wav")
     pa.encode(x, wav)
-    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(wav), "-c:a", "libmp3lame", "-b:a", "128k", str(path)],
-                   check=True)
+    rate = ["-ac", "1", "-b:a", "64k"] if solo else ["-b:a", "128k"]
+    subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(wav), "-c:a", "libmp3lame", *rate, str(path)], check=True)
     wav.unlink()
 
 
@@ -67,20 +72,30 @@ def build(videos):
         wav.unlink()
         for family, label, t in marks:
             cues.setdefault(family, []).append(dict(shot=shot, label=label, t=round(t - SHOT_START[shot], 2)))
-        for family, options in pa.OPTIONS.items():
-            if not any(f == family for f, _, _ in marks):
+        for family in sorted({f for f, _, _ in marks}):
+            options = pa.OPTIONS.get(family) if family in pa.REVIEW else None
+            if not options:                             # one sound: its solo only
+                y, _ = pa.build(shot, only=family)
+                mp3(y, media / ("solo-%s-%s.mp3" % (shot, family)), solo=True)
                 continue
             for k in options:
                 y, _ = pa.build(shot, {family: k})
                 mp3(y, media / ("%s-%s-%s.mp3" % (shot, family, k)))
+                y, _ = pa.build(shot, {family: k}, only=family)
+                mp3(y, media / ("solo-%s-%s-%s.mp3" % (shot, family, k)), solo=True)
                 print("  %s %s %s" % (shot, family, k), flush=True)
     families = []
     for fam in ORDER:
         if fam not in cues:
             continue
         title, about = FAMILIES[fam]
-        opts = [dict(key=k, label=v[0], current=pa.CHOICE[fam] == k) for k, v in pa.OPTIONS.get(fam, {}).items()]
-        families.append(dict(id=fam, title=title, about=about, options=opts,
+        review = fam in pa.REVIEW
+        opts = [dict(key=k, label=v[0], current=pa.CHOICE[fam] == k) for k, v in pa.OPTIONS[fam].items()] if review else []
+        if fam in pa.OPTIONS and not review:
+            about += " Picked: %s, %s." % (pa.CHOICE[fam], pa.OPTIONS[fam][pa.CHOICE[fam]][0])
+        if fam in PRIOR:
+            about += " Your note last round: “%s”." % PRIOR[fam]
+        families.append(dict(id=fam, doc=fam + ("-r%d" % ROUND if review else "-final" if not pa.REVIEW else ""), title=title, about=about, options=opts,
                              cues=sorted(cues[fam], key=lambda c: (c["shot"] != "s0", c["t"]))))
     page = (HERE / "sound-review.html").read_text(encoding="utf-8")
     page = page.replace("__FAMILIES__", json.dumps(families, ensure_ascii=False))

@@ -49,8 +49,9 @@ import com.dillon.starsectormarines.marine.MechFieldRepair;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.CampaignBoat;
-import com.dillon.starsectormarines.marine.FabricationCost;
+import com.dillon.starsectormarines.marine.BoatFabricationCatalog;
 import com.dillon.starsectormarines.marine.Reclamation;
+import com.dillon.starsectormarines.marine.ReserveHangar;
 import com.dillon.starsectormarines.marine.WorkshopTooling;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.BoatDeck;
@@ -68,6 +69,7 @@ import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadEquipmentResult;
 import com.dillon.starsectormarines.marine.SquadFoundingCost;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
+import com.dillon.starsectormarines.marine.TestPurse;
 import com.dillon.starsectormarines.marine.SquadFoundingWorkshop;
 import com.dillon.starsectormarines.marine.OfficerInduction.Step;
 import com.dillon.starsectormarines.battle.mech.MechRole;
@@ -700,7 +702,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
         BattlefieldMarkerPresentation.TargetMarker target =
                 BattlefieldMarkerPresentation.target(
-                        validTarget ? "Orbital Barrage" : "Marine Drop",
+                        validTarget ? "Orbital Barrage" : "Close Air Support",
                         validTarget, validTarget ? 4f : 1.5f);
         paintWorldTarget(graphics, 1180f, 655f, 24f, target);
         graphics.dispose();
@@ -1111,11 +1113,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         BattlePowerOverlayModel model = new BattlePowerOverlayModel(
                 reactor, ignored -> { }, snapshotCommodities());
         List<BattlePowerOverlayModel.PowerState> powers = List.of(
-                power("recon_ping", "Recon Ping", 2f, 0, 7.4f, -1),
+                power("close_air_support", "Close Air Support", 3f, 0, 7.4f, 1),
                 power("mech_support", "Mech Support", 0f, 0, 0f, 3),
-                power("emergency_resupply", "Resupply", 3f, 0, 0f, 1),
-                power("orbital_barrage", "Orbital Barrage", 4f, 20, 0f, 1),
-                power("marine_insertion", "Marine Drop", 3f, 2, 0f, 0));
+                power("orbital_barrage", "Orbital Barrage", 4f, 20, 0f, 1));
         BattlePowerOverlayModel.Presentation presentation = model.withPicker(
                 model.updateProjected(4f, 10f, 22, powers, armed), pickerRows);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
@@ -1396,7 +1396,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             SpecSheetBinder hints = BriefingHints.install(document, instance, props);
             BriefingSurvey.install(document, instance, props);
-            BriefingLift.install(document, instance, props, Strings::get);
+            BriefingLift.install(document, instance, props);
+            BriefingViewModel.installMusters(document, instance, props);
             if (Boolean.TRUE.equals(props.get("debugExpanded"))) {
                 DebugKitPicker.wireBayPictures(document, instance, (List<?>) props.get("debugBaySlots"),
                         MechLabDollCanvas::headlessAssets);
@@ -1858,7 +1859,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
 
     static List<SnapshotArtifact> renderBarracksCommand(SnapshotContext context) throws Exception {
         return renderBarracksCommand(context, List.of("dossier", "dossier-trained", "command",
-                "empty", "large", "guide", "guide-replenish"), true, true);
+                "empty", "empty-no-port", "large", "guide", "guide-replenish"), true, true);
     }
 
     /**
@@ -1882,7 +1883,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         for (String state : states) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
-            int count = state.equals("empty") ? 0 : state.equals("large") ? 120 : 12;
+            int count = state.startsWith("empty") ? 0 : state.equals("large") ? 120 : 12;
             roster.bootstrapInitialComplement(count * MarineSquad.CAPACITY);
             MarineCaptain captain = new MarineCaptain("Tamsin Vale", "graphics/portraits/portrait_hegemony06.png", Rank.MAJOR, 0f);
             roster.add(captain);
@@ -1904,7 +1905,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 roster.bindStationing(1001L, second.id(), List.of(squads.get(10).id()));
             }
             BarracksViewModel viewModel = new BarracksViewModel(reactor, roster, () -> 100d,
-                    snapshotEquipmentResources(), snapshotSquadFoundingResources(), () -> 0,
+                    // Away from a port, the raise tile's bill ends in NO PORT and the tile refuses.
+                    snapshotEquipmentResources(), snapshotSquadFoundingResources(!state.endsWith("no-port")), () -> 0,
                     id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
             if (state.equals("medic")) {
                 // Field Medicine marks each of the officer's squads' medic billet.
@@ -1945,7 +1947,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 }
                 viewModel.command().selectCommand(captain.id());
             }
-            if (!state.startsWith("guide") && !state.equals("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
+            if (!state.startsWith("guide") && !state.startsWith("empty")) ((Runnable) viewModel.command().props().get("guideDismiss")).run();
             if (state.startsWith("guide-")) {
                 // Selecting a squad opens the replenish lesson.
                 viewModel.command().toggle(squads.get(2).id());
@@ -2100,7 +2102,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         var model = new ShipTransferViewModel(reactor, () -> fleet,
                 () -> new CompanyShipDesignation.Home(roster.companyShipId(), null, false, 0),
                 id -> roster.setCompanyShip(id, candidate.name(), candidate.cargo()), CompanyMeans.NONE);
-        model.preparation(roster, snapshotMechResources());
+        model.preparation(roster, snapshotMechResources(), snapshotSquadFoundingResources());
         model.select(candidate.id());
         model.candidateRows().get();
         while (model.reading()) { model.advance(); Thread.onSpinWait(); }
@@ -2541,7 +2543,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("boat-shortage.png", renderBoatDeck(context, renderer, 1920, 1080, false, true)),
                 new SnapshotArtifact("mech-large-stock.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "resource-large")),
                 new SnapshotArtifact("mech-shortage.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "resource-short")),
-                new SnapshotArtifact("mech-chassis.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, true, false)));
+                new SnapshotArtifact("mech-chassis.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, false, true, false)),
+                // The fleet away from a port: credits in hand, but BUY is refused and the strip says so.
+                new SnapshotArtifact("boat-no-port-fabrication.png", renderBoatDeck(context, renderer, 1920, 1080, false, true, NO_PORT)),
+                new SnapshotArtifact("boat-no-port-fitting.png", renderBoatDeck(context, renderer, 1920, 1080, true, false, NO_PORT)),
+                new SnapshotArtifact("mech-no-port.png", renderMechLab(context, renderer, 1920, 1080, 1f, false, true, false, false, null, "no-port")));
     }
 
     static List<SnapshotArtifact> renderEquipmentSheets(SnapshotContext context) throws Exception {
@@ -2581,6 +2587,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return List.of(
                 new SnapshotArtifact("boat-deck-fitting-wide.png",
                         renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                // The reserve hangar: the opened boat's STORE armed, and the deck with one boat stored.
+                new SnapshotArtifact("boat-deck-store-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, STORE_ARMED)),
+                new SnapshotArtifact("boat-deck-reserve-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false, RESERVE_STRIP)),
                 new SnapshotArtifact("boat-deck-hardpoint-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, NO_DEPARTURE, 0)),
@@ -2636,6 +2649,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "recycle-weapons")),
                 new SnapshotArtifact("mech-lab-recycle-kits-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits-recycle")),
+                new SnapshotArtifact("mech-lab-reserve-store-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "reserve-store")),
+                new SnapshotArtifact("mech-lab-reserve-strip-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "reserve-strip")),
+                new SnapshotArtifact("mech-lab-reserve-recalled-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "reserve-recalled")),
                 new SnapshotArtifact("mech-vehicle-kits-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits")),
                 new SnapshotArtifact("mech-vehicle-apc-1920x1080.png",
@@ -2810,7 +2829,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         boolean recycling = materialHint != null && materialHint.contains("recycle");
         MechLabViewModel viewModel = new MechLabViewModel(
                 reactor, bay, recycling ? snapshotMachineShop(Reclamation.TOOLED)
-                        : snapshotMechResources("resource-large".equals(materialHint) ? 15_000_000 : "resource-short".equals(materialHint) ? 0 : 2_000));
+                        : snapshotPurse("resource-large".equals(materialHint) ? 15_000_000 : "resource-short".equals(materialHint) ? 0 : 60_000,
+                                "no-port".equals(materialHint)));
         if (materialHint != null && materialHint.startsWith("lesson-")) {
             int step = Integer.parseInt(materialHint.substring(7));
             if (step >= 2) viewModel.guideLabLesson();
@@ -2928,6 +2948,28 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             // The engine category: the stripped engine is a spare beside patterns with none.
             viewModel.setFilter(MechLabViewModel.CategoryFilter.ENGINE);
         }
+        // A two-machine reserve hangar: STORE armed over the first pad; a Warden and a tank stored, the
+        // lance back on its overview with the Reserve strip listing them; and the Warden recalled.
+        if (materialHint != null && materialHint.startsWith("reserve-")) {
+            viewModel.reserve(new ReserveHangar(), () -> 2);
+            Map<String, Object> reserveProps = new HashMap<>();
+            viewModel.putReserveProps(reserveProps);
+            Runnable store = (Runnable) reserveProps.get("storeAction");
+            if ("reserve-store".equals(materialHint)) {
+                viewModel.gantryRows().get().get(0).select().run();
+                store.run();
+            } else {
+                bay.addVehicle(MechBay.STARTER_SQUAD_ID,
+                        new CampaignVehicle("support_vehicle_04", "Breaker 04", VehicleType.BREAKTHROUGH_TANK));
+                for (String machine : List.of("Warden 03", "Breaker 04")) {
+                    viewModel.gantryRows().get().stream().filter(row -> machine.equals(row.name()))
+                            .findFirst().orElseThrow().select().run();
+                    store.run();
+                    store.run();
+                }
+                if ("reserve-recalled".equals(materialHint)) viewModel.reserveRows().get(0).recall().run();
+            }
+        }
         if (selectVacant) viewModel.previousGantryAction().run();
         if (materialHint != null && materialHint.startsWith("preview-")) {
             viewModel.previewPattern(materialHint.substring("preview-".length()));
@@ -3025,7 +3067,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     && !materialHint.startsWith("internal-") && !materialHint.startsWith("chassis-")
                     && !materialHint.startsWith("refit-") && !materialHint.startsWith("preview-")
                     && !materialHint.startsWith("vehicle-") && !materialHint.startsWith("hover-")
-                    && !materialHint.startsWith("drag-")) {
+                    && !materialHint.startsWith("drag-") && !materialHint.startsWith("reserve-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
@@ -3198,8 +3240,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         // opens on her first hangar. Larger programs can have additional bays,
         // so derive a visible berth rather than assuming campaign numbering.
         int[] struck = {-1};
+        ReserveHangar reserve = new ReserveHangar();
         CompanyDeck ship = companyShip(context, List::of, List::of, hull -> {
             campaign[0] = boatsAboard(hull);
+            if (departure == RESERVE_STRIP) {
+                reserve.storeBoat(campaign[0], campaign[0].boats().get(lastBerthInHerFirstHangar(hull)).id(), 2);
+            }
             if (strikeABoat) {
                 struck[0] = lastBerthInHerFirstHangar(hull);
                 campaign[0].lose(List.of(campaign[0].boats().get(struck[0]).id()));
@@ -3226,7 +3272,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         // The hold is the room's rather than the yard's: the refits above are
         // already paid for, and what this photographs is a bill the company
         // cannot meet.
-        FabricationResources resources = strikeABoat ? snapshotHoldShortOfMetals()
+        FabricationResources resources = departure == NO_PORT ? snapshotPurse(60_000, true)
+                : strikeABoat ? snapshotHoldShortOfCredits()
                 : departure == RECYCLING ? snapshotMachineShop(Reclamation.TOOLED)
                 : departure == RECYCLING_HALF ? snapshotMachineShop(Reclamation.MACHINERY)
                 : departure == SCRAP_ARMED ? snapshotMachineShop(Reclamation.FULL) : snapshotMechResources();
@@ -3239,6 +3286,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
                 reactor, deck, resources, "Valkyrie");
+        // A two-machine reserve hangar for its own shots; the others are aboard a ship without the refit.
+        viewModel.reserve(reserve, () -> departure == STORE_ARMED || departure == RESERVE_STRIP ? 2 : 0);
         if (hardpoint >= 0 && deck.berths() > 0 && deck.boats().get(0) != null) {
             workshop.fabricatePart(BoatGun.ARBALEST.id());
             workshop.fitGun(deck.boats().get(0).id(), hardpoint, BoatGun.ARBALEST.id());
@@ -3265,6 +3314,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (departure == DOOR_OPENING) seekDoorOpening(ship, bay);
         // The first press of SCRAP, under a shop with its reclamation line: what comes back is shown.
         if (departure == SCRAP_ARMED) viewModel.scrapAction().run();
+        // The first press of STORE: the boat is named and nothing has moved yet.
+        if (departure == STORE_ARMED) {
+            Map<String, Object> reserveProps = new HashMap<>();
+            viewModel.putReserveProps(reserveProps);
+            ((Runnable) reserveProps.get("storeAction")).run();
+        }
         if (departure == RECYCLING || departure == RECYCLING_HALF) {
             viewModel.selectDollSlot(BoatDoll.slotKey(BoatFittingSlot.PLATING));
             // The first press arms the card, which is the review the owner sees before committing.
@@ -3289,8 +3344,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .doll(() -> viewModel.doll().get(), () -> 0d);
             UiElement bayElement = instance.requireElement("boat-deck-canvas");
             document.canvases().set(bayElement, bayCanvas);
-            BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get(),
-                    viewModel.slotRows().get());
+            BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get());
             // As the room does each frame: the bay draws one surface unit to a pixel, not stretched.
             document.layout(width, height);
             BoatDeckCanvas.fitSurface(bayElement);
@@ -3326,10 +3380,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      * No boat leaving; a boat whose door is part open; a boat crossing the opening; or none
      * leaving, with spares in stores under a tooled machine shop and one RECYCLE armed; or
      * the same under a shop whose machinery runs without tooling; or the opened boat's SCRAP
-     * armed under a shop with its reclamation line.
+     * armed under a shop with its reclamation line; the opened boat's STORE armed; or the deck
+     * overview with one boat in the reserve hangar and her berth vacant; or the fleet away from a port.
      */
     private static final int NO_DEPARTURE = 0, DOOR_OPENING = 1, AT_OPENING = 2, RECYCLING = 3, RECYCLING_HALF = 4,
-            STRIPPED = 5, SCRAP_ARMED = 6;
+            STRIPPED = 5, SCRAP_ARMED = 6, STORE_ARMED = 7, RESERVE_STRIP = 8, NO_PORT = 9;
 
     /** Catch the bay door half open for a real departure, before the boat reaches it. */
     private static void seekDoorOpening(CompanyDeck ship, DeckGraph.Compartment bay) {
@@ -3401,63 +3456,25 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return held;
     }
 
-    /** A hold that cannot pay for an Aeroshuttle's 60 metals. */
-    private static FabricationResources snapshotHoldShortOfMetals() {
-        FabricationResources stocked = snapshotMechResources();
-        return new FabricationResources() {
-            @Override public int available(String commodityId) {
-                return Commodities.METALS.equals(commodityId)
-                        ? 41 : stocked.available(commodityId);
-            }
-            @Override public String commodityName(String commodityId) {
-                return stocked.commodityName(commodityId);
-            }
-            @Override public String commodityIcon(String commodityId) {
-                return stocked.commodityIcon(commodityId);
-            }
-            @Override public boolean spend(FabricationCost cost) {
-                return canAfford(cost) && stocked.spend(cost);
-            }
-        };
+    /** A purse that cannot pay for an Aeroshuttle by a credit. */
+    private static FabricationResources snapshotHoldShortOfCredits() {
+        return new TestPurse(BoatFabricationCatalog.recipe(ShuttleType.AEROSHUTTLE).bill().credits() - 1);
     }
 
-    private static FabricationResources snapshotMechResources() { return snapshotMechResources(2_000); }
+    /** The ordinary snapshot purse: a company with credits, docked at a civilized port. */
+    private static TestPurse snapshotMechResources() { return snapshotPurse(60_000, false); }
 
-    /** The ordinary snapshot hold aboard a ship whose machine shop recycles at {@code rate}. */
+    /** @param away whether the fleet is out of port, where nothing can be bought */
+    private static TestPurse snapshotPurse(long credits, boolean away) {
+        TestPurse purse = new TestPurse(credits);
+        return away ? purse.away() : purse;
+    }
+
+    /** The ordinary snapshot purse aboard a ship whose machine shop recycles at {@code rate}. */
     private static FabricationResources snapshotMachineShop(Reclamation rate) {
-        FabricationResources hold = snapshotMechResources();
-        return new FabricationResources() {
-            @Override public int available(String commodityId) { return hold.available(commodityId); }
-            @Override public String commodityName(String commodityId) { return hold.commodityName(commodityId); }
-            @Override public String commodityIcon(String commodityId) { return hold.commodityIcon(commodityId); }
-            @Override public boolean spend(FabricationCost cost) { return hold.spend(cost); }
-            @Override public FabricationCost quote(FabricationCost base) {
-                return WorkshopTooling.quote(base, rate == Reclamation.TOOLED);
-            }
-            @Override public Reclamation reclamation() { return rate; }
-            @Override public boolean credit(FabricationCost salvage) { return true; }
-        };
-    }
-
-    private static FabricationResources snapshotMechResources(int stock) {
-        return new FabricationResources() {
-            @Override public int available(String commodityId) { return stock; }
-            @Override public String commodityName(String commodityId) { return switch (commodityId) {
-                case Commodities.SUPPLIES -> "Supplies";
-                case Commodities.HEAVY_MACHINERY -> "Heavy Machinery";
-                case Commodities.METALS -> "Metals";
-                case Commodities.RARE_METALS -> "Transplutonics";
-                default -> commodityId;
-            }; }
-            @Override public String commodityIcon(String commodityId) { return switch (commodityId) {
-                case Commodities.SUPPLIES -> "graphics/icons/cargo/supplies.png";
-                case Commodities.HEAVY_MACHINERY -> "graphics/icons/cargo/heavymachinery.png";
-                case Commodities.METALS -> "graphics/icons/cargo/materials.png";
-                case Commodities.RARE_METALS -> "graphics/icons/cargo/raremetals.png";
-                default -> "";
-            }; }
-            @Override public boolean spend(FabricationCost cost) { return cost != null; }
-        };
+        TestPurse purse = snapshotMechResources().reclaiming(rate);
+        purse.quote = base -> WorkshopTooling.quote(base, rate == Reclamation.TOOLED);
+        return purse;
     }
 
     private static EquipmentIssueResources snapshotEquipmentResources() {
@@ -3477,8 +3494,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     }
 
     private static SquadFoundingResources snapshotSquadFoundingResources() {
+        return snapshotSquadFoundingResources(true);
+    }
+
+    private static SquadFoundingResources snapshotSquadFoundingResources(boolean atMarket) {
         return new SquadFoundingResources() {
             @Override public int available(String commodityId) { return 2_000; }
+            @Override public long credits() { return 60_000; }
+            @Override public boolean atMarket() { return atMarket; }
             @Override public boolean spend(SquadFoundingCost cost) { return cost != null; }
             @Override public String commodityName(String commodityId) {
                 return snapshotCommodities().commodityName(commodityId);
@@ -3699,13 +3722,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("previousBay", (Runnable) () -> { });
         props.put("nextBay", (Runnable) () -> { });
         props.put("deckSummary", viewModel.deckSummary());
-        props.put("materialStock", viewModel.materialStock().map(rows -> CompanyResources.withCredits(rows, 0)));
+        props.put("materialStock", viewModel.materialStock());
         props.put("boatRows", viewModel.boatRows());
         props.put("recovery", viewModel.recovery());
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());
         props.put("performanceMeters", viewModel.performanceMeters());
-        props.put("slotRows", viewModel.slotRows());
+        props.put("readinessRows", viewModel.readinessRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("catalogRows", viewModel.catalogRows());
@@ -3732,6 +3755,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("scrapLabel", viewModel.scrapLabel());
         props.put("scrapClasses", viewModel.scrapClasses());
         props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putReserveProps(props);
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BOAT_DECK,
@@ -3761,6 +3785,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("scrapLabel", viewModel.scrapLabel());
         props.put("scrapClasses", viewModel.scrapClasses());
         props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putReserveProps(props);
         viewModel.putBuildPanelProps(props);
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);

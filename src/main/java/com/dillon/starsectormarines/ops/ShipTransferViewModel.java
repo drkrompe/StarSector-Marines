@@ -6,10 +6,12 @@ import com.dillon.starsectormarines.campaign.start.CompanyYard;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
+import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.CompanyPreparation;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.ops.battleview.CompanyDeck;
 import com.dillon.starsectormarines.ops.battleview.InteriorChange;
@@ -105,6 +107,7 @@ public final class ShipTransferViewModel {
     private final CompanyMeans means;
     private MarineRoster preparationRoster;
     private FabricationResources preparationResources = FabricationResources.NONE;
+    private SquadFoundingResources preparationStores = SquadFoundingResources.NONE;
     private final Map<String, ShipInterior> interiors = new HashMap<>();
     /** Hulls being laid out off this thread, by ship id. @see #advance() */
     private final Map<String, CompletableFuture<Laid>> laying = new LinkedHashMap<>();
@@ -138,7 +141,8 @@ public final class ShipTransferViewModel {
                 ShipTransferViewModel::designate,
                 CompanyMeans.ofPlayer());
         MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
-        preparation(script == null ? null : script.roster(), CampaignFabricationResources.forPreparation());
+        preparation(script == null ? null : script.roster(), CampaignFabricationResources.forPreparation(),
+                CampaignSquadFoundingResources.forPreparation());
     }
 
     public ShipTransferViewModel(Reactor reactor, Supplier<List<Candidate>> fleet,
@@ -492,10 +496,14 @@ public final class ShipTransferViewModel {
         return !preparationBlocked() && selectedCost().credits() <= means.credits();
     }
 
-    /** Supplies are checked here and again by designation; nothing is reserved or spent. */
-    public void preparation(MarineRoster roster, FabricationResources resources) {
+    /**
+     * The boat's and the squad's credits and the squad's marines are checked here and again by designation; nothing is
+     * reserved or spent.
+     */
+    public void preparation(MarineRoster roster, FabricationResources credits, SquadFoundingResources stores) {
         preparationRoster = roster;
-        preparationResources = resources;
+        preparationResources = credits;
+        preparationStores = stores;
         refresh();
     }
 
@@ -504,17 +512,16 @@ public final class ShipTransferViewModel {
         if (!CompanyPreparation.required(preparationRoster)) return false;
         Candidate ship = selected();
         return ship == null || !ship.quarters() || !CompanyPreparation.canPrepare(preparationRoster,
-                ShipsBoats.carriedBy(ship.ship()), ShipsBoats.aboard(ship.ship()).size(), preparationResources);
+                ShipsBoats.carriedBy(ship.ship()), ShipsBoats.aboard(ship.ship()).size(), preparationResources,
+                preparationStores);
     }
 
     public Signal<List<CompanyResources.Row>> resourceStock() {
         return revision.map(ignored -> {
             List<CompanyResources.Row> rows = new ArrayList<>(CompanyResources.credits("transfer-credit-stock", means.credits(), 0));
             if (CompanyPreparation.required(preparationRoster)) {
-                for (String commodity : List.of("marines", "supplies", "food", "heavy_machinery", "metals", "rare_metals")) {
-                    rows.add(CompanyResources.stock("transfer-stock:" + commodity, preparationResources.commodityName(commodity),
-                            preparationResources.commodityIcon(commodity), preparationResources.available(commodity)));
-                }
+                rows.add(CompanyResources.stock("transfer-stock:marines", preparationStores.commodityName("marines"),
+                        preparationStores.commodityIcon("marines"), preparationStores.available("marines")));
             }
             return List.copyOf(rows);
         });
@@ -526,11 +533,13 @@ public final class ShipTransferViewModel {
         if (ship == null || !ship.quarters()) return Strings.get("openingShipTransferSelectAShipWithCompanyQuartersAnd");
         if (ShipsBoats.aboard(ship.ship()).isEmpty()) return Strings.get("openingShipTransferThisHullHasNoBoatBerthChoose");
         StringBuilder text = new StringBuilder(Strings.get("openingShipTransferFirstMissionStoresCostAvailableShortBy"));
-        for (var line : CompanyPreparation.remainingBill(preparationRoster, ShipsBoats.carriedBy(ship.ship())).stream()
-                .sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId()))).toList()) {
-            int available = preparationResources.available(line.commodityId());
-            text.append(Strings.format("companyResourceNamedCost", preparationResources.commodityName(line.commodityId()), CompanyResources.number(line.quantity())));
-            if (available < line.quantity()) text.append(" · ").append(Strings.format("companyResourceShortBy", CompanyResources.number(line.quantity() - available)));
+        // The boat and the squad's stores are both bought, so they are one credit line.
+        long price = (long) CompanyPreparation.boatPrice(preparationRoster, ShipsBoats.carriedBy(ship.ship()))
+                + CompanyPreparation.squadPrice(preparationRoster);
+        if (price > 0) text.append(CompanyResources.creditBill(price, preparationResources.credits())).append('\n');
+        for (var line : CompanyPreparation.squadBill(preparationRoster)) {
+            int available = preparationStores.available(line.commodityId());
+            text.append(CompanyResources.namedBill(preparationStores.commodityName(line.commodityId()), line.quantity(), available));
             text.append('\n');
         }
         return text.append(Strings.get("openingShipTransferCheckedNowEachWorkshopSpendsOnlyWhen")).toString();

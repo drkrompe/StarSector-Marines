@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.battleview.BoatDeckCanvas;
@@ -127,6 +128,7 @@ public final class BoatDeckScreen implements Screen {
             viewModel = new BoatDeckViewModel(reactor, roster.boatDeck(),
                     CampaignFabricationResources.forBoats(), ShipsBoatsAboard.carrier(),
                     this::deckChanged);
+            viewModel.reserve(roster.reserveHangar(), () -> ShipRefits.aboard().reserveCapacity());
         } else {
             viewModel.refresh();
         }
@@ -180,11 +182,6 @@ public final class BoatDeckScreen implements Screen {
         if (previousInstance != null) previousInstance.close();
     }
 
-    private static long fleetCredits() {
-        if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null) return 0;
-        return (long) Global.getSector().getPlayerFleet().getCargo().getCredits().get();
-    }
-
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("contextLabel", bayContextLabel);
@@ -194,13 +191,13 @@ public final class BoatDeckScreen implements Screen {
         props.put("previousBay", (Runnable) () -> cycleBay(-1));
         props.put("nextBay", (Runnable) () -> cycleBay(1));
         props.put("deckSummary", viewModel.deckSummary());
-        props.put("materialStock", reactor.computed(() -> CompanyResources.withCredits(viewModel.materialStock().get(), fleetCredits())));
+        props.put("materialStock", viewModel.materialStock());
         props.put("boatRows", viewModel.boatRows());
         props.put("recovery", viewModel.recovery());
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());
         props.put("performanceMeters", viewModel.performanceMeters());
-        props.put("slotRows", viewModel.slotRows());
+        props.put("readinessRows", viewModel.readinessRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("catalogRows", viewModel.catalogRows());
@@ -226,6 +223,7 @@ public final class BoatDeckScreen implements Screen {
         props.put("scrapLabel", viewModel.scrapLabel());
         props.put("scrapClasses", viewModel.scrapClasses());
         props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putReserveProps(props);
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BOAT_DECK,
@@ -242,24 +240,15 @@ public final class BoatDeckScreen implements Screen {
     }
 
     /**
-     * Gives each stores card and the selected mount its piece on its bricks. Rows are keyed
-     * and come and go as the filter changes, so this runs after every reconciliation; a card
-     * keeps its picture, and the mount's is replaced when what it holds has changed.
+     * Gives each stores card its piece on its bricks. Rows are keyed and come and go as the
+     * filter changes, so this runs after every reconciliation; a card keeps its picture.
      */
     static void wireCatalogPreviews(MarkupInstance instance, UiDocument target,
-                                    List<BoatDeckViewModel.CatalogRow> rows,
-                                    List<BoatDeckViewModel.SlotRow> mounts) {
+                                    List<BoatDeckViewModel.CatalogRow> rows) {
         for (BoatDeckViewModel.CatalogRow row : rows) {
             UiElement canvas = instance.requireElement(row.previewId());
             if (target.canvases().producerOf(canvas) == null) {
                 target.canvases().set(canvas, new BoatHardwareCanvas(row.kind(), row.itemId()));
-            }
-        }
-        for (BoatDeckViewModel.SlotRow mount : mounts) {
-            UiElement canvas = instance.requireElement(mount.gridId());
-            if (!(target.canvases().producerOf(canvas) instanceof BoatHardwareCanvas shown)
-                    || !shown.shows(mount.kind(), mount.itemId())) {
-                target.canvases().set(canvas, new BoatHardwareCanvas(mount.kind(), mount.itemId()));
             }
         }
     }
@@ -267,7 +256,7 @@ public final class BoatDeckScreen implements Screen {
     /** The pictures, and each card as a handle the part is picked up by, as the lab's stores are. */
     private void wireStores(MarkupInstance instance, UiDocument target) {
         List<BoatDeckViewModel.CatalogRow> rows = viewModel.catalogRows().get();
-        wireCatalogPreviews(instance, target, rows, viewModel.slotRows().get());
+        wireCatalogPreviews(instance, target, rows);
         BoatDeckSpecSheets.bindCatalogRows(specSheets, instance, rows);
         for (BoatDeckViewModel.CatalogRow row : rows) {
             UiElement card = instance.requireElement(row.id());

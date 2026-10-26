@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
-import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import org.junit.jupiter.api.Test;
 
@@ -32,24 +31,20 @@ class CompanyLiftCatalogTest {
         Map<String, CommandPower> byId = new LinkedHashMap<>();
         byId.put(MechSupport.ID, MechSupport.configured(List.of(
                 MechDeploymentSpec.standard(MechVariant.HOUND))));
-        byId.put(VehicleSupport.ID, new VehicleSupport());
 
-        PowerCatalog.assignCompanyLift(byId, Set.of(MechSupport.ID, VehicleSupport.ID),
-                List.of(SEATED, MEDIUM, LIGHT));
+        PowerCatalog.assignCompanyLift(byId, Set.of(MechSupport.ID), List.of(SEATED, MEDIUM, LIGHT));
 
         assertSame(LIGHT, ((MechSupport) byId.get(MechSupport.ID)).companyCarrier());
-        assertSame(MEDIUM, ((VehicleSupport) byId.get(VehicleSupport.ID)).companyCarrier(),
-                "one boat per power, so the APC takes the other cradle");
     }
 
     @Test
     void anEmployerOfferKeepsItsSyntheticCarrier() {
         Map<String, CommandPower> byId = new LinkedHashMap<>();
-        byId.put(VehicleSupport.ID, new VehicleSupport());
+        byId.put(MechSupport.ID, new MechSupport());
 
         PowerCatalog.assignCompanyLift(byId, Set.of(), List.of(LIGHT));
 
-        assertNull(((VehicleSupport) byId.get(VehicleSupport.ID)).companyCarrier());
+        assertNull(((MechSupport) byId.get(MechSupport.ID)).companyCarrier());
     }
 
     @Test

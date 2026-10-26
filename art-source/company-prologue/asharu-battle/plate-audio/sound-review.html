@@ -70,7 +70,7 @@ textarea { width: 100%; box-sizing: border-box; min-height: 56px; resize: vertic
 <div class="wrap">
   <header>
     <h1>Asharu <span>plate sound</span></h1>
-    <p class="lede">The sound for the recording plates, S0 and S13. Each card is one kind of sound. Tap a place to hear it from just before it plays. Where there are options, play each one in the same place, then approve or deny it and add a note. Everything saves as you go and goes back to the session.</p>
+    <p class="lede">The sound for the recording plates, S0 and S13. Each card is one kind of sound. Tap a place to hear it from just before it plays. Play hears it in the full mix; Play solo hears that sound alone, with the picture. Where there are options, play each one in the same place, then approve or deny it and add a note. Everything saves as you go and goes back to the session.</p>
     <div class="status"><span><b id="n-done">0</b> of <b id="n-all">0</b> cards answered</span><span id="store">Connecting to saved answers…</span></div>
   </header>
 
@@ -103,11 +103,11 @@ let db = null, local = false, shot = "s0", playing = null;   // playing: {fam, k
 const vid = $("vid"), alt = $("alt");
 const LKEY = "asharu-plate-sound";
 
-function answered(f) { const a = answers[f.id] || {}; return Object.keys(a.options || {}).length > 0 || !!(a.note || "").trim(); }
+function answered(f) { const a = answers[f.doc] || {}; return Object.keys(a.options || {}).length > 0 || !!(a.note || "").trim(); }
 
 function render() {
   $("list").innerHTML = FAMILIES.map(f => {
-    const a = answers[f.id] || {}, i = sel[f.id] ?? 0;
+    const a = answers[f.doc] || {}, i = sel[f.id] ?? 0;
     const opts = f.options.length ? f.options : [{key: "now", label: "As it is in the current mix", current: true}];
     return `<section class="fam${answered(f) ? " done" : ""}" id="f-${f.id}">
       <div class="fam-head"><h2>${esc(f.title)}</h2><span class="tag${answered(f) ? " ok" : ""}">${answered(f) ? "Answered" : f.options.length ? f.options.length + " options" : "One sound"}</span></div>
@@ -116,15 +116,16 @@ function render() {
         `<button type="button" class="chip" data-f="${f.id}" data-i="${j}" aria-current="${j === i}"><span class="tc">${c.shot.toUpperCase()} ${tc(c.t)}</span>${esc(c.label)}</button>`).join("")}</div></div>
       <div><p class="label">${f.options.length ? "Options · played at the place picked above" : "Verdict"}</p><div class="opts">${opts.map(o => {
         const v = (a.options || {})[o.key] || "";
-        return `<div class="opt ${v}${playing && playing.fam === f.id && playing.key === o.key ? " playing" : ""}">
+        return `<div class="opt ${v}${playing && playing.fam === f.id && (playing.key || "now") === o.key ? " playing" : ""}">
           <span class="key">${esc(o.key === "now" ? "·" : o.key)}</span>
           <span class="opt-text"><span>${esc(o.label)}</span>${o.current && f.options.length ? `<span class="cur">In the current mix</span>` : ""}</span>
           <span class="acts">
             <button type="button" class="v play" data-play="${f.id}" data-k="${esc(o.key)}">Play</button>
-            <button type="button" class="v" data-vf="${f.id}" data-k="${esc(o.key)}" data-v="approve" aria-pressed="${v === "approve"}">Approve</button>
-            <button type="button" class="v" data-vf="${f.id}" data-k="${esc(o.key)}" data-v="deny" aria-pressed="${v === "deny"}">Deny</button>
+            <button type="button" class="v play" data-play="${f.id}" data-k="${esc(o.key)}" data-solo="1">Play solo</button>
+            <button type="button" class="v" data-vf="${f.doc}" data-k="${esc(o.key)}" data-v="approve" aria-pressed="${v === "approve"}">Approve</button>
+            <button type="button" class="v" data-vf="${f.doc}" data-k="${esc(o.key)}" data-v="deny" aria-pressed="${v === "deny"}">Deny</button>
           </span></div>`; }).join("")}</div></div>
-      <textarea id="n-${f.id}" placeholder="Notes: what to change, what it should sound like" aria-label="Notes on ${esc(f.title)}">${esc(a.note || "")}</textarea>
+      <textarea id="n-${f.doc}" placeholder="Notes: what to change, what it should sound like" aria-label="Notes on ${esc(f.title)}">${esc(a.note || "")}</textarea>
     </section>`;
   }).join("");
   $("n-all").textContent = FAMILIES.length;
@@ -142,19 +143,19 @@ function mix() {
   playing = null; alt.pause(); alt.removeAttribute("src"); vid.muted = false;
   $("now").innerHTML = "Playing the <b>current mix</b>."; $("back").hidden = true;
 }
-async function play(f, key) {
+async function play(f, key, solo) {
   const c = current(f);
   await setShot(c.shot);
   const start = Math.max(0, c.t - PRE);
   const opt = f.options.find(o => o.key === key);
   vid.pause();
-  if (opt) {
-    playing = {fam: f.id, key};
-    alt.src = `media/${c.shot}-${f.id}-${key}.mp3`;
+  if (opt || solo) {
+    playing = {fam: f.id, key, solo: !!solo};
+    alt.src = solo ? `media/solo-${c.shot}-${f.id}${opt ? "-" + key : ""}.mp3` : `media/${c.shot}-${f.id}-${key}.mp3`;
     vid.muted = true;
     await new Promise(res => { alt.addEventListener("loadedmetadata", res, {once: true}); alt.load(); });
     alt.currentTime = start; vid.currentTime = start;
-    $("now").innerHTML = `Playing <b>${esc(f.title)}</b>, option <b>${esc(key)}</b>: ${esc(opt.label)}.`;
+    $("now").innerHTML = `Playing <b>${esc(f.title)}</b>${opt ? `, option <b>${esc(key)}</b>: ${esc(opt.label)}` : ""}${solo ? " <b>solo</b>, nothing else in the mix" : " in the full mix"}.`;
     $("back").hidden = false;
     try { await Promise.all([vid.play(), alt.play()]); } catch {}
   } else {
@@ -189,9 +190,9 @@ document.addEventListener("click", e => {
   if (t.dataset.shot) { mix(); setShot(t.dataset.shot); return; }
   if (t.classList.contains("chip")) {
     const f = FAMILIES.find(x => x.id === t.dataset.f); sel[f.id] = +t.dataset.i;
-    play(f, playing && playing.fam === f.id ? playing.key : null); return;
+    play(f, playing && playing.fam === f.id ? playing.key : null, playing && playing.fam === f.id && playing.solo); return;
   }
-  if (t.dataset.play) { const f = FAMILIES.find(x => x.id === t.dataset.play); play(f, t.dataset.k === "now" ? null : t.dataset.k); return; }
+  if (t.dataset.play) { const f = FAMILIES.find(x => x.id === t.dataset.play); play(f, t.dataset.k === "now" ? null : t.dataset.k, !!t.dataset.solo); return; }
   if (t.dataset.vf) {
     const id = t.dataset.vf, k = t.dataset.k, v = t.dataset.v;
     const a = answers[id] = {...(answers[id] || {}), options: {...((answers[id] || {}).options || {})}};

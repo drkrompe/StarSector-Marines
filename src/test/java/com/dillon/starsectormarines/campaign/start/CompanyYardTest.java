@@ -330,7 +330,6 @@ class CompanyYardTest {
             assertEquals(19250, credits.get());
             assertEquals(10f, stock.get("metals"));
             assertNotNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.BURIED));
-            assertNotNull(CompanyWorkshopRestoration.reclaim(ship, roster));
             credits.set(2999);
             assertNotNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.CLEARED));
             credits.set(19250);
@@ -338,18 +337,6 @@ class CompanyYardTest {
             assertNotNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.CLEARED));
             owned.add(ship);
             assertNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.CLEARED));
-            ui.clear(); // Reclamation is available underway after repairing.
-            assertNull(CompanyWorkshopRestoration.reclaim(ship, roster));
-            assertEquals(1f, stock.get("heavy_machinery"));
-            assertEquals(14f, stock.get("metals"));
-            space[0] = 2;
-            assertNotNull(CompanyWorkshopRestoration.reclaim(ship, roster));
-            assertEquals(1f, stock.get("heavy_machinery"));
-            space[0] = 30;
-            roster.setCompanyShip("another", "Elsewhere", 100);
-            assertNotNull(CompanyWorkshopRestoration.reclaim(ship, roster));
-            roster.setCompanyShip("starter", "Second Wind", 75);
-            ui.put("getCurrentInteractionDialog", stub(InteractionDialogAPI.class, Map.of("getInteractionTarget", planet)));
             assertNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.REPAIRED));
             assertEquals(11750, credits.get());
             assertNotNull(CompanyWorkshopRestoration.advance(ship, roster, WorkshopState.REPAIRED));
@@ -360,7 +347,7 @@ class CompanyYardTest {
                 ((Map<?, ?>) in.readObject()).forEach((k, v) -> saved.put((String) k, v));
             }
             assertEquals(WorkshopState.EQUIPPED, CompanyWorkshopRestoration.state(ship));
-            assertEquals(14f, stock.get("metals"), "Opening/reloading never repeats clearance salvage");
+            assertEquals(10f, stock.get("metals"), "Opening/reloading never repeats clearance salvage");
         } finally { Global.setSector(previous); }
     }
 

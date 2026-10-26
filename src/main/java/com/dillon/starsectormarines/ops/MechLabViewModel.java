@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.MechDamage;
 import com.dillon.starsectormarines.marine.MechWorkshop;
+import com.dillon.starsectormarines.marine.ReserveHangar;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.ops.fitting.FittedBadge;
 import com.dillon.starsectormarines.ops.fitting.FittingCard;
@@ -46,15 +47,14 @@ import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Comparator;
 import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
+import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 /** Spatial doll projection and command surface for the campaign-authoritative {@link MechBay}. */
@@ -88,6 +88,11 @@ public final class MechLabViewModel {
     private final MutableSignal<MechPattern.WeightClass> weightFilter;
     /** The machine a first press of SCRAP armed; any other selection disarms it. */
     private final MutableSignal<String> scrapArmedId;
+    /** The machine a first press of STORE armed; any other selection disarms it. */
+    private final MutableSignal<String> storeArmedId;
+    /** The company's reserve hangar and what the home ship's refit lets it hold; null until the screen attaches it. */
+    private ReserveHangar reserve;
+    private IntSupplier reserveCapacity = () -> 0;
     /** The pattern selected on a vacant pad: previewed on the pad, built only by BUILD. */
     private final MutableSignal<String> previewRecipeId;
     private final MutableSignal<MechWeaponComponent> hoveredWeapon;
@@ -207,6 +212,7 @@ public final class MechLabViewModel {
         catalogFilter = reactor.signal(CategoryFilter.ALL);
         weightFilter = reactor.signal(null);
         scrapArmedId = reactor.signal(null);
+        storeArmedId = reactor.signal(null);
         previewRecipeId = reactor.signal(null);
         hoveredWeapon = reactor.signal(null);
         hoveredInternal = reactor.signal(null);
@@ -509,9 +515,9 @@ public final class MechLabViewModel {
         return shown;
     }
 
-    /** Whether the pad has room and the fleet has the materials for this pattern. */
+    /** Whether the pad has room, the fleet is at a port and the company has the credits for this pattern. */
     private boolean canBuild(MechFabricationCatalog.Recipe recipe) {
-        return padHasSpace() && resources.canAfford(resources.quote(recipe.cost()));
+        return padHasSpace() && resources.canBuy(resources.quote(recipe.cost()));
     }
 
     private void build(MechFabricationCatalog.Recipe recipe) {
@@ -596,13 +602,14 @@ public final class MechLabViewModel {
             MechFabricationCatalog.Recipe recipe = previewRecipe();
             if (recipe == null) return Strings.get("openingMechLabBuildAction");
             if (!padHasSpace()) return Strings.get("openingMechLabLanceFull");
-            return resources.canAfford(resources.quote(recipe.cost()))
+            return resources.canBuy(resources.quote(recipe.cost()))
                     ? Strings.format("openingMechLabBuildOnPad", padLetter(selectedGantryIndex()))
+                    : !resources.atMarket() ? Strings.get("fabricationNoPortShort")
                     : Strings.get("openingMechLabMaterialsShort");
         }));
         props.put("buildDisabled", reactor.computed(() -> {
             MechFabricationCatalog.Recipe recipe = previewRecipe();
-            return recipe == null || !padHasSpace() || !resources.canAfford(resources.quote(recipe.cost()));
+            return recipe == null || !padHasSpace() || !resources.canBuy(resources.quote(recipe.cost()));
         }));
         props.put("buildAction", buildAction());
     }
@@ -1466,7 +1473,7 @@ public final class MechLabViewModel {
 
             boolean inCargo = free > 0;
             FabricationCost bill = workshop.weaponQuote(component);
-            boolean affordable = bill != null && resources.canAfford(bill);
+            boolean affordable = bill != null && resources.canBuy(bill);
             boolean locked = !bay.canFabricate(component);
             String badge = FittedBadge.label(component == current);
             String badgeClasses = FittedBadge.classes(component == current);
@@ -1513,7 +1520,7 @@ public final class MechLabViewModel {
                     Strings.format("openingMechLabGrid", component.hardpointType, component.footprintColumns, component.footprintRows),
                     showMaterials ? Strings.get("openingMechLabFab") : "",
                     affordable ? Strings.get("openingMechLabFabHint")
-                            : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor"),
+                            : shortHint(),
                     !showMaterials || !affordable, materials, materialsClasses,
                     () -> fabricateWeapon(component), null,
                     recycleButton(base, back, () -> workshop.recycleWeapon(component), component.displayName())));
@@ -1547,9 +1554,9 @@ public final class MechLabViewModel {
 
     private String buildHint(MechFabricationCatalog.Recipe recipe) {
         if (!padHasSpace()) return Strings.get("openingMechLabLanceFull");
-        return resources.canAfford(resources.quote(recipe.cost()))
+        return resources.canBuy(resources.quote(recipe.cost()))
                 ? Strings.get("openingMechLabPatternBuyHint")
-                : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor");
+                : shortHint();
     }
 
     /** Vehicle patterns share the vacant gantry with chassis, gated by pattern the same way. */
@@ -1594,7 +1601,7 @@ public final class MechLabViewModel {
             boolean withinBudget = installed || bay.withinBudget(mech.id(), proposed);
             boolean inCargo = free > 0;
             boolean locked = !bay.canFabricate(internal);
-            boolean affordable = resources.canAfford(resources.quote(recipe.cost()));
+            boolean affordable = resources.canBuy(resources.quote(recipe.cost()));
             boolean disabled = installed || !fits || !withinBudget || !inCargo && (locked || !affordable);
 
             boolean plating = role == MechInternal.Role.PLATING;
@@ -1624,7 +1631,7 @@ public final class MechLabViewModel {
             String actionHint = fitFromRow ? !withinBudget ? overBudgetHint(proposed)
                     : Strings.get("openingMechLabInternalSpareHint")
                     : affordable ? Strings.get("openingMechLabFabHint")
-                    : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor");
+                    : shortHint();
             disabled = fitFromRow ? !withinBudget : !offerFab || !affordable;
 
             String base = "mech-catalog:" + internal.id;
@@ -1660,7 +1667,7 @@ public final class MechLabViewModel {
             boolean suits = kit.suits(vehicle.type());
             boolean fits = vehicle.canFit(kit);
             boolean inCargo = free > 0;
-            boolean affordable = resources.canAfford(resources.quote(recipe.cost()));
+            boolean affordable = resources.canBuy(resources.quote(recipe.cost()));
             boolean fitFromRow = inCargo && !installed;
             boolean offerFab = !locked && !inCargo;
             String actionLabel = fitFromRow ? Strings.get("openingMechLabFit")
@@ -1670,7 +1677,7 @@ public final class MechLabViewModel {
                     : fitFromRow && !fits ? Strings.get("openingMechLabKitRackFull")
                     : fitFromRow ? Strings.get("openingMechLabKitSpareHint")
                     : affordable ? Strings.get("openingMechLabFabHint")
-                    : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor");
+                    : shortHint();
             boolean disabled = fitFromRow ? !fits : !offerFab || !affordable;
 
             String base = "mech-catalog:" + kit.id;
@@ -1757,19 +1764,19 @@ public final class MechLabViewModel {
         });
     }
 
-    /** What a recycle would put back, as "2 Metals, 1 Supplies" in the bills' commodity order. */
-    private String recoveryLine(FabricationCost back) {
-        return back.lines().stream().sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId())))
-                .map(line -> Strings.format("fittingRecoveryLine", line.quantity(), resources.commodityName(line.commodityId())))
-                .reduce((a, b) -> a + ", " + b).orElse("");
+    /** What a recycle would pay back, as "1,250 credits". */
+    private static String recoveryLine(FabricationCost back) {
+        return back == null ? "" : CompanyResources.creditAmount(back.credits());
     }
 
-    private List<Row> recoveryRows(String ownerId, FabricationCost back) {
-        if (back == null) return List.of();
-        return back.lines().stream().sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId())))
-                .map(line -> CompanyResources.recovered(ownerId + ":recovered:" + line.commodityId(),
-                        resources.commodityName(line.commodityId()), resources.commodityIcon(line.commodityId()),
-                        line.quantity())).toList();
+    private static List<Row> recoveryRows(String ownerId, FabricationCost back) {
+        return back == null ? List.of() : List.of(CompanyResources.recoveredCredits(ownerId + ":recovered:credits", back.credits()));
+    }
+
+    /** Why a BUY is refused: no port to buy at, or not the credits. */
+    private String shortHint() {
+        return resources.atMarket() ? Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor")
+                : Strings.get("fabricationNoPort");
     }
 
     private static String recoveryClasses(FabricationCost back) {
@@ -1788,6 +1795,7 @@ public final class MechLabViewModel {
         feedbackText.set(switch (result.status()) {
             case FABRICATED -> Strings.format("openingMechLabFabricatedIntoStores", name);
             case PATTERN_LOCKED -> Strings.get("openingMechLabThisFabricationPatternHasNotBeenAcquired");
+            case NO_MARKET -> Strings.get("fabricationNoPort");
             case INSUFFICIENT_MATERIALS -> Strings.get("openingMechLabFabricationBlockedRequiredFleetMaterialsAreShort");
             default -> Strings.get("openingMechLabRefitBlockedCampaignHardwareWasNotChanged");
         });
@@ -1957,18 +1965,18 @@ public final class MechLabViewModel {
         return Math.ceil(days * 10d) / 10d;
     }
 
+    /** The company's credits, and whether the fleet is at a port that will sell. */
     private List<Row> buildMaterialStock() {
         revision.get();
-        return List.of(Commodities.HEAVY_MACHINERY, Commodities.METALS, Commodities.RARE_METALS).stream().map(commodity ->
-                CompanyResources.stock("mech-material-stock:" + commodity, resources.commodityName(commodity),
-                        resources.commodityIcon(commodity), resources.available(commodity))).toList();
+        return List.of(CompanyResources.stock("mech-material-stock:credits", Strings.get("companyResourceCredits"),
+                        CompanyResources.CREDITS_ICON, resources.credits()),
+                CompanyResources.port("mech-material-stock:port", resources.atMarket()));
     }
 
+    /** A price as its one credits row, against what the company holds. */
     private List<Row> materialRows(String ownerId, FabricationCost cost) {
         if (cost == null) return List.of();
-        return cost.lines().stream().sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId()))).map(line -> CompanyResources.cost(
-                ownerId + ":material:" + line.commodityId(), resources.commodityName(line.commodityId()),
-                resources.commodityIcon(line.commodityId()), resources.available(line.commodityId()), line.quantity())).toList();
+        return CompanyResources.credits(ownerId + ":material:credits", resources.credits(), cost.credits());
     }
 
     private void selectSquad(String squadId) {
@@ -2139,9 +2147,115 @@ public final class MechLabViewModel {
      * SCRAP takes two presses: the first arms it and says what comes back, the second breaks
      * the machine up through the workshop and returns to the lance with its pad vacant.
      */
+    /** Attaches the company's reserve hangar: STORE beside SCRAP and the Reserve strip in the lance rail. */
+    public void reserve(ReserveHangar hangar, IntSupplier capacity) {
+        reserve = hangar;
+        reserveCapacity = capacity;
+        revision.update(value -> value + 1);
+    }
+
+    /** The template's STORE and Reserve strip properties. */
+    public void putReserveProps(Map<String, Object> props) {
+        props.put("storeLabel", reactor.computed(() -> {
+            revision.get();
+            String armed = storeArmedId.get();
+            return armed != null && armed.equals(selectedMachineId())
+                    ? Strings.get("reserveStoreConfirm") : Strings.get("reserveStore");
+        }));
+        props.put("storeClasses", reactor.computed(() -> {
+            revision.get();
+            if (!fittingFocused.get() || selectedMachineId() == null || reserve == null
+                    || reserveCapacity.getAsInt() <= 0) return "hidden";
+            String armed = storeArmedId.get();
+            return armed != null && armed.equals(selectedMachineId())
+                    ? "reserve-store console-action armed" : "reserve-store console-action";
+        }));
+        props.put("storeAction", (Runnable) this::storeSelected);
+        props.put("reserveClasses", reactor.computed(() -> {
+            revision.get();
+            return fittingFocused.get() || reserve == null
+                    || reserveCapacity.getAsInt() <= 0 && reserve.mechs().isEmpty() && reserve.vehicles().isEmpty()
+                    ? "hidden" : "reserve-strip";
+        }));
+        props.put("reserveTitle", reactor.computed(() -> {
+            revision.get();
+            return reserve == null ? "" : ReserveRow.title(reserve.stored(), reserveCapacity.getAsInt());
+        }));
+        props.put("reserveRows", reactor.computed(() -> {
+            revision.get();
+            selectedSquadId.get();
+            return reserveRows();
+        }));
+    }
+
+    List<ReserveRow> reserveRows() {
+        if (reserve == null) return List.of();
+        CampaignMechSquad squad = bay.squadById(selectedSquadId.get());
+        boolean vacant = squad != null && squad.occupied() < physicalGantries && bay.canAddMech(squad.id());
+        List<ReserveRow> rows = new ArrayList<>();
+        for (CampaignMech mech : reserve.mechs()) {
+            rows.add(new ReserveRow("mech-reserve-" + mech.id(), mech.displayName(), mech.variant().displayName(),
+                    vacant, () -> recall(mech.id(), mech.displayName())));
+        }
+        for (CampaignVehicle vehicle : reserve.vehicles()) {
+            rows.add(new ReserveRow("mech-reserve-" + vehicle.id(), vehicle.displayName(),
+                    CampaignVehicle.className(vehicle.type()), vacant, () -> recall(vehicle.id(), vehicle.displayName())));
+        }
+        return rows;
+    }
+
+    /**
+     * STORE takes two presses, as SCRAP does: the first arms it, the second takes the machine off
+     * its gantry into the reserve hangar, fit and repair clock and all, and returns to the lance.
+     */
+    private void storeSelected() {
+        String machineId = selectedMachineId();
+        if (machineId == null || reserve == null) return;
+        CampaignMech mech = selectedMech();
+        String name = mech != null ? mech.displayName() : selectedVehicle().displayName();
+        scrapArmedId.set(null);
+        if (!machineId.equals(storeArmedId.get())) {
+            storeArmedId.set(machineId);
+            feedbackText.set(Strings.format("openingMechLabStoreArmed", name));
+            feedbackClasses.set("mech-lab-feedback tone-accent surface-dark");
+            return;
+        }
+        storeArmedId.set(null);
+        String pad = padLetter(selectedGantryIndex());
+        int capacity = reserveCapacity.getAsInt();
+        ReserveHangar.Status status = reserve.storeMachine(bay, machineId, capacity);
+        if (status != ReserveHangar.Status.STORED) {
+            feedbackText.set(status == ReserveHangar.Status.HANGAR_FULL
+                    ? Strings.format("reserveHangarFull", capacity)
+                    : Strings.get("openingMechLabRefitBlockedCampaignHardwareWasNotChanged"));
+            feedbackClasses.set("mech-lab-feedback tone-danger surface-dark");
+            return;
+        }
+        showLanceOverview();
+        feedbackText.set(Strings.format("openingMechLabStored", name, pad));
+        feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
+        bayChanged.run();
+        revision.update(value -> value + 1);
+    }
+
+    /** RECALL puts a stored machine on the shown lance's first vacant working gantry. */
+    private void recall(String machineId, String name) {
+        if (reserve == null) return;
+        CampaignMechSquad squad = bay.squadById(selectedSquadId.get());
+        ReserveHangar.Status status = squad == null ? ReserveHangar.Status.NO_VACANT_PLACE
+                : reserve.recallMachine(bay, machineId, squad.id(), physicalGantries);
+        boolean recalled = status == ReserveHangar.Status.RECALLED;
+        feedbackText.set(recalled ? Strings.format("openingMechLabRecalled", name, squad.displayName())
+                : Strings.format("openingMechLabRecallNoGantry", name));
+        feedbackClasses.set(recalled ? "mech-lab-feedback tone-good surface-dark" : "mech-lab-feedback tone-danger surface-dark");
+        if (recalled) bayChanged.run();
+        revision.update(value -> value + 1);
+    }
+
     private void scrapSelected() {
         String machineId = selectedMachineId();
         if (machineId == null) return;
+        storeArmedId.set(null);
         CampaignMech mech = selectedMech();
         String name = mech != null ? mech.displayName() : selectedVehicle().displayName();
         FabricationCost salvage = mech != null ? workshop.mechSalvage(machineId) : workshop.vehicleSalvage(machineId);
@@ -2166,13 +2280,8 @@ public final class MechLabViewModel {
         revision.update(value -> value + 1);
     }
 
-    private String salvageText(FabricationCost salvage) {
-        if (salvage == null) return Strings.get("openingMechLabNoSalvage");
-        List<String> parts = new ArrayList<>();
-        for (FabricationCost.Line line : salvage.lines()) {
-            parts.add(line.quantity() + " " + resources.commodityName(line.commodityId()));
-        }
-        return String.join(", ", parts);
+    private static String salvageText(FabricationCost salvage) {
+        return salvage == null ? Strings.get("openingMechLabNoSalvage") : CompanyResources.creditAmount(salvage.credits());
     }
 
     private void showLanceOverview() {
@@ -2220,6 +2329,7 @@ public final class MechLabViewModel {
             case PATTERN_LOCKED -> Strings.get("openingMechLabThisFabricationPatternHasNotBeenAcquired");
             case INCOMPATIBLE -> Strings.get("openingMechLabRefitBlockedIncompatibleSocketTypeOrCapacity");
             case OVER_BUDGET -> overBudgetFeedback(proposed);
+            case NO_MARKET -> Strings.get("fabricationNoPort");
             case INSUFFICIENT_MATERIALS -> Strings.get("openingMechLabFabricationBlockedRequiredFleetMaterialsAreShort");
             default -> Strings.get("openingMechLabRefitBlockedCampaignHardwareWasNotChanged");
         });
@@ -2285,6 +2395,7 @@ public final class MechLabViewModel {
         feedbackText.set(switch (result.status()) {
             case CHASSIS_FABRICATED -> Strings.format("openingMechLabFabricatedWithItsStandardRollOutFit", fabricated.displayName());
             case PATTERN_LOCKED -> Strings.get("openingMechLabThisFabricationPatternHasNotBeenAcquired");
+            case NO_MARKET -> Strings.get("fabricationNoPort");
             case INSUFFICIENT_MATERIALS -> Strings.get("openingMechLabChassisFabricationBlockedRequiredFleetMaterialsAre");
             case LANCE_FULL -> Strings.get("openingMechLabChassisFabricationBlockedThisLanceHasNo");
             default -> Strings.get("openingMechLabChassisFabricationBlockedCampaignAssetsWereNot");
@@ -2315,6 +2426,7 @@ public final class MechLabViewModel {
         feedbackText.set(switch (result.status()) {
             case VEHICLE_FABRICATED -> Strings.format("openingMechLabVehicleFabricated", fabricated.displayName());
             case PATTERN_LOCKED -> Strings.get("openingMechLabThisFabricationPatternHasNotBeenAcquired");
+            case NO_MARKET -> Strings.get("fabricationNoPort");
             case INSUFFICIENT_MATERIALS -> Strings.get("openingMechLabVehicleFabricationBlockedMaterials");
             case LANCE_FULL -> Strings.get("openingMechLabVehicleFabricationBlockedLanceFull");
             default -> Strings.get("openingMechLabVehicleFabricationBlocked");

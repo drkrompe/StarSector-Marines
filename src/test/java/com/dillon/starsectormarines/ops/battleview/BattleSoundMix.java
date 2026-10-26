@@ -38,7 +38,8 @@ import java.util.Set;
  *       at each tick's level and pan, rather than a start a tick.</li>
  *   <li>A music line (one with {@code music}) starts that track at the centre at its {@code sounds.json} volume, faded
  *       in over its {@code fadeIn} seconds; the next music line fades it out over that line's {@code fadeOut} seconds
- *       while the next track fades in. An empty {@code music} is silence.</li>
+ *       while the next track fades in. A line with {@code loop} true wraps the track round until then. An empty
+ *       {@code music} is silence.</li>
  *   <li>A mix that would clip is scaled down as a whole, so the levels keep their proportions; the console says
  *       by how much.</li>
  * </ul>
@@ -147,7 +148,7 @@ public final class BattleSoundMix {
                 fadeOut = next.optInt("fadeOut") * RATE;
             }
             music(clip(id, take, decoded), take.volume(), at, cue.optInt("fadeIn") * RATE, end, fadeOut,
-                    left, right);
+                    cue.optBoolean("loop"), left, right);
             mixed++;
         }
         float peak = 0f;
@@ -186,18 +187,20 @@ public final class BattleSoundMix {
     /**
      * Adds a music track at the centre: {@code clip} at {@code gain} from output sample {@code at}, faded in over
      * {@code fadeIn} samples, and from {@code end} faded out over {@code fadeOut} samples; nothing sounds past that.
+     * A looped track wraps round; otherwise it plays once.
      */
-    static void music(float[] clip, float gain, int at, int fadeIn, int end, int fadeOut,
+    static void music(float[] clip, float gain, int at, int fadeIn, int end, int fadeOut, boolean loop,
                       float[] left, float[] right) {
+        if (clip.length == 0) return;
         float centre = gain * (float) Math.cos(Math.PI / 4.0);
-        for (int k = 0; k < clip.length; k++) {
+        for (int k = 0; loop || k < clip.length; k++) {
             int i = at + k;
             if (i < 0) continue;
             if (i >= left.length || i >= end + fadeOut) break;
             float env = fadeIn <= 0 ? 1f : Math.min(1f, k / (float) fadeIn);
             if (i >= end) env *= fadeOut <= 0 ? 0f : 1f - (i - end) / (float) fadeOut;
-            left[i] += clip[k] * centre * env;
-            right[i] += clip[k] * centre * env;
+            left[i] += clip[k % clip.length] * centre * env;
+            right[i] += clip[k % clip.length] * centre * env;
         }
     }
 

@@ -1674,6 +1674,7 @@ SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else
 READABLE = {'borer': 2.5}
 
 ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
+ATTACH_TOL_M = 1.0              # how far a turret mount or effects copy may sit off its hull (attachment_lint)
 
 
 # ======================================================================================= Blender
@@ -2445,6 +2446,34 @@ def blender_main(cfg):
             w = o.parent.matrix_basis @ o.matrix_parent_inverse @ w
             o = o.parent
         return w
+
+    def attachment_lint(kf):
+        """Nothing attached to a hull floats off it (owner, 2026-10-26, a standing safeguard): every
+        turret mount (a '<mount> pivot' joint) drawn this frame where its hull's placement puts its rest
+        mount, and every ship's effects copy on her hull. Turret training turns a pivot about itself, so
+        its place never moves; a part that drifts is a broken chain or a copy left behind."""
+        bpy.context.view_layer.update()
+        hulls = {o.name: o for o in stage_ships.objects if o.name.startswith('Ship | ')}
+        worst, n = (0.0, None), 0
+        for inst in bpy.context.evaluated_depsgraph_get().object_instances:
+            if not inst.is_instance or inst.parent is None or inst.parent.original.name not in hulls:
+                continue
+            ob, hull = inst.object.original, hulls[inst.parent.original.name]
+            name = ship_fx.base_name(ob.name)
+            if not name.endswith(' pivot'):
+                continue
+            off = (inst.matrix_world.translation - hull.matrix_world @ chain(ob).translation).length
+            n += 1
+            worst = max(worst, (off, f'{hull.name[7:]} {name}'), key=lambda w: w[0])
+        for o in stage_fx.objects:
+            hull = hulls.get('Ship | ' + o.name[len('Ship fx | '):]) if o.name.startswith('Ship fx | ') else None
+            if hull is not None:
+                n += 1
+                off = (o.matrix_world.translation - hull.matrix_world.translation).length
+                worst = max(worst, (off, f'{hull.name[7:]} effects copy'), key=lambda w: w[0])
+        print(f'ASHARU attached {kf}: {n} parts, worst {worst[0]:.3f} m ({worst[1]})', flush=True)
+        if worst[0] > ATTACH_TOL_M and not os.environ.get('ASHARU_AUDIT_SOFT'):
+            raise RuntimeError(f'{kf}: {worst[1]} is drawn {worst[0]:.2f} m off its mount on her hull')
 
     def build_objects(key):
         """The objects a placed ship is drawn from: her own hull copy (ShipFx, its turrets trained)
@@ -3647,6 +3676,8 @@ def blender_main(cfg):
                     print(f'ASHARU state {kf}: {len(off_)} values, worst {w_[0]:.4f} ({w_[1]} {w_[2]})', flush=True)
                     if w_[0] > 1e-3 and not os.environ.get('ASHARU_AUDIT_SOFT'):
                         raise RuntimeError(f'{kf}: {w_[1]} {w_[2]} evaluates {w_[0]:.4f} off its plan {w_[3]:.4f}')
+            if not cfg.get('motion_preview'):    # the preview bakes each ship into one mesh: nothing can come off
+                attachment_lint(kf)
             lab = {}
             for key in spec['labels']:
                 if key in extra3d:

@@ -247,6 +247,30 @@ public final class MechBay implements Serializable {
         return lost;
     }
 
+    /**
+     * Takes a mech off its gantry into the reserve hangar: its fitted parts leave the owned counts
+     * with it, so they never read as spares while it is stored. {@link #addMech} owns them again.
+     * Null when no gantry holds it.
+     */
+    CampaignMech stowMech(String mechId) {
+        CampaignMech mech = mechById(mechId);
+        return mech != null && loseChassis(mech) ? mech : null;
+    }
+
+    /** Takes a vehicle off its gantry into the reserve hangar, its kits with it; null when none holds it. */
+    CampaignVehicle stowVehicle(String vehicleId) {
+        CampaignVehicle vehicle = removeVehicle(vehicleId);
+        if (vehicle != null) for (VehicleKit kit : vehicle.kits()) strike(ownedKits, kit.id);
+        return vehicle;
+    }
+
+    /** Puts a stored vehicle back on a vacant gantry and owns its kits again. */
+    boolean berthVehicle(String squadId, CampaignVehicle vehicle) {
+        if (!canAddMech(squadId) || !addVehicle(squadId, vehicle)) return false;
+        for (VehicleKit kit : vehicle.kits()) addKit(kit.id, 1);
+        return true;
+    }
+
     /** Takes a vehicle off its gantry; null when no gantry holds it. */
     private CampaignVehicle removeVehicle(String vehicleId) {
         for (CampaignMechSquad squad : squads) {

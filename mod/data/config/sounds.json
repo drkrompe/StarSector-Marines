@@ -381,6 +381,11 @@
 		"marines_intel_music":[
 			{"file":"marines_intel_music.ogg","source":"sounds/battle/music","volume":0.525},
 		],
+		# The battle music's quiet bed, looped by BattleMusicDirector: the arrival score's strings take. Music is
+		# encoded to one loudness, so this sits under the combat pool. Volume UNTUNED. Next Move never plays in battle (owner).
+		"marines_battle_quiet_strings":[
+			{"file":"marines_battle_quiet_strings.ogg","source":"sounds/battle/music","volume":0.33},
+		],
 		# Battle music pool: the combat state. BattleMusicDirector plays these as a shuffled, non-repeating playlist.
 		"marines_battle_music_02":[
 			{"file":"marines_battle_music_02.ogg","source":"sounds/battle/music","volume":0.525},

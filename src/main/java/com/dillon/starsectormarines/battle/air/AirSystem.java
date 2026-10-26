@@ -489,7 +489,7 @@ public class AirSystem {
         entityWorld.setFloat(id, components.HEALTH, BattleComponents.HEALTH_DAMAGE_TAKEN_MULT, 1f);
         entityWorld.setFloat(id, components.HEALTH,
                 BattleComponents.HEALTH_INCOMING_ACCURACY_MULT, ROLLING_ACCURACY_MULT);
-        float skin = capacity * BasedAircraft.ARMOR_CAPACITY_FRACTION;
+        float skin = Math.max(0f, frame.armor());
         world.setMaxArmor(id, skin);
         world.setArmor(id, skin);
         world.setArmorRating(id, BasedAircraft.ARMOR_RATING);

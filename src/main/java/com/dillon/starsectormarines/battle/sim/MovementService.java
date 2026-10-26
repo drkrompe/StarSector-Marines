@@ -77,6 +77,8 @@ public final class MovementService {
     /** Sim clock for the repath throttle — advanced once per tick by {@link #beginTick}. */
     private float now;
     private int routeStalls;
+    /** The unit whose stall {@link #routeStalls} counted last, or 0: what a probe reads to trace one. */
+    private long lastStalled;
 
     private final UnitModifiers modifiers;
 
@@ -218,6 +220,7 @@ public final class MovementService {
         }
         restartStallWatch(id, x, y);
         routeStalls++;
+        lastStalled = id;
         return true;
     }
 
@@ -229,6 +232,9 @@ public final class MovementService {
 
     /** Routes dropped by {@link #stalledOnRoute} so far this battle; evidence. */
     public int routeStalls() { return routeStalls; }
+
+    /** The unit whose stall was counted last, or 0 when none has been. */
+    public long lastStalled() { return lastStalled; }
 
     /** Stamp the repath throttle — called by {@code NavigationService.setPath} on every non-empty assignment. */
     public void markRepath(long id) {

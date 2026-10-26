@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
+import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.CompanyPreparation;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
@@ -222,7 +223,8 @@ public final class CompanyShipDesignation {
         if (CompanyPreparation.required(roster)) {
             CompanyShip ship = CompanyShipResolver.read(member);
             if (!CompanyPreparation.canPrepare(roster, ShipsBoats.carriedBy(ship),
-                    ShipsBoats.aboard(ship).size(), CampaignFabricationResources.forPreparation())) return false;
+                    ShipsBoats.aboard(ship).size(), CampaignFabricationResources.forPreparation(),
+                    CampaignSquadFoundingResources.forPreparation())) return false;
         }
         roster.setCompanyShip(member.getId(), shipName(member),
                 Math.round(member.getCargoCapacity()));

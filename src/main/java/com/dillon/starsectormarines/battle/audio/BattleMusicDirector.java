@@ -30,6 +30,12 @@ public final class BattleMusicDirector {
             "marines_battle_music_05", "marines_battle_music_06", "marines_battle_music_07",
             "marines_battle_music_08", "marines_battle_music_09", "marines_battle_music_10");
     /**
+     * The quiet state's bed, and aftermath's by fallback: the strings take of the arrival's score,
+     * looped. Never the Marine Ops theme, which is the menu's alone (owner). A raise fades it out
+     * over the raise crossfade.
+     */
+    public static final List<String> QUIET_TRACKS = List.of("marines_battle_quiet_strings");
+    /**
      * The alert state plays the combat files as {@code <id>_alert}, declared at reduced volume, until an
      * alert bed is sourced.
      */
@@ -56,10 +62,11 @@ public final class BattleMusicDirector {
     /**
      * A decision for the host. {@code from} is {@code null} when the battle opens and equals
      * {@code to} for the next track within a state. When {@code play} is set the host calls
-     * {@code playCustomMusic(fadeOut, fadeIn, track)}; a {@code null} track is silence.
+     * {@code playCustomMusic(fadeOut, fadeIn, track, loop)}; a {@code null} track is silence. A
+     * state with one track loops it, so it never falls silent while the state holds.
      */
     public record Cue(MusicState from, MusicState to, String reason, boolean play, String track,
-                      int fadeOut, int fadeIn) {
+                      int fadeOut, int fadeIn, boolean loop) {
         public boolean stateChange() { return from != to; }
     }
 
@@ -76,12 +83,10 @@ public final class BattleMusicDirector {
         this.playlists = playlists.isEmpty() ? new EnumMap<>(MusicState.class) : new EnumMap<>(playlists);
     }
 
-    /**
-     * The music the mod ships: combat and reduced-volume alert. Quiet and aftermath have no tracks yet, so
-     * they are silence under the ambient loops.
-     */
+    /** The music the mod ships: the quiet bed (aftermath too), reduced-volume alert, and combat. */
     public static BattleMusicDirector shipped(Random random) {
         return new BattleMusicDirector(Map.of(
+                MusicState.QUIET, new BattleMusicPlaylist(QUIET_TRACKS, random),
                 MusicState.COMBAT, new BattleMusicPlaylist(COMBAT_TRACKS, random),
                 MusicState.ALERT, new BattleMusicPlaylist(COMBAT_TRACKS, ALERT_SUFFIX, random)));
     }
@@ -98,7 +103,7 @@ public final class BattleMusicDirector {
         active = resolve(state);
         trackAge = 0f;
         String track = active != null ? active.start() : null;
-        return new Cue(null, state, reason, true, track, OPEN_FADE_SECS, OPEN_FADE_SECS);
+        return new Cue(null, state, reason, true, track, OPEN_FADE_SECS, OPEN_FADE_SECS, loops());
     }
 
     /**
@@ -117,7 +122,7 @@ public final class BattleMusicDirector {
         String next = active.advance(currentMusicId);
         if (next == null) return null;
         trackAge = 0f;
-        return new Cue(state, state, "next track", true, next, 0, 0);
+        return new Cue(state, state, "next track", true, next, 0, 0, false);
     }
 
     public void stop() {
@@ -167,14 +172,18 @@ public final class BattleMusicDirector {
         state = wanted;
         BattleMusicPlaylist next = resolve(wanted);
         // Two states sharing a playlist (or both silent) keep what is playing.
-        if (next == active) return new Cue(from, wanted, reason, false, null, 0, 0);
+        if (next == active) return new Cue(from, wanted, reason, false, null, 0, 0, false);
         if (active != null) active.stop();
         active = next;
         trackAge = 0f;
         String track = next != null ? next.start() : null;
         return raise
-                ? new Cue(from, wanted, reason, true, track, RAISE_FADE_SECS, RAISE_FADE_SECS)
-                : new Cue(from, wanted, reason, true, track, LOWER_FADE_OUT_SECS, LOWER_FADE_IN_SECS);
+                ? new Cue(from, wanted, reason, true, track, RAISE_FADE_SECS, RAISE_FADE_SECS, loops())
+                : new Cue(from, wanted, reason, true, track, LOWER_FADE_OUT_SECS, LOWER_FADE_IN_SECS, loops());
+    }
+
+    private boolean loops() {
+        return active != null && active.size() == 1;
     }
 
     private BattleMusicPlaylist resolve(MusicState s) {

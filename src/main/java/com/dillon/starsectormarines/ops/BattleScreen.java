@@ -343,8 +343,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private final java.util.Random audioRng = new java.util.Random();
     /**
      * Picks quiet, alert, combat or aftermath music from the battle's facts. Its per-state shuffles
-     * are retained across battles to avoid repeats. Quiet and aftermath have no tracks yet: silence
-     * under the ambient loops.
+     * are retained across battles to avoid repeats.
      */
     private final BattleMusicDirector battleMusic = BattleMusicDirector.shipped(audioRng);
     /** Shared squad-event policy for sparse positional marine radio calls. */
@@ -549,7 +548,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         if (!cue.play()) return;
         if (cue.track() == null) Global.getSoundPlayer().playCustomMusic(cue.fadeOut(), cue.fadeIn(), null);
-        else Global.getSoundPlayer().playCustomMusic(cue.fadeOut(), cue.fadeIn(), cue.track(), false);
+        else Global.getSoundPlayer().playCustomMusic(cue.fadeOut(), cue.fadeIn(), cue.track(), cue.loop());
     }
 
     /**
@@ -684,14 +683,6 @@ public class BattleScreen implements Screen, BattleUiContext {
                 var body = sim.convoy().body(hauler);
                 vis.addEphemeralSource((int) Math.floor(body.x), (int) Math.floor(body.y), 24, 0f);
             }
-        }
-        // Player recon-ping reveals use the same ephemeral-source seam as shuttles.
-        // The sim owns the ping list + time-to-live; we just project the live
-        // ones into the fog each frame (airLosRadius 0 = walls block, so the
-        // reveal respects line of sight via the existing shadowcast).
-        for (com.dillon.starsectormarines.battle.power.CommandPowerService.ActivePing p
-                : sim.getCommandPowerService().getActivePings()) {
-            vis.addEphemeralSource(p.cellX, p.cellY, p.radius, 0f);
         }
         // A Bombard's launch gives it away as a muzzle flash does, for a few seconds.
         for (SwarmBombards.Reveal reveal : sim.swarmBombards().launchReveals()) {

@@ -42,7 +42,7 @@ class MechLabRefitTest {
             if (!MECH_TRACKS.contains(order.track)) continue;
             assertEquals(order.band == RefitBand.IMPROVED_II ? 3 : 2, order.requires.size(), order.name());
             for (RefitTrack need : order.requires.keySet()) assertNotNull(need.core, order + " needs " + need);
-            boolean aiCore = order.materials().keySet().stream().anyMatch(id -> id.endsWith("_core"));
+            boolean aiCore = order.cores().keySet().stream().anyMatch(id -> id.endsWith("_core"));
             assertFalse(aiCore && order.band != RefitBand.IMPROVED_II, order + " takes an AI core below its top tier");
         }
         for (RefitTrack track : MECH_TRACKS) assertEquals(RefitBand.IMPROVED_II, RefitOrder.ceiling(track), track.name());

@@ -100,6 +100,23 @@ class BattleMusicDirectorTest {
     }
 
     @Test
+    void aQuietBedPlaysBeforeContactFadesOnTheRaiseAndReturnsForTheAftermath() {
+        BattleMusicDirector bedded = new BattleMusicDirector(Map.of(
+                MusicState.QUIET, new BattleMusicPlaylist(List.of("bed"), new Random(1L)),
+                MusicState.COMBAT, new BattleMusicPlaylist(List.of("battle_01"), new Random(1L))));
+        Cue open = bedded.start(LULL);
+        assertEquals("bed", open.track());
+        assertTrue(open.loop());
+        Cue raise = bedded.update(1f, 1f, CONTACT, null);
+        assertEquals("battle_01", raise.track());
+        assertEquals(BattleMusicDirector.RAISE_FADE_SECS, raise.fadeOut());
+        assertTrue(raise.loop());
+        Cue end = bedded.update(1f, BattleMusicDirector.MIN_TRACK_SECONDS, new Facts(null, false, true), null);
+        assertEquals(MusicState.AFTERMATH, end.to());
+        assertEquals("bed", end.track());
+    }
+
+    @Test
     void withinAStateTheNextTrackFollowsTheEndOfTheCurrentOne() {
         String first = director.start(new Facts(MusicState.COMBAT, false, false)).track();
         Facts combat = new Facts(MusicState.COMBAT, false, false);
