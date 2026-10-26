@@ -736,16 +736,15 @@ K3B_KITE_RUN = {'kite-p-a': [(72.0, (-2560, -1050, -260)), (74.0, (-2279, -741, 
                              (78.6, (-1770, -155, -7)), (82.8, (-980, -20, 10)), (86.0, K3B_KITE_B[:3])]}
 
 
-def kite_run(key, station):
-    """A Kite (P) along her run's points (cubic, through each at speed, at rest on her station at the
-    end), nose on her track and banking into her turns; then held on the station."""
-    pts = K3B_KITE_RUN[key]
-    hold = held(key, station, K3B_T, wobble=1.5)
-
+def through(pts, v0=None, v1=(0.0, 0.0, 0.0)):
+    """A path through (t, point) keys, cubic, passing each at the speed its neighbours imply; v0 and v1
+    are the speeds at the ends (v0 None: from the neighbours too). Held at the ends outside them."""
     def vel(i):
-        if i == len(pts) - 1:
-            return (0.0, 0.0, 0.0)
-        j, k = max(i - 1, 0), i + 1
+        if i == 0 and v0 is not None:
+            return v0
+        if i == len(pts) - 1 and v1 is not None:
+            return v1
+        j, k = max(i - 1, 0), min(i + 1, len(pts) - 1)
         return tuple((pts[k][1][n] - pts[j][1][n]) / (pts[k][0] - pts[j][0]) for n in range(3))
 
     def pos(t):
@@ -753,24 +752,52 @@ def kite_run(key, station):
         for i in range(len(pts) - 1):
             (t0, p0), (t1, p1) = pts[i], pts[i + 1]
             if t <= t1:
-                v0, v1 = vel(i), vel(i + 1)
-                return tuple(_hermite(t, ((t0, p0[n], v0[n]), (t1, p1[n], v1[n]))) for n in range(3))
-        return pts[-1][1]
+                a, b_ = vel(i), vel(i + 1)
+                return tuple(_hermite(t, ((t0, p0[n], a[n]), (t1, p1[n], b_[n]))) for n in range(3))
+        return tuple(pts[-1][1])
+    return pos
+
+
+def on_track(pos, t, bank=6.0):
+    """Heading, pitch and roll of a craft flying along pos at t: nose on her track, banked into the turn."""
+    p, q, r = pos(t - .05), pos(t + .05), pos(t + .15)
+    d = [q[n] - p[n] for n in range(3)]
+    hd = math.degrees(math.atan2(d[1], d[0]))
+    turn = (math.degrees(math.atan2(r[1] - q[1], r[0] - q[0])) - hd + 180) % 360 - 180
+    return hd, math.degrees(math.atan2(d[2], math.hypot(d[0], d[1]))), max(-45.0, min(45.0, -turn * bank))
+
+
+def kite_run(key, station):
+    """A Kite (P) along her run's points (through(), at rest on her station at the end), nose on her
+    track and banking into her turns; then held on the station."""
+    pts = K3B_KITE_RUN[key]
+    hold, pos = held(key, station, K3B_T, wobble=1.5), through(pts)
 
     def at(t):
         if t >= pts[-1][0]:
             return hold.at(t)
-        p, q, r = pos(t - .05), pos(t + .05), pos(t + .15)
-        d = [q[n] - p[n] for n in range(3)]
-        hd = math.degrees(math.atan2(d[1], d[0]))
-        pt = math.degrees(math.atan2(d[2], math.hypot(d[0], d[1])))
-        turn = (math.degrees(math.atan2(r[1] - q[1], r[0] - q[0])) - hd + 180) % 360 - 180
-        rl = max(-45.0, min(45.0, -turn * 6.0))
+        hd, pt, rl = on_track(pos, t)
         w = min(1.0, max(0.0, (t - (pts[-1][0] - 1.6)) / 1.6))     # settling onto her station's attitude
         x, y, z = pos(t)
         hd = hd + w * ((station[3] - hd + 180) % 360 - 180)
         return (x, y, z, hd, pt + w * (station[4] - pt), rl + w * (station[5] - rl), 1.0 if t < 84.0 else .2)
     return Pose(at(K3B_T - 1.0), K3B_T - 1.0, at)
+
+
+def after(base, t_cut, pts, thr):
+    """A ship as S6d flew her until t_cut, then flown on through pts (S7 carries the fight on): her
+    track picks up where and as fast as S6d left her."""
+    p0, p1 = base.at(t_cut - .05), base.at(t_cut + .05)
+    pos = through([(t_cut, base.at(t_cut)[:3])] + pts, v0=tuple((p1[n] - p0[n]) / .1 for n in range(3)), v1=None)
+
+    def at(t):
+        if t <= t_cut:
+            return base.at(t)
+        w = min(1.0, (t - t_cut) / .8)     # from her S6d attitude onto her new track
+        b_, (hd, pt, rl) = base.at(t_cut), on_track(pos, t)
+        return pos(t) + (b_[3] + w * ((hd - b_[3] + 180) % 360 - 180), b_[4] + w * (pt - b_[4]),
+                         b_[5] + w * ((rl - b_[5] + 180) % 360 - 180), thr)
+    return Pose(at(base.t), base.t, at)
 
 
 K3B_KITE_FLIGHT = {'kite-p-a': kite_run('kite-p-a', K3B_KITE_A), 'kite-p-b': kite_run('kite-p-b', K3B_KITE_B)}
@@ -798,8 +825,12 @@ K3B_SHIPS = {
     **{k: station(k, v, K3B_T, vel=(45.0, 0.0, 0.0)) for k, v in (
         ('colossus', (560, -80, 40, 0, 0, 2, .9)), ('morrow', (510, -250, 0, 0, 1, -3, .9)),
         ('mule', (1260, 260, 20, 0, 0, -2, .9)), ('buffalo-a', (960, -350, 80, 0, 1, 4, .9)))},
-    # the rear guard S6d left, still fighting a kilometre astern: what S7 opens on
-    'hound-m': K3E_SHIPS['hound-m'], 'hound-p-b': K3E_SHIPS['hound-p-b'],
+    # the rear guard S6d left, a kilometre astern, what S7 opens on (owner, 2026-10-26: "the follow up shot
+    # needs continuity of the hounds as well"): the convoy's Hound, her drives hit, limping back toward the
+    # column, and the surviving Hound (P) swinging round onto her tail and firing; the first is dead
+    'hound-m': after(K3E_SHIPS['hound-m'], 80.0, [(84.0, (-1700, -300, 0)), (88.0, (-1250, -270, 30))], .25),
+    'hound-p-b': after(K3E_SHIPS['hound-p-b'], 80.0, [(83.0, (-1350, 380, 140)), (85.5, (-1700, 60, 60)),
+                                                       (88.0, (-1600, -260, 30))], 1.0),
 }
 
 # S7 orients after S6d (owner, 2026-10-26: "S6d to S7 is jarring. Where is the rest of the battle ... Where
@@ -1190,9 +1221,9 @@ KEYFRAMES = {
                'hermes-p-b': {'gear_up': 0.5}, 'hermes-p-c': {'gear_up': 1.0}},
         seated={'hermes-p-a': 'tarsus'},
         ships=K3B_SHIPS,
-        fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('fire_on', 'tarsus', (-38, 6, 8), (-.2, .5, 1)),
+        fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('tracer', 'hound-p-b', 'hound-m'), ('fire_on', 'tarsus', (-38, 6, 8), (-.2, .5, 1)),
             ('smoke', 'tarsus', (-38, 6, 8), (-.3, .4, 1))],
-        labels=['tarsus', 'kite-p-a', 'kite-p-b', 'wolf-p-b', 'colossus', 'mule']),
+        labels=['tarsus', 'kite-p-a', 'kite-p-b', 'wolf-p-b', 'colossus', 'mule', 'hound-m', 'hound-p-b']),
     'k4': dict(
         shot='S8-S9', title='She will not be taken',
         caption='The Colossus Mk.III closes from above to take the Colossus too. Her port drive pod is shot out, '
