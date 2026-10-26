@@ -210,6 +210,69 @@
       "seconds": 1.5,
       "loop": false,
       "promptInfluence": 0.6
+    },
+    "answer_readout": {
+      "chosen": null,
+      "takes": {
+        "answer_readout_t01": {
+          "durationSeconds": 1.0,
+          "peakDb": 0.0,
+          "integratedLufs": -3.2,
+          "characterCost": "11"
+        },
+        "answer_readout_t02": {
+          "durationSeconds": 1.0,
+          "peakDb": 0.0,
+          "integratedLufs": -5.0,
+          "characterCost": "11"
+        }
+      },
+      "prompt": "A 1990s science fiction movie military computer terminal printing a result: a quick burst of chunky electronic data beeps ending on one firm tone, short, no music",
+      "seconds": 1.0,
+      "loop": false,
+      "promptInfluence": 0.7
+    },
+    "radar_ping": {
+      "chosen": null,
+      "takes": {
+        "radar_ping_t01": {
+          "durationSeconds": 1.48,
+          "peakDb": -3.1,
+          "integratedLufs": -16.2,
+          "characterCost": "17"
+        },
+        "radar_ping_t02": {
+          "durationSeconds": 1.48,
+          "peakDb": -10.8,
+          "integratedLufs": -26.2,
+          "characterCost": "17"
+        }
+      },
+      "prompt": "A single low ominous military radar contact ping, dark and dry, short decay, no music",
+      "seconds": 1.5,
+      "loop": false,
+      "promptInfluence": 0.7
+    },
+    "ui_stamp": {
+      "chosen": null,
+      "takes": {
+        "ui_stamp_t01": {
+          "durationSeconds": 1.2,
+          "peakDb": -13.5,
+          "integratedLufs": -26.5,
+          "characterCost": "13"
+        },
+        "ui_stamp_t02": {
+          "durationSeconds": 1.2,
+          "peakDb": -1.1,
+          "integratedLufs": -13.2,
+          "characterCost": "13"
+        }
+      },
+      "prompt": "A 1990s science fiction movie computer terminal locking a record: a hard low electronic confirmation tone with a short digital chirp, serious, no music",
+      "seconds": 1.2,
+      "loop": false,
+      "promptInfluence": 0.7
     }
   }
 }

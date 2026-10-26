@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "13",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A 1990s science fiction movie computer terminal locking a record: a hard low electronic confirmation tone with a short digital chirp, serious, no music",
+    "duration_seconds": 1.2,
+    "prompt_influence": 0.7,
+    "loop": false
+  },
+  "audioSha256": "db1dbbb26b13b2501973325e04a652c23f90dad6953030380b257678968ceab3",
+  "durationSeconds": 1.2,
+  "peakDb": -13.5,
+  "integratedLufs": -26.5
+}
