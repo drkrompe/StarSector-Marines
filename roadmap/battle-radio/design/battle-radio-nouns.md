@@ -93,7 +93,8 @@ writes battle state and the battle never waits on it.
 **Who decides.** A finished battle is in aftermath. Otherwise a mission may
 declare its state as a published fact (`BattleMusicFacts`); the Dust Ledger
 declares quiet while the company walks in as freight and combat from the
-alarm on (`DustLedgerProgress.musicState`). A mission that declares nothing
+alarm on (`DustLedgerProgress.musicState`), and Blind Watch the same about its
+alarm (`BlindWatchProgress.musicState`). A mission that declares nothing
 gets the **heat rule**: quiet until first contact (the company fires or is
 fired on), combat on contact and for a hold after the last one, then alert,
 then quiet after a long lull. The heat clock runs on battle time, so a paused
@@ -114,7 +115,7 @@ its music state; one that names none gets the default. The four beds:
 
 - **Briefing drive**: a purposeful groove with a hinted theme, for a company
   that walks in with a plan. The Dust Ledger's bed.
-- **Sequencer pulse**: cold, mechanical and the most neutral. The default.
+- **Sequencer pulse**: cold, mechanical and the most neutral. The default, and Blind Watch's.
 - **Frontier twang**: gritty outpost colour with a lonely guitar, for frontier
   colonies, militia and dusty ground.
 - **Night ops**: dark, sparse and stealthy, for night raids and infiltration.

@@ -28,8 +28,12 @@ public final class SabotageSiteLayout {
 
     public static final int REQUIRED_SITE_COUNT = 3;
 
-    /** Stable mission identity and immutable authored facts for one charge site. */
-    public record Site(String id, PointOfInterest.Kind kind, int cellX, int cellY) {
+    /**
+     * Stable mission identity and immutable authored facts for one charge site.
+     *
+     * @param nameKey the string key an authored mission names the site by, or null for the generated name
+     */
+    public record Site(String id, PointOfInterest.Kind kind, int cellX, int cellY, String nameKey) {
         public Site {
             if (id == null || id.isBlank()) {
                 throw new IllegalArgumentException("site id must not be blank");
@@ -37,7 +41,12 @@ public final class SabotageSiteLayout {
             Objects.requireNonNull(kind, "kind");
         }
 
+        public Site(String id, PointOfInterest.Kind kind, int cellX, int cellY) {
+            this(id, kind, cellX, cellY, null);
+        }
+
         public String displayName() {
+            if (nameKey != null) return Strings.get(nameKey);
             return Strings.format("sabotageSiteName", id, Strings.named("sabotageSiteKind", kind.name()));
         }
     }
@@ -56,6 +65,28 @@ public final class SabotageSiteLayout {
 
     public List<Site> sites() {
         return sites;
+    }
+
+    /**
+     * An authored mission's own three sites, in the order given ({@code blind-watch-sounding.md}): stable ids and cells
+     * the map states, never selected from generated points of interest.
+     *
+     * @throws IllegalArgumentException unless there are exactly {@link #REQUIRED_SITE_COUNT} sites with distinct ids
+     *         and cells
+     */
+    public static SabotageSiteLayout authored(List<Site> sites) {
+        Objects.requireNonNull(sites, "sites");
+        if (sites.size() != REQUIRED_SITE_COUNT) {
+            throw new IllegalArgumentException("Sabotage needs exactly " + REQUIRED_SITE_COUNT + " sites, not " + sites.size());
+        }
+        Set<String> ids = new HashSet<>();
+        Set<Long> cells = new HashSet<>();
+        for (Site site : sites) {
+            if (!ids.add(site.id()) || !cells.add(cellKey(site.cellX(), site.cellY()))) {
+                throw new IllegalArgumentException("authored Sabotage sites need distinct ids and cells: " + sites);
+            }
+        }
+        return new SabotageSiteLayout(sites);
     }
 
     /**
