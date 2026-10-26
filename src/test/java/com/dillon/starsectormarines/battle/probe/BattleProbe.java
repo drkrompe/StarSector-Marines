@@ -30,6 +30,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Direction;
@@ -87,6 +88,7 @@ import java.util.Set;
  *   places                                every compound: kind, box, holder, capture and who is present
  *   creep                                 hive creep: cells creeped and dying, shares of the map, each source's reach
  *   grid X0 Y0 X1 Y1 [width=W]            map rows, north first: # blocked, . walkable, , clear for a hull W wide
+ *   cell X Y                              one cell: walkable, wall, fixture, wall hp, and every doodad covering it
  *   drive ID X Y                          a hull's snapped ends, footprint-clear way and drivable route to a cell
  *   cordon                                the Cordon's truck ways, trucks sent (pace, escort, cell) and beats
  * </pre>
@@ -139,6 +141,7 @@ public final class BattleProbe {
         commands.put("pads", this::pads);
         commands.put("creep", a -> creep());
         commands.put("grid", this::grid);
+        commands.put("cell", a -> cell(a.intAt(0), a.intAt(1)));
         commands.put("windows", this::windows);
         commands.put("drive", this::drive);
         commands.put("cordon", a -> cordon());
@@ -247,6 +250,21 @@ public final class BattleProbe {
      * Rows of the map between two cells, north last: {@code #} not walkable, {@code .} walkable but too tight for the
      * hull width given ({@code width=W}, default 2), {@code ,} clear for it.
      */
+    private JSONObject cell(int x, int y) throws Exception {
+        NavigationGrid g = sim.getGrid();
+        JSONArray doodads = new JSONArray();
+        for (Doodad d : sim.getDoodads()) {
+            if (x < d.cellX || y < d.cellY || x >= d.cellX + d.footprintCellsX || y >= d.cellY + d.footprintCellsY) continue;
+            doodads.put(new JSONObject().put("at", new JSONArray(List.of(d.cellX, d.cellY)))
+                    .put("sheet", String.valueOf(d.sheetPath)).put("frame", d.tile == null ? "-" : d.tile.col + "," + d.tile.row).put("cover", d.cover)
+                    .put("footprint", d.footprintCellsX + "x" + d.footprintCellsY));
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("cell", new JSONArray(List.of(x, y)))
+                .put("walkable", g.isWalkable(x, y)).put("wall", sim.getTopology().isWall(x, y))
+                .put("fixture", sim.getTopology().isFixture(x, y)).put("wallHp", g.getWallHp(x, y))
+                .put("doodads", doodads);
+    }
+
     private JSONObject grid(Args a) throws Exception {
         NavigationGrid g = sim.getGrid();
         int x0 = a.intAt(0), y0 = a.intAt(1), x1 = a.intAt(2), y1 = a.intAt(3);

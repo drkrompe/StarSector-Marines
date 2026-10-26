@@ -66,6 +66,17 @@ class CrateDamageTest {
                 }
     }
 
+    @Test void aCrateOverASpentPropStillBreaks() {
+        try (Ground g = new Ground()) {
+            g.props.addDoodad(new Doodad(3, 3, TileRegistry.installed().doodad("sickbay-clinic.trolley"), 0, false));
+            assertTrue(g.editor.damageWall(3, 3, 500));
+            g.crate("doodad.industrial-crate-stack", 3, 3, true, 0, false);
+            assertFalse(g.editor.damageWall(3, 3, 60));
+            assertTrue(g.editor.damageWall(3, 3, 60));
+            assertTrue(g.grid.isWalkable(3, 3));
+        }
+    }
+
     @Test void removingCrateCoverPreservesStaticPropsAndNeighboringCrates() {
         try (Ground g = new Ground()) {
             g.crate("doodad.crate", 3, 3, false, 0, false);

@@ -173,7 +173,10 @@ public final class MapEditor {
             NaturalPropDamage.Result natural = doodads.damageNaturalProp(x, y, amount, attack, naturalCellCleared);
             if (natural != NaturalPropDamage.Result.NOT_NATURAL_PROP) return natural == NaturalPropDamage.Result.DESTROYED;
             CoverPropDamage.Result prop = doodads.damageProp(x, y, amount, attack, propCellCleared);
-            if (prop != CoverPropDamage.Result.NOT_COVER_PROP) return prop == CoverPropDamage.Result.DESTROYED;
+            // A registered prop already spent here takes nothing, and the hit goes on to what else stands on the cell:
+            // a wreck's crates laid over a trolley's debris turned every blade push into nothing.
+            if (prop == CoverPropDamage.Result.DAMAGED || prop == CoverPropDamage.Result.DESTROYED)
+                return prop == CoverPropDamage.Result.DESTROYED;
             boolean alreadyWalkable = grid.inBounds(x, y) && grid.isWalkable(x, y);
             CoverPropDamage.Result result = doodads.damageCoverProp(x, y, amount);
             if (result == CoverPropDamage.Result.DESTROYED) {
