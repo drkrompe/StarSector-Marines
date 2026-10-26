@@ -17,8 +17,7 @@ import java.util.List;
 /**
  * The Brute breach loops, from the same run that produced their verdicts; and for the owner, a Brute at a fort's wall
  * on real ground: a square of colony compound wall, its gate on the far side, marked works ({@link FortifiedWorks}),
- * three Marines holding inside and a Brute coming at the near wall. The shot is named for the works toughness it ran
- * at ({@code works-wall-x4}), so {@code -Dbattle.swarm.worksToughness=1} records the before beside it.
+ * three Marines holding inside and a Brute coming at the near wall.
  */
 public final class SwarmBruteBreachSnapshotSuite extends BehaviorSceneSnapshotSuite {
 
@@ -26,8 +25,8 @@ public final class SwarmBruteBreachSnapshotSuite extends BehaviorSceneSnapshotSu
     /** The compound's wall ring, window-local and inclusive; its gate is the east side's middle two cells. */
     static final int LEFT = 16, RIGHT = 28, TOP = 6, BOTTOM = 18;
     /**
-     * Recorded frames (every 6 ticks) kept as stills, the same in every arm so a before and an after line up: the
-     * charge, then every five seconds to the end. A Brute alone opens a house-strength wall in about five seconds.
+     * Recorded frames (every 6 ticks) kept as stills: the charge, then every five seconds to the end. A Brute alone
+     * opens a house-strength wall in about five seconds.
      */
     static final int[] STILLS = {20, 50, 100, 150, 200, 249};
 
@@ -46,7 +45,7 @@ public final class SwarmBruteBreachSnapshotSuite extends BehaviorSceneSnapshotSu
     }
 
     @Override protected List<LookReview.Shot> lookShots() {
-        return List.of(new LookReview.Shot("works-wall-x" + FortifiedWorks.SWARM_TOUGHNESS, LookGround.verdant(), W, H,
+        return List.of(new LookReview.Shot("works-wall", LookGround.verdant(), W, H,
                 SwarmBruteBreachSnapshotSuite::stage,
                 placement -> List.of(
                         LookReview.View.followAtPlay(placement, "brute"),
