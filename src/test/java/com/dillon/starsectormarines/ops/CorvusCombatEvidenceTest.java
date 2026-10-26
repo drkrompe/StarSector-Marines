@@ -55,6 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -137,14 +138,29 @@ class CorvusCombatEvidenceTest {
                 sim.setCommandTraceEnabled(true, fixture.kind());
                 Set<Long> landed = new HashSet<>(), fallen = new HashSet<>(), enemyFallen = new HashSet<>();
                 var marineDeaths = new JSONArray();
+                // Who killed each marine: the latest Sable Wake hit landing within a cell and a half of where they fell
+                // in the last three seconds (a death carries no killer). {tick, shooter, x, y}.
+                var recentHits = new ArrayList<float[]>();
+                var killers = new TreeMap<String, Integer>();
                 sim.subscribeDeath(event -> {
                     long id = event.unitId();
                     if (sim.identity().faction(id) == Faction.DEFENDER) enemyFallen.add(id);
                     else if (sim.identity().faction(id) == Faction.MARINE && sim.identity().campaignSquadId(id) != null) fallen.add(id);
                     if (sim.identity().faction(id) == Faction.MARINE) try {
+                        for (var shot : sim.getShotsThisFrame()) if (shot.hit && shot.shooterFaction == Faction.DEFENDER)
+                            recentHits.add(new float[] {sim.getSimTickIndex(), shot.shooterId, shot.toX, shot.toY});
+                        String killer = "unattributed";
+                        for (int h = recentHits.size() - 1; h >= 0; h--) {
+                            float[] hit = recentHits.get(h);
+                            if (sim.getSimTickIndex() - hit[0] > 90) break;
+                            if (Math.hypot(hit[2] - event.x(), hit[3] - event.y()) > 1.5) continue;
+                            killer = shooterClass(sim, (long) hit[1]);
+                            break;
+                        }
+                        killers.merge(killer, 1, Integer::sum);
                         marineDeaths.put(new JSONObject().put("tick", sim.getSimTickIndex()).put("id", id)
                                 .put("type", sim.identity().type(id)).put("x", event.x()).put("y", event.y())
-                                .put("heavyImpacts", sim.getHeavyImpactsThisFrame()));
+                                .put("killer", killer).put("heavyImpacts", sim.getHeavyImpactsThisFrame()));
                         Files.writeString(dir.resolve("marine-deaths.json"), marineDeaths.toString(2));
                     } catch (Exception e) { throw new IllegalStateException(e); }
                 });
@@ -177,6 +193,7 @@ class CorvusCombatEvidenceTest {
                 int alarmTick = -1;
                 var warningCourse = new JSONArray();
                 String warningState = "";
+                int mortarShots = 0;
                 int houndLostAt = -1, infantryDeathsBeforeBombardment = -1;
                 int firstSalvoMounts = 0, firstCapitalShotAt = -1;
                 int peakInfantryPickups = 0, peakLandedPickups = 0;
@@ -275,6 +292,9 @@ class CorvusCombatEvidenceTest {
                         }
                     }
                     int tick = sim.getSimTickIndex();
+                    for (var shot : sim.getShotsThisFrame()) if (shot.hit && shot.shooterFaction == Faction.DEFENDER)
+                        recentHits.add(new float[] {tick, shot.shooterId, shot.toX, shot.toY});
+                    recentHits.removeIf(hit -> tick - hit[0] > 90);
                     int infantryPickups = 0, landedPickups = 0;
                     var flyingBoats = new ArrayList<FittedBoat>();
                     for (long air : sim.getAirEntityIds()) {
@@ -348,6 +368,7 @@ class CorvusCombatEvidenceTest {
                             if (charge.isComplete() && blown.add(charge.siteId()))
                                 chargesBlown.put(new JSONObject().put("site", charge.siteId()).put("name", charge.displayName()).put("tick", tick));
                         if (alarmTick < 0 && !watch.progress().quiet()) alarmTick = tick;
+                        for (var shot : sim.getShotsThisFrame()) if (watch.mortar() != 0L && shot.shooterId == watch.mortar()) mortarShots++;
                         String state = watch.progress().warning().name();
                         if (!state.equals(warningState)) {
                             warningState = state;
@@ -423,6 +444,7 @@ class CorvusCombatEvidenceTest {
                         .put("technicalTrack",technicalTrack).put("technicalFiredFrom",technicalFiredFrom)
                         .put("objectives",objectives(sim)).put("kits",kits);
                 report.put("dialogue", dialogue);
+                report.put("marineKillers", new JSONObject(killers));
                 var watch = sim.getBlindWatch();
                 if (watch != null) {
                     var watchReport = watch.report();
@@ -433,7 +455,7 @@ class CorvusCombatEvidenceTest {
                             .put("garnirWarned", watchReport.garnirWarned()).put("warningCourse", warningCourse)
                             .put("chargesBlown", chargesBlown).put("riggers", watchReport.riggers().name())
                             .put("schedule", watchReport.schedule().name()).put("coldStore", watchReport.coldStore().name())
-                            .put("mortarAlive", mortar != null && mortar.state != VehicleState.WRECKED && mortar.state != VehicleState.GONE));
+                            .put("mortarShots", mortarShots).put("mortarAlive", mortar != null && mortar.state != VehicleState.WRECKED && mortar.state != VehicleState.GONE));
                 }
                 var intervention = sim.getColdAccount();
                 if (intervention != null) {
@@ -534,6 +556,18 @@ class CorvusCombatEvidenceTest {
     private static float replaySpeed(BattleSimulation sim) {
         // Cold Account has mission speech throughout the approach as well as the intervention.
         return sim.getColdAccount() == null ? 8f : 1f;
+    }
+
+    /** What a Sable Wake shooter is, for the killer tally: a structure, a hull by type, or a crewman by duty. */
+    private static String shooterClass(BattleSimulation sim, long shooter) {
+        if (shooter == 0L) return "anonymous";
+        if (sim.convoy().isVehicle(shooter)) return "hull:" + sim.convoy().vehicleType(shooter);
+        var type = sim.identity().type(shooter);
+        if (type.isStatic()) return "structure:" + sim.identity().name(shooter);
+        var squad = sim.squadOf(shooter);
+        String name = sim.identity().name(shooter);
+        String duty = name.startsWith("sable-wake-") ? name.substring("sable-wake-".length()).replaceAll("-\\d+-\\d+$", "") : name;
+        return (squad != null && squad.holdsFireUntilKillZone ? "pillbox:" : "crew:") + duty;
     }
 
     private void writeFrame(BattleReviewFrameRenderer renderer, BattleSimulation sim, CorvusChapter chapter, Path dir) throws Exception {

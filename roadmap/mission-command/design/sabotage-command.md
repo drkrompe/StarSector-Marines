@@ -42,6 +42,12 @@ outside does not restart a finished entry/clear loop. The planting slot belongs
 to a carrier of that exact unfinished site's kit; a finished or different-site
 planter in the same campaign squad cannot take it.
 
+A site on **open ground** (in the map's open exterior, the zone that dwarfs every
+other, `ZoneGraph.exteriorZoneId`) has no room to clear or doorways to hold: its
+security squads defend the site's own cell (`DEFEND_SITE`) instead of clearing
+the zone, and the planting cordon is a ring of posts round the charge instead of
+the exterior's doorways, which are every door on the map.
+
 Security spreads across reachable unfinished sites before concentrating.
 Affinity survives ordinary pulses and may break on completion, loss,
 unreachability, or special-task handoff. Own force, route cost, and believed

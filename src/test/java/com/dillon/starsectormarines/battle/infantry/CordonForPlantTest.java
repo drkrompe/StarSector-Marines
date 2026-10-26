@@ -279,4 +279,18 @@ public class CordonForPlantTest {
         assertEquals(6, cordon.chargeCellX(), "planter-slot path target must be the charge cell X");
         assertEquals(6, cordon.chargeCellY(), "planter-slot path target must be the charge cell Y");
     }
+
+    @Test
+    public void anOpenGroundSiteIsCordonedByARingRoundTheChargeNotByTheMapsDoors() {
+        NavigationGrid grid = new NavigationGrid(20, 20);
+        for (int y = 0; y < 20; y++) for (int x = 0; x < 20; x++) grid.setWalkableFloor(x, y);
+        grid.setWalkable(10, 14, false);
+        var posts = CordonForPlant.ringPosts(10, 10, grid);
+        assertEquals(CordonForPlant.OPEN_GROUND_RING, posts.size());
+        for (var post : posts) {
+            assertTrue(grid.isWalkable(post.cellX, post.cellY));
+            double d = Math.hypot(post.cellX - 10, post.cellY - 10);
+            assertTrue(d >= 1 && d <= CordonForPlant.OPEN_GROUND_RING_RADIUS + .5, post.slotName() + " at " + d);
+        }
+    }
 }

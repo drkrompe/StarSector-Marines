@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 
+import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
@@ -16,6 +17,11 @@ import java.util.Set;
 /** Objective and own-force task facts legally disclosed to Sabotage command. */
 public final class SabotageCommandFacts {
 
+    /**
+     * One charge site as command sees it. {@code openGround} says the site stands in the map's open exterior (the one
+     * zone that dwarfs every other, {@link ZoneGraph#exteriorZoneId}): clearing that zone names no place, so the site is secured at
+     * its own cell instead.
+     */
     public record Site(
             int index,
             String id,
@@ -23,6 +29,7 @@ public final class SabotageCommandFacts {
             int cellX,
             int cellY,
             int zoneId,
+            boolean openGround,
             float progress,
             float plantDuration,
             boolean planterOnSite,
@@ -97,10 +104,12 @@ public final class SabotageCommandFacts {
         }
 
         List<Site> facts = new ArrayList<>(objectives.size());
+        int exterior = sim.getZoneGraph().exteriorZoneId();
         for (int i = 0; i < objectives.size(); i++) {
             ChargeSiteObjective site = objectives.get(i);
+            int zone = sim.getZoneGraph().zoneIdAt(site.cellX(), site.cellY());
             facts.add(new Site(i, site.siteId(), site.displayName(), site.cellX(), site.cellY(),
-                    sim.getZoneGraph().zoneIdAt(site.cellX(), site.cellY()),
+                    zone, zone >= 0 && zone == exterior,
                     site.progress(), site.plantDuration(), site.planterOnSite(),
                     site.isComplete(), activeKitDrops[i], unclaimedKitDrops[i],
                     new ArrayList<>(planterSquads.get(i)),

@@ -192,6 +192,25 @@ public final class ZoneGraph {
     public List<NavigationZone> getZones()   { return zones; }
     public List<Portal>         getPortals() { return portals; }
 
+    /** How many times the next zone the largest must be to count as the open exterior. */
+    public static final float EXTERIOR_DOMINANCE_RATIO = 2.0f;
+
+    /**
+     * The map's open exterior: the largest zone when it is at least {@link #EXTERIOR_DOMINANCE_RATIO} times the next,
+     * else -1 (a map of comparable rooms has none). Keyed on size, not id 0, since ids follow scan order. Its portals
+     * are every doorway on the map and its far cells the whole map, so a room-shaped order (clear it, cordon its doors)
+     * names no place there.
+     */
+    public int exteriorZoneId() {
+        int largest = -1, largestCells = 0, secondCells = 0;
+        for (NavigationZone zone : zones) {
+            int cells = zone.getCellCount();
+            if (cells > largestCells) { secondCells = largestCells; largestCells = cells; largest = zone.getZoneId(); }
+            else if (cells > secondCells) secondCells = cells;
+        }
+        return largest >= 0 && largestCells >= EXTERIOR_DOMINANCE_RATIO * secondCells ? largest : -1;
+    }
+
     /** Zone id containing the given cell, or -1 if the cell isn't part of any zone (e.g. a wall). */
     public int zoneIdAt(int x, int y) {
         if (!grid.inBounds(x, y)) return -1;

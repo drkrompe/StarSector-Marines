@@ -34,10 +34,20 @@ import java.util.List;
  * <p>Custom-plan goal: synthesizes one {@link HoldPortalCordon} step carrying
  * the zone's portal list (with a guard cell adjacent to each doorway on the
  * inside of the squad's zone). The backward chainer is bypassed.
+ *
+ * <p>A site on open ground ({@link ZoneGraph#exteriorZoneId}) has no room to
+ * cordon: its zone's doorways are every door on the map. There the guards
+ * stand a ring of {@link #OPEN_GROUND_RING} posts round the charge cell
+ * instead, so the squad goes to the site with its planter.
  */
 public final class CordonForPlant implements Goal {
 
     public static final CordonForPlant INSTANCE = new CordonForPlant();
+
+    /** Cells from the charge cell to each guard post of an open-ground site's ring. UNTUNED first pass. */
+    static final int OPEN_GROUND_RING_RADIUS = 4;
+    /** Guard posts round an open-ground site: the eight compass points. */
+    static final int OPEN_GROUND_RING = 8;
 
     private CordonForPlant() {}
 
@@ -53,6 +63,7 @@ public final class CordonForPlant implements Goal {
         int planterZone = findPlanterZone(squad, sim);
         if (planterZone < 0) return 0f;
         if (!hasEnteredZone(squad, planterZone, sim)) return 0f;
+        if (planterZone == sim.getZoneGraph().exteriorZoneId()) return 1.0f;
         NavigationZone zone = sim.getZoneGraph().zoneById(planterZone);
         if (zone == null || zone.getPortalIds().isEmpty()) return 0f;
         return 1.0f;
@@ -83,7 +94,9 @@ public final class CordonForPlant implements Goal {
         NavigationZone zone = sim.getZoneGraph().zoneById(planterZone);
         if (zone == null) return null;
 
-        List<HoldPortalCordon.GuardPost> posts = buildGuardPosts(zone, planterZone, sim);
+        List<HoldPortalCordon.GuardPost> posts = planterZone == sim.getZoneGraph().exteriorZoneId()
+                ? ringPosts(charge.cellX(), charge.cellY(), sim.getGrid())
+                : buildGuardPosts(zone, planterZone, sim);
         if (posts.isEmpty()) return null;
 
         List<SquadPlan.Step> steps = new ArrayList<>(1);
@@ -114,6 +127,26 @@ public final class CordonForPlant implements Goal {
             }
         }
         return null;
+    }
+
+    /**
+     * An open-ground site's guard posts: at each compass point {@link #OPEN_GROUND_RING_RADIUS} cells out, the walkable
+     * cell nearest it on the line back to the charge (none where the line is blocked all the way in). Their ids are
+     * negative, standing for no portal.
+     */
+    static List<HoldPortalCordon.GuardPost> ringPosts(int chargeX, int chargeY, NavigationGrid grid) {
+        List<HoldPortalCordon.GuardPost> posts = new ArrayList<>(OPEN_GROUND_RING);
+        for (int i = 0; i < OPEN_GROUND_RING; i++) {
+            double angle = 2 * Math.PI * i / OPEN_GROUND_RING;
+            for (int r = OPEN_GROUND_RING_RADIUS; r >= 1; r--) {
+                int x = chargeX + (int) Math.round(Math.cos(angle) * r), y = chargeY + (int) Math.round(Math.sin(angle) * r);
+                if (grid.inBounds(x, y) && grid.isWalkable(x, y)) {
+                    posts.add(new HoldPortalCordon.GuardPost(-1 - i, x, y));
+                    break;
+                }
+            }
+        }
+        return posts;
     }
 
     /**
