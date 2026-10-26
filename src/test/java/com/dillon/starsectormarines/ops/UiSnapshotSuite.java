@@ -82,6 +82,9 @@ import com.dillon.starsectormarines.battle.airsupport.AirPoolView;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.air.ArmorLoad;
 import com.dillon.starsectormarines.battle.air.LiftQueue;
+import com.dillon.starsectormarines.battle.power.LiftBudget;
+import com.dillon.starsectormarines.battle.power.BayManifest;
+import com.dillon.starsectormarines.battle.power.ArmorDropPower;
 import com.dillon.starsectormarines.battle.air.LiftQueueReadout;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
@@ -484,6 +487,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false)),
                 new SnapshotArtifact("battle-hud-powers-targeting-wide.png",
                         renderBattleHudPowerOverlay(context, renderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
+                new SnapshotArtifact("battle-hud-mech-drop-picker-wide.png",
+                        renderBattleHudDropPicker(context, renderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT)),
                 new SnapshotArtifact("battle-hud-air-idle-wide.png",
                         renderBattleAirOverlay(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
@@ -947,11 +953,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderBattleHudCommandOverlay(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, boolean groups) throws Exception {
+        return renderBattleHudCommandOverlay(context, renderer, width, height, groups, 2f);
+    }
+
+    private static BufferedImage renderBattleHudCommandOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, boolean groups, float speed) throws Exception {
         BufferedImage image = renderBattleBackdrop(width, height);
         Reactor reactor = new Reactor();
         BattleHudOverlayModel model = new BattleHudOverlayModel(reactor,
                 ignored -> { }, "Pause", "1x", "2x", "4x");
-        BattleHudOverlayModel.Presentation presentation = model.updateProjected(2f, List.of(
+        BattleHudOverlayModel.Presentation presentation = model.updateProjected(speed, List.of(
                 capture(TacticalNode.Kind.COMMAND_POST,
                         CompoundService.CompoundState.MARINE_HELD, 0f),
                 capture(TacticalNode.Kind.BARRACKS,
@@ -1055,18 +1067,45 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     private static BufferedImage renderBattleHudPowerOverlay(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height) throws Exception {
+        return renderBattleHudPowerOverlay(context, renderer, width, height, "orbital_barrage", List.of(), 2f);
+    }
+
+    /**
+     * Mech Support armed with its bay picker open over the placement pause: a Hound picked, a Warden
+     * aboard, a Bulwark the mission cannot lift, and an APC already queued.
+     */
+    private static BufferedImage renderBattleHudDropPicker(
+            SnapshotContext context, HeadlessUiRenderer renderer, int width, int height) throws Exception {
+        BayManifest manifest = BayManifest.of(List.of(
+                MechDeploymentSpec.standard(MechVariant.HOUND),
+                MechDeploymentSpec.standard(MechVariant.WARDEN),
+                MechDeploymentSpec.standard(MechVariant.BULWARK)),
+                List.of(VehicleDeploymentSpec.standard(VehicleType.HEAVY_APC)));
+        List<ArmorDropPower.PickerRow> rows = List.of(
+                new ArmorDropPower.PickerRow(manifest.get(0), ArmorDropPower.Status.ABOARD, true, null),
+                new ArmorDropPower.PickerRow(manifest.get(1), ArmorDropPower.Status.ABOARD, false, null),
+                new ArmorDropPower.PickerRow(manifest.get(2), ArmorDropPower.Status.ABOARD, false,
+                        LiftBudget.Refusal.NO_LIFT),
+                new ArmorDropPower.PickerRow(manifest.get(3), ArmorDropPower.Status.QUEUED, false, null));
+        return renderBattleHudPowerOverlay(context, renderer, width, height, "mech_support", rows, 0f);
+    }
+
+    private static BufferedImage renderBattleHudPowerOverlay(
+            SnapshotContext context, HeadlessUiRenderer renderer, int width, int height,
+            String armed, List<ArmorDropPower.PickerRow> pickerRows, float speed) throws Exception {
         BufferedImage image = renderBattleHudCommandOverlay(
-                context, renderer, width, height);
+                context, renderer, width, height, false, speed);
         Reactor reactor = new Reactor();
         BattlePowerOverlayModel model = new BattlePowerOverlayModel(
                 reactor, ignored -> { }, snapshotCommodities());
         List<BattlePowerOverlayModel.PowerState> powers = List.of(
                 power("recon_ping", "Recon Ping", 2f, 0, 7.4f, -1),
-                power("mech_support", "Mech Support", 4f, 0, 0f, 2),
+                power("mech_support", "Mech Support", 0f, 0, 0f, 3),
                 power("emergency_resupply", "Resupply", 3f, 0, 0f, 1),
                 power("orbital_barrage", "Orbital Barrage", 4f, 20, 0f, 1),
                 power("marine_insertion", "Marine Drop", 3f, 2, 0f, 0));
-        model.updateProjected(4f, 10f, 22, powers, "orbital_barrage");
+        BattlePowerOverlayModel.Presentation presentation = model.withPicker(
+                model.updateProjected(4f, 10f, 22, powers, armed), pickerRows);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 context.modRoot().resolve(path)), BATTLE_HUD_COMPONENTS);
         loader.reload();
@@ -1076,8 +1115,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             UiDocument document = new UiDocument(instance.root());
             for (var style : instance.styles()) document.addStyleSheet(style);
             document.theme(MarineOpsThemes.standard());
-            int overlayWidth = Math.round(BattlePowerOverlay.documentWidth(powers.size()));
-            int overlayHeight = Math.round(BattlePowerOverlay.TARGETING_HEIGHT);
+            int overlayWidth = Math.round(BattlePowerOverlay.documentWidth(presentation));
+            int overlayHeight = Math.round(BattlePowerOverlay.documentHeight(presentation));
             BufferedImage overlay = renderer.render(document, overlayWidth, overlayHeight);
             Graphics2D graphics = image.createGraphics();
             graphics.drawImage(overlay,

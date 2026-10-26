@@ -29,8 +29,8 @@ final class BattlePowerOverlay {
     static final float DECK_HEIGHT = 64f;
     static final float TARGETING_HEIGHT = 88f;
     /** Added above the targeting strip while an armor drop's bay picker is open. */
-    static final float PICKER_HEIGHT = 61f;
-    private static final float CHIP_WIDTH = 128f;
+    static final float PICKER_HEIGHT = 78f;
+    private static final float CHIP_WIDTH = 136f;
     private static final float CHIP_GAP = 4f;
     private static final float PICKER_PADDING = 16f;
     private static final float RESOURCE_WIDTH = 96f;

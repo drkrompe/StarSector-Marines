@@ -6,7 +6,7 @@
     </div>
     <div id="battle-power-picker" class="{pickerClasses}">
       <button each="chip in pickerChips" key="{chip.id}" id="{chip.id}" class="{chip.classes}" disabled="{chip.disabled}" onclick="{chip.action}">
-        <div id="{chip.nameId}" class="label pick-name">{chip.name}</div>
+        <div id="{chip.nameId}" class="label heading pick-name">{chip.name}</div>
         <div id="{chip.callsignId}" class="label pick-callsign">{chip.callsign}</div>
         <div id="{chip.weightId}" class="label pick-weight">{chip.weight}</div>
         <div id="{chip.stateId}" class="label pick-state">{chip.state}</div>
@@ -68,7 +68,7 @@
 
   .power-picker {
     width: 100%;
-    height: 53px;
+    height: 70px;
     flex-direction: row;
     padding: 3px 7px;
     gap: 4px;
@@ -82,8 +82,8 @@
   }
 
   .pick-chip {
-    width: 116px;
-    height: 45px;
+    width: 124px;
+    height: 62px;
     flex-direction: column;
     padding: 3px 5px;
     gap: 1px;
@@ -99,19 +99,19 @@
   .pick-selected { background-color: #3a3018; border-color: #ffd464; }
   .pick-refused { background-color: #1c251fdd; border-color: #445447; }
   .pick-refused:hover { background-color: #1c251fdd; border-color: #445447; }
-  .pick-name { width: 100%; height: 10px; font-family: compact; color: #c1cbc3; }
-  .pick-callsign { width: 100%; height: 10px; font-family: compact; color: #a0ada8; }
-  .pick-weight { width: 100%; height: 10px; font-family: compact; color: #8c9a90; }
-  .pick-state { width: 100%; height: 12px; font-family: compact; color: #78d494; }
+  .pick-name { width: 100%; height: 14px; color: #dfe7e1; }
+  .pick-callsign { width: 100%; height: 13px; color: #b4c0ba; }
+  .pick-weight { width: 100%; height: 13px; color: #a8b6ac; }
+  .pick-state { width: 100%; height: 13px; color: #78d494; }
   .pick-selected .pick-name { color: #ffd464; }
   .pick-selected .pick-state { color: #ffd464; }
-  .pick-refused .pick-name { color: #829083; }
-  .pick-refused .pick-callsign { color: #6d7a70; }
-  .pick-refused .pick-weight { color: #6d7a70; }
-  .pick-refused .pick-state { color: #d48a6a; }
+  .pick-refused .pick-name { color: #a9b5ab; }
+  .pick-refused .pick-callsign { color: #8c9a90; }
+  .pick-refused .pick-weight { color: #8c9a90; }
+  .pick-refused .pick-state { color: #e8a07e; }
 
   .targeting-label { height: 14px; flex-grow: 1; color: #ffd464; }
-  .targeting-hint { width: 190px; height: 14px; text-align: right; color: #bcae82; }
+  .targeting-hint { width: 380px; height: 14px; text-align: right; color: #bcae82; }
 
   .power-deck {
     width: 100%;
