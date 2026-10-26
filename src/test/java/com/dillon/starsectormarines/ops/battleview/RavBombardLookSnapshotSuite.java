@@ -33,6 +33,8 @@ public final class RavBombardLookSnapshotSuite implements SnapshotSuite {
 
     private static final float DT = 1f / 30f;
     private static final int TICKS = 360;
+    /** The walker stops and turns on the spot from here, seconds. */
+    private static final float TURN_AT = 6f;
     /** Screen px per cell: about seven times the game's normal battle zoom. */
     private static final float PPC = 170f;
     /** The lob panel's script, seconds: walking in, planting ({@code SwarmBombards}' plant), winding up, the release. */
@@ -80,10 +82,15 @@ public final class RavBombardLookSnapshotSuite implements SnapshotSuite {
         String lastLobBeat = null;
         for (int tick = 0; tick < TICKS; tick++) {
             float t = tick * DT;
-            float facing = 30f * (float) Math.sin(2 * Math.PI * t / 4.0);
+            // walking, weaving, for six seconds; then turning on the spot, a half turn each way
+            boolean turning = t >= TURN_AT;
+            float facing = turning ? 180f * (float) Math.sin(Math.PI * (t - TURN_AT) / 3.0)
+                    : 30f * (float) Math.sin(2 * Math.PI * t / 4.0);
             double rad = Math.toRadians(facing);
-            walkX += (float) -Math.sin(rad) * 1.1f * DT;
-            walkY += (float) Math.cos(rad) * 1.1f * DT;
+            if (!turning) {
+                walkX += (float) -Math.sin(rad) * 1.1f * DT;
+                walkY += (float) Math.cos(rad) * 1.1f * DT;
+            }
             walker.advance(walkX, walkY, facing, 0f, 0f, 0f, DT);
 
             if (t < PLANT_AT || t >= WALK_OFF_AT) lobY += 1.1f * DT;
@@ -107,7 +114,8 @@ public final class RavBombardLookSnapshotSuite implements SnapshotSuite {
             text(g, "1920 × 1080 · 100%% UI scale · production RavBombardComposer · %.0f px per cell · tick %d"
                     .formatted(PPC, tick), 40, 86, 17);
             for (int p = 0; p < 3; p++) panel(g, 40 + p * 620, 600);
-            text(g, "Walking: legs %+.0f°, tail %+.0f°".formatted(walker.legSwing(true), walker.tailYaw(6)), 50, 1050, 15);
+            text(g, "%s: front left leg %+.0f°, %s".formatted(turning ? "Turning on the spot" : "Walking",
+                    walker.legAngle(1), walker.legLift(1) > 0f ? "stepping" : "planted"), 50, 1050, 15);
             text(g, "Lob: %s · plant %.2f, wind-up %.2f, curl %.2f".formatted(beat, planted, windup, lobber.curl()),
                     670, 1050, 15);
             text(g, dying.dead() ? "Dead: fallen apart, %.1f s".formatted(dying.sinceDeath()) : "Winding up, about to die",
