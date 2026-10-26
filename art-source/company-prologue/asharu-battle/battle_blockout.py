@@ -336,8 +336,9 @@ def jinking(key, pose, t, t0, t1, v=None, amp=1.0, **kw):
 # Colossus's port bow on the same side, each aimed at her and holding still (a point on her that moves
 # with her, so her weave on station stays framed).
 S1_AIM_AT = (-12.0, -40.0, -10.0)
-S1_RANGE = 8200.0
+S1_RANGE = 3000.0
 S1_EYE = tuple(S1_AIM_AT[i] + S1_RANGE * c for i, c in enumerate((-.55, .69, .41)))
+S1_LIFT = 650.0     # how far above the Colossus S1's pan opens: the limb up top, the column low in frame
 S2_AIM_AT = (-60.0, -60.0, -10.0)
 S2_EYE = tuple(S2_AIM_AT[i] + 3500.0 * c for i, c in enumerate((-.47, .85, .24)))
 
@@ -354,6 +355,13 @@ def track(pose, point, share=1.0, lag=0.0):
 
 
 S1_AIM = track(convoy_at(16)['colossus'], S1_AIM_AT)
+
+
+def s1_pan(t):
+    """S1's aim: opens above the column on the limb and tilts down onto the Colossus by 22 s."""
+    u = min(1.0, max(0.0, (t - 16.4) / 5.6))
+    a = S1_AIM(t)
+    return (a[0], a[1], a[2] + S1_LIFT * (1.0 - u * u * (3.0 - 2.0 * u)))
 
 
 def lit(t0, level=.6, ramp=1.5):
@@ -873,14 +881,11 @@ KEYFRAMES = {
         caption='A working convoy in loose column over the day side, slowing for its descent window: the Colossus '
                 'with Morrow alongside, a Tarsus, a Mule, a Phaeton tanker, Buffalos and a Dram, escorted by '
                 'three Lashers, a Wolf and a Hound.',
-        # THE SATELLITE OPTIC, FOCUSING IN (owner, 2026-10-26): a far observer off the north flank, 8 km
-        # out and holding still, wide on the whole column against the limb, then one slow motor zoom onto
-        # the Colossus and Morrow (28 to 150 mm), a last focus breath at the end. No dolly, no pan, no shake.
-        camera=camera('k1', [dict(t=16, loc=S1_EYE, target=S1_AIM, lens=28),
-                             dict(t=17.2, loc=S1_EYE, target=S1_AIM, lens=30),
-                             dict(t=22.6, loc=S1_EYE, target=S1_AIM, lens=138, focus=S1_RANGE * .9),
-                             dict(t=23.2, loc=S1_EYE, target=S1_AIM, lens=150, focus=S1_RANGE),
-                             dict(t=24, loc=S1_EYE, target=S1_AIM, lens=150, focus=S1_RANGE)], 16),
+        # THE STEADY REGROUNDING (owner, 2026-10-26): after S1a's satellite zoom, no zoom here. A still
+        # observer off the north flank, 3 km out on one lens, pans: it opens up on the limb with the column
+        # low in frame and tilts down to settle on the Colossus and Morrow. No dolly, no zoom, no shake.
+        camera=camera('k1', [dict(t=16, loc=S1_EYE, target=s1_pan, lens=45, focus=S1_RANGE),
+                             dict(t=24, loc=S1_EYE, target=s1_pan, lens=45, focus=S1_RANGE)], 16),
         ships=convoy_at(16),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'buffalo-b', 'dram',
                 'lasher-lead', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
