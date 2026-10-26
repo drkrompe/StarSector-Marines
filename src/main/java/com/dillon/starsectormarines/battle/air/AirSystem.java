@@ -542,8 +542,9 @@ public class AirSystem {
         world.setKinematics(id, body);
         world.setMission(id, mission);
         seedDurability(id, flying, faction);
-        // A company boat carries her shield and its flux pool, facing her nose (map degrees).
-        if (boatShields != null && flying instanceof FittedBoat boat) {
+        // A company boat carries her shield and its flux pool, facing her nose (map degrees), unless she flies
+        // without an emitter.
+        if (boatShields != null && flying instanceof FittedBoat boat && boat.shieldSpec() != null) {
             boatShields.fit(id, boat.shieldSpec(), boat.shieldTint(), body.facingDegrees + 90f);
         }
         // Seed the authored render-state column (cruise altitude, zero wobble

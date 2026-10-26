@@ -34,7 +34,7 @@ public final class CompanyPreparation {
     /** The first lift's materials, or nothing once a compatible boat is airworthy. */
     public static List<FabricationCost.Line> boatBill(MarineRoster roster, ShuttleType pattern) {
         Map<String, Integer> quantities = new LinkedHashMap<>();
-        if (roster.boatDeck().airworthy().stream().noneMatch(b -> b.pattern() == pattern)) {
+        if (roster.boatDeck().flightReady().stream().noneMatch(b -> b.pattern() == pattern)) {
             BoatFabricationCatalog.Recipe recipe = BoatFabricationCatalog.recipe(pattern);
             if (recipe != null) for (var line : recipe.bill().lines())
                 quantities.merge(line.commodityId(), line.quantity(), Integer::sum);

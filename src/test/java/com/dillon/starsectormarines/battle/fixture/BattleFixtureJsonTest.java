@@ -69,6 +69,7 @@ import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
+import java.util.EnumMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -227,6 +228,9 @@ class BattleFixtureJsonTest {
                 BoatFittingSlot.EMITTER, BoatFitting.WIDE_EMITTER,
                 BoatFittingSlot.POWER, BoatFitting.CAPACITOR_BANK), "boat_04",
                 new String[]{BoatGun.ARBALEST.structureId()});
+        // Her emitter and her yard gun stripped off on the deck: she flies unshielded, her first hardpoint bare.
+        Map<BoatFittingSlot, BoatFitting> unshielded = new EnumMap<>(BoatFittingSlot.class);
+        unshielded.put(BoatFittingSlot.EMITTER, null);
         CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
                 17L,
                 List.of(
@@ -234,8 +238,8 @@ class BattleFixtureJsonTest {
                         new ShuttleAssignment(armoured, 2, 6),
                         new ShuttleAssignment(
                                 FittedBoat.standard(ShuttleType.AEROSHUTTLE), 1, 6),
-                        new ShuttleAssignment(new FittedBoat(ShuttleType.HERMES, Map.of(), "boat_01",
-                                new String[]{null, null, BoatGun.SRM_POD.structureId()}), 1, 4)),
+                        new ShuttleAssignment(new FittedBoat(ShuttleType.HERMES, unshielded, "boat_01",
+                                new String[]{FittedBoat.BARE, null, BoatGun.SRM_POD.structureId()}), 1, 4)),
                 false,
                 RiskLevel.LOW,
                 12,
@@ -261,8 +265,9 @@ class BattleFixtureJsonTest {
                 manifest.get(2).airframe);
         assertNull(((FittedBoat) manifest.get(2).airframe).boatId(),
                 "a fitted frame nobody owns names no boat and must not invent one");
-        assertEquals(Arrays.asList(BoatGun.HEAVY_MG.structureId(), null, BoatGun.SRM_POD.structureId()),
+        assertEquals(Arrays.asList(null, null, BoatGun.SRM_POD.structureId()),
                 ((FittedBoat) manifest.get(3).airframe).guns(), "a bare hardpoint reads back bare");
+        assertNull(((FittedBoat) manifest.get(3).airframe).shieldSpec(), "a boat without an emitter reads back unshielded");
     }
 
     @Test

@@ -26,14 +26,14 @@ public final class BoatFrame {
     /** What a boat's fitted parts weigh. */
     public static int weight(CampaignBoat boat) {
         int total = 0;
-        for (BoatFittingSlot slot : BoatFittingSlot.values()) total += boat.fittingIn(slot).weight();
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) total += fittingWeight(boat.fittingIn(slot));
         for (int index = 0; index < boat.pattern().hardpoints(); index++) total += gunWeight(boat, index, boat.gunOn(index));
         return total;
     }
 
     /** What the boat would weigh with {@code fitting} in its slot instead of what is there. */
     public static int weightWith(CampaignBoat boat, BoatFitting fitting) {
-        return weight(boat) - boat.fittingIn(fitting.slot()).weight() + fitting.weight();
+        return weight(boat) - fittingWeight(boat.fittingIn(fitting.slot())) + fitting.weight();
     }
 
     /** What the boat would weigh with {@code gun} on hardpoint {@code index} instead of what is there. */
@@ -48,6 +48,10 @@ public final class BoatFrame {
      */
     public static boolean admits(CampaignBoat boat, int before, int after) {
         return after <= rating(boat.pattern()) || after <= before;
+    }
+
+    private static int fittingWeight(BoatFitting fitting) {
+        return fitting == null ? 0 : fitting.weight();
     }
 
     private static int gunWeight(CampaignBoat boat, int index, BoatGun gun) {
