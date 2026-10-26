@@ -151,6 +151,8 @@ public final class ColonyRedoubts {
             return plain < 0 ? null : new Holdout(plain, null, 0L, -1);
         }
         RedoubtWorks.lay(sim, works);
+        // A redoubt is the place relief is sent to: its barricade stands up to the swarm as works, a roadblock's does not.
+        FortifiedWorks.mark(sim.getGrid(), works.left() - 1, works.top() - 1, works.right() + 1, works.bottom() + 1);
         long gun = works.gunX() >= 0
                 ? ColonyMilitia.seatEmplacement(sim, new int[]{works.gunX(), works.gunY()}, "redoubt-gun-" + number)
                 : 0L;

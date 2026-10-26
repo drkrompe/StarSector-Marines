@@ -435,6 +435,7 @@ public final class CivilDefenceCompound {
         NavigationGrid grid = sim.getGrid();
         CellTopology topology = sim.getTopology();
         int surface = topology.surfaceIndex(InstallationWalls.PERIMETER);
+        FortifiedWorks.mark(grid, plan.left(), plan.top(), plan.right(), plan.bottom());
         for (Map.Entry<Long, Kind> e : plan.cells().entrySet()) {
             int x = x(e.getKey()), y = y(e.getKey());
             if (e.getValue() == Kind.GUN) {

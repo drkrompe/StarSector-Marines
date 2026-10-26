@@ -46,6 +46,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
+import com.dillon.starsectormarines.battle.evacuation.FortifiedWorks;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -518,6 +519,13 @@ public final class CordonSetup {
                 InfantryLoadoutRolls::lateCampaignSquad);
         List<CordonRedoubt> redoubts = CordonGarrisons.man(sim, map, cordon.plan(), GARRISON_RISK,
                 new Random(cordon.battleSeed() ^ GARRISON_SALT));
+        // The beats' set pieces are the objectives the company is sent to: their walls stand up to the swarm as works.
+        for (Laid piece : map.layout.pieces()) {
+            if (piece.kind() != Laid.Kind.STRUCTURE || !piece.isLaid() || piece.cells().size() != 2) continue;
+            int[] a = piece.cells().get(0), b = piece.cells().get(1);
+            FortifiedWorks.mark(sim.getGrid(), Math.min(a[0], b[0]) - 1, Math.min(a[1], b[1]) - 1,
+                    Math.max(a[0], b[0]) + 1, Math.max(a[1], b[1]) + 1);
+        }
         List<Long> pickets = CordonGarrisons.manPickets(sim, map.layout);
         CordonFront.grow(sim, cordon.plan(), cordon.corridor(), CordonFront.DEFAULT_TIERS, cordon.battleSeed());
         if (!sim.configureSwarmFromBores(cordon.battleSeed())) {

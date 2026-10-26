@@ -106,7 +106,12 @@ public class NavigationGrid {
          * walking like any natural solid; only {@code HeavyTracks} reads it as
          * open, and crushing it clears it.
          */
-        CRUSHABLE;
+        CRUSHABLE,
+        /**
+         * Ground of a fort or an objective: a swarm strain's structural hits on what stands here count for less
+         * ({@code FortifiedWorks}). Movement, sight and cover never read it.
+         */
+        WORKS;
 
         public long mask() { return 1L << ordinal(); }
     }
@@ -265,6 +270,14 @@ public class NavigationGrid {
     public boolean hasTag(int x, int y, CellTag tag) {
         if (!inBounds(x, y)) return false;
         return (cellFlags[index(x, y)] & tag.mask()) != 0L;
+    }
+
+    /**
+     * Marks a cell as {@link CellTag#WORKS}. Nothing that moves or sees reads the bit, so unlike {@link #setTag} it
+     * records no topology or opacity change and wakes no route or field rebuild.
+     */
+    public void markWorks(int x, int y) {
+        if (inBounds(x, y)) cellFlags[index(x, y)] |= CellTag.WORKS.mask();
     }
 
     public boolean hasTagAt(int idx, CellTag tag) {

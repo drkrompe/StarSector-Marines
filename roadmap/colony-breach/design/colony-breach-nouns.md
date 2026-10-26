@@ -449,7 +449,10 @@ on at the line. A body whose way on runs through a barricade stops at the piece
 and claws at it on its strike cooldown (a Runner's blow is light, a Brute's
 heavy), and the gap a broken piece leaves is where the pack pours through. A
 prepared position is therefore assaulted head on rather than flanked, which is
-what makes it read as one. Ordinary yard fences elsewhere in the town stay walls.
+what makes it read as one. A redoubt's barricade ring is works and takes many
+times the blows a roadblock's does, and a charge rams it rather than bowling a
+piece over (`combat-durability-nouns.md`, Fortified works). Ordinary yard fences
+elsewhere in the town stay walls.
 A damaged hedgehog stands bent with a girder knocked loose; a destroyed one lies
 toppled flat and gives no cover. Trucks do not break.
 `-Dbattle.swarm.barricadeAssault=false` is the control: barricades are walls,
@@ -520,7 +523,9 @@ It is a proper work, but a civil one, partway between a house with sandbags and
 a Conquest fort and copied from neither. Its program owes nothing military (no
 keep, barracks, armoury or guard post, each of which would publish a node of
 the defender's, and on this map the defender is the swarm), and its wall is
-colony-grade, light enough for a Brute, a charge or a shell to breach. The
+colony-grade, light enough for a Brute, a charge or a shell to breach, though the compound
+is works and holds a Brute off several times longer than a house wall
+(`combat-durability-nouns.md`, Fortified works). The
 militia make the rest of it when the battle is set up:
 
 - a squat **tower** on each outer corner of the wall;
