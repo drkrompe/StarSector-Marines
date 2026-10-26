@@ -1,6 +1,6 @@
 # Boat refit axes: the Hermes as the company's boat
 
-Status: PLANNED — design decided; tier numbers and part list still to author
+Status: IN PROGRESS — slices below; tier numbers authored in slice 2
 Written: 2026-10-26
 Updated: 2026-10-26 — owner answered every picks question: cycle, lift, shield and flux, weapons, saves, patterns and ship changes.
 
@@ -160,6 +160,36 @@ migration.
   card-sheet or matchup evidence run, not in this doc.
 - The energy guns and missile pods themselves: names, turret structures and
   art, against the turret catalog.
+
+## Slices
+
+Each slice is a green, integrable commit chain.
+
+1. **Campaign simplification.** Delete Secondhand Wings (offer, notice,
+   modal, model, campaign hook, the deck's conversion record, the hull's
+   Aeroshuttle adapter, strings, tests, snapshot suite). The two Hermes move
+   with the company: `BoatDeck.reconcile` stops leaving boats behind or
+   changing pattern, `LeftBehind` goes, and a boat with no berth is stowed.
+   Independent of the rest.
+2. **Catalog, sockets and frame budget.** The Hermes takes every part. Sockets
+   for drive, hold (lift Light to Heavy), cabin (seats), plating, emitter and
+   power, each part with tiers, a weight and a bill; the frame rating; the
+   workshop refusing an over-budget fit; the Boat Deck doll, stores and a
+   frame meter. `FittedBoat` carries the new parts but the battle reads only
+   what it reads today.
+3. **Seats, deboard and load in battle.** `FittedBoat` gives seats, deboard
+   cadence and speed for what is aboard; `AirSystem` and `LiftQueueReadout`
+   read them. Needs slice 2.
+4. **Three turret slots and weapon families.** All of the hull's turret slots
+   become gun sockets; energy guns and missile pods join the door guns; mount
+   type is bent for boats. Needs slice 2.
+5. **Boat flux and shield in battle.** One pool fed by gunfire, shield upkeep
+   and blocked hits, on the warship's rules; overload drops the shield and
+   silences the guns. Needs slices 2 and 4.
+6. **Shield arc in the dome shader.** An arc mask (facing, width) on
+   `ShieldDomeShader`, the dome being the full circle, proven by
+   `shaderEvidence` and a look shot; then boats draw their shield with it.
+   The mask is independent; wiring boats to it needs slice 5.
 
 ## Owner answers (2026-10-26)
 
