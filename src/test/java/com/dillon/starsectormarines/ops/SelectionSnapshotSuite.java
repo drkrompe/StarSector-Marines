@@ -51,7 +51,8 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         return List.of(renderSelection(context, true), renderSelection(context, false),
                 renderFightingPositions(context), renderLine(context, false), renderLine(context, true),
-                renderAttached(context), renderMixedGroup(context, false), renderMixedGroup(context, true));
+                renderAttached(context), renderMixedGroup(context, false), renderMixedGroup(context, true),
+                renderAttachedLine(context, false), renderAttachedLine(context, true));
     }
 
     private SnapshotArtifact renderSelection(SnapshotContext context, boolean group) throws Exception {
@@ -272,6 +273,38 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
             }
             sim.getFogOfWar().tick(0, sim.getRoster());
             return new SnapshotArtifact(moved ? "mixed-group-moved.png" : "mixed-group-line-preview.png",
+                    renderWorld(context, sim, highlights, selection));
+        }
+    }
+
+    /**
+     * A squad with a Hound attached, given a dragged line: while the drag is held, the marines' rings on
+     * the first of its stretch and the Hound's post after them; once released and walked, all of them
+     * standing there, the Hound still tethered to its squad.
+     */
+    private SnapshotArtifact renderAttachedLine(SnapshotContext context, boolean held) throws Exception {
+        SceneWorld world = SceneBuilder.openGround(64, 36)
+                .squad("alpha").size(6).inFile(14, 14, 1, 0).done()
+                .squad("hound").size(1).at(12, 20).mech(MechVariant.HOUND, MechRole.ASSAULT).done()
+                .squad("enemy").faction(Faction.DEFENDER).size(2).inFile(62, 34, 1, 0).done()
+                .build();
+        try (BattleSimulation sim = world.sim()) {
+            int alpha = world.squadId("alpha");
+            sim.getMechAttachmentService().requestAttach(world.squadId("hound"), alpha);
+            sim.advance(1f / 30f);
+            Selection selection = new Selection();
+            selection.selectSquad(alpha);
+            HighlightOverlay highlights = new HighlightOverlay();
+            if (held) {
+                SelectionOrders.requestLine(sim, selection, 40, 8, 40, 30);
+                for (int i = 0; i < 1200; i++) sim.advance(1f / 30f);
+                SquadMoveOrderHighlightPublisher.publish(selection, sim, highlights);
+            } else {
+                highlights.putLines(HighlightOverlay.SRC_SQUAD_LINE_PREVIEW,
+                        SelectionOrders.previewMarks(sim, selection, 40, 8, 40, 30));
+            }
+            sim.getFogOfWar().tick(0, sim.getRoster());
+            return new SnapshotArtifact(held ? "attached-line-held.png" : "attached-line-preview.png",
                     renderWorld(context, sim, highlights, selection));
         }
     }
