@@ -43,12 +43,9 @@ FAMILIES = {
     "beds": ("The room and the set", "The operations room's air and the CRT's hum, under everything."),
 }
 ORDER = list(FAMILIES)
-ROUND = 3
+ROUND = 4
 # the owner's notes from the round before, shown on the card they were left on
-PRIOR = {
-    "answer": "A is the closest, but it's a very bright sound effect instead of neutral",
-    "stamp": "every option denied, no note",
-}
+PRIOR = {}
 
 
 def mp3(x, path, solo=False):
@@ -98,7 +95,7 @@ def build(videos):
             about += " Picked: %s, %s." % (pa.CHOICE[fam], pa.OPTIONS[fam][pa.CHOICE[fam]][0])
         if fam in PRIOR:
             about += " Your note last round: “%s”." % PRIOR[fam]
-        families.append(dict(id=fam, doc=fam + ("-r%d" % ROUND if review else ""), title=title, about=about, options=opts,
+        families.append(dict(id=fam, doc=fam + ("-r%d" % ROUND if review else "-final" if not pa.REVIEW else ""), title=title, about=about, options=opts,
                              cues=sorted(cues[fam], key=lambda c: (c["shot"] != "s0", c["t"]))))
     page = (HERE / "sound-review.html").read_text(encoding="utf-8")
     page = page.replace("__FAMILIES__", json.dumps(families, ensure_ascii=False))

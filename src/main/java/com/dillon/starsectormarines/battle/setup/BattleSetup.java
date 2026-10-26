@@ -1625,20 +1625,23 @@ public final class BattleSetup {
      * for the alarm.
      */
     /**
-     * Sable Wake's rocket truck lies in wait in the east yard, among its cargo and barriers, covering the ledger room's
-     * east door: the pump house hides it from the south yard, so a mech walking round to that door meets its rockets
-     * at a dozen cells rather than seeing it from beyond their reach. The aim is a cell; the hull takes the nearest its
-     * footprint clears. It does not drive: the yard's cover leaves a hull no way out of it.
+     * Sable Wake's rocket truck parks at the first of the map's stands for it, in the east yard by the ledger room's
+     * east door, and from the alarm works the yard's corners down the lane the map leaves it
+     * ({@code DustLedgerTechnical}). A stand is a cell; the hull takes the nearest its footprint clears.
      */
-    private static final int[] DUST_LEDGER_TECHNICAL_AMBUSH = {206, 48};
-
-    private static void spawnDustLedgerTechnical(BattleSimulation sim, DustLedgerSequence ledger) {
+    private static void spawnDustLedgerTechnical(BattleSimulation sim, DustLedgerSequence ledger,
+                                                 List<DustLedgerCrossing.Cell> standCells) {
         VehicleType type = VehicleType.SRM_TECHNICAL;
         VehicleClearance mask = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(type.visualWidthCells));
-        int[] at = nearestClear(mask, DUST_LEDGER_TECHNICAL_AMBUSH);
-        long technical = sim.convoy().spawn(type, Faction.DEFENDER, VehicleMission.deployed(at[0] + .5f, at[1] + .5f));
-        sim.convoy().body(technical).teleport(at[0] + .5f, at[1] + .5f, 180f);
-        ledger.technical(technical);
+        List<DustLedgerSequence.Cell> stands = new ArrayList<>();
+        for (DustLedgerCrossing.Cell cell : standCells) {
+            int[] at = nearestClear(mask, new int[] {cell.x(), cell.y()});
+            stands.add(new DustLedgerSequence.Cell(at[0], at[1]));
+        }
+        DustLedgerSequence.Cell park = stands.get(0);
+        long technical = sim.convoy().spawn(type, Faction.DEFENDER, VehicleMission.deployed(park.x() + .5f, park.y() + .5f));
+        sim.convoy().body(technical).teleport(park.x() + .5f, park.y() + .5f, 180f);
+        ledger.technical(sim, technical, stands);
     }
 
     /** The cell nearest {@code aim} (ring by ring) where a hull of {@code mask}'s clearance fits. */
@@ -1755,7 +1758,7 @@ public final class BattleSetup {
                 layout.shops()::contains);
         DustLedgerSequence ledger = sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam);
         ledger.defences(sim, nests, pillboxSquads);
-        spawnDustLedgerTechnical(sim, ledger);
+        spawnDustLedgerTechnical(sim, ledger, layout.technicalStands());
         sim.setAutonomousCommander(Faction.MARINE, new RaidCommand(), RaidCommandDisclosure.INSTANCE);
         sim.setAutonomousCommander(Faction.DEFENDER, new RaidDefenderCommand(mobile),
                 RaidDefenderCommandDisclosure.INSTANCE);

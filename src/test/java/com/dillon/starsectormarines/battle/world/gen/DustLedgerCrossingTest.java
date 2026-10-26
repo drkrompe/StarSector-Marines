@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -42,6 +45,12 @@ class DustLedgerCrossingTest {
         // The ridge is high ground: its overwatch stands a tier above the compound it looks down on.
         DustLedgerCrossing.Cell rim = layout.ridgeOverwatch().get(0);
         assertEquals(1, grid.elevation().tier(rim.x(), rim.y()));
+        // Sable Wake's rocket truck has a lane: every stand of its is reached from its park by a light hull.
+        VehicleClearance lane = VehicleClearance.erode(grid, VehicleClearance.radiusForWidth(VehicleType.SRM_TECHNICAL.visualWidthCells));
+        DustLedgerCrossing.Cell park = layout.technicalStands().get(0);
+        for (DustLedgerCrossing.Cell stand : layout.technicalStands().subList(1, layout.technicalStands().size()))
+            assertTrue(GridPathfinder.findPathOnDemand(grid, park.x(), park.y(), stand.x(), stand.y(), index -> 1f,
+                    lane::isPassableAt).length >= 2, "no lane to the truck's stand " + stand);
         // Buildings are held places only; the map brings no capture point of its own.
         for (TacticalNode node : layout.map().tacticalMap.all())
             assertEquals(TacticalNode.Kind.INNER_POSITION, node.kind);
