@@ -15,8 +15,8 @@ import java.util.List;
  * <p>The fourth kind of boat fitting, and the one that is not a slot: a boat
  * has as many hardpoints as its pattern says and each takes one gun, so a gun
  * is fitted to a hardpoint by index rather than to a {@link BoatFittingSlot}.
- * Like the rest of a boat's fittings it is installed work: nothing comes back
- * to stores and the outgoing gun is scrapped.
+ * Like the rest of a boat's parts it is built into stores as a spare, and one
+ * taken off goes back there ({@link BoatWorkshop}).
  *
  * <p><b>The gun a boat leaves the yard with is the sortie kit.</b> A hardpoint
  * nobody has refitted carries what {@link ShuttleType#kitFor} gives an

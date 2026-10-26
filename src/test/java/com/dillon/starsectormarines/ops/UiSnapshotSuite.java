@@ -3045,9 +3045,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         BoatDeck deck = campaign[0];
         BoatWorkshop workshop = new BoatWorkshop(deck, snapshotMechResources());
         if (deck.berths() > 0 && deck.boats().get(0) != null) {
+            workshop.fabricatePart(BoatFitting.REINFORCED_PLATING.id());
             workshop.fit(deck.boats().get(0).id(), BoatFitting.REINFORCED_PLATING.id());
         }
         if (deck.berths() > 1 && deck.boats().get(1) != null) {
+            workshop.fabricatePart(BoatFitting.TUNED_DRIVE.id());
             workshop.fit(deck.boats().get(1).id(), BoatFitting.TUNED_DRIVE.id());
         }
         // The hold is the room's rather than the yard's: the refits above are
@@ -3058,6 +3060,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
                 reactor, deck, resources, "Valkyrie");
         if (hardpoint >= 0 && deck.berths() > 0 && deck.boats().get(0) != null) {
+            workshop.fabricatePart(BoatGun.ARBALEST.id());
             workshop.fitGun(deck.boats().get(0).id(), hardpoint, BoatGun.ARBALEST.id());
         }
         // The parked hulls wear what the yard put on them, as the room's refit hands them over.

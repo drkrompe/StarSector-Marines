@@ -5,18 +5,18 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 /**
  * Atomic campaign authority for fitting and building a ship's boat.
  *
- * <p>The Boat Deck's counterpart to {@link MechWorkshop}, and deliberately the
- * simpler of the two: a fitting is installed work rather than a spare, so there
- * is no stock to check, nothing to return, and only one question to ask — can
- * the fleet pay for it. The outgoing fitting is scrapped, which is what
- * happens to plate somebody cuts off a hull.
+ * <p>The Boat Deck's counterpart to {@link MechWorkshop}, and it keeps parts
+ * the same way: a part is built from its bill into stores
+ * ({@link #fabricatePart}), a fit takes a spare out of stores, and the part it
+ * replaces goes back in as a spare. Taking a part off ({@link #strip}) returns
+ * it to stores and leaves the socket on its yard-standard part. A yard-standard
+ * part is never stored and never runs out: every socket has its own, so
+ * putting it back is free and taking it off makes no spare.
  *
- * <p><b>A failed commit changes nothing.</b> Affordability is rechecked at the
- * moment of the commit and the whole bill is spent before anything is
- * installed or stood up, so a spend that fails leaves the boat, the deck and
- * the hold exactly as they were. The order matters: installing first and
- * paying afterwards would hand the player a better boat on a transaction that
- * did not complete.
+ * <p><b>A failed commit changes nothing.</b> Every check runs before anything
+ * moves, and a build spends its whole bill before the spare is stowed, so a
+ * refusal or a short hold leaves the boat, the stores and the hold exactly as
+ * they were.
  */
 public final class BoatWorkshop {
 
@@ -32,7 +32,23 @@ public final class BoatWorkshop {
     }
 
     /**
-     * Fits one catalog fitting to one boat.
+     * Builds one spare part into stores: a fitting or a door gun, by id. A
+     * yard-standard fitting has no bill and is never stored, so it is refused.
+     */
+    public Result fabricatePart(String partId) {
+        BoatFitting fitting = BoatFitting.findById(partId);
+        BoatGun gun = fitting == null ? BoatGun.findById(partId) : null;
+        if (fitting == null && gun == null) return Result.of(Status.UNKNOWN_FITTING);
+        FabricationCost bill = fitting != null ? fitting.bill() : gun.bill();
+        if (bill == null) return Result.of(Status.NOT_FABRICABLE);
+        if (!resources.spend(resources.quote(bill))) return Result.of(Status.CANNOT_AFFORD);
+        deck.stow(partId);
+        return Result.of(Status.PART_FABRICATED);
+    }
+
+    /**
+     * Fits one catalog fitting to one boat, from a spare unless it is the
+     * yard-standard one, and puts what came off into stores.
      *
      * <p>A fitting knows its own slot, so there is no wrong-slot outcome to
      * report: naming the fitting names where it goes.
@@ -42,24 +58,31 @@ public final class BoatWorkshop {
         if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
         BoatFitting fitting = BoatFitting.findById(fittingId);
         if (fitting == null) return Result.of(Status.UNKNOWN_FITTING);
-        if (fitting.id().equals(boat.fittingIn(fitting.slot()).id())) {
-            return new Result(Status.ALREADY_FITTED, boat);
-        }
+        BoatFitting outgoing = boat.fittingIn(fitting.slot());
+        if (fitting.id().equals(outgoing.id())) return new Result(Status.ALREADY_FITTED, boat);
         if (!fitting.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
-        FabricationCost bill = resources.quote(fitting.bill());
-        if (bill != null && !resources.spend(bill)) {
-            return new Result(Status.CANNOT_AFFORD, boat);
-        }
+        if (!fitting.standard() && !deck.take(fitting.id())) return new Result(Status.NO_SPARE, boat);
         boat.install(fitting);
+        if (!outgoing.standard()) deck.stow(outgoing.id());
         return new Result(Status.FITTED, boat);
     }
 
+    /** Takes the fitting out of one slot into stores; the slot goes back to its yard-standard part. */
+    public Result strip(String boatId, BoatFittingSlot slot) {
+        CampaignBoat boat = deck.boatById(boatId);
+        if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
+        if (slot == null) return new Result(Status.NOTHING_TO_STRIP, boat);
+        BoatFitting outgoing = boat.fittingIn(slot);
+        if (outgoing.standard()) return new Result(Status.NOTHING_TO_STRIP, boat);
+        boat.install(BoatFitting.standard(slot));
+        deck.stow(outgoing.id());
+        return new Result(Status.STRIPPED, boat);
+    }
+
     /**
-     * Puts one door gun on one of a boat's hardpoints.
-     *
-     * <p>The same commit as {@link #fit}: checked, paid in full, then
-     * installed. Putting the hardpoint's own yard gun back is free, the way a
-     * standard fitting is.
+     * Puts one door gun on one of a boat's hardpoints: the hardpoint's own yard
+     * gun for nothing, any other from a spare. The gun that came off goes into
+     * stores unless it was that hardpoint's yard gun.
      */
     public Result fitGun(String boatId, int hardpoint, String gunId) {
         CampaignBoat boat = deck.boatById(boatId);
@@ -70,9 +93,45 @@ public final class BoatWorkshop {
         if (current == null) return new Result(Status.UNKNOWN_HARDPOINT, boat);
         if (current == gun) return new Result(Status.ALREADY_FITTED, boat);
         if (!gun.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
-        FabricationCost bill = gun.standardOn(boat.pattern(), hardpoint) ? null : resources.quote(gun.bill());
-        if (bill != null && !resources.spend(bill)) return new Result(Status.CANNOT_AFFORD, boat);
+        if (!gun.standardOn(boat.pattern(), hardpoint) && !deck.take(gun.id())) {
+            return new Result(Status.NO_SPARE, boat);
+        }
         boat.installGun(hardpoint, gun);
+        if (!current.standardOn(boat.pattern(), hardpoint)) deck.stow(current.id());
+        return new Result(Status.FITTED, boat);
+    }
+
+    /** Takes a door gun off into stores; the hardpoint goes back to its yard gun. */
+    public Result stripGun(String boatId, int hardpoint) {
+        CampaignBoat boat = deck.boatById(boatId);
+        if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
+        BoatGun current = boat.gunOn(hardpoint);
+        if (current == null) return new Result(Status.UNKNOWN_HARDPOINT, boat);
+        BoatGun yard = BoatGun.standardFor(boat.pattern(), hardpoint);
+        if (yard == null || current == yard) return new Result(Status.NOTHING_TO_STRIP, boat);
+        boat.installGun(hardpoint, yard);
+        deck.stow(current.id());
+        return new Result(Status.STRIPPED, boat);
+    }
+
+    /**
+     * Moves a door gun from one hardpoint to another on the same boat, with no
+     * trip through stores: the source goes back to its yard gun, and whatever
+     * the target held goes into stores unless it was the target's yard gun. A
+     * yard gun is not moved; it is every hardpoint's for nothing already.
+     */
+    public Result moveGun(String boatId, int from, int to) {
+        CampaignBoat boat = deck.boatById(boatId);
+        if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
+        BoatGun gun = boat.gunOn(from);
+        BoatGun displaced = boat.gunOn(to);
+        if (gun == null || displaced == null) return new Result(Status.UNKNOWN_HARDPOINT, boat);
+        BoatGun yard = BoatGun.standardFor(boat.pattern(), from);
+        if (yard == null || gun == yard) return new Result(Status.NOTHING_TO_STRIP, boat);
+        if (from == to || gun == displaced) return new Result(Status.ALREADY_FITTED, boat);
+        boat.installGun(from, yard);
+        boat.installGun(to, gun);
+        if (!displaced.standardOn(boat.pattern(), to)) deck.stow(displaced.id());
         return new Result(Status.FITTED, boat);
     }
 
@@ -147,7 +206,12 @@ public final class BoatWorkshop {
         INCOMPATIBLE_FITTING,
         ALREADY_FITTED,
         CANNOT_AFFORD,
+        NO_SPARE,
+        NOT_FABRICABLE,
+        NOTHING_TO_STRIP,
         FITTED,
+        STRIPPED,
+        PART_FABRICATED,
         NO_SUCH_BERTH,
         BERTH_OCCUPIED,
         FABRICATED
@@ -158,6 +222,7 @@ public final class BoatWorkshop {
 
         public boolean succeeded() {
             return status == Status.FITTED || status == Status.ALREADY_FITTED
+                    || status == Status.STRIPPED || status == Status.PART_FABRICATED
                     || status == Status.FABRICATED || status == Status.REPAIRED;
         }
     }

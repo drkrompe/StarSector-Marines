@@ -25,7 +25,8 @@ learned kit freely without reading or spending fleet cargo. The former print-sto
 economy — a per-item owned count, per-soldier allocation reserved against it,
 and fabrication materials to print more — was deleted once it had no live
 callers left. Anything that needs to cost the player materiel must reach the
-counted things: fleet cargo, or the mech bay's spare components.
+counted things: fleet cargo, the mech bay's spare components, or the boat
+deck's spares.
 
 New campaigns contain only structural organization: the non-deployable reserve
 pool and an empty four-gantry support lance. Fleet Armory squad founding is one
