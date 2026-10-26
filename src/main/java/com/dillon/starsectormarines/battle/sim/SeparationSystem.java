@@ -805,7 +805,8 @@ public final class SeparationSystem {
             int teamStart = movingCount;
             for (int k = 0; k < fireTeams.length(t); k++) {
                 long member = fireTeams.member(t, k);
-                if (entityWorld.has(member, components.MOVEMENT)
+                // A member at zero speed is holding, path or no: steered to a slot it would slide while it fires.
+                if (entityWorld.has(member, components.MOVEMENT) && world.moveSpeed(member) > 0f
                         && (hasActivePath(member)
                         || (movement.formationMemoryTimer(member) > 0f
                         && sharesFormationDestination(member, allMembers, first, memberCount)))) {

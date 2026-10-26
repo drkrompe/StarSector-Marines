@@ -176,6 +176,13 @@ public final class FiringLineScene implements BehaviorScene {
      * so the bar sits between one mover and two rather than just above one.
      */
     private static final float DOUBLE_ADVANCE_BAR = 1.75f;
+    /**
+     * Cells a sidestep must carry its marine, start to finish, to count as having gone somewhere: a thrown-away move
+     * covers none. Measured as distance, not as cells changed: a real step of half a cell that crossed a cell edge used
+     * to count and one of three quarters that did not cross one used to fail (a defender holding still rather than
+     * drifting moved where one began, 2026-10-25).
+     */
+    private static final float SIDESTEP_MOVED_CELLS = 0.25f;
 
     @Override public String id() { return "firing-line"; }
 
@@ -310,7 +317,7 @@ public final class FiringLineScene implements BehaviorScene {
                     loop.sidestepsCompleted() + " of " + loop.sidesteps()
                             + " sidestep(s) ran to completion and "
                             + loop.sidestepsThatMoved() + " covered ground, the longest "
-                            + loop.maxSidestepMove() + " cell(s)"
+                            + String.format(Locale.ROOT, "%.2f", loop.maxSidestepMove()) + " cell(s)"
                             + " (wanted every one of them to move)"));
             verdicts.add(Verdict.of("one-mover-per-tick",
                     loop.worstStepRatio() <= DOUBLE_ADVANCE_BAR,
@@ -356,8 +363,8 @@ public final class FiringLineScene implements BehaviorScene {
         private final int[] firstFireX;
         private final int[] firstFireY;
         private final boolean[] steppingLastTick;
-        private final int[] stepStartX;
-        private final int[] stepStartY;
+        private final float[] stepStartX;
+        private final float[] stepStartY;
         private final float[] lastX;
         private final float[] lastY;
         private final float[] lastSpeed;
@@ -366,7 +373,7 @@ public final class FiringLineScene implements BehaviorScene {
         private int sidesteps;
         private int sidestepsCompleted;
         private int sidestepsThatMoved;
-        private int maxSidestepMove;
+        private float maxSidestepMove;
         private float worstStepRatio;
         private int maxDisplacement;
         private int marinesAlive;
@@ -380,8 +387,8 @@ public final class FiringLineScene implements BehaviorScene {
             this.firstFireX = new int[marines.length];
             this.firstFireY = new int[marines.length];
             this.steppingLastTick = new boolean[marines.length];
-            this.stepStartX = new int[marines.length];
-            this.stepStartY = new int[marines.length];
+            this.stepStartX = new float[marines.length];
+            this.stepStartY = new float[marines.length];
             this.lastX = new float[marines.length];
             this.lastY = new float[marines.length];
             this.lastSpeed = new float[marines.length];
@@ -459,13 +466,12 @@ public final class FiringLineScene implements BehaviorScene {
             boolean stepping = world.sidestepTimer(marine) > 0f;
             if (stepping && !steppingLastTick[i]) {
                 sidesteps++;
-                stepStartX[i] = world.cellX(marine);
-                stepStartY[i] = world.cellY(marine);
+                stepStartX[i] = world.x(marine);
+                stepStartY[i] = world.y(marine);
             } else if (!stepping && steppingLastTick[i]) {
                 sidestepsCompleted++;
-                int moved = Math.max(Math.abs(world.cellX(marine) - stepStartX[i]),
-                        Math.abs(world.cellY(marine) - stepStartY[i]));
-                if (moved > 0) sidestepsThatMoved++;
+                float moved = (float) Math.hypot(world.x(marine) - stepStartX[i], world.y(marine) - stepStartY[i]);
+                if (moved >= SIDESTEP_MOVED_CELLS) sidestepsThatMoved++;
                 if (moved > maxSidestepMove) maxSidestepMove = moved;
             }
             if (steppingLastTick[i]) measureLastTickStep(sim, marine, i);
@@ -523,7 +529,7 @@ public final class FiringLineScene implements BehaviorScene {
 
         int sidestepsThatMoved() { return sidestepsThatMoved; }
 
-        int maxSidestepMove() { return maxSidestepMove; }
+        float maxSidestepMove() { return maxSidestepMove; }
 
         float worstStepRatio() { return worstStepRatio; }
 
@@ -584,8 +590,8 @@ public final class FiringLineScene implements BehaviorScene {
             return total;
         }
 
-        int maxSidestepMove() {
-            int worst = 0;
+        float maxSidestepMove() {
+            float worst = 0f;
             for (LaneTrace t : traces) worst = Math.max(worst, t.maxSidestepMove());
             return worst;
         }
