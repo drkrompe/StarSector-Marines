@@ -17,9 +17,12 @@ indication, a reviewed bill, and the current workshop service.
 - Clear workspace: 750 credits at a planetary yard; remove collapsed structure,
   seal the breach with a pressure patch, and recover 10 metals once.
 - Repair machinery: 3,000 credits, including labor/parts; enable reclamation of
-  one cargo heavy-machinery unit into four metals, with explicit confirmation.
+  one cargo heavy-machinery unit into four metals, with explicit confirmation. Spares in
+  Boat Deck and Mech Lab stores recycle for half their current bill
+  (`company-view-nouns.md`, Recycling).
 - Install tooling: 4,500 credits; reduce supplies costs by 20% for boat building,
-  boat fittings, Mech Lab chassis and weapon fabrication. Round each supplies
+  boat fittings, Mech Lab chassis and weapon fabrication. Recycled spares return
+  three quarters of their bill. Round each supplies
   line up, minimum one. Other commodities, squad issue and pattern gates remain.
 
 Reclamation is an instantaneous, irreversible workshop transaction using cargo,

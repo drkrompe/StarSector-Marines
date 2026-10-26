@@ -23,6 +23,11 @@ public final class CompanyResources {
         return new Row(id, name, icon, Math.max(0, available), Math.max(0, required));
     }
 
+    /** Materials coming back into the hold: the amount, never a shortfall. */
+    public static Row recovered(String id, String name, String icon, long quantity) {
+        return new Row(id, name, icon, Math.max(0, quantity), Math.max(0, quantity));
+    }
+
     public static List<Row> credits(String id, long available, long required) {
         return List.of(cost(id, Strings.get("companyResourceCredits"), "graphics/ui/company/credits.svg", available, required));
     }

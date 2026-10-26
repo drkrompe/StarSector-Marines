@@ -1390,6 +1390,9 @@ support sortie, subject only to practical runtime resources.
   spares in stores again) and half the chassis or vehicle bill, rounded down, returns
   to the ship's hold, never to a depot it may leave behind. This is the opposite of a
   battle loss, which takes the fitted parts with the frame (`MechWorkshop.scrapMech`).
+  A single spare in stores breaks down the same two-press way from its card's
+  RECYCLE, at the machine shop's rate rather than a flat half
+  (`company-view-nouns.md`, Recycling).
   The lance returns to its overview with that pad vacant. Returning
   through the current Mech Lab room route clears
   that selection and restores the overview. No camera transition moves, respawns,

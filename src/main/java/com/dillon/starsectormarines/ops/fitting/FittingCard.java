@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.fitting;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.CompanyResources;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 
@@ -17,14 +18,22 @@ import java.util.List;
  * @param fabricates     whether the button builds a spare, which wears the fabricator's cog
  * @param chipIcon       a small symbol on a coloured block beside the detail line, or null
  * @param chipTone       that block's colour, or null
+ * @param recycle        the RECYCLE button a spare in stores carries, or null; its recovery
+ *                       rides in {@code materials} under {@code material-costs recovery}
  */
 public record FittingCard(String id, String classes, String previewClasses,
                           String name, String badge, String badgeClasses,
                           String stock, String telemetry, String delta, String deltaClasses,
                           String detail, String actionLabel, String actionHint, boolean actionDisabled,
                           boolean fabricates, List<CompanyResources.Row> materials, String materialsClasses,
-                          Runnable action, String chipIcon, String chipTone)
+                          Runnable action, String chipIcon, String chipTone, Recycle recycle)
         implements MarkupPropertySource {
+
+    /**
+     * Breaking one spare back down into materials. The first press arms it and the second
+     * commits, since a recycled spare is gone.
+     */
+    public record Recycle(boolean armed, Runnable action) { }
 
     private static final Runnable NO_ACTION = () -> { };
     /** The name, its badge and three lines of figures. */
@@ -38,10 +47,12 @@ public record FittingCard(String id, String classes, String previewClasses,
 
     public String actionId() { return id + ":action"; }
 
+    public String recycleId() { return id + ":recycle"; }
+
     private boolean hasAction() { return actionLabel != null && !actionLabel.isEmpty(); }
 
     /** The strip under the card: material costs and the button, when there is either. */
-    private boolean hasFooter() { return hasAction() || !materials.isEmpty(); }
+    private boolean hasFooter() { return hasAction() || !materials.isEmpty() || recycle != null; }
 
     /** The picture and the lines beside it: three lines of figures, or the picture where that is taller. */
     private int bodyHeight() {
@@ -77,6 +88,12 @@ public record FittingCard(String id, String classes, String previewClasses,
         case "materialsClasses" -> materialsClasses;
         // A card with no button still binds its hidden one, to nothing.
         case "action" -> action != null ? action : NO_ACTION;
+        case "recycleId" -> recycleId();
+        case "recycleTextId" -> id + ":recycle:text";
+        case "recycleClasses" -> recycle == null ? "hidden"
+                : recycle.armed() ? "catalog-recycle console-action armed" : "catalog-recycle console-action";
+        case "recycleText" -> recycle == null ? "" : Strings.get(recycle.armed() ? "fittingRecycleConfirm" : "fittingRecycle");
+        case "recycleAction" -> recycle != null ? recycle.action() : NO_ACTION;
         case "detailRowId" -> id + ":detail-row";
         case "chipId" -> id + ":weight";
         case "chipIconId" -> id + ":weight-icon";

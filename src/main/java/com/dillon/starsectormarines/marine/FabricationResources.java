@@ -29,6 +29,9 @@ public interface FabricationResources extends CommodityPresentation {
     /** Puts salvaged materials back in the hold; false where there is no hold to take them. */
     default boolean credit(FabricationCost salvage) { return false; }
 
+    /** How much the ship's machine shop gets back from a recycled spare now; previews and commits both ask. */
+    default Reclamation reclamation() { return Reclamation.NONE; }
+
     default boolean canAfford(FabricationCost cost) {
         if (cost == null) return false;
         for (FabricationCost.Line line : cost.lines()) {
