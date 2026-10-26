@@ -670,6 +670,10 @@ def build(shot, choice=None, only=None):
     x = m.buf
     if open_:
         x[-int(.01 * SR):] *= np.linspace(1, 0, int(.01 * SR))
+    else:                                               # S13: fade to silence, never cut off a sound (owner)
+        i0, i1 = int((t1 - 1.0 - t0) * SR), int((t1 - .1 - t0) * SR)
+        x[i0:i1] *= np.cos(np.linspace(0, math.pi / 2, i1 - i0)) ** 2
+        x[i1:] = 0
     x = x * 10 ** (MASTER / 20)
     over = np.abs(x) > .7                               # a soft limit: only the loudest moments bend
     x[over] = np.sign(x[over]) * (.7 + .2 * np.tanh((np.abs(x[over]) - .7) / .2))
