@@ -5,13 +5,17 @@ import com.dillon.starsectormarines.battle.audio.BattleMusicFacts;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.tools.snapshot.FfmpegVideo;
 
 import java.io.IOException;
 import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -26,15 +30,19 @@ import java.util.Random;
  * and a Bombard haze's hiss are logged on every tick they are held, with the slot as {@code loop}; held beam loops are not logged.
  * The battle music is the screen's {@link BattleMusicDirector}, run on the same facts: each cue is a line with
  * {@code music} (the sound id, or empty for silence), its fades, the state and the reason, and each change of state
- * is printed. The director never hears a track end here, so a track that runs out before the next cue leaves
- * silence in the mix.
+ * is printed. A look shot's director never hears a track end, so a track that runs out before the next cue leaves
+ * silence in the mix; a log {@link #open}ed {@link #hearingTrackEnds} follows each track to its end and the director
+ * moves on to the next, as the screen's does.
  * {@link LookReview#record} attaches one to every look shot under {@code -Dsnapshot.lookSound=true} and mixes it into
- * the MP4 ({@link BattleSoundMix}).
+ * the MP4 ({@link BattleSoundMix}); a recording that drives its own battle opens one and calls {@link #tick} itself,
+ * adding the screen's ambient bed with {@link #held} and {@link #start}.
  */
 public final class BattleSoundLog {
 
     /** The screen's fallback for an explosive impact with no authored sound ({@code BattleScreen.SFX_NEAR_EXPLOSION}). */
     private static final String EXPLOSIVE_FALLBACK = "marines_explosion";
+    /** The rate a track is decoded at to learn its length: coarse, since only the sample count is read. */
+    private static final int SECONDS_PROBE_RATE = 1000;
 
     private final Path file;
     // Seeded, so the same battle logs the same pitches and mixes to the same soundtrack.
@@ -45,6 +53,11 @@ public final class BattleSoundLog {
     private final BoreAudio.Mix bores = new BoreAudio.Mix();
     private final MarineBarks.Mix barks = new MarineBarks.Mix();
     private final BattleMusicDirector music = BattleMusicDirector.shipped(new Random(0L));
+    private final StringBuilder pending = new StringBuilder();
+    private Map<String, List<BattleSoundMix.Take>> takes;
+    private final Map<String, Double> trackSeconds = new HashMap<>();
+    private String playing;
+    private double playingEnds = Double.MAX_VALUE;
     private int frame;
 
     private BattleSoundLog(Path file) {
@@ -63,11 +76,42 @@ public final class BattleSoundLog {
         placement.beforeTick(sim -> log.tick(sim, ear.focus().apply(sim)));
     }
 
-    private void tick(BattleSimulation sim, float[] at) {
-        StringBuilder lines = new StringBuilder();
+    /** An empty log at {@code file}, written a tick at a time by {@link #tick}. */
+    public static BattleSoundLog open(Path file) {
+        try {
+            Files.createDirectories(file.toAbsolutePath().getParent());
+            Files.writeString(file, "");
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+        return new BattleSoundLog(file);
+    }
+
+    /** Follows each music track to its end (its length read from {@code modRoot}'s clips), so the next one plays. */
+    public BattleSoundLog hearingTrackEnds(Path modRoot) throws IOException {
+        takes = BattleSoundMix.takes(modRoot);
+        return this;
+    }
+
+    /** Starts {@code id} at {@code (x, y)} on the coming tick, a sound the battle's own rules do not start. */
+    public void start(String id, float x, float y, float pitch, float volume, float[] at) {
+        line(pending, id, x, y, pitch, volume, at);
+    }
+
+    /** Holds loop {@code id} at {@code (x, y)} in {@code slot} through the coming tick. */
+    public void held(String id, float x, float y, float pitch, float volume, int slot, float[] at) {
+        loop(pending, id, x, y, pitch, volume, slot, at);
+    }
+
+    /** Logs one tick of {@code sim}, heard from {@code at} ({@code {x, y}} in map cells), before it advances. */
+    public void tick(BattleSimulation sim, float[] at) {
+        StringBuilder lines = new StringBuilder(pending);
+        pending.setLength(0);
         BattleMusicDirector.Facts facts = BattleMusicFacts.of(sim);
+        double now = frame * (double) BattleSimulation.TICK_DT;
+        if (playing != null && now >= playingEnds) playing = null;
         music(lines, frame == 0 ? music.start(facts)
-                : music.update(BattleSimulation.TICK_DT, BattleSimulation.TICK_DT, facts, null));
+                : music.update(BattleSimulation.TICK_DT, BattleSimulation.TICK_DT, facts, playing));
         for (SwarmAudio.Play p : swarm.hear(sim, at[0], at[1])) {
             if (p.loop() >= 0) loop(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), p.loop(), at);
             else line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
@@ -112,11 +156,35 @@ public final class BattleSoundLog {
                     cue.from() == null ? "opens in " + cue.to() : cue.from() + " -> " + cue.to(), cue.reason());
         }
         if (!cue.play()) return;
+        follow(cue);
         out.append(String.format(Locale.ROOT,
                 "{\"frame\": %d, \"music\": \"%s\", \"fadeOut\": %d, \"fadeIn\": %d, \"loop\": %b,"
                         + " \"state\": \"%s\", \"reason\": \"%s\"}%n",
                 frame, cue.track() != null ? cue.track() : "", cue.fadeOut(), cue.fadeIn(), cue.loop(), cue.to(),
                 cue.reason()));
+    }
+
+    /** Notes the track {@code cue} starts and when it runs out, when this log follows tracks to their ends. */
+    private void follow(BattleMusicDirector.Cue cue) {
+        if (takes == null) return;
+        List<BattleSoundMix.Take> options = cue.track() != null ? takes.get(cue.track()) : null;
+        if (options == null || options.isEmpty()) {
+            playing = null;
+            playingEnds = Double.MAX_VALUE;
+            return;
+        }
+        Path clip = options.get(0).file();
+        playing = clip.getFileName().toString();
+        playingEnds = cue.loop() ? Double.MAX_VALUE : frame * (double) BattleSimulation.TICK_DT
+                + trackSeconds.computeIfAbsent(playing, ignored -> seconds(clip));
+    }
+
+    private static double seconds(Path clip) {
+        try {
+            return FfmpegVideo.decodeMono(clip, SECONDS_PROBE_RATE).length / (double) SECONDS_PROBE_RATE;
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /** A placed loop held this tick: one line a tick while it sounds, its slot in {@code loop}. */
