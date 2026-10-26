@@ -2478,6 +2478,16 @@ def blender_main(cfg):
             worst = max(worst, (off, f'{key} {name}'), key=lambda w: w[0])
             if off > ATTACH_TOL_M:
                 far.append(f'{key} {name} {off:.1f} m')
+                if len(far) == 1:            # the first one's chain, joint by joint: which link moved it
+                    o_, rows_ = ob, []
+                    while o_ is not None:
+                        b_, i_ = o_.matrix_basis, o_.matrix_parent_inverse
+                        rows_.append(f'{ship_fx.base_name(o_.name)}: basis {tuple(round(v, 1) for v in b_.translation)} '
+                                     f'rot {tuple(round(math.degrees(v)) for v in b_.to_euler())} parent-inverse '
+                                     f'{tuple(round(v, 1) for v in i_.translation)} '
+                                     f'rot {tuple(round(math.degrees(v)) for v in i_.to_euler())}')
+                        o_ = o_.parent
+                    print(f'ASHARU attached {kf} chain of {key} {name}: ' + ' <- '.join(rows_), flush=True)
         for o in stage_fx.objects:
             hull = hulls.get('Ship | ' + o.name[len('Ship fx | '):]) if o.name.startswith('Ship fx | ') else None
             if hull is not None:
