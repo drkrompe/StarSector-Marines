@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.testsupport.HeadlessBattles;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
@@ -18,7 +19,9 @@ import java.util.List;
  * The heart's Marine company on its way to its first satellite, as the owner would see it: one played Broad Front city
  * battle (verdant, seed 3), recorded through the look preset on one of its squads, once on the march
  * ({@code company-march}: the squad's files) and once where the march meets the swarm ({@code company-contact}: whom it
- * shoots and how it stands under acid). Each stands the battle up and plays it to the shot unrecorded; opt-in.
+ * shoots and how it stands under acid), and once on a Broad Front town battle (arid, seed 3) after its own satellites
+ * are down, going to one the lanes left standing ({@code company-helps}). Each stands the battle up and plays it to the
+ * shot unrecorded; opt-in.
  */
 public final class HeartCompanyLookSuite implements SnapshotSuite {
 
@@ -31,10 +34,19 @@ public final class HeartCompanyLookSuite implements SnapshotSuite {
             + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6}]}";
     /** The company squad followed: the one the Spitters first reach on this map. */
     static final int SQUAD = 26;
+    /** The town battle the company wins by helping the lanes (2026-10-25), and the squad followed there. */
+    static final String HELP_FIXTURE = "{\"schemaVersion\":2,\"kind\":\"BLOOM_HEART\",\"seed\":3,\"form\":\"BROAD_FRONT\","
+            + "\"biome\":\"ARID\",\"density\":\"TOWN\",\"declaredMechDrops\":{\"MARINE\":{\"lances\":1,"
+            + "\"lance\":[\"BULWARK\",\"HOUND\",\"HOUND\",\"WARDEN\"],\"debugCallTick\":300}},\"shuttles\":["
+            + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"
+            + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"
+            + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6},"
+            + "{\"type\":\"AEROSHUTTLE\",\"cycles\":1,\"seatsPerSortie\":6}]}";
+    static final int HELP_SQUAD = 28;
 
     @Override public String id() { return "heart-company-look"; }
 
-    @Override public String label() { return "Heart Marine company: one squad on the march and at its first contact, Broad Front city"; }
+    @Override public String label() { return "Heart Marine company: one squad on the march and at its first contact (Broad Front city), and helping the lanes (Broad Front town)"; }
 
     @Override public boolean inAll() { return false; }
 
@@ -44,21 +56,25 @@ public final class HeartCompanyLookSuite implements SnapshotSuite {
             List<SnapshotArtifact> out = new ArrayList<>();
             String only = System.getProperty("snapshot.heartCompany.shots", "");
             if (only.isEmpty() || only.contains("march"))
-                out.addAll(LookReview.record(context.modRoot(), shot("company-march", 4500, 600, 40f)));
+                out.addAll(LookReview.record(context.modRoot(), shot("company-march", FIXTURE, SQUAD, LookGround.verdant(), 4500, 600, 40f)));
             if (only.isEmpty() || only.contains("contact"))
-                out.addAll(LookReview.record(context.modRoot(), shot("company-contact", 5950, 900, 50f)));
+                out.addAll(LookReview.record(context.modRoot(), shot("company-contact", FIXTURE, SQUAD, LookGround.verdant(), 5950, 900, 50f)));
+            if (only.isEmpty() || only.contains("helps"))
+                out.addAll(LookReview.record(context.modRoot(), shot("company-helps", HELP_FIXTURE, HELP_SQUAD,
+                        LookGround.of(SurfacePalette.ARID, 3), 14000, 900, 60f)));
             return out;
         }
     }
 
-    /** The battle played unrecorded to {@code fromTick}, then {@code ticks} recorded {@code cellsAcross} wide on {@link #SQUAD}. */
-    static LookReview.Shot shot(String name, int fromTick, int ticks, float cellsAcross) {
+    /** {@code fixture} played unrecorded to {@code fromTick}, then {@code ticks} recorded {@code cellsAcross} wide on {@code squad}. */
+    static LookReview.Shot shot(String name, String fixture, int squad, LookGround ground, int fromTick, int ticks,
+                                float cellsAcross) {
         String[] keys = {"m0", "m1", "m2", "m3", "m4", "m5"};
         int[] found = {0};
-        return new LookReview.Shot(name, LookGround.verdant(), 40, 30, placement -> {
+        return new LookReview.Shot(name, ground, 40, 30, placement -> {
             BattleSimulation sim;
             try {
-                sim = HeadlessBattles.fixture(new JSONObject(FIXTURE));
+                sim = HeadlessBattles.fixture(new JSONObject(fixture));
             } catch (Exception e) {
                 throw new IllegalStateException("heart fixture", e);
             }
@@ -66,10 +82,10 @@ public final class HeartCompanyLookSuite implements SnapshotSuite {
             int n = 0;
             for (int i = 0, count = sim.liveUnitCount(); i < count && n < keys.length; i++) {
                 long unit = sim.liveUnitAt(i);
-                if (sim.squad().hasSquad(unit) && sim.squad().squadId(unit) == SQUAD) placement.subject(keys[n++], unit);
+                if (sim.squad().hasSquad(unit) && sim.squad().squadId(unit) == squad) placement.subject(keys[n++], unit);
             }
             found[0] = n;
-            System.out.printf("    [look/%s] squad %d, %d members at tick %d%n", name, SQUAD, n, sim.getSimTickIndex());
+            System.out.printf("    [look/%s] squad %d, %d members at tick %d%n", name, squad, n, sim.getSimTickIndex());
             return sim;
         }, placement -> List.of(LookReview.View.follow("play", placement, cellsAcross,
                 Arrays.copyOf(keys, Math.max(1, found[0])))), ticks, 6, 4);
