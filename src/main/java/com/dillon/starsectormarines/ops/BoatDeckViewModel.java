@@ -705,13 +705,17 @@ public final class BoatDeckViewModel {
         for (BoatFitting part : BoatFitting.catalog(BoatFittingSlot.CABIN)) maxSeats = Math.max(maxSeats, part.seats());
         int weight = BoatFrame.weight(boat);
         int rating = BoatFrame.rating(pattern);
-        // A damaged hull reads as a deficit under her pattern's own figure, a refit as gain past it.
+        // A damaged hull reads as a deficit under her pattern's own figure; plating is armour over it,
+        // read against the pattern's stock skin, so a refit is gain past it and a bare hull a deficit.
+        float armorCeiling = pattern.armor() * bestFactor(pattern, BoatFittingSlot.PLATING, BoatFitting::armorFactor);
         return List.of(
                 FittingMeter.of("boat-meter:hull", Strings.get("openingBoatDeckHull"),
                         Strings.format("openingBoatDeckHp", Math.round(fitted.maxHp() * boat.condition(day()))),
-                        fitted.maxHp() * boat.condition(day()),
-                        pattern.maxHp() * bestFactor(pattern, BoatFittingSlot.PLATING, BoatFitting::hullFactor),
+                        fitted.maxHp() * boat.condition(day()), pattern.maxHp(),
                         fitted.maxHp() * boat.condition(day()), pattern.maxHp(), FittingMeter.PLATE_TONE),
+                FittingMeter.of("boat-meter:armor", Strings.get("boatDeckArmor"),
+                        Strings.format("boatDeckArmorValue", Math.round(fitted.armor())),
+                        fitted.armor(), armorCeiling, fitted.armor(), pattern.armor(), FittingMeter.PLATE_TONE),
                 FittingMeter.of("boat-meter:speed", Strings.get("openingBoatDeckSpeed"),
                         Strings.format("openingBoatDeckCellsS", number(fitted.maxSpeed())), fitted.maxSpeed(),
                         pattern.maxSpeed() * bestFactor(pattern, BoatFittingSlot.DRIVE, BoatFitting::speedFactor),
@@ -725,11 +729,7 @@ public final class BoatDeckViewModel {
                                 Strings.format("openingBoatDeckSeats2", seats), seats, maxSeats),
                 FittingMeter.of("boat-meter:frame", Strings.get("boatDeckFrame"),
                         Strings.format("boatDeckFrameValue", weight, rating), weight, rating,
-                        weight, weight, FittingMeter.FLUX_TONE),
-                FittingMeter.of("boat-meter:hardpoints", Strings.get("openingBoatDeckHardpoints"),
-                        Strings.format("openingBoatMounts", pattern.hardpoints()),
-                        pattern.hardpoints(), pattern.hardpoints(), pattern.hardpoints(), pattern.hardpoints(),
-                        FittingMeter.WEAPON_TONE));
+                        weight, weight, FittingMeter.FLUX_TONE));
     }
 
     /**
@@ -848,12 +848,12 @@ public final class BoatDeckViewModel {
         ShuttleType pattern = boat.pattern();
         BoatFitting fitted = boat.fittingIn(fitting.slot());
         // Against an empty socket the change is the whole part, measured from the stock one's figures,
-        // or, for plating, from the bare hull she flies with.
+        // or, for plating, from the bare hull's no armour.
         BoatFitting installed = fitted != null ? fitted : BoatFitting.standard(fitting.slot());
-        float hullNow = fitted != null ? fitted.hullFactor() : FittedBoat.BARE_HULL_FACTOR;
+        float armorNow = fitted != null ? fitted.armorFactor() : 0f;
         return switch (fitting.slot()) {
-            case PLATING -> signed(Math.round(pattern.maxHp() * (fitting.hullFactor() - hullNow)),
-                    Strings.get("openingBoatDeckHull"));
+            case PLATING -> signed(Math.round(pattern.armor() * (fitting.armorFactor() - armorNow)),
+                    Strings.get("boatDeckArmor"));
             case DRIVE -> signed(pattern.maxSpeed() * (fitting.speedFactor() - installed.speedFactor()),
                     Strings.get("openingBoatDeckSpeed"));
             case LIFT -> Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
@@ -895,8 +895,7 @@ public final class BoatDeckViewModel {
         FittedBoat fitted = boat.freezeForDeployment();
         if (boat.plating() == null) {
             rows.add(readiness("bare-hull", "warn", Strings.get("boatReadinessBareHull"),
-                    Strings.format("boatReadinessBareHullDetail", Math.round(fitted.maxHp()),
-                            Math.round(FittedBoat.standard(pattern).maxHp())),
+                    Strings.format("boatReadinessBareHullDetail", Math.round(fitted.maxHp())),
                     BoatDoll.slotKey(BoatFittingSlot.PLATING)));
         }
         if (boat.fittingIn(BoatFittingSlot.EMITTER) == null) {
@@ -1330,7 +1329,7 @@ public final class BoatDeckViewModel {
     private String effect(BoatFitting fitting) {
         CampaignBoat boat = selectedBoat();
         return switch (fitting.slot()) {
-            case PLATING -> Strings.format("openingBoatDeckHull2", factor(fitting.hullFactor()));
+            case PLATING -> Strings.format("boatDeckArmorEffect", factor(fitting.armorFactor()));
             case LIFT -> Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
             case DRIVE -> Strings.format("boatDeckDriveEffect", factor(fitting.speedFactor()),
                     factor(fitting.deboardFactor()));
