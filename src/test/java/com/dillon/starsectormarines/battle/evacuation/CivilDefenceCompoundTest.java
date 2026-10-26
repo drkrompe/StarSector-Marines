@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
@@ -49,6 +50,20 @@ class CivilDefenceCompoundTest {
 
         assertNotNull(plan, "a gap closed by buildings' walls was read as a hole in the wall");
         assertEquals(2, plan.guns().size(), "two gates, " + plan.guns().size() + " gun towers");
+    }
+
+    @Test
+    void noWallPostStandsOnTheWallsItLays() {
+        BattleSimulation sim = walled();
+        open(sim, 14, T, 16, T);
+
+        CivilDefenceCompound.Plan plan = CivilDefenceCompound.plan(sim, 15, 15, 15, 12, 15, 0, 20);
+
+        assertNotNull(plan, "a closed wall with a gate was not read as one");
+        for (RedoubtWorks.Bag post : plan.posts()) {
+            assertFalse(plan.cells().containsKey(CivilDefenceCompound.key(post.x(), post.y())),
+                    "a wall post at " + post.x() + "," + post.y() + " is a cell the dressing builds on");
+        }
     }
 
     /** Open ground with a perimeter wall round the square. */
