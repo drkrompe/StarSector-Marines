@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-26 — a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -643,7 +643,10 @@ increasing an encounter's total armored threat.
   and reacts inside that shared boundary while retaining its own combat target,
   installed weapons, and ordinary damage, ammunition, and cooldown state. It is
   distinct from both exact-Mech movement and Form on Lead / Free Reign
-  coordination, and remains until superseded or withdrawal cancels it.
+  coordination, and remains until superseded or withdrawal cancels it. The
+  player's newer order wins between the two: a move, assault or guard given to
+  every live chassis of the lance (one, for a lone mech) ends its Defend Area,
+  and a Defend Area given to the lance ends its chassis' own orders.
 - A **force budget** is the ordinary-encounter authority that admits defender
   mechs and static defenses only when the attacker-side force can support them.
   Authored set pieces may explicitly decline that protection; Conquest does.
