@@ -13,15 +13,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * The Optional section of the shared mission picture: one row per side objective, in offer order, with its beacons. A
- * mission declares its jobs; it never writes these rows itself.
+ * The Optional section of the shared mission picture: one row per known side objective, in offer order, with its
+ * beacons; a hidden job joins only once found, marked new for a moment. A mission declares its jobs; it never writes
+ * these rows itself.
  */
 public final class SideObjectiveRows {
     private SideObjectiveRows() { }
 
     public static List<Item> items(SideObjectiveService service, SideField field) {
         List<Item> items = new ArrayList<>();
-        for (SideObjective job : service.jobs()) items.add(item(job, field));
+        for (SideObjective job : service.jobs()) if (job.known()) items.add(item(job, field));
         return items;
     }
 
@@ -29,7 +30,7 @@ public final class SideObjectiveRows {
         SideObjective.Hook hook = job.hook();
         SideObjective.State state = job.state();
         State shown = state.picture();
-        String phase = hook.phase(state);
+        String phase = job.fresh() ? Strings.format("sideObjectiveNew", hook.phase(state)) : hook.phase(state);
         SideTrigger trigger = job.trigger();
         boolean timed = state == SideObjective.State.WORKING && trigger.required() > 0f;
         List<Marker> markers = new ArrayList<>();
@@ -43,7 +44,10 @@ public final class SideObjectiveRows {
                 destination.anchor().x(), destination.anchor().y(), Strings.get(hook.prefix() + "DestinationStatus"), shown,
                 destination.outline()));
         markers.addAll(job.context());
-        String offeredBy = Strings.format("sideObjectiveOfferedBy", hook.offerer());
+        String pays = job.ret().credits() > 0 ? Strings.format("sideObjectivePays", job.ret().credits()) : "";
+        // What the job earns (credits, the authored reward, or both), else who offered it; the row has one line for it.
+        String earns = Strings.join("separatorDot", pays, hook.reward());
+        String offeredBy = earns.isEmpty() ? Strings.format("sideObjectiveOfferedBy", hook.offerer()) : earns;
         return new Item(id(job), hook.name(), shown, phase, hook.steps(), offeredBy,
                 timed ? MissionObjectiveFamilies.timed(hook.timer(), trigger.worked(), trigger.required()) : offeredBy,
                 timed ? trigger.worked() / trigger.required() : -1, "", markers,

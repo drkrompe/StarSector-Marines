@@ -28,17 +28,34 @@ import java.util.List;
  * {@link #fromPlayerFleet()} (whole fleet) is kept as the default / display
  * fallback.
  *
- * <p>Sortie + arrival params are intentionally simple right now: every bay
- * contributes two sorties on a 12s interval, staggered across the committed
- * carriers by a per-bay offset. Tweaking these against fleet size / carrier
- * class is a later balance pass.
+ * <p>Each bay is renewable, the way a carrier's fighters work in space combat
+ * ({@link FighterWing#bay}): one airframe on station for the whole battle,
+ * rearmed after each sortie it comes home from and replaced after each one it
+ * loses. First launches are staggered across the committed bays by a per-bay
+ * offset. The clocks are one draft pair for every wing; scaling them by the
+ * wing (vanilla's own {@code refit} column runs 3 s for a Wasp to 18 s for a
+ * Dagger) or by carrier is a later balance pass.
  */
 public final class PlayerFleetWings {
 
-    /** Sorties per fitted bay across the battle. Two passes per bay feels like a fighter rearming once. */
-    private static final int  SORTIE_COUNT_PER_BAY   = 2;
-    /** Sim-seconds between successive sorties from the same bay. */
-    private static final float SORTIE_INTERVAL_SEC   = 12f;
+    /**
+     * Sim-seconds a bay's airframe rearms after a sortie it came home from.
+     *
+     * <p>Draft. Short, because coming home is the airframe having spent its
+     * ammunition, not its life: the bay should be back over the battle while
+     * the fight it left is still the same fight, and a bay's cover reads as a
+     * steady rotation with gaps rather than a constant presence.
+     */
+    public static final float REFIT_SEC = 20f;
+    /**
+     * Sim-seconds a bay takes to replace an airframe that was shot down.
+     *
+     * <p>Draft. Long, so a loss costs the player something they feel for the
+     * rest of that phase of the battle — four refits' worth — without ever
+     * ending the bay's part in it, which is what makes the cover renewable
+     * rather than spent.
+     */
+    public static final float REPLACEMENT_SEC = 90f;
     /** First-arrival time for the first player bay. */
     private static final float BASE_FIRST_ARRIVAL    = 8f;
     /** Per-bay additional delay so the player's wings don't all spawn at once. */
@@ -48,9 +65,9 @@ public final class PlayerFleetWings {
 
     /**
      * A committable carrier — one fleet member with at least one fighter bay that
-     * maps to a known {@link FighterProfile}. The pre-battle UI renders one
-     * opt-in toggle per entry; committing it contributes all its mapped bays to
-     * the marine-side fighter cover.
+     * maps to a known {@link FighterProfile}. Every one the fleet has flies: its
+     * mapped bays all join the marine-side fighter cover, and the briefing shows
+     * them as aircraft, not as a choice.
      */
     public static final class CarrierBay {
         /** Ship name for the toggle row label. */
@@ -60,7 +77,7 @@ public final class PlayerFleetWings {
         /** Mapped fighter bays on this ship (unmapped wings already filtered out). */
         public final List<FighterProfile> profiles;
 
-        CarrierBay(String shipName, String spriteName, List<FighterProfile> profiles) {
+        public CarrierBay(String shipName, String spriteName, List<FighterProfile> profiles) {
             this.shipName = shipName;
             this.spriteName = spriteName;
             this.profiles = profiles;
@@ -102,8 +119,8 @@ public final class PlayerFleetWings {
     }
 
     /**
-     * Builds the marine-side roster from the committed carriers, staggering
-     * arrivals across all committed bays. Returns {@link FlybyRoster#EMPTY} for a
+     * Builds the marine-side roster from the committed carriers, one renewable
+     * bay per mapped fighter bay, staggering first launches across them. Returns {@link FlybyRoster#EMPTY} for a
      * null/empty commitment.
      */
     public static FlybyRoster rosterFrom(List<CarrierBay> committed) {
@@ -112,8 +129,8 @@ public final class PlayerFleetWings {
         float arrival = BASE_FIRST_ARRIVAL;
         for (CarrierBay carrier : committed) {
             for (FighterProfile profile : carrier.profiles) {
-                wings.add(new FighterWing(profile, Faction.MARINE,
-                        SORTIE_COUNT_PER_BAY, arrival, SORTIE_INTERVAL_SEC));
+                wings.add(FighterWing.bay(profile, Faction.MARINE,
+                        arrival, REFIT_SEC, REPLACEMENT_SEC));
                 arrival += PER_BAY_STAGGER;
             }
         }

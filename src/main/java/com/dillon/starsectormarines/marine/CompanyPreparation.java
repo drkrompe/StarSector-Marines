@@ -28,15 +28,24 @@ public final class CompanyPreparation {
         return recipe == null ? 0 : recipe.bill().credits();
     }
 
-    /** The founding squad's stores, or nothing once a full squad stands on the roll. */
+    /** The founding squad's marines, or nothing once a full squad stands on the roll. */
     public static List<SquadFoundingCost.Line> squadBill(MarineRoster roster) {
         return hasSquad(roster) ? List.of() : SquadFoundingCost.STANDARD.lines();
     }
 
-    /** Whether everything the prepaid stores still have to build can be paid: the boat in credits, the squad in stores. */
+    /** The founding squad's price for its stores, or zero once a full squad stands on the roll. */
+    public static int squadPrice(MarineRoster roster) {
+        return hasSquad(roster) ? 0 : SquadFoundingCost.STANDARD.credits();
+    }
+
+    /**
+     * Whether everything the prepaid stores still have to build can be paid: the boat and the squad's stores in
+     * credits, the squad's marines from cargo.
+     */
     public static boolean canPrepare(MarineRoster roster, ShuttleType pattern, int berths,
                                      FabricationResources credits, SquadFoundingResources stores) {
-        return pattern != null && berths > 0 && credits.credits() >= boatPrice(roster, pattern)
+        return pattern != null && berths > 0
+                && credits.credits() >= (long) boatPrice(roster, pattern) + squadPrice(roster)
                 && squadBill(roster).stream().allMatch(line -> stores.available(line.commodityId()) >= line.quantity());
     }
 }

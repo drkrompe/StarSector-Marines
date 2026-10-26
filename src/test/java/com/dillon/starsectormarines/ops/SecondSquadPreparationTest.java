@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.SquadFoundingCost;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -34,8 +35,9 @@ class SecondSquadPreparationTest {
         assertTrue(lesson.copy().contains("24 marines"));
         assertTrue(lesson.copy().contains("four ready marines each"));
         assertTrue(lesson.copy().contains("marines · Cost 12 · Short by 12"));
-        assertTrue(lesson.copy().contains("supplies · Cost 36 · Short by 36"));
-        assertTrue(lesson.copy().contains("food · Cost 24 · Short by 24"));
+        assertTrue(lesson.copy().contains(CompanyResources.creditBill(SquadFoundingCost.STANDARD.credits(), 0)),
+                "the squad's stores are one credit price");
+        assertFalse(lesson.copy().contains("supplies"));
         assertEquals(12, roster.lineReadySoldiers().size());
         assertFalse(roster.secondSquadPreparationSeen());
         lesson.action().run();

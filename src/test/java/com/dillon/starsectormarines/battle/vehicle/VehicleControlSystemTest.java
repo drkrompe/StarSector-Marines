@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
+import com.dillon.starsectormarines.battle.world.MapEditor;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import org.junit.jupiter.api.Test;
 
@@ -158,6 +159,43 @@ class VehicleControlSystemTest {
                 + " @ " + body.facingDegrees + ")");
     }
 
+    /**
+     * The captured stall (urban Road frozen 11): a dozer in a street, its tail against a house wall it had swung past
+     * and the wall behind it, its route turning away from the house. Planned on its breach view, where that wall is
+     * open, the turn swings its tail into it, so the step was refused every tick; with nothing clear behind it could
+     * not back off, and it stood there all battle. Its hull grinds down the wall it is held by, and it goes on.
+     */
+    @Test
+    void aDozerWhoseTailIsHeldByAWallItsRouteCountsOpenGrindsItAndGoesOn() {
+        NavigationGrid grid = new NavigationGrid(40, 40);
+        carve(grid, 0, 0, 39, 39);
+        CellTopology topology = new CellTopology(40, 40);
+        for (int x = 9; x <= 12; x++) houseWall(grid, topology, x, 7);
+        for (int y = 7; y <= 9; y++) houseWall(grid, topology, 8, y);
+        NavigationService navigation = new NavigationService(grid, topology);
+        UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(40, 40), null);
+        ConvoyService convoy = roster.convoy();
+        float[] xs = {10.96f, 10.96f, 22f, 22f};
+        float[] ys = {10.31f, 14f, 24f, 36f};
+        VehicleMission mission = new VehicleMission(xs, ys, xs, ys, 0f, 4);
+        long id = convoy.spawn(VehicleType.DOZER_BREACHER, Faction.DEFENDER, mission);
+        GroundBody body = convoy.body(id);
+        // Its side and tail a hair off the house, as the sweep left them.
+        body.teleport(9.01f + VehicleType.DOZER_BREACHER.visualWidthCells * .5f,
+                8.01f + VehicleType.DOZER_BREACHER.visualLengthCells * .5f, 0f);
+        body.speed = 0f;
+        VehicleControlSystem controls = new VehicleControlSystem(convoy, navigation);
+        controls.setBlade(new DozerBlade(navigation, new MapEditor(navigation), null));
+
+        for (int i = 0; i < 400 && body.y < 20f; i++) controls.tick(id, 0.05f, xs, ys, VehicleLeg.MOVE_ORDER);
+
+        assertTrue(body.y >= 20f, "it goes on up its route (held at " + body.x + "," + body.y + " @ "
+                + body.facingDegrees + ")");
+        boolean ground = false;
+        for (int y = 7; y <= 9; y++) ground |= grid.isWalkable(8, y);
+        assertTrue(ground, "through the wall that held its tail");
+    }
+
     @Test
     void aHeldTruckDoesNotBackOff() {
         VehicleMission mission = new VehicleMission(new float[]{0f, 1f}, new float[]{0f, 0f},
@@ -215,6 +253,12 @@ class VehicleControlSystemTest {
         }
         carve(grid, 230, 93, originX - 1, 96);
         return grid;
+    }
+
+    private static void houseWall(NavigationGrid grid, CellTopology topology, int x, int y) {
+        grid.setWalkable(x, y, false);
+        grid.setWallHp(x, y, 100);
+        topology.setTag(x, y, CellTopology.Tag.WALL, true);
     }
 
     private static void carve(NavigationGrid grid, int x0, int y0, int x1, int y1) {

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
 import com.dillon.starsectormarines.battle.story.DistrictEscortProgress;
 import com.dillon.starsectormarines.battle.story.WorkingPassageProgress;
 import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
+import com.dillon.starsectormarines.battle.setup.BlindWatchSequence;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence;
 
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -49,6 +50,8 @@ import java.util.UUID;
 public final class MissionOutcome {
     public final SalvageRightsSequence.Report salvageRights;
     public final DustLedgerSequence.Report dustLedger;
+    /** Blind Watch's warning and side jobs, or null on every other battle; a warned Garnir is settled as a campaign mark. */
+    public final BlindWatchSequence.Report blindWatch;
     public final ColdStartProgress.Report coldStart;
     public final WorkingPassageProgress.Report workingPassage;
     public final WaterUnderSealProgress.Report waterUnderSeal;
@@ -73,7 +76,7 @@ public final class MissionOutcome {
      */
     public final List<ObjectiveResult> objectives;
     /**
-     * The battle's side objectives as they came out ({@code side-objective-toolkit.md}), in offer order: done, lapsed
+     * The battle's side objectives as they came out ({@code mission-command-nouns.md}), in offer order: done, lapsed
      * or failed, each with its debrief line and the campaign mark settlement writes. Empty when none was offered.
      */
     public final List<SideObjectiveResult> sideObjectives;
@@ -211,6 +214,13 @@ public final class MissionOutcome {
         return (int) Math.min(Integer.MAX_VALUE, total);
     }
 
+    /** Credits the side objectives earned, paid at settlement: each job done that pays. */
+    public int sideObjectiveCredits() {
+        long total = 0L;
+        for (SideObjectiveResult side : sideObjectives) total += side.credits();
+        return (int) Math.min(Integer.MAX_VALUE, total);
+    }
+
     /** @return a builder with every field defaulted to its "absent" value. */
     public static Builder builder() {
         return new Builder();
@@ -219,6 +229,7 @@ public final class MissionOutcome {
     private MissionOutcome(Builder b) {
         this.salvageRights=b.salvageRights;
         this.dustLedger=b.dustLedger;
+        this.blindWatch=b.blindWatch;
         this.coldStart=b.coldStart;
         this.workingPassage=b.workingPassage;
         this.waterUnderSeal=b.waterUnderSeal;
@@ -320,6 +331,7 @@ public final class MissionOutcome {
         private FreightRunProgress.Outcome freightOutcome;
         private SalvageRightsSequence.Report salvageRights;
         private DustLedgerSequence.Report dustLedger;
+        private BlindWatchSequence.Report blindWatch;
         private WorkingPassageProgress.Report workingPassage;
         public Builder workingPassage(WorkingPassageProgress.Report report){workingPassage=report;return this;}
         private LimitedWarrantProgress.Report limitedWarrant;
@@ -340,6 +352,7 @@ public final class MissionOutcome {
         public Builder coldStart(ColdStartProgress.Report report){coldStart=report;return this;}
         public Builder salvageRights(SalvageRightsSequence.Report report){salvageRights=report;return this;}
         public Builder dustLedger(DustLedgerSequence.Report report){dustLedger=report;return this;}
+        public Builder blindWatch(BlindWatchSequence.Report report){blindWatch=report;return this;}
         private WaylineHoundRecovery.Report waylineHound;
         private List<SalvageCache.Recovered> fieldSalvage = List.of();
         public Builder fieldSalvage(List<SalvageCache.Recovered> finds) { this.fieldSalvage = List.copyOf(finds); return this; }

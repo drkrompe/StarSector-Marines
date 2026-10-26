@@ -32,22 +32,24 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Sable Wake's rocket truck in the Dust Ledger, through the look preset: the commanderEvidence company (two boats,
+ * Sable Wake's rocket truck working its corners in the Dust Ledger, through the look preset: the commanderEvidence company (two boats,
  * field-security kit, the recovered Hound called down at the first pad) under autonomous command. One camera holds
  * the truck's corner of the east yard, the ledger room's east door in frame; one rides the truck itself. Look
  * evidence, not balance; opt-in.
  */
 public final class DustLedgerTechnicalLookSuite implements SnapshotSuite {
 
-    /** Ticks recorded: the headless run ends near 6,000, when the truck has crippled the Hound and it falls. */
-    static final int TICKS = 6200;
+    /** Ticks recorded: the headless run ends near 5,950, when the truck has crippled the Hound and it falls. */
+    static final int TICKS = 6000;
     /** A frame every this many ticks: four times real speed at 30 fps. */
     static final int EVERY = 4;
     /**
-     * Recorded frames kept as stills: the truck waiting in the quiet yard (tick 2,000), and its fight with the Hound,
-     * from its first salvo (tick 5,448) to its wreck (5,603) and the Hound's legs going (5,655).
+     * Recorded frames kept as stills, from the headless run: the truck parked in the quiet yard (tick 2,000), driving
+     * through the south link at the alarm (2,560) to the south yard (2,640), back up the lane between the pump house
+     * and the workshop as the Hound comes on (4,860), and its fight at the east door from its first salvo (5,500)
+     * to its wreck (5,668).
      */
-    static final int[] STILLS = {500, 1364, 1384, 1404, 1416};
+    static final int[] STILLS = {500, 640, 660, 1215, 1376, 1392, 1416};
     /** The armor-drop pick naming the Hound, the one machine aboard. */
     static final List<Integer> HOUND_PICK = List.of(0);
 

@@ -125,13 +125,14 @@ final class CampaignLessons {
                 () -> roster.campaignLessons().deferFormations((int) formations(roster)));
     }
 
+    /** The Junction briefing's lesson; the lance needs no call of its own, so ready formations are enough. */
     static PreparationGuide.Lesson briefing(Mission mission, MarineRoster roster, Set<String> selected,
-                                              boolean supportAvailable, boolean supportSelected) {
+                                              boolean supportAvailable) {
         if (!SecondSquadPreparation.relevant(mission, roster) || next(roster) != Step.FORMATIONS) return null;
         boolean ready = SupplyRouteCampaign.forceReady(roster, selected);
-        String copy = !ready ? "lessonJunctionSquads" : supportAvailable && !supportSelected ? "lessonJunctionSupport"
+        String copy = !ready ? "lessonJunctionSquads"
                 : supportAvailable ? "lessonJunctionReady" : "lessonJunctionWithoutMech";
-        boolean prepared = ready && (!supportAvailable || supportSelected);
+        boolean prepared = ready;
         return lesson(3, "lessonJunctionTitle", copy,
                 List.of("mission-assign", "mission-power-list", "mission-transport-readout"),
                 prepared ? "lessonReady" : null, prepared

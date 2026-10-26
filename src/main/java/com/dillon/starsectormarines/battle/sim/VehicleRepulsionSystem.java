@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.HullImpact;
 import com.dillon.starsectormarines.battle.vehicle.HullRam;
 import com.dillon.starsectormarines.battle.vehicle.HullShove;
 import com.dillon.starsectormarines.battle.vehicle.VehicleFootprint;
@@ -153,6 +154,11 @@ public final class VehicleRepulsionSystem {
      * Moving hulls are left to the bow wave: their cells change every tick.
      */
     public void occupyStandingHulls(NavigationService navigation) {
+        forEachStandingHullCell((x, y) -> navigation.addOccupancy(x, y, HULL_OCCUPANCY));
+    }
+
+    /** Visits every cell a stopped hull keeps routes off (see {@link #occupyStandingHulls}); a cell may come twice. */
+    public void forEachStandingHullCell(VehicleFootprint.CellConsumer cells) {
         if (!ENABLED || convoy.vehicleCount() == 0) return;
         for (long vehicle : convoy.entityIds()) {
             VehicleMission mission = convoy.mission(vehicle);
@@ -162,9 +168,39 @@ public final class VehicleRepulsionSystem {
                     || mission.state == VehicleState.WRECKED || mission.state == VehicleState.GONE
                     || !type.repelsBodies()) continue;
             standingHullCells(body.x, body.y, body.facingDegrees, body.speed,
-                    type.visualLengthCells, type.visualWidthCells, grid,
-                    (x, y) -> navigation.addOccupancy(x, y, HULL_OCCUPANCY));
+                    type.visualLengthCells, type.visualWidthCells, grid, cells);
         }
+    }
+
+    /**
+     * The stopped hull hostile to {@code side} whose route cells (see {@link #forEachStandingHullCell}) take in cell
+     * {@code (x, y)}, or 0: the hull a body whose way runs through that cell has in front of it.
+     */
+    public long standingHullAt(int x, int y, Faction side) {
+        if (!ENABLED || convoy.vehicleCount() == 0) return 0L;
+        for (long vehicle : convoy.entityIds()) {
+            VehicleMission mission = convoy.mission(vehicle);
+            GroundBody body = convoy.body(vehicle);
+            VehicleType type = convoy.vehicleType(vehicle);
+            if (mission == null || body == null || type == null || !mission.isVisible()
+                    || mission.state == VehicleState.WRECKED || mission.state == VehicleState.GONE
+                    || !type.repelsBodies() || Math.abs(body.speed) >= MOVING_SPEED) continue;
+            Faction owner = convoy.faction(vehicle);
+            if (side != null && (owner == null || !side.hostileTo(owner))) continue;
+            float d = HullImpact.surfaceDistance(body.x, body.y, body.facingDegrees,
+                    type.visualLengthCells / 2f + HULL_ROUTE_MARGIN, type.visualWidthCells / 2f + HULL_ROUTE_MARGIN,
+                    x + .5f, y + .5f);
+            // The cell's centre within half its diagonal of the widened footprint: the cell overlaps it.
+            if (d <= CELL_HALF_DIAGONAL) return vehicle;
+        }
+        return 0L;
+    }
+
+    private static final float CELL_HALF_DIAGONAL = 0.71f;
+
+    /** Whether a hull going at {@code speed} stands: routes keep off it and a striker takes it from the side. */
+    public static boolean standing(float speed) {
+        return Math.abs(speed) < MOVING_SPEED;
     }
 
     /** The cells a route keeps off for one hull: its footprint widened by {@link #HULL_ROUTE_MARGIN}, none while it moves. */

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
+Updated: 2026-10-26 — a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -431,13 +431,18 @@ The commander AI's mech drop and enemy lances keep their own deliveries.
 berth on the company ship (an empty or grounded berth stays visible) and a slot
 for the **mission lift** (heavy lift a ship, employer or contract supplies), each
 with a weight symbol for its rating. Every bay machine sits in the field inset
-beside the squads, as a small damage doll carrying the wear its repair still
-leaves and two bricks: its weight, lit red when lift falls short of its class,
-and a warning, lit whenever it will not drop. Its words are its hover, which gives
-one verdict: drops, needs its drop call selected, no lift of its class,
+beside the squads, as a small damage doll under its chassis or vehicle type,
+carrying the wear its repair still leaves, and two stacked bricks: its weight,
+lit red when lift falls short of its class, and a warning, lit and slowly
+breathing whenever it will not drop. Its words are its hover, which gives
+one verdict: drops, no lift of its class,
 lift spent ahead of it, no drop call at all, or held back. It asks the
 `LiftBudget` the drop power will build, machine by machine in bay order, and
-decides nothing itself (`BriefingLift`). Past nine squads, every full-strength
+decides nothing itself (`BriefingLift`). Beside it, the briefing's **air cover**
+shows what flies over the company as plans in the same hand: one tile per fighter
+type with how many aircraft its carriers put up (one a bay, every carrier aboard,
+no toggle), and the close-air-support gunship, one per fleet ship that brings it
+(`BriefingAir`). The count is airframes, not sorties. Past nine squads, every full-strength
 squad folds into one stacked tile with a multiplier, its hover counting the stack
 per officer, so only the wounded and short-handed squads keep their own tiles.
 
@@ -1627,13 +1632,28 @@ armour, and nothing in the simulation that looks at air could see it. The
 overlay is gone; what remains under `battle.flyby` is the roster.
 
 Wing composition, air-to-air, and formation are still future capabilities. What
-a wing is today is a commitment: a profile, a side, and how many sorties arrive
-when.
+a wing is today is a commitment: a profile, a side, and a cadence. A
+**scheduled** wing is a stock of sorties arriving at set times, and is spent
+when they are flown; a mission-generated employer or enemy wing is one.
+
+A **bay** is the other cadence, and the one a player's carrier gives. It is
+the carrier-side counterpart of a berth: it holds one airframe on station for
+the whole battle, and the state is the bay's, not the aircraft's. The airframe
+is on deck, airborne, **refitting** or being **replaced**. One that comes home
+from a sortie (its passes, and so its ammunition, spent) rearms for a short
+refit and flies again; one that is shot down is replaced after a long respawn.
+Nothing ends the cycle: the bay's cover is a renewable strength, as a carrier's
+fighters are in space combat, and a loss costs time rather than the bay. How a
+sortie ended is read off its mission at the end, because the entity of a craft
+that left the map or finished its crash is reaped before anyone can ask it
+(`FighterBay`, `AirCoverSystem`). The draft clocks are twenty seconds to refit
+and ninety to replace, one pair for every wing (`PlayerFleetWings`); the
+force score counts a bay as the two sorties it used to fly.
 
 The player's fitted Talon, Wasp, Broadsword, Thunder, Longbow and Dagger wings
-all contribute through the same opt-in carrier commitment. Each supported bay
-keeps its own battle airframe and ordnance and uses the shared finite, staggered
-sortie schedule. Unsupported wings contribute nothing; bomber bays do not grant
+all contribute through the same carrier commitment, one bay each. Each supported
+bay keeps its own battle airframe and ordnance, and first launches are staggered
+across the bays. Unsupported wings contribute nothing; bomber bays do not grant
 an extra air-support pool or bypass commitment.
 
 ### Air cover, and where a sortie is from
@@ -1654,8 +1674,8 @@ A **corridor** is an origin off the map: a named source, a point outside the map
 the craft enters by, and a point outside the map it leaves by. This is how a
 player's committed carrier bays reach the ground battle — friendly air cover,
 which flies in, works, and goes home without ever touching the map's own
-aviation. `AirCoverSystem` is the dispatcher and the wing's own schedule is the
-cadence.
+aviation. `AirCoverSystem` is the dispatcher and the wing's own cadence (a
+schedule, or a bay's cycle) decides when.
 
 **A corridor is stated, never discovered.** Both its ends are off the map by
 construction, so there is nowhere on the map for an off-map sortie to appear or
@@ -1674,7 +1694,8 @@ people rather than across the enemy's.
 
 **Air cover makes passes and leaves; it does not hold station.** It is a strike
 sortie, which arrives on station rather than on a cell, flies its runs, and
-turns for home when the passes are spent — the same rule and the same code as a
+turns for home when the passes are spent (a bay then refits it and sends it
+back) — the same rule and the same code as a
 based strike, for the same reason the noun *attack run* exists at all. What ends
 it is the passes, or being shot down; there is no recall, because the player's
 control over air cover is at commitment time. That is also what makes the origin

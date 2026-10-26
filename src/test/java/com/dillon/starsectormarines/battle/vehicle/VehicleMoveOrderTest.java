@@ -216,7 +216,9 @@ class VehicleMoveOrderTest {
         // the controller has no plan and never will — the real shape of the
         // permanent hold, rather than a poked field.
         wallBoxAround(rig.grid(), 20, 30, 4);
-        run(rig, VehicleMoveOrderSystem.GIVE_UP_SECONDS + 6f);
+        // Before it is given up the whole recovery ladder has its turn: the reroute, a back-off and a wheeled hull's
+        // last-resort pivot; the second back-off that gets it nowhere gives it up.
+        run(rig, 3f * VehicleMoveOrderSystem.GIVE_UP_SECONDS);
 
         assertNull(rig.orders().activeOrder(rig.id()),
                 "an order that stopped converging must be released, not held forever");

@@ -548,16 +548,23 @@ public final class BarracksCommandModel {
         row.put("founderDestination", shown ? raiseDestination() : "");
         row.put("founderCosts", shown ? foundingCostRows() : List.of());
     }
-    /** The whole founding bill as one line of commodity icons and counts; a short item is marked. */
+    /** The whole founding bill as one line of icons and counts, the price for its stores and then its marines; a short item is marked. */
     private List<Map<String, Object>> foundingCostRows() {
-        return SquadFoundingCost.STANDARD.lines().stream().map(line -> {
-            String id = "barracks-raise-cost:" + line.commodityId();
-            return row("id", id, "iconId", id + ":icon", "labelId", id + ":label",
-                    "icon", foundingResources.commodityIcon(line.commodityId()),
-                    "label", CompanyResources.number(line.quantity()),
-                    "classes", foundingResources.available(line.commodityId()) < line.quantity()
-                            ? "raise-cost short" : "raise-cost");
-        }).toList();
+        SquadFoundingCost cost = SquadFoundingCost.STANDARD;
+        List<Map<String, Object>> rows = new ArrayList<>();
+        rows.add(foundingCostRow("credits", CompanyResources.CREDITS_ICON, CompanyResources.number(cost.credits()),
+                foundingResources.credits() < cost.credits()));
+        for (SquadFoundingCost.Line line : cost.lines()) {
+            rows.add(foundingCostRow(line.commodityId(), foundingResources.commodityIcon(line.commodityId()),
+                    CompanyResources.number(line.quantity()),
+                    foundingResources.available(line.commodityId()) < line.quantity()));
+        }
+        return rows;
+    }
+    private static Map<String, Object> foundingCostRow(String key, String icon, String label, boolean shortOf) {
+        String id = "barracks-raise-cost:" + key;
+        return row("id", id, "iconId", id + ":icon", "labelId", id + ":label", "icon", icon, "label", label,
+                "classes", shortOf ? "raise-cost short" : "raise-cost");
     }
     /**
      * The officer a raised squad would join, or null when no command has room. A squad is only

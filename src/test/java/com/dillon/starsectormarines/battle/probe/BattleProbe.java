@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.probe;
 
+import com.dillon.starsectormarines.battle.modifier.UnitModifiers;
+import com.dillon.starsectormarines.battle.modifier.UnitStat;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
@@ -46,6 +48,8 @@ import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.sim.MovementService;
+import com.dillon.starsectormarines.battle.vehicle.PurePursuit;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -89,6 +93,7 @@ import java.util.Set;
  *   members SQUAD                         each member of a squad: position, cell, velocity, waypoints left, special kit
  *   watch ID[,ID...] N [every=K]          step N ticks, one line per body every K: position, route cursor and next
  *                                         waypoint, velocity, and for a mech its hips, role and collision escape
+ *   speed ID                              a body's move speed now, the ground under it and each speed modifier on it
  *   stalls N [limit=K]                    step N ticks: each route stall counted, with the unit, its next waypoint,
  *                                         its order and the bodies within 1.5 cells
  *   beats [since=T] [text=TEXT]           story beats
@@ -138,6 +143,17 @@ public final class BattleProbe {
         commands.put("members", a -> members(a.intAt(0)));
         commands.put("watch", this::watch);
         commands.put("stalls", this::stalls);
+        commands.put("speed", a -> {
+            long id = a.longAt(0);
+            JSONArray applied = new JSONArray();
+            for (UnitModifiers.Applied m : sim.combat().modifiers().explain(id, UnitStat.MOVE_SPEED)) {
+                applied.put(m.name() + " x" + round(m.multiplier()) + (m.flat() == 0f ? "" : " +" + round(m.flat())));
+            }
+            return brief(id).put("tick", sim.getSimTickIndex()).put("moveSpeed", round(sim.movement().moveSpeed(id)))
+                    .put("ground", round(sim.getGrid().groundSpeedMultiplier(sim.world().x(id), sim.world().y(id))))
+                    .put("modifiers", applied).put("carrot", carrot(id))
+                    .put("load", sim.swarmHarvest().loadOf(id) == 0L ? JSONObject.NULL : brief(sim.swarmHarvest().loadOf(id)));
+        });
         commands.put("path", this::path);
         commands.put("beats", this::beats);
         commands.put("route", a -> {
@@ -209,6 +225,7 @@ public final class BattleProbe {
         }
         if (cordon.beats() != null) out.put("beats", new JSONArray(cordon.beats().describe(sim)));
         if (cordon.convoys() != null) out.put("convoys", cordon.convoys().describe(sim));
+        if (cordon.columns() != null) out.put("columns", new JSONArray(cordon.columns().describe(sim)));
         if (cordon.logistics() != null) out.put("baseBuilt", cordon.logistics().built());
         return out;
     }
@@ -841,6 +858,15 @@ public final class BattleProbe {
     }
 
     /** Steps {@code N} ticks; for each route stall counted, the unit, where it stood, its next waypoint and what is beside it. */
+    /** The point the route follower steers {@code id} at this tick, or null with no route left. */
+    private Object carrot(long id) throws Exception {
+        int[] path = sim.movement().path(id);
+        int next = sim.movement().nextWaypointIndex(id);
+        if (next >= Paths.cellCount(path)) return JSONObject.NULL;
+        PurePursuit.Carrot c = PurePursuit.pick(sim.world().x(id), sim.world().y(id), path, next, MovementService.LOOKAHEAD);
+        return new JSONObject().put("x", round(c.x)).put("y", round(c.y)).put("next", c.nextIdx).put("atEnd", c.atEnd);
+    }
+
     private JSONObject stalls(Args a) throws Exception {
         int ticks = a.intAt(0);
         int limit = a.intOr("limit", 40);

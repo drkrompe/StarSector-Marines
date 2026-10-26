@@ -1,10 +1,10 @@
 # Battle music director
 
-Status: IN PROGRESS — built and integrated; the model is in `battle-radio-nouns.md` (Battle music). The owner picked the quiet bed (the arrival's strings score); awaiting acceptance of the Dust Ledger walk-in clip; retire on acceptance.
+Status: IN PROGRESS — built and integrated; the model is in `battle-radio-nouns.md` (Battle music). Four synth quiet beds ship and a mission names its own; the Dust Ledger plays the owner's pick, Briefing drive. Awaiting the owner's acceptance of the Dust Ledger walk-in clip with it; retire on acceptance.
 
 Written: 2026-10-26
 
-Updated: 2026-10-26 — quiet plays the arrival's strings score, looped (owner: "we need pre-battle music"; Next Move rejected).
+Updated: 2026-10-26 — four quiet beds ship, chosen per mission; the Dust Ledger plays Briefing drive (owner's pick).
 
 Read `battle-radio-nouns.md` (presentation-only audio, hosts, the voice
 budget) and `dust-ledger-crossing.md` (the quiet phase and the alarm) first.
@@ -55,12 +55,21 @@ with one `BattleMusicPlaylist` per state.
 ## Tracks
 
 - **quiet**: a bed, never silence (owner, 2026-10-26: "we need pre-battle
-  music"). The owner picked the strings take of the Second Wind arrival's
-  score (`score_strings_t01`, our own ElevenLabs track), shipped as
-  `marines_battle_quiet_strings`. It is cut to its sounding span (3.8 s to
-  125 s), so the loop dips for half a second and never falls silent. It sits
-  under the combat pool, at the level the owner heard in the picks clips, and
-  fades out over the raise crossfade at the alarm. The Marine Ops theme, "Next
+  music"). The owner's direction for it (2026-10-26, rejecting both the
+  Marine Ops theme and the arrival's strings score): "We need some more
+  neutral music loops that tie in to action. Ideally something scifi synthy
+  like 90s action or starcrafty". So the bed is tense but not combat, retro
+  analog synth (pads, a pulsing bass, an arpeggiated ostinato) at a moderate
+  tempo, and sits in the combat pool's family (measured about 130 BPM, E minor
+  and its neighbours) so the alarm's crossfade lands naturally. Candidates are
+  generated through ElevenLabs by `make_quiet_beds.py` (art-source, with each
+  take's request beside it), cut to bar-aligned loops of at least 90 s.
+  Prompts describe the style in plain musical terms and never name a work or
+  an artist. The owner picked Briefing drive for the Dust Ledger and kept all
+  four "for future missions" (2026-10-26), so each ships as a `QuietBed` and a
+  mission names its own; one that names none gets Sequencer pulse, the most
+  neutral. The strings take stays in the arrival cinematic only. The bed sits
+  under the combat pool and fades out over the raise crossfade at the alarm. The Marine Ops theme, "Next
   Move" (`marines_intel_music`), is the menu's alone and never plays in battle
   (owner, 2026-10-26: 'Pre-battle - no we should not play "next move"');
 - **alert**: the combat files at reduced volume (the `_alert` sound sets)

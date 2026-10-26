@@ -101,10 +101,10 @@ OPTIONS["stamp"] = {
     "C": ("Printed: a fast run of the text ticks and a low tone", "print"),
     "D": ("A neutral low double beep", "lowbeep"),
     "E": ("The route's data patter, short", "patter")}
-# the owner's picks (sound review, rounds one and two), and round three's best guesses
+# the owner's picks (sound review, rounds one to three)
 CHOICE = {"crt_on": "C", "crt_off": "A", "text": "C", "transition": "A",
-          "answer": "B", "ping": "C", "radio": "D", "stamp": "B"}
-REVIEW = ("answer", "stamp")                       # the families the review page asks about this round
+          "answer": "C", "ping": "C", "radio": "D", "stamp": "D"}
+REVIEW = ()                                        # the families the review page asks about this round: none
 
 # every level, in dB, in one place: the mix is judged and turned here
 # (beds and synthesised sounds by RMS; the set's switching sounds, all transient, by peak)
@@ -670,6 +670,10 @@ def build(shot, choice=None, only=None):
     x = m.buf
     if open_:
         x[-int(.01 * SR):] *= np.linspace(1, 0, int(.01 * SR))
+    else:                                               # S13: fade to silence, never cut off a sound (owner)
+        i0, i1 = int((t1 - 1.0 - t0) * SR), int((t1 - .1 - t0) * SR)
+        x[i0:i1] *= np.cos(np.linspace(0, math.pi / 2, i1 - i0)) ** 2
+        x[i1:] = 0
     x = x * 10 ** (MASTER / 20)
     over = np.abs(x) > .7                               # a soft limit: only the loudest moments bend
     x[over] = np.sign(x[over]) * (.7 + .2 * np.tanh((np.abs(x[over]) - .7) / .2))

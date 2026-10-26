@@ -10,15 +10,15 @@ import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.style.StyleProperty;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
-import java.util.Set;
 
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.DROPS;
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.HELD_BACK;
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.LIFT_SPENT;
-import static com.dillon.starsectormarines.ops.BriefingLift.Status.NOT_CALLED;
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.NO_DROP_CALL;
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.NO_LIFT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -35,7 +35,7 @@ class BriefingLiftTest {
 
     @Test
     void withoutADropCallTheWholeBayStaysAboard() {
-        var readout = BriefingLift.read(HERMES, 2, List.of(), Set.of(), List.of(HOUND),
+        var readout = BriefingLift.read(HERMES, 2, List.of(), List.of(HOUND),
                 List.of(new VehicleDeploymentSpec(null, "Mule", VehicleType.HEAVY_APC)), List.of(WARDEN));
         assertEquals(List.of(NO_DROP_CALL, NO_DROP_CALL, HELD_BACK), statuses(readout));
         assertFalse(readout.missionLift());
@@ -45,20 +45,18 @@ class BriefingLiftTest {
     }
 
     @Test
-    void missionHeavyLiftDropsTheBayOnlyOnceTheCallIsOnTheDeck() {
+    void missionHeavyLiftDropsTheBayWithNoCallToSelect() {
         List<CommandPower> powers = List.of(MechSupport.configured(List.of(HOUND, WARDEN)));
-        assertEquals(List.of(NOT_CALLED, NOT_CALLED),
-                statuses(BriefingLift.read(HERMES, 2, powers, Set.of(), List.of(), List.of(), List.of())));
-        var called = BriefingLift.read(HERMES, 2, powers, Set.of(MechSupport.ID), List.of(), List.of(), List.of());
-        assertEquals(List.of(DROPS, DROPS), statuses(called));
-        assertTrue(called.missionLift());
+        var readout = BriefingLift.read(HERMES, 2, powers, List.of(), List.of(), List.of());
+        assertEquals(List.of(DROPS, DROPS), statuses(readout));
+        assertTrue(readout.missionLift());
     }
 
     @Test
     void aLightCradleAloneRefusesMediumAndRunsOutAfterTwoLifts() {
         List<CommandPower> powers = List.of(MechSupport.configured(List.of(HOUND, WARDEN, HOUND, HOUND),
                 BUFFALO, false));
-        var readout = BriefingLift.read(List.of(BUFFALO), 2, powers, Set.of(MechSupport.ID),
+        var readout = BriefingLift.read(List.of(BUFFALO), 2, powers,
                 List.of(), List.of(), List.of());
         // Refused first, then what drops, each in bay order.
         assertEquals(List.of(NO_LIFT, LIFT_SPENT, DROPS, DROPS), statuses(readout));
@@ -69,5 +67,17 @@ class BriefingLiftTest {
 
     private static List<BriefingLift.Status> statuses(BriefingLift.Readout readout) {
         return readout.machines().stream().map(BriefingLift.Machine::status).toList();
+    }
+
+    @Test
+    void aLitWarningBreathesFromFullToDimAndBackOnOneSlowCycle() {
+        UiElement warn = new UiElement("warn");
+        float period = BriefingLift.WARN_PULSE_SECONDS;
+        BriefingLift.pulse(List.of(warn), 0f);
+        assertEquals(1f, ((Number) warn.authoredStyle().value(StyleProperty.OPACITY)).floatValue(), 1e-3f);
+        BriefingLift.pulse(List.of(warn), period * .5f);
+        assertEquals(.4f, ((Number) warn.authoredStyle().value(StyleProperty.OPACITY)).floatValue(), 1e-3f);
+        BriefingLift.pulse(List.of(warn), period * 3f);
+        assertEquals(1f, ((Number) warn.authoredStyle().value(StyleProperty.OPACITY)).floatValue(), 1e-3f);
     }
 }

@@ -32,7 +32,9 @@ import java.util.Set;
  *   <li>{@code river}: a six-cell river runs edge to edge. A {@link VehicleType#HOVER_SCOUT} and a wheeled
  *       {@link VehicleType#HEAVY_APC} are both given real player move orders to the far bank through
  *       {@link VehicleMoveOrderService}, so proof, rolling planner and physical sweep are production. The scout is
- *       accepted and floats across; the APC is refused for want of a route.</li>
+ *       accepted and floats across; the APC goes no farther than the near bank (a vehicle order goes to the
+ *       nearest cell the hull can reach), or is refused. Orders are planned from a queue, so each is read once
+ *       resolved.</li>
  *   <li>{@code crowd} / {@code crowd-wheels}: a file of four standing marines across a hull's road. The hover scout
  *       drives through them and pushes nobody; the control is the spotter pickup on the same road, which shoves them
  *       aside. The verdict needs the hull to have actually overlapped somebody, and says so when it did not.</li>
@@ -157,11 +159,14 @@ public final class HoverLineScene implements BehaviorScene {
         long apc = spawn(sim, VehicleType.HEAVY_APC, APC_X, APC_Y);
         orders.requestMove(scout, SCOUT_GOAL_X, SCOUT_GOAL_Y);
         orders.requestMove(apc, APC_GOAL_X, APC_GOAL_Y);
-        sim.advance(BattleSimulation.TICK_DT);
+        do sim.advance(BattleSimulation.TICK_DT);
+        while (orders.pending(scout) || orders.pending(apc));
         boolean scoutAccepted = orders.activeOrder(scout) != null;
         VehicleMoveOrderService.RefusedOrder refused = orders.refusal(apc);
-        boolean apcRefused = refused != null && refused.reason() == VehicleMoveOrderService.Refusal.NO_ROUTE
-                && orders.activeOrder(apc) == null;
+        VehicleMoveOrderService.ActiveOrder apcOrder = orders.activeOrder(apc);
+        boolean apcRefused = apcOrder == null && refused != null
+                && refused.reason() == VehicleMoveOrderService.Refusal.NO_ROUTE;
+        boolean apcHeld = apcOrder != null ? apcOrder.destinationY() < RIVER_Y0 : apcRefused;
 
         GroundBody scoutBody = sim.convoy().body(scout);
         GroundBody apcBody = sim.convoy().body(apc);
@@ -182,7 +187,7 @@ public final class HoverLineScene implements BehaviorScene {
             if (tick % frameEvery == 0) {
                 frames.frame(RIVER, sim, tick, String.format(Locale.ROOT,
                         "river / tick %d / hover scout y %.1f / APC %s", tick, scoutBody.y,
-                        apcRefused ? "refused: no route" : "ordered"));
+                        apcRefused ? "refused: no route" : "ordered to the near bank"));
             }
         }
 
@@ -194,8 +199,8 @@ public final class HoverLineScene implements BehaviorScene {
                         + throughTick));
         verdicts.add(Verdict.of("scout-pose-legal", scoutLegal,
                 "every applied scout pose clears the hover view: water open, nothing else"));
-        verdicts.add(Verdict.of("wheels-refused", apcRefused,
-                "the APC's order across the river is refused for want of a route"));
+        verdicts.add(Verdict.of("wheels-held-at-bank", apcHeld,
+                "the APC's order across the river takes it no farther than the near bank"));
         verdicts.add(Verdict.of("wheels-stay-dry", apcDry && apcMaxY < RIVER_Y0,
                 "every applied APC pose clears the live grid; furthest south y="
                         + String.format(Locale.ROOT, "%.1f", apcMaxY)));

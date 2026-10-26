@@ -140,8 +140,9 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
                     canvas.fillRect(0, 0, w, h, new Color(13, 24, 25));
                     for (int x = 20; x < w; x += 40) canvas.line(x, 20, x, h - 20, GRID, 1);
                     for (int y = 20; y < h; y += 40) canvas.line(20, y, w - 20, y, GRID, 1);
-                    canvas.text(Fonts.ORBITRON_16, failed ? "SURVEY UNAVAILABLE" : "ACQUIRING TERRAIN",
-                            168, h / 2, failed ? OBJECTIVE : LANDING);
+                    String text = failed ? "SURVEY UNAVAILABLE" : "ACQUIRING TERRAIN";
+                    canvas.text(Fonts.ORBITRON_16, text, (w - Fonts.ORBITRON_16.measureWidth(text)) / 2, h / 2,
+                            failed ? OBJECTIVE : LANDING);
                 };
         document.canvases().set(markup.requireElement("mission-survey-canvas"), producer);
     }
