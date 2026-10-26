@@ -108,8 +108,7 @@ shuffle, retained across battles.
 **Tracks.** Combat plays the battle pool. A walk-in is never silent (owner):
 until quiet and alert beds are sourced (the owner's call), quiet and
 aftermath play the Marine Ops theme as a bed (`marines_intel_music_bed`, the
-menu's track declared louder, since it is mastered well under the combat
-pool), and alert plays the combat files at reduced volume (the `_alert`
+menu's track declared about 5 dB under the combat pool), and alert plays the combat files at reduced volume (the `_alert`
 sound sets). A raise fades the bed out over its crossfade. The standalone battle screen is the only music host; the
 vanilla-combat bridge plays no music of its own. Each change of state is
 logged with its reason. Headless look recordings run the same director and

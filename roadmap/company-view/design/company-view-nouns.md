@@ -130,7 +130,10 @@ shared mapping instead of assigning paths independently in each screen.
   lift is the bare hold, an empty emitter flies her unshielded, and a bare
   hardpoint carries no gun. A briefing whose drop needs lift refuses to deploy with
   no flight-ready boat, and says which part is missing; a mission that starts on
-  secured ground needs none.
+  secured ground needs none. The Boat Deck's specifications column lists her
+  **readiness**: each missing required part (red), then what she flies without (a
+  bare hull, no shield, empty mounts; amber), then her frame, each line opening the
+  socket it is about.
 - **Boat workshop** — the atomic authority over the boats and their stores: it
   builds a spare from the fleet's hold, fits a spare and stores what came off,
   strips a part back to stores, moves a gun between hardpoints, recycles a spare,
