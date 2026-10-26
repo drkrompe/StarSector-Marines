@@ -265,7 +265,8 @@ public final class FightingPositionClaims {
                 before[i] = held == null ? -1 : held[1] * width + held[0];
             }
             int count = Math.max(1, squads.get(s).autonomousMemberCount(sim));
-            int[] open = LinePlacement.openCells(line, count, cells[s], before, width, probe, claimed,
+            int[] open = LinePlacement.openCells(line, count, cells[s], before, projections(line, members[s], sim),
+                    width, probe, claimed,
                     orders[s].threatX(), orders[s].threatY());
             for (int i = 0; i < open.length; i++) {
                 if (open[i] < 0) continue;
@@ -327,7 +328,10 @@ public final class FightingPositionClaims {
         for (int cell : cells) if (cell >= 0) taken.add(cell);
         int count = Math.max(1, squad.autonomousMemberCount(sim));
         int[] threat = threatOf(squad);
-        return LinePlacement.openCells(line, count, cells, null, sim.getGrid().getWidth(), probe(sim), taken,
+        long[] ids = new long[members.size()];
+        for (int i = 0; i < ids.length; i++) ids[i] = members.get(i);
+        return LinePlacement.openCells(line, count, cells, null, projections(line, ids, sim), sim.getGrid().getWidth(),
+                probe(sim), taken,
                 threat[0], threat[1]);
     }
 
@@ -337,6 +341,16 @@ public final class FightingPositionClaims {
         for (int i = 0; i < members.length; i++) {
             long unit = sim.resolveUnit(members[i]);
             along[i] = unit == 0L ? 0f : line.along(sim.world().cellX(unit), sim.world().cellY(unit));
+        }
+        return along;
+    }
+
+    /** Where each member stands along {@code line}, unclamped ({@link FrontageLine#projection}), parallel to {@code members}. */
+    private static float[] projections(FrontageLine line, long[] members, BattleView sim) {
+        float[] along = new float[members.length];
+        for (int i = 0; i < members.length; i++) {
+            long unit = sim.resolveUnit(members[i]);
+            along[i] = unit == 0L ? 0f : line.projection(sim.world().x(unit), sim.world().y(unit));
         }
         return along;
     }

@@ -627,7 +627,8 @@ increasing an encounter's total armored threat.
   line, the follower takes a **post** within the squad's line, among the marines and
   as far behind the line as they stand: each attached mech holds a band two marines
   wide, the bands spaced evenly along the stretch (one at its middle; two at a third
-  and two thirds, so marine, mech, marine, mech, marine), and the marines share out
+  and two thirds, so marine, mech, marine, mech, marine), dealt to the mechs in the
+  order they stand along it so none crosses another's path, and the marines share out
   the rest (`FrontageLine.machineFraction`). It holds the post facing the line's
   front; in contact it steps off it along that front by its doctrine depth, so a
   Brawler stands ahead of the line and Long-Range Support behind it, and steps back

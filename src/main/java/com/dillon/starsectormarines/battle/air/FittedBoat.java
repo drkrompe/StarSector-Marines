@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.turret.FluxShieldSpec;
+import com.dillon.starsectormarines.battle.turret.ShieldTint;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
+import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 
@@ -37,6 +40,14 @@ import java.util.Objects;
  * delegated untouched — a better boat is faster and tougher, not a different
  * aircraft. The deck turnaround is deliberately not here: it is paid in
  * hand-seconds, and a fitting does not buy more hands.
+ *
+ * <p><b>One flux pool for her shield and her guns.</b> {@link #shieldSpec} is her
+ * shield and its capacitors, by the rules a hardpoint's flux shield runs on
+ * ({@code FluxShield}): the emitter sets the arc and the flux each blocked point
+ * of damage costs, the power fitting the pool and its venting. Every round but
+ * a missile's charges the same pool ({@link #fluxPerRound}), so a boat that
+ * fights her way in has less shield left for the landing; a full pool overloads,
+ * dropping the shield and silencing every gun.
  *
  * <p><b>Weight aboard slows her.</b> {@link #carrying} is her handling with a
  * load: a machine drags by its lift class and each marine a little, so the run
@@ -180,6 +191,48 @@ public final class FittedBoat implements Airframe, AirHandling {
     @Override
     public float deboardInterval() {
         return pattern.deboardInterval * drive.deboardFactor();
+    }
+
+    /** Her shield's arc with the hull's own emitter: the Hermes's 120°. */
+    static final float BASE_SHIELD_ARC = 120f;
+    /** Her pool with the yard's capacitors, and what it vents a second: the vehicle mounts' scale. */
+    static final float BASE_FLUX = 100f;
+    static final float BASE_VENT = 8f;
+    /** Upkeep while the shield is up, as a share of her venting: always under it, as a warship's is. */
+    static final float UPKEEP_SHARE = 0.5f;
+    /** Shield radius in cells: a Hermes's, vanilla's 57 px. */
+    static final float SHIELD_RADIUS_CELLS = 2.6f;
+    /** Her flux guns hold fire past this share of the pool until it vents to the lower one, the warship's marks. */
+    static final float GUNS_HOLD_ABOVE = 0.85f;
+    static final float GUNS_RESUME_BELOW = 0.55f;
+
+    /**
+     * Her shield and its capacitors: arc and flux per blocked damage from the emitter, pool and venting from the
+     * power fitting. An omni shield, turning fast to whatever fires on her.
+     */
+    public FluxShieldSpec shieldSpec() {
+        BoatFitting emitter = fit.get(BoatFittingSlot.EMITTER);
+        BoatFitting power = fit.get(BoatFittingSlot.POWER);
+        float arc = emitter.shieldArcDeg() > 0f ? emitter.shieldArcDeg() : BASE_SHIELD_ARC;
+        float vent = BASE_VENT * power.fluxDissipationFactor();
+        return new FluxShieldSpec(SHIELD_RADIUS_CELLS, arc, BASE_FLUX * power.fluxCapacityFactor(), vent,
+                UPKEEP_SHARE * vent, emitter.shieldEfficiency(), 0f, 0.4f, 0.25f, 6f, 240f, 3f,
+                new FluxShieldSpec.GunDraw(1f, GUNS_HOLD_ABOVE, GUNS_RESUME_BELOW));
+    }
+
+    /** Her shield's look by its emitter's tier: low-tech orange, midline teal, high-tech blue. */
+    public ShieldTint shieldTint() {
+        return switch (fit.get(BoatFittingSlot.EMITTER).tier()) {
+            case 1 -> ShieldTint.ORANGE;
+            case 2 -> ShieldTint.TEAL;
+            default -> ShieldTint.BLUE;
+        };
+    }
+
+    /** Flux one round of the gun {@code structureId} puts on a boat's pool; none for a missile or an unknown gun. */
+    public static float fluxPerRound(String structureId) {
+        BoatGun gun = BoatGun.forStructure(structureId);
+        return gun == null ? 0f : gun.family().fluxPerRound();
     }
 
     /** Top-speed loss a machine of each lift class costs her, by {@link LiftClass} ordinal. */

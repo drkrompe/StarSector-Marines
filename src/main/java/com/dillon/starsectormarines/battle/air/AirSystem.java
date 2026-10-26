@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.logistics.ResupplyService;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
+import com.dillon.starsectormarines.battle.turret.TurretShieldService;
 import com.dillon.starsectormarines.battle.vehicle.Pose;
 import com.dillon.starsectormarines.battle.vehicle.PurePursuit;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
@@ -277,6 +278,9 @@ public class AirSystem {
     private final TacticalScoring tacticalScoring;
     private final World world;
     private final TurretFireSink fireSink;
+    /** The battle's flux shields, which a company boat's shield joins; null until the sim hands them over. */
+    private TurretShieldService boatShields;
+    private TurretShieldService.Positions boatShieldPositions;
     private final Random rng;
     private final Function<EntitySpec, Long> addUnitSink;
     private final EffectsService effects;   // crash FX on shoot-down (smoke plume + burning wreck)
@@ -538,6 +542,10 @@ public class AirSystem {
         world.setKinematics(id, body);
         world.setMission(id, mission);
         seedDurability(id, flying, faction);
+        // A company boat carries her shield and its flux pool, facing her nose (map degrees).
+        if (boatShields != null && flying instanceof FittedBoat boat) {
+            boatShields.fit(id, boat.shieldSpec(), boat.shieldTint(), body.facingDegrees + 90f);
+        }
         // Seed the authored render-state column (cruise altitude, zero wobble
         // phase). The state-machine tick drives it thereafter; the render/audio
         // passes read it by id.
@@ -604,6 +612,15 @@ public class AirSystem {
     /** Gives this system the same cook-off a hardstand kill lights off, for a craft it kills on the ground itself. */
     public void setAirframeCookOff(AirframeCookOffSystem airframeCookOff) {
         this.airframeCookOff = airframeCookOff;
+    }
+
+    /**
+     * The flux shields a company boat's shield is fitted into at spawn: the same service, rules and drawing as a
+     * hardpoint's, so a round from the shield's arc is stopped before armour sees it.
+     */
+    public void setBoatShields(TurretShieldService shields, TurretShieldService.Positions positions) {
+        this.boatShields = shields;
+        this.boatShieldPositions = positions;
     }
 
     /** Tells this system which field its based sorties belong to. */
@@ -698,7 +715,21 @@ public class AirSystem {
                 posts++;
             }
             if (posts == 0) continue;
-            float hp = world.hp(id) - posts * mission.aaExposure * AA_DPS_PER_POST * dt;
+            float perPost = mission.aaExposure * AA_DPS_PER_POST * dt;
+            float damage = posts * perPost;
+            if (boatShields != null && boatShields.fitted(id) != null) {
+                // A boat's raised shield stops each post's fire from inside its arc, as flux.
+                damage = 0f;
+                for (int i = 0, n = scratch.size; i < n; i++) {
+                    long e = scratch.ids[i];
+                    if (!faction.hostileTo(roster.identity().faction(e)) || !world.isAlive(e)
+                            || !engagement.reachesAltitude(e)) continue;
+                    if (roster.turretState().isTurret(e)
+                            && roster.turretState().structure(e).targetRole == TurretRole.AA) continue;
+                    if (!boatShields.absorbs(id, e, perPost, boatShieldPositions)) damage += perPost;
+                }
+            }
+            float hp = world.hp(id) - damage;
             world.setHp(id, hp);
             if (hp <= 0f) shootDown(id, body, mission, posts + " AA post(s)");
         }
@@ -1621,8 +1652,13 @@ public class AirSystem {
                 // per round during a burst, not just on the trigger pull.
                 mt.recoilTimer += dt;
 
-                if (mt.ammoDry()) {
-                    // Mag dry mid-burst — drop any pending rounds so the mount
+                // A boat's guns share her shield's pool: an overload silences every gun, and a pool past its hold
+                // mark rests the guns that charge it while a missile pod, which does not, keeps firing.
+                float roundFlux = FittedBoat.fluxPerRound(mt.mount.structureId);
+                boolean silent = boatShields != null && (boatShields.overloaded(id)
+                        || (roundFlux > 0f && boatShields.silenced(id)));
+                if (mt.ammoDry() || silent) {
+                    // Mag dry or silenced mid-burst — drop any pending rounds so the mount
                     // doesn't stay in a never-firing burst state.
                     mt.burstRemaining = 0;
                     mt.burstTargetId = 0L;
@@ -1707,6 +1743,7 @@ public class AirSystem {
                                 mt.facingDegrees, releaseIndex);
                         mt.recoilTimer = 0f;
                         mt.ammo--;
+                        if (boatShields != null) boatShields.noteRound(id, roundFlux);
                         mt.burstRemaining--;
                         mt.burstTimer = mt.mount.weaponDef().burstSpacing;
                         if (mt.burstRemaining == 0) mt.burstTargetId = 0L;
@@ -1721,6 +1758,7 @@ public class AirSystem {
                             mt.facingDegrees, 0);
                     mt.recoilTimer = 0f;
                     mt.ammo--;
+                    if (boatShields != null) boatShields.noteRound(id, roundFlux);
                     // Burst weapons latch the remaining rounds; single-shot
                     // kinds (burstCount == 1) skip this and behave as before.
                     if (mt.mount.weaponDef().burstCount > 1

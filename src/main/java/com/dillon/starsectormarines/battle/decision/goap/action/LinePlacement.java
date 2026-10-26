@@ -93,13 +93,20 @@ public final class LinePlacement {
      * more and has a line of fire to it, nearest his cell among equals ({@link #reactiveCell}).
      * Such a cell is kept while the threat it answered still stands and it still covers him.
      *
+     * <p>Shares go out in the order the marines stand along the line ({@link #ordinals}), so the
+     * first share is the nearest marine's and no two cross on the way to theirs.
+     *
      * @param count how many shares the line is cut into
      * @param previous each slot's open cell last tick ({@code y * width + x}), or -1
+     * @param along where each slot's marine stands along the line ({@link FrontageLine#projection}),
+     *              or {@code null} to share out in slot order
      * @param threatX the squad's believed primary threat cell, or -1 for none
      */
-    static int[] openCells(FrontageLine line, int count, int[] cells, int[] previous, int width,
+    static int[] openCells(FrontageLine line, int count, int[] cells, int[] previous, float[] along, int width,
                            Probe probe, Set<Integer> taken, int threatX, int threatY) {
         boolean threat = threatX >= 0 && threatY >= 0;
+        int[] ordinal = ordinals(line, cells.length, previous, along, width);
+        int shares = Math.max(count, cells.length);
         int[] open = new int[cells.length];
         Arrays.fill(open, -1);
         for (int i = 0; i < cells.length; i++) {
@@ -118,7 +125,7 @@ public final class LinePlacement {
         }
         for (int i = 0; i < cells.length; i++) {
             if (cells[i] >= 0 || open[i] >= 0) continue;
-            int[] share = share(line, i, Math.max(count, i + 1));
+            int[] share = share(line, ordinal[i], shares);
             int cell = coveredCell(line, share, width, probe, taken);
             if (cell < 0) cell = nearestFree(line, share, width, probe, taken);
             open[i] = cell;
@@ -128,7 +135,7 @@ public final class LinePlacement {
         for (int i = 0; i < cells.length; i++) {
             int cell = open[i];
             if (cell < 0 || threatCover(probe, cell % width, cell / width, threatX, threatY) > 0) continue;
-            int[] share = share(line, i, Math.max(count, i + 1));
+            int[] share = share(line, ordinal[i], shares);
             int better = reactiveCell(line, share, cell, width, probe, taken, threatX, threatY);
             if (better < 0) continue;
             taken.remove(cell);
@@ -136,6 +143,30 @@ public final class LinePlacement {
             open[i] = better;
         }
         return open;
+    }
+
+    /**
+     * Each slot's share of the line: its rank along it, so shares and marines run the same way and
+     * no two paths cross. A slot that held a cell last tick ranks by that cell rather than where its
+     * marine is, so marines on the way to their shares never trade them as they pass; slot order
+     * among equals, and with no {@code along} slot order outright.
+     */
+    static int[] ordinals(FrontageLine line, int slots, int[] previous, float[] along, int width) {
+        int[] ordinal = new int[slots];
+        if (along == null) {
+            for (int i = 0; i < slots; i++) ordinal[i] = i;
+            return ordinal;
+        }
+        float[] key = new float[slots];
+        Integer[] order = new Integer[slots];
+        for (int i = 0; i < slots; i++) {
+            int held = previous == null ? -1 : previous[i];
+            key[i] = held >= 0 ? line.projection(held % width, held / width) : along[i];
+            order[i] = i;
+        }
+        Arrays.sort(order, (a, b) -> Float.compare(key[a], key[b]));
+        for (int rank = 0; rank < slots; rank++) ordinal[order[rank]] = rank;
+        return ordinal;
     }
 
     /** Cover the cell gives against fire from the believed threat, by the one facing a shot from it reads. */

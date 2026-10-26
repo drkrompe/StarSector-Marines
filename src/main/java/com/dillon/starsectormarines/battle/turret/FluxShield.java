@@ -118,6 +118,15 @@ public final class FluxShield {
         if (spec.gunDraw() != null) pendingRoundFlux += spec.gunDraw().perRound();
     }
 
+    /**
+     * A gun sharing the capacitors fired a round costing {@code flux}, charged next tick shield up or down: a boat's
+     * guns and shield draw on one pool. Nothing is charged while overloaded, when the guns are silent.
+     */
+    public void noteRound(float flux) {
+        if (overloadLeft > 0f || !(flux > 0f)) return;
+        pendingRoundFlux += flux;
+    }
+
     /** Whether an energy gun is holding fire to let the capacitors bleed down ({@link FluxShieldSpec#gunDraw}). */
     public boolean gunHeld() {
         return gunHeld;

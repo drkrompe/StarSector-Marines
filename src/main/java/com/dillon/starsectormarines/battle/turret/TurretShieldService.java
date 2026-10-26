@@ -112,6 +112,18 @@ public final class TurretShieldService {
         return f != null && (f.shield.overloaded() || f.shield.gunHeld());
     }
 
+    /** Whether {@code id}'s shield is overloaded: down, and every gun on it silent. */
+    public boolean overloaded(long id) {
+        Fitted f = byId.get(id);
+        return f != null && f.shield.overloaded();
+    }
+
+    /** Entity {@code id} fired a round from a gun drawing {@code flux} on the shield's capacitors. */
+    public void noteRound(long id, float flux) {
+        Fitted f = byId.get(id);
+        if (f != null) f.shield.noteRound(flux);
+    }
+
     /** Turret {@code id} fired a round. */
     public void noteRound(long id) {
         Fitted f = byId.get(id);

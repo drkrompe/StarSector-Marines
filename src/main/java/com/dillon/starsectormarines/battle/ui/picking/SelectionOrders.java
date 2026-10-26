@@ -22,6 +22,7 @@ import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -363,7 +364,8 @@ public final class SelectionOrders {
 
     /**
      * A right drag from ({@code x0},{@code y0}) to ({@code x1},{@code y1}). Every recipient holds its
-     * own consecutive stretch of the line in recipient order, as long as its width
+     * own consecutive stretch of the line in the order they stand along it ({@link #alongDrag}), so no
+     * two cross on the way, each as long as its width
      * ({@link #lineWidth}), each facing as an infantry line does —
      * toward the threat its squad believes in, else away from where it stands. An infantry squad
      * holds its stretch as a frontage; a mech or a vehicle goes to its stretch's middle and finishes
@@ -377,12 +379,13 @@ public final class SelectionOrders {
             requestMove(sim, selection, x1, y1);
             return;
         }
+        recipients = alongDrag(recipients, x0, y0, x1, y1);
         List<FrontageLine> lines = previewLines(sim, selection, x0, y0, x1, y1);
         for (int i = 0; i < recipients.size(); i++) {
             Recipient recipient = recipients.get(i);
             FrontageLine line = lines.get(i);
             if (recipient.kind() == RecipientKind.INFANTRY) {
-                List<Follower> followers = followers(sim, recipient.squadId());
+                List<Follower> followers = followersAlong(sim, recipient.squadId(), line);
                 sim.getSquadMoveOrderService().requestLine(recipient.squadId(),
                         line.x0(), line.y0(), line.x1(), line.y1(), followers.size());
                 FrontageLine within = line.withMachines(followers.size());
@@ -399,14 +402,15 @@ public final class SelectionOrders {
     }
 
     /**
-     * The stretch of a drag each recipient would hold, one per recipient in recipient order, each
+     * The stretch of a drag each recipient would hold, one per recipient in the order they stand
+     * along the drag ({@link #alongDrag}), each
      * facing the way that recipient's order will face. Empty when nothing selected takes a line. The
      * preview and the order both come from here, so the arrow drawn under the drag is the facing
      * given.
      */
     public static List<FrontageLine> previewLines(BattleSimulation sim, Selection selection,
                                                   int x0, int y0, int x1, int y1) {
-        List<Recipient> recipients = recipients(sim, selection);
+        List<Recipient> recipients = alongDrag(recipients(sim, selection), x0, y0, x1, y1);
         List<FrontageLine> lines = new ArrayList<>(recipients.size());
         float[] widths = new float[recipients.size()];
         float total = 0f;
@@ -471,6 +475,29 @@ public final class SelectionOrders {
     }
 
     /**
+     * {@code recipients} in the order they stand along the drag from ({@code x0},{@code y0}) to
+     * ({@code x1},{@code y1}), selection order among equals. Stretches are dealt out along the drag
+     * in this order, so the recipient nearest its start takes the first and no two paths cross.
+     */
+    static List<Recipient> alongDrag(List<Recipient> recipients, int x0, int y0, int x1, int y1) {
+        FrontageLine drag = new FrontageLine(x0, y0, x1, y1, 0f, 0f);
+        List<Recipient> sorted = new ArrayList<>(recipients);
+        sorted.sort(Comparator.comparingDouble(r -> drag.projection(r.x(), r.y())));
+        return sorted;
+    }
+
+    /**
+     * The live mechs following {@code squadId} in the order they stand along its {@code stretch}, so
+     * the first band goes to the mech nearest the stretch's start and the two never cross.
+     */
+    static List<Follower> followersAlong(BattleSimulation sim, int squadId, FrontageLine stretch) {
+        List<Follower> sorted = followers(sim, squadId);
+        sorted.sort(Comparator.comparingDouble(
+                f -> stretch.projection(sim.world().x(f.mech()), sim.world().y(f.mech()))));
+        return sorted;
+    }
+
+    /**
      * Where the {@code k}th mech attached to an infantry recipient stands on its squad's stretch: the
      * middle of its band among the marines ({@link FrontageLine#machineFraction}), as far back as they.
      */
@@ -495,14 +522,14 @@ public final class SelectionOrders {
      */
     public static List<HighlightOverlay.LineMark> previewMarks(BattleSimulation sim, Selection selection,
                                                                 int x0, int y0, int x1, int y1) {
-        List<Recipient> recipients = recipients(sim, selection);
+        List<Recipient> recipients = alongDrag(recipients(sim, selection), x0, y0, x1, y1);
         List<FrontageLine> lines = previewLines(sim, selection, x0, y0, x1, y1);
         List<HighlightOverlay.LineMark> marks = new ArrayList<>(lines.size());
         for (int i = 0; i < lines.size(); i++) {
             Recipient recipient = recipients.get(i);
             List<HighlightOverlay.PlaceMark> places = new ArrayList<>();
             if (recipient.kind() == RecipientKind.INFANTRY) {
-                List<Follower> followers = followers(sim, recipient.squadId());
+                List<Follower> followers = followersAlong(sim, recipient.squadId(), lines.get(i));
                 FrontageLine within = lines.get(i).withMachines(followers.size());
                 for (LinePlacement.Place place : LinePlacement.preview(sim, sim.getSquad(recipient.squadId()), within)) {
                     places.add(new HighlightOverlay.PlaceMark(place.member(), place.x(), place.y(), place.position()));

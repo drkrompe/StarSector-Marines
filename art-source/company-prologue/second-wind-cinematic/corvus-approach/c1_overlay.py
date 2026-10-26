@@ -4,7 +4,7 @@ Owned by the UI pass. `apply(img, t, duration)` takes and returns the 1920x1080 
 frame. Two pieces:
 
 - **Planet ID.** A sensor lock on Jangala: four short arcs close on the limb as
-  Approach names itself, and a leader runs from the lower-right arc to a label
+  Approach names itself, and a leader runs from the upper-right arc to a label
   (JANGALA, then CORVUS / HEGEMONY). It tracks the planet layer through the push
   and truck, and leaves as Approach keys down after line 1.
 - **Captions.** Every hail line in C1, with a speaker tag, timed from
@@ -143,16 +143,16 @@ def draw_planet_id(frame, t, duration):
     flash = math.exp(-((t - t_lock - LOCK_SECONDS) / 0.25) ** 2)
     ring_a = (0.6 + 0.35 * flash) * smooth((t - t_lock) / 0.35) * fade
     segs = [_arc(cx, cy, rr, deg) for deg in (45, 135, 225, 315)]
-    # From the lower-right arc a leader runs out to a rule the label hangs under. The upper
-    # right belongs to the hero warship's track; the lower right is open space beside the captions.
+    # From the upper-right arc a leader runs up and out to a rule the label sits on: ships
+    # cross the lower right of the approach, and the label must not cover them.
     name, detail = _label_patches()
     width = max(name.width, detail.width) - 4
-    ax, ay = cx + rr * math.cos(math.radians(45)), cy + rr * math.sin(math.radians(45))
-    ex, ey = ax + LEADER, ay + LEADER
+    ax, ay = cx + rr * math.cos(math.radians(45)), cy - rr * math.sin(math.radians(45))
+    ex, ey = ax + LEADER, ay - LEADER
     run = smooth((t - t_lock - LOCK_SECONDS * 0.6) / 0.6)
     if run > 0:
         k = min(1.0, run * 2)
-        leader = [(ax + 4, ay + 4), (ax + 4 + (ex - ax - 4) * k, ay + 4 + (ey - ay - 4) * k)]
+        leader = [(ax + 4, ay - 4), (ax + 4 + (ex - ax - 4) * k, ay - 4 + (ey - ay + 4) * k)]
         if run > 0.5:
             leader.append((ex + (width + 6) * (run - 0.5) * 2, ey))
         segs.append(leader)
@@ -160,8 +160,9 @@ def draw_planet_id(frame, t, duration):
     ui.blend(frame, patch, x0, y0, ring_a)
     text_a = smooth((t - t_lock - LOCK_SECONDS * 1.2) / 0.45) * fade
     slide = 10 * (1 - smooth((t - t_lock - LOCK_SECONDS * 1.2) / 0.6))
-    ui.blend(frame, name, ex + 2 - slide, ey + 4, text_a)
-    ui.blend(frame, detail, ex + 2 - slide, ey + 4 + name.height + 2, 0.9 * text_a)
+    top = ey - 4 - name.height - 2 - detail.height
+    ui.blend(frame, name, ex + 2 - slide, top, text_a)
+    ui.blend(frame, detail, ex + 2 - slide, top + name.height + 2, 0.9 * text_a)
 
 
 # ---------------------------------------------------------------- captions
