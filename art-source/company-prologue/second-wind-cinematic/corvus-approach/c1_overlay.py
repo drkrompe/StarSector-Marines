@@ -29,7 +29,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from c1_core import BASE, FOCUS, H, PLANET, PLANET_DIAMETER, PUSH, TRUCK, W, smooth  # noqa: E402
+from c1_core import BASE, FOCUS, H, PLANET, PLANET_DIAMETER, PUSH, ROOT, TRUCK, W, smooth  # noqa: E402
 import ui_style as ui  # noqa: E402
 
 sys.path.insert(0, str(BASE.parent / "arrival-audio"))
@@ -91,8 +91,32 @@ def _planet_depth(t):
     return PLANET_DEPTH_FALLBACK
 
 
+PLANET_TRACKS = (
+    ROOT / "build" / "cinematic" / "c1-corvus" / "planet-track.json",   # c1v2_planet_track.py
+    ROOT / "mod" / "data" / "cinematic" / "jangala-arrival" / "c1.json",  # the lock track the game draws
+)
+
+
+@lru_cache(maxsize=1)
+def _planet_track():
+    """[(t, cx, cy, r)] of Jangala through the shipped C1 (v2) camera, or None if neither source exists."""
+    for path in PLANET_TRACKS:
+        if path.is_file():
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                data = next((o["track"] for o in data.get("overlays", ()) if o.get("kind") == "lock"), None)
+            if data:
+                return np.array(sorted(data), dtype=np.float64)
+    return None
+
+
 def planet_screen(t, duration):
-    """Globe centre and radius on screen: compose_c1's camera applied to c1_core.PLANET."""
+    """Globe centre and radius on screen. C1 v2's projected track when there is one (the same track
+    the game draws its lock on); otherwise compose_c1's v1 camera applied to c1_core.PLANET, which
+    does not match the shipped v2 plate."""
+    track = _planet_track()
+    if track is not None:
+        return tuple(float(np.interp(t, track[:, 0], track[:, k])) for k in (1, 2, 3))
     depth = _planet_depth(t)
     u = t / duration
     cam = PUSH[0] + (PUSH[1] - PUSH[0]) * smooth(u)
