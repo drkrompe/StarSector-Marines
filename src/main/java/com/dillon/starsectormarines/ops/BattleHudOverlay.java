@@ -218,7 +218,8 @@ final class BattleHudOverlay {
     }
 
     static float documentHeight(BattleHudOverlayModel.Presentation presentation) {
-        float rail = presentation.missionRows() > 0 ? Math.max(300, 96 + presentation.missionRows() * 174)
+        float rail = presentation.missionRows() > 0 || presentation.optionalRows() > 0
+                ? Math.max(300, 96 + presentation.missionRows() * 174 + BattleHudOverlayModel.optionalHeight(presentation.optionalRows()))
                 : presentation.objectivesVisible() ? OBJECTIVE_HEIGHT : TIME_ONLY_HEIGHT;
         return presentation.liftRows() > 0 ? Math.max(rail, liftHeight(presentation.liftRows())) : rail;
     }

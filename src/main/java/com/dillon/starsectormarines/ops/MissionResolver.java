@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.AirLoss;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
+import com.dillon.starsectormarines.battle.objective.side.SideObjectiveResult;
+import com.dillon.starsectormarines.campaign.CampaignMarks;
 import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
 import com.dillon.starsectormarines.battle.evacuation.PickupManifest;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
@@ -418,6 +420,7 @@ public final class MissionResolver {
                 .freightOutcome(sim.getThunderRun() == null ? null : sim.getThunderRun().outcome())
                 .fieldSalvage(sim.fieldSalvage().recovered())
                 .objectives(optionalObjectiveResults(sim))
+                .sideObjectives(sim.getSideObjectives().results(sim.getSimTickIndex()))
                 .waylineHound(sim.getWaylineHound() == null ? null : sim.getWaylineHound().report(sim))
                 .lastLiftOutcome(sim.getLastLiftAttempt() == null ? null : sim.getLastLiftAttempt().outcome())
                 .mission(mission)
@@ -599,6 +602,8 @@ public final class MissionResolver {
         }
 
         recordStoryCompletion(roster, outcome);
+        CampaignStateScript marksScript = CampaignStateScript.getInstance();
+        if (marksScript != null) writeCampaignMarks(marksScript.state().marks(), outcome);
 
         OfficerMissionResult.apply(roster, outcome, currentDayInt());
         if (outcome.officers.isEmpty() && outcome.captainId != null) {
@@ -721,6 +726,15 @@ public final class MissionResolver {
         if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         return script == null ? null : script.roster().boatDeck();
+    }
+
+    /**
+     * Writes the campaign mark each side objective earned, from the settled outcome rather than the live battle
+     * ({@code side-objective-toolkit.md}). Win or lose: a job done is its own fact. Writing a mark twice changes nothing.
+     */
+    static void writeCampaignMarks(CampaignMarks marks, MissionOutcome outcome) {
+        if (marks == null || outcome == null) return;
+        for (SideObjectiveResult side : outcome.sideObjectives) if (side.marked()) marks.write(side.mark());
     }
 
     static void recordStoryCompletion(MarineRoster roster, MissionOutcome outcome) {
