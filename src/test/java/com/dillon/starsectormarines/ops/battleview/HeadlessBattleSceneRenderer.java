@@ -217,7 +217,7 @@ public final class HeadlessBattleSceneRenderer implements HeadlessHostPassRender
         if (TextureUsageCapture.measureOnly()) return true;
         List<DrawCommand> ordered = new ArrayList<>();
         for (RenderLayer layer : RenderLayer.values()) {
-            if (!frame.layers().contains(layer)) continue;
+            if (!layer.drawnFor(frame.layers())) continue;
             // Ahead of the layer's own commands: the production SHOTS order is contrails, delivered rounds and beams,
             // and only then the bodies, so a missile is drawn over its own trail.
             if (overlay != null) {

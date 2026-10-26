@@ -277,7 +277,10 @@ public final class UnitRenderService implements RenderSystem {
         sweepTurretBodies(ctx, out);
         sweepHubBodies(ctx, out);
         sweepBasedAircraft(ctx, out);
+        // The dead lie on the ground under the fog; the composers they share with the living emit into UNITS.
+        int living = out.count(RenderLayer.UNITS);
         sweepDeadSprites(ctx, out);
+        out.moveTail(RenderLayer.UNITS, living, RenderLayer.CORPSES);
         out.clearEffects();
         sweepLiveSprites(ctx, out);
         out.clearEffects();
@@ -1129,7 +1132,7 @@ public final class UnitRenderService implements RenderSystem {
      * batched {@code SHEET_QUAD}. Faithful port of the former inline
      * {@code BattleRenderer.renderDeadUnits} — same two gates, same pose-frame
      * selection, same aspect-fit into the {@code renderScale}d cell box, no vision
-     * gate (corpses persist through fog), no flip, no HP bar.
+     * gate (corpses persist through fog, drawn under it in {@link RenderLayer#CORPSES}), no flip, no HP bar.
      *
      * <p>Sourced from the corpse archetype in the battle {@code EntityWorld},
      * <em>not</em> the legacy units list — a corpse entity is spawned on the
