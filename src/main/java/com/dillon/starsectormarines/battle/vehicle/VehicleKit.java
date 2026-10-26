@@ -36,7 +36,7 @@ public enum VehicleKit {
      * mech's accelerated feed does. Armed hulls only.
      */
     ACCELERATED_LOADER("kit.accelerated-loader", "@vehicleKitAcceleratedLoader", 1f, 1f, 1f, 0f, .75f, 1f),
-    /** Half again the flux the gun can hold before it overloads. Hulls whose gun builds flux only. */
+    /** Half again the flux the gun can hold before it overloads. Armed hulls, whose every gun builds flux. */
     CAPACITOR_PACK("kit.capacitor-pack", "@vehicleKitCapacitorPack", 1f, 1f, 1f, 0f, 1f, 1.5f);
 
     public final String id;

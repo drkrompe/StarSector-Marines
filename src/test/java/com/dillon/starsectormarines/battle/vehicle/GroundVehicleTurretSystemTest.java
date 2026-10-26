@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretAim;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretFireSystem;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -62,7 +63,8 @@ class GroundVehicleTurretSystemTest {
         assertEquals(Math.max(0f, flux.perRound() - flux.dissipationPerSec()), turret.flux, 1e-5f,
                 "below capacity flux bleeds at the dissipation rate");
 
-        TurretMountDef magazine = VehicleType.HEAVY_APC.turretStructure().mount;
+        // An emplacement's mount: hull guns all build flux, so only a mount no hull carries is without it.
+        TurretMountDef magazine = TurretCatalogRegistry.requireStructure(TurretCatalogRegistry.VULCAN_STRUCTURE_ID).mount;
         GroundTurret gun = new GroundTurret(magazine.ammoCapacity);
         GroundVehicleTurretSystem.addFlux(gun, magazine);
         assertTrue(GroundVehicleTurretSystem.ready(gun, magazine), "a mount without flux is never held");

@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — every armed hull's loader refills its magazine; the LRM carrier is an LRM-15 whose groups follow each other on clicks, bounded by flux.
+Updated: 2026-10-26 — every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -561,8 +561,27 @@ slot with the plate and the liner (`mechs-nouns.md`, vehicle kit): the **ready
 rack** deepens the magazine (a bigger spike), the **accelerated loader** cuts
 every pack's time to three quarters (a better sustained rate), and the
 **capacitor pack** holds half again the flux before the gun overloads (more
-rounds between vents, on a gun that builds flux). The direct-control HUD shows a
-flux gun's flux on the mech's gauge, against its kitted capacity.
+rounds between vents).
+
+**Every hull gun builds flux** (owner, 2026-10-26; `TurretMountDef.flux`), as a
+starship's weapons do: every round adds flux, flux dissipates at a steady rate,
+and a gun whose flux reaches capacity **overloads**, breaks off its burst and holds
+its trigger while it vents, faster than it dissipates, until it is empty. Flux is
+not the magazine, so a hull venting still reads as armed to every engagement
+question. Flux is the gun's own, one bank a mount, secondaries included; a hull
+has no chassis reservoir as a mech does. How much a gun builds is its character:
+- **Nominal** on the plain guns. The machine guns, the tank cannon, the mortar and
+  the hover pulse emitter build a little each round and shed it faster than their
+  cadence fills it, so a held trigger peaks around a tenth to a fifth of capacity and
+  never overloads. Their flux is there to read, not to limit.
+- **The limit** on the racks and the lasers. A rack dumped on clicks or a hold runs
+  into its flux before its magazine: the LRM rack's three groups fit and a fourth
+  does not, and the SRM rack overloads before its eight salvos are out. The lasers
+  are flux hogs (the laser tanks, below).
+The direct-control HUD shows every armed hull's main gun's flux on the mech's
+gauge, against its kitted capacity. The haze rises only off vents a hull's art
+authors (`VehicleType.fluxVentAftCells`, the laser tanks' radiator fins), so the
+plain hulls show no haze. Emplacements sharing a hull's mount never read its flux.
 
 **The screened tank carries active protection** (`VehicleType.activeProtectionStructureId`).
 It is a point-defence mount on the hull: the carried-mount law of
@@ -1305,7 +1324,7 @@ tail hinge to fire
 five**: a click is a group, and a click while the last group's cooldown still runs, or a
 held button, fires the next loaded group as soon as the last has gone (`SalvoChain`), so
 three clicks are the whole rack. Its cooldown is no wait between its own groups. What
-bounds it is its **flux** (`TurretMountDef.flux`, the lasers' law): the three groups fit
+bounds it is its **flux** (hull flux, above): the three groups fit
 inside it, and a fourth from a ready rack overloads the launcher and holds it while it
 vents, unless a capacitor pack makes room. Its loader brings a group back every 18 s. It is the APC line's long arm against
 armor, where the fire-support APC is its steadier arm against anything. Its rounds
@@ -1367,12 +1386,8 @@ infantry and drones far faster than a cannon tank. Its rounds carry **no blast a
 no wall damage**, so it cannot open a building or answer an assault's wall
 directive, and its low penetration leaves it chipping at armor.
 
-What keeps it from out-trading a cannon tank is **flux** (`TurretMountDef.flux`), a
-mount law any turret may author, as a starship's energy weapon builds it: every round
-adds flux, flux dissipates at a steady rate, and a gun whose flux reaches capacity
-**overloads**. An overloaded gun breaks off its burst and holds its trigger while it
-vents, faster than it dissipates, until it is empty. Flux is not the magazine, so a
-hull venting still reads as armed to every engagement question. The burst laser is a
+What keeps it from out-trading a cannon tank is **flux** (hull flux, above), which
+every hull gun builds but a laser builds hardest. The burst laser is a
 flux hog, as it is in space: it fires far faster than it dissipates, so a section
 dies inside one charge-up, while a tank sees it fall silent and vent for seconds at a
 time long before the tank is dead. The flux is visible, as a starship's is: a purple
