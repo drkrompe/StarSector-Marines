@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.story;
 
+import com.dillon.starsectormarines.battle.audio.MusicState;
+
 /**
  * The Dust Ledger's rules, free of the simulation ({@code dust-ledger-crossing.md}, Mission flow and Side
  * objectives): the quiet phase and its lift-off clock, the one alarm and what raised it, the ledger burn and its
@@ -140,6 +142,8 @@ public final class DustLedgerProgress {
     }
 
     public boolean quiet() { return alarm == Alarm.QUIET; }
+    /** The mission's music: quiet while the company walks in as freight, combat from the alarm on. */
+    public MusicState musicState() { return quiet() ? MusicState.QUIET : MusicState.COMBAT; }
     public Alarm alarm() { return alarm; }
     /** Seconds into the battle when the alarm sounded, or -1 while quiet. */
     public float alarmAt() { return alarmAt; }

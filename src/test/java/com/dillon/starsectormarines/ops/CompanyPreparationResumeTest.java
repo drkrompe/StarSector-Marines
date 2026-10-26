@@ -113,7 +113,7 @@ class CompanyPreparationResumeTest {
             assertCaptured(roster, ScreenId.BARRACKS);
             assertTrue(roster.officerInduction().finish(roster));
             for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
-            assertTrue(roster.boatDeck().airworthy().isEmpty(), "Relief launches without a boat");
+            assertTrue(roster.boatDeck().flightReady().isEmpty(), "Relief launches without a boat");
             assertTrue(CerberusCompanyStart.depot().available("metals") > 0, "The Hermes parts stay prepaid");
 
             // After Relief, the first-lift lesson draws them, and leaving the planet still sends us back for them.
@@ -131,7 +131,7 @@ class CompanyPreparationResumeTest {
             var workshop = new BoatWorkshop(roster.boatDeck(), CampaignFabricationResources.forBoats());
             assertTrue(workshop.fabricate(0).succeeded());
             assertFalse(workshop.fabricate(0).succeeded());
-            assertEquals(1, roster.boatDeck().airworthy().size());
+            assertEquals(1, roster.boatDeck().flightReady().size());
             assertFalse(CampaignLessons.firstLiftPending(roster));
             assertTrue(CerberusCompanyStart.depot().stock().values().stream().allMatch(n -> n == 0));
         } finally { Global.setSector(previous); }
