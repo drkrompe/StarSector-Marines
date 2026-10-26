@@ -11,10 +11,8 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.CommandPower;
-import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
-import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -96,8 +94,8 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
                 sim.addObjective(new ChargeSiteObjective(72, 20, 8, "communications", "Communications relay"));
                 sim.addObjective(new ChargeSiteObjective(82, 36, 8, "generator", "Compound power generator"));
                 sim.addObjective(new ChargeSiteObjective(70, 50, 8, "stores", "Fortified ammunition stores"));
-                List<CommandPower> standardPowers = List.of(new ReconPing(), new EmergencyResupply(),
-                        new OrbitalBarrage(), new MechSupport(), new CloseAirSupport());
+                List<CommandPower> standardPowers = List.of(new OrbitalBarrage(), new MechSupport(),
+                        new CloseAirSupport());
                 sim.getCommandPowerService().setPowers(standardPowers);
                 Tender tender = Tender.fit(Faction.MARINE, 26, 24, -90);
                 sim.tenders().add(sim, tender);
@@ -151,8 +149,8 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
         MechSupport bay = MechSupport.configured(
                 List.of(rook, MechDeploymentSpec.standard(MechVariant.BULWARK), hound),
                 List.of(new VehicleDeploymentSpec(null, "Mule", VehicleType.HEAVY_APC)), buffalo, false);
-        sim.getCommandPowerService().setPowers(List.of(new ReconPing(), new EmergencyResupply(),
-                new OrbitalBarrage(), bay, new CloseAirSupport()));
+        sim.getCommandPowerService().setPowers(List.of(new OrbitalBarrage(), bay,
+                new CloseAirSupport()));
         try {
             CommandPowerTargetingPanel panel = new CommandPowerTargetingPanel(uiContext(sim, selection, null, null));
             panel.toggle(MechSupport.ID);

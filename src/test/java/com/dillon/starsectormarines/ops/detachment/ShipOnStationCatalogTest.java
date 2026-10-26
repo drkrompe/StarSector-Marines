@@ -138,7 +138,7 @@ class ShipOnStationCatalogTest {
     void anEmployerMayOfferAStockHullThroughTheSameMechanism() {
         ShipOnStation power = shipPower(PowerCatalog.resolve(List.of(
                 member("eagle", HullSize.CRUISER, "A", GUNS)),
-                mission(List.of(ShipOnStation.EMPLOYER_PREFIX + "shepherd", "recon_ping"))));
+                mission(List.of(ShipOnStation.EMPLOYER_PREFIX + "shepherd"))));
         assertEquals(2, power.maxCharges);
         assertTrue(power.sources().get(1).tender());
     }

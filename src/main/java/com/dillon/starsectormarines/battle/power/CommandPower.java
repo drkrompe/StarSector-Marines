@@ -76,8 +76,7 @@ public abstract class CommandPower {
     /**
      * Enact the power at the targeted cell. Invoked by {@link CommandPowerSystem}
      * once an activation is committed — cost is already paid and the cooldown is
-     * already running, so implementations only produce the effect (for
-     * {@link ReconPing}, register a transient reveal on {@code service}).
+     * already running, so implementations only produce the effect.
      */
     public abstract void resolve(int cellX, int cellY, CommandPowerService service,
                                  BattleControl battle);

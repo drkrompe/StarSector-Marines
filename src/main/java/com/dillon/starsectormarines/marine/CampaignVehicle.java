@@ -85,7 +85,7 @@ public final class CampaignVehicle implements Serializable {
         return MechPattern.weightClass(type);
     }
 
-    /** The frozen value Armour Support carries; the campaign object stays in the bay. */
+    /** The frozen value Mech Support carries; the campaign object stays in the bay. */
     public VehicleDeploymentSpec freezeForDeployment() {
         return new VehicleDeploymentSpec(id, displayName, type, kits());
     }

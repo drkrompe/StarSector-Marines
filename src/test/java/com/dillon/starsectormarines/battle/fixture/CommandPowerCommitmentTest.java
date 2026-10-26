@@ -7,11 +7,9 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.power.CommandPower;
-import com.dillon.starsectormarines.battle.power.EmergencyResupply;
-import com.dillon.starsectormarines.battle.power.MarineInsertion;
+import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
-import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.BoatFitting;
@@ -28,10 +26,8 @@ class CommandPowerCommitmentTest {
     @Test
     void standardPowerRoundTripsThroughProductionCatalog() {
         List<CommandPower> originals = List.of(
-                new ReconPing(),
-                new EmergencyResupply(),
-                new OrbitalBarrage(),
-                new MarineInsertion());
+                new CloseAirSupport(),
+                new OrbitalBarrage());
 
         List<CommandPowerCommitment> commitments = originals.stream()
                 .map(CommandPowerCommitment::capture)
@@ -40,8 +36,7 @@ class CommandPowerCommitmentTest {
                 .map(CommandPowerCommitment::toPower)
                 .toList();
 
-        assertEquals(List.of(ReconPing.ID, EmergencyResupply.ID,
-                        OrbitalBarrage.ID, MarineInsertion.ID),
+        assertEquals(List.of(CloseAirSupport.ID, OrbitalBarrage.ID),
                 commitments.stream().map(CommandPowerCommitment::id).toList());
         assertEquals(List.of(), commitments.stream()
                 .flatMap(commitment -> commitment.mechDeployments().stream()).toList());
