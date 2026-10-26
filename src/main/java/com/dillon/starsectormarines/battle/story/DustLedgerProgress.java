@@ -16,6 +16,8 @@ public final class DustLedgerProgress {
     public static final float BURN_SECONDS = 75f;
     /** How long a squad leader stays at the well house for the warden's nod. UNTUNED first pass. */
     public static final float NOD_SECONDS = 8f;
+    /** How long a company combatant works the feed junction, unbroken, to cut the nests' power. UNTUNED first pass. */
+    public static final float FEED_SECONDS = 10f;
     /** Unburned share at or above which the ledger grades {@link Grade#WHOLE}. */
     public static final float WHOLE_SHARE = .75f;
 
@@ -33,6 +35,9 @@ public final class DustLedgerProgress {
     /** One side objective: not begun or under way, done before the alarm (pays), or not done in time (pays nothing). */
     public enum Side { OPEN, PAID, LAPSED }
 
+    /** The three quiet-phase side objectives, by name. */
+    public enum SideObjective { COUPLING, WARDEN, FEED }
+
     /**
      * What the battle saw this tick.
      *
@@ -45,20 +50,22 @@ public final class DustLedgerProgress {
      * @param brokerAtApron the broker stands on the freight apron
      * @param crateInYard   the coupling crate has been carried into the Harrow yard
      * @param leaderAtWell  a company squad leader stands in the warden's well house
+     * @param atFeed        a company combatant is working the feed junction
      */
     public record Facts(boolean shot, boolean sighted, boolean ledgerSeized, boolean brokerAlive,
                         boolean brokerContact, boolean brokerAtPad, boolean brokerAtApron,
-                        boolean crateInYard, boolean leaderAtWell) {
-        public static Facts quiet() { return new Facts(false, false, false, true, false, false, false, false, false); }
-        public Facts withShot() { return new Facts(true, sighted, ledgerSeized, brokerAlive, brokerContact, brokerAtPad, brokerAtApron, crateInYard, leaderAtWell); }
-        public Facts withSighted() { return new Facts(shot, true, ledgerSeized, brokerAlive, brokerContact, brokerAtPad, brokerAtApron, crateInYard, leaderAtWell); }
-        public Facts withSeized() { return new Facts(shot, sighted, true, brokerAlive, brokerContact, brokerAtPad, brokerAtApron, crateInYard, leaderAtWell); }
-        public Facts withBrokerDead() { return new Facts(shot, sighted, ledgerSeized, false, brokerContact, brokerAtPad, brokerAtApron, crateInYard, leaderAtWell); }
-        public Facts withContact() { return new Facts(shot, sighted, ledgerSeized, brokerAlive, true, brokerAtPad, brokerAtApron, crateInYard, leaderAtWell); }
-        public Facts withAtPad() { return new Facts(shot, sighted, ledgerSeized, brokerAlive, brokerContact, true, brokerAtApron, crateInYard, leaderAtWell); }
-        public Facts withAtApron() { return new Facts(shot, sighted, ledgerSeized, brokerAlive, brokerContact, brokerAtPad, true, crateInYard, leaderAtWell); }
-        public Facts withCrateInYard() { return new Facts(shot, sighted, ledgerSeized, brokerAlive, brokerContact, brokerAtPad, brokerAtApron, true, leaderAtWell); }
-        public Facts withLeaderAtWell() { return new Facts(shot, sighted, ledgerSeized, brokerAlive, brokerContact, brokerAtPad, brokerAtApron, crateInYard, true); }
+                        boolean crateInYard, boolean leaderAtWell, boolean atFeed) {
+        public static Facts quiet() { return new Facts(false, false, false, true, false, false, false, false, false, false); }
+        public Facts withShot() { return new Facts(true, sighted, ledgerSeized, brokerAlive, brokerContact, brokerAtPad, brokerAtApron, crateInYard, leaderAtWell, atFeed); }
+        public Facts withSighted() { return new Facts(shot, true, ledgerSeized, brokerAlive, brokerContact, brokerAtPad, brokerAtApron, crateInYard, leaderAtWell, atFeed); }
+        public Facts withSeized() { return new Facts(shot, sighted, true, brokerAlive, brokerContact, brokerAtPad, brokerAtApron, crateInYard, leaderAtWell, atFeed); }
+        public Facts withBrokerDead() { return new Facts(shot, sighted, ledgerSeized, false, brokerContact, brokerAtPad, brokerAtApron, crateInYard, leaderAtWell, atFeed); }
+        public Facts withContact() { return new Facts(shot, sighted, ledgerSeized, brokerAlive, true, brokerAtPad, brokerAtApron, crateInYard, leaderAtWell, atFeed); }
+        public Facts withAtPad() { return new Facts(shot, sighted, ledgerSeized, brokerAlive, brokerContact, true, brokerAtApron, crateInYard, leaderAtWell, atFeed); }
+        public Facts withAtApron() { return new Facts(shot, sighted, ledgerSeized, brokerAlive, brokerContact, brokerAtPad, true, crateInYard, leaderAtWell, atFeed); }
+        public Facts withCrateInYard() { return new Facts(shot, sighted, ledgerSeized, brokerAlive, brokerContact, brokerAtPad, brokerAtApron, true, leaderAtWell, atFeed); }
+        public Facts withAtFeed() { return new Facts(shot, sighted, ledgerSeized, brokerAlive, brokerContact, brokerAtPad, brokerAtApron, crateInYard, leaderAtWell, true); }
+        public Facts withLeaderAtWell() { return new Facts(shot, sighted, ledgerSeized, brokerAlive, brokerContact, brokerAtPad, brokerAtApron, crateInYard, true, atFeed); }
     }
 
     private final float clockSeconds;
@@ -69,7 +76,8 @@ public final class DustLedgerProgress {
     private Alarm alarm = Alarm.QUIET;
     private float alarmAt = -1f;
     private Broker broker = Broker.IN_OFFICE;
-    private Side coupling = Side.OPEN, warden = Side.OPEN;
+    private Side coupling = Side.OPEN, warden = Side.OPEN, feed = Side.OPEN;
+    private float feedWork;
     private float unburnedAtSeizure = -1f;
 
     public DustLedgerProgress() { this(CLOCK_SECONDS, BURN_SECONDS); }
@@ -86,6 +94,8 @@ public final class DustLedgerProgress {
             if (coupling == Side.OPEN && facts.crateInYard()) coupling = Side.PAID;
             nod = facts.leaderAtWell() ? nod + dt : 0f;
             if (warden == Side.OPEN && nod >= NOD_SECONDS) warden = Side.PAID;
+            feedWork = facts.atFeed() ? feedWork + dt : 0f;
+            if (feed == Side.OPEN && feedWork >= FEED_SECONDS) feed = Side.PAID;
             Alarm cause = facts.shot() ? Alarm.SHOTS : facts.sighted() ? Alarm.SIGHTED
                     : elapsed >= clockSeconds ? Alarm.CLOCK : Alarm.QUIET;
             if (cause != Alarm.QUIET) raise(cause);
@@ -102,6 +112,7 @@ public final class DustLedgerProgress {
         alarmAt = elapsed;
         if (coupling == Side.OPEN) coupling = Side.LAPSED;
         if (warden == Side.OPEN) warden = Side.LAPSED;
+        if (feed == Side.OPEN) feed = Side.LAPSED;
         // The skimmer left on schedule with him aboard; he radios the alarm on his way out.
         if (cause == Alarm.CLOCK && broker == Broker.IN_OFFICE) broker = Broker.ESCAPED;
         else if (broker == Broker.IN_OFFICE) broker = Broker.FLEEING;
@@ -113,6 +124,19 @@ public final class DustLedgerProgress {
         if ((broker == Broker.IN_OFFICE || broker == Broker.FLEEING) && facts.brokerContact()) broker = Broker.HELD;
         if (broker == Broker.FLEEING && facts.brokerAtPad()) broker = Broker.ESCAPED;
         else if (broker == Broker.HELD && facts.brokerAtApron()) broker = Broker.DELIVERED;
+    }
+
+    /**
+     * Pays a side objective outright, as if it had been done: for evidence that plays one approach on demand
+     * ({@code DustLedgerSequence.SIDE_OBJECTIVES_PROPERTY}). Only while quiet, as the law requires.
+     */
+    public void grant(SideObjective which) {
+        if (!quiet()) throw new IllegalStateException("side objectives pay only before the alarm");
+        switch (which) {
+            case COUPLING -> coupling = Side.PAID;
+            case WARDEN -> warden = Side.PAID;
+            case FEED -> feed = Side.PAID;
+        }
     }
 
     public boolean quiet() { return alarm == Alarm.QUIET; }
@@ -136,6 +160,11 @@ public final class DustLedgerProgress {
     public Broker broker() { return broker; }
     public Side coupling() { return coupling; }
     public Side warden() { return warden; }
+    public Side feed() { return feed; }
+    /** Seconds a company combatant has worked the feed junction without a break. */
+    public float feedProgress() { return feedWork; }
+    /** The gun nests fight when the alarm comes unless the feed was cut first. */
+    public boolean nestsPowered() { return feed != Side.PAID; }
     /** Seconds a squad leader has stood at the well house without a break. */
     public float nodProgress() { return nod; }
     /** The salvage team answers the alarm only if the coupling reached them first. */

@@ -88,7 +88,7 @@ any bonus (see Open questions).
 ## Side objectives (quiet phase only)
 
 Each must be completed before the alarm to pay off; one started and not finished
-pays nothing. Both live entirely outside the exclusion ring, so their cost is
+pays nothing. All live entirely outside the exclusion ring, so their cost is
 clock time and squads not yet in position, never detection.
 
 **The salvagers' coupling.** The Harrow crew (led by Anneke Harrow), a Wayline account,
@@ -104,8 +104,50 @@ stays there briefly. Payoff: the town watch holds the cantina, so its hidden
 Sable Wake drinkers never join, and two watchmen on market rooftops act as
 spotters, revealing the compound yard to the company until the alarm.
 
-A third candidate, quietly cutting the compound's radio mast on the ridge to
-delay the burn, is deferred until the first two are played.
+**Cutting the feed.** Sable Wake runs the compound's guns off an illegal tap on
+the town's old terraforming power line. The tap's junction box stands outside
+the ring, between the Harrow lane and the postern. A squad that works it for a
+short, unbroken time cuts the feed. Payoff: the gun nests are dead when the
+alarm sounds. Cutting Sable Wake's own tap offends nobody in town. The pillboxes
+are manned, not powered, so the feed does not touch them.
+
+A fourth candidate, quietly cutting the compound's radio mast on the ridge to
+delay the burn, is deferred until these three are played.
+
+## Defences (owner, 2026-10-25)
+
+The first headless runs on the larger compound read as a cakewalk. The owner
+asked for environmental dangers that a careful approach or a side objective
+evens out, built from the fort machinery (`forts.md`, `ground-defences.md`)
+rather than new systems.
+
+- **Gun nests.** Three powered nests, machine gun or light cannon, never flak:
+  - one on the gate drive, covering the crawler-road approach;
+  - one by the tank farm, covering the postern and the market approach;
+  - one in the east yard, covering the ledger room's yard doors.
+
+  They are deadly to infantry in the open. They fall to rockets, the Hound or
+  charges, or go dead if the feed was cut. Rockets are in reach at this point in
+  the campaign: the Convoy Escort Issue is on sale once Thunder Run settles
+  (`campaign-kit-arc.md`). The nests are defences, never capture objectives.
+- **Pillboxes.** Small hardened bunkers with firing slits, each covering an
+  entrance from inside: the compound gate, the postern, and the pump house's
+  yard doors. They are manned, not powered: Sable Wake crew in them fights from
+  the slits under cover. They come from the existing posts (gate, wall and
+  clerks), never extra headcount. They are held places, never capture objectives.
+- **Volatile tanks (if the mechanic exists).** Fuel tanks in the tank farm that
+  go up under fire, dangerous to whoever stands beside them. Use an existing
+  explosive-prop or fire mechanic if there is one; otherwise leave it as a note.
+  *Checked: none exists.* A prop's destroyed state is presentation only
+  (`PropDamage`), and the fire system burns wooden props alone (`BattleFire`).
+  The one prop-like blast is a parked airframe's cook-off
+  (`AirframeCookOffSystem`, through `Detonations`). Volatile tanks need a hook
+  from a prop's destroyed state to a detonation, so the tank farm is scenery
+  until that hook exists.
+
+Difficulty is then tuned against the worst approach (autonomous company, no side
+objectives, which should cost real losses but still win) and the best approach
+(feed cut, rockets on the nests, which should be clearly easier).
 
 ## Map
 
@@ -121,7 +163,7 @@ capture point by accident. Surface palette follows the actual planet (ARID).
 | Crawler road | The Harrow salvage yard with its stranded crawler, between market and compound. |
 | North | A rock escarpment (raised cliffs) with a standable ridge reached by ramps, overlooking the compound yard: an overwatch position to take during the quiet phase. |
 | South | The dry terraforming canal (excavated, impassable, see-through) with dead fields along it and two crossings. |
-| East | The pump house compound, about 87x41: the pump house at its heart (counting room and ledger room with the burn barrel, broker's office, radio room; every office opens on the yard as well as the corridor, and the ledger room has four ways in), the motor pool and quarters west (crawler garage, vehicle shed, bunkhouse, mess, tank farm), the works east (workshop, stores), a walled yard with cover in every part of it, the gate with a boom and chicane on the crawler road, a postern to the market, a south gate, sentry posts. The broker's skimmer pad lies beyond the southern canal crossing. |
+| East | The pump house compound, about 87x41: the pump house at its heart (counting room and ledger room with the burn barrel, broker's office, radio room; every office opens on the yard as well as the corridor, and the ledger room has four ways in), the motor pool and quarters west (crawler garage, vehicle shed, bunkhouse, mess, tank farm), the works east (workshop, stores), a walled yard with cover in every part of it, the gate with a boom and chicane on the crawler road, a postern to the market, a south gate, sentry posts. The defences (`Layout.nests`, `Layout.pillboxes`): three gun nests on paved pads (a light cannon on the gate drive, machine guns by the tank farm and in the east yard) and three pillboxes, at the gate, the postern and the pump house's yard doors, crewed from the gate, wall and clerks' posts. The feed junction (`Layout.feedJunction`) stands on its pad south of the back lane, with the power line carried overhead to the compound's west wall. The broker's skimmer pad lies beyond the southern canal crossing. |
 | Beyond | Open hardpan, wreck debris and scattered ruins framing the edges. |
 
 Three approaches to the compound must be real choices: through the market
@@ -137,7 +179,8 @@ generated yet.
 | The warden's well (head, windlass) | `industrial-pump-set` in the court |
 | Burn barrel (ledger fire) | `industrial-drum-cluster` |
 | Broker's skimmer, parked | a bare concrete pad |
-| Compound sentry tower | none; gate sandbags and barriers only |
+| Compound sentry tower | a `fort-emplacement` prop beside the gate; the gate pillbox holds the gate itself |
+| Power-line pylons, junction box | an overhead pipe rack; `industrial-switchboard` on a concrete pad |
 | Market cart, burnt-out terraforming pipe | parked trucks; `industrial-pipe-bundle` pieces |
 
 **Garrison.** One finite Sable Wake crew of about 18 at Low quality: gate and

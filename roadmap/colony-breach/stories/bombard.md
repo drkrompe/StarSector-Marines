@@ -140,8 +140,10 @@ prompts and provenance.
    legs, claws) with the wind-up and release; the glob and its falling shadow;
    the amber haze; sac wear. Look suite `bombard-look` at 1920x1080. **Built**:
    `RavBombardRig` and `RavBombardComposer`, cut by
-   `art-source/rav-redesign/artillery/export_bombard_rig.py` (legs, shell, six tail
-   slices, sling, glob); the tail curls over the back through the wind-up and
+   `art-source/rav-redesign/artillery/export_bombard_rig.py` (each leg on its own,
+   shell, six tail slices, sling, glob); each walking leg keeps its claw planted
+   and steps when pulled too far, in two alternating sets, so it scuttles
+   crab-fashion and steps round as it turns on the spot (owner); the tail curls over the back through the wind-up and
    whips straight on the throw, the sac glows and flares, the shell wears
    (`RavWear` slots 0 to 6). The glob
    flies on its own sprite with a ground shadow that tightens as it lands

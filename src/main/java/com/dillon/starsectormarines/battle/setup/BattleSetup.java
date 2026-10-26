@@ -1619,6 +1619,9 @@ public final class BattleSetup {
      * quiet phase. No reinforcements, vehicles or aircraft; the cantina drinkers and the Harrow salvage team wait
      * for the alarm.
      */
+    /** How far a pillbox crew strays from its slits: they fight from inside. */
+    private static final int PILLBOX_PATROL_RADIUS = 1;
+
     public static BattleSimulation createDustLedger(long seed, List<ShuttleAssignment> manifest, RiskLevel risk,
                                                     TargetProfile profile) {
         if (manifest == null || manifest.isEmpty() || manifest.size() > 4)
@@ -1626,7 +1629,12 @@ public final class BattleSetup {
         DustLedgerCrossing.Layout layout = DustLedgerCrossing.generate(seed, profile);
         MapResult map = layout.map();
         GroundRosterProfile roster = GroundRosterRegistry.resolve("pirates");
-        BattleSimulation sim = buildMap(map, List.of(), List.of(), List.of(), seed).sim();
+        // The gun nests are the map's stamped posts, spawned on Sable Wake's side by the ordinary defence-post path.
+        List<DefensePost> nestPosts = layout.nests().stream().map(DustLedgerCrossing.Nest::post).toList();
+        MapBuild build = buildMap(map, List.of(), nestPosts, List.of(), seed);
+        BattleSimulation sim = build.sim();
+        List<Long> nests = new ArrayList<>();
+        for (int i = 0; i < build.structures().size(); i++) nests.add(build.structures().getLong(i));
         sim.setSurface(surfaceOf(profile));
         sim.setGroundRoster(roster);
         sim.getBattleResources().disableCompoundProduction();
@@ -1655,22 +1663,39 @@ public final class BattleSetup {
         // A Low-quality crew of plain militia: elite clerks in the pump house's rooms cost a two-squad company all 24
         // in headless playback. The crawler crew is the one mobile squad the Raid defender raises at the alarm; the
         // cantina's drinkers spawn then, if at all.
+        // The pillboxes are manned from the posts that stand at their slits: each is its own garrison squad, holding
+        // its node and firing from the slits, while the rest of that role's posts stay one squad as before.
         Set<Integer> mobile = new TreeSet<>();
+        List<Integer> pillboxSquads = new ArrayList<>();
+        Set<DustLedgerCrossing.Cell> slits = new HashSet<>();
+        for (DustLedgerCrossing.Pillbox pillbox : layout.pillboxes()) slits.addAll(pillbox.posts());
+        List<Map.Entry<DustLedgerCrossing.PostRole, List<DustLedgerCrossing.Cell>>> crews = new ArrayList<>();
         for (var post : layout.posts().entrySet()) {
-            DustLedgerCrossing.PostRole role = post.getKey();
-            if (role == DustLedgerCrossing.PostRole.CANTINA) continue;
+            if (post.getKey() == DustLedgerCrossing.PostRole.CANTINA) continue;
+            List<DustLedgerCrossing.Cell> open = post.getValue().stream().filter(cell -> !slits.contains(cell)).toList();
+            if (!open.isEmpty()) crews.add(Map.entry(post.getKey(), open));
+        }
+        int firstPillboxCrew = crews.size();
+        for (DustLedgerCrossing.Pillbox pillbox : layout.pillboxes()) crews.add(Map.entry(pillbox.role(), pillbox.posts()));
+        for (int crew = 0; crew < crews.size(); crew++) {
+            DustLedgerCrossing.PostRole role = crews.get(crew).getKey();
             boolean crawler = role == DustLedgerCrossing.PostRole.CRAWLER;
+            boolean manned = crew >= firstPillboxCrew;
             UnitType type = UnitType.MILITIA;
             int squadId = sim.mintSquad(Faction.DEFENDER, type);
             Squad squad = sim.getSquad(squadId);
-            List<DustLedgerCrossing.Cell> cells = post.getValue();
+            List<DustLedgerCrossing.Cell> cells = crews.get(crew).getValue();
             if (crawler) mobile.add(squadId);
             else {
                 DustLedgerCrossing.Cell anchor = cells.get(0);
                 squad.assignedNode = openingDefenseNode(anchor.x(), anchor.y(), Faction.DEFENDER, map.grid);
-                squad.patrolRadius = 3;
+                squad.patrolRadius = manned ? PILLBOX_PATROL_RADIUS : 3;
+                // A pillbox crew is a guard post: it holds its slits and waits for the kill zone.
+                squad.holdsFireUntilKillZone = manned;
+                if (manned) pillboxSquads.add(squadId);
                 sim.assignSquadCommand(ObjectiveAssignment.holdNode(squadId, squad.assignedNode),
-                        CommandAuthority.GARRISON, "dust-ledger-post", "Sable Wake " + role.name().toLowerCase() + " post");
+                        CommandAuthority.GARRISON, "dust-ledger-post", "Sable Wake " + role.name().toLowerCase()
+                                + (manned ? " pillbox" : " post"));
             }
             for (int i = 0; i < cells.size(); i++) {
                 DustLedgerCrossing.Cell cell = cells.get(i);
@@ -1696,7 +1721,7 @@ public final class BattleSetup {
                 layout.warehouses()::contains);
         StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.GROCERY), layout.shops().size(),
                 layout.shops()::contains);
-        sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam);
+        sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam).defences(sim, nests, pillboxSquads);
         sim.setAutonomousCommander(Faction.MARINE, new RaidCommand(), RaidCommandDisclosure.INSTANCE);
         sim.setAutonomousCommander(Faction.DEFENDER, new RaidDefenderCommand(mobile),
                 RaidDefenderCommandDisclosure.INSTANCE);
