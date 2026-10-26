@@ -140,7 +140,7 @@ final class RavBombardComposer {
     }
 
     /** The sac's glow: its halo's and core's widths, cells per cell of body, and alphas at full glow. */
-    private static final float GLOW_HALO = 1.3f, GLOW_CORE = 0.55f, GLOW_HALO_ALPHA = 0.55f, GLOW_CORE_ALPHA = 0.7f;
+    private static final float GLOW_HALO = 1.3f, GLOW_CORE = 0.55f, GLOW_HALO_ALPHA = 0.45f, GLOW_CORE_ALPHA = 0.28f;
     /** The glow's amber, halo then core. */
     private static final float[] GLOW_HALO_TINT = {1f, 0.55f, 0.12f}, GLOW_CORE_TINT = {1f, 0.8f, 0.4f};
 

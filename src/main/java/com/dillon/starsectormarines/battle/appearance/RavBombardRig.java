@@ -80,8 +80,12 @@ public final class RavBombardRig {
     static final float KICK_LURCH = 1.4f, KICK_PRESS = 0.9f, KICK_ROCK = 60f, BRACE = 0.06f, BRACE_SECONDS = 0.6f;
     /** The springs the body's height, lurch and rock settle on: stiffness (1/s^2) and damping (1/s). */
     private static final float SPRING_K = 140f, SPRING_C = 8f;
-    /** The sac's glow: at rest, its pulse, and what the wind-up adds. */
-    private static final float GLOW_REST = 0.25f, GLOW_PULSE = 0.12f, GLOW_WINDUP = 0.75f;
+    /**
+     * The sac's glow: at rest, its pulse, what the wind-up adds, the most the swell reaches, and the throw's flash.
+     * Capped so the charcoal shell's plates and the split still read over it at full draw (owner: tone it down).
+     */
+    private static final float GLOW_REST = 0.25f, GLOW_PULSE = 0.10f, GLOW_WINDUP = 0.40f, GLOW_PEAK = 0.62f,
+            GLOW_FLASH = 0.8f;
     /** Emptied by the throw the sac goes this dull and refills over this long; the shell narrows this much with it. */
     static final float EMPTIED = 0.85f, REFILL_SECONDS = 5f, SQUEEZE = 0.03f;
 
@@ -242,8 +246,9 @@ public final class RavBombardRig {
         float cycle = (float) (2 * Math.PI * stride);
         legSwing = motion * LEG_SWING * (float) Math.sin(cycle) + digSwing;
         bob = motion * BOB * (float) Math.sin(2 * cycle);
-        float flash = sinceFling < WHIP_SECONDS ? 1f - sinceFling / WHIP_SECONDS : 0f;
-        float full = GLOW_REST + GLOW_PULSE * (float) Math.sin(2 * Math.PI * 0.5f * time) + GLOW_WINDUP * drawn;
+        float flash = sinceFling < WHIP_SECONDS ? GLOW_FLASH * (1f - sinceFling / WHIP_SECONDS) : 0f;
+        float full = Math.min(GLOW_PEAK,
+                GLOW_REST + GLOW_PULSE * (float) Math.sin(2 * Math.PI * 0.5f * time) + GLOW_WINDUP * drawn);
         glow = Math.min(1f, Math.max(flash, full * (1f - EMPTIED * smooth(emptied))));
     }
 
