@@ -59,7 +59,8 @@ final class CordonBuilders {
     }
 
     /** The ground a construction stands on: the generated works' bounds, and the way to the front. */
-    record Site(int x0, int y0, int x1, int y1, int front) {
+    /** A works' ground box, the side its front faces, and {@code land}: the world's own bare ground kind. */
+    record Site(int x0, int y0, int x1, int y1, int front, GroundKind land) {
         int cx() { return (x0 + x1) / 2; }
         int cy() { return (y0 + y1) / 2; }
     }
@@ -125,8 +126,7 @@ final class CordonBuilders {
      */
     static Built school(CordonWorks w, Frame f, Site site) {
         List<Entry> entries = entries(w, f, R + 1);
-        CordonWorks.Ground grass = w.sample(site.cx(), site.cy(), GroundKind.GRASS);
-        f.clear(w, -R - 3, -R - 3, R + 3, R + 3, grass, null);
+        f.clear(w, -R - 3, -R - 3, R + 3, R + 3, w.sample(site.cx(), site.cy(), site.land()), null);
         Built built = Built.at(0f, 2f);
         CordonWorks.Ground paving = new CordonWorks.Ground(GroundKind.COURTYARD,
                 w.topology.surfaceIndex("colony.terracotta"), -1);
@@ -486,17 +486,19 @@ final class CordonBuilders {
         }
     }
 
-    /** Worked-earth tracks from each road coming in to the middle of the yard. */
+    /**
+     * Worked-earth tracks from each road coming in to the middle of the yard. A paved yard (a school's playground)
+     * keeps its paving: the track stops at its edge.
+     */
     static void tracks(CordonWorks w, Frame f, List<Entry> entries) {
         for (Entry e : entries) {
             for (int t = R + 3; t >= 0; t--) {
                 for (int k = e.lo(); k <= e.hi(); k++) {
-                    switch (e.side()) {
-                        case 'R' -> f.worked(w, k, -t);
-                        case 'F' -> f.worked(w, k, t);
-                        case 'E' -> f.worked(w, t, k);
-                        default -> f.worked(w, -t, k);
-                    }
+                    int u = switch (e.side()) { case 'R', 'F' -> k; case 'E' -> t; default -> -t; };
+                    int v = switch (e.side()) { case 'R' -> -t; case 'F' -> t; default -> k; };
+                    int x = f.x(u, v), y = f.y(u, v);
+                    if (w.grid.inBounds(x, y) && w.topology.getGroundKind(x, y) == GroundKind.COURTYARD) continue;
+                    f.worked(w, u, v);
                 }
             }
         }

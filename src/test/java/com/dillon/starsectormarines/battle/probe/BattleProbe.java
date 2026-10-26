@@ -36,6 +36,8 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -150,6 +152,7 @@ public final class BattleProbe {
         commands.put("grid", this::grid);
         commands.put("cell", a -> cell(a.intAt(0), a.intAt(1)));
         commands.put("windows", this::windows);
+        commands.put("ground", this::ground);
         commands.put("drive", this::drive);
         commands.put("cordon", a -> cordon());
         commands.put("corridor", a -> {
@@ -273,6 +276,8 @@ public final class BattleProbe {
                 .put("ground", String.valueOf(sim.getTopology().getGroundKind(x, y)))
                 .put("natureOverlay", sim.getTopology().getNatureOverlayIndex(x, y))
                 .put("plinth", sim.getTopology().getPlinthTiers(x, y))
+                .put("elevation", g.elevation() == null ? "-" : "tier " + g.elevation().tier(x, y)
+                        + (g.elevation().isRamp(x, y) ? " ramp" : "") + (g.elevation().isFace(x, y) ? " face" : ""))
                 .put("doodads", doodads);
     }
 
@@ -288,6 +293,38 @@ public final class BattleProbe {
                 if (!g.inBounds(x, y)) row.append(' ');
                 else if (!g.isWalkable(x, y)) row.append('#');
                 else row.append(clearance.isPassable(x, y) ? ',' : '.');
+            }
+            rows.put(row.toString());
+        }
+        return new JSONObject().put("x0", x0).put("rows", rows);
+    }
+
+    /**
+     * Rows of the map between two cells, north last, marking the ground: {@code #} a wall, {@code R} a cell wholly
+     * under a road's pavement and {@code r} one partly under it, otherwise the ground kind's initial, upper case where
+     * the cell has a surface of its own and lower case where it shows the ground's.
+     */
+    private JSONObject ground(Args a) throws Exception {
+        CellTopology t = sim.getTopology();
+        RoadSurface road = t.roadSurface();
+        int x0 = a.intAt(0), y0 = a.intAt(1), x1 = a.intAt(2), y1 = a.intAt(3);
+        JSONArray rows = new JSONArray();
+        for (int y = y1; y >= y0; y--) {
+            StringBuilder row = new StringBuilder(String.format(Locale.ROOT, "%4d ", y));
+            for (int x = x0; x <= x1; x++) {
+                if (!sim.getGrid().inBounds(x, y)) { row.append(' '); continue; }
+                if (t.isWall(x, y)) { row.append('#'); continue; }
+                double area = 0;
+                if (road != null) for (int m = 0; m < RoadSurface.MATERIALS; m++) {
+                    RoadSurface.Patch patch = road.patch(x, y, m);
+                    if (patch != null) area += patch.area();
+                }
+                if (area >= .999) row.append('R');
+                else if (area > 0) row.append('r');
+                else {
+                    char kind = t.getGroundKind(x, y) == null ? '?' : t.getGroundKind(x, y).name().charAt(0);
+                    row.append(t.getSurface(x, y) > 0 ? kind : Character.toLowerCase(kind));
+                }
             }
             rows.put(row.toString());
         }

@@ -262,12 +262,14 @@ public final class CordonSetup {
             for (Piece piece : plan.layout().pieces()) if (!drop.contains(piece.name())) kept.add(piece);
             plan = plan.withLayout(new MissionLayout(kept));
         }
-        MapResult map = constructed(generated(battleSeed, biome, plan, drop, why), plan, density, battleSeed, true);
+        MapResult map = constructed(generated(battleSeed, biome, plan, drop, why), plan, density, battleSeed, true,
+                biome);
         String missing = missing(variant, map, plan);
         if (missing != null) {
             // A redoubt or base built from what stood there that costs the map its Cordon is not worth the map: the
             // same map with the generated compounds and shed instead.
-            MapResult plain = constructed(generated(battleSeed, biome, plan, drop, why), plan, density, battleSeed, false);
+            MapResult plain = constructed(generated(battleSeed, biome, plan, drop, why), plan, density, battleSeed,
+                    false, biome);
             String plainMissing = missing(variant, plain, plan);
             if (plainMissing != null) return new Generated(null, missing);
             map = plain;
@@ -291,8 +293,8 @@ public final class CordonSetup {
      * false, every one the generated compound or shed.
      */
     private static MapResult constructed(MapResult map, PrecinctPlan plan, CordonPlan.Density density, long battleSeed,
-                                         boolean mixed) {
-        MapResult built = CordonConstructions.build(map, plan, density, battleSeed, mixed);
+                                         boolean mixed, SurfacePalette biome) {
+        MapResult built = CordonConstructions.build(map, plan, density, battleSeed, mixed, biome.inlandGround());
         // The line's gaps closed with picket nests once the redoubts' guns stand where they will be manned.
         return CordonGapNests.lay(built, plan, density, battleSeed);
     }
