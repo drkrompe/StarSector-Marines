@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — a click inside a rack's cycle fires its next group, as a hold does; vehicle kits gain the accelerated loader and the capacitor pack.
+Updated: 2026-10-26 — a player mech squad can be attached to a player infantry squad and stands by its doctrine relative to it.
 
 ## Purpose
 
@@ -588,6 +588,26 @@ increasing an encounter's total armored threat.
   (`ai-nouns.md`, machine assault and machine guard). A guard is the one order a
   commander may also give a lance of its own side; a player's order on the
   chassis outranks it.
+- An **attachment** is a battle-local relation from one player mech squad to one
+  player infantry squad (its **anchor**): with a mech selected, a right-click on a
+  friendly infantry squad attaches it. Every player drop lands as a one-mech squad,
+  so it is in effect per mech; a legacy multi-mech squad attaches whole, and several
+  mechs may follow one squad. The follower stands by its effective doctrine on the
+  anchor's **axis** — toward the threat the squad believes in, else toward its
+  order's cell or node, else along its leader's route, keeping the last axis while the
+  squad stands: a Brawler leads five cells ahead, Frontline Support screens four ahead,
+  Balanced walks five to the side, and Long-Range Support shadows seven behind;
+  followers of one role file out three cells apart across the axis
+  (`MechAttachmentSlot`, untuned). It fires on its own legal picture as it walks, so
+  it engages what the squad faces without taking the squad's capture, secure, occupy
+  or defend orders — it serves them by where it stands. Like the tactical move it owns
+  locomotion, not the assignment: the mission directive, plan, doctrine and contact
+  picture stay underneath and resume on detach. It is not a lease, because no
+  assignment shape names a moving squad and it must win outright over every mission
+  goal. A **direct order** to the mech — a tactical move, assault, guard or Defend
+  Area — ends it, as does the anchor's loss or withdrawal, the mech's withdrawal, or
+  direct control; orders given to the anchor move the anchor and the follower keeps
+  its slot.
 - A **Defend Area order** is a persistent, battle-local tactical assignment for
   one whole battle lance. Its clicked center resolves to reachable ground and
   owns a circular twenty-cell-radius zone. Every live lance member positions
@@ -1027,6 +1047,15 @@ morale, damage, ammunition, cooldowns, and deployed role. They cannot target an
 enemy, non-mech, stale entity, or rescue payload, and never write back to
 campaign state. Persistent doctrine authoring remains a Mech Lab responsibility.
 
+An attachment crosses the same serialized boundary (`MechAttachmentSystem`),
+after both direct-order systems in the command phase: a direct order accepted on
+a tick ends the attachment it reaches on that tick, and an attachment accepted on
+a tick cancels the direct order it replaces, so neither undoes the other. It also
+stands down a commander's guard on the chassis, as a player's move does. The
+attached chassis is served from the lance's reflex chain (`ATTACHED`, below the
+player's move, the crippled chassis and the melee stand-off) and hands back to the
+still-current plan step with no planless tick.
+
 Defender setup produces a deterministic sequence of variants, not an
 interchangeable mech count. Risk, target conditions, and attacking force
 decide which candidates are affordable; the selected sequence then reaches
@@ -1179,6 +1208,10 @@ support sortie, subject only to practical runtime resources.
   assignment, never one chassis's doctrine or the Form on Lead / Free Reign
   coordination rule. Its center and radius constrain positioning without
   disclosing contacts or suspending ordinary weapons.
+- An attachment changes one mech squad's locomotion only. It never becomes the
+  mech's assignment, gives the infantry squad's order to the mech, discloses a
+  hostile, or silences installed weapons. A direct order reaching the mech without
+  its anchor ends it; an order given to the anchor never reaches the follower.
 - Tactical move arrival is a completion boundary, not a new hold posture. A
   refused physical route likewise releases the override instead of leaving an
   impossible order stalled. The order returns to the still-current squad plan

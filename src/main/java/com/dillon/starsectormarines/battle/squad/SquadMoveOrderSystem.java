@@ -387,6 +387,15 @@ public final class SquadMoveOrderSystem {
     }
 
     /**
+     * Ends the squad's standing player order, if it holds one, handing it back to the directive the
+     * lease shelved — for another player authority that replaces it, such as a mech attachment.
+     */
+    public void cancel(int squadId, BattleSimulation sim, String reason) {
+        ActiveOrder order = service.activeOrder(squadId);
+        if (order != null) release(squadId, order, sim.getSquad(squadId), sim, reason);
+    }
+
+    /**
      * Drops the order and hands the squad back to the directive the lease
      * shelved. {@code reason} is what the ledger records for the handback, so
      * an order that ended because the squad withdrew and one that ended because

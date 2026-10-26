@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.SquadDirectiveControl;
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.battle.mech.MechAttachmentSystem;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -245,6 +246,9 @@ public interface BattleControl extends BattleView, SquadDirectiveControl {
      * doctrine step — and a reflex is handed this interface.
      */
     MechMoveOrderSystem getMechMoveOrderSystem();
+
+    /** The player's mech attachments, consumed as the lance's {@code ATTACHED} reflex like the move above. */
+    MechAttachmentSystem getMechAttachmentSystem();
 
     /** Discard this chassis's queued and active one-shot moves at an ownership boundary. */
     void cancelMechMoveOrder(long member);

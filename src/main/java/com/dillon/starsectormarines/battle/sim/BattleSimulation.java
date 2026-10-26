@@ -241,6 +241,8 @@ import com.dillon.starsectormarines.battle.mech.MechDoctrineSystem;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleTransportService;
+import com.dillon.starsectormarines.battle.mech.MechAttachmentService;
+import com.dillon.starsectormarines.battle.mech.MechAttachmentSystem;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
@@ -619,6 +621,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final MechMoveOrderService mechMoveOrders = new MechMoveOrderService();
     private final MechMoveOrderSystem mechMoveOrderSystem =
             new MechMoveOrderSystem(mechMoveOrders);
+    /** Player mech squads following player infantry squads, applied after the player's direct orders. */
+    private final MechAttachmentService mechAttachments = new MechAttachmentService();
+    private final MechAttachmentSystem mechAttachmentSystem = new MechAttachmentSystem(mechAttachments);
     /** Squad-scoped player movement requests below mission assignment. */
     private final SquadMoveOrderService squadMoveOrders = new SquadMoveOrderService();
     private final SquadMoveOrderSystem squadMoveOrderSystem =
@@ -2210,6 +2215,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Exact-mech move executor used by the mech unit-dispatch path. */
     @Override
     public MechMoveOrderSystem getMechMoveOrderSystem() { return mechMoveOrderSystem; }
+    /** Player mech attachment mailbox and relation; read by selection and the attachment tether. */
+    public MechAttachmentService getMechAttachmentService() { return mechAttachments; }
+    /** Serves attached mechs from the lance's reflex chain. */
+    @Override
+    public MechAttachmentSystem getMechAttachmentSystem() { return mechAttachmentSystem; }
     /** Player battle-only infantry squad move-order mailbox and projection. */
     public SquadMoveOrderService getSquadMoveOrderService() { return squadMoveOrders; }
     /** Applies squad tactical moves at the serialized command boundary. */
@@ -3646,6 +3656,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechDoctrineSystem.tick(this);
         mechMoveOrderSystem.tick(this);
         squadMoveOrderSystem.tick(this);
+        // After both direct-order systems: a direct order accepted this tick ends the attachment it
+        // reaches, and an attachment accepted this tick cancels the direct order it replaces.
+        mechAttachmentSystem.tick(this);
         // After the player's own orders, so a click this tick already stands and the stance yields to it.
         reactiveManningSystem.tick(this);
         tickProfile.lap(TickProfile.Phase.COMMANDER);
