@@ -51,8 +51,22 @@ public record BoatGun(
         int weight,
         Family family) {
 
-    /** What a gun fires on, which slice 5's flux pool and the stores filter read. */
-    public enum Family { BALLISTIC, ENERGY, MISSILE }
+    /**
+     * What a gun fires on. Every round but a missile's charges the boat's one flux pool, the pool her shield
+     * draws on too ({@code FittedBoat#shieldSpec}); an energy round charges it most, a missile not at all.
+     */
+    public enum Family {
+        BALLISTIC(1.5f), ENERGY(3f), MISSILE(0f);
+
+        private final float fluxPerRound;
+
+        Family(float fluxPerRound) {
+            this.fluxPerRound = fluxPerRound;
+        }
+
+        /** Flux one round puts on the boat's pool. */
+        public float fluxPerRound() { return fluxPerRound; }
+    }
 
     public static final BoatGun HEAVY_MG = new BoatGun(
             "door_heavy_mg", "@boatGunHeavyMg", TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 1,
@@ -143,6 +157,11 @@ public record BoatGun(
             if (gun.id.equals(id)) return gun;
         }
         return null;
+    }
+
+    /** The boat gun mounting {@code structureId}, or null for a turret no boat gun is. */
+    public static BoatGun forStructure(String structureId) {
+        return structureId == null ? null : byStructure(structureId);
     }
 
     private static BoatGun byStructure(String structureId) {

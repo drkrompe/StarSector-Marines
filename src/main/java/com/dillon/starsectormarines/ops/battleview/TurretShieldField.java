@@ -39,8 +39,12 @@ final class TurretShieldField {
 
     /** The high-tech field emitter's blue: the pale cyan a friendly dome is drawn in. */
     static final float[] BLUE = {0.55f, 0.86f, 1.00f};
-    /** Kept for a low- and mid-tech shield; no style fits one yet. */
+    /** A low-tech shield's orange. */
     static final float[] ORANGE = {1.00f, 0.62f, 0.30f};
+    /** A midline shield's teal: between the low-tech orange and the high-tech blue, read as neither. */
+    static final float[] TEAL = {0.40f, 1.00f, 0.78f};
+    /** What a teal shield strains toward: a pale mint, so it whitens as the blue does without turning blue. */
+    static final float[] TEAL_STRAIN = {0.86f, 1.00f, 0.92f};
     /** What a blue shield strains and shatters toward: near white, so its break never reads as an orange shield. */
     static final float[] BLUE_STRAIN = {0.88f, 0.96f, 1.00f};
     static final float[] ORANGE_STRAIN = ShieldDomeShading.AMBER;
@@ -63,8 +67,8 @@ final class TurretShieldField {
         draw.sy = camera.cellToScreenY(y);
         draw.radiusPx = radiusCells * cellPx;
         draw.radiusCells = radiusCells * HEX_DENSITY;
-        float[] base = tint == ShieldTint.ORANGE ? ORANGE : BLUE;
-        float[] strain = tint == ShieldTint.ORANGE ? ORANGE_STRAIN : BLUE_STRAIN;
+        float[] base = tint == ShieldTint.ORANGE ? ORANGE : tint == ShieldTint.TEAL ? TEAL : BLUE;
+        float[] strain = tint == ShieldTint.ORANGE ? ORANGE_STRAIN : tint == ShieldTint.TEAL ? TEAL_STRAIN : BLUE_STRAIN;
         System.arraycopy(base, 0, draw.tint, 0, 3);
         System.arraycopy(strain, 0, draw.collapse, 0, 3);
         draw.level = shield.fluxShare();

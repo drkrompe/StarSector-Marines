@@ -55,7 +55,7 @@ class LinePlacementTest {
     private static int[] place(FrontageLine line, int count, Probe probe, Set<Integer> taken) {
         int[] cells = new int[count];
         Arrays.fill(cells, -1);
-        return LinePlacement.openCells(line, count, cells, null, W, probe, taken, -1, -1);
+        return LinePlacement.openCells(line, count, cells, null, null, W, probe, taken, -1, -1);
     }
 
     @Test
@@ -109,7 +109,7 @@ class LinePlacementTest {
         assertEquals(21 * W + 20, open[0]);
     }
     private static int[] placeUnderFire(FrontageLine line, Probe probe, int[] previous, int threatX, int threatY) {
-        return LinePlacement.openCells(line, 1, new int[]{-1}, previous, W, probe, new HashSet<>(), threatX, threatY);
+        return LinePlacement.openCells(line, 1, new int[]{-1}, previous, null, W, probe, new HashSet<>(), threatX, threatY);
     }
 
     @Test
@@ -155,5 +155,28 @@ class LinePlacementTest {
                 .cover(22, 21, 1, 0, 3);
         field.blind.add(21 * W + 22);
         assertEquals(21 * W + 20, placeUnderFire(line, field, null, 36, 21)[0]);
+    }
+
+    @Test
+    void sharesGoOutInTheOrderTheMarinesStandAlongTheLine() {
+        FrontageLine line = northFacing();
+        int[] cells = {-1, -1, -1};
+        float[] along = {0.9f, 0.1f, 0.5f};
+        int[] open = LinePlacement.openCells(line, 3, cells, null, along, W, new Field(), new HashSet<>(), -1, -1);
+
+        assertTrue(open[1] % W < open[2] % W && open[2] % W < open[0] % W,
+                "the marine nearest the line's start takes its first share, so no two paths cross");
+    }
+
+    @Test
+    void aMarineOnTheWayRanksByTheCellHeHeldSoSharesAreNotTradedInPassing() {
+        FrontageLine line = northFacing();
+        int[] previous = {19 * W + 12, -1};
+        float[] along = {0.9f, 0.5f};
+
+        int[] ordinal = LinePlacement.ordinals(line, 2, previous, along, W);
+
+        assertEquals(0, ordinal[0], "ranked by his cell near the start, not where he stands now");
+        assertEquals(1, ordinal[1]);
     }
 }

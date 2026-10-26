@@ -126,4 +126,20 @@ class FluxShieldTest {
         run(shield, 4f, Float.NaN);
         assertFalse(shield.gunHeld(), "until the capacitors bleed down to it");
     }
+
+    /** A boat's guns share the pool: a charged round fills it shield up or down, and none is taken while overloaded. */
+    @Test
+    void aGunSharingThePoolChargesItWhateverTheShieldIsDoing() {
+        FluxShield shield = new FluxShield(SPEC, 0f);
+        shield.noteRound(30f);
+        shield.tick(DT, Float.NaN);
+        assertTrue(shield.flux() > 25f, "charged with the shield down");
+        shield.noteRound(200f);
+        shield.tick(DT, Float.NaN);
+        assertTrue(shield.overloaded(), "a full pool overloads");
+        float during = shield.flux();
+        shield.noteRound(30f);
+        shield.tick(DT, Float.NaN);
+        assertTrue(shield.flux() <= during, "an overloaded pool takes no more");
+    }
 }

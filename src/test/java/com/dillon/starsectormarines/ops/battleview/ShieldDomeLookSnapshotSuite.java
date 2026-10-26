@@ -1,5 +1,13 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import java.util.Map;
+import com.dillon.starsectormarines.render2d.BattleCamera;
+import com.dillon.starsectormarines.marine.BoatFittingSlot;
+import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.battle.turret.FluxShieldSpec;
+import com.dillon.starsectormarines.battle.turret.FluxShield;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.AirScale;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -93,6 +101,8 @@ public final class ShieldDomeLookSnapshotSuite implements SnapshotSuite {
         if (Files.isRegularFile(hermes)) {
             out.add(new SnapshotArtifact("boat-arc.png",
                     boatArc(renderer.render(map, SEED, (int) BOAT_CELL_PX), ImageIO.read(hermes.toFile()))));
+            out.add(new SnapshotArtifact("boat-tiers.png",
+                    boatTiers(renderer.render(map, SEED, (int) BOAT_CELL_PX), ImageIO.read(hermes.toFile()))));
         }
         return out;
     }
@@ -258,6 +268,51 @@ public final class ShieldDomeLookSnapshotSuite implements SnapshotSuite {
         caption(frame, String.format(Locale.ROOT,
                 "A Hermes (%.1f cells long) under a 120° shield of the vanilla hull's radius (%.1f cells), at %.0f px a cell.",
                 hermes.getHeight() * AirScale.METERS_PER_PX, HERMES_SHIELD_PX * AirScale.METERS_PER_PX, BOAT_CELL_PX));
+        return frame;
+    }
+
+    /**
+     * The three shield tiers a Hermes's emitter socket takes, each the shield her frame builds
+     * ({@link FittedBoat#shieldSpec}) raised against fire from the bow, a third of her pool filled by one blocked
+     * round, and drawn as the battle draws it ({@link TurretShieldField#describe}): the low-tech orange, the midline
+     * teal and the high-tech blue, the arc widening with the tier.
+     */
+    private static BufferedImage boatTiers(BufferedImage ground, BufferedImage hermes) {
+        BufferedImage frame = crop(ground, WIDTH, HEIGHT);
+        float scale = AirScale.METERS_PER_PX * BOAT_CELL_PX;
+        int w = Math.round(hermes.getWidth() * scale);
+        int h = Math.round(hermes.getHeight() * scale);
+        BattleCamera camera = new BattleCamera(100, 100);
+        camera.setViewport(0f, 0f, WIDTH, HEIGHT, BOAT_CELL_PX);
+        camera.centerOn(50f, 50f);
+        BoatFitting[] emitters = {BoatFitting.STANDARD_EMITTER, BoatFitting.WIDE_EMITTER, BoatFitting.ASSAULT_EMITTER};
+        for (int i = 0; i < emitters.length; i++) {
+            float cx = WIDTH * (i * 2 + 1) / 6f;
+            float cy = HEIGHT * 0.5f;
+            Graphics2D g = frame.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.drawImage(hermes, Math.round(cx - w / 2f), Math.round(cy - h / 2f), w, h, null);
+            g.dispose();
+            FittedBoat boat = new FittedBoat(ShuttleType.HERMES,
+                    Map.of(BoatFittingSlot.EMITTER, emitters[i]), null, null);
+            FluxShieldSpec spec = boat.shieldSpec();
+            FluxShield shield = new FluxShield(spec, 90f);
+            for (int t = 0; t < 20; t++) shield.tick(1f / 30f, 90f);
+            shield.absorb(90f, spec.fluxCapacity() / 3f / spec.fluxPerDamage());
+            for (int t = 0; t < 3; t++) shield.tick(1f / 30f, 90f);
+            ShieldDomeDraw d = new ShieldDomeDraw();
+            if (!TurretShieldField.describe(d, i + 1L, 50f, 50f, shield, boat.shieldTint(), camera, BOAT_CELL_PX, 0L, 1f)) {
+                continue;
+            }
+            d.sx = cx;
+            d.sy = cy;
+            composite(frame, d, 2.4f);
+            caption(frame, (int) (cx - WIDTH / 6f), HEIGHT - 72, WIDTH / 3, String.format(Locale.ROOT,
+                    "%s: %.0f° arc, flux per hit x%.1f", emitters[i].displayName(), spec.arcDegrees(),
+                    spec.fluxPerDamage()));
+        }
+        caption(frame, "A Hermes's three shield tiers, each raised against fire from the bow with a third of her pool"
+                + " taken by one blocked round.");
         return frame;
     }
 

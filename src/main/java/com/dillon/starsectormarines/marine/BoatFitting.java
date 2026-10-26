@@ -21,7 +21,7 @@ import java.util.List;
  *
  * <p>The tiers are built around the Hermes, the company's boat: tier 1 is the
  * Hermes as the base game builds her, and every factor here is a step from her
- * own numbers ({@code boat-refit-axes.md}).
+ * own numbers ({@code company-view-nouns.md}, Fitting).
  *
  * @param effect what the part does to the boat it is on
  * @param weight what it takes out of the frame's rating; zero for a standard part
