@@ -53,6 +53,18 @@ tracks between them.
 - A rigging crew pressed into staying on to keep the dishes aligned in the
   thermal swings. They built the post on a contract and were not let go.
 
+**The cold drop (owner's flavour idea, 2026-10-26).** The Sounding pays for
+itself twice. The intercepts that time Sable Wake's raids also tell smugglers
+when Jangala's lanes are clear of Hegemony patrols, and the post sells those
+windows. Its lander pad is a cold drop for the Sector's quiet trade, using
+vanilla's two contraband goods: **harvested organs** in cryo pods racked
+out on the airless surface, where the cold costs nothing, and **recreational
+drugs** cut and pressed in a chem module beside the pad. Garnir's depot is a
+short hop away. That changes who is there: a lander crew and a chemist beside
+the signals techs. It also darkens what the riggers fear. They were not let go,
+and the pods are next to their module. This is implied, never shown or said
+outright.
+
 **Why the company can reach it.** The Dust Ledger's strongbox gave the post's
 location, its approaches and the watch roster. The post listens outward, at
 the system; Barad's magnetosphere drowns everything on the gas giant's side, so
@@ -118,6 +130,7 @@ Pay is the owner's call per job (proposed below).
 |---|---|---|---|
 | **The riggers** (offered): reach the riggers' module and walk them to the landing ground | until the dish field blows | They give up the post's layout: the bunkers and the crawler's track are revealed | 1,500 from their outfit; mark `corvus.warion.riggers_freed` |
 | **The false schedule** (hidden, found at the dish field's control hut): a squad leader holds the console while the uplink stands and before Garnir is warned | uplink standing, warning unsent | Garnir receives a false Wayline sailing schedule instead of the warning | no credits; mark `corvus.garnir.false_schedule`, for A Cold Account |
+| **The cold store** (proposed, hidden, found by sighting the pod racks): a squad holds the racks to log the manifest | until the dish field blows | none in battle | no credits; mark `corvus.sable_wake.organ_manifest`, evidence Kord's navy can read in A Cold Account |
 
 The false schedule needs the uplink standing, which pulls against blowing it
 first: the trade the hook is built on.
@@ -153,7 +166,7 @@ places, so nothing becomes a capture point by accident.
 | West | The landing ground behind a low ridge: all berths one logical landing area. |
 | Centre | Open regolith flat, the rim guns' killing ground, crossed by the rover track; a boulder field to the north (slow, covered); a dry sinuous rille to the south (impassable, see-through, two crossings) leading under the dish field. |
 | North-east | The crater rim: the ranging mast and the two rim guns, reached by ramps. |
-| East floor | The dish field (six dishes, the control hut), the hab cluster (bunks, the riggers' module, the signals racks), the lander pad. |
+| East floor | The dish field (six dishes, the control hut), the hab cluster (bunks, the riggers' module, the signals racks), the lander pad with the cold drop beside it (cryo pod racks and their chiller, the chem module, crates on pallets, a half-loaded cargo crawler). |
 | South-east | The uplink knoll with its ramp, bunker and the rocket truck's stands. |
 
 Three approaches must be real choices: across the flat (direct, under the guns),
@@ -205,6 +218,9 @@ worst-approach and a prepared-approach run, the full-mission preview video.
 ## Open questions
 
 - Side-job pay (proposed: riggers 1,500, false schedule none).
+- How far the cold drop goes (picks page): scenery and the cold-store job
+  (recommended), plus a contraband temptation job that pays black-market
+  credits for a permanent mark Mara will not forget, or scenery only.
 - Whether Blind Watch reads the Dust Ledger's broker mark: an escaped Teague
   could have warned the post, starting its crew stood-to. It would be the first
   consumer of a side-objective mark.
