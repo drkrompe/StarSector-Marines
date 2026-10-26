@@ -422,6 +422,14 @@ public final class TacticalScoring {
     }
 
 
+    /** As {@link #findBestTarget(long)}, among enemies within the shooter's own attack range: what it can hit from where it stands. */
+    public long findBestTargetInReach(long self) {
+        World world = roster.world();
+        return findBestTargetWithinRange(world.x(self), world.y(self), roster.identity().faction(self),
+                roster.squad().hasSquad(self) ? roster.squad().squadId(self) : Squad.NO_SQUAD, self,
+                roster.vision().airLosRadius(self), false, 0f, world.attackRange(self));
+    }
+
     /**
      * Primitive-args overload — used by callers that aren't a {@code Entity}
      * themselves (today: shuttle-mounted turrets, which live as data on an air
