@@ -112,7 +112,7 @@ shared mapping instead of assigning paths independently in each screen.
   door gun has a **weight**, and their sum may not pass the frame's rating (10).
   The workshop refuses a fit that would take her over it, unless the fit makes her
   lighter, so heavy lift and a fast drive compete with plating and guns.
-- **Boat spare** — a fitting or door gun in the boat deck's **stores**, counted per
+- **Boat spare** — a fitting or boat gun in the boat deck's **stores**, counted per
   part. A spare is built from its bill, or comes off a boat; fitting one takes it
   out of stores. Stores are the company's, not a boat's, so a part moves between
   boats through them and survives a change of ship. A yard-standard part is never
@@ -733,18 +733,26 @@ strip for the shared fabrication materials, separate from the selected fitting's
 or boat's cost rows. Material badges resolve through the same shared commodity
 presentation the Fleet Armory and the Mech Lab use.
 
-**A hardpoint carries a door gun, fitted per hardpoint.** A boat has as many
-hardpoints as its pattern and each holds one gun from the yard's door-gun catalog;
-hardpoints are fitted by index, not as a fourth slot. A hardpoint nobody has refitted
-carries the gun an air-to-ground sortie kit gives that mount, so a boat from before
-hardpoints were refittable flies exactly as it did, and putting that yard gun back
-is free. Any other gun is installed work with a bill, like a fitting. The gun stands
-on the hull's turret slots before its fixed hardpoints, so the place the doll rings
-is the place the battle mounts and fires it from. The fitted guns replace the kit
-only for an air-to-ground sortie; other roles still arm by role.
+**A hardpoint carries a gun, fitted per hardpoint.** A boat has as many
+hardpoints as its pattern and each holds one gun from the yard's boat-gun catalog,
+or none; hardpoints are fitted by index, not as a slot. Guns come in three
+**families**: ballistic door guns, energy guns that fire on flux and carry no
+magazine, and missile pods with a few salvos a sortie. **Any family goes on any
+hardpoint**: the hull's slots are small ballistic turrets, but a boat's yard is not
+bound by a slot's type; the frame's weight is the limit. A hardpoint nobody has
+refitted carries the pattern's air-to-ground kit for that mount, and putting that
+yard gun back is free; on the Hermes that is a heavy MG on her first turret and the
+other two **bare**. Stripping a gun puts the yard's own back, which on a bare
+turret leaves it bare. Any other gun is installed work with a bill, like a
+fitting. The gun stands on the hull's turret slots before its fixed hardpoints, so
+the place the doll rings is the place the battle mounts and fires it from, and a
+company boat's gun fires only through its slot's arc: the Hermes's stern gun
+covers the stern. The fitted guns replace the kit only for an air-to-ground sortie;
+other roles still arm by role.
 
 **The Hermes is the company's boat, and every refit is built around her.** She
-takes every slot's upgrades and door guns from stores, within her frame. The
+takes every slot's upgrades, and a gun on each of her three turrets, from stores,
+within her frame. The
 Boat Deck shows the frame as a meter (weight / rating) and every part's weight on
 its card and sheet.
 

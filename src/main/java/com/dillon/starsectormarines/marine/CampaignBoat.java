@@ -107,10 +107,16 @@ public final class CampaignBoat implements Serializable {
         return new FittedBoat(pattern, fit, id, guns);
     }
 
+    /** Whether the pattern has a hardpoint {@code index}, bare or armed. */
+    public boolean hasHardpoint(int index) {
+        return index >= 0 && index < pattern.hardpoints();
+    }
+
     /**
-     * The door gun on hardpoint {@code index}, or null for a hardpoint the
-     * pattern does not have. A hardpoint nobody refitted carries the yard's
-     * own gun.
+     * The gun on hardpoint {@code index}, or null for a bare hardpoint or one
+     * the pattern does not have ({@link #hasHardpoint} tells them apart). A
+     * hardpoint nobody refitted carries the yard's own gun, which on some
+     * hardpoints is none.
      */
     public BoatGun gunOn(int index) {
         if (index < 0 || index >= pattern.hardpoints()) return null;
@@ -118,15 +124,18 @@ public final class CampaignBoat implements Serializable {
         return fitted != null ? fitted : BoatGun.standardFor(pattern, index);
     }
 
-    /** Puts a gun on one hardpoint. Package-private for the reason {@link #install} is. */
+    /**
+     * Puts a gun on one hardpoint, or, with null, puts back the yard's own.
+     * Package-private for the reason {@link #install} is.
+     */
     void installGun(int index, BoatGun gun) {
-        if (gun == null || index < 0 || index >= pattern.hardpoints()) return;
+        if (!hasHardpoint(index)) return;
         if (gunIds == null || gunIds.length != pattern.hardpoints()) {
             String[] grown = new String[pattern.hardpoints()];
             if (gunIds != null) System.arraycopy(gunIds, 0, grown, 0, Math.min(gunIds.length, grown.length));
             gunIds = grown;
         }
-        gunIds[index] = gun.id();
+        gunIds[index] = gun == null ? null : gun.id();
     }
 
     /**

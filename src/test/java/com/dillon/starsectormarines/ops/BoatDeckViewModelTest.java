@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.fitting.FittingMeter;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.ops.fitting.FittingComponents;
@@ -68,7 +69,7 @@ class BoatDeckViewModelTest {
         model.selectBoatAction(0).run();
         model.selectDollSlot(BoatDoll.HARDPOINT_KEY + 0);
 
-        assertEquals("DOOR GUNS", model.selectedSlotTitle().get());
+        assertEquals(Strings.get("boatDeckStoresGuns"), model.selectedSlotTitle().get());
         assertEquals(BoatGun.catalog().size(), model.catalogRows().get().size());
         String mount = BoatDoll.HARDPOINT_KEY + 0;
         assertFalse(model.canDropOnSocket(BoatDoll.Kind.HARDPOINT, BoatGun.HEAVY_MG.id(), mount),

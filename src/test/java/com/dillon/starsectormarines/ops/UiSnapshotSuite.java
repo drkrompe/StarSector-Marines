@@ -3101,6 +3101,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         if (hardpoint >= 0 && deck.berths() > 0 && deck.boats().get(0) != null) {
             workshop.fabricatePart(BoatGun.ARBALEST.id());
             workshop.fitGun(deck.boats().get(0).id(), hardpoint, BoatGun.ARBALEST.id());
+            // Her other two turrets carry the other families, a missile pod and a laser.
+            workshop.fabricatePart(BoatGun.SRM_POD.id());
+            workshop.fitGun(deck.boats().get(0).id(), 1, BoatGun.SRM_POD.id());
+            workshop.fabricatePart(BoatGun.PULSE_LASER.id());
+            workshop.fitGun(deck.boats().get(0).id(), 2, BoatGun.PULSE_LASER.id());
         }
         // The parked hulls wear what the yard put on them, as the room's refit hands them over.
         ship.doorGuns(deck::doorGuns).refitDoorGuns();

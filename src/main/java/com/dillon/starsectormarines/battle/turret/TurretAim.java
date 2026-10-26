@@ -100,6 +100,16 @@ public final class TurretAim {
          * acquires one and drops one it was handed.
          */
         public boolean tracksFliers;
+        /**
+         * The arc the mount may fire through, world degrees: a target outside it is neither acquired nor
+         * kept. A half-width of 180 or more, the default, is all round.
+         */
+        public float arcCenterDeg;
+        public float arcHalfDeg = 180f;
+
+        boolean inArc(float bearing) {
+            return arcHalfDeg >= 180f || Math.abs(shortestAngleDelta(arcCenterDeg, bearing)) <= arcHalfDeg;
+        }
     }
 
     private TurretAim() {}
@@ -121,7 +131,7 @@ public final class TurretAim {
             s.target = scoring.findBestTargetWithinRange(
                     s.originX, s.originY, s.faction, s.squadId, s.excludeFromCrowding,
                     shooterAirR, /*allowNoLos*/ s.indirectFire,
-                    s.minRange, s.attackRange, s.tracksFliers);
+                    s.minRange, s.attackRange, s.tracksFliers, s.arcCenterDeg, s.arcHalfDeg);
         }
         if (s.cooldownTimer > 0f) s.cooldownTimer -= dt;
         if (s.target == 0L) return;
@@ -147,6 +157,10 @@ public final class TurretAim {
         }
 
         float bearing = bearingTo(s.originX, s.originY, world.x(s.target), world.y(s.target));
+        if (!s.inArc(bearing)) {
+            s.target = 0L;
+            return;
+        }
         float maxStep = s.turnRateDegPerSec * dt;
         s.facingDegrees = slewToward(s.facingDegrees, bearing, maxStep);
 
