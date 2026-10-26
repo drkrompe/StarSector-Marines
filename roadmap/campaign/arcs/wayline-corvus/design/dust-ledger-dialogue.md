@@ -33,12 +33,12 @@ the warden's indifference is bought with a season of freight credit, price: the
 fight stays at the pump house and the market is untouched. Prell's dispatch
 authority and the Warion listening post are named in every victory debrief.
 
-## Briefing (`briefing.01`–`briefing.12`, mission `story_corvus_dust_ledger`)
+## Briefing (`briefing.01`–`briefing.14`, mission `story_corvus_dust_ledger`)
 
 Mara (01, 03, 05, 07, 09, 11) and Castle (02, 04, 06, 08, 10, 12) alternate:
 the post and the broker; who might stop us; the Hegemony's indifference; the
 warden's price; the broker's lift-off; the burn rule; the two favours; the
-ledger and strongbox; orders. Keys `corvusDustLedgerBrief01`–`Brief12`.
+ledger and strongbox; orders. Keys `corvusDustLedgerBrief01`–`Brief14`. Turns 13 (Mara: gun nests, pillboxes, the illegal tap seen in Wayline's generator-part manifests, the junction box outside the ring) and 14 (Castle: cut the feed first; rockets or the Hound answer live nests; pillboxes by hand) play after turn 08, so catalog order is 01–08, 13, 14, 09–12.
 
 ## Field calls (events `corvus.dust_ledger.*`)
 
@@ -60,6 +60,12 @@ ledger and strongbox; orders. Keys `corvusDustLedgerBrief01`–`Brief12`.
 | `ledger_burned` | Mara | burn completes unseized |
 | `salvage_team` | Castle | alarm, coupling delivered |
 | `spotters` | Sabine | alarm, warden's nod earned (yard revealed before alarm) |
+| `feed_approach` | Castle | a squad starts working the junction box |
+| `feed_cut` | Mara | the tap is cut before the alarm |
+| `nests_dark` | Castle | alarm, feed was cut |
+| `feed_lapsed` | Castle | alarm, feed was not cut (nests live) |
+| `nest_destroyed` | Castle | a gun nest is destroyed |
+| `pillbox_contact` | Castle | first fire from a pillbox, once |
 | `broker_flees` | Castle | alarm, broker still on site |
 | `broker_surrendered` | Sabine | company unit reaches broker |
 | `broker_lost` | Castle | held broker killed |
