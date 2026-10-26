@@ -1,6 +1,6 @@
 # Blind Watch — the Sounding
 
-Status: PLANNED — hook proposed to the owner (Blind Watch picks page); building on A meanwhile.
+Status: IN PROGRESS — hook A chosen (owner, 2026-10-26); map, mission behaviour and story text under way.
 Written: 2026-10-26
 
 Read `wayline-corvus-arc.md`, `early-operation-nouns.md` (Wayline across Corvus),
@@ -53,6 +53,18 @@ tracks between them.
 - A rigging crew pressed into staying on to keep the dishes aligned in the
   thermal swings. They built the post on a contract and were not let go.
 
+**The cold drop (owner's flavour idea, 2026-10-26).** The Sounding pays for
+itself twice. The intercepts that time Sable Wake's raids also tell smugglers
+when Jangala's lanes are clear of Hegemony patrols, and the post sells those
+windows. Its lander pad is a cold drop for the Sector's quiet trade, using
+vanilla's two contraband goods: **harvested organs** in cryo pods racked
+out on the airless surface, where the cold costs nothing, and **recreational
+drugs** cut and pressed in a chem module beside the pad. Garnir's depot is a
+short hop away. That changes who is there: a lander crew and a chemist beside
+the signals techs. It also darkens what the riggers fear. They were not let go,
+and the pods are next to their module. This is implied, never shown or said
+outright.
+
 **Why the company can reach it.** The Dust Ledger's strongbox gave the post's
 location, its approaches and the watch roster. The post listens outward, at
 the system; Barad's magnetosphere drowns everything on the gas giant's side, so
@@ -70,7 +82,7 @@ lands over the horizon from the post. Low risk is the reward of that preparation
 No faction relation, market, Hegemony or orbital state changes, as with the
 rest of the arc.
 
-## The hook (proposed; owner's pick on the Blind Watch picks page)
+## The hook (owner, 2026-10-26: A)
 
 **A. Ears, eyes and voice (recommended).** The three charges each take away a
 different capability, so the order is the plan:
@@ -92,17 +104,8 @@ Mast first makes everything after it cheaper, but the warning probably goes
 through. Uplink first keeps Garnir in the dark, but crosses the flat under the mast's mortar.
 A careful approach delays the alarm and with it the warning's start.
 
-**B. Aurora window.** Barad's magnetic storms blind the post's instruments. The
-company lands at a storm's onset; while it lasts the rim guns and the mast are
-blind and sentries must see the company by eye. The storm passes on a visible
-clock and the post wakes at full strength. A tempo mission: push hard while the
-watch is blind.
-
-**C. Moonrise.** The uplink can reach Garnir only while Garnir is above
-Warion's horizon. Garnir rises on a visible clock; at moonrise the post calls
-for help and a Sable Wake lander arrives with a relief squad. Blowing the uplink
-first cancels the lander. Raises the chapter's danger above Low unless the
-uplink falls in time.
+Not chosen: an aurora storm that blinds the post for a timed window (B), and
+Garnir's moonrise bringing a relief lander unless the uplink falls first (C).
 
 ## Mission flow (hook A)
 
@@ -127,6 +130,7 @@ Pay is the owner's call per job (proposed below).
 |---|---|---|---|
 | **The riggers** (offered): reach the riggers' module and walk them to the landing ground | until the dish field blows | They give up the post's layout: the bunkers and the crawler's track are revealed | 1,500 from their outfit; mark `corvus.warion.riggers_freed` |
 | **The false schedule** (hidden, found at the dish field's control hut): a squad leader holds the console while the uplink stands and before Garnir is warned | uplink standing, warning unsent | Garnir receives a false Wayline sailing schedule instead of the warning | no credits; mark `corvus.garnir.false_schedule`, for A Cold Account |
+| **The cold store** (proposed, hidden, found by sighting the pod racks): a squad holds the racks to log the manifest | until the dish field blows | none in battle | no credits; mark `corvus.sable_wake.organ_manifest`, evidence Kord's navy can read in A Cold Account |
 
 The false schedule needs the uplink standing, which pulls against blowing it
 first: the trade the hook is built on.
@@ -162,7 +166,7 @@ places, so nothing becomes a capture point by accident.
 | West | The landing ground behind a low ridge: all berths one logical landing area. |
 | Centre | Open regolith flat, the rim guns' killing ground, crossed by the rover track; a boulder field to the north (slow, covered); a dry sinuous rille to the south (impassable, see-through, two crossings) leading under the dish field. |
 | North-east | The crater rim: the ranging mast and the two rim guns, reached by ramps. |
-| East floor | The dish field (six dishes, the control hut), the hab cluster (bunks, the riggers' module, the signals racks), the lander pad. |
+| East floor | The dish field (six dishes, the control hut), the hab cluster (bunks, the riggers' module, the signals racks), the lander pad with the cold drop beside it (cryo pod racks and their chiller, the chem module, crates on pallets, a half-loaded cargo crawler). |
 | South-east | The uplink knoll with its ramp, bunker and the rocket truck's stands. |
 
 Three approaches must be real choices: across the flat (direct, under the guns),
@@ -194,7 +198,7 @@ and markers. Built against its own `Sites` record on small synthetic grids.
 **C. Story and text — `blind-watch-dialogue.md`.** Briefing with Mara and
 Castle, field calls (alarm, warning, each charge, side jobs), debrief variants
 over warned / not warned and the side jobs, catalog strings under
-`corvusBlindWatch*`. The two recorded debrief lines stay.
+`corvusBlindWatch*`. The two recorded debrief lines stay. Written: names, script, catalog and hook strings are in `blind-watch-dialogue.md`; wiring reads its debrief selection rule.
 
 **D. Wiring (lead).** `CorvusChapter.BLIND_WATCH` builds the authored fixture,
 retire the procedural path for this chapter, `commanderEvidence` with a
@@ -202,7 +206,7 @@ worst-approach and a prepared-approach run, the full-mission preview video.
 
 ## Acceptance
 
-- [ ] The owner picks the hook.
+- [x] The owner picks the hook: A, ears, eyes and voice (2026-10-26).
 - [ ] Authored map renders from the look preset; no capture point except the three sites.
 - [ ] Every site is reachable from the landing ground; three approaches stay open; the crawler's lane passes `VehicleRoutePlanner`.
 - [ ] Each charge's effect fires in a unit test; the warning stops at the uplink charge.
@@ -213,8 +217,10 @@ worst-approach and a prepared-approach run, the full-mission preview video.
 
 ## Open questions
 
-- The hook (A, B or C).
 - Side-job pay (proposed: riggers 1,500, false schedule none).
+- How far the cold drop goes (picks page): scenery and the cold-store job
+  (recommended), plus a contraband temptation job that pays black-market
+  credits for a permanent mark Mara will not forget, or scenery only.
 - Whether Blind Watch reads the Dust Ledger's broker mark: an escaped Teague
   could have warned the post, starting its crew stood-to. It would be the first
   consumer of a side-objective mark.

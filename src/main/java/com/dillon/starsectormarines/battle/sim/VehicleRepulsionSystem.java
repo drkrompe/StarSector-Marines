@@ -153,6 +153,11 @@ public final class VehicleRepulsionSystem {
      * Moving hulls are left to the bow wave: their cells change every tick.
      */
     public void occupyStandingHulls(NavigationService navigation) {
+        forEachStandingHullCell((x, y) -> navigation.addOccupancy(x, y, HULL_OCCUPANCY));
+    }
+
+    /** Visits every cell a stopped hull keeps routes off (see {@link #occupyStandingHulls}); a cell may come twice. */
+    public void forEachStandingHullCell(VehicleFootprint.CellConsumer cells) {
         if (!ENABLED || convoy.vehicleCount() == 0) return;
         for (long vehicle : convoy.entityIds()) {
             VehicleMission mission = convoy.mission(vehicle);
@@ -162,8 +167,7 @@ public final class VehicleRepulsionSystem {
                     || mission.state == VehicleState.WRECKED || mission.state == VehicleState.GONE
                     || !type.repelsBodies()) continue;
             standingHullCells(body.x, body.y, body.facingDegrees, body.speed,
-                    type.visualLengthCells, type.visualWidthCells, grid,
-                    (x, y) -> navigation.addOccupancy(x, y, HULL_OCCUPANCY));
+                    type.visualLengthCells, type.visualWidthCells, grid, cells);
         }
     }
 
