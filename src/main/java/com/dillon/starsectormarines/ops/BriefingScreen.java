@@ -1255,10 +1255,12 @@ public class BriefingScreen implements Screen {
         boolean canAccept = transportOk && personnelOk && commandOk;
         MarineRoster roster = liveRoster();
         int shortfall = readiness != null ? readiness.companyShortfall() : 0;
+        // A refill fills only the line squads' open billets; more marines than that need a new squad.
+        int fillable = roster != null ? Math.min(shortfall, roster.lineVacancies()) : 0;
         int reserve = roster != null ? roster.readyReserveCount() : 0;
         int cargo = MarinePersonnelLogistics.availableCargoMarines();
-        int reinforcement = Math.min(shortfall, reserve + cargo);
-        int cargoCost = Math.max(0, reinforcement - Math.min(shortfall, reserve));
+        int reinforcement = Math.min(fillable, reserve + cargo);
+        int cargoCost = Math.max(0, reinforcement - Math.min(fillable, reserve));
         boolean canReinforce = transportOk && commandOk && readiness != null
                 && readiness.needsPersonnel() && reinforcement > 0;
 
@@ -1269,7 +1271,7 @@ public class BriefingScreen implements Screen {
                 : (Runnable) this::openSquadDeployment);
 
         Runnable deployAction = canAccept ? this::onAccept
-                : canReinforce ? () -> reinforce(roster, shortfall)
+                : canReinforce ? () -> reinforce(roster, fillable)
                 : !transportOk || !commandOk || readiness == null ? () -> { }
                 : readiness.needsPersonnel() ? () -> { }
                 : this::openSquadDeployment;
@@ -1279,6 +1281,7 @@ public class BriefingScreen implements Screen {
                 : !routeReady ? Strings.upper(Strings.get("briefingUiAssignTwoSquads"))
                 : readiness != null && readiness.needsPersonnel()
                         ? canReinforce ? Strings.upper(Strings.format("briefingUiReinforceCargo", reinforcement, cargoCost))
+                                : fillable == 0 ? Strings.upper(Strings.format("briefingUiNeedSquad", shortfall))
                                 : Strings.upper(Strings.format("briefingUiNeedNoMarines", shortfall))
                         : readiness != null ? Strings.upper(Strings.format("briefingUiAssignShortfall", readiness.selectedShortfall()))
                         : Strings.upper(Strings.get("briefingUiBlocked"));
@@ -1798,13 +1801,15 @@ public class BriefingScreen implements Screen {
         boolean canAccept = transportOk && personnelOk && commandOk && !inductionRequired;
         MarineRoster personnelRoster = liveRoster();
         int personnelShortfall = readiness != null ? readiness.companyShortfall() : 0;
+        int personnelFillable = personnelRoster != null
+                ? Math.min(personnelShortfall, personnelRoster.lineVacancies()) : 0;
         int reserveAvailable = personnelRoster != null
                 ? personnelRoster.readyReserveCount() : 0;
         int cargoAvailable = MarinePersonnelLogistics.availableCargoMarines();
-        int reinforcementAvailable = Math.min(personnelShortfall,
+        int reinforcementAvailable = Math.min(personnelFillable,
                 reserveAvailable + cargoAvailable);
         int cargoCost = Math.max(0, reinforcementAvailable
-                - Math.min(personnelShortfall, reserveAvailable));
+                - Math.min(personnelFillable, reserveAvailable));
         boolean canReinforce = transportOk && commandOk && readiness != null
                 && readiness.needsPersonnel() && reinforcementAvailable > 0;
 
@@ -1829,7 +1834,7 @@ public class BriefingScreen implements Screen {
                 : readiness.needsPersonnel()
                         ? canReinforce ? () -> {
                             MarinePersonnelLogistics.fillLineShortfall(
-                                    personnelRoster, personnelShortfall);
+                                    personnelRoster, personnelFillable);
                             rebuild();
                         } : null
                         : this::openSquadDeployment;
@@ -1852,6 +1857,8 @@ public class BriefingScreen implements Screen {
                                 ? reinforcementAvailable > 0
                                         ? "Reinforce +" + reinforcementAvailable
                                                 + " · " + cargoCost + " cargo"
+                                        : personnelFillable == 0
+                                                ? Strings.format("briefingUiNeedSquad", personnelShortfall)
                                         : "Need " + personnelShortfall + " · No marines"
                                 : "Assign " + readiness.selectedShortfall(),
                 deployX + INNER_PAD + (showMarineCommodity ? 24f : 0f),

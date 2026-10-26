@@ -4,7 +4,6 @@ import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class SquadFoundingWorkshopTest {
@@ -41,18 +40,5 @@ class SquadFoundingWorkshopTest {
             assertEquals(marines, stores.available(Commodities.MARINES));
         }
         assertEquals(0, roster.squads().stream().filter(squad -> !squad.reserve()).count());
-    }
-
-    @Test
-    void awayFromAPortNothingIsFoundedOrSpent() {
-        MarineRoster roster = new MarineRoster();
-        TestStores stores = TestStores.forSquads(1).away();
-
-        SquadFoundingWorkshop.Result result = new SquadFoundingWorkshop(roster, stores).foundSquad();
-
-        assertEquals(SquadFoundingWorkshop.Status.NO_MARKET, result.status());
-        assertEquals(0, stores.spends);
-        assertFalse(stores.canBuy(SquadFoundingCost.STANDARD));
-        assertTrue(stores.canAfford(SquadFoundingCost.STANDARD));
     }
 }

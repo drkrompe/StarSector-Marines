@@ -870,20 +870,17 @@ public class MarineRoster implements Serializable {
         return Collections.unmodifiableList(recruits);
     }
 
-    /** Materializes one cargo-backed replacement in the first available line billet. */
+    /**
+     * Materializes one cargo-backed replacement in the first open line billet, or null when every
+     * line squad is full: a refill never founds a squad, which costs credits at the barracks.
+     */
     MarineSoldier createLineReplacement() {
         return createLineReplacement(RecruitIntake.NEUTRAL);
     }
 
     MarineSoldier createLineReplacement(RecruitIntake intake) {
-        MarineSquad target = null;
-        for (MarineSquad squad : squads) {
-            if (!squad.reserve() && !squad.stationed() && vacancies(squad) > 0) {
-                target = squad;
-                break;
-            }
-        }
-        if (target == null) target = createSquad();
+        MarineSquad target = firstOpenLineSquad();
+        if (target == null) return null;
         MarineSoldier recruit = createRecruit(intake);
         target.add(recruit.id());
         refreshLeadership();
@@ -958,18 +955,30 @@ public class MarineRoster implements Serializable {
         return reserve != null && transferSoldier(reserve.id(), targetSquadId);
     }
 
-    /** Assigns one ready reserve to the next line billet, creating a line squad if needed. */
+    /** Assigns one ready reserve to the next open line billet; false when every line squad is full. */
     boolean assignReadyReserveToLine() {
         if (firstReadyReserve() == null) return false;
-        MarineSquad target = null;
+        MarineSquad target = firstOpenLineSquad();
+        return target != null && fillVacancyFromReserve(target.id());
+    }
+
+    /**
+     * Open billets across the line squads at home, wiped squads included: what a refill can fill
+     * without founding a squad.
+     */
+    public int lineVacancies() {
+        int open = 0;
         for (MarineSquad squad : squads) {
-            if (!squad.reserve() && !squad.stationed() && vacancies(squad) > 0) {
-                target = squad;
-                break;
-            }
+            if (!squad.reserve() && !squad.stationed()) open += vacancies(squad);
         }
-        if (target == null) target = createSquad();
-        return fillVacancyFromReserve(target.id());
+        return open;
+    }
+
+    private MarineSquad firstOpenLineSquad() {
+        for (MarineSquad squad : squads) {
+            if (!squad.reserve() && !squad.stationed() && vacancies(squad) > 0) return squad;
+        }
+        return null;
     }
 
     /** Fills as many true open billets as possible from ready reserve personnel. */
