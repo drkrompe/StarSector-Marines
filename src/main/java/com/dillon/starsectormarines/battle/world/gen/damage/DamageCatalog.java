@@ -8,7 +8,8 @@ public final class DamageCatalog {
     public static final String RELIEF = "data/world/damage/relief.damage.json";
     public static final String SHEPHERD_BASIN = "data/world/damage/shepherd-basin.damage.json";
     public static final String DUST_LEDGER = "data/world/damage/dust-ledger.damage.json";
-    private static volatile DamagePlan relief, shepherdBasin, dustLedger;
+    public static final String BLIND_WATCH = "data/world/damage/blind-watch.damage.json";
+    private static volatile DamagePlan relief, shepherdBasin, dustLedger, blindWatch;
     private DamageCatalog() {}
     @FunctionalInterface public interface Source { JSONObject read(String path) throws Exception; }
     public static boolean installed() { return relief != null; }
@@ -26,6 +27,14 @@ public final class DamageCatalog {
         if (dustLedger == null) throw new IllegalStateException("Damage catalog has not been installed");
         return dustLedger;
     }
+    /** The Sounding on Warion: a season's rover ruts and micrometeorite pitting, not a battle. */
+    public static DamagePlan blindWatch() {
+        if (blindWatch == null) throw new IllegalStateException("Damage catalog has not been installed");
+        return blindWatch;
+    }
+    public static void validateBlindWatch(DamagePlan plan) {
+        if (plan.width() != 216 || plan.height() != 112) throw new IllegalArgumentException("Blind Watch damage requires 216 x 112 cells");
+    }
     public static void validateDustLedger(DamagePlan plan) {
         if (plan.width() != 240 || plan.height() != 112) throw new IllegalArgumentException("Dust Ledger damage requires 240 x 112 cells");
     }
@@ -39,7 +48,8 @@ public final class DamageCatalog {
         DamagePlan plan = DamagePlan.read(source.read(RELIEF)); validate(plan);
         DamagePlan basin = DamagePlan.read(source.read(SHEPHERD_BASIN)); validateShepherdBasin(basin);
         DamagePlan crossing = DamagePlan.read(source.read(DUST_LEDGER)); validateDustLedger(crossing);
-        relief = plan; shepherdBasin = basin; dustLedger = crossing;
+        DamagePlan sounding = DamagePlan.read(source.read(BLIND_WATCH)); validateBlindWatch(sounding);
+        relief = plan; shepherdBasin = basin; dustLedger = crossing; blindWatch = sounding;
     }
     public static void loadBuiltins() throws Exception { loadBuiltins(path -> Global.getSettings().loadJSON(path, true)); }
 }

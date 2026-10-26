@@ -396,6 +396,8 @@ final class CordonStructureWorks {
             case BARN -> new int[]{13, 8};
             case PUMP_HOUSE -> new int[]{23, 14};
             case PILLBOX -> new int[]{7, 5};
+            case PREFAB_MODULE -> new int[]{11, 5};
+            case CONTROL_HUT -> new int[]{7, 5};
         };
         return (turns & 1) == 0 ? s : new int[]{s[1], s[0]};
     }
