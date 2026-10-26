@@ -191,7 +191,12 @@ public final class FabricationSystem {
         sim.convoy().body(hull).teleport(x, y, stocks.facing.degrees());
         GroundTurret turret = sim.convoy().turret(hull);
         bay.frameAmmo = turret == null ? 0 : turret.ammo;
-        if (turret != null) turret.ammo = 0;
+        if (turret != null) {
+            // An unfinished gun stands empty, and its loader does not fill it before it is done.
+            bay.frameLoaderSeconds = turret.loaderSeconds;
+            turret.loaderSeconds = Float.POSITIVE_INFINITY;
+            turret.ammo = 0;
+        }
         sim.world().setHp(hull, Math.max(1f, sim.world().maxHp(hull) * FabricationService.KEEL_FRACTION));
         works.lay(bay.siteId, hull);
     }
@@ -211,7 +216,10 @@ public final class FabricationSystem {
             if (bay.vehicle != null) {
                 long hull = bay.frameId;
                 GroundTurret turret = sim.convoy().turret(hull);
-                if (turret != null) turret.ammo = bay.frameAmmo;
+                if (turret != null) {
+                    turret.ammo = bay.frameAmmo;
+                    turret.loaderSeconds = bay.frameLoaderSeconds;
+                }
                 LOG.info("FabricationSystem: " + sim.convoy().faction(hull) + " " + bay.vehicle
                         + " rolled out of bay " + bay.siteId);
                 works.rollOut(bay.siteId);

@@ -186,7 +186,7 @@
       "sim": {
         "pointDefenseTarget": true, "range": 40.0, "damage": 15.0, "accuracy": 0.55, "cooldown": 9.0, "penetration": 6.0,
         "contact": { "damage": 95.0, "penetration": 30.0 },
-        "burstCount": 10, "burstSpacing": 0.11, "hitSpread": 1.5, "roundVelocity": 28.571428, "flightSec": 1.40,
+        "burstCount": 5, "burstSpacing": 0.11, "hitSpread": 1.5, "roundVelocity": 28.571428, "flightSec": 1.40,
         "arcHeight": 5.0, "aoeRadius": 1.0, "wallDamage": 40, "wallDamageRadius": 2.0,
         "interceptableProjectile": true, "boostRamp": true, "indirectFire": true, "noLosAccuracyMult": 0.55
       },

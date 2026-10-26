@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — heavy tracks flatten undergrowth and lone boulders; a hull running into what stops it is heard as a bump.
+Updated: 2026-10-25 — every armed hull's loader refills its magazine; the LRM carrier is an LRM-15 whose groups follow each other on clicks, bounded by flux.
 
 ## Purpose and boundary
 
@@ -28,8 +28,8 @@ The ordinary reinforcement variant is the `HEAVY_APC`: a defender delivery carri
 four faction-rostered infantry passengers and a roof weapon; a deployed Marine
 APC uses the same chassis and may receive orders or direct control. The old `MILITIA_TRUCK`
 is retired. The `MILITIA_TECHNICAL` is a separate light pickup with a pintle
-machine gun: faster and much less durable than an APC, with finite mount
-ammunition, no troop capacity, and no faction-specific combat exceptions.
+machine gun: faster and much less durable than an APC, with a mount
+magazine its loader refills slowly, no troop capacity, and no faction-specific combat exceptions.
 Authored missions may field it for local forces; its first use is Wayline's
 rear-route support in Thunder Run, not player ownership or a reinforcement-pool
 change. Parked map vehicles are separate static scenery and obstacles, not
@@ -352,10 +352,9 @@ rating and plate are worth on a given hit depends on its arc (below).
   no drivable route it backs off the nearest threat with its nose on it. A player
   order still owns it while the order lasts. `-Dbattle.vehicle.disarmedWithdraw=false`
   is the control, where it holds where it stands.
-- **An empty magazine is a different fact.** It ends fire but leaves the gun.
-  The hull still threatens what it can see, and its threat reach stays its own.
-  Nothing refills a vehicle magazine in battle yet; rearming is planned
-  (`vehicle-rearm.md`).
+- **An empty magazine is a different fact.** It ends fire but leaves the gun,
+  and only until the loader has put a pack back (the loader, below). The hull
+  still threatens what it can see, and its threat reach stays its own.
 - **The section is authored per hull** (`VehicleType.turretHitShare` /
   `turretPoolShare`). Today only the gun tanks (breakthrough, screened and both lasers) author one: a fifth of the
   hits, and a quarter of the pools (`heavy-equipment-progression.md`, a tank
@@ -540,6 +539,30 @@ a socket and show its damage, but the shares stay on the hull type, as a mech's
 pool shares stay on its body plan rather than on its doll. Vehicles have no
 campaign wear (they are variants, not fittings), so nothing is written back:
 a gun lost in battle is lost for that battle only.
+
+**A hull's loader refills its magazine** (`GroundTurret.advanceLoader`), the
+way a mech's replenisher refills its racks (`mechs-nouns.md`, missile
+replenisher). Every armed hull carries a stock loader, sealed in its doll like
+its gun. Each mount authors how long its loader takes to put back one **pack**,
+the weapon's burst (`TurretMountDef.loaderSeconds`): a group of missiles, a
+volley of the twin cannon, a machine-gun burst, a single bomb. The loader runs
+firing or not, for the whole battle, and never past the magazine, so the
+magazine is the ready stock and the loader is the sustained rate. A gun with no
+loader time keeps what it was set down with. It runs on every mount of a hull,
+secondaries too, and only on a hull: an emplacement sharing the mount keeps its
+own magazine. A hull on a fabrication bay's stocks stands empty with its loader
+held off, and rolls out full. The cadences are slow beside the guns, so a long
+fight still thins a hull's fire: the LRM rack takes 18 s a group (the mech
+standard loader's), the SRM rack 12 s, the cannon 10 s a volley, the MG and the
+mortar 6 s, the hover pulse emitter 4 s. The lasers' are quicker than their flux
+lets them fire (1.2 s and 1.5 s), so a laser tank's limit is its flux, as a
+mech laser's is. Three kits make it an upgrade path, each competing for a rack
+slot with the plate and the liner (`mechs-nouns.md`, vehicle kit): the **ready
+rack** deepens the magazine (a bigger spike), the **accelerated loader** cuts
+every pack's time to three quarters (a better sustained rate), and the
+**capacitor pack** holds half again the flux before the gun overloads (more
+rounds between vents, on a gun that builds flux). The direct-control HUD shows a
+flux gun's flux on the mech's gauge, against its kitted capacity.
 
 **The screened tank carries active protection** (`VehicleType.activeProtectionStructureId`).
 It is a point-defence mount on the hull: the carried-mount law of
@@ -749,7 +772,7 @@ request the deployed hull holds. Loss of live deployed eligibility forgets
 suspension and queued intent. Ownership changes preserve both the passenger
 manifest and delivery payload rather than manufacturing a delivery transition.
 
-The independent roof turret keeps one magazine and cadence authority. Mouse
+The independent roof turret keeps one magazine, loader and cadence authority. Mouse
 bearing drives its authored traverse, and a held primary trigger fires only
 when ordinary alignment, cooldown, ammunition, and burst gates permit. A burst
 retains its world point; later cursor movement applies to the next trigger.
@@ -1278,7 +1301,13 @@ warhead is each hull's identity, and the fragmentation rack stays a mech fitting
 The **LRM carrier** (`LRM_CARRIER`, Advanced, Medium lift) is the heavy APC's hull
 with the troop bay given over to one mech LRM-15 pod on a turntable, which stands up on its
 tail hinge to fire
-(`art-source/vehicles/missile-carriers/`). It is the APC line's long arm against
+(`art-source/vehicles/missile-carriers/`). Like the mech's rack it is **three groups of
+five**: a click is a group, and a click while the last group's cooldown still runs, or a
+held button, fires the next loaded group as soon as the last has gone (`SalvoChain`), so
+three clicks are the whole rack. Its cooldown is no wait between its own groups. What
+bounds it is its **flux** (`TurretMountDef.flux`, the lasers' law): the three groups fit
+inside it, and a fourth from a ready rack overloads the launcher and holds it while it
+vents, unless a capacitor pack makes room. Its loader brings a group back every 18 s. It is the APC line's long arm against
 armor, where the fire-support APC is its steadier arm against anything. Its rounds
 arc, and it fires **on a spotter's call** at a machine it cannot see itself:
 somebody else on its side must be looking at the target right now
@@ -1302,8 +1331,8 @@ with a 120 mm mortar on an open roof turntable in place of the seats. It fires t
 same way as the LRM carrier: rounds that arc onto anything somebody on its side is
 looking at (`SideObservers`), from stand-off. Unlike the carrier it fires on men
 as readily as on machines. One bomb every few seconds from a deep rack hits far
-softer than a ten-missile salvo, but it keeps falling after the launcher's
-magazine is empty: the LRM wins the short fight against armor and the mortar the
+softer than the launcher's fifteen missiles, but it keeps falling while the launcher
+waits on its loader: the LRM wins the short fight against armor and the mortar the
 long one. Acceptance for its shelling is the `fire-support-apc` scene.
 
 The **SRM technical** (`SRM_TECHNICAL`, Common, Light lift) is a field rig: the

@@ -126,9 +126,16 @@ final class VehicleDoll {
         };
     }
 
-    /** A kit's colour: armour is plating's omni grey; the ready rack feeds the gun as a loader does. */
+    /**
+     * A kit's colour: armour is plating's omni grey; the ready rack and the loader feed the gun as a mech's loader
+     * does, and the capacitor pack is a capacitor bank's flux violet.
+     */
     static Color tone(VehicleKit kit) {
-        return kit == VehicleKit.READY_RACK ? HardpointBricks.UTILITY : HardpointBricks.OMNI;
+        return switch (kit) {
+            case READY_RACK, ACCELERATED_LOADER -> HardpointBricks.UTILITY;
+            case CAPACITOR_PACK -> HardpointBricks.FLUX;
+            default -> HardpointBricks.OMNI;
+        };
     }
 
     /**

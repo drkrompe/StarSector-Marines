@@ -162,7 +162,8 @@ class BattleDirectControlStatusTest {
         assertEquals(arms.rotary.def().belt(), mech.ammo().capacity());
         assertEquals(BattleDirectControlStatus.WeaponState.LOADED, mech.state());
         var mount = VehicleType.HEAVY_APC.turretStructure().mount;
-        GroundTurret turret = new GroundTurret(mount.ammoCapacity - 4);
+        GroundTurret turret = new GroundTurret(mount.ammoCapacity);
+        turret.ammo -= 4;
         turret.cooldownTimer = .5f;
         turret.burstRemaining = 2;
         turret.burstTimer = .1f;

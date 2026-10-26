@@ -91,6 +91,9 @@ public record MechPattern(Kind kind, String definitionId) {
         KIT_TIERS.put(VehicleKit.READY_RACK, EquipmentAccessTier.COMMON);
         KIT_TIERS.put(VehicleKit.SPACED_SKIRTS, EquipmentAccessTier.ADVANCED);
         KIT_TIERS.put(VehicleKit.SENSOR_PAIR, EquipmentAccessTier.ADVANCED);
+        // The upgrades on a hull's own systems, a faster feed or a deeper flux bank, as the mech parts they echo.
+        KIT_TIERS.put(VehicleKit.ACCELERATED_LOADER, EquipmentAccessTier.ADVANCED);
+        KIT_TIERS.put(VehicleKit.CAPACITOR_PACK, EquipmentAccessTier.ADVANCED);
     }
 
     /**

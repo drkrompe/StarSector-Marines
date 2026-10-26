@@ -30,7 +30,14 @@ public enum VehicleKit {
      * cannot see over, which is what an indirect-fire hull otherwise needs a spotter for. Hulls with no bay of
      * their own.
      */
-    SENSOR_PAIR("kit.sensor-pair", "@vehicleKitSensorPair", 1f, 1f, 1f, 0f);
+    SENSOR_PAIR("kit.sensor-pair", "@vehicleKitSensorPair", 1f, 1f, 1f, 0f),
+    /**
+     * A faster feed on every mount's loader: a pack comes back in three quarters of the stock loader's time, as a
+     * mech's accelerated feed does. Armed hulls only.
+     */
+    ACCELERATED_LOADER("kit.accelerated-loader", "@vehicleKitAcceleratedLoader", 1f, 1f, 1f, 0f, .75f, 1f),
+    /** Half again the flux the gun can hold before it overloads. Hulls whose gun builds flux only. */
+    CAPACITOR_PACK("kit.capacitor-pack", "@vehicleKitCapacitorPack", 1f, 1f, 1f, 0f, 1f, 1.5f);
 
     public final String id;
     private final String label;
@@ -38,15 +45,25 @@ public enum VehicleKit {
     public final float structureFactor;
     public final float ammoFactor;
     public final float armorRatingBonus;
+    /** What the kit multiplies the loader's seconds per pack by: under 1 is a faster feed. */
+    public final float loaderFactor;
+    public final float fluxCapacityFactor;
 
     VehicleKit(String id, String label, float armorFactor, float structureFactor, float ammoFactor,
                float armorRatingBonus) {
+        this(id, label, armorFactor, structureFactor, ammoFactor, armorRatingBonus, 1f, 1f);
+    }
+
+    VehicleKit(String id, String label, float armorFactor, float structureFactor, float ammoFactor,
+               float armorRatingBonus, float loaderFactor, float fluxCapacityFactor) {
         this.id = id;
         this.label = label;
         this.armorFactor = armorFactor;
         this.structureFactor = structureFactor;
         this.ammoFactor = ammoFactor;
         this.armorRatingBonus = armorRatingBonus;
+        this.loaderFactor = loaderFactor;
+        this.fluxCapacityFactor = fluxCapacityFactor;
     }
 
     public String displayName() { return Strings.resolve(label); }
@@ -56,11 +73,15 @@ public enum VehicleKit {
         return this == SENSOR_PAIR ? List.of(DroneRole.SENSOR, DroneRole.SENSOR) : List.of();
     }
 
-    /** Whether the hull has what this kit works on: a magazine for the ready rack, tracks for the skirts. */
+    /**
+     * Whether the hull has what this kit works on: a magazine for the ready rack or the loader, flux for the
+     * capacitors, tracks for the skirts.
+     */
     public boolean suits(VehicleType type) {
         if (type == null) return false;
         return switch (this) {
-            case READY_RACK -> type.hasTurretWeapon();
+            case READY_RACK, ACCELERATED_LOADER -> type.hasTurretWeapon();
+            case CAPACITOR_PACK -> type.hasTurretWeapon() && type.turretStructure().mount.flux != null;
             case SPACED_SKIRTS -> type.isTank();
             case SENSOR_PAIR -> type.droneBay().isEmpty();
             case APPLIQUE_PLATE, SPALL_LINER -> true;
@@ -88,18 +109,21 @@ public enum VehicleKit {
     }
 
     /** What a rack of kits makes of a hull at the drop, every factor multiplied and every bonus added. */
-    public record Effect(float armorFactor, float structureFactor, float ammoFactor, float armorRatingBonus) {
-        public static final Effect NONE = new Effect(1f, 1f, 1f, 0f);
+    public record Effect(float armorFactor, float structureFactor, float ammoFactor, float armorRatingBonus,
+                         float loaderFactor, float fluxCapacityFactor) {
+        public static final Effect NONE = new Effect(1f, 1f, 1f, 0f, 1f, 1f);
 
         public static Effect of(List<VehicleKit> kits) {
-            float armor = 1f, structure = 1f, ammo = 1f, rating = 0f;
+            float armor = 1f, structure = 1f, ammo = 1f, rating = 0f, loader = 1f, flux = 1f;
             for (VehicleKit kit : kits) {
                 armor *= kit.armorFactor;
                 structure *= kit.structureFactor;
                 ammo *= kit.ammoFactor;
                 rating += kit.armorRatingBonus;
+                loader *= kit.loaderFactor;
+                flux *= kit.fluxCapacityFactor;
             }
-            return new Effect(armor, structure, ammo, rating);
+            return new Effect(armor, structure, ammo, rating, loader, flux);
         }
     }
 }
