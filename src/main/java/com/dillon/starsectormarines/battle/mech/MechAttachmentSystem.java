@@ -12,7 +12,9 @@ import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
+import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveDefendAreaOrder;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -46,16 +48,12 @@ public final class MechAttachmentSystem {
 
     /** An attached mech this far from its slot cell re-picks it; under it, a moving squad does not re-route the mech every tick. */
     static final float SLOT_DRIFT_CELLS = 2f;
+    /** A follower this near its post's cell centre, with no route left, stands on it and takes its heading. */
+    static final float POST_ARRIVED_CELLS = 1.5f;
     /** Cells the slot search spirals out to for ground a chassis can stand on. */
     private static final int SLOT_SEARCH_RADIUS = 4;
     /** An axis shorter than this, in cells, is no axis: the squad is on its destination or its threat. */
     private static final float MIN_AXIS_CELLS = 1.5f;
-    /** Share of its slowest follower's speed an anchor marches at while every follower is near its slot. */
-    static final float MARCH_PACE = 0.95f;
-    /** Share it marches at while a follower is still making for its slot, so the follower can overtake. */
-    static final float CATCH_UP_PACE = 0.6f;
-    /** A follower farther than this from its slot cell is still making for it. */
-    static final float CATCH_UP_CELLS = 4f;
 
     private final MechAttachmentService service;
 
@@ -80,7 +78,45 @@ public final class MechAttachmentSystem {
             if (service.anchorOf(mechSquad.id) == anchor.id) continue;
             attach(mechSquad, anchor, sim);
         }
+        for (MechAttachmentService.PostRequest request : service.drainPendingPosts()) {
+            if (!service.isAttached(request.mechSquadId())) continue;
+            service.setPost(request.mechSquadId(), request.post());
+            for (int i = 0, n = sim.squadMemberCount(request.mechSquadId()); i < n; i++) {
+                service.setSlot(sim.squadMemberAt(request.mechSquadId(), i), null);
+            }
+        }
+        keepPosts(sim);
         publish(sim);
+    }
+
+    /**
+     * Ends each post whose squad no longer holds the frontage the same drag gave it — it was given
+     * anything else, or lost the line — and turns a follower standing on its post to the post's heading.
+     */
+    private void keepPosts(BattleSimulation sim) {
+        for (int mechSquadId : service.postedSquads()) {
+            MechAttachmentService.Post post = service.postOf(mechSquadId);
+            int anchor = service.anchorOf(mechSquadId);
+            boolean holds = post != null && anchor != MechAttachmentService.NONE
+                    && sim.getSquadMoveOrderService().activeOrder(anchor) instanceof ActiveDefendAreaOrder order
+                    && sameStretch(order.line(), post.anchorLine());
+            for (int i = 0, n = sim.squadMemberCount(mechSquadId); i < n; i++) {
+                long member = sim.squadMemberAt(mechSquadId, i);
+                if (!holds) {
+                    service.setSlot(member, null);
+                    sim.getMechMoveOrderService().holdFacing(member, Float.NaN);
+                } else if (sim.world().isAlive(member) && Paths.isEmpty(sim.world().path(member))
+                        && TacticalScoring.cellDistance(sim.world().x(member), sim.world().y(member),
+                        post.x() + .5f, post.y() + .5f) <= POST_ARRIVED_CELLS) {
+                    sim.getMechMoveOrderService().holdFacing(member, post.facingDegrees());
+                }
+            }
+            if (!holds) service.setPost(mechSquadId, null);
+        }
+    }
+
+    private static boolean sameStretch(FrontageLine a, FrontageLine b) {
+        return a != null && b != null && a.x0() == b.x0() && a.y0() == b.y0() && a.x1() == b.x1() && a.y1() == b.y1();
     }
 
     /**
@@ -129,6 +165,8 @@ public final class MechAttachmentSystem {
     /** Followers' ranks by role, and each anchor's axis, for the parallel pass to read. */
     private void publish(BattleSimulation sim) {
         Map<Long, Integer> ranks = new HashMap<>();
+        Map<Long, Integer> marchRanks = new HashMap<>();
+        Map<Integer, Integer> marchCounts = new HashMap<>();
         Set<Integer> anchors = new HashSet<>();
         Map<Integer, Map<MechRole, Integer>> counts = new HashMap<>();
         // Mech squad id order, then member order: deterministic, and stable as followers come and go.
@@ -146,53 +184,17 @@ public final class MechAttachmentSystem {
                 int rank = roleCounts.getOrDefault(role, 0);
                 roleCounts.put(role, rank + 1);
                 ranks.put(member, rank);
+                int marchRank = marchCounts.getOrDefault(anchorId, 0);
+                marchCounts.put(anchorId, marchRank + 1);
+                marchRanks.put(member, marchRank);
             }
         }
-        service.setRanks(ranks);
+        service.setRanks(ranks, marchRanks);
         service.retainAxes(anchors::contains);
         for (int anchorId : anchors) {
             Squad anchor = sim.getSquad(anchorId);
             float[] axis = anchor == null ? null : axis(anchor, sim);
             if (axis != null) service.setAxis(anchorId, axis);
-        }
-        pace(anchors, sim);
-    }
-
-    /**
-     * Holds each anchor out of contact to its followers' pace: no faster than {@link #MARCH_PACE} of its
-     * slowest follower, or {@link #CATCH_UP_PACE} of it while a follower is still making for its slot.
-     * Mechs are slower than marines on the march, and a squad that outwalks its Brawler is leading
-     * it. In contact the squad moves as it must. Package-private for tests.
-     */
-    void pace(Set<Integer> anchors, BattleSimulation sim) {
-        // Cleared first so the speeds read below are the marines' own, not last tick's paced ones.
-        service.clearPace();
-        for (int anchorId : anchors) {
-            Squad anchor = sim.getSquad(anchorId);
-            if (anchor == null || anchor.contactPicture != null && anchor.contactPicture.hasContacts()
-                    || anchor._engagedThisTick) continue;
-            float slowest = Float.POSITIVE_INFINITY;
-            boolean behind = false;
-            for (int follower : service.followersOf(anchorId)) {
-                for (int i = 0, n = sim.squadMemberCount(follower); i < n; i++) {
-                    long mech = sim.squadMemberAt(follower, i);
-                    if (!sim.world().isAlive(mech) || !sim.world().hasMovement(mech)) continue;
-                    float speed = sim.world().moveSpeed(mech);
-                    if (!(speed > 0f)) continue;
-                    slowest = Math.min(slowest, speed);
-                    int[] slot = service.slotOf(mech);
-                    behind |= slot != null && TacticalScoring.cellDistance(sim.world().x(mech), sim.world().y(mech),
-                            slot[0] + .5f, slot[1] + .5f) > CATCH_UP_CELLS;
-                }
-            }
-            if (slowest == Float.POSITIVE_INFINITY) continue;
-            float cap = slowest * (behind ? CATCH_UP_PACE : MARCH_PACE);
-            for (int i = 0, n = sim.squadMemberCount(anchorId); i < n; i++) {
-                long member = sim.squadMemberAt(anchorId, i);
-                if (!sim.world().isAlive(member) || !sim.world().hasMovement(member)) continue;
-                float own = sim.world().moveSpeed(member);
-                if (own > cap) service.setPace(member, cap / own);
-            }
         }
     }
 
@@ -257,7 +259,8 @@ public final class MechAttachmentSystem {
         if (loadout == null || !sim.movement().has(mech)) return false;
 
         fire(mech, loadout, sim);
-        int[] slot = slot(mech, loadout, anchor, sim);
+        MechAttachmentService.Post post = service.postOf(squad.id);
+        int[] slot = post != null ? postSlot(mech, post, loadout, anchor, sim) : slot(mech, loadout, anchor, sim);
         if (slot == null) {
             if (!Paths.isEmpty(sim.world().path(mech))) sim.clearPath(mech);
             return true;
@@ -274,6 +277,7 @@ public final class MechAttachmentSystem {
     private int[] slot(long mech, MechLoadoutComponent loadout, Squad anchor, BattleView sim) {
         float[] axis = service.axisOf(anchor.id);
         float[] ideal = MechAttachmentSlot.point(loadout.effectiveRole(), service.rankOf(mech),
+                service.marchRankOf(mech), inContact(anchor),
                 anchor.centroidX, anchor.centroidY,
                 axis == null ? Float.NaN : axis[0], axis == null ? Float.NaN : axis[1],
                 sim.world().x(mech), sim.world().y(mech));
@@ -284,6 +288,30 @@ public final class MechAttachmentSystem {
             return cached;
         }
         int[] fresh = standableNear(mech, ideal[0], ideal[1], sim);
+        service.setSlot(mech, fresh);
+        return fresh;
+    }
+
+    /**
+     * The cell this chassis walks to while it holds a post on its squad's line. Out of contact, the
+     * post. In contact, the post moved along the line's front by its effective doctrine — a Brawler
+     * steps out ahead of the marines either side of it, Frontline Support a little less, Balanced
+     * holds the line and Long-Range Support steps back behind it ({@link MechAttachmentSlot#forward})
+     * — and back onto the post once the fight is over. Its cached slot stands while that is by the
+     * target, else the standable cell nearest it.
+     */
+    private int[] postSlot(long mech, MechAttachmentService.Post post, MechLoadoutComponent loadout,
+                           Squad anchor, BattleView sim) {
+        float step = inContact(anchor) ? MechAttachmentSlot.forward(loadout.effectiveRole()) : 0f;
+        FrontageLine line = post.anchorLine();
+        float tx = post.x() + .5f + line.frontX() * step;
+        float ty = post.y() + .5f + line.frontY() * step;
+        int[] cached = service.slotOf(mech);
+        if (cached != null && Math.abs(cached[0] + .5f - tx) <= 1f && Math.abs(cached[1] + .5f - ty) <= 1f
+                && MechRouteIntent.candidate(mech, cached[0], cached[1], sim)) {
+            return cached;
+        }
+        int[] fresh = standableNear(mech, tx, ty, sim);
         service.setSlot(mech, fresh);
         return fresh;
     }
@@ -316,6 +344,14 @@ public final class MechAttachmentSystem {
         if (distance > sim.world().attackRange(mech)) return;
         boolean visible = sim.getTacticalScoring().hasClearShot(mech, target);
         MechCombatantBehavior.tryFireMechWeapons(mech, loadout, target, distance, sim, visible);
+    }
+
+    /**
+     * Whether the squad is fighting: it holds contacts or engaged this tick. Only then do its followers
+     * take their doctrine's places; otherwise they walk with it. Package-private for tests.
+     */
+    static boolean inContact(Squad anchor) {
+        return anchor.contactPicture != null && anchor.contactPicture.hasContacts() || anchor._engagedThisTick;
     }
 
     /** A live player mech squad that may follow: not a rescue payload. */

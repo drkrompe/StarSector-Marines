@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
+Updated: 2026-10-26 — machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -409,14 +409,17 @@ classes itself; a refusal is either *no lift* or *under-rated*.
 sources stay where `command-powers-nouns.md` puts them. The player's machines
 ride the **ferry**, the marine transports that bring the company in, through one
 first-in-first-out **lift queue**. The opening squad loads go first: each craft
-flies its own sorties, then a lift-rated craft waits off-map on **standby**. Each
-player order is a **machine drop** job; a standby craft takes the oldest job it
-can carry (`LiftAdmission`) and flies exactly that machine to its landing ground,
+flies its own sorties, then a lift-rated craft waits off-map on **standby**. A
+standby craft first takes the last squad sortie another ferry craft still owes
+(from the craft owing most, flown to that craft's landing ground with its marines,
+a load larger than its seats split), so no machine comes down while a squad still
+waits. Each player order is a **machine drop** job; a standby craft with no squad
+sortie left to take takes the oldest job it can carry (`LiftAdmission`) and flies exactly that machine to its landing ground,
 so a boat shot down with a machine aboard settles as that boat's loss like any
 other. A budget carrier no ferry craft matches (the employer's or a ship's heavy
 lift, or a committed cradle with no seat in the arrival) joins the ferry as an
-ordinary standby craft of its pattern, so heavy lift is one more ferry craft and
-not a separate delivery. An Aeroshuttle standing in for a cradled hull (Conquest
+ordinary standby craft of its pattern, so heavy lift is one more ferry craft,
+lands squads with the rest of the ferry, and is not a separate delivery. An Aeroshuttle standing in for a cradled hull (Conquest
 paired arrivals) inherits its lift rating; one standing in for a Valkyrie does
 not, and that heavy lift joins as above. A job waits until a craft that can
 carry it is free, and reads as having no craft when none is left alive. The
@@ -446,10 +449,28 @@ stationing incidents retain their own local lift. Briefing and launch enforce
 the same rule before map construction; neither fills missing player trips with
 anonymous Aeroshuttles.
 
-**The rotation is unchanged by the fit.** The deboard cadence and the deck
-turnaround are deliberately not on the fitted frame: a turnaround is paid for in
-hand-seconds and a fitting does not buy more hands. Fitting a boat makes her
-harder to shoot down on the way in and no quicker to send out again.
+**A company boat flies with a shield and one flux pool, on a hardpoint's rules.**
+`FittedBoat.shieldSpec` builds her shield from her emitter (arc, flux per blocked
+point of damage) and her power fitting (pool and venting), and `AirSystem` fits it
+into the battle's flux shields (`TurretShieldService`, the hardpoint shields'
+service, `FluxShield`'s rules) when she spawns. It rises toward what her guns are
+on or what last hit her and turns to it; a round credited to a shooter inside its
+arc is stopped whole and becomes flux, and so is each anti-air post's share of the
+area drain. **Her guns charge the same pool**: every round but a missile's, an
+energy round most (`BoatGun.Family`). Past 85% of the pool her flux guns rest
+until it vents to 55% while missile pods keep firing; a full pool overloads, the
+shield drops and every gun falls silent until it has vented. She is drawn with
+the dome shader cut to her arc (`TurretShieldField`), where her hull is drawn and
+only while she is over the battle, in her emitter tier's tint. The shield goes
+when she falls or leaves. Other aircraft carry none.
+
+**The fit owns seats, ramp and loaded speed; the deck owns the turnaround.**
+The frame's seats are the cabin's (never fewer than the pattern's), and its
+deboard cadence is the pattern's quickened by the drive. A boat flies slower
+with weight aboard: a machine drags her by its lift class and each marine a
+little (`FittedBoat.carrying`), so she runs back faster than she ran in, and a
+better drive wins the loaded speed back. The deck turnaround stays off the
+frame: it is paid for in hand-seconds and a fitting does not buy more hands.
 
 **A fixture carries the fitting ids, not the frame.** A replay that rebuilt a
 plain pattern would fly different aircraft than the run it is replaying, so the
@@ -1548,7 +1569,8 @@ entering ordinary flight; leaving it ends that exemption. This narrow mount
 contract grants no ground sight, walkability, height bonus or generic hill
 traversal. The summit stays blocked after the emplacement is destroyed.
 
-`ShuttleType.capacity` is the hull maximum. `ShuttleAssignment.seatsPerSortie`
+An airframe's `seats()` is its maximum: the pattern's `capacity`, or a fitted
+boat's cabin. `ShuttleAssignment.seatsPerSortie`
 is the actual manifest and is restored on every cycle. Arrangement, shared
 arrival area, squad grouping, and departure behavior belong to the mission's
 arrival policy rather than to the hull type.

@@ -268,7 +268,8 @@ seed whole, before anything pools, and its wall is straight runs. Its
 neighbours' streets meet it and become its gates the ordinary way. It keeps a
 **glacis**: the outermost `Fortification.GLACIS` cells of the square stay
 claimed but are built on by nobody, walled inside and laid as bare earth, so
-no house stands against the wall; each gate's road is carried across it.
+no house stands against the wall; each gate's road is carried across it and
+paved as the street it leaves by, so the road runs on unbroken to the wall.
 
 ## Connectedness is solved for, not hoped for
 

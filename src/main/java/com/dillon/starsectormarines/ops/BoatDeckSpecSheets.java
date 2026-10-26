@@ -87,6 +87,28 @@ final class BoatDeckSpecSheets {
             }
             case LIFT -> stats.add(SpecSheet.Stat.of(Strings.get("boatDeckLift"),
                     LiftReadout.ratingName(fitting.liftRating())));
+            case CABIN -> {
+                if (fitting.seats() > 0) {
+                    stats.add(SpecSheet.Stat.of(Strings.get("openingBoatDeckSeats"), String.valueOf(fitting.seats())));
+                }
+            }
+            case EMITTER -> {
+                if (fitting.shieldArcDeg() > 0f) {
+                    stats.add(SpecSheet.Stat.of(Strings.get("boatDeckSpecShieldArc"),
+                            Math.round(fitting.shieldArcDeg()) + "°"));
+                }
+                stats.add(SpecSheet.Stat.of(Strings.get("boatDeckSpecFluxPerHit"),
+                        "×" + BoatDeckViewModel.factor(fitting.shieldEfficiency())));
+            }
+            case POWER -> {
+                stats.add(SpecSheet.Stat.of(Strings.get("boatDeckSpecFluxCapacity"),
+                        "×" + BoatDeckViewModel.factor(fitting.fluxCapacityFactor())));
+                stats.add(SpecSheet.Stat.of(Strings.get("boatDeckSpecFluxVent"),
+                        "×" + BoatDeckViewModel.factor(fitting.fluxDissipationFactor())));
+            }
+        }
+        if (fitting.weight() > 0) {
+            stats.add(SpecSheet.Stat.of(Strings.get("boatDeckFrame"), String.valueOf(fitting.weight())));
         }
         return new SpecSheet(fitting.displayName(), BoatDeckViewModel.kindLine(fitting.tier(), kind), null, "item",
                 List.copyOf(stats), List.of(fitting.provenance()));

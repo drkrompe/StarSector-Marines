@@ -17,96 +17,183 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * A fit or a build is one transaction against the fleet's hold, or it is
- * nothing at all.
+ * A build is one transaction against the fleet's hold, or it is nothing at
+ * all; a fit moves parts between a boat and stores and never touches the hold.
  */
 class BoatWorkshopTest {
 
+    /** The Hermes is the company's boat: every upgrade goes on her, from a spare. */
     @Test
-    void hermesRejectsEveryUpgradeBeforeChargingAndStillRepairsAtStandardFit() {
+    void theHermesTakesEveryUpgradeFromASpare() {
         BoatDeck deck = new BoatDeck();
-        deck.registerFoundingWrecks("second-wind");
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
-        TestResources hold = TestResources.stocked(200);
-        BoatWorkshop workshop = new BoatWorkshop(deck, hold);
-        CampaignBoat boat = workshop.fabricate(0).boat();
-        Map<String, Integer> afterRepair = Map.copyOf(hold.stock);
-        for (BoatFitting fitting : BoatFitting.catalog()) {
-            if (fitting.standard()) continue;
-            assertEquals(BoatWorkshop.Status.INCOMPATIBLE_FITTING,
-                    workshop.fit(boat.id(), fitting.id()).status());
-            assertEquals(afterRepair, hold.stock);
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(1_000));
+        CampaignBoat boat = deck.airworthy().get(0);
+
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            BoatFitting top = BoatFitting.catalog(slot).get(BoatFitting.catalog(slot).size() - 1);
+            workshop.fabricatePart(top.id());
+            assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), top.id()).status(), top.id());
+            workshop.strip(boat.id(), slot);
         }
+    }
+
+    /** Her three turret slots: a heavy MG from the yard and two bare ones, each taking any family of gun. */
+    @Test
+    void theHermesFillsHerBareTurretsWithAnyFamilyAndStripsThemBare() {
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile("second-wind", ShuttleType.HERMES, 1);
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(1_000));
+        CampaignBoat boat = deck.airworthy().get(0);
+        assertSame(BoatGun.HEAVY_MG, boat.gunOn(0));
+        assertNull(boat.gunOn(1));
+        assertNull(boat.gunOn(2));
+        assertEquals(BoatWorkshop.Status.NOTHING_TO_STRIP, workshop.stripGun(boat.id(), 1).status());
+
+        workshop.fabricatePart(BoatGun.SRM_POD.id());
+        workshop.fabricatePart(BoatGun.PULSE_LASER.id());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 1, BoatGun.SRM_POD.id()).status());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 2, BoatGun.PULSE_LASER.id()).status());
+        assertEquals(BoatGun.SRM_POD.weight() + BoatGun.PULSE_LASER.weight(), BoatFrame.weight(boat));
+
+        assertEquals(BoatWorkshop.Status.STRIPPED, workshop.stripGun(boat.id(), 1).status());
+        assertNull(boat.gunOn(1), "a stripped turret goes back bare");
+        assertEquals(1, deck.spares(BoatGun.SRM_POD.id()));
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.moveGun(boat.id(), 2, 1).status());
+        assertSame(BoatGun.PULSE_LASER, boat.gunOn(1));
+        assertNull(boat.gunOn(2), "a gun moved off a bare slot leaves it bare");
+        assertEquals(BoatWorkshop.Status.UNKNOWN_HARDPOINT, workshop.stripGun(boat.id(), 3).status());
+    }
+
+    /** A refit that takes her over the frame's rating is refused; one that lightens her never is. */
+    @Test
+    void aFitOverTheFrameRatingIsRefusedAndKeepsItsSpare() {
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile("second-wind", ShuttleType.HERMES, 1);
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(1_000));
+        CampaignBoat boat = deck.airworthy().get(0);
+        for (String part : List.of("heavy_lift_frame", "uprated_drive", "armoured_plating")) workshop.fabricatePart(part);
+        workshop.fit(boat.id(), "heavy_lift_frame");
+        workshop.fit(boat.id(), "uprated_drive");
+        assertEquals(9, BoatFrame.weight(boat));
+
+        assertEquals(BoatWorkshop.Status.OVER_FRAME, workshop.fit(boat.id(), "armoured_plating").status());
+        assertEquals(1, deck.spares("armoured_plating"));
         assertSame(BoatFitting.STANDARD_PLATING, boat.plating());
-        assertSame(BoatFitting.STANDARD_DRIVE, boat.drive());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), "standard_drive").status(),
+                "taking weight off is always allowed");
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), "armoured_plating").status());
     }
 
     @Test
-    void fittingSpendsExactlyTheBillAndInstallsTheWork() {
+    void buildingSpendsExactlyTheBillAndFittingTakesTheSpare() {
         BoatDeck deck = deck();
         TestResources hold = TestResources.stocked(100);
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         String boatId = deck.airworthy().get(0).id();
+
+        assertEquals(BoatWorkshop.Status.PART_FABRICATED, workshop.fabricatePart("reinforced_plating").status());
+        assertEquals(90, hold.available(Commodities.SUPPLIES));
+        assertEquals(80, hold.available(Commodities.METALS));
+        assertEquals(100, hold.available(Commodities.HEAVY_MACHINERY),
+                "a plating bill has no machinery line and must not invent one");
+        assertEquals(1, deck.spares("reinforced_plating"));
 
         BoatWorkshop.Result result = workshop.fit(boatId, "reinforced_plating");
 
         assertEquals(BoatWorkshop.Status.FITTED, result.status());
         assertSame(BoatFitting.REINFORCED_PLATING, deck.boatById(boatId).plating());
-        assertEquals(90, hold.available(Commodities.SUPPLIES));
-        assertEquals(80, hold.available(Commodities.METALS));
-        assertEquals(100, hold.available(Commodities.HEAVY_MACHINERY),
-                "a plating bill has no machinery line and must not invent one");
+        assertEquals(0, deck.spares("reinforced_plating"));
+        assertEquals(90, hold.available(Commodities.SUPPLIES), "fitting a spare spends nothing");
     }
 
-    /** The standard fit is what a boat is built with, so it costs the hold nothing. */
     @Test
-    void goingBackToTheStandardFittingIsFreeAndStillAChange() {
+    void aFitWithNoSpareChangesNothing() {
+        BoatDeck deck = deck();
+        TestResources hold = TestResources.stocked(100);
+        String boatId = deck.airworthy().get(0).id();
+
+        BoatWorkshop.Result result = new BoatWorkshop(deck, hold).fit(boatId, "armoured_plating");
+
+        assertEquals(BoatWorkshop.Status.NO_SPARE, result.status());
+        assertFalse(result.succeeded());
+        assertSame(BoatFitting.STANDARD_PLATING, deck.boatById(boatId).plating());
+        assertEquals(100, hold.available(Commodities.SUPPLIES));
+    }
+
+    /** The standard fit is every socket's for nothing; what it replaces goes back into stores. */
+    @Test
+    void goingBackToTheStandardFittingIsFreeAndStoresWhatCameOff() {
         BoatDeck deck = deck();
         TestResources hold = TestResources.stocked(100);
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         String boatId = deck.airworthy().get(0).id();
+        workshop.fabricatePart("uprated_drive");
         workshop.fit(boatId, "uprated_drive");
-        int suppliesAfterUprating = hold.available(Commodities.SUPPLIES);
+        Map<String, Integer> afterUprating = Map.copyOf(hold.stock);
 
         BoatWorkshop.Result result = workshop.fit(boatId, "standard_drive");
 
         assertEquals(BoatWorkshop.Status.FITTED, result.status());
         assertSame(BoatFitting.STANDARD_DRIVE, deck.boatById(boatId).drive());
-        assertEquals(suppliesAfterUprating, hold.available(Commodities.SUPPLIES));
+        assertEquals(1, deck.spares("uprated_drive"));
+        assertEquals(0, deck.spares("standard_drive"), "a yard-standard part is never stored");
+        assertEquals(afterUprating, hold.stock);
     }
 
+    /** A part moves between boats through stores: off one, onto the other, nothing rebuilt. */
     @Test
-    void anUnaffordableFitChangesNeitherTheBoatNorTheHold() {
-        BoatDeck deck = deck();
-        TestResources hold = TestResources.stocked(4);
-        BoatWorkshop workshop = new BoatWorkshop(deck, hold);
-        String boatId = deck.airworthy().get(0).id();
-
-        BoatWorkshop.Result result = workshop.fit(boatId, "armoured_plating");
-
-        assertEquals(BoatWorkshop.Status.CANNOT_AFFORD, result.status());
-        assertFalse(result.succeeded());
-        assertSame(BoatFitting.STANDARD_PLATING, deck.boatById(boatId).plating());
-        assertEquals(4, hold.available(Commodities.SUPPLIES));
-        assertEquals(4, hold.available(Commodities.METALS));
-        assertEquals(4, hold.available(Commodities.HEAVY_MACHINERY));
-    }
-
-    /** Refitting what is already there would be a bill for no work. */
-    @Test
-    void refittingWhatIsAlreadyInstalledIsRefusedWithoutSpending() {
+    void aPartStrippedFromOneBoatFitsAnotherWithoutABill() {
         BoatDeck deck = deck();
         TestResources hold = TestResources.stocked(100);
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
+        String first = deck.airworthy().get(0).id();
+        String second = deck.airworthy().get(1).id();
+        workshop.fabricatePart("tuned_drive");
+        workshop.fit(first, "tuned_drive");
+        Map<String, Integer> afterBuild = Map.copyOf(hold.stock);
+
+        assertEquals(BoatWorkshop.Status.STRIPPED, workshop.strip(first, BoatFittingSlot.DRIVE).status());
+        assertSame(BoatFitting.STANDARD_DRIVE, deck.boatById(first).drive());
+        assertEquals(BoatWorkshop.Status.NOTHING_TO_STRIP, workshop.strip(first, BoatFittingSlot.DRIVE).status());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(second, "tuned_drive").status());
+
+        assertSame(BoatFitting.TUNED_DRIVE, deck.boatById(second).drive());
+        assertEquals(0, deck.spares("tuned_drive"));
+        assertEquals(afterBuild, hold.stock);
+    }
+
+    @Test
+    void anUnaffordableBuildChangesNeitherTheStoresNorTheHold() {
+        BoatDeck deck = deck();
+        TestResources hold = TestResources.stocked(4);
+
+        BoatWorkshop.Result result = new BoatWorkshop(deck, hold).fabricatePart("armoured_plating");
+
+        assertEquals(BoatWorkshop.Status.CANNOT_AFFORD, result.status());
+        assertEquals(0, deck.spares("armoured_plating"));
+        assertEquals(4, hold.available(Commodities.SUPPLIES));
+        assertEquals(4, hold.available(Commodities.METALS));
+        assertEquals(4, hold.available(Commodities.HEAVY_MACHINERY));
+        assertEquals(BoatWorkshop.Status.NOT_FABRICABLE,
+                new BoatWorkshop(deck, TestResources.stocked(100)).fabricatePart("standard_drive").status());
+    }
+
+    /** Refitting what is already there would be a spare spent for no work. */
+    @Test
+    void refittingWhatIsAlreadyInstalledIsRefusedWithoutTakingASpare() {
+        BoatDeck deck = deck();
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(100));
         String boatId = deck.airworthy().get(0).id();
+        workshop.fabricatePart("tuned_drive");
+        workshop.fabricatePart("tuned_drive");
         workshop.fit(boatId, "tuned_drive");
-        int supplies = hold.available(Commodities.SUPPLIES);
 
         BoatWorkshop.Result result = workshop.fit(boatId, "tuned_drive");
 
         assertEquals(BoatWorkshop.Status.ALREADY_FITTED, result.status());
         assertTrue(result.succeeded(), "the boat is in the state that was asked for");
-        assertEquals(supplies, hold.available(Commodities.SUPPLIES));
+        assertEquals(1, deck.spares("tuned_drive"));
     }
 
     @Test
@@ -206,12 +293,14 @@ class BoatWorkshopTest {
     }
 
     @Test
-    void fittingADoorGunSpendsItsBillAndArmsTheFrozenBoat() {
+    void aBuiltDoorGunArmsTheFrozenBoat() {
         BoatDeck deck = deck();
         TestResources hold = TestResources.stocked(100);
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         String boatId = deck.airworthy().get(0).id();
 
+        assertEquals(BoatWorkshop.Status.NO_SPARE, workshop.fitGun(boatId, 0, BoatGun.ARBALEST.id()).status());
+        workshop.fabricatePart(BoatGun.ARBALEST.id());
         BoatWorkshop.Result result = workshop.fitGun(boatId, 0, BoatGun.ARBALEST.id());
 
         assertEquals(BoatWorkshop.Status.FITTED, result.status());
@@ -225,23 +314,44 @@ class BoatWorkshopTest {
     }
 
     @Test
-    void puttingTheYardGunBackIsFreeAndAShortHoldChangesNothing() {
+    void puttingTheYardGunBackIsFreeAndStoresTheGunThatCameOff() {
         BoatDeck deck = deck();
         TestResources hold = TestResources.stocked(100);
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         String boatId = deck.airworthy().get(0).id();
+        workshop.fabricatePart(BoatGun.ARBALEST.id());
         workshop.fitGun(boatId, 0, BoatGun.ARBALEST.id());
         Map<String, Integer> afterRefit = Map.copyOf(hold.stock);
 
         assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boatId, 0, BoatGun.HEAVY_MG.id()).status());
         assertEquals(afterRefit, hold.stock);
-
-        TestResources empty = TestResources.stocked(0);
-        assertEquals(BoatWorkshop.Status.CANNOT_AFFORD,
-                new BoatWorkshop(deck, empty).fitGun(boatId, 0, BoatGun.HEPHAESTUS.id()).status());
-        assertSame(BoatGun.HEAVY_MG, deck.boatById(boatId).gunOn(0));
+        assertEquals(1, deck.spares(BoatGun.ARBALEST.id()));
+        assertEquals(0, deck.spares(BoatGun.HEAVY_MG.id()), "the yard gun is never stored");
+        assertEquals(BoatWorkshop.Status.NOTHING_TO_STRIP, workshop.stripGun(boatId, 0).status());
         assertEquals(BoatWorkshop.Status.UNKNOWN_HARDPOINT,
                 workshop.fitGun(boatId, 3, BoatGun.HEAVY_MG.id()).status());
+    }
+
+    /** A gun moved between hardpoints leaves the yard gun behind and stores what it displaced. */
+    @Test
+    void movingAGunBetweenHardpointsStoresWhatItDisplaced() {
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile("valkyrie", ShuttleType.VALKYRIE, 1);
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(1_000));
+        CampaignBoat boat = deck.airworthy().get(0);
+        workshop.fabricatePart(BoatGun.HEPHAESTUS.id());
+        workshop.fabricatePart(BoatGun.GRENADE_LAUNCHER.id());
+        workshop.fitGun(boat.id(), 0, BoatGun.HEPHAESTUS.id());
+        workshop.fitGun(boat.id(), 1, BoatGun.GRENADE_LAUNCHER.id());
+
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.moveGun(boat.id(), 0, 1).status());
+
+        assertSame(BoatGun.standardFor(ShuttleType.VALKYRIE, 0), boat.gunOn(0));
+        assertSame(BoatGun.HEPHAESTUS, boat.gunOn(1));
+        assertEquals(1, deck.spares(BoatGun.GRENADE_LAUNCHER.id()));
+        assertEquals(0, deck.spares(BoatGun.HEPHAESTUS.id()));
+        assertEquals(BoatWorkshop.Status.NOTHING_TO_STRIP, workshop.moveGun(boat.id(), 0, 1).status(),
+                "a yard gun is not moved");
     }
 
     private static BoatDeck deck() {

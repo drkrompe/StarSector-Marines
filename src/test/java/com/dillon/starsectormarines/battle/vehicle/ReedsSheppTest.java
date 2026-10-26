@@ -45,6 +45,36 @@ public class ReedsSheppTest {
     }
 
     @Test
+    public void everyCandidateReachesTheGoalAndTheShortestComesFirst() {
+        Pose start = new Pose(2, 3, -90);
+        Pose goal = new Pose(-4, 3, 90);
+        var all = ReedsShepp.candidates(start, goal, R);
+        assertEquals(ReedsShepp.shortest(start, goal, R).lengthUnits, all.get(0).lengthUnits, EPS);
+        for (int i = 0; i < all.size(); i++) {
+            if (i > 0) assertTrue(all.get(i).lengthUnits >= all.get(i - 1).lengthUnits);
+            Pose end = ReedsShepp.sample(start, R, all.get(i), all.get(i).lengthCells(R));
+            assertEquals(goal.x, end.x, 1e-2f, "candidate " + i);
+            assertEquals(goal.y, end.y, 1e-2f, "candidate " + i);
+        }
+    }
+
+    @Test
+    public void aPathAfterReversingStartsWhereTheBackingUpEnds() {
+        // Facing east (-90), backing up goes west: four cells back from (10, 3) is (6, 3).
+        Pose start = new Pose(10, 3, -90);
+        Pose backed = new Pose(6, 3, -90);
+        Pose goal = new Pose(2, 6, 90);
+        ReedsShepp.Path turn = ReedsShepp.shortest(backed, goal, R);
+        ReedsShepp.Path path = ReedsShepp.afterReversing(turn, 4f, R);
+        Pose mid = ReedsShepp.sample(start, R, path, 4f);
+        assertEquals(6f, mid.x, EPS);
+        assertEquals(3f, mid.y, EPS);
+        Pose end = ReedsShepp.sample(start, R, path, path.lengthCells(R));
+        assertEquals(goal.x, end.x, 1e-2f);
+        assertEquals(goal.y, end.y, 1e-2f);
+    }
+
+    @Test
     public void samplingAtZeroReturnsStart() {
         Pose start = new Pose(2, 3, 30);
         Pose goal = new Pose(8, 6, -10);

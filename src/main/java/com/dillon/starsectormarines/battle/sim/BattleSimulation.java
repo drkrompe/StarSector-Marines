@@ -184,6 +184,8 @@ import com.dillon.starsectormarines.battle.vehicle.SupplyTruckSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.air.AirTurrets;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
@@ -1616,8 +1618,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         deathDispatcher.subscribe(swarmHarvest::onDeath);
         rosterService.modifiers().register(swarmHarvest.carrierModifier());
         rosterService.modifiers().register(matriarchActions.runModifier());
-        // A squad with mechs attached marches at their pace (mechs-nouns.md, attachment).
-        rosterService.modifiers().register(mechAttachments.paceModifier());
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
         // death mailbox as every other post-death reaction. Non-cohort deaths
@@ -1728,6 +1728,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 rng, this::spawn, effects, resupply, this);
         this.airSystem.setIncomingMissiles(shots::getActiveShots);
         this.airSystem.setAirfield(airfieldService);
+        this.airSystem.setBoatShields(turretShields, shieldPositions);
         // A gun run delivers through the same AoE pipeline as every other
         // explosion, so the air system needs it too.
         this.airSystem.setDetonations(detonations);
@@ -4613,9 +4614,27 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private void tickTurretShields() {
         for (int i = turretShields.size() - 1; i >= 0; i--) {
             long id = turretShields.at(i).id;
-            if (!world.isAlive(id)) turretShields.remove(id);
+            if (!world.isAlive(id) || boatShieldLost(id)) turretShields.remove(id);
         }
-        turretShields.tick(TICK_DT, shieldPositions, this::targetOf);
+        turretShields.tick(TICK_DT, shieldPositions, this::shieldThreatOf);
+    }
+
+    /** A boat's shield goes when she does: falling, or gone from the battle. */
+    private boolean boatShieldLost(long id) {
+        if (world.airframe(id) == null) return false;
+        ShuttleMission mission = world.mission(id);
+        return mission != null && (mission.state == ShuttleState.CRASHING || mission.state == ShuttleState.GONE);
+    }
+
+    /** What a shield faces: a hardpoint's target, or the first thing a boat's guns are on. */
+    private long shieldThreatOf(long id) {
+        AirTurrets guns = world.airTurrets(id);
+        if (guns == null) return targetOf(id);
+        for (MountedTurret mount : guns.mounts) {
+            long target = resolveUnit(mount.targetId);
+            if (target != 0L) return target;
+        }
+        return 0L;
     }
 
     /**

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.ui.picking;
 
+import com.dillon.starsectormarines.battle.mech.MechAttachmentService;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderService;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -27,6 +28,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Group orders over mixed selections, and the attach click. */
@@ -152,6 +154,9 @@ class GroupOrderTest {
         assertEquals(1, marks.get(1).places().size(), "the mech's slot");
         assertEquals(1, marks.get(2).places().size(), "the vehicle's slot");
         FrontageLine mechLine = marks.get(1).line();
+        assertTrue(mechLine.length() < marks.get(0).line().length(),
+                "a mech is one unit: its stretch is shorter than a squad's");
+        assertEquals(mechLine.length(), marks.get(2).line().length(), 1.01f, "and as long as a vehicle's");
 
         SelectionOrders.requestLine(sim, selection, 40, 25, 40, 55);
         sim.getSquadMoveOrderSystem().tick(sim);
@@ -160,15 +165,101 @@ class GroupOrderTest {
         FrontageLine held = assertInstanceOf(ActiveDefendAreaOrder.class,
                 sim.getSquadMoveOrderService().activeOrder(infantry)).line();
         assertEquals(25, held.y0(), "the infantry hold the first stretch");
-        assertEquals(35, held.y1());
+        assertEquals(38, held.y1(), "three marines' worth of a line shared with two machines");
         MechMoveOrderService.ActiveOrder order = sim.getMechMoveOrderService().activeOrder(mech);
         assertNotNull(order);
-        assertEquals(40, order.requestedX(), "the mech goes to its stretch's middle");
-        assertEquals(40, order.requestedY());
+        assertEquals(39, order.requestedX(), "the mech stands a marine's setback behind its stretch's middle");
+        assertEquals(42, order.requestedY());
         assertEquals(SelectionOrders.facingOf(mechLine.frontX(), mechLine.frontY()), order.facingDegrees(), 1e-4f,
                 "facing its stretch's front");
         assertTrue(mechLine.frontX() > 0.9f, "away from where it stood, as an infantry line faces");
         assertTrue(sim.getVehicleMoveOrderService().pending(apc), "the vehicle is sent to its stretch");
+    }
+
+    @Test
+    void anAttachedMechTakesAPostOnItsSquadsStretchAndFollowsAgainOnTheNextOrder() {
+        BattleSimulation sim = arena();
+        int infantry = infantry(sim, 20, 30);
+        long mech = mech(sim, 20, 40);
+        int mechSquad = squadOf(sim, mech);
+        MechAttachmentService attachments = sim.getMechAttachmentService();
+        attachments.requestAttach(mechSquad, infantry);
+        sim.getMechAttachmentSystem().tick(sim);
+        Selection selection = new Selection();
+        selection.selectSquad(infantry);
+        assertEquals(1, SelectionOrders.recipients(sim, selection).size(), "the follower is no recipient of its own");
+
+        List<LineMark> marks = SelectionOrders.previewMarks(sim, selection, 40, 25, 40, 55);
+        assertEquals(1, marks.size());
+        assertEquals(4, marks.get(0).places().size(), "three marines and the mech on the squad's stretch");
+        assertTrue(marks.get(0).places().stream().filter(place -> place.member() != mech)
+                .anyMatch(place -> place.y() < 40) && marks.get(0).places().stream()
+                .filter(place -> place.member() != mech).anyMatch(place -> place.y() > 40),
+                "marines either side of the mech's post");
+
+        SelectionOrders.requestLine(sim, selection, 40, 25, 40, 55);
+        sim.getSquadMoveOrderSystem().tick(sim);
+        sim.getMechAttachmentSystem().tick(sim);
+
+        FrontageLine held = assertInstanceOf(ActiveDefendAreaOrder.class,
+                sim.getSquadMoveOrderService().activeOrder(infantry)).line();
+        assertEquals(25, held.y0(), "the marines hold the whole stretch");
+        assertEquals(55, held.y1());
+        assertEquals(1, held.machines(), "with the mech standing within it");
+        MechAttachmentService.Post post = attachments.postOf(mechSquad);
+        assertNotNull(post, "the mech holds a post on its squad's line");
+        assertEquals(39, post.x(), "a marine's setback behind the line");
+        assertEquals(40, post.y(), "at its middle, the marines either side");
+        assertTrue(attachments.isAttached(mechSquad), "and is still attached");
+
+        SelectionOrders.requestMove(sim, selection, 60, 30);
+        sim.getSquadMoveOrderSystem().tick(sim);
+        sim.getMechAttachmentSystem().tick(sim);
+        assertNull(attachments.postOf(mechSquad), "a new order to the squad sends the mech back to following");
+        assertTrue(attachments.isAttached(mechSquad));
+    }
+
+    @Test
+    void stretchesGoToRecipientsInTheOrderTheyStandAlongTheDragNotSelectionOrder() {
+        BattleSimulation sim = arena();
+        int south = infantry(sim, 20, 50);
+        int north = infantry(sim, 20, 28);
+        Selection selection = new Selection();
+        selection.selectGroup(List.of(south, north), List.of(), south, 0L, 0L, false);
+
+        SelectionOrders.requestLine(sim, selection, 40, 25, 40, 55);
+        sim.getSquadMoveOrderSystem().tick(sim);
+
+        FrontageLine northLine = assertInstanceOf(ActiveDefendAreaOrder.class,
+                sim.getSquadMoveOrderService().activeOrder(north)).line();
+        FrontageLine southLine = assertInstanceOf(ActiveDefendAreaOrder.class,
+                sim.getSquadMoveOrderService().activeOrder(south)).line();
+        assertEquals(25, northLine.y0(), "the squad nearer the drag's start takes the first stretch");
+        assertEquals(55, southLine.y1(), "though it was selected second");
+    }
+
+    @Test
+    void attachedMechsTakeTheBandsInTheOrderTheyStandAlongTheStretch() {
+        BattleSimulation sim = arena();
+        int infantry = infantry(sim, 20, 40);
+        long southMech = mech(sim, 20, 52);
+        long northMech = mech(sim, 20, 28);
+        MechAttachmentService attachments = sim.getMechAttachmentService();
+        attachments.requestAttach(squadOf(sim, southMech), infantry);
+        attachments.requestAttach(squadOf(sim, northMech), infantry);
+        sim.getMechAttachmentSystem().tick(sim);
+        Selection selection = new Selection();
+        selection.selectSquad(infantry);
+
+        SelectionOrders.requestLine(sim, selection, 40, 25, 40, 55);
+        sim.getSquadMoveOrderSystem().tick(sim);
+        sim.getMechAttachmentSystem().tick(sim);
+
+        MechAttachmentService.Post north = attachments.postOf(squadOf(sim, northMech));
+        MechAttachmentService.Post south = attachments.postOf(squadOf(sim, southMech));
+        assertNotNull(north);
+        assertNotNull(south);
+        assertTrue(north.y() < south.y(), "the northern mech takes the northern band, though attached second");
     }
 
     // ---- fixtures ----

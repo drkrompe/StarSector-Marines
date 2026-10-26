@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -19,8 +20,8 @@ import java.util.HashSet;
  * The company's boats and the berths they are standing in.
  *
  * <p><b>The boats are the company's; the berths are the ship's.</b> That split
- * is the whole model here. A hull's bays hold a number of a particular pattern
- * unless an explicit paid conversion changes that pattern. The berth count is not an independent authority of
+ * is the whole model here. The boats move with the company to any ship and are
+ * never left behind. The berth count is not an independent authority of
  * this class — it is asked of the hull ({@code ShipsBoats.aboard(ship).size()})
  * every time the deck is read. What persists is the boats: their ids, their
  * names, and what has been fitted to them, which is the part a player has paid
@@ -39,6 +40,15 @@ import java.util.HashSet;
  * matches.
  */
 public final class BoatDeck implements Serializable {
+
+    /**
+     * Boat parts in stores, by {@link BoatFitting} or {@link BoatGun} id: built
+     * by the workshop, or taken off a boat. The company's, not a boat's, so a
+     * spare outlives the boat it came off and moves with the company between
+     * ships. A yard-standard part is never stored; every socket has its own
+     * for nothing.
+     */
+    private Map<String, Integer> spares = new HashMap<>();
 
     /** The ship whose berths these boats are currently standing in. */
     private String shipId;
@@ -65,7 +75,6 @@ public final class BoatDeck implements Serializable {
     private boolean commissioningRequired;
     private String foundingWreckShipId;
     private int recoveredWrecks;
-    private String aeroshuttleConversionShipId;
 
     /** Registers the original wrecks once. Existing occupied or previously opened berths
      * are treated as used when migrating a save; a lost boat must never respawn. */
@@ -82,20 +91,6 @@ public final class BoatDeck implements Serializable {
                 && foundingWreckShipId != null && foundingWreckShipId.equals(shipId)
                 && pattern == ShuttleType.HERMES && berths.get(berth) == null
                 && (recoveredWrecks & (1 << berth)) == 0;
-    }
-
-    public boolean hasAeroshuttleConversion(String hullId) {
-        return hullId != null && hullId.equals(aeroshuttleConversionShipId);
-    }
-
-    public boolean secondhandWingsPurchased() { return aeroshuttleConversionShipId != null; }
-
-    /** Only the reviewed, paid Secondhand Wings transaction may replace the complement. */
-    void acceptSecondhandWings() {
-        aeroshuttleConversionShipId = shipId;
-        recoveredWrecks = 3;
-        pattern = ShuttleType.AEROSHUTTLE;
-        for (int i = 0; i < berths.size(); i++) berths.set(i, i < 2 ? build(pattern) : null);
     }
 
     /** Only new companies opt out of the one-time legacy starting complement. */
@@ -121,66 +116,48 @@ public final class BoatDeck implements Serializable {
     private int nextTailNumber = 1;
 
     /**
-     * What the last <em>move</em> cost, kept so the room can still say it after
-     * the reconcile that discovered it has been run again. Reconciling against
-     * the same hull is a no-op and deliberately does not clear this.
-     */
-    private LeftBehind leftBehind = LeftBehind.NONE;
-
-    /**
-     * Brings the deck into step with one hull, and reports what that cost.
+     * Brings the deck into step with one hull.
      *
-     * <p>Staying aboard preserves berth positions and vacancies. Moving compacts
-     * compatible survivors into the new hull, leaving incompatible or surplus
-     * boats behind. Neither movement nor a read pays for a replacement.
+     * <p>The boats belong to the company and travel with it: a change of ship
+     * never leaves one behind and never changes what the deck builds. The hull
+     * only says how many berths there are. Staying aboard preserves berth
+     * positions and vacancies; moving compacts the boats into the new hull's
+     * berths. A hull with fewer berths than boats still keeps every boat, the
+     * surplus ones stowed in berths past the hull's own: they fly like any other
+     * and the bay does not draw them. Neither movement nor a read pays for a
+     * replacement.
      *
-     * <p>New companies commission every boat. A legacy deck that has never been
-     * reconciled receives its historical starting complement once; existing
-     * saved boats survive unchanged. Later vacancies always require fabrication.
+     * <p>New companies commission every boat. Later vacancies always require
+     * fabrication.
      *
      * @param shipId the hull the company is aboard, by fleet-member id
-     * @param pattern what her bays hold ({@code ShipsBoats.carriedBy})
+     * @param pattern what her bays hold ({@code ShipsBoats.carriedBy}); the
+     *     deck takes it as the pattern it builds only the first time
      * @param berthCount how many she has ({@code ShipsBoats.aboard(ship).size()})
-     * @return the boats this call left behind; empty when nothing changed
      */
-    public LeftBehind reconcile(String shipId, ShuttleType pattern, int berthCount) {
-        if (hasAeroshuttleConversion(shipId)) pattern = ShuttleType.AEROSHUTTLE;
-        if (pattern == null) return LeftBehind.NONE;
+    public void reconcile(String shipId, ShuttleType pattern, int berthCount) {
+        if (pattern == null) return;
         int wanted = Math.max(0, berthCount);
         boolean sameShip = shipId != null && shipId.equals(this.shipId);
 
         List<CampaignBoat> kept = new ArrayList<>(wanted);
-        List<String> left = new ArrayList<>();
         if (sameShip) {
-            for (int berth = 0; berth < berths.size(); berth++) {
-                CampaignBoat boat = berths.get(berth);
-                if (berth >= wanted) {
-                    if (boat != null) left.add(boat.displayName());
-                    continue;
-                }
-                if (boat != null && boat.pattern() != pattern) {
-                    left.add(boat.displayName());
-                    boat = null;
-                }
-                kept.add(boat);
-            }
-            while (kept.size() < wanted) kept.add(null);
+            kept.addAll(berths);
+            while (kept.size() > wanted && kept.get(kept.size() - 1) == null) kept.remove(kept.size() - 1);
         } else {
             for (CampaignBoat boat : berths) {
-                if (boat == null) continue;
-                if (boat.pattern() == pattern && kept.size() < wanted) kept.add(boat);
-                else left.add(boat.displayName());
+                if (boat != null) kept.add(boat);
             }
             boolean legacyStart = this.shipId == null && !commissioningRequired;
-            while (kept.size() < wanted) kept.add(legacyStart ? build(pattern) : null);
+            if (legacyStart && kept.isEmpty()) {
+                for (int i = 0; i < wanted; i++) kept.add(build(pattern));
+            }
         }
+        while (kept.size() < wanted) kept.add(null);
 
         this.berths = kept;
         this.shipId = shipId;
-        this.pattern = pattern;
-        LeftBehind cost = left.isEmpty() ? LeftBehind.NONE : new LeftBehind(left);
-        if (!sameShip) leftBehind = cost;
-        return cost;
+        if (this.pattern == null) this.pattern = pattern;
     }
 
     /**
@@ -243,6 +220,31 @@ public final class BoatDeck implements Serializable {
         return boat;
     }
 
+    /** How many of one part are in stores. */
+    public int spares(String partId) {
+        if (partId == null || spares == null) return 0;
+        return spares.getOrDefault(partId, 0);
+    }
+
+    /**
+     * Puts one part into stores. Package-private for the reason
+     * {@link CampaignBoat#install} is: the workshop decides what is a spare.
+     */
+    void stow(String partId) {
+        if (partId == null) return;
+        if (spares == null) spares = new HashMap<>();
+        spares.merge(partId, 1, Integer::sum);
+    }
+
+    /** Takes one part out of stores; false, and nothing taken, when there is none. */
+    boolean take(String partId) {
+        int held = spares(partId);
+        if (held <= 0) return false;
+        if (held == 1) spares.remove(partId);
+        else spares.put(partId, held - 1);
+        return true;
+    }
+
     /** Every berth in order; an entry is null for a berth with nothing in it. */
     public List<CampaignBoat> boats() {
         return Collections.unmodifiableList(berths);
@@ -290,36 +292,6 @@ public final class BoatDeck implements Serializable {
         return shipId;
     }
 
-    /** What the company's last change of ship cost them. Never null. */
-    public LeftBehind leftBehind() {
-        return leftBehind;
-    }
-
-    /**
-     * Boats a move stranded with the old hull.
-     *
-     * <p>Names rather than ids, because the only thing that can be done with
-     * this is say it out loud — the boats themselves are gone with the ship.
-     */
-    public static final class LeftBehind implements Serializable {
-
-        public static final LeftBehind NONE = new LeftBehind(List.of());
-
-        // A plain class rather than a record because this rides in the save
-        // graph, and nothing else xstream walks here is one.
-        private final List<String> names;
-
-        public LeftBehind(List<String> names) {
-            this.names = List.copyOf(names);
-        }
-
-        public List<String> names() { return names; }
-
-        public int count() { return names.size(); }
-
-        public boolean any() { return !names.isEmpty(); }
-    }
-
     private CampaignBoat build(ShuttleType pattern) {
         int tail = nextTailNumber++;
         String number = String.format(Locale.ROOT, "%02d", tail);
@@ -335,16 +307,7 @@ public final class BoatDeck implements Serializable {
 
     private Object readResolve() {
         if (berths == null) berths = new ArrayList<>();
-        if (leftBehind == null) leftBehind = LeftBehind.NONE;
-        // A deck saved before the pattern was persisted still says what it
-        // carries: every boat on it is of the one pattern reconcile put there.
-        // Recovered rather than left null so an old save's berths can be built
-        // into without waiting for the next change of ship.
-        if (pattern == null) {
-            for (CampaignBoat boat : berths) {
-                if (boat != null) { pattern = boat.pattern(); break; }
-            }
-        }
+        if (spares == null) spares = new HashMap<>();
         nextTailNumber = Math.max(nextTailNumber, berths.size() + 1);
         return this;
     }

@@ -24,6 +24,7 @@ class BoatRecoveryTest {
     @Test void expediteChargesRemainingWorkOnceAndRetainsFittings() throws Exception {
         BoatDeck deck = deck(1); var stores = new Stores(1000); var yard = new BoatWorkshop(deck, stores);
         var boat = deck.boats().get(0);
+        yard.fabricatePart(BoatFitting.TUNED_DRIVE.id());
         yard.fit(boat.id(), BoatFitting.TUNED_DRIVE.id());
         deck.settleRecovery("battle", Map.of(boat.id(), 1f), List.of(), 20f);
         var quote = yard.repairQuote(boat.id(), 20f);
@@ -56,12 +57,14 @@ class BoatRecoveryTest {
     @Test void destructionWinsAndReplacementNeverRecoversItsPredecessorsFittings() {
         BoatDeck deck = deck(1); var yard = new BoatWorkshop(deck, new Stores(1000));
         var boat = deck.boats().get(0);
+        yard.fabricatePart(BoatFitting.TUNED_DRIVE.id());
         yard.fit(boat.id(), BoatFitting.TUNED_DRIVE.id());
         deck.settleRecovery("lost", Map.of(boat.id(), 1f), List.of(boat.id()), 0f);
         assertTrue(deck.airworthy(10f).isEmpty());
         var replacement = yard.fabricate(0).boat();
         assertNotEquals(boat.id(), replacement.id());
         assertSame(BoatFitting.STANDARD_DRIVE, replacement.drive());
+        assertEquals(0, deck.spares(BoatFitting.TUNED_DRIVE.id()), "a lost boat's parts go down with her");
         deck.settleRecovery("lost", Map.of(boat.id(), 1f), List.of(boat.id()), 11f);
         assertSame(replacement, deck.boats().get(0));
     }

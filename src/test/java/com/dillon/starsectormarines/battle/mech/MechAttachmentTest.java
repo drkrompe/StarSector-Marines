@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.mech;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -25,12 +26,12 @@ class MechAttachmentTest {
     // ---- the slot each doctrine takes ----
 
     @Test
-    void doctrineDecidesWhereAFollowerStandsAlongTheSquadsAxis() {
+    void inContactDoctrineDecidesWhereAFollowerStandsAlongTheSquadsAxis() {
         // Squad at (10,10) facing +X.
-        float[] brawler = MechAttachmentSlot.point(MechRole.ASSAULT, 0, 10f, 10f, 1f, 0f, 0f, 0f);
-        float[] tank = MechAttachmentSlot.point(MechRole.ARMORED_SUPPORT, 0, 10f, 10f, 1f, 0f, 0f, 0f);
-        float[] balanced = MechAttachmentSlot.point(MechRole.BALANCED, 0, 10f, 10f, 1f, 0f, 0f, 0f);
-        float[] longRange = MechAttachmentSlot.point(MechRole.LR_SUPPORT, 0, 10f, 10f, 1f, 0f, 0f, 0f);
+        float[] brawler = MechAttachmentSlot.point(MechRole.ASSAULT, 0, 0, true, 10f, 10f, 1f, 0f, 0f, 0f);
+        float[] tank = MechAttachmentSlot.point(MechRole.ARMORED_SUPPORT, 0, 0, true, 10f, 10f, 1f, 0f, 0f, 0f);
+        float[] balanced = MechAttachmentSlot.point(MechRole.BALANCED, 0, 0, true, 10f, 10f, 1f, 0f, 0f, 0f);
+        float[] longRange = MechAttachmentSlot.point(MechRole.LR_SUPPORT, 0, 0, true, 10f, 10f, 1f, 0f, 0f, 0f);
 
         assertTrue(brawler[0] > tank[0] && tank[0] > 10f, "Brawler leads, Frontline Support screens just ahead");
         assertEquals(10f, brawler[1], 1e-4f);
@@ -41,21 +42,30 @@ class MechAttachmentTest {
 
     @Test
     void followersOfOneRoleSpreadAcrossTheAxis() {
-        float[] first = MechAttachmentSlot.point(MechRole.ASSAULT, 0, 10f, 10f, 1f, 0f, 0f, 0f);
-        float[] second = MechAttachmentSlot.point(MechRole.ASSAULT, 1, 10f, 10f, 1f, 0f, 0f, 0f);
-        float[] third = MechAttachmentSlot.point(MechRole.ASSAULT, 2, 10f, 10f, 1f, 0f, 0f, 0f);
+        float[] first = MechAttachmentSlot.point(MechRole.ASSAULT, 0, 0, true, 10f, 10f, 1f, 0f, 0f, 0f);
+        float[] second = MechAttachmentSlot.point(MechRole.ASSAULT, 1, 0, true, 10f, 10f, 1f, 0f, 0f, 0f);
+        float[] third = MechAttachmentSlot.point(MechRole.ASSAULT, 2, 0, true, 10f, 10f, 1f, 0f, 0f, 0f);
         assertEquals(first[0], second[0], 1e-4f, "same depth");
         assertTrue(second[1] != first[1] && third[1] != first[1] && third[1] != second[1]);
         assertTrue(Math.signum(second[1] - 10f) != Math.signum(third[1] - 10f), "files out to both sides");
 
-        float[] left = MechAttachmentSlot.point(MechRole.BALANCED, 0, 10f, 10f, 1f, 0f, 0f, 0f);
-        float[] right = MechAttachmentSlot.point(MechRole.BALANCED, 1, 10f, 10f, 1f, 0f, 0f, 0f);
+        float[] left = MechAttachmentSlot.point(MechRole.BALANCED, 0, 0, true, 10f, 10f, 1f, 0f, 0f, 0f);
+        float[] right = MechAttachmentSlot.point(MechRole.BALANCED, 1, 0, true, 10f, 10f, 1f, 0f, 0f, 0f);
         assertTrue(Math.signum(left[1] - 10f) != Math.signum(right[1] - 10f), "Balanced pair flank both sides");
     }
 
     @Test
+    void outOfContactEveryFollowerWalksWithTheSquadWhateverItsDoctrine() {
+        float[] brawler = MechAttachmentSlot.point(MechRole.ASSAULT, 0, 0, false, 10f, 10f, 1f, 0f, 0f, 0f);
+        float[] longRange = MechAttachmentSlot.point(MechRole.LR_SUPPORT, 0, 1, false, 10f, 10f, 1f, 0f, 0f, 0f);
+        assertEquals(10f - MechAttachmentSlot.MARCH_DEPTH, brawler[0], 1e-4f, "a Brawler does not lead the march");
+        assertEquals(brawler[0], longRange[0], 1e-4f, "every follower walks at the same depth");
+        assertTrue(longRange[1] != brawler[1], "filed across the axis by its place among all followers");
+    }
+
+    @Test
     void withNoAxisAFollowerKeepsItsBearingAtItsRolesDistance() {
-        float[] slot = MechAttachmentSlot.point(MechRole.ASSAULT, 0, 10f, 10f, Float.NaN, Float.NaN, 10f, 30f);
+        float[] slot = MechAttachmentSlot.point(MechRole.ASSAULT, 0, 0, true, 10f, 10f, Float.NaN, Float.NaN, 10f, 30f);
         assertEquals(10f, slot[0], 1e-4f);
         assertEquals(10f + MechAttachmentSlot.LEAD_DEPTH, slot[1], 1e-4f);
     }
@@ -188,7 +198,7 @@ class MechAttachmentTest {
     }
 
     @Test
-    void anAttachedMechWalksToItsSlotAheadOfTheSquad() {
+    void inContactAnAttachedBrawlerWalksToItsSlotAheadOfTheSquad() {
         BattleSimulation sim = openSimulation(40, 40);
         int infantry = infantrySquad(sim, 10, 20);
         Squad squad = sim.getSquad(infantry);
@@ -196,6 +206,7 @@ class MechAttachmentTest {
         long mech = mechSquad(sim, 10, 10);
         sim.world().mechLoadout(mech).applyBattleOverride(MechRole.ASSAULT);
         int mechSquad = attached(sim, mech, infantry);
+        squad._engagedThisTick = true;
 
         assertTrue(sim.getMechAttachmentSystem().executeIfAttached(mech, sim.getSquad(mechSquad), sim));
         int[] slot = sim.getMechAttachmentService().slotOf(mech);
@@ -210,21 +221,30 @@ class MechAttachmentTest {
     }
 
     @Test
-    void aSquadWithMechsAttachedMarchesAtTheirPaceOutOfContact() {
-        BattleSimulation sim = openSimulation(40, 40);
-        int infantry = infantrySquad(sim, 10, 10);
-        long marine = sim.squadMemberAt(infantry, 0);
-        float own = sim.world().moveSpeed(marine);
-        long mech = mechSquad(sim, 5, 5);
-        float mechSpeed = sim.world().moveSpeed(mech);
-        attached(sim, mech, infantry);
+    void onItsSquadsLineABrawlerStepsOutAheadInContactAndBackOntoItsPostAfter() {
+        BattleSimulation sim = openSimulation(60, 60);
+        int infantry = infantrySquad(sim, 10, 30);
+        long mech = mechSquad(sim, 10, 40);
+        sim.world().mechLoadout(mech).applyBattleOverride(MechRole.ASSAULT);
+        int mechSquad = attached(sim, mech, infantry);
+        sim.getSquadMoveOrderService().requestLine(infantry, 30, 20, 30, 40, 1);
+        FrontageLine within = FrontageLine.facing(30, 20, 30, 40, sim.getSquad(infantry).centroidX,
+                sim.getSquad(infantry).centroidY, -1, -1).withMachines(1);
+        sim.getMechAttachmentService().requestPost(mechSquad, 29, 30, 90f, within);
+        sim.getSquadMoveOrderSystem().tick(sim);
+        sim.getMechAttachmentSystem().tick(sim);
+        assertNotNull(sim.getMechAttachmentService().postOf(mechSquad));
 
-        assertEquals(Math.min(own, mechSpeed * MechAttachmentSystem.MARCH_PACE), sim.world().moveSpeed(marine), 1e-4f,
-                "no faster than the follower");
+        Squad squad = sim.getSquad(mechSquad);
+        assertTrue(sim.getMechAttachmentSystem().executeIfAttached(mech, squad, sim));
+        int[] calm = sim.getMechAttachmentService().slotOf(mech);
+        assertEquals(29, calm[0], "out of contact it makes for its post");
 
         sim.getSquad(infantry)._engagedThisTick = true;
-        sim.getMechAttachmentSystem().tick(sim);
-        assertEquals(own, sim.world().moveSpeed(marine), 1e-4f, "in contact the squad moves as it must");
+        sim.getMechAttachmentService().setSlot(mech, null);
+        assertTrue(sim.getMechAttachmentSystem().executeIfAttached(mech, squad, sim));
+        int[] fighting = sim.getMechAttachmentService().slotOf(mech);
+        assertEquals(29 + MechAttachmentSlot.LEAD_DEPTH, fighting[0], 1f, "in contact a Brawler steps out ahead of the line");
     }
 
     // ---- fixtures ----

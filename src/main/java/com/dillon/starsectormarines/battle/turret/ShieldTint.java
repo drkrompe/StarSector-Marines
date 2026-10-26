@@ -2,10 +2,11 @@ package com.dillon.starsectormarines.battle.turret;
 
 /**
  * The colour a fitted flux shield is drawn in, by the technology that built it: blue for the high-tech field
- * emitter. Orange is kept for a low- and mid-tech shield that no style fits yet.
+ * emitter, teal for a midline one, orange for a low-tech one. A boat's emitter tier picks its tint.
  */
 public enum ShieldTint {
     BLUE("blue"),
+    TEAL("teal"),
     ORANGE("orange");
 
     public final String key;

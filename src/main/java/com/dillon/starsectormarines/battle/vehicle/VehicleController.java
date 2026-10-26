@@ -120,6 +120,47 @@ public final class VehicleController {
     }
 
     /**
+     * Cells a departure turnaround may first back straight up before it turns, nearest first. A truck parked at the
+     * blind end of a road, facing in, has no swing that fits where it stands; a few cells back along the way it came
+     * the road is often wider (town Road verdant 8: the convoy's lead truck stood at the end of the loading stub,
+     * four rows between two buildings, and never left).
+     */
+    static final float[] TURNAROUND_BACK_UP_CELLS = {0f, 2f, 4f, 6f, 8f};
+
+    /** A departure turnaround: the maneuver, and the pose on the corridor it ends on. */
+    record Turnaround(ReedsShepp.Path path, Pose goal) {
+        /** Whether the body is already near enough the corridor's heading that no maneuver is worth engaging. */
+        boolean aligned(float turnRadius) { return path.lengthCells(turnRadius) < MIN_TURNAROUND_CELLS; }
+    }
+
+    /**
+     * The maneuver that turns a bicycle at {@code start} onto {@code corridor}, or {@code null} where none fits: for
+     * each back-up ({@link #TURNAROUND_BACK_UP_CELLS}) and each lead ({@link #TURNAROUND_LEAD_FACTORS}), every
+     * Reeds-Shepp candidate shortest first, the first whose footprint stays on drivable ground. The shortest
+     * candidate alone often swings over a wall where a longer one, or the same after backing up, does not.
+     */
+    static Turnaround turnaround(Pose start, ReferenceCorridor corridor, float turnRadius, VehicleType type,
+                                 NavigationGrid grid) {
+        double rad = Math.toRadians(start.facingDeg);
+        for (float back : TURNAROUND_BACK_UP_CELLS) {
+            // Forward is (-sin, cos) for a facing; backing up goes the other way.
+            Pose from = new Pose((float) (start.x + Math.sin(rad) * back), (float) (start.y - Math.cos(rad) * back),
+                    start.facingDeg);
+            for (float factor : TURNAROUND_LEAD_FACTORS) {
+                Pose goal = corridor.targetAhead(from.x, from.y, turnaroundLead(turnRadius, factor));
+                for (ReedsShepp.Path candidate : ReedsShepp.candidates(from, goal, turnRadius)) {
+                    ReedsShepp.Path path = back > 0f ? ReedsShepp.afterReversing(candidate, back, turnRadius) : candidate;
+                    if (back == 0f && path.lengthCells(turnRadius) < MIN_TURNAROUND_CELLS) {
+                        return new Turnaround(path, goal);
+                    }
+                    if (isPathFeasible(start, path, turnRadius, type, grid)) return new Turnaround(path, goal);
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
      * Whether a vehicle arriving on {@code approachFacingDeg} can end up facing
      * {@code departFacingDeg} at ({@code lzX}, {@code lzY}) without leaving the
      * drivable map — the docking maneuver's own question, asked before dispatch
@@ -190,15 +231,7 @@ public final class VehicleController {
         }
         float turnRadius = ((BicycleBody) body).minTurnRadiusCells();
         ReferenceCorridor corridor = new ReferenceCorridor(routeXs, routeYs, 1);
-        Pose start = new Pose(x, y, bodyFacingDeg);
-        for (float factor : TURNAROUND_LEAD_FACTORS) {
-            Pose goal = corridor.targetAhead(x, y, turnaroundLead(turnRadius, factor));
-            ReedsShepp.Path path = ReedsShepp.shortest(start, goal, turnRadius);
-            if (path == null) continue;
-            if (path.lengthCells(turnRadius) < MIN_TURNAROUND_CELLS) return true; // already aligned
-            if (isPathFeasible(start, path, turnRadius, type, grid)) return true;
-        }
-        return false;
+        return turnaround(new Pose(x, y, bodyFacingDeg), corridor, turnRadius, type, grid) != null;
     }
 
     /**

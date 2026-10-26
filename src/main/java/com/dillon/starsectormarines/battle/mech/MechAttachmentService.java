@@ -1,13 +1,11 @@
 package com.dillon.starsectormarines.battle.mech;
 
-import com.dillon.starsectormarines.battle.modifier.UnitModifier;
-import com.dillon.starsectormarines.battle.modifier.UnitStat;
+import com.dillon.starsectormarines.battle.squad.FrontageLine;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.TreeMap;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.IntPredicate;
@@ -32,18 +30,29 @@ public final class MechAttachmentService {
     /** One raw UI request: attach {@code mechSquadId} to {@code anchorSquadId}, or detach it when that is {@link #NONE}. */
     record Request(int mechSquadId, int anchorSquadId) { }
 
+    /**
+     * A follower's place on its anchor's dragged line: the cell it stands on and the hip heading it holds
+     * there, kept while the anchor holds the frontage ({@code anchorLine}) the same drag gave it.
+     */
+    public record Post(int x, int y, float facingDegrees, FrontageLine anchorLine) { }
+
+    /** One raw UI request: put {@code mechSquadId} on {@code post}, applied once its anchor's line stands. */
+    record PostRequest(int mechSquadId, Post post) { }
+
     private final List<Request> pending = new ArrayList<>();
+    private final List<PostRequest> pendingPosts = new ArrayList<>();
+    /** Mech squad id to its post on its anchor's line; read by the unit pass, written serially. */
+    private final Map<Integer, Post> posts = new ConcurrentHashMap<>();
     /** Mech squad id to the infantry squad it follows, in id order so serial passes iterate deterministically. */
     private final Map<Integer, Integer> anchors = new TreeMap<>();
     /** Each attached chassis's rank among same-role followers of its anchor, rebuilt serially every tick. */
     private final Map<Long, Integer> ranks = new ConcurrentHashMap<>();
+    /** Each attached chassis's rank among all followers of its anchor, for the march; rebuilt with {@link #ranks}. */
+    private final Map<Long, Integer> marchRanks = new ConcurrentHashMap<>();
     /** The last useful axis of each anchor (unit vector), kept when the anchor stops so followers hold their sides. */
     private final Map<Integer, float[]> axes = new ConcurrentHashMap<>();
     /** The slot cell each chassis is walking to; written by that chassis alone in the unit pass. */
     private final Map<Long, int[]> slots = new ConcurrentHashMap<>();
-    /** Anchor members marching at their followers' pace, to the speed multiplier that holds them to it. */
-    private final Map<Long, Float> paced = new ConcurrentHashMap<>();
-    private static final Set<UnitStat> PACE_STATS = Set.of(UnitStat.MOVE_SPEED);
 
     /** Queues an attachment of the mech squad to the infantry squad, validated on the next fixed tick. */
     public void requestAttach(int mechSquadId, int anchorSquadId) {
@@ -53,6 +62,19 @@ public final class MechAttachmentService {
     /** Queues the release of the mech squad's attachment, if it has one. */
     public void requestDetach(int mechSquadId) {
         pending.add(new Request(mechSquadId, NONE));
+    }
+
+    /**
+     * Queues a post on the anchor's dragged line for a follower: it stands there, holding the heading,
+     * while its squad holds that frontage, and follows again once the squad is given anything else.
+     */
+    public void requestPost(int mechSquadId, int x, int y, float facingDegrees, FrontageLine anchorLine) {
+        pendingPosts.add(new PostRequest(mechSquadId, new Post(x, y, facingDegrees, anchorLine)));
+    }
+
+    /** The follower's post on its anchor's line, or {@code null} while it follows. */
+    public Post postOf(int mechSquadId) {
+        return posts.get(mechSquadId);
     }
 
     /** The infantry squad this mech squad follows, or {@link #NONE}. */
@@ -92,12 +114,32 @@ public final class MechAttachmentService {
         return drained;
     }
 
+    List<PostRequest> drainPendingPosts() {
+        if (pendingPosts.isEmpty()) return List.of();
+        List<PostRequest> drained = new ArrayList<>(pendingPosts);
+        pendingPosts.clear();
+        return drained;
+    }
+
+    void setPost(int mechSquadId, Post post) {
+        if (post == null) posts.remove(mechSquadId);
+        else posts.put(mechSquadId, post);
+    }
+
+    /** Mech squads holding a post, in id order. */
+    List<Integer> postedSquads() {
+        List<Integer> ids = new ArrayList<>(posts.keySet());
+        Collections.sort(ids);
+        return ids;
+    }
+
     void attach(int mechSquadId, int anchorSquadId) {
         anchors.put(mechSquadId, anchorSquadId);
     }
 
     void detach(int mechSquadId) {
         anchors.remove(mechSquadId);
+        posts.remove(mechSquadId);
     }
 
     int rankOf(long mech) {
@@ -105,9 +147,16 @@ public final class MechAttachmentService {
         return rank == null ? 0 : rank;
     }
 
-    void setRanks(Map<Long, Integer> next) {
+    int marchRankOf(long mech) {
+        Integer rank = marchRanks.get(mech);
+        return rank == null ? 0 : rank;
+    }
+
+    void setRanks(Map<Long, Integer> next, Map<Long, Integer> nextMarch) {
         ranks.clear();
         ranks.putAll(next);
+        marchRanks.clear();
+        marchRanks.putAll(nextMarch);
     }
 
     float[] axisOf(int anchorSquadId) {
@@ -120,30 +169,6 @@ public final class MechAttachmentService {
 
     void retainAxes(IntPredicate keep) {
         axes.keySet().removeIf(id -> !keep.test(id));
-    }
-
-    /**
-     * The anchor's march pace as a stat modifier on its marines: out of contact, a squad with mechs
-     * attached walks no faster than they can, so a Brawler can get ahead of it and stay there.
-     */
-    public UnitModifier paceModifier() {
-        return new UnitModifier() {
-            @Override public String name(long unit) { return "unitModifierPacingArmour"; }
-            @Override public Set<UnitStat> stats() { return PACE_STATS; }
-            @Override public boolean appliesTo(long unit) { return paced.containsKey(unit); }
-            @Override public float multiplier(long unit, UnitStat stat) {
-                Float pace = paced.get(unit);
-                return pace == null ? 1f : pace;
-            }
-        };
-    }
-
-    void clearPace() {
-        paced.clear();
-    }
-
-    void setPace(long member, float multiplier) {
-        paced.put(member, multiplier);
     }
 
     int[] slotOf(long mech) {

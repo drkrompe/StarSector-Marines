@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBore;
+import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -178,7 +180,10 @@ public final class CordonOuterPicket {
             CordonRedoubt home = post.redoubt;
             if (!post.fallingBack && home.manned() && fallsBack(standing, post.team, pressing[p])) {
                 post.fallingBack = true;
-                sim.assignSquadCommand(ObjectiveAssignment.withdraw(post.squad, home.centreX(), home.centreY()),
+                NavigationGrid grid = sim.getGrid();
+                int[] to = fallBackCell((x, y) -> grid.isWalkable(x, y)
+                        && grid.arePathConnected(post.x, post.y, x, y, GridPathfinder.USE_CARDINAL_NAVIGATION), home);
+                sim.assignSquadCommand(ObjectiveAssignment.withdraw(post.squad, to[0], to[1]),
                         CommandAuthority.GARRISON, ISSUER, "Outer picket " + post.number + " falls back");
             }
             if (post.fallingBack && home.manned() && inside(sim, post.squad, home)) {
@@ -188,6 +193,27 @@ public final class CordonOuterPicket {
                 beat.accept("picket_back_" + post.number);
             }
         }
+    }
+
+    /**
+     * Where a post falls back to: the cell inside its redoubt nearest the middle that its team can walk to
+     * ({@code reach}), or the middle where none is. The middle itself may be a raised or built cell no one walks on
+     * (town Road arid 8: redoubt 2's middle was a terrace cell, and picket 2's last man stood still in the street from
+     * tick 4500 to the cap with no way to it).
+     */
+    static int[] fallBackCell(CellTest reach, CordonRedoubt r) {
+        int cx = r.centreX(), cy = r.centreY();
+        int span = Math.max(r.right() - r.left(), r.bottom() - r.top());
+        for (int d = 0; d <= span; d++) {
+            for (int dy = -d; dy <= d; dy++) {
+                for (int dx = -d; dx <= d; dx++) {
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) != d) continue;
+                    int x = cx + dx, y = cy + dy;
+                    if (r.contains(x, y, 0) && reach.test(x, y)) return new int[]{x, y};
+                }
+            }
+        }
+        return new int[]{cx, cy};
     }
 
     private static boolean inside(BattleSimulation sim, int squad, CordonRedoubt r) {

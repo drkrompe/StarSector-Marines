@@ -101,9 +101,15 @@ public final class RoadSurfaceStage implements GenStage {
         }
         // Precinct roads are swept as they always were; only bands holding a city street are judged as streets.
         var style = cityStreetStyle();
+        // Street the town paved, a city street or a road laid in asphalt: a stretch of road jogging a
+        // cell off the next is swept only over it.
+        boolean[][] paved = new boolean[ctx.width][ctx.height];
+        for (int x = 0; x < ctx.width; x++) for (int y = 0; y < ctx.height; y++)
+            paved[x][y] = street[x][y] || swept[x][y] && ctx.topology.getGroundKind(x, y) == GroundKind.STREET
+                    && ctx.topology.getSurface(x, y) != 0;
         var network = anyStreet
-                ? GeneratedRoads.streets(swept, street, footway, ctx.seed, CITY_MAX_BREADTH, style)
-                : new GeneratedRoads.Network(GeneratedRoads.routes(swept, ctx.seed), List.of());
+                ? GeneratedRoads.streets(swept, street, footway, paved, ctx.seed, CITY_MAX_BREADTH, style)
+                : new GeneratedRoads.Network(GeneratedRoads.routes(swept, paved, ctx.seed), List.of());
         List<RoadPlan.Route> routes = new ArrayList<>(network.routes());
         if (rural != null) routes.addAll(RuralGround.routes(rural, network.routes(), ctx.seed));
         if (routes.isEmpty()) return;

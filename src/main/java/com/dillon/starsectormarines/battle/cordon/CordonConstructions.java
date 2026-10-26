@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.model.Buildings;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 
 import java.util.ArrayList;
@@ -55,10 +56,11 @@ public final class CordonConstructions {
     /**
      * The map with every redoubt and the base built as the seed picks ({@link CordonConstruction#redoubt},
      * {@link CordonConstruction#base}); with {@code mixed} false every one is the generated work, recorded as such.
-     * The map's grid and topology are edited in place.
+     * {@code land} is the world's own bare ground, laid where a works clears round a town building. The map's grid
+     * and topology are edited in place.
      */
     public static MapResult build(MapResult map, PrecinctPlan plan, CordonPlan.Density density, long seed,
-                                  boolean mixed) {
+                                  boolean mixed, GroundKind land) {
         List<Precinct> redoubts = CordonPlan.redoubts(plan);
         Precinct base = null;
         for (Precinct p : plan.precincts()) if (p.name().equals(CordonPlan.BASE_PLACE)) base = p;
@@ -71,13 +73,14 @@ public final class CordonConstructions {
             int[] box = CordonGarrisons.perimeterBox(map.topology, p);
             CordonConstruction pick = mixed ? CordonConstruction.redoubt(density, i, nearest, seed) : CordonConstruction.COMPOUND;
             CordonBuilders.Builder builder = box == null ? null : CordonBuilders.of(pick);
-            CordonBuilders.Site site = box == null ? null : new CordonBuilders.Site(box[0], box[1], box[2], box[3], front);
+            CordonBuilders.Site site = box == null ? null : new CordonBuilders.Site(box[0], box[1], box[2], box[3], front, land);
             if (builder != null && (pick == CordonConstruction.BLOCK || pick == CordonConstruction.TENEMENT)) {
                 CordonWorks probe = new CordonWorks(map.grid, map.topology, new ArrayList<>(), seed, site.cx(), site.cy());
                 int[] road = CordonBuilders.crossingRoad(probe, site);
                 if (road[0] < CROSSING_ROAD || road[1] < CROSSING_ROAD) builder = null;
             }
             if (builder == null) {
+                if (box != null) paveYard(map, box);
                 laid.add(record(WORKS + (i + 1), CordonConstruction.COMPOUND, box, List.of()));
                 continue;
             }
@@ -100,7 +103,7 @@ public final class CordonConstructions {
             if (builder == null || fence == null) {
                 laid.add(record(BASE_WORKS, CordonConstruction.SHED, fence, List.of()));
             } else {
-                CordonBuilders.Site site = new CordonBuilders.Site(fence[0], fence[1], fence[2], fence[3], front);
+                CordonBuilders.Site site = new CordonBuilders.Site(fence[0], fence[1], fence[2], fence[3], front, land);
                 CordonWorks works = new CordonWorks(map.grid, map.topology, map.doodads, seed ^ BASE_SALT,
                         site.cx(), site.cy());
                 Laid dump = map.layout.find(CordonSetPieces.AMMO_DUMP);
@@ -168,6 +171,32 @@ public final class CordonConstructions {
             }
         }
         return best;
+    }
+
+    /** The concrete a generated compound's aprons are laid in, and its open yard with them. */
+    static final String YARD_PAVING = "pavement.concrete.worn";
+
+    /**
+     * Paves a generated compound's open yard inside its perimeter wall ({@code box}) in its aprons' concrete: left as
+     * the ground the generator gave it, the yard was the same bare earth as the glacis outside the wall. Roads, aprons
+     * and anything built keep what they have.
+     */
+    static void paveYard(MapResult map, int[] box) {
+        CellTopology topology = map.topology;
+        int paving = topology.surfaceIndex(YARD_PAVING);
+        for (int y = box[1] + 1; y < box[3]; y++) {
+            for (int x = box[0] + 1; x < box[2]; x++) {
+                if (!map.grid.isWalkable(x, y) || topology.isWall(x, y) || topology.isFixture(x, y)
+                        || topology.getBuildingId(x, y) != 0 || topology.getGroundKind(x, y) == GroundKind.INDOOR
+                        || topology.getGroundKind(x, y) == GroundKind.STREET) continue;
+                if (topology.roadSurface() != null && topology.roadSurface().underlay(x, y) != null) continue;
+                String id = topology.getSurfaceId(x, y);
+                if (id != null && id.startsWith("pavement.")) continue;
+                topology.setGroundKind(x, y, GroundKind.COURTYARD);
+                topology.setSurface(x, y, paving);
+                topology.setNatureOverlayIndex(x, y, -1);
+            }
+        }
     }
 
     /** A construction's record: its id, its bounds as two cells, its guns as nests. */

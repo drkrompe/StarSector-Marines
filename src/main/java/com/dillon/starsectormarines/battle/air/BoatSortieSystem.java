@@ -105,7 +105,7 @@ public final class BoatSortieSystem {
         float[] out = boat.offship;
         ShuttleType pattern = ShuttleType.fromAirframe(boat.airframe);
         long craft = sim.spawnShuttle(pattern, boat.airframe, field.owner(),
-                out[0], out[1], padX, padY, padX, padY, 0f, pattern.capacity);
+                out[0], out[1], padX, padY, padX, padY, 0f, boat.airframe.seats());
         ShuttleMission mission = sim.world().mission(craft);
         // The hull that leaves is the hull that was on the stand, and it owes
         // itself back to that stand: AirSystem hands it over on every ending,

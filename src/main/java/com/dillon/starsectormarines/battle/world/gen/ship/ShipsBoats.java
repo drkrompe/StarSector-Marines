@@ -81,7 +81,7 @@ public final class ShipsBoats {
     }
 
     public static ShuttleType carriedBy(CompanyShip ship) {
-        return ship.aeroshuttleConversion() ? LANDING_CRAFT : carriedBy(ship.role());
+        return carriedBy(ship.role());
     }
 
     public static ShuttleType carriedBy(HullRole role) {

@@ -20,6 +20,8 @@ public final class BoatHardware {
 
     private static final String ROOT = "graphics/ui/mech-hardware/";
     private static final Map<String, SvgAsset> ART = new HashMap<>();
+    /** The shield emitter's cyan, the shield's own colour; the lab has no socket of this kind. */
+    private static final Color SHIELD = new Color(0x6e, 0xbe, 0xe6);
 
     /** A piece: its art, its footprint in bricks, and the colour it is drawn in. */
     record Piece(String art, int columns, int rows, Color tone) { }
@@ -61,7 +63,7 @@ public final class BoatHardware {
     static int[] capacity(BoatDoll.Kind kind) {
         return switch (kind) {
             // Nothing is wider than two bricks, in either room.
-            case HARDPOINT, PLATING, DRIVE, LIFT -> new int[]{2, 2};
+            case HARDPOINT, PLATING, DRIVE, LIFT, CABIN, EMITTER, POWER -> new int[]{2, 2};
         };
     }
 
@@ -71,6 +73,9 @@ public final class BoatHardware {
             case PLATING -> HardpointBricks.OMNI;
             case DRIVE -> HardpointBricks.ENGINE;
             case LIFT -> HardpointBricks.UTILITY;
+            case CABIN -> HardpointBricks.AUXILIARY;
+            case EMITTER -> SHIELD;
+            case POWER -> HardpointBricks.FLUX;
         };
     }
 
@@ -83,6 +88,10 @@ public final class BoatHardware {
             case "door_grenade_launcher" -> new Piece("boat-door-grenade", 2, 1, tone);
             case "door_arbalest" -> new Piece("boat-door-arbalest", 2, 2, tone);
             case "door_hephaestus" -> new Piece("boat-door-hephaestus", 2, 2, tone);
+            case "boat_pulse_laser" -> new Piece("pulse-laser", 2, 1, tone);
+            case "boat_burst_laser" -> new Piece("shoulder-laser", 2, 2, tone);
+            case "boat_srm_pod" -> new Piece("srm-5", 2, 1, tone);
+            case "boat_lrm_rack" -> new Piece("lrm-5", 2, 2, tone);
             case "standard_plating" -> new Piece("boat-plating-standard", 2, 1, tone);
             case "reinforced_plating" -> new Piece("boat-plating-reinforced", 2, 2, tone);
             case "armoured_plating" -> new Piece("boat-plating-armoured", 2, 2, tone);
@@ -92,6 +101,16 @@ public final class BoatHardware {
             case "standard_lift" -> new Piece("boat-hold-standard", 2, 2, tone);
             case "lift_cradle" -> new Piece("boat-hold-cradle", 2, 2, tone);
             case "heavy_cradle" -> new Piece("boat-hold-heavy-cradle", 2, 2, tone);
+            case "heavy_lift_frame" -> new Piece("weight-heavy", 2, 2, tone);
+            case "standard_cabin" -> new Piece("boat-hold-standard", 2, 1, tone);
+            case "half_squad_cabin" -> new Piece("boat-hold-standard", 2, 2, tone);
+            case "two_team_cabin" -> new Piece("vehicle-bay-supply", 2, 2, tone);
+            case "standard_emitter" -> new Piece("kit-sensor-pair", 2, 1, tone);
+            case "wide_emitter" -> new Piece("kit-sensor-pair", 2, 2, tone);
+            case "assault_emitter" -> new Piece("vehicle-systems-mast", 2, 2, tone);
+            case "standard_power" -> new Piece("capacitor-factory", 2, 1, tone);
+            case "capacitor_bank" -> new Piece("capacitor-double", 2, 2, tone);
+            case "military_capacitors" -> new Piece("capacitor-military", 2, 2, tone);
             default -> {
                 int[] whole = capacity(kind);
                 yield new Piece(null, whole[0], whole[1], tone);

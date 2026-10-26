@@ -37,7 +37,8 @@ import java.util.Map;
  *
  * <p><b>Who flies.</b> Only ferry craft. A committed cradled company boat, or the heavy
  * lift a mission, employer or hull supplies, joins the ferry as a craft of its own when no
- * ferry craft already lifts its class.
+ * ferry craft already lifts its class; standing by, it lands squad sorties the ferry still
+ * owes before it flies any machine ({@link LiftQueue#takeSquadSortie}).
  */
 public abstract class ArmorDropPower extends AirDeliveryPower {
 

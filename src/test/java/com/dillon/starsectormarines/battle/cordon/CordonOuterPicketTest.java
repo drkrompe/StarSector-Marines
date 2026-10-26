@@ -34,6 +34,16 @@ class CordonOuterPicketTest {
     }
 
     @Test
+    void aPostFallsBackToTheNearestCellInsideItsRedoubtItCanReach() {
+        CordonRedoubt r = new CordonRedoubt(2, 10, 20, 30, 40, List.of(), List.of(), 0);
+        assertArrayEquals(new int[]{20, 30}, CordonOuterPicket.fallBackCell(OPEN, r));
+        // The middle and the ring round it cannot be reached: the next ring out can.
+        int[] at = CordonOuterPicket.fallBackCell((x, y) -> Math.max(Math.abs(x - 20), Math.abs(y - 30)) >= 2, r);
+        assertTrue(Math.max(Math.abs(at[0] - 20), Math.abs(at[1] - 30)) == 2 && r.contains(at[0], at[1], 0));
+        assertArrayEquals(new int[]{20, 30}, CordonOuterPicket.fallBackCell((x, y) -> false, r), "none: the middle");
+    }
+
+    @Test
     void aPostFallsBackWhenHalfIsDownOrItIsOutnumberedTwoToOne() {
         assertFalse(CordonOuterPicket.fallsBack(4, 4, 0), "nothing on it");
         assertFalse(CordonOuterPicket.fallsBack(4, 4, 7));
