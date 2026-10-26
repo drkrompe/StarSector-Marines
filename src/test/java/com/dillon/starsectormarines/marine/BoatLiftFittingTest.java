@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.LiftRating;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -33,7 +32,7 @@ class BoatLiftFittingTest {
     void aHermesFittedWithAHeavyLiftFrameLiftsHeavyAndKeepsHerSeats() {
         BoatDeck deck = new BoatDeck();
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
-        BoatWorkshop workshop = new BoatWorkshop(deck, BoatWorkshopTest.TestResources.stocked(500));
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
 
         assertEquals(BoatWorkshop.Status.PART_FABRICATED, workshop.fabricatePart("heavy_lift_frame").status());
@@ -49,7 +48,8 @@ class BoatLiftFittingTest {
     void aCradleOnAFreighterSpendsItsBillWhenBuilt() {
         BoatDeck deck = new BoatDeck();
         deck.reconcile("freighter", ShuttleType.BUFFALO, 1);
-        BoatWorkshopTest.TestResources hold = BoatWorkshopTest.TestResources.stocked(100);
+        TestPurse hold = TestPurse.rich();
+        long before = hold.credits;
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         String boatId = deck.flightReady().get(0).id();
 
@@ -57,6 +57,7 @@ class BoatLiftFittingTest {
         assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boatId, "lift_cradle").status());
 
         assertEquals(LiftRating.LIGHT, deck.boatById(boatId).freezeForDeployment().liftRating());
-        assertEquals(85, hold.available(Commodities.SUPPLIES));
+        assertEquals(before - BoatFitting.findById("lift_cradle").bill().credits(), hold.credits);
     }
 }
+

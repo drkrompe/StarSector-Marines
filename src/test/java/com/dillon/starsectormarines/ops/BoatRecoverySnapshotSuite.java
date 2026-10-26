@@ -8,8 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
 import com.dillon.starsectormarines.battle.world.gen.ship.HullOutline;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
-import com.dillon.starsectormarines.marine.FabricationResources;
-import com.dillon.starsectormarines.marine.FabricationCost;
+import com.dillon.starsectormarines.marine.TestPurse;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.battleview.*;
 import com.dillon.starsectormarines.testsupport.*;
@@ -39,14 +38,6 @@ public final class BoatRecoverySnapshotSuite implements SnapshotSuite {
         var hull = new CompanyShip(HullClass.FRIGATE, HullRole.FREIGHTER, 20, 68, 75,
                 outline.aspect(), outline, spec.getString("spriteName"), true, BoatBayState.DAMAGED);
         var frames = new ArrayList<SnapshotArtifact>();
-        var commodities = UiSnapshotSuite.snapshotCommodities();
-        // Missing source art must fail the evidence run rather than silently render a blank icon.
-        for (String commodity : List.of("supplies", "heavy_machinery", "metals", "rare_metals")) {
-            String icon = commodities.commodityIcon(commodity);
-            if (icon.isBlank() || !(Files.isRegularFile(context.modRoot().resolve(icon))
-                    || Files.isRegularFile(context.starsectorCore().resolve(icon))))
-                throw new IllegalStateException("Missing commodity icon for " + commodity + ": " + icon);
-        }
         for (String mode : List.of("damaged", "shortage", "castle", "ready", "expanded", "castle-expanded", "overview")) {
             try (var strings = new HeadlessStrings(context.modRoot(), text -> mode.contains("expanded")
                     ? OpeningLocalizationSnapshotSuite.expand(text) : text)) {
@@ -56,12 +47,7 @@ public final class BoatRecoverySnapshotSuite implements SnapshotSuite {
                 boats.settleRecovery("return", Map.of(id, .75f), List.of(), 10f);
                 roster.campaignLessons().observeBoatDamage(id);
                 float day = mode.equals("ready") ? 12f : 10f;
-                var resources = new FabricationResources() {
-                    public int available(String commodity) { return mode.equals("shortage") ? 0 : 15_000_000; }
-                    public String commodityName(String commodity) { return commodities.commodityName(commodity); }
-                    public String commodityIcon(String commodity) { return commodities.commodityIcon(commodity); }
-                    public boolean spend(FabricationCost cost) { return canAfford(cost); }
-                };
+                var resources = new TestPurse(mode.equals("shortage") ? 0 : 60_000);
                 var reactor = new Reactor();
                 var model = new BoatDeckViewModel(reactor, boats, resources, "Second Wind", () -> {}, () -> day);
                 if (!mode.equals("overview")) model.inspect(id);

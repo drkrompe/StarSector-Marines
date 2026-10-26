@@ -31,24 +31,6 @@ import java.util.Map;
  */
 public final class CommandPowerService {
 
-    /** A transient fog reveal produced by a {@link ReconPing} activation. The
-     *  view layer projects each live ping into the vision pass every frame;
-     *  {@link CommandPowerSystem} ages {@link #remainingSeconds} down and drops
-     *  expired pings, at which point the reveal lapses. */
-    public static final class ActivePing {
-        public final int cellX;
-        public final int cellY;
-        public final int radius;
-        public float remainingSeconds;
-
-        ActivePing(int cellX, int cellY, int radius, float remainingSeconds) {
-            this.cellX = cellX;
-            this.cellY = cellY;
-            this.radius = radius;
-            this.remainingSeconds = remainingSeconds;
-        }
-    }
-
     /** A UI-requested activation awaiting resolution on the next tick drain. */
     static final class PendingActivation {
         final String powerId;
@@ -83,7 +65,6 @@ public final class CommandPowerService {
     private final List<PendingActivation> pending = new ArrayList<>();
     /** Queued armor drops the UI asked to cancel, by lift-queue job id. */
     private final List<Long> pendingCancels = new ArrayList<>();
-    private final List<ActivePing> activePings = new ArrayList<>();
     private final List<PendingDetonation> activeFireMissions = new ArrayList<>();
     private CommandPowerResources resources = CommandPowerResources.FREE;
 
@@ -159,11 +140,6 @@ public final class CommandPowerService {
                 && getChargesRemaining(power.id) != 0
                 && commandPoints >= power.cpCost
                 && resources.availableSupplies() >= power.supplyCost;
-    }
-
-    /** Live transient reveals — projected into the fog by the view layer. */
-    public List<ActivePing> getActivePings() {
-        return Collections.unmodifiableList(activePings);
     }
 
     /** Telegraphs for orbital fire missions awaiting impact. */
@@ -259,11 +235,6 @@ public final class CommandPowerService {
         return true;
     }
 
-    /** Register a transient reveal — called from {@link ReconPing#resolve}. */
-    public void addActivePing(int cellX, int cellY, int radius, float seconds) {
-        activePings.add(new ActivePing(cellX, cellY, radius, seconds));
-    }
-
     public void addFireMission(PendingDetonation detonation) {
         if (detonation != null) activeFireMissions.add(detonation);
     }
@@ -276,16 +247,6 @@ public final class CommandPowerService {
         for (Map.Entry<String, Float> e : cooldowns.entrySet()) {
             float remaining = e.getValue() - dt;
             e.setValue(remaining > 0f ? remaining : 0f);
-        }
-    }
-
-    void tickActivePings(float dt) {
-        for (int i = activePings.size() - 1; i >= 0; i--) {
-            ActivePing p = activePings.get(i);
-            p.remainingSeconds -= dt;
-            if (p.remainingSeconds <= 0f) {
-                activePings.remove(i);
-            }
         }
     }
 

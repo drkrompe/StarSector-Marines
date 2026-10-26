@@ -103,11 +103,11 @@ let db = null, local = false, shot = "s0", playing = null;   // playing: {fam, k
 const vid = $("vid"), alt = $("alt");
 const LKEY = "asharu-plate-sound";
 
-function answered(f) { const a = answers[f.id] || {}; return Object.keys(a.options || {}).length > 0 || !!(a.note || "").trim(); }
+function answered(f) { const a = answers[f.doc] || {}; return Object.keys(a.options || {}).length > 0 || !!(a.note || "").trim(); }
 
 function render() {
   $("list").innerHTML = FAMILIES.map(f => {
-    const a = answers[f.id] || {}, i = sel[f.id] ?? 0;
+    const a = answers[f.doc] || {}, i = sel[f.id] ?? 0;
     const opts = f.options.length ? f.options : [{key: "now", label: "As it is in the current mix", current: true}];
     return `<section class="fam${answered(f) ? " done" : ""}" id="f-${f.id}">
       <div class="fam-head"><h2>${esc(f.title)}</h2><span class="tag${answered(f) ? " ok" : ""}">${answered(f) ? "Answered" : f.options.length ? f.options.length + " options" : "One sound"}</span></div>
@@ -122,10 +122,10 @@ function render() {
           <span class="acts">
             <button type="button" class="v play" data-play="${f.id}" data-k="${esc(o.key)}">Play</button>
             <button type="button" class="v play" data-play="${f.id}" data-k="${esc(o.key)}" data-solo="1">Play solo</button>
-            <button type="button" class="v" data-vf="${f.id}" data-k="${esc(o.key)}" data-v="approve" aria-pressed="${v === "approve"}">Approve</button>
-            <button type="button" class="v" data-vf="${f.id}" data-k="${esc(o.key)}" data-v="deny" aria-pressed="${v === "deny"}">Deny</button>
+            <button type="button" class="v" data-vf="${f.doc}" data-k="${esc(o.key)}" data-v="approve" aria-pressed="${v === "approve"}">Approve</button>
+            <button type="button" class="v" data-vf="${f.doc}" data-k="${esc(o.key)}" data-v="deny" aria-pressed="${v === "deny"}">Deny</button>
           </span></div>`; }).join("")}</div></div>
-      <textarea id="n-${f.id}" placeholder="Notes: what to change, what it should sound like" aria-label="Notes on ${esc(f.title)}">${esc(a.note || "")}</textarea>
+      <textarea id="n-${f.doc}" placeholder="Notes: what to change, what it should sound like" aria-label="Notes on ${esc(f.title)}">${esc(a.note || "")}</textarea>
     </section>`;
   }).join("");
   $("n-all").textContent = FAMILIES.length;

@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.marine;
 
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
-import java.util.List;
 import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,11 +11,10 @@ class MechFieldRepairTest {
         assertEquals(4f, MechFieldRepair.NEUTRAL.repairDays(4f));
     }
 
-    @Test void theSparesRackTakesAShareOffEveryLineRoundedUp() {
-        var base = new FabricationCost(List.of(new FabricationCost.Line(Commodities.METALS, 8),
-                new FabricationCost.Line(Commodities.RARE_METALS, 3), new FabricationCost.Line(Commodities.SUPPLIES, 1)));
-        var bill = new MechFieldRepair(1f, 0.75f).weaponBill(base);
-        assertEquals(List.of(6, 3, 1), bill.lines().stream().map(FabricationCost.Line::quantity).toList());
+    @Test void theSparesRackTakesAShareOffTheBillRoundedUpButNeverToNothing() {
+        var base = new FabricationCost(1001);
+        assertEquals(751, new MechFieldRepair(1f, 0.75f).weaponBill(base).credits());
+        assertEquals(1, new MechFieldRepair(1f, 0.01f).weaponBill(new FabricationCost(1)).credits());
         assertSame(base, MechFieldRepair.NEUTRAL.weaponBill(base));
     }
 }

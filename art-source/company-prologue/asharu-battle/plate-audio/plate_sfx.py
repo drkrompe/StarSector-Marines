@@ -59,6 +59,19 @@ CUES = {
         "Short digital computer interface transition: a quick clean electronic sweep with soft data "
         "blips, 1990s science fiction terminal, no whoosh, no music",
         1.5, False, 0.6),
+    # round two (owner: answers "more 90s sci-fi movie terminal, a la Starship Troopers"; pings "too
+    # happy"; stamps denied)
+    "answer_readout": (
+        "A 1990s science fiction movie military computer terminal printing a result: a quick burst of "
+        "chunky electronic data beeps ending on one firm tone, short, no music",
+        1.0, False, 0.7),
+    "radar_ping": (
+        "A single low ominous military radar contact ping, dark and dry, short decay, no music",
+        1.5, False, 0.7),
+    "ui_stamp": (
+        "A 1990s science fiction movie computer terminal locking a record: a hard low electronic "
+        "confirmation tone with a short digital chirp, serious, no music",
+        1.2, False, 0.7),
     "relay_static": (
         "Radio receiver static: steady soft hiss with faint crackle and slow interference warble, "
         "narrow band like an old radio, no voices, no music",

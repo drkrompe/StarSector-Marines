@@ -1,10 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
-import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
-import com.dillon.starsectormarines.campaign.CommodityPresentation;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration.Offer;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
@@ -19,24 +15,15 @@ import java.util.function.Supplier;
 public final class WorkshopRestorationModel {
     private final Supplier<Offer> read;
     private final Function<WorkshopState, String> purchase;
-    private final Supplier<String> reclaim;
     private final Runnable inspect, changed;
-    private final Runnable action = this::act, reclaimAction = this::reclaim;
+    private final Runnable action = this::act;
     private final MutableSignal<Row> row;
     private WorkshopState reviewed;
-    private boolean reclaimReviewed;
     private String feedback = "";
-    private final CommodityPresentation goods;
     public WorkshopRestorationModel(Reactor reactor, Supplier<Offer> read,
-                                    Function<WorkshopState, String> purchase, Supplier<String> reclaim,
+                                    Function<WorkshopState, String> purchase,
                                     Runnable inspect, Runnable changed) {
-        this(reactor, read, purchase, reclaim, inspect, changed, CampaignCommodityPresentation.INSTANCE);
-    }
-    public WorkshopRestorationModel(Reactor reactor, Supplier<Offer> read,
-                                    Function<WorkshopState, String> purchase, Supplier<String> reclaim,
-                                    Runnable inspect, Runnable changed, CommodityPresentation goods) {
-        this.goods = goods;
-        this.read = read; this.purchase = purchase; this.reclaim = reclaim;
+        this.read = read; this.purchase = purchase;
         this.inspect = inspect; this.changed = changed;
         row = reactor.signal(project());
     }
@@ -45,7 +32,7 @@ public final class WorkshopRestorationModel {
     private Row project() {
         Offer offer = read.get();
         if (reviewed != offer.state()) reviewed = null;
-        return new Row(offer, reviewed != null, reclaimReviewed, feedback, action, reclaimAction, inspect, goods);
+        return new Row(offer, reviewed != null, feedback, action, inspect);
     }
     private void act() {
         Offer offer = read.get();
@@ -57,20 +44,10 @@ public final class WorkshopRestorationModel {
         }
         refresh();
     }
-    private void reclaim() {
-        if (!reclaimReviewed) { reclaimReviewed = true; feedback = Strings.get("openingWorkshopRestorationReviewConsumeHeavyMachineryAndRecoverMetals"); }
-        else {
-            String refused = reclaim.get();
-            feedback = refused == null ? Strings.get("openingWorkshopRestorationRecoveredMetalsFromHeavyMachinery") : refused;
-            reclaimReviewed = false;
-        }
-        refresh();
-    }
-    public record Row(Offer offer, boolean reviewed, boolean reclaimReviewed, String feedback,
-                      Runnable action, Runnable reclaim, Runnable inspect, CommodityPresentation goods) implements MarkupPropertySource {
+    public record Row(Offer offer, boolean reviewed, String feedback,
+                      Runnable action, Runnable inspect) implements MarkupPropertySource {
         public static Row hidden() {
-            return new Row(new Offer(WorkshopState.NONE, 0, "", "", 0, 0), false, false, "", () -> {}, () -> {}, () -> {},
-                    CommodityPresentation.NONE);
+            return new Row(new Offer(WorkshopState.NONE, 0, ""), false, "", () -> {}, () -> {});
         }
         @Override public Object markupProperty(String key) {
             WorkshopState state = offer.state();
@@ -102,11 +79,8 @@ public final class WorkshopRestorationModel {
                 };
                 case "bill" -> complete ? "" : CompanyResources.creditBill(state.price(), offer.credits());
                 case "billRows" -> complete ? List.of() : CompanyResources.credits("workshop-cost", offer.credits(), state.price());
-                case "stock" -> List.of(
-                        CompanyResources.stock("engineering-credit-stock", Strings.get("companyResourceCredits"), "graphics/ui/company/credits.svg", offer.credits()),
-                        CompanyResources.stock("engineering-machinery-stock", goods.commodityName(Commodities.HEAVY_MACHINERY), goods.commodityIcon(Commodities.HEAVY_MACHINERY), offer.machinery()),
-                        CompanyResources.stock("engineering-metals-stock", goods.commodityName(Commodities.METALS), goods.commodityIcon(Commodities.METALS), offer.metals()));
-                case "reclaimBill" -> List.of(CompanyResources.cost("reclaim-machinery-cost", goods.commodityName(Commodities.HEAVY_MACHINERY), goods.commodityIcon(Commodities.HEAVY_MACHINERY), offer.machinery(), 1));
+                case "stock" -> List.of(CompanyResources.stock("engineering-credit-stock", Strings.get("companyResourceCredits"),
+                        CompanyResources.CREDITS_ICON, offer.credits()));
                 case "reason" -> offer.refusal() == null ? Strings.get("openingWorkshopRestorationPlanetaryYardLaborAndInstallationIncluded") : offer.refusal();
                 case "actionLabel" -> !reviewed ? Strings.get("openingWorkshopRestorationInspectWorkshop") : switch (state) {
                     case BURIED -> Strings.get("openingWorkshopRestorationClear"); case CLEARED -> Strings.get("openingWorkshopRestorationRepair");
@@ -116,12 +90,6 @@ public final class WorkshopRestorationModel {
                 case "disabled" -> reviewed && offer.refusal() != null;
                 case "action" -> action;
                 case "inspect" -> inspect;
-                case "reclaimClasses" -> state.operational() ? "reclaim-block" : "reclaim-block hidden";
-                case "reclaimCopy" -> Strings.format("companyResourceReclaimYield", CompanyWorkshopRestoration.RECLAIMED_METALS);
-                case "reclaimReason" -> offer.reclaimRefusal() == null ? Strings.get("openingWorkshopRestorationUsesFleetCargoStartingDepotStoresAre") : offer.reclaimRefusal();
-                case "reclaimDisabled" -> offer.reclaimRefusal() != null;
-                case "reclaimLabel" -> reclaimReviewed ? Strings.get("openingWorkshopRestorationConfirmReclamation") : Strings.get("openingWorkshopRestorationReclaimMachinery");
-                case "reclaim" -> reclaim;
                 case "feedback" -> feedback;
                 default -> throw new IllegalArgumentException("Unknown workshop property " + key);
             };

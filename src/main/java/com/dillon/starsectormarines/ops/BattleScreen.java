@@ -684,14 +684,6 @@ public class BattleScreen implements Screen, BattleUiContext {
                 vis.addEphemeralSource((int) Math.floor(body.x), (int) Math.floor(body.y), 24, 0f);
             }
         }
-        // Player recon-ping reveals use the same ephemeral-source seam as shuttles.
-        // The sim owns the ping list + time-to-live; we just project the live
-        // ones into the fog each frame (airLosRadius 0 = walls block, so the
-        // reveal respects line of sight via the existing shadowcast).
-        for (com.dillon.starsectormarines.battle.power.CommandPowerService.ActivePing p
-                : sim.getCommandPowerService().getActivePings()) {
-            vis.addEphemeralSource(p.cellX, p.cellY, p.radius, 0f);
-        }
         // A Bombard's launch gives it away as a muzzle flash does, for a few seconds.
         for (SwarmBombards.Reveal reveal : sim.swarmBombards().launchReveals()) {
             vis.addEphemeralSource(reveal.cellX(), reveal.cellY(), SwarmBombards.LAUNCH_REVEAL_RANGE, 0f);

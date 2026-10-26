@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
-import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
@@ -18,8 +17,8 @@ import java.util.Objects;
  *
  * <p>Fixed power tuning remains in {@link PowerCatalog}; only Mech Support's
  * campaign-configured deployment payload, Ship on Station's frozen ships and
- * the frozen company vehicles of Armour Support (or of Mech Support's bay manifest) cross the fixture boundary, with
- * the company boat a drop power flies with.
+ * the frozen company vehicles of Mech Support's bay manifest cross the fixture
+ * boundary, with the company boat a drop power flies with.
  *
  * @param companyCarrier the committed company boat a drop power flies with, or
  *     {@code null} for the synthetic carrier alone
@@ -64,17 +63,17 @@ public record CommandPowerCommitment(
                 ? mechSupport.deployments() : List.of();
         List<ShipSupportSource> ships = power instanceof ShipOnStation shipPower
                 ? shipPower.sources() : List.of();
-        List<VehicleDeploymentSpec> vehicles = power instanceof VehicleSupport vehicleSupport
-                ? vehicleSupport.deployments()
-                : power instanceof MechSupport mechSupport ? mechSupport.vehicles() : List.of();
+        List<VehicleDeploymentSpec> vehicles = power instanceof MechSupport mechSupport
+                ? mechSupport.vehicles() : List.of();
         FittedBoat carrier = power instanceof MechSupport mechSupport
-                ? mechSupport.companyCarrier()
-                : power instanceof VehicleSupport vehicleSupport
-                ? vehicleSupport.companyCarrier() : null;
+                ? mechSupport.companyCarrier() : null;
         return new CommandPowerCommitment(power.id, deployments, ships, vehicles, carrier);
     }
 
-    /** Rebuilds a fresh runtime power through the production catalog. */
+    /**
+     * Rebuilds a fresh runtime power through the production catalog; {@code null}
+     * for a power since removed from the game.
+     */
     public CommandPower toPower() {
         return PowerCatalog.restore(id, mechDeployments, ships, vehicleDeployments,
                 companyCarrier);

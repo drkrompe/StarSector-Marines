@@ -62,8 +62,8 @@ public final class ShipRefits {
     }
 
     /**
-     * The first reason an order cannot be bought now. Materials are checked
-     * after credits; {@code names} names a short commodity.
+     * The first reason an order cannot be bought now. AI cores are checked
+     * after credits; {@code names} names a short core.
      */
     public static String refusal(RefitOrder order, ShipCondition condition, boolean home, boolean active,
                                  boolean reliefComplete, boolean docked, int credits,
@@ -78,7 +78,7 @@ public final class ShipRefits {
         if (missing != null) return RefitText.lock(missing.getKey(), missing.getValue());
         if (!docked) return Strings.get("openingCompanyShipRestorationDockAtAnAccessiblePlanetarySpaceportFor");
         if (credits < order.price) return Strings.get("openingCompanyShipRestorationInsufficientCredits");
-        for (var need : order.materials().entrySet())
+        for (var need : order.cores().entrySet())
             if (cargo.getOrDefault(need.getKey(), 0) < need.getValue())
                 return Strings.format("openingRefitShortOfMaterial", names.apply(need.getKey()),
                         need.getValue() - cargo.getOrDefault(need.getKey(), 0));
@@ -90,7 +90,7 @@ public final class ShipRefits {
         var fleet = Global.getSector() == null ? null : Global.getSector().getPlayerFleet();
         int credits = fleet == null ? 0 : (int) fleet.getCargo().getCredits().get();
         var cargo = new LinkedHashMap<String, Integer>();
-        for (String commodity : order.materials().keySet())
+        for (String commodity : order.cores().keySet())
             cargo.put(commodity, fleet == null ? 0 : (int) fleet.getCargo().getCommodityQuantity(commodity));
         boolean home = fleet != null && ship != null && roster != null && ship.getId().equals(roster.companyShipId())
                 && fleet.getFleetData().getMembersListCopy().contains(ship);
@@ -106,7 +106,7 @@ public final class ShipRefits {
         if (offer.refusal() != null) return offer.refusal();
         var fleetCargo = Global.getSector().getPlayerFleet().getCargo();
         fleetCargo.getCredits().subtract(order.price);
-        for (var need : order.materials().entrySet()) fleetCargo.removeCommodity(need.getKey(), need.getValue());
+        for (var need : order.cores().entrySet()) fleetCargo.removeCommodity(need.getKey(), need.getValue());
         Global.getSector().getPersistentData().put(KEY + ship.getId() + order.receipt, true);
         ship.updateStats();
         return null;

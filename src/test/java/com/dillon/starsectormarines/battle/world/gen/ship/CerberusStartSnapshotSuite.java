@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.world.gen.ship;
 
-import com.dillon.starsectormarines.testsupport.HeadlessCommodityPresentation;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomFit;
@@ -8,8 +7,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBaySta
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
-import com.dillon.starsectormarines.marine.FabricationCost;
-import com.dillon.starsectormarines.marine.FabricationResources;
+import com.dillon.starsectormarines.marine.TestPurse;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.Rank;
@@ -39,9 +37,7 @@ import java.util.ArrayList;
 import java.util.ArrayDeque;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import java.util.EnumSet;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import org.json.JSONObject;
 
 /** Real hull geometry and complete room program, including varied campaign seeds. */
@@ -247,9 +243,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
                                 UiSnapshotSuite.renderWorkshopRestoration(context, deck,
                                         WorkshopRestorationModel.Row.hidden(), 1f, close)));
                         var row = new WorkshopRestorationModel.Row(new Offer(state, 12000,
-                                state == WorkshopState.EQUIPPED ? "Workshop fully equipped." : null,
-                                state.operational() ? null : "Repair the workshop first.", 2, 10), true, false, "", () -> {}, () -> {}, () -> {},
-                                HeadlessCommodityPresentation.from(context.starsectorCore()));
+                                state == WorkshopState.EQUIPPED ? "Workshop fully equipped." : null), true, "", () -> {}, () -> {});
                         for (float scale : new float[]{1f, 1.5f}) frames.add(new SnapshotArtifact(
                                 "workshop-" + state.name().toLowerCase() + "-" + scale + ".png",
                                 UiSnapshotSuite.renderWorkshopRestoration(context, deck, row, scale)));
@@ -335,17 +329,7 @@ public final class CerberusStartSnapshotSuite implements SnapshotSuite {
         roster.beginCompanyPreparation(sabine);
         BoatDeck boats = roster.boatDeck();
         boats.reconcile("cerberus", ShuttleType.HERMES, 1);
-        Map<String, Integer> stock = new HashMap<>(Map.of("metals", 60, "heavy_machinery", 16, "supplies", 40));
-        var workshop = new BoatWorkshop(boats, new FabricationResources() {
-            @Override public int available(String id) { return stock.getOrDefault(id, 0); }
-            @Override public String commodityName(String id) { return id; }
-            @Override public String commodityIcon(String id) { return ""; }
-            @Override public boolean spend(FabricationCost cost) {
-                if (!canAfford(cost)) return false;
-                for (var line : cost.lines()) stock.compute(line.commodityId(), (id, held) -> held - line.quantity());
-                return true;
-            }
-        });
+        var workshop = new BoatWorkshop(boats, new TestPurse(60_000));
         var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                 new HeadlessBattleSceneRenderer(context.modRoot(), true));
         List<SnapshotArtifact> frames = new ArrayList<>();

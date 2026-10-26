@@ -24,16 +24,17 @@ class CompanyPreparationTest {
         OfficerInduction induction = roster.officerInduction();
         assertEquals(Step.SHIP, induction.step(roster));
         Hold hold = new Hold();
-        for (var line : CompanyPreparation.remainingBill(roster, ShuttleType.AEROSHUTTLE))
-            hold.stock.put(line.commodityId(), line.quantity());
-        assertEquals(Map.of(Commodities.METALS, 60, Commodities.HEAVY_MACHINERY, 15,
-                Commodities.SUPPLIES, 76, Commodities.MARINES, 12, Commodities.FOOD, 24), hold.stock);
-        assertFalse(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 0, hold));
-        hold.stock.put(Commodities.SUPPLIES, 75);
-        assertFalse(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 2, hold));
-        hold.stock.put(Commodities.SUPPLIES, 76);
-        assertTrue(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 2, hold));
-        roster.setCompanyShip("home", "Home", 200);
+        int price = CompanyPreparation.boatPrice(roster, ShuttleType.AEROSHUTTLE);
+        assertTrue(price > 0);
+        for (var line : CompanyPreparation.squadBill(roster)) hold.stock.put(line.commodityId(), line.quantity());
+        TestPurse purse = new TestPurse(price - 1);
+        assertFalse(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 0, purse, hold));
+        assertFalse(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 2, purse, hold));
+        purse.credits = price;
+        hold.stock.merge(Commodities.SUPPLIES, -1, Integer::sum);
+        assertFalse(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 2, purse, hold));
+        hold.stock.merge(Commodities.SUPPLIES, 1, Integer::sum);
+        assertTrue(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 2, purse, hold));        roster.setCompanyShip("home", "Home", 200);
         roster.boatDeck().reconcile("home", ShuttleType.AEROSHUTTLE, 2);
         // The company rides up to Relief on Wayline's truck: Sabine comes straight after the ship.
         assertTrue(roster.boatDeck().flightReady().isEmpty());
@@ -48,17 +49,17 @@ class CompanyPreparationTest {
         var squad = new SquadFoundingWorkshop(roster, hold).foundSquad().squad();
         assertNotNull(squad);
         assertTrue(CompanyPreparation.squadBill(roster).isEmpty());
-        assertEquals(CompanyPreparation.boatBill(roster, ShuttleType.AEROSHUTTLE),
-                CompanyPreparation.remainingBill(roster, ShuttleType.AEROSHUTTLE));
+
         assertEquals(Step.ASSIGNMENT, induction.step(roster));
         roster.assignCaptainToSquad(sabine.id(), squad.id());
         assertEquals(Step.READY, induction.step(roster));
         assertTrue(induction.finish(roster));
         assertTrue(roundTrip(induction).complete());
         // The boat's share of the bill waits for the first-lift lesson after Relief, and funds it exactly.
-        assertTrue(new BoatWorkshop(roster.boatDeck(), hold).fabricate(0).succeeded());
+        assertTrue(new BoatWorkshop(roster.boatDeck(), purse).fabricate(0).succeeded());
+        assertEquals(0, purse.credits);
         assertTrue(hold.stock.values().stream().allMatch(n -> n == 0));
-        assertTrue(CompanyPreparation.remainingBill(roster, ShuttleType.AEROSHUTTLE).isEmpty());
+        assertEquals(0, CompanyPreparation.boatPrice(roster, ShuttleType.AEROSHUTTLE));
     }
 
     @Test void understrengthAssignedSquadCannotFinishAndTransferDoesNotMintBoats() {
@@ -100,19 +101,16 @@ class CompanyPreparationTest {
         }
     }
 
-    private static final class Hold implements FabricationResources, SquadFoundingResources {
+    private static final class Hold implements SquadFoundingResources {
         final Map<String, Integer> stock = new HashMap<>();
         @Override public int available(String id) { return stock.getOrDefault(id, 0); }
         @Override public String commodityName(String id) { return id; }
         @Override public String commodityIcon(String id) { return ""; }
-        @Override public boolean spend(FabricationCost cost) {
+        @Override public boolean spend(SquadFoundingCost cost) {
             if (!canAfford(cost)) return false;
             cost.lines().forEach(l -> stock.merge(l.commodityId(), -l.quantity(), Integer::sum));
             return true;
         }
-        @Override public boolean spend(SquadFoundingCost cost) {
-            return spend(new FabricationCost(cost.lines().stream()
-                    .map(l -> new FabricationCost.Line(l.commodityId(), l.quantity())).toList()));
-        }
     }
 }
+

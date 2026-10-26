@@ -93,7 +93,7 @@ shared mapping instead of assigning paths independently in each screen.
   or owns a second inventory.
 - **Boat Deck** — the shipboard room over the company's ship's boats, standing
   in the hull's own hangars. It presents the deck and refits one boat at a time,
-  mutating nothing except through the cargo-backed boat workshop.
+  mutating nothing except through the credit-backed boat workshop.
 - **Campaign boat** — one persistent, company-owned ship's boat: a stable id, a
   tail name, the pattern it is built on, and one fitting in each of its slots.
   It is the campaign authority that freezes a battle airframe; the sortie flying
@@ -108,7 +108,7 @@ shared mapping instead of assigning paths independently in each screen.
   does not already lift as much. The battle reads every slot (`air-nouns.md`,
   Fitted boat). The emitter's three tiers are the **low-tech, midline and
   high-tech shields**: wider arcs and less flux per blocked hit, each with its
-  own bill and its own look (orange, teal, blue). Planned: art of their own for
+  own price and its own look (orange, teal, blue). Planned: art of their own for
   the energy guns and missile pods, and a tuning pass on the part numbers
   against a matchup run.
 - **Frame** — what a boat can carry in upgrades: every non-standard fitting and
@@ -116,11 +116,11 @@ shared mapping instead of assigning paths independently in each screen.
   The workshop refuses a fit that would take her over it, unless the fit makes her
   lighter, so heavy lift and a fast drive compete with plating and guns.
 - **Boat spare** — a fitting or boat gun in the boat deck's **stores**, counted per
-  part. A spare is built from its bill, or comes off a boat; fitting one takes it
+  part. A spare is bought for its price, or comes off a boat; fitting one takes it
   out of stores. Stores are the company's, not a boat's, so a part moves between
   boats through them and survives a change of ship. The stock parts a boat is built
-  with are spares like any other: they come off into stores, cost a small bill to
-  build, and go back on from there. A part fitted to a lost or left-behind boat
+  with are spares like any other: they come off into stores, cost a small price to
+  buy, and go back on from there. A part fitted to a lost or left-behind boat
   goes with her.
 - **Required part** — a slot a boat cannot fly without: drive, cabin and power,
   as a mech needs its engine and capacitor bank. Any socket can stand empty;
@@ -136,18 +136,36 @@ shared mapping instead of assigning paths independently in each screen.
   bare hull, no shield, empty mounts; amber), then her frame, each line opening the
   socket it is about.
 - **Boat workshop** — the atomic authority over the boats and their stores: it
-  builds a spare from the fleet's hold, fits a spare and stores what came off,
-  strips a part back to stores, moves a gun between hardpoints, recycles a spare,
-  builds a boat into an empty berth, and scraps one out of hers. Only a build spends the hold, which it
-  shares with the Mech Lab rather than owning a second one.
+  buys a spare into stores, fits a spare and stores what came off, strips a part
+  back to stores, moves a gun between hardpoints, recycles a spare, builds a boat
+  into an empty berth, expedites a repair, and scraps a boat out of her berth. Only
+  buying, building and expediting spend, from the company's credits, which it shares
+  with the Mech Lab rather than owning a second purse; they also need a civilized port.
+- **Price** — what a part, gun, boat, chassis, vehicle, kit or repair costs: one
+  credit figure (`FabricationCost`). The workshops once billed supplies, heavy
+  machinery, metals and transplutonics; those bills were converted once at the
+  vanilla base price of each (100, 150, 30 and 200 credits a unit), so the balance
+  stayed where it was. Tooling takes 15% off, rounded up. The Second Wind's
+  Engineering refits are priced the same way. The one thing no price stands in
+  for is an **AI core**: a refit tier that needs an alpha, beta or gamma core still
+  takes it from fleet cargo beside its credits (`RefitOrder.cores`).
+- **Civilized port** — where the company can buy: the fleet docked at a visible,
+  populated colony with a spaceport (disrupted or not) whose owner is not hostile
+  (`CivilizedPort`). Hidden pirate and Pather bases, derelicts, bare worlds and
+  hostile ports are not. Buying a part or a machine, building a boat, refitting
+  with a newly bought part and expediting a repair need one; away from it the
+  rooms say why and BUY refuses (`NO_MARKET`). Fitting, stripping and moving what is
+  already in stores, recycling and scrapping work anywhere, so a company heading
+  into deep space buys its spares first.
 - **Recycling** — breaking one spare in stores (a boat spare, or a Mech Lab weapon,
-  internal or kit) back into the materials it was built from. It is the machine
-  shop's **reclamation** applied to a spare: what comes back is a share of what
-  building that spare costs now, rounded down per line — none while the shop's
-  machinery is down, half once it runs, three quarters once its tooling is in, and
-  all of it once a reclamation line is installed, so a part can be tried for nothing.
+  internal or kit) down for credits. It is the machine shop's **reclamation**
+  applied to a spare: what comes back is a share of what buying that spare costs
+  now, rounded down — none while the shop's machinery is down, half once it runs,
+  three quarters once its tooling is in, and all of it once a reclamation line is
+  installed, so a part can be tried for nothing. The machine shop aboard does the
+  work, so it needs no port.
 - **Scrapped machine** — a boat, mech or vehicle the company broke up to free its
-  berth or gantry. Everything fitted goes to stores, and its **hull** — its bill less
+  berth or gantry. Everything fitted goes to stores, and its **hull** — its price less
   the stock parts it was built with, which came back on their own — returns at the
   shop's recycling rate.
 - **Reserve hangar** — the company's store of whole machines: boats, mechs and
@@ -165,10 +183,10 @@ shared mapping instead of assigning paths independently in each screen.
   lost. They are fallen the same way a marine shot on the ground is fallen and
   roll the same recovery outcome.
 - **Boat fabrication** — the workshop building the hull's own pattern into a
-  vacant berth, at standard fit, for a bill authored per pattern and raised, material
-  by material, to at least what her stock parts cost together (tooling's quote
-  included). Those parts recycle like any spare, so a boat cheaper than her parts
-  would turn materials out of nothing. The player does not choose the pattern,
+  vacant berth, at standard fit, for a price authored per pattern and raised to at
+  least what her stock parts cost together (tooling's quote included). Those parts
+  recycle like any spare, so a boat cheaper than her parts would turn credits out of
+  nothing. The player does not choose the pattern,
   because the hull already has.
 
 ## Surface boundary
@@ -572,7 +590,7 @@ clears that selection and returns to the lance overview rather than acting as a 
 control. The focused workspace gives its three primary regions to the equipment
 catalog, a wide top-down fabrication bay, and the socket rack. Selecting a location
 scopes the equipment catalog. Refittable hardpoints list compatible registered
-assemblies, their finite owned/free count, provenance, capacity, and material bill.
+assemblies, their finite owned/free count, provenance, capacity, and price.
 Fixed cores and ammunition remain inspection-only.
 
 The fabrication bay is a diegetic, flat top-down ship facility rather than a neutral
@@ -607,20 +625,17 @@ the transaction coherent outside the source element, while a movement threshold 
 a click on installed art as socket selection. Green and red footprint previews explain
 the proposed fit without owning mutation.
 Ballistic, energy, missile, and omni are compatibility rules; component slot cost and
-the fabrication bill remain independent constraints. A free owned assembly installs
-directly. If none is free, one atomic campaign command rechecks player cargo, consumes
-the whole bill, adds one finite assembly, and installs it while returning the outgoing
+the price remain independent constraints. A free owned assembly installs
+directly, anywhere. If none is free, one atomic campaign command rechecks the port and
+the company's credits, pays the price, adds one finite assembly, and installs it while returning the outgoing
 assembly to stores. The missile mini-fab retains its existing finite-stock command;
 cores and integral ammunition remain locked.
 
 A vacant gantry presents the three established chassis patterns rather than fake
-equipment controls. A successful commit consumes ordinary fleet cargo and creates a
-persistent campaign mech with stable identity, default doctrine, standard replenisher,
-and its complete standard roll-out fit. It cannot exceed the lance's four physical
-gantries. Material badges resolve names and icon paths through the same shared live
-commodity presentation seam used by Fleet Armory and battle resource readouts—supplies,
-heavy machinery, metals, and rare metals use the artwork that ships with the base game
-rather than copied mod assets.
+equipment controls. A successful commit, at a civilized port, pays the chassis price
+and creates a persistent campaign mech with stable identity, default doctrine, standard
+replenisher, and its complete standard roll-out fit. It cannot exceed the lance's four
+physical gantries. Prices show as one credits row with the credit glyph.
 
 The same selection-and-catalog grammar may serve tanks and future scarce heavy armor.
 Each asset class still supplies its own projection and socket layout, so a shared
@@ -654,8 +669,8 @@ the boat are one selection.
 **Fitting is drag-only, and parts are kept as the Mech Lab keeps them.** The stores
 list every part the boat can take, narrowed by a filter strip of her socket kinds
 (selecting a socket sets it); a card carries its tier, spare count, effect and
-footprint. A card with no spare is greyed with its bill and a BUY that builds one
-into stores. A spare is dragged onto a doll socket, which lights green where it fits
+footprint. A card with no spare is greyed with its price and a BUY that buys one
+into stores; away from a civilized port BUY refuses and the card says why. A spare is dragged onto a doll socket, which lights green where it fits
 and red where it does not. Any fitted part, stock ones and the yard's gun included,
 is lifted off the doll the same way: dropped on the stores it goes back as a spare
 and the socket stands empty, and a gun dropped on another hardpoint moves there. What a fit displaces goes
@@ -671,11 +686,11 @@ and one with none shows the route greyed, exactly as a hull with no vehicle bay
 shows no lab.
 
 **Second Wind starts with two wrecked Hermes, not two usable boats.** The accessible
-wreck is repaired for the first ferry job, Counterattack, using the existing Hermes
-material bill and finite local depot. Relief needs no boat: the company rides up to
+wreck is repaired for the first ferry job, Counterattack, for the Hermes price,
+drawn from the yard credit the local depot holds. Relief needs no boat: the company rides up to
 it on Wayline's truck. The repair is Castle's first-lift lesson between the two
 chapters. Restoring the sealed bay exposes the second wreck; its repair
-is a separate material order. Each original wreck is consumed once by a successful
+is a separate paid order. Each original wreck is consumed once by a successful
 repair. Failed payment leaves it intact, and a later combat loss never recreates it.
 Legacy occupied or previously opened berths are treated as already recovered; the
 still-sealed second berth can retain its original wreck. Other hulls keep ordinary
@@ -684,14 +699,14 @@ renderer; they supply neither lift nor ambient servicing or sorties.
 
 **New companies commission their boats.** A hull supplies the berth count and
 compatible pattern, while a new company's berths start empty. Commissioning
-consumes the authored fabrication bill and creates a standard-fit boat. One
+pays the authored price and creates a standard-fit boat. One
 reusable boat supplies the first ferry job's lift through repeated trips; further
 boats increase simultaneous delivery. Existing owned boats remain intact, and a
 legacy deck without an established ship receives its historical complement once.
 
 **A boat that was shot down is gone.** Reads preserve vacant berths. Moving to
 another hull compacts the survivors but never fills vacancies for free. Every replacement
-requires the ordinary workshop bill, creates a new identity at standard fit, and
+requires the ordinary workshop price, creates a new identity at standard fit, and
 never recovers the destroyed aircraft's installed fittings.
 
 **A damaged survivor is grounded while the crew repairs it.** Recovery begins at
@@ -705,17 +720,17 @@ The original wrecked Hermes and sealed facilities remain separate paid restorati
 
 Boat Deck anchors a hull-condition bar and recovery clock to the actual berth;
 clicking that marker selects the aircraft. The side panel holds retained fittings
-and the paid repair bill. Grounded
+and the paid repair price. Grounded
 boats stay visible on their berths but neither ambient flights nor mission lift can
 use them. Briefing explains the next recovery when all company lift is grounded;
 launch rechecks that committed aircraft still exist and are airworthy. Paused UI time
-is not campaign time. Returning to campaign and waiting requires no repair materials,
+is not campaign time. Returning to campaign and waiting requires no credits,
 docking or restored workshop.
 
-**Expedite repairs buys back the remaining wait.** Each material costs half its
-standard replacement quantity times the remaining damage fraction, rounded up, with
-existing workshop tooling applied to the quote. The order completes that boat now
-and retains identity and fittings. Time can lower a reviewed bill; a changed job or
+**Expedite repairs buys back the remaining wait.** It costs half her replacement
+price times the remaining damage fraction, rounded up, with existing workshop tooling
+applied to the quote, and needs a civilized port. The order completes that boat now
+and retains identity and fittings. Time can lower a reviewed price; a changed job or
 increased price requires review, and failed payment changes nothing. The shared
 Available strip stays separate from Cost and Short by. Destruction takes precedence
 over recovery and replacement never inherits the lost aircraft's upgrades.
@@ -762,16 +777,11 @@ event somebody has to remember to fire on a transfer, and one authority
 (`ShipsBoatsAboard.reconcile`) knows what feeding it means; the room decides
 only when.
 
-**A fitting is installed work, not a spare.** Plating is welded on and a drive
-is built in, so unlike a mech's components there is no finite stock, nothing
-returns to stores, and the outgoing fitting is scrapped. That is the one
-deliberate departure from the mech component model and it is a fact about what a
-fitting is rather than a shortcut past inventory: the catalog rows carry a
-material bill and an affordability reason, and no owned-versus-free count,
-because there is nothing to count. The room header keeps a compact live stock
-strip for the shared fabrication materials, separate from the selected fitting's
-or boat's cost rows. Material badges resolve through the same shared commodity
-presentation the Fleet Armory and the Mech Lab use.
+**Every part is a counted spare** (Boat spare): a card carries its price and an
+affordability reason beside its spare count. The room header keeps a compact live
+stock strip of the company's credits and whether the fleet is at a civilized port,
+separate from the selected part's or boat's price row; the Mech Lab's strip is the
+same.
 
 **A hardpoint carries a gun, fitted per hardpoint.** A boat has as many
 hardpoints as its pattern and each holds one gun from the yard's boat-gun catalog,
@@ -783,7 +793,7 @@ bound by a slot's type; the frame's weight is the limit. A hardpoint nobody has
 refitted carries the pattern's air-to-ground kit for that mount, and putting that
 yard gun back is free; on the Hermes that is a heavy MG on her first turret and the
 other two **bare**. Stripping a gun puts the yard's own back, which on a bare
-turret leaves it bare. Any other gun is installed work with a bill, like a
+turret leaves it bare. Any other gun is a spare with a price, like a
 fitting. The gun stands on the hull's turret slots before its fixed hardpoints, so
 the place the doll rings is the place the battle mounts and fires it from, and a
 company boat's gun fires only through its slot's arc: the Hermes's stern gun
@@ -796,9 +806,9 @@ within her frame. The
 Boat Deck shows the frame as a meter (weight / rating) and every part's weight on
 its card and sheet.
 
-A failed fit changes nothing but the room's feedback line — neither the boat nor
-the hold — because the workshop rechecks affordability at the commit and spends
-the whole bill before installing anything.
+A failed fit or purchase changes nothing but the room's feedback line — neither the
+boat nor the purse — because the workshop rechecks the port and the credits at the
+commit and pays the whole price before installing anything.
 
 **Presentation conveys the deck; it does not own it.** The picture is the ship's
 own hangar drawn by the deck scene, and the boats in it are the aircraft the bay
@@ -822,8 +832,9 @@ individual orders. Each resource is its icon and its exact, grouped quantity, wi
 no written name: the credit glyph and the base game's cargo icons are the
 vocabulary the player already reads everywhere else. Columns are bounded,
 including for holdings in the millions. The strip includes the resources
-that room can actually draw; named ready reserves remain a separate personnel
-count. Fleet cargo and the opening depot keep their existing access and earmarking
+that room can actually draw — the Boat Deck and Mech Lab draw only credits, and
+add a port line (docked: buying open, or no port: fit only); named ready reserves
+remain a separate personnel count. Fleet cargo and the opening depot keep their existing access and earmarking
 rules. Engineering reclamation uses fleet cargo, never the preparation depot.
 
 An order shows **Cost** for each charged resource and **Short by** only for a
@@ -844,21 +855,20 @@ use the same cost vocabulary and point to the stock display in the relevant room
 ### Recycling
 
 The workshop authority owns recycling as one transaction: it rechecks the spare and
-the shop's rate, credits the hold, and only then takes the spare out of stores, so a
-fleet with no hold keeps its spare and a refusal changes nothing. Only a counted spare
-is recycled: a fitted part is lifted off to stores first. A spare whose share rounds
-to nothing on every line offers no RECYCLE.
+the shop's rate, pays the credits into the purse, and only then takes the spare out of
+stores, so a refusal changes nothing. Only a counted spare is recycled: a fitted part
+is lifted off to stores first. A spare whose share rounds to nothing offers no RECYCLE.
 
 The share is of today's quote, tooling and the spares rack included, so a recycle can
 never return more than a rebuild would spend. The rate follows the home ship's machine
 shop (`machine-shop-restoration.md`): buried or cleared, no recycling and no button;
 repaired machinery, half; installed tooling, three quarters; the reclamation line, the
 whole quote. A hull outside the restoration chain runs its shop as built, at half.
-Recovered materials go aboard the fleet hold, never a depot.
+Recycled credits go to the company's purse, never a depot.
 
 Scrapping a whole machine follows the same rate. A boat's SCRAP sits in the Boat
 Deck's stage heading beside the berth, as the lab's does over a pad, and takes the
-same two presses. `BoatWorkshop.scrap` checks the hold first, strips every fitting and
+same two presses. `BoatWorkshop.scrap` checks the purse first, strips every fitting and
 gun to stores through the ordinary strip, credits the hull, and leaves the berth
 vacant; a shop that cannot recycle still breaks her up, for her parts alone. A mech's
 hull is its chassis quote less the frame's plating and any factory-locked gun, which
@@ -956,12 +966,11 @@ navigation follows current designation and deck readiness while the screen remai
 open: no ship, preparing, and available/missing rooms are live states. Actions
 recheck availability when clicked, including after a later hull transfer.
 
-Ship confirmation checks quarters, at least one compatible boat berth and the
-combined remaining cargo bill for one boat and one full twelve-person squad.
-The bill is derived from the existing fabrication and founding catalogs, with
-shared commodities summed. Compatible owned lift and an already complete ready
-squad reduce the remaining bill. Cost, Available and Short by are shown before
-confirmation, which rechecks the hold. Selection spends nothing; each subsequent
+Ship confirmation checks quarters, at least one compatible boat berth, the
+remaining credits for one boat and the remaining stores for one full twelve-person
+squad. Both derive from the existing fabrication and founding catalogs. Compatible
+owned lift and an already complete ready squad reduce what remains. Cost, Available
+and Short by are shown before confirmation, which rechecks the purse and the hold. Selection spends nothing; each subsequent
 workshop order consumes its own bill. Following the lesson needs no market trip.
 Deliberately pausing to spend or sell those stores elsewhere can still create a
 shortfall; the lesson never manufactures resources or overrides a workshop refusal.
@@ -1514,19 +1523,20 @@ and lifts the suspension, so a dialog torn down without its dismissal cannot lea
 campaign silent.
 
 A `PreparationDepot` is a finite prepaid consignment at the planet that converted
-this start's Cerberus. Its contents derive from one Hermes recipe and one standard
-squad-founding bill. It is issued once, saved independently of cargo, and never
+this start's Cerberus: yard credit for one Hermes, at her price, and one standard
+squad-founding bill of stores. It is issued once, saved independently of cargo, and never
 loaded wholesale into the small ship's hold. `WorkshopStores` combines cargo with
 that depot only while interacting with its accessible working planetary port,
-checks the whole order, then consumes local stock before cargo. The existing
+checks the whole order, then consumes local credit or stock before the company's own. The existing
 fabrication and squad-founding adapters share that authority. New Second Wind starts
 earmark the first Hermes and first squad bills separately: boat jobs cannot consume
 the squad's stores, and other workshop jobs cannot consume either allocation.
-Preparation draws the squad's bill. The Hermes bill stays at the depot through
+Preparation draws the squad's bill. The Hermes credit stays at the depot through
 Relief and is drawn by the first-lift lesson, while docked there, before
 Counterattack.
 Preparation preflight can inspect both allocations but cannot spend them. Legacy
-depots keep their existing remaining stock and unrestricted spending policy.
+depots keep their existing remaining stock and unrestricted spending policy; the boat
+materials they still held become yard credit at the conversion prices (Price).
 The depot does not replenish
 on reload or on another conversion; unused stock remains at its planet. Ordinary
 starts and saves receive none. Equipment fitting is free; enlistment retains its personnel cargo authority. Castle explains the local stores; workshop labels use available
@@ -1537,7 +1547,7 @@ step. Re-entering through the company shortcut, mission board, or a direct room
 link resumes the required step derived from the saved company: ship, Sabine,
 formation, then assignment. After Relief the first-lift lesson resumes the same
 way from the saved boat deck until a seated boat is airworthy or Counterattack is
-won, and sends the company back to the depot when the Hermes parts are ashore. HQ may present the same guided handoff. Required
+won, and sends the company back to the depot when the Hermes credit is ashore. HQ may present the same guided handoff. Required
 preparation does not interrupt an active battle, settlement, or developer mission.
 If a remaining order needs reserved stores that are currently ashore, Castle names
 their depot planet and offers Return to Depot, plotting its course and closing the
@@ -1553,7 +1563,7 @@ Engineering, on the sealed hangar, with the repair's Cost / Available / Short by
 review followed by explicit payment; its company notice opens Engineering on that
 room. Boat Deck only says the bay is sealed and where it is restored. The yard price includes labor and structural materials.
 Repair exposes the second Hermes wreck; making it airworthy still requires the ordinary
-Hermes material bill. This spending is optional and does not gate subsequent missions.
+Hermes price. This spending is optional and does not gate subsequent missions.
 
 **While the Second Wind is away the company has no home to open.** She is never
 lost for good (`ship-interiors-nouns.md`), but while the company lives aboard her
@@ -1576,19 +1586,16 @@ affects boat and mech jobs.
 The same hull's machine shop has a three-step restoration chain after Relief.
 Clearance costs 750 credits, includes a pressure patch before the hatch reopens,
 and recovers 10 metals once; machinery repair costs
-3,000 and enables reclamation of one fleet-cargo heavy machinery into four
-metals, and recycling of stored spares and scrapped machines at half their bill;
-installed tooling costs 4,500, raises that recycling to three quarters, and reduces supplies inputs for Boat Deck
-and Mech Lab fabrication/fitting by 20%, rounded up with a minimum of one per
-supplies line. Other commodities, equipment capabilities, known patterns, squad
-issue and yard credit bills do not receive this benefit. A reclamation line, the
-fourth stage, costs 7,500 and recycles at the whole bill. Existing preparation
+3,000 and enables recycling of stored spares and scrapped machines at half their price;
+installed tooling costs 4,500, raises that recycling to three quarters, and takes 15%
+off Boat Deck and Mech Lab prices, rounded up. Equipment capabilities, known patterns,
+squad issue and yard credit bills do not receive this benefit. A reclamation line, the
+fourth stage, costs 7,500 and recycles at the whole price. Existing preparation
 services remain available before restoring the workshop.
 
 Paid stages require the original hull to be the active company home and an
-accessible planetary spaceport. Reclamation works underway once machinery is
-restored, uses actual cargo rather than prepaid depot stores, and requires room
-for its output. Installed tools belong to the hull; portable tools are a separate
+accessible planetary spaceport. Recycling works underway once machinery is
+restored. Installed tools belong to the hull; portable tools are a separate
 future inventory concern. Each order rechecks its reviewed stage, current home,
 funds and prerequisites. Inspection and changing screens spend nothing.
 
@@ -1713,11 +1720,10 @@ unchanged room. A core brought up from Deficit changes only the deck's
 dressing, so it needs no curtain: it is paid as the camera arrives and plays
 as a dressing wave across the running deck, which the reveal waits out. Each tier is its
 own reviewed yard order under the same home, dock, Relief and funds rechecks, and
-the receipts stay with the hull. Beyond credits, most tiers take materials out of
-fleet cargo (metals for structure and plating, heavy machinery for plant and
-drive, transplutonics for flux and sensors), shown as icon rows with Short by.
-The strongest tiers take an AI core as a hard requirement; colony items never go
-into the ship. Other hulls are neutral on every track.
+the receipts stay with the hull. A tier's price is credits, its old materials
+folded in at the conversion prices (Price). The strongest tiers also take an AI
+core from fleet cargo as a hard requirement, shown as an icon row with Short by;
+colony items never go into the ship. Other hulls are neutral on every track.
 
 Five reserved compartments (range, gym, sick bay, lounge, brig) open by their
 facility track's Restored order. A sealed one is neutral, so opening one is
