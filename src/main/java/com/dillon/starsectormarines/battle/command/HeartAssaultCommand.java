@@ -176,6 +176,32 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         return mother.key().equals(pushingOn) || friendsNear >= ALLIES_TO_PUSH;
     }
 
+    /**
+     * {@code -Dbattle.heart.helpStranded=false} is the control: its own satellites down, the company falls back to its
+     * landing and holds there while any satellite stands. On, it goes to the nearest satellite still standing
+     * ({@link #stranded}). Temporary: remove with the losing arm once the owner has seen it and the Broad Front pool has
+     * been read against it (2026-10-25, the well-found company on four maps: the control stood at its landing unaware
+     * from about tick 12000 to the cap while flank satellites stood; on, town arid 3 was won with all 24 marines, and
+     * satellites down at the cap went from 15 of 20 to 16).
+     */
+    public static final String HELP_STRANDED_PROPERTY = "battle.heart.helpStranded";
+    private static final boolean HELP_STRANDED = !"false".equalsIgnoreCase(System.getProperty(HELP_STRANDED_PROPERTY));
+
+    /** The living satellite nearest {@code (x, y)}, whichever lane's it is, or {@code null} when none stands. */
+    static KnownBore stranded(List<KnownBore> bores, float x, float y) {
+        KnownBore best = null;
+        double bestDistance = Double.MAX_VALUE;
+        for (KnownBore bore : bores) {
+            if (!bore.living() || bore.mother()) continue;
+            double distance = Math.hypot(bore.x() - x, bore.y() - y);
+            if (distance < bestDistance) {
+                best = bore;
+                bestDistance = distance;
+            }
+        }
+        return best;
+    }
+
     /** Whether any satellite still stands. */
     static boolean satelliteStanding(List<KnownBore> bores) {
         for (KnownBore bore : bores) if (bore.living() && !bore.mother()) return true;
@@ -205,6 +231,12 @@ public final class HeartAssaultCommand implements AutonomousMissionCommand<Heart
         KnownBore target = target(frame.bores, cx, cy);
         int tick = frame.tick();
         boolean waiting = waitForSatellites && target != null && target.mother() && satelliteStanding(frame.bores);
+        // Its own satellites down, the company takes one the lanes have left standing rather than wait at its landing.
+        KnownBore help = waiting && HELP_STRANDED ? stranded(frame.bores, cx, cy) : null;
+        if (help != null) {
+            target = help;
+            waiting = false;
+        }
         // Every satellite down, the company goes in on a mother with the lanes, not ahead of them.
         if (waitForSatellites && !waiting && target != null && target.mother()) {
             if (goesIn(target, frame.friendsNear(target), pushingOn)) pushingOn = target.key();

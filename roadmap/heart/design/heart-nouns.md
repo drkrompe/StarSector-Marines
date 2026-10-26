@@ -419,6 +419,12 @@ told only to defend a cell far behind it fought where it stood). When the last o
    one seed; falling back won every seed. The company is the spearhead onto
    its satellite and the backstop after.
 
+   **It helps the lanes** (`battle.heart.helpStranded`, on trial). The well-found
+   company that falls back stood unaware at its landing for half the battle while
+   flank satellites the lanes could not take stood to the cap. So, its own
+   satellites down, it goes to the nearest one still standing, whichever lane's
+   it is, and to the mothers only when none does. Off, it falls back as above.
+
    Controls: `-Dbattle.heart.broadStrength=false`, `-Dbattle.heart.broadFormUp=0`,
    `-Dbattle.heart.broadCompanyArmour=false`, `-Dbattle.heart.broadWaitForLanes=false`
    and `-Dbattle.heart.broadFallBack=false`. Measured on seeds 202-606:
