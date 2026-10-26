@@ -24,6 +24,8 @@ Updated: 2026-10-25 — the brood spire's patrols: three off a quiet, full roost
 
 Updated: 2026-10-25 — a fed body slides into the mouth, sinks and is swallowed with a gulp.
 
+Updated: 2026-10-25 — the Bombard's sound: a wind-up groan and creaks, the whip, the burst, and a stinging haze hiss.
+
 Updated: 2026-10-25 — the skitterer's own sound: patter, squeak, and a placed work loop.
 
 Updated: 2026-10-25 — the nest: a crescent mouth, roots to its growths, the spire's roost; the skitterer, the nests' worker strain.
@@ -1332,7 +1334,9 @@ not read in a soft shadow at play zoom.
   penetration does not reach (a rifle's half, a squad automatic's two thirds, an
   anti-materiel rifle's or a heavy cannon's none), and a stripped body turns
   nothing. The Brute wears and shows its hits by the same law, on each half of
-  its body and its head. The `rav-wear` look suite shows both.
+  its body and its head. The `rav-wear` look suite shows both. The Bombard, which
+  has no plate, shows every round as an ichor puff, and its shell wears by the
+  same law.
 - **Harrier** — the swarm's flier, a winged strain that hunts in **packs** of
   six to twenty (`SwarmFliers`, `HarrierPack`). It is the swarm's answer to a line it cannot walk through: the ground
   swarm is channelled by ridges, passes, wire and redoubts, and a flier is not.
@@ -2244,6 +2248,21 @@ or an outpost it makes a soft wet working sound (the fissure's scratching
 ambience, raised): a loop placed on the seen workers at work nearest the
 camera, two at most, the second quieter by the crowd rule, so a busy nest
 murmurs and never drones. Everything it makes sits a few dB under a Runner.
+The Bombard (`BombardAudio`) is heard by its lob, deeper than the Spitter, a
+Brute's size or more, and read off what the battle shows (its wind-up, its
+glob's shot leaving and arriving, its death, the standing hazes) so its
+simulation stays silent. As its tail curls it strains: a slow swelling groan
+the length of the wind-up (the bore's growth) and four chitin creaks over it
+(the Runner's clatter, deep) that tighten as the curl goes, so a throw is heard
+coming. The throw is a whip and a crack, its one short take of its own, cut
+from a Matriarch reap's whoosh, a clatter knock and a Spitter lob's wet slap;
+it is heard where the launch gives the Bombard away even through fog. Where the
+glob lands it pops, soft, heavy and wet (a spore vent's puff, low, over a body
+thud), and a Bombard killed bursts its sac the same way, quieter and lower.
+Under a standing haze is a low spore hiss, its other take, a seamless loop cut
+from the vent's hissing cloud: placed on the two seen hazes nearest the camera,
+each keeping its loop while it stays among them, swelling briefly at each
+sting and fading as the haze thins.
 
 **The swarm sits in the fight, not over it** (owner, 2026-10-25). Every
 creature sound's level is set from its take's measured loudness against the
@@ -2253,7 +2272,9 @@ LUFS: a Runner's cry, bite, pain and death and the Harrier's near -25, a
 Brute's a few dB heavier, its charge tell over the guns so a charge is heard
 coming, the Matriarch, the one boss, -15 to -21, and footfalls well under,
 since many bodies make them. The skitterer's squeak sits near -30 and its
-death -28, its drag -35, each work loop -36 and its patter -39. A Runner clutch's claw-up sits near
+death -28, its drag -35, each work loop -36 and its patter -39. The Bombard's
+wind-up, a tell, sits near -27 with its creaks a little under, its whip and
+burst near -27, a death burst -32, and one standing haze -38, -33 at a sting. A Runner clutch's claw-up sits near
 -28, three bodies' and the Matriarch's -26, and the surge they come up under
 -22, a one-off a little over the guns. A spire's launch sums near -23, by a Harrier
 screech; its collapse, a big one-off, near -19. The anti-air flak that meets them is a little
@@ -2317,7 +2338,8 @@ argument.
   is real.
 - **Strains by tier.** Which strains spawn is a function of the bore's tier and
   the director's budget, deterministic under the battle seed. A maw may draw a
-  Bombard (`bombard.md`), at a small weight and at most one living per bore.
+  Bombard (`bombard.md`), at a small weight, at most one living per bore and
+  three across the battle, at the bores nearest the line (`BombardQuota`).
 - **A flier pack flies only over a map that can answer it.** A mission
   releases a Harrier pack only where the marines or an ally have anti-air on
   the map: a seated gun that answers fliers (an anti-air position, or any gun

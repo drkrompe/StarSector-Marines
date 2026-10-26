@@ -284,6 +284,14 @@ duty stands, rather than being re-chosen each frame.
     could not get there) bars that squad from asking for a minute, and one called
     off bars it for twenty seconds. Read as `company lifts N asked, N granted, N
     set down` in the line command's readings.
+11. **Who walks, and who is taken off.** A duty that walks with people or
+    fetches them (a convoy's escort, a beat such as the stragglers) takes the
+    nearest free infantry before any machine: a machine keeps to the roads and
+    cannot lead anyone out, so it goes only where no infantry is free. A squad
+    walking to its duty that has not closed ten cells of the way in thirty
+    seconds, while still more than twelve cells off, has stalled: the duty goes
+    to the next nearest, and the stalled squad is kept off that duty for a
+    minute. A squad on its duty, or riding to it, never stalls.
 
 ### Handing work between them
 

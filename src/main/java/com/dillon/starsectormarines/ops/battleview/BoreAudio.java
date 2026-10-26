@@ -168,7 +168,7 @@ public final class BoreAudio {
     }
 
     /**
-     * How a clutch claws up: pitched by its heaviest body (the Matriarch deep and slow, a Brute lower, a skitterer
+     * How a clutch claws up: pitched by its heaviest body (the Matriarch deep and slow, a Bombard and a Brute lower, a skitterer
      * light and quick) and a little louder the more bodies break out together ({@code n^1/4}), the Matriarch louder
      * still.
      */
@@ -184,6 +184,7 @@ public final class BoreAudio {
     static float pitch(UnitType type) {
         return switch (type) {
             case SWARM_MATRIARCH -> 0.7f;
+            case SWARM_BOMBARD -> 0.8f;
             case SWARM_BRUTE -> 0.84f;
             case SWARM_SPITTER -> 0.94f;
             case SWARM_WORKER -> 1.25f;

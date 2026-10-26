@@ -1,0 +1,26 @@
+{
+  "mixedFrom": [
+    {
+      "take": "marines_breach_matriarch_reap_2.mp3",
+      "sourceCommit": "b3b420fb0",
+      "sourceAudioSha256": "eef3a07e62dd9c1822ab6a604b068749618ee5746b80f3205af67512914010e2"
+    },
+    {
+      "take": "marines_breach_runner_clatter_1.mp3",
+      "sourceCommit": "85c28261e",
+      "sourceAudioSha256": "0e52917fb90321c01c0ed29a9c7ed83c9e86bad3c658dfb98877bbf335725929"
+    },
+    {
+      "take": "marines_breach_spitter_lob_1.mp3",
+      "sourceCommit": "c7a8b5e1b",
+      "sourceAudioSha256": "bd624a95f40346d086bcb0ddaa5e360b8efd914b44d5fc75832aea260d8e83b5"
+    }
+  ],
+  "sourceRequestId": null,
+  "filterComplex": "[0:a]aformat=sample_rates=44100:channel_layouts=mono,atrim=0:0.36,asetpts=PTS-STARTPTS,asetrate=57330,aresample=44100,afade=t=in:d=0.01,volume=-6dB,afade=t=out:st=0.14:d=0.09[whoosh];[1:a]aformat=sample_rates=44100:channel_layouts=mono,atrim=0.09:0.15,asetpts=PTS-STARTPTS,asetrate=39690,aresample=44100,highpass=f=300,volume=22dB,afade=t=out:st=0.03:d=0.035,adelay=190[crack];[2:a]aformat=sample_rates=44100:channel_layouts=mono,atrim=0.04:0.30,asetpts=PTS-STARTPTS,asetrate=35280,aresample=44100,volume=-12dB,adelay=210[slap];[whoosh][crack][slap]amix=inputs=3:normalize=0:duration=longest,atrim=0:0.48,afade=t=out:st=0.34:d=0.14,volume=-10.80dB,alimiter=limit=0.9:level=false",
+  "note": "The Bombard's release (bombard.md): its tail whipping over (a Matriarch reap's whoosh, quicker), the sling's hinge cracking over (one Runner clatter knock, raised), the glob's wet slap as it leaves (a Spitter lob's hawk, lower). Mixed and trimmed from shipped takes, not generated.",
+  "integratedLufs": -25.2,
+  "audioSha256": "3068c6dcd226837531d3315bb0172ab0fba2e7633df887c8c1bf82b2b2f896ee",
+  "durationSeconds": 0.48,
+  "outputFormat": "mp3_44100_128"
+}
