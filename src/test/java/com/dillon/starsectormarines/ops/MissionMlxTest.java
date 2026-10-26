@@ -57,8 +57,9 @@ class MissionMlxTest {
             assertTrue(instance.requireElement("tier-veteran").disabled());
             assertFalse(instance.requireElement("tier-reinforced").disabled());
             assertTrue(instance.requireElement("tier-full").hasClass("selected"));
-            // Each officer's squads are field-inset tiles; the officer's portrait is in their hover.
-            instance.requireElement("briefing-info-tf-1-squad-0");
+            // Ninety-odd squads: the whole ones stack into one tile, the short-handed keep their own.
+            instance.requireElement("briefing-field-squad-stack");
+            instance.requireElement("briefing-info-tf-1-squad-23");
             assertEquals("graphics/portraits/portrait_mercenary01.png",
                     instance.requireElement("captain-preview-icon").imageSource());
             instance.requireElement("mission-debug-controls");

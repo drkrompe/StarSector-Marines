@@ -616,27 +616,67 @@ final class BriefingViewModel {
         }
     }
 
-    /** One squad tile in the field inset: its three fire teams of four, as the Barracks draws them. */
-    record SquadPicture(String id, SquadMuster muster, SpecSheet hint) implements MarkupPropertySource {
+    /**
+     * One squad tile in the field inset: its three fire teams of four, as the Barracks draws them. A stack
+     * ({@code count} above one) stands for that many full-strength squads under one muster and a multiplier.
+     */
+    record SquadPicture(String id, SquadMuster muster, SpecSheet hint, int count) implements MarkupPropertySource {
+        SquadPicture(String id, SquadMuster muster, SpecSheet hint) {
+            this(id, muster, hint, 1);
+        }
+
         @Override public Object markupProperty(String property) {
             return switch (property) {
-                case "id" -> id; case "classes" -> "field-tile console-readout";
+                case "id" -> id;
+                case "classes" -> "field-tile console-readout" + (count > 1 ? " field-tile-stack" : "");
                 case "musterId" -> id + "-muster"; case "musterClasses" -> "field-muster";
                 case "dollId" -> id + "-doll"; case "bricksId" -> id + "-bricks"; case "liftId" -> id + "-lift";
                 case "weightId" -> id + "-weight"; case "warnId" -> id + "-warn"; case "warnImageId" -> id + "-warn-image";
                 case "dollClasses", "bricksClasses", "liftClasses", "warnClasses" -> "field-absent";
+                case "countId" -> id + "-count";
+                case "countClasses" -> count > 1 ? "label heading tone-edge field-count" : "field-absent";
+                case "count" -> count > 1 ? Strings.format("briefingVmSquadStackCount", count) : "";
                 default -> null;
             };
         }
     }
 
-    /** Every squad the officer cards lead, flat, in officer order: the field inset's squad tiles. */
+    /** Above this many squads the full-strength ones stack into one tile; only the damaged stand alone. */
+    static final int SQUAD_STACK_ABOVE = 9;
+
+    /**
+     * The field inset's squad tiles, in officer order. Past {@link #SQUAD_STACK_ABOVE} squads every
+     * full-strength squad folds into one stacked tile up front, so the wounded and short-handed stay in view.
+     */
     static List<SquadPicture> fieldSquads(Map<String, Object> props) {
         List<SquadPicture> squads = new ArrayList<>();
         for (Object value : (List<?>) props.getOrDefault("taskForceRows", List.of())) {
             squads.addAll(((ForceCard) value).squads());
         }
-        return List.copyOf(squads);
+        return stackSquads(squads);
+    }
+
+    static List<SquadPicture> stackSquads(List<SquadPicture> squads) {
+        if (squads.size() <= SQUAD_STACK_ABOVE) return List.copyOf(squads);
+        List<SquadPicture> whole = new ArrayList<>();
+        List<SquadPicture> tiles = new ArrayList<>();
+        for (SquadPicture squad : squads) {
+            if (squad.muster().woundedCount() == 0 && squad.muster().vacantCount() == 0) whole.add(squad);
+            else tiles.add(squad);
+        }
+        if (whole.size() < 2) return List.copyOf(squads);
+        // The hover counts the stack per officer; ninety names would bury it.
+        Map<String, Integer> byOfficer = new LinkedHashMap<>();
+        for (SquadPicture squad : whole) {
+            String officer = squad.hint() == null ? "" : squad.hint().subtitle();
+            byOfficer.merge(officer, 1, Integer::sum);
+        }
+        List<String> notes = byOfficer.entrySet().stream()
+                .map(entry -> Strings.format("briefingVmSquadStackOfficer", entry.getKey(), entry.getValue())).toList();
+        tiles.add(0, new SquadPicture("briefing-field-squad-stack", whole.get(0).muster(), new SpecSheet(
+                Strings.format("briefingVmSquadStackTitle", whole.size()), Strings.get("briefingVmSquadStackDetail"),
+                null, "command", List.of(), notes), whole.size()));
+        return List.copyOf(tiles);
     }
 
     /** The field inset's tiles: every squad, then every bay machine. */
