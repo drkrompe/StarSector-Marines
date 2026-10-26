@@ -729,11 +729,13 @@ def slung(run, mother, t0, launch_off=(-8.0, 0.0, -12.0)):
 # Their run threads S6d's frame (owner, 2026-10-26: "this hound attempting to do a holding action, and some of
 # them slipping through"; S6d's camera stays): out of the background behind the Hounds (P) and by her, well
 # beyond and to the side of her fight, never across her path ("they should fly by"), then on to brake onto
-# the Tarsus's beams by 86 s. Points in the battle frame, found by placing them in S6d's frame.
-K3B_KITE_RUN = {'kite-p-a': [(72.0, (-2600, -870, -260)), (74.0, (-2353, -803, -197)), (76.5, (-2045, -726, -118)),
-                             (78.6, (-1923, -597, -119)), (83.3, (-900, 120, 50)), (86.0, K3B_KITE_A[:3])],
-                'kite-p-b': [(72.3, (-2900, -800, -380)), (74.3, (-2646, -767, -319)), (76.8, (-2239, -786, -211)),
-                             (78.9, (-2038, -679, -178)), (83.6, (-980, -20, 10)), (86.0, K3B_KITE_B[:3])]}
+# the Tarsus's beams by 86 s. Points in the battle frame, found by placing them in S6d's frame, timed by
+# distance at a steady 190 m/s until she brakes onto her station (uneven times stalled kite-p-a mid-shot,
+# and at a crawl her nose swung through 50 degrees: owner, "the most strange nose dive").
+K3B_KITE_RUN = {'kite-p-a': [(72.94, (-2600, -870, -260)), (74.33, (-2353, -803, -197)), (76.05, (-2045, -726, -118)),
+                             (77.4, (-1850, -560, -100)), (83.6, (-900, 120, 50)), (86.0, K3B_KITE_A[:3])],
+                'kite-p-b': [(72.45, (-2900, -800, -380)), (73.84, (-2646, -767, -319)), (76.06, (-2239, -786, -211)),
+                             (77.64, (-1980, -640, -160)), (83.9, (-980, -20, 10)), (86.0, K3B_KITE_B[:3])]}
 
 
 def through(pts, v0=None, v1=(0.0, 0.0, 0.0)):
