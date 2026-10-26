@@ -47,6 +47,13 @@ public final class SwarmBombards {
         float scale = 1f;
         /** The creep cell it is walking back to, or -1 for none chosen. */
         int creepX = -1, creepY = -1;
+        /** The enemy it has seen and stays turned to, and the tick until which it stays engaged; 0 for none. */
+        long foe;
+        int engagedUntil = -1;
+        /** Ticks it has stood planted and reloaded with nothing in reach while engaged. */
+        int idleTicks;
+        /** The creep cell it is moving to so the enemy comes into reach, or -1 for none. */
+        int goalX = -1, goalY = -1;
         /** The bore it came from, or {@code null} for one placed on the field. */
         SwarmBore bore;
     }

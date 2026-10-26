@@ -128,19 +128,24 @@ public final class LoadingPressureLookSuite implements SnapshotSuite {
     }
 
     private void log(BattleSimulation sim, long seed, float t, Loading loading, BorePressure pressure, float tx, float ty) {
-        int bodies = 0, near = 0, marines = 0;
+        int bodies = 0, near = 0, marines = 0, others = 0, crew = 0;
+        for (long c : loading.building().crew()) if (sim.getRoster().isLive(c)) crew++;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long body = sim.liveUnitAt(i);
             String name = sim.identity().name(body);
             if (name == null) continue;
             if (name.startsWith("loading-guard-")) marines++;
-            if (!pressure.fighter(sim, body)) continue;
+            if (!pressure.fighter(sim, body)) {
+                if (sim.role().role(body) == UnitRole.SWARM_PRESSURE
+                        && Math.hypot(sim.world().x(body) - tx, sim.world().y(body) - ty) <= NEAR) others++;
+                continue;
+            }
             bodies++;
             if (Math.hypot(sim.world().x(body) - tx, sim.world().y(body) - ty) <= NEAR) near++;
         }
-        System.out.printf(Locale.ROOT, "[%s] seed %d t=%3.0f %s %d/%d aboard, bore %s, %d bore bodies (%d steered, %d near truck), %d guards%n",
+        System.out.printf(Locale.ROOT, "[%s] seed %d t=%3.0f %s %d/%d aboard, bore %s, %d bore bodies (%d steered, %d near truck), %d other swarm near truck, %d crew, %d guards%n",
                 id(), seed, t, loading.phase(), loading.delivered(), loading.target(),
-                pressure.opened() ? "open" + borePlace(sim) : "shut", bodies, pressure.steering(), near, marines);
+                pressure.opened() ? "open" + borePlace(sim) : "shut", bodies, pressure.steering(), near, others, crew, marines);
     }
 
     private static String borePlace(BattleSimulation sim) {

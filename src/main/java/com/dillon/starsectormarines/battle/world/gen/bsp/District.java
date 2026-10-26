@@ -56,6 +56,12 @@ public final class District {
         FREIGHT_YARD,
         /** Workshops along a private service lane gated onto the streets (industrial zone). */
         FACTORY_ROW,
+        /**
+         * A workshop on the works street, the factory row laid along the district's own street where no row
+         * stands on its ground: its loading doors open onto the street, which is the row's lane between its
+         * boom gates (industrial zone).
+         */
+        WORKSHOP,
         /** A warehouse whose loading doors face the street across a dock apron (industrial zone). */
         WAREHOUSE,
         /** A walled farm of fluid tanks gated onto the street (industrial zone). */

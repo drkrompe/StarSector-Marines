@@ -32,6 +32,8 @@ import java.util.Set;
  *   <li>{@code melee}: the same squad, unarmed and sturdy, with Brutes on it from the start. It plants and holds
  *       its fire: it never lobs a haze that would cover a melee.</li>
  *   <li>{@code off-creep}: no creep anywhere. It never plants and never fires.</li>
+ *   <li>{@code stays-engaged}: a long strip of creep, the line beyond its reach but in sight. It stays turned to the
+ *       line, moves along the creep to a spot that brings the line into reach, plants and lobs.</li>
  *   <li>{@code inside-minimum-range}: a rifle squad close in. It is never lobbed on; the rifles kill the
  *       Bombard, and its sac bursts into a last small haze where it falls.</li>
  * </ul>
@@ -50,8 +52,12 @@ public final class BombardScene implements BehaviorScene {
     private static final int ROW_Y = 27;
     private static final int LINE_X = 46;
     private static final int CLOSE_X = 24;
+    /** The stays-engaged line, beyond its reach from where it plants first, and the run it needs to move and lob. */
+    private static final int FAR_X = 72;
+    private static final int ENGAGED_TICKS = 2100;
 
-    private static final List<String> LOOPS = List.of("standing-line", "melee", "off-creep", "inside-minimum-range");
+    private static final List<String> LOOPS = List.of("standing-line", "melee", "off-creep", "inside-minimum-range",
+            "stays-engaged");
 
     @Override public String id() { return "bombard"; }
 
@@ -72,9 +78,10 @@ public final class BombardScene implements BehaviorScene {
 
     private SceneReport playOne(String loop, FrameSink frames) {
         boolean close = loop.equals("inside-minimum-range");
+        boolean far = loop.equals("stays-engaged");
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false).seed(20261025L);
-        var squad = builder.squad("line").faction(Faction.MARINE).size(6).at(close ? CLOSE_X : LINE_X, ROW_Y)
-                .stationary();
+        var squad = builder.squad("line").faction(Faction.MARINE).size(6)
+                .at(close ? CLOSE_X : far ? FAR_X : LINE_X, ROW_Y).stationary();
         if (loop.equals("melee")) squad.unarmed().health(5000f);
         else squad.primary("weapon.field-rifle").health(close ? 400f : 2000f);
         squad.done();
@@ -87,21 +94,26 @@ public final class BombardScene implements BehaviorScene {
         }
         if (!loop.equals("off-creep")) {
             sim.creepField().putSource(1L, BOMBARD_X, ROW_Y, new CreepGrowth(6f, 6f));
+            // a strip of creep running toward the line, for it to move along
+            for (int i = 1; far && i <= 3; i++) {
+                sim.creepField().putSource(1L + i, BOMBARD_X + 10 * i, ROW_Y, new CreepGrowth(6f, 6f));
+            }
             sim.matureCreep();
         }
         var spec = SwarmStrains.spec("Bombard", UnitType.SWARM_BOMBARD, BOMBARD_X, ROW_Y);
         if (!close) spec.health(5000f);
         long bombard = sim.spawn(spec);
         Trace trace = new Trace(world, bombard);
+        int ticks = far ? ENGAGED_TICKS : TICKS;
         SceneRun.of(world).observe(trace)
                 .frames(frames, loop, FRAME_EVERY_TICKS, tick -> String.format(Locale.ROOT,
                         "bombard / %s / tick %d / %s / globs %d / hazes %d", loop, tick, trace.phase(sim),
                         sim.swarmBombards().globsLanded(), sim.smokeFields().activeHazes().size()))
-                .run(TICKS);
-        return report(loop, trace, sim);
+                .run(ticks);
+        return report(loop, trace, sim, ticks);
     }
 
-    private SceneReport report(String loop, Trace t, BattleSimulation sim) {
+    private SceneReport report(String loop, Trace t, BattleSimulation sim, int ticks) {
         int globs = sim.swarmBombards().globsLanded();
         List<Verdict> verdicts = new ArrayList<>();
         switch (loop) {
@@ -141,6 +153,16 @@ public final class BombardScene implements BehaviorScene {
                         sim.swarmBombards().deathBursts() == 1 && t.hazeAtCorpse,
                         sim.swarmBombards().deathBursts() + " death bursts, haze at the corpse: " + t.hazeAtCorpse));
             }
+            case "stays-engaged" -> {
+                verdicts.add(Verdict.of("it-stayed-turned-to-the-line", t.facedLineTicks > 0,
+                        t.facedLineTicks + " planted ticks reloaded with its target on the line (wanted some)"));
+                verdicts.add(Verdict.of("it-moved-to-a-new-firing-spot", t.relocatedTick > t.firstPlantedTick,
+                        "first planted at tick " + t.firstPlantedTick + ", planted again at least "
+                                + SwarmBombardBehavior.RELOCATE_MIN_CELLS + " cells on at tick " + t.relocatedTick));
+                verdicts.add(Verdict.of("then-it-lobbed-on-the-line", t.relocatedTick >= 0
+                                && t.firstGlobTick > t.relocatedTick && t.hazesOnTheLine > 0,
+                        "first glob landed at tick " + t.firstGlobTick + ", " + t.hazesOnTheLine + " hazes on the line"));
+            }
             default -> { }
         }
         Map<String, Number> metrics = new LinkedHashMap<>();
@@ -154,7 +176,9 @@ public final class BombardScene implements BehaviorScene {
         metrics.put("lineInHazeSamples", t.lineInHazeSamples);
         metrics.put("revealedTicks", t.revealedTicks);
         metrics.put("deathTick", t.deathTick);
-        return new SceneReport(id(), loop, TICKS, verdicts, metrics);
+        metrics.put("facedLineTicks", t.facedLineTicks);
+        metrics.put("relocatedTick", t.relocatedTick);
+        return new SceneReport(id(), loop, ticks, verdicts, metrics);
     }
 
     /** Reads the Bombard's stance, the globs as they land, and every haze that stands. */
@@ -174,6 +198,9 @@ public final class BombardScene implements BehaviorScene {
         float lineHpLost;
         int lineInHazeSamples;
         int revealedTicks;
+        int facedLineTicks;
+        int relocatedTick = -1;
+        private float firstPlantX = Float.NaN, firstPlantY;
         private int lastGlobs;
         private int lastGlobTick = -1;
         private float corpseX, corpseY;
@@ -203,7 +230,25 @@ public final class BombardScene implements BehaviorScene {
                 }
                 corpseX = w.x(bombard);
                 corpseY = w.y(bombard);
-                if (bombards.planted(bombard) && firstPlantedTick < 0) firstPlantedTick = tick;
+                if (bombards.planted(bombard) && firstPlantedTick < 0) {
+                    firstPlantedTick = tick;
+                    firstPlantX = w.x(bombard);
+                    firstPlantY = w.y(bombard);
+                }
+                if (bombards.planted(bombard) && relocatedTick < 0 && !Float.isNaN(firstPlantX)
+                        && Math.hypot(w.x(bombard) - firstPlantX, w.y(bombard) - firstPlantY)
+                        >= SwarmBombardBehavior.RELOCATE_MIN_CELLS) {
+                    relocatedTick = tick;
+                }
+                long target = sim.combat().targetId(bombard);
+                if (bombards.planted(bombard) && !bombards.windingUp(bombard) && target != 0L) {
+                    for (long id : line) {
+                        if (id == target) {
+                            facedLineTicks++;
+                            break;
+                        }
+                    }
+                }
                 if (bombards.windingUp(bombard) && firstWindupTick < 0) firstWindupTick = tick;
             } else if (deathTick < 0) {
                 deathTick = tick;

@@ -22,6 +22,12 @@ class SwarmAudioTest {
         assertTrue(SwarmAudio.stepped(UnitType.SWARM_RUNNER, 0.9f, 0.1f));
     }
 
+    @Test void aBombardStepsAsItsTripodLandsButNotOnFirstSight() {
+        assertTrue(SwarmAudio.landed(3, 4));
+        assertFalse(SwarmAudio.landed(4, 4));
+        assertFalse(SwarmAudio.landed(Float.floatToRawIntBits(Float.NaN), 4));
+    }
+
     @Test void takingUpABodyLatchesAndHaulingItDrags() {
         assertEquals(SwarmAudio.Sound.BODY_LATCH, SwarmAudio.sound(SwarmCues.Kind.DRAG, UnitType.SWARM_RUNNER));
         assertEquals(SwarmAudio.Sound.BODY_DRAG, SwarmAudio.footfall(UnitType.SWARM_RUNNER, 1, true));
