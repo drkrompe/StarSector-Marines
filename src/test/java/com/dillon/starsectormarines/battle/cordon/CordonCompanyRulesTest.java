@@ -95,6 +95,39 @@ class CordonCompanyRulesTest {
     }
 
     @Test
+    void aBeatSendsInfantryBeforeANearerMachine() {
+        List<Duty> duties = CordonCompanyRules.duties(List.of(), List.of(), List.of(), List.of(new int[]{200, 300, 1}), null);
+        List<Squad> squads = List.of(new Squad(0, 200, 160, null, true, null), new Squad(1, 260, 130, null, false, null));
+        assertEquals(Map.of(1, duties.get(0)), CordonCompanyRules.assign(duties, squads, 0));
+        assertEquals(Map.of(0, duties.get(0)), CordonCompanyRules.assign(duties,
+                List.of(squads.get(0), new Squad(2, 300, 130, null, true, null)), 0));
+    }
+
+    @Test
+    void aSquadBarredFromItsDutyHandsItToTheNextNearest() {
+        List<Duty> duties = CordonCompanyRules.duties(List.of(), List.of(), List.of(), List.of(new int[]{200, 300, 1}), null);
+        List<Squad> squads = List.of(new Squad(0, 200, 290, "beat-0", false, "beat-0"), new Squad(1, 260, 130, null));
+        assertEquals(Map.of(1, duties.get(0)), CordonCompanyRules.assign(duties, squads, 0));
+    }
+
+    @Test
+    void aWalkingSquadStallsOnlyWhenItStopsClosingTheWay() {
+        CordonCompanyRules.Progress progress = new CordonCompanyRules.Progress();
+        int stall = CordonCompanyRules.STALL_TICKS;
+        assertFalse(progress.stalled(1, "beat-0", 90, false, 0));
+        assertFalse(progress.stalled(1, "beat-0", 85, false, stall - 1));
+        assertTrue(progress.stalled(1, "beat-0", 85, false, stall));
+        // Closing the way, standing on the duty or riding to it each start the watch afresh.
+        assertFalse(progress.stalled(2, "beat-0", 90, false, 0));
+        assertFalse(progress.stalled(2, "beat-0", 70, false, stall - 1));
+        assertFalse(progress.stalled(2, "beat-0", 70, false, 2 * stall - 2));
+        assertFalse(progress.stalled(3, "relieve-1", 5, false, 0));
+        assertFalse(progress.stalled(3, "relieve-1", 5, false, 3 * stall));
+        assertFalse(progress.stalled(4, "beat-0", 90, true, 0));
+        assertFalse(progress.stalled(4, "beat-0", 90, true, 3 * stall));
+    }
+
+    @Test
     void urbanWaitsAsTwoHammersAndTheTownAtItsHinge() {
         List<int[]> line = List.of(new int[]{100, 100}, new int[]{200, 100}, new int[]{300, 100}, new int[]{400, 100});
         List<int[]> hammers = CordonCompanyRules.reservePosts(CordonPlan.Density.URBAN, line, 250, 130, 6, false);
