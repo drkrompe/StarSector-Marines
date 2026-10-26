@@ -1385,12 +1385,16 @@ public final class UnitRenderService implements RenderSystem {
                 }
                 if (deadBombardArt != null && ravRigs != null && ravRigs[r] instanceof RavBombardRig deadBombard
                         && deadBombard.dead()) {
-                    // A dead Bombard has burst as a Spitter does, over the same blood.
+                    // A dead Bombard falls apart over the Runner's blood, its sac rupturing in a last flash.
                     LayeredSpriteCache[] splat = ravArt != null ? ravArt.splat : null;
                     LayeredSpriteCache drop = ravArt != null ? ravArt.drop : null;
-                    RavBombardComposer.emitDead(out, deadBombardArt, splat, drop, deadBombard,
-                            cam.cellToScreenX(deadBombard.bodyX()), cam.cellToScreenY(deadBombard.bodyY()),
-                            cam.cellPxSize() * deadBombard.scale() * shrink, alpha);
+                    float bx = cam.cellToScreenX(deadBombard.bodyX()), by = cam.cellToScreenY(deadBombard.bodyY());
+                    float ppc = cam.cellPxSize() * deadBombard.scale() * shrink;
+                    RavBombardComposer.emitDead(out, deadBombardArt, splat, drop, deadBombard, bx, by, ppc, alpha);
+                    if (deadBombard.glow() > 0.01f) {
+                        sprites.ensureEngineFxSprites();
+                        RavBombardComposer.emitGlow(out, sprites.engineGlowSprite(), deadBombard, bx, by, ppc, alpha);
+                    }
                     continue;
                 }
                 RavRunnerRig ravRig = ravArt != null && ravRigs != null && ravRigs[r] instanceof RavRunnerRig dead

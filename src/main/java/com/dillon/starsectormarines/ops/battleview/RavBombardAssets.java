@@ -8,8 +8,8 @@ import java.util.function.Function;
 
 /**
  * The Bombard's parts, exported by {@code art-source/rav-redesign/artillery/export_bombard_rig.py}: each side's legs,
- * the shell over the sac, the tail in slices from the root, the sling and the glob, all head-up. A dead Bombard bursts
- * into these same parts.
+ * the shell over the sac, the tail in slices from the root, the sling and the glob, all head-up; and the shell cut in two
+ * down its seam, which a dead Bombard cracks open into.
  */
 public final class RavBombardAssets {
 
@@ -20,24 +20,30 @@ public final class RavBombardAssets {
     final LayeredSpriteCache body;
     final LayeredSpriteCache sling;
     final LayeredSpriteCache glob;
+    final LayeredSpriteCache shellL;
+    final LayeredSpriteCache shellR;
     final LayeredSpriteCache[] tail = new LayeredSpriteCache[RavBombardRig.TAIL_ART_SLICES];
 
     private RavBombardAssets(LayeredSpriteCache legsL, LayeredSpriteCache legsR, LayeredSpriteCache body,
-                             LayeredSpriteCache sling, LayeredSpriteCache glob) {
+                             LayeredSpriteCache sling, LayeredSpriteCache glob, LayeredSpriteCache shellL,
+                             LayeredSpriteCache shellR) {
         this.legsL = legsL;
         this.legsR = legsR;
         this.body = body;
         this.sling = sling;
         this.glob = glob;
+        this.shellL = shellL;
+        this.shellR = shellR;
     }
 
     /** Every sprite through loader, or null when any is missing, so the Bombard keeps its stand-in art. */
     public static RavBombardAssets load(Function<String, LayeredSpriteCache> loader) {
         RavBombardAssets assets = new RavBombardAssets(loader.apply(ROOT + "legs-l.png"),
                 loader.apply(ROOT + "legs-r.png"), loader.apply(ROOT + "body.png"), loader.apply(ROOT + "sling.png"),
-                loader.apply(ROOT + "glob.png"));
+                loader.apply(ROOT + "glob.png"), loader.apply(ROOT + "shell-l.png"),
+                loader.apply(ROOT + "shell-r.png"));
         if (assets.legsL == null || assets.legsR == null || assets.body == null || assets.sling == null
-                || assets.glob == null) {
+                || assets.glob == null || assets.shellL == null || assets.shellR == null) {
             return null;
         }
         for (int i = 0; i < assets.tail.length; i++) {
@@ -55,6 +61,8 @@ public final class RavBombardAssets {
         all.add(body);
         all.add(sling);
         all.add(glob);
+        all.add(shellL);
+        all.add(shellR);
         for (LayeredSpriteCache t : tail) all.add(t);
         return all;
     }

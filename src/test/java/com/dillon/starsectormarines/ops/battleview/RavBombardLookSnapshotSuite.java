@@ -24,22 +24,24 @@ import java.util.function.Function;
  * The Bombard's look, large enough to judge: its skeleton ({@link RavBombardRig}) stepped every tick and drawn through
  * the production {@link RavBombardComposer}, so this is exactly what the battle draws, magnified. No battle is played.
  * Three panels: walking (the legs and the swaying tail), the lob as the battle stages it (walking in, planting, the
- * wind-up curling the tail over the back, the whip that throws the glob, the settle), and its death: standing, then
- * bursting over the Runner's blood. A sheet of the lob's beats and one of the death's go with the GIF. The sac's
+ * wind-up arching the tail over the back, the whip that throws the glob, the settle, then uprooting and walking off),
+ * and its death: winding up, then falling apart over the Runner's blood. A sheet of the lob's beats and one of the death's go with the GIF. The sac's
  * additive glow is drawn by the battle's light pass and is not shown here. 1920x1080 at 100% scale, one frame per
  * simulation tick.
  */
 public final class RavBombardLookSnapshotSuite implements SnapshotSuite {
 
     private static final float DT = 1f / 30f;
-    private static final int TICKS = 240;
+    private static final int TICKS = 360;
     /** Screen px per cell: about seven times the game's normal battle zoom. */
     private static final float PPC = 170f;
     /** The lob panel's script, seconds: walking in, planting ({@code SwarmBombards}' plant), winding up, the release. */
     private static final float PLANT_AT = 0.5f, PLANT_SECONDS = 3f, WINDUP_SECONDS = 3f;
     private static final float RELEASE_AT = PLANT_AT + PLANT_SECONDS + WINDUP_SECONDS;
-    /** The tick the dying Bombard dies on, and the death sheet's beats after it, seconds. */
-    private static final int DEATH_TICK = 20;
+    /** When it uproots, after the release, and walks off once it has. */
+    private static final float UPROOT_AT = RELEASE_AT + 2f, WALK_OFF_AT = UPROOT_AT + PLANT_SECONDS;
+    /** The tick the dying Bombard dies on, most of the way through a wind-up, and the death sheet's beats after it, s. */
+    private static final int DEATH_TICK = 75;
     private static final float[] DEATH_BEATS = {0.12f, 0.35f, 0.8f, 2.45f};
     private static final RavWear.Marks NO_MARKS = (part, slots, index, x, y, w, h, angle, alpha) -> { };
     private final Map<String, BufferedImage> images = new HashMap<>();
@@ -84,17 +86,19 @@ public final class RavBombardLookSnapshotSuite implements SnapshotSuite {
             walkY += (float) Math.cos(rad) * 1.1f * DT;
             walker.advance(walkX, walkY, facing, 0f, 0f, 0f, DT);
 
-            if (t < PLANT_AT) lobY += 1.1f * DT;
-            float planted = t < PLANT_AT ? 0f : Math.min(1f, (t - PLANT_AT) / PLANT_SECONDS);
+            if (t < PLANT_AT || t >= WALK_OFF_AT) lobY += 1.1f * DT;
+            float planted = t < PLANT_AT || t >= WALK_OFF_AT ? 0f : t >= UPROOT_AT ? 1f - (t - UPROOT_AT) / PLANT_SECONDS
+                    : Math.min(1f, (t - PLANT_AT) / PLANT_SECONDS);
             float windup = t < PLANT_AT + PLANT_SECONDS || t >= RELEASE_AT ? 0f
                     : (t - PLANT_AT - PLANT_SECONDS) / WINDUP_SECONDS;
             cooldown = Math.max(0f, cooldown - DT);
             if (t >= RELEASE_AT && t - DT < RELEASE_AT) cooldown = 8f;   // the battle resets the cooldown as it throws
             lobber.advance(0f, lobY, 0f, cooldown, windup, planted, DT);
-            String beat = t < PLANT_AT ? "walking in" : planted < 1f ? "planting" : windup > 0f ? "winding up"
+            String beat = t < PLANT_AT ? "walking in" : t >= WALK_OFF_AT ? "walking off"
+                    : t >= UPROOT_AT ? "uprooting" : planted < 1f ? "planting" : windup > 0f ? "winding up"
                     : t < RELEASE_AT + 0.25f ? "the whip: the glob thrown" : "settled, planted";
 
-            if (tick < DEATH_TICK) dying.advance(0f, 0f, 20f, 0f, 0f, 1f, DT);
+            if (tick < DEATH_TICK) dying.advance(0f, 0f, 20f, 0f, Math.min(1f, t / 2.8f), 1f, DT);
             else dying.advanceDead(0f, 0f, DT);
 
             BufferedImage output = canvas();
@@ -103,10 +107,10 @@ public final class RavBombardLookSnapshotSuite implements SnapshotSuite {
             text(g, "1920 × 1080 · 100%% UI scale · production RavBombardComposer · %.0f px per cell · tick %d"
                     .formatted(PPC, tick), 40, 86, 17);
             for (int p = 0; p < 3; p++) panel(g, 40 + p * 620, 600);
-            text(g, "Walking: legs %+.0f°, tail %+.0f°".formatted(walker.legSwing(), walker.tailAngle(6)), 50, 1050, 15);
+            text(g, "Walking: legs %+.0f°, tail %+.0f°".formatted(walker.legSwing(true), walker.tailYaw(6)), 50, 1050, 15);
             text(g, "Lob: %s · plant %.2f, wind-up %.2f, curl %.2f".formatted(beat, planted, windup, lobber.curl()),
                     670, 1050, 15);
-            text(g, dying.dead() ? "Dead: burst, %.1f s".formatted(dying.burst().sinceDeath()) : "About to die",
+            text(g, dying.dead() ? "Dead: fallen apart, %.1f s".formatted(dying.sinceDeath()) : "Winding up, about to die",
                     1290, 1050, 15);
             draw(g, art, walker, 340, 640);
             draw(g, art, lobber, 960, 640);
@@ -123,7 +127,7 @@ public final class RavBombardLookSnapshotSuite implements SnapshotSuite {
                 lastLobBeat = beat;
             }
             if (tick == DEATH_TICK - 1 || nextDeathBeat < DEATH_BEATS.length && dying.dead()
-                    && dying.burst().sinceDeath() >= DEATH_BEATS[nextDeathBeat]) {
+                    && dying.sinceDeath() >= DEATH_BEATS[nextDeathBeat]) {
                 if (dying.dead()) nextDeathBeat++;
                 deathFrames.add(output);
             }
@@ -132,7 +136,7 @@ public final class RavBombardLookSnapshotSuite implements SnapshotSuite {
         artifacts.add(SnapshotArtifact.colorAnimation("bombard-look.gif", frames, 33));
         artifacts.add(new SnapshotArtifact("bombard-lob-beats.png", sheet("THE LOB", lobFrames, lobBeats, 660)));
         artifacts.add(new SnapshotArtifact("bombard-death.png", sheet("DEATH", deathFrames,
-                List.of("alive", "the burst", "pieces in the air", "landing", "settled"), 1280)));
+                List.of("winding up", "the sac ruptures", "the shell cracks", "the tail falls", "settled"), 1280)));
         return artifacts;
     }
 

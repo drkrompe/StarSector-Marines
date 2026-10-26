@@ -1334,7 +1334,9 @@ not read in a soft shadow at play zoom.
   penetration does not reach (a rifle's half, a squad automatic's two thirds, an
   anti-materiel rifle's or a heavy cannon's none), and a stripped body turns
   nothing. The Brute wears and shows its hits by the same law, on each half of
-  its body and its head. The `rav-wear` look suite shows both.
+  its body and its head. The `rav-wear` look suite shows both. The Bombard, which
+  has no plate, shows every round as an ichor puff, and its shell wears by the
+  same law.
 - **Harrier** — the swarm's flier, a winged strain that hunts in **packs** of
   six to twenty (`SwarmFliers`, `HarrierPack`). It is the swarm's answer to a line it cannot walk through: the ground
   swarm is channelled by ridges, passes, wire and redoubts, and a flier is not.

@@ -10,17 +10,26 @@ import com.dillon.starsectormarines.battle.unit.SwarmStage;
  * reads it back.
  *
  * <p>The rig frame is the body's own, in cells, centred on the sim position (the master's {@link #ANCHOR_ROW}): x to
- * the right, y forward. On the move its legs scuttle, each side swinging about its hip against the other, advanced by
- * distance travelled so it walks rather than paddles. Planting, the legs splay a little and set. Standing, the tail
- * lies almost straight out behind and sways.
+ * the right, y forward, z up. On the move its legs scuttle, each side swinging about its hip against the other,
+ * advanced by distance travelled so it walks rather than paddles. Standing, the tail lies almost flat out behind and
+ * sways.
  *
- * <p>The lob is the catapult's. Winding up ({@code windup} 0 to 1 over the sim's wind-up) the tail curls slice by slice
- * up over the back, rising toward the camera as it goes, until the sling hangs over the shell with the glob glowing in
- * it, as the master's left frame draws it, and the sac brightens. When the cooldown jumps back up the glob has gone:
- * the tail whips through its arc and past straight, then settles.
+ * <p>Planting is a dig: through the sim's plant the legs stamp outward into the creep, side against side, the body
+ * dipping at each stroke and sinking lower, and it settles with a slight bounce once set. Uprooting is the same in
+ * reverse: the legs heave free and the body rises, overshooting a little as it stands. The body's height, its lurch
+ * and its rock are springs, so every change of weight settles rather than snaps.
  *
- * <p>Dead, it bursts as a Spitter does ({@link RavBurst}): the shell slumps and the tail comes away in one or two
- * lengths, over a pool of blood. (The sim bursts its sac into a last haze; that is the haze's to draw.)
+ * <p>The lob is the catapult's. Winding up ({@code windup} 0 to 1 over the sim's wind-up) the tail arches up off the
+ * ground and over the back, rising toward the camera and leaning to one side as the master's left frame draws it, until
+ * the sling hangs over the shell with the glob glowing in it; the body crouches back on its hind legs and, held at full
+ * draw, trembles, while the sac brightens. When the cooldown jumps back up the glob has gone: the tail whips down flat
+ * behind and its end lashes from side to side as it settles; the body lurches forward and rocks, the legs brace, and
+ * the sac, emptied, flares and goes dull, filling again through the reload.
+ *
+ * <p>Dead, it falls apart its own way: the sac ruptures in a last amber flash, the shell cracks open down its seam and
+ * its halves part, the legs buckle out flat and the body drops between them, and the tail collapses to the ground and
+ * flops to one side, over a pool of blood ({@link RavBurst}, which here only spills it). The haze the sim bursts from
+ * the sac is the haze's to draw.
  *
  * <p>Built on the approved G1 design, its parts exported by
  * {@code art-source/rav-redesign/artillery/export_bombard_rig.py}.
@@ -33,6 +42,8 @@ public final class RavBombardRig {
     public static final float ANCHOR_ROW = 445f, CENTRE_COL = 1078f;
     /** Canvas centres of the exported boxes: the body, and each side's legs. */
     public static final float BODY_ROW = 440f, LEGS_ROW = 455f, LEGS_L_COL = 939f, LEGS_R_COL = 1217f;
+    /** Canvas columns of the shell halves' centres, cut down the seam for the death. */
+    public static final float SHELL_L_COL = 1006f, SHELL_R_COL = 1150f;
     /** Canvas points each side's legs swing about: its hip, under the shell's flank. */
     public static final float HIP_ROW = 455f, HIP_L_COL = 1000f, HIP_R_COL = 1156f;
     /** The exported tail slices, root to sling. */
@@ -44,47 +55,75 @@ public final class RavBombardRig {
     /** The tail's joints: one per slice, then the sling's hinge. */
     public static final int TAIL_SEGMENTS = TAIL_ART_SLICES + 1;
 
-    /** The wound-up curl, each joint's bend off the one before it at full wind-up (degrees, counter-clockwise). */
-    static final float[] CURL = {12f, 26f, 30f, 32f, 32f, 32f, 28f};
-    /** How far toward the camera a fully curled slice rises: its draw scale over its art. */
-    static final float RISE = 0.22f;
-    /** The curl standing, and its slow sway, of full curl, and Hz. */
-    static final float REST_CURL = 0.08f, SWAY = 0.03f, SWAY_HZ = 0.3f;
-    /** The whip: past straight by this much curl, over this long, then settling over this long. */
-    static final float WHIP = -0.35f, WHIP_SECONDS = 0.12f, SETTLE_SECONDS = 0.7f;
+    /** The wound-up arch: each joint's lift off the one before it at full wind-up, degrees, root to sling. */
+    static final float[] PITCH = {30f, 45f, 40f, 35f, 30f, 20f, 10f};
+    /** At full wind-up the arch leans to one side, as the master's tail lies along the shell's flank: degrees. */
+    static final float[] LEAN = {8f, 5f, 2f, 0f, 0f, 0f, 0f};
+    /** How much larger a slice draws per cell it stands off the ground, toward the camera. */
+    static final float PERSPECTIVE = 1.3f;
+    /** The curl standing, and the tail's slow sway, degrees per joint, and Hz. */
+    static final float REST_CURL = 0.04f, SWAY_DEG = 1.5f, SWAY_HZ = 0.3f;
+    /** The whip: down flat over this long, then the tail's end lashing this far side to side as it settles. */
+    static final float WHIP_SECONDS = 0.12f, SETTLE_SECONDS = 0.9f, LASH_DEG = 9f, LASH_HZ = 2.6f;
     private static final float RESET_JUMP = 0.3f;
 
     /** The scuttle: cells walked per leg cycle, each side's swing, degrees, and how far the body bobs, cells. */
     private static final float STRIDE = 0.55f, LEG_SWING = 7f, BOB = 0.015f;
     private static final float MOVE_BELOW = 0.08f, MOVE_FULL = 0.8f;
-    /** Planted, the legs splay out this much wider. */
-    static final float SPLAY = 0.06f;
+    /** Planted, the legs splay out this much wider and the body sits this much lower, as a share of its size. */
+    static final float SPLAY = 0.18f, SINK = 0.1f;
+    /** The dig: stamps per side over a plant or an uproot, how far a stamp throws a side's legs out, and dips the body. */
+    static final float DIG_STAMPS = 3f, DIG_SPLAY = 0.15f, DIG_DIP = 0.05f, DIG_SWING = 9f;
+    /** At full draw the body crouches back this far (cells) and this much lower, and trembles past {@link #TREMBLE_FROM}. */
+    static final float CROUCH_BACK = 0.04f, CROUCH_SINK = 0.02f, TREMBLE_FROM = 0.8f, TREMBLE = 0.006f;
+    /** The throw's kick: the body's forward speed (cells/s), its press down (share/s), its rock (deg/s), the brace. */
+    static final float KICK_LURCH = 1.4f, KICK_PRESS = 0.9f, KICK_ROCK = 60f, BRACE = 0.06f, BRACE_SECONDS = 0.6f;
+    /** The springs the body's height, lurch and rock settle on: stiffness (1/s^2) and damping (1/s). */
+    private static final float SPRING_K = 140f, SPRING_C = 8f;
     /** The sac's glow: at rest, its pulse, and what the wind-up adds. */
     private static final float GLOW_REST = 0.25f, GLOW_PULSE = 0.12f, GLOW_WINDUP = 0.75f;
+    /** Emptied by the throw the sac goes this dull and refills over this long; the shell narrows this much with it. */
+    static final float EMPTIED = 0.85f, REFILL_SECONDS = 5f, SQUEEZE = 0.03f;
+
+    /** Dead: the rupture's flash fades over this; the shell cracks this far apart (cells each side) and turns out. */
+    static final float RUPTURE_SECONDS = 0.6f, CRACK_AT = 0.06f, CRACK_SECONDS = 0.35f, CRACK_CELLS = 0.05f,
+            CRACK_DEG = 5f;
+    /** Dead: the body drops this much, the legs buckle this much wider and splay this far each, degrees. */
+    static final float SLUMP = 0.07f, BUCKLE = 0.16f, BUCKLE_DEG = 7f;
+    /** Dead: the tail falls over this long and lies bent to one side by these, degrees per joint. */
+    static final float COLLAPSE_SECONDS = 0.45f;
+    static final float[] LIMP = {6f, 8f, 9f, 9f, 8f, 7f, 5f};
 
     private float bodyX, bodyY, facingDeg;
     private boolean started;
     private float stride, motion, time;
     private float lastCooldown = Float.NaN;
     private float sinceFling = Float.MAX_VALUE;
-    private float curl, flingFrom, windup, plant, legSwing, bob, glow;
+    private float curl, flingFrom, windup, plant, plantRaw = Float.NaN, legSwing, bob, glow;
+    private float digSplayL, digSplayR, digSwing;
+    private float emptied;
+    /** The springs: the body's height (share of its size), its lurch forward (cells) and its rock (degrees). */
+    private float lift, liftV, lurch, lurchV, rock, rockV;
+    private float tremble;
 
-    /** The pose points a dead Bombard bursts from: the tail's joints root to sling, then the body. */
-    public static final int BODY_POINT = TAIL_SEGMENTS + 1;
     private static final int POINTS = TAIL_SEGMENTS + 2;
-    /** What a Bombard bursts into: the body (legs and shell), the near half of the tail, the far half and sling. */
-    public static final int PIECE_BODY = 0, PIECE_TAIL = 1;
-    /** Tail joints per burst piece. */
-    public static final int SLICES_PER_PIECE = 4;
+    /** The pose point a dead Bombard spills from: the body. */
+    public static final int BODY_POINT = TAIL_SEGMENTS + 1;
     private static final int[][] PIECE_POINTS = {{0, BODY_POINT}, {0, 1, 2, 3, 4}, {4, 5, 6, 7}};
-    private static final int[] PIECE_PARENT = {-1, PIECE_BODY, PIECE_BODY};
-    private static final int[] LOOSE_CANDIDATES = {PIECE_TAIL, PIECE_TAIL + 1};
+    private static final int[] PIECE_PARENT = {-1, 0, 0};
+    private static final int[] LOOSE_CANDIDATES = {1, 2};
     private static final float POOL_CELLS = 2.2f;
-    private static final float TAIL_Z = 0.15f, BODY_Z = 0.45f;
+    private static final float BODY_Z = 0.45f;
 
     private final long seed;
     private boolean dead;
-    private final float[] tail = new float[TAIL_SEGMENTS];
+    private float sinceDeath, curlAtDeath, flopSide;
+    private final float[] lashAtDeath = new float[TAIL_SEGMENTS];
+    private final float[] deadLegSwing = new float[2];
+    /** Each joint's yaw off the facing (degrees) and the tail's points root to sling, x y z in the rig frame. */
+    private final float[] yaw = new float[TAIL_SEGMENTS];
+    private final float[] lash = new float[TAIL_SEGMENTS];
+    private final float[] tail = new float[(TAIL_SEGMENTS + 1) * 3];
     private final float[] pose = new float[POINTS * 3];
     private final RavBurst burst = new RavBurst(PIECE_POINTS, 1, PIECE_PARENT, LOOSE_CANDIDATES, POOL_CELLS);
 
@@ -108,18 +147,13 @@ public final class RavBombardRig {
     /** The stage's draw scale against the adult ({@link SwarmStage#scale}). */
     public float scale() { return scale; }
 
-    /** The burst tail piece joint {@code i}'s slice belongs to. */
-    public static int tailPieceOf(int slice) {
-        return slice < SLICES_PER_PIECE ? PIECE_TAIL : PIECE_TAIL + 1;
-    }
-
     /**
      * Advances the rig one tick.
      *
      * @param facing   body facing in sprite degrees (0 north, counter-clockwise)
      * @param cooldown the attack cooldown, seconds; a fling resets it upward
      * @param windup   how far into its wind-up, 0 to 1; 0 when it is not winding up
-     * @param planted  how far planted, 0 walking to 1 set
+     * @param planted  how far planted, 0 walking to 1 set: rising through a plant, falling through an uproot
      */
     public void advance(float posX, float posY, float facing, float cooldown, float windup, float planted, float dt) {
         if (!started) {
@@ -138,82 +172,191 @@ public final class RavBombardRig {
         float moving = smooth((moved / dt - MOVE_BELOW) / (MOVE_FULL - MOVE_BELOW));
         motion += (moving - motion) * (1f - (float) Math.exp(-dt / 0.2f));
         time += dt;
-        plant += (Math.max(0f, Math.min(1f, planted)) - plant) * (1f - (float) Math.exp(-dt / 0.3f));
-        this.windup = Math.max(0f, Math.min(1f, windup));
+        this.windup = clamp01(windup);
 
+        float raw = clamp01(planted);
+        if (Float.isNaN(plantRaw)) plantRaw = raw;
+        boolean digging = raw > 0f && raw < 1f && raw != plantRaw;
+        plantRaw = raw;
+        plant += (raw - plant) * (1f - (float) Math.exp(-dt / 0.3f));
+        // a stamp each side in turn, swelling through the middle of the dig, the same strokes either way
+        float envelope = digging ? (float) Math.sin(Math.PI * raw) : 0f;
+        double stroke = 2 * Math.PI * DIG_STAMPS * raw;
+        float stampL = Math.max(0f, (float) Math.sin(stroke)), stampR = Math.max(0f, (float) -Math.sin(stroke));
+        digSplayL = ease(digSplayL, DIG_SPLAY * stampL * envelope, dt, 0.06f);
+        digSplayR = ease(digSplayR, DIG_SPLAY * stampR * envelope, dt, 0.06f);
+        digSwing = ease(digSwing, DIG_SWING * (stampL - stampR) * envelope, dt, 0.06f);
+
+        boolean flung = false;
         if (!Float.isNaN(lastCooldown) && cooldown > lastCooldown + RESET_JUMP) {
             sinceFling = 0f;
             flingFrom = Math.max(curl, 0.85f);
+            flung = true;
         } else if (sinceFling < Float.MAX_VALUE) {
             sinceFling += dt;
         }
         lastCooldown = cooldown;
 
-        float rest = REST_CURL + SWAY * (float) Math.sin(2 * Math.PI * SWAY_HZ * time);
+        float sway = (float) Math.sin(2 * Math.PI * SWAY_HZ * time);
         if (sinceFling < WHIP_SECONDS) {
-            curl = flingFrom + (WHIP - flingFrom) * RavRunnerRig.easeOut(sinceFling / WHIP_SECONDS);
+            curl = flingFrom * (1f - RavRunnerRig.easeOut(sinceFling / WHIP_SECONDS));
         } else if (sinceFling < WHIP_SECONDS + SETTLE_SECONDS) {
-            curl = WHIP + (rest - WHIP) * smooth((sinceFling - WHIP_SECONDS) / SETTLE_SECONDS);
+            curl = REST_CURL * smooth((sinceFling - WHIP_SECONDS) / SETTLE_SECONDS);
         } else {
-            float target = rest + (1f - rest) * smooth(this.windup);
+            float target = REST_CURL + (1f - REST_CURL) * smooth(this.windup);
             curl += (target - curl) * (1f - (float) Math.exp(-dt / 0.08f));
         }
-        for (int i = 0; i < TAIL_SEGMENTS; i++) tail[i] = curl * CURL[i];
+        // after the whip the tail's end lashes side to side, more toward the sling, dying away
+        float lashing = 0f;
+        if (sinceFling >= WHIP_SECONDS && sinceFling < WHIP_SECONDS + SETTLE_SECONDS) {
+            float s = (sinceFling - WHIP_SECONDS) / SETTLE_SECONDS;
+            lashing = LASH_DEG * (1f - s) * (1f - s) * (float) Math.sin(2 * Math.PI * LASH_HZ * (sinceFling - WHIP_SECONDS));
+        }
+        for (int i = 0; i < TAIL_SEGMENTS; i++) {
+            lash[i] = SWAY_DEG * sway + lashing * (i + 1f) / TAIL_SEGMENTS;
+        }
+        solveTail(curl, lash);
+
+        // the body's weight, on springs: sinking as it plants, dipping at each stamp, crouching back at full draw
+        float drawn = smooth(this.windup);
+        float liftTarget = -SINK * plant - DIG_DIP * (stampL + stampR) * envelope - CROUCH_SINK * drawn;
+        float lurchTarget = -CROUCH_BACK * drawn;
+        if (flung) {
+            // the arm's swing kicks the body forward, presses it down and rocks it to one side
+            lurchV += KICK_LURCH;
+            liftV -= KICK_PRESS;
+            rockV += ((seed & 1L) == 0L ? 1f : -1f) * KICK_ROCK;
+            emptied = 1f;
+        }
+        liftV += (SPRING_K * (liftTarget - lift) - SPRING_C * liftV) * dt;
+        lift += liftV * dt;
+        lurchV += (SPRING_K * (lurchTarget - lurch) - SPRING_C * lurchV) * dt;
+        lurch += lurchV * dt;
+        rockV += (SPRING_K * -rock - SPRING_C * rockV) * dt;
+        rock += rockV * dt;
+        tremble = drawn > TREMBLE_FROM && sinceFling > WHIP_SECONDS + SETTLE_SECONDS
+                ? TREMBLE * (drawn - TREMBLE_FROM) / (1f - TREMBLE_FROM) * (float) Math.sin(2 * Math.PI * 11f * time)
+                : 0f;
+        if (sinceFling > WHIP_SECONDS) emptied = Math.max(0f, emptied - dt / REFILL_SECONDS);
 
         float cycle = (float) (2 * Math.PI * stride);
-        legSwing = motion * LEG_SWING * (float) Math.sin(cycle);
+        legSwing = motion * LEG_SWING * (float) Math.sin(cycle) + digSwing;
         bob = motion * BOB * (float) Math.sin(2 * cycle);
         float flash = sinceFling < WHIP_SECONDS ? 1f - sinceFling / WHIP_SECONDS : 0f;
-        glow = Math.min(1f, GLOW_REST + GLOW_PULSE * (float) Math.sin(2 * Math.PI * 0.5f * time)
-                + GLOW_WINDUP * smooth(this.windup) + flash);
+        float full = GLOW_REST + GLOW_PULSE * (float) Math.sin(2 * Math.PI * 0.5f * time) + GLOW_WINDUP * drawn;
+        glow = Math.min(1f, Math.max(flash, full * (1f - EMPTIED * smooth(emptied))));
+    }
+
+    /**
+     * Lays the tail out from its root under the shell's rear: each joint lifts {@code curl} of its {@link #PITCH} off
+     * the one before, leans {@code curl} of its {@link #LEAN}, and turns by {@code extraYaw}; the points are where the
+     * slices' seams lie, the last the sling's centre.
+     */
+    private void solveTail(float curl, float[] extraYaw) {
+        float x = 0f, y = (ANCHOR_ROW - TAIL_ROOT_ROW) / U_LAYER, z = 0f, pitch = 0f, turn = 0f;
+        setTail(0, x, y, z);
+        for (int i = 0; i < TAIL_SEGMENTS; i++) {
+            pitch += PITCH[i] * curl;
+            turn += LEAN[i] * curl + extraYaw[i];
+            yaw[i] = turn;
+            float len = (i < TAIL_ART_SLICES ? SLICE_PX : SLING_ROW - TAIL_ROOT_ROW - TAIL_ART_SLICES * SLICE_PX)
+                    / U_LAYER * (1f + PERSPECTIVE * z);
+            double p = Math.toRadians(pitch), w = Math.toRadians(turn);
+            float back = len * (float) Math.cos(p);          // laid back along the ground; below 0 it reaches forward
+            x += back * (float) Math.sin(w);
+            y -= back * (float) Math.cos(w);
+            z = Math.max(0f, z + len * (float) Math.sin(p));
+            setTail(i + 1, x, y, z);
+        }
+    }
+
+    private void setTail(int point, float x, float y, float z) {
+        tail[point * 3] = x;
+        tail[point * 3 + 1] = y;
+        tail[point * 3 + 2] = z;
+    }
+
+    private static float ease(float value, float target, float dt, float seconds) {
+        return value + (target - value) * (1f - (float) Math.exp(-dt / seconds));
+    }
+
+    private static float clamp01(float t) {
+        return Math.max(0f, Math.min(1f, t));
     }
 
     private static float smooth(float t) {
-        return RavRunnerRig.smooth(Math.max(0f, Math.min(1f, t)));
+        return RavRunnerRig.smooth(clamp01(t));
     }
 
     // ------------------------------------------------------------------ death
 
-    /** Advances a dead Bombard: on its first dead tick it bursts from the pose it died in. Seeded by the rig. */
+    /** Advances a dead Bombard: on its first dead tick it falls apart from the pose it died in. Seeded by the rig. */
     public void advanceDead(float posX, float posY, float dt) {
         if (!started) advance(posX, posY, facingDeg, 0f, 0f, 0f, dt);
         bodyX = posX;
         bodyY = posY;
         if (!dead) {
             dead = true;
+            sinceDeath = 0f;
+            curlAtDeath = curl;
+            System.arraycopy(lash, 0, lashAtDeath, 0, TAIL_SEGMENTS);
+            long h = seed * 0x9E3779B97F4A7C15L;
+            flopSide = (h & 2L) == 0L ? 1f : -1f;
+            deadLegSwing[0] = BUCKLE_DEG * (0.5f + ((h >>> 8) & 0xFF) / 510f);
+            deadLegSwing[1] = -BUCKLE_DEG * (0.5f + ((h >>> 16) & 0xFF) / 510f);
+            emptied = 0f;
             solvePose();
             burst.start(pose, 0f, (ANCHOR_ROW - BODY_ROW) / U_LAYER, seed);
         }
+        sinceDeath += dt;
+        // the tail falls like a dead weight, then lies limp to one side with a little bounce as it lands
+        float t = clamp01(sinceDeath / COLLAPSE_SECONDS);
+        float fall = t * t;
+        float bounce = sinceDeath > COLLAPSE_SECONDS
+                ? 0.15f * (float) Math.exp(-(sinceDeath - COLLAPSE_SECONDS) / 0.12f)
+                * (float) Math.sin(2 * Math.PI * (sinceDeath - COLLAPSE_SECONDS) / 0.25f) : 0f;
+        curl = curlAtDeath * (1f - fall);
+        for (int i = 0; i < TAIL_SEGMENTS; i++) {
+            lash[i] = lashAtDeath[i] * (1f - fall) + flopSide * LIMP[i] * (fall + bounce);
+        }
+        solveTail(curl, lash);
+        liftV += (SPRING_K * (-SLUMP - lift) - SPRING_C * liftV) * dt;
+        lift += liftV * dt;
+        lurch = ease(lurch, 0f, dt, 0.1f);
+        rock = ease(rock, 0f, dt, 0.1f);
+        tremble = 0f;
+        bob = 0f;
+        glow = (float) Math.exp(-sinceDeath / RUPTURE_SECONDS * 3f);
         burst.advance(dt);
     }
 
-    /** The body-frame pose (x right, y forward, z up, cells): the tail chained back from its root, then the body. */
+    /** The body-frame pose (x right, y forward, z up, cells): the tail's points, then the body. */
     private void solvePose() {
-        float slice = SLICE_PX / U_LAYER;
-        float x = 0f, y = (ANCHOR_ROW - TAIL_ROOT_ROW) / U_LAYER, a = 0f;
         for (int i = 0; i <= TAIL_SEGMENTS; i++) {
-            setPoint(i, x, y, TAIL_Z);
-            if (i == TAIL_SEGMENTS) break;
-            a += tail[i];
-            double r = Math.toRadians(a);
-            float len = i < TAIL_ART_SLICES ? slice : (SLING_ROW - TAIL_ROOT_ROW - TAIL_ART_SLICES * SLICE_PX) / U_LAYER;
-            x += (float) Math.sin(r) * len;
-            y -= (float) Math.cos(r) * len;
+            System.arraycopy(tail, i * 3, pose, i * 3, 3);
         }
-        setPoint(BODY_POINT, 0f, (ANCHOR_ROW - BODY_ROW) / U_LAYER, BODY_Z);
+        pose[BODY_POINT * 3] = 0f;
+        pose[BODY_POINT * 3 + 1] = (ANCHOR_ROW - BODY_ROW) / U_LAYER;
+        pose[BODY_POINT * 3 + 2] = BODY_Z;
     }
 
-    private void setPoint(int point, float x, float y, float z) {
-        pose[point * 3] = x;
-        pose[point * 3 + 1] = y;
-        pose[point * 3 + 2] = z;
-    }
-
-    /** Whether the Bombard is dead and burst. */
+    /** Whether the Bombard is dead and fallen apart. */
     public boolean dead() { return dead; }
 
-    /** The burst it died in; meaningful once dead. */
+    /** The blood it spills, dead; meaningful once dead. */
     public RavBurst burst() { return burst; }
+
+    /** Seconds since it died. */
+    public float sinceDeath() { return sinceDeath; }
+
+    /** How far the shell has cracked open down its seam, 0 whole to 1 parted; 0 alive. */
+    public float crack() {
+        return dead ? RavRunnerRig.easeOut((sinceDeath - CRACK_AT) / CRACK_SECONDS) : 0f;
+    }
+
+    /** How far each shell half has moved out from the seam, cells, and turned out, degrees. */
+    public float crackCells() { return CRACK_CELLS * crack(); }
+    public float crackDegrees() { return CRACK_DEG * crack(); }
 
     // ------------------------------------------------------------------ read side
 
@@ -222,24 +365,39 @@ public final class RavBombardRig {
     public float bodyX() { return bodyX; }
     public float bodyY() { return bodyY; }
     public float facingDegrees() { return facingDeg; }
-    /** A tail joint's bend off the one before it (the first off the facing), degrees, counter-clockwise. */
-    public float tailAngle(int joint) { return tail[joint]; }
-    /** How far the tail is curled over the back: 0 straight out behind, 1 wound up, below 0 whipped past straight. */
+    /** How far the tail is arched over the back: 0 laid flat out behind, 1 wound up. */
     public float curl() { return curl; }
-    /** A tail joint's draw scale over its art: curled slices rise toward the camera, the far ones most. */
-    public float tailRise(int joint) {
-        return 1f + RISE * Math.max(0f, curl) * (joint + 1f) / TAIL_SEGMENTS;
-    }
+    /** A tail point's place in the rig frame, cells: 0 the root, then each slice's far seam, the last the sling's centre. */
+    public float tailX(int point) { return tail[point * 3]; }
+    public float tailY(int point) { return tail[point * 3 + 1]; }
+    public float tailZ(int point) { return tail[point * 3 + 2]; }
+    /** A tail joint's heading off the facing, degrees counter-clockwise: the way its slice lies, seen from above. */
+    public float tailYaw(int joint) { return yaw[joint]; }
+    /** The draw scale of something standing {@code z} cells off the ground: nearer the camera, larger. */
+    public static float rise(float z) { return 1f + PERSPECTIVE * z; }
     /** Whether the glob is in the sling: from the start of the wind-up until it is flung. */
-    public boolean globLoaded() { return windup > 0f && sinceFling > WHIP_SECONDS + SETTLE_SECONDS; }
+    public boolean globLoaded() { return !dead && windup > 0f && sinceFling > WHIP_SECONDS + SETTLE_SECONDS; }
     /** How far into the wind-up, 0..1. */
     public float windup() { return windup; }
-    /** The left legs' swing about their hip, degrees counter-clockwise; the right legs swing the other way. */
-    public float legSwing() { return legSwing; }
-    /** How wide the legs splay, over their art: wider as the Bombard plants. */
-    public float legSplay() { return 1f + SPLAY * plant; }
-    /** The body's bob forward and back as it walks, cells. */
-    public float bob() { return bob; }
-    /** The sac's glow, 0..1: a slow pulse, brighter through the wind-up, a flash at the fling. */
+    /** One side's legs' swing about their hip, degrees counter-clockwise. */
+    public float legSwing(boolean left) {
+        if (dead) return deadLegSwing[left ? 0 : 1] * smooth(sinceDeath / 0.3f);
+        return left ? legSwing : -legSwing;
+    }
+    /** How wide one side's legs splay, over their art: wider as the Bombard plants, at each stamp, and braced. */
+    public float legSplay(boolean left) {
+        float brace = sinceFling < BRACE_SECONDS ? BRACE * (1f - sinceFling / BRACE_SECONDS) : 0f;
+        float buckle = dead ? BUCKLE * RavRunnerRig.easeOut(sinceDeath / 0.3f) : 0f;
+        return 1f + SPLAY * plant + (left ? digSplayL : digSplayR) + brace + buckle;
+    }
+    /** How far the body is shifted forward, cells: the walk's bob, the crouch, the throw's lurch, the tremble. */
+    public float shift() { return bob + lurch + tremble; }
+    /** The body's turn off the facing, degrees: the rock after a throw. */
+    public float rock() { return rock; }
+    /** The shell's draw scale: lower as it plants, crouches and slumps, pressed down by the throw. */
+    public float lift() { return 1f + lift; }
+    /** The shell's width over its art: narrower while the sac is emptied. */
+    public float squeeze() { return 1f - SQUEEZE * smooth(emptied); }
+    /** The sac's glow, 0..1: a slow pulse, brighter through the wind-up, a flash at the fling then dull; dead, it ruptures. */
     public float glow() { return glow; }
 }

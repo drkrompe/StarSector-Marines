@@ -12,8 +12,10 @@ parts: RavBombardRig curls the tail slices up over the back.
   tail-0..5       the segmented tail from its root (hidden under the shell's rear) to the sling, in overlapping
                   slices, so it can curl over the back in a smooth curve;
   sling           the bony sling cup at the tail's end;
-  glob            the glob in flight with its drip, travelling up, as projectile sprites do.
-A dead Bombard bursts into these same parts (RavBurst), so it has no corpse sprite of its own.
+  glob            the glob in flight with its drip, travelling up, as projectile sprites do;
+  shell-l, shell-r  the body cut in two down its seam, for the death: the shell cracks open along the split
+                  over the sac and its halves fall apart.
+A dead Bombard falls apart into these same parts, so it has no corpse sprite of its own.
 Boxes and pivots are canvas pixels of the 1536 x 1024 master; RavBombardRig names the same ones. Sprites are
 written at SCALE of the canvas into mod/graphics/battle/rav-bombard/.
 """
@@ -44,6 +46,8 @@ LEGS_BOTTOM = 712                          # the hind legs' last row; below it i
 LEGS_UNDER = 16                            # px of the shell's rim kept under the legs
 LEGS_L_BOX = (800, 180, CENTRE_COL, 730)
 LEGS_R_BOX = (CENTRE_COL, 180, 1356, 730)
+SHELL_L_BOX = (BODY_BOX[0], BODY_BOX[1], CENTRE_COL + 4, BODY_BOX[3])
+SHELL_R_BOX = (CENTRE_COL - 4, BODY_BOX[1], BODY_BOX[2], BODY_BOX[3])
 TAIL_TOP, TAIL_SLING = 680, 860            # the tail's root (under the shell's rear) and the sling's hinge
 TAIL_SLICES = 6
 TAIL_SEAMS = tuple(round(TAIL_TOP + (TAIL_SLING - TAIL_TOP) * i / TAIL_SLICES) for i in range(TAIL_SLICES + 1))
@@ -91,6 +95,8 @@ def parts():
         "legs-l": (masked(plate, left), LEGS_L_BOX),
         "legs-r": (masked(plate, right), LEGS_R_BOX),
         "body": (masked(plate, frame * in_body), BODY_BOX),
+        "shell-l": (masked(plate, frame * in_body * (1 - ramp(cols, CENTRE_COL - 2, 4))), SHELL_L_BOX),
+        "shell-r": (masked(plate, frame * in_body * ramp(cols, CENTRE_COL - 2, 4)), SHELL_R_BOX),
     }
     width = 1 - ramp(np.abs(cols - CENTRE_COL), TAIL_HALF - 4, 8)
     for i in range(TAIL_SLICES):
