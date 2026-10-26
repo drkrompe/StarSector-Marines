@@ -332,6 +332,16 @@ def jinking(key, pose, t, t0, t1, v=None, amp=1.0, **kw):
 # rear ones dropping back, so the column reads as a moving formation rather than a parked one.
 
 
+# The satellite optic's places (owner, 2026-10-26): S1 8 km off the north flank, S2 3.5 km off the
+# Colossus's port bow on the same side, each aimed at her and holding still (a point on her that moves
+# with her, so her weave on station stays framed).
+S1_AIM_AT = (-12.0, -40.0, -10.0)
+S1_RANGE = 8200.0
+S1_EYE = tuple(S1_AIM_AT[i] + S1_RANGE * c for i, c in enumerate((-.55, .69, .41)))
+S2_AIM_AT = (-60.0, -60.0, -10.0)
+S2_EYE = tuple(S2_AIM_AT[i] + 3500.0 * c for i, c in enumerate((-.47, .85, .24)))
+
+
 def convoy_at(t):
     """The convoy at t: freighters weaving on station, escorts working along the column."""
     return fleet_at(CONVOY, t)     # escorts too: each moves along her own nose (S4, S6 notes)
@@ -341,6 +351,9 @@ def track(pose, point, share=1.0, lag=0.0):
     """A camera point that sits at point at the pose's key time and then moves with that ship (share
     of her motion, lag seconds behind): a camera that pans or travels with the action."""
     return follow(pose, tuple(point[n] - pose[n] for n in range(3)), lag, share)
+
+
+S1_AIM = track(convoy_at(16)['colossus'], S1_AIM_AT)
 
 
 def lit(t0, level=.6, ramp=1.5):
@@ -843,17 +856,15 @@ KEYFRAMES = {
         shot='S1a', title='The view the player knows',
         caption='Straight down on the convoy, prograde up the frame: the ships as the player has always seen them, '
                 'small against the desert far below. From here the camera tips down into the 3D fight.',
-        # the player's view holds, then tips down and pulls in, landing on S1's framing at its first frame
-        # a long-range optic straight down, prograde up, as the player knows the battle: it never turns.
-        # ZOOM OUT to the convoy small on the desert, then ZOOM IN on it, the focus hunting as the lens
-        # racks in and snapping sharp; then the cut to S1's action camera
-        # (sliding sideways onto the convoy's core as it racks in: the same look, so still no turn)
-        camera=camera('k0', [dict(t=t, loc=(80 + dx, 120 + dy, 11000), target=(190 + dx, 120 + dy, 0), lens=lens,
-                                  focus=focus, fstop=1.0)
-                             for t, lens, focus, dx, dy in ((10, 100, 11000, 0, 0), (11.6, 35, 11000, 0, 0),
-                                                            (12.4, 60, 11000, -60, -60), (13.4, 200, 600, -150, -150),
-                                                            (14.2, 330, 220, -170, -180), (14.8, 310, 500, -170, -180),
-                                                            (15.3, 300, 11000, -170, -180), (16, 300, 11000, -170, -180))],
+        # THE SATELLITE OPTIC (owner, 2026-10-26: "start out and focus in like how a satellite works"; no
+        # zoom out, no panning: a moving view reads as an observer racing past). Straight down from 11 km,
+        # prograde up, held over the convoy's core: wide on the convoy small on the desert, then stepping
+        # in (60, 150, 300 mm), the focus hunting at each step and snapping sharp. It never moves or turns.
+        camera=camera('k0', [dict(t=t, loc=(-90, -60, 11000), target=(20, -60, 0), lens=lens, focus=focus, fstop=1.0)
+                             for t, lens, focus in ((10, 24, 11000), (11.0, 24, 11000), (11.5, 60, 4000),
+                                                    (11.9, 60, 11000), (12.7, 60, 11000), (13.2, 150, 30000),
+                                                    (13.6, 150, 11000), (14.3, 150, 11000), (14.7, 300, 7000),
+                                                    (15.0, 300, 14000), (15.3, 300, 11000), (16, 300, 11000))],
                       10),
         ships=convoy_at(10),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'lasher-a']),
@@ -862,11 +873,14 @@ KEYFRAMES = {
         caption='A working convoy in loose column over the day side, slowing for its descent window: the Colossus '
                 'with Morrow alongside, a Tarsus, a Mule, a Phaeton tanker, Buffalos and a Dram, escorted by '
                 'three Lashers, a Wolf and a Hound.',
-        # DOLLY + ZOOM OUT: the camera drops back along the column as it overtakes the lens, then widens
-        # to put the convoy against the limb
-        camera=camera('k1', [dict(t=16, loc=(-1900, 2700, 1500), target=(300, -80, -150), lens=35),
-                             dict(t=20, loc=(-2300, 2600, 1450), target=(380, -70, -145), lens=30),
-                             dict(t=24, loc=(-2800, 2450, 1400), target=(450, -60, -140), lens=22)], 16),
+        # THE SATELLITE OPTIC, FOCUSING IN (owner, 2026-10-26): a far observer off the north flank, 8 km
+        # out and holding still, wide on the whole column against the limb, then one slow motor zoom onto
+        # the Colossus and Morrow (28 to 150 mm), a last focus breath at the end. No dolly, no pan, no shake.
+        camera=camera('k1', [dict(t=16, loc=S1_EYE, target=S1_AIM, lens=28),
+                             dict(t=17.2, loc=S1_EYE, target=S1_AIM, lens=30),
+                             dict(t=22.6, loc=S1_EYE, target=S1_AIM, lens=138, focus=S1_RANGE * .9),
+                             dict(t=23.2, loc=S1_EYE, target=S1_AIM, lens=150, focus=S1_RANGE),
+                             dict(t=24, loc=S1_EYE, target=S1_AIM, lens=150, focus=S1_RANGE)], 16),
         ships=convoy_at(16),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'buffalo-b', 'dram',
                 'lasher-lead', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
@@ -1140,6 +1154,7 @@ M2_LASHER = fly('lasher-a', (-110, 185, 60, 3, 1, -28, .9), M2_T, [
     dict(t=24, hd=-3, pt=0, rl=-12), dict(t=30, hd=8, pt=2, rl=-35)], v=110)
 M2_SHIPS = {**{k: v for k, v in convoy_at(M2_T).items() if k in ('colossus', 'morrow', 'buffalo-a')},
             'lasher-a': M2_LASHER}
+S2_AIM = track(M2_SHIPS['colossus'], S2_AIM_AT)
 
 # S5: the Manticore (P) opens at long range on the column's tail, Hellbore slugs and a Harpoon salvo
 # crossing 3-4 km; her flight is S6's, so the cut into S6 keeps her where she is
@@ -1271,6 +1286,11 @@ def _k6_cam(t):
     return tuple(K6_CAM[i] + .55 * (c[i] - _k6c[i]) + 60.0 * (t - K6_T) * K6_LOOK[i] for i in range(3))
 
 
+def _k6_held(t):
+    """From 134 s the camera holds where its ride down left it (the pull-back)."""
+    return _k6_cam(min(t, 134.0))
+
+
 def _k6_aim(t, toward_morrow):
     c, m = K6_SHIPS['colossus'].at(t), K6_SHIPS['morrow'].at(t)
     return tuple(c[i] + toward_morrow * (m[i] - c[i]) for i in range(3))
@@ -1357,9 +1377,14 @@ KEYFRAMES['k6'].update(
             'down around them in pieces.',
     # TRACKING PUSH-IN: rides down with a little over half of the Colossus's fall, dollying in, from 40
     # mm to the plate's 50 mm at the key, then on to 85 mm, ending tight on the two burning hulls
-    camera=camera('k6', [dict(t=126, loc=_k6_cam, target=lambda t: _k6_aim(t, .35), lens=40),
-                         dict(t=130, loc=_k6_cam, target=lambda t: _k6_aim(t, 0.0), lens=50),
-                         dict(t=134, loc=_k6_cam, target=lambda t: _k6_aim(t, .5), lens=85)], K6_T),
+    camera=camera('k6', [dict(t=126, loc=_k6_held, target=lambda t: _k6_aim(t, .35), lens=40),
+                         dict(t=130, loc=_k6_held, target=lambda t: _k6_aim(t, 0.0), lens=50),
+                         dict(t=134, loc=_k6_held, target=lambda t: _k6_aim(t, .5), lens=85),
+                         # THE PULL-BACK (owner, 2026-10-26): the observer stops riding down with them and
+                         # zooms back out to the wider planet, the two trails falling into it, before the log
+                         dict(t=135, loc=_k6_held, target=lambda t: _k6_aim(t, .5), lens=82),
+                         dict(t=137.4, loc=_k6_held, target=lambda t: _k6_aim(t, .5), lens=18),
+                         dict(t=138, loc=_k6_held, target=lambda t: _k6_aim(t, .5), lens=18)], K6_T),
     ships=K6_SHIPS,
     fx=[('entry_sheath', 'colossus'), ('entry_sheath', 'morrow'), ('wreckfall',)],
     bloom=1.0,          # the plasma is light: it blooms in the composite (composite_layers.bloom)
@@ -1381,10 +1406,13 @@ BLOCKED = {
         shot='S2', title='Alongside the Colossus',
         caption='Tracking alongside the Colossus at 300 m. Morrow rides off her starboard quarter, drones stowed; '
                 'Lasher A slides through the foreground.',
-        # TRACKING: alongside at 300 m off her port side, a little above, easing forward along her length
-        camera=camera('m2', [dict(t=24, loc=(-260, 300, 90), target=(-60, -60, -10), lens=28),
-                             dict(t=27, loc=(-170, 305, 85), target=(-20, -70, -12), lens=28),
-                             dict(t=30, loc=(-80, 300, 80), target=(20, -80, -14), lens=28)], M2_T, shake=.04),
+        # THE SATELLITE OPTIC, CLOSER (owner, 2026-10-26: S1 to S3 one feel): the same side as S1, 3.5 km
+        # off her port bow and holding still, long on the Colossus (200 mm) and creeping in to 280 mm as
+        # Lasher A crosses in front of her, flattened by the long lens; Morrow beyond her quarter.
+        camera=camera('m2', [dict(t=24, loc=S2_EYE, target=S2_AIM, lens=200),
+                             dict(t=25, loc=S2_EYE, target=S2_AIM, lens=205),
+                             dict(t=29.2, loc=S2_EYE, target=S2_AIM, lens=280),
+                             dict(t=30, loc=S2_EYE, target=S2_AIM, lens=280)], M2_T),
         ships=M2_SHIPS,
         labels=['colossus', 'morrow', 'lasher-a']),
     'm5': dict(

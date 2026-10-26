@@ -71,11 +71,11 @@ TRAFFIC = [
     ('S10', 'MORROW', 116.4, 117.4, 'Staying with you.', False),
     ('S11', 'CARAVEL', 119.0, 121.4, 'Caravel, hull temperature climbing.', True),
     ('S11', 'MORROW', 121.8, 123.6, 'Morrow, losing you in the —', True),
-    ('S13', 'CARAVEL FOUR', 135.2, 138.4, 'All Caravel ships, Caravel Four. Who is still with me?', False),
-    ('S13', 'WARDEN THREE', 139.0, 141.4, 'Warden Three. Still here. The column is scattered.', False),
+    ('S13', 'CARAVEL FOUR', 139.2, 142.4, 'All Caravel ships, Caravel Four. Who is still with me?', False),
+    ('S13', 'WARDEN THREE', 143.0, 145.4, 'Warden Three. Still here. The column is scattered.', False),
     # owner, 2026-10-22: no pirate sign-off. Warden gives up on the lost ships, and reads the pirates as
     # satisfied with what they caught (Caravel Two); nothing says what the Colossus carried
-    ('S13', 'WARDEN THREE', 141.9, 144.6, "Nothing from Caravel or the Morrow. ... They're not chasing. "
+    ('S13', 'WARDEN THREE', 145.9, 148.6, "Nothing from Caravel or the Morrow. ... They're not chasing. "
                                           "Looks like they're happy with what they caught.", False),
 ]
 
@@ -106,5 +106,5 @@ DROPS = {'CARAVEL': 124.9, 'MORROW': 125.3}
 
 # S13: back on the log after the trails, the survivors and the pirates on the channel; the log
 # ends on END OF RECORDING, not on a held frame
-CLOSING = [ln[:5] for ln in LINES if ln[2] >= 134.0]
-END_CARD_S = 145.6
+CLOSING = [ln[:5] for ln in LINES if ln[2] >= 138.0]
+END_CARD_S = 149.6
