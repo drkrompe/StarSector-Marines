@@ -157,6 +157,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.story.reactiveDefence` | experiment | 2026-10-21 | As battle.mission.reactiveDefence. Its composed .share knob goes with it. |
 | `battle.swarm.barricadeAssault` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
 | `battle.swarm.broodSpires` | control | 2026-10-25 | Kept: the control for Harriers in the Rav Bloom missions; `commanderEvidence` reads a mission with and without its spires and broods (colony-breach-nouns.md, Brood spire). |
+| `battle.swarm.worksToughness` | tuning | 2026-10-26 | How many times longer fort and objective walls hold against the swarm (`FortifiedWorks`, 1 the control): fold into the constant once the owner picks the strength. |
 | `battle.swarm.workers` | control | 2026-10-25 | Kept: the control for the nests' skitterers; `commanderEvidence` reads the heart and the Cordon with and without them (colony-breach-nouns.md, Skitterer). |
 | `battle.swarm.emergence` | control | 2026-10-25 | Kept: the before of the `swarm-emergence` look suite, and the control for any evidence that wants bodies out whole and at once (colony-breach-nouns.md, Emergence). |
 | `battle.swarm.creepOutposts` | experiment | 2026-10-21 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |

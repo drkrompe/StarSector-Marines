@@ -1642,7 +1642,7 @@ BLOCKED = {
     'm11': dict(
         shot='S11', title='Entry',
         caption='From just behind, plasma builds round both hulls; Morrow drifts apart from her. The radio breaks '
-                'up, the picture breaks into the recording screen\'s static, and END OF RECORDING.',
+                'up and the picture breaks into the recording screen\'s static: the signal is lost.',
         # CHASE: just behind and above the Colossus, closing a little as the plasma builds, shaking more
         camera=camera('m11', [dict(t=118, loc=track(M11_COLOSSUS, _along(_m11, 340, 80, 0), 1.0, .3),
                                    target=track(M11_COLOSSUS, _along(_m11, 0, 0, -75)), lens=42),
