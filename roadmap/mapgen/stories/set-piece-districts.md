@@ -246,11 +246,13 @@ seed, so a street that hosts one beats a longer one that hosts neither.
 
 The zone is the map's **host** for the freight yard and the factory row. The yard's parcel is a member
 whose role is its freight yard (two-bay where it fits). The row's seed joins only where some side of it is
-13 deep, as deep as the row; then it holds the row alone or **joined** with its neighbour along the street,
+11 deep, as deep as the shallow row (`FactoryRow.SHALLOW`, the workshops and the lane with machinery set
+into the far wall in place of the pockets; the full 13-deep row is tried first); then it holds the row alone or **joined** with its neighbour along the street,
 the cross street between them given to the row's ground. Where it holds neither the plan is refused and the
 seed claims its neighbour as it always has (a smaller seed is ineligible for the same reason). Where the
 street has no yard or no row, the zone takes one on the largest member that holds it alone, else on the
-neighbouring pair whose joined ground does. A set piece is given its role only where the layout says it
+neighbouring pair whose joined ground does. The yard takes its ground first, unless the row taking the
+largest ground first leaves the yard ground of its own and so hosts both. A set piece is given its role only where the layout says it
 stands, asked over the streets as the plan would leave them and the road reservation they draw; a joined
 pair whose closed cross street would cut a mouth falls back to single members. Once committed, the zone
 stands down the yard or the row planned elsewhere on the map (the parcel becomes an industrial yard, the
@@ -285,15 +287,16 @@ from it.
 
 Coverage (`generatedSpaceEvidence --tests *IndustrialZonePlacementEvidence`, which also counts the maps
 with a freight yard and a factory row anywhere): 22 of 24 medium city maps and 24 of 24 colonies, hosting a
-freight yard on 10 city maps and 5 colonies and a factory row on 2 and 4. A freight yard stands on as many
-maps as before the zone hosted it (22 cities, 19 colonies) and a factory row on one more of each (16 and
-16). The row is the limit: it is 13 deep, and a belt member or a joined pair that deep and fronting the
-street is rare in a city, so most maps keep the row their seed claims outside the zone. `storyMapPools`
-passes 144 of 144 with no seed swapped.
+freight yard on 10 city maps and 5 colonies and a factory row on 6 and 6 (2 and 4 before the shallow row).
+A freight yard stands on 22 cities and 19 colonies, and a factory row on 17 and 16. The row is still the
+limit: on about half the zones every member is five to nine cells deep, too shallow for even the shallow
+row, and on most of the zones that host only the yard, the freight-yard parcel is the one ground deep
+enough. `storyMapPools` passes 144 of 144, with `cordon-line-town` ROCK seed 14 swapped for 22.
 Look: `createSnapshots -Psnapshot=industrial-zone-look`.
 
-Open on the industrial zone: a shallower factory row (the row's pockets and far wall take the depth a city
-member lacks) would put the row in most zones; no large storage tank (the 1x1
+Open on the industrial zone: the row on the shallow belts, either taking the zone's street as its lane
+(workshops on members six deep, gates where the street meets its cross streets) or sharing an oversized
+freight-yard parcel with the yard; no large storage tank (the 1x1
 fluid tank stands in blocks of four), no dock shutter or leveller (the loading door is a plain doorway) and
 no moving traffic (haulers are parked); gantries rarely find both legs on open apron, since docks, haulers
 and the walled yards take the kerb first; no mission reads the mark yet.

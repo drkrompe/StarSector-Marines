@@ -1193,6 +1193,11 @@
     // Colony Breach (tools/generate_colony_breach_audio.py)
     {"id": "marines_breach_bore_clawup_1", "source": "colony-breach/sfx/marines_breach_bore_clawup_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
     {"id": "marines_breach_bore_clawup_2", "source": "colony-breach/sfx/marines_breach_bore_clawup_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
-    {"id": "marines_breach_bore_clawup_3", "source": "colony-breach/sfx/marines_breach_bore_clawup_3.mp3", "kind": "positional", "out": "battle/colony-breach"}
+    {"id": "marines_breach_bore_clawup_3", "source": "colony-breach/sfx/marines_breach_bore_clawup_3.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_bombard_whip_1", "source": "colony-breach/sfx/marines_breach_bombard_whip_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_bombard_whip_2", "source": "colony-breach/sfx/marines_breach_bombard_whip_2.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_bombard_whip_3", "source": "colony-breach/sfx/marines_breach_bombard_whip_3.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_bombard_haze_1", "source": "colony-breach/sfx/marines_breach_bombard_haze_1.mp3", "kind": "positional", "out": "battle/colony-breach"},
+    {"id": "marines_breach_bombard_haze_2", "source": "colony-breach/sfx/marines_breach_bombard_haze_2.mp3", "kind": "positional", "out": "battle/colony-breach"}
   ]
 }
