@@ -1,6 +1,6 @@
 # Blind Watch — the Sounding
 
-Status: IN PROGRESS — hook A chosen (owner, 2026-10-26); the map (`BlindWatchSounding`) is built, mission behaviour and wiring under way.
+Status: IN PROGRESS — hook A chosen (owner, 2026-10-26); the map (`BlindWatchSounding`), mission behaviour (`BlindWatchSequence`) and wiring (`BlindWatchBattleFixture`) are built; the measured runs, tuning and the preview video remain.
 Written: 2026-10-26
 
 Read `wayline-corvus-arc.md`, `early-operation-nouns.md` (Wayline across Corvus),
@@ -251,8 +251,8 @@ worst-approach and a prepared-approach run, the full-mission preview video.
 - [x] The owner picks the hook: A, ears, eyes and voice (2026-10-26).
 - [x] Authored map renders from the look preset; no capture point except the three sites.
 - [x] Every site is reachable from the landing ground; three approaches stay open; the crawler's lane passes `VehicleRoutePlanner`.
-- [ ] Each charge's effect fires in a unit test; the warning stops at the uplink charge.
-- [ ] Each side job pays off only inside its window.
+- [x] Each charge's effect fires in a unit test; the warning stops at the uplink charge.
+- [x] Each side job pays off only inside its window.
 - [ ] `commanderEvidence -Pmission=corvus "-Dbattle.corvus.chapter=BLIND_WATCH"`: worst approach (autonomous, no side jobs) and prepared approach (side jobs granted, mast first) both measured; the prepared one clearly easier.
 - [ ] Full-mission preview video with sound, 1920x1080, look preset.
 - [ ] Live play on Warion in a campaign.

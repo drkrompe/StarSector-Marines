@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.fixture.BlindWatchBattleFixture;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
+import com.dillon.starsectormarines.battle.story.BlindWatchProgress;
 import com.dillon.starsectormarines.battle.setup.DefenderRoster;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
@@ -110,6 +113,17 @@ class CorvusWaylineCampaignTest {
             progress.begin(mission.id, chapter.planetName);
             CorvusWaylineCampaign.settle(progress, outcome(mission, true, chapter.payment));
         }
+    }
+
+    @Test void blindWatchBuildsTheSoundingAndReadsTheBrokerAtTheBoundary() {
+        var chapter = CorvusChapter.BLIND_WATCH;
+        var profile = chapter.profile(chapter.surface);
+        var escaped = assertInstanceOf(BlindWatchBattleFixture.class,
+                chapter.fixture(12, BattleSetup.defaultManifest(), profile));
+        assertTrue(escaped.stoodTo(), "no Teague mark: he warned the post");
+        var delivered = assertInstanceOf(BlindWatchBattleFixture.class, chapter.fixture(12,
+                BattleSetup.defaultManifest(), profile, BlindWatchProgress.TEAGUE_DELIVERED::equals));
+        assertFalse(delivered.stoodTo());
     }
 
     @Test void destinationUsesExactPlanetIdentityIncludingMarketlessMoonsAndNeverSubstitutes() {

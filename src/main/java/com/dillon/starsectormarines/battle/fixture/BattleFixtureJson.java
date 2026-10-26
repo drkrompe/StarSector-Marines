@@ -163,6 +163,12 @@ public final class BattleFixtureJson {
             root.put("base", toJson(cold.base()));
             return root;
         }
+        if (fixture instanceof BlindWatchBattleFixture watch) {
+            encodeCommon(root, watch.kind(), watch.seed(), watch.manifest(), false,
+                    watch.risk(), watch.targetProfile());
+            root.put("stoodTo", watch.stoodTo());
+            return root;
+        }
         if (fixture instanceof DustLedgerBattleFixture ledger) {
             encodeCommon(root, ledger.kind(), ledger.seed(), ledger.manifest(), false,
                     ledger.risk(), ledger.targetProfile());
@@ -290,6 +296,10 @@ public final class BattleFixtureJson {
                     root.has("posture") ? enumValue(CordonPosture.class, root.getString("posture"), "posture")
                             : CordonPosture.DEFAULT, declaredMechDrops(root));
             case ColdAccountBattleFixture.KIND -> new ColdAccountBattleFixture(decodeAssault(root.getJSONObject("base")));
+            case BlindWatchBattleFixture.KIND -> new BlindWatchBattleFixture(root.getLong("seed"),
+                    shuttlesFromJson(root.getJSONArray("shuttles")),
+                    enumValue(RiskLevel.class, root.getString("risk"), "risk"),
+                    targetProfileFromJson(root.getJSONObject("targetProfile")), root.getBoolean("stoodTo"));
             case DustLedgerBattleFixture.KIND -> new DustLedgerBattleFixture(root.getLong("seed"),
                     shuttlesFromJson(root.getJSONArray("shuttles")),
                     enumValue(RiskLevel.class, root.getString("risk"), "risk"),

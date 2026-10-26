@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
+import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 
 import com.dillon.starsectormarines.marine.MarineCaptain;
@@ -310,7 +311,9 @@ public final class MissionLaunch {
             builder=()->departureChapter?BattleSetup.createWorkingPassage(seed,constructionDetachment.shuttleManifest,profile):repairChapter?BattleSetup.createColdStart(seed,constructionDetachment.shuttleManifest,profile,delivered,powered)
                     :BattleSetup.createSalvageRights(seed,constructionDetachment.shuttleManifest,profile);
         } else if (CorvusWaylineCampaign.isBattle(m)) {
-            fixture = CorvusWaylineCampaign.requireCurrent(m).chapter().fixture(seed, constructionDetachment.shuttleManifest, profile);
+            CampaignStateScript campaign = CampaignStateScript.getInstance();
+            fixture = CorvusWaylineCampaign.requireCurrent(m).chapter().fixture(seed, constructionDetachment.shuttleManifest,
+                    profile, campaign == null ? mark -> false : campaign.state().marks()::has);
             builder = fixture::build;
         } else if (SupplyRouteCampaign.isBattle(m)) {
             BrokenSupplyRouteProgress route = SupplyRouteCampaign.requireCurrent(m);

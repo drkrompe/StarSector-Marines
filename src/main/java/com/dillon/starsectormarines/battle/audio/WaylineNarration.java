@@ -159,6 +159,8 @@ public final class WaylineNarration {
                 ? "story_shepherd_cold_start" : "story_shepherd_salvage";
         if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.COLD_ACCOUNT)
             return "story_corvus_cold_account";
+        if (CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.BLIND_WATCH)
+            return "story_corvus_blind_watch";
         // Retry IDs vary; the historical chapter does not. Job zero excludes recurring work
         // even if a caller accidentally labels it STORY. Only active campaign battle identities receive chapter briefings.
         Matcher attempt = SUPPLY_STORY_ID.matcher(mission.id);
@@ -176,6 +178,7 @@ public final class WaylineNarration {
             case LAST_LIFT -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.LIFT);
             case RELAY_NINE -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.RELAY);
             case THUNDER_RUN -> SUPPLY_CHAPTERS.get(BrokenSupplyRouteProgress.THUNDER);
+            case BLIND_WATCH -> "story_corvus_blind_watch";
             case COLD_ACCOUNT -> "story_corvus_cold_account";
             case SALVAGE_RIGHTS -> "story_shepherd_salvage";
             case COLD_START -> "story_shepherd_cold_start";

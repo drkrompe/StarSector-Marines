@@ -74,6 +74,11 @@ class CorvusCombatEvidenceTest {
         if (boatCount < 1 || boatCount > 4) throw new IllegalArgumentException("Use one to four company boats");
         if (boatCount != 2) output = output.resolve("boats-" + boatCount);
         String selectedChapter = System.getProperty("battle.corvus.chapter", "");
+        // The campaign's marks the chapters read at their fixture boundary, comma separated; none by default (so Blind
+        // Watch's post is stood-to: Teague was not delivered). corvus.teague.delivered plays the quiet post.
+        Set<String> campaignMarks = new HashSet<>();
+        for (String mark : System.getProperty("battle.corvus.marks", "").split(","))
+            if (!mark.isBlank()) campaignMarks.add(mark.trim());
         if (!selectedChapter.isEmpty()) CorvusChapter.valueOf(selectedChapter);
         Files.createDirectories(output);
         TileRegistryTestInstaller.install(Path.of("."));
@@ -107,7 +112,7 @@ class CorvusCombatEvidenceTest {
             var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, chapter.squads * 12, null);
             var boats = IntStream.range(0, boatCount).mapToObj(i -> FittedBoat.standard(ShuttleType.AEROSHUTTLE)).toList();
             var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, deployment.size());
-            var fixture = chapter.fixture(mission.battleSeed, manifest, chapter.profile(chapter.surface));
+            var fixture = chapter.fixture(mission.battleSeed, manifest, chapter.profile(chapter.surface), campaignMarks::contains);
             var powers = PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment());
             assertEquals(1, powers.size());
             var resources = new FiniteCommandPowerResources(30);
@@ -166,6 +171,12 @@ class CorvusCombatEvidenceTest {
                 var technicalTrack = new JSONArray();
                 var technicalFiredFrom = new JSONArray();
                 int[] technicalCell = {-1, -1};
+                // Blind Watch: when each charge blew, when the alarm sounded and how the warning went.
+                var chargesBlown = new JSONArray();
+                var blown = new HashSet<String>();
+                int alarmTick = -1;
+                var warningCourse = new JSONArray();
+                String warningState = "";
                 int houndLostAt = -1, infantryDeathsBeforeBombardment = -1;
                 int firstSalvoMounts = 0, firstCapitalShotAt = -1;
                 int peakInfantryPickups = 0, peakLandedPickups = 0;
@@ -331,7 +342,21 @@ class CorvusCombatEvidenceTest {
                         houndHp = sim.world().hp(hound); houndArmor = sim.world().armor(hound);
                         houndKills = sim.telemetry().kills(hound); houndDamage = sim.telemetry().damageDealt(hound);
                     }
-                    long technical = sim.getDustLedger() == null ? 0L : sim.getDustLedger().technical();
+                    var watch = sim.getBlindWatch();
+                    if (watch != null) {
+                        for (var charge : List.of(watch.mastCharge(), watch.uplinkCharge(), watch.dishCharge()))
+                            if (charge.isComplete() && blown.add(charge.siteId()))
+                                chargesBlown.put(new JSONObject().put("site", charge.siteId()).put("name", charge.displayName()).put("tick", tick));
+                        if (alarmTick < 0 && !watch.progress().quiet()) alarmTick = tick;
+                        String state = watch.progress().warning().name();
+                        if (!state.equals(warningState)) {
+                            warningState = state;
+                            warningCourse.put(new JSONObject().put("tick", tick).put("warning", state)
+                                    .put("sent", watch.progress().sentShare()));
+                        }
+                    }
+                    long technical = sim.getDustLedger() != null ? sim.getDustLedger().technical()
+                            : watch != null ? watch.technical() : 0L;
                     if (technical != 0L && technicalLostAt < 0) {
                         var truck = sim.convoy().mission(technical);
                         if (truck == null || truck.state == VehicleState.WRECKED || truck.state == VehicleState.GONE) technicalLostAt = tick;
@@ -398,6 +423,18 @@ class CorvusCombatEvidenceTest {
                         .put("technicalTrack",technicalTrack).put("technicalFiredFrom",technicalFiredFrom)
                         .put("objectives",objectives(sim)).put("kits",kits);
                 report.put("dialogue", dialogue);
+                var watch = sim.getBlindWatch();
+                if (watch != null) {
+                    var watchReport = watch.report();
+                    var mortar = sim.convoy().mission(watch.mortar());
+                    report.put("blindWatch", new JSONObject().put("stoodTo", watchReport.stoodTo())
+                            .put("alarm", watch.progress().alarm().name()).put("alarmTick", alarmTick)
+                            .put("warning", watchReport.warning().name()).put("warningSent", watchReport.warningSent())
+                            .put("garnirWarned", watchReport.garnirWarned()).put("warningCourse", warningCourse)
+                            .put("chargesBlown", chargesBlown).put("riggers", watchReport.riggers().name())
+                            .put("schedule", watchReport.schedule().name()).put("coldStore", watchReport.coldStore().name())
+                            .put("mortarAlive", mortar != null && mortar.state != VehicleState.WRECKED && mortar.state != VehicleState.GONE));
+                }
                 var intervention = sim.getColdAccount();
                 if (intervention != null) {
                     report.put("intervention", new JSONObject()

@@ -33,6 +33,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * as the battle does.
  */
 class BlindWatchSequenceTest {
+    @Test void theMortarDrivesItsLoopALegAtATimeAndNeverEndsALegWhereItBegan() {
+        List<Cell> loop = new ArrayList<>();
+        for (int x = 0; x <= 10; x++) loop.add(new Cell(x, 0));
+        for (int x = 9; x >= 0; x--) loop.add(new Cell(x, 0));
+        assertEquals(10, BlindWatchSequence.mortarLegEnd(loop, 0), "out to the turn, not home again");
+        assertEquals(20, BlindWatchSequence.mortarLegEnd(loop, 10));
+        assertEquals(20, BlindWatchSequence.mortarLegEnd(loop, 20), "home: nothing farther");
+    }
+
     private static final int W = 100, H = 20;
     /** A short warning, so the bar fills in a few dozen ticks. */
     private static final float WARNING = 1f;

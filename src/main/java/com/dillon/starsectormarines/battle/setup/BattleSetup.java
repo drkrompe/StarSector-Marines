@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.world.gen.HeldPlaces;
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.gen.DustLedgerCrossing;
+import com.dillon.starsectormarines.battle.world.gen.BlindWatchSounding;
+import com.dillon.starsectormarines.battle.story.BlindWatchProgress;
 import com.dillon.starsectormarines.battle.world.gen.MarketGarrison;
 import com.dillon.starsectormarines.battle.world.gen.NorthWeir;
 import com.dillon.starsectormarines.battle.command.AssaultStyle;
@@ -229,6 +231,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Deque;
 import java.util.HashSet;
+import java.util.Locale;
 import it.unimi.dsi.fastutil.longs.LongArrayList;
 import it.unimi.dsi.fastutil.longs.LongList;
 
@@ -1631,17 +1634,28 @@ public final class BattleSetup {
      */
     private static void spawnDustLedgerTechnical(BattleSimulation sim, DustLedgerSequence ledger,
                                                  List<DustLedgerCrossing.Cell> standCells) {
-        VehicleType type = VehicleType.SRM_TECHNICAL;
+        List<int[]> cells = new ArrayList<>();
+        for (DustLedgerCrossing.Cell cell : standCells) cells.add(new int[] {cell.x(), cell.y()});
+        List<DustLedgerSequence.Cell> stands = hullStands(sim, VehicleType.SRM_TECHNICAL, cells);
+        ledger.technical(sim, parkHull(sim, VehicleType.SRM_TECHNICAL, stands.get(0), 180f), stands);
+    }
+
+    /** Each cell moved to the nearest one a hull of {@code type} clears. */
+    private static List<DustLedgerSequence.Cell> hullStands(BattleSimulation sim, VehicleType type, List<int[]> cells) {
         VehicleClearance mask = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(type.visualWidthCells));
         List<DustLedgerSequence.Cell> stands = new ArrayList<>();
-        for (DustLedgerCrossing.Cell cell : standCells) {
-            int[] at = nearestClear(mask, new int[] {cell.x(), cell.y()});
+        for (int[] cell : cells) {
+            int[] at = nearestClear(mask, cell);
             stands.add(new DustLedgerSequence.Cell(at[0], at[1]));
         }
-        DustLedgerSequence.Cell park = stands.get(0);
-        long technical = sim.convoy().spawn(type, Faction.DEFENDER, VehicleMission.deployed(park.x() + .5f, park.y() + .5f));
-        sim.convoy().body(technical).teleport(park.x() + .5f, park.y() + .5f, 180f);
-        ledger.technical(sim, technical, stands);
+        return stands;
+    }
+
+    /** A Sable Wake hull set down at {@code at} with no errand, facing {@code facing}. */
+    private static long parkHull(BattleSimulation sim, VehicleType type, DustLedgerSequence.Cell at, float facing) {
+        long hull = sim.convoy().spawn(type, Faction.DEFENDER, VehicleMission.deployed(at.x() + .5f, at.y() + .5f));
+        sim.convoy().body(hull).teleport(at.x() + .5f, at.y() + .5f, facing);
+        return hull;
     }
 
     /** The cell nearest {@code aim} (ring by ring) where a hull of {@code mask}'s clearance fits. */
@@ -1763,6 +1777,169 @@ public final class BattleSetup {
         sim.setAutonomousCommander(Faction.DEFENDER, new RaidDefenderCommand(mobile),
                 RaidDefenderCommandDisclosure.INSTANCE);
         return sim;
+    }
+
+    /**
+     * Blind Watch at the Sounding on Warion ({@code blind-watch-sounding.md}): the company lands behind the ridge,
+     * three named charge sites that are not interchangeable (mast, uplink, dish field) are the Sabotage plant, and Sable
+     * Wake's finite Low crew holds the post: the watch at its posts, the pillboxes crewed from their slit posts, the rim
+     * guns as the map's stamped nests, the rest asleep in the bunks. The mortar carrier drives its lane; the rocket truck
+     * waits on the uplink knoll. No reinforcements, aircraft or grown settlement. {@code stoodTo} is the fixture's
+     * reading of the campaign ({@link BlindWatchProgress#stoodTo}): a stood-to post mans every post.
+     */
+    public static BattleSimulation createBlindWatch(long seed, List<ShuttleAssignment> manifest, RiskLevel risk,
+                                                    TargetProfile profile, boolean stoodTo) {
+        if (manifest == null || manifest.isEmpty() || manifest.size() > 4)
+            throw new IllegalArgumentException("Blind Watch requires one to four company boats");
+        BlindWatchSounding.Layout layout = BlindWatchSounding.generate(seed, profile);
+        MapResult map = layout.map();
+        GroundRosterProfile roster = GroundRosterRegistry.resolve("pirates");
+        // The rim guns are the map's stamped nests, spawned on Sable Wake's side by the ordinary defence-post path; the
+        // rim posts beside them are their crews, so they add no headcount.
+        List<DefensePost> nestPosts = layout.nests().stream().map(BlindWatchSounding.Nest::post).toList();
+        BattleSimulation sim = buildMap(map, List.of(), nestPosts, List.of(), seed).sim();
+        sim.setSurface(surfaceOf(profile));
+        sim.setGroundRoster(roster);
+        sim.getBattleResources().disableCompoundProduction();
+        Random rng = new Random(seed);
+        var pads = LandingPadSelector.select(map, manifest.size(), LZ_MIN_SEPARATION);
+        recordLzPads(sim, pads);
+        List<int[]> lane = new ArrayList<>();
+        for (BlindWatchSounding.Cell stop : layout.mortarLane()) lane.add(new int[] {stop.x(), stop.y()});
+        BlindWatchSequence.Sites sites = BlindWatchSites.from(layout, drivenTrack(sim, VehicleType.FIRE_SUPPORT_APC, lane));
+        List<ChargeSiteObjective> charges = new ArrayList<>();
+        for (SabotageSiteLayout.Site site : BlindWatchSequence.siteLayout(sites).sites()) {
+            ChargeSiteObjective charge = new ChargeSiteObjective(site.cellX(), site.cellY(), SABOTAGE_PLANT_DURATION,
+                    site.id(), site.displayName());
+            charges.add(charge);
+            sim.addObjective(charge);
+        }
+        sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER, Faction.MARINE));
+        // One planter a sortie, each drop's on the next site in marker order, as the Sabotage plant does.
+        int drop = 0;
+        for (int i = 0; i < manifest.size(); i++) {
+            var assignment = manifest.get(i); var pad = pads.get(i);
+            float x = pad.centerX + .5f, y = pad.centerY + .5f;
+            float[] entry = shuttleEntryFor(x, y, map.grid.getWidth(), map.grid.getHeight(), pad.approach);
+            long air = sim.spawnShuttle(assignment.type, assignment.airframe, Faction.MARINE, x, y,
+                    entry[0], entry[1], entry[2], entry[3], i * SHUTTLE_DROP_STAGGER_SEC, assignment.seatsPerSortie);
+            var mission = sim.world().mission(air);
+            mission.totalCycles = assignment.cycles; mission.manifestOrdinal = i;
+            mission.cycleLoadouts = new MarineLoadout[assignment.cycles][];
+            for (int cycle = 0; cycle < assignment.cycles; cycle++)
+                mission.cycleLoadouts[cycle] = buildSabotageLoadout(assignment.seatsForCycle(cycle), charges, drop++, rng);
+            mission.marineLoadout = mission.cycleLoadouts[0];
+            equipDefaultTurrets(sim, air);
+        }
+        // The watch: each duty's manned posts one squad holding its node, each pillbox its own squad at its slits, the
+        // motor pool's hands the one mobile squad. Whoever is off watch sleeps in the bunk modules.
+        Set<BlindWatchSounding.Cell> slits = new HashSet<>();
+        for (BlindWatchSounding.Pillbox pillbox : layout.pillboxes()) slits.addAll(pillbox.posts());
+        int crew = 0;
+        for (List<BlindWatchSounding.Cell> posts : layout.posts().values()) crew += posts.size();
+        Map<BlindWatchSounding.PostRole, List<BlindWatchSounding.Cell>> watch = BlindWatchSites.watch(layout.posts(), slits,
+                BlindWatchProgress.sentries(BlindWatchSites.USUAL_WATCH, stoodTo));
+        Set<BlindWatchSounding.Cell> manned = new HashSet<>();
+        watch.values().forEach(manned::addAll);
+        List<Map.Entry<String, List<BlindWatchSounding.Cell>>> crews = new ArrayList<>();
+        for (var duty : watch.entrySet()) {
+            List<BlindWatchSounding.Cell> open = duty.getValue().stream().filter(cell -> !slits.contains(cell)).toList();
+            if (!open.isEmpty()) crews.add(Map.entry(duty.getKey().name().toLowerCase(Locale.ROOT), open));
+        }
+        int firstPillboxCrew = crews.size();
+        for (BlindWatchSounding.Pillbox pillbox : layout.pillboxes()) {
+            List<BlindWatchSounding.Cell> crewed = pillbox.posts().stream().filter(manned::contains).toList();
+            if (!crewed.isEmpty()) crews.add(Map.entry(pillbox.role().name().toLowerCase(Locale.ROOT), crewed));
+        }
+        int firstBunkCrew = crews.size();
+        int offWatch = crew - manned.size();
+        List<PointOfInterest> bunks = layout.bunks();
+        for (int b = 0; b < bunks.size() && offWatch > 0; b++) {
+            PointOfInterest bunk = bunks.get(b);
+            int sleepers = offWatch / bunks.size() + (b < offWatch % bunks.size() ? 1 : 0);
+            List<BlindWatchSounding.Cell> beds = new ArrayList<>();
+            for (int[] cell : pickSpawnCluster(map.grid, bunk.interiorAnchorX, bunk.interiorAnchorY, sleepers))
+                beds.add(new BlindWatchSounding.Cell(cell[0], cell[1]));
+            if (!beds.isEmpty()) crews.add(Map.entry("bunks", beds));
+        }
+        Set<Integer> mobile = new TreeSet<>();
+        for (int c = 0; c < crews.size(); c++) {
+            String duty = crews.get(c).getKey();
+            List<BlindWatchSounding.Cell> cells = crews.get(c).getValue();
+            boolean pillbox = c >= firstPillboxCrew && c < firstBunkCrew;
+            boolean motorPool = c < firstPillboxCrew && duty.equals("motor_pool");
+            int squadId = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+            Squad squad = sim.getSquad(squadId);
+            if (motorPool) mobile.add(squadId);
+            else {
+                BlindWatchSounding.Cell anchor = cells.get(0);
+                squad.assignedNode = openingDefenseNode(anchor.x(), anchor.y(), Faction.DEFENDER, map.grid);
+                squad.patrolRadius = pillbox ? PILLBOX_PATROL_RADIUS : 3;
+                squad.holdsFireUntilKillZone = pillbox;
+                sim.assignSquadCommand(ObjectiveAssignment.holdNode(squadId, squad.assignedNode),
+                        CommandAuthority.GARRISON, "blind-watch-post", "Sable Wake " + duty.replace('_', ' ')
+                                + (pillbox ? " pillbox" : c >= firstBunkCrew ? " off watch" : " post"));
+            }
+            for (int i = 0; i < cells.size(); i++) {
+                BlindWatchSounding.Cell cell = cells.get(i);
+                EntitySpec unit = makeDefender("sable-wake-" + duty + "-" + c + "-" + i, UnitType.MILITIA, cell.x(),
+                        cell.y(), risk, roster, GroundRosterProfile.ForceTier.BULK, rng, null)
+                        .role(motorPool ? UnitRole.PATROL : UnitRole.GARRISON).squad(squadId);
+                if (!motorPool) unit.home(cell.x(), cell.y());
+                sim.spawn(unit);
+            }
+            squad.originalSize = cells.size();
+        }
+        claimMissionMobileSquads(sim, mobile, "sabotage-defender", "Sable Wake motor pool crew");
+        // The hired signals technicians shelter in their module; the chemist and the lander crew work the cold drop.
+        // None of them fights.
+        List<BlindWatchSounding.Cell> staff = new ArrayList<>(layout.signalsTechs());
+        staff.add(layout.chemist());
+        int scientists = staff.size();
+        staff.addAll(layout.landerCrew());
+        for (int i = 0; i < staff.size(); i++) {
+            BlindWatchSounding.Cell cell = staff.get(i);
+            sim.spawn(new EntitySpec("sounding-staff-" + i, Faction.CIVILIAN,
+                    i < scientists ? UnitType.SCIENTIST : UnitType.CIVILIAN, cell.x(), cell.y())
+                    .role(UnitRole.FLEE).home(cell.x(), cell.y()));
+        }
+        BlindWatchSequence watchSequence = sim.installBlindWatch(sites, charges,
+                BlindWatchSequence.riggerSpecs(layout.riggers().size()), stoodTo);
+        DustLedgerSequence.Cell start = hullStands(sim, VehicleType.FIRE_SUPPORT_APC,
+                List.of(new int[] {layout.mortarStart().x(), layout.mortarStart().y()})).get(0);
+        watchSequence.mortar(parkHull(sim, VehicleType.FIRE_SUPPORT_APC, start, 90f));
+        List<int[]> standCells = new ArrayList<>();
+        for (BlindWatchSounding.Cell cell : layout.technicalStands()) standCells.add(new int[] {cell.x(), cell.y()});
+        List<DustLedgerSequence.Cell> stands = hullStands(sim, VehicleType.SRM_TECHNICAL, standCells);
+        watchSequence.technical(sim, parkHull(sim, VehicleType.SRM_TECHNICAL, stands.get(0), 180f), stands);
+        sim.setAutonomousCommander(Faction.MARINE, new SabotageCommand(), SabotageCommandDisclosure.INSTANCE);
+        sim.setAutonomousCommander(Faction.DEFENDER, new SabotageDefenderCommand(mobile),
+                SabotageDefenderCommandDisclosure.INSTANCE);
+        return sim;
+    }
+
+    /**
+     * The cells a hull of {@code type} drives through from stop to stop, each stop moved to the nearest cell it clears:
+     * the map proves every leg ({@code VehicleRoutePlanner.routeDrivable}), so a broken one is a setup fault.
+     */
+    private static List<DustLedgerSequence.Cell> drivenTrack(BattleSimulation sim, VehicleType type, List<int[]> stops) {
+        NavigationGrid grid = sim.getGrid();
+        VehicleClearance mask = VehicleClearance.erode(grid, VehicleClearance.radiusForWidth(type.visualWidthCells));
+        List<DustLedgerSequence.Cell> track = new ArrayList<>();
+        int[] from = nearestClear(mask, stops.get(0));
+        track.add(new DustLedgerSequence.Cell(from[0], from[1]));
+        for (int s = 1; s < stops.size(); s++) {
+            int[] to = nearestClear(mask, stops.get(s));
+            int[] path = GridPathfinder.findPathOnDemand(grid, from[0], from[1], to[0], to[1], index -> 1f, mask::isPassableAt);
+            if (path.length < 2 && (from[0] != to[0] || from[1] != to[1]))
+                throw new IllegalStateException("no drivable leg from " + from[0] + "," + from[1] + " to " + to[0] + "," + to[1]);
+            for (int k = 0; k + 1 < path.length; k += 2) {
+                DustLedgerSequence.Cell cell = new DustLedgerSequence.Cell(path[k], path[k + 1]);
+                if (!cell.equals(track.get(track.size() - 1))) track.add(cell);
+            }
+            from = to;
+        }
+        return track;
     }
 
     /** Agreus repair mobilization. Construction is supplied only by a committed fleet tender called in battle. */

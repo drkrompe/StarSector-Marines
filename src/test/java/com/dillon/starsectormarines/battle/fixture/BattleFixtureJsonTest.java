@@ -134,6 +134,14 @@ class BattleFixtureJsonTest {
         assertFalse(BattleFixtureJson.toJson(bare).has("declaredMechDrops"));
     }
 
+    @Test void blindWatchRoundTripKeepsWhetherThePostStoodTo() throws Exception {
+        for (boolean stoodTo : List.of(true, false)) {
+            var fixture = new BlindWatchBattleFixture(7150L, List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 3)),
+                    RiskLevel.LOW, TargetProfile.NEUTRAL, stoodTo);
+            assertEquals(fixture, BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture)));
+        }
+    }
+
     @Test void coldAccountRoundTripRetainsItsInterventionAndBaseInputs() throws Exception {
         var base = new AssaultBattleFixture(201827786L, List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 4)),
                 false, OperationTier.ESTABLISHED, RiskLevel.HIGH, TargetProfile.NEUTRAL,
