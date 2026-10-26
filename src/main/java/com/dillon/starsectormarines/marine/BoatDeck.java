@@ -45,8 +45,7 @@ public final class BoatDeck implements Serializable {
      * Boat parts in stores, by {@link BoatFitting} or {@link BoatGun} id: built
      * by the workshop, or taken off a boat. The company's, not a boat's, so a
      * spare outlives the boat it came off and moves with the company between
-     * ships. A yard-standard part is never stored; every socket has its own
-     * for nothing.
+     * ships, the stock parts a boat is built with among them.
      */
     private Map<String, Integer> spares = new HashMap<>();
 
@@ -183,6 +182,39 @@ public final class BoatDeck implements Serializable {
         return struck;
     }
 
+    /**
+     * Strikes one boat the company broke up off its berth, which stands vacant. Package-private:
+     * {@link BoatWorkshop#scrap} strips her and credits the hold first.
+     */
+    boolean scrap(String boatId) {
+        for (int berth = 0; berth < berths.size(); berth++) {
+            CampaignBoat boat = berths.get(berth);
+            if (boat != null && boat.id().equals(boatId)) {
+                berths.set(berth, null);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /** Takes one boat off her berth into the reserve hangar, fit and all; null when no berth holds her. */
+    CampaignBoat vacate(String boatId) {
+        CampaignBoat boat = boatById(boatId);
+        return boat != null && scrap(boatId) ? boat : null;
+    }
+
+    /**
+     * Stands a stored boat back up in a vacant berth; false when the berth is taken or missing,
+     * or her pattern is not the one this hull's bays hold. Package-private: the reserve hangar
+     * decides what comes out of storage.
+     */
+    boolean berth(int berthIndex, CampaignBoat boat) {
+        if (boat == null || boat.pattern() != pattern || berthIndex < 0 || berthIndex >= berths.size()
+                || berths.get(berthIndex) != null || boatById(boat.id()) != null) return false;
+        berths.set(berthIndex, boat);
+        return true;
+    }
+
     /** The berths with nothing standing in them, in berth order. */
     public List<Integer> vacantBerths() {
         List<Integer> vacant = new ArrayList<>();
@@ -263,13 +295,16 @@ public final class BoatDeck implements Serializable {
         return guns;
     }
 
-    /** The boats that can actually be put in the air, in berth order. */
-    public List<CampaignBoat> airworthy() { return airworthy(CampaignClock.dayFloat()); }
+    /**
+     * The boats that can actually be put in the air, in berth order: repaired and with
+     * every required part fitted ({@link CampaignBoat#flightReady}).
+     */
+    public List<CampaignBoat> flightReady() { return flightReady(CampaignClock.dayFloat()); }
 
-    public List<CampaignBoat> airworthy(float day) {
+    public List<CampaignBoat> flightReady(float day) {
         List<CampaignBoat> flying = new ArrayList<>(berths.size());
         for (CampaignBoat boat : berths) {
-            if (boat != null && boat.airworthy(day)) flying.add(boat);
+            if (boat != null && boat.flightReady(day)) flying.add(boat);
         }
         return Collections.unmodifiableList(flying);
     }
@@ -295,8 +330,12 @@ public final class BoatDeck implements Serializable {
     private CampaignBoat build(ShuttleType pattern) {
         int tail = nextTailNumber++;
         String number = String.format(Locale.ROOT, "%02d", tail);
-        return new CampaignBoat("boat_" + number, tailName(pattern) + " " + String.format(Strings.locale(), "%02d", tail),
-                pattern, BoatFitting.STANDARD_PLATING.id(), BoatFitting.STANDARD_DRIVE.id());
+        return stockBoat("boat_" + number, tailName(pattern) + " " + String.format(Strings.locale(), "%02d", tail), pattern);
+    }
+
+    /** A boat of {@code pattern} as the yard builds her, with the stock parts her bill pays for. */
+    static CampaignBoat stockBoat(String id, String name, ShuttleType pattern) {
+        return new CampaignBoat(id, name, pattern, BoatFitting.STANDARD_PLATING.id(), BoatFitting.STANDARD_DRIVE.id());
     }
 
     /** {@code AEROSHUTTLE} reads as {@code Aeroshuttle}, which is what a tail says. */

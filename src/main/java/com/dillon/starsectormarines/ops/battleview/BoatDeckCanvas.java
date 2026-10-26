@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.ops.fitting.BoardHover;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.BayDoor;
+import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.ship.BayAperture;
 import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
@@ -66,6 +68,12 @@ public final class BoatDeckCanvas implements CanvasProducer {
     private static final Color HAZARD_DARK = new Color(0x1A, 0x1A, 0x16);
     private static final Color MOVING = new Color(0xFF, 0x6A, 0x3A, 230);
     private static final Color TURRET = new Color(0xE2, 0x8F, 0x4A, 235);
+    /**
+     * How much of a turret image's half-width its gun's body reaches: the art stands in the middle
+     * of a canvas sized for its recoil and barrel, so a ring at the full image would take in the
+     * next mount as well.
+     */
+    private static final float GUN_ART_SHARE = 0.6f;
     /** How far a turret's traverse wedge is drawn out from its mount, in cells. */
     private static final float TRAVERSE_CELLS = 2.2f;
 
@@ -76,24 +84,41 @@ public final class BoatDeckCanvas implements CanvasProducer {
      * turned by the mount's own angle.
      */
     private static void traverse(CanvasContext context, Projection p, float worldX, float worldY,
-                                 float noseDegrees, float arcDeg, float reach, Color tone, boolean lit) {
+                                 float noseDegrees, float arcDeg, float inner, float reach, Color tone, boolean lit) {
         float half = Math.min(180f, Math.max(4f, arcDeg * 0.5f));
         int steps = Math.max(6, Math.round(half / 6f));
         Color fill = BoatDollPanel.withAlpha(tone, lit ? 60 : 34);
         Color edge = BoatDollPanel.withAlpha(tone, lit ? 220 : 140);
-        float cx = p.x(worldX), cy = p.y(worldY);
         float[] previous = null;
         for (int i = -steps; i <= steps; i++) {
             // Nose bearing in the world: the local +Y axis turned by the parked facing.
             double bearing = Math.toRadians(noseDegrees + half * i / steps);
-            float ex = p.x(worldX - (float) Math.sin(bearing) * reach);
-            float ey = p.y(worldY + (float) Math.cos(bearing) * reach);
+            float dx = -(float) Math.sin(bearing), dy = (float) Math.cos(bearing);
+            // From the ring round the gun out, so the wedge never paints over the gun it belongs to.
+            float ix = p.x(worldX + dx * inner), iy = p.y(worldY + dy * inner);
+            float ex = p.x(worldX + dx * reach), ey = p.y(worldY + dy * reach);
             if (previous != null) {
-                context.fillQuad(cx, cy, previous[0], previous[1], ex, ey, cx, cy, fill);
+                context.fillQuad(previous[2], previous[3], previous[0], previous[1], ex, ey, ix, iy, fill);
                 context.line(previous[0], previous[1], ex, ey, edge, 1.2f);
             }
-            if (i == -steps || i == steps) context.line(cx, cy, ex, ey, edge, 1f);
-            previous = new float[]{ex, ey};
+            if (i == -steps || i == steps) context.line(ix, iy, ex, ey, edge, 1f);
+            previous = new float[]{ex, ey, ix, iy};
+        }
+    }
+
+    /**
+     * How far the gun on a hardpoint reaches from its mount on screen, in pixels: half the size it
+     * is drawn at, {@code ShuttleRenderSystem.emitTurret}'s visual cells at ground scale. Zero for a
+     * bare hardpoint or a gun the turret catalog does not know.
+     */
+    private static float gunRadiusPx(BoatDoll.Slot slot, float cellPx) {
+        BoatGun gun = slot.itemId() == null ? null : BoatGun.findById(slot.itemId());
+        if (gun == null || TurretCatalogRegistry.installed() == null) return 0f;
+        try {
+            float cells = TurretCatalogRegistry.requireStructure(gun.structureId()).mount.visualCells;
+            return cells * AirAppearance.GROUND_SCALE * cellPx * 0.5f;
+        } catch (IllegalStateException unknown) {
+            return 0f;
         }
     }
     /** How thick a leaf is through the hull, in cells. */
@@ -371,6 +396,7 @@ public final class BoatDeckCanvas implements CanvasProducer {
         float sin = (float) Math.sin(facing);
         float originX = berth.centerX + 0.5f;
         float originY = berth.centerY + 0.5f;
+        float cellPx = Math.abs(p.x(1f) - p.x(0f));
         for (BoatDoll.Slot slot : doll.slots()) {
             if (slot.kind() != BoatDoll.Kind.HARDPOINT || !slot.placed()) continue;
             float lx = slot.localX() * AirAppearance.GROUND_SCALE;
@@ -380,13 +406,18 @@ public final class BoatDeckCanvas implements CanvasProducer {
             float x = p.x(worldX);
             float y = p.y(worldY);
             Color tone = slot.selected() ? MARK : TURRET;
+            // A fitted gun is drawn on this spot by the deck scene beneath; the ring goes round it
+            // rather than over it, and a bare hardpoint keeps the small ring that marks the mount.
+            float radius = Math.max(slot.selected() ? 9f : 7f, gunRadiusPx(slot, cellPx) * GUN_ART_SHARE + 3f);
+            float reach = Math.max(TRAVERSE_CELLS, (radius + 6f) / Math.max(1f, cellPx));
             traverse(context, p, worldX, worldY, berth.facing.degrees() + slot.facingDeg(), slot.arcDeg(),
-                    TRAVERSE_CELLS, tone, slot.selected());
-            BoatDollPanel.ring(context, x, y, slot.selected() ? 9f : 7f, new Color(0, 0, 0, 190), 4f);
-            BoatDollPanel.ring(context, x, y, slot.selected() ? 9f : 7f, tone, 2f);
+                    radius / Math.max(1f, cellPx), reach, tone, slot.selected());
+            BoatDollPanel.ring(context, x, y, radius, new Color(0, 0, 0, 190), 4f);
+            BoatDollPanel.ring(context, x, y, radius, tone, 2f);
             String label = Strings.format("boatDeckHardpointShort", BoatDoll.hardpointOf(slot.key()) + 1);
-            context.fillRect(x + 11f, y - 9f, Fonts.ORBITRON_10.measureWidth(label) + 8f, 16f, new Color(8, 12, 14, 220));
-            context.text(Fonts.ORBITRON_10, label, x + 15f, y - 7f, tone);
+            float labelX = x + radius + 4f;
+            context.fillRect(labelX, y - 9f, Fonts.ORBITRON_10.measureWidth(label) + 8f, 16f, new Color(8, 12, 14, 220));
+            context.text(Fonts.ORBITRON_10, label, labelX + 4f, y - 7f, tone);
         }
     }
 

@@ -54,12 +54,13 @@ public record BoatDoll(ShuttleType airframe, String name, String pattern, List<S
      * @param facingDeg where the mount points, degrees off the nose with port positive
      * @param arcDeg how far it traverses about that facing
      * @param placed whether the hull publishes a weapon slot for this hardpoint at all
+     * @param missing whether this socket is empty and the boat cannot fly without it: it warns
      */
     public record Slot(String key, Kind kind, String itemId, String title, String fitted, String tier, boolean selected,
-                       float localX, float localY, float facingDeg, float arcDeg, boolean placed) {
+                       float localX, float localY, float facingDeg, float arcDeg, boolean placed, boolean missing) {
 
         public static Slot fitting(BoatFittingSlot slot, String itemId, String title, String fitted, String tier,
-                                   boolean selected) {
+                                   boolean selected, boolean missing) {
             Kind kind = switch (slot) {
                 case PLATING -> Kind.PLATING;
                 case DRIVE -> Kind.DRIVE;
@@ -68,16 +69,16 @@ public record BoatDoll(ShuttleType airframe, String name, String pattern, List<S
                 case EMITTER -> Kind.EMITTER;
                 case POWER -> Kind.POWER;
             };
-            return new Slot(slotKey(slot), kind, itemId, title, fitted, tier, selected, 0f, 0f, 0f, 0f, false);
+            return new Slot(slotKey(slot), kind, itemId, title, fitted, tier, selected, 0f, 0f, 0f, 0f, false, missing);
         }
 
         public static Slot hardpoint(int index, String itemId, String title, String fitted, String tier,
                                      boolean selected, WeaponSlot mount) {
             return mount == null
                     ? new Slot(HARDPOINT_KEY + index, Kind.HARDPOINT, itemId, title, fitted, tier, selected,
-                            0f, 0f, 0f, 0f, false)
+                            0f, 0f, 0f, 0f, false, false)
                     : new Slot(HARDPOINT_KEY + index, Kind.HARDPOINT, itemId, title, fitted, tier, selected,
-                            mount.localX(), mount.localY(), mount.angleDeg(), mount.arcDeg(), true);
+                            mount.localX(), mount.localY(), mount.angleDeg(), mount.arcDeg(), true, false);
         }
     }
 }

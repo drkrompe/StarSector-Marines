@@ -77,6 +77,7 @@ public final class BattleReviewFrameRenderer {
     private boolean unitShadows;
     private boolean roofs;
     private boolean missionMarkers;
+    private float coverLeft = Float.POSITIVE_INFINITY, coverBottom = Float.POSITIVE_INFINITY;
     private boolean presentation;
 
     public BattleReviewFrameRenderer(Path modRoot, int width, int height) {
@@ -159,6 +160,13 @@ public final class BattleReviewFrameRenderer {
     }
 
     /** Takes the roof layer back off, for a look still that shows what stands under a building's roof. */
+    /** The screen corner a composited HUD rail covers (pixels, y up), so mission labels stay out from under it. */
+    public BattleReviewFrameRenderer withHudCover(float left, float bottom) {
+        coverLeft = left;
+        coverBottom = bottom;
+        return this;
+    }
+
     public BattleReviewFrameRenderer withoutRoofs() {
         this.roofs = false;
         return this;
@@ -390,6 +398,7 @@ public final class BattleReviewFrameRenderer {
         BattleCamera camera = new BattleCamera(simulation.getGrid().getWidth(), simulation.getGrid().getHeight());
         camera.setViewport(0, 0, viewportWidth, viewportHeight - header, (float)Math.floor(viewportWidth / focusWidth));
         camera.centerOn(focusX, focusY);
+        camera.coverTopRight(coverLeft, coverBottom);
         return camera;
     }
 

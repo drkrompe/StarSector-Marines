@@ -1,8 +1,10 @@
 # Battle music director
 
-Status: PLANNED — owner-requested 2026-10-26; the Dust Ledger is the first user.
+Status: IN PROGRESS — built and integrated; the model is in `battle-radio-nouns.md` (Battle music). Awaiting the owner's pick of the quiet bed (picks page) and acceptance of the Dust Ledger walk-in clip; retire on acceptance.
 
 Written: 2026-10-26
+
+Updated: 2026-10-26 — built; quiet now plays the Marine Ops theme as an interim bed (owner: "we need pre-battle music").
 
 Read `battle-radio-nouns.md` (presentation-only audio, hosts, the voice
 budget) and `dust-ledger-crossing.md` (the quiet phase and the alarm) first.
@@ -55,10 +57,15 @@ with one `BattleMusicPlaylist` per state.
 Only combat tracks exist, plus `marines_intel_music` for the intel screen.
 Until quiet and alert tracks are sourced:
 
-- **quiet**: no music; the ambient loops carry the scene;
+- **quiet**: a bed, never silence (owner, 2026-10-26: "we need pre-battle
+  music"). Interim: the Marine Ops theme, `marines_intel_music`, played as
+  `marines_intel_music_bed`, about 5 dB under the combat pool (music is
+  encoded to one loudness). It fades out over the raise crossfade at the
+  alarm. The owner picks the real bed: this
+  theme, the arrival's strings score, or a track from the Eternity pack;
 - **alert**: the quiet bed if one exists, otherwise combat at reduced volume,
   if the host can set music volume;
-- **aftermath**: quiet.
+- **aftermath**: the quiet bed.
 
 Sourcing tracks is the owner's call. `backlog.md` already names a candidate
 music pack for "when the battle music direction is contracted". This story is
@@ -95,5 +102,5 @@ it.
 ## Open questions
 
 - The quiet and alert beds: which tracks, and where from? This is the owner's
-  call. Until then: silence under the ambient loops.
+  call. Until then: the Marine Ops theme.
 - Should a victory or defeat sting play? Default: no, until tracks exist.

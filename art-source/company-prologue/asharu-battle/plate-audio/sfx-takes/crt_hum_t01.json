@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "110",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Steady hum of an old CRT monitor up close: low mains buzz with a very faint high-pitched flyback whine and soft electrical crackle, constant, no music",
+    "duration_seconds": 10.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "40618072e119d31762a84eaba69919f371e8e5ca92f96672e682a3e7da0f7da5",
+  "durationSeconds": 10.0,
+  "peakDb": -42.3,
+  "integratedLufs": -52.1
+}

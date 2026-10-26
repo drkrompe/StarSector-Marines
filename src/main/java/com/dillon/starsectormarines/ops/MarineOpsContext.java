@@ -287,7 +287,7 @@ public class MarineOpsContext {
         boolean[] grounded = new boolean[boats.size()];
         float day = CampaignClock.dayFloat();
         for (int i = 0; i < boats.size(); i++)
-            grounded[i] = boats.get(i) != null && !boats.get(i).airworthy(day);
+            grounded[i] = boats.get(i) != null && !boats.get(i).flightReady(day);
         return grounded;
     }
 

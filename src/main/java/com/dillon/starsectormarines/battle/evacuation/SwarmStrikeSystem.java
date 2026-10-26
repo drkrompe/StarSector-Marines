@@ -62,10 +62,13 @@ public final class SwarmStrikeSystem {
         for (Blow blow; (blow = postedBlows.poll()) != null; ) drain.add(blow);
         drain.sort(BLOW_ORDER);
         for (Blow blow : drain) {
+            // A fort's or an objective's wall takes many blows for a house wall's one.
+            int amount = FortifiedWorks.swarmDamage(sim.getGrid(), blow.cellX(), blow.cellY(), blow.edge(),
+                    blow.amount());
             boolean broke = blow.edge() == null
-                    ? sim.mapEditor().damageWall(blow.cellX(), blow.cellY(), blow.amount())
+                    ? sim.mapEditor().damageWall(blow.cellX(), blow.cellY(), amount)
                     : sim.mapEditor().damageEdgeBarrier(blow.cellX(), blow.cellY(),
-                            blow.edge(), blow.amount());
+                            blow.edge(), amount);
             blowsLanded++;
             if (broke) structuresBroken++;
             sim.swarmCues().postAt(broke ? SwarmCues.Kind.WALL_BREAK : SwarmCues.Kind.WALL_BLOW,

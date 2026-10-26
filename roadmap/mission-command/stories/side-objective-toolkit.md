@@ -1,6 +1,6 @@
 # Side-objective toolkit
 
-Status: PLANNED — owner-requested 2026-10-26; the Dust Ledger is the first user.
+Status: IN PROGRESS — all four steps built and integrated, awaiting owner acceptance; the model is folded into `mission-command-nouns.md` (Side objectives) and `ui-nouns.md`.
 
 Written: 2026-10-26
 

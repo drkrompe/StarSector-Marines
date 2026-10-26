@@ -8,13 +8,14 @@ import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.objective.side.SideObjective;
+import com.dillon.starsectormarines.battle.objective.side.SideObjectiveService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.story.DustLedgerProgress;
 import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Broker;
 import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Facts;
-import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Side;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -24,7 +25,6 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.i18n.Strings;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -35,7 +35,8 @@ import java.util.Set;
  * chooses its moment, and pays for preparation with time. This adapter reads the battle into
  * {@link DustLedgerProgress}, which owns the rules, and carries out what they decide: the quiet-phase
  * {@link ScanCover}, the Raid alarm, the cantina drinkers, the Harrow salvage team, the spotters' view of the yard,
- * and the broker's walk.
+ * and the broker's walk. Its four side objectives are toolkit jobs ({@link DustLedgerSideObjectives}) the battle's
+ * side-objective service runs; the payoffs here read their state.
  *
  * <p>The Raid itself (seize the ledger room, return the records to the apron) is the {@link RaidObjective} the setup
  * installs beside this; the ledger burn stops at its seizure. This objective completes with the Raid and never fails,
@@ -61,7 +62,7 @@ public final class DustLedgerSequence implements Objective {
     private static final String BEAT = "corvus.dust_ledger.";
     /**
      * Grants side objectives before play ({@code coupling}, {@code warden}, {@code feed}, comma separated, or
-     * {@code all}): a standing evidence lever, so a headless run can play the prepared approach the autonomous company
+     * {@code all} for the three): a standing evidence lever, so a headless run can play the prepared approach the autonomous company
      * never chooses, beside the run that plays none.
      */
     public static final String SIDE_OBJECTIVES_PROPERTY = "battle.dustLedger.sideObjectives";
@@ -172,31 +173,6 @@ public final class DustLedgerSequence implements Objective {
         public static Area ring(Area grounds) { return grounds.grown(RING_MARGIN_CELLS); }
     }
 
-    /** The coupling crate: lying somewhere, carried by one company unit, or delivered. */
-    static final class Crate {
-        int x, y;
-        long carrier;
-        boolean delivered;
-
-        Crate(Cell start) { x = start.x(); y = start.y(); }
-
-        /**
-         * One tick. While carried, the crate is wherever its carrier stands, delivered the moment that is inside the
-         * yard, and dropped where the carrier fell if it dies. While lying, the company unit {@code pickup} (0 for
-         * none in reach) takes it up.
-         */
-        void step(boolean carrierAlive, int carrierX, int carrierY, long pickup, Area yard) {
-            if (delivered) return;
-            if (carrier != 0L) {
-                if (!carrierAlive) { carrier = 0L; return; }
-                x = carrierX; y = carrierY;
-                if (yard.contains(x, y)) { delivered = true; carrier = 0L; }
-                return;
-            }
-            if (pickup != 0L) carrier = pickup;
-        }
-    }
-
     /** One Sable Wake combatant watching: its cell and how far it sees. */
     record Watcher(int x, int y, float sight) { }
 
@@ -233,7 +209,7 @@ public final class DustLedgerSequence implements Objective {
     private final List<EntitySpec> drinkers, salvageTeam;
     private final StoryBeatLog log;
     private final DustLedgerProgress progress;
-    private final Crate crate;
+    private final SideObjective coupling, warden, feed, brokerJob;
     private long broker;
     private int brokerGoalX = -1, brokerGoalY = -1, brokerPlannedTick = -1;
     private boolean begun, alarmApplied, spotterSources;
@@ -255,20 +231,34 @@ public final class DustLedgerSequence implements Objective {
             throw new IllegalArgumentException("one spawn cell per drinker and per salvage team member");
         this.sites = sites; this.raid = raid; this.log = log; this.progress = progress;
         this.drinkers = List.copyOf(drinkers); this.salvageTeam = List.copyOf(salvageTeam);
-        this.crate = new Crate(sites.crate());
+        coupling = DustLedgerSideObjectives.coupling(sites, progress);
+        warden = DustLedgerSideObjectives.warden(sites, progress, this::spottersUp);
+        feed = DustLedgerSideObjectives.feed(sites, progress, sim -> { for (long nest : nests) sim.turretState().cutPower(nest); },
+                this::nestCells, () -> !feedCut());
+        brokerJob = DustLedgerSideObjectives.broker(sites, progress, () -> broker, this::brokerJob);
     }
 
-    /** Pays the side objectives a control run names; unknown names fail loudly rather than play the wrong run. */
-    void grantForced(String names) {
+    private SideObjective brokerJob() { return brokerJob; }
+
+    /** Offers the four side objectives on the battle's service. Once, at setup. */
+    void offer(SideObjectiveService service) {
+        for (SideObjective job : List.of(coupling, warden, feed, brokerJob)) service.install(job);
+    }
+
+    /** Grants the side objectives a control run names; unknown names fail loudly rather than play the wrong run. */
+    void grantForced(String names, SideObjectiveService service, BattleSimulation sim) {
         for (String name : names.split(",")) {
-            String key = name.trim().toUpperCase(Locale.ROOT);
+            String key = name.trim().toLowerCase(Locale.ROOT);
             if (key.isEmpty()) continue;
-            for (DustLedgerProgress.SideObjective which : DustLedgerProgress.SideObjective.values())
-                if (key.equals("ALL") || key.equals(which.name())) progress.grant(which);
-            if (!key.equals("ALL") && Arrays.stream(DustLedgerProgress.SideObjective.values()).noneMatch(w -> w.name().equals(key)))
+            if (key.equals("all")) {
+                for (String job : DustLedgerSideObjectives.QUIET_JOBS) if (!service.job(job).done()) service.grant(job, sim);
+                continue;
+            }
+            String job = "dust-ledger-" + key;
+            if (!DustLedgerSideObjectives.QUIET_JOBS.contains(job))
                 throw new IllegalArgumentException(SIDE_OBJECTIVES_PROPERTY + ": unknown side objective " + name);
+            if (!service.job(job).done()) service.grant(job, sim);
         }
-        if (progress.coupling() == Side.PAID) crate.delivered = true;
     }
 
     /** Stands the broker in his office and puts the quiet phase over the scans. Once, at setup. */
@@ -278,17 +268,18 @@ public final class DustLedgerSequence implements Objective {
         Cell office = sites.brokerOffice();
         broker = sim.spawn(new EntitySpec(Strings.get("dustLedgerHudBrokerName"), Faction.CIVILIAN, UnitType.CIVILIAN,
                 office.x(), office.y()).role(UnitRole.VIP));
-        grantForced(System.getProperty(SIDE_OBJECTIVES_PROPERTY, ""));
+        offer(sim.getSideObjectives());
+        grantForced(System.getProperty(SIDE_OBJECTIVES_PROPERTY, ""), sim.getSideObjectives(), sim);
         Area ring = sites.exclusionRing();
         sim.getUnitIndex().cover((faction, x, y) -> progress.quiet() && covered(ring, faction, x, y));
     }
 
-    /** What the debrief reads: the ledger's grade at seizure (null if never seized) and where the broker ended up. */
-    public record Report(DustLedgerProgress.Grade grade, DustLedgerProgress.Broker broker) {
-        /** Only a broker who reached the apron alive counts as caught. */
-        public boolean brokerCaught() { return broker == DustLedgerProgress.Broker.DELIVERED; }
-    }
-    public Report report() { return new Report(progress.grade(), progress.broker()); }
+    /**
+     * What the debrief reads: the ledger's grade at seizure (null if never seized) and whether the broker was caught,
+     * which counts only once he reached the apron alive (the broker side objective done).
+     */
+    public record Report(DustLedgerProgress.Grade grade, boolean brokerCaught) { }
+    public Report report() { return new Report(progress.grade(), brokerJob.done()); }
 
     /**
      * The compound's defences, recorded at setup: the powered gun nests (turret ids) a cut feed darkens, and the
@@ -299,7 +290,7 @@ public final class DustLedgerSequence implements Objective {
         nests.addAll(nestIds);
         for (long nest : nestIds) nestCells.add(new Cell(sim.world().cellX(nest), sim.world().cellY(nest)));
         pillboxSquads.addAll(pillboxSquadIds);
-        if (!progress.nestsPowered()) for (long nest : nests) sim.turretState().cutPower(nest);
+        if (feedCut()) for (long nest : nests) sim.turretState().cutPower(nest);
     }
 
     public List<Long> nests() { return List.copyOf(nests); }
@@ -310,15 +301,19 @@ public final class DustLedgerSequence implements Objective {
     public Sites sites() { return sites; }
     public DustLedgerProgress progress() { return progress; }
     public long broker() { return broker; }
-    public int crateX() { return crate.x; }
-    public int crateY() { return crate.y; }
-    public boolean crateCarried() { return crate.carrier != 0L; }
-    public boolean crateDelivered() { return crate.delivered; }
+    /** The salvage team answers the alarm only if the coupling reached them first. */
+    public boolean salvageTeamJoins() { return coupling.done(); }
+    /** The cantina drinkers arm and join unless the warden's watch holds the cantina. */
+    public boolean drinkersJoin() { return !warden.done(); }
+    /** The watch's rooftop spotters reveal the compound yard from the nod until the alarm. */
+    public boolean spottersUp() { return warden.done() && progress.quiet(); }
+    /** The gun nests are dead when the alarm comes if the feed was cut first. */
+    public boolean feedCut() { return feed.done(); }
     /** Reserve members not yet on the field, for the setup's pending-arrivals count. */
     public int pendingMembers(Faction faction) {
         if (alarmApplied) return 0;
-        if (faction == Faction.DEFENDER) return progress.drinkersJoin() ? drinkers.size() : 0;
-        return faction == Faction.ALLY && progress.salvageTeamJoins() ? salvageTeam.size() : 0;
+        if (faction == Faction.DEFENDER) return drinkersJoin() ? drinkers.size() : 0;
+        return faction == Faction.ALLY && salvageTeamJoins() ? salvageTeam.size() : 0;
     }
 
     public void advance(BattleSimulation sim) {
@@ -326,34 +321,17 @@ public final class DustLedgerSequence implements Objective {
         boolean wasQuiet = progress.quiet();
         boolean shot = wasQuiet && shotFired(sim);
         boolean sighted = wasQuiet && !shot && sentrySighting(sim);
-        stepCrate(sim);
         boolean brokerAlive = onField(sim, broker);
         float bx = brokerAlive ? sim.world().x(broker) : -1, by = brokerAlive ? sim.world().y(broker) : -1;
         Cell pad = sites.skimmerPad();
-        boolean leaderAtWell = leaderAtWell(sim), atFeed = companyIn(sim, sites.feedJunction());
         Facts facts = new Facts(shot, sighted, raid.targetSecured(), brokerAlive,
                 brokerAlive && companyWithin(sim, bx, by, BROKER_REACH_CELLS, true) != 0L,
-                brokerAlive && Math.hypot(bx - (pad.x() + .5f), by - (pad.y() + .5f)) <= PAD_REACH_CELLS,
-                brokerAlive && sites.apron().contains((int) Math.floor(bx), (int) Math.floor(by)),
-                crate.delivered, leaderAtWell, atFeed);
+                brokerAlive && Math.hypot(bx - (pad.x() + .5f), by - (pad.y() + .5f)) <= PAD_REACH_CELLS);
         Broker brokerBefore = progress.broker();
         boolean seizedBefore = progress.seized();
-        Side couplingBefore = progress.coupling(), wardenBefore = progress.warden(), feedBefore = progress.feed();
         progress.advance(BattleSimulation.TICK_DT, facts);
-        if (wasQuiet) {
-            if (crate.carrier != 0L) beat(sim, "harrow_crate");
-            if (leaderAtWell) beat(sim, "warden_approach");
-            if (atFeed) beat(sim, "feed_approach");
-            if (progress.clockRemaining() <= CLOCK_SHORT_SECONDS) beat(sim, "clock_short");
-        }
-        if (couplingBefore != progress.coupling() && progress.coupling() == Side.PAID) beat(sim, "harrow_delivered");
-        if (wardenBefore != progress.warden() && progress.warden() == Side.PAID) beat(sim, "warden_nod");
-        if (progress.spottersUp()) beat(sim, "spotters");
-        if (feedBefore != progress.feed()) {
-            beat(sim, progress.feed() == Side.PAID ? "feed_cut" : "feed_lapsed");
-            // The nests hold fire through the quiet phase anyway; cut now, they are dead when the alarm comes.
-            if (progress.feed() == Side.PAID) for (long nest : nests) sim.turretState().cutPower(nest);
-        }
+        if (wasQuiet && progress.clockRemaining() <= CLOCK_SHORT_SECONDS) beat(sim, "clock_short");
+        if (spottersUp()) beat(sim, "spotters");
         if (wasQuiet && !progress.quiet()) onAlarm(sim);
         if (!seizedBefore && progress.seized()) beat(sim, "ledger_seized");
         if (!progress.seized() && !progress.quiet()) {
@@ -361,13 +339,11 @@ public final class DustLedgerSequence implements Objective {
             if (progress.burnedShare() >= 1f) beat(sim, "ledger_burned");
         }
         if (brokerBefore != progress.broker()) {
+            // His surrender, delivery and death are the broker side objective's lines.
             String told = switch (progress.broker()) {
                 case FLEEING -> "broker_flees";
-                case HELD -> "broker_surrendered";
-                case DELIVERED -> "broker_apron";
                 // The clock's departure is told by alarm_clock; a boarding at the pad is told here.
                 case ESCAPED -> brokerBefore == Broker.IN_OFFICE ? null : "broker_boarded";
-                case DEAD -> "broker_lost";
                 default -> null;
             };
             if (told != null) beat(sim, told);
@@ -389,14 +365,14 @@ public final class DustLedgerSequence implements Objective {
         sim.getUnitIndex().cover(null);
         beat(sim, progress.alarm() == DustLedgerProgress.Alarm.SHOTS ? "alarm_shot" : "alarm_" + lower(progress.alarm().name()));
         beat(sim, "ledger_burning");
-        if (!progress.nestsPowered() && !nests.isEmpty()) beat(sim, "nests_dark");
-        if (progress.drinkersJoin() && !drinkers.isEmpty()) {
+        if (feedCut() && !nests.isEmpty()) beat(sim, "nests_dark");
+        if (drinkersJoin() && !drinkers.isEmpty()) {
             drinkerSquad = release(sim, drinkers, sites.drinkerCells(), Faction.DEFENDER);
             sim.assignSquadCommand(ObjectiveAssignment.attackMove(drinkerSquad, sites.burnBarrel().x(), sites.burnBarrel().y()),
                     CommandAuthority.SCRIPTED, ISSUER, "Cantina drinkers arm and make for the pump house");
             beat(sim, "cantina_joins");
-        } else if (!progress.drinkersJoin()) beat(sim, "cantina_held");
-        if (progress.salvageTeamJoins() && !salvageTeam.isEmpty()) {
+        } else if (!drinkersJoin()) beat(sim, "cantina_held");
+        if (salvageTeamJoins() && !salvageTeam.isEmpty()) {
             salvageSquad = release(sim, salvageTeam, sites.salvageTeamCells(), Faction.ALLY);
             sim.assignSquadCommand(ObjectiveAssignment.attackMove(salvageSquad, sites.eastGate().x(), sites.eastGate().y()),
                     CommandAuthority.SCRIPTED, ISSUER, "Harrow salvage team advances on the east gate");
@@ -436,33 +412,6 @@ public final class DustLedgerSequence implements Objective {
         return !inside.isEmpty() && sighted(sim.getGrid(), ring, watchers, inside);
     }
 
-    private void stepCrate(BattleSimulation sim) {
-        boolean alive = crate.carrier != 0L && onField(sim, crate.carrier);
-        long pickup = crate.carrier == 0L && !crate.delivered
-                ? companyWithin(sim, crate.x + .5f, crate.y + .5f, CRATE_REACH_CELLS, true) : 0L;
-        crate.step(alive, alive ? sim.world().cellX(crate.carrier) : crate.x, alive ? sim.world().cellY(crate.carrier) : crate.y,
-                pickup, sites.harrowYard());
-    }
-
-    /** Whether a company combatant stands inside {@code area}. */
-    private static boolean companyIn(BattleSimulation sim, Area area) {
-        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
-            long id = sim.liveUnitAt(i);
-            if (sim.identity().faction(id) != Faction.MARINE || !sim.identity().type(id).combatant
-                    || !sim.world().hasPosition(id) || sim.isRiding(id)) continue;
-            if (area.contains(sim.world().cellX(id), sim.world().cellY(id))) return true;
-        }
-        return false;
-    }
-
-    private boolean leaderAtWell(BattleSimulation sim) {
-        for (Squad squad : sim.getSquads()) {
-            if (squad.faction != Faction.MARINE || squad.leaderId == 0L || !onField(sim, squad.leaderId)) continue;
-            if (sites.wellHouse().contains(sim.world().cellX(squad.leaderId), sim.world().cellY(squad.leaderId))) return true;
-        }
-        return false;
-    }
-
     /** Nearest company combatant within {@code reach} of a point, or 0. */
     private static long companyWithin(BattleSimulation sim, float x, float y, float reach, boolean combatantOnly) {
         long best = 0L;
@@ -481,13 +430,14 @@ public final class DustLedgerSequence implements Objective {
         return id != 0L && sim.resolveUnit(id) != 0L && sim.world().hasPosition(id) && sim.world().isAlive(id);
     }
 
-    /** Fleeing, he runs for the pad; held, he keeps to the nearest of his captors; otherwise he stands. */
+    /** Fleeing, he runs for the pad; held, he keeps to the nearest of his captors until delivered; otherwise he stands. */
     private void walkBroker(BattleSimulation sim) {
         if (!onField(sim, broker)) return;
         int goalX, goalY;
         switch (progress.broker()) {
             case FLEEING -> { goalX = sites.skimmerPad().x(); goalY = sites.skimmerPad().y(); }
             case HELD -> {
+                if (brokerJob.done()) { sim.clearPath(broker); return; }
                 long captor = companyWithin(sim, sim.world().x(broker), sim.world().y(broker), Float.MAX_VALUE, false);
                 if (captor == 0L) return;
                 goalX = sim.world().cellX(captor); goalY = sim.world().cellY(captor);
@@ -509,7 +459,7 @@ public final class DustLedgerSequence implements Objective {
 
     /** While the watch spots for the company, the compound yard is held open in the player's view. */
     private void updateSpotters(BattleSimulation sim) {
-        boolean up = progress.spottersUp();
+        boolean up = spottersUp();
         if (!up && !spotterSources) return;
         FogOfWarService fog = sim.getFogOfWar();
         fog.clearStandingSources();

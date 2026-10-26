@@ -180,11 +180,13 @@ class ColonyBreachEvidenceTest {
                 JSONObject contact = null;
                 SpawnAudit audit = new SpawnAudit(sim);
                 BombardProbe bombards = new BombardProbe();
+                WorksBreachProbe works = new WorksBreachProbe(sim);
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     sim.advance(BattleSimulation.TICK_DT);
                     capture.afterAdvance();
                     audit.afterAdvance(sim, breach);
                     bombards.afterAdvance(sim);
+                    works.afterAdvance(sim);
                     if (contact == null) contact = firstMarineContact(sim);
                     for (long id : sim.getAirEntityIds()) {
                         ShuttleMission mission = sim.world().mission(id);
@@ -206,6 +208,7 @@ class ColonyBreachEvidenceTest {
                         "swarm bodies spawned after every bore had collapsed");
                 if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
                 if (run == 0) bombards.print(fixtureId, sim);
+                if (run == 0) works.print(fixtureId);
                 String trace = sim.getCommandTraceJsonLines();
                 if (firstTrace == null) {
                     firstTrace = trace;

@@ -52,7 +52,13 @@ public record AudioManifest(List<AudioClip> clips) {
     /** Optional offline treatment. Omitted means the original clean encoding recipe. */
     public enum Processing { COMMS, AIR_COMMS, ORBITAL_COMMS, DIALOGUE, SHIP_PA }
 
-    public record AudioClip(String id, String source, Kind kind, String out, Processing processing) {}
+    /**
+     * Optional mix class: the loudness {@link ProcessAudioTask} encodes the clip to after its
+     * treatment. Omitted means the source's level, except music, which is always leveled.
+     */
+    public enum Mix { STORY_VOICE, MISSION_VOICE }
+
+    public record AudioClip(String id, String source, Kind kind, String out, Processing processing, Mix mix) {}
 
     public static AudioManifest load(Path manifestPath) throws IOException {
         JsonMapper mapper = JsonMapper.builder()

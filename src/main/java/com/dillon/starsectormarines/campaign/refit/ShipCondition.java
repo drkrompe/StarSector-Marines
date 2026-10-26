@@ -41,11 +41,12 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         return new ShipCondition(true, copy);
     }
 
-    /** The workshop chain is the fabrication core: repaired machinery is restored, tooling improves it. */
+    /** The workshop chain is the fabrication core: repaired machinery is restored, tooling improves it, the reclamation line further. */
     public static RefitBand fabrication(WorkshopState workshop) {
         return switch (workshop) {
             case REPAIRED -> RefitBand.RESTORED;
             case EQUIPPED -> RefitBand.IMPROVED_I;
+            case RECLAIMING -> RefitBand.IMPROVED_II;
             case NONE -> RefitBand.RESTORED;
             default -> RefitBand.DEFICIT;
         };
@@ -207,6 +208,16 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         return switch (band(RefitTrack.HOLDS)) {
             case IMPROVED_I -> 20;
             case IMPROVED_II -> 40;
+            default -> 0;
+        };
+    }
+
+    /** Whole machines the reserve hangar holds; none on a hull this record does not apply to. */
+    public int reserveCapacity() {
+        if (!applies) return 0;
+        return switch (band(RefitTrack.RESERVE_HANGAR)) {
+            case RESTORED -> 2;
+            case IMPROVED_I, IMPROVED_II -> 4;
             default -> 0;
         };
     }

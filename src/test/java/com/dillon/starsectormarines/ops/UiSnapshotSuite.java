@@ -51,6 +51,7 @@ import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.Reclamation;
+import com.dillon.starsectormarines.marine.ReserveHangar;
 import com.dillon.starsectormarines.marine.WorkshopTooling;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.BoatDeck;
@@ -467,6 +468,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("boat-deck-recycle-half-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, RECYCLING_HALF)),
+                new SnapshotArtifact("boat-deck-scrap-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, SCRAP_ARMED)),
                 new SnapshotArtifact("boat-deck-hardpoint-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, NO_DEPARTURE, 0)),
@@ -1372,7 +1376,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return renderMissionBriefing(context, renderer, width, height, props, uiScale, scrolled, null);
     }
 
-    private static BufferedImage renderMissionBriefing(
+    static BufferedImage renderMissionBriefing(
             SnapshotContext context, HeadlessUiRenderer renderer,
             int width, int height, Map<String, Object> props, float uiScale,
             boolean scrolled, String hintTarget) throws Exception {
@@ -1393,6 +1397,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             SpecSheetBinder hints = BriefingHints.install(document, instance, props);
             BriefingSurvey.install(document, instance, props);
+            BriefingLift.install(document, instance, props, Strings::get);
+            BriefingViewModel.installMusters(document, instance, props);
             if (Boolean.TRUE.equals(props.get("debugExpanded"))) {
                 DebugKitPicker.wireBayPictures(document, instance, (List<?>) props.get("debugBaySlots"),
                         MechLabDollCanvas::headlessAssets);
@@ -2144,7 +2150,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             clickBarracksFlow(document, instance, "boat:0"); guide.update();
             frames.add(preparationFrame("03-commission", renderer, document, guide, scale));
             clickBarracksFlow(document, instance, "boat-fabricate"); guide.update();
-            if (deck.airworthy().size() != 1) throw new IllegalStateException("Click-through commissioning failed");
+            if (deck.flightReady().size() != 1) throw new IllegalStateException("Click-through commissioning failed");
             // Mirror the production host's occupancy-driven scene adoption, including the new boat.
             CompanyDeck commissioned = new CompanyDeck(candidate.ship(), SHIP_SEED, null,
                     List::of, List::of, () -> heldBerths(deck));
@@ -2577,9 +2583,20 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         return List.of(
                 new SnapshotArtifact("boat-deck-fitting-wide.png",
                         renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true)),
+                // The reserve hangar: the opened boat's STORE armed, and the deck with one boat stored.
+                new SnapshotArtifact("boat-deck-store-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, STORE_ARMED)),
+                new SnapshotArtifact("boat-deck-reserve-wide.png",
+                        renderBoatDeck(context, boatRenderer,
+                                FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, false, false, RESERVE_STRIP)),
                 new SnapshotArtifact("boat-deck-hardpoint-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, NO_DEPARTURE, 0)),
+                // Her drive and her gun taken off into stores: the empty drive warns, the hardpoint is bare.
+                new SnapshotArtifact("boat-deck-stripped-wide.png",
+                        renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                true, false, STRIPPED, -1)),
                 // The pointer resting on the fitted Arbalest, nothing in hand: its spec sheet opens.
                 new SnapshotArtifact("boat-deck-hover-part-wide.png",
                         renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
@@ -2628,6 +2645,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "recycle-weapons")),
                 new SnapshotArtifact("mech-lab-recycle-kits-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits-recycle")),
+                new SnapshotArtifact("mech-lab-reserve-store-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "reserve-store")),
+                new SnapshotArtifact("mech-lab-reserve-strip-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "reserve-strip")),
+                new SnapshotArtifact("mech-lab-reserve-recalled-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "reserve-recalled")),
                 new SnapshotArtifact("mech-vehicle-kits-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits")),
                 new SnapshotArtifact("mech-vehicle-apc-1920x1080.png",
@@ -2645,11 +2668,91 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 // bars show gains past stock and a shortfall below it.
                 new SnapshotArtifact("mech-lab-refit-stats-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "refit-stats")),
+                new SnapshotArtifact("mech-drag-snap-internal-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "drag-snap-internal")),
+                new SnapshotArtifact("mech-drag-refused-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "drag-refused")),
+                new SnapshotArtifact("mech-drag-floor-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "drag-floor")),
                 new SnapshotArtifact("mech-hover-installed-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "hover-installed")),
                 new SnapshotArtifact("mech-fitting-valid-drop-1920x1080.png", frames.get(18)),
                 new SnapshotArtifact("mech-fitting-rejected-drop-1920x1080.png", frames.get(34)),
                 SnapshotArtifact.colorAnimation("mech-fitting-1920x1080.gif", frames, 100));
+    }
+
+    /**
+     * Holds a stores part over the doll: an internal over a socket that takes it
+     * ({@code drag-snap-internal}), a weapon over one that refuses it ({@code drag-refused}), or a
+     * weapon over open floor ({@code drag-floor}). The ghost follows the screen's rule,
+     * {@link MechLabDollCanvas#carriedSnapped}.
+     */
+    private static void showCarriedPart(UiDocument document, MarkupInstance instance, MechLabDollCanvas doll,
+                                        MechLabViewModel viewModel, String pose) {
+        UiElement dollElement = instance.requireElement("mech-doll-canvas");
+        MechInternal internal = null;
+        MechWeaponComponent weapon = null;
+        SocketId target = null;
+        float[] at = null;
+        if ("drag-floor".equals(pose)) {
+            for (MechWeaponComponent candidate : MechWeaponComponent.values()) {
+                if (viewModel.inStores(candidate)) { weapon = candidate; break; }
+            }
+            var box = dollElement.box().contentBox();
+            CanvasMetrics metrics = document.canvasMetrics(dollElement, 1f);
+            at = new float[]{metrics.toCanvasX(box.x() + box.width() * .72f), metrics.toCanvasY(box.y() + box.height() * .45f)};
+        } else {
+            boolean snap = "drag-snap-internal".equals(pose);
+            search:
+            for (float y = 0f; y < 2000f; y += 6f) {
+                for (float x = 0f; x < 2000f; x += 6f) {
+                    SocketId socket = doll.socketAt(x, y);
+                    if (socket == null) continue;
+                    if (snap) {
+                        // Into the compartment, where a new part lands on bare bricks and reads plainly.
+                        if (!socket.compartment()) continue;
+                        for (MechInternal candidate : MechInternal.values()) {
+                            if (viewModel.canDropCatalogInternal(candidate, socket)) {
+                                internal = candidate;
+                                target = socket;
+                                at = new float[]{x + 30f, y + 40f};
+                                break search;
+                            }
+                        }
+                    } else if (viewModel.installedWeapon(socket) != null || socket.compartment()) {
+                        for (MechWeaponComponent candidate : MechWeaponComponent.values()) {
+                            if (viewModel.inStores(candidate) && !viewModel.canDropCatalogWeapon(candidate, socket)) {
+                                weapon = candidate;
+                                target = socket;
+                                at = new float[]{x + 30f, y + 40f};
+                                break search;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        if (at == null || internal == null && weapon == null) throw new IllegalStateException("No carried pose for " + pose);
+        if (weapon != null) {
+            doll.previewWeaponDrag(weapon, null, target, target != null && viewModel.canDropCatalogWeapon(weapon, target));
+        } else {
+            doll.previewPartDrag(internal, null, target, viewModel.canDropCatalogInternal(internal, target));
+        }
+        FittingDragGhost ghost = new FittingDragGhost();
+        UiElement ghostElement = instance.requireElement("mech-drag-ghost");
+        document.canvases().set(ghostElement, ghost);
+        if (!doll.carriedSnapped()) {
+            CanvasMetrics metrics = document.canvasMetrics(dollElement, 1f);
+            MechWeaponComponent carriedWeapon = weapon;
+            MechInternal carriedInternal = internal;
+            ghost.show((c, x, y) -> {
+                if (carriedWeapon != null) MechHardware.drawCarried(c, carriedWeapon, x, y);
+                else MechHardware.drawCarried(c, carriedInternal, x, y);
+            }, metrics.toDocumentX(at[0]), metrics.toDocumentY(at[1]));
+        }
+        ghostElement.fitCanvasToBox();
+        document.canvases().invalidate(ghostElement);
+        document.canvases().invalidate(dollElement);
     }
 
     private static BufferedImage renderMechLab(
@@ -2685,6 +2788,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 "support_mech_03", "Warden 03", MechVariant.WARDEN,
                 MechRole.LR_SUPPORT, MissileReplenisherComponent.ACCELERATED_FEED.id()));
         bay.addInternal(MechInternal.ACCELERATED_LOADER.id, 1);
+        // A spare of every part, so the carried poses find one that fits and one that is refused.
+        if (materialHint != null && materialHint.startsWith("drag-")) {
+            for (MechInternal internal : MechInternal.values()) bay.addInternal(internal.id, 1);
+            for (MechWeaponComponent weapon : MechWeaponComponent.values()) bay.addWeapon(weapon.id, 1);
+        }
         if ("long-name".equals(materialHint)) {
             if (!bay.mechById(MechBay.STARTER_MECH_ID)
                     .rename("Ironclad of the Persean Expeditionary Vanguard 1")) {
@@ -2754,7 +2862,9 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.gantryRows().get().get(0).select().run();
         }
         if (weldingEvidence || "repairing".equals(materialHint)) viewModel.gantryRows().get().get(0).select().run();
-        if ("hover-installed".equals(materialHint)) viewModel.gantryRows().get().get(0).select().run();
+        if ("hover-installed".equals(materialHint) || materialHint != null && materialHint.startsWith("drag-")) {
+            viewModel.gantryRows().get().get(0).select().run();
+        }
         // Internals: the engine socket with an uprated engine hovered, then frame plating
         // with heavy plate hovered, so the budget line and meter ghosts show the trade.
         if (materialHint != null && materialHint.startsWith("internal-")) {
@@ -2832,6 +2942,28 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.removeInstalledInternal(SocketId.CORE);
             // The engine category: the stripped engine is a spare beside patterns with none.
             viewModel.setFilter(MechLabViewModel.CategoryFilter.ENGINE);
+        }
+        // A two-machine reserve hangar: STORE armed over the first pad; a Warden and a tank stored, the
+        // lance back on its overview with the Reserve strip listing them; and the Warden recalled.
+        if (materialHint != null && materialHint.startsWith("reserve-")) {
+            viewModel.reserve(new ReserveHangar(), () -> 2);
+            Map<String, Object> reserveProps = new HashMap<>();
+            viewModel.putReserveProps(reserveProps);
+            Runnable store = (Runnable) reserveProps.get("storeAction");
+            if ("reserve-store".equals(materialHint)) {
+                viewModel.gantryRows().get().get(0).select().run();
+                store.run();
+            } else {
+                bay.addVehicle(MechBay.STARTER_SQUAD_ID,
+                        new CampaignVehicle("support_vehicle_04", "Breaker 04", VehicleType.BREAKTHROUGH_TANK));
+                for (String machine : List.of("Warden 03", "Breaker 04")) {
+                    viewModel.gantryRows().get().stream().filter(row -> machine.equals(row.name()))
+                            .findFirst().orElseThrow().select().run();
+                    store.run();
+                    store.run();
+                }
+                if ("reserve-recalled".equals(materialHint)) viewModel.reserveRows().get(0).recall().run();
+            }
         }
         if (selectVacant) viewModel.previousGantryAction().run();
         if (materialHint != null && materialHint.startsWith("preview-")) {
@@ -2929,7 +3061,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     && !materialHint.startsWith("lesson-") && !materialHint.startsWith("resource-")
                     && !materialHint.startsWith("internal-") && !materialHint.startsWith("chassis-")
                     && !materialHint.startsWith("refit-") && !materialHint.startsWith("preview-")
-                    && !materialHint.startsWith("vehicle-") && !materialHint.startsWith("hover-")) {
+                    && !materialHint.startsWith("vehicle-") && !materialHint.startsWith("hover-")
+                    && !materialHint.startsWith("drag-") && !materialHint.startsWith("reserve-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
@@ -2962,7 +3095,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 null, viewModel.selectedSocket(), false);
                     } else fittingCanvas.clearWeaponDragPreview();
                     // A controlled carried-item pose; the well state above is a preview, not a campaign commit.
-                    if (frame >= 12 && frame < 40) {
+                    // As on the screen, a part snapped into its socket has no ghost on the pointer.
+                    if (frame >= 12 && frame < 40 && !fittingCanvas.carriedSnapped()) {
                         var box = instance.requireElement("mech-doll-canvas").box().contentBox();
                         MechWeaponComponent carried = frame < 28 ? MechWeaponComponent.SRM_5
                                 : MechWeaponComponent.SINGLE_HEAVY_CANNON;
@@ -2975,6 +3109,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     motionFrames.add(renderRelative(renderer, document, width, height, uiScale));
                 }
                 return motionFrames.get(Math.min(5, motionFrames.size() - 1));
+            }
+            // A stores part in hand over the doll, shown as MechLabScreen shows it: snapped into a
+            // socket that takes it, or on the pointer over a socket that refuses it or open floor.
+            if (materialHint != null && materialHint.startsWith("drag-")) {
+                showCarriedPart(document, instance, fittingCanvas, viewModel, materialHint);
             }
             // The pointer resting on a fitted missile pod, nothing in hand: the board names it.
             if ("hover-installed".equals(materialHint)) {
@@ -3096,8 +3235,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         // opens on her first hangar. Larger programs can have additional bays,
         // so derive a visible berth rather than assuming campaign numbering.
         int[] struck = {-1};
+        ReserveHangar reserve = new ReserveHangar();
         CompanyDeck ship = companyShip(context, List::of, List::of, hull -> {
             campaign[0] = boatsAboard(hull);
+            if (departure == RESERVE_STRIP) {
+                reserve.storeBoat(campaign[0], campaign[0].boats().get(lastBerthInHerFirstHangar(hull)).id(), 2);
+            }
             if (strikeABoat) {
                 struck[0] = lastBerthInHerFirstHangar(hull);
                 campaign[0].lose(List.of(campaign[0].boats().get(struck[0]).id()));
@@ -3126,7 +3269,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         // cannot meet.
         FabricationResources resources = strikeABoat ? snapshotHoldShortOfMetals()
                 : departure == RECYCLING ? snapshotMachineShop(Reclamation.TOOLED)
-                : departure == RECYCLING_HALF ? snapshotMachineShop(Reclamation.MACHINERY) : snapshotMechResources();
+                : departure == RECYCLING_HALF ? snapshotMachineShop(Reclamation.MACHINERY)
+                : departure == SCRAP_ARMED ? snapshotMachineShop(Reclamation.FULL) : snapshotMechResources();
         if (departure == RECYCLING || departure == RECYCLING_HALF) {
             // Spares in stores under a tooled machine shop: each card carries RECYCLE and its recovery.
             workshop.fabricatePart(BoatFitting.TUNED_DRIVE.id());
@@ -3136,6 +3280,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
         BoatDeckViewModel viewModel = new BoatDeckViewModel(
                 reactor, deck, resources, "Valkyrie");
+        // A two-machine reserve hangar for its own shots; the others are aboard a ship without the refit.
+        viewModel.reserve(reserve, () -> departure >= STORE_ARMED ? 2 : 0);
         if (hardpoint >= 0 && deck.berths() > 0 && deck.boats().get(0) != null) {
             workshop.fabricatePart(BoatGun.ARBALEST.id());
             workshop.fitGun(deck.boats().get(0).id(), hardpoint, BoatGun.ARBALEST.id());
@@ -3145,13 +3291,29 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             workshop.fabricatePart(BoatGun.PULSE_LASER.id());
             workshop.fitGun(deck.boats().get(0).id(), 2, BoatGun.PULSE_LASER.id());
         }
+        if (departure == STRIPPED && deck.berths() > 0 && deck.boats().get(0) != null) {
+            // Her drive, plating and gun dragged off into stores: the drive's socket warns and she is off the lift;
+            // the plating's reads a bare hull, which flies weak.
+            workshop.strip(deck.boats().get(0).id(), BoatFittingSlot.DRIVE);
+            workshop.strip(deck.boats().get(0).id(), BoatFittingSlot.PLATING);
+            workshop.stripGun(deck.boats().get(0).id(), 0);
+        }
         // The parked hulls wear what the yard put on them, as the room's refit hands them over.
         ship.doorGuns(deck::doorGuns).refitDoorGuns();
         if (openBoat) viewModel.selectBoatAction(0).run();
         if (hardpoint >= 0) viewModel.selectDollSlot(BoatDoll.HARDPOINT_KEY + hardpoint);
+        if (departure == STRIPPED) viewModel.selectDollSlot(BoatDoll.slotKey(BoatFittingSlot.DRIVE));
         if (struck[0] >= 0) viewModel.selectBoatAction(struck[0]).run();
         DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
         if (departure == DOOR_OPENING) seekDoorOpening(ship, bay);
+        // The first press of SCRAP, under a shop with its reclamation line: what comes back is shown.
+        if (departure == SCRAP_ARMED) viewModel.scrapAction().run();
+        // The first press of STORE: the boat is named and nothing has moved yet.
+        if (departure == STORE_ARMED) {
+            Map<String, Object> reserveProps = new HashMap<>();
+            viewModel.putReserveProps(reserveProps);
+            ((Runnable) reserveProps.get("storeAction")).run();
+        }
         if (departure == RECYCLING || departure == RECYCLING_HALF) {
             viewModel.selectDollSlot(BoatDoll.slotKey(BoatFittingSlot.PLATING));
             // The first press arms the card, which is the review the owner sees before committing.
@@ -3176,8 +3338,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .doll(() -> viewModel.doll().get(), () -> 0d);
             UiElement bayElement = instance.requireElement("boat-deck-canvas");
             document.canvases().set(bayElement, bayCanvas);
-            BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get(),
-                    viewModel.slotRows().get());
+            BoatDeckScreen.wireCatalogPreviews(instance, document, viewModel.catalogRows().get());
             // As the room does each frame: the bay draws one surface unit to a pixel, not stretched.
             document.layout(width, height);
             BoatDeckCanvas.fitSurface(bayElement);
@@ -3212,9 +3373,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     /**
      * No boat leaving; a boat whose door is part open; a boat crossing the opening; or none
      * leaving, with spares in stores under a tooled machine shop and one RECYCLE armed; or
-     * the same under a shop whose machinery runs without tooling.
+     * the same under a shop whose machinery runs without tooling; or the opened boat's SCRAP
+     * armed under a shop with its reclamation line; the opened boat's STORE armed; or the deck
+     * overview with one boat in the reserve hangar and her berth vacant.
      */
-    private static final int NO_DEPARTURE = 0, DOOR_OPENING = 1, AT_OPENING = 2, RECYCLING = 3, RECYCLING_HALF = 4;
+    private static final int NO_DEPARTURE = 0, DOOR_OPENING = 1, AT_OPENING = 2, RECYCLING = 3, RECYCLING_HALF = 4,
+            STRIPPED = 5, SCRAP_ARMED = 6, STORE_ARMED = 7, RESERVE_STRIP = 8;
 
     /** Catch the bay door half open for a real departure, before the boat reaches it. */
     private static void seekDoorOpening(CompanyDeck ship, DeckGraph.Compartment bay) {
@@ -3590,7 +3754,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("selectedBoatName", viewModel.selectedBoatName());
         props.put("selectedBoatIdentity", viewModel.selectedBoatIdentity());
         props.put("performanceMeters", viewModel.performanceMeters());
-        props.put("slotRows", viewModel.slotRows());
+        props.put("readinessRows", viewModel.readinessRows());
         props.put("selectedSlotTitle", viewModel.selectedSlotTitle());
         props.put("selectedSlotCopy", viewModel.selectedSlotCopy());
         props.put("catalogRows", viewModel.catalogRows());
@@ -3614,6 +3778,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("bayNoteClasses", "hidden");
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
+        props.put("scrapLabel", viewModel.scrapLabel());
+        props.put("scrapClasses", viewModel.scrapClasses());
+        props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putReserveProps(props);
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BOAT_DECK,
@@ -3643,6 +3811,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("scrapLabel", viewModel.scrapLabel());
         props.put("scrapClasses", viewModel.scrapClasses());
         props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putReserveProps(props);
         viewModel.putBuildPanelProps(props);
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);

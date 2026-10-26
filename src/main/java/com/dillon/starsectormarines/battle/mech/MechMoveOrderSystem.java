@@ -99,7 +99,23 @@ public final class MechMoveOrderSystem {
                     destination[0], destination[1], request.facingDegrees, assault, guard, false);
             service.activate(request.mechId, order);
             sim.clearPath(request.mechId);
+            if (wholeLanceOrdered(squad, sim)) {
+                // Every chassis of the lance has the player's own order now, so the lance's
+                // standing one (a Defend Area, say) has nothing left to hold.
+                sim.getSquadMoveOrderSystem().cancel(squad.id, sim, "mech: direct order");
+            }
         }
+    }
+
+    /** Whether every live chassis of the lance holds a player's order of its own. */
+    private boolean wholeLanceOrdered(Squad squad, BattleSimulation sim) {
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long member = sim.squadMemberAt(squad.id, i);
+            if (!sim.world().isAlive(member) || !sim.world().hasMechLoadout(member)) continue;
+            ActiveOrder order = service.activeOrder(member);
+            if (order == null || order.commanded()) return false;
+        }
+        return true;
     }
 
     /**

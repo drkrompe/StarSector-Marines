@@ -4,7 +4,8 @@ import com.dillon.starsectormarines.battle.evacuation.SwarmBombards;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.DebugOnly;
 import com.dillon.starsectormarines.DevConfig;
-import com.dillon.starsectormarines.battle.audio.BattleMusicPlaylist;
+import com.dillon.starsectormarines.battle.audio.BattleMusicDirector;
+import com.dillon.starsectormarines.battle.audio.BattleMusicFacts;
 import com.dillon.starsectormarines.battle.audio.BattleRadioChatter;
 import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
@@ -166,18 +167,6 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final Color DEFEAT_COLOR   = new Color(0xE0, 0x60, 0x60);
     private static final Color EXTRACTION_COLOR = new Color(0x8F, 0xD8, 0xC4);
 
-    /** Sound IDs declared in mod/data/config/sounds.json. */
-    private static final String[] BATTLE_MUSIC_POOL = {
-            "marines_battle_music_02",
-            "marines_battle_music_03",
-            "marines_battle_music_04",
-            "marines_battle_music_05",
-            "marines_battle_music_06",
-            "marines_battle_music_07",
-            "marines_battle_music_08",
-            "marines_battle_music_09",
-            "marines_battle_music_10",
-    };
     private static final String SFX_VOICE_DEAD = "marines_voice_dead";
     /** A suit's integral system raising a screen. Mono, so it plays positionally. */
     private static final String SFX_SYSTEM_SCREEN_UP = "marines_system_screen_up";
@@ -185,7 +174,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private static final String SFX_SYSTEM_ENGAGED = "marines_system_engaged";
     private static final String SFX_DISTANT_BOOM = "marines_explosion_muffled";
     private static final String SFX_NEAR_EXPLOSION = "marines_explosion";
-    /** Crossfade duration (seconds, whole numbers required) for entering / leaving the battle music. */
+    /** Crossfade duration (seconds, whole numbers required) for leaving the battle music. */
     private static final int MUSIC_FADE_SECS  = 2;
     /** Pitch lerp endpoints for the shuttle engine loop: idle on the ground → full at cruise. */
     private static final float ENGINE_PITCH_IDLE   = 0.7f;
@@ -352,9 +341,11 @@ public class BattleScreen implements Screen, BattleUiContext {
     private float distantBoomTimer;
     /** RNG for audio variety — separate from sim.rng so audio randomness doesn't perturb sim determinism. */
     private final java.util.Random audioRng = new java.util.Random();
-    /** Shuffled music order and end-of-track observation, retained across battles to avoid repeats. */
-    private final BattleMusicPlaylist battleMusic =
-            new BattleMusicPlaylist(List.of(BATTLE_MUSIC_POOL), audioRng);
+    /**
+     * Picks quiet, alert, combat or aftermath music from the battle's facts. Its per-state shuffles
+     * are retained across battles to avoid repeats.
+     */
+    private final BattleMusicDirector battleMusic = BattleMusicDirector.shipped(audioRng);
     /** Shared squad-event policy for sparse positional marine radio calls. */
     private final BattleRadioChatter radioChatter = new BattleRadioChatter();
     private final MechFootstepAudio mechFootsteps = new MechFootstepAudio();
@@ -528,7 +519,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     }
 
     /**
-     * Suspend the campaign music player and crossfade into our shuffled battle playlist.
+     * Suspend the campaign music player and crossfade into the music director's opening state.
      * Guarded so re-entry from a dialog resize (attach() is documented as idempotent)
      * doesn't restart the music mid-battle. Ambient loops are driven from
      * {@link #advance(float)}, since {@code playUILoop} must be called every frame.
@@ -537,14 +528,27 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (audioActive) return;
         audioActive = true;
         Global.getSoundPlayer().setSuspendDefaultMusicPlayback(true);
-        String track = battleMusic.start();
-        Global.getSoundPlayer().playCustomMusic(MUSIC_FADE_SECS, MUSIC_FADE_SECS, track, false);
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
+        playMusic(battleMusic.start(sim != null ? BattleMusicFacts.of(sim)
+                : new BattleMusicDirector.Facts(null, false, false)));
         int gridW = sim != null ? sim.getGrid().getWidth()  : BattleSetup.GRID_W;
         int gridH = sim != null ? sim.getGrid().getHeight() : BattleSetup.GRID_H;
         pickAmbient(gridW, gridH);
         distantBoomTimer = nextDistantBoomGap();
         radioChatter.reset();
+    }
+
+    /** Plays the director's cue, if any, and logs a change of music state with its reason. */
+    private void playMusic(BattleMusicDirector.Cue cue) {
+        if (cue == null) return;
+        if (cue.stateChange()) {
+            LOG.info("Battle music: " + (cue.from() == null ? "opens in " + cue.to()
+                    : cue.from() + " -> " + cue.to()) + " (" + cue.reason() + ")"
+                    + (cue.play() ? ", playing " + (cue.track() != null ? cue.track() : "silence") : ""));
+        }
+        if (!cue.play()) return;
+        if (cue.track() == null) Global.getSoundPlayer().playCustomMusic(cue.fadeOut(), cue.fadeIn(), null);
+        else Global.getSoundPlayer().playCustomMusic(cue.fadeOut(), cue.fadeIn(), cue.track(), false);
     }
 
     /**
@@ -655,13 +659,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         // playUILoop is documented as "must be called every frame or the loop will fade out" —
         // re-arming it every advance is how Starsector expects loops to be driven. When this
         // screen stops being current, advance() stops firing and all loops fade automatically.
-        if (audioActive) {
-            String nextTrack = battleMusic.advance(Global.getSoundPlayer().getCurrentMusicId());
-            if (nextTrack != null) {
-                Global.getSoundPlayer().playCustomMusic(0, 0, nextTrack, false);
-            }
-            driveAmbientBackground(dt);
-        }
+        if (audioActive) driveAmbientBackground(dt);
         BattleSimulation sim = ctx != null ? ctx.getBattleSimulation() : null;
         if (sim == null) return;
         // Rebuild ephemeral vision sources (every air craft over the battle)
@@ -717,6 +715,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         float frameSimDt = dt * speedMultiplier;
         submitDirectControlIntent();
         sim.advance(BattleSimulation.frameBudget(frameSimDt));
+        if (audioActive) playMusic(battleMusic.update(frameSimDt, dt, BattleMusicFacts.of(sim),
+                Global.getSoundPlayer().getCurrentMusicId()));
         syncDirectControl();
         followControlledUnit(dt);
         submitDirectControlIntent();

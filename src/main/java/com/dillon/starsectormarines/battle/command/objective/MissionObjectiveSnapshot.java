@@ -8,11 +8,19 @@ public record MissionObjectiveSnapshot(List<Item> objectives, List<SquadActivity
 
     public enum State { ACTIVE, COMPLETE, FAILED }
 
-    /** Progress describes the named current step, never a synthetic overall mission percentage. */
+    /**
+     * Progress describes the named current step, never a synthetic overall mission percentage. An {@code optional}
+     * row is a side objective: it sits in the Optional section, never counts toward the completed tally, and its
+     * beacons are drawn apart from the mission's own.
+     */
     public record Item(String id, String name, State state, String phase, String steps,
                        String instruction, String progressText, float progress, String blocker,
-                       List<Marker> markers, String focusMarkerId) {
+                       List<Marker> markers, String focusMarkerId, boolean optional) {
         public Item { markers = List.copyOf(markers); }
+        public Item(String id, String name, State state, String phase, String steps, String instruction,
+                    String progressText, float progress, String blocker, List<Marker> markers, String focusMarkerId) {
+            this(id, name, state, phase, steps, instruction, progressText, progress, blocker, markers, focusMarkerId, false);
+        }
         public Marker focus() {
             return markers.stream().filter(m -> m.id().equals(focusMarkerId)).findFirst()
                     .orElse(markers.isEmpty() ? null : markers.get(0));
@@ -36,4 +44,10 @@ public record MissionObjectiveSnapshot(List<Item> objectives, List<SquadActivity
         objectives = List.copyOf(objectives);
         squads = List.copyOf(squads);
     }
+
+    /** The mission's own rows, the ones a tally counts. */
+    public List<Item> required() { return objectives.stream().filter(i -> !i.optional()).toList(); }
+
+    /** The Optional section: side objectives, in offer order. */
+    public List<Item> optional() { return objectives.stream().filter(Item::optional).toList(); }
 }

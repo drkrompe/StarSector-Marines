@@ -45,6 +45,11 @@ final class BattleHudOverlayModel {
     private static final String OBJECTIVE_FOCUS = "objective-focus";
     private static final String OBJECTIVE_FOCUS_HIDDEN =
             "objective-focus objective-focus-hidden";
+    private static final String OPTIONAL_HEADING = "label heading optional-heading";
+    private static final String OPTIONAL_HEADING_HIDDEN = "label heading optional-heading optional-hidden";
+    private static final String OPTIONAL_LIST_HIDDEN = "display: none;";
+    /** The Optional section's heading and each of its rows, card and gap, in document pixels. */
+    static final float OPTIONAL_HEADING_HEIGHT = 29f, OPTIONAL_ROW_HEIGHT = 66f;
     private static final String LIFT_PANEL = "lift-queue-panel";
     private static final String LIFT_PANEL_HIDDEN = "lift-queue-panel lift-queue-hidden";
     /** Rows the lift queue shows before folding the rest into a count; keeps it in its bounds. */
@@ -55,6 +60,9 @@ final class BattleHudOverlayModel {
     private final MutableSignal<String> missionPanelStyle;
     private final MutableSignal<String> missionListStyle;
     private final MutableSignal<String> missionScore;
+    private final MutableSignal<List<MissionCard>> optionalCards;
+    private final MutableSignal<String> optionalHeadingClasses;
+    private final MutableSignal<String> optionalListStyle;
     private final MutableSignal<String> pauseClasses;
     private final MutableSignal<String> normalClasses;
     private final MutableSignal<String> doubleClasses;
@@ -93,6 +101,9 @@ final class BattleHudOverlayModel {
         missionPanelStyle = reactor.signal("");
         missionListStyle = reactor.signal("");
         missionScore = reactor.signal("");
+        optionalCards = reactor.signal(List.of());
+        optionalHeadingClasses = reactor.signal(OPTIONAL_HEADING_HIDDEN);
+        optionalListStyle = reactor.signal(OPTIONAL_LIST_HIDDEN);
         pauseClasses = reactor.signal(TIME_CLASSES);
         normalClasses = reactor.signal(TIME_SELECTED_CLASSES);
         doubleClasses = reactor.signal(TIME_CLASSES);
@@ -124,6 +135,9 @@ final class BattleHudOverlayModel {
         props.put("missionPanelStyle", missionPanelStyle);
         props.put("missionListStyle", missionListStyle);
         props.put("missionScore", missionScore);
+        props.put("optionalCards", optionalCards);
+        props.put("optionalHeadingClasses", optionalHeadingClasses);
+        props.put("optionalListStyle", optionalListStyle);
         props.put("timeLabel", Strings.get("battleTime"));
         props.put("pauseLabel", speedLabels[0]);
         props.put("normalLabel", speedLabels[1]);
@@ -175,6 +189,9 @@ final class BattleHudOverlayModel {
                                  List<CaptureObjective> objectives) {
         missionClasses.set("mission-panel mission-hidden");
         missionCards.set(List.of());
+        optionalCards.set(List.of());
+        optionalHeadingClasses.set(OPTIONAL_HEADING_HIDDEN);
+        optionalListStyle.set(OPTIONAL_LIST_HIDDEN);
         missionPanelStyle.set("");
         missionListStyle.set("");
         objectiveTitle.set(Strings.get("battleCapture"));
@@ -253,15 +270,30 @@ final class BattleHudOverlayModel {
         if (snapshot.objectives().isEmpty()) return new Presentation(false);
         objectivePanelClasses.set(OBJECTIVE_PANEL_HIDDEN);
         missionClasses.set("mission-panel");
-        int count = Math.min(2, snapshot.objectives().size());
-        missionPanelStyle.set("height: " + (33 + count * 174) + "px;");
+        var required = snapshot.required();
+        var optional = snapshot.optional();
+        int count = Math.min(2, required.size());
+        float optionalHeight = optionalHeight(optional.size());
+        missionPanelStyle.set("height: " + (33 + count * 174 + Math.round(optionalHeight)) + "px;");
         missionListStyle.set("height: " + (count * 174) + "px;");
-        missionScore.set(snapshot.objectives().stream().filter(i -> i.state() == MissionObjectiveSnapshot.State.COMPLETE).count()
-                + " / " + snapshot.objectives().size());
-        missionCards.set(snapshot.objectives().stream().map(i -> new MissionCard(i, () -> {
+        // The Optional section has its own list, so it stays in view however the mission's rows scroll.
+        optionalListStyle.set(optional.isEmpty() ? OPTIONAL_LIST_HIDDEN : "height: " + Math.round(optionalHeight - 6) + "px;");
+        // Side objectives never count toward the tally.
+        missionScore.set(required.stream().filter(i -> i.state() == MissionObjectiveSnapshot.State.COMPLETE).count()
+                + " / " + required.size());
+        missionCards.set(required.stream().map(i -> new MissionCard(i, () -> {
             if (i.focus() != null) locate.accept(i.focus());
         })).toList());
-        return new Presentation(true, count);
+        optionalHeadingClasses.set(optional.isEmpty() ? OPTIONAL_HEADING_HIDDEN : OPTIONAL_HEADING);
+        optionalCards.set(optional.stream().map(i -> new MissionCard(i, () -> {
+            if (i.focus() != null) locate.accept(i.focus());
+        })).toList());
+        return new Presentation(true, count, 0, optional.size());
+    }
+
+    /** Height, in document pixels, of the Optional section with {@code rows} rows; 0 without any. */
+    static float optionalHeight(int rows) {
+        return rows == 0 ? 0f : OPTIONAL_HEADING_HEIGHT + rows * OPTIONAL_ROW_HEIGHT;
     }
 
     record MissionCard(MissionObjectiveSnapshot.Item item, Runnable locate) implements MarkupPropertySource {
@@ -274,8 +306,12 @@ final class BattleHudOverlayModel {
                 case "instruction" -> item.instruction();
                 case "progressText" -> item.progressText();
                 case "blocker" -> item.blocker().isEmpty() ? "" : item.blocker();
-                case "classes" -> "mission-card " + (item.state() == MissionObjectiveSnapshot.State.COMPLETE ? "mission-complete"
+                case "classes" -> (item.optional() ? "mission-card mission-optional " : "mission-card ")
+                        + (item.state() == MissionObjectiveSnapshot.State.COMPLETE ? "mission-complete"
                         : item.state() == MissionObjectiveSnapshot.State.FAILED ? "mission-failed" : "mission-active");
+                // A lapsed or failed side objective stays listed, struck, until the battle ends.
+                case "strikeClasses" -> item.optional() && item.state() == MissionObjectiveSnapshot.State.FAILED
+                        ? "optional-strike" : "optional-strike optional-hidden";
                 case "objClasses" -> "obj " + switch (item.state()) {
                     case COMPLETE -> "obj-complete";
                     case FAILED -> "obj-failed";
@@ -518,13 +554,16 @@ final class BattleHudOverlayModel {
      *
      * @param missionRows mission objective cards on the right rail
      * @param liftRows    rows the lift queue shows on the left, 0 when it is hidden
+     * @param optionalRows side objectives in the rail's Optional section
      */
-    record Presentation(boolean objectivesVisible, int missionRows, int liftRows) {
-        Presentation(boolean objectivesVisible) { this(objectivesVisible, 0, 0); }
+    record Presentation(boolean objectivesVisible, int missionRows, int liftRows, int optionalRows) {
+        Presentation(boolean objectivesVisible) { this(objectivesVisible, 0, 0, 0); }
 
-        Presentation(boolean objectivesVisible, int missionRows) { this(objectivesVisible, missionRows, 0); }
+        Presentation(boolean objectivesVisible, int missionRows) { this(objectivesVisible, missionRows, 0, 0); }
 
-        Presentation withLiftRows(int rows) { return new Presentation(objectivesVisible, missionRows, rows); }
+        Presentation(boolean objectivesVisible, int missionRows, int liftRows) { this(objectivesVisible, missionRows, liftRows, 0); }
+
+        Presentation withLiftRows(int rows) { return new Presentation(objectivesVisible, missionRows, rows, optionalRows); }
     }
 
     record ObjectiveChip(String id, String label, String classes)

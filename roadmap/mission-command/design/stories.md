@@ -19,7 +19,7 @@ implementation story.
 | `autonomous-mission-command-foundation.md` | IN PROGRESS | Close assignment-writer ownership and live acceptance around the shared frame/plan/commit contract. |
 | `commander-trace-and-balance-harness.md` | IN PROGRESS | Replace construction-only Conquest evidence with launch-faithful fixtures and later compare bounded intervention. |
 | `player-command-interventions.md` | PLANNED | Tactical squad orders lease through the arbiter and hand back (shipped 2026-09-01). Add the strategic priority/rally/reserve/fallback vocabulary, refuse a lease over a higher authority, and bound pacing. |
-| `side-objective-toolkit.md` | PLANNED | Optional jobs as a standing tool: hook, trigger, window, battle effect and campaign mark, an Optional checklist section and beacon style; the Dust Ledger's four jobs move onto it first. |
+| `side-objective-toolkit.md` | IN PROGRESS | Optional jobs as a standing tool: hook, trigger, window, battle effect and campaign mark, an Optional checklist section and beacon style; the Dust Ledger's four jobs move onto it first. |
 | `target-faction-command-doctrine.md` | PLANNED | Bias established legal choices with frozen faction profiles after paired baselines exist. |
 
 ## Conquest

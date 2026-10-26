@@ -25,6 +25,8 @@ public final class BattlefieldMarkerPresentation {
     public static final Color VALID = new Color(0x76, 0xD7, 0x9A);
     public static final Color INVALID = new Color(0xEF, 0x6A, 0x5D);
     public static final Color PROGRESS = new Color(0xFF, 0xE0, 0x86);
+    /** An open side objective: a "may" beside the mission's yellow "must". */
+    public static final Color OPTIONAL = new Color(0x7F, 0xC8, 0xE8);
     public static final Color LABEL = new Color(0xEE, 0xF4, 0xF5);
     public static final Color PLATE = new Color(0x08, 0x10, 0x16, 0xD8);
 

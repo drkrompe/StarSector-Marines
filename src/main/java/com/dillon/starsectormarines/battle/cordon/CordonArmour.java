@@ -114,6 +114,8 @@ public final class CordonArmour {
     private final Set<Long> escortedHulls = new HashSet<>();
     /** Each escort hull sent beside a road hull at the last look, and the road hull it is with. */
     private final Map<Long, Long> escortOf = new LinkedHashMap<>();
+    /** The side of each road hull its escort keeps: 1 its right, -1 its left, 0 behind it. */
+    private final Map<Long, Integer> escortSide = new HashMap<>();
     /** Road hulls that ever wanted an escort, and those that ever had one, for evidence. */
     private final Set<Long> hullsWanting = new HashSet<>(), hullsEscorted = new HashSet<>();
     /** Escort places a look filled and left short, summed over looks, for evidence. */
@@ -413,6 +415,7 @@ public final class CordonArmour {
         List<int[][]> needs = new ArrayList<>(escorts == null ? List.of() : escorts.apply(sim));
         int convoyNeeds = needs.size();
         List<Long> roadHulls = hullEscorts == null ? List.of() : hullEscorts.apply(sim);
+        escortSide.keySet().retainAll(roadHulls);
         for (long h : roadHulls) needs.add(new int[][]{escortPlace(sim, h)});
         Map<CordonRedoubt, Integer> left = new HashMap<>(count);
         for (int n = 0; n < needs.size(); n++) {
@@ -653,34 +656,41 @@ public final class CordonArmour {
      * escort would stand on there is off the road hull's way; else {@link #ESCORT_TRAIL} cells behind it. In a lane
      * too narrow for two abreast the ground nearest the place beside it was the lane ahead, and the escort stood
      * across the way it was escorting (town Line rock 8: the ammunition truck was refused its way past its own escort
-     * from tick 10200 to the end, and redoubt 3's guns stayed dry).
+     * from tick 10200 to the end, and redoubt 3's guns stayed dry). The escort keeps the side it took while that
+     * side still has room: tried right first at every look, the place swapped sides as the hull crept along a lane
+     * whose right came and went, and the escort turned about for each swap and fell behind.
      */
     private int[] escortPlace(BattleSimulation sim, long roadHull) {
         GroundBody body = sim.convoy().body(roadHull);
         VehicleType type = sim.convoy().vehicleType(roadHull);
         VehicleMoveOrderService.ActiveOrder order = sim.getVehicleMoveOrderService().activeOrder(roadHull);
-        return escortPlace(body, order == null ? null : order.routeXs(), order == null ? null : order.routeYs(),
-                place -> drivable(sim, type, place[0], place[1]));
+        int[] place = escortPlace(body, order == null ? null : order.routeXs(), order == null ? null : order.routeYs(),
+                p -> drivable(sim, type, p[0], p[1]), escortSide.getOrDefault(roadHull, 1));
+        escortSide.put(roadHull, place[2]);
+        return new int[]{place[0], place[1]};
     }
 
     /**
      * {@link #escortPlace(BattleSimulation, long)} given the road hull's way ({@code null} where it has none yet: the
-     * way is then the hull's heading) and the ground an escort sent to a place would stand on ({@code null} for none).
+     * way is then the hull's heading) and the ground an escort sent to a place would stand on ({@code null} for none),
+     * trying {@code side} first (1 the right, -1 the left, 0 the right as for a new escort). Returns the place's cell
+     * and the side it is on, 0 for behind.
      */
-    static int[] escortPlace(GroundBody body, float[] wayX, float[] wayY, UnaryOperator<int[]> ground) {
-        for (int side : new int[]{1, -1}) {
-            double[] at = besidePoint(body, side);
+    static int[] escortPlace(GroundBody body, float[] wayX, float[] wayY, UnaryOperator<int[]> ground, int side) {
+        int first = side == -1 ? -1 : 1;
+        for (int s : new int[]{first, -first}) {
+            double[] at = besidePoint(body, s);
             int[] place = {(int) Math.round(at[0]), (int) Math.round(at[1])};
             int[] stand = ground.apply(place);
             if (stand == null) continue;
             // Where the ground takes the place itself the escort stands there; elsewhere at the cell it is moved to.
             boolean kept = stand[0] == place[0] && stand[1] == place[1];
             float x = kept ? (float) at[0] : stand[0] + .5f, y = kept ? (float) at[1] : stand[1] + .5f;
-            if (offWay(body, wayX, wayY, x, y)) return place;
+            if (offWay(body, wayX, wayY, x, y)) return new int[]{place[0], place[1], s};
         }
         double rad = Math.toRadians(body.facingDegrees);
         return new int[]{(int) Math.round(body.x + Math.sin(rad) * ESCORT_TRAIL),
-                (int) Math.round(body.y - Math.cos(rad) * ESCORT_TRAIL)};
+                (int) Math.round(body.y - Math.cos(rad) * ESCORT_TRAIL), 0};
     }
 
     /** Whether {@code (x, y)} stands more than {@link #ESCORT_CLEAR} cells off a road hull's way. */

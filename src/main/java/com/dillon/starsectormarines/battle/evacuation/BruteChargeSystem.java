@@ -587,14 +587,18 @@ public final class BruteChargeSystem {
         if (grid.inBounds(cx, cy) && !grid.isWalkable(cx, cy)) {
             int hp = grid.getWallHp(cx, cy);
             boolean light = hp > 0 && hp <= SwarmBruteBehavior.LIGHT_WALL_HP;
-            if (light && sim.isBarricadeAt(cx, cy)) {
+            // A barricade on a fort's or an objective's ground is rammed like its wall, never bowled through.
+            boolean works = FortifiedWorks.isWorks(grid, cx, cy, null);
+            boolean barricade = light && sim.isBarricadeAt(cx, cy);
+            if (barricade && !works) {
                 sim.mapEditor().damageWall(cx, cy, hp);
                 c.pace *= BruteChargeRules.BODY_SLOW;
                 log(sim, now, brute, "prop", 0L, cx, cy);
                 return false;
             }
-            if (light && (topology.isWall(cx, cy) || topology.isWindow(cx, cy))) {
-                sim.mapEditor().damageWall(cx, cy, BruteChargeRules.wallBlow(sim.identity().swarmStage(brute)));
+            if (barricade || light && (topology.isWall(cx, cy) || topology.isWindow(cx, cy))) {
+                sim.mapEditor().damageWall(cx, cy, FortifiedWorks.swarmDamage(grid, cx, cy, null,
+                        BruteChargeRules.wallBlow(sim.identity().swarmStage(brute))));
                 log(sim, now, brute, "ram", 0L, cx, cy);
             } else if (hp > 0 || topology.isWall(cx, cy) || topology.isWindow(cx, cy)) {
                 sim.stagger().stagger(brute, BruteChargeRules.ticks(BruteChargeRules.STUN), Cause.STUNNED);
@@ -610,8 +614,8 @@ public final class BruteChargeSystem {
             SharedEdgeBarrier barrier = grid.getEdgeBarrier(ox, oy, step);
             if (barrier != null && barrier.kind().blocksMovement()) {
                 if (barrier.kind() == SharedEdgeBarrier.Kind.WINDOW) {
-                    sim.mapEditor().damageEdgeBarrier(ox, oy, step,
-                            BruteChargeRules.wallBlow(sim.identity().swarmStage(brute)));
+                    sim.mapEditor().damageEdgeBarrier(ox, oy, step, FortifiedWorks.swarmDamage(grid, ox, oy, step,
+                            BruteChargeRules.wallBlow(sim.identity().swarmStage(brute))));
                     log(sim, now, brute, "ram", 0L, ox, oy);
                 } else {
                     sim.stagger().stagger(brute, BruteChargeRules.ticks(BruteChargeRules.STUN), Cause.STUNNED);

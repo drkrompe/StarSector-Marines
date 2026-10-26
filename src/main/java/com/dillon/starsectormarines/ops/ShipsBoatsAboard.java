@@ -64,7 +64,7 @@ public final class ShipsBoatsAboard {
 
         reconcile(deck);
         List<FittedBoat> flying = new ArrayList<>(deck.berths());
-        for (CampaignBoat boat : deck.airworthy()) flying.add(boat.freezeForDeployment());
+        for (CampaignBoat boat : deck.flightReady()) flying.add(boat.freezeForDeployment());
         return List.copyOf(flying);
     }
 
@@ -88,12 +88,20 @@ public final class ShipsBoatsAboard {
                 ShipsBoats.aboard(ship).size());
     }
 
-    /** Shared explanation for a briefing whose owned lift is all in recovery. */
+    /**
+     * Shared explanation for a briefing with no boat that can fly: a boat missing a required
+     * part first, since only the player can fit one, otherwise the soonest repair.
+     */
     public static String recoveryBlocker() {
         BoatDeck deck = deck();
         if (deck == null) return null;
         float day = CampaignClock.dayFloat();
-        if (!deck.airworthy(day).isEmpty()) return null;
+        if (!deck.flightReady(day).isEmpty()) return null;
+        for (CampaignBoat boat : deck.boats()) {
+            if (boat != null && !boat.missingParts().isEmpty()) {
+                return Strings.format("boatLiftIncomplete", boat.displayName(), BoatDeckViewModel.missingNames(boat));
+            }
+        }
         float soonest = Float.POSITIVE_INFINITY;
         for (CampaignBoat boat : deck.boats())
             if (boat != null) soonest = Math.min(soonest, boat.repairDaysRemaining(day));
@@ -108,9 +116,19 @@ public final class ShipsBoatsAboard {
         float day = CampaignClock.dayFloat();
         for (FittedBoat frame : committed) {
             CampaignBoat boat = deck.boatById(frame.boatId());
-            if (boat == null || !boat.airworthy(day))
+            if (boat == null || !boat.flightReady(day))
                 throw new IllegalStateException("Committed company aircraft is unavailable: " + frame.boatId());
         }
+    }
+
+    /** Boat berths on the ship the company is aboard, flight-ready or not; 0 with no ship. */
+    public static int berths() {
+        FleetMemberAPI aboard = CompanyShipDesignation.aboard();
+        if (aboard == null) return 0;
+        BoatDeck deck = deck();
+        if (deck == null) return ShipsBoats.aboard(CompanyShipResolver.read(aboard)).size();
+        reconcile(deck);
+        return deck.berths();
     }
 
     /** The ship the lift comes off, for a screen that wants to name her. */

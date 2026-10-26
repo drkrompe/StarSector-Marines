@@ -132,6 +132,7 @@ public final class MechLabScreen implements Screen {
             viewModel = new MechLabViewModel(reactor, roster.mechBay(),
                     new CampaignFabricationResources(true), this::syncGantryScene,
                     CampaignClock::dayFloat, ShipRefits::aboard);
+            viewModel.reserve(roster.reserveHangar(), () -> ShipRefits.aboard().reserveCapacity());
             viewModel.physicalGantries(berths().size());
             syncGantryScene();
             resetCamera(false);
@@ -231,6 +232,7 @@ public final class MechLabScreen implements Screen {
         props.put("scrapLabel", viewModel.scrapLabel());
         props.put("scrapClasses", viewModel.scrapClasses());
         props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putReserveProps(props);
         viewModel.putBuildPanelProps(props);
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);
@@ -410,7 +412,7 @@ public final class MechLabScreen implements Screen {
             event.preventDefault();
             return;
         }
-        if (dollCanvas.vacantGantryAt(point.x(), point.y()) < 0) return;
+        if (dollCanvas.gantryAt(point.x(), point.y()) < 0) return;
         event.capturePointer();
         event.preventDefault();
     }
@@ -423,7 +425,7 @@ public final class MechLabScreen implements Screen {
         CanvasPoint point = canvasPoint(event);
         event.releasePointerCapture();
         if (point == null) return;
-        int gantry = dollCanvas.vacantGantryAt(point.x(), point.y());
+        int gantry = dollCanvas.gantryAt(point.x(), point.y());
         if (gantry >= 0) {
             viewModel.selectGantryAction(gantry).run();
             document.canvases().invalidate(dollElement);
@@ -462,17 +464,6 @@ public final class MechLabScreen implements Screen {
         WeaponDrag drag = weaponDrag.carried();
         CanvasPoint point = canvasPoint(event);
         SocketId target = point != null ? dollCanvas.socketAt(point.x(), point.y()) : null;
-        // Over a socket the socket itself answers (the part drawn in it, or lit as a fit or a
-        // refusal); the ghost hanging off the pointer would only cover it.
-        if (target != null) dragGhost.clear();
-        else if (drag.component() != null) {
-            dragGhost.show((c, x, y) -> MechHardware.drawCarried(c, drag.component(), x, y), event.x(), event.y());
-        } else if (drag.kit() != null) {
-            dragGhost.show((c, x, y) -> MechHardware.drawCarried(c, drag.kit(), x, y), event.x(), event.y());
-        } else {
-            dragGhost.show((c, x, y) -> MechHardware.drawCarried(c, drag.internal(), x, y), event.x(), event.y());
-        }
-        document.canvases().invalidate(ghostElement);
         // An installed internal has only its own socket; it can go back to stores and nowhere else.
         boolean valid = target != null && (drag.source() != null
                 ? drag.component() != null && viewModel.canMoveInstalledWeapon(drag.source(), target)
@@ -481,8 +472,19 @@ public final class MechLabScreen implements Screen {
         if (drag.component() != null) {
             dollCanvas.previewWeaponDrag(drag.component(), drag.source(), target, valid);
         } else {
-            dollCanvas.previewPartDrag(target, valid);
+            dollCanvas.previewPartDrag(drag.internal(), drag.source(), target, valid);
         }
+        // Over a socket that takes it the part is drawn snapped in, and a ghost on the pointer
+        // would only cover it; anywhere else, a refusing socket included, the ghost carries it.
+        if (dollCanvas.carriedSnapped()) dragGhost.clear();
+        else if (drag.component() != null) {
+            dragGhost.show((c, x, y) -> MechHardware.drawCarried(c, drag.component(), x, y), event.x(), event.y());
+        } else if (drag.kit() != null) {
+            dragGhost.show((c, x, y) -> MechHardware.drawCarried(c, drag.kit(), x, y), event.x(), event.y());
+        } else {
+            dragGhost.show((c, x, y) -> MechHardware.drawCarried(c, drag.internal(), x, y), event.x(), event.y());
+        }
+        document.canvases().invalidate(ghostElement);
         boolean returning = drag.source() != null && overInventory(event);
         returnDropNote.classed("drop-active", returning);
         document.canvases().invalidate(dollElement);

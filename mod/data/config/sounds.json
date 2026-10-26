@@ -381,7 +381,12 @@
 		"marines_intel_music":[
 			{"file":"marines_intel_music.ogg","source":"sounds/battle/music","volume":0.525},
 		],
-		# Battle music pool. BattleScreen plays these as a shuffled, non-repeating playlist.
+		# The same track as the battle music's quiet bed (BattleMusicDirector, "<id>_bed") until one is sourced:
+		# music is encoded to one loudness, so the bed sits about 5 dB under the combat pool. Volume UNTUNED.
+		"marines_intel_music_bed":[
+			{"file":"marines_intel_music.ogg","source":"sounds/battle/music","volume":0.3},
+		],
+		# Battle music pool: the combat state. BattleMusicDirector plays these as a shuffled, non-repeating playlist.
 		"marines_battle_music_02":[
 			{"file":"marines_battle_music_02.ogg","source":"sounds/battle/music","volume":0.525},
 		],
@@ -408,6 +413,35 @@
 		],
 		"marines_battle_music_10":[
 			{"file":"marines_battle_music_10.ogg","source":"sounds/battle/music","volume":0.525},
+		],
+		# Alert: the same combat files at reduced volume, until an alert bed is sourced
+		# (battle-music-director.md). BattleMusicDirector plays these as "<combat id>_alert". Volume UNTUNED.
+		"marines_battle_music_02_alert":[
+			{"file":"marines_battle_music_02.ogg","source":"sounds/battle/music","volume":0.25},
+		],
+		"marines_battle_music_03_alert":[
+			{"file":"marines_battle_music_03.ogg","source":"sounds/battle/music","volume":0.25},
+		],
+		"marines_battle_music_04_alert":[
+			{"file":"marines_battle_music_04.ogg","source":"sounds/battle/music","volume":0.25},
+		],
+		"marines_battle_music_05_alert":[
+			{"file":"marines_battle_music_05.ogg","source":"sounds/battle/music","volume":0.25},
+		],
+		"marines_battle_music_06_alert":[
+			{"file":"marines_battle_music_06.ogg","source":"sounds/battle/music","volume":0.25},
+		],
+		"marines_battle_music_07_alert":[
+			{"file":"marines_battle_music_07.ogg","source":"sounds/battle/music","volume":0.25},
+		],
+		"marines_battle_music_08_alert":[
+			{"file":"marines_battle_music_08.ogg","source":"sounds/battle/music","volume":0.25},
+		],
+		"marines_battle_music_09_alert":[
+			{"file":"marines_battle_music_09.ogg","source":"sounds/battle/music","volume":0.25},
+		],
+		"marines_battle_music_10_alert":[
+			{"file":"marines_battle_music_10.ogg","source":"sounds/battle/music","volume":0.25},
 		],
 	},
 

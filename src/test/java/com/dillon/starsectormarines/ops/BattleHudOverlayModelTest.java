@@ -107,6 +107,40 @@ class BattleHudOverlayModelTest {
 
 
     @Test
+    void sideObjectivesSitInTheirOwnSectionUntalliedStruckWhenLapsedAndLocatable() throws Exception {
+        Reactor reactor = new Reactor();
+        var model = new BattleHudOverlayModel(reactor, ignored -> { }, "Pause", "1x", "2x", "4x");
+        var raid = new MissionObjectiveSnapshot.Item("raid", "Seize the ledger", MissionObjectiveSnapshot.State.ACTIVE,
+                "APPROACH", "", "", "", -1f, "", List.of(), "");
+        var marker = new MissionObjectiveSnapshot.Marker("side-feed-target", "Junction", 12, 34, "", MissionObjectiveSnapshot.State.ACTIVE);
+        var done = new MissionObjectiveSnapshot.Item("side-feed", "Cutting the feed", MissionObjectiveSnapshot.State.COMPLETE,
+                "Feed cut", "", "", "", -1f, "", List.of(marker), marker.id(), true);
+        var lapsed = new MissionObjectiveSnapshot.Item("side-warden", "The warden's nod", MissionObjectiveSnapshot.State.FAILED,
+                "Not done before the alarm", "", "", "", -1f, "", List.of(), "", true);
+        var selected = new AtomicReference<MissionObjectiveSnapshot.Marker>();
+        model.updateProjected(1, List.of());
+        var state = model.updateMission(new MissionObjectiveSnapshot(List.of(raid, done, lapsed), List.of()), selected::set);
+        assertEquals(2, state.optionalRows());
+        assertTrue(BattleHudOverlay.documentHeight(state) > BattleHudOverlay.documentHeight(
+                new BattleHudOverlayModel.Presentation(true, state.missionRows())));
+        var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)), List.of(BattleHudOverlay.COMPONENT_PATH));
+        loader.reload();
+        try (var instance = loader.build(reactor, BattleHudOverlay.COMPONENT, model.props())) {
+            var doc = document(instance, BattleHudOverlay.documentHeight(state));
+            assertEquals("0 / 1", instance.requireElement("mission-score").text(), "a done side objective is not tallied");
+            assertEquals(1, instance.requireElement("battle-mission-list").childCount());
+            assertTrue(instance.requireElement("mission-optional-heading").displayed());
+            assertTrue(instance.requireElement("mission-side-warden-strike").displayed(), "a lapsed job is struck");
+            assertFalse(instance.requireElement("mission-side-feed-strike").displayed());
+            var locate = instance.requireElement("mission-side-feed-locate").box().borderBox();
+            float x = locate.x() + locate.width() / 2, y = locate.y() + locate.height() / 2;
+            assertTrue(doc.pointerDown(x, y));
+            assertTrue(doc.pointerUp(x, y));
+            assertEquals(12, selected.get().x());
+        }
+    }
+
+    @Test
     void mlxProjectsSelectedSpeedAndCompressedCaptureState() throws Exception {
         Reactor reactor = new Reactor();
         AtomicReference<Float> selectedSpeed = new AtomicReference<>(1f);

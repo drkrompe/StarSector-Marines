@@ -34,7 +34,7 @@ class BoatLiftFittingTest {
         BoatDeck deck = new BoatDeck();
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
         BoatWorkshop workshop = new BoatWorkshop(deck, BoatWorkshopTest.TestResources.stocked(500));
-        CampaignBoat boat = deck.airworthy().get(0);
+        CampaignBoat boat = deck.flightReady().get(0);
 
         assertEquals(BoatWorkshop.Status.PART_FABRICATED, workshop.fabricatePart("heavy_lift_frame").status());
         assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), "heavy_lift_frame").status());
@@ -51,7 +51,7 @@ class BoatLiftFittingTest {
         deck.reconcile("freighter", ShuttleType.BUFFALO, 1);
         BoatWorkshopTest.TestResources hold = BoatWorkshopTest.TestResources.stocked(100);
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
-        String boatId = deck.airworthy().get(0).id();
+        String boatId = deck.flightReady().get(0).id();
 
         workshop.fabricatePart("lift_cradle");
         assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boatId, "lift_cradle").status());

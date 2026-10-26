@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 26 24">
+  <!-- Not enough lift: an amber warning triangle with a dark exclamation. -->
+  <polygon points="13,1.5 25,22.5 1,22.5" fill="#f2b33d" stroke="#2a1d0c" stroke-width="1.5" stroke-linejoin="round"/>
+  <rect x="11.6" y="8" width="2.8" height="8.2" fill="#2a1d0c"/>
+  <rect x="11.6" y="17.6" width="2.8" height="2.8" fill="#2a1d0c"/>
+</svg>
