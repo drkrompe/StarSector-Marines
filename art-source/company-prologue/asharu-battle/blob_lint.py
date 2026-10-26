@@ -14,7 +14,9 @@ blob's area, that persists past a flash's frames, is flagged with its frame and 
               f02208, 2026-10-25: a beam core 1195 px in an 84x358 box, about 3 px thick, held while the
               beam fired, once effects_owned counted additive light)
   excluded    a ship's drives: a region holding the screen point of any engine (engines_px) is a
-              drive glow, by position, never by loosening the thresholds
+              drive glow, by position, never by loosening the thresholds; and a hull burning into the
+              air: a region centred in the screen box of a hull the shot wraps in entry plasma (zones,
+              S11 and S12) is her sheath, a glow held by design (S11 light check, 2026-10-26)
 
 found() measures one frame (numpy, in Blender's Python); step() chains a frame's regions onto the frame
 before. Lint does both as a span renders, so it must see the span's frames in order, and the chain
@@ -57,9 +59,10 @@ def regions(mask):
     return out
 
 
-def found(display, effects_owned, engines_px=()):
-    """One frame's white regions, drives left out: display (h, w, 3) 0-255 and effects_owned (h, w) 0-1,
-    top row first; engines_px (x, y) pixel points, top-left origin. Returns [(area, box, cy, cx)]."""
+def found(display, effects_owned, engines_px=(), zones=()):
+    """One frame's white regions, drives and entry plasma left out: display (h, w, 3) 0-255 and
+    effects_owned (h, w) 0-1, top row first; engines_px (x, y) pixel points, top-left origin; zones
+    (x0, y0, x1, y1) pixel boxes of sheathed hulls. Returns [(area, box, cy, cx)]."""
     import numpy as np
     h, w = display.shape[:2]
     mx, mn = display.max(-1), display.min(-1)
@@ -75,6 +78,8 @@ def found(display, effects_owned, engines_px=()):
         pad = max(12.0 * w / 1920.0, .5 * max(y1 - y0, x1 - x0))
         if any(x0 - pad <= ex <= x1 + pad and y0 - pad <= ey <= y1 + pad for ex, ey in engines_px):
             continue
+        if any(zx0 <= r[3] <= zx1 and zy0 <= r[2] <= zy1 for zx0, zy0, zx1, zy1 in zones):
+            continue
         kept.append(r[:4])
     return kept
 
@@ -87,10 +92,10 @@ class Lint:
     def __init__(self):
         self.prev, self.prev_frame = [], None
 
-    def frame(self, frame, dt, display, effects_owned, engines_px=()):
+    def frame(self, frame, dt, display, effects_owned, engines_px=(), zones=()):
         """frame: the span frame's number (consecutive frames chain); dt: seconds between frames; the
         rest as found(). Returns (rows, flagged) for this frame."""
-        return self.step(frame, dt, display.shape[1], found(display, effects_owned, engines_px))
+        return self.step(frame, dt, display.shape[1], found(display, effects_owned, engines_px, zones))
 
     def step(self, frame, dt, width, kept):
         """Chain one frame's regions (found()) onto the frame before: (rows, flagged)."""

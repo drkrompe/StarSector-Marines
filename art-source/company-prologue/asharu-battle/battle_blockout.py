@@ -1213,10 +1213,9 @@ def _m5_point(d, up=0.0, side=0.0):
 M11_T = 122.0
 
 
-# S11's wind is on trial (2026-10-26): ASHARU_M11_WIND=up (the default, recommended from the light check
-# asharu-ab-s11-wind: the heat on her bow and belly, the wake rising soft behind her) or down (the air on
-# her deck, the side facing the camera burning). Remove the switch, keeping the winner, once the owner picks.
-M11_WIND_TILT = -.7 if os.environ.get('ASHARU_M11_WIND', 'up') == 'down' else .7
+# S11's air comes up off her nose (owner, 2026-10-26, from the light check asharu-ab-s11-wind: "Up"): the
+# heat on her bow and belly, the wake rising soft behind her. Tilted down, the air was on her deck.
+M11_WIND_TILT = .7
 
 
 def m11_wind(pose):
@@ -2475,11 +2474,25 @@ def blender_main(cfg):
                 c = world_to_camera_view(scene, scene.camera, pl['matrix'] @ (pos * pl['mpu']))
                 if c.z > 0:
                     engines.append((c.x * w_, (1.0 - c.y) * h_))
+        # the hulls burning into the air (fx 'plasma', 'entry_sheath'): each one's screen box, padded by half
+        # its size, from a sample of her hull's vertices
+        zones = []
+        for fx_ in spec_.get('fx', ()):
+            e_ = bpy.data.objects.get('Ship | ' + fx_[1]) if fx_[0] in ('plasma', 'entry_sheath') else None
+            if e_ is None:
+                continue
+            verts_, _f = entry_kit().hull_soup(e_)
+            pts_ = [world_to_camera_view(scene, scene.camera, Vector(v)) for v in verts_[::max(1, len(verts_) // 400)]]
+            pts_ = [(c.x * w_, (1.0 - c.y) * h_) for c in pts_ if c.z > 0]
+            if pts_:
+                xs_, ys_ = [p[0] for p in pts_], [p[1] for p in pts_]
+                px_, py_ = .5 * (max(xs_) - min(xs_)), .5 * (max(ys_) - min(ys_))
+                zones.append((min(xs_) - px_, min(ys_) - py_, max(xs_) + px_, max(ys_) + py_))
         span_ = spec_['span_of']
         st = blob_state.setdefault(span_, {'lint': blob_lint.Lint(), 'last_t': None})
         n_ = int(kf.rsplit('_f', 1)[1])
         dt = (spec_['span_t'] - st['last_t']) if st['last_t'] is not None else 1.0 / 24
-        kept_ = blob_lint.found(display, effects_owned, engines)
+        kept_ = blob_lint.found(display, effects_owned, engines, zones)
         # this frame's regions, for the shot's assembly to chain across chunk seams (assemble_shot --blobs)
         (raw / f'{span_}_blobs_f{n_:05d}.json').write_text(json.dumps(
             dict(frame=n_, dt=dt, width=w_, regions=[[a, list(b), cy, cx] for a, b, cy, cx in kept_])))
