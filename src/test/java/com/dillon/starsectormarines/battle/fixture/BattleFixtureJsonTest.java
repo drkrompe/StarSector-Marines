@@ -285,7 +285,9 @@ class BattleFixtureJsonTest {
                                 EconomicFunction.SPACEPORT),
                         SurfacePalette.ROCK, SettlementLink.ROAD),
                 List.of(new FighterWingCommitment(FighterProfile.BROADSWORD,
-                        Faction.MARINE, 2, 12f, 30f)),
+                                Faction.MARINE, 2, 12f, 30f),
+                        new FighterWingCommitment(FighterProfile.LONGBOW,
+                                Faction.MARINE, 1, 16f, 1f, 20f, 90f)),
                 List.of(
                         new FighterWingCommitment(FighterProfile.DAGGER,
                                 Faction.DEFENDER, 1, 20f, 45f),
