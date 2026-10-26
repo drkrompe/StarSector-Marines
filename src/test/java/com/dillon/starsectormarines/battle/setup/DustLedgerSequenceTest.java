@@ -4,10 +4,9 @@ import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Area;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Cell;
-import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Crate;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Sites;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Watcher;
-import com.dillon.starsectormarines.battle.story.DustLedgerProgress;
+import com.dillon.starsectormarines.battle.objective.side.SideObjectiveService;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import java.util.List;
@@ -56,27 +55,6 @@ class DustLedgerSequenceTest {
         assertFalse(DustLedgerSequence.breaksQuiet(null));
     }
 
-    @Test void theCrateIsCarriedDroppedWhereItsCarrierFallsAndDeliveredInTheYard() {
-        Area yard = Area.rect(10, 0, 12, 2);
-        Crate crate = new Crate(new Cell(1, 1));
-        crate.step(false, 0, 0, 0L, yard);
-        assertEquals(0L, crate.carrier);
-        crate.step(false, 0, 0, 7L, yard);
-        assertEquals(7L, crate.carrier);
-        crate.step(true, 5, 1, 9L, yard);
-        assertEquals(7L, crate.carrier, "a carried crate is not taken by another unit");
-        assertEquals(5, crate.x);
-        crate.step(false, 6, 1, 0L, yard);
-        assertEquals(0L, crate.carrier);
-        assertEquals(5, crate.x, "dropped where the carrier last stood");
-        crate.step(false, 0, 0, 9L, yard);
-        crate.step(true, 11, 1, 0L, yard);
-        assertTrue(crate.delivered);
-        assertEquals(0L, crate.carrier);
-        crate.step(false, 0, 0, 3L, yard);
-        assertEquals(0L, crate.carrier, "a delivered crate stays in the yard");
-    }
-
     @Test void sitesPutTheOfficeAndBarrelInsideTheRingAndTheSideJobsOutside() {
         assertEquals(sites(new Cell(22, 6), Area.rect(0, 0, 2, 2)).exclusionRing(), RING);
         assertThrows(IllegalArgumentException.class, () -> sites(new Cell(2, 6), Area.rect(0, 0, 2, 2)),
@@ -96,14 +74,17 @@ class DustLedgerSequenceTest {
     @Test void aControlRunGrantsTheSideObjectivesItNamesAndRejectsOthers() {
         var sequence = new DustLedgerSequence(sites(new Cell(22, 6), Area.rect(0, 0, 2, 2)),
                 new RaidObjective("ledger", "Ledger room", 22, 6, 0, 1, 11), List.of(), List.of(), new StoryBeatLog());
-        sequence.grantForced(" feed, coupling ");
-        assertEquals(DustLedgerProgress.Side.PAID, sequence.progress().feed());
-        assertEquals(DustLedgerProgress.Side.PAID, sequence.progress().coupling());
-        assertEquals(DustLedgerProgress.Side.OPEN, sequence.progress().warden());
-        assertTrue(sequence.crateDelivered());
-        sequence.grantForced("all");
-        assertEquals(DustLedgerProgress.Side.PAID, sequence.progress().warden());
-        assertThrows(IllegalArgumentException.class, () -> sequence.grantForced("radio"));
+        var service = new SideObjectiveService();
+        sequence.offer(service);
+        sequence.grantForced(" feed, coupling ", service, null);
+        assertTrue(sequence.feedCut());
+        assertTrue(sequence.salvageTeamJoins());
+        assertTrue(sequence.drinkersJoin(), "the nod was not granted");
+        sequence.grantForced("all", service, null);
+        assertFalse(sequence.drinkersJoin());
+        assertFalse(service.job(DustLedgerSideObjectives.BROKER).done(), "the broker is never granted");
+        assertThrows(IllegalArgumentException.class, () -> sequence.grantForced("radio", service, null));
+        assertThrows(IllegalArgumentException.class, () -> sequence.grantForced("broker", service, null));
     }
 
     private static Sites sites(Cell office, Area wellHouse) {
