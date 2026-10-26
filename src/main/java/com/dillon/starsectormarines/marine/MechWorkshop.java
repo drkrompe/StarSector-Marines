@@ -12,7 +12,11 @@ import java.util.function.BooleanSupplier;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
-/** Atomic campaign authority for Mech Lab fabrication and fitting. */
+/**
+ * Atomic campaign authority for Mech Lab fabrication and fitting. Building anything is paid in
+ * credits and needs a civilized port ({@link Status#NO_MARKET}); fitting, stripping, moving and
+ * recycling what is already in the bay work anywhere.
+ */
 public final class MechWorkshop {
 
     private final MechBay bay;
@@ -63,6 +67,7 @@ public final class MechWorkshop {
                     ? Result.of(Status.INSTALLED_FROM_STORES) : Result.of(Status.INVALID);
         }
         if (!bay.canFabricate(component)) return Result.of(Status.PATTERN_LOCKED);
+        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
         FabricationCost bill = weaponQuote(component);
         if (bill == null || !resources.spend(bill)) {
             return Result.of(Status.INSUFFICIENT_MATERIALS);
@@ -94,6 +99,7 @@ public final class MechWorkshop {
                     ? Result.of(Status.INSTALLED_FROM_STORES) : Result.of(Status.INVALID);
         }
         if (!bay.canFabricate(internal)) return Result.of(Status.PATTERN_LOCKED);
+        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
         MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.internal(internal);
         if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
             return Result.of(Status.INSUFFICIENT_MATERIALS);
@@ -112,6 +118,7 @@ public final class MechWorkshop {
     public Result fabricateWeapon(MechWeaponComponent component) {
         if (component == null) return Result.of(Status.INVALID);
         if (!bay.canFabricate(component)) return Result.of(Status.PATTERN_LOCKED);
+        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
         FabricationCost bill = weaponQuote(component);
         if (bill == null || !resources.spend(bill)) return Result.of(Status.INSUFFICIENT_MATERIALS);
         bay.addWeapon(component.id, 1);
@@ -122,6 +129,7 @@ public final class MechWorkshop {
     public Result fabricateInternal(MechInternal internal) {
         if (internal == null) return Result.of(Status.INVALID);
         if (!bay.canFabricate(internal)) return Result.of(Status.PATTERN_LOCKED);
+        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
         MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.internal(internal);
         if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
             return Result.of(Status.INSUFFICIENT_MATERIALS);
@@ -134,6 +142,7 @@ public final class MechWorkshop {
     public Result fabricateKit(VehicleKit kit) {
         if (kit == null) return Result.of(Status.INVALID);
         if (!bay.canFabricate(kit)) return Result.of(Status.PATTERN_LOCKED);
+        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
         MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.kit(kit);
         if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
             return Result.of(Status.INSUFFICIENT_MATERIALS);
@@ -210,6 +219,7 @@ public final class MechWorkshop {
         if (!bay.canFabricate(variant)) return Result.of(Status.PATTERN_LOCKED);
         if (!bay.canAddMech(squadId) || bay.squadById(squadId).occupied() >= workingBerths.getAsInt())
             return Result.of(Status.LANCE_FULL);
+        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
         MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.chassis(variant);
         if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
             return Result.of(Status.INSUFFICIENT_MATERIALS);
@@ -227,6 +237,7 @@ public final class MechWorkshop {
         if (!bay.canFabricate(type)) return Result.of(Status.PATTERN_LOCKED);
         if (!bay.canAddMech(squadId) || bay.squadById(squadId).occupied() >= workingBerths.getAsInt())
             return Result.of(Status.LANCE_FULL);
+        if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
         MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.vehicle(type);
         if (recipe == null || !resources.spend(resources.quote(recipe.cost()))) {
             return Result.of(Status.INSUFFICIENT_MATERIALS);
@@ -254,7 +265,7 @@ public final class MechWorkshop {
     }
 
     /**
-     * Breaks one spare weapon assembly in stores back down into materials, at the machine
+     * Breaks one spare weapon assembly in stores down for credits, at the machine
      * shop's share of what building one costs now. A fitted copy is never a spare.
      */
     public Result recycleWeapon(MechWeaponComponent component) {
@@ -272,7 +283,7 @@ public final class MechWorkshop {
         return recycle(bay.availableKit(kit.id), kitRecovery(kit), () -> bay.takeKit(kit.id));
     }
 
-    /** The hold is credited before the spare leaves stores, so a fleet with no hold keeps it. */
+    /** The purse is paid before the spare leaves stores, so a fleet with no purse keeps it. */
     private Result recycle(int spares, FabricationCost back, BooleanSupplier take) {
         if (spares <= 0) return Result.of(Status.NO_SPARE);
         if (!resources.reclamation().works()) return Result.of(Status.WORKSHOP_IDLE);
@@ -283,7 +294,7 @@ public final class MechWorkshop {
     }
 
     /**
-     * What scrapping {@code mechId} would return, or null when it returns no materials: the
+     * What scrapping {@code mechId} would return, or null when it returns nothing: the
      * machine shop's share of today's chassis quote, less the parts a bought frame comes with.
      * Those parts (its plating and any factory-locked gun) go back to stores as spares, so the
      * hull is not paid out for them a second time.
@@ -320,9 +331,9 @@ public final class MechWorkshop {
     }
 
     /**
-     * What scrapping {@code vehicleId} would return, or null when it returns no materials: the
+     * What scrapping {@code vehicleId} would return, or null when it returns nothing: the
      * machine shop's share of today's quote. A vehicle is bought whole with no kits, so its
-     * whole bill is hull.
+     * whole price is hull.
      */
     public FabricationCost vehicleSalvage(String vehicleId) {
         CampaignVehicle vehicle = bay.vehicleById(vehicleId);
@@ -332,7 +343,7 @@ public final class MechWorkshop {
 
     /**
      * Scraps a chassis to free its gantry: fitted parts go back to stores and the machine
-     * shop's share of the hull back to the hold. A shop that cannot recycle still frees the
+     * shop's share of the hull back to the purse. A shop that cannot recycle still frees the
      * gantry; it returns nothing.
      */
     public Result scrapMech(String mechId) {
@@ -344,7 +355,7 @@ public final class MechWorkshop {
         return new Result(Status.SCRAPPED, mech);
     }
 
-    /** Scraps a vehicle to free its gantry, the machine shop's share of its bill back to the hold. */
+    /** Scraps a vehicle to free its gantry, the machine shop's share of its price back to the purse. */
     public Result scrapVehicle(String vehicleId) {
         CampaignVehicle vehicle = bay.vehicleById(vehicleId);
         if (vehicle == null) return Result.of(Status.INVALID);
@@ -373,17 +384,20 @@ public final class MechWorkshop {
         VEHICLE_FABRICATED,
         /** A machine was broken up; its gantry is vacant and its salvage is in stores. */
         SCRAPPED,
-        /** One spare in stores was broken down into materials in the hold. */
+        /** One spare in stores was broken down for credits. */
         RECYCLED,
         NO_SPARE,
         /** The machine shop's machinery is not running, so nothing can be broken down. */
         WORKSHOP_IDLE,
-        /** Too little of the bill would come back to be worth a line. */
+        /** Too little of the price would come back to be worth a credit. */
         NOTHING_TO_RECOVER,
         INCOMPATIBLE,
         /** The fit would weigh more than the engine can carry. */
         OVER_BUDGET,
+        /** The purse is short of the price. */
         INSUFFICIENT_MATERIALS,
+        /** Buying needs the fleet docked at a civilized market, and it is not. */
+        NO_MARKET,
         LANCE_FULL,
         PATTERN_LOCKED,
         INVALID

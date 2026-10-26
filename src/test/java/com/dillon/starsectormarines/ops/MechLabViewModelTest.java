@@ -25,9 +25,9 @@ import com.dillon.starsectormarines.marine.MechFieldRepair;
 import com.dillon.starsectormarines.marine.MechFrameBudget;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.MechPattern;
-import com.dillon.starsectormarines.marine.FabricationCost;
+import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.TestPurse;
 import com.dillon.starsectormarines.marine.FabricationResources;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import com.dillon.starsectormarines.ui.retained.UiKey;
-import java.util.HashMap;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -64,11 +63,11 @@ class MechLabViewModelTest {
 
     @Test void compactWorkshopRejectsStaleFabricationAfterCapacityShrinks() {
         MechBay bay = MechBay.legacyStarterFixture();
-        TestResources resources = TestResources.stocked(2000);
+        TestPurse resources = new TestPurse(60_000);
         var model = new MechLabViewModel(new Reactor(), bay, resources);
         model.nextGantryAction().run();
         var order = model.catalogRows().get().stream().filter(row -> !row.actionDisabled()).findFirst().orElseThrow();
-        int before = resources.available(Commodities.METALS);
+        long before = resources.credits;
         model.physicalGantries(1);
         assertEquals(1, model.gantryRows().get().size());
         assertEquals(1, model.gantryDeployments().size());
@@ -76,13 +75,13 @@ class MechLabViewModelTest {
         assertEquals(0, model.selectedGantryIndex());
         order.action().run();
         assertEquals(1, bay.activeSquad().mechs().size());
-        assertEquals(before, resources.available(Commodities.METALS));
+        assertEquals(before, resources.credits);
     }
 
     @Test
     void dragCommandsFitMoveAndReturnWeaponsWithoutDuplicatingInventory() {
         MechBay bay = MechBay.legacyStarterFixture();
-        TestResources resources = TestResources.stocked(2_000);
+        TestPurse resources = new TestPurse(60_000);
         AtomicInteger changes = new AtomicInteger();
         MechLabViewModel viewModel = new MechLabViewModel(
                 new Reactor(), bay, resources, changes::incrementAndGet);
@@ -256,7 +255,7 @@ class MechLabViewModelTest {
     @Test
     void commodityIconsAndCargoCountsDriveWeaponAndChassisFabrication() {
         MechBay bay = MechBay.legacyStarterFixture();
-        TestResources resources = TestResources.stocked(2_000);
+        TestPurse resources = new TestPurse(60_000);
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, resources);
         viewModel.gantryRows().get().get(0).select().run();
         viewModel.leftSlotRows().get().stream()
@@ -267,17 +266,14 @@ class MechLabViewModelTest {
                 .filter(row -> row.name().equals("Pulse laser"))
                 .findFirst().orElseThrow();
         assertFalse(pulse.actionDisabled());
-        assertEquals(3, pulse.materials().size());
-        assertTrue(pulse.materials().stream().allMatch(row -> row.icon().startsWith(
-                "graphics/icons/cargo/")));
+        assertEquals(1, pulse.materials().size());
         CompanyResources.Row cost = pulse.materials().get(0);
-        String commodity = cost.id().substring(cost.id().lastIndexOf(':') + 1);
-        assertEquals(String.valueOf(cost.required()), cost.label());
-        assertEquals(2000, cost.available());
-        assertEquals("MANUFACTURING COST", MechLabSpecSheets.materialSheet(cost).subtitle());
-        assertEquals("2,000", stockLabel(viewModel, commodity));
+        assertTrue(cost.id().endsWith(":material:credits"));
+        assertEquals(String.valueOf(cost.required()), cost.label().replace(",", ""));
+        assertEquals(60_000, cost.available());
+        assertEquals("60,000", stockLabel(viewModel, "credits"));
         pulse.action().run();
-        assertEquals(String.format("%,d", 2000 - cost.required()), stockLabel(viewModel, commodity));
+        assertEquals(String.format("%,d", 60_000 - cost.required()), stockLabel(viewModel, "credits"));
         // Fabrication fills stores; fitting is the drag.
         assertEquals(1, bay.availableWeapon(MechWeaponComponent.PULSE_LASER.id));
         assertTrue(viewModel.dropCatalogWeapon(MechWeaponComponent.PULSE_LASER, SocketId.LEFT_ARM));
@@ -411,9 +407,45 @@ class MechLabViewModelTest {
     }
 
     @Test
+    void buyingNeedsAPortEvenWhenTheCreditsAreThere() {
+        TestPurse purse = new TestPurse(60_000);
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), MechBay.legacyStarterFixture(), purse);
+        selectLeftArm(viewModel);
+
+        assertFalse(pulse(viewModel).actionDisabled());
+        assertEquals(Strings.get("companyResourcePortDocked"), portRow(viewModel).label());
+
+        purse.away();
+        viewModel.refresh();
+        selectLeftArm(viewModel);
+
+        assertTrue(pulse(viewModel).actionDisabled());
+        assertEquals(Strings.get("fabricationNoPort"), pulse(viewModel).actionHint());
+        assertEquals(Strings.get("companyResourcePortAway"), portRow(viewModel).label());
+        pulse(viewModel).action().run();
+        assertEquals(60_000, purse.credits);
+    }
+
+    private static void selectLeftArm(MechLabViewModel viewModel) {
+        viewModel.gantryRows().get().get(0).select().run();
+        viewModel.leftSlotRows().get().stream().filter(row -> row.id().endsWith("left_arm"))
+                .findFirst().orElseThrow().select().run();
+    }
+
+    private static MechLabViewModel.CatalogRow pulse(MechLabViewModel viewModel) {
+        return viewModel.catalogRows().get().stream().filter(row -> row.name().equals("Pulse laser"))
+                .findFirst().orElseThrow();
+    }
+
+    private static CompanyResources.Row portRow(MechLabViewModel viewModel) {
+        return viewModel.materialStock().get().stream()
+                .filter(row -> row.id().equals("mech-material-stock:port")).findFirst().orElseThrow();
+    }
+
+    @Test
     void vacantGantryFabricatesAKnownVehiclePattern() {
         MechBay bay = MechBay.legacyStarterFixture();
-        TestResources resources = TestResources.stocked(2_000);
+        TestPurse resources = new TestPurse(60_000);
         AtomicInteger changes = new AtomicInteger();
         MechLabViewModel viewModel = new MechLabViewModel(
                 new Reactor(), bay, resources, changes::incrementAndGet);
@@ -433,7 +465,7 @@ class MechLabViewModelTest {
                 .findFirst().orElseThrow();
         assertEquals("VEHICLE", apc.badge());
         assertFalse(apc.actionDisabled());
-        assertEquals(3, apc.materials().size());
+        assertEquals(1, apc.materials().size());
         apc.select().run();
         assertEquals(0, bay.activeSquad().vehicles().size(), "selecting a pattern only previews it");
         assertEquals(VehicleType.ESCORT_APC, viewModel.padPreview());
@@ -446,7 +478,7 @@ class MechLabViewModelTest {
         assertEquals(built.displayName(), viewModel.selectedMechName().get());
         assertEquals(1, viewModel.selectedGantryIndex());
         assertTrue(viewModel.feedbackText().get().contains("fabricated"));
-        assertTrue(resources.available(Commodities.METALS) < 2_000);
+        assertTrue(resources.credits < 60_000);
         assertEquals(1, changes.get());
         assertTrue(viewModel.catalogRows().get().isEmpty());
     }
@@ -454,7 +486,7 @@ class MechLabViewModelTest {
     @Test
     void unknownVehiclePatternIsNotOfferedAndIsRefused() {
         MechBay bay = new MechBay();
-        TestResources resources = TestResources.stocked(2_000);
+        TestPurse resources = new TestPurse(60_000);
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, resources);
         viewModel.selectGantryAction(0).run();
 
@@ -465,7 +497,7 @@ class MechLabViewModelTest {
                 viewModel.feedbackText().get());
         assertTrue(viewModel.feedbackClasses().get().contains("tone-danger"));
         assertEquals(0, bay.activeSquad().occupied());
-        assertEquals(2_000, resources.available(Commodities.METALS));
+        assertEquals(60_000, resources.credits);
 
         assertTrue(bay.learnPattern(MechPattern.of(VehicleType.ESCORT_APC).id()));
         viewModel.selectGantryAction(0).run();
@@ -609,7 +641,7 @@ class MechLabViewModelTest {
         MechBay bay = MechBay.legacyStarterFixture();
         AtomicInteger commits = new AtomicInteger();
         MechLabViewModel viewModel = new MechLabViewModel(
-                reactor, bay, TestResources.stocked(2000), commits::incrementAndGet);
+                reactor, bay, new TestPurse(60_000), commits::incrementAndGet);
         viewModel.gantryRows().get().get(0).select().run();
         viewModel.selectSlot(SocketId.LEFT_ARM);
         MarkupLoader loader = new MarkupLoader(
@@ -811,7 +843,7 @@ class MechLabViewModelTest {
         MechBay bay = MechBay.legacyStarterFixture();
         AtomicInteger changes = new AtomicInteger();
         MechLabViewModel viewModel = new MechLabViewModel(
-                new Reactor(), bay, TestResources.stocked(2_000), changes::incrementAndGet);
+                new Reactor(), bay, new TestPurse(60_000), changes::incrementAndGet);
         viewModel.gantryRows().get().get(0).select().run();
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
         bay.learnPattern(MechPattern.of(MechInternal.UPRATED_ENGINE).id());
@@ -899,7 +931,7 @@ class MechLabViewModelTest {
     void platingIsChosenBesideTheSocketsAndPreviewsArmor() {
         MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(
-                new Reactor(), bay, TestResources.stocked(2_000));
+                new Reactor(), bay, new TestPurse(60_000));
         viewModel.gantryRows().get().get(0).select().run();
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
 
@@ -954,7 +986,7 @@ class MechLabViewModelTest {
         // Every internal row agrees with the bay's own budget rule.
         MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(
-                new Reactor(), bay, TestResources.stocked(2_000));
+                new Reactor(), bay, new TestPurse(60_000));
         for (int gantry = 0; gantry < bay.activeSquad().mechs().size(); gantry++) {
             viewModel.gantryRows().get().get(gantry).select().run();
             CampaignMech mech = bay.activeSquad().mechs().get(gantry);
@@ -975,7 +1007,7 @@ class MechLabViewModelTest {
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
         bay.addKit(VehicleKit.APPLIQUE_PLATE.id, 1);
-        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, TestResources.stocked(2_000));
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
         viewModel.gantryRows().get().get(1).select().run();
         assertEquals(VehicleType.BREAKTHROUGH_TANK, viewModel.selectedVehicleType());
 
@@ -994,7 +1026,7 @@ class MechLabViewModelTest {
     void compartmentTakesAVentArrayBesideBankAndLoaderAndGivesItBack() {
         MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(
-                new Reactor(), bay, TestResources.stocked(2_000));
+                new Reactor(), bay, new TestPurse(60_000));
         viewModel.gantryRows().get().get(0).select().run();
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
         bay.learnPattern(MechPattern.of(MechInternal.AUXILIARY_VENT_ARRAY).id());
@@ -1048,7 +1080,7 @@ class MechLabViewModelTest {
         MechBay bay = MechBay.legacyStarterFixture();
         damage(bay, MechBay.STARTER_MECH_ID);
         double[] clock = {0d};
-        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, TestResources.stocked(0),
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(0),
                 () -> { }, () -> clock[0]);
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
 
@@ -1134,38 +1166,5 @@ class MechLabViewModelTest {
                 MarineOpsPageNav.ANY_SHIP,
                 () -> { }, () -> { }, () -> { }, () -> { }, () -> { });
         return props;
-    }
-
-    private static final class TestResources implements FabricationResources {
-        private final Map<String, Integer> stock = new HashMap<>();
-
-        private static TestResources stocked(int quantity) {
-            TestResources resources = new TestResources();
-            resources.stock.put(Commodities.SUPPLIES, quantity);
-            resources.stock.put(Commodities.HEAVY_MACHINERY, quantity);
-            resources.stock.put(Commodities.METALS, quantity);
-            resources.stock.put(Commodities.RARE_METALS, quantity);
-            return resources;
-        }
-
-        @Override public int available(String commodityId) {
-            return stock.getOrDefault(commodityId, 0);
-        }
-
-        @Override public String commodityName(String commodityId) {
-            return commodityId.replace('_', ' ');
-        }
-
-        @Override public String commodityIcon(String commodityId) {
-            return "graphics/icons/cargo/" + commodityId + ".png";
-        }
-
-        @Override public boolean spend(FabricationCost cost) {
-            if (!canAfford(cost)) return false;
-            for (FabricationCost.Line line : cost.lines()) {
-                stock.merge(line.commodityId(), -line.quantity(), Integer::sum);
-            }
-            return true;
-        }
     }
 }

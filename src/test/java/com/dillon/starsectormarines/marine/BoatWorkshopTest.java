@@ -3,10 +3,8 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -28,7 +26,7 @@ class BoatWorkshopTest {
     void theHermesTakesEveryUpgradeFromASpare() {
         BoatDeck deck = new BoatDeck();
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
-        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(1_000));
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
 
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
@@ -44,7 +42,7 @@ class BoatWorkshopTest {
     void theHermesFillsHerBareTurretsWithAnyFamilyAndStripsThemBare() {
         BoatDeck deck = new BoatDeck();
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
-        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(1_000));
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
         assertSame(BoatGun.HEAVY_MG, boat.gunOn(0));
         assertNull(boat.gunOn(1));
@@ -71,7 +69,7 @@ class BoatWorkshopTest {
     void aFitOverTheFrameRatingIsRefusedAndKeepsItsSpare() {
         BoatDeck deck = new BoatDeck();
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
-        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(1_000));
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
         for (String part : List.of("heavy_lift_frame", "uprated_drive", "armoured_plating")) workshop.fabricatePart(part);
         workshop.fit(boat.id(), "heavy_lift_frame");
@@ -89,29 +87,28 @@ class BoatWorkshopTest {
     @Test
     void buildingSpendsExactlyTheBillAndFittingTakesTheSpare() {
         BoatDeck deck = deck();
-        TestResources hold = TestResources.stocked(100);
+        TestPurse hold = TestPurse.rich();
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         String boatId = deck.flightReady().get(0).id();
+        long before = hold.credits;
 
         assertEquals(BoatWorkshop.Status.PART_FABRICATED, workshop.fabricatePart("reinforced_plating").status());
-        assertEquals(90, hold.available(Commodities.SUPPLIES));
-        assertEquals(80, hold.available(Commodities.METALS));
-        assertEquals(100, hold.available(Commodities.HEAVY_MACHINERY),
-                "a plating bill has no machinery line and must not invent one");
+        assertEquals(before - BoatFitting.REINFORCED_PLATING.bill().credits(), hold.credits);
         assertEquals(1, deck.spares("reinforced_plating"));
+        long afterBuild = hold.credits;
 
         BoatWorkshop.Result result = workshop.fit(boatId, "reinforced_plating");
 
         assertEquals(BoatWorkshop.Status.FITTED, result.status());
         assertSame(BoatFitting.REINFORCED_PLATING, deck.boatById(boatId).plating());
         assertEquals(0, deck.spares("reinforced_plating"));
-        assertEquals(90, hold.available(Commodities.SUPPLIES), "fitting a spare spends nothing");
+        assertEquals(afterBuild, hold.credits, "fitting a spare spends nothing");
     }
 
     @Test
     void aFitWithNoSpareChangesNothing() {
         BoatDeck deck = deck();
-        TestResources hold = TestResources.stocked(100);
+        TestPurse hold = TestPurse.rich();
         String boatId = deck.flightReady().get(0).id();
 
         BoatWorkshop.Result result = new BoatWorkshop(deck, hold).fit(boatId, "armoured_plating");
@@ -119,19 +116,19 @@ class BoatWorkshopTest {
         assertEquals(BoatWorkshop.Status.NO_SPARE, result.status());
         assertFalse(result.succeeded());
         assertSame(BoatFitting.STANDARD_PLATING, deck.boatById(boatId).plating());
-        assertEquals(100, hold.available(Commodities.SUPPLIES));
+        assertEquals(0, hold.spends);
     }
 
     /** The stock part is a part like any other: a refit stores it, and putting it back takes it out again. */
     @Test
     void theStockPartComesOffIntoStoresAndGoesBackOnFromThere() {
         BoatDeck deck = deck();
-        TestResources hold = TestResources.stocked(100);
+        TestPurse hold = TestPurse.rich();
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         String boatId = deck.flightReady().get(0).id();
         workshop.fabricatePart("uprated_drive");
         workshop.fit(boatId, "uprated_drive");
-        Map<String, Integer> afterUprating = Map.copyOf(hold.stock);
+        long afterUprating = hold.credits;
         assertEquals(1, deck.spares("standard_drive"), "the stock drive that came off is in stores");
 
         BoatWorkshop.Result result = workshop.fit(boatId, "standard_drive");
@@ -140,20 +137,20 @@ class BoatWorkshopTest {
         assertSame(BoatFitting.STANDARD_DRIVE, deck.boatById(boatId).drive());
         assertEquals(1, deck.spares("uprated_drive"));
         assertEquals(0, deck.spares("standard_drive"));
-        assertEquals(afterUprating, hold.stock);
+        assertEquals(afterUprating, hold.credits);
     }
 
     /** A part moves between boats through stores: off one, onto the other, nothing rebuilt. */
     @Test
     void aPartStrippedFromOneBoatFitsAnotherWithoutABill() {
         BoatDeck deck = deck();
-        TestResources hold = TestResources.stocked(100);
+        TestPurse hold = TestPurse.rich();
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         String first = deck.flightReady().get(0).id();
         String second = deck.flightReady().get(1).id();
         workshop.fabricatePart("tuned_drive");
         workshop.fit(first, "tuned_drive");
-        Map<String, Integer> afterBuild = Map.copyOf(hold.stock);
+        long afterBuild = hold.credits;
 
         assertEquals(BoatWorkshop.Status.STRIPPED, workshop.strip(first, BoatFittingSlot.DRIVE).status());
         assertNull(deck.boatById(first).drive());
@@ -162,14 +159,14 @@ class BoatWorkshopTest {
 
         assertSame(BoatFitting.TUNED_DRIVE, deck.boatById(second).drive());
         assertEquals(0, deck.spares("tuned_drive"));
-        assertEquals(afterBuild, hold.stock);
+        assertEquals(afterBuild, hold.credits);
     }
 
     /** Pulling a required part grounds her, as a mech without its engine is held off the drop. */
     @Test
     void aBoatStrippedOfARequiredPartIsOffTheLiftUntilOneIsFitted() {
         BoatDeck deck = deck();
-        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(100));
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
 
         assertEquals(BoatWorkshop.Status.STRIPPED, workshop.strip(boat.id(), BoatFittingSlot.EMITTER).status());
@@ -189,7 +186,7 @@ class BoatWorkshopTest {
     @Test
     void aBoatStrippedOfHerPlatingFliesOnAWeakBareHull() {
         BoatDeck deck = deck();
-        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(100));
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
         float stock = boat.freezeForDeployment().maxHp();
 
@@ -204,22 +201,21 @@ class BoatWorkshopTest {
     @Test
     void anUnaffordableBuildChangesNeitherTheStoresNorTheHold() {
         BoatDeck deck = deck();
-        TestResources hold = TestResources.stocked(4);
+        TestPurse hold = new TestPurse(4);
 
         BoatWorkshop.Result result = new BoatWorkshop(deck, hold).fabricatePart("armoured_plating");
 
         assertEquals(BoatWorkshop.Status.CANNOT_AFFORD, result.status());
         assertEquals(0, deck.spares("armoured_plating"));
-        assertEquals(4, hold.available(Commodities.SUPPLIES));
-        assertEquals(4, hold.available(Commodities.METALS));
-        assertEquals(4, hold.available(Commodities.HEAVY_MACHINERY));
+        assertEquals(4, hold.credits);
+        assertEquals(0, hold.spends);
     }
 
     /** Refitting what is already there would be a spare spent for no work. */
     @Test
     void refittingWhatIsAlreadyInstalledIsRefusedWithoutTakingASpare() {
         BoatDeck deck = deck();
-        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(100));
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         String boatId = deck.flightReady().get(0).id();
         workshop.fabricatePart("tuned_drive");
         workshop.fabricatePart("tuned_drive");
@@ -235,7 +231,7 @@ class BoatWorkshopTest {
     @Test
     void anUnknownBoatOrFittingIsRefusedBeforeAnythingIsSpent() {
         BoatDeck deck = deck();
-        TestResources hold = TestResources.stocked(100);
+        TestPurse hold = TestPurse.rich();
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         String boatId = deck.flightReady().get(0).id();
 
@@ -245,7 +241,7 @@ class BoatWorkshopTest {
         assertEquals(BoatWorkshop.Status.UNKNOWN_BOAT, noBoat.status());
         assertNull(noBoat.boat());
         assertEquals(BoatWorkshop.Status.UNKNOWN_FITTING, noFitting.status());
-        assertEquals(100, hold.available(Commodities.SUPPLIES));
+        assertEquals(0, hold.spends);
     }
 
     @Test
@@ -253,9 +249,10 @@ class BoatWorkshopTest {
         BoatDeck deck = deck();
         String lost = deck.flightReady().get(0).id();
         deck.lose(List.of(lost));
-        TestResources hold = TestResources.stocked(200);
+        TestPurse hold = TestPurse.rich();
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         FabricationCost bill = BoatFabricationCatalog.recipe(ShuttleType.AEROSHUTTLE).bill();
+        long before = hold.credits;
 
         BoatWorkshop.Result result = workshop.fabricate(0);
 
@@ -267,16 +264,14 @@ class BoatWorkshopTest {
         assertNotEquals(lost, result.boat().id(), "a tail number is never reused");
         assertSame(result.boat(), deck.boats().get(0));
         assertEquals(List.of(), deck.vacantBerths());
-        for (FabricationCost.Line line : bill.lines()) {
-            assertEquals(200 - line.quantity(), hold.available(line.commodityId()));
-        }
+        assertEquals(before - bill.credits(), hold.credits);
     }
 
     /** A berth with a boat in it is not somewhere to build a second one. */
     @Test
     void aBerthThatIsHeldIsRefusedWithoutSpending() {
         BoatDeck deck = deck();
-        TestResources hold = TestResources.stocked(200);
+        TestPurse hold = TestPurse.rich();
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         CampaignBoat standing = deck.boats().get(0);
 
@@ -286,7 +281,7 @@ class BoatWorkshopTest {
         assertEquals(BoatWorkshop.Status.BERTH_OCCUPIED, held.status());
         assertSame(standing, held.boat());
         assertEquals(BoatWorkshop.Status.NO_SUCH_BERTH, offTheEnd.status());
-        assertEquals(200, hold.available(Commodities.METALS));
+        assertEquals(0, hold.spends);
         assertEquals(2, deck.flightReady().size());
     }
 
@@ -294,7 +289,7 @@ class BoatWorkshopTest {
     void aBillTheHoldCannotCoverBuildsNothing() {
         BoatDeck deck = deck();
         deck.lose(List.of(deck.flightReady().get(0).id()));
-        TestResources hold = TestResources.stocked(10);
+        TestPurse hold = new TestPurse(10);
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
 
         BoatWorkshop.Result result = workshop.fabricate(0);
@@ -302,21 +297,20 @@ class BoatWorkshopTest {
         assertEquals(BoatWorkshop.Status.CANNOT_AFFORD, result.status());
         assertFalse(result.succeeded());
         assertNull(deck.boats().get(0));
-        assertEquals(10, hold.available(Commodities.METALS));
-        assertEquals(10, hold.available(Commodities.HEAVY_MACHINERY));
-        assertEquals(10, hold.available(Commodities.SUPPLIES));
+        assertEquals(10, hold.credits);
+        assertEquals(0, hold.spends);
     }
 
     /** A deck nobody has reconciled has no berths and nothing to build into them. */
     @Test
     void aDeckThatDoesNotKnowWhatSheCarriesRefusesToBuild() {
         BoatDeck deck = new BoatDeck();
-        TestResources hold = TestResources.stocked(200);
+        TestPurse hold = TestPurse.rich();
 
         BoatWorkshop.Result result = new BoatWorkshop(deck, hold).fabricate(0);
 
         assertEquals(BoatWorkshop.Status.NO_SUCH_BERTH, result.status());
-        assertEquals(200, hold.available(Commodities.METALS));
+        assertEquals(0, hold.spends);
     }
 
     /** A hardpoint nobody refitted flies the sortie kit's gun, which is what every old save carries. */
@@ -331,18 +325,17 @@ class BoatWorkshopTest {
     @Test
     void aBuiltDoorGunArmsTheFrozenBoat() {
         BoatDeck deck = deck();
-        TestResources hold = TestResources.stocked(100);
+        TestPurse hold = TestPurse.rich();
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         String boatId = deck.flightReady().get(0).id();
 
         assertEquals(BoatWorkshop.Status.NO_SPARE, workshop.fitGun(boatId, 0, BoatGun.ARBALEST.id()).status());
+        long before = hold.credits;
         workshop.fabricatePart(BoatGun.ARBALEST.id());
         BoatWorkshop.Result result = workshop.fitGun(boatId, 0, BoatGun.ARBALEST.id());
 
         assertEquals(BoatWorkshop.Status.FITTED, result.status());
-        assertEquals(90, hold.available(Commodities.SUPPLIES));
-        assertEquals(95, hold.available(Commodities.HEAVY_MACHINERY));
-        assertEquals(80, hold.available(Commodities.METALS));
+        assertEquals(before - BoatGun.ARBALEST.bill().credits(), hold.credits);
         assertEquals(List.of(BoatGun.ARBALEST.structureId()),
                 List.of(deck.boatById(boatId).freezeForDeployment().kitFor(TurretRole.A2G)));
         assertEquals(0, deck.boatById(boatId).freezeForDeployment().kitFor(TurretRole.AA).length,
@@ -353,16 +346,16 @@ class BoatWorkshopTest {
     @Test
     void theYardGunComesOffIntoStoresAndLeavesTheHardpointBare() {
         BoatDeck deck = deck();
-        TestResources hold = TestResources.stocked(100);
+        TestPurse hold = TestPurse.rich();
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         String boatId = deck.flightReady().get(0).id();
         workshop.fabricatePart(BoatGun.ARBALEST.id());
         workshop.fitGun(boatId, 0, BoatGun.ARBALEST.id());
-        Map<String, Integer> afterRefit = Map.copyOf(hold.stock);
+        long afterRefit = hold.credits;
         assertEquals(1, deck.spares(BoatGun.HEAVY_MG.id()), "the yard gun that came off is in stores");
 
         assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boatId, 0, BoatGun.HEAVY_MG.id()).status());
-        assertEquals(afterRefit, hold.stock);
+        assertEquals(afterRefit, hold.credits);
         assertEquals(1, deck.spares(BoatGun.ARBALEST.id()));
         assertEquals(0, deck.spares(BoatGun.HEAVY_MG.id()));
 
@@ -379,7 +372,7 @@ class BoatWorkshopTest {
     void movingAGunBetweenHardpointsStoresWhatItDisplaced() {
         BoatDeck deck = new BoatDeck();
         deck.reconcile("valkyrie", ShuttleType.VALKYRIE, 1);
-        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(1_000));
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
         BoatGun yard = BoatGun.standardFor(ShuttleType.VALKYRIE, 0);
         workshop.fabricatePart(BoatGun.HEPHAESTUS.id());
@@ -401,42 +394,46 @@ class BoatWorkshopTest {
         assertSame(yard, boat.gunOn(1));
     }
 
+    /** Buying needs a port: away from one every purchase is refused unspent, while work on what is aboard goes on. */
+    @Test
+    void awayFromAPortNothingIsBoughtButFittingStrippingMovingAndRecyclingStillWork() {
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile("second-wind", ShuttleType.HERMES, 2);
+        TestPurse purse = TestPurse.rich().reclaiming(Reclamation.FULL);
+        BoatWorkshop workshop = new BoatWorkshop(deck, purse);
+        CampaignBoat boat = deck.flightReady().get(0);
+        String part = BoatFitting.TUNED_DRIVE.id();
+        workshop.fabricatePart(part);
+        workshop.fabricatePart(BoatGun.SRM_POD.id());
+        deck.settleRecovery("battle", Map.of(boat.id(), 1f), List.of(), 0f);
+        BoatWorkshop.RepairQuote reviewed = workshop.repairQuote(boat.id(), 0f);
+        deck.lose(List.of(deck.flightReady().get(0).id()));
+        int vacant = deck.vacantBerths().get(0);
+        long before = purse.credits;
+        int spends = purse.spends;
+
+        purse.away();
+        assertEquals(BoatWorkshop.Status.NO_MARKET, workshop.fabricatePart(part).status());
+        assertEquals(BoatWorkshop.Status.NO_MARKET, workshop.fabricate(vacant).status());
+        assertEquals(BoatWorkshop.Status.NO_MARKET, workshop.expedite(reviewed, 0f).status());
+        assertEquals(before, purse.credits);
+        assertEquals(spends, purse.spends);
+        assertNull(deck.boats().get(vacant));
+        assertFalse(boat.airworthy(0f));
+
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), part).status());
+        assertEquals(BoatWorkshop.Status.STRIPPED, workshop.strip(boat.id(), BoatFittingSlot.DRIVE).status());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 1, BoatGun.SRM_POD.id()).status());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.moveGun(boat.id(), 1, 2).status());
+        assertEquals(BoatWorkshop.Status.RECYCLED, workshop.recycle(part).status());
+        assertEquals(before + purse.refunded, purse.credits);
+    }
     private static BoatDeck deck() {
         BoatDeck deck = new BoatDeck();
         deck.reconcile("fleet-member-transport", ShuttleType.AEROSHUTTLE, 2);
         return deck;
     }
-
-    static final class TestResources implements FabricationResources {
-        private final Map<String, Integer> stock = new HashMap<>();
-
-        static TestResources stocked(int quantity) {
-            TestResources resources = new TestResources();
-            resources.stock.put(Commodities.SUPPLIES, quantity);
-            resources.stock.put(Commodities.HEAVY_MACHINERY, quantity);
-            resources.stock.put(Commodities.METALS, quantity);
-            resources.stock.put(Commodities.RARE_METALS, quantity);
-            return resources;
-        }
-
-        @Override public int available(String commodityId) {
-            return stock.getOrDefault(commodityId, 0);
-        }
-
-        @Override public String commodityName(String commodityId) {
-            return commodityId.replace('_', ' ');
-        }
-
-        @Override public String commodityIcon(String commodityId) {
-            return "graphics/icons/cargo/" + commodityId + ".png";
-        }
-
-        @Override public boolean spend(FabricationCost cost) {
-            if (!canAfford(cost)) return false;
-            for (FabricationCost.Line line : cost.lines()) {
-                stock.merge(line.commodityId(), -line.quantity(), Integer::sum);
-            }
-            return true;
-        }
-    }
 }
+
+
+

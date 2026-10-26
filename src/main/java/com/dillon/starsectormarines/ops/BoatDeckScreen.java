@@ -180,11 +180,6 @@ public final class BoatDeckScreen implements Screen {
         if (previousInstance != null) previousInstance.close();
     }
 
-    private static long fleetCredits() {
-        if (Global.getSector() == null || Global.getSector().getPlayerFleet() == null) return 0;
-        return (long) Global.getSector().getPlayerFleet().getCargo().getCredits().get();
-    }
-
     private Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("contextLabel", bayContextLabel);
@@ -194,7 +189,7 @@ public final class BoatDeckScreen implements Screen {
         props.put("previousBay", (Runnable) () -> cycleBay(-1));
         props.put("nextBay", (Runnable) () -> cycleBay(1));
         props.put("deckSummary", viewModel.deckSummary());
-        props.put("materialStock", reactor.computed(() -> CompanyResources.withCredits(viewModel.materialStock().get(), fleetCredits())));
+        props.put("materialStock", viewModel.materialStock());
         props.put("boatRows", viewModel.boatRows());
         props.put("recovery", viewModel.recovery());
         props.put("selectedBoatName", viewModel.selectedBoatName());
