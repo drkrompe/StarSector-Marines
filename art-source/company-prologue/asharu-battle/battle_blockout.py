@@ -715,19 +715,34 @@ K3E_SHIPS = {
 
 # S7: the Tarsus adrift, rolling slowly; the Kites (P) hold alongside; the boats come over and the one
 # on her deck rides with her; a Wolf (P) makes a covering pass; the convoy draws away ahead
+def slung(run, mother, t0, launch_off=(-8.0, 0.0, -12.0)):
+    """A boat carried under her mother craft until it drops at t0, then on its run (boat())."""
+    def at(t):
+        return aboard(mother.at(t), launch_off)[:6] + (0.0,) if t < t0 else run.at(t)
+    return Pose(at(run.t), run.t, at)
+
+
+# The Kites (P) make their run while the rear guard is drawn off (owner, 2026-10-26: "the Kite Ps fly past to
+# launch their shuttle intrusion ... instead of just magically being on either side"; why would the Hound
+# break off if her charge were already being boarded): from astern, past the fight S6d left, they overtake
+# the Tarsus, drop their boats on the pass and brake onto her beams.
+K3B_KITE_FLIGHT = {key: fly(key, st, K3B_T, [dict(t=79, hd=10, pt=-3, rl=-10, v=260), dict(t=82.5, hd=8, pt=-2, rl=0, v=180),
+                                             dict(t=85, hd=6, pt=-1, rl=8, v=40), dict(t=86.2, v=0)], v=0)
+                   for key, st in (('kite-p-a', K3B_KITE_A), ('kite-p-b', K3B_KITE_B))}
+K3B_KITE_A_FLOWN, K3B_KITE_B_FLOWN = K3B_KITE_FLIGHT['kite-p-a'], K3B_KITE_FLIGHT['kite-p-b']
 K3B_TARSUS_FLOWN = fly('tarsus', K3B_TARSUS, K3B_T, [
     dict(t=80, hd=4.5, pt=-1.5, rl=6), dict(t=88, hd=6.8, pt=-2.3, rl=11)], v=0.0, wobble=1.0, thrust=None)
 K3B_SHIPS = {
     'tarsus': K3B_TARSUS_FLOWN,
-    'kite-p-a': held('kite-p-a', K3B_KITE_A, K3B_T, wobble=1.5),
-    'kite-p-b': held('kite-p-b', K3B_KITE_B, K3B_T, wobble=1.5),
+    'kite-p-a': K3B_KITE_A_FLOWN, 'kite-p-b': K3B_KITE_B_FLOWN,
     # the boats: one down on her deck, one braking in over her stern, one just out from under its Kite
     # S7 (80-88 s) sees all three settle: the first holds over her seat and sets down by the key time, the
     # second brakes in and keeps station through the shot, the third is still on her way in
-    'hermes-p-a': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-a'], 64, 86, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=5.0),
-    'hermes-p-b': boat(K3B_KITE_A, K3B_TARSUS, K3B_SEATS['hermes-p-b'], 70, 93, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=7.0),
-    # the third leaves her Kite on screen (owner, 2026-10-26: "where did these shuttles come from")
-    'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 81.5, 100, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=4.0),
+    # the boats drop from the Kites as they brake alongside her, on screen (owner, 2026-10-26)
+    **{k: slung(boat(K3B_KITE_FLIGHT[m].at(t0), K3B_TARSUS, K3B_SEATS[k], t0, t1, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=h),
+                K3B_KITE_FLIGHT[m], t0)
+       for k, m, t0, t1, h in (('hermes-p-a', 'kite-p-b', 84.8, 88.5, 0.0), ('hermes-p-b', 'kite-p-a', 85.3, 91.0, 1.5),
+                               ('hermes-p-c', 'kite-p-b', 85.8, 93.0, 2.0))},
     'wolf-p-b': fly('wolf-p-b', (-420, 330, 120, -20, -32, 110, 1), K3B_T, [
         dict(t=80, hd=40, pt=-8, rl=40, v=200), dict(t=84, hd=5, pt=-25, rl=95), dict(t=88, hd=-60, pt=-20, rl=70)],
         hits=recoil([84.5], every=.25, until=87.0)),
