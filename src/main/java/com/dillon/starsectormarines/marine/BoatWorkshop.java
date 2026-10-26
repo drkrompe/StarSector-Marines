@@ -9,9 +9,10 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
  * the same way: a part is built from its bill into stores
  * ({@link #fabricatePart}), a fit takes a spare out of stores, and the part it
  * replaces goes back in as a spare. Taking a part off ({@link #strip}) returns
- * it to stores and leaves the socket on its yard-standard part. A yard-standard
- * part is never stored and never runs out: every socket has its own, so
- * putting it back is free and taking it off makes no spare.
+ * it to stores and leaves the socket empty. The stock parts a boat is built with
+ * are parts like any other: they come off into stores and go back on from there.
+ * A boat left without a required part cannot fly until one is fitted
+ * ({@link CampaignBoat#missingParts}).
  *
  * <p>A fit is weighed against the boat's frame ({@link BoatFrame}): one that
  * would take her over the rating is refused, unless it leaves her no heavier
@@ -35,10 +36,7 @@ public final class BoatWorkshop {
         this.resources = resources;
     }
 
-    /**
-     * Builds one spare part into stores: a fitting or a door gun, by id. A
-     * yard-standard fitting has no bill and is never stored, so it is refused.
-     */
+    /** Builds one spare part into stores: a fitting or a door gun, by id. */
     public Result fabricatePart(String partId) {
         BoatFitting fitting = BoatFitting.findById(partId);
         BoatGun gun = fitting == null ? BoatGun.findById(partId) : null;
@@ -86,8 +84,8 @@ public final class BoatWorkshop {
     }
 
     /**
-     * Fits one catalog fitting to one boat, from a spare unless it is the
-     * yard-standard one, and puts what came off into stores.
+     * Fits one catalog fitting to one boat from a spare, and puts what came off,
+     * if anything, into stores.
      *
      * <p>A fitting knows its own slot, so there is no wrong-slot outcome to
      * report: naming the fitting names where it goes.
@@ -98,33 +96,35 @@ public final class BoatWorkshop {
         BoatFitting fitting = BoatFitting.findById(fittingId);
         if (fitting == null) return Result.of(Status.UNKNOWN_FITTING);
         BoatFitting outgoing = boat.fittingIn(fitting.slot());
-        if (fitting.id().equals(outgoing.id())) return new Result(Status.ALREADY_FITTED, boat);
+        if (outgoing != null && fitting.id().equals(outgoing.id())) return new Result(Status.ALREADY_FITTED, boat);
         if (!fitting.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
         if (!BoatFrame.admits(boat, BoatFrame.weight(boat), BoatFrame.weightWith(boat, fitting))) {
             return new Result(Status.OVER_FRAME, boat);
         }
-        if (!fitting.standard() && !deck.take(fitting.id())) return new Result(Status.NO_SPARE, boat);
+        if (!deck.take(fitting.id())) return new Result(Status.NO_SPARE, boat);
         boat.install(fitting);
-        if (!outgoing.standard()) deck.stow(outgoing.id());
+        if (outgoing != null) deck.stow(outgoing.id());
         return new Result(Status.FITTED, boat);
     }
 
-    /** Takes the fitting out of one slot into stores; the slot goes back to its yard-standard part. */
+    /**
+     * Takes the fitting out of one slot into stores and leaves the slot empty. A
+     * required part may come off: the boat then stays off the lift until one is fitted.
+     */
     public Result strip(String boatId, BoatFittingSlot slot) {
         CampaignBoat boat = deck.boatById(boatId);
         if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
         if (slot == null) return new Result(Status.NOTHING_TO_STRIP, boat);
         BoatFitting outgoing = boat.fittingIn(slot);
-        if (outgoing.standard()) return new Result(Status.NOTHING_TO_STRIP, boat);
-        boat.install(BoatFitting.standard(slot));
+        if (outgoing == null) return new Result(Status.NOTHING_TO_STRIP, boat);
+        boat.clear(slot);
         deck.stow(outgoing.id());
         return new Result(Status.STRIPPED, boat);
     }
 
     /**
-     * Puts one door gun on one of a boat's hardpoints: the hardpoint's own yard
-     * gun for nothing, any other from a spare. The gun that came off goes into
-     * stores unless it was that hardpoint's yard gun.
+     * Puts one gun on one of a boat's hardpoints from a spare. The gun that came
+     * off, if any, goes into stores.
      */
     public Result fitGun(String boatId, int hardpoint, String gunId) {
         CampaignBoat boat = deck.boatById(boatId);
@@ -138,33 +138,28 @@ public final class BoatWorkshop {
         if (!BoatFrame.admits(boat, BoatFrame.weight(boat), BoatFrame.weightWithGun(boat, hardpoint, gun))) {
             return new Result(Status.OVER_FRAME, boat);
         }
-        if (!gun.standardOn(boat.pattern(), hardpoint) && !deck.take(gun.id())) {
-            return new Result(Status.NO_SPARE, boat);
-        }
+        if (!deck.take(gun.id())) return new Result(Status.NO_SPARE, boat);
         boat.installGun(hardpoint, gun);
-        if (current != null && !current.standardOn(boat.pattern(), hardpoint)) deck.stow(current.id());
+        if (current != null) deck.stow(current.id());
         return new Result(Status.FITTED, boat);
     }
 
-    /** Takes a gun off into stores; the hardpoint goes back to its yard gun, or bare. */
+    /** Takes a gun off into stores and leaves the hardpoint bare. */
     public Result stripGun(String boatId, int hardpoint) {
         CampaignBoat boat = deck.boatById(boatId);
         if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
         if (!boat.hasHardpoint(hardpoint)) return new Result(Status.UNKNOWN_HARDPOINT, boat);
         BoatGun current = boat.gunOn(hardpoint);
-        BoatGun yard = BoatGun.standardFor(boat.pattern(), hardpoint);
-        if (current == null || current == yard) return new Result(Status.NOTHING_TO_STRIP, boat);
+        if (current == null) return new Result(Status.NOTHING_TO_STRIP, boat);
         boat.installGun(hardpoint, null);
         deck.stow(current.id());
         return new Result(Status.STRIPPED, boat);
     }
 
     /**
-     * Moves a door gun from one hardpoint to another on the same boat, with no
-     * trip through stores: the source goes back to its yard gun, and whatever
-     * the target held goes into stores unless it was the target's yard gun. A
-     * yard gun is not moved; it is every hardpoint's for nothing already. A
-     * bare target simply takes the gun.
+     * Moves a gun from one hardpoint to another on the same boat, with no trip
+     * through stores: the source is left bare, and whatever the target held goes
+     * into stores. A bare target simply takes the gun.
      */
     public Result moveGun(String boatId, int from, int to) {
         CampaignBoat boat = deck.boatById(boatId);
@@ -172,16 +167,15 @@ public final class BoatWorkshop {
         if (!boat.hasHardpoint(from) || !boat.hasHardpoint(to)) return new Result(Status.UNKNOWN_HARDPOINT, boat);
         BoatGun gun = boat.gunOn(from);
         BoatGun displaced = boat.gunOn(to);
-        BoatGun yard = BoatGun.standardFor(boat.pattern(), from);
-        if (gun == null || gun == yard) return new Result(Status.NOTHING_TO_STRIP, boat);
+        if (gun == null) return new Result(Status.NOTHING_TO_STRIP, boat);
         if (from == to || gun == displaced) return new Result(Status.ALREADY_FITTED, boat);
         int before = BoatFrame.weight(boat);
-        // The source goes back to its yard gun and the target takes this one: both changes at once.
-        int after = BoatFrame.weightWithGun(boat, from, yard) + BoatFrame.weightWithGun(boat, to, gun) - before;
+        // The source goes bare and the target takes this one: both changes at once.
+        int after = BoatFrame.weightWithGun(boat, from, null) + BoatFrame.weightWithGun(boat, to, gun) - before;
         if (!BoatFrame.admits(boat, before, after)) return new Result(Status.OVER_FRAME, boat);
         boat.installGun(from, null);
         boat.installGun(to, gun);
-        if (displaced != null && !displaced.standardOn(boat.pattern(), to)) deck.stow(displaced.id());
+        if (displaced != null) deck.stow(displaced.id());
         return new Result(Status.FITTED, boat);
     }
 

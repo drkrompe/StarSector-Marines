@@ -11,14 +11,14 @@ class BoatRecoveryTest {
         BoatDeck deck = deck(2);
         String first = deck.boats().get(0).id(), second = deck.boats().get(1).id();
         deck.settleRecovery("battle", Map.of(first, .5f, second, 2f), List.of(), 10f);
-        assertTrue(deck.airworthy(10.5f).isEmpty());
+        assertTrue(deck.flightReady(10.5f).isEmpty());
         assertEquals(1f, deck.boatById(first).repairDaysRemaining(10f));
         assertEquals(2f, deck.boatById(second).repairDaysRemaining(10f));
         deck = reload(deck);
         deck.reconcile("another", ShuttleType.AEROSHUTTLE, 2);
         assertNull(deck.settleRecovery("battle", Map.of(first, .5f, second, 2f), List.of(), 11f));
-        assertEquals(List.of(first), deck.airworthy(11f).stream().map(CampaignBoat::id).toList());
-        assertEquals(2, deck.airworthy(12f).size());
+        assertEquals(List.of(first), deck.flightReady(11f).stream().map(CampaignBoat::id).toList());
+        assertEquals(2, deck.flightReady(12f).size());
     }
 
     @Test void expediteChargesRemainingWorkOnceAndRetainsFittings() throws Exception {
@@ -60,7 +60,7 @@ class BoatRecoveryTest {
         yard.fabricatePart(BoatFitting.TUNED_DRIVE.id());
         yard.fit(boat.id(), BoatFitting.TUNED_DRIVE.id());
         deck.settleRecovery("lost", Map.of(boat.id(), 1f), List.of(boat.id()), 0f);
-        assertTrue(deck.airworthy(10f).isEmpty());
+        assertTrue(deck.flightReady(10f).isEmpty());
         var replacement = yard.fabricate(0).boat();
         assertNotEquals(boat.id(), replacement.id());
         assertSame(BoatFitting.STANDARD_DRIVE, replacement.drive());
@@ -79,7 +79,7 @@ class BoatRecoveryTest {
         assertTrue(stores.stock.isEmpty());
         var wrecks = new BoatDeck(); wrecks.requireCommissioning();
         wrecks.registerFoundingWrecks("original"); wrecks.reconcile("original", ShuttleType.HERMES, 2);
-        assertTrue(wrecks.airworthy(100f).isEmpty());
+        assertTrue(wrecks.flightReady(100f).isEmpty());
         assertTrue(wrecks.wreckInBerth(0)); assertTrue(wrecks.wreckInBerth(1));
     }
 

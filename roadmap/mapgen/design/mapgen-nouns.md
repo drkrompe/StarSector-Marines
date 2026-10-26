@@ -774,7 +774,12 @@ off the street and keeps its paving, since swept it is a blob of asphalt
 stepping out of the kerb line. Its mouth takes a kerb radius only where
 the turn would lie wholly on street or footway; where the spur opens
 straight onto its yard the corner stays square rather than being cut off at
-the yard's edge. Pedestrian frames,
+the yard's edge. A street that jogs a cell sideways, and a *link* between two
+swept streets whose lines run on along one of them past it, widen to no band
+of their own; each is swept over the stretch between the streets it joins,
+only where every cell of it is paved street and both its ends run on into a
+swept street or meet a crossing one. It never runs alongside a swept street,
+so it cannot widen one. Pedestrian frames,
 the rest of the flank, plazas broader than a street (nine cells) and lanes too
 narrow for a sweep (under three) keep their paving, which also shows in the
 corners a junction turn leaves uncovered.
