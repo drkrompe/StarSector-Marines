@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import java.util.ArrayList;
@@ -281,34 +282,58 @@ public final class MechWorkshop {
         return Result.of(Status.RECYCLED);
     }
 
-    /** Half of a pattern's base bill, rounded down: what breaking up one machine puts back in the hold. */
-    public static FabricationCost salvage(FabricationCost bill) {
-        if (bill == null) return null;
-        List<FabricationCost.Line> lines = new ArrayList<>();
-        for (FabricationCost.Line line : bill.lines()) {
-            int back = line.quantity() / 2;
-            if (back > 0) lines.add(new FabricationCost.Line(line.commodityId(), back));
-        }
-        return lines.isEmpty() ? null : new FabricationCost(lines);
-    }
-
-    /** What scrapping {@code mechId} would return, or null when it returns no materials. */
+    /**
+     * What scrapping {@code mechId} would return, or null when it returns no materials: the
+     * machine shop's share of today's chassis quote, less the parts a bought frame comes with.
+     * Those parts (its plating and any factory-locked gun) go back to stores as spares, so the
+     * hull is not paid out for them a second time.
+     */
     public FabricationCost mechSalvage(String mechId) {
         CampaignMech mech = bay.mechById(mechId);
         MechFabricationCatalog.Recipe recipe = mech == null ? null : MechFabricationCatalog.chassis(mech.variant());
-        return recipe == null ? null : salvage(recipe.cost());
+        if (recipe == null) return null;
+        List<FabricationCost> stock = new ArrayList<>();
+        for (MechFabricationCatalog.Recipe part : frameParts(mech.variant())) stock.add(resources.quote(part.cost()));
+        return resources.reclamation().recover(Reclamation.hull(resources.quote(recipe.cost()), stock));
     }
 
-    /** What scrapping {@code vehicleId} would return, or null when it returns no materials. */
-    public FabricationCost vehicleSalvage(String vehicleId) {
-        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
-        MechFabricationCatalog.Recipe recipe = vehicle == null ? null : MechFabricationCatalog.vehicle(vehicle.type());
-        return recipe == null ? null : salvage(recipe.cost());
+    /** What a bought frame of {@code variant} stands in its gantry with, as the recipes that build those parts. */
+    private static List<MechFabricationCatalog.Recipe> frameParts(MechVariant variant) {
+        // The same chassis MechBay.fabricateFrame builds, stripped the same way.
+        CampaignMech frame = new CampaignMech("frame", "frame", variant, variant.defaultRole,
+                MissileReplenisherComponent.STANDARD.id());
+        frame.stripToFrame();
+        List<MechFabricationCatalog.Recipe> parts = new ArrayList<>();
+        for (MechMountSlot slot : MechMountSlot.values()) {
+            MechFabricationCatalog.Recipe weapon = frame.weaponAt(slot) == null ? null
+                    : MechFabricationCatalog.weapon(frame.weaponAt(slot));
+            if (weapon != null) parts.add(weapon);
+        }
+        List<MechInternal> internals = new ArrayList<>(frame.compartment());
+        internals.add(frame.internal(MechInternal.Role.ENGINE));
+        internals.add(frame.internal(MechInternal.Role.PLATING));
+        for (MechInternal internal : internals) {
+            MechFabricationCatalog.Recipe recipe = internal == null ? null : MechFabricationCatalog.internal(internal);
+            if (recipe != null) parts.add(recipe);
+        }
+        return parts;
     }
 
     /**
-     * Scraps a chassis to free its gantry: fitted parts go back to stores and half the
-     * chassis bill back to the hold.
+     * What scrapping {@code vehicleId} would return, or null when it returns no materials: the
+     * machine shop's share of today's quote. A vehicle is bought whole with no kits, so its
+     * whole bill is hull.
+     */
+    public FabricationCost vehicleSalvage(String vehicleId) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        MechFabricationCatalog.Recipe recipe = vehicle == null ? null : MechFabricationCatalog.vehicle(vehicle.type());
+        return recipe == null ? null : resources.reclamation().recover(resources.quote(recipe.cost()));
+    }
+
+    /**
+     * Scraps a chassis to free its gantry: fitted parts go back to stores and the machine
+     * shop's share of the hull back to the hold. A shop that cannot recycle still frees the
+     * gantry; it returns nothing.
      */
     public Result scrapMech(String mechId) {
         CampaignMech mech = bay.mechById(mechId);
@@ -319,7 +344,7 @@ public final class MechWorkshop {
         return new Result(Status.SCRAPPED, mech);
     }
 
-    /** Scraps a vehicle to free its gantry, half its bill back to the hold. */
+    /** Scraps a vehicle to free its gantry, the machine shop's share of its bill back to the hold. */
     public Result scrapVehicle(String vehicleId) {
         CampaignVehicle vehicle = bay.vehicleById(vehicleId);
         if (vehicle == null) return Result.of(Status.INVALID);

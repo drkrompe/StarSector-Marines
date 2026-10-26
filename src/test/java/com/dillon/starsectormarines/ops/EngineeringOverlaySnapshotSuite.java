@@ -208,6 +208,10 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
                 require(markup.requireElement("engineering-credit-stock:icon").svgImage() != null, "Credit icon lost during refresh");
                 require(markup.requireElement("engineering-credit-stock:label").text().equals("15,000,000"), "Large stock did not refresh");
                 frames.add(new SnapshotArtifact("07-reclamation.png", renderer.render(document, 1920, 1080)));
+                // Tooled, with the reclamation line on offer as the fourth stage.
+                offer[0] = new CompanyWorkshopRestoration.Offer(WorkshopState.EQUIPPED, 20000, null, null, 3, 20);
+                workshop.refresh(); markup.flush(); overlay.update(0f, ship, canvas);
+                frames.add(new SnapshotArtifact("08-reclamation-line.png", renderer.render(document, 1920, 1080)));
                 return List.copyOf(frames);
             }
             // The hull's reserves are on the plan, sealed and inspectable, before

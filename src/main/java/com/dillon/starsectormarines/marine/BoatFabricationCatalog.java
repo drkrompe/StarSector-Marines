@@ -4,7 +4,10 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * What it costs to build one ship's boat into an empty berth.
@@ -57,14 +60,56 @@ public final class BoatFabricationCatalog {
                 provenance);
     }
 
-    /** One buildable pattern, its material bill, and where the yard's plans came from. */
-    public record Recipe(ShuttleType pattern, FabricationCost bill, String provenance) {
+    /**
+     * Every part a new boat of {@code pattern} leaves the yard with, as those parts' own bills:
+     * her stock fittings and the yard's guns on her hardpoints.
+     */
+    public static List<FabricationCost> stockParts(ShuttleType pattern) {
+        CampaignBoat boat = BoatDeck.stockBoat("stock", "stock", pattern);
+        List<FabricationCost> parts = new ArrayList<>();
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            BoatFitting fitting = boat.fittingIn(slot);
+            if (fitting != null && fitting.bill() != null) parts.add(fitting.bill());
+        }
+        for (int hardpoint = 0; hardpoint < pattern.hardpoints(); hardpoint++) {
+            BoatGun gun = boat.gunOn(hardpoint);
+            if (gun != null && gun.bill() != null) parts.add(gun.bill());
+        }
+        return parts;
+    }
+
+    /**
+     * One buildable pattern, its authored hull bill, and where the yard's plans came from.
+     *
+     * <p>Every stock part a new boat carries is a spare with a bill of its own, which comes off
+     * her into stores and recycles like any other. So what she costs ({@link #bill}) is never
+     * less, material by material, than those parts together; were it less, building a boat and
+     * breaking up her parts would make materials out of nothing.
+     */
+    public record Recipe(ShuttleType pattern, FabricationCost hull, String provenance) {
         public String provenance() { return Strings.resolve(provenance); }
 
         public Recipe {
-            if (pattern == null || bill == null) {
+            if (pattern == null || hull == null) {
                 throw new IllegalArgumentException("a boat recipe needs a pattern and a bill");
             }
         }
+
+        /** What building one costs: the hull bill, raised on any material her stock parts need more of. */
+        public FabricationCost bill() { return covering(hull, stockParts(pattern)); }
+    }
+
+    /** {@code bill}, raised line by line to at least what {@code parts} cost together. */
+    public static FabricationCost covering(FabricationCost bill, List<FabricationCost> parts) {
+        Map<String, Integer> needed = new LinkedHashMap<>();
+        for (FabricationCost part : parts) {
+            for (FabricationCost.Line line : part.lines()) needed.merge(line.commodityId(), line.quantity(), Integer::sum);
+        }
+        Map<String, Integer> lines = new LinkedHashMap<>();
+        for (FabricationCost.Line line : bill.lines()) lines.merge(line.commodityId(), line.quantity(), Integer::sum);
+        needed.forEach((id, quantity) -> lines.merge(id, quantity, Math::max));
+        List<FabricationCost.Line> covered = new ArrayList<>();
+        lines.forEach((id, quantity) -> covered.add(new FabricationCost.Line(id, quantity)));
+        return new FabricationCost(covered);
     }
 }

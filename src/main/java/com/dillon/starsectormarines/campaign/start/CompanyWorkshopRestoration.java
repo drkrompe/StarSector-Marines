@@ -30,7 +30,7 @@ public final class CompanyWorkshopRestoration {
     }
     public static boolean toolingAboard() {
         FleetMemberAPI ship = CompanyShipDesignation.aboard();
-        return ship != null && !ship.isMothballed() && state(ship) == WorkshopState.EQUIPPED;
+        return ship != null && !ship.isMothballed() && state(ship).tooled();
     }
     /** The home ship's machine shop as a recycler; a hull outside the restoration chain runs as built. */
     public static Reclamation reclamationAboard() {
@@ -38,11 +38,15 @@ public final class CompanyWorkshopRestoration {
         return ship == null || ship.isMothballed() ? Reclamation.NONE : reclamation(state(ship));
     }
 
-    /** Machinery that runs recycles at half, installed tooling at three quarters; a buried or cleared shop not at all. */
+    /**
+     * Machinery that runs recycles at half, installed tooling at three quarters, a reclamation
+     * line at the whole bill; a buried or cleared shop not at all.
+     */
     public static Reclamation reclamation(WorkshopState state) {
         return switch (state) {
             case NONE, REPAIRED -> Reclamation.MACHINERY;
             case EQUIPPED -> Reclamation.TOOLED;
+            case RECLAIMING -> Reclamation.FULL;
             case BURIED, CLEARED -> Reclamation.NONE;
         };
     }
@@ -56,7 +60,7 @@ public final class CompanyWorkshopRestoration {
         if (actual != reviewed) return Strings.get("openingCompanyWorkshopRestorationTheWorkshopChangedInspectItsCurrentStage");
         if (!converted || !active) return Strings.get("openingCompanyWorkshopRestorationTheConvertedCompanyShipMustBeActive");
         if (!completed) return Strings.get("openingCompanyWorkshopRestorationCompleteHoldUntilRelievedBeforeRestoringThe");
-        if (actual == WorkshopState.EQUIPPED) return Strings.get("openingCompanyWorkshopRestorationWorkshopFullyEquipped");
+        if (actual == WorkshopState.RECLAIMING) return Strings.get("openingCompanyWorkshopRestorationWorkshopFullyEquipped");
         if (!yard) return Strings.get("openingCompanyWorkshopRestorationDockAtAnAccessiblePlanetarySpaceportFor");
         if (credits < actual.price()) return Strings.get("openingCompanyWorkshopRestorationInsufficientCredits");
         if (actual == WorkshopState.BURIED && space < CLEARANCE_METALS)
