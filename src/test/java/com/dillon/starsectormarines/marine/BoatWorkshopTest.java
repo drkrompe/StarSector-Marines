@@ -185,9 +185,9 @@ class BoatWorkshopTest {
         assertTrue(deck.flightReady().contains(boat));
     }
 
-    /** Plating is an option: stripped, she still flies, on a weak bare hull. */
+    /** Plating is an option: stripped, she still flies, her hull whole but with no armour over it. */
     @Test
-    void aBoatStrippedOfHerPlatingFliesOnAWeakBareHull() {
+    void aBoatStrippedOfHerPlatingFliesWithNoArmorOverHerHull() {
         BoatDeck deck = deck();
         BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(100));
         CampaignBoat boat = deck.flightReady().get(0);
@@ -198,7 +198,8 @@ class BoatWorkshopTest {
         assertEquals(List.of(), boat.missingParts());
         assertTrue(deck.flightReady().contains(boat));
         assertNull(boat.freezeForDeployment().plating());
-        assertEquals(stock * FittedBoat.BARE_HULL_FACTOR, boat.freezeForDeployment().maxHp(), 1e-3f);
+        assertEquals(stock, boat.freezeForDeployment().maxHp(), 1e-3f, "plating is armour, not hull");
+        assertEquals(0f, boat.freezeForDeployment().armor(), 1e-3f);
     }
 
     @Test

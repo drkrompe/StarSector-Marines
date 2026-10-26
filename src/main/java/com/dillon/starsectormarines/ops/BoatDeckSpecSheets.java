@@ -77,8 +77,8 @@ final class BoatDeckSpecSheets {
         if (fitting == null) return null;
         List<SpecSheet.Stat> stats = new ArrayList<>();
         switch (fitting.slot()) {
-            case PLATING -> stats.add(SpecSheet.Stat.of(Strings.get("openingBoatDeckHull"),
-                    "×" + BoatDeckViewModel.factor(fitting.hullFactor())));
+            case PLATING -> stats.add(SpecSheet.Stat.of(Strings.get("boatDeckArmor"),
+                    "×" + BoatDeckViewModel.factor(fitting.armorFactor())));
             case DRIVE -> {
                 stats.add(SpecSheet.Stat.of(Strings.get("openingBoatDeckSpeed"),
                         "×" + BoatDeckViewModel.factor(fitting.speedFactor())));

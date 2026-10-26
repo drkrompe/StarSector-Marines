@@ -76,7 +76,7 @@ public final class BasedAircraft {
                 .airframe(airframe)
                 .health(capacity)
                 .hp(Math.max(1f, Math.min(capacity, hullHp)))
-                .armor(capacity * ARMOR_CAPACITY_FRACTION, ARMOR_RATING)
+                .armor(Math.max(0f, airframe.armor()), ARMOR_RATING)
                 .attackDamage(0f)
                 .attackRange(0f)
                 .attackCooldown(1f)

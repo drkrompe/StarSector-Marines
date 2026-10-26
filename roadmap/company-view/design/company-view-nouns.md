@@ -126,7 +126,8 @@ shared mapping instead of assigning paths independently in each screen.
   as a mech needs its engine and capacitor bank. Any socket can stand empty;
   a boat missing a required part warns on the doll (a red socket with the warning
   mark) and stays off the lift until one is fitted (`CampaignBoat.missingParts`).
-  Empty plating flies her as a weak bare hull (60% of her stock hull), an empty
+  Plating is armour over her hull, never more hull: empty plating flies her as a
+  bare hull with no armour over it (owner, 2026-10-26), an empty
   lift is the bare hold, an empty emitter flies her unshielded, and a bare
   hardpoint carries no gun. A briefing whose drop needs lift refuses to deploy with
   no flight-ready boat, and says which part is missing; a mission that starts on
