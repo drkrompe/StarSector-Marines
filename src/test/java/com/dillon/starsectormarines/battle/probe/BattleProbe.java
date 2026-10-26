@@ -263,6 +263,8 @@ public final class BattleProbe {
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("cell", new JSONArray(List.of(x, y)))
                 .put("walkable", g.isWalkable(x, y)).put("wall", sim.getTopology().isWall(x, y))
                 .put("fixture", sim.getTopology().isFixture(x, y)).put("wallHp", g.getWallHp(x, y))
+                .put("surface", String.valueOf(sim.getTopology().getSurfaceId(x, y)))
+                .put("ground", String.valueOf(sim.getTopology().getGroundKind(x, y)))
                 .put("doodads", doodads);
     }
 
