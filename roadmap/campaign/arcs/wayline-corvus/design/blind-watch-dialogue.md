@@ -26,6 +26,8 @@ takes. The catalog is the runtime source; nothing here is wired yet.
 - **Ivo Brannick** — Sable Wake's watch boss. Named in the briefing and the warning call; never heard.
 - **Odile Fenner** — the hired signals chief, a contract technician, not Sable Wake. Her racks keep the routing tables the debrief reads.
 - **Pia Lindqvist** — foreman of the pressed rigging crew; her outfit is **Coldframe Rigging**, which pays for its people.
+- **Benno Kask** — boss of the lander crew that flies the cold drop's freight to Garnir. Not named in any line yet.
+- **Ines Calder** — the chemist in the chem module beside the pad. Not named in any line yet.
 
 None collides with Venn, Vale, Prell, Teague, Harrow, Ankrum, Castle, Hale or Kord.
 
@@ -37,7 +39,15 @@ blind toward Barad, so the company lands behind the moon. The mast spots for
 the mortar carrier, the uplink warns Garnir from the alarm, the dish field is
 the target. Every victory debrief says the Sounding is silent and that the
 routing tables point to Sable Wake's dispatch compound on Garnir. The hidden
-false-schedule job is never named before it is found.
+false-schedule and cold-store jobs are never named before they are found.
+
+**The cold drop.** The post also sells clear-lane windows to smugglers, and its
+lander pad stores harvested organs in cryo pods racked in the vacuum, plus drugs
+from the chem module. The briefing carries one hint only (Mara, turn 13: by
+Wayline's manifests the lander runs more than signal gear). Lines name the pods,
+tags and manifest, never what is in them, and nothing is gory. The riggers' fear
+of the pods is implied, never stated: in `riggers_found`, Lindqvist will walk
+but not past the pad.
 
 ## Briefing (`briefing.01`–`briefing.16`, mission `story_corvus_blind_watch`)
 
@@ -73,6 +83,9 @@ in catalog order.
 | `schedule_working` | Castle | a squad leader starts holding the console |
 | `schedule_sent` | Mara | the false schedule completes |
 | `schedule_lapsed` | Castle | found, but the uplink fell or the warning went first |
+| `cold_store_found` | Castle | a company unit first sights the pod racks |
+| `cold_store_working` | Sabine | a squad starts holding the racks |
+| `cold_store_logged` | Mara | the manifest is logged (mark `corvus.sable_wake.organ_manifest`) |
 
 Keys are `corvusBlindWatchField<Name>`. `warning_stopped` and `uplink_down` can
 fire together; play `warning_stopped` only when a warning was in progress.
@@ -86,10 +99,14 @@ fire together; play `warning_stopped` only when a warning was in progress.
 - **`blindWatchSideSchedule`** (hidden, offerer `blindWatchSideOffererCompany`):
   Name, Steps, Offered, Working, Done, Lapsed, Timer, Target (control hut
   console), DebriefDone, DebriefLapsed, DebriefMissed, Reward. No destination.
+- **`blindWatchSideColdStore`** (hidden, offerer `blindWatchSideOffererCompany`):
+  Name, Steps, Offered, Working, Done, Lapsed, Timer, Target (pod racks),
+  DebriefDone, DebriefLapsed, DebriefMissed, Reward. No credits, no destination.
+  The contraband temptation job waits on the owner's pick and is not written.
 
 ## Debrief (victory only)
 
-Six turns in order; each beat has one line per variant.
+Six turns in order, plus one optional; each beat has one line per variant.
 
 | Beat | Speaker | Variant | Rule |
 |---|---|---|---|
@@ -97,6 +114,7 @@ Six turns in order; each beat has one line per variant.
 | `routing.<r>` | Mara | `quiet`, `warned`, `schedule` | `warned` when warned; else `schedule` when the false schedule was sent; else `quiet` |
 | `initiative` | Mara | recorded | always |
 | `riggers.<f>` | Mara / Castle | `freed`, `left`, `lost` | DONE → `freed`; FAILED → `lost`; otherwise (lapsed, never reached) → `left` |
+| `cold_store.logged` | Mara | only line | only when the cold store is DONE; otherwise the beat is skipped |
 | `cost.<c>` | Castle | `losses`, `clean` | `losses` when any marine was lost, else `clean` |
 | `ready` | Castle | recorded | always |
 
@@ -105,5 +123,5 @@ worthless, so a run that sent it and was warned afterwards reads `warned`. Every
 `opening` says the Sounding is silent; every `routing` names the dispatch
 compound on Garnir. `clean` does not call the job free: it credits preparation
 and luck. Keys `corvusBlindWatchDebrief<Beat><Variant>` (`OpenQuiet`,
-`RoutingSchedule`, `RiggersFreed`, `CostLosses`, …); events
+`RoutingSchedule`, `RiggersFreed`, `ColdStoreLogged`, `CostLosses`, …); events
 `debrief.blind_watch.<beat>.<variant>`.
