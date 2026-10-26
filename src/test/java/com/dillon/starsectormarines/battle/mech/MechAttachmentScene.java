@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.scene.Verdict;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.battle.ui.picking.SelectionOrders;
 import com.dillon.starsectormarines.battle.unit.Faction;
 
 import java.util.ArrayList;
@@ -131,8 +133,118 @@ public final class MechAttachmentScene implements BehaviorScene {
             metrics.put("contactSamples", contactSamples);
             metrics.put("houndLead", houndLead);
             metrics.put("wardenLead", wardenLead);
-            return List.of(new SceneReport(id(), "main", TICKS, verdicts, metrics));
+            return List.of(new SceneReport(id(), "main", TICKS, verdicts, metrics), playLine(frames));
         }
+    }
+
+    /** Ticks of the line loop. */
+    static final int LINE_TICKS = 2100;
+    /** Ticks before first contact the posts are read over. */
+    static final int LINE_QUIET_TICKS = 120;
+    /** Ticks after first contact the mechs are given to take their doctrine's places before they are read. */
+    static final int LINE_STEP_TICKS = 60;
+    /** A chassis this near its post's cell centre stands on it: it is over a cell and a half wide. */
+    static final float ON_POST_CELLS = 2f;
+
+    /**
+     * A squad with the Hound and the Warden attached is given a dragged line facing a defender post
+     * walking in from far out of sight: while it is quiet both mechs stand on their posts within the line, the Hound at a
+     * third and the Warden at two thirds; once the post walks into view, the Hound steps out ahead of
+     * the line and the Warden back behind it, both still attached.
+     */
+    private SceneReport playLine(FrameSink frames) {
+        SceneBuilder builder = SceneBuilder.openGround(100, 40);
+        builder.squad("alpha").faction(Faction.MARINE).size(6).inFile(16, 17, 0, 1).done();
+        // Started a few cells behind where their posts will be, so the line is formed before contact.
+        builder.squad("hound").faction(Faction.MARINE).size(1).inFile(22, 16, 1, 0)
+                .mech(MechVariant.HOUND, MechRole.ASSAULT).done();
+        builder.squad("warden").faction(Faction.MARINE).size(1).inFile(22, 24, 1, 0)
+                .mech(MechVariant.WARDEN, MechRole.LR_SUPPORT).done();
+        // Hardy, so the fight lasts long enough to read where the mechs stand in it.
+        builder.squad("post").faction(Faction.DEFENDER).size(4).inFile(96, 18, 0, 1).health(600f)
+                .assigned(id -> ObjectiveAssignment.attackMove(id, 48, 20)).done();
+        SceneWorld scene = builder.build();
+        try (BattleSimulation sim = scene.sim()) {
+            sim.random().setSeed(20261026L);
+            int alpha = scene.squadId("alpha");
+            int houndSquad = scene.squadId("hound");
+            int wardenSquad = scene.squadId("warden");
+            long hound = scene.members("hound")[0];
+            long warden = scene.members("warden")[0];
+            MechAttachmentService attachments = sim.getMechAttachmentService();
+            attachments.requestAttach(houndSquad, alpha);
+            attachments.requestAttach(wardenSquad, alpha);
+            sim.advance(BattleSimulation.TICK_DT);
+            Selection selection = new Selection();
+            selection.selectSquad(alpha);
+            SelectionOrders.requestLine(sim, selection, 30, 8, 30, 32);
+
+            float[] houndOff = new float[LINE_TICKS];
+            float[] wardenOff = new float[LINE_TICKS];
+            float houndAhead = 0f;
+            float wardenAhead = 0f;
+            int contactSamples = 0;
+            boolean stayedAttached = true;
+            boolean posted = true;
+            int lineContact = -1;
+            for (int tick = 0; tick < LINE_TICKS; tick++) {
+                sim.advance(BattleSimulation.TICK_DT);
+                stayedAttached &= attachments.anchorOf(houndSquad) == alpha && attachments.anchorOf(wardenSquad) == alpha;
+                MechAttachmentService.Post houndPost = attachments.postOf(houndSquad);
+                MechAttachmentService.Post wardenPost = attachments.postOf(wardenSquad);
+                posted &= houndPost != null && wardenPost != null;
+                if (houndPost == null || wardenPost == null) continue;
+                Squad squad = sim.getSquad(alpha);
+                boolean contact = squad != null && MechAttachmentSystem.inContact(squad);
+                if (contact && lineContact < 0) lineContact = tick;
+                houndOff[tick] = offPost(sim, hound, houndPost);
+                wardenOff[tick] = offPost(sim, warden, wardenPost);
+                if (contact && lineContact >= 0 && tick >= lineContact + LINE_STEP_TICKS) {
+                    houndAhead += houndPost.anchorLine().ahead(sim.world().x(hound), sim.world().y(hound));
+                    wardenAhead += wardenPost.anchorLine().ahead(sim.world().x(warden), sim.world().y(warden));
+                    contactSamples++;
+                }
+                if (tick % 15 == 0) frames.frame("line", sim, tick, "mech-attachment line / " + tick);
+            }
+            float quietHoundOff = 0f;
+            float quietWardenOff = 0f;
+            int quietSamples = 0;
+            int quietEnd = lineContact < 0 ? LINE_TICKS : lineContact;
+            for (int tick = Math.max(0, quietEnd - LINE_QUIET_TICKS); tick < quietEnd; tick++) {
+                quietHoundOff += houndOff[tick];
+                quietWardenOff += wardenOff[tick];
+                quietSamples++;
+            }
+            quietHoundOff /= Math.max(1, quietSamples);
+            quietWardenOff /= Math.max(1, quietSamples);
+            houndAhead /= Math.max(1, contactSamples);
+            wardenAhead /= Math.max(1, contactSamples);
+
+            List<Verdict> verdicts = new ArrayList<>();
+            verdicts.add(Verdict.of("posts-stand", stayedAttached && posted,
+                    "both mechs stayed attached and held posts on the line for the whole loop"));
+            verdicts.add(Verdict.of("on-posts-while-quiet", quietSamples > 0 && quietHoundOff <= ON_POST_CELLS && quietWardenOff <= ON_POST_CELLS,
+                    "before contact the Hound stood " + quietHoundOff + " and the Warden " + quietWardenOff + " cells off their posts"));
+            verdicts.add(Verdict.of("brawler-steps-out", contactSamples >= MIN_CONTACT_SAMPLES && houndAhead > 2f,
+                    "in contact (" + contactSamples + " readings) the Hound stood " + houndAhead + " cells ahead of the line"));
+            verdicts.add(Verdict.of("long-range-steps-back", contactSamples >= MIN_CONTACT_SAMPLES && wardenAhead < -3f,
+                    "in contact the Warden stood " + wardenAhead + " cells ahead of the line"));
+            Map<String, Number> metrics = new LinkedHashMap<>();
+            metrics.put("firstContactTick", lineContact);
+            metrics.put("quietSamples", quietSamples);
+            metrics.put("quietHoundOff", quietHoundOff);
+            metrics.put("quietWardenOff", quietWardenOff);
+            metrics.put("contactSamples", contactSamples);
+            metrics.put("houndAhead", houndAhead);
+            metrics.put("wardenAhead", wardenAhead);
+            return new SceneReport(id(), "line", LINE_TICKS, verdicts, metrics);
+        }
+    }
+
+    private static float offPost(BattleSimulation sim, long mech, MechAttachmentService.Post post) {
+        float dx = sim.world().x(mech) - (post.x() + .5f);
+        float dy = sim.world().y(mech) - (post.y() + .5f);
+        return (float) Math.sqrt(dx * dx + dy * dy);
     }
 
     private static float distance(BattleSimulation sim, long mech, Squad squad) {

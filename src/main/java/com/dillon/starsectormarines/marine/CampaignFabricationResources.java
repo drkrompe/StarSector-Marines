@@ -23,6 +23,10 @@ public final class CampaignFabricationResources implements FabricationResources 
         return WorkshopTooling.quote(base, workshopJob && CompanyWorkshopRestoration.toolingAboard());
     }
 
+    @Override public Reclamation reclamation() {
+        return workshopJob ? CompanyWorkshopRestoration.reclamationAboard() : Reclamation.NONE;
+    }
+
 
     @Override
     public int available(String commodityId) {

@@ -374,7 +374,8 @@ public final class SquadMoveOrderSystem {
         // The squad's centroid, as the drag preview used, so the facing given is the facing shown.
         FrontageLine line = FrontageLine.facing(request.cellX, request.cellY, request.endX, request.endY,
                 squad.centroidX, squad.centroidY,
-                threat ? picture.primaryCellX() : -1, threat ? picture.primaryCellY() : -1);
+                threat ? picture.primaryCellX() : -1, threat ? picture.primaryCellY() : -1)
+                .withMachines(request.machines);
         int[] circle = line.enclosingCircle();
         int[] center = ReachableCellResolver.nearest(sim.getGrid(), origin[0], origin[1], circle[0], circle[1]);
         if (center == null) return;

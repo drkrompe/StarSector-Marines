@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.squad;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -45,5 +47,25 @@ class FrontageLineTest {
                 assertTrue(dx * dx + dy * dy <= circle[2] * circle[2], "band cell " + x + "," + y);
             }
         }
+    }
+
+    @Test
+    void attachedMechsStandWithinTheLineAmongTheMarines() {
+        FrontageLine one = new FrontageLine(0, 0, 20, 0, 0f, 1f).withMachines(1);
+        assertEquals(0.5f, one.machineFraction(0), 1e-6f, "one mech at the middle");
+        for (int i = 0; i < 4; i++) {
+            float t = one.marineFraction(i, 4);
+            assertTrue(Math.abs(t - 0.5f) >= 1f / 8f - 1e-6f, "no marine stands in the mech's band: " + t);
+        }
+        assertTrue(one.marineFraction(1, 4) < 0.5f && one.marineFraction(2, 4) > 0.5f, "two either side of it");
+
+        FrontageLine two = new FrontageLine(0, 0, 20, 0, 0f, 1f).withMachines(2);
+        float[] order = {two.marineFraction(0, 3), two.machineFraction(0), two.marineFraction(1, 3),
+                two.machineFraction(1), two.marineFraction(2, 3)};
+        for (int i = 1; i < order.length; i++) {
+            assertTrue(order[i] > order[i - 1], "marine, mech, marine, mech, marine: " + Arrays.toString(order));
+        }
+        assertEquals(new FrontageLine(0, 0, 20, 0, 0f, 1f).marineFraction(1, 4), 0.375f, 1e-6f,
+                "a line with no mech in it shares out evenly");
     }
 }

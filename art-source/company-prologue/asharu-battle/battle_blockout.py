@@ -727,13 +727,13 @@ def slung(run, mother, t0, launch_off=(-8.0, 0.0, -12.0)):
 # break off if her charge were already being boarded): from astern, past the fight S6d left, they overtake
 # the Tarsus, drop their boats on the pass and brake onto her beams.
 # Their run threads S6d's frame (owner, 2026-10-26: "this hound attempting to do a holding action, and some of
-# them slipping through"; S6d's camera stays): out of the background behind the Hounds (P), past the convoy's
-# Hound close enough to read as slipping by her, then on to brake onto the Tarsus's beams by 86 s. Points
-# in the battle frame, found by placing them in S6d's frame.
-K3B_KITE_RUN = {'kite-p-a': [(72.0, (-2560, -1050, -260)), (74.0, (-2279, -741, -166)), (76.5, (-1804, -479, -30)),
-                             (78.3, (-1715, -129, 19)), (82.5, (-900, 120, 50)), (86.0, K3B_KITE_A[:3])],
-                'kite-p-b': [(72.3, (-2770, -970, -350)), (74.3, (-2490, -664, -255)), (76.8, (-1932, -505, -93)),
-                             (78.6, (-1770, -155, -7)), (82.8, (-980, -20, 10)), (86.0, K3B_KITE_B[:3])]}
+# them slipping through"; S6d's camera stays): out of the background behind the Hounds (P) and by her, well
+# beyond and to the side of her fight, never across her path ("they should fly by"), then on to brake onto
+# the Tarsus's beams by 86 s. Points in the battle frame, found by placing them in S6d's frame.
+K3B_KITE_RUN = {'kite-p-a': [(72.0, (-2600, -870, -260)), (74.0, (-2353, -803, -197)), (76.5, (-2045, -726, -118)),
+                             (78.6, (-1923, -597, -119)), (83.3, (-900, 120, 50)), (86.0, K3B_KITE_A[:3])],
+                'kite-p-b': [(72.3, (-2900, -800, -380)), (74.3, (-2646, -767, -319)), (76.8, (-2239, -786, -211)),
+                             (78.9, (-2038, -679, -178)), (83.6, (-980, -20, 10)), (86.0, K3B_KITE_B[:3])]}
 
 
 def through(pts, v0=None, v1=(0.0, 0.0, 0.0)):

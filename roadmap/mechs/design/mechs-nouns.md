@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-26 — an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -624,9 +624,14 @@ increasing an encounter's total armored threat.
   picture stay underneath and resume on detach. It is not a lease, because no
   assignment shape names a moving squad and it must win outright over every mission
   goal (`MechAttachmentScene` is the acceptance). When its squad is given a dragged
-  line, the follower takes a **post** on the squad's stretch, after the marines and as
-  far behind the line as they stand, and holds it facing the line's front, in
-  contact or not; it stays attached, and the post ends when the squad is given
+  line, the follower takes a **post** within the squad's line, among the marines and
+  as far behind the line as they stand: each attached mech holds a band two marines
+  wide, the bands spaced evenly along the stretch (one at its middle; two at a third
+  and two thirds, so marine, mech, marine, mech, marine), and the marines share out
+  the rest (`FrontageLine.machineFraction`). It holds the post facing the line's
+  front; in contact it steps off it along that front by its doctrine depth, so a
+  Brawler stands ahead of the line and Long-Range Support behind it, and steps back
+  onto the post once the squad is out of contact. It stays attached, and the post ends when the squad is given
   anything else (`MechAttachmentService.Post`). A **direct order** to the mech — a tactical move, assault, guard or Defend
   Area — ends it, as does the anchor's loss or withdrawal, the mech's withdrawal, or
   direct control; orders given to the anchor move the anchor and the follower keeps
@@ -1385,6 +1390,9 @@ support sortie, subject only to practical runtime resources.
   spares in stores again) and half the chassis or vehicle bill, rounded down, returns
   to the ship's hold, never to a depot it may leave behind. This is the opposite of a
   battle loss, which takes the fitted parts with the frame (`MechWorkshop.scrapMech`).
+  A single spare in stores breaks down the same two-press way from its card's
+  RECYCLE, at the machine shop's rate rather than a flat half
+  (`company-view-nouns.md`, Recycling).
   The lance returns to its overview with that pad vacant. Returning
   through the current Mech Lab room route clears
   that selection and restores the overview. No camera transition moves, respawns,

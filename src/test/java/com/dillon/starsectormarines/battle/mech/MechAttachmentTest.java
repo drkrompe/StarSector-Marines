@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.mech;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
@@ -217,6 +218,33 @@ class MechAttachmentTest {
         sim.getMechAttachmentSystem().tick(sim);
         assertFalse(sim.getMechAttachmentSystem().executeIfAttached(mech, sim.getSquad(mechSquad), sim),
                 "a detached mech goes back to its plan step");
+    }
+
+    @Test
+    void onItsSquadsLineABrawlerStepsOutAheadInContactAndBackOntoItsPostAfter() {
+        BattleSimulation sim = openSimulation(60, 60);
+        int infantry = infantrySquad(sim, 10, 30);
+        long mech = mechSquad(sim, 10, 40);
+        sim.world().mechLoadout(mech).applyBattleOverride(MechRole.ASSAULT);
+        int mechSquad = attached(sim, mech, infantry);
+        sim.getSquadMoveOrderService().requestLine(infantry, 30, 20, 30, 40, 1);
+        FrontageLine within = FrontageLine.facing(30, 20, 30, 40, sim.getSquad(infantry).centroidX,
+                sim.getSquad(infantry).centroidY, -1, -1).withMachines(1);
+        sim.getMechAttachmentService().requestPost(mechSquad, 29, 30, 90f, within);
+        sim.getSquadMoveOrderSystem().tick(sim);
+        sim.getMechAttachmentSystem().tick(sim);
+        assertNotNull(sim.getMechAttachmentService().postOf(mechSquad));
+
+        Squad squad = sim.getSquad(mechSquad);
+        assertTrue(sim.getMechAttachmentSystem().executeIfAttached(mech, squad, sim));
+        int[] calm = sim.getMechAttachmentService().slotOf(mech);
+        assertEquals(29, calm[0], "out of contact it makes for its post");
+
+        sim.getSquad(infantry)._engagedThisTick = true;
+        sim.getMechAttachmentService().setSlot(mech, null);
+        assertTrue(sim.getMechAttachmentSystem().executeIfAttached(mech, squad, sim));
+        int[] fighting = sim.getMechAttachmentService().slotOf(mech);
+        assertEquals(29 + MechAttachmentSlot.LEAD_DEPTH, fighting[0], 1f, "in contact a Brawler steps out ahead of the line");
     }
 
     // ---- fixtures ----

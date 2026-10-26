@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.battle.world.gen.ship.WorkshopState;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.Reclamation;
 import com.dillon.starsectormarines.ops.CompanyShipDesignation;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.fs.starfarer.api.Global;
@@ -30,6 +31,20 @@ public final class CompanyWorkshopRestoration {
     public static boolean toolingAboard() {
         FleetMemberAPI ship = CompanyShipDesignation.aboard();
         return ship != null && !ship.isMothballed() && state(ship) == WorkshopState.EQUIPPED;
+    }
+    /** The home ship's machine shop as a recycler; a hull outside the restoration chain runs as built. */
+    public static Reclamation reclamationAboard() {
+        FleetMemberAPI ship = CompanyShipDesignation.aboard();
+        return ship == null || ship.isMothballed() ? Reclamation.NONE : reclamation(state(ship));
+    }
+
+    /** Machinery that runs recycles at half, installed tooling at three quarters; a buried or cleared shop not at all. */
+    public static Reclamation reclamation(WorkshopState state) {
+        return switch (state) {
+            case NONE, REPAIRED -> Reclamation.MACHINERY;
+            case EQUIPPED -> Reclamation.TOOLED;
+            case BURIED, CLEARED -> Reclamation.NONE;
+        };
     }
     public record Offer(WorkshopState state, int credits, String refusal, String reclaimRefusal,
                         int machinery, int metals) { }

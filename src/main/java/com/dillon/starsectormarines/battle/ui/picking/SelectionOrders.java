@@ -382,14 +382,14 @@ public final class SelectionOrders {
             Recipient recipient = recipients.get(i);
             FrontageLine line = lines.get(i);
             if (recipient.kind() == RecipientKind.INFANTRY) {
-                FrontageLine frontage = frontage(sim, recipient, line);
-                sim.getSquadMoveOrderService().requestLine(recipient.squadId(),
-                        frontage.x0(), frontage.y0(), frontage.x1(), frontage.y1());
                 List<Follower> followers = followers(sim, recipient.squadId());
+                sim.getSquadMoveOrderService().requestLine(recipient.squadId(),
+                        line.x0(), line.y0(), line.x1(), line.y1(), followers.size());
+                FrontageLine within = line.withMachines(followers.size());
                 for (int k = 0; k < followers.size(); k++) {
-                    int[] post = followerPost(sim, recipient, line, k);
+                    int[] post = followerPost(within, k);
                     sim.getMechAttachmentService().requestPost(followers.get(k).mechSquadId(), post[0], post[1],
-                            facingOf(line.frontX(), line.frontY()), frontage);
+                            facingOf(line.frontX(), line.frontY()), within);
                 }
             } else {
                 int[] spot = machineSpot(line);
@@ -471,24 +471,11 @@ public final class SelectionOrders {
     }
 
     /**
-     * The part of an infantry recipient's stretch its marines hold as a frontage: all of it, or the first
-     * share when mechs attached to it take posts on the rest.
+     * Where the {@code k}th mech attached to an infantry recipient stands on its squad's stretch: the
+     * middle of its band among the marines ({@link FrontageLine#machineFraction}), as far back as they.
      */
-    static FrontageLine frontage(BattleSimulation sim, Recipient recipient, FrontageLine stretch) {
-        float width = lineWidth(sim, recipient);
-        float marines = marines(sim, recipient);
-        if (marines >= width) return stretch;
-        float t = marines / width;
-        return new FrontageLine(stretch.x0(), stretch.y0(),
-                Math.round(stretch.x0() + (stretch.x1() - stretch.x0()) * t),
-                Math.round(stretch.y0() + (stretch.y1() - stretch.y0()) * t),
-                stretch.frontX(), stretch.frontY());
-    }
-
-    /** Where the {@code k}th mech attached to an infantry recipient stands on its stretch: after the marines, as far back. */
-    static int[] followerPost(BattleSimulation sim, Recipient recipient, FrontageLine stretch, int k) {
-        float t = (marines(sim, recipient) + MACHINE_LINE_WIDTH * (k + .5f)) / lineWidth(sim, recipient);
-        return round(stretch.pointAt(t, -LinePlacement.REARWARD_OFFSET));
+    static int[] followerPost(FrontageLine within, int k) {
+        return round(within.pointAt(within.machineFraction(k), -LinePlacement.REARWARD_OFFSET));
     }
 
     /** Where a mech or a vehicle stands on its own stretch: the middle, as far back from the line as a marine. */
@@ -515,13 +502,13 @@ public final class SelectionOrders {
             Recipient recipient = recipients.get(i);
             List<HighlightOverlay.PlaceMark> places = new ArrayList<>();
             if (recipient.kind() == RecipientKind.INFANTRY) {
-                FrontageLine frontage = frontage(sim, recipient, lines.get(i));
-                for (LinePlacement.Place place : LinePlacement.preview(sim, sim.getSquad(recipient.squadId()), frontage)) {
+                List<Follower> followers = followers(sim, recipient.squadId());
+                FrontageLine within = lines.get(i).withMachines(followers.size());
+                for (LinePlacement.Place place : LinePlacement.preview(sim, sim.getSquad(recipient.squadId()), within)) {
                     places.add(new HighlightOverlay.PlaceMark(place.member(), place.x(), place.y(), place.position()));
                 }
-                List<Follower> followers = followers(sim, recipient.squadId());
                 for (int k = 0; k < followers.size(); k++) {
-                    int[] post = followerPost(sim, recipient, lines.get(i), k);
+                    int[] post = followerPost(within, k);
                     places.add(new HighlightOverlay.PlaceMark(followers.get(k).mech(), post[0], post[1], false));
                 }
             } else {

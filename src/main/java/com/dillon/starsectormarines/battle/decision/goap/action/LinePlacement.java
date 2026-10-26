@@ -56,7 +56,8 @@ public final class LinePlacement {
 
     /** Member {@code ordinal} of {@code count}'s share of the line, a cell behind it. */
     static int[] share(FrontageLine line, int ordinal, int count) {
-        float[] share = line.pointAt((ordinal + 0.5f) / count, -REARWARD_OFFSET);
+        // Shares skip the bands attached mechs stand in (FrontageLine#marineFraction).
+        float[] share = line.pointAt(line.marineFraction(ordinal, count), -REARWARD_OFFSET);
         return new int[]{Math.round(share[0]), Math.round(share[1])};
     }
 

@@ -520,6 +520,27 @@ public final class MechBay implements Serializable {
         ownedKits.merge(kitId, quantity, Integer::sum);
     }
 
+    /** Takes one spare weapon assembly out of stores; false, and nothing taken, when none is free. */
+    public boolean takeWeapon(String componentId) {
+        if (availableWeapon(componentId) <= 0) return false;
+        strike(ownedWeapons, componentId);
+        return true;
+    }
+
+    /** Takes one spare internal out of stores; false, and nothing taken, when none is free. */
+    public boolean takeInternal(String internalId) {
+        if (availableInternal(internalId) <= 0) return false;
+        strike(ownedInternals, internalId);
+        return true;
+    }
+
+    /** Takes one spare kit out of stores; false, and nothing taken, when none is free. */
+    public boolean takeKit(String kitId) {
+        if (availableKit(kitId) <= 0) return false;
+        strike(ownedKits, kitId);
+        return true;
+    }
+
     /** Puts a spare {@code kit} on a vehicle's rack; false with no spare, no slot, or a hull it does not suit. */
     public boolean fitKit(String vehicleId, VehicleKit kit) {
         CampaignVehicle vehicle = vehicleById(vehicleId);

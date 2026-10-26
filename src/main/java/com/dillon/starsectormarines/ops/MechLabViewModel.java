@@ -67,6 +67,8 @@ public final class MechLabViewModel {
     private final Runnable bayChanged;
     private final DoubleSupplier campaignDay;
     private final MutableSignal<Integer> revision;
+    /** The stores card whose RECYCLE was pressed once and waits for its confirming press; null for none. */
+    private String armedRecycle;
     /** The campaign day the room last read; repair clocks and readiness are measured against it. */
     private final MutableSignal<Float> day;
     private final MutableSignal<Integer> dismissedLesson;
@@ -1499,8 +1501,9 @@ public final class MechLabViewModel {
             // Building is offered only when there is no spare to drag: a stocked row is a part,
             // not an order, and stripping one back to stores takes the offer away again.
             boolean showMaterials = !locked && !inCargo;
-            List<Row> materials = showMaterials ? materialRows(base, bill) : List.of();
-            String materialsClasses = showMaterials ? "material-costs" : "material-costs hidden";
+            FabricationCost back = inCargo ? workshop.weaponRecovery(component) : null;
+            List<Row> materials = showMaterials ? materialRows(base, bill) : recoveryRows(base, back);
+            String materialsClasses = showMaterials ? "material-costs" : recoveryClasses(back);
 
             rows.add(catalogRow(base, "catalog-preview", null, component, null, null,
                     showMaterials ? "catalog-row requires-fabrication" : "catalog-row", component.displayName(),
@@ -1512,7 +1515,8 @@ public final class MechLabViewModel {
                     affordable ? Strings.get("openingMechLabFabHint")
                             : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor"),
                     !showMaterials || !affordable, materials, materialsClasses,
-                    () -> fabricateWeapon(component)));
+                    () -> fabricateWeapon(component), null,
+                    recycleButton(base, back, () -> workshop.recycleWeapon(component), component.displayName())));
         }
         return List.copyOf(rows);
     }
@@ -1625,7 +1629,8 @@ public final class MechLabViewModel {
 
             String base = "mech-catalog:" + internal.id;
             boolean showMaterials = offerFab;
-            List<Row> materials = showMaterials ? materialRows(base, resources.quote(recipe.cost())) : List.of();
+            FabricationCost back = inCargo ? workshop.internalRecovery(internal) : null;
+            List<Row> materials = showMaterials ? materialRows(base, resources.quote(recipe.cost())) : recoveryRows(base, back);
             rows.add(catalogRow(base, internal.role == MechInternal.Role.PLATING ? "catalog-preview hidden" : "catalog-preview",
                     null, null, internal, null,
                     showMaterials ? "catalog-row requires-fabrication" : "catalog-row", internal.displayName(),
@@ -1633,8 +1638,9 @@ public final class MechLabViewModel {
                     Strings.format("openingMechLabOwnFree", recipe.provenance(), spareCount(free)),
                     internalTelemetry(proposed, internal), deltaText, deltaClasses,
                     detail, actionLabel, actionHint,
-                    disabled, materials, showMaterials ? "material-costs" : "material-costs hidden",
-                    fitFromRow ? () -> fitInternal(internal) : () -> fabricateInternal(internal)));
+                    disabled, materials, showMaterials ? "material-costs" : recoveryClasses(back),
+                    fitFromRow ? () -> fitInternal(internal) : () -> fabricateInternal(internal), null,
+                    recycleButton(base, back, () -> workshop.recycleInternal(internal), internal.displayName())));
         }
         return List.copyOf(rows);
     }
@@ -1668,15 +1674,17 @@ public final class MechLabViewModel {
             boolean disabled = fitFromRow ? !fits : !offerFab || !affordable;
 
             String base = "mech-catalog:" + kit.id;
-            List<Row> materials = offerFab ? materialRows(base, resources.quote(recipe.cost())) : List.of();
+            FabricationCost back = inCargo ? workshop.kitRecovery(kit) : null;
+            List<Row> materials = offerFab ? materialRows(base, resources.quote(recipe.cost())) : recoveryRows(base, back);
             rows.add(catalogRow(base, "catalog-preview hidden", null, null, null, null,
                     offerFab ? "catalog-row requires-fabrication" : "catalog-row", kit.displayName(),
                     FittedBadge.label(installed), FittedBadge.classes(installed),
                     Strings.format("openingMechLabOwnFree", recipe.provenance(), spareCount(free)),
                     Strings.get("vehicleKitEffect" + kit.name()), "", "catalog-delta hidden",
                     Strings.get("openingMechLabKitDetail"), actionLabel, actionHint,
-                    disabled, materials, offerFab ? "material-costs" : "material-costs hidden",
-                    fitFromRow ? () -> fitKit(kit) : () -> fabricateKit(kit)));
+                    disabled, materials, offerFab ? "material-costs" : recoveryClasses(back),
+                    fitFromRow ? () -> fitKit(kit) : () -> fabricateKit(kit), null,
+                    recycleButton(base, back, () -> workshop.recycleKit(kit), kit.displayName())));
         }
         return List.copyOf(rows);
     }
@@ -1724,6 +1732,48 @@ public final class MechLabViewModel {
     /** Spares in stores as a compact x-count, x0 to x99; a larger store still reads x99. */
     static String spareCount(int free) {
         return Strings.format("openingMechLabSpareCount", Math.max(0, Math.min(99, free)));
+    }
+
+    /** A spare's RECYCLE while the machine shop can break it down; null otherwise. */
+    private FittingCard.Recycle recycleButton(String cardId, FabricationCost back,
+                                              Supplier<MechWorkshop.Result> recycle, String name) {
+        if (back == null) return null;
+        return new FittingCard.Recycle(cardId.equals(armedRecycle), () -> {
+            if (!cardId.equals(armedRecycle)) {
+                armedRecycle = cardId;
+                feedbackText.set(Strings.format("fittingRecycleReview", name, recoveryLine(back)));
+                feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+                revision.update(value -> value + 1);
+                return;
+            }
+            armedRecycle = null;
+            MechWorkshop.Result result = recycle.get();
+            feedbackText.set(switch (result.status()) {
+                case RECYCLED -> Strings.format("fittingRecycled", name);
+                case WORKSHOP_IDLE -> Strings.get("fittingRecycleWorkshopIdle");
+                default -> Strings.get("openingMechLabRefitBlockedCampaignHardwareWasNotChanged");
+            });
+            finishWeaponCommand(result);
+        });
+    }
+
+    /** What a recycle would put back, as "2 Metals, 1 Supplies" in the bills' commodity order. */
+    private String recoveryLine(FabricationCost back) {
+        return back.lines().stream().sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId())))
+                .map(line -> Strings.format("fittingRecoveryLine", line.quantity(), resources.commodityName(line.commodityId())))
+                .reduce((a, b) -> a + ", " + b).orElse("");
+    }
+
+    private List<Row> recoveryRows(String ownerId, FabricationCost back) {
+        if (back == null) return List.of();
+        return back.lines().stream().sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId())))
+                .map(line -> CompanyResources.recovered(ownerId + ":recovered:" + line.commodityId(),
+                        resources.commodityName(line.commodityId()), resources.commodityIcon(line.commodityId()),
+                        line.quantity())).toList();
+    }
+
+    private static String recoveryClasses(FabricationCost back) {
+        return back == null ? "material-costs hidden" : "material-costs recovery";
     }
 
     private void fabricateWeapon(MechWeaponComponent component) {
@@ -2185,6 +2235,7 @@ public final class MechLabViewModel {
     }
 
     private void finishWeaponCommand(MechWorkshop.Result result) {
+        armedRecycle = null;
         feedbackClasses.set(result.succeeded()
                 ? "mech-lab-feedback tone-good surface-dark"
                 : "mech-lab-feedback tone-danger surface-dark");
@@ -2869,11 +2920,24 @@ public final class MechLabViewModel {
                                          String detail, String actionLabel, String actionHint,
                                          boolean actionDisabled, List<Row> materials, String materialsClasses,
                                          Runnable action, Runnable select) {
+        return catalogRow(base, previewClasses, chassis, weapon, internal, vehicle, classes, name,
+                badge, badgeClasses, stock, telemetry, delta, deltaClasses, detail, actionLabel, actionHint,
+                actionDisabled, materials, materialsClasses, action, select, null);
+    }
+
+    private static CatalogRow catalogRow(String base, String previewClasses, MechVariant chassis,
+                                         MechWeaponComponent weapon,
+                                         MechInternal internal, VehicleType vehicle,
+                                         String classes, String name, String badge, String badgeClasses,
+                                         String stock, String telemetry, String delta, String deltaClasses,
+                                         String detail, String actionLabel, String actionHint,
+                                         boolean actionDisabled, List<Row> materials, String materialsClasses,
+                                         Runnable action, Runnable select, FittingCard.Recycle recycle) {
         MechPattern.WeightClass weight = weightOf(chassis, vehicle);
         FittingCard card = new FittingCard(base, classes, previewClasses, name, badge, badgeClasses,
                 stock, telemetry, delta, deltaClasses, detail, actionLabel, actionHint, actionDisabled,
                 Strings.get("openingMechLabFab").equals(actionLabel), materials, materialsClasses, action,
-                weight != null ? weightIcon(weight) : null, weight != null ? weightTone(weight) : null);
+                weight != null ? weightIcon(weight) : null, weight != null ? weightTone(weight) : null, recycle);
         return new CatalogRow(card, chassis, weapon, internal, vehicle, select);
     }
 
