@@ -80,12 +80,15 @@ public final class BlindWatchSequence implements Objective {
      * @param bunkers       the post's bunkers, revealed when the riggers are out
      * @param mortarTrack   the mortar carrier's driven track, revealed with the bunkers
      * @param podRacks      the cold drop's cryo pod racks by the lander pad, and the ground a squad holds them from
+     * @param drugCrates    the chem module's crates on pallets by the pad; read by nothing until the owner picks the
+     *                      temptation job (blind-watch-sounding.md, Open questions)
      */
     public record Sites(Area landingArea, Cell mast, Cell uplink, Cell dishField, Area riggersModule,
-                        List<Cell> riggerCells, Area controlHut, List<Cell> bunkers, List<Cell> mortarTrack, Area podRacks) {
+                        List<Cell> riggerCells, Area controlHut, List<Cell> bunkers, List<Cell> mortarTrack, Area podRacks,
+                        Area drugCrates) {
         public Sites {
             for (Object site : new Object[]{landingArea, mast, uplink, dishField, riggersModule, riggerCells, controlHut,
-                    bunkers, mortarTrack, podRacks})
+                    bunkers, mortarTrack, podRacks, drugCrates})
                 if (site == null) throw new IllegalArgumentException("every Blind Watch site is required");
             riggerCells = List.copyOf(riggerCells);
             bunkers = List.copyOf(bunkers);

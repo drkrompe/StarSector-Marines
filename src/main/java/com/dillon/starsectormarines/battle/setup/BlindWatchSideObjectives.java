@@ -41,7 +41,7 @@ final class BlindWatchSideObjectives {
     /** How far a company combatant spots the control hut's console from. UNTUNED first pass. */
     static final float CONSOLE_SIGHT_CELLS = 10f;
     /** How long a company combatant holds the pod racks, unbroken, to log the manifest. UNTUNED first pass. */
-    static final float COLD_STORE_SECONDS = 20f;
+    static final float COLD_STORE_SECONDS = 10f;
     /** How far a company combatant spots the pod racks from. UNTUNED first pass. */
     static final float PODS_SIGHT_CELLS = 12f;
     static final String RIGGERS_MARK = "corvus.warion.riggers_freed", SCHEDULE_MARK = "corvus.garnir.false_schedule",
