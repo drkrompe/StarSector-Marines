@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
+import com.dillon.starsectormarines.battle.air.LiftQueue;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.power.CommandPower;
@@ -70,7 +71,18 @@ public final class ObjectiveFactionPresence {
                     mission.currentCycle + 1 < mission.totalCycles;
             if (currentPayloadInbound || futureSortieCommitted) return true;
         }
-        return factions.contains(Faction.MARINE) && reserveCanField(sim.getCommandPowerService(), sim);
+        return factions.contains(Faction.MARINE)
+                && (queuedDropCanFly(sim) || reserveCanField(sim.getCommandPowerService(), sim));
+    }
+
+    /** A machine drop still waiting on the lift queue that a live ferry craft can carry down. */
+    static boolean queuedDropCanFly(BattleView sim) {
+        LiftQueue queue = sim.liftQueue();
+        if (queue == null) return false;
+        for (LiftQueue.MachineDrop job : queue.queued()) {
+            if (LiftQueue.ferryAdmits(sim.world(), sim.getAirEntityIds(), job.liftClass())) return true;
+        }
+        return false;
     }
 
     /** A company power with a charge, the supplies to pay for it, and someone left to send. */

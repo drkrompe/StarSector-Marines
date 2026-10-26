@@ -19,6 +19,7 @@ class CommittedGroundArrivalTest {
                     case "world" -> null; // No aircraft to inspect.
                     case "survivorPickup" -> null; // No Cold Account pickup configured.
                     case "getCommandPowerService" -> null; // No company powers.
+                    case "liftQueue" -> null; // No ferry.
                     default -> throw new AssertionError("Unexpected read: " + method.getName());
                 });
         EliminateFactionObjective attack = new EliminateFactionObjective(Faction.MARINE, Faction.DEFENDER);

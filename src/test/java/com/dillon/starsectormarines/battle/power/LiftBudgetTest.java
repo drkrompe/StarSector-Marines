@@ -5,8 +5,6 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
-
 import static com.dillon.starsectormarines.battle.air.LiftClass.HEAVY;
 import static com.dillon.starsectormarines.battle.air.LiftClass.LIGHT;
 import static com.dillon.starsectormarines.battle.air.LiftClass.MEDIUM;
@@ -15,7 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The mission's lift: which carrier takes which machine, and why one is refused. */
+/** The mission's lift: which carrier's lift a machine spends, and why one is refused. */
 class LiftBudgetTest {
 
     private static final FittedBoat LIGHT_CRADLE = new FittedBoat(ShuttleType.BUFFALO,
@@ -26,36 +24,33 @@ class LiftBudgetTest {
     void aLightCradleRefusesAHeavyMachineForWantOfLift() {
         LiftBudget budget = LiftBudget.forMission(LIGHT_CRADLE, false, ShuttleType.VALKYRIE, 3);
 
-        assertNull(budget.allocate(List.of(HEAVY), true));
-        assertSame(LiftBudget.Refusal.NO_LIFT, budget.refusal(HEAVY, List.of(), true));
-        assertNull(budget.refusal(LIGHT, List.of(), true));
+        assertNull(budget.allocate(HEAVY));
+        assertSame(LiftBudget.Refusal.NO_LIFT, budget.refusal(HEAVY));
+        assertNull(budget.refusal(LIGHT));
     }
 
     @Test
-    void spentLiftStaysSpentForTheMission() {
+    void spentLiftStaysSpentAndOnlyARefundGivesItBack() {
         LiftBudget budget = LiftBudget.forMission(LIGHT_CRADLE, false, ShuttleType.VALKYRIE, 3);
-        budget.spend(budget.allocate(List.of(LIGHT, LIGHT), true));
+        LiftBudget.Carrier first = budget.allocate(LIGHT);
+        budget.spend(first);
+        budget.spend(budget.allocate(LIGHT));
 
         assertEquals(0, budget.remaining());
-        assertSame(LiftBudget.Refusal.LIFT_SPENT, budget.refusal(LIGHT, List.of(), true));
-    }
+        assertSame(LiftBudget.Refusal.LIFT_SPENT, budget.refusal(LIGHT));
 
-    @Test
-    void aBoatInTheAirIsNotLiftForThisCall() {
-        LiftBudget budget = LiftBudget.forMission(LIGHT_CRADLE, false, ShuttleType.VALKYRIE, 3);
-
-        assertSame(LiftBudget.Refusal.CARRIER_AWAY, budget.refusal(LIGHT, List.of(), false));
+        budget.refund(first);
+        assertEquals(1, budget.remaining());
+        assertNull(budget.refusal(LIGHT));
     }
 
     @Test
     void heavyLiftIsKeptForTheHeavyMachine() {
         LiftBudget budget = LiftBudget.forMission(LIGHT_CRADLE, true, ShuttleType.VALKYRIE, 3);
 
-        List<LiftBudget.Carrier> allocation = budget.allocate(List.of(LIGHT, HEAVY, MEDIUM), true);
-
-        assertTrue(allocation.get(0).company(), "the Hound rides the cradle");
-        assertSame(ShuttleType.VALKYRIE, allocation.get(1).frame());
-        assertSame(ShuttleType.VALKYRIE, allocation.get(2).frame(),
+        assertTrue(budget.allocate(LIGHT).company(), "the Hound spends the cradle's lift");
+        assertSame(ShuttleType.VALKYRIE, budget.allocate(HEAVY).frame());
+        assertSame(ShuttleType.VALKYRIE, budget.allocate(MEDIUM).frame(),
                 "a Light cradle cannot take a Medium machine");
     }
 

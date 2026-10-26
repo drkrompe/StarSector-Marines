@@ -1,30 +1,32 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.battle.command.AssignmentKind;
-import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
-import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
 import com.dillon.starsectormarines.battle.setup.ColdAccountIntervention.Phase;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.air.ArmorLoad;
+import com.dillon.starsectormarines.battle.air.LiftQueueReadout;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.power.BayManifest;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Comparator;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.function.Consumer;
+import java.util.function.LongConsumer;
 
-/** Live, render-free projection for the MLX-authored battle command overlay. */
+/**
+ * Live, render-free projection for the MLX-authored battle command overlay: the time control
+ * and objectives on the right, and the lift queue on the left ({@code ui-nouns.md}).
+ */
 final class BattleHudOverlayModel {
 
     static final float PAUSED = 0f;
@@ -43,16 +45,13 @@ final class BattleHudOverlayModel {
     private static final String OBJECTIVE_FOCUS = "objective-focus";
     private static final String OBJECTIVE_FOCUS_HIDDEN =
             "objective-focus objective-focus-hidden";
-    private static final String COMMAND_PANEL = "conquest-command-panel";
-    private static final String COMMAND_PANEL_HIDDEN =
-            "conquest-command-panel conquest-command-panel-hidden";
+    private static final String LIFT_PANEL = "lift-queue-panel";
+    private static final String LIFT_PANEL_HIDDEN = "lift-queue-panel lift-queue-hidden";
+    /** Rows the lift queue shows before folding the rest into a count; keeps it in its bounds. */
+    static final int MAX_LIFT_ROWS = 5;
 
     private final MutableSignal<String> missionClasses;
-    private final MutableSignal<String> missionSquadClasses;
-    private final MutableSignal<String> missionSquadStyle;
     private final MutableSignal<List<MissionCard>> missionCards;
-    private final MutableSignal<List<MissionSquad>> missionSquads;
-    private final MutableSignal<String> missionSquadSummary;
     private final MutableSignal<String> missionPanelStyle;
     private final MutableSignal<String> missionListStyle;
     private final MutableSignal<String> missionScore;
@@ -75,14 +74,11 @@ final class BattleHudOverlayModel {
     private final MutableSignal<String> objectiveLocateClasses;
     private final MutableSignal<Boolean> objectiveLocateDisabled;
     private Runnable locateObjective = () -> { };
-    private final MutableSignal<String> commandPanelClasses;
-    private final MutableSignal<String> commandPhase;
-    private final MutableSignal<String> commandForce;
-    private final MutableSignal<String> commandTitle;
-    private final MutableSignal<List<ConquestLane>> conquestLanes;
-    private final MutableSignal<String> conquestLaneClasses;
-    private final MutableSignal<String> conquestGroupClasses;
-    private final MutableSignal<List<ConquestGroup>> conquestGroups;
+    private final MutableSignal<String> liftClasses;
+    private final MutableSignal<String> liftStyle;
+    private final MutableSignal<String> liftSummary;
+    private final MutableSignal<List<LiftRow>> liftRows;
+    private final Map<String, Runnable> liftActions = new LinkedHashMap<>();
 
     private final Consumer<Float> speedSetter;
     private final String[] speedLabels;
@@ -93,11 +89,7 @@ final class BattleHudOverlayModel {
         this.speedSetter = speedSetter;
         this.speedLabels = new String[]{pauseLabel, normalLabel, doubleLabel, quadLabel};
         missionClasses = reactor.signal("mission-panel mission-hidden");
-        missionSquadClasses = reactor.signal("mission-squads-panel mission-hidden");
-        missionSquadStyle = reactor.signal("");
         missionCards = reactor.signal(List.of());
-        missionSquads = reactor.signal(List.of());
-        missionSquadSummary = reactor.signal("");
         missionPanelStyle = reactor.signal("");
         missionListStyle = reactor.signal("");
         missionScore = reactor.signal("");
@@ -119,24 +111,16 @@ final class BattleHudOverlayModel {
         objectiveProgressStyle = reactor.signal("width: 0%;");
         objectiveLocateClasses = reactor.signal("objective-locate objective-locate-hidden");
         objectiveLocateDisabled = reactor.signal(true);
-        commandPanelClasses = reactor.signal(COMMAND_PANEL_HIDDEN);
-        commandPhase = reactor.signal("");
-        commandForce = reactor.signal("");
-        commandTitle = reactor.signal(Strings.get("battleCommander"));
-        conquestLanes = reactor.signal(List.of());
-        conquestLaneClasses = reactor.signal("conquest-lanes");
-        conquestGroupClasses = reactor.signal("conquest-groups conquest-groups-hidden");
-        conquestGroups = reactor.signal(List.of());
+        liftClasses = reactor.signal(LIFT_PANEL_HIDDEN);
+        liftStyle = reactor.signal("");
+        liftSummary = reactor.signal("");
+        liftRows = reactor.signal(List.of());
     }
 
     Map<String, Object> props() {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("missionClasses", missionClasses);
-        props.put("missionSquadClasses", missionSquadClasses);
-        props.put("missionSquadStyle", missionSquadStyle);
         props.put("missionCards", missionCards);
-        props.put("missionSquads", missionSquads);
-        props.put("missionSquadSummary", missionSquadSummary);
         props.put("missionPanelStyle", missionPanelStyle);
         props.put("missionListStyle", missionListStyle);
         props.put("missionScore", missionScore);
@@ -168,20 +152,15 @@ final class BattleHudOverlayModel {
         props.put("objectiveLocateClasses", objectiveLocateClasses);
         props.put("objectiveLocateDisabled", objectiveLocateDisabled);
         props.put("objectiveLocateAction", (Runnable) () -> locateObjective.run());
-        props.put("commandPanelClasses", commandPanelClasses);
-        props.put("commandPhase", commandPhase);
-        props.put("commandForce", commandForce);
-        props.put("commandTitle", commandTitle);
-        props.put("conquestLanes", conquestLanes);
-        props.put("conquestLaneClasses", conquestLaneClasses);
-        props.put("conquestGroupClasses", conquestGroupClasses);
-        props.put("conquestGroups", conquestGroups);
+        props.put("liftClasses", liftClasses);
+        props.put("liftStyle", liftStyle);
+        props.put("liftSummary", liftSummary);
+        props.put("liftRows", liftRows);
         return props;
     }
 
     Presentation update(float speedMultiplier,
-                        Collection<CompoundService.Record> records,
-                        CommanderSnapshot<?> commander) {
+                        Collection<CompoundService.Record> records) {
         List<CaptureObjective> objectives = new ArrayList<>();
         if (records != null) {
             for (CompoundService.Record record : records) {
@@ -189,22 +168,13 @@ final class BattleHudOverlayModel {
                         record.state, record.captureProgress));
             }
         }
-        return updateProjected(speedMultiplier, objectives, commander);
-    }
-
-    boolean updateProjected(float speedMultiplier,
-                            List<CaptureObjective> objectives) {
-        return updateProjected(speedMultiplier, objectives, null).objectivesVisible();
+        return updateProjected(speedMultiplier, objectives);
     }
 
     Presentation updateProjected(float speedMultiplier,
-                                 List<CaptureObjective> objectives,
-                                 CommanderSnapshot<?> commander) {
+                                 List<CaptureObjective> objectives) {
         missionClasses.set("mission-panel mission-hidden");
-        missionSquadClasses.set("mission-squads-panel mission-hidden");
         missionCards.set(List.of());
-        missionSquads.set(List.of());
-        missionSquadStyle.set("");
         missionPanelStyle.set("");
         missionListStyle.set("");
         objectiveTitle.set(Strings.get("battleCapture"));
@@ -276,17 +246,13 @@ final class BattleHudOverlayModel {
                 objectiveProgressStyle.set("width: " + percent + "%;");
             }
         }
-        return new Presentation(visible, updateConquestCommand(commander));
+        return new Presentation(visible);
     }
 
     Presentation updateMission(MissionObjectiveSnapshot snapshot, Consumer<MissionObjectiveSnapshot.Marker> locate) {
-        if (snapshot.objectives().isEmpty()) return new Presentation(false, false);
+        if (snapshot.objectives().isEmpty()) return new Presentation(false);
         objectivePanelClasses.set(OBJECTIVE_PANEL_HIDDEN);
-        boolean territorial = snapshot.objectives().stream().allMatch(i -> i.id().startsWith("territory-"));
-        if (!territorial) commandPanelClasses.set(COMMAND_PANEL_HIDDEN);
         missionClasses.set("mission-panel");
-        missionSquadClasses.set(territorial || snapshot.squads().isEmpty() ? "mission-squads-panel mission-hidden" : "mission-squads-panel");
-        missionSquadStyle.set(territorial || snapshot.squads().isEmpty() ? "height: 0px; width: 0px; padding: 0px; border-width: 0px;" : "height: 256px;");
         int count = Math.min(2, snapshot.objectives().size());
         missionPanelStyle.set("height: " + (33 + count * 174) + "px;");
         missionListStyle.set("height: " + (count * 174) + "px;");
@@ -295,10 +261,7 @@ final class BattleHudOverlayModel {
         missionCards.set(snapshot.objectives().stream().map(i -> new MissionCard(i, () -> {
             if (i.focus() != null) locate.accept(i.focus());
         })).toList());
-        missionSquads.set(snapshot.squads().stream().map(MissionSquad::new).toList());
-        missionSquadSummary.set(snapshot.squads().isEmpty() ? Strings.get("battleHudSquadsAwaiting")
-                : Strings.format("battleHudSquadsSummary", snapshot.squads().size()));
-        return new Presentation(true, true, count);
+        return new Presentation(true, count);
     }
 
     record MissionCard(MissionObjectiveSnapshot.Item item, Runnable locate) implements MarkupPropertySource {
@@ -333,21 +296,6 @@ final class BattleHudOverlayModel {
         }
     }
 
-    record MissionSquad(MissionObjectiveSnapshot.SquadActivity activity) implements MarkupPropertySource {
-        @Override public Object markupProperty(String key) {
-            return switch (key) {
-                case "id" -> "mission-squad-" + activity.squadId();
-                case "name" -> activity.name();
-                case "task" -> activity.task();
-                case "status" -> activity.status();
-                default -> {
-                    if (key.endsWith("Id")) yield "mission-squad-" + activity.squadId() + "-" + key.substring(0, key.length() - 2);
-                    throw new IllegalArgumentException(key);
-                }
-            };
-        }
-    }
-
     /** Public objective state, independent of commander cadence and debug visibility. */
     Presentation updateRaid(String targetName, RaidObjective.Phase phase,
                             float progress, float duration, Runnable locate) {
@@ -373,7 +321,7 @@ final class BattleHudOverlayModel {
         objectiveLocateClasses.set("objective-locate");
         objectiveLocateDisabled.set(false);
         locateObjective = locate;
-        return new Presentation(true, false);
+        return new Presentation(true);
     }
 
     Presentation updateIntervention(Phase phase, String instruction, int remainingWalls, int initialWalls,
@@ -392,7 +340,7 @@ final class BattleHudOverlayModel {
         objectiveFocusClasses.set(OBJECTIVE_FOCUS);
         objectiveFocus.set(instruction);
         objectiveProgressStyle.set("width: " + Math.round(100f * (initialWalls - remainingWalls) / Math.max(1, initialWalls)) + "%;");
-        return new Presentation(true, false);
+        return new Presentation(true);
     }
 
     /** Read-only convoy report; a captured site is a release condition, never a delivery. */
@@ -422,165 +370,114 @@ final class BattleHudOverlayModel {
         objectiveFocus.set(Strings.format(site == 1 ? "battleFreightHoldDispatch" : "battleFreightHoldCrossing", (ticks + 29) / 30));
     }
 
-    private boolean updateConquestCommand(CommanderSnapshot<?> commander) {
-        if (commander == null || commander.perspective() != Faction.MARINE
-                || !(commander.detail() instanceof ConquestFrontSnapshot front)
-                || front.perspective() != Faction.MARINE) {
-            commandPanelClasses.set(COMMAND_PANEL_HIDDEN);
-            commandPhase.set("");
-            commandForce.set("");
-            conquestLanes.set(List.of());
-            conquestGroups.set(List.of());
-            conquestGroupClasses.set("conquest-groups conquest-groups-hidden");
-            return false;
-        }
+    /**
+     * A placed armor drop the sim has not committed yet (the picker pauses the battle), with
+     * the machine it names.
+     */
+    record Placed(String powerId, int manifestIndex, ArmorLoad load) {}
 
-        commandPanelClasses.set(COMMAND_PANEL);
-        commandPhase.set(phaseLabel(front.phase()));
-        boolean grouped = !front.groups().isEmpty();
-        commandTitle.set(Strings.get(grouped ? "battleCommandGroups" : "battleCommander"));
-        commandForce.set(grouped
-                ? Strings.format("battleCommandForceGroups", commander.commandPoolSize(), front.groups().size(), commander.reserveCount())
-                : Strings.format("battleCommandForce", commander.commandPoolSize(), commander.reserveCount()));
-        conquestLaneClasses.set(grouped ? "conquest-lanes conquest-lanes-hidden" : "conquest-lanes");
-        conquestGroupClasses.set(grouped ? "conquest-groups"
-                : "conquest-groups conquest-groups-hidden");
-        conquestGroups.set(grouped ? projectGroups(front) : List.of());
-        List<ConquestLane> lanes = new ArrayList<>(front.tracks().size());
-        if (!grouped) front.tracks().stream()
-                .sorted((left, right) -> Integer.compare(left.index(), right.index()))
-                .forEach(track -> lanes.add(projectLane(front, track)));
-        conquestLanes.set(List.copyOf(lanes));
-        return true;
+    /**
+     * Projects the lift queue: ferry craft in the air and what each carries, then what is
+     * waiting, each queued or placed drop with an X that cancels it. Returns the rows shown.
+     *
+     * @param cancelQueued   asks the sim to cancel a queued drop by its job id
+     * @param withdrawPlaced takes back a placed drop not yet committed
+     */
+    int updateLiftQueue(LiftQueueReadout.Reading reading, List<Placed> placed,
+                        LongConsumer cancelQueued, Consumer<Placed> withdrawPlaced) {
+        List<LiftRow> rows = liftRows(reading, placed, cancelQueued, withdrawPlaced);
+        int waiting = reading.waiting().size() + placed.size();
+        boolean visible = !rows.isEmpty();
+        liftClasses.set(visible ? LIFT_PANEL : LIFT_PANEL_HIDDEN);
+        liftStyle.set(visible ? "height: " + Math.round(BattleHudOverlay.liftContentHeight(rows.size())) + "px;" : "");
+        liftSummary.set(visible ? Strings.format("battleLiftQueueSummary", reading.flights().size(), waiting) : "");
+        liftRows.set(List.copyOf(rows));
+        return rows.size();
     }
 
-    /** Three bounded rows: named leaders first, then an explicitly aggregated remainder. */
-    private static List<ConquestGroup> projectGroups(ConquestFrontSnapshot front) {
-        List<ConquestFrontSnapshot.GroupState> ordered = front.groups().stream()
-                .sorted(Comparator.comparing((ConquestFrontSnapshot.GroupState group) ->
-                                !group.identity().namedOfficer())
-                        .thenComparing(group -> group.identity().groupId())).toList();
-        int individualRows = ordered.size() <= 3 ? ordered.size() : 2;
-        List<ConquestGroup> rows = new ArrayList<>(3);
-        for (int index = 0; index < individualRows; index++) {
-            ConquestFrontSnapshot.GroupState group = ordered.get(index);
-            String id = "battle-conquest-group-" + index;
-            String intent = group.rallying() ? Strings.format("battleGroupIntentRally", Strings.named("conquestTask", group.task())) : Strings.named("conquestTask", group.task());
-            String target = group.targetKind() == null ? Strings.get("battleTargetNone") : switch (group.targetKind()) {
-                case SECURE_COMPOUND -> Strings.get("battleTargetCompound");
-                case CLEAR_ZONE -> Strings.get("battleTargetArea");
-                case ADVANCE_TRACK, ATTACK_MOVE -> Strings.get("battleTargetRoute");
-                case HOLD_NODE, DEFEND_AREA, DEFEND_TRACK, DEFEND_SITE -> Strings.get("battleTargetPosition");
-                default -> Strings.named("assignmentKind", group.targetKind().name());
+    /** The pure projection behind {@link #updateLiftQueue}: at most {@link #MAX_LIFT_ROWS} rows. */
+    List<LiftRow> liftRows(LiftQueueReadout.Reading reading, List<Placed> placed,
+                           LongConsumer cancelQueued, Consumer<Placed> withdrawPlaced) {
+        List<LiftRow> all = new ArrayList<>();
+        for (LiftQueueReadout.Flight flight : reading.flights()) {
+            String craft = craftName(flight);
+            String name = flight.cargo() == LiftQueueReadout.Cargo.MACHINE
+                    ? Strings.format("battleLiftMachineAboard", craft, machineName(flight.machine()))
+                    : Strings.format("battleLiftSquadAboard", craft, flight.marines());
+            all.add(new LiftRow("battle-lift-air-" + flight.craftId(), Strings.get("battleLiftKindAir"), name,
+                    flight.onPad() ? Strings.get("battleLiftOnPad") : eta(flight.secondsToTouchdown()),
+                    "lift-row lift-air", false, NO_ACTION));
+        }
+        for (LiftQueueReadout.Waiting waiting : reading.waiting()) {
+            if (waiting.cargo() == LiftQueueReadout.Cargo.SQUAD) {
+                all.add(new LiftRow("battle-lift-squads", Strings.get("battleLiftKindNext"),
+                        Strings.format("battleLiftSquadLoads", waiting.loads()), eta(waiting.eta()),
+                        "lift-row lift-squads", false, NO_ACTION));
+                continue;
+            }
+            long job = waiting.drop().id();
+            String id = "battle-lift-drop-" + job;
+            all.add(new LiftRow(id, Strings.get("battleLiftKindDrop"), machineName(waiting.drop().load()),
+                    eta(waiting.eta()), "lift-row lift-drop", true,
+                    liftActions.computeIfAbsent(id, key -> () -> cancelQueued.accept(job))));
+        }
+        for (Placed drop : placed) {
+            String id = "battle-lift-placed-" + drop.powerId() + "-" + drop.manifestIndex();
+            all.add(new LiftRow(id, Strings.get("battleLiftKindDrop"), machineName(drop.load()),
+                    Strings.get("battleLiftPlaced"), "lift-row lift-drop", true,
+                    liftActions.computeIfAbsent(id, key -> () -> withdrawPlaced.accept(drop))));
+        }
+        if (all.size() <= MAX_LIFT_ROWS) return all;
+        List<LiftRow> shown = new ArrayList<>(all.subList(0, MAX_LIFT_ROWS - 1));
+        shown.add(new LiftRow("battle-lift-more", "", Strings.format("battleLiftQueueMore",
+                all.size() - shown.size()), "", "lift-row lift-more", false, NO_ACTION));
+        return shown;
+    }
+
+    private static final Runnable NO_ACTION = () -> { };
+
+    private static String craftName(LiftQueueReadout.Flight flight) {
+        ShuttleType pattern = ShuttleType.fromAirframe(flight.frame());
+        return pattern == null ? "" : Strings.upper(pattern.displayName());
+    }
+
+    /** A machine as the picker names it: type, and callsign when it has one. */
+    static String machineName(ArmorLoad load) {
+        if (load == null) return "";
+        BayManifest.Entry entry = new BayManifest.Entry(0, load);
+        String callsign = entry.callsign();
+        String type = Strings.upper(entry.typeName());
+        return callsign == null || callsign.isBlank() ? type
+                : Strings.format("battleLiftMachineNamed", type, Strings.upper(callsign));
+    }
+
+    /** Seconds to touchdown as the queue shows them; unknown when no live craft can fly it. */
+    static String eta(float seconds) {
+        if (Float.isNaN(seconds)) return Strings.get("battleLiftNoCraft");
+        return Strings.format("battleLiftEta", Math.max(0, Math.round(seconds)));
+    }
+
+    /** One lift-queue row; {@code cancellable} rows carry an X. */
+    record LiftRow(String id, String kind, String name, String eta, String classes,
+                   boolean cancellable, Runnable cancel) implements MarkupPropertySource {
+        @Override
+        public Object markupProperty(String key) {
+            return switch (key) {
+                case "id" -> id;
+                case "kindId" -> id + "-kind";
+                case "nameId" -> id + "-name";
+                case "etaId" -> id + "-eta";
+                case "cancelId" -> id + "-cancel";
+                case "kind" -> kind;
+                case "name" -> name;
+                case "eta" -> eta;
+                case "classes" -> classes;
+                case "cancelClasses" -> cancellable ? "lift-cancel" : "lift-cancel lift-cancel-hidden";
+                case "cancelDisabled" -> !cancellable;
+                case "cancel" -> cancel;
+                default -> throw new IllegalArgumentException("Unknown lift row property: " + key);
             };
-            rows.add(new ConquestGroup(id, group.identity().label(),
-                    groupForce(front, group.squadIds()), intent, target,
-                    "conquest-group" + (group.rallying() ? " conquest-group-rally" : "")));
         }
-        if (individualRows < ordered.size()) {
-            List<ConquestFrontSnapshot.GroupState> rest = ordered.subList(individualRows, ordered.size());
-            long officers = rest.stream().filter(group -> group.identity().namedOfficer()).count();
-            long ncos = rest.size() - officers;
-            String label = officers > 0 ? Strings.format("battleGroupOfficers", officers, ncos)
-                    : Strings.format("battleGroupActingNcos", ncos);
-            Map<String, Integer> tasks = new LinkedHashMap<>();
-            for (String task : List.of("HOLD", "ASSAULT", "MIXED", "UNASSIGNED")) {
-                int count = (int) rest.stream().filter(group -> task.equals(group.task())).count();
-                if (count > 0) tasks.put(task, count);
-            }
-            String intent = Strings.join("separatorDot", tasks.entrySet().stream()
-                    .map(entry -> Strings.format("battleGroupTaskCount", entry.getValue(), Strings.named("conquestTask", entry.getKey())))
-                    .toArray(String[]::new));
-            long rallying = rest.stream().filter(ConquestFrontSnapshot.GroupState::rallying).count();
-            rows.add(new ConquestGroup("battle-conquest-group-summary", label,
-                    groupForce(front, rest.stream().flatMap(group -> group.squadIds().stream()).toList()),
-                    intent, rallying > 0 ? Strings.format("battleRallying", rallying) : Strings.get("battleVariedTargets"),
-                    "conquest-group conquest-group-summary"));
-        }
-        return List.copyOf(rows);
-    }
-
-    private static String groupForce(ConquestFrontSnapshot front, List<Integer> squadIds) {
-        int live = 0;
-        boolean complete = true;
-        for (int squadId : squadIds) {
-            ConquestFrontSnapshot.SquadState state = front.squadFor(squadId);
-            if (state == null) complete = false;
-            else live += state.aliveMembers();
-        }
-        return complete ? Strings.format("battleGroupForceLive", squadIds.size(), live) : Strings.format("battleGroupForce", squadIds.size());
-    }
-
-    private static ConquestLane projectLane(
-            ConquestFrontSnapshot front, ConquestFrontSnapshot.TrackState track) {
-        EnumMap<AssignmentKind, Integer> assignments = new EnumMap<>(AssignmentKind.class);
-        for (ConquestFrontSnapshot.SquadDirective directive : front.directives()) {
-            if (directive.effectiveTrack() == track.index()
-                    && directive.assignmentKind() != null) {
-                assignments.merge(directive.assignmentKind(), 1, Integer::sum);
-            }
-        }
-
-        String intent = switch (front.phase()) {
-            case KEEP_CONVERGENCE -> Strings.get("battleLaneKeepAssault");
-            case FINAL_COMPOUND_CONVERGENCE -> Strings.get("battleLaneFinalAssault");
-            default -> dominantIntent(assignments, track.effectiveSquads());
-        };
-        String status;
-        String classes = "conquest-lane";
-        if (track.effectiveSquads() == 0) {
-            status = Strings.get("battleLaneNoForce");
-            classes += " conquest-lane-empty";
-        } else if (track.knownHostileContacts() > 0) {
-            status = Strings.format("battleLaneContacts", track.knownHostileContacts());
-            classes += " conquest-lane-contact";
-        } else if (track.targetZoneId() >= 0) {
-            status = Strings.get("battleLaneObjective");
-            classes += " conquest-lane-objective";
-        } else {
-            status = Strings.get("battleLaneOnLine");
-        }
-        String laneName = switch (track.index()) {
-            case 0 -> Strings.get("battleLaneAlpha");
-            case 1 -> Strings.get("battleLaneBravo");
-            case 2 -> Strings.get("battleLaneCharlie");
-            default -> Strings.format("battleLaneNumber", track.index() + 1);
-        };
-        String id = "battle-conquest-lane-" + track.index();
-        return new ConquestLane(id, id + "-name", id + "-force", id + "-intent",
-                id + "-status", laneName,
-                track.effectiveSquads() + " SQ · " + track.effectiveLiveMembers(),
-                intent, status, classes);
-    }
-
-    private static String dominantIntent(EnumMap<AssignmentKind, Integer> assignments,
-                                         int effectiveSquads) {
-        AssignmentKind best = null;
-        int bestCount = 0;
-        for (AssignmentKind kind : List.of(
-                AssignmentKind.SECURE_COMPOUND, AssignmentKind.ATTACK_MOVE,
-                AssignmentKind.ADVANCE_TRACK, AssignmentKind.CLEAR_ZONE,
-                AssignmentKind.SUPPORT, AssignmentKind.HOLD_NODE)) {
-            int count = assignments.getOrDefault(kind, 0);
-            if (count > bestCount) {
-                best = kind;
-                bestCount = count;
-            }
-        }
-        if (best == null) return Strings.get(effectiveSquads > 0 ? "battleLaneHolding" : "battleLaneUnassigned");
-        String label = switch (best) {
-            default -> Strings.named("assignmentKind", best.name());
-        };
-        return bestCount > 1 ? Strings.format("battleLaneMultiple", label, bestCount) : label;
-    }
-
-    private static String phaseLabel(ConquestFrontSnapshot.Phase phase) {
-        return switch (phase) {
-            case LANE_ADVANCE -> Strings.get("battlePhaseAdvance");
-            case FRONT_ADJUST -> Strings.get("battlePhaseAdjust");
-            case KEEP_CONVERGENCE -> Strings.get("battlePhaseKeep");
-            case FINAL_COMPOUND_CONVERGENCE -> Strings.get("battlePhaseFinal");
-        };
     }
 
     private void setSelectedSpeed(float speedMultiplier) {
@@ -616,52 +513,18 @@ final class BattleHudOverlayModel {
                             float progress) {
     }
 
-    record Presentation(boolean objectivesVisible, boolean commandVisible, int missionRows) {
-        Presentation(boolean objectivesVisible, boolean commandVisible) { this(objectivesVisible, commandVisible, 0); }
-    }
+    /**
+     * What the overlay shows, which sizes its document.
+     *
+     * @param missionRows mission objective cards on the right rail
+     * @param liftRows    rows the lift queue shows on the left, 0 when it is hidden
+     */
+    record Presentation(boolean objectivesVisible, int missionRows, int liftRows) {
+        Presentation(boolean objectivesVisible) { this(objectivesVisible, 0, 0); }
 
-    record ConquestGroup(String id, String label, String force, String intent,
-                         String target, String classes) implements MarkupPropertySource {
-        @Override public Object markupProperty(String name) {
-            return switch (name) {
-                case "id" -> id;
-                case "nameId" -> id + "-name";
-                case "forceId" -> id + "-force";
-                case "intentId" -> id + "-intent";
-                case "targetId" -> id + "-target";
-                case "identityLineId" -> id + "-identity-line";
-                case "taskLineId" -> id + "-task-line";
-                case "label" -> label;
-                case "force" -> force;
-                case "intent" -> intent;
-                case "target" -> target;
-                case "classes" -> classes;
-                default -> throw new IllegalArgumentException("Unknown Conquest group property: " + name);
-            };
-        }
-    }
+        Presentation(boolean objectivesVisible, int missionRows) { this(objectivesVisible, missionRows, 0); }
 
-    record ConquestLane(String id, String nameId, String forceId, String intentId,
-                        String statusId, String label, String force,
-                        String intent, String status, String classes)
-            implements MarkupPropertySource {
-        @Override
-        public Object markupProperty(String name) {
-            return switch (name) {
-                case "id" -> id;
-                case "nameId" -> nameId;
-                case "forceId" -> forceId;
-                case "intentId" -> intentId;
-                case "statusId" -> statusId;
-                case "label" -> label;
-                case "force" -> force;
-                case "intent" -> intent;
-                case "status" -> status;
-                case "classes" -> classes;
-                default -> throw new IllegalArgumentException(
-                        "Unknown Conquest lane property: " + name);
-            };
-        }
+        Presentation withLiftRows(int rows) { return new Presentation(objectivesVisible, missionRows, rows); }
     }
 
     record ObjectiveChip(String id, String label, String classes)

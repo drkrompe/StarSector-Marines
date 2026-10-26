@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.ops.BattleLayout;
 import com.dillon.starsectormarines.render2d.BattleCamera;
@@ -71,6 +73,30 @@ class WorldPickerTest {
             assertEquals(mech.squadId, fixture.selection.getSelectedSquadId());
             assertEquals(mech.entityId,
                     fixture.selection.getSelectedUnitEntityId());
+        }
+    }
+
+    @Test
+    void dragTakesPlayerVehiclesIntoTheGroupWithTheSquads() {
+        try (Fixture fixture = fixture()) {
+            Unit marine = fixture.spawnSquad(Faction.MARINE, UnitType.MARINE, 7, 10);
+            Unit mech = fixture.spawnSquad(Faction.MARINE, UnitType.HEAVY_MECH, 12, 10);
+            long apc = fixture.simulation.convoy().spawn(VehicleType.HEAVY_APC, Faction.MARINE,
+                    VehicleMission.deployed(16.5f, 10.5f));
+            fixture.simulation.convoy().body(apc).teleport(16.5f, 10.5f, 0f);
+            long enemy = fixture.simulation.convoy().spawn(VehicleType.HEAVY_APC, Faction.DEFENDER,
+                    VehicleMission.deployed(18.5f, 10.5f));
+            fixture.simulation.convoy().body(enemy).teleport(18.5f, 10.5f, 0f);
+
+            fixture.dragCells(5, 8, 20, 12);
+
+            assertEquals(List.of(marine.squadId, mech.squadId), fixture.selection.getSelectedSquadIds());
+            assertEquals(List.of(apc), fixture.selection.getSelectedVehicleIds(), "not the enemy's");
+            assertFalse(fixture.selection.hasVehicleSelection(), "a squad keeps the plate");
+
+            fixture.dragCells(14, 8, 20, 12);
+            assertEquals(List.of(apc), fixture.selection.getSelectedVehicleIds());
+            assertEquals(apc, fixture.selection.getSelectedVehicleId(), "a vehicle-only box focuses the vehicle");
         }
     }
 

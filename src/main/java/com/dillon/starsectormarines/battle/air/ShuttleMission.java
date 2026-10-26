@@ -125,14 +125,29 @@ public final class ShuttleMission {
      * leave ({@link ArmorDropPayload}). Null for every other sortie.
      */
     public ArmorLoad[] armorDrop;
+    /**
+     * Whether this craft is one of the player's ferry: the transports that start the battle
+     * landing the company, which also fly the machine drops queued on the {@link LiftQueue}.
+     */
+    public boolean ferry;
+    /**
+     * A ferry craft with nothing of its own left to fly, waiting off-map (invisible, in
+     * {@link ShuttleState#PENDING}) for the next machine drop it can lift.
+     */
+    public boolean standby;
+    /** The queued drop this sortie is flying, or 0 for any other sortie. */
+    public long machineDropId;
     /** Ordered rescue-perimeter points patrolled by a delivered pickup mech. */
     public int[] rescuePatrolCells;
     /** Fixed perimeter anchor assigned to the militia squad when it deboards. */
     public int rescueGuardX = -1;
     public int rescueGuardY = -1;
 
-    /** LZ touchdown point (cells). */
-    public final float lzX, lzY;
+    /**
+     * LZ touchdown point (cells). Fixed for a craft's own squad sorties; a ferry craft that takes
+     * a machine drop off the {@link LiftQueue} is retargeted to that drop's landing ground.
+     */
+    public float lzX, lzY;
     /** Stable source-manifest position, or -1 when the spawning path has no manifest. */
     public int manifestOrdinal = -1;
     /**
@@ -148,7 +163,7 @@ public final class ShuttleMission {
     /** Ground strength this arrival group is assembling toward; 0 leaves legacy sizing in force. */
     public int expectedArrivalStrength;
     /** Off-map entry point the sortie flies in from (cells). */
-    public final float entryX, entryY;
+    public float entryX, entryY;
     /**
      * Exit point the sortie departs to (cells). Mutable so the owner can retarget the egress
      * mid-sortie toward a moving point — e.g. a bridge drop-ship flying home to its (orbiting) host

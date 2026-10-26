@@ -52,7 +52,7 @@ class BoatLiftFittingTest {
         FittedBoat frozen = boat.freezeForDeployment();
         assertSame(BoatFitting.STANDARD_LIFT, frozen.lift());
         assertEquals(LiftRating.NONE, frozen.liftRating());
-        assertFalse(frozen.machineOnly());
+        assertFalse(frozen.cradled());
     }
 
     @Test
@@ -67,7 +67,7 @@ class BoatLiftFittingTest {
 
         FittedBoat frozen = deck.boatById(boatId).freezeForDeployment();
         assertEquals(LiftRating.LIGHT, frozen.liftRating());
-        assertTrue(frozen.machineOnly());
+        assertTrue(frozen.cradled());
         assertEquals(85, hold.available(Commodities.SUPPLIES));
     }
 

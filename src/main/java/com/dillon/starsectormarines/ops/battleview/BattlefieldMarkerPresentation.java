@@ -103,6 +103,12 @@ public final class BattlefieldMarkerPresentation {
                 dome.tone(), base.radiusCells(), true);
     }
 
+    /** A machine drop waiting on the lift queue, marked on the ground it will land on. */
+    public static TargetMarker queuedDrop(String machine) {
+        return new TargetMarker(machine.toUpperCase(Strings.locale()), Strings.get("battleMarkerQueuedDrop"),
+                VALID, 1.5f, true);
+    }
+
     /** A machine sent to stand by its own side's garrison: carried out, and said in the friendly colour. */
     public static TargetMarker guard(String displayName, String status) {
         return new TargetMarker(displayName.toUpperCase(Strings.locale()), status, SECURED, 0f, true);

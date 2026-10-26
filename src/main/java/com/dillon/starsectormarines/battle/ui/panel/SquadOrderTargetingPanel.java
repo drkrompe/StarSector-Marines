@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.ui.panel;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.battle.mech.MechAttachmentService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
@@ -117,6 +118,9 @@ public final class SquadOrderTargetingPanel implements HudPanel {
             int cellY = (int) Math.floor(camera.screenToCellY(event.getY()));
             if (sim.getGrid().inBounds(cellX, cellY)) {
                 for (int squadId : targetingSquads) {
+                    // A mech following a squad in the same order scope is carried by that squad's order.
+                    int anchor = sim.getMechAttachmentService().anchorOf(squadId);
+                    if (anchor != MechAttachmentService.NONE && targetingSquads.contains(anchor)) continue;
                     if (canOrderSquad(sim, squadId)) {
                         sim.getSquadMoveOrderService().requestDefendArea(squadId, cellX, cellY);
                     }

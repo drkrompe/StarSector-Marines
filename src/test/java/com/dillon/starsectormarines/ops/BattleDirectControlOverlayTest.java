@@ -53,10 +53,10 @@ class BattleDirectControlOverlayTest {
                 assertDisjoint(plate, layout.mech(), context + " mech/lance");
                 assertDisjoint(plate, layout.powers(), context + " power tray");
                 assertDisjoint(plate, layout.retreat(), context + " retreat confirmation");
-                float commanderBottom = layout.host().screenY() + layout.host().height()
-                        - 12f - BattleHudOverlay.COMMAND_ONLY_HEIGHT * plate.documentScale();
-                assertTrue(plate.screenY() + plate.height() <= commanderBottom,
-                        context + " commander clearance");
+                float liftBottom = layout.host().screenY() + layout.host().height()
+                        - 12f - BattleHudOverlay.liftHeight(BattleHudOverlayModel.MAX_LIFT_ROWS) * plate.documentScale();
+                assertTrue(plate.screenY() + plate.height() <= liftBottom,
+                        context + " lift queue clearance");
                 assertTrue(plate.screenX() >= layout.host().screenX());
                 assertTrue(plate.screenX() + plate.width()
                         <= layout.host().screenX() + layout.host().width());
@@ -135,7 +135,7 @@ class BattleDirectControlOverlayTest {
                 BattleSquadOverlay.viewport(position), BattleMechOverlay.viewport(position),
                 BattlePowerOverlay.viewport(position, 5, true),
                 BattleRetreatOverlay.viewport(position, 0f, 0f, BattleRetreatOverlayModel.Presentation.CONFIRM),
-                BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, true)),
+                BattleHudOverlay.viewport(position, new BattleHudOverlayModel.Presentation(false, 0, BattleHudOverlayModel.MAX_LIFT_ROWS)),
                 BattleDirectControlOverlay.statusViewport(position, BattleDamageDollPlate.DOCUMENT_HEIGHT, mech),
                 BattleDirectControlOverlay.weaponsViewport(position, SAMPLE_WEAPONS_HEIGHT),
                 BattleDirectControlOverlay.sectionsViewport(position),

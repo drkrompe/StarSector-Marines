@@ -42,6 +42,8 @@ import com.dillon.starsectormarines.battle.ui.BattleHud;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.panel.BattleCommsPanel;
 import com.dillon.starsectormarines.battle.ui.panel.CommandPowerTargetingPanel;
+import com.dillon.starsectormarines.battle.ui.panel.PlacementPause;
+import com.dillon.starsectormarines.battle.ui.panel.QueuedDropMarkerPanel;
 import com.dillon.starsectormarines.battle.ui.panel.ShipOrderTargetingPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugHudSwitchPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DebugTogglesPanel;
@@ -781,6 +783,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             Squad squad = sim.getSquad(id);
             return squad != null && squad.aliveMembers > 0;
         });
+        selection.retainVehicles(id -> sim.convoy().mission(id) != null);
         Squad primarySquad = sim.getSquad(selection.getSelectedSquadId());
         long primaryMember = selection.getSelectedUnitEntityId();
         if (primarySquad != null && (primaryMember != 0L && sim.resolveUnit(primaryMember) == 0L
@@ -790,7 +793,8 @@ public class BattleScreen implements Screen, BattleUiContext {
                 replacement = sim.resolveUnit(sim.squadMemberAt(primarySquad.id, i));
                 if (replacement != 0L) break;
             }
-            selection.selectSquads(selection.getSelectedSquadIds(), primarySquad.id, replacement, false);
+            selection.selectGroup(selection.getSelectedSquadIds(), selection.getSelectedVehicleIds(),
+                    primarySquad.id, replacement, 0L, false);
         }
         if (worldPicker != null) {
             worldPicker.updateHover(directControlInput.pointerX(), directControlInput.pointerY(),
@@ -920,7 +924,11 @@ public class BattleScreen implements Screen, BattleUiContext {
         // The MLX power tray owns cards; this small world-layer partner owns
         // only its reticle and next-click targeting. Added after WorldPicker so
         // an armed power claims the map click before squad selection sees it.
-        commandPowerTargeting = new CommandPowerTargetingPanel(this);
+        hud.addPanel(new QueuedDropMarkerPanel(this));
+        commandPowerTargeting = new CommandPowerTargetingPanel(this, new PlacementPause.Clock() {
+            @Override public boolean paused() { return speedMultiplier == 0f; }
+            @Override public void setPaused(boolean paused) { setBattleSpeed(paused ? 0f : resumeSpeed); }
+        });
         hud.addPanel(commandPowerTargeting);
         shipOrderTargeting = new ShipOrderTargetingPanel(this, this::battleChromeBlocksWorldPointer);
         hud.addPanel(shipOrderTargeting);

@@ -1,18 +1,18 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.air.ArmorLoad;
+import com.dillon.starsectormarines.battle.air.LiftQueue;
+import com.dillon.starsectormarines.battle.air.LiftQueueReadout;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
 import com.dillon.starsectormarines.battle.command.objective.ColonyArchiveObjective;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
 import com.dillon.starsectormarines.ui.retained.UiWhiteSpace;
-import com.dillon.starsectormarines.battle.command.CommanderSnapshot;
-import com.dillon.starsectormarines.battle.command.CommandGroupIdentity;
-import com.dillon.starsectormarines.battle.command.ConquestFrontSnapshot;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -23,7 +23,9 @@ import org.junit.jupiter.api.Test;
 import java.awt.Color;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -31,6 +33,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BattleHudOverlayModelTest {
+
+    private static final float[] ROUTE = {-8f, 40f, -12f, 40f};
+    /** The top-left commander readout's height before the lift queue replaced it. */
+    private static final float COMMANDER_BOUND = 166f;
 
     @Test
     void untimedSharedObjectiveCollapsesProgressTrackAndNeverRendersNegativeWidth() throws Exception {
@@ -67,37 +73,6 @@ class BattleHudOverlayModelTest {
     }
 
     @Test
-    void sharedTerritoryPicturePreservesConquestCommandAndCollapsesDuplicateSquadPanel() throws Exception {
-        var reactor = new Reactor();
-        var model = new BattleHudOverlayModel(reactor, ignored -> { }, "Pause", "1x", "2x", "4x");
-        model.updateProjected(1, List.of(), conquestCommander());
-        var territory = new MissionObjectiveSnapshot.Item("territory-dispatch", "Dispatch", MissionObjectiveSnapshot.State.ACTIVE,
-                "CAPTURING", "Clear > Hold", "Hold the interior", "Capture / 50%", .5f, "", List.of(), "");
-        var presentation = model.updateMission(new MissionObjectiveSnapshot(List.of(territory), List.of()), ignored -> { });
-        var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)), List.of(BattleHudOverlay.COMPONENT_PATH));
-        loader.reload();
-        try (var instance = loader.build(reactor, BattleHudOverlay.COMPONENT, model.props())) {
-            var doc = document(instance, BattleHudOverlay.documentHeight(presentation));
-            assertFalse(instance.requireElement("battle-conquest-command").hasClass("conquest-command-panel-hidden"));
-            assertEquals("SHIFTING SUPPORT", instance.requireElement("battle-conquest-command-phase").text());
-            assertEquals(3, instance.requireElement("battle-conquest-lanes").childCount());
-            assertEquals(1, instance.requireElement("battle-mission-list").childCount());
-            var squads = instance.requireElement("battle-mission-squads");
-            assertTrue(squads.hasClass("mission-hidden"));
-            assertEquals(0f, squads.box().borderBox().height(), .01f);
-            assertEquals(0f, squads.box().borderBox().width(), .01f);
-            // Territory keeps its existing commander even if shared activities arrive.
-            model.updateMission(new MissionObjectiveSnapshot(List.of(territory), List.of(
-                    new MissionObjectiveSnapshot.SquadActivity(1, "First", "Clear dispatch", "Moving"))), ignored -> { });
-            instance.flush();
-            doc.advance(0);
-            assertTrue(instance.requireElement("battle-mission-squads").hasClass("mission-hidden"));
-            assertFalse(instance.requireElement("battle-conquest-command").hasClass("conquest-command-panel-hidden"));
-            assertEquals(3, instance.requireElement("battle-conquest-lanes").childCount());
-        }
-    }
-
-    @Test
     void sharedObjectivesLocateTheirOwnBranchAndResetCleanlyForOtherMissions() throws Exception {
         Reactor reactor = new Reactor();
         var model = new BattleHudOverlayModel(reactor, ignored -> { }, "Pause", "1x", "2x", "4x");
@@ -130,90 +105,6 @@ class BattleHudOverlayModelTest {
         }
     }
 
-
-    @Test
-    void publishedGroupsReplaceLaneRowsWithNamesTasksAndActualLivingStrength() throws Exception {
-        Reactor reactor = new Reactor();
-        BattleHudOverlayModel model = new BattleHudOverlayModel(reactor,
-                ignored -> { }, "Pause", "1x", "2x", "4x");
-        model.updateProjected(1f, List.of(), groupedCommander(List.of(
-                group("officer:a", "a", "Captain Vale", List.of(1, 2), "ASSAULT", true),
-                group("officer:b", "b", "Captain Reed", List.of(3), "HOLD", false))));
-        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
-                Path.of("mod").resolve(path)), List.of(BattleHudOverlay.COMPONENT_PATH));
-        loader.reload();
-        try (MarkupInstance instance = loader.build(reactor, BattleHudOverlay.COMPONENT, model.props())) {
-            UiDocument document = document(instance, BattleHudOverlay.COMMAND_ONLY_HEIGHT);
-            assertEquals("8 SQUADS  ·  2 GROUPS  ·  1 RESERVE",
-                    instance.requireElement("battle-conquest-command-force").text());
-            assertEquals(0, instance.requireElement("battle-conquest-lanes").childCount());
-            assertTrue(instance.requireElement("battle-conquest-lanes").hasClass("conquest-lanes-hidden"));
-            assertEquals(2, instance.requireElement("battle-conquest-groups").childCount());
-            assertEquals("Captain Vale", instance.requireElement("battle-conquest-group-0-name").text());
-            assertEquals("2 SQ · 11 LIVE", instance.requireElement("battle-conquest-group-0-force").text());
-            assertEquals("ASSAULT · RALLY", instance.requireElement("battle-conquest-group-0-intent").text());
-            assertEquals("OBJECTIVE AREA", instance.requireElement("battle-conquest-group-0-target").text());
-            assertEquals("HOLD", instance.requireElement("battle-conquest-group-1-intent").text());
-            model.updateProjected(1f, List.of(), conquestCommander());
-            instance.flush();
-            document.advance(0);
-            assertEquals(3, instance.requireElement("battle-conquest-lanes").childCount());
-            assertEquals(0, instance.requireElement("battle-conquest-groups").childCount());
-            assertTrue(instance.requireElement("battle-conquest-groups").hasClass("conquest-groups-hidden"));
-        }
-    }
-
-    @Test
-    void manyNcoGroupsAggregateExplicitlyWithinThreeRows() throws Exception {
-        Reactor reactor = new Reactor();
-        BattleHudOverlayModel model = new BattleHudOverlayModel(reactor,
-                ignored -> { }, "Pause", "1x", "2x", "4x");
-        model.updateProjected(1f, List.of(), groupedCommander(List.of(
-                group("nco:1", null, "First / acting NCO", List.of(4), "HOLD", false),
-                group("officer:a", "a", "Captain Vale", List.of(1), "ASSAULT", false),
-                group("nco:2", null, "Second / acting NCO", List.of(5), "ASSAULT", true),
-                group("officer:b", "b", "Captain Reed", List.of(2), "MIXED", false),
-                group("nco:3", null, "Third / acting NCO", List.of(6), "ASSAULT", false))));
-        MarkupLoader loader = new MarkupLoader(path -> Files.readString(
-                Path.of("mod").resolve(path)), List.of(BattleHudOverlay.COMPONENT_PATH));
-        loader.reload();
-        try (MarkupInstance instance = loader.build(reactor, BattleHudOverlay.COMPONENT, model.props())) {
-            document(instance, BattleHudOverlay.COMMAND_ONLY_HEIGHT);
-            assertEquals(3, instance.requireElement("battle-conquest-groups").childCount());
-            assertEquals("Captain Vale", instance.requireElement("battle-conquest-group-0-name").text());
-            assertEquals("Captain Reed", instance.requireElement("battle-conquest-group-1-name").text());
-            assertEquals("3 ACTING NCO GROUPS", instance.requireElement("battle-conquest-group-summary-name").text());
-            assertEquals("3 SQ", instance.requireElement("battle-conquest-group-summary-force").text());
-            assertEquals("1 HOLD  ·  2 ASSAULT", instance.requireElement("battle-conquest-group-summary-intent").text());
-            assertEquals("1 RALLYING", instance.requireElement("battle-conquest-group-summary-target").text());
-            UiElement last = instance.requireElement("battle-conquest-group-summary");
-            assertTrue(last.box().borderBox().bottom()
-                    <= instance.requireElement("battle-conquest-command").box().borderBox().bottom());
-        }
-    }
-
-    private static ConquestFrontSnapshot.GroupState group(String id, String officer,
-            String label, List<Integer> squadIds, String task, boolean rallying) {
-        return new ConquestFrontSnapshot.GroupState(
-                new CommandGroupIdentity(id, officer, label, officer != null), squadIds,
-                task, AssignmentKind.CLEAR_ZONE, 100, -1, -1,
-                "GROUP_TASK_PRESERVED", rallying);
-    }
-
-    private static CommanderSnapshot<ConquestFrontSnapshot> groupedCommander(
-            List<ConquestFrontSnapshot.GroupState> groups) {
-        CommanderSnapshot<ConquestFrontSnapshot> base = conquestCommander();
-        ConquestFrontSnapshot front = base.detail();
-        ConquestFrontSnapshot grouped = new ConquestFrontSnapshot(front.tick(),
-                front.influenceTick(), front.perspective(), front.axis(), front.phase(),
-                front.remainingCompounds(), front.keepZoneId(), front.keepState(), front.tracks(),
-                List.of(new ConquestFrontSnapshot.SquadState(1, 6, 0, 0, 0, null, false),
-                        new ConquestFrontSnapshot.SquadState(2, 5, 0, 0, 0, null, false),
-                        new ConquestFrontSnapshot.SquadState(3, 4, 0, 0, 0, null, false)),
-                front.directives(), groups);
-        return new CommanderSnapshot<>(Faction.MARINE, "conquest-command", "FRONT_ADJUST",
-                90, 75, 8, 1, List.of(), List.of(), grouped);
-    }
 
     @Test
     void mlxProjectsSelectedSpeedAndCompressedCaptureState() throws Exception {
@@ -284,53 +175,80 @@ class BattleHudOverlayModelTest {
             assertTrue(instance.requireElement("battle-objectives")
                     .hasClass("objective-panel-hidden"));
             assertEquals(0, instance.requireElement("battle-objective-chips").childCount());
-            assertTrue(instance.requireElement("battle-conquest-command")
-                    .hasClass("conquest-command-panel-hidden"));
+            assertTrue(instance.requireElement("battle-lift-queue")
+                    .hasClass("lift-queue-hidden"));
         }
     }
 
     @Test
-    void mlxProjectsMarineConquestCommandAcrossThreeLanes() throws Exception {
+    void liftQueueListsCraftThenWaitingJobsAndItsXCancelsOnlyAQueuedDrop() throws Exception {
         Reactor reactor = new Reactor();
         BattleHudOverlayModel model = new BattleHudOverlayModel(reactor,
                 ignored -> { }, "Pause", "1x", "2x", "4x");
-        BattleHudOverlayModel.Presentation presentation = model.updateProjected(
-                1f, List.of(), conquestCommander());
+        LiftQueue.MachineDrop hound = new LiftQueue.MachineDrop(7L, "mech_support", 0,
+                ArmorLoad.of(MechDeploymentSpec.standard(MechVariant.HOUND)), 40f, 40f, ROUTE, null);
+        LiftQueueReadout.Reading reading = new LiftQueueReadout.Reading(
+                List.of(new LiftQueueReadout.Flight(1L, ShuttleType.AEROSHUTTLE,
+                        LiftQueueReadout.Cargo.SQUAD, 6, null, 7.4f, false)),
+                List.of(new LiftQueueReadout.Waiting(LiftQueueReadout.Cargo.SQUAD, 2, null, 19f),
+                        new LiftQueueReadout.Waiting(LiftQueueReadout.Cargo.MACHINE, 1, hound, 62f)));
+        AtomicLong cancelled = new AtomicLong();
 
-        assertFalse(presentation.objectivesVisible());
-        assertTrue(presentation.commandVisible());
+        int rows = model.updateLiftQueue(reading, List.of(), cancelled::set, ignored -> { });
+
+        assertEquals(3, rows);
         MarkupLoader loader = new MarkupLoader(path -> Files.readString(
                 Path.of("mod").resolve(path)), List.of(BattleHudOverlay.COMPONENT_PATH));
         loader.reload();
         try (MarkupInstance instance = loader.build(
                 reactor, BattleHudOverlay.COMPONENT, model.props())) {
-            document(instance, BattleHudOverlay.COMMAND_ONLY_HEIGHT);
+            UiDocument document = document(instance, BattleHudOverlay.liftHeight(rows));
+            assertEquals(3, instance.requireElement("battle-lift-queue-rows").childCount());
+            assertFalse(instance.requireElement("battle-lift-air-1-cancel").displayed(),
+                    "a craft in the air cannot be called back");
+            assertFalse(instance.requireElement("battle-lift-squads-cancel").displayed());
+            assertTrue(BattleHudOverlay.insideInteractiveSurface(instance, 10f, 10f));
 
-            assertFalse(instance.requireElement("battle-conquest-command")
-                    .hasClass("conquest-command-panel-hidden"));
-            assertEquals("SHIFTING SUPPORT",
-                    instance.requireElement("battle-conquest-command-phase").text());
-            assertEquals("8 SQUADS  ·  1 RESERVE",
-                    instance.requireElement("battle-conquest-command-force").text());
-            assertEquals(3, instance.requireElement("battle-conquest-lanes").childCount());
-            assertEquals("3 SQ · 31",
-                    instance.requireElement("battle-conquest-lane-0-force").text());
-            assertEquals("SECURE x2",
-                    instance.requireElement("battle-conquest-lane-0-intent").text());
-            assertEquals("2 CONTACTS",
-                    instance.requireElement("battle-conquest-lane-0-status").text());
-            assertEquals("ADVANCE x3",
-                    instance.requireElement("battle-conquest-lane-1-intent").text());
-            assertEquals("OBJECTIVE",
-                    instance.requireElement("battle-conquest-lane-2-status").text());
-            UiElement root = instance.requireElement("battle-hud-overlay");
-            assertTrue(BattleHudOverlay.insideInteractiveSurface(
-                    instance, 10f, 10f));
-            assertFalse(BattleHudOverlay.insideInteractiveSurface(
-                    instance, root.box().borderBox().width() * 0.5f, 10f));
-            assertTrue(BattleHudOverlay.insideInteractiveSurface(
-                    instance, root.box().borderBox().right() - 10f, 10f));
+            var x = instance.requireElement("battle-lift-drop-7-cancel").box().borderBox();
+            float clickX = x.x() + x.width() / 2, clickY = x.y() + x.height() / 2;
+            var panel = instance.requireElement("battle-lift-queue").box().borderBox();
+            var last = instance.requireElement("battle-lift-drop-7").box().borderBox();
+            assertEquals(BattleHudOverlay.liftHeight(rows), panel.height(), 0.01f);
+            assertTrue(last.bottom() <= panel.bottom() && last.right() <= panel.right(),
+                    "row " + last + " inside the panel " + panel);
+            assertTrue(x.bottom() <= last.bottom() && x.right() <= last.right(),
+                    "X " + x + " inside its row " + last);
+            assertTrue(document.pointerDown(clickX, clickY));
+            assertTrue(document.pointerUp(clickX, clickY));
+            assertEquals(7L, cancelled.get());
+
+            model.updateLiftQueue(LiftQueueReadout.Reading.EMPTY, List.of(), cancelled::set, ignored -> { });
+            instance.flush();
+            document.advance(0f);
+            assertTrue(instance.requireElement("battle-lift-queue").hasClass("lift-queue-hidden"));
         }
+    }
+
+    @Test
+    void aLongQueueKeepsItsRowsAndFoldsTheRestIntoACount() {
+        BattleHudOverlayModel model = new BattleHudOverlayModel(new Reactor(),
+                ignored -> { }, "Pause", "1x", "2x", "4x");
+        List<LiftQueueReadout.Waiting> waiting = new ArrayList<>();
+        for (int i = 0; i < BattleHudOverlayModel.MAX_LIFT_ROWS + 3; i++) {
+            waiting.add(new LiftQueueReadout.Waiting(LiftQueueReadout.Cargo.MACHINE, 1,
+                    new LiftQueue.MachineDrop(i + 1L, "mech_support", i,
+                            ArmorLoad.of(MechDeploymentSpec.standard(MechVariant.HOUND)), 40f, 40f, ROUTE, null),
+                    10f * i));
+        }
+
+        List<BattleHudOverlayModel.LiftRow> rows = model.liftRows(
+                new LiftQueueReadout.Reading(List.of(), waiting), List.of(), ignored -> { }, ignored -> { });
+
+        assertEquals(BattleHudOverlayModel.MAX_LIFT_ROWS, rows.size());
+        assertEquals("battle-lift-more", rows.get(rows.size() - 1).id());
+        assertFalse(rows.get(rows.size() - 1).cancellable());
+        assertTrue(BattleHudOverlay.liftHeight(BattleHudOverlayModel.MAX_LIFT_ROWS) <= COMMANDER_BOUND,
+                "the full queue fits where the commander readout stood");
     }
 
     private static UiDocument document(MarkupInstance instance) {
@@ -344,45 +262,6 @@ class BattleHudOverlayModelTest {
         document.theme(MarineOpsThemes.standard());
         document.layout(1896, height); // 1920px screen with the production 12px side insets, 100% scale.
         return document;
-    }
-
-    private static CommanderSnapshot<ConquestFrontSnapshot> conquestCommander() {
-        List<ConquestFrontSnapshot.TrackState> tracks = List.of(
-                track(0, 3, 31, 2, 100),
-                track(1, 3, 30, 0, -1),
-                track(2, 2, 18, 0, 102));
-        List<ConquestFrontSnapshot.SquadDirective> directives = List.of(
-                directive(1, 0, AssignmentKind.SECURE_COMPOUND, 100),
-                directive(2, 0, AssignmentKind.SECURE_COMPOUND, 100),
-                directive(3, 0, AssignmentKind.ATTACK_MOVE, -1),
-                directive(4, 1, AssignmentKind.ADVANCE_TRACK, -1),
-                directive(5, 1, AssignmentKind.ADVANCE_TRACK, -1),
-                directive(6, 1, AssignmentKind.ADVANCE_TRACK, -1),
-                directive(7, 2, AssignmentKind.SUPPORT, 102),
-                directive(8, 2, AssignmentKind.SUPPORT, 102));
-        ConquestFrontSnapshot front = new ConquestFrontSnapshot(
-                90, 75, Faction.MARINE, TraversalAxis.SOUTH_TO_NORTH,
-                ConquestFrontSnapshot.Phase.FRONT_ADJUST, 4, 120,
-                CompoundService.CompoundState.DEFENDER_HELD,
-                tracks, List.of(), directives);
-        return new CommanderSnapshot<>(Faction.MARINE, "conquest-command",
-                "FRONT_ADJUST", 90, 75, 8, 1,
-                List.of("remaining compounds=4"), List.of(), front);
-    }
-
-    private static ConquestFrontSnapshot.TrackState track(
-            int index, int squads, int members, int contacts, int targetZone) {
-        return new ConquestFrontSnapshot.TrackState(index, index * 20,
-                index * 20 + 19, squads, squads, members,
-                0.42f, 0.55f, contacts > 0 ? 0.61f : -1f,
-                contacts, 12f, contacts * 7f, targetZone);
-    }
-
-    private static ConquestFrontSnapshot.SquadDirective directive(
-            int squadId, int track, AssignmentKind kind, int targetZone) {
-        return new ConquestFrontSnapshot.SquadDirective(squadId, track, track,
-                ConquestFrontSnapshot.AssignmentReason.TRACK_ADVANCE,
-                kind, targetZone);
     }
 
     private static BattleHudOverlayModel.CaptureObjective objective(

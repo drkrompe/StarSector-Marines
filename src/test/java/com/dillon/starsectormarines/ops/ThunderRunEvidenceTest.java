@@ -538,7 +538,7 @@ class ThunderRunEvidenceTest {
         Reactor reactor=new Reactor();
         var model=new BattleHudOverlayModel(reactor,ignored->{},"Pause","1x","2x","4x");
         var column=sim.getThunderRun();
-        model.update(1f,sim.getCompoundService().getRecords(),sim.getCommanderSnapshot(Faction.MARINE));
+        model.update(1f,sim.getCompoundService().getRecords());
         model.updateFreight(column.phase(),column.cargoIdentities(),column.cargoStates(),column.deliveredCount(),column.lostCount());
         model.updateFreightHold(column.holdSite(), column.holdRemainingTicks());
         var loader=new MarkupLoader(path->Files.readString(Path.of("mod").resolve(path)),List.of(BattleHudOverlay.COMPONENT_PATH));

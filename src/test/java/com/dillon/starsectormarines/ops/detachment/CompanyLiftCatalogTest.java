@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 
-/** Which committed boat flies which drop power, and which boats seat marines. */
+/** Which committed boat flies which drop power. */
 class CompanyLiftCatalogTest {
 
     private static final FittedBoat SEATED = FittedBoat.standard(ShuttleType.BUFFALO);
@@ -50,11 +50,6 @@ class CompanyLiftCatalogTest {
         PowerCatalog.assignCompanyLift(byId, Set.of(), List.of(LIGHT));
 
         assertNull(((VehicleSupport) byId.get(VehicleSupport.ID)).companyCarrier());
-    }
-
-    @Test
-    void cradledBoatsAreNotSeatedLift() {
-        assertEquals(List.of(SEATED), DetachmentResolver.seatedBoats(List.of(SEATED, LIGHT, MEDIUM)));
     }
 
     @Test

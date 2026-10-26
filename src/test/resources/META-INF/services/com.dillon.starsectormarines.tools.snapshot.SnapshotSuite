@@ -164,7 +164,6 @@ com.dillon.starsectormarines.ops.DistrictEscortSnapshotSuite
 com.dillon.starsectormarines.ops.YardOwnersSnapshotSuite
 com.dillon.starsectormarines.battle.power.MechDropSceneSnapshotSuite
 com.dillon.starsectormarines.battle.power.HeavyLiftSceneSnapshotSuite
-com.dillon.starsectormarines.battle.power.ArmorDropSceneSnapshotSuite
 com.dillon.starsectormarines.ops.RadioPortraitSnapshotSuite
 com.dillon.starsectormarines.tools.damageauthoring.DamageSnapshotSuite
 com.dillon.starsectormarines.ops.AgreusMapsSnapshotSuite
