@@ -51,6 +51,7 @@ final class RavBombardComposer {
      */
     static void emit(LayeredUnitComposer.SpriteEmitter out, RavBombardAssets art, RavBombardRig rig, float cx,
                      float cy, float ppc, float alpha, RavWear.Marks marks) {
+        if (rig.dull() > 0f) out = dulled(out, rig);
         float facing = rig.facingDegrees();
         float body = facing + rig.rock();
         float spritePx = ppc / (U * SCALE);
@@ -70,10 +71,12 @@ final class RavBombardComposer {
         tail(out, art, rig, ax, ay, ppc, spritePx, body, alpha, 0, over ? 1 : RavBombardRig.TAIL_SEGMENTS);
         float lift = rig.lift();
         if (rig.dead()) {
-            float apart = rig.crackCells() * U, turn = rig.crackDegrees();
-            shellHalf(out, art.shellL, RavBombardRig.SHELL_L_COL - apart, body + turn, lift, ax, ay, ppc, spritePx,
+            // the halves part unevenly along the ragged crack: one wrenched out and twisted, the other barely moved
+            shellHalf(out, art.shellL, RavBombardRig.SHELL_L_COL - rig.crackOut(true) * U,
+                    -rig.crackBack(true), body + rig.crackTwist(true), lift, rig.flatten(), ax, ay, ppc, spritePx,
                     alpha);
-            shellHalf(out, art.shellR, RavBombardRig.SHELL_R_COL + apart, body - turn, lift, ax, ay, ppc, spritePx,
+            shellHalf(out, art.shellR, RavBombardRig.SHELL_R_COL + rig.crackOut(false) * U,
+                    -rig.crackBack(false), body - rig.crackTwist(false), lift, rig.flatten(), ax, ay, ppc, spritePx,
                     alpha);
         } else {
             point(CENTRE, RavBombardRig.BODY_ROW, body, ax, ay, ppc, p);
@@ -84,21 +87,29 @@ final class RavBombardComposer {
         if (over) tail(out, art, rig, ax, ay, ppc, spritePx, body, alpha, 1, RavBombardRig.TAIL_SEGMENTS);
     }
 
-    /** One half of the cracked shell, its centre at canvas column {@code col}, turned to {@code angle}. */
-    private static void shellHalf(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache s, float col, float angle,
-                                  float lift, float ax, float ay, float ppc, float spritePx, float alpha) {
+    /**
+     * One half of the cracked shell, its centre at canvas column {@code col}, moved {@code along} cells forward and
+     * turned to {@code angle}, lower by {@code lift} and spread {@code flatten} wider as it slumps.
+     */
+    private static void shellHalf(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache s, float col, float along,
+                                  float angle, float lift, float flatten, float ax, float ay, float ppc,
+                                  float spritePx, float alpha) {
         float[] p = new float[2];
-        rotate((col - CENTRE) / U * lift, (ANCHOR - RavBombardRig.BODY_ROW) / U * lift, angle, p);
-        out.add(s, ax + p[0] * ppc, ay + p[1] * ppc, s.pxWidth * spritePx * lift, s.pxHeight * spritePx * lift,
-                angle, 1f, 1f, 1f, alpha);
+        rotate((col - CENTRE) / U * lift * flatten, ((ANCHOR - RavBombardRig.BODY_ROW) / U + along) * lift, angle, p);
+        out.add(s, ax + p[0] * ppc, ay + p[1] * ppc, s.pxWidth * spritePx * lift * flatten,
+                s.pxHeight * spritePx * lift, angle, 1f, 1f, 1f, alpha);
     }
 
-    /** Leg {@code i}, turned about its hip, stretched to its claw and splayed, larger while lifted in a step. */
+    /** {@code out} with every part drawn in the carcass's dulling shade. */
+    private static LayeredUnitComposer.SpriteEmitter dulled(LayeredUnitComposer.SpriteEmitter out, RavBombardRig rig) {
+        float sr = rig.shade(0), sg = rig.shade(1), sb = rig.shade(2);
+        return (layer, x, y, w, h, angle, r, g, b, a) -> out.add(layer, x, y, w, h, angle, r * sr, g * sg, b * sb, a);
+    }
+
+    /** Leg {@code i}, turned about its hip and stretched to its claw, larger while lifted in a step. */
     private static void leg(LayeredUnitComposer.SpriteEmitter out, LayeredSpriteCache s, int i, RavBombardRig rig,
                             float ax, float ay, float ppc, float spritePx, float facing, float alpha) {
-        // the splay was a side's stretch; a single leg takes half of it, as a longer reach
-        float splay = 1f + (rig.legSplay(i < RavBombardRig.LEGS_PER_SIDE) - 1f) * 0.5f;
-        float grow = rig.legReach(i) * splay * RavBombardRig.liftScale(rig.legLift(i));
+        float grow = rig.legReach(i) * RavBombardRig.liftScale(rig.legLift(i));
         float turn = facing + rig.rock() * LEG_ROCK;
         float swing = turn + rig.legAngle(i);
         float[] hip = new float[2];
