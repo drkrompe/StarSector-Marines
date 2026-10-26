@@ -54,8 +54,8 @@ ordinary vanilla play before Relief is the sandbox's business, not the story's. 
 Academy stipend that vanilla's skip-tutorial setup grants (15,000 a month), since a month of it
 would pay for that squad and contradicts the no-patron premise. The first successful conversion
 of this start's ship establishes a finite depot at that planet: the Hermes bill
-(which covers her stock parts) plus the founding squad's 36 supplies, 12 Marines
-and 24 food, derived from the real Hermes and squad recipes. The boat and squad bills are earmarked separately; unrelated workshop
+(which covers her stock parts) plus the founding squad's 12 Marines and the credit
+for its stores, derived from the real Hermes and squad prices. The boat and squad bills are earmarked separately; unrelated workshop
 orders cannot consume either allocation. Eligible orders draw their depot stock
 first, then cargo. Existing campaigns retain their funds and depot policy without
 new grants or deductions. The depot is

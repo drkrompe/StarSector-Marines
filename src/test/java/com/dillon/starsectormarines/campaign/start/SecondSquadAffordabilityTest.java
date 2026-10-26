@@ -12,8 +12,9 @@ import static org.junit.jupiter.api.Assertions.*;
 /**
  * The story Relief has no squad cap because a new Second Wind company cannot pay for a second squad before it
  * (owner, 2026-10-20). The prepaid depot founds exactly one squad, Sabine's; any other comes out of the hold at the
- * full {@link SquadFoundingCost#STANDARD} bill. This prices the most desperate liquidation there is, every crewman,
- * all the fuel and both guns sold, with every price at the extreme that favours the player, against that bill.
+ * full {@link SquadFoundingCost#STANDARD} bill: its marines bought into the hold, and its price for the stores.
+ * This prices the most desperate liquidation there is, every crewman, all the fuel and both guns sold, with every
+ * price at the extreme that favours the player, against that bill.
  *
  * <p>Base prices are vanilla's {@code commodities.csv} (marines 200, supplies 100, food 20, fuel 25, crew 50) and
  * the Vulcan's base value of 200 from {@code weapon_data.csv}. The swings are vanilla {@code settings.json}:
@@ -34,10 +35,9 @@ class SecondSquadAffordabilityTest {
                 + DEAREST_SALE * (CerberusCompanyStart.STARTING_FUEL * BASE_PRICE.get(Commodities.FUEL)
                         + crew * BASE_PRICE.get(Commodities.CREW))
                 + WEAPON_SALE * VULCANS * VULCAN_VALUE;
-        double bill = 0;
+        double bill = SquadFoundingCost.STANDARD.credits();
         for (var line : SquadFoundingCost.STANDARD.lines()) {
-            int aboard = Commodities.SUPPLIES.equals(line.commodityId()) ? CerberusCompanyStart.TRAVEL_SUPPLIES : 0;
-            bill += CHEAPEST_BUY * Math.max(0, line.quantity() - aboard) * BASE_PRICE.get(line.commodityId());
+            bill += CHEAPEST_BUY * line.quantity() * BASE_PRICE.get(line.commodityId());
         }
         assertTrue(raised < bill, "a fire sale raises " + Math.round(raised) + " against a bill of " + Math.round(bill));
     }
@@ -51,5 +51,9 @@ class SecondSquadAffordabilityTest {
             assertEquals(0, depot.available(line.commodityId(), Purpose.SQUAD));
             assertEquals(0, depot.available(line.commodityId(), Purpose.GENERAL));
         }
+        int price = SquadFoundingCost.STANDARD.credits();
+        assertEquals(0, depot.credits(Purpose.GENERAL));
+        assertEquals(price, depot.drawCredits(price * 2, Purpose.SQUAD), "the squad's credit and none of the boat's");
+        assertEquals(0, depot.credits(Purpose.SQUAD));
     }
 }

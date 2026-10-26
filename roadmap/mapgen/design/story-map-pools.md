@@ -2,12 +2,12 @@
 
 Status: ACTIVE — the four Rav Bloom story maps (Cordon Line, Cordon Road, the
 Heart's The Burn and Broad Front) play from pools, three maps for each world
-biome; Conquest and skirmish stay fully random.
+biome; Colony Breach plays from one map per biome while it is tuned; Conquest
+and skirmish stay fully random.
 
 Written: 2026-10-23
 
-Updated: 2026-10-24 — the Cordon's gap law is acceptance
-redoubts on the crest; gap readings in the report.
+Updated: 2026-10-26 — Colony Breach plays from a pool of one map per biome.
 
 A story mission's map is the generator's, but the mission does not take any
 seed the dice offer. It plays from a **pool**: for each world biome, a short,
@@ -75,6 +75,17 @@ campaign path reaches the unvetted path.
 **Size.** Three per biome, twelve per story map (owner, 2026-10-23): few
 enough that each is owned and tuned, and the whole pool plays in one evidence
 run. The pool is a dial, not a constant: add a map when one earns it.
+
+**Colony Breach.** The colony (`colony-breach`) is pooled too, one map per
+biome while the mission is tuned (owner, 2026-10-26), so every tuning reading
+plays the four maps a player can get. A pooled colony is generated on its
+world's biome alone, never on the market behind it, with no re-roll; a pooled
+seed that no longer seats its shelter, lift, bores, holdouts and opening swarm
+fails, in the campaign and in the regeneration check alike. Its entries take
+no patch yet. The debug stress test and the lower-risk rescues stay random.
+The first four were screened from seeds 1 to 40 (18 pass, on any biome alike:
+the palette does not move the colony's layout): a different seed per biome,
+each with at least two holdouts and the widest room between holdouts and bores.
 
 **How the first pools were chosen.** Seeds 2 to 25 screened on every biome
 (the Cordon passes on 60 to 72% of them, the Heart on all); for the Cordon the

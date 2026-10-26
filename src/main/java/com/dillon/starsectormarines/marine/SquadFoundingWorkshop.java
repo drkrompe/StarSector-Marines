@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import java.util.List;
 
-/** Atomic campaign authority for spending cargo and founding a complete line squad. */
+/** Atomic campaign authority for paying for and founding a complete line squad, at a civilized port. */
 public final class SquadFoundingWorkshop {
 
     private final MarineRoster roster;
@@ -17,6 +17,7 @@ public final class SquadFoundingWorkshop {
     }
 
     public Result foundSquad() {
+        if (!resources.atMarket()) return new Result(Status.NO_MARKET, null);
         if (!resources.spend(SquadFoundingCost.STANDARD)) {
             return new Result(Status.INSUFFICIENT_RESOURCES, null);
         }
@@ -30,7 +31,7 @@ public final class SquadFoundingWorkshop {
         return new Result(Status.FOUNDED, squad);
     }
 
-    public enum Status { FOUNDED, INSUFFICIENT_RESOURCES }
+    public enum Status { FOUNDED, NO_MARKET, INSUFFICIENT_RESOURCES }
 
     public record Result(Status status, MarineSquad squad) {
         public boolean succeeded() { return status == Status.FOUNDED; }

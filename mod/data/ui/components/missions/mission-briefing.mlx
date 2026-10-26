@@ -131,7 +131,7 @@
             <div id="mission-field-inset" class="field-inset console-well">
               <div each="tile in fieldTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" tabindex="0">
                 <canvas id="{tile.musterId}" class="{tile.musterClasses}" width="152" height="66" />
-                <canvas id="{tile.dollId}" class="{tile.dollClasses}" width="93" height="66" />
+                <canvas id="{tile.dollId}" class="{tile.dollClasses}" width="124" height="66" />
                 <div id="{tile.bricksId}" class="{tile.bricksClasses}">
                   <div id="{tile.liftId}" class="{tile.liftClasses}">
                     <img id="{tile.weightId}" class="brick-symbol" src="{tile.weight}" />
@@ -140,6 +140,7 @@
                     <img id="{tile.warnImageId}" class="brick-symbol" src="graphics/ui/briefing/warning.svg" />
                   </div>
                 </div>
+                <div id="{tile.countId}" class="{tile.countClasses}">{tile.count}</div>
               </div>
             </div>
           </div>
@@ -586,11 +587,14 @@
   .field-inset { display: grid; width: 100%; height: 470px; padding: 8px; gap: 6px; border-width: 2px; overflow: scroll; }
   .field-tile { flex-direction: row; align-items: center; width: 158px; height: 72px; padding: 2px; gap: 2px; border-width: 1px; }
   .field-tile.field-tile-refused { border-color: #a8473c; }
+  /* A stack is every full-strength squad under one muster, its multiplier a badge over the corner. */
+  .field-tile.field-tile-stack { border-color: #6fc4a8; }
+  .field-count { position: absolute; left: 106px; top: 44px; width: 48px; height: 24px; padding-top: 4px; text-align: center; border-width: 1px; border-color: #6fc4a8; background-color: #0c1412; pointer-events: none; }
   .field-muster { width: 152px; height: 66px; pointer-events: none; }
-  .field-doll { width: 93px; height: 66px; pointer-events: none; }
+  .field-doll { width: 124px; height: 66px; pointer-events: none; }
   .field-absent { position: absolute; width: 0px; height: 0px; overflow: hidden; }
-  .field-bricks { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 66px; gap: 3px; pointer-events: none; }
-  /* A brick is dark until it has something to say: lift short lights the weight red, any refusal lights the warning amber. */
+  .field-bricks { flex-direction: column; align-items: center; justify-content: center; width: 0px; flex-grow: 1; height: 66px; gap: 4px; pointer-events: none; }
+  /* A brick is dark until it has something to say: lift short lights the weight red, any refusal lights the warning amber and the briefing breathes it. */
   .brick { width: 26px; height: 26px; padding: 2px; border-width: 1px; border-color: #2c3733; background-color: #141b19; opacity: 0.45; }
   .brick-lift.brick-lit { background-color: #c8473a; border-color: #f08a7a; opacity: 1; }
   .brick-warn { opacity: 0.25; }

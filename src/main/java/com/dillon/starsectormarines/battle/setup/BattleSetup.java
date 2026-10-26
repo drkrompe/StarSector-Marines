@@ -177,6 +177,9 @@ import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -1622,20 +1625,23 @@ public final class BattleSetup {
      * for the alarm.
      */
     /**
-     * Sable Wake's rocket truck lies in wait in the east yard, among its cargo and barriers, covering the ledger room's
-     * east door: the pump house hides it from the south yard, so a mech walking round to that door meets its rockets
-     * at a dozen cells rather than seeing it from beyond their reach. The aim is a cell; the hull takes the nearest its
-     * footprint clears. It does not drive: the yard's cover leaves a hull no way out of it.
+     * Sable Wake's rocket truck parks at the first of the map's stands for it, in the east yard by the ledger room's
+     * east door, and from the alarm works the yard's corners down the lane the map leaves it
+     * ({@code DustLedgerTechnical}). A stand is a cell; the hull takes the nearest its footprint clears.
      */
-    private static final int[] DUST_LEDGER_TECHNICAL_AMBUSH = {206, 48};
-
-    private static void spawnDustLedgerTechnical(BattleSimulation sim, DustLedgerSequence ledger) {
+    private static void spawnDustLedgerTechnical(BattleSimulation sim, DustLedgerSequence ledger,
+                                                 List<DustLedgerCrossing.Cell> standCells) {
         VehicleType type = VehicleType.SRM_TECHNICAL;
         VehicleClearance mask = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(type.visualWidthCells));
-        int[] at = nearestClear(mask, DUST_LEDGER_TECHNICAL_AMBUSH);
-        long technical = sim.convoy().spawn(type, Faction.DEFENDER, VehicleMission.deployed(at[0] + .5f, at[1] + .5f));
-        sim.convoy().body(technical).teleport(at[0] + .5f, at[1] + .5f, 180f);
-        ledger.technical(technical);
+        List<DustLedgerSequence.Cell> stands = new ArrayList<>();
+        for (DustLedgerCrossing.Cell cell : standCells) {
+            int[] at = nearestClear(mask, new int[] {cell.x(), cell.y()});
+            stands.add(new DustLedgerSequence.Cell(at[0], at[1]));
+        }
+        DustLedgerSequence.Cell park = stands.get(0);
+        long technical = sim.convoy().spawn(type, Faction.DEFENDER, VehicleMission.deployed(park.x() + .5f, park.y() + .5f));
+        sim.convoy().body(technical).teleport(park.x() + .5f, park.y() + .5f, 180f);
+        ledger.technical(sim, technical, stands);
     }
 
     /** The cell nearest {@code aim} (ring by ring) where a hull of {@code mask}'s clearance fits. */
@@ -1752,7 +1758,7 @@ public final class BattleSetup {
                 layout.shops()::contains);
         DustLedgerSequence ledger = sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam);
         ledger.defences(sim, nests, pillboxSquads);
-        spawnDustLedgerTechnical(sim, ledger);
+        spawnDustLedgerTechnical(sim, ledger, layout.technicalStands());
         sim.setAutonomousCommander(Faction.MARINE, new RaidCommand(), RaidCommandDisclosure.INSTANCE);
         sim.setAutonomousCommander(Faction.DEFENDER, new RaidDefenderCommand(mobile),
                 RaidDefenderCommandDisclosure.INSTANCE);
@@ -2727,21 +2733,69 @@ public final class BattleSetup {
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
             TargetProfile profile, boolean stressTest, HivePosture posture, int liftHardpoints) {
+        StoryMapPool.Entry pooled = isColonyBreachColony(risk, stressTest) && StoryMapPools.installed()
+                ? StoryMapPools.pool(StoryMap.COLONY_BREACH).entry(surfaceOrRock(profile), seed) : null;
+        return civilianRescue(seed, manifest, enemyHasHeavyArmor, risk, swarmCount, profile, stressTest, posture,
+                liftHardpoints, pooled);
+    }
+
+    /**
+     * The seed a Colony Breach on a world of {@code biome} plays ({@code story-map-pools.md}): the pool's entry for
+     * the roll its event carries, or the roll itself when no pool is installed.
+     */
+    public static long colonyBreachSeed(SurfacePalette biome, long roll) {
+        return StoryMapPools.installed()
+                ? StoryMapPools.pool(StoryMap.COLONY_BREACH).pick(biome == null ? SurfacePalette.ROCK : biome, roll).seed()
+                : roll;
+    }
+
+    /**
+     * A Colony Breach on {@code entry}'s seed and {@code biome} alone, on its first generation or not at all: how the
+     * regeneration check stands a pooled or candidate seed up. Throws when the seed does not carry the mission.
+     */
+    public static BattleSimulation createPooledColonyBreach(SurfacePalette biome, StoryMapPool.Entry entry,
+                                                            List<ShuttleAssignment> manifest) {
+        return civilianRescue(entry.seed(), manifest, false, RiskLevel.HIGH, SwarmDefenseRoster.countFor(RiskLevel.HIGH),
+                BloomHeartSetup.world(biome), false, HivePosture.DEFAULT, 0, entry);
+    }
+
+    private static SurfacePalette surfaceOrRock(TargetProfile profile) {
+        return profile == null ? SurfacePalette.ROCK : profile.surface();
+    }
+
+    /**
+     * The civilian rescue proper. A {@code pooled} Colony Breach is generated on its world's biome alone, never on
+     * the market behind it, so the map is the one the pool vetted, and is never re-rolled: a pooled seed that no
+     * longer carries the mission fails here, as the regeneration check would.
+     */
+    private static BattleSimulation civilianRescue(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
+            TargetProfile profile, boolean stressTest, HivePosture posture, int liftHardpoints,
+            StoryMapPool.Entry pooled) {
         boolean colony = isColonyBreachColony(risk, stressTest);
+        if (pooled != null && !pooled.patch().isEmpty()) {
+            throw new IllegalStateException("a Colony Breach pool entry takes no patch yet: seed " + seed);
+        }
+        TargetProfile mapProfile = pooled != null ? BloomHeartSetup.world(surfaceOrRock(profile)) : profile;
+        int attempts = pooled != null ? 1 : 8;
+        String why = "";
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
-        for (int attempt = 0; attempt < 8; attempt++) {
+        for (int attempt = 0; attempt < attempts; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             MapScale scale = colony ? MapScale.COLONY : MapScale.forRisk(risk);
             PrecinctPlan colonyPlan = colony ? colonyPlanFor(scale, battleSeed) : null;
             MapResult map = MAP_GEN.generate(scale.width, scale.height, battleSeed, null,
-                    profile, colonyPlan);
+                    mapProfile, colonyPlan);
             if (colony) {
                 missing = MissionMapRequirements.missingFromColony(map);
+                why = "missing " + missing;
                 if (!missing.isEmpty()) continue;
             }
             // On the colony the shelter is the civil-defence compound's hall, settled before
             // the colony's places are published so everything reads the same hall.
             List<PointOfInterest> shelters = CivilDefenceCompound.shelters(map.grid, map.pointsOfInterest, colonyPlan);
+            why = "no shelter hall";
             if (shelters == null) continue;
             publishHeldPlaces(map, Faction.CIVILIAN);
             Random rng = new Random(battleSeed);
@@ -2764,6 +2818,7 @@ public final class BattleSetup {
 
             CivilianEvacuationPayload payload =
                     CivilianEvacuationPayload.install(sim, shelters, battleSeed);
+            why = "no shelter-to-lift payload";
             if (payload == null) continue;
             sim.setAutonomousCommander(Faction.MARINE,
                     new RescueEscortCommand(payload.placement, posture), RescueCommandDisclosure.INSTANCE);
@@ -2810,11 +2865,13 @@ public final class BattleSetup {
             ColonyEruptionPlan eruption = stressTest ? null : ColonyEruptionPlan.forColony(
                     sim.getGrid(), sim.getTopology(), map.pointsOfInterest,
                     payload.placement, lzCells, battleSeed ^ ERUPTION_SEED_SALT);
+            why = "the bores do not seat";
             if (colony && eruption != null && !eruption.isComplete()) continue;
             // The colony's militia: the shelter guard always, and on the colony
             // map a few held buildings, their emplacements and technicals.
             if (ColonyMilitia.install(sim, map, payload.placement, lzCells,
                     risk, battleSeed, colony, eruption == null ? List.of() : eruption.sites()) == null) {
+                why = "the militia and holdouts do not seat";
                 continue;
             }
             // The cohort is the shelter's people and every holdout's.
@@ -2826,6 +2883,7 @@ public final class BattleSetup {
                             sim, payload.placement, swarmCount, battleSeed)
                     : SwarmDefenseRoster.installCanonical(
                             sim, payload.placement, swarmCount, battleSeed);
+            why = "the opening swarm does not seat";
             if (swarm == null) continue;
             if (!sim.configureSwarmReinforcements(
                     payload.placement, swarm.size(), battleSeed)) {
@@ -2857,6 +2915,10 @@ public final class BattleSetup {
                 if (colony) ColonyBreachObjectives.install(sim, map, payload.placement, battleSeed);
             }
             return sim;
+        }
+        if (pooled != null) {
+            throw new IllegalStateException("colony-breach seed " + seed + " on " + surfaceOrRock(profile)
+                    + " no longer carries its mission: " + why);
         }
         if (colony && !missing.isEmpty()) {
             throw new IllegalStateException(MissionMapRequirements.describeFailure(

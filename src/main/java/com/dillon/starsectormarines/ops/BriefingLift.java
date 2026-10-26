@@ -12,7 +12,9 @@ import com.dillon.starsectormarines.battle.power.LiftBudget;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.DamageDollCanvas;
+import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
@@ -234,6 +236,9 @@ public final class BriefingLift {
                 case "weightId" -> id + ":weight";
                 case "warnId" -> id + ":warn";
                 case "warnImageId" -> id + ":warn-image";
+                case "countId" -> id + ":count";
+                case "countClasses" -> "field-absent";
+                case "count" -> "";
                 // Lit, the brick drops its class colour for the alarm; the symbol still names the class.
                 case "liftClasses" -> liftShort(machine.status()) ? "brick brick-lift brick-lit"
                         : "brick brick-lift " + weightChipClasses(LiftRating.of(machine.load().liftClass()))
@@ -330,8 +335,40 @@ public final class BriefingLift {
             ArmorLoad load = card.machine().load();
             if (load.isVehicle()) view.readStock(load.vehicle().type());
             else view.readDeployment(load.mech());
-            document.canvases().set(markup.requireElement(card.id() + ":doll"), DamageDollCanvas.bare(view));
+            document.canvases().set(markup.requireElement(card.id() + ":doll"),
+                    DamageDollCanvas.bare(view, shortLabel(load)));
         }
+    }
+
+    /** The doll canvas's width in the field tile, which a short label must fit. */
+    private static final float DOLL_WIDTH = 124f;
+    /** One slow breath of a lit warning brick, in seconds. */
+    static final float WARN_PULSE_SECONDS = 2.4f;
+
+    /** What the machine is, in capitals over its doll: the chassis, or the vehicle type's last word when it will not fit. */
+    static String shortLabel(ArmorLoad load) {
+        String name = Strings.upper(load.isVehicle() ? typeName(load) : load.mech().variant().displayName());
+        if (Fonts.ORBITRON_10.measureWidth(name) <= DOLL_WIDTH - 6f) return name;
+        return name.substring(name.lastIndexOf(' ') + 1);
+    }
+
+    /** The warning bricks lit on this page: the ones {@link #pulse} breathes. */
+    static List<UiElement> litWarnings(MarkupInstance markup, Map<String, Object> props) {
+        List<UiElement> lit = new ArrayList<>();
+        for (Object value : (List<?>) props.getOrDefault("liftMachines", List.of())) {
+            Card card = (Card) value;
+            if (!card.machine().status().drops) lit.add(markup.requireElement(card.id() + ":warn"));
+        }
+        return List.copyOf(lit);
+    }
+
+    /** Breathes every lit warning brick between dim and full on one slow wall-clock cycle. */
+    static void pulse(List<UiElement> lit, float seconds) {
+        if (lit.isEmpty()) return;
+        float phase = (seconds % WARN_PULSE_SECONDS) / WARN_PULSE_SECONDS;
+        float opacity = .4f + .6f * (.5f + .5f * (float) Math.cos(phase * 2.0 * Math.PI));
+        String style = String.format(Locale.ROOT, "opacity: %.2f", opacity);
+        for (UiElement element : lit) element.style(style);
     }
 
     /** Hovers on each berth, the mission lift and each machine. */

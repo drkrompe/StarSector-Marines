@@ -53,7 +53,8 @@ final class CompanyPreparationGuide {
         if (depot == null || CerberusCompanyStart.accessibleDepot() != null) return lesson;
         var credits = CampaignFabricationResources.forPreparation();
         var stores = CampaignSquadFoundingResources.forPreparation();
-        boolean needsLocalStores = boat > 0 && credits.credits() < boat && depot.credits() > 0
+        long price = (long) boat + (squad.isEmpty() ? 0 : CompanyPreparation.squadPrice(roster));
+        boolean needsLocalStores = price > 0 && credits.credits() < price && depot.credits() > 0
                 || squad.stream().anyMatch(line -> stores.available(line.commodityId()) < line.quantity()
                         && depot.available(line.commodityId()) > 0);
         if (!needsLocalStores) return lesson;

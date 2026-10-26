@@ -10,7 +10,7 @@ import java.util.List;
  * never known which bench it was standing at.
  *
  * <p>Prices were material bills once; they were converted at the vanilla base price of each
- * commodity ({@link #SUPPLIES}, {@link #HEAVY_MACHINERY}, {@link #METALS}, {@link #TRANSPLUTONICS}
+ * commodity ({@link #SUPPLIES}, {@link #HEAVY_MACHINERY}, {@link #METALS}, {@link #TRANSPLUTONICS}, {@link #FOOD}
  * credits a unit), so the balance stayed where it was.
  */
 public record FabricationCost(int credits) {
@@ -20,6 +20,7 @@ public record FabricationCost(int credits) {
     public static final int HEAVY_MACHINERY = 150;
     public static final int METALS = 30;
     public static final int TRANSPLUTONICS = 200;
+    public static final int FOOD = 20;
 
     public FabricationCost {
         if (credits <= 0) throw new IllegalArgumentException("a fabrication cost is a positive credit price");
@@ -54,6 +55,7 @@ public record FabricationCost(int credits) {
             case "heavy_machinery" -> HEAVY_MACHINERY;
             case "metals" -> METALS;
             case "rare_metals" -> TRANSPLUTONICS;
+            case "food" -> FOOD;
             default -> 0;
         };
         return (long) price * Math.max(0, quantity);
