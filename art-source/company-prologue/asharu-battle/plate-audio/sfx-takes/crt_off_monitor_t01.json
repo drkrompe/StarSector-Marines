@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "22",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A 1990s computer CRT monitor powering off: a crisp switch click and a quick electrostatic snap as the picture collapses, then a very faint fading whine, close up, no music",
+    "duration_seconds": 2.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "388cf783154730298494b72a35ecf62e41f6bf4ca982fe5a5601d771a7b4301a",
+  "durationSeconds": 2.0,
+  "peakDb": 0.0,
+  "integratedLufs": -13.1
+}

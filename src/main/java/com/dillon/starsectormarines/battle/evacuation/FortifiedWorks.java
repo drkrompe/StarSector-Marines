@@ -19,17 +19,11 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 public final class FortifiedWorks {
 
     /**
-     * Temporary tuning switch for {@link #SWARM_TOUGHNESS}: {@code 1} is the control, works as weak as a
-     * house wall. Fold it back into the constant once the owner picks the strength.
-     */
-    public static final String TOUGHNESS_PROPERTY = "battle.swarm.worksToughness";
-
-    /**
      * How many of a swarm strain's structural hits a works cell takes for one on a house wall. Four:
      * a Brute alone on a redoubt's 120 hit point wall takes about twenty-three seconds of blows rather
-     * than five, time for a squad to reach a wall it is called to.
+     * than five, time for a squad to reach a wall it is called to. The owner's pick over two and six to eight.
      */
-    public static final int SWARM_TOUGHNESS = Math.max(1, Integer.getInteger(TOUGHNESS_PROPERTY, 4));
+    public static final int SWARM_TOUGHNESS = 4;
 
     private FortifiedWorks() {}
 

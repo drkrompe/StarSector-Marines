@@ -24,10 +24,10 @@ public final class WorkshopConditionStage implements GenStage {
         var room = graph.largest(RoomPurpose.PARTS_CAGE);
         if (room == null) throw new IllegalStateException("Starting hull owes a machine shop");
         ctx.fixtureTasks.removeIf(task -> room.contains(task.cellX(), task.cellY())
-                && (!state.operational() || state != WorkshopState.EQUIPPED && task.affordance() == Affordance.FABRICATE));
+                && (!state.operational() || !state.tooled() && task.affordance() == Affordance.FABRICATE));
         var tiles = TileRegistry.installed();
         // Empty picking racks tell the player why restored machines still need tooling.
-        if (state != WorkshopState.EQUIPPED)
+        if (!state.tooled())
             ctx.doodads.removeIf(d -> room.contains(d.cellX, d.cellY) && d.definitionId() != null
                     && (d.definitionId().equals("machine-shop.bar-stock")
                     || d.definitionId().equals("machine-shop.bearings")
@@ -53,7 +53,7 @@ public final class WorkshopConditionStage implements GenStage {
             overlay(ctx, room, floor, 8, 6, "collapse", false, true);
             SealedShipHatches.seal(ctx, room);
         }
-        if (state == WorkshopState.EQUIPPED) {
+        if (state.tooled()) {
             var bench = ctx.doodads.stream().filter(d -> room.contains(d.cellX, d.cellY)
                     && "machine-shop.assembly-bench".equals(d.definitionId())).findFirst();
             var tools = tiles.doodad("armory-workshop.bench-tools");
