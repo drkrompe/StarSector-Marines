@@ -1,0 +1,10 @@
+{
+  "take": "briefing_drive_t01.mp3",
+  "tempo": 130,
+  "startBar": 4,
+  "bars": 49,
+  "crossfadeSeconds": 2.0,
+  "durationSeconds": 90.46,
+  "peakDb": 0.0,
+  "integratedLufs": -11.9
+}

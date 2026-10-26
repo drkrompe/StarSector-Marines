@@ -106,9 +106,11 @@ has played that long. Each state has its own playlist with the no-repeat
 shuffle, retained across battles.
 
 **Tracks.** Combat plays the battle pool. A walk-in is never silent (owner):
-quiet and aftermath play the **quiet bed**, the strings take of the Second
-Wind arrival's own score (`marines_battle_quiet_strings`), cut to its
-sounding span and looped, so a long quiet phase never falls silent. It sits
+quiet and aftermath play the **quiet bed**, looped so a long quiet phase
+never falls silent. The owner wants it a neutral retro sci-fi synth loop that
+leads into the combat pool; until a generated candidate is picked, it is the
+strings take of the Second Wind arrival's score (`marines_battle_quiet_strings`),
+cut to its sounding span. It sits
 under the combat pool (music is encoded to one loudness) and a raise fades it
 out over its crossfade. A state with one track loops it; a state with several
 shuffles them. Until an alert bed is sourced (the owner's call), alert plays
