@@ -55,6 +55,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MechBay;
+import com.dillon.starsectormarines.ops.battleview.SquadMuster;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.ops.battleview.DebugBayPreviewAssets;
@@ -415,7 +416,8 @@ public class BriefingScreen implements Screen {
             candidateHints = BriefingHints.install(built, candidate, props);
             wireDebugBayPictures(built, candidate, props);
             BriefingSurvey.install(built, candidate, props);
-            BriefingLift.install(built, candidate, props, Strings::get);
+            BriefingLift.install(built, candidate, props);
+            BriefingViewModel.installMusters(built, candidate, props);
             if (viewport != null) built.layout(
                     viewport.documentWidth(), viewport.documentHeight());
         } catch (RuntimeException failure) {
@@ -1094,7 +1096,15 @@ public class BriefingScreen implements Screen {
                     bad ? "tone-danger" : "", element.officer != null);
             boolean operationCommander = element.officer != null && force.commander() != null
                     && element.officer.id().equals(force.commander().id());
-            rows.add(operationCommander ? card.asOperationCommander() : card);
+            List<SquadMuster> musters = new ArrayList<>();
+            MarineRoster roster = liveRoster();
+            if (roster != null) {
+                for (MarineSquad squad : element.squads) {
+                    SquadMuster muster = SquadMuster.from(roster, squad.id(), CampaignClock.dayFloat());
+                    if (muster != null) musters.add(muster);
+                }
+            }
+            rows.add((operationCommander ? card.asOperationCommander() : card).withSquads(musters));
         }
         return List.copyOf(rows);
     }
@@ -1110,9 +1120,18 @@ public class BriefingScreen implements Screen {
             rows.add(new BriefingViewModel.ChoiceRow("briefing-power-" + i,
                     "choice-row" + (selected ? " selected" : ""),
                     power.displayName, detail, !selected && !canAdd,
-                    () -> togglePower(power.id), SpecSheets.commandPowerIcon(power), SpecSheets.commandPower(power)));
+                    () -> togglePower(power.id), SpecSheets.commandPowerIcon(power),
+                    withNote(SpecSheets.commandPower(power), detail)));
         }
         return List.copyOf(rows);
+    }
+
+    /** The command deck keys show no slot cost; their hover does. */
+    private static SpecSheet withNote(SpecSheet sheet, String note) {
+        List<String> notes = new ArrayList<>(sheet.notes());
+        notes.add(0, note);
+        return new SpecSheet(sheet.title(), sheet.subtitle(), sheet.crestPath(), sheet.accent(), sheet.stats(),
+                notes, sheet.seats(), sheet.teams(), sheet.stamp());
     }
 
     private void togglePower(String powerId) {
@@ -1901,7 +1920,8 @@ public class BriefingScreen implements Screen {
                 heldBack.add(held.mech().freezeForDeployment(day));
             }
         }
-        return BriefingLift.read(lift(), cachedAvailablePowers, selectedPowerIds, mechs, vehicles, heldBack);
+        int berths = mission.source.isDebug() ? lift().size() : ShipsBoatsAboard.berths();
+        return BriefingLift.read(lift(), berths, cachedAvailablePowers, selectedPowerIds, mechs, vehicles, heldBack);
     }
 
     private static MarineRoster liveRoster() {
@@ -2470,7 +2490,7 @@ public class BriefingScreen implements Screen {
         return enumName.charAt(0) + enumName.substring(1).toLowerCase(Strings.locale());
     }
 
-    /** Friendly summary of employer-offered power ids ("recon_ping" → "Recon Ping"). */
+    /** Friendly summary of employer-offered power ids ("mech_support" → "Mech Support"). */
     private static String summarizePowerIds(List<String> ids) {
         List<String> parts = new ArrayList<>();
         for (String id : ids) {
@@ -2490,7 +2510,7 @@ public class BriefingScreen implements Screen {
                 : Strings.join("briefingSeparatorComma", parts.toArray(new String[0]));
     }
 
-    /** "recon_ping" → "Recon Ping". */
+    /** "mech_support" → "Mech Support". */
     private static String prettifyId(String id) {
         StringBuilder s = new StringBuilder();
         for (String part : id.replace(':', '_').split("_")) {

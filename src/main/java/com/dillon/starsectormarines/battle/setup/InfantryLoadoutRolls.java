@@ -30,8 +30,8 @@ public final class InfantryLoadoutRolls {
     /**
      * Builds the standard player-shuttle squad: randomized primary family,
      * equipment grade, and soldier profile, plus one launcher specialist when
-     * the carrier has room. Shared by mission-start shuttles and the live
-     * Marine Drop power so neither path falls back to an untagged line weapon.
+     * the carrier has room. Shared by mission-start shuttles and the
+     * debug and scene setups so neither path falls back to an untagged line weapon.
      */
     public static MarineLoadout[] playerSquad(int capacity, Random rng) {
         return playerSquad(capacity, rng, false, false);

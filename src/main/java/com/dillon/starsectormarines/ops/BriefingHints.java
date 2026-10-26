@@ -24,18 +24,16 @@ final class BriefingHints {
         bindChoices(binder, markup, props, "powerRows", Strings.get("briefingUiHintCommandPower"));
         bindChoices(binder, markup, props, "sourceRows", Strings.get("briefingUiHintPowerSource"));
         bindChoices(binder, markup, props, "carrierRows", Strings.get("briefingUiHintFighterCover"));
-        for (Object value : (List<?>) props.getOrDefault("taskForceRows", List.of())) {
-            BriefingViewModel.ForceCard row = (BriefingViewModel.ForceCard) value;
-            binder.bind(markup.requireElement(row.id()), new SpecSheet(row.name(),
-                    Strings.join("separatorPath", row.role(), Strings.get(row.namedOfficer()
-                            ? "briefingUiHintCoordinatedGroup" : "briefingUiHintIndependentSquad")),
-                    row.portrait(), "command", List.of(), List.of(row.detail(),
-                    row.namedOfficer()
-                            ? Strings.get("briefingUiHintOfficerCoordinates")
-                            : Strings.get("briefingUiHintNcoIndependent"))));
+        for (BriefingViewModel.SquadPicture squad : BriefingViewModel.fieldSquads(props)) {
+            binder.bind(markup.requireElement(squad.id()), squad.hint());
         }
         if (props.get("forceComparisonHint") instanceof SpecSheet force) {
-            binder.bind(markup.requireElement("mission-force-comparison"), force);
+            // The commitment summary left the page for this hover; it leads the notes.
+            List<String> notes = new ArrayList<>(force.notes());
+            if (props.get("personnelSummary") instanceof String summary && !summary.isBlank()) notes.add(0, summary);
+            binder.bind(markup.requireElement("mission-force-comparison"), new SpecSheet(force.title(),
+                    force.subtitle(), force.crestPath(), force.accent(), force.stats(), notes,
+                    force.seats(), force.teams(), force.stamp()));
         }
         if (props.get("missionThreatHint") instanceof SpecSheet threat) {
             binder.bind(markup.requireElement("mission-threat"), threat);
@@ -43,6 +41,7 @@ final class BriefingHints {
         if (props.get("landingCraftHint") instanceof SpecSheet landingCraft) {
             binder.bind(markup.requireElement("mission-transport-readout"), landingCraft);
         }
+        BriefingLift.bindHints(binder, markup, props);
         if (!Boolean.TRUE.equals(props.get("debugExpanded"))) return binder;
         // The kit picker's cards open the same field notes and seat sheets they do in the Armory.
         if (props.get("kitPicker") instanceof Map<?, ?> picker && Boolean.TRUE.equals(picker.get("open"))) {

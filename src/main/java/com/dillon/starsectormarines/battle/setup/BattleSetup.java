@@ -58,6 +58,7 @@ import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.evacuation.ColonyLivingField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.evacuation.ColonyPopulation;
+import com.dillon.starsectormarines.battle.evacuation.ColonyRedoubts;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -145,6 +146,7 @@ import com.dillon.starsectormarines.battle.command.SilentColonyCommandDisclosure
 import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.compound.CompoundGarrisonSystem;
 import com.dillon.starsectormarines.battle.vehicle.ConvoyPlanner;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -1619,6 +1621,33 @@ public final class BattleSetup {
      * quiet phase. No reinforcements, vehicles or aircraft; the cantina drinkers and the Harrow salvage team wait
      * for the alarm.
      */
+    /**
+     * Sable Wake's rocket truck lies in wait in the east yard, among its cargo and barriers, covering the ledger room's
+     * east door: the pump house hides it from the south yard, so a mech walking round to that door meets its rockets
+     * at a dozen cells rather than seeing it from beyond their reach. The aim is a cell; the hull takes the nearest its
+     * footprint clears. It does not drive: the yard's cover leaves a hull no way out of it.
+     */
+    private static final int[] DUST_LEDGER_TECHNICAL_AMBUSH = {206, 48};
+
+    private static void spawnDustLedgerTechnical(BattleSimulation sim, DustLedgerSequence ledger) {
+        VehicleType type = VehicleType.SRM_TECHNICAL;
+        VehicleClearance mask = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(type.visualWidthCells));
+        int[] at = nearestClear(mask, DUST_LEDGER_TECHNICAL_AMBUSH);
+        long technical = sim.convoy().spawn(type, Faction.DEFENDER, VehicleMission.deployed(at[0] + .5f, at[1] + .5f));
+        sim.convoy().body(technical).teleport(at[0] + .5f, at[1] + .5f, 180f);
+        ledger.technical(technical);
+    }
+
+    /** The cell nearest {@code aim} (ring by ring) where a hull of {@code mask}'s clearance fits. */
+    private static int[] nearestClear(VehicleClearance mask, int[] aim) {
+        for (int r = 0; r < 12; r++)
+            for (int dy = -r; dy <= r; dy++)
+                for (int dx = -r; dx <= r; dx++)
+                    if (Math.max(Math.abs(dx), Math.abs(dy)) == r && mask.isPassable(aim[0] + dx, aim[1] + dy))
+                        return new int[]{aim[0] + dx, aim[1] + dy};
+        throw new IllegalStateException("no cell clear for a hull near " + aim[0] + "," + aim[1]);
+    }
+
     /** How far a pillbox crew strays from its slits: they fight from inside. */
     private static final int PILLBOX_PATROL_RADIUS = 1;
 
@@ -1721,7 +1750,9 @@ public final class BattleSetup {
                 layout.warehouses()::contains);
         StaffedBuildings.install(sim, map, seed, EnumSet.of(BuildingWork.Kind.GROCERY), layout.shops().size(),
                 layout.shops()::contains);
-        sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam).defences(sim, nests, pillboxSquads);
+        DustLedgerSequence ledger = sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam);
+        ledger.defences(sim, nests, pillboxSquads);
+        spawnDustLedgerTechnical(sim, ledger);
         sim.setAutonomousCommander(Faction.MARINE, new RaidCommand(), RaidCommandDisclosure.INSTANCE);
         sim.setAutonomousCommander(Faction.DEFENDER, new RaidDefenderCommand(mobile),
                 RaidDefenderCommandDisclosure.INSTANCE);
@@ -2772,10 +2803,18 @@ public final class BattleSetup {
 
             spawnAmbientCivilians(sim, map, rng);
             spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
+            // The breach: where the colony breaks open and when. The colony
+            // path owes a full plan and re-rolls without one; a smaller map
+            // carries whatever sites it can seat. Planned before the militia,
+            // whose holdouts are chosen clear of its bores.
+            ColonyEruptionPlan eruption = stressTest ? null : ColonyEruptionPlan.forColony(
+                    sim.getGrid(), sim.getTopology(), map.pointsOfInterest,
+                    payload.placement, lzCells, battleSeed ^ ERUPTION_SEED_SALT);
+            if (colony && eruption != null && !eruption.isComplete()) continue;
             // The colony's militia: the shelter guard always, and on the colony
             // map a few held buildings, their emplacements and technicals.
             if (ColonyMilitia.install(sim, map, payload.placement, lzCells,
-                    risk, battleSeed, colony) == null) {
+                    risk, battleSeed, colony, eruption == null ? List.of() : eruption.sites()) == null) {
                 continue;
             }
             // The cohort is the shelter's people and every holdout's.
@@ -2798,18 +2837,14 @@ public final class BattleSetup {
                     SquadCommandClaim.mission("rescue-corridor", "commander-called mech lance"),
                     () -> MechDropService.centroidOf(sim.getMarineLandingPads()));
             if (!stressTest) {
-                // The breach: where the colony breaks open and when. The colony
-                // path owes a full plan and re-rolls without one; a smaller
-                // map carries whatever sites it can seat.
-                ColonyEruptionPlan eruption = ColonyEruptionPlan.forColony(
-                        sim.getGrid(), sim.getTopology(), map.pointsOfInterest,
-                        payload.placement, lzCells, battleSeed ^ ERUPTION_SEED_SALT);
-                if (colony && !eruption.isComplete()) continue;
                 // The colony's people outside the shelter: what the swarm feeds on.
                 List<Long> colonists = colony
                         ? ColonyPopulation.install(sim, map.pointsOfInterest, payload.placement,
                                 battleSeed ^ ERUPTION_SEED_SALT)
                         : List.of();
+                // Nothing re-seated or budded later opens beside a holdout either.
+                if (colony) eruption = eruption.withoutPlacesNear(
+                        ColonyRedoubts.holdoutCentres(sim.getCivilianRedoubts()), ColonyRedoubts.BREACH_CLEARANCE);
                 sim.installColonyBreach(eruption, colonists);
                 // The colony as a living field: homesteads, militia knots in the
                 // open, families walking out and stragglers, all the swarm's to find.

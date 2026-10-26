@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
-import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -88,8 +87,6 @@ public record BattleTextureSet(Set<LayeredArmorFamily> families, boolean ravRigs
                 if (power instanceof MechSupport support) {
                     if (!support.deployments().isEmpty()) mechSides.add(Faction.MARINE);
                     for (VehicleDeploymentSpec spec : support.vehicles()) vehicles.add(spec.type());
-                } else if (power instanceof VehicleSupport support) {
-                    for (VehicleDeploymentSpec spec : support.deployments()) vehicles.add(spec.type());
                 }
             }
         }

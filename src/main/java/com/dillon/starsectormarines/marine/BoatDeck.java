@@ -197,6 +197,24 @@ public final class BoatDeck implements Serializable {
         return false;
     }
 
+    /** Takes one boat off her berth into the reserve hangar, fit and all; null when no berth holds her. */
+    CampaignBoat vacate(String boatId) {
+        CampaignBoat boat = boatById(boatId);
+        return boat != null && scrap(boatId) ? boat : null;
+    }
+
+    /**
+     * Stands a stored boat back up in a vacant berth; false when the berth is taken or missing,
+     * or her pattern is not the one this hull's bays hold. Package-private: the reserve hangar
+     * decides what comes out of storage.
+     */
+    boolean berth(int berthIndex, CampaignBoat boat) {
+        if (boat == null || boat.pattern() != pattern || berthIndex < 0 || berthIndex >= berths.size()
+                || berths.get(berthIndex) != null || boatById(boat.id()) != null) return false;
+        berths.set(berthIndex, boat);
+        return true;
+    }
+
     /** The berths with nothing standing in them, in berth order. */
     public List<Integer> vacantBerths() {
         List<Integer> vacant = new ArrayList<>();

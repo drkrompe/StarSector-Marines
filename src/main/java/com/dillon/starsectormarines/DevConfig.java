@@ -165,34 +165,13 @@ public final class DevConfig {
     @DebugOnly
     public static final boolean DEBUG_MECH_SUPPORT_PICKER = DEV_MODE && true;
 
-    /**
-     * When {@code true}: every battle grants the recon-ping command power for
-     * free, regardless of fleet or employer. A dev convenience so the
-     * command-power loop stays exercised while the roster is shallow.
-     *
-     * <p>Production behavior: recon ping must be <em>sourced</em> — a committed
-     * ship with the right kit (Hi-Res Sensors / Surveying Equipment / an Apogee,
-     * see {@code ops.detachment.PowerCatalog}) or an employer/contract that offers
-     * it ({@code Mission.employerPowerIds}). Flip off to feel the real gating.
-     */
-    @DebugOnly
-    public static final boolean ALWAYS_GRANT_RECON_PING = DEV_MODE && false;
-
     /** Expose Mech Support for battle iteration without requiring its fleet source. */
     @DebugOnly
     public static final boolean DEBUG_GRANT_MECH_SUPPORT = DEV_MODE && false;
 
-    /** Expose Emergency Resupply without requiring a Tarsus or Atlas source. */
-    @DebugOnly
-    public static final boolean DEBUG_GRANT_EMERGENCY_RESUPPLY = DEV_MODE && false;
-
     /** Expose Orbital Barrage without requiring an orbital-fire-capable ship. */
     @DebugOnly
     public static final boolean DEBUG_GRANT_ORBITAL_BARRAGE = DEV_MODE && false;
-
-    /** Expose Marine Drop without requiring a troop-transport source. */
-    @DebugOnly
-    public static final boolean DEBUG_GRANT_MARINE_INSERTION = DEV_MODE && false;
 
     /** Expose Close Air Support without requiring a committed Mudskipper. */
     @DebugOnly
