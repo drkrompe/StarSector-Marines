@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.ui.retained.PointerButton;
+import com.dillon.starsectormarines.ops.battleview.BoatDoll;
 import com.dillon.starsectormarines.ops.battleview.BoatHardware;
 import com.dillon.starsectormarines.ops.fitting.BoardHover;
 import com.dillon.starsectormarines.ops.fitting.PointerDrag;
@@ -91,8 +92,10 @@ public final class BoatDeckScreen implements Screen {
     /** A stores part on the end of the pointer, on its way to a socket on the board. */
     /** The board's pointer; the drag holds it, so nothing covers the socket a part is going into. */
     private final BoardHover boardHover = new BoardHover();
-    private final PointerDrag<BoatDeckViewModel.CatalogRow> drag =
-            new PointerDrag<BoatDeckViewModel.CatalogRow>().holding(boardHover);
+    private final PointerDrag<Carried> drag = new PointerDrag<Carried>().holding(boardHover);
+    /** The stores panel, which takes back a part lifted off the board. */
+    private UiElement storesElement;
+    private UiElement returnDropNote;
     /**
      * Whether the ship has to be looked up again because what is standing in
      * her berths changed. Answered on the next advance rather than where the
@@ -164,6 +167,8 @@ public final class BoatDeckScreen implements Screen {
             bayCanvas = bayCanvas(deck);
             built.canvases().set(bayElement, bayCanvas);
             ghostElement = candidate.requireElement("boat-drag-ghost");
+            storesElement = candidate.requireElement("boat-catalog");
+            returnDropNote = candidate.requireElement("boat-drag-drop-note");
             built.canvases().set(ghostElement, dragGhost);
             specSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built))
                     .heldWhile(boardHover::held);
@@ -275,40 +280,65 @@ public final class BoatDeckScreen implements Screen {
         BoatDeckSpecSheets.bindCatalogRows(specSheets, instance, rows);
         for (BoatDeckViewModel.CatalogRow row : rows) {
             UiElement card = instance.requireElement(row.id());
-            card.onPointerDown(event -> {
-                if (event.button() == PointerButton.PRIMARY) drag.begin(event, row);
-            });
+            card.onPointerDown(event -> pickUp(event, row));
             card.onPointerMove(this::carry);
             card.onPointerUp(this::letGo);
         }
     }
 
+    /** Picks a part up out of stores; a card with nothing to carry only offers its BUY. */
+    private void pickUp(UiPointerEvent event, BoatDeckViewModel.CatalogRow row) {
+        if (event.button() != PointerButton.PRIMARY) return;
+        // A press on the card's own BUY button is that button's click, not a pick-up.
+        for (UiElement e = event.target(); e != null && e != event.currentTarget(); e = e.parent()) {
+            if (e.clickable()) return;
+        }
+        if (!viewModel.canPickUp(row.kind(), row.itemId())) return;
+        drag.begin(event, new Carried(row.kind(), row.itemId(), null));
+    }
+
     private void carry(UiPointerEvent event) {
         if (!drag.move(event)) return;
-        BoatDeckViewModel.CatalogRow carried = drag.carried();
+        Carried carried = drag.carried();
         dragGhost.show((c, x, y) -> BoatHardware.drawCarried(c, carried.kind(), carried.itemId(), x, y),
                 event.x(), event.y());
         invalidateGhost();
         CanvasPoint point = canvasPoint(event);
         String socket = point == null ? null : bayCanvas.slotAt(point.x(), point.y());
-        bayCanvas.previewDrop(socket, socket != null
-                && viewModel.canDropOnSocket(carried.kind(), carried.itemId(), socket));
+        if (socket != null && socket.equals(carried.source())) socket = null;
+        bayCanvas.previewDrop(socket, socket != null && (carried.source() == null
+                ? viewModel.canDropOnSocket(carried.kind(), carried.itemId(), socket)
+                : viewModel.canMoveBetweenSockets(carried.source(), socket)));
+        returnDropNote.classed("drop-active", carried.source() != null && overStores(event));
         invalidateBay();
     }
 
     private void letGo(UiPointerEvent event) {
-        BoatDeckViewModel.CatalogRow carried = drag.carried();
+        Carried carried = drag.carried();
         boolean moved = drag.moved();
         drag.end(event);
         if (carried == null) return;
         dragGhost.clear();
         invalidateGhost();
         bayCanvas.clearDropPreview();
+        returnDropNote.removeClass("drop-active");
         CanvasPoint point = canvasPoint(event);
         String socket = point == null ? null : bayCanvas.slotAt(point.x(), point.y());
-        if (moved && socket != null) viewModel.dropOnSocket(carried.kind(), carried.itemId(), socket);
+        if (!moved) {
+            if (carried.source() != null) viewModel.selectDollSlot(carried.source());
+        } else if (carried.source() == null) {
+            if (socket != null) viewModel.dropOnSocket(carried.kind(), carried.itemId(), socket);
+        } else if (overStores(event)) {
+            viewModel.returnToStores(carried.source());
+        } else if (socket != null && !socket.equals(carried.source())) {
+            viewModel.moveBetweenSockets(carried.source(), socket);
+        }
         invalidateBay();
         event.preventDefault();
+    }
+
+    private boolean overStores(UiPointerEvent event) {
+        return storesElement != null && storesElement.box().borderBox().contains(event.x(), event.y());
     }
 
     private void invalidateGhost() {
@@ -402,6 +432,10 @@ public final class BoatDeckScreen implements Screen {
     }
 
     private void pointAtBerth(UiPointerEvent event) {
+        if (drag.active()) {
+            carry(event);
+            return;
+        }
         CanvasPoint point = canvasPoint(event);
         if (point == null) return;
         bayCanvas.pointAt(point.x(), point.y());
@@ -410,13 +444,23 @@ public final class BoatDeckScreen implements Screen {
 
     private void pressBerth(UiPointerEvent event) {
         CanvasPoint point = canvasPoint(event);
-        if (point == null || bayCanvas.slotAt(point.x(), point.y()) == null
-                && bayCanvas.berthAt(point.x(), point.y()) < 0) return;
+        if (point == null) return;
+        // A part comes off the board as it goes on: lifted by the pointer and dropped on stores.
+        String slot = bayCanvas.slotAt(point.x(), point.y());
+        if (slot != null && event.button() == PointerButton.PRIMARY && viewModel.canLiftOff(slot)) {
+            drag.begin(event, new Carried(viewModel.kindOf(slot), viewModel.installedIn(slot), slot));
+            return;
+        }
+        if (slot == null && bayCanvas.berthAt(point.x(), point.y()) < 0) return;
         event.capturePointer();
         event.preventDefault();
     }
 
     private void activateBerth(UiPointerEvent event) {
+        if (drag.active()) {
+            letGo(event);
+            return;
+        }
         CanvasPoint point = canvasPoint(event);
         event.releasePointerCapture();
         if (point == null) return;
@@ -563,6 +607,8 @@ public final class BoatDeckScreen implements Screen {
         bayCanvas = null;
         bayElement = null;
         ghostElement = null;
+        storesElement = null;
+        returnDropNote = null;
         if (specSheets != null) specSheets.clear();
         specSheets = null;
         drag.cancel();
@@ -571,4 +617,7 @@ public final class BoatDeckScreen implements Screen {
     }
 
     private record CanvasPoint(float x, float y) { }
+
+    /** A part on the pointer, and the socket it was lifted off, or null when it came out of stores. */
+    private record Carried(BoatDoll.Kind kind, String itemId, String source) { }
 }

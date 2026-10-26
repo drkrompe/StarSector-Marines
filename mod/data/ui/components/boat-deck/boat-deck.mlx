@@ -256,6 +256,7 @@
   .catalog-kicker { width: 0px; flex-grow: 1; }
   .catalog-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; padding: 4px; overflow: scroll; background-color: #0d1214; border-width: 1px; border-color: #050809; }
   .drag-drop-note { flex-direction: column; width: 100%; height: 42px; padding: 4px; gap: 1px; }
+  .drag-drop-note.drop-active { background-color: #203a29; border-color: #78d494; border-width: 2px; }
   #boat-drag-drop-title, #boat-drag-drop-copy { height: 16px; }
   .performance-card { flex-direction: column; width: 100%; height: 160px; padding: 5px 6px; gap: 3px; border-width: 1px; }
   .specs-header { flex-direction: row; align-items: center; width: 100%; height: 16px; }

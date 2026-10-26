@@ -405,10 +405,11 @@ the whole plateau. A ground sweep now reads past higher ground only within its
 radius.
 
 `MechAttachmentScene` (`mech-attachment`) attaches a Brawler Hound and a Long-Range Warden to a four-man squad
-attack-moving east on open ground (`mechs-nouns.md`, attachment). Its verdicts are mechanics: neither attachment
-ends on its own, the Hound's mean place is ahead of the squad on its advance and the Warden's behind, neither
-strays past fourteen cells from the squad's centre, and a move given to the Hound alone releases it and keeps
-the Warden. The leads, the reach and how far the squad got are readings.
+attack-moving east on open ground that halts in sight of a defender post and trades fire from range
+(`mechs-nouns.md`, attachment). Its verdicts are mechanics: neither attachment ends on its own, neither mech
+leads the squad on the march, once in contact (after the mechs have had time to close) the Hound's mean place
+is ahead of the squad on its axis and the Warden's behind, and a move given to the Hound alone releases it and
+keeps the Warden. How far the mechs trail on the march, when contact came and the leads are readings.
 
 **Its first run is why an anchor paces its mechs.** Without it the squad walked at 1.7 cells a second, the
 Hound at 1.5 and the Warden at 1.3: every slot was right and both mechs trailed, the Hound by nine cells

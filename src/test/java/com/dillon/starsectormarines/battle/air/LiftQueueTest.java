@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.air;
 
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.squad.Squad;
@@ -7,6 +8,9 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import org.junit.jupiter.api.Test;
+
+import java.util.Arrays;
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -90,5 +94,44 @@ class LiftQueueTest {
         assertEquals(ROUTE[0], mission.entryX);
         assertEquals(ROUTE[3], mission.exitY);
         assertSame(MechVariant.HOUND, mission.mechVariant);
+    }
+
+    @Test
+    void aStandbyCraftTakesTheLastSquadSortieOfTheCraftOwingMostAndSplitsWhatItCannotSeat() {
+        ShuttleMission owesOne = ferryCraft(2, 10f);
+        ShuttleMission owesTwo = ferryCraft(3, 30f);
+        ShuttleMission valkyrie = new ShuttleMission(0f, 0f, 0f, 0f, 0f, 0f, 0f, 1);
+        valkyrie.ferry = true;
+        LiftQueue.standBy(valkyrie, 0f);
+
+        assertSame(owesTwo, LiftQueue.squadDonor(List.of(owesOne, owesTwo, valkyrie), 4));
+        LiftQueue.takeLastSortie(valkyrie, owesTwo, 4);
+
+        assertFalse(valkyrie.standby);
+        assertSame(InfantryPayload.INSTANCE, valkyrie.payload);
+        assertEquals(4, valkyrie.marinesRemaining, "four seats of a six-marine load");
+        assertEquals(30f, valkyrie.lzX, "flown to the owing craft's landing ground");
+        assertEquals(5, valkyrie.landingAreaId);
+        assertEquals(3, owesTwo.totalCycles, "the split load stays owed");
+        assertEquals(2, owesTwo.cycleLoadouts[2].length);
+
+        LiftQueue.takeLastSortie(valkyrie, owesTwo, 4);
+        assertEquals(2, valkyrie.marinesRemaining);
+        assertEquals(2, owesTwo.totalCycles, "a load taken whole leaves the craft's sorties");
+        assertNull(LiftQueue.squadDonor(List.of(ferryCraft(1, 0f)), 4), "a craft on its last sortie owes none");
+    }
+
+    /** A ferry craft on its first of {@code cycles} sorties, six marines each, into landing area 5. */
+    private static ShuttleMission ferryCraft(int cycles, float lzX) {
+        ShuttleMission mission = new ShuttleMission(lzX, 20f, 0f, 0f, 0f, 0f, 0f, 6);
+        mission.ferry = true;
+        mission.totalCycles = cycles;
+        mission.landingAreaId = 5;
+        mission.cycleLoadouts = new MarineLoadout[cycles][];
+        for (int c = 0; c < cycles; c++) {
+            mission.cycleLoadouts[c] = new MarineLoadout[6];
+            Arrays.fill(mission.cycleLoadouts[c], MarineLoadout.COMBATANT);
+        }
+        return mission;
     }
 }

@@ -9,6 +9,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -39,6 +40,15 @@ import java.util.HashSet;
  * matches.
  */
 public final class BoatDeck implements Serializable {
+
+    /**
+     * Boat parts in stores, by {@link BoatFitting} or {@link BoatGun} id: built
+     * by the workshop, or taken off a boat. The company's, not a boat's, so a
+     * spare outlives the boat it came off and moves with the company between
+     * ships. A yard-standard part is never stored; every socket has its own
+     * for nothing. Null on a save from before spares, which held none.
+     */
+    private Map<String, Integer> spares = new HashMap<>();
 
     /** The ship whose berths these boats are currently standing in. */
     private String shipId;
@@ -243,6 +253,31 @@ public final class BoatDeck implements Serializable {
         return boat;
     }
 
+    /** How many of one part are in stores. */
+    public int spares(String partId) {
+        if (partId == null || spares == null) return 0;
+        return spares.getOrDefault(partId, 0);
+    }
+
+    /**
+     * Puts one part into stores. Package-private for the reason
+     * {@link CampaignBoat#install} is: the workshop decides what is a spare.
+     */
+    void stow(String partId) {
+        if (partId == null) return;
+        if (spares == null) spares = new HashMap<>();
+        spares.merge(partId, 1, Integer::sum);
+    }
+
+    /** Takes one part out of stores; false, and nothing taken, when there is none. */
+    boolean take(String partId) {
+        int held = spares(partId);
+        if (held <= 0) return false;
+        if (held == 1) spares.remove(partId);
+        else spares.put(partId, held - 1);
+        return true;
+    }
+
     /** Every berth in order; an entry is null for a berth with nothing in it. */
     public List<CampaignBoat> boats() {
         return Collections.unmodifiableList(berths);
@@ -336,6 +371,7 @@ public final class BoatDeck implements Serializable {
     private Object readResolve() {
         if (berths == null) berths = new ArrayList<>();
         if (leftBehind == null) leftBehind = LeftBehind.NONE;
+        if (spares == null) spares = new HashMap<>();
         // A deck saved before the pattern was persisted still says what it
         // carries: every boat on it is of the one pattern reconcile put there.
         // Recovered rather than left null so an old save's berths can be built

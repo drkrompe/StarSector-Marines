@@ -5,7 +5,11 @@ package com.dillon.starsectormarines.battle.mech;
  * ({@code mechs-nouns.md}, attachment). Pure geometry: the caller supplies the squad's centre and its
  * axis — the way it faces a threat, or else the way it is going — and gets the ideal point back.
  *
- * <p>Brawler leads furthest ahead along the axis, Frontline Support (Tank) screens just ahead of the
+ * <p><b>Doctrine stands only in a fight.</b> Out of contact the squad is walking where the player sent
+ * it, so every follower simply walks with it: {@link #MARCH_DEPTH} behind its centre, filed across the
+ * axis by its place among all the squad's followers. In contact each takes its doctrine's place.
+ *
+ * <p>In contact, Brawler leads furthest ahead along the axis, Frontline Support (Tank) screens just ahead of the
  * men, Balanced walks alongside, and Long-Range Support shadows from behind. Several followers of one
  * role spread across the axis by their rank among that role's followers, so two Brawlers do not
  * stand on one cell. With no axis yet, a follower keeps its own bearing from the squad at its role's
@@ -23,19 +27,23 @@ public final class MechAttachmentSlot {
     static final float SHADOW_DEPTH = 7f;
     /** Cells between followers of one role, across the axis. */
     static final float FILE_SPACING = 3f;
+    /** Cells behind the squad's centre a follower walks at out of contact. */
+    static final float MARCH_DEPTH = 3f;
 
     private MechAttachmentSlot() {}
 
     /**
-     * The ideal point for a follower of {@code role} of rank {@code rank} among its role's followers.
+     * The ideal point for a follower of {@code role}: in contact, by its {@code rank} among its role's
+     * followers; out of contact, walking with the squad by its {@code marchRank} among all of them.
      *
      * @param axisX the squad's axis as a unit vector, or {@code NaN} for none
      * @param mechX where the follower stands, read only when there is no axis
      */
-    public static float[] point(MechRole role, int rank, float centreX, float centreY,
+    public static float[] point(MechRole role, int rank, int marchRank, boolean inContact,
+                                float centreX, float centreY,
                                 float axisX, float axisY, float mechX, float mechY) {
-        float forward = forward(role);
-        float lateral = lateral(role, rank);
+        float forward = inContact ? forward(role) : -MARCH_DEPTH;
+        float lateral = inContact ? lateral(role, rank) : lateral(MechRole.ASSAULT, marchRank);
         if (Float.isNaN(axisX) || Float.isNaN(axisY)) {
             float dx = mechX - centreX;
             float dy = mechY - centreY;

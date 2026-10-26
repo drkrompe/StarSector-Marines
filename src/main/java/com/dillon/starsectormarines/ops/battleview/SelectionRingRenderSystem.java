@@ -65,6 +65,12 @@ public final class SelectionRingRenderSystem implements RenderSystem {
             if (visibility == FogOfWarService.VIS_HIDDEN) continue;
             float x = sim.world().renderX(unit), y = sim.world().renderY(unit);
             float radius = Math.max(0.46f, sim.getRoster().radius(unit) + 0.12f);
+            // A mech's chassis and arms draw well past its body radius; ring the silhouette, or the
+            // chassis covers its own ring.
+            if (sim.world().mechLoadout(unit) != null) {
+                radius = Math.max(radius, MECH_RING_HULLS
+                        * UnitRenderService.layeredMechHullWidth(1f, sim.getRoster().renderScale(unit)) + 0.15f);
+            }
             if (!view.visible(x, y, radius * 2f)) continue;
             float alpha = ctx.alphaMult * (selected ? 0.9f : 0.55f);
             if (visibility == FogOfWarService.VIS_FADING) alpha *= sim.getFogOfWar().getFadeAlpha(slot);
@@ -84,6 +90,9 @@ public final class SelectionRingRenderSystem implements RenderSystem {
         }
         if (attachments.hasAttachments()) tethers(ctx, attachments, view, out);
     }
+
+    /** Ring radius of a mech in hull widths: half the roughly 1.6-hull silhouette its arms overhang to. */
+    private static final float MECH_RING_HULLS = 0.8f;
 
     /** Ring radius of a group-selected vehicle, in cells; its click pick radius. */
     private static final float VEHICLE_RING_CELLS = 1.5f;

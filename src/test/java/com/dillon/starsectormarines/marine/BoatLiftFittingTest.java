@@ -63,6 +63,7 @@ class BoatLiftFittingTest {
         BoatWorkshop workshop = new BoatWorkshop(deck, hold);
         String boatId = deck.airworthy().get(0).id();
 
+        assertEquals(BoatWorkshop.Status.PART_FABRICATED, workshop.fabricatePart("lift_cradle").status());
         assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boatId, "lift_cradle").status());
 
         FittedBoat frozen = deck.boatById(boatId).freezeForDeployment();
@@ -82,5 +83,6 @@ class BoatLiftFittingTest {
         assertEquals(BoatWorkshop.Status.INCOMPATIBLE_FITTING,
                 workshop.fit(boatId, "lift_cradle").status());
         assertEquals(100, hold.available(Commodities.SUPPLIES));
+        assertEquals(0, deck.spares("lift_cradle"));
     }
 }

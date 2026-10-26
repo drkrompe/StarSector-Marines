@@ -101,13 +101,22 @@ shared mapping instead of assigning paths independently in each screen.
   frozen frame.
 - **Fitting** — installed work in one of a boat's **slots**: plating, which is
   hull; drive, which is speed and acceleration; and lift, the hold, where a
-  cradle trades every seat for a machine lift rating (`air-nouns.md`, Lift).
+  cradle adds a machine lift rating and keeps the seats (`air-nouns.md`, Lift).
   Each slot has a standard fitting every boat is built with and upgrade tiers
   for compatible airframes; a boat saved before a slot existed reads as standard
-  there. Only bus-class boats offer the lift slot at all.
-- **Boat workshop** — the atomic cargo-backed authority that installs a fitting
-  and builds a boat into an empty berth. It shares the fleet's hold with the
-  Mech Lab rather than owning a second one.
+  there. Only bus-class boats offer the lift slot at all. Planned: six refit
+  axes built around the Hermes, replacing Secondhand Wings (`boat-refit-axes.md`).
+- **Boat spare** — a fitting or door gun in the boat deck's **stores**, counted per
+  part. A spare is built from its bill, or comes off a boat; fitting one takes it
+  out of stores. Stores are the company's, not a boat's, so a part moves between
+  boats through them and survives a change of ship. A yard-standard part is never
+  stored: every socket has its own for nothing. A part fitted to a lost or
+  left-behind boat goes with her.
+- **Boat workshop** — the atomic authority over the boats and their stores: it
+  builds a spare from the fleet's hold, fits a spare and stores what came off,
+  strips a part back to stores, moves a gun between hardpoints, and builds a boat
+  into an empty berth. Only a build spends the hold, which it shares with the Mech
+  Lab rather than owning a second one.
 - **Lost boat** — a campaign boat whose frozen frame was shot down on a mission.
   It is struck from its berth and never comes back. `air-nouns.md` owns the
   battle-side ledger it is read from.
@@ -600,12 +609,15 @@ wedge, and the gun fitted there stands on it as its turret, the same sprite at t
 same size it lifts with. A socket, the selected-mount card and the spot it names on
 the boat are one selection.
 
-**Fitting is drag-only, as in the Mech Lab.** The stores list every part the boat
-can take, narrowed by a filter strip of her socket kinds (selecting a socket sets
-it); a card carries its tier, effect, footprint and bill but no fit button. Dragging
-a card onto a doll socket lights it green where the part fits and is affordable,
-red where it does not, and dropping commits the same atomic workshop command a fit
-always ran. The stores cards, filter pills, meters and selected-mount card are the
+**Fitting is drag-only, and parts are kept as the Mech Lab keeps them.** The stores
+list every part the boat can take, narrowed by a filter strip of her socket kinds
+(selecting a socket sets it); a card carries its tier, spare count, effect and
+footprint. A card with no spare is greyed with its bill and a BUY that builds one
+into stores. A spare, or a socket's free yard-standard part, is dragged onto a doll
+socket, which lights green where it fits and red where it does not. A fitted part
+is lifted off the doll the same way: dropped on the stores it goes back as a spare,
+and a door gun dropped on another hardpoint moves there. What a fit displaces goes
+into stores. The stores cards, filter pills, meters and selected-mount card are the
 shared **fitting kit** (`FittingCard`, `FittingFilterPill`, `FittingMeter`,
 `FittingSlotCard`, `PointerDrag`, `FittingDragGhost`) that the Mech Lab is built on
 too, so the two rooms draw one vocabulary rather than two copies of it. Selecting the already-open `BOATS` route

@@ -38,17 +38,19 @@ class WorkshopToolingTest {
         var model = new BoatDeckViewModel(new Reactor(), deck, resources, "Second Wind");
         model.selectBoatAction(0).run();
         var row = model.catalogRows().get().stream().filter(r -> r.id().endsWith("reinforced_plating")).findFirst().orElseThrow();
-        assertTrue(model.canDropOnSocket(row.kind(), row.itemId(), BoatDoll.slotKey(BoatFittingSlot.PLATING)));
         assertTrue(row.materials().stream().anyMatch(r -> r.id().endsWith("supplies") && r.required() == 8 && r.shortfall() == 0));
         equipped[0] = false;
         // A stale favorable preview cannot underpay after moving hull.
-        model.dropOnSocket(row.kind(), row.itemId(), BoatDoll.slotKey(BoatFittingSlot.PLATING));
+        row.card().action().run();
         assertEquals(8, stock.get("supplies"));
-        assertSame(BoatFitting.STANDARD_PLATING, deck.boats().get(0).plating());
+        assertEquals(0, deck.spares(BoatFitting.REINFORCED_PLATING.id()));
         equipped[0] = true;
-        model.dropOnSocket(row.kind(), row.itemId(), BoatDoll.slotKey(BoatFittingSlot.PLATING));
+        row.card().action().run();
         assertEquals(0, stock.get("supplies"));
         assertEquals(0, stock.get("metals"));
+        assertEquals(1, deck.spares(BoatFitting.REINFORCED_PLATING.id()));
+        assertTrue(model.canDropOnSocket(row.kind(), row.itemId(), BoatDoll.slotKey(BoatFittingSlot.PLATING)));
+        model.dropOnSocket(row.kind(), row.itemId(), BoatDoll.slotKey(BoatFittingSlot.PLATING));
         assertSame(BoatFitting.REINFORCED_PLATING, deck.boats().get(0).plating());
     }
 }

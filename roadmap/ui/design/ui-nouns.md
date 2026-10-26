@@ -612,6 +612,8 @@ friendly infantry squad attaches them to it; the cursor reads ATTACH.
 
 Selected player members wear green ground circles, the exact primary wears
 gold, and hovering a player member previews its squad with lighter circles. A
+mech's circle rings its drawn silhouette, not its body radius, so the chassis
+does not cover it. A
 Mech attached to a selected or hovered squad is circled with it, and a faint
 tether joins each attached Mech to its squad's centre while either is selected
 or hovered. Vehicles in a group selection wear the same circles.
@@ -686,7 +688,9 @@ resolved reachable destination remains simulation-owned without a persistent
 destination-cell overlay. For a lone Mech or vehicle, crossing the pointer threshold
 gives the move a held heading instead: it goes where the drag began and faces the
 way the drag went. For anything more it draws a **group line**: every recipient
-holds its own consecutive stretch of the line in recipient order, an infantry
+holds its own consecutive stretch of the line in recipient order, as long as its
+width — a squad one marine's share per live marine, a Mech or vehicle two, since it
+is one unit however broad its chassis (`SelectionOrders.lineWidth`) — an infantry
 squad as a frontage (see `ai-nouns.md`, occupy) and a Mech or vehicle at its
 stretch's middle, facing the stretch's front; each stretch faces as an infantry
 line does, toward the threat its squad believes in, else away from where the
