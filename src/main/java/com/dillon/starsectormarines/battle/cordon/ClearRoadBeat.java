@@ -144,6 +144,11 @@ final class ClearRoadBeat extends CordonBeat {
     /** The wreck's cells as laid, for evidence. */
     List<int[]> wreck() { return wreck; }
 
+    /** The dozer, or {@code 0} before it is set down; and whether the road through the wreck is open. */
+    long dozer() { return dozer; }
+
+    boolean cleared() { return cleared; }
+
     @Override
     protected Status step(BattleSimulation sim, int tick) {
         if (wreckIndex < 0 || road.isEmpty()) return Status.LAPSED;
