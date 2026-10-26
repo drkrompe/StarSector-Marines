@@ -13,9 +13,11 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.EnumMap;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * The swarm director (`colony-breach-nouns.md`, Swarm director): maintains
@@ -103,6 +105,16 @@ public final class SwarmReinforcementSystem {
         }
     }
 
+    /**
+     * Whether each bore surges only into its own hold (`colony-breach-nouns.md`, Hold): its own living bodies by
+     * strain, capped by its tier. {@code -Dbattle.swarm.boreHold=false} is the control, every bore drawing strains
+     * by weight against the shared field target alone. Temporary: remove with the losing arm once the owner picks
+     * between the hold, a total per bore, and no cap (the bore-hold picks card).
+     */
+    public static boolean boreHoldByDefault() {
+        return Boolean.parseBoolean(System.getProperty("battle.swarm.boreHold", "true"));
+    }
+
     /** Whether bodies are born at a growth stage. {@code -Dbattle.swarm.growthStages=false} is the control: all adults. */
     public static boolean growthStagesByDefault() {
         return Boolean.parseBoolean(System.getProperty("battle.swarm.growthStages", "true"));
@@ -132,11 +144,13 @@ public final class SwarmReinforcementSystem {
     private final List<Release> releases = new ArrayList<>();
     private List<SwarmPressureSnapshot.WaveIntent> surgeWave = new ArrayList<>();
     private final boolean growthStages;
+    private final boolean boreHold;
 
     public SwarmReinforcementSystem(CivilianEvacuationTracker tracker) {
         if (tracker == null) throw new IllegalArgumentException("tracker is required");
         this.tracker = tracker;
         this.growthStages = growthStagesByDefault();
+        this.boreHold = boreHoldByDefault();
     }
 
     /** Configures one rescue battle; later calls fail closed. */
@@ -311,6 +325,15 @@ public final class SwarmReinforcementSystem {
         }
         for (SwarmBore bore : order) {
             if (!bore.surgeDue(tick) || releasing(bore)) continue;
+            bore.forgetDead(body -> sim.resolveUnit(body) != 0L && sim.world().isAlive(body));
+            // A bore surges into its own hold: it waits until half a pulse of its own bodies has died, unless it owes
+            // its Matriarch, who is outside the hold.
+            boolean owed = BoreStrainTable.owesMatriarch(bore.mother(), bore.tier(), bore.matriarchReleased());
+            if (boreHold && !owed
+                    && bore.freeHold() < Math.max(1, (int) Math.ceil(bore.tier().surgeSize * SURGE_MIN_FIT))) {
+                bore.deferSurge(tick + SURGE_RECHECK_TICKS);
+                continue;
+            }
             float headroom = boreTarget - live - inFlight;
             int size = bore.surgeSize();
             // Held back to a share, a big bore's pulse would never fit and only the small bores would
@@ -320,7 +343,8 @@ public final class SwarmReinforcementSystem {
                 bore.deferSurge(tick + SURGE_RECHECK_TICKS);
                 continue;
             }
-            List<Planned> planned = plan(bore, bore.surges(), Math.min(size, headroom), bombardAllowed(sim, bore));
+            List<Planned> planned = plan(bore, bore.surges(), Math.min(size, headroom), bombardAllowed(sim, bore),
+                    boreHold);
             float bodies = 0f;
             for (Planned body : planned) bodies += body.weight();
             if (!surged) surgeWave = new ArrayList<>();
@@ -375,7 +399,7 @@ public final class SwarmReinforcementSystem {
     public boolean surgeScripted(BattleSimulation sim, SwarmBore bore, float budget) {
         if (bore == null || bore.collapsed() || releasing(bore) || !(budget > 0f)) return false;
         int tick = sim.getSimTickIndex();
-        List<Planned> planned = plan(bore, bore.surges(), budget, bombardAllowed(sim, bore));
+        List<Planned> planned = plan(bore, bore.surges(), budget, bombardAllowed(sim, bore), false);
         releases.add(new Release(bore, bore.surges(), planned, tick));
         bore.surged(tick, 0f);
         bore.hold();
@@ -436,21 +460,30 @@ public final class SwarmReinforcementSystem {
      * counts weight, so a fed bore sends fewer, older bodies). A bore that owes
      * its Matriarch sends her first; otherwise the pulse's first elder, its pack
      * leader, is moved to the head of the stream. It may draw one Bombard only when {@code bombardAllowed}
-     * ({@link BombardQuota}).
+     * ({@link BombardQuota}). When {@code held}, a strain whose free hold the surge has filled is out of the draw,
+     * and the surge ends early once every strain is (`colony-breach-nouns.md`, Hold).
      */
-    List<Planned> plan(SwarmBore bore, int surgeIndex, float budget, boolean bombardAllowed) {
+    List<Planned> plan(SwarmBore bore, int surgeIndex, float budget, boolean bombardAllowed, boolean held) {
         BoreTier tier = bore.tier();
         boolean owed = BoreStrainTable.owesMatriarch(bore.mother(), tier, bore.matriarchReleased());
         int[] mix = SwarmAgeMix.weights(tier, bore.biomassFed());
-        boolean bombardFree = bombardAllowed;
+        Set<BoreStrainTable.Slot> out = EnumSet.noneOf(BoreStrainTable.Slot.class);
+        if (!bombardAllowed) out.add(BoreStrainTable.Slot.BOMBARD);
+        int[] free = new int[BoreStrainTable.Slot.values().length];
+        for (BoreStrainTable.Slot slot : BoreStrainTable.Slot.values()) {
+            free[slot.ordinal()] = bore.freeHold(slot);
+            if (held && free[slot.ordinal()] == 0) out.add(slot);
+        }
         List<Planned> bodies = new ArrayList<>();
         float weight = 0f;
         for (int i = 0; weight < budget; i++) {
             long roll = SwarmBores.mix(seed ^ (bore.number() * 0x9E3779B97F4A7C15L)
                     ^ ((long) surgeIndex << 20) ^ i);
             boolean matriarch = owed && i == 0;
-            BoreStrainTable.Slot slot = BoreStrainTable.pick(tier, roll, matriarch, bombardFree);
-            if (slot == BoreStrainTable.Slot.BOMBARD) bombardFree = false;
+            BoreStrainTable.Slot slot = BoreStrainTable.pick(tier, roll, matriarch, out);
+            if (slot == null) break;
+            if (slot == BoreStrainTable.Slot.BOMBARD) out.add(slot);
+            if (held && !matriarch && --free[slot.ordinal()] == 0) out.add(slot);
             SwarmStage stage = !growthStages ? SwarmStage.ADULT
                     : matriarch ? SwarmStageStats.matriarchStage((int) bore.biomassFed())
                     : SwarmAgeMix.pick(mix, SwarmAgeMix.roll(seed, bore.number(), surgeIndex, i));
@@ -545,6 +578,7 @@ public final class SwarmReinforcementSystem {
         }
         release.released++;
         release.bore.released(planned.stage());
+        if (!planned.matriarch()) bore.adopt(slot, body);
         if (release.scavengers && slot.unitType == UnitType.SWARM_RUNNER) sim.swarmHarvest().markScavenger(body);
         if (release.foragers && slot.unitType == UnitType.SWARM_RUNNER) sim.swarmHarvest().markForager(body);
         if (planned.matriarch()) bores.matriarchEmerged(bore, tick, body);
@@ -761,6 +795,9 @@ public final class SwarmReinforcementSystem {
                 integrity = (sim.world().hp(id) + sim.world().armor(id))
                         / (structure.maxStructure + structure.armorCapacity);
             }
+            bore.forgetDead(body -> sim.resolveUnit(body) != 0L && sim.world().isAlive(body));
+            int[] held = new int[BoreStrainTable.Slot.values().length];
+            for (BoreStrainTable.Slot slot : BoreStrainTable.Slot.values()) held[slot.ordinal()] = bore.held(slot);
             states.add(new SwarmPressureSnapshot.BoreState(bore.beatKey(), bore.mother(), id,
                     bore.x(), bore.y(), bore.tier(), alive, integrity, bore.growth(),
                     bore.biomassFed(), bore.feeds(), bore.surges(), bore.bodiesSpawned(),
@@ -768,7 +805,7 @@ public final class SwarmReinforcementSystem {
                     SwarmPressureSnapshot.StageCounts.of(growthStages
                             ? SwarmAgeMix.weights(bore.tier(), bore.biomassFed()) : new int[]{0, 100, 0}),
                     new SwarmPressureSnapshot.StageCounts(bore.releasedAt(SwarmStage.WHELP),
-                            bore.releasedAt(SwarmStage.ADULT), bore.releasedAt(SwarmStage.ELDER))));
+                            bore.releasedAt(SwarmStage.ADULT), bore.releasedAt(SwarmStage.ELDER)), held));
         }
         return states;
     }
