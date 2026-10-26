@@ -532,6 +532,7 @@ def shot(L, kf):
 
     cam, ground = L['scene'].camera, L['ground']
     t_still = spec['camera'].get('t', t_key if t_key is not None else ts)
+    t_still = spec.get('ground_t', t_still)     # a take carried over a cut turns the planet from its first shot's time
 
     def per_frame(f, t):
         """The camera's move (motion.camera) and the planet turning under the co-moving frame."""
