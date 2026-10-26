@@ -2819,7 +2819,7 @@ public final class BattleSetup {
                 }
                 // A side objective beside the rescue, rolled from what the colony's set pieces can
                 // host, each under its own bore's pressure (set-piece-blocks.md).
-                if (colony) ColonyBreachObjectives.install(sim, map, battleSeed);
+                if (colony) ColonyBreachObjectives.install(sim, map, payload.placement, battleSeed);
             }
             return sim;
         }

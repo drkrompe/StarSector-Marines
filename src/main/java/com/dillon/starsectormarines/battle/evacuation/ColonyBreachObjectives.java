@@ -96,7 +96,8 @@ public final class ColonyBreachObjectives {
      * parks what it needs as the board starts), and installs and starts the board on the battle; null where the
      * colony can host nothing, and then no objective is offered.
      */
-    public static ObjectiveBoard install(BattleSimulation sim, MapResult map, long battleSeed) {
+    public static ObjectiveBoard install(BattleSimulation sim, MapResult map, CivilianEvacuationPlacement placement,
+                                         long battleSeed) {
         List<OptionalObjective> pool = pool(sim, map, battleSeed);
         String forced = System.getProperty(FORCE_PROPERTY);
         List<OptionalObjective> rolled = forced != null && !forced.isBlank() ? forced(forced, pool)
@@ -106,10 +107,13 @@ public final class ColonyBreachObjectives {
                 ColonyBreachSequence.BEAT_PREFIX));
         sim.installOptionalObjectives(board);
         board.start(sim.getSimTickIndex());
-        // The objective's pressure is its own bore's: the breach's bores keep clear of its set piece.
+        // The objective's pressure is its own bore's: the breach's bores keep clear of its set piece, and no
+        // runner of the opening swarm starts nearer it than that bore can open.
         for (OptionalObjective o : rolled) {
             int[] centre = centre(board.runtime(o.key()));
-            if (centre != null) sim.clearColonyBreachOf(centre[0], centre[1], BREACH_CLEARANCE);
+            if (centre == null) continue;
+            sim.clearColonyBreachOf(centre[0], centre[1], BREACH_CLEARANCE);
+            SwarmDefenseRoster.clearOf(sim, placement, centre[0], centre[1], BorePressure.SITE_MIN, battleSeed);
         }
         return board;
     }

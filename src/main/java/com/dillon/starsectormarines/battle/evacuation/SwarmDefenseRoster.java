@@ -63,6 +63,60 @@ public final class SwarmDefenseRoster {
         if (sim == null || placement == null) return null;
         int count = Math.max(0, requestedCount);
         NavigationGrid grid = sim.getGrid();
+        List<Integer> candidates = candidates(sim, placement, minimumShelterDistance, seed);
+        if (candidates.size() < count) return null;
+
+        long[] ids = new long[count];
+        for (int i = 0; i < count; i++) {
+            int cell = candidates.get(i);
+            int x = cell % grid.getWidth();
+            int y = cell / grid.getWidth();
+            ids[i] = sim.spawn(new EntitySpec(
+                    "Swarm Runner " + (i + 1), Faction.DEFENDER,
+                    UnitType.SWARM_RUNNER, x, y)
+                    .role(UnitRole.SWARM_PRESSURE));
+        }
+        return new SwarmDefenseRoster(ids);
+    }
+
+    /**
+     * Moves every runner standing within {@code radius} cells of ({@code x}, {@code y}) at setup, a side objective's
+     * set piece whose pressure is its own bore's, to the first cell the production roster would take outside that
+     * ring: nothing of the opening swarm stands in the yard when the battle starts.
+     */
+    public static void clearOf(BattleSimulation sim, CivilianEvacuationPlacement placement, int x, int y, int radius,
+                               long seed) {
+        List<Integer> free = candidates(sim, placement, PRODUCTION_SHELTER_APPROACH_DISTANCE, seed);
+        int width = sim.getGrid().getWidth();
+        int next = 0;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long body = sim.liveUnitAt(i);
+            if (sim.role().role(body) != UnitRole.SWARM_PRESSURE
+                    || !within(sim.world().x(body), sim.world().y(body), x, y, radius)) continue;
+            next = outside(free, width, x, y, radius, next);
+            if (next < 0) return;
+            int cell = free.get(next++);
+            sim.world().setCellPos(body, cell % width, cell / width);
+        }
+    }
+
+    /** The index of the first of {@code cells}, from {@code from}, outside the ring; -1 when none is left. */
+    static int outside(List<Integer> cells, int width, int x, int y, int radius, int from) {
+        for (int i = from; i < cells.size(); i++) {
+            int cell = cells.get(i);
+            if (!within(cell % width + .5f, cell / width + .5f, x, y, radius)) return i;
+        }
+        return -1;
+    }
+
+    private static boolean within(float px, float py, int x, int y, int radius) {
+        return Math.hypot(px - (x + .5f), py - (y + .5f)) < radius;
+    }
+
+    /** Every cell a runner may start on, in the roster's seeded order. */
+    private static List<Integer> candidates(BattleSimulation sim, CivilianEvacuationPlacement placement,
+                                            int minimumShelterDistance, long seed) {
+        NavigationGrid grid = sim.getGrid();
         boolean[] reachable = reachableFromShelter(grid, placement);
         boolean[] occupied = occupiedCells(sim, grid);
         List<CivilianRedoubt> redoubts = sim.getCivilianRedoubts();
@@ -84,19 +138,7 @@ public final class SwarmDefenseRoster {
         candidates.sort(Comparator
                 .comparingLong((Integer cell) -> priority(seed, cell))
                 .thenComparingInt(Integer::intValue));
-        if (candidates.size() < count) return null;
-
-        long[] ids = new long[count];
-        for (int i = 0; i < count; i++) {
-            int cell = candidates.get(i);
-            int x = cell % grid.getWidth();
-            int y = cell / grid.getWidth();
-            ids[i] = sim.spawn(new EntitySpec(
-                    "Swarm Runner " + (i + 1), Faction.DEFENDER,
-                    UnitType.SWARM_RUNNER, x, y)
-                    .role(UnitRole.SWARM_PRESSURE));
-        }
-        return new SwarmDefenseRoster(ids);
+        return candidates;
     }
 
     public static int countFor(RiskLevel risk) {
