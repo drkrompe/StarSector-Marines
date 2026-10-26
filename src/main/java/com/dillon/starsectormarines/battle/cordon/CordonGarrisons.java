@@ -160,6 +160,7 @@ public final class CordonGarrisons {
         if (posts.size() < seats) return null;
         seatFlak(sim, number, guns, posts, left, top, right, bottom, centreX, centreY);
         List<Integer> teams = new ArrayList<>();
+        int face = face(grid, left, top, right, bottom, front);
         // Each team its own stretch of the posts, held there: told to hold the whole redoubt round its middle, a
         // built redoubt's teams left its windows and sandbags for the yard before the swarm came (a compound's slits
         // keep them; a building's windows do not), and town Line arid 10's school fell inside a minute.
@@ -167,7 +168,9 @@ public final class CordonGarrisons {
             int squad = ColonyMilitia.seatTeam(sim, cells, "Redoubt " + number + " wall team " + (teams.size() + 1),
                     risk, rng);
             int[] hold = hold(cells);
-            sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, hold[0], hold[1], hold[2]),
+            // Held no farther out than the face, or the team walks out through its windows into the street.
+            int radius = Math.max(1, Math.min(hold[2], Math.abs(face - hold[1])));
+            sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, hold[0], hold[1], radius),
                     CommandAuthority.GARRISON, ISSUER, "hold redoubt " + number);
             teams.add(squad);
         }
@@ -210,17 +213,22 @@ public final class CordonGarrisons {
      * A built redoubt's wall-team posts, at most {@code seats}: every open cell inside its bounds a window looks out of,
      * and every one inside them or the ring round them a sandbag piece stands on (a firing step along the pavement in
      * front of a block), a gun's own cell aside, nearest the front first; then,
-     * while seats remain, the open ground inside, from the front row back. Pure over the grid and the props.
+     * while seats remain, the open ground inside, from the front row back. No window or open ground forward of the
+     * redoubt's face ({@link #face}): a school's courtyard block stands a row inside its bounds, and its wall teams
+     * were seated on the street before it, outside the windows, where town Line seed 8's school lost all twelve in
+     * half a minute. Pure over the grid and the props.
      *
      * @param front +1 where the front is north (high y), -1 where it is south
      */
     static List<int[]> worksPosts(NavigationGrid grid, List<Doodad> doodads, List<int[]> guns,
                                   int left, int top, int right, int bottom, int front, int seats) {
         List<int[]> posts = new ArrayList<>();
+        int face = face(grid, left, top, right, bottom, front);
         // Loopholes inside the bounds: the cell outside a window is the street it looks out on.
         for (int y = top; y <= bottom; y++) {
             for (int x = left; x <= right; x++) {
-                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y) || taken(guns, x, y)) continue;
+                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y) || taken(guns, x, y)
+                        || (y - face) * front > 0) continue;
                 for (Direction side : Direction.CARDINALS) {
                     SharedEdgeBarrier edge = grid.getEdgeBarrier(x, y, side);
                     if (edge != null && edge.kind() == SharedEdgeBarrier.Kind.WINDOW) {
@@ -243,6 +251,7 @@ public final class CordonGarrisons {
         if (posts.size() > seats) posts = new ArrayList<>(posts.subList(0, seats));
         for (int row = 0; row <= bottom - top && posts.size() < seats; row++) {
             int y = front > 0 ? bottom - row : top + row;
+            if ((y - face) * front > 0) continue;
             for (int x = left; x <= right && posts.size() < seats; x++) {
                 if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || grid.isDoorway(x, y) || taken(posts, x, y)
                         || taken(guns, x, y)) continue;
@@ -250,6 +259,20 @@ public final class CordonGarrisons {
             }
         }
         return posts;
+    }
+
+    /**
+     * The row of a redoubt's face: the frontmost row in the front half of its bounds at least half of which is wall, or
+     * the bounds' front row where none is.
+     */
+    static int face(NavigationGrid grid, int left, int top, int right, int bottom, int front) {
+        for (int row = 0; row <= (bottom - top) / 2; row++) {
+            int y = front > 0 ? bottom - row : top + row;
+            int walls = 0;
+            for (int x = left; x <= right; x++) if (grid.inBounds(x, y) && !grid.isWalkable(x, y)) walls++;
+            if (2 * walls >= right - left + 1) return y;
+        }
+        return front > 0 ? bottom : top;
     }
 
     /**

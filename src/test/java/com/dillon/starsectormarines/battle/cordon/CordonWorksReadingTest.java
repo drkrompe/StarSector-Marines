@@ -63,6 +63,18 @@ class CordonWorksReadingTest {
     }
 
     @Test
+    void noPostStandsBeforeTheFaceNotEvenOutsideItsWindows() {
+        // The face a row inside the bounds' north edge, a window in it at x 5: the street before it is no post.
+        NavigationGrid grid = new NavigationGrid(20, 20);
+        for (int y = 0; y < 20; y++) for (int x = 0; x < 20; x++) if (y != 11 || x == 5) grid.setWalkableFloor(x, y);
+        assertTrue(grid.tryPlaceEdgeBarrier(5, 11, Direction.N, SharedEdgeBarrier.Kind.WINDOW) != null);
+        List<int[]> posts = CordonGarrisons.worksPosts(grid, List.of(), List.of(), 4, 4, 12, 12, 1, 5);
+        assertEquals(5, posts.size());
+        assertArrayEquals(new int[]{5, 11}, posts.get(0));
+        for (int[] p : posts) assertTrue(p[1] <= 11, "no post before the face");
+    }
+
+    @Test
     void aFrontToTheSouthReadsFromTheBottomRow() {
         NavigationGrid grid = open(20, 20);
         List<int[]> posts = CordonGarrisons.worksPosts(grid, List.of(), List.of(), 4, 4, 12, 12, -1, 3);
