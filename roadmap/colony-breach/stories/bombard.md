@@ -142,8 +142,12 @@ prompts and provenance.
    `RavBombardRig` and `RavBombardComposer`, cut by
    `art-source/rav-redesign/artillery/export_bombard_rig.py` (each leg on its own,
    shell, six tail slices, sling, glob); each walking leg keeps its claw planted
-   and steps when pulled too far, in two alternating sets, so it scuttles
-   crab-fashion and steps round as it turns on the spot (owner); the tail curls over the back through the wind-up and
+   and steps when pulled too far, and it walks as the mechs do (owner: "take inspiration on how the mechs move ... to
+   get that heavy feel"): a tripod of three lifts together while the other three carry it, all six stand a beat
+   between sets, the drawn shell sways onto the carrying tripod on the mech's waist spring and drops as each set
+   lands, and each landing is a `MechGaitState.FootEvent` that kicks dust off each claw and plays a deep Brute
+   footfall (`SwarmAudio`, well under the rifles); it steps round as it turns on the spot. How much it sways is the
+   owner's pick `bombard-walk-weight` (built on heavy); the look shot `bombard-walk` shows it; the tail curls over the back through the wind-up and
    whips straight on the throw, the sac glows and flares, the shell wears
    (`RavWear` slots 0 to 6). The glob
    flies on its own sprite with a ground shadow that tightens as it lands
