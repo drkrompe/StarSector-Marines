@@ -158,7 +158,8 @@ bore, under garrison authority and never in the player's command pool. What it
 sees the player sees (an allied body casts the side's fog as a Marine does),
 and the battle hears it make contact. It holds its post until it is pressed
 (half its team down with the swarm on it, or outnumbered two to one where it
-stands), then withdraws down its road to its redoubt, and whoever gets in joins
+stands), then withdraws down its road to its redoubt (the cell inside it nearest
+the middle that the team can walk to), and whoever gets in joins
 the garrison; most of it dies on the way. It never calls, and neither the allies
 nor the company are sent for it. The point is what the player thinks about in
 the opening, not the reading: lost pickets feed the swarm's harvest, and the
