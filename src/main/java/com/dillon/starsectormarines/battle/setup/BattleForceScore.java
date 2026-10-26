@@ -102,11 +102,24 @@ public final class BattleForceScore {
         };
     }
 
+    /**
+     * Sorties a renewable bay is scored as, though over a battle it flies more.
+     *
+     * <p>Draft: two, the stock a player's bay carried before bays became
+     * renewable, so the defender budget a committed carrier buys is unchanged
+     * until a balance pass weighs what the extra sorties are worth.
+     */
+    static final int RENEWABLE_BAY_SCORED_SORTIES = 2;
+
+    private static int scoredSorties(FighterWing wing) {
+        return wing.renewable() ? RENEWABLE_BAY_SCORED_SORTIES : wing.sortieCount;
+    }
+
     static float fighterSupport(FlybyRoster roster) {
         if (roster == null || roster.isEmpty()) return 0f;
         float score = 0f;
         for (FighterWing wing : roster.wings) {
-            if (wing != null) score += fighter(wing.profile) * wing.sortieCount;
+            if (wing != null) score += fighter(wing.profile) * scoredSorties(wing);
         }
         return score;
     }
@@ -127,7 +140,7 @@ public final class BattleForceScore {
         List<FighterWing> selected = new ArrayList<>();
         for (FighterWing wing : candidates.wings) {
             if (wing == null) continue;
-            float next = fighter(wing.profile) * wing.sortieCount;
+            float next = fighter(wing.profile) * scoredSorties(wing);
             if (score + next > budget) break;
             selected.add(wing);
             score += next;

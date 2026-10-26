@@ -2456,6 +2456,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public List<SmokingWreck> getSmokingWrecks() { return effects.getSmokingWrecks(); }
     /** Fighter wings committed to this battle. {@code AirCoverSystem} reads this each tick and flies each wing's schedule as off-map sorties. Defaults to {@link FlybyRoster#EMPTY}; missions assign via {@link #setFlybyRoster}. */
     public FlybyRoster getFlybyRoster()    { return flybyRoster; }
+    /** The dispatcher flying {@link #getFlybyRoster}; read-only use (a renewable wing's bay cycle) by probes and scenes. */
+    public AirCoverSystem getAirCoverSystem() { return airCoverSystem; }
     public void setFlybyRoster(FlybyRoster roster) {
         requireInternalAir("setFlybyRoster");
         this.flybyRoster = roster != null ? roster : FlybyRoster.EMPTY;

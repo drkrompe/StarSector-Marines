@@ -28,9 +28,12 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
  * start from. That failure mode has bitten this project once already and cost a
  * playtest's confidence in the whole air arm.
  *
- * <p>The schedule is the wing's own: sortie {@code k} is due at
- * {@code firstArrivalSec + k * spawnIntervalSec}, exactly as the wings were
- * authored for the overlay this replaced. A sortie that comes due with nothing
+ * <p>The cadence is the wing's own. A scheduled wing's sortie {@code k} is due
+ * at {@code firstArrivalSec + k * spawnIntervalSec}, exactly as the wings were
+ * authored for the overlay this replaced. A renewable bay flies its one
+ * airframe whenever its {@link FighterBay} is ready, and this system tells the
+ * bay how each sortie ended: a craft that left the map came home and refits, a
+ * craft that was shot down is replaced. A sortie that comes due with nothing
  * worth attacking is retried shortly rather than spent on an empty field.
  */
 public final class AirCoverSystem {
@@ -66,6 +69,13 @@ public final class AirCoverSystem {
     /** Per-wing hold-off after a sortie came due and could not be flown. */
     private float[] retryIn = new float[0];
 
+    /** Per-wing bay cycle for a renewable wing; {@code null} for a scheduled one. */
+    private FighterBay[] bays = new FighterBay[0];
+
+    /** A renewable wing's airborne craft, and the mission object that outlives its entity. */
+    private long[] outId = new long[0];
+    private ShuttleMission[] outMission = new ShuttleMission[0];
+
     /** Advances the schedule and dispatches whatever is due and possible. */
     public void tick(float dt, BattleSimulation sim) {
         if (sim == null || sim.isComplete()) return;
@@ -75,22 +85,48 @@ public final class AirCoverSystem {
         if (current == null) current = FlybyRoster.EMPTY;
         if (current != roster) {
             roster = current;
-            dispatched = new int[roster.wings.size()];
-            retryIn = new float[roster.wings.size()];
+            int n = roster.wings.size();
+            dispatched = new int[n];
+            retryIn = new float[n];
+            bays = new FighterBay[n];
+            outId = new long[n];
+            outMission = new ShuttleMission[n];
+            for (int i = 0; i < n; i++) {
+                FighterWing wing = roster.wings.get(i);
+                if (wing.renewable()) bays[i] = FighterBay.of(wing);
+            }
         }
         if (roster.isEmpty()) return;
+
+        for (int i = 0; i < bays.length; i++) {
+            if (bays[i] == null) continue;
+            observeSortie(sim, i);
+            bays[i].tick(dt);
+        }
 
         int airborne = corridorSortiesOut(sim);
         for (int i = 0; i < roster.wings.size(); i++) {
             if (retryIn[i] > 0f) retryIn[i] -= dt;
             if (airborne >= MAX_CONCURRENT) return;
             FighterWing wing = roster.wings.get(i);
-            if (dispatched[i] >= wing.sortieCount) continue;
-            float dueAt = wing.firstArrivalSec + dispatched[i] * wing.spawnIntervalSec;
-            if (simTime < dueAt || retryIn[i] > 0f) continue;
-            if (dispatch(sim, wing)) {
+            FighterBay bay = bays[i];
+            if (bay != null) {
+                if (!bay.ready()) continue;
+            } else {
+                if (dispatched[i] >= wing.sortieCount) continue;
+                float dueAt = wing.firstArrivalSec + dispatched[i] * wing.spawnIntervalSec;
+                if (simTime < dueAt) continue;
+            }
+            if (retryIn[i] > 0f) continue;
+            long craft = dispatch(sim, wing);
+            if (craft != 0L) {
                 dispatched[i]++;
                 airborne++;
+                if (bay != null) {
+                    bay.launched();
+                    outId[i] = craft;
+                    outMission[i] = sim.world().mission(craft);
+                }
             } else {
                 retryIn[i] = RETRY_SEC;
             }
@@ -98,13 +134,42 @@ public final class AirCoverSystem {
     }
 
     /**
+     * Tells a bay how its airborne sortie ended, once it has.
+     *
+     * <p>The mission object is held rather than the entity asked, because a
+     * craft that fell is reaped once its crash is over and a craft that went
+     * home is reaped as it crosses the edge: by the time the bay looks, the id
+     * may answer for nothing or for a different craft. The mission's
+     * {@code destroyed} flag is set at the shoot-down and survives the reap.
+     */
+    private void observeSortie(BattleSimulation sim, int i) {
+        FighterBay bay = bays[i];
+        ShuttleMission mission = outMission[i];
+        if (bay.state() != FighterBay.State.AIRBORNE || mission == null) return;
+        if (mission.destroyed) {
+            bay.lost();
+        } else if (sim.world().isAlive(outId[i]) && sim.world().mission(outId[i]) == mission) {
+            return;
+        } else {
+            bay.cameHome();
+        }
+        outId[i] = 0L;
+        outMission[i] = null;
+    }
+
+    /** The bay cycle of roster wing {@code index}, or {@code null} for a scheduled wing; for tests and probes. */
+    public FighterBay bay(int index) {
+        return index >= 0 && index < bays.length ? bays[index] : null;
+    }
+
+    /**
      * Puts one of this wing's aircraft over the battle.
      *
-     * @return false when the sortie could not be flown — no target worth it, or
-     *         no way to state where off the map this side comes from. Both are
-     *         declines; neither invents an origin.
+     * @return the craft, or 0 when the sortie could not be flown — no target
+     *         worth it, or no way to state where off the map this side comes
+     *         from. Both are declines; neither invents an origin.
      */
-    private boolean dispatch(BattleSimulation sim, FighterWing wing) {
+    private long dispatch(BattleSimulation sim, FighterWing wing) {
         // A hostile hull the wing's ordnance can hurt comes before the ground; see HullStrike.
         HullTarget hull = HullStrike.choose(sim, wing.side, h -> wing.profile.ordnance());
         float targetX;
@@ -114,18 +179,18 @@ public final class AirCoverSystem {
             targetY = hull.y();
         } else {
             long target = EnemyConcentration.densest(sim, wing.side);
-            if (target == 0L) return false;
+            if (target == 0L) return 0L;
             World world = sim.world();
             targetX = world.x(target);
             targetY = world.y(target);
         }
 
         float[] home = friendlyCentroid(sim, wing.side);
-        if (home == null) return false;
+        if (home == null) return 0L;
         AirCorridor corridor = AirCorridor.acrossNearestEdge(
                 wing.profile.name(), sim.getGrid().getWidth(), sim.getGrid().getHeight(),
                 home[0], home[1], targetX, targetY);
-        if (corridor == null) return false;
+        if (corridor == null) return 0L;
 
         long craft = sim.spawnSortie(wing.profile, wing.side, targetX, targetY,
                 corridor.entryX, corridor.entryY, corridor.exitX, corridor.exitY, 0f);
@@ -135,7 +200,7 @@ public final class AirCoverSystem {
         // back to, no strip to claim, and the default egress already flies a
         // craft that touched neither one back out to its exit point.
         mission.strikeSortie = true;
-        return true;
+        return craft;
     }
 
     /** Corridor sorties currently on the map, on either side. */
