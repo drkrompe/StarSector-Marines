@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.HitLog;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
@@ -88,6 +89,8 @@ import java.util.Set;
  *   members SQUAD                         each member of a squad: position, cell, velocity, waypoints left, special kit
  *   watch ID[,ID...] N [every=K]          step N ticks, one line per body every K: position, route cursor and next
  *                                         waypoint, velocity, and for a mech its hips, role and collision escape
+ *   stalls N [limit=K]                    step N ticks: each route stall counted, with the unit, its next waypoint,
+ *                                         its order and the bodies within 1.5 cells
  *   beats [since=T] [text=TEXT]           story beats
  *   escort                                the rescue cohort's escort hold and progress
  *   route X0 Y0 X1 Y1                     cells on the walkable path between two cells (0 for none)
@@ -134,6 +137,7 @@ public final class BattleProbe {
         commands.put("squads", this::squads);
         commands.put("members", a -> members(a.intAt(0)));
         commands.put("watch", this::watch);
+        commands.put("stalls", this::stalls);
         commands.put("path", this::path);
         commands.put("beats", this::beats);
         commands.put("route", a -> {
@@ -834,6 +838,44 @@ public final class BattleProbe {
             }
         }
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("rows", rows);
+    }
+
+    /** Steps {@code N} ticks; for each route stall counted, the unit, where it stood, its next waypoint and what is beside it. */
+    private JSONObject stalls(Args a) throws Exception {
+        int ticks = a.intAt(0);
+        int limit = a.intOr("limit", 40);
+        JSONArray rows = new JSONArray();
+        int seen = sim.movement().routeStalls();
+        for (int t = 0; t < ticks && !sim.isComplete(); t++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            int now = sim.movement().routeStalls();
+            if (now == seen) continue;
+            seen = now;
+            long id = sim.movement().lastStalled();
+            if (id == 0L || !sim.world().isAlive(id) || rows.length() >= limit) continue;
+            World world = sim.world();
+            JSONObject row = brief(id);
+            row.put("tick", sim.getSimTickIndex());
+            int next = sim.movement().nextWaypointIndex(id);
+            int count = sim.movement().waypointCount(id);
+            if (next < count) {
+                float wx = sim.movement().waypointX(id, next), wy = sim.movement().waypointY(id, next);
+                row.put("waypoint", new JSONArray(List.of(round(wx), round(wy))));
+                row.put("waypointsLeft", count - next);
+            }
+            if (sim.squad().hasSquad(id)) {
+                Squad squad = sim.squadOf(id);
+                ObjectiveAssignment order = squad == null ? null : squad.assignmentForExecution();
+                row.put("order", order == null ? JSONObject.NULL : order.kind().name());
+            }
+            JSONArray beside = new JSONArray();
+            LongBucket near = new LongBucket();
+            sim.getUnitIndex().gather(world.x(id), world.y(id), 1.5f, near);
+            for (int i = 0; i < near.size; i++) if (near.ids[i] != id) beside.put(sim.identity().faction(near.ids[i]) + ":" + sim.identity().type(near.ids[i]));
+            row.put("beside", beside);
+            rows.put(row);
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("stalls", sim.movement().routeStalls()).put("rows", rows);
     }
 
     private JSONObject beats(Args a) throws Exception {

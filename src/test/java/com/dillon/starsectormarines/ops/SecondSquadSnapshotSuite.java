@@ -67,6 +67,7 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
             var doc = PreparationGuide.document(markup.root()).theme(MarineOpsThemes.standard());
             markup.styles().forEach(doc::addStyleSheet);
             BriefingViewModel.applyVisibility(markup, props);
+            BriefingViewModel.installMusters(doc, markup, props);
             var guide = new PreparationGuide(doc, () -> SecondSquadPreparation.lesson(mission, roster,
                     SquadFoundingResources.NONE, replay[0], () -> { roster.acknowledgeSecondSquadPreparation(); replay[0] = false; }),
                     () -> {}, loader(context, "data/ui/components/company/preparation-guide.mlx"));

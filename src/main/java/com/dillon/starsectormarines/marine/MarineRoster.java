@@ -57,6 +57,8 @@ public class MarineRoster implements Serializable {
      * it is read; see {@link BoatDeck#reconcile}.
      */
     private BoatDeck boatDeck = new BoatDeck();
+    /** Whole machines set aside off their berths and gantries; it goes wherever the company goes. */
+    private ReserveHangar reserveHangar = new ReserveHangar();
     private int nextSoldierNumber = 1;
     private int nextSquadNumber = 1;
     private String reserveSquadId;
@@ -400,6 +402,7 @@ public class MarineRoster implements Serializable {
     public MarineArmory armory() { return armory; }
     public MechBay mechBay() { return mechBay; }
     public BoatDeck boatDeck() { return boatDeck; }
+    public ReserveHangar reserveHangar() { return reserveHangar; }
 
     /** Whether any line or reserve squad still points at this reusable template. */
     public boolean isFireTeamTemplateAssigned(String cardId) {
@@ -1489,6 +1492,7 @@ public class MarineRoster implements Serializable {
         if (armory == null) armory = new MarineArmory();
         if (mechBay == null) mechBay = MechBay.legacyStarterBay();
         if (boatDeck == null) boatDeck = new BoatDeck();
+        if (reserveHangar == null) reserveHangar = new ReserveHangar();
         if (nextSoldierNumber <= 0) nextSoldierNumber = soldiers.size() + 1;
         if (nextSquadNumber <= 0) nextSquadNumber = squads.size() + 1;
         if (!soldiers.isEmpty()) initialComplementIssued = true;
