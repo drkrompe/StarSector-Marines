@@ -731,8 +731,16 @@ K3B_KITE_FLIGHT = {key: fly(key, st, K3B_T, [dict(t=79, hd=10, pt=-3, rl=-10, v=
                    for key, st in (('kite-p-a', K3B_KITE_A), ('kite-p-b', K3B_KITE_B))}
 K3B_KITE_A_FLOWN, K3B_KITE_B_FLOWN = K3B_KITE_FLIGHT['kite-p-a'], K3B_KITE_FLIGHT['kite-p-b']
 # S6d sees them coming (owner, 2026-10-26: "we couldn't see the Kites in S6d coming in with the pirate Hounds"):
-# the same two runs, behind the Hounds (P) that draw the convoy's Hound off
+# the same two runs, behind the Hounds (P) that draw the convoy's Hound off; after her drive hit the camera
+# leaves her and swings onto them as they rush past it toward the Tarsus
 K3E_SHIPS.update(K3B_KITE_FLIGHT)
+_k3e_chase = track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05)
+
+
+def k3e_aim(t):
+    w = _hermite(t, ((77.5, 0.0, 0.0), (79.0, 1.0, 0.0)))
+    a, k, c = K3B_KITE_FLIGHT['kite-p-a'].at(t), K3B_KITE_FLIGHT['kite-p-b'].at(t), _k3e_chase(t)
+    return tuple(c[i] + w * ((a[i] + k[i]) / 2 - c[i]) for i in range(3))
 K3B_TARSUS_FLOWN = fly('tarsus', K3B_TARSUS, K3B_T, [
     dict(t=80, hd=4.5, pt=-1.5, rl=6), dict(t=88, hd=6.8, pt=-2.3, rl=11)], v=0.0, wobble=1.0, thrust=None)
 K3B_SHIPS = {
@@ -1115,9 +1123,10 @@ KEYFRAMES = {
         shot='S6d', title='The rear guard',
         caption='The convoy\'s Hound, rolled over onto two Hounds (P) climbing at her, fires down on the first and kills her at close range '
                 'and takes the second\'s fire full on as she falls back on the column.',
-        # HANDHELD CHASE: close behind the Hound, rolled over and firing, jolted by her kill and her hit
+        # HANDHELD CHASE: close behind the Hound, rolled over and firing, jolted by her kill and her hit; then,
+        # as she falls back hit, the camera swings onto the two Kites (P) rushing past on their run (k3e_aim)
         camera=camera('k3e', [dict(t=t, loc=track(K3E_SHIPS['hound-m'], (-1450, 120, 160), .95, .15),
-                                   target=track(K3E_SHIPS['hound-m'], (-1650, -180, 20), .8, .05), lens=lens)
+                                   target=k3e_aim, lens=lens)
                               for t, lens in ((74, 30), (77, 35), (80, 40))], K3E_T, shake=.45, kicks=[(76.83, .7), (77.25, 1.0)]),
         ships=K3E_SHIPS,
         # the hero shot (owner): her turret on the first Hound (P) through the shot, already trained on her
