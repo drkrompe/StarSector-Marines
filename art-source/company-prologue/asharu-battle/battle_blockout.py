@@ -731,14 +731,39 @@ K3B_SHIPS = {
     # second brakes in and keeps station through the shot, the third is still on her way in
     'hermes-p-a': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-a'], 64, 86, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=5.0),
     'hermes-p-b': boat(K3B_KITE_A, K3B_TARSUS, K3B_SEATS['hermes-p-b'], 70, 93, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=7.0),
-    'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 74, 100, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=6.0),
+    # the third leaves her Kite on screen (owner, 2026-10-26: "where did these shuttles come from")
+    'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 81.5, 100, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=4.0),
     'wolf-p-b': fly('wolf-p-b', (-420, 330, 120, -20, -32, 110, 1), K3B_T, [
         dict(t=80, hd=40, pt=-8, rl=40, v=200), dict(t=84, hd=5, pt=-25, rl=95), dict(t=88, hd=-60, pt=-20, rl=70)],
         hits=recoil([84.5], every=.25, until=87.0)),
     **{k: station(k, v, K3B_T, vel=(45.0, 0.0, 0.0)) for k, v in (
         ('colossus', (1200, -80, 40, 0, 0, 2, .9)), ('morrow', (1150, -250, 0, 0, 1, -3, .9)),
         ('mule', (1900, 260, 20, 0, 0, -2, .9)), ('buffalo-a', (1600, -350, 80, 0, 1, 4, .9)))},
+    # the rear guard S6d left, still fighting a kilometre astern: what S7 opens on
+    'hound-m': K3E_SHIPS['hound-m'], 'hound-p-b': K3E_SHIPS['hound-p-b'],
 }
+
+# S7 orients after S6d (owner, 2026-10-26: "S6d to S7 is jarring. Where is the rest of the battle ... Where
+# did these shuttles come from"): it opens forward of the Tarsus looking aft at the rear guard S6d left,
+# the Tarsus and her Kites in the foreground; then circles her port side, panning forward onto the convoy
+# running on ahead, and pushes in to her deck as the boats come over. Angles in the battle's XY plane.
+K3B_ORBIT = dict(th=((80.0, 35.0, 0.0), (86.0, 154.0, 6.0), (88.0, 158.0, 0.0)),
+                 r=((80.0, 700.0, 0.0), (86.0, 666.0, -20.0), (88.0, 560.0, 0.0)),
+                 z=((80.0, 200.0, 0.0), (86.0, 170.0, -5.0), (88.0, 150.0, 0.0)))
+K3B_LOOK = ((80.0, (-1800.0, -250.0, 0.0)), (85.2, (400.0, -40.0, -60.0)), (88.0, (-480.0, 50.0, 10.0)))
+
+
+def k3b_eye(t):
+    th, r = math.radians(_hermite(t, K3B_ORBIT['th'])), _hermite(t, K3B_ORBIT['r'])
+    return (K3B_TARSUS[0] + r * math.cos(th), K3B_TARSUS[1] + r * math.sin(th), _hermite(t, K3B_ORBIT['z']))
+
+
+def k3b_aim(t):
+    for (t0, a), (t1, b) in zip(K3B_LOOK, K3B_LOOK[1:]):
+        if t <= t1 or (t1, b) == K3B_LOOK[-1]:
+            u = min(1.0, max(0.0, (t - t0) / (t1 - t0)))
+            u = u * u * (3 - 2 * u)
+            return tuple(a[i] + u * (b[i] - a[i]) for i in range(3))
 
 # S8-S9: the Colossus wallows with her port pod shot out; Morrow and the Borers ride with her; the
 # Mk.III settles in from above; the Kite (P) makes her run, is driven off and breaks away
@@ -752,10 +777,6 @@ K4_SHIPS = {
     'colossus': K4_COLOSSUS_FLOWN, 'morrow': K4_MORROW_FLOWN,
     # Borers fight; they are not repair craft (owner, 2026-10-23): the two off the shot-out pod both nose
     # up at the Mk.III grappling down onto her, the bigger threat; two more out of Morrow's bay, climbing
-    'borer-a': carried(held('borer-a', near(K4_COLOSSUS, (-58, 70, 2), hd=-90, pt=75, rl=6, thr=.6), K4_T, wobble=.3),
-                       K4_COLOSSUS_FLOWN),
-    'borer-b': carried(held('borer-b', near(K4_COLOSSUS, (-74, 38, -22), hd=66, pt=80, rl=-10, thr=.6), K4_T, wobble=.3),
-                       K4_COLOSSUS_FLOWN),
     'borer-c': carried(keyed('borer-c', near(K4_MORROW, (BORER_BAY_M[1][0], BORER_BAY_M[1][1], 18), hd=10, pt=30, thr=.8),
                              K4_T, [], v=2.5, wobble=0.0), K4_MORROW_FLOWN),
     'colossus3': fly('colossus3', (-60, 70, 175, -4, -8, 64, .6), K4_T, [
@@ -864,6 +885,46 @@ K4_BORER_D, K4_RAKES_D = sortie('borer-d', carried(held('borer-d', near(K4_MORRO
                                  ('colossus', K4_SHIPS['colossus'], 0)])
 K4_SHIPS.update({'borer-c': K4_BORER_C, 'borer-d': K4_BORER_D})
 K4_RAKES = [('borer-c',) + r for r in K4_RAKES_C] + [('borer-d',) + r for r in K4_RAKES_D]
+
+# The two Borers off the shot-out pod skim (owner, 2026-10-26: "moving at least horizontally to skim and
+# stay out of fire while their borer lasers should be raking across the hull"): each strafes back and
+# forth along the Mk.III's belly, close under her plating where her guns can't bear, nose held on her,
+# and her beam trails her travel so it rakes the hull. Offsets in the Mk.III's frame.
+K4_C3_DOWN = (.14, -.89, -.43)      # from the Mk.III toward the Colossus at the key, her frame
+K4_C3_SIDE = (0.0, -K4_C3_DOWN[2], K4_C3_DOWN[1])     # across her belly: her length crossed with down
+K4_C3_UP_HD = math.degrees(math.atan2(-K4_C3_DOWN[1], -K4_C3_DOWN[0]))
+K4_C3_UP_PT = math.degrees(math.asin(-K4_C3_DOWN[2]))
+K4_SKIM = {'borer-a': dict(span=55.0, period=7.0, phase=0.0, side=14.0),
+           'borer-b': dict(span=48.0, period=8.4, phase=2.6, side=-16.0)}
+K4_SKIM_OFF, K4_SKIM_HULL, K4_SKIM_LAG = 45.0, 20.0, .35   # off her axis, her plating, the beam's trail (s)
+
+
+def skim_x(key, t):
+    k = K4_SKIM[key]
+    return k['span'] * math.sin(2 * math.pi * (t - K4_T) / k['period'] + k['phase'])
+
+
+def skimming(key, parent):
+    """A Borer strafing along her target's hull: riding the target at a moving offset, nose on her."""
+    side = K4_SKIM[key]['side']
+
+    def at(t):
+        x = skim_x(key, t)
+        off = tuple((x if i == 0 else 0.0) + K4_SKIM_OFF * K4_C3_DOWN[i] + side * K4_C3_SIDE[i] for i in range(3))
+        return riding(parent, off, hd=K4_C3_UP_HD, pt=K4_C3_UP_PT, rl=0.0, thr=.6).at(t)
+    return Pose(at(K4_T), K4_T, at)
+
+
+def skim_cut(key):
+    """Where a skimming Borer's beam meets the Mk.III's plating, her frame: trailing her travel."""
+    side = K4_SKIM[key]['side']
+    return lambda t: tuple((skim_x(key, t - K4_SKIM_LAG) if i == 0 else 0.0) + K4_SKIM_HULL * K4_C3_DOWN[i]
+                           + side * .6 * K4_C3_SIDE[i] for i in range(3))
+
+
+K4_SHIPS['borer-a'] = skimming('borer-a', K4_SHIPS['colossus3'])
+K4_SHIPS['borer-b'] = skimming('borer-b', K4_SHIPS['colossus3'])
+K4_RAKES += [(k, 'colossus3', 80.0, 110.0, 0, skim_cut(k)) for k in K4_SKIM]
 
 
 # S9b: the lead Lasher rolls onto her back over the Falcon (P), guns walking down her flank; the
@@ -1060,10 +1121,11 @@ KEYFRAMES = {
         caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside and '
                 'their boats bring the boarders over: one down on her deck, one braking in over her stern, one '
                 'just out from under its Kite. A Wolf (P) covers them. The rest of the convoy runs on ahead.',
-        # PUSH-IN + ZOOM onto the boats: from wide behind the Tarsus in to her deck as they set down
-        camera=camera('k3b', [dict(t=80, loc=(-1500, 450, 210), target=(380, -40, -60), lens=28),
-                              dict(t=86, loc=(-1250, 380, 170), target=(400, -40, -60), lens=35),
-                              dict(t=88, loc=(-1150, 350, 150), target=(-480, 50, 10), lens=55)], K3B_T, shake=.08),
+        # ORIENTING ORBIT, then PUSH-IN: aft onto the rear guard past the Tarsus, round her port side onto the
+        # convoy ahead, then in to her deck as the boats set down (k3b_eye, k3b_aim)
+        camera=camera('k3b', [dict(t=80, loc=k3b_eye, target=k3b_aim, lens=28),
+                              dict(t=85, loc=k3b_eye, target=k3b_aim, lens=30),
+                              dict(t=88, loc=k3b_eye, target=k3b_aim, lens=45)], K3B_T, shake=.08),
         states={'tarsus': 'tarsus-boarded'},
         knobs={'hermes-p-a': {'gear_up': 0.0, 'door_port': 1.0, 'door_starboard': 1.0},    # down, boarders out
                'hermes-p-b': {'gear_up': 0.5}, 'hermes-p-c': {'gear_up': 1.0}},
