@@ -567,8 +567,6 @@ public final class BoatDeckViewModel {
         if (wrecks > 0) summary.add(Strings.format("openingBoatWrecks", wrecks));
         int empty = deck.vacantBerths().size() - wrecks;
         if (empty > 0) summary.add(Strings.format("openingBoatVacancies", empty));
-        BoatDeck.LeftBehind left = deck.leftBehind();
-        if (left.any()) summary.add(Strings.format("openingBoatLeftBehind", left.count()));
         return String.join("  ·  ", summary);
     }
 

@@ -140,7 +140,7 @@ shared mapping instead of assigning paths independently in each screen.
 New optional company opportunities publish an unread marker on their destination
 room tab. The contract board also exposes a direct preparation detour so a player
 moving straight from one mission to the next can discover them. Second-bay
-restoration, Secondhand Wings, the first Armory refit and Wayward's gantry induction
+restoration, the first Armory refit and Wayward's gantry induction
 have independent saved read receipts. Opening the actual offer or lesson clears
 its receipt; entering an unrelated room does not. Reviewing spends nothing and
 does not require finishing the purchase or tutorial. Completed opportunities stop
@@ -652,8 +652,7 @@ boats increase simultaneous delivery. Existing owned boats remain intact, and a
 legacy deck without an established ship receives its historical complement once.
 
 **A boat that was shot down is gone.** Reads preserve vacant berths. Moving to
-another hull compacts compatible survivors but never fills vacancies for free;
-incompatible and surplus boats are left behind and reported. Every replacement
+another hull compacts the survivors but never fills vacancies for free. Every replacement
 requires the ordinary workshop bill, creates a new identity at standard fit, and
 never recovers the destroyed aircraft's installed fittings.
 
@@ -711,9 +710,12 @@ rare event, and one that would have to agree with the first.
 **The boats are the company's; the berths are the ship's.** The boat deck never
 holds a berth count of its own: how many berths there are is asked of the hull,
 and what stands in them is what the company owns. When the company moves ship
-its boats go into the new hull's berths in berth order up to her count; boats
-beyond it, and boats of a pattern her bays do not hold, are left with the old
-hull and the room says so in its summary. Vacant berths on the new hull remain empty until the company commissions boats.
+its boats go into the new hull's berths in berth order. **The boats travel with
+the company to any ship and are never left behind**: a hull of another pattern
+does not change the deck's pattern or trade its boats, and a hull with fewer
+berths than boats still keeps every boat. A boat with no berth is stowed: it
+flies like any other and is not drawn in the bay. Vacant berths on the new hull
+remain empty until the company commissions boats.
 
 That reconcile is idempotent and runs **whenever the deck is read against the
 ship the company is on** — the room attaching and the lift itself — so a stale
@@ -1460,27 +1462,6 @@ room. Boat Deck only says the bay is sealed and where it is restored. The yard p
 Repair exposes the second Hermes wreck; making it airworthy still requires the ordinary
 Hermes material bill. This spending is optional and does not gate subsequent missions.
 
-**Secondhand Wings** is an optional post-Counterattack purchase for the original
-Second Wind hull. HQ points to Castle's portrait conversation on the Boat Deck;
-Mara offers two surplus Aeroshuttles for 5,000 credits (3,000 for the airframes,
-2,000 for refurbishment, standard fittings and bay adapters). While the second bay is
-still sealed the offer carries its 8,000-credit restoration in the same order, 13,000
-in all, so the player is never sent to find a prerequisite job first; the bay opens
-only after payment, before delivery. A bay already restored from Engineering leaves
-the price at 5,000. Delivery requires the
-active, converted original hull to be the owned company home at an accessible
-planetary spaceport. Repairing the second Hermes is optional before replacement.
-
-The review names every outgoing Hermes and its installed fittings; the exchange
-also takes any original unrepaired wrecks. Those fittings do not transfer or return
-to stores. A successful purchase records the conversion on that hull and supplies
-exactly two standard Aeroshuttles once. The 6-seat boats give 12 simultaneous seats;
-larger detachments still use repeat sorties. The fleet credit account, current
-eligibility and exact reviewed complement are rechecked at payment. Deferring,
-insufficient funds and stale review change nothing. Surviving boats remain ordinary
-owned assets, and destroyed replacements receive no story refund or free respawn.
-The hull's saved adapters remain with Second Wind through company transfers.
-
 **While the Second Wind is away the company has no home to open.** She is never
 lost for good (`ship-interiors-nouns.md`), but while the company lives aboard her
 and she is out of the fleet the Marines button answers with Castle's instructions
@@ -1494,11 +1475,6 @@ back with. Buying is never refused; what the account cannot cover becomes debt.
 **Campaign missions need her.** The briefing refuses to deploy unless she is in
 the fleet and the company is quartered aboard her, and says which of the two is
 missing. Debug missions are not gated.
-
-Delivery ends with Castle directing the player to the real PLATING and DRIVE controls;
-no additional purchase is required. The conversation overlays the room and owns input
-while open. Later briefings freeze the purchased boats and their actual fittings through
-the shared campaign lift authority. Replayed Depot Clearance never unlocks the offer.
 
 Squads are fitted from the Armory, not from Engineering. Free fitting remains
 available regardless of workshop restoration; repairing production machinery

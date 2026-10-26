@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip.BoatBayState;
 import com.dillon.starsectormarines.campaign.start.CompanyBayRestoration;
-import com.dillon.starsectormarines.campaign.start.SecondhandWingsCampaign;
 import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.fs.starfarer.api.Global;
@@ -17,7 +16,6 @@ final class CompanyNotices {
         SHEPHERD_RECOVERY("shepherd-recovery", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "openingCompanyNoticesMaraSIntroductionToTamsinVale"),
         WORKING_PASSAGE("shepherd-working-passage", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "openingCompanyNoticesWorkingPassage"),
         COLD_START("shepherd-cold-start", MarineOpsPageNav.Page.HQ, ScreenId.COMPANY_HQ, "openingCompanyNoticesColdStart"),
-        SECONDHAND_WINGS("secondhand-wings", MarineOpsPageNav.Page.BOAT_DECK, ScreenId.BOAT_DECK, "openingCompanyNoticesSecondhandWings"),
         SECOND_BAY("second-bay", MarineOpsPageNav.Page.SHIP_VIEW, ScreenId.SHIP_VIEW, "openingCompanyNoticesSecondBayRestoration"),
         FIRST_REFIT("first-refit", MarineOpsPageNav.Page.BARRACKS, ScreenId.BARRACKS, "openingCompanyNoticesCastleSFirstRefit"),
         HOUND_INDUCTION("hound-induction", MarineOpsPageNav.Page.MECH_LAB, ScreenId.MECH_LAB, "openingCompanyNoticesWaywardGantryInduction");
@@ -51,7 +49,6 @@ final class CompanyNotices {
     static List<Notice> unread(MarineRoster roster, BoatBayState bay) {
         if (roster == null) return List.of();
         var found = new ArrayList<Notice>();
-        add(found, roster, Notice.SECONDHAND_WINGS, SecondhandWingsCampaign.available(roster));
         add(found, roster, Notice.SECOND_BAY, bay == BoatBayState.DAMAGED
                 && roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId));
         add(found, roster, Notice.FIRST_REFIT, FirstRefit.available(roster));

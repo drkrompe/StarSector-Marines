@@ -3542,7 +3542,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         props.put("fabricationReason", viewModel.fabricationReason());
         props.put("fabricationActionLabel", viewModel.fabricationActionLabel());
         props.put("bayNoteClasses", "hidden");
-        props.put("wings", SecondhandWingsModel.Row.hidden());
         props.put("fabricate", viewModel.fabricateAction());
         props.put("backToDeck", viewModel.backToDeckAction());
         props.put("feedbackText", viewModel.feedbackText());

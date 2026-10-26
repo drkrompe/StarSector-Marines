@@ -207,7 +207,7 @@ public class MarineOpsContext {
     public CompanyDeck companyDeck() {
         FleetMemberAPI aboard = CompanyShipDesignation.aboard();
         String hull = aboard == null ? null : aboard.getId();
-        String held = CompanyShipRestoration.state(aboard) + ":" + boatsHeldSignature() + ":" + CompanyBayRestoration.state(aboard) + ":" + CompanyWorkshopRestoration.state(aboard) + ":" + (aboard != null && CompanyShipResolver.read(aboard).aeroshuttleConversion());
+        String held = CompanyShipRestoration.state(aboard) + ":" + boatsHeldSignature() + ":" + CompanyBayRestoration.state(aboard) + ":" + CompanyWorkshopRestoration.state(aboard);
         if (companyDeck != null && Objects.equals(hull, companyDeckShipId)
                 && held.equals(companyDeckBoatsHeld)) {
             dressFromCondition(aboard);

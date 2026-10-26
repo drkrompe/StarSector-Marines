@@ -1,4 +1,4 @@
-<template props="filterPills,filterClasses,backClasses,catalogClasses,stageTitle,stageStatus,recovery,wings,fabricationActionLabel,bayNoteClasses,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
+<template props="filterPills,filterClasses,backClasses,catalogClasses,stageTitle,stageStatus,recovery,fabricationActionLabel,bayNoteClasses,contextLabel,activeBayLabel,bayNavigatorClasses,previousBay,nextBay,deckSummary,materialStock,boatRows,selectedBoatName,selectedBoatIdentity,performanceMeters,slotRows,selectedSlotTitle,selectedSlotCopy,catalogRows,overviewClasses,fittingClasses,fabricationClasses,fabricationBerthLabel,fabricationPatternName,fabricationCopy,fabricationMaterials,fabricationActionClasses,fabricationBlocked,fabricationReason,fabricate,backToDeck,feedbackText,feedbackClasses,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses">
   <div id="boat-deck-root" class="boat-deck-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <div id="boat-deck-room-bar" class="panel room-bar">
@@ -47,7 +47,6 @@
       </div>
 
       <div id="boat-overview" class="{overviewClasses}">
-        <button id="wings-resume" class="{wings.resumeClasses}" onclick="{wings.open}">{i18n.openingUiBoatDeckSecondhandWingsMaraSOffer}</button>
         <div id="boat-overview-heading" class="section-title label heading tone-edge">{i18n.openingUiBoatDeckBoatsAboard}</div>
         <div id="boat-list" class="boat-list">
           <button each="boat in boatRows" key="{boat.id}" id="{boat.id}" class="{boat.classes}" onclick="{boat.select}">
@@ -117,74 +116,12 @@
 
     <div id="boat-deck-feedback" class="{feedbackClasses}">{feedbackText}</div>
     <canvas id="boat-drag-ghost" class="boat-drag-ghost" width="1920" height="1080" />
-    <div id="wings-modal" class="{wings.classes}">
-      <div id="wings-space-above" class="wings-space" />
-      <div id="wings-dialog" class="wings-dialog console-readout">
-        <div id="wings-title" class="label heading tone-edge wings-title">{wings.title}</div>
-        <div id="wings-dialogue" class="wings-dialogue">
-          <img id="wings-portrait" class="wings-portrait" src="{wings.portrait}" />
-          <div id="wings-copy" class="label wings-copy">{wings.copy}</div>
-        </div>
-        <div id="wings-exchange" class="wings-exchange">
-          <div id="wings-old-card" class="wings-craft-card">
-            <img id="wings-old" class="wings-craft" src="{wings.oldArt}" />
-            <div id="wings-old-name" class="label heading tone-muted wings-craft-name">{wings.oldName}</div>
-            <div id="wings-old-seats" class="label tone-muted wings-craft-seats">{wings.oldSeats}</div>
-          </div>
-          <div id="wings-arrow" class="label heading tone-edge wings-arrow">{wings.arrow}</div>
-          <div id="wings-new-card" class="wings-craft-card">
-            <img id="wings-new" class="wings-craft" src="{wings.newArt}" />
-            <div id="wings-new-name" class="label heading wings-craft-name">{wings.newName}</div>
-            <div id="wings-new-seats" class="label wings-craft-seats">{wings.newSeats}</div>
-          </div>
-          <div id="wings-trade" class="label wings-trade tone-muted">{wings.trade}</div>
-        </div>
-        <div id="wings-price" class="{wings.priceClasses}">
-          <div id="wings-price-label" class="label heading tone-muted wings-price-label">{wings.priceLabel}</div>
-          <img id="wings-price-icon" class="wings-price-icon" src="graphics/ui/company/credits.svg" />
-          <div id="wings-price-value" class="label heading wings-price-value">{wings.price}</div>
-          <div id="wings-price-stock" class="{wings.stockClasses}">{wings.stock}</div>
-        </div>
-        <div id="wings-reason" class="label tone-muted wings-reason">{wings.reason}</div>
-        <div id="wings-controls" class="wings-controls">
-          <button id="wings-action" class="wings-action console-action" disabled="{wings.disabled}" onclick="{wings.action}">{wings.actionLabel}</button>
-          <button id="wings-later" class="wings-action console-action" onclick="{wings.dismiss}">{i18n.openingUiBoatDeckCloseLater}</button>
-        </div>
-      </div>
-      <div id="wings-space-below" class="wings-space" />
-    </div>
   </div>
 </template>
 
 <style>
   .header-stock-slot { flex-direction: column; width: 640px; height: 46px; }
   .company-credit-bill { height: 36px; }
-  .wings-resume { width: 100%; height: 32px; text-align: center; font-family: heading; }
-  .wings-backdrop { position: absolute; left: 0px; top: 0px; width: 100%; height: 100%; flex-direction: column; align-items: center; background-color: #080e12d9; }
-  .wings-hidden { display: none; }
-  .wings-space { height: 0px; flex-grow: 1; }
-  .wings-dialog { width: 900px; height: 470px; padding: 18px; gap: 12px; flex-direction: column; border-width: 2px; border-color: #dfc588; background-color: #202d28; }
-  .wings-title { height: 24px; }
-  .wings-dialogue { flex-direction: row; height: 150px; gap: 18px; }
-  .wings-portrait { width: 150px; height: 150px; }
-  .wings-copy { width: 0px; flex-grow: 1; min-height: 150px; white-space: normal; }
-  .wings-exchange { flex-direction: row; height: 128px; gap: 10px; align-items: center; padding: 6px 10px; background-color: #1a2522; }
-  .wings-craft-card { flex-direction: column; align-items: center; width: 130px; height: 116px; gap: 2px; }
-  .wings-craft { width: 60px; height: 76px; }
-  .wings-craft-name { width: 100%; height: 18px; text-align: center; }
-  .wings-craft-seats { width: 100%; height: 16px; text-align: center; }
-  .wings-arrow { width: 24px; height: 20px; text-align: center; }
-  .wings-trade { width: 0px; flex-grow: 1; min-height: 96px; padding-left: 14px; white-space: normal; }
-  .wings-price { flex-direction: row; align-items: center; height: 40px; padding: 0px 12px; gap: 10px; border-width: 1px; border-color: #46554b; background-color: #121719; }
-  .wings-price.short { border-color: #a05d52; }
-  .wings-price-label { width: 160px; height: 18px; }
-  .wings-price-icon { width: 20px; height: 20px; }
-  .wings-price-value { width: 0px; flex-grow: 1; height: 20px; color: #dfc588; }
-  .wings-price-stock { width: 260px; height: 18px; text-align: right; }
-  .wings-price-stock.short { color: #eea296; }
-  .wings-reason { min-height: 20px; white-space: normal; }
-  .wings-controls { height: 32px; flex-direction: row; gap: 12px; }
-  .wings-action { width: 190px; height: 32px; font-family: heading; text-align: center; }
 
   .boat-deck-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
   .label { overflow: hidden; }
