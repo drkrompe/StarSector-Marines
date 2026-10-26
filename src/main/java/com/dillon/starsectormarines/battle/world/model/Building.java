@@ -50,6 +50,14 @@ public final class Building {
     public float currentAlpha = 1f;
     /** Visibility-pass target. 1.0 = hide interior, 0.0 = reveal. */
     public float targetAlpha = 1f;
+    /**
+     * How deep in fog the roof lies, lerped per frame toward {@link #targetFog}: 1 when no cell under it
+     * is in sight, so it is darkened as the fog darkens the ground beside it. Starts in sight, so a host
+     * that runs no fog never darkens a roof; the first visibility pass sets the target.
+     */
+    public float currentFog = 0f;
+    /** Visibility-pass target. 1.0 = no cell under the roof in sight, 0.0 = some cell in sight. */
+    public float targetFog = 0f;
 
     public Building(int id, BuildingKind kind,
                     int minX, int maxX, int minY, int maxY,

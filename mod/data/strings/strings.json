@@ -3224,7 +3224,7 @@
     "vehicleKitEffectSPACED_SKIRTS": "RATING +2  ·  TRACKED HULLS",
     "vehicleKitEffectSENSOR_PAIR": "TWO SENSOR DRONES  ·  HULLS WITH NO BAY",
     "vehicleKitEffectACCELERATED_LOADER": "LOADER 25% FASTER  ·  ARMED HULLS",
-    "vehicleKitEffectCAPACITOR_PACK": "FLUX CAPACITY +50%  ·  FLUX HULLS",
+    "vehicleKitEffectCAPACITOR_PACK": "FLUX CAPACITY +50%  ·  ARMED HULLS",
     "openingMechLabStructure": "STRUCTURE",
     "openingMechLabVehicleArmor": "{0} PLATE · RATING {1}",
     "openingMechLabPassengers": "PASSENGERS",

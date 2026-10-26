@@ -148,7 +148,19 @@ to (`garrisonables.md`, parties, place directives and locked positions).
 An ally counts in its own ledger. A mission's terminal check names the sides
 it counts: the marine side's elimination objective counts `DEFENDER`, the
 defender side's counts `MARINE`, so an allied wipe never ends the battle and
-a marine wipe with allies still standing is the player's defeat. Allied
+a marine wipe with allies still standing is the player's defeat.
+
+Every company battle also carries a default defeat, whatever its objectives:
+the company has lost once it has no soldier, vehicle or machine on the map and
+no reserve it can still put there (`ObjectiveFactionPresence.companyInPlay`,
+read by `WinCheckSystem`). A reserve is a boat still carrying troops or still
+owed a sortie, a pending authored arrival, or a delivery power (squad, vehicle
+or armor drop) with a charge, the supplies to pay for it, someone left to send
+and a carrier left to fly them. For an armor drop that is a machine still
+aboard that lift and a live ferry craft admit, or one waiting on the lift
+queue that a live ferry craft can still carry (`mechs-nouns.md`, armor drop). The company's own emplacements and drones are
+not forces. A live machine the commander cannot bring to bear keeps the battle
+open, as it would for a player. Allied
 casualties are recorded on the mission outcome as engaged and lost, never as
 company personnel, and never reach reputation or the roster. An ally contests
 a compound the way any hostile presence does, but only MARINE and DEFENDER

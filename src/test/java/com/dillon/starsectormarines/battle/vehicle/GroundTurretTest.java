@@ -54,6 +54,17 @@ class GroundTurretTest {
         assertTrue(fittedRounds > stockRounds, "a capacitor pack holds more rounds before it overloads");
     }
 
+    @Test
+    void everyGunAHullCarriesBuildsFlux() {
+        for (VehicleType type : VehicleType.values()) {
+            if (!type.hasTurretWeapon()) continue;
+            assertTrue(type.turretStructure().mount.flux != null, type + "'s gun builds no flux");
+            for (VehicleMount mount : type.secondaryMounts()) {
+                assertTrue(mount.structure().mount.flux != null, type + "'s " + mount.structureId() + " builds no flux");
+            }
+        }
+    }
+
     private static int roundsToOverload(GroundTurret turret, TurretMountDef mount) {
         int rounds = 0;
         while (!turret.overloaded) {

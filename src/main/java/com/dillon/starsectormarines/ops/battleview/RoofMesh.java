@@ -116,6 +116,7 @@ public final class RoofMesh {
         final int firstSlot;
         final int slotCount;
         float alpha = Float.NaN;
+        float fogShade = Float.NaN;
 
         Span(Building building, int firstSlot, int slotCount) {
             this.building = building;
@@ -432,17 +433,29 @@ public final class RoofMesh {
         lastResolvedCells = resolved;
     }
 
-    /** Writes the fade every building's vertices carry, for the ones that moved. */
+    /** Writes the fade and the fog every building's vertices carry, for the ones that moved. */
     private void shade(float frameAlpha) {
         for (Span span : spans) {
-            float own = span.building.currentAlpha;
+            Building b = span.building;
+            float own = b.currentAlpha;
             float effective = own <= INVISIBLE_BELOW ? 0f
                     : Math.max(0f, Math.min(1f, own * frameAlpha));
-            if (Math.abs(effective - span.alpha) < 1f / 512f) continue;
+            float fogShade = FogField.roofShade(b.currentFog);
+            if (Math.abs(effective - span.alpha) < 1f / 512f
+                    && Math.abs(fogShade - span.fogShade) < 1f / 512f) continue;
             span.alpha = effective;
+            span.fogShade = fogShade;
+            float r = RoofTiles.tint(b.tintR) * fogShade;
+            float g = RoofTiles.tint(b.tintG) * fogShade;
+            float bl = RoofTiles.tint(b.tintB) * fogShade;
             int at = span.firstSlot * 16;
             int end = at + span.slotCount * 16;
-            for (int i = at + 3; i < end; i += 4) col[i] = effective;
+            for (int i = at; i < end; i += 4) {
+                col[i] = r;
+                col[i + 1] = g;
+                col[i + 2] = bl;
+                col[i + 3] = effective;
+            }
             markColour(span.firstSlot, span.firstSlot + span.slotCount);
         }
     }

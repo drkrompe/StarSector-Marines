@@ -60,6 +60,12 @@ abstract class AirDeliveryPower extends CommandPower {
     @Override
     public float previewRadiusCells() { return 1.5f; }
 
+    /** The synthetic carrier never runs out, so a payload that lands forces can always field them. */
+    @Override
+    public boolean canStillField(BattleView battle) {
+        return payload.fieldsForces();
+    }
+
     @Override
     public boolean canTarget(int cellX, int cellY, BattleView battle) {
         return landingZoneNear(cellX, cellY, battle) != null;

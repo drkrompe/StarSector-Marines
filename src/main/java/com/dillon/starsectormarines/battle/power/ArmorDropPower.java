@@ -149,6 +149,19 @@ public abstract class ArmorDropPower extends AirDeliveryPower {
         return List.copyOf(rows);
     }
 
+    /**
+     * A machine still aboard that lift and a live ferry craft can bring down. A drop already
+     * queued is the lift queue's to count ({@code ObjectiveFactionPresence}), since it is no
+     * longer aboard.
+     */
+    @Override
+    public boolean canStillField(BattleView battle) {
+        for (BayManifest.Entry entry : manifest.entries()) {
+            if (!called[entry.index()] && refusal(entry.weightClass(), battle) == null) return true;
+        }
+        return false;
+    }
+
     /** The first machine still aboard that lift allows, or {@code null} when there is none. */
     public Integer defaultPick(BattleView battle) {
         for (BayManifest.Entry entry : manifest.entries()) {

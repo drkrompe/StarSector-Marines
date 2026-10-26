@@ -201,8 +201,8 @@ increasing an encounter's total armored threat.
   - **Ready rack** (Common, armed hulls): half again the turret's magazine.
   - **Accelerated loader** (Advanced, armed hulls): every mount's loader puts a
     pack back in three quarters of the stock time (`convoy-nouns.md`, the loader).
-  - **Capacitor pack** (Advanced, hulls whose gun builds flux): half again the
-    flux the gun holds before it overloads.
+  - **Capacitor pack** (Advanced, armed hulls, whose every gun builds flux):
+    half again the flux the gun holds before it overloads.
   - **Spaced skirts** (Advanced, tracked hulls): +2 armor rating.
   - **Sensor drone pair** (Advanced, hulls with no bay of their own): two sensor
     drones that fly ahead of the bow, so an indirect-fire hull fed by them fires

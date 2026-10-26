@@ -7,6 +7,10 @@ import java.util.Arrays;
 /** Retained, clipped texture geometry. Borrowed arrays are read-only. No render-time shape generation. */
 public final class TerrainSurface {
     public static final int RAISED_LAYERS=8, LAYERS=16;
+    /** The first of the two layers a top's cap (a tier's last band) is laid in, on either tier. */
+    static final int CAP_LAYER=6;
+    /** Whether a layer is a tier's cap: the first tier's, or the second's {@link #stacked} above it. */
+    public static boolean isCap(int layer) { return layer%RAISED_LAYERS==CAP_LAYER || layer%RAISED_LAYERS==CAP_LAYER+1; }
     /** A zero surface selects the map renderer's ordinary grass, clipped to the summit. */
     public record Patch(int surface,float[] vertices) {}
     private final int width;

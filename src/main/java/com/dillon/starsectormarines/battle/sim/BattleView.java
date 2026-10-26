@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.air.LiftQueue;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.power.MechDropService;
+import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
@@ -81,6 +82,9 @@ public interface BattleView {
 
     /** The player's lift queue of ferry sorties, or {@code null} for a view with no air. */
     default LiftQueue liftQueue() { return null; }
+
+    /** The company's command powers, or {@code null} where the view has none. */
+    default CommandPowerService getCommandPowerService() { return null; }
 
     /** Committed ground forces whose authored arrival is still pending. */
     default int pendingGroundArrivals(Faction faction) { return 0; }

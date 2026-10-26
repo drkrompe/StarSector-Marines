@@ -943,9 +943,11 @@ public class BattleRenderer {
 
         void begin(DrawList out, Building building, float alpha) {
             this.out = out;
-            r = RoofTiles.tint(building.tintR);
-            g = RoofTiles.tint(building.tintG);
-            b = RoofTiles.tint(building.tintB);
+            // Over the fog, so a roof nobody can see is darkened here instead.
+            float fogShade = FogField.roofShade(building.currentFog);
+            r = RoofTiles.tint(building.tintR) * fogShade;
+            g = RoofTiles.tint(building.tintG) * fogShade;
+            b = RoofTiles.tint(building.tintB) * fogShade;
             a = alpha;
         }
 
@@ -992,6 +994,7 @@ public class BattleRenderer {
             float roofAlpha = b.currentAlpha;
             if (roofAlpha <= 0.01f) continue;
             if (!view.intersects(b.minX, b.maxX, b.minY, b.maxY)) continue;
+            float fogShade = FogField.roofShade(b.currentFog);
             for (int i = 0, n = b.cellCount(); i < n; i++) {
                 int cx = b.cellsX[i];
                 int cy = b.cellsY[i];
@@ -1000,7 +1003,7 @@ public class BattleRenderer {
                 int[] c = brick.resolve(false, false, false, false, cx, cy);
                 TileManifest.TileFrame f = new TileManifest.TileFrame(c[0], c[1]);
                 addSmallTileTinted(out, f, cx, cy,
-                        b.tintR, b.tintG, b.tintB, roofAlpha * alphaMult);
+                        b.tintR * fogShade, b.tintG * fogShade, b.tintB * fogShade, roofAlpha * alphaMult);
             }
         }
     }
@@ -1412,7 +1415,7 @@ public class BattleRenderer {
                 && DevConfig.SURFACE_RELIEF_PARALLAX
                 && layers.contains(RenderLayer.GROUND);
         for (RenderLayer layer : RenderLayer.values()) {
-            if (!layers.contains(layer)) continue;
+            if (!layer.drawnFor(layers)) continue;
             long started = census == null ? 0L : System.nanoTime();
             if (leading != null && leading.count(layer) > 0) {
                 DrawListRenderer.drain(leading.buffer(layer), leading.count(layer), batchBySheet, solidBatch,
