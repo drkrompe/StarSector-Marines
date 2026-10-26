@@ -268,11 +268,24 @@ worst-approach and a prepared-approach run, the full-mission preview video.
 - [x] Second map pass: craters on the flat, the post's crater closed round its floor, large dishes, varied modules with airlock and tubes, stores, wrecks and track wear.
 - [x] Each charge's effect fires in a unit test; the warning stops at the uplink charge.
 - [x] Each side job pays off only inside its window.
-- [ ] `commanderEvidence -Pmission=corvus "-Dbattle.corvus.chapter=BLIND_WATCH"`: worst approach (autonomous, no side jobs) and prepared approach (side jobs granted, mast first) both measured; the prepared one clearly easier.
+- [x] `commanderEvidence -Pmission=corvus "-Dbattle.corvus.chapter=BLIND_WATCH"`, after the spur rim gun
+  moved beside the mast (owner's option a; it had killed 28-29 of 36 on the flat in every run):
+  - Prepared (stood-to, every side job, Convoy Escort Issue, Hound SRM shoulder): **victory at tick 4,659**,
+    dish field, mast and uplink blown in turn, 15 of 36 marines lost, 22 of 26 defenders down; the false
+    schedule keeps the warning silent.
+  - Worst approach (stood-to, no side jobs, Field Security): defeat. Mast blown at 4,307, every marine lost by
+    6,689, Garnir warned. Accepted as fine (owner: a real player won't charge in a line).
+  - Quiet post (`corvus.teague.delivered`): defeat at 7,359, no charge blown, Garnir warned.
+  - The rocket truck never moves or fires: the Hound never comes near the uplink knoll.
+  - Open: in the worst run a Hound with no legs and no head, unable to move or fire, kept the battle running to the
+    18,000-tick cap (see Open questions).
 - [ ] Full-mission preview video with sound, 1920x1080, look preset.
 - [ ] Live play on Warion in a campaign.
 
 ## Open questions
+
+- A mech that can neither move nor fire still counts as a company force, so a battle can run forever
+  (worst-approach run above). Whether it counts as out of the fight is on the Blind Watch picks page.
 
 - Side-job pay (proposed: riggers 1,500, false schedule none).
 - Whether Blind Watch reads the Dust Ledger's broker mark: an escaped Teague
