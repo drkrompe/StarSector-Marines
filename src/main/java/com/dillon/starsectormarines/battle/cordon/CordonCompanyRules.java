@@ -28,13 +28,15 @@ public final class CordonCompanyRules {
     static final int ESCORT_SQUADS = 3;
     /** Cells of walk past which a duty is worth a lift. */
     static final int LIFT_WORTH = 100;
+    /** How many times a squad's walking pace a carrier covers the ground, counted cautiously. */
+    static final float RIDE_PACE = 3f;
     /** Cells across a town's hinge squads stand, and a hammer's. */
     static final int POST_SPACING = 8;
     /** Cells from a duty's cell inside which a squad is on it, and not still walking there. */
     static final int ON_DUTY = 12;
-    /** Cells a squad walking to its duty must close by each {@link #STALL_TICKS}, or it has stalled. */
+    /** Cells a squad walking to its duty must cover by each {@link #STALL_TICKS}, or it has stalled. */
     static final int PROGRESS = 10;
-    /** Ticks a walking squad may go without closing {@link #PROGRESS} cells: thirty seconds. */
+    /** Ticks a walking squad may go without covering {@link #PROGRESS} cells: thirty seconds. */
     static final int STALL_TICKS = Math.round(30f / BattleSimulation.TICK_DT);
     /** Ticks a squad that stalled on a duty is kept off that duty: a minute. */
     static final int BARRED_TICKS = Math.round(60f / BattleSimulation.TICK_DT);
@@ -76,20 +78,27 @@ public final class CordonCompanyRules {
     }
 
     /**
-     * Whether each squad walking to its duty is getting there (rule 11): one that has not closed {@link #PROGRESS}
-     * cells of the way for {@link #STALL_TICKS}, while still more than {@link #ON_DUTY} cells off, has stalled. A
-     * squad on its duty, or riding to it, is never stalled; a new duty starts its watch afresh.
+     * Whether each squad walking to its duty is getting anywhere (rule 11): one that has not moved {@link #PROGRESS}
+     * cells from where it stood {@link #STALL_TICKS} ago, while still more than {@link #ON_DUTY} cells off its duty, has
+     * stalled. Its own going, not the way left: a convoy's escort cell runs ahead of the trucks, so a squad walking
+     * after it never closes on it, and judged by that every escort was taken off as stalled and the next sent, none
+     * ever reaching the trucks (town Road, arid 8). A squad on its duty, or riding to it, is never stalled; a new duty
+     * starts its watch afresh.
      */
     static final class Progress {
-        private record Watch(String key, double best, int since) { }
+        private record Watch(String key, float x, float y, int since) { }
 
         private final Map<Integer, Watch> watches = new HashMap<>();
 
-        /** One look at {@code squad}, {@code away} cells from its duty {@code key}; true once it has stalled. */
-        boolean stalled(int squad, String key, double away, boolean riding, int tick) {
+        /**
+         * One look at {@code squad}, standing at {@code x, y}, {@code away} cells from its duty {@code key}; true once it
+         * has stalled.
+         */
+        boolean stalled(int squad, String key, float x, float y, double away, boolean riding, int tick) {
             Watch w = watches.get(squad);
-            if (w == null || !w.key().equals(key) || riding || away <= ON_DUTY || away <= w.best() - PROGRESS) {
-                watches.put(squad, new Watch(key, away, tick));
+            if (w == null || !w.key().equals(key) || riding || away <= ON_DUTY
+                    || Math.hypot(x - w.x(), y - w.y()) >= PROGRESS) {
+                watches.put(squad, new Watch(key, x, y, tick));
                 return false;
             }
             if (tick - w.since() < STALL_TICKS) return false;
@@ -228,12 +237,17 @@ public final class CordonCompanyRules {
 
     /**
      * Whether a squad should ask the base for a lift to a duty (rule 10): only outside a city, only for a duty more
-     * than {@link #LIFT_WORTH} cells off, and only with a free carrier nearer the squad than the duty is.
+     * than {@link #LIFT_WORTH} cells off, and only where walking to the carrier and riding from there to the duty at
+     * {@link #RIDE_PACE} times its pace beats walking. A carrier merely nearer the squad than the duty sent squads at
+     * the line fifty cells back to the base for a ride a hundred and fifty cells out, two minutes for what they
+     * could have walked (town Road, arid 8).
      */
     static boolean liftWorth(CordonPlan.Density density, float squadX, float squadY, int dutyX, int dutyY,
                              float carrierX, float carrierY) {
         if (density == CordonPlan.Density.URBAN) return false;
         double walk = Math.hypot(dutyX - squadX, dutyY - squadY);
-        return walk > LIFT_WORTH && Math.hypot(carrierX - squadX, carrierY - squadY) < walk;
+        double toCarrier = Math.hypot(carrierX - squadX, carrierY - squadY);
+        double ride = Math.hypot(dutyX - carrierX, dutyY - carrierY);
+        return walk > LIFT_WORTH && toCarrier + ride / RIDE_PACE < walk;
     }
 }
