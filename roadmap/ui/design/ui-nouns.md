@@ -4,7 +4,7 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — attached Mechs stand within their squad's group line, among the marines; the Lift Queue panel replaces the top-left command readout; the drop picker holds a placement pause; a box takes player vehicles too; a group click spreads round the click and a group
+Updated: 2026-10-26 — a group line deals stretches, and attached Mechs' bands, in the order things stand along the drag; attached Mechs stand within their squad's group line, among the marines; the Lift Queue panel replaces the top-left command readout; the drop picker holds a placement pause; a box takes player vehicles too; a group click spreads round the click and a group
 drag lays every squad, mech and vehicle along the line; a mech attached to a selected squad is selected with
 it and follows its orders.
 
@@ -688,7 +688,8 @@ resolved reachable destination remains simulation-owned without a persistent
 destination-cell overlay. For a lone Mech or vehicle, crossing the pointer threshold
 gives the move a held heading instead: it goes where the drag began and faces the
 way the drag went. For anything more it draws a **group line**: every recipient
-holds its own consecutive stretch of the line in recipient order, as long as its
+holds its own consecutive stretch of the line, dealt out in the order the recipients
+stand along the drag so no two cross on the way (`SelectionOrders.alongDrag`), as long as its
 width — a squad one marine's share per live marine, a Mech or vehicle two, since it
 is one unit however broad its chassis (`SelectionOrders.lineWidth`) — an infantry
 squad as a frontage (see `ai-nouns.md`, occupy) and a Mech or vehicle at its
@@ -696,7 +697,8 @@ stretch's middle, a marine's setback behind the line as the marines stand, facin
 the stretch's front. A squad with Mechs attached is given a stretch wide enough for
 them too, and the Mechs stand within it: each holds a band two marines wide,
 spaced evenly along the stretch, with the marines sharing out the rest either side
-(two give marine, Mech, marine, Mech, marine), at the same setback
+(two give marine, Mech, marine, Mech, marine), the bands going to the Mechs in the
+order they stand along the stretch, at the same setback
 (`mechs-nouns.md`, attachment); each stretch faces as an infantry
 line does, toward the threat its squad believes in, else away from where the
 recipient stands. It is previewed while the button is held as a stroke per

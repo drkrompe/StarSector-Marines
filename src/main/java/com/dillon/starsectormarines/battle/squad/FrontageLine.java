@@ -110,6 +110,18 @@ public record FrontageLine(int x0, int y0, int x1, int y1, float frontX, float f
         return Math.max(0f, Math.min(1f, t));
     }
 
+    /**
+     * Where the point projects onto the segment's direction, 0 at the start and 1 at the end, not
+     * clamped: so things beyond either end still keep their order along it.
+     */
+    public float projection(float x, float y) {
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        float lengthSq = dx * dx + dy * dy;
+        if (lengthSq < 1e-6f) return 0f;
+        return ((x - x0) * dx + (y - y0) * dy) / lengthSq;
+    }
+
     /** Distance in cells from the cell to the nearest point of the segment. */
     public float distance(float x, float y) {
         float t = along(x, y);
