@@ -65,6 +65,7 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.Map;
@@ -232,7 +233,9 @@ class BattleFixtureJsonTest {
                         new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1),
                         new ShuttleAssignment(armoured, 2, 6),
                         new ShuttleAssignment(
-                                FittedBoat.standard(ShuttleType.AEROSHUTTLE), 1, 6)),
+                                FittedBoat.standard(ShuttleType.AEROSHUTTLE), 1, 6),
+                        new ShuttleAssignment(new FittedBoat(ShuttleType.HERMES, Map.of(), "boat_01",
+                                new String[]{null, null, BoatGun.SRM_POD.structureId()}), 1, 4)),
                 false,
                 RiskLevel.LOW,
                 12,
@@ -258,6 +261,8 @@ class BattleFixtureJsonTest {
                 manifest.get(2).airframe);
         assertNull(((FittedBoat) manifest.get(2).airframe).boatId(),
                 "a fitted frame nobody owns names no boat and must not invent one");
+        assertEquals(Arrays.asList(BoatGun.HEAVY_MG.structureId(), null, BoatGun.SRM_POD.structureId()),
+                ((FittedBoat) manifest.get(3).airframe).guns(), "a bare hardpoint reads back bare");
     }
 
     @Test

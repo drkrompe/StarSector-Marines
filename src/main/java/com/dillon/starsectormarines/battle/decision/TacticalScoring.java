@@ -528,11 +528,25 @@ public final class TacticalScoring {
                                           int selfSquadId, long excludeFromCrowding,
                                           float shooterAirRadius, boolean allowNoLos,
                                           float minRange, float maxRange, boolean tracksFliers) {
+        return findBestTargetWithinRange(selfX, selfY, selfFaction, selfSquadId, excludeFromCrowding,
+                shooterAirRadius, allowNoLos, minRange, maxRange, tracksFliers, 0f, 180f);
+    }
+
+    /**
+     * As the overload above, held to an arc: only a hostile whose bearing lies within {@code arcHalfDeg} of
+     * {@code arcCenterDeg} (world degrees, {@code TurretAim.bearingTo}'s convention) is a candidate. A half-width
+     * of 180 or more is all round.
+     */
+    public long findBestTargetWithinRange(float selfX, float selfY, Faction selfFaction,
+                                          int selfSquadId, long excludeFromCrowding,
+                                          float shooterAirRadius, boolean allowNoLos,
+                                          float minRange, float maxRange, boolean tracksFliers,
+                                          float arcCenterDeg, float arcHalfDeg) {
         long _profT0 = System.nanoTime();
         try {
             return findBestTargetImpl(selfX, selfY, selfFaction, selfSquadId,
                     excludeFromCrowding, shooterAirRadius, allowNoLos,
-                    minRange, maxRange, tracksFliers);
+                    minRange, maxRange, tracksFliers, arcCenterDeg, arcHalfDeg);
         } finally {
             TickInnerProfile p = TickInnerProfile.current();
             if (p != null) p.record(TickInnerProfile.Bucket.TARGET_PICK, System.nanoTime() - _profT0);
@@ -542,7 +556,8 @@ public final class TacticalScoring {
     private long findBestTargetImpl(float selfX, float selfY, Faction selfFaction,
                                     int selfSquadId, long excludeFromCrowding,
                                     float shooterAirRadius, boolean allowNoLos,
-                                    float minRange, float maxRange, boolean tracksFliers) {
+                                    float minRange, float maxRange, boolean tracksFliers,
+                                    float arcCenterDeg, float arcHalfDeg) {
         World world = roster.world();
 
         // Grid cell of the shooter, for the LoS + zone lookups only - the
@@ -561,6 +576,8 @@ public final class TacticalScoring {
         scan.begin(this, selfX, selfY, selfCellX, selfCellY, selfFaction,
                 selfSquadId, excludeFromCrowding, shooterAirRadius, allowNoLos,
                 minRange, maxRange, tracksFliers);
+        scan.arcCenterDeg = arcCenterDeg;
+        scan.arcHalfDeg = arcHalfDeg;
         unitIndex.forEachHostileCombatantByRing(selfX, selfY, selfFaction, scan);
         offerLiftedFortCores(scan, selfFaction, selfSquadId);
         TickInnerProfile profile = TickInnerProfile.currentIfBound();
@@ -702,6 +719,9 @@ public final class TacticalScoring {
         private float maxRange;
         /** Whether the weapon asking can engage a flier; a flier is not a candidate otherwise. */
         private boolean tracksFliers;
+        /** The arc a candidate's bearing must lie in; a half-width of 180 or more is all round. */
+        private float arcCenterDeg;
+        private float arcHalfDeg = 180f;
         /**
          * How far the perceiver can see, in cells. Read off the unit when the
          * caller named one, and otherwise off the caller's own reach, which is
@@ -728,6 +748,8 @@ public final class TacticalScoring {
                    float minRange, float maxRange, boolean tracksFliers) {
             this.scoring = scoring;
             this.tracksFliers = tracksFliers;
+            this.arcCenterDeg = 0f;
+            this.arcHalfDeg = 180f;
             this.world = scoring.roster.world();
             this.vision = scoring.roster.vision();
             this.selfX = selfX;
@@ -808,6 +830,8 @@ public final class TacticalScoring {
         public void accept(long id, float snapshotX, float snapshotY) {
             visits++;
             if (!tracksFliers && scoring.isFlier(id)) return;
+            if (arcHalfDeg < 180f && Math.abs(TurretAim.shortestAngleDelta(arcCenterDeg,
+                    TurretAim.bearingTo(selfX, selfY, world.x(id), world.y(id)))) > arcHalfDeg) return;
             float d = cellDistance(selfX, selfY, world.x(id), world.y(id));
             if (d < minRange || d > maxRange) return;
             int ox = world.cellX(id);

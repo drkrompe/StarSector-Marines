@@ -385,7 +385,7 @@ public final class BoatDeckViewModel {
         if (boat == null || from == null || to == null || from.equals(to) || !canLiftOff(from)) return false;
         int source = BoatDoll.hardpointOf(from);
         int target = BoatDoll.hardpointOf(to);
-        return source >= 0 && target >= 0 && boat.gunOn(target) != null && boat.gunOn(target) != boat.gunOn(source);
+        return source >= 0 && boat.hasHardpoint(target) && boat.gunOn(target) != boat.gunOn(source);
     }
 
     /** Moves a gun lifted off one hardpoint onto another; see {@link BoatWorkshop#moveGun}. */
@@ -475,8 +475,8 @@ public final class BoatDeckViewModel {
         int hardpoint = BoatDoll.hardpointOf(key);
         if (kind == BoatDoll.Kind.HARDPOINT) {
             BoatGun gun = BoatGun.findById(itemId);
-            BoatGun installed = hardpoint < 0 ? null : boat.gunOn(hardpoint);
-            return gun != null && installed != null && installed != gun && gun.supports(boat.pattern());
+            return gun != null && boat.hasHardpoint(hardpoint) && boat.gunOn(hardpoint) != gun
+                    && gun.supports(boat.pattern());
         }
         BoatFitting fitting = BoatFitting.findById(itemId);
         return fitting != null && hardpoint < 0 && BoatDoll.slotKey(fitting.slot()).equals(key)
@@ -900,10 +900,12 @@ public final class BoatDeckViewModel {
         List<WeaponSlot> mounts = TurretSlotResolver.mounts(pattern.renderHullId());
         for (int index = 0; index < pattern.hardpoints(); index++) {
             BoatGun gun = boat.gunOn(index);
-            if (gun == null) continue;
             WeaponSlot mount = index < mounts.size() ? mounts.get(index) : null;
-            slots.add(BoatDoll.Slot.hardpoint(index, gun.id(), hardpointLabel(index), gun.displayName(),
-                    gunTier(boat, index, gun), index == hardpoint, mount));
+            slots.add(gun == null
+                    ? BoatDoll.Slot.hardpoint(index, null, hardpointLabel(index), Strings.get("boatDeckHardpointBare"),
+                            "", index == hardpoint, mount)
+                    : BoatDoll.Slot.hardpoint(index, gun.id(), hardpointLabel(index), gun.displayName(),
+                            gunTier(boat, index, gun), index == hardpoint, mount));
         }
         return new BoatDoll(pattern, boat.displayName(), pattern.displayName(), List.copyOf(slots));
     }
@@ -955,7 +957,7 @@ public final class BoatDeckViewModel {
 
     private void selectHardpoint(int hardpoint) {
         CampaignBoat boat = selectedBoat();
-        if (boat == null || boat.gunOn(hardpoint) == null) return;
+        if (boat == null || !boat.hasHardpoint(hardpoint)) return;
         selectedHardpoint.set(hardpoint);
         storesFilter.set(BoatDoll.Kind.HARDPOINT);
         feedbackText.set(Strings.format("openingBoatDeckSelectedEverythingTheYardCanPutHere", hardpointLabel(hardpoint)));

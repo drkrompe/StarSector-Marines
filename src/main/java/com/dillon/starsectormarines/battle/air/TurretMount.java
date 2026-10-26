@@ -22,11 +22,28 @@ public final class TurretMount {
     /** Longitudinal offset from shuttle center, cells. Positive = toward the nose. */
     public final float localOffsetY;
 
+    /** Centre of the arc this mount fires through, degrees off the nose, counter-clockwise positive. */
+    public final float arcCenterDeg;
+    /** Width of that arc in degrees; {@link #ALL_ROUND} or more fires all round. */
+    public final float arcDeg;
+
+    public static final float ALL_ROUND = 360f;
+
     public TurretMount(String structureId, float localOffsetX, float localOffsetY) {
+        this(structureId, localOffsetX, localOffsetY, 0f, ALL_ROUND);
+    }
+
+    public TurretMount(String structureId, float localOffsetX, float localOffsetY,
+                       float arcCenterDeg, float arcDeg) {
         this.structureId = TurretCatalogRegistry.requireStructure(structureId).id;
         this.localOffsetX = localOffsetX;
         this.localOffsetY = localOffsetY;
+        this.arcCenterDeg = arcCenterDeg;
+        this.arcDeg = arcDeg;
     }
+
+    /** Whether this mount is held to an arc rather than firing all round. */
+    public boolean arced() { return arcDeg < ALL_ROUND; }
 
     public StructureDef structure() { return TurretCatalogRegistry.requireStructure(structureId); }
 
