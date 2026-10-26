@@ -30,6 +30,11 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
  *       go and the lob is not thrown.</li>
  * </ol>
  * It has no melee and never chases: distance and the surge in front are all it has.
+ *
+ * <p>Once it has seen an enemy it stays engaged ({@link #ENGAGED_SECONDS}, renewed whenever it sees one, out to
+ * {@link #SIGHT_MARGIN} cells past its reach): between lobs and while nothing is in reach it keeps turned to the
+ * nearest one it saw, and when it has stood {@link #RELOCATE_SECONDS} with nothing in reach it uproots and moves along
+ * the creep to a cell that puts that enemy in its lob band ({@link #firingSpot}), plants there and fires again.
  */
 final class SwarmBombardBehavior {
 
@@ -52,6 +57,15 @@ final class SwarmBombardBehavior {
     static final float CLOSING_RADIUS = 10f;
     /** How far it looks for creep to walk back to. */
     static final int CREEP_SEARCH_CELLS = 24;
+    /** It sees enemies this many cells past its reach, and stays engaged this long after it last saw one. UNTUNED. */
+    static final float SIGHT_MARGIN = 20f, ENGAGED_SECONDS = 30f;
+    /** Planted and reloaded with nothing in reach this long while engaged, it moves to a new firing spot. UNTUNED. */
+    static final float RELOCATE_SECONDS = 6f;
+    /** A new firing spot is at least this many cells from where it stands, and keeps this far inside the band. */
+    static final int RELOCATE_MIN_CELLS = 4;
+    static final float BAND_MARGIN = 4f;
+    /** A relocating Bombard plants once within this many cells of its spot. */
+    static final float GOAL_REACHED = 1.5f;
 
     private static final ThreadLocal<LongBucket> CANDIDATES = ThreadLocal.withInitial(LongBucket::new);
     private static final ThreadLocal<LongBucket> NEIGHBOURS = ThreadLocal.withInitial(LongBucket::new);
@@ -80,9 +94,16 @@ final class SwarmBombardBehavior {
         CreepField creep = sim.creepFieldIfPresent();
         boolean onCreep = CreepEffects.onCreep(creep, x, y);
         float dt = BattleSimulation.TICK_DT;
+        boolean engaged = watch(body, stance, sim);
 
         switch (stance.phase) {
             case WALKING -> {
+                if (stance.goalX >= 0 && creep != null && creep.isCreeped(stance.goalX, stance.goalY)
+                        && Math.hypot(stance.goalX + 0.5f - x, stance.goalY + 0.5f - y) > GOAL_REACHED) {
+                    SwarmMovement.pathDirect(body, stance.goalX, stance.goalY, false, sim);
+                    return;
+                }
+                stance.goalX = -1;
                 if (onCreep) {
                     sim.clearPath(body);
                     stance.creepX = -1;
@@ -105,9 +126,29 @@ final class SwarmBombardBehavior {
                     uproot(body, stance, sim);
                     return;
                 }
-                if (sim.combat().cooldownTimer(body) > 0f) return;
+                if (sim.combat().cooldownTimer(body) > 0f) {
+                    face(body, stance, engaged, sim);
+                    return;
+                }
                 long mark = markInRange(body, sim);
-                if (mark == 0L) return;
+                if (mark == 0L) {
+                    face(body, stance, engaged, sim);
+                    // only when its enemy is out of its band or out of sight: one held off by a melee is waited on
+                    if (!engaged || foeInReach(body, stance.foe, sim)) {
+                        stance.idleTicks = 0;
+                        return;
+                    }
+                    if (++stance.idleTicks < Math.round(RELOCATE_SECONDS / dt)) return;
+                    stance.idleTicks = 0;
+                    int[] spot = firingSpot(body, stance.foe, creep, sim);
+                    if (spot == null) return;
+                    stance.goalX = spot[0];
+                    stance.goalY = spot[1];
+                    uproot(body, stance, sim);
+                    face(body, stance, true, sim);
+                    return;
+                }
+                stance.idleTicks = 0;
                 sim.combat().setTargetId(body, mark);
                 stance.aim = mark;
                 stance.phase = SwarmBombards.Phase.WINDING_UP;
@@ -126,8 +167,107 @@ final class SwarmBombardBehavior {
                 stance.phase = SwarmBombards.Phase.PLANTED;
                 if (stillMarked(body, mark, sim)) fling(body, mark, stance.scale, sim);
                 else sim.combat().setTargetId(body, 0L);
+                face(body, stance, engaged, sim);
             }
         }
+    }
+
+    /**
+     * Renews its engagement with the nearest ground enemy it can see out to {@link #SIGHT_MARGIN} past its reach, and
+     * says whether it is engaged: it saw one within {@link #ENGAGED_SECONDS}, and that one still lives.
+     */
+    private static boolean watch(long body, SwarmBombards.Stance stance, BattleSimulation sim) {
+        int tick = sim.getSimTickIndex();
+        long seen = nearestSeen(body, sim);
+        if (seen != 0L) {
+            stance.foe = seen;
+            stance.engagedUntil = tick + Math.round(ENGAGED_SECONDS / BattleSimulation.TICK_DT);
+        }
+        if (stance.foe != 0L && (tick > stance.engagedUntil || sim.resolveUnit(stance.foe) == 0L
+                || !sim.world().isAlive(stance.foe))) {
+            stance.foe = 0L;
+            stance.idleTicks = 0;
+        }
+        return stance.foe != 0L;
+    }
+
+    /** The nearest ground enemy it has a line to within its reach plus {@link #SIGHT_MARGIN}; 0 for none. */
+    private static long nearestSeen(long body, BattleSimulation sim) {
+        float x = sim.world().x(body);
+        float y = sim.world().y(body);
+        float sight = sim.combat().attackRange(body) + SIGHT_MARGIN;
+        boolean shelterProtected = sim.isCivilianShelterProtected();
+        LongBucket nearby = CANDIDATES.get();
+        sim.getUnitIndex().gatherHostileCombatants(x, y, sight, Faction.DEFENDER, nearby);
+        long best = 0L;
+        float bestD = Float.MAX_VALUE;
+        for (int i = 0, n = nearby.size; i < n; i++) {
+            long candidate = nearby.ids[i];
+            UnitType type = sim.identity().type(candidate);
+            if (type.isFlier() || type == UnitType.BASED_AIRCRAFT || type == UnitType.DRONE) continue;
+            if (!SwarmPressureBehavior.eligiblePreyKnownFaction(candidate, shelterProtected, sim)) continue;
+            float cx = sim.world().x(candidate);
+            float cy = sim.world().y(candidate);
+            float d = (float) Math.hypot(cx - x, cy - y);
+            if (d > bestD || d == bestD && candidate > best) continue;
+            if (!SwarmPressureBehavior.canSense((int) Math.floor(x), (int) Math.floor(y), cx, cy, sight, sim)) continue;
+            best = candidate;
+            bestD = d;
+        }
+        return best;
+    }
+
+    /** Whether {@code foe} stands in its lob band with a line to it. */
+    private static boolean foeInReach(long body, long foe, BattleSimulation sim) {
+        float x = sim.world().x(body);
+        float y = sim.world().y(body);
+        float fx = sim.world().x(foe);
+        float fy = sim.world().y(foe);
+        float range = sim.combat().attackRange(body);
+        return inLobRange((float) Math.hypot(fx - x, fy - y), range)
+                && SwarmPressureBehavior.canSense((int) Math.floor(x), (int) Math.floor(y), fx, fy, range, sim);
+    }
+
+    /** Keeps it turned to the enemy it is engaged with, through its target; lets the target go when it is not. */
+    private static void face(long body, SwarmBombards.Stance stance, boolean engaged, BattleSimulation sim) {
+        sim.combat().setTargetId(body, engaged ? stance.foe : 0L);
+    }
+
+    /**
+     * A creep cell within {@link #CREEP_SEARCH_CELLS} that puts {@code foe} in its lob band with {@link #BAND_MARGIN}
+     * to spare, nearest the band's middle, then nearest itself; at least {@link #RELOCATE_MIN_CELLS} from where it
+     * stands. {@code null} when there is none.
+     */
+    static int[] firingSpot(long body, long foe, CreepField creep, BattleSimulation sim) {
+        if (creep == null || foe == 0L) return null;
+        NavigationGrid grid = sim.getGrid();
+        int cx = sim.world().cellX(body);
+        int cy = sim.world().cellY(body);
+        float fx = sim.world().x(foe);
+        float fy = sim.world().y(foe);
+        float range = sim.combat().attackRange(body);
+        float near = MIN_RANGE + BAND_MARGIN, far = range - BAND_MARGIN, middle = (near + far) * 0.5f;
+        if (far < near) return null;
+        int[] best = null;
+        float bestScore = Float.MAX_VALUE;
+        for (int dy = -CREEP_SEARCH_CELLS; dy <= CREEP_SEARCH_CELLS; dy++) {
+            for (int dx = -CREEP_SEARCH_CELLS; dx <= CREEP_SEARCH_CELLS; dx++) {
+                int moved2 = dx * dx + dy * dy;
+                if (moved2 < RELOCATE_MIN_CELLS * RELOCATE_MIN_CELLS
+                        || moved2 > CREEP_SEARCH_CELLS * CREEP_SEARCH_CELLS) continue;
+                int x = cx + dx;
+                int y = cy + dy;
+                if (!grid.inBounds(x, y) || !grid.isWalkable(x, y) || !creep.isCreeped(x, y)) continue;
+                float d = (float) Math.hypot(x + 0.5f - fx, y + 0.5f - fy);
+                if (d < near || d > far) continue;
+                float score = Math.abs(d - middle) * 4f + (float) Math.sqrt(moved2);
+                if (score < bestScore) {
+                    bestScore = score;
+                    best = new int[]{x, y};
+                }
+            }
+        }
+        return best;
     }
 
     private static void uproot(long body, SwarmBombards.Stance stance, BattleSimulation sim) {
