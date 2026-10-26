@@ -35,8 +35,8 @@ import java.util.stream.LongStream;
 
 /**
  * A Colony Breach side objective played on its set piece under its own pressure ({@code set-piece-blocks.md},
- * Lanes and pressure), the way {@code loading-pressure-look} plays the loading: the objective forced, a static
- * six-marine guard stood round the place it is about, and the bore's broods sent in down the set piece's lanes.
+ * Lanes and pressure), the way {@code loading-pressure-look} plays the loading: the objective forced, a
+ * six-marine guard holding the place it is about on a player's defend-area order, and the bore's broods sent in down the set piece's lanes.
  * Logs the beat every few seconds and the outcome, renders a frame a second wide enough for the set piece and the
  * bore together for a clip, and a close still every fifteen seconds. Opt-in, a look and pacing question; frames
  * are skipped with {@code -Dbattle.pressureLookFrames=false} for a quick pacing read, and
