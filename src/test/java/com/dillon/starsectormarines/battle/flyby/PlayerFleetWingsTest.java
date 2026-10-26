@@ -25,7 +25,7 @@ class PlayerFleetWingsTest {
     }
 
     @Test
-    void committedBomberBaysUseTheSameFiniteStaggeredScheduleAsFighters() {
+    void committedBomberBaysAreRenewableStaggeredBaysLikeFighters() {
         var carrier = new PlayerFleetWings.CarrierBay("Test carrier", null, List.of(
                 PlayerFleetWings.profileFromWingId("longbow_wing"),
                 PlayerFleetWings.profileFromWingId("dagger_wing"),
@@ -37,9 +37,11 @@ class PlayerFleetWingsTest {
         for (int i = 0; i < roster.wings.size(); i++) {
             FighterWing wing = roster.wings.get(i);
             assertEquals(Faction.MARINE, wing.side);
-            assertEquals(2, wing.sortieCount);
+            assertTrue(wing.renewable(), "a carrier bay keeps its airframe on station");
+            assertEquals(1, wing.sortieCount, "one airframe on station per bay");
             assertEquals(8f + i * 4f, wing.firstArrivalSec);
-            assertEquals(12f, wing.spawnIntervalSec);
+            assertTrue(wing.refitSec < wing.replacementSec,
+                    "rearming must be quicker than replacing a lost airframe");
         }
         assertTrue(PlayerFleetWings.rosterFrom(List.of()).isEmpty(),
                 "uncommitted carriers must not supply sorties");
