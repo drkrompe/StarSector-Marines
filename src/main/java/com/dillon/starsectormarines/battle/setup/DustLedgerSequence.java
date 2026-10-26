@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.story.DustLedgerProgress;
 import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Broker;
 import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Facts;
+import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Side;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -23,6 +24,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.i18n.Strings;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -55,7 +57,16 @@ public final class DustLedgerSequence implements Objective {
     /** How often, in ticks, the broker re-plans toward a moving captor. */
     private static final int BROKER_REPLAN_TICKS = 15;
     private static final String ISSUER = "dust-ledger";
-    private static final String BEAT = "dust_ledger.";
+    /** Beat ids are the narration catalog's events ({@code wayline_narration.json}, {@code corvus.dust_ledger.*}). */
+    private static final String BEAT = "corvus.dust_ledger.";
+    /**
+     * Grants side objectives before play ({@code coupling}, {@code warden}, {@code feed}, comma separated, or
+     * {@code all}): a standing evidence lever, so a headless run can play the prepared approach the autonomous company
+     * never chooses, beside the run that plays none.
+     */
+    public static final String SIDE_OBJECTIVES_PROPERTY = "battle.dustLedger.sideObjectives";
+    /** Lift-off seconds left at which Castle calls the clock short. */
+    static final float CLOCK_SHORT_SECONDS = 60f;
 
     public record Cell(int x, int y) { }
 
@@ -136,24 +147,25 @@ public final class DustLedgerSequence implements Objective {
      * @param harrowYard       the Harrow salvage yard; the crate is delivered when carried inside
      * @param salvageTeamCells walkable cells on the crawler road, one per salvage team member
      * @param eastGate         the compound's east gate, where the salvage team advances
+     * @param feedJunction     the power tap's junction box and the ground a squad works it from, outside the ring
      */
     public record Sites(Area apron, Cell crate, Area ledgerRoom, Cell burnBarrel, Cell brokerOffice, Cell skimmerPad,
                         Area exclusionRing, Area compoundYard, List<Cell> spotterPosts, Area cantina,
                         List<Cell> drinkerCells, Area wellHouse, Area harrowYard, List<Cell> salvageTeamCells,
-                        Cell eastGate) {
+                        Cell eastGate, Area feedJunction) {
         public Sites {
             for (Object site : new Object[]{apron, crate, ledgerRoom, burnBarrel, brokerOffice, skimmerPad, exclusionRing,
-                    compoundYard, spotterPosts, cantina, drinkerCells, wellHouse, harrowYard, salvageTeamCells, eastGate})
+                    compoundYard, spotterPosts, cantina, drinkerCells, wellHouse, harrowYard, salvageTeamCells, eastGate, feedJunction})
                 if (site == null) throw new IllegalArgumentException("every Dust Ledger site is required");
             spotterPosts = List.copyOf(spotterPosts);
             drinkerCells = List.copyOf(drinkerCells);
             salvageTeamCells = List.copyOf(salvageTeamCells);
             if (!exclusionRing.contains(brokerOffice.x(), brokerOffice.y()) || !exclusionRing.contains(burnBarrel.x(), burnBarrel.y()))
                 throw new IllegalArgumentException("the broker's office and the burn barrel lie inside the exclusion ring");
-            for (Area outside : List.of(apron, wellHouse, harrowYard))
+            for (Area outside : List.of(apron, wellHouse, harrowYard, feedJunction))
                 for (Cell c : outside.cells())
                     if (exclusionRing.contains(c.x(), c.y()))
-                        throw new IllegalArgumentException("the apron and both side objectives lie outside the exclusion ring");
+                        throw new IllegalArgumentException("the apron and every side objective lie outside the exclusion ring");
         }
 
         /** The exclusion ring for compound grounds: the grounds grown by {@link #RING_MARGIN_CELLS}. */
@@ -226,6 +238,9 @@ public final class DustLedgerSequence implements Objective {
     private int brokerGoalX = -1, brokerGoalY = -1, brokerPlannedTick = -1;
     private boolean begun, alarmApplied, spotterSources;
     private int drinkerSquad = -1, salvageSquad = -1;
+    private final List<Long> nests = new ArrayList<>();
+    private final List<Cell> nestCells = new ArrayList<>();
+    private final List<Integer> pillboxSquads = new ArrayList<>();
 
     public DustLedgerSequence(Sites sites, RaidObjective raid, List<EntitySpec> drinkers, List<EntitySpec> salvageTeam,
                               StoryBeatLog log) {
@@ -243,6 +258,19 @@ public final class DustLedgerSequence implements Objective {
         this.crate = new Crate(sites.crate());
     }
 
+    /** Pays the side objectives a control run names; unknown names fail loudly rather than play the wrong run. */
+    void grantForced(String names) {
+        for (String name : names.split(",")) {
+            String key = name.trim().toUpperCase(Locale.ROOT);
+            if (key.isEmpty()) continue;
+            for (DustLedgerProgress.SideObjective which : DustLedgerProgress.SideObjective.values())
+                if (key.equals("ALL") || key.equals(which.name())) progress.grant(which);
+            if (!key.equals("ALL") && Arrays.stream(DustLedgerProgress.SideObjective.values()).noneMatch(w -> w.name().equals(key)))
+                throw new IllegalArgumentException(SIDE_OBJECTIVES_PROPERTY + ": unknown side objective " + name);
+        }
+        if (progress.coupling() == Side.PAID) crate.delivered = true;
+    }
+
     /** Stands the broker in his office and puts the quiet phase over the scans. Once, at setup. */
     public void begin(BattleSimulation sim) {
         if (begun) throw new IllegalStateException("the Dust Ledger begins once");
@@ -250,6 +278,7 @@ public final class DustLedgerSequence implements Objective {
         Cell office = sites.brokerOffice();
         broker = sim.spawn(new EntitySpec(Strings.get("dustLedgerHudBrokerName"), Faction.CIVILIAN, UnitType.CIVILIAN,
                 office.x(), office.y()).role(UnitRole.VIP));
+        grantForced(System.getProperty(SIDE_OBJECTIVES_PROPERTY, ""));
         Area ring = sites.exclusionRing();
         sim.getUnitIndex().cover((faction, x, y) -> progress.quiet() && covered(ring, faction, x, y));
     }
@@ -260,6 +289,23 @@ public final class DustLedgerSequence implements Objective {
         public boolean brokerCaught() { return broker == DustLedgerProgress.Broker.DELIVERED; }
     }
     public Report report() { return new Report(progress.grade(), progress.broker()); }
+
+    /**
+     * The compound's defences, recorded at setup: the powered gun nests (turret ids) a cut feed darkens, and the
+     * squads manning the pillboxes, whose first contact is called.
+     */
+    public void defences(BattleSimulation sim, List<Long> nestIds, List<Integer> pillboxSquadIds) {
+        if (!nests.isEmpty() || !pillboxSquads.isEmpty()) throw new IllegalStateException("record the defences once");
+        nests.addAll(nestIds);
+        for (long nest : nestIds) nestCells.add(new Cell(sim.world().cellX(nest), sim.world().cellY(nest)));
+        pillboxSquads.addAll(pillboxSquadIds);
+        if (!progress.nestsPowered()) for (long nest : nests) sim.turretState().cutPower(nest);
+    }
+
+    public List<Long> nests() { return List.copyOf(nests); }
+    /** Where the nests stand, for their markers. */
+    public List<Cell> nestCells() { return List.copyOf(nestCells); }
+    public List<Integer> pillboxSquads() { return List.copyOf(pillboxSquads); }
 
     public Sites sites() { return sites; }
     public DustLedgerProgress progress() { return progress; }
@@ -284,22 +330,54 @@ public final class DustLedgerSequence implements Objective {
         boolean brokerAlive = onField(sim, broker);
         float bx = brokerAlive ? sim.world().x(broker) : -1, by = brokerAlive ? sim.world().y(broker) : -1;
         Cell pad = sites.skimmerPad();
+        boolean leaderAtWell = leaderAtWell(sim), atFeed = companyIn(sim, sites.feedJunction());
         Facts facts = new Facts(shot, sighted, raid.targetSecured(), brokerAlive,
                 brokerAlive && companyWithin(sim, bx, by, BROKER_REACH_CELLS, true) != 0L,
                 brokerAlive && Math.hypot(bx - (pad.x() + .5f), by - (pad.y() + .5f)) <= PAD_REACH_CELLS,
                 brokerAlive && sites.apron().contains((int) Math.floor(bx), (int) Math.floor(by)),
-                crate.delivered, leaderAtWell(sim));
+                crate.delivered, leaderAtWell, atFeed);
         Broker brokerBefore = progress.broker();
         boolean seizedBefore = progress.seized();
-        DustLedgerProgress.Side couplingBefore = progress.coupling(), wardenBefore = progress.warden();
+        Side couplingBefore = progress.coupling(), wardenBefore = progress.warden(), feedBefore = progress.feed();
         progress.advance(BattleSimulation.TICK_DT, facts);
-        if (couplingBefore != progress.coupling()) beat(sim, "coupling_" + lower(progress.coupling().name()));
-        if (wardenBefore != progress.warden()) beat(sim, "warden_" + lower(progress.warden().name()));
+        if (wasQuiet) {
+            if (crate.carrier != 0L) beat(sim, "harrow_crate");
+            if (leaderAtWell) beat(sim, "warden_approach");
+            if (atFeed) beat(sim, "feed_approach");
+            if (progress.clockRemaining() <= CLOCK_SHORT_SECONDS) beat(sim, "clock_short");
+        }
+        if (couplingBefore != progress.coupling() && progress.coupling() == Side.PAID) beat(sim, "harrow_delivered");
+        if (wardenBefore != progress.warden() && progress.warden() == Side.PAID) beat(sim, "warden_nod");
+        if (progress.spottersUp()) beat(sim, "spotters");
+        if (feedBefore != progress.feed()) {
+            beat(sim, progress.feed() == Side.PAID ? "feed_cut" : "feed_lapsed");
+            // The nests hold fire through the quiet phase anyway; cut now, they are dead when the alarm comes.
+            if (progress.feed() == Side.PAID) for (long nest : nests) sim.turretState().cutPower(nest);
+        }
         if (wasQuiet && !progress.quiet()) onAlarm(sim);
-        if (!seizedBefore && progress.seized()) beat(sim, "ledger_seized_" + lower(progress.grade().name()));
-        if (!progress.seized() && !progress.quiet() && progress.burnedShare() >= 1f) beat(sim, "ledger_burned");
-        if (brokerBefore != progress.broker()) beat(sim, "broker_" + lower(progress.broker().name()));
+        if (!seizedBefore && progress.seized()) beat(sim, "ledger_seized");
+        if (!progress.seized() && !progress.quiet()) {
+            if (progress.burnedShare() >= .5f) beat(sim, "ledger_half");
+            if (progress.burnedShare() >= 1f) beat(sim, "ledger_burned");
+        }
+        if (brokerBefore != progress.broker()) {
+            String told = switch (progress.broker()) {
+                case FLEEING -> "broker_flees";
+                case HELD -> "broker_surrendered";
+                case DELIVERED -> "broker_apron";
+                // The clock's departure is told by alarm_clock; a boarding at the pad is told here.
+                case ESCAPED -> brokerBefore == Broker.IN_OFFICE ? null : "broker_boarded";
+                case DEAD -> "broker_lost";
+                default -> null;
+            };
+            if (told != null) beat(sim, told);
+        }
         if (progress.broker() == Broker.ESCAPED && onField(sim, broker)) sim.takeOffTheField(broker);
+        for (long nest : nests) if (!onField(sim, nest)) beat(sim, "nest_destroyed");
+        for (int squad : pillboxSquads) {
+            Squad crew = sim.getSquad(squad);
+            if (crew != null && sim.squadMemberCount(squad) > 0 && crew.hasDirectContactThisTick()) beat(sim, "pillbox_contact");
+        }
         walkBroker(sim);
         updateSpotters(sim);
     }
@@ -309,19 +387,20 @@ public final class DustLedgerSequence implements Objective {
         int tick = sim.getSimTickIndex();
         raid.raiseAlarm(tick);
         sim.getUnitIndex().cover(null);
-        beat(sim, "alarm_" + lower(progress.alarm().name()));
-        beat(sim, "burn_started");
+        beat(sim, progress.alarm() == DustLedgerProgress.Alarm.SHOTS ? "alarm_shot" : "alarm_" + lower(progress.alarm().name()));
+        beat(sim, "ledger_burning");
+        if (!progress.nestsPowered() && !nests.isEmpty()) beat(sim, "nests_dark");
         if (progress.drinkersJoin() && !drinkers.isEmpty()) {
             drinkerSquad = release(sim, drinkers, sites.drinkerCells(), Faction.DEFENDER);
             sim.assignSquadCommand(ObjectiveAssignment.attackMove(drinkerSquad, sites.burnBarrel().x(), sites.burnBarrel().y()),
                     CommandAuthority.SCRIPTED, ISSUER, "Cantina drinkers arm and make for the pump house");
-            beat(sim, "drinkers_joined");
-        } else if (!progress.drinkersJoin()) beat(sim, "drinkers_held");
+            beat(sim, "cantina_joins");
+        } else if (!progress.drinkersJoin()) beat(sim, "cantina_held");
         if (progress.salvageTeamJoins() && !salvageTeam.isEmpty()) {
             salvageSquad = release(sim, salvageTeam, sites.salvageTeamCells(), Faction.ALLY);
             sim.assignSquadCommand(ObjectiveAssignment.attackMove(salvageSquad, sites.eastGate().x(), sites.eastGate().y()),
                     CommandAuthority.SCRIPTED, ISSUER, "Harrow salvage team advances on the east gate");
-            beat(sim, "salvage_team_joined");
+            beat(sim, "salvage_team");
         }
     }
 
@@ -363,6 +442,17 @@ public final class DustLedgerSequence implements Objective {
                 ? companyWithin(sim, crate.x + .5f, crate.y + .5f, CRATE_REACH_CELLS, true) : 0L;
         crate.step(alive, alive ? sim.world().cellX(crate.carrier) : crate.x, alive ? sim.world().cellY(crate.carrier) : crate.y,
                 pickup, sites.harrowYard());
+    }
+
+    /** Whether a company combatant stands inside {@code area}. */
+    private static boolean companyIn(BattleSimulation sim, Area area) {
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
+            long id = sim.liveUnitAt(i);
+            if (sim.identity().faction(id) != Faction.MARINE || !sim.identity().type(id).combatant
+                    || !sim.world().hasPosition(id) || sim.isRiding(id)) continue;
+            if (area.contains(sim.world().cellX(id), sim.world().cellY(id))) return true;
+        }
+        return false;
     }
 
     private boolean leaderAtWell(BattleSimulation sim) {

@@ -85,6 +85,10 @@ towers. Nests carry no flak: a nest is an anti-armour cannon or an anti-infantry
 ordinary ground-to-ship weak. Nothing new is required beyond the profile signal deciding
 how many there are.
 
+A mission may also **cut a nest's power** (`TurretStateService.cutPower`): the nest stands
+and can still be wrecked, but never fires again. The Dust Ledger's feed objective uses it
+(`dust-ledger-crossing.md`, Cutting the feed).
+
 A fort may add a dedicated **anti-air yard** to its works (`forts.md`, optional anti-air aspect): Locust batteries and Swarmer towers (all on its bastions) that reach well beyond a nest's bubble, shut down by wrecking, power or capture like any aspect. It is declared per fort kind and is still absent from every shipped mission.
 
 ## What this does to a battle

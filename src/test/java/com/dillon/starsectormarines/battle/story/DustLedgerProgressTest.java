@@ -158,4 +158,28 @@ class DustLedgerProgressTest {
         assertEquals(Side.LAPSED, interrupted.warden(), "a nod still under way at the alarm pays nothing");
         assertTrue(interrupted.drinkersJoin());
     }
+
+    @Test void cuttingTheFeedNeedsAnUnbrokenStintBeforeTheAlarmAndDarkensTheNests() {
+        float half = DustLedgerProgress.FEED_SECONDS / 2;
+        var cut = new DustLedgerProgress(100f, 4f);
+        cut.advance(half, QUIET.withAtFeed());
+        cut.advance(.1f, QUIET);
+        assertEquals(0f, cut.feedProgress(), "leaving the junction restarts the work");
+        cut.advance(half, QUIET.withAtFeed());
+        assertEquals(Side.OPEN, cut.feed());
+        assertTrue(cut.nestsPowered());
+        cut.advance(half, QUIET.withAtFeed());
+        assertEquals(Side.PAID, cut.feed());
+        assertFalse(cut.nestsPowered());
+        cut.advance(1f, QUIET.withShot());
+        assertFalse(cut.nestsPowered(), "a cut feed stays cut through the alarm");
+
+        var late = new DustLedgerProgress(100f, 4f);
+        late.advance(half, QUIET.withAtFeed());
+        late.advance(.1f, QUIET.withAtFeed().withShot());
+        assertEquals(Side.LAPSED, late.feed(), "work under way at the alarm pays nothing");
+        late.advance(DustLedgerProgress.FEED_SECONDS, QUIET.withAtFeed());
+        assertEquals(Side.LAPSED, late.feed());
+        assertTrue(late.nestsPowered());
+    }
 }

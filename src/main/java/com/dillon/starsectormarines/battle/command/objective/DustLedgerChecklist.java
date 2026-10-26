@@ -26,7 +26,7 @@ public final class DustLedgerChecklist {
         DustLedgerProgress p = sequence.progress();
         Sites sites = sequence.sites();
         return List.of(clock(p, sites), ledger(p, sites), broker(p, sites, sequence, sim),
-                coupling(p, sites, sequence), warden(p, sites));
+                coupling(p, sites, sequence), warden(p, sites), feed(p, sites, sequence));
     }
 
     private static Item clock(DustLedgerProgress p, Sites sites) {
@@ -99,6 +99,28 @@ public final class DustLedgerChecklist {
                 Strings.get("dustLedgerHudHarrowYardStatus"), state, cells(sites.harrowYard().outline())));
         return new Item("dust-ledger-4-coupling", Strings.get("dustLedgerHudCouplingName"), state, phase,
                 Strings.get("dustLedgerHudCouplingSteps"), phase, phase, -1, "", markers, markers.get(0).id());
+    }
+
+    private static Item feed(DustLedgerProgress p, Sites sites, DustLedgerSequence sequence) {
+        State state = side(p.feed());
+        boolean working = p.feed() == Side.OPEN && p.feedProgress() > 0f;
+        String phase = p.feed() == Side.PAID ? Strings.get("dustLedgerHudFeedPaid")
+                : p.feed() == Side.LAPSED ? Strings.get("dustLedgerHudSideLapsed")
+                : working ? Strings.get("dustLedgerHudFeedWorking") : Strings.get("dustLedgerHudFeedOpen");
+        var box = sites.feedJunction().centre();
+        List<Marker> markers = new ArrayList<>();
+        markers.add(new Marker("dust-ledger-feed", Strings.get("dustLedgerHudFeedJunction"), box.x(), box.y(), phase, state,
+                cells(sites.feedJunction().outline())));
+        // The nests are marked while they can still fire on the company.
+        if (p.nestsPowered()) for (int i = 0; i < sequence.nestCells().size(); i++) {
+            var nest = sequence.nestCells().get(i);
+            markers.add(new Marker("dust-ledger-nest-" + i, Strings.get("dustLedgerHudNest"), nest.x(), nest.y(),
+                    Strings.get("dustLedgerHudNestStatus"), State.ACTIVE));
+        }
+        return new Item("dust-ledger-6-feed", Strings.get("dustLedgerHudFeedName"), state, phase,
+                Strings.get("dustLedgerHudFeedSteps"), phase,
+                working ? MissionObjectiveFamilies.timed(Strings.get("dustLedgerHudFeedTimer"), p.feedProgress(), DustLedgerProgress.FEED_SECONDS) : phase,
+                working ? p.feedProgress() / DustLedgerProgress.FEED_SECONDS : -1, "", markers, "dust-ledger-feed");
     }
 
     private static Item warden(DustLedgerProgress p, Sites sites) {
