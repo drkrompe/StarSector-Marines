@@ -58,6 +58,7 @@ import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.evacuation.ColonyLivingField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.evacuation.ColonyPopulation;
+import com.dillon.starsectormarines.battle.evacuation.ColonyRedoubts;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -2772,10 +2773,18 @@ public final class BattleSetup {
 
             spawnAmbientCivilians(sim, map, rng);
             spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
+            // The breach: where the colony breaks open and when. The colony
+            // path owes a full plan and re-rolls without one; a smaller map
+            // carries whatever sites it can seat. Planned before the militia,
+            // whose holdouts are chosen clear of its bores.
+            ColonyEruptionPlan eruption = stressTest ? null : ColonyEruptionPlan.forColony(
+                    sim.getGrid(), sim.getTopology(), map.pointsOfInterest,
+                    payload.placement, lzCells, battleSeed ^ ERUPTION_SEED_SALT);
+            if (colony && eruption != null && !eruption.isComplete()) continue;
             // The colony's militia: the shelter guard always, and on the colony
             // map a few held buildings, their emplacements and technicals.
             if (ColonyMilitia.install(sim, map, payload.placement, lzCells,
-                    risk, battleSeed, colony) == null) {
+                    risk, battleSeed, colony, eruption == null ? List.of() : eruption.sites()) == null) {
                 continue;
             }
             // The cohort is the shelter's people and every holdout's.
@@ -2798,18 +2807,14 @@ public final class BattleSetup {
                     SquadCommandClaim.mission("rescue-corridor", "commander-called mech lance"),
                     () -> MechDropService.centroidOf(sim.getMarineLandingPads()));
             if (!stressTest) {
-                // The breach: where the colony breaks open and when. The colony
-                // path owes a full plan and re-rolls without one; a smaller
-                // map carries whatever sites it can seat.
-                ColonyEruptionPlan eruption = ColonyEruptionPlan.forColony(
-                        sim.getGrid(), sim.getTopology(), map.pointsOfInterest,
-                        payload.placement, lzCells, battleSeed ^ ERUPTION_SEED_SALT);
-                if (colony && !eruption.isComplete()) continue;
                 // The colony's people outside the shelter: what the swarm feeds on.
                 List<Long> colonists = colony
                         ? ColonyPopulation.install(sim, map.pointsOfInterest, payload.placement,
                                 battleSeed ^ ERUPTION_SEED_SALT)
                         : List.of();
+                // Nothing re-seated or budded later opens beside a holdout either.
+                if (colony) eruption = eruption.withoutPlacesNear(
+                        ColonyRedoubts.holdoutCentres(sim.getCivilianRedoubts()), ColonyRedoubts.BREACH_CLEARANCE);
                 sim.installColonyBreach(eruption, colonists);
                 // The colony as a living field: homesteads, militia knots in the
                 // open, families walking out and stragglers, all the swarm's to find.

@@ -133,6 +133,21 @@ public final class ColonyEruptionPlan {
     }
 
     /**
+     * This plan with no place left within {@code radius} of any of {@code points} (the holdouts): its sites stay
+     * where they are, but nothing re-seated later ({@link #clearOf}) or budded opens there.
+     */
+    public ColonyEruptionPlan withoutPlacesNear(List<int[]> points, int radius) {
+        List<int[]> free = new ArrayList<>();
+        for (int[] p : places) {
+            boolean near = false;
+            for (int[] q : points) near |= within(p[0], p[1], q[0], q[1], radius);
+            if (!near) free.add(p);
+        }
+        return new ColonyEruptionPlan(sites, requestedFirstWave, free, heartX, heartY, spacing,
+                fieldX, fieldY, inX, inY, corridor);
+    }
+
+    /**
      * This plan kept {@code radius} cells clear of ({@code x}, {@code y}), a side objective's set piece under its
      * own bore: a site inside the ring is re-seated at the place outside it nearest where it stood, spaced from
      * the other sites, keeping its number, role and delay (a site with no such place stays put); a first-wave
