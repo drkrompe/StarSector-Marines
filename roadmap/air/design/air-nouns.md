@@ -427,15 +427,20 @@ carry it is free, and reads as having no craft when none is left alive. The
 carrier crosses launch in the power's commitment like the rest of its payload.
 The commander AI's mech drop and enemy lances keep their own deliveries.
 
-**The briefing reads lift before launch.** Its armor and lift section shows one
-slot per boat berth on the company ship (an empty or grounded berth stays
-visible) and a slot for the **mission lift** (heavy lift a ship, employer or
-contract supplies), each with a weight symbol for its rating. Every bay machine
-follows as its damage doll, carrying the wear its repair still leaves, with its
-own weight symbol, a warning mark when lift falls short, and one verdict: drops, needs its drop call selected, no lift of its class,
+**The briefing reads lift before launch.** Its lift row shows one slot per boat
+berth on the company ship (an empty or grounded berth stays visible) and a slot
+for the **mission lift** (heavy lift a ship, employer or contract supplies), each
+with a weight symbol for its rating. Every bay machine sits in the field inset
+beside the squads, as a small damage doll under its chassis or vehicle type,
+carrying the wear its repair still leaves, and two stacked bricks: its weight,
+lit red when lift falls short of its class, and a warning, lit and slowly
+breathing whenever it will not drop. Its words are its hover, which gives
+one verdict: drops, needs its drop call selected, no lift of its class,
 lift spent ahead of it, no drop call at all, or held back. It asks the
 `LiftBudget` the drop power will build, machine by machine in bay order, and
-decides nothing itself (`BriefingLift`).
+decides nothing itself (`BriefingLift`). Past nine squads, every full-strength
+squad folds into one stacked tile with a multiplier, its hover counting the stack
+per officer, so only the wounded and short-handed squads keep their own tiles.
 
 **Campaign overhaul survives tactical servicing.** An owned fitted boat retains the
 worst missing-hull fraction observed across its trips, including a final partial tick.

@@ -12,11 +12,10 @@ import com.fs.starfarer.api.campaign.CargoAPI;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
-/** Hull-owned progression; paid stages and reclamation recheck the live campaign at commit. */
+/** Hull-owned progression; paid stages recheck the live campaign at commit. */
 public final class CompanyWorkshopRestoration {
     private static final String KEY = "sm_workshop_restoration_";
     public static final int CLEARANCE_METALS = 10;
-    public static final int RECLAIMED_METALS = 4;
     private CompanyWorkshopRestoration() { }
 
     public static WorkshopState state(FleetMemberAPI ship) {
@@ -50,8 +49,7 @@ public final class CompanyWorkshopRestoration {
             case BURIED, CLEARED -> Reclamation.NONE;
         };
     }
-    public record Offer(WorkshopState state, int credits, String refusal, String reclaimRefusal,
-                        int machinery, int metals) { }
+    public record Offer(WorkshopState state, int credits, String refusal) { }
 
     public static String refusal(WorkshopState actual, WorkshopState reviewed, boolean ownedHome,
                                  boolean converted, boolean active, boolean completed, boolean yard,
@@ -85,13 +83,7 @@ public final class CompanyWorkshopRestoration {
                 ship != null && !ship.isMothballed(), roster != null
                         && roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId),
                 CompanyYard.dockedMarket() != null, credits, cargo == null ? 0 : cargo.getSpaceLeft());
-        int machinery = cargo == null ? 0 : (int) cargo.getCommodityQuantity(Commodities.HEAVY_MACHINERY);
-        String reclaim = !home || ship.isMothballed() || !state.operational()
-                ? Strings.get("openingCompanyWorkshopRestorationRepairThisCompanySWorkshopToReclaim")
-                : machinery < 1 ? Strings.get("openingCompanyWorkshopRestorationRequiresHeavyMachineryInFleetCargo")
-                : cargo.getSpaceLeft() < RECLAIMED_METALS - 1 ? Strings.get("openingCompanyWorkshopRestorationMakeRoomForTheReclaimedMetals") : null;
-        return new Offer(state, credits, refusal, reclaim, machinery,
-                cargo == null ? 0 : (int) cargo.getCommodityQuantity(Commodities.METALS));
+        return new Offer(state, credits, refusal);
     }
     public static String advance(FleetMemberAPI ship, MarineRoster roster, WorkshopState reviewed) {
         Offer live = offer(ship, roster);
@@ -101,14 +93,6 @@ public final class CompanyWorkshopRestoration {
         cargo.getCredits().subtract(reviewed.price());
         Global.getSector().getPersistentData().put(KEY + ship.getId(), reviewed.next().name());
         if (reviewed == WorkshopState.BURIED) cargo.addCommodity(Commodities.METALS, CLEARANCE_METALS);
-        return null;
-    }
-    public static String reclaim(FleetMemberAPI ship, MarineRoster roster) {
-        Offer live = offer(ship, roster);
-        if (live.reclaimRefusal() != null) return live.reclaimRefusal();
-        CargoAPI cargo = cargo();
-        cargo.removeCommodity(Commodities.HEAVY_MACHINERY, 1);
-        cargo.addCommodity(Commodities.METALS, RECLAIMED_METALS);
         return null;
     }
 }

@@ -195,23 +195,14 @@ class ArmorEconomyEvidence {
         return w.damage * c.projectilesPerTrigger / c.cycleSeconds();
     }
 
+    /** A bill is a credit price now; the old per-commodity price table only converts legacy figures. */
     private static float cost(FabricationCost bill, Map<String, Float> prices) {
-        float total = 0f;
-        for (FabricationCost.Line line : bill.lines()) {
-            total += line.quantity() * prices.getOrDefault(line.commodityId(), 0f);
-        }
-        return total;
+        return bill.credits();
     }
 
     private static String bill(FabricationCost bill) {
-        StringBuilder sb = new StringBuilder();
-        for (FabricationCost.Line line : bill.lines()) {
-            if (sb.length() > 0) sb.append('/');
-            sb.append(line.quantity());
-        }
-        return sb.toString();
+        return Integer.toString(bill.credits());
     }
-
     /** Base prices of the four bill commodities, read from the install's commodities.csv. */
     private static Map<String, Float> prices() throws Exception {
         Path csv = Path.of(System.getProperty("starsectorDir", "C:/Program Files (x86)/Fractal Softworks/Starsector"),
@@ -233,3 +224,4 @@ class ArmorEconomyEvidence {
         return used;
     }
 }
+

@@ -92,7 +92,6 @@ public final class ShipViewScreen implements Screen {
         workshop = new WorkshopRestorationModel(reactor,
                 () -> CompanyWorkshopRestoration.offer(ship, roster),
                 state -> CompanyWorkshopRestoration.advance(ship, roster, state),
-                () -> CompanyWorkshopRestoration.reclaim(ship, roster),
                 this::inspectWorkshop, () -> deckChanged = true);
         survey = new ShipConditionModel(reactor, context::companyDeck,
                 work -> CompanyShipRestoration.offer(ship, roster, work),

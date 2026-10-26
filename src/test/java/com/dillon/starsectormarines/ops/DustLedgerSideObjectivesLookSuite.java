@@ -30,7 +30,7 @@ import java.util.List;
 
 /**
  * The Dust Ledger's side objectives in the quiet phase, through the look preset with the mission beacons and the HUD
- * rail: every job offered; the feed being worked; the feed cut while the coupling is carried, then that moment at play
+ * rail: the open jobs offered with the feed still hidden; the feed found and being worked; the feed cut while the coupling is carried, then that moment at play
  * zoom on the market and over the whole map. The production chapter
  * fixture under autonomous command (whose company picks the crate up on its way off the apron), with a linesman stood
  * at the junction box as the controlled stand-in for a squad the player sends. 1920x1080 at 100%. Look evidence,
@@ -59,12 +59,13 @@ public final class DustLedgerSideObjectivesLookSuite implements SnapshotSuite {
                     new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 2, 6));
             try (BattleSimulation sim = chapter.fixture(mission.battleSeed, manifest, chapter.profile(chapter.surface)).build()) {
                 advance(sim, 10f);
-                out.add(shot(context, sim, "01-offered", 78f, 52f, 150f));
+                if (sim.getSideObjectives().job("dust-ledger-feed").known()) throw new IllegalStateException("the feed was found early");
+                out.add(shot(context, sim, "01-offered-feed-hidden", 78f, 52f, 150f));
 
                 sim.spawn(new EntitySpec("Linesman", Faction.MARINE, UnitType.MARINE, FEED_X, FEED_Y));
                 advance(sim, 4f);
                 require(sim, "dust-ledger-feed", SideObjective.State.WORKING);
-                out.add(shot(context, sim, "02-feed-working", 112f, 42f, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS));
+                out.add(shot(context, sim, "02-feed-found-working", 112f, 42f, BattleReviewFrameRenderer.PLAY_ZOOM_CELLS));
 
                 advance(sim, 7f);
                 require(sim, "dust-ledger-feed", SideObjective.State.DONE);

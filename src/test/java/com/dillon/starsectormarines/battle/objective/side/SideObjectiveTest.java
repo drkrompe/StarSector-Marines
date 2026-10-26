@@ -172,6 +172,59 @@ class SideObjectiveTest {
         assertThrows(IllegalArgumentException.class, () -> Return.done("unnamespaced"));
     }
 
+    @Test void aHiddenJobIsUnknownAndUnjudgedUntilFoundThenComesToLightOnce() {
+        var service = new SideObjectiveService();
+        var seen = new AtomicBoolean();
+        var box = Ground.of(List.of(new Cell(30, 30)));
+        var tap = job("tap", new SideTrigger.Reach(Who.COMBATANT, YARD), Window.always())
+                .hidden(SideObjective.Discovery.anyOf(field -> seen.get(), SideObjective.Discovery.reach(Who.COMBATANT, box)), "found");
+        service.install(tap);
+        var beats = new StoryBeatLog();
+        var field = new Field().put(1, 10, 0);
+        service.tick(field, .1f, 1, beats);
+        assertFalse(tap.known());
+        assertEquals(State.OFFERED, tap.state(), "a job nobody has found is not judged, though the unit stands in it");
+        seen.set(true);
+        service.tick(field, .1f, 2, beats);
+        assertTrue(tap.known());
+        assertTrue(tap.fresh(), "found just now");
+        assertEquals(State.DONE, tap.state(), "judged from the tick it is found");
+        assertEquals(List.of(new SideObjectiveService.Transition(2, "tap", State.OFFERED, true),
+                new SideObjectiveService.Transition(2, "tap", State.DONE)), service.transitionsAfter(0));
+        for (int i = 0; i < 200; i++) service.tick(field, .1f, 3 + i, beats);
+        assertFalse(tap.fresh(), "new only for a moment");
+        assertEquals(2, service.transitionsAfter(0).size(), "found once");
+    }
+
+    @Test void aHiddenJobNeverFoundIsMissedNotLapsedAndEarnsNothing() {
+        var service = new SideObjectiveService();
+        var open = new AtomicBoolean(true);
+        service.install(new SideObjective("tap", new Hook("test", "offerer", null), new SideTrigger.Reach(Who.COMBATANT, YARD),
+                Window.phase(open::get), null, Return.done("test.tap.cut", 500), null).hidden(field -> false, null));
+        service.install(new SideObjective("late", new Hook("test", "offerer", null), new SideTrigger.Reach(Who.COMBATANT, YARD),
+                Window.always(), null, null, null).hidden(field -> false, null));
+        var field = new Field().put(1, 10, 0);
+        service.tick(field, .1f, 1, new StoryBeatLog());
+        open.set(false);
+        service.tick(field, .1f, 2, new StoryBeatLog());
+        assertEquals(State.MISSED, service.job("tap").state(), "its window closed before anyone found it");
+        var results = service.results(5);
+        for (var result : results) {
+            assertEquals(State.MISSED, result.outcome());
+            assertFalse(result.reported(), "no debrief line unless the mission authors one");
+            assertFalse(result.marked());
+            assertEquals(0, result.credits());
+        }
+    }
+
+    @Test void aJobPaysItsCreditsOnlyWhenDone() {
+        var pays = Return.done("test.place.done", 2_000);
+        assertEquals(2_000, pays.credits(State.DONE));
+        assertEquals(0, pays.credits(State.LAPSED));
+        assertEquals(0, pays.credits(State.FAILED));
+        assertThrows(IllegalArgumentException.class, () -> new Return(Map.of(), -1));
+    }
+
     @Test void aGroundAnchorsOnItsOwnCellAndOutlinesItsEdge() {
         var square = Ground.of(List.of(new Cell(0, 0), new Cell(1, 0), new Cell(2, 0), new Cell(0, 1), new Cell(1, 1),
                 new Cell(2, 1), new Cell(0, 2), new Cell(1, 2), new Cell(2, 2)));

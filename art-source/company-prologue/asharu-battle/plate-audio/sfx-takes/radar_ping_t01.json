@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "17",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A single low ominous military radar contact ping, dark and dry, short decay, no music",
+    "duration_seconds": 1.5,
+    "prompt_influence": 0.7,
+    "loop": false
+  },
+  "audioSha256": "7339978d813b0d4a7cf1b26d87408df09222e790fc9ea634ae7d302e94597fbb",
+  "durationSeconds": 1.48,
+  "peakDb": -3.1,
+  "integratedLufs": -16.2
+}

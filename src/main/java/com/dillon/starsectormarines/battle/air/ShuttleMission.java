@@ -116,7 +116,7 @@ public final class ShuttleMission {
      */
     public MechDeploymentSpec[] mechDeployments;
     /**
-     * Frozen company vehicle carried by an Armour Support sortie. Null for a debug or
+     * Frozen company vehicle carried by a vehicle sortie. Null for a debug or
      * bay-less grant, which sets down the payload's standard hull.
      */
     public VehicleDeploymentSpec vehicleDeployment;

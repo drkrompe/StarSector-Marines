@@ -629,11 +629,14 @@ public final class TacticalScoring {
     }
 
     /**
-     * Whether {@code shooter} may fire on {@code target} as far as fort restraint goes: always, unless the target is
-     * a fort core the shooter's squad has not been told to wreck. Callers that find targets by a whole-neighbourhood
+     * Whether {@code shooter} may fire on {@code target} as far as restraint goes: never on a body a quiet phase covers
+     * ({@link com.dillon.starsectormarines.battle.unit.ScanCover}), and always otherwise, unless the target is a fort
+     * core the shooter's squad has not been told to wreck. Callers that find targets by a whole-neighbourhood
      * gather rather than through the hostile-combatant index (a satchel, a rocket) ask this before committing.
      */
     public boolean mayEngage(long shooter, long target) {
+        // A mission's quiet phase: nobody opens fire on a covered body, whichever way they found it.
+        if (unitIndex.covered(target)) return false;
         FortRestraint restraint = unitIndex.restraint();
         if (!restraint.restrains(target)) return true;
         if (!roster.squad().hasSquad(shooter)) return false;

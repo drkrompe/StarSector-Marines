@@ -1,19 +1,17 @@
 package com.dillon.starsectormarines.marine;
 
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
-
 /**
- * Installed tools waste less: a workshop job spends a fifth fewer supplies and heavy machinery, rounded
- * up, without changing recipes or any other material. Machinery counts because the Mech Lab spends no
- * supplies; it is what wears out on a bench there.
+ * Installed tools waste less: a workshop job costs {@link #DISCOUNT_PERCENT} percent less, rounded
+ * up to the credit, without changing any price list. It stands in for the fifth of the supplies
+ * and machinery the tools saved when jobs were paid in materials.
  */
 public final class WorkshopTooling {
+    public static final int DISCOUNT_PERCENT = 15;
+
     private WorkshopTooling() { }
+
     public static FabricationCost quote(FabricationCost base, boolean equipped) {
         if (base == null || !equipped) return base;
-        return new FabricationCost(base.lines().stream().map(line ->
-                Commodities.SUPPLIES.equals(line.commodityId()) || Commodities.HEAVY_MACHINERY.equals(line.commodityId())
-                        ? new FabricationCost.Line(line.commodityId(),
-                        Math.max(1, (int) ((line.quantity() * 4L + 4) / 5))) : line).toList());
+        return base.scaled((100 - DISCOUNT_PERCENT) / 100f);
     }
 }

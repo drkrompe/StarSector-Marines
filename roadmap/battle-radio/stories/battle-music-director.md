@@ -1,10 +1,10 @@
 # Battle music director
 
-Status: IN PROGRESS — built and integrated; the model is in `battle-radio-nouns.md` (Battle music). Awaiting the owner's pick of the quiet bed (picks page) and acceptance of the Dust Ledger walk-in clip; retire on acceptance.
+Status: IN PROGRESS — built and integrated; the model is in `battle-radio-nouns.md` (Battle music). The owner turned down both interim beds and asked for synth loops; four generated candidates await the owner's pick (picks page). Retire once the pick ships and the walk-in clip is accepted.
 
 Written: 2026-10-26
 
-Updated: 2026-10-26 — built; quiet now plays the Marine Ops theme as an interim bed (owner: "we need pre-battle music").
+Updated: 2026-10-26 — quiet-bed direction: neutral retro sci-fi synth loops that lead into the combat pool; four candidates generated.
 
 Read `battle-radio-nouns.md` (presentation-only audio, hosts, the voice
 budget) and `dust-ledger-crossing.md` (the quiet phase and the alarm) first.
@@ -54,17 +54,25 @@ with one `BattleMusicPlaylist` per state.
 
 ## Tracks
 
-Only combat tracks exist, plus `marines_intel_music` for the intel screen.
-Until quiet and alert tracks are sourced:
-
 - **quiet**: a bed, never silence (owner, 2026-10-26: "we need pre-battle
-  music"). Interim: the Marine Ops theme, `marines_intel_music`, played as
-  `marines_intel_music_bed`, about 5 dB under the combat pool (music is
-  encoded to one loudness). It fades out over the raise crossfade at the
-  alarm. The owner picks the real bed: this
-  theme, the arrival's strings score, or a track from the Eternity pack;
-- **alert**: the quiet bed if one exists, otherwise combat at reduced volume,
-  if the host can set music volume;
+  music"). The owner's direction for it (2026-10-26, rejecting both the
+  Marine Ops theme and the arrival's strings score): "We need some more
+  neutral music loops that tie in to action. Ideally something scifi synthy
+  like 90s action or starcrafty". So the bed is tense but not combat, retro
+  analog synth (pads, a pulsing bass, an arpeggiated ostinato) at a moderate
+  tempo, and sits in the combat pool's family (measured about 130 BPM, E minor
+  and its neighbours) so the alarm's crossfade lands naturally. Candidates are
+  generated through ElevenLabs by `make_quiet_beds.py` (art-source, with each
+  take's request beside it), cut to bar-aligned loops of at least 90 s.
+  Prompts describe the style in plain musical terms and never name a work or
+  an artist. Until the owner picks one, the strings take (`score_strings_t01`,
+  shipped as `marines_battle_quiet_strings`, cut to its sounding span and
+  looped) stays as the interim bed. The bed sits under the combat pool and
+  fades out over the raise crossfade at the alarm. The Marine Ops theme, "Next
+  Move" (`marines_intel_music`), is the menu's alone and never plays in battle
+  (owner, 2026-10-26: 'Pre-battle - no we should not play "next move"');
+- **alert**: the combat files at reduced volume (the `_alert` sound sets)
+  until an alert bed is sourced;
 - **aftermath**: the quiet bed.
 
 Sourcing tracks is the owner's call. `backlog.md` already names a candidate
@@ -101,6 +109,6 @@ it.
 
 ## Open questions
 
-- The quiet and alert beds: which tracks, and where from? This is the owner's
-  call. Until then: the Marine Ops theme.
+- The alert bed: which track, and where from? This is the owner's call.
+  Until then: the combat files at reduced volume.
 - Should a victory or defeat sting play? Default: no, until tracks exist.

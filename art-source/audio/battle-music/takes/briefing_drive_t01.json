@@ -1,0 +1,82 @@
+{
+  "requestId": null,
+  "characterCost": null,
+  "modelId": "music_v1",
+  "tempo": 130,
+  "request": {
+    "composition_plan": {
+      "positive_global_styles": [
+        "instrumental retro science-fiction synth score, 1990s action film sound",
+        "analog synthesizers, warm detuned pads, tape-saturated",
+        "130 BPM with a half-time feel, E minor",
+        "tense and watchful but not yet fighting, steady, neutral, leaves room for sound effects",
+        "a seamless loop: the same energy from the first bar to the last, no intro build and no ending",
+        "a confident steady mid-tempo synth groove",
+        "a punchy analog bass riff in syncopated eighths",
+        "bright arpeggiated synth chords and a soft lead line that hints at a theme without resolving it",
+        "tight drum machine with rimshots and a shaker",
+        "purposeful, mission-ready, the calm before deployment"
+      ],
+      "negative_global_styles": [
+        "vocals",
+        "choir",
+        "lyrics",
+        "orchestra",
+        "heroic brass fanfare",
+        "big drum fills",
+        "crash cymbals",
+        "guitar solo",
+        "dubstep drop",
+        "fade in",
+        "fade out",
+        "silence",
+        "final chord",
+        "fast tempo"
+      ],
+      "sections": [
+        {
+          "section_name": "Groove",
+          "positive_local_styles": [
+            "bass riff, arpeggiated chords and drums"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 29538,
+          "lines": []
+        },
+        {
+          "section_name": "Theme hint",
+          "positive_local_styles": [
+            "the soft lead line states a short motif twice, held back"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 29538,
+          "lines": []
+        },
+        {
+          "section_name": "Groove again",
+          "positive_local_styles": [
+            "back to the opening texture",
+            "bass riff, arpeggiated chords and drums"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 29538,
+          "lines": []
+        },
+        {
+          "section_name": "Turn",
+          "positive_local_styles": [
+            "same groove and level as the opening, leading straight back into it"
+          ],
+          "negative_local_styles": [],
+          "duration_ms": 14769,
+          "lines": []
+        }
+      ]
+    },
+    "respect_sections_durations": true
+  },
+  "audioSha256": "1be40cf96b92a3b55f714691175848a66fc353d1ab20a4431bff7b0acac86e14",
+  "durationSeconds": 103.42,
+  "peakDb": 0.0,
+  "integratedLufs": -12.3
+}

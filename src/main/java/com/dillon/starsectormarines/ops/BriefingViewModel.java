@@ -15,12 +15,10 @@ import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
+import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
-import com.dillon.starsectormarines.battle.power.MarineInsertion;
-import com.dillon.starsectormarines.battle.power.VehicleSupport;
-import com.dillon.starsectormarines.battle.power.ReconPing;
-import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
@@ -45,6 +43,9 @@ final class BriefingViewModel {
         Map<String, Object> props = new LinkedHashMap<>();
         props.put("preparationClasses", "briefing-assign-hidden");
         BriefingLift.put(props, null);
+        props.put("fieldSquads", List.of());
+        props.put("fieldTiles", List.of());
+        props.put("forceSelectedClasses", "label heading tone-edge");
         props.put("prepareReplay", (Runnable) () -> { });
         props.put("prepareArmory", (Runnable) () -> { });
         props.put("prepareBarracks", (Runnable) () -> { });
@@ -173,13 +174,11 @@ final class BriefingViewModel {
         props.put("commandSummary", "5 / 5 slots");
         props.put("powerRows", List.of(
                 previewPower("power-barrage", new OrbitalBarrage(), true, false, none),
-                previewPower("power-drop", new MarineInsertion(), true, false, none),
-                previewPower("power-armour", new VehicleSupport(), false, true, none),
-                previewPower("power-recon", new ReconPing(), false, true, none),
-                previewPower("power-resupply", new EmergencyResupply(), false, true, none)));
+                previewPower("power-mech", new MechSupport(), true, false, none),
+                previewPower("power-air", new CloseAirSupport(), false, true, none)));
         props.put("powerEmpty", "");
         props.put("sourceRows", List.of(new ChoiceRow("source-siege", "choice-row selected",
-                "HSS Siege of Raesvelg", "Mech Support · Orbital Barrage · Marine Drop", false, none, "graphics/ships/onslaught/onslaught_base.png")));
+                "HSS Siege of Raesvelg", "Mech Support · Orbital Barrage", false, none, "graphics/ships/onslaught/onslaught_base.png")));
         props.put("sourceEmpty", "");
         putPreviewLandingCraft(props, conquest, true);
         props.put("carrierRows", List.of());
@@ -502,6 +501,11 @@ final class BriefingViewModel {
         props.put("forceSummaryStyle", hasForceCards ? "height: " + (240 + cardsHeight) + "px" : "height: 174px");
         props.put("groupCommandStyle", hasForceCards ? "height: 54px" : "height: 0px; gap: 0px; overflow: hidden");
         props.put("forceCardsStyle", hasForceCards ? "height: " + cardsHeight + "px" : "height: 0px");
+        props.put("fieldSquads", fieldSquads(props));
+        putFieldTiles(props);
+        // The count carries the readiness tone the summary line used to: danger when the commitment cannot launch.
+        props.put("forceSelectedClasses", "label heading "
+                + (String.valueOf(props.get("personnelClasses")).contains("tone-danger") ? "tone-danger" : "tone-edge"));
         for (String key : List.of("captainEmpty", "powerEmpty", "sourceEmpty")) {
             String text = (String) props.getOrDefault(key, "");
             props.put(key + "Style", text.isBlank()
@@ -574,15 +578,15 @@ final class BriefingViewModel {
                     Strings.get("briefingVmRoleOpCommander"), squads);
         }
 
-        /** The same card drawing {@code musters}, the first {@link #MUSTERS_SHOWN} of them, the rest counted. */
+        /** The same card leading {@code musters}: one field-inset tile each, the officer named in its hover. */
         ForceCard withSquads(List<SquadMuster> musters) {
             List<SquadPicture> pictures = new ArrayList<>();
-            int shown = Math.min(MUSTERS_SHOWN, musters.size());
-            for (int i = 0; i < shown; i++) {
+            for (int i = 0; i < musters.size(); i++) {
                 SquadMuster muster = musters.get(i);
-                int more = i == shown - 1 ? musters.size() - shown : 0;
-                pictures.add(new SquadPicture(id + "-squad-" + i, more > 0
-                        ? Strings.format("briefingVmSquadMore", muster.squadName(), more) : muster.squadName(), muster));
+                pictures.add(new SquadPicture(id + "-squad-" + i, muster, new SpecSheet(muster.squadName(),
+                        Strings.join("separatorPath", role, name), portrait, "command", List.of(), List.of(
+                        Strings.format("briefingVmSquadReadiness", muster.readyCount(), muster.woundedCount(),
+                                muster.vacantCount())))));
             }
             return new ForceCard(id, name, detail, portrait, detailClasses, namedOfficer, role, List.copyOf(pictures));
         }
@@ -608,27 +612,81 @@ final class BriefingViewModel {
         }
     }
 
-    /** Squads one officer card draws before it only counts the rest. */
-    static final int MUSTERS_SHOWN = 2;
+    /**
+     * One squad tile in the field inset: its three fire teams of four, as the Barracks draws them. A stack
+     * ({@code count} above one) stands for that many full-strength squads under one muster and a multiplier.
+     */
+    record SquadPicture(String id, SquadMuster muster, SpecSheet hint, int count) implements MarkupPropertySource {
+        SquadPicture(String id, SquadMuster muster, SpecSheet hint) {
+            this(id, muster, hint, 1);
+        }
 
-    /** One squad on an officer's card: its three fire teams of four, as the Barracks draws them. */
-    record SquadPicture(String id, String label, SquadMuster muster) implements MarkupPropertySource {
         @Override public Object markupProperty(String property) {
             return switch (property) {
-                case "id" -> id; case "musterId" -> id + "-muster"; case "labelId" -> id + "-label";
-                case "label" -> label;
+                case "id" -> id;
+                case "classes" -> "field-tile console-readout" + (count > 1 ? " field-tile-stack" : "");
+                case "musterId" -> id + "-muster"; case "musterClasses" -> "field-muster";
+                case "dollId" -> id + "-doll"; case "bricksId" -> id + "-bricks"; case "liftId" -> id + "-lift";
+                case "weightId" -> id + "-weight"; case "warnId" -> id + "-warn"; case "warnImageId" -> id + "-warn-image";
+                case "dollClasses", "bricksClasses", "liftClasses", "warnClasses" -> "field-absent";
+                case "countId" -> id + "-count";
+                case "countClasses" -> count > 1 ? "label heading tone-edge field-count" : "field-absent";
+                case "count" -> count > 1 ? Strings.format("briefingVmSquadStackCount", count) : "";
                 default -> null;
             };
         }
     }
 
-    /** Draws every squad muster the officer cards carry. */
-    static void installMusters(UiDocument document, MarkupInstance markup, Map<String, Object> props) {
+    /** Above this many squads the full-strength ones stack into one tile; only the damaged stand alone. */
+    static final int SQUAD_STACK_ABOVE = 9;
+
+    /**
+     * The field inset's squad tiles, in officer order. Past {@link #SQUAD_STACK_ABOVE} squads every
+     * full-strength squad folds into one stacked tile up front, so the wounded and short-handed stay in view.
+     */
+    static List<SquadPicture> fieldSquads(Map<String, Object> props) {
+        List<SquadPicture> squads = new ArrayList<>();
         for (Object value : (List<?>) props.getOrDefault("taskForceRows", List.of())) {
-            for (SquadPicture squad : ((ForceCard) value).squads()) {
-                document.canvases().set(markup.requireElement(squad.id() + "-muster"),
-                        new SquadMusterCanvas(squad::muster, SquadMusterCanvas.SHIPBOARD));
-            }
+            squads.addAll(((ForceCard) value).squads());
+        }
+        return stackSquads(squads);
+    }
+
+    static List<SquadPicture> stackSquads(List<SquadPicture> squads) {
+        if (squads.size() <= SQUAD_STACK_ABOVE) return List.copyOf(squads);
+        List<SquadPicture> whole = new ArrayList<>();
+        List<SquadPicture> tiles = new ArrayList<>();
+        for (SquadPicture squad : squads) {
+            if (squad.muster().woundedCount() == 0 && squad.muster().vacantCount() == 0) whole.add(squad);
+            else tiles.add(squad);
+        }
+        if (whole.size() < 2) return List.copyOf(squads);
+        // The hover counts the stack per officer; ninety names would bury it.
+        Map<String, Integer> byOfficer = new LinkedHashMap<>();
+        for (SquadPicture squad : whole) {
+            String officer = squad.hint() == null ? "" : squad.hint().subtitle();
+            byOfficer.merge(officer, 1, Integer::sum);
+        }
+        List<String> notes = byOfficer.entrySet().stream()
+                .map(entry -> Strings.format("briefingVmSquadStackOfficer", entry.getKey(), entry.getValue())).toList();
+        tiles.add(0, new SquadPicture("briefing-field-squad-stack", whole.get(0).muster(), new SpecSheet(
+                Strings.format("briefingVmSquadStackTitle", whole.size()), Strings.get("briefingVmSquadStackDetail"),
+                null, "command", List.of(), notes), whole.size()));
+        return List.copyOf(tiles);
+    }
+
+    /** The field inset's tiles: every squad, then every bay machine. */
+    static void putFieldTiles(Map<String, Object> props) {
+        List<Object> tiles = new ArrayList<>(fieldSquads(props));
+        tiles.addAll((List<?>) props.getOrDefault("liftMachines", List.of()));
+        props.put("fieldTiles", List.copyOf(tiles));
+    }
+
+    /** Draws every squad tile's muster. */
+    static void installMusters(UiDocument document, MarkupInstance markup, Map<String, Object> props) {
+        for (SquadPicture squad : fieldSquads(props)) {
+            document.canvases().set(markup.requireElement(squad.id() + "-muster"),
+                    new SquadMusterCanvas(squad::muster, SquadMusterCanvas.SHIPBOARD));
         }
     }
 

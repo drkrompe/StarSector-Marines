@@ -1291,7 +1291,7 @@ seats, and less plate than the technical**. Neither is ever a combat buff —
 nothing either does changes a hit roll, a weapon or a morale check.
 
 The **supply pickup** (`SUPPLY_TRUCK`) carries its crates in the bed. Its stock is a **carried
-resupply cache**: the same `ResupplyCache` an emergency-resupply drop sets down,
+resupply cache**: a `ResupplyCache`,
 registered with the battle's one resupply authority (`ResupplySystem`) and
 served by its rules — one special use or mech rack round at a time, to the
 nearest friendly within reach that needs it, paused while a hostile stands over

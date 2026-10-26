@@ -50,6 +50,13 @@ public final class ColonyRedoubts {
     public static final int MIN_COHORT = 3;
     /** Most of the cohort a holdout holds. */
     public static final int MAX_COHORT = 4;
+    /**
+     * Cells a holdout stands from every bore site the breach plans (`colony-breach-nouns.md`, Holdout): the first wave
+     * keeps the outskirts, and the holdouts are chosen in relation to it, so none is sat on by a hole at its door.
+     * Tunes how soon a holdout comes under the swarm; under a side objective's ring, since a holdout has walls and a
+     * garrison.
+     */
+    public static final int BREACH_CLEARANCE = 56;
     /** Aprons laid at a holdout: the door toward the lift, and one more if the building has it. */
     static final int APRONS = 2;
     private static final long SEED_SALT = 0x524544554F425453L;
@@ -81,6 +88,24 @@ public final class ColonyRedoubts {
      */
     public static boolean enabled() {
         return Boolean.parseBoolean(System.getProperty("battle.colonyBreach.redoubts", "true"));
+    }
+
+    /** The middle of every holdout: each redoubt but the shelter. */
+    public static List<int[]> holdoutCentres(List<CivilianRedoubt> redoubts) {
+        List<int[]> out = new ArrayList<>();
+        for (CivilianRedoubt r : redoubts) {
+            if (!r.isMain()) out.add(new int[]{(r.left() + r.right()) / 2, (r.top() + r.bottom()) / 2});
+        }
+        return out;
+    }
+
+    /** Whether a holdout at ({@code x}, {@code y}) stands {@link #BREACH_CLEARANCE} from every one of {@code sites}. */
+    public static boolean clearOfBores(int x, int y, List<ColonyEruptionPlan.Site> sites) {
+        for (ColonyEruptionPlan.Site site : sites) {
+            int dx = site.x() - x, dy = site.y() - y;
+            if (dx * dx + dy * dy < BREACH_CLEARANCE * BREACH_CLEARANCE) return false;
+        }
+        return true;
     }
 
     /** How many holdouts this seed's colony has beside the main redoubt. */

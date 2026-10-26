@@ -955,7 +955,7 @@ in the style the armour catalog already uses to refuse durability keys.
 sweep is the third thing an integral system may be, beside movement-with-a-screen
 and a delivered payload. What it does is contribute a temporary observer to the
 player's own reveal for its authored window — the same shadowcast, the same
-reference count, and the same expiry a shuttle or a recon ping already gets
+reference count, and the same expiry a shuttle already gets
 (`fog-of-war-nouns.md`), so it is a client of player reveal composition rather
 than a second visibility path. It authors how far it reads and how far that read
 carries into the walls in front of it, and the wall tolerance is bounded strictly

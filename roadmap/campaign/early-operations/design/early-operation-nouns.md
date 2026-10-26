@@ -664,7 +664,8 @@ planet's ground palette captured at launch rather than the colony's full defence
 The Dust Ledger is played on **Saltwell Cross**, an authored Asharu trading post
 (`DustLedgerCrossing`), not a generated settlement. The company lands openly on
 the public freight apron as Wayline's scheduled drop. Sable Wake's finite crew
-holds the pump-house compound, with no reinforcements, vehicles or aircraft.
+holds the pump-house compound, with no reinforcements or aircraft. Its one
+vehicle is a rocket truck that works the east yard's corners against armor from the alarm.
 Buildings publish only as held places. The only objectives are the ledger room's
 seizure, the optional broker and the return to the apron. A **quiet phase**
 holds until a shot, a sentry sighting inside the compound's exclusion ring, or

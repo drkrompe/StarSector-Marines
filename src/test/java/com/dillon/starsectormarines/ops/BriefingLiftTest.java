@@ -10,6 +10,8 @@ import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.ui.retained.UiElement;
+import com.dillon.starsectormarines.ui.retained.style.StyleProperty;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -69,5 +71,17 @@ class BriefingLiftTest {
 
     private static List<BriefingLift.Status> statuses(BriefingLift.Readout readout) {
         return readout.machines().stream().map(BriefingLift.Machine::status).toList();
+    }
+
+    @Test
+    void aLitWarningBreathesFromFullToDimAndBackOnOneSlowCycle() {
+        UiElement warn = new UiElement("warn");
+        float period = BriefingLift.WARN_PULSE_SECONDS;
+        BriefingLift.pulse(List.of(warn), 0f);
+        assertEquals(1f, ((Number) warn.authoredStyle().value(StyleProperty.OPACITY)).floatValue(), 1e-3f);
+        BriefingLift.pulse(List.of(warn), period * .5f);
+        assertEquals(.4f, ((Number) warn.authoredStyle().value(StyleProperty.OPACITY)).floatValue(), 1e-3f);
+        BriefingLift.pulse(List.of(warn), period * 3f);
+        assertEquals(1f, ((Number) warn.authoredStyle().value(StyleProperty.OPACITY)).floatValue(), 1e-3f);
     }
 }

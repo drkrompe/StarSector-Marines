@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.command.objective;
 
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.battle.power.MechSupport;
-import com.dillon.starsectormarines.battle.power.ReconPing;
+import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -59,7 +59,7 @@ class ObjectiveFactionPresenceTest {
                     default -> throw new AssertionError("Unexpected read: " + method.getName());
                 });
         assertFalse(ObjectiveFactionPresence.companyInPlay(view));
-        powers.register(new ReconPing());
+        powers.register(new OrbitalBarrage());
         assertFalse(ObjectiveFactionPresence.companyInPlay(view), "a power that fields nobody is no reserve");
         powers.register(new MechSupport());
         assertTrue(ObjectiveFactionPresence.companyInPlay(view), "a machine still aboard is a reserve");

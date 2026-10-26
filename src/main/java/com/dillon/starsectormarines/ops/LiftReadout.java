@@ -4,11 +4,9 @@ import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.LiftAdmission;
 import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.air.LiftRating;
-import com.dillon.starsectormarines.battle.air.VehicleSupportPayload;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
-import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -33,13 +31,11 @@ public final class LiftReadout {
 
     /** Lines for a drop power's hover sheet; empty for any other power. */
     public static List<String> lines(CommandPower power) {
-        Map<String, LiftClass> payload = payloadOf(power);
-        if (payload.isEmpty()) return List.of();
-        FittedBoat carrier = power instanceof MechSupport mech ? mech.companyCarrier()
-                : power instanceof VehicleSupport vehicles ? vehicles.companyCarrier() : null;
-        if (carrier == null) return List.of();
-        boolean shipLift = power instanceof MechSupport mech ? mech.syntheticLift()
-                : ((VehicleSupport) power).syntheticLift();
+        if (!(power instanceof MechSupport mech)) return List.of();
+        Map<String, LiftClass> payload = payloadOf(mech);
+        FittedBoat carrier = mech.companyCarrier();
+        if (payload.isEmpty() || carrier == null) return List.of();
+        boolean shipLift = mech.syntheticLift();
         List<String> lines = new ArrayList<>();
         lines.add(Strings.format("liftCarrierCompany", carrierName(carrier),
                 ratingName(carrier.liftRating())));
@@ -86,26 +82,15 @@ public final class LiftReadout {
         return cradled == 0 ? null : Strings.format("liftCradledBoats", cradled, ratingName(best));
     }
 
-    private static Map<String, LiftClass> payloadOf(CommandPower power) {
+    private static Map<String, LiftClass> payloadOf(MechSupport mech) {
         Map<String, LiftClass> payload = new LinkedHashMap<>();
-        if (power instanceof MechSupport mech) {
-            for (MechDeploymentSpec deployment : mech.deployments()) {
-                payload.putIfAbsent(deployment.variant().displayName(),
-                        deployment.variant().liftClass());
-            }
-            for (VehicleDeploymentSpec deployment : mech.vehicles()) {
-                payload.putIfAbsent(CampaignVehicle.typeName(deployment.type()),
-                        deployment.type().liftClass());
-            }
-        } else if (power instanceof VehicleSupport vehicles) {
-            if (vehicles.deployments().isEmpty()) {
-                payload.put(CampaignVehicle.typeName(VehicleSupportPayload.FALLBACK),
-                        VehicleSupportPayload.FALLBACK.liftClass());
-            }
-            for (VehicleDeploymentSpec deployment : vehicles.deployments()) {
-                payload.putIfAbsent(CampaignVehicle.typeName(deployment.type()),
-                        deployment.type().liftClass());
-            }
+        for (MechDeploymentSpec deployment : mech.deployments()) {
+            payload.putIfAbsent(deployment.variant().displayName(),
+                    deployment.variant().liftClass());
+        }
+        for (VehicleDeploymentSpec deployment : mech.vehicles()) {
+            payload.putIfAbsent(CampaignVehicle.typeName(deployment.type()),
+                    deployment.type().liftClass());
         }
         return payload;
     }

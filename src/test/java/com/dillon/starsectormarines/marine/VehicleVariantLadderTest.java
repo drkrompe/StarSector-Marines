@@ -9,7 +9,6 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -18,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Each line's fixed variants: their cards, tiers, art gate, bills and trade-offs. */
+/** Each line's fixed variants: their cards, tiers, art gate and trade-offs. */
 class VehicleVariantLadderTest {
 
     private static final List<VehicleType> VARIANTS = List.of(VehicleType.UP_ARMORED_APC,
@@ -71,14 +70,6 @@ class VehicleVariantLadderTest {
     }
 
     @Test
-    void everyVariantHasABillAboveTheHullItImprovesOn() {
-        assertTrue(total(VehicleType.UP_ARMORED_APC) > total(VehicleType.HEAVY_APC));
-        assertTrue(total(VehicleType.FIRE_SUPPORT_APC) > total(VehicleType.HEAVY_APC));
-        assertTrue(total(VehicleType.DOZER_BREACHER) > total(VehicleType.BREAKTHROUGH_TANK));
-        assertTrue(total(VehicleType.SCREENED_TANK) > total(VehicleType.BREAKTHROUGH_TANK));
-    }
-
-    @Test
     void eachVariantTradesSomethingAwayForWhatItGains() {
         VehicleType apc = VehicleType.HEAVY_APC;
         VehicleType armored = VehicleType.UP_ARMORED_APC;
@@ -127,8 +118,8 @@ class VehicleVariantLadderTest {
             if (MechFabricationCatalog.vehicle(type) == null) continue;
             MechVariant mech = mechOf(type.liftClass());
             // A walker that can fight: the frame and its standard parts.
-            float mechCredits = credits(MechFabricationCatalog.standardFitCost(mech));
-            float vehicleCredits = credits(MechFabricationCatalog.vehicle(type).cost());
+            float mechCredits = MechFabricationCatalog.standardFitCost(mech).credits();
+            float vehicleCredits = MechFabricationCatalog.vehicle(type).cost().credits();
             if (ROLE_HULLS.contains(type)) {
                 assertTrue(vehicleCredits < mechCredits, type + " costs " + vehicleCredits + " against " + mech);
                 continue;
@@ -149,22 +140,10 @@ class VehicleVariantLadderTest {
         throw new IllegalArgumentException(lift.name());
     }
 
-    static float credits(FabricationCost cost) {
-        Map<String, Integer> price = Map.of("supplies", 100, "heavy_machinery", 150, "metals", 30, "rare_metals", 200);
-        float total = 0f;
-        for (FabricationCost.Line line : cost.lines()) total += line.quantity() * price.get(line.commodityId());
-        return total;
-    }
-
     private static boolean dominates(VehicleType a, VehicleType b) {
         return a.maxStructure >= b.maxStructure && a.maxArmor >= b.maxArmor
                 && a.armorRating >= b.armorRating && a.maxSpeed >= b.maxSpeed && a.capacity >= b.capacity
                 && (b.activeProtectionStructureId() == null || a.activeProtectionStructureId() != null);
     }
-
-    private static int total(VehicleType type) {
-        MechFabricationCatalog.Recipe recipe = MechFabricationCatalog.vehicle(type);
-        assertNotNull(recipe, type.name());
-        return recipe.cost().lines().stream().mapToInt(FabricationCost.Line::quantity).sum();
-    }
 }
+

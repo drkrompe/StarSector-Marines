@@ -33,7 +33,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.power.MechSupport;
-import com.dillon.starsectormarines.battle.power.ReconPing;
+import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.ShuttleArrivalPlan;
@@ -476,7 +476,7 @@ class BattleFixtureJsonTest {
                 List.of(new FighterWingCommitment(FighterProfile.DAGGER,
                         Faction.DEFENDER, 1, 7f, 30f)),
                 List.of(
-                        new CommandPowerCommitment(ReconPing.ID, List.of()),
+                        new CommandPowerCommitment(OrbitalBarrage.ID, List.of()),
                         new CommandPowerCommitment(MechSupport.ID, List.of(
                                 new MechDeploymentSpec(MechVariant.WARDEN,
                                         MechRole.LR_SUPPORT,
