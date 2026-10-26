@@ -1,6 +1,6 @@
 # Blind Watch — the Sounding
 
-Status: PLANNED — hook proposed to the owner (Blind Watch picks page); building on A meanwhile.
+Status: IN PROGRESS — hook A chosen (owner, 2026-10-26); map, mission behaviour and story text under way.
 Written: 2026-10-26
 
 Read `wayline-corvus-arc.md`, `early-operation-nouns.md` (Wayline across Corvus),
@@ -70,7 +70,7 @@ lands over the horizon from the post. Low risk is the reward of that preparation
 No faction relation, market, Hegemony or orbital state changes, as with the
 rest of the arc.
 
-## The hook (proposed; owner's pick on the Blind Watch picks page)
+## The hook (owner, 2026-10-26: A)
 
 **A. Ears, eyes and voice (recommended).** The three charges each take away a
 different capability, so the order is the plan:
@@ -92,17 +92,8 @@ Mast first makes everything after it cheaper, but the warning probably goes
 through. Uplink first keeps Garnir in the dark, but crosses the flat under the mast's mortar.
 A careful approach delays the alarm and with it the warning's start.
 
-**B. Aurora window.** Barad's magnetic storms blind the post's instruments. The
-company lands at a storm's onset; while it lasts the rim guns and the mast are
-blind and sentries must see the company by eye. The storm passes on a visible
-clock and the post wakes at full strength. A tempo mission: push hard while the
-watch is blind.
-
-**C. Moonrise.** The uplink can reach Garnir only while Garnir is above
-Warion's horizon. Garnir rises on a visible clock; at moonrise the post calls
-for help and a Sable Wake lander arrives with a relief squad. Blowing the uplink
-first cancels the lander. Raises the chapter's danger above Low unless the
-uplink falls in time.
+Not chosen: an aurora storm that blinds the post for a timed window (B), and
+Garnir's moonrise bringing a relief lander unless the uplink falls first (C).
 
 ## Mission flow (hook A)
 
@@ -202,7 +193,7 @@ worst-approach and a prepared-approach run, the full-mission preview video.
 
 ## Acceptance
 
-- [ ] The owner picks the hook.
+- [x] The owner picks the hook: A, ears, eyes and voice (2026-10-26).
 - [ ] Authored map renders from the look preset; no capture point except the three sites.
 - [ ] Every site is reachable from the landing ground; three approaches stay open; the crawler's lane passes `VehicleRoutePlanner`.
 - [ ] Each charge's effect fires in a unit test; the warning stops at the uplink charge.
@@ -213,7 +204,6 @@ worst-approach and a prepared-approach run, the full-mission preview video.
 
 ## Open questions
 
-- The hook (A, B or C).
 - Side-job pay (proposed: riggers 1,500, false schedule none).
 - Whether Blind Watch reads the Dust Ledger's broker mark: an escaped Teague
   could have warned the post, starting its crew stood-to. It would be the first
