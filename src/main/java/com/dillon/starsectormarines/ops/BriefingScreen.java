@@ -416,7 +416,7 @@ public class BriefingScreen implements Screen {
             candidateHints = BriefingHints.install(built, candidate, props);
             wireDebugBayPictures(built, candidate, props);
             BriefingSurvey.install(built, candidate, props);
-            BriefingLift.install(built, candidate, props, Strings::get);
+            BriefingLift.install(built, candidate, props);
             BriefingViewModel.installMusters(built, candidate, props);
             if (viewport != null) built.layout(
                     viewport.documentWidth(), viewport.documentHeight());

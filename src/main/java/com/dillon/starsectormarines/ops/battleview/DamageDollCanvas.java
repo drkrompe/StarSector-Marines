@@ -77,6 +77,18 @@ public final class DamageDollCanvas implements CanvasProducer {
         rearCaption = left + "  " + copy.apply("battleDamageDollRear") + "  " + right;
     }
 
+    private DamageDollCanvas(View view) {
+        this.view = Objects.requireNonNull(view, "view");
+        this.partColor = this::colorOf;
+        frontCaption = null;
+        rearCaption = null;
+    }
+
+    /** A captionless doll that fills whatever canvas it is given: a small picture whose words live in a hover. */
+    public static DamageDollCanvas bare(View view) {
+        return new DamageDollCanvas(view);
+    }
+
     public View view() {
         return view;
     }
@@ -84,6 +96,11 @@ public final class DamageDollCanvas implements CanvasProducer {
     @Override
     public void draw(CanvasContext context) {
         if (!view.present || view.asset == null) return;
+        if (frontCaption == null) {
+            view.asset.drawParts(context, 0f, 0f, context.metrics().surfaceWidth(),
+                    context.metrics().surfaceHeight(), partColor);
+            return;
+        }
         view.asset.drawParts(context, 0f, 0f, SURFACE_WIDTH, SURFACE_HEIGHT, partColor);
         float scale = SURFACE_WIDTH / VIEWBOX_WIDTH;
         float y = SURFACE_HEIGHT - CAPTION_FONT.getLineHeight() - 1f;
