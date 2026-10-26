@@ -631,7 +631,7 @@ A rack chains its salvos (`mechs-nouns.md`, Flux): a click is one salvo, and a h
 that has fired one, or another click while the last salvo's cycle still runs, fires the next loaded
 salvo as soon as the last has gone, until release or an empty rack, so three clicks on an LRM-15 are
 its three groups. A vehicle turret's launcher does the same under manual fire, bounded by its own
-flux, which the HUD's flux bar shows for any hull whose gun builds it.
+flux, which the HUD's flux bar shows for every armed hull (`convoy-nouns.md`, hull flux).
 
 An arcing LRM rack drops its salvo on the thrown point: the aim point, pulled in
 to twice its range if further, plus the same growing scatter disk a rocket's ground

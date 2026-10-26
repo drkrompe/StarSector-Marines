@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.power;
 
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
@@ -29,13 +30,14 @@ import java.util.Map;
  *
  * <p>The question is about the carrier and its lift rating, so the world is as small as it can be: open ground, a
  * marine section at the drop zone, and the far lone defender each scene keeps so neither side is ever absent. Mech
- * Support is called by the player's own surface ({@code requestActivation}) on a fixed tick.
+ * Support's one machine is ordered by the player's own surface ({@code requestActivation} with its pick) on a fixed
+ * tick; the order joins the lift queue and the first ferry craft that admits it flies it.
  *
  * <ul>
  *   <li>{@code cradled-hound}: one Hound and the cradled Buffalo, no ship lift. The company boat itself should fly,
- *       the Hound should land, and the charge should be spent.</li>
+ *       the Hound should land, and one lift should be spent.</li>
  *   <li>{@code bulwark-refused}: the same boat and one Bulwark, no ship lift. A cradle is light lift, so the power
- *       should refuse its target: nothing flies, no mech appears, the charge is kept.</li>
+ *       should refuse its target: nothing flies, no mech appears, the lift is kept.</li>
  *   <li>{@code bulwark-ship-lift}: the same as the refusal with ship lift behind it. A Valkyrie should fly the
  *       Bulwark down, proving the refusal is about the boat's rating and not about the ground.</li>
  * </ul>
@@ -49,6 +51,7 @@ public final class HeavyLiftScene implements BehaviorScene {
     private static final int ZONE_Y = 34;
     private static final int CALL_TICK = 60;
     private static final String RIFLE = "weapon.smg";
+    private static final List<Integer> PICK = List.of(0);
     private static final FittedBoat CRADLED_BUFFALO = new FittedBoat(ShuttleType.BUFFALO,
             BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE, BoatFitting.LIFT_CRADLE, "buffalo-1");
 
@@ -89,7 +92,7 @@ public final class HeavyLiftScene implements BehaviorScene {
                 .frames(frames, loop, 15, tick -> String.format(Locale.ROOT, "%s / tick %d / %s",
                         loop, tick, trace.caption()))
                 .run(TICKS);
-        trace.chargesAfter = sim.getCommandPowerService().getChargesRemaining(power.id);
+        trace.liftAfter = power.budget().remaining();
         return trace;
     }
 
@@ -104,16 +107,16 @@ public final class HeavyLiftScene implements BehaviorScene {
                         "carrier in the air: " + carrier));
                 verdicts.add(Verdict.of("hound-lands", t.landedVariant == MechVariant.HOUND,
                         "first marine mech " + t.landedVariant + " at tick " + t.firstMechTick));
-                verdicts.add(Verdict.of("charge-spent", t.chargesAfter == t.chargesBefore - 1,
-                        "charges " + t.chargesBefore + " -> " + t.chargesAfter));
+                verdicts.add(Verdict.of("lift-spent", t.liftAfter == t.liftBefore - 1,
+                        "lift " + t.liftBefore + " -> " + t.liftAfter));
             }
             case "bulwark-refused" -> {
                 verdicts.add(Verdict.of("call-refused", !t.canTargetAtCall,
                         "canTarget at the call: " + t.canTargetAtCall));
                 verdicts.add(Verdict.of("nothing-flies", t.carrier == null, "carrier seen: " + carrier));
                 verdicts.add(Verdict.of("no-mech-appears", t.mechsAtMost == 0, t.mechsAtMost + " marine mechs"));
-                verdicts.add(Verdict.of("charge-kept", t.chargesAfter == t.chargesBefore,
-                        "charges " + t.chargesBefore + " -> " + t.chargesAfter));
+                verdicts.add(Verdict.of("lift-kept", t.liftAfter == t.liftBefore,
+                        "lift " + t.liftBefore + " -> " + t.liftAfter));
             }
             default -> {
                 verdicts.add(Verdict.of("call-accepted", t.canTargetAtCall,
@@ -122,8 +125,8 @@ public final class HeavyLiftScene implements BehaviorScene {
                         "carrier in the air: " + carrier));
                 verdicts.add(Verdict.of("bulwark-lands", t.landedVariant == MechVariant.BULWARK,
                         "first marine mech " + t.landedVariant + " at tick " + t.firstMechTick));
-                verdicts.add(Verdict.of("charge-spent", t.chargesAfter == t.chargesBefore - 1,
-                        "charges " + t.chargesBefore + " -> " + t.chargesAfter));
+                verdicts.add(Verdict.of("lift-spent", t.liftAfter == t.liftBefore - 1,
+                        "lift " + t.liftBefore + " -> " + t.liftAfter));
             }
         }
         Map<String, Number> metrics = new LinkedHashMap<>();
@@ -131,8 +134,8 @@ public final class HeavyLiftScene implements BehaviorScene {
         metrics.put("carrierTick", t.carrierTick);
         metrics.put("firstMechTick", t.firstMechTick);
         metrics.put("mechs", t.mechsAtMost);
-        metrics.put("chargesBefore", t.chargesBefore);
-        metrics.put("chargesAfter", t.chargesAfter);
+        metrics.put("liftBefore", t.liftBefore);
+        metrics.put("liftAfter", t.liftAfter);
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
     }
 
@@ -140,8 +143,8 @@ public final class HeavyLiftScene implements BehaviorScene {
         final MechSupport power;
         final MechVariant chassis;
         boolean canTargetAtCall;
-        int chargesBefore = -1;
-        int chargesAfter = -1;
+        int liftBefore = -1;
+        int liftAfter = -1;
         Airframe carrier;
         int carrierTick = -1;
         int firstMechTick = -1;
@@ -157,21 +160,26 @@ public final class HeavyLiftScene implements BehaviorScene {
             String what = chassis.name().toLowerCase(Locale.ROOT);
             if (firstMechTick >= 0) return what + " down from " + carrier;
             if (carrier != null) return what + " inbound on " + carrier;
-            if (chargesBefore >= 0 && !canTargetAtCall) return what + " refused: no lift for it";
+            if (liftBefore >= 0 && !canTargetAtCall) return what + " refused: no lift for it";
             return what + " on call";
         }
 
         @Override public void observe(BattleSimulation sim, int tick) {
             if (tick == CALL_TICK) {
                 CommandPowerService service = sim.getCommandPowerService();
-                chargesBefore = service.getChargesRemaining(power.id);
-                canTargetAtCall = power.canTarget(ZONE_X, ZONE_Y, sim);
-                service.requestActivation(power.id, ZONE_X, ZONE_Y);
+                liftBefore = power.budget().remaining();
+                canTargetAtCall = power.canTarget(ZONE_X, ZONE_Y, sim, PICK);
+                service.requestActivation(power.id, ZONE_X, ZONE_Y, PICK);
             }
-            long[] air = sim.getAirEntityIds();
-            if (air.length > 0 && carrier == null) {
-                carrier = sim.world().airframe(air[0]);
-                carrierTick = tick;
+            if (carrier == null) {
+                // Standby ferry craft wait off-map; the carrier is the one that took the machine.
+                for (long craft : sim.getAirEntityIds()) {
+                    ShuttleMission mission = sim.world().mission(craft);
+                    if (mission == null || mission.machineDropId == 0L) continue;
+                    carrier = sim.world().airframe(craft);
+                    carrierTick = tick;
+                    break;
+                }
             }
             int mechs = 0;
             for (int i = 0; i < sim.liveUnitCount(); i++) {

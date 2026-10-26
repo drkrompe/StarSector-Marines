@@ -89,7 +89,9 @@ live on the battle, never in a static or a shared generator.
 Ask a battle questions instead of bisecting for them. Stands one battle up,
 steps it on command and answers queries between steps, one JSON line each:
 `until T`, `until-beat final_run`, `entity ID` (health, plate, target, orders,
-squad, telemetry), `near ID R`, `find label=TURRET`, `squads`, `beats`, and,
+squad, telemetry), `near ID R`, `find label=TURRET`, `squads`, `beats`,
+`presence` (what keeps the company in play: ground bodies, boats, reserve
+powers, each objective), and,
 after `hitlog on`, `hits target=ID` / `hits-by attacker target=ID` (every
 resolved hit with penetration, plate rating and arc, and what went to armor and
 structure). Sources: `thunder-run[:seed=N,...]` and `fixture:<path>`; without

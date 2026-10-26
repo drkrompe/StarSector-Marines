@@ -21,10 +21,10 @@ import com.dillon.starsectormarines.battle.unit.SwarmStage;
  * turns on the spot. The feeler claws beside the head twitch. Standing, the tail lies almost flat out behind and
  * sways.
  *
- * <p>Planting is a dig: through the sim's plant the legs stamp outward into the creep, side against side, the body
- * dipping at each stroke and sinking lower, and it settles with a slight bounce once set. Uprooting is the same in
- * reverse: the legs heave free and the body rises, overshooting a little as it stands. The body's height, its lurch
- * and its rock are springs, so every change of weight settles rather than snaps.
+ * <p>Planting is a dig on the same legs: through the sim's plant each tripod in turn lifts and steps its claws out to
+ * a wider stance and lands with the shell settling lower onto them, then each stabs in once more where it stands;
+ * uprooting wrenches each tripod in place, then steps it back in to its walking stance as the shell rises. The body's
+ * height, its lurch and its rock are springs, so every change of weight settles rather than snaps.
  *
  * <p>The lob is the catapult's. Winding up ({@code windup} 0 to 1 over the sim's wind-up) the tail arches up off the
  * ground and over the back, rising toward the camera and leaning to one side as the master's left frame draws it, until
@@ -33,9 +33,10 @@ import com.dillon.starsectormarines.battle.unit.SwarmStage;
  * behind and its end lashes from side to side as it settles; the body lurches forward and rocks, the legs brace, and
  * the sac, emptied, flares and goes dull, filling again through the reload.
  *
- * <p>Dead, it falls apart its own way: the sac ruptures in a last amber flash, the shell cracks open down its seam and
- * its halves part, the legs buckle out flat and the body drops between them, and the tail collapses to the ground and
- * flops to one side, over a pool of blood ({@link RavBurst}, which here only spills it). The haze the sim bursts from
+ * <p>Dead, it falls apart its own way: the sac ruptures in a last amber flash, the shell cracks open along a ragged
+ * crack and its halves part unevenly, one wrenched well out and twisted, the other barely moved; the legs twitch and
+ * fold back and under it as a dead arthropod's do, the body drops, the tail collapses kinked to one side, and the whole
+ * carcass goes dull and grey, over a pool of blood ({@link RavBurst}, which here only spills it). The haze the sim bursts from
  * the sac is the haze's to draw.
  *
  * <p>Built on the approved G1 design, its parts exported by
@@ -50,7 +51,7 @@ public final class RavBombardRig {
     /** Canvas centre of the exported body box. */
     public static final float BODY_ROW = 440f;
     /** Canvas columns of the shell halves' centres, cut down the seam for the death. */
-    public static final float SHELL_L_COL = 1006f, SHELL_R_COL = 1150f;
+    public static final float SHELL_L_COL = 1014f, SHELL_R_COL = 1142f;
     /** The legs, as {@code export_bombard_rig.py} cut them: four a side, left then right, front to back; 0 the feeler. */
     public static final int LEGS = 8, LEGS_PER_SIDE = 4;
     /** Each leg's box centre, its hip (where it leaves the shell) and its foot (the claw tip), canvas px. */
@@ -95,18 +96,23 @@ public final class RavBombardRig {
      */
     static final float SWAY_WEIGHT = 0.7f, SWAY_MAX = 0.12f, SWAY_K = 44f, LAND_DROP = 0.6f;
     /** A lifted leg draws this much larger at the top of its step; a reaching leg stretches between these. */
-    static final float STEP_LIFT = 0.08f, REACH_MIN = 0.88f, REACH_MAX = 1.15f;
+    static final float STEP_LIFT = 0.08f, REACH_MIN = 0.88f, REACH_MAX = 1.2f;
     /** The feeler claws' twitch, degrees and Hz. */
     static final float FEELER_DEG = 6f, FEELER_HZ = 0.7f;
     private static final float MOVE_BELOW = 0.08f, MOVE_FULL = 0.8f;
-    /** Planted, the legs splay out this much wider and the body sits this much lower, as a share of its size. */
-    static final float SPLAY = 0.18f, SINK = 0.1f;
-    /** The dig: stamps per side over a plant or an uproot, how far a stamp throws a side's legs out, and dips the body. */
-    static final float DIG_STAMPS = 3f, DIG_SPLAY = 0.15f, DIG_DIP = 0.05f, DIG_SWING = 9f;
+    /** Planted, the body sits this much lower, as a share of its size. */
+    static final float SINK = 0.1f;
+    /**
+     * The dig: tripod strokes over a plant or an uproot (the first two step out to the dug stance, the rest stab in
+     * where they stand; an uproot the other way round), and how much further from its hip a dug claw sets, as a share
+     * of the leg.
+     */
+    static final int DIG_STROKES = 4;
+    static final float DIG_OUT = 0.15f;
     /** At full draw the body crouches back this far (cells) and this much lower, and trembles past {@link #TREMBLE_FROM}. */
     static final float CROUCH_BACK = 0.04f, CROUCH_SINK = 0.02f, TREMBLE_FROM = 0.8f, TREMBLE = 0.006f;
     /** The throw's kick: the body's forward speed (cells/s), its press down (share/s), its rock (deg/s), the brace. */
-    static final float KICK_LURCH = 1.4f, KICK_PRESS = 0.9f, KICK_ROCK = 60f, BRACE = 0.06f, BRACE_SECONDS = 0.6f;
+    static final float KICK_LURCH = 1.4f, KICK_PRESS = 0.9f, KICK_ROCK = 60f;
     /** The springs the body's height, lurch and rock settle on: stiffness (1/s^2) and damping (1/s). */
     private static final float SPRING_K = 140f, SPRING_C = 8f;
     /**
@@ -118,14 +124,28 @@ public final class RavBombardRig {
     /** Emptied by the throw the sac goes this dull and refills over this long; the shell narrows this much with it. */
     static final float EMPTIED = 0.85f, REFILL_SECONDS = 5f, SQUEEZE = 0.03f;
 
-    /** Dead: the rupture's flash fades over this; the shell cracks this far apart (cells each side) and turns out. */
-    static final float RUPTURE_SECONDS = 0.6f, CRACK_AT = 0.06f, CRACK_SECONDS = 0.35f, CRACK_CELLS = 0.05f,
-            CRACK_DEG = 5f;
-    /** Dead: the body drops this much, the legs buckle this much wider and splay this far each, degrees. */
-    static final float SLUMP = 0.07f, BUCKLE = 0.16f, BUCKLE_DEG = 7f;
-    /** Dead: the tail falls over this long and lies bent to one side by these, degrees per joint. */
+    /** Dead: the rupture's flash fades over this; the shell cracks open from this long after, over this long. */
+    static final float RUPTURE_SECONDS = 0.6f, CRACK_AT = 0.06f, CRACK_SECONDS = 0.35f;
+    /**
+     * Dead: how the halves part, uneven: the half that breaks away moves out (cells), back (cells) and twists out
+     * (degrees) by the first of each pair; the half that holds by the second. Which side breaks is the body's own.
+     */
+    static final float[] CRACK_OUT = {0.075f, 0.02f}, CRACK_BACK = {0.035f, -0.012f}, CRACK_TWIST = {10f, 2.5f};
+    /** Dead: the shell flattens this much wider as it slumps, and the body drops this much. */
+    static final float FLATTEN = 0.05f, SLUMP = 0.07f;
+    /**
+     * Dead: the legs fold back and under over this long, by these turns (degrees, the most and the least, by leg) and
+     * to these reaches, and twitch this far at these times after death.
+     */
+    static final float FOLD_SECONDS = 0.7f, FOLD_MOST = 50f, FOLD_LEAST = 22f, FOLD_REACH_MOST = 0.52f,
+            FOLD_REACH_LEAST = 0.68f, TWITCH_DEG = 9f;
+    static final float[] TWITCHES = {0.55f, 1.05f, 1.7f};
+    /** Dead: the carcass dulls to this shade (red, green, blue) over this long. */
+    static final float[] DEAD_SHADE = {0.4f, 0.37f, 0.4f};
+    static final float DULL_SECONDS = 3f;
+    /** Dead: the tail falls over this long and lies kinked to one side by these, degrees per joint. */
     static final float COLLAPSE_SECONDS = 0.45f;
-    static final float[] LIMP = {6f, 8f, 9f, 9f, 8f, 7f, 5f};
+    static final float[] LIMP = {5f, 12f, 26f, -8f, -18f, 24f, 10f};
 
     private float bodyX, bodyY, facingDeg;
     private boolean started;
@@ -133,7 +153,11 @@ public final class RavBombardRig {
     private float lastCooldown = Float.NaN;
     private float sinceFling = Float.MAX_VALUE;
     private float curl, flingFrom, windup, plant, plantRaw = Float.NaN, glow;
-    private float digSplayL, digSplayR, digSwing;
+    /** The dig under way: +1 planting, -1 uprooting, 0 none; its strokes made, the set it began with; each set dug in. */
+    private int digDir, strokes, digFirst;
+    private final boolean[] dugSet = new boolean[2];
+    /** The step in the air lands this much past its rest, as a share of the pull: none for a stroke of the dig. */
+    private float stepLead = STEP_LEAD;
     private float emptied;
     /** The springs: the body's height (share of its size), its lurch forward (cells) and its rock (degrees). */
     private float lift, liftV, lurch, lurchV, rock, rockV;
@@ -152,7 +176,10 @@ public final class RavBombardRig {
     private boolean dead;
     private float sinceDeath, curlAtDeath, flopSide;
     private final float[] lashAtDeath = new float[TAIL_SEGMENTS];
-    private final float[] deadLegSwing = new float[2];
+    private final float[] foldTurn = new float[LEGS], foldReach = new float[LEGS];
+    private final float[] legAngleAtDeath = new float[LEGS], legReachAtDeath = new float[LEGS];
+    /** Which half breaks away: 0 the left, 1 the right. */
+    private int brokenHalf;
     /** Each leg's claw in the world (cells), where it steps from, how far through its step, and its pose. */
     private final float[] footX = new float[LEGS], footY = new float[LEGS];
     private final float[] fromX = new float[LEGS], fromY = new float[LEGS];
@@ -222,17 +249,21 @@ public final class RavBombardRig {
         this.windup = clamp01(windup);
 
         float raw = clamp01(planted);
-        if (Float.isNaN(plantRaw)) plantRaw = raw;
-        boolean digging = raw > 0f && raw < 1f && raw != plantRaw;
+        if (Float.isNaN(plantRaw)) {
+            plantRaw = raw;
+            dugSet[0] = dugSet[1] = raw >= 1f;
+        }
+        int dir = raw > plantRaw ? 1 : raw < plantRaw ? -1 : digDir;
+        if (raw <= 0f || raw >= 1f) dir = 0;
+        if (dir != digDir) {
+            digDir = dir;
+            strokes = 0;
+            digFirst = nextSet;
+        }
+        if (raw >= 1f) dugSet[0] = dugSet[1] = true;
+        if (raw <= 0f) dugSet[0] = dugSet[1] = false;
         plantRaw = raw;
         plant += (raw - plant) * (1f - (float) Math.exp(-dt / 0.3f));
-        // a stamp each side in turn, swelling through the middle of the dig, the same strokes either way
-        float envelope = digging ? (float) Math.sin(Math.PI * raw) : 0f;
-        double stroke = 2 * Math.PI * DIG_STAMPS * raw;
-        float stampL = Math.max(0f, (float) Math.sin(stroke)), stampR = Math.max(0f, (float) -Math.sin(stroke));
-        digSplayL = ease(digSplayL, DIG_SPLAY * stampL * envelope, dt, 0.06f);
-        digSplayR = ease(digSplayR, DIG_SPLAY * stampR * envelope, dt, 0.06f);
-        digSwing = ease(digSwing, DIG_SWING * (stampL - stampR) * envelope, dt, 0.06f);
 
         boolean flung = false;
         if (!Float.isNaN(lastCooldown) && cooldown > lastCooldown + RESET_JUMP) {
@@ -264,9 +295,9 @@ public final class RavBombardRig {
         }
         solveTail(curl, lash);
 
-        // the body's weight, on springs: sinking as it plants, dipping at each stamp, crouching back at full draw
+        // the body's weight, on springs: settling lower as it digs in, crouching back at full draw
         float drawn = smooth(this.windup);
-        float liftTarget = -SINK * plant - DIG_DIP * (stampL + stampR) * envelope - CROUCH_SINK * drawn;
+        float liftTarget = -SINK * plant - CROUCH_SINK * drawn;
         float lurchTarget = -CROUCH_BACK * drawn;
         if (flung) {
             // the arm's swing kicks the body forward, presses it down and rocks it to one side
@@ -299,7 +330,8 @@ public final class RavBombardRig {
      * {@link #SUPPORT_SECONDS}, its set lifts together (the set due next, unless only the other needs it) and lands each
      * claw past its rest by {@link #STEP_LEAD} of its pull. The shell leans toward the carrying tripod and drops as a
      * set lands. Each leg is then turned about its hip and stretched to reach its claw from where the shell is drawn.
-     * Feet hold still through the dig of a plant or an uproot; set, it steps round as it turns.
+     * Through a plant or an uproot the strokes of the dig ({@link #dig}) take the place of the strain; set, it steps round
+     * on its dug stance as it turns.
      */
     private void stepLegs(float dt) {
         landedNow = -1;
@@ -318,8 +350,8 @@ public final class RavBombardRig {
             for (int i = 0; i < LEGS; i++) {
                 if (LEG_SET[i] != airSet) continue;
                 // aimed at where the rest is now, led on by the pull it lifted with, so a moving body's step lands ahead
-                float toX = restX[i] + (restX[i] - fromX[i]) * STEP_LEAD * 0.5f;
-                float toY = restY[i] + (restY[i] - fromY[i]) * STEP_LEAD * 0.5f;
+                float toX = restX[i] + (restX[i] - fromX[i]) * stepLead * 0.5f;
+                float toY = restY[i] + (restY[i] - fromY[i]) * stepLead * 0.5f;
                 stepT[i] = t = Math.min(1f, stepT[i] + dt / STEP_SECONDS);
                 float e = smooth(stepT[i]);
                 footX[i] = fromX[i] + (toX - fromX[i]) * e;
@@ -328,9 +360,9 @@ public final class RavBombardRig {
             if (t >= 1f) land();
         } else {
             supportLeft = Math.max(0f, supportLeft - dt);
-            // the claws hold still while they dig in or heave free; set, it turns on them as it walks on them
-            boolean dug = plantRaw > 0f && plantRaw < 1f;
-            if (supportLeft <= 0f && !dug) {
+            if (digDir != 0) {
+                if (supportLeft <= 0f) dig(fx, fy);
+            } else if (supportLeft <= 0f) {
                 float pull0 = pull(0), pull1 = pull(1);
                 boolean need0 = pull0 > STEP_REACH, need1 = pull1 > STEP_REACH;
                 int set = -1;
@@ -342,7 +374,10 @@ public final class RavBombardRig {
                 } else if (need1) {
                     set = 1;
                 }
-                if (set >= 0) liftSet(set);
+                if (set >= 0) {
+                    stepLead = STEP_LEAD;
+                    liftSet(set);
+                }
             }
         }
         sway(fx, fy, dt);
@@ -365,6 +400,27 @@ public final class RavBombardRig {
             legReach[i] = Math.max(REACH_MIN, Math.min(REACH_MAX, reach));
             legLift[i] = stepping[i] ? (float) Math.sin(Math.PI * stepT[i]) : 0f;
         }
+    }
+
+    /**
+     * The next stroke of the dig, once it is due: {@link #DIG_STROKES} spread evenly through the plant, the tripods in
+     * turn. Planting, the first stroke of each set steps its claws out to the dug stance and the rest stab in where they
+     * stand; uprooting, the first wrench each set in place and the rest step it back in to its walking stance.
+     */
+    private void dig(float fx, float fy) {
+        float through = digDir > 0 ? plantRaw : 1f - plantRaw;
+        if (strokes >= DIG_STROKES || through < (strokes + 0.15f) / DIG_STROKES) return;
+        int set = strokes % 2 == 0 ? digFirst : 1 - digFirst;
+        boolean moves = digDir > 0 ? strokes < 2 : strokes >= 2;
+        if (moves) {
+            dugSet[set] = digDir > 0;
+            for (int i = 0; i < LEGS; i++) {
+                if (LEG_SET[i] == set) restWorld(i, fx, fy);
+            }
+        }
+        strokes++;
+        stepLead = 0f;
+        liftSet(set);
     }
 
     /** The furthest any claw of {@code set} is pulled from its rest, cells of an adult. */
@@ -446,6 +502,12 @@ public final class RavBombardRig {
     /** Where leg {@code i}'s claw rests in the world, the body facing ({@code fx}, {@code fy}). */
     private void restWorld(int i, float fx, float fy) {
         float x = (FOOT_COL[i] - CENTRE_COL) / U_LAYER * scale, y = (ANCHOR_ROW - FOOT_ROW[i]) / U_LAYER * scale;
+        if (LEG_SET[i] >= 0 && dugSet[LEG_SET[i]]) {
+            // dug in, the claw sets further out along the leg from its hip
+            float hx = (HIP_COL[i] - CENTRE_COL) / U_LAYER * scale, hy = (ANCHOR_ROW - HIP_ROW[i]) / U_LAYER * scale;
+            x += (x - hx) * DIG_OUT;
+            y += (y - hy) * DIG_OUT;
+        }
         restX[i] = bodyX + x * fy + y * fx;
         restY[i] = bodyY - x * fx + y * fy;
     }
@@ -505,8 +567,16 @@ public final class RavBombardRig {
             System.arraycopy(lash, 0, lashAtDeath, 0, TAIL_SEGMENTS);
             long h = seed * 0x9E3779B97F4A7C15L;
             flopSide = (h & 2L) == 0L ? 1f : -1f;
-            deadLegSwing[0] = BUCKLE_DEG * (0.5f + ((h >>> 8) & 0xFF) / 510f);
-            deadLegSwing[1] = -BUCKLE_DEG * (0.5f + ((h >>> 16) & 0xFF) / 510f);
+            brokenHalf = (int) ((h >>> 5) & 1L);
+            for (int i = 0; i < LEGS; i++) {
+                float u = ((h >>> (8 + 6 * i)) & 0x3F) / 63f;
+                // left legs fold back counter-clockwise, right legs clockwise; the feelers curl in a little
+                float side = i < LEGS_PER_SIDE ? 1f : -1f;
+                foldTurn[i] = side * (LEG_SET[i] < 0 ? FOLD_LEAST * 0.5f : FOLD_LEAST + (FOLD_MOST - FOLD_LEAST) * u);
+                foldReach[i] = FOLD_REACH_MOST + (FOLD_REACH_LEAST - FOLD_REACH_MOST) * u;
+                legAngleAtDeath[i] = legAngle[i];
+                legReachAtDeath[i] = legReach[i];
+            }
             emptied = 0f;
             solvePose();
             burst.start(pose, 0f, (ANCHOR_ROW - BODY_ROW) / U_LAYER, seed);
@@ -558,9 +628,23 @@ public final class RavBombardRig {
         return dead ? RavRunnerRig.easeOut((sinceDeath - CRACK_AT) / CRACK_SECONDS) : 0f;
     }
 
-    /** How far each shell half has moved out from the seam, cells, and turned out, degrees. */
-    public float crackCells() { return CRACK_CELLS * crack(); }
-    public float crackDegrees() { return CRACK_DEG * crack(); }
+    /** How far a shell half ({@code left} or right) has moved out from the crack, cells: unevenly, by which broke. */
+    public float crackOut(boolean left) { return CRACK_OUT[part(left)] * crack(); }
+    /** How far a shell half has slid back along the body, cells. */
+    public float crackBack(boolean left) { return CRACK_BACK[part(left)] * crack(); }
+    /** How far a shell half has twisted out, degrees, away from the crack. */
+    public float crackTwist(boolean left) { return CRACK_TWIST[part(left)] * crack(); }
+
+    private int part(boolean left) { return (left ? 0 : 1) == brokenHalf ? 0 : 1; }
+
+    /** How much wider the dead shell lies, over its art, as it slumps flat. */
+    public float flatten() { return 1f + FLATTEN * crack(); }
+
+    /** How dull the carcass has gone, 0 alive to 1 dead and grey. */
+    public float dull() { return dead ? smooth(sinceDeath / DULL_SECONDS) : 0f; }
+
+    /** The shade a part is drawn in: its own colour alive, dulling to {@link #DEAD_SHADE} dead; channel 0..2. */
+    public float shade(int channel) { return 1f + (DEAD_SHADE[channel] - 1f) * dull(); }
 
     // ------------------------------------------------------------------ read side
 
@@ -583,24 +667,27 @@ public final class RavBombardRig {
     public boolean globLoaded() { return !dead && windup > 0f && sinceFling > WHIP_SECONDS + SETTLE_SECONDS; }
     /** How far into the wind-up, 0..1. */
     public float windup() { return windup; }
-    /** Leg {@code i}'s turn about its hip off its art, degrees counter-clockwise: reaching for its claw, dug or buckled. */
+    /** Leg {@code i}'s turn about its hip off its art, degrees counter-clockwise: reaching for its claw, or folding dead. */
     public float legAngle(int i) {
-        boolean left = i < LEGS_PER_SIDE;
-        float side = dead ? deadLegSwing[left ? 0 : 1] * smooth(sinceDeath / 0.3f) : left ? digSwing : -digSwing;
-        return legAngle[i] + side;
+        if (!dead) return legAngle[i];
+        float twitch = 0f;
+        for (float at : TWITCHES) {
+            float since = sinceDeath - at;
+            if (since > 0f && since < 0.25f) twitch += (float) Math.sin(Math.PI * since / 0.25f) * (1f - at / 2.5f);
+        }
+        float side = i < LEGS_PER_SIDE ? 1f : -1f;
+        return legAngleAtDeath[i] + (foldTurn[i] - legAngleAtDeath[i]) * fold() - side * TWITCH_DEG * twitch;
     }
-    /** How far leg {@code i} stretches to its claw, over its art. */
-    public float legReach(int i) { return legReach[i]; }
+    /** How far leg {@code i} stretches to its claw, over its art: dead, drawn in under the body. */
+    public float legReach(int i) {
+        return dead ? legReachAtDeath[i] + (foldReach[i] - legReachAtDeath[i]) * fold() : legReach[i];
+    }
+
+    private float fold() { return RavRunnerRig.easeOut(sinceDeath / FOLD_SECONDS); }
     /** How high leg {@code i} is lifted in its step, 0 planted to 1 at the top. */
     public float legLift(int i) { return legLift[i]; }
     /** The draw scale a lifted leg takes, nearer the camera. */
     public static float liftScale(float lift) { return 1f + STEP_LIFT * lift; }
-    /** How wide one side's legs splay, over their art: wider as the Bombard plants, at each stamp, and braced. */
-    public float legSplay(boolean left) {
-        float brace = sinceFling < BRACE_SECONDS ? BRACE * (1f - sinceFling / BRACE_SECONDS) : 0f;
-        float buckle = dead ? BUCKLE * RavRunnerRig.easeOut(sinceDeath / 0.3f) : 0f;
-        return 1f + SPLAY * plant + (left ? digSplayL : digSplayR) + brace + buckle;
-    }
     /** How far the body is shifted forward, cells: the lean onto its supports, the crouch, the throw's lurch, the tremble. */
     public float shift() { return swayY + lurch + tremble; }
     /** How far the body is shifted to its right, cells: its lean onto the tripod carrying it. */

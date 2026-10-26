@@ -101,8 +101,22 @@ public final class MechReflexes {
         }
     };
 
+    /**
+     * A mech squad attached to an infantry squad stands by its doctrine relative to that squad
+     * ({@link MechAttachmentSystem}): the attachment owns its locomotion, not its plan, as a move order
+     * does. Ranked below the player's move (which ends the attachment on the next command pass), the
+     * crippled chassis and the melee stand-off, which are what keep a mech alive wherever it was sent.
+     */
+    public static final Reflex ATTACHED = new Reflex() {
+        @Override public String name() { return "ATTACHED"; }
+        @Override public boolean interrupt(long unit, Squad squad,
+                                           ReflexContext context, BattleControl sim) {
+            return sim.getMechAttachmentSystem().executeIfAttached(unit, squad, sim);
+        }
+    };
+
     /** The lance's reflex chain, highest priority first. */
-    public static final List<Reflex> CHAIN = List.of(PLAYER_LOCOMOTION, CRIPPLED_CHASSIS, MELEE_STANDOFF);
+    public static final List<Reflex> CHAIN = List.of(PLAYER_LOCOMOTION, CRIPPLED_CHASSIS, MELEE_STANDOFF, ATTACHED);
 
     private static final ThreadLocal<LongBucket> NEARBY = ThreadLocal.withInitial(LongBucket::new);
 

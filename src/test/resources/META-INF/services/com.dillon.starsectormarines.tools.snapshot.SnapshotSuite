@@ -164,7 +164,6 @@ com.dillon.starsectormarines.ops.DistrictEscortSnapshotSuite
 com.dillon.starsectormarines.ops.YardOwnersSnapshotSuite
 com.dillon.starsectormarines.battle.power.MechDropSceneSnapshotSuite
 com.dillon.starsectormarines.battle.power.HeavyLiftSceneSnapshotSuite
-com.dillon.starsectormarines.battle.power.ArmorDropSceneSnapshotSuite
 com.dillon.starsectormarines.ops.RadioPortraitSnapshotSuite
 com.dillon.starsectormarines.tools.damageauthoring.DamageSnapshotSuite
 com.dillon.starsectormarines.ops.AgreusMapsSnapshotSuite
@@ -313,6 +312,8 @@ com.dillon.starsectormarines.battle.cordon.CordonEscortLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonStrikeLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonClearRoadLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGateLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonAlleyLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonSchoolBreachLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapNestsLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonStructureLookSuite

@@ -116,6 +116,16 @@ public abstract class CommandPower {
     }
 
     /**
+     * Whether this power can still put company forces on the field once paid for and off
+     * cooldown: a reserve with a way down. Charges, supplies and the command-point pool are
+     * the service's to judge; this answers only whether there is anyone left to send and
+     * anything left to fly them. Most powers field nobody.
+     */
+    public boolean canStillField(BattleView battle) {
+        return false;
+    }
+
+    /**
      * Radius in cells of the targeting-preview ring the UI draws while aiming
      * this power. {@code 0} (the default) means a point target — no ring.
      * Targeting shape is part of a power's contract, so it lives here rather

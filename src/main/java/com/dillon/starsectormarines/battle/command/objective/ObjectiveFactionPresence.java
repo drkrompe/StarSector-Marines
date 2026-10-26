@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
+import com.dillon.starsectormarines.battle.air.LiftQueue;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -37,6 +40,17 @@ public final class ObjectiveFactionPresence {
         return anyInPlay(sim, factions, unit -> true);
     }
 
+    /**
+     * True while the company can still fight: a soldier, vehicle or machine on the
+     * map, or a reserve with a way onto it (a boat still carrying or still to fly a
+     * sortie, a pending arrival, a delivery power that can still field someone). Its own
+     * emplacements and deployables are not forces: guns alone hold nothing.
+     */
+    public static boolean companyInPlay(BattleView sim) {
+        return anyInPlay(sim, Set.of(Faction.MARINE), unit -> !sim.identity().type(unit).isStatic()
+                && !sim.identity().type(unit).isDrone());
+    }
+
     static boolean anyInPlay(BattleView sim, Set<Faction> factions, LongPredicate groundEligible) {
         if (factions == null || factions.isEmpty()) return false;
         for (int i = 0, n = sim.liveUnitCount(); i < n; i++) {
@@ -51,11 +65,32 @@ public final class ObjectiveFactionPresence {
             if (!factions.contains(world.airFaction(id))) continue;
             ShuttleMission mission = world.mission(id);
             if (mission == null || mission.destroyed || mission.state == ShuttleState.GONE) continue;
-            boolean currentPayloadInbound = mission.marinesRemaining > 0
+            boolean currentPayloadInbound = mission.marinesRemaining > 0 && mission.payload.fieldsForces()
                     && mission.state != ShuttleState.DEPARTING;
             boolean futureSortieCommitted =
                     mission.currentCycle + 1 < mission.totalCycles;
             if (currentPayloadInbound || futureSortieCommitted) return true;
+        }
+        return factions.contains(Faction.MARINE)
+                && (queuedDropCanFly(sim) || reserveCanField(sim.getCommandPowerService(), sim));
+    }
+
+    /** A machine drop still waiting on the lift queue that a live ferry craft can carry down. */
+    static boolean queuedDropCanFly(BattleView sim) {
+        LiftQueue queue = sim.liftQueue();
+        if (queue == null) return false;
+        for (LiftQueue.MachineDrop job : queue.queued()) {
+            if (LiftQueue.ferryAdmits(sim.world(), sim.getAirEntityIds(), job.liftClass())) return true;
+        }
+        return false;
+    }
+
+    /** A company power with a charge, the supplies to pay for it, and someone left to send. */
+    static boolean reserveCanField(CommandPowerService powers, BattleView sim) {
+        if (powers == null) return false;
+        for (CommandPower power : powers.getAvailablePowers()) {
+            if (powers.getChargesRemaining(power.id) != 0 && powers.getAvailableSupplies() >= power.supplyCost
+                    && power.canStillField(sim)) return true;
         }
         return false;
     }

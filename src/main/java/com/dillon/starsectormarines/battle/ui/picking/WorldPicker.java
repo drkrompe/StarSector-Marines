@@ -43,9 +43,10 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * World-selection HUD slot. A stationary LMB gesture keeps the original click
  * behavior: nearest live unit (any faction) within a forgiveness radius wins,
  * and empty world space clears selection. Crossing a small pointer threshold
- * instead selects every intersecting player squad or combat lance. The member
- * nearest the box center becomes the primary, with entity id breaking ties.
- * Shift extends the current player selection.
+ * instead selects every intersecting player squad, combat lance and player
+ * vehicle as one group. The member or vehicle nearest the box center becomes
+ * the primary, with entity id breaking ties. Shift extends the current player
+ * selection, by a click on a squad or a vehicle as well as by a box.
  *
  * <p>The battle chrome is see-through, so a box can start on it too.
  * {@link #handleInputBeforeChrome} runs ahead of every panel: it holds a press
@@ -286,13 +287,14 @@ public final class WorldPicker implements HudPanel {
     private void completePrimaryGesture(BattleSimulation sim, BattleCamera camera) {
         if (isDragGesture()) {
             Set<Integer> squads = new LinkedHashSet<>();
-            long picked = collectDragCandidates(sim, camera, squads,
+            Set<Long> vehicles = new LinkedHashSet<>();
+            long picked = collectDragCandidates(sim, camera, squads, vehicles,
                     Math.min(dragStartX, dragCurrentX),
                     Math.min(dragStartY, dragCurrentY),
                     Math.max(dragStartX, dragCurrentX),
                     Math.max(dragStartY, dragCurrentY));
             if (picked != 0L) {
-                selectPlayerSquads(sim, squads, picked);
+                selectPlayerGroup(sim, squads, vehicles, picked);
             } else if (!additiveGesture && !gestureFromChrome) {
                 ctx.getSelection().clear();
             }
@@ -303,14 +305,15 @@ public final class WorldPicker implements HudPanel {
         float worldY = camera.screenToCellY(dragCurrentY);
         long vehicleId = nearestVehicle(sim, worldX, worldY);
         if (vehicleId != 0L) {
-            ctx.getSelection().selectVehicle(vehicleId);
+            if (additiveGesture) selectPlayerGroup(sim, Set.of(), Set.of(vehicleId), vehicleId);
+            else ctx.getSelection().selectVehicle(vehicleId);
             return;
         }
 
         long picked = nearestUnit(sim, worldX, worldY);
         if (picked != 0L && sim.squad().hasSquad(picked)) {
             if (additiveGesture && isDragSelectable(sim, picked)) {
-                selectPlayerSquads(sim, Set.of(sim.squad().squadId(picked)), picked);
+                selectPlayerGroup(sim, Set.of(sim.squad().squadId(picked)), Set.of(), picked);
             } else {
                 ctx.getSelection().selectUnit(sim.squad().squadId(picked), picked);
             }
@@ -325,7 +328,13 @@ public final class WorldPicker implements HudPanel {
         }
     }
 
-    private void selectPlayerSquads(BattleSimulation sim, Set<Integer> squads, long primary) {
+    /**
+     * Writes a box or Shift-click result: {@code primary} is a unit when it has a squad, else a
+     * vehicle. An additive gesture first drops anything not the player's from the old scope, so a
+     * Shift box after inspecting an enemy squad does not command it.
+     */
+    private void selectPlayerGroup(BattleSimulation sim, Set<Integer> squads, Set<Long> vehicles,
+                                   long primary) {
         Selection selection = ctx.getSelection();
         if (additiveGesture) {
             selection.retainSquads(id -> {
@@ -333,7 +342,9 @@ public final class WorldPicker implements HudPanel {
                 return squad != null && squad.faction == Faction.MARINE;
             });
         }
-        selection.selectSquads(squads, sim.squad().squadId(primary), primary, additiveGesture);
+        boolean unit = sim.squad().hasSquad(primary);
+        selection.selectGroup(squads, vehicles, unit ? sim.squad().squadId(primary) : Selection.NONE,
+                unit ? primary : 0L, unit ? 0L : primary, additiveGesture);
     }
 
     private void updateDragPointer(BattleCamera camera, float screenX, float screenY) {
@@ -425,14 +436,15 @@ public final class WorldPicker implements HudPanel {
     }
 
     /**
-     * All commandable player squads intersecting the drag box. Infantry
-     * members select their squad; mechs additionally pin the exact chassis so
-     * the mech command plate retains its member-level scope.
+     * All commandable player squads and player vehicles intersecting the drag box.
+     * Infantry members select their squad; mechs additionally pin the exact chassis
+     * so the mech command plate retains its member-level scope. Returns the unit or
+     * vehicle nearest the box centre, or {@code 0L} when the box caught nothing.
      */
     private static long collectDragCandidates(BattleSimulation sim, BattleCamera camera,
-                                             Set<Integer> squads,
-                                             float minX, float minY,
-                                             float maxX, float maxY) {
+                                              Set<Integer> squads, Set<Long> vehicles,
+                                              float minX, float minY,
+                                              float maxX, float maxY) {
         float centerX = (minX + maxX) * 0.5f;
         float centerY = (minY + maxY) * 0.5f;
         long best = 0L;
@@ -460,7 +472,34 @@ public final class WorldPicker implements HudPanel {
                 best = unit;
             }
         }
+        ConvoyService convoy = sim.convoy();
+        for (long vehicle : sim.getConvoyVehicleIds()) {
+            if (!isDragSelectableVehicle(convoy, vehicle)) continue;
+            GroundBody body = convoy.body(vehicle);
+            float screenX = camera.cellToScreenX(body.x);
+            float screenY = camera.cellToScreenY(body.y);
+            float radiusPx = VEHICLE_PICK_RADIUS_CELLS * camera.cellPxSize();
+            if (screenX + radiusPx < minX || screenX - radiusPx > maxX
+                    || screenY + radiusPx < minY || screenY - radiusPx > maxY) {
+                continue;
+            }
+            vehicles.add(vehicle);
+            float dx = screenX - centerX;
+            float dy = screenY - centerY;
+            float distanceSq = dx * dx + dy * dy;
+            if (distanceSq < bestDistSq
+                    || distanceSq == bestDistSq && (best == 0L || vehicle < best)) {
+                bestDistSq = distanceSq;
+                best = vehicle;
+            }
+        }
         return best;
+    }
+
+    /** A visible vehicle of the player's own side: the ones a click selects, and so a box. */
+    private static boolean isDragSelectableVehicle(ConvoyService convoy, long vehicle) {
+        VehicleMission mission = convoy.mission(vehicle);
+        return mission != null && mission.isVisible() && convoy.faction(vehicle) == Faction.MARINE;
     }
 
     private static boolean isDragSelectable(BattleSimulation sim, long unit) {

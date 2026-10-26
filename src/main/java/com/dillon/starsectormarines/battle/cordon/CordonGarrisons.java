@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
+import com.dillon.starsectormarines.battle.evacuation.HoldoutLoopholes;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
@@ -150,6 +151,11 @@ public final class CordonGarrisons {
         int left = works.cells().get(0)[0], top = works.cells().get(0)[1];
         int right = works.cells().get(1)[0], bottom = works.cells().get(1)[1];
         int centreX = (left + right) / 2, centreY = (top + bottom) / 2;
+        if (built == CordonConstruction.SCHOOL) {
+            // Its courtyard block is the face, with a window or two: the troops knock firing slits through it.
+            HoldoutLoopholes.cutRow(sim, left, right, face(grid, left, top, right, bottom, front),
+                    front > 0 ? Direction.N : Direction.S);
+        }
         List<Long> guns = new ArrayList<>();
         for (int[] gun : works.nests()) {
             if (!grid.isWalkable(gun[0], gun[1])) continue;

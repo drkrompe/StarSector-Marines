@@ -63,7 +63,7 @@ final class MarineOpsThemes {
                 button:active { background-color: #222c2a; border-style: inset; }
                 button:focus-visible { border-color: #ffe1a0; border-style: solid; }
                 button:disabled { opacity: 0.38; }
-                .doctrine-card-active:disabled, .lance-order-card-active:disabled, .member-card:disabled { opacity: 1; }
+                .doctrine-card-active:disabled, .member-card:disabled { opacity: 1; }
                 .member-card.member-empty:disabled { opacity: 0.28; }
                 .good-surface { background-color: #132b22; border-color: #78d494; }
                 .warning-surface { background-color: #332b1c; border-color: #ffd464; color: #ffd464; }
@@ -270,7 +270,7 @@ final class MarineOpsThemes {
                 .hud-glass .doctrine-card-active, .hud-glass .pick-selected, .hud-glass .ship-selected {
                     background-color: #d6c27a24; border-color: #d6c27a99; color: #ffd464; border-style: solid;
                 }
-                .hud-glass .lance-order-card-active { background-color: #8ee3ff17; border-color: #a7ccc499; }
+                .hud-glass .attachment-state-attached { background-color: #8ee3ff17; border-color: #a7ccc499; }
                 .hud-glass .doctrine-card-deployed { border-color: #78d49466; }
                 .hud-glass .member-leader { border-color: #d6c27a80; }
                 .hud-glass .member-critical { border-color: #e98b8399; }
@@ -315,7 +315,7 @@ final class MarineOpsThemes {
                 button:active { background-color: #2185b4; }
                 button:focus-visible { border-color: #ffe45c; }
                 button:disabled { opacity: 0.32; }
-                .doctrine-card-active:disabled, .lance-order-card-active:disabled, .member-card:disabled { opacity: 1; }
+                .doctrine-card-active:disabled, .member-card:disabled { opacity: 1; }
                 .member-card.member-empty:disabled { opacity: 0.28; }
                 .good-surface { background-color: #06361b; border-color: #78ff9d; }
                 .warning-surface { background-color: #3a3018; border-color: #ffe45c; color: #ffe45c; }

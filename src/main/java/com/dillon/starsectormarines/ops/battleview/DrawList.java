@@ -392,6 +392,25 @@ public final class DrawList {
         slot(layer).setCustom(draw);
     }
 
+    /**
+     * Moves the commands {@code from} holds past its first {@code keep} on to the end of {@code into}, in order.
+     * A producer that emits through shared code bound to one layer collects there and then moves what it emitted:
+     * the units pass sends its dead under the fog this way. The pooled command objects trade places, so nothing
+     * is allocated in steady state.
+     */
+    public void moveTail(RenderLayer from, int keep, RenderLayer into) {
+        int fi = from.ordinal();
+        DrawCommand[] src = byLayer[fi];
+        for (int i = keep, n = counts[fi]; i < n; i++) {
+            DrawCommand spare = slot(into);
+            int ii = into.ordinal();
+            int at = counts[ii] - 1;
+            byLayer[ii][at] = src[i];
+            src[i] = spare;
+        }
+        counts[fi] = Math.min(counts[fi], keep);
+    }
+
     /** The live command backing array for one layer (valid indices: {@code 0..count(layer)}). */
     public DrawCommand[] buffer(RenderLayer layer) {
         return byLayer[layer.ordinal()];

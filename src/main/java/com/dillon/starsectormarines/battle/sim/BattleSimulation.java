@@ -129,6 +129,7 @@ import com.dillon.starsectormarines.battle.air.AirCoverSystem;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.AirToAirFire;
 import com.dillon.starsectormarines.battle.air.AirLoss;
+import com.dillon.starsectormarines.battle.air.LiftQueue;
 import com.dillon.starsectormarines.battle.air.BoatDamageLedger;
 import com.dillon.starsectormarines.battle.air.AirOrdnance;
 import com.dillon.starsectormarines.battle.air.HullTarget;
@@ -241,6 +242,8 @@ import com.dillon.starsectormarines.battle.mech.MechDoctrineSystem;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleTransportService;
+import com.dillon.starsectormarines.battle.mech.MechAttachmentService;
+import com.dillon.starsectormarines.battle.mech.MechAttachmentSystem;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
@@ -273,6 +276,7 @@ import com.dillon.starsectormarines.battle.nav.zone.ZoneGraph;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.ObjectivesService;
 import com.dillon.starsectormarines.battle.command.objective.WinCheckSystem;
+import com.dillon.starsectormarines.battle.command.objective.ObjectiveFactionPresence;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationTracker;
 import com.dillon.starsectormarines.battle.evacuation.CivilianRedoubt;
 import com.dillon.starsectormarines.battle.evacuation.SwarmMovement;
@@ -571,6 +575,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Per-tick win-condition evaluator; terminal results cross the shared completion boundary. */
     private final com.dillon.starsectormarines.battle.command.objective.WinCheckSystem winCheck =
             new com.dillon.starsectormarines.battle.command.objective.WinCheckSystem();
+    /** Whether the company has had forces or a reserve in play yet; the spent-company defeat waits for it. */
+    private boolean companyEverInPlay;
     /** Persistent {@link Doodad} list + per-cell/per-facing cover lookup the AI consults when scoring firing positions. Initialized in the constructor once {@link #grid} is available. */
     private final DoodadService doodadService;
     /** The dozer's blade: what it pushes, and the view of the map a bladed hull's route proof reads. */
@@ -619,6 +625,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final MechMoveOrderService mechMoveOrders = new MechMoveOrderService();
     private final MechMoveOrderSystem mechMoveOrderSystem =
             new MechMoveOrderSystem(mechMoveOrders);
+    /** Player mech squads following player infantry squads, applied after the player's direct orders. */
+    private final MechAttachmentService mechAttachments = new MechAttachmentService();
+    private final MechAttachmentSystem mechAttachmentSystem = new MechAttachmentSystem(mechAttachments);
     /** Squad-scoped player movement requests below mission assignment. */
     private final SquadMoveOrderService squadMoveOrders = new SquadMoveOrderService();
     private final SquadMoveOrderSystem squadMoveOrderSystem =
@@ -1607,6 +1616,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         deathDispatcher.subscribe(swarmHarvest::onDeath);
         rosterService.modifiers().register(swarmHarvest.carrierModifier());
         rosterService.modifiers().register(matriarchActions.runModifier());
+        // A squad with mechs attached marches at their pace (mechs-nouns.md, attachment).
+        rosterService.modifiers().register(mechAttachments.paceModifier());
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
         // death mailbox as every other post-death reaction. Non-cohort deaths
@@ -2046,6 +2057,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public BoatDamageLedger boatDamage() { return airSystem.boatDamage(); }
 
     public List<AirLoss> getAirLosses()    { return airSystem.airLosses(); }
+    @Override
+    public LiftQueue liftQueue()           { return airSystem.liftQueue(); }
     /** Smoothed per-slot engine-FX demand for an air entity, or {@code null} if it has no engine plumes. The render + light passes feed it to {@code EngineFxRenderer}; advanced each tick by {@code AirSystem}. */
     public float[] getThrusterGlow(long airEntityId) { return airSystem.thrusterGlow(airEntityId); }
     /** Attaches a turret loadout to an air entity (presence component). Called at setup once the craft is spawned (id minted); no-op for an empty loadout. */
@@ -2210,6 +2223,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Exact-mech move executor used by the mech unit-dispatch path. */
     @Override
     public MechMoveOrderSystem getMechMoveOrderSystem() { return mechMoveOrderSystem; }
+    /** Player mech attachment mailbox and relation; read by selection and the attachment tether. */
+    public MechAttachmentService getMechAttachmentService() { return mechAttachments; }
+    /** Serves attached mechs from the lance's reflex chain. */
+    @Override
+    public MechAttachmentSystem getMechAttachmentSystem() { return mechAttachmentSystem; }
     /** Player battle-only infantry squad move-order mailbox and projection. */
     public SquadMoveOrderService getSquadMoveOrderService() { return squadMoveOrders; }
     /** Applies squad tactical moves at the serialized command boundary. */
@@ -3646,6 +3664,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         mechDoctrineSystem.tick(this);
         mechMoveOrderSystem.tick(this);
         squadMoveOrderSystem.tick(this);
+        // After both direct-order systems: a direct order accepted this tick ends the attachment it
+        // reaches, and an attachment accepted this tick cancels the direct order it replaces.
+        mechAttachmentSystem.tick(this);
         // After the player's own orders, so a click this tick already stands and the stance yields to it.
         reactiveManningSystem.tick(this);
         tickProfile.lap(TickProfile.Phase.COMMANDER);
@@ -4088,8 +4109,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (navigationTopologyFlushed) navigation.rebuildDerivedNavigation();
         tickProfile.lap(TickProfile.Phase.NAV_FLUSH);
         if (missionCompletionEnabled) {
+            // A company that has never been in play is not yet spent: a scripted arrival may still bring it.
+            boolean companyInPlay = ObjectiveFactionPresence.companyInPlay(this);
+            companyEverInPlay |= companyInPlay;
             WinCheckSystem.WinResult result =
-                    winCheck.tick(objectivesService.getObjectives());
+                    winCheck.tick(objectivesService.getObjectives(), companyInPlay || !companyEverInPlay);
             // A crashing craft, or a hull whose part in the battle must conclude first, holds the battle open.
             if (result.complete() && !airSystem.hasCrashingCraft() && !warships.awaitingConclusion()) {
                 completion.finish(result.winner());

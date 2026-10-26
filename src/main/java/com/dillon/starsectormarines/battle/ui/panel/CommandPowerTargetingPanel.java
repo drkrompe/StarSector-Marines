@@ -3,12 +3,11 @@ package com.dillon.starsectormarines.battle.ui.panel;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
-import com.dillon.starsectormarines.battle.power.MechSupport;
+import com.dillon.starsectormarines.battle.power.ArmorDropPower;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.ui.BattleUiContext;
 import com.dillon.starsectormarines.battle.ui.HudPanel;
 import com.dillon.starsectormarines.ops.battleview.BattlefieldMarkerPresentation;
@@ -16,11 +15,13 @@ import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.fs.starfarer.api.input.InputEventAPI;
+import org.lwjgl.input.Keyboard;
 
 import java.awt.Color;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.GL_ALL_ATTRIB_BITS;
 import static org.lwjgl.opengl.GL11.GL_BLEND;
@@ -47,10 +48,12 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * this panel owns the snapped map placement, target validity, cancellation,
  * and the next map click without spending resources directly.
  *
- * <p>A power whose call carries a pick (Mech Support's bay manifest) also owns that pick
- * here while it is armed: it starts as the power's default and the tray's picker chips
- * toggle entries in it. The map click sends it with the request, and target validity is
- * judged against it, so an empty or unliftable pick keeps the card armed and spends nothing.
+ * <p>An armor drop ({@link ArmorDropPower}) also owns its pick here while it is armed: one
+ * machine still aboard, starting on the first the lift allows, which the tray's picker chips
+ * change. The battle is paused for as long as the picker is open and returns to the pause
+ * state it had ({@link PlacementPause}). LMB places the drop and closes the picker;
+ * Shift+LMB places it and keeps the picker open on the next machine; RMB or Escape closes it.
+ * An invalid target or an unliftable pick keeps it armed and spends nothing.
  */
 public final class CommandPowerTargetingPanel implements HudPanel {
 
@@ -58,15 +61,22 @@ public final class CommandPowerTargetingPanel implements HudPanel {
     private static final Color LABEL_TEXT = new Color(0xEE, 0xF4, 0xF5);
 
     private final BattleUiContext ctx;
+    private final PlacementPause pause;
     private static final BitmapFont FONT = Fonts.ORBITRON_12_BOLD;
     private String targetingPowerId;
-    /** The armed power's pick, or {@code null} for a power that carries none. */
-    private List<Integer> selection;
+    /** The armed armor drop's machine, or {@code null} (another power, or nothing to pick). */
+    private Integer pick;
     private int mouseX;
     private int mouseY;
 
     public CommandPowerTargetingPanel(BattleUiContext ctx) {
+        this(ctx, null);
+    }
+
+    /** @param clock the battle clock the drop picker pauses while it is open */
+    public CommandPowerTargetingPanel(BattleUiContext ctx, PlacementPause.Clock clock) {
         this.ctx = ctx;
+        this.pause = new PlacementPause(clock);
     }
 
     public String targetingPowerId() {
@@ -77,57 +87,76 @@ public final class CommandPowerTargetingPanel implements HudPanel {
         disarm();
     }
 
-    /** The armed power's pick in manifest order, or {@code null} when it carries none. */
+    /** The armed drop's machine as a one-entry pick, or {@code null} when none is picked. */
     public List<Integer> selection() {
-        return selection == null ? null : Collections.unmodifiableList(selection);
-    }
-
-    /** The armed Mech Support's manifest against the current pick; empty for any other power. */
-    public List<MechSupport.PickerRow> pickerRows() {
-        MechSupport power = armedMechSupport();
-        if (power == null || selection == null) return List.of();
-        return power.picker(ctx.getSim(), selection);
+        return pick == null ? null : List.of(pick);
     }
 
     /**
-     * Toggles manifest entry {@code index} in the pick. A picked entry can always be dropped;
-     * an unpicked one joins only when it is aboard and lift allows it beside the rest.
+     * The armed drop's manifest against the current pick, with machines already placed this
+     * pause shown as queued; empty for any other power.
      */
+    public List<ArmorDropPower.PickerRow> pickerRows() {
+        ArmorDropPower power = armedDrop();
+        if (power == null) return List.of();
+        return withPlaced(power.picker(ctx.getSim(), pick), placed(power.id));
+    }
+
+    /** Picks manifest entry {@code index} when it can be ordered now. */
     public void togglePick(int index) {
-        if (selection == null) return;
-        togglePick(selection, pickerRows(), index);
+        if (armedDrop() == null) return;
+        pick = choose(pickerRows(), index, pick);
     }
 
-    /** {@link #togglePick(int)} against {@code rows}, the manifest as it reads for {@code selection}. */
-    static void togglePick(List<Integer> selection, List<MechSupport.PickerRow> rows, int index) {
-        for (MechSupport.PickerRow row : rows) {
-            if (row.entry().index() != index) continue;
-            if (row.selected()) {
-                selection.remove(Integer.valueOf(index));
-            } else if (row.callable()) {
-                selection.add(index);
-                Collections.sort(selection);
-            }
-            return;
+    /** {@code index} when it is callable in {@code rows}, otherwise {@code current}. */
+    static Integer choose(List<ArmorDropPower.PickerRow> rows, int index, Integer current) {
+        for (ArmorDropPower.PickerRow row : rows) {
+            if (row.entry().index() == index) return row.callable() ? Integer.valueOf(index) : current;
         }
+        return current;
     }
 
-    /** The pick a power arms with: Mech Support's default call, and none for any other power. */
-    static List<Integer> armedSelection(CommandPower power, BattleView battle) {
-        return power instanceof MechSupport mech
-                ? new ArrayList<>(mech.defaultSelection(battle)) : null;
+    /** The first callable machine in {@code rows}, or {@code null}. */
+    static Integer firstCallable(List<ArmorDropPower.PickerRow> rows) {
+        for (ArmorDropPower.PickerRow row : rows) if (row.callable()) return row.entry().index();
+        return null;
     }
 
-    private MechSupport armedMechSupport() {
+    /** {@code rows} with the entries in {@code placed} shown as queued and not picked. */
+    static List<ArmorDropPower.PickerRow> withPlaced(List<ArmorDropPower.PickerRow> rows,
+                                                     Set<Integer> placed) {
+        if (placed.isEmpty()) return rows;
+        List<ArmorDropPower.PickerRow> out = new ArrayList<>(rows.size());
+        for (ArmorDropPower.PickerRow row : rows) {
+            out.add(placed.contains(row.entry().index()) && row.status() == ArmorDropPower.Status.ABOARD
+                    ? new ArmorDropPower.PickerRow(row.entry(), ArmorDropPower.Status.QUEUED, false, null)
+                    : row);
+        }
+        return List.copyOf(out);
+    }
+
+    /** Manifest entries of {@code powerId} placed but not yet committed by the sim. */
+    private Set<Integer> placed(String powerId) {
+        BattleSimulation sim = ctx.getSim();
+        Set<Integer> placed = new HashSet<>();
+        if (sim == null) return placed;
+        for (CommandPowerService.PendingDrop drop : sim.getCommandPowerService().pendingDrops()) {
+            if (drop.powerId().equals(powerId)) placed.add(drop.manifestIndex());
+        }
+        return placed;
+    }
+
+    private ArmorDropPower armedDrop() {
         BattleSimulation sim = ctx.getSim();
         if (sim == null || targetingPowerId == null) return null;
         CommandPower power = sim.getCommandPowerService().getPower(targetingPowerId);
-        return power instanceof MechSupport mech ? mech : null;
+        return power instanceof ArmorDropPower drop ? drop : null;
     }
 
     private void disarm() {
         targetingPowerId = null;
-        selection = null;
+        pick = null;
+        pause.release();
     }
 
     /** Arms a ready power, or cancels it when its selected card is clicked again. */
@@ -141,8 +170,12 @@ public final class CommandPowerTargetingPanel implements HudPanel {
         CommandPowerService service = sim.getCommandPowerService();
         CommandPower power = service.getPower(powerId);
         if (!service.canActivate(power)) return;
+        if (targetingPowerId != null) disarm();
         targetingPowerId = powerId;
-        selection = armedSelection(power, sim);
+        if (power instanceof ArmorDropPower) {
+            pick = firstCallable(pickerRows());
+            pause.hold();
+        }
     }
 
     @Override
@@ -174,7 +207,7 @@ public final class CommandPowerTargetingPanel implements HudPanel {
 
         float centerX = camera.cellToScreenX(cellX + 0.5f);
         float centerY = camera.cellToScreenY(cellY + 0.5f);
-        boolean valid = power.canTarget(cellX, cellY, sim, selection);
+        boolean valid = power.canTarget(cellX, cellY, sim, selection());
         boolean shipGrade = OrbitalBarrage.ID.equals(power.id);
         if (shipGrade) paintDomes(sim, camera, alphaMult);
         ShieldDomeService.DomeView cover = shipGrade
@@ -339,7 +372,8 @@ public final class CommandPowerTargetingPanel implements HudPanel {
                 mouseY = event.getY();
                 continue;
             }
-            if (event.isRMBDownEvent()) {
+            if (event.isRMBDownEvent()
+                    || event.isKeyDownEvent() && event.getEventValue() == Keyboard.KEY_ESCAPE) {
                 disarm();
                 event.consume();
                 continue;
@@ -351,10 +385,16 @@ public final class CommandPowerTargetingPanel implements HudPanel {
             int cellY = (int) Math.floor(camera.screenToCellY(event.getY()));
             if (!inBounds(camera, cellX, cellY)) continue;
             CommandPower power = service.getPower(targetingPowerId);
+            List<Integer> selection = selection();
             if (power != null && power.canTarget(cellX, cellY, sim, selection)) {
-                service.requestActivation(targetingPowerId, cellX, cellY,
-                        selection == null ? null : List.copyOf(selection));
-                disarm();
+                service.requestActivation(targetingPowerId, cellX, cellY, selection);
+                if (power instanceof ArmorDropPower && event.isShiftDown()) {
+                    // Placed; the picker stays open on the next machine still aboard.
+                    pick = firstCallable(pickerRows());
+                    if (pick == null) disarm();
+                } else {
+                    disarm();
+                }
             }
             // Invalid targets deliberately remain armed, but still claim the click.
             event.consume();

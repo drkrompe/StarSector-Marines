@@ -134,6 +134,15 @@ public final class FogField {
         return FEATHER_LEVEL[dark];
     }
 
+    /**
+     * What a roof's colour is multiplied by at {@code fog} (0 in sight, 1 unseen): the share of the
+     * ground's colour an unseen cell's shadow leaves, so a roof nobody can see darkens with the
+     * ground beside it. Roofs draw over the fog and so carry it themselves.
+     */
+    static float roofShade(float fog) {
+        return 1f - UNSEEN_ALPHA * Math.max(0f, Math.min(1f, fog));
+    }
+
     /** The alpha a level draws at — the exact value the texel also carries. */
     static float alphaForLevel(byte level) {
         return (level & 0xFF) / 255f;

@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -92,6 +93,17 @@ class CordonObjectivesTest {
         assertEquals(Status.SUCCEEDED, SwitchLineBeat.rule(12, 9, 7));
         assertEquals(Status.FAILED, SwitchLineBeat.rule(12, 6, 2));
         assertEquals(Status.LAPSED, SwitchLineBeat.rule(0, 0, 0));
+    }
+
+    @Test
+    void eachTeamHoldsItsOwnStretchOfTheSwitchLine() {
+        // A line 30 wide and 2 deep: three teams across it, each in the middle of its third, on the line.
+        int[] line = {100, 50, 130, 52};
+        assertArrayEquals(new int[]{105, 51}, SwitchLineBeat.stretch(line, 0, 3));
+        assertArrayEquals(new int[]{115, 51}, SwitchLineBeat.stretch(line, 1, 3));
+        assertArrayEquals(new int[]{125, 51}, SwitchLineBeat.stretch(line, 2, 3));
+        // Run north to south, along its height.
+        assertArrayEquals(new int[]{51, 105}, SwitchLineBeat.stretch(new int[]{50, 100, 52, 120}, 0, 2));
     }
 
     @Test

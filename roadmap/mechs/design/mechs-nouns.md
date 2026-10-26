@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — a click inside a rack's cycle fires its next group, as a hold does; vehicle kits gain the accelerated loader and the capacitor pack.
+Updated: 2026-10-26 — an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad and stands by its doctrine relative to it.
 
 ## Purpose
 
@@ -201,8 +201,8 @@ increasing an encounter's total armored threat.
   - **Ready rack** (Common, armed hulls): half again the turret's magazine.
   - **Accelerated loader** (Advanced, armed hulls): every mount's loader puts a
     pack back in three quarters of the stock time (`convoy-nouns.md`, the loader).
-  - **Capacitor pack** (Advanced, hulls whose gun builds flux): half again the
-    flux the gun holds before it overloads.
+  - **Capacitor pack** (Advanced, armed hulls, whose every gun builds flux):
+    half again the flux the gun holds before it overloads.
   - **Spaced skirts** (Advanced, tracked hulls): +2 armor rating.
   - **Sensor drone pair** (Advanced, hulls with no bay of their own): two sensor
     drones that fly ahead of the bow, so an indirect-fire hull fed by them fires
@@ -219,25 +219,35 @@ increasing an encounter's total armored threat.
   bay holds a vehicle). Where Mech Support and Armour Support would both be in
   the roster and the bay was read, Mech Support carries the whole manifest and
   Armour Support leaves the roster: one bay, one picker. Armour Support alone (a
-  vehicle source with no mech source) still brings vehicles one per charge; only
-  a debug grant or a launch with no bay sets down its unowned fallback APC.
-- An **armor drop** is one call of Mech Support. The player arms the card, picks
-  which manifest entries come down this time (the picker starts on every machine
-  aboard that lift allows, up to a lance), then clicks the landing ground. Only
-  the picked machines fly; the rest stay aboard for a later call. A cooldown
-  (30 s) spaces the calls in place of one charge per lance, and the card counts the
-  machines still aboard, reading spent when none are.
+  vehicle source with no mech source) opens the same picker over the bay's
+  vehicles; only a debug grant or a launch with no bay sets down its two unowned
+  fallback APCs.
+- An **armor drop** is one machine ordered down by Mech Support (or Armour
+  Support where it is the vehicle-only source). Arming the card pauses the battle
+  and opens the picker: every manifest entry with its state (aboard, queued,
+  called) or the reason lift refuses it. The player picks one machine and clicks
+  its landing ground, which is checked as any drop zone is; Shift-click places it
+  and keeps the picker open on the next machine, and right-click or Escape closes
+  it. Closing the picker gives back the pause state it found. Drops are free: no
+  command points and no cooldown. The order joins the **lift queue**
+  (`air-nouns.md`, Lift) and the machine lands as its own squad. The card counts
+  the machines still aboard, reading spent when none are.
+- A **queued drop** is an order no craft has taken yet. It shows a marker on its
+  landing ground and a row with an X in the Lift Queue panel (`ui-nouns.md`);
+  cancelling it puts the machine back aboard and refunds its lift. Once a craft
+  has taken it the drop is in the air and cannot be called back.
 - The **lift budget** is the mission's armor lift, carrier by carrier: a cradled
   company boat flies two machine lifts at its rating on a light cradle and three
   on a heavy one, and the synthetic heavy
   carrier a hull, ship, employer or story arranges lifts the whole bay. Each
-  picked machine spends one lift from the lowest-rated carrier that admits it
+  ordered machine spends one lift from the lowest-rated carrier that admits it
   (`air-nouns.md`, Lift), so a Heavy machine spends Heavy lift. Spent lift stays
   spent for the mission whether or not the carrier came home: better boats mean
   more armor on the ground, not faster calls. An entry the budget cannot lift is
-  shown disabled with its reason (no lift of its class, lift spent, or its only
-  carrier away), and a call the budget refuses stays armed and spends nothing.
-  A call split between the company boat and the synthetic carrier flies both.
+  shown disabled with its reason (no lift of its class, lift spent, or no live
+  ferry craft left that can carry it), and an order the budget refuses stays
+  armed and spends nothing. The budget says how many machines may come down; the
+  lift queue decides which craft flies each one.
 - **A vehicle wrecked on the field is lost to the company**: settlement takes it
   off its gantry, which stands empty for a new one. Only a vehicle that landed
   and was wrecked writes back — one still aboard a carrier is not tracked as
@@ -569,7 +579,11 @@ increasing an encounter's total armored threat.
   that separated under Free Reign. **Free Reign** releases generic formation
   and support tethering so every member may execute its own doctrine
   independently. Both remain subordinate to the lance's mission assignment
-  and legal contact picture. A lance begins on Form on Lead.
+  and legal contact picture. A lance begins on Form on Lead. It is the rule of
+  commander and enemy lances; the player has no lance-order control. Player
+  mechs move individually — every player drop lands as its own one-mech squad,
+  so there is no player lance to form — and keep company with infantry through
+  an attachment instead.
 - A **tactical move order** is a one-shot, battle-local destination for one
   exact player Mech. It temporarily owns that chassis's locomotion without
   replacing the lance's mission directive, shared plan, doctrine, or contact
@@ -588,6 +602,30 @@ increasing an encounter's total armored threat.
   (`ai-nouns.md`, machine assault and machine guard). A guard is the one order a
   commander may also give a lance of its own side; a player's order on the
   chassis outranks it.
+- An **attachment** is a battle-local relation from one player mech squad to one
+  player infantry squad (its **anchor**): with a mech selected, a right-click on a
+  friendly infantry squad attaches it. Every player drop lands as a one-mech squad,
+  so it is in effect per mech; a legacy multi-mech squad attaches whole, and several
+  mechs may follow one squad. The follower stands by its effective doctrine on the
+  anchor's **axis** — toward the threat the squad believes in, else toward its
+  order's cell or node, else along its leader's route, keeping the last axis while the
+  squad stands: a Brawler leads five cells ahead, Frontline Support screens four ahead,
+  Balanced walks five to the side, and Long-Range Support shadows seven behind;
+  followers of one role file out three cells apart across the axis
+  (`MechAttachmentSlot`, untuned). It fires on its own legal picture as it walks, so
+  it engages what the squad faces without taking the squad's capture, secure, occupy
+  or defend orders — it serves them by where it stands. Like the tactical move it owns
+  locomotion, not the assignment: the mission directive, plan, doctrine and contact
+  picture stay underneath and resume on detach. It is not a lease, because no
+  assignment shape names a moving squad and it must win outright over every mission
+  goal. Out of contact the anchor marches at its followers' pace — 95% of its
+  slowest follower's speed, 60% while one is still more than four cells from its
+  slot — since a mech walks slower than a marine and a squad that outwalks its
+  Brawler is leading it; in contact the squad moves as it must (`MechAttachmentScene`
+  is the acceptance). A **direct order** to the mech — a tactical move, assault, guard or Defend
+  Area — ends it, as does the anchor's loss or withdrawal, the mech's withdrawal, or
+  direct control; orders given to the anchor move the anchor and the follower keeps
+  its slot.
 - A **Defend Area order** is a persistent, battle-local tactical assignment for
   one whole battle lance. Its clicked center resolves to reachable ground and
   owns a circular twenty-cell-radius zone. Every live lance member positions
@@ -1007,10 +1045,11 @@ presentation-only and never enters battle determinism, save data, spawning, or
 mechanical authority.
 
 Selecting an exact friendly mech during battle may request another effective
-role, another lance order, a lance-wide Defend Area order, or a tactical move.
-The role request affects only that mech; the lance and Defend Area requests
-affect its whole battle lance; the tactical move temporarily affects only the
-selected chassis's locomotion. The battle
+role, a Defend Area order for its squad, a tactical move, an attachment to an
+infantry squad, or a detach. The role request affects only that mech; the
+Defend Area request affects its whole squad; the tactical move temporarily
+affects only the selected chassis's locomotion. The lance order is not a player
+request (lance order, above). The battle
 applies each request at its serialized command boundary. Doctrine and lance
 changes invalidate the movement and planning state owned by the changed layer
 and replan immediately. Defend Area installs one player tactical assignment on
@@ -1026,6 +1065,15 @@ These interrupts preserve the mission assignment, legal contact picture,
 morale, damage, ammunition, cooldowns, and deployed role. They cannot target an
 enemy, non-mech, stale entity, or rescue payload, and never write back to
 campaign state. Persistent doctrine authoring remains a Mech Lab responsibility.
+
+An attachment crosses the same serialized boundary (`MechAttachmentSystem`),
+after both direct-order systems in the command phase: a direct order accepted on
+a tick ends the attachment it reaches on that tick, and an attachment accepted on
+a tick cancels the direct order it replaces, so neither undoes the other. It also
+stands down a commander's guard on the chassis, as a player's move does. The
+attached chassis is served from the lance's reflex chain (`ATTACHED`, below the
+player's move, the crippled chassis and the melee stand-off) and hands back to the
+still-current plan step with no planless tick.
 
 Defender setup produces a deterministic sequence of variants, not an
 interchangeable mech count. Risk, target conditions, and attacking force
@@ -1083,8 +1131,8 @@ support sortie, subject only to practical runtime resources.
 
 - **The picker chooses; it never edits.** An armor drop selects from the frozen
   manifest. It cannot change a fit, add a machine, or bring a machine twice: one
-  already called (landed, lost, or still in the air) is not aboard again this
-  mission. The AI commander's mech-drop allowance is a separate ledger and is
+  already ordered (queued, in the air, landed or lost) is not aboard again this
+  mission unless its queued order is cancelled. The AI commander's mech-drop allowance is a separate ledger and is
   untouched by the player's picks.
 
 - **A field works produces from work done, never from elapsed time.** Its
@@ -1179,6 +1227,10 @@ support sortie, subject only to practical runtime resources.
   assignment, never one chassis's doctrine or the Form on Lead / Free Reign
   coordination rule. Its center and radius constrain positioning without
   disclosing contacts or suspending ordinary weapons.
+- An attachment changes one mech squad's locomotion only. It never becomes the
+  mech's assignment, gives the infantry squad's order to the mech, discloses a
+  hostile, or silences installed weapons. A direct order reaching the mech without
+  its anchor ends it; an order given to the anchor never reaches the follower.
 - Tactical move arrival is a completion boundary, not a new hold posture. A
   refused physical route likewise releases the override instead of leaving an
   impossible order stalled. The order returns to the still-current squad plan

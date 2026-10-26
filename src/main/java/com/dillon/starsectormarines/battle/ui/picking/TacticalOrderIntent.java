@@ -55,7 +55,12 @@ public enum TacticalOrderIntent {
      * A mech, a lance or an armed vehicle over a trench or a held building its own side mans: it stands beside the
      * garrison as heavy support, outside the place and off its lanes of fire ({@code MachineGuards}).
      */
-    GUARD("battleOrderGuardPlace", true, true);
+    GUARD("battleOrderGuardPlace", true, true),
+    /**
+     * Player mechs alone, over a friendly infantry squad: they attach to it and stand by their doctrine
+     * relative to it until given a direct order of their own ({@code MechAttachmentSystem}).
+     */
+    ATTACH("battleOrderAttach", true, true);
 
     private final String label;
     private final boolean actionable;
@@ -92,6 +97,11 @@ public enum TacticalOrderIntent {
                                               int cellX, int cellY) {
         if (sim == null || selection == null) return NONE;
         if (!sim.getGrid().inBounds(cellX, cellY)) return NONE;
+        if (SelectionOrders.attachAnchorAt(sim, selection, cellX, cellY) != Selection.NONE) return ATTACH;
+        // A group: squads with vehicles, several vehicles, or several squads.
+        if (selection.vehicleCount() > 1 || selection.vehicleCount() > 0 && selection.squadCount() > 0) {
+            return GROUP_ORDER;
+        }
 
         long vehicle = selection.getSelectedVehicleId();
         if (vehicle != 0L) {

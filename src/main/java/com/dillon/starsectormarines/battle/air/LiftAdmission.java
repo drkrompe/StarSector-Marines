@@ -52,8 +52,8 @@ public record LiftAdmission(LiftClass payload, LiftRating rating, Refusal refusa
     }
 
     /**
-     * The company boat best suited to fly {@code load}: among machine-only
-     * (cradled) boats not in {@code taken}, the one that admits the most of it,
+     * The company boat best suited to fly {@code load}: among cradled boats
+     * not in {@code taken}, the one that admits the most of it,
      * then the lightest rating that does (a better cradle is kept for a heavier
      * call), then the first committed. {@code null} when none admits any of it.
      */
@@ -63,7 +63,7 @@ public record LiftAdmission(LiftClass payload, LiftRating rating, Refusal refusa
         FittedBoat best = null;
         int bestCount = 0;
         for (FittedBoat boat : boats) {
-            if (boat == null || !boat.machineOnly()) continue;
+            if (boat == null || !boat.cradled()) continue;
             if (taken != null && taken.contains(boat)) continue;
             int count = admittedCount(load, boat);
             if (count == 0) continue;

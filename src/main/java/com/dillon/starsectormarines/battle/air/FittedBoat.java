@@ -28,7 +28,7 @@ import java.util.Objects;
  *
  * <p><b>Only the numbers a fitting is about are touched.</b> Plating scales
  * the hull; the drive scales forward speed and both accelerations; a lift
- * cradle raises the {@link #liftRating} and makes the boat machine-only. Turn rate,
+ * cradle raises the {@link #liftRating} and leaves the seats where they are. Turn rate,
  * damping, seats, hardpoints, sprite and hull id are the pattern's and are
  * delegated untouched — a better boat is faster and tougher, not a different
  * aircraft. The deboard cadence and the deck turnaround are deliberately not
@@ -105,11 +105,12 @@ public final class FittedBoat implements Airframe, AirHandling {
     }
 
     /**
-     * Whether this boat flies machine-only sorties: its cradle took the seats,
-     * so it carries a machine and never a section. Deboarding stays one kind.
+     * Whether this boat carries a cradle. Its seats stay: it ferries squads like
+     * any boat and can instead take one machine of its lift class on a sortie.
+     * Deboarding stays one kind per sortie.
      */
-    public boolean machineOnly() {
-        return lift.machineOnly();
+    public boolean cradled() {
+        return lift.cradle();
     }
 
     /**

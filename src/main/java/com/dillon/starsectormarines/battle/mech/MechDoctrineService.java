@@ -5,10 +5,16 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Player command mailbox for battle-only mech doctrine overrides and
- * lance-wide cohesion orders. Requests arrive from the input pass and are
- * applied by {@link MechDoctrineSystem} in the serial command phase
- * immediately before squad replanning.
+ * Command mailbox for battle-only mech doctrine overrides and lance-wide
+ * cohesion orders. Requests are applied by {@link MechDoctrineSystem} in the
+ * serial command phase immediately before squad replanning.
+ *
+ * <p>The player reaches only the doctrine override. The lance order has no
+ * player control: player mechs move individually (each drop is its own
+ * one-mech squad) and follow infantry through an attachment instead
+ * ({@link MechAttachmentService}); the lance order stays the coordination rule
+ * of commander and enemy lances, and this request is its scripting and evidence
+ * seam.
  */
 public final class MechDoctrineService {
 

@@ -81,6 +81,8 @@ public final class CommandPowerService {
     private final Map<String, Integer> charges = new LinkedHashMap<>();
 
     private final List<PendingActivation> pending = new ArrayList<>();
+    /** Queued armor drops the UI asked to cancel, by lift-queue job id. */
+    private final List<Long> pendingCancels = new ArrayList<>();
     private final List<ActivePing> activePings = new ArrayList<>();
     private final List<PendingDetonation> activeFireMissions = new ArrayList<>();
     private CommandPowerResources resources = CommandPowerResources.FREE;
@@ -181,14 +183,63 @@ public final class CommandPowerService {
     }
 
     /**
-     * As above, with the player's pick for a power that offers one (Mech Support's bay
-     * manifest). The pick is copied now: what the player chose is what the tick commits.
+     * As above, with the player's pick for a power that offers one (an armor drop's one
+     * machine). The pick is copied now: what the player chose is what the tick commits.
      */
     public void requestActivation(String powerId, int cellX, int cellY, List<Integer> selection) {
         pending.add(new PendingActivation(powerId, cellX, cellY, selection));
     }
 
+    /**
+     * An armor drop the player has placed that the sim has not committed yet (the battle is
+     * paused while the picker is open, so placements wait here until it runs).
+     */
+    public record PendingDrop(String powerId, int cellX, int cellY, int manifestIndex) {}
+
+    /** Placed armor drops still waiting for the next tick, oldest first. */
+    public List<PendingDrop> pendingDrops() {
+        List<PendingDrop> drops = new ArrayList<>();
+        for (PendingActivation request : pending) {
+            Integer pick = ArmorDropPower.single(request.selection);
+            if (pick != null && powers.get(request.powerId) instanceof ArmorDropPower) {
+                drops.add(new PendingDrop(request.powerId, request.cellX, request.cellY, pick));
+            }
+        }
+        return drops;
+    }
+
+    /**
+     * Withdraws a placed armor drop the sim has not committed yet. Nothing was spent on it, so
+     * withdrawing it is only taking the request back.
+     */
+    public boolean withdrawPendingDrop(String powerId, int manifestIndex) {
+        for (int i = 0; i < pending.size(); i++) {
+            PendingActivation request = pending.get(i);
+            Integer pick = ArmorDropPower.single(request.selection);
+            if (request.powerId.equals(powerId) && pick != null && pick == manifestIndex) {
+                pending.remove(i);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Asks to cancel a queued armor drop by its lift-queue job id. Revalidated on the next
+     * tick: a drop a craft has already taken stays in the air.
+     */
+    public void requestDropCancel(long jobId) {
+        pendingCancels.add(jobId);
+    }
+
     // ---- mutations driven by CommandPowerSystem ----
+
+    List<Long> drainCancels() {
+        if (pendingCancels.isEmpty()) return Collections.emptyList();
+        List<Long> drained = new ArrayList<>(pendingCancels);
+        pendingCancels.clear();
+        return drained;
+    }
 
     List<PendingActivation> drainPending() {
         if (pending.isEmpty()) return Collections.emptyList();

@@ -74,12 +74,12 @@ public final class LiftReadout {
         return Strings.get("liftRating" + (rating == null ? LiftRating.NONE : rating).name());
     }
 
-    /** One line for the landing-craft card: how many boats fly machines only. */
+    /** One line for the landing-craft card: how many boats carry a cradle, and the best lift. */
     public static String cradledNote(List<FittedBoat> boats) {
         int cradled = 0;
         LiftRating best = LiftRating.NONE;
         for (FittedBoat boat : boats) {
-            if (boat == null || !boat.machineOnly()) continue;
+            if (boat == null || !boat.cradled()) continue;
             cradled++;
             best = LiftRating.max(best, boat.liftRating());
         }

@@ -8,6 +8,7 @@ com.dillon.starsectormarines.battle.combat.PointFireScene
 com.dillon.starsectormarines.battle.control.ControlledMarineScene
 com.dillon.starsectormarines.battle.control.ControlledMechScene
 com.dillon.starsectormarines.battle.mech.MechClearanceScene
+com.dillon.starsectormarines.battle.mech.MechAttachmentScene
 com.dillon.starsectormarines.battle.control.ControlledVehicleScene
 com.dillon.starsectormarines.battle.squad.SquadTrafficScene
 com.dillon.starsectormarines.battle.warship.WarshipLanceScene
@@ -67,7 +68,6 @@ com.dillon.starsectormarines.battle.air.RidgeAirDefenceScene
 com.dillon.starsectormarines.battle.command.AssaultMusterScene
 com.dillon.starsectormarines.battle.power.MechDropScene
 com.dillon.starsectormarines.battle.power.HeavyLiftScene
-com.dillon.starsectormarines.battle.power.ArmorDropScene
 com.dillon.starsectormarines.battle.squad.FightingPositionScene
 com.dillon.starsectormarines.battle.airsupport.AirStrikeScene
 com.dillon.starsectormarines.battle.airsupport.FighterCoverScene
@@ -97,7 +97,6 @@ com.dillon.starsectormarines.battle.vehicle.ScoutCarScene
 com.dillon.starsectormarines.battle.vehicle.MissileCarrierScene
 com.dillon.starsectormarines.battle.vehicle.DozerBreachScene
 com.dillon.starsectormarines.battle.vehicle.TankUndergrowthScene
-com.dillon.starsectormarines.battle.power.ArmorDropPaceScene
 com.dillon.starsectormarines.battle.mech.MechTimeToKillScene
 com.dillon.starsectormarines.battle.combat.HardTargetTimeToKillScene
 com.dillon.starsectormarines.battle.vehicle.HoverLineScene

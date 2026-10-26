@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.power.ArmorDropPower;
 import com.dillon.starsectormarines.battle.power.BayManifest;
 import com.dillon.starsectormarines.battle.power.LiftBudget;
 import com.dillon.starsectormarines.battle.power.MechSupport;
@@ -104,10 +105,10 @@ class BattlePowerOverlayModelTest {
     }
 
     @Test
-    void armedMechSupportShowsTheBayPickerAndTogglesOnlyCallableChips() throws Exception {
+    void armedMechSupportShowsTheBayPickerAndPicksOnlyCallableChips() throws Exception {
         MechSupport mech = cradledBay();
-        List<Integer> pick = mech.defaultSelection(null);
-        assertEquals(List.of(0, 2), pick, "the default pick skips the unliftable Bulwark");
+        Integer pick = mech.defaultPick(null);
+        assertEquals(0, pick, "the picker opens on the first liftable machine");
 
         Reactor reactor = new Reactor();
         AtomicInteger toggledPick = new AtomicInteger(-1);
@@ -146,7 +147,8 @@ class BattlePowerOverlayModelTest {
             assertTrue(instance.requireElement("battle-power-pick-1").disabled());
             assertEquals("MULE", chip(instance, 2, "callsign"));
             assertEquals("VEHICLE \u00b7 LIGHT", chip(instance, 2, "weight"));
-            assertEquals("TARGETING \u00b7 MECH SUPPORT \u00b7 2 OF 3 PICKED",
+            assertEquals("AVAILABLE", chip(instance, 2, "state"));
+            assertEquals("TARGETING \u00b7 MECH SUPPORT \u00b7 HOUND",
                     instance.requireElement("battle-power-targeting-label").text());
             assertTrue(instance.requireElement("battle-power-pick-2").box().borderBox().right()
                     <= width);
@@ -158,12 +160,12 @@ class BattlePowerOverlayModelTest {
             click(document, instance.requireElement("battle-power-pick-2"));
             assertEquals(2, toggledPick.get());
 
-            // The host drops the APC from the pick; it reads available again.
+            // The host picks the APC instead; the Hound reads available again.
             model.withPicker(model.updateProjected(4f, 10f, 4, powers, MechSupport.ID),
-                    mech.picker(null, List.of(0)));
+                    mech.picker(null, 2));
             instance.flush();
-            assertEquals("AVAILABLE", chip(instance, 2, "state"));
-            assertFalse(instance.requireElement("battle-power-pick-2").disabled());
+            assertEquals("SELECTED", chip(instance, 2, "state"));
+            assertEquals("AVAILABLE", chip(instance, 0, "state"));
 
             // Disarmed: the picker hides and the tray drops back to its deck height.
             BattlePowerOverlayModel.Presentation idle = model.withPicker(
@@ -177,20 +179,22 @@ class BattlePowerOverlayModelTest {
     }
 
     @Test
-    void chipStatesNameThePriorCallAndEachLiftRefusal() {
+    void chipStatesNameQueuedPriorCallAndEachLiftRefusal() {
         MechSupport mech = cradledBay();
         BayManifest.Entry hound = mech.manifest().get(0);
         BayManifest.Entry bulwark = mech.manifest().get(1);
+        assertEquals("QUEUED", BattlePowerOverlayModel.pickState(
+                new ArmorDropPower.PickerRow(hound, ArmorDropPower.Status.QUEUED, false, null)));
         assertEquals("CALLED", BattlePowerOverlayModel.pickState(
-                new MechSupport.PickerRow(hound, true, false, null)));
+                new ArmorDropPower.PickerRow(hound, ArmorDropPower.Status.CALLED, false, null)));
         assertEquals("NO HEAVY LIFT", BattlePowerOverlayModel.pickState(
-                new MechSupport.PickerRow(bulwark, false, false, LiftBudget.Refusal.NO_LIFT)));
+                new ArmorDropPower.PickerRow(bulwark, ArmorDropPower.Status.ABOARD, false, LiftBudget.Refusal.NO_LIFT)));
         assertEquals("LIFT SPENT", BattlePowerOverlayModel.pickState(
-                new MechSupport.PickerRow(hound, false, false, LiftBudget.Refusal.LIFT_SPENT)));
-        assertEquals("CARRIER AWAY", BattlePowerOverlayModel.pickState(
-                new MechSupport.PickerRow(hound, false, false, LiftBudget.Refusal.CARRIER_AWAY)));
+                new ArmorDropPower.PickerRow(hound, ArmorDropPower.Status.ABOARD, false, LiftBudget.Refusal.LIFT_SPENT)));
+        assertEquals("LIFT CRAFT LOST", BattlePowerOverlayModel.pickState(
+                new ArmorDropPower.PickerRow(hound, ArmorDropPower.Status.ABOARD, false, LiftBudget.Refusal.NO_CRAFT)));
         assertEquals("AVAILABLE", BattlePowerOverlayModel.pickState(
-                new MechSupport.PickerRow(hound, false, false, null)));
+                new ArmorDropPower.PickerRow(hound, ArmorDropPower.Status.ABOARD, false, null)));
     }
 
     /** A cradled Buffalo and no ship lift behind it: Light machines lift, Heavy is refused. */

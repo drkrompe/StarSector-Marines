@@ -332,6 +332,15 @@ def jinking(key, pose, t, t0, t1, v=None, amp=1.0, **kw):
 # rear ones dropping back, so the column reads as a moving formation rather than a parked one.
 
 
+# The satellite optic's places (owner, 2026-10-26): S1 8 km off the north flank, S2 3.5 km off the
+# Colossus's port bow on the same side, each aimed at her and holding still (a point on her that moves
+# with her, so her weave on station stays framed).
+S1_AIM_AT = (-12.0, -40.0, -10.0)
+S1_RANGE = 2500.0
+S1_LIFT = 650.0     # how far above the Colossus S1's pan opens: the limb up top, the column low in frame
+S1_LOOK = tuple(c / math.sqrt(.55 ** 2 + .69 ** 2 + .41 ** 2) for c in (-.55, .69, .41))   # Colossus to S1's eye
+
+
 def convoy_at(t):
     """The convoy at t: freighters weaving on station, escorts working along the column."""
     return fleet_at(CONVOY, t)     # escorts too: each moves along her own nose (S4, S6 notes)
@@ -341,6 +350,40 @@ def track(pose, point, share=1.0, lag=0.0):
     """A camera point that sits at point at the pose's key time and then moves with that ship (share
     of her motion, lag seconds behind): a camera that pans or travels with the action."""
     return follow(pose, tuple(point[n] - pose[n] for n in range(3)), lag, share)
+
+
+S1_AIM = track(convoy_at(16)['colossus'], S1_AIM_AT)
+
+
+def _hermite(t, keys):
+    """A value through (t, value, slope) keys, cubic between them and held outside: a move that
+    starts, carries its speed through a cut and settles."""
+    if t <= keys[0][0]:
+        return keys[0][1]
+    for (t0, v0, m0), (t1, v1, m1) in zip(keys, keys[1:]):
+        if t <= t1:
+            h, u = t1 - t0, (t - t0) / (t1 - t0)
+            return ((2 * u ** 3 - 3 * u * u + 1) * v0 + (u ** 3 - 2 * u * u + u) * h * m0
+                    + (-2 * u ** 3 + 3 * u * u) * v1 + (u ** 3 - u * u) * h * m1)
+    return keys[-1][1]
+
+
+# S1 and S2 are one take (owner, 2026-10-26: "the same camera", "move the camera in the scene, not
+# jump"): the still observer's pan settles, then the camera travels in along its own line of sight to
+# her port bow, carrying its speed through the cut and settling alongside by the end of S2. One lens.
+S12_RANGE = ((18.0, S1_RANGE, 0.0), (24.0, 800.0, -110.0), (30.0, 520.0, 0.0))
+
+
+def s12_eye(t):
+    a, d = S1_AIM(t), _hermite(t, S12_RANGE)
+    return tuple(a[i] + d * S1_LOOK[i] for i in range(3))
+
+
+def s1_pan(t):
+    """S1's aim: opens above the column on the limb and tilts down onto the Colossus by 22 s."""
+    u = min(1.0, max(0.0, (t - 16.4) / 5.6))
+    a = S1_AIM(t)
+    return (a[0], a[1], a[2] + S1_LIFT * (1.0 - u * u * (3.0 - 2.0 * u)))
 
 
 def lit(t0, level=.6, ramp=1.5):
@@ -504,6 +547,30 @@ K1B_SHIPS = PIRATE_FLIGHT
 K2_CAM = (PLATFORM[0] + 600, PLATFORM[1] - 1500, PLATFORM[2] + 350)     # off the south flank, a little above
 K2_AIM = (PLATFORM[0] + 100, PLATFORM[1] - 60, PLATFORM[2] + 40)
 K2_PIRATES = {k: Pose(f.at(K2_T), K2_T, f.at) for k, f in PIRATE_FLIGHT.items()}
+S3_EYE = ((-1560.0, -150.0, 85.0), (-1630.0, -95.0, 96.0))     # S3's eye at the convoy's tail, 30 s and 38 s
+S34_TRAVEL = ((34.5, 0.0, 0.0), (41.0, 1.0, 0.0))                # the camera's way down to the flank (0 to 1)
+S34_LENS = ((30, 32), (34, 48), (36, 48), (38, 42), (40, 30), (42, 32), (44, 36))
+S34_TURN = ((34.5, 0.0, 0.0), (37.5, .5, .2), (40.5, .55, 0.0), (42.5, 1.0, 0.0))   # the aim: platform to Falcon
+
+
+def _falcon(t):
+    return PIRATE_FLIGHT['falcon-p'].at(t)[:3]
+
+
+_s34_flank = track(K2_PIRATES['falcon-p'], K2_CAM, .3)
+
+
+def s34_eye(t):
+    """S3 and S4's one take: the tail of the convoy, then down to the pack's south flank."""
+    u = min(1.0, max(0.0, (t - 30.0) / 8.0))
+    tail = tuple(S3_EYE[0][i] + u * (S3_EYE[1][i] - S3_EYE[0][i]) for i in range(3))
+    w, f = _hermite(t, S34_TRAVEL), _s34_flank(t)
+    return tuple(tail[i] + w * (f[i] - tail[i]) for i in range(3))
+
+
+def s34_aim(t):
+    w, f = _hermite(t, S34_TURN), _falcon(t)
+    return tuple(PLATFORM[i] + w * (f[i] - PLATFORM[i]) for i in range(3))
 
 
 def _field():
@@ -664,14 +731,39 @@ K3B_SHIPS = {
     # second brakes in and keeps station through the shot, the third is still on her way in
     'hermes-p-a': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-a'], 64, 86, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=5.0),
     'hermes-p-b': boat(K3B_KITE_A, K3B_TARSUS, K3B_SEATS['hermes-p-b'], 70, 93, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=7.0),
-    'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 74, 100, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=6.0),
+    # the third leaves her Kite on screen (owner, 2026-10-26: "where did these shuttles come from")
+    'hermes-p-c': boat(K3B_KITE_B, K3B_TARSUS, K3B_SEATS['hermes-p-c'], 81.5, 100, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=4.0),
     'wolf-p-b': fly('wolf-p-b', (-420, 330, 120, -20, -32, 110, 1), K3B_T, [
         dict(t=80, hd=40, pt=-8, rl=40, v=200), dict(t=84, hd=5, pt=-25, rl=95), dict(t=88, hd=-60, pt=-20, rl=70)],
         hits=recoil([84.5], every=.25, until=87.0)),
     **{k: station(k, v, K3B_T, vel=(45.0, 0.0, 0.0)) for k, v in (
         ('colossus', (1200, -80, 40, 0, 0, 2, .9)), ('morrow', (1150, -250, 0, 0, 1, -3, .9)),
         ('mule', (1900, 260, 20, 0, 0, -2, .9)), ('buffalo-a', (1600, -350, 80, 0, 1, 4, .9)))},
+    # the rear guard S6d left, still fighting a kilometre astern: what S7 opens on
+    'hound-m': K3E_SHIPS['hound-m'], 'hound-p-b': K3E_SHIPS['hound-p-b'],
 }
+
+# S7 orients after S6d (owner, 2026-10-26: "S6d to S7 is jarring. Where is the rest of the battle ... Where
+# did these shuttles come from"): it opens forward of the Tarsus looking aft at the rear guard S6d left,
+# the Tarsus and her Kites in the foreground; then circles her port side, panning forward onto the convoy
+# running on ahead, and pushes in to her deck as the boats come over. Angles in the battle's XY plane.
+K3B_ORBIT = dict(th=((80.0, 35.0, 0.0), (86.0, 154.0, 6.0), (88.0, 158.0, 0.0)),
+                 r=((80.0, 700.0, 0.0), (86.0, 666.0, -20.0), (88.0, 560.0, 0.0)),
+                 z=((80.0, 200.0, 0.0), (86.0, 170.0, -5.0), (88.0, 150.0, 0.0)))
+K3B_LOOK = ((80.0, (-1800.0, -250.0, 0.0)), (85.2, (400.0, -40.0, -60.0)), (88.0, (-480.0, 50.0, 10.0)))
+
+
+def k3b_eye(t):
+    th, r = math.radians(_hermite(t, K3B_ORBIT['th'])), _hermite(t, K3B_ORBIT['r'])
+    return (K3B_TARSUS[0] + r * math.cos(th), K3B_TARSUS[1] + r * math.sin(th), _hermite(t, K3B_ORBIT['z']))
+
+
+def k3b_aim(t):
+    for (t0, a), (t1, b) in zip(K3B_LOOK, K3B_LOOK[1:]):
+        if t <= t1 or (t1, b) == K3B_LOOK[-1]:
+            u = min(1.0, max(0.0, (t - t0) / (t1 - t0)))
+            u = u * u * (3 - 2 * u)
+            return tuple(a[i] + u * (b[i] - a[i]) for i in range(3))
 
 # S8-S9: the Colossus wallows with her port pod shot out; Morrow and the Borers ride with her; the
 # Mk.III settles in from above; the Kite (P) makes her run, is driven off and breaks away
@@ -685,10 +777,6 @@ K4_SHIPS = {
     'colossus': K4_COLOSSUS_FLOWN, 'morrow': K4_MORROW_FLOWN,
     # Borers fight; they are not repair craft (owner, 2026-10-23): the two off the shot-out pod both nose
     # up at the Mk.III grappling down onto her, the bigger threat; two more out of Morrow's bay, climbing
-    'borer-a': carried(held('borer-a', near(K4_COLOSSUS, (-58, 70, 2), hd=-90, pt=75, rl=6, thr=.6), K4_T, wobble=.3),
-                       K4_COLOSSUS_FLOWN),
-    'borer-b': carried(held('borer-b', near(K4_COLOSSUS, (-74, 38, -22), hd=66, pt=80, rl=-10, thr=.6), K4_T, wobble=.3),
-                       K4_COLOSSUS_FLOWN),
     'borer-c': carried(keyed('borer-c', near(K4_MORROW, (BORER_BAY_M[1][0], BORER_BAY_M[1][1], 18), hd=10, pt=30, thr=.8),
                              K4_T, [], v=2.5, wobble=0.0), K4_MORROW_FLOWN),
     'colossus3': fly('colossus3', (-60, 70, 175, -4, -8, 64, .6), K4_T, [
@@ -798,6 +886,46 @@ K4_BORER_D, K4_RAKES_D = sortie('borer-d', carried(held('borer-d', near(K4_MORRO
 K4_SHIPS.update({'borer-c': K4_BORER_C, 'borer-d': K4_BORER_D})
 K4_RAKES = [('borer-c',) + r for r in K4_RAKES_C] + [('borer-d',) + r for r in K4_RAKES_D]
 
+# The two Borers off the shot-out pod skim (owner, 2026-10-26: "moving at least horizontally to skim and
+# stay out of fire while their borer lasers should be raking across the hull"): each strafes back and
+# forth along the Mk.III's belly, close under her plating where her guns can't bear, nose held on her,
+# and her beam trails her travel so it rakes the hull. Offsets in the Mk.III's frame.
+K4_C3_DOWN = (.14, -.89, -.43)      # from the Mk.III toward the Colossus at the key, her frame
+K4_C3_SIDE = (0.0, -K4_C3_DOWN[2], K4_C3_DOWN[1])     # across her belly: her length crossed with down
+K4_C3_UP_HD = math.degrees(math.atan2(-K4_C3_DOWN[1], -K4_C3_DOWN[0]))
+K4_C3_UP_PT = math.degrees(math.asin(-K4_C3_DOWN[2]))
+K4_SKIM = {'borer-a': dict(span=55.0, period=7.0, phase=0.0, side=14.0),
+           'borer-b': dict(span=48.0, period=8.4, phase=2.6, side=-16.0)}
+K4_SKIM_OFF, K4_SKIM_HULL, K4_SKIM_LAG = 45.0, 20.0, .35   # off her axis, her plating, the beam's trail (s)
+
+
+def skim_x(key, t):
+    k = K4_SKIM[key]
+    return k['span'] * math.sin(2 * math.pi * (t - K4_T) / k['period'] + k['phase'])
+
+
+def skimming(key, parent):
+    """A Borer strafing along her target's hull: riding the target at a moving offset, nose on her."""
+    side = K4_SKIM[key]['side']
+
+    def at(t):
+        x = skim_x(key, t)
+        off = tuple((x if i == 0 else 0.0) + K4_SKIM_OFF * K4_C3_DOWN[i] + side * K4_C3_SIDE[i] for i in range(3))
+        return riding(parent, off, hd=K4_C3_UP_HD, pt=K4_C3_UP_PT, rl=0.0, thr=.6).at(t)
+    return Pose(at(K4_T), K4_T, at)
+
+
+def skim_cut(key):
+    """Where a skimming Borer's beam meets the Mk.III's plating, her frame: trailing her travel."""
+    side = K4_SKIM[key]['side']
+    return lambda t: tuple((skim_x(key, t - K4_SKIM_LAG) if i == 0 else 0.0) + K4_SKIM_HULL * K4_C3_DOWN[i]
+                           + side * .6 * K4_C3_SIDE[i] for i in range(3))
+
+
+K4_SHIPS['borer-a'] = skimming('borer-a', K4_SHIPS['colossus3'])
+K4_SHIPS['borer-b'] = skimming('borer-b', K4_SHIPS['colossus3'])
+K4_RAKES += [(k, 'colossus3', 80.0, 110.0, 0, skim_cut(k)) for k in K4_SKIM]
+
 
 # S9b: the lead Lasher rolls onto her back over the Falcon (P), guns walking down her flank; the
 # Falcon is hit and her broadside answers, and the Lasher tumbles away: a held roll-dominant tumble of
@@ -843,17 +971,15 @@ KEYFRAMES = {
         shot='S1a', title='The view the player knows',
         caption='Straight down on the convoy, prograde up the frame: the ships as the player has always seen them, '
                 'small against the desert far below. From here the camera tips down into the 3D fight.',
-        # the player's view holds, then tips down and pulls in, landing on S1's framing at its first frame
-        # a long-range optic straight down, prograde up, as the player knows the battle: it never turns.
-        # ZOOM OUT to the convoy small on the desert, then ZOOM IN on it, the focus hunting as the lens
-        # racks in and snapping sharp; then the cut to S1's action camera
-        # (sliding sideways onto the convoy's core as it racks in: the same look, so still no turn)
-        camera=camera('k0', [dict(t=t, loc=(80 + dx, 120 + dy, 11000), target=(190 + dx, 120 + dy, 0), lens=lens,
-                                  focus=focus, fstop=1.0)
-                             for t, lens, focus, dx, dy in ((10, 100, 11000, 0, 0), (11.6, 35, 11000, 0, 0),
-                                                            (12.4, 60, 11000, -60, -60), (13.4, 200, 600, -150, -150),
-                                                            (14.2, 330, 220, -170, -180), (14.8, 310, 500, -170, -180),
-                                                            (15.3, 300, 11000, -170, -180), (16, 300, 11000, -170, -180))],
+        # THE SATELLITE OPTIC (owner, 2026-10-26: "start out and focus in like how a satellite works"; no
+        # zoom out, no panning: a moving view reads as an observer racing past). Straight down from 11 km,
+        # prograde up, held over the convoy's core: wide on the convoy small on the desert, then stepping
+        # in (60, 150, 300 mm), the focus hunting at each step and snapping sharp. It never moves or turns.
+        camera=camera('k0', [dict(t=t, loc=(-90, -60, 11000), target=(20, -60, 0), lens=lens, focus=focus, fstop=1.0)
+                             for t, lens, focus in ((10, 24, 11000), (11.0, 24, 11000), (11.5, 60, 4000),
+                                                    (11.9, 60, 11000), (12.7, 60, 11000), (13.2, 150, 30000),
+                                                    (13.6, 150, 11000), (14.3, 150, 11000), (14.7, 300, 7000),
+                                                    (15.0, 300, 14000), (15.3, 300, 11000), (16, 300, 11000))],
                       10),
         ships=convoy_at(10),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'lasher-a']),
@@ -862,11 +988,11 @@ KEYFRAMES = {
         caption='A working convoy in loose column over the day side, slowing for its descent window: the Colossus '
                 'with Morrow alongside, a Tarsus, a Mule, a Phaeton tanker, Buffalos and a Dram, escorted by '
                 'three Lashers, a Wolf and a Hound.',
-        # DOLLY + ZOOM OUT: the camera drops back along the column as it overtakes the lens, then widens
-        # to put the convoy against the limb
-        camera=camera('k1', [dict(t=16, loc=(-1900, 2700, 1500), target=(300, -80, -150), lens=35),
-                             dict(t=20, loc=(-2300, 2600, 1450), target=(380, -70, -145), lens=30),
-                             dict(t=24, loc=(-2800, 2450, 1400), target=(450, -60, -140), lens=22)], 16),
+        # THE STEADY REGROUNDING, THEN IN (owner, 2026-10-26: no zoom after S1a's; S1 and S2 one take): a
+        # still observer 2.5 km off the north flank on one 45 mm lens opens up on the limb, the column low in
+        # frame, and tilts down onto the Colossus and Morrow; from 18 s it travels in toward her (s12_eye).
+        camera=camera('k1', [dict(t=16, loc=s12_eye, target=s1_pan, lens=45),
+                             dict(t=24, loc=s12_eye, target=s1_pan, lens=45)], 16),
         ships=convoy_at(16),
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'buffalo-b', 'dram',
                 'lasher-lead', 'lasher-a', 'lasher-b', 'wolf-m', 'hound-m']),
@@ -875,15 +1001,12 @@ KEYFRAMES = {
         caption='Long lens from the convoy\'s tail, back down at the derelict platform it has just passed: dark, '
                 'stripped, hulks in its bays. Then one of the hulks shows a light: the Falcon (P)\'s drives coming '
                 'up. Eleven more lie cold beside her.',
-        # ZOOM, then CRASH ZOOM: finding the platform, holding until it reads as junk, then snapping in
-        # on the Falcon (P) as her drives light; handheld at the long end. The lenses were refitted when
-        # the platform came in to 4.5 km (90, 135, 165, 300 mm at 10 km): the same framings, closer.
-        camera=camera('k1b', [dict(t=30, loc=(-1560, -150, 85), target=PLATFORM, lens=32),
-                              dict(t=34, loc=(-1600, -120, 90), target=PLATFORM, lens=48),
-                              dict(t=36.4, loc=(-1610, -110, 92), target=track(K1B_SHIPS['falcon-p'], PIRATES_MOORED['falcon-p'][:3]),
-                                   lens=68),
-                              dict(t=38, loc=(-1630, -95, 96), target=track(K1B_SHIPS['falcon-p'], PIRATES_MOORED['falcon-p'][:3]),
-                                   lens=122)], K1B_T, shake=.05),
+        # S3 and S4 are one take (owner, 2026-10-26: "move the camera in the scene, not jump"): from the
+        # convoy's tail a long lens finds the platform and holds until it reads as junk; as the Falcon (P)'s
+        # drives light, the camera travels back down to the pack's south flank (s34_eye), widening as the
+        # spread opens, and pans with the Falcon (P) as she climbs (S4).
+        camera=camera('k1b', [dict(t=t, loc=s34_eye, target=s34_aim, lens=lens) for t, lens in S34_LENS
+                              if t <= K2_T - 2.0], K1B_T),
         ships=K1B_SHIPS,
         platform=PLATFORM, platform_t=K1B_T,
         # her drives light the hulk and bay behind her orange as they come up (a light, no bloom disc)
@@ -894,13 +1017,11 @@ KEYFRAMES = {
         shot='S4', title='First contact',
         caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
                 'Twelve pirate hulls climb out of it toward the column.',
-        # off the pack's flank as it climbs out of the platform, wide while the spread opens up, then a
-        # CRASH ZOOM onto the Falcon (P) and panning with her
-        camera=camera('k2', [dict(t=t, loc=track(K2_PIRATES['falcon-p'], K2_CAM, .3),
-                                  target=track(K2_PIRATES['falcon-p'], aim, share), lens=lens)
-                             for t, lens, aim, share in ((38, 24, K2_AIM, .5), (40, 28, K2_AIM, .5), (41.4, 32, K2_AIM, .6),
-                                                         (42.4, 95, K2_PIRATES['falcon-p'][:3], 1.0),
-                                                         (44, 110, K2_PIRATES['falcon-p'][:3], 1.0))], K2_T, shake=.1),
+        # S3'S TAKE, CONTINUED: the camera arriving off the pack's south flank, wide while the spread opens,
+        # then panning with the Falcon (P) as she climbs. No cut from S3, no crash zoom.
+        camera=camera('k2', [dict(t=t, loc=s34_eye, target=s34_aim, lens=lens) for t, lens in S34_LENS
+                             if t >= K2_T - 2.0], K2_T),
+        ground_t=K1B_T,     # the planet turns from S3's time: one take over the cut
         ships={**fleet_at({k: CONVOY[k] for k in ('hound-m', 'tarsus')}, K2_T), **K2_PIRATES},
         platform=PLATFORM,
         labels=['falcon-p', 'colossus3', 'manticore-p', 'wolf-p-a', 'kite-p-a', 'hound-p-b', 'platform']),
@@ -1000,10 +1121,11 @@ KEYFRAMES = {
         caption='The Tarsus has fallen out of the column with her drives shot out. Kites (P) lie alongside and '
                 'their boats bring the boarders over: one down on her deck, one braking in over her stern, one '
                 'just out from under its Kite. A Wolf (P) covers them. The rest of the convoy runs on ahead.',
-        # PUSH-IN + ZOOM onto the boats: from wide behind the Tarsus in to her deck as they set down
-        camera=camera('k3b', [dict(t=80, loc=(-1500, 450, 210), target=(380, -40, -60), lens=28),
-                              dict(t=86, loc=(-1250, 380, 170), target=(400, -40, -60), lens=35),
-                              dict(t=88, loc=(-1150, 350, 150), target=(-480, 50, 10), lens=55)], K3B_T, shake=.08),
+        # ORIENTING ORBIT, then PUSH-IN: aft onto the rear guard past the Tarsus, round her port side onto the
+        # convoy ahead, then in to her deck as the boats set down (k3b_eye, k3b_aim)
+        camera=camera('k3b', [dict(t=80, loc=k3b_eye, target=k3b_aim, lens=28),
+                              dict(t=85, loc=k3b_eye, target=k3b_aim, lens=30),
+                              dict(t=88, loc=k3b_eye, target=k3b_aim, lens=45)], K3B_T, shake=.08),
         states={'tarsus': 'tarsus-boarded'},
         knobs={'hermes-p-a': {'gear_up': 0.0, 'door_port': 1.0, 'door_starboard': 1.0},    # down, boarders out
                'hermes-p-b': {'gear_up': 0.5}, 'hermes-p-c': {'gear_up': 1.0}},
@@ -1196,6 +1318,21 @@ def _m5_point(d, up=0.0, side=0.0):
 # S11: entry, a chase from just behind the Colossus as plasma builds round both hulls and Morrow drifts
 # apart from her; the last of it breaks into the recording screen's static (asharu_preview)
 M11_T = 122.0
+
+
+# S11's air comes up off her nose (owner, 2026-10-26, from the light check asharu-ab-s11-wind: "Up"): the
+# heat on her bow and belly, the wake rising soft behind her. Tilted down, the air was on her deck.
+M11_WIND_TILT = .7
+
+
+def m11_wind(pose):
+    """S11's airflow over a hull: back along her nose, tilted off it (M11_WIND_TILT). Tilted up, the air
+    meets her bow and belly as she dives and her wake rises behind her; the light check read it as a hot
+    rim under the hull and a soft plume, not the orbs and dots a wake straight at the lens drew in S12."""
+    n = _nose(pose)
+    w = (-n[0], -n[1], -n[2] + M11_WIND_TILT)
+    k = math.sqrt(sum(c * c for c in w))
+    return tuple(c / k for c in w)
 M11_COLOSSUS = at_time(K5_SHIPS['colossus'], 122.0)
 M11_MORROW = fly('morrow', K5_SHIPS['morrow'].at(M11_T), M11_T, [
     dict(t=118, hd=1, pt=-23, rl=10), dict(t=126, hd=-9, pt=-27, rl=-4, v=36)], v=44, wobble=1.0, thrust=None)
@@ -1253,6 +1390,11 @@ def _k6_cam(t):
     """The camera rides along with a little over half of the Colossus's fall and dollies in."""
     c = K6_SHIPS['colossus'].at(t)
     return tuple(K6_CAM[i] + .55 * (c[i] - _k6c[i]) + 60.0 * (t - K6_T) * K6_LOOK[i] for i in range(3))
+
+
+def _k6_held(t):
+    """From 134 s the camera holds where its ride down left it (the pull-back)."""
+    return _k6_cam(min(t, 134.0))
 
 
 def _k6_aim(t, toward_morrow):
@@ -1341,9 +1483,14 @@ KEYFRAMES['k6'].update(
             'down around them in pieces.',
     # TRACKING PUSH-IN: rides down with a little over half of the Colossus's fall, dollying in, from 40
     # mm to the plate's 50 mm at the key, then on to 85 mm, ending tight on the two burning hulls
-    camera=camera('k6', [dict(t=126, loc=_k6_cam, target=lambda t: _k6_aim(t, .35), lens=40),
-                         dict(t=130, loc=_k6_cam, target=lambda t: _k6_aim(t, 0.0), lens=50),
-                         dict(t=134, loc=_k6_cam, target=lambda t: _k6_aim(t, .5), lens=85)], K6_T),
+    camera=camera('k6', [dict(t=126, loc=_k6_held, target=lambda t: _k6_aim(t, .35), lens=40),
+                         dict(t=130, loc=_k6_held, target=lambda t: _k6_aim(t, 0.0), lens=50),
+                         dict(t=134, loc=_k6_held, target=lambda t: _k6_aim(t, .5), lens=85),
+                         # THE PULL-BACK (owner, 2026-10-26): the observer stops riding down with them and
+                         # zooms back out to the wider planet, the two trails falling into it, before the log
+                         dict(t=135, loc=_k6_held, target=lambda t: _k6_aim(t, .5), lens=82),
+                         dict(t=137.4, loc=_k6_held, target=lambda t: _k6_aim(t, .5), lens=18),
+                         dict(t=138, loc=_k6_held, target=lambda t: _k6_aim(t, .5), lens=18)], K6_T),
     ships=K6_SHIPS,
     fx=[('entry_sheath', 'colossus'), ('entry_sheath', 'morrow'), ('wreckfall',)],
     bloom=1.0,          # the plasma is light: it blooms in the composite (composite_layers.bloom)
@@ -1365,10 +1512,11 @@ BLOCKED = {
         shot='S2', title='Alongside the Colossus',
         caption='Tracking alongside the Colossus at 300 m. Morrow rides off her starboard quarter, drones stowed; '
                 'Lasher A slides through the foreground.',
-        # TRACKING: alongside at 300 m off her port side, a little above, easing forward along her length
-        camera=camera('m2', [dict(t=24, loc=(-260, 300, 90), target=(-60, -60, -10), lens=28),
-                             dict(t=27, loc=(-170, 305, 85), target=(-20, -70, -12), lens=28),
-                             dict(t=30, loc=(-80, 300, 80), target=(20, -80, -14), lens=28)], M2_T, shake=.04),
+        # S1'S TAKE, CONTINUED (owner, 2026-10-26: S1 to S2 "the same camera"): the camera arriving off her port
+        # bow settles alongside as Lasher A crosses in front of her, Morrow beyond her quarter. One lens.
+        camera=camera('m2', [dict(t=24, loc=s12_eye, target=s1_pan, lens=45),
+                             dict(t=30, loc=s12_eye, target=s1_pan, lens=45)], M2_T),
+        ground_t=16,        # the planet turns from S1's time: one take over the cut
         ships=M2_SHIPS,
         labels=['colossus', 'morrow', 'lasher-a']),
     'm5': dict(
@@ -1404,13 +1552,21 @@ BLOCKED = {
                               dict(t=126, loc=track(M11_COLOSSUS, _along(_m11, 270, 65, 0), 1.0, .3),
                                    target=track(M11_COLOSSUS, _along(_m11, -40, 0, -75)), lens=38)], M11_T, shake=.3),
         ships={'colossus': M11_COLOSSUS, 'morrow': M11_MORROW},
-        # entry plasma is new effects work: a proxy here (asharu_preview 'plasma'), building from 118 s to 124 s
+        # entry plasma building from 118 s to 124 s: S12's hull-shaped sheath (swfx_entry) lit, the preview's
+        # sheath cone in the motion preview (asharu_preview 'plasma')
         fx=[('plasma', 'colossus', 118.0, 124.0), ('plasma', 'morrow', 118.5, 124.5)],
+        bloom=1.0,          # the plasma is light, as in S12
         labels=['colossus', 'morrow']),
 }
 # S5 is lit (coordinator, 2026-10-24): it goes through the kit, the link and motion audits and the
 # blob lint like every key frame. Its key time is the first of its ships' (M5_T).
 KEYFRAMES['m5'] = BLOCKED.pop('m5')
+# S2 is lit too (owner, 2026-10-26: the shots missing from the cut). It has no effects to time; its key time is
+# the Lasher's, the one flown ship (M2_T).
+KEYFRAMES['m2'] = BLOCKED.pop('m2')
+# S11 is lit (owner, 2026-10-26): its plasma is S12's sheath, building (fx 'plasma'); its key time is
+# Morrow's, the one flown ship (M11_T).
+KEYFRAMES['m11'] = BLOCKED.pop('m11')
 SHOTS = {**KEYFRAMES, **BLOCKED}
 SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else []
 
@@ -2423,11 +2579,25 @@ def blender_main(cfg):
                 c = world_to_camera_view(scene, scene.camera, pl['matrix'] @ (pos * pl['mpu']))
                 if c.z > 0:
                     engines.append((c.x * w_, (1.0 - c.y) * h_))
+        # the hulls burning into the air (fx 'plasma', 'entry_sheath'): each one's screen box, padded by half
+        # its size, from a sample of her hull's vertices
+        zones = []
+        for fx_ in spec_.get('fx', ()):
+            e_ = bpy.data.objects.get('Ship | ' + fx_[1]) if fx_[0] in ('plasma', 'entry_sheath') else None
+            if e_ is None:
+                continue
+            verts_, _f = entry_kit().hull_soup(e_)
+            pts_ = [world_to_camera_view(scene, scene.camera, Vector(v)) for v in verts_[::max(1, len(verts_) // 400)]]
+            pts_ = [(c.x * w_, (1.0 - c.y) * h_) for c in pts_ if c.z > 0]
+            if pts_:
+                xs_, ys_ = [p[0] for p in pts_], [p[1] for p in pts_]
+                px_, py_ = .5 * (max(xs_) - min(xs_)), .5 * (max(ys_) - min(ys_))
+                zones.append((min(xs_) - px_, min(ys_) - py_, max(xs_) + px_, max(ys_) + py_))
         span_ = spec_['span_of']
         st = blob_state.setdefault(span_, {'lint': blob_lint.Lint(), 'last_t': None})
         n_ = int(kf.rsplit('_f', 1)[1])
         dt = (spec_['span_t'] - st['last_t']) if st['last_t'] is not None else 1.0 / 24
-        kept_ = blob_lint.found(display, effects_owned, engines)
+        kept_ = blob_lint.found(display, effects_owned, engines, zones)
         # this frame's regions, for the shot's assembly to chain across chunk seams (assemble_shot --blobs)
         (raw / f'{span_}_blobs_f{n_:05d}.json').write_text(json.dumps(
             dict(frame=n_, dt=dt, width=w_, regions=[[a, list(b), cy, cx] for a, b, cy, cx in kept_])))
@@ -2562,17 +2732,19 @@ def blender_main(cfg):
         import swfx_entry
         return swfx_entry
 
-    def entry_sheath(pose, key, t):
+    def entry_sheath(pose, key, t, wind=K6_WIND, glow=1.0, grow=None):
         """S12: a falling hull inside her plasma, shaped by her own hull (swfx_entry.sheath): the sheath
         white on the faces she meets the air with, the shock layer standing off them, flames peeling
-        off her silhouette into one wake that grows as she goes deeper since 126 s."""
+        off her silhouette into one wake that grows as she goes deeper since 126 s. S11 passes its own
+        wind, a glow that builds, and no growth (S12 opens at glow 1, growth 0)."""
         kit = entry_kit()
         e = bpy.data.objects.get('Ship | ' + key)
         if e is None:
             return
         verts, faces = kit.hull_soup(e)
-        kit.sheath('Entry ' + key, verts, faces, stage_fx, K6_WIND, SHIP_LENGTH[key], glow=1.0,
-                   streamers=22 if key == 'colossus' else 16, seed=len(key), grow=min(1.0, (t - 126.0) / 4.5),
+        kit.sheath('Entry ' + key, verts, faces, stage_fx, wind, SHIP_LENGTH[key], glow=glow,
+                   streamers=22 if key == 'colossus' else 16, seed=len(key),
+                   grow=min(1.0, (t - 126.0) / 4.5) if grow is None else grow,
                    lights=stage_ships,      # the sheath's glow on her own windward plates
                    belly=e.matrix_world.to_3x3() @ Vector((0.0, 0.0, -1.0)))
 
@@ -3085,7 +3257,7 @@ def blender_main(cfg):
                             val = scene.frame_current - round(val['ago_s'] * scene.render.fps / scene.render.fps_base)
                         if placed[key]['fx'] is not None:
                             placed[key]['fx'].set(name, val)
-                        else:
+                        elif placed[key]['lib']['ctl'] is not None:     # the preview's stand-ins have none
                             placed[key]['lib']['ctl'][name] = val
                 for key, cue in spec.get('cues', {}).items() if cfg.get('swfx') else ():
                     if 'span_t' in spec:     # in motion a gun flashes when it fires a round, not on cue
@@ -3329,6 +3501,12 @@ def blender_main(cfg):
                     entry_sheath(spec['ships'][fx[1]], fx[1], spec.get('t', K6_T))
                 elif kind == 'wreckfall' and not cfg.get('motion_preview'):
                     wreckfall(spec.get('t', K6_T))
+                elif kind == 'plasma' and not cfg.get('motion_preview'):   # S11: ('plasma', ship, t in, t full)
+                    t_ = spec.get('t', fx[3])
+                    glow_ = max(0.0, min(1.0, (t_ - fx[2]) / (fx[3] - fx[2])))
+                    if glow_ > .02:
+                        entry_sheath(spec['ships'][fx[1]], fx[1], t_, wind=m11_wind(spec['ships'][fx[1]].at(t_)),
+                                     glow=glow_ * glow_, grow=0.0)
             c = spec['camera']
             aim(c['loc'], c.get('target'), c['lens'], c.get('look'), c.get('roll', 0.0))
             if cfg.get('volume_audit'):       # in vacuum (as rendered), then as the kit's atmosphere default

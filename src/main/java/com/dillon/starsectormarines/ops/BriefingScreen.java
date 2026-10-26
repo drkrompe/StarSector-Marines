@@ -2500,11 +2500,8 @@ public class BriefingScreen implements Screen {
             Mission m, List<ShuttleAssignment> manifest) {
         java.util.Map<Integer, Integer> out = new java.util.HashMap<>();
         int employerPhysical = DetachmentResolver.employerPhysicalShipCount(m);
-        // A cradled boat is not in the infantry manifest, so the manifest's
-        // player rows line up with the seated boats only.
         int row = employerPhysical;
         for (int k = 0; k < cachedAvailable.size() && row < manifest.size(); k++) {
-            if (cachedAvailable.get(k).machineOnly()) continue;
             out.put(k, manifest.get(row++).cycles);
         }
         return out;
@@ -2530,7 +2527,6 @@ public class BriefingScreen implements Screen {
         int fewest = Integer.MAX_VALUE;
         int most = 0;
         for (int index = 0; index < cachedAvailable.size(); index++) {
-            if (cachedAvailable.get(index).machineOnly()) continue;
             int cycles = cyclesByBoat.getOrDefault(index, 0);
             fewest = Math.min(fewest, cycles);
             most = Math.max(most, cycles);

@@ -8,6 +8,9 @@ public enum ResupplyPayload implements AirDeliveryPayload {
     public int unitsPerSortie(ShuttleType carrier) { return 1; }
 
     @Override
+    public boolean fieldsForces() { return false; }
+
+    @Override
     public boolean tryDeploy(AirDeliveryContext context) {
         int[] cell = context.findOpenDeboardCell();
         if (cell == null) return false;

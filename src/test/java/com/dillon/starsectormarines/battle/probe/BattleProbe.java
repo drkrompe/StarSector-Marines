@@ -3,6 +3,11 @@ package com.dillon.starsectormarines.battle.probe;
 import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
+import com.dillon.starsectormarines.battle.command.objective.Objective;
+import com.dillon.starsectormarines.battle.command.objective.ObjectiveFactionPresence;
+import com.dillon.starsectormarines.battle.air.ShuttleMission;
+import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonLineCommand;
@@ -112,6 +117,7 @@ public final class BattleProbe {
     public BattleProbe(BattleSimulation sim) {
         this.sim = sim;
         commands.put("tick", a -> status());
+        commands.put("presence", a -> presence());
         commands.put("advance", a -> step(sim.getSimTickIndex() + a.intAt(0), null));
         commands.put("until", a -> step(a.intAt(0), null));
         commands.put("until-beat", a -> step(a.intOr("max", Integer.MAX_VALUE), a.word(0)));
@@ -263,6 +269,10 @@ public final class BattleProbe {
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("cell", new JSONArray(List.of(x, y)))
                 .put("walkable", g.isWalkable(x, y)).put("wall", sim.getTopology().isWall(x, y))
                 .put("fixture", sim.getTopology().isFixture(x, y)).put("wallHp", g.getWallHp(x, y))
+                .put("surface", String.valueOf(sim.getTopology().getSurfaceId(x, y)))
+                .put("ground", String.valueOf(sim.getTopology().getGroundKind(x, y)))
+                .put("natureOverlay", sim.getTopology().getNatureOverlayIndex(x, y))
+                .put("plinth", sim.getTopology().getPlinthTiers(x, y))
                 .put("doodads", doodads);
     }
 
@@ -364,6 +374,37 @@ public final class BattleProbe {
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("complete", sim.isComplete())
                 .put("winner", sim.isComplete() ? String.valueOf(sim.getWinner()) : JSONObject.NULL)
                 .put("routeStalls", sim.movement().routeStalls());
+    }
+
+    /** What keeps the company in the battle: its ground bodies, its boats, its reserve, and each objective. */
+    private JSONObject presence() throws Exception {
+        int ground = 0;
+        for (int i = 0, n = sim.liveUnitCount(); i < n; i++)
+            if (sim.identity().faction(sim.liveUnitAt(i)) == Faction.MARINE) ground++;
+        JSONArray boats = new JSONArray();
+        for (long id : sim.getAirEntityIds()) {
+            if (sim.world().airFaction(id) != Faction.MARINE) continue;
+            ShuttleMission mission = sim.world().mission(id);
+            if (mission == null) continue;
+            boats.put(new JSONObject().put("id", id).put("state", String.valueOf(mission.state))
+                    .put("destroyed", mission.destroyed).put("aboard", mission.marinesRemaining)
+                    .put("cycle", mission.currentCycle).put("cycles", mission.totalCycles));
+        }
+        JSONArray objectives = new JSONArray();
+        for (Objective objective : sim.getObjectives())
+            objectives.put(new JSONObject().put("name", objective.displayName())
+                    .put("owner", String.valueOf(objective.owningFaction()))
+                    .put("complete", objective.isComplete()).put("failed", objective.isFailed()));
+        JSONArray reserve = new JSONArray();
+        CommandPowerService powers = sim.getCommandPowerService();
+        for (CommandPower power : powers.getAvailablePowers())
+            reserve.put(new JSONObject().put("power", power.id).put("charges", powers.getChargesRemaining(power.id))
+                    .put("supplyCost", power.supplyCost).put("canStillField", power.canStillField(sim)));
+        return status().put("companyInPlay", ObjectiveFactionPresence.companyInPlay(sim)).put("ground", ground)
+                .put("supplies", powers.getAvailableSupplies()).put("reserve", reserve)
+                .put("pendingArrivals", sim.pendingGroundArrivals(Faction.MARINE))
+                .put("survivors", sim.survivorPickup() == null ? 0 : sim.survivorPickup().survivingCount(Faction.MARINE))
+                .put("boats", boats).put("objectives", objectives);
     }
 
     private JSONObject step(int untilTick, String beat) throws Exception {
