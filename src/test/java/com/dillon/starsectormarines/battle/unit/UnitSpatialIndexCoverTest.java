@@ -27,6 +27,8 @@ class UnitSpatialIndexCoverTest {
         assertTrue(index.withheld(sentry));
         assertTrue(index.withheld(outside));
         assertFalse(index.withheld(inside));
+        assertTrue(index.covered(sentry), "a gun or a pilot asks the cover alone");
+        assertFalse(index.covered(inside));
         LongBucket everyone = new LongBucket();
         index.gather(10.5f, 10.5f, 12f, everyone);
         assertEquals(3, everyone.size, "covered bodies are still there to see and hit");
@@ -36,5 +38,6 @@ class UnitSpatialIndexCoverTest {
         index.gatherHostileCombatants(10.5f, 10.5f, 12f, Faction.DEFENDER, found);
         assertEquals(2, found.size);
         assertFalse(index.withheld(sentry));
+        assertFalse(index.covered(sentry));
     }
 }
