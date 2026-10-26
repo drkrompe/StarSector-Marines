@@ -1,9 +1,11 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.appearance.RavBombardRig;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHarvest;
 import com.dillon.starsectormarines.battle.evacuation.SwarmWorkers;
+import com.dillon.starsectormarines.battle.mech.MechGaitState.FootEvent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.SwarmStage;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -133,6 +135,9 @@ public final class SwarmAudio {
         // The tell before her run: the Brute's charge tell a size deeper, -16 to -19 LUFS across its takes.
         MATRIARCH_RUN_TELL("brute_charge_tell", 0.45f, 1, 1.5f, 0f, 0.7f),
         MATRIARCH_FOOTFALL("brute_footfall", 0.78f, 4, 1f, 0f, 0.65f),
+        // The Bombard's tripod coming down: the Brute's hoof a size deeper, under a Brute's since its sets land
+        // three times a second on the move.
+        BOMBARD_FOOTFALL("brute_footfall", 0.22f, 3, 0.6f, 0.2f, 0.74f),
         MATRIARCH_CROWN("brute_impact", 0.35f, 2, 2f, 0f, 0.75f),
         MATRIARCH_WALL_BREAK("brute_wall_break", 0.35f, 2, 3f, 0f, 0.8f),
         MATRIARCH_PAIN("brute_pain", 0.2f, 1, 1.3f, 1.2f, 0.72f),
@@ -342,6 +347,25 @@ public final class SwarmAudio {
                         emit(out, sim, mix, Sound.WORKER_SQUEAK, body, x, y, now, type, stage, 0);
                 }
             }
+            if (type == UnitType.SWARM_BOMBARD) {
+                // its footfall is its tripod landing, as its rig steps it, not a stride of ground covered
+                if (world.has(body, components.RAV_RIG) && world.getObject(body, components.RAV_RIG,
+                        BattleComponents.RAV_RIG_STATE) instanceof RavBombardRig rig) {
+                    FootEvent landing = rig.lastTouchdown();
+                    int sequence = landing != null ? (int) landing.sequence() : 0;
+                    int prior = mix.gait.get(body);
+                    mix.seenGait.put(body, sequence);
+                    if (landed(prior, sequence)) {
+                        float dx = landing.x() - listenerX, dy = landing.y() - listenerY;
+                        float d2 = dx * dx + dy * dy;
+                        if (d2 <= FOOTFALL_RANGE_CELLS * FOOTFALL_RANGE_CELLS) {
+                            steps.add(new Step(Sound.BOMBARD_FOOTFALL, body, landing.x(), landing.y(), d2, type,
+                                    stage));
+                        }
+                    }
+                }
+                continue;
+            }
             if (!world.has(body, components.MOVEMENT)) continue;
             float phase = world.getFloat(body, components.MOVEMENT, BattleComponents.MOVEMENT_GAIT_PHASE);
             float priorPhase = Float.intBitsToFloat(mix.gait.get(body));
@@ -373,6 +397,14 @@ public final class SwarmAudio {
         boolean wrapped = phase < prior;
         if (heavy(type)) return wrapped || (prior < 0.5f && phase >= 0.5f);
         return wrapped;
+    }
+
+    /**
+     * Whether a Bombard's tripod landed since the last reading: its rig's touchdown count moved on. First sight of a
+     * body ({@code prior} unread) only sets the count, never replays an old landing.
+     */
+    static boolean landed(int prior, int sequence) {
+        return prior != Float.floatToRawIntBits(Float.NaN) && sequence > prior;
     }
 
     static Sound footfall(UnitType strain, int stride, boolean carrying) {

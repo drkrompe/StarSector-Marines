@@ -55,7 +55,7 @@ final class RavBombardComposer {
         float body = facing + rig.rock();
         float spritePx = ppc / (U * SCALE);
         float[] p = new float[2];
-        rotate(0f, rig.shift(), facing, p);
+        rotate(rig.sideShift(), rig.shift(), facing, p);
         float ax = cx + p[0] * ppc, ay = cy + p[1] * ppc;
 
         // a lifted leg draws over its planted neighbours
@@ -158,7 +158,7 @@ final class RavBombardComposer {
         float g = rig.glow();
         if (glow == null || g <= 0f) return;
         float[] p = new float[2];
-        rotate(0f, rig.shift(), rig.facingDegrees(), p);
+        rotate(rig.sideShift(), rig.shift(), rig.facingDegrees(), p);
         float[] sac = new float[2];
         point(CENTRE, SAC_ROW, rig.facingDegrees() + rig.rock(), cx + p[0] * ppc, cy + p[1] * ppc, ppc, sac);
         out.addAdditiveSprite(RenderLayer.UNITS, glow, sac[0], sac[1], ppc * GLOW_HALO, ppc * GLOW_HALO * 1.5f,

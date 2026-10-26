@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.world.gen.bsp.SpineClaim;
 import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -25,7 +26,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class IndustrialZoneProgramTest {
 
-    final BlockLeaf a1 = leaf(1, 3, 8, 11, BlockKind.BUILDING_INDUSTRIAL);
+    final BlockLeaf a1 = leaf(1, 6, 8, 11, BlockKind.BUILDING_INDUSTRIAL);
     final BlockLeaf a2 = leaf(13, 3, 20, 11, BlockKind.INDUSTRIAL_YARD);
     final BlockLeaf a3 = leaf(24, 3, 31, 11, BlockKind.FORTIFIED_POST);
     final BlockLeaf yard = leaf(1, 16, 14, 35, BlockKind.FREIGHT_YARD);
@@ -72,7 +73,7 @@ class IndustrialZoneProgramTest {
         boolean[][] road = road();
         SpineClaim.Spine spine = spine(road);
         DistrictProgram.Plan plan = new IndustrialZoneProgram().plan(spine, road, null);
-        for (int y = 3; y <= 11; y++) {
+        for (int y = 6; y <= 11; y++) {
             assertTrue(plan.streets()[11][y], "the cross street between the depot and the warehouse keeps three cells");
             assertFalse(plan.streets()[12][y], "and gives up its fourth");
         }
@@ -145,6 +146,50 @@ class IndustrialZoneProgramTest {
         assertNotNull(roles);
         assertEquals(District.Role.FACTORY_ROW, roles.get(large));
         assertEquals(District.Role.FREIGHT_YARD, roles.get(small));
+    }
+
+    @Test
+    void whereNoRowStandsTheRowIsLaidAlongTheStreetBetweenItsWorkshops() {
+        // A belt eight deep: no ground holds even the shallow row, so the row takes the street itself.
+        BlockLeaf w1 = leaf(0, 0, 7, 7, BlockKind.BUILDING_INDUSTRIAL);
+        BlockLeaf w2 = leaf(12, 0, 19, 7, BlockKind.INDUSTRIAL_YARD);
+        BlockLeaf w3 = leaf(24, 0, 31, 7, BlockKind.BUILDING_INDUSTRIAL);
+        BlockLeaf opposite = leaf(12, 12, 19, 19, BlockKind.BUILDING_INDUSTRIAL);
+        BlockLeaf shallow = leaf(24, 12, 31, 16, BlockKind.BUILDING_INDUSTRIAL);
+        List<BlockLeaf> lots = List.of(w1, w2, w3, opposite, shallow);
+        boolean[][] road = new boolean[40][24];
+        for (boolean[] col : road) Arrays.fill(col, true);
+        for (BlockLeaf leaf : lots) {
+            for (int x = leaf.left; x <= leaf.right; x++) for (int y = leaf.top; y <= leaf.bottom; y++) road[x][y] = false;
+        }
+        SpineClaim.Spine spine = SpineClaim.find(lots, road, leaf -> true, leaf -> 1, IndustrialZoneProgram.SPEC);
+        assertNotNull(spine);
+        Map<BlockLeaf, District.Role> roles = IndustrialZoneProgram.roles(spine, false, (ground, yard) -> true);
+        assertNotNull(roles);
+        assertFalse(roles.containsValue(District.Role.FACTORY_ROW));
+        for (BlockLeaf leaf : List.of(w1, w2, w3)) assertEquals(District.Role.WORKSHOP, roles.get(leaf));
+        assertEquals(District.Role.WORKSHOP, roles.get(opposite), "a deep lot across the lane is a workshop too");
+        assertFalse(roles.get(shallow) == District.Role.WORKSHOP, "one too shallow for a hall is not");
+    }
+
+    @Test
+    void theWorksStreetNeverRunsLongerThanALaneOrShorterThanTheShortestRow() {
+        BlockLeaf a = leaf(0, 0, 8, 7, BlockKind.BUILDING_INDUSTRIAL);
+        BlockLeaf b = leaf(14, 0, 22, 7, BlockKind.BUILDING_INDUSTRIAL);
+        BlockLeaf across = leaf(0, 12, 22, 16, BlockKind.BUILDING_INDUSTRIAL);
+        List<BlockLeaf> lots = List.of(a, b, across);
+        boolean[][] road = new boolean[26][20];
+        for (boolean[] col : road) Arrays.fill(col, true);
+        for (BlockLeaf leaf : lots) {
+            for (int x = leaf.left; x <= leaf.right; x++) for (int y = leaf.top; y <= leaf.bottom; y++) road[x][y] = false;
+        }
+        SpineClaim.Spine spine = SpineClaim.find(lots, road, leaf -> true, leaf -> 1, IndustrialZoneProgram.SPEC);
+        assertNotNull(spine);
+        Map<BlockLeaf, District.Role> none = new IdentityHashMap<>();
+        List<BlockLeaf> works = IndustrialZoneProgram.worksStreet(spine, none);
+        assertEquals(List.of(a, b), works, "the two deep lots front a lane of 23");
+        none.put(b, District.Role.FREIGHT_YARD);
+        assertTrue(IndustrialZoneProgram.worksStreet(spine, none).isEmpty(), "one nine-cell lot is no lane");
     }
 
     @Test

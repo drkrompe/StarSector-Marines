@@ -4,7 +4,9 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
+Updated: 2026-10-25 — districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
+
+Earlier 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
 
 Earlier 2026-10-25 — districts: the industrial zone hosts the map's freight yard and factory row, on a member or a joined pair, and stands down the ones planned elsewhere.
 
@@ -418,7 +420,10 @@ walled off from its neighbours and opening onto it. It is the map's **host** for
 factory row: the freight-yard parcel and a row seed deep enough for the row join as members and keep their
 set piece, on their own leaf or **joined** with a neighbour across the cross street between them; where the
 street has neither, the members that hold one take it, and the zone stands down the one planned elsewhere,
-so the map keeps one of each. The rest are warehouses (loading
+so the map keeps one of each. Where no row stands on its ground, the row runs along the zone's own street,
+the **works street**: workshops on the members either side open their loading doors onto the street, boom
+gates across it at the lane's ends and across each cross street's mouth between, and that stretch of street
+is the row's service lane. The rest are warehouses (loading
 doors on the street across a striped dock apron with a keep-clear hatch before each door) and walled tank
 farms, vehicle depots and guard posts, each gated onto the street. Freight gantries span the street where
 both legs land on open apron. It publishes `IndustrialZone` on `MapResult` (the service street, the yards'

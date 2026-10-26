@@ -37,6 +37,13 @@ public final class RavRunnerRigSystem {
     private LongToDoubleFunction matriarchAge = id -> 0.0;
     private LongToDoubleFunction bombardWindup = id -> 0.0;
     private LongToDoubleFunction bombardPlanted = id -> 0.0;
+    private Footfall bombardFootfall = (x, y, outX, outY, scale) -> { };
+
+    /** A claw coming down: where, the way out from the body (a unit vector), and the body's growth-stage scale. */
+    @FunctionalInterface
+    public interface Footfall {
+        void land(float x, float y, float outX, float outY, float scale);
+    }
 
     public RavRunnerRigSystem(EntityWorld world, BattleComponents components) {
         this.world = world;
@@ -75,6 +82,11 @@ public final class RavRunnerRigSystem {
         this.bombardPlanted = planted;
     }
 
+    /** Where each claw of a Bombard's set goes as the set lands ({@link RavBombardRig#landedSet}): its dust. */
+    public void bombardFootfall(Footfall footfall) {
+        this.bombardFootfall = footfall;
+    }
+
     public void tick(float dt) {
         for (ArchetypeTable table : world.matched(runners)) {
             Object[] rigs = table.objects(components.RAV_RIG, BattleComponents.RAV_RIG_STATE).array();
@@ -104,6 +116,13 @@ public final class RavRunnerRigSystem {
                     bombard.setStage(stage(id));
                     bombard.advance(posX[row], posY[row], facing[row], cooldown[row],
                             (float) bombardWindup.applyAsDouble(id), (float) bombardPlanted.applyAsDouble(id), dt);
+                    int landed = bombard.landedSet();
+                    for (int leg = 0; landed >= 0 && leg < RavBombardRig.LEGS; leg++) {
+                        if (RavBombardRig.legSet(leg) != landed) continue;
+                        float ox = bombard.clawX(leg) - posX[row], oy = bombard.clawY(leg) - posY[row];
+                        float on = Math.max(1e-4f, (float) Math.hypot(ox, oy));
+                        bombardFootfall.land(bombard.clawX(leg), bombard.clawY(leg), ox / on, oy / on, bombard.scale());
+                    }
                     continue;
                 }
                 if (state instanceof RavMatriarchRig matriarch) {
