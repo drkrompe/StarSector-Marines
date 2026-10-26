@@ -212,6 +212,16 @@ public record ShipCondition(boolean applies, Map<RefitTrack, RefitBand> bands) {
         };
     }
 
+    /** Whole machines the reserve hangar holds; none on a hull this record does not apply to. */
+    public int reserveCapacity() {
+        if (!applies) return 0;
+        return switch (band(RefitTrack.RESERVE_HANGAR)) {
+            case RESTORED -> 2;
+            case IMPROVED_I, IMPROVED_II -> 4;
+            default -> 0;
+        };
+    }
+
     public float hullMult() { return combat(RefitTrack.HULL, 0.80f, 1.15f, 1.30f); }
     public float armorMult() { return combat(RefitTrack.HULL, 0.85f, 1.10f, 1.20f); }
     public float fluxCapacityMult() { return combat(RefitTrack.FLUX, 0.80f, 1.15f, 1.30f); }

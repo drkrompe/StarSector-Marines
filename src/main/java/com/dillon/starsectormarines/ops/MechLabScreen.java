@@ -132,6 +132,7 @@ public final class MechLabScreen implements Screen {
             viewModel = new MechLabViewModel(reactor, roster.mechBay(),
                     new CampaignFabricationResources(true), this::syncGantryScene,
                     CampaignClock::dayFloat, ShipRefits::aboard);
+            viewModel.reserve(roster.reserveHangar(), () -> ShipRefits.aboard().reserveCapacity());
             viewModel.physicalGantries(berths().size());
             syncGantryScene();
             resetCamera(false);
@@ -231,6 +232,7 @@ public final class MechLabScreen implements Screen {
         props.put("scrapLabel", viewModel.scrapLabel());
         props.put("scrapClasses", viewModel.scrapClasses());
         props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putReserveProps(props);
         viewModel.putBuildPanelProps(props);
         props.put("performanceMeters", viewModel.performanceMeters());
         viewModel.putInternalProps(props);

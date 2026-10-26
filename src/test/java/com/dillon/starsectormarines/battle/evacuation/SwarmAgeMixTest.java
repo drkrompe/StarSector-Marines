@@ -43,7 +43,7 @@ class SwarmAgeMixTest {
         SwarmReinforcementSystem director = new SwarmReinforcementSystem(new CivilianEvacuationTracker());
         SwarmBore fed = new SwarmBore(1, false, 1L, 0, 0, 0, 1f);
         fed.feed(20f, 0);
-        List<SwarmReinforcementSystem.Planned> pulse = director.plan(fed, 0, 20f, true);
+        List<SwarmReinforcementSystem.Planned> pulse = director.plan(fed, 0, 20f, true, false);
         float weight = 0f;
         for (SwarmReinforcementSystem.Planned body : pulse) weight += body.weight();
         assertTrue(weight >= 20f, "the pulse fills its budget in weight");

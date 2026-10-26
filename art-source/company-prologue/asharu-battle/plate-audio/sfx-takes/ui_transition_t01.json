@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "17",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Short digital computer interface transition: a quick clean electronic sweep with soft data blips, 1990s science fiction terminal, no whoosh, no music",
+    "duration_seconds": 1.5,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "c5acedb0de155dd820e94c1beadb640087c0587acc9d65faff8e9fdec159d3ee",
+  "durationSeconds": 1.48,
+  "peakDb": -0.0,
+  "integratedLufs": -11.7
+}

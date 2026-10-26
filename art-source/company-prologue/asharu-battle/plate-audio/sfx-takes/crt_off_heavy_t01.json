@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "28",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A heavy old CRT display switching off: a relay clunk, a low electrical thump and a short descending tone dying away, no music",
+    "duration_seconds": 2.5,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "43713480b0e49ba749cef3da3f6942a20be518072da0c7a4a91dca26e1451285",
+  "durationSeconds": 2.48,
+  "peakDb": -0.4,
+  "integratedLufs": -5.2
+}

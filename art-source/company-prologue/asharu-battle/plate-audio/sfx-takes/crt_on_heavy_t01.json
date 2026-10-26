@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "38",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A heavy old industrial CRT display switching on: a deep relay clunk, a resonant degauss boing that wobbles and decays, then a quiet steady electrical hum, no music",
+    "duration_seconds": 3.5,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "d7ad0cb8ff1557b84e32f4d78309e2e5f4f0a737570f7f85cfc3fe36ef8d0c8c",
+  "durationSeconds": 3.48,
+  "peakDb": -0.1,
+  "integratedLufs": -17.5
+}

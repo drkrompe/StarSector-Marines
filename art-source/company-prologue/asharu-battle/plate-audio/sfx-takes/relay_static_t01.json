@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "110",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Radio receiver static: steady soft hiss with faint crackle and slow interference warble, narrow band like an old radio, no voices, no music",
+    "duration_seconds": 10.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "b6830e49d11dbee62e48b47bce0fbf936d28e7954855e8714ef5fe51808c9354",
+  "durationSeconds": 10.0,
+  "peakDb": -8.0,
+  "integratedLufs": -19.8
+}

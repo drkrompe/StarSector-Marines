@@ -35,6 +35,8 @@ public final class BattleCamera {
     private float zoom = 1f;
     private float panCellX;
     private float panCellY;
+    /** The screen's top-right corner the HUD rail covers, from this x rightward and this y upward. */
+    private float coverLeft = Float.POSITIVE_INFINITY, coverBottom = Float.POSITIVE_INFINITY;
 
     public BattleCamera(int worldCellsW, int worldCellsH) {
         this.worldCellsW = worldCellsW;
@@ -57,6 +59,18 @@ public final class BattleCamera {
         this.baseCellSize = baseCellSize;
         clampPan();
     }
+
+    /**
+     * Records the top-right screen corner the HUD rail covers, so world labels can stay out from under it. Infinity on
+     * either axis means nothing is covered.
+     */
+    public void coverTopRight(float left, float bottom) {
+        coverLeft = left;
+        coverBottom = bottom;
+    }
+
+    public float coverLeft()   { return coverLeft; }
+    public float coverBottom() { return coverBottom; }
 
     public float cellPxSize()  { return baseCellSize * zoom; }
     public float zoom()        { return zoom; }

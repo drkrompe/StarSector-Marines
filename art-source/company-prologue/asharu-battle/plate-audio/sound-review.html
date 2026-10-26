@@ -1,0 +1,226 @@
+<title>Asharu Plate Sound</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a sticky picture at the top; below it one card per sound family, each with its places
+   (jump chips) and its options (play in context, approve, deny), then a note. One dark look on
+   purpose: the plates are a phosphor terminal, and the review sits beside them. */
+:root {
+  --bg: #110c09; --panel: #1b1410; --line: #3a2a1f; --fg: #eadbcc; --dim: #a8927e;
+  --accent: #ff8a2a; --accent-ink: #1a0f06; --ok: #7fd18c; --no: #ff6b5b;
+  --display: "Chakra Petch", "Bahnschrift", "Arial Narrow", sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+  color-scheme: dark;
+}
+body { background: var(--bg); color: var(--fg); font: 15px/1.5 var(--body); margin: 0; }
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 10; background: var(--bg); }
+.wrap { max-width: 1040px; margin: 0 auto; padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); padding-block: 20px 64px; display: grid; gap: 20px; }
+header { display: grid; gap: 6px; }
+h1 { font: 600 clamp(24px, 4vw, 32px)/1.1 var(--display); letter-spacing: .04em; text-transform: uppercase; margin: 0; text-wrap: balance; }
+h1 span { color: var(--accent); }
+.lede { color: var(--dim); max-width: 68ch; margin: 0; }
+.status { font: 500 12px/1.4 var(--mono); color: var(--dim); display: flex; flex-wrap: wrap; gap: 6px 16px; }
+.status b { color: var(--fg); font-weight: 500; }
+.player { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5; background: var(--bg); padding-block: 8px; display: grid; gap: 8px; border-bottom: 1px solid var(--line); }
+.player video { width: 100%; max-width: 100%; aspect-ratio: 16 / 9; max-height: 52vh; background: #000; border-radius: 4px; display: block; }
+.bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.tabs { display: flex; gap: 4px; }
+.tab { font: 600 13px var(--display); letter-spacing: .08em; padding: 6px 12px; border: 1px solid var(--line); background: var(--panel); color: var(--dim); border-radius: 3px; cursor: pointer; }
+.tab[aria-pressed="true"] { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); }
+.now { font: 12px/1.4 var(--mono); color: var(--dim); flex: 1 1 260px; min-width: 0; }
+.now b { color: var(--accent); font-weight: 500; }
+.btn { font: 500 13px var(--body); padding: 6px 12px; border-radius: 3px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; }
+.btn:hover { border-color: var(--accent); }
+button:focus-visible, textarea:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.fam { background: var(--panel); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 12px; }
+.fam.done { border-color: color-mix(in srgb, var(--ok) 45%, var(--line)); }
+.fam-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.fam h2 { font: 600 19px/1.2 var(--display); letter-spacing: .05em; text-transform: uppercase; margin: 0; }
+.tag { font: 500 11px var(--mono); letter-spacing: .06em; text-transform: uppercase; color: var(--dim); }
+.tag.ok { color: var(--ok); }
+.about { color: var(--dim); margin: 0; max-width: 72ch; }
+.label { font: 500 11px var(--mono); letter-spacing: .08em; text-transform: uppercase; color: var(--dim); margin: 0 0 6px; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { font: 12px/1.3 var(--body); text-align: left; padding: 5px 9px; border-radius: 3px; border: 1px solid var(--line); background: var(--bg); color: var(--fg); cursor: pointer; max-width: 100%; }
+.chip .tc { font: 500 12px var(--mono); color: var(--accent); margin-right: 6px; font-variant-numeric: tabular-nums; }
+.chip[aria-current="true"] { border-color: var(--accent); }
+.opts { display: grid; gap: 6px; }
+.opt { display: grid; grid-template-columns: auto 1fr auto; gap: 10px; align-items: center; padding: 8px 10px; border: 1px solid var(--line); border-radius: 4px; background: var(--bg); }
+.opt.playing { border-color: var(--accent); }
+.key { font: 600 15px var(--display); width: 28px; height: 28px; display: grid; place-items: center; border-radius: 3px; background: var(--line); color: var(--fg); }
+.opt.approve .key { background: var(--ok); color: var(--accent-ink); }
+.opt.deny .key { background: var(--no); color: var(--accent-ink); }
+.opt-text { min-width: 0; display: grid; gap: 2px; }
+.opt-text .cur { font: 500 11px var(--mono); color: var(--accent); letter-spacing: .06em; text-transform: uppercase; }
+.acts { display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; }
+.v { font: 500 12px var(--body); padding: 5px 10px; border-radius: 3px; border: 1px solid var(--line); background: var(--panel); color: var(--dim); cursor: pointer; }
+.v.play { color: var(--fg); }
+.v[data-v="approve"][aria-pressed="true"] { background: var(--ok); color: var(--accent-ink); border-color: var(--ok); }
+.v[data-v="deny"][aria-pressed="true"] { background: var(--no); color: var(--accent-ink); border-color: var(--no); }
+textarea { width: 100%; box-sizing: border-box; min-height: 56px; resize: vertical; font: 14px/1.45 var(--body); color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 4px; padding: 8px 10px; }
+@media (max-width: 560px) {
+  .opt { grid-template-columns: auto 1fr; }
+  .acts { grid-column: 1 / -1; justify-content: flex-start; }
+}
+@media (prefers-reduced-motion: reduce) { * { scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+  <header>
+    <h1>Asharu <span>plate sound</span></h1>
+    <p class="lede">The sound for the recording plates, S0 and S13. Each card is one kind of sound. Tap a place to hear it from just before it plays. Play hears it in the full mix; Play solo hears that sound alone, with the picture. Where there are options, play each one in the same place, then approve or deny it and add a note. Everything saves as you go and goes back to the session.</p>
+    <div class="status"><span><b id="n-done">0</b> of <b id="n-all">0</b> cards answered</span><span id="store">Connecting to saved answers…</span></div>
+  </header>
+
+  <div class="player">
+    <video id="vid" playsinline controls preload="metadata" src="media/s0.mp4"></video>
+    <div class="bar">
+      <div class="tabs" role="group" aria-label="Shot">
+        <button type="button" class="tab" data-shot="s0" aria-pressed="true">S0 opening</button>
+        <button type="button" class="tab" data-shot="s13" aria-pressed="false">S13 closing</button>
+      </div>
+      <div class="now" id="now">Playing the <b>current mix</b>.</div>
+      <button type="button" class="btn" id="back" hidden>Back to the current mix</button>
+    </div>
+  </div>
+  <audio id="alt" preload="auto"></audio>
+
+  <main id="list" style="display:grid;gap:16px"></main>
+</div>
+
+<script>
+const FAMILIES = __FAMILIES__;
+const PRE = 1.5;
+const $ = id => document.getElementById(id);
+const esc = s => String(s ?? "").replace(/[&<>"]/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const tc = t => { const m = Math.floor(t / 60), s = (t - m * 60).toFixed(1).padStart(4, "0"); return m + ":" + s; };
+const answers = {};            // family id -> {options: {key: "approve"|"deny"}, note}
+const pending = {};
+const sel = {};                // family id -> index of the place picked to listen at
+let db = null, local = false, shot = "s0", playing = null;   // playing: {fam, key} when an option's track runs
+const vid = $("vid"), alt = $("alt");
+const LKEY = "asharu-plate-sound";
+
+function answered(f) { const a = answers[f.id] || {}; return Object.keys(a.options || {}).length > 0 || !!(a.note || "").trim(); }
+
+function render() {
+  $("list").innerHTML = FAMILIES.map(f => {
+    const a = answers[f.id] || {}, i = sel[f.id] ?? 0;
+    const opts = f.options.length ? f.options : [{key: "now", label: "As it is in the current mix", current: true}];
+    return `<section class="fam${answered(f) ? " done" : ""}" id="f-${f.id}">
+      <div class="fam-head"><h2>${esc(f.title)}</h2><span class="tag${answered(f) ? " ok" : ""}">${answered(f) ? "Answered" : f.options.length ? f.options.length + " options" : "One sound"}</span></div>
+      <p class="about">${esc(f.about)}</p>
+      <div><p class="label">Where it plays · tap to jump</p><div class="chips">${f.cues.map((c, j) =>
+        `<button type="button" class="chip" data-f="${f.id}" data-i="${j}" aria-current="${j === i}"><span class="tc">${c.shot.toUpperCase()} ${tc(c.t)}</span>${esc(c.label)}</button>`).join("")}</div></div>
+      <div><p class="label">${f.options.length ? "Options · played at the place picked above" : "Verdict"}</p><div class="opts">${opts.map(o => {
+        const v = (a.options || {})[o.key] || "";
+        return `<div class="opt ${v}${playing && playing.fam === f.id && (playing.key || "now") === o.key ? " playing" : ""}">
+          <span class="key">${esc(o.key === "now" ? "·" : o.key)}</span>
+          <span class="opt-text"><span>${esc(o.label)}</span>${o.current && f.options.length ? `<span class="cur">In the current mix</span>` : ""}</span>
+          <span class="acts">
+            <button type="button" class="v play" data-play="${f.id}" data-k="${esc(o.key)}">Play</button>
+            <button type="button" class="v play" data-play="${f.id}" data-k="${esc(o.key)}" data-solo="1">Play solo</button>
+            <button type="button" class="v" data-vf="${f.id}" data-k="${esc(o.key)}" data-v="approve" aria-pressed="${v === "approve"}">Approve</button>
+            <button type="button" class="v" data-vf="${f.id}" data-k="${esc(o.key)}" data-v="deny" aria-pressed="${v === "deny"}">Deny</button>
+          </span></div>`; }).join("")}</div></div>
+      <textarea id="n-${f.id}" placeholder="Notes: what to change, what it should sound like" aria-label="Notes on ${esc(f.title)}">${esc(a.note || "")}</textarea>
+    </section>`;
+  }).join("");
+  $("n-all").textContent = FAMILIES.length;
+  $("n-done").textContent = FAMILIES.filter(answered).length;
+}
+
+function setShot(s) {
+  if (s === shot) return Promise.resolve();
+  shot = s;
+  document.querySelectorAll(".tab").forEach(b => b.setAttribute("aria-pressed", b.dataset.shot === s));
+  return new Promise(res => { vid.addEventListener("loadedmetadata", res, {once: true}); vid.src = "media/" + s + ".mp4"; vid.load(); });
+}
+function current(f) { return f.cues[sel[f.id] ?? 0]; }
+function mix() {
+  playing = null; alt.pause(); alt.removeAttribute("src"); vid.muted = false;
+  $("now").innerHTML = "Playing the <b>current mix</b>."; $("back").hidden = true;
+}
+async function play(f, key, solo) {
+  const c = current(f);
+  await setShot(c.shot);
+  const start = Math.max(0, c.t - PRE);
+  const opt = f.options.find(o => o.key === key);
+  vid.pause();
+  if (opt || solo) {
+    playing = {fam: f.id, key, solo: !!solo};
+    alt.src = solo ? `media/solo-${c.shot}-${f.id}${opt ? "-" + key : ""}.mp3` : `media/${c.shot}-${f.id}-${key}.mp3`;
+    vid.muted = true;
+    await new Promise(res => { alt.addEventListener("loadedmetadata", res, {once: true}); alt.load(); });
+    alt.currentTime = start; vid.currentTime = start;
+    $("now").innerHTML = `Playing <b>${esc(f.title)}</b>${opt ? `, option <b>${esc(key)}</b>: ${esc(opt.label)}` : ""}${solo ? " <b>solo</b>, nothing else in the mix" : " in the full mix"}.`;
+    $("back").hidden = false;
+    try { await Promise.all([vid.play(), alt.play()]); } catch {}
+  } else {
+    mix(); vid.currentTime = start;
+    $("now").innerHTML = `Playing the <b>current mix</b> at ${esc(c.label)}.`;
+    try { await vid.play(); } catch {}
+  }
+  render();
+}
+vid.addEventListener("timeupdate", () => { if (playing && Math.abs(alt.currentTime - vid.currentTime) > .12) alt.currentTime = vid.currentTime; });
+vid.addEventListener("pause", () => { if (playing) alt.pause(); });
+vid.addEventListener("play", () => { if (playing) { alt.currentTime = vid.currentTime; alt.play().catch(() => {}); } });
+vid.addEventListener("seeked", () => { if (playing) alt.currentTime = vid.currentTime; });
+
+async function write(id) {
+  const v = answers[id];
+  if (local || !db) { try { localStorage.setItem(LKEY, JSON.stringify(answers)); } catch {} return; }
+  pending[id] = (pending[id] || 0) + 1;
+  try {
+    const ref = db.doc("verdicts/" + id);
+    if (v && (Object.keys(v.options || {}).length || (v.note || "").trim()))
+      await ref.set({options: v.options || {}, note: v.note || "", at: new Date().toISOString()});
+    else await ref.delete();
+  } catch (e) {
+    $("store").textContent = "Couldn't save that. Check the connection and try again.";
+  } finally { pending[id]--; }
+}
+
+document.addEventListener("click", e => {
+  const t = e.target.closest("button"); if (!t) return;
+  if (t.id === "back") { mix(); render(); return; }
+  if (t.dataset.shot) { mix(); setShot(t.dataset.shot); return; }
+  if (t.classList.contains("chip")) {
+    const f = FAMILIES.find(x => x.id === t.dataset.f); sel[f.id] = +t.dataset.i;
+    play(f, playing && playing.fam === f.id ? playing.key : null, playing && playing.fam === f.id && playing.solo); return;
+  }
+  if (t.dataset.play) { const f = FAMILIES.find(x => x.id === t.dataset.play); play(f, t.dataset.k === "now" ? null : t.dataset.k, !!t.dataset.solo); return; }
+  if (t.dataset.vf) {
+    const id = t.dataset.vf, k = t.dataset.k, v = t.dataset.v;
+    const a = answers[id] = {...(answers[id] || {}), options: {...((answers[id] || {}).options || {})}};
+    if (a.options[k] === v) delete a.options[k]; else a.options[k] = v;
+    render(); write(id);
+  }
+});
+const timers = {};
+document.addEventListener("input", e => {
+  if (!e.target.id.startsWith("n-")) return;
+  const id = e.target.id.slice(2);
+  answers[id] = {...(answers[id] || {}), note: e.target.value};
+  clearTimeout(timers[id]); timers[id] = setTimeout(() => { write(id); $("n-done").textContent = FAMILIES.filter(answered).length; }, 700);
+});
+
+try { Object.assign(answers, JSON.parse(localStorage.getItem(LKEY) || "{}")); } catch {}
+render();
+(async () => {
+  db = await (window.claude?.use?.("db") ?? null);
+  if (!db) { local = true; $("store").textContent = "Saved answers aren't available in this view, so they stay in this browser only."; return; }
+  for (const k of Object.keys(answers)) delete answers[k];
+  db.collection("verdicts").onSnapshot(snap => {
+    const editing = document.activeElement?.id?.startsWith("n-") ? document.activeElement.id.slice(2) : null;
+    const keep = k => k === editing || pending[k] > 0;
+    for (const k of Object.keys(answers)) if (!keep(k)) delete answers[k];
+    snap.docs.forEach(d => { if (!keep(d.id)) answers[d.id] = d.data(); });
+    $("store").textContent = "Answers save as you go and go back to the session.";
+    if (!editing) render(); else $("n-done").textContent = FAMILIES.filter(answered).length;
+  }, () => { $("store").textContent = "Lost the connection to saved answers. Reload the page to reconnect."; });
+})();
+</script>
