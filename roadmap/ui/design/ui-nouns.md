@@ -612,6 +612,8 @@ friendly infantry squad attaches them to it; the cursor reads ATTACH.
 
 Selected player members wear green ground circles, the exact primary wears
 gold, and hovering a player member previews its squad with lighter circles. A
+mech's circle rings its drawn silhouette, not its body radius, so the chassis
+does not cover it. A
 Mech attached to a selected or hovered squad is circled with it, and a faint
 tether joins each attached Mech to its squad's centre while either is selected
 or hovered. Vehicles in a group selection wear the same circles.

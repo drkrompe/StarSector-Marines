@@ -23,7 +23,11 @@ import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.ui.highlight.SquadMoveOrderHighlightPublisher;
 import com.dillon.starsectormarines.battle.ui.picking.SelectionOrders;
 import com.dillon.starsectormarines.battle.ui.picking.Selection;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.squad.DigInSystem;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
@@ -46,7 +50,8 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         return List.of(renderSelection(context, true), renderSelection(context, false),
-                renderFightingPositions(context), renderLine(context, false), renderLine(context, true));
+                renderFightingPositions(context), renderLine(context, false), renderLine(context, true),
+                renderAttached(context), renderMixedGroup(context, false), renderMixedGroup(context, true));
     }
 
     private SnapshotArtifact renderSelection(SnapshotContext context, boolean group) throws Exception {
@@ -211,6 +216,87 @@ public final class SelectionSnapshotSuite implements SnapshotSuite {
         } finally {
             DigInSystem.setEnabledForEvidence(previous);
         }
+    }
+
+    /**
+     * A squad on the march with a Hound and a Warden attached, the squad selected: both mechs walk
+     * behind it out of contact, ringed with it and tethered to it ({@code mechs-nouns.md}, attachment).
+     */
+    private SnapshotArtifact renderAttached(SnapshotContext context) throws Exception {
+        SceneWorld world = SceneBuilder.openGround(64, 36)
+                .squad("alpha").size(6).inFile(22, 16, 0, 1).done()
+                .squad("hound").size(1).at(12, 14).mech(MechVariant.HOUND, MechRole.ASSAULT).done()
+                .squad("warden").size(1).at(12, 22).mech(MechVariant.WARDEN, MechRole.LR_SUPPORT).done()
+                .squad("enemy").faction(Faction.DEFENDER).size(2).inFile(62, 34, 1, 0).done()
+                .build();
+        try (BattleSimulation sim = world.sim()) {
+            int alpha = world.squadId("alpha");
+            sim.getMechAttachmentService().requestAttach(world.squadId("hound"), alpha);
+            sim.getMechAttachmentService().requestAttach(world.squadId("warden"), alpha);
+            Selection selection = new Selection();
+            selection.selectSquad(alpha);
+            SelectionOrders.requestMove(sim, selection, 50, 18);
+            for (int i = 0; i < 300; i++) sim.advance(1f / 30f);
+            HighlightOverlay highlights = new HighlightOverlay();
+            SquadMoveOrderHighlightPublisher.publish(selection, sim, highlights);
+            sim.getFogOfWar().tick(0, sim.getRoster());
+            return new SnapshotArtifact("attached-mechs-march.png",
+                    renderWorld(context, sim, highlights, selection));
+        }
+    }
+
+    /**
+     * A box-selected group of a squad, a free Bulwark and an APC: while a right-drag is held, each
+     * recipient's stretch of the line marked; after a group click, the three standing spread round
+     * it rather than on one cell.
+     */
+    private SnapshotArtifact renderMixedGroup(SnapshotContext context, boolean moved) throws Exception {
+        SceneWorld world = SceneBuilder.openGround(64, 36)
+                .squad("alpha").size(6).inFile(14, 14, 1, 0).done()
+                .squad("bulwark").size(1).at(12, 20).mech(MechVariant.BULWARK, MechRole.BALANCED).done()
+                .squad("enemy").faction(Faction.DEFENDER).size(2).inFile(62, 34, 1, 0).done()
+                .build();
+        try (BattleSimulation sim = world.sim()) {
+            long apc = sim.convoy().spawn(VehicleType.HEAVY_APC, Faction.MARINE, VehicleMission.deployed(16f, 25f));
+            sim.convoy().body(apc).teleport(16f, 25f, 0f);
+            Selection selection = new Selection();
+            selection.selectGroup(List.of(world.squadId("alpha"), world.squadId("bulwark")), List.of(apc),
+                    world.squadId("alpha"), 0L, 0L, false);
+            HighlightOverlay highlights = new HighlightOverlay();
+            if (moved) {
+                SelectionOrders.requestMove(sim, selection, 44, 18);
+                for (int i = 0; i < 1200; i++) sim.advance(1f / 30f);
+            } else {
+                highlights.putLines(HighlightOverlay.SRC_SQUAD_LINE_PREVIEW,
+                        SelectionOrders.previewMarks(sim, selection, 40, 8, 40, 30));
+            }
+            sim.getFogOfWar().tick(0, sim.getRoster());
+            return new SnapshotArtifact(moved ? "mixed-group-moved.png" : "mixed-group-line-preview.png",
+                    renderWorld(context, sim, highlights, selection));
+        }
+    }
+
+    /** The battle scene alone at 1920x1080, 64 cells across. */
+    private static BufferedImage renderWorld(SnapshotContext context, BattleSimulation sim,
+                                             HighlightOverlay highlights, Selection selection) throws Exception {
+        HeadlessUiRenderer renderer = new HeadlessUiRenderer(
+                HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
+                new HeadlessBattleSceneRenderer(context.modRoot(), true));
+        BattleCamera camera = new BattleCamera(64, 36);
+        camera.setViewport(0, 0, 1920, 1080, 1920 / 64f);
+        BattleSceneHostPass pass = new BattleSceneHostPass() {
+            @Override public BattleSceneFrame prepare(CanvasHostViewport viewport, float alpha) {
+                return new BattleSceneFrame(new RenderContext(sim, camera, null,
+                        alpha, 0, false, highlights, selection,
+                        BattleRenderHostProfile.EMBEDDED_SCENE),
+                        EnumSet.of(RenderLayer.GROUND, RenderLayer.HIGHLIGHTS, RenderLayer.UNITS,
+                                RenderLayer.CONVOY));
+            }
+            @Override public void draw(CanvasHostViewport viewport, float alpha) {
+                throw new IllegalStateException("Headless evidence only");
+            }
+        };
+        return renderer.renderHostPass(pass, 1920, 1080);
     }
 
     private static void dig(BattleSimulation sim, int x0, int x1, int y) {

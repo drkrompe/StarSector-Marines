@@ -230,7 +230,7 @@
     background-color: transparent;
     background-image: linear-gradient(to right, #c3cec91c 0%, #c3cec90a 60%, #c3cec900 100%);
   }
-  .lift-kind { width: 40px; height: 14px; color: #a0ada8; }
+  .lift-kind { width: 48px; height: 14px; color: #a0ada8; }
   .lift-name { width: 0px; flex-grow: 1; height: 14px; color: #c5d1df; }
   .lift-eta { width: 64px; height: 14px; text-align: right; color: #ffd464; }
   .lift-air .lift-kind { color: #78d494; }
