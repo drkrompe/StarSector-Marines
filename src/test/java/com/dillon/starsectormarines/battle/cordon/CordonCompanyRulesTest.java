@@ -111,20 +111,21 @@ class CordonCompanyRulesTest {
     }
 
     @Test
-    void aWalkingSquadStallsOnlyWhenItStopsClosingTheWay() {
+    void aWalkingSquadStallsOnlyWhenItStopsGoing() {
         CordonCompanyRules.Progress progress = new CordonCompanyRules.Progress();
         int stall = CordonCompanyRules.STALL_TICKS;
-        assertFalse(progress.stalled(1, "beat-0", 90, false, 0));
-        assertFalse(progress.stalled(1, "beat-0", 85, false, stall - 1));
-        assertTrue(progress.stalled(1, "beat-0", 85, false, stall));
-        // Closing the way, standing on the duty or riding to it each start the watch afresh.
-        assertFalse(progress.stalled(2, "beat-0", 90, false, 0));
-        assertFalse(progress.stalled(2, "beat-0", 70, false, stall - 1));
-        assertFalse(progress.stalled(2, "beat-0", 70, false, 2 * stall - 2));
-        assertFalse(progress.stalled(3, "relieve-1", 5, false, 0));
-        assertFalse(progress.stalled(3, "relieve-1", 5, false, 3 * stall));
-        assertFalse(progress.stalled(4, "beat-0", 90, true, 0));
-        assertFalse(progress.stalled(4, "beat-0", 90, true, 3 * stall));
+        assertFalse(progress.stalled(1, "beat-0", 0, 0, 90, false, 0));
+        assertFalse(progress.stalled(1, "beat-0", 0, 5, 85, false, stall - 1));
+        assertTrue(progress.stalled(1, "beat-0", 0, 5, 85, false, stall));
+        // Walking after an escort cell that runs ahead of it, never nearer, is going.
+        assertFalse(progress.stalled(2, "convoy-0", 0, 0, 40, false, 0));
+        assertFalse(progress.stalled(2, "convoy-0", 0, 12, 45, false, stall - 1));
+        assertFalse(progress.stalled(2, "convoy-0", 0, 24, 50, false, 2 * stall - 2));
+        // Standing on the duty or riding to it never stalls.
+        assertFalse(progress.stalled(3, "relieve-1", 0, 0, 5, false, 0));
+        assertFalse(progress.stalled(3, "relieve-1", 0, 0, 5, false, 3 * stall));
+        assertFalse(progress.stalled(4, "beat-0", 0, 0, 90, true, 0));
+        assertFalse(progress.stalled(4, "beat-0", 0, 0, 90, true, 3 * stall));
     }
 
     @Test
@@ -148,6 +149,9 @@ class CordonCompanyRulesTest {
         assertFalse(CordonCompanyRules.liftWorth(CordonPlan.Density.URBAN, 0, 0, 150, 0, 10, 0));
         assertFalse(CordonCompanyRules.liftWorth(CordonPlan.Density.TOWN, 0, 0, 80, 0, 10, 0));
         assertFalse(CordonCompanyRules.liftWorth(CordonPlan.Density.TOWN, 0, 0, 150, 0, 200, 0));
+        // Fifty cells back to the base for a hundred and fifty out walks as far as the duty, for nothing.
+        assertFalse(CordonCompanyRules.liftWorth(CordonPlan.Density.TOWN, 0, 0, 100, 0, -50, 0));
+        assertTrue(CordonCompanyRules.liftWorth(CordonPlan.Density.TOWN, 0, 0, 150, 0, -20, 0));
     }
 
     @Test

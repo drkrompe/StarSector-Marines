@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.probe;
 
+import com.dillon.starsectormarines.battle.command.CommandDirective;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.allied.SupplyDelivery;
@@ -75,7 +76,7 @@ import java.util.Set;
  *                                         recorded hits, oldest first (limit keeps the newest N, default 50)
  *   hits-by attacker|target [same filters]
  *                                         recorded hits grouped by the other side's label: count, damage, kills
- *   squads [label=TEXT]                   every squad with members alive: size, leader position, assignment
+ *   squads [label=TEXT]                   every squad with members alive: size, leader position, assignment and its reason
  *   path ID [count=N]                     a unit's next N waypoints (default 6): cell, tags, step walkable
  *   members SQUAD                         each member of a squad: position, cell, velocity, waypoints left
  *   watch ID[,ID...] N [every=K]          step N ticks, one line per body every K: position, route cursor and next
@@ -580,6 +581,8 @@ public final class BattleProbe {
                 .put("authority", String.valueOf(squad.assignedAuthority))
                 .put("assignment", squad.assignedObjective == null ? JSONObject.NULL : assignment(squad.assignedObjective))
                 .put("alert", String.valueOf(squad.alertLevel));
+        CommandDirective directive = sim.getCommanderService().activeDirective(squad.id);
+        row.put("reason", directive == null ? JSONObject.NULL : directive.reason());
         long leader = squad.leaderId;
         put(row, "leader", () -> leader == 0 ? JSONObject.NULL : brief(leader));
         row.put("goal", squad.currentGoal == null ? JSONObject.NULL : squad.currentGoal.name())
