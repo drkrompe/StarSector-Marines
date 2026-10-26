@@ -82,7 +82,7 @@ def segments(keyframes):
     for kf, spec in keyframes.items():
         a, _, b = spec['shot'].partition('-')
         ids = order[order.index(a):order.index(b or a) + 1]
-        span[a] = (kf, ids)
+        span.setdefault(a, (kf, ids))     # the shot's own key frame, not a still copied from it (k6c)
     covered = {i for _, ids in span.values() for i in ids}
     segs = []
     for r in rows:
@@ -502,16 +502,18 @@ def shot(L, kf):
                 mw = M(key, t)
                 return [mw @ (o * (.25 + age / 1.4)) for o in offs]
             mp.dots(name, flare, 'flare', n=10, size_px=4)
-    for i, (drone, tgt, t0, t1, side) in enumerate(spec.get('rakes', ())):
+    for i, (drone, tgt, t0, t1, side, *local) in enumerate(spec.get('rakes', ())):
         # a Borer's mining laser (beam_t_ws001) swept along an attacker's hull as she passes: a beam
         # line from her nose to a point running stern-to-bow down the near side, sparks where it cuts
         if drone not in placed or tgt not in placed:
             continue
         half = placed[tgt]['length'] * .4
 
-        def cut(t, tgt=tgt, t0=t0, t1=t1, side=side, half=half):
+        def cut(t, tgt=tgt, t0=t0, t1=t1, side=side, half=half, local=local[0] if local else None):
             if not (t0 <= t <= t1):
                 return None
+            if local is not None:       # a skimming Borer's cut, given in the target's frame
+                return M(tgt, t) @ Vector(local(t))
             u = (t - t0) / max(t1 - t0, 1e-3)
             return M(tgt, t) @ Vector((half * (1 - 2 * u), side * half * .15, 0))
         nose = point(drone, (2.0, 0, 0))
@@ -532,6 +534,7 @@ def shot(L, kf):
 
     cam, ground = L['scene'].camera, L['ground']
     t_still = spec['camera'].get('t', t_key if t_key is not None else ts)
+    t_still = spec.get('ground_t', t_still)     # a take carried over a cut turns the planet from its first shot's time
 
     def per_frame(f, t):
         """The camera's move (motion.camera) and the planet turning under the co-moving frame."""

@@ -5,7 +5,7 @@ import com.dillon.starsectormarines.battle.power.BayManifest;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.LiftBudget;
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.battle.power.MechSupport;
+import com.dillon.starsectormarines.battle.power.ArmorDropPower;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
@@ -25,9 +25,9 @@ import java.util.function.Consumer;
 import java.util.function.IntConsumer;
 
 /**
- * Live, render-free projection for the MLX-authored command-power tray. While Mech Support
+ * Live, render-free projection for the MLX-authored command-power tray. While an armor drop
  * is armed it also projects the bay manifest's picker rows into chips: what each machine
- * is, and whether it is picked, available, already called, or why lift refuses it.
+ * is, and whether it is the pick, available, queued, already called, or why lift refuses it.
  */
 final class BattlePowerOverlayModel {
 
@@ -69,7 +69,7 @@ final class BattlePowerOverlayModel {
         this(reactor, targetingToggle, index -> { }, commodities);
     }
 
-    /** @param pickToggle toggles a bay-manifest entry in the armed Mech Support's pick */
+    /** @param pickToggle picks a bay-manifest entry for the armed armor drop */
     BattlePowerOverlayModel(Reactor reactor, Consumer<String> targetingToggle,
                             IntConsumer pickToggle, CommodityPresentation commodities) {
         this.targetingToggle = targetingToggle;
@@ -111,14 +111,13 @@ final class BattlePowerOverlayModel {
     }
 
     /**
-     * As above, with the armed Mech Support's picker rows (empty when another power, or
+     * As above, with the armed armor drop's picker rows (empty when another power, or
      * nothing, is armed).
      */
     Presentation update(CommandPowerService service, String targetingPowerId, boolean barrageLocked,
-                        List<MechSupport.PickerRow> pickerRows) {
+                        List<ArmorDropPower.PickerRow> pickerRows) {
         Presentation cards = updateCards(service, targetingPowerId, barrageLocked);
-        boolean picking = cards.targeting() && MechSupport.ID.equals(targetingPowerId);
-        return withPicker(cards, picking ? pickerRows : List.of());
+        return withPicker(cards, cards.targeting() ? pickerRows : List.of());
     }
 
     private Presentation updateCards(CommandPowerService service, String targetingPowerId,
@@ -194,15 +193,15 @@ final class BattlePowerOverlayModel {
      * Projects the armed power's picker rows into chips, after {@link #updateProjected};
      * empty rows hide the picker.
      */
-    Presentation withPicker(Presentation cards, List<MechSupport.PickerRow> rows) {
-        List<MechSupport.PickerRow> stable = rows == null ? List.of() : rows;
+    Presentation withPicker(Presentation cards, List<ArmorDropPower.PickerRow> rows) {
+        List<ArmorDropPower.PickerRow> stable = rows == null ? List.of() : rows;
         List<PickerChip> chips = new ArrayList<>(stable.size());
-        int picked = 0;
-        for (MechSupport.PickerRow row : stable) {
+        String picked = null;
+        for (ArmorDropPower.PickerRow row : stable) {
             BayManifest.Entry entry = row.entry();
             int index = entry.index();
-            if (row.selected()) picked++;
-            // A picked machine can always be dropped from the pick; anything else must be callable.
+            if (row.selected()) picked = entry.typeName();
+            // Only a machine that can be ordered now can be picked.
             boolean clickable = row.selected() || row.callable();
             Runnable action = pickActions.computeIfAbsent(index, i -> () -> pickToggle.accept(i));
             String chipId = "battle-power-pick-" + index;
@@ -219,21 +218,22 @@ final class BattlePowerOverlayModel {
         pickerChips.set(List.copyOf(chips));
         pickerClasses.set(picking ? PICKER_VISIBLE : PICKER_HIDDEN);
         targetingHint.set(Strings.get(picking ? "battlePickHint" : "battleTargetHint"));
-        if (picking) {
-            targetingLabel.set(Strings.format("battleTargetingPicked", targetingLabel.get(), picked, chips.size()));
+        if (picking && picked != null) {
+            targetingLabel.set(Strings.format("battleTargetingPicked", targetingLabel.get(), upper(picked)));
         }
         return new Presentation(cards.visible(), cards.powerCount(), cards.targeting(), chips.size());
     }
 
-    /** A chip's state line: a prior call or lift refusal, else whether it is in the pick. */
-    static String pickState(MechSupport.PickerRow row) {
-        if (row.called()) return Strings.get("battlePickCalled");
+    /** A chip's state line: queued, already called, a lift refusal, else whether it is the pick. */
+    static String pickState(ArmorDropPower.PickerRow row) {
+        if (row.status() == ArmorDropPower.Status.QUEUED) return Strings.get("battlePickQueued");
+        if (row.status() == ArmorDropPower.Status.CALLED) return Strings.get("battlePickCalled");
         LiftBudget.Refusal refusal = row.refusal();
         if (refusal != null) {
             return switch (refusal) {
                 case NO_LIFT -> Strings.format("battlePickNoLift", liftName(row.entry().weightClass()));
                 case LIFT_SPENT -> Strings.get("battlePickLiftSpent");
-                case CARRIER_AWAY -> Strings.get("battlePickCarrierAway");
+                case NO_CRAFT -> Strings.get("battlePickNoCraft");
             };
         }
         return Strings.get(row.selected() ? "battlePickSelected" : "battlePickAvailable");

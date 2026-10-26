@@ -57,14 +57,14 @@ class LiftAdmissionTest {
                 BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE,
                 BoatFitting.LIFT_CRADLE, "b1");
 
-        assertTrue(buffalo.machineOnly());
+        assertTrue(buffalo.cradled());
         assertTrue(LiftAdmission.check(MechVariant.HOUND.liftClass(), buffalo).admitted());
         assertEquals(LiftAdmission.Refusal.UNDER_RATED,
                 LiftAdmission.check(MechVariant.BULWARK.liftClass(), buffalo).refusal());
         assertEquals(LiftAdmission.Refusal.NO_LIFT,
                 LiftAdmission.check(MechVariant.HOUND.liftClass(),
                         FittedBoat.standard(ShuttleType.BUFFALO)).refusal());
-        assertFalse(FittedBoat.standard(ShuttleType.BUFFALO).machineOnly());
+        assertFalse(FittedBoat.standard(ShuttleType.BUFFALO).cradled());
         assertTrue(LiftAdmission.check(LiftClass.HEAVY, ShuttleType.VALKYRIE).admitted());
     }
 }

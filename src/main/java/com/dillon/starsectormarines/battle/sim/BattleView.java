@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.sim;
 
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
 import com.dillon.starsectormarines.battle.air.AirLoss;
+import com.dillon.starsectormarines.battle.air.LiftQueue;
 import com.dillon.starsectormarines.battle.squad.FrontageLine;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.power.MechDropService;
@@ -78,6 +79,9 @@ public interface BattleView {
 
     /** Every aircraft shot down so far, with what it was flying as. */
     default List<AirLoss> getAirLosses() { return List.of(); }
+
+    /** The player's lift queue of ferry sorties, or {@code null} for a view with no air. */
+    default LiftQueue liftQueue() { return null; }
 
     /** The company's command powers, or {@code null} where the view has none. */
     default CommandPowerService getCommandPowerService() { return null; }

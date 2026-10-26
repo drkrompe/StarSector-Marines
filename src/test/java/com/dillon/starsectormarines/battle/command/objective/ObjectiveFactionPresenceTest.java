@@ -29,7 +29,7 @@ class ObjectiveFactionPresenceTest {
                     case "pendingGroundArrivals" -> args[0] == Faction.MARINE ? pending.get() : 0;
                     case "getAirEntityIds" -> new long[0];
                     case "isCapturedStructure" -> false;
-                    case "world", "survivorPickup", "getCommandPowerService" -> null;
+                    case "world", "survivorPickup", "getCommandPowerService", "liftQueue" -> null;
                     default -> throw new AssertionError("Unexpected read: " + method.getName());
                 });
         assertTrue(ObjectiveFactionPresence.anyInPlay(view, Faction.MARINE));
@@ -55,7 +55,7 @@ class ObjectiveFactionPresenceTest {
                     case "getAirLosses" -> List.of();
                     case "isCapturedStructure" -> false;
                     case "getCommandPowerService" -> powers;
-                    case "world", "survivorPickup" -> null;
+                    case "world", "survivorPickup", "liftQueue" -> null;
                     default -> throw new AssertionError("Unexpected read: " + method.getName());
                 });
         assertFalse(ObjectiveFactionPresence.companyInPlay(view));

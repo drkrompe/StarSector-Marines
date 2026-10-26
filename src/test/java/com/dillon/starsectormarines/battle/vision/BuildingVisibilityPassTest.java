@@ -56,4 +56,23 @@ public class BuildingVisibilityPassTest {
         BuildingVisibilityPass.update(buildings, revealed, GW, GH);
         assertEquals(1f, buildings.get(1).targetAlpha, 0f, "only the building's own interior cells count");
     }
+
+    @Test
+    public void wallCellRevealed_roofLeavesTheFogButStaysClosed() {
+        Buildings buildings = oneBuilding();
+        boolean[] revealed = new boolean[GW * GH];
+        revealed[idx(7, 5)] = true; // the wall beside the floor, seen from outside
+        BuildingVisibilityPass.update(buildings, revealed, GW, GH);
+        assertEquals(1f, buildings.get(1).targetAlpha, 0f, "a seen wall does not open the roof");
+        assertEquals(0f, buildings.get(1).targetFog, 0f, "a seen wall lifts the roof out of fog");
+    }
+
+    @Test
+    public void nothingUnderTheRoofRevealed_roofLiesInFog() {
+        Buildings buildings = oneBuilding();
+        boolean[] revealed = new boolean[GW * GH];
+        revealed[idx(8, 5)] = true; // two cells off the floor: outside the roof
+        BuildingVisibilityPass.update(buildings, revealed, GW, GH);
+        assertEquals(1f, buildings.get(1).targetFog, 0f, "a roof nobody can see lies in fog");
+    }
 }

@@ -137,10 +137,11 @@ public record BoatFitting(
     }
 
     /**
-     * Whether a boat fitted with this flies machine-only sorties: a cradle
-     * takes the seats, so it carries one machine and no marines.
+     * Whether this is a cradle: a hold fitting that lets a bus-class boat lift one
+     * machine on a sortie. The seats stay, so the boat still ferries squads; one
+     * sortie carries one kind or the other.
      */
-    public boolean machineOnly() {
+    public boolean cradle() {
         return liftRating != LiftRating.NONE;
     }
 

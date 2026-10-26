@@ -4,7 +4,11 @@ Status: SHIPPED — retained UI foundation proven in-engine
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — damage doll beside the takeover status; SVG parts coloured per location.
+Updated: 2026-10-26 — the Lift Queue panel replaces the top-left command readout; the drop picker holds a placement pause; a box takes player vehicles too; a group click spreads round the click and a group
+drag lays every squad, mech and vehicle along the line; a mech attached to a selected squad is selected with
+it and follows its orders.
+
+Earlier 2026-10-20 — damage doll beside the takeover status; SVG parts coloured per location.
 
 Earlier 2026-09-01 — the shipboard-room shell carries a Boat Deck route, gated
 on the hangar the way the Mech Lab is gated on the vehicle bay.
@@ -576,34 +580,53 @@ the cropped map axis instead of shrinking to a centred map rectangle with dead b
 Primary world selection resolves on release. Motion within the pointer threshold
 remains the ordinary nearest-unit click, including defender inspection and empty-
 ground deselection. Crossing that threshold paints a bounded marquee and considers
-only live player infantry squads and combat Mechs; convoy vehicles, hostiles, and
-mission payloads are not drag candidates. Every intersecting squad joins one
-deduplicated selection. The member nearest the marquee center is the primary,
-with stable entity identity breaking ties; that primary drives the detail plate
-and exact-member controls. Shift-click and Shift-drag add player squads.
-An ordinary click replaces the group, and empty ground clears it. Losing a squad
-removes only that squad from the group.
+live player infantry squads, combat Mechs and the player's own visible vehicles;
+hostiles and mission payloads are not drag candidates. Everything intersecting
+joins one deduplicated **group selection**. The member or vehicle nearest the
+marquee center is the primary, with stable entity identity breaking ties; a squad
+among the group keeps the focus, and with it the detail plate and exact-member
+controls, so the vehicle plate shows only for a vehicle-only group. Shift-click
+and Shift-drag add player squads and vehicles; an ordinary click on a vehicle
+still selects it alone. An ordinary click replaces the group, and empty ground
+clears it. Losing a squad or a vehicle removes only it from the group.
 
-Right-click sends the shared destination to every selected squad through its
-existing order authority, including contextual infantry capture and transport
-assignments. A multi-squad selection sends Mech moves to each live chassis in
-its selected lances; a single exact Mech retains its individual move control.
-Each recipient independently validates the order. Group selection does not
-create a new formation, merge squads, or change mission authority. The contextual order bar
-shows the group count and each order’s scope; doctrine and lance
-coordination controls retain their explicit primary scopes.
+A group order's **recipients** are each selected infantry squad, each live chassis
+of the selected Mech squads, and each selected vehicle; a single exact Mech retains
+its individual move control. A Mech **attached** to a squad (`mechs-nouns.md`,
+attachment) that is also selected is not a recipient: it keeps its slot by that
+squad, which is what selection following attachment means. Selected without its
+squad it is one, and the direct order it receives detaches it. Right-click sends
+a lone recipient to the clicked cell. A group's **spread** gives each recipient its
+own cell instead of one shared one: a compact hex-packed cluster four cells apart
+round the click, each slot handed to the recipient whose place in the group's
+current layout best matches it, so the group keeps its rough shape, closed up,
+and nobody crosses it (`SelectionOrders.spreadSlots`). A click that means
+something particular to a recipient — a ride, a compound, a place to man, a place
+to assault or guard, its own unload — is taken by that recipient at the clicked
+cell as it would be alone. Each recipient's order crosses its own existing order
+authority and validates independently. Group selection does not create a new
+formation, merge squads, or change mission authority. The contextual order bar
+shows the group count and each order’s scope; doctrine controls retain their
+explicit primary scope. With player Mechs alone selected, right-clicking a
+friendly infantry squad attaches them to it; the cursor reads ATTACH.
 
 Selected player members wear green ground circles, the exact primary wears
-gold, and hovering a player member previews its squad with lighter circles.
+gold, and hovering a player member previews its squad with lighter circles. A
+Mech attached to a selected or hovered squad is circled with it, and a faint
+tether joins each attached Mech to its squad's centre while either is selected
+or hovered. Vehicles in a group selection wear the same circles.
 The rings follow rendered positions under the characters, not navigation cells,
 and yield to visibility, HUD chrome and direct control. Hostile inspection adds
 no cell highlight. The selected-squad diagnostics do not paint contact cells,
 captain cells or tactical direction traces.
-Player-facing Conquest command intent occupies the top-left opposite the top-right
-time/objective rail. When organizational groups are published, this bounded
-readout shows named leaders, deployed squad strength, task and regrouping state;
-additional groups are explicitly summarized rather than extending over the
-battlefield. Story sequences, territorial capture, sabotage, Raid, Extraction, civilian rescue
+The **Lift Queue** panel occupies the top-left opposite the top-right
+time/objective rail, within the bound the old command readout held: ferry craft
+in the air with their cargo and time to touchdown, then what waits (the ferry's
+remaining squad loads, then each queued machine drop with its estimate). Each
+queued or just-placed drop carries an X that cancels it; a craft in the air has
+none, and rows past the bound fold into a count. A queued drop also shows a
+marker on its landing ground. The drop picker holds a **placement pause** while it
+is open and gives back the pause state it found when it closes. Story sequences, territorial capture, sabotage, Raid, Extraction, civilian rescue
 (including Last Lift), and Silent Colony use a shared public mission picture: named objective branches, current step,
 completion conditions, measured progress, and observed blockers. The briefing,
 world beacons, and per-objective Locate action refer to the same authored places;
@@ -647,24 +670,30 @@ fire-team roster; its default cards expose health and equipment shorthand while
 hover reveals the marine's full primary, special equipment, suit system, profile,
 role, armour, and readiness without enlarging the persistent HUD. Selecting an
 exact live player Mech replaces that infantry roster with a compact Mech plate:
-variant, deployed doctrine, effective doctrine, the lance-wide Form on Lead or
-Free Reign order, Brawler, Tank, Long Range Support, and Balanced choices, plus
-Reset Doctrine. Tactical placement orders live in the separate bottom order bar. Tank is
-presentation shorthand for Frontline Support. Scope is
-visible beside the controls: the lance order affects the whole selected battle
-lance, Defend Area affects that whole lance's temporary assignment, and doctrine
-affects only the exact selected mech. The plate projects
+variant, deployed doctrine, effective doctrine, its **attachment** — the squad it
+follows, or that it is free, with DETACH — then Brawler, Tank, Long Range Support,
+and Balanced choices, plus Reset Doctrine. There is no lance-order control: player
+mechs move individually. Tactical placement orders live in the separate bottom
+order bar. Tank is presentation shorthand for Frontline Support. Scope is visible
+beside the controls: the attachment and doctrine affect only the selected mech,
+and Defend Area affects its squad's temporary assignment. The plate projects
 the simulation's effective state and sends serialized battle-command requests;
 it never mutates the squad, loadout, campaign default, assignment, or contact
 picture directly, and it is absent for enemies, infantry, rescue payloads, and
 stale selections. With that exact friendly Mech selected, a stationary
 right-click on world ground requests a one-shot tactical move; the simulation's
 resolved reachable destination remains simulation-owned without a persistent
-destination-cell overlay. Crossing the pointer threshold instead draws a line order for the selection
-(see `ai-nouns.md`, occupy), previewed while the button is held as a stroke with
-ticks toward its front and a dashed ring tethered to each marine where they will
-stand — green on a position, pale on open ground — rather than as highlighted
-cells; once released nothing stays drawn, since a standing stroke for every
+destination-cell overlay. For a lone Mech or vehicle, crossing the pointer threshold
+gives the move a held heading instead: it goes where the drag began and faces the
+way the drag went. For anything more it draws a **group line**: every recipient
+holds its own consecutive stretch of the line in recipient order, an infantry
+squad as a frontage (see `ai-nouns.md`, occupy) and a Mech or vehicle at its
+stretch's middle, facing the stretch's front; each stretch faces as an infantry
+line does, toward the threat its squad believes in, else away from where the
+recipient stands. It is previewed while the button is held as a stroke per
+stretch with ticks toward its front and a dashed ring where each marine, Mech or
+vehicle will stand — green on a position, pale on open ground — rather than as
+highlighted cells; once released nothing stays drawn, since a standing stroke for every
 selected line would be noise and the marines on their posts already show it;
 the camera pans by middle-drag, the keyboard, and resting the pointer on the
 window edge, and HUD chrome blocks the world

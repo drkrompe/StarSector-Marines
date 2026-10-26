@@ -487,10 +487,11 @@ public final class BoatDeckViewModel {
                         Strings.format("openingBoatDeckCellsS", number(fitted.maxSpeed())), fitted.maxSpeed(),
                         pattern.maxSpeed() * bestFactor(pattern, BoatFittingSlot.DRIVE, BoatFitting::speedFactor),
                         fitted.maxSpeed(), pattern.maxSpeed(), FittingMeter.ENGINE_TONE),
-                fitted.machineOnly()
+                fitted.cradled()
                         ? FittingMeter.of("boat-meter:seats", Strings.get("openingBoatDeckSeats"),
-                                Strings.format("boatDeckMachineOnly", LiftReadout.ratingName(fitted.liftRating())),
-                                0f, pattern.capacity)
+                                Strings.format("boatDeckSeatsAndLift", pattern.capacity,
+                                        LiftReadout.ratingName(fitted.liftRating())),
+                                pattern.capacity, pattern.capacity)
                         : FittingMeter.of("boat-meter:seats", Strings.get("openingBoatDeckSeats"),
                                 Strings.format("openingBoatDeckSeats2", pattern.capacity),
                                 pattern.capacity, pattern.capacity),

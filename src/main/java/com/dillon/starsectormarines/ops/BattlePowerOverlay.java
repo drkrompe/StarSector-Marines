@@ -1,6 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.power.MechSupport;
+import com.dillon.starsectormarines.battle.power.ArmorDropPower;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
 import com.dillon.starsectormarines.ui.retained.UiAlign;
@@ -28,7 +28,7 @@ final class BattlePowerOverlay {
             "data/ui/components/battle/battle-power-overlay.mlx";
     static final float DECK_HEIGHT = 64f;
     static final float TARGETING_HEIGHT = 88f;
-    /** Added above the targeting strip while Mech Support's bay picker is open. */
+    /** Added above the targeting strip while an armor drop's bay picker is open. */
     static final float PICKER_HEIGHT = 61f;
     private static final float CHIP_WIDTH = 128f;
     private static final float CHIP_GAP = 4f;
@@ -44,7 +44,7 @@ final class BattlePowerOverlay {
             path -> Global.getSettings().loadText(path), List.of(COMPONENT_PATH));
     private final BattlePowerOverlayModel model;
     private final Supplier<String> targetingPowerId;
-    private final Supplier<List<MechSupport.PickerRow>> pickerRows;
+    private final Supplier<List<ArmorDropPower.PickerRow>> pickerRows;
 
     private PositionAPI position;
     private UiViewport viewport;
@@ -61,12 +61,12 @@ final class BattlePowerOverlay {
     }
 
     /**
-     * @param pickerRows the armed Mech Support's bay manifest against its pick (empty otherwise)
+     * @param pickerRows the armed armor drop's bay manifest against its pick (empty otherwise)
      * @param pickToggle toggles one manifest entry in that pick
      */
     BattlePowerOverlay(Consumer<String> targetingToggle,
                        Supplier<String> targetingPowerId,
-                       Supplier<List<MechSupport.PickerRow>> pickerRows,
+                       Supplier<List<ArmorDropPower.PickerRow>> pickerRows,
                        IntConsumer pickToggle) {
         model = new BattlePowerOverlayModel(reactor, targetingToggle, pickToggle,
                 CampaignCommodityPresentation.INSTANCE);
