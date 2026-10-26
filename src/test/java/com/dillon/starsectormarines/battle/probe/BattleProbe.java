@@ -265,6 +265,8 @@ public final class BattleProbe {
                 .put("fixture", sim.getTopology().isFixture(x, y)).put("wallHp", g.getWallHp(x, y))
                 .put("surface", String.valueOf(sim.getTopology().getSurfaceId(x, y)))
                 .put("ground", String.valueOf(sim.getTopology().getGroundKind(x, y)))
+                .put("natureOverlay", sim.getTopology().getNatureOverlayIndex(x, y))
+                .put("plinth", sim.getTopology().getPlinthTiers(x, y))
                 .put("doodads", doodads);
     }
 
