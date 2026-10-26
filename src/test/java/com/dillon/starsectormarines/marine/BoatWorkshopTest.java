@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.fs.starfarer.api.impl.campaign.ids.Commodities;
@@ -182,6 +183,22 @@ class BoatWorkshopTest {
 
         assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), "standard_drive").status());
         assertTrue(deck.flightReady().contains(boat));
+    }
+
+    /** Plating is an option: stripped, she still flies, on a weak bare hull. */
+    @Test
+    void aBoatStrippedOfHerPlatingFliesOnAWeakBareHull() {
+        BoatDeck deck = deck();
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestResources.stocked(100));
+        CampaignBoat boat = deck.flightReady().get(0);
+        float stock = boat.freezeForDeployment().maxHp();
+
+        assertEquals(BoatWorkshop.Status.STRIPPED, workshop.strip(boat.id(), BoatFittingSlot.PLATING).status());
+
+        assertEquals(List.of(), boat.missingParts());
+        assertTrue(deck.flightReady().contains(boat));
+        assertNull(boat.freezeForDeployment().plating());
+        assertEquals(stock * FittedBoat.BARE_HULL_FACTOR, boat.freezeForDeployment().maxHp(), 1e-3f);
     }
 
     @Test
