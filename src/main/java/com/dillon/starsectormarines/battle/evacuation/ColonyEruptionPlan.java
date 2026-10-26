@@ -78,15 +78,28 @@ public final class ColonyEruptionPlan {
     private final int requestedFirstWave;
     private final List<int[]> places;
     private final int heartX, heartY, spacing;
+    /** The walk in: from the landing field ({@code fieldX}, {@code fieldY}) along the unit ({@code inX}, {@code inY}). */
+    private final float fieldX, fieldY, inX, inY;
+    private final int corridor;
 
     private ColonyEruptionPlan(List<Site> sites, int requestedFirstWave, List<int[]> places, int heartX, int heartY,
-                               int spacing) {
+                               int spacing, float fieldX, float fieldY, float inX, float inY, int corridor) {
         this.sites = List.copyOf(sites);
         this.requestedFirstWave = requestedFirstWave;
         this.places = List.copyOf(places);
         this.heartX = heartX;
         this.heartY = heartY;
         this.spacing = spacing;
+        this.fieldX = fieldX;
+        this.fieldY = fieldY;
+        this.inX = inX;
+        this.inY = inY;
+        this.corridor = corridor;
+    }
+
+    /** Whether a cell stands at least {@link #corridor} cells off the walk in from the field to the shelter. */
+    boolean offTheWalk(int x, int y) {
+        return Math.abs(inX * (y - fieldY) - inY * (x - fieldX)) >= corridor;
     }
 
     /** The town's heart the bores bud toward: the shelter. */
@@ -122,8 +135,9 @@ public final class ColonyEruptionPlan {
     /**
      * This plan kept {@code radius} cells clear of ({@code x}, {@code y}), a side objective's set piece under its
      * own bore: a site inside the ring is re-seated at the place outside it nearest where it stood, spaced from
-     * the other sites, keeping its number, role and delay (a site with no such place stays put); no place inside
-     * the ring is left to bud on.
+     * the other sites, keeping its number, role and delay (a site with no such place stays put); a first-wave
+     * site keeps off the walk in from the field as {@link #select} seats it, taking a place on the walk only where
+     * there is none off it. No place inside the ring is left to bud on.
      */
     public ColonyEruptionPlan clearOf(int x, int y, int radius) {
         List<int[]> free = new ArrayList<>();
@@ -134,21 +148,29 @@ public final class ColonyEruptionPlan {
             if (!within(site.x(), site.y(), x, y, radius)) continue;
             List<int[]> others = new ArrayList<>();
             for (Site other : seated) if (other != site) others.add(new int[]{other.x(), other.y()});
-            int[] best = null;
-            double bestDistance = Double.POSITIVE_INFINITY;
-            for (int[] p : free) {
-                if (!spacedFrom(p, others, spacing)) continue;
-                double distance = Math.hypot(p[0] - site.x(), p[1] - site.y());
-                if (distance < bestDistance) {
-                    bestDistance = distance;
-                    best = p;
-                }
-            }
+            int[] best = nearest(free, others, site, !site.mother());
+            if (best == null && !site.mother()) best = nearest(free, others, site, false);
             if (best == null) continue;
             free.remove(best);
             seated.set(i, new Site(site.number(), best[0], best[1], site.role(), site.delayTicks(), kind(best[2])));
         }
-        return new ColonyEruptionPlan(seated, requestedFirstWave, free, heartX, heartY, spacing);
+        return new ColonyEruptionPlan(seated, requestedFirstWave, free, heartX, heartY, spacing,
+                fieldX, fieldY, inX, inY, corridor);
+    }
+
+    /** Of {@code free}, the place nearest {@code site} spaced from {@code others}, off the walk if {@code offWalk}. */
+    private int[] nearest(List<int[]> free, List<int[]> others, Site site, boolean offWalk) {
+        int[] best = null;
+        double bestDistance = Double.POSITIVE_INFINITY;
+        for (int[] p : free) {
+            if (!spacedFrom(p, others, spacing) || offWalk && !offTheWalk(p[0], p[1])) continue;
+            double distance = Math.hypot(p[0] - site.x(), p[1] - site.y());
+            if (distance < bestDistance) {
+                bestDistance = distance;
+                best = p;
+            }
+        }
+        return best;
     }
 
     private static boolean within(int px, int py, int x, int y, int radius) {
@@ -391,7 +413,8 @@ public final class ColonyEruptionPlan {
         }
         List<int[]> rest = new ArrayList<>();
         for (int[] c : eligible) if (!chosen.contains(c) && c != mother) rest.add(c);
-        return new ColonyEruptionPlan(sites, firstWave, rest, g.shelterX(), g.shelterY(), spacing);
+        return new ColonyEruptionPlan(sites, firstWave, rest, g.shelterX(), g.shelterY(), spacing,
+                fx, fy, ux, uy, corridor);
     }
 
     private static void takeSpaced(List<int[]> from, int wanted, List<int[]> chosen, int spacing) {

@@ -2085,8 +2085,9 @@ objective ends its survivors wander as the rest of the swarm. The breach keeps
 out of the set piece's way: once the objective is rolled, any eruption site
 within 80 cells of the set piece's middle (a first-wave bore's foraging pulse
 overruns a yard from closer) is
-re-seated at the nearest place outside that ring, keeping its number and time,
-and no bore buds inside it (`ColonyEruptionPlan.clearOf`), so what reaches the
+re-seated at the nearest place outside that ring, keeping its number and time
+(a first-wave site still off the walk in from the field where any such place
+is left), and no bore buds inside it (`ColonyEruptionPlan.clearOf`), so what reaches the
 set piece first is the pressure its beats pace.
 
 ## Flow

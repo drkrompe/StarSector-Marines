@@ -153,4 +153,22 @@ class ColonyEruptionPlanTest {
         for (int[] place : cleared.places())
             assertTrue(Math.hypot(place[0] - first.x(), place[1] - first.y()) >= radius, "a bud place in the ring");
     }
+
+    @Test
+    void aBoreMovedOutOfAnObjectivesWayStaysOffTheWalkIn() {
+        // The field in the south; inward is north-west, to the shelter. Clear a ring round each first-wave site.
+        ColonyEruptionPlan plan = ColonyEruptionPlan.select(colony(List.of(new int[]{200, 225})), 4, 3L);
+        for (ColonyEruptionPlan.Site at : plan.sites()) {
+            if (at.mother()) continue;
+            for (int radius : new int[]{45, 80}) {
+                ColonyEruptionPlan cleared = plan.clearOf(at.x(), at.y(), radius);
+                for (ColonyEruptionPlan.Site site : cleared.sites()) {
+                    if (site.mother()) continue;
+                    assertTrue(cleared.offTheWalk(site.x(), site.y()), "bore " + site.number() + " moved onto the walk"
+                            + " in at " + site.x() + "," + site.y() + " clearing " + radius + " round " + at.x() + ","
+                            + at.y());
+                }
+            }
+        }
+    }
 }
