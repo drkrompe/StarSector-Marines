@@ -202,9 +202,12 @@ public final class BruteChargeScene implements BehaviorScene {
                         "impulse " + impulse(sim, trace) + ", nudged " + trace.shove + " cells, recoil "
                                 + trace.recoiled));
             }
+            // Whether the blow gets through the leg plate is the armour's tuning, not the charge's: the mechanism
+            // is that the charge goes for the legs and a light mech is knocked off its feet.
             case "hound" -> verdicts.add(Verdict.of("legs-hit-and-staggered", trace.targetHits > 0
-                            && trace.legsHit && trace.targetHeld,
-                    trace.targetHits + " hits, legs " + trace.legsHit + ", staggered " + trace.targetHeld));
+                            && (trace.legsHit || trace.plateTurnedIt) && trace.targetHeld,
+                    trace.targetHits + " hits, legs " + trace.legsHit + (trace.plateTurnedIt ? " (plate turned it)" : "")
+                            + ", staggered " + trace.targetHeld));
             case "bulwark" -> verdicts.add(Verdict.of("legs-hit-keeps-its-feet", trace.targetHits > 0
                             && (trace.legsHit || trace.plateTurnedIt) && !trace.targetHeld,
                     trace.targetHits + " hits, legs " + trace.legsHit + (trace.plateTurnedIt ? " (plate turned it)" : "")

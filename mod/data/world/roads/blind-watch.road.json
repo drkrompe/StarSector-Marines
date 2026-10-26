@@ -1,0 +1,138 @@
+{
+  "version": 1,
+  "width": 216,
+  "height": 112,
+  "roads": [
+    {
+      "id": "rover-track",
+      "points": [
+        [
+          32.0,
+          58.0
+        ],
+        [
+          44.0,
+          58.0
+        ],
+        [
+          70.0,
+          57.0
+        ],
+        [
+          100.0,
+          56.0
+        ],
+        [
+          126.0,
+          57.0
+        ],
+        [
+          150.0,
+          57.0
+        ],
+        [
+          178.0,
+          57.0
+        ],
+        [
+          190.0,
+          58.0
+        ]
+      ],
+      "width": 4,
+      "shoulder": 0,
+      "wear": 0.9,
+      "seed": 7101,
+      "material": "DIRT",
+      "endCap": "ROUND"
+    },
+    {
+      "id": "rim-spur",
+      "points": [
+        [
+          186.0,
+          58.0
+        ],
+        [
+          184.0,
+          66.0
+        ],
+        [
+          178.0,
+          73.0
+        ],
+        [
+          170.0,
+          77.0
+        ]
+      ],
+      "width": 3,
+      "shoulder": 0,
+      "wear": 0.85,
+      "seed": 7102,
+      "material": "DIRT",
+      "endCap": "ROUND"
+    },
+    {
+      "id": "dish-spur",
+      "points": [
+        [
+          150.0,
+          57.0
+        ],
+        [
+          150.0,
+          41.0
+        ]
+      ],
+      "width": 3,
+      "shoulder": 0,
+      "wear": 0.85,
+      "seed": 7103,
+      "material": "DIRT",
+      "endCap": "ROUND"
+    },
+    {
+      "id": "uplink-spur",
+      "points": [
+        [
+          181.0,
+          57.0
+        ],
+        [
+          181.0,
+          44.0
+        ],
+        [
+          174.0,
+          32.0
+        ]
+      ],
+      "width": 3,
+      "shoulder": 0,
+      "wear": 0.85,
+      "seed": 7104,
+      "material": "DIRT",
+      "endCap": "ROUND"
+    },
+    {
+      "id": "motor-pool-spur",
+      "points": [
+        [
+          181.0,
+          41.0
+        ],
+        [
+          186.0,
+          40.0
+        ]
+      ],
+      "width": 3,
+      "shoulder": 0,
+      "wear": 0.85,
+      "seed": 7105,
+      "material": "DIRT",
+      "endCap": "ROUND"
+    }
+  ]
+}

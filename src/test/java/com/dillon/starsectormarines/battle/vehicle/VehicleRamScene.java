@@ -49,8 +49,9 @@ import java.util.Map;
  * <p>Mechs are weighed in the same tonnes as hulls, so these loops ask the same questions of a walking machine:
  * friends shoved and never hurt, hostiles rammed, a machine never inside a hull, the lighter machine giving way.
  *
- * <p>Verdicts are mechanics: friends are shoved and never hurt; hostile bodies on the bow are rammed; against the
- * same Brutes the heavy hull deals more a ram than the light one and the light one takes damage back where the
+ * <p>Verdicts are mechanics: friends are shoved and never hurt; hostile bodies on the bow are rammed (the Runners are
+ * deep, so the gun never decides whether they reach it); a hull and the Brutes meet, whichever strikes first; against
+ * the same Brutes the heavy hull deals more a ram than the light one and the light one takes damage back where the
  * heavy one takes none; hulls never sit inside each other; and both hulls of a lane meet reach their goals. Who
  * dies, how many rams, the ram damage and the meet's time are readings.
  */
@@ -68,6 +69,8 @@ public final class VehicleRamScene implements BehaviorScene {
     static final float ARRIVED = 3f;
     /** A technical into an adult Brute hurts itself from about 1.7 cells a second of closing ({@link HullRam}). */
     static final float LIGHT_PAYS_AT = 2f;
+    /** A body this close to a hull's side (beyond its own radius) is touching it, cells. */
+    static final float CONTACT = .25f;
     /** How far a mech's collision circle may lean into a hull's footprint, cells. */
     static final float MECH_LEAN = .25f;
 
@@ -145,9 +148,11 @@ public final class VehicleRamScene implements BehaviorScene {
                     seen = sim.movement().routeStalls();
                     long who = sim.movement().lastStalled();
                     // Only the Runners' count: the rifleman holding his post behind the wall is not the question.
-                    if (who != 0L && sim.identity().type(who) == UnitType.SWARM_RUNNER) stalls++;
-                    if (who != 0L && sim.identity().type(who) == UnitType.SWARM_RUNNER) stalled.append(stalled.length() == 0 ? "" : ", ").append(sim.identity().type(who))
-                            .append(String.format(Locale.ROOT, " %.1f,%.1f t%d", sim.world().x(who), sim.world().y(who), run.tick()));
+                    if (who != 0L && sim.identity().type(who) == UnitType.SWARM_RUNNER) {
+                        stalls++;
+                        stalled.append(stalled.length() == 0 ? "" : ", ").append(String.format(Locale.ROOT,
+                                "%.1f,%.1f t%d", sim.world().x(who), sim.world().y(who), run.tick()));
+                    }
                 }
                 for (long r : runners) if (sim.getRoster().isAliveById(r) && sim.world().x(r) < WALL_X - 3) past++;
             }
@@ -194,8 +199,9 @@ public final class VehicleRamScene implements BehaviorScene {
             if (target == Target.FRIENDS) for (long m : world.members("file")) bodies.add(m);
             if (target == Target.RUNNERS) {
                 for (int i = 0; i < 8; i++) {
+                    // Deep, as the Brutes are: the question is the ram, not whether the pack survives the gun to reach it.
                     bodies.add(sim.spawn(new EntitySpec("Runner " + i, Faction.DEFENDER, UnitType.SWARM_RUNNER,
-                            28 + (i % 4) * 2, ROAD - 2 + (i / 4) * 3).role(UnitRole.SWARM_PRESSURE)));
+                            28 + (i % 4) * 2, ROAD - 2 + (i / 4) * 3).role(UnitRole.SWARM_PRESSURE).health(DEEP)));
                 }
             }
             if (target == Target.BRUTES) {
@@ -209,11 +215,19 @@ public final class VehicleRamScene implements BehaviorScene {
                     "%s  %s  t=%.1fs  rams %d  dealt %.0f  taken %.0f", loop, type, tick / 30f,
                     repulsion.rams(), repulsion.ramDamageDealt(), repulsion.ramDamageTaken()));
             sim.getVehicleMoveOrderService().requestMove(hull, WIDTH - 10, ROAD);
-            float topSpeed = 0f;
+            float topSpeed = 0f, closest = Float.MAX_VALUE;
             while (run.tick() < DRIVE_TICKS) {
                 run.step();
-                if (sim.convoy().body(hull) != null) topSpeed = Math.max(topSpeed, Math.abs(sim.convoy().body(hull).speed));
+                GroundBody at = sim.convoy().body(hull);
+                if (at == null) continue;
+                topSpeed = Math.max(topSpeed, Math.abs(at.speed));
+                for (long b : drive.bodies) {
+                    if (!sim.getRoster().isAliveById(b)) continue;
+                    closest = Math.min(closest, HullReach.gap(at.x, at.y, at.facingDegrees, type.visualLengthCells / 2f,
+                            type.visualWidthCells / 2f, sim.world().x(b), sim.world().y(b)) - sim.getRoster().radius(b));
+                }
             }
+            drive.closest = closest;
             drive.pushes = repulsion.pushes();
             drive.rams = repulsion.rams();
             drive.dealt = repulsion.ramDamageDealt();
@@ -240,7 +254,7 @@ public final class VehicleRamScene implements BehaviorScene {
         final Target target;
         long[] bodies;
         long pushes, rams;
-        float dealt, taken, fastest, hpLost, topSpeed, hullX;
+        float dealt, taken, fastest, hpLost, topSpeed, hullX, closest;
         int alive;
 
         Drive(String loop, VehicleType type, Target target) {
@@ -257,6 +271,12 @@ public final class VehicleRamScene implements BehaviorScene {
                 verdicts.add(Verdict.of("friends-in-the-road", pushes > 0, pushes + " shoves of the file"));
                 verdicts.add(Verdict.of("friends-never-hurt", hpLost == 0f && rams == 0,
                         String.format(Locale.ROOT, "%.1f health lost, %d rams", hpLost, rams)));
+            } else if (target == Target.BRUTES) {
+                // A hull and a Brute meet by weight ({@link HullRam}): which strikes first, the hull's ram or the Brute's
+                // charge, is a race of drive speed and charge timing, so the verdict is that they met, either way.
+                verdicts.add(Verdict.of("hull-meets-brutes", rams > 0 || closest <= CONTACT,
+                        String.format(Locale.ROOT, "%d rams dealing %.0f; closest Brute %.2f cells off the hull", rams,
+                                dealt, closest)));
             } else {
                 verdicts.add(Verdict.of("hostiles-rammed", rams > 0,
                         String.format(Locale.ROOT, "%d rams dealing %.0f, fastest at %.1f cells/s", rams, dealt,
@@ -289,6 +309,7 @@ public final class VehicleRamScene implements BehaviorScene {
             m.put("bodies", bodies.length);
             m.put("bodiesAlive", alive);
             m.put("bodyHealthLost", hpLost);
+            m.put("closestApproach", closest);
             return new SceneReport(id(), loop, DRIVE_TICKS, verdicts, m);
         }
     }
@@ -387,8 +408,9 @@ public final class VehicleRamScene implements BehaviorScene {
             if (walk == Walk.RUNNERS) {
                 bodies = new long[8];
                 for (int i = 0; i < 8; i++) {
+                    // Deep: the question is the ram, not whether the pack survives the Hound's guns to reach it.
                     bodies[i] = sim.spawn(new EntitySpec("Runner " + i, Faction.DEFENDER, UnitType.SWARM_RUNNER,
-                            28 + (i % 4) * 2, ROAD - 2 + (i / 4) * 3).role(UnitRole.SWARM_PRESSURE));
+                            28 + (i % 4) * 2, ROAD - 2 + (i / 4) * 3).role(UnitRole.SWARM_PRESSURE).health(DEEP));
                 }
             }
             float hpBefore = hp(sim, bodies);

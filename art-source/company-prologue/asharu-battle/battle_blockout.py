@@ -1674,7 +1674,8 @@ SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else
 READABLE = {'borer': 2.5}
 
 ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
-ATTACH_TOL_M = 1.0              # how far a turret mount or effects copy may sit off its hull (attachment_lint)
+ATTACH_TOL_M = 1.5              # how far a turret mount or effects copy may sit off its hull (attachment_lint): a
+                                # Colossus head tipped 65 deg on its trunnions carries its mount 1.0 m
 
 
 # ======================================================================================= Blender
@@ -2449,29 +2450,54 @@ def blender_main(cfg):
 
     def attachment_lint(kf):
         """Nothing attached to a hull floats off it (owner, 2026-10-26, a standing safeguard): every
-        turret mount (a '<mount> pivot' joint) drawn this frame where its hull's placement puts its rest
-        mount, and every ship's effects copy on her hull. Turret training turns a pivot about itself, so
-        its place never moves; a part that drifts is a broken chain or a copy left behind."""
+        turret mount (a '<mount> pivot' joint) drawn this frame, in her hull copy and in her kit copy,
+        sits where its own parent joint, as drawn, carries it at its build's rest offset, and every
+        ship's effects copy sits on her hull. The parent's training, a wreck section's drift and the
+        hull's placement all move the parent too, so only a broken link reads. Measured against the
+        library build's offsets, never the drawn copy's own: S8-S9's Colossus fired from four turrets
+        hanging off her hull while a check against the copy's own parents read 0.000 m."""
         bpy.context.view_layer.update()
         hulls = {o.name: o for o in stage_ships.objects if o.name.startswith('Ship | ')}
-        worst, n = (0.0, None), 0
+        rest = {}            # (key, joint) -> (its parent's name, its rest offset in that parent's frame)
+        for key in placed:
+            for o in placed[key]['lib']['coll'].all_objects:
+                name = ship_fx.base_name(o.name)
+                if name.endswith(' pivot') and o.parent is not None:
+                    rest[(key, name)] = (ship_fx.base_name(o.parent.name),
+                                         (chain(o.parent).inverted() @ chain(o)).translation.copy())
+        drawn, joints = {}, []
         for inst in bpy.context.evaluated_depsgraph_get().object_instances:
-            if not inst.is_instance or inst.parent is None or inst.parent.original.name not in hulls:
+            if not inst.is_instance or inst.parent is None:
                 continue
-            ob, hull = inst.object.original, hulls[inst.parent.original.name]
+            ob = inst.object.original
+            at_ = re.search(r' @([\w-]+)$', ob.name)
+            top = inst.parent.original.name
+            key = at_.group(1) if at_ else (top[7:] if top in hulls else None)
+            if key is None:
+                continue
             name = ship_fx.base_name(ob.name)
-            if not name.endswith(' pivot'):
+            drawn[(top, name)] = inst.matrix_world.copy()
+            if (key, name) in rest:
+                joints.append((top, key, name, inst.matrix_world.translation.copy()))
+        worst, n, far = (0.0, None), 0, []
+        for top, key, name, at in joints:
+            parent, off_l = rest[(key, name)]
+            pm = drawn.get((top, parent))
+            if pm is None:
                 continue
-            off = (inst.matrix_world.translation - hull.matrix_world @ chain(ob).translation).length
+            off = (at - pm @ off_l).length
             n += 1
-            worst = max(worst, (off, f'{hull.name[7:]} {name}'), key=lambda w: w[0])
+            worst = max(worst, (off, f'{key} {name}'), key=lambda w: w[0])
+            if off > ATTACH_TOL_M:
+                far.append(f'{key} {name} {off:.1f} m')
         for o in stage_fx.objects:
             hull = hulls.get('Ship | ' + o.name[len('Ship fx | '):]) if o.name.startswith('Ship fx | ') else None
             if hull is not None:
                 n += 1
                 off = (o.matrix_world.translation - hull.matrix_world.translation).length
                 worst = max(worst, (off, f'{hull.name[7:]} effects copy'), key=lambda w: w[0])
-        print(f'ASHARU attached {kf}: {n} parts, worst {worst[0]:.3f} m ({worst[1]})', flush=True)
+        print(f'ASHARU attached {kf}: {n} parts, worst {worst[0]:.3f} m ({worst[1]})'
+              + (f'; off their mounts: {sorted(set(far))[:24]}' if far else ''), flush=True)
         if worst[0] > ATTACH_TOL_M and not os.environ.get('ASHARU_AUDIT_SOFT'):
             raise RuntimeError(f'{kf}: {worst[1]} is drawn {worst[0]:.2f} m off its mount on her hull')
 
