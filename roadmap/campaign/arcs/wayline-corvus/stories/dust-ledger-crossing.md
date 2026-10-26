@@ -90,8 +90,8 @@ any bonus (see Open questions).
 All four jobs, the broker included, are side objectives on the toolkit
 (`mission-command-nouns.md`), declared in `DustLedgerSideObjectives`.
 
-What each pays (owner, 2026-10-26: per job, as fits what it gives), beside a
-Low, 22,000-credit contract. Amounts await the owner's pick.
+What each pays, beside a Low, 22,000-credit contract (owner, 2026-10-26:
+per job, as fits what it gives; the coupling fee and broker bounty decided).
 
 | Job | Credits | Mark and line |
 |---|---|---|
