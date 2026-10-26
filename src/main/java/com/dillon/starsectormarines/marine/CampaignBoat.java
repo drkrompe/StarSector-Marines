@@ -4,6 +4,10 @@ import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 
 import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.EnumMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * One persistent, company-owned ship's boat: a stable id, a tail name, the
@@ -19,28 +23,59 @@ import java.io.Serializable;
  * persisted: a catalog entry that is renamed or retired then reads as the
  * standard fitting through {@link BoatFitting#resolve}, which is a plainer boat
  * rather than a save that will not load.
+ *
+ * <p><b>Any socket can stand empty.</b> Every part comes off into stores, the
+ * way a mech's engine does. A boat missing one of her {@link #REQUIRED_SLOTS}
+ * cannot fly ({@link #missingParts}) and stays off the lift until it is fitted;
+ * an empty lift is the bare hold, an empty emitter flies her unshielded, and a
+ * bare hardpoint carries no gun.
  */
 public final class CampaignBoat implements Serializable {
 
     private final String id;
     private String displayName;
     private final ShuttleType pattern;
-    private String platingId;
-    private String driveId;
-    /** Null on saves from before the lift slot: reads as the standard hold. */
-    private String liftId;
+    /**
+     * The fitting in each slot, by id. A slot with no entry reads as its standard
+     * fitting, which is what every boat saved before parts came off is carrying;
+     * {@link #EMPTY} is a socket stripped bare.
+     */
+    private Map<BoatFittingSlot, String> fittingIds = new EnumMap<>(BoatFittingSlot.class);
     /**
      * The door gun on each hardpoint, by {@link BoatGun} id. Null, or a null or
      * unknown entry, reads as the hardpoint's yard-standard gun — which is what
-     * every boat saved before hardpoints could be refitted is carrying.
+     * every boat saved before hardpoints could be refitted is carrying;
+     * {@link #EMPTY} is a hardpoint stripped bare.
      */
     private String[] gunIds;
     private float repairUntilDay;
+
+    /** A socket stripped bare, as persisted. */
+    static final String EMPTY = "";
+
+    /**
+     * The slots a boat cannot fly without: her hull, her engines, her cabin and her
+     * capacitors. Lift, emitter and guns are options, not gaps.
+     */
+    public static final List<BoatFittingSlot> REQUIRED_SLOTS = List.of(
+            BoatFittingSlot.PLATING, BoatFittingSlot.DRIVE, BoatFittingSlot.CABIN, BoatFittingSlot.POWER);
 
     /** Zero on legacy saves. Recovery is read from campaign time, not screen visits. */
     public float repairUntilDay() { return repairUntilDay; }
     public float repairDaysRemaining(float day) { return Math.max(0f, repairUntilDay - day); }
     public boolean airworthy(float day) { return repairDaysRemaining(day) == 0f; }
+
+    /** The required slots this boat has left empty, in slot order; empty when she is whole. */
+    public List<BoatFittingSlot> missingParts() {
+        List<BoatFittingSlot> missing = new ArrayList<>();
+        for (BoatFittingSlot slot : REQUIRED_SLOTS) {
+            if (fittingIn(slot) == null) missing.add(slot);
+        }
+        return missing;
+    }
+
+    /** Whether she can go on the lift on {@code day}: every required part fitted, and repaired. */
+    public boolean flightReady(float day) { return missingParts().isEmpty() && airworthy(day); }
     public float condition(float day) { return 1f - Math.min(1f, repairDaysRemaining(day) / 2f); }
 
     void damage(float fraction, float day) {
@@ -61,16 +96,15 @@ public final class CampaignBoat implements Serializable {
         this.id = id;
         this.displayName = displayName;
         this.pattern = pattern;
-        this.platingId = BoatFitting.resolve(platingId, BoatFittingSlot.PLATING).id();
-        this.driveId = BoatFitting.resolve(driveId, BoatFittingSlot.DRIVE).id();
-        this.liftId = BoatFitting.STANDARD_LIFT.id();
+        fittingIds.put(BoatFittingSlot.PLATING, BoatFitting.resolve(platingId, BoatFittingSlot.PLATING).id());
+        fittingIds.put(BoatFittingSlot.DRIVE, BoatFitting.resolve(driveId, BoatFittingSlot.DRIVE).id());
     }
 
     public CampaignBoat(String id, String displayName, ShuttleType pattern,
                         String platingId, String driveId, String liftId) {
         this(id, displayName, pattern, platingId, driveId);
         BoatFitting lift = BoatFitting.resolve(liftId, BoatFittingSlot.LIFT);
-        this.liftId = lift.supports(pattern) ? lift.id() : BoatFitting.STANDARD_LIFT.id();
+        if (lift.supports(pattern)) fittingIds.put(BoatFittingSlot.LIFT, lift.id());
     }
 
     public String id() { return id; }
@@ -79,29 +113,16 @@ public final class CampaignBoat implements Serializable {
 
     public ShuttleType pattern() { return pattern; }
 
-    public BoatFitting plating() {
-        return BoatFitting.resolve(platingId, BoatFittingSlot.PLATING);
-    }
+    public BoatFitting plating() { return fittingIn(BoatFittingSlot.PLATING); }
 
-    public BoatFitting drive() {
-        return BoatFitting.resolve(driveId, BoatFittingSlot.DRIVE);
-    }
+    public BoatFitting drive() { return fittingIn(BoatFittingSlot.DRIVE); }
 
-    /**
-     * The hold. A boat saved before the lift slot existed has no id here and
-     * reads as the standard hold, which is what it was built with.
-     */
-    public BoatFitting lift() {
-        return BoatFitting.resolve(liftId, BoatFittingSlot.LIFT);
-    }
+    public BoatFitting lift() { return fittingIn(BoatFittingSlot.LIFT); }
 
-    /** What is installed in one slot. Never null — an empty slot is the standard fit. */
+    /** What is installed in one slot, or null for a socket stripped bare. */
     public BoatFitting fittingIn(BoatFittingSlot slot) {
-        return switch (slot) {
-            case DRIVE -> drive();
-            case LIFT -> lift();
-            case PLATING -> plating();
-        };
+        String id = fittingIds.get(slot);
+        return EMPTY.equals(id) ? null : BoatFitting.resolve(id, slot);
     }
 
     /**
@@ -110,36 +131,58 @@ public final class CampaignBoat implements Serializable {
      * <p>Carries the boat's id so a shoot-down can be traced back here at
      * resolution. Nothing in the battle reads it — an air loss simply remembers
      * what it was flying as, and the campaign works out afterwards whose it was.
+     *
+     * <p>Only a {@linkplain #flightReady flight-ready} boat is flown; one missing a
+     * required part still freezes, for the hangar to draw, with that slot's
+     * standard part standing in. An empty emitter freezes as no shield and a bare
+     * hardpoint as no gun ({@link FittedBoat}).
      */
     public FittedBoat freezeForDeployment() {
         String[] guns = new String[pattern.hardpoints()];
         for (int index = 0; index < guns.length; index++) {
             BoatGun gun = gunOn(index);
-            guns[index] = gun != null ? gun.structureId() : null;
+            guns[index] = gun != null ? gun.structureId() : FittedBoat.BARE;
         }
-        return new FittedBoat(pattern, plating(), drive(), lift(), id, guns);
+        Map<BoatFittingSlot, BoatFitting> fit = new EnumMap<>(BoatFittingSlot.class);
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            BoatFitting fitted = fittingIn(slot);
+            if (fitted != null) fit.put(slot, fitted);
+            else if (slot == BoatFittingSlot.EMITTER) fit.put(slot, null);
+        }
+        return new FittedBoat(pattern, fit, id, guns);
+    }
+
+    /** Whether the pattern has a hardpoint {@code index}, bare or armed. */
+    public boolean hasHardpoint(int index) {
+        return index >= 0 && index < pattern.hardpoints();
     }
 
     /**
-     * The door gun on hardpoint {@code index}, or null for a hardpoint the
-     * pattern does not have. A hardpoint nobody refitted carries the yard's
-     * own gun.
+     * The gun on hardpoint {@code index}, or null for a bare hardpoint or one
+     * the pattern does not have ({@link #hasHardpoint} tells them apart). A
+     * hardpoint nobody refitted carries the yard's own gun, which on some
+     * hardpoints is none.
      */
     public BoatGun gunOn(int index) {
         if (index < 0 || index >= pattern.hardpoints()) return null;
-        BoatGun fitted = gunIds != null && index < gunIds.length ? BoatGun.findById(gunIds[index]) : null;
+        String id = gunIds != null && index < gunIds.length ? gunIds[index] : null;
+        if (EMPTY.equals(id)) return null;
+        BoatGun fitted = BoatGun.findById(id);
         return fitted != null ? fitted : BoatGun.standardFor(pattern, index);
     }
 
-    /** Puts a gun on one hardpoint. Package-private for the reason {@link #install} is. */
+    /**
+     * Puts a gun on one hardpoint, or, with null, strips it bare.
+     * Package-private for the reason {@link #install} is.
+     */
     void installGun(int index, BoatGun gun) {
-        if (gun == null || index < 0 || index >= pattern.hardpoints()) return;
+        if (!hasHardpoint(index)) return;
         if (gunIds == null || gunIds.length != pattern.hardpoints()) {
             String[] grown = new String[pattern.hardpoints()];
             if (gunIds != null) System.arraycopy(gunIds, 0, grown, 0, Math.min(gunIds.length, grown.length));
             gunIds = grown;
         }
-        gunIds[index] = gun.id();
+        gunIds[index] = gun == null ? EMPTY : gun.id();
     }
 
     /**
@@ -149,10 +192,11 @@ public final class CampaignBoat implements Serializable {
      */
     void install(BoatFitting fitting) {
         if (fitting == null) return;
-        switch (fitting.slot()) {
-            case DRIVE -> driveId = fitting.id();
-            case LIFT -> liftId = fitting.id();
-            case PLATING -> platingId = fitting.id();
-        }
+        fittingIds.put(fitting.slot(), fitting.id());
+    }
+
+    /** Leaves one slot empty. Package-private for the reason {@link #install} is. */
+    void clear(BoatFittingSlot slot) {
+        if (slot != null) fittingIds.put(slot, EMPTY);
     }
 }

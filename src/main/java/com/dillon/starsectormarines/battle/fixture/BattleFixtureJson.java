@@ -80,6 +80,7 @@ import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
@@ -450,7 +451,7 @@ public final class BattleFixtureJson {
             if (shuttle.airframe instanceof FittedBoat boat) {
                 encoded.put("platingId", boat.plating().id());
                 encoded.put("driveId", boat.drive().id());
-                if (!boat.lift().standard()) encoded.put("liftId", boat.lift().id());
+                putRefittedFittings(encoded, boat);
                 putRefittedGuns(encoded, boat);
                 // Which of the company's boats this was, when it was one of
                 // theirs at all. A replay of a mission that lost a boat has to
@@ -480,13 +481,7 @@ public final class BattleFixtureJson {
             // reads as the plain pattern it was, which is what it flew.
             boolean fitted = encoded.has("platingId") || encoded.has("driveId");
             Airframe frame = fitted
-                    ? new FittedBoat(type,
-                            BoatFitting.resolve(encoded.optString("platingId", null),
-                                    BoatFittingSlot.PLATING),
-                            BoatFitting.resolve(encoded.optString("driveId", null),
-                                    BoatFittingSlot.DRIVE),
-                            BoatFitting.resolve(encoded.optString("liftId", null),
-                                    BoatFittingSlot.LIFT),
+                    ? new FittedBoat(type, fitFromJson(encoded),
                             encoded.optString("boatId", null), gunsFromJson(encoded))
                     : type;
             shuttles.add(new ShuttleAssignment(type, frame, cycles, seats,
@@ -899,6 +894,7 @@ public final class BattleFixtureJson {
         encoded.put("platingId", boat.plating().id());
         encoded.put("driveId", boat.drive().id());
         encoded.put("liftId", boat.lift().id());
+        putRefittedFittings(encoded, boat);
         if (boat.boatId() != null) encoded.put("boatId", boat.boatId());
         putRefittedGuns(encoded, boat);
         return encoded;
@@ -910,8 +906,9 @@ public final class BattleFixtureJson {
      * still reads, and still writes, the way it did.
      */
     private static void putRefittedGuns(JSONObject encoded, FittedBoat boat) throws Exception {
-        if (boat.guns().equals(List.of(FittedBoat.standard(boat.pattern()).kitFor(TurretRole.A2G)))) return;
-        encoded.put("guns", new JSONArray(boat.guns()));
+        if (boat.guns().equals(FittedBoat.standard(boat.pattern()).guns())) return;
+        // A bare hardpoint is written blank, which the codec reads back as bare.
+        encoded.put("guns", new JSONArray(boat.guns().stream().map(gun -> gun == null ? FittedBoat.BARE : gun).toList()));
     }
 
     private static String[] gunsFromJson(JSONObject encoded) throws Exception {
@@ -925,10 +922,39 @@ public final class BattleFixtureJson {
     private static FittedBoat boatFromJson(JSONObject encoded) throws Exception {
         return new FittedBoat(
                 enumValue(ShuttleType.class, encoded.getString("type"), "shuttle type"),
-                BoatFitting.resolve(encoded.optString("platingId", null), BoatFittingSlot.PLATING),
-                BoatFitting.resolve(encoded.optString("driveId", null), BoatFittingSlot.DRIVE),
-                BoatFitting.resolve(encoded.optString("liftId", null), BoatFittingSlot.LIFT),
-                encoded.optString("boatId", null), gunsFromJson(encoded));
+                fitFromJson(encoded), encoded.optString("boatId", null), gunsFromJson(encoded));
+    }
+
+    /**
+     * Every slot past plating and drive, only when a yard changed it: a slot at its
+     * standard fitting writes nothing, so a fixture names only the work done. An
+     * emitter she flies without is written blank.
+     */
+    private static void putRefittedFittings(JSONObject encoded, FittedBoat boat) throws Exception {
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            if (slot == BoatFittingSlot.PLATING || slot == BoatFittingSlot.DRIVE) continue;
+            BoatFitting fitted = boat.fitting(slot);
+            if (fitted == null) encoded.put(fittingKey(slot), "");
+            else if (!fitted.standard()) encoded.put(fittingKey(slot), fitted.id());
+        }
+    }
+
+    /**
+     * Each slot's fitting by its key ({@code platingId}, {@code cabinId}, ...); a missing key is the standard fit,
+     * and a blank emitter is none.
+     */
+    private static Map<BoatFittingSlot, BoatFitting> fitFromJson(JSONObject encoded) {
+        Map<BoatFittingSlot, BoatFitting> fit = new EnumMap<>(BoatFittingSlot.class);
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            String id = encoded.optString(fittingKey(slot), null);
+            fit.put(slot, slot == BoatFittingSlot.EMITTER && id != null && id.isBlank()
+                    ? null : BoatFitting.resolve(id, slot));
+        }
+        return fit;
+    }
+
+    private static String fittingKey(BoatFittingSlot slot) {
+        return slot.name().toLowerCase(Locale.ROOT) + "Id";
     }
 
     private static void putNullable(JSONObject object, String key, String value)

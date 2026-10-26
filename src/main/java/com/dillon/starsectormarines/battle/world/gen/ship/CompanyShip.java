@@ -32,27 +32,16 @@ package com.dillon.starsectormarines.battle.world.gen.ship;
  */
 public record CompanyShip(HullClass hullClass, HullRole role,
                           int minCrew, int maxCrew, int cargo, float aspect,
-                          HullSilhouette outline, String art, boolean mercenaryConversion, BoatBayState boatBay, WorkshopState workshop, boolean aeroshuttleConversion, ShipRestoration restoration) {
-
-    public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
-                       int cargo, float aspect, HullSilhouette outline, String art,
-                       boolean conversion, BoatBayState boatBay, WorkshopState workshop, boolean aeroshuttleConversion) {
-        this(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, conversion, boatBay, workshop, aeroshuttleConversion, ShipRestoration.NONE);
-    }
+                          HullSilhouette outline, String art, boolean mercenaryConversion, BoatBayState boatBay, WorkshopState workshop, ShipRestoration restoration) {
 
     public CompanyShip withRestoration(ShipRestoration state) {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, boatBay, workshop, aeroshuttleConversion, state);
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, boatBay, workshop, state);
     }
 
     public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
                        int cargo, float aspect, HullSilhouette outline, String art,
                        boolean conversion, BoatBayState boatBay, WorkshopState workshop) {
-        this(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, conversion, boatBay, workshop, false);
-    }
-
-    public CompanyShip withAeroshuttleConversion(boolean installed) {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art,
-                mercenaryConversion, boatBay, workshop, installed, restoration);
+        this(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, conversion, boatBay, workshop, ShipRestoration.NONE);
     }
 
     public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
@@ -61,7 +50,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
         this(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, conversion, boatBay, WorkshopState.NONE);
     }
     public CompanyShip withWorkshop(WorkshopState state) {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, boatBay, state, aeroshuttleConversion, restoration);
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, boatBay, state, restoration);
     }
 
     public enum BoatBayState { NONE, DAMAGED, RESTORED }
@@ -72,7 +61,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
     }
 
     public CompanyShip withBoatBay(BoatBayState state) {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, state, workshop, aeroshuttleConversion, restoration);
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, mercenaryConversion, state, workshop, restoration);
     }
 
     public CompanyShip(HullClass hullClass, HullRole role, int minCrew, int maxCrew,
@@ -81,7 +70,7 @@ public record CompanyShip(HullClass hullClass, HullRole role,
     }
 
     public CompanyShip converted() {
-        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, true, boatBay, workshop, aeroshuttleConversion, restoration);
+        return new CompanyShip(hullClass, role, minCrew, maxCrew, cargo, aspect, outline, art, true, boatBay, workshop, restoration);
     }
 
     public boolean quarters() { return mercenaryConversion || hullClass.quarters(); }

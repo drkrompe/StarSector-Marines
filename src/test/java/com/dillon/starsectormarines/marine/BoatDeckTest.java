@@ -9,7 +9,6 @@ import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -32,14 +31,13 @@ class BoatDeckTest {
     void aLegacyDeckRetainsItsHistoricalInitialComplement() {
         BoatDeck deck = new BoatDeck();
 
-        BoatDeck.LeftBehind cost = deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
+        deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
 
-        assertFalse(cost.any(), "a company that has never moved leaves nothing behind");
         assertEquals(6, deck.berths());
         assertEquals(ShuttleType.AEROSHUTTLE, deck.pattern(),
                 "the deck remembers what her bays hold, because fabrication needs it");
-        assertEquals(6, deck.airworthy().size());
-        for (CampaignBoat boat : deck.airworthy()) {
+        assertEquals(6, deck.flightReady().size());
+        for (CampaignBoat boat : deck.flightReady()) {
             assertEquals(ShuttleType.AEROSHUTTLE, boat.pattern());
             assertSame(BoatFitting.STANDARD_PLATING, boat.plating());
             assertSame(BoatFitting.STANDARD_DRIVE, boat.drive());
@@ -57,14 +55,13 @@ class BoatDeckTest {
         deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
         List<String> first = ids(deck);
 
-        BoatDeck.LeftBehind cost = deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
+        deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
 
-        assertFalse(cost.any());
         assertEquals(first, ids(deck));
     }
 
     @Test
-    void movingToASmallerHullOfTheSamePatternKeepsTheFirstBoatsAndSaysWhatItCost() {
+    void movingToASmallerHullKeepsEveryBoatAndStowsTheSurplus() {
         BoatDeck deck = new BoatDeck();
         deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
         List<String> before = ids(deck);
@@ -72,25 +69,24 @@ class BoatDeckTest {
         // the case worth watching across the move.
         deck.boatById(before.get(0)).install(BoatFitting.ARMOURED_PLATING);
 
-        BoatDeck.LeftBehind cost = deck.reconcile(TENDER, ShuttleType.AEROSHUTTLE, 3);
+        deck.reconcile(TENDER, ShuttleType.AEROSHUTTLE, 3);
 
-        assertEquals(before.subList(0, 3), ids(deck));
+        assertEquals(before, ids(deck), "no boat is left behind, however few berths the hull offers");
         assertSame(BoatFitting.ARMOURED_PLATING,
                 deck.boatById(before.get(0)).plating());
-        assertEquals(3, cost.count());
-        assertEquals(3, deck.leftBehind().count());
+        assertEquals(6, deck.flightReady().size(), "a stowed boat flies like any other");
     }
 
     @Test
-    void movingToAHullWhoseBaysHoldAnotherPatternLeavesEveryBoatBehind() {
+    void movingToAHullWhoseBaysHoldAnotherPatternKeepsEveryBoatAndTheDecksPattern() {
         BoatDeck deck = new BoatDeck();
         deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
+        List<String> before = ids(deck);
 
-        BoatDeck.LeftBehind cost = deck.reconcile(WARSHIP, ShuttleType.HERMES, 2);
+        deck.reconcile(WARSHIP, ShuttleType.HERMES, 2);
 
-        assertEquals(6, cost.count());
-        assertEquals(2, deck.berths());
-        assertTrue(deck.airworthy().isEmpty());
+        assertEquals(before, ids(deck));
+        assertEquals(ShuttleType.AEROSHUTTLE, deck.pattern());
     }
 
     @Test
@@ -99,9 +95,8 @@ class BoatDeckTest {
         deck.reconcile(TENDER, ShuttleType.AEROSHUTTLE, 3);
         List<String> before = ids(deck);
 
-        BoatDeck.LeftBehind cost = deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
+        deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
 
-        assertFalse(cost.any());
         assertEquals(6, deck.berths());
         assertEquals(before, ids(deck));
         assertEquals(List.of(3, 4, 5), deck.vacantBerths());
@@ -122,7 +117,7 @@ class BoatDeckTest {
         deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
 
         assertEquals(6, deck.berths(), "the ship still has six bays");
-        assertEquals(5, deck.airworthy().size());
+        assertEquals(5, deck.flightReady().size());
         assertEquals(List.of(2), deck.vacantBerths());
         assertNull(deck.boats().get(2));
         assertEquals(before.get(3), deck.boats().get(3).id(),
@@ -138,7 +133,7 @@ class BoatDeckTest {
         assertEquals(0, deck.lose(List.of("boat_99")));
         assertEquals(0, deck.lose(List.of()));
         assertEquals(0, deck.lose(null));
-        assertEquals(6, deck.airworthy().size());
+        assertEquals(6, deck.flightReady().size());
     }
 
     /** A change of home never pays the replacement bill. */
@@ -151,7 +146,7 @@ class BoatDeckTest {
 
         deck.reconcile(TENDER, ShuttleType.AEROSHUTTLE, 6);
 
-        assertEquals(4, deck.airworthy().size());
+        assertEquals(4, deck.flightReady().size());
         assertEquals(List.of(4, 5), deck.vacantBerths());
         assertEquals(List.of(before.get(0), before.get(2), before.get(3), before.get(5)),
                 ids(deck).subList(0, 4), "the survivors compact into her berths in order");
@@ -168,20 +163,18 @@ class BoatDeckTest {
         deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
         collect(deck, seen);
         deck.reconcile(WARSHIP, ShuttleType.HERMES, 2);
+        deck.lose(List.of(ids(deck).get(0), ids(deck).get(1)));
         for (int berth : deck.vacantBerths()) deck.fabricate(berth);
-        collect(deck, seen);
-        deck.reconcile(TRANSPORT, ShuttleType.AEROSHUTTLE, 6);
-        for (int berth : deck.vacantBerths()) deck.fabricate(berth);
-        collect(deck, seen);
+        for (CampaignBoat boat : deck.flightReady()) seen.add(boat.displayName());
 
-        assertEquals(14, seen.size(), "6 landing craft, 2 gigs, then 6 more landing craft");
+        assertEquals(8, seen.size(), "6 landing craft, then 2 more built after the loss");
         assertTrue(seen.contains("Aeroshuttle 01"));
-        assertTrue(seen.contains("Hermes 07"));
-        assertTrue(seen.contains("Aeroshuttle 09"));
+        assertTrue(seen.contains("Aeroshuttle 07"));
+        assertTrue(seen.contains("Aeroshuttle 08"));
     }
 
     private static void collect(BoatDeck deck, Set<String> names) {
-        for (CampaignBoat boat : deck.airworthy()) {
+        for (CampaignBoat boat : deck.flightReady()) {
             assertTrue(names.add(boat.displayName()),
                     boat.displayName() + " is a tail number the deck has already used");
         }
@@ -189,7 +182,7 @@ class BoatDeckTest {
 
     private static List<String> ids(BoatDeck deck) {
         List<String> found = new ArrayList<>();
-        for (CampaignBoat boat : deck.airworthy()) found.add(boat.id());
+        for (CampaignBoat boat : deck.flightReady()) found.add(boat.id());
         return found;
     }
 }

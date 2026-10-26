@@ -59,6 +59,15 @@ public final class CampaignState implements Serializable {
         return ravBlooms;
     }
 
+    /** The campaign marks finished side objectives left; null in older saves, created on first read. */
+    public CampaignMarks marks;
+
+    /** The campaign marks, created on first read so an old save starts with none. */
+    public CampaignMarks marks() {
+        if (marks == null) marks = new CampaignMarks();
+        return marks;
+    }
+
     /** The Hegemony auxiliary warrant offer; null in older saves, created on first read. */
     public AuxiliaryWarrantProgress hegemonyAuxiliary;
 

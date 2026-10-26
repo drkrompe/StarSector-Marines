@@ -76,7 +76,7 @@ hotspots, which are invisible until pointed at.
 - Removed with the sidebar: force status, the change-ship and ship-view tiles
   (Engineering stays on the page nav), and client standing, including its
   military-warrant rows. The long notice rows under the nav are gone too; first
-  refit and secondhand wings remain nav notices on Barracks and Boats.
+  refit remains a nav notice on Barracks.
 - Letters awaiting an answer (the auxiliary warrant, the Latchkey custody
   agreements) are action items of their own, answered by Open.
 - **Command strip:** the row under the banner (`company-hq-board-heading`) holds the

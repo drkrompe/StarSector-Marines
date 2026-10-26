@@ -80,6 +80,8 @@ public final class OrderIntentCursorPanel implements HudPanel {
                         Strings.get(intent == TacticalOrderIntent.CLEAR ? "battleOrderEnemyInside" : "battleOrderAssaultStatus"))
                 : intent.guard()
                 ? BattlefieldMarkerPresentation.guard(intent.label(), Strings.get("battleOrderGuardStatus"))
+                : intent == TacticalOrderIntent.ATTACH
+                ? BattlefieldMarkerPresentation.guard(intent.label(), Strings.get("battleOrderAttachStatus"))
                 : BattlefieldMarkerPresentation.target(intent.label(), intent.actionable(), 0f);
         CommandPowerTargetingPanel.paintTargetingMarker(
                 camera, marker, cellX, cellY, alphaMult);

@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationService;
 import com.dillon.starsectormarines.battle.logistics.ResupplyService;
 import com.dillon.starsectormarines.battle.turret.TurretFireSink;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
+import com.dillon.starsectormarines.battle.turret.TurretShieldService;
 import com.dillon.starsectormarines.battle.vehicle.Pose;
 import com.dillon.starsectormarines.battle.vehicle.PurePursuit;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
@@ -277,6 +278,9 @@ public class AirSystem {
     private final TacticalScoring tacticalScoring;
     private final World world;
     private final TurretFireSink fireSink;
+    /** The battle's flux shields, which a company boat's shield joins; null until the sim hands them over. */
+    private TurretShieldService boatShields;
+    private TurretShieldService.Positions boatShieldPositions;
     private final Random rng;
     private final Function<EntitySpec, Long> addUnitSink;
     private final EffectsService effects;   // crash FX on shoot-down (smoke plume + burning wreck)
@@ -513,30 +517,36 @@ public class AirSystem {
      * anti-air has to get through. Passing the type as its own frame is the
      * unfitted case and is what every other caller does.
      *
-     * <p>Deliberately <em>not</em> the deboard cadence: the rotation is a fact
-     * about hands, and a better boat is not unloaded faster.
+     * <p>The frame also owns the seats a sortie may fill and the deboard
+     * cadence: a cabin adds seats and a better drive's ramp lets marines off
+     * faster. The deck turnaround stays a fact about hands.
      */
     public long spawn(ShuttleType type, Airframe frame, Faction faction,
                       float lzX, float lzY, float entryX, float entryY,
                       float exitX, float exitY, float pendingDelay,
                       int seatsPerSortie) {
-        if (seatsPerSortie < 1 || seatsPerSortie > type.capacity) {
-            throw new IllegalArgumentException("seatsPerSortie must be between 1 and "
-                    + type.capacity + " for " + type + ": " + seatsPerSortie);
-        }
         Airframe flying = frame != null ? frame : type;
+        if (seatsPerSortie < 1 || seatsPerSortie > flying.seats()) {
+            throw new IllegalArgumentException("seatsPerSortie must be between 1 and "
+                    + flying.seats() + " for " + flying + ": " + seatsPerSortie);
+        }
         AirBody body = new AirBody();
         body.teleport(entryX, entryY, AirBody.facingToward(lzX - entryX, lzY - entryY));
         ShuttleMission mission = new ShuttleMission(lzX, lzY, entryX, entryY, exitX, exitY,
                 pendingDelay, seatsPerSortie);
         // Taken off the hull once, here, rather than read off it every tick:
         // the hull says what it can do and the sortie says what it is doing.
-        mission.deboardInterval = type.deboardInterval;
+        mission.deboardInterval = flying.deboardInterval();
         long id = roster.allocateAir(shuttleArchetype);
         world.setAirIdentity(id, flying, faction);
         world.setKinematics(id, body);
         world.setMission(id, mission);
         seedDurability(id, flying, faction);
+        // A company boat carries her shield and its flux pool, facing her nose (map degrees), unless she flies
+        // without an emitter.
+        if (boatShields != null && flying instanceof FittedBoat boat && boat.shieldSpec() != null) {
+            boatShields.fit(id, boat.shieldSpec(), boat.shieldTint(), body.facingDegrees + 90f);
+        }
         // Seed the authored render-state column (cruise altitude, zero wobble
         // phase). The state-machine tick drives it thereafter; the render/audio
         // passes read it by id.
@@ -603,6 +613,15 @@ public class AirSystem {
     /** Gives this system the same cook-off a hardstand kill lights off, for a craft it kills on the ground itself. */
     public void setAirframeCookOff(AirframeCookOffSystem airframeCookOff) {
         this.airframeCookOff = airframeCookOff;
+    }
+
+    /**
+     * The flux shields a company boat's shield is fitted into at spawn: the same service, rules and drawing as a
+     * hardpoint's, so a round from the shield's arc is stopped before armour sees it.
+     */
+    public void setBoatShields(TurretShieldService shields, TurretShieldService.Positions positions) {
+        this.boatShields = shields;
+        this.boatShieldPositions = positions;
     }
 
     /** Tells this system which field its based sorties belong to. */
@@ -697,7 +716,21 @@ public class AirSystem {
                 posts++;
             }
             if (posts == 0) continue;
-            float hp = world.hp(id) - posts * mission.aaExposure * AA_DPS_PER_POST * dt;
+            float perPost = mission.aaExposure * AA_DPS_PER_POST * dt;
+            float damage = posts * perPost;
+            if (boatShields != null && boatShields.fitted(id) != null) {
+                // A boat's raised shield stops each post's fire from inside its arc, as flux.
+                damage = 0f;
+                for (int i = 0, n = scratch.size; i < n; i++) {
+                    long e = scratch.ids[i];
+                    if (!faction.hostileTo(roster.identity().faction(e)) || !world.isAlive(e)
+                            || !engagement.reachesAltitude(e)) continue;
+                    if (roster.turretState().isTurret(e)
+                            && roster.turretState().structure(e).targetRole == TurretRole.AA) continue;
+                    if (!boatShields.absorbs(id, e, perPost, boatShieldPositions)) damage += perPost;
+                }
+            }
+            float hp = world.hp(id) - damage;
             world.setHp(id, hp);
             if (hp <= 0f) shootDown(id, body, mission, posts + " AA post(s)");
         }
@@ -893,7 +926,8 @@ public class AirSystem {
             AirBody body = world.kinematics(id);
             Airframe frame = world.airframe(id);
             boatDamage.observe(frame, world.hp(id));
-            AirHandling flight = frame.flight();
+            // A boat flies slower with weight aboard, so she runs back faster than she ran in.
+            AirHandling flight = FittedBoat.handling(frame, mission);
             ShuttleType carrier = ShuttleType.fromAirframe(frame);
             if (mission.poolSortie && !mission.aborted) driveOffIfBadlyHit(id, mission, body, frame);
             advanceCoverDuty(id, mission, body, dt);
@@ -959,9 +993,13 @@ public class AirSystem {
                     mission.pendingDelay -= dt;
                     if (mission.standby) {
                         // A ferry craft with its own loads flown waits here,
-                        // re-armed, for the oldest queued machine it can lift.
-                        LiftQueue.MachineDrop job = mission.pendingDelay <= 0f
-                                ? liftQueue.takeFor(frame) : null;
+                        // re-armed. A squad sortie another craft still owes
+                        // comes first: it flies next tick through the ordinary
+                        // path below. Then the oldest machine it can lift.
+                        if (mission.pendingDelay > 0f) break;
+                        if (LiftQueue.takeSquadSortie(world, air, mission,
+                                frame.seats())) break;
+                        LiftQueue.MachineDrop job = liftQueue.takeFor(frame);
                         if (job == null) break;
                         LiftQueue.loadMachine(mission, job);
                         body.teleport(mission.entryX, mission.entryY, AirBody.facingToward(
@@ -1615,8 +1653,13 @@ public class AirSystem {
                 // per round during a burst, not just on the trigger pull.
                 mt.recoilTimer += dt;
 
-                if (mt.ammoDry()) {
-                    // Mag dry mid-burst — drop any pending rounds so the mount
+                // A boat's guns share her shield's pool: an overload silences every gun, and a pool past its hold
+                // mark rests the guns that charge it while a missile pod, which does not, keeps firing.
+                float roundFlux = FittedBoat.fluxPerRound(mt.mount.structureId);
+                boolean silent = boatShields != null && (boatShields.overloaded(id)
+                        || (roundFlux > 0f && boatShields.silenced(id)));
+                if (mt.ammoDry() || silent) {
+                    // Mag dry or silenced mid-burst — drop any pending rounds so the mount
                     // doesn't stay in a never-firing burst state.
                     mt.burstRemaining = 0;
                     mt.burstTargetId = 0L;
@@ -1668,6 +1711,10 @@ public class AirSystem {
                 aim.target = roster.isAliveById(mt.targetId) ? mt.targetId : 0L;
                 aim.ignoreCloseWalls = true;
                 aim.closeWallRadius = SHUTTLE_AIR_LOS_RADIUS;
+                if (mt.mount.arced()) {
+                    aim.arcCenterDeg = body.facingDegrees + mt.mount.arcCenterDeg;
+                    aim.arcHalfDeg = mt.mount.arcDeg * 0.5f;
+                }
 
                 TurretAim.tick(aim, tacticalScoring, navigation.getGrid(), world, roster.vision(), dt);
 
@@ -1697,6 +1744,7 @@ public class AirSystem {
                                 mt.facingDegrees, releaseIndex);
                         mt.recoilTimer = 0f;
                         mt.ammo--;
+                        if (boatShields != null) boatShields.noteRound(id, roundFlux);
                         mt.burstRemaining--;
                         mt.burstTimer = mt.mount.weaponDef().burstSpacing;
                         if (mt.burstRemaining == 0) mt.burstTargetId = 0L;
@@ -1711,6 +1759,7 @@ public class AirSystem {
                             mt.facingDegrees, 0);
                     mt.recoilTimer = 0f;
                     mt.ammo--;
+                    if (boatShields != null) boatShields.noteRound(id, roundFlux);
                     // Burst weapons latch the remaining rounds; single-shot
                     // kinds (burstCount == 1) skip this and behave as before.
                     if (mt.mount.weaponDef().burstCount > 1

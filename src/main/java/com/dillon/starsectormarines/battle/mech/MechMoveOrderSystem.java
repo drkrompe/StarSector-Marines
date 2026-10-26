@@ -99,7 +99,23 @@ public final class MechMoveOrderSystem {
                     destination[0], destination[1], request.facingDegrees, assault, guard, false);
             service.activate(request.mechId, order);
             sim.clearPath(request.mechId);
+            if (wholeLanceOrdered(squad, sim)) {
+                // Every chassis of the lance has the player's own order now, so the lance's
+                // standing one (a Defend Area, say) has nothing left to hold.
+                sim.getSquadMoveOrderSystem().cancel(squad.id, sim, "mech: direct order");
+            }
         }
+    }
+
+    /** Whether every live chassis of the lance holds a player's order of its own. */
+    private boolean wholeLanceOrdered(Squad squad, BattleSimulation sim) {
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long member = sim.squadMemberAt(squad.id, i);
+            if (!sim.world().isAlive(member) || !sim.world().hasMechLoadout(member)) continue;
+            ActiveOrder order = service.activeOrder(member);
+            if (order == null || order.commanded()) return false;
+        }
+        return true;
     }
 
     /**
@@ -162,7 +178,7 @@ public final class MechMoveOrderSystem {
 
     /**
      * The assault a click is, or null when it is a move: a garrisonable under the click that the
-     * side believes is enemy-held, with a stand-off for this chassis apart from its lance-mates'.
+     * side believes is enemy-held, with a stand-off for this chassis apart from its side's other machines' stand-offs and guard cells.
      */
     MachineAssault planAssault(long mech, Squad squad, int cellX, int cellY, BattleSimulation sim) {
         AssaultTarget target = MachineAssaults.targetUnderClick(sim, squad.faction, cellX, cellY);
@@ -201,23 +217,27 @@ public final class MechMoveOrderSystem {
         sim.clearPath(mech);
     }
 
-    /** Where this chassis's lance-mates already fight from, so a lance does not stack on one cell. */
+    /**
+     * Where this chassis's side already fights from under an assault or a guard, so neither a lance nor
+     * a group of one-mech squads sent at one place stacks on one cell.
+     */
     private List<int[]> lanceStandoffs(long mech, Squad squad, BattleSimulation sim) {
         List<int[]> taken = new ArrayList<>();
-        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
-            long mate = sim.squadMemberAt(squad.id, i);
-            if (mate == mech) continue;
-            ActiveOrder other = service.activeOrder(mate);
-            if (other != null && (other.assault() != null || other.guard() != null)) {
-                taken.add(new int[]{other.destinationX(), other.destinationY()});
-            }
+        for (var entry : service.activeOrders()) {
+            long other = entry.getKey();
+            ActiveOrder order = entry.getValue();
+            if (other == mech || order.assault() == null && order.guard() == null) continue;
+            if (!sim.identity().has(other) || sim.identity().faction(other) != squad.faction) continue;
+            taken.add(new int[]{order.destinationX(), order.destinationY()});
         }
+        // Map order is not stable from run to run; the choosers read this as a set, but keep it sorted anyway.
+        taken.sort((a, b) -> a[0] != b[0] ? Integer.compare(a[0], b[0]) : Integer.compare(a[1], b[1]));
         return taken;
     }
 
     /**
      * The guard a click is, or null: a garrisonable under the click that the side mans and does not believe
-     * enemy-held, with a cell beside it for this chassis apart from its lance-mates'.
+     * enemy-held, with a cell beside it for this chassis apart from its side's other machines' stand-offs and guard cells.
      */
     MachineGuard planGuard(long mech, Squad squad, int cellX, int cellY, BattleSimulation sim) {
         AssaultTarget target = MachineGuards.targetUnderClick(sim, squad.faction, cellX, cellY);

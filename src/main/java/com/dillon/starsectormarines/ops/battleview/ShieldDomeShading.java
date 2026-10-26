@@ -28,8 +28,12 @@ final class ShieldDomeShading {
     static final float RING_SPEED = 9.5f;
     /** Rim thickness on screen, in pixels. */
     static final float RIM_PX = 2.6f;
-    /** Half the width of a directional shield's soft side edge, in cosine of the angle off its facing. */
-    static final float ARC_SOFT = 0.05f;
+    /** Strength of a directional shield's two end edges, a little under the rim's {@code 0.62}. */
+    static final float END_ALPHA = 0.42f;
+    /** How far out from the apex, in dome radii, an end edge starts to show. */
+    static final float END_FROM = 0.08f;
+    /** How far out from the apex, in dome radii, an end edge reaches full strength. */
+    static final float END_FULL = 0.45f;
 
     static final float[] AMBER = {1.00f, 0.75f, 0.47f};
     private static final float TWO_PI = 6.2831853f;
@@ -192,17 +196,44 @@ final class ShieldDomeShading {
             cr += lb; cg += lb; cb += lb; ca += lb * 0.4f;
         }
 
-        // A directional shield is the bubble cut to its arc, with a soft edge.
+        // A directional shield is the bubble cut clean to its arc, each end a bright edge like the rim.
         if (d.arcCos > -1f) {
-            float c = r > 1e-4f ? (lx / r) * d.arcDirX + (ly / r) * d.arcDirY : 1f;
-            float sector = smoothstep(d.arcCos - ARC_SOFT, d.arcCos + ARC_SOFT, c);
-            cr *= sector; cg *= sector; cb *= sector; ca *= sector;
+            float sd = arcSignedPx(d, lx, ly);
+            float sector = clamp01(sd + 0.5f);
+            float endIn = (1f - smoothstep(0f, RIM_PX, sd)) * sector;
+            float endOut = (1f - smoothstep(0f, RIM_PX * 2.2f, -sd)) * (1f - sector);
+            float reach = smoothstep(END_FROM, END_FULL, r) * (1f - smoothstep(1f, 1f + rimW * 2.2f, r));
+            float endA = (endIn * (END_ALPHA + 0.28f * hf) + endOut * 0.25f) * reach * u;
+            float endDown = endIn * 0.10f * reach * down;
+            cr = cr * sector + rimR * endA + d.collapse[0] * endDown;
+            cg = cg * sector + rimG * endA + d.collapse[1] * endDown;
+            cb = cb * sector + rimB * endA + d.collapse[2] * endDown;
+            ca = ca * sector + (endA + endDown) * 0.5f;
         }
         float a = d.alpha;
         out[0] = clamp01(cr) * a;
         out[1] = clamp01(cg) * a;
         out[2] = clamp01(cb) * a;
         out[3] = clamp01(ca) * a;
+    }
+
+    /**
+     * How far a point lies inside a directional shield's arc, in screen pixels: its distance to the nearer end of the
+     * arc (the ray from the apex half the width to that side of the facing), positive inside the arc and negative
+     * outside. Infinite for a full circle, which has no ends.
+     */
+    static float arcSignedPx(ShieldDomeDraw d, float lx, float ly) {
+        if (!(d.arcCos > -1f)) return Float.POSITIVE_INFINITY;
+        float r = (float) Math.sqrt(lx * lx + ly * ly);
+        float sinH = (float) Math.sqrt(Math.max(0f, 1f - d.arcCos * d.arcCos));
+        float nx = -d.arcDirY;
+        float ny = d.arcDirX;
+        float side = lx * nx + ly * ny >= 0f ? 1f : -1f;
+        float ex = d.arcDirX * d.arcCos + nx * side * sinH;
+        float ey = d.arcDirY * d.arcCos + ny * side * sinH;
+        float c = r > 1e-4f ? (lx * d.arcDirX + ly * d.arcDirY) / r : 1f;
+        float dEnd = (lx * ex + ly * ey > 0f ? Math.abs(ex * ly - ey * lx) : r) * d.radiusPx;
+        return c >= d.arcCos ? dEnd : -dEnd;
     }
 
     /** A hash with no trigonometry in it, so a driver and the JVM agree on which cells it picks. */

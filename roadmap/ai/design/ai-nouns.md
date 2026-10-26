@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — a marine steps out of a Bombard's spore haze just below the fire, and waits at its edge rather than walk back in to stand in it. Earlier the same day: squads march in files and keep them in contact; a Spitter lobbing at the shooter is preferred over the pack around it; a special round is held at release with a friendly in its lane or blast. Earlier 2026-10-24 — a trained shooter held by the lane gate longer than a new target takes to register switches to an enemy with a clear lane and finishes it; the sidestep asks the gate's own lane. Earlier 2026-10-23 — local squad traffic is standing behaviour, no longer an opt-in experiment. Earlier (2026-10-21): an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
+Updated: 2026-10-26 — a line's open-ground shares go out in the order the marines stand along it. Earlier 2026-10-26 — a mech attached to an infantry squad keeps its slot by the squad from the bottom of the lance's reflex chain. Earlier 2026-10-25 — a marine steps out of a Bombard's spore haze just below the fire, and waits at its edge rather than walk back in to stand in it. Earlier the same day: squads march in files and keep them in contact; a Spitter lobbing at the shooter is preferred over the pack around it; a special round is held at release with a friendly in its lane or blast. Earlier 2026-10-24 — a trained shooter held by the lane gate longer than a new target takes to register switches to an enemy with a clear lane and finishes it; the sidestep asks the gate's own lane. Earlier 2026-10-23 — local squad traffic is standing behaviour, no longer an opt-in experiment. Earlier (2026-10-21): an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -246,6 +246,13 @@ arrival with a rocket tube and a turret in view is exactly the marine that rank
 exists for. It also outranks the broken-fire-team peel, which would otherwise
 send him to cover on his own rather than back to the squad he is trying to
 reach. Return fire is not initiation and is not withheld by it.
+
+A mech **attached** to an infantry squad (`mechs-nouns.md`, attachment) keeps
+its slot by that squad from the bottom of the lance's chain, below the player's
+move, the crippled chassis and the melee stand-off: each of those is what keeps a
+mech alive or obeys the player wherever it stands, and the attachment is only where
+it stands. It owns the walk and the fire of the tick and leaves the plan step in
+place underneath, so a detach hands back without a planless tick.
 
 A marine **in a spore haze** (`bombard.md`) steps out of it, ranked just below
 the fire: the fire burns where the haze only stings, and both rank above
@@ -2456,7 +2463,9 @@ next team's share. Within its run a team spreads over its stretch as far as the
 line was drawn: each marine takes the free cell nearest an even share of it, so
 a long drag opens the team out along a trench and a short one keeps it shoulder
 to shoulder. Cells go out in the order the marines stand along the line, so
-nobody crosses a squadmate's path to a post. While the drag
+nobody crosses a squadmate's path to a post; open-ground shares go out the same
+way, a marine already holding a cell ranked by that cell rather than where he
+stands, so two never trade shares as they pass (`LinePlacement.ordinals`). While the drag
 is held the screen previews the result as a ring where each marine will stand,
 computed by the same allocation the order runs, so the rings are the cells the
 released order claims.

@@ -36,6 +36,8 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
@@ -83,7 +85,7 @@ import java.util.Set;
  *                                         recorded hits grouped by the other side's label: count, damage, kills
  *   squads [label=TEXT]                   every squad with members alive: size, leader position, assignment and its reason
  *   path ID [count=N]                     a unit's next N waypoints (default 6): cell, tags, step walkable
- *   members SQUAD                         each member of a squad: position, cell, velocity, waypoints left
+ *   members SQUAD                         each member of a squad: position, cell, velocity, waypoints left, special kit
  *   watch ID[,ID...] N [every=K]          step N ticks, one line per body every K: position, route cursor and next
  *                                         waypoint, velocity, and for a mech its hips, role and collision escape
  *   beats [since=T] [text=TEXT]           story beats
@@ -150,6 +152,7 @@ public final class BattleProbe {
         commands.put("grid", this::grid);
         commands.put("cell", a -> cell(a.intAt(0), a.intAt(1)));
         commands.put("windows", this::windows);
+        commands.put("ground", this::ground);
         commands.put("drive", this::drive);
         commands.put("cordon", a -> cordon());
         commands.put("corridor", a -> {
@@ -273,6 +276,8 @@ public final class BattleProbe {
                 .put("ground", String.valueOf(sim.getTopology().getGroundKind(x, y)))
                 .put("natureOverlay", sim.getTopology().getNatureOverlayIndex(x, y))
                 .put("plinth", sim.getTopology().getPlinthTiers(x, y))
+                .put("elevation", g.elevation() == null ? "-" : "tier " + g.elevation().tier(x, y)
+                        + (g.elevation().isRamp(x, y) ? " ramp" : "") + (g.elevation().isFace(x, y) ? " face" : ""))
                 .put("doodads", doodads);
     }
 
@@ -288,6 +293,38 @@ public final class BattleProbe {
                 if (!g.inBounds(x, y)) row.append(' ');
                 else if (!g.isWalkable(x, y)) row.append('#');
                 else row.append(clearance.isPassable(x, y) ? ',' : '.');
+            }
+            rows.put(row.toString());
+        }
+        return new JSONObject().put("x0", x0).put("rows", rows);
+    }
+
+    /**
+     * Rows of the map between two cells, north last, marking the ground: {@code #} a wall, {@code R} a cell wholly
+     * under a road's pavement and {@code r} one partly under it, otherwise the ground kind's initial, upper case where
+     * the cell has a surface of its own and lower case where it shows the ground's.
+     */
+    private JSONObject ground(Args a) throws Exception {
+        CellTopology t = sim.getTopology();
+        RoadSurface road = t.roadSurface();
+        int x0 = a.intAt(0), y0 = a.intAt(1), x1 = a.intAt(2), y1 = a.intAt(3);
+        JSONArray rows = new JSONArray();
+        for (int y = y1; y >= y0; y--) {
+            StringBuilder row = new StringBuilder(String.format(Locale.ROOT, "%4d ", y));
+            for (int x = x0; x <= x1; x++) {
+                if (!sim.getGrid().inBounds(x, y)) { row.append(' '); continue; }
+                if (t.isWall(x, y)) { row.append('#'); continue; }
+                double area = 0;
+                if (road != null) for (int m = 0; m < RoadSurface.MATERIALS; m++) {
+                    RoadSurface.Patch patch = road.patch(x, y, m);
+                    if (patch != null) area += patch.area();
+                }
+                if (area >= .999) row.append('R');
+                else if (area > 0) row.append('r');
+                else {
+                    char kind = t.getGroundKind(x, y) == null ? '?' : t.getGroundKind(x, y).name().charAt(0);
+                    row.append(t.getSurface(x, y) > 0 ? kind : Character.toLowerCase(kind));
+                }
             }
             rows.put(row.toString());
         }
@@ -521,6 +558,7 @@ public final class BattleProbe {
                 WeaponDef weapon = sim.combat().primaryWeapon(id);
                 return weapon == null ? JSONObject.NULL : weapon.id;
             });
+            put(out, "special", () -> special(id));
             put(out, "range", () -> round(world.attackRange(id)));
             put(out, "target", () -> {
                 long target = world.targetId(id);
@@ -735,6 +773,14 @@ public final class BattleProbe {
                 .put("stepFromPrevious", grid.canTraverseCellStep(fromX, fromY, x, y));
     }
 
+    /** A unit's special kit: its id, ammunition and cooldown, or null for none. */
+    private Object special(long id) throws Exception {
+        World world = sim.world();
+        if (!world.hasSecondaryWeapon(id) || world.specialEquipment(id) == null) return JSONObject.NULL;
+        return new JSONObject().put("id", world.specialEquipment(id).id()).put("ammo", world.secondaryAmmo(id))
+                .put("cooldown", round(world.secondaryCooldownTimer(id)));
+    }
+
     private JSONObject members(int squadId) throws Exception {
         JSONArray rows = new JSONArray();
         for (int i = 0; i < sim.squadMemberCount(squadId); i++) {
@@ -743,6 +789,7 @@ public final class BattleProbe {
             put(row, "cell", () -> new JSONArray(List.of(sim.world().cellX(id), sim.world().cellY(id))));
             put(row, "velocity", () -> new JSONArray(List.of(round(sim.movement().velX(id)), round(sim.movement().velY(id)))));
             put(row, "waypointsLeft", () -> sim.movement().waypointCount(id) - sim.movement().nextWaypointIndex(id));
+            put(row, "special", () -> special(id));
             rows.put(row);
         }
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("squad", squadId).put("members", rows);

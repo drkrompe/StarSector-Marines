@@ -127,6 +127,94 @@ class ShieldDomeShadingTest {
         assertTrue(out[0] > out[2], "a red dome has more red than blue at its rim");
     }
 
+    /** A 120 degree arc facing local up. */
+    private static ShieldDomeDraw arc() {
+        ShieldDomeDraw d = dome();
+        d.arcDirX = 0f;
+        d.arcDirY = 1f;
+        d.arcCos = (float) Math.cos(Math.toRadians(60));
+        return d;
+    }
+
+    private static float[] rgba(ShieldDomeDraw d, float lx, float ly) {
+        float[] out = new float[4];
+        ShieldDomeShading.shade(d, lx, ly, 1.3f, out);
+        return out;
+    }
+
+    /** The point at {@code radius} that lies {@code px} screen pixels inside the arc's right-hand end. */
+    private static float[] nearRightEnd(ShieldDomeDraw d, float radius, float px) {
+        double off = Math.toRadians(60) - Math.asin(px / (radius * d.radiusPx));
+        return new float[]{(float) Math.sin(off) * radius, (float) Math.cos(off) * radius};
+    }
+
+    @Test
+    void aWholeCircleArcIsTheDomeWhateverItsFacing() {
+        ShieldDomeDraw domeDraw = dome();
+        ShieldDomeDraw whole = dome();
+        whole.arcDirX = 0.6f;
+        whole.arcDirY = -0.8f;
+        whole.arcCos = -1f;
+        for (int i = 0; i < 64; i++) {
+            double a = i * Math.PI * 2 / 64;
+            for (float radius : new float[]{0.2f, 0.7f, 0.995f, 1.05f}) {
+                float lx = (float) (Math.cos(a) * radius);
+                float ly = (float) (Math.sin(a) * radius);
+                float[] expected = rgba(domeDraw, lx, ly);
+                float[] got = rgba(whole, lx, ly);
+                for (int c = 0; c < 4; c++) assertEquals(expected[c], got[c], 0f);
+            }
+        }
+    }
+
+    @Test
+    void nothingIsDrawnOutsideTheArcNotEvenTheRim() {
+        ShieldDomeDraw d = arc();
+        d.level = 0.8f;
+        d.hitFlash = 0.5f;
+        for (float[] p : new float[][]{{0f, -0.6f}, {0f, -0.995f}, {0.9f, -0.2f}, {-0.99f, 0f}}) {
+            float[] out = rgba(d, p[0], p[1]);
+            assertEquals(0f, out[3], 0f, "alpha at " + p[0] + "," + p[1]);
+            assertEquals(0f, out[0] + out[1] + out[2], 0f, "colour at " + p[0] + "," + p[1]);
+        }
+    }
+
+    @Test
+    void wellInsideTheArcItIsTheDome() {
+        ShieldDomeDraw domeDraw = dome();
+        ShieldDomeDraw d = arc();
+        for (float[] p : new float[][]{{0f, 0.5f}, {0f, 0.995f}, {0.3f, 0.6f}, {-0.4f, 0.8f}}) {
+            float[] expected = rgba(domeDraw, p[0], p[1]);
+            float[] got = rgba(d, p[0], p[1]);
+            for (int c = 0; c < 4; c++) assertEquals(expected[c], got[c], 0f);
+        }
+    }
+
+    @Test
+    void eachEndOfTheArcIsABrightEdgeLikeTheRim() {
+        ShieldDomeDraw domeDraw = dome();
+        ShieldDomeDraw d = arc();
+        float[] onEdge = nearRightEnd(d, 0.7f, 1f);
+        float[] further = nearRightEnd(d, 0.7f, 20f);
+        float edge = alpha(d, onEdge[0], onEdge[1]);
+        assertTrue(edge > alpha(domeDraw, onEdge[0], onEdge[1]) + 0.1f, "the end is brighter than the dome there");
+        assertTrue(edge > alpha(d, further[0], further[1]) + 0.1f, "and it is an edge, not a wash");
+        assertTrue(edge < ringMean(domeDraw, 0.995f) * 1.5f, "but no brighter than a rim");
+        float[] mirrored = {-onEdge[0], onEdge[1]};
+        assertEquals(edge, alpha(d, mirrored[0], mirrored[1]), 0.05f, "both ends alike");
+    }
+
+    @Test
+    void theSignedDistanceIsToTheNearerEndOfTheArc() {
+        ShieldDomeDraw d = arc();
+        // On the facing, half a radius out: the end ray lies 60 degrees off.
+        float inside = ShieldDomeShading.arcSignedPx(d, 0f, 0.5f);
+        assertEquals(0.5f * (float) Math.sin(Math.toRadians(60)) * d.radiusPx, inside, 0.01f);
+        // Behind the apex, the nearest part of the arc is the apex.
+        assertEquals(-0.5f * d.radiusPx, ShieldDomeShading.arcSignedPx(d, 0f, -0.5f), 0.01f);
+        assertEquals(Float.POSITIVE_INFINITY, ShieldDomeShading.arcSignedPx(dome(), 0f, -0.5f));
+    }
+
     @Test
     void aFortScaleDomeKeepsTheSameRimAndFaintInterior() {
         // A shield fort declares the ground it covers: several times the bare generator's reach, at game scale.

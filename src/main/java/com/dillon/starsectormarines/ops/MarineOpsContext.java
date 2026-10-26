@@ -207,7 +207,7 @@ public class MarineOpsContext {
     public CompanyDeck companyDeck() {
         FleetMemberAPI aboard = CompanyShipDesignation.aboard();
         String hull = aboard == null ? null : aboard.getId();
-        String held = CompanyShipRestoration.state(aboard) + ":" + boatsHeldSignature() + ":" + CompanyBayRestoration.state(aboard) + ":" + CompanyWorkshopRestoration.state(aboard) + ":" + (aboard != null && CompanyShipResolver.read(aboard).aeroshuttleConversion());
+        String held = CompanyShipRestoration.state(aboard) + ":" + boatsHeldSignature() + ":" + CompanyBayRestoration.state(aboard) + ":" + CompanyWorkshopRestoration.state(aboard);
         if (companyDeck != null && Objects.equals(hull, companyDeckShipId)
                 && held.equals(companyDeckBoatsHeld)) {
             dressFromCondition(aboard);
@@ -287,7 +287,7 @@ public class MarineOpsContext {
         boolean[] grounded = new boolean[boats.size()];
         float day = CampaignClock.dayFloat();
         for (int i = 0; i < boats.size(); i++)
-            grounded[i] = boats.get(i) != null && !boats.get(i).airworthy(day);
+            grounded[i] = boats.get(i) != null && !boats.get(i).flightReady(day);
         return grounded;
     }
 

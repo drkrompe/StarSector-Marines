@@ -41,6 +41,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
@@ -64,8 +65,11 @@ import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
+import java.util.Map;
+import java.util.EnumMap;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -217,16 +221,25 @@ class BattleFixtureJsonTest {
      */
     @Test
     void roundTripsTheFittingsOnTheCompanysOwnBoats() throws Exception {
-        FittedBoat armoured = new FittedBoat(ShuttleType.AEROSHUTTLE,
-                BoatFitting.ARMOURED_PLATING, BoatFitting.TUNED_DRIVE, BoatFitting.STANDARD_LIFT, "boat_04",
+        FittedBoat armoured = new FittedBoat(ShuttleType.AEROSHUTTLE, Map.of(
+                BoatFittingSlot.PLATING, BoatFitting.ARMOURED_PLATING,
+                BoatFittingSlot.DRIVE, BoatFitting.TUNED_DRIVE,
+                BoatFittingSlot.CABIN, BoatFitting.TWO_TEAM_CABIN,
+                BoatFittingSlot.EMITTER, BoatFitting.WIDE_EMITTER,
+                BoatFittingSlot.POWER, BoatFitting.CAPACITOR_BANK), "boat_04",
                 new String[]{BoatGun.ARBALEST.structureId()});
+        // Her emitter and her yard gun stripped off on the deck: she flies unshielded, her first hardpoint bare.
+        Map<BoatFittingSlot, BoatFitting> unshielded = new EnumMap<>(BoatFittingSlot.class);
+        unshielded.put(BoatFittingSlot.EMITTER, null);
         CivilianRescueBattleFixture fixture = new CivilianRescueBattleFixture(
                 17L,
                 List.of(
                         new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 1),
                         new ShuttleAssignment(armoured, 2, 6),
                         new ShuttleAssignment(
-                                FittedBoat.standard(ShuttleType.AEROSHUTTLE), 1, 6)),
+                                FittedBoat.standard(ShuttleType.AEROSHUTTLE), 1, 6),
+                        new ShuttleAssignment(new FittedBoat(ShuttleType.HERMES, unshielded, "boat_01",
+                                new String[]{FittedBoat.BARE, null, BoatGun.SRM_POD.structureId()}), 1, 4)),
                 false,
                 RiskLevel.LOW,
                 12,
@@ -252,6 +265,9 @@ class BattleFixtureJsonTest {
                 manifest.get(2).airframe);
         assertNull(((FittedBoat) manifest.get(2).airframe).boatId(),
                 "a fitted frame nobody owns names no boat and must not invent one");
+        assertEquals(Arrays.asList(null, null, BoatGun.SRM_POD.structureId()),
+                ((FittedBoat) manifest.get(3).airframe).guns(), "a bare hardpoint reads back bare");
+        assertNull(((FittedBoat) manifest.get(3).airframe).shieldSpec(), "a boat without an emitter reads back unshielded");
     }
 
     @Test

@@ -52,6 +52,50 @@ public final class GeneratedRoads {
             for (Band o : others) if (o != this && o.horizontal() != horizontal() && o.touches(end)) return true;
             return false;
         }
+        /** Whether a band of {@code others} covers the cell line just past this band's first (or last) end. */
+        boolean carriedOn(boolean first, List<Band> others) {
+            Band end = end(first);
+            int step = first ? -1 : 1;
+            Band past = horizontal()
+                    ? new Band(end.left + step, end.bottom, end.right + step, end.top)
+                    : new Band(end.left, end.bottom + step, end.right, end.top + step);
+            for (Band o : others) {
+                if (o != this && o.left <= past.right && o.right >= past.left && o.bottom <= past.top
+                        && o.top >= past.bottom) return true;
+            }
+            return false;
+        }
+        /** Whether an end of this band runs on into another band, or stops where a crossing band meets it. */
+        boolean joined(boolean first, List<Band> others) {
+            return carriedOn(first, others) || crossedAt(first, others);
+        }
+        /**
+         * This band less each stretch of its length, longer than it is broad, that a band of
+         * {@code others} running the same way overlaps: the pieces between, each longer than it is
+         * broad. A shorter overlap is where a jog steps off the stretch before, and stays.
+         */
+        List<Band> clearOf(Set<Band> others) {
+            boolean horizontal = horizontal();
+            int lo = horizontal ? left : bottom, hi = horizontal ? right : top;
+            boolean[] cut = new boolean[hi - lo + 1];
+            for (Band o : others) {
+                if (o.horizontal() != horizontal || o.left > right || o.right < left
+                        || o.bottom > top || o.top < bottom) continue;
+                int from = Math.max(lo, horizontal ? o.left : o.bottom), to = Math.min(hi, horizontal ? o.right : o.top);
+                if (to - from + 1 <= breadth()) continue;
+                for (int i = from; i <= to; i++) cut[i - lo] = true;
+            }
+            List<Band> pieces = new ArrayList<>();
+            for (int a = lo; a <= hi;) {
+                if (cut[a - lo]) { a++; continue; }
+                int b = a;
+                while (b + 1 <= hi && !cut[b + 1 - lo]) b++;
+                if (b - a + 1 > breadth())
+                    pieces.add(horizontal ? new Band(a, bottom, b, top) : new Band(left, a, right, b));
+                a = b + 1;
+            }
+            return pieces;
+        }
         private Band end(boolean first) {
             return horizontal()
                     ? (first ? new Band(left, bottom, left, top) : new Band(right, bottom, right, top))
@@ -101,7 +145,16 @@ public final class GeneratedRoads {
      * rather than becoming a square of carriageway.
      */
     public static List<Route> routes(boolean[][] road, long seed, int maxBreadth) {
-        return routes(road, null, null, seed, maxBreadth, StreetStyle.ROUND_BARE).routes();
+        return routes(road, null, null, null, seed, maxBreadth, StreetStyle.ROUND_BARE).routes();
+    }
+
+    /**
+     * As {@link #routes(boolean[][], long)}, also sweeping a stretch of road that jogs a cell
+     * sideways off the next, where every cell of the stretch is {@code paved} (see
+     * {@link #streets(boolean[][], boolean[][], boolean[][], boolean[][], long, int, StreetStyle)}).
+     */
+    public static List<Route> routes(boolean[][] road, boolean[][] paved, long seed) {
+        return routes(road, null, null, paved, seed, MAX_BREADTH, StreetStyle.ROUND_BARE).routes();
     }
 
     /**
@@ -145,36 +198,57 @@ public final class GeneratedRoads {
      */
     public static Network streets(boolean[][] road, boolean[][] city, boolean[][] footway,
                                   long seed, int maxBreadth, StreetStyle style) {
-        return routes(road, city, footway, seed, maxBreadth, style);
+        return routes(road, city, footway, null, seed, maxBreadth, style);
     }
 
-    private static Network routes(boolean[][] road, boolean[][] city, boolean[][] footway,
+    /**
+     * As {@link #streets(boolean[][], boolean[][], boolean[][], long, int, StreetStyle)}, also
+     * sweeping a stretch of road that jogs a cell sideways off the next. Each cell line the two
+     * stretches share runs on past the jog into the other, so no run of the road widens whole to a
+     * band there; the stretch is swept only where every cell of it is {@code paved}, as a street the
+     * town laid, and a strip of road across bare ground keeps its ground. A paved street linking two
+     * swept ones is swept the same way where its lines run on along one of them past it.
+     */
+    public static Network streets(boolean[][] road, boolean[][] city, boolean[][] footway, boolean[][] paved,
+                                  long seed, int maxBreadth, StreetStyle style) {
+        return routes(road, city, footway, paved, seed, maxBreadth, style);
+    }
+
+    private static Network routes(boolean[][] road, boolean[][] city, boolean[][] footway, boolean[][] paved,
                                   long seed, int maxBreadth, StreetStyle style) {
         if (road.length == 0 || road[0].length == 0) return new Network(List.of(), List.of());
         Set<Band> candidates = new LinkedHashSet<>();
         int cap = city == null ? Math.min(maxBreadth, MAX_BREADTH) : MAX_BREADTH;
-        bands(road, false, cap, candidates);
-        bands(road, true, cap, candidates);
-        if (city != null) candidates.removeIf(b -> b.breadth() > maxBreadth && b.holds(city));
-        List<Band> bands = candidates.stream().filter(b -> candidates.stream()
-                .noneMatch(other -> !other.equals(b) && other.contains(b))).toList();
-        Set<Band> spurs = new HashSet<>();
-        if (city != null) {
-            List<Band> all = bands;
-            bands = all.stream().filter(b -> !b.holds(city) || all.stream().noneMatch(a -> a.alongside(b))).toList();
-            // A short band is a through street when each of its ends meets
-            // another street. One met at a single end by a street that stands on
-            // its own is a dead end off that street, a spur: it runs into a yard
-            // or a lot, and left paved it reads as a stub of street with no road
-            // on it. One that meets no street floats between buildings.
-            List<Band> kept = bands;
-            int w = road.length, h = road[0].length;
-            List<Band> streets = kept.stream().filter(b -> !b.holds(city) || b.length() >= PILL_LENGTH * b.breadth()
-                    || (b.endMet(true, kept, w, h) && b.endMet(false, kept, w, h))).toList();
-            for (Band b : kept)
-                if (!streets.contains(b) && (b.crossedAt(true, streets) || b.crossedAt(false, streets))
-                        && b.reach(streets) >= SPUR_REACH * b.breadth()) spurs.add(b);
-            bands = kept.stream().filter(b -> streets.contains(b) || spurs.contains(b)).toList();
+        bands(road, null, false, cap, candidates);
+        bands(road, null, true, cap, candidates);
+        Kept kept = keep(candidates, road, city, maxBreadth);
+        List<Band> bands = kept.bands();
+        Set<Band> spurs = kept.spurs();
+        if (paved != null) {
+            // A jogged stretch fills a gap between roads that are swept: past each of its ends the road
+            // carries on, as a crossing street or the next stretch of the jog. So does a link, a street
+            // whose lines run on along a swept band past it: it is the part's length off that band, and
+            // ends where the band begins or where a crossing street meets it. Neither displaces a swept
+            // band, by holding it or by running narrower along it and so making it a bulge; each is
+            // held to the same rules as any band, and is swept only if they keep it and leave every
+            // other band as it was. One the road did not carry on past would float a stub of asphalt.
+            Set<Band> parts = new LinkedHashSet<>();
+            bands(road, paved, false, cap, parts);
+            bands(road, paved, true, cap, parts);
+            Set<Band> jogged = new LinkedHashSet<>();
+            Set<Band> drawn = new LinkedHashSet<>(bands);
+            for (Band part : parts) for (Band b : part.clearOf(drawn)) {
+                if (!candidates.contains(b) && drawn.stream().noneMatch(c -> b.contains(c) || b.alongside(c))) jogged.add(b);
+            }
+            if (!jogged.isEmpty()) {
+                Set<Band> all = new LinkedHashSet<>(candidates);
+                all.addAll(jogged);
+                List<Band> swept = bands, joined = new ArrayList<>(bands);
+                for (Band b : keep(all, road, city, maxBreadth).bands()) {
+                    if (jogged.contains(b) && b.joined(true, swept) && b.joined(false, swept)) joined.add(b);
+                }
+                bands = joined;
+            }
         }
         List<Route> routes = new ArrayList<>();
         Map<Band, Carriageway> lanes = new HashMap<>();
@@ -391,6 +465,36 @@ public final class GeneratedRoads {
         return e != null ? e[1] : b.horizontal() ? b.right : b.top;
     }
 
+    /** The bands a street network keeps of {@code candidates}, and which of them are spurs. */
+    private record Kept(List<Band> bands, Set<Band> spurs) {}
+
+    /** The city's rules over {@code candidates}: no broad street, no band held by another, no bulge or pill. */
+    private static Kept keep(Set<Band> found, boolean[][] road, boolean[][] city, int maxBreadth) {
+        Set<Band> candidates = new LinkedHashSet<>(found);
+        if (city != null) candidates.removeIf(b -> b.breadth() > maxBreadth && b.holds(city));
+        List<Band> bands = candidates.stream().filter(b -> candidates.stream()
+                .noneMatch(other -> !other.equals(b) && other.contains(b))).toList();
+        Set<Band> spurs = new HashSet<>();
+        if (city != null) {
+            List<Band> all = bands;
+            bands = all.stream().filter(b -> !b.holds(city) || all.stream().noneMatch(a -> a.alongside(b))).toList();
+            // A short band is a through street when each of its ends meets
+            // another street. One met at a single end by a street that stands on
+            // its own is a dead end off that street, a spur: it runs into a yard
+            // or a lot, and left paved it reads as a stub of street with no road
+            // on it. One that meets no street floats between buildings.
+            List<Band> kept = bands;
+            int w = road.length, h = road[0].length;
+            List<Band> streets = kept.stream().filter(b -> !b.holds(city) || b.length() >= PILL_LENGTH * b.breadth()
+                    || (b.endMet(true, kept, w, h) && b.endMet(false, kept, w, h))).toList();
+            for (Band b : kept)
+                if (!streets.contains(b) && (b.crossedAt(true, streets) || b.crossedAt(false, streets))
+                        && b.reach(streets) >= SPUR_REACH * b.breadth()) spurs.add(b);
+            bands = kept.stream().filter(b -> streets.contains(b) || spurs.contains(b)).toList();
+        }
+        return new Kept(bands, spurs);
+    }
+
     /** The asphalt across a band: its centre line across the band's axis, and its width. */
     private record Carriageway(double centre, double width) {
         static Carriageway whole(Band b) {
@@ -424,24 +528,57 @@ public final class GeneratedRoads {
         routes.add(new Route("generated-" + routes.size(), points, width, 0, .4, seed, material, cap));
     }
 
-    /** Maximal horizontal and vertical rectangles, not the obsolete pre-pruning trunks. */
-    private static void bands(boolean[][] road, boolean transpose, int maxBreadth, Set<Band> out) {
+    /**
+     * Maximal horizontal and vertical rectangles, not the obsolete pre-pruning trunks. A run whose
+     * whole length is too narrow for a band may still hold one along part of it: a road that jogs a
+     * cell sideways is two bands offset by a cell, and each run down the jog's shared lines carries
+     * on past it into the other, so widened whole it never reaches three cells. With {@code paved},
+     * such a part is a band where every cell of it is paved; without, it is not looked for.
+     */
+    private static void bands(boolean[][] road, boolean[][] paved, boolean transpose, int maxBreadth,
+                              Set<Band> out) {
         int length = transpose ? road[0].length : road.length;
         int rows = transpose ? road.length : road[0].length;
         for (int row = 0; row < rows; row++) for (int start = 0; start < length;) {
             if (!at(road, transpose, start, row)) { start++; continue; }
             int end = start;
             while (end + 1 < length && at(road, transpose, end + 1, row)) end++;
-            if (end - start >= 2) {
-                int lo = row, hi = row;
-                while (lo > 0 && full(road, transpose, start, end, lo - 1)) lo--;
-                while (hi + 1 < rows && full(road, transpose, start, end, hi + 1)) hi++;
-                int breadth = hi - lo + 1;
-                if (breadth >= 3 && breadth <= maxBreadth && end - start + 1 >= breadth)
-                    out.add(transpose ? new Band(lo, start, hi, end) : new Band(start, lo, end, hi));
+            if (end - start >= 2 && !band(road, null, transpose, start, end, row, rows, maxBreadth, out)
+                    && paved != null) {
+                // The stretches of the run three lines broad, each widened as a run of its own.
+                for (int core = Math.max(0, row - 2); core <= row && core + 2 < rows; core++) {
+                    for (int a = start; a <= end;) {
+                        if (!full(road, transpose, a, a, core) || !full(road, transpose, a, a, core + 1)
+                                || !full(road, transpose, a, a, core + 2)) { a++; continue; }
+                        int b = a;
+                        while (b + 1 <= end && full(road, transpose, b + 1, b + 1, core)
+                                && full(road, transpose, b + 1, b + 1, core + 1)
+                                && full(road, transpose, b + 1, b + 1, core + 2)) b++;
+                        if (b - a >= 2) band(road, paved, transpose, a, b, row, rows, maxBreadth, out);
+                        a = b + 1;
+                    }
+                }
             }
             start = end + 1;
         }
+    }
+
+    /**
+     * Widens the run {@code start..end} of {@code row} into a band, if it makes one, kept only where
+     * every cell of it is {@code paved} when that is given.
+     */
+    private static boolean band(boolean[][] road, boolean[][] paved, boolean transpose, int start, int end, int row,
+                                int rows, int maxBreadth, Set<Band> out) {
+        int lo = row, hi = row;
+        while (lo > 0 && full(road, transpose, start, end, lo - 1)) lo--;
+        while (hi + 1 < rows && full(road, transpose, start, end, hi + 1)) hi++;
+        int breadth = hi - lo + 1;
+        if (breadth < 3) return false;
+        boolean laid = true;
+        for (int r = lo; r <= hi && laid && paved != null; r++) laid = full(paved, transpose, start, end, r);
+        if (laid && breadth <= maxBreadth && end - start + 1 >= breadth)
+            out.add(transpose ? new Band(lo, start, hi, end) : new Band(start, lo, end, hi));
+        return true;
     }
 
     private static boolean full(boolean[][] road, boolean transpose, int start, int end, int row) {

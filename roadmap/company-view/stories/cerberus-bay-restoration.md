@@ -19,8 +19,7 @@ money sink, separate from required founding preparation and boat commissioning.
   planetary spaceport. The price includes labor and structural materials.
 - Engineering's sealed hangar shows the explanation, Cost / Available / Short by,
   prerequisites and an explicit reviewed repair action; the company notice opens
-  it there. Boat Deck only points to it. Secondhand Wings may bundle the same
-  restoration into its order. No tutorial lockout.
+  it there. Boat Deck only points to it. No tutorial lockout.
 - Repair changes only the damaged facility. Dimensions, compartment positions,
   workshop, Mech Lab and first boat identity/fittings remain unchanged.
 - The new berth starts empty. The ordinary Hermes fabrication bill is separate.

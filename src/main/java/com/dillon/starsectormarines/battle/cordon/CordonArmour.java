@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -25,6 +26,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Function;
+import java.util.function.UnaryOperator;
 
 /**
  * The allies' light armour on the line ({@code cordon-nouns.md}, Allied armour): cars and
@@ -112,6 +114,8 @@ public final class CordonArmour {
     private final Set<Long> escortedHulls = new HashSet<>();
     /** Each escort hull sent beside a road hull at the last look, and the road hull it is with. */
     private final Map<Long, Long> escortOf = new LinkedHashMap<>();
+    /** The side of each road hull its escort keeps: 1 its right, -1 its left, 0 behind it. */
+    private final Map<Long, Integer> escortSide = new HashMap<>();
     /** Road hulls that ever wanted an escort, and those that ever had one, for evidence. */
     private final Set<Long> hullsWanting = new HashSet<>(), hullsEscorted = new HashSet<>();
     /** Escort places a look filled and left short, summed over looks, for evidence. */
@@ -411,7 +415,8 @@ public final class CordonArmour {
         List<int[][]> needs = new ArrayList<>(escorts == null ? List.of() : escorts.apply(sim));
         int convoyNeeds = needs.size();
         List<Long> roadHulls = hullEscorts == null ? List.of() : hullEscorts.apply(sim);
-        for (long h : roadHulls) needs.add(new int[][]{beside(sim.convoy().body(h))});
+        escortSide.keySet().retainAll(roadHulls);
+        for (long h : roadHulls) needs.add(new int[][]{escortPlace(sim, h)});
         Map<CordonRedoubt, Integer> left = new HashMap<>(count);
         for (int n = 0; n < needs.size(); n++) {
             int[][] posts = needs.get(n);
@@ -647,22 +652,89 @@ public final class CordonArmour {
     }
 
     /**
-     * Where a road hull's escort keeps: {@link #ESCORT_BESIDE} cells to its right and {@link #ESCORT_LEAD} ahead, by
-     * its heading. Beside it as it turns, rather than a fixed step east of it, which put the escort ahead of a truck
-     * driving east and behind one driving west.
+     * Where a road hull's escort keeps: beside it ({@link #besidePoint}), on its right, else its left, where the ground the
+     * escort would stand on there is off the road hull's way; else {@link #ESCORT_TRAIL} cells behind it. In a lane
+     * too narrow for two abreast the ground nearest the place beside it was the lane ahead, and the escort stood
+     * across the way it was escorting (town Line rock 8: the ammunition truck was refused its way past its own escort
+     * from tick 10200 to the end, and redoubt 3's guns stayed dry). The escort keeps the side it took while that
+     * side still has room: tried right first at every look, the place swapped sides as the hull crept along a lane
+     * whose right came and went, and the escort turned about for each swap and fell behind.
      */
-    static int[] beside(GroundBody body) {
+    private int[] escortPlace(BattleSimulation sim, long roadHull) {
+        GroundBody body = sim.convoy().body(roadHull);
+        VehicleType type = sim.convoy().vehicleType(roadHull);
+        VehicleMoveOrderService.ActiveOrder order = sim.getVehicleMoveOrderService().activeOrder(roadHull);
+        int[] place = escortPlace(body, order == null ? null : order.routeXs(), order == null ? null : order.routeYs(),
+                p -> drivable(sim, type, p[0], p[1]), escortSide.getOrDefault(roadHull, 1));
+        escortSide.put(roadHull, place[2]);
+        return new int[]{place[0], place[1]};
+    }
+
+    /**
+     * {@link #escortPlace(BattleSimulation, long)} given the road hull's way ({@code null} where it has none yet: the
+     * way is then the hull's heading) and the ground an escort sent to a place would stand on ({@code null} for none),
+     * trying {@code side} first (1 the right, -1 the left, 0 the right as for a new escort). Returns the place's cell
+     * and the side it is on, 0 for behind.
+     */
+    static int[] escortPlace(GroundBody body, float[] wayX, float[] wayY, UnaryOperator<int[]> ground, int side) {
+        int first = side == -1 ? -1 : 1;
+        for (int s : new int[]{first, -first}) {
+            double[] at = besidePoint(body, s);
+            int[] place = {(int) Math.round(at[0]), (int) Math.round(at[1])};
+            int[] stand = ground.apply(place);
+            if (stand == null) continue;
+            // Where the ground takes the place itself the escort stands there; elsewhere at the cell it is moved to.
+            boolean kept = stand[0] == place[0] && stand[1] == place[1];
+            float x = kept ? (float) at[0] : stand[0] + .5f, y = kept ? (float) at[1] : stand[1] + .5f;
+            if (offWay(body, wayX, wayY, x, y)) return new int[]{place[0], place[1], s};
+        }
+        double rad = Math.toRadians(body.facingDegrees);
+        return new int[]{(int) Math.round(body.x + Math.sin(rad) * ESCORT_TRAIL),
+                (int) Math.round(body.y - Math.cos(rad) * ESCORT_TRAIL), 0};
+    }
+
+    /** Whether {@code (x, y)} stands more than {@link #ESCORT_CLEAR} cells off a road hull's way. */
+    static boolean offWay(GroundBody body, float[] wayX, float[] wayY, float x, float y) {
+        if (wayX == null || wayX.length < 2) {
+            double rad = Math.toRadians(body.facingDegrees);
+            wayX = new float[]{body.x, (float) (body.x - Math.sin(rad) * ESCORT_WAY_AHEAD)};
+            wayY = new float[]{body.y, (float) (body.y + Math.cos(rad) * ESCORT_WAY_AHEAD)};
+        }
+        for (int i = 1; i < wayX.length; i++) {
+            float ax = wayX[i - 1], ay = wayY[i - 1], dx = wayX[i] - ax, dy = wayY[i] - ay;
+            float length2 = dx * dx + dy * dy;
+            float t = length2 < 1e-6f ? 0f : Math.max(0f, Math.min(1f, ((x - ax) * dx + (y - ay) * dy) / length2));
+            if (Math.hypot(x - (ax + t * dx), y - (ay + t * dy)) <= ESCORT_CLEAR) return false;
+        }
+        return true;
+    }
+
+    /**
+     * The point {@link #ESCORT_BESIDE} cells to a road hull's right ({@code side} 1) or left ({@code -1}) and
+     * {@link #ESCORT_LEAD} ahead, by its heading. Beside it as it turns, rather than a fixed step east of it, which
+     * put the escort ahead of a truck driving east and behind one driving west.
+     */
+    static double[] besidePoint(GroundBody body, int side) {
         double rad = Math.toRadians(body.facingDegrees);
         // Forward is (-sin, cos) for a hull's facing; its right is (cos, sin).
         double fx = -Math.sin(rad), fy = Math.cos(rad);
-        return new int[]{(int) Math.round(body.x + Math.cos(rad) * ESCORT_BESIDE + fx * ESCORT_LEAD),
-                (int) Math.round(body.y + Math.sin(rad) * ESCORT_BESIDE + fy * ESCORT_LEAD)};
+        return new double[]{body.x + side * Math.cos(rad) * ESCORT_BESIDE + fx * ESCORT_LEAD,
+                body.y + side * Math.sin(rad) * ESCORT_BESIDE + fy * ESCORT_LEAD};
     }
 
     /** Cells to the side of a road hull its escort keeps. */
     static final int ESCORT_BESIDE = 4;
     /** Cells ahead of a road hull its escort keeps, so it closes up rather than trailing. */
     static final int ESCORT_LEAD = 2;
+    /** Cells behind a road hull its escort keeps where neither side has room off its way. */
+    static final int ESCORT_TRAIL = 6;
+    /**
+     * Cells off a road hull's way its escort must stand: half an escort's length (it may stand at any heading), half
+     * the road hull's width, and a cell between.
+     */
+    static final float ESCORT_CLEAR = 3.5f;
+    /** Cells of a road hull's heading taken as its way while it has no route yet. */
+    static final float ESCORT_WAY_AHEAD = 12f;
     /** Cells from a road hull an armed allied hull is alongside it: the radio's Escorted. */
     static final float ESCORTED_REACH = EscortPace.FALLEN_BEHIND;
 

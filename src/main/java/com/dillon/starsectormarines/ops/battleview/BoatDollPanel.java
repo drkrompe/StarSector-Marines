@@ -44,6 +44,7 @@ final class BoatDollPanel {
     private static final Color GRID = new Color(0x5e, 0x96, 0xd2, 20);
     private static final Color EDGE = new Color(0x8e, 0x9a, 0x8c, 120);
     private static final Color PLATE = new Color(0x08, 0x0b, 0x09, 196);
+    private static final Color MISSING_PLATE = new Color(0x1c, 0x08, 0x08, 214);
     private static final Color SILVER = new Color(0xd3, 0xd0, 0xc5);
     private static final Color MUTED = new Color(0x91, 0x98, 0x8e);
     private static final Color AMBER = new Color(0xed, 0xc2, 0x73);
@@ -79,13 +80,18 @@ final class BoatDollPanel {
         board(c, width, canvasHeight);
 
         List<BoatDoll.Slot> guns = new ArrayList<>();
-        BoatDoll.Slot plating = null, drive = null, lift = null;
+        BoatDoll.Slot plating = null, drive = null, cabin = null;
+        // The bottom row, left to right: the power that feeds the shield, the hold, the emitter.
+        BoatDoll.Slot[] lower = new BoatDoll.Slot[3];
         for (BoatDoll.Slot slot : doll.slots()) {
             switch (slot.kind()) {
                 case HARDPOINT -> guns.add(slot);
                 case PLATING -> plating = slot;
                 case DRIVE -> drive = slot;
-                case LIFT -> lift = slot;
+                case CABIN -> cabin = slot;
+                case POWER -> lower[0] = slot;
+                case LIFT -> lower[1] = slot;
+                case EMITTER -> lower[2] = slot;
             }
         }
         // Port guns to the left of starboard ones, so the board reads the way the boat is built.
@@ -94,7 +100,8 @@ final class BoatDollPanel {
         float gunHeight = guns.isEmpty() ? 0f : height(BoatDoll.Kind.HARDPOINT);
         float flankHeight = Math.max(drive == null ? CORE_HEIGHT : 0f,
                 Math.max(plating != null ? height(plating.kind()) : 0f, drive != null ? height(drive.kind()) : 0f));
-        float liftHeight = lift != null ? height(lift.kind()) : 0f;
+        float liftHeight = 0f;
+        for (BoatDoll.Slot slot : lower) if (slot != null) liftHeight = Math.max(liftHeight, height(slot.kind()));
         float total = gunHeight + (gunHeight > 0f ? GAP_Y : 0f) + flankHeight
                 + (liftHeight > 0f ? GAP_Y + liftHeight : 0f);
         float top = Math.max(MARGIN + 26f, (canvasHeight - total) * 0.5f);
@@ -124,10 +131,25 @@ final class BoatDollPanel {
             placed.add(new Placed(plating, new CardTarget(plating.key(), core.left() - GAP_X - w,
                     flankY - h * 0.5f, w, h)));
         }
-        if (lift != null) {
-            float w = width(lift), h = height(lift.kind());
-            placed.add(new Placed(lift, new CardTarget(lift.key(), centerX - w * 0.5f,
-                    core.bottom() + GAP_Y, w, h)));
+        if (cabin != null) {
+            float w = width(cabin), h = height(cabin.kind());
+            placed.add(new Placed(cabin, new CardTarget(cabin.key(), core.right() + GAP_X,
+                    flankY - h * 0.5f, w, h)));
+        }
+        float lowerWidth = 0f;
+        int lowerCount = 0;
+        for (BoatDoll.Slot slot : lower) {
+            if (slot == null) continue;
+            lowerWidth = Math.max(lowerWidth, width(slot));
+            lowerCount++;
+        }
+        float lowerSpan = lowerWidth * lowerCount + GAP_X * Math.max(0, lowerCount - 1);
+        float lowerLeft = centerX - lowerSpan * 0.5f;
+        for (BoatDoll.Slot slot : lower) {
+            if (slot == null) continue;
+            placed.add(new Placed(slot, new CardTarget(slot.key(), lowerLeft, core.bottom() + GAP_Y,
+                    lowerWidth, height(slot.kind()))));
+            lowerLeft += lowerWidth + GAP_X;
         }
 
         for (int i = 0; i < placed.size(); i++) {
@@ -186,22 +208,28 @@ final class BoatDollPanel {
 
     /**
      * One socket: the plate, its name, and its bricks with the fitted piece over
-     * them. Selected or under the pointer, it wears the lab's amber brackets.
+     * them. Selected or under the pointer, it wears the lab's amber brackets. A
+     * required socket left empty warns as the lab's empty engine well does: a dark
+     * red plate, a pulsing red rim and a warning triangle by its name.
      */
     private static void console(CanvasContext c, CardTarget t, BoatDoll.Slot slot, boolean hot, double seconds) {
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
         Color tone = BoatHardware.tone(slot.kind());
-        plate(c, x, y, w, h);
-        HardpointBricks.rim(c, x, y, w, h, CUT, withAlpha(tone, 70), 1.2f);
-        c.fillRect(x + 8f, y + 7f, 3f, 9f, tone);
+        boolean missing = slot.missing();
+        float pulse = (float) (.5 + .5 * Math.sin(seconds * 3.5));
+        plate(c, x, y, w, h, missing ? MISSING_PLATE : PLATE);
+        HardpointBricks.rim(c, x, y, w, h, CUT, missing ? withAlpha(REFUSES, (int) (150 + pulse * 105))
+                : withAlpha(tone, 70), missing ? 2f : 1.2f);
+        c.fillRect(x + 8f, y + 7f, 3f, 9f, missing ? REFUSES : tone);
         c.text(Fonts.ORBITRON_12_BOLD, clip(slot.title(), w - 24f, Fonts.ORBITRON_12_BOLD), x + 16f,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
         HardpointBricks.Layout bricks = bricks(slot.kind(), 0f, 0f);
         bricks = bricks(slot.kind(), x + (w - bricks.width()) * .5f, y + HEADER);
         HardpointBricks.drawEmpty(c, bricks, tone);
-        BoatHardware.draw(c, bricks, BoatHardware.piece(slot.kind(), slot.itemId()), 255);
+        // A bare hardpoint is its empty bricks and nothing on them; a missing required part, the warning on them.
+        if (slot.itemId() != null) BoatHardware.draw(c, bricks, BoatHardware.piece(slot.kind(), slot.itemId()), 255);
+        else if (missing) warning(c, bricks.left() + bricks.width() * .5f - 13f, bricks.top() + bricks.height() * .5f - 13f, 26f);
         if (slot.selected() || hot) {
-            float pulse = (float) (.5 + .5 * Math.sin(seconds * 3.5));
             MechLabDollCanvas.drawCornerBrackets(c, x - 2f, y - 2f, w + 4f, h + 4f,
                     withAlpha(AMBER, (int) (180 + pulse * 65)), slot.selected() ? 2.4f : 1.4f, 17f, 5f);
         }
@@ -255,9 +283,21 @@ final class BoatDollPanel {
     }
 
     private static void plate(CanvasContext c, float x, float y, float w, float h) {
-        c.fillRect(x + CUT, y, w - CUT * 2f, h, PLATE);
-        c.fillQuad(x, y + CUT, x + CUT, y, x + CUT, y + h, x, y + h - CUT, PLATE);
-        c.fillQuad(x + w - CUT, y, x + w, y + CUT, x + w, y + h - CUT, x + w - CUT, y + h, PLATE);
+        plate(c, x, y, w, h, PLATE);
+    }
+
+    private static void plate(CanvasContext c, float x, float y, float w, float h, Color fill) {
+        c.fillRect(x + CUT, y, w - CUT * 2f, h, fill);
+        c.fillQuad(x, y + CUT, x + CUT, y, x + CUT, y + h, x, y + h - CUT, fill);
+        c.fillQuad(x + w - CUT, y, x + w, y + CUT, x + w, y + h - CUT, x + w - CUT, y + h, fill);
+    }
+
+    /** The lab's warning mark: a red triangle with an exclamation mark, {@code size} px square at its top-left corner. */
+    private static void warning(CanvasContext c, float left, float top, float size) {
+        float stroke = Math.max(2f, size / 9f);
+        c.fillQuad(left + size * .5f, top, left + size, top + size, left + size, top + size, left, top + size, REFUSES);
+        c.fillRect(left + (size - stroke) * .5f, top + size * .33f, stroke, size * .33f, MISSING_PLATE);
+        c.fillRect(left + (size - stroke) * .5f, top + size * .78f, stroke, stroke, MISSING_PLATE);
     }
 
     static Color withAlpha(Color color, int alpha) {

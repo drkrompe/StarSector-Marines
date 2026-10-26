@@ -33,8 +33,8 @@ public record CinematicShot(String id, String video, int fps, int width, int hei
     public record Caption(double in, double out, String speaker, String key) { }
 
     /**
-     * A sound on the shot's clock. {@code until} makes it a loop or bed (NaN for a one-shot), which
-     * is what lets its level move: {@code fadeIn} / {@code fadeOut} ramp it, and {@code duck} is the
+     * A sound on the shot's clock. {@code until} makes it a held bed (NaN for a one-shot): one sound
+     * whose file covers its span, stopped at {@code until}, whose level can move: {@code fadeIn} / {@code fadeOut} ramp it, and {@code duck} is the
      * gain it drops to while anyone speaks (1 for none), for music under the voices.
      */
     public record Cue(double t, String sound, float volume, double until, float fadeIn, float fadeOut, float duck) {

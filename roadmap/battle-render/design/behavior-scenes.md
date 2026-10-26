@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-Updated: 2026-10-24 — `FiringLineScene` measures held triggers since the lane gate; the rules for writing a scene's verdicts moved here from `CLAUDE.md`
+Updated: 2026-10-26 — `MechAttachmentScene`, and its line loop. Earlier 2026-10-24 — `FiringLineScene` measures held triggers since the lane gate; the rules for writing a scene's verdicts moved here from `CLAUDE.md`
 
 The individual behavior scenes (`FrontageScene` through `LateArrivalScene`): why each exists, what it recorded and the traps its instrument fell into. Ordinal references ("the second", "the fourth") count in the order scenes appear here.
 
@@ -403,3 +403,16 @@ leak on the way: a marine suit's sensor sweep hands the fog a wall-read radius,
 and the cast took any read radius as airborne, so a sweep at the cliff foot saw
 the whole plateau. A ground sweep now reads past higher ground only within its
 radius.
+
+`MechAttachmentScene` (`mech-attachment`) attaches a Brawler Hound and a Long-Range Warden to a four-man squad
+attack-moving east on open ground that halts in sight of a defender post and trades fire from range
+(`mechs-nouns.md`, attachment). Its verdicts are mechanics: neither attachment ends on its own, neither mech
+leads the squad on the march, once in contact (after the mechs have had time to close) the Hound's mean place
+is ahead of the squad on its axis and the Warden's behind, and a move given to the Hound alone releases it and
+keeps the Warden. How far the mechs trail on the march, when contact came and the leads are readings.
+
+A second loop, **line**, gives a six-man squad with a Hound and a Warden attached a dragged line across a
+defender post's approach: the posts stand within the squad's line, both mechs are on them while the
+squad is out of contact, and once in contact the Hound stands ahead of the line by more than two cells and
+the Warden behind it by more than three. When contact came and each mech's distance off its post are
+readings.

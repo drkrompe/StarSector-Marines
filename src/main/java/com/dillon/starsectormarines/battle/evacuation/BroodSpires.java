@@ -23,7 +23,7 @@ import java.util.List;
  * <ul>
  *   <li><b>An old bloom has grown its spires; a fresh one grows them by eating.</b> Once the battle's creep has
  *   been matured at setup the old bloom's spires stand at once ({@link #grow}) and its Matriarchs come with their
- *   broods. In any battle, a satellite bore that has reached maw having eaten {@link #FED_BIOMASS} colonists' worth
+ *   broods. In any battle, a satellite bore that has reached maw having eaten {@link #FED_BIOMASS} of biomass
  *   raises one ({@link #raises}): its root digs out to the spot and thickens over {@link #RISE_SECONDS}, and then
  *   the spire stands at its end. So in a fresh Colony Breach the air comes from the hive feeding, and every colonist
  *   kept from it is a spire that never grows. A bore raises one spire in a battle; one destroyed never regrows.</li>

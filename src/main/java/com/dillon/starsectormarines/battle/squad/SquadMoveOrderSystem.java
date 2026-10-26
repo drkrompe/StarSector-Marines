@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.squad;
 
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
+import com.dillon.starsectormarines.battle.mech.MechMoveOrderService;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService.ActiveHoldPlaceOrder;
 import com.dillon.starsectormarines.battle.command.AssignmentArbiter;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
@@ -112,6 +113,7 @@ public final class SquadMoveOrderSystem {
             if (squad == null || withdrawing(squad, sim)) continue;
             int[] origin = origin(squad, sim);
             if (origin == null) continue;
+            if (squad.isMechSquad()) dropChassisOrders(squad, sim);
 
             // A drawn line is the most specific thing the player can say: it names the
             // ground and the facing both, so nothing under either end reinterprets it.
@@ -374,7 +376,8 @@ public final class SquadMoveOrderSystem {
         // The squad's centroid, as the drag preview used, so the facing given is the facing shown.
         FrontageLine line = FrontageLine.facing(request.cellX, request.cellY, request.endX, request.endY,
                 squad.centroidX, squad.centroidY,
-                threat ? picture.primaryCellX() : -1, threat ? picture.primaryCellY() : -1);
+                threat ? picture.primaryCellX() : -1, threat ? picture.primaryCellY() : -1)
+                .withMachines(request.machines);
         int[] circle = line.enclosingCircle();
         int[] center = ReachableCellResolver.nearest(sim.getGrid(), origin[0], origin[1], circle[0], circle[1]);
         if (center == null) return;
@@ -384,6 +387,29 @@ public final class SquadMoveOrderSystem {
         service.activate(squad.id, order);
         issue(squad, ObjectiveAssignment.defendArea(squad.id, center[0], center[1], circle[2]),
                 mech ? "defend area" : "hold line", sim);
+    }
+
+    /**
+     * A lance's order replaces the move, assault or guard the player gave any of its chassis
+     * ({@code MechMoveOrderSystem}): the newer order wins. A commander's guard is not the player's
+     * and is left to its own rules.
+     */
+    private static void dropChassisOrders(Squad squad, BattleSimulation sim) {
+        MechMoveOrderService chassis = sim.getMechMoveOrderService();
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long member = sim.squadMemberAt(squad.id, i);
+            MechMoveOrderService.ActiveOrder order = chassis.activeOrder(member);
+            if (order != null && !order.commanded()) chassis.cancel(member);
+        }
+    }
+
+    /**
+     * Ends the squad's standing player order, if it holds one, handing it back to the directive the
+     * lease shelved — for another player authority that replaces it, such as a mech attachment.
+     */
+    public void cancel(int squadId, BattleSimulation sim, String reason) {
+        ActiveOrder order = service.activeOrder(squadId);
+        if (order != null) release(squadId, order, sim.getSquad(squadId), sim, reason);
     }
 
     /**

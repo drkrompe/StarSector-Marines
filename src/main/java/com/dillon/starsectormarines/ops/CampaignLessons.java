@@ -37,7 +37,7 @@ final class CampaignLessons {
     static boolean firstLiftPending(MarineRoster roster) {
         return roster != null && roster.hasCompletedStory(OpeningOperationKind.RELIEF.missionId)
                 && !roster.hasCompletedStory(OpeningOperationKind.COUNTERATTACK.missionId)
-                && roster.boatDeck().airworthy().isEmpty();
+                && roster.boatDeck().flightReady().isEmpty();
     }
 
     static PreparationGuide.Lesson handoff(MarineRoster roster, MarineOpsContext context, ScreenId host) {

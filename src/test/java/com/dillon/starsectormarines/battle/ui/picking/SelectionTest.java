@@ -46,4 +46,29 @@ class SelectionTest {
         assertTrue(selection.hasSquadSelection());
         assertEquals(0L, selection.getSelectedVehicleId());
     }
+
+    @Test
+    void aGroupHoldsSquadsAndVehiclesAndTheSquadKeepsTheFocus() {
+        Selection selection = new Selection();
+        selection.selectGroup(List.of(), List.of(90L, 91L), NONE_SQUAD, 0L, 91L, false);
+        assertEquals(91L, selection.getSelectedVehicleId(), "a vehicle-only group focuses its primary vehicle");
+        assertTrue(selection.hasVehicleSelection());
+
+        selection.selectGroup(List.of(5), List.of(), 5, 51L, 0L, true);
+        assertEquals(List.of(90L, 91L), selection.getSelectedVehicleIds(), "Shift keeps the vehicles");
+        assertEquals(5, selection.getSelectedSquadId());
+        assertFalse(selection.hasVehicleSelection(), "a squad takes the focus, and the squad plate");
+
+        selection.retainVehicles(id -> id != 90L);
+        assertEquals(List.of(91L), selection.getSelectedVehicleIds());
+        selection.retainSquads(id -> false);
+        assertEquals(91L, selection.getSelectedVehicleId(), "with the squads gone the vehicle is the focus");
+
+        selection.selectVehicle(92L);
+        assertEquals(List.of(92L), selection.getSelectedVehicleIds(), "a click selects one vehicle alone");
+        selection.selectUnit(4, 42L);
+        assertEquals(0, selection.vehicleCount());
+    }
+
+    private static final int NONE_SQUAD = Selection.NONE;
 }

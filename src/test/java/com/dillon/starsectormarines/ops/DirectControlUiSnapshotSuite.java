@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.combat.ManualPointFire;
 import com.dillon.starsectormarines.battle.combat.MechFireGroups;
 import com.dillon.starsectormarines.battle.combat.FireGroups;
 import com.dillon.starsectormarines.battle.combat.TriggerPicks;
-import com.dillon.starsectormarines.battle.mech.MechLanceOrder;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -786,10 +785,10 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
             }
             if (mech) {
                 var model = new BattleMechOverlayModel(reactor, () -> {}, (id, role) -> {},
-                        (id, order) -> {});
+                        id -> {});
                 model.updateProjected(new BattleMechOverlayModel.MechState(3, 303L,
                         "Bulwark Lead", "Bulwark", MechRole.BALANCED, MechRole.ASSAULT,
-                        MechLanceOrder.FORM_ON_LEAD, BattleMechOverlayModel.selectableRoles()));
+                        null, BattleMechOverlayModel.selectableRoles()));
                 try (MarkupInstance markup = build(modRoot, reactor, BattleMechOverlay.COMPONENT_PATH,
                         BattleMechOverlay.COMPONENT, model.props())) {
                     BattleMechOverlay.wireLayout(markup);
