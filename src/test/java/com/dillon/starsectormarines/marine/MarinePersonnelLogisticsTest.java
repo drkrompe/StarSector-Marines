@@ -77,25 +77,38 @@ class MarinePersonnelLogisticsTest {
 
     @Test
     void lineShortfallDrawsDirectlyFromCargoAndStopsAtAvailableQuantity() {
-        float[] quantity = {MarineSquad.CAPACITY + 2f};
+        float[] quantity = {3f};
         CargoAPI cargo = cargo(quantity);
         MarineRoster roster = new MarineRoster();
         MarineSquad reserve = roster.reserveSquad();
+        roster.createSquad();
 
-        int firstDraft = MarineSquad.CAPACITY + 1;
-        MarinePersonnelLogistics.PersonnelDrawResult first =
-                MarinePersonnelLogistics.fillLineShortfall(roster, firstDraft, cargo);
-        assertEquals(firstDraft, first.cargoMarinesConsumed());
-        assertEquals(1f, quantity[0]);
-        assertEquals(firstDraft, roster.lineReadySoldiers().size());
-        assertTrue(roster.squadMembers(reserve).isEmpty());
-
-        MarinePersonnelLogistics.PersonnelDrawResult second =
+        MarinePersonnelLogistics.PersonnelDrawResult result =
                 MarinePersonnelLogistics.fillLineShortfall(roster, 5, cargo);
-        assertEquals(1, second.cargoMarinesConsumed());
+        assertEquals(3, result.cargoMarinesConsumed());
         assertEquals(0f, quantity[0]);
-        assertEquals(MarineSquad.CAPACITY + 2, roster.lineReadySoldiers().size());
-        assertEquals(2, roster.squads().stream().filter(squad -> !squad.reserve()).count());
+        assertEquals(3, roster.lineReadySoldiers().size());
+        assertTrue(roster.squadMembers(reserve).isEmpty());
+    }
+
+    @Test
+    void aWipedSquadRefillsWithoutFoundingAnother() {
+        MarineRoster roster = new MarineRoster();
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
+        MarineSquad line = roster.squads().stream().filter(squad -> !squad.reserve()).findFirst().orElseThrow();
+        Map<String, MarineSoldierStatus> losses = new LinkedHashMap<>();
+        for (String id : line.memberIds()) losses.put(id, MarineSoldierStatus.KIA);
+        roster.applySoldierOutcome(losses, 20f, 3f);
+        float[] quantity = {MarineSquad.CAPACITY + 5f};
+
+        MarinePersonnelLogistics.PersonnelDrawResult result = MarinePersonnelLogistics.fillLineShortfall(
+                roster, MarineSquad.CAPACITY + 5, cargo(quantity));
+
+        assertEquals(MarineSquad.CAPACITY, result.cargoMarinesConsumed());
+        assertEquals(0, roster.vacancies(line));
+        assertEquals(1, roster.squads().stream().filter(squad -> !squad.reserve()).count(),
+                "a refill never founds a squad");
+        assertEquals(5f, quantity[0]);
     }
 
     @Test
@@ -125,7 +138,7 @@ class MarinePersonnelLogisticsTest {
     @Test
     void lineShortfallUsesNamedReservesBeforeConsumingCargo() {
         MarineRoster roster = new MarineRoster();
-        roster.ensureActiveSoldiers(MarineSquad.CAPACITY);
+        roster.ensureActiveSoldiers(MarineSquad.CAPACITY - 3);
         MarineSquad reserve = roster.reserveSquad();
         MarineSoldier namedReserve = roster.recruitToSquad(reserve.id());
         float[] quantity = {2f};

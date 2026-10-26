@@ -949,7 +949,12 @@ retains the same existing cross-domain behavior as an autonomous hull.
   the margin cannot stand on shortens the route to the last pose that clears
   it, so the hull arrives a little short rather than being refused. Dispatch
   keeps both ends to the margin, because its ends are drop points and map
-  edges, not hulls and clicks.
+  edges, not hulls and clicks. Each bend the proof cannot drive is masked off
+  and the search tried again; where those masks have cut the start off from
+  the goal, as at the mouth of a narrow gap met along the wall it opens in, an
+  order's search tries once more with each mask moved a few cells back along
+  the leg that ran into its bend, so the route keeps the gap and comes at it
+  from further back. Dispatch keeps its refusals and moves on to its next drop.
 - An order that cannot be carried out is refused, out loud. A dispatched route
   is proven before dispatch commits to it, and a destination somebody picked is
   not — so a move order is where feasibility is actually decided, and the

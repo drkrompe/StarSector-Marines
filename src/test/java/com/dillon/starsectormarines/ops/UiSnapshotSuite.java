@@ -1400,6 +1400,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             SpecSheetBinder hints = BriefingHints.install(document, instance, props);
             BriefingSurvey.install(document, instance, props);
             BriefingLift.install(document, instance, props);
+            BriefingAir.install(document, instance, props);
             BriefingViewModel.installMusters(document, instance, props);
             if (Boolean.TRUE.equals(props.get("debugExpanded"))) {
                 DebugKitPicker.wireBayPictures(document, instance, (List<?>) props.get("debugBaySlots"),

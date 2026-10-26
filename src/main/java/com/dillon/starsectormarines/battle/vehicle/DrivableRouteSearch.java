@@ -4,7 +4,9 @@ import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.profile.TickInnerProfile.Bucket;
 
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 /**
@@ -25,6 +27,13 @@ import java.util.Set;
  * and the current A* frontier. {@link #advance} bounds both new attempts and,
  * for on-demand routing, node expansions, reporting {@code PENDING} when it
  * has neither found a route nor refused one.
+ *
+ * <p>A disc on a failed bend can shut the only way through: the bend at the mouth of a narrow gap, met along the
+ * wall it opens in, is one a wheeled hull cannot drive, and each retry's disc closes a little more of the mouth until
+ * no route is left. So an order's search ({@link #departingFrom}) that would end there, with discs placed, tries
+ * once more {@link #reapproach coming at its failed bends from further back}: the discs move back along the legs that
+ * ran into those bends, leaving the bends themselves open. A search that routes without it never takes this path, and
+ * dispatch, which ranks many candidate drops and moves on from a refused one, keeps its refusals.
  *
  * <p>The planner stays a function of its inputs: this is where the resumable
  * state lives, and {@code routeDrivable} is now the special case that advances
@@ -70,6 +79,10 @@ public final class DrivableRouteSearch {
     private int attemptsStarted;
     private int expandedNodesThisAdvance;
     private boolean profileRecoverySetup;
+    /** Each failed bend so far, as {x, y, incoming leg's unit x, unit y}: where a reapproach puts its disc. */
+    private final List<float[]> failedBends = new ArrayList<>();
+    /** Whether the discs have been moved back along their incoming legs ({@link #reapproach}); once only. */
+    private boolean reapproached;
 
     /** Recovery admits at most one fresh attempt per tick, including zero-expansion refusals. */
     Status advanceRecovery(RouteSearchBudget budget, int maxExpandedNodes) {
@@ -274,6 +287,10 @@ public final class DrivableRouteSearch {
 
     private void considerMacro(float[][] macro) {
         if (macro == null) {
+            if (departure != null && !reapproached && !failedBends.isEmpty()) {
+                reapproach();
+                return;
+            }
             status = Status.NO_ROUTE;
             return;
         }
@@ -293,16 +310,72 @@ public final class DrivableRouteSearch {
             status = Status.NO_ROUTE;
             return;
         }
+        float[] bend = failedBend(macro, refined.failedX(), refined.failedY());
+        failedBends.add(bend);
+        if (reapproached) {
+            avoid(behind(bend, 0), behind(bend, 1));
+        } else {
+            avoid(failedX, failedY);
+        }
+    }
+
+    /** Puts the failed-turn disc on cell ({@code x}, {@code y}), keeping both endpoints open. */
+    private void avoid(int x, int y) {
         if (blocked == null) {
-            VehicleRoutePlanner.blockDisc(mask, width, height, failedX, failedY,
-                    VehicleRoutePlanner.FAILED_TURN_AVOID_RADIUS);
+            VehicleRoutePlanner.blockDisc(mask, width, height, x, y, VehicleRoutePlanner.FAILED_TURN_AVOID_RADIUS);
             VehicleRoutePlanner.restoreEndpoint(mask, basePassable, width, height, startX, startY);
             VehicleRoutePlanner.restoreEndpoint(mask, basePassable, width, height, goalX, goalY);
         } else {
-            blockDisc(failedX, failedY, VehicleRoutePlanner.FAILED_TURN_AVOID_RADIUS);
+            blockDisc(x, y, VehicleRoutePlanner.FAILED_TURN_AVOID_RADIUS);
             blocked.remove(startY * width + startX);
             blocked.remove(goalY * width + goalX);
         }
+    }
+
+    /**
+     * The search's discs have cut its start off from its goal: lifts them all, and puts each back
+     * {@link #REAPPROACH_BACK} cells behind its failed bend along the leg that ran into it, so the next route keeps
+     * the bend and comes at it some other way.
+     */
+    private void reapproach() {
+        reapproached = true;
+        if (blocked == null) System.arraycopy(basePassable, 0, mask, 0, mask.length);
+        else blocked.clear();
+        for (float[] bend : failedBends) avoid(behind(bend, 0), behind(bend, 1));
+    }
+
+    /** Cells behind a failed bend, along its incoming leg, that a reapproach centres its disc on: clear of the bend. */
+    static final float REAPPROACH_BACK = VehicleRoutePlanner.FAILED_TURN_AVOID_RADIUS + 1f;
+
+    /** Axis {@code axis} (0 x, 1 y) of the cell {@link #REAPPROACH_BACK} behind {@code bend}. */
+    private static int behind(float[] bend, int axis) {
+        return (int) Math.floor(bend[axis] - bend[2 + axis] * REAPPROACH_BACK);
+    }
+
+    /**
+     * The failed place on {@code macro} with the direction of the leg running into it, {x, y, ux, uy}: the leg
+     * nearest the failure, the earlier where it sits on a vertex.
+     */
+    static float[] failedBend(float[][] macro, float x, float y) {
+        int leg = 1;
+        float best = Float.MAX_VALUE;
+        for (int i = 1; i < macro[0].length; i++) {
+            float d = distanceToSegment(x, y, macro[0][i - 1], macro[1][i - 1], macro[0][i], macro[1][i]);
+            if (d < best - 1e-4f) {
+                best = d;
+                leg = i;
+            }
+        }
+        float dx = macro[0][leg] - macro[0][leg - 1], dy = macro[1][leg] - macro[1][leg - 1];
+        float length = (float) Math.hypot(dx, dy);
+        return length < 1e-6f ? new float[]{x, y, 0f, 0f} : new float[]{x, y, dx / length, dy / length};
+    }
+
+    private static float distanceToSegment(float px, float py, float ax, float ay, float bx, float by) {
+        float dx = bx - ax, dy = by - ay;
+        float lengthSq = dx * dx + dy * dy;
+        float t = lengthSq < 1e-12f ? 0f : Math.max(0f, Math.min(1f, ((px - ax) * dx + (py - ay) * dy) / lengthSq));
+        return (float) Math.hypot(px - (ax + dx * t), py - (ay + dy * t));
     }
 
     private void blockDisc(int centerX, int centerY, float radius) {

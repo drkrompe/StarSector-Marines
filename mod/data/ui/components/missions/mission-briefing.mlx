@@ -1,4 +1,4 @@
-<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles">
+<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles,airCraft">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -172,14 +172,12 @@
                 <div id="mission-carrier-block" class="briefing-section">
                   <div id="mission-carrier-heading" class="label heading tone-edge section-heading">{carrierHeader}</div>
                   <div id="mission-carrier-empty" class="label tone-muted empty-copy" style="{carrierEmptyStyle}">{carrierEmpty}</div>
-                  <div id="mission-carrier-list" class="choice-list carrier-list">
-                    <button each="carrier in carrierRows" key="{carrier.id}" id="{carrier.id}" class="{carrier.classes}" disabled="{carrier.disabled}" onclick="{carrier.action}">
-                      <img id="{carrier.indicatorId}" class="console-rocker" src="{carrier.indicatorSource}" />
-                      <div id="{carrier.copyId}" class="choice-copy">
-                        <div id="{carrier.titleId}" class="label heading choice-title">{carrier.title}</div>
-                        <div id="{carrier.detailId}" class="label tone-muted choice-detail">{carrier.detail}</div>
-                      </div>
-                    </button>
+                  <!-- Air cover: one plan per aircraft type and its sorties; every carrier aboard flies, and a gunship brings close air support. -->
+                  <div id="mission-air-list" class="air-list">
+                    <div each="craft in airCraft" key="{craft.id}" id="{craft.id}" class="air-tile console-readout" tabindex="0">
+                      <canvas id="{craft.dollId}" class="air-doll" width="80" height="66" />
+                      <div id="{craft.countId}" class="label heading tone-edge air-count">{craft.count}</div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -501,9 +499,9 @@
   .console-tier-lamp { height: 4px; border-width: 1px; pointer-events: none; }
   .debug-toggle-arrow { width: 14px; height: 18px; pointer-events: none; }
   .debug-air-image { width: 28px; height: 24px; pointer-events: none; }
-  .source-list .choice-copy, .carrier-list .choice-copy { height: 14px; }
-  .source-list .choice-detail, .carrier-list .choice-detail { height: 0px; overflow: hidden; }
-  .source-list .choice-row, .carrier-list .choice-row { height: 28px; }
+  .source-list .choice-copy { height: 14px; }
+  .source-list .choice-detail { height: 0px; overflow: hidden; }
+  .source-list .choice-row { height: 28px; }
   .mission-overview { flex-direction: column; width: 400px; padding: 12px; gap: 14px; border-width: 0px; overflow: scroll; }
   .mission-overview-copy { flex-direction: column; height: 530px; flex-grow: 0; gap: 16px; overflow: scroll; }
   .mission-overview.narrated { overflow: hidden; }
@@ -537,7 +535,6 @@
   .deck-heading-row { flex-direction: row; height: 21px; width: 100%; gap: 20px; }
   .mission-logistics { flex-direction: column; height: auto; overflow: hidden; }
   /* Fleet support, landing craft and fighter cover share one row so the column never scrolls. */
-  #mission-carrier-list { height: 0px; flex-grow: 1; overflow: scroll; }
   .mission-briefing-actions { flex-direction: row; height: 40px; padding: 8px; gap: 14px; border-width: 0px; overflow: hidden; }
   .mission-briefing-actions button { flex-direction: row; align-items: center; width: 158px; flex-grow: 0; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; height: 30px; }
   #mission-briefing-back { width: 114px; }
@@ -622,7 +619,12 @@
   .command-power-list .choice-copy { width: 0px; flex-grow: 1; height: 36px; gap: 0px; justify-content: center; }
   .command-power-list .choice-title { height: 32px; white-space: normal; overflow: hidden; text-align: left; }
   .command-power-list .choice-detail { height: 0px; overflow: hidden; }
-  .mission-support-stack { flex-direction: row; height: 76px; gap: 14px; overflow: hidden; }
-  #mission-source-block, #mission-carrier-block { width: 0px; flex-grow: 1; height: 76px; gap: 4px; }
+  .mission-support-stack { flex-direction: row; height: 96px; gap: 14px; overflow: hidden; }
+  /* An air tile is a plan under its short name, the sortie count beside it. */
+  .air-list { flex-direction: row; height: 0px; flex-grow: 1; gap: 6px; overflow: scroll; }
+  .air-tile { flex-direction: row; align-items: center; width: 116px; height: 70px; padding: 2px; gap: 2px; border-width: 1px; }
+  .air-doll { width: 80px; height: 66px; pointer-events: none; }
+  .air-count { width: 0px; flex-grow: 1; text-align: center; pointer-events: none; }
+  #mission-source-block, #mission-carrier-block { width: 0px; flex-grow: 1; height: 96px; gap: 4px; }
 
 </style>
