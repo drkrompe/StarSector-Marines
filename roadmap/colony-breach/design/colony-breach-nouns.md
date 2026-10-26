@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-26 — each bore surges into its own hold, a cap per strain stepped by tier. Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
+Updated: 2026-10-26 — each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
 
@@ -683,8 +683,10 @@ is outside every hold. Laws:
   bodies, never more bodies than the tier holds.
 - Each tier-up is a step: the row the bore holds at is the difficulty a hole
   can field, one row per tier to tune.
-- `-Dbattle.swarm.boreHold=false` is the control: strains by weight against the
-  shared target alone. Temporary, until the owner picks on the bore-hold card.
+- Because a hole waits for its own dead rather than filling headroom another
+  bore left, the field runs under the summed target: on Colony Breach 10–25%
+  fewer living Rav than without holds, and at most six Brutes alive from any one
+  bore where a bore once kept up to fifteen.
 
 **The feed seam.** Biomass reaches a bore through one call,
 `SwarmBores.feed(sim, bore, amount)`, with `amount` in biomass; the

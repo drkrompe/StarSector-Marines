@@ -156,7 +156,6 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.squad.transitSpacing` | experiment | 2026-10-11 | Conquest command (2026-10-11): remove once commanderEvidence -Pmission=conquest has been read against it. Its composed .cells/.maxHold knobs go with it. |
 | `battle.story.reactiveDefence` | experiment | 2026-10-21 | As battle.mission.reactiveDefence. Its composed .share knob goes with it. |
 | `battle.swarm.barricadeAssault` | experiment | 2026-10-22 | Swarm/Bloom sessions: remove each once colony-breach evidence accepts it (colony-breach-nouns.md). |
-| `battle.swarm.boreHold` | experiment | 2026-10-26 | Each bore surges only into its own hold by strain (`SwarmReinforcementSystem.boreHoldByDefault`); false is the shared field target alone. Remove with the losing arm once the owner picks on the bore-hold card (colony-breach-nouns.md, Hold). |
 | `battle.swarm.broodSpires` | control | 2026-10-25 | Kept: the control for Harriers in the Rav Bloom missions; `commanderEvidence` reads a mission with and without its spires and broods (colony-breach-nouns.md, Brood spire). |
 | `battle.swarm.worksToughness` | tuning | 2026-10-26 | How many times longer fort and objective walls hold against the swarm (`FortifiedWorks`, 1 the control): fold into the constant once the owner picks the strength. |
 | `battle.swarm.workers` | control | 2026-10-25 | Kept: the control for the nests' skitterers; `commanderEvidence` reads the heart and the Cordon with and without them (colony-breach-nouns.md, Skitterer). |

@@ -105,16 +105,6 @@ public final class SwarmReinforcementSystem {
         }
     }
 
-    /**
-     * Whether each bore surges only into its own hold (`colony-breach-nouns.md`, Hold): its own living bodies by
-     * strain, capped by its tier. {@code -Dbattle.swarm.boreHold=false} is the control, every bore drawing strains
-     * by weight against the shared field target alone. Temporary: remove with the losing arm once the owner picks
-     * between the hold, a total per bore, and no cap (the bore-hold picks card).
-     */
-    public static boolean boreHoldByDefault() {
-        return Boolean.parseBoolean(System.getProperty("battle.swarm.boreHold", "true"));
-    }
-
     /** Whether bodies are born at a growth stage. {@code -Dbattle.swarm.growthStages=false} is the control: all adults. */
     public static boolean growthStagesByDefault() {
         return Boolean.parseBoolean(System.getProperty("battle.swarm.growthStages", "true"));
@@ -144,13 +134,11 @@ public final class SwarmReinforcementSystem {
     private final List<Release> releases = new ArrayList<>();
     private List<SwarmPressureSnapshot.WaveIntent> surgeWave = new ArrayList<>();
     private final boolean growthStages;
-    private final boolean boreHold;
 
     public SwarmReinforcementSystem(CivilianEvacuationTracker tracker) {
         if (tracker == null) throw new IllegalArgumentException("tracker is required");
         this.tracker = tracker;
         this.growthStages = growthStagesByDefault();
-        this.boreHold = boreHoldByDefault();
     }
 
     /** Configures one rescue battle; later calls fail closed. */
@@ -329,7 +317,7 @@ public final class SwarmReinforcementSystem {
             // A bore surges into its own hold: it waits until half a pulse of its own bodies has died, unless it owes
             // its Matriarch, who is outside the hold.
             boolean owed = BoreStrainTable.owesMatriarch(bore.mother(), bore.tier(), bore.matriarchReleased());
-            if (boreHold && !owed
+            if (!owed
                     && bore.freeHold() < Math.max(1, (int) Math.ceil(bore.tier().surgeSize * SURGE_MIN_FIT))) {
                 bore.deferSurge(tick + SURGE_RECHECK_TICKS);
                 continue;
@@ -344,7 +332,7 @@ public final class SwarmReinforcementSystem {
                 continue;
             }
             List<Planned> planned = plan(bore, bore.surges(), Math.min(size, headroom), bombardAllowed(sim, bore),
-                    boreHold);
+                    true);
             float bodies = 0f;
             for (Planned body : planned) bodies += body.weight();
             if (!surged) surgeWave = new ArrayList<>();
