@@ -96,7 +96,7 @@ which beats run.
 | L4 A bore behind the line | An eruption site: open ground, no structure; in a city a cleared lot | Between the line and the base, off the supply roads |
 | L5 The last hamlet | A meeting point: a square with a bell | In the rear hamlet farthest from the base |
 | L6 Burn the granary | A granary: a long store building | In the colony, toward the line |
-| R1 Clear the road | A wreck across the corridor, and a dozer at the base | On the corridor in the suburb, past the gap |
+| R1 Clear the road | A wreck across the corridor, and a dozer at the base | On the corridor in the suburb, past the gap, at the nearest cell where the street is narrow enough for the wreck to close it kerb to kerb (thirteen cells), never across a square |
 | R2 A truck goes down | No new structure (the corridor's built stretch) | The corridor through the suburb |
 | R3 The last loading | The compound's gate square, holdable | At the compound |
 | R4 The militia ride out | No new structure (the compound's militia) | At the compound |

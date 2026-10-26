@@ -299,7 +299,7 @@ public final class RavBombardRig {
      * {@link #SUPPORT_SECONDS}, its set lifts together (the set due next, unless only the other needs it) and lands each
      * claw past its rest by {@link #STEP_LEAD} of its pull. The shell leans toward the carrying tripod and drops as a
      * set lands. Each leg is then turned about its hip and stretched to reach its claw from where the shell is drawn.
-     * Feet hold still through a plant: a set Bombard's legs are dug in.
+     * Feet hold still through the dig of a plant or an uproot; set, it steps round as it turns.
      */
     private void stepLegs(float dt) {
         landedNow = -1;
@@ -328,7 +328,9 @@ public final class RavBombardRig {
             if (t >= 1f) land();
         } else {
             supportLeft = Math.max(0f, supportLeft - dt);
-            if (supportLeft <= 0f && plant <= 0.5f) {
+            // the claws hold still while they dig in or heave free; set, it turns on them as it walks on them
+            boolean dug = plantRaw > 0f && plantRaw < 1f;
+            if (supportLeft <= 0f && !dug) {
                 float pull0 = pull(0), pull1 = pull(1);
                 boolean need0 = pull0 > STEP_REACH, need1 = pull1 > STEP_REACH;
                 int set = -1;

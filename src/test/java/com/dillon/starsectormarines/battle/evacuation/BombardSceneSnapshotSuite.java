@@ -13,11 +13,13 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import java.util.List;
 
 /**
- * The Bombard loops, from the same run that produced their verdicts; and two staged shots on real generated ground. The
+ * The Bombard loops, from the same run that produced their verdicts; and four staged shots on real generated ground. The
  * lob: a Bombard planted on its creep, a rifle squad holding twenty-eight cells off, played through the plant, the
  * wind-up, the glob's flight and its burst. Under fire: a Bombard planting on its creep with a rifle squad inside its
  * minimum range, its hits showing as ichor puffs and wear until it dies and falls apart. The walk: a Bombard off its
- * creep, which lies behind it, turning round and walking back to it, a tripod at a time, then planting.
+ * creep, which lies behind it, turning round and walking back to it, a tripod at a time, then planting. Engaged: a
+ * Bombard at the far end of a long strip of creep with a rifle squad beyond its reach, turning on the spot to face the
+ * squad, then uprooting and walking along the creep until the squad is in reach, planting and lobbing.
  */
 public final class BombardSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
 
@@ -30,6 +32,10 @@ public final class BombardSceneSnapshotSuite extends BehaviorSceneSnapshotSuite 
     static final int WALK_TICKS = 600;
     static final float WALK_CELLS = 13f;
     static final float FIRE_RANGE = 10f, FIRE_HEALTH = 60f;
+    /** The engaged shot: its site, ticks, the squad's distance, and stills: planted, turned, uprooting, walking, set, lobbing. */
+    static final int ENGAGED_W = 100, ENGAGED_H = 30, ENGAGED_TICKS = 1300;
+    static final float ENGAGED_RANGE = 72f, ENGAGED_LEAD = 10f;
+    static final int[] ENGAGED_STILLS = {50, 120, 200, 300, 420, 500, 560, 620};
 
     public BombardSceneSnapshotSuite() {
         super(new BombardScene(), 1920, 1080);
@@ -58,7 +64,12 @@ public final class BombardSceneSnapshotSuite extends BehaviorSceneSnapshotSuite 
                         placement -> List.of(
                                 LookReview.View.followAtPlay(placement, "bombard"),
                                 LookReview.View.follow("bombard", placement, 10f, "bombard")),
-                        WALK_TICKS, 2, 6));
+                        WALK_TICKS, 2, 6),
+                new LookReview.Shot("bombard-engaged", LookGround.verdant(), ENGAGED_W, ENGAGED_H,
+                        BombardSceneSnapshotSuite::engaged,
+                        placement -> List.of(engagedPlay(placement),
+                                LookReview.View.follow("bombard", placement, 10f, "bombard")),
+                        ENGAGED_TICKS, 2, 4, ENGAGED_STILLS));
     }
 
     /**
@@ -77,6 +88,39 @@ public final class BombardSceneSnapshotSuite extends BehaviorSceneSnapshotSuite 
         sim.creepField().putSource(1L, (int) creep[0], (int) creep[1], new CreepGrowth(2f, 2f));
         sim.matureCreep();
         float[] at = placement.openNear(20f + WALK_CELLS, 12f);
+        long bombard = sim.spawn(SwarmStrains.spec("Bombard", UnitType.SWARM_BOMBARD, (int) at[0], (int) at[1])
+                .health(5000f));
+        placement.subject("bombard", bombard);
+        return sim;
+    }
+
+    /**
+     * The play view of the engaged shot: the line starts further off than a play frame is wide, so it follows the
+     * Bombard, held {@link #ENGAGED_LEAD} cells in from the frame's west edge, and the line comes into frame as it moves.
+     */
+    private static LookReview.View engagedPlay(LookReview.Placement placement) {
+        LookReview.View bombard = LookReview.View.followAtPlay(placement, "bombard");
+        return new LookReview.View("play", sim -> {
+            float[] at = bombard.focus().apply(sim);
+            return new float[] {at[0] + at[2] / 2f - ENGAGED_LEAD, at[1], at[2]};
+        });
+    }
+
+    /** A Bombard at the west end of a strip of creep, a rifle squad {@link #ENGAGED_RANGE} cells east, beyond its reach. */
+    private static BattleSimulation engaged(LookReview.Placement placement) {
+        SceneBuilder builder = placement.builder();
+        float[] line = placement.openNear(10f + ENGAGED_RANGE, ENGAGED_H / 2f);
+        builder.squad("line").faction(Faction.MARINE).size(6)
+                .at((int) line[0] - placement.site().x0(), (int) line[1] - placement.site().y0())
+                .primary("weapon.field-rifle").health(5000f).stationary().done();
+        SceneWorld world = builder.build();
+        BattleSimulation sim = world.sim();
+        placement.subject("line", world.members("line")[0]);
+        float[] at = placement.openNear(10f, ENGAGED_H / 2f);
+        for (int i = 0; i < 4; i++) {
+            sim.creepField().putSource(1L + i, (int) at[0] + 10 * i, (int) at[1], new CreepGrowth(6f, 6f));
+        }
+        sim.matureCreep();
         long bombard = sim.spawn(SwarmStrains.spec("Bombard", UnitType.SWARM_BOMBARD, (int) at[0], (int) at[1])
                 .health(5000f));
         placement.subject("bombard", bombard);
