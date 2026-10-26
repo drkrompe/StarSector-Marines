@@ -101,10 +101,11 @@ shared mapping instead of assigning paths independently in each screen.
   frozen frame.
 - **Fitting** — installed work in one of a boat's **slots**: plating, which is
   hull; drive, which is speed and acceleration; and lift, the hold, where a
-  cradle trades every seat for a machine lift rating (`air-nouns.md`, Lift).
+  cradle adds a machine lift rating and keeps the seats (`air-nouns.md`, Lift).
   Each slot has a standard fitting every boat is built with and upgrade tiers
   for compatible airframes; a boat saved before a slot existed reads as standard
-  there. Only bus-class boats offer the lift slot at all.
+  there. Only bus-class boats offer the lift slot at all. Planned: six refit
+  axes built around the Hermes, replacing Secondhand Wings (`boat-refit-axes.md`).
 - **Boat spare** — a fitting or door gun in the boat deck's **stores**, counted per
   part. A spare is built from its bill, or comes off a boat; fitting one takes it
   out of stores. Stores are the company's, not a boat's, so a part moves between
