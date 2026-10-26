@@ -140,7 +140,7 @@ public final class SwarmMovement {
     public static void prepare(BattleSimulation sim) {
         SwarmFlowFields fields = sim.getGrid().swarmFlowFields();
         int tick = sim.getSimTickIndex();
-        fields.setStepCost(sim.fireHazard());
+        fields.setStepCost(sim.swarmStepCost());
         for (SwarmGoal goal : SwarmGoal.values()) {
             if (!fields.isWanted(goal.ordinal(), tick)) continue;
             int[] sources = goal == SwarmGoal.PREY

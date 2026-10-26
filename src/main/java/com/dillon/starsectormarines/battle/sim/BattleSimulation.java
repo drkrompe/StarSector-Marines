@@ -204,6 +204,7 @@ import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
 import com.dillon.starsectormarines.battle.evacuation.MatriarchActions;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBombards;
 import com.dillon.starsectormarines.battle.evacuation.SwarmStrikeSystem;
+import com.dillon.starsectormarines.battle.evacuation.SwarmStepCost;
 import com.dillon.starsectormarines.battle.evacuation.SwarmCues;
 import com.dillon.starsectormarines.battle.evacuation.SwarmHitFeedback;
 import com.dillon.starsectormarines.battle.setup.ColdAccountLayout;
@@ -905,6 +906,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The fire alone as route multipliers, {@code null} while nothing burns; see {@link FireRouteCost#hazard}. */
     public RouteCostField fireHazard() { return fireRouteCost.hazard(); }
+
+    /** Serial, once a tick: the swarm flow fields' step cost, the fire and every stopped hull ({@link SwarmStepCost}). */
+    public RouteCostField swarmStepCost() {
+        vehicleRepulsion.forEachStandingHullCell(swarmStepCost::standingHull);
+        return swarmStepCost.publish(fireHazard());
+    }
     private ColonyBreachSequence colonyBreach;
     /** Salt for the bores' own draws, so they are not the battle stream read again. */
     private static final long BORE_SEED_SALT = 0x53574152_4D424F52L;
@@ -1446,6 +1453,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SeparationSystem separation;
     /** Moving and parked ground hulls push infantry out of their footprint and bow wave. See {@link VehicleRepulsionSystem}. */
     private final VehicleRepulsionSystem vehicleRepulsion;
+    private final SwarmStepCost swarmStepCost;
     /** Hulls keep out of each other, and the lighter yields. See {@link HullContactSystem}. */
     private final HullContactSystem hullContact;
     /** Walking mechs ram the other side. See {@link MechRamSystem}. */
@@ -1689,6 +1697,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.separation = new SeparationSystem(rosterService, unitIndex, grid);
         separation.spareHeld(swarmHarvest::isCarried);
         this.vehicleRepulsion = new VehicleRepulsionSystem(rosterService, unitIndex, grid);
+        this.swarmStepCost = new SwarmStepCost(grid.getWidth(), grid.getHeight());
         navigation.setOccupancyContributor(vehicleRepulsion::occupyStandingHulls);
         this.hullContact = new HullContactSystem(rosterService, grid);
         this.mechRam = new MechRamSystem(rosterService, unitIndex);
