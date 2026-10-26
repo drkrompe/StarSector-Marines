@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.objective.side.SideObjective.State;
 import com.dillon.starsectormarines.battle.objective.side.SideObjectiveResult;
+import com.dillon.starsectormarines.battle.setup.BlindWatchSequence;
+import com.dillon.starsectormarines.battle.story.BlindWatchProgress;
+import com.dillon.starsectormarines.battle.story.BlindWatchProgress.Warning;
 import com.dillon.starsectormarines.campaign.CampaignMarks;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import java.io.ByteArrayInputStream;
@@ -45,6 +48,16 @@ class CampaignMarkSettlementTest {
         paid.clear();
         MissionResolver.paySideObjectives(paid::add, MissionOutcome.builder().build());
         assertTrue(paid.isEmpty(), "nothing earned, nothing paid");
+    }
+
+    @Test void aWarnedGarnirIsSettledAsAMarkAndAnUnwarnedOneIsNot() {
+        var marks = new CampaignMarks();
+        MissionResolver.writeCampaignMarks(marks, MissionOutcome.builder().blindWatch(
+                new BlindWatchSequence.Report(false, Warning.STOPPED, .4f, false, false, false)).build());
+        assertTrue(marks.all().isEmpty());
+        MissionResolver.writeCampaignMarks(marks, MissionOutcome.builder().blindWatch(
+                new BlindWatchSequence.Report(true, Warning.SENT, 1f, false, false, true)).build());
+        assertTrue(marks.has(BlindWatchProgress.GARNIR_WARNED));
     }
 
     @Test void aMarkIsNamespacedAndPermanentUntilCleared() {
