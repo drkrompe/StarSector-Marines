@@ -38,7 +38,8 @@ class BlindWatchSequenceTest {
     private static final float WARNING = 1f;
     private static final Sites SITES = new Sites(Area.rect(0, 0, 3, 19), new Cell(90, 2), new Cell(95, 17),
             new Cell(85, 10), Area.rect(92, 8, 94, 10), List.of(new Cell(93, 9), new Cell(94, 9)),
-            Area.rect(84, 12, 85, 13), List.of(new Cell(88, 4)), List.of(new Cell(70, 10), new Cell(71, 10), new Cell(72, 10)));
+            Area.rect(84, 12, 85, 13), List.of(new Cell(88, 4)), List.of(new Cell(70, 10), new Cell(71, 10), new Cell(72, 10)),
+            Area.rect(96, 2, 97, 3));
 
     @Test void theThreeSitesAreAuthoredWithStableIdsInMarkerOrder() {
         var sites = BlindWatchSequence.siteLayout(SITES).sites();
@@ -134,6 +135,7 @@ class BlindWatchSequenceTest {
         late.step();
         assertEquals(SideObjective.State.LAPSED, late.sim.getSideObjectives().job(BlindWatchSideObjectives.RIGGERS).state());
         assertFalse(late.watch.revealed());
+        assertTrue(late.beats().contains("corvus.blind_watch.riggers_lost"), "left behind is told as lost");
     }
 
     @Test void theFalseScheduleIsFoundAtTheHutAndStopsTheWarningCompleting() {
@@ -154,6 +156,19 @@ class BlindWatchSequenceTest {
         assertFalse(a.watch.report().garnirWarned());
         assertTrue(a.watch.report().falseSchedule());
         assertTrue(a.beats().containsAll(List.of("corvus.blind_watch.schedule_found", "corvus.blind_watch.schedule_sent")));
+    }
+
+    @Test void theColdStoreIsFoundAtThePodRacksAndLogsTheManifest() {
+        Arena a = new Arena(true);
+        var job = a.sim.getSideObjectives().job(BlindWatchSideObjectives.COLD_STORE);
+        assertFalse(job.known());
+        a.sim.spawn(new EntitySpec("logger", Faction.MARINE, UnitType.MARINE, 96, 2));
+        int ticks = (int) Math.ceil(BlindWatchSideObjectives.COLD_STORE_SECONDS / BattleSimulation.TICK_DT) + 2;
+        for (int i = 0; i < ticks; i++) a.step();
+        assertEquals(SideObjective.State.DONE, job.state());
+        assertTrue(a.watch.report().manifestLogged());
+        assertEquals("corvus.sable_wake.organ_manifest", job.ret().mark(SideObjective.State.DONE));
+        assertTrue(a.beats().containsAll(List.of("corvus.blind_watch.cold_store_found", "corvus.blind_watch.cold_store_logged")));
     }
 
     @Test void aStoodToPostSaysSo() {

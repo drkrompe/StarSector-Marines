@@ -36,7 +36,7 @@ import java.util.Set;
  * interchangeable, so the order they fall in is the company's plan. This adapter reads the battle into
  * {@link BlindWatchProgress}, which owns the rules, and carries out what they decide: the alarm, the uplink's warning to
  * Garnir, each charge's effect (the ranging mast stops spotting for Sable Wake, the uplink falls silent), the riggers'
- * walk out and the field calls. Its two side objectives are toolkit jobs ({@link BlindWatchSideObjectives}).
+ * walk out and the field calls. Its three side objectives are toolkit jobs ({@link BlindWatchSideObjectives}).
  *
  * <p>The charges themselves are the Sabotage plant ({@code sabotage-command.md}): the three
  * {@link ChargeSiteObjective}s the setup installs from {@link #siteLayout}, read here by their stable ids. This
@@ -61,7 +61,8 @@ public final class BlindWatchSequence implements Objective {
     /** Beat ids are the narration catalog's events ({@code corvus.blind_watch.*}). */
     private static final String BEAT = "corvus.blind_watch.";
     /**
-     * Grants side objectives before play ({@code riggers}, {@code schedule}, comma separated, or {@code all}): a standing
+     * Grants side objectives before play ({@code riggers}, {@code schedule}, {@code coldstore}, comma separated, or
+     * {@code all}): a standing
      * evidence lever, so a headless run can play the prepared approach the autonomous company never chooses.
      */
     public static final String SIDE_OBJECTIVES_PROPERTY = "battle.blindWatch.sideObjectives";
@@ -78,12 +79,13 @@ public final class BlindWatchSequence implements Objective {
      * @param controlHut    the dish field's control-hut console and the ground a squad leader holds it from
      * @param bunkers       the post's bunkers, revealed when the riggers are out
      * @param mortarTrack   the mortar carrier's driven track, revealed with the bunkers
+     * @param podRacks      the cold drop's cryo pod racks by the lander pad, and the ground a squad holds them from
      */
     public record Sites(Area landingArea, Cell mast, Cell uplink, Cell dishField, Area riggersModule,
-                        List<Cell> riggerCells, Area controlHut, List<Cell> bunkers, List<Cell> mortarTrack) {
+                        List<Cell> riggerCells, Area controlHut, List<Cell> bunkers, List<Cell> mortarTrack, Area podRacks) {
         public Sites {
             for (Object site : new Object[]{landingArea, mast, uplink, dishField, riggersModule, riggerCells, controlHut,
-                    bunkers, mortarTrack})
+                    bunkers, mortarTrack, podRacks})
                 if (site == null) throw new IllegalArgumentException("every Blind Watch site is required");
             riggerCells = List.copyOf(riggerCells);
             bunkers = List.copyOf(bunkers);
@@ -113,7 +115,7 @@ public final class BlindWatchSequence implements Objective {
     private final ChargeSiteObjective mast, uplink, dishes;
     private final StoryBeatLog log;
     private final BlindWatchProgress progress;
-    private final SideObjective riggersJob, scheduleJob;
+    private final SideObjective riggersJob, scheduleJob, coldStoreJob;
     private final List<Long> riggers = new ArrayList<>();
     private int riggerGoalPlannedTick = -1;
     private boolean begun, riggersFreed, riggersEscorted, revealed;
@@ -135,6 +137,7 @@ public final class BlindWatchSequence implements Objective {
         riggersJob = BlindWatchSideObjectives.riggers(sites, progress, this::reveal, this::leadRigger,
                 () -> riggersFreed && riggersEscorted);
         scheduleJob = BlindWatchSideObjectives.schedule(sites, progress);
+        coldStoreJob = BlindWatchSideObjectives.coldStore(sites, progress);
     }
 
     private static ChargeSiteObjective charge(List<ChargeSiteObjective> charges, String id) {
@@ -142,10 +145,9 @@ public final class BlindWatchSequence implements Objective {
         throw new IllegalArgumentException("Blind Watch needs the charge site " + id);
     }
 
-    /** Offers the two side objectives on the battle's service. Once, at setup. */
+    /** Offers the three side objectives on the battle's service. Once, at setup. */
     void offer(SideObjectiveService service) {
-        service.install(riggersJob);
-        service.install(scheduleJob);
+        for (SideObjective job : List.of(riggersJob, scheduleJob, coldStoreJob)) service.install(job);
     }
 
     /** Grants the side objectives a control run names; unknown names fail loudly rather than play the wrong run. */
@@ -157,6 +159,7 @@ public final class BlindWatchSequence implements Objective {
                 case "all" -> BlindWatchSideObjectives.JOBS;
                 case "riggers" -> List.of(BlindWatchSideObjectives.RIGGERS);
                 case "schedule" -> List.of(BlindWatchSideObjectives.SCHEDULE);
+                case "coldstore" -> List.of(BlindWatchSideObjectives.COLD_STORE);
                 default -> throw new IllegalArgumentException(SIDE_OBJECTIVES_PROPERTY + ": unknown side objective " + name);
             };
             for (String job : jobs) if (!service.job(job).done()) service.grant(job, sim);
@@ -199,15 +202,19 @@ public final class BlindWatchSequence implements Objective {
 
     /**
      * What the outcome carries: whether the warning reached Garnir (the campaign keeps
-     * {@link BlindWatchProgress#GARNIR_WARNED}), how far it got and how it ended, the side jobs, and whether the post was
-     * stood-to.
+     * {@link BlindWatchProgress#GARNIR_WARNED}), how far it got and how it ended, each side job's state as the battle
+     * ended (an unfinished one reads as it stood, before settlement lapses it), and whether the post was stood-to.
      */
-    public record Report(boolean garnirWarned, Warning warning, float warningSent, boolean riggersFreed,
-                         boolean falseSchedule, boolean stoodTo) { }
+    public record Report(boolean garnirWarned, Warning warning, float warningSent, SideObjective.State riggers,
+                         SideObjective.State schedule, SideObjective.State coldStore, boolean stoodTo) {
+        public boolean riggersFreed() { return riggers == SideObjective.State.DONE; }
+        public boolean falseSchedule() { return schedule == SideObjective.State.DONE; }
+        public boolean manifestLogged() { return coldStore == SideObjective.State.DONE; }
+    }
 
     public Report report() {
-        return new Report(progress.garnirWarned(), progress.warning(), progress.sentShare(), riggersJob.done(),
-                scheduleJob.done(), progress.stoodTo());
+        return new Report(progress.garnirWarned(), progress.warning(), progress.sentShare(), riggersJob.state(),
+                scheduleJob.state(), coldStoreJob.state(), progress.stoodTo());
     }
 
     public Sites sites() { return sites; }

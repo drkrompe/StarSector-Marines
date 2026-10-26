@@ -53,10 +53,10 @@ class CampaignMarkSettlementTest {
     @Test void aWarnedGarnirIsSettledAsAMarkAndAnUnwarnedOneIsNot() {
         var marks = new CampaignMarks();
         MissionResolver.writeCampaignMarks(marks, MissionOutcome.builder().blindWatch(
-                new BlindWatchSequence.Report(false, Warning.STOPPED, .4f, false, false, false)).build());
+                new BlindWatchSequence.Report(false, Warning.STOPPED, .4f, State.LAPSED, State.MISSED, State.MISSED, false)).build());
         assertTrue(marks.all().isEmpty());
         MissionResolver.writeCampaignMarks(marks, MissionOutcome.builder().blindWatch(
-                new BlindWatchSequence.Report(true, Warning.SENT, 1f, false, false, true)).build());
+                new BlindWatchSequence.Report(true, Warning.SENT, 1f, State.DONE, State.MISSED, State.MISSED, true)).build());
         assertTrue(marks.has(BlindWatchProgress.GARNIR_WARNED));
     }
 

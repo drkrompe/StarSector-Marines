@@ -63,7 +63,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.fire.stepOut` | control | 2026-10-22 | Standing control: the control loop of the fire-fear scene verdict. Retire it with that loop. |
 | `battle.fire.throwSafety` | control | 2026-10-22 | Standing control: the control loop of the fire-ignition kit scene verdict. Retire it with that loop. |
 | `battle.fog.bodyReveal` | experiment | 2026-10-22 | Remove once the fog body-reveal rule is accepted (fog-of-war-nouns.md). |
-| `battle.blindWatch.sideObjectives` | control | 2026-10-26 | Permanent evidence lever: grants Blind Watch's side objectives before play (`riggers`, `schedule` or `all`) so commanderEvidence can play the prepared approach beside the autonomous one (blind-watch-sounding.md, Acceptance). |
+| `battle.blindWatch.sideObjectives` | control | 2026-10-26 | Permanent evidence lever: grants Blind Watch's side objectives before play (`riggers`, `schedule`, `coldstore` or `all`) so commanderEvidence can play the prepared approach beside the autonomous one (blind-watch-sounding.md, Acceptance). |
 | `battle.dustLedger.sideObjectives` | control | 2026-10-25 | Permanent evidence lever: grants the Dust Ledger's side objectives before play (`coupling`, `warden`, `feed` or `all`) so commanderEvidence can play the prepared approach beside the autonomous one (dust-ledger-crossing.md, Defences). |
 | `battle.fort.restraint` | control | 2026-10-13 | Standing control: ShieldFortScene runs the off arm as its control loop. Retire it with that loop. |
 | `battle.garrison.envelopes` | experiment | 2026-10-20 | Garrisonables (garrisonables.md): remove once garrisonEvidence and the reactive-defence evidence accept it. |
