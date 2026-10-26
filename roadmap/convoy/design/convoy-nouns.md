@@ -662,11 +662,14 @@ before a bend is not false success. Reverse is an explicit committed recovery,
 not a hidden cusp in an ordinary plan. The bicycle body, speed-aware lookahead,
 corner-speed governor, and terminal docking maneuver make turns continuous.
 Where the rolling planner finds no forward trajectory, a tracked or hover hull
-does not brake: it follows the corridor itself with a short carrot, driving at
+does not brake, nor back and fill a turnaround: it follows the corridor itself
+with a short carrot, driving at
 it while it points within 20° and otherwise stopping and pivoting until it
 points within 3°. Every step is swept against the live ground like any other
 move, so the corridor's proof guides the hull and the ground decides; a pivot
-that would clip leaves the hull to the ordinary brake, reroute and give-up.
+that would clip leaves the hull to the turnaround and the ordinary brake,
+reroute and give-up. A dozer turns through ground its blade could push as it
+drives through it, holding the turn while its hull grinds that ground down.
 Turning toward the corridor counts as progress for the stall clock, and the
 forward planner is asked again at its ordinary cadence, taking the hull back
 the moment a forward plan exists. A wheeled hull brakes, reroutes, and only
