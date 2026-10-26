@@ -1,4 +1,4 @@
-<template props="missionClasses,missionCards,missionPanelStyle,missionListStyle,missionScore,timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveTitle,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle,objectiveLocateClasses,objectiveLocateDisabled,objectiveLocateAction,liftClasses,liftStyle,liftSummary,liftRows">
+<template props="missionClasses,missionCards,optionalCards,optionalHeadingClasses,optionalListStyle,missionPanelStyle,missionListStyle,missionScore,timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveTitle,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle,objectiveLocateClasses,objectiveLocateDisabled,objectiveLocateAction,liftClasses,liftStyle,liftSummary,liftRows">
   <div id="battle-hud-overlay" class="battle-hud-overlay hud-glass">
     <div id="battle-lift-queue" class="{liftClasses}" style="{liftStyle}">
       <div id="battle-lift-queue-header" class="lift-header">
@@ -47,6 +47,22 @@
             <div id="{card.blockerId}" class="mission-blocker">{card.blocker}</div>
           </div>
         </div>
+        <div id="battle-optional-list" class="mission-list" style="{optionalListStyle}">
+          <div id="mission-optional-heading" class="{optionalHeadingClasses}">{i18n.battleHudOptionalObjectives}</div>
+          <div id="battle-optional-cards" class="optional-cards">
+            <div each="card in optionalCards" key="{card.id}" id="{card.id}" class="{card.classes}">
+              <div id="{card.headerId}" class="mission-card-header">
+                <div id="{card.markId}" class="optional-mark" />
+                <div id="{card.nameId}" class="label heading mission-name">{card.name}</div>
+                <div id="{card.strikeId}" class="{card.strikeClasses}" />
+                <button id="{card.locateId}" class="objective-locate" disabled="{card.disabled}" onclick="{card.locate}">{i18n.battleHudLocate}</button>
+              </div>
+              <div id="{card.phaseId}" class="label heading mission-phase">{card.phase}</div>
+              <div id="{card.progressTextId}" class="label mission-secondary">{card.progressText}</div>
+              <div id="{card.trackId}" class="objective-progress-track" style="{card.trackStyle}"><div id="{card.progressId}" class="objective-progress-fill" style="{card.progressStyle}" /></div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div id="battle-objectives" class="{objectivePanelClasses}">
@@ -87,6 +103,18 @@
   .mission-failed { border-color: #e98b8380; }
   .mission-failed .mission-phase { color: #e98b83; }
   .mission-hidden { display: none; }
+  .optional-heading { width: 100%; height: 17px; color: #7fc8e8; }
+  .optional-hidden { display: none; }
+  .optional-cards { width: 100%; flex-direction: column; gap: 6px; }
+  .mission-optional { height: 60px; border-color: #7fc8e84d; background-image: linear-gradient(to right, #7fc8e814 0%, #7fc8e808 60%, #7fc8e800 100%); }
+  .mission-optional .mission-phase { color: #7fc8e8; }
+  .optional-mark { width: 9px; height: 9px; border-width: 2px; border-color: #7fc8e8; }
+  .mission-optional.mission-complete .optional-mark { border-color: #78d494; }
+  .mission-optional.mission-failed .optional-mark { border-color: #e98b83; }
+  .mission-optional.mission-complete .mission-phase { color: #78d494; }
+  .mission-optional.mission-failed .mission-phase { color: #e98b83; }
+  .mission-optional.mission-failed .mission-name { color: #8f9893; }
+  .optional-strike { position: absolute; left: 13px; top: 9px; width: 220px; height: 1px; background-color: #e98b83; }
 
   .battle-hud-overlay {
     width: 100%;

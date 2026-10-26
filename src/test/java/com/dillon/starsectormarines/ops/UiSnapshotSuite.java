@@ -2144,7 +2144,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             clickBarracksFlow(document, instance, "boat:0"); guide.update();
             frames.add(preparationFrame("03-commission", renderer, document, guide, scale));
             clickBarracksFlow(document, instance, "boat-fabricate"); guide.update();
-            if (deck.airworthy().size() != 1) throw new IllegalStateException("Click-through commissioning failed");
+            if (deck.flightReady().size() != 1) throw new IllegalStateException("Click-through commissioning failed");
             // Mirror the production host's occupancy-driven scene adoption, including the new boat.
             CompanyDeck commissioned = new CompanyDeck(candidate.ship(), SHIP_SEED, null,
                     List::of, List::of, () -> heldBerths(deck));
@@ -2580,6 +2580,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("boat-deck-hardpoint-wide.png",
                         renderBoatDeck(context, boatRenderer,
                                 FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, true, false, NO_DEPARTURE, 0)),
+                // Her drive and her gun taken off into stores: the empty drive warns, the hardpoint is bare.
+                new SnapshotArtifact("boat-deck-stripped-wide.png",
+                        renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                true, false, STRIPPED, -1)),
                 // The pointer resting on the fitted Arbalest, nothing in hand: its spec sheet opens.
                 new SnapshotArtifact("boat-deck-hover-part-wide.png",
                         renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
@@ -3145,10 +3149,16 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             workshop.fabricatePart(BoatGun.PULSE_LASER.id());
             workshop.fitGun(deck.boats().get(0).id(), 2, BoatGun.PULSE_LASER.id());
         }
+        if (departure == STRIPPED && deck.berths() > 0 && deck.boats().get(0) != null) {
+            // Her drive and her gun dragged off into stores: the drive's socket warns, and she is off the lift.
+            workshop.strip(deck.boats().get(0).id(), BoatFittingSlot.DRIVE);
+            workshop.stripGun(deck.boats().get(0).id(), 0);
+        }
         // The parked hulls wear what the yard put on them, as the room's refit hands them over.
         ship.doorGuns(deck::doorGuns).refitDoorGuns();
         if (openBoat) viewModel.selectBoatAction(0).run();
         if (hardpoint >= 0) viewModel.selectDollSlot(BoatDoll.HARDPOINT_KEY + hardpoint);
+        if (departure == STRIPPED) viewModel.selectDollSlot(BoatDoll.slotKey(BoatFittingSlot.DRIVE));
         if (struck[0] >= 0) viewModel.selectBoatAction(struck[0]).run();
         DeckGraph.Compartment bay = hangars.isEmpty() ? null : hangars.get(0);
         if (departure == DOOR_OPENING) seekDoorOpening(ship, bay);
@@ -3214,7 +3224,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      * leaving, with spares in stores under a tooled machine shop and one RECYCLE armed; or
      * the same under a shop whose machinery runs without tooling.
      */
-    private static final int NO_DEPARTURE = 0, DOOR_OPENING = 1, AT_OPENING = 2, RECYCLING = 3, RECYCLING_HALF = 4;
+    private static final int NO_DEPARTURE = 0, DOOR_OPENING = 1, AT_OPENING = 2, RECYCLING = 3, RECYCLING_HALF = 4,
+            STRIPPED = 5;
 
     /** Catch the bay door half open for a real departure, before the boat reaches it. */
     private static void seekDoorOpening(CompanyDeck ship, DeckGraph.Compartment bay) {

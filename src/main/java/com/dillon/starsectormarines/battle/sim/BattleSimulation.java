@@ -184,12 +184,15 @@ import com.dillon.starsectormarines.battle.vehicle.SupplyTruckSystem;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
+import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.air.AirTurrets;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ParkedAircraft;
 import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.command.ReliefAssault;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
+import com.dillon.starsectormarines.battle.objective.side.SideObjectiveService;
 import com.dillon.starsectormarines.battle.story.OpeningOperationStoryObserver;
 import com.dillon.starsectormarines.battle.story.JunctionStoryObserver;
 import com.dillon.starsectormarines.battle.story.RelayNineStoryObserver;
@@ -1078,6 +1081,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The battle's optional objectives, or {@code null} when its mission rolled none. */
     public ObjectiveBoard getOptionalObjectives() { return optionalObjectives; }
+
+    private final SideObjectiveService sideObjectives = new SideObjectiveService();
+
+    /**
+     * The battle's side objectives ({@code side-objective-toolkit.md}): the optional jobs its mission offers at setup.
+     * Ticked before the story sequences; never part of the win check. Empty on a battle that offers none.
+     */
+    public SideObjectiveService getSideObjectives() { return sideObjectives; }
     /** Full immutable history for neutral diagnostic tools, including hidden scenario facts. */
     public List<StoryBeatLog.Event> getStoryBeats() { return storyBeats.events(); }
     /** Presentation reads after advance; each consumer owns a battle-local sequence cursor. */
@@ -1726,6 +1737,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 rng, this::spawn, effects, resupply, this);
         this.airSystem.setIncomingMissiles(shots::getActiveShots);
         this.airSystem.setAirfield(airfieldService);
+        this.airSystem.setBoatShields(turretShields, shieldPositions);
         // A gun run delivers through the same AoE pipeline as every other
         // explosion, so the air system needs it too.
         this.airSystem.setDetonations(detonations);
@@ -4076,6 +4088,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (waylineGunship != null) waylineGunship.tick(this);
         if (waylineHound != null) waylineHound.tick(this);
         fieldSalvage.tick(this);
+        // Before the story sequences, so a side job done on the tick its window closes still counts.
+        sideObjectives.tick(this);
         if (depotHold != null) depotHold.advance(this);
         if (salvageRights != null) salvageRights.advance(this);
         if (coldStart != null) coldStart.advance(this);
@@ -4611,9 +4625,27 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private void tickTurretShields() {
         for (int i = turretShields.size() - 1; i >= 0; i--) {
             long id = turretShields.at(i).id;
-            if (!world.isAlive(id)) turretShields.remove(id);
+            if (!world.isAlive(id) || boatShieldLost(id)) turretShields.remove(id);
         }
-        turretShields.tick(TICK_DT, shieldPositions, this::targetOf);
+        turretShields.tick(TICK_DT, shieldPositions, this::shieldThreatOf);
+    }
+
+    /** A boat's shield goes when she does: falling, or gone from the battle. */
+    private boolean boatShieldLost(long id) {
+        if (world.airframe(id) == null) return false;
+        ShuttleMission mission = world.mission(id);
+        return mission != null && (mission.state == ShuttleState.CRASHING || mission.state == ShuttleState.GONE);
+    }
+
+    /** What a shield faces: a hardpoint's target, or the first thing a boat's guns are on. */
+    private long shieldThreatOf(long id) {
+        AirTurrets guns = world.airTurrets(id);
+        if (guns == null) return targetOf(id);
+        for (MountedTurret mount : guns.mounts) {
+            long target = resolveUnit(mount.targetId);
+            if (target != 0L) return target;
+        }
+        return 0L;
     }
 
     /**

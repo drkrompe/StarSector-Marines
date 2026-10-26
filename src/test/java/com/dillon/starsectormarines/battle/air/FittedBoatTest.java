@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.battle.air;
 
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.marine.BoatGun;
+import com.dillon.starsectormarines.battle.turret.ShieldTint;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import org.junit.jupiter.api.Test;
 
@@ -160,5 +162,30 @@ class FittedBoatTest {
 
         mission.marinesRemaining = 0;
         assertNull(mission.machineAboard(), "dropped, she runs back light");
+    }
+
+    @Test
+    void herShieldIsHerEmitterAndHerPoolIsHerPower() {
+        FittedBoat standard = FittedBoat.standard(ShuttleType.HERMES);
+        FittedBoat refitted = new FittedBoat(ShuttleType.HERMES, Map.of(
+                BoatFittingSlot.EMITTER, BoatFitting.ASSAULT_EMITTER,
+                BoatFittingSlot.POWER, BoatFitting.MILITARY_CAPACITORS), null, null);
+
+        assertEquals(FittedBoat.BASE_SHIELD_ARC, standard.shieldSpec().arcDegrees(), EPSILON);
+        assertEquals(240f, refitted.shieldSpec().arcDegrees(), EPSILON);
+        assertEquals(0.6f, refitted.shieldSpec().fluxPerDamage(), EPSILON);
+        assertEquals(FittedBoat.BASE_FLUX * 1.75f, refitted.shieldSpec().fluxCapacity(), EPSILON);
+        assertEquals(FittedBoat.BASE_VENT * 1.5f, refitted.shieldSpec().dissipationPerSecond(), EPSILON);
+        assertTrue(refitted.shieldSpec().upkeepPerSecond() < refitted.shieldSpec().dissipationPerSecond());
+        assertEquals(ShieldTint.ORANGE, standard.shieldTint());
+        assertEquals(ShieldTint.BLUE, refitted.shieldTint());
+    }
+
+    @Test
+    void everyRoundButAMissilesChargesThePool() {
+        assertTrue(FittedBoat.fluxPerRound(BoatGun.BURST_LASER.structureId())
+                > FittedBoat.fluxPerRound(BoatGun.HEAVY_MG.structureId()));
+        assertTrue(FittedBoat.fluxPerRound(BoatGun.HEAVY_MG.structureId()) > 0f);
+        assertEquals(0f, FittedBoat.fluxPerRound(BoatGun.SRM_POD.structureId()));
     }
 }

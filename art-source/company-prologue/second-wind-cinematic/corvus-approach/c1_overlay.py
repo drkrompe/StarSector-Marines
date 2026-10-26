@@ -4,7 +4,7 @@ Owned by the UI pass. `apply(img, t, duration)` takes and returns the 1920x1080 
 frame. Two pieces:
 
 - **Planet ID.** A sensor lock on Jangala: four short arcs close on the limb as
-  Approach names itself, and a leader runs from the lower-right arc to a label
+  Approach names itself, and a leader runs from the upper-right arc to a label
   (JANGALA, then CORVUS / HEGEMONY). It tracks the planet layer through the push
   and truck, and leaves as Approach keys down after line 1.
 - **Captions.** Every hail line in C1, with a speaker tag, timed from
@@ -29,7 +29,7 @@ import numpy as np
 from PIL import Image, ImageDraw
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from c1_core import BASE, FOCUS, H, PLANET, PLANET_DIAMETER, PUSH, TRUCK, W, smooth  # noqa: E402
+from c1_core import BASE, FOCUS, H, PLANET, PLANET_DIAMETER, PUSH, ROOT, TRUCK, W, smooth  # noqa: E402
 import ui_style as ui  # noqa: E402
 
 sys.path.insert(0, str(BASE.parent / "arrival-audio"))
@@ -91,8 +91,32 @@ def _planet_depth(t):
     return PLANET_DEPTH_FALLBACK
 
 
+PLANET_TRACKS = (
+    ROOT / "build" / "cinematic" / "c1-corvus" / "planet-track.json",   # c1v2_planet_track.py
+    ROOT / "mod" / "data" / "cinematic" / "jangala-arrival" / "c1.json",  # the lock track the game draws
+)
+
+
+@lru_cache(maxsize=1)
+def _planet_track():
+    """[(t, cx, cy, r)] of Jangala through the shipped C1 (v2) camera, or None if neither source exists."""
+    for path in PLANET_TRACKS:
+        if path.is_file():
+            data = json.loads(path.read_text(encoding="utf-8"))
+            if isinstance(data, dict):
+                data = next((o["track"] for o in data.get("overlays", ()) if o.get("kind") == "lock"), None)
+            if data:
+                return np.array(sorted(data), dtype=np.float64)
+    return None
+
+
 def planet_screen(t, duration):
-    """Globe centre and radius on screen: compose_c1's camera applied to c1_core.PLANET."""
+    """Globe centre and radius on screen. C1 v2's projected track when there is one (the same track
+    the game draws its lock on); otherwise compose_c1's v1 camera applied to c1_core.PLANET, which
+    does not match the shipped v2 plate."""
+    track = _planet_track()
+    if track is not None:
+        return tuple(float(np.interp(t, track[:, 0], track[:, k])) for k in (1, 2, 3))
     depth = _planet_depth(t)
     u = t / duration
     cam = PUSH[0] + (PUSH[1] - PUSH[0]) * smooth(u)
@@ -143,16 +167,16 @@ def draw_planet_id(frame, t, duration):
     flash = math.exp(-((t - t_lock - LOCK_SECONDS) / 0.25) ** 2)
     ring_a = (0.6 + 0.35 * flash) * smooth((t - t_lock) / 0.35) * fade
     segs = [_arc(cx, cy, rr, deg) for deg in (45, 135, 225, 315)]
-    # From the lower-right arc a leader runs out to a rule the label hangs under. The upper
-    # right belongs to the hero warship's track; the lower right is open space beside the captions.
+    # From the upper-right arc a leader runs up and out to a rule the label sits on: ships
+    # cross the lower right of the approach, and the label must not cover them.
     name, detail = _label_patches()
     width = max(name.width, detail.width) - 4
-    ax, ay = cx + rr * math.cos(math.radians(45)), cy + rr * math.sin(math.radians(45))
-    ex, ey = ax + LEADER, ay + LEADER
+    ax, ay = cx + rr * math.cos(math.radians(45)), cy - rr * math.sin(math.radians(45))
+    ex, ey = ax + LEADER, ay - LEADER
     run = smooth((t - t_lock - LOCK_SECONDS * 0.6) / 0.6)
     if run > 0:
         k = min(1.0, run * 2)
-        leader = [(ax + 4, ay + 4), (ax + 4 + (ex - ax - 4) * k, ay + 4 + (ey - ay - 4) * k)]
+        leader = [(ax + 4, ay - 4), (ax + 4 + (ex - ax - 4) * k, ay - 4 + (ey - ay + 4) * k)]
         if run > 0.5:
             leader.append((ex + (width + 6) * (run - 0.5) * 2, ey))
         segs.append(leader)
@@ -160,8 +184,9 @@ def draw_planet_id(frame, t, duration):
     ui.blend(frame, patch, x0, y0, ring_a)
     text_a = smooth((t - t_lock - LOCK_SECONDS * 1.2) / 0.45) * fade
     slide = 10 * (1 - smooth((t - t_lock - LOCK_SECONDS * 1.2) / 0.6))
-    ui.blend(frame, name, ex + 2 - slide, ey + 4, text_a)
-    ui.blend(frame, detail, ex + 2 - slide, ey + 4 + name.height + 2, 0.9 * text_a)
+    top = ey - 4 - name.height - 2 - detail.height
+    ui.blend(frame, name, ex + 2 - slide, top, text_a)
+    ui.blend(frame, detail, ex + 2 - slide, top + name.height + 2, 0.9 * text_a)
 
 
 # ---------------------------------------------------------------- captions

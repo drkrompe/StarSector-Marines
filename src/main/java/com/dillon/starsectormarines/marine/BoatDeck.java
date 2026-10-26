@@ -45,8 +45,7 @@ public final class BoatDeck implements Serializable {
      * Boat parts in stores, by {@link BoatFitting} or {@link BoatGun} id: built
      * by the workshop, or taken off a boat. The company's, not a boat's, so a
      * spare outlives the boat it came off and moves with the company between
-     * ships. A yard-standard part is never stored; every socket has its own
-     * for nothing.
+     * ships, the stock parts a boat is built with among them.
      */
     private Map<String, Integer> spares = new HashMap<>();
 
@@ -263,13 +262,16 @@ public final class BoatDeck implements Serializable {
         return guns;
     }
 
-    /** The boats that can actually be put in the air, in berth order. */
-    public List<CampaignBoat> airworthy() { return airworthy(CampaignClock.dayFloat()); }
+    /**
+     * The boats that can actually be put in the air, in berth order: repaired and with
+     * every required part fitted ({@link CampaignBoat#flightReady}).
+     */
+    public List<CampaignBoat> flightReady() { return flightReady(CampaignClock.dayFloat()); }
 
-    public List<CampaignBoat> airworthy(float day) {
+    public List<CampaignBoat> flightReady(float day) {
         List<CampaignBoat> flying = new ArrayList<>(berths.size());
         for (CampaignBoat boat : berths) {
-            if (boat != null && boat.airworthy(day)) flying.add(boat);
+            if (boat != null && boat.flightReady(day)) flying.add(boat);
         }
         return Collections.unmodifiableList(flying);
     }

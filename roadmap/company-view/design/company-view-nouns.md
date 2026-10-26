@@ -105,9 +105,12 @@ shared mapping instead of assigning paths independently in each screen.
   which is seats; emitter, the shield's arc and flux per hit; and power, the flux
   pool's capacity and venting. Each slot has a standard fitting every boat is
   built with and up to three upgrade tiers; a lift tier goes only on a boat that
-  does not already lift as much. The battle reads the cabin's seats and the
-  drive's deboard figure (`air-nouns.md`); the emitter and power are planned
-  (`boat-refit-axes.md`).
+  does not already lift as much. The battle reads every slot (`air-nouns.md`,
+  Fitted boat). The emitter's three tiers are the **low-tech, midline and
+  high-tech shields**: wider arcs and less flux per blocked hit, each with its
+  own bill and its own look (orange, teal, blue). Planned: art of their own for
+  the energy guns and missile pods, and a tuning pass on the part numbers
+  against a matchup run.
 - **Frame** — what a boat can carry in upgrades: every non-standard fitting and
   door gun has a **weight**, and their sum may not pass the frame's rating (10).
   The workshop refuses a fit that would take her over it, unless the fit makes her
@@ -115,9 +118,18 @@ shared mapping instead of assigning paths independently in each screen.
 - **Boat spare** — a fitting or boat gun in the boat deck's **stores**, counted per
   part. A spare is built from its bill, or comes off a boat; fitting one takes it
   out of stores. Stores are the company's, not a boat's, so a part moves between
-  boats through them and survives a change of ship. A yard-standard part is never
-  stored: every socket has its own for nothing. A part fitted to a lost or
-  left-behind boat goes with her.
+  boats through them and survives a change of ship. The stock parts a boat is built
+  with are spares like any other: they come off into stores, cost a small bill to
+  build, and go back on from there. A part fitted to a lost or left-behind boat
+  goes with her.
+- **Required part** — a slot a boat cannot fly without: plating, drive, cabin and
+  power, as a mech needs its engine and capacitor bank. Any socket can stand empty;
+  a boat missing a required part warns on the doll (a red socket with the warning
+  mark) and stays off the lift until one is fitted (`CampaignBoat.missingParts`).
+  An empty lift is the bare hold, an empty emitter flies her unshielded, and a bare
+  hardpoint carries no gun. A briefing whose drop needs lift refuses to deploy with
+  no flight-ready boat, and says which part is missing; a mission that starts on
+  secured ground needs none.
 - **Boat workshop** — the atomic authority over the boats and their stores: it
   builds a spare from the fleet's hold, fits a spare and stores what came off,
   strips a part back to stores, moves a gun between hardpoints, recycles a spare,
@@ -624,10 +636,10 @@ the boat are one selection.
 list every part the boat can take, narrowed by a filter strip of her socket kinds
 (selecting a socket sets it); a card carries its tier, spare count, effect and
 footprint. A card with no spare is greyed with its bill and a BUY that builds one
-into stores. A spare, or a socket's free yard-standard part, is dragged onto a doll
-socket, which lights green where it fits and red where it does not. A fitted part
-is lifted off the doll the same way: dropped on the stores it goes back as a spare,
-and a door gun dropped on another hardpoint moves there. What a fit displaces goes
+into stores. A spare is dragged onto a doll socket, which lights green where it fits
+and red where it does not. Any fitted part, stock ones and the yard's gun included,
+is lifted off the doll the same way: dropped on the stores it goes back as a spare
+and the socket stands empty, and a gun dropped on another hardpoint moves there. What a fit displaces goes
 into stores. A card with a spare, while the machine shop runs, carries a RECYCLE
 beside its recovery in green; the first press arms it and says what comes back, and
 a second press on the same card commits (Company resource bills, Recycling). The stores cards, filter pills, meters and selected-mount card are the
@@ -815,8 +827,7 @@ use the same cost vocabulary and point to the stock display in the relevant room
 The workshop authority owns recycling as one transaction: it rechecks the spare and
 the shop's rate, credits the hold, and only then takes the spare out of stores, so a
 fleet with no hold keeps its spare and a refusal changes nothing. Only a counted spare
-is recycled: a yard-standard part is never stored, a fitted part is lifted off to
-stores first, and a part with no bill has nothing to return. A spare whose share rounds
+is recycled: a fitted part is lifted off to stores first. A spare whose share rounds
 to nothing on every line offers no RECYCLE.
 
 The share is of today's quote, tooling and the spares rack included, so a recycle can

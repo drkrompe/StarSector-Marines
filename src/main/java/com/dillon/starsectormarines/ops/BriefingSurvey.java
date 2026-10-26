@@ -105,7 +105,13 @@ record BriefingSurvey(int width, int height, List<Terrain> terrain, List<Area> a
             if (picture.objectives().size() <= 8) {
                 markers.removeIf(marker -> !marker.landing());
                 objectives.clear();
+                boolean optionalHeading = false;
                 for (var item : picture.objectives()) {
+                    // Offered side objectives follow under their own heading.
+                    if (item.optional() && !optionalHeading) {
+                        optionalHeading = true;
+                        objectives.add(Strings.get("briefingSurveyOptionalHeading"));
+                    }
                     for (var marker : item.markers())
                         markers.add(new Marker(marker.name(), marker.x(), marker.y(), false));
                     objectives.add(Strings.join("separatorPath", item.name(), item.steps()));

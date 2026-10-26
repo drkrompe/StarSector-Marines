@@ -36,7 +36,7 @@ class CompanyPreparationTest {
         roster.setCompanyShip("home", "Home", 200);
         roster.boatDeck().reconcile("home", ShuttleType.AEROSHUTTLE, 2);
         // The company rides up to Relief on Wayline's truck: Sabine comes straight after the ship.
-        assertTrue(roster.boatDeck().airworthy().isEmpty());
+        assertTrue(roster.boatDeck().flightReady().isEmpty());
         assertEquals(Step.INTRODUCTION, induction.step(roster));
         assertFalse(induction.finish(roster));
         induction.introduce(sabine);
@@ -74,11 +74,11 @@ class CompanyPreparationTest {
         roster.assignCaptainToSquad(sabine.id(), squad.id());
         assertEquals(Step.FORMATION, roster.officerInduction().step(roster));
         deck.reconcile("second", ShuttleType.HERMES, 4);
-        assertEquals(1, deck.airworthy().size());
-        assertSame(boat, deck.airworthy().get(0));
+        assertEquals(1, deck.flightReady().size());
+        assertSame(boat, deck.flightReady().get(0));
         deck.lose(List.of(boat.id()));
         deck.reconcile("first", ShuttleType.HERMES, 2);
-        assertTrue(deck.airworthy().isEmpty());
+        assertTrue(deck.flightReady().isEmpty());
     }
 
     @Test void legacyOfficerLessonsAreNotRestartedOrStrippedOfBoats() {
@@ -89,7 +89,7 @@ class CompanyPreparationTest {
         roster.beginCompanyPreparation(sabine);
         assertFalse(CompanyPreparation.required(roster));
         assertEquals(Step.INTRODUCTION, roster.officerInduction().step(roster));
-        assertEquals(2, roster.boatDeck().airworthy().size());
+        assertEquals(2, roster.boatDeck().flightReady().size());
     }
 
     private static OfficerInduction roundTrip(OfficerInduction state) throws Exception {

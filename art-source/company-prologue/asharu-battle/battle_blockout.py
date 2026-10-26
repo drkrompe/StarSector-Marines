@@ -729,11 +729,13 @@ def slung(run, mother, t0, launch_off=(-8.0, 0.0, -12.0)):
 # Their run threads S6d's frame (owner, 2026-10-26: "this hound attempting to do a holding action, and some of
 # them slipping through"; S6d's camera stays): out of the background behind the Hounds (P) and by her, well
 # beyond and to the side of her fight, never across her path ("they should fly by"), then on to brake onto
-# the Tarsus's beams by 86 s. Points in the battle frame, found by placing them in S6d's frame.
-K3B_KITE_RUN = {'kite-p-a': [(72.0, (-2600, -870, -260)), (74.0, (-2353, -803, -197)), (76.5, (-2045, -726, -118)),
-                             (78.6, (-1923, -597, -119)), (83.3, (-900, 120, 50)), (86.0, K3B_KITE_A[:3])],
-                'kite-p-b': [(72.3, (-2900, -800, -380)), (74.3, (-2646, -767, -319)), (76.8, (-2239, -786, -211)),
-                             (78.9, (-2038, -679, -178)), (83.6, (-980, -20, 10)), (86.0, K3B_KITE_B[:3])]}
+# the Tarsus's beams by 86 s. Points in the battle frame, found by placing them in S6d's frame, timed by
+# distance at a steady 190 m/s until she brakes onto her station (uneven times stalled kite-p-a mid-shot,
+# and at a crawl her nose swung through 50 degrees: owner, "the most strange nose dive").
+K3B_KITE_RUN = {'kite-p-a': [(72.94, (-2600, -870, -260)), (74.33, (-2353, -803, -197)), (76.05, (-2045, -726, -118)),
+                             (77.4, (-1850, -560, -100)), (83.6, (-900, 120, 50)), (86.0, K3B_KITE_A[:3])],
+                'kite-p-b': [(72.45, (-2900, -800, -380)), (73.84, (-2646, -767, -319)), (76.06, (-2239, -786, -211)),
+                             (77.64, (-1980, -640, -160)), (83.9, (-980, -20, 10)), (86.0, K3B_KITE_B[:3])]}
 
 
 def through(pts, v0=None, v1=(0.0, 0.0, 0.0)):
@@ -784,15 +786,21 @@ def kite_run(key, station):
     return Pose(at(K3B_T - 1.0), K3B_T - 1.0, at)
 
 
-def after(base, t_cut, pts, thr):
+def after(base, t_cut, pts, thr, facing=False):
     """A ship as S6d flew her until t_cut, then flown on through pts (S7 carries the fight on): her
-    track picks up where and as fast as S6d left her."""
+    track picks up where and as fast as S6d left her. facing: she keeps the attitude S6d left her in,
+    only wallowing, and backs along the track on her thrusters (a rear guard falling back on the column
+    with her nose still on the enemy) instead of turning onto it."""
     p0, p1 = base.at(t_cut - .05), base.at(t_cut + .05)
     pos = through([(t_cut, base.at(t_cut)[:3])] + pts, v0=tuple((p1[n] - p0[n]) / .1 for n in range(3)), v1=None)
 
     def at(t):
         if t <= t_cut:
             return base.at(t)
+        if facing:
+            b_, u = base.at(t_cut), t - t_cut
+            return pos(t) + (b_[3] + 4.0 * math.sin(.6 * u), b_[4] + 3.0 * math.sin(.8 * u),
+                             b_[5] + 6.0 * math.sin(.45 * u), thr)
         w = min(1.0, (t - t_cut) / .8)     # from her S6d attitude onto her new track
         b_, (hd, pt, rl) = base.at(t_cut), on_track(pos, t)
         return pos(t) + (b_[3] + w * ((hd - b_[3] + 180) % 360 - 180), b_[4] + w * (pt - b_[4]),
@@ -826,9 +834,10 @@ K3B_SHIPS = {
         ('colossus', (560, -80, 40, 0, 0, 2, .9)), ('morrow', (510, -250, 0, 0, 1, -3, .9)),
         ('mule', (1260, 260, 20, 0, 0, -2, .9)), ('buffalo-a', (960, -350, 80, 0, 1, 4, .9)))},
     # the rear guard S6d left, a kilometre astern, what S7 opens on (owner, 2026-10-26: "the follow up shot
-    # needs continuity of the hounds as well"): the convoy's Hound, her drives hit, limping back toward the
-    # column, and the surviving Hound (P) swinging round onto her tail and firing; the first is dead
-    'hound-m': after(K3E_SHIPS['hound-m'], 80.0, [(84.0, (-1700, -300, 0)), (88.0, (-1250, -270, 30))], .25),
+    # needs continuity of the hounds as well"): the convoy's Hound, her drives hit, backing toward the column
+    # with her nose still on the enemy (turning round onto her track flipped her through 180 degrees in
+    # 0.8 s: owner, "a crazy maneuver"), the surviving Hound (P) swinging round onto her and firing
+    'hound-m': after(K3E_SHIPS['hound-m'], 80.0, [(84.0, (-1700, -300, 0)), (88.0, (-1250, -270, 30))], .25, facing=True),
     'hound-p-b': after(K3E_SHIPS['hound-p-b'], 80.0, [(83.0, (-1350, 380, 140)), (85.5, (-1700, 60, 60)),
                                                        (88.0, (-1600, -260, 30))], 1.0),
 }

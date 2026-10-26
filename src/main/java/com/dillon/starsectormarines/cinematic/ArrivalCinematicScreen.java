@@ -85,6 +85,8 @@ public final class ArrivalCinematicScreen implements Screen {
     private final LockTrack[][] lockTracks;
     private final List<SoundAPI> heard = new ArrayList<>();
     private final List<Scheduled> loops = new ArrayList<>();
+    /** The sound each of {@link #loops} holds, by index; null where it could not play. */
+    private final List<SoundAPI> loopSounds = new ArrayList<>();
 
     private PositionAPI position;
     private Runnable dismiss;
@@ -201,20 +203,47 @@ public final class ArrivalCinematicScreen implements Screen {
         var cues = sequence.cues();
         while (nextCue < cues.size() && cues.get(nextCue).start() <= clock) {
             Scheduled cue = cues.get(nextCue++);
-            if (cue.cue().looped()) loops.add(cue);
-            else play(cue.cue().sound(), cue.cue().volume());
+            if (cue.cue().looped()) {
+                loops.add(cue);
+                // Never started silent, in case a zero-volume sound is dropped; it ramps from here.
+                loopSounds.add(play(cue.cue().sound(), Math.max(0.001f, sequence.volumeAt(cue, clock))));
+            } else {
+                play(cue.cue().sound(), cue.cue().volume());
+            }
         }
-        loops.removeIf(c -> clock >= c.until());
-        // playUILoop must be called every frame or the loop fades out; that is also how it ramps.
-        for (Scheduled c : loops) Global.getSoundPlayer().playUILoop(c.cue().sound(), 1f, sequence.volumeAt(c, clock));
+        for (int i = loops.size() - 1; i >= 0; i--) {
+            Scheduled c = loops.get(i);
+            SoundAPI playing = loopSounds.get(i);
+            if (clock >= c.until()) {
+                stop(playing);
+                loops.remove(i);
+                loopSounds.remove(i);
+                continue;
+            }
+            // One held sound ramped in place, not playUILoop: that restarts its file whenever a frame
+            // misses the call, and a shot switch's hitch did that at every cut. So a held cue's file
+            // must cover its span.
+            if (playing != null) playing.setVolume(sequence.volumeAt(c, clock));
+        }
     }
 
-    private void play(String sound, float volume) {
+    private SoundAPI play(String sound, float volume) {
         try {
             SoundAPI playing = Global.getSoundPlayer().playUISound(sound, 1f, volume);
             if (playing != null) heard.add(playing);
+            return playing;
         } catch (RuntimeException e) {
             LOG.warn("Arrival cannot play " + sound, e);
+            return null;
+        }
+    }
+
+    private static void stop(SoundAPI s) {
+        if (s == null) return;
+        try {
+            s.stop();
+        } catch (RuntimeException ignored) {
+            // The sound already ended; nothing to stop.
         }
     }
 
@@ -237,15 +266,10 @@ public final class ArrivalCinematicScreen implements Screen {
     private void finish() {
         if (finished) return;
         finished = true;
-        for (SoundAPI s : heard) {
-            try {
-                s.stop();
-            } catch (RuntimeException ignored) {
-                // The sound already ended; nothing to stop.
-            }
-        }
+        for (SoundAPI s : heard) stop(s);
         heard.clear();
         loops.clear();
+        loopSounds.clear();
         if (dismiss != null) dismiss.run();
     }
 
@@ -385,14 +409,16 @@ public final class ArrivalCinematicScreen implements Screen {
             double nameW = nameFont.measureWidth(Strings.get(lock.titleKey())) * 1.25, detailW = 0;
             for (Detail d : lock.detail()) detailW += detailFont.measureWidth(Strings.get(d.key())) * 1.15;
             double width = Math.max(nameW, detailW);
-            double ax = cx + rr * Math.cos(Math.toRadians(45)), ay = cy + rr * Math.sin(Math.toRadians(45));
-            double ex = ax + lock.leader(), ey = ay + lock.leader();
+            // From the upper-right arc a leader runs up and out to a rule the label sits on: ships
+            // cross the lower right of the approach, and the label must not cover them.
+            double ax = cx + rr * Math.cos(Math.toRadians(45)), ay = cy - rr * Math.sin(Math.toRadians(45));
+            double ex = ax + lock.leader(), ey = ay - lock.leader();
             if (st.run() > 0) {
                 double k = Math.min(1, st.run() * 2);
                 glColor4f(PLAYER.getRed() / 255f, PLAYER.getGreen() / 255f, PLAYER.getBlue() / 255f, lineAlpha);
                 glBegin(GL_LINE_STRIP);
-                glVertex2f(l.sx(ax + 4), l.sy(ay + 4));
-                glVertex2f(l.sx(ax + 4 + (ex - ax - 4) * k), l.sy(ay + 4 + (ey - ay - 4) * k));
+                glVertex2f(l.sx(ax + 4), l.sy(ay - 4));
+                glVertex2f(l.sx(ax + 4 + (ex - ax - 4) * k), l.sy(ay - 4 + (ey - ay + 4) * k));
                 if (st.run() > 0.5) glVertex2f(l.sx(ex + (width + 6) * (st.run() - 0.5) * 2), l.sy(ey));
                 glEnd();
             }
@@ -401,9 +427,11 @@ public final class ArrivalCinematicScreen implements Screen {
             float textAlpha = (float) st.textAlpha() * l.alpha();
             if (textAlpha <= 0) continue;
             double tx = ex + 2 - st.slide();
-            text(nameFont, Strings.get(lock.titleKey()), l.sx(tx), l.sy(ey + 4), nameScale, PLAYER, textAlpha);
+            double nameH = nameFont.getLineHeight() * 1.25 + 2;
+            double top = ey - 4 - nameH - detailFont.getLineHeight() * 1.15;
+            text(nameFont, Strings.get(lock.titleKey()), l.sx(tx), l.sy(top), nameScale, PLAYER, textAlpha);
             float detailX = l.sx(tx);
-            float detailY = l.sy(ey + 4 + nameFont.getLineHeight() * 1.25 + 2);
+            float detailY = l.sy(top + nameH);
             for (Detail d : lock.detail()) {
                 text(detailFont, Strings.get(d.key()), detailX, detailY, detailScale, color(d.color()), 0.9f * textAlpha);
                 detailX += detailFont.measureWidth(Strings.get(d.key())) * detailScale;

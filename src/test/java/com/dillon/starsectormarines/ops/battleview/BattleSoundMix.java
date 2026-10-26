@@ -36,6 +36,9 @@ import java.util.Set;
  *   <li>A held loop (a line with {@code loop}, its slot) is logged on every tick it sounds: each unbroken run of ticks
  *       of one id and slot is one take wrapped round under the run, faded in and out over {@link #LOOP_FADE_SECONDS},
  *       at each tick's level and pan, rather than a start a tick.</li>
+ *   <li>A music line (one with {@code music}) starts that track at the centre at its {@code sounds.json} volume, faded
+ *       in over its {@code fadeIn} seconds; the next music line fades it out over that line's {@code fadeOut} seconds
+ *       while the next track fades in. An empty {@code music} is silence.</li>
  *   <li>A mix that would clip is scaled down as a whole, so the levels keep their proportions; the console says
  *       by how much.</li>
  * </ul>
@@ -66,6 +69,7 @@ public final class BattleSoundMix {
         Set<String> unknown = new LinkedHashSet<>();
         float halfWidth = BattleReviewFrameRenderer.PLAY_ZOOM_CELLS / 2f;
         Map<String, List<JSONObject>> held = new LinkedHashMap<>();
+        List<JSONObject> music = new ArrayList<>();
         int mixed = 0;
         for (String line : Files.readAllLines(log)) {
             if (line.isBlank()) continue;
@@ -73,6 +77,10 @@ public final class BattleSoundMix {
             String id;
             try {
                 start = new JSONObject(line);
+                if (start.has("music")) {
+                    music.add(start);
+                    continue;
+                }
                 id = start.getString("id");
             } catch (JSONException e) {
                 throw new IOException("bad sound log line in " + log + ": " + line, e);
@@ -120,6 +128,28 @@ public final class BattleSoundMix {
                 mixed++;
             }
         }
+        for (int c = 0; c < music.size(); c++) {
+            JSONObject cue = music.get(c);
+            String id = cue.optString("music");
+            if (id.isEmpty()) continue;
+            List<Take> options = takes.get(id);
+            if (options == null || options.isEmpty()) {
+                unknown.add(id);
+                continue;
+            }
+            Take take = options.get(0);
+            int at = (int) Math.round(cue.optInt("frame") * (double) BattleSimulation.TICK_DT * RATE);
+            int end = length;
+            int fadeOut = 0;
+            if (c + 1 < music.size()) {
+                JSONObject next = music.get(c + 1);
+                end = (int) Math.round(next.optInt("frame") * (double) BattleSimulation.TICK_DT * RATE);
+                fadeOut = next.optInt("fadeOut") * RATE;
+            }
+            music(clip(id, take, decoded), take.volume(), at, cue.optInt("fadeIn") * RATE, end, fadeOut,
+                    left, right);
+            mixed++;
+        }
         float peak = 0f;
         for (int i = 0; i < length; i++) peak = Math.max(peak, Math.max(Math.abs(left[i]), Math.abs(right[i])));
         float scale = peak > 1f ? 1f / peak : 1f;
@@ -151,6 +181,24 @@ public final class BattleSoundMix {
         float pan = Math.max(-1f, Math.min(1f, dx / halfWidth));
         double angle = (pan + 1.0) * Math.PI / 4.0;
         return new float[] {gain * (float) Math.cos(angle), gain * (float) Math.sin(angle)};
+    }
+
+    /**
+     * Adds a music track at the centre: {@code clip} at {@code gain} from output sample {@code at}, faded in over
+     * {@code fadeIn} samples, and from {@code end} faded out over {@code fadeOut} samples; nothing sounds past that.
+     */
+    static void music(float[] clip, float gain, int at, int fadeIn, int end, int fadeOut,
+                      float[] left, float[] right) {
+        float centre = gain * (float) Math.cos(Math.PI / 4.0);
+        for (int k = 0; k < clip.length; k++) {
+            int i = at + k;
+            if (i < 0) continue;
+            if (i >= left.length || i >= end + fadeOut) break;
+            float env = fadeIn <= 0 ? 1f : Math.min(1f, k / (float) fadeIn);
+            if (i >= end) env *= fadeOut <= 0 ? 0f : 1f - (i - end) / (float) fadeOut;
+            left[i] += clip[k] * centre * env;
+            right[i] += clip[k] * centre * env;
+        }
     }
 
     /**
@@ -239,9 +287,12 @@ public final class BattleSoundMix {
                 List<Take> list = new ArrayList<>();
                 for (int i = 0; i < entries.length(); i++) {
                     JSONObject entry = entries.optJSONObject(i);
-                    if (entry == null || !entry.has("file") || entry.has("source")) continue;
+                    if (entry == null || !entry.has("file")) continue;
                     String file = entry.optString("file");
-                    Path path = modRoot.resolve(file);
+                    String source = entry.optString("source", "");
+                    // Music names its directory; packed music (a .bin) is left out.
+                    if (source.endsWith(".bin")) continue;
+                    Path path = modRoot.resolve(source).resolve(file);
                     if (!Files.exists(path) && core != null && Files.exists(core.resolve(file))) {
                         path = core.resolve(file);
                     }

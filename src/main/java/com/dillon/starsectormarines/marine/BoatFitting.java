@@ -16,17 +16,17 @@ import java.util.List;
  * com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent} uses:
  * authored entries with stable ids, resolved by id everywhere a boat is
  * persisted. Each slot has a yard-standard tier 1 part, which every boat is
- * built with, weighs nothing and is never stored, and upgrade tiers above it,
- * which are kept as spares in the boat deck's stores ({@link BoatWorkshop}).
+ * built with and which weighs nothing, and upgrade tiers above it. Every part,
+ * the stock one too, is a real thing: taken off, it goes into the boat deck's
+ * stores as a spare, and fitting one takes a spare out ({@link BoatWorkshop}).
  *
  * <p>The tiers are built around the Hermes, the company's boat: tier 1 is the
  * Hermes as the base game builds her, and every factor here is a step from her
- * own numbers ({@code boat-refit-axes.md}).
+ * own numbers ({@code company-view-nouns.md}, Fitting).
  *
  * @param effect what the part does to the boat it is on
  * @param weight what it takes out of the frame's rating; zero for a standard part
- * @param bill what the yard consumes out of the fleet's hold to build one, or
- *     {@code null} for the standard part included in the boat's fabrication bill
+ * @param bill what the yard consumes out of the fleet's hold to build one spare
  * @param provenance where the thing comes from, for the player reading the card
  */
 public record BoatFitting(
@@ -106,7 +106,7 @@ public record BoatFitting(
 
     public static final BoatFitting STANDARD_PLATING = new BoatFitting(
             "standard_plating", "@openingBoatFittingYardStandardPlating", BoatFittingSlot.PLATING, 1,
-            Effect.NONE, 0, null, "@openingBoatFittingWhatABoatLeavesTheYardWith");
+            Effect.NONE, 0, cost(5, 0, 10, 0), "@openingBoatFittingWhatABoatLeavesTheYardWith");
 
     public static final BoatFitting REINFORCED_PLATING = new BoatFitting(
             "reinforced_plating", "@openingBoatFittingReinforcedBellyPlate", BoatFittingSlot.PLATING, 2,
@@ -118,7 +118,7 @@ public record BoatFitting(
 
     public static final BoatFitting STANDARD_DRIVE = new BoatFitting(
             "standard_drive", "@openingBoatFittingYardStandardDrive", BoatFittingSlot.DRIVE, 1,
-            Effect.NONE, 0, null, "@openingBoatFittingThePlantTheHullWasRatedFor");
+            Effect.NONE, 0, cost(8, 3, 0, 0), "@openingBoatFittingThePlantTheHullWasRatedFor");
 
     public static final BoatFitting TUNED_DRIVE = new BoatFitting(
             "tuned_drive", "@openingBoatFittingTunedDrive", BoatFittingSlot.DRIVE, 2,
@@ -130,7 +130,7 @@ public record BoatFitting(
 
     public static final BoatFitting STANDARD_LIFT = new BoatFitting(
             "standard_lift", "@boatFittingStandardHold", BoatFittingSlot.LIFT, 1,
-            Effect.NONE, 0, null, "@boatFittingStandardHoldProvenance");
+            Effect.NONE, 0, cost(5, 0, 10, 0), "@boatFittingStandardHoldProvenance");
 
     public static final BoatFitting LIFT_CRADLE = new BoatFitting(
             "lift_cradle", "@boatFittingLiftCradle", BoatFittingSlot.LIFT, 2,
@@ -146,7 +146,7 @@ public record BoatFitting(
 
     public static final BoatFitting STANDARD_CABIN = new BoatFitting(
             "standard_cabin", "@boatFittingStandardCabin", BoatFittingSlot.CABIN, 1,
-            Effect.NONE, 0, null, "@boatFittingStandardCabinProvenance");
+            Effect.NONE, 0, cost(5, 2, 5, 0), "@boatFittingStandardCabinProvenance");
 
     public static final BoatFitting HALF_SQUAD_CABIN = new BoatFitting(
             "half_squad_cabin", "@boatFittingHalfSquadCabin", BoatFittingSlot.CABIN, 2,
@@ -158,7 +158,7 @@ public record BoatFitting(
 
     public static final BoatFitting STANDARD_EMITTER = new BoatFitting(
             "standard_emitter", "@boatFittingStandardEmitter", BoatFittingSlot.EMITTER, 1,
-            Effect.NONE, 0, null, "@boatFittingStandardEmitterProvenance");
+            Effect.NONE, 0, cost(5, 5, 0, 0), "@boatFittingStandardEmitterProvenance");
 
     public static final BoatFitting WIDE_EMITTER = new BoatFitting(
             "wide_emitter", "@boatFittingWideEmitter", BoatFittingSlot.EMITTER, 2,
@@ -170,7 +170,7 @@ public record BoatFitting(
 
     public static final BoatFitting STANDARD_POWER = new BoatFitting(
             "standard_power", "@boatFittingStandardPower", BoatFittingSlot.POWER, 1,
-            Effect.NONE, 0, null, "@boatFittingStandardPowerProvenance");
+            Effect.NONE, 0, cost(5, 2, 5, 0), "@boatFittingStandardPowerProvenance");
 
     public static final BoatFitting CAPACITOR_BANK = new BoatFitting(
             "capacitor_bank", "@boatFittingCapacitorBank", BoatFittingSlot.POWER, 2,
@@ -207,7 +207,8 @@ public record BoatFitting(
         if (effect.liftRating() != LiftRating.NONE && slot != BoatFittingSlot.LIFT) {
             throw new IllegalArgumentException("Only a LIFT fitting can carry a lift rating: " + id);
         }
-        if (bill == null && weight != 0) {
+        if (bill == null) throw new IllegalArgumentException("Boat fitting bill is required: " + id);
+        if (tier == 1 && weight != 0) {
             throw new IllegalArgumentException("A standard fitting weighs nothing: " + id);
         }
     }
@@ -225,7 +226,7 @@ public record BoatFitting(
 
     /** Whether this is the fitting a boat is built with rather than refitted to. */
     public boolean standard() {
-        return bill == null;
+        return tier == 1;
     }
 
     /**

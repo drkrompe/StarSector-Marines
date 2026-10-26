@@ -41,7 +41,8 @@ public final class MissionMarkerRenderSystem implements RenderSystem {
             boolean blocked = focus && active && !item.blocker().isBlank();
             Color tone = marker.state() == MissionObjectiveSnapshot.State.COMPLETE ? BattlefieldMarkerPresentation.VALID
                     : marker.state() == MissionObjectiveSnapshot.State.FAILED ? BattlefieldMarkerPresentation.INVALID
-                    : blocked ? BattlefieldMarkerPresentation.CONTESTED : BattlefieldMarkerPresentation.PROGRESS;
+                    : blocked ? BattlefieldMarkerPresentation.CONTESTED
+                    : item.optional() ? BattlefieldMarkerPresentation.OPTIONAL : BattlefieldMarkerPresentation.PROGRESS;
             float r = tone.getRed() / 255f, g = tone.getGreen() / 255f, b = tone.getBlue() / 255f;
             if (marker.radius() > 0) {
                 float radiusPx = marker.radius() * camera.cellPxSize();
@@ -65,8 +66,10 @@ public final class MissionMarkerRenderSystem implements RenderSystem {
             }
             float x = clamp(rawX, camera.vpX() + WIDTH / 2 + 8, camera.vpX() + camera.vpW() - WIDTH / 2 - 8);
             float y = clamp(rawY, camera.vpY() + 128, camera.vpY() + camera.vpH() - 60);
-            // The fixed-size diamond is a locator, never an invented capture radius.
-            PolyTess.appendAnnulus(mesh, x, y, 9, 12, 4, r, g, b, alpha);
+            // The fixed-size diamond is a locator, never an invented capture radius; a side objective's is a ring,
+            // so the map reads "must" apart from "may".
+            if (item.optional()) PolyTess.appendAnnulus(mesh, x, y, 7, 10, 24, r, g, b, alpha);
+            else PolyTess.appendAnnulus(mesh, x, y, 9, 12, 4, r, g, b, alpha);
             if (focus && item.progress() >= 0 && active)
                 PolyTess.appendArc(mesh, x, y, 15, 18, Math.min(1, item.progress()), 40, r, g, b, alpha);
             if (blocked) {
