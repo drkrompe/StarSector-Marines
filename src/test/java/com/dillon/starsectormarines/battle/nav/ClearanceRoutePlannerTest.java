@@ -54,6 +54,39 @@ class ClearanceRoutePlannerTest {
     }
 
     @Test
+    void routeKeepsOnlyItsCornersAndEveryMergedRunStaysLegal() {
+        NavigationGrid grid = detour();
+        var found = route(grid, 2f, 4f, 9f, 4f, 0.6f, 0f);
+        assertEquals(ClearanceRoutePlanner.Status.FOUND, found.status());
+        List<ClearanceRoutePlanner.Point> points = found.waypoints();
+        assertTrue(points.size() >= 3, "the wall forces at least one bend: " + points);
+        for (int i = 1; i < points.size() - 1; i++) {
+            var from = points.get(i - 1);
+            var at = points.get(i);
+            var to = points.get(i + 1);
+            float cross = (at.x() - from.x()) * (to.y() - at.y()) - (at.y() - from.y()) * (to.x() - at.x());
+            assertTrue(cross != 0f, "interior waypoint " + at + " is not a corner: " + points);
+        }
+        assertLegal(grid, points, 0.6f);
+    }
+
+    @Test
+    void cornersDropStraightRunInteriorsButKeepBendsReversalsAndEnds() {
+        var start = new ClearanceRoutePlanner.Point(1.23f, 1f);
+        var run = List.of(start, p(1.5f, 1f), p(2f, 1f), p(2.5f, 1f), p(3f, 1.5f), p(3.5f, 2f), p(3.5f, 2.5f));
+        assertEquals(List.of(start, p(2.5f, 1f), p(3.5f, 2f), p(3.5f, 2.5f)),
+                ClearanceRoutePlanner.corners(run));
+        var reversal = List.of(p(1f, 1f), p(2f, 1f), p(1.5f, 1f));
+        assertEquals(reversal, ClearanceRoutePlanner.corners(reversal));
+        var pair = List.of(p(1f, 1f), p(2f, 1f));
+        assertEquals(pair, ClearanceRoutePlanner.corners(pair));
+    }
+
+    private static ClearanceRoutePlanner.Point p(float x, float y) {
+        return new ClearanceRoutePlanner.Point(x, y);
+    }
+
+    @Test
     void exactSubcellStartIsAttachedWithoutMovingOrReplacingIt() {
         NavigationGrid grid = new NavigationGrid(12, 8);
         floor(grid, 1, 3, 11, 5);

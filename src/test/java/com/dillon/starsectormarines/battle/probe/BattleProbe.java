@@ -77,6 +77,8 @@ import java.util.Set;
  *   squads [label=TEXT]                   every squad with members alive: size, leader position, assignment
  *   path ID [count=N]                     a unit's next N waypoints (default 6): cell, tags, step walkable
  *   members SQUAD                         each member of a squad: position, cell, velocity, waypoints left
+ *   watch ID[,ID...] N [every=K]          step N ticks, one line per body every K: position, route cursor and next
+ *                                         waypoint, velocity, and for a mech its hips, role and collision escape
  *   beats [since=T] [text=TEXT]           story beats
  *   escort                                the rescue cohort's escort hold and progress
  *   route X0 Y0 X1 Y1                     cells on the walkable path between two cells (0 for none)
@@ -120,6 +122,7 @@ public final class BattleProbe {
         commands.put("hits-by", this::hitsBy);
         commands.put("squads", this::squads);
         commands.put("members", a -> members(a.intAt(0)));
+        commands.put("watch", this::watch);
         commands.put("path", this::path);
         commands.put("beats", this::beats);
         commands.put("route", a -> {
@@ -681,6 +684,47 @@ public final class BattleProbe {
             rows.put(row);
         }
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("squad", squadId).put("members", rows);
+    }
+
+    /**
+     * Steps N ticks one at a time and records, every K ticks, each body's position, route cursor, next waypoint, hip
+     * facing and mech collision-escape state as one compact line each.
+     */
+    private JSONObject watch(Args a) throws Exception {
+        String[] idWords = a.word(0).split(",");
+        int ticks = a.intAt(1);
+        int every = a.intOr("every", 1);
+        JSONArray rows = new JSONArray();
+        for (int t = 0; t < ticks && !sim.isComplete(); t++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            if (t % every != 0) continue;
+            for (String idWord : idWords) {
+                long id = Long.parseLong(idWord.trim());
+                World world = sim.world();
+                if (!world.isAlive(id)) continue;
+                int next = sim.movement().nextWaypointIndex(id);
+                int count = sim.movement().waypointCount(id);
+                StringBuilder line = new StringBuilder();
+                line.append(sim.getSimTickIndex()).append(" pos=").append(round(world.x(id))).append(',')
+                        .append(round(world.y(id))).append(" next=").append(next).append('/').append(count);
+                if (next < count) line.append(" wp=").append(round(sim.movement().waypointX(id, next))).append(',')
+                        .append(round(sim.movement().waypointY(id, next)));
+                line.append(" v=").append(round(sim.movement().velX(id))).append(',').append(round(sim.movement().velY(id)));
+                if (world.hasMechLoadout(id)) {
+                    var loadout = world.mechLoadout(id);
+                    line.append(" hip=").append(round(world.mechHipFacingDegrees(id)))
+                            .append(" role=").append(loadout.effectiveRole())
+                            .append(" stall=").append(round(loadout.collisionStallSeconds))
+                            .append(" escape=").append(loadout.collisionEscapeActive)
+                            .append(" pending=").append(loadout.routeIntent.pending());
+                    var route = sim.movement().continuousRoute(id);
+                    if (route != null) line.append(" req=").append(route.requestedCellX()).append(',')
+                            .append(route.requestedCellY());
+                }
+                rows.put(id + "@" + line);
+            }
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("rows", rows);
     }
 
     private JSONObject beats(Args a) throws Exception {

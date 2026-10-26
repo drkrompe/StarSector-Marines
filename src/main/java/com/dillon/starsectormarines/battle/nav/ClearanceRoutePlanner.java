@@ -237,7 +237,7 @@ public final class ClearanceRoutePlanner {
             }
             Collections.reverse(route);
             if (!route.get(0).equals(start)) route.add(0, start);
-            return route;
+            return corners(route);
         }
 
         /** Cancels pending work; completed queries keep their original terminal result. */
@@ -268,6 +268,33 @@ public final class ClearanceRoutePlanner {
             attachments = null;
             return latest;
         }
+    }
+
+    /**
+     * The route's corners: every point where its direction changes, and its two ends. A point inside a straight run
+     * of lattice links carries no information, since collinear links in one direction sweep exactly the capsule of
+     * the single link joining the run's ends, so dropping it changes neither the polyline nor its proof.
+     *
+     * <p>It does change what a follower aims at. A body steering toward its next waypoint takes its bearing from it,
+     * and the next lattice point of a straight run is half a cell away, so a shove of a tenth of a cell sideways
+     * (separation, a formation slot) turned that bearing by ten degrees or more. A mech holds its walk for any turn
+     * past {@code MechLocomotion.MOVE_ALIGNMENT_DEGREES}, and the formation pull then moved the held chassis freely,
+     * so a lance's support mech held and was dragged at every half cell of a long straight street and covered it at
+     * a quarter of its walking pace. Aimed at the run's end, the same shove is a degree.
+     */
+    static List<Point> corners(List<Point> route) {
+        if (route.size() < 3) return route;
+        List<Point> corners = new ArrayList<>(route.size());
+        corners.add(route.get(0));
+        for (int i = 1; i < route.size() - 1; i++) {
+            Point from = corners.get(corners.size() - 1), at = route.get(i), to = route.get(i + 1);
+            double inX = (double) at.x() - from.x(), inY = (double) at.y() - from.y();
+            double outX = (double) to.x() - at.x(), outY = (double) to.y() - at.y();
+            boolean straight = inX * outY - inY * outX == 0d && inX * outX + inY * outY > 0d;
+            if (!straight) corners.add(at);
+        }
+        corners.add(route.get(route.size() - 1));
+        return corners;
     }
 
     private static List<Integer> pointsWithin(Workspace w, float x, float y, float distance) {
