@@ -58,6 +58,7 @@ import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
 import com.dillon.starsectormarines.battle.evacuation.ColonyLivingField;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.evacuation.ColonyPopulation;
+import com.dillon.starsectormarines.battle.evacuation.ColonyRedoubts;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
@@ -176,6 +177,9 @@ import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
+import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -2729,21 +2733,69 @@ public final class BattleSetup {
             long seed, List<ShuttleAssignment> manifest,
             boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
             TargetProfile profile, boolean stressTest, HivePosture posture, int liftHardpoints) {
+        StoryMapPool.Entry pooled = isColonyBreachColony(risk, stressTest) && StoryMapPools.installed()
+                ? StoryMapPools.pool(StoryMap.COLONY_BREACH).entry(surfaceOrRock(profile), seed) : null;
+        return civilianRescue(seed, manifest, enemyHasHeavyArmor, risk, swarmCount, profile, stressTest, posture,
+                liftHardpoints, pooled);
+    }
+
+    /**
+     * The seed a Colony Breach on a world of {@code biome} plays ({@code story-map-pools.md}): the pool's entry for
+     * the roll its event carries, or the roll itself when no pool is installed.
+     */
+    public static long colonyBreachSeed(SurfacePalette biome, long roll) {
+        return StoryMapPools.installed()
+                ? StoryMapPools.pool(StoryMap.COLONY_BREACH).pick(biome == null ? SurfacePalette.ROCK : biome, roll).seed()
+                : roll;
+    }
+
+    /**
+     * A Colony Breach on {@code entry}'s seed and {@code biome} alone, on its first generation or not at all: how the
+     * regeneration check stands a pooled or candidate seed up. Throws when the seed does not carry the mission.
+     */
+    public static BattleSimulation createPooledColonyBreach(SurfacePalette biome, StoryMapPool.Entry entry,
+                                                            List<ShuttleAssignment> manifest) {
+        return civilianRescue(entry.seed(), manifest, false, RiskLevel.HIGH, SwarmDefenseRoster.countFor(RiskLevel.HIGH),
+                BloomHeartSetup.world(biome), false, HivePosture.DEFAULT, 0, entry);
+    }
+
+    private static SurfacePalette surfaceOrRock(TargetProfile profile) {
+        return profile == null ? SurfacePalette.ROCK : profile.surface();
+    }
+
+    /**
+     * The civilian rescue proper. A {@code pooled} Colony Breach is generated on its world's biome alone, never on
+     * the market behind it, so the map is the one the pool vetted, and is never re-rolled: a pooled seed that no
+     * longer carries the mission fails here, as the regeneration check would.
+     */
+    private static BattleSimulation civilianRescue(
+            long seed, List<ShuttleAssignment> manifest,
+            boolean enemyHasHeavyArmor, RiskLevel risk, int swarmCount,
+            TargetProfile profile, boolean stressTest, HivePosture posture, int liftHardpoints,
+            StoryMapPool.Entry pooled) {
         boolean colony = isColonyBreachColony(risk, stressTest);
+        if (pooled != null && !pooled.patch().isEmpty()) {
+            throw new IllegalStateException("a Colony Breach pool entry takes no patch yet: seed " + seed);
+        }
+        TargetProfile mapProfile = pooled != null ? BloomHeartSetup.world(surfaceOrRock(profile)) : profile;
+        int attempts = pooled != null ? 1 : 8;
+        String why = "";
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);
-        for (int attempt = 0; attempt < 8; attempt++) {
+        for (int attempt = 0; attempt < attempts; attempt++) {
             long battleSeed = seed + attempt * 0x9E3779B97F4A7C15L;
             MapScale scale = colony ? MapScale.COLONY : MapScale.forRisk(risk);
             PrecinctPlan colonyPlan = colony ? colonyPlanFor(scale, battleSeed) : null;
             MapResult map = MAP_GEN.generate(scale.width, scale.height, battleSeed, null,
-                    profile, colonyPlan);
+                    mapProfile, colonyPlan);
             if (colony) {
                 missing = MissionMapRequirements.missingFromColony(map);
+                why = "missing " + missing;
                 if (!missing.isEmpty()) continue;
             }
             // On the colony the shelter is the civil-defence compound's hall, settled before
             // the colony's places are published so everything reads the same hall.
             List<PointOfInterest> shelters = CivilDefenceCompound.shelters(map.grid, map.pointsOfInterest, colonyPlan);
+            why = "no shelter hall";
             if (shelters == null) continue;
             publishHeldPlaces(map, Faction.CIVILIAN);
             Random rng = new Random(battleSeed);
@@ -2766,6 +2818,7 @@ public final class BattleSetup {
 
             CivilianEvacuationPayload payload =
                     CivilianEvacuationPayload.install(sim, shelters, battleSeed);
+            why = "no shelter-to-lift payload";
             if (payload == null) continue;
             sim.setAutonomousCommander(Faction.MARINE,
                     new RescueEscortCommand(payload.placement, posture), RescueCommandDisclosure.INSTANCE);
@@ -2805,10 +2858,20 @@ public final class BattleSetup {
 
             spawnAmbientCivilians(sim, map, rng);
             spawnSpaceportGroundCrew(sim, map, parkedAircraft, rng);
+            // The breach: where the colony breaks open and when. The colony
+            // path owes a full plan and re-rolls without one; a smaller map
+            // carries whatever sites it can seat. Planned before the militia,
+            // whose holdouts are chosen clear of its bores.
+            ColonyEruptionPlan eruption = stressTest ? null : ColonyEruptionPlan.forColony(
+                    sim.getGrid(), sim.getTopology(), map.pointsOfInterest,
+                    payload.placement, lzCells, battleSeed ^ ERUPTION_SEED_SALT);
+            why = "the bores do not seat";
+            if (colony && eruption != null && !eruption.isComplete()) continue;
             // The colony's militia: the shelter guard always, and on the colony
             // map a few held buildings, their emplacements and technicals.
             if (ColonyMilitia.install(sim, map, payload.placement, lzCells,
-                    risk, battleSeed, colony) == null) {
+                    risk, battleSeed, colony, eruption == null ? List.of() : eruption.sites()) == null) {
+                why = "the militia and holdouts do not seat";
                 continue;
             }
             // The cohort is the shelter's people and every holdout's.
@@ -2820,6 +2883,7 @@ public final class BattleSetup {
                             sim, payload.placement, swarmCount, battleSeed)
                     : SwarmDefenseRoster.installCanonical(
                             sim, payload.placement, swarmCount, battleSeed);
+            why = "the opening swarm does not seat";
             if (swarm == null) continue;
             if (!sim.configureSwarmReinforcements(
                     payload.placement, swarm.size(), battleSeed)) {
@@ -2831,18 +2895,14 @@ public final class BattleSetup {
                     SquadCommandClaim.mission("rescue-corridor", "commander-called mech lance"),
                     () -> MechDropService.centroidOf(sim.getMarineLandingPads()));
             if (!stressTest) {
-                // The breach: where the colony breaks open and when. The colony
-                // path owes a full plan and re-rolls without one; a smaller
-                // map carries whatever sites it can seat.
-                ColonyEruptionPlan eruption = ColonyEruptionPlan.forColony(
-                        sim.getGrid(), sim.getTopology(), map.pointsOfInterest,
-                        payload.placement, lzCells, battleSeed ^ ERUPTION_SEED_SALT);
-                if (colony && !eruption.isComplete()) continue;
                 // The colony's people outside the shelter: what the swarm feeds on.
                 List<Long> colonists = colony
                         ? ColonyPopulation.install(sim, map.pointsOfInterest, payload.placement,
                                 battleSeed ^ ERUPTION_SEED_SALT)
                         : List.of();
+                // Nothing re-seated or budded later opens beside a holdout either.
+                if (colony) eruption = eruption.withoutPlacesNear(
+                        ColonyRedoubts.holdoutCentres(sim.getCivilianRedoubts()), ColonyRedoubts.BREACH_CLEARANCE);
                 sim.installColonyBreach(eruption, colonists);
                 // The colony as a living field: homesteads, militia knots in the
                 // open, families walking out and stragglers, all the swarm's to find.
@@ -2855,6 +2915,10 @@ public final class BattleSetup {
                 if (colony) ColonyBreachObjectives.install(sim, map, payload.placement, battleSeed);
             }
             return sim;
+        }
+        if (pooled != null) {
+            throw new IllegalStateException("colony-breach seed " + seed + " on " + surfaceOrRock(profile)
+                    + " no longer carries its mission: " + why);
         }
         if (colony && !missing.isEmpty()) {
             throw new IllegalStateException(MissionMapRequirements.describeFailure(

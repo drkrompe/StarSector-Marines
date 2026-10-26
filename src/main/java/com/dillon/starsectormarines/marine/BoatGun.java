@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.i18n.Strings;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,8 +33,7 @@ import java.util.List;
  *
  * @param structureId the turret structure the battle mounts, from the turret
  *     catalog the airframe's kit already names
- * @param bill what the yard consumes when this is not the hardpoint's own
- *     yard-standard gun
+ * @param bill what the yard charges, in credits, to build one spare
  * @param effect one line on what the gun does in play, for its catalog row
  * @param weight what it takes out of the boat's frame rating ({@link BoatFrame})
  *     on a hardpoint whose yard gun it is not
@@ -70,37 +68,37 @@ public record BoatGun(
 
     public static final BoatGun HEAVY_MG = new BoatGun(
             "door_heavy_mg", "@boatGunHeavyMg", TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 1,
-            cost(5, 0, 10, 0), "@boatGunHeavyMgEffect", "@boatGunHeavyMgProvenance", 1, Family.BALLISTIC);
+            credits(800), "@boatGunHeavyMgEffect", "@boatGunHeavyMgProvenance", 1, Family.BALLISTIC);
 
     public static final BoatGun ARBALEST = new BoatGun(
             "door_arbalest", "@boatGunArbalest", TurretCatalogRegistry.ARBALEST_STRUCTURE_ID, 2,
-            cost(10, 5, 20, 0), "@boatGunArbalestEffect", "@boatGunArbalestProvenance", 2, Family.BALLISTIC);
+            credits(2350), "@boatGunArbalestEffect", "@boatGunArbalestProvenance", 2, Family.BALLISTIC);
 
     public static final BoatGun GRENADE_LAUNCHER = new BoatGun(
             "door_grenade_launcher", "@boatGunGrenadeLauncher",
             TurretCatalogRegistry.GRENADE_LAUNCHER_STRUCTURE_ID, 2,
-            cost(15, 5, 15, 0), "@boatGunGrenadeLauncherEffect", "@boatGunGrenadeLauncherProvenance", 1,
+            credits(2700), "@boatGunGrenadeLauncherEffect", "@boatGunGrenadeLauncherProvenance", 1,
             Family.BALLISTIC);
 
     public static final BoatGun HEPHAESTUS = new BoatGun(
             "door_hephaestus", "@boatGunHephaestus", TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 3,
-            cost(20, 10, 30, 5), "@boatGunHephaestusEffect", "@boatGunHephaestusProvenance", 3, Family.BALLISTIC);
+            credits(5400), "@boatGunHephaestusEffect", "@boatGunHephaestusProvenance", 3, Family.BALLISTIC);
 
     public static final BoatGun PULSE_LASER = new BoatGun(
             "boat_pulse_laser", "@boatGunPulseLaser", TurretCatalogRegistry.BOAT_PULSE_STRUCTURE_ID, 1,
-            cost(10, 5, 10, 0), "@boatGunPulseLaserEffect", "@boatGunPulseLaserProvenance", 1, Family.ENERGY);
+            credits(2050), "@boatGunPulseLaserEffect", "@boatGunPulseLaserProvenance", 1, Family.ENERGY);
 
     public static final BoatGun BURST_LASER = new BoatGun(
             "boat_burst_laser", "@boatGunBurstLaser", TurretCatalogRegistry.BOAT_BURST_LASER_STRUCTURE_ID, 2,
-            cost(15, 10, 15, 5), "@boatGunBurstLaserEffect", "@boatGunBurstLaserProvenance", 2, Family.ENERGY);
+            credits(4450), "@boatGunBurstLaserEffect", "@boatGunBurstLaserProvenance", 2, Family.ENERGY);
 
     public static final BoatGun SRM_POD = new BoatGun(
             "boat_srm_pod", "@boatGunSrmPod", TurretCatalogRegistry.BOAT_SRM_STRUCTURE_ID, 2,
-            cost(15, 5, 10, 0), "@boatGunSrmPodEffect", "@boatGunSrmPodProvenance", 1, Family.MISSILE);
+            credits(2550), "@boatGunSrmPodEffect", "@boatGunSrmPodProvenance", 1, Family.MISSILE);
 
     public static final BoatGun LRM_RACK = new BoatGun(
             "boat_lrm_rack", "@boatGunLrmRack", TurretCatalogRegistry.BOAT_LRM_STRUCTURE_ID, 3,
-            cost(20, 10, 15, 5), "@boatGunLrmRackEffect", "@boatGunLrmRackProvenance", 2, Family.MISSILE);
+            credits(4950), "@boatGunLrmRackEffect", "@boatGunLrmRackProvenance", 2, Family.MISSILE);
 
     private static final List<BoatGun> CATALOG = List.of(HEAVY_MG, ARBALEST, GRENADE_LAUNCHER, HEPHAESTUS,
             PULSE_LASER, BURST_LASER, SRM_POD, LRM_RACK);
@@ -171,12 +169,7 @@ public record BoatGun(
         return null;
     }
 
-    private static FabricationCost cost(int supplies, int machinery, int metals, int rareMetals) {
-        List<FabricationCost.Line> lines = new ArrayList<>(4);
-        if (supplies > 0) lines.add(new FabricationCost.Line(Commodities.SUPPLIES, supplies));
-        if (machinery > 0) lines.add(new FabricationCost.Line(Commodities.HEAVY_MACHINERY, machinery));
-        if (metals > 0) lines.add(new FabricationCost.Line(Commodities.METALS, metals));
-        if (rareMetals > 0) lines.add(new FabricationCost.Line(Commodities.RARE_METALS, rareMetals));
-        return new FabricationCost(lines);
+    private static FabricationCost credits(int credits) {
+        return new FabricationCost(credits);
     }
 }

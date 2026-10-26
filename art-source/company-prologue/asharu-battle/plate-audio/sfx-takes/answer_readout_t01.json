@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "11",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A 1990s science fiction movie military computer terminal printing a result: a quick burst of chunky electronic data beeps ending on one firm tone, short, no music",
+    "duration_seconds": 1.0,
+    "prompt_influence": 0.7,
+    "loop": false
+  },
+  "audioSha256": "97909c2e3c4d37c843998fd8e1efab94e1d035f245d6cf7a281ab2f4dcd05ab2",
+  "durationSeconds": 1.0,
+  "peakDb": 0.0,
+  "integratedLufs": -3.2
+}

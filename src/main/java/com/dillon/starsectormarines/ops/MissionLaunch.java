@@ -333,8 +333,11 @@ public final class MissionLaunch {
                     ? SwarmDefenseRoster.debugCountFor(
                             m.risk, firstWaveMarineSeats)
                     : SwarmDefenseRoster.countFor(m.risk);
+            // A Colony Breach plays one of its pool's vetted maps for this world's biome (story-map-pools.md).
+            long rescueSeed = BattleSetup.isColonyBreachColony(m.risk, stressTest)
+                    ? BattleSetup.colonyBreachSeed(profile == null ? null : profile.surface(), seed) : seed;
             CivilianRescueBattleFixture rescueFixture =
-                    CivilianRescueBattleFixture.fromFactoryInputs(seed,
+                    CivilianRescueBattleFixture.fromFactoryInputs(rescueSeed,
                             constructionDetachment.shuttleManifest, enemyHasHeavyArmor, m.risk,
                             swarmCount, profile, stressTest, m.hivePosture);
             // Production launch and headless replay intentionally meet here:

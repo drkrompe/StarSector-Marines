@@ -23,7 +23,6 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
-import java.util.function.Function;
 
 /**
  * The briefing's account of the company's armor before launch: what lift the company's own
@@ -215,26 +214,35 @@ public final class BriefingLift {
     }
 
     /** One machine card: its doll, its weight, a warning when lift falls short, and its verdict. */
-    record Card(String id, Machine machine, String status, String statusClasses, SpecSheet hint)
-            implements MarkupPropertySource {
+    /**
+     * One machine tile in the field inset: a small doll and two bricks, the weight brick lit red when lift
+     * falls short of its class and the warning brick lit when it will not drop. Its words are its hover.
+     */
+    record Card(String id, Machine machine, SpecSheet hint) implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
-                case "classes" -> "lift-machine console-readout"
-                        + (machine.status().drops || machine.status() == Status.NOT_CALLED ? "" : " lift-machine-refused");
+                case "classes" -> "field-tile console-readout" + (machine.status().drops ? "" : " field-tile-refused");
+                case "musterId" -> id + ":muster";
+                case "musterClasses" -> "field-absent";
                 case "dollId" -> id + ":doll";
-                case "chipId" -> id + ":chip";
+                case "dollClasses" -> "field-doll";
+                case "bricksId" -> id + ":bricks";
+                case "bricksClasses" -> "field-bricks";
+                case "liftId" -> id + ":lift";
                 case "weightId" -> id + ":weight";
-                case "warningId" -> id + ":warning";
-                case "nameId" -> id + ":name";
-                case "statusId" -> id + ":status";
-                case "chipClasses" -> weightChipClasses(LiftRating.of(machine.load().liftClass()));
+                case "warnId" -> id + ":warn";
+                case "warnImageId" -> id + ":warn-image";
+                case "countId" -> id + ":count";
+                case "countClasses" -> "field-absent";
+                case "count" -> "";
+                // Lit, the brick drops its class colour for the alarm; the symbol still names the class.
+                case "liftClasses" -> liftShort(machine.status()) ? "brick brick-lift brick-lit"
+                        : "brick brick-lift " + weightChipClasses(LiftRating.of(machine.load().liftClass()))
+                        .replace("weight-chip ", "");
                 case "weight" -> weightSymbol(LiftRating.of(machine.load().liftClass()));
-                case "warningClasses" -> liftShort(machine.status()) ? "lift-warning" : "lift-warning-absent";
-                case "name" -> machine.name();
-                case "status" -> status;
-                case "statusClasses" -> statusClasses;
+                case "warnClasses" -> "brick brick-warn" + (machine.status().drops ? "" : " brick-lit");
                 default -> null;
             };
         }
@@ -255,6 +263,7 @@ public final class BriefingLift {
             props.put("liftSummaryClasses", "label heading");
             props.put("liftCarriers", List.of());
             props.put("liftMachines", List.of());
+            BriefingViewModel.putFieldTiles(props);
             return;
         }
         int dropping = readout.dropping();
@@ -266,10 +275,10 @@ public final class BriefingLift {
         List<Card> cards = new ArrayList<>();
         for (int i = 0; i < readout.machines().size(); i++) {
             Machine machine = readout.machines().get(i);
-            cards.add(new Card("briefing-lift-machine-" + i, machine, statusLine(machine),
-                    "label lift-machine-status " + tone(machine.status()), machineHint(machine)));
+            cards.add(new Card("briefing-lift-machine-" + i, machine, machineHint(machine)));
         }
         props.put("liftMachines", List.copyOf(cards));
+        BriefingViewModel.putFieldTiles(props);
     }
 
     /** One slot per berth the ship has, filled or not, then the mission's heavy lift. */
@@ -311,12 +320,12 @@ public final class BriefingLift {
         String type = machine.load().isVehicle() ? typeName(machine.load())
                 : machine.load().mech().variant().displayName();
         return new SpecSheet(machine.name(), Strings.format("briefingLiftMachineClass", type, machine.liftName()),
-                null, "command", List.of(), List.of(Strings.get("briefingLiftWhy" + machine.status().name())));
+                null, "command", List.of(), List.of(statusLine(machine),
+                Strings.get("briefingLiftWhy" + machine.status().name())));
     }
 
     /** Draws each machine card's doll: wear for a mech, whole for a vehicle. */
-    static void install(UiDocument document, MarkupInstance markup, Map<String, Object> props,
-                        Function<String, String> copy) {
+    static void install(UiDocument document, MarkupInstance markup, Map<String, Object> props) {
         if (!(props.get("liftMachines") instanceof List<?> cards)) return;
         for (Object value : cards) {
             Card card = (Card) value;
@@ -324,7 +333,7 @@ public final class BriefingLift {
             ArmorLoad load = card.machine().load();
             if (load.isVehicle()) view.readStock(load.vehicle().type());
             else view.readDeployment(load.mech());
-            document.canvases().set(markup.requireElement(card.id() + ":doll"), new DamageDollCanvas(view, copy));
+            document.canvases().set(markup.requireElement(card.id() + ":doll"), DamageDollCanvas.bare(view));
         }
     }
 
@@ -371,14 +380,6 @@ public final class BriefingLift {
             case LIFT_SPENT -> Strings.get("briefingLiftSpent");
             case NO_DROP_CALL -> Strings.get("briefingLiftNoDropCall");
             case HELD_BACK -> Strings.get("briefingLiftHeldBack");
-        };
-    }
-
-    private static String tone(Status status) {
-        return switch (status) {
-            case DROPS -> "tone-good";
-            case NOT_CALLED -> "tone-accent";
-            default -> "tone-danger";
         };
     }
 

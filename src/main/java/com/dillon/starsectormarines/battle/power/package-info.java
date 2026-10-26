@@ -5,7 +5,7 @@
  * <p>Category: feature domain (player-invoked battlefield abilities).
  * <br>Charter:  the in-battle activation economy and power lifecycle —
  *           the {@code CommandPower} abstraction + concrete powers
- *           (recon, physical delivery, resupply, and fire support), the player
+ *           (physical delivery, air support and fire support), the player
  *           command-point pool and per-power cooldowns
  *           ({@code CommandPowerService}), and the stateless
  *           {@code CommandPowerSystem} that drains queued activations, regens
@@ -13,10 +13,7 @@
  * <br>Boundary: this package owns only the <em>activation economy + lifecycle</em>.
  *           The pre-battle fleet&rarr;available-powers resolver and loadout
  *           slotting live in the campaign tier; the {@code TARGETING}
- *           UI state and the projection of active effects into other subsystems
- *           (e.g. pushing {@code ActivePing}s as ephemeral vision sources) live
- *           in the view layer ({@code ops.BattleScreen}) and the consuming
- *           service ({@code vision.VisionService}) respectively. The sim only
+ *           UI state lives in the view layer ({@code ops.BattleScreen}). The sim only
  *           ever sees {@code COMMITTED -> COOLDOWN}.
  *
  * <p>See {@code command-powers-nouns.md} for the standing feature model.

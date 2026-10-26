@@ -31,8 +31,12 @@ class BattleSoundMixTest {
         Arrays.fill(clip, 1f);
         float[] left = new float[12];
         // Unit gain at the centre; in over two samples from sample 1, out over two from sample 6.
-        BattleSoundMix.music(clip, (float) Math.sqrt(2.0), 1, 2, 6, 2, left, new float[12]);
+        BattleSoundMix.music(clip, (float) Math.sqrt(2.0), 1, 2, 6, 2, false, left, new float[12]);
         assertArrayEquals(new float[] {0f, 0f, .5f, 1f, 1f, 1f, 1f, .5f, 0f, 0f, 0f, 0f}, left, 1e-5f);
+        // A looped track wraps round under its run instead of ending.
+        float[] looped = new float[6];
+        BattleSoundMix.music(new float[] {1f, 2f}, (float) Math.sqrt(2.0), 0, 0, 6, 0, true, looped, new float[6]);
+        assertArrayEquals(new float[] {1f, 2f, 1f, 2f, 1f, 2f}, looped, 1e-5f);
     }
 
     @Test

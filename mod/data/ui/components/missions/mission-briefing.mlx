@@ -1,4 +1,4 @@
-<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers">
+<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,carrierRows,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -113,13 +113,13 @@
       <div id="mission-planning" class="mission-planning">
         <div id="mission-commitment" class="mission-commitment">
           <div id="mission-plan-sections" class="mission-plan-sections">
-          <!-- 01 Field force: each command group as its officer and its squads' fire teams, counts and advice in the hovers. -->
+          <!-- 01 Field force: one inset of pictures, squads as their fire teams and machines as their dolls; every word is in a hover. -->
           <div id="mission-force-summary" class="briefing-section field-force">
             <div id="mission-force-heading-row" class="force-heading-row">
               <div id="mission-force-heading" class="label heading tone-edge section-heading">{commitmentHeader}</div>
               <div id="mission-force-comparison" class="force-comparison" tabindex="0">
                 <img id="mission-force-symbol" src="graphics/ui/briefing/infantry.svg" />
-                <div id="mission-force-selected" class="label heading tone-edge">{forceSelected}</div>
+                <div id="mission-force-selected" class="{forceSelectedClasses}">{forceSelected}</div>
                 <div id="mission-force-recommended" class="{forceAssessmentClasses}">{forceRecommended}</div>
               </div>
               <button id="mission-assign" class="{assignClasses}" disabled="{assignDisabled}" onclick="{assignAction}">
@@ -128,26 +128,23 @@
                 <img id="mission-assign-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
               </button>
             </div>
-            <div id="mission-personnel-summary" class="{personnelClasses}">{personnelSummary}</div>
-            <div id="mission-task-force" class="force-card-grid" style="{forceCardsStyle}">
-              <div each="row in taskForceRows" key="{row.id}" id="{row.id}" class="{row.cardClasses}" tabindex="0">
-                <div id="{row.headerId}" class="force-card-header">
-                  <img id="{row.portraitId}" class="{row.portraitClasses}" src="{row.portrait}" />
-                  <div id="{row.copyId}" class="force-card-copy">
-                    <div id="{row.roleId}" class="{row.roleClasses}">{row.role}</div>
-                    <div id="{row.nameId}" class="label heading tone-edge force-card-title">{row.name}</div>
+            <div id="mission-field-inset" class="field-inset console-well">
+              <div each="tile in fieldTiles" key="{tile.id}" id="{tile.id}" class="{tile.classes}" tabindex="0">
+                <canvas id="{tile.musterId}" class="{tile.musterClasses}" width="152" height="66" />
+                <canvas id="{tile.dollId}" class="{tile.dollClasses}" width="93" height="66" />
+                <div id="{tile.bricksId}" class="{tile.bricksClasses}">
+                  <div id="{tile.liftId}" class="{tile.liftClasses}">
+                    <img id="{tile.weightId}" class="brick-symbol" src="{tile.weight}" />
+                  </div>
+                  <div id="{tile.warnId}" class="{tile.warnClasses}">
+                    <img id="{tile.warnImageId}" class="brick-symbol" src="graphics/ui/briefing/warning.svg" />
                   </div>
                 </div>
-                <div id="{row.mustersId}" class="force-card-musters">
-                  <div each="squad in row.squads" key="{squad.id}" id="{squad.id}" class="force-card-squad">
-                    <canvas id="{squad.musterId}" class="force-card-muster" width="216" height="96" />
-                    <div id="{squad.labelId}" class="label tone-muted force-card-squad-name">{squad.label}</div>
-                  </div>
-                </div>
+                <div id="{tile.countId}" class="{tile.countClasses}">{tile.count}</div>
               </div>
             </div>
           </div>
-          <!-- 02 Armor and lift: the boats in the ship's berths and the mission's heavy lift, then every bay machine. -->
+          <!-- 02 Lift: the boats in the ship's berths and the mission's heavy lift. -->
           <div id="mission-lift-block" class="{liftClasses}">
             <div id="mission-lift-heading" class="deck-heading-row">
               <div id="mission-lift-title" class="label heading tone-edge">{liftHeader}</div>
@@ -163,17 +160,6 @@
                 <div id="{carrier.chipId}" class="{carrier.chipClasses}">
                   <img id="{carrier.weightId}" class="weight-symbol" src="{carrier.weight}" />
                 </div>
-              </div>
-            </div>
-            <div id="mission-lift-machines" class="lift-machines">
-              <div each="machine in liftMachines" key="{machine.id}" id="{machine.id}" class="{machine.classes}" tabindex="0">
-                <canvas id="{machine.dollId}" class="lift-machine-doll" width="166" height="118" />
-                <div id="{machine.chipId}" class="{machine.chipClasses}">
-                  <img id="{machine.weightId}" class="weight-symbol" src="{machine.weight}" />
-                </div>
-                <img id="{machine.warningId}" class="{machine.warningClasses}" src="graphics/ui/briefing/warning.svg" />
-                <div id="{machine.nameId}" class="label heading tone-edge lift-machine-name">{machine.name}</div>
-                <div id="{machine.statusId}" class="{machine.statusClasses}">{machine.status}</div>
               </div>
             </div>
           </div>
@@ -546,7 +532,6 @@
   .mission-plan-sections { flex-direction: column; height: 0px; flex-grow: 1; gap: 16px; overflow: scroll; }
   .briefing-section { flex-direction: column; padding: 0px; gap: 8px; border-width: 0px; background-color: transparent; }
   .section-heading { height: 20px; }
-  .force-card-grid { display: grid; gap: 8px; overflow: scroll; }
   .mission-loadout-grid { flex-direction: column; height: auto; gap: 16px; overflow: hidden; }
   .command-deck { height: auto; align-items: start; }
   .deck-heading-row { flex-direction: row; height: 21px; width: 100%; gap: 20px; }
@@ -598,23 +583,27 @@
   .faction-crest { pointer-events: none; }
   .faction-identity-copy { flex-direction: column; height: 50px; width: 0px; flex-grow: 1; gap: 4px; }
   .faction-name { height: auto; white-space: normal; }
-  /* 01 Field force: an officer's card carries a fire-team muster for each of its squads. */
+  /* 01 Field force: one inset of same-sized picture tiles, squads then machines; words live in hovers. */
+  .field-inset { display: grid; width: 100%; height: 470px; padding: 8px; gap: 6px; border-width: 2px; overflow: scroll; }
+  .field-tile { flex-direction: row; align-items: center; width: 158px; height: 72px; padding: 2px; gap: 2px; border-width: 1px; }
+  .field-tile.field-tile-refused { border-color: #a8473c; }
+  /* A stack is every full-strength squad under one muster, its multiplier a badge over the corner. */
+  .field-tile.field-tile-stack { border-color: #6fc4a8; }
+  .field-count { position: absolute; left: 106px; top: 44px; width: 48px; height: 24px; padding-top: 4px; text-align: center; border-width: 1px; border-color: #6fc4a8; background-color: #0c1412; pointer-events: none; }
+  .field-muster { width: 152px; height: 66px; pointer-events: none; }
+  .field-doll { width: 93px; height: 66px; pointer-events: none; }
+  .field-absent { position: absolute; width: 0px; height: 0px; overflow: hidden; }
+  .field-bricks { flex-direction: row; align-items: center; width: 0px; flex-grow: 1; height: 66px; gap: 3px; pointer-events: none; }
+  /* A brick is dark until it has something to say: lift short lights the weight red, any refusal lights the warning amber. */
+  .brick { width: 26px; height: 26px; padding: 2px; border-width: 1px; border-color: #2c3733; background-color: #141b19; opacity: 0.45; }
+  .brick-lift.brick-lit { background-color: #c8473a; border-color: #f08a7a; opacity: 1; }
+  .brick-warn { opacity: 0.25; }
+  .brick-warn.brick-lit { background-color: #4a2410; border-color: #f2b33d; opacity: 1; }
+  .brick-symbol { width: 22px; height: 20px; pointer-events: none; }
   .field-force { height: auto; gap: 6px; }
   .force-comparison { flex-direction: row; align-items: center; width: auto; height: 26px; gap: 6px; }
   #mission-force-symbol { width: 16px; height: 22px; pointer-events: none; }
   #mission-force-selected, #mission-force-recommended { height: 18px; pointer-events: none; }
-  .force-card-grid { display: grid; gap: 8px; overflow: scroll; }
-  .force-card { flex-direction: column; width: 220px; height: 150px; padding: 5px; gap: 4px; border-width: 1px; }
-  .force-card-header { flex-direction: row; align-items: center; height: 34px; gap: 6px; pointer-events: none; }
-  .force-card-portrait { width: 32px; height: 32px; padding: 1px; border-width: 1px; pointer-events: none; }
-  .force-card-portrait.portrait-absent { width: 0px; height: 0px; padding: 0px; border-width: 0px; }
-  .force-card-copy { flex-direction: column; width: 0px; flex-grow: 1; height: 32px; gap: 2px; overflow: hidden; }
-  .force-card-role { height: 12px; }
-  .force-card-title { height: 16px; white-space: nowrap; }
-  .force-card-musters { flex-direction: row; justify-content: center; height: 102px; gap: 6px; pointer-events: none; }
-  .force-card-squad { flex-direction: column; width: 162px; height: 102px; gap: 2px; }
-  .force-card-muster { width: 162px; height: 72px; pointer-events: none; }
-  .force-card-squad-name { height: 14px; text-align: center; white-space: nowrap; overflow: hidden; }
   /* 02 Armor and lift. */
   .lift-block { height: auto; gap: 6px; }
   .lift-hidden { display: none; }
@@ -630,15 +619,6 @@
   .weight-heavy { background-color: #f08a3a; }
   .weight-none { background-color: #3a4440; }
   .weight-symbol { width: 32px; height: 22px; pointer-events: none; }
-  .lift-machines { display: grid; height: 158px; gap: 8px; overflow: scroll; width: 100%; }
-  .lift-machine { flex-direction: column; align-items: center; width: 174px; height: 154px; padding: 3px; gap: 1px; border-width: 1px; }
-  .lift-machine.lift-machine-refused { border-color: #a8473c; }
-  .lift-machine-doll { width: 166px; height: 118px; pointer-events: none; }
-  .lift-machine .weight-chip { position: absolute; top: 3px; left: 3px; }
-  .lift-warning { position: absolute; top: 3px; left: 145px; width: 26px; height: 24px; pointer-events: none; }
-  .lift-warning-absent { position: absolute; width: 0px; height: 0px; }
-  .lift-machine-name { height: 15px; text-align: center; white-space: nowrap; overflow: hidden; pointer-events: none; }
-  .lift-machine-status { height: 15px; font-family: heading; text-align: center; white-space: nowrap; overflow: hidden; pointer-events: none; }
   /* 03 Command deck: compact keys. */
   .command-power-list { display: grid; height: 54px; gap: 6px; overflow: scroll; width: 100%; }
   .command-power-list .choice-row { flex-direction: row; align-items: center; width: 150px; height: 48px; padding: 4px; gap: 5px; }
@@ -649,6 +629,5 @@
   .command-power-list .choice-detail { height: 0px; overflow: hidden; }
   .mission-support-stack { flex-direction: row; height: 76px; gap: 14px; overflow: hidden; }
   #mission-source-block, #mission-carrier-block { width: 0px; flex-grow: 1; height: 76px; gap: 4px; }
-  .force-card.force-card-2 { width: 346px; }
 
 </style>

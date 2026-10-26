@@ -86,7 +86,7 @@
     ],
     "debugFighterSupport": [],
     "commandPowers": [
-      { "id": "recon_ping", "mechDeployments": [] }
+      { "id": "orbital_barrage", "mechDeployments": [] }
     ],
     "commandPowerResources": { "supplies": 20 }
   }

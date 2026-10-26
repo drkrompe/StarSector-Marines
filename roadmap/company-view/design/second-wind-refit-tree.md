@@ -224,7 +224,7 @@ repair (integrity between battles).
 | **Wardroom / staff college** | — | officer XP +15% | +30% |
 | **Brig / interrogation** (reserve) | open: the cells and a guard post | not offered: waits on a battle that takes prisoners; then a prisoner yields intel on the next contract in that system | — |
 | **Hydroponics** (Life support) | — | supplies upkeep −5% | −10% |
-| **Boat bay services** | — | grounded-boat recovery one day faster | deck crane: boat and Hermes material bills −15% |
+| **Boat bay services** | — | grounded-boat recovery one day faster | deck crane: boat and Hermes prices −15% |
 | **Mech Lab field repair** (Fabrication) | neutral | repair clock −25% | spares rack: repair clock −25%, and a weapon assembly fabricates at −25% on every line, which is what refitting a lost mount costs |
 | **Holds / bonded stores** | — | racked holds: cargo +20 via the conversion hull mod | bonded stores: cargo +40 |
 
@@ -392,7 +392,7 @@ changes no compartment's state. Their passives:
   the mission. Debug missions and scripted battles that bring their own force
   (the opening operations, the story arcs, the supply route, the silent colony
   and the civilian rescue) show nothing. The **plot table** (Improved I) is a plot
-  table in the briefing corner that the holo-tank is built on, sold for metals
+  table in the briefing corner that the holo-tank is built on, sold for credits
   alone, and it changes nothing in battle yet: its passive, a faster
   first action against a new threat, needs a reaction axis no seat carries.
 - **Boat bay services** is not a track yet: a boat grounded in battle has no
@@ -479,12 +479,12 @@ If a later program change moves rooms, the reserve evidence fails before a
 save notices; the same evidence opens every reserve on the same layouts and
 fails if anything moves or a range lane is crossed.
 
-## Materials and exotic parts
+## Prices and exotic parts
 
-Credits are not the only price (owner, 2026-10-21). Most tiers also take
-materials from fleet cargo: metals for structure and plating, heavy machinery for
-the plant, the drive and the galley, transplutonics for flux and sensor work. The
-original distribution and mess orders stay credits-only.
+A tier's price is credits (owner, 2026-10-26: dealing in resources is annoying).
+The metals, heavy machinery, transplutonics and organics tiers once took from
+fleet cargo were folded into their credit prices at the vanilla base prices
+(`company-view-nouns.md`, Price); each tier is bought docked at a planetary yard.
 
 The top of the tree is end-game content, gated on exotic parts the player
 already hunts for on the sector's outskirts (owner, same day). An exotic part
@@ -508,8 +508,8 @@ one to reach Restored.
 | Mech calibration II | beta | mech fire control |
 
 The physical-plant tops (auxiliary plant, Drive II, Sensors II, mech field
-repair II) are where a relic part would go. The bill is
-`RefitOrder.materials()`; quantities are placeholders with the prices.
+repair II) are where a relic part would go. The cores a tier takes are
+`RefitOrder.cores()`; prices are placeholders.
 
 ## Credit curve
 

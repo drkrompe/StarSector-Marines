@@ -416,7 +416,7 @@ public class BriefingScreen implements Screen {
             candidateHints = BriefingHints.install(built, candidate, props);
             wireDebugBayPictures(built, candidate, props);
             BriefingSurvey.install(built, candidate, props);
-            BriefingLift.install(built, candidate, props, Strings::get);
+            BriefingLift.install(built, candidate, props);
             BriefingViewModel.installMusters(built, candidate, props);
             if (viewport != null) built.layout(
                     viewport.documentWidth(), viewport.documentHeight());
@@ -2490,7 +2490,7 @@ public class BriefingScreen implements Screen {
         return enumName.charAt(0) + enumName.substring(1).toLowerCase(Strings.locale());
     }
 
-    /** Friendly summary of employer-offered power ids ("recon_ping" → "Recon Ping"). */
+    /** Friendly summary of employer-offered power ids ("mech_support" → "Mech Support"). */
     private static String summarizePowerIds(List<String> ids) {
         List<String> parts = new ArrayList<>();
         for (String id : ids) {
@@ -2510,7 +2510,7 @@ public class BriefingScreen implements Screen {
                 : Strings.join("briefingSeparatorComma", parts.toArray(new String[0]));
     }
 
-    /** "recon_ping" → "Recon Ping". */
+    /** "mech_support" → "Mech Support". */
     private static String prettifyId(String id) {
         StringBuilder s = new StringBuilder();
         for (String part : id.replace(':', '_').split("_")) {

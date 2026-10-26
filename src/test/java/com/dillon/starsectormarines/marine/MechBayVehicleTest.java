@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -25,12 +24,12 @@ class MechBayVehicleTest {
     @Test
     void anUnlearnedVehiclePatternRefusesFabricationWithoutSpending() {
         MechBay bay = new MechBay();
-        MechWorkshopTest.TestResources resources = MechWorkshopTest.TestResources.stocked(1000);
+        TestPurse resources = TestPurse.rich();
         MechWorkshop workshop = new MechWorkshop(bay, resources);
 
         assertEquals(MechWorkshop.Status.PATTERN_LOCKED,
                 workshop.fabricateVehicle(SQUAD, VehicleType.HEAVY_APC).status());
-        assertEquals(1000, resources.available(Commodities.SUPPLIES));
+        assertEquals(0, resources.spends);
         assertEquals(0, bay.activeSquad().occupied());
     }
 
@@ -38,7 +37,8 @@ class MechBayVehicleTest {
     void aLearnedPatternFabricatesOntoAVacantGantryForItsBill() {
         MechBay bay = new MechBay();
         assertTrue(bay.learnPattern(MechPattern.of(VehicleType.HEAVY_APC).id()));
-        MechWorkshopTest.TestResources resources = MechWorkshopTest.TestResources.stocked(1000);
+        TestPurse resources = TestPurse.rich();
+        long before = resources.credits;
 
         MechWorkshop.Result result = new MechWorkshop(bay, resources)
                 .fabricateVehicle(SQUAD, VehicleType.HEAVY_APC);
@@ -49,17 +49,14 @@ class MechBayVehicleTest {
         CampaignVehicle vehicle = result.vehicle();
         assertEquals(VehicleType.HEAVY_APC, vehicle.type());
         assertEquals(vehicle, bay.vehicleById(vehicle.id()));
-        int supplies = MechFabricationCatalog.vehicle(VehicleType.HEAVY_APC).cost().lines().stream()
-                .filter(line -> line.commodityId().equals(Commodities.SUPPLIES))
-                .mapToInt(FabricationCost.Line::quantity).sum();
-        assertEquals(1000 - supplies, resources.available(Commodities.SUPPLIES));
+        assertEquals(before - MechFabricationCatalog.vehicle(VehicleType.HEAVY_APC).cost().credits(), resources.credits);
     }
 
     @Test
     void mechsAndVehiclesShareTheFourGantries() {
         MechBay bay = MechBay.legacyStarterFixture();
         bay.learnPattern(MechPattern.of(VehicleType.BREAKTHROUGH_TANK).id());
-        MechWorkshop workshop = new MechWorkshop(bay, MechWorkshopTest.TestResources.stocked(5000));
+        MechWorkshop workshop = new MechWorkshop(bay, TestPurse.rich());
 
         assertTrue(workshop.fabricateChassis(SQUAD, MechVariant.HOUND).succeeded());
         assertTrue(workshop.fabricateVehicle(SQUAD, VehicleType.BREAKTHROUGH_TANK).succeeded());
@@ -146,3 +143,5 @@ class MechBayVehicleTest {
         }
     }
 }
+
+

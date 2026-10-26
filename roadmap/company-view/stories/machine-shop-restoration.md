@@ -16,14 +16,12 @@ indication, a reviewed bill, and the current workshop service.
 
 - Clear workspace: 750 credits at a planetary yard; remove collapsed structure,
   seal the breach with a pressure patch, and recover 10 metals once.
-- Repair machinery: 3,000 credits, including labor/parts; enable reclamation of
-  one cargo heavy-machinery unit into four metals, with explicit confirmation. Spares in
-  Boat Deck and Mech Lab stores recycle for half their current bill
+- Repair machinery: 3,000 credits, including labor/parts. Spares in
+  Boat Deck and Mech Lab stores recycle for half their current price
   (`company-view-nouns.md`, Recycling).
-- Install tooling: 4,500 credits; reduce supplies costs by 20% for boat building,
-  boat fittings, Mech Lab chassis and weapon fabrication. Recycled spares return
-  three quarters of their bill. Round each supplies
-  line up, minimum one. Other commodities, squad issue and pattern gates remain.
+- Install tooling: 4,500 credits; take 15% off Boat Deck and Mech Lab prices,
+  rounded up. Recycled spares return three quarters of their price. Squad issue
+  and pattern gates remain.
 - Install reclamation line: 7,500 credits, after tooling; recycled spares and
   scrapped boats, mechs and vehicles return their whole bill, so the player can
   try parts and machines at no material risk. The room keeps its equipped look.

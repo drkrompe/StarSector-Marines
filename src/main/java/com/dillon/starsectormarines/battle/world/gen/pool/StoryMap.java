@@ -13,7 +13,9 @@ public enum StoryMap {
     HEART_BURN_TOWN("heart-burn-town"),
     HEART_FRONT_TOWN("heart-front-town"),
     HEART_BURN_CITY("heart-burn-city"),
-    HEART_FRONT_CITY("heart-front-city");
+    HEART_FRONT_CITY("heart-front-city"),
+    /** Colony Breach's colony, one map per biome while the mission is tuned (owner, 2026-10-26). */
+    COLONY_BREACH("colony-breach");
 
     /** The pool file's name and the {@code map} it declares. */
     public final String id;
