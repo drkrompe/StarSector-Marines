@@ -88,6 +88,8 @@ public final class BoatDeckViewModel {
     private final ComputedSignal<List<CatalogRow>> catalogRows;
     /** What the stores show: one kind of socket's parts, or null for every part the boat can take. */
     private final MutableSignal<BoatDoll.Kind> storesFilter;
+    /** The part whose RECYCLE was pressed once and waits for its confirming press; null for none. */
+    private String armedRecycle;
     private final ComputedSignal<List<FittingFilterPill>> filterPills;
     private final ComputedSignal<BoatDoll> doll;
     private final ComputedSignal<String> overviewClasses;
@@ -433,7 +435,45 @@ public final class BoatDeckViewModel {
         });
     }
 
+    /**
+     * Breaks one spare back down into materials. The first press arms the card and says what
+     * would come back; the second, on the same card, commits.
+     */
+    private void recyclePart(String itemId) {
+        if (!itemId.equals(armedRecycle)) {
+            FabricationCost back = workshop.recycleQuote(itemId);
+            armedRecycle = itemId;
+            feedbackText.set(Strings.format("fittingRecycleReview", partName(itemId), recoveryLine(back)));
+            feedbackClasses.set("boat-deck-feedback tone-muted surface-dark");
+            revision.update(value -> value + 1);
+            return;
+        }
+        BoatWorkshop.Result result = workshop.recycle(itemId);
+        report(result, switch (result.status()) {
+            case RECYCLED -> Strings.format("fittingRecycled", partName(itemId));
+            case WORKSHOP_IDLE -> Strings.get("fittingRecycleWorkshopIdle");
+            default -> Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged");
+        });
+    }
+
+    /** "2 Metals, 1 Supplies": what a recycle would put back, in the bills' commodity order. */
+    private String recoveryLine(FabricationCost back) {
+        if (back == null) return "";
+        return back.lines().stream().sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId())))
+                .map(line -> Strings.format("fittingRecoveryLine", line.quantity(), resources.commodityName(line.commodityId())))
+                .reduce((a, b) -> a + ", " + b).orElse("");
+    }
+
+    private List<Row> recoveryRows(String ownerId, FabricationCost back) {
+        if (back == null) return List.of();
+        return back.lines().stream().sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId())))
+                .map(line -> CompanyResources.recovered(ownerId + ":recovered:" + line.commodityId(),
+                        resources.commodityName(line.commodityId()), resources.commodityIcon(line.commodityId()),
+                        line.quantity())).toList();
+    }
+
     private void report(BoatWorkshop.Result result, String text) {
+        armedRecycle = null;
         feedbackText.set(text);
         feedbackClasses.set(result.succeeded()
                 ? "boat-deck-feedback tone-good surface-dark"
@@ -734,7 +774,10 @@ public final class BoatDeckViewModel {
         int weight = partWeight(kind, itemId, free);
         String detail = Strings.format("boatDeckGrid", footprint[0], footprint[1])
                 + (weight > 0 ? "  ·  " + Strings.format("boatDeckWeight", weight) : "");
-        List<Row> materials = build ? materialRows(id, bill) : List.of();
+        // A spare in stores can be broken back down while the machine shop runs; its recovery
+        // takes the strip a bill would, in green.
+        FabricationCost back = !free && spares > 0 ? workshop.recycleQuote(itemId) : null;
+        List<Row> materials = build ? materialRows(id, bill) : recoveryRows(id, back);
         String stock = free ? kindLine(tier, kind)
                 : Strings.format("openingMechLabOwnFree", kindLine(tier, kind), MechLabViewModel.spareCount(spares));
         FittingCard card = new FittingCard(id, classes, "catalog-preview", name,
@@ -747,8 +790,9 @@ public final class BoatDeckViewModel {
                 affordable ? Strings.get("boatDeckFabHint")
                         : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor"),
                 !build || !affordable, true, materials,
-                materials.isEmpty() ? "hidden" : "material-costs",
-                build ? () -> fabricatePart(itemId) : null, null, null);
+                materials.isEmpty() ? "hidden" : back != null ? "material-costs recovery" : "material-costs",
+                build ? () -> fabricatePart(itemId) : null, null, null,
+                back == null ? null : new FittingCard.Recycle(itemId.equals(armedRecycle), () -> recyclePart(itemId)));
         return new CatalogRow(card, kind, itemId);
     }
 

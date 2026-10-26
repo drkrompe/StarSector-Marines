@@ -33,6 +33,10 @@
         <img id="{card.actionIconId}" class="{card.actionIconClasses}" src="graphics/ui/mech-hardware/fab.svg" />
         <div id="{card.actionTextId}" class="label heading catalog-fab-text">{card.actionText}</div>
       </button>
+      <!-- A spare in stores breaks back down here; its recovery is the green strip beside it. -->
+      <button id="{card.recycleId}" class="{card.recycleClasses}" onclick="{card.recycleAction}">
+        <div id="{card.recycleTextId}" class="label heading catalog-fab-text">{card.recycleText}</div>
+      </button>
     </div>
   </div>
 </template>
@@ -77,6 +81,10 @@
   .catalog-row.requires-fabrication .catalog-preview { opacity: 0.45; }
   .catalog-fab { flex-direction: row; align-items: center; width: 84px; height: 22px; padding: 2px 6px; gap: 4px; border-width: 1px; text-align: center; font-family: heading; }
   .catalog-fab.short { opacity: 0.45; }
+  .catalog-recycle { flex-direction: row; align-items: center; width: 84px; height: 22px; padding: 2px 6px; border-width: 1px; text-align: center; font-family: heading; }
+  .catalog-recycle.armed { border-color: #e98b83; color: #eea296; background-color: #251419; }
+  .material-costs.recovery .material-chip { border-color: #2f6b4a; background-color: #102018; }
+  .material-costs.recovery .material-chip-value { color: #78d494; }
   .catalog-fab-icon { width: 16px; height: 16px; pointer-events: none; }
   .catalog-fab-text { width: 0px; flex-grow: 1; height: 16px; text-align: center; pointer-events: none; }
   /* A page's own rules do not reach inside a component, so each carries the utilities it uses. */
