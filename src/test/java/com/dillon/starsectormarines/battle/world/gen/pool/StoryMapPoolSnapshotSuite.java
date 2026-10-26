@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
+import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -32,7 +33,7 @@ public final class StoryMapPoolSnapshotSuite implements SnapshotSuite {
 
     @Override public String id() { return "story-map-pools"; }
 
-    @Override public String label() { return "Story map pools: every pooled Cordon and Heart map, whole"; }
+    @Override public String label() { return "Story map pools: every pooled Cordon, Heart and Colony Breach map, whole"; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
@@ -65,6 +66,12 @@ public final class StoryMapPoolSnapshotSuite implements SnapshotSuite {
                 try (BattleSimulation sim = CordonSetup.create(cordon, variant, List.of(),
                         CordonSequence.Timetable.STANDARD)) {
                     return whole.render(sim, head, CordonMapgenSnapshotSuite.annotations(sim));
+                }
+            }
+            case COLONY_BREACH -> {
+                // The marked plan (holdouts, bores, objectives) is colony-breach-pressure-look's; this is the map.
+                try (BattleSimulation sim = BattleSetup.createPooledColonyBreach(biome, entry, List.of())) {
+                    return whole.render(sim, head, ReviewAnnotations.builder().build());
                 }
             }
             default -> {

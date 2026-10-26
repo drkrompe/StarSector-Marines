@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-26 — holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
+Updated: 2026-10-26 — the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
 
@@ -251,7 +251,10 @@ world the event names, and a rescue fixture has no market to derive from. Its
 map is mission-owned (`MapScale.COLONY`, 400x240) and must contain a
 residential shelter, a clear lift footprint, enough buildings for the
 eruption sites, enough held buildings with room indoors to be holdouts and a
-clear landing field; a map that lacks any re-rolls the seed. Lower risks and the
+clear landing field; a map that lacks any re-rolls the seed. In the campaign
+the colony is not rolled at all: it plays from a story-map pool of one vetted
+map per world biome while the mission is tuned (`story-map-pools.md`), on the
+biome alone and with no re-roll. Lower risks and the
 debug stress path keep their tier map and run the same breach on it, seating
 whatever eruption sites that smaller map has room for.
 
