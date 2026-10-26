@@ -623,7 +623,11 @@ increasing an encounter's total armored threat.
   locomotion, not the assignment: the mission directive, plan, doctrine and contact
   picture stay underneath and resume on detach. It is not a lease, because no
   assignment shape names a moving squad and it must win outright over every mission
-  goal (`MechAttachmentScene` is the acceptance). A **direct order** to the mech — a tactical move, assault, guard or Defend
+  goal (`MechAttachmentScene` is the acceptance). When its squad is given a dragged
+  line, the follower takes a **post** on the squad's stretch, after the marines and as
+  far behind the line as they stand, and holds it facing the line's front, in
+  contact or not; it stays attached, and the post ends when the squad is given
+  anything else (`MechAttachmentService.Post`). A **direct order** to the mech — a tactical move, assault, guard or Defend
   Area — ends it, as does the anchor's loss or withdrawal, the mech's withdrawal, or
   direct control; orders given to the anchor move the anchor and the follower keeps
   its slot.
