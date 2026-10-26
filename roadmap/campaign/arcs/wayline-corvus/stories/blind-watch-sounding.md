@@ -194,7 +194,7 @@ and markers. Built against its own `Sites` record on small synthetic grids.
 **C. Story and text — `blind-watch-dialogue.md`.** Briefing with Mara and
 Castle, field calls (alarm, warning, each charge, side jobs), debrief variants
 over warned / not warned and the side jobs, catalog strings under
-`corvusBlindWatch*`. The two recorded debrief lines stay.
+`corvusBlindWatch*`. The two recorded debrief lines stay. Written: names, script, catalog and hook strings are in `blind-watch-dialogue.md`; wiring reads its debrief selection rule.
 
 **D. Wiring (lead).** `CorvusChapter.BLIND_WATCH` builds the authored fixture,
 retire the procedural path for this chapter, `commanderEvidence` with a
