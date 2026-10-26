@@ -548,24 +548,19 @@ K2_CAM = (PLATFORM[0] + 600, PLATFORM[1] - 1500, PLATFORM[2] + 350)     # off th
 K2_AIM = (PLATFORM[0] + 100, PLATFORM[1] - 60, PLATFORM[2] + 40)
 K2_PIRATES = {k: Pose(f.at(K2_T), K2_T, f.at) for k, f in PIRATE_FLIGHT.items()}
 S3_EYE = ((-1560.0, -150.0, 85.0), (-1630.0, -95.0, 96.0))     # S3's eye at the convoy's tail, 30 s and 38 s
-S34_TRAVEL = ((34.5, 0.0, 0.0), (41.0, 1.0, 0.0))                # the camera's way down to the flank (0 to 1)
-S34_LENS = ((30, 32), (34, 48), (36, 48), (38, 42), (40, 30), (42, 32), (44, 36))
-S34_TURN = ((34.5, 0.0, 0.0), (37.5, .5, .2), (40.5, .55, 0.0), (42.5, 1.0, 0.0))   # the aim: platform to Falcon
+S34_LENS = ((30, 32), (34, 48), (38, 48), (44, 48))
+S34_TURN = ((34.5, 0.0, 0.0), (38.0, .45, .12), (44.0, .75, 0.0))   # the aim: platform toward the climbing Falcon
 
 
 def _falcon(t):
     return PIRATE_FLIGHT['falcon-p'].at(t)[:3]
 
 
-_s34_flank = track(K2_PIRATES['falcon-p'], K2_CAM, .3)
-
-
 def s34_eye(t):
-    """S3 and S4's one take: the tail of the convoy, then down to the pack's south flank."""
-    u = min(1.0, max(0.0, (t - 30.0) / 8.0))
-    tail = tuple(S3_EYE[0][i] + u * (S3_EYE[1][i] - S3_EYE[0][i]) for i in range(3))
-    w, f = _hermite(t, S34_TRAVEL), _s34_flank(t)
-    return tuple(tail[i] + w * (f[i] - tail[i]) for i in range(3))
+    """S3 and S4's one take, held at the convoy's tail (owner, 2026-10-26: "maintain the view of S3, us
+    the viewer as the fleet about to be chased"): riding with the column as the raiders climb at it."""
+    u = (t - 30.0) / 8.0
+    return tuple(S3_EYE[0][i] + u * (S3_EYE[1][i] - S3_EYE[0][i]) for i in range(3))
 
 
 def s34_aim(t):
@@ -1003,8 +998,8 @@ KEYFRAMES = {
                 'up. Eleven more lie cold beside her.',
         # S3 and S4 are one take (owner, 2026-10-26: "move the camera in the scene, not jump"): from the
         # convoy's tail a long lens finds the platform and holds until it reads as junk; as the Falcon (P)'s
-        # drives light, the camera travels back down to the pack's south flank (s34_eye), widening as the
-        # spread opens, and pans with the Falcon (P) as she climbs (S4).
+        # drives light, the camera holds where it is, with the fleet about to be chased, and turns a little
+        # with the pack as it eases out and climbs at the column (S4). One lens from 34 s.
         camera=camera('k1b', [dict(t=t, loc=s34_eye, target=s34_aim, lens=lens) for t, lens in S34_LENS
                               if t <= K2_T - 2.0], K1B_T),
         ships=K1B_SHIPS,
@@ -1017,8 +1012,8 @@ KEYFRAMES = {
         shot='S4', title='First contact',
         caption='Behind and below: drives light up in the derelict Asharu platform the convoy has just passed. '
                 'Twelve pirate hulls climb out of it toward the column.',
-        # S3'S TAKE, CONTINUED: the camera arriving off the pack's south flank, wide while the spread opens,
-        # then panning with the Falcon (P) as she climbs. No cut from S3, no crash zoom.
+        # S3'S TAKE, CONTINUED: still at the convoy's tail, the pack easing out of the platform and climbing
+        # toward the camera, the view turning a little with the Falcon (P). No cut from S3, no zoom.
         camera=camera('k2', [dict(t=t, loc=s34_eye, target=s34_aim, lens=lens) for t, lens in S34_LENS
                              if t >= K2_T - 2.0], K2_T),
         ground_t=K1B_T,     # the planet turns from S3's time: one take over the cut
