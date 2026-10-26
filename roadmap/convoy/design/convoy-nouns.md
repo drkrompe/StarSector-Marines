@@ -1195,7 +1195,15 @@ blade bears on a strip just past the nose, across the hull's width, and spends
 80 structure a second on every pushable cell in it at once, through the same
 destruction path a breaching charge uses: a pushed wall becomes rubble, a
 pushed barricade its destroyed art, and the cell is ordinary walkable ground for
-every vehicle and unit afterwards. Bearing on pushable ground is progress, so
+every vehicle and unit afterwards. A dozer driving onto what it pushes also
+spends its **momentum** on it (`HullMomentum`): half its mass in tonnes times
+its speed squared, at 10.4 structure apiece, so 360 at its top speed. Only the
+cells its nose reaches that tick take it. Where its momentum covers all they
+have left they fall at once and it drives on at the speed the rest gives: one
+crate barricade checks it to about nine tenths of its way, a row of housing
+wall across its blade to about half. Where it does not, they share it and the
+dozer is brought up, for the blade to finish at its rate: a row of city wall
+stops it just short. Bearing on pushable ground is progress, so
 the wall-contact and stall recovery leave a pushing hull alone; bearing on a
 fortified wall is not, and recovery treats it as any other wall.
 
@@ -1223,9 +1231,11 @@ or more (the APC lines, the rocket technical, the dozer and the gun tanks)
 drives into it, so an APC is never trapped in a wood a tank can leave:
 whatever crushable cells its footprint covers after a move are crushed through
 the map editor's destruction path, so a tree falls whole to its felled art, a
-boulder to its rubble, and the ground is open for everyone afterwards. A tick
-that crushes anything leaves the hull at half its top speed, so a wood is
-driven through in lurches. Undergrowth gives at once, so unlike the blade's
+boulder to its rubble, and the ground is open for everyone afterwards. Each
+crushed cell takes 120 structure of the hull's momentum, as the blade's
+obstacles do, so a gun tank flattens a sapling barely slowed and an APC loses a
+tenth of its way to one and half to a thicket of three at once: a wood is driven
+through in lurches, the lighter the hull the harder. Undergrowth gives at once, so unlike the blade's
 breach view the tracks' **crush view** is read by planning and motion alike, as
 a hover hull's skirt view is. It keeps its identity and catches up with the
 live grid's change log cell by cell, so the clearance mask over it catches up
