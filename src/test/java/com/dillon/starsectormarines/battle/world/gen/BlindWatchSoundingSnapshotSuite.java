@@ -18,7 +18,8 @@ import java.util.Set;
 /**
  * The Sounding, Blind Watch's authored map ({@code blind-watch-sounding.md}), through the look preset: the whole post,
  * the landing ground behind its ridge, each installation at play zoom (the mast and the rim guns, the dish field and
- * its control hut, the uplink on its knoll), the hab cluster, the boulder field and the rille's crossings. Real
+ * its control hut, the uplink on its knoll), the hab cluster, the boulder field, the rille's crossings and the cold
+ * drop by the lander pad. Real
  * ground, nothing drawn over it, except the last frame: the whole map marked with the three sites, the approaches,
  * the defences and the vehicles' lanes, for reading the mission at a glance. Every camera is placed from the recipe's
  * own sites, so a run before a change and one after frame the same ground. Opt-in. 1920x1080.
@@ -73,8 +74,10 @@ public final class BlindWatchSoundingSnapshotSuite implements SnapshotSuite {
             BlindWatchSounding.Cell west = layout.rilleCrossings().get(0);
             frame(out, look, sim, "12-rille-west-crossing-play.png", west.x(), west.y() + 4, play);
             frame(out, look, sim, "13-crater-floor-site.png", 168, 52, SITE_CELLS);
+            BlindWatchSounding.Area pods = layout.podRacks();
+            frame(out, look, sim, "14-cold-drop-play.png", pods.right() + 4, pods.top() + 3, play);
             look.refocus(w / 2f + .5f, h / 2f + .5f, Math.max(w, h * 16f / 9f));
-            out.add(new SnapshotArtifact("14-objectives-overview.png", look.renderMarked(sim, objectiveMarks(layout))));
+            out.add(new SnapshotArtifact("15-objectives-overview.png", look.renderMarked(sim, objectiveMarks(layout))));
         }
         return out;
     }
@@ -94,6 +97,8 @@ public final class BlindWatchSoundingSnapshotSuite implements SnapshotSuite {
         }
         var riggers = layout.riggersModule();
         marks.box(riggers.left, riggers.bottom, riggers.right, riggers.top, "Side: the riggers", ReviewStyle.ALLY);
+        BlindWatchSounding.Area pods = layout.podRacks();
+        marks.box(pods.left(), pods.bottom(), pods.right(), pods.top(), "Hidden: the cold store", ReviewStyle.OBJECTIVE);
         BlindWatchSounding.Cell console = layout.console();
         marks.label(console.x() + .5f, console.y() + .5f, "Hidden: the console", ReviewStyle.OBJECTIVE);
         marks.polyline(points(layout.mortarLane()), "Mortar carrier's lane", ReviewStyle.DUG_IN);

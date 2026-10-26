@@ -112,13 +112,20 @@ public final class BlindWatchSounding {
      * @param riggers         where the rigging crew waits, inside their module
      * @param riggersWalkOut  the riggers' way out, from their module's door to the landing ground
      * @param landerPad       Sable Wake's lander pad on the crater floor (scenery, not a landing berth)
+     * @param podRacks        the cold drop's cryo pod racks between the riggers' module and the lander pad
+     * @param podHold         the aisle cell a squad holds the racks from
+     * @param chemModule      the cold drop's chem module beside the pad
+     * @param chemist         where the chemist works, inside the chem module
+     * @param drugCrates      the chem module's crates on pallets beside the pad
+     * @param cargoCrawler    the half-loaded cargo crawler parked on the lander pad
+     * @param landerCrew      where the lander crew stands, beside the crawler
      * @param posts           Sable Wake's posts by duty, about two dozen in all
      * @param nests           the two rim guns beside the mast
      * @param pillboxes       the two bermed pillboxes: the hab's airlock, the foot of the uplink ramp
      * @param mortarStart     where the post's mortar carrier starts, in the motor pool
-     * @param mortarLane      the carrier's stops along the rover track: out of the motor pool to the junction by the
-     *                        lander pad, up below the rim and back, down the hab street to the dish field's gate, below
-     *                        the uplink, and home; its hull drives each stop to the next
+     * @param mortarLane      the carrier's stops: out of the motor pool past the chem module onto the lander pad, up
+     *                        the rover track below the rim and back, down the hab street to the dish field's gate,
+     *                        below the uplink, and home; its hull drives each stop to the next
      * @param technicalStands where the rocket truck may stand on the knoll, its park first; a light hull drives to
      *                        every one up the knoll's ramp
      * @param rilleCrossings  west crossing first, then the middle one
@@ -130,8 +137,9 @@ public final class BlindWatchSounding {
                          Area dishField, PointOfInterest controlHut, Cell console,
                          Area habCluster, List<PointOfInterest> bunks, PointOfInterest signalsModule,
                          List<Cell> signalsTechs, PointOfInterest riggersModule, List<Cell> riggers,
-                         List<Cell> riggersWalkOut, Area landerPad,
-                         Map<PostRole, List<Cell>> posts, List<Nest> nests, List<Pillbox> pillboxes,
+                         List<Cell> riggersWalkOut, Area landerPad, Area podRacks, Cell podHold,
+                         PointOfInterest chemModule, Cell chemist, Area drugCrates, Cell cargoCrawler,
+                         List<Cell> landerCrew, Map<PostRole, List<Cell>> posts, List<Nest> nests, List<Pillbox> pillboxes,
                          Cell mortarStart, List<Cell> mortarLane, List<Cell> technicalStands,
                          List<Cell> rilleCrossings, List<Cell> boulderCover, Map<Approach, List<Cell>> approaches) {}
 
@@ -193,9 +201,19 @@ public final class BlindWatchSounding {
     /** The hab cluster: two rows of prefab modules either side of the hab street, the rover track down its middle. */
     static final Area HAB = new Area(150, 48, 182, 66);
     private static final int ROW_NORTH = 61, ROW_SOUTH = 49, COLUMN_WEST = 152, COLUMN_EAST = 168;
-    static final Area LANDER_PAD = new Area(188, 54, 202, 66);
-    static final Area MOTOR_POOL = new Area(184, 38, 198, 47);
-    static final Cell MORTAR_START = new Cell(191, 43);
+    static final Area LANDER_PAD = new Area(188, 56, 202, 68);
+    static final Area MOTOR_POOL = new Area(185, 36, 199, 45);
+    static final Cell MORTAR_START = new Cell(192, 40);
+    /**
+     * The cold drop between the riggers' module and the lander pad: the cryo pod racks (two rows and the aisle a squad
+     * holds them from) and the chem module; on the pad its crates on pallets and the cargo crawler half loaded. The
+     * ground east of the chem module stays open: it is the mortar carrier's way out of the motor pool.
+     */
+    static final Area POD_RACKS = new Area(185, 47, 190, 53);
+    static final Cell POD_HOLD = new Cell(187, 50);
+    private static final int CHEM_LEFT = 192, CHEM_BOTTOM = 48;
+    static final Area DRUG_CRATES = new Area(201, 60, 203, 66);
+    static final Cell CARGO_CRAWLER = new Cell(194, 61);
 
     /** The rille's two crossings, west then middle. */
     static final Cell WEST_CROSSING = new Cell(61, 20), MIDDLE_CROSSING = new Cell(103, 20);
@@ -257,13 +275,14 @@ public final class BlindWatchSounding {
         return new Layout(damaged, l.landing(), l.companyStart(), l.sites(), l.rim(), l.rimRamps(), l.knoll(),
                 l.knollRamp(), l.dishField(), l.controlHut(), l.console(), l.habCluster(), l.bunks(),
                 l.signalsModule(), l.signalsTechs(), l.riggersModule(), l.riggers(), l.riggersWalkOut(),
-                l.landerPad(), l.posts(), l.nests(), l.pillboxes(), l.mortarStart(), l.mortarLane(),
+                l.landerPad(), l.podRacks(), l.podHold(), l.chemModule(), l.chemist(), l.drugCrates(),
+                l.cargoCrawler(), l.landerCrew(), l.posts(), l.nests(), l.pillboxes(), l.mortarStart(), l.mortarLane(),
                 l.technicalStands(), l.rilleCrossings(), l.boulderCover(), l.approaches());
     }
 
     /** What the stages learned while building, read back into the layout. */
     private static final class Sites {
-        PointOfInterest controlHut, signals, riggers;
+        PointOfInterest controlHut, signals, riggers, chem;
         final List<PointOfInterest> bunks = new ArrayList<>();
         final List<Nest> nests = new ArrayList<>();
         final List<Pillbox> pillboxes = new ArrayList<>();
@@ -295,9 +314,9 @@ public final class BlindWatchSounding {
 
     /** The mortar carrier's stops in order, a loop from the motor pool out to each installation and back. */
     static List<Cell> mortarLane() {
-        Cell junction = new Cell(186, 58);
-        return List.of(MORTAR_START, junction, new Cell(170, 76), junction, new Cell(150, 45), new Cell(173, 37),
-                MORTAR_START);
+        Cell pad = new Cell(188, 59);
+        return List.of(MORTAR_START, new Cell(202, 50), pad, new Cell(170, 76), pad, new Cell(150, 45),
+                new Cell(173, 37), MORTAR_START);
     }
 
     private static void grounds(GenContext c) {
@@ -359,8 +378,9 @@ public final class BlindWatchSounding {
     private static void post(GenContext c, Sites s) {
         s.bunks.add(stamp(c, BuildingStamp.PREFAB_MODULE, COLUMN_WEST, ROW_NORTH, 0));
         s.bunks.add(stamp(c, BuildingStamp.PREFAB_MODULE, COLUMN_EAST, ROW_NORTH, 0));
-        s.riggers = stamp(c, BuildingStamp.PREFAB_MODULE, COLUMN_WEST, ROW_SOUTH, 2);
-        s.signals = stamp(c, BuildingStamp.PREFAB_MODULE, COLUMN_EAST, ROW_SOUTH, 2);
+        s.signals = stamp(c, BuildingStamp.PREFAB_MODULE, COLUMN_WEST, ROW_SOUTH, 2);
+        s.riggers = stamp(c, BuildingStamp.PREFAB_MODULE, COLUMN_EAST, ROW_SOUTH, 2);
+        s.chem = stamp(c, BuildingStamp.CONTROL_HUT, CHEM_LEFT, CHEM_BOTTOM, 2);
         s.controlHut = stamp(c, BuildingStamp.CONTROL_HUT, HUT_LEFT, HUT_BOTTOM, 0);
         for (PillboxPlan plan : List.of(AIRLOCK_PILLBOX, RAMP_PILLBOX)) {
             PointOfInterest building = stamp(c, BuildingStamp.PILLBOX, plan.left(), plan.bottom(), plan.turns());
@@ -453,8 +473,7 @@ public final class BlindWatchSounding {
         // The hab street: suit lockers and stores against the modules, lamps along it.
         for (int x : new int[]{151, 165}) place(c, x, 60, "industrial-crate-stack", 0);
         for (int x : new int[]{151, 166}) place(c, x, 54, "industrial-pallet-stack", 0);
-        place(c, 184, 52, "industrial-fluid-tank", 0);
-        place(c, 184, 50, "industrial-fluid-tank", 0);
+        coldDrop(c, s);
         place(c, 145, 50, "industrial-generator", 0);
         // The lander pad: its bay marks; the motor pool: drums and a loader.
         yard.bay(LANDER_PAD.left() + 2, LANDER_PAD.bottom() + 2, LANDER_PAD.right() - 2, LANDER_PAD.top() - 2);
@@ -467,8 +486,37 @@ public final class BlindWatchSounding {
         place(c, 118, 49, "industrial-scrap-pile", 0);
         place(c, 92, 62, "industrial-drum-cluster", 0);
         place(c, 76, 51, "field-salvage-metals", 0);
-        place(c, 202, 46, "basin-scrap-plate-stack", 0);
     }
+
+    /**
+     * The cold drop: cryo pods racked in two rows on the open ground where the cold costs nothing, their chiller at
+     * the end of the aisle; the chem module's bench and lockers; its pressed product crated on pallets; and the cargo
+     * crawler on the pad, half loaded, the rest of its load stacked beside it.
+     */
+    private static void coldDrop(GenContext c, Sites s) {
+        StoryServiceYard yard = new StoryServiceYard(c);
+        for (int y = POD_RACKS.bottom(); y < POD_RACKS.top(); y += 2) {
+            yard.prop(POD_RACKS.left(), y, "galley-cold-store", 0);
+            yard.prop(POD_RACKS.left() + 1, y, "galley-cold-store", 0);
+            yard.prop(POD_RACKS.right() - 1, y, "galley-cold-store", 0);
+            yard.prop(POD_RACKS.right(), y, "galley-cold-store", 0);
+        }
+        yard.prop(POD_HOLD.x(), POD_RACKS.top(), "industrial-generator", 0);
+        yard.prop(POD_HOLD.x() + 1, POD_RACKS.top(), "industrial-fluid-tank", 0);
+        inside(c, chemist().x() - 2, south(s.chem) + 1, "medical-drug-locker");
+        inside(c, chemist().x() - 2, north(s.chem) - 1, "medical-treatment-table");
+        for (int y = DRUG_CRATES.bottom(); y <= DRUG_CRATES.top(); y += 2) {
+            yard.prop(DRUG_CRATES.left(), y, "industrial-crate-stack", 0);
+            yard.prop(DRUG_CRATES.left() + 1, y, "industrial-pallet-stack", 0);
+            yard.prop(DRUG_CRATES.right(), y, "industrial-crate-stack", 0);
+        }
+        yard.prop(CARGO_CRAWLER.x(), CARGO_CRAWLER.y(), "parked-cargo-truck", 1);
+        for (int[] at : new int[][]{{198, 60}, {198, 62}, {199, 61}, {191, 64}})
+            yard.prop(at[0], at[1], at[0] % 2 == 0 ? "industrial-crate-stack" : "industrial-pallet-stack", 0);
+    }
+
+    /** The chemist's place at the chem module's lockers, against its south wall. */
+    static Cell chemist() { return new Cell(CHEM_LEFT + 3, CHEM_BOTTOM + 2); }
 
     /** The control hut's console, against its north wall. */
     static Cell consoleProp() { return new Cell(HUT_LEFT + 2, HUT_BOTTOM + 3); }
@@ -699,7 +747,7 @@ public final class BlindWatchSounding {
         List<Cell> uplink = new ArrayList<>(slitCells(RAMP_PILLBOX));
         uplink.addAll(List.of(new Cell(189, 21), new Cell(197, 27)));
         posts.put(PostRole.UPLINK, List.copyOf(uplink));
-        posts.put(PostRole.MOTOR_POOL, List.of(new Cell(188, 41), new Cell(194, 41)));
+        posts.put(PostRole.MOTOR_POOL, List.of(new Cell(189, 42), new Cell(196, 42)));
         posts.put(PostRole.WATCH_BOSS, List.of(new Cell(s.signals.interiorAnchorX, s.signals.interiorAnchorY)));
         Map<Installation, ChargeSite> sites = new EnumMap<>(Installation.class);
         sites.put(Installation.MAST, new ChargeSite(Installation.MAST.id, MAST_PLANT, MAST_PAD));
@@ -709,7 +757,8 @@ public final class BlindWatchSounding {
         return new Layout(map, LANDING, COMPANY_START, sites, RIM, List.of(RIM_WEST_FOOT, RIM_FLOOR_FOOT), KNOLL,
                 KNOLL_FOOT, DISH_FIELD, s.controlHut, console(), HAB, List.copyOf(s.bunks), s.signals,
                 interiorCells(map, s.signals, 5), s.riggers, interiorCells(map, s.riggers, 4), riggersWalkOut(s.riggers),
-                LANDER_PAD, posts, List.copyOf(s.nests), List.copyOf(s.pillboxes), MORTAR_START, mortarLane(),
+                LANDER_PAD, POD_RACKS, POD_HOLD, s.chem, chemist(), DRUG_CRATES, CARGO_CRAWLER,
+                List.of(new Cell(192, 59), new Cell(197, 64)), posts, List.copyOf(s.nests), List.copyOf(s.pillboxes), MORTAR_START, mortarLane(),
                 TECHNICAL_STANDS, List.of(WEST_CROSSING, MIDDLE_CROSSING), cover(map), approachLines());
     }
 
@@ -747,7 +796,9 @@ public final class BlindWatchSounding {
     static void validate(Layout l) {
         NavigationGrid grid = l.map().grid;
         boolean[] reached = reach(grid, l.companyStart(), null);
-        List<Cell> required = new ArrayList<>(List.of(l.console(), l.knollRamp(), l.mortarStart()));
+        List<Cell> required = new ArrayList<>(List.of(l.console(), l.knollRamp(), l.mortarStart(), l.podHold(),
+                l.chemist()));
+        required.addAll(l.landerCrew());
         for (ChargeSite site : l.sites().values()) required.add(site.plant());
         required.addAll(l.rimRamps());
         for (List<Cell> cells : l.posts().values()) required.addAll(cells);
