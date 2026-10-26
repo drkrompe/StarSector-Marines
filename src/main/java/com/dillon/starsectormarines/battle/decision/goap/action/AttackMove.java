@@ -220,8 +220,41 @@ public final class AttackMove extends AbstractZoneAction implements SquadRouteGo
         // the body while firing instead of planting at weapon range, because the
         // structure is both the contact astride the route and the work, and his
         // charge is only set from beside it (WallBreachSystem).
-        advanceIntoZone(member, squad, sim, aim[0], aim[1], !closesToDemolish(member, assignment, sim));
+        //
+        // And a squad sent to demolish one keeps closing until the body is in
+        // its own reach: it otherwise stops where the body's guard first comes
+        // in range and fights the guard, the body itself out of reach (Broad
+        // Front frozen 5, 2026-10-26: thirty cells off mother-1, past a 26-cell
+        // rifle, from tick 24500 to the cap).
+        advanceIntoZone(member, squad, sim, aim[0], aim[1],
+                !closesToDemolish(member, assignment, sim) && !closesToReach(member, assignment, sim));
         return ActionStatus.RUNNING;
+    }
+
+    /** Cells from a structure it is sent to demolish within which a squad closes to its reach of it. */
+    static final float REACH_APPROACH = 40f;
+
+    /**
+     * True when the order names a structure to demolish and {@code member} stands inside its approach but beyond his
+     * own reach of it ({@link #closesToReach(float, float)}).
+     */
+    private static boolean closesToReach(long member, ObjectiveAssignment assignment, BattleControl sim) {
+        if (!assignment.breaches()) return false;
+        int cellX = assignment.breachCellX();
+        int cellY = assignment.breachCellY();
+        if (!sim.getGrid().inBounds(cellX, cellY) || !sim.getGrid().isWalkable(cellX, cellY)) return false;
+        World world = sim.world();
+        return closesToReach(TacticalScoring.cellDistance(world.x(member), world.y(member), cellX + 0.5f, cellY + 0.5f),
+                world.attackRange(member));
+    }
+
+    /**
+     * Whether a member {@code cells} from the structure he is sent to demolish, with a weapon reaching {@code range},
+     * keeps closing through contact: inside {@link #REACH_APPROACH} and short of his reach. Inside it, he stops for
+     * contact as any squad does, now with the body to hand.
+     */
+    static boolean closesToReach(float cells, float range) {
+        return cells <= REACH_APPROACH && cells > range;
     }
 
     /**
