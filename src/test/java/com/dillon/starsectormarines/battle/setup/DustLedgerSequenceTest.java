@@ -1,11 +1,14 @@
 package com.dillon.starsectormarines.battle.setup;
 
+import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Area;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Cell;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Crate;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Sites;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence.Watcher;
+import com.dillon.starsectormarines.battle.story.DustLedgerProgress;
+import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import java.util.List;
 import org.junit.jupiter.api.Test;
@@ -90,10 +93,24 @@ class DustLedgerSequenceTest {
         assertEquals(3, Area.rect(0, 0, 2, 2).reach(new Cell(0, 0)));
     }
 
+    @Test void aControlRunGrantsTheSideObjectivesItNamesAndRejectsOthers() {
+        var sequence = new DustLedgerSequence(sites(new Cell(22, 6), Area.rect(0, 0, 2, 2)),
+                new RaidObjective("ledger", "Ledger room", 22, 6, 0, 1, 11), List.of(), List.of(), new StoryBeatLog());
+        sequence.grantForced(" feed, coupling ");
+        assertEquals(DustLedgerProgress.Side.PAID, sequence.progress().feed());
+        assertEquals(DustLedgerProgress.Side.PAID, sequence.progress().coupling());
+        assertEquals(DustLedgerProgress.Side.OPEN, sequence.progress().warden());
+        assertTrue(sequence.crateDelivered());
+        sequence.grantForced("all");
+        assertEquals(DustLedgerProgress.Side.PAID, sequence.progress().warden());
+        assertThrows(IllegalArgumentException.class, () -> sequence.grantForced("radio"));
+    }
+
     private static Sites sites(Cell office, Area wellHouse) {
         return new Sites(Area.rect(0, 10, 3, 13), new Cell(1, 11), Area.rect(21, 5, 23, 7), new Cell(22, 6), office,
                 new Cell(30, 12), RING, GROUNDS, List.of(new Cell(10, 6)), Area.rect(6, 0, 8, 2),
-                List.of(new Cell(7, 1)), wellHouse, Area.rect(10, 10, 12, 12), List.of(new Cell(30, 6)), new Cell(25, 6));
+                List.of(new Cell(7, 1)), wellHouse, Area.rect(10, 10, 12, 12), List.of(new Cell(30, 6)), new Cell(25, 6),
+                Area.rect(5, 4, 6, 5));
     }
 
     private static NavigationGrid open(int width, int height) {

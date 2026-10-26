@@ -42,8 +42,8 @@ public final class TurretBehavior implements UnitBehavior {
         turretState.setRecoilTimer(id, turretState.recoilTimer(id) + BattleSimulation.TICK_DT);
 
         // An overloaded flux shield trips the generator the gun shares: it is silent, and drops any burst, until
-        // the capacitors have vented.
-        if (sim.turretShields().silenced(id)) {
+        // the capacitors have vented. A gun whose power was cut is silent for good.
+        if (sim.turretShields().silenced(id) || turretState.unpowered(id)) {
             turretState.setBurstRemaining(id, 0);
             turretState.setBurstTargetId(id, 0L);
             return;
