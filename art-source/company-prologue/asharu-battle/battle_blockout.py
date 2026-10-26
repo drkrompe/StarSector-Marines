@@ -3152,7 +3152,7 @@ def blender_main(cfg):
                             val = scene.frame_current - round(val['ago_s'] * scene.render.fps / scene.render.fps_base)
                         if placed[key]['fx'] is not None:
                             placed[key]['fx'].set(name, val)
-                        else:
+                        elif placed[key]['lib']['ctl'] is not None:     # the preview's stand-ins have none
                             placed[key]['lib']['ctl'][name] = val
                 for key, cue in spec.get('cues', {}).items() if cfg.get('swfx') else ():
                     if 'span_t' in spec:     # in motion a gun flashes when it fires a round, not on cue

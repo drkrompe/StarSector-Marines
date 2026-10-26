@@ -214,6 +214,16 @@ public final class MechSupport extends AirDeliveryPower {
         return load;
     }
 
+    /** A machine still aboard that some remaining lift admits, counting the boat home again. */
+    @Override
+    public boolean canStillField(BattleView battle) {
+        boolean company = companyCarrierHeld(battle);
+        for (int pick = 0; pick < called.length; pick++) {
+            if (!called[pick] && budget.allocate(load(List.of(pick)), company) != null) return true;
+        }
+        return false;
+    }
+
     @Override
     public boolean canTarget(int cellX, int cellY, BattleView battle) {
         return canTarget(cellX, cellY, battle, null);

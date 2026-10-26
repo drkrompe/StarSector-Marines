@@ -139,12 +139,27 @@ abstract class AirDeliveryPower extends CommandPower {
 
     /** Whether the company boat is home and unlost, so it can fly the next call. */
     protected boolean companyAvailable(BattleView battle) {
-        if (companyCarrier == null) return false;
         if (companySortie != 0L && battle.world().isAlive(companySortie)) return false;
+        return companyCarrierHeld(battle);
+    }
+
+    /** Whether the company boat exists and has not been shot down, home or in the air. */
+    protected boolean companyCarrierHeld(BattleView battle) {
+        if (companyCarrier == null) return false;
         for (AirLoss loss : battle.getAirLosses()) {
             if (companyCarrier.equals(loss.frame())) return false;
         }
         return true;
+    }
+
+    /**
+     * A boat in the air comes home, so only a lost one ends the company's lift; the
+     * synthetic carrier never runs out.
+     */
+    @Override
+    public boolean canStillField(BattleView battle) {
+        if (!payload.fieldsForces()) return false;
+        return syntheticLift || companyCarrierHeld(battle) && liftsAll(liftDemand(), companyCarrier);
     }
 
     private Airframe carrierFor(CommandPowerService service, BattleView battle) {

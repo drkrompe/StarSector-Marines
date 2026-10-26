@@ -43,6 +43,44 @@ class RavBombardRigTest {
     }
 
     @Test
+    void itDigsInATripodAtATimeAndUprootsTheSameWay() {
+        RavBombardRig rig = new RavBombardRig(7L);
+        rig.advance(0f, 0f, 0f, 0f, 0f, 0f, DT);
+        float walking = spread(rig);
+        int ticks = Math.round(3f / DT);
+        int lifts = 0, lastSet = -1;
+        long seen = 0L;
+        for (int t = 1; t <= ticks; t++) {
+            rig.advance(0f, 0f, 0f, 0f, 0f, t / (float) ticks, DT);
+            FootEvent lift = rig.lastLiftOff();
+            if (lift != null && lift.sequence() > seen) {
+                seen = lift.sequence();
+                assertTrue(lift.foot() != lastSet, "the tripods take turns");
+                lastSet = lift.foot();
+                lifts++;
+            }
+        }
+        for (int t = 0; t < 30; t++) rig.advance(0f, 0f, 0f, 0f, 0f, 1f, DT);
+        assertEquals(RavBombardRig.DIG_STROKES, lifts, "each stroke of the dig is a tripod step");
+        assertTrue(spread(rig) > walking * 1.05f, "dug in, the claws stand wider");
+        for (int t = 1; t <= ticks; t++) rig.advance(0f, 0f, 0f, 0f, 0f, 1f - t / (float) ticks, DT);
+        for (int t = 0; t < 30; t++) rig.advance(0f, 0f, 0f, 0f, 0f, 0f, DT);
+        assertEquals(walking, spread(rig), walking * 0.02f, "uprooted, they are back in their walking stance");
+    }
+
+    /** How far the walking claws stand from the body on average, cells. */
+    private static float spread(RavBombardRig rig) {
+        float sum = 0f;
+        int n = 0;
+        for (int i = 0; i < RavBombardRig.LEGS; i++) {
+            if (RavBombardRig.legSet(i) < 0) continue;
+            sum += (float) Math.hypot(rig.clawX(i), rig.clawY(i));
+            n++;
+        }
+        return sum / n;
+    }
+
+    @Test
     void aStandingBombardDoesNotStep() {
         RavBombardRig rig = new RavBombardRig(7L);
         for (int t = 0; t < 60; t++) rig.advance(2f, 3f, 40f, 0f, 0f, 0f, DT);

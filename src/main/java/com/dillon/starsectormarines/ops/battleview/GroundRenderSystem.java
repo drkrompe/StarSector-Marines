@@ -618,6 +618,9 @@ public final class GroundRenderSystem implements RenderSystem {
         }
         private void resolveTerrain(int x,int y,int layer,GroundMesh.CellSink sink) {
             TerrainSurface.Patch patch=topology.terrainSurface().patch(x,y,layer);if(patch==null)return;
+            // A raised top's cap is the ground's own: what was built on it (a redoubt's walls, its paving and yard)
+            // draws its own art, as on a grass-topped world, or a barren terrace hides its fort under bare rock.
+            if(TerrainSurface.isCap(layer) && (topology.isWall(x,y) || topology.getSurface(x,y)>0)) return;
             if(patch.surface()==0) {
                 terrainClip.target=sink;terrainClip.vertices=patch.vertices();
                 resolveFloor(x,y,CellTopology.GroundKind.GRASS,0,terrainClip);return;
