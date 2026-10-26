@@ -20,11 +20,12 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class MechReflexOrderTest {
 
     @Test
-    public void thePlayersMoveOrderComesFirstAndTheCrippledChassisSecond() {
-        assertEquals(List.of("PLAYER_LOCOMOTION", "CRIPPLED_CHASSIS"),
+    public void thePlayersMoveOrderComesFirstTheCrippledChassisSecondAndTheMeleeStandoffThird() {
+        assertEquals(List.of("PLAYER_LOCOMOTION", "CRIPPLED_CHASSIS", "MELEE_STANDOFF"),
                 MechReflexes.CHAIN.stream().map(Reflex::name).toList(),
                 "a player's per-chassis move outranks doctrine (and releases itself for "
-                        + "a crippled chassis); a crippled chassis outranks every plan step; "
+                        + "a crippled chassis); a crippled chassis outranks every plan step and cannot step back; "
+                        + "a walking mech steps back from a charging Rav before its plan step walks it in; "
                         + "adding an entry is a priority decision, not an append");
     }
 }

@@ -697,7 +697,8 @@ stand where the fire comes from, not where it was last seen: a long-reach
 shooter is usually beyond sight, and its last-seen cell is wherever it stood
 before it stepped back. The rule sits below the
 reflexes — a player's move order still owns the chassis, a crippled one is
-still a turret — and keeps to command ground: every cell must be legal
+still a turret, and a walking one steps back from a charging Brute or Matriarch
+inside six cells, firing as it goes (`MechReflexes.MELEE_STANDOFF`) — and keeps to command ground: every cell must be legal
 under the active assignment, and a mech outside its command (an exact cell not
 yet reached) is left to its doctrine. The one stretch is the **sortie**: a mech
 settled on a post (defend area, hold node) that an armored contact out-reaches
