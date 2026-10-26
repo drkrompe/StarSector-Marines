@@ -497,7 +497,7 @@ public final class ShipTransferViewModel {
     }
 
     /**
-     * The boat's credits and the squad's stores are checked here and again by designation; nothing is
+     * The boat's and the squad's credits and the squad's marines are checked here and again by designation; nothing is
      * reserved or spent.
      */
     public void preparation(MarineRoster roster, FabricationResources credits, SquadFoundingResources stores) {
@@ -520,10 +520,8 @@ public final class ShipTransferViewModel {
         return revision.map(ignored -> {
             List<CompanyResources.Row> rows = new ArrayList<>(CompanyResources.credits("transfer-credit-stock", means.credits(), 0));
             if (CompanyPreparation.required(preparationRoster)) {
-                for (String commodity : List.of("marines", "supplies", "food")) {
-                    rows.add(CompanyResources.stock("transfer-stock:" + commodity, preparationStores.commodityName(commodity),
-                            preparationStores.commodityIcon(commodity), preparationStores.available(commodity)));
-                }
+                rows.add(CompanyResources.stock("transfer-stock:marines", preparationStores.commodityName("marines"),
+                        preparationStores.commodityIcon("marines"), preparationStores.available("marines")));
             }
             return List.copyOf(rows);
         });
@@ -535,8 +533,10 @@ public final class ShipTransferViewModel {
         if (ship == null || !ship.quarters()) return Strings.get("openingShipTransferSelectAShipWithCompanyQuartersAnd");
         if (ShipsBoats.aboard(ship.ship()).isEmpty()) return Strings.get("openingShipTransferThisHullHasNoBoatBerthChoose");
         StringBuilder text = new StringBuilder(Strings.get("openingShipTransferFirstMissionStoresCostAvailableShortBy"));
-        int boat = CompanyPreparation.boatPrice(preparationRoster, ShipsBoats.carriedBy(ship.ship()));
-        if (boat > 0) text.append(CompanyResources.creditBill(boat, preparationResources.credits())).append('\n');
+        // The boat and the squad's stores are both bought, so they are one credit line.
+        long price = (long) CompanyPreparation.boatPrice(preparationRoster, ShipsBoats.carriedBy(ship.ship()))
+                + CompanyPreparation.squadPrice(preparationRoster);
+        if (price > 0) text.append(CompanyResources.creditBill(price, preparationResources.credits())).append('\n');
         for (var line : CompanyPreparation.squadBill(preparationRoster)) {
             int available = preparationStores.available(line.commodityId());
             text.append(CompanyResources.namedBill(preparationStores.commodityName(line.commodityId()), line.quantity(), available));

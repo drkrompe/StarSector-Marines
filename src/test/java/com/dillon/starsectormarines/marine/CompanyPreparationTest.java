@@ -9,8 +9,6 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -23,18 +21,19 @@ class CompanyPreparationTest {
         roster.beginCompanyPreparation(sabine);
         OfficerInduction induction = roster.officerInduction();
         assertEquals(Step.SHIP, induction.step(roster));
-        Hold hold = new Hold();
-        int price = CompanyPreparation.boatPrice(roster, ShuttleType.AEROSHUTTLE);
-        assertTrue(price > 0);
-        for (var line : CompanyPreparation.squadBill(roster)) hold.stock.put(line.commodityId(), line.quantity());
+        // The purse pays the boat and the squad's stores together; the hold supplies the marines.
+        TestStores hold = TestStores.forSquads(1);
+        int price = CompanyPreparation.boatPrice(roster, ShuttleType.AEROSHUTTLE) + CompanyPreparation.squadPrice(roster);
+        assertTrue(CompanyPreparation.boatPrice(roster, ShuttleType.AEROSHUTTLE) > 0);
         TestPurse purse = new TestPurse(price - 1);
         assertFalse(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 0, purse, hold));
         assertFalse(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 2, purse, hold));
         purse.credits = price;
-        hold.stock.merge(Commodities.SUPPLIES, -1, Integer::sum);
+        hold.stock.merge(Commodities.MARINES, -1, Integer::sum);
         assertFalse(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 2, purse, hold));
-        hold.stock.merge(Commodities.SUPPLIES, 1, Integer::sum);
-        assertTrue(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 2, purse, hold));        roster.setCompanyShip("home", "Home", 200);
+        hold.stock.merge(Commodities.MARINES, 1, Integer::sum);
+        assertTrue(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 2, purse, hold));
+        roster.setCompanyShip("home", "Home", 200);
         roster.boatDeck().reconcile("home", ShuttleType.AEROSHUTTLE, 2);
         // The company rides up to Relief on Wayline's truck: Sabine comes straight after the ship.
         assertTrue(roster.boatDeck().flightReady().isEmpty());
@@ -46,6 +45,8 @@ class CompanyPreparationTest {
         induction = roundTrip(induction);
         assertTrue(induction.companyPreparation());
         assertEquals(Step.FORMATION, induction.step(roster));
+        // The game draws both from one purse; here the hold pays the squad's price, so that share leaves the purse.
+        purse.credits -= SquadFoundingCost.STANDARD.credits();
         var squad = new SquadFoundingWorkshop(roster, hold).foundSquad().squad();
         assertNotNull(squad);
         assertTrue(CompanyPreparation.squadBill(roster).isEmpty());
@@ -59,6 +60,7 @@ class CompanyPreparationTest {
         assertTrue(new BoatWorkshop(roster.boatDeck(), purse).fabricate(0).succeeded());
         assertEquals(0, purse.credits);
         assertTrue(hold.stock.values().stream().allMatch(n -> n == 0));
+        assertEquals(0, hold.credits);
         assertEquals(0, CompanyPreparation.boatPrice(roster, ShuttleType.AEROSHUTTLE));
     }
 
@@ -100,17 +102,4 @@ class CompanyPreparationTest {
             return (OfficerInduction) in.readObject();
         }
     }
-
-    private static final class Hold implements SquadFoundingResources {
-        final Map<String, Integer> stock = new HashMap<>();
-        @Override public int available(String id) { return stock.getOrDefault(id, 0); }
-        @Override public String commodityName(String id) { return id; }
-        @Override public String commodityIcon(String id) { return ""; }
-        @Override public boolean spend(SquadFoundingCost cost) {
-            if (!canAfford(cost)) return false;
-            cost.lines().forEach(l -> stock.merge(l.commodityId(), -l.quantity(), Integer::sum));
-            return true;
-        }
-    }
 }
-

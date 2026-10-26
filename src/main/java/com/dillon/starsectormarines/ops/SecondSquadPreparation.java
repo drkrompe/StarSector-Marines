@@ -32,7 +32,8 @@ final class SecondSquadPreparation {
                 ? "lessonSecondMinimum" : "lessonSecondCheck");
         String advice = LessonCopy.text(full >= 2 ? "lessonSecondFull"
                 : formations >= 2 ? "lessonSecondExisting" : "lessonSecondFound");
-        StringBuilder costs = new StringBuilder();
+        StringBuilder costs = new StringBuilder(CompanyResources.creditBill(
+                SquadFoundingCost.STANDARD.credits(), stores.credits())).append("\n");
         for (SquadFoundingCost.Line line : SquadFoundingCost.STANDARD.lines()) {
             int available = stores.available(line.commodityId());
             costs.append(CompanyResources.namedBill(stores.commodityName(line.commodityId()),

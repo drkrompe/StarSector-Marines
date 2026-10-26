@@ -61,10 +61,12 @@ shared mapping instead of assigning paths independently in each screen.
   refuses while the squad is stationed or when the company may not issue a card,
   and a refusal leaves both cards untouched.
 - **Squad founding** — the Barracks **Raise Squad** tile, trailing the formation
-  board, that consumes twelve Marines, 36 supplies, and 24 food before creating a
-  full named line formation under an officer with a free command slot. Its live
-  bill stays on that tile; a partial bill creates neither personnel nor squad
-  identity. Barracks is the only place a squad is founded.
+  board, that takes twelve Marines out of cargo and one credit price for their stores
+  (the 36 supplies and 24 food it was once billed in, at their base prices: Price)
+  before creating a full named line formation under an officer with a free command
+  slot. Like every purchase it needs a Civilized port. Its live bill (credits, then
+  marines, then NO PORT when away) stays on that tile; a partial bill creates neither
+  personnel nor squad identity. Barracks is the only place a squad is founded.
 - **Billet** — one stable position in the squad's twelve-place equipment
   establishment. Alpha, Bravo, and Charlie inspect consecutive groups of four.
 - **Seat kit** — what one marine carries: exactly what the squad's cards issue
@@ -947,7 +949,7 @@ The first non-debug briefing that recommends at least two squads introduces
 Castle's **From One Squad to Two** reminder after initial induction. It states
 both the recommended strength and the route's permitted depleted minimum,
 counts actual ready personnel, and shows the authoritative one-squad founding
-bill with available stores and the amount to buy. Founding includes the initial
+bill (its price and its marines) with what the company holds and the amount short. Founding includes the initial
 kit; later refits have separate bills. Direct Armory and Barracks routes teach
 raising a squad, assigning its home commander, and selecting it for deployment.
 The reminder never spends cargo or changes launch rules. Explicit acknowledgement
@@ -1523,20 +1525,21 @@ and lifts the suspension, so a dialog torn down without its dismissal cannot lea
 campaign silent.
 
 A `PreparationDepot` is a finite prepaid consignment at the planet that converted
-this start's Cerberus: yard credit for one Hermes, at her price, and one standard
-squad-founding bill of stores. It is issued once, saved independently of cargo, and never
+this start's Cerberus: yard credit for one Hermes, at her price, and the first squad's
+twelve Marines with credit for its stores, at their price. It is issued once, saved independently of cargo, and never
 loaded wholesale into the small ship's hold. `WorkshopStores` combines cargo with
 that depot only while interacting with its accessible working planetary port,
 checks the whole order, then consumes local credit or stock before the company's own. The existing
 fabrication and squad-founding adapters share that authority. New Second Wind starts
 earmark the first Hermes and first squad bills separately: boat jobs cannot consume
-the squad's stores, and other workshop jobs cannot consume either allocation.
+the squad's marines or credit, and other workshop jobs cannot consume either allocation.
 Preparation draws the squad's bill. The Hermes credit stays at the depot through
 Relief and is drawn by the first-lift lesson, while docked there, before
 Counterattack.
 Preparation preflight can inspect both allocations but cannot spend them. Legacy
 depots keep their existing remaining stock and unrestricted spending policy; the boat
-materials they still held become yard credit at the conversion prices (Price).
+materials they still held become yard credit, and the squad's supplies and food become
+its squad credit, at the conversion prices (Price).
 The depot does not replenish
 on reload or on another conversion; unused stock remains at its planet. Ordinary
 starts and saves receive none. Equipment fitting is free; enlistment retains its personnel cargo authority. Castle explains the local stores; workshop labels use available
