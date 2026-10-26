@@ -449,7 +449,7 @@ public final class BattleFixtureJson {
             // employer's craft rather than a boat, and encoding only the
             // interesting case would make those two decode identically.
             if (shuttle.airframe instanceof FittedBoat boat) {
-                encoded.put("platingId", boat.plating().id());
+                encoded.put("platingId", boat.plating() == null ? "" : boat.plating().id());
                 encoded.put("driveId", boat.drive().id());
                 putRefittedFittings(encoded, boat);
                 putRefittedGuns(encoded, boat);
@@ -891,7 +891,7 @@ public final class BattleFixtureJson {
     private static JSONObject boatToJson(FittedBoat boat) throws Exception {
         JSONObject encoded = new JSONObject();
         encoded.put("type", boat.pattern().name());
-        encoded.put("platingId", boat.plating().id());
+        encoded.put("platingId", boat.plating() == null ? "" : boat.plating().id());
         encoded.put("driveId", boat.drive().id());
         encoded.put("liftId", boat.lift().id());
         putRefittedFittings(encoded, boat);
@@ -941,13 +941,13 @@ public final class BattleFixtureJson {
 
     /**
      * Each slot's fitting by its key ({@code platingId}, {@code cabinId}, ...); a missing key is the standard fit,
-     * and a blank emitter is none.
+     * and blank plating or a blank emitter is none.
      */
     private static Map<BoatFittingSlot, BoatFitting> fitFromJson(JSONObject encoded) {
         Map<BoatFittingSlot, BoatFitting> fit = new EnumMap<>(BoatFittingSlot.class);
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             String id = encoded.optString(fittingKey(slot), null);
-            fit.put(slot, slot == BoatFittingSlot.EMITTER && id != null && id.isBlank()
+            fit.put(slot, FittedBoat.optional(slot) && id != null && id.isBlank()
                     ? null : BoatFitting.resolve(id, slot));
         }
         return fit;

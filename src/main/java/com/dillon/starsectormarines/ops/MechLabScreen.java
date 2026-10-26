@@ -410,7 +410,7 @@ public final class MechLabScreen implements Screen {
             event.preventDefault();
             return;
         }
-        if (dollCanvas.vacantGantryAt(point.x(), point.y()) < 0) return;
+        if (dollCanvas.gantryAt(point.x(), point.y()) < 0) return;
         event.capturePointer();
         event.preventDefault();
     }
@@ -423,7 +423,7 @@ public final class MechLabScreen implements Screen {
         CanvasPoint point = canvasPoint(event);
         event.releasePointerCapture();
         if (point == null) return;
-        int gantry = dollCanvas.vacantGantryAt(point.x(), point.y());
+        int gantry = dollCanvas.gantryAt(point.x(), point.y());
         if (gantry >= 0) {
             viewModel.selectGantryAction(gantry).run();
             document.canvases().invalidate(dollElement);

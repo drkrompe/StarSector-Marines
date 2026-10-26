@@ -3244,8 +3244,10 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             workshop.fitGun(deck.boats().get(0).id(), 2, BoatGun.PULSE_LASER.id());
         }
         if (departure == STRIPPED && deck.berths() > 0 && deck.boats().get(0) != null) {
-            // Her drive and her gun dragged off into stores: the drive's socket warns, and she is off the lift.
+            // Her drive, plating and gun dragged off into stores: the drive's socket warns and she is off the lift;
+            // the plating's reads a bare hull, which flies weak.
             workshop.strip(deck.boats().get(0).id(), BoatFittingSlot.DRIVE);
+            workshop.strip(deck.boats().get(0).id(), BoatFittingSlot.PLATING);
             workshop.stripGun(deck.boats().get(0).id(), 0);
         }
         // The parked hulls wear what the yard put on them, as the room's refit hands them over.

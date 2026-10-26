@@ -317,8 +317,9 @@ once time and place are established.
   hearing the comms log"). In S11 the plasma takes the channel: the picture breaks into the
   recording screen's static, the waveform flattens, and CARAVEL's and MORROW's channels drop out
   one at a time. S12, the two trails, plays in silence: an image no recording made. Then S13 cuts
-  back to the log. The survivors and the pirates are still on the channel, and the log ends on
-  **END OF RECORDING**, not on a held frame.
+  back to the log. The survivors and the pirates are still on the channel; the terminal weighs the
+  event as a local matter, stamps it **NOT ESCALATED**, archives it, sweeps on to other systems and
+  shuts down, not on a held frame.
 - **When it plays (owner, 2026-10-20): when the player arrives at Asharu,** before the Salvage
   Rights briefing. It sets the scene. Vale's "three cycles back, two fleets fought it out in low
   orbit" then confirms something the player has already seen, rather than introducing it.
@@ -465,7 +466,7 @@ About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of
 
 | Shot | Length | Picture | Ships seen closest | Camera | Camera move |
 |---|---|---|---|---|---|
-| S0 | 10 s | **The recording.** Black, then the playback screen: source, timestamp, place, the channels lighting as each speaks, a waveform. The S1 traffic plays over it as audio only. On the escort lead's "close up the column", cut to picture. | (none) | (a screen, not a camera) | **Timed 2D layout** (`asharu_preview.recording_screen`): black, the screen fading in from 0.8 s, the CARAVEL channel lit 1.8-6.4 s and WARDEN LEAD 6.9-9.7 s with the waveform following the voice, then the cut to picture at 10 s. |
+| S0 | 31 s (-21 to 10) | **The recording, on a Hegemony security traffic terminal.** A CRT boot to the Hegemony crest, then a staged drill-down: the sector's tracked fleets, Corvus with its holders and local traffic, then the flagged contact CV-2215 at Asharu, where the convoy channel is tapped. The S1 traffic plays over it as audio only. From 8.7 s the camera pushes into the optic, the 2D layout of the convoy over Asharu, and on the escort lead's "close up the column" it cuts to picture. The pre-roll runs in negative time, so nothing after S0 moves. | (none) | (a screen, not a camera) | **Timed 2D plate** (`recording_plate.py s0`, frames numbered from the shot start: local 504 is t = 0): boot -20.6 to -11.4 s, sector to -6.15, Corvus to -1.6, the event page from -1.45, the CARAVEL channel lit 1.8-6.4 s and WARDEN LEAD 6.9-9.7 s, then the cut to picture at 10 s. |
 | S1a **K** | 6 s | **The view the player knows** (owner, 2026-10-21). The first picture after the recording looks straight down on the convoy, prograde up the frame: the ships small against the desert far below, the way the player has always seen them. Then the camera tips down and pulls into 3D for S1. | the core convoy, from above | 100 mm, straight down from 11 km | **THE SATELLITE OPTIC** (owner, 2026-10-26: "start out and focus in like how a satellite works"; no zoom out, no panning): straight down from 11 km, prograde up, held over the convoy's core and never moving or turning. Wide on the convoy small on the desert (24 mm), then stepping in (60, 150, 300 mm), the focus hunting at each step and snapping sharp. Then a cut to S1. |
 | S1 **K** | 8 s | Establishing: the convoy in loose column over the day side, the limb high in frame, the desert sliding beneath. Ordinary work. | the whole convoy, small | 35 mm, high off the north flank | **ONE TAKE WITH S2** (owner, 2026-10-26: no zoom after S1a's; "the same camera"; "move the camera in the scene, not jump"): a still observer 2.5 km off the north flank on one 45 mm lens opens up on the limb, the column low in frame, and tilts down onto the Colossus and Morrow; from 18 s it travels in along its line of sight toward her port bow. No zoom, no shake. |
 | S2 | 6 s | Alongside the Colossus. Morrow rides off her starboard quarter; a Lasher slides through the foreground. | Colossus, Morrow, Lasher | 28 mm, tracking alongside at 300 m | **S1's take, continued**: the camera arriving off her port bow (800 m at the cut) carries its speed over it and settles alongside at about 520 m as Lasher A crosses in front of her; Morrow beyond her quarter. 45 mm, no zoom. |
@@ -483,7 +484,7 @@ About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of
 | S10 **K** | 8 s | The prize taken: the Tarsus clamped to the Colossus Mk.III; far below, the Colossus nose-down and losing her orbit, Morrow with her. | Falcon (P), Colossus Mk.III, Tarsus; Colossus and Morrow below | 35 mm, behind and above | **ZOOM OUT to scale:** long on the clamped prize (85 mm), widening and tilting down to the Colossus falling away (24 mm). |
 | S11 | 8 s | Entry: from just behind, plasma builds round both hulls; Morrow drifts apart from her. The radio breaks up, the picture breaks into the recording screen's static, the channels drop out, and END OF RECORDING. | Colossus, Morrow | 50 mm, chase | **Chase:** just behind and above the Colossus, closing a little and shaking harder as the plasma builds (42 to 38 mm), framed to keep Morrow as she drifts apart. From 124.5 s the picture breaks into the recording screen's static, and CARAVEL's and MORROW's channels drop out. END OF RECORDING is in S13, back on the log. Blocked for the preview only (`m11`). Entry plasma is **new effects work**: the preview draws it as a sheath cone from each bow, building from 118 to 124 s. |
 | S12 **K** | 12 s | **The wreckfall.** After the recording breaks up, in silence: the Colossus and Morrow come down belly first, tilted back as if still trying to climb, each burning in plasma shaped by her own hull (`swfx_entry.sheath`): hot on the front and belly, flames peeling off the windward edges into a smoke wake. Around them, thin and behind, four burning chunks and ten faint streaks of the ships the battle lost. Look passed (owner, 2026-10-22, close still 9: "this would work enough for me. Not perfect but passable"). | colossus, morrow, the wreckfall | 50 mm at the key, from the pirates' orbit | **Tracking push-in:** rides down with the Colossus, 40 mm to the plate's 50 mm at the key, on to 85 mm holding both hulls. **Then the pull-back** (owner, 2026-10-26): from 134 s the observer holds where its ride down left it and zooms back out (85 to 18 mm) to the wider planet, the two trails falling into it, before the log returns at 138 s. |
-| S13 | 13 s | **Back on the log.** The recording screen again, with CARAVEL's and MORROW's channels dark. The survivors call each other; Warden gives up on Caravel and the Morrow and reads the pirates as content with what they caught (owner, 2026-10-22: no pirate sign-off), and the log ends on END OF RECORDING. | (none) | (a screen, not a camera) | **Timed 2D layout** (`asharu_preview.recording_screen`, mode `close`), synced to `radio_log.CLOSING`. |
+| S13 | 24.5 s (138 to 162.5) | **Back on the log.** The terminal again, with CARAVEL's and MORROW's channels dark. The survivors call each other; Warden gives up on Caravel and the Morrow and reads the pirates as content with what they caught (owner, 2026-10-22: no pirate sign-off). It opens inside the optic and pulls back out to the whole screen (138.25-139.4 s); the optic keeps the fight's remains: the wrecks marked where they died with debris falling to the limb, CARAVEL TWO among the pirates, and CARAVEL and MORROW arcing down over the limb, their tracks projected to a crash site. The terminal weighs it local, with no outside faction, and stamps it NOT ESCALATED; it pulls back to Corvus, where the patrol route is redrawn with Asharu left outside it, archives the event on the sector view, sweeps on to other systems, and shuts down to a CRT tune-out. | (none) | (a screen, not a camera) | **Timed 2D plate** (`recording_plate.py s13`), synced to `radio_log.CLOSING`: NOT ESCALATED from about 145.5 s, Corvus 149.15, sector 152.75, ARCHIVED 153.4, the crest back 157.7, tune-out 161.0-161.9. |
 
 ## Radio traffic (draft)
 
@@ -522,7 +523,13 @@ Rules:
   ship, is CARAVEL, and its freighters are numbered. Its escorts are WARDENs, with the lead Lasher as
   WARDEN LEAD. Morrow keeps her own name, because the player later reads it on her name plate. The
   pirates have handles: BARON (the Falcon (P)), HOOK (the Colossus Mk.III), LATCH (the boarding Kite),
-  ANVIL, KNIFE, CUR, SACK. Hull classes appear only in the preview's legend. `radio_log.py` holds the
+  ANVIL, KNIFE, CUR, SACK. A caption leads with the callsign under the registry prefix the game gives
+  its faction's ships (ISS for the independent convoy; none for the pirates, who fly unregistered),
+  then the hull's game designation as a small role word, never the hull name: ISS CARAVEL, Heavy
+  Freighter; ISS WARDEN LEAD, Frigate; ISS MORROW, Drone Tender; BARON, Light Cruiser; HOOK, Modified
+  Freighter (owner, 2026-10-26; `radio_log.caption`). The terminal uses the same registry (ISS
+  CARAVEL, HSS JANGALA-2, UNREGISTERED for the pirates); its channel list keeps the bare callsigns
+  heard on air. `radio_log.py` holds the
   cast, every timed line (`TRAFFIC`), and the strings.json key for each line
   (`asharuRadio<Shot>_<n>`). Those keys are not in strings.json yet, because the cinematic is not
   wired into the game.
@@ -587,7 +594,7 @@ Rules:
 | S13 | 139.2-142.4 | CARAVEL FOUR | All Caravel ships, Caravel Four. Who is still with me? |
 | S13 | 143.0-145.4 | WARDEN THREE | Warden Three. Still here. The column is scattered. |
 | S13 | 145.9-148.6 | WARDEN THREE | Nothing from Caravel or the Morrow. ... They're not chasing. Looks like they're happy with what they caught. |
-| S13 | 149.6 | | END OF RECORDING |
+| S13 | ~145.5 / 153.4 | | NOT ESCALATED; ARCHIVED |
 
 Open for the owner:
 - Morrow's "Staying with you" makes her going down with the Colossus a choice. The plan
@@ -607,8 +614,8 @@ The recording screen (S0) states where and when, before anything is seen:
   date of the player's arrival minus three cycles, written in the game's own date format, so it
   is right in every save.
 - **The channels:** one row per speaker by callsign (CARAVEL, WARDEN LEAD, MORROW and the rest), lighting
-  as each speaks. The caption tags in the picture use the same names, so the screen teaches the
-  cast before the picture starts.
+  as each speaks. The caption tags in the picture lead with the same names (with the registry prefix
+  and designation after them), so the screen teaches the cast before the picture starts.
 
 The earlier plain place card, kept for reference:
 

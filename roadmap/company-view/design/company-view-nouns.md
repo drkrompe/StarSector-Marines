@@ -122,11 +122,12 @@ shared mapping instead of assigning paths independently in each screen.
   with are spares like any other: they come off into stores, cost a small bill to
   build, and go back on from there. A part fitted to a lost or left-behind boat
   goes with her.
-- **Required part** — a slot a boat cannot fly without: plating, drive, cabin and
-  power, as a mech needs its engine and capacitor bank. Any socket can stand empty;
+- **Required part** — a slot a boat cannot fly without: drive, cabin and power,
+  as a mech needs its engine and capacitor bank. Any socket can stand empty;
   a boat missing a required part warns on the doll (a red socket with the warning
   mark) and stays off the lift until one is fitted (`CampaignBoat.missingParts`).
-  An empty lift is the bare hold, an empty emitter flies her unshielded, and a bare
+  Empty plating flies her as a weak bare hull (60% of her stock hull), an empty
+  lift is the bare hold, an empty emitter flies her unshielded, and a bare
   hardpoint carries no gun. A briefing whose drop needs lift refuses to deploy with
   no flight-ready boat, and says which part is missing; a mission that starts on
   secured ground needs none.
