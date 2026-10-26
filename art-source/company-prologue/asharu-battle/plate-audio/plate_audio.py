@@ -101,10 +101,10 @@ OPTIONS["stamp"] = {
     "C": ("Printed: a fast run of the text ticks and a low tone", "print"),
     "D": ("A neutral low double beep", "lowbeep"),
     "E": ("The route's data patter, short", "patter")}
-# the owner's picks (sound review, rounds one and two), and round three's best guesses
+# the owner's picks (sound review, rounds one to three)
 CHOICE = {"crt_on": "C", "crt_off": "A", "text": "C", "transition": "A",
-          "answer": "B", "ping": "C", "radio": "D", "stamp": "B"}
-REVIEW = ("answer", "stamp")                       # the families the review page asks about this round
+          "answer": "C", "ping": "C", "radio": "D", "stamp": "D"}
+REVIEW = ()                                        # the families the review page asks about this round: none
 
 # every level, in dB, in one place: the mix is judged and turned here
 # (beds and synthesised sounds by RMS; the set's switching sounds, all transient, by peak)
