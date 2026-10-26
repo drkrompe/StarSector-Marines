@@ -65,6 +65,7 @@ import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ops.detachment.DebugCompanyStage;
 import com.dillon.starsectormarines.ops.detachment.PlayerFleetPowerSources;
 import com.dillon.starsectormarines.battle.power.CommandPower;
+import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.ui.ButtonWidget;
@@ -73,6 +74,7 @@ import com.dillon.starsectormarines.ui.LabelWidget;
 import com.dillon.starsectormarines.ui.SpriteThumbWidget;
 import com.dillon.starsectormarines.ui.WidgetRoot;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
@@ -240,6 +242,10 @@ public class BriefingScreen implements Screen {
     private UiDocument document;
     private SpecSheetBinder hints;
     private MarkupInstance markupInstance;
+    /** The lit lift warnings, breathing on {@link #warnClock}. */
+    private List<UiElement> litWarnings = List.of();
+    /** Wall-clock seconds for the warning pulse; wraps hourly so it never loses float precision. */
+    private float warnClock;
     private StarsectorUiInputAdapter input;
 
     private String lastSelectedMissionId;
@@ -279,13 +285,7 @@ public class BriefingScreen implements Screen {
     /** The four bay slots once the player has edited them; null while the preset's own roster stands. */
     private DebugBaySlot[] debugBay;
 
-    /**
-     * Indices into {@link #cachedCarriers} the player has deselected for the
-     * current mission's fighter cover. Default empty = all carriers committed.
-     * Reset when the mission changes.
-     */
-    private final java.util.Set<Integer> deselectedCarriers = new java.util.HashSet<>();
-    /** Snapshot of {@link PlayerFleetWings#committableCarriers()} taken per {@link #rebuild()}, so toggle indices stay stable across a layout. */
+    /** Snapshot of {@link PlayerFleetWings#committableCarriers()} taken per {@link #rebuild()}; every one flies. */
     private List<PlayerFleetWings.CarrierBay> cachedCarriers = java.util.Collections.emptyList();
     /** Stable fleet-member ids held back as command-power sources. */
     private final java.util.Set<String> deselectedPowerSources = new java.util.HashSet<>();
@@ -354,7 +354,6 @@ public class BriefingScreen implements Screen {
                     : m.battleSeed != null ? m.battleSeed : System.currentTimeMillis();
             lastSelectedMissionId = m.id;
             debugDrawerExpanded = false;
-            deselectedCarriers.clear();
             deselectedPowerSources.clear();
             selectedPowerIds.clear();
             commandDeckInitialized = false;
@@ -417,6 +416,7 @@ public class BriefingScreen implements Screen {
             wireDebugBayPictures(built, candidate, props);
             BriefingSurvey.install(built, candidate, props);
             BriefingLift.install(built, candidate, props);
+            BriefingAir.install(built, candidate, props);
             BriefingViewModel.installMusters(built, candidate, props);
             if (viewport != null) built.layout(
                     viewport.documentWidth(), viewport.documentHeight());
@@ -430,6 +430,7 @@ public class BriefingScreen implements Screen {
         document = built;
         secondSquadGuide = PreparationGuide.install(built, this::campaignLesson, this::onBack);
         markupInstance = candidate;
+        litWarnings = BriefingLift.litWarnings(candidate, props);
         narration.update(candidate);
         hints = candidateHints;
         if (previousDocument != null) previousDocument.deactivateInput();
@@ -491,8 +492,7 @@ public class BriefingScreen implements Screen {
             if (handoff != null) return handoff;
         }
         PreparationGuide.Lesson preparation = CampaignLessons.briefing(ctx.getSelectedMission(), roster,
-                ctx.getSelectedMarineSquadIds(), cachedAvailablePowers.stream().anyMatch(p -> MechSupport.ID.equals(p.id)),
-                selectedPowerIds.contains(MechSupport.ID));
+                ctx.getSelectedMarineSquadIds(), cachedAvailablePowers.stream().anyMatch(p -> MechSupport.ID.equals(p.id)));
         if (preparation != null) return preparation;
         return SecondSquadPreparation.lesson(ctx.getSelectedMission(), roster,
                 new CampaignSquadFoundingResources(), replaySecondSquadGuide, () -> {
@@ -575,7 +575,7 @@ public class BriefingScreen implements Screen {
         int used = CommandDeck.used(cachedAvailablePowers, selectedPowerIds);
         props.put("commandSummary", Strings.format("briefingUiCommandSlots", used, CommandDeck.BUDGET));
         props.put("powerRows", retainedPowerRows());
-        props.put("powerEmpty", cachedAvailablePowers.isEmpty()
+        props.put("powerEmpty", cachedAvailablePowers.stream().allMatch(CommandDeck::implied)
                 ? Strings.get("briefingUiNoPowers") : "");
         props.put("sourceRows", retainedSourceRows());
         props.put("sourceEmpty", cachedPowerSources.isEmpty()
@@ -595,7 +595,7 @@ public class BriefingScreen implements Screen {
                     List.of(repairingLift, Strings.get("boatRepairCopy"))));
         }
         BriefingLift.put(props, liftReadout(mission));
-        props.put("carrierRows", retainedCarrierRows());
+        BriefingAir.put(props, BriefingAir.read(cachedCarriers, cachedAvailablePowers, gunshipShips()));
         props.put("employerRows", retainedEmployerRows(mission));
         putRetainedActions(props, mission, readiness);
         props.put("preparationClasses", SecondSquadPreparation.relevant(mission, liveRoster()) ? "mission-preparation" : "briefing-assign-hidden");
@@ -1113,6 +1113,8 @@ public class BriefingScreen implements Screen {
         List<BriefingViewModel.ChoiceRow> rows = new ArrayList<>();
         for (int i = 0; i < cachedAvailablePowers.size(); i++) {
             CommandPower power = cachedAvailablePowers.get(i);
+            // The armor drop rides with the bay; the lift row and the field inset show it.
+            if (CommandDeck.implied(power)) continue;
             boolean selected = selectedPowerIds.contains(power.id);
             boolean canAdd = CommandDeck.canAdd(cachedAvailablePowers, selectedPowerIds, power);
             int weight = CommandDeck.weight(power);
@@ -1154,25 +1156,6 @@ public class BriefingScreen implements Screen {
 
     private void togglePowerSource(String memberId) {
         if (!deselectedPowerSources.remove(memberId)) deselectedPowerSources.add(memberId);
-        rebuild();
-    }
-
-    private List<BriefingViewModel.ChoiceRow> retainedCarrierRows() {
-        List<BriefingViewModel.ChoiceRow> rows = new ArrayList<>();
-        for (int i = 0; i < cachedCarriers.size(); i++) {
-            final int index = i;
-            PlayerFleetWings.CarrierBay carrier = cachedCarriers.get(i);
-            boolean committed = !deselectedCarriers.contains(i);
-            rows.add(new BriefingViewModel.ChoiceRow("briefing-carrier-" + i,
-                    "choice-row" + (committed ? " selected" : ""), carrier.shipName,
-                    Strings.format("briefingUiCarrierBays", carrier.bayCount()),
-                    false, () -> toggleCarrier(index), carrier.spriteName));
-        }
-        return List.copyOf(rows);
-    }
-
-    private void toggleCarrier(int index) {
-        if (!deselectedCarriers.remove(index)) deselectedCarriers.add(index);
         rebuild();
     }
 
@@ -1272,10 +1255,12 @@ public class BriefingScreen implements Screen {
         boolean canAccept = transportOk && personnelOk && commandOk;
         MarineRoster roster = liveRoster();
         int shortfall = readiness != null ? readiness.companyShortfall() : 0;
+        // A refill fills only the line squads' open billets; more marines than that need a new squad.
+        int fillable = roster != null ? Math.min(shortfall, roster.lineVacancies()) : 0;
         int reserve = roster != null ? roster.readyReserveCount() : 0;
         int cargo = MarinePersonnelLogistics.availableCargoMarines();
-        int reinforcement = Math.min(shortfall, reserve + cargo);
-        int cargoCost = Math.max(0, reinforcement - Math.min(shortfall, reserve));
+        int reinforcement = Math.min(fillable, reserve + cargo);
+        int cargoCost = Math.max(0, reinforcement - Math.min(fillable, reserve));
         boolean canReinforce = transportOk && commandOk && readiness != null
                 && readiness.needsPersonnel() && reinforcement > 0;
 
@@ -1286,7 +1271,7 @@ public class BriefingScreen implements Screen {
                 : (Runnable) this::openSquadDeployment);
 
         Runnable deployAction = canAccept ? this::onAccept
-                : canReinforce ? () -> reinforce(roster, shortfall)
+                : canReinforce ? () -> reinforce(roster, fillable)
                 : !transportOk || !commandOk || readiness == null ? () -> { }
                 : readiness.needsPersonnel() ? () -> { }
                 : this::openSquadDeployment;
@@ -1296,6 +1281,7 @@ public class BriefingScreen implements Screen {
                 : !routeReady ? Strings.upper(Strings.get("briefingUiAssignTwoSquads"))
                 : readiness != null && readiness.needsPersonnel()
                         ? canReinforce ? Strings.upper(Strings.format("briefingUiReinforceCargo", reinforcement, cargoCost))
+                                : fillable == 0 ? Strings.upper(Strings.format("briefingUiNeedSquad", shortfall))
                                 : Strings.upper(Strings.format("briefingUiNeedNoMarines", shortfall))
                         : readiness != null ? Strings.upper(Strings.format("briefingUiAssignShortfall", readiness.selectedShortfall()))
                         : Strings.upper(Strings.get("briefingUiBlocked"));
@@ -1698,29 +1684,16 @@ public class BriefingScreen implements Screen {
             y -= ROW_GAP;
         }
 
-        // Fighter cover — one opt-in toggle per committable carrier.
+        // Fighter cover — every carrier aboard flies; nothing to toggle.
         if (!cachedCarriers.isEmpty() && y >= floor) {
             widgets.add(new LabelWidget(Fonts.ORBITRON_20, Strings.get("briefingFighterCover"), x, y, LABEL_COLOR));
             y -= ROW_GAP;
-            for (int i = 0; i < cachedCarriers.size(); i++) {
+            for (PlayerFleetWings.CarrierBay carrier : cachedCarriers) {
                 if (y < floor) return;
-                final int idx = i;
-                PlayerFleetWings.CarrierBay carrier = cachedCarriers.get(i);
-                boolean committed = !deselectedCarriers.contains(idx);
-                String marker = committed ? "[x]" : "[ ]";
-                String rowLabel = marker + " " + carrier.shipName
-                        + " (" + carrier.bayCount() + (carrier.bayCount() == 1 ? " bay" : " bays") + ")"
-                        + (committed ? "" : " — held back");
-                Color rowColor = committed ? VALUE_COLOR : LABEL_COLOR;
-                ButtonWidget toggle = new ButtonWidget(x, y - BTN_H + 6f, rowW, BTN_H,
-                        () -> {
-                            if (deselectedCarriers.contains(idx)) deselectedCarriers.remove(idx);
-                            else deselectedCarriers.add(idx);
-                            rebuild();
-                        });
-                widgets.add(toggle);
+                String rowLabel = carrier.shipName
+                        + " (" + carrier.bayCount() + (carrier.bayCount() == 1 ? " bay" : " bays") + ")";
                 widgets.add(new SpriteThumbWidget(carrier.spriteName, x, y - 20f, THUMB, THUMB));
-                widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel, x + THUMB + 10f, y, rowColor));
+                widgets.add(new LabelWidget(Fonts.ORBITRON_20, rowLabel, x + THUMB + 10f, y, VALUE_COLOR));
                 y -= ROW_GAP;
             }
         }
@@ -1773,6 +1746,7 @@ public class BriefingScreen implements Screen {
 
         for (CommandPower power : cachedAvailablePowers) {
             if (y < floor) return y;
+            if (CommandDeck.implied(power)) continue;
             boolean selected = selectedPowerIds.contains(power.id);
             boolean canAdd = CommandDeck.canAdd(cachedAvailablePowers, selectedPowerIds, power);
             Runnable toggle = selected || canAdd ? () -> {
@@ -1827,13 +1801,15 @@ public class BriefingScreen implements Screen {
         boolean canAccept = transportOk && personnelOk && commandOk && !inductionRequired;
         MarineRoster personnelRoster = liveRoster();
         int personnelShortfall = readiness != null ? readiness.companyShortfall() : 0;
+        int personnelFillable = personnelRoster != null
+                ? Math.min(personnelShortfall, personnelRoster.lineVacancies()) : 0;
         int reserveAvailable = personnelRoster != null
                 ? personnelRoster.readyReserveCount() : 0;
         int cargoAvailable = MarinePersonnelLogistics.availableCargoMarines();
-        int reinforcementAvailable = Math.min(personnelShortfall,
+        int reinforcementAvailable = Math.min(personnelFillable,
                 reserveAvailable + cargoAvailable);
         int cargoCost = Math.max(0, reinforcementAvailable
-                - Math.min(personnelShortfall, reserveAvailable));
+                - Math.min(personnelFillable, reserveAvailable));
         boolean canReinforce = transportOk && commandOk && readiness != null
                 && readiness.needsPersonnel() && reinforcementAvailable > 0;
 
@@ -1858,7 +1834,7 @@ public class BriefingScreen implements Screen {
                 : readiness.needsPersonnel()
                         ? canReinforce ? () -> {
                             MarinePersonnelLogistics.fillLineShortfall(
-                                    personnelRoster, personnelShortfall);
+                                    personnelRoster, personnelFillable);
                             rebuild();
                         } : null
                         : this::openSquadDeployment;
@@ -1881,6 +1857,8 @@ public class BriefingScreen implements Screen {
                                 ? reinforcementAvailable > 0
                                         ? "Reinforce +" + reinforcementAvailable
                                                 + " · " + cargoCost + " cargo"
+                                        : personnelFillable == 0
+                                                ? Strings.format("briefingUiNeedSquad", personnelShortfall)
                                         : "Need " + personnelShortfall + " · No marines"
                                 : "Assign " + readiness.selectedShortfall(),
                 deployX + INNER_PAD + (showMarineCommodity ? 24f : 0f),
@@ -1921,7 +1899,7 @@ public class BriefingScreen implements Screen {
             }
         }
         int berths = mission.source.isDebug() ? lift().size() : ShipsBoatsAboard.berths();
-        return BriefingLift.read(lift(), berths, cachedAvailablePowers, selectedPowerIds, mechs, vehicles, heldBack);
+        return BriefingLift.read(lift(), berths, cachedAvailablePowers, mechs, vehicles, heldBack);
     }
 
     private static MarineRoster liveRoster() {
@@ -2025,13 +2003,19 @@ public class BriefingScreen implements Screen {
                 ctx.getSelectedCaptain(), ctx.getSelectedMarineSquadIds());
     }
 
-    /** Currently-committed carriers — {@link #cachedCarriers} minus the deselected. */
-    private List<PlayerFleetWings.CarrierBay> committedCarriers() {
-        List<PlayerFleetWings.CarrierBay> out = new java.util.ArrayList<>();
-        for (int i = 0; i < cachedCarriers.size(); i++) {
-            if (!deselectedCarriers.contains(i)) out.add(cachedCarriers.get(i));
+    /** Committed fleet ships whose presence brings close air support: each is one gunship over the field. */
+    private List<String> gunshipShips() {
+        List<String> out = new ArrayList<>();
+        for (PlayerFleetPowerSources.SourceShip source : cachedPowerSources) {
+            if (deselectedPowerSources.contains(source.memberId)) continue;
+            if (source.powers.stream().anyMatch(p -> CloseAirSupport.ID.equals(p.id))) out.add(source.shipName);
         }
         return out;
+    }
+
+    /** The carriers that fly: every one aboard. */
+    private List<PlayerFleetWings.CarrierBay> committedCarriers() {
+        return cachedCarriers;
     }
 
     /** Marine-side fighter cover from the committed carriers (player side only). */
@@ -2728,6 +2712,8 @@ public class BriefingScreen implements Screen {
             installDocument();
         }
         if (markupInstance != null) markupInstance.flush();
+        if (Float.isFinite(dt) && dt > 0f) warnClock = (warnClock + dt) % 3600f;
+        BriefingLift.pulse(litWarnings, warnClock);
         if (document != null) document.advance(dt);
         if (hints != null) hints.update();
         if (secondSquadGuide != null) secondSquadGuide.update();

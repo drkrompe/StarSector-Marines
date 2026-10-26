@@ -23,7 +23,8 @@ final class BriefingHints {
                         ? Strings.get("briefingUiHintCaptainStationed") : Strings.get("briefingUiHintCaptainCommander"));
         bindChoices(binder, markup, props, "powerRows", Strings.get("briefingUiHintCommandPower"));
         bindChoices(binder, markup, props, "sourceRows", Strings.get("briefingUiHintPowerSource"));
-        bindChoices(binder, markup, props, "carrierRows", Strings.get("briefingUiHintFighterCover"));
+        BriefingAir.bindHints(binder, markup, props);
+        binder.bind(markup.requireElement("mission-survey"), surveyHint(props));
         for (BriefingViewModel.SquadPicture squad : BriefingViewModel.fieldSquads(props)) {
             binder.bind(markup.requireElement(squad.id()), squad.hint());
         }
@@ -77,5 +78,18 @@ final class BriefingHints {
             binder.bind(markup.requireElement(row.id()), new SpecSheet(base.title(), base.subtitle(),
                     base.crestPath(), base.accent(), base.stats(), notes));
         }
+    }
+
+    /** The survey's words, off the page: its legend, lanes, each objective and its caveat. */
+    static SpecSheet surveyHint(Map<String, Object> props) {
+        List<String> notes = new ArrayList<>();
+        notes.add(Strings.get("briefingSurveyLegend"));
+        if (props.get("surveyDetails") instanceof String details && !details.isBlank()) notes.add(details);
+        for (Object row : (List<?>) props.getOrDefault("surveyObjectives", List.of())) {
+            notes.add(((BriefingViewModel.InfoRow) row).value());
+        }
+        notes.add(Strings.get("briefingSurveyFooter"));
+        return new SpecSheet(Strings.get("briefingSurveyHeading"), String.valueOf(props.getOrDefault("surveyStatus", "")),
+                null, "command", List.of(), notes);
     }
 }

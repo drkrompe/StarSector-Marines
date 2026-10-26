@@ -15,9 +15,9 @@ import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
+import com.dillon.starsectormarines.battle.flyby.PlayerFleetWings;
 import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.CommandPower;
-import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
@@ -45,6 +45,7 @@ final class BriefingViewModel {
         BriefingLift.put(props, null);
         props.put("fieldSquads", List.of());
         props.put("fieldTiles", List.of());
+        props.put("airCraft", List.of());
         props.put("forceSelectedClasses", "label heading tone-edge");
         props.put("prepareReplay", (Runnable) () -> { });
         props.put("prepareArmory", (Runnable) () -> { });
@@ -171,17 +172,19 @@ final class BriefingViewModel {
                 : List.of(forceCard("tf-1", "Lieutenant Sabine Hale", "1 squad · 12 marines",
                         "graphics/portraits/portrait_mercenary01.png", "").asOperationCommander()
                         .withSquads(previewSquads("tf-1", 1))));
-        props.put("commandSummary", "5 / 5 slots");
+        props.put("commandSummary", "3 / 5 slots");
         props.put("powerRows", List.of(
-                previewPower("power-barrage", new OrbitalBarrage(), true, false, none),
-                previewPower("power-mech", new MechSupport(), true, false, none),
-                previewPower("power-air", new CloseAirSupport(), false, true, none)));
+                previewPower("power-barrage", new OrbitalBarrage(), true, false, none)));
         props.put("powerEmpty", "");
         props.put("sourceRows", List.of(new ChoiceRow("source-siege", "choice-row selected",
-                "HSS Siege of Raesvelg", "Mech Support · Orbital Barrage", false, none, "graphics/ships/onslaught/onslaught_base.png")));
+                "HSS Siege of Raesvelg", "Orbital Barrage", false, none, "graphics/ships/onslaught/onslaught_base.png")));
         props.put("sourceEmpty", "");
         putPreviewLandingCraft(props, conquest, true);
-        props.put("carrierRows", List.of());
+        BriefingAir.put(props, BriefingAir.read(List.of(
+                new PlayerFleetWings.CarrierBay("HSS Kestrel's Due", null,
+                        List.of(FighterProfile.TALON, FighterProfile.TALON, FighterProfile.BROADSWORD)),
+                new PlayerFleetWings.CarrierBay("HSS Ordinance", null, List.of(FighterProfile.WASP))),
+                List.of(new CloseAirSupport()), List.of("HSS Mudlark")));
         props.put("employerRows", List.of(
                 info("employer-transport", "Landing craft", "Overridden by DEBUG picker", ""),
                 info("employer-air", "Allied air", late ? "3x Thunder · 2x Dagger" : "None", "")));
@@ -491,7 +494,7 @@ final class BriefingViewModel {
         int termRows = ((List<?>) props.getOrDefault("termActions", List.of())).size();
         props.put("termActionsStyle", termRows == 0
                 ? "height: 0px; overflow: hidden" : "height: " + Math.max(100, termRows * 44 + 12) + "px");
-        boolean hasCarriers = !((List<?>) props.getOrDefault("carrierRows", List.of())).isEmpty();
+        boolean hasCarriers = !((List<?>) props.getOrDefault("airCraft", List.of())).isEmpty();
         props.put("carrierEmpty", hasCarriers ? "" : Strings.get("briefingVmNoFighterCover"));
         props.put("carrierEmptyStyle", hasCarriers ? "height: 0px; padding: 0px;" : "height: 20px;");
         boolean hasForceCards = !((List<?>) props.getOrDefault("taskForceRows", List.of())).isEmpty();

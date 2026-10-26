@@ -12,14 +12,15 @@ import com.dillon.starsectormarines.battle.power.LiftBudget;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.battleview.DamageDollCanvas;
+import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.spec.SpecSheet;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -39,10 +40,8 @@ public final class BriefingLift {
 
     /** Whether one machine can come down this mission, and if not, why. */
     public enum Status {
-        /** A drop call is selected and lift admits it. */
+        /** The mission resolved a drop and lift admits it. */
         DROPS(true),
-        /** Lift admits it, but the drop call that would bring it is not on the command deck. */
-        NOT_CALLED(false),
         /** No carrier this mission lifts a machine of its class. */
         NO_LIFT(false),
         /** Carriers that could lift it spend their lift on machines ahead of it. */
@@ -60,7 +59,7 @@ public final class BriefingLift {
     }
 
     /** One bay machine and its verdict. */
-    public record Machine(ArmorLoad load, String name, Status status, String powerName) {
+    public record Machine(ArmorLoad load, String name, Status status) {
 
         public String liftName() {
             return LiftReadout.ratingName(LiftRating.of(load.liftClass()));
@@ -93,12 +92,11 @@ public final class BriefingLift {
      * @param boats    the company boats committed (every boat aboard)
      * @param berths   boat berths the company ship has, flown or not
      * @param powers   the powers this mission resolved
-     * @param selected ids of the powers on the command deck
      * @param mechs    the active lance as it would launch
      * @param vehicles the bay's vehicles
      * @param heldBack the lance's mechs left out of the manifest
      */
-    public static Readout read(List<FittedBoat> boats, int berths, List<CommandPower> powers, Collection<String> selected,
+    public static Readout read(List<FittedBoat> boats, int berths, List<CommandPower> powers,
                                List<MechDeploymentSpec> mechs, List<VehicleDeploymentSpec> vehicles,
                                List<MechDeploymentSpec> heldBack) {
         List<FittedBoat> fleet = boats == null ? List.of() : boats;
@@ -117,7 +115,6 @@ public final class BriefingLift {
         if (powers != null) {
             for (CommandPower power : powers) {
                 if (!(power instanceof ArmorDropPower drop)) continue;
-                boolean called = selected != null && selected.contains(power.id);
                 if (companyCarrier == null) companyCarrier = drop.companyCarrier();
                 missionLift |= drop.syntheticLift();
                 // The same budget the power builds, spent in the order the bay lists its machines.
@@ -133,9 +130,9 @@ public final class BriefingLift {
                                 ? Status.LIFT_SPENT : Status.NO_LIFT;
                     } else {
                         budget.spend(carrier);
-                        status = called ? Status.DROPS : Status.NOT_CALLED;
+                        status = Status.DROPS;
                     }
-                    machines.add(new Machine(entry.load(), name(entry), status, power.displayName));
+                    machines.add(new Machine(entry.load(), name(entry), status));
                 }
             }
         }
@@ -153,7 +150,7 @@ public final class BriefingLift {
             for (MechDeploymentSpec mech : heldBack) {
                 if (mech == null) continue;
                 ArmorLoad load = ArmorLoad.of(mech);
-                machines.add(new Machine(load, name(load), Status.HELD_BACK, null));
+                machines.add(new Machine(load, name(load), Status.HELD_BACK));
             }
         }
         // What stays aboard comes first, so a full row never hides it; otherwise bay order.
@@ -165,7 +162,7 @@ public final class BriefingLift {
     }
 
     private static Machine uncalled(ArmorLoad load) {
-        return new Machine(load, name(load), Status.NO_DROP_CALL, null);
+        return new Machine(load, name(load), Status.NO_DROP_CALL);
     }
 
     private static String name(BayManifest.Entry entry) {
@@ -333,8 +330,40 @@ public final class BriefingLift {
             ArmorLoad load = card.machine().load();
             if (load.isVehicle()) view.readStock(load.vehicle().type());
             else view.readDeployment(load.mech());
-            document.canvases().set(markup.requireElement(card.id() + ":doll"), DamageDollCanvas.bare(view));
+            document.canvases().set(markup.requireElement(card.id() + ":doll"),
+                    DamageDollCanvas.bare(view, shortLabel(load)));
         }
+    }
+
+    /** The doll canvas's width in the field tile, which a short label must fit. */
+    private static final float DOLL_WIDTH = 124f;
+    /** One slow breath of a lit warning brick, in seconds. */
+    static final float WARN_PULSE_SECONDS = 2.4f;
+
+    /** What the machine is, in capitals over its doll: the chassis, or the vehicle type's last word when it will not fit. */
+    static String shortLabel(ArmorLoad load) {
+        String name = Strings.upper(load.isVehicle() ? typeName(load) : load.mech().variant().displayName());
+        if (Fonts.ORBITRON_10.measureWidth(name) <= DOLL_WIDTH - 6f) return name;
+        return name.substring(name.lastIndexOf(' ') + 1);
+    }
+
+    /** The warning bricks lit on this page: the ones {@link #pulse} breathes. */
+    static List<UiElement> litWarnings(MarkupInstance markup, Map<String, Object> props) {
+        List<UiElement> lit = new ArrayList<>();
+        for (Object value : (List<?>) props.getOrDefault("liftMachines", List.of())) {
+            Card card = (Card) value;
+            if (!card.machine().status().drops) lit.add(markup.requireElement(card.id() + ":warn"));
+        }
+        return List.copyOf(lit);
+    }
+
+    /** Breathes every lit warning brick between dim and full on one slow wall-clock cycle. */
+    static void pulse(List<UiElement> lit, float seconds) {
+        if (lit.isEmpty()) return;
+        float phase = (seconds % WARN_PULSE_SECONDS) / WARN_PULSE_SECONDS;
+        float opacity = .4f + .6f * (.5f + .5f * (float) Math.cos(phase * 2.0 * Math.PI));
+        String style = String.format(Locale.ROOT, "opacity: %.2f", opacity);
+        for (UiElement element : lit) element.style(style);
     }
 
     /** Hovers on each berth, the mission lift and each machine. */
@@ -375,7 +404,6 @@ public final class BriefingLift {
     static String statusLine(Machine machine) {
         return switch (machine.status()) {
             case DROPS -> Strings.get("briefingLiftDrops");
-            case NOT_CALLED -> Strings.format("briefingLiftNotCalled", Strings.upper(machine.powerName()));
             case NO_LIFT -> Strings.format("briefingLiftNoLift", Strings.upper(machine.liftName()));
             case LIFT_SPENT -> Strings.get("briefingLiftSpent");
             case NO_DROP_CALL -> Strings.get("briefingLiftNoDropCall");

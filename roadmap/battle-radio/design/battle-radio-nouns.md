@@ -106,11 +106,22 @@ has played that long. Each state has its own playlist with the no-repeat
 shuffle, retained across battles.
 
 **Tracks.** Combat plays the battle pool. A walk-in is never silent (owner):
-quiet and aftermath play the **quiet bed**, the strings take of the Second
-Wind arrival's own score (`marines_battle_quiet_strings`), cut to its
-sounding span and looped, so a long quiet phase never falls silent. It sits
-under the combat pool (music is encoded to one loudness) and a raise fades it
-out over its crossfade. A state with one track loops it; a state with several
+quiet and aftermath play the battle's **quiet bed** (`QuietBed`), looped so a
+long quiet phase never falls silent. A bed is a neutral, tense retro sci-fi
+synth loop in the combat pool's family (about 130 BPM around E minor), so the
+alarm's crossfade lands naturally (owner). A mission names its bed alongside
+its music state; one that names none gets the default. The four beds:
+
+- **Briefing drive**: a purposeful groove with a hinted theme, for a company
+  that walks in with a plan. The Dust Ledger's bed.
+- **Sequencer pulse**: cold, mechanical and the most neutral. The default.
+- **Frontier twang**: gritty outpost colour with a lonely guitar, for frontier
+  colonies, militia and dusty ground.
+- **Night ops**: dark, sparse and stealthy, for night raids and infiltration.
+
+They are generated takes cut to seamless 49-bar loops (`make_quiet_beds.py`
+in art-source keeps each request). A bed sits under the combat pool (music is
+encoded to one loudness) and a raise fades it out over its crossfade. A state with one track loops it; a state with several
 shuffles them. Until an alert bed is sourced (the owner's call), alert plays
 the combat files at reduced volume (the `_alert` sound sets). The Marine Ops
 theme, "Next Move" (`marines_intel_music`), is the menu's alone and never

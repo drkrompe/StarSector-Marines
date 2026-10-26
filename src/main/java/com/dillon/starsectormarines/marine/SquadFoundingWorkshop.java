@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import java.util.List;
 
-/** Atomic campaign authority for spending cargo and founding a complete line squad. */
+/** Atomic campaign authority for paying for and founding a complete line squad, anywhere. */
 public final class SquadFoundingWorkshop {
 
     private final MarineRoster roster;

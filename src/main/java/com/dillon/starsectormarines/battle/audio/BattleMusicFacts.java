@@ -13,13 +13,20 @@ public final class BattleMusicFacts {
     private BattleMusicFacts() { }
 
     public static BattleMusicDirector.Facts of(BattleSimulation sim) {
-        return new BattleMusicDirector.Facts(declared(sim), contact(sim.getShotsThisFrame()), sim.isComplete());
+        return new BattleMusicDirector.Facts(declared(sim), bed(sim), contact(sim.getShotsThisFrame()),
+                sim.isComplete());
     }
 
     /** The mission's declared music state, or {@code null} when it leaves the choice to the heat rule. */
     static MusicState declared(BattleSimulation sim) {
         DustLedgerSequence dustLedger = sim.getDustLedger();
         return dustLedger != null ? dustLedger.progress().musicState() : null;
+    }
+
+    /** The quiet bed the mission names, or {@code null} for the default. */
+    static QuietBed bed(BattleSimulation sim) {
+        DustLedgerSequence dustLedger = sim.getDustLedger();
+        return dustLedger != null ? dustLedger.progress().quietBed() : null;
     }
 
     /** True when the company's side fired, or someone hostile to it did: a civilian's shot is not contact. */

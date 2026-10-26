@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import com.dillon.starsectormarines.marine.SquadFoundingCost;
+import com.dillon.starsectormarines.marine.TestStores;
 import com.dillon.starsectormarines.marine.SquadFoundingResources;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
 import com.dillon.starsectormarines.marine.MarinePersonnelLogistics.PersonnelDrawResult;
@@ -36,13 +37,7 @@ class BarracksCommandModelTest {
         var roster = new MarineRoster();
         var lieutenant = new MarineCaptain("Hale", null, Rank.LIEUTENANT, 0f);
         roster.add(lieutenant);
-        int[] bills = {0};
-        SquadFoundingResources stores = new SquadFoundingResources() {
-            @Override public int available(String commodityId) { return 1_000; }
-            @Override public boolean spend(SquadFoundingCost cost) { bills[0]++; return true; }
-            @Override public String commodityName(String commodityId) { return commodityId; }
-            @Override public String commodityIcon(String commodityId) { return ""; }
-        };
+        TestStores stores = TestStores.forSquads(80);
         var model = new BarracksViewModel(new Reactor(), roster, () -> 1d, EquipmentIssueResources.UNLIMITED,
                 stores, () -> 0, id -> new PersonnelDrawResult(0, 0)).command();
         model.selectCommand(lieutenant.id());
@@ -52,7 +47,7 @@ class BarracksCommandModelTest {
         int squads = roster.squads().size();
         model.raiseSquad();
         assertEquals(squads, roster.squads().size(), "A full command raises nothing");
-        assertEquals(lieutenant.rank().squadCommandCap(), bills[0], "A refused raise pays no bill");
+        assertEquals(lieutenant.rank().squadCommandCap(), stores.spends, "A refused raise pays no bill");
         assertTrue(raiseTile(model).get("founderDisabled") instanceof Boolean b && b);
 
         var captain = new MarineCaptain("Vale", null, Rank.CAPTAIN, 0f);
@@ -72,12 +67,7 @@ class BarracksCommandModelTest {
         }
         roster.recruitToSquad(roster.reserveSquad().id(), 2);
         var model = new BarracksViewModel(new Reactor(), roster, () -> 1d, EquipmentIssueResources.UNLIMITED,
-                new SquadFoundingResources() {
-                    @Override public int available(String commodityId) { return 0; }
-                    @Override public boolean spend(SquadFoundingCost cost) { return false; }
-                    @Override public String commodityName(String commodityId) { return commodityId; }
-                    @Override public String commodityIcon(String commodityId) { return ""; }
-                }, () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0)).command();
+                new TestStores(), () -> 0, id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0)).command();
         model.fill(Set.of(squads.get(1).id()));
         assertEquals(1, roster.vacancies(squads.get(0)));
         assertEquals(0, roster.vacancies(squads.get(1)));

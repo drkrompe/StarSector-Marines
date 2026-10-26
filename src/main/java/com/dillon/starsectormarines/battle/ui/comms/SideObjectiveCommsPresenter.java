@@ -12,7 +12,8 @@ import java.util.Deque;
 import java.util.List;
 
 /**
- * Side-objective notices: the jobs on offer when the battle opens, then each one done, lapsed or failed. Jobs that
+ * Side-objective notices: the jobs on offer when the battle opens, each hidden job as it is found, then each one done,
+ * lapsed or failed (a hidden job never found passes in silence). Jobs that
  * change the same way on the same tick share one notice (the alarm lapses every quiet-phase job at once). Notices wait
  * for an idle plate rather than displacing mission warnings; the checklist row carries the same state, so a notice is
  * never the only record.
@@ -31,8 +32,8 @@ public final class SideObjectiveCommsPresenter {
         if (!offered) {
             offered = true;
             List<String> names = new ArrayList<>();
-            for (SideObjective job : service.jobs()) names.add(job.hook().name());
-            pending.add(new BattleCommsFeed.Notice(Strings.get("battleCommsSideOfferedTitle"),
+            for (SideObjective job : service.jobs()) if (job.known()) names.add(job.hook().name());
+            if (!names.isEmpty()) pending.add(new BattleCommsFeed.Notice(Strings.get("battleCommsSideOfferedTitle"),
                     Strings.format("battleCommsSideOfferedBody", Strings.join("separatorDot", names.toArray(String[]::new))),
                     BattleCommsFeed.Tone.STATUS, 7));
         }
@@ -48,12 +49,19 @@ public final class SideObjectiveCommsPresenter {
         List<Transition> changes = new ArrayList<>(transitions);
         for (int i = 0; i < changes.size(); i++) {
             Transition first = changes.get(i);
-            if (!first.state().isFinal() || first.tick() < 0) continue;
+            if (first.found()) {
+                SideObjective job = service.job(first.key());
+                out.add(new BattleCommsFeed.Notice(Strings.get("battleCommsSideFoundTitle"),
+                        Strings.format("battleCommsSideBody", job.hook().name(), job.hook().steps()),
+                        BattleCommsFeed.Tone.GOOD_NEWS, 7));
+                continue;
+            }
+            if (!first.state().isFinal() || first.state() == State.MISSED || first.tick() < 0) continue;
             List<String> names = new ArrayList<>();
             String body = null;
             for (int j = i; j < changes.size(); j++) {
                 Transition t = changes.get(j);
-                if (t.tick() != first.tick() || t.state() != first.state()) continue;
+                if (t.tick() != first.tick() || t.state() != first.state() || t.found()) continue;
                 SideObjective job = service.job(t.key());
                 names.add(job.hook().name());
                 if (body == null) body = job.hook().phase(t.state());

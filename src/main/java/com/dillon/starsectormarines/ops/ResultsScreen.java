@@ -328,7 +328,10 @@ public class ResultsScreen extends MissionFlowMlxScreen {
 
     /** The job's result, then the debrief line its story chose for that result. */
     static String sideSummary(SideObjectiveResult side) {
-        return Strings.join("separatorDot", Strings.get("resultsScreenSide" + side.outcome().keyPart()), side.debrief());
+        String outcome = Strings.get("resultsScreenSide" + side.outcome().keyPart());
+        return side.credits() > 0
+                ? Strings.join("separatorDot", outcome, side.debrief(), Strings.format("resultsScreenSidePaid", side.credits()))
+                : Strings.join("separatorDot", outcome, side.debrief());
     }
 
     private static String sideTone(SideObjective.State outcome) {
@@ -400,7 +403,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                     objectiveSummary(objective), objectiveTone(objective.status())));
         }
         for (SideObjectiveResult side : outcome.sideObjectives) {
-            rows.add(row("result-side-" + side.key(), side.title(), sideSummary(side), sideTone(side.outcome())));
+            if (side.reported()) rows.add(row("result-side-" + side.key(), side.title(), sideSummary(side), sideTone(side.outcome())));
         }
         rows.add(row("result-casualties", trimLabel(copy.apply("resultsCasualtiesLabel")),
                 MessageFormat.format(copy.apply("resultsCasualtiesFmt"),

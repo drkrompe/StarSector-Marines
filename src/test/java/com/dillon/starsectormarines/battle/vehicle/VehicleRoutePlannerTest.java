@@ -383,6 +383,37 @@ public class VehicleRoutePlannerTest {
         assertRouteClear(route, clr);
     }
 
+    /**
+     * The captured refusal (dozer-breach scene): an APC parked nose-in at a wall line, ordered through the six-cell
+     * gap a dozer pushed in it. The cheapest route runs along the wall and turns into the gap at its corner, a bend
+     * the APC cannot drive; each retry's disc on the failed bend shut a little more of the gap mouth until there was
+     * no route at all. Coming at the gap from further back, the bend is one it can drive.
+     */
+    @Test
+    public void drivableRouteComesAtAGapFromFurtherBackRatherThanShuttingIt() {
+        NavigationGrid grid = new NavigationGrid(64, 48);
+        carve(grid, 0, 0, 63, 47);
+        for (int y = 22; y <= 23; y++) for (int x = 0; x < 64; x++) if (x < 15 || x > 20) grid.setWalkable(x, y, false);
+        CellTopology topo = new CellTopology(64, 48);
+        fillKind(topo, GroundKind.GRASS);
+        TerrainCostField cost = TerrainCostField.from(topo);
+        VehicleClearance clr = VehicleClearance.erode(grid,
+                VehicleClearance.radiusForWidth(VehicleType.HEAVY_APC.visualWidthCells));
+
+        float[][] route = VehicleRoutePlanner.routeDrivableFrom(new Pose(27.21f, 19.28f, 34.58f), 27, 19, 26, 36,
+                grid, cost, clr, VehicleType.HEAVY_APC);
+
+        assertNotNull(route, "the gap is open and the APC can drive through it");
+        float crossedAt = Float.NaN;
+        for (int i = 1; i < route[0].length; i++) {
+            float y0 = route[1][i - 1], y1 = route[1][i];
+            if (y0 < 23f && y1 >= 23f) {
+                crossedAt = route[0][i - 1] + (route[0][i] - route[0][i - 1]) * (23f - y0) / (y1 - y0);
+            }
+        }
+        assertTrue(crossedAt >= 15f && crossedAt <= 21f, "through the gap, crossing the wall line at x=" + crossedAt);
+    }
+
     @Test
     public void avoidingRegionForcesADetour() {
         // Two horizontal lanes (rows 2 and 8) joined at both ends by vertical

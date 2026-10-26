@@ -90,6 +90,16 @@ any bonus (see Open questions).
 All four jobs, the broker included, are side objectives on the toolkit
 (`mission-command-nouns.md`), declared in `DustLedgerSideObjectives`.
 
+What each pays, beside a Low, 22,000-credit contract (owner, 2026-10-26:
+per job, as fits what it gives; the coupling fee and broker bounty decided).
+
+| Job | Credits | Mark and line |
+|---|---|---|
+| Coupling | 1,500, Wayline's delivery fee | Harrow will remember |
+| Warden's nod | none | The watch will remember |
+| Feed | none; the dark nests are the reward | mark only |
+| Broker | 3,000, Wayline's price for him alive | Wayline will remember |
+
 Each must be completed before the alarm to pay off; one started and not finished
 pays nothing. All live entirely outside the exclusion ring, so their cost is
 clock time and squads not yet in position, never detection.
@@ -109,7 +119,10 @@ spotters, revealing the compound yard to the company until the alarm.
 
 **Cutting the feed.** Sable Wake runs the compound's guns off an illegal tap on
 the town's old terraforming power line. The tap's junction box stands outside
-the ring, between the Harrow lane and the postern. A squad that works it for a
+the ring, between the Harrow lane and the postern. The job is hidden: the
+briefing knows only that the nests are powered from somewhere, and it joins the
+checklist when a company combatant sights the box (12 cells) or reaches it,
+with Castle's line naming the tap. A squad that works it for a
 short, unbroken time cuts the feed. Payoff: the gun nests are dead when the
 alarm sounds. Cutting Sable Wake's own tap offends nobody in town. The pillboxes
 are manned, not powered, so the feed does not touch them.

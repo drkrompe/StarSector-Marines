@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.mech.MechCarriedWear;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
@@ -60,10 +61,14 @@ public final class DamageDollCanvas implements CanvasProducer {
     private static final Color[] ARMOR_RAMP = ramp(ARMOR_LOW, INTACT);
     private static final Color[] STRUCTURE_RAMP = ramp(STRUCTURE_LOW, STRUCTURE_HIGH);
 
+    /** A label's band over a bare doll: the squad muster's team-name band. */
+    private static final float LABEL_HEIGHT = 15f;
+
     private final View view;
     private final Function<String, Color> partColor;
     private final String frontCaption;
     private final String rearCaption;
+    private final String label;
 
     /**
      * @param copy resolves a strings key, read once here for the captions
@@ -75,18 +80,28 @@ public final class DamageDollCanvas implements CanvasProducer {
         String right = copy.apply("battleDamageDollRight");
         frontCaption = right + "  " + copy.apply("battleDamageDollFront") + "  " + left;
         rearCaption = left + "  " + copy.apply("battleDamageDollRear") + "  " + right;
+        label = null;
     }
 
-    private DamageDollCanvas(View view) {
+    private DamageDollCanvas(View view, String label) {
         this.view = Objects.requireNonNull(view, "view");
         this.partColor = this::colorOf;
         frontCaption = null;
         rearCaption = null;
+        this.label = label;
     }
 
     /** A captionless doll that fills whatever canvas it is given: a small picture whose words live in a hover. */
     public static DamageDollCanvas bare(View view) {
-        return new DamageDollCanvas(view);
+        return new DamageDollCanvas(view, (String) null);
+    }
+
+    /**
+     * A bare doll under a short name, headed the way a squad muster heads its fire teams: the name in
+     * Orbitron 10 over a rule, the doll in the space beneath.
+     */
+    public static DamageDollCanvas bare(View view, String label) {
+        return new DamageDollCanvas(view, label == null || label.isBlank() ? null : label);
     }
 
     public View view() {
@@ -97,8 +112,17 @@ public final class DamageDollCanvas implements CanvasProducer {
     public void draw(CanvasContext context) {
         if (!view.present || view.asset == null) return;
         if (frontCaption == null) {
-            view.asset.drawParts(context, 0f, 0f, context.metrics().surfaceWidth(),
-                    context.metrics().surfaceHeight(), partColor);
+            float width = context.metrics().surfaceWidth();
+            float height = context.metrics().surfaceHeight();
+            float top = 0f;
+            if (label != null) {
+                SquadMusterCanvas.Palette palette = SquadMusterCanvas.SHIPBOARD;
+                context.text(Fonts.ORBITRON_10, label, (width - Fonts.ORBITRON_10.measureWidth(label)) * .5f, 1f,
+                        palette.caption());
+                context.line(5f, 13f, width - 5f, 13f, palette.rule(), 1f);
+                top = LABEL_HEIGHT;
+            }
+            view.asset.drawParts(context, 0f, top, width, height - top, partColor);
             return;
         }
         view.asset.drawParts(context, 0f, 0f, SURFACE_WIDTH, SURFACE_HEIGHT, partColor);
@@ -156,6 +180,14 @@ public final class DamageDollCanvas implements CanvasProducer {
     public static String dollPath(MechVariant variant) {
         return DOLL_DIR + "mech-" + variant.id + ".svg";
     }
+
+    /** The plan a fighter wing draws as. */
+    public static String dollPath(FighterProfile profile) {
+        return DOLL_DIR + "air-" + profile.hullId + ".svg";
+    }
+
+    /** The plan the close-air-support gunship draws as. */
+    public static final String GUNSHIP_DOLL = DOLL_DIR + "air-mudskipper.svg";
 
     /** The doll a vehicle line draws as; variants of a family share one. */
     public static String dollPath(VehicleType type) {
@@ -244,6 +276,15 @@ public final class DamageDollCanvas implements CanvasProducer {
             }
             int torso = DollLocation.TORSO.ordinal();
             set(DollLocation.TORSO_REAR.ordinal(), true, true, armor[torso], structure[torso], destroyed[torso]);
+            crippled = false;
+            sensorsLost = false;
+            immobile = false;
+        }
+
+        /** Shows an aircraft's plan whole: the briefing counts sorties, not damage. */
+        public void readAircraft(String dollPath) {
+            begin(dollPath);
+            for (DollLocation location : DollLocation.values()) set(location.ordinal(), true, false, 0f, 1f, false);
             crippled = false;
             sensorsLost = false;
             immobile = false;

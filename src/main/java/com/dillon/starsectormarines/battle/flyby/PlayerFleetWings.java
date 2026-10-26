@@ -36,7 +36,7 @@ import java.util.List;
 public final class PlayerFleetWings {
 
     /** Sorties per fitted bay across the battle. Two passes per bay feels like a fighter rearming once. */
-    private static final int  SORTIE_COUNT_PER_BAY   = 2;
+    public static final int  SORTIE_COUNT_PER_BAY   = 2;
     /** Sim-seconds between successive sorties from the same bay. */
     private static final float SORTIE_INTERVAL_SEC   = 12f;
     /** First-arrival time for the first player bay. */
@@ -48,9 +48,9 @@ public final class PlayerFleetWings {
 
     /**
      * A committable carrier — one fleet member with at least one fighter bay that
-     * maps to a known {@link FighterProfile}. The pre-battle UI renders one
-     * opt-in toggle per entry; committing it contributes all its mapped bays to
-     * the marine-side fighter cover.
+     * maps to a known {@link FighterProfile}. Every one the fleet has flies: its
+     * mapped bays all join the marine-side fighter cover, and the briefing shows
+     * them as aircraft, not as a choice.
      */
     public static final class CarrierBay {
         /** Ship name for the toggle row label. */
@@ -60,7 +60,7 @@ public final class PlayerFleetWings {
         /** Mapped fighter bays on this ship (unmapped wings already filtered out). */
         public final List<FighterProfile> profiles;
 
-        CarrierBay(String shipName, String spriteName, List<FighterProfile> profiles) {
+        public CarrierBay(String shipName, String spriteName, List<FighterProfile> profiles) {
             this.shipName = shipName;
             this.spriteName = spriteName;
             this.profiles = profiles;

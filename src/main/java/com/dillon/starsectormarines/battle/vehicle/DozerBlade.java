@@ -28,6 +28,11 @@ import com.dillon.starsectormarines.battle.world.model.DoodadService;
  * they fall at once and the hull drives on at the speed the rest of its energy gives; where they do not, they share
  * its momentum and the hull is brought up against them, for the blade to push down at its rate from a standstill.
  *
+ * <p><b>The hull.</b> A dozer is held by pushable ground only while it pushes it down. Where its hull, not its blade,
+ * is what bears on pushable cells, its tail or flank swung into a house wall as it turns, and nothing else holds it,
+ * it {@link #grind grinds} them at the blade's rate. Its route proof counts that ground open, so its turns may sweep
+ * there; without this a hull stood against a wall its own plan had driven it into.
+ *
  * <p><b>Route proof.</b> {@link #breachView} is a routing copy of the grid with every pushable cell open. A bladed
  * hull's move-order proof and its rolling local planner read that view, so ground the dozer can open counts as
  * reachable for the dozer and for nobody else; its physical sweep still reads the live grid, which is what holds the
@@ -56,6 +61,8 @@ public final class DozerBlade {
     /** Cells the hull's nose hits this tick, as x/y pairs. */
     private final int[] struck = new int[64];
     private int struckCount;
+    /** Whether something the blade cannot push holds the hull this tick ({@link #grind}). */
+    private boolean heldElsewhere;
     private HeavyTracks tracks;
     private NavigationGrid view;
     private long viewRevision = Long.MIN_VALUE;
@@ -156,6 +163,40 @@ public final class DozerBlade {
         int spend = (int) pending;
         control.bladeCarry = pending - spend;
         strike(body, type, grid, topology, spend, dt);
+        if (spend > 0) {
+            for (int i = 0; i < bearingCount; i++) editor.damageWall(bearing[i * 2], bearing[i * 2 + 1], spend);
+        }
+        return true;
+    }
+
+    /**
+     * One tick of a hull held where it means to move: at {@code body}'s pose, the pose its move would reach, its
+     * footprint overlaps blocking cells. Where every one is pushable it spends this tick's push on them, as the blade
+     * does.
+     *
+     * @return whether it bore on pushable cells and on nothing else — work that counts as progress, as
+     *         {@link #push}'s does; {@code false}, and nothing spent, where anything else holds it
+     */
+    public boolean grind(GroundBody body, VehicleType type, VehicleControlComponent control, float dt) {
+        NavigationGrid grid = navigation.getGrid();
+        CellTopology topology = navigation.getTopology();
+        bearingCount = 0;
+        heldElsewhere = false;
+        VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees, 0f,
+                type.visualLengthCells, type.visualWidthCells, grid, (x, y) -> {
+                    if (grid.isWalkable(x, y)) return;
+                    if (!canPush(grid, topology, doodads, x, y) || bearingCount * 2 >= bearing.length) {
+                        heldElsewhere = true;
+                        return;
+                    }
+                    bearing[bearingCount * 2] = x;
+                    bearing[bearingCount * 2 + 1] = y;
+                    bearingCount++;
+                });
+        if (heldElsewhere || bearingCount == 0) return false;
+        float pending = control.bladeCarry + PUSH_PER_SECOND * dt;
+        int spend = (int) pending;
+        control.bladeCarry = pending - spend;
         if (spend > 0) {
             for (int i = 0; i < bearingCount; i++) editor.damageWall(bearing[i * 2], bearing[i * 2 + 1], spend);
         }
