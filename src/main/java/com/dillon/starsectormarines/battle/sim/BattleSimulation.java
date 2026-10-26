@@ -1612,6 +1612,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         deathDispatcher.subscribe(swarmHarvest::onDeath);
         rosterService.modifiers().register(swarmHarvest.carrierModifier());
         rosterService.modifiers().register(matriarchActions.runModifier());
+        // A squad with mechs attached marches at their pace (mechs-nouns.md, attachment).
+        rosterService.modifiers().register(mechAttachments.paceModifier());
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
         // death mailbox as every other post-death reaction. Non-cohort deaths

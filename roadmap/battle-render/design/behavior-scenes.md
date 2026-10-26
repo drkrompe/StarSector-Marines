@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-20
 
-Updated: 2026-10-24 — `FiringLineScene` measures held triggers since the lane gate; the rules for writing a scene's verdicts moved here from `CLAUDE.md`
+Updated: 2026-10-26 — `MechAttachmentScene`. Earlier 2026-10-24 — `FiringLineScene` measures held triggers since the lane gate; the rules for writing a scene's verdicts moved here from `CLAUDE.md`
 
 The individual behavior scenes (`FrontageScene` through `LateArrivalScene`): why each exists, what it recorded and the traps its instrument fell into. Ordinal references ("the second", "the fourth") count in the order scenes appear here.
 
@@ -403,3 +403,14 @@ leak on the way: a marine suit's sensor sweep hands the fog a wall-read radius,
 and the cast took any read radius as airborne, so a sweep at the cliff foot saw
 the whole plateau. A ground sweep now reads past higher ground only within its
 radius.
+
+`MechAttachmentScene` (`mech-attachment`) attaches a Brawler Hound and a Long-Range Warden to a four-man squad
+attack-moving east on open ground (`mechs-nouns.md`, attachment). Its verdicts are mechanics: neither attachment
+ends on its own, the Hound's mean place is ahead of the squad on its advance and the Warden's behind, neither
+strays past fourteen cells from the squad's centre, and a move given to the Hound alone releases it and keeps
+the Warden. The leads, the reach and how far the squad got are readings.
+
+**Its first run is why an anchor paces its mechs.** Without it the squad walked at 1.7 cells a second, the
+Hound at 1.5 and the Warden at 1.3: every slot was right and both mechs trailed, the Hound by nine cells
+on average where it should have led. Out of contact a squad with mechs attached now marches at 95% of its
+slowest follower, 60% while one is still making for its slot; the Hound then leads by 2.7 on average.

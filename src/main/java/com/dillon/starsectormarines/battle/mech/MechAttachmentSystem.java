@@ -50,6 +50,12 @@ public final class MechAttachmentSystem {
     private static final int SLOT_SEARCH_RADIUS = 4;
     /** An axis shorter than this, in cells, is no axis: the squad is on its destination or its threat. */
     private static final float MIN_AXIS_CELLS = 1.5f;
+    /** Share of its slowest follower's speed an anchor marches at while every follower is near its slot. */
+    static final float MARCH_PACE = 0.95f;
+    /** Share it marches at while a follower is still making for its slot, so the follower can overtake. */
+    static final float CATCH_UP_PACE = 0.6f;
+    /** A follower farther than this from its slot cell is still making for it. */
+    static final float CATCH_UP_CELLS = 4f;
 
     private final MechAttachmentService service;
 
@@ -148,6 +154,45 @@ public final class MechAttachmentSystem {
             Squad anchor = sim.getSquad(anchorId);
             float[] axis = anchor == null ? null : axis(anchor, sim);
             if (axis != null) service.setAxis(anchorId, axis);
+        }
+        pace(anchors, sim);
+    }
+
+    /**
+     * Holds each anchor out of contact to its followers' pace: no faster than {@link #MARCH_PACE} of its
+     * slowest follower, or {@link #CATCH_UP_PACE} of it while a follower is still making for its slot.
+     * Mechs are slower than marines on the march, and a squad that outwalks its Brawler is leading
+     * it. In contact the squad moves as it must. Package-private for tests.
+     */
+    void pace(Set<Integer> anchors, BattleSimulation sim) {
+        // Cleared first so the speeds read below are the marines' own, not last tick's paced ones.
+        service.clearPace();
+        for (int anchorId : anchors) {
+            Squad anchor = sim.getSquad(anchorId);
+            if (anchor == null || anchor.contactPicture != null && anchor.contactPicture.hasContacts()
+                    || anchor._engagedThisTick) continue;
+            float slowest = Float.POSITIVE_INFINITY;
+            boolean behind = false;
+            for (int follower : service.followersOf(anchorId)) {
+                for (int i = 0, n = sim.squadMemberCount(follower); i < n; i++) {
+                    long mech = sim.squadMemberAt(follower, i);
+                    if (!sim.world().isAlive(mech) || !sim.world().hasMovement(mech)) continue;
+                    float speed = sim.world().moveSpeed(mech);
+                    if (!(speed > 0f)) continue;
+                    slowest = Math.min(slowest, speed);
+                    int[] slot = service.slotOf(mech);
+                    behind |= slot != null && TacticalScoring.cellDistance(sim.world().x(mech), sim.world().y(mech),
+                            slot[0] + .5f, slot[1] + .5f) > CATCH_UP_CELLS;
+                }
+            }
+            if (slowest == Float.POSITIVE_INFINITY) continue;
+            float cap = slowest * (behind ? CATCH_UP_PACE : MARCH_PACE);
+            for (int i = 0, n = sim.squadMemberCount(anchorId); i < n; i++) {
+                long member = sim.squadMemberAt(anchorId, i);
+                if (!sim.world().isAlive(member) || !sim.world().hasMovement(member)) continue;
+                float own = sim.world().moveSpeed(member);
+                if (own > cap) service.setPace(member, cap / own);
+            }
         }
     }
 

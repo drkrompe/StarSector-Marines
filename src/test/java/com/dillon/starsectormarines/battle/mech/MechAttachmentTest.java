@@ -209,6 +209,24 @@ class MechAttachmentTest {
                 "a detached mech goes back to its plan step");
     }
 
+    @Test
+    void aSquadWithMechsAttachedMarchesAtTheirPaceOutOfContact() {
+        BattleSimulation sim = openSimulation(40, 40);
+        int infantry = infantrySquad(sim, 10, 10);
+        long marine = sim.squadMemberAt(infantry, 0);
+        float own = sim.world().moveSpeed(marine);
+        long mech = mechSquad(sim, 5, 5);
+        float mechSpeed = sim.world().moveSpeed(mech);
+        attached(sim, mech, infantry);
+
+        assertEquals(Math.min(own, mechSpeed * MechAttachmentSystem.MARCH_PACE), sim.world().moveSpeed(marine), 1e-4f,
+                "no faster than the follower");
+
+        sim.getSquad(infantry)._engagedThisTick = true;
+        sim.getMechAttachmentSystem().tick(sim);
+        assertEquals(own, sim.world().moveSpeed(marine), 1e-4f, "in contact the squad moves as it must");
+    }
+
     // ---- fixtures ----
 
     private static int attached(BattleSimulation sim, long mech, int infantry) {

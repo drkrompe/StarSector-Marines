@@ -608,7 +608,11 @@ increasing an encounter's total armored threat.
   locomotion, not the assignment: the mission directive, plan, doctrine and contact
   picture stay underneath and resume on detach. It is not a lease, because no
   assignment shape names a moving squad and it must win outright over every mission
-  goal. A **direct order** to the mech — a tactical move, assault, guard or Defend
+  goal. Out of contact the anchor marches at its followers' pace — 95% of its
+  slowest follower's speed, 60% while one is still more than four cells from its
+  slot — since a mech walks slower than a marine and a squad that outwalks its
+  Brawler is leading it; in contact the squad moves as it must (`MechAttachmentScene`
+  is the acceptance). A **direct order** to the mech — a tactical move, assault, guard or Defend
   Area — ends it, as does the anchor's loss or withdrawal, the mech's withdrawal, or
   direct control; orders given to the anchor move the anchor and the follower keeps
   its slot.
