@@ -1,14 +1,11 @@
 package com.dillon.starsectormarines.marine;
 
-import com.dillon.starsectormarines.campaign.CampaignCommodityPresentation;
+import com.dillon.starsectormarines.campaign.CivilizedPort;
 import com.dillon.starsectormarines.campaign.start.WorkshopStores;
 import com.dillon.starsectormarines.campaign.start.PreparationDepot.Purpose;
 import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
 
-import java.util.LinkedHashMap;
-import java.util.Map;
-
-/** Live player-fleet cargo plus any accessible prepaid depot and vanilla commodity presentation for the workshops. */
+/** The player fleet's credits plus any accessible prepaid yard credit, and the port it is docked at, for the workshops. */
 public final class CampaignFabricationResources implements FabricationResources {
     private final boolean workshopJob;
     private final Purpose purpose;
@@ -27,35 +24,19 @@ public final class CampaignFabricationResources implements FabricationResources 
         return workshopJob ? CompanyWorkshopRestoration.reclamationAboard() : Reclamation.NONE;
     }
 
-
-    @Override
-    public int available(String commodityId) {
-        return WorkshopStores.current(purpose).available(commodityId);
+    @Override public long credits() {
+        return WorkshopStores.current(purpose).credits();
     }
 
-    @Override
-    public String commodityName(String commodityId) {
-        return CampaignCommodityPresentation.INSTANCE.commodityName(commodityId);
+    @Override public boolean atMarket() {
+        return CivilizedPort.docked() != null;
     }
 
-    @Override
-    public String commodityIcon(String commodityId) {
-        return CampaignCommodityPresentation.INSTANCE.commodityIcon(commodityId);
+    @Override public boolean spend(FabricationCost cost) {
+        return cost != null && WorkshopStores.current(purpose).spendCredits(cost.credits());
     }
 
-    @Override
-    public boolean spend(FabricationCost cost) {
-        Map<String, Integer> bill = new LinkedHashMap<>();
-        for (FabricationCost.Line line : cost.lines())
-            bill.merge(line.commodityId(), line.quantity(), Integer::sum);
-        return WorkshopStores.current(purpose).spend(bill);
-    }
-
-    @Override
-    public boolean credit(FabricationCost salvage) {
-        Map<String, Integer> lines = new LinkedHashMap<>();
-        for (FabricationCost.Line line : salvage.lines())
-            lines.merge(line.commodityId(), line.quantity(), Integer::sum);
-        return WorkshopStores.current(purpose).credit(lines);
+    @Override public boolean credit(FabricationCost refund) {
+        return refund != null && WorkshopStores.current(purpose).refund(refund.credits());
     }
 }

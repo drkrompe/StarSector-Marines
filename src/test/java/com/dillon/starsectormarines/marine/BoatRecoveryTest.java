@@ -22,40 +22,40 @@ class BoatRecoveryTest {
     }
 
     @Test void expediteChargesRemainingWorkOnceAndRetainsFittings() throws Exception {
-        BoatDeck deck = deck(1); var stores = new Stores(1000); var yard = new BoatWorkshop(deck, stores);
+        BoatDeck deck = deck(1); var stores = TestPurse.rich(); var yard = new BoatWorkshop(deck, stores);
         var boat = deck.boats().get(0);
         yard.fabricatePart(BoatFitting.TUNED_DRIVE.id());
         yard.fit(boat.id(), BoatFitting.TUNED_DRIVE.id());
         deck.settleRecovery("battle", Map.of(boat.id(), 1f), List.of(), 20f);
         var quote = yard.repairQuote(boat.id(), 20f);
-        assertEquals(30, quantity(quote.bill(), "metals"));
-        assertEquals(15, quantity(yard.repairQuote(boat.id(), 21f).bill(), "metals"));
-        int before = stores.available("metals");
+        var later = yard.repairQuote(boat.id(), 21f).bill();
+        assertTrue(later.credits() < quote.bill().credits(), "the remaining work is what is charged");
+        long before = stores.credits;
         assertEquals(BoatWorkshop.Status.REPAIRED, yard.expedite(quote, 21f).status());
-        assertEquals(before - 15, stores.available("metals"));
+        assertEquals(before - later.credits(), stores.credits);
         assertSame(BoatFitting.TUNED_DRIVE, boat.drive());
         assertTrue(boat.airworthy(21f));
         assertEquals(BoatWorkshop.Status.STALE_REPAIR, yard.expedite(quote, 21f).status());
-        assertEquals(before - 15, stores.available("metals"));
+        assertEquals(before - later.credits(), stores.credits);
         deck = reload(deck);
         deck.settleRecovery("battle", Map.of(boat.id(), 1f), List.of(), 30f);
         assertTrue(deck.boatById(boat.id()).airworthy(30f));
     }
 
     @Test void shortageChangesNothingAndWaitingNeedsNoResources() {
-        BoatDeck deck = deck(1); var boat = deck.boats().get(0); var stores = new Stores(0);
+        BoatDeck deck = deck(1); var boat = deck.boats().get(0); var stores = new TestPurse(0);
         var yard = new BoatWorkshop(deck, stores);
         deck.settleRecovery("battle", Map.of(boat.id(), .75f), List.of(), 3f);
         var quote = yard.repairQuote(boat.id(), 3f);
         assertEquals(BoatWorkshop.Status.CANNOT_AFFORD, yard.expedite(quote, 3f).status());
         assertEquals(1.5f, boat.repairDaysRemaining(3f));
-        assertTrue(stores.stock.isEmpty());
+        assertEquals(0, stores.spends);
         assertTrue(boat.airworthy(4.5f));
         assertEquals(BoatWorkshop.Status.STALE_REPAIR, yard.expedite(quote, 4.5f).status());
     }
 
     @Test void destructionWinsAndReplacementNeverRecoversItsPredecessorsFittings() {
-        BoatDeck deck = deck(1); var yard = new BoatWorkshop(deck, new Stores(1000));
+        BoatDeck deck = deck(1); var yard = new BoatWorkshop(deck, TestPurse.rich());
         var boat = deck.boats().get(0);
         yard.fabricatePart(BoatFitting.TUNED_DRIVE.id());
         yard.fit(boat.id(), BoatFitting.TUNED_DRIVE.id());
@@ -70,13 +70,13 @@ class BoatRecoveryTest {
     }
 
     @Test void laterDamageInvalidatesAnEarlierQuoteAndOriginalWrecksNeverRecoverByWaiting() {
-        BoatDeck deck = deck(1); var boat = deck.boats().get(0); var stores = new Stores(1000);
+        BoatDeck deck = deck(1); var boat = deck.boats().get(0); var stores = TestPurse.rich();
         var yard = new BoatWorkshop(deck, stores);
         deck.settleRecovery("one", Map.of(boat.id(), .5f), List.of(), 0f);
         var stale = yard.repairQuote(boat.id(), 0f);
         deck.settleRecovery("two", Map.of(boat.id(), .8f), List.of(), 2f);
         assertEquals(BoatWorkshop.Status.STALE_REPAIR, yard.expedite(stale, 2f).status());
-        assertTrue(stores.stock.isEmpty());
+        assertEquals(0, stores.spends);
         var wrecks = new BoatDeck(); wrecks.requireCommissioning();
         wrecks.registerFoundingWrecks("original"); wrecks.reconcile("original", ShuttleType.HERMES, 2);
         assertTrue(wrecks.flightReady(100f).isEmpty());
@@ -84,22 +84,10 @@ class BoatRecoveryTest {
     }
 
     private static BoatDeck deck(int count) { var deck = new BoatDeck(); deck.reconcile("ship", ShuttleType.AEROSHUTTLE, count); return deck; }
-    private static int quantity(FabricationCost bill, String id) { return bill.lines().stream().filter(l -> l.commodityId().equals(id)).mapToInt(FabricationCost.Line::quantity).sum(); }
     private static BoatDeck reload(BoatDeck deck) throws Exception {
         var bytes = new ByteArrayOutputStream();
         try (var out = new ObjectOutputStream(bytes)) { out.writeObject(deck); }
         try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) { return (BoatDeck) in.readObject(); }
     }
-    static final class Stores implements FabricationResources {
-        final Map<String, Integer> stock = new HashMap<>(); final int initial;
-        Stores(int initial) { this.initial = initial; }
-        public int available(String id) { return stock.getOrDefault(id, initial); }
-        public String commodityName(String id) { return id; }
-        public String commodityIcon(String id) { return ""; }
-        public boolean spend(FabricationCost cost) {
-            if (!canAfford(cost)) return false;
-            for (var line : cost.lines()) stock.put(line.commodityId(), available(line.commodityId()) - line.quantity());
-            return true;
-        }
-    }
 }
+

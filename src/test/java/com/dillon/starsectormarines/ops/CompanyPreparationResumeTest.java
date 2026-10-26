@@ -52,7 +52,7 @@ class CompanyPreparationResumeTest {
         var industry = stub(Industry.class, Map.of("isFunctional", true,
                 "getSpec", stub(IndustrySpecAPI.class, Map.of("hasTag", true))));
         var market = stub(MarketAPI.class, Map.of("getId", "jangala", "getPlanetEntity", planet,
-                "getIndustries", List.of(industry), "getFaction", faction));
+                "getIndustries", List.of(industry), "getFaction", faction, "getSize", 3));
         planetMethods.put("getMarket", market);
         var cargo = stub(CargoAPI.class, Map.of("getCommodityQuantity", 0f,
                 "removeCommodity", (Function<Object[], Object>) a -> { fail("Reserved orders must not spend empty cargo"); return null; }));
@@ -114,7 +114,7 @@ class CompanyPreparationResumeTest {
             assertTrue(roster.officerInduction().finish(roster));
             for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
             assertTrue(roster.boatDeck().flightReady().isEmpty(), "Relief launches without a boat");
-            assertTrue(CerberusCompanyStart.depot().available("metals") > 0, "The Hermes parts stay prepaid");
+            assertTrue(CerberusCompanyStart.depot().credits() > 0, "The Hermes yard credit stays prepaid");
 
             // After Relief, the first-lift lesson draws them, and leaving the planet still sends us back for them.
             roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
@@ -133,7 +133,7 @@ class CompanyPreparationResumeTest {
             assertFalse(workshop.fabricate(0).succeeded());
             assertEquals(1, roster.boatDeck().flightReady().size());
             assertFalse(CampaignLessons.firstLiftPending(roster));
-            assertTrue(CerberusCompanyStart.depot().stock().values().stream().allMatch(n -> n == 0));
+            assertEquals(0, CerberusCompanyStart.depot().credits());
         } finally { Global.setSector(previous); }
     }
 

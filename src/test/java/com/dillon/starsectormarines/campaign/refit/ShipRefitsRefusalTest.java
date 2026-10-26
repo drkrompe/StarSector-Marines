@@ -27,18 +27,15 @@ class ShipRefitsRefusalTest {
         assertNotNull(refuse(order, ShipCondition.NONE, true, true, true, true, order.price));
     }
 
-    @Test void materialsComeFromCargoAndTheStrongestTiersTakeAiCores() {
-        var order = RefitOrder.STRUCTURE_RESTORED;
-        int metals = order.materials().get(Commodities.METALS);
-        assertNotNull(ShipRefits.refusal(order, START, true, true, true, true, order.price,
-                Map.of(Commodities.METALS, metals - 1), id -> id));
-        assertNull(ShipRefits.refusal(order, START, true, true, true, true, order.price,
-                Map.of(Commodities.METALS, metals), id -> id));
-        assertEquals(1, RefitOrder.COMPUTE_CLUSTER.materials().get(Commodities.GAMMA_CORE));
-        assertEquals(1, RefitOrder.COMPUTE_TACTICAL.materials().get(Commodities.BETA_CORE));
-        assertEquals(1, RefitOrder.FLUX_II.materials().get(Commodities.ALPHA_CORE));
-        assertTrue(RefitOrder.POWER_RESTORED.materials().isEmpty() && RefitOrder.MESS_RESTORED.materials().isEmpty(),
-                "the original yard orders keep their credits-only bills");
+    @Test void aTierThatTakesACoreIsRefusedWithoutOneInCargo() {
+        var order = RefitOrder.COMPUTE_CLUSTER;
+        var ready = START.with(RefitTrack.COMPUTE, RefitBand.RESTORED).with(RefitTrack.POWER, RefitBand.IMPROVED_I)
+                .with(RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED);
+        assertNotNull(ShipRefits.refusal(order, ready, true, true, true, true, order.price, Map.of(), id -> id));
+        assertNull(ShipRefits.refusal(order, ready, true, true, true, true, order.price,
+                Map.of(Commodities.GAMMA_CORE, 1), id -> id));
+        assertNull(ShipRefits.refusal(RefitOrder.STRUCTURE_RESTORED, START, true, true, true, true,
+                RefitOrder.STRUCTURE_RESTORED.price, Map.of(), id -> id), "a tier with no core needs only credits");
     }
 
     @Test void repeatsSkippedTiersAndLockedCoresAreRefused() {

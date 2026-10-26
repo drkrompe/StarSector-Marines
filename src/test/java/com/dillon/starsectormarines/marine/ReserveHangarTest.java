@@ -107,12 +107,7 @@ class ReserveHangarTest {
         BoatDeck deck = deck(ShuttleType.HERMES, 1);
         CampaignBoat boat = deck.boats().get(0);
         var hangar = new ReserveHangar();
-        var model = new BoatDeckViewModel(new Reactor(), deck, new FabricationResources() {
-            @Override public int available(String id) { return 0; }
-            @Override public String commodityName(String id) { return id; }
-            @Override public String commodityIcon(String id) { return ""; }
-            @Override public boolean spend(FabricationCost cost) { return false; }
-        }, "Second Wind");
+        var model = new BoatDeckViewModel(new Reactor(), deck, new TestPurse(0), "Second Wind");
         model.reserve(hangar, () -> 2);
         Map<String, Object> props = new HashMap<>();
         model.putReserveProps(props);

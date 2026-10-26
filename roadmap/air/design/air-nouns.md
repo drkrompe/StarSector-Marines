@@ -437,7 +437,9 @@ and a warning, lit whenever it will not drop. Its words are its hover, which giv
 one verdict: drops, needs its drop call selected, no lift of its class,
 lift spent ahead of it, no drop call at all, or held back. It asks the
 `LiftBudget` the drop power will build, machine by machine in bay order, and
-decides nothing itself (`BriefingLift`).
+decides nothing itself (`BriefingLift`). Past nine squads, every full-strength
+squad folds into one stacked tile with a multiplier, its hover counting the stack
+per officer, so only the wounded and short-handed squads keep their own tiles.
 
 **Campaign overhaul survives tactical servicing.** An owned fitted boat retains the
 worst missing-hull fraction observed across its trips, including a final partial tick.

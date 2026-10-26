@@ -208,6 +208,8 @@ final class MechLabSpecSheets {
     }
 
     static SpecSheet materialSheet(CompanyResources.Row material) {
+        if (material.note() != null) return new SpecSheet(material.name(), material.note(), material.icon(), "item",
+                List.of(), List.of(Strings.get("fabricationPortSheet")));
         boolean cost = material.required() > 0;
         return new SpecSheet(material.name(), cost ? Strings.get("openingMechLabSpecSheetsManufacturingCost") : Strings.get("openingMechLabSpecSheetsFleetMaterials"),
                 material.icon(), "item", cost ? List.of(
