@@ -91,7 +91,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private IntSupplier occupiedGantries;
     private DoubleSupplier sideShift;
     private final Supplier<MechWeaponComponent> candidateWeapon;
-    private List<VacantGantryTarget> vacantGantryTargets = List.of();
+    /** Every pad a press selects: vacant pads always, occupied ones while the lance is in overview. */
+    private List<GantryTarget> gantryTargets = List.of();
     private List<SocketDropTarget> lastSocketTargets = List.of();
     /** Each rack kit's box from the last frame, for lifting it off. */
     private List<KitBox> lastKitBoxes = List.of();
@@ -110,18 +111,47 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     public void previewWeaponDrag(MechWeaponComponent component, SocketId source,
                                   SocketId target, boolean valid) {
-        dragPreview = component != null ? new DragPreview(component, source, target, valid) : null;
+        dragPreview = component != null ? new DragPreview(component, null, source, target, valid) : null;
     }
 
     /**
-     * An internal or loader carried over the doll: only the target socket answers, lit as a
-     * fit or a refusal. The piece itself rides on the drag ghost.
+     * An internal or rack kit carried over the doll: the target socket is lit as a fit or a
+     * refusal, and an internal it takes is drawn snapped into it as a weapon is. A kit only
+     * ever goes back to its own rack, where it is still drawn.
      */
-    public void previewPartDrag(SocketId target, boolean valid) {
-        dragPreview = new DragPreview(null, null, target, valid);
+    public void previewPartDrag(MechInternal internal, SocketId source, SocketId target, boolean valid) {
+        dragPreview = new DragPreview(null, internal, source, target, valid);
     }
 
     public void clearWeaponDragPreview() { dragPreview = null; }
+
+    /**
+     * Whether the doll draws the carried part in the socket under the pointer, so the room
+     * draws no ghost on the pointer; otherwise the ghost carries it.
+     */
+    public boolean carriedSnapped() {
+        return dragPreview != null && snaps(dragPreview.target(), dragPreview.source(), dragPreview.valid());
+    }
+
+    /**
+     * The one rule for where a carried part is drawn: snapped into the socket under the pointer
+     * when it would go there on the drop, or back where it came from; anywhere else, on the
+     * pointer. A part is never drawn nowhere.
+     */
+    static boolean snaps(SocketId target, SocketId source, boolean fits) {
+        return target != null && (fits || target == source);
+    }
+
+    /**
+     * The compartment as it would pack with {@code part} added, its placement last; null when it
+     * would not fit.
+     */
+    static List<MechCompartment.Placement> packedWith(List<SocketDef> grids, List<MechInternal> installed,
+                                                      MechInternal part) {
+        List<MechInternal> parts = new ArrayList<>(installed);
+        parts.add(part);
+        return MechCompartment.pack(grids, parts);
+    }
 
     /**
      * What each internal socket of the selected machine holds. The frozen deployment
@@ -147,10 +177,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
         installedKits = source != null ? source : List::of;
     }
 
-    private record DragPreview(MechWeaponComponent component, SocketId source,
+    private record DragPreview(MechWeaponComponent component, MechInternal internal, SocketId source,
                                SocketId target, boolean valid) { }
 
-    private int hoveredVacantGantry = -1;
+    private int hoveredGantry = -1;
 
     public MechLabDollCanvas(Supplier<List<MechDeploymentSpec>> deployments,
                              IntSupplier selectedGantry,
@@ -215,7 +245,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         ShipDeckBattleScene aboard = ship.get();
         ShipDeckBattleScene.RoomView bay = aboard != null ? shifted(aboard, roomView.get(), width, height) : null;
         if (bay == null) {
-            vacantGantryTargets = List.of();
+            gantryTargets = List.of();
             lastSocketTargets = List.of();
             context.fillRect(0f, 0f, width, height, BACKGROUND);
             return;
@@ -236,7 +266,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             }
         });
         if (!rendered || host[0] == null) {
-            vacantGantryTargets = List.of();
+            gantryTargets = List.of();
             lastSocketTargets = List.of();
             context.fillRect(0f, 0f, width, height, BACKGROUND);
             return;
@@ -294,7 +324,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             SocketDef socket = layout.socket(target.id());
             MechMountSlot mount = mountFor(socket.id());
             MechSocketConsole.draw(c, target, socket, mount != null ? frame.weaponAt(mount) : null, null,
-                    null, socket.id().compartment() ? List.of() : null, assets.get(),
+                    null, false, socket.id().compartment() ? List.of() : null, null, assets.get(),
                     false, false, false, false, false, elapsedSeconds.getAsDouble());
         }
     }
@@ -343,10 +373,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return this;
     }
 
-    /** Records hover over the physical vacant-pad actions drawn during the last frame. */
+    /** Records hover over the physical pad actions drawn during the last frame. */
     public void pointAt(float canvasX, float canvasY) {
         hover.at(canvasX, canvasY);
-        hoveredVacantGantry = vacantGantryAt(canvasX, canvasY);
+        hoveredGantry = gantryAt(canvasX, canvasY);
         hoveredSocket = socketAt(canvasX, canvasY);
     }
 
@@ -377,10 +407,13 @@ public final class MechLabDollCanvas implements CanvasProducer {
         return null;
     }
 
-    /** The vacant gantry action at this canvas-local point, or -1 outside every action. */
-    public int vacantGantryAt(float canvasX, float canvasY) {
+    /**
+     * The pad a press at this canvas-local point selects, or -1 outside every pad: a vacant pad
+     * opens the pattern catalog, and in overview an occupied one opens its machine for fitting.
+     */
+    public int gantryAt(float canvasX, float canvasY) {
         if (!Float.isFinite(canvasX) || !Float.isFinite(canvasY)) return -1;
-        for (VacantGantryTarget target : vacantGantryTargets) {
+        for (GantryTarget target : gantryTargets) {
             if (target.contains(canvasX, canvasY)) return target.index();
         }
         return -1;
@@ -390,7 +423,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                                           CanvasHostViewport viewport,
                                           List<Gantry> standing, int occupied, boolean letters) {
         int count = Math.min(CampaignMechSquad.CAPACITY, standing.size());
-        List<VacantGantryTarget> targets = new ArrayList<>();
+        List<GantryTarget> targets = new ArrayList<>();
         for (int index = 0; index < count; index++) {
             if (index < Math.max(0, occupied) && !letters) continue;
             Gantry gantry = standing.get(index);
@@ -404,7 +437,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             float width = Math.abs(right - left);
             float height = Math.abs(bottom - top);
             float inset = Math.max(4f, Math.min(width, height) * VACANT_PAD_INSET_RATIO);
-            VacantGantryTarget target = new VacantGantryTarget(index,
+            GantryTarget target = new GantryTarget(index,
                     Math.min(left, right) + inset, Math.min(top, bottom) + inset,
                     Math.max(1f, width - inset * 2f),
                     Math.max(1f, height - inset * 2f));
@@ -415,19 +448,27 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 if (preview != null) {
                     drawPadPreview(context, target, preview, camera.cellPxSize() / viewport.scaleX());
                 } else {
-                    drawBuildMark(context, target, index == hoveredVacantGantry);
+                    drawBuildMark(context, target, index == hoveredGantry);
+                }
+            } else {
+                // In overview an occupied pad is the way into its machine, bracketed under the pointer.
+                targets.add(target);
+                if (index == hoveredGantry) {
+                    float shortSide = Math.min(target.width(), target.height());
+                    drawCornerBrackets(context, target.x(), target.y(), target.width(), target.height(),
+                            BUILD_HOT, 3f, shortSide * 0.24f, Math.max(3f, shortSide * 0.06f));
                 }
             }
             if (letters) drawPadLetter(context, target, index);
         }
-        vacantGantryTargets = List.copyOf(targets);
+        gantryTargets = List.copyOf(targets);
     }
 
     /**
      * A vacant pad is marked as a build site in the BUY amber: a faint wash, corner brackets and
      * the fabrication cog with BUILD beneath it, all brighter under the pointer.
      */
-    private void drawBuildMark(CanvasContext context, VacantGantryTarget target, boolean hot) {
+    private void drawBuildMark(CanvasContext context, GantryTarget target, boolean hot) {
         float shortSide = Math.min(target.width(), target.height());
         context.fillRect(target.x(), target.y(), target.width(), target.height(), hot ? BUILD_WASH_HOT : BUILD_WASH);
         Color edge = hot ? BUILD_HOT : BUILD_EDGE;
@@ -450,7 +491,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
      * The selected pattern standing on the vacant pad at the scene's own scale, inside the build
      * brackets, so the player sees what BUILD will put there before anything is spent.
      */
-    private void drawPadPreview(CanvasContext context, VacantGantryTarget target, Object preview, float cellPx) {
+    private void drawPadPreview(CanvasContext context, GantryTarget target, Object preview, float cellPx) {
         float shortSide = Math.min(target.width(), target.height());
         context.fillRect(target.x(), target.y(), target.width(), target.height(), BUILD_WASH);
         drawCornerBrackets(context, target.x(), target.y(), target.width(), target.height(), BUILD_EDGE,
@@ -486,7 +527,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     /** The pad's letter, stencilled on an amber plate in its corner; the cards and headings use the same letter. */
-    private static void drawPadLetter(CanvasContext context, VacantGantryTarget target, int index) {
+    private static void drawPadLetter(CanvasContext context, GantryTarget target, int index) {
         float shortSide = Math.min(target.width(), target.height());
         boolean large = shortSide >= 150f;
         BitmapFont font = large ? Fonts.ORBITRON_24_BOLD : Fonts.ORBITRON_12_BOLD;
@@ -540,6 +581,20 @@ public final class MechLabDollCanvas implements CanvasProducer {
         List<SocketDropTarget> targets = schematicTargets(layout.sockets(), panelWidth, canvasHeight);
         SocketDropTarget core = null;
         for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
+        // A part in hand that would go where the pointer is is drawn there; @see #snaps
+        boolean snapped = carriedSnapped();
+        SocketId snapTarget = snapped ? dragPreview.target() : null;
+        // Lifted off the doll, an internal is still drawn where it sits; only a stores part is added.
+        MechInternal snapInternal = snapped && dragPreview.source() == null ? dragPreview.internal() : null;
+        List<MechCompartment.Placement> compartmentParts = packed(layout);
+        MechCompartment.Placement previewPart = null;
+        if (snapInternal != null && snapTarget.compartment()) {
+            List<MechCompartment.Placement> with = packedWith(grids(layout), installedCompartment.get(), snapInternal);
+            if (with != null) {
+                compartmentParts = with;
+                previewPart = with.get(with.size() - 1);
+            }
+        }
         for (SocketDropTarget target : targets) {
             if (core == null || target == core) continue;
             SocketDef socket = layout.socket(target.id());
@@ -547,8 +602,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
             MechWeaponComponent active = dragPreview != null ? dragPreview.component() : candidate;
             boolean compatible = active != null && isSocketCompatible(socket, active);
             boolean draggingHere = dragPreview != null && dragPreview.target() == socket.id();
-            boolean rejected = draggingHere && !dragPreview.valid();
-            if (draggingHere) compatible = dragPreview.valid();
+            boolean rejected = draggingHere && !snapped;
+            if (draggingHere) compatible = snapped;
             Color wire = rejected ? new Color(0xe98b83) : compatible ? new Color(0xc8eef4)
                     : selected ? new Color(0xedc273) : HardpointBricks.tone(socket.type());
             List<float[]> path = wireToCore(target, core);
@@ -571,14 +626,17 @@ public final class MechLabDollCanvas implements CanvasProducer {
             MechWeaponComponent component = weaponAt(deployment, socket.id());
             MechWeaponComponent active = dragPreview != null ? dragPreview.component() : candidate;
             boolean draggingHere = dragPreview != null && dragPreview.target() == socket.id();
-            boolean rejected = draggingHere && !dragPreview.valid();
-            boolean compatible = draggingHere ? dragPreview.valid()
+            boolean rejected = draggingHere && !snapped;
+            boolean compatible = draggingHere ? snapped
                     : active != null && isSocketCompatible(socket, active);
             boolean compartment = socket.id().compartment();
+            boolean snapsHere = snapTarget == socket.id();
+            boolean internalPreview = !compartment && snapsHere && snapInternal != null;
             MechSocketConsole.draw(c, target, socket, component,
-                    draggingHere ? active : null,
-                    compartment ? null : installedInternals.apply(socket.id()),
-                    compartment ? packed(layout) : null, assets.get(), selected,
+                    snapsHere ? dragPreview.component() : null,
+                    compartment ? null : internalPreview ? snapInternal : installedInternals.apply(socket.id()),
+                    internalPreview,
+                    compartment ? compartmentParts : null, previewPart, assets.get(), selected,
                     hoveredSocket == socket.id(), compatible, rejected, draggingHere,
                     elapsedSeconds.getAsDouble());
         }
@@ -687,10 +745,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     /** The selected machine's compartment at its packed places, every bay; empty if it somehow does not pack. */
     private List<MechCompartment.Placement> packed(MechFittingLayout layout) {
+        List<MechCompartment.Placement> placed = MechCompartment.pack(grids(layout), installedCompartment.get());
+        return placed != null ? placed : List.of();
+    }
+
+    private static List<SocketDef> grids(MechFittingLayout layout) {
         List<SocketDef> grids = new ArrayList<>();
         for (SocketId id : MechCompartment.GRIDS) if (layout.hasSocket(id)) grids.add(layout.socket(id));
-        List<MechCompartment.Placement> placed = MechCompartment.pack(grids, installedCompartment.get());
-        return placed != null ? placed : List.of();
+        return grids;
     }
 
     /** Whether a card is the selected one: either compartment bay lights for the compartment. */
@@ -926,7 +988,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         }
     }
 
-    record VacantGantryTarget(int index, float x, float y, float width, float height) {
+    record GantryTarget(int index, float x, float y, float width, float height) {
         boolean contains(float pointX, float pointY) {
             return pointX >= x && pointX <= x + width
                     && pointY >= y && pointY <= y + height;

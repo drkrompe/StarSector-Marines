@@ -27,6 +27,7 @@ import com.dillon.starsectormarines.battle.command.ExtractionCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.RescueCommandSnapshot;
 import com.dillon.starsectormarines.battle.command.SilentColonyCommandSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
+import com.dillon.starsectormarines.battle.objective.side.SideField;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Item;
@@ -117,8 +118,10 @@ public final class MissionObjectiveProjection {
                 site++;
             }
         }
-        if (items.isEmpty()) return MissionObjectiveSnapshot.EMPTY;
         items.sort(Comparator.comparing(Item::id));
+        // Side objectives follow the mission's own rows, in offer order.
+        items.addAll(SideObjectiveRows.items(sim.getSideObjectives(), SideField.of(sim)));
+        if (items.isEmpty()) return MissionObjectiveSnapshot.EMPTY;
         var activities = activities(sim.getCommanderSnapshot(Faction.MARINE), id -> {
             var squad = sim.getSquad(id);
             return squad != null && squad.campaignLabel != null ? squad.campaignLabel : Strings.format("objectiveSquadFallback", id);

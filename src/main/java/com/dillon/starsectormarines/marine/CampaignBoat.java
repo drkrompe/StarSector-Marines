@@ -27,8 +27,8 @@ import java.util.Map;
  * <p><b>Any socket can stand empty.</b> Every part comes off into stores, the
  * way a mech's engine does. A boat missing one of her {@link #REQUIRED_SLOTS}
  * cannot fly ({@link #missingParts}) and stays off the lift until it is fitted;
- * an empty lift is the bare hold, an empty emitter flies her unshielded, and a
- * bare hardpoint carries no gun.
+ * empty plating flies her as a weak bare hull, an empty lift is the bare hold,
+ * an empty emitter flies her unshielded, and a bare hardpoint carries no gun.
  */
 public final class CampaignBoat implements Serializable {
 
@@ -54,11 +54,11 @@ public final class CampaignBoat implements Serializable {
     static final String EMPTY = "";
 
     /**
-     * The slots a boat cannot fly without: her hull, her engines, her cabin and her
-     * capacitors. Lift, emitter and guns are options, not gaps.
+     * The slots a boat cannot fly without: her engines, her cabin and her capacitors
+     * (owner pick). Plating, lift, emitter and guns are options, not gaps.
      */
     public static final List<BoatFittingSlot> REQUIRED_SLOTS = List.of(
-            BoatFittingSlot.PLATING, BoatFittingSlot.DRIVE, BoatFittingSlot.CABIN, BoatFittingSlot.POWER);
+            BoatFittingSlot.DRIVE, BoatFittingSlot.CABIN, BoatFittingSlot.POWER);
 
     /** Zero on legacy saves. Recovery is read from campaign time, not screen visits. */
     public float repairUntilDay() { return repairUntilDay; }
@@ -134,8 +134,8 @@ public final class CampaignBoat implements Serializable {
      *
      * <p>Only a {@linkplain #flightReady flight-ready} boat is flown; one missing a
      * required part still freezes, for the hangar to draw, with that slot's
-     * standard part standing in. An empty emitter freezes as no shield and a bare
-     * hardpoint as no gun ({@link FittedBoat}).
+     * standard part standing in. Empty plating freezes as a bare hull, an empty
+     * emitter as no shield and a bare hardpoint as no gun ({@link FittedBoat}).
      */
     public FittedBoat freezeForDeployment() {
         String[] guns = new String[pattern.hardpoints()];
@@ -147,7 +147,7 @@ public final class CampaignBoat implements Serializable {
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             BoatFitting fitted = fittingIn(slot);
             if (fitted != null) fit.put(slot, fitted);
-            else if (slot == BoatFittingSlot.EMITTER) fit.put(slot, null);
+            else if (FittedBoat.optional(slot)) fit.put(slot, null);
         }
         return new FittedBoat(pattern, fit, id, guns);
     }

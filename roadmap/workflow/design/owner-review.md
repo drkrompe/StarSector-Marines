@@ -69,6 +69,13 @@ in front of the owner: send them into the chat (`SendUserFile`,
 bare folder path does not count. A session started by another session gives
 its coordinating session the image paths, and the coordinator shows them.
 
+**Every render also goes on the parent's renders page** (owner, 2026-10-26):
+one page per top-level parent, newest set first, holding every still and video
+shown to the owner, so nothing shown only in chat is lost. It is built like a
+picks page with no questions (`build.py --previews`, an empty `questions.json`)
+and republished to the same URL as each new set arrives, the new set at the top.
+Its URL goes beside the parent's picks page in `tools/picks/pages.md`.
+
 **A finished-work preview that asks nothing** (a GIF of a feature, a set of
 stills) also goes on the parent's picks page, in its Previews section: a
 `previews.json` of `[{id, area, date, title, note, lead?, shots:[{file,label}]}]`,

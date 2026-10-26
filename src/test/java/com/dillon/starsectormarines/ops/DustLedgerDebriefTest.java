@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.DustLedgerBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence;
-import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Broker;
 import com.dillon.starsectormarines.battle.story.DustLedgerProgress.Grade;
 import com.dillon.starsectormarines.i18n.Strings;
 import org.junit.jupiter.api.Test;
@@ -17,7 +16,7 @@ class DustLedgerDebriefTest {
 
     @Test
     void gradeOpensAndBrokerCloses() {
-        var lines = MissionDebriefConversation.dustLedgerLines(new DustLedgerSequence.Report(Grade.PARTIAL, Broker.DELIVERED));
+        var lines = MissionDebriefConversation.dustLedgerLines(new DustLedgerSequence.Report(Grade.PARTIAL, true));
         assertEquals(List.of(Strings.get("corvusDustLedgerDebriefOpenPartial"),
                 Strings.get("corvusDustLedgerDebriefFindPartialCaught"),
                 Strings.get("corvusDustLedgerDebriefCloseCaught")), lines.stream().map(l -> l.text()).toList());
@@ -25,20 +24,20 @@ class DustLedgerDebriefTest {
 
     @Test
     void onlyABrokerDeliveredAliveIsCaught() {
-        for (Broker broker : Broker.values()) {
-            var finding = MissionDebriefConversation.dustLedgerLines(new DustLedgerSequence.Report(Grade.ASHES, broker)).get(1);
-            assertEquals(Strings.get(broker == Broker.DELIVERED ? "corvusDustLedgerDebriefFindStrongboxCaught"
-                    : "corvusDustLedgerDebriefFindStrongboxEscaped"), finding.text(), broker.name());
+        for (boolean caught : new boolean[]{true, false}) {
+            var finding = MissionDebriefConversation.dustLedgerLines(new DustLedgerSequence.Report(Grade.ASHES, caught)).get(1);
+            assertEquals(Strings.get(caught ? "corvusDustLedgerDebriefFindStrongboxCaught"
+                    : "corvusDustLedgerDebriefFindStrongboxEscaped"), finding.text());
         }
     }
 
     @Test
     void noLedgerDebriefWithoutASeizedLedger() {
         var unseized = MissionOutcome.builder().victory(true)
-                .dustLedger(new DustLedgerSequence.Report(null, Broker.ESCAPED)).build();
+                .dustLedger(new DustLedgerSequence.Report(null, false)).build();
         assertFalse(MissionDebriefConversation.dustLedger(unseized));
         var defeat = MissionOutcome.builder().victory(false)
-                .dustLedger(new DustLedgerSequence.Report(Grade.WHOLE, Broker.DELIVERED)).build();
+                .dustLedger(new DustLedgerSequence.Report(Grade.WHOLE, true)).build();
         assertFalse(MissionDebriefConversation.dustLedger(defeat));
     }
 

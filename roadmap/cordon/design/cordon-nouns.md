@@ -64,7 +64,8 @@ runs, floodlights at its corners, and a flak position in its yard
 meets the flier law over the line: the front's brood spires launch Harrier packs
 with their bores' surges only while some of it stands (`colony-breach-nouns.md`,
 Brood spire), and the packs hunt what it does not cover. Its wall is field
-grade: a Brute, a charge or a ground colony's spines open it. Each redoubt is numbered across the line from
+grade: a Brute, a charge or a ground colony's spines open it, but slowly, since a redoubt's
+ground and the beats' set pieces are works (`combat-durability-nouns.md`, Fortified works). Each redoubt is numbered across the line from
 west to east, from 1.
 
 **Construction.** What a redoubt is built from (`CordonConstruction`; owner,

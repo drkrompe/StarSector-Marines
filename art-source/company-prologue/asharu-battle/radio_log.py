@@ -5,7 +5,10 @@ Callsigns, never hull classes (owner, 2026-10-22: "Ford Focus I need you to be o
 Chrysler Challenger out"). The convoy flies under one callsign, CARAVEL: the Colossus, its master's
 ship, is CARAVEL, and its freighters are numbered. Its escorts are WARDENs, with the Lasher lead
 as WARDEN LEAD. Morrow keeps her own name, because the player later reads it on her name plate.
-The pirates use their own handles. Hull classes appear only in the preview's legend.
+The pirates use their own handles. A caption leads with the callsign under the registry prefix the
+game gives its faction's ships (faction shipNamePrefix: ISS for an independent, none for a pirate,
+who flies unregistered), then the hull's game designation as a role word (ship_data.csv), never its
+hull name: ISS CARAVEL, Heavy Freighter; BARON, Light Cruiser (`caption`).
 
 Each line names the strings.json key the arrival player will caption it with
 (`asharuRadio<Shot>_<n>`). The keys are not in strings.json yet: the cinematic is not wired
@@ -20,6 +23,30 @@ CALLSIGNS = {
     'manticore-p': 'ANVIL', 'wolf-p-a': 'KNIFE', 'wolf-p-b': 'KNIFE TWO', 'hound-p-a': 'CUR',
     'hound-p-b': 'CUR TWO', 'hound-p-c': 'CUR THREE', 'buffalo2-a': 'SACK',
 }
+
+# the registry prefix of each side's ships, and each hull's designation (ship_data.csv)
+PREFIX = {'convoy': 'ISS', 'pirate': ''}
+DESIGNATIONS = {
+    'colossus': 'Heavy Freighter', 'tarsus': 'Freighter', 'mule': 'Combat Freighter', 'phaeton': 'Tanker',
+    'buffalo-a': 'Freighter', 'buffalo-b': 'Freighter', 'dram': 'Tanker',
+    'lasher-lead': 'Frigate', 'lasher-a': 'Frigate', 'lasher-b': 'Frigate', 'wolf-m': 'Frigate',
+    'hound-m': 'Combat Freighter', 'morrow': 'Drone Tender',
+    'falcon-p': 'Light Cruiser', 'colossus3': 'Modified Freighter', 'kite-p-a': 'Shuttle', 'kite-p-b': 'Shuttle',
+    'manticore-p': 'Destroyer', 'wolf-p-a': 'Frigate', 'wolf-p-b': 'Frigate', 'hound-p-a': 'Combat Freighter',
+    'hound-p-b': 'Combat Freighter', 'hound-p-c': 'Combat Freighter', 'buffalo2-a': 'Destroyer',
+}
+PIRATES = {'falcon-p', 'colossus3', 'kite-p-a', 'kite-p-b', 'manticore-p', 'wolf-p-a', 'wolf-p-b',
+           'hound-p-a', 'hound-p-b', 'hound-p-c', 'buffalo2-a'}
+
+
+def caption(callsign):
+    """A speaker's caption: (registry prefix and callsign, hull designation)."""
+    key = next((k for k, v in CALLSIGNS.items() if v == callsign), None)
+    if key is None:
+        return callsign, ''
+    prefix = PREFIX['pirate' if key in PIRATES else 'convoy']
+    return (prefix + ' ' + callsign).strip(), DESIGNATIONS[key]
+
 
 # the channel list the playback screen shows: every voice the recording carries, in the order they
 # first speak

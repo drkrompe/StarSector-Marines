@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.SalvageCache;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
+import com.dillon.starsectormarines.battle.objective.side.SideObjectiveResult;
 import com.dillon.starsectormarines.battle.warship.ShipSupportResult;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.Rank;
@@ -71,6 +72,11 @@ public final class MissionOutcome {
      * settlement; grants and costs are only recorded here, for the campaign arc to read.
      */
     public final List<ObjectiveResult> objectives;
+    /**
+     * The battle's side objectives as they came out ({@code side-objective-toolkit.md}), in offer order: done, lapsed
+     * or failed, each with its debrief line and the campaign mark settlement writes. Empty when none was offered.
+     */
+    public final List<SideObjectiveResult> sideObjectives;
     public final String officerAttemptId;
     public final List<OfficerMissionResult> officers;
     public final boolean        victory;
@@ -227,6 +233,7 @@ public final class MissionOutcome {
         this.waylineHound = b.waylineHound;
         this.fieldSalvage = List.copyOf(b.fieldSalvage);
         this.objectives = List.copyOf(b.objectives);
+        this.sideObjectives = List.copyOf(b.sideObjectives);
         this.victory            = b.victory;
         this.officerAttemptId = b.officerAttemptId;
         this.officers = List.copyOf(b.officers);
@@ -337,6 +344,11 @@ public final class MissionOutcome {
         private List<SalvageCache.Recovered> fieldSalvage = List.of();
         public Builder fieldSalvage(List<SalvageCache.Recovered> finds) { this.fieldSalvage = List.copyOf(finds); return this; }
         private List<ObjectiveResult> objectives = List.of();
+        private List<SideObjectiveResult> sideObjectives = List.of();
+        public Builder sideObjectives(List<SideObjectiveResult> results) {
+            this.sideObjectives = results == null ? List.of() : List.copyOf(results);
+            return this;
+        }
         public Builder objectives(List<ObjectiveResult> results) {
             this.objectives = results == null ? List.of() : List.copyOf(results);
             return this;

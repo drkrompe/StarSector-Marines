@@ -30,6 +30,13 @@ public final class BattleMusicDirector {
             "marines_battle_music_05", "marines_battle_music_06", "marines_battle_music_07",
             "marines_battle_music_08", "marines_battle_music_09", "marines_battle_music_10");
     /**
+     * The quiet state's bed, and aftermath's by fallback: the Marine Ops theme, played as
+     * {@code <id>_bed} (declared under the combat pool), until a quiet bed is sourced. A raise fades
+     * it out over the raise crossfade.
+     */
+    public static final List<String> QUIET_TRACKS = List.of("marines_intel_music");
+    public static final String QUIET_SUFFIX = "_bed";
+    /**
      * The alert state plays the combat files as {@code <id>_alert}, declared at reduced volume, until an
      * alert bed is sourced.
      */
@@ -76,12 +83,10 @@ public final class BattleMusicDirector {
         this.playlists = playlists.isEmpty() ? new EnumMap<>(MusicState.class) : new EnumMap<>(playlists);
     }
 
-    /**
-     * The music the mod ships: combat and reduced-volume alert. Quiet and aftermath have no tracks yet, so
-     * they are silence under the ambient loops.
-     */
+    /** The music the mod ships: the quiet bed (aftermath too), reduced-volume alert, and combat. */
     public static BattleMusicDirector shipped(Random random) {
         return new BattleMusicDirector(Map.of(
+                MusicState.QUIET, new BattleMusicPlaylist(QUIET_TRACKS, QUIET_SUFFIX, random),
                 MusicState.COMBAT, new BattleMusicPlaylist(COMBAT_TRACKS, random),
                 MusicState.ALERT, new BattleMusicPlaylist(COMBAT_TRACKS, ALERT_SUFFIX, random)));
     }

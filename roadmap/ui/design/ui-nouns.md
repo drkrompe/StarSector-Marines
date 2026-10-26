@@ -636,6 +636,20 @@ shelter beacons identify the entrance where release is triggered. A moving
 friendly payload receives its own beacon. Off-camera active objectives retain
 an edge indicator, and Locate moves only the camera.
 
+Side objectives (`mission-command-nouns.md`) sit in an **Optional** section
+under the numbered steps: their own heading, a mark per row, never counted in
+the tally, and a lapsed or failed row stays struck until the battle ends. Each
+row names who offered the job. Their beacons are rings in the optional tone,
+apart from the mission's diamonds; Locate works on them, but they keep no
+off-camera edge indicator. A toast and a narration line announce each change,
+and the row always shows the same state.
+
+A beacon's card is battle glass: its rule spans the card's own text, never a
+fixed slot. Below 16 pixels a cell the map is an overview, where a card is its
+name alone (the open step and edge indicators keep their status line), rules
+and bars drop, and areas and rings fade. The HUD tells the camera which corner
+its right rail covers, and no card or edge indicator draws under it.
+
 The right rail keeps independent branches visible together; an archive does
 not acquire a fictitious extraction step. Cohort counts separate boarded,
 remaining and lost people, including partial-survival completion. Blockers come

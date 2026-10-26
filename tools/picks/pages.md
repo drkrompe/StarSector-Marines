@@ -14,3 +14,4 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | LRM APC debug vehicle picker (vehicle names, mortar carrier) | https://claude.ai/artifact/PacQjobpzzyeHd2rFbGWSd |
 | Laser tank collision in forest biome (forest driving: tank lanes, undergrowth crush, dead-tree look) | https://claude.ai/artifact/Xt8Xy9WgDdG1rVfbd6CqvZ |
 | Boat refit (boat spares, Hermes six-axis refit, Secondhand Wings removal) | https://claude.ai/artifact/5D6B4wFKjXKPBT88NnnMJN |
+| Dust Ledger revamp (Saltwell Cross, side objectives, battle music) | renders: https://claude.ai/artifact/P1MWkkcWVmwYS4kzb8RbVE |

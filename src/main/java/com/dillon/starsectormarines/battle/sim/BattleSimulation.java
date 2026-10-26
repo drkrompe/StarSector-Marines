@@ -192,6 +192,7 @@ import com.dillon.starsectormarines.battle.command.MissionCommand;
 import com.dillon.starsectormarines.battle.command.ReliefAssault;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
+import com.dillon.starsectormarines.battle.objective.side.SideObjectiveService;
 import com.dillon.starsectormarines.battle.story.OpeningOperationStoryObserver;
 import com.dillon.starsectormarines.battle.story.JunctionStoryObserver;
 import com.dillon.starsectormarines.battle.story.RelayNineStoryObserver;
@@ -1080,6 +1081,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** The battle's optional objectives, or {@code null} when its mission rolled none. */
     public ObjectiveBoard getOptionalObjectives() { return optionalObjectives; }
+
+    private final SideObjectiveService sideObjectives = new SideObjectiveService();
+
+    /**
+     * The battle's side objectives ({@code side-objective-toolkit.md}): the optional jobs its mission offers at setup.
+     * Ticked before the story sequences; never part of the win check. Empty on a battle that offers none.
+     */
+    public SideObjectiveService getSideObjectives() { return sideObjectives; }
     /** Full immutable history for neutral diagnostic tools, including hidden scenario facts. */
     public List<StoryBeatLog.Event> getStoryBeats() { return storyBeats.events(); }
     /** Presentation reads after advance; each consumer owns a battle-local sequence cursor. */
@@ -4079,6 +4088,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (waylineGunship != null) waylineGunship.tick(this);
         if (waylineHound != null) waylineHound.tick(this);
         fieldSalvage.tick(this);
+        // Before the story sequences, so a side job done on the tick its window closes still counts.
+        sideObjectives.tick(this);
         if (depotHold != null) depotHold.advance(this);
         if (salvageRights != null) salvageRights.advance(this);
         if (coldStart != null) coldStart.advance(this);

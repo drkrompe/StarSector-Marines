@@ -122,35 +122,47 @@ shared mapping instead of assigning paths independently in each screen.
   with are spares like any other: they come off into stores, cost a small bill to
   build, and go back on from there. A part fitted to a lost or left-behind boat
   goes with her.
-- **Required part** — a slot a boat cannot fly without: plating, drive, cabin and
-  power, as a mech needs its engine and capacitor bank. Any socket can stand empty;
+- **Required part** — a slot a boat cannot fly without: drive, cabin and power,
+  as a mech needs its engine and capacitor bank. Any socket can stand empty;
   a boat missing a required part warns on the doll (a red socket with the warning
   mark) and stays off the lift until one is fitted (`CampaignBoat.missingParts`).
-  An empty lift is the bare hold, an empty emitter flies her unshielded, and a bare
+  Empty plating flies her as a weak bare hull (60% of her stock hull), an empty
+  lift is the bare hold, an empty emitter flies her unshielded, and a bare
   hardpoint carries no gun. A briefing whose drop needs lift refuses to deploy with
   no flight-ready boat, and says which part is missing; a mission that starts on
-  secured ground needs none.
+  secured ground needs none. The Boat Deck's specifications column lists her
+  **readiness**: each missing required part (red), then what she flies without (a
+  bare hull, no shield, empty mounts; amber), then her frame, each line opening the
+  socket it is about.
 - **Boat workshop** — the atomic authority over the boats and their stores: it
   builds a spare from the fleet's hold, fits a spare and stores what came off,
   strips a part back to stores, moves a gun between hardpoints, recycles a spare,
-  and builds a boat into an empty berth. Only a build spends the hold, which it
+  builds a boat into an empty berth, and scraps one out of hers. Only a build spends the hold, which it
   shares with the Mech Lab rather than owning a second one.
 - **Recycling** — breaking one spare in stores (a boat spare, or a Mech Lab weapon,
   internal or kit) back into the materials it was built from. It is the machine
   shop's **reclamation** applied to a spare: what comes back is a share of what
   building that spare costs now, rounded down per line — none while the shop's
-  machinery is down, half once it runs, three quarters once its tooling is in.
+  machinery is down, half once it runs, three quarters once its tooling is in, and
+  all of it once a reclamation line is installed, so a part can be tried for nothing.
+- **Scrapped machine** — a boat, mech or vehicle the company broke up to free its
+  berth or gantry. Everything fitted goes to stores, and its **hull** — its bill less
+  the stock parts it was built with, which came back on their own — returns at the
+  shop's recycling rate.
 - **Lost boat** — a campaign boat whose frozen frame was shot down on a mission.
   It is struck from its berth and never comes back. `air-nouns.md` owns the
   battle-side ledger it is read from.
 - **Vacant berth** — a berth of the hull's with nothing standing in it, which is
-  what a lost boat leaves behind and the only thing a boat can be built into.
+  what a lost or scrapped boat leaves behind and the only thing a boat can be built into.
 - **Passenger casualty** — a marine who was still aboard a boat when it was
   lost. They are fallen the same way a marine shot on the ground is fallen and
   roll the same recovery outcome.
 - **Boat fabrication** — the workshop building the hull's own pattern into a
-  vacant berth, at standard fit, for a bill authored per pattern. The player
-  does not choose the pattern, because the hull already has.
+  vacant berth, at standard fit, for a bill authored per pattern and raised, material
+  by material, to at least what her stock parts cost together (tooling's quote
+  included). Those parts recycle like any spare, so a boat cheaper than her parts
+  would turn materials out of nothing. The player does not choose the pattern,
+  because the hull already has.
 
 ## Surface boundary
 
@@ -833,10 +845,19 @@ to nothing on every line offers no RECYCLE.
 The share is of today's quote, tooling and the spares rack included, so a recycle can
 never return more than a rebuild would spend. The rate follows the home ship's machine
 shop (`machine-shop-restoration.md`): buried or cleared, no recycling and no button;
-repaired machinery, half; installed tooling, three quarters. A hull outside the
-restoration chain runs its shop as built, at half. Recovered materials go aboard the
-fleet hold, never a depot, the way chassis scrap salvage does. Scrapping a whole chassis
-or vehicle keeps its own flat half (`MechWorkshop.salvage`).
+repaired machinery, half; installed tooling, three quarters; the reclamation line, the
+whole quote. A hull outside the restoration chain runs its shop as built, at half.
+Recovered materials go aboard the fleet hold, never a depot.
+
+Scrapping a whole machine follows the same rate. A boat's SCRAP sits in the Boat
+Deck's stage heading beside the berth, as the lab's does over a pad, and takes the
+same two presses. `BoatWorkshop.scrap` checks the hold first, strips every fitting and
+gun to stores through the ordinary strip, credits the hull, and leaves the berth
+vacant; a shop that cannot recycle still breaks her up, for her parts alone. A mech's
+hull is its chassis quote less the frame's plating and any factory-locked gun, which
+stay as spares; a vehicle is bought whole without kits, so its whole quote is hull.
+At the full rate, building a machine and breaking it up again is exactly free and
+never a profit.
 
 ## Shipboard Barracks
 
@@ -1527,11 +1548,12 @@ The same hull's machine shop has a three-step restoration chain after Relief.
 Clearance costs 750 credits, includes a pressure patch before the hatch reopens,
 and recovers 10 metals once; machinery repair costs
 3,000 and enables reclamation of one fleet-cargo heavy machinery into four
-metals, and recycling of stored spares at half their bill; installed tooling costs
-4,500, raises that recycling to three quarters, and reduces supplies inputs for Boat Deck
+metals, and recycling of stored spares and scrapped machines at half their bill;
+installed tooling costs 4,500, raises that recycling to three quarters, and reduces supplies inputs for Boat Deck
 and Mech Lab fabrication/fitting by 20%, rounded up with a minimum of one per
 supplies line. Other commodities, equipment capabilities, known patterns, squad
-issue and yard credit bills do not receive this benefit. Existing preparation
+issue and yard credit bills do not receive this benefit. A reclamation line, the
+fourth stage, costs 7,500 and recycles at the whole bill. Existing preparation
 services remain available before restoring the workshop.
 
 Paid stages require the original hull to be the active company home and an
