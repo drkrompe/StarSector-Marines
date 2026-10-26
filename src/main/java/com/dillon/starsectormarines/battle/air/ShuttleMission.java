@@ -489,6 +489,40 @@ public final class ShuttleMission {
     public float groundSteer;
 
     /** Forgets the current taxi route. */
+    /**
+     * The heaviest machine still aboard this sortie, or null when she carries
+     * none: what {@link FittedBoat#carrying} slows her by.
+     */
+    public LiftClass machineAboard() {
+        if (marinesRemaining <= 0 || payload == null || payload == InfantryPayload.INSTANCE) return null;
+        LiftClass heaviest = null;
+        for (int slot = Math.max(0, deboardedThisSortie); armorDrop != null && slot < armorDrop.length; slot++) {
+            if (armorDrop[slot] != null) heaviest = heavier(heaviest, armorDrop[slot].liftClass());
+        }
+        for (int slot = Math.max(0, deboardedThisSortie); mechDeployments != null && slot < mechDeployments.length; slot++) {
+            if (mechDeployments[slot] != null) heaviest = heavier(heaviest, mechDeployments[slot].variant().liftClass());
+        }
+        if (mechDeployments == null) {
+            for (int slot = Math.max(0, deboardedThisSortie); mechVariants != null && slot < mechVariants.length; slot++) {
+                if (mechVariants[slot] != null) heaviest = heavier(heaviest, mechVariants[slot].liftClass());
+            }
+            if (mechVariants == null && mechVariant != null) heaviest = heavier(heaviest, mechVariant.liftClass());
+        }
+        if (vehicleDeployment != null) heaviest = heavier(heaviest, vehicleDeployment.type().liftClass());
+        return heaviest;
+    }
+
+    /** Marines still aboard this sortie; a machine sortie carries none. */
+    public int marinesAboard() {
+        return payload == null || payload == InfantryPayload.INSTANCE ? Math.max(0, marinesRemaining) : 0;
+    }
+
+    private static LiftClass heavier(LiftClass a, LiftClass b) {
+        if (a == null) return b;
+        if (b == null) return a;
+        return a.ordinal() >= b.ordinal() ? a : b;
+    }
+
     public void clearTaxiRoute() {
         taxiPath = null;
         taxiLeg = 0;

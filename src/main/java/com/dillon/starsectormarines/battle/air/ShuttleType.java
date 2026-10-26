@@ -212,6 +212,8 @@ public enum ShuttleType implements AirHandling, Airframe {
     /** Transports shoot from mounts if at all; none of them makes attack runs. */
     @Override public AirOrdnance ordnance()           { return null; }
     @Override public AirHandling flight()             { return this; }
+    @Override public int seats()                      { return capacity; }
+    @Override public float deboardInterval()          { return deboardInterval; }
     @Override public float maxHp()                    { return maxHp; }
 
     @Override public float maxSpeed()                 { return maxSpeed; }

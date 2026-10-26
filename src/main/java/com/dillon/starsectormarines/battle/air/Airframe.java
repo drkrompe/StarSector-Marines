@@ -83,6 +83,12 @@ public interface Airframe {
      */
     AirHandling flight();
 
+    /** The most marines one sortie lands; zero for an aircraft that carries none. */
+    default int seats() { return 0; }
+
+    /** Seconds between one marine and the next leaving the ramp. */
+    default float deboardInterval() { return 0.6f; }
+
     /**
      * Structure on an undamaged hull.
      *

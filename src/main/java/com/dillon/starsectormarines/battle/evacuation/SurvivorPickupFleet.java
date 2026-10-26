@@ -25,7 +25,7 @@ final class SurvivorPickupFleet {
             this.delivery = delivery; this.type = type;
             this.frame = frame; this.mech = mech;
         }
-        int capacity() { return mech ? 1 : type.capacity; }
+        int capacity() { return mech ? 1 : frame != null ? frame.seats() : type.capacity; }
         boolean boarding() {
             return pickup != null && pickup.pickup.state() == PickupManifest.State.ABOARD
                     && pickup.state == ShuttleState.LANDED && pickup.awaitingEvacuees && !pickup.pickup.full();

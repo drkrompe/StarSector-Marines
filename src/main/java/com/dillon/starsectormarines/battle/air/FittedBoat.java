@@ -29,13 +29,17 @@ import java.util.Objects;
  * in — the equipment, integral-system and deployable specs all arrive that way.
  *
  * <p><b>Only the numbers a fitting is about are touched.</b> Plating scales
- * the hull; the drive scales forward speed and both accelerations; a lift
- * cradle raises the {@link #liftRating} and leaves the seats where they are. Turn rate,
- * damping, seats, hardpoints, sprite and hull id are the pattern's and are
+ * the hull; the drive scales forward speed and both accelerations and shortens
+ * the deboard cadence, a quicker ramp; a lift cradle raises the {@link #liftRating}
+ * and leaves the seats where they are; the cabin sets the {@link #seats}. Turn
+ * rate, damping, hardpoints, sprite and hull id are the pattern's and are
  * delegated untouched — a better boat is faster and tougher, not a different
- * aircraft. The deboard cadence and the deck turnaround are deliberately not
- * here either: the rotation is a fact about hands, and a fitting does not buy
- * more of them.
+ * aircraft. The deck turnaround is deliberately not here: it is paid in
+ * hand-seconds, and a fitting does not buy more hands.
+ *
+ * <p><b>Weight aboard slows her.</b> {@link #carrying} is her handling with a
+ * load: a machine drags by its lift class and each marine a little, so the run
+ * in is slower than the run back. A better drive wins the loaded speed back.
  */
 public final class FittedBoat implements Airframe, AirHandling {
 
@@ -164,6 +168,56 @@ public final class FittedBoat implements Airframe, AirHandling {
     @Override public AirHandling flight() { return this; }
 
     @Override public float maxHp() { return pattern.maxHp() * plating.hullFactor(); }
+
+    /** The cabin's seats, or the pattern's where the cabin seats fewer. */
+    @Override
+    public int seats() {
+        return Math.max(pattern.capacity, fit.get(BoatFittingSlot.CABIN).seats());
+    }
+
+    /** The pattern's ramp, quickened by the drive. */
+    @Override
+    public float deboardInterval() {
+        return pattern.deboardInterval * drive.deboardFactor();
+    }
+
+    /** Top-speed loss a machine of each lift class costs her, by {@link LiftClass} ordinal. */
+    private static final float[] MACHINE_DRAG = {0.12f, 0.20f, 0.30f};
+    /** Top-speed loss each marine aboard costs her. */
+    static final float MARINE_DRAG = 0.01f;
+
+    /**
+     * Her top speed with {@code machine} (or null) and {@code marines} aboard, as
+     * a share of her empty top speed: never below half.
+     */
+    public static float loadFactor(LiftClass machine, int marines) {
+        float drag = (machine == null ? 0f : MACHINE_DRAG[machine.ordinal()])
+                + MARINE_DRAG * Math.max(0, marines);
+        return Math.max(0.5f, 1f - drag);
+    }
+
+    /**
+     * The handling {@code frame} flies {@code mission} with: a boat's with what
+     * is aboard her now, any other aircraft's own.
+     */
+    public static AirHandling handling(Airframe frame, ShuttleMission mission) {
+        return frame instanceof FittedBoat boat && mission != null
+                ? boat.carrying(mission.machineAboard(), mission.marinesAboard()) : frame.flight();
+    }
+
+    /** Her handling with this load aboard; herself when the load costs nothing. */
+    public AirHandling carrying(LiftClass machine, int marines) {
+        float factor = loadFactor(machine, marines);
+        return factor >= 1f ? this : new Loaded(this, maxSpeed() * factor);
+    }
+
+    private record Loaded(AirHandling base, float maxSpeed) implements AirHandling {
+        @Override public float accel() { return base.accel(); }
+        @Override public float brakingAccel() { return base.brakingAccel(); }
+        @Override public float maxTurnRateDegPerSec() { return base.maxTurnRateDegPerSec(); }
+        @Override public float lateralDriftDamping() { return base.lateralDriftDamping(); }
+        @Override public float stationDamping() { return base.stationDamping(); }
+    }
 
     @Override public float targetRadiusCells() { return pattern.targetRadiusCells(); }
 

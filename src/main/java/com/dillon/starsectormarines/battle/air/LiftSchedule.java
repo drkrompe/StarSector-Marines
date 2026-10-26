@@ -90,7 +90,7 @@ public final class LiftSchedule {
             AirBody body = world.kinematics(id);
             Airframe frame = world.airframe(id);
             if (mission == null || body == null || frame == null) continue;
-            Lift lift = lift(mission, body.x, body.y, frame.flight().maxSpeed());
+            Lift lift = lift(mission, body.x, body.y, FittedBoat.handling(frame, mission).maxSpeed());
             if (lift != null) lifts.add(lift);
         }
         return group(lifts);
