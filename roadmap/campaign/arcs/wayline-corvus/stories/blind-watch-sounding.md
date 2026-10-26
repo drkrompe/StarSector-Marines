@@ -1,6 +1,6 @@
 # Blind Watch — the Sounding
 
-Status: IN PROGRESS — hook proposed to the owner (Blind Watch picks page), building on A meanwhile; the map (`BlindWatchSounding`) is built, the mission and wiring are not.
+Status: IN PROGRESS — hook A chosen (owner, 2026-10-26); the map (`BlindWatchSounding`) is built, mission behaviour and wiring under way.
 Written: 2026-10-26
 
 Read `wayline-corvus-arc.md`, `early-operation-nouns.md` (Wayline across Corvus),
@@ -53,6 +53,18 @@ tracks between them.
 - A rigging crew pressed into staying on to keep the dishes aligned in the
   thermal swings. They built the post on a contract and were not let go.
 
+**The cold drop (owner's flavour idea, 2026-10-26).** The Sounding pays for
+itself twice. The intercepts that time Sable Wake's raids also tell smugglers
+when Jangala's lanes are clear of Hegemony patrols, and the post sells those
+windows. Its lander pad is a cold drop for the Sector's quiet trade, using
+vanilla's two contraband goods: **harvested organs** in cryo pods racked
+out on the airless surface, where the cold costs nothing, and **recreational
+drugs** cut and pressed in a chem module beside the pad. Garnir's depot is a
+short hop away. That changes who is there: a lander crew and a chemist beside
+the signals techs. It also darkens what the riggers fear. They were not let go,
+and the pods are next to their module. This is implied, never shown or said
+outright.
+
 **Why the company can reach it.** The Dust Ledger's strongbox gave the post's
 location, its approaches and the watch roster. The post listens outward, at
 the system; Barad's magnetosphere drowns everything on the gas giant's side, so
@@ -70,7 +82,7 @@ lands over the horizon from the post. Low risk is the reward of that preparation
 No faction relation, market, Hegemony or orbital state changes, as with the
 rest of the arc.
 
-## The hook (proposed; owner's pick on the Blind Watch picks page)
+## The hook (owner, 2026-10-26: A)
 
 **A. Ears, eyes and voice (recommended).** The three charges each take away a
 different capability, so the order is the plan:
@@ -92,17 +104,8 @@ Mast first makes everything after it cheaper, but the warning probably goes
 through. Uplink first keeps Garnir in the dark, but crosses the flat under the mast's mortar.
 A careful approach delays the alarm and with it the warning's start.
 
-**B. Aurora window.** Barad's magnetic storms blind the post's instruments. The
-company lands at a storm's onset; while it lasts the rim guns and the mast are
-blind and sentries must see the company by eye. The storm passes on a visible
-clock and the post wakes at full strength. A tempo mission: push hard while the
-watch is blind.
-
-**C. Moonrise.** The uplink can reach Garnir only while Garnir is above
-Warion's horizon. Garnir rises on a visible clock; at moonrise the post calls
-for help and a Sable Wake lander arrives with a relief squad. Blowing the uplink
-first cancels the lander. Raises the chapter's danger above Low unless the
-uplink falls in time.
+Not chosen: an aurora storm that blinds the post for a timed window (B), and
+Garnir's moonrise bringing a relief lander unless the uplink falls first (C).
 
 ## Mission flow (hook A)
 
@@ -127,6 +130,7 @@ Pay is the owner's call per job (proposed below).
 |---|---|---|---|
 | **The riggers** (offered): reach the riggers' module and walk them to the landing ground | until the dish field blows | They give up the post's layout: the bunkers and the crawler's track are revealed | 1,500 from their outfit; mark `corvus.warion.riggers_freed` |
 | **The false schedule** (hidden, found at the dish field's control hut): a squad leader holds the console while the uplink stands and before Garnir is warned | uplink standing, warning unsent | Garnir receives a false Wayline sailing schedule instead of the warning | no credits; mark `corvus.garnir.false_schedule`, for A Cold Account |
+| **The cold store** (proposed, hidden, found by sighting the pod racks): a squad holds the racks to log the manifest | until the dish field blows | none in battle | no credits; mark `corvus.sable_wake.organ_manifest`, evidence Kord's navy can read in A Cold Account |
 
 The false schedule needs the uplink standing, which pulls against blowing it
 first: the trade the hook is built on.
@@ -165,7 +169,7 @@ the recipe (tier one, with ramps), stamped before anything is built on them.
 | West | The landing ground behind a low ridge: three berths, one logical landing area (`Layout.landing`). The ridge is three masses with passes between: north (to the boulder field), middle (the rover track), south (to the rille). |
 | Centre | Open regolith flat with a few old impact craters, crossed by the rover track; a boulder field to the north (basalt formations on a jittered lattice, slow and covered, `Layout.boulderCover`); a dry sinuous rille to the south (excavation: impassable, see-through), broken by two crossings (`Layout.rilleCrossings`), ending under the dish field's south-west corner, with boulder clusters along its south bank. |
 | North-east | The crater rim, a long arc one tier up whose south-west spur reaches toward the rover track. On it the ranging mast (gravel pad, `Installation.MAST`) and two rim guns (`DefensePostStamper.stampNest`, heavy MGs): one on the spur's tip over the track and the flat's east half, one beside the mast over the crater floor. Two ramps: a four-cell one at the spur's west flank from the boulder field (`Layout.rimRamps` first), a five-cell one from the crater floor. |
-| East floor | The fenced dish field (six dishes on concrete footings, gates north, south and east, `Installation.DISH_FIELD`) with its control hut and console (`Layout.controlHut`, `Layout.console`); the hab cluster, four prefab modules either side of the hab street (two bunk modules, the riggers' module, the signals racks); the lander pad and the motor pool. |
+| East floor | The fenced dish field (six dishes on concrete footings, gates north, south and east, `Installation.DISH_FIELD`) with its control hut and console (`Layout.controlHut`, `Layout.console`); the hab cluster, four prefab modules either side of the hab street (two bunk modules, the signals racks, the riggers' module at the east end of the south row); the cold drop between the riggers' module and the lander pad: the cryo pod racks in two rows with the aisle a squad holds them from (`Layout.podRacks`, `Layout.podHold`), their chiller, the chem module and the chemist (`Layout.chemModule`, `Layout.chemist`); on the lander pad the crates on pallets (`Layout.drugCrates`) and the half-loaded cargo crawler with its crew (`Layout.cargoCrawler`, `Layout.landerCrew`); the motor pool south of the cold drop. |
 | South-east | The uplink knoll, one tier up, climbed by one six-cell ramp from the west (`Layout.knollRamp`): the uplink's transmitter, switch gear and generator on a gravel pad (`Installation.UPLINK`), and the rocket truck's stands (`Layout.technicalStands`). |
 
 Three approaches are real choices, each proved open on its own ground
@@ -181,9 +185,9 @@ round back and sides): at the hab's airlock, slits west down the rover track, ma
 from the hab posts; south of the knoll's ramp foot, slits west over the ground
 between the dish field and the knoll, manned from the uplink posts. The mortar
 carrier starts in the motor pool (`Layout.mortarStart`); its lane
-(`Layout.mortarLane`) runs out to the junction by the lander pad, up below the rim
-and back, down the hab street to the dish field's north gate, below the uplink and
-home, every leg proved with `VehicleRoutePlanner.routeDrivable` on its hull's
+(`Layout.mortarLane`) runs out past the chem module's east side onto the lander
+pad, up the rover track below the rim and back, down the hab street to the dish
+field's north gate, below the uplink and home, every leg proved with `VehicleRoutePlanner.routeDrivable` on its hull's
 clearance. The rocket truck drives up the knoll's ramp to each of its stands.
 
 **Garrison.** About two dozen Sable Wake hands at Low (`Layout.posts`, 24 posts):
@@ -191,7 +195,7 @@ rim (4), mast (2), hab (5, three at the airlock pillbox's slits), dish field (5,
 in the control hut), uplink (5, three at the ramp pillbox's slits), motor pool (2),
 the watch boss (1, in the signals module). The signals technicians shelter in the
 signals module (`Layout.signalsTechs`), the riggers in their module
-(`Layout.riggers`).
+(`Layout.riggers`); the chemist and the lander crew are at the cold drop.
 
 **Art needs.** The map dresses these with stand-ins until art exists; none is
 generated yet.
@@ -207,6 +211,9 @@ generated yet.
 | Regolith berm round a pillbox | sandbag runs on the berm's ring |
 | Rover tracks (twin ruts) | a narrow worn DIRT road (`blind-watch.road.json`) |
 | Lander pad markings | concrete slab with hazard corner marks (`StoryServiceYard.bay`) |
+| Cryo pod rack (organ pods, chiller) | `galley-cold-store` cabinets in rows; an `industrial-generator` and a fluid tank as the chiller |
+| Chem module fittings | `CONTROL_HUT` stamp; `medical-drug-locker` and a `medical-treatment-table` |
+| Cargo crawler, half loaded | `parked-cargo-truck` with crate and pallet stacks beside it |
 
 ## Music
 
@@ -233,7 +240,7 @@ and markers. Built against its own `Sites` record on small synthetic grids.
 **C. Story and text — `blind-watch-dialogue.md`.** Briefing with Mara and
 Castle, field calls (alarm, warning, each charge, side jobs), debrief variants
 over warned / not warned and the side jobs, catalog strings under
-`corvusBlindWatch*`. The two recorded debrief lines stay.
+`corvusBlindWatch*`. The two recorded debrief lines stay. Written: names, script, catalog and hook strings are in `blind-watch-dialogue.md`; wiring reads its debrief selection rule.
 
 **D. Wiring (lead).** `CorvusChapter.BLIND_WATCH` builds the authored fixture,
 retire the procedural path for this chapter, `commanderEvidence` with a
@@ -241,7 +248,7 @@ worst-approach and a prepared-approach run, the full-mission preview video.
 
 ## Acceptance
 
-- [ ] The owner picks the hook.
+- [x] The owner picks the hook: A, ears, eyes and voice (2026-10-26).
 - [x] Authored map renders from the look preset; no capture point except the three sites.
 - [x] Every site is reachable from the landing ground; three approaches stay open; the crawler's lane passes `VehicleRoutePlanner`.
 - [ ] Each charge's effect fires in a unit test; the warning stops at the uplink charge.
@@ -252,8 +259,10 @@ worst-approach and a prepared-approach run, the full-mission preview video.
 
 ## Open questions
 
-- The hook (A, B or C).
 - Side-job pay (proposed: riggers 1,500, false schedule none).
+- How far the cold drop goes (picks page): scenery and the cold-store job
+  (recommended), plus a contraband temptation job that pays black-market
+  credits for a permanent mark Mara will not forget, or scenery only.
 - Whether Blind Watch reads the Dust Ledger's broker mark: an escaped Teague
   could have warned the post, starting its crew stood-to. It would be the first
   consumer of a side-objective mark.

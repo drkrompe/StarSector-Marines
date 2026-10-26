@@ -374,7 +374,11 @@ the tick its window closes still counts; a control lever grants a job silently.
 picture; a mission never writes those rows itself. At resolution each job's
 outcome rides on `MissionOutcome`, and settlement (never the live battle)
 pays its credits and writes its mark into `CampaignMarks`, where it stays until
-a story clears it. Nothing reads a mark yet; that is the next consumer's work. The
+a story clears it. A mission's own outcome may settle a mark through the same
+path (Blind Watch's `corvus.sable_wake.garnir_warned`). A mark is read only at a
+fixture boundary, never by a live battle: Blind Watch's fixture asks whether
+`corvus.teague.delivered` is missing and tells the battle only that its post is
+stood-to (`BlindWatchProgress.stoodTo`). The
 rolled pool in `optional-objectives.md` is a sibling: a pool rolls against the
 laid map, a side objective is authored for one mission.
 

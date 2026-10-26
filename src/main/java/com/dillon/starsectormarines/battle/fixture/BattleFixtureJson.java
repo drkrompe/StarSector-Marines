@@ -537,6 +537,10 @@ public final class BattleFixtureJson {
             encoded.put("sortieCount", commitment.sortieCount());
             encoded.put("firstArrivalSec", commitment.firstArrivalSec());
             encoded.put("spawnIntervalSec", commitment.spawnIntervalSec());
+            if (commitment.refitSec() > 0f) {
+                encoded.put("refitSec", commitment.refitSec());
+                encoded.put("replacementSec", commitment.replacementSec());
+            }
             wings.put(encoded);
         }
         return wings;
@@ -554,7 +558,9 @@ public final class BattleFixtureJson {
                             encoded.getString("side"), "fighter side"),
                     encoded.getInt("sortieCount"),
                     (float) encoded.getDouble("firstArrivalSec"),
-                    (float) encoded.getDouble("spawnIntervalSec")));
+                    (float) encoded.getDouble("spawnIntervalSec"),
+                    (float) encoded.optDouble("refitSec", 0d),
+                    (float) encoded.optDouble("replacementSec", 0d)));
         }
         return wings;
     }

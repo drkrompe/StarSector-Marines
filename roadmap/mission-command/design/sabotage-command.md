@@ -22,6 +22,12 @@ frozen into the replay fixture. Unstated inputs retain the legacy settlement
 map and ordinary reinforcement behavior; a finite garrison does not refill
 through generated workshops, based aircraft or off-map deliveries.
 
+An authored mission states its own three sites (`SabotageSiteLayout.authored`):
+stable ids and cells from its map, with a name per site, never selected from
+generated points of interest. What a site's completion changes beyond victory
+is the mission's adapter to carry out, reading the site by its id (Blind Watch:
+`BlindWatchSequence`).
+
 ## Marine command
 
 A **site task group** combines the site's individual planter or kit-retriever

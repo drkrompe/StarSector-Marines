@@ -4,8 +4,12 @@ import com.dillon.starsectormarines.battle.decision.UnitBehavior;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.VehicleRepulsionSystem;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.HullReach;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
@@ -95,9 +99,20 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             sim.swarmCues().post(SwarmCues.Kind.ALERT, runner, sim);
         }
 
-        float dx = sim.world().x(target) - sim.world().x(runner);
-        float dy = sim.world().y(target) - sim.world().y(runner);
-        float distance = (float) Math.sqrt(dx * dx + dy * dy);
+        GroundBody hull = sim.convoy().isVehicle(target) ? sim.convoy().body(target) : null;
+        VehicleType hullType = hull == null ? null : sim.convoy().vehicleType(target);
+        // A hull on the move is met head on, in front of its bow, as before; one that stands is taken from the side.
+        if (hullType == null || !VehicleRepulsionSystem.standing(hull.speed)) hull = null;
+        float distance;
+        if (hull != null) {
+            // A hull is reached at its side: its centre lies inside the footprint, where its shove never lets a body stand.
+            distance = HullReach.gap(hull.x, hull.y, hull.facingDegrees, hullType.visualLengthCells / 2f,
+                    hullType.visualWidthCells / 2f, sim.world().x(runner), sim.world().y(runner));
+        } else {
+            float dx = sim.world().x(target) - sim.world().x(runner);
+            float dy = sim.world().y(target) - sim.world().y(runner);
+            distance = (float) Math.sqrt(dx * dx + dy * dy);
+        }
         if (distance <= sim.combat().attackRange(runner)) {
             sim.clearPath(runner);
             if (sim.combat().cooldownTimer(runner) <= 0f) {
@@ -114,9 +129,19 @@ public final class SwarmPressureBehavior implements UnitBehavior {
                 sim.swarmCues().post(SwarmCues.Kind.STRIKE, runner, sim);
                 sim.combat().setCooldownTimer(runner, strikeCooldown(runner, sim));
             }
-            // In a pack's press a striker wheels round its quarry between blows rather than planting.
-            SwarmPackMovement.press(runner, target, sim);
+            // In a pack's press a striker wheels round its quarry between blows rather than planting; at a hull it holds its side.
+            if (hull == null) SwarmPackMovement.press(runner, target, sim);
             return;
+        }
+        if (hull != null) {
+            int[] side = HullReach.beside(sim.getGrid(), hull.x, hull.y, hull.facingDegrees,
+                    hullType.visualLengthCells / 2f, hullType.visualWidthCells / 2f,
+                    sim.world().x(runner), sim.world().y(runner), sim.combat().attackRange(runner),
+                    sim.getRoster().radius(runner));
+            if (side != null) {
+                pressToward(runner, side[0], side[1], target != previousTarget, sim);
+                return;
+            }
         }
 
         if (SwarmPackMovement.press(runner, target, sim)) return;

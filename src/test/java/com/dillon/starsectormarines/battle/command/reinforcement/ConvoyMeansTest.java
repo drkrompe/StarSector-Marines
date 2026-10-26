@@ -261,9 +261,15 @@ class ConvoyMeansTest {
     @Test
     void rejectedFirstJunctionFallsThroughToNextCompleteRoute() {
         BattleSimulation sim = openSim();
+        // A lane five cells wide runs from just inside the edge to the open ground the good drop is on: too narrow
+        // for the APC to turn round in, even backing up first, so a truck set down at its mouth cannot leave.
+        for (int y = 29; y <= HEIGHT - 3; y++) {
+            sim.getGrid().setWalkable(12, y, false);
+            sim.getGrid().setWalkable(18, y, false);
+        }
         RoadGraph.Node entry = new RoadGraph.Node(0, 15, HEIGHT - 1, true);
-        // This high-degree candidate ranks first but snaps to a pose whose APC
-        // body still hangs off-map, so full route proof must reject it.
+        // This high-degree candidate ranks first, but a truck dropped there has no way to turn round and leave, so
+        // full route proof must reject it.
         RoadGraph.Node bad = new RoadGraph.Node(1, 15, HEIGHT - 2, false);
         RoadGraph.Node badLeft = new RoadGraph.Node(2, 10, HEIGHT - 2, false);
         RoadGraph.Node badRight = new RoadGraph.Node(3, 20, HEIGHT - 2, false);

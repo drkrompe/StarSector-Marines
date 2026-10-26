@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.audio;
 
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
+import com.dillon.starsectormarines.battle.setup.BlindWatchSequence;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -20,13 +21,17 @@ public final class BattleMusicFacts {
     /** The mission's declared music state, or {@code null} when it leaves the choice to the heat rule. */
     static MusicState declared(BattleSimulation sim) {
         DustLedgerSequence dustLedger = sim.getDustLedger();
-        return dustLedger != null ? dustLedger.progress().musicState() : null;
+        if (dustLedger != null) return dustLedger.progress().musicState();
+        BlindWatchSequence blindWatch = sim.getBlindWatch();
+        return blindWatch != null ? blindWatch.progress().musicState() : null;
     }
 
     /** The quiet bed the mission names, or {@code null} for the default. */
     static QuietBed bed(BattleSimulation sim) {
         DustLedgerSequence dustLedger = sim.getDustLedger();
-        return dustLedger != null ? dustLedger.progress().quietBed() : null;
+        if (dustLedger != null) return dustLedger.progress().quietBed();
+        BlindWatchSequence blindWatch = sim.getBlindWatch();
+        return blindWatch != null ? blindWatch.progress().quietBed() : null;
     }
 
     /** True when the company's side fired, or someone hostile to it did: a civilian's shot is not contact. */

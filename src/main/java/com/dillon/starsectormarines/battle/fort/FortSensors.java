@@ -84,7 +84,7 @@ public final class FortSensors {
     }
 
     /** A Bresenham line from {@code (x0, y0)} to {@code (x1, y1)}, blocked by structural opacity outside {@code looked}. */
-    static boolean lineOpen(NavigationGrid grid, int x0, int y0, int x1, int y1, CellMask looked) {
+    public static boolean lineOpen(NavigationGrid grid, int x0, int y0, int x1, int y1, CellMask looked) {
         int dx = Math.abs(x1 - x0);
         int dy = Math.abs(y1 - y0);
         int sx = x0 < x1 ? 1 : -1;
