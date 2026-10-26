@@ -1,6 +1,6 @@
 # Battle Radio
 
-Status: ACTIVE — one presentation-only cue policy spans both battle hosts; battle music follows the battle through four music states; mix, sourced quiet and alert beds, and release-audio provenance remain unsettled.
+Status: ACTIVE — one presentation-only cue policy spans both battle hosts; battle music follows the battle through four music states; mix, a sourced alert bed, and release-audio provenance remain unsettled.
 
 Written: 2026-08-23
 
@@ -106,11 +106,16 @@ has played that long. Each state has its own playlist with the no-repeat
 shuffle, retained across battles.
 
 **Tracks.** Combat plays the battle pool. A walk-in is never silent (owner):
-until quiet and alert beds are sourced (the owner's call), quiet and
-aftermath play the Marine Ops theme as a bed (`marines_intel_music_bed`, the
-menu's track declared about 5 dB under the combat pool), and alert plays the combat files at reduced volume (the `_alert`
-sound sets). A raise fades the bed out over its crossfade. The standalone battle screen is the only music host; the
-vanilla-combat bridge plays no music of its own. Each change of state is
+quiet and aftermath play the **quiet bed**, the strings take of the Second
+Wind arrival's own score (`marines_battle_quiet_strings`), cut to its
+sounding span and looped, so a long quiet phase never falls silent. It sits
+under the combat pool (music is encoded to one loudness) and a raise fades it
+out over its crossfade. A state with one track loops it; a state with several
+shuffles them. Until an alert bed is sourced (the owner's call), alert plays
+the combat files at reduced volume (the `_alert` sound sets). The Marine Ops
+theme, "Next Move" (`marines_intel_music`), is the menu's alone and never
+plays in battle (owner). The standalone battle screen is the only music host;
+the vanilla-combat bridge plays no music of its own. Each change of state is
 logged with its reason. Headless look recordings run the same director and
 mix its tracks into the soundtrack under `-Dsnapshot.lookSound=true`.
 

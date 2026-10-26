@@ -234,6 +234,9 @@ public final class BriefingLift {
                 case "weightId" -> id + ":weight";
                 case "warnId" -> id + ":warn";
                 case "warnImageId" -> id + ":warn-image";
+                case "countId" -> id + ":count";
+                case "countClasses" -> "field-absent";
+                case "count" -> "";
                 // Lit, the brick drops its class colour for the alarm; the symbol still names the class.
                 case "liftClasses" -> liftShort(machine.status()) ? "brick brick-lift brick-lit"
                         : "brick brick-lift " + weightChipClasses(LiftRating.of(machine.load().liftClass()))
