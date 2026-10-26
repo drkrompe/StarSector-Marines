@@ -22,10 +22,9 @@ public record MechFieldRepair(float repairDaysMult, float weaponBillMult) {
         return Math.max(MechRepairs.MINIMUM_DAYS, days * repairDaysMult);
     }
 
-    /** A weapon assembly's bill with the spares rack's share off each line, rounded up; never below one. */
+    /** A weapon assembly's price with the spares rack's share off, rounded up; never below one credit. */
     public FabricationCost weaponBill(FabricationCost base) {
         if (base == null || weaponBillMult == 1f) return base;
-        return new FabricationCost(base.lines().stream().map(line -> new FabricationCost.Line(line.commodityId(),
-                Math.max(1, (int) Math.ceil(line.quantity() * weaponBillMult - 1e-4f)))).toList());
+        return base.scaled(weaponBillMult);
     }
 }

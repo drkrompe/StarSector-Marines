@@ -171,4 +171,21 @@ class ColonyEruptionPlanTest {
             }
         }
     }
+
+    @Test
+    void noPlaceIsLeftBesideAHoldoutAndASiteReSeatedLaterKeepsOffIt() {
+        ColonyEruptionPlan plan = ColonyEruptionPlan.select(colony(List.of()), ColonyEruptionPlan.FIRST_WAVE_SITES, 11L);
+        int[] holdout = {200, 60};
+        ColonyEruptionPlan kept = plan.withoutPlacesNear(List.of(holdout), 40);
+        assertEquals(plan.sites(), kept.sites(), "the sites stay where they are");
+        for (int[] p : kept.places()) {
+            assertTrue(Math.hypot(p[0] - holdout[0], p[1] - holdout[1]) >= 40, "a place beside the holdout");
+        }
+        ColonyEruptionPlan.Site first = kept.sites().get(0);
+        for (ColonyEruptionPlan.Site site : kept.clearOf(first.x(), first.y(), 30).sites()) {
+            if (site.number() != first.number()) continue;
+            assertTrue(Math.hypot(site.x() - holdout[0], site.y() - holdout[1]) >= 40
+                    || site.x() == first.x() && site.y() == first.y(), "re-seated beside the holdout");
+        }
+    }
 }

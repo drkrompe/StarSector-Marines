@@ -4,7 +4,7 @@ import com.dillon.starsectormarines.ops.fitting.FittingComponents;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.marine.FabricationResources;
-import com.dillon.starsectormarines.marine.FabricationCost;
+import com.dillon.starsectormarines.marine.TestPurse;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import java.nio.file.Files;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -23,12 +23,7 @@ class BoatRecoveryLessonTest {
             var boat = roster.boatDeck().boats().get(0);
             roster.boatDeck().settleRecovery("return", Map.of(boat.id(), .75f), List.of(), 10f);
             roster.campaignLessons().observeBoatDamage(boat.id());
-            int[] spends = {0};
-            var resources = new FabricationResources() {
-                public int available(String id) { return 100; }
-                public String commodityIcon(String id) { return ""; }
-                public boolean spend(FabricationCost bill) { spends[0]++; return true; }
-            };
+            var resources = new TestPurse(100_000);
             var reactor = new Reactor();
             var model = new BoatDeckViewModel(reactor, roster.boatDeck(), resources, "Second Wind", () -> {}, () -> 10f);
             model.inspect(boat.id());
@@ -56,7 +51,7 @@ class BoatRecoveryLessonTest {
                 float x = button.x() + button.width() / 2, y = button.y() + button.height() / 2;
                 document.pointerMoved(x, y); document.pointerDown(x, y); document.pointerUp(x, y);
                 markup.flush(); document.advance(0); guide.update();
-                assertEquals(1, spends[0]); assertTrue(boat.airworthy(10f));
+                assertEquals(1, resources.spends); assertTrue(boat.airworthy(10f));
                 assertTrue(CampaignLessons.boats(roster, model).copy().contains("finished"));
                 assertTrue(roster.campaignLessons().boatRecoveryPending(), "Payment never silently acknowledges the lesson");
             }

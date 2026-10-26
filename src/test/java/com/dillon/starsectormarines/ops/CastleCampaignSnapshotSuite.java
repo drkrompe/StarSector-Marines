@@ -65,6 +65,7 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
                     var doc = PreparationGuide.document(markup.root()).theme(MarineOpsThemes.standard());
                     markup.styles().forEach(doc::addStyleSheet);
                     BriefingViewModel.applyVisibility(markup, props);
+                    BriefingViewModel.installMusters(doc, markup, props);
                     var guide = new PreparationGuide(doc, () -> CampaignLessons.briefing(mission, roster,
                             stage == 0 ? Set.of(second.id()) : both, true, stage == 2), () -> {},
                             new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),

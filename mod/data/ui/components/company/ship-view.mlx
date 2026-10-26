@@ -147,14 +147,6 @@
         <button id="workshop-action" class="{workshop.actionClasses}" disabled="{workshop.disabled}" onclick="{workshop.action}">{workshop.actionLabel}</button>
         <button id="workshop-focus" class="focus-action console-action" onclick="{workshop.inspect}">{i18n.openingUiShipViewView}</button>
       </div>
-      <div id="workshop-reclaim" class="{workshop.reclaimClasses}">
-        <div id="workshop-reclaim-bill" class="company-credit-bill"><company-resource-cost each="row in workshop.reclaimBill" key="{row.id}" row="{row}" /></div>
-        <div id="workshop-reclaim-copy" class="label wrapped reclaim-copy heading">{workshop.reclaimCopy}</div>
-        <div id="workshop-reclaim-reason" class="label wrapped reclaim-reason tone-muted">{workshop.reclaimReason}</div>
-        <div id="workshop-reclaim-actions" class="action-row">
-          <button id="workshop-reclaim-action" class="restoration-action console-action" disabled="{workshop.reclaimDisabled}" onclick="{workshop.reclaim}">{workshop.reclaimLabel}</button>
-        </div>
-      </div>
       <div id="workshop-feedback" class="label wrapped workshop-feedback tone-accent">{workshop.feedback}</div>
     </div>
     </div>
@@ -197,9 +189,6 @@
   .action-row { flex-direction: row; height: 32px; gap: 8px; }
   .restoration-action { width: 200px; height: 30px; }
   .focus-action { width: 70px; height: 30px; }
-  .reclaim-block { flex-direction: column; height: auto; gap: 5px; padding-top: 8px; }
-  .reclaim-copy { height: auto; }
-  .reclaim-reason { height: auto; }
   .workshop-feedback { height: auto; }
   .condition-panel { position: absolute; left: 0px; top: 0px; flex-direction: column; width: 370px; height: auto; padding: 16px; gap: 10px; border-width: 2px; border-color: #b99f65; background-color: #18221f; overflow: scroll; opacity: 0; pointer-events: none; }
   .survey-power { position: absolute; left: 14px; top: 12px; width: 290px; height: 32px; padding: 3px 8px; }

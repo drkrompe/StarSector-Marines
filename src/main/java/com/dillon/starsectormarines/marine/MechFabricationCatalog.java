@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.List;
 import java.util.Map;
@@ -14,8 +13,8 @@ import java.util.EnumMap;
 import java.util.Locale;
 
 /**
- * Discoverable Mech Lab patterns and their material bills. Every bill is metals, heavy machinery and
- * transplutonics (the game's {@code rare_metals}); the lab spends no supplies.
+ * Discoverable Mech Lab patterns and their credit prices. Parts are priced from their worth
+ * ({@link #weaponValue}, {@link #internalValue}, {@link #kitValue}); chassis and vehicles are authored.
  */
 public final class MechFabricationCatalog {
 
@@ -48,9 +47,9 @@ public final class MechFabricationCatalog {
             weapon(MechWeaponComponent.PIONEER_ROCKET_CRADLE, "@gearFabricationCommonMarket"));
 
     private static final List<Recipe> CHASSIS = List.of(
-            chassis(MechVariant.HOUND, "@gearFabricationLightChassisStandardFit", 247, 78, 12),
-            chassis(MechVariant.WARDEN, "@gearFabricationSupportChassisStandardFit", 333, 107, 20),
-            chassis(MechVariant.BULWARK, "@gearFabricationHeavyChassisStandardFit", 493, 157, 36));
+            chassis(MechVariant.HOUND, "@gearFabricationLightChassisStandardFit", 21510),
+            chassis(MechVariant.WARDEN, "@gearFabricationSupportChassisStandardFit", 30040),
+            chassis(MechVariant.BULWARK, "@gearFabricationHeavyChassisStandardFit", 45540));
 
     /** Stock parts are built too: a replacement plate or engine is still an assembly. Bills are derived. */
     private static final List<Recipe> INTERNALS = List.of(
@@ -78,39 +77,38 @@ public final class MechFabricationCatalog {
             kit(VehicleKit.CAPACITOR_PACK, "@gearFabricationMilitaryPattern"));
 
     /**
-     * Bills sit beside the chassis of the same weight class: a hull is cheaper than a walker, and at base commodity
-     * prices brings at least as much structure plus armor per credit as the class's mech (see
+     * Prices sit beside the chassis of the same weight class: a hull is cheaper than a walker, and brings at least as much structure plus armor per credit as the class's mech (see
      * {@code armorEconomyEvidence}). The fire-support APC is the one deliberate exception per lift: it carries a
      * mortar instead of plate, so its armor per Medium lift is below the Warden's.
      */
     private static final List<Recipe> VEHICLES = List.of(
-            vehicle(VehicleType.HEAVY_APC, "@gearFabricationLightVehicleStandardFit", 149, 41, 3),
-            vehicle(VehicleType.MILITIA_TECHNICAL, "@gearFabricationFieldRig", 165, 50, 8),
-            vehicle(VehicleType.ESCORT_APC, "@gearFabricationMediumVehicleStandardFit", 275, 85, 14),
-            vehicle(VehicleType.BREAKTHROUGH_TANK, "@gearFabricationHeavyVehicleStandardFit", 440, 135, 28),
-            // Variants cost more than the hull they improve on: plate in metals, guns in transplutonics.
-            vehicle(VehicleType.UP_ARMORED_APC, "@gearFabricationMediumVehicleStandardFit", 227, 57, 8),
-            vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 202, 57, 11),
-            vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 498, 152, 24),
+            vehicle(VehicleType.HEAVY_APC, "@gearFabricationLightVehicleStandardFit", 11220),
+            vehicle(VehicleType.MILITIA_TECHNICAL, "@gearFabricationFieldRig", 14050),
+            vehicle(VehicleType.ESCORT_APC, "@gearFabricationMediumVehicleStandardFit", 23800),
+            vehicle(VehicleType.BREAKTHROUGH_TANK, "@gearFabricationHeavyVehicleStandardFit", 39050),
+            // Variants cost more than the hull they improve on.
+            vehicle(VehicleType.UP_ARMORED_APC, "@gearFabricationMediumVehicleStandardFit", 16960),
+            vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 16810),
+            vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 42540),
             // The screened tank is the breakthrough tank plus its interceptor system: launchers and their sensor
             // are machinery and transplutonics, not plate.
-            vehicle(VehicleType.SCREENED_TANK, "@gearFabricationHeavyVehicleStandardFit", 448, 157, 44),
+            vehicle(VehicleType.SCREENED_TANK, "@gearFabricationHeavyVehicleStandardFit", 45790),
             // The laser tank trades the shells for an emitter and the plant that feeds it: transplutonics, not plate.
-            vehicle(VehicleType.LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 430, 150, 48),
+            vehicle(VehicleType.LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 45000),
             // The PD laser tank keeps the hull's plate and feeds a plainer emitter from three cells and a radar.
-            vehicle(VehicleType.PD_LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 445, 145, 36),
+            vehicle(VehicleType.PD_LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 42300),
             // Field rigs are workshop pickups, not issue hulls: the supply pickup is mostly bodywork, the spotter's
             // bill the transplutonics in its salvaged sensor mast.
-            vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationFieldRig", 162, 43, 4),
-            vehicle(VehicleType.SCOUT_CAR, "@gearFabricationFieldRig", 97, 43, 12),
+            vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationFieldRig", 12110),
+            vehicle(VehicleType.SCOUT_CAR, "@gearFabricationFieldRig", 11760),
             // The rocket pickup is a stripped pickup plus a pod.
-            vehicle(VehicleType.SRM_TECHNICAL, "@gearFabricationFieldRig", 135, 40, 6),
+            vehicle(VehicleType.SRM_TECHNICAL, "@gearFabricationFieldRig", 11250),
             // The missile carrier is the heavy APC's hull plus two LRM-15 racks.
-            vehicle(VehicleType.LRM_CARRIER, "@gearFabricationMediumVehicleStandardFit", 285, 75, 13),
+            vehicle(VehicleType.LRM_CARRIER, "@gearFabricationMediumVehicleStandardFit", 22400),
             // Tri-Tachyon's hover line is a corporate pattern, not a rig: lift fans, sensor clusters and drone
             // control are transplutonics, and the composite skirt is light on plate.
-            vehicle(VehicleType.HOVER_SCOUT, "@gearFabricationTriTachyonPattern", 97, 49, 24),
-            vehicle(VehicleType.DRONE_SKIMMER, "@gearFabricationTriTachyonPattern", 165, 71, 42));
+            vehicle(VehicleType.HOVER_SCOUT, "@gearFabricationTriTachyonPattern", 15060),
+            vehicle(VehicleType.DRONE_SKIMMER, "@gearFabricationTriTachyonPattern", 24000));
 
     private MechFabricationCatalog() {
     }
@@ -183,64 +181,40 @@ public final class MechFabricationCatalog {
      * what its removable weapons, engine and compartment parts cost as parts. Plating and
      * factory-locked hardware are the frame and stay in its price.
      */
-    private static Recipe chassis(MechVariant variant, String provenance,
-                                  int metals, int machinery, int transplutonics) {
-        STANDARD_FIT.put(variant, cost(metals, machinery, transplutonics));
-        int[] bill = {metals, machinery, transplutonics};
+    private static Recipe chassis(MechVariant variant, String provenance, int credits) {
+        STANDARD_FIT.put(variant, new FabricationCost(credits));
+        int frame = credits;
         MechFrameBudget.Fit stock = MechFrameBudget.Fit.stock(variant);
         for (MechMountSlot slot : MechMountSlot.values()) {
             MechWeaponComponent weapon = stock.weaponAt(slot);
-            if (weapon != null && !MechFrameBudget.integral(variant, slot)) less(bill, weaponCost(weapon));
+            if (weapon != null && !MechFrameBudget.integral(variant, slot)) frame -= weaponCost(weapon).credits();
         }
-        less(bill, internalCost(stock.engine()));
-        for (MechInternal part : stock.compartment()) less(bill, internalCost(part));
-        return new Recipe("recipe.chassis." + variant.id, null,
-                provenance, null, variant, null, null, null, cost(bill[0], bill[1], bill[2]));
+        frame -= internalCost(stock.engine()).credits();
+        for (MechInternal part : stock.compartment()) frame -= internalCost(part).credits();
+        return new Recipe("recipe.chassis." + variant.id, null, provenance, null, variant, null, null, null,
+                new FabricationCost(Math.max(MINIMUM_FRAME, frame)));
     }
 
-    /** Takes a part's bill off a frame's, never below one unit of any material. */
-    private static void less(int[] bill, FabricationCost part) {
-        for (FabricationCost.Line line : part.lines()) {
-            int index = switch (line.commodityId()) {
-                case Commodities.METALS -> 0;
-                case Commodities.HEAVY_MACHINERY -> 1;
-                default -> 2;
-            };
-            bill[index] = Math.max(1, bill[index] - line.quantity());
-        }
-    }
+    /** A bare frame is never priced below this, however much of its standard fit is removable parts. */
+    private static final int MINIMUM_FRAME = 500;
 
-    private static Recipe vehicle(VehicleType type, String provenance,
-                                  int metals, int machinery, int transplutonics) {
+    private static Recipe vehicle(VehicleType type, String provenance, int credits) {
         return new Recipe("recipe.vehicle." + type.name().toLowerCase(Locale.ROOT), null,
-                provenance, null, null, null, type, null, cost(metals, machinery, transplutonics));
+                provenance, null, null, null, type, null, new FabricationCost(credits));
     }
 
     private static Recipe kit(VehicleKit kit, String provenance) {
         return new Recipe("recipe." + kit.id, null, provenance, null, null, null, null, kit, kitCost(kit));
     }
 
-    /**
-     * A kit is priced like a part: its tier's worth, in what it is made of. Plate and skirts are mostly
-     * metal, a liner is woven and bonded, a ready rack is racking and feed.
-     */
+    /** A kit is priced like a part: its tier's worth. */
     private static FabricationCost kitCost(VehicleKit kit) {
-        float value = kitValue(kit);
-        return switch (kit) {
-            case APPLIQUE_PLATE, SPACED_SKIRTS -> split(value, .70f, .20f, .10f);
-            case SPALL_LINER -> split(value, .45f, .30f, .25f);
-            case READY_RACK -> split(value, .40f, .45f, .15f);
-            // Two airframes, their sensors and the tether link.
-            case SENSOR_PAIR -> split(value, .25f, .30f, .45f);
-            // Priced as the mech parts they stand in for: a loader's feed, a capacitor bank's cells.
-            case ACCELERATED_LOADER -> split(value, .30f, .40f, .30f);
-            case CAPACITOR_PACK -> split(value, .20f, .25f, .55f);
-        };
+        return price(kitValue(kit));
     }
 
     /*
      * Hardware is priced, not authored: a part is worth what its access tier and its mass make it, in
-     * credits at base commodity prices, and what it is made of decides which materials pay for that.
+     * credits.
      * Mass is the authored measure of how much weapon a part is (footprint, tier weight and heavy
      * build), so a bigger or rarer gun costs more without a second table to keep in step with it.
      * Chassis and vehicles stay authored: their bills carry the armor-per-credit parity that
@@ -249,10 +223,6 @@ public final class MechFabricationCatalog {
 
     /** Credits per unit of weapon mass at the common tier. */
     private static final float CREDITS_PER_WEAPON_MASS = 250f;
-
-    private static final int METALS_PRICE = 30;
-    private static final int MACHINERY_PRICE = 150;
-    private static final int TRANSPLUTONICS_PRICE = 200;
 
     /** What a better pattern multiplies its part's worth by. */
     static float tierMultiplier(EquipmentAccessTier tier) {
@@ -291,42 +261,16 @@ public final class MechFabricationCatalog {
     }
 
     private static FabricationCost weaponCost(MechWeaponComponent component) {
-        float value = weaponValue(component);
-        return switch (component.hardpointType) {
-            // Breech, barrel and feed: steel and mechanism.
-            case BALLISTIC -> split(value, .45f, .45f, .10f);
-            // Rails and loaders, and the guidance in every round.
-            case MISSILE -> split(value, .30f, .40f, .30f);
-            // Emitters, focusing and capacitance.
-            default -> split(value, .15f, .30f, .55f);
-        };
+        return price(weaponValue(component));
     }
 
     private static FabricationCost internalCost(MechInternal internal) {
-        float value = internalValue(internal);
-        return switch (internal.role) {
-            case ENGINE -> split(value, .25f, .60f, .15f);
-            case PLATING -> split(value, .80f, .15f, .05f);
-            case CAPACITOR_BANK, VENT_ARRAY -> split(value, .20f, .25f, .55f);
-            case LOADER -> split(value, .30f, .40f, .30f);
-        };
+        return price(internalValue(internal));
     }
 
-    /** Pays {@code value} credits in the three materials by share; every material is at least one unit. */
-    private static FabricationCost split(float value, float metals, float machinery, float transplutonics) {
-        return cost(units(value * metals, METALS_PRICE), units(value * machinery, MACHINERY_PRICE),
-                units(value * transplutonics, TRANSPLUTONICS_PRICE));
-    }
-
-    private static int units(float credits, int price) {
-        return Math.max(1, Math.round(credits / price));
-    }
-
-    private static FabricationCost cost(int metals, int machinery, int transplutonics) {
-        return new FabricationCost(List.of(
-                new FabricationCost.Line(Commodities.METALS, metals),
-                new FabricationCost.Line(Commodities.HEAVY_MACHINERY, machinery),
-                new FabricationCost.Line(Commodities.RARE_METALS, transplutonics)));
+    /** A worth in credits as a price, to the nearest ten. */
+    private static FabricationCost price(float value) {
+        return new FabricationCost(Math.max(10, Math.round(value / 10f) * 10));
     }
 
     public record Recipe(String id, String displayName, String provenance,

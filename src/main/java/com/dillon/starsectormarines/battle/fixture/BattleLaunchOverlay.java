@@ -103,7 +103,7 @@ public record BattleLaunchOverlay(
                         simulation.getFlybyRoster()),
                 FighterWingCommitment.toRoster(debugFighterSupport)));
         simulation.setCommandPowers(commandPowers.stream()
-                .map(CommandPowerCommitment::toPower).toList());
+                .map(CommandPowerCommitment::toPower).filter(Objects::nonNull).toList());
         simulation.setCommandPowerResources(resources);
         SupportKitIssue.issue(simulation, Faction.MARINE);
         simulation.installFieldSalvage();

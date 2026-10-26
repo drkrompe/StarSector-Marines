@@ -25,7 +25,7 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, flux), `convoy-nouns.md`
    well-refit frame reaches, not what a fresh one has.
 2. **A pattern is learned, then built.** Learning a pattern gives the company the
    right to fabricate that component, internal, chassis or vehicle forever.
-   Building one still spends materials, a working berth and time, and the result
+   Building one still costs credits, a civilized port, a working berth and time, and the result
    is finite stock that can be lost.
 3. **A fit must fit.** The player chooses what goes on each individual machine,
    bounded by socket footprint and by the frame's engine budget. Better equipment
@@ -87,7 +87,7 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, flux), `convoy-nouns.md`
   chassis's sockets and engine a real limit rather than a cosmetic one.
 - **Every upgrade gives something up.** Heavy plating costs mass and so speed or
   budget; a large capacitor bank takes the utility slot a faster loader wanted; an
-  uprated engine costs materials and runs hotter. Nothing multiplies structure,
+  uprated engine costs more and runs hotter. Nothing multiplies structure,
   armor capacity and armor rating together (`mechs-nouns.md`, internal).
 - **Chassis identity survives every fit.** A fully refit Hound is a better Hound,
   not a cheap Bulwark. Each chassis keeps its weapon bands and its weakness.
@@ -1167,8 +1167,8 @@ one. Lines and their first variants:
 | Spotter (field rig) | Spotter pickup — a sight mast that reports to fog and commander (Light lift) |
 | Hover (Tri-Tachyon) | Hover scout (sight and a light emitter, Light lift) → drone skimmer (tethered drones, no gun, Medium lift) |
 
-**A vehicle brings at least its class mech's armor per credit.** At base
-commodity prices (`gradlew.bat armorEconomyEvidence`), structure plus armor
+**A vehicle brings at least its class mech's armor per credit.** At its
+price (`gradlew.bat armorEconomyEvidence`), structure plus armor
 capacity per thousand credits against the class mech: heavy APC 1.00x the Hound;
 technical 2.56x, escort 2.38x, up-armored 1.99x and fire-support 1.23x the
 Warden; breakthrough 1.20x, heavy-gun 1.09x and dozer 2.04x the Bulwark (the
@@ -1255,7 +1255,7 @@ scout and the drone skimmer. Both are role hulls held only to costing less than 
 class mech, and their bills lean on rare metals for fans, sensors and drone control.
 
 One later, optional depth step: a single **overhaul** per vehicle (an up-armor
-or engine kit bought with materials, one decision, no socket grid), reusing the
+or engine kit bought for credits, one decision, no socket grid), reusing the
 internals vocabulary without the doll.
 
 ## Stories

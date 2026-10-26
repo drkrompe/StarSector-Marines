@@ -12,13 +12,9 @@ import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.ops.LiftReadout;
-import com.dillon.starsectormarines.battle.power.ReconPing;
 import com.dillon.starsectormarines.battle.power.MechSupport;
-import com.dillon.starsectormarines.battle.power.EmergencyResupply;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.power.CloseAirSupport;
-import com.dillon.starsectormarines.battle.power.MarineInsertion;
-import com.dillon.starsectormarines.battle.power.VehicleSupport;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -86,11 +82,7 @@ public final class SpecSheets {
     public static String commandPowerIcon(String powerId) {
         String symbol = switch (powerId) {
             case OrbitalBarrage.ID -> "barrage";
-            case MarineInsertion.ID -> "insertion";
-            case VehicleSupport.ID -> "armour";
             case MechSupport.ID -> "mech";
-            case ReconPing.ID -> "recon";
-            case EmergencyResupply.ID -> "resupply";
             default -> "support";
         };
         return "graphics/ui/briefing/" + symbol + ".svg";
@@ -99,12 +91,8 @@ public final class SpecSheets {
     /** Deck capacity and activation costs are distinct, both read from the actual power. */
     public static SpecSheet commandPower(CommandPower power) {
         String effect = switch (power.id) {
-            case ReconPing.ID -> Strings.get("gearPowerEffectReconPing");
             case MechSupport.ID -> Strings.get("gearPowerEffectMechSupport");
-            case EmergencyResupply.ID -> Strings.get("gearPowerEffectEmergencyResupply");
             case OrbitalBarrage.ID -> Strings.get("gearPowerEffectOrbitalBarrage");
-            case MarineInsertion.ID -> Strings.get("gearPowerEffectMarineInsertion");
-            case VehicleSupport.ID -> Strings.get("gearPowerEffectVehicleSupport");
             case CloseAirSupport.ID -> Strings.get("gearPowerEffectCloseAirSupport");
             case ShipOnStation.ID -> Strings.get("gearPowerEffectShipOnStation");
             default -> Strings.get("gearPowerEffectDefault");

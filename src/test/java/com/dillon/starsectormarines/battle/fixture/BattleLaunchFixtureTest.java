@@ -23,7 +23,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
-import com.dillon.starsectormarines.battle.power.ReconPing;
+import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -62,7 +62,7 @@ class BattleLaunchFixtureTest {
         try (BattleSimulation simulation = fixture.build()) {
             assertEquals("fixture-marine-001",
                     firstMission(simulation).cycleLoadouts[0][0].campaignSoldierId);
-            assertEquals(List.of(ReconPing.ID), simulation.getCommandPowerService()
+            assertEquals(List.of(OrbitalBarrage.ID), simulation.getCommandPowerService()
                     .getAvailablePowers().stream().map(power -> power.id).toList());
             assertEquals(20,
                     simulation.getCommandPowerService().getAvailableSupplies());
@@ -95,7 +95,7 @@ class BattleLaunchFixtureTest {
                     first.getCommandPowerService().getAvailablePowers();
             List<CommandPower> secondPowers =
                     second.getCommandPowerService().getAvailablePowers();
-            assertEquals(List.of(ReconPing.ID, MechSupport.ID),
+            assertEquals(List.of(OrbitalBarrage.ID, MechSupport.ID),
                     firstPowers.stream().map(power -> power.id).toList());
             assertEquals(37, first.getCommandPowerService().getAvailableSupplies());
             assertEquals(37, second.getCommandPowerService().getAvailableSupplies());
@@ -149,8 +149,8 @@ class BattleLaunchFixtureTest {
         assertThrows(IllegalArgumentException.class,
                 () -> new BattleLaunchOverlay(0, List.of(), List.of(), List.of(),
                         List.of(
-                                new CommandPowerCommitment(ReconPing.ID, List.of()),
-                                new CommandPowerCommitment(ReconPing.ID, List.of())),
+                                new CommandPowerCommitment(OrbitalBarrage.ID, List.of()),
+                                new CommandPowerCommitment(OrbitalBarrage.ID, List.of())),
                         0));
     }
 
@@ -176,7 +176,7 @@ class BattleLaunchFixtureTest {
                 List.of(new FighterWingCommitment(FighterProfile.DAGGER,
                         Faction.DEFENDER, 1, 7f, 30f)),
                 List.of(
-                        new CommandPowerCommitment(ReconPing.ID, List.of()),
+                        new CommandPowerCommitment(OrbitalBarrage.ID, List.of()),
                         new CommandPowerCommitment(MechSupport.ID, List.of(
                                 new MechDeploymentSpec(MechVariant.WARDEN,
                                         MechRole.LR_SUPPORT,

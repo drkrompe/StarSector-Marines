@@ -53,7 +53,7 @@ public final class OpeningPort {
         return use != Use.YARD || hasSpaceport(market);
     }
 
-    static boolean hasSpaceport(MarketAPI market) {
+    public static boolean hasSpaceport(MarketAPI market) {
         return market.getIndustries() != null && market.getIndustries().stream()
                 .anyMatch(i -> i != null && i.getSpec() != null && i.getSpec().hasTag("spaceport"));
     }

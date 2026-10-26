@@ -2,12 +2,9 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 
 /**
  * What it costs to build one ship's boat into an empty berth.
@@ -25,17 +22,17 @@ import java.util.Map;
 public final class BoatFabricationCatalog {
 
     private static final List<Recipe> RECIPES = List.of(
-            recipe(ShuttleType.HERMES, "@openingBoatFabricationCatalogShipSGig", 30, 8, 20),
-            recipe(ShuttleType.KITE, "@openingBoatFabricationCatalogCommonMarket", 34, 9, 22),
-            recipe(ShuttleType.MUDSKIPPER, "@openingBoatFabricationCatalogCommonMarket", 38, 10, 25),
-            recipe(ShuttleType.AEROSHUTTLE, "@openingBoatFabricationCatalogPurposeBuiltLander", 60, 15, 40),
-            recipe(ShuttleType.SHEPHERD, "@openingBoatFabricationCatalogUtilityHull", 64, 16, 42),
-            recipe(ShuttleType.WAYFARER, "@openingBoatFabricationCatalogUtilityHull", 66, 17, 44),
-            recipe(ShuttleType.TARSUS, "@openingBoatFabricationCatalogCivilianFreighter", 82, 21, 55),
-            recipe(ShuttleType.BUFFALO, "@openingBoatFabricationCatalogCivilianFreighter", 88, 22, 58),
-            recipe(ShuttleType.MULE, "@openingBoatFabricationCatalogCivilianFreighter", 96, 24, 64),
-            recipe(ShuttleType.NEBULA, "@openingBoatFabricationCatalogCivilianFreighter", 110, 28, 72),
-            recipe(ShuttleType.VALKYRIE, "@openingBoatFabricationCatalogMilitaryTransport", 150, 38, 100));
+            recipe(ShuttleType.HERMES, "@openingBoatFabricationCatalogShipSGig", 4100),
+            recipe(ShuttleType.KITE, "@openingBoatFabricationCatalogCommonMarket", 4570),
+            recipe(ShuttleType.MUDSKIPPER, "@openingBoatFabricationCatalogCommonMarket", 5140),
+            recipe(ShuttleType.AEROSHUTTLE, "@openingBoatFabricationCatalogPurposeBuiltLander", 8050),
+            recipe(ShuttleType.SHEPHERD, "@openingBoatFabricationCatalogUtilityHull", 8520),
+            recipe(ShuttleType.WAYFARER, "@openingBoatFabricationCatalogUtilityHull", 8930),
+            recipe(ShuttleType.TARSUS, "@openingBoatFabricationCatalogCivilianFreighter", 11110),
+            recipe(ShuttleType.BUFFALO, "@openingBoatFabricationCatalogCivilianFreighter", 11740),
+            recipe(ShuttleType.MULE, "@openingBoatFabricationCatalogCivilianFreighter", 12880),
+            recipe(ShuttleType.NEBULA, "@openingBoatFabricationCatalogCivilianFreighter", 14700),
+            recipe(ShuttleType.VALKYRIE, "@openingBoatFabricationCatalogMilitaryTransport", 20200));
 
     private BoatFabricationCatalog() {
     }
@@ -51,13 +48,8 @@ public final class BoatFabricationCatalog {
         return null;
     }
 
-    private static Recipe recipe(ShuttleType pattern, String provenance,
-                                 int metals, int machinery, int supplies) {
-        return new Recipe(pattern, new FabricationCost(List.of(
-                new FabricationCost.Line(Commodities.METALS, metals),
-                new FabricationCost.Line(Commodities.HEAVY_MACHINERY, machinery),
-                new FabricationCost.Line(Commodities.SUPPLIES, supplies))),
-                provenance);
+    private static Recipe recipe(ShuttleType pattern, String provenance, int credits) {
+        return new Recipe(pattern, new FabricationCost(credits), provenance);
     }
 
     /**
@@ -83,8 +75,8 @@ public final class BoatFabricationCatalog {
      *
      * <p>Every stock part a new boat carries is a spare with a bill of its own, which comes off
      * her into stores and recycles like any other. So what she costs ({@link #bill}) is never
-     * less, material by material, than those parts together; were it less, building a boat and
-     * breaking up her parts would make materials out of nothing.
+     * less than those parts together; were it less, building a boat and recycling her parts
+     * would make credits out of nothing.
      */
     public record Recipe(ShuttleType pattern, FabricationCost hull, String provenance) {
         public String provenance() { return Strings.resolve(provenance); }
@@ -95,21 +87,12 @@ public final class BoatFabricationCatalog {
             }
         }
 
-        /** What building one costs: the hull bill, raised on any material her stock parts need more of. */
+        /** What building one costs: the hull price, raised to what her stock parts cost together. */
         public FabricationCost bill() { return covering(hull, stockParts(pattern)); }
     }
 
-    /** {@code bill}, raised line by line to at least what {@code parts} cost together. */
+    /** {@code bill}, raised to at least what {@code parts} cost together. */
     public static FabricationCost covering(FabricationCost bill, List<FabricationCost> parts) {
-        Map<String, Integer> needed = new LinkedHashMap<>();
-        for (FabricationCost part : parts) {
-            for (FabricationCost.Line line : part.lines()) needed.merge(line.commodityId(), line.quantity(), Integer::sum);
-        }
-        Map<String, Integer> lines = new LinkedHashMap<>();
-        for (FabricationCost.Line line : bill.lines()) lines.merge(line.commodityId(), line.quantity(), Integer::sum);
-        needed.forEach((id, quantity) -> lines.merge(id, quantity, Math::max));
-        List<FabricationCost.Line> covered = new ArrayList<>();
-        lines.forEach((id, quantity) -> covered.add(new FabricationCost.Line(id, quantity)));
-        return new FabricationCost(covered);
+        return new FabricationCost((int) Math.max(bill.credits(), FabricationCost.total(parts)));
     }
 }

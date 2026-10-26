@@ -105,13 +105,11 @@ Two consequences, and they are the actual design work:
 
 ## Where a player's chassis comes from
 
-Delivered, like the mech lance it shares a carrier with: an **Armour Support**
-command power flies a heavy transport to a chosen landing zone and sets one
-vehicle down. That reuses the whole shuttle lifecycle — the carrier is
+Delivered, like the mechs it shares a manifest with: **Mech Support** flies a
+heavy transport to a chosen landing zone and sets one picked vehicle down. That reuses the whole shuttle lifecycle — the carrier is
 exposed on the way in and can be shot down with the vehicle aboard. What it
 carries is the company's own: a vehicle standing on a mech-bay gantry, frozen at
 launch, and lost to the company if it is wrecked (`mechs-nouns.md`, gantries).
-Only a launch with no bay sets down an unowned `HEAVY_APC`.
 
 What comes off the ramp is not a squad. It is a chassis in the `DEPLOYED` state
 with nothing to do, which is exactly the thing the rest of this document was
@@ -129,8 +127,8 @@ car do once they are down is `convoy-nouns.md` (the light roles).
    hard refusal and a reachability answer that accounts for turning room.~~
    **Landed.** `VehicleMoveOrderService`/`System`, refusal reasons carried to
    the overlay, and the give-up that replaces the silent permanent hold.
-3. ~~**A marine-side vehicle** to command.~~ **Landed.** An Armour Support
-   command power sets a marine `HEAVY_APC` down at a chosen landing zone in the
+3. ~~**A marine-side vehicle** to command.~~ **Landed.** Mech Support (then a
+   separate Armour Support power) sets a marine vehicle down at a chosen landing zone in the
    `DEPLOYED` state, and ownership is enforced where orders are acted on.
 
 Ordering matters: (2) is small once (1) is done and awkward before it, and (3)

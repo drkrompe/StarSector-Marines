@@ -8,13 +8,10 @@ import com.dillon.starsectormarines.campaign.start.CompanyWorkshopRestoration;
 import com.dillon.starsectormarines.ops.BoatDeckViewModel;
 import com.dillon.starsectormarines.ops.fitting.FittingCard;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -24,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** A spare breaks back down into a share of its bill, at a rate the machine shop sets, or not at all. */
 class RecyclingTest {
 
-    @Test void theMachineShopsStageSetsTheShareAndEachLineRoundsDown() {
+    @Test void theMachineShopsStageSetsTheShareAndItRoundsDown() {
         assertSame(Reclamation.NONE, CompanyWorkshopRestoration.reclamation(WorkshopState.BURIED));
         assertSame(Reclamation.NONE, CompanyWorkshopRestoration.reclamation(WorkshopState.CLEARED));
         assertSame(Reclamation.MACHINERY, CompanyWorkshopRestoration.reclamation(WorkshopState.REPAIRED));
@@ -33,64 +30,75 @@ class RecyclingTest {
         assertSame(Reclamation.MACHINERY, CompanyWorkshopRestoration.reclamation(WorkshopState.NONE),
                 "a hull outside the restoration chain runs its shop as built");
 
-        var bill = cost(Commodities.METALS, 7, Commodities.SUPPLIES, 1);
+        var bill = new FabricationCost(1001);
         assertNull(Reclamation.NONE.recover(bill));
-        assertEquals(List.of(new FabricationCost.Line(Commodities.METALS, 3)), Reclamation.MACHINERY.recover(bill).lines(),
-                "a line that rounds to nothing is dropped");
-        assertEquals(List.of(new FabricationCost.Line(Commodities.METALS, 5)), Reclamation.TOOLED.recover(bill).lines());
-        assertNull(Reclamation.TOOLED.recover(cost(Commodities.SUPPLIES, 1)));
-        assertEquals(bill.lines(), Reclamation.FULL.recover(bill).lines(), "the reclamation line returns the whole bill");
+        assertEquals(500, Reclamation.MACHINERY.recover(bill).credits());
+        assertEquals(750, Reclamation.TOOLED.recover(bill).credits());
+        assertEquals(1001, Reclamation.FULL.recover(bill).credits(), "the reclamation line returns the whole bill");
+        assertNull(Reclamation.MACHINERY.recover(new FabricationCost(1)), "a share that rounds to nothing is dropped");
     }
 
     @Test void aHullIsItsBillLessTheStockPartsThatComeBackOnTheirOwn() {
-        var bill = cost(Commodities.METALS, 30, Commodities.SUPPLIES, 4);
-        assertEquals(List.of(new FabricationCost.Line(Commodities.METALS, 22)), Reclamation.hull(bill,
-                List.of(cost(Commodities.METALS, 5, Commodities.SUPPLIES, 3), cost(Commodities.METALS, 3, Commodities.SUPPLIES, 2))).lines(),
-                "a line the parts use up is dropped, never negative");
-        assertNull(Reclamation.hull(cost(Commodities.METALS, 2), List.of(cost(Commodities.METALS, 2))));
+        assertEquals(500, Reclamation.hull(new FabricationCost(1000),
+                List.of(new FabricationCost(300), new FabricationCost(200))).credits());
+        assertNull(Reclamation.hull(new FabricationCost(200), List.of(new FabricationCost(200))),
+                "parts that use up the bill leave no hull, never a negative one");
     }
 
-    @Test void aScrappedBoatGoesToStoresAndHerHullToTheHoldWithoutPayingForHerPartsTwice() {
-        var deck = new BoatDeck();
-        deck.reconcile("ship", ShuttleType.VALKYRIE, 1);
-        var hold = new Hold(Reclamation.FULL);
-        hold.seed(1_000);
-        var workshop = new BoatWorkshop(deck, hold);
-        // Clear the berth the deck stands up with, then account from a boat built here.
-        if (deck.boats().get(0) != null) workshop.scrap(deck.boats().get(0).id());
-        sweep(deck, workshop);
-        hold.seed(1_000);
+    @Test void aScrappedBoatGoesToStoresAndHerHullToThePurseWithoutPayingForHerPartsTwice() {
+        var deck = boatDeck(ShuttleType.VALKYRIE);
+        var purse = TestPurse.rich().reclaiming(Reclamation.FULL);
+        var workshop = new BoatWorkshop(deck, purse);
+        long start = purse.credits;
         assertEquals(BoatWorkshop.Status.FABRICATED, workshop.fabricate(0).status());
         CampaignBoat boat = deck.boats().get(0);
 
-        hold.accepts = false;
+        purse.accepts = false;
         assertEquals(BoatWorkshop.Status.NO_HOLD, workshop.scrap(boat.id()).status());
         assertSame(boat, deck.boats().get(0), "a refused scrap leaves her standing");
         assertEquals(0, deck.spares(BoatFitting.STANDARD_PLATING.id()));
 
-        hold.accepts = true;
+        purse.accepts = true;
         assertEquals(BoatWorkshop.Status.SCRAPPED, workshop.scrap(boat.id()).status());
         assertEquals(List.of(0), deck.vacantBerths());
         assertEquals(1, deck.spares(BoatFitting.STANDARD_PLATING.id()), "her stock plating is a spare now");
         sweep(deck, workshop);
-        hold.stock.forEach((id, n) -> assertEquals(1_000, n, id + ": at the full rate building and breaking her up is exactly free"));
+        assertEquals(start, purse.credits, "at the full rate building and breaking her up is exactly free");
+    }
 
-        // Tooling rounds each part up on its own; her price covers that, so it is still free.
-        hold.tooled = true;
-        hold.seed(1_000);
-        workshop.fabricate(0);
-        workshop.scrap(deck.boats().get(0).id());
-        sweep(deck, workshop);
-        hold.stock.forEach((id, n) -> assertEquals(1_000, n, id + ": tooled, still exactly free"));
+    @Test void buildingABoatThenRecyclingHerPartsAndScrappingHerNeverTurnsAProfit() {
+        for (ShuttleType pattern : List.of(ShuttleType.HERMES, ShuttleType.VALKYRIE)) {
+            for (Reclamation level : Reclamation.values()) {
+                for (boolean tooled : List.of(false, true)) {
+                    var deck = boatDeck(pattern);
+                    var purse = TestPurse.rich().reclaiming(level);
+                    if (tooled) purse.quote = base -> WorkshopTooling.quote(base, true);
+                    var workshop = new BoatWorkshop(deck, purse);
+                    long start = purse.credits;
+                    FabricationCost price = workshop.fabricationQuote(pattern);
+                    String label = pattern + " " + level + (tooled ? " tooled" : "");
+                    assertEquals(BoatWorkshop.Status.FABRICATED, workshop.fabricate(0).status(), label);
+                    assertEquals(start - price.credits(), purse.credits, label);
+
+                    assertEquals(BoatWorkshop.Status.SCRAPPED, workshop.scrap(deck.boats().get(0).id()).status(), label);
+                    sweep(deck, workshop);
+
+                    assertTrue(purse.refunded <= price.credits(), label + " paid back " + purse.refunded + " of " + price.credits());
+                    assertTrue(purse.credits <= start, label);
+                    if (level == Reclamation.FULL) assertEquals(price.credits(), purse.refunded, label + ": exactly free");
+                }
+            }
+        }
     }
 
     @Test void aScrappedMachineReturnsTheShopsShareAndABuriedShopStillFreesThePad() {
         var bay = new MechBay();
-        var hold = new Hold(Reclamation.FULL);
-        hold.seed(1_000);
-        var workshop = new MechWorkshop(bay, hold, () -> 4);
+        var purse = TestPurse.rich().reclaiming(Reclamation.FULL);
+        var workshop = new MechWorkshop(bay, purse, () -> 4);
+        long start = purse.credits;
         CampaignMech built = workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND).mech();
         FabricationCost bill = MechFabricationCatalog.chassis(MechVariant.HOUND).cost();
+        assertEquals(start - bill.credits(), purse.credits);
         assertEquals(MechWorkshop.Status.SCRAPPED, workshop.scrapMech(built.id()).status());
         // The frame's own parts are spares now; break those down too.
         for (MechWeaponComponent weapon : MechWeaponComponent.values()) {
@@ -99,64 +107,57 @@ class RecyclingTest {
         for (MechInternal internal : MechInternal.values()) {
             while (bay.availableInternal(internal.id) > 0 && workshop.recycleInternal(internal).succeeded()) { }
         }
-        hold.stock.forEach((id, n) -> assertTrue(n <= 1_000, id + ": building and breaking up a chassis never turns a profit"));
-        for (FabricationCost.Line line : bill.lines()) {
-            assertTrue(hold.available(line.commodityId()) > 1_000 - line.quantity(), line.commodityId() + ": the full rate gives something back");
-        }
+        assertTrue(purse.credits <= start, "building and breaking up a chassis never turns a profit");
+        assertTrue(purse.credits > start - bill.credits(), "the full rate gives something back");
 
-        hold.reclamation = Reclamation.NONE;
+        purse.reclaiming(Reclamation.NONE);
         CampaignMech second = workshop.fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND).mech();
-        Map<String, Integer> before = new HashMap<>(hold.stock);
+        long before = purse.credits;
         assertNull(workshop.mechSalvage(second.id()));
         assertEquals(MechWorkshop.Status.SCRAPPED, workshop.scrapMech(second.id()).status());
-        assertEquals(before, hold.stock);
+        assertEquals(before, purse.credits);
         assertNull(bay.mechById(second.id()));
     }
 
-    @Test void aRecycledSpareLeavesStoresOnlyOnceTheHoldHasItsMaterials() {
+    @Test void aRecycledSpareLeavesStoresOnlyOnceThePurseHasItsCredits() {
         var deck = new BoatDeck();
         deck.reconcile("ship", ShuttleType.HERMES, 1);
-        var hold = new Hold(Reclamation.MACHINERY);
-        var workshop = new BoatWorkshop(deck, hold);
+        var purse = TestPurse.rich().reclaiming(Reclamation.MACHINERY);
+        var workshop = new BoatWorkshop(deck, purse);
         String part = BoatFitting.REINFORCED_PLATING.id();
 
         assertEquals(BoatWorkshop.Status.NO_SPARE, workshop.recycle(part).status());
         deck.stow(part);
 
-        hold.reclamation = Reclamation.NONE;
+        purse.reclaiming(Reclamation.NONE);
         assertEquals(BoatWorkshop.Status.WORKSHOP_IDLE, workshop.recycle(part).status());
-        hold.reclamation = Reclamation.MACHINERY;
-        hold.accepts = false;
+        purse.reclaiming(Reclamation.MACHINERY);
+        purse.accepts = false;
+        long before = purse.credits;
         assertEquals(BoatWorkshop.Status.NO_HOLD, workshop.recycle(part).status());
         assertEquals(1, deck.spares(part));
-        assertEquals(Map.of(), hold.stock);
+        assertEquals(before, purse.credits);
 
-        hold.accepts = true;
+        purse.accepts = true;
         assertEquals(BoatWorkshop.Status.RECYCLED, workshop.recycle(part).status());
         assertEquals(0, deck.spares(part));
-        for (FabricationCost.Line line : BoatFitting.REINFORCED_PLATING.bill().lines()) {
-            assertEquals(line.quantity() / 2, hold.stock.getOrDefault(line.commodityId(), 0), line.commodityId());
-        }
+        assertEquals(before + BoatFitting.REINFORCED_PLATING.bill().credits() / 2, purse.credits);
     }
 
     @Test void recoveryIsAShareOfTodaysPriceSoItNeverBeatsARebuild() {
         var deck = new BoatDeck();
         deck.reconcile("ship", ShuttleType.HERMES, 1);
-        var hold = new Hold(Reclamation.TOOLED);
-        hold.tooled = true;
-        var workshop = new BoatWorkshop(deck, hold);
-        FabricationCost price = hold.quote(BoatFitting.REINFORCED_PLATING.bill());
+        var purse = TestPurse.rich().reclaiming(Reclamation.TOOLED);
+        purse.quote = base -> WorkshopTooling.quote(base, true);
+        var workshop = new BoatWorkshop(deck, purse);
+        FabricationCost price = purse.quote(BoatFitting.REINFORCED_PLATING.bill());
         FabricationCost back = workshop.recycleQuote(BoatFitting.REINFORCED_PLATING.id());
-        for (FabricationCost.Line line : back.lines()) {
-            int paid = price.lines().stream().filter(l -> l.commodityId().equals(line.commodityId()))
-                    .mapToInt(FabricationCost.Line::quantity).sum();
-            assertEquals(paid * 3 / 4, line.quantity(), line.commodityId());
-        }
+        assertEquals(price.credits() * 3 / 4, back.credits());
+        assertTrue(back.credits() < price.credits());
     }
-
     @Test void theMechLabRecyclesOnlyFreeSpares() {
         var bay = new MechBay();
-        var hold = new Hold(Reclamation.MACHINERY);
+        var hold = TestPurse.rich().reclaiming(Reclamation.MACHINERY);
         var workshop = new MechWorkshop(bay, hold);
         MechWeaponComponent weapon = MechFabricationCatalog.weapons().get(0).component();
         MechInternal internal = MechFabricationCatalog.internals().get(0).internal();
@@ -170,7 +171,7 @@ class RecyclingTest {
         assertEquals(0, bay.availableInternal(internal.id));
         assertEquals(MechWorkshop.Status.NO_SPARE, workshop.recycleInternal(internal).status());
 
-        hold.reclamation = Reclamation.NONE;
+        hold.reclaiming(Reclamation.NONE);
         assertEquals(MechWorkshop.Status.WORKSHOP_IDLE, workshop.recycleWeapon(weapon).status());
         assertEquals(1, bay.availableWeapon(weapon.id));
     }
@@ -180,7 +181,7 @@ class RecyclingTest {
         deck.reconcile("ship", ShuttleType.HERMES, 1);
         String part = BoatFitting.REINFORCED_PLATING.id();
         deck.stow(part);
-        var hold = new Hold(Reclamation.MACHINERY);
+        var hold = TestPurse.rich().reclaiming(Reclamation.MACHINERY);
         var model = new BoatDeckViewModel(new Reactor(), deck, hold, "Second Wind");
         model.selectBoatAction(0).run();
 
@@ -192,7 +193,7 @@ class RecyclingTest {
         assertNull(card(model, part).recycle(), "a card with no spare offers no RECYCLE");
 
         deck.stow(part);
-        hold.reclamation = Reclamation.NONE;
+        hold.reclaiming(Reclamation.NONE);
         var idle = new BoatDeckViewModel(new Reactor(), deck, hold, "Second Wind");
         idle.selectBoatAction(0).run();
         assertNull(card(idle, part).recycle(), "an idle machine shop offers no RECYCLE");
@@ -212,43 +213,11 @@ class RecyclingTest {
         }
     }
 
-    private static FabricationCost cost(Object... pairs) {
-        var lines = new ArrayList<FabricationCost.Line>();
-        for (int i = 0; i < pairs.length; i += 2) lines.add(new FabricationCost.Line((String) pairs[i], (Integer) pairs[i + 1]));
-        return new FabricationCost(lines);
-    }
-
-    /** An empty hold that takes whatever comes back, and a machine shop the test sets. */
-    private static final class Hold implements FabricationResources {
-        final Map<String, Integer> stock = new HashMap<>();
-        Reclamation reclamation;
-        boolean accepts = true;
-        boolean tooled;
-
-        Hold(Reclamation reclamation) { this.reclamation = reclamation; }
-
-        @Override public int available(String id) { return stock.getOrDefault(id, 0); }
-        @Override public String commodityName(String id) { return id; }
-        @Override public String commodityIcon(String id) { return ""; }
-        @Override public boolean spend(FabricationCost cost) {
-            if (!canAfford(cost)) return false;
-            cost.lines().forEach(line -> stock.merge(line.commodityId(), -line.quantity(), Integer::sum));
-            return true;
-        }
-
-        void seed(int quantity) {
-            for (String id : List.of(Commodities.SUPPLIES, Commodities.HEAVY_MACHINERY, Commodities.METALS, Commodities.RARE_METALS)) {
-                stock.put(id, quantity);
-            }
-        }
-
-
-        @Override public FabricationCost quote(FabricationCost base) { return WorkshopTooling.quote(base, tooled); }
-        @Override public Reclamation reclamation() { return reclamation; }
-        @Override public boolean credit(FabricationCost salvage) {
-            if (!accepts) return false;
-            salvage.lines().forEach(line -> stock.merge(line.commodityId(), line.quantity(), Integer::sum));
-            return true;
-        }
+    private static BoatDeck boatDeck(ShuttleType pattern) {
+        var deck = new BoatDeck();
+        deck.reconcile("ship", pattern, 1);
+        deck.lose(List.of(deck.boats().get(0).id()));
+        return deck;
     }
 }
+

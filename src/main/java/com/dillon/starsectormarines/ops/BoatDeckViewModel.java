@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.ops.fitting.FittedBadge;
 import com.dillon.starsectormarines.ops.fitting.FittingCard;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
 import com.dillon.starsectormarines.ops.fitting.FittingMeter;
-import com.dillon.starsectormarines.ops.fitting.FittingSlotCard;
 import com.dillon.starsectormarines.ops.battleview.BoatHardware;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -25,19 +24,20 @@ import com.dillon.starsectormarines.ops.battleview.BoatDoll;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
+import com.dillon.starsectormarines.marine.ReserveHangar;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Comparator;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 import java.util.function.DoubleSupplier;
+import java.util.function.IntSupplier;
 
 /**
  * Berth projection and refit command surface for the campaign-authoritative
@@ -49,8 +49,8 @@ import java.util.function.DoubleSupplier;
  * into stores and back on from there, and a socket can stand empty. A boat
  * missing a required part warns on the board, the way a mech without its engine
  * does, and stays off the lift until one is fitted. A separate strip shows
- * shared fleet material stock while each card answers whether the fleet can pay
- * for one more.
+ * the company's credits and whether the fleet is docked at a port that sells,
+ * while each card answers whether the company can buy one more there.
  *
  * <p>It reads the deck and never reconciles it. Which hull the company is on is
  * the screen's question, asked once on attach through {@code ShipsBoatsAboard};
@@ -85,7 +85,7 @@ public final class BoatDeckViewModel {
     private final ComputedSignal<String> selectedBoatName;
     private final ComputedSignal<String> selectedBoatIdentity;
     private final ComputedSignal<List<FittingMeter>> performanceMeters;
-    private final ComputedSignal<List<SlotRow>> slotRows;
+    private final ComputedSignal<List<ReadinessRow>> readinessRows;
     private final ComputedSignal<String> selectedSlotTitle;
     private final ComputedSignal<String> selectedSlotCopy;
     private final ComputedSignal<List<CatalogRow>> catalogRows;
@@ -95,6 +95,11 @@ public final class BoatDeckViewModel {
     private String armedRecycle;
     /** The boat whose SCRAP was pressed once and waits for its confirming press; null for none. */
     private String scrapArmed;
+    /** The boat whose STORE has been pressed once, or null. */
+    private String storeArmed;
+    /** The company's reserve hangar and what the home ship's refit lets it hold; null until the screen attaches it. */
+    private ReserveHangar reserve;
+    private IntSupplier reserveCapacity = () -> 0;
     private final ComputedSignal<List<FittingFilterPill>> filterPills;
     private final ComputedSignal<BoatDoll> doll;
     private final ComputedSignal<String> overviewClasses;
@@ -165,7 +170,7 @@ public final class BoatDeckViewModel {
                     : boat.pattern().displayName() + "  ·  " + berthLabel(selectedBerth.get());
         });
         performanceMeters = reactor.computed(this::buildPerformanceMeters);
-        slotRows = reactor.computed(this::buildSelectedMount);
+        readinessRows = reactor.computed(this::buildReadiness);
         selectedSlotTitle = reactor.computed(() -> storesFilter.get() == null
                 ? Strings.get("openingMechLabAllPartsButton") : kindLabel(storesFilter.get()));
         selectedSlotCopy = reactor.computed(() -> {
@@ -198,7 +203,7 @@ public final class BoatDeckViewModel {
         fabricationMaterials = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
             return recipe == null ? List.of()
-                    : materialRows("boat-fabrication", workshop.fabricationQuote(recipe.pattern()));
+                    : priceRows("boat-fabrication", workshop.fabricationQuote(recipe.pattern()));
         });
         materialStock = reactor.computed(this::buildMaterialStock);
         fabricationActionClasses = reactor.computed(() -> affordableToBuild()
@@ -206,8 +211,10 @@ public final class BoatDeckViewModel {
         fabricationBlocked = reactor.computed(() -> !affordableToBuild());
         fabricationReason = reactor.computed(() -> {
             BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
-            if (recipe == null || resources.canAfford(workshop.fabricationQuote(recipe.pattern()))) return "";
-            return Strings.format("openingBoatDeckShort", shortest(workshop.fabricationQuote(recipe.pattern())));
+            if (recipe == null) return "";
+            if (!resources.atMarket()) return Strings.get("fabricationNoPortShort");
+            if (resources.canAfford(workshop.fabricationQuote(recipe.pattern()))) return "";
+            return Strings.format("openingBoatDeckShort", Strings.upper(Strings.get("companyResourceCredits")));
         });
     }
 
@@ -244,12 +251,15 @@ public final class BoatDeckViewModel {
                 boat == null ? "" : recoveryStatus(boat, day()),
                 boat == null ? "width: 100%;" : "width: " + Math.round(boat.condition(day()) * 100f) + "%;",
                 damaged ? "boat-recovery-order" : "boat-recovery-order hidden",
-                damaged ? materialRows("boat-recovery", quote.bill()) : List.of(),
-                !damaged || !resources.canAfford(quote.bill()), () -> {
+                damaged ? priceRows("boat-recovery", quote.bill()) : List.of(),
+                !damaged || !resources.canBuy(quote.bill()), () -> {
                     BoatWorkshop.Result result = workshop.expedite(quote, day());
-                    feedbackText.set(Strings.get(result.status() == BoatWorkshop.Status.REPAIRED
-                            ? "boatRepairCompleted" : result.status() == BoatWorkshop.Status.CANNOT_AFFORD
-                            ? "boatRepairShort" : "boatRepairChanged"));
+                    feedbackText.set(Strings.get(switch (result.status()) {
+                        case REPAIRED -> "boatRepairCompleted";
+                        case CANNOT_AFFORD -> "boatRepairShort";
+                        case NO_MARKET -> "boatRepairNoPort";
+                        default -> "boatRepairChanged";
+                    }));
                     revision.update(value -> value + 1);
                     if (result.succeeded()) deckChanged.run();
                 });
@@ -285,7 +295,8 @@ public final class BoatDeckViewModel {
     public Signal<String> selectedBoatName() { return selectedBoatName; }
     public Signal<String> selectedBoatIdentity() { return selectedBoatIdentity; }
     public Signal<List<FittingMeter>> performanceMeters() { return performanceMeters; }
-    public Signal<List<SlotRow>> slotRows() { return slotRows; }
+    /** Why the selected boat can or cannot fly, line by line, each opening the socket it is about. */
+    public Signal<List<ReadinessRow>> readinessRows() { return readinessRows; }
     public Signal<List<FittingFilterPill>> filterPills() { return filterPills; }
     public Signal<String> filterClasses() {
         return filterPills.map(pills -> pills.isEmpty() ? "category-filters hidden" : "category-filters");
@@ -318,6 +329,41 @@ public final class BoatDeckViewModel {
         if (!fittingFocused() || boat == null) return "hidden";
         return boat.id().equals(scrapArmed) ? "boat-scrap console-action armed" : "boat-scrap console-action"; }); }
     public Runnable scrapAction() { return this::scrapSelected; }
+
+    /** Attaches the company's reserve hangar: STORE beside SCRAP and the Reserve strip under the boats aboard. */
+    public void reserve(ReserveHangar hangar, IntSupplier capacity) {
+        reserve = hangar;
+        reserveCapacity = capacity;
+        revision.update(value -> value + 1);
+    }
+
+    /** The template's STORE and Reserve strip properties. */
+    public void putReserveProps(Map<String, Object> props) {
+        props.put("storeLabel", selectedBerth.map(berth -> { revision.get();
+            CampaignBoat boat = selectedBoat();
+            return boat != null && boat.id().equals(storeArmed) ? Strings.get("reserveStoreConfirm") : Strings.get("reserveStore"); }));
+        props.put("storeClasses", selectedBerth.map(berth -> { revision.get();
+            CampaignBoat boat = selectedBoat();
+            if (!fittingFocused() || boat == null || reserve == null || reserveCapacity.getAsInt() <= 0) return "hidden";
+            return boat.id().equals(storeArmed) ? "reserve-store console-action armed" : "reserve-store console-action"; }));
+        props.put("storeAction", (Runnable) this::storeSelected);
+        props.put("reserveClasses", selectedBerth.map(berth -> { revision.get();
+            return fittingFocused() || fabricationFocused() || reserve == null
+                    || reserveCapacity.getAsInt() <= 0 && reserve.boats().isEmpty() ? "hidden" : "panel reserve-strip"; }));
+        props.put("reserveTitle", revision.map(r -> reserve == null ? ""
+                : ReserveRow.title(reserve.stored(), reserveCapacity.getAsInt())));
+        props.put("reserveRows", revision.map(r -> reserveRows()));
+    }
+
+    List<ReserveRow> reserveRows() {
+        if (reserve == null) return List.of();
+        List<ReserveRow> rows = new ArrayList<>();
+        for (CampaignBoat boat : reserve.boats()) {
+            rows.add(new ReserveRow("boat-reserve-" + boat.id(), boat.displayName(), boat.pattern().displayName(),
+                    ReserveHangar.vacantBerthFor(deck, boat) >= 0, () -> recall(boat)));
+        }
+        return rows;
+    }
     public Signal<String> fittingClasses() { return fittingClasses; }
     public Signal<String> fabricationClasses() { return fabricationClasses; }
     public Signal<String> fabricationBerthLabel() { return fabricationBerthLabel; }
@@ -442,13 +488,14 @@ public final class BoatDeckViewModel {
         report(result, switch (result.status()) {
             case PART_FABRICATED -> Strings.format("boatDeckPartBuilt", partName(itemId));
             case CANNOT_AFFORD -> Strings.get("openingBoatDeckRefitBlockedRequiredFleetMaterialsAreShort");
+            case NO_MARKET -> Strings.get("fabricationNoPort");
             default -> Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged");
         });
     }
 
     /**
-     * Breaks one spare back down into materials. The first press arms the card and says what
-     * would come back; the second, on the same card, commits.
+     * Breaks one spare down for credits. The first press arms the card and says what would come
+     * back; the second, on the same card, commits.
      */
     private void recyclePart(String itemId) {
         if (!itemId.equals(armedRecycle)) {
@@ -467,25 +514,19 @@ public final class BoatDeckViewModel {
         });
     }
 
-    /** "2 Metals, 1 Supplies": what a recycle would put back, in the bills' commodity order. */
-    private String recoveryLine(FabricationCost back) {
-        if (back == null) return "";
-        return back.lines().stream().sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId())))
-                .map(line -> Strings.format("fittingRecoveryLine", line.quantity(), resources.commodityName(line.commodityId())))
-                .reduce((a, b) -> a + ", " + b).orElse("");
+    /** "1,250 credits": what a recycle would pay back. */
+    private static String recoveryLine(FabricationCost back) {
+        return back == null ? "" : CompanyResources.creditAmount(back.credits());
     }
 
-    private List<Row> recoveryRows(String ownerId, FabricationCost back) {
-        if (back == null) return List.of();
-        return back.lines().stream().sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId())))
-                .map(line -> CompanyResources.recovered(ownerId + ":recovered:" + line.commodityId(),
-                        resources.commodityName(line.commodityId()), resources.commodityIcon(line.commodityId()),
-                        line.quantity())).toList();
+    private static List<Row> recoveryRows(String ownerId, FabricationCost back) {
+        return back == null ? List.of() : List.of(CompanyResources.recoveredCredits(ownerId + ":recovered:credits", back.credits()));
     }
 
     private void report(BoatWorkshop.Result result, String text) {
         armedRecycle = null;
         scrapArmed = null;
+        storeArmed = null;
         feedbackText.set(text);
         feedbackClasses.set(result.succeeded()
                 ? "boat-deck-feedback tone-good surface-dark"
@@ -661,13 +702,17 @@ public final class BoatDeckViewModel {
         for (BoatFitting part : BoatFitting.catalog(BoatFittingSlot.CABIN)) maxSeats = Math.max(maxSeats, part.seats());
         int weight = BoatFrame.weight(boat);
         int rating = BoatFrame.rating(pattern);
-        // A damaged hull reads as a deficit under her pattern's own figure, a refit as gain past it.
+        // A damaged hull reads as a deficit under her pattern's own figure; plating is armour over it,
+        // read against the pattern's stock skin, so a refit is gain past it and a bare hull a deficit.
+        float armorCeiling = pattern.armor() * bestFactor(pattern, BoatFittingSlot.PLATING, BoatFitting::armorFactor);
         return List.of(
                 FittingMeter.of("boat-meter:hull", Strings.get("openingBoatDeckHull"),
                         Strings.format("openingBoatDeckHp", Math.round(fitted.maxHp() * boat.condition(day()))),
-                        fitted.maxHp() * boat.condition(day()),
-                        pattern.maxHp() * bestFactor(pattern, BoatFittingSlot.PLATING, BoatFitting::hullFactor),
+                        fitted.maxHp() * boat.condition(day()), pattern.maxHp(),
                         fitted.maxHp() * boat.condition(day()), pattern.maxHp(), FittingMeter.PLATE_TONE),
+                FittingMeter.of("boat-meter:armor", Strings.get("boatDeckArmor"),
+                        Strings.format("boatDeckArmorValue", Math.round(fitted.armor())),
+                        fitted.armor(), armorCeiling, fitted.armor(), pattern.armor(), FittingMeter.PLATE_TONE),
                 FittingMeter.of("boat-meter:speed", Strings.get("openingBoatDeckSpeed"),
                         Strings.format("openingBoatDeckCellsS", number(fitted.maxSpeed())), fitted.maxSpeed(),
                         pattern.maxSpeed() * bestFactor(pattern, BoatFittingSlot.DRIVE, BoatFitting::speedFactor),
@@ -681,11 +726,7 @@ public final class BoatDeckViewModel {
                                 Strings.format("openingBoatDeckSeats2", seats), seats, maxSeats),
                 FittingMeter.of("boat-meter:frame", Strings.get("boatDeckFrame"),
                         Strings.format("boatDeckFrameValue", weight, rating), weight, rating,
-                        weight, weight, FittingMeter.FLUX_TONE),
-                FittingMeter.of("boat-meter:hardpoints", Strings.get("openingBoatDeckHardpoints"),
-                        Strings.format("openingBoatMounts", pattern.hardpoints()),
-                        pattern.hardpoints(), pattern.hardpoints(), pattern.hardpoints(), pattern.hardpoints(),
-                        FittingMeter.WEAPON_TONE));
+                        weight, weight, FittingMeter.FLUX_TONE));
     }
 
     /**
@@ -764,23 +805,24 @@ public final class BoatDeckViewModel {
     /**
      * One stores card: what it is, its tier and how many are in stores, what it does, what it
      * would change or where it is fitted, and its footprint. With none in stores and no free
-     * yard part to fall back on, it is greyed with its bill and a BUY beside it, as the lab's are.
+     * yard part to fall back on, it is greyed with its price and a BUY beside it, as the lab's are.
+     * BUY is refused away from a civilized port, and the card says so.
      */
     private CatalogRow card(BoatDoll.Kind kind, String itemId, String id, String name, int tier,
                             String effect, String delta, boolean fitted, boolean held, boolean free,
                             FabricationCost bill) {
         int spares = deck.spares(itemId);
         boolean build = !free && spares == 0 && bill != null;
-        boolean affordable = build && resources.canAfford(bill);
+        boolean affordable = build && resources.canBuy(bill);
         String classes = "catalog-row" + (held ? " selected" : "") + (build ? " requires-fabrication" : "");
         int[] footprint = BoatHardware.footprint(kind, itemId);
         int weight = partWeight(kind, itemId, free);
         String detail = Strings.format("boatDeckGrid", footprint[0], footprint[1])
                 + (weight > 0 ? "  ·  " + Strings.format("boatDeckWeight", weight) : "");
-        // A spare in stores can be broken back down while the machine shop runs; its recovery
-        // takes the strip a bill would, in green.
+        // A spare in stores can be broken down while the machine shop runs; its refund takes
+        // the strip a price would, in green.
         FabricationCost back = !free && spares > 0 ? workshop.recycleQuote(itemId) : null;
-        List<Row> materials = build ? materialRows(id, bill) : recoveryRows(id, back);
+        List<Row> materials = build ? priceRows(id, bill) : recoveryRows(id, back);
         String stock = free ? kindLine(tier, kind)
                 : Strings.format("openingMechLabOwnFree", kindLine(tier, kind), MechLabViewModel.spareCount(spares));
         FittingCard card = new FittingCard(id, classes, "catalog-preview", name,
@@ -791,6 +833,7 @@ public final class BoatDeckViewModel {
                         : "label heading catalog-delta positive",
                 detail, build ? Strings.get("openingMechLabFab") : "",
                 affordable ? Strings.get("boatDeckFabHint")
+                        : !resources.atMarket() ? Strings.get("fabricationNoPort")
                         : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor"),
                 !build || !affordable, true, materials,
                 materials.isEmpty() ? "hidden" : back != null ? "material-costs recovery" : "material-costs",
@@ -804,12 +847,12 @@ public final class BoatDeckViewModel {
         ShuttleType pattern = boat.pattern();
         BoatFitting fitted = boat.fittingIn(fitting.slot());
         // Against an empty socket the change is the whole part, measured from the stock one's figures,
-        // or, for plating, from the bare hull she flies with.
+        // or, for plating, from the bare hull's no armour.
         BoatFitting installed = fitted != null ? fitted : BoatFitting.standard(fitting.slot());
-        float hullNow = fitted != null ? fitted.hullFactor() : FittedBoat.BARE_HULL_FACTOR;
+        float armorNow = fitted != null ? fitted.armorFactor() : 0f;
         return switch (fitting.slot()) {
-            case PLATING -> signed(Math.round(pattern.maxHp() * (fitting.hullFactor() - hullNow)),
-                    Strings.get("openingBoatDeckHull"));
+            case PLATING -> signed(Math.round(pattern.armor() * (fitting.armorFactor() - armorNow)),
+                    Strings.get("boatDeckArmor"));
             case DRIVE -> signed(pattern.maxSpeed() * (fitting.speedFactor() - installed.speedFactor()),
                     Strings.get("openingBoatDeckSpeed"));
             case LIFT -> Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
@@ -832,25 +875,68 @@ public final class BoatDeckViewModel {
     }
 
     /**
-     * The socket the board has selected, as the lab's selected-mount card shows one: what it
-     * is and holds, what that does, and its kind and size, with the piece on its bricks.
+     * The selected boat's readiness, in the order it matters: each required part she is missing
+     * (she cannot fly), then what she flies without (a bare hull, no shield, empty mounts), then
+     * her frame. Every line opens the socket it is about. A boat with nothing missing or bare
+     * reads as one line saying so.
      */
-    private List<SlotRow> buildSelectedMount() {
-        BoatDoll shown = buildDoll();
-        if (shown == null) return List.of();
-        for (BoatDoll.Slot slot : shown.slots()) {
-            if (!slot.selected()) continue;
-            int[] socket = BoatHardware.socket(slot.kind());
-            String base = "boat-mount:" + slot.key();
-            String key = slot.key();
-            boolean filled = slot.itemId() != null;
-            FittingSlotCard card = new FittingSlotCard(base, "doll-slot selected", slot.title(),
-                    FittedBadge.label(filled), FittedBadge.slotClasses(filled), slot.fitted(), slot.tier(),
-                    kindSingular(slot.kind()) + " / " + Strings.format("boatDeckGrid", socket[0], socket[1]),
-                    false, "hidden", () -> selectDollSlot(key), null);
-            return List.of(new SlotRow(card, key, slot.kind(), slot.itemId()));
+    private List<ReadinessRow> buildReadiness() {
+        revision.get();
+        CampaignBoat boat = selectedBoat();
+        if (boat == null) return List.of();
+        ShuttleType pattern = boat.pattern();
+        List<ReadinessRow> rows = new ArrayList<>();
+        for (BoatFittingSlot slot : boat.missingParts()) {
+            rows.add(readiness("missing:" + slot.name(), "danger",
+                    Strings.format("boatReadinessMissing", sentenceCase(slotLabel(slot))), Strings.get("boatReadinessMissingDetail"),
+                    BoatDoll.slotKey(slot)));
         }
-        return List.of();
+        FittedBoat fitted = boat.freezeForDeployment();
+        if (boat.plating() == null) {
+            rows.add(readiness("bare-hull", "warn", Strings.get("boatReadinessBareHull"),
+                    Strings.format("boatReadinessBareHullDetail", Math.round(fitted.maxHp())),
+                    BoatDoll.slotKey(BoatFittingSlot.PLATING)));
+        }
+        if (boat.fittingIn(BoatFittingSlot.EMITTER) == null) {
+            rows.add(readiness("no-shield", "warn", Strings.get("boatReadinessNoShield"),
+                    Strings.get("boatReadinessNoShieldDetail"), BoatDoll.slotKey(BoatFittingSlot.EMITTER)));
+        }
+        int bare = 0;
+        int firstBare = -1;
+        for (int index = 0; index < pattern.hardpoints(); index++) {
+            if (boat.gunOn(index) != null) continue;
+            bare++;
+            if (firstBare < 0) firstBare = index;
+        }
+        if (bare > 0) {
+            rows.add(readiness("bare-mounts", "warn",
+                    Strings.format("boatReadinessBareMounts", bare, pattern.hardpoints()),
+                    Strings.get(bare == pattern.hardpoints() ? "boatReadinessNoGunsDetail"
+                            : "boatReadinessBareMountsDetail"),
+                    BoatDoll.HARDPOINT_KEY + firstBare));
+        }
+        if (rows.isEmpty()) {
+            rows.add(readiness("whole", "good", Strings.get("boatReadinessWhole"),
+                    Strings.get("boatReadinessWholeDetail"), null));
+        }
+        rows.add(readiness("frame", "muted",
+                Strings.get("boatDeckFrame") + "  " + Strings.format("boatDeckFrameValue", BoatFrame.weight(boat),
+                        BoatFrame.rating(pattern)),
+                Strings.format("boatReadinessFrameDetail",
+                        Math.max(0, BoatFrame.rating(pattern) - BoatFrame.weight(boat))), null));
+        return List.copyOf(rows);
+    }
+
+    private static String sentenceCase(String label) {
+        String lower = label.toLowerCase(Strings.locale());
+        return lower.isEmpty() ? lower : lower.substring(0, 1).toUpperCase(Strings.locale()) + lower.substring(1);
+    }
+
+    private ReadinessRow readiness(String key, String tone, String title, String detail, String socket) {
+        String id = "boat-readiness:" + key;
+        return new ReadinessRow(id, "readiness-row readiness-" + tone + (socket != null ? " readiness-link" : ""),
+                "readiness-bar readiness-bar-" + tone, title, detail,
+                socket == null ? () -> { } : () -> selectDollSlot(socket));
     }
 
     /** The kinds of socket a pattern has, in the board's order: guns, plating, drive, cabin, then power, hold, emitter. */
@@ -970,19 +1056,18 @@ public final class BoatDeckViewModel {
         return new BoatDoll(pattern, boat.displayName(), pattern.displayName(), List.copyOf(slots));
     }
 
-    private List<Row> materialRows(String ownerId, FabricationCost bill) {
+    /** A price as its one credits row, against what the company holds. */
+    private List<Row> priceRows(String ownerId, FabricationCost bill) {
         if (bill == null) return List.of();
-        return bill.lines().stream().sorted(Comparator.comparingInt(line -> CompanyResources.order(line.commodityId()))).map(line -> CompanyResources.cost(
-                ownerId + ":material:" + line.commodityId(), resources.commodityName(line.commodityId()),
-                resources.commodityIcon(line.commodityId()), resources.available(line.commodityId()), line.quantity())).toList();
+        return CompanyResources.credits(ownerId + ":material:credits", resources.credits(), bill.credits());
     }
 
+    /** The company's credits, and whether the fleet is at a port that will sell. */
     private List<Row> buildMaterialStock() {
         revision.get();
-        return List.of(Commodities.SUPPLIES, Commodities.HEAVY_MACHINERY,
-                Commodities.METALS, Commodities.RARE_METALS).stream().map(commodity ->
-                CompanyResources.stock("boat-material-stock:" + commodity, resources.commodityName(commodity),
-                        resources.commodityIcon(commodity), resources.available(commodity))).toList();
+        return List.of(CompanyResources.stock("boat-material-stock:credits", Strings.get("companyResourceCredits"),
+                        CompanyResources.CREDITS_ICON, resources.credits()),
+                CompanyResources.port("boat-material-stock:port", resources.atMarket()));
     }
 
     /**
@@ -1050,9 +1135,57 @@ public final class BoatDeckViewModel {
      * the second breaks the boat up through the workshop and returns to the deck with her
      * berth vacant.
      */
+    /**
+     * STORE takes two presses, as SCRAP does: the first arms it, the second takes the boat off
+     * her berth into the reserve hangar, fit and repair clock and all, and leaves the berth vacant.
+     */
+    private void storeSelected() {
+        CampaignBoat boat = selectedBoat();
+        if (boat == null || reserve == null) return;
+        scrapArmed = null;
+        if (!boat.id().equals(storeArmed)) {
+            storeArmed = boat.id();
+            feedbackText.set(Strings.format("boatDeckStoreArmed", boat.displayName()));
+            feedbackClasses.set("boat-deck-feedback tone-accent surface-dark");
+            revision.update(value -> value + 1);
+            return;
+        }
+        storeArmed = null;
+        String berth = berthLabel(selectedBerth.get());
+        int capacity = reserveCapacity.getAsInt();
+        ReserveHangar.Status status = reserve.storeBoat(deck, boat.id(), capacity);
+        if (status != ReserveHangar.Status.STORED) {
+            feedbackText.set(status == ReserveHangar.Status.HANGAR_FULL
+                    ? Strings.format("reserveHangarFull", capacity)
+                    : Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged"));
+            feedbackClasses.set("boat-deck-feedback tone-danger surface-dark");
+            revision.update(value -> value + 1);
+            return;
+        }
+        selectedBerth.set(NO_BERTH);
+        feedbackText.set(Strings.format("boatDeckStored", boat.displayName(), berth));
+        feedbackClasses.set("boat-deck-feedback tone-good surface-dark");
+        revision.update(value -> value + 1);
+        deckChanged.run();
+    }
+
+    private void recall(CampaignBoat boat) {
+        if (reserve == null) return;
+        storeArmed = null;
+        scrapArmed = null;
+        int berth = ReserveHangar.vacantBerthFor(deck, boat);
+        boolean recalled = reserve.recallBoat(deck, boat.id()) == ReserveHangar.Status.RECALLED;
+        feedbackText.set(recalled ? Strings.format("boatDeckRecalled", boat.displayName(), berthLabel(berth))
+                : Strings.format("boatDeckRecallNoBerth", boat.displayName()));
+        feedbackClasses.set(recalled ? "boat-deck-feedback tone-good surface-dark" : "boat-deck-feedback tone-danger surface-dark");
+        revision.update(value -> value + 1);
+        if (recalled) deckChanged.run();
+    }
+
     private void scrapSelected() {
         CampaignBoat boat = selectedBoat();
         if (boat == null) return;
+        storeArmed = null;
         FabricationCost back = workshop.scrapQuote(boat.id());
         String hull = back == null ? Strings.get("openingMechLabNoSalvage") : recoveryLine(back);
         if (!boat.id().equals(scrapArmed)) {
@@ -1116,6 +1249,7 @@ public final class BoatDeckViewModel {
             case FABRICATED -> Strings.format(wreck ? "openingBoatRepaired" : "openingBoatBuilt", built.displayName(), berthLabel(berthIndex));
             case CANNOT_AFFORD ->
                     Strings.get("openingBoatDeckFabricationBlockedRequiredFleetMaterialsAreShort");
+            case NO_MARKET -> Strings.get("fabricationNoPort");
             case BERTH_OCCUPIED -> Strings.format("openingBoatDeckAlreadyHasABoatStandingInIt", berthLabel(berthIndex));
             default -> Strings.get("openingBoatDeckFabricationBlockedNothingAboardWasChanged");
         });
@@ -1139,7 +1273,7 @@ public final class BoatDeckViewModel {
 
     private boolean affordableToBuild() {
         BoatFabricationCatalog.Recipe recipe = fabricationRecipe();
-        return recipe != null && resources.canAfford(workshop.fabricationQuote(recipe.pattern()));
+        return recipe != null && resources.canBuy(workshop.fabricationQuote(recipe.pattern()));
     }
 
     /** What a vacant berth would be built back up as, for its card. */
@@ -1150,18 +1284,11 @@ public final class BoatDeckViewModel {
                 : Strings.format("openingBoatDeckCanBeBuiltHere", recipe.pattern().displayName());
     }
 
-    /** The bill for that, short enough to sit on one line of a card. */
+    /** The price for that, short enough to sit on one line of a card. */
     private String buildableBill() {
         BoatFabricationCatalog.Recipe recipe =
                 BoatFabricationCatalog.recipe(deck.pattern());
-        if (recipe == null) return "";
-        StringBuilder bill = new StringBuilder();
-        for (FabricationCost.Line line : workshop.fabricationQuote(recipe.pattern()).lines()) {
-            if (bill.length() > 0) bill.append("  ·  ");
-            bill.append(resources.commodityName(line.commodityId()))
-                    .append(' ').append(line.quantity());
-        }
-        return bill.toString();
+        return recipe == null ? "" : CompanyResources.creditAmount(workshop.fabricationQuote(recipe.pattern()).credits());
     }
 
     private CampaignBoat selectedBoat() {
@@ -1169,17 +1296,6 @@ public final class BoatDeckViewModel {
         int berth = selectedBerth.get();
         List<CampaignBoat> berths = deck.boats();
         return berth >= 0 && berth < berths.size() ? berths.get(berth) : null;
-    }
-
-    /** The first line of a bill the hold cannot cover, for a row that has to say why. */
-    private String shortest(FabricationCost bill) {
-        if (bill == null) return "";
-        for (FabricationCost.Line line : bill.lines()) {
-            if (resources.available(line.commodityId()) < line.quantity()) {
-                return Strings.upper(resources.commodityName(line.commodityId()));
-            }
-        }
-        return "";
     }
 
     private static float bestFactor(ShuttleType pattern, BoatFittingSlot slot, FittingFactor factor) {
@@ -1194,7 +1310,7 @@ public final class BoatDeckViewModel {
     private String effect(BoatFitting fitting) {
         CampaignBoat boat = selectedBoat();
         return switch (fitting.slot()) {
-            case PLATING -> Strings.format("openingBoatDeckHull2", factor(fitting.hullFactor()));
+            case PLATING -> Strings.format("boatDeckArmorEffect", factor(fitting.armorFactor()));
             case LIFT -> Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
             case DRIVE -> Strings.format("boatDeckDriveEffect", factor(fitting.speedFactor()),
                     factor(fitting.deboardFactor()));
@@ -1295,17 +1411,16 @@ public final class BoatDeckViewModel {
     }
 
     /** The selected socket's card: the kit's slot card, and which socket and piece it shows. */
-    public record SlotRow(FittingSlotCard card, String key, BoatDoll.Kind kind, String itemId)
-            implements MarkupPropertySource {
-        public String id() { return card.id(); }
-        public String gridId() { return card.gridId(); }
-        public String classes() { return card.classes(); }
-        public String name() { return card.name(); }
-        public String fitting() { return card.component(); }
-        public String tier() { return card.telemetry(); }
-        public Runnable select() { return card.select(); }
-
-        @Override public Object markupProperty(String p) { return card.markupProperty(p); }
+    /** One line of a boat's readiness: its tone, what it says, and the socket a click opens. */
+    public record ReadinessRow(String id, String classes, String barClasses, String title, String detail,
+                               Runnable select) implements MarkupPropertySource {
+        @Override public Object markupProperty(String name) { return switch (name) {
+            case "id" -> id; case "classes" -> classes; case "barClasses" -> barClasses;
+            case "title" -> title; case "detail" -> detail; case "select" -> select;
+            case "barId" -> id + ":bar"; case "textId" -> id + ":text";
+            case "titleId" -> id + ":title"; case "detailId" -> id + ":detail";
+            default -> throw unknown("boat-readiness", name);
+        }; }
     }
 
     /** A part in the stores: the kit's card, and which piece it is, which a drag carries. */

@@ -109,37 +109,10 @@ class ArmorDropPowerTest {
     }
 
     @Test
-    void anotherPowersJobIsNotThisPowersToCancel() {
-        MechSupport mech = bay(true);
-        VehicleSupport armour = VehicleSupport.configured(
-                List.of(VehicleDeploymentSpec.standard(VehicleType.HEAVY_APC)), null, true);
-        LiftQueue queue = new LiftQueue();
-        LiftQueue.MachineDrop job = armour.order(0, 12f, 21f, ROUTE, null, queue);
-
-        assertFalse(mech.cancel(job.id(), queue));
-        assertEquals(1, queue.queued().size());
-    }
-
-    @Test
     void aPickNamesExactlyOneMachine() {
         assertEquals(2, ArmorDropPower.single(List.of(2)));
         assertNull(ArmorDropPower.single(List.of(0, 2)));
         assertNull(ArmorDropPower.single(List.of()));
         assertNull(ArmorDropPower.single(null));
-    }
-
-    @Test
-    void armourSupportAloneHoldsTheBayVehiclesOrTwoFallbackHulls() {
-        VehicleSupport configured = VehicleSupport.configured(List.of(
-                new VehicleDeploymentSpec("vehicle-1", "Mule", VehicleType.HEAVY_APC),
-                new VehicleDeploymentSpec("vehicle-2", "Hauler", VehicleType.ESCORT_APC)));
-        VehicleSupport unconfigured = new VehicleSupport();
-
-        assertEquals(2, configured.manifest().size());
-        assertEquals("Hauler", configured.manifest().get(1).callsign());
-        assertEquals(2, unconfigured.manifest().size());
-        assertNull(unconfigured.manifest().get(0).load().vehicle().campaignId(),
-                "a debug grant's hull belongs to nobody");
-        assertTrue(unconfigured.deployments().isEmpty());
     }
 }

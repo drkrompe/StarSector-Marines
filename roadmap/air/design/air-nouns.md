@@ -382,7 +382,8 @@ fittings' factors applied, frozen at launch and read nowhere else. It is what a
 `ShuttleAssignment` carries and what an air entity's identity, durability and
 handling come from, so a refit in the middle of a mission is not a thing the sim
 has to have an opinion about. Only the numbers a fitting is about are touched —
-plating scales the hull, the drive scales forward speed and both accelerations,
+plating sets the armour over the hull (none on a bare hull; the hull itself is the
+pattern's), the drive scales forward speed and both accelerations,
 a lift cradle sets the lift rating, and the door guns are what an air-to-ground
 sortie mounts on her hardpoints in place of the role's kit — and turn rate,
 damping, hardpoint count, sprite and hull id are the pattern's and are delegated
@@ -426,11 +427,14 @@ carry it is free, and reads as having no craft when none is left alive. The
 carrier crosses launch in the power's commitment like the rest of its payload.
 The commander AI's mech drop and enemy lances keep their own deliveries.
 
-**The briefing reads lift before launch.** Its armor lift section names the
-**company lift** (the best cradle aboard, and the boat flying the drop) and the
-**mission lift** (heavy lift a ship, employer or contract supplies), then draws
-every bay machine as its damage doll, carrying the wear its repair still leaves,
-with one verdict: drops, needs its drop call selected, no lift of its class,
+**The briefing reads lift before launch.** Its lift row shows one slot per boat
+berth on the company ship (an empty or grounded berth stays visible) and a slot
+for the **mission lift** (heavy lift a ship, employer or contract supplies), each
+with a weight symbol for its rating. Every bay machine sits in the field inset
+beside the squads, as a small damage doll carrying the wear its repair still
+leaves and two bricks: its weight, lit red when lift falls short of its class,
+and a warning, lit whenever it will not drop. Its words are its hover, which gives
+one verdict: drops, needs its drop call selected, no lift of its class,
 lift spent ahead of it, no drop call at all, or held back. It asks the
 `LiftBudget` the drop power will build, machine by machine in bay order, and
 decides nothing itself (`BriefingLift`).

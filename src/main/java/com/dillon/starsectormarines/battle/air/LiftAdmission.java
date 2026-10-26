@@ -6,7 +6,7 @@ import java.util.List;
 /**
  * Whether one carrier can lift one machine, and if not, why.
  *
- * <p>Pure and reusable: the Mech Support and Armour Support carrier choice, the
+ * <p>Pure and reusable: the Mech Support carrier choice, the
  * briefing's lift line and a per-mission lift budget all ask this one question
  * rather than comparing classes themselves.
  *

@@ -35,7 +35,7 @@ class BriefingLiftTest {
 
     @Test
     void withoutADropCallTheWholeBayStaysAboard() {
-        var readout = BriefingLift.read(HERMES, List.of(), Set.of(), List.of(HOUND),
+        var readout = BriefingLift.read(HERMES, 2, List.of(), Set.of(), List.of(HOUND),
                 List.of(new VehicleDeploymentSpec(null, "Mule", VehicleType.HEAVY_APC)), List.of(WARDEN));
         assertEquals(List.of(NO_DROP_CALL, NO_DROP_CALL, HELD_BACK), statuses(readout));
         assertFalse(readout.missionLift());
@@ -48,8 +48,8 @@ class BriefingLiftTest {
     void missionHeavyLiftDropsTheBayOnlyOnceTheCallIsOnTheDeck() {
         List<CommandPower> powers = List.of(MechSupport.configured(List.of(HOUND, WARDEN)));
         assertEquals(List.of(NOT_CALLED, NOT_CALLED),
-                statuses(BriefingLift.read(HERMES, powers, Set.of(), List.of(), List.of(), List.of())));
-        var called = BriefingLift.read(HERMES, powers, Set.of(MechSupport.ID), List.of(), List.of(), List.of());
+                statuses(BriefingLift.read(HERMES, 2, powers, Set.of(), List.of(), List.of(), List.of())));
+        var called = BriefingLift.read(HERMES, 2, powers, Set.of(MechSupport.ID), List.of(), List.of(), List.of());
         assertEquals(List.of(DROPS, DROPS), statuses(called));
         assertTrue(called.missionLift());
     }
@@ -58,7 +58,7 @@ class BriefingLiftTest {
     void aLightCradleAloneRefusesMediumAndRunsOutAfterTwoLifts() {
         List<CommandPower> powers = List.of(MechSupport.configured(List.of(HOUND, WARDEN, HOUND, HOUND),
                 BUFFALO, false));
-        var readout = BriefingLift.read(List.of(BUFFALO), powers, Set.of(MechSupport.ID),
+        var readout = BriefingLift.read(List.of(BUFFALO), 2, powers, Set.of(MechSupport.ID),
                 List.of(), List.of(), List.of());
         // Refused first, then what drops, each in bay order.
         assertEquals(List.of(NO_LIFT, LIFT_SPENT, DROPS, DROPS), statuses(readout));

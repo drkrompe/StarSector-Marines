@@ -1,12 +1,10 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.mech.MechFrame;
-import com.dillon.starsectormarines.marine.MechWorkshopTest.TestResources;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
-import com.fs.starfarer.api.impl.campaign.ids.Commodities;
 import org.junit.jupiter.api.Test;
 
 import java.io.ByteArrayInputStream;
@@ -43,7 +41,7 @@ class MechInternalsTest {
     @Test
     void aFullBulwarkRefitRestoresThePreCutFrameWithinItsBudget() {
         MechBay bay = MechBay.legacyStarterFixture();
-        MechWorkshop workshop = new MechWorkshop(bay, TestResources.stocked(1000));
+        MechWorkshop workshop = new MechWorkshop(bay, TestPurse.rich());
         learnAll(bay);
         String id = MechBay.STARTER_MECH_ID;
         for (MechInternal internal : new MechInternal[]{MechInternal.MILITARY_ENGINE,
@@ -76,16 +74,16 @@ class MechInternalsTest {
     void anOverBudgetFitIsRefusedWithoutSpendingOrChangingTheMech() {
         MechBay bay = houndBay();
         learnAll(bay);
-        TestResources resources = TestResources.stocked(500);
+        TestPurse resources = TestPurse.rich();
         MechWorkshop workshop = new MechWorkshop(bay, resources);
         String id = bay.activeSquad().mechs().get(0).id();
-        int metals = resources.available(Commodities.METALS);
+        long credits = resources.credits;
 
         MechWorkshop.Result refused = workshop.fitInternal(id, MechInternal.HEAVY_PLATING);
 
         assertEquals(MechWorkshop.Status.OVER_BUDGET, refused.status());
         assertFalse(refused.succeeded());
-        assertEquals(metals, resources.available(Commodities.METALS));
+        assertEquals(credits, resources.credits);
         assertEquals(MechInternal.FACTORY_PLATING, bay.mechById(id).internal(MechInternal.Role.PLATING));
         assertEquals(0, bay.ownedInternal(MechInternal.HEAVY_PLATING.id));
 
@@ -122,7 +120,7 @@ class MechInternalsTest {
     @Test
     void lockedPatternsAreNotFabricatedAndStockPartsAreKnown() {
         MechBay bay = houndBay();
-        MechWorkshop workshop = new MechWorkshop(bay, TestResources.stocked(500));
+        MechWorkshop workshop = new MechWorkshop(bay, TestPurse.rich());
         String id = bay.activeSquad().mechs().get(0).id();
         assertEquals(MechWorkshop.Status.PATTERN_LOCKED,
                 workshop.fitInternal(id, MechInternal.UPRATED_ENGINE).status());
@@ -138,7 +136,7 @@ class MechInternalsTest {
     @Test
     void compartmentPartsReplaceOrStackWhileTheyPack() {
         MechBay bay = MechBay.legacyStarterFixture();
-        MechWorkshop workshop = new MechWorkshop(bay, TestResources.stocked(500));
+        MechWorkshop workshop = new MechWorkshop(bay, TestPurse.rich());
         String id = MechBay.STARTER_MECH_ID;
         // A loader replaces the one fitted; the standard one goes back to stores.
         assertTrue(bay.installInternal(id, MechInternal.ACCELERATED_LOADER));
@@ -212,3 +210,5 @@ class MechInternalsTest {
         }
     }
 }
+
+

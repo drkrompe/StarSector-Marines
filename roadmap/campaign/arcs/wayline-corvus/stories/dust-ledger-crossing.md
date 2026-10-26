@@ -148,6 +148,19 @@ rather than new systems.
   from a prop's destroyed state to a detonation, so the tank farm is scenery
   until that hook exists.
 
+- **The rocket truck (owner, 2026-10-26).** A lone Hound with SRMs walked
+  through the nests and pillboxes, so Sable Wake fields one shipped hull: an SRM
+  technical (anti-armor, holds fire at men, rockets reaching 18 cells). It lies
+  in wait in the east yard among the cargo and barriers, covering the ledger
+  room's east door. The pump house hides it from the south yard, so a mech
+  walking round to that door meets its rockets at about a dozen cells. Seen
+  across open ground, a Hound's chaingun outranges it and kills it first. The
+  quiet phase covers it like every Sable Wake body. It is not powered, so the
+  feed cut leaves it firing; rockets, the Hound's SRMs and charges kill it.
+  It does not drive. The east yard's cover leaves a hull no way out of it, the
+  walls leave none around the compound, and the only drivable stretch inside,
+  the south yard, is open ground where the truck is outranged.
+
 Difficulty is then tuned against the worst approach (autonomous company, no side
 objectives, which should cost real losses but still win) and the best approach
 (feed cut, rockets on the nests, which should be clearly easier).

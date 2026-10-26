@@ -57,7 +57,7 @@ class ShipConditionTest {
     }
 
     @Test void theWholeTreeIsReachableFromTheBatteredStart() {
-        var state = ShipCondition.battered().with(RefitTrack.FABRICATION, RefitBand.IMPROVED_I);
+        var state = ShipCondition.battered().with(RefitTrack.FABRICATION, RefitBand.IMPROVED_II);
         for (boolean progress = true; progress; ) {
             progress = false;
             for (RefitTrack track : RefitTrack.values()) {
@@ -122,13 +122,12 @@ class ShipConditionTest {
         }
     }
 
-    @Test void facilityImprovementsNeedTwoCoresTheTopTierThreeAndCarryABill() {
+    @Test void facilityImprovementsNeedTwoCoresAndTheTopTierThree() {
         for (RefitOrder order : RefitOrder.values()) {
             if (order.track.reserve == null || order.band == RefitBand.RESTORED) continue;
             int cores = order.band == RefitBand.IMPROVED_II ? 3 : 2;
             assertEquals(cores, order.requires.size(), order.name());
             for (RefitTrack need : order.requires.keySet()) assertNotNull(need.core, order.name() + " names " + need);
-            assertFalse(order.materials().isEmpty(), order.name());
         }
         for (RefitTrack track : new RefitTrack[]{RefitTrack.RANGE, RefitTrack.GYM, RefitTrack.SICK_BAY, RefitTrack.REC_LOUNGE})
             assertEquals(RefitBand.IMPROVED_II, RefitOrder.ceiling(track), track.name());
@@ -169,7 +168,6 @@ class ShipConditionTest {
             long cores = order.requires.keySet().stream().filter(t -> t.core != null).count();
             assertEquals(order.requires.size() - (messEnd ? 1 : 0), cores, order.name());
             assertTrue(cores >= (order.band == RefitBand.IMPROVED_II ? 3 : 2), order.name());
-            assertFalse(order.materials().isEmpty(), order.name());
         }
     }
 

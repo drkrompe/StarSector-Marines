@@ -51,19 +51,40 @@ public final class BriefingLiftSnapshotSuite implements SnapshotSuite {
         MechSupport heavy = MechSupport.configured(lance, vehicles, null, true);
         MechSupport cradle = MechSupport.configured(lance, List.of(), buffalo, false);
         return List.of(
-                frame(context, renderer, "no-drop-call.png", BriefingLift.read(hermes,
+                frame(context, renderer, "no-drop-call.png", BriefingLift.read(hermes, 2,
                         List.of(new OrbitalBarrage()), Set.of(), lance, vehicles, heldBack)),
-                frame(context, renderer, "mission-heavy-lift.png", BriefingLift.read(hermes,
+                frame(context, renderer, "mission-heavy-lift.png", BriefingLift.read(hermes, 2,
                         List.of(heavy), Set.of(MechSupport.ID), lance, vehicles, heldBack)),
-                frame(context, renderer, "mission-lift-not-selected.png", BriefingLift.read(hermes,
+                frame(context, renderer, "mission-lift-not-selected.png", BriefingLift.read(hermes, 2,
                         List.of(heavy), Set.of(), lance, vehicles, List.of())),
-                frame(context, renderer, "company-cradle-short.png", BriefingLift.read(List.of(buffalo),
-                        List.<CommandPower>of(cradle), Set.of(MechSupport.ID), lance, List.of(), List.of())));
+                frame(context, renderer, "company-cradle-short.png", BriefingLift.read(List.of(buffalo), 2,
+                        List.<CommandPower>of(cradle), Set.of(MechSupport.ID), lance, List.of(), List.of())),
+                frame(context, renderer, "conquest-officers.png", true, BriefingLift.read(hermes, 2,
+                        List.of(heavy), Set.of(MechSupport.ID), lance, vehicles, List.of())),
+                hover(context, renderer, "hover-machine.png", BriefingLift.read(List.of(buffalo), 2,
+                        List.<CommandPower>of(cradle), Set.of(MechSupport.ID), lance, List.of(), List.of()),
+                        "briefing-lift-machine-0"),
+                hover(context, renderer, "hover-squad.png", BriefingLift.read(List.of(buffalo), 2,
+                        List.<CommandPower>of(cradle), Set.of(MechSupport.ID), lance, List.of(), List.of()),
+                        "briefing-info-tf-1-squad-0"));
+    }
+
+    private static SnapshotArtifact hover(SnapshotContext context, HeadlessUiRenderer renderer, String name,
+                                          BriefingLift.Readout readout, String target) throws Exception {
+        Map<String, Object> props = BriefingViewModel.campaignPreviewProps(false);
+        BriefingLift.put(props, readout);
+        return new SnapshotArtifact(name, UiSnapshotSuite.renderMissionBriefing(context, renderer,
+                1920, 1080, props, 1f, false, target));
     }
 
     private static SnapshotArtifact frame(SnapshotContext context, HeadlessUiRenderer renderer, String name,
                                           BriefingLift.Readout readout) throws Exception {
-        Map<String, Object> props = BriefingViewModel.campaignPreviewProps(false);
+        return frame(context, renderer, name, false, readout);
+    }
+
+    private static SnapshotArtifact frame(SnapshotContext context, HeadlessUiRenderer renderer, String name,
+                                          boolean conquest, BriefingLift.Readout readout) throws Exception {
+        Map<String, Object> props = BriefingViewModel.campaignPreviewProps(conquest);
         BriefingLift.put(props, readout);
         return new SnapshotArtifact(name, UiSnapshotSuite.renderMissionBriefing(context, renderer,
                 1920, 1080, props, 1f, false, null));
