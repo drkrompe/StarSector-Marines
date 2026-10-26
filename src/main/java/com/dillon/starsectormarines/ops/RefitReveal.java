@@ -161,6 +161,7 @@ final class RefitReveal {
             case MESS, WARDROOM, BRIEFING -> RoomPurpose.MESS_HALL;
             case HYDROPONICS -> RoomPurpose.LOADING_BAY;
             case HOLDS -> RoomPurpose.STOCKROOM;
+            case RESERVE_HANGAR -> RoomPurpose.HANGAR;
             default -> null;
         };
         return purpose == null ? null : graph.largest(purpose);

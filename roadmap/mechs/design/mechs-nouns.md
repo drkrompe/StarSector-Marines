@@ -1401,6 +1401,10 @@ support sortie, subject only to practical runtime resources.
   Recycling). This is the opposite of a
   battle loss, which takes the fitted parts with the frame (`MechWorkshop.scrapMech`).
   A single spare in stores breaks down the same two-press way from its card's RECYCLE.
+  STORE beside SCRAP takes the machine off whole instead, into the company's reserve
+  hangar, and RECALL in the lance rail's Reserve strip stands it back on a vacant
+  working gantry with its fit and repair clock untouched (`company-view-nouns.md`,
+  Reserve hangar).
   The lance returns to its overview with that pad vacant. Returning
   through the current Mech Lab room route clears
   that selection and restores the overview. No camera transition moves, respawns,

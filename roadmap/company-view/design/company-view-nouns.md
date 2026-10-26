@@ -146,6 +146,12 @@ shared mapping instead of assigning paths independently in each screen.
   berth or gantry. Everything fitted goes to stores, and its **hull** — its bill less
   the stock parts it was built with, which came back on their own — returns at the
   shop's recycling rate.
+- **Reserve hangar** — the company's store of whole machines: boats, mechs and
+  vehicles taken off their berths and gantries with their identity, callsign, fit
+  and repair clock intact. A stored machine flies and fights nothing, so no battle
+  can lose it. The hangar is the company's, like its stores, and goes with it
+  when it changes ship; how many machines it holds is the home ship's Reserve hangar
+  refit (`ShipCondition.reserveCapacity`), counted across every kind.
 - **Lost boat** — a campaign boat whose frozen frame was shot down on a mission.
   It is struck from its berth and never comes back. `air-nouns.md` owns the
   battle-side ledger it is read from.
@@ -855,6 +861,28 @@ hull is its chassis quote less the frame's plating and any factory-locked gun, w
 stay as spares; a vehicle is bought whole without kits, so its whole quote is hull.
 At the full rate, building a machine and breaking it up again is exactly free and
 never a profit.
+
+### Reserve hangar
+
+STORE sits beside SCRAP in the Boat Deck's stage heading and the Mech Lab's garage
+heading, shown only while the home ship's refit has room, and takes the same two
+presses. It takes the machine off whole and leaves its berth or gantry vacant, as a
+scrap does, but nothing is stripped or broken up. A Reserve strip ("RESERVE HANGAR
+n/cap") lists what is stored: under the boats aboard on the deck overview, and in the
+lance rail of the Mech Lab. RECALL puts a machine back into the first vacant place
+of the right kind: a boat into a vacant berth of the pattern this hull's bays hold
+(never over a founding wreck), a mech or vehicle onto a vacant working gantry of the
+lance shown. RECALL is greyed while there is none.
+
+`ReserveHangar` owns every move, and each is atomic: it checks room, the machine and
+its destination before anything moves. A stored mech's or vehicle's fitted parts
+leave the bay's owned counts with it and are owned again on recall, so storing never
+turns a fitted part into a loose spare. A ship without the refit still lets
+everything be recalled; storing and recalling are free and cost no upkeep.
+
+The refit is a Structure-branch facility bought in credits alone: Restored (12,000,
+after Structure and Power are restored) holds two machines, Improved I (20,000,
+after Structure and Fabrication are restored) holds four.
 
 ## Shipboard Barracks
 

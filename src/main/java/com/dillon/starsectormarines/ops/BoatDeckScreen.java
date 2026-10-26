@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.world.gen.ship.DeckGraph;
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
 import com.dillon.starsectormarines.marine.CampaignBoat;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
+import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.ops.battleview.BoatDeckCanvas;
@@ -127,6 +128,7 @@ public final class BoatDeckScreen implements Screen {
             viewModel = new BoatDeckViewModel(reactor, roster.boatDeck(),
                     CampaignFabricationResources.forBoats(), ShipsBoatsAboard.carrier(),
                     this::deckChanged);
+            viewModel.reserve(roster.reserveHangar(), () -> ShipRefits.aboard().reserveCapacity());
         } else {
             viewModel.refresh();
         }
@@ -226,6 +228,7 @@ public final class BoatDeckScreen implements Screen {
         props.put("scrapLabel", viewModel.scrapLabel());
         props.put("scrapClasses", viewModel.scrapClasses());
         props.put("scrapAction", viewModel.scrapAction());
+        viewModel.putReserveProps(props);
         props.put("feedbackText", viewModel.feedbackText());
         props.put("feedbackClasses", viewModel.feedbackClasses());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.BOAT_DECK,

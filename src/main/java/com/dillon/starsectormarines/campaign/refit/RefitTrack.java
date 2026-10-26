@@ -39,6 +39,8 @@ public enum RefitTrack {
     BRIEFING(Group.FACILITY, null),
     /** The cargo holds and, at the top, bonded stores. */
     HOLDS(Group.FACILITY, null),
+    /** A sealed corner of the hangar where whole machines are set aside; capacity, no passive. */
+    RESERVE_HANGAR(Group.FACILITY, null),
     HULL(Group.COMBAT, null),
     FLUX(Group.COMBAT, null),
     SENSORS(Group.COMBAT, null),
