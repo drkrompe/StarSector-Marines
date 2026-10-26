@@ -337,10 +337,16 @@ def jinking(key, pose, t, t0, t1, v=None, amp=1.0, **kw):
 # with her, so her weave on station stays framed).
 S1_AIM_AT = (-12.0, -40.0, -10.0)
 S1_RANGE = 3000.0
-S1_EYE = tuple(S1_AIM_AT[i] + S1_RANGE * c for i, c in enumerate((-.55, .69, .41)))
 S1_LIFT = 650.0     # how far above the Colossus S1's pan opens: the limb up top, the column low in frame
 S2_AIM_AT = (-60.0, -60.0, -10.0)
-S2_EYE = tuple(S2_AIM_AT[i] + 3500.0 * c for i, c in enumerate((-.47, .85, .24)))
+S1_LOOK = (-.55, .69, .41)     # from the Colossus back to S1's eye
+S1_EYE = tuple(S1_AIM_AT[i] + S1_RANGE * c for i, c in enumerate(S1_LOOK))
+# S2 is S1's camera (owner, 2026-10-26: "the same camera"), cut in along S1's line of sight: 'far' holds
+# S1's eye on a long lens, 'in' has moved in to 800 m on S1's 45 mm. TEMPORARY A/B: remove ASHARU_S2_CAM
+# and the losing branch once the owner picks.
+S2_CAM = os.environ.get('ASHARU_S2_CAM', 'far')
+S2_RANGE, S2_LENS = (S1_RANGE, 170) if S2_CAM == 'far' else (800.0, 45)
+S2_EYE = S1_EYE if S2_CAM == 'far' else tuple(S2_AIM_AT[i] + S2_RANGE * c for i, c in enumerate(S1_LOOK))
 
 
 def convoy_at(t):
@@ -1410,13 +1416,10 @@ BLOCKED = {
         shot='S2', title='Alongside the Colossus',
         caption='Tracking alongside the Colossus at 300 m. Morrow rides off her starboard quarter, drones stowed; '
                 'Lasher A slides through the foreground.',
-        # THE SATELLITE OPTIC, CLOSER (owner, 2026-10-26: S1 to S3 one feel): the same side as S1, 3.5 km
-        # off her port bow and holding still, long on the Colossus (200 mm) and creeping in to 280 mm as
-        # Lasher A crosses in front of her, flattened by the long lens; Morrow beyond her quarter.
-        camera=camera('m2', [dict(t=24, loc=S2_EYE, target=S2_AIM, lens=200),
-                             dict(t=25, loc=S2_EYE, target=S2_AIM, lens=205),
-                             dict(t=29.2, loc=S2_EYE, target=S2_AIM, lens=280),
-                             dict(t=30, loc=S2_EYE, target=S2_AIM, lens=280)], M2_T),
+        # S1'S CAMERA, CUT IN (owner, 2026-10-26: S1 to S2 "the same camera"): on S1's line of sight, still,
+        # one lens, no zoom: long on the Colossus as Lasher A crosses in front of her, Morrow beyond her quarter.
+        camera=camera('m2', [dict(t=24, loc=S2_EYE, target=S2_AIM, lens=S2_LENS, focus=S2_RANGE),
+                             dict(t=30, loc=S2_EYE, target=S2_AIM, lens=S2_LENS, focus=S2_RANGE)], M2_T),
         ships=M2_SHIPS,
         labels=['colossus', 'morrow', 'lasher-a']),
     'm5': dict(
