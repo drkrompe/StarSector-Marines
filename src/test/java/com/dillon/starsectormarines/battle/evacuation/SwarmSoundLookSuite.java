@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.creep.CreepGrowth;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
@@ -40,6 +41,9 @@ import java.util.List;
  *   <li>{@code swarm-sound-colonists}: a few colonists caught in the open by a Runner pack, a bore held open off to
  *       the east so the Runners take what they catch: colonists are seized, hurt and killed beside the others, to
  *       hear the colonists' cries and grief.</li>
+ *   <li>{@code swarm-sound-bombard}: the line against two Bombards planted on creep, with eyes on them: a sturdy one
+ *       out past its minimum range winds up, whips and lobs twice, its hazes standing on the line, and a whelp planted
+ *       close in, too close to lob, is shot dead, its sac bursting where it falls ({@code BombardAudio}).</li>
  * </ul>
  * {@code -Dsnapshot.swarmSound.only=<shot>} records one shot alone. Opt-in: a mixing study, not part of {@code all}.
  */
@@ -52,6 +56,8 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
     static final int[] FEEDING_STILLS = {150, 300, 450, 600};
     /** The Brutes' health against their own: enough to reach the line and charge it under the fire. */
     static final float BRUTE_HEALTH = 3f;
+    /** The close Bombard whelp's health against its own: enough that the rifles take a while to kill it. */
+    static final float WHELP_HEALTH = 8f;
 
     @Override public String id() { return "swarm-sound"; }
 
@@ -65,7 +71,8 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
         String only = System.getProperty("snapshot.swarmSound.only", "");
         List<SnapshotArtifact> out = new ArrayList<>();
         for (String name : List.of("swarm-sound-assault", "swarm-sound-matriarch", "swarm-sound-matriarch-run",
-                "swarm-sound-skitterers", "swarm-sound-feeding", "swarm-sound-colony", "swarm-sound-colonists")) {
+                "swarm-sound-skitterers", "swarm-sound-feeding", "swarm-sound-colony", "swarm-sound-colonists",
+                "swarm-sound-bombard")) {
             if (only.isEmpty() || only.equals(name)) out.addAll(LookReview.record(context.modRoot(), shot(name)));
         }
         return out;
@@ -88,6 +95,7 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
                     case "swarm-sound-skitterers" -> skitterers(placement);
                     case "swarm-sound-colony" -> colony(placement);
                     case "swarm-sound-colonists" -> colonists(placement);
+                    case "swarm-sound-bombard" -> bombards(placement);
                     default -> matriarch(placement);
                 },
                 placement -> List.of(LookReview.View.followAtPlay(placement, keys)),
@@ -189,6 +197,26 @@ public final class SwarmSoundLookSuite implements SnapshotSuite {
             sim.spawn(SwarmStrains.spec("Brute " + i, UnitType.SWARM_BRUTE, (int) at[0], (int) at[1])
                     .health(UnitType.SWARM_BRUTE.maxHp * BRUTE_HEALTH));
         }
+        return sim;
+    }
+
+    /**
+     * The line, a Bombard on its creep 26 cells east, sturdy enough to last the shot, and a whelp on creep 14 cells
+     * out, inside its reach's minimum, that the rifles work on and kill; the company has eyes on both, so the
+     * wind-ups are heard as well as the throws.
+     */
+    private static BattleSimulation bombards(LookReview.Placement placement) {
+        BattleSimulation sim = line(placement).sim();
+        float[] far = placement.openNear(36f, H / 2f - 3f);
+        float[] near = placement.openNear(24f, H / 2f + 5f);
+        sim.creepField().putSource(1L, (int) far[0], (int) far[1], new CreepGrowth(5f, 5f));
+        sim.creepField().putSource(2L, (int) near[0], (int) near[1], new CreepGrowth(4f, 4f));
+        sim.matureCreep();
+        placement.subject("swarm", sim.spawn(SwarmStrains.spec("Bombard", UnitType.SWARM_BOMBARD,
+                (int) far[0], (int) far[1]).health(UnitType.SWARM_BOMBARD.maxHp * 100f)));
+        sim.spawn(SwarmStrains.spec("Bombard whelp", UnitType.SWARM_BOMBARD, (int) near[0], (int) near[1])
+                .swarmStage(SwarmStage.WHELP).health(UnitType.SWARM_BOMBARD.maxHp * WHELP_HEALTH));
+        for (float[] at : new float[][]{far, near}) sim.getFogOfWar().addEphemeralSource((int) at[0], (int) at[1], 6, 6f);
         return sim;
     }
 

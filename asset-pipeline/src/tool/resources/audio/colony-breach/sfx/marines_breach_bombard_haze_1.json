@@ -1,0 +1,21 @@
+{
+  "mixedFrom": [
+    {
+      "take": "marines_breach_spore_vent_burst_2.mp3",
+      "sourceCommit": "c7a8b5e1b",
+      "sourceAudioSha256": "57de9215e348cc21aabba6f8f15af0f48a13c31953464792f4096ea2e7a51697"
+    },
+    {
+      "take": "marines_breach_bore_ambience_fissure_1.mp3",
+      "sourceCommit": "c7a8b5e1b",
+      "sourceAudioSha256": "f02c0a676d331b5ae5fd233578a213e1d0508a74ac9777ff8622cccc6cb2f776"
+    }
+  ],
+  "sourceRequestId": null,
+  "filterComplex": "[0:a]aformat=sample_rates=44100:channel_layouts=mono,atrim=0.12:0.78,asetpts=PTS-STARTPTS,asplit[a][b];[b]areverse[br];[a][br]concat=n=2:v=0:a=1,asetrate=35280,aresample=44100,lowpass=f=4500[hiss];[1:a]aformat=sample_rates=44100:channel_layouts=mono,atrim=2.000:2.825,asetpts=PTS-STARTPTS,asplit[c][d];[d]areverse[dr];[c][dr]concat=n=2:v=0:a=1,highpass=f=1200,volume=-9dB[crackle];[hiss][crackle]amix=inputs=2:normalize=0:duration=longest,atrim=0:1.65,volume=-2.30dB,alimiter=limit=0.9:level=false",
+  "note": "A Bombard's spore haze standing (bombard.md): a seamless 1.65 s loop of a spore vent burst's hissing cloud, lower and softened, mirrored so it wraps, with a fissure ambience's faint scratching as the crackle. Mixed and trimmed from shipped takes, not generated.",
+  "integratedLufs": -20.0,
+  "audioSha256": "fdeb468e8fc1e3d27330bc65c5ea726e89d331d942f1935cb03d98907b46b86e",
+  "durationSeconds": 1.65,
+  "outputFormat": "mp3_44100_128"
+}
