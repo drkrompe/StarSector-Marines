@@ -102,7 +102,9 @@ class MissionMlxTest {
             assertNull(instance.requireElement("mission-narration-stop").parent());
             assertNull(instance.requireElement("mission-debug-toggle").parent());
             assertNull(instance.requireElement("mission-debug-drawer").parent());
-            assertEquals(List.of("mission-commitment", "mission-survey-slot"), instance.requireElement("mission-planning")
+            assertEquals(List.of("mission-plan-top", "mission-force-summary"), instance.requireElement("mission-planning")
+                    .children().stream().map(element -> element.id()).toList());
+            assertEquals(List.of("mission-commitment", "mission-survey-slot"), instance.requireElement("mission-plan-top")
                     .children().stream().map(element -> element.id()).toList());
         }
     }
