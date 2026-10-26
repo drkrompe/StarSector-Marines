@@ -299,7 +299,7 @@ public final class SwarmBores {
 
     /**
      * The biomass seam (`colony-breach-nouns.md`, Harvest): {@code amount} delivered into
-     * {@code bore}, in colonists' bodies. It advances the bore's growth fast
+     * {@code bore}, in biomass ({@link SwarmHarvest#PREY_BODY_BIOMASS} a colonist). It advances the bore's growth fast
      * and sizes and brings forward its next surge. Returns {@code false},
      * having changed nothing, for a collapsed bore or a non-positive amount:
      * collapse is permanent and a dead bore's delivery is lost.
