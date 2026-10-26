@@ -37,6 +37,15 @@ class ScreenedAdvancePaceTest {
     }
 
     @Test
+    void aPushedAdvanceGoesOnThroughItsContactUntilThePushRunsOut() {
+        // Pushed on tick 1000 with a 1200-tick hold: the swarm still in range does not hold it again at once.
+        assertFalse(ScreenedAdvance.engages(true, 1030, 2200));
+        assertTrue(ScreenedAdvance.engages(true, 2200, 2200), "the push spent, a contact holds it again");
+        assertFalse(ScreenedAdvance.engages(false, 2200, 2200));
+        assertTrue(ScreenedAdvance.engages(true, 30, 0), "never pushed, any contact holds it");
+    }
+
+    @Test
     void aMemberOnItsSlotKeepsUpStandingStill() {
         ScreenedAdvance.Pace mech = new ScreenedAdvance.Pace(true, 0);
         for (int tick = 0; tick <= 3 * LATER; tick += 15) mech.observe(tick, 203f, 143f, true);
