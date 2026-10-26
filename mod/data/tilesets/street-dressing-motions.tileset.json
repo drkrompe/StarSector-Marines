@@ -1,5 +1,5 @@
 {
-  "note": "Street dressing drawn overhead: each piece is a fixed part on itself in the overhead layer, so it draws in the roof pass above the people under it (and is held back where the fog has not reached). The piece itself carries no cover and is never a fixture, so it blocks neither movement nor sight. Hand-authored: tileset exports rewrite their own documents, so motions live here. See PropMotion.",
+  "note": "Street dressing drawn overhead: each piece is a fixed part on itself in the overhead layer, so it draws in the roof pass above the people under it and never as a ground doodad beneath them; like a roof it draws whether or not the fog has reached it. The piece itself carries no cover and is never a fixture, so it blocks neither movement nor sight. Hand-authored: tileset exports rewrite their own documents, so motions live here. See PropMotion.",
   "motions": [
     {"doodad": "doodad.street-awning-striped", "parts": [{"part": "doodad.street-awning-striped", "kind": "fixed", "layer": "overhead", "at": [1.5, 0.5]}]},
     {"doodad": "doodad.street-awning-canvas", "parts": [{"part": "doodad.street-awning-canvas", "kind": "fixed", "layer": "overhead", "at": [1.5, 0.5]}]},

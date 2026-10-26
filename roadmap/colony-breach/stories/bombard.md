@@ -35,6 +35,12 @@ line. It spoils its aim, so the Runners get across.
   reach is the nest's reach plus its range. Off creep it lumbers back toward
   the nearest creep. Planting and uprooting each take about three seconds, and
   planted it cannot move. Burning the creep uproots it.
+- **It stays engaged.** Once it has seen an enemy (out to about twenty cells
+  past its reach) it stays engaged for about thirty seconds, renewed each time it
+  sees one. Planted and reloading, it keeps turned to that enemy. When it has stood
+  about six seconds with nothing in reach, it uproots, moves along the creep to a
+  cell that puts the enemy inside its band, plants and lobs again, rather than
+  going back to idle (owner).
 - **The lob.** Each lob is a **wind-up** of about three seconds, with the tail
   cocking right back over the body and the glob glowing in the sling. Then
   comes the **release**: the tail whips through its arc and flings the glob.
@@ -125,7 +131,8 @@ prompts and provenance.
    reload; the glob as an indirect projectile that lands a haze; the death
    burst. Scene `bombard`, with loops: it lobs on a standing line and the haze
    lands there; it never lobs into melee; off creep it does not fire; a squad
-   inside its minimum range is never lobbed on. **Built**
+   inside its minimum range is never lobbed on; with the line in sight but out of
+   reach, it stays turned to it, moves along the creep and lobs (`stays-engaged`). **Built**
    (`SwarmBombardBehavior`, `SwarmBombards`, `BoreStrainTable.Slot#BOMBARD`,
    `weapon.swarm-bombard`).
 3. **Counters.** The step-out reaction, the launch reveal, the officer's
@@ -186,6 +193,10 @@ prompts and provenance.
    three, at most 3 alive in every battle, 122 fielded over the 36 seeds with
    regrowth, 59 globs (81 uncapped), 48 troops hazed, 49 air calls on them;
    33 held, 3 broken.
+   Staying engaged (owner) nearly trebled its work on the same seeds: 153 globs,
+   154 troops hazed, troops firing back at Bombards for 666 seconds (from 1), and
+   62 air calls on them; more died (44, 9 of them on the move between spots).
+   All 36 held.
 
 ## Acceptance
 

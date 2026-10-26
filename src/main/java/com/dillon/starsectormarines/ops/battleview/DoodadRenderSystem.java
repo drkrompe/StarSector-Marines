@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.TileManifest;
+import com.dillon.starsectormarines.battle.world.tiles.PropMotion;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.render2d.QuadBatch;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -12,6 +13,7 @@ import com.dillon.starsectormarines.battle.fire.FireField;
 import com.fs.starfarer.api.graphics.SpriteAPI;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 
 /**
@@ -234,8 +236,11 @@ public final class DoodadRenderSystem implements RenderSystem {
             emitLegacySheet(placements, out, cam, view, sprites.tileSheet(), TileManifest.SHEET, alphaMult);
             return;
         }
+        TileRegistry registry = TileRegistry.installed();
+        Function<String, PropMotion> motions = registry == null ? id -> null : registry::motion;
         for (Doodad placed : placements) {
-            if (!view.intersectsCells(placed.cellX, placed.cellY, placed.footprintCellsX, placed.footprintCellsY)) continue;
+            if (!view.intersectsCells(placed.cellX, placed.cellY, placed.footprintCellsX, placed.footprintCellsY)
+                    || drawnOverhead(placed, motions)) continue;
             Doodad shown = twins == null ? placed : twins.base(placed);
             Doodad twin = twins == null ? placed : twins.twin(placed);
             float weight = twin == placed ? 0f : twins.weight(placed);
@@ -275,6 +280,18 @@ public final class DoodadRenderSystem implements RenderSystem {
         }
     }
 
+    /**
+     * Whether the placement's own art draws overhead ({@link PropMotion#liftsItself}): the roof pass draws it above
+     * the people under it, fading over them, so the ground pass leaves it out rather than lay a second, opaque copy
+     * beneath them.
+     */
+    static boolean drawnOverhead(Doodad d, Function<String, PropMotion> motions) {
+        String id = d.definitionId();
+        if (id == null) return false;
+        PropMotion motion = motions.apply(id);
+        return motion != null && motion.liftsItself();
+    }
+
     private static boolean isLegacySheet(String path) {
         return path.equals(TileManifest.SHEET) || path.equals(TileManifest.ROAD_SHEET)
                 || path.equals(TileManifest.DOODAD_SHEET) || path.equals(TileManifest.PARKED_VEHICLE_SHEET);
@@ -302,8 +319,10 @@ public final class DoodadRenderSystem implements RenderSystem {
     private void emitLegacySheet(Iterable<Doodad> placements, DrawList out, BattleCamera cam,
                                         VisibleCellRect view, SpriteAPI sheet, String path, float alpha) {
         if (sheet == null) return;
+        TileRegistry registry = TileRegistry.installed();
+        Function<String, PropMotion> motions = registry == null ? id -> null : registry::motion;
         for (Doodad d : placements) {
-            if (path.equals(d.sheetPath)
+            if (path.equals(d.sheetPath) && !drawnOverhead(d, motions)
                     && view.intersectsCells(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY))
                 emit(out, cam, sheet, d, cam.cellPxSize(), alpha);
         }
