@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.AirScale;
 import com.dillon.starsectormarines.battle.shield.ShieldDomeService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -10,12 +11,15 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
+import javax.imageio.ImageIO;
 import java.awt.Color;
 import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferInt;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -51,6 +55,12 @@ public final class ShieldDomeLookSnapshotSuite implements SnapshotSuite {
     /** A shield fort declares the ground it covers, so its dome is several times the bare generator's. */
     private static final float FORT_DOME_RADIUS_CELLS = 60f;
     private static final float CAPACITY = 1500f;
+    /** The vanilla Hermes, read from the install for scale; the sheet is left out where there is none. */
+    private static final String HERMES_SPRITE = "graphics/ships/hermes/hermes_base.png";
+    /** The vanilla Hermes's {@code shieldRadius}, in sprite pixels. */
+    private static final float HERMES_SHIELD_PX = 57f;
+    /** A close zoom, so a boat and its shield read. */
+    private static final float BOAT_CELL_PX = 48f;
 
     @Override
     public String id() {
@@ -79,6 +89,11 @@ public final class ShieldDomeLookSnapshotSuite implements SnapshotSuite {
         out.add(SnapshotArtifact.colorAnimation("impacts.gif", impactFrames(large), 100));
         out.add(new SnapshotArtifact("collapse-recovery.png", collapse(renderer.render(map, SEED, 10))));
         out.add(new SnapshotArtifact("arc.png", arcSheet(renderer.render(map, SEED, 20))));
+        Path hermes = context.starsectorCore().resolve(HERMES_SPRITE);
+        if (Files.isRegularFile(hermes)) {
+            out.add(new SnapshotArtifact("boat-arc.png",
+                    boatArc(renderer.render(map, SEED, (int) BOAT_CELL_PX), ImageIO.read(hermes.toFile()))));
+        }
         return out;
     }
 
@@ -199,6 +214,50 @@ public final class ShieldDomeLookSnapshotSuite implements SnapshotSuite {
         arc.arcCos = (float) Math.cos(Math.toRadians(60));
         composite(frame, arc, 2.4f);
         caption(frame, "Full dome, and the same shield cut to a 120° arc facing up: nothing drawn outside it, each end a clean edge like the rim. 20 px a cell.");
+        return frame;
+    }
+
+    /**
+     * A Hermes at its drawn size under a 120 degree shield of the vanilla hull's radius, facing forward: bare, raised,
+     * and struck at the bow. Drawn as a hardpoint's shield is ({@link TurretShieldField}), the hex field dense enough
+     * to read at a boat's size.
+     */
+    private static BufferedImage boatArc(BufferedImage ground, BufferedImage hermes) {
+        BufferedImage frame = crop(ground, WIDTH, HEIGHT);
+        float scale = AirScale.METERS_PER_PX * BOAT_CELL_PX;
+        int w = Math.round(hermes.getWidth() * scale);
+        int h = Math.round(hermes.getHeight() * scale);
+        String[] words = {"bare", "shield raised, pool at 20%", "a round blocked at the bow"};
+        for (int i = 0; i < 3; i++) {
+            float cx = WIDTH * (i * 2 + 1) / 6f;
+            float cy = HEIGHT * 0.5f;
+            Graphics2D g = frame.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+            g.drawImage(hermes, Math.round(cx - w / 2f), Math.round(cy - h / 2f), w, h, null);
+            g.dispose();
+            if (i > 0) {
+                ShieldDomeDraw d = dome(cx, cy, BOAT_CELL_PX, HERMES_SHIELD_PX * AirScale.METERS_PER_PX,
+                        Faction.MARINE, 0.2f);
+                d.radiusCells *= TurretShieldField.HEX_DENSITY;
+                d.alpha = TurretShieldField.PRESENCE;
+                d.arcDirX = 0f;
+                d.arcDirY = 1f;
+                d.arcCos = (float) Math.cos(Math.toRadians(60));
+                if (i == 2) {
+                    d.impactCount = 1;
+                    d.impacts[0] = 0f;
+                    d.impacts[1] = 0.92f;
+                    d.impacts[2] = 0.12f;
+                    d.impacts[3] = 0.8f;
+                    d.hitFlash = 0.6f;
+                }
+                composite(frame, d, 2.4f);
+            }
+            caption(frame, (int) (cx - WIDTH / 6f), HEIGHT - 72, WIDTH / 3, words[i]);
+        }
+        caption(frame, String.format(Locale.ROOT,
+                "A Hermes (%.1f cells long) under a 120° shield of the vanilla hull's radius (%.1f cells), at %.0f px a cell.",
+                hermes.getHeight() * AirScale.METERS_PER_PX, HERMES_SHIELD_PX * AirScale.METERS_PER_PX, BOAT_CELL_PX));
         return frame;
     }
 
