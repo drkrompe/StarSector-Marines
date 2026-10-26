@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.detachment;
 
 import com.dillon.starsectormarines.battle.power.ArmorDropPower;
+import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 
 import java.util.ArrayList;
@@ -10,9 +11,9 @@ import java.util.List;
 import java.util.Set;
 
 /**
- * Constant-budget command deck: selection math plus launch-boundary filtering. An armor drop is implied
- * rather than chosen: having machines in the bay and lift for them is the call, so it is never shown on the
- * deck, never costs a slot, and always launches when the mission resolved one.
+ * Constant-budget command deck: selection math plus launch-boundary filtering. An armor drop and close air
+ * support are implied rather than chosen: machines in the bay with lift for them, or a gunship in the fleet,
+ * are the call, so neither is shown on the deck, costs a slot, or stays behind when the mission resolved it.
  */
 public final class CommandDeck {
 
@@ -24,9 +25,9 @@ public final class CommandDeck {
         return power == null || implied(power) ? 0 : power.slotWeight;
     }
 
-    /** Whether a power rides with the bay instead of sitting on the deck: the armor drop. */
+    /** Whether a power comes with what the company brings instead of sitting on the deck. */
     public static boolean implied(CommandPower power) {
-        return power instanceof ArmorDropPower;
+        return power instanceof ArmorDropPower || power instanceof CloseAirSupport;
     }
 
     public static int used(List<CommandPower> available, Collection<String> selectedIds) {
