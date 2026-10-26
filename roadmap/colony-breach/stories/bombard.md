@@ -160,20 +160,29 @@ prompts and provenance.
    flies on its own sprite with a ground shadow that tightens as it lands
    (`groundShadow` on the weapon's render block). The haze's amber was already
    in `SmokeRenderSystem`.
-   **Animation pass** (owner's picks pending: `bombard-throw`, `bombard-plant`,
-   `bombard-death`, built on the recommended options): the tail arches up off the
+   **Animation pass** (owner picked `bombard-throw` after; `bombard-plant` and
+   `bombard-death` redone to the owner's notes): the tail arches up off the
    ground and over the back in pitch, drawn larger and shorter as it rises, so the
    sling hangs over the shell as the master draws it, instead of hooking sideways.
-   Planting is a dig, three stamps a side with the body sinking, and uprooting
-   reverses it. The body's height, lurch and rock are springs: it crouches and
+   Planting is a dig on the walking legs (owner: the stamp "is not using the leg
+   modeling we use when walking"): four tripod strokes through the plant, the first
+   of each set stepping its claws out to a wider dug-in stance and the second stabbing
+   in where it stands, the shell settling lower on each landing; uprooting wrenches
+   each set in place, then steps it back in. The body's height, lurch and rock are springs: it crouches and
    trembles at full draw, and on the throw it lurches and rocks while the sac flares,
    goes dull and refills through the reload. Dead, it falls apart its own way: the
-   sac flashes, the shell cracks open on its seam (`shell-l`, `shell-r`), the legs
-   buckle and the tail falls limp to one side. Hits on it puff ichor
-   (`SwarmHitFeedback`). The throw happens on the same sim tick as before.
+   sac flashes, the shell cracks open along a ragged crack (`shell-l`, `shell-r`,
+   cut along `CRACK` by the export) and its halves part unevenly, one wrenched out
+   and twisted, the other barely moved (owner: "Needs some uneven split"); the legs
+   twitch and fold back and in under it, the tail lies kinked to one side, and the
+   carcass dulls to a dark grey, so it still reads as dead once its haze has cleared
+   (owner: it "doesn't read as dead beyond it not moving"). On its own creep the
+   creep digests it as any swarm body. Hits on it puff ichor (`SwarmHitFeedback`).
+   The throw happens on the same sim tick as before.
    `bombard-look` shows the walk, the lob through to the uproot, and a death in
    mid wind-up. The battle frames are `bombard`'s look shots: `bombard-lob`, and
-   `bombard-fire` (a rifle squad shooting a Bombard until it dies).
+   `bombard-fire` (a rifle squad shooting a Bombard until it dies, long enough for
+   its last haze to clear).
 5. **Sound.** Wind-up creak, whip and hinge crack, burst, haze hiss.
 6. **Probe.** One or two probe fixtures (`cordon-line`, then
    `colony-breach-v1`), judged by behaviour.

@@ -15,4 +15,11 @@ public interface AirDeliveryPayload {
      * temporarily blocked so the shuttle can retry on its next unload tick.
      */
     boolean tryDeploy(AirDeliveryContext context);
+
+    /**
+     * Whether what this payload unloads fights: soldiers, vehicles or machines. A side with
+     * such a payload still aboard or still callable has not lost its battle; a supply crate
+     * keeps nobody in it.
+     */
+    default boolean fieldsForces() { return true; }
 }
