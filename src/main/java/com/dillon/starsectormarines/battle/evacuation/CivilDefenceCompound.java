@@ -322,14 +322,16 @@ public final class CivilDefenceCompound {
         }
 
         // Wall posts: the yard cell behind each slit. A wall is its own cover, so nothing is
-        // piled against it; the wall team stands at the slits and shoots through them.
+        // piled against it; the wall team stands at the slits and shoots through them. A gun tower's
+        // inner row is slit too and is still open ground until laid: a team seated there stood in
+        // the wall with no way out (urban Line frozen 6, the switch line's garrison).
         List<RedoubtWorks.Bag> posts = new ArrayList<>();
         for (Map.Entry<Long, Kind> e : cells.entrySet()) {
             if (e.getValue() != Kind.SLIT) continue;
             for (int[] d : STEPS) {
                 int x = x(e.getKey()) + d[0], y = y(e.getKey()) + d[1];
                 long k = key(x, y);
-                if (!inside.contains(k) || keepOpen.contains(k) || !open.at(x, y)) continue;
+                if (!inside.contains(k) || keepOpen.contains(k) || cells.containsKey(k) || !open.at(x, y)) continue;
                 if (posts.stream().noneMatch(p -> p.x() == x && p.y() == y)) posts.add(new RedoubtWorks.Bag(x, y, null));
             }
         }
