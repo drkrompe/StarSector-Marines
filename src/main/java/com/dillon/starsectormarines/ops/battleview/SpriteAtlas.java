@@ -826,6 +826,14 @@ public abstract class SpriteAtlas {
         return planned && !broken && !slots.isEmpty();
     }
 
+    /**
+     * Whether the atlas will never serve: a plan that did not fit, too few images, or a refusal. GL-free. A
+     * caller that waits for {@link #isServing()} stops waiting on this and goes on with the per-sheet path.
+     */
+    public final boolean failed() {
+        return broken;
+    }
+
     /** The sheet every atlased quad addresses while the atlas is serving. */
     public final SpriteAPI sheet() {
         return sprite;
