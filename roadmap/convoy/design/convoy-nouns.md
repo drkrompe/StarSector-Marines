@@ -1265,6 +1265,28 @@ across young or creep-killed wood drives through it, felling what it touches
 living mature wood holds every hull, and a scout car is held by the young wood
 that a troop APC crushes through.
 
+A medium or heavy hull **rams** light barricades (`BarricadeRam`; owner's pick,
+2026-10-27). A cell is *rammable* while it is closed and holds a sandbag, fence or
+crate piece of structure 100 or less that is not a fort's or an objective's works:
+works are rammed by nothing, as a Brute's charge rams them rather than bowling them
+over. Every hull that crushes undergrowth but the dozer, whose blade already pushes
+barricades down, drives into rammable cells spending its **momentum** on them, as
+the blade does: where its way covers all the pieces its footprint reaches they fall
+at once to their destroyed art and it drives on at the speed the rest gives, so an
+APC at full speed keeps about nine tenths of its way through one piece and a gun
+tank barely notices a row; where it does not, they share its way and it is brought
+up. A hull held by rammable cells and nothing else shoves at them at 40 structure a
+second until they give, and that counts as progress for its recovery, so a hull that
+came at a barricade slowly still gets through, slowly. Each hull plans over its own
+**breach view**: its crush view with every rammable cell opened whose structure its
+top speed carries, kept and caught up with the live grid cell by cell as the crush
+view is; its sweep still reads the crush view, where the piece stands until it is
+rammed. Rammable ground costs a route more than rubble, so a hull goes round a
+barricade where going round is short. `-Dbattle.vehicle.ramBarricades=false` is the
+control. Acceptance is the `vehicle-ram` scene's `ram-line` loops: an APC and a gun
+tank cross a sandbag and fence line with no way round, slowed and not stopped, where
+the control APC is held at it.
+
 A hull that runs into something that stops it is heard: a stopped move at half
 a cell a second or more is a **bump** (`GroundBody.recordBlocked`), and the
 machinery audio plays a heavy impact for it (`MachineAudio`, vanilla's

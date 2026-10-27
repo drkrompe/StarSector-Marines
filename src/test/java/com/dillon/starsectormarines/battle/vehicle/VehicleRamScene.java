@@ -18,6 +18,8 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -44,6 +46,8 @@ import java.util.Map;
  *       vehicle).</li>
  *   <li>{@code parked-barricade}: the same tank parked in the only gap through a wall, a rifleman behind it and
  *       the pack in front.</li>
+ *   <li>{@code ram-line-apc}, {@code ram-line-tank}: an APC and a gun tank ordered across a sandbag and fence line
+ *       with no way round; {@code ram-line-control} the APC with ramming switched off.</li>
  * </ul>
  *
  * <p>Mechs are weighed in the same tonnes as hulls, so these loops ask the same questions of a walking machine:
@@ -101,7 +105,78 @@ public final class VehicleRamScene implements BehaviorScene {
         reports.add(march(frames, "mech-meet", Walk.MECH));
         reports.add(parked(frames, "runners-parked", false));
         reports.add(parked(frames, "parked-barricade", true));
+        reports.add(rammed(frames, "ram-line-apc", VehicleType.HEAVY_APC, true));
+        reports.add(rammed(frames, "ram-line-tank", VehicleType.BREAKTHROUGH_TANK, true));
+        reports.add(rammed(frames, "ram-line-control", VehicleType.HEAVY_APC, false));
         return reports;
+    }
+
+    // ---- a hull at a barricade line ----
+
+    private static final int RAM_TICKS = 900;
+
+    /**
+     * A hull ordered across a line of sandbag and fence pieces running the whole map's height, so there is no way
+     * round ({@link BarricadeRam}). Verdicts: it crosses and arrives, breaking the pieces it drives into, and it is
+     * slowed by what gave without being stopped; with ramming switched off ({@code -control}) it never crosses.
+     * Cells broken and its speed either side of the first break are readings.
+     */
+    private SceneReport rammed(FrameSink frames, String loop, VehicleType type, boolean ramming) {
+        SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false).seed(7L);
+        builder.wall(WALL_X, 0, WALL_X, HEIGHT - 1);
+        SceneWorld world;
+        String was = System.getProperty(BarricadeRam.PROPERTY);
+        System.setProperty(BarricadeRam.PROPERTY, Boolean.toString(ramming));
+        try {
+            world = builder.build();
+        } finally {
+            if (was == null) System.clearProperty(BarricadeRam.PROPERTY);
+            else System.setProperty(BarricadeRam.PROPERTY, was);
+        }
+        try (BattleSimulation sim = world.sim()) {
+            TileRegistry registry = TileRegistry.installed();
+            for (int y = 0; y < HEIGHT; y++) {
+                sim.addDoodad(new Doodad(WALL_X, y, registry.doodad(Math.abs(y - ROAD) <= 2
+                        ? "doodad.sandbag-straight-e" : "doodad.industrial-fence-straight-v")));
+            }
+            long hull = sim.convoy().spawn(type, Faction.MARINE, VehicleMission.deployed(6.5f, ROAD + .5f));
+            sim.convoy().body(hull).teleport(6.5f, ROAD + .5f, -90f);
+            SceneRun run = SceneRun.of(world).frames(frames, loop, FRAME_EVERY, tick -> String.format(Locale.ROOT,
+                    "%s  %s  t=%.1fs  speed %.2f", loop, type, tick / 30f, sim.convoy().body(hull).speed));
+            sim.getVehicleMoveOrderService().requestMove(hull, WIDTH - 10, ROAD);
+            GroundBody at = sim.convoy().body(hull);
+            int broken = 0;
+            float before = 0f, after = 0f, last = 0f;
+            while (run.tick() < RAM_TICKS) {
+                run.step();
+                int open = 0;
+                for (int y = 0; y < HEIGHT; y++) if (sim.getGrid().isWalkable(WALL_X, y)) open++;
+                if (open > 0 && broken == 0) {
+                    before = last;
+                    after = at.speed;
+                }
+                broken = open;
+                last = at.speed;
+            }
+            boolean crossed = at.x > WALL_X + type.visualLengthCells;
+            boolean arrived = Math.hypot(at.x - (WIDTH - 10), at.y - ROAD) <= ARRIVED;
+            List<Verdict> verdicts = new ArrayList<>();
+            if (ramming) {
+                verdicts.add(Verdict.of("rams-through", crossed && arrived && broken > 0, String.format(Locale.ROOT,
+                        "%d pieces broken, the hull at %.1f,%.1f", broken, at.x, at.y)));
+                verdicts.add(Verdict.of("slowed-not-stopped", after > 0f && after < before, String.format(Locale.ROOT,
+                        "%.2f cells/s before the first piece gave, %.2f after", before, after)));
+            } else {
+                verdicts.add(Verdict.of("held-without-ramming", !crossed && broken == 0, String.format(Locale.ROOT,
+                        "%d pieces broken, the hull at %.1f,%.1f", broken, at.x, at.y)));
+            }
+            Map<String, Number> m = new LinkedHashMap<>();
+            m.put("broken", broken);
+            m.put("speedBefore", before);
+            m.put("speedAfter", after);
+            m.put("hullX", at.x);
+            return new SceneReport(id(), loop, RAM_TICKS, verdicts, m);
+        }
     }
 
     // ---- Runners at a parked hull ----

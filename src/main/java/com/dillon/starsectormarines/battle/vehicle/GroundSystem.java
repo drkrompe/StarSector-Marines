@@ -135,6 +135,8 @@ public class GroundSystem {
 
     public void setTracks(HeavyTracks tracks) { controlSystem.setTracks(tracks); }
 
+    public void setRam(BarricadeRam ram) { controlSystem.setRam(ram); }
+
     /** Lets a move order's last rung brush soft ground ({@link SoftBrush}). */
     public void setBrush(SoftBrush brush) { controlSystem.setBrush(brush); }
 

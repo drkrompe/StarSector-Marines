@@ -59,6 +59,8 @@ public final class VehicleControlSystem {
     private HoverSkirt skirt;
     /** Heavy-lift hulls' tracks, or {@code null} where no map editor is wired: such a hull then drives the live grid. */
     private HeavyTracks tracks;
+    /** Medium and heavy hulls' ramming of light barricades, or {@code null} where it is switched off. */
+    private BarricadeRam ram;
     /** Soft ground a move order's hull may brush as its last rung, or {@code null} where it never does. */
     private SoftBrush brush;
 
@@ -82,6 +84,11 @@ public final class VehicleControlSystem {
     /** Gives heavy-lift hulls their tracks. Without them a tank stops at undergrowth as a lighter hull does. */
     public void setTracks(HeavyTracks tracks) { this.tracks = tracks; }
 
+    /** Lets medium and heavy hulls ram light barricades. Without it they stop at a barricade as a light hull does. */
+    public void setRam(BarricadeRam ram) { this.ram = ram; }
+
+    private boolean rams(VehicleType type) { return ram != null && type.ramsBarricades(); }
+
     /** Lets a move order's last rung brush soft ground ({@link SoftBrush}). Without it the order is given up as before. */
     public void setBrush(SoftBrush brush) { this.brush = brush; }
 
@@ -92,10 +99,12 @@ public final class VehicleControlSystem {
     public void setStall(LongPredicate stalled) { this.stalled = stalled; }
 
     /**
-     * The grid a hull's own planning reads: the blade's breach view for a bladed hull, else the grid it moves over.
+     * The grid a hull's own planning reads: the blade's breach view for a bladed hull, a ramming hull's breach view
+     * ({@link BarricadeRam}), else the grid it moves over.
      */
     NavigationGrid planningGrid(VehicleType type) {
-        return blade != null && type.hasBlade() ? blade.planningGrid() : motionGrid(type);
+        if (blade != null && type.hasBlade()) return blade.planningGrid();
+        return rams(type) ? ram.planningGrid(type) : motionGrid(type);
     }
 
     /**
@@ -113,16 +122,20 @@ public final class VehicleControlSystem {
         return navigation.getGrid();
     }
 
-    /** Whether {@code grid} is a planning view that keeps its identity as the map moves: the tracks' crush view. */
+    /**
+     * Whether {@code grid} is a planning view that keeps its identity as the map moves: the tracks' crush view or a
+     * ramming hull's breach view.
+     */
     boolean isKeptView(NavigationGrid grid) {
-        return tracks != null && grid == tracks.currentView();
+        return tracks != null && grid == tracks.currentView() || ram != null && ram.isView(grid);
     }
 
     /** The route cost a hull's own move-order proof pays. */
     TerrainCostField costField(VehicleType type) {
         if (type.isHover()) return HoverSkirt.costField(navigation.getTopology());
         TerrainCostField cost = TerrainCostField.from(navigation.getTopology());
-        return tracks != null && type.crushesUndergrowth() ? HeavyTracks.costField(navigation.getGrid(), cost) : cost;
+        if (tracks != null && type.crushesUndergrowth()) cost = HeavyTracks.costField(navigation.getGrid(), cost);
+        return rams(type) ? ram.costField(type, cost) : cost;
     }
 
     /**
@@ -1167,9 +1180,10 @@ public final class VehicleControlSystem {
 
     /**
      * Whether a bladed hull, at the pose its move would reach, is held only by ground it grinds down
-     * ({@link DozerBlade#grind}).
+     * ({@link DozerBlade#grind}), or a ramming hull only by barricades it shoves at ({@link BarricadeRam#shove}).
      */
     private boolean bladeGrinds(GroundBody body, VehicleType type, VehicleControlComponent s, float dt) {
+        if (rams(type)) return ram.shove(body, type, s, dt);
         return blade != null && type.hasBlade() && blade.grind(body, type, s, dt);
     }
 
@@ -1182,6 +1196,8 @@ public final class VehicleControlSystem {
     private boolean applySweep(GroundBody body, VehicleType type, float x, float y, float facing,
                                boolean allowOffMap, boolean brushing) {
         Pose from = new Pose(x, y, facing), to = new Pose(body.x, body.y, body.facingDegrees);
+        // A ramming hull spends its way on the barricade it drives into before the sweep: what falls is open ground.
+        if (rams(type)) ram.strike(body, type);
         var step = brushing ? brush.sweep(from, to, type, motionGrid(type), allowOffMap)
                 : VehicleTerrainMotion.sweep(from, to, type.visualLengthCells, type.visualWidthCells,
                         motionGrid(type), allowOffMap);
