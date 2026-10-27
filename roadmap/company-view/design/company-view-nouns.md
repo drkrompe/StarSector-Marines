@@ -107,7 +107,9 @@ shared mapping instead of assigning paths independently in each screen.
   which is seats; emitter, the shield's arc and flux per hit; and power, the flux
   pool's capacity and venting. Each slot has a standard fitting every boat is
   built with and up to three upgrade tiers; a lift tier goes only on a boat that
-  does not already lift as much. The battle reads every slot (`air-nouns.md`,
+  does not already lift as much. The cabin has no upgrade tier: its stock part
+  seats the pattern's own complement, and on the Hermes that is one whole
+  twelve-marine squad, the company's minimum drop. The battle reads every slot (`air-nouns.md`,
   Fitted boat). The emitter's three tiers are the **low-tech, midline and
   high-tech shields**: wider arcs and less flux per blocked hit, each with its
   own price and its own look (orange, teal, blue). Planned: art of their own for
@@ -1228,7 +1230,8 @@ billet identity remains unchanged.
 ## Lift and arrival
 
 Hull capacity is a physical maximum, not a promise that every mission fills the
-hold. Small lifts have four seats, medium lifts eight, and the Valkyrie twelve.
+hold. Small lifts have four seats, medium lifts eight, and the Hermes and the
+Valkyrie twelve.
 The mission arrival policy owns the embarked seats per sortie. An ordinary
 generated mission freezes only the selected named personnel, so its final craft
 or final pass may carry fewer marines than the hull maximum and all force,

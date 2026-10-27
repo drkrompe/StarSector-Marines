@@ -126,13 +126,11 @@ class FittedBoatTest {
     }
 
     @Test
-    void theCabinSetsTheSeatsAndTheDriveQuickensTheRamp() {
-        FittedBoat refitted = new FittedBoat(ShuttleType.HERMES, Map.of(
-                BoatFittingSlot.CABIN, BoatFitting.TWO_TEAM_CABIN,
-                BoatFittingSlot.DRIVE, BoatFitting.UPRATED_DRIVE), null, null);
+    void theHermesLandsASquadAndTheDriveQuickensTheRamp() {
+        FittedBoat refitted = new FittedBoat(ShuttleType.HERMES,
+                Map.of(BoatFittingSlot.DRIVE, BoatFitting.UPRATED_DRIVE), null, null);
 
-        assertEquals(ShuttleType.HERMES.capacity, FittedBoat.standard(ShuttleType.HERMES).seats());
-        assertEquals(8, refitted.seats());
+        assertEquals(12, FittedBoat.standard(ShuttleType.HERMES).seats(), "one whole squad");
         assertEquals(ShuttleType.HERMES.deboardInterval * 0.6f, refitted.deboardInterval(), EPSILON);
     }
 
