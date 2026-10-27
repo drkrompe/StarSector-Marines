@@ -1,6 +1,8 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.combat.FireTrigger;
+import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
+import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.control.DirectControlAbility;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.mech.MechFlux;
@@ -29,7 +31,7 @@ import java.util.function.Function;
  * (bottom right) listing equipment under the button that fires it. Values and commands remain
  * owned by the battle.
  */
-final class BattleDirectControlHudModel {
+public final class BattleDirectControlHudModel {
     /** The flux gauge's resting fill, mech or warship: the violet the game's own flux reads in. */
     private static final String FLUX_FILL = "#a594f9";
     private static final String HIDDEN_ROW = "row row-hidden";
@@ -322,30 +324,79 @@ final class BattleDirectControlHudModel {
         }
     }
 
-    /** {@code dimmed}: a member its trigger's pick leaves out, which holds fire. */
-    private WeaponRow weaponRow(WeaponStatus weapon, boolean mech, boolean highlighted, boolean dimmed,
-                                String key, Runnable action) {
+    /** How a weapon row's state reads: ready, busy cycling or reloading, or unable to fire. */
+    public enum StateTone {
+        READY(""), BUSY("weapon-busy"), EMPTY("weapon-empty");
+
+        final String className;
+
+        StateTone(String className) {
+            this.className = className;
+        }
+    }
+
+    /**
+     * A marine primary's HUD row at one moment, for showing it outside battle.
+     *
+     * @param state the row's state text
+     * @param tone  how the state text is coloured
+     * @param cycleFraction the cycle bar's fill
+     * @param strip the load under the bar, or null for none
+     */
+    public record PrimaryRow(String state, StateTone tone, float cycleFraction, AmmoStrip strip) {}
+
+    /**
+     * The row the HUD would show for a marine's primary in this state, through the same status, state
+     * text and strip a marine in battle gets ({@code moddable-weapons-nouns.md}, catalog preview).
+     */
+    public static PrimaryRow marinePrimaryRow(WeaponDef weapon, EquipmentGrade grade,
+                                              float cooldown, float cycleDuration, int burstRemaining,
+                                              float burstTimer, int roundsLoaded, float reloadRemaining,
+                                              float reloadDuration) {
+        WeaponStatus status = BattleDirectControlStatus.marineWeapon(weapon, grade, cooldown, cycleDuration,
+                burstRemaining, burstTimer, roundsLoaded, reloadRemaining, reloadDuration);
+        return new PrimaryRow(stateText(Strings::get, status, false), stateTone(status),
+                status.cycleFraction(), strip(status));
+    }
+
+    private static String stateText(Function<String, String> copy, WeaponStatus weapon, boolean mech) {
+        Function<String, String> label = suffix -> copy.apply("battleDirectHud" + suffix);
         boolean enabled = weapon.directEligible();
-        String state = enabled ? label(weapon.state().name()) : label("Indirect");
+        String state = enabled ? label.apply(weapon.state().name()) : label.apply("Indirect");
         if (enabled && weapon.state() == WeaponState.BURST) state += " " + weapon.burstRemaining();
         if (enabled && weapon.state() == WeaponState.RELOADING) {
-            state = label("RELOADING") + " " + seconds(weapon.cooldownSeconds());
+            state = label.apply("RELOADING") + " " + seconds(weapon.cooldownSeconds());
         }
         if (enabled && weapon.state() == WeaponState.SPINNING) {
-            state = label("SPINNING") + " " + Math.round(weapon.cycleFraction() * 100f) + "%";
+            state = label.apply("SPINNING") + " " + Math.round(weapon.cycleFraction() * 100f) + "%";
         }
         if (enabled && weapon.state() == WeaponState.CYCLING) {
             state = (mech && !weapon.mechanism().isEmpty() ? weapon.mechanism() + " " : "")
                     + seconds(weapon.cooldownSeconds());
         }
-        boolean fluxHeld = enabled && weapon.fluxBlocked()
-                && weapon.state() != WeaponState.BURST && weapon.state() != WeaponState.EMPTY;
-        if (fluxHeld) state = label("FluxHold");
-        String stateClasses = "weapon-state";
-        if (fluxHeld || weapon.state() == WeaponState.EMPTY || weapon.state() == WeaponState.TOO_CLOSE) {
-            stateClasses += " weapon-empty";
+        if (fluxHeld(weapon)) state = label.apply("FluxHold");
+        return state;
+    }
+
+    private static StateTone stateTone(WeaponStatus weapon) {
+        if (fluxHeld(weapon) || weapon.state() == WeaponState.EMPTY || weapon.state() == WeaponState.TOO_CLOSE) {
+            return StateTone.EMPTY;
         }
-        else if (weapon.state() != WeaponState.LOADED) stateClasses += " weapon-busy";
+        return weapon.state() != WeaponState.LOADED ? StateTone.BUSY : StateTone.READY;
+    }
+
+    private static boolean fluxHeld(WeaponStatus weapon) {
+        return weapon.directEligible() && weapon.fluxBlocked()
+                && weapon.state() != WeaponState.BURST && weapon.state() != WeaponState.EMPTY;
+    }
+
+    /** {@code dimmed}: a member its trigger's pick leaves out, which holds fire. */
+    private WeaponRow weaponRow(WeaponStatus weapon, boolean mech, boolean highlighted, boolean dimmed,
+                                String key, Runnable action) {
+        boolean enabled = weapon.directEligible();
+        String state = stateText(copy, weapon, mech);
+        StateTone tone = stateTone(weapon);
+        String stateClasses = tone == StateTone.READY ? "weapon-state" : "weapon-state " + tone.className;
         String classes = "weapon" + (highlighted ? " weapon-selected selected" : "")
                 + (!enabled ? " weapon-unsupported" : "");
         String name = weapon.name();
@@ -409,7 +460,7 @@ final class BattleDirectControlHudModel {
         List<RoundIcon> current = new ArrayList<>();
         for (int i = 0; i < strip.icons(); i++) {
             current.add(new RoundIcon(rowId + "-round-" + i, "round round-" + kind,
-                    "graphics/ui/direct-control/round-" + kind + "-" + strip.iconState(i) + ".svg"));
+                    strip.iconPath(i)));
             if (strip.iconGroupEnd(i) || i == strip.icons() - 1) {
                 // This layout sizes a row to its own width rather than its children's, so a block is told it.
                 int width = current.size() * strip.iconWidth() + (current.size() - 1) * strip.iconGap();

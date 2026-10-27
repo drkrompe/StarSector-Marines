@@ -135,6 +135,11 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
                 weapon.softLaunch);
     }
 
+    /** A marine primary's rounds as they look in battle, for a preview with no shot to key on. */
+    public static ShotFx ofPrimary(WeaponDef weapon) {
+        return derivePrimary(weapon);
+    }
+
     private static ShotFx derivePrimary(WeaponDef weapon) {
         Body body = weapon.projectileSpritePath != null
                 ? new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells)

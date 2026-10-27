@@ -142,6 +142,15 @@ them.
   the stamp, in the same colours. The stamp is flavour drawn from the
   card's issuing tradition; the Restricted mark is derived from what the card
   carries, never authored beside it.
+  A sheet may also name a **scene**, a moving picture of the item at work
+  painted on a canvas under the heading. The sheet carries only the scene's
+  kind, subject and variant; the overlay asks the scene source registered for
+  that kind to paint it, so the value stays free of the code that draws it, and
+  a kind with no source shows no canvas. A scene plays from the moment its
+  sheet opens and keeps playing while the same sheet is re-filled; the source's
+  textures belong to the document and are given back when its screen is put
+  away. A marine primary's sheet shows the weapon on the range
+  (`moddable-weapons-nouns.md`, catalog preview), on every screen that opens it.
 - A **rating row** draws a loadout card's rating as ten symbols on an absolute
   scale: each symbol is a tenth of the catalog ceiling and lights in quarters,
   floored, so a card never shows more than it holds and the same rating looks
