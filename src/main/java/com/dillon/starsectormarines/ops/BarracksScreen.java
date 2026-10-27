@@ -81,13 +81,14 @@ public final class BarracksScreen implements Screen {
         }
         if (context.takeOfficerInductionRequest()) viewModel.command().resumeGuide();
         // A prepared company's next step is a contract, so it goes to the board rather than back to HQ.
-        viewModel.command().onPreparationComplete(() -> context.goTo(
-                context.getSelectedMission() != null ? ScreenId.BRIEFING : ScreenId.MISSION_SELECT));
-        viewModel.command().returnToBriefing(context.getSelectedMission() != null);
+        MissionReturn missionReturn = MissionReturn.of(context);
+        viewModel.command().onPreparationComplete(() -> context.goTo(missionReturn.screen));
+        viewModel.command().missionReturn(missionReturn, context.clients != null && context.clients.stream()
+                .anyMatch(client -> !client.locked && !MarineOpsContext.DEBUG_CLIENT_FACTION_ID.equals(client.factionId)));
         viewModel.command().navigation(
                 context::openSquadEquipmentFromBarracks,
-                () -> context.goTo(context.getSelectedMission() != null ? ScreenId.BRIEFING : ScreenId.MISSION_SELECT),
-                context.planet != null || context.getSelectedMission() != null);
+                () -> context.goTo(missionReturn.screen),
+                context.planet != null || missionReturn != MissionReturn.MISSIONS);
         viewModel.command().equipmentWorkspace(() -> context.openFleetArmoryWorkspaceFrom(ScreenId.BARRACKS));
         projectedCampaignHour = campaignHour();
         if (document == null) installDocument();

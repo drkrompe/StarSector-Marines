@@ -52,6 +52,11 @@ public final class SurfaceField {
         return uniform() ? world : basin.floor();
     }
 
+    /** The map's seed, which keys the field's noise. */
+    public long seed() {
+        return seed;
+    }
+
     /** Whether every cell is the world's own surface. */
     public boolean uniform() {
         return !basin.present() || basin.floor() == world;
@@ -99,11 +104,29 @@ public final class SurfaceField {
         return !uniform() && !world.bearsOpenWater() && rim(x, y);
     }
 
+    /**
+     * The edge as a line rather than cells: at or above zero on the floor, below it on the rim, continuous over the
+     * map at any point {@code (px, py)} in cell units, a cell's middle at {@code (x + .5, y + .5)}. Sampled at a
+     * cell's middle it is exactly {@link #rim}'s answer; between middles it is the same patches and band, so drawing
+     * along it shows the edge {@link #rim} cut into cells. Below zero everywhere with no basin.
+     */
+    public float edge(float px, float py) {
+        if (uniform()) return -1f;
+        float share = clamp((distance(px, py) - (1f - BAND / 2f)) / BAND);
+        return noise((px - .5f) / PATCH_CELLS, (py - .5f) / PATCH_CELLS, seed ^ PATCH_SALT) - share;
+    }
+
     /** The cell's distance from the basin's middle, 1 on its ellipse, ragged by a slow noise. */
     private float distance(int x, int y) {
-        float nx = (x + 0.5f - width / 2f) / (basin.reachX() * width / 2f);
-        float ny = (y + 0.5f - height / 2f) / (basin.reachY() * height / 2f);
-        return (float) Math.sqrt(nx * nx + ny * ny) + RAGGED * (2f * noise(x / EDGE_CELLS, y / EDGE_CELLS, seed) - 1f);
+        return distance(x + 0.5f, y + 0.5f);
+    }
+
+    /** {@link #distance(int, int)} at any point, a cell's middle at {@code x + .5}. */
+    private float distance(float px, float py) {
+        float nx = (px - width / 2f) / (basin.reachX() * width / 2f);
+        float ny = (py - height / 2f) / (basin.reachY() * height / 2f);
+        return (float) Math.sqrt(nx * nx + ny * ny)
+                + RAGGED * (2f * noise((px - .5f) / EDGE_CELLS, (py - .5f) / EDGE_CELLS, seed) - 1f);
     }
 
     private static float clamp(float v) {
@@ -111,7 +134,7 @@ public final class SurfaceField {
     }
 
     /** Smooth value noise in [0, 1]. */
-    static float noise(float x, float y, long seed) {
+    public static float noise(float x, float y, long seed) {
         int x0 = (int) Math.floor(x), y0 = (int) Math.floor(y);
         float fx = x - x0, fy = y - y0;
         fx = fx * fx * (3 - 2 * fx);

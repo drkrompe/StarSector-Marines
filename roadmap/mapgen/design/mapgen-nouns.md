@@ -2047,7 +2047,9 @@ instead of reading the profile's surface: nature fills, the hinterland and
 road-margin earth, the rural wild ground, installation aprons and glaci. The
 basin's edge is ragged by a slow noise, and across a band floor and rim
 alternate in patches, so the change reads as country thinning out rather than a
-line. The woods grow on the floor and thin out across the last stretch before
+line; the renderer draws the patches' outline as the continuous field the cells
+were sampled from (`SurfaceField.edge`, `battle-render-nouns.md`, basin edge),
+so it is not stepped either. The woods grow on the floor and thin out across the last stretch before
 the band (`SurfaceField.woods`); a desert rim grows open grey scrub instead,
 about a third as thick, the same silhouettes and states drawn from the
 `dry-scrub-*` sheets (a placement's id carries `-dry`, `NaturalPropShape.DRY`,

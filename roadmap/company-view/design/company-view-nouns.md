@@ -371,12 +371,15 @@ action. Neither the prompt nor the equipment lesson offers a Later button. Escap
 The prompt does not learn technology. Its primary action opens the full comparison;
 a company with one line squad has that squad selected automatically.
 
-Accepting or deferring the handoff acknowledges this presented outcome, so returning
-from the Armory does not immediately repeat it. An unfinished lesson can be prompted
-on the next non-debug debrief; completion ends the reminders. An accepted transfer
-instead offers **Fit Free Equipment**. The persistent debrief/HQ notice remains a
-resume route. Narration waits until the reward prompt is dismissed or the player
-returns. Pending salvage remains untouched across this handoff.
+Accepting or deferring the handoff acknowledges this presented outcome. An unfinished
+lesson can be prompted on the next non-debug debrief; completion ends the reminders.
+An accepted transfer instead offers **Fit Free Equipment**. The persistent debrief/HQ
+notice remains a resume route. Narration waits until the reward prompt is deferred.
+Opening the lesson from the debrief settles the operation first (owner): pending
+salvage is reviewed on the salvage screen, whose confirm then opens the Armory, and
+the Armory's way back is the company's own page. No company page is reached with a
+fought mission still selected, so Barracks' way back to work is only ever the board
+or an unfought mission's briefing (`MissionReturn`).
 
 Reward, fit, and navigation actions use compact buttons in action rows, never
 full-width acceptance bars. The two equipment choices remain comparison cards.

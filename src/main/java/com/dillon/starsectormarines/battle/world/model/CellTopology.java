@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.model;
 
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
+import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.terrain.TerrainSurface;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -51,6 +52,13 @@ public class CellTopology {
     public void setTerrainSurface(TerrainSurface value) {
         terrainSurface=value;for(int i=0;i<width*height;i++)markChanged(i);
     }
+    /**
+     * Which palette each cell's wild ground is, where a map has a basin of other ground, or null: presentation only,
+     * so the renderer can draw the basin's edge as the line {@link SurfaceField#edge} rather than as cells.
+     */
+    private SurfaceField surfaceField;
+    public SurfaceField surfaceField() { return surfaceField; }
+    public void setSurfaceField(SurfaceField value) { surfaceField = value; }
     /**
      * The raised ground the renderer draws as baked cliffs rather than as
      * cliff tiles, or null: presentation only, written once at generation.
