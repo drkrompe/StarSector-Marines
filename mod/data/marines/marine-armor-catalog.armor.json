@@ -1,4 +1,54 @@
 {
+  "integralSystems": [
+    {
+      "id": "system.shield-lt",
+      "grade": "surplus",
+      "displayName": "@gearCatalogSystemShieldLowTechDisplayName",
+      "description": "@gearCatalogSystemShieldLowTechDescription",
+      "effect": "breacher-assist",
+      "policy": "exposed-under-fire",
+      "incomingPressureThreshold": 2.0,
+      "maxCoverLevel": 0,
+      "resource": "cooldown",
+      "durationSeconds": 2.5,
+      "cooldownSeconds": 24.0,
+      "moveSpeedMult": 1.15,
+      "screenSoak": 4.0,
+      "shieldedArcDegrees": 90.0
+    },
+    {
+      "id": "system.shield-mt",
+      "grade": "service",
+      "displayName": "@gearCatalogSystemShieldMidTechDisplayName",
+      "description": "@gearCatalogSystemShieldMidTechDescription",
+      "effect": "breacher-assist",
+      "policy": "exposed-under-fire",
+      "incomingPressureThreshold": 2.0,
+      "maxCoverLevel": 1,
+      "resource": "cooldown",
+      "durationSeconds": 3.0,
+      "cooldownSeconds": 18.0,
+      "moveSpeedMult": 1.25,
+      "screenSoak": 7.0,
+      "shieldedArcDegrees": 120.0
+    },
+    {
+      "id": "system.shield-ht",
+      "grade": "milspec",
+      "displayName": "@gearCatalogSystemShieldHighTechDisplayName",
+      "description": "@gearCatalogSystemShieldHighTechDescription",
+      "effect": "breacher-assist",
+      "policy": "exposed-under-fire",
+      "incomingPressureThreshold": 2.5,
+      "maxCoverLevel": 1,
+      "resource": "cooldown",
+      "durationSeconds": 4.0,
+      "cooldownSeconds": 22.0,
+      "moveSpeedMult": 1.3,
+      "screenSoak": 18.0,
+      "shieldedArcDegrees": 150.0
+    }
+  ],
   "armor": [
     {
       "id": "armor.field-fatigues",
@@ -68,35 +118,7 @@
         "armorCapacity": 9.0,
         "armorRating": 7.0,
         "moveSpeedMult": 1.02,
-        "incomingAccuracyMult": 0.91,
-        "integralSystem": {
-          "id": "system.predictive-volley",
-          "mount": { "rightCells": -0.1408164, "forwardCells": 0.0036625, "muzzleForwardCells": 0.114 },
-          "presentation": {
-            "carrierLayer": {
-              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
-              "attachment": "left-shoulder",
-              "widthShoulders": 0.32,
-              "heightShoulders": 0.48,
-              "pivot": [0.5, 0.5],
-              "muzzle": [0.5, 0.1041666667],
-              "carried": { "offsetShoulders": [0.0, 0.0], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "using": { "offsetShoulders": [0.0, 0.0], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "visibleWhileCarried": true
-            }
-          },
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemPredictiveVolleyDisplayName",
-          "description": "@gearCatalogSystemPredictiveVolleyDescription",
-          "effect": "missile-pod",
-          "resource": "ammunition",
-          "policy": "sighted-standoff-contact",
-          "minimumStandoffCells": 5.0,
-          "squadSalvoIntervalSeconds": 1.5,
-          "durationSeconds": 1.0,
-          "startingAmmo": 2,
-          "weaponId": "weapon.micro-missile"
-        }
+        "incomingAccuracyMult": 0.91
       }
     },
     {
@@ -154,21 +176,7 @@
         "armorCapacity": 4.0,
         "armorRating": 4.0,
         "moveSpeedMult": 1.06,
-        "incomingAccuracyMult": 0.88,
-        "integralSystem": {
-          "id": "system.aperture-read",
-          "grade": "masterwork",
-          "displayName": "@gearCatalogSystemApertureReadDisplayName",
-          "description": "@gearCatalogSystemApertureReadDescription",
-          "effect": "perception-sweep",
-          "policy": "approaching-dead-ground",
-          "lookaheadCells": 7.0,
-          "resource": "cooldown",
-          "durationSeconds": 4.0,
-          "cooldownSeconds": 20.0,
-          "revealRangeCells": 44.0,
-          "wallReadRadiusCells": 7.0
-        }
+        "incomingAccuracyMult": 0.88
       }
     },
     {
@@ -188,22 +196,7 @@
         "armorRating": 12.0,
         "moveSpeedMult": 0.86,
         "incomingAccuracyMult": 0.98,
-        "integralSystem": {
-          "id": "system.assault-bracing",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemAssaultBracingDisplayName",
-          "description": "@gearCatalogSystemAssaultBracingDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 2.0,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 4.0,
-          "cooldownSeconds": 16.0,
-          "moveSpeedMult": 1.35,
-          "screenSoak": 17.0,
-          "shieldedArcDegrees": 160.0
-        }
+        "integralSystem": { "ref": "system.shield-ht" }
       }
     },
     {
@@ -224,581 +217,7 @@
         "moveSpeedMult": 0.94,
         "incomingAccuracyMult": 0.90,
         "integralSystem": {
-          "id": "system.predictive-breach",
-          "presentation": {
-            "carrierLayer": {
-              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/screen-emitter.png",
-              "attachment": "left-shoulder",
-              "widthShoulders": 0.32,
-              "heightShoulders": 0.40,
-              "pivot": [0.5, 0.5],
-              "carried": { "offsetShoulders": [-0.13, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "using": { "offsetShoulders": [-0.13, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "visibleWhileCarried": true
-            }
-          },
-          "grade": "masterwork",
-          "displayName": "@gearCatalogSystemPredictiveBreachDisplayName",
-          "description": "@gearCatalogSystemPredictiveBreachDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 1.5,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 2.0,
-          "cooldownSeconds": 11.0,
-          "moveSpeedMult": 1.40,
-          "screenSoak": 4.5,
-          "shieldedArcDegrees": 100.0
-        }
-      }
-    },
-    {
-      "id": "armor.bulwark-heavy",
-      "catalog": {
-        "displayName": "@gearCatalogArmorBulwarkHeavyDisplayName",
-        "role": "assault",
-        "armorClass": "power-suit",
-        "tradition": "persean",
-        "description": "@gearCatalogArmorBulwarkHeavyDescription",
-        "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-bulwark-heavy.png"
-      },
-      "battle": {
-        "appearanceFamily": "BULWARK_HEAVY",
-        "armorCapacity": 70.0,
-        "armorRating": 11.0,
-        "moveSpeedMult": 0.90,
-        "incomingAccuracyMult": 0.95,
-        "integralSystem": {
-          "id": "system.interlock-advance",
-          "grade": "service",
-          "displayName": "@gearCatalogSystemInterlockAdvanceDisplayName",
-          "description": "@gearCatalogSystemInterlockAdvanceDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 2.5,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 3.5,
-          "cooldownSeconds": 18.0,
-          "moveSpeedMult": 1.30,
-          "screenSoak": 10.0,
-          "shieldedArcDegrees": 200.0
-        }
-      }
-    },
-    {
-      "id": "armor.reliquary-heavy",
-      "catalog": {
-        "displayName": "@gearCatalogArmorReliquaryHeavyDisplayName",
-        "role": "assault",
-        "armorClass": "power-suit",
-        "tradition": "knights_of_ludd",
-        "description": "@gearCatalogArmorReliquaryHeavyDescription",
-        "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-reliquary-heavy.png"
-      },
-      "battle": {
-        "appearanceFamily": "RELIQUARY_HEAVY",
-        "armorCapacity": 60.0,
-        "armorRating": 14.0,
-        "moveSpeedMult": 0.82,
-        "incomingAccuracyMult": 0.97,
-        "integralSystem": {
-          "id": "system.consecrated-advance",
-          "grade": "masterwork",
-          "displayName": "@gearCatalogSystemConsecratedAdvanceDisplayName",
-          "description": "@gearCatalogSystemConsecratedAdvanceDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 4.0,
-          "maxCoverLevel": 0,
-          "resource": "cooldown",
-          "durationSeconds": 5.0,
-          "cooldownSeconds": 28.0,
-          "moveSpeedMult": 1.12,
-          "screenSoak": 27.0,
-          "shieldedArcDegrees": 140.0
-        }
-      }
-    },
-    {
-      "id": "armor.lions-mantle",
-      "catalog": {
-        "displayName": "@gearCatalogArmorLionsMantleDisplayName",
-        "role": "assault",
-        "armorClass": "power-suit",
-        "tradition": "lions_guard",
-        "description": "@gearCatalogArmorLionsMantleDescription",
-        "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-lions-mantle.png"
-      },
-      "battle": {
-        "appearanceFamily": "LIONS_MANTLE",
-        "armorCapacity": 60.0,
-        "armorRating": 10.0,
-        "moveSpeedMult": 0.83,
-        "incomingAccuracyMult": 1.01,
-        "integralSystem": {
-          "id": "system.blazon-advance",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemBlazonAdvanceDisplayName",
-          "description": "@gearCatalogSystemBlazonAdvanceDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 3.0,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 4.5,
-          "cooldownSeconds": 30.0,
-          "moveSpeedMult": 1.28,
-          "screenSoak": 18.5,
-          "shieldedArcDegrees": 180.0
-        }
-      }
-    },
-    {
-      "id": "armor.foundry-breaker",
-      "catalog": {
-        "displayName": "@gearCatalogArmorFoundryBreakerDisplayName",
-        "role": "assault",
-        "armorClass": "power-suit",
-        "tradition": "pirates",
-        "description": "@gearCatalogArmorFoundryBreakerDescription",
-        "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-foundry-breaker.png"
-      },
-      "battle": {
-        "appearanceFamily": "FOUNDRY_BREAKER",
-        "armorCapacity": 85.0,
-        "armorRating": 6.0,
-        "moveSpeedMult": 0.80,
-        "incomingAccuracyMult": 1.00,
-        "integralSystem": {
-          "id": "system.breacher-assist",
-          "grade": "surplus",
-          "displayName": "@gearCatalogSystemBreacherAssistDisplayName",
-          "description": "@gearCatalogSystemBreacherAssistDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 2.0,
-          "maxCoverLevel": 0,
-          "resource": "cooldown",
-          "durationSeconds": 2.5,
-          "cooldownSeconds": 26.0,
-          "moveSpeedMult": 1.42,
-          "screenSoak": 4.0,
-          "shieldedArcDegrees": 90.0
-        }
-      }
-    },
-    {
-      "id": "armor.outlaw",
-      "catalog": {
-        "displayName": "@gearCatalogArmorOutlawDisplayName",
-        "role": "line",
-        "armorClass": "standard",
-        "tradition": "pirates",
-        "description": "@gearCatalogArmorOutlawDescription",
-        "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-outlaw.png"
-      },
-      "battle": { "appearanceFamily": "OUTLAW", "armorCapacity": 7.0, "armorRating": 4.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.94 }
-    },
-    {
-      "id": "armor.line",
-      "catalog": {
-        "displayName": "@gearCatalogArmorLineDisplayName",
-        "role": "line",
-        "armorClass": "standard",
-        "tradition": "hegemony",
-        "description": "@gearCatalogArmorLineDescription",
-        "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-army-green.png"
-      },
-      "battle": { "appearanceFamily": "ARMY_GREEN", "armorCapacity": 10.0, "armorRating": 8.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.97,
-        "integralSystem": {
-          "id": "system.legionary-brace",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemLegionaryBraceDisplayName",
-          "description": "@gearCatalogSystemLegionaryBraceDescription",
-          "effect": "brace",
-          "resource": "cooldown",
-          "policy": "holding-a-firing-position",
-          "minimumTargetRangeFraction": 0.45,
-          "breakOffRangeCells": 5.0,
-          "durationSeconds": 5.0,
-          "cooldownSeconds": 18.0,
-          "moveSpeedMult": 0.45,
-          "accuracyMult": 1.3
-        }
-      }
-    },
-    {
-      "id": "armor.militia",
-      "catalog": {
-        "displayName": "@gearCatalogArmorMilitiaDisplayName",
-        "role": "line",
-        "armorClass": "standard",
-        "tradition": "independent",
-        "description": "@gearCatalogArmorMilitiaDescription",
-        "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-militia.png"
-      },
-      "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96,
-        "integralSystem": {
-          "id": "system.sandbag-rest",
-          "grade": "surplus",
-          "displayName": "@gearCatalogSystemSandbagRestDisplayName",
-          "description": "@gearCatalogSystemSandbagRestDescription",
-          "effect": "brace",
-          "resource": "cooldown",
-          "policy": "holding-a-firing-position",
-          "minimumTargetRangeFraction": 0.55,
-          "breakOffRangeCells": 6.0,
-          "durationSeconds": 4.0,
-          "cooldownSeconds": 20.0,
-          "moveSpeedMult": 0.3,
-          "accuracyMult": 1.2
-        }
-      }
-    },
-    {
-      "id": "armor.pathfinder",
-      "catalog": {
-        "displayName": "@gearCatalogArmorPathfinderDisplayName",
-        "role": "recon",
-        "armorClass": "standard",
-        "tradition": "hegemony",
-        "description": "@gearCatalogArmorPathfinderDescription",
-        "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-pathfinder.png"
-      },
-      "battle": {
-        "appearanceFamily": "BLUE_SCOUT",
-        "armorCapacity": 8.0,
-        "armorRating": 6.0,
-        "moveSpeedMult": 1.01,
-        "incomingAccuracyMult": 0.93,
-        "integralSystem": {
-          "id": "system.survey-sweep",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemSurveySweepDisplayName",
-          "description": "@gearCatalogSystemSurveySweepDescription",
-          "effect": "perception-sweep",
-          "policy": "approaching-dead-ground",
-          "lookaheadCells": 8.0,
-          "resource": "cooldown",
-          "durationSeconds": 5.0,
-          "cooldownSeconds": 18.0,
-          "revealRangeCells": 50.0,
-          "wallReadRadiusCells": 8.0
-        }
-      }
-    },
-    {
-      "id": "armor.outrider",
-      "catalog": {
-        "displayName": "@gearCatalogArmorOutriderDisplayName",
-        "role": "recon",
-        "armorClass": "standard",
-        "tradition": "persean",
-        "description": "@gearCatalogArmorOutriderDescription",
-        "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-outrider.png"
-      },
-      "battle": {
-        "appearanceFamily": "BLUE_SCOUT",
-        "armorCapacity": 14.0,
-        "armorRating": 9.0,
-        "moveSpeedMult": 0.98,
-        "incomingAccuracyMult": 0.9,
-        "integralSystem": {
-          "id": "system.coalition-read",
-          "grade": "masterwork",
-          "displayName": "@gearCatalogSystemCoalitionReadDisplayName",
-          "description": "@gearCatalogSystemCoalitionReadDescription",
-          "effect": "perception-sweep",
-          "policy": "approaching-dead-ground",
-          "lookaheadCells": 9.0,
-          "resource": "cooldown",
-          "durationSeconds": 6.0,
-          "cooldownSeconds": 16.0,
-          "revealRangeCells": 58.0,
-          "wallReadRadiusCells": 10.0
-        }
-      }
-    },
-    {
-      "id": "armor.redoubt",
-      "catalog": {
-        "displayName": "@gearCatalogArmorRedoubtDisplayName",
-        "role": "line",
-        "armorClass": "standard",
-        "tradition": "hegemony",
-        "description": "@gearCatalogArmorRedoubtDescription",
-        "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-redoubt.png"
-      },
-      "battle": {
-        "appearanceFamily": "CHARCOAL",
-        "armorCapacity": 22.0,
-        "armorRating": 13.0,
-        "moveSpeedMult": 0.78,
-        "incomingAccuracyMult": 0.99,
-        "integralSystem": {
-          "id": "system.redoubt-platform",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemRedoubtPlatformDisplayName",
-          "description": "@gearCatalogSystemRedoubtPlatformDescription",
-          "effect": "brace",
-          "resource": "cooldown",
-          "policy": "holding-a-firing-position",
-          "minimumTargetRangeFraction": 0.4,
-          "breakOffRangeCells": 4.0,
-          "durationSeconds": 6.0,
-          "cooldownSeconds": 15.0,
-          "moveSpeedMult": 0.55,
-          "accuracyMult": 1.45
-        }
-      }
-    },
-    {
-      "id": "armor.riot-shell",
-      "catalog": {
-        "displayName": "@gearCatalogArmorRiotShellDisplayName",
-        "role": "assault",
-        "armorClass": "standard",
-        "tradition": "tritachyon",
-        "description": "@gearCatalogArmorRiotShellDescription",
-        "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-riot-shell.png"
-      },
-      "battle": {
-        "appearanceFamily": "MILITIA",
-        "armorCapacity": 6.0,
-        "armorRating": 5.0,
-        "moveSpeedMult": 0.97,
-        "incomingAccuracyMult": 0.97,
-        "integralSystem": {
-          "id": "system.riot-brace",
-          "grade": "surplus",
-          "displayName": "@gearCatalogSystemRiotBraceDisplayName",
-          "description": "@gearCatalogSystemRiotBraceDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 1.5,
-          "maxCoverLevel": 0,
-          "resource": "cooldown",
-          "durationSeconds": 3.0,
-          "cooldownSeconds": 24.0,
-          "moveSpeedMult": 1.06,
-          "screenSoak": 3.0,
-          "shieldedArcDegrees": 70.0
-        }
-      }
-    },
-    {
-      "id": "armor.packframe",
-      "catalog": {
-        "displayName": "@gearCatalogArmorPackframeDisplayName",
-        "role": "support",
-        "armorClass": "standard",
-        "tradition": "independent",
-        "description": "@gearCatalogArmorPackframeDescription",
-        "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-packframe.png"
-      },
-      "battle": {
-        "appearanceFamily": "OUTLAW",
-        "armorCapacity": 6.0,
-        "armorRating": 3.0,
-        "moveSpeedMult": 0.96,
-        "incomingAccuracyMult": 1.02,
-        "integralSystem": {
-          "id": "system.rail-shot",
-          "grade": "surplus",
-          "displayName": "@gearCatalogSystemRailShotDisplayName",
-          "description": "@gearCatalogSystemRailShotDescription",
-          "effect": "missile-pod",
-          "resource": "ammunition",
-          "policy": "sighted-standoff-contact",
-          "minimumStandoffCells": 7.0,
-          "squadSalvoIntervalSeconds": 1.5,
-          "durationSeconds": 1.0,
-          "startingAmmo": 1,
-          "weaponId": "weapon.micro-missile"
-        }
-      }
-    },
-    {
-      "id": "armor.arbalest",
-      "catalog": {
-        "displayName": "@gearCatalogArmorArbalestDisplayName",
-        "role": "support",
-        "armorClass": "power-suit",
-        "tradition": "hegemony",
-        "description": "@gearCatalogArmorArbalestDescription",
-        "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-arbalest-heavy.png"
-      },
-      "battle": {
-        "appearanceFamily": "ARBALEST_HEAVY",
-        "armorCapacity": 50.0,
-        "armorRating": 11.0,
-        "moveSpeedMult": 0.84,
-        "incomingAccuracyMult": 0.99,
-        "integralSystem": {
-          "id": "system.battery-volley",
-          "mount": { "rightCells": -0.2249142, "forwardCells": 0.0346128, "muzzleForwardCells": 0.12768 },
-          "presentation": {
-            "carrierLayer": {
-              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
-              "attachment": "left-shoulder",
-              "widthShoulders": 0.32,
-              "heightShoulders": 0.48,
-              "pivot": [0.5, 0.5],
-              "muzzle": [0.5, 0.1041666667],
-              "carried": { "offsetShoulders": [-0.10, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "using": { "offsetShoulders": [-0.10, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "visibleWhileCarried": true
-            }
-          },
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemBatteryVolleyDisplayName",
-          "description": "@gearCatalogSystemBatteryVolleyDescription",
-          "effect": "missile-pod",
-          "resource": "ammunition",
-          "policy": "sighted-standoff-contact",
-          "minimumStandoffCells": 6.0,
-          "squadSalvoIntervalSeconds": 1.5,
-          "durationSeconds": 1.0,
-          "startingAmmo": 4,
-          "weaponId": "weapon.micro-missile"
-        }
-      }
-    },
-    {
-      "id": "armor.vigil",
-      "catalog": {
-        "displayName": "@gearCatalogArmorVigilDisplayName",
-        "role": "assault",
-        "armorClass": "standard",
-        "tradition": "sindrian_diktat",
-        "description": "@gearCatalogArmorVigilDescription",
-        "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-vigil.png"
-      },
-      "battle": {
-        "appearanceFamily": "FURNACE_LINE",
-        "armorCapacity": 11.0,
-        "armorRating": 8.0,
-        "moveSpeedMult": 0.92,
-        "incomingAccuracyMult": 0.98,
-        "integralSystem": {
-          "id": "system.suppression-brace",
-          "grade": "service",
-          "displayName": "@gearCatalogSystemSuppressionBraceDisplayName",
-          "description": "@gearCatalogSystemSuppressionBraceDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 2.0,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 3.0,
-          "cooldownSeconds": 24.0,
-          "moveSpeedMult": 1.15,
-          "screenSoak": 7.0,
-          "shieldedArcDegrees": 120.0
-        }
-      }
-    },
-    {
-      "id": "armor.orderly",
-      "catalog": {
-        "displayName": "@gearCatalogArmorOrderlyDisplayName",
-        "role": "support",
-        "armorClass": "standard",
-        "tradition": "luddic_church",
-        "description": "@gearCatalogArmorOrderlyDescription",
-        "tier": 2,
-        "iconPath": "graphics/ui/armory/armor-orderly.png"
-      },
-      "battle": {
-        "appearanceFamily": "MILITIA",
-        "armorCapacity": 5.0,
-        "armorRating": 4.0,
-        "moveSpeedMult": 0.99,
-        "incomingAccuracyMult": 1.0,
-        "integralSystem": {
-          "id": "system.parish-aid",
-          "grade": "service",
-          "displayName": "@gearCatalogSystemParishAidDisplayName",
-          "description": "@gearCatalogSystemParishAidDescription",
-          "effect": "field-aid",
-          "resource": "ammunition",
-          "policy": "wounded-squadmate-in-reach",
-          "reachCells": 3.0,
-          "treatBelowHealthFraction": 0.6,
-          "restoredHealth": 8.0,
-          "durationSeconds": 1.5,
-          "startingAmmo": 3
-        }
-      }
-    },
-    {
-      "id": "armor.corpsman",
-      "catalog": {
-        "displayName": "@gearCatalogArmorCorpsmanDisplayName",
-        "role": "support",
-        "armorClass": "standard",
-        "tradition": "hegemony",
-        "description": "@gearCatalogArmorCorpsmanDescription",
-        "tier": 4,
-        "iconPath": "graphics/ui/armory/armor-corpsman.png"
-      },
-      "battle": {
-        "appearanceFamily": "ARMY_GREEN",
-        "armorCapacity": 15.0,
-        "armorRating": 10.0,
-        "moveSpeedMult": 0.9,
-        "incomingAccuracyMult": 0.96,
-        "integralSystem": {
-          "id": "system.corpsman-kit",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemCorpsmanKitDisplayName",
-          "description": "@gearCatalogSystemCorpsmanKitDescription",
-          "effect": "field-aid",
-          "resource": "ammunition",
-          "policy": "wounded-squadmate-in-reach",
-          "reachCells": 4.0,
-          "treatBelowHealthFraction": 0.75,
-          "restoredHealth": 22.0,
-          "durationSeconds": 1.5,
-          "startingAmmo": 5
-        }
-      }
-    },
-    {
-      "id": "armor.specter-recovered",
-      "catalog": {
-        "displayName": "@gearCatalogArmorSpecterRecoveredDisplayName",
-        "role": "assault",
-        "armorClass": "power-suit",
-        "tradition": "tritachyon",
-        "description": "@gearCatalogArmorSpecterRecoveredDescription",
-        "tier": 3,
-        "iconPath": "graphics/ui/armory/armor-specter-recovered.png"
-      },
-      "battle": {
-        "appearanceFamily": "SPECTER_HEAVY",
-        "armorCapacity": 36.0,
-        "armorRating": 8.0,
-        "moveSpeedMult": 0.9,
-        "incomingAccuracyMult": 0.94,
-        "integralSystem": {
-          "id": "system.predictive-breach",
+          "ref": "system.shield-ht",
           "presentation": {
             "carrierLayer": {
               "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/screen-emitter.png",
@@ -827,20 +246,368 @@
               },
               "visibleWhileCarried": true
             }
-          },
+          }
+        }
+      }
+    },
+    {
+      "id": "armor.bulwark-heavy",
+      "catalog": {
+        "displayName": "@gearCatalogArmorBulwarkHeavyDisplayName",
+        "role": "assault",
+        "armorClass": "power-suit",
+        "tradition": "persean",
+        "description": "@gearCatalogArmorBulwarkHeavyDescription",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-bulwark-heavy.png"
+      },
+      "battle": {
+        "appearanceFamily": "BULWARK_HEAVY",
+        "armorCapacity": 70.0,
+        "armorRating": 11.0,
+        "moveSpeedMult": 0.90,
+        "incomingAccuracyMult": 0.95,
+        "integralSystem": { "ref": "system.shield-mt" }
+      }
+    },
+    {
+      "id": "armor.reliquary-heavy",
+      "catalog": {
+        "displayName": "@gearCatalogArmorReliquaryHeavyDisplayName",
+        "role": "assault",
+        "armorClass": "power-suit",
+        "tradition": "knights_of_ludd",
+        "description": "@gearCatalogArmorReliquaryHeavyDescription",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-reliquary-heavy.png"
+      },
+      "battle": {
+        "appearanceFamily": "RELIQUARY_HEAVY",
+        "armorCapacity": 60.0,
+        "armorRating": 14.0,
+        "moveSpeedMult": 0.82,
+        "incomingAccuracyMult": 0.97,
+        "integralSystem": { "ref": "system.shield-ht" }
+      }
+    },
+    {
+      "id": "armor.lions-mantle",
+      "catalog": {
+        "displayName": "@gearCatalogArmorLionsMantleDisplayName",
+        "role": "assault",
+        "armorClass": "power-suit",
+        "tradition": "lions_guard",
+        "description": "@gearCatalogArmorLionsMantleDescription",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-lions-mantle.png"
+      },
+      "battle": {
+        "appearanceFamily": "LIONS_MANTLE",
+        "armorCapacity": 60.0,
+        "armorRating": 10.0,
+        "moveSpeedMult": 0.83,
+        "incomingAccuracyMult": 1.01,
+        "integralSystem": { "ref": "system.shield-ht" }
+      }
+    },
+    {
+      "id": "armor.foundry-breaker",
+      "catalog": {
+        "displayName": "@gearCatalogArmorFoundryBreakerDisplayName",
+        "role": "assault",
+        "armorClass": "power-suit",
+        "tradition": "pirates",
+        "description": "@gearCatalogArmorFoundryBreakerDescription",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-foundry-breaker.png"
+      },
+      "battle": {
+        "appearanceFamily": "FOUNDRY_BREAKER",
+        "armorCapacity": 85.0,
+        "armorRating": 6.0,
+        "moveSpeedMult": 0.80,
+        "incomingAccuracyMult": 1.00,
+        "integralSystem": { "ref": "system.shield-lt" }
+      }
+    },
+    {
+      "id": "armor.outlaw",
+      "catalog": {
+        "displayName": "@gearCatalogArmorOutlawDisplayName",
+        "role": "line",
+        "armorClass": "standard",
+        "tradition": "pirates",
+        "description": "@gearCatalogArmorOutlawDescription",
+        "tier": 2,
+        "iconPath": "graphics/ui/armory/armor-outlaw.png"
+      },
+      "battle": { "appearanceFamily": "OUTLAW", "armorCapacity": 7.0, "armorRating": 4.0, "moveSpeedMult": 1.02, "incomingAccuracyMult": 0.94 }
+    },
+    {
+      "id": "armor.line",
+      "catalog": {
+        "displayName": "@gearCatalogArmorLineDisplayName",
+        "role": "line",
+        "armorClass": "standard",
+        "tradition": "hegemony",
+        "description": "@gearCatalogArmorLineDescription",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-army-green.png"
+      },
+      "battle": { "appearanceFamily": "ARMY_GREEN", "armorCapacity": 10.0, "armorRating": 8.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.97 }
+    },
+    {
+      "id": "armor.militia",
+      "catalog": {
+        "displayName": "@gearCatalogArmorMilitiaDisplayName",
+        "role": "line",
+        "armorClass": "standard",
+        "tradition": "independent",
+        "description": "@gearCatalogArmorMilitiaDescription",
+        "tier": 2,
+        "iconPath": "graphics/ui/armory/armor-militia.png"
+      },
+      "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96 }
+    },
+    {
+      "id": "armor.pathfinder",
+      "catalog": {
+        "displayName": "@gearCatalogArmorPathfinderDisplayName",
+        "role": "recon",
+        "armorClass": "standard",
+        "tradition": "hegemony",
+        "description": "@gearCatalogArmorPathfinderDescription",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-pathfinder.png"
+      },
+      "battle": {
+        "appearanceFamily": "BLUE_SCOUT",
+        "armorCapacity": 8.0,
+        "armorRating": 6.0,
+        "moveSpeedMult": 1.01,
+        "incomingAccuracyMult": 0.93
+      }
+    },
+    {
+      "id": "armor.outrider",
+      "catalog": {
+        "displayName": "@gearCatalogArmorOutriderDisplayName",
+        "role": "recon",
+        "armorClass": "standard",
+        "tradition": "persean",
+        "description": "@gearCatalogArmorOutriderDescription",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-outrider.png"
+      },
+      "battle": {
+        "appearanceFamily": "BLUE_SCOUT",
+        "armorCapacity": 14.0,
+        "armorRating": 9.0,
+        "moveSpeedMult": 0.98,
+        "incomingAccuracyMult": 0.9
+      }
+    },
+    {
+      "id": "armor.redoubt",
+      "catalog": {
+        "displayName": "@gearCatalogArmorRedoubtDisplayName",
+        "role": "line",
+        "armorClass": "standard",
+        "tradition": "hegemony",
+        "description": "@gearCatalogArmorRedoubtDescription",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-redoubt.png"
+      },
+      "battle": {
+        "appearanceFamily": "CHARCOAL",
+        "armorCapacity": 22.0,
+        "armorRating": 13.0,
+        "moveSpeedMult": 0.78,
+        "incomingAccuracyMult": 0.99
+      }
+    },
+    {
+      "id": "armor.riot-shell",
+      "catalog": {
+        "displayName": "@gearCatalogArmorRiotShellDisplayName",
+        "role": "assault",
+        "armorClass": "standard",
+        "tradition": "tritachyon",
+        "description": "@gearCatalogArmorRiotShellDescription",
+        "tier": 2,
+        "iconPath": "graphics/ui/armory/armor-riot-shell.png"
+      },
+      "battle": {
+        "appearanceFamily": "MILITIA",
+        "armorCapacity": 6.0,
+        "armorRating": 5.0,
+        "moveSpeedMult": 0.97,
+        "incomingAccuracyMult": 0.97,
+        "integralSystem": { "ref": "system.shield-lt" }
+      }
+    },
+    {
+      "id": "armor.packframe",
+      "catalog": {
+        "displayName": "@gearCatalogArmorPackframeDisplayName",
+        "role": "support",
+        "armorClass": "standard",
+        "tradition": "independent",
+        "description": "@gearCatalogArmorPackframeDescription",
+        "tier": 2,
+        "iconPath": "graphics/ui/armory/armor-packframe.png"
+      },
+      "battle": {
+        "appearanceFamily": "OUTLAW",
+        "armorCapacity": 6.0,
+        "armorRating": 3.0,
+        "moveSpeedMult": 0.96,
+        "incomingAccuracyMult": 1.02
+      }
+    },
+    {
+      "id": "armor.arbalest",
+      "catalog": {
+        "displayName": "@gearCatalogArmorArbalestDisplayName",
+        "role": "support",
+        "armorClass": "power-suit",
+        "tradition": "hegemony",
+        "description": "@gearCatalogArmorArbalestDescription",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-arbalest-heavy.png"
+      },
+      "battle": {
+        "appearanceFamily": "ARBALEST_HEAVY",
+        "armorCapacity": 50.0,
+        "armorRating": 11.0,
+        "moveSpeedMult": 0.84,
+        "incomingAccuracyMult": 0.99
+      }
+    },
+    {
+      "id": "armor.vigil",
+      "catalog": {
+        "displayName": "@gearCatalogArmorVigilDisplayName",
+        "role": "assault",
+        "armorClass": "standard",
+        "tradition": "sindrian_diktat",
+        "description": "@gearCatalogArmorVigilDescription",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-vigil.png"
+      },
+      "battle": {
+        "appearanceFamily": "FURNACE_LINE",
+        "armorCapacity": 11.0,
+        "armorRating": 8.0,
+        "moveSpeedMult": 0.92,
+        "incomingAccuracyMult": 0.98,
+        "integralSystem": { "ref": "system.shield-mt" }
+      }
+    },
+    {
+      "id": "armor.orderly",
+      "catalog": {
+        "displayName": "@gearCatalogArmorOrderlyDisplayName",
+        "role": "support",
+        "armorClass": "standard",
+        "tradition": "luddic_church",
+        "description": "@gearCatalogArmorOrderlyDescription",
+        "tier": 2,
+        "iconPath": "graphics/ui/armory/armor-orderly.png"
+      },
+      "battle": {
+        "appearanceFamily": "MILITIA",
+        "armorCapacity": 5.0,
+        "armorRating": 4.0,
+        "moveSpeedMult": 0.99,
+        "incomingAccuracyMult": 1.0,
+        "integralSystem": {
+          "id": "system.parish-aid",
           "grade": "service",
-          "displayName": "@gearCatalogSystemPredictiveBreachDisplayName",
-          "description": "@gearCatalogSystemPredictiveBreachDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 1.5,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 1.5,
-          "cooldownSeconds": 18.0,
-          "moveSpeedMult": 1.25,
-          "screenSoak": 3.0,
-          "shieldedArcDegrees": 100.0
+          "displayName": "@gearCatalogSystemParishAidDisplayName",
+          "description": "@gearCatalogSystemParishAidDescription",
+          "effect": "field-aid",
+          "resource": "energy",
+          "policy": "wounded-squadmate-in-reach"
+        }
+      }
+    },
+    {
+      "id": "armor.corpsman",
+      "catalog": {
+        "displayName": "@gearCatalogArmorCorpsmanDisplayName",
+        "role": "support",
+        "armorClass": "standard",
+        "tradition": "hegemony",
+        "description": "@gearCatalogArmorCorpsmanDescription",
+        "tier": 4,
+        "iconPath": "graphics/ui/armory/armor-corpsman.png"
+      },
+      "battle": {
+        "appearanceFamily": "ARMY_GREEN",
+        "armorCapacity": 15.0,
+        "armorRating": 10.0,
+        "moveSpeedMult": 0.9,
+        "incomingAccuracyMult": 0.96,
+        "integralSystem": {
+          "id": "system.corpsman-kit",
+          "grade": "milspec",
+          "displayName": "@gearCatalogSystemCorpsmanKitDisplayName",
+          "description": "@gearCatalogSystemCorpsmanKitDescription",
+          "effect": "field-aid",
+          "resource": "energy",
+          "policy": "wounded-squadmate-in-reach"
+        }
+      }
+    },
+    {
+      "id": "armor.specter-recovered",
+      "catalog": {
+        "displayName": "@gearCatalogArmorSpecterRecoveredDisplayName",
+        "role": "assault",
+        "armorClass": "power-suit",
+        "tradition": "tritachyon",
+        "description": "@gearCatalogArmorSpecterRecoveredDescription",
+        "tier": 3,
+        "iconPath": "graphics/ui/armory/armor-specter-recovered.png"
+      },
+      "battle": {
+        "appearanceFamily": "SPECTER_HEAVY",
+        "armorCapacity": 36.0,
+        "armorRating": 8.0,
+        "moveSpeedMult": 0.9,
+        "incomingAccuracyMult": 0.94,
+        "integralSystem": {
+          "ref": "system.shield-mt",
+          "presentation": {
+            "carrierLayer": {
+              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/screen-emitter.png",
+              "attachment": "left-shoulder",
+              "widthShoulders": 0.32,
+              "heightShoulders": 0.4,
+              "pivot": [
+                0.5,
+                0.5
+              ],
+              "carried": {
+                "offsetShoulders": [
+                  -0.13,
+                  0.01
+                ],
+                "angleDegrees": 0.0,
+                "occlusion": "over-body"
+              },
+              "using": {
+                "offsetShoulders": [
+                  -0.13,
+                  0.01
+                ],
+                "angleDegrees": 0.0,
+                "occlusion": "over-body"
+              },
+              "visibleWhileCarried": true
+            }
+          }
         }
       }
     },
@@ -860,59 +627,7 @@
         "armorCapacity": 34.0,
         "armorRating": 9.0,
         "moveSpeedMult": 0.8,
-        "incomingAccuracyMult": 1.02,
-        "integralSystem": {
-          "id": "system.battery-volley",
-          "mount": {
-            "rightCells": -0.2249142,
-            "forwardCells": 0.0346128,
-            "muzzleForwardCells": 0.12768
-          },
-          "presentation": {
-            "carrierLayer": {
-              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
-              "attachment": "left-shoulder",
-              "widthShoulders": 0.32,
-              "heightShoulders": 0.48,
-              "pivot": [
-                0.5,
-                0.5
-              ],
-              "muzzle": [
-                0.5,
-                0.1041666667
-              ],
-              "carried": {
-                "offsetShoulders": [
-                  -0.1,
-                  0.01
-                ],
-                "angleDegrees": 0.0,
-                "occlusion": "over-body"
-              },
-              "using": {
-                "offsetShoulders": [
-                  -0.1,
-                  0.01
-                ],
-                "angleDegrees": 0.0,
-                "occlusion": "over-body"
-              },
-              "visibleWhileCarried": true
-            }
-          },
-          "grade": "service",
-          "displayName": "@gearCatalogSystemBatteryVolleyDisplayName",
-          "description": "@gearCatalogSystemRecoveredBatteryVolleyDescription",
-          "effect": "missile-pod",
-          "resource": "ammunition",
-          "policy": "sighted-standoff-contact",
-          "minimumStandoffCells": 6.0,
-          "squadSalvoIntervalSeconds": 1.5,
-          "durationSeconds": 1.0,
-          "startingAmmo": 2,
-          "weaponId": "weapon.micro-missile"
-        }
+        "incomingAccuracyMult": 1.02
       }
     },
     {
@@ -932,22 +647,7 @@
         "armorRating": 6.0,
         "moveSpeedMult": 0.82,
         "incomingAccuracyMult": 1.04,
-        "integralSystem": {
-          "id": "system.latch-assist",
-          "grade": "surplus",
-          "displayName": "@gearCatalogSystemLatchAssistDisplayName",
-          "description": "@gearCatalogSystemLatchAssistDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 2.0,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 2.0,
-          "cooldownSeconds": 22.0,
-          "moveSpeedMult": 1.15,
-          "screenSoak": 4.0,
-          "shieldedArcDegrees": 100.0
-        }
+        "integralSystem": { "ref": "system.shield-lt" }
       }
     }
   ]

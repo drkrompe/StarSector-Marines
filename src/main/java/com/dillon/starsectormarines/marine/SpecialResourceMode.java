@@ -5,7 +5,13 @@ import org.json.JSONException;
 /** How a special-equipment item gates repeated battle use. */
 public enum SpecialResourceMode {
     AMMUNITION("ammunition"),
-    COOLDOWN("cooldown");
+    COOLDOWN("cooldown"),
+    /**
+     * A regenerating pool spent per point of effect, the squad medic's
+     * ({@code squad-medic.md}). Only a field-aid integral system declares it; its
+     * numbers live in {@code squad-medicine.json}, not on the item.
+     */
+    ENERGY("energy");
 
     public final String key;
 

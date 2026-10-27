@@ -223,11 +223,24 @@ public final class DirectControlSession {
                 && roster.identity().type(unitId) == UnitType.MARINE;
     }
 
-    /** Read-only status for the exact controlled Marine; other carriers have no stamina gauge. */
+    /**
+     * Every Marine's and mech's battle stamina, keyed by the exact body, which a running squad or mech
+     * order spends too ({@code SquadRunSystem}, {@code MechRunSystem}).
+     */
+    public MarineSprint marineStamina() {
+        return marineSprint;
+    }
+
+    /** Read-only status for the exact controlled Marine or mech; other carriers have no stamina gauge. */
     public MarineSprint.Status sprintStatus() {
-        return unitActive() && roster.isAliveById(unitId)
-                && roster.identity().type(unitId) == UnitType.MARINE
+        return unitActive() && !vehicleControl && roster.isAliveById(unitId) && sprints(unitId)
                 ? marineSprint.status(unitId) : MarineSprint.EMPTY;
+    }
+
+    /** Whether the body sprints on Shift: a Marine or a mech. */
+    private boolean sprints(long id) {
+        UnitType type = roster.identity().type(id);
+        return type == UnitType.MARINE || type.isMech();
     }
 
     public boolean canSelectWeapon(int selection) {
@@ -457,7 +470,7 @@ public final class DirectControlSession {
         marineLeft.reset();
         vehicleControl = vehicle;
         intent = ManualIntent.NEUTRAL;
-        if (!vehicle && roster.identity().type(id) == UnitType.MARINE) marineSprint.releaseHold(id);
+        if (!vehicle && sprints(id)) marineSprint.releaseHold(id);
         pendingAbilities.clear();
         controlledSquad = vehicle ? null : battle.squadOf(id);
         clearOwnedWork(id);
@@ -652,9 +665,8 @@ public final class DirectControlSession {
     /** Exactly once at UPDATE_UNITS, before autonomous workers are dispatched. */
     public void tick() {
         validate();
-        long activeMarine = unitActive() && !vehicleControl
-                && roster.identity().type(unitId) == UnitType.MARINE ? unitId : 0L;
-        marineSprint.tickInactive(activeMarine, BattleSimulation.TICK_DT, roster::isAliveById);
+        long activeRunner = unitActive() && !vehicleControl && sprints(unitId) ? unitId : 0L;
+        marineSprint.tickInactive(activeRunner, BattleSimulation.TICK_DT, roster::isAliveById);
         if (ship != null) {
             tickWarship();
             return;
@@ -664,8 +676,14 @@ public final class DirectControlSession {
         ManualIntent input = intent;
         if (roster.identity().type(id).isMech()) {
             secondaryHeld = false;
+            // Shift sprints a mech as it does a Marine, out of the same stamina, but its weapons stay up.
+            float scale = marineSprint.speedScale(id, input.sprint(), BattleSimulation.TICK_DT);
             roster.movement().moveDirectMech(id, battle.getGrid(), input.moveX(), input.moveY(),
-                    battle.physicalRadius(id), BattleSimulation.TICK_DT, input.aimX(), input.aimY());
+                    battle.physicalRadius(id), BattleSimulation.TICK_DT, input.aimX(), input.aimY(), scale);
+            float moved = (float) Math.hypot(roster.movement().velX(id), roster.movement().velY(id))
+                    * BattleSimulation.TICK_DT;
+            marineSprint.finishStep(id, input.sprint(), scale > 1f ? moved * (scale - 1f) / scale : 0f,
+                    roster.movement().moveSpeed(id), BattleSimulation.TICK_DT);
             return; // HeavyWeapons owns every mount clock and trigger in its serial pass.
         }
         InfantryUnitPrep.tickCooldowns(id, roster.world());

@@ -25,11 +25,11 @@ class MissilePodMountTest {
         movement.setPathRef(id, new int[]{5, 5, 6, 5});
         movement.beginTick(0.033f);
         assertEquals(0f, movement.velX(id));
-        assertEquals(-90f, IntegralSystemSystem.podTravelBearing(id, movement, 5.5f, 5.5f), 1e-6f);
+        assertEquals(-90f, MissilePodSystem.travelBearing(id, movement, 5.5f, 5.5f), 1e-6f);
         movement.setPathRef(id, new int[]{5, 5, 5, 6});
-        assertEquals(0f, IntegralSystemSystem.podTravelBearing(id, movement, 5.5f, 5.5f), 1e-6f);
+        assertEquals(0f, MissilePodSystem.travelBearing(id, movement, 5.5f, 5.5f), 1e-6f);
         movement.setPathRef(id, new int[0]);
-        assertTrue(Float.isNaN(IntegralSystemSystem.podTravelBearing(id, movement, 5.5f, 5.5f)));
+        assertTrue(Float.isNaN(MissilePodSystem.travelBearing(id, movement, 5.5f, 5.5f)));
     }
 
     @Test
@@ -60,13 +60,13 @@ class MissilePodMountTest {
         NavigationGrid grid = new NavigationGrid(5, 5);
         for (int y = 0; y < 5; y++) for (int x = 0; x < 5; x++) grid.setWalkableFloor(x, y);
         grid.setWalkable(2, 2, false);
-        assertFalse(IntegralSystemSystem.legalPodOrigin(grid, 1.5f, 2.5f,
+        assertFalse(MissilePodSystem.legalPodOrigin(grid, 1.5f, 2.5f,
                 new MissilePodMountGeometry.Pose(3.5f, 2.5f, 3.5f, 2.5f, -90f)));
-        assertFalse(IntegralSystemSystem.legalPodOrigin(grid, 1.5f, 2.5f,
+        assertFalse(MissilePodSystem.legalPodOrigin(grid, 1.5f, 2.5f,
                 new MissilePodMountGeometry.Pose(2.5f, 2.5f, 2.5f, 2.5f, -90f)));
-        assertFalse(IntegralSystemSystem.legalPodOrigin(grid, 0.1f, 1.5f,
+        assertFalse(MissilePodSystem.legalPodOrigin(grid, 0.1f, 1.5f,
                 new MissilePodMountGeometry.Pose(-0.1f, 1.5f, -0.1f, 1.5f, 90f)));
-        assertTrue(IntegralSystemSystem.legalPodOrigin(grid, 1.5f, 1.5f,
+        assertTrue(MissilePodSystem.legalPodOrigin(grid, 1.5f, 1.5f,
                 new MissilePodMountGeometry.Pose(1.2f, 1.5f, 1.2f, 1.7f, 0f)));
     }
 

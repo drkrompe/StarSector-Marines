@@ -7,7 +7,9 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 
 /**
  * Data-authored identity, presentation, appearance family, and combat values for
@@ -83,6 +85,17 @@ public record MarineArmorCatalogDef(
     }
 
     public static MarineArmorCatalogDef parse(JSONObject json) throws JSONException {
+        return parse(json, Map.of());
+    }
+
+    /**
+     * Parses one pattern, resolving an {@code integralSystem} block that names a
+     * shared system by {@code ref} against {@code sharedSystems}: the catalog's
+     * top-level {@code integralSystems}, where a system several suits carry is
+     * defined once ({@code integral-system-slate.md}, the shield tiers).
+     */
+    public static MarineArmorCatalogDef parse(JSONObject json, Map<String, JSONObject> sharedSystems)
+            throws JSONException {
         String id = requireText(json, "id", "armor catalog entry");
         JSONObject catalog = json.getJSONObject("catalog");
         JSONObject battle = json.getJSONObject("battle");
@@ -113,7 +126,8 @@ public record MarineArmorCatalogDef(
                 positive(battle, "moveSpeedMult", id),
                 nonNegative(battle, "incomingAccuracyMult", id),
                 battle.has("integralSystem")
-                        ? IntegralSystemDef.parse(battle.getJSONObject("integralSystem"), id)
+                        ? IntegralSystemDef.parse(resolveIntegralSystem(
+                                battle.getJSONObject("integralSystem"), sharedSystems, id), id)
                         : null,
                 sheets(catalog.optJSONArray("sheets")),
                 catalog.has("presentationPending")
@@ -127,6 +141,38 @@ public record MarineArmorCatalogDef(
      */
     public boolean hasIntegralSystem() {
         return integralSystem != null;
+    }
+
+    /**
+     * A suit's own system block, or the shared system it references with the suit's
+     * presentation laid over it. Only presentation may differ between suits sharing
+     * one system: the numbers and the name are the tier's, so a reference that tries
+     * to retune them is refused rather than quietly forked.
+     */
+    static JSONObject resolveIntegralSystem(JSONObject block, Map<String, JSONObject> sharedSystems,
+                                            String armorId) throws JSONException {
+        if (!block.has("ref")) return block;
+        String ref = requireText(block, "ref", armorId);
+        JSONObject shared = sharedSystems.get(ref);
+        if (shared == null) {
+            throw new JSONException("Armor '" + armorId + "' references unknown integral system '"
+                    + ref + "'. Known shared systems: " + sharedSystems.keySet());
+        }
+        JSONObject resolved = new JSONObject();
+        for (Iterator<?> keys = shared.keys(); keys.hasNext(); ) {
+            String key = (String) keys.next();
+            resolved.put(key, shared.get(key));
+        }
+        for (Iterator<?> keys = block.keys(); keys.hasNext(); ) {
+            String key = (String) keys.next();
+            if (key.equals("ref")) continue;
+            if (!key.equals("presentation")) {
+                throw new JSONException("Armor '" + armorId + "' references integral system '" + ref
+                        + "' and may override only its presentation, not '" + key + "'");
+            }
+            resolved.put(key, block.get(key));
+        }
+        return resolved;
     }
 
     private static List<String> sheets(JSONArray array) throws JSONException {

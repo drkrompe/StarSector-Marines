@@ -31,8 +31,8 @@ import java.util.Map;
  * <ul>
  *   <li>{@code pack-vs-escorted}: two Enforcers hunting a Dominator screened by two Lashers.</li>
  *   <li>{@code line-of-battle}: two Ventures (broadside ships) against two Enforcers (bow ships).</li>
- *   <li>{@code mirror}: two of Rusk's Wolfs against two more.</li>
- *   <li>{@code wolfs-vs-venture}, {@code wolfs-vs-enforcer}: two of Rusk's Wolfs against one bigger hull, flying the
+ *   <li>{@code mirror}: two of Dormer's Wolfs against two more.</li>
+ *   <li>{@code wolfs-vs-venture}, {@code wolfs-vs-enforcer}: two of Dormer's Wolfs against one bigger hull, flying the
  *   pack relay (one holds the target's attention while the other strikes, swapping to vent); each with a
  *   {@code -control} loop played first with the relay off ({@code -Dbattle.warship.packRelay=false}).</li>
  * </ul>
@@ -111,7 +111,7 @@ public final class WarshipTacticsScene implements BehaviorScene {
             relay("enforcer", "enforcer_Assault", 1))
             .stream().flatMap(List::stream).toList();
 
-    /** Two of Rusk's Wolfs on one bigger hull from one opening: the control (relay off) and the relay loop. */
+    /** Two of Dormer's Wolfs on one bigger hull from one opening: the control (relay off) and the relay loop. */
     private static List<Loop> relay(String hull, String variant, int start) {
         String id = "wolfs-vs-" + hull + (start < 0 ? "-north" : start > 0 ? "-south" : "");
         List<Spec> pack = List.of(RUSK_WOLF, RUSK_WOLF);

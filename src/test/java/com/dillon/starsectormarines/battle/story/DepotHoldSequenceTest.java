@@ -19,7 +19,7 @@ class DepotHoldSequenceTest {
         var grid = new NavigationGrid(100, 50);
         for (int y = 0; y < 50; y++) for (int x = 0; x < 100; x++) grid.setWalkableFloor(x, y);
         try (var sim = new BattleSimulation(grid, new CellTopology(100, 50))) {
-            sim.spawn(new EntitySpec("Wayward", Faction.MARINE, UnitType.HEAVY_MECH, 25, 25).mechVariant(MechVariant.HOUND));
+            sim.spawn(new EntitySpec("The Hound", Faction.MARINE, UnitType.HEAVY_MECH, 25, 25).mechVariant(MechVariant.HOUND));
             var room = new PointOfInterest(PointOfInterest.Kind.DEPOT, 20, 20, 30, 30, 19, 25, 25, 25);
             var forces = new ArrayList<List<EntitySpec>>();
             for (int g = 0; g < 4; g++) {

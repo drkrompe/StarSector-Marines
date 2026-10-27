@@ -54,6 +54,18 @@ final class HardpointBricks {
         };
     }
 
+    /** A marine's piece of kit, in the colour of the hardware it is drawn as. */
+    static Color tone(KitBrick.Kind kind) {
+        return switch (kind) {
+            case BALLISTIC -> BALLISTIC;
+            case ENERGY -> ENERGY;
+            case MISSILE -> MISSILE;
+            case UTILITY -> UTILITY;
+            case ARMOR -> OMNI;
+            case SYSTEM -> FLUX;
+        };
+    }
+
     static Color tone(SocketType type) {
         if (type == null) return OMNI;
         return switch (type) {

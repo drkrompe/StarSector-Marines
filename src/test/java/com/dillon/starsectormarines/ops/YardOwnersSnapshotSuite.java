@@ -201,7 +201,7 @@ public final class YardOwnersSnapshotSuite implements SnapshotSuite {
         props.put("locationLabel", "Agreus / Arcadia");
         props.put("clients", List.of(new MissionSelectScreen.ClientRow("client-rusk", "client-rusk-name", "client-rusk-rep",
                 OpeningBroker.CREST, "client-card selected", AgreusArcCampaign.NAME, "Latchkey Yard / Ko Combine concession", false, none)));
-        props.put("missionHeader", "House Rusk / Latchkey Yard");
+        props.put("missionHeader", "House Dormer / Latchkey Yard");
         MissionSelectScreen.putAgreus(props, afterWarrant(), "");
         props.put("missions", MissionSelectScreen.missionRows(List.of(mission), mission, ignored -> { }));
         props.put("stationingRows", List.of());

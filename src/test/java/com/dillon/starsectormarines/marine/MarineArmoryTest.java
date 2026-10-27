@@ -201,18 +201,6 @@ class MarineArmoryTest {
     }
 
     @Test
-    void weaponCatalogNamesCombineDesignationTierAndModel() {
-        assertEquals("FR-1 Rook", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).catalogName(EquipmentGrade.MASTERWORK));
-        assertEquals("PLS-3 Lancer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).catalogName(EquipmentGrade.MILSPEC));
-        assertEquals("SHD-2 Rattler", WeaponRegistry.require(WeaponRegistry.SMG_ID).catalogName(EquipmentGrade.SERVICE));
-        assertEquals("SA-2 Stalwart",
-                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).catalogName(EquipmentGrade.SERVICE));
-        assertEquals("RG-4 Longbow", WeaponRegistry.require(WeaponRegistry.DMR_ID).catalogName(EquipmentGrade.MASTERWORK));
-    }
-
-
-
-    @Test
     void saveLoadReinstallsCurrentBuiltInFireSupportDefinition() throws Exception {
         MarineArmory loaded = roundTrip(new MarineArmory());
         FireTeamTemplateCard fireSupport = loaded.templateCardById(

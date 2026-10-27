@@ -23,9 +23,9 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.IntConsumer;
 
-/** House Rusk's authored concession beneath the existing Agreus administration. */
+/** House Dormer's authored concession beneath the existing Agreus administration. */
 public final class AgreusArcCampaign {
-    public static final String CONTACT_ID = "marines_elian_rusk", NAME = "Baronet Elian Rusk";
+    public static final String CONTACT_ID = "marines_elian_rusk", NAME = "Baronet Elian Dormer";
 
     private AgreusArcCampaign() { }
 

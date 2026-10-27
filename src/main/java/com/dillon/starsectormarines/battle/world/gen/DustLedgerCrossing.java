@@ -41,7 +41,7 @@ import java.util.Random;
  * Saltwell Cross on Asharu, The Dust Ledger's authored map ({@code dust-ledger-crossing.md}): a public freight apron
  * on the west edge, a caravanserai market where the apron track meets the crawler road, the Harrow salvage yard on
  * the crawler road, a standable ridge growing out of the north escarpment, the meandering dry canal with its
- * irrigated plots and two crossings in the south, and Sable Wake's pump house compound in the east, fed by the broken
+ * irrigated plots and two crossings in the south, and Sable's pump house compound in the east, fed by the broken
  * terraforming pipeline from the canal. Mission behaviour belongs to the mission; this recipe lays the ground and
  * publishes the sites it needs as a {@link Layout}.
  *
@@ -66,7 +66,7 @@ public final class DustLedgerCrossing {
     /** The three ways to the compound the map keeps open, each a line of waypoints from the apron. */
     public enum Approach { MARKET, RIDGE, CRAWLER_ROAD }
 
-    /** Sable Wake's posts by duty. */
+    /** Sable's posts by duty. */
     public enum PostRole { GATE, WALL, ROOF, CLERKS, CRAWLER, CANTINA }
 
     /**
@@ -91,7 +91,7 @@ public final class DustLedgerCrossing {
      * @param gate             the compound gate on the crawler road, outside cell
      * @param postern          the west postern facing the market, outside cell
      * @param southGate        the south gate toward the skimmer pad, outside cell
-     * @param posts            Sable Wake's posts by duty, about eighteen in all
+     * @param posts            Sable's posts by duty, about eighteen in all
      * @param cantina          the cantina building
      * @param wellHouse        the market warden's well house, interior cell
      * @param wellHouseArea    the well house building
@@ -109,7 +109,7 @@ public final class DustLedgerCrossing {
      * @param pillboxes        the three manned pillboxes: compound gate, postern, pump house yard doors
      * @param feedJunction     where a squad stands to cut the guns' feed at the junction box
      * @param feedJunctionArea the junction's pad, outside the exclusion ring
-     * @param technicalStands  where Sable Wake's rocket truck may stand, its park in the east yard first; every one is
+     * @param technicalStands  where Sable's rocket truck may stand, its park in the east yard first; every one is
      *                         joined to the others by a lane a light hull clears, round the pump house's east side
      */
     public record Layout(MapResult map, Area landing, Cell companyStart, Cell hauler, Cell couplingCrate,
@@ -192,7 +192,7 @@ public final class DustLedgerCrossing {
             List.of(new Cell(3, 4), new Cell(0, 3)));
 
     /**
-     * Sable Wake's rocket truck's stands, its park first: the east yard by the ledger room's east door, the yard's south
+     * Sable's rocket truck's stands, its park first: the east yard by the ledger room's east door, the yard's south
      * end behind the clerks' pillbox, the pump house's south-east corner and the south yard beneath it, the lane
      * between the pump house and the workshop, and the gate drive's two sides. The east yard's cover leaves a lane
      * between them: north up the lane to the gate drive, south past the pillbox into the south yard.
@@ -200,7 +200,7 @@ public final class DustLedgerCrossing {
     static final List<Cell> TECHNICAL_STANDS = List.of(new Cell(206, 48), new Cell(205, 41), new Cell(196, 42),
             new Cell(190, 41), new Cell(203, 57), new Cell(202, 64), new Cell(209, 63));
 
-    /** Sable Wake's tap on the old terraforming power line: the junction box's work cell and its pad. */
+    /** Sable's tap on the old terraforming power line: the junction box's work cell and its pad. */
     static final Cell FEED_JUNCTION = new Cell(122, 32);
     static final Area FEED_PAD = new Area(119, 30, 125, 35);
 
@@ -731,7 +731,7 @@ public final class DustLedgerCrossing {
         for (int y = 26; y <= 28; y++) place(c, PIPELINE_X, y, lengths[y % 3], 0);
         int i = 0;
         for (int x = 190; x <= 202; x += 3) place(c, x, 27 + (i % 2), lengths[i++ % 3], 0);
-        // The feed: Sable Wake's tap on the town's old terraforming power line. The junction box on its pad south of
+        // The feed: Sable's tap on the town's old terraforming power line. The junction box on its pad south of
         // the back lane, the line carried overhead from it to the compound's west wall, its drum inside.
         place(c, FEED_JUNCTION.x() - 1, FEED_JUNCTION.y() + 1, "industrial-switchboard", 0);
         place(c, FEED_PAD.left() + 1, FEED_PAD.bottom() + 1, "industrial-cable-reel", 0);

@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.battle.mech;
 /** The cooperative's recoverable security walker; one identity and one initial fit. */
 public final class WaylineHound {
     public static final String ID = "wayline_hound";
-    public static final String NAME = "Wayward";
+    public static final String NAME = "The Hound";
 
     private WaylineHound() {}
 

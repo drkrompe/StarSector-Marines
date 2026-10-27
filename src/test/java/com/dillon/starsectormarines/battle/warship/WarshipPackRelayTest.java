@@ -26,7 +26,7 @@ class WarshipPackRelayTest {
         InstalledVanillaData.install();
     }
 
-    /** A Rusk Wolf at {@code (x, y)} facing {@code facing}, fighting hulls, its pool on. */
+    /** A Dormer Wolf at {@code (x, y)} facing {@code facing}, fighting hulls, its pool on. */
     private static Warship wolf(float x, float y, float facing) throws Exception {
         Warship w = Warship.fit("wolf_hegemony", "wolf_hegemony_Rusk", Faction.ALLY, x, y, facing);
         w.shipFire(ShipFireOrder.ALL);

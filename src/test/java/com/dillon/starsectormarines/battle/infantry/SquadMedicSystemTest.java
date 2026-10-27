@@ -265,6 +265,30 @@ public class SquadMedicSystemTest {
         assertEquals(1, ward.wounds.wounds(4L, BodyPart.LEGS));
     }
 
+    @Test
+    public void aDeadKitMedicIsNotReplaced() {
+        Ward ward = squad();
+        SquadMedic kit = new SquadMedic(RANK_ONE, 2L);
+        ward.hp.put(2L, 0f);
+        SquadMedicSystem.step(kit, ward, DT);
+        assertEquals(2L, kit.medicId(), "the kit dies with its wearer");
+        assertEquals(SquadMedic.Phase.IDLE, kit.phase());
+    }
+
+    @Test
+    public void twoMedicsDoNotSetOutForTheSamePatient() {
+        Ward ward = squad();
+        ward.hp.put(4L, 5f);
+        ward.hp.put(5L, 10f);
+        SquadMedic first = medicFor(ward);
+        first.patientId = 4L;
+        ward.held.put(4L, first);
+        SquadMedic second = new SquadMedic(RANK_ONE, 2L);
+        ward.x.put(2L, 6.5f);
+        assertEquals(5L, SquadMedicSystem.worstHurt(second, ward),
+                "the worst hurt is in the first medic's hands, so the second takes the next");
+    }
+
     /** Leader 1 and marine 2 in team 0; 3 (the medic), 4 and 5 in team 1; all whole. */
     private static Ward squad() {
         Ward ward = new Ward(1L);
@@ -304,6 +328,8 @@ public class SquadMedicSystemTest {
         final Map<Long, Float> armor = new HashMap<>();
         final Map<Long, Float> pressure = new HashMap<>();
         final WoundService wounds = new WoundService();
+        /** Patients and the medic holding them. */
+        final Map<Long, SquadMedic> held = new HashMap<>();
 
         Ward(long leader) { this.leader = leader; }
 
@@ -330,5 +356,9 @@ public class SquadMedicSystemTest {
         @Override public float maxArmor(long member) { return 5f; }
         @Override public void setArmor(long member, float value) { armor.put(member, value); }
         @Override public void dressWounds(long member) { wounds.dress(member); }
+        @Override public boolean inOtherHands(SquadMedic self, long member) {
+            SquadMedic holder = held.get(member);
+            return holder != null && holder != self;
+        }
     }
 }

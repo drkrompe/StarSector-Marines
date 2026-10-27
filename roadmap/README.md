@@ -33,7 +33,7 @@ Its current direction is toned-down Conquest for early progression, with one
 to twenty Marine squads and two to eight heavy lances of up to four chassis
 each. Mech and vehicle rosters are separate, and maps may exceed 300 dimensions
 with a smaller combat area. The Conquest opening sequence and lance caps across rosters remain open.
-The opening sequence is anchored to Mara Venn on Jangala, with HQ navigation
+The opening sequence is anchored to Zoey Venn on Jangala, with HQ navigation
 and a finite Wayline story arc leading to separate repeatable work; live discovery
 acceptance remains open. The tracker identifies existing
 stories and areas with no covering story yet.
@@ -68,7 +68,7 @@ persistence and distinct-art acceptance. Recovered Specter/Arbalest test pattern
 and an eight-regular/four-suit section support that pass. Their story
 introduction is `a-small-war.md`: five operations on existing Agreus in nearby Arcadia after the
 Shepherd actually joins the fleet, with recovered suit patterns and a crude
-pirate boarding rig. `agreus-latchkey.md` develops Baronet Rusk's local concession
+pirate boarding rig. `agreus-latchkey.md` develops Baronet Dormer's local concession
 under Ko Combine administration, the Greyhook flotilla and the yard workers caught
 between them. All five chapters, the yard agreement and District Escort are built
 with detached evidence. Test the live transition from Corvus, owned tender support,
@@ -209,7 +209,7 @@ restoration begins with the reserved second bay and the staged machine shop in
 `machine-shop-restoration.md`: clearing, machinery repairs and installed tooling.
 Wider capacity upgrades and hostile boarding decks remain separate open work.
 Second Wind's reserved Mech Lab supports one four-mech lance within the existing
-hull: Wayward's recovery restores the first berth, with three paid berth repairs
+hull: The Hound's recovery restores the first berth, with three paid berth repairs
 in Engineering. `ship-condition-survey.md` retains the live acceptance.
 
 The retained UI foundation is proven in-engine and is being adopted one
@@ -221,9 +221,9 @@ operations. The active Alpha pickup, `barracks-turnaround.md`, adds a guided
 preparation handoff. Shared stock displays and upgrade
 bills are defined in `company-view-nouns.md` (Company resource bills). `castle-officer-induction.md` adds
 Castle's portrait-led first specialty and squad assignment for founding commander
-Sabine Hale, required before a new company deploys; live acceptance remains open.
+Morgan Hale, required before a new company deploys; live acceptance remains open.
 `first-mission-preparation.md` extends that lesson into one sequence from ship
-selection and the combined cargo preflight through Sabine's specialty, squad
+selection and the combined cargo preflight through Morgan's specialty, squad
 founding and assignment, ending at the first Jangala story lead; the first Hermes
 is repaired after Relief, before the first ferry job.
 `cerberus-company-start.md` adds the optional one-Cerberus start: fly to a planetary

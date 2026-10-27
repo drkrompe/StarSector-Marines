@@ -24,7 +24,7 @@ import java.util.Map;
 /** Production dialogue surfaces at 1920x1080 and 100%; no live battle is implied. */
 public final class CastleStorySnapshotSuite implements SnapshotSuite {
     public String id() { return "castle-story"; }
-    public String label() { return "Castle / Wayward recovery"; }
+    public String label() { return "Castle / the Hound recovery"; }
 
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         HeadlessSvgAssets.install(context.modRoot());

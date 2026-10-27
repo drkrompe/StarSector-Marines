@@ -84,11 +84,14 @@ public final class FortBuildingRenderSystem implements RenderSystem {
         if (!view.visible(centreX, centreY, Math.max(floor[2], floor[3]) * 1.5f)) return;
 
         World world = ctx.sim.world();
-        boolean wrecked = place.wrecked();
+        // A core destroyed this tick is a corpse before FortSystem marks the place wrecked on its next tick.
+        long core = place.coreId();
+        boolean wrecked = place.wrecked() || !world.isAlive(core);
         float durability = 0f;
         if (!wrecked) {
             float full = def.maxStructure + def.armorCapacity;
-            durability = Math.min(1f, (world.hp(place.coreId()) + world.armor(place.coreId())) / full);
+            float armor = world.hasArmor(core) ? world.armor(core) : 0f;
+            durability = Math.min(1f, (world.hp(core) + armor) / full);
         }
         FortBuildingArt.State state = art.stateOf(wrecked, durability);
         boolean gunBound = place.aspect() == FortAspect.FIRE_CONTROL && battery != null;

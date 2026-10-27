@@ -32,7 +32,7 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 /**
- * Sable Wake's rocket truck working its corners in the Dust Ledger, through the look preset: the commanderEvidence company (two boats,
+ * Sable's rocket truck working its corners in the Dust Ledger, through the look preset: the commanderEvidence company (two boats,
  * field-security kit, the recovered Hound called down at the first pad) under autonomous command. One camera holds
  * the truck's corner of the east yard, the ledger room's east door in frame; one rides the truck itself. Look
  * evidence, not balance; opt-in.

@@ -12,7 +12,7 @@ First public build.
     on generated colony maps, with fog of war, cover, buildings, vehicles,
     mechs, aircraft and orbital support.
   - Conquest as the main mode, toned down for early progression, with
-    opening story work from Mara Venn on Jangala and repeatable work from
+    opening story work from Zoey Venn on Jangala and repeatable work from
     other Independent brokers afterwards.
   - Mech bay: persistent lances of mechs and vehicles with refits.
   - Optional Nexerelin integration.

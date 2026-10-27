@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.marine.SquadExperienceStandard;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
@@ -28,7 +29,7 @@ import java.util.Set;
 /** Pure quantity/quality read model for a mission deployment. */
 public final class MissionForceEnvelope {
 
-    public static final int MINIMUM_READY_PERSONNEL = 4;
+    public static final int MINIMUM_READY_PERSONNEL = 1;
     public static final int REINFORCED_CONQUEST_SQUADS = 42;
     public static final int FULL_STRENGTH_CONQUEST_SQUADS = 84;
 
@@ -42,11 +43,15 @@ public final class MissionForceEnvelope {
      * will not wait for a full task force ({@code mission-tier-nouns.md}). A Nexerelin
      * invasion is the one Conquest that may: it is the player's own decision with
      * whatever the company has, not an authored set piece a patron sized.
+     * The opening Wayline operations, story and recurring, may too: their authored
+     * sorties size the lift, not the company, so a seat count from the manifest is
+     * never a launch gate for a starting company with one marine wounded.
      */
     public static boolean allowsUnderstrength(Mission mission) {
         return mission != null
                 && (mission.source == MissionSource.GENERATED
                         || mission.source == MissionSource.POLITY_DEFENCE
+                        || OpeningOperationKind.fromMission(mission) != null
                         || SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
                         || DistrictEscortCampaign.isBattle(mission))
                 && mission.type != MissionType.CONQUEST
@@ -54,10 +59,17 @@ public final class MissionForceEnvelope {
     }
 
     public static int minimumPersonnel(Mission mission, int authoredSeats) {
-        if (SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
-                || DistrictEscortCampaign.isBattle(mission)) return 8;
-        return allowsUnderstrength(mission)
-                ? MINIMUM_READY_PERSONNEL : Math.max(0, authoredSeats);
+        return minimumPersonnel(mission, authoredSeats, false);
+    }
+
+    /**
+     * The launch floor: one ready marine for any mission that may go understrength, or none
+     * when a machine drops with the company instead (owner, 2026-10-27). Other work keeps
+     * its authored seats.
+     */
+    public static int minimumPersonnel(Mission mission, int authoredSeats, boolean machineDrops) {
+        if (!allowsUnderstrength(mission)) return Math.max(0, authoredSeats);
+        return machineDrops ? 0 : MINIMUM_READY_PERSONNEL;
     }
 
     public static int recommendedPersonnel(Mission mission) {

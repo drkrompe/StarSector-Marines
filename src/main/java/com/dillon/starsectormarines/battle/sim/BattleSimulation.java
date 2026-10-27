@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
+import com.dillon.starsectormarines.battle.setup.JunctionPressure;
 import com.dillon.starsectormarines.battle.world.model.PropPower;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.PropDamage;
@@ -40,8 +41,6 @@ import com.dillon.starsectormarines.battle.ambient.WorksCrewSystem;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.smoke.HazeEdge;
-import com.dillon.starsectormarines.battle.contact.CloseContactService;
-import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
@@ -237,6 +236,7 @@ import com.dillon.starsectormarines.battle.control.ShipCommandService;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
+import com.dillon.starsectormarines.battle.infantry.MissilePodSystem;
 import com.dillon.starsectormarines.battle.infantry.SquadMedicSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
@@ -254,6 +254,8 @@ import com.dillon.starsectormarines.battle.mech.MechAttachmentSystem;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
+import com.dillon.starsectormarines.battle.squad.SquadRunSystem;
+import com.dillon.starsectormarines.battle.mech.MechRunSystem;
 import com.dillon.starsectormarines.battle.squad.ReactiveManningService;
 import com.dillon.starsectormarines.battle.squad.ReactiveManningSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -347,7 +349,6 @@ import com.dillon.starsectormarines.battle.combat.Detonations;
 import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
-import com.dillon.starsectormarines.battle.infantry.CloseContactTactics;
 import com.dillon.starsectormarines.battle.infantry.MortarTactics;
 import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -471,9 +472,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final FieldMortarService fieldMortars = new FieldMortarService();
     /** Owner of planetary shield domes: one flux pool per live shield generator, reading ship-grade ordnance through {@link Detonations}. Ticked beside point defence. */
     private final ShieldDomeService shieldDomes;
-    /** Owner of carrier-placed cover screens: placement queue, live screens, and their remaining lifetime. Holds no entities — a screen is a property of a cell boundary, published through {@link MapEditor}. */
-    private final DeployedCoverService deployedCover;
-    private final CloseContactService closeContact;
     /** Committed anti-personnel grenade footprints used for squad overkill prevention. */
     private final com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades;
     /** Alias of {@link NavigationService#getTopology()}. */
@@ -534,6 +532,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final EquipmentDropService equipmentDropService;
     private final EquipmentDropSystem equipmentDropSystem;
     private final IntegralSystemSystem integralSystemSystem;
+    private final MissilePodSystem missilePods;
     private final SquadMedicSystem squadMedics = new SquadMedicSystem();
     /** Per-tick aim + drain of every raised mitigation screen. See {@code combat-durability-nouns.md}. */
     private final MitigationSystem mitigationSystem;
@@ -632,6 +631,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final MechMoveOrderService mechMoveOrders = new MechMoveOrderService();
     private final MechMoveOrderSystem mechMoveOrderSystem =
             new MechMoveOrderSystem(mechMoveOrders);
+    /** A running mech order's pace, paid out of each chassis's battle stamina. */
+    private final MechRunSystem mechRun = new MechRunSystem(mechMoveOrders);
     /** Player mech squads following player infantry squads, applied after the player's direct orders. */
     private final MechAttachmentService mechAttachments = new MechAttachmentService();
     private final MechAttachmentSystem mechAttachmentSystem = new MechAttachmentSystem(mechAttachments);
@@ -639,6 +640,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SquadMoveOrderService squadMoveOrders = new SquadMoveOrderService();
     private final SquadMoveOrderSystem squadMoveOrderSystem =
             new SquadMoveOrderSystem(squadMoveOrders);
+    /** A running squad's pace, paid out of each Marine's battle stamina. */
+    private final SquadRunSystem squadRun = new SquadRunSystem(squadMoveOrders);
     /** The player's GARRISON stance: opted-in squads man nearby places their side believes pressed. */
     private final ReactiveManningService reactiveManning = new ReactiveManningService();
     private final ReactiveManningSystem reactiveManningSystem =
@@ -769,7 +772,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public BlindWatchSequence getBlindWatch() { return blindWatch; }
     /**
      * Installs Blind Watch over its three installed charge sites ({@code blind-watch-sounding.md}): stands the riggers
-     * in their module, offers the side jobs and puts the standing mast's eyes on Sable Wake's side. {@code stoodTo} is the
+     * in their module, offers the side jobs and puts the standing mast's eyes on Sable's side. {@code stoodTo} is the
      * fixture's reading of the campaign ({@link BlindWatchProgress#stoodTo}).
      */
     public BlindWatchSequence installBlindWatch(BlindWatchSequence.Sites sites, List<ChargeSiteObjective> charges,
@@ -810,9 +813,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         addObjective(salvageRights);
     }
     public DepotHoldSequence getDepotHold() { return depotHold; }
+    private JunctionPressure junctionPressure;
+    /** The Junction's warehouse garrison and road technicals, or null on any other battle. */
+    public JunctionPressure getJunctionPressure() { return junctionPressure; }
+    public void installJunctionPressure(JunctionPressure pressure) {
+        if (simTickIndex != 0 || junctionPressure != null) throw new IllegalStateException("Install Junction pressure once at setup");
+        junctionPressure = pressure;
+    }
     public void installDepotHold(PointOfInterest warehouse, List<List<EntitySpec>> reserves) {
+        installDepotHold(new DepotHoldSequence(warehouse, reserves, storyBeats));
+    }
+    /** Installs a depot hold built by setup, whose story beats go to {@link #getStoryBeatLog()}. */
+    public void installDepotHold(DepotHoldSequence sequence) {
         if (simTickIndex != 0 || depotHold != null) throw new IllegalStateException("Install depot hold once at setup");
-        depotHold = new DepotHoldSequence(warehouse, reserves, storyBeats);
+        depotHold = sequence;
         addObjective(depotHold);
     }
     private SquadCommandClaim playerSupportCommandClaim;
@@ -1558,8 +1572,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.pointDefense = new PointDefenseService(rng);
         this.shieldDomes = new ShieldDomeService();
         this.shieldDomes.setHolderListener(this::followStructureHolder);
-        this.deployedCover = new DeployedCoverService(mapEditor, this.grid);
-        this.closeContact = new CloseContactService();
         this.fragGrenades = new com.dillon.starsectormarines.battle.grenade.FragGrenadeService();
         this.topology = navigation.getTopology();
         this.zoneGraph = navigation.getZoneGraph();
@@ -1666,6 +1678,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         deathDispatcher.subscribe(swarmHarvest::onDeath);
         rosterService.modifiers().register(swarmHarvest.carrierModifier());
         rosterService.modifiers().register(matriarchActions.runModifier());
+        rosterService.modifiers().register(squadRun.modifier());
+        rosterService.modifiers().register(mechRun.modifier());
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
         // death mailbox as every other post-death reaction. Non-cohort deaths
@@ -1755,11 +1769,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A body on a carrier's blades: direct fire never touches it, a blast does behind a switch.
         ballisticResolver.spareHeld(swarmHarvest::isCarried);
         detonations.spareHeld(swarmHarvest::isCarried, swarmHarvest.areaHitsHeld());
+        this.integralSystemSystem = new IntegralSystemSystem(rosterService);
         // Constructed here (rather than alongside the other early per-unit
-        // systems above) because a missile-pod salvo needs the same
+        // systems above) because a shoulder-pod salvo needs the same
         // resolver/shots pipeline InfantryWeapons uses, and both exist only
         // from this point on.
-        this.integralSystemSystem = new IntegralSystemSystem(rosterService, ballisticResolver, shots, rng);
+        this.missilePods = new MissilePodSystem(rosterService, ballisticResolver, shots, rng);
         this.turretFire = new TurretFireSystem(
                 rng, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
@@ -1772,7 +1787,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             }
         });
         this.firingSystem = new FiringSystem(grid, rosterService);
-        this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng);
+        this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng, mechRun);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply, this);
         this.airSystem.setIncomingMissiles(shots::getActiveShots);
@@ -1813,7 +1828,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     ? TurretFireSystem.CREW_FRIENDLY_HOLD_CHANCE : 0f, this::friendsInBlast);
         }
         // Fire discipline before the trigger: a trained rifleman, a disciplined crew, a chassis's fire control
-        // and a suit's missile pod look down the lane and at where a burst will land, and hold rather than fire
+        // and a shoulder pod look down the lane and at where a burst will land, and hold rather than fire
         // through or onto their own side. A trained shooter held there longer than a new target takes to register shoots one with a clear
         // lane instead (LaneRetarget). -Dbattle.fire.laneDiscipline=false is the control, leaving only the
         // after-the-fact hold roll.
@@ -1824,7 +1839,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             infantry.setLaneDiscipline(true);
             turretFire.setLaneDiscipline(true);
             heavy.setLaneDiscipline(true);
-            integralSystemSystem.setLaneDiscipline(true);
+            missilePods.setLaneDiscipline(true);
         }
         blade = new DozerBlade(navigation, mapEditor, doodadService);
         groundSystem.setBlade(blade);
@@ -1943,8 +1958,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public FieldMortarService fieldMortars() { return fieldMortars; }
     /** Planetary shield domes, for the renderer, the audio tier and evidence. */
     public ShieldDomeService shieldDomes() { return shieldDomes; }
-    @Override public DeployedCoverService deployedCover() { return deployedCover; }
-    @Override public CloseContactService closeContact() { return closeContact; }
     @Override public com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades() { return fragGrenades; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
     public CellTopology getTopology()      { return topology; }
@@ -2282,6 +2295,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public SquadMoveOrderService getSquadMoveOrderService() { return squadMoveOrders; }
     /** Applies squad tactical moves at the serialized command boundary. */
     public SquadMoveOrderSystem getSquadMoveOrderSystem() { return squadMoveOrderSystem; }
+    public SquadRunSystem squadRun() { return squadRun; }
+
+    public MechRunSystem mechRun() { return mechRun; }
 
     /** Which player squads stand in the GARRISON stance, and what each is doing about it. */
     public ReactiveManningService getReactiveManning() { return reactiveManning; }
@@ -3249,6 +3265,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         commanders.setAutonomousCommander(faction, commander, disclosure);
     }
 
+    /**
+     * The player commands the Marine company in this battle: mission command stops sending its squads to objectives
+     * ({@link com.dillon.starsectormarines.battle.command.AssignmentArbiter#yieldToPlayer}). Set when a battle is put in front of the player; a headless run leaves
+     * the company on its commander.
+     */
+    public void playerCommandsCompany() {
+        commanders.assignments().yieldToPlayer(Faction.MARINE, this);
+    }
+
+    /** Whether the player, rather than mission command, sends this squad where it goes. */
+    public boolean playerCommands(Squad squad) {
+        return commanders.assignments().playerCommands(squad);
+    }
+
     /** The commander for {@code faction}, or {@code null} if none is wired. Read by debug UI and by integration tests that poke at commander state directly. */
     public CommandStrategy getCommander(Faction faction) {
         return commanders.getCommander(faction);
@@ -3760,10 +3790,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // whole authored duration instead of losing its first tick to this drain.
         mitigationSystem.tick(TICK_DT, directControl.activeUnitId(), directControl.pointAim());
         integralSystemSystem.tick(TICK_DT, this);
+        missilePods.tick(TICK_DT, this);
         // Treatments land on patients here, serially, so the dispatch below only
         // moves or plants the medic and patient it is updating.
         squadMedics.tick(TICK_DT, this);
         directControl.tick();
+        // After direct control's tick, which has already let every body but its own recover, so
+        // a runner is chosen from this tick's stamina; before the dispatch that moves it.
+        squadRun.beforeMovement(this);
+        mechRun.beforeMovement(this);
         // Swarm goal fields are rebuilt here, serially and from the positions
         // the unit update starts from, so the dispatch below only reads them.
         if (swarmFlowFieldEnabled) SwarmMovement.prepare(this);
@@ -3775,6 +3810,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         } finally {
             navigation.endSharedGoalPathSnapshot();
         }
+        squadRun.afterMovement(this);
+        mechRun.afterMovement(this);
         // Units have moved, so the zone table no longer describes where they stand.
         zoneOccupancy.close();
         tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);
@@ -3880,17 +3917,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         shieldDomes.tick(TICK_DT, rosterService);
         // Hardpoint shields face their threat, rise or fold, drain and recover; a destroyed gun's goes with it.
         tickTurretShields();
-        // Cover screens build, age, and retire here. Nothing downstream of
-        // this pass depends on the ordering: a screen changes only cover,
-        // which every reader samples live at the moment a round resolves.
-        deployedCover.tick(TICK_DT, this);
         // Tenders launch and recover their drones, fly to a site and stand its structure up.
         shipCommands.drain(warships.ships(), tenders.tenders(), Faction.MARINE, grid,
                 (x, y) -> fogOfWar.isCellRevealed(x, y));
         tenders.tick(TICK_DT, this);
         droneBays.tick(TICK_DT, this);
         vehicleDust.tick(simTickIndex, convoy(), topology, effects);
-        closeContact.tick(this);
         com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics.cleanupReservations(this);
         tickProfile.lap(TickProfile.Phase.SATCHELS);
         // Simulated-projectile path — advance each in-flight Projectile by dt,
@@ -4134,6 +4166,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Before the story sequences, so a side job done on the tick its window closes still counts.
         sideObjectives.tick(this);
         if (depotHold != null) depotHold.advance(this);
+        if (junctionPressure != null) junctionPressure.advance(this);
         if (salvageRights != null) salvageRights.advance(this);
         if (coldStart != null) coldStart.advance(this);
         if (workingPassage != null) workingPassage.advance(this);
@@ -4560,11 +4593,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.telemetry().recordSecondaryUsed(carrier);
     }
 
-    /** The audio, effect and noise of a completed breaching cut. */
-    public void reportContactBreach(long carrier, float cellCenterX, float cellCenterY) {
-        infantry.reportContactBreach(carrier, cellCenterX, cellCenterY);
-    }
-
     /** The wall-breach pass, for readings of how many rounds and charges it has spent. */
     public WallBreachSystem wallBreach() { return wallBreach; }
 
@@ -4579,39 +4607,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public BruteChargeSystem bruteCharges() { return bruteCharges; }
     /** What each Matriarch is doing with its scythes and crown; its behaviour writes it, its rig reads it. */
     public MatriarchActions matriarchActions() { return matriarchActions; }
-
-    @Override
-    public boolean applyContactStrike(long carrier, long target) {
-        if (!world.hasSecondaryWeapon(carrier) || resolveUnit(carrier) == 0L) return false;
-        SpecialEquipmentDef contactTool = world.specialEquipment(carrier);
-        if (!contactTool.isCloseContactWeapon()) return false;
-        // Re-validated here as well as inside the channel: the payload seam is
-        // the last honest moment, and a contact that became illegal on the
-        // final tick must not land anyway.
-        if (!CloseContactTactics.isLegalUnitContact(carrier, contactTool, target, this)) {
-            return false;
-        }
-        infantry.strikeContact(carrier, target);
-        return true;
-    }
-
-    @Override
-    public boolean applyContactBreach(long carrier, int cellX, int cellY) {
-        if (!world.hasSecondaryWeapon(carrier) || resolveUnit(carrier) == 0L) return false;
-        SpecialEquipmentDef contactTool = world.specialEquipment(carrier);
-        if (!contactTool.isCloseContactWeapon()) return false;
-        if (!CloseContactTactics.isLegalBreachPoint(carrier, contactTool, cellX, cellY, this)) {
-            return false;
-        }
-        int wallDamage = contactTool.wallDamage();
-        if (wallDamage <= 0) return false;
-        // Bounded and local: exactly one authored cell, through the ordinary
-        // map-edit authority, with no radius and no blast.
-        boolean opened = mapEditor.damageWall(cellX, cellY, wallDamage);
-        if (opened) closeContact.consumeBreachPoint(cellX, cellY);
-        infantry.reportContactBreach(carrier, cellX + 0.5f, cellY + 0.5f);
-        return true;
-    }
 
     /** Delegates to {@link TurretFireSystem}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,

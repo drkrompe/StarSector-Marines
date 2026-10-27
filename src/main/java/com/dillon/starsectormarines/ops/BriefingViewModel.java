@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ops.battleview.SquadMuster;
 import com.dillon.starsectormarines.ops.battleview.SquadMusterCanvas;
@@ -96,7 +98,7 @@ final class BriefingViewModel {
     static Map<String, Object> actingNcoPreviewProps() {
         Map<String, Object> props = campaignPreviewProps(false);
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
-                "Sabine Hale", "Lieutenant · 3 squad coordination", false, () -> { },
+                "Morgan Hale", "Lieutenant · 3 squad coordination", false, () -> { },
                 "graphics/portraits/portrait_mercenary01.png")));
         props.put("captainEmpty", "");
         props.put("taskForceRows", List.of(forceCard("nco-1", "Squad 01",
@@ -130,7 +132,7 @@ final class BriefingViewModel {
         putFactionIdentity(props, "opposition", "Pirates", "graphics/factions/crest_pirates.png");
         props.put("termActions", List.of());
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
-                late ? "Hale" : "Sabine Hale", late ? "Colonel · 24 squad coordination" : "Lieutenant · 3 squad coordination", false, none, "graphics/portraits/portrait_mercenary01.png")));
+                late ? "Hale" : "Morgan Hale", late ? "Colonel · 24 squad coordination" : "Lieutenant · 3 squad coordination", false, none, "graphics/portraits/portrait_mercenary01.png")));
         props.put("captainEmpty", "");
         putDebugDrawer(props, true, debugExpanded, none);
         props.put("tierSummary", late ? "Full Strength · 84 squads · 168 sorties"
@@ -169,7 +171,7 @@ final class BriefingViewModel {
                 forceCard("tf-4", "Colonel Reyes", "12 squads · 144 marines",
                         "graphics/portraits/portrait_mercenary04.png", "")).stream()
                 .map(card -> card.withSquads(previewSquads(card.id(), 24))).toList()
-                : List.of(forceCard("tf-1", "Lieutenant Sabine Hale", "1 squad · 12 marines",
+                : List.of(forceCard("tf-1", "Lieutenant Morgan Hale", "1 squad · 12 marines",
                         "graphics/portraits/portrait_mercenary01.png", "").asOperationCommander()
                         .withSquads(previewSquads("tf-1", 1))));
         props.put("commandSummary", "3 / 5 slots");
@@ -649,10 +651,27 @@ final class BriefingViewModel {
      */
     static List<SquadPicture> fieldSquads(Map<String, Object> props) {
         List<SquadPicture> squads = new ArrayList<>();
-        for (Object value : (List<?>) props.getOrDefault("taskForceRows", List.of())) {
-            squads.addAll(((ForceCard) value).squads());
+        for (String key : List.of("taskForceRows", "debugForceRows")) {
+            for (Object value : (List<?>) props.getOrDefault(key, List.of())) {
+                squads.addAll(((ForceCard) value).squads());
+            }
         }
         return stackSquads(squads);
+    }
+
+    /**
+     * A debug briefing's field force: the detached company's line squads under one card. It feeds only the
+     * field inset; the debug layout keeps its kit rows in place of officer cards.
+     */
+    static List<ForceCard> debugForceRows(MarineRoster company, float currentDay) {
+        if (company == null) return List.of();
+        List<SquadMuster> musters = new ArrayList<>();
+        for (String id : DebugCompany.lineSquadIds(company)) {
+            SquadMuster muster = SquadMuster.from(company, id, currentDay);
+            if (muster != null) musters.add(muster);
+        }
+        if (musters.isEmpty()) return List.of();
+        return List.of(forceCard("debug-company", "DEBUG company", "", null, "", false).withSquads(musters));
     }
 
     static List<SquadPicture> stackSquads(List<SquadPicture> squads) {

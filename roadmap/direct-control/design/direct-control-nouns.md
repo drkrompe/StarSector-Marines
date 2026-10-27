@@ -4,7 +4,8 @@ Status: ACTIVE — Marine, Mech, any player-owned deployed vehicle, friendly War
 
 Written: 2026-09-23
 
-Updated: 2026-10-25 — clicks inside a rack's cycle fire its next group; a hull whose gun builds flux shows it on the HUD.
+Updated: 2026-10-27 — a mission script may run any side's infantry on the shared stamina (Counterattack's raiders).
+Earlier 2026-10-25 — clicks inside a rack's cycle fire its next group; a hull whose gun builds flux shows it on the HUD.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -118,9 +119,14 @@ resource and clock availability, not a guarantee that the barrel is aimed or
 clear. A magazine-fed infantry primary draws its load as rounds rather than a
 number: a strip under the weapon row (rifle cartridges, shotgun shells, or a
 belt in blocks of one burst, so a long belt still reads at a glance), spent
-rounds hollow and a reload pressing them back in. The cursor carries no ammo
+rounds hollow. A reload leaves every round hollow until it ends, with the row's
+countdown as its clock, since not one round can fire before then (owner,
+2026-10-27: rounds pressed back in one by one read as ready to fire). The cursor carries no ammo
 mark. A primary without a magazine shows no counter. Machines draw their loads
-the same way, by what they throw (`Ordnance`): a missile mount is a rack of
+the same way, by what they throw (`Ordnance`, read off how a weapon is drawn: a
+`missile_` sprite, a contrail or a boost is a missile, a beam, laser or authored
+`render.energy` is energy, anything else ballistic; the Armory's kit bricks take
+their colour from the same reading): a missile mount is a rack of
 missiles in salvos of one trigger pull, a vehicle's belt is cartridges in
 bursts, and an energy weapon counts nothing but shows charge cells, one per
 bolt of its burst (five for a single shot), emptying through the burst,
@@ -203,8 +209,25 @@ grey is two wide dashes. The ticks are also partly transparent (owner,
 falling-off tick carries less ink), and grey lowest at 60%. LINKED, or any
 pick of several mounts, shows the best mark among them and is grey only when
 none would fire. Cooldown, reload, burst and flux never change a mark: those
-are clocks, and the panel's ammunition strips own them, so a Marine's empty
-magazine is a reload rather than grey. A Marine's left mark is its pick: the
+are clocks, so a Marine's empty magazine is a reload rather than grey. Each
+tick carries its trigger's **load** beside the mark instead
+(owner, 2026-10-27, after playtesters could not tell when a gun would stop or
+start firing): over a cycle or reload the tick is lit only from the dot out to
+the share of the clock that has run, faint beyond, so it grows back to whole as
+the gun comes ready; a special's clock is its readying or cooldown. A pick with
+limited ammunition also draws a **magazine arc** round the dot on its tick's
+side, one segment a round (a mech's trigger packs, a rotary's belt, a turret's
+ready rounds). Rounds go faint from the end nearest the line
+of fire as they are spent; a reload leaves the whole arc faint until it ends,
+the tick carrying its clock. A magazine of more than twenty rounds is
+one bar split at the same share. The load speaks in brightness only, so hue
+keeps meaning range; a grey tick shows no clock, and a weapon with no magazine,
+such as the pulse rifle, shows its clock alone. A mech's or vehicle's button
+reads the mounts its pick fires, as its mark does (owner, 2026-10-27): LINKED is
+as ready as its readiest mount and its arc counts their rounds together. A
+rotary's spin stays on the panel, so its tick is always whole and its arc is
+the belt. A Marine's right button carries no load: its throws keep their counts
+on the panel. A Marine's left mark is its pick: the
 primary, or the special it is on, read at that special's range and accuracy and
 grey once the special is empty; the right mark is the right-button pick: a throw,
 smoke or a hand grenade (red past its throw reach, where it lands short; grey with
@@ -280,11 +303,12 @@ reservations book a throw, so autonomous throwers keep clear of it, but the
 player's own throw is never refused for landing near a squadmate's. Other
 secondary equipment needs its own manual contract before it gains an activation key.
 
-Holding either Shift key requests sprint for every controllable Marine,
+Holding either Shift key requests sprint for every controllable Marine and Mech,
 independently of armor or carried equipment. Sprint is an individual movement
-choice; it does not add a squad order or a Mech or vehicle speed mode. A small Shift
-card in the existing equipment row shows the exact Marine's stamina and running
-or exhausted state. Its bar is distinct from armor and health.
+choice; it does not add a squad order, and a vehicle has no speed mode. A small Shift
+card in the existing equipment row (in a Mech's status, under its flux) shows the
+exact body's stamina and running or exhausted state. Its bar is distinct from armor
+and health.
 
 Intent is sampled at the fixed 30 Hz simulation boundary. A paused battle
 accepts no movement or shot; the aim preview may still move. Direct control
@@ -341,7 +365,13 @@ fire and burst work are cancelled without changing its cooldown or already
 launched shots. Mouse facing and shield protection remain under their ordinary
 manual authorities. Walking or stopping returns normal primary control.
 
-Stamina belongs to the exact Marine within the battle, rather than to an entry
+A Mech sprints on the same law and the same tuning, through its own drive: the
+multiplier raises the speed its handling eases toward, so momentum still builds
+with mass, and releasing Shift caps it back to walking. Unlike a Marine, a
+sprinting Mech keeps its weapons up: the torso swivels and every mount fires as
+ever, and the player's own aim takes no penalty for the pace.
+
+Stamina belongs to the exact Marine or Mech within the battle, rather than to an entry
 into control. It survives handback, switching bodies, and re-entry; those bodies
 recover in simulation time while outside control. Pausing advances neither
 spending nor recovery, and death retires the body's resource. Exhaustion
@@ -352,8 +382,13 @@ blocking input over chrome does not count as releasing a held Shift key.
 Initial tuning is a 1.6 speed multiplier, six seconds of full sprint, a one-second
 recovery delay, four seconds for a full refill, and a quarter-bar reserve after
 exhaustion. Those values are balance choices; stamina ownership and terrain
-authority are standing laws. This resource is specific to manual sprint and
-does not change autonomous movement or campaign condition.
+authority are standing laws. The same resource pays for a squad's run order
+(`mission-command-nouns.md`, Run): a body's stamina is one pool whether the
+player's Shift or its squad's or chassis's run order spends it, and the controlled
+body is boosted only by Shift. A mission script may run an infantry squad of any
+side on the same pool and the same held fire (`SquadRunSystem.runScripted`),
+each member until the script says it has arrived: Counterattack's road raiders
+sprint into dispatch this way. It does not change campaign condition.
 
 The session stores intent, not a second movement physics model. Existing
 collision and reachability remain authoritative. Losing focus or releasing

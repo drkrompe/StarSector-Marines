@@ -44,9 +44,6 @@ public record IntegralSystemDef(
         float cooldownSeconds,
         int startingAmmo,
         BreacherAssistSpec breacherAssist,
-        MissilePodSpec missilePod,
-        PerceptionSweepSpec perceptionSweep,
-        BraceSpec brace,
         IntegralSystemPolicySpec policy,
         EquipmentLayerDef carrierLayer) implements Serializable {
 
@@ -59,12 +56,9 @@ public record IntegralSystemDef(
                              String description, IntegralSystemEffect effect,
                              SpecialResourceMode resourceMode, float durationSeconds,
                              float cooldownSeconds, int startingAmmo,
-                             BreacherAssistSpec breacherAssist, MissilePodSpec missilePod,
-                             PerceptionSweepSpec perceptionSweep, BraceSpec brace,
-                             IntegralSystemPolicySpec policy) {
+                             BreacherAssistSpec breacherAssist, IntegralSystemPolicySpec policy) {
         this(id, displayName, grade, description, effect, resourceMode, durationSeconds,
-                cooldownSeconds, startingAmmo, breacherAssist, missilePod, perceptionSweep,
-                brace, policy, null);
+                cooldownSeconds, startingAmmo, breacherAssist, policy, null);
     }
 
     /**
@@ -86,7 +80,8 @@ public record IntegralSystemDef(
                 requireText(json, "effect", armorId), armorId);
         SpecialResourceMode resourceMode = SpecialResourceMode.fromKey(
                 requireText(json, "resource", armorId), armorId);
-        float durationSeconds = positive(json, "durationSeconds", armorId);
+        float durationSeconds = resourceMode == SpecialResourceMode.ENERGY
+                ? 0f : positive(json, "durationSeconds", armorId);
         float cooldownSeconds = json.has("cooldownSeconds")
                 ? positive(json, "cooldownSeconds", armorId) : 0f;
         int startingAmmo = json.optInt("startingAmmo", 0);
@@ -113,49 +108,26 @@ public record IntegralSystemDef(
                             + "' is ammunition-gated and must declare positive startingAmmo");
                 }
             }
+            case ENERGY -> {
+                if (effect != IntegralSystemEffect.FIELD_AID || startingAmmo != 0 || cooldownSeconds != 0f) {
+                    throw new JSONException("Integral system '" + id + "' on armor '" + armorId
+                            + "' is energy-gated: only field aid draws on the medic's pool, and it"
+                            + " declares no startingAmmo or cooldownSeconds (squad-medicine.json holds its numbers)");
+                }
+            }
+        }
+        if (effect == IntegralSystemEffect.FIELD_AID && resourceMode != SpecialResourceMode.ENERGY) {
+            throw new JSONException("Integral system '" + id + "' on armor '" + armorId
+                    + "' is field aid and must be energy-gated: a kit makes its wearer a squad medic");
         }
 
         BreacherAssistSpec breacher = null;
-        MissilePodSpec missilePod = null;
-        PerceptionSweepSpec perceptionSweep = null;
-        BraceSpec brace = null;
-        switch (effect) {
-            case BREACHER_ASSIST -> {
-                if (resourceMode != SpecialResourceMode.COOLDOWN) {
-                    throw new JSONException("Integral system '" + id + "' on armor '" + armorId
-                            + "' is a breacher assist and must be cooldown-gated");
-                }
-                breacher = BreacherAssistSpec.parse(json, armorId, id);
+        if (effect == IntegralSystemEffect.BREACHER_ASSIST) {
+            if (resourceMode != SpecialResourceMode.COOLDOWN) {
+                throw new JSONException("Integral system '" + id + "' on armor '" + armorId
+                        + "' is a breacher assist and must be cooldown-gated");
             }
-            case MISSILE_POD -> {
-                if (resourceMode != SpecialResourceMode.AMMUNITION) {
-                    throw new JSONException("Integral system '" + id + "' on armor '" + armorId
-                            + "' is a missile pod and must be ammunition-gated");
-                }
-                missilePod = MissilePodSpec.parse(json, armorId, id);
-            }
-            case PERCEPTION_SWEEP -> {
-                // Ammunition is for a payload that leaves the suit. A scout who
-                // runs out of looking is a scout carrying a stat with a counter
-                // on it, so a sweep waits instead: the clock is the whole cost.
-                if (resourceMode != SpecialResourceMode.COOLDOWN) {
-                    throw new JSONException("Integral system '" + id + "' on armor '" + armorId
-                            + "' is a sensor sweep and must be cooldown-gated: looking at"
-                            + " something is not a payload that runs out.");
-                }
-                perceptionSweep = PerceptionSweepSpec.parse(json, armorId, id);
-            }
-            case BRACE -> {
-                // Planting is a commitment, not a payload. What a stance costs
-                // is the time it takes to be able to plant again, so it waits
-                // like a screen does rather than running out like a satchel.
-                if (resourceMode != SpecialResourceMode.COOLDOWN) {
-                    throw new JSONException("Integral system '" + id + "' on armor '" + armorId
-                            + "' is a brace and must be cooldown-gated: standing still is not a"
-                            + " payload that runs out.");
-                }
-                brace = BraceSpec.parse(json, armorId, id);
-            }
+            breacher = BreacherAssistSpec.parse(json, armorId, id);
         }
 
         return new IntegralSystemDef(
@@ -169,9 +141,6 @@ public record IntegralSystemDef(
                 cooldownSeconds,
                 startingAmmo,
                 breacher,
-                missilePod,
-                perceptionSweep,
-                brace,
                 parsePolicy(json, armorId, id, effect),
                 parseCarrierLayer(json, id));
     }
@@ -188,22 +157,17 @@ public record IntegralSystemDef(
     /**
      * The policies that can honestly apply to one effect. A policy names the
      * moment worth spending something at, and not every moment fits every
-     * capability: charging a doorway is not something a shoulder rack can do,
-     * and a rack that waits for standoff has nothing to do with a suit that
-     * only moves faster. Keeping the mapping here, next to the effect's own
+     * capability: charging a doorway is not something a satchel of dressings
+     * can do, and a squadmate in reach has nothing to do with a suit that only
+     * moves faster. Keeping the mapping here, next to the effect's own
      * validation, means an author meets the rule at parse time rather than
      * discovering a policy that silently never fires.
      */
     private static SpecialAiPolicy[] applicablePolicies(IntegralSystemEffect effect) {
         return switch (effect) {
             case BREACHER_ASSIST -> new SpecialAiPolicy[] {SpecialAiPolicy.EXPOSED_UNDER_FIRE};
-            case MISSILE_POD -> new SpecialAiPolicy[] {SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT};
-            case PERCEPTION_SWEEP ->
-                    new SpecialAiPolicy[] {SpecialAiPolicy.APPROACHING_DEAD_GROUND};
             case FIELD_AID ->
                     new SpecialAiPolicy[] {SpecialAiPolicy.WOUNDED_SQUADMATE_IN_REACH};
-            case BRACE ->
-                    new SpecialAiPolicy[] {SpecialAiPolicy.HOLDING_A_FIRING_POSITION};
         };
     }
 
@@ -217,13 +181,8 @@ public record IntegralSystemDef(
             if (candidate != declared) continue;
             return switch (declared) {
                 case EXPOSED_UNDER_FIRE -> ExposedUnderFireSpec.parse(json, armorId, systemId);
-                case SIGHTED_STANDOFF_CONTACT -> SightedStandoffSpec.parse(json, armorId, systemId);
-                case APPROACHING_DEAD_GROUND ->
-                        ApproachingDeadGroundSpec.parse(json, armorId, systemId);
                 case WOUNDED_SQUADMATE_IN_REACH ->
                         FieldAidSpec.parse(json, armorId, systemId);
-                case HOLDING_A_FIRING_POSITION ->
-                        HoldingFiringPositionSpec.parse(json, armorId, systemId);
                 default -> throw new JSONException("Integral system '" + systemId + "' on armor '"
                         + armorId + "' declares AI policy '" + declared.key
                         + "', which has no authored parameters for an integral system");
@@ -245,24 +204,9 @@ public record IntegralSystemDef(
         return policy instanceof ExposedUnderFireSpec spec ? spec : null;
     }
 
-    /** This system's field-aid judgement, or null when it declares another policy. */
+    /** This system's field-aid marker, or null when it declares another policy. */
     public FieldAidSpec fieldAid() {
         return policy instanceof FieldAidSpec spec ? spec : null;
-    }
-
-    /** This system's firing-position judgement, or null when it declares another policy. */
-    public HoldingFiringPositionSpec holdingFiringPosition() {
-        return policy instanceof HoldingFiringPositionSpec spec ? spec : null;
-    }
-
-    /** This system's standoff parameters, or null when it declares another policy. */
-    public SightedStandoffSpec sightedStandoff() {
-        return policy instanceof SightedStandoffSpec spec ? spec : null;
-    }
-
-    /** This system's dead-ground parameters, or null when it declares another policy. */
-    public ApproachingDeadGroundSpec approachingDeadGround() {
-        return policy instanceof ApproachingDeadGroundSpec spec ? spec : null;
     }
 
     /**
@@ -281,9 +225,9 @@ public record IntegralSystemDef(
      * weapon family, an integral system does <em>not</em> consume
      * {@link EquipmentGrade}'s stat multipliers: a system's numbers are authored
      * outright, and scaling them by grade as well would price the same quality
-     * twice. Two systems at the same grade may be nothing alike, and a
-     * Masterwork one is not automatically the strongest — the family is
-     * side-grades ({@code integral-system-slate.md}).
+     * twice. Within one effect a better grade is authored to be worth more —
+     * the three shield tiers are Surplus, Service and Milspec
+     * ({@code integral-system-slate.md}).
      */
     private static EquipmentGrade parseGrade(String key, String systemId, String armorId)
             throws JSONException {
@@ -301,7 +245,10 @@ public record IntegralSystemDef(
                 + "' declares unknown grade '" + key + "'. Known grades: " + known);
     }
 
-    /** Ammunition-gated systems run out; cooldown-gated ones only make you wait. */
+    /**
+     * Ammunition-gated systems run out; cooldown-gated ones only make you wait;
+     * an energy-gated kit is a squad medic and spends the medic's pool instead.
+     */
     public boolean usesAmmunition() {
         return resourceMode == SpecialResourceMode.AMMUNITION;
     }

@@ -16,12 +16,16 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleLeg;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.world.gen.ThunderRunCompound;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 /** Finite dispatch windows and employer support; only actual exiting hulls deliver cargo. */
 public final class ThunderRunSequence {
@@ -51,6 +55,17 @@ public final class ThunderRunSequence {
     private final long technical;
     private boolean heavyExitOrdered;
     private FreightRunProgress.Outcome outcome;
+    private ThunderRunPressure pressure;
+    /** The checkpoint's reinforcement at the final run: a technical down the outbound road to the gun line. */
+    private RoadTechnical checkpointTechnical;
+    private final List<Integer> checkpointSquads = new ArrayList<>();
+    /** Where the reinforcement comes in, at the freight exit, and where its technical parks, among the exit guns. */
+    static final int CHECKPOINT_ENTRY_X = 317, CHECKPOINT_ENTRY_Y = 75, CHECKPOINT_PARK_X = 298, CHECKPOINT_PARK_Y = 71;
+    /** The reinforcement's two rifle sections stand beside the exit guns. */
+    static final int[][] CHECKPOINT_POSTS = {{302, 62}, {302, 88}};
+    static final int CHECKPOINT_SECTION = 4;
+    /** On the final run the APCs and the tank push up to the exit gun line to fight it, rather than waiting short of it. */
+    static final float ESCORT_ASSAULT_X = 292, HEAVY_ASSAULT_X = 298;
 
     public ThunderRunSequence(BattleSimulation sim, FreightRunProgress.Attempt attempt, int previouslyDelivered,
                               List<EntitySpec> reserve, StoryBeatLog log) {
@@ -79,7 +94,16 @@ public final class ThunderRunSequence {
         sim.convoy().body(id).teleport(x, y, -90f);
         return id;
     }
+    /** Installs the rising pressure. Setup, once. */
+    public void pressure(ThunderRunPressure pressure) {
+        if (this.pressure != null) throw new IllegalStateException("Install Thunder Run pressure once");
+        this.pressure = pressure;
+    }
+    public ThunderRunPressure pressure() { return pressure; }
     public long technical() { return technical; }
+    /** The checkpoint's technical, 0 before the final run. */
+    public long checkpointTechnical() { return checkpointTechnical == null ? 0L : checkpointTechnical.id(); }
+    public List<Integer> checkpointSquads() { return List.copyOf(checkpointSquads); }
     public long heavyLead() { return heavyLead; }
     public long advanceHauler() { return advanceHauler; }
     public List<Long> supportGuns() { return List.copyOf(supportGuns); }
@@ -96,7 +120,7 @@ public final class ThunderRunSequence {
     public int lostCount() { return lost.size(); }
     public boolean resolved() { return delivered.size() + lost.size() == cargo.size(); }
     public boolean successful() { return resolved() && previouslyDelivered + delivered.size() > 0; }
-    public int pendingMembers() { return pacing.pendingMembers(); }
+    public int pendingMembers() { return pacing.pendingMembers() + (pressure == null ? 0 : pressure.pendingMembers()); }
     /** Column driving evidence: reactive reroutes, wreck swerves, station-keeping waits, hauler sprints. */
     public int[] drivingCounters() { return new int[]{driver.reroutes(), driver.swerves(), driver.waits(), driver.punches()}; }
     public FreightRunProgress.Outcome outcome() { return outcome; }
@@ -128,6 +152,7 @@ public final class ThunderRunSequence {
             }
         }
         releaseBatches(sim);
+        if (pressure != null) pressure.tick(sim, phase, leadCargoX(sim));
         releaseBrokenBlocks(sim);
         driver.tick(sim);
         prepareSupportGuns(sim);
@@ -153,20 +178,17 @@ public final class ThunderRunSequence {
         }
         if (resolved()) return;
         if (phase == 3) {
-            // Armed vehicles establish the crossing before the long, slower cargo column commits.
-            int ordinal = 0;
-            for (var entry : cargo.entrySet()) {
-                if (!releasedCargo.contains(entry.getKey())
-                        && ThunderRunPacing.cargoDue(ordinal, currentTick - finalRunTick)) {
+            // Armed vehicles establish the crossing before the cargo column commits, every hauler together.
+            if (ThunderRunPacing.freightDue(currentTick - finalRunTick))
+                for (var entry : cargo.entrySet()) {
+                    if (releasedCargo.contains(entry.getKey())) continue;
                     releasedCargo.add(entry.getKey());
-                    if (lost.contains(entry.getKey())) { ordinal++; continue; }
+                    if (lost.contains(entry.getKey())) continue;
                     order(sim, entry.getValue());
                     freightReleased = true;
                     beat(sim, "freight_committed");
                     beat(sim, "load_" + entry.getKey() + "_released");
                 }
-                ordinal++;
-            }
             if (!heavyExitOrdered && freightReleased) {
                 boolean leadApproaching = cargo.values().stream().anyMatch(id ->
                         sim.convoy().isTargetable(id) && sim.convoy().body(id).x >= 280);
@@ -200,11 +222,53 @@ public final class ThunderRunSequence {
                 beat(sim, phase == 1 ? "defend_dispatch" : "defend_crossing");
             } else {
                 finalRunTick = currentTick;
+                reinforceCheckpoint(sim);
                 for (long id : escorts) order(sim, id);
                 order(sim, heavyLead);
                 order(sim, advanceHauler);
             }
         }
+    }
+    /** The x of the leading hauler still on the road, or -1 for none. */
+    private float leadCargoX(BattleSimulation sim) {
+        float lead = -1;
+        for (var entry : cargo.entrySet()) {
+            long id = entry.getValue();
+            if (delivered.contains(entry.getKey()) || !sim.convoy().isTargetable(id)) continue;
+            lead = Math.max(lead, sim.convoy().body(id).x);
+        }
+        return lead;
+    }
+    /**
+     * The checkpoint is reinforced as the final run goes: a technical drives in from the freight exit and parks among
+     * the exit guns, and two rifle sections, each with a scrap rocket, take post beside them.
+     */
+    private void reinforceCheckpoint(BattleSimulation sim) {
+        VehicleClearance lane = VehicleClearance.erode(sim.getGrid(),
+                VehicleClearance.radiusForWidth(RoadTechnical.TYPE.visualWidthCells));
+        int[] entry = BattleSetup.nearestClear(lane, new int[]{CHECKPOINT_ENTRY_X, CHECKPOINT_ENTRY_Y});
+        int[] park = BattleSetup.nearestClear(lane, new int[]{CHECKPOINT_PARK_X, CHECKPOINT_PARK_Y});
+        checkpointTechnical = new RoadTechnical(entry[0], entry[1], park[0], park[1]);
+        checkpointTechnical.enter(sim);
+        Random rng = new Random(7919L * attempt.ordinal() + 17);
+        for (int[] post : CHECKPOINT_POSTS) {
+            int squad = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+            int member = 0;
+            for (int[] cell : BattleSetup.pickSpawnCluster(sim.getGrid(), CHECKPOINT_ENTRY_X, post[1] < 75 ? 68 : 82,
+                    CHECKPOINT_SECTION)) {
+                var raider = BattleSetup.makeOpeningMilitia("freight-checkpoint-reinforcement-" + post[1] + "-" + member,
+                        Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL);
+                if (member == 0)
+                    raider.specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SCRAP_ROCKET_ID), 2);
+                sim.spawn(raider.squad(squad));
+                member++;
+            }
+            sim.getSquad(squad).originalSize = member;
+            sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, post[0], post[1], 5),
+                    CommandAuthority.SCRIPTED, "thunder-run-checkpoint", "hold the exit gun line");
+            checkpointSquads.add(squad);
+        }
+        log.emitOnce(currentTick, "supply_route.thunder_run.checkpoint_reinforced", StoryBeatLog.Audience.OBSERVER_ONLY);
     }
     private boolean heldThrough(BattleSimulation sim, int lastSite) {
         var sites = List.copyOf(sim.getCompoundService().getRecords());
@@ -228,8 +292,8 @@ public final class ThunderRunSequence {
             driver.order(sim, id, stop.x(), stop.y(), VehicleLeg.MOVE_ORDER);
             return;
         }
-        if (phase == 3 && escorts.contains(id) && !escortExitOrdered) goal = 273;
-        if (phase == 3 && id == heavyLead && !heavyExitOrdered) goal = 294;
+        if (phase == 3 && escorts.contains(id) && !escortExitOrdered) goal = ESCORT_ASSAULT_X;
+        if (phase == 3 && id == heavyLead && !heavyExitOrdered) goal = HEAVY_ASSAULT_X;
         boolean departing = id == heavyLead ? heavyExitOrdered : !escorts.contains(id) || escortExitOrdered;
         driver.order(sim, id, goal, phase == 3 && departing ? VehicleLeg.DEPARTURE_RUN : VehicleLeg.MOVE_ORDER);
     }

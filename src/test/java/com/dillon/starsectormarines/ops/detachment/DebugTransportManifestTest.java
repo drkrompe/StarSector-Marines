@@ -121,7 +121,7 @@ class DebugTransportManifestTest {
     @EnumSource(value = MissionSource.class, names = {"STATIONING"}, mode = EnumSource.Mode.EXCLUDE)
     void selectedSquadGetsEveryReturnTripRegardlessOfOfferSource(MissionSource source) {
         Mission mission = mission(source, 2, 1);
-        var boat = FittedBoat.standard(ShuttleType.HERMES);
+        var boat = FittedBoat.standard(ShuttleType.KITE);
         var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, List.of(boat), 12);
         int firstPlayer = DetachmentResolver.employerPhysicalShipCount(mission);
         assertEquals(12, CampaignMarineDeployment.requiredSeats(manifest, firstPlayer));

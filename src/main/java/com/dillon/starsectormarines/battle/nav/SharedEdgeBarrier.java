@@ -8,10 +8,7 @@ package com.dillon.starsectormarines.battle.nav;
  * cross-system property so movement, sight, direct fire, cover, durability,
  * and presentation cannot silently describe different features.
  *
- * <p>Most barriers are authored by generation before play. A kind that leaves
- * movement alone may additionally be placed at runtime — see
- * {@code MapEditor.placeDeployedBarrier}, which is the only construction seam
- * and refuses any kind that would close a transition.
+ * <p>Barriers are authored by generation before play.
  */
 public final class SharedEdgeBarrier {
 
@@ -25,12 +22,9 @@ public final class SharedEdgeBarrier {
         WINDOW(true, false, false, 1,
                 NavigationGrid.DEFAULT_COVER_CATCH_HALF_HEIGHT, 40),
         /**
-         * Chest-high field revetment: a barricade you can step over, shoot
-         * over, and see over, which catches a round crossing it at body height.
-         * It is the one profile that leaves the navigation transition open, and
-         * therefore the one profile a runtime placement may use — nothing about
-         * the grid becomes less permissive when it appears, so no path is
-         * invalidated and no unit can be stranded behind it.
+         * Chest-high revetment: a barricade you can step over, shoot over, and
+         * see over, which catches a round crossing it at body height. It is the
+         * one profile that leaves the navigation transition open.
          */
         REVETMENT(false, false, false, 1,
                 NavigationGrid.DEFAULT_COVER_CATCH_HALF_HEIGHT, 60);

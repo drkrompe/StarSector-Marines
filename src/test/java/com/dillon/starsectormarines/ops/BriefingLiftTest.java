@@ -40,7 +40,7 @@ class BriefingLiftTest {
         assertEquals(List.of(NO_DROP_CALL, NO_DROP_CALL, HELD_BACK), statuses(readout));
         assertFalse(readout.missionLift());
         assertFalse(readout.dropCall());
-        assertEquals(LiftRating.NONE, readout.companyBest());
+        assertEquals(LiftRating.LIGHT, readout.companyBest(), "a Hermes lifts Light as built");
         assertEquals(0, readout.dropping());
     }
 

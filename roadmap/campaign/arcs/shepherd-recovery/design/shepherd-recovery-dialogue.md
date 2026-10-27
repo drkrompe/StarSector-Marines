@@ -8,7 +8,7 @@ Updated: 2026-10-14 — restore five field calls to their recorded wording so ex
 
 ## How to read this script
 
-This is the chronological dialogue register for **A Working Ship**: Mara's
+This is the chronological dialogue register for **A Working Ship**: Zoey's
 referral after **A Cold Account**, then **Salvage Rights**, **Cold Start** and
 **Working Passage** on Asharu in Corvus: briefing, field calls, debrief and
 return-to-work lines, in the order they happen. It is also the character
@@ -23,7 +23,7 @@ The runtime catalog (`wayline_narration.json`) and `strings.json` carry this
 script. Six field calls keep the wording of their existing recordings:
 `working_passage.underway`, `bend_build`, `militia_hold_0`, `narrows_build`,
 `militia_hold_1` and `departure` play recorded takes; every other line is
-text-only until a matching recording is approved. Mara's referral, the Salvage
+text-only until a matching recording is approved. Zoey's referral, the Salvage
 Rights drop exchange and the retry briefings are catalogued for recording but
 have no playback trigger yet.
 
@@ -90,7 +90,7 @@ the hold, her money or her people make her short.
   are the best scrap in the yard outside the Colossus, and Vale had a buyer
   interested in the bay before the attack.
 - **PUBLIC, first meeting:** Basin buys its supplies, fuel and heavy machinery
-  through Wayline because Wayline is the cheapest hauler working Asharu. Mara is
+  through Wayline because Wayline is the cheapest hauler working Asharu. Zoey is
   her supplier, not her friend. Buying cheap is a habit with Vale, and the day
   hands later in the arc are the same habit costing her more.
 - **TO BE REVEALED, first meeting:** where the rumour may have come from. When the
@@ -136,7 +136,7 @@ she notices and who she asks after, never in instant friendship with the company
 
 ### Castle — company operations, speaking for the captain's interests
 
-Castle arrives with Mara's message, the survey packet and a proposed security
+Castle arrives with Zoey's message, the survey packet and a proposed security
 job, which is about what the player has. She has not met Vale. She can spot gaps
 in an offer and press on them; she cannot know what is in a sealed hold, what
 Vale can afford or whether a broken ship will fly. She prepares terms for the
@@ -222,26 +222,26 @@ Basin's own militia.
 Inspection technicians, fitters, day hands and militia are different people with
 different jobs. Losing a post does not mean everyone there died.
 
-### Mara Venn — Wayline broker, Basin's supplier
+### Zoey Venn — Wayline broker, Basin's supplier
 
-Mara brokers for the Wayline freight cooperative out of Jangala. Wayline came
+Zoey brokers for the Wayline freight cooperative out of Jangala. Wayline came
 close to bankruptcy on Jangala during last year's raids and is recovering, but it is
 one logistics outfit among several in Corvus and has lost ground it needs back.
 To win it, Wayline hauls supplies, fuel and heavy machinery a little under its
 rivals' rates, and that is how it has picked up contracts with the salvage crews
 that move from wreck to wreck across Asharu. Basin is one of those accounts:
 the ordinary consumables every outfit has to source locally, delivered into the
-valley. Vale and Mara are supplier and customer, and neither would call the
+valley. Vale and Zoey are supplier and customer, and neither would call the
 other a friend.
 
 - **PUBLIC, referral:** Basin's yard is occupied, its account has gone quiet, and
   heavy machinery Vale has already paid for is sitting in Wayline's shed with
-  nowhere to go. Mara wants a paying customer back, and says so plainly.
+  nowhere to go. Zoey wants a paying customer back, and says so plainly.
 - **PUBLIC, referral:** Wayline is running on thin margins to rebuild, so one
-  Asharu account going quiet matters to it more than Mara lets on. She does not
+  Asharu account going quiet matters to it more than Zoey lets on. She does not
   plead; she mentions the margins once and moves on.
-- **HIDDEN:** Mara knows Vale's large fuel order crossed Wayline's dispatch board
-  while Sable Wake was buying its schedules. She does not know that is how the
+- **HIDDEN:** Zoey knows Vale's large fuel order crossed Wayline's dispatch board
+  while Sable was buying its schedules. She does not know that is how the
   rumour spread, and she does not raise it. Sending a company she trusts is good
   business, and partly settling a debt she cannot prove she owes.
 - She speaks once, in the referral. In the chapter conversations Vale and Castle
@@ -285,7 +285,7 @@ trying to wake Morrow's drone bay.
 
 | Point in the arc | What Castle and the captain learn | What remains withheld |
 |---|---|---|
-| Mara's referral | A Wayline customer, an occupied yard, Wayline's own stake in it | Mara's worry about her dispatch board |
+| Zoey's referral | A Wayline customer, an occupied yard, Wayline's own stake in it | Zoey's worry about her dispatch board |
 | Salvage Rights briefing | The wreckfall, Basin's claim, the fuel order and Vale's suspicion of Wayline, Jory's crew, occupied yard, Morrow as scrap | Hold contents, buyer, Basin's finances, how the rumour really spread |
 | Salvage Rights drop | Vale will not discuss the hold, and why | Hold contents, permanently |
 | Successful inspection | The rivals were trying to power Morrow's bay, not strip it | Why, or whether it could work |
@@ -298,46 +298,46 @@ trying to wake Morrow's drone bay.
 
 ## 0. The referral
 
-### After A Cold Account — Mara's introduction
+### After A Cold Account — Zoey's introduction
 
-Delivered with the HQ notice *Mara's introduction to Tamsin Vale*, once Cold
+Delivered with the HQ notice *Zoey's introduction to Tamsin Vale*, once Cold
 Account's aftermath has been acknowledged. It is business correspondence between
 people who have just been through something together, not a celebration and not a
 favour between friends. It replaces nothing in Cold Account's own aftermath, and
-it does not start a clock: Mara says outright that the work waits for the company.
+it does not start a clock: Zoey says outright that the work waits for the company.
 
-**Mara:** Castle. Something for when the company's ready, and not before. One of our accounts on Asharu has a problem.
+**Zoey:** Castle. Something for when the company's ready, and not before. One of our accounts on Asharu has a problem.
 
 **Castle:** Wayline has accounts on Asharu now?
 
-**Mara:** A few. We haul supplies, fuel and heavy machinery out to the salvage crews there, a little under what the other outfits on Jangala charge. It's how you win customers back after a year like ours.
+**Zoey:** A few. We haul supplies, fuel and heavy machinery out to the salvage crews there, a little under what the other outfits on Jangala charge. It's how you win customers back after a year like ours.
 
 **Castle:** And this one?
 
-**Mara:** Basin Reclamation. A salvage crew working a wreck field in the northern canyons. Tamsin Vale runs it. She came to us because we were cheapest, and she counts every credit like it's her last.
+**Zoey:** Basin Reclamation. A salvage crew working a wreck field in the northern canyons. Tamsin Vale runs it. She came to us because we were cheapest, and she counts every credit like it's her last.
 
 **Castle:** What's gone wrong?
 
-**Mara:** Another salvage crew walked in with guns and took her yard. Her account's gone quiet, and there's a load of heavy machinery she's already paid for sitting in our shed with nowhere to deliver it.
+**Zoey:** Another salvage crew walked in with guns and took her yard. Her account's gone quiet, and there's a load of heavy machinery she's already paid for sitting in our shed with nowhere to deliver it.
 
 **Castle:** So this is Wayline's problem as much as hers.
 
-**Mara:** At our rates, I can't afford to lose a paying customer. She'd like her yard back. You'd like to be paid. I don't see anyone losing.
+**Zoey:** At our rates, I can't afford to lose a paying customer. She'd like her yard back. You'd like to be paid. I don't see anyone losing.
 
 **Castle:** Is she a friend of yours?
 
-**Mara:** She's a customer. Not a happy one. She'll tell you why herself, if she decides she likes you. The survey's attached. I told her you were good and quiet.
+**Zoey:** She's a customer. Not a happy one. She'll tell you why herself, if she decides she likes you. The survey's attached. I told her you were good and quiet.
 
 ## 1. Salvage Rights
 
 ### Before — the first meeting
 
-Castle has read the survey and Mara's message: a Wayline customer on Asharu, a
-rival outfit in the yard, a security job. Vale has Mara's word on the company and
-a grudge against Mara's freight office. She gives the history because the company
+Castle has read the survey and Zoey's message: a Wayline customer on Asharu, a
+rival outfit in the yard, a security job. Vale has Zoey's word on the company and
+a grudge against Zoey's freight office. She gives the history because the company
 needs it to fight, and stops there. Nobody has mentioned a ship.
 
-**Vale:** Mara says you're the company that found out who was selling Wayline's schedules.
+**Vale:** Zoey says you're the company that found out who was selling Wayline's schedules.
 
 **Castle:** We were.
 
@@ -403,7 +403,7 @@ play: an order outranks an argument.
 
 **Castle:** My people are about to be shot at over it. I'd like to know what for.
 
-**Vale:** You're being shot at over my yard, my stores and my workshop, and you're paid for every bit of it. Ask Mara whether I settle. The last time that hold went on anybody's paperwork, I got this. I won't do it twice with people Wayline sent me.
+**Vale:** You're being shot at over my yard, my stores and my workshop, and you're paid for every bit of it. Ask Zoey whether I settle. The last time that hold went on anybody's paperwork, I got this. I won't do it twice with people Wayline sent me.
 
 #### Company presence at the yard
 
@@ -471,7 +471,7 @@ still owns. The next job is power, not the ship.
 
 **Castle:** They won't have gone far.
 
-**Vale:** Past the quarry, Jory says, and still going. I've got my yard back and no power to work it. The heavy machinery to fix that is still in Wayline's shed, and they stripped the pump station. Mara can deliver now there's a yard to deliver to. One more contract: cover my fitters while we get the lights on.
+**Vale:** Past the quarry, Jory says, and still going. I've got my yard back and no power to work it. The heavy machinery to fix that is still in Wayline's shed, and they stripped the pump station. Zoey can deliver now there's a yard to deliver to. One more contract: cover my fitters while we get the lights on.
 
 **Castle:** One more?
 
@@ -944,8 +944,8 @@ The cargo is still Basin's business when the arc ends. It does not need a reveal
 to justify the deal. Do not add a final wink that confirms illegal goods or a
 valuable core or schematic merely to close a mystery this arc has not resolved.
 
-Vale's later optional referral to Rusk on Agreus follows the actual handover.
-It goes through Mara because Mara is still Basin's supplier: with the road open,
+Vale's later optional referral to Dormer on Agreus follows the actual handover.
+It goes through Zoey because Zoey is still Basin's supplier: with the road open,
 the account is paying again. Whether Vale ever forgives Wayline's dispatch board
 is left open, and the referral is a business courtesy, not a reconciliation.
 It is another business lead, not a reward owed by the Hegemony or an

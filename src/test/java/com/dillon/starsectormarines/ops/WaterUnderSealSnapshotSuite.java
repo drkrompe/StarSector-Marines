@@ -382,7 +382,7 @@ public final class WaterUnderSealSnapshotSuite implements SnapshotSuite {
         props.put("locationLabel", "Agreus / Arcadia");
         props.put("clients", List.of(new MissionSelectScreen.ClientRow("client-rusk", "client-rusk-name", "client-rusk-rep",
                 OpeningBroker.CREST, "client-card selected", AgreusArcCampaign.NAME, "North Weir / Ko Combine concession", false, none)));
-        props.put("missionHeader", "House Rusk / North Weir");
+        props.put("missionHeader", "House Dormer / North Weir");
         MissionSelectScreen.putAgreus(props, new AgreusArcProgress(), "");
         props.put("missions", MissionSelectScreen.missionRows(List.of(mission), mission, ignored -> { }));
         props.put("stationingRows", List.of());

@@ -2,7 +2,7 @@
   "weapons": [
     {
       "id": "weapon.ridge-aa", "mount": "turret-mount",
-      "catalog": { "displayName": "Ridgewatch AA Missile", "modelName": "Ridgewatch", "designation": "SAM", "designationTiered": false },
+      "catalog": { "displayName": "Ridgewatch AA Missile", "designationTiered": false },
       "sim": {
         "tracksFliers": true,
         "range": 75.0, "damage": 38.0, "accuracy": 1.0, "cooldown": 4.8, "penetration": 24.0,
@@ -32,8 +32,6 @@
       "mount": "turret-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponTankTwinCannonDisplayName",
-        "modelName": "@gearCatalogWeaponTankTwinCannonModelName",
-        "designation": "BC",
         "designationTiered": false
       },
       "sim": {
@@ -182,7 +180,7 @@
     },
     {
       "id": "weapon.vehicle-lrm", "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponVehicleLrmDisplayName", "modelName": "@gearCatalogWeaponVehicleLrmModelName", "designation": "LRM", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponVehicleLrmDisplayName", "designationTiered": false },
       "sim": {
         "pointDefenseTarget": true, "range": 40.0, "damage": 15.0, "accuracy": 0.55, "cooldown": 9.0, "penetration": 6.0,
         "contact": { "damage": 95.0, "penetration": 30.0 },
@@ -207,7 +205,7 @@
     },
     {
       "id": "weapon.vehicle-mortar", "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTurretHeavyMortarDisplayName", "modelName": "@gearCatalogWeaponTurretHeavyMortarModelName", "designation": "HMR", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTurretHeavyMortarDisplayName", "designationTiered": false },
       "sim": {
         "range": 38.0, "minRange": 8.0, "damage": 64.0, "accuracy": 0.6, "cooldown": 2.6, "penetration": 18.0,
         "hitSpread": 2.5, "roundVelocity": 26.0, "flightSec": 1.5, "arcHeight": 6.0,
@@ -237,7 +235,7 @@
     },
     {
       "id": "weapon.vehicle-srm", "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponVehicleSrmDisplayName", "modelName": "@gearCatalogWeaponVehicleSrmModelName", "designation": "SRM", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponVehicleSrmDisplayName", "designationTiered": false },
       "sim": {
         "pointDefenseTarget": true, "range": 18.0, "damage": 10.0, "accuracy": 0.55, "cooldown": 5.5, "penetration": 6.0,
         "contact": { "damage": 66.0, "penetration": 30.0 },
@@ -262,7 +260,7 @@
     {
       "id": "weapon.hover-pulse",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponHoverPulseDisplayName", "modelName": "@gearCatalogWeaponHoverPulseModelName", "designation": "DPLS", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponHoverPulseDisplayName", "designationTiered": false },
       "sim": {
         "tracksFliers": true,
         "range": 26.0, "damage": 8.0, "accuracy": 0.55, "cooldown": 1.4, "penetration": 6.0,
@@ -282,7 +280,7 @@
     {
       "id": "weapon.tank-burst-laser",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTankBurstLaserDisplayName", "modelName": "@gearCatalogWeaponTankBurstLaserModelName", "designation": "BL", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTankBurstLaserDisplayName", "designationTiered": false },
       "sim": {
         "tracksFliers": true,
         "range": 30.0, "damage": 16.0, "accuracy": 0.85, "cooldown": 0.55, "penetration": 3.0,
@@ -311,7 +309,7 @@
     {
       "id": "weapon.tank-pd-laser",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTankPdLaserDisplayName", "modelName": "@gearCatalogWeaponTankPdLaserModelName", "designation": "PDL", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTankPdLaserDisplayName", "designationTiered": false },
       "sim": {
         "tracksFliers": true,
         "range": 26.0, "damage": 7.0, "accuracy": 0.95, "cooldown": 0.35, "penetration": 2.0,
@@ -339,7 +337,7 @@
     {
       "id": "weapon.hardpoint-pd-laser",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponHardpointPdLaserDisplayName", "modelName": "@gearCatalogWeaponHardpointPdLaserModelName", "designation": "PDL", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponHardpointPdLaserDisplayName", "designationTiered": false },
       "sim": {
         "tracksFliers": true,
         "range": 26.0, "damage": 7.0, "accuracy": 0.7, "cooldown": 1.5, "penetration": 2.0,
@@ -367,7 +365,7 @@
     {
       "id": "weapon.post-pd-laser",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponPostPdLaserDisplayName", "modelName": "@gearCatalogWeaponPostPdLaserModelName", "designation": "PDL", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponPostPdLaserDisplayName", "designationTiered": false },
       "sim": {
         "tracksFliers": true,
         "range": 24.0, "damage": 5.0, "accuracy": 0.95, "cooldown": 0.5, "penetration": 3.0,
@@ -395,7 +393,7 @@
     {
       "id": "weapon.post-burst-laser",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponPostBurstLaserDisplayName", "modelName": "@gearCatalogWeaponPostBurstLaserModelName", "designation": "BL", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponPostBurstLaserDisplayName", "designationTiered": false },
       "sim": {
         "range": 30.0, "damage": 15.0, "accuracy": 0.85, "cooldown": 1.6, "penetration": 7.0,
         "burstCount": 4, "burstSpacing": 0.06, "hitSpread": 0.2,
@@ -423,7 +421,7 @@
     {
       "id": "weapon.turret-vulcan",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTurretVulcanDisplayName", "modelName": "@gearCatalogWeaponTurretVulcanModelName", "designation": "VUL", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTurretVulcanDisplayName", "designationTiered": false },
       "sim": {
         "tracksFliers": true,
         "range": 22.0, "damage": 10.8, "accuracy": 0.45, "cooldown": 1.4, "penetration": 3.0,
@@ -451,7 +449,7 @@
     {
       "id": "weapon.turret-arbalest",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTurretArbalestDisplayName", "modelName": "@gearCatalogWeaponTurretArbalestModelName", "designation": "ARB", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTurretArbalestDisplayName", "designationTiered": false },
       "sim": { "range": 30.0, "damage": 45.0, "accuracy": 0.5, "cooldown": 1.5, "penetration": 8.0 },
       "render": {
         "projectileSprite": "graphics/missiles/shell_large_green.png",
@@ -475,7 +473,7 @@
     {
       "id": "weapon.turret-heavy-mortar",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTurretHeavyMortarDisplayName", "modelName": "@gearCatalogWeaponTurretHeavyMortarModelName", "designation": "HMR", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTurretHeavyMortarDisplayName", "designationTiered": false },
       "sim": {
         "range": 36.0, "damage": 81.0, "accuracy": 0.55, "cooldown": 2.5, "penetration": 10.0,
         "hitSpread": 0.18, "aoeRadius": 1.35, "wallDamage": 24, "wallDamageRadius": 1.15,
@@ -511,7 +509,7 @@
     {
       "id": "weapon.field-mortar",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponFieldMortarDisplayName", "modelName": "@gearCatalogWeaponFieldMortarModelName", "designation": "MTR", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponFieldMortarDisplayName", "designationTiered": false },
       "sim": {
         "_comment": "Tuned 2026-10-15 with loadoutMatchup. At first pass (64 dmg / 1.9 aoe / 1.7 spread / 14 rounds) one tube decided every trench and building fight it could reach. Now a round that lands kills armored men in a burst of 1.4 cells, but the wide hitSpread scatters it several cells at range, so it punishes men bunched on an approach far more than it picks off a dispersed line, and six rounds give an attack a costly chance rather than a sure thing. It does not open an emplacement on its own. Range outreaches a wall nest (24 cells) and a rifle (22); the minimum range is the tube's dead zone, so a team rushed inside it must pack up or fight with the rifles it carries.",
         "range": 52.0, "minRange": 14.0, "damage": 48, "accuracy": 0.62, "cooldown": 4.0, "penetration": 16.0,
@@ -549,7 +547,7 @@
     {
       "id": "weapon.turret-dual-flak",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTurretDualFlakDisplayName", "modelName": "@gearCatalogWeaponTurretDualFlakModelName", "designation": "DFK", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTurretDualFlakDisplayName", "designationTiered": false },
       "sim": { "tracksFliers": true, "range": 26.0, "damage": 36.0, "accuracy": 0.4, "cooldown": 0.8, "penetration": 5.0 },
       "render": {
         "projectileSprite": "graphics/missiles/shell_large_blue.png",
@@ -576,7 +574,7 @@
     {
       "id": "weapon.turret-hephaestus",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTurretHephaestusDisplayName", "modelName": "@gearCatalogWeaponTurretHephaestusModelName", "designation": "HEP", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTurretHephaestusDisplayName", "designationTiered": false },
       "sim": {
         "range": 32.0, "damage": 45.0, "accuracy": 0.65, "cooldown": 4.5, "penetration": 4.0,
         "contact": { "damage": 117.0, "penetration": 24.0 },
@@ -612,7 +610,7 @@
     {
       "id": "weapon.turret-grenade-launcher",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTurretGrenadeLauncherDisplayName", "modelName": "@gearCatalogWeaponTurretGrenadeLauncherModelName", "designation": "GL", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTurretGrenadeLauncherDisplayName", "designationTiered": false },
       "sim": {
         "range": 28.0, "damage": 36.0, "accuracy": 0.55, "cooldown": 4.0, "penetration": 6.0,
         "burstCount": 4, "burstSpacing": 0.18, "hitSpread": 0.6, "roundVelocity": 45.0,
@@ -647,7 +645,7 @@
     {
       "id": "weapon.turret-locust",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTurretLocustDisplayName", "modelName": "@gearCatalogWeaponTurretLocustModelName", "designation": "LCT", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTurretLocustDisplayName", "designationTiered": false },
       "sim": {
         "range": 100.0, "damage": 45.0, "accuracy": 0.25, "cooldown": 10.0, "penetration": 14.0,
         "burstCount": 8, "burstSpacing": 0.08, "hitSpread": 8.0, "roundVelocity": 70.0,
@@ -687,7 +685,7 @@
     {
       "id": "weapon.battery-locust",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTurretLocustDisplayName", "modelName": "@gearCatalogWeaponTurretLocustModelName", "designation": "LCB", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTurretLocustDisplayName", "designationTiered": false },
       "sim": {
         "range": 100.0, "damage": 45.0, "accuracy": 0.25, "cooldown": 10.0, "penetration": 14.0,
         "burstCount": 8, "burstSpacing": 0.08, "hitSpread": 8.0, "roundVelocity": 70.0,
@@ -727,7 +725,7 @@
     {
       "id": "weapon.turret-heavy-mg",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTurretHeavyMgDisplayName", "modelName": "@gearCatalogWeaponTurretHeavyMgModelName", "designation": "HMG", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTurretHeavyMgDisplayName", "designationTiered": false },
       "sim": {
         "tracksFliers": true,
         "range": 24.0, "damage": 22.5, "accuracy": 0.5, "cooldown": 2.2, "penetration": 4.0,
@@ -758,8 +756,6 @@
       "mount": "turret-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponPdInterceptorDisplayName",
-        "modelName": "@gearCatalogWeaponPdInterceptorModelName",
-        "designation": "PDI",
         "designationTiered": false
       },
       "sim": {
@@ -790,8 +786,6 @@
       "mount": "turret-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponTankApsDisplayName",
-        "modelName": "@gearCatalogWeaponTankApsModelName",
-        "designation": "APS",
         "designationTiered": false
       },
       "sim": {
@@ -822,8 +816,6 @@
       "mount": "turret-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponDronePdLaserDisplayName",
-        "modelName": "@gearCatalogWeaponDronePdLaserModelName",
-        "designation": "HPD",
         "designationTiered": false
       },
       "sim": {
@@ -853,8 +845,6 @@
       "mount": "turret-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponPdPackDisplayName",
-        "modelName": "@gearCatalogWeaponPdPackModelName",
-        "designation": "PDP",
         "designationTiered": false
       },
       "sim": {
@@ -896,7 +886,7 @@
     },
     {
       "id": "weapon.swarm-acid", "mount": "turret-mount",
-      "catalog": { "displayName": "Spitter acid", "modelName": "Spitter", "designation": "ACD", "designationTiered": false },
+      "catalog": { "displayName": "Spitter acid", "designationTiered": false },
       "sim": {
         "range": 14.0, "damage": 7.0, "accuracy": 0.55, "cooldown": 2.6, "penetration": 3.0,
         "hitSpread": 1.1, "roundVelocity": 10.0, "flightSec": 1.1,
@@ -923,7 +913,7 @@
     },
     {
       "id": "weapon.swarm-bombard", "mount": "turret-mount",
-      "catalog": { "displayName": "Bombard spore glob", "modelName": "Bombard", "designation": "SPG", "designationTiered": false },
+      "catalog": { "displayName": "Bombard spore glob", "designationTiered": false },
       "sim": {
         "range": 55.0, "damage": 0.0, "accuracy": 1.0, "cooldown": 15.0, "penetration": 0.0,
         "hitSpread": 0.0, "roundVelocity": 14.0, "flightSec": 4.0,
@@ -950,7 +940,7 @@
     },
     {
       "id": "weapon.ground-spines", "mount": "turret-mount",
-      "catalog": { "displayName": "Ground spines", "modelName": "Ground colony", "designation": "GSP", "designationTiered": false },
+      "catalog": { "displayName": "Ground spines", "designationTiered": false },
       "sim": { "range": 6.0, "damage": 60.0, "accuracy": 0.85, "cooldown": 2.4, "penetration": 16.0, "flightSec": 0.35, "aoeRadius": 0.7, "wallDamage": 35, "wallDamageRadius": 1.2, "indirectFire": true, "noLosAccuracyMult": 0.85 },
       "fx": {
         "muzzle": [
@@ -969,7 +959,7 @@
     },
     {
       "id": "weapon.spore-burst-fissure", "mount": "turret-mount",
-      "catalog": { "displayName": "Spore burst", "modelName": "Spore colony (fissure)", "designation": "SPR", "designationTiered": false },
+      "catalog": { "displayName": "Spore burst", "designationTiered": false },
       "sim": { "range": 12.0, "damage": 14.0, "accuracy": 0.45, "cooldown": 1.1, "penetration": 3.0, "flightSec": 0.55, "arcHeight": 1.2 },
       "render": {
         "projectileSprite": "graphics/fx/spore-clump.png",
@@ -998,7 +988,7 @@
     },
     {
       "id": "weapon.spore-burst-bore", "mount": "turret-mount",
-      "catalog": { "displayName": "Spore flak", "modelName": "Spore colony (bore)", "designation": "SPR", "designationTiered": false },
+      "catalog": { "displayName": "Spore flak", "designationTiered": false },
       "sim": { "range": 17.0, "damage": 26.0, "accuracy": 0.5, "cooldown": 1.0, "penetration": 9.0, "flightSec": 0.42, "arcHeight": 0.7 },
       "render": {
         "projectileSprite": "graphics/fx/spore-cluster.png",
@@ -1027,7 +1017,7 @@
     },
     {
       "id": "weapon.spore-burst-maw", "mount": "turret-mount",
-      "catalog": { "displayName": "Spore lance", "modelName": "Spore colony (maw)", "designation": "SPR", "designationTiered": false },
+      "catalog": { "displayName": "Spore lance", "designationTiered": false },
       "sim": { "range": 23.0, "damage": 44.0, "accuracy": 0.55, "cooldown": 1.2, "penetration": 18.0, "flightSec": 0.2 },
       "render": {
         "projectileSprite": "graphics/fx/spore-lance.png",

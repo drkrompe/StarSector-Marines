@@ -397,6 +397,12 @@ public final class MovementService {
 
     public void moveDirectMech(long id, NavigationGrid grid, float axisX, float axisY,
                                float radius, float dt, float aimX, float aimY) {
+        moveDirectMech(id, grid, axisX, axisY, radius, dt, aimX, aimY, 1f);
+    }
+
+    /** As above, its pace scaled by {@code speedScale}: a sprint's multiplier, or 1. */
+    public void moveDirectMech(long id, NavigationGrid grid, float axisX, float axisY,
+                               float radius, float dt, float aimX, float aimY, float speedScale) {
         if (!Float.isFinite(axisX) || !Float.isFinite(axisY)
                 || !Float.isFinite(radius) || radius <= 0f
                 || !Float.isFinite(dt) || dt < 0f) {
@@ -414,9 +420,10 @@ public final class MovementService {
                 MechLocomotion.continuousFacing(aimX - x, aimY - y), dt);
         float facing = entityWorld.getFloat(id, components.MECH_LOCOMOTION,
                 BattleComponents.MECH_LOCOMOTION_FACING_DEGREES);
+        float speed = groundMoveSpeed(id) * Math.max(0f, speedScale);
         ManualMechDrive.Step step = aiming
-                ? drive.advanceFacing(axisX, axisY, groundMoveSpeed(id), loadout.variant.relativeMass, facing, dt)
-                : drive.advance(axisX, axisY, groundMoveSpeed(id), loadout.variant.relativeMass, dt);
+                ? drive.advanceFacing(axisX, axisY, speed, loadout.variant.relativeMass, facing, dt)
+                : drive.advance(axisX, axisY, speed, loadout.variant.relativeMass, dt);
         ManualTerrainMotion.Result result = ManualTerrainMotion.move(grid, x, y,
                 step.dx(), step.dy(), radius);
         // The sweep reports position differences: compare against the same float

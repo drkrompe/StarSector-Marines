@@ -1,38 +1,16 @@
 package com.dillon.starsectormarines.battle.infantry;
 
-import com.dillon.starsectormarines.battle.combat.BallisticResolver;
-import com.dillon.starsectormarines.battle.combat.PendingDetonation;
-import com.dillon.starsectormarines.battle.combat.Projectile;
-import com.dillon.starsectormarines.battle.combat.ShotEvent;
-import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.control.ManualIntent;
-import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
-import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.squad.Squad;
-import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
-import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
-import com.dillon.starsectormarines.battle.vision.FogOfWarService;
-import com.dillon.starsectormarines.battle.weapon.WeaponDef;
-import com.dillon.starsectormarines.marine.ApproachingDeadGroundSpec;
 import com.dillon.starsectormarines.marine.ExposedUnderFireSpec;
-import com.dillon.starsectormarines.marine.FieldAidSpec;
-import com.dillon.starsectormarines.marine.HoldingFiringPositionSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
-import com.dillon.starsectormarines.marine.MissilePodSpec;
-import com.dillon.starsectormarines.marine.MissilePodMountGeometry;
-import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
-import com.dillon.starsectormarines.marine.SightedStandoffSpec;
 
 import java.util.Locale;
-import java.util.Random;
-import java.util.TreeMap;
 
 /**
  * Stateless per-tick sweep over the units whose armour pattern carries a
@@ -61,8 +39,7 @@ import java.util.TreeMap;
  * authorable — a suit does not get an opinion about whether it is being shot at
  * or whether it has stopped walking. The authored numbers are only ever the
  * ones that price the spend: how much incoming is worth a cooldown, how much
- * cover makes spending pointless, how far out is worth planting for, how close
- * is too close to be planted. That split is why the occasions can be added to
+ * cover makes spending pointless. That split is why the occasions can be added to
  * without touching a catalog, and why retuning a suit never needs code.
  *
  * <p><b>Read facts that do not depend on where in the tick they are asked.</b>
@@ -81,21 +58,6 @@ import java.util.TreeMap;
  * reaches this sweep through the same component the player's marines do and is
  * offered the same reason to spend it; there is no defender branch and no
  * defender-only tuning field to add one with.
- *
- * <p><b>A sweep reveals to the player and to nobody else.</b> Its whole effect
- * is a temporary observer on {@link FogOfWarService}, rebuilt from live state
- * every tick and gone the tick the window closes. No decision layer reads it,
- * because fog is presentation authority and must not become a simulation input
- * ({@code fog-of-war-nouns.md}) — which is also what makes "information, not
- * authority" true by construction here rather than by discipline: there is no
- * path from a sweep to a shot.
- *
- * <p><b>The pod picks its own target.</b> It does not read the wearer's
- * engaged target ({@code World#targetId}) — that would make the suit a second
- * trigger on the marine's own fight. A capability that starts choosing its own
- * fights is a deliberate step past "the suit changes how its wearer moves"
- * ({@code integral-armor-systems.md}'s open question, resolved this way
- * because it is the more interesting half of the model to prove out.
  */
 public final class IntegralSystemSystem {
 
@@ -150,62 +112,25 @@ public final class IntegralSystemSystem {
     private static final float MOVING_EPSILON = 1e-3f;
 
     private final UnitRosterService rosterService;
-    private final BallisticResolver resolver;
-    private final ShotService shots;
-    private final Random rng;
-    private final LongBucket nearbySquadmates = new LongBucket();
-    private final TreeMap<Integer, PodCandidate> podCandidates = new TreeMap<>();
     /** Reused by the serial per-carrier pass; no policy keeps it past its own call. */
     private final PolicyMotion motionScratch = new PolicyMotion(false, 0f, 0f);
-    private boolean laneDiscipline;
 
-    private record PodCandidate(long shooter, long target, float bodyBearing,
-                                MissilePodMountGeometry.Pose mount, IntegralSystemDef def,
-                                Squad squad) {}
-
-    public IntegralSystemSystem(UnitRosterService rosterService, BallisticResolver resolver,
-                                ShotService shots, Random rng) {
+    public IntegralSystemSystem(UnitRosterService rosterService) {
         this.rosterService = rosterService;
-        this.resolver = resolver;
-        this.shots = shots;
-        this.rng = rng;
     }
 
     /**
-     * Whether a pod holds a salvo with a friend in its lane, or one whose resolved burst would reach a friend or
-     * the wearer ({@link BallisticResolver#friendInLane}, {@link BallisticResolver#friendInBlast}): the fire
-     * control a chassis already has. A held salvo spends nothing and is offered again on the next tick.
-     */
-    public void setLaneDiscipline(boolean laneDiscipline) {
-        this.laneDiscipline = laneDiscipline;
-    }
-
-    /**
-     * Drains every carrier's clocks, offers the ready ones a reason to fire,
-     * and republishes what the running sweeps are currently letting the player
-     * see.
-     *
-     * <p>The sweep set is <em>replaced</em>, never appended to: a temporary
-     * source lives for exactly as long as the system projecting it is still
-     * running, which is the fog service's standing rule for its own channel
-     * ({@code fog-of-war-nouns.md} law 5) and is what makes an expiry — or a
-     * wearer's death, which drops the whole component — release its reveal with
-     * nothing left over.
+     * Drains every carrier's clocks and offers the ready ones a reason to spend.
      */
     public void tick(float dt, BattleSimulation sim) {
         IntegralSystemService systems = rosterService.integralSystems();
         MovementService movement = rosterService.movement();
-        FogOfWarService fog = sim.getFogOfWar();
-        fog.clearCarriedSweepSources();
         long[] live = rosterService.denseArray();
         int count = rosterService.liveCount();
-        podCandidates.clear();
         for (int i = 0; i < count; i++) {
             long id = live[i];
             if (!systems.has(id)) continue;
             systems.tick(id, dt);
-            // A passenger casts no carried sweep from inside its vehicle.
-            if (!rosterService.isRiding(id)) projectSweep(id, systems, fog);
             if (!systems.canActivate(id)) continue;
             IntegralSystemDef def = systems.spec(id);
             if (def == null) continue;
@@ -223,188 +148,11 @@ public final class IntegralSystemSystem {
                         systems.activate(id);
                     }
                 }
-                case SIGHTED_STANDOFF_CONTACT -> {
-                    Squad squad = rosterService.squad().hasSquad(id)
-                            ? sim.getSquad(rosterService.squad().squadId(id)) : null;
-                    if (squad != null && !squad.podCadence.ready(sim.getSimTickIndex())) continue;
-                    long target = standoffTarget(id, def, sim);
-                    if (target != 0L) {
-                        float bodyBearing = podBodyBearing(id, sim, motion);
-                        MissilePodMountGeometry.Pose mount = podPose(id, target, bodyBearing, def.missilePod());
-                        // A protruding mount must never teleport a round across a wall.
-                        // Prove the body-to-mouth segment before spending ammo/cooldown.
-                        boolean legalOrigin = def.missilePod().mount() == null
-                                || legalPodOrigin(sim.getGrid(), rosterService.world().renderX(id),
-                                    rosterService.world().renderY(id), mount);
-                        // A squadmate between the rail and the target is where the round goes first.
-                        boolean clearLane = !laneDiscipline || !resolver.friendInLane(id,
-                                mount.muzzleX(), mount.muzzleY(), rosterService.identity().faction(id),
-                                rosterService.world().renderX(target),
-                                rosterService.world().renderY(target), target);
-                        if (legalOrigin && clearLane) {
-                            PodCandidate candidate = new PodCandidate(id, target, bodyBearing,
-                                    mount, def, squad);
-                            if (squad == null) {
-                                launchPod(candidate, systems, sim.getSimTickIndex());
-                            } else if (squad.podCadence.ready(sim.getSimTickIndex())) {
-                                PodCandidate incumbent = podCandidates.get(squad.id);
-                                if (squad.podCadence.prefers(id,
-                                        incumbent == null ? 0L : incumbent.shooter())) {
-                                    podCandidates.put(squad.id, candidate);
-                                }
-                            }
-                        }
-                    }
-                }
-                case APPROACHING_DEAD_GROUND -> {
-                    // AI still needs a pre-movement path heading; its applied
-                    // velocity was reset by beginTick. A controlled wearer's
-                    // legal proposed drive supplies that heading already.
-                    ApproachingDeadGroundSpec ahead = def.approachingDeadGround();
-                    if ((Math.abs(motion.vx()) > MOVING_EPSILON
-                            || Math.abs(motion.vy()) > MOVING_EPSILON)
-                            && deadGroundAhead(id, sim, motion, ahead.lookaheadCells())) {
-                        systems.activate(id);
-                    }
-                }
-                case HOLDING_A_FIRING_POSITION -> {
-                    if (holdingFiringPosition(id, def.holdingFiringPosition(), sim, motion)) {
-                        systems.activate(id);
-                    }
-                }
-                case WOUNDED_SQUADMATE_IN_REACH -> {
-                    long patient = worstWoundedInReach(id, def.fieldAid(), sim);
-                    if (patient != 0L && systems.activate(id)) {
-                        treat(patient, def.fieldAid());
-                    }
-                }
+                // A field-aid kit makes its wearer a squad medic; SquadMedicSystem treats.
+                case WOUNDED_SQUADMATE_IN_REACH -> { }
                 default -> { /* No integral system declares the carried-item policies. */ }
             }
         }
-        // All carriers' timers and live legality have been evaluated before
-        // choosing a successor. Dense-roster order cannot monopolize the pod.
-        for (PodCandidate candidate : podCandidates.values()) {
-            launchPod(candidate, systems, sim.getSimTickIndex());
-        }
-        podCandidates.clear();
-    }
-
-    private void launchPod(PodCandidate candidate, IntegralSystemService systems, int tick) {
-        MissilePodSpec pod = candidate.def().missilePod();
-        BallisticResolver.Resolution[] salvo = resolveSalvo(candidate.shooter(), candidate.target(),
-                pod, candidate.mount());
-        // Where each round will actually stop, cover clipped near the rail included: a salvo with any
-        // burst reaching a friend or the wearer stays on the rail.
-        if (laneDiscipline && salvoEndangersFriends(candidate.shooter(), pod.weaponDef(), salvo)) return;
-        if (!systems.activate(candidate.shooter())) return;
-        fireMissilePod(candidate.shooter(), pod, candidate.mount(), salvo);
-        systems.recordPodLaunch(candidate.shooter(), candidate.mount().muzzleX(),
-                candidate.mount().muzzleY(), candidate.bodyBearing(),
-                candidate.mount().bearingDegrees());
-        if (candidate.squad() != null) {
-            candidate.squad().podCadence.committed(candidate.shooter(), tick,
-                    candidate.def().sightedStandoff().squadSalvoIntervalSeconds(),
-                    BattleSimulation.TICK_DT);
-        }
-    }
-
-    /**
-     * Publishes one running sweep as a temporary observer for this tick.
-     *
-     * <p>Called for every carrier before its activation is considered, so a
-     * sweep that started on the previous tick is republished and one that has
-     * just expired simply is not. The wall-read radius rides the shadowcast's
-     * existing air-clearance parameter, which is the same bounded
-     * "walls near the source are transparent" rule a flier already uses — the
-     * sweep is a client of that, not a second visibility algorithm.
-     */
-    private void projectSweep(long id, IntegralSystemService systems, FogOfWarService fog) {
-        PerceptionSweepSpec sweep = systems.activeSweep(id);
-        if (sweep == null) return;
-        World world = rosterService.world();
-        fog.addCarriedSweepSource(world.cellX(id), world.cellY(id),
-                Math.round(sweep.revealRangeCells()), sweep.wallReadRadiusCells());
-    }
-
-    /**
-     * Whether the ground this carrier is heading into is ground they cannot see
-     * into: the cell {@code lookaheadCells} along their current heading is
-     * behind something their own line of sight does not reach past.
-     *
-     * <p>Deliberately the wearer's own sight rather than the player's reveal
-     * bitmap. Fog is presentation, and a policy that read it would let what the
-     * player has already been shown decide what a marine does.
-     */
-    private boolean deadGroundAhead(long id, BattleSimulation sim, PolicyMotion motion,
-                                    float lookaheadCells) {
-        float vx = motion.vx();
-        float vy = motion.vy();
-        float speed = (float) Math.sqrt(vx * vx + vy * vy);
-        if (speed <= MOVING_EPSILON) return false;
-        World world = rosterService.world();
-        int fromX = world.cellX(id);
-        int fromY = world.cellY(id);
-        int aheadX = Math.round(fromX + vx / speed * lookaheadCells);
-        int aheadY = Math.round(fromY + vy / speed * lookaheadCells);
-        NavigationGrid grid = sim.getGrid();
-        // Walking off the edge of the map is not dead ground; there is nothing
-        // out there for a sweep to read.
-        if (aheadX < 0 || aheadX >= grid.getWidth() || aheadY < 0 || aheadY >= grid.getHeight()) {
-            return false;
-        }
-        return !grid.hasLineOfSight(fromX, fromY, aheadX, aheadY);
-    }
-
-    /**
-     * The squadmate most worth a dressing: the lowest health fraction among
-     * living allies within reach that is still below the authored threshold.
-     * Returns {@code 0L} when nobody qualifies, in which case the satchel stays
-     * shut — a finite supply spent on a scratch is the waste this policy's
-     * threshold exists to prevent.
-     *
-     * <p><b>Never the carrier.</b> The whole value of this role is that it
-     * belongs to the section rather than to the marine carrying it, and a medic
-     * who treated themselves first would be a self-heal with a squad system's
-     * name on it.
-     */
-    private long worstWoundedInReach(long carrier, FieldAidSpec aid, BattleSimulation sim) {
-        if (aid == null) return 0L;
-        UnitSpatialIndex index = sim.getUnitIndex();
-        if (index == null) return 0L;
-        Faction faction = rosterService.identity().faction(carrier);
-        if (faction == null) return 0L;
-        World world = rosterService.world();
-        nearbySquadmates.clear();
-        index.gatherFaction(world.x(carrier), world.y(carrier), aid.reachCells(),
-                faction, nearbySquadmates);
-
-        long worst = 0L;
-        float worstFraction = aid.treatBelowHealthFraction();
-        for (int i = 0; i < nearbySquadmates.size; i++) {
-            long candidate = nearbySquadmates.ids[i];
-            if (candidate == carrier) continue;
-            if (!rosterService.isAliveById(candidate)) continue;
-            if (!rosterService.identity().type(candidate).combatant) continue;
-            float maximum = world.maxHp(candidate);
-            if (maximum <= 0f) continue;
-            float fraction = world.hp(candidate) / maximum;
-            if (fraction < worstFraction) {
-                worstFraction = fraction;
-                worst = candidate;
-            }
-        }
-        return worst;
-    }
-
-    /**
-     * Puts a dressing on. Flat health rather than a fraction, clamped at the
-     * patient's own maximum, so one satchel is worth the same everywhere and
-     * simply goes further on somebody with less to lose.
-     */
-    private void treat(long patient, FieldAidSpec aid) {
-        World world = rosterService.world();
-        float maximum = world.maxHp(patient);
-        world.setHp(patient, Math.min(maximum, world.hp(patient) + aid.restoredHealth()));
     }
 
     /** Facts for the early policy pass; manual preview never mutates movement. */
@@ -503,209 +251,5 @@ public final class IntegralSystemSystem {
         float dx = fromX + 0.5f - world.x(id);
         float dy = fromY + 0.5f - world.y(id);
         return dx * dx + dy * dy > reach * reach;
-    }
-
-    /**
-     * Whether this carrier is standing where they mean to stand, shooting at
-     * something worth being steady for, with nobody about to arrive.
-     *
-     * <p>The mirror of {@link #exposedUnderFire}, and read in the same order:
-     * the cheapest disqualifier first, the authored judgements last. A marine
-     * still under way has not chosen a position yet; one with nothing engaged
-     * has nothing to be steady <em>for</em>; one shooting across a room gains
-     * little, because accuracy has barely fallen off at that distance. The
-     * break-off check is last because it is the only one that costs a spatial
-     * query.
-     *
-     * <p>The early motion facts use AI path state or legal manual drive, since
-     * applied velocity is still zero before the movement pass.
-     */
-    private boolean holdingFiringPosition(long id, HoldingFiringPositionSpec spec,
-                                          BattleSimulation sim, PolicyMotion motion) {
-        if (spec == null) return false;
-        if (motion.underway()) return false;
-
-        CombatService combat = rosterService.combat();
-        if (!combat.has(id)) return false;
-        long target = combat.targetId(id);
-        if (target == 0L || !rosterService.isAliveById(target)) return false;
-
-        float reach = combat.attackRange(id);
-        if (reach <= 0f) return false;
-        World world = rosterService.world();
-        float dx = world.x(target) - world.x(id);
-        float dy = world.y(target) - world.y(id);
-        float minimum = spec.minimumTargetRangeFraction() * reach;
-        if (dx * dx + dy * dy < minimum * minimum) return false;
-
-        // Planting with somebody about to be on top of you is the mistake the
-        // commitment makes possible, so the suit that suffers most for it says
-        // so in its own break-off distance.
-        UnitSpatialIndex index = sim.getUnitIndex();
-        if (index == null) return true;
-        Faction faction = rosterService.identity().faction(id);
-        if (faction == null) return false;
-        return index.countHostileCombatants(world.x(id), world.y(id),
-                spec.breakOffRangeCells(), faction, id) == 0;
-    }
-
-    /**
-     * The pod's own pick, independent of whatever the wearer's primary weapon
-     * is engaging: the best visible hostile within the referenced weapon's
-     * range, scored by {@link TacticalScoring} the same way any other mount
-     * acquires a target it can actually reach, and no closer than the system's
-     * authored standoff. Returns {@code 0L} when nothing qualifies, in which
-     * case the pod simply waits — it never fires blind, and it never spends a
-     * finite salvo on something the rifle already has in hand.
-     */
-    private long standoffTarget(long id, IntegralSystemDef def, BattleSimulation sim) {
-        MissilePodSpec pod = def.missilePod();
-        SightedStandoffSpec standoff = def.sightedStandoff();
-        if (pod == null || standoff == null) return 0L;
-        World world = rosterService.world();
-        Faction faction = rosterService.identity().faction(id);
-        if (faction == null) return 0L;
-        int squadId = rosterService.squad().hasSquad(id)
-                ? rosterService.squad().squadId(id) : Squad.NO_SQUAD;
-        WeaponDef weapon = pod.weaponDef();
-        // The authored standoff is the scorer's own minimum range, so a closer
-        // contact is never a candidate rather than being picked and discarded.
-        return sim.getTacticalScoring().findBestTargetWithinRange(
-                world.x(id), world.y(id), faction, squadId, id,
-                rosterService.vision().airLosRadius(id), /*allowNoLos*/ false,
-                standoff.minimumStandoffCells(), weapon.range());
-    }
-
-    /**
-     * Launches the pod's whole salvo at once: {@link WeaponDef#projectilesPerShot()}
-     * independently resolved missiles, each a real traveling {@link Projectile}
-     * carrying the weapon's own {@link PendingDetonation} payload. Reuses the
-     * same ballistic-resolution, splash, and friendly-fire pipeline every other
-     * explosive round in the catalog goes through
-     * ({@code moddable-weapons-nouns.md}) — a pod gets no exemption from the
-     * collateral discipline the shipped specials already carry.
-     */
-    private void fireMissilePod(long shooter, MissilePodSpec pod,
-                                MissilePodMountGeometry.Pose mount,
-                                BallisticResolver.Resolution[] salvo) {
-        WeaponDef weapon = pod.weaponDef();
-        Faction shooterFaction = rosterService.identity().faction(shooter);
-        float fromX = mount.muzzleX();
-        float fromY = mount.muzzleY();
-        for (BallisticResolver.Resolution res : salvo) {
-            rosterService.telemetry().recordRoundFired(shooter);
-            PendingDetonation onArrival = res.impacts()
-                    ? new PendingDetonation(shooter, res.endX(), res.endY(), res.flightTime(),
-                            weapon.aoeRadius, weapon.damage(), weapon.penetration(),
-                            weapon.wallDamage, shooterFaction, /*aerialDelivery*/ false,
-                            weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ false,
-                            /*friendlyFireImmune*/ false)
-                    : null;
-            shots.queueProjectile(new Projectile(fromX, fromY, res.endX(), res.endY(),
-                    /*hasBoostRamp*/ true, /*arcHeight*/ 0f, shooterFaction,
-                    /*aerialDelivery*/ false, res.flightTime(), onArrival, weapon.id,
-                    weapon.pointDefenseTarget));
-            shots.postShot(ShotEvent.primary(fromX, fromY, 0f,
-                    res.endX(), res.endY(), res.endZ(), res.hitIntended(), shooterFaction,
-                    Math.max(res.flightTime(), 0.05f), weapon, 1f,
-                    res.victimId() != 0L, res.kind(), shooter));
-        }
-        rosterService.telemetry().recordSecondaryUsed(shooter);
-    }
-
-    /**
-     * Every missile of one salvo, each independently resolved from the muzzle, before any of it is committed:
-     * {@link WeaponDef#projectilesPerShot()} rounds, never fewer than one.
-     */
-    private BallisticResolver.Resolution[] resolveSalvo(long shooter, long target, MissilePodSpec pod,
-                                                        MissilePodMountGeometry.Pose mount) {
-        WeaponDef weapon = pod.weaponDef();
-        BallisticResolver.Source source = new BallisticResolver.Source(shooter, mount.muzzleX(),
-                mount.muzzleY(), 0f, rosterService.identity().faction(shooter));
-        BallisticResolver.Resolution[] salvo =
-                new BallisticResolver.Resolution[Math.max(1, weapon.projectilesPerShot())];
-        for (int i = 0; i < salvo.length; i++) {
-            salvo[i] = resolver.resolve(source, target, weapon.accuracy(), weapon.hitSpread(),
-                    weapon.roundVelocity(), weapon.range(), rng);
-        }
-        return salvo;
-    }
-
-    /** Whether any round of {@code salvo} would burst where a friend's footprint, or the wearer's, reaches. */
-    private boolean salvoEndangersFriends(long shooter, WeaponDef weapon,
-                                          BallisticResolver.Resolution[] salvo) {
-        if (weapon.aoeRadius <= 0f) return false;
-        Faction side = rosterService.identity().faction(shooter);
-        for (BallisticResolver.Resolution res : salvo) {
-            if (res.impacts() && resolver.friendInBlast(shooter, side, res.endX(), res.endY(),
-                    weapon.aoeRadius)) return true;
-        }
-        return false;
-    }
-
-    static boolean legalPodOrigin(NavigationGrid grid, float bodyX, float bodyY,
-                                   MissilePodMountGeometry.Pose mount) {
-        int x = (int) Math.floor(mount.muzzleX());
-        int y = (int) Math.floor(mount.muzzleY());
-        if (x < 0 || y < 0 || x >= grid.getWidth() || y >= grid.getHeight()
-                || grid.blocksStructuralLineOfSightAt(grid.index(x, y))) return false;
-        return grid.firstWallOnLine(bodyX, bodyY, mount.muzzleX(), mount.muzzleY()) == -1L
-                && grid.firstProjectileBlockingEdgeBarrierOnLine(bodyX, bodyY,
-                        mount.muzzleX(), mount.muzzleY()) == null;
-    }
-
-    private MissilePodMountGeometry.Pose podPose(long id, long target, float bodyBearing,
-                                                MissilePodSpec pod) {
-        World world = rosterService.world();
-        float x = world.renderX(id);
-        float y = world.renderY(id);
-        MissilePodMountGeometry.Pose initial = MissilePodMountGeometry.resolve(x, y, bodyBearing,
-                bodyBearing, pod.mount());
-        float bearing = MissilePodMountGeometry.bearing(world.renderX(target) - initial.mountX(),
-                world.renderY(target) - initial.mountY());
-        return MissilePodMountGeometry.resolve(x, y, bodyBearing, bearing, pod.mount());
-    }
-
-    /** Reads simulation intent; a mount never depends on an animation pose or a loaded texture. */
-    private float podBodyBearing(long id, BattleSimulation sim, PolicyMotion motion) {
-        World world = rosterService.world();
-        if (sim.directControl().isControlling(id)) {
-            ManualIntent intent = sim.directControl().intent();
-            if (Float.isFinite(intent.aimX()) && Float.isFinite(intent.aimY())) {
-                return MissilePodMountGeometry.bearing(intent.aimX() - world.renderX(id),
-                        intent.aimY() - world.renderY(id));
-            }
-        }
-        long target = world.hasCombat(id) ? world.targetId(id) : 0L;
-        if (target != 0L && rosterService.isAliveById(target)) {
-            return MissilePodMountGeometry.bearing(world.renderX(target) - world.renderX(id),
-                    world.renderY(target) - world.renderY(id));
-        }
-        if (Math.abs(motion.vx()) > MOVING_EPSILON || Math.abs(motion.vy()) > MOVING_EPSILON) {
-            return MissilePodMountGeometry.bearing(motion.vx(), motion.vy());
-        }
-        // Applied velocity is zero before this sweep. A live AI route still
-        // owns its intended heading, including continuous waypoint coordinates.
-        if (!sim.directControl().isControlling(id)) {
-            float travel = podTravelBearing(id, rosterService.movement(),
-                    world.renderX(id), world.renderY(id));
-            if (Float.isFinite(travel)) return travel;
-        }
-        return 0f;
-    }
-
-    static float podTravelBearing(long id, MovementService movement, float x, float y) {
-        if (!movement.has(id) || movement.settled(id)) return Float.NaN;
-        int next = movement.nextWaypointIndex(id);
-        int count = movement.waypointCount(id);
-        while (next < count) {
-            float dx = movement.waypointX(id, next) - x;
-            float dy = movement.waypointY(id, next) - y;
-            if (Math.abs(dx) > MOVING_EPSILON || Math.abs(dy) > MOVING_EPSILON) {
-                return MissilePodMountGeometry.bearing(dx, dy);
-            }
-            next++;
-        }
-        return Float.NaN;
     }
 }

@@ -65,7 +65,7 @@ class MissionSelectLocalizationTest {
     @Test void catalogFormattingSupportsReorderedArgumentsAndLiteralPlayerNames() throws Exception {
         try (var strings = new HeadlessStrings(Path.of("mod"), text -> text.equals("Meet {0}")
                 ? "{0} / rendezvous" : text)) {
-            assertEquals("Sabine's {Second Wind} / rendezvous", Strings.format("missionSelectMeet", "Sabine's {Second Wind}"));
+            assertEquals("Morgan's {Second Wind} / rendezvous", Strings.format("missionSelectMeet", "Morgan's {Second Wind}"));
         }
     }
 }

@@ -218,20 +218,6 @@ public final class InfantryReflexes {
     };
 
     /**
-     * The other half of that narrowing: a marine who has just walked into
-     * somebody may still raise a screen on the bearing they arrived on, even
-     * while the step is withholding the general special path.
-     */
-    public static final Reflex ONSET_SCREEN = new Reflex() {
-        @Override public String name() { return "ONSET_SCREEN"; }
-        @Override public boolean interrupt(long unit, Squad squad,
-                                           ReflexContext context, BattleControl sim) {
-            return !context.opportunityFirePermitted()
-                    && InfantryUnitPrep.tryOnsetScreen(unit, sim);
-        }
-    };
-
-    /**
      * Fire-team morale override — the tier between the individual and the squad
      * plan. Cohesion breaks at fire-team granularity, so a marine whose team has
      * broken pulls back to cover on his team's own account while his composed
@@ -303,7 +289,6 @@ public final class InfantryReflexes {
             TREATMENT,
             OPPORTUNITY_SPECIAL,
             HARDENED_OPPORTUNITY,
-            ONSET_SCREEN,
             BROKEN_FIRE_TEAM,
             LANE_SIDESTEP);
 

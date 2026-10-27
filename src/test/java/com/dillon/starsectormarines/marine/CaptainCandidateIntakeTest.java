@@ -23,7 +23,7 @@ class CaptainCandidateIntakeTest {
         MarineRoster roster = new MarineRoster();
 
         CaptainCandidate first = roster.discoverCaptainCandidate(
-                "  " + SOURCE + "  ", "Mara Venn", "portrait_1",
+                "  " + SOURCE + "  ", "Zoey Venn", "portrait_1",
                 Rank.CAPTAIN, Trait.SALVAGE_EXPERT, 73.5f);
         CaptainCandidate replay = roster.discoverCaptainCandidate(
                 SOURCE, "Replacement Name", "portrait_2",
@@ -31,7 +31,7 @@ class CaptainCandidateIntakeTest {
 
         assertSame(first, replay);
         assertEquals(1, roster.captainCandidates().size());
-        assertEquals("Mara Venn", first.name());
+        assertEquals("Zoey Venn", first.name());
         assertEquals("portrait_1", first.portraitSprite());
         assertEquals(Rank.CAPTAIN, first.startingRank());
         assertEquals(Trait.SALVAGE_EXPERT, first.startingTrait());
@@ -43,7 +43,7 @@ class CaptainCandidateIntakeTest {
     void acceptanceCreatesOneFrozenCaptainAndReplaysSafely() {
         MarineRoster roster = new MarineRoster();
         CaptainCandidate candidate = roster.discoverCaptainCandidate(
-                SOURCE, "Mara Venn", "portrait_1",
+                SOURCE, "Zoey Venn", "portrait_1",
                 Rank.CAPTAIN, Trait.SALVAGE_EXPERT, 73.5f);
 
         MarineCaptain accepted = roster.acceptCaptainCandidate(SOURCE);
@@ -52,7 +52,7 @@ class CaptainCandidateIntakeTest {
         assertSame(accepted, replay);
         assertEquals(1, roster.size());
         assertEquals(candidate.id(), accepted.id());
-        assertEquals("Mara Venn", accepted.name());
+        assertEquals("Zoey Venn", accepted.name());
         assertEquals("portrait_1", accepted.portraitSprite());
         assertEquals(Rank.CAPTAIN, accepted.rank());
         assertEquals(Status.ACTIVE, accepted.status());
@@ -68,7 +68,7 @@ class CaptainCandidateIntakeTest {
         roster.setCapacity(1);
         roster.add(new MarineCaptain("Incumbent", null, Rank.LIEUTENANT, 0f));
         CaptainCandidate candidate = roster.discoverCaptainCandidate(
-                SOURCE, "Mara Venn", null, Rank.LIEUTENANT, null, 12f);
+                SOURCE, "Zoey Venn", null, Rank.LIEUTENANT, null, 12f);
 
         assertNull(roster.acceptCaptainCandidate(SOURCE));
         assertEquals(1, roster.size());
@@ -83,7 +83,7 @@ class CaptainCandidateIntakeTest {
     void declineIsIrreversibleAndDoesNotConsumeCapacity() {
         MarineRoster roster = new MarineRoster();
         CaptainCandidate candidate = roster.discoverCaptainCandidate(
-                SOURCE, "Mara Venn", null, Rank.LIEUTENANT, null, 12f);
+                SOURCE, "Zoey Venn", null, Rank.LIEUTENANT, null, 12f);
 
         assertTrue(roster.declineCaptainCandidate(SOURCE));
         assertFalse(roster.declineCaptainCandidate(SOURCE));
@@ -97,19 +97,19 @@ class CaptainCandidateIntakeTest {
         MarineRoster roster = new MarineRoster();
 
         assertNull(roster.discoverCaptainCandidate(
-                "not-namespaced", "Mara", null, Rank.LIEUTENANT, null, 1f));
+                "not-namespaced", "Zoey", null, Rank.LIEUTENANT, null, 1f));
         assertNull(roster.discoverCaptainCandidate(
-                "derelict:", "Mara", null, Rank.LIEUTENANT, null, 1f));
+                "derelict:", "Zoey", null, Rank.LIEUTENANT, null, 1f));
         assertNull(roster.discoverCaptainCandidate(
                 SOURCE, "  ", null, Rank.LIEUTENANT, null, 1f));
         assertNull(roster.discoverCaptainCandidate(
-                SOURCE, "Mara", null, null, null, 1f));
+                SOURCE, "Zoey", null, null, null, 1f));
         assertNull(roster.discoverCaptainCandidate(
-                SOURCE, "Mara", null, Rank.LIEUTENANT, Trait.IDEALIST, 1f));
+                SOURCE, "Zoey", null, Rank.LIEUTENANT, Trait.IDEALIST, 1f));
         assertNull(roster.discoverCaptainCandidate(
-                SOURCE, "Mara", null, Rank.LIEUTENANT, Trait.CYNICAL, 1f));
+                SOURCE, "Zoey", null, Rank.LIEUTENANT, Trait.CYNICAL, 1f));
         assertNull(roster.discoverCaptainCandidate(
-                SOURCE, "Mara", null, Rank.LIEUTENANT, null, Float.NaN));
+                SOURCE, "Zoey", null, Rank.LIEUTENANT, null, Float.NaN));
         assertTrue(roster.captainCandidates().isEmpty());
     }
 
@@ -117,7 +117,7 @@ class CaptainCandidateIntakeTest {
     void candidateViewsCannotMutateRosterAuthority() {
         MarineRoster roster = new MarineRoster();
         roster.discoverCaptainCandidate(
-                SOURCE, "Mara Venn", null, Rank.LIEUTENANT, null, 12f);
+                SOURCE, "Zoey Venn", null, Rank.LIEUTENANT, null, 12f);
 
         assertThrows(UnsupportedOperationException.class,
                 () -> roster.captainCandidates().clear());
@@ -164,7 +164,7 @@ class CaptainCandidateIntakeTest {
     void repairDoesNotInventCaptainForDanglingAcceptedCandidate() throws Exception {
         MarineRoster roster = new MarineRoster();
         CaptainCandidate candidate = roster.discoverCaptainCandidate(
-                SOURCE, "Mara Venn", null, Rank.LIEUTENANT, null, 12f);
+                SOURCE, "Zoey Venn", null, Rank.LIEUTENANT, null, 12f);
         candidate.markAccepted();
 
         readResolve(roster);

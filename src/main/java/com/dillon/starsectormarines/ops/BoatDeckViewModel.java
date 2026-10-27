@@ -326,7 +326,7 @@ public final class BoatDeckViewModel {
                 : Strings.get("openingMechLabScrap"); }); }
     public Signal<String> scrapClasses() { return selectedBerth.map(berth -> { revision.get();
         CampaignBoat boat = selectedBoat();
-        if (!fittingFocused() || boat == null) return "hidden";
+        if (!fittingFocused() || boat == null || !BoatWorkshop.scrappable(boat.pattern())) return "hidden";
         return boat.id().equals(scrapArmed) ? "boat-scrap console-action armed" : "boat-scrap console-action"; }); }
     public Runnable scrapAction() { return this::scrapSelected; }
 
@@ -1184,7 +1184,7 @@ public final class BoatDeckViewModel {
 
     private void scrapSelected() {
         CampaignBoat boat = selectedBoat();
-        if (boat == null) return;
+        if (boat == null || !BoatWorkshop.scrappable(boat.pattern())) return;
         storeArmed = null;
         FabricationCost back = workshop.scrapQuote(boat.id());
         String hull = back == null ? Strings.get("openingMechLabNoSalvage") : recoveryLine(back);

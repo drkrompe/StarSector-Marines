@@ -55,7 +55,7 @@ public final class AgreusDistrictEscortProgress implements Serializable {
     }
 
     public AgreusYardAgreement agreement() { return agreement; }
-    /** Who issues the work: Rusk's office under House Custody, Lenna's association under the compact. */
+    /** Who issues the work: Dormer's office under House Custody, Lenna's association under the compact. */
     public String contactId() { return agreement.escortContactId; }
     public int job() { return job; }
     public int attempt() { return attempt; }

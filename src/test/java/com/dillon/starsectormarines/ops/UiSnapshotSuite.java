@@ -145,6 +145,11 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
+import com.dillon.starsectormarines.battle.weapon.WeaponFireCycle;
+import com.dillon.starsectormarines.ops.battleview.HeadlessWeaponPreviewAssets;
+import com.dillon.starsectormarines.ops.battleview.WeaponPreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.WeaponPreviewScenes;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -572,7 +577,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         narratedBriefing.put("missionFlavor", narration.find("story_opening_relief", "briefing.01").text());
         // As the first mission opens: one commander card, no command powers and no fleet ships.
         narratedBriefing.put("taskForceRows", List.of(BriefingViewModel.forceCard("op-commander",
-                "Lieutenant Sabine Hale", "1 squad · 12 marines",
+                "Lieutenant Morgan Hale", "1 squad · 12 marines",
                 "graphics/portraits/portrait_mercenary01.png", "").asOperationCommander()));
         narratedBriefing.put("powerRows", List.of());
         narratedBriefing.put("powerEmpty", "No powers available from fleet or employer.");
@@ -1746,6 +1751,54 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     }
 
     /** Barracks -> selected squad equipment -> Barracks, at the player's review scale. */
+    /**
+     * A marine's primary hovered, its sheet playing the weapon on the range on a fixed scene clock: the
+     * first marine's weapon as a round leaves, then the first magazine-fed one as a round leaves and
+     * while its load is changed.
+     */
+    private static List<SnapshotArtifact> renderWeaponSceneSheet(SnapshotContext context, HeadlessUiRenderer renderer,
+            UiDocument document, MarkupInstance markup, SpecSheetBinder sheets) throws Exception {
+        SpecSheetLayer.registerSceneSource(SpecSheets.SCENE_WEAPON, () -> new WeaponPreviewScenes(
+                new HeadlessWeaponPreviewAssets(context.modRoot(), context.starsectorCore())));
+        var layer = SpecSheetLayer.install(document);
+        double[] clock = {0d};
+        layer.sceneClock(() -> clock[0]);
+        List<SnapshotArtifact> frames = new ArrayList<>();
+        WeaponPreviewCanvas first = hoverWeaponScene(document, markup, sheets, layer, 0);
+        clock[0] = firingMoment(first.cycle());
+        frames.add(new SnapshotArtifact("03g-weapon-sheet-firing.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+        for (int billet = 1; billet < MarineSquad.CAPACITY; billet++) {
+            WeaponPreviewCanvas scene = hoverWeaponScene(document, markup, sheets, layer, billet);
+            WeaponFireCycle cycle = scene.cycle();
+            if (!cycle.magazineFed()) continue;
+            clock[0] = firingMoment(cycle);
+            frames.add(new SnapshotArtifact("03h-magazine-sheet-firing.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            clock[0] = cycle.releaseTime(cycle.releasesPerLoop() - 1) + 0.12d + cycle.reloadSeconds() * 0.4d;
+            frames.add(new SnapshotArtifact("03i-magazine-sheet-reloading.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            break;
+        }
+        layer.sceneClock(null);
+        return frames;
+    }
+
+    /** A moment a round has just left, with one already spent from the load. */
+    private static double firingMoment(WeaponFireCycle cycle) {
+        return cycle.releaseTime(Math.min(1, cycle.releasesPerLoop() - 1)) + 0.03d;
+    }
+
+    private static WeaponPreviewCanvas hoverWeaponScene(UiDocument document, MarkupInstance markup,
+            SpecSheetBinder sheets, SpecSheetLayer layer, int billet) {
+        var target = markup.requireElement(LoadoutInspection.partId(billet, LoadoutInspection.WEAPON));
+        var box = target.box().borderBox();
+        document.pointerMoved(box.x() + box.width() / 2, box.y() + box.height() / 2);
+        sheets.update(); document.advance(0.3f);
+        if (sheets.openTarget() != target) throw new AssertionError("Billet " + billet + "'s primary lost its spec sheet");
+        if (!(document.canvases().producerOf(layer.sceneCanvas()) instanceof WeaponPreviewCanvas scene)) {
+            throw new AssertionError("Billet " + billet + "'s primary sheet shows no range scene");
+        }
+        return scene;
+    }
+
     static List<SnapshotArtifact> renderBarracksEquipment(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.modRoot().getParent());
         HeadlessSvgAssets.install(context.modRoot());
@@ -1795,19 +1848,22 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 editorMarkup.styles().forEach(editorDocument::addStyleSheet);
                 // Installed with the document, as the screen does: the cards wear its classes.
                 var sheets = new SpecSheetBinder(editorDocument, SpecSheetLayer.install(editorDocument));
-                LoadoutInspection.bindPortraits(editorDocument, editorMarkup, editor.inspection()::get,
+                LoadoutInspection.bindCanvases(editorDocument, editorMarkup, editor.inspection()::get,
                         new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
                 MarineOpsPageNav.refresh(editorMarkup, MarineOpsPageNav.Page.ARMORY, MarineOpsPageNav.ANY_SHIP,
                         List.of(CompanyNotices.Notice.FIRST_REFIT));
                 frames.add(new SnapshotArtifact("03-existing-equipment-editor.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 editor.showArmorPickerAction().run();
                 editorMarkup.flush();
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.armorDoctrineTiles()::get);
                 frames.add(new SnapshotArtifact("03a-starter-tactics.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 roster.firstRefit().claim(roster, FirstRefit.Path.FORWARD_SCREEN);
                 editor.refresh();
                 editor.showWeaponPickerAction().run();
                 editor.weaponDoctrineTiles().get().get(0).select().run();
                 editorMarkup.flush();
+                // As the screen does after each reconciliation: the weapon cards' bricks get painters.
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.weaponDoctrineTiles()::get);
                 editorDocument.advance(0.3f); // let the selection's border transition settle
                 frames.add(new SnapshotArtifact("03b-earned-weapon-comparison.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 collectArmorTemplates(roster);
@@ -1815,6 +1871,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 editor.showArmorPickerAction().run();
                 editor.armorDoctrineTiles().get().get(0).select().run();
                 editorMarkup.flush();
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.armorDoctrineTiles()::get);
                 editorDocument.advance(0.3f);
                 frames.add(new SnapshotArtifact("03c-earned-armor-comparison.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 // Production pointer targets remain visible at the player's review scale.
@@ -1832,6 +1889,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
                         members.get(11), MarineSoldierStatus.KIA), 100f, 2f);
                 editor.refresh(); editorMarkup.flush();
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.armorDoctrineTiles()::get);
                 frames.add(new SnapshotArtifact("03d-wounded-special-removal.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 clickBarracksFlow(editorDocument, editorMarkup, "loadout-billet:11");
                 frames.add(new SnapshotArtifact("03e-vacant-billet-plan.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
@@ -1844,7 +1902,22 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 sheets.update(); editorDocument.advance(0.3f);
                 if (sheets.openTarget() != target) throw new AssertionError("Proposed equipment lost its spec sheet");
                 frames.add(new SnapshotArtifact("03f-equipment-spec-sheet.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
+                frames.addAll(renderWeaponSceneSheet(context, renderer, editorDocument, editorMarkup, sheets));
                 sheets.clear();
+                // Every weapon card known, one issuing secondaries chosen: the cards' and the
+                // marines' kit bricks in each colour, a launcher and a rifle on their mounts.
+                for (var doctrine : SquadEquipmentDoctrines.weaponDoctrines()) {
+                    roster.armory().learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.WEAPON, doctrine.id()));
+                }
+                editor.refresh();
+                editor.showWeaponPickerAction().run();
+                editor.weaponDoctrineTiles().get().stream()
+                        .filter(tile -> tile.id().equals("weapon-doctrine:" + SquadEquipmentDoctrines.FIRE_SUPPORT_WEAPONS))
+                        .findFirst().orElseThrow().select().run();
+                editorMarkup.flush();
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.weaponDoctrineTiles()::get);
+                editorDocument.advance(0.3f);
+                frames.add(new SnapshotArtifact("03j-weapon-card-secondaries.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 clickBarracksFlow(editorDocument, editorMarkup, "page-nav-return");
                 if (routes.get(routes.size() - 1) != ScreenId.BARRACKS) throw new AssertionError("Editor return missed Barracks");
             }
@@ -2027,7 +2100,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         for (float scale : scales) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
-            MarineCaptain sabine = new MarineCaptain("Sabine Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
+            MarineCaptain sabine = new MarineCaptain("Morgan Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
             roster.add(sabine);
             roster.beginCompanyPreparation(sabine);
             frames.addAll(renderPreparationRooms(context, renderer, roster, scale));
@@ -2068,7 +2141,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 capture.accept("03-scroll-choice");
                 click.accept("officer-specialty-SALVAGE_STEWARDSHIP-rank-1");
                 if (sabine.career().level(OfficerSpecialty.SALVAGE_STEWARDSHIP) != 1) {
-                    throw new IllegalStateException("Click-through specialty choice did not train Sabine at scale " + scale);
+                    throw new IllegalStateException("Click-through specialty choice did not train Morgan at scale " + scale);
                 }
                 capture.accept("04-formation");
                 click.accept("officer-formations");
@@ -2458,7 +2531,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             // As the screen does: the cards wear the spec sheet's classes, and each marine has a portrait.
             SpecSheetLayer.install(document);
-            if (fireteam) LoadoutInspection.bindPortraits(document, instance, viewModel.inspection()::get, armoryPreview.assets());
+            if (fireteam) LoadoutInspection.bindCanvases(document, instance, viewModel.inspection()::get, armoryPreview.assets());
             if (equipmentTooltip) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
@@ -2531,7 +2604,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     static List<SnapshotArtifact> renderPreparationResourceBills(SnapshotContext context) throws Exception {
         var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()), context.modRoot(), context.starsectorCore());
         var roster = new MarineRoster();
-        var sabine = new MarineCaptain("Sabine Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
+        var sabine = new MarineCaptain("Morgan Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
         roster.add(sabine); roster.beginCompanyPreparation(sabine);
         return renderPreparationRooms(context, renderer, roster, 1f);
     }

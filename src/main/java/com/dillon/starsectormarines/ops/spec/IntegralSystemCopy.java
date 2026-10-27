@@ -1,13 +1,10 @@
 package com.dillon.starsectormarines.ops.spec;
 
+import com.dillon.starsectormarines.battle.infantry.SquadMedicine;
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.marine.BraceSpec;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
-import com.dillon.starsectormarines.marine.FieldAidSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
-import com.dillon.starsectormarines.marine.MissilePodSpec;
-import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -130,27 +127,21 @@ public final class IntegralSystemCopy {
                     percent(breacher.moveSpeedMult() - 1f), Math.round(breacher.screenSoak()),
                     degrees(breacher.shieldedArcDegrees()));
         }
-        MissilePodSpec pod = system.missilePod();
-        if (pod != null) {
-            return Strings.format("gearSystemMissiles" + suffix,
-                    Math.max(1, pod.weaponDef().projectilesPerShot()));
-        }
-        PerceptionSweepSpec sweep = system.perceptionSweep();
-        if (sweep != null) {
-            return Strings.format("gearSystemSweep" + (sweep.wallReadRadiusCells() > 0f ? "Walls" : "") + suffix,
-                    Math.round(sweep.revealRangeCells()), Math.round(sweep.wallReadRadiusCells()));
-        }
-        BraceSpec brace = system.brace();
-        if (brace != null) {
-            return Strings.format("gearSystemBrace" + suffix,
-                    percent(brace.accuracyMult() - 1f), percent(1f - brace.moveSpeedMult()));
-        }
-        FieldAidSpec aid = system.fieldAid();
-        if (aid != null) {
-            return Strings.format("gearSystemAid" + suffix, Math.round(aid.restoredHealth()),
-                    Math.round(aid.reachCells()), percent(aid.treatBelowHealthFraction()));
+        if (system.fieldAid() != null) {
+            SquadMedicine kit = SquadMedicine.forKit(system.id());
+            SquadMedicine.Complement complement = SquadMedicine.complementOf(system.id());
+            return Strings.format("gearSystemAid" + suffix, trim(kit.healthPerSecond()),
+                    trim(kit.armorPerSecond()), percent(kit.treatBelowHealth()),
+                    trim(complement.energyMax()), trim(complement.healthPerSecond()),
+                    trim(complement.armorPerSecond()));
         }
         return "";
+    }
+
+    /** A whole number loses its decimal; a half-point rate keeps it. */
+    private static String trim(float value) {
+        return value == Math.rint(value) ? String.valueOf(Math.round(value))
+                : String.format(Strings.locale(), "%.2f", value).replaceAll("0+$", "");
     }
 
     /** Whole degrees with the sign; an arc is authored to the degree and read at a glance. */
@@ -159,6 +150,11 @@ public final class IntegralSystemCopy {
     }
 
     private static String availability(IntegralSystemDef system) {
+        if (system.fieldAid() != null) {
+            SquadMedicine kit = SquadMedicine.forKit(system.id());
+            return Strings.format("gearSystemAvailabilityPool", trim(kit.energyMax()),
+                    Math.round(kit.energyMax() / kit.energyRegenPerSecond()));
+        }
         return system.usesAmmunition()
                 ? Strings.format("gearSystemAvailabilityAmmo", seconds(system.durationSeconds()), system.startingAmmo())
                 : Strings.format("gearSystemAvailabilityCooldown", seconds(system.durationSeconds()), seconds(system.cooldownSeconds()));
@@ -166,6 +162,9 @@ public final class IntegralSystemCopy {
 
     /** The compact availability clock: {@code 3.0s / 22s}, or {@code 2 uses}. */
     private static String clock(IntegralSystemDef system) {
+        if (system.fieldAid() != null) {
+            return Strings.format("gearSystemPoolClock", trim(SquadMedicine.forKit(system.id()).energyMax()));
+        }
         return system.usesAmmunition()
                 ? uses(system.startingAmmo())
                 : Strings.format("gearSystemClock", seconds(system.durationSeconds()), seconds(system.cooldownSeconds()));

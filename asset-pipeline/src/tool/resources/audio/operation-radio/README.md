@@ -131,7 +131,7 @@ moments, never over a casualty or urgent warning.
 
 Future playback should keep each exchange's turns ordered and protect its
 recipient and instruction from competing foreground speech. At most one quiet
-secondary net may overlap; duck it for names, instructions and warnings. Mara's
+secondary net may overlap; duck it for names, instructions and warnings. Zoey's
 mission dialogue retains priority and must finish. Cancel obsolete queued turns
 when assignments change, a unit is lost, or a newer fact invalidates the report.
 Runtime uses a single foreground exchange, samples assignment changes into one

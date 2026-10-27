@@ -396,12 +396,13 @@ Heavy, its weight class seen from the air (Hound and the heavy APC Light;
 Warden, the escort APC and the militia technical Medium; Bulwark and the
 breakthrough tank Heavy). It is not the machine's inertia, which manual driving
 reads separately. Every airframe has a **lift rating**, the heaviest class it
-takes: a Valkyrie lifts Heavy as built and every other pattern nothing. A
+takes: a Valkyrie lifts Heavy as built, the Hermes Light (a Hound or a light
+APC under her belly), and every other pattern nothing. A
 bus-class boat (Buffalo, Tarsus, Mule, Nebula) earns Light or Medium lift
 through the third fitting slot, the hold: a **cradle** adds the rating and keeps
 the seats, so a cradled boat flies its squad loads like any other boat and then
 machines. Deboarding stays one kind per sortie: a squad load or exactly one
-machine. Small boats never lift a machine. Whether one carrier takes one machine
+machine. Other small boats never lift a machine. Whether one carrier takes one machine
 is a single pure check (`LiftAdmission`) that every consumer asks — the drop
 powers, the briefing and a per-mission lift budget — rather than comparing
 classes itself; a refusal is either *no lift* or *under-rated*.
@@ -485,7 +486,7 @@ only while she is over the battle, in her emitter tier's tint. The shield goes
 when she falls or leaves. Other aircraft carry none.
 
 **The fit owns seats, ramp and loaded speed; the deck owns the turnaround.**
-The frame's seats are the cabin's (never fewer than the pattern's), and its
+The frame's seats are the pattern's (the Hermes lands a whole squad), and its
 deboard cadence is the pattern's quickened by the drive. A boat flies slower
 with weight aboard: a machine drags her by its lift class and each marine a
 little (`FittedBoat.carrying`), so she runs back faster than she ran in, and a
@@ -2484,7 +2485,7 @@ hull-fire hold until the chapter's moment comes, the duel then runs on its own, 
 ledger. The referee settles on nothing the duel does; stray rounds and wreckage are the
 only way it reaches the ground. Black Sluice is the first: the *Greyhook*, Voss's Venture,
 landed alone in her cradle south of the ridge (the frigate pads beside her empty), and a
-Hegemony Enforcer and a Wolf lent by Rusk's family arriving when Voss orders the withdrawal
+Hegemony Enforcer and a Wolf lent by Dormer's family arriving when Voss orders the withdrawal
 (owner, 2026-10-19: "We don't need this to be an even fight"). Their
 edge is the west, the side the company landed on and
 the far side of the basin, so they fly in across it heading east and their whole approach
@@ -2492,17 +2493,17 @@ is in sight before a gun bears; Greyhook's edge is the south, over her own pads 
 beyond, the only way she leaves. No area is declared; the fight goes where it goes, held off the edges
 only by the standing pressure. The map is sized for the fight, not only for the ground: open
 approach ground west of the station puts Greyhook's pads outside an Enforcer's reach as it
-crosses the edge, so Rusk's ships close for most of a minute in sight before a gun bears, and
+crosses the edge, so Dormer's ships close for most of a minute in sight before a gun bears, and
 the standoff fits along the map with the edge margins clear. The *Greyhook* fights first and
 runs second (owner, 2026-10-19: "We can add back the escape for the Venture as a story element
 to give it a conclusion"). She lifts and fights alone under the ordinary doctrine and tactics,
 and every hull of the duel holds the field, so no doctrine withdraws one. Voss's order to run
 is the one scripted thing (`BlackSluiceDuel.BreakOff`): a set time after the first hull fire,
 somewhere in a window that the moment of Voss's order fixes, or sooner if her hull falls under
-half or nothing of Rusk's is left to stop her, she flies out across her edge, answering what is in reach as she
-goes, and Rusk's ships, faster than she is, keep shooting. She gets off the map or is shot
+half or nothing of Dormer's is left to stop her, she flies out across her edge, answering what is in reach as she
+goes, and Dormer's ships, faster than she is, keep shooting. She gets off the map or is shot
 down onto the basin; either way the battle waits until she has (above, holding the battle
-open), and Rusk's ships stay overhead once she is gone. The pair fight her as a pack relay,
+open), and Dormer's ships stay overhead once she is gone. The pair fight her as a pack relay,
 the Enforcer her anvil and the Wolf darting at her quarter, and the mission refits the
 Enforcer.
 
@@ -2512,12 +2513,12 @@ flux pool's capacity and dissipation (the variant's capacitors and vents include
 shield's arc, upkeep, and the flux each absorbed point costs. It never touches a gun, the
 plate or the hull, never the hull table or a variant another fight reads, and never the
 rules every hull fight shares, so the balance law still holds everywhere a mission has not
-named a refit. Black Sluice is the first: Rusk's Enforcer flies in his refit
+named a refit. Black Sluice is the first: Dormer's Enforcer flies in his refit
 (`BlackSluiceDuel.RUSK_REFIT`), while the Wolf and the Greyhook fly as fitted (her refit seam,
 `BlackSluiceDuel.GREYHOOK_REFIT`, is at identity). The fight reaches the radio as story beats
-(Rusk's ships sighted as they cross the edge, closing, the first hull fire, the first of them
+(Dormer's ships sighted as they cross the edge, closing, the first hull fire, the first of them
 down while the Greyhook still flies, Voss ordering the run, the Greyhook down or off the map,
-the last of Rusk's down). The debrief says whether she got away or was shot down short of her
+the last of Dormer's down). The debrief says whether she got away or was shot down short of her
 edge; only the company pulling out leaves her still up there. A
 warship over a ground battle never launches a wing from its bays (bays only classify the
 hull), and the Greyhook's fitting carries none, so it stays hull against hull. She carries no point

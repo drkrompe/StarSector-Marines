@@ -20,7 +20,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class ShipPreparationPreflightTest {
     @Test void changedCargoIsRecheckedBeforeDesignationOrTransferCharge() {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+        MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
         roster.add(sabine); roster.beginCompanyPreparation(sabine);
         var candidate = new ShipTransferViewModel.Candidate("new", "New Home", "Transport", 100, 200, TestHulls.transport());
         var means = CompanyMeans.of(12, 0, 100_000);

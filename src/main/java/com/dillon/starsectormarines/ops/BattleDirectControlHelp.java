@@ -69,6 +69,7 @@ final class BattleDirectControlHelp {
                 add(out, "Q", "MechCycleLeft");
                 add(out, "E", "MechCycleRight");
                 add(out, "1 2 3", "MechPick");
+                add(out, "Shift", "MechSprint");
                 add(out, "", "MechFlux");
                 add(out, "", "MechIndirect");
                 add(out, "Tab / Esc", "Leave");

@@ -41,7 +41,7 @@ class MissionScenarioPlanTest {
         var player = plan.detachment().shuttleManifest.get(1);
         assertSame(boat, player.airframe);
         assertEquals(ShuttleType.HERMES, player.type);
-        assertEquals(3, player.cycles);
+        assertEquals(1, player.cycles);
         assertEquals(12, player.embarkedPersonnel);
         assertEquals(boat.pattern().capacity, player.seatsPerSortie);
         var largerForce = MissionLaunch.captureScenario(null, mission, List.of(boat), FlybyRoster.EMPTY,

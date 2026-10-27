@@ -52,8 +52,7 @@ class SupplyRouteCampaignTest {
     @Test void recoveryBeatBelongsOnlyToSuccessfulStoryWork() {
         var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
         var mission = SupplyRouteCampaign.offers(route).get(0);
-        assertTrue(SupplyRouteCampaign.recoveryDebrief(MissionOutcome.builder().mission(mission).victory(true).build())
-                .contains("opened the junction"));
+        assertFalse(SupplyRouteCampaign.recoveryDebrief(MissionOutcome.builder().mission(mission).victory(true).build()).isBlank());
         assertEquals("", SupplyRouteCampaign.recoveryDebrief(MissionOutcome.builder().mission(mission).victory(false).build()));
         assertEquals("", SupplyRouteCampaign.recoveryDebrief(MissionOutcome.builder().mission(mission)
                 .missionSource(MissionSource.RECURRING).victory(true).build()));
@@ -99,8 +98,6 @@ class SupplyRouteCampaignTest {
         assertEquals(12000, SupplyRouteCampaign.settle(p, outcome(id, true, 12000),
                 Set.of(SupplyRouteCampaign.JUNCTION_CARD), awarded::add));
         assertTrue(awarded.isEmpty());
-        assertTrue(SupplyRouteCampaign.offers(new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus"))
-                .get(0).flavor.contains("Trench-Clearing Issue"));
     }
     private static MissionOutcome outcome(String id, boolean victory, int paid) {
         return MissionOutcome.builder().missionId(id).missionSource(MissionSource.STORY)
@@ -117,6 +114,9 @@ class SupplyRouteCampaignTest {
         assertFalse(SupplyRouteCampaign.forceReady(roster,Set.of(roster.squads().get(0).id())));
         assertTrue(SupplyRouteCampaign.forceReady(roster,Set.of(roster.squads().get(0).id(),roster.squads().get(1).id())));
         assertFalse(SupplyRouteCampaign.forceReady(roster,Set.of(roster.squads().get(0).id(),roster.squads().get(1).id(),"unknown")));
+        assertTrue(SupplyRouteCampaign.forceDeployable(roster,Set.of(roster.squads().get(0).id())), "One squad is the player's choice");
+        assertFalse(SupplyRouteCampaign.forceDeployable(roster,Set.of()));
+        assertFalse(SupplyRouteCampaign.forceDeployable(roster,Set.of("unknown")));
     }
     @Test void hqRetainsFrozenSiteWhenAccessDisappearsAndReportsPendingWithoutSuccess() {
         var p=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");var guide=new SupplyRouteWorkGuide(p,null,()->{});

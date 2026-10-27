@@ -12,9 +12,7 @@ com.dillon.starsectormarines.battle.world.gen.ship.ShipDeckSnapshotSuite
 com.dillon.starsectormarines.ops.battleview.DurabilityBarSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.FrontageSceneSnapshotSuite
 com.dillon.starsectormarines.battle.deployable.PointDefenceSceneSnapshotSuite
-com.dillon.starsectormarines.battle.deployable.DeployedCoverSceneSnapshotSuite
 com.dillon.starsectormarines.battle.appearance.IntegralSystemFxSnapshotSuite
-com.dillon.starsectormarines.battle.vision.PerceptionSweepSceneSnapshotSuite
 com.dillon.starsectormarines.battle.vision.FogBodyRevealSnapshotSuite
 com.dillon.starsectormarines.battle.air.AirfieldSortieSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.KillingGroundSceneSnapshotSuite
@@ -288,6 +286,7 @@ com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPoolSnapshotSuite
 com.dillon.starsectormarines.ops.BattleLoadingSnapshotSuite
 com.dillon.starsectormarines.battle.infantry.MedicPoolSnapshotSuite
 com.dillon.starsectormarines.battle.vehicle.VehicleRamSceneSnapshotSuite
+com.dillon.starsectormarines.battle.vehicle.VehicleFootprintLookSuite
 com.dillon.starsectormarines.battle.vehicle.LrmCarrierLookSuite
 com.dillon.starsectormarines.ops.GroundTurretLookSnapshotSuite
 com.dillon.starsectormarines.ops.GroundTurretFamilyDraftSnapshotSuite
@@ -365,3 +364,7 @@ com.dillon.starsectormarines.ops.DustLedgerSideObjectivesLookSuite
 com.dillon.starsectormarines.ops.DustLedgerMissionPreviewSuite
 com.dillon.starsectormarines.ops.battleview.RavBombardLookSnapshotSuite
 com.dillon.starsectormarines.ops.BriefingLiftSnapshotSuite
+com.dillon.starsectormarines.battle.squad.SquadRunSceneSnapshotSuite
+com.dillon.starsectormarines.ops.ReticleAmmoSnapshotSuite
+com.dillon.starsectormarines.ops.CounterattackDepotLookSuite
+com.dillon.starsectormarines.ops.JunctionLookSuite

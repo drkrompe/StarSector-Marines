@@ -11,7 +11,7 @@ Read `early-operation-nouns.md`, `meta-progression.md` and
 
 | Beat | Capability / power change | Practice before the next demand |
 |---|---|---|
-| Founding | Sabine's specialty, twelve-person squad | Found, assign and walk on from Wayline's truck |
+| Founding | Morgan's specialty, twelve-person squad | Found, assign and walk on from Wayline's truck |
 | Relief | 6,000 credits, one free equipment package, first Hermes repair | Repair the first Hermes; replenish vacancies; compare and fit learned specs |
 | Counterattack | 9,000 credits, Hound, mech bay, free SRM | First ferry battle; fit/reuse a physical component and understand heavy lift |
 | Junction | Two-squad recommendation | Coordinate formations and actually call in owned Mech Support |
@@ -35,7 +35,7 @@ alone cannot describe the player's equipment or cash.
   15,000 opening pay; replacements, 8,250 workshop chain, 4,000 billets, 2,500 mess
   and 3,000 circuits compete for cash. Distinguish optional investment from launch
   requirements. More lift is throughput, not guaranteed casualty reduction.
-- [ ] Align Sabine's first earned promotion with the formation ramp. A clean
+- [ ] Align Morgan's first earned promotion with the formation ramp. A clean
   story-only run gives roughly 890-970 XP before Cold Account against 1,000 needed;
   Lieutenant coordinates three squads. Teach acting NCOs/additional officers.
 - [ ] Teach the three/four-squad transitions and 36-to-54 billet restoration;

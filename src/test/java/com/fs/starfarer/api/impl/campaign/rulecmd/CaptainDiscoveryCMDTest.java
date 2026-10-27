@@ -38,10 +38,10 @@ class CaptainDiscoveryCMDTest {
         assertTrue(fixture.execute("show"));
 
         assertTrue(fixture.paragraphs.stream().anyMatch(text -> text.contains("cryo-pod")));
-        assertTrue(fixture.paragraphs.stream().anyMatch(text -> text.contains("Mara Venn")));
+        assertTrue(fixture.paragraphs.stream().anyMatch(text -> text.contains("Rhea Moss")));
         assertEquals(List.of("graphics/portraits/portrait_mercenary01.png"),
                 fixture.images);
-        assertEquals("Offer Mara Venn a commission",
+        assertEquals("Offer Rhea Moss a commission",
                 fixture.options.get(CaptainDiscoveryCMD.OPTION_ACCEPT));
         assertTrue(fixture.options.containsKey(CaptainDiscoveryCMD.OPTION_DECLINE));
         assertTrue(fixture.options.containsKey(CaptainDiscoveryCMD.OPTION_LATER));
@@ -127,7 +127,7 @@ class CaptainDiscoveryCMDTest {
     private static final class Fixture {
         final MarineRoster roster = new MarineRoster();
         final CaptainCandidate candidate = roster.discoverCaptainCandidate(
-                "derelict:test-wreck", "Mara Venn",
+                "derelict:test-wreck", "Rhea Moss",
                 "graphics/portraits/portrait_mercenary01.png",
                 Rank.CAPTAIN, Trait.FIELD_MEDIC, 61f);
         final Map<String, Object> memoryValues = new HashMap<>();

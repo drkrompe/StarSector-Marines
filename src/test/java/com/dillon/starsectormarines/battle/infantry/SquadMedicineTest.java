@@ -1,10 +1,16 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.Map;
 
-/** The one billet rule the battle and the company card both read. */
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+
+/** The one billet rule the battle and the company card both read, and the kit table. */
 public class SquadMedicineTest {
 
     @Test
@@ -15,5 +21,48 @@ public class SquadMedicineTest {
         assertEquals(0, SquadMedicine.medicBillet(5, i -> team[i] != 1, i -> team[i]),
                 "with nobody eligible in the middle team, the first eligible anywhere");
         assertEquals(-1, SquadMedicine.medicBillet(5, i -> false, i -> team[i]));
+    }
+
+    @Test
+    public void kitsAreKeyedByTheirSystemAndAuthoredOnce() throws JSONException {
+        JSONObject root = new JSONObject().put("kits", new JSONArray()
+                .put(medicine(12).put("system", "system.a"))
+                .put(medicine(20).put("system", "system.b")));
+        Map<String, SquadMedicine> kits = SquadMedicine.parseKits(root);
+        assertEquals(12f, kits.get("system.a").energyMax());
+        assertEquals(20f, kits.get("system.b").energyMax());
+
+        root.getJSONArray("kits").put(medicine(30).put("system", "system.a"));
+        assertThrows(JSONException.class, () -> SquadMedicine.parseKits(root));
+    }
+
+    @Test
+    public void everyKitAddsItsComplementToTheOfficersMedicine() throws JSONException {
+        JSONObject root = new JSONObject().put("kits", new JSONArray()
+                .put(medicine(12).put("system", "system.a").put("complement", complement(10, 0.5f))));
+        SquadMedicine.Complement kit = SquadMedicine.parseComplements(root).get("system.a");
+        SquadMedicine rank = new SquadMedicine(30f, 0.2f, 1f, 7.5f, 0.05f, 3f,
+                2.5f, 1f, 1.5f, InfantryCohesion.COHESION_RADIUS, 8f, 0.7f, 0.5f, 2f);
+
+        SquadMedicine twoKits = rank.complementedBy(kit).complementedBy(kit);
+        assertEquals(50f, twoKits.energyMax(), 1e-5f);
+        assertEquals(0.4f, twoKits.energyRegenPerSecond(), 1e-5f);
+        assertEquals(3.5f, twoKits.healthPerSecond(), 1e-5f);
+        assertEquals(2f, twoKits.armorPerSecond(), 1e-5f);
+        assertEquals(rank.minStartEnergy(), twoKits.minStartEnergy(), "the start gate is the rank's");
+    }
+
+    private static JSONObject complement(float pool, float rate) throws JSONException {
+        return new JSONObject().put("energyMax", pool).put("energyRegenPerSecond", 0.1)
+                .put("healthPerSecond", rate).put("armorPerSecond", rate);
+    }
+
+    private static JSONObject medicine(float pool) throws JSONException {
+        return new JSONObject().put("energyMax", pool).put("energyRegenPerSecond", 0.1)
+                .put("energyPerPoint", 1).put("minStartEnergy", pool / 4f)
+                .put("woundFloorFraction", 0.05).put("healthPerSecond", 2)
+                .put("armorPerSecond", 0.5).put("reachCells", 1.5).put("approachSeconds", 8)
+                .put("retrySeconds", 3).put("treatBelowHealth", 0.6).put("treatBelowArmor", 0.5)
+                .put("heavyFirePressure", 2);
     }
 }

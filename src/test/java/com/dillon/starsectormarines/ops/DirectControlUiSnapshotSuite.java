@@ -515,10 +515,9 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         float aimX = ringX + (float) (Math.cos(bearing) * cells * px);
         float aimY = ringY + (float) (Math.sin(bearing) * cells * px);
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        // The sheet's four frames draw the nose to the left; the hull spans about 740 px of its frame, which is the
-        // type's visual length.
+        // The sheet's four frames draw the nose to the left; each frame is drawn the type's drawn length long.
         int frame = sheet.getWidth() / 4;
-        double scale = type.visualLengthCells * px / 740.0;
+        double scale = type.drawnLengthCells * px / frame;
         AffineTransform saved = graphics.getTransform();
         graphics.translate(ringX, ringY);
         graphics.rotate(bearing + Math.PI);
@@ -588,7 +587,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 new BattleMarineDollPlate.Kit(frag.displayName(),
                         (frag.startingAmmo() - 1) + "/" + frag.startingAmmo(), false,
                         BattleMarineDollPlate.Kit.round(frag), frag.startingAmmo() - 1, frag.startingAmmo()),
-                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemBreacherAssistDisplayName"),
+                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemShieldLowTechDisplayName"),
                         copy.apply("battleMarineDollReady"), false, "shield", 1, 1, true))));
         return plate;
     }
@@ -883,14 +882,14 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         List<BattleMarineDollPlate.Kit> items = List.of(
                 new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSpecialRocketLauncherDisplayName"), "1/3", false,
                         "missile", 1, 3),
-                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemBreacherAssistDisplayName"),
+                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemShieldLowTechDisplayName"),
                         copy.apply("battleMarineDollReady"), false, "shield", 1, 1, true),
                 new BattleMarineDollPlate.Kit(copy.apply("battleMarineDollMedic"), "0/3", true));
         return new BattleMarineDollPlate.MarineDoll(suit, true, armor, health, arms, legs, items);
     }
 
     /** The preview Marine (74% health, armor 35 of 60, as its status panel reads) with a leg wound. */
-    private static BattleMarineDollPlate marinePlate(Path modRoot, boolean showKit) {
+    static BattleMarineDollPlate marinePlate(Path modRoot, boolean showKit) {
         var plate = new BattleMarineDollPlate(path -> Files.readString(modRoot.resolve(path)),
                 ModStrings.fromDisk(modRoot), showKit);
         plate.update(marine(modRoot, false, 0, 1, 35f / 60f, .74f));

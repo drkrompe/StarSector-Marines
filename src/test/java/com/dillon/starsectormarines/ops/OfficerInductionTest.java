@@ -22,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OfficerInductionTest {
     private final MarineRoster roster = new MarineRoster();
-    private final MarineCaptain sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0f);
+    private final MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0f);
 
     private OfficerInduction begin() {
         roster.add(sabine);

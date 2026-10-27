@@ -1,45 +1,47 @@
 package com.dillon.starsectormarines.battle.infantry;
 
+import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
-import com.dillon.starsectormarines.marine.IntegralSystemDef;
-import com.dillon.starsectormarines.marine.IntegralSystemEffect;
-import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
-import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.junit.jupiter.api.Assumptions.assumeTrue;
 
 /**
- * The shoulder micro-missile pod's acceptance bullets
- * ({@code integral-armor-systems.md}), driven end to end through a real
- * {@link BattleSimulation} against the shipped {@code armor.aegis-composite}
- * pattern so the test exercises the authored catalog rather than a synthetic
- * stand-in. Values it checks against are derived from the loaded catalog
- * entries, never hard-coded balance numbers.
+ * The shoulder pod as a carried special ({@code special.missile-pod}), driven through a real
+ * {@link BattleSimulation} because a delivered payload has to travel. Distances are derived from
+ * the loaded item's authored standoff, never hard-coded balance numbers.
  */
 class MissilePodTest {
 
-    private static final int W = 30;
+    private static final int W = 48;
     private static final int H = 16;
-    private static final int ROW = 5;
-    private static final int SHOOTER_X = 3;
-    private static final int TARGET_X = 9;
-    /**
-     * Deliberately far past any authored missile-pod damage total: these
-     * tests care about the pod's activation lifecycle and collateral
-     * bookkeeping, not whether it can kill a militia, so the target must
-     * outlast a full rack regardless of the catalog's authored numbers.
-     */
+    private static final int ROW = 8;
+    private static final int CARRIER_X = 6;
+    /** Long enough for a stationary pod to acquire and spend, short enough to stay quick. */
+    private static final int OBSERVATION_TICKS = 240;
+    /** Far past any authored salvo total, so the target outlasts the whole rack. */
     private static final float SURVIVES_THE_WHOLE_RACK = 1_000_000f;
+
+    private static SpecialEquipmentDef pod() {
+        return SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.MISSILE_POD_ID);
+    }
+
+    /** Cells past the authored standoff: a contact the pod's moment has arrived for. */
+    private static int atStandoff() {
+        return (int) Math.ceil(pod().missilePodSpec().minimumStandoffCells()) + 2;
+    }
 
     private static BattleSimulation arena() {
         NavigationGrid grid = new NavigationGrid(W, H);
@@ -49,131 +51,99 @@ class MissilePodTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    /** Fixture assumption every test here leans on: the pod's authored home. */
-    private static IntegralSystemDef pod() {
-        MarineArmorCatalogDef pattern = MarineArmorCatalogRegistry.require("armor.aegis-composite");
-        assumeTrue(pattern.hasIntegralSystem(), "fixture assumption: the Aegis carries a system");
-        IntegralSystemDef system = pattern.integralSystem();
-        assumeTrue(system.effect() == IntegralSystemEffect.MISSILE_POD,
-                "fixture assumption: the Aegis carries the missile pod, not the breach family");
-        return system;
+    /** One rifleman carrying the pod, in a squad holding its ground: an ordinary armed billet. */
+    private static long carrier(BattleSimulation sim) {
+        int squadId = sim.mintSquad(Faction.MARINE, UnitType.MARINE);
+        EntitySpec spec = new EntitySpec("gunner", Faction.MARINE, UnitType.MARINE, CARRIER_X, ROW).squad(squadId);
+        new MarineLoadout(UnitRole.COMBATANT, null, WeaponRegistry.STARTER_PRIMARY_ID,
+                pod().id(), pod().startingAmmo()).seedInto(spec);
+        long id = sim.spawn(spec.moveSpeed(0f));
+        Squad squad = sim.getSquad(squadId);
+        squad.originalSize = 1;
+        squad.aliveMembers = 1;
+        sim.getSquadMoveOrderService().requestDefendArea(squadId, CARRIER_X, ROW);
+        return id;
+    }
+
+    private static void hostile(BattleSimulation sim, int distance) {
+        sim.spawn(new EntitySpec("hostile", Faction.DEFENDER, UnitType.MILITIA, CARRIER_X + distance, ROW)
+                .moveSpeed(0f).health(SURVIVES_THE_WHOLE_RACK));
     }
 
     @Test
-    void aPodCarryingSuitFiresRunsDryAndStaysDry() {
-        IntegralSystemDef pod = pod();
-        int startingAmmo = pod.startingAmmo();
-        assertTrue(startingAmmo > 0, "fixture assumption: the pod carries at least one salvo");
-
+    void aPodRunsDryAndStaysDry() {
         BattleSimulation sim = arena();
-        long shooter = sim.spawn(new EntitySpec("gunner", Faction.MARINE, UnitType.MARINE,
-                SHOOTER_X, ROW).integralSystem(pod));
-        // Durable rather than merely alive: the pod must still have something
-        // to spend its whole rack on. A hostile that dies to the first salvo
-        // would leave later ammo stranded with nothing to fire at — a real
-        // battlefield outcome, but not what these tests are checking.
-        sim.spawn(new EntitySpec("hostile", Faction.DEFENDER, UnitType.MILITIA,
-                TARGET_X, ROW).moveSpeed(0f).health(SURVIVES_THE_WHOLE_RACK));
+        long shooter = carrier(sim);
+        hostile(sim, atStandoff());
 
         int ticks = 0;
-        while (sim.integralSystems().ammo(shooter) > 0 && ticks < 6000) {
+        while (sim.world().secondaryAmmo(shooter) > 0 && ticks < 6000) {
             sim.advance(BattleSimulation.TICK_DT);
             ticks++;
         }
+        assertEquals(0, sim.world().secondaryAmmo(shooter), "the pod should have run dry");
 
-        assertEquals(0, sim.integralSystems().ammo(shooter), "the pod should have run dry");
-        assertFalse(sim.integralSystems().canActivate(shooter), "a dry pod cannot activate again");
-        assertTrue(sim.telemetry().roundsFired(shooter) > 0,
-                "running the pod dry means it actually fired at some point");
-
-        int roundsWhenDry = sim.telemetry().roundsFired(shooter);
+        int salvosWhenDry = sim.telemetry().secondaryUsed(shooter);
         for (int i = 0; i < 300; i++) sim.advance(BattleSimulation.TICK_DT);
-
-        assertEquals(0, sim.integralSystems().ammo(shooter), "the pod stays dry for the rest of the battle");
-        assertEquals(roundsWhenDry, sim.telemetry().roundsFired(shooter),
-                "a dry pod fires no further rounds");
+        assertEquals(0, sim.world().secondaryAmmo(shooter), "the pod stays dry for the rest of the battle");
+        assertEquals(salvosWhenDry, sim.telemetry().secondaryUsed(shooter), "a dry pod fires no further salvos");
     }
 
     /**
-     * Ordinary friendly-fire discipline, as the shipped explosive specials
-     * already have: a friendly caught in the splash takes damage recorded as
-     * its own quantity, distinct from (and not netted against) the damage
-     * credited against the intended hostile.
-     *
-     * <p>Fire discipline would hold this salvo, so the scene is built under
-     * the {@code battle.fire.laneDiscipline} control: the accounting still
-     * matters for a friend who walks into a burst while it is in flight.
+     * The rule the pod exists for as a secondary: a salvo never opens the hand's channel, so the
+     * carrier keeps the primary up and keeps firing it through every launch.
      */
     @Test
-    void collateralIsRecordedAsItsOwnQuantityNotNettedAway() {
-        IntegralSystemDef pod = pod();
-        BattleSimulation sim;
-        String discipline = System.setProperty("battle.fire.laneDiscipline", "false");
-        try {
-            sim = arena();
-        } finally {
-            if (discipline == null) System.clearProperty("battle.fire.laneDiscipline");
-            else System.setProperty("battle.fire.laneDiscipline", discipline);
-        }
-        long shooter = sim.spawn(new EntitySpec("gunner", Faction.MARINE, UnitType.MARINE,
-                SHOOTER_X, ROW).integralSystem(pod));
-        // Durable rather than merely alive: the pod must still have something
-        // to spend its whole rack on. A hostile that dies to the first salvo
-        // would leave later ammo stranded with nothing to fire at — a real
-        // battlefield outcome, but not what these tests are checking.
-        sim.spawn(new EntitySpec("hostile", Faction.DEFENDER, UnitType.MILITIA,
-                TARGET_X, ROW).moveSpeed(0f).health(SURVIVES_THE_WHOLE_RACK));
-        // A squadmate standing right on top of the intended target — well
-        // inside any plausible micro-missile warhead radius — so the splash
-        // cannot help but catch them too.
-        sim.spawn(new EntitySpec("bystander", Faction.MARINE, UnitType.MARINE,
-                TARGET_X, ROW).moveSpeed(0f));
-
-        int ticks = 0;
-        while (sim.integralSystems().ammo(shooter) > 0 && ticks < 6000) {
+    void firingThePodNeverTakesThePrimaryOutOfTheHands() {
+        BattleSimulation sim = arena();
+        long shooter = carrier(sim);
+        hostile(sim, atStandoff());
+        String podWeapon = pod().weaponId();
+        int start = sim.world().secondaryAmmo(shooter);
+        int primaryShotsAfterSalvo = 0;
+        for (int tick = 0; tick < OBSERVATION_TICKS * 2; tick++) {
             sim.advance(BattleSimulation.TICK_DT);
-            ticks++;
+            assertEquals(0f, sim.world().secondaryActionTimer(shooter),
+                    "a shoulder pod must never start the hand's aim-then-fire channel");
+            if (sim.world().secondaryAmmo(shooter) == start) continue;
+            for (ShotEvent shot : sim.getShotsThisFrame()) {
+                if (shot.shooterId == shooter && shot.primaryWeaponDef != null
+                        && !podWeapon.equals(shot.primaryWeaponDef.id)) primaryShotsAfterSalvo++;
+            }
         }
-        // Detonations fire on a short flight-time delay behind the salvo that
-        // emptied the rack; give the last one time to land.
-        for (int i = 0; i < 300; i++) sim.advance(BattleSimulation.TICK_DT);
-
-        assertTrue(sim.telemetry().damageDealt(shooter) > 0f,
-                "the pod's salvo should have damaged its intended target");
-        assertTrue(sim.telemetry().friendlyFireDamage(shooter) > 0f,
-                "a bystander standing in the blast should be recorded as friendly fire,"
-                        + " the same discipline the shipped explosive specials already have");
+        assertTrue(sim.world().secondaryAmmo(shooter) < start, "fixture: the pod fired");
+        assertTrue(primaryShotsAfterSalvo > 0, "the primary keeps firing once the pod has launched");
     }
 
-    /** The rule stated twice in the story: a marine with a pod still has their grenades. */
+    /** A contact already on top of the carrier is past the pod's moment; one at standoff is it. */
     @Test
-    void theBilletsCarriedSpecialItemIsUnaffectedThroughout() {
-        IntegralSystemDef pod = pod();
+    void aSightedContactAtStandoffIsThePodsMoment() {
+        assertTrue(podSpendsASalvo(atStandoff(), 0), "a sighted contact at standoff is the pod's moment");
+        assertFalse(podSpendsASalvo(2, 0), "a contact already on top of the carrier is past it");
+    }
+
+    /**
+     * Fire discipline on a delivered payload: a friend between the rail and its target is where
+     * the salvo would burst, so the pod holds and spends nothing; the same friend behind changes
+     * nothing.
+     */
+    @Test
+    void aFriendInTheLaneHoldsTheSalvo() {
+        int hostile = atStandoff();
+        assertFalse(podSpendsASalvo(hostile, hostile / 2), "a salvo through a friend's back is never spent");
+        assertTrue(podSpendsASalvo(hostile, -3), "a friend clear of the lane does not hold it");
+    }
+
+    private static boolean podSpendsASalvo(int hostileDistance, int friendDistance) {
         BattleSimulation sim = arena();
-        int carriedAmmo = 3;
-        // Hardened-direct-fire AI never spends this on a soft militia target,
-        // so any change in its ammo can only be the pod's own bookkeeping
-        // leaking into the wrong column.
-        long shooter = sim.spawn(new EntitySpec("gunner", Faction.MARINE, UnitType.MARINE,
-                        SHOOTER_X, ROW)
-                .integralSystem(pod)
-                .specialEquipment(SpecialEquipmentRegistry.require(
-                        SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), carriedAmmo));
-        // Durable rather than merely alive: the pod must still have something
-        // to spend its whole rack on. A hostile that dies to the first salvo
-        // would leave later ammo stranded with nothing to fire at — a real
-        // battlefield outcome, but not what these tests are checking.
-        sim.spawn(new EntitySpec("hostile", Faction.DEFENDER, UnitType.MILITIA,
-                TARGET_X, ROW).moveSpeed(0f).health(SURVIVES_THE_WHOLE_RACK));
-
-        int ticks = 0;
-        while (sim.integralSystems().ammo(shooter) > 0 && ticks < 6000) {
-            sim.advance(BattleSimulation.TICK_DT);
-            ticks++;
+        long gunner = carrier(sim);
+        int start = sim.world().secondaryAmmo(gunner);
+        hostile(sim, hostileDistance);
+        if (friendDistance != 0) {
+            sim.spawn(new EntitySpec("friend", Faction.MARINE, UnitType.MILITIA, CARRIER_X + friendDistance, ROW)
+                    .moveSpeed(0f).hp(SURVIVES_THE_WHOLE_RACK).maxHp(SURVIVES_THE_WHOLE_RACK));
         }
-
-        assertEquals(0, sim.integralSystems().ammo(shooter), "fixture assumption: the pod ran dry");
-        assertEquals(carriedAmmo, sim.world().secondaryAmmo(shooter),
-                "the billet's carried special item must be untouched by the pod firing");
+        for (int i = 0; i < OBSERVATION_TICKS; i++) sim.advance(BattleSimulation.TICK_DT);
+        return sim.world().secondaryAmmo(gunner) < start;
     }
 }

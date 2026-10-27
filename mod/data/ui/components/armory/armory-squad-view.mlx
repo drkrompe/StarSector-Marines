@@ -2,10 +2,12 @@
   <!-- The squad as every armoury screen shows it (Loadout, First Refit): three fire
        teams of two by two, each marine named by rank and role, five numbers (green
        where they improve, red where they fall) beside a square portrait of the kit
-       they would wear, then their four kit lines as carried now with an arrow to what
-       the selected card would issue.
+       they would wear, then their four kit lines (Primary, Secondary, Armor, Equipment),
+       each a 1x2 kit brick (one row of two) as hardware is in the Mech Lab and the Boat
+       Deck, carried now with an arrow to what the selected card would issue. A brick is
+       unnamed: hovering one opens its sheet.
        Fed by LoadoutInspection.project; hovers by ArmorySpecSheets.bindInspection;
-       portraits by LoadoutInspection.bindPortraits. layout="loadout-billets" stands
+       portraits and bricks by LoadoutInspection.bindCanvases. layout="loadout-billets" stands
        the teams side by side as columns. -->
   <div id="loadout-billets" class="{layout}">
     <div each="team in inspection.teams" key="{team.id}" id="{team.id}" class="loadout-team">
@@ -27,15 +29,12 @@
             </div>
             <div class="loadout-member-parts" id="{billet.partsId}">
               <div each="part in billet.parts" key="{part.id}" id="{part.id}" class="{part.classes}">
-                <div id="{part.tickId}" class="loadout-part-tick" />
-                <div id="{part.socketId}" class="loadout-part-socket">
-                  <img id="{part.iconId}" class="{part.iconClasses}" src="{part.icon}" />
-                </div>
-                <div id="{part.textId}" class="loadout-part-text">
-                  <div id="{part.nowId}" class="{part.nowClasses}">{part.now}</div>
-                  <div id="{part.nextRowId}" class="{part.nextRowClasses}">
-                    <img id="{part.arrowId}" class="loadout-part-arrow" src="{part.arrow}" />
-                    <div id="{part.nextId}" class="loadout-part-next-name label tone-edge">{part.next}</div>
+                <div id="{part.labelId}" class="loadout-part-label label">{part.label}</div>
+                <div id="{part.bricksId}" class="loadout-part-bricks">
+                  <canvas id="{part.brickId}" class="loadout-part-brick" width="64" height="42" />
+                  <div id="{part.brickChangeId}" class="{part.brickChangeClasses}">
+                    <img id="{part.brickArrowId}" class="loadout-part-arrow" src="{part.arrow}" />
+                    <canvas id="{part.brickNextId}" class="loadout-part-brick" width="64" height="42" />
                   </div>
                 </div>
               </div>
@@ -57,29 +56,21 @@
   .loadout-member-name { height: 16px; overflow: hidden; font-family: heading; }
   .loadout-member-head { flex-direction: row; height: 76px; gap: 6px; }
   .loadout-member-portrait { width: 76px; height: 76px; pointer-events: none; border-width: 1px; border-color: #050809; background-color: #0c1213; }
-  /* The kit lines sit in a black well, as the Mech Lab stores do; each is a mount: a stores card's frame, the slot's accent on a tick,
-     the item sunk in a dark socket; an empty slot fades into the card, a changing one is brass. */
+  /* The kit lines sit in a black well, as the Mech Lab stores do; each is a mount: a stores card's
+     frame with its slot's name over its brick; an empty slot fades into the card, a changing one is brass. */
   /* A pit sunk into the card: the bevel puts its lip in shadow at the top and left and catches the
      light at the bottom and right, and the floor darkens under the top lip. */
   .loadout-member-parts { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; padding: 0px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; background-image: linear-gradient(to bottom, #000000c0 0%, #00000000 14%); }
-  .loadout-part { flex-direction: row; align-items: center; height: 0px; flex-grow: 1; gap: 4px; padding: 0px 3px 0px 0px; border-width: 2px; border-style: outset; border-color: #3a4745; background-color: #1b2427; }
+  .loadout-part { flex-direction: column; justify-content: center; height: 0px; flex-grow: 1; gap: 1px; padding: 0px 4px; border-width: 2px; border-style: outset; border-color: #3a4745; background-color: #1b2427; }
   .loadout-part.empty { border-style: solid; background-color: #1b242755; border-color: #2a333360; }
   .loadout-part.changes { background-color: #241e12; border-color: #8c6a28; }
-  .loadout-part-tick { width: 3px; height: 40px; pointer-events: none; }
-  .loadout-part-weapon .loadout-part-tick { background-color: #53c6e8; }
-  .loadout-part-armor .loadout-part-tick { background-color: #dfb84d; }
-  .loadout-part-special .loadout-part-tick { background-color: #71d6c1; }
-  .loadout-part-system .loadout-part-tick { background-color: #c79ce8; }
-  .loadout-part.empty .loadout-part-tick { opacity: 0.35; }
-  .loadout-part-socket { flex-direction: column; align-items: center; width: 40px; height: 40px; padding: 1px; border-width: 1px; border-color: #050809; background-color: #0d1214; pointer-events: none; }
-  .loadout-part-icon { width: 36px; height: 36px; pointer-events: none; }
-  .loadout-part-icon.loadout-part-icon-absent { width: 36px; height: 0px; }
-  .loadout-part-text { flex-direction: column; width: 0px; flex-grow: 1; overflow: hidden; }
-  .loadout-part-now { white-space: normal; overflow: hidden; }
-  .loadout-part-next { flex-direction: row; height: 28px; gap: 3px; align-items: start; }
-  .loadout-part-next .loadout-part-arrow { padding: 2px 0px; height: 14px; }
+  .loadout-part-label { height: 13px; color: #8b9aaf; pointer-events: none; }
+  /* A brick is the one size every fitting room draws hardware at (FittingBricks: 40px on a
+     1080-line document); a mount is 1x2, one row of two. */
+  .loadout-part-bricks { flex-direction: row; align-items: center; height: 42px; gap: 6px; pointer-events: none; }
+  .loadout-part-brick { width: 64px; height: 42px; pointer-events: none; }
+  .loadout-part-brick-change { flex-direction: row; align-items: center; width: 86px; height: 42px; gap: 6px; pointer-events: none; }
   .loadout-part-arrow { width: 10px; height: 10px; pointer-events: none; }
-  .loadout-part-next-name { width: 0px; flex-grow: 1; min-height: 28px; white-space: normal; overflow: hidden; }
   .loadout-member-stats { flex-direction: column; width: 0px; flex-grow: 1; height: 75px; }
   .loadout-member-stat { flex-direction: row; height: 15px; gap: 2px; align-items: center; }
   .loadout-stat-label { width: 40px; }

@@ -46,13 +46,13 @@ import java.util.stream.Stream;
  *
  * <p>West of the landing apron lies {@link #APPROACH} cells of open approach ground ({@link #approach}): the basin's
  * flats with the transfer road running on inland north of the ridge, and rim country south of it. Nothing of the
- * ground fight is out there; it is the ground Rusk's ships cross, sized so that they enter outside their own reach of
+ * ground fight is out there; it is the ground Dormer's ships cross, sized so that they enter outside their own reach of
  * Greyhook's pads.
  */
 public final class BlackSluice {
     /**
      * The open approach ground west of the landing apron, in cells: the outer Silt Basin's flats and the broken rim
-     * country south of them, which Rusk's ships fly in across. Every place of the station lies this far east of the map's
+     * country south of them, which Dormer's ships fly in across. Every place of the station lies this far east of the map's
      * west edge. Sized off the hull fight's reach ({@link #approach}).
      */
     public static final int APPROACH = 160;
@@ -221,7 +221,7 @@ public final class BlackSluice {
      * overlapping lobes and spurs of different heights broken by gullies, with outcrops standing out on the flats
      * below. Scree fans spill from the toes and regolith drifts blend the rock into the open ground.
      *
-     * <p>West of the station lies the approach ({@link #approach}): the open country Rusk's ships fly in across.
+     * <p>West of the station lies the approach ({@link #approach}): the open country Dormer's ships fly in across.
      */
     private static void terrain(GenContext c) {
         TargetProfile profile = c.get(BspKeys.MARKET_PROFILE);
@@ -287,7 +287,7 @@ public final class BlackSluice {
      * The approach west of the apron, in map cells. It is sized by the hull fight rather than the ground fight: it
      * was sized for a Wolf (H)'s battery of about two hundred cells, when two Wolfs crossing an edge at the station
      * had the western Hound in reach as it lifted. {@link #APPROACH} puts the nearest of Greyhook's pads three hundred
-     * cells from the edge; an Enforcer's battery reaches two hundred and seventy, so Rusk's ships are still sighted
+     * cells from the edge; an Enforcer's battery reaches two hundred and seventy, so Dormer's ships are still sighted
      * crossing the edge outside their reach and close for most of a minute before a gun bears.
      *
      * <p>Two kinds of ground. North of the ridge the outer basin's floor runs on from the landing apron as open silt
@@ -303,7 +303,7 @@ public final class BlackSluice {
         strokes.add(raise(6.5, 0, 91, 18, 88, 38, 85, 58, 89, 80, 92, 100, 88, 120, 85, 140, 89, APPROACH, 88));
         for (double[] knoll : new double[][]{{12, 88, 8}, {48, 86, 8.5}, {88, 91, 8}, {126, 87, 8.5}})
             strokes.add(raise(knoll[2], knoll[0] - 6, knoll[1] - 1, knoll[0] + 6, knoll[1] + 1));
-        // The rim country under Rusk's line of approach: backs off the south and west edges, a mass in the corner.
+        // The rim country under Dormer's line of approach: backs off the south and west edges, a mass in the corner.
         strokes.add(raise(22, 0, 0, 0, 60));
         strokes.add(raise(14, 0, 60, 0, 82));
         strokes.add(raise(16, 0, 0, APPROACH, 0));

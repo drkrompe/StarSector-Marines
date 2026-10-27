@@ -399,10 +399,9 @@ defender read its dead neighbour's "visible" for one tick. The roster now
 tells the fog when a release moves a unit's slot (`UnitRosterService.onSlotMoved`),
 so the visibility moves with the unit; the scene still reads whether the
 defender's cell is revealed, which is the question it asks. Chasing it turned up a real
-leak on the way: a marine suit's sensor sweep hands the fog a wall-read radius,
-and the cast took any read radius as airborne, so a sweep at the cliff foot saw
-the whole plateau. A ground sweep now reads past higher ground only within its
-radius.
+leak on the way: a ground source with a wall-read radius was cast as airborne,
+so it saw the whole plateau from the cliff foot. A ground source now reads past
+higher ground only within its radius.
 
 `MechAttachmentScene` (`mech-attachment`) attaches a Brawler Hound and a Long-Range Warden to a four-man squad
 attack-moving east on open ground that halts in sight of a defender post and trades fire from range

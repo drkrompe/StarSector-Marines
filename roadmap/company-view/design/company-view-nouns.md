@@ -4,6 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
+Updated: 2026-10-27 — the shoulder pod is the SRM-POD special, a missile-green secondary brick, not a suit system.
+
 Updated: 2026-10-22 — a squad's kit is its two cards; Barracks cards lead with them, and filling vacancies is a wrench on the card or beside the select toggle.
 
 ## Purpose
@@ -107,7 +109,9 @@ shared mapping instead of assigning paths independently in each screen.
   which is seats; emitter, the shield's arc and flux per hit; and power, the flux
   pool's capacity and venting. Each slot has a standard fitting every boat is
   built with and up to three upgrade tiers; a lift tier goes only on a boat that
-  does not already lift as much. The battle reads every slot (`air-nouns.md`,
+  does not already lift as much. The cabin has no upgrade tier: its stock part
+  seats the pattern's own complement, and on the Hermes that is one whole
+  twelve-marine squad, the company's minimum drop. The battle reads every slot (`air-nouns.md`,
   Fitted boat). The emitter's three tiers are the **low-tech, midline and
   high-tech shields**: wider arcs and less flux per blocked hit, each with its
   own price and its own look (orange, teal, blue). Planned: art of their own for
@@ -174,7 +178,8 @@ shared mapping instead of assigning paths independently in each screen.
 - **Scrapped machine** — a boat, mech or vehicle the company broke up to free its
   berth or gantry. Everything fitted goes to stores, and its **hull** — its price less
   the stock parts it was built with, which came back on their own — returns at the
-  shop's recycling rate.
+  shop's recycling rate. A Hermes cannot be scrapped for now (owner, 2026-10-27): a
+  company that breaks up its gig and cannot afford another is left with no lift.
 - **Reserve hangar** — the company's store of whole machines: boats, mechs and
   vehicles taken off their berths and gantries with their identity, callsign, fit
   and repair clock intact. A stored machine flies and fights nothing, so no battle
@@ -201,7 +206,7 @@ shared mapping instead of assigning paths independently in each screen.
 New optional company opportunities publish an unread marker on their destination
 room tab. The contract board also exposes a direct preparation detour so a player
 moving straight from one mission to the next can discover them. Second-bay
-restoration, the first Armory refit and Wayward's gantry induction
+restoration, the first Armory refit and the Hound's gantry induction
 have independent saved read receipts. Opening the actual offer or lesson clears
 its receipt; entering an unrelated room does not. Reviewing spends nothing and
 does not require finishing the purchase or tutorial. Completed opportunities stop
@@ -341,7 +346,7 @@ Other weapon families, specialist suits, and special equipment must be learned.
 Existing saves keep every previously acquired spec.
 
 Wayline offers one free technology transfer: Steady Line permanently teaches
-Milspec Stalwart; Forward Screen teaches Milspec Lancer and Janus scout suits.
+Milspec MG-SUPP; Forward Screen teaches Milspec AR-PULSE and ARM-TACH-2-RCN scout suits.
 Acceptance grants reusable plan intent for both paths, but only the chosen path's
 technology. The other remains obtainable through open-market specs or mission
 rewards. Both featured Milspec specs circulate in the Common access band; military
@@ -361,7 +366,7 @@ acquisition remains the progression gate. Workshop restoration does not gate fit
 
 After Relief, Castle's portrait reward prompt appears over the debrief before its
 ordinary controls accept input. It leads with the free technology, shows the actual
-Stalwart/Lancer/Janus art, and offers one compact **Choose Free Technology**
+MG-SUPP/AR-PULSE/ARM-TACH-2-RCN art, and offers one compact **Choose Free Technology**
 action. Neither the prompt nor the equipment lesson offers a Later button. Escape defers only the prompt; it never dismisses or settles the debrief.
 The prompt does not learn technology. Its primary action opens the full comparison;
 a company with one line squad has that squad selected automatically.
@@ -409,7 +414,9 @@ so a player reads the same thing the same way wherever it appears:
   crest, issuer stamp with the Restricted banner, metered rating, the fire-team seat
   picture). It is the card in the Loadout stores and First Refit's choices (both a
   left-hand column beside the squad view), and the sheet a card opens on hover
-  anywhere;
+  anywhere. A card in the stores lists what it issues as **kit bricks**, one per
+  item with only its count beside it: a weapon card each primary and each
+  secondary, an Equipment card each suit and each integral system they carry;
 - the **issued-card chip**: a card at a glance (face, name, Firepower or Protection
   Rating, the Restricted seal). Barracks stacks two compact chips on each squad
   card, and the Loadout squad view opens on the same two at full size;
@@ -418,11 +425,26 @@ so a player reads the same thing the same way wherever it appears:
   field, so 100% is the best kit that exists rather than the best the company owns;
 - the **squad view**: the twelve marines as three fire teams of two by two, each
   with a portrait
-  of the kit they would wear, four kit lines (primary weapon, armour, special
-  equipment, integral system) giving what they carry now with an arrow to what the
-  selected card would issue, and five numbers (sustained output, range,
+  of the kit they would wear, four kit lines marked Primary, Secondary, Armor and
+  Equipment (the suit's integral system), each a kit brick, giving what they carry now with an arrow to what the selected card would
+  issue, and five numbers (sustained output, range,
   penetration, armour, movement) now and proposed, the arrow green where the number
   improves and red where it falls; weapon figures use that marine's own profile;
+- the **kit brick**: each piece of a marine's kit is a mount in the fitting rooms'
+  hardware language, so the Mech Lab, the Boat Deck and the Armory read alike.
+  Each is a 1x2 brick-stack, one row of two, at the one brick size (`FittingBricks`).
+  A weapon is the colour of what it throws, read off its data by `Ordnance` as the
+  battle HUD reads it: ballistic yellow, energy red-orange, missile green; a
+  secondary that fires nothing is utility teal, a suit plating grey and its integral
+  system flux violet, as the Mech Lab colours a frame's own parts. The item's armoury art lies along
+  it, long guns turned level by the angle their art lies at (the primaries' shared
+  diagonal, a special's authored `armoryIconLie`). An empty mount is a dark
+  recess. A brick carries no name: hovering it opens the item's sheet, and in
+  the squad view a change reads as the brick carried now, an arrow and the brick
+  the card would issue. The secondary is the marine's special item (the SRM-1
+  rockets and the SRM-POD shoulder pod are missile green; a suit's integral
+  system is only ever a shield or a medic's kit now); the bricks do not move,
+  they only show what a card issues;
 - the **licence keys**: tabs, filters and actions on and around cards are flat navy
   keys with the cards' edge colours (blue for a choice, gold for an action), not the
   console keys of the rest of the ship.
@@ -982,7 +1004,7 @@ workshop order consumes its own bill. Following the lesson needs no market trip.
 Deliberately pausing to spend or sell those stores elsewhere can still create a
 shortfall; the lesson never manufactures resources or overrides a workshop refusal.
 
-Lieutenant Sabine Hale is the recurring founding field commander. She commanded
+Lieutenant Morgan Hale is the recurring founding field commander. She commanded
 the escort section on Harker's Claim's ore runs, and the twelve who stayed with
 her when the operator stopped paying for escorts became the company's first
 squad. She values clear orders and a counted muster. Her ordinary appointment,
@@ -993,15 +1015,15 @@ voice, so a lost battle that would kill another officer wounds her instead, for
 the same time as any wiped officer. The dossier retains her authored background
 and dedicated female portrait.
 
-After commissioning, Castle introduces Sabine's portrait and guides an actual
+After commissioning, Castle introduces Morgan's portrait and guides an actual
 specialty choice. Barracks then guides the ordinary twelve-Marine, 36-supply,
 24-food founding transaction on its Raise Squad tile, which includes baseline field
-kit; with Sabine's command open the squad musters straight into it. A squad that
+kit; with Morgan's command open the squad musters straight into it. A squad that
 reached Barracks unassigned is homed through the capacity-checked Assign Selected
 button on the commander card.
 Completion requires a current company ship with owned lift, an actually trained
 officer, and a full ready available squad assigned to that officer, followed by
-acknowledgement. It returns to the retained briefing, or to HQ's existing Mara
+acknowledgement. It returns to the retained briefing, or to HQ's existing Zoey
 Venn course/contact lead for Hold Until Relieved, canonically on Jangala.
 The accessible-office policy remains the mission domain's authority.
 
@@ -1011,7 +1033,7 @@ squad founding and assignment. Ship selection, specialty training, squad
 founding and assignment remain real orders. The opening lesson has no Later
 control and Escape does not dismiss it. Return to campaign remains available for
 travel or resupply; the required lesson returns on re-entry. Advancing dialogue
-cannot substitute for real orders. The lesson always belongs to Sabine, since
+cannot substitute for real orders. The lesson always belongs to Morgan, since
 she cannot be lost; no other officer takes it over.
 
 Legacy companies without induction stay exempt; existing officer-only lessons
@@ -1137,8 +1159,8 @@ carries campaign-shaped identity without touching campaign state.
 
 For ordinary generated one-shot missions, the selected ready named personnel
 are the deployment manifest even when the player fields less than the tier
-recommendation. The briefing exposes selected headcount, the four-person hard
-minimum, recommended squads, and issued experience-band distribution; it never
+recommendation. The briefing exposes selected headcount, the hard minimum of one
+ready marine (none when a bay machine drops), recommended squads, and issued experience-band distribution; it never
 fills missing seats with anonymous generated marines. Authored missions,
 stationing, and Conquest keep their own personnel requirements.
 
@@ -1228,7 +1250,8 @@ billet identity remains unchanged.
 ## Lift and arrival
 
 Hull capacity is a physical maximum, not a promise that every mission fills the
-hold. Small lifts have four seats, medium lifts eight, and the Valkyrie twelve.
+hold. Small lifts have four seats, medium lifts eight, and the Hermes and the
+Valkyrie twelve.
 The mission arrival policy owns the embarked seats per sortie. An ordinary
 generated mission freezes only the selected named personnel, so its final craft
 or final pass may carry fewer marines than the hull maximum and all force,
@@ -1408,7 +1431,7 @@ The retained bridge dashboard has four concerns:
   follows persistent affiliation, never a guess from its name. Receiver motion,
   selection and effect timing remain view-local and survive document refresh.
 
-HQ also presents roster-derived directions to Mara Venn's opening work, canonically
+HQ also presents roster-derived directions to Zoey Venn's opening work, canonically
 on Jangala: her portrait and Independent crest, current planet/system, mission,
 payment, preparation advice and local client route. Plot Course sets the ordinary
 campaign navigation destination and dismisses HQ. The notice advances after Relief
@@ -1421,7 +1444,7 @@ success, and shows the selected recurring arrangement after closure. Full
 historical rescue counts and story/recurring awards remain in the broker dossier;
 HQ uses a compact status and navigation lead, never a second progression record.
 
-After the supply-route account closes, the Corvus Account lead follows Mara's
+After the supply-route account closes, the Corvus Account lead follows Zoey's
 current chapter to Asharu, Warion and Garnir. Its course target and local offer
 share the chapter's exact destination. Unavailable worlds disable navigation
 with an explanation; completion retains the finite arc's paid record and
@@ -1475,7 +1498,7 @@ barbs and her attention to the repairs carry that relationship into the yard vis
 This personal help is not a promise of Hegemony protection. Harker's Claim and Nessa
 are authored backstory, not new sector entities or additional mission prerequisites.
 There is one story for every start port (owner, 2026-10-20): when the start
-lands elsewhere because Jangala is unavailable, Castle, Nessa and Mara still speak
+lands elsewhere because Jangala is unavailable, Castle, Nessa and Zoey still speak
 of Jangala, and only the course, objective, Intel and mission text that names a
 place uses the actual accessible destination. Its final action plots
 that course and returns to the campaign. The Intel log retains the origin and
@@ -1495,7 +1518,7 @@ designates her as the company ship without a transfer screen: she is the hull th
 conversion was bought for and her deck is pinned (`second-wind-refit-tree.md`), so
 there is no choice to offer, and her deck is laid out ahead of the first visit. The
 automatic designation still passes the ordinary preparation preflight; a refusal
-leaves the ordinary transfer choice. Designation resumes Sabine, squad founding and
+leaves the ordinary transfer choice. Designation resumes Morgan, squad founding and
 assignment.
 
 The Cerberus opening names **Mercenary Company Conversion** explicitly and directs
@@ -1510,7 +1533,7 @@ personnel places and trades away 25 cargo; the remaining damaged rooms, second
 bay and Mech Lab stay damaged. The planet interaction remains alive as the docking
 and depot authority. The opening is one walk over that dialog, never a trip back
 through its menu: the Jangala arrival hands straight on to the yard storybook, and a
-storybook closed after paying hands straight on to Marine operations at Sabine's
+storybook closed after paying hands straight on to Marine operations at Morgan's
 induction. The ordinary port menu returns only when the player leaves Marine
 operations, or leaves the yard before paying. Finishing the preparation opens the
 mission board, since the company's next step is its first contract. Until the
@@ -1552,7 +1575,7 @@ stores rather than claiming every counted item is in the hold.
 
 Leaving a room or its planet dialog spends no stores and completes no preparation
 step. Re-entering through the company shortcut, mission board, or a direct room
-link resumes the required step derived from the saved company: ship, Sabine,
+link resumes the required step derived from the saved company: ship, Morgan,
 formation, then assignment. After Relief the first-lift lesson resumes the same
 way from the saved boat deck until a seated boat is airworthy or Counterattack is
 won, and sends the company back to the depot when the Hermes credit is ashore. HQ may present the same guided handoff. Required
@@ -1633,7 +1656,7 @@ also be repaired here through its existing yard authority.
 
 The original hull reserves a four-berth Mech Lab as a sealed wreck until **Take
 Back the Depot**, the second story mission. Completion opens the room and restores
-berth one with Wayward's recovery, so the first-mech fitting lesson opens into a
+berth one with the Hound's recovery, so the first-mech fitting lesson opens into a
 working bay without another bill. The completed chapter is the durable first-berth
 repair fact, including on older saves.
 
@@ -1894,7 +1917,7 @@ not become their authority or introduce a second clock lifecycle.
 `CampaignLessons` derives post-Relief guidance from `FirstRefit`, `MechBay` and
 `CampaignLessonProgress` on `MarineRoster`. HQ, Barracks and briefing present the
 next unfinished handoff; Equipment hosts the actual first issue and Barracks the founding,
-and Mech Lab reselects Wayward when reopening an unfinished fitting exercise.
+and Mech Lab reselects the Hound when reopening an unfinished fitting exercise.
 The portrait popover uses `PreparationGuide` and real `UiSpotlight` apertures.
 Return/navigation remains available for resupply; leaving never completes work.
 Barracks suspends its general management advice while campaign guidance is
@@ -1902,7 +1925,7 @@ present, preserving the required founding induction's precedence.
 
 First Refit still requires its ordinary technology claim and actual equipment
 issue. The gantry lesson uses the existing once-only SRM and fit/remove/refit
-receipts. Missing Wayward does not trap the company at a nonexistent gantry.
+receipts. Missing the Hound does not trap the company at a nonexistent gantry.
 Optional investments are explanatory: no second bay, shuttle upgrade or paid
 workshop restoration is required by these lessons. Two-formations preparation
 uses the existing real founding bill, wounded billets and deployment minimum.

@@ -13,7 +13,7 @@ import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 import java.util.Map;
 
-/** Hull repairs own payment; mission two supplies Mech Lab restoration with Wayward's transfer. */
+/** Hull repairs own payment; mission two supplies Mech Lab restoration with the Hound's transfer. */
 public final class CompanyShipRestoration {
     public enum Work {
         BILLETS(4_000), POWER(3_000), MESS_HALL(2_500),

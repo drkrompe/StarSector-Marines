@@ -27,7 +27,7 @@ class PreparationDepotTest {
         MutableValue purse = new MutableValue(0);
         Resources resources = new Resources(new WorkshopStores(cargo(cargo, purse), depot, Purpose.PREFLIGHT));
         MarineRoster roster = new MarineRoster();
-        MarineCaptain sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+        MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
         roster.add(sabine); roster.beginCompanyPreparation(sabine);
         assertTrue(CompanyPreparation.canPrepare(roster, ShuttleType.HERMES, 1, resources, resources));
         resources = new Resources(new WorkshopStores(cargo(cargo, purse), depot, Purpose.BOAT));

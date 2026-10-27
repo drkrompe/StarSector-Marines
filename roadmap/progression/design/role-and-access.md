@@ -250,10 +250,10 @@ vocabulary would already retire them:
 
 A fourth is adopted: **support** — the marine carrying the heavy or indirect
 weapon, and whatever else the squad needs carried for it.
-`integral-system-slate.md` records that the micro-missile pod's home was "a
-deliberate choice among three plausible homes" before settling on a *line* suit,
-which is what having nowhere to put it looks like. The Aegis is that role's first
-member, and the pod stops being a line suit's oddity.
+The micro-missile pod once sat on a *line* suit as an integral system, which is
+what having nowhere to put it looks like; it is now the SRM-POD carried special
+(`progression-nouns.md`, Shoulder pod), issued to whichever billet the weapons
+card names, and the support suits are plain armour.
 
 The vocabulary is therefore `ArmorRole`: UNPOWERED, RECON, LINE, ASSAULT,
 SUPPORT. It is closed and validated at parse time, which is what makes the
@@ -271,11 +271,11 @@ an appearance family and a tier icon that already shipped:
 | Pattern | Role | Tier | Tradition | Carries |
 | --- | --- | --- | --- | --- |
 | Kestrel riot shell | assault | II | Corporate security surplus | A real shield and no shove worth the name |
-| Packframe support harness | support | II | Independent crews | One rocket on a welded rail |
+| Packframe support harness | support | II | Independent crews | Plate hung on a cut-down cargo frame; carries nothing of its own |
 | Pathfinder recon suit | recon | III | Hegemony | A survey array that reads further than a Janus and announces itself doing it |
 | Redoubt siege plate | line | IV | Hegemony | The steadiest brace anyone fields, because it was never going anywhere |
 | Outrider deep-recon suit | recon | IV | Persean League | The deepest return anyone fields, built to be shared |
-| Arbalest support battlesuit | support | IV | Hegemony | Four rounds and a doctrine for spending them |
+| Arbalest support battlesuit | support | IV | Hegemony | A powered frame for whatever the section hands it; carries nothing of its own |
 
 The Redoubt shipped carrying nothing, and that was honest at the time: the LINE
 role had no capability at all, and inventing one for the top of its ladder would

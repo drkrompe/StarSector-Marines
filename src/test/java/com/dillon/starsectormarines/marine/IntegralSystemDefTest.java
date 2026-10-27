@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.marine;
 
-import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -11,13 +10,13 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
-import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -149,90 +148,8 @@ class IntegralSystemDefTest {
                 () -> IntegralSystemDef.parse(
                         breacherAssist().put("effect", "invisibility"), "armor.test"));
         assertTrue(failure.getMessage().contains("breacher-assist")
-                        && failure.getMessage().contains("missile-pod"),
+                        && failure.getMessage().contains("field-aid"),
                 "the refusal should list the effects that do exist: " + failure.getMessage());
-    }
-
-    @Test
-    void aMissilePodParsesItsAuthoredCapability() throws JSONException {
-        IntegralSystemDef system = IntegralSystemDef.parse(missilePod(), "armor.test");
-
-        assertEquals("system.test-pod", system.id());
-        assertEquals(IntegralSystemEffect.MISSILE_POD, system.effect());
-        assertEquals(SpecialResourceMode.AMMUNITION, system.resourceMode());
-        assertTrue(system.usesAmmunition(), "a missile pod runs out, it does not wait");
-        assertEquals(2, system.startingAmmo());
-        assertNull(system.breacherAssist(), "a pod is not also a breacher");
-
-        MissilePodSpec pod = system.missilePod();
-        assertNotNull(pod);
-        assertEquals("weapon.micro-missile", pod.weaponId());
-        assertSame(WeaponRegistry.require("weapon.micro-missile"), pod.weaponDef(),
-                "the pod delegates to the one authoritative weapon definition"
-                        + " rather than duplicating its numbers");
-    }
-
-    /**
-     * The validation the breacher assist gets against cooldown
-     * ({@link #aBreacherAssistParsesItsAuthoredCapability}) mirrored for the
-     * pod's own resource mode.
-     */
-    @Test
-    void aMissilePodMustBeAmmunitionGated() throws JSONException {
-        JSONObject cooldownGated = missilePod().put("resource", "cooldown")
-                .put("cooldownSeconds", 20.0);
-        cooldownGated.remove("startingAmmo");
-
-        JSONException failure = assertThrows(JSONException.class,
-                () -> IntegralSystemDef.parse(cooldownGated, "armor.test"));
-        assertTrue(failure.getMessage().contains("ammunition-gated"), failure.getMessage());
-    }
-
-    @Test
-    void missilePodPhysicalMountIsOptionalAndParsesWithoutPresentation() throws JSONException {
-        assertNull(IntegralSystemDef.parse(missilePod(), "armor.test").missilePod().mount());
-        assertThrows(JSONException.class,
-                () -> IntegralSystemDef.parse(missilePod().put("mount", "not-an-object"), "armor.test"));
-        JSONObject mount = new JSONObject().put("rightCells", -0.25)
-                .put("forwardCells", 0.05).put("muzzleForwardCells", 0.15);
-        IntegralSystemDef system = IntegralSystemDef.parse(missilePod().put("mount", mount), "armor.test");
-        assertEquals(new MissilePodMountSpec(-0.25f, 0.05f, 0.15f), system.missilePod().mount());
-        assertNull(system.carrierLayer());
-        mount.put("muzzleForwardCells", -1);
-        assertThrows(JSONException.class,
-                () -> IntegralSystemDef.parse(missilePod().put("mount", mount), "armor.test"));
-    }
-
-    @Test
-    void aMissilePodMustNameItsWeapon() throws JSONException {
-        JSONObject noWeapon = missilePod();
-        noWeapon.remove("weaponId");
-
-        JSONException failure = assertThrows(JSONException.class,
-                () -> IntegralSystemDef.parse(noWeapon, "armor.test"));
-        assertTrue(failure.getMessage().contains("weaponId"), failure.getMessage());
-    }
-
-    @Test
-    void aMissilePodRefusesAnUnknownWeapon() throws JSONException {
-        JSONObject json = missilePod().put("weaponId", "weapon.does-not-exist");
-
-        JSONException failure = assertThrows(JSONException.class,
-                () -> IntegralSystemDef.parse(json, "armor.test"));
-        assertTrue(failure.getMessage().contains("weapon.does-not-exist"), failure.getMessage());
-    }
-
-    /**
-     * The rule this story is most at risk of breaking, pinned at parse time:
-     * a shoulder pod is infantry ordnance, never a mech-mount weapon.
-     */
-    @Test
-    void aMissilePodRefusesAMechMountWeapon() throws JSONException {
-        JSONObject json = missilePod().put("weaponId", WeaponRegistry.MECH_LRM_ARTILLERY_ID);
-
-        JSONException failure = assertThrows(JSONException.class,
-                () -> IntegralSystemDef.parse(json, "armor.test"));
-        assertTrue(failure.getMessage().contains("marine-secondary"), failure.getMessage());
     }
 
     @Test
@@ -261,9 +178,57 @@ class IntegralSystemDefTest {
     }
 
     /**
-     * Six patterns carry a breach assist and each named its own version
-     * something else. The family and the grade are what let a player compare
-     * them; without a grade a system would be a bare name again.
+     * A suit that names a shared system by {@code ref} carries that system's numbers
+     * exactly, and may lay only its own hardware presentation over them: a shield tier
+     * is defined once, so a reference that tries to retune it is refused.
+     */
+    @Test
+    void aSharedSystemIsReferencedWithItsNumbersAndOnlyThePresentationVaries() throws JSONException {
+        Map<String, JSONObject> shared = Map.of("system.shield-test", breacherAssist().put("id", "system.shield-test"));
+        JSONObject entry = plainPattern().put("battle", plainBattle()
+                .put("integralSystem", new JSONObject().put("ref", "system.shield-test")));
+
+        IntegralSystemDef carried = MarineArmorCatalogDef.parse(entry, shared).integralSystem();
+        IntegralSystemDef direct = IntegralSystemDef.parse(breacherAssist().put("id", "system.shield-test"), "armor.test");
+        assertEquals(direct.id(), carried.id());
+        assertEquals(direct.breacherAssist(), carried.breacherAssist());
+        assertEquals(direct.cooldownSeconds(), carried.cooldownSeconds(), 0f);
+        assertNull(carried.carrierLayer());
+
+        JSONObject retuned = plainPattern().put("battle", plainBattle()
+                .put("integralSystem", new JSONObject().put("ref", "system.shield-test").put("screenSoak", 99.0)));
+        assertThrows(JSONException.class, () -> MarineArmorCatalogDef.parse(retuned, shared));
+
+        JSONObject unknown = plainPattern().put("battle", plainBattle()
+                .put("integralSystem", new JSONObject().put("ref", "system.nowhere")));
+        assertThrows(JSONException.class, () -> MarineArmorCatalogDef.parse(unknown, shared));
+    }
+
+    private static JSONObject plainBattle() throws JSONException {
+        return new JSONObject()
+                .put("appearanceFamily", "CHARCOAL")
+                .put("armorCapacity", 9.0)
+                .put("armorRating", 8.0)
+                .put("moveSpeedMult", 0.96)
+                .put("incomingAccuracyMult", 0.96);
+    }
+
+    private static JSONObject plainPattern() throws JSONException {
+        return new JSONObject()
+                .put("id", "armor.shared")
+                .put("catalog", new JSONObject()
+                        .put("displayName", "Shared suit")
+                        .put("role", "assault")
+                        .put("tradition", "hegemony")
+                        .put("description", "Carries a tier.")
+                        .put("tier", 3)
+                        .put("iconPath", "graphics/ui/armory/armor-tier-3-combat.png"));
+    }
+
+    /**
+     * Ten patterns carry a breach assist across three shield tiers. The family
+     * and the grade are what let a player compare them; without a grade a system
+     * would be a bare name again.
      */
     @Test
     void everySystemDeclaresItsFamilyAndHowWellItIsMade() throws JSONException {
@@ -331,37 +296,5 @@ class IntegralSystemDefTest {
                 .put("moveSpeedMult", 1.45)
                 .put("screenSoak", 20.0)
                 .put("shieldedArcDegrees", 120.0);
-    }
-
-    @Test
-    void podRequiresPositiveAuthoredSquadSpacing() throws JSONException {
-        JSONObject missing = missilePod();
-        missing.remove("squadSalvoIntervalSeconds");
-        JSONException failure = assertThrows(JSONException.class,
-                () -> IntegralSystemDef.parse(missing, "armor.test"));
-        assertTrue(failure.getMessage().contains("squadSalvoIntervalSeconds"));
-        for (double invalid : new double[] {0.0, -1.0}) {
-            JSONObject bad = missilePod().put("squadSalvoIntervalSeconds", invalid);
-            assertThrows(JSONException.class,
-                    () -> IntegralSystemDef.parse(bad, "armor.test"));
-        }
-        assertEquals(1.5f, IntegralSystemDef.parse(missilePod(), "armor.test")
-                .sightedStandoff().squadSalvoIntervalSeconds());
-    }
-
-    private static JSONObject missilePod() throws JSONException {
-        return new JSONObject()
-                .put("id", "system.test-pod")
-                .put("grade", "milspec")
-                .put("displayName", "Predictive volley")
-                .put("description", "A brace of smart micro-missiles.")
-                .put("effect", "missile-pod")
-                .put("resource", "ammunition")
-                .put("policy", "sighted-standoff-contact")
-                .put("minimumStandoffCells", 5.0)
-                .put("squadSalvoIntervalSeconds", 1.5)
-                .put("durationSeconds", 1.0)
-                .put("startingAmmo", 2)
-                .put("weaponId", "weapon.micro-missile");
     }
 }

@@ -44,24 +44,24 @@ import java.util.function.Function;
 
 /**
  * The production Black Sluice duel ({@link BlackSluiceDuel}) on open ground the size of the Black Sluice map, without
- * the ground battle: the <i>Greyhook</i> (a Venture) alone in her cradle, Voss's order, and the pair Rusk lends, a
+ * the ground battle: the <i>Greyhook</i> (a Venture) alone in her cradle, Voss's order, and the pair Dormer lends, a
  * Hegemony Enforcer and his own Wolf, each in its refit, flying in across the west edge, heading east. The duel is the
  * production class itself, so its stations, fittings, refits, edges, route and visit are the ones the chapter plays.
  *
- * <p>Five loops, one per seed. A seed moves when the order comes and where along the west edge each of Rusk's hulls
+ * <p>Five loops, one per seed. A seed moves when the order comes and where along the west edge each of Dormer's hulls
  * flies in by a few cells, which is all the chapter's ground battle varies for the ships; everything after Voss's order
  * to run ({@link BlackSluiceDuel.BreakOff}) is the ships' own doing. Verdicts assert mechanics (both sides put rounds on
- * hulls, nobody fires on the ground, Rusk's hulls fly in on their heading and cross it outside their reach of every
+ * hulls, nobody fires on the ground, Dormer's hulls fly in on their heading and cross it outside their reach of every
  * hull of Greyhook's, the radio hears them sighted, closing and firing in that order, hears the run ordered when it is,
  * and hears the first of them, the Greyhook or the last of them go down and the Greyhook get away when they do, the
- * Greyhook fires on a hull of Rusk's in her reach, no wing launches, every hull arrives from its pad or across its
+ * Greyhook fires on a hull of Dormer's in her reach, no wing launches, every hull arrives from its pad or across its
  * side's edge, the Greyhook alone leaves and only across her own edge after the order to run, no doctrine withdraws a
  * hull, the duel concludes with her gone off the map or her wreck at rest, the battle is held open exactly until it
  * does, and a hull the edge pressure holds stays out of its edge margin to within a tolerance); whether she gets away,
  * when each hull fell, how long it lasts, the Greyhook's hull over time, breaches and mounts lost, where over the map it
- * was fought and what each side did to the other are readings, as is how long each of Rusk's hulls held the relay's
+ * was fought and what each side did to the other are readings, as is how long each of Dormer's hulls held the relay's
  * tank. A loop ends a few seconds after the duel concludes. The fight's centroid
- * is sampled every thirty seconds. Each of Rusk's shields is traced ({@link ShieldTrace}): how long it was up, overall and under fire, where the Greyhook lay off its centre line,
+ * is sampled every thirty seconds. Each of Dormer's shields is traced ({@link ShieldTrace}): how long it was up, overall and under fire, where the Greyhook lay off its centre line,
  * which rounds it blocked and which reached the hull with the shield down, rising or up but outside the arc, and what
  * dropped it.
  */
@@ -104,7 +104,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
     @Override public String id() { return "greyhook-duel"; }
 
     /**
-     * The pair Rusk lends for this play: the mission's own, each hull in order replaced by
+     * The pair Dormer lends for this play: the mission's own, each hull in order replaced by
      * {@code -Dbattle.scene.greyhookDuel.variant} ({@code hull:variant}, comma-separated, one per lent hull; a tuning
      * diagnostic, the mission is unchanged), and each hull's refit by {@code -Dbattle.scene.greyhookDuel.refit} (the
      * first hull, the Enforcer) and {@code .wolfRefit} (the second), naming {@code none} (the variant as fitted, the
@@ -160,7 +160,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
     }
 
     @Override public String label() {
-        return "The Black Sluice duel: the Greyhook (Venture) lifting alone from her cradle to fight Rusk's "
+        return "The Black Sluice duel: the Greyhook (Venture) lifting alone from her cradle to fight Dormer's "
                 + "Enforcer and Wolf, then running for the east edge, five seeds";
     }
 
@@ -249,23 +249,23 @@ public final class GreyhookDuelScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("both-sides-put-rounds-on-hulls",
                 t.damageToGreyhookSide > 0f && t.damageToRusk > 0f,
-                String.format(Locale.ROOT, "Greyhook's side took %.0f (hull and shield), Rusk's %.0f",
+                String.format(Locale.ROOT, "Greyhook's side took %.0f (hull and shield), Dormer's %.0f",
                         t.damageToGreyhookSide, t.damageToRusk)));
         int groundShots = 0;
         for (Warship hull : duel.hulls()) groundShots += hull.groundShots();
         verdicts.add(Verdict.of("nobody-fires-on-the-ground", groundShots == 0, groundShots + " ground shots"));
         verdicts.add(Verdict.of("the-greyhook-fires-on-a-rusk-hull-in-her-reach",
                 t.ruskInReach == 0 || t.greyhookShots > 0,
-                t.ruskInReach == 0 ? "none of Rusk's hulls came into her reach"
-                        : String.format(Locale.ROOT, "%d rounds, one of Rusk's hulls inside her reach for %d ticks",
+                t.ruskInReach == 0 ? "none of Dormer's hulls came into her reach"
+                        : String.format(Locale.ROOT, "%d rounds, one of Dormer's hulls inside her reach for %d ticks",
                         t.greyhookShots, t.ruskInReach)));
         verdicts.add(Verdict.of("rusk-flies-in-on-the-heading", t.ruskEntryHeadingError <= 1f,
                 String.format(Locale.ROOT, "in across the west edge at most %.1f degrees off east", t.ruskEntryHeadingError)));
         verdicts.add(Verdict.of("rusk-crosses-the-edge-outside-reach", t.entryGap > 0f,
-                String.format(Locale.ROOT, "as the first of Rusk's hulls crossed the edge the nearest of Greyhook's hulls was "
+                String.format(Locale.ROOT, "as the first of Dormer's hulls crossed the edge the nearest of Greyhook's hulls was "
                         + "%.0f cells beyond its %.0f-cell reach", t.entryGap, t.entryReach)));
         verdicts.add(Verdict.of("hulls-arrive-only-from-a-pad-or-across-their-edge", t.badArrivals.isEmpty(),
-                t.badArrivals.isEmpty() ? t.hullsSeen + " hulls: Greyhook's on their pads, Rusk's off the west edge"
+                t.badArrivals.isEmpty() ? t.hullsSeen + " hulls: Greyhook's on their pads, Dormer's off the west edge"
                         : String.join("; ", t.badArrivals)));
         verdicts.add(Verdict.of("only-the-greyhook-leaves-and-only-across-her-edge", t.leavers.isEmpty(),
                 t.leavers.isEmpty() ? (greyhook.departing() || greyhook.departed()
@@ -325,14 +325,14 @@ public final class GreyhookDuelScene implements BehaviorScene {
             lastRuskDown = Math.max(lastRuskDown, down);
             if (down >= 0 && (firstRuskDown < 0 || down < firstRuskDown)) firstRuskDown = down;
         }
-        // The first of Rusk's going down is heard only while the Greyhook and another of his still fly.
+        // The first of Dormer's going down is heard only while the Greyhook and another of his still fly.
         boolean firstHeard = firstRuskDown >= 0 && (!ruskDown || firstRuskDown < lastRuskDown)
                 && (greyhookDown < 0 || greyhookDown > firstRuskDown);
         verdicts.add(Verdict.of("the-radio-hears-who-goes-down",
                 (greyhookDown < 0 ? greyhookBeat < 0 : greyhookBeat >= greyhookDown && greyhookBeat - greyhookDown <= 1)
                         && (ruskDown ? ruskBeat >= lastRuskDown && ruskBeat - lastRuskDown <= 1 : ruskBeat < 0)
                         && (firstHeard ? firstBeat >= firstRuskDown && firstBeat - firstRuskDown <= 1 : firstBeat < 0),
-                String.format(Locale.ROOT, "Greyhook down %.1fs, beat %.1fs; first of Rusk's down %.1fs, beat %.1fs; "
+                String.format(Locale.ROOT, "Greyhook down %.1fs, beat %.1fs; first of Dormer's down %.1fs, beat %.1fs; "
                                 + "last down %.1fs, beat %.1fs",
                         t.seconds(greyhookDown), t.seconds(greyhookBeat), t.seconds(firstRuskDown), t.seconds(firstBeat),
                         ruskDown ? t.seconds(lastRuskDown) : -1f, t.seconds(ruskBeat))));
@@ -564,7 +564,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
         float runCells;
         private float runX = Float.NaN, runY;
         /**
-         * Every ten seconds from the order to run: her hull (percent), and the range to each of Rusk's hulls over the
+         * Every ten seconds from the order to run: her hull (percent), and the range to each of Dormer's hulls over the
          * battle (cells, -1 for one that is down).
          */
         final List<int[]> run = new ArrayList<>();
@@ -575,7 +575,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
         final List<Integer> greyhookHull = new ArrayList<>();
         /**
          * Every thirty seconds after the order: the Greyhook's rounds in those thirty seconds, her flux (percent), the
-         * range to her hull target over her reach (percent, -1 with none), and each of Rusk's hulls' remaining hull.
+         * range to her hull target over her reach (percent, -1 with none), and each of Dormer's hulls' remaining hull.
          */
         final List<int[]> windows = new ArrayList<>();
         private int windowShots;
@@ -584,14 +584,14 @@ public final class GreyhookDuelScene implements BehaviorScene {
         int greyhookShots;
         int ruskInReach;
         float ruskEntryHeadingError;
-        /** The duel's hulls in {@link BlackSluiceDuel#hulls()} order, as the metrics name them: greyhook, then Rusk's. */
+        /** The duel's hulls in {@link BlackSluiceDuel#hulls()} order, as the metrics name them: greyhook, then Dormer's. */
         final String[] names;
-        /** Ticks the Greyhook's hull target was each hull of Rusk's, in {@link BlackSluiceDuel#rusk()} order, or none (last). */
+        /** Ticks the Greyhook's hull target was each hull of Dormer's, in {@link BlackSluiceDuel#rusk()} order, or none (last). */
         int[] greyhookOn = new int[0];
-        /** Per hull of Rusk's, ticks fighting as the relay's tank, as its striker, and otherwise. */
+        /** Per hull of Dormer's, ticks fighting as the relay's tank, as its striker, and otherwise. */
         final Map<Warship, int[]> roleTicks = new LinkedHashMap<>();
         /**
-         * On the tick the first of Rusk's hulls crossed the edge: how far the nearest of Greyhook's hulls lay beyond that
+         * On the tick the first of Dormer's hulls crossed the edge: how far the nearest of Greyhook's hulls lay beyond that
          * hull's reach (negative is inside it), and the reach.
          */
         float entryGap = Float.NaN;
@@ -613,7 +613,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
         /** The most two friends lay in each other beyond the pair's contact tolerance. */
         float worstFriendlyExcess = Float.NEGATIVE_INFINITY;
         int friendlyOverlapTicks;
-        /** Per hull of Rusk's, ticks with its hull target the Greyhook, or none. */
+        /** Per hull of Dormer's, ticks with its hull target the Greyhook, or none. */
         final Map<Warship, int[]> targetTicks = new LinkedHashMap<>();
         /** The fullest each hull's flux pool was, as a share of capacity. */
         final Map<Warship, Float> peakFlux = new LinkedHashMap<>();
@@ -642,7 +642,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
         float fightMinX = Float.MAX_VALUE, fightMaxX = -Float.MAX_VALUE, fightMinY = Float.MAX_VALUE, fightMaxY = -Float.MAX_VALUE;
         int fightTicks;
         int fightNorthTicks;
-        /** Per hull of Rusk's, how its shield met the Greyhook's fire. */
+        /** Per hull of Dormer's, how its shield met the Greyhook's fire. */
         final Map<Warship, ShieldTrace> shieldTraces = new LinkedHashMap<>();
         /** Where each hull was every thirty seconds after the order, while it was over the battle, by name. */
         final Map<String, List<float[]>> tracks = new LinkedHashMap<>();
@@ -705,7 +705,7 @@ public final class GreyhookDuelScene implements BehaviorScene {
             return sum;
         }
 
-        /** The edge a hull's side arrives across: Rusk's west; Greyhook's side has none, it lifts from its pads. */
+        /** The edge a hull's side arrives across: Dormer's west; Greyhook's side has none, it lifts from its pads. */
         private static MapEdge ownEdge(Warship ship) {
             return ship.faction == Faction.ALLY ? BlackSluiceDuel.RUSK_EDGE : null;
         }

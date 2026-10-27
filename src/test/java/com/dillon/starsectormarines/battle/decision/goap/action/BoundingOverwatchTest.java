@@ -252,7 +252,7 @@ public class BoundingOverwatchTest {
 
     @Test
     public void hardenedOpportunityRefusesEveryNonDirectFirePolicy() {
-        // Frag, satchel, deployables, smoke and close-contact tools each spend
+        // Frag, satchel, deployables and smoke each spend
         // a squad resource or freeze the carrier to place something. Only the
         // direct-fire anti-hardened shot comes through the move-only gate, and
         // the policy check short-circuits ahead of any target scan — so this is
@@ -264,9 +264,7 @@ public class BoundingOverwatchTest {
                 SpecialEquipmentRegistry.FRAG_GRENADE_ID,
                 SpecialEquipmentRegistry.SATCHEL_CHARGE_ID,
                 SpecialEquipmentRegistry.SMOKE_GRENADE_ID,
-                SpecialEquipmentRegistry.FIELD_REVETMENT_ID,
                 SpecialEquipmentRegistry.POINT_DEFENCE_EMPLACEMENT_ID,
-                SpecialEquipmentRegistry.BREACHING_CUTTER_ID,
         };
         for (String id : withheld) {
             long marine = sim.spawn(new EntitySpec("carrier-" + id, Faction.MARINE,

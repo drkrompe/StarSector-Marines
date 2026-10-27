@@ -8,17 +8,17 @@ Updated: 2026-10-13 — entry follows the closed Thunder Run freight account.
 
 ## Premise, place and cast
 
-Mara Venn follows the Sable Wake pirate crew's purchase of Wayline sailing
+Zoey Venn follows the Sable pirate crew's purchase of Wayline sailing
 schedules across Corvus. The Dust Ledger archive names the seller: Wayline's former
-director, Teodor Prell, who left for a post off-world and handed Mara the
-cooperative. Why he did it, and who Sable Wake answers to, stays open for a later
+director, Jack Prell, who left for a post off-world and handed Zoey the
+cooperative. Why he did it, and who Sable answers to, stays open for a later
 arc. Castle turns attributable records into company orders. Asharu,
 Warion and Garnir are fixed existing destinations; the isolated pirate facilities
 are authored local fiction, not the planets' governments or orbital assets.
 
 The final intervention brings the company beside Hegemony naval power. Captain
 Irena Kord and the Onslaught HSS Resolute supply its authored character frame;
-Mara remains the commercial and human counterpoint. The canonical standing
+Zoey remains the commercial and human counterpoint. The canonical standing
 dialogue model is in `early-operation-nouns.md`; older character-pass wording
 in the active story is not a second authority.
 
@@ -54,9 +54,9 @@ diplomacy, industry or orbital assets.
 ## Resolution and next lead
 
 A Cold Account closes the pirate investigation. Its aftermath gives Castle and
-Mara time to acknowledge the company's actual cost and the military disparity.
+Zoey time to acknowledge the company's actual cost and the military disparity.
 Victory plus acknowledgement of that aftermath opens the optional A Working
-Ship recovery opportunity on Asharu through Mara's introduction to Tamsin Vale,
+Ship recovery opportunity on Asharu through Zoey's introduction to Tamsin Vale,
 a Wayline customer whose yard has been taken.
 
 ## Remaining acceptance

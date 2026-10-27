@@ -448,7 +448,7 @@ class ThunderRunEvidenceTest {
                         .put("result",sim.isComplete()?String.valueOf(sim.getWinner()):"UNRESOLVED").put("phase",column.phase())
                         .put("delivered",column.deliveredCount()).put("lost",column.lostCount()).put("namedSeats",seats)
                         .put("rearContactTicks",new JSONArray(List.of(rearContactTicks[0],rearContactTicks[1])))
-                        .put("retreatTick",retreatTick).put("rearStart",rearStart).put("openingRocketShots",openingRocketShots).put("advanceWreckTick",advanceWreckTick)
+                        .put("retreatTick",retreatTick).put("pressureWaves",column.pressure().sent()).put("checkpointTechnicalAlive",column.checkpointTechnical()!=0L && sim.convoy().isPresent(column.checkpointTechnical())).put("checkpointRaidersAlive",column.checkpointSquads().stream().mapToInt(sim::squadMemberCount).sum()).put("rearStart",rearStart).put("openingRocketShots",openingRocketShots).put("advanceWreckTick",advanceWreckTick)
                         .put("supportGunsBuilt", column.supportGuns().size()).put("fieldGuns",fieldGuns)
                         .put("sharedAutomaticDefenseTargets", sharedDefenseTargets)
                         .put("pendingRaiders", column.pendingMembers())
@@ -481,7 +481,8 @@ class ThunderRunEvidenceTest {
                     // whole is an ordinary defeat with nothing left waiting. Its ledger is asserted only once confirmed.
                     if(fixture.optBoolean("retreat") && retreatTick >= 0) {
                         assertEquals(0,paid);assertFalse(route.freight().waiting().isEmpty());
-                        assertEquals(column.deliveredCount(),route.freight().deliveredCount());
+                        // A withdrawal leaves no trace on the ledger: the retry fields the whole column again.
+                        assertEquals(0,route.freight().deliveredCount());
                         for(int carrier:route.freight().waiting()) assertTrue(column.cargo().containsKey(carrier));
                     }
                 }

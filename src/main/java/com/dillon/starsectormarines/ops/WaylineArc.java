@@ -40,7 +40,7 @@ public final class WaylineArc {
     public static String briefing(OpeningOperationKind kind, String planet) {
         String location = planet != null ? Strings.format("waylineBriefingOnPlanet", planet) : "";
         return switch (kind) {
-            // Relief's briefing is Mara's recorded introduction; this is the unvoiced summary beside it,
+            // Relief's briefing is Zoey's recorded introduction; this is the unvoiced summary beside it,
             // and her tactical calls are radio traffic in the mission itself.
             case RELIEF -> Strings.format("waylineBriefingRelief", location);
             case COUNTERATTACK -> Strings.format("waylineBriefingCounterattack", OpeningBroker.NAME, location);
@@ -58,16 +58,9 @@ public final class WaylineArc {
     public static String debrief(MissionOutcome outcome) {
         OpeningOperationKind kind = chapter(outcome);
         if (kind == null) return "";
-        boolean relief = kind == OpeningOperationKind.RELIEF;
-        String key = (relief ? "waylineDebriefRelief" : "waylineDebriefDepot") + (outcome.victory ? "Won" : "Lost");
-        String allies = "";
-        if (outcome.alliesEngaged > 0 && outcome.alliesLost >= outcome.alliesEngaged) {
-            allies = Strings.get("waylineDebriefAlliesAllLost");
-        } else if (outcome.alliesLost > 0) {
-            allies = Strings.get("waylineDebriefAlliesSomeLost");
-        }
-        return Strings.join("waylineSentenceJoin", Strings.get(key), allies,
-                outcome.marinesLost > 0 ? Strings.get("waylineDebriefMarinesLost") : "",
-                WaylineHoundAward.eligible(outcome) ? Strings.get("waylineDebriefHoundAward") : "");
+        // A defeat is a retry, not an alternate story, so the broker says nothing (owner, 2026-10-27).
+        // Castle reports the Hound in its handover (HoundSalvageDebrief), not here.
+        if (!outcome.victory) return "";
+        return Strings.get(kind == OpeningOperationKind.RELIEF ? "waylineDebriefReliefWon" : "waylineDebriefDepotWon");
     }
 }

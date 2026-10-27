@@ -48,7 +48,7 @@ public final class SmallWarProgress {
         return Phase.HANDOVER;
     }
 
-    /** @param houseCustody whose party walked the handover: Rusk's custodians, else the joint party */
+    /** @param houseCustody whose party walked the handover: Dormer's custodians, else the joint party */
     public Report report(int custodiansLost, int holdersLost, int withdrawn, boolean houseCustody) {
         return new Report(held(CUSTOMS), held(FUEL_CONTROL), held(DISPATCH), complete, companyPresent,
                 infrastructureLost, split, Math.max(0, Math.min(CUSTODIANS, custodiansLost)),

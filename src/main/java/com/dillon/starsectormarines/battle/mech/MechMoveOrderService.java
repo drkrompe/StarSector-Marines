@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -84,6 +85,8 @@ public final class MechMoveOrderService {
     private final List<PendingOrder> pending = new ArrayList<>();
     private final Map<Long, ActiveOrder> active = new ConcurrentHashMap<>();
     private final Map<Long, Float> heldFacing = new ConcurrentHashMap<>();
+    /** Chassis whose order the player told to run ({@link #toggleRun}). */
+    private final Set<Long> running = ConcurrentHashMap.newKeySet();
 
     /** Queues a one-shot move request for validation on the next fixed tick. */
     public void requestMove(long mechId, int cellX, int cellY) {
@@ -96,6 +99,7 @@ public final class MechMoveOrderService {
      * judgement when that is {@code NaN}.
      */
     public void requestMove(long mechId, int cellX, int cellY, float facingDegrees) {
+        running.remove(mechId);
         pending.add(new PendingOrder(mechId, cellX, cellY, facingDegrees));
     }
 
@@ -114,7 +118,25 @@ public final class MechMoveOrderService {
         if (order != null && order.guard() != null && order.commanded()) {
             active.remove(mechId, order);
             heldFacing.remove(mechId);
+            running.remove(mechId);
         }
+    }
+
+    /**
+     * Toggles the chassis's order between walking and running, and says whether it now runs. As a
+     * squad's run ({@code SquadMoveOrderService#toggleRun}), it is a pace on an order already under
+     * way: a mech with none stays walking, a fresh order starts at a walk, and the run ends with the
+     * order it was given to.
+     */
+    public boolean toggleRun(long mechId) {
+        if (!active.containsKey(mechId) || running.remove(mechId)) return false;
+        running.add(mechId);
+        return true;
+    }
+
+    /** Whether the chassis's order is run rather than walked. */
+    public boolean isRunning(long mechId) {
+        return running.contains(mechId) && active.containsKey(mechId);
     }
 
     /**
@@ -146,6 +168,7 @@ public final class MechMoveOrderService {
         pending.removeIf(order -> order.mechId == mechId);
         active.remove(mechId);
         heldFacing.remove(mechId);
+        running.remove(mechId);
     }
 
     List<PendingOrder> drainPending() {
@@ -161,11 +184,12 @@ public final class MechMoveOrderService {
     }
 
     void release(long mechId, ActiveOrder order) {
-        active.remove(mechId, order);
+        if (active.remove(mechId, order)) running.remove(mechId);
     }
 
     void release(long mechId) {
         active.remove(mechId);
+        running.remove(mechId);
     }
 
     Iterable<Map.Entry<Long, ActiveOrder>> activeEntries() {

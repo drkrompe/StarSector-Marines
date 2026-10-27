@@ -40,7 +40,7 @@ import java.util.Random;
 import java.util.stream.Stream;
 
 /**
- * The Sounding on Warion, Blind Watch's authored map ({@code blind-watch-sounding.md}): Sable Wake's listening post in
+ * The Sounding on Warion, Blind Watch's authored map ({@code blind-watch-sounding.md}): Sable's listening post in
  * a small crater on an airless moon. The company lands on the west behind a low ridge; an open regolith flat crossed
  * by the rover track runs east to the crater floor, a boulder field to its north climbs to the crater rim, and a dry
  * rille to its south runs under the dish field. On the rim stand the ranging mast and two gun nests; on the floor the
@@ -78,7 +78,7 @@ public final class BlindWatchSounding {
         Installation(String id) { this.id = id; }
     }
 
-    /** Sable Wake's posts by duty. */
+    /** Sable's posts by duty. */
     public enum PostRole { RIM, MAST, HAB, DISH_FIELD, UPLINK, MOTOR_POOL, WATCH_BOSS }
 
     /**
@@ -110,7 +110,7 @@ public final class BlindWatchSounding {
      * @param riggersModule   the riggers' module
      * @param riggers         where the rigging crew waits, inside their module
      * @param riggersWalkOut  the riggers' way out, from their module's door to the landing ground
-     * @param landerPad       Sable Wake's lander pad on the crater floor (scenery, not a landing berth)
+     * @param landerPad       Sable's lander pad on the crater floor (scenery, not a landing berth)
      * @param podRacks        the cold drop's cryo pod racks between the riggers' module and the lander pad
      * @param podHold         the aisle cell a squad holds the racks from
      * @param chemModule      the cold drop's chem module beside the pad
@@ -118,7 +118,7 @@ public final class BlindWatchSounding {
      * @param drugCrates      the chem module's crates on pallets beside the pad
      * @param cargoCrawler    the half-loaded cargo crawler parked on the lander pad
      * @param landerCrew      where the lander crew stands, beside the crawler
-     * @param posts           Sable Wake's posts by duty, about two dozen in all
+     * @param posts           Sable's posts by duty, about two dozen in all
      * @param nests           the two rim guns beside the mast
      * @param pillboxes       the two bermed pillboxes: the hab's airlock, the foot of the uplink ramp
      * @param mortarStart     where the post's mortar carrier starts, in the motor pool

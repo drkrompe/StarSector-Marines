@@ -191,7 +191,36 @@ preview plays, and the stills did not move when the motion went in (`--check` is
 - **Speeds are relative to the convoy**, whose co-moving frame the battle is staged in: a ship
   on station is at rest in it, a raider closing from astern flies forward through it at her
   class's speed (frigates about 210 m/s, destroyers 170, cruisers 130), a ship falling out drifts
-  aft. The planet turns beneath at orbital speed, about 60 km of desert in an 8 s shot.
+  aft. The planet holds still beneath, in the finals and the preview alike (owner, 2026-10-27).
+  The motion lint holds every hull to her class's top speed and acceleration (`PACE_LIMITS`; owner,
+  2026-10-27: "It shouldn't go accelerating out of the scene insanely fast"): frigates 260 m/s and
+  150 m/s2, destroyers 220 and 100, cruisers 170 and 60, freighters 80 and 20, drones 180 and 300,
+  acceleration taken over a quarter second so a hard turn counts. Designed moves past them are in
+  `PACE_EXEMPT` with their reasons.
+  The activity lint fails a ship that sits in frame through a battle beat doing nothing (owner,
+  2026-10-27: "Everyone just decides to be passive while they aren't the star of the shot?"): over
+  1.5 s in frame with no turn of heading, pitch or roll faster than 1 deg/s, no change of speed
+  over 5 m/s2 and no fire of her own (`activity_lines`). A pirate joins the fight at her launch, a
+  convoy ship at contact (50 s). A ship meant to hold still is in `DESIGNED_IDLE` with its reason.
+- **Bending the truth where it cannot be seen** (owner, 2026-10-27: "Note some "bending" of the truth
+  for a better shot is warranted. If the camera is close to the action though we run the risk of the player
+  seeing the mistake"). The realism lints (pace, activity, firing arcs) fail only where the mistake
+  reads: the ship at 150 px of length or more (a 4 m turret is then 6 px), or 60 px in the middle half of the
+  frame; anything smaller, or off frame, is logged as a cheat with its size. A tracer is judged by the streak
+  (owner: "Right, the viewer would spot tracers that obviously went through a hull"): one drawn through any
+  hull, the shooter's or another's, fails wherever the crossing is in frame (`hull_cross_lint`).
+- **The pack's climb is flown as its classes can fly it** (owner, 2026-10-27: "I want things done
+  right"). Each raider eases out of the field as S3 shows (unchanged), then flies a smooth path
+  toward her S6 run (`climbed`): no faster than `CLIMB_SPEED` (90% of her class's top speed) and
+  no harder than `CLIMB_ACCEL` (half its acceleration), her turn building and letting off, her
+  nose coming onto her run's attitude by 50 s. None of the five S6 shows can reach the position S6
+  first had her in from 4.5 km by then, so **the contact comes later**: S5 shows the Manticore (P)
+  and Wolf (P) B still climbing, and S6 stages each run back by her shortfall (`CLIMB_SHORT`: the
+  Buffalo Mk.II about 260 m, Wolf B and the Manticore about 740, the Falcon 940, Wolf A 1.9 km).
+  The pack opens S6 2.8-4.0 km astern of the Tarsus. Longer shots (everything after S4 retimed)
+  and a closer platform (no help: S6 places the Falcon and the Buffalo off its line) were the other
+  options. Eight debris pieces that lay in the new paths are gone from S3's field (`FLOWN_CLEAR_M`);
+  the field is otherwise laid as it was (`LAID_CLIMB_SPEED`).
 - **A flown ship (`motion.keyed`, `fly()`)** passes through timed attitude keys and flies where
   her nose points, so the path follows the manoeuvre:
   - the roll-overs the plan calls for: Lasher B's 150 to starboard and the merchant Wolf's to
@@ -237,14 +266,21 @@ through ShipFx, so each blinks its beacon, pulses its lift jets and fires its mi
 own. Placements:
 - **S8-S9, the pod:** two Borers hold outboard of and under the Colossus's shot-out port pod,
   cutting the burning wreckage free with their lasers.
-- **S8-S9, the sortie:** two more launch from Morrow's bay, one at 95.4 s from launch point 2 and
-  one at 96.2 s from launch point 3. Each goes for the nearest attackers.
-  - One makes two passes at the Wolf (P), one on each side.
-  - The other runs down the Kite (P) as she breaks away, then comes back for the Wolf.
+- **S8-S9, the sortie:** two more launch from Morrow's bay, one at 94.2 s from launch point 3 and
+  one at 95.0 s from launch point 2, carrying the bay's motion off the deck. Each goes for the
+  attacker sweeping past her.
+  - The first rakes the Kite (P) as she passes (95.8-96.2 s); the second rakes the Wolf (P) on her
+    port side (96.4-97.5 s). Each then turns back for Morrow.
+  - **On a leash to Morrow** (owner, 2026-10-27: "It should be reactive, but not fully leave the
+    shepherd and leave the shot"). She ranges no more than 300 m from her (304 m at the top of her
+    turn home): an attacker past that is let go, and from 180 m out her aim bends back toward
+    Morrow. Both stay in frame to the end of the shot. `drone_lint` holds every drone to her carrier's leash and her top speed, and
+    holds one in frame there to the shot's end, unless the beat is listed in `DRONE_EXEMPT`.
   - Each flies her own pursuit (`sortie`): led by the closing time, turning at up to 150 degrees
     a second, jinking, banking with the turn, and every rate eased so `--check` reports no
     jumps.
-  - Her drives burn with her acceleration (the thrust model), and she reaches 420 m/s.
+  - Her drives burn with her acceleration (the thrust model). She tops out at 150 m/s, pushes at
+    up to 200 m/s2 and turns no harder than 220 m/s2 sideways, so a fast Borer turns wide.
   - Wherever she passes within 110 m of a hull, her mining laser (`beam_t_ws001`) sweeps stern to
     bow down the near side, with sparks where it cuts. The preview draws the beam as a line and
     the sparks as dots.
@@ -472,12 +508,12 @@ About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of
 | S2 | 6 s | Alongside the Colossus. Morrow rides off her starboard quarter; a Lasher slides through the foreground. | Colossus, Morrow, Lasher | 28 mm, tracking alongside at 300 m | **S1's take, continued**: the camera arriving off her port bow (800 m at the cut) carries its speed over it and settles alongside at about 520 m as Lasher A crosses in front of her; Morrow beyond her quarter. 45 mm, no zoom. |
 | S3 **K** | 8 s | Running dark. Long lens back down at the derelict platform: dark, stripped, hulks in its bays; hold until it reads as junk. Then one hulk shows a running light, reactor glow behind a bay, a second, a third. Drives light and the first ships ease out. The audience sees the trap before the convoy does. | the platform, the Falcon (P) | 135 mm from the convoy's tail (longer, about 300 mm, is worth trying) | **ONE TAKE WITH S4, HELD AT THE TAIL** (owner, 2026-10-26: "S3/S4 the same camera in a single take"; "maintain the view of S3, us the viewer as the fleet about to be chased"): from the convoy's tail the lens finds the platform (32 to 48 mm) and holds until it reads as junk; the Falcon (P)'s drives light. The camera does not travel. |
 | S4 **K** | 6 s | First contact: the hulls easing out of the platform and turning onto their climb, the last drives still lighting, the spread opening on screen, the desert behind them. Continuous with S3. | Falcon (P), Wolves, Hounds (P), Kites (P) | 28 mm, off their flank about 1.5 km out | **S3's take, continued**: still at the convoy's tail on 48 mm, the pack easing out of the platform and climbing toward the column, the view turning a little with the Falcon (P). No cut from S3, no zoom. |
-| S5 | 6 s | The opening: the Manticore (P) fires at long range, and rounds and missiles cross 3-4 km of space. | Manticore (P) | 85 mm along the line of fire | **Along the line of fire, ZOOM OUT:** from 900 m behind the Manticore (P), long on her as she fires (130 mm), then widening down the line as the Hellbore slugs and the Harpoon salvo cross toward the column's tail (85 to 50 mm). She flies her S6 flight, so the cut into S6 keeps her where she is. Blocked for the preview only (`m5`). |
+| S5 | 6 s | The opening: the Manticore (P) fires at long range, and rounds and missiles cross 3-4 km of space. | Manticore (P) | 85 mm along the line of fire | **Along the line of fire, ZOOM OUT:** from 900 m behind the Manticore (P), long on her as she fires (130 mm), then widening down the line as the Hellbore slugs and the Harpoon salvo cross toward the column's tail (85 to 50 mm). She is still on her climb (`climbed`), and S6 picks her up where it leaves her, so the cut keeps her where she is. Blocked for the preview only (`m5`). |
 | S6 **K** | 8 s | The screen breaks: the Phaeton tanker is struck in the first 2 s and cooks off through the rest, a Lasher burns, and the lead Lasher turns back into the fire and is hit. | lead Lasher, Phaeton, Lasher A | 35 mm, looking aft along the convoy | **ZOOM OUT along the salvo:** long on the Manticore (P) as she fires (85 mm), widening as her missiles reach the Phaeton, to the key framing; then a handheld push, jolted by the hits. |
 | S6b **K** | 8 s | The escorts answer. Lasher B and the merchant Wolf turn back and roll onto their backs over the climbing raiders. A Hound (P)'s bare armour soaks it (no shield), then the Ammo Feeder burst breaks her up. First blood to the convoy. | Lasher B, merchant Wolf, Hound (P) C | 50 mm, above and behind the escorts, looking down past them | **Chase:** behind Lasher B over her roll, looking down past her (40 to 60 mm); jolted as the Hound (P) breaks up. |
 | S6c **K** | 8 s | The column is cut. Tracking alongside at about 300 m: the two Wolves (P) blink (Displacer) into the gap between the freighters, front shields up under the Mule's fire, then down to rake the Tarsus's drives. The merchant Wolf chases them through. | Wolves (P), Tarsus, merchant Wolf | 35 mm, tracking alongside the column | **Tracking dolly:** drops back along the column at about 70 m/s, the Wolves (P) passing the lens. |
 | S6d **K** | 6 s | The rear guard. The convoy's Hound rolls over to face two Hounds (P) climbing at her. No shields on either side: armour, flares and guns. She kills the first; the second's fire takes her drives, and she falls back on the column trailing flares. Her holding action fails (owner, 2026-10-26): behind the two Hounds (P) the two Kites (P) come up out of the background and fly by beyond her fight, never across her path, on their run at the Tarsus she is guarding. | Hound, Hounds (P) | 35 mm, close behind the Hound | **Handheld chase:** close behind the Hound through her roll-over (30 to 40 mm), jolted by her kill and her hit. The camera is the owner's ("a good action shot"); the Kites (P) are routed through its frame. |
-| S7 **K** | 8 s | Boarding the Tarsus: drives shot out, fallen out of the column, Kites (P) alongside, their boats bringing the boarders over to her deck, a Wolf (P) covering; the convoy runs on ahead. The rear guard carries on astern (owner, 2026-10-26: continuity of the Hounds): the convoy's Hound, drives hit, limping back toward the column, the surviving Hound (P) on her tail and firing. | Tarsus, Kite (P), boats, Wolf (P) | 35 mm, from behind the Tarsus | **ORIENTING ORBIT, then PUSH-IN** (owner, 2026-10-26: "S6d to S7 is jarring"; the Kites (P) "fly past to launch their shuttle intrusion"): opens forward of the Tarsus looking aft at the rear guard S6d left; the Hounds (P) have drawn her Hound off, and through that fight the two Kites (P) come in from astern, overtake her and brake onto her beams, their boats dropping as they slow (84.8-85.8 s). The camera circles her port side, panning forward onto the convoy running on ahead (28 to 30 mm), then pushes in to her deck as the first boat sets down (45 mm). |
+| S7 **K** | 8 s | Boarding the Tarsus: drives shot out, fallen out of the column, Kites (P) alongside, their boats bringing the boarders over to her deck, a Wolf (P) covering; the convoy runs on ahead. The rear guard carries on astern (owner, 2026-10-26: continuity of the Hounds): the convoy's Hound, drives hit, limping back toward the column, the surviving Hound (P) on her tail and firing. Option C (`ASHARU_S7_FIGHT`, until the owner picks): beyond the Tarsus the Colossus Mk.III dives in from astern and above onto the Colossus, already rolled 68-80 deg onto her side: her guns are dorsal, so only her starboard deck turned toward the Colossus lets them bear on the port pod (owner, 2026-10-27; the firing-arc lint). The Colossus banks 20 deg to lift her port turrets onto her and answers into her belly. Rolled, the Mk.III's port bow turret (t10) would fire across her own bow, so it falls silent from 83 s, Morrow turning with her under her keel. | Tarsus, Kite (P), boats, Wolf (P) | 35 mm, from behind the Tarsus | **ORIENTING ORBIT, then PUSH-IN** (owner, 2026-10-26: "S6d to S7 is jarring"; the Kites (P) "fly past to launch their shuttle intrusion"): opens forward of the Tarsus looking aft at the rear guard S6d left; the Hounds (P) have drawn her Hound off, and through that fight the two Kites (P) come in from astern, overtake her and brake onto her beams, their boats dropping as they slow (84.8-85.8 s). The camera circles her port side, panning forward onto the convoy running on ahead (28 to 30 mm), then pushes in to her deck as the first boat sets down (45 mm). |
 | S8 | 6 s | Close on the Colossus's aft: the port tug pod is shot out, the drives stutter, debris. | Colossus | 50 mm, close | **Pull back:** from close on the shot-out pod (50 mm), continuing into S9. The two Borers off the pod skim (owner, 2026-10-26): each strafes back and forth under the Mk.III's belly, nose on her, out of her guns' arcs, her beam trailing her travel so it rakes the plating. |
 | S9 **K** | 8 s | She will not be taken: the Colossus Mk.III closes from above; she fights with flares and both turrets and drives off a Kite; Morrow is under her keel holding her up. Her Borers fight: two by the shot-out pod turn their mining lasers up on the Mk.III, the bigger threat, while two more launch and rake the Wolf and the Kite. | Colossus, Colossus Mk.III, Morrow, Borers | 28 mm, 600 m off her port side | **ZOOM OUT:** on to the wide, then wider (20 mm) for the Mk.III's scale; jolted by the pod and the Kite's hit. |
 | S9b **K** | 8 s | The lead's last run. Smoking since S6, the lead Lasher dives over the Falcon (P) on her back. The Falcon's broad front shield takes it and flares, then overloads in a burst of arcs, and the Lasher's guns walk down the flagship's open flank. The Falcon's broadside answers, and the Lasher tumbles away burning. | lead Lasher, Falcon (P) | 28 mm, close, just above the Lasher | **Pass-by:** the camera drifts while the Lasher dives past and away, panning after her; jolted by the hits. |

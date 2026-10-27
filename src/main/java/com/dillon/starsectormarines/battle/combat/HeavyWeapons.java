@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
 import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
+import com.dillon.starsectormarines.battle.mech.MechRunSystem;
 import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
@@ -73,6 +74,8 @@ public class HeavyWeapons {
 
     /** The battle's seeded stream — see {@code BattleSimulation.random()}. */
     private final Random rng;
+    /** Running mech orders, whose autonomous fire pays for the pace; {@code null} for none. */
+    private final MechRunSystem run;
     private boolean laneDiscipline;
 
     /**
@@ -87,12 +90,19 @@ public class HeavyWeapons {
     public HeavyWeapons(UnitRosterService roster, NavigationGrid grid,
                         BallisticResolver resolver,
                         ShotService shots, Detonations detonations, Random rng) {
+        this(roster, grid, resolver, shots, detonations, rng, null);
+    }
+
+    public HeavyWeapons(UnitRosterService roster, NavigationGrid grid,
+                        BallisticResolver resolver,
+                        ShotService shots, Detonations detonations, Random rng, MechRunSystem run) {
         this.roster = roster;
         this.grid = grid;
         this.resolver = resolver;
         this.shots = shots;
         this.detonations = detonations;
         this.rng = rng;
+        this.run = run;
     }
 
     /**
@@ -336,6 +346,7 @@ public class HeavyWeapons {
         roster.telemetry().recordRoundFired(shooter);
         World world = roster.world();
         if (world.hasMechLoadout(shooter)) accuracyMult *= sensorAccuracy(world.mechLoadout(shooter));
+        if (run != null) accuracyMult *= run.accuracy(shooter);
         if (weapon.arcHeight <= 0f) {
             fireDirectRound(shooter, target, weapon, accuracyMult, fromX, fromY);
             return;

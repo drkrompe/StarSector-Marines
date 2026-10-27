@@ -517,6 +517,8 @@ public final class FacingSystem {
                         : LayeredAppearance.POSE_AMR_AIM;
                 case SHOULDER_LAUNCHER -> fired ? LayeredAppearance.POSE_ROCKET_FIRE
                         : LayeredAppearance.POSE_ROCKET_AIM;
+                // A shoulder pod never opens the hand's channel; the hands stay on the primary.
+                case SHOULDER_MOUNT -> LayeredAppearance.POSE_IDLE;
             };
             authoredPhase = direct
                     ? fired ? clamp01((progress - 0.5f) * 2f) : clamp01(progress * 2f)

@@ -80,15 +80,13 @@
   ],
   "specialEquipment": [
     { "equipmentId": "special.rocket-launcher", "accessTier": "advanced", "issueCost": {} },
+    { "equipmentId": "special.missile-pod", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "special.anti-materiel-rifle", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "special.smoke-grenade", "accessTier": "common", "issueCost": {} },
     { "equipmentId": "special.satchel-charge", "accessTier": "common", "issueCost": {} },
     { "equipmentId": "special.frag-grenade", "accessTier": "common", "issueCost": {} },
-    { "equipmentId": "special.breaching-cutter", "accessTier": "advanced", "issueCost": {} },
-    { "equipmentId": "special.vibro-blade", "accessTier": "common", "issueCost": {} },
     { "equipmentId": "special.point-defence-emplacement", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "special.point-defence-pack", "accessTier": "advanced", "issueCost": {} },
-    { "equipmentId": "special.field-revetment", "accessTier": "common", "issueCost": {} },
     { "equipmentId": "special.field-mortar", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "special.comms-radio", "accessTier": "advanced", "issueCost": {}, "_comment": "PLACEHOLDER tier and cost: untuned, pending an owner economy pass." }
   ],
@@ -107,11 +105,6 @@
       "kind": "special",
       "equipmentId": "special.scrap-rocket",
       "reason": "Workshop ammunition issued only to authored raider forces; no company acquisition is offered."
-    },
-    {
-      "kind": "special",
-      "equipmentId": "special.smoke-pot",
-      "reason": "A long-burning screen issued only by mission kit declarations (SquadSupportKit) while its economy is undecided; no company acquisition is offered."
     },
     {
       "kind": "primary",

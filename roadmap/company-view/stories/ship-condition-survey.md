@@ -12,7 +12,7 @@ and read Castle's portrait-backed explanation of condition, benefit and next wor
 The whole plan remains fixed through restoration.
 
 The Mech Lab starts destroyed and sealed. Completing the second story mission,
-Take Back the Depot, restores the first of its four gantries as part of Wayward's recovery.
+Take Back the Depot, restores the first of its four gantries as part of the Hound's recovery.
 It needs no additional payment before the existing first-mech fitting tutorial.
 Engineering then offers three separate 5,000-credit yard orders, restoring berths
 two, three and four in order. Each needs its own review, changes visible wreckage
@@ -56,7 +56,7 @@ future launches without undoing that hull's paid repair.
       morale recovery.
 - [ ] Live custom start: inspect and click rooms, pan/zoom, review and cancel
       orders, pay at the yard, verify immediate room/navigation refresh.
-- [ ] Live mission two: recover Wayward, open the restored Mech Lab and continue
+- [ ] Live mission two: recover the Hound, open the restored Mech Lab and continue
       Castle's existing fitting tutorial without an extra repair purchase.
 - [ ] Live berth chain: inspect Mech Lab in Engineering, review and authorize each
       5,000-credit order separately; verify visible repair, immediate capacity, and

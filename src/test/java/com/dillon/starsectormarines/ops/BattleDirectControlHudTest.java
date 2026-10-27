@@ -38,7 +38,7 @@ class BattleDirectControlHudTest {
         MechFlux flux = loadout.flux;
         flux.commit(98f);
         var base = preview(Carrier.MECH, false);
-        var snapshot = new Snapshot(base.entityId(), "Wayward", Carrier.MECH, base.durability(),
+        var snapshot = new Snapshot(base.entityId(), "The Hound", Carrier.MECH, base.durability(),
                 mechWeapons(loadout.mounts(), flux), List.of(), MarineSprint.EMPTY,
                 new MechFluxStatus(flux.value(), flux.venting()));
         try (Fixture fixture = fixture(Path.of("mod"), snapshot, 0, false, ignored -> {}, () -> {}, () -> {})) {
@@ -75,7 +75,8 @@ class BattleDirectControlHudTest {
             assertTrue(hullMeter.height() >= 8f, "a bar a player can read at a glance");
             assertTrue(fixture.status.requireElement("direct-status-armor").box().borderBox().bottom()
                     <= fixture.status.requireElement("direct-status-flux").box().borderBox().y(), "armor above flux");
-            assertHidden(fixture.status.requireElement("direct-status-stamina"));
+            assertEquals("100%", fixture.status.requireElement("direct-status-stamina-value").text(),
+                    "a mech sprints on stamina too");
         }
         try (Fixture fixture = fixture(Path.of("mod"), preview(Carrier.MARINE, true), 0,
                 false, ignored -> {}, () -> {}, () -> {})) {

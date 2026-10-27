@@ -111,7 +111,7 @@ final class FortAssault {
      * hundred hit points each, and shells miss; the figure is that estimate with a margin, not a read of the wall. UNTUNED.
      */
     static final float BREACH_RESERVE = 1200f;
-    /** Wall damage per second a close breach (cutters, charges) asks for: one charge's worth. UNTUNED. */
+    /** Wall damage per second a close breach (charges) asks for: one charge's worth. UNTUNED. */
     static final float CLOSE_BREACH_RATE = 10f;
     /** Bodies able to enter a building the way in must have to be taken. UNTUNED. */
     static final float ENTRY_BODIES = 4f;
@@ -173,7 +173,7 @@ final class FortAssault {
 
     enum Role { FIRE, BREACH, ASSAULT }
 
-    /** How a breach is cut: from range with shells and rockets, or at the foot of the wall with charges and cutters. */
+    /** How a breach is cut: from range with shells and rockets, or at the foot of the wall with charges. */
     enum BreachMeans { DISTANCE, CLOSE }
 
     /** A way in, on the map. */
@@ -932,7 +932,7 @@ final class FortAssault {
 
         /**
          * Whether a breacher is let go to the wall now. A breacher is the first thing to reach the wall and the last thing
-         * to leave it. A <b>close</b> breacher (a sapper with a charge or a cutter) stands under every gun that can see its
+         * to leave it. A <b>close</b> breacher (a sapper with a charge) stands under every gun that can see its
          * approach for as long as it takes to set the charge, so it is let go only when the approach is survivable
          * ({@link SatchelApproach}): each nest believed live that reaches the route is dead, suppressed, screened or out of
          * sight. There is no window after which it goes anyway; a company that cannot make the approach survivable changes its
@@ -1345,7 +1345,7 @@ final class FortAssault {
                     return noSmoke(nest, smokeJobs.containsKey(nest) ? "a screen is already being stood" : "tried " + SMOKE_ATTEMPTS + " times");
                 }
                 // A cloud holds its radius only so long: the screen has to be one that stands the whole crossing, which the
-                // hand grenade's twelve seconds seldom does and a pot's minute does.
+                // hand grenade's twelve seconds seldom does.
                 List<Integer> throwers = grenadiers(crossingTicks);
                 if (throwers.isEmpty()) {
                     List<Integer> any = grenadiers(0);
@@ -1732,7 +1732,7 @@ final class FortAssault {
 
         /**
          * Whether a squad still carries what its breach role needs, read off the live profile of its living members rather than the
-         * one it was staffed with: a close breacher needs a charge or a cutter, a distance breacher a wall-damaging gun.
+         * one it was staffed with: a close breacher needs a charge, a distance breacher a wall-damaging gun.
          */
         private boolean carriesBreachKit(Body body) {
             if (body == null) return false;

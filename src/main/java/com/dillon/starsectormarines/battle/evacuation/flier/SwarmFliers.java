@@ -783,7 +783,7 @@ public final class SwarmFliers {
     private static boolean isMedic(BattleSimulation sim, long u) {
         if (!sim.squad().hasSquad(u)) return false;
         Squad squad = sim.getSquad(sim.squad().squadId(u));
-        return squad != null && squad.medic != null && squad.medic.medicId() == u;
+        return squad != null && squad.medicOf(u) != null;
     }
 
     private static boolean alone(BattleSimulation sim, long u, Faction f) {

@@ -27,7 +27,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Warship weapons up close, every sprite layer their specs name (under-plate, base, recoiling barrel, loaded
- * missiles, glow; {@link VanillaMountLook}): Rusk's Enforcer and Wolf and the Greyhook from Black Sluice, an
+ * missiles, glow; {@link VanillaMountLook}): Dormer's Enforcer and Wolf and the Greyhook from Black Sluice, an
  * Onslaught and a Paragon, each at rest with its turrets laid on one bearing, firing (barrels back, glows lit,
  * muzzle flashes on the barrel that fired, a rack's fired missile gone), and a GIF of the firing cycle. 1920x1080 at
  * 100%.

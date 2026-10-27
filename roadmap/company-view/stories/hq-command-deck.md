@@ -9,7 +9,7 @@ Read `company-view-nouns.md` (Company HQ) first.
 ## Outcome
 
 Company HQ stops being a wall of panels and becomes a place: a painted banner of
-the company's operations deck, with Castle, two comms officers, Sabine Hale and a
+the company's operations deck, with Castle, two comms officers, Morgan Hale and a
 quartermaster on watch. The scene replaces the abstract intel
 network drawing and the separate assessment strip. Each station on deck is a
 hotspot for the panel that already holds its information, so the picture shows
@@ -22,7 +22,7 @@ where things live without becoming the only way to reach them.
   (`blender/deck_blockout.py`) is the layout authority; the **deck plate**
   (`deck-plate-v5.master.png`, approved) is painted over its guide, and one
   transparent **figure card** per person (Castle, the comms pair, the quartermaster,
-  Sabine Hale) is cut by its stand's occluder matte.
+  Morgan Hale) is cut by its stand's occluder matte.
   `pack.py` writes the shipped band, figure sprites and
   `mod/data/ui/hq-command-deck.json`; a repaint registered on the same guide needs
   only a re-run. Layers let a station highlight its own figure, let an alert
@@ -64,7 +64,7 @@ hotspots, which are invisible until pointed at.
 | page nav                                                                        |
 +--------------------------------------------------------------------------------+
 | COMMAND DECK BANNER (full width x 372)                                          |
-|  [comms]  [plot table + Sabine]  [Castle]  [quartermaster]               |
+|  [comms]  [plot table + Morgan]  [Castle]  [quartermaster]               |
 +--------------------------------------------------------------------------------+
 | RATING  RECOGNIZED  +24 | BRIDGE ADJUTANT // DAILY ASSESSMENT | RUNWAY, CASH [debug]|  <- command strip
 +--------------------------------------------------------------------------------+
@@ -102,7 +102,7 @@ they answer into.
 | Station on deck | Label | What using it does |
 | --- | --- | --- |
 | Comms bank, two officers | COMMS // INTEL | Shows the transmission archive in the detail pane and focuses its tabs. |
-| Plot table, Sabine | SITUATION BOARD | Selects the most urgent action item under All and focuses the action list. |
+| Plot table, Morgan | SITUATION BOARD | Selects the most urgent action item under All and focuses the action list. |
 | Castle | CASTLE // ADJUTANT | Shows her daily assessment and her first priority in the detail pane. |
 | Quartermaster's ledger | FINANCE & STANDING | Shows the full finances in the detail pane. |
 
@@ -143,7 +143,7 @@ and panel pulses; snapshot evidence; optional alert plate.
 
 - Before the company has a ship, HQ shows the founding flow. Does it keep this deck
   (a borrowed office) or a different dockside plate?
-- Sabine stands on deck as herself, leaning on the plot table's right rim and reading
+- Morgan stands on deck as herself, leaning on the plot table's right rim and reading
   the space above it, where `hq-action-board.md` puts its holographic board. Her card
   is painted over a Blender pose guide; a posed figure that touches furniture gets a
   depth-clipped matte, so her hands stay on the table top.

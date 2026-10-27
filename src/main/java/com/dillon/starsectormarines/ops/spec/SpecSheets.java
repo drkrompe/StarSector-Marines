@@ -54,6 +54,8 @@ public final class SpecSheets {
 
     /** Accent tokens the stylesheet keys a border colour on. */
     public static final String ACCENT_WEAPON = "weapon";
+    /** The scene kind a marine primary's sheet shows: the weapon firing on the range. */
+    public static final String SCENE_WEAPON = "weapon";
     public static final String ACCENT_ARMOR = "armor";
     public static final String ACCENT_SPECIAL = "special";
     public static final String ACCENT_SYSTEM = "system";
@@ -118,21 +120,21 @@ public final class SpecSheets {
     /**
      * One marine primary at one grade.
      *
-     * <p>The title is the catalog name at that grade — {@code PLS-2 Lancer} —
-     * which is what the Armory's own card shows; an untiered designation such as
-     * the Rook's {@code FR-1} simply carries no suffix, so the two cases need no
-     * branch here.
+     * <p>The title is the graded name — {@code AR-PULSE-2} — which is what the
+     * Armory's own card shows; an untiered name such as {@code GR-RFL} simply
+     * carries no suffix, so the two cases need no branch here.
      */
     public static SpecSheet weapon(WeaponDef def, EquipmentGrade grade) {
         if (def == null) throw new IllegalArgumentException("A weapon sheet needs a weapon");
         EquipmentGrade issued = grade != null ? grade : EquipmentGrade.SERVICE;
         return new SpecSheet(
-                def.catalogName(issued),
-                joined(def.designation(issued), def.catalogRole(), issued.displayName()),
+                def.gradedName(issued),
+                joined(def.gradedName(issued), def.catalogRole(), issued.displayName()),
                 def.catalogFactionLogo,
                 ACCENT_WEAPON,
                 weaponStats(def, issued, CATALOG_SHOOTER),
-                paragraphs(def.catalogDescription()));
+                paragraphs(def.catalogDescription()))
+                .withScene(new SpecSheet.Scene(SCENE_WEAPON, def.id, issued.name()));
     }
 
     /** The primary's ability to overcome armor resistance, on a catalog-wide scale. */

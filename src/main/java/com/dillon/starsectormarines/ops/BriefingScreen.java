@@ -571,6 +571,8 @@ public class BriefingScreen implements Screen {
                                 liveRoster(), ctx.getSelectedMarineSquadIds()).display()));
         props.put("taskForceRows", !debug && mission.source != MissionSource.STATIONING
                 ? retainedTaskForceRows() : List.of());
+        props.put("debugForceRows", debug
+                ? BriefingViewModel.debugForceRows(ctx.getDebugCompanyRoster(), CampaignClock.dayFloat()) : List.of());
 
         int used = CommandDeck.used(cachedAvailablePowers, selectedPowerIds);
         props.put("commandSummary", Strings.format("briefingUiCommandSlots", used, CommandDeck.BUDGET));
@@ -1249,7 +1251,9 @@ public class BriefingScreen implements Screen {
         boolean debug = mission.source.isDebug();
         boolean transportOk = mission.source == MissionSource.STATIONING
                 || isTransportSufficient(mission, lift());
-        boolean routeReady = !(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission) || DistrictEscortCampaign.isBattle(mission)) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
+        boolean routeReady = SupplyRouteCampaign.isBattle(mission)
+                ? SupplyRouteCampaign.forceDeployable(liveRoster(), ctx.getSelectedMarineSquadIds())
+                : !(CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission) || DistrictEscortCampaign.isBattle(mission)) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
         boolean personnelOk = (debug || readiness == null || readiness.ready()) && routeReady;
         boolean commandOk = captainCommandReady(mission);
         boolean canAccept = transportOk && personnelOk && commandOk;
@@ -1910,7 +1914,8 @@ public class BriefingScreen implements Screen {
     private int requiredPersonnelSeats(Mission m) {
         int base = basePersonnelSeats(m);
         if (MissionForceEnvelope.allowsUnderstrength(m)) {
-            return MissionForceEnvelope.minimumPersonnel(m, base);
+            BriefingLift.Readout lift = liftReadout(m);
+            return MissionForceEnvelope.minimumPersonnel(m, base, lift != null && lift.dropping() > 0);
         }
         if (m == null || m.type != MissionType.CONQUEST) return base;
         MarineRoster roster = liveRoster();

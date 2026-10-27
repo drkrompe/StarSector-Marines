@@ -15,6 +15,8 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.TreeMap;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
@@ -28,7 +30,7 @@ import java.nio.file.Path;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Opt-in, actual boats and one campaign squad: detour to Wayward versus ordinary advance. */
+/** Opt-in, actual boats and one campaign squad: detour to the Hound versus ordinary advance. */
 @Tag("counterattack-command-evidence")
 class DepotHoldEvidenceTest {
     @Test void playWarehouseDefenseWithTwelveCompanyTroopsAndSixMilitia() throws Exception {
@@ -46,6 +48,8 @@ class DepotHoldEvidenceTest {
                 deployment.applyTo(sim, 1);
                 var renderer = new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080).withImpactEffects();
                 int ordered = -1, captureTick = -1, wave = 0, houndShots = 0;
+                Map<Integer, Integer> roadSpawn = new TreeMap<>(), roadInside = new TreeMap<>();
+                int technicalEntered = -1, technicalParked = -1, technicalDestroyed = -1, technicalShots = 0;
                 boolean handedBack = false;
                 JSONArray beats = new JSONArray();
                 JSONArray timeline = new JSONArray();
@@ -67,14 +71,40 @@ class DepotHoldEvidenceTest {
                         sim.handoffSquadCommand(ordered, "depot-review", CommandAuthority.MISSION_COMMAND,
                                 OpeningOperationCommand.issuer(Faction.MARINE), null, "Join the warehouse assault");
                         handedBack = true;
-                        ImageIO.write(renderer.render(sim, name + " / Wayward online / observer view"), "png", out.resolve(name + "-hound.png").toFile());
+                        ImageIO.write(renderer.render(sim, name + " / the Hound online / observer view"), "png", out.resolve(name + "-hound.png").toFile());
                     }
                     for (int i = 0; i < sim.liveUnitCount(); i++) {
                         long id = sim.liveUnitAt(i);
                         if (sim.identity().faction(id) == Faction.ALLY) militiaIds.add(id);
                     }
+                    long technical = sim.getDepotHold().technicalId();
+                    if (technical != 0L) {
+                        if (technicalEntered < 0) technicalEntered = sim.getSimTickIndex();
+                        int[] route = sim.getDepotHold().technicalRoute();
+                        var body = sim.convoy().body(technical);
+                        if (technicalParked < 0 && Math.hypot(body.x - route[2] - .5f, body.y - route[3] - .5f) <= 1.5f) {
+                            technicalParked = sim.getSimTickIndex();
+                            ImageIO.write(renderer.render(sim, name + " / technical parked / observer view"), "png", out.resolve(name + "-technical.png").toFile());
+                        }
+                        if (technicalDestroyed < 0 && !sim.convoy().isPresent(technical)) {
+                            technicalDestroyed = sim.getSimTickIndex();
+                            // And back into dispatch to finish the hold, as a player would.
+                            for (var squad : sim.getSquads())
+                                if (squad.faction == Faction.MARINE && squad.aliveMembers > 0)
+                                    sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad.id,
+                                                    (int) sim.getDepotHold().door(sim)[0] - 2, (int) sim.getDepotHold().door(sim)[1]),
+                                            CommandAuthority.PLAYER_INTERVENTION, "depot-review", "Back to dispatch's door");
+                        }
+                        // The autopilot does not hunt a parked vehicle; send the company at it as a player would.
+                        if (technicalParked >= 0 && technicalDestroyed < 0 && (sim.getSimTickIndex() - technicalParked) % 600 == 0)
+                            for (var squad : sim.getSquads())
+                                if (squad.faction == Faction.MARINE && squad.aliveMembers > 0)
+                                    sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad.id, (int) body.x, (int) body.y),
+                                            CommandAuthority.PLAYER_INTERVENTION, "depot-review", "Take out the technical");
+                    }
                     for (var shot : sim.getShotsThisFrame()) {
                         if (shot.shooterId == hound.mechId()) houndShots++;
+                        if (technical != 0L && shot.shooterId == technical) technicalShots++;
                         if (militiaIds.contains(shot.shooterId)) {
                             militiaShots++;
                             if (sim.getDepotHold().progress().committed()) militiaDefenseShots++;
@@ -97,6 +127,17 @@ class DepotHoldEvidenceTest {
                     }
                     lastMilitia = militia;
                     var hold = sim.getDepotHold().progress();
+                    for (int road : sim.getDepotHold().roadSquads()) {
+                        roadSpawn.putIfAbsent(road, sim.getSimTickIndex());
+                        if (roadInside.containsKey(road)) continue;
+                        for (int m = 0, n = sim.squadMemberCount(road); m < n; m++) {
+                            long member = sim.squadMemberAt(road, m);
+                            if (sim.world().hasPosition(member) && sim.getDepotHold().inside(sim.world().x(member), sim.world().y(member))) {
+                                roadInside.put(road, sim.getSimTickIndex() - roadSpawn.get(road));
+                                break;
+                            }
+                        }
+                    }
                     if (hold.committed()) {
                         int near = 0;
                         for (int i = 0; i < sim.liveUnitCount(); i++) {
@@ -125,7 +166,15 @@ class DepotHoldEvidenceTest {
                         .put("houndAlive", sim.world().isAlive(sim.getWaylineHound().mechId()))
                         .put("companyInfantryAlive", infantry(sim)).put("houndShots", houndShots).put("marinesAliveIncludingHound", count(sim, Faction.MARINE))
                         .put("militiaAlive", count(sim, Faction.ALLY)).put("raidersAlive", count(sim, Faction.DEFENDER))
-                        .put("pendingRaiders", sim.getDepotHold().pendingMembers()).put("beats", beats)
+                        .put("pendingRaiders", sim.getDepotHold().pendingMembers())
+                        .put("roadSquadTicksToDispatch", new JSONObject(roadInside)).put("technicalEntered", technicalEntered).put("technicalParked", technicalParked)
+                        .put("technicalDestroyed", technicalDestroyed).put("technicalShots", technicalShots)
+                        .put("technicalStructure", sim.getDepotHold().technicalId() == 0L ? -1 : sim.convoy().structure(sim.getDepotHold().technicalId()))
+                        .put("technicalArmor", sim.getDepotHold().technicalId() == 0L ? -1 : sim.convoy().armor(sim.getDepotHold().technicalId()))
+                        .put("technicalNearestMarine", nearestMarine(sim, sim.getDepotHold().technicalId()))
+                        .put("door", new JSONArray(sim.getDepotHold().door(sim)))
+                        .put("houndAt", sim.world().isAlive(sim.getWaylineHound().mechId())
+                                ? new JSONArray(new float[]{sim.world().x(sim.getWaylineHound().mechId()), sim.world().y(sim.getWaylineHound().mechId())}) : JSONObject.NULL).put("beats", beats)
                         .put("militiaShots", militiaShots).put("militiaDefenseShots", militiaDefenseShots)
                         .put("maxMilitiaWithinEightCellsOfHoldAnchor", militiaNearHold)
                         .put("everyLivingMilitiaGathered", everyLivingMilitiaGathered);
@@ -145,7 +194,7 @@ class DepotHoldEvidenceTest {
                     assertTrue(everyLivingMilitiaGathered, "every living militiaman must reach the warehouse defense");
                     assertTrue(militiaDefenseShots > 0, "militia must contribute fire during the defense");
                 }
-                if (recover) assertTrue(handedBack, "the real arriving squad must be able to commission Wayward");
+                if (recover) assertTrue(handedBack, "the real arriving squad must be able to commission the Hound");
             }
         }
     }
@@ -212,5 +261,18 @@ class DepotHoldEvidenceTest {
             if (sim.identity().faction(id) == faction && sim.identity().type(id).combatant) n++;
         }
         return n;
+    }
+
+    private static double nearestMarine(BattleSimulation sim, long hull) {
+        if (hull == 0L) return -1;
+        var body = sim.convoy().body(hull);
+        double best = -1;
+        for (int i = 0; i < sim.liveUnitCount(); i++) {
+            long id = sim.liveUnitAt(i);
+            if (sim.identity().faction(id) != Faction.MARINE || !sim.world().hasPosition(id)) continue;
+            double d = Math.hypot(sim.world().x(id) - body.x, sim.world().y(id) - body.y);
+            if (best < 0 || d < best) best = d;
+        }
+        return best;
     }
 }

@@ -85,13 +85,7 @@ final class MissionDebriefConversation {
                     "power", "one_more", "guards", outcome.salvageRights.crewLost() > 0 ? "losses" : "ready", "apron");
         }
         if (firstContract(outcome)) return List.of(
-                firstContractLine("receipt", CASTLE, Strings.get("debriefReliefReceipt")),
-                firstContractLine("muster", SABINE, Strings.get(outcome.marinesLost > 0
-                        ? "debriefReliefMusterLosses" : "debriefReliefMusterClean")),
-                firstContractLine("names", MARA, Strings.get("debriefReliefNames")),
-                firstContractLine("cost", CASTLE, Strings.get(outcome.marinesLost > 0
-                        ? "debriefReliefCostLosses" : "debriefReliefCostClean")),
-                firstContractLine("next", MARA, Strings.get("debriefReliefNext")));
+                firstContractLine("cost", CASTLE, Strings.get("debriefReliefCostClean")));
         var route = SupplyRouteCampaign.current();
         if (jangalaClosing(outcome, route)) return jangalaLines(catalog);
         if (dustLedger(outcome)) return dustLedgerLines(outcome.dustLedger);
@@ -106,7 +100,7 @@ final class MissionDebriefConversation {
 
     /**
      * Blind Watch's debrief beats in their fixed order ({@code blind-watch-dialogue.md}, Debrief selection): Castle opens
-     * on whether Garnir was warned; Mara reads the routing (a completed warning outranks a sent false schedule); the
+     * on whether Garnir was warned; Zoey reads the routing (a completed warning outranks a sent false schedule); the
      * recorded initiative; the riggers freed, lost or left; the organ manifest only when it was logged; the cost; the
      * recorded close. An outcome without a Blind Watch report (an older save) keeps only the two recorded lines.
      */
@@ -218,7 +212,7 @@ final class MissionDebriefConversation {
         return new WaylineNarration.Line("terms-debrief-" + beat, "story_agreus_terms_of_protection", "debrief.terms_of_protection." + beat, text, 12f, 10, 15f, List.of(),
                 shortSpeaker(speaker), speaker.equals("CASTLE") ? CompanyManagementGuide.portrait() : OpeningBroker.CREST, false, false);
     }
-    /** Castle and Rusk are identified by id; any other speaker arrives as its own translated label. */
+    /** Castle and Dormer are identified by id; any other speaker arrives as its own translated label. */
     private static String shortSpeaker(String speaker) {
         return speaker.equals("CASTLE") ? Strings.get("debriefSpeakerCastleShort")
                 : speaker.equals("RUSK") ? Strings.get("debriefSpeakerRuskShort") : speaker;
@@ -335,7 +329,7 @@ final class MissionDebriefConversation {
     /** Written correspondence has no recording; keep it readable without offering silent playback. */
     private static final int CASTLE = 0, MARA = 1, SABINE = 2;
     /**
-     * Castle's opening on the ledger's grade, Mara's finding over grade and broker, Castle's close on the broker
+     * Castle's opening on the ledger's grade, Zoey's finding over grade and broker, Castle's close on the broker
      * ({@code dust-ledger-dialogue.md}). Every finding names Prell's authority and the Warion post.
      */
     static List<WaylineNarration.Line> dustLedgerLines(DustLedgerSequence.Report report) {

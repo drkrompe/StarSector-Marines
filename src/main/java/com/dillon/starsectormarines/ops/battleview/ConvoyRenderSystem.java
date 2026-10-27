@@ -77,7 +77,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
             SpriteSheetFrames.Frame f = frames.frames[wrecked ? type.wreckHullFrame() : type.spriteFrame];
 
             float frameAspect = (float) f.w / (float) f.h;
-            float drawLong = type.visualLengthCells * cellPx;
+            float drawLong = type.drawnLengthCells * cellPx;
             float drawShort = drawLong / frameAspect;
             float chassisFacingDeg = body.facingDegrees + type.spriteFacingOffsetDeg;
             float cx = cam.cellToScreenX(body.x);
@@ -217,7 +217,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                                    BattleCamera cam, float alphaMult, DrawList out) {
         VehicleScuffs.Mask mask = VehicleScuffs.hullMask(sprites, type, cache.frames);
         if (mask == null) return;
-        beginScuffs(out, cam, f, body.x, body.y, angleDeg, type.visualLengthCells / f.w, mask, alphaMult);
+        beginScuffs(out, cam, f, body.x, body.y, angleDeg, type.drawnLengthCells / f.w, mask, alphaMult);
         for (HullLocations.Plate plate : HullLocations.Plate.values()) {
             float wear = VehicleScuffs.wear(locations.armor(plate), locations.maxArmor(plate));
             if (wear > 0f) VehicleScuffs.place(mask, plate.ordinal(), wear, id, scuffMark);
@@ -311,7 +311,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
             if (v == null || !v.isVisible() || v.state == VehicleState.WRECKED) continue;
             VehicleType type = convoy.vehicleType(id);
             GroundBody body = convoy.body(id);
-            float bodyPx = Math.max(type.visualLengthCells, type.visualWidthCells) * cellPx;
+            float bodyPx = Math.max(type.drawnLengthCells, type.visualWidthCells) * cellPx;
             float cx = cam.cellToScreenX(body.x);
             float barY = cam.cellToScreenY(body.y) + bodyPx / 2f + BattleRenderer.HP_BAR_GAP;
             DurabilityBarDecor.emit(out, RenderLayer.CONVOY,

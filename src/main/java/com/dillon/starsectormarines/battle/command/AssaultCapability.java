@@ -16,7 +16,7 @@ public enum AssaultCapability {
     STANDOFF_STRUCTURE_FIRE,
     /** Opens a wall from outside the nests' reach, over a number of shells. Wall damage per second. */
     DISTANCE_BREACH,
-    /** Opens a wall by standing at it: cutters and placed charges. Wall damage per second. */
+    /** Opens a wall by standing at it: placed charges. Wall damage per second. */
     CLOSE_BREACH,
     /** Can enter a building and clear it: infantry. Able bodies. */
     ASSAULT,

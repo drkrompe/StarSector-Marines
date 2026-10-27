@@ -35,7 +35,7 @@ without turning a JSON typo into a silent zero-damage battle.
   definition. Java types do not enumerate weapon identities.
 - A **delivery mechanism** describes how the definition reaches its payload:
   direct chemical or electromagnetic kinetic fire, flechette sub-munitions,
-  pulse/laser energy, rocket or arcing grenade, or a close-contact implement.
+  pulse/laser energy, or rocket or arcing grenade.
   It constrains applicable trajectory, payload, and presentation fields. It is
   not the weapon's tactical role, grade, provenance, or faction availability.
 - A **projectile release** is the set of independently resolved traveling
@@ -92,6 +92,16 @@ without turning a JSON typo into a silent zero-damage battle.
   runtime while owning its storyboard projection as retained panels and
   backend-neutral canvas producers. The shared retained paint targets own live
   and headless rendering; the preview does not own a private raster painter.
+  Composed effect commands are painted by one shared painter for every
+  preview. A marine primary's catalog preview is its **range scene**, shown in
+  the weapon's spec sheet: a marine holding the trigger at the weapon's own
+  **fire cycle** (cooldown, burst, magazine and reload, as `CombatService`
+  applies them, read in closed form for any moment), its rounds crossing to a
+  target plate at their battle velocity with their battle body, tail, muzzle
+  and impact effects, and beneath them the battle HUD's weapon row for that
+  moment, drawn through the HUD's own status, state text and ammo strip. It
+  holds nothing authored of its own, so a new or retuned weapon previews as it
+  plays.
 - A **turret authoring document** is an editor transaction over the linked
   weapon, mount, structure, and defense-post layout catalogs. It presents one
   resolved turret without merging those authorities: saves return every value
@@ -244,18 +254,6 @@ The public manifest and authoring examples live in `submod-catalog-contract.md`.
 - A utility activation may reuse projectiles, detonations, and authored FX,
   but those shared execution primitives do not make its cloud or placement
   channel a weapon definition.
-- A weapon-like close-contact tool still references a weapon definition for
-  damage, penetration, wall damage, audio, and effects. Its typed executor
-  replaces the traveling trajectory with an adjacency test, so the definition
-  authors no velocity, flight time, arc, or projectile body and the payload is
-  never carried by a phantom round. Contact privilege still comes from physical
-  interception; here the interception is the reach itself. The
-  special-equipment item still owns stock, resource mode, use policy, and
-  carrier presentation.
-- Authored wall damage on a close-contact definition is a magnitude, not a
-  licence. A cutter's wall damage applies at one authored breach point and
-  nowhere else, and it carries no radius: the map-edit authority decides which
-  cell may open, and the weapon only says how hard the tool bites.
 - A weapon-like arcing grenade uses the same simulated-projectile and detonation
   authorities as other slow explosive ordnance. The definition owns range,
   scatter, velocity, arc height, area payload, structural damage, projectile

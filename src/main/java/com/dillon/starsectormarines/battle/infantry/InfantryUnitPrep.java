@@ -67,9 +67,6 @@ public final class InfantryUnitPrep {
         if (sec.activation() == SpecialActivation.UTILITY_DEPLOYABLE) {
             return DeployableTactics.tickPlacement(unit, sec, sim);
         }
-        if (sec.activation() == SpecialActivation.CLOSE_CONTACT) {
-            return CloseContactTactics.tickChannel(unit, sec, sim);
-        }
         w.setSecondaryActionTimer(id, w.secondaryActionTimer(id) - BattleSimulation.TICK_DT);
         float fireAt = sec.aimDuration() * 0.5f;
         if (!w.secondaryFired(id) && w.secondaryActionTimer(id) <= fireAt) {
@@ -167,9 +164,7 @@ public final class InfantryUnitPrep {
      * Direct-fire equipment begins its ordinary aim when a legal target is in
      * range. A satchel is stricter: it considers only a target already inside
      * contact range, creates no approach path, and channels the plant through
-     * the same movement-freezing action window. Close-contact tools are
-     * stricter still and delegate to {@link CloseContactTactics}, which reaches
-     * only across a crossable cell boundary.
+     * the same movement-freezing action window.
      *
      * <p>For direct-fire equipment, the squad-coordination gate
      * ({@link TacticalScoring#shouldCommitSpecial})
@@ -212,6 +207,8 @@ public final class InfantryUnitPrep {
         if (!sec.hasAvailableUse(sim.world().secondaryAmmo(id))) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.SQUAD_SMOKE_SCREEN) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.FORWARD_OBSERVER) return false;
+        // A shoulder pod is spent by MissilePodSystem on its own clock, never through the hand.
+        if (sec.isShoulderPod()) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) {
             return tryOpportunitySatchel(unit, sec, sim);
         }
@@ -224,42 +221,7 @@ public final class InfantryUnitPrep {
         if (sec.aiPolicy() == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT) {
             return MortarTactics.tryCommitDeploy(unit, sec, sim);
         }
-        if (sec.aiPolicy() == SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN) {
-            return DeployableTactics.tryCommitCoverPlacement(unit, sec, sim);
-        }
-        if (sec.activation() == SpecialActivation.CLOSE_CONTACT) {
-            return CloseContactTactics.tryCommit(unit, sec, sim);
-        }
         return tryHardenedDirectFire(unit, sec, sim);
-    }
-
-    /**
-     * The screen half of {@link #tryOpportunitySpecial}, reachable on its own so
-     * a marine crossing ground can still get something between themselves and a
-     * threat that has only just arrived.
-     *
-     * <p>The move-only path withholds deployables because planting one freezes
-     * the carrier, and a squad's moving half must not be diverted mid-bound.
-     * That reasoning holds for building a revetment at a position somebody has
-     * chosen to fight from. It inverts for the two onset moments: a marine who
-     * has just come face to face with somebody, or who has just been taken as a
-     * target from down a lane, is in trouble <em>because</em> they are in the
-     * open and moving, and the freeze is the response rather than the cost of
-     * it. Same argument as the rocket at an emplacement above — the thing that
-     * would divert the advance is the thing the advance is in trouble over.
-     *
-     * <p>Only the cover screen. A satchel, a frag, a mine and a close-contact
-     * tool are all still diversions at these moments, and none of them puts
-     * anything between a marine and a bearing.
-     */
-    public static boolean tryOnsetScreen(long unit, BattleControl sim) {
-        if (!sim.world().hasSecondaryWeapon(unit)) return false;
-        if (sim.world().secondaryCooldownTimer(unit) > 0f) return false;
-        if (sim.world().secondaryActionTimer(unit) > 0f) return false;
-        SpecialEquipmentDef sec = sim.world().specialEquipment(unit);
-        if (sec.aiPolicy() != SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN) return false;
-        if (!sec.hasAvailableUse(sim.world().secondaryAmmo(unit))) return false;
-        return DeployableTactics.tryCommitCoverPlacement(unit, sec, sim);
     }
 
     /**
@@ -274,7 +236,7 @@ public final class InfantryUnitPrep {
      * the scan out lets {@link com.dillon.starsectormarines.battle.decision.goap.Action#permitsOpportunityFire}
      * keep its narrow meaning while this stays available underneath it.
      *
-     * <p>Deliberately excludes the satchel, frag, deployable, and close-contact
+     * <p>Deliberately excludes the satchel, frag and deployable
      * policies: each of those either freezes the carrier to plant something or
      * spends a squad resource, which is a diversion in a way a direct-fire shot
      * is not.
@@ -290,6 +252,7 @@ public final class InfantryUnitPrep {
         if (sec.aiPolicy() == SpecialAiPolicy.FORWARD_OBSERVER) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.SOFT_CLUSTER_INDIRECT) return false;
+        if (sec.isShoulderPod()) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT) {
             // A carried pack diverts nobody, so it may switch on mid-bound; a pod to be set down may not.
             DeployableEmplacementSpec spec = sec.deployableEmplacementSpec();
@@ -300,8 +263,6 @@ public final class InfantryUnitPrep {
         if (sec.aiPolicy() == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT) {
             return MortarTactics.tryCommitDeploy(unit, sec, sim);
         }
-        if (sec.aiPolicy() == SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN) return false;
-        if (sec.activation() == SpecialActivation.CLOSE_CONTACT) return false;
         return tryHardenedDirectFire(unit, sec, sim);
     }
 

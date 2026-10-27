@@ -4,19 +4,18 @@ Status: ACTIVE — direct freight recovery sequence; live campaign acceptance re
 
 Written: 2026-10-13
 
-Updated: 2026-10-15 — Junction framed as Varro's lien on Wayline's freight.
+Updated: 2026-10-27 — Script review: Iona cut, Corvus Credit Adjusters (CCA) named, two squads recommended only, objectives lettered, Talon Two stays over the Junction.
 
 ## Premise, place and cast
 
-After Wayline, Mara Venn introduces dispatch coordinator Iona Serr and a broken
-freight junction. A debt-recovery outfit, Varro, holds it against paper bought
-from Wayline's hull sales. Varro tolls the drivers and has impounded the
+After Wayline, Zoey Venn offers the company a broken freight junction. A debt-recovery outfit, Corvus Credit Adjusters (CCA), holds it against paper bought
+from Wayline's hull sales. Corvus Credit Adjusters tolls the drivers and has impounded the
 cooperative's contracted loads. Jangala's civil authority calls that a civil lien
 and stays out. The company opens the junction and escorts the freed freight
 through the corridor. Castle presents the company's commitment and
 confirmed losses.
 
-The introduction uses Mara's accessible office. Opening the Junction dossier
+The introduction uses Zoey's accessible office. Opening the Junction dossier
 freezes the actual planet and local sites; inaccessible accepted work pauses
 instead of moving with a later office change.
 
@@ -39,8 +38,17 @@ the company won the first time. The retry fields all three loads again, and only
 the won attempt's deliveries and losses are recorded. Failure never closes the
 account, pays the finale or opens later work.
 
-Both chapters recommend two full squads and accept two selected squads with
-four ready people each. Actual named personnel and fitted boats cross the
+Both chapters recommend two full squads but require only one deployable squad
+(`SupplyRouteCampaign.forceDeployable`); a smaller force is the player's choice.
+Their briefings letter the objectives, and the HUD and briefing map carry the same
+letters on the sites past the company's start: Junction (A) Weigh Station,
+(B) Freight Yard, (C) Junction Dispatch; Thunder Run (A) Dispatch Post,
+(B) East Crossing, (C) Outbound Gate, (D) the exit checkpoint.
+
+Talon Two, the Junction's gunship, stays over the map until the battle ends or
+it is shot down: it works the Weigh Station, goes ahead to the Dispatch trench,
+then circles Junction Dispatch. Junction and Thunder Run radio carries no
+landing, cargo-delivered or gunship-return calls. Actual named personnel and fitted boats cross the
 ordinary deployment boundary; supplied militia remain distinct.
 
 ## Resolution and next lead
@@ -51,9 +59,9 @@ run opens The Corvus Account; its introduction preserves actual deliveries and
 losses.
 
 The won Thunder Run ends with a written Jangala conversation on Results that
-closes Wayline's brush with bankruptcy. Mara says the road to the star port is
+closes Wayline's brush with bankruptcy. Zoey says the road to the star port is
 Wayline's again and the contracts it was on the hook for ship this month; she no
-longer has to plan the sale. Castle names the pattern in the ambushes, and Mara
+longer has to plan the sale. Castle names the pattern in the ambushes, and Zoey
 admits she still cannot say who knew Wayline's business, or why it was them. Castle closes the account and
 points the company to Asharu: Wayline's schedules ended up with a broker there
 who trades in sailing times, and Wayline runs freight there anyway, so the

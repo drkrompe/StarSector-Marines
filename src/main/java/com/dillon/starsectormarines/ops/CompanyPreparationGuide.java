@@ -104,7 +104,7 @@ final class CompanyPreparationGuide {
         Step step = roster.officerInduction().step(roster);
         if (step == Step.SHIP && CerberusCompanyStart.pendingDesignation()) return foundingLesson(context, null);
         if (step == Step.SHIP) return new PreparationGuide.Lesson(0, Strings.get("openingCompanyPreparationGuideAHomeForTheCompany"),
-                OfficerInductionGuide.line(Step.SHIP, "Sabine Hale").text(),
+                OfficerInductionGuide.line(Step.SHIP, "Morgan Hale").text(),
                 List.of("company-hq-ship"), Strings.get("openingCompanyPreparationGuideChooseShip"), () -> context.goTo(ScreenId.SHIP_TRANSFER));
         boolean waiting = context.shipGettingReady();
         return new PreparationGuide.Lesson(1, waiting ? Strings.get("openingCompanyPreparationGuidePreparingOurShip") : Strings.get("openingCompanyPreparationGuideLetSGetTheCompanyReady"),

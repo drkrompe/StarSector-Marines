@@ -118,9 +118,11 @@ class JunctionCommandEvidenceTest {
                 sim.world().mission(air).pendingDelay += (float) fixture.optDouble("playerDelay", 0);
             }
             assertEquals(manifest.size(), playerIndex);
-            // Every mobile counterattack squad answers to Junction command; the site and trench guards keep their posts.
+            // Every mobile counterattack squad answers to Junction command; the site and trench guards keep their posts,
+            // and the bonded warehouse's garrison is scripted (JunctionPressure).
             for (var squad : sim.getSquads()) if (squad.faction == Faction.DEFENDER && squad.assignedNode == null
-                    && sim.getSquadCommandDirective(squad.id).authority() != CommandAuthority.GARRISON)
+                    && sim.getSquadCommandDirective(squad.id).authority() != CommandAuthority.GARRISON
+                    && !sim.getJunctionPressure().garrison().contains(squad.id))
                 assertEquals(JunctionCommand.issuer(Faction.DEFENDER), sim.getSquadCommandDirective(squad.id).issuer());
             var sites = new ArrayList<>(sim.getCompoundService().getRecords());
             assertEquals(4, sites.size());
@@ -134,6 +136,8 @@ class JunctionCommandEvidenceTest {
             Set<Long> landed = new HashSet<>();
             int firstLanding = -1, reserveTick = -1, holdArrivalTick = -1, holdOccupancyTicks = 0;
             int peakPlayerSquads = 0;
+            int sallyTick = -1;
+            int[] technicalEntered = {-1, -1}, technicalDestroyed = {-1, -1};
             BattleReviewFrameRenderer renderer = capture ? frames() : null;
             sim.setCommandTraceEnabled(true, "JUNCTION");
             PlaceFightProbe placeFight = new PlaceFightProbe();
@@ -152,6 +156,14 @@ class JunctionCommandEvidenceTest {
                     })) {
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     sim.advance(BattleSimulation.TICK_DT);
+                    var pressure = sim.getJunctionPressure();
+                    if (sallyTick < 0 && pressure.sallied()) sallyTick = sim.getSimTickIndex();
+                    var hulls = pressure.technicalIds();
+                    for (int h = 0; h < hulls.size(); h++) {
+                        if (hulls.get(h) == 0L) continue;
+                        if (technicalEntered[h] < 0) technicalEntered[h] = sim.getSimTickIndex();
+                        if (technicalDestroyed[h] < 0 && !sim.convoy().isPresent(hulls.get(h))) technicalDestroyed[h] = sim.getSimTickIndex();
+                    }
                     placeFight.sample(sim);
                     int tick = sim.getSimTickIndex();
                     if (firstLanding < 0 && count(sim, Faction.MARINE) > 0) firstLanding = tick;
@@ -197,7 +209,9 @@ class JunctionCommandEvidenceTest {
             return new Result(new JSONObject().put("seed", seed).put("boats", boats)
                     .put("termination", sim.isComplete() ? "COMPLETE" : "TIMEOUT").put("winner", sim.getWinner() == null ? JSONObject.NULL : sim.getWinner().name())
                     .put("ticks", sim.getSimTickIndex()).put("firstPlayerLandingTick", firstLanding).put("playerDelivered", landed.size())
-                    .put("peakPlayerSquads", peakPlayerSquads).put("reserveCommittedTick", reserveTick).put("militiaFootprintArrivalTick", holdArrivalTick)
+                    .put("peakPlayerSquads", peakPlayerSquads).put("reserveCommittedTick", reserveTick)
+                    .put("firstBlowTick", sallyTick).put("secondBlowTick", sim.getJunctionPressure().secondBlowTick()).put("technicalEnteredTicks", new JSONArray(technicalEntered))
+                    .put("technicalDestroyedTicks", new JSONArray(technicalDestroyed)).put("militiaFootprintArrivalTick", holdArrivalTick)
                     .put("militiaFootprintOccupancyTicks", holdOccupancyTicks).put("playerRemaining", count(sim, Faction.MARINE))
                     .put("alliesRemaining", count(sim, Faction.ALLY)).put("raidersRemaining", count(sim, Faction.DEFENDER))
                     .put("storyBeats", StoryBeatEvidence.snapshot(sim)).put("placeFight", placeFight.json(sim, sim.getCommandTraceJsonLines())).put("reactiveDefence", ReactiveDefenceEvidence.figures(sim)).put("transitions", transitions).put("samples", samples).put("finalSquads", finalSquads).toString(2), sim.getCommandTraceJsonLines());

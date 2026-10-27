@@ -21,6 +21,7 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-rocket-launcher.png",
+        "armoryIconLie": 32,
         "usePose": "shoulder-launcher",
         "carrierLayer": {
           "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
@@ -93,6 +94,7 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-rocket-launcher.png",
+        "armoryIconLie": 32,
         "usePose": "shoulder-launcher",
         "carrierLayer": {
           "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
@@ -136,6 +138,44 @@
       }
     },
     {
+      "id": "special.missile-pod",
+      "catalog": {
+        "displayName": "@gearCatalogSpecialMissilePodDisplayName",
+        "subtitle": "@gearCatalogSpecialMissilePodSubtitle",
+        "factionLogo": "graphics/factions/tritachyon.png",
+        "description": "@gearCatalogSpecialMissilePodDescription"
+      },
+      "activation": {
+        "type": "shoulder-pod",
+        "weaponId": "weapon.micro-missile",
+        "minimumStandoffCells": 6.0,
+        "squadSalvoIntervalSeconds": 1.5,
+        "mount": { "rightCells": -0.1408164, "forwardCells": 0.0036625, "muzzleForwardCells": 0.114 }
+      },
+      "resource": {
+        "mode": "ammunition",
+        "startingAmmo": 3
+      },
+      "ai": {
+        "policy": "sighted-standoff-contact"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/system-missile-pod.png",
+        "usePose": "shoulder-mount",
+        "carrierLayer": {
+          "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
+          "attachment": "left-shoulder",
+          "widthShoulders": 0.32,
+          "heightShoulders": 0.48,
+          "pivot": [0.5, 0.5],
+          "muzzle": [0.5, 0.1041666667],
+          "carried": { "offsetShoulders": [0.0, 0.0], "angleDegrees": 0.0, "occlusion": "over-body" },
+          "using": { "offsetShoulders": [0.0, 0.0], "angleDegrees": 0.0, "occlusion": "over-body" },
+          "visibleWhileCarried": true
+        }
+      }
+    },
+    {
       "id": "special.anti-materiel-rifle",
       "catalog": {
         "displayName": "@gearCatalogSpecialAntiMaterielRifleDisplayName",
@@ -156,6 +196,7 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-anti-materiel-rifle.png",
+        "armoryIconLie": 32,
         "usePose": "braced-rifle",
         "carrierLayer": {
           "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/anti-materiel-rifle.png",
@@ -255,74 +296,6 @@
       }
     },
     {
-      "id": "special.smoke-pot",
-      "catalog": {
-        "displayName": "@gearCatalogSpecialSmokePotDisplayName",
-        "subtitle": "@gearCatalogSpecialSmokePotSubtitle",
-        "factionLogo": "graphics/factions/persean_league.png",
-        "description": "@gearCatalogSpecialSmokePotDescription"
-      },
-      "activation": {
-        "type": "utility-smoke",
-        "throwRange": 9.0,
-        "throwDuration": 1.2,
-        "flightSeconds": 0.7,
-        "arcHeight": 1.2,
-        "cloudRadius": 3.0,
-        "cloudDuration": 150.0,
-        "thinSeconds": 30.0
-      },
-      "resource": {
-        "mode": "ammunition",
-        "startingAmmo": 2
-      },
-      "ai": {
-        "policy": "squad-smoke-screen"
-      },
-      "presentation": {
-        "armoryIcon": "graphics/ui/armory/special-smoke-grenades.png",
-        "usePose": "throw",
-        "carrierLayer": {
-          "sprite": "graphics/ui/armory/special-smoke-grenades.png",
-          "widthShoulders": 0.26,
-          "heightShoulders": 0.26,
-          "pivot": [0.5, 0.5],
-          "carried": {
-            "offsetShoulders": [-0.16, 0.02],
-            "angleDegrees": -30.0,
-            "occlusion": "over-body"
-          },
-          "using": {
-            "offsetShoulders": [0.0, 0.32],
-            "angleDegrees": 0.0,
-            "occlusion": "over-body"
-          }
-        },
-        "thrown": {
-          "sprite": "graphics/ui/armory/special-smoke-grenades.png",
-          "widthCells": 0.26,
-          "heightCells": 0.5
-        },
-        "layerClips": {
-          "variant": "smoke",
-          "using": "throwing"
-        },
-        "field": {
-          "sheet": "graphics/battle/fx/smoke-field-sheet.png",
-          "columns": 4,
-          "rows": 2,
-          "firstFrame": 0,
-          "frameCount": 6,
-          "framesPerSecond": 4.0,
-          "tint": [1.0, 1.0, 1.0]
-        },
-        "preview": {
-          "state": "using",
-          "phase": 0.6
-        }
-      }
-    },
-    {
       "id": "special.frag-grenade",
       "catalog": {
         "displayName": "@gearCatalogSpecialFragGrenadeDisplayName",
@@ -372,110 +345,6 @@
         "preview": {
           "state": "using",
           "phase": 0.6
-        }
-      }
-    },
-    {
-      "id": "special.breaching-cutter",
-      "catalog": {
-        "displayName": "@gearCatalogSpecialBreachingCutterDisplayName",
-        "subtitle": "@gearCatalogSpecialBreachingCutterSubtitle",
-        "factionLogo": "graphics/factions/neutral_traders.png",
-        "description": "@gearCatalogSpecialBreachingCutterDescription"
-      },
-      "activation": {
-        "type": "close-contact",
-        "weaponId": "weapon.breaching-cutter",
-        "contactRange": 1.5,
-        "channelSeconds": 1.9
-      },
-      "resource": {
-        "mode": "cooldown",
-        "cooldownSeconds": 12.0
-      },
-      "ai": {
-        "policy": "contact-breach-channel"
-      },
-      "presentation": {
-        "armoryIcon": "graphics/ui/armory/special-breaching-cutter.png",
-        "usePose": "plant",
-        "carrierLayer": {
-          "sprite": "graphics/ui/armory/special-breaching-cutter.png",
-          "widthShoulders": 0.42,
-          "heightShoulders": 0.42,
-          "pivot": [0.5, 0.5],
-          "carried": {
-            "offsetShoulders": [-0.26, -0.06],
-            "angleDegrees": -22.0,
-            "occlusion": "under-body"
-          },
-          "using": {
-            "offsetShoulders": [0.0, 0.30],
-            "angleDegrees": 0.0,
-            "occlusion": "over-body"
-          },
-          "visibleWhileCarried": true,
-          "replacePrimaryWhileUsing": true
-        },
-        "layerClips": {
-          "variant": "satchel",
-          "using": "planting"
-        },
-        "preview": {
-          "state": "using",
-          "phase": 0.56
-        }
-      }
-    },
-    {
-      "id": "special.vibro-blade",
-      "catalog": {
-        "displayName": "@gearCatalogSpecialVibroBladeDisplayName",
-        "subtitle": "@gearCatalogSpecialVibroBladeSubtitle",
-        "factionLogo": "graphics/factions/hegemony.png",
-        "description": "@gearCatalogSpecialVibroBladeDescription"
-      },
-      "activation": {
-        "type": "close-contact",
-        "weaponId": "weapon.vibro-blade",
-        "contactRange": 1.2,
-        "channelSeconds": 0.35
-      },
-      "resource": {
-        "mode": "cooldown",
-        "cooldownSeconds": 2.4
-      },
-      "ai": {
-        "policy": "contact-reaction-strike"
-      },
-      "presentation": {
-        "armoryIcon": "graphics/ui/armory/special-vibro-blade.png",
-        "usePose": "plant",
-        "carrierLayer": {
-          "sprite": "graphics/ui/armory/special-vibro-blade.png",
-          "widthShoulders": 0.26,
-          "heightShoulders": 0.26,
-          "pivot": [0.5, 0.5],
-          "carried": {
-            "offsetShoulders": [-0.22, -0.10],
-            "angleDegrees": -34.0,
-            "occlusion": "under-body"
-          },
-          "using": {
-            "offsetShoulders": [0.06, 0.30],
-            "angleDegrees": 0.0,
-            "occlusion": "over-body"
-          },
-          "visibleWhileCarried": true,
-          "replacePrimaryWhileUsing": true
-        },
-        "layerClips": {
-          "variant": "satchel",
-          "using": "planting"
-        },
-        "preview": {
-          "state": "using",
-          "phase": 0.56
         }
       }
     },
@@ -759,58 +628,6 @@
         "preview": {
           "state": "using",
           "phase": 0.56
-        }
-      }
-    },
-    {
-      "id": "special.field-revetment",
-      "catalog": {
-        "displayName": "@gearCatalogSpecialFieldRevetmentDisplayName",
-        "subtitle": "@gearCatalogSpecialFieldRevetmentSubtitle",
-        "factionLogo": "graphics/factions/hegemony.png",
-        "description": "@gearCatalogSpecialFieldRevetmentDescription"
-      },
-      "activation": {
-        "type": "utility-deployable",
-        "barrierKind": "revetment",
-        "deployDuration": 2.0,
-        "lifetimeSeconds": 60.0
-      },
-      "resource": {
-        "mode": "ammunition",
-        "startingAmmo": 2
-      },
-      "ai": {
-        "policy": "directional-cover-screen"
-      },
-      "presentation": {
-        "armoryIcon": "graphics/ui/armory/special-field-revetment.png",
-        "usePose": "plant",
-        "carrierLayer": {
-          "sprite": "graphics/ui/armory/special-field-revetment.png",
-          "widthShoulders": 0.34,
-          "heightShoulders": 0.34,
-          "pivot": [0.5, 0.5],
-          "carried": {
-            "offsetShoulders": [-0.28, -0.1],
-            "angleDegrees": 8.0,
-            "occlusion": "under-body"
-          },
-          "using": {
-            "offsetShoulders": [0.0, 0.34],
-            "angleDegrees": 0.0,
-            "occlusion": "over-body"
-          },
-          "visibleWhileCarried": true,
-          "replacePrimaryWhileUsing": true
-        },
-        "layerClips": {
-          "variant": "satchel",
-          "using": "planting"
-        },
-        "preview": {
-          "state": "using",
-          "phase": 0.5
         }
       }
     },

@@ -83,10 +83,6 @@ public record BoatFitting(
             return new Effect(1f, 1f, 1f, 1f, rating, 0, 0f, 1f, 1f, 1f);
         }
 
-        static Effect cabin(int seats) {
-            return new Effect(1f, 1f, 1f, 1f, LiftRating.NONE, seats, 0f, 1f, 1f, 1f);
-        }
-
         static Effect emitter(float arcDeg, float efficiency) {
             return new Effect(1f, 1f, 1f, 1f, LiftRating.NONE, 0, arcDeg, efficiency, 1f, 1f);
         }
@@ -147,14 +143,6 @@ public record BoatFitting(
             "standard_cabin", "@boatFittingStandardCabin", BoatFittingSlot.CABIN, 1,
             Effect.NONE, 0, credits(950), "@boatFittingStandardCabinProvenance");
 
-    public static final BoatFitting HALF_SQUAD_CABIN = new BoatFitting(
-            "half_squad_cabin", "@boatFittingHalfSquadCabin", BoatFittingSlot.CABIN, 2,
-            Effect.cabin(6), 1, credits(2200), "@boatFittingHalfSquadCabinProvenance");
-
-    public static final BoatFitting TWO_TEAM_CABIN = new BoatFitting(
-            "two_team_cabin", "@boatFittingTwoTeamCabin", BoatFittingSlot.CABIN, 3,
-            Effect.cabin(8), 2, credits(4400), "@boatFittingTwoTeamCabinProvenance");
-
     public static final BoatFitting STANDARD_EMITTER = new BoatFitting(
             "standard_emitter", "@boatFittingStandardEmitter", BoatFittingSlot.EMITTER, 1,
             Effect.NONE, 0, credits(1250), "@boatFittingStandardEmitterProvenance");
@@ -183,7 +171,7 @@ public record BoatFitting(
             STANDARD_PLATING, REINFORCED_PLATING, ARMOURED_PLATING,
             STANDARD_DRIVE, TUNED_DRIVE, UPRATED_DRIVE,
             STANDARD_LIFT, LIFT_CRADLE, HEAVY_CRADLE, HEAVY_LIFT_FRAME,
-            STANDARD_CABIN, HALF_SQUAD_CABIN, TWO_TEAM_CABIN,
+            STANDARD_CABIN,
             STANDARD_EMITTER, WIDE_EMITTER, ASSAULT_EMITTER,
             STANDARD_POWER, CAPACITOR_BANK, MILITARY_CAPACITORS);
 

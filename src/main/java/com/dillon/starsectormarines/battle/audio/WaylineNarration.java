@@ -67,7 +67,7 @@ public final class WaylineNarration {
         public Line(String id, String missionId, String event, String text,
                     float durationSeconds, int priority, float expiresSeconds, List<String> supersedes) {
             this(id, missionId, event, text, durationSeconds, priority, expiresSeconds, supersedes,
-                    "MARA VENN / WAYLINE", "graphics/portraits/mara-venn.png");
+                    "ZOEY VENN / WAYLINE", "graphics/portraits/mara-venn.png");
         }
         public Line {
             if (id == null || id.isBlank() || missionId == null || event == null
@@ -127,7 +127,7 @@ public final class WaylineNarration {
                             ? entry.getString("text") : "@" + entry.getString("textKey"),
                     (float) entry.getDouble("durationSeconds"), entry.optInt("priority", 10),
                     (float) entry.optDouble("expiresSeconds", 15), supersedes,
-                    entry.optString("speaker", "MARA VENN / WAYLINE"),
+                    entry.optString("speaker", "ZOEY VENN / WAYLINE"),
                     entry.optString("portrait", "graphics/portraits/mara-venn.png"),
                     entry.optBoolean("voiced", true), entry.optBoolean("terminal", false),
                     entry.optBoolean("interrupts", false)));
@@ -145,7 +145,7 @@ public final class WaylineNarration {
         return story;
     }
 
-    /** Scenario hooks are shared with recurring jobs, but Mara's chapter recordings are not. */
+    /** Scenario hooks are shared with recurring jobs, but Zoey's chapter recordings are not. */
     public static String storyMissionId(Mission mission) {
         if (mission == null) return null;
         if (mission.source == MissionSource.DEBUG) return debugStoryMissionId(DebugMissionCatalog.scenario(mission));

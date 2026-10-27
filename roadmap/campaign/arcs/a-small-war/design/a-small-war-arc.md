@@ -8,14 +8,14 @@ Updated: 2026-10-19 — the duel ends in the Greyhook's run for the south edge: 
 
 ## Premise, place and cast
 
-Baronet Elian Rusk, last of a fallen cadet branch of an Eventide house, hires the
+Baronet Elian Dormer, last of a fallen cadet branch of an Eventide house, hires the
 company to restore the mod-authored Latchkey
 District on existing Agreus, the cold airless industrial moon in Arcadia.
 His local concession sits beneath Ko Combine administration. Sera Voss's
 Greyhook flotilla coerces cargo and yard access; Lenna Saye represents the
 workers whose technical knowledge keeps the yard useful.
 
-Vale's practical reference and Mara's introduction bring the company beyond
+Vale's practical reference and Zoey's introduction bring the company beyond
 Corvus. The company earns local responsibility, tender-supported holds and
 recovered power-suit patterns for individual marines within its existing squads.
 `agreus-latchkey.md` owns the enduring setting, cast and canon/authored boundary.
@@ -35,10 +35,10 @@ was hired to find, and the answer carries into later work.
 
 **The creditor rhyme.** The campaign opens on Jangala with the company breaking
 a creditor's hold on Wayline's road, while the civil authority calls a lien a
-civil matter and stays out. On Agreus the creditor is paying. Rusk's
+civil matter and stays out. On Agreus the creditor is paying. Dormer's
 repossession is lawful too, and Ko Combine's administration stays out for the same
 reason. The player should recognize the shoe on the other foot. Lenna names it in
-the Chapter 3 debrief: Mara has told her what the company did for Wayline, and
+the Chapter 3 debrief: Zoey has told her what the company did for Wayline, and
 she asks whose side the lien is on this time.
 
 **Voss answers each loss.** Greyhook is not scenery waiting for the finale. After
@@ -48,20 +48,20 @@ will cure.
 
 | After | Voss's answer |
 |---|---|
-| Water Under Seal | A dry note to Rusk, copied to the company: the weir has become expensive. |
+| Water Under Seal | A dry note to Dormer, copied to the company: the weir has become expensive. |
 | Limited Warrant | She raises the levy on the crews least able to pay; Nadi's next shortage list shows it. |
-| The Yard's Owners | Her prize crews' counterattack is her reply; afterward she warns the company about Pell. |
+| The Yard's Owners | Her prize crews' counterattack is her reply; afterward she warns the company about Reed. |
 
-**Chapter 4 is the turn.** Daro Pell's Berth Four raid the signing to protect
+**Chapter 4 is the turn.** Daro Reed's Berth Four raid the signing to protect
 their levy, against Voss's wishes, as she warned they would. It is the first time
 the company sees the coalition act against itself. Greyhook mortar fire on the
 commissioning work also puts the coalition's crude powered rigs across the line,
 the kit the company will soon wear in its own rebuilt form. The signed agreement
-shapes the problem, not the difficulty: under House Custody, Rusk's estate guards
+shapes the problem, not the difficulty: under House Custody, Dormer's estate guards
 hold one approach on his terms; under the Yard Compact, Lenna's fitters refuse to
 leave the tools and need cover where they work.
 
-Pell's raid is also Rusk's humiliation: a baronet who cannot hold his own lease.
+Reed's raid is also Dormer's humiliation: a baronet who cannot hold his own lease.
 He writes to his family on Eventide, and the remaining fighting is the time it
 takes them to answer.
 
@@ -71,20 +71,20 @@ Four refuses and holds out of grudge. The company watches its own pressure split
 Greyhook. Voss survives and says so in one line; nothing pretends her fleet is gone.
 
 **The family answers overhead.** As the *Greyhook*, Voss's Venture with Voss aboard,
-lifts alone from the pads south of the ridge and turns to fight, the pair Rusk's
+lifts alone from the pads south of the ridge and turns to fight, the pair Dormer's
 family has lent from Citadel Arcadia comes in low over the basin: a Hegemony Enforcer
-destroyer and Rusk's own Wolf. They slug it out in atmosphere while the ground fight
+destroyer and Dormer's own Wolf. They slug it out in atmosphere while the ground fight
 continues beneath them: the armoured Enforcer holding her guns while the Wolf darts in
 on her quarter, against a heavier ship that turns slowly. It is not an even fight and
 is not meant to be. Once they have hurt her, Voss runs for the south edge with them
 on her; she gets away or is shot down short of it and walks out of the wreck, and
-the battle is not over until one or the other has happened. The player's fleet stays out of the sky; Rusk's ships are the
+the battle is not over until one or the other has happened. The player's fleet stays out of the sky; Dormer's ships are the
 family's, not the company's support. A pair,
 not one, is the point: it checks two audiences at once, the Eventide house saving
 face over a cadet's failure and the Hegemony showing an Independent colony what it
 can put overhead at short notice.
 
-**The ending opens the next question.** Rusk asks what it would take to keep the
+**The ending opens the next question.** Dormer asks what it would take to keep the
 company on Agreus. The Hegemony auxiliary warrant follows because the family that
 lent the destroyers has noticed the company beneath them. The company that began by
 standing between a creditor and a cooperative has made itself useful to the junta
@@ -98,10 +98,10 @@ tier-III rebuilds. The player tastes powered fighting without wielding it, under
 the sector's non-proliferation rule (`progression-nouns.md`). All-suit
 cards and military patterns belong to the Hegemony auxiliary warrant and later.
 
-**Voices stay text for now.** Rusk, Lenna, Voss, Edek, Nadi, Pell and Drent are new
+**Voices stay text for now.** Dormer, Lenna, Voss, Edek, Nadi, Reed and Drent are new
 speakers. The ElevenLabs account is at its voice limit, so their radio and
 correspondence ship as readable text (`voiced: false`). Casting waits until a voice
-slot is free; Castle and Mara keep their existing voices.
+slot is free; Castle and Zoey keep their existing voices.
 
 ## Entry and chapter sequence
 

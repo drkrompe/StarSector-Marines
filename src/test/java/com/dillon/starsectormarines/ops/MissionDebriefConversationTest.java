@@ -15,18 +15,14 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MissionDebriefConversationTest {
-    @Test void firstWaylinePaymentHasWrittenCorrespondenceWithAnHonestLossBranch() throws Exception {
+    @Test void firstWaylinePaymentIsOneWrittenCastleLine() throws Exception {
         var catalog = catalog();
         for (int lost : List.of(0, 2, 12)) {
             var outcome = MissionOutcome.builder().missionId(OpeningOperationKind.RELIEF.missionId)
                     .missionSource(MissionSource.STORY).victory(true).marinesEngaged(12).marinesLost(lost).build();
             var lines = MissionDebriefConversation.lines(outcome, catalog);
-            assertEquals(5, lines.size());
+            assertEquals(1, lines.size(), "One Castle line, whatever the losses");
             assertTrue(lines.get(0).speaker().startsWith("CASTLE"));
-            assertTrue(lines.get(1).speaker().startsWith("SABINE"));
-            assertEquals(lost > 0, lines.get(1).text().contains("roll's shorter"));
-            assertTrue(lines.get(2).speaker().startsWith("MARA"));
-            assertEquals(lost > 0, lines.get(3).text().contains("names to take off the roll"));
             assertTrue(MissionDebriefConversation.recordings(outcome, catalog).isEmpty());
             var props = ResultsScreen.previewProps(true, false);
             ResultsScreen.putStoryDebrief(props, outcome);
@@ -53,11 +49,11 @@ class MissionDebriefConversationTest {
             assertEquals(List.of("orders", "consideration", "one_ship", "payroll", "way_out", "debt"),
                     lines.stream().map(l -> l.event().substring("debrief.cold_account.".length())).toList());
             for (int i = 0; i < lines.size(); i++) {
-                assertTrue(lines.get(i).speaker().startsWith(i % 2 == 0 ? "CASTLE" : "MARA"));
+                assertTrue(lines.get(i).speaker().startsWith(i % 2 == 0 ? "CASTLE" : "ZOEY"));
                 assertTrue(lines.get(i).voiced());
                 assertFalse(lines.get(i).terminal());
             }
-            assertEquals("AFTER ACTION / CASTLE & MARA", MissionDebriefConversation.title(outcome));
+            assertEquals("AFTER ACTION / CASTLE & ZOEY", MissionDebriefConversation.title(outcome));
         }
     }
 
@@ -129,7 +125,7 @@ class MissionDebriefConversationTest {
             if (!run.victory()) continue;
             var lines = MissionDebriefConversation.jangalaLines(catalog());
             assertEquals(4, lines.size());
-            assertTrue(lines.get(0).speaker().startsWith("MARA"));
+            assertTrue(lines.get(0).speaker().startsWith("ZOEY"));
             var next = lines.get(lines.size() - 1);
             assertTrue(next.speaker().startsWith("CASTLE"));
             assertTrue(next.text().contains("Asharu"));

@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CompanyPreparationTest {
     @Test void theCompleteBillFundsTheRealBoatAndSquadOrdersExactly() throws Exception {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+        MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
         roster.add(sabine);
         roster.beginCompanyPreparation(sabine);
         OfficerInduction induction = roster.officerInduction();
@@ -35,7 +35,7 @@ class CompanyPreparationTest {
         assertTrue(CompanyPreparation.canPrepare(roster, ShuttleType.AEROSHUTTLE, 2, purse, hold));
         roster.setCompanyShip("home", "Home", 200);
         roster.boatDeck().reconcile("home", ShuttleType.AEROSHUTTLE, 2);
-        // The company rides up to Relief on Wayline's truck: Sabine comes straight after the ship.
+        // The company rides up to Relief on Wayline's truck: Morgan comes straight after the ship.
         assertTrue(roster.boatDeck().flightReady().isEmpty());
         assertEquals(Step.INTRODUCTION, induction.step(roster));
         assertFalse(induction.finish(roster));
@@ -66,7 +66,7 @@ class CompanyPreparationTest {
 
     @Test void understrengthAssignedSquadCannotFinishAndTransferDoesNotMintBoats() {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+        MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
         roster.add(sabine); roster.beginCompanyPreparation(sabine);
         roster.setCompanyShip("first", "First", 200);
         BoatDeck deck = roster.boatDeck();
@@ -86,7 +86,7 @@ class CompanyPreparationTest {
 
     @Test void legacyOfficerLessonsAreNotRestartedOrStrippedOfBoats() {
         MarineRoster roster = new MarineRoster();
-        MarineCaptain sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+        MarineCaptain sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
         roster.add(sabine); roster.beginOfficerInduction(sabine);
         roster.boatDeck().reconcile("home", ShuttleType.HERMES, 2);
         roster.beginCompanyPreparation(sabine);

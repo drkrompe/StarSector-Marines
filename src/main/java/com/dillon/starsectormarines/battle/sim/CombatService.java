@@ -393,6 +393,15 @@ public final class CombatService {
     }
 
     /**
+     * Drops this tick's fire intent, entity or point, without touching the
+     * registered threat: the trigger is held, the eyes are not reset.
+     */
+    public void dropFireIntent(long id) {
+        entityWorld.setObject(id, components.COMBAT, BattleComponents.COMBAT_POINT_FIRE_AIM, null);
+        entityWorld.setLong(id, components.COMBAT, BattleComponents.COMBAT_FIRE_TARGET_ID, 0L);
+    }
+
+    /**
      * The consume-once fire-intent target, {@code 0L} = no intent (hold
      * fire). {@code fireStance}/{@code fireReposition} have no standalone
      * accessor — {@code battle.combat.FiringSystem} is the sole reader of

@@ -19,7 +19,7 @@ import java.util.Set;
 import java.util.List;
 import java.util.function.Predicate;
 
-/** Authored local raids against the Sable Wake crew, not wars against their host planets. */
+/** Authored local raids against the Sable crew, not wars against their host planets. */
 public enum CorvusChapter {
     DUST_LEDGER("asharu", "Asharu", "corvusDustLedger", MissionType.RAID, RiskLevel.LOW, 2, 22000,
             SurfacePalette.ARID, EconomicFunction.COMMERCE),

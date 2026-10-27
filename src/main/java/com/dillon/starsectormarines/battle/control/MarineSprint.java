@@ -5,7 +5,7 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.function.LongPredicate;
 
-/** Battle-local stamina for exact Marine identities, independent of who currently controls them. */
+/** Battle-local stamina for exact Marine and mech identities, independent of who currently controls them. */
 public final class MarineSprint {
     public static final float SPEED_SCALE = 1.6f;
     public static final float CAPACITY_SECONDS = 6f;

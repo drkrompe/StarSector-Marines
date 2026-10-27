@@ -20,7 +20,8 @@ camera and planet) and then played over the shot's whole length:
   its pose instead;
 - the camera flies the key frame's move (motion.camera: a push, a track, a chase, handheld
   drift), passing through the key frame's framing at the key time; a camera with no move holds;
-- the planet turns beneath at orbital speed, registered to the still at the key time;
+- the planet holds still beneath, as in the finals (owner, 2026-10-27: "Keep the planet still in
+  the finals, and stop the preview turning it.");
 - effects are proxies on placeholder timing (no shot has authored effect timing yet): gunfire
   as dashed lines from the chosen muzzle, missiles as streaks, blasts as wire shells at the key
   moment, fires and smoke as cones, flares and debris as dots, shields as wire shells.
@@ -63,10 +64,15 @@ def shot_table():
     text = text[:text.index('\n## ', 4)]
     rows, t = [], 0.0
     for line in text.splitlines():
-        m = re.match(r'\|\s*(S\d+[a-z]?)(?:\s*\*\*K\*\*)?\s*\|\s*([\d.]+)\s*s\s*\|\s*(.*?)\s*\|', line)
+        # a row may give its span in scene time, '31 s (-21 to 10)' (S0's pre-roll, S13): skipping it
+        # put every later shot 10 s early (S7's camera over S6c's action)
+        m = re.match(r'\|\s*(S\d+[a-z]?)(?:\s*\*\*K\*\*)?\s*\|\s*([\d.]+)\s*s\s*'
+                     r'(?:\(\s*(-?[\d.]+)\s*to\s*-?[\d.]+\s*\)\s*)?\|\s*(.*?)\s*\|', line)
         if not m:
             continue
-        desc = m.group(3)
+        if m.group(3) is not None:
+            t = float(m.group(3))
+        desc = m.group(4)
         b = re.match(r'\*\*(.+?)\*\*\s*(.*)', desc)
         title, caption = (b.group(1).rstrip('.'), b.group(2)) if b else (re.split(r'[:.] ', desc)[0], desc)
         rows.append(dict(id=m.group(1), dur=float(m.group(2)), title=title, caption=caption, start=t))
@@ -121,17 +127,14 @@ class Drift(tuple):
 
 
 def traced_keyframes():
-    """battle_blockout.KEYFRAMES re-read with motion's functions traced: every pose they make is a
-    Drift, so the preview can play the motion the key frame stills."""
-    real_fleet, real_run = motion.fleet_at, getattr(motion, 'boarding_run', None)
-
-    def fleet_at(ships, t, scale=1.0, keep=()):
-        return {k: (v if k in keep else Drift(v, t, lambda tt, k=k, st=tuple(ships[k]): motion.drift(k, st, tt, scale)))
-                for k, v in real_fleet(ships, t, scale, keep).items()}
+    """battle_blockout.KEYFRAMES re-read with boarding_run traced: every pose it makes is a Drift, so
+    the preview can play the motion the key frame stills. Fleet ships keep fleet_at's own live() poses,
+    the finals' motion: tracing them as drift() let a blockout weave ships the finals crept (owner,
+    2026-10-27: an approved blockout plays exactly what the final renders)."""
+    real_run = getattr(motion, 'boarding_run', None)
 
     def boarding_run(*a, **kw):
         return Drift(real_run(*a, **kw), a[-1], lambda tt: real_run(*a[:-1], tt, **kw))
-    motion.fleet_at = fleet_at
     if real_run is not None:
         motion.boarding_run = boarding_run
     try:
@@ -139,7 +142,6 @@ def traced_keyframes():
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
     finally:
-        motion.fleet_at = real_fleet
         if real_run is not None:
             motion.boarding_run = real_run
     return mod.SHOTS
@@ -532,12 +534,10 @@ def shot(L, kf):
         mp.shield('%s shield %s' % (kf, key), point(key), placed[key]['length'] * .6,
                   toward=point(tw) if tw in placed else None)
 
-    cam, ground = L['scene'].camera, L['ground']
-    t_still = spec['camera'].get('t', t_key if t_key is not None else ts)
-    t_still = spec.get('ground_t', t_still)     # a take carried over a cut turns the planet from its first shot's time
+    cam = L['scene'].camera
 
     def per_frame(f, t):
-        """The camera's move (motion.camera) and the planet turning under the co-moving frame."""
+        """The camera's move (motion.camera); the planet holds still, as in the finals."""
         if cam_at is not None:
             c = cam_at(t)
             L['aim'](c['loc'], c['target'], c['lens'], None, c.get('roll', 0.0))
@@ -551,17 +551,12 @@ def shot(L, kf):
                 cam.data.dof.keyframe_insert('focus_distance', frame=f)
                 cam.data.dof.keyframe_insert('aperture_fstop', frame=f)
                 L['scene'].display.shading.use_dof = True
-        ground.rotation_mode = 'XYZ'
-        ground.rotation_euler = (0.0, math.radians(motion.planet_turn_deg(t, t_still, bb.R)), 0.0)
-        ground.keyframe_insert('rotation_euler', frame=f)
     mp.render_shot(before=per_frame)
     if cam_at is not None:          # the next shot keys its own camera from scratch
         cam.animation_data_clear()
         cam.data.animation_data_clear()
         cam.data.dof.use_dof = False
         L['scene'].display.shading.use_dof = False
-    ground.animation_data_clear()
-    ground.rotation_euler = (0.0, 0.0, 0.0)
     mp.end_shot()
 
 

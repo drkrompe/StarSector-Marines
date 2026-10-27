@@ -11,7 +11,8 @@ final class HoundSalvageDebrief {
 
     static List<WaylineNarration.Line> lines(MissionOutcome outcome, WaylineNarration catalog) {
         if (!WaylineHoundAward.eligible(outcome)) return List.of();
-        return List.of("request", "terms", "accept", outcome.waylineHound.disabled() ? "repaired" : "transfer")
+        // One handover whether or not the Hound was knocked out; Castle closes it at the mech bay.
+        return List.of("request", "terms", "accept", "transfer", "bay")
                 .stream().map(beat -> catalog.find(outcome.missionId, "debrief.hound." + beat))
                 .filter(Objects::nonNull).toList();
     }
