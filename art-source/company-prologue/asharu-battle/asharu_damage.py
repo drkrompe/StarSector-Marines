@@ -241,6 +241,15 @@ LEDGER = [
     H('hound-p-a', 76.83, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6d k3e blast_on + debris',
       note="killed at close range by the convoy Hound's burst: she cooks off"),
 ]
+
+# Option C (ASHARU_S7_FIGHT): S7 draws S8's fight already running, its tracers both ways
+if os.environ.get('ASHARU_S7_FIGHT'):
+    LEDGER += [
+        H('colossus', 84.6, 'rake', 1, (-50, 27, 8), (0, .5, 1), to=(-62, 31, 6), by='tracer',
+          src='S7 k3b tracer colossus3', note="the Mk.III's guns find the port pod as she comes down"),
+        H('colossus3', 86.4, 'rake', 1, (8, 4, -6), (0, .3, -1), to=(-4, 7, -6), by='tracer',
+          src='S7 k3b tracer colossus', note="the Colossus's turrets answer into her belly"),
+    ]
 # Where the shooter really is (asharu_gunnery, 2026-10-23): the unit vector from the target toward
 # the shooter at the hit's time, target frame. A hit is cast onto the face that shooter sees, so a
 # hit whose `at` lies on the far side lands on the near face in line with it.
