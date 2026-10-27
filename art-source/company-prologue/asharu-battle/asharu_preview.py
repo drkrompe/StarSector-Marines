@@ -20,7 +20,8 @@ camera and planet) and then played over the shot's whole length:
   its pose instead;
 - the camera flies the key frame's move (motion.camera: a push, a track, a chase, handheld
   drift), passing through the key frame's framing at the key time; a camera with no move holds;
-- the planet turns beneath at orbital speed, registered to the still at the key time;
+- the planet holds still beneath, as in the finals (owner, 2026-10-27: "Keep the planet still in
+  the finals, and stop the preview turning it.");
 - effects are proxies on placeholder timing (no shot has authored effect timing yet): gunfire
   as dashed lines from the chosen muzzle, missiles as streaks, blasts as wire shells at the key
   moment, fires and smoke as cones, flares and debris as dots, shields as wire shells.
@@ -533,12 +534,10 @@ def shot(L, kf):
         mp.shield('%s shield %s' % (kf, key), point(key), placed[key]['length'] * .6,
                   toward=point(tw) if tw in placed else None)
 
-    cam, ground = L['scene'].camera, L['ground']
-    t_still = spec['camera'].get('t', t_key if t_key is not None else ts)
-    t_still = spec.get('ground_t', t_still)     # a take carried over a cut turns the planet from its first shot's time
+    cam = L['scene'].camera
 
     def per_frame(f, t):
-        """The camera's move (motion.camera) and the planet turning under the co-moving frame."""
+        """The camera's move (motion.camera); the planet holds still, as in the finals."""
         if cam_at is not None:
             c = cam_at(t)
             L['aim'](c['loc'], c['target'], c['lens'], None, c.get('roll', 0.0))
@@ -552,17 +551,12 @@ def shot(L, kf):
                 cam.data.dof.keyframe_insert('focus_distance', frame=f)
                 cam.data.dof.keyframe_insert('aperture_fstop', frame=f)
                 L['scene'].display.shading.use_dof = True
-        ground.rotation_mode = 'XYZ'
-        ground.rotation_euler = (0.0, math.radians(motion.planet_turn_deg(t, t_still, bb.R)), 0.0)
-        ground.keyframe_insert('rotation_euler', frame=f)
     mp.render_shot(before=per_frame)
     if cam_at is not None:          # the next shot keys its own camera from scratch
         cam.animation_data_clear()
         cam.data.animation_data_clear()
         cam.data.dof.use_dof = False
         L['scene'].display.shading.use_dof = False
-    ground.animation_data_clear()
-    ground.rotation_euler = (0.0, 0.0, 0.0)
     mp.end_shot()
 
 

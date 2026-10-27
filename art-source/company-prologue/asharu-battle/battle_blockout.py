@@ -1158,7 +1158,6 @@ KEYFRAMES = {
         # toward the camera, the view turning a little with the Falcon (P). No cut from S3, no zoom.
         camera=camera('k2', [dict(t=t, loc=s34_eye, target=s34_aim, lens=lens) for t, lens in S34_LENS
                              if t >= K2_T - 2.0], K2_T),
-        ground_t=K1B_T,     # the planet turns from S3's time: one take over the cut
         ships={**fleet_at({k: CONVOY[k] for k in ('hound-m', 'tarsus')}, K2_T), **K2_PIRATES},
         platform=PLATFORM,
         labels=['falcon-p', 'colossus3', 'manticore-p', 'wolf-p-a', 'kite-p-a', 'hound-p-b', 'platform']),
@@ -1679,7 +1678,6 @@ BLOCKED = {
         # bow settles alongside as Lasher A crosses in front of her, Morrow beyond her quarter. One lens.
         camera=camera('m2', [dict(t=24, loc=s12_eye, target=s1_pan, lens=45),
                              dict(t=30, loc=s12_eye, target=s1_pan, lens=45)], M2_T),
-        ground_t=16,        # the planet turns from S1's time: one take over the cut
         ships=M2_SHIPS,
         labels=['colossus', 'morrow', 'lasher-a']),
     'm5': dict(

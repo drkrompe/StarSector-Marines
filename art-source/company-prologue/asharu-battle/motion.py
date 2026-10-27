@@ -861,13 +861,3 @@ def follow(pose, offset=(0.0, 0.0, 0.0), lag=0.0, share=1.0, t_key=None):
     return at
 
 
-# ----------------------------------------------------------------------------- the planet turning beneath
-
-ORBIT_V = 7.8e3       # m/s: low orbit at 250 km
-
-
-def planet_turn_deg(t, t_key, radius):
-    """How far the planet has turned under the co-moving battle frame since the key time, degrees
-    about +Y (north): the ground slides aft under the convoy at orbital speed, about 60 km in an
-    8 s shot. Zero at the key time, so a still and its painted plate stay registered."""
-    return -math.degrees(ORBIT_V * (t - t_key) / radius)
