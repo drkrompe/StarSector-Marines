@@ -217,8 +217,8 @@ class SceneFx:
         bursts walk and misjudge by (below 1: the burst that kills her lands on her); bursts, [(first, last)]
         scene frames the trigger is held, in place of the weapon's seeded rhythm (a story broadside); sure,
         the scene frame a round of hers must land on (the kill), or a list of them, each a frame or (frame,
-        the point on b it lands on, metres in her frame): a round arriving within SURE_F frames of one is
-        laid dead on, without the walk or the lead error, and the trigger is held for it."""
+        the point on b it lands on, metres in her frame): the round of her cadence arriving nearest it is
+        laid dead on, without the walk or the lead error, the trigger held for it."""
         shooter, target = self.ship(a), self.ship(b)
         aim = self.world(b, aim_local or (0, 0, 0))
         mz = self.muzzle_world(a, muzzles[0]) if muzzles[0] is not None else self.world(a)
@@ -350,7 +350,6 @@ class SceneFx:
     # the flight time), so a moving target slides out from under some bursts and into others.
     # .12 missed 69% of S6b's rounds (verify12); the owner's mark is a third to a half.
     LEAD_ERR = .07
-    SURE_F = 1.25       # frames either side of a `sure` frame whose rounds are laid dead on
 
     def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track, trained=False,
                 cease=None, walk=1.0, held=None, sure=None):
@@ -424,10 +423,28 @@ class SceneFx:
             r1 = reach * rnd.uniform(-.2, .6)
             walks.append((t0, t1, (math.cos(th) * r0, math.sin(th) * r0), (math.cos(ph) * r1, math.sin(ph) * r1),
                           rnd.gauss(0, self.LEAD_ERR * walk)))
-        for sf, pt in sures:     # the trigger held as the round that must land leaves her (after the seeded walks)
-            ff = sf - (self.matrix_at(b, round(sf)) @ Vector(pt) - self.matrix_at(a, round(sf)) @ Vector(muzzle_l)).length / max(speed, 1.0) * fps
-            bursts.append((ff - 2.0, ff + 2.0))
-            walks.append((ff - 2.0, ff + 2.0, (0.0, 0.0), (0.0, 0.0), 0.0))
+
+        def flight(f, pt):
+            """Frames a round fired on f takes to reach pt on her: it keeps the shooter's own velocity."""
+            ma = self.matrix_at(a, f)
+            src, aim0 = ma @ Vector(muzzle_l), self.matrix_at(b, f) @ Vector(pt)
+            va = (self.matrix_at(a, f + 1).translation - ma.translation) * fps
+            return (aim0 - src).length / max(speed + va.dot((aim0 - src).normalized()), 1.0) * fps
+        # each round that must land is the one of her cadence arriving nearest its frame: the trigger held
+        # for it, the range gate waived (a story round, as asharu_gunnery forces it), laid dead on its point
+        dead = {}
+        if sures:
+            fired_at = sorted({int(round(F0 + t_ * fps)) for t_, _i, _k in g.cadence(weapon, (F1 - F0) / fps, feeder)})
+            for sf, pt in sures:
+                best = min(((f, flight(f, pt)) for f in fired_at if f < sf and f not in dead),
+                           key=lambda x: abs(x[0] + x[1] - sf), default=None)
+                if best is None:
+                    continue
+                dead[best[0]] = (Vector(pt), best[1])
+                bursts.append((best[0] - .5, best[0] + .5))       # after the seeded walks: theirs are unchanged
+                walks.append((best[0] - .5, best[0] + .5, (0.0, 0.0), (0.0, 0.0), 0.0))
+                self.rows.append(f'sure {a} t{turret} -> {b}: frame {sf:.0f}, her round from {best[0]} lands '
+                                 f'{best[0] + best[1] - sf:+.1f} frames off')
         imp = self.m['swfx_impacts']
         mpu = self.placed[a]['mpu']
         copy_at = lambda f: self.matrix_at(a, f) @ Matrix.Scale(mpu, 4)
@@ -441,14 +458,7 @@ class SceneFx:
             src = ma @ Vector(muzzle_l)
             fl = (self.matrix_at(b, f) @ Vector(hit_l) - src).length / max(speed, 1.0) * fps
             jr = random.Random(f'asharu-walk|{a}|{turret}|{b}|{f}')
-            dead_on, hl, fl_true = False, Vector(hit_l), fl
-            for sf, pt in sures:     # her true flight: the round keeps the shooter's own velocity
-                aim0 = self.matrix_at(b, f) @ Vector(pt)
-                va = (self.matrix_at(a, f + 1).translation - ma.translation) * fps
-                ft = (aim0 - src).length / max(speed + va.dot((aim0 - src).normalized()), 1.0) * fps
-                if abs(f + ft - sf) <= self.SURE_F:
-                    dead_on, hl, fl_true = True, Vector(pt), ft
-                    break
+            dead_on, (hl, fl_true) = f in dead, dead.get(f, (Vector(hit_l), fl))
             ox = oy = err = 0.0
             for t0, t1, c, e, le in walks:
                 if dead_on:
@@ -520,7 +530,7 @@ class SceneFx:
                 stats['off_target'] += 1
                 return False
             ok, dist = line_clear(f)
-            if dist > min(speed * self.MAX_FLIGHT_S, self.MAX_RANGE_M):
+            if dist > min(speed * self.MAX_FLIGHT_S, self.MAX_RANGE_M) and f not in dead:
                 stats['range'] += 1
                 return False
             if not ok:
