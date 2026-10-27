@@ -396,12 +396,13 @@ Heavy, its weight class seen from the air (Hound and the heavy APC Light;
 Warden, the escort APC and the militia technical Medium; Bulwark and the
 breakthrough tank Heavy). It is not the machine's inertia, which manual driving
 reads separately. Every airframe has a **lift rating**, the heaviest class it
-takes: a Valkyrie lifts Heavy as built and every other pattern nothing. A
+takes: a Valkyrie lifts Heavy as built, the Hermes Light (a Hound or a light
+APC under her belly), and every other pattern nothing. A
 bus-class boat (Buffalo, Tarsus, Mule, Nebula) earns Light or Medium lift
 through the third fitting slot, the hold: a **cradle** adds the rating and keeps
 the seats, so a cradled boat flies its squad loads like any other boat and then
 machines. Deboarding stays one kind per sortie: a squad load or exactly one
-machine. Small boats never lift a machine. Whether one carrier takes one machine
+machine. Other small boats never lift a machine. Whether one carrier takes one machine
 is a single pure check (`LiftAdmission`) that every consumer asks — the drop
 powers, the briefing and a per-mission lift budget — rather than comparing
 classes itself; a refusal is either *no lift* or *under-rated*.

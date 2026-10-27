@@ -200,12 +200,17 @@ public enum ShuttleType implements AirHandling, Airframe {
 
     /**
      * The pattern's own lift, before any fitting: a Valkyrie carries Heavy
-     * machines as built, and every other boat none. A bus-class boat earns
-     * Light or Medium lift through a cradle ({@code BoatFittingSlot.LIFT}).
+     * machines as built, the Hermes, the company's boat, a Light one, and
+     * every other boat none. A bus-class boat earns Light or Medium lift
+     * through a cradle ({@code BoatFittingSlot.LIFT}).
      */
     @Override
     public LiftRating liftRating() {
-        return this == VALKYRIE ? LiftRating.HEAVY : LiftRating.NONE;
+        return switch (this) {
+            case VALKYRIE -> LiftRating.HEAVY;
+            case HERMES -> LiftRating.LIGHT;
+            default -> LiftRating.NONE;
+        };
     }
 
     @Override public String spritePath()              { return spritePath; }
