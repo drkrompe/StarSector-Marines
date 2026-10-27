@@ -206,20 +206,25 @@ grey is two wide dashes. The ticks are also partly transparent (owner,
 falling-off tick carries less ink), and grey lowest at 60%. LINKED, or any
 pick of several mounts, shows the best mark among them and is grey only when
 none would fire. Cooldown, reload, burst and flux never change a mark: those
-are clocks, so a Marine's empty magazine is a reload rather than grey. A
-Marine's left tick carries its trigger's **load** beside the mark instead
+are clocks, so a Marine's empty magazine is a reload rather than grey. Each
+tick carries its trigger's **load** beside the mark instead
 (owner, 2026-10-27, after playtesters could not tell when a gun would stop or
 start firing): over a cycle or reload the tick is lit only from the dot out to
 the share of the clock that has run, faint beyond, so it grows back to whole as
-the gun comes ready; a special's clock is its readying or cooldown. A
-magazine-fed primary also draws a **magazine arc** round the dot on the left
-tick's side, one segment a round. Rounds go faint from the end nearest the line
+the gun comes ready; a special's clock is its readying or cooldown. A pick with
+limited ammunition also draws a **magazine arc** round the dot on its tick's
+side, one segment a round (a mech's trigger packs, a rotary's belt, a turret's
+ready rounds). Rounds go faint from the end nearest the line
 of fire as they are spent, and a reload refills them from that end, paler than
 loaded rounds until the reload ends. A magazine of more than twenty rounds is
 one bar split at the same share. The load speaks in brightness only, so hue
 keeps meaning range; a grey tick shows no clock, and a weapon with no magazine,
-such as the pulse rifle, shows its clock alone. Vehicles and mechs show no load
-yet; their clocks stay on the panel. A Marine's left mark is its pick: the
+such as the pulse rifle, shows its clock alone. A mech's or vehicle's button
+reads the mounts its pick fires, as its mark does (owner, 2026-10-27): LINKED is
+as ready as its readiest mount and its arc counts their rounds together. A
+rotary's spin stays on the panel, so its tick is always whole and its arc is
+the belt. A Marine's right button carries no load: its throws keep their counts
+on the panel. A Marine's left mark is its pick: the
 primary, or the special it is on, read at that special's range and accuracy and
 grey once the special is empty; the right mark is the right-button pick: a throw,
 smoke or a hand grenade (red past its throw reach, where it lands short; grey with

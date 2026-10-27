@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimLane;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimOrigins;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlFireMarks;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlFireMarks.Mark;
+import com.dillon.starsectormarines.battle.ui.panel.DirectControlLoad;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlPanel;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlReticle;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlScatter;
@@ -68,7 +69,8 @@ import java.util.Locale;
  * and two LRM racks on the right, with the cursor where the chainguns fall off, inside the racks' minimum and past
  * the chainguns' range, in each way a tick can carry landing spread; then the LRM carrier under control, and a Marine with smoke
  * on the right button. The marks are {@link DirectControlFireMarks#read}, the strokes
- * {@link DirectControlReticle}'s, both production; only the stroke drain is a Java2D copy of the GL panel's.
+ * {@link DirectControlReticle}'s with each button's {@link DirectControlLoad}, all production; only the stroke
+ * drain is a Java2D copy of the GL panel's.
  * A look study, so it is left out of {@code all}.
  */
 public final class AimReticleSnapshotSuite implements SnapshotSuite {
@@ -215,8 +217,8 @@ public final class AimReticleSnapshotSuite implements SnapshotSuite {
                         camera.cellToScreenX(0f), camera.cellToScreenY(0f)), 1f);
             }
             float cellPx = camera.cellPxSize();
-            draw(graphics, DirectControlReticle.strokes(marks, spread.leftCells() * cellPx,
-                    spread.rightCells() * cellPx, sx, sy, sx - camera.cellToScreenX(x), sy - camera.cellToScreenY(y),
+            draw(graphics, DirectControlReticle.strokes(marks, DirectControlLoad.read(sim),
+                    spread.leftCells() * cellPx, spread.rightCells() * cellPx, sx, sy, sx - camera.cellToScreenX(x), sy - camera.cellToScreenY(y),
                     DirectControlPanel.controlledColor()), 1f);
             caption(graphics, aim, marks);
             inset(graphics, image, sx, HEIGHT - sy);
