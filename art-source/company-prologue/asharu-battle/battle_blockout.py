@@ -1738,6 +1738,7 @@ SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else
 READABLE = {'borer': 2.5}
 
 ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
+CONTACT_TOL_M = .5              # how far a damage scar, fire, vent or smoke anchor may sit off her plating (contact_lint)
 ATTACH_TOL_M = 1.5              # how far a turret mount or effects copy may sit off its hull (attachment_lint): a
                                 # Colossus head tipped 65 deg on its trunnions carries its mount 1.0 m
 
@@ -2670,6 +2671,50 @@ def blender_main(cfg):
               + (f'; off their mounts: {sorted(set(far))[:24]}' if far else ''), flush=True)
         if worst[0] > ATTACH_TOL_M and not os.environ.get('ASHARU_AUDIT_SOFT'):
             raise RuntimeError(f'{kf}: {worst[1]} is drawn {worst[0]:.2f} m off its mount on her hull')
+
+    contact_bvh = {}         # a hull mesh's name -> its BVH in its own frame (built once; its shape never changes)
+    contact_re = re.compile(r'^SWFX (?:damage scar \| .*|impact (?:scar|damage fire|damage vent|damage smoke) \d+) @([\w-]+)$')
+
+    def contact_lint(kf):
+        """Nothing a hit leaves on a hull floats off it (owner, 2026-10-27: S11's discs below the
+        Colossus were a rake's scars left at authored points past her side): every damage decal and
+        damage anchor drawn this frame sits within CONTACT_TOL_M of her own plating, as drawn."""
+        from mathutils.bvhtree import BVHTree
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        plating, marks = {}, []
+        for inst in dg.object_instances:
+            if not inst.is_instance or inst.parent is None:
+                continue
+            ob = inst.object.original
+            top = inst.parent.original.name
+            name = ship_fx.base_name(ob.name)
+            m = contact_re.match(name)
+            if m is not None:
+                marks.append((m.group(1), name, inst.matrix_world.translation.copy()))
+            elif top.startswith('Ship | ') and ob.type == 'MESH' and not name.startswith('SWFX'):
+                plating.setdefault(top[7:], []).append((ob, inst.matrix_world.copy()))
+        worst, far = (0.0, None), []
+        for key, name, at in marks:
+            best = None
+            for ob, mw in plating.get(key, ()):
+                if ob.name not in contact_bvh:
+                    contact_bvh[ob.name] = BVHTree.FromObject(ob, dg)
+                hit = contact_bvh[ob.name].find_nearest(mw.inverted() @ at)
+                if hit[0] is not None:
+                    d = (mw @ hit[0] - at).length
+                    best = d if best is None else min(best, d)
+                    if best <= CONTACT_TOL_M:
+                        break
+            if best is None:
+                continue
+            worst = max(worst, (best, f'{key} {name}'), key=lambda w: w[0])
+            if best > CONTACT_TOL_M:
+                far.append(f'{name} {best:.1f} m')
+        print(f'ASHARU contact {kf}: {len(marks)} marks, worst {worst[0]:.3f} m ({worst[1]})'
+              + (f'; off her plating: {sorted(far)[:24]}' if far else ''), flush=True)
+        if worst[0] > CONTACT_TOL_M and not os.environ.get('ASHARU_AUDIT_SOFT'):
+            raise RuntimeError(f'{kf}: {worst[1]} is drawn {worst[0]:.2f} m off her plating')
 
     def build_objects(key):
         """The objects a placed ship is drawn from: her own hull copy (ShipFx, its turrets trained)
@@ -3874,6 +3919,7 @@ def blender_main(cfg):
                         raise RuntimeError(f'{kf}: {w_[1]} {w_[2]} evaluates {w_[0]:.4f} off its plan {w_[3]:.4f}')
             if not cfg.get('motion_preview'):    # the preview bakes each ship into one mesh: nothing can come off
                 attachment_lint(kf)
+                contact_lint(kf)
                 cut_lint(kf)
                 motion_lint(kf)
             lab = {}

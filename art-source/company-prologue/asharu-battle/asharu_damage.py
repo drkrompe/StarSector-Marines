@@ -328,10 +328,11 @@ def fire_drawn(h, on):
 # ======================================================================================= Blender
 
 def _cast(scene, matrix, ship_fx, p_m, frm, standoff=70.0):
-    """Where a hit at p_m coming from direction frm meets this ship's plating: (at_m, normal_m) in the
-    ship's frame, or the authored point and frm when nothing is found. Casts from `standoff` metres out
-    along frm, accepting only this ship's hull objects (a neighbour's hull, or any kit volume, is passed
-    through)."""
+    """Where a hit at p_m coming from direction frm meets this ship's plating: (at_m, normal_m, True) in
+    the ship's frame, or (the authored point, frm, False) when nothing is found. Casts from `standoff`
+    metres out along frm, accepting only this ship's hull objects (a neighbour's hull, or any kit volume,
+    is passed through). A miss means the point is off her hull: callers place nothing there (S11's
+    floating discs were a rake's scars left at authored points past her side)."""
     import bpy
     from mathutils import Vector
     import ship_fx as sfx_mod
@@ -356,8 +357,8 @@ def _cast(scene, matrix, ship_fx, p_m, frm, standoff=70.0):
         n = (inv.to_3x3() @ nrm).normalized()
         if n.dot(d_l) < 0:
             n = -n
-        return tuple(inv @ loc), tuple(n)
-    return tuple(p_m), tuple(d_l)
+        return tuple(inv @ loc), tuple(n), True
+    return tuple(p_m), tuple(d_l), False
 
 
 def _turned(normal, spin):
@@ -573,7 +574,7 @@ class _Builder:
         self.core, self.imp = swfx_core, swfx_impacts
         self.mats = {}
         self.look, self.lv = look, LOOKS[look]
-        self.made = dict(scars=0, holes=0, fires=0, vents=0, smoke=0, keyed=0)
+        self.made = dict(scars=0, holes=0, fires=0, vents=0, smoke=0, keyed=0, off_hull=0)
 
     def seed(self, h, salt=''):
         return zlib.crc32(f'asharu-damage|{h.id}|{salt}'.encode()) % 100003
@@ -612,7 +613,8 @@ class _Builder:
 
     def scars(self, h, frame):
         """The hit's scorch decals (and its hole), each cast onto the plating, appearing at `frame`
-        (a cut's or a rake's walk along their line). Returns the hit point and normal on the hull."""
+        (a cut's or a rake's walk along their line). A site whose cast misses her plating is skipped.
+        Returns the hit point and normal on the hull, and whether the hit itself met her plating."""
         from mathutils import Matrix, Vector
         import bpy
         from swfx_smoke import _no_shadow_catch
@@ -620,14 +622,17 @@ class _Builder:
         units = self.core.units
         coll = self.ctx.collection(self.imp.GROUP)
         rnd = random.Random(self.seed(h, 'decals'))
-        hit_at, hit_n = _cast(self.ctx.scene, self.matrix, self.ship, h.at, h.frm)
+        hit_at, hit_n, on_hull = _cast(self.ctx.scene, self.matrix, self.ship, h.at, h.frm)
         sites = self._sites(h)
-        if lv['hole'] > 0 and h.kind not in ('rake', 'cut'):
+        if lv['hole'] > 0 and h.kind not in ('rake', 'cut') and on_hull:
             sites.insert(0, (Vector(hit_at), (h.size or lv['hole']), 0.0))
         line = Vector(h.to) - Vector(h.at) if h.to else None
         for i, (p, size, delay) in enumerate(sites):
-            hole = i == 0 and lv['hole'] > 0 and h.kind not in ('rake', 'cut')
-            at, n = (tuple(p), hit_n) if hole else _cast(self.ctx.scene, self.matrix, self.ship, tuple(p), h.frm)
+            hole = i == 0 and lv['hole'] > 0 and h.kind not in ('rake', 'cut') and on_hull
+            at, n, ok = (tuple(p), hit_n, True) if hole else _cast(self.ctx.scene, self.matrix, self.ship, tuple(p), h.frm)
+            if not ok:
+                self.made['off_hull'] += 1
+                continue
             f = frame + round(delay * FPS)
             e = self.empty(h, f, at, n, 'scar')
             if h.kind == 'cut' and line is not None:      # a seam: long along the cut, narrow across it
@@ -657,7 +662,7 @@ class _Builder:
             _no_shadow_catch(ob)
             ob.hide_render = False
             self.made['holes' if hole else 'scars'] += 1
-        return hit_at, hit_n
+        return hit_at, hit_n, on_hull
 
     def fire(self, h, frame, at, n, ignite_s=0.0):
         """The hit's fire: the kit's breach flame, its smoke and flickering light, timed by its own empty."""
@@ -708,7 +713,10 @@ class _Builder:
             if h.kind == 'cut':      # a laser seam has no rounds; its decals walk the line
                 return
             for k, (p, _s, delay) in enumerate(self._sites(h)):
-                at_k, n_k = _cast(self.ctx.scene, self.matrix, self.ship, tuple(p), h.frm)
+                at_k, n_k, ok = _cast(self.ctx.scene, self.matrix, self.ship, tuple(p), h.frm)
+                if not ok:
+                    self.made['off_hull'] += 1
+                    continue
                 imp.strike(self.ctx, frame + round(delay * FPS), at_k, n_k, kind='kinetic')
                 self.made['keyed'] += 1
             return
@@ -821,8 +829,11 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
     rows = []
     for h in past:
         f = b.frame(h.t)
-        at, n = b.scars(h, f)
+        at, n, on_hull = b.scars(h, f)
         tag = []
+        if not on_hull and h.kind not in ('rake', 'cut'):
+            rows.append(f'{h.t:6.1f} {h.kind:6} sev{h.sev} past (off her plating: nothing placed)')
+            continue
         if h in fires:
             b.fire(h, f, at, n)
             tag.append('fire')
@@ -849,8 +860,11 @@ def apply(ship_key, ship_fx, t_shot0, t_shot1, frame_of, matrix=None, log=print,
                 h.at = tuple(got[0][1][3])
                 h.to = tuple(Vector(h0.to) + d_) if h0.to else None
                 tag.append(f'placed on a drawn round {d_.length:.0f} m from its authored point, at ' + '({:.0f}, {:.0f}, {:.0f})'.format(*h.at))
-        at, n = b.scars(h, f)
+        at, n, on_hull = b.scars(h, f)
         events.append(dict(hit=h, frame=f))
+        if not on_hull and h.kind not in ('rake', 'cut'):
+            rows.append(f'{h.t:6.1f} {h.kind:6} sev{h.sev} in shot (off her plating: nothing placed)')
+            continue
         if 'missile' in h.bys:
             tag.append('moment drawn by its missile')
         elif drawn(h, on):
