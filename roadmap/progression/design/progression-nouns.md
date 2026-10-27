@@ -109,11 +109,14 @@ legibility.
   on so its trigger is readable from the catalog entry rather than compiled into
   the sweep. Whether a pattern carries one is a question about what that suit is
   for, not a quota: see `integral-system-slate.md`.
-- **System family** — the shared name and icon every pattern's take on one
-  effect has in common, such as a breach assist. Six suits carry that effect and
-  each names its own version something else; the family is what lets a player see
-  they are the same capability rather than six unrelated tricks, so it leads and
-  the tradition's own name follows as flavour.
+- **System family** — the shared name and icon every system of one effect has
+  in common, such as a breach assist. It leads, and the system's own name
+  follows.
+- **Shared system** — an integral system defined once at the armour catalog's
+  top level and carried by several suits by reference. The personal shield is
+  three of these, the Low, Mid and High Tech tiers (`integral-system-slate.md`);
+  a suit referencing one may add its own carried hardware and nothing else, so
+  the tier's numbers and name cannot fork per suit.
 - **Use policy** — the authored moment at which spending a piece of equipment is
   a good idea: what has to be true, not what the thing does. It is a closed
   vocabulary shared by both carriers of equipment behavior, a carried special
@@ -948,7 +951,7 @@ The fitted armor's actual system identity selects that hardware, independently
 of the carried special item. It stays visible after ammunition is spent and
 during cooldown, does not replace the primary, and does not infer a shot from
 the duration of an active effect. Aegis Predictive Volley and Arbalest Battery
-Volley carry left-pauldron missile pods; Specter Predictive Breach carries a
+Volley carry left-pauldron missile pods; the Specter frames' shield carries a
 small screen emitter. Those art choices do not grant capabilities. A missile
 system may separately declare its physical shoulder mount and muzzle geometry.
 Both the resolved round and its visual shot start at that muzzle, and a committed

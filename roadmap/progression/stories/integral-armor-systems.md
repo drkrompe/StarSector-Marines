@@ -87,7 +87,7 @@ Two, chosen because they exercise opposite halves of the model:
 
 The first carried-hardware pass equips Aegis Predictive Volley and Arbalest
 Battery Volley with a compact three-channel left-pauldron missile pod. Specter
-Predictive Breach carries a smaller screen emitter on that shoulder. Both use
+frames' shield carries a smaller screen emitter on that shoulder. Both use
 separate transparent sprites attached to the actual shoulder joint; monolithic
 armor falls back to torso registration. Neither changes the handheld weapon or
 occupies the carried special slot. The hardware remains fitted after a power is

@@ -61,10 +61,10 @@ public enum IntegralSystemEffect {
     public final String key;
 
     /**
-     * The family name every pattern's take on this effect shares. Six suits
-     * carry a breach assist and each calls its own version something else; the
-     * family is what lets a player see they are the same capability rather than
-     * six unrelated tricks ({@code integral-system-slate.md}).
+     * The family name every system of this effect shares. Ten suits carry a
+     * breach assist across three shield tiers; the family is what lets a player
+     * see the tiers are one capability at three grades
+     * ({@code integral-system-slate.md}).
      */
     private final String displayName;
 

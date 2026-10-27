@@ -118,20 +118,18 @@ and issued tiers retain their existing tradeoffs.
 | --- | --- | --- |
 | XIV heavy battlesuit | 60 | Reliable armored breach and shock infantry |
 | Specter composite battlesuit | 55 | Mobile specialist shell with less plate endurance |
-| Bulwark coalition battlesuit | 70 | Balanced modular protection and interlock advance |
+| Bulwark coalition battlesuit | 70 | Balanced modular protection and a mid-tech shield |
 | Reliquary consecrated battlesuit | 60 | Resistant legacy shell with a severe movement cost |
 | Lion's Mantle guard battlesuit | 60 | Conspicuous prestige shell and a long bounded advance |
 | Foundry-breaker industrial rig | 85 | Huge crude reserve with poor material resistance |
 | Arbalest support battlesuit | 50 | Mechanized support carrying finite shoulder ordnance |
-| Recovered Specter frame | 36 | Early recovered assault shell with a slower, weaker breach system |
+| Recovered Specter frame | 36 | Early recovered assault shell with a mid-tech shield |
 | Recovered Arbalest frame | 34 | Early support shell with two salvos and slower movement |
 | Boarding Jack rebuilt frame | 40 | Pirate recovered assault shell: more raw reserve than recovered Specter, worse resistance (6), handling (x0.82) and target profile (x1.04) |
 
 Within tier III the ladder is a trade, not an order of raw capacity. The Boarding
-Jack's Latch Assist is the existing breacher assist (2-second window, 22-second
-cooldown, x1.15 movement, a 4-point screen over 100 degrees), weaker than the
-Foundry-breaker's and slower to recover than the recovered Specter's predictive
-breach. Matchup evidence at its introduction: twelve Jacks hold at least as well as
+Jack carries the Low Tech shield, the recovered Specter the Mid Tech one
+(`integral-system-slate.md`). Matchup evidence at its introduction: twelve Jacks hold at least as well as
 twelve recovered Specters against plain rifles, the Specter holds noticeably better
 against military fire, and a regular military section with rockets and an
 anti-materiel rifle beats either suit section in the open by a wide margin, while
@@ -216,7 +214,7 @@ welded mismatched plate (a large square slab on one shoulder, a smaller cargo ca
 the other), visible joint backing, guarded hoses and hand-lettered service labels.
 It shares the Specter shell registration so the existing pose tracks articulate it,
 keeps torso, shoulders, helmet and feet separate with casing-only paint masks, and
-makes its left slab a hinged boarding shield that carries Latch Assist: a long welded loading-frame plate whose forward lip leads the torso's turn, resting on the shoulder at rest and on the walk and sweeping across the chest in aim, fire and brace. The shield is the Latch Assist presentation (its existing 100-degree directional soak on that side); there is no separate screen layer. It must not reuse the
+makes its left slab a hinged boarding shield that carries its low-tech shield: a long welded loading-frame plate whose forward lip leads the torso's turn, resting on the shoulder at rest and on the walk and sweeping across the chest in aim, fire and brace. The shield is the Latch Assist presentation (its existing 100-degree directional soak on that side); there is no separate screen layer. It must not reuse the
 Foundry-breaker's rejected presentation or borrow another suit's family. The shipped
 art is worn rust-orange welded plate over dark joint backing with a bare-steel power
 pack: warm and patched where the Specter is cool, faceted and lit. Its helmet is

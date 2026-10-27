@@ -134,21 +134,17 @@ class ArmorCatalogShapeTest {
     }
 
     /**
-     * Within one armor class, <b>every</b> suit at a tier carries a better version
-     * of its capability than <b>every</b> suit at the tier below. The floor
-     * rises, which is what makes a tier mean something when a role spans several
-     * ({@code role-and-access.md}).
+     * Within one armor class and one effect, <b>every</b> system of a grade is
+     * worth more than <b>every</b> system of the grade below it. The floor rises,
+     * which is what makes a better-made system mean something: the shield tiers
+     * are the plainest case, three shared systems at Surplus, Service and Milspec
+     * that several suits of different tiers carry ({@code integral-system-slate.md}).
      *
      * <p>Compared on {@link #systemValue}, not on any single authored number,
-     * because the suits within one tier are deliberate side-grades and their
-     * headline numbers disagree wildly — the Foundry-breaker refuses four points
-     * of damage where the Reliquary refuses twenty-seven, and both are tier IV.
-     * What they have in common is roughly how much they are worth per activation
-     * once the shove is counted; where they differ is how often they can spend
-     * it.
+     * because a screen and a shove spend a budget on different axes.
      */
     @Test
-    void everySuitAtATierCarriesABetterSystemThanEverySuitBelowIt() {
+    void everySystemOfAGradeIsWorthMoreThanEverySystemBelowIt() {
         Map<ArmorClass, Map<IntegralSystemEffect, Map<Integer, List<Rung>>>> ladders =
                 new EnumMap<>(ArmorClass.class);
         for (MarineArmorCatalogDef pattern : catalog().all()) {
@@ -158,8 +154,8 @@ class ArmorCatalogShapeTest {
             if (value == null) continue;
             ladders.computeIfAbsent(pattern.armorClass(), key -> new EnumMap<>(IntegralSystemEffect.class))
                     .computeIfAbsent(system.effect(), key -> new TreeMap<>())
-                    .computeIfAbsent(pattern.tier(), key -> new ArrayList<>())
-                    .add(new Rung(pattern.id(), value));
+                    .computeIfAbsent(system.grade().ordinal(), key -> new ArrayList<>())
+                    .add(new Rung(pattern.id() + "/" + system.id(), value));
         }
         assumeTrue(!ladders.isEmpty(), "no catalogued pattern carries a system here");
 
@@ -171,11 +167,11 @@ class ArmorCatalogShapeTest {
                         .min(Comparator.comparingDouble(Rung::value)).orElseThrow();
                 if (previousCeiling != null) {
                     assertTrue(floor.value() > previousCeiling.value(),
-                            armorClass + " " + effect.key + ": " + floor.id() + " at tier " + rung.getKey()
+                            armorClass + " " + effect.key + ": " + floor.id() + " at grade " + rung.getKey()
                                     + " is worth " + round(floor.value()) + ", which does not"
-                                    + " beat " + previousCeiling.id() + " at tier "
+                                    + " beat " + previousCeiling.id() + " at grade "
                                     + previousTier + " on " + round(previousCeiling.value())
-                                    + " — a tier has to raise the floor, not just the ceiling");
+                                    + " — a grade has to raise the floor, not just the ceiling");
                 }
                 previousCeiling = rung.getValue().stream()
                         .max(Comparator.comparingDouble(Rung::value)).orElseThrow();

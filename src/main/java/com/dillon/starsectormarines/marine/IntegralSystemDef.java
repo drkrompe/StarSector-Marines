@@ -233,9 +233,9 @@ public record IntegralSystemDef(
      * weapon family, an integral system does <em>not</em> consume
      * {@link EquipmentGrade}'s stat multipliers: a system's numbers are authored
      * outright, and scaling them by grade as well would price the same quality
-     * twice. Two systems at the same grade may be nothing alike, and a
-     * Masterwork one is not automatically the strongest — the family is
-     * side-grades ({@code integral-system-slate.md}).
+     * twice. Within one effect a better grade is authored to be worth more —
+     * the three shield tiers are Surplus, Service and Milspec
+     * ({@code integral-system-slate.md}).
      */
     private static EquipmentGrade parseGrade(String key, String systemId, String armorId)
             throws JSONException {

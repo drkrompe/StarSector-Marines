@@ -8,7 +8,7 @@ import java.util.Objects;
 /**
  * Berth Four's crude powered rigs in Terms of Protection: Greyhook's own rebuilt Boarding Jacks,
  * worn by individual raiders inside mixed squads. Every combat value is the catalog pattern's —
- * capacity, rating, handling, incoming accuracy and the surplus Latch Assist — so the rig the
+ * capacity, rating, handling, incoming accuracy and the low-tech shield — so the rig the
  * company meets is the rig it is later paid with, not a stronger enemy copy.
  *
  * <p>Enemy use needs no award gate, but it needs something drawable. Greyhook's rigs wear the
