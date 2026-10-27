@@ -3,7 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.infantry.PodBattleScene;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.scene.FrameSink;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.scene.SceneReport;
@@ -68,8 +68,8 @@ public final class PodBattleSnapshotSuite implements SnapshotSuite {
             @Override public void advanced(String loop, BattleSimulation sim, int tick) {
                 impacts.feed(sim);
                 int capturedTick = tick + 1;
-                String podWeapon = MarineArmorCatalogRegistry.installed().get(PodBattleScene.POD_ARMOR)
-                        .integralSystem().missilePod().weaponDef().id;
+                String podWeapon = SpecialEquipmentRegistry.require(
+                        SpecialEquipmentRegistry.MISSILE_POD_ID).weaponId();
                 if (firstDetailTick < 0) {
                     for (ShotEvent shot : sim.getShotsThisFrame()) {
                         if (shot.shooterFaction != Faction.MARINE || shot.shooterId == 0L

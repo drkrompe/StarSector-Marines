@@ -4,7 +4,7 @@ Status: ACTIVE — AI owns squad planning, belief-derived contact pictures, loca
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — a line's open-ground shares go out in the order the marines stand along it. Earlier 2026-10-26 — a mech attached to an infantry squad keeps its slot by the squad from the bottom of the lance's reflex chain. Earlier 2026-10-25 — a marine steps out of a Bombard's spore haze just below the fire, and waits at its edge rather than walk back in to stand in it. Earlier the same day: squads march in files and keep them in contact; a Spitter lobbing at the shooter is preferred over the pack around it; a special round is held at release with a friendly in its lane or blast. Earlier 2026-10-24 — a trained shooter held by the lane gate longer than a new target takes to register switches to an enemy with a clear lane and finishes it; the sidestep asks the gate's own lane. Earlier 2026-10-23 — local squad traffic is standing behaviour, no longer an opt-in experiment. Earlier (2026-10-21): an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
+Updated: 2026-10-27 — the shoulder pod is a carried special with its own sweep; it never runs through the hand. Earlier 2026-10-26 — a line's open-ground shares go out in the order the marines stand along it. Earlier 2026-10-26 — a mech attached to an infantry squad keeps its slot by the squad from the bottom of the lance's reflex chain. Earlier 2026-10-25 — a marine steps out of a Bombard's spore haze just below the fire, and waits at its edge rather than walk back in to stand in it. Earlier the same day: squads march in files and keep them in contact; a Spitter lobbing at the shooter is preferred over the pack around it; a special round is held at release with a friendly in its lane or blast. Earlier 2026-10-24 — a trained shooter held by the lane gate longer than a new target takes to register switches to an enemy with a clear lane and finishes it; the sidestep asks the gate's own lane. Earlier 2026-10-23 — local squad traffic is standing behaviour, no longer an opt-in experiment. Earlier (2026-10-21): an allied party believes from its own picture and mans places by the shared planner, place directives and locked positions (`garrisonables.md`, parties); a holder shuts its sally door again behind a sortie, in the face of an approaching enemy and by the player's bar, never on a body (`garrisonables.md`, sally doors); a machine guard is barred only by an enemy seen in its place, and a refused guard passes its place over for the next; a holder sorties through a sally door in its own wall (`garrisonables.md`, sally doors); a manned building draws a machine guard as a manned run does.
 
 Earlier 2026-10-13 — structure work skips crews, mechs, drones and named-officer groups, is not pulled into compound captures, and a stalled squad is benched (see `forts.md`); a fort is disclosed by its works in view and not only its platform, and a works crew the ambient service holds is never offered structure work; fort aspect cores are left alone by squads unless a commander says wreck, and a sighted fort is remembered; squad-local shoulder-pod cadence spaces successful salvos and rotates eligible carriers.
 
@@ -1355,13 +1355,18 @@ satchel, frag and mines all spend a squad resource or
 freeze their carrier for something that is a diversion at that instant.
 
 Shoulder missile pods coordinate at squad scope: one successful salvo starts
-that system's authored spacing before the squad may launch again. The first
+that item's authored spacing before the squad may launch again. The first
 legal salvo is immediate; subsequent opportunities pass among presently ready
 carriers in stable identity order, skipping those without a legal target or
 launch origin. Failed opportunities spend neither ammunition nor the squad's
 interval. This clock survives ordinary replans and carrier loss, belongs only
 to that battle squad, and leaves primary fire and movement available. A pod
-outside any squad keeps its own ordinary system readiness.
+outside any squad keeps only its own ammunition and cooldown.
+
+The pod is a carried special (`special.missile-pod`, SRM-POD) whose moment,
+`sighted-standoff-contact`, is offered by its own sweep rather than through the
+hand's aim-then-fire channel: the carrier never lowers the primary to fire it,
+and the hand's opportunity scans never spend it.
 
 ### The onset moments
 

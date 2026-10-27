@@ -697,8 +697,8 @@
 	"marines_system_screen_up":[
 		{"file":"sounds/sfx_systems/damper_field_activate.ogg","pitch":1,"volume":0.85},
 	],
-	# A running system that raises no screen — the shoulder pod's rack coming
-	# live. Kept distinct so the two capabilities do not sound identical.
+	# A running system that raises no screen — a field-aid satchel opening
+	# up. Kept distinct so the two capabilities do not sound identical.
 	"marines_system_engaged":[
 		{"file":"sounds/sfx_systems/high_energy_focus_activate.ogg","pitch":1,"volume":0.75},
 	],

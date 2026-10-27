@@ -128,7 +128,7 @@ license, fabrication, upkeep, or repair authority.
 | `armor.scout` | **Janus scout suit** — Tri-Tachyon composite reconnaissance protection with sensor and electronic-warfare integration. | Corporate teams; imported League and Diktat specialists; gray-market Independent users. | It is not ordinary Hegemony, Church, pirate, or Pather line protection. |
 | `armor.combat` | **Bastion line armor** — a Kazeron-led interchangeable coalition pattern. | League forces and exported, licensed, or captured Hegemony, Independent, and Diktat stocks. | Shared line role does not make it the Hegemony's preferred institutional suit. |
 | `armor.line` | **Legionary line suit** — standardized, pressure-sealed Hegemony armor designed for campaign repair. | Hegemony regulars, licensed Diktat formations, Church and Knight custodians, and battlefield recovery. | Tri-Tachyon internal forces prefer integrated composite systems; pirates and Pathers do not maintain clean Legionary issue at scale. |
-| `armor.aegis-composite` | **Aegis composite line suit** — a Tri-Tachyon response pattern with predictive threat displays and powered balance correction, which the suit spends as a **predictive volley**: a shoulder-launched brace of Halcyon micro-missiles at a self-picked target, the second authored integral system. | Corporate response teams and expensive licensed or recovered Independent examples. | Its speed and reduced incoming hit profile are bought with less capacity and rating than low-tech line armor; no neural-interface faction bonus exists outside the suit, and the rack is small, finite, and does not refill in the field. |
+| `armor.aegis-composite` | **Aegis composite line suit** — a Tri-Tachyon response pattern with predictive threat displays and powered balance correction, which make it hard to hit rather than hard to stop. | Corporate response teams and expensive licensed or recovered Independent examples. | Its speed and reduced incoming hit profile are bought with less capacity and rating than low-tech line armor; no neural-interface faction bonus exists outside the suit, and the rack is small, finite, and does not refill in the field. |
 | `armor.palatine` | **Gilead rebuilt line suit** — a Church workshop pattern rebuilt by hand from inherited Domain shells and fitted resistant plate. | Church guard sections, Knight garrisons, and rare licensed or recovered examples. | High armor rating comes with low capacity and a real mobility cost; careful upkeep grants no hidden immunity. |
 | `armor.furnace-line` | **Furnace state line suit** — thick petrochemical laminate over a conventional Sindrian pressure frame. | Diktat regulars, Lion's Guard formations, and exported or recovered Independent stocks. | Its deep capacity is paired with ordinary resistance, weight, and a conspicuous target profile. |
 | `armor.reaver` | **Blackforge Mk2 reinforced rig** — a veteran patchwork frame with powered bracing and additional ship plate. | Pirate warbands, Pather cells, and battlefield recovery. | Raw capacity and useful speed do not erase its poor armor rating or irregular maintenance. |
@@ -184,19 +184,12 @@ release the shield comes in three shared tiers — Low, Mid and High Tech — an
 tradition's character lives in the suit that wears it, not in a private copy of
 the shield (`integral-system-slate.md`).
 
-**Payload delivery is not a role signature; it is one suit's answer.** Unlike
-breaching, micro-missile support is not what any single role is *for* — faction
-lore carries it across Hegemony, League, and Tri-Tachyon traditions alike, which
-is three plausible homes and no obvious single one. The Tri-Tachyon Aegis
-carries the first one, a **predictive volley**, because its own catalog copy
-already says "predictive threat displays" and "a difficult firing solution":
-the Specter spends that same prediction on evasion because breaching is what
-the Specter is for, while the Aegis is a line suit built to make itself hard to
-hit rather than to cross a room — so its display is spent locking a shot
-instead of dodging one. It is not placed on a Hegemony or League pattern
-because their assault heavies already carry the breach family, and stacking a
-second system onto an already-decorated ASSAULT pattern would blur "one family,
-one role."
+**Payload delivery is not a role signature, and not a suit's either.** Faction
+lore carries micro-missile support across Hegemony, League, and Tri-Tachyon
+traditions alike. It was once the Aegis composite's integral system (and the
+Packframe's and the Arbalests'); it is now the **SRM-POD**, a Tri-Tachyon-pattern
+shoulder pod issued as a billet's carried special, so any section's weapons card
+can hand it to a rifleman who keeps shooting while it fires.
 
 `integral-system-slate.md` owns which patterns carry what and why; it also holds
 the remaining individual (non-family) systems that are still direction rather

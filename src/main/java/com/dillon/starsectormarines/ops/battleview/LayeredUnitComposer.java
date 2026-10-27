@@ -100,8 +100,8 @@ final class LayeredUnitComposer {
                 weaponPhase, pose, flags, alpha, authoredPose, integralSystem, null);
     }
 
-    /** Actual committed launch, projected by the caller into the actor's screen space. */
-    record IntegralLaunch(float muzzleX, float muzzleY, float bearingDegrees, float phase) {}
+    /** A shoulder pod's actual committed launch, projected by the caller into the actor's screen space. */
+    record ShoulderLaunch(float muzzleX, float muzzleY, float bearingDegrees, float phase) {}
 
     static void emit(DrawList out, LayeredUnitAssets assets, LayeredSpriteCache head,
                      WeaponDef primary, boolean drawWeaponLayers,
@@ -110,7 +110,7 @@ final class LayeredUnitComposer {
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha,
                      LayerPose authoredPose, IntegralSystemDef integralSystem,
-                     IntegralLaunch launch) {
+                     ShoulderLaunch launch) {
         emit(new DrawListEmitter(out),
                 assets, head, primary, drawWeaponLayers, special, equipmentGrade,
                 actorX, actorY, shoulderPx, facingDeg, headLookDeg, locomotionPhase,
@@ -124,7 +124,7 @@ final class LayeredUnitComposer {
                      float facingDeg, float headLookDeg, float locomotionPhase,
                      float weaponPhase, int pose, int flags, float alpha,
                      LayerPose authoredPose, IntegralSystemDef integralSystem,
-                     IntegralLaunch launch) {
+                     ShoulderLaunch launch) {
         float pxPerSw = shoulderPx;
         boolean moving = (flags & LayeredAppearance.FLAG_MOVING) != 0;
         boolean rocket = pose == LayeredAppearance.POSE_ROCKET_AIM
@@ -147,6 +147,7 @@ final class LayeredUnitComposer {
             case BRACED_RIFLE -> amr;
             case THROW -> pose == LayeredAppearance.POSE_SMOKE_THROW;
             case PLANT -> pose == LayeredAppearance.POSE_SATCHEL_PLANT;
+            case SHOULDER_MOUNT -> false;
         };
         boolean specialFiring = pose == LayeredAppearance.POSE_ROCKET_FIRE
                 || pose == LayeredAppearance.POSE_AMR_FIRE;
@@ -269,7 +270,14 @@ final class LayeredUnitComposer {
                         assets, authoredPose, actorX, actorY, pxPerSw, facingDeg)
                 : null;
         LayerTransform specialTransform = layer(authoredPose, "special");
-        if (specialCarried && specialPlacement != null && specialTransform != null) {
+        // A shoulder pod's committed launch recoils the mount along the salvo's own bearing.
+        boolean podLaunch = launch != null && specialPlacement != null && !treating
+                && specialDef != null && specialDef.isShoulderPod();
+        if (podLaunch) {
+            specialPlacement = EquipmentLayerComposer.launch(specialPlacement,
+                    launch.muzzleX(), launch.muzzleY(), launch.bearingDegrees(),
+                    launch.phase(), shoulderPx, specialLayer.muzzleX(), specialLayer.muzzleY());
+        } else if (specialCarried && specialPlacement != null && specialTransform != null) {
             // The walking clip places the item in the hands whatever it is attached to, from its held place at
             // the aim to its carry as the Marine starts walking, and back again when it stops.
             specialPlacement = blendPlacement(specialPlacement,
@@ -311,11 +319,6 @@ final class LayeredUnitComposer {
         EquipmentLayerComposer.Placement integralPlacement = integralSprite != null
                 ? equipmentPlacement(integralLayer, false, false, 0f, assets,
                         authoredPose, actorX, actorY, pxPerSw, facingDeg) : null;
-        if (integralPlacement != null && launch != null) {
-            integralPlacement = EquipmentLayerComposer.launch(integralPlacement,
-                    launch.muzzleX(), launch.muzzleY(), launch.bearingDegrees(),
-                    launch.phase(), shoulderPx, integralLayer.muzzleX(), integralLayer.muzzleY());
-        }
         if (integralPlacement != null
                 && integralPlacement.occlusion() == EquipmentLayerDef.Occlusion.UNDER_BODY) {
             emitEquipmentLayer(out, integralSprite, integralPlacement, alpha);
@@ -427,9 +430,9 @@ final class LayeredUnitComposer {
             emitEquipmentLayer(out, handsetSprite, handsetPlacement, alpha);
         }
 
-        if (integralPlacement != null && launch != null && launch.phase() < 0.3f) {
-            emitEquipmentFlash(out, assets.muzzleFlash, integralPlacement, pxPerSw,
-                    integralLayer.muzzleX(), integralLayer.muzzleY(),
+        if (podLaunch && launch.phase() < 0.3f) {
+            emitEquipmentFlash(out, assets.muzzleFlash, specialPlacement, pxPerSw,
+                    specialLayer.muzzleX(), specialLayer.muzzleY(),
                     alpha * (1f - launch.phase() / 0.3f));
         }
 

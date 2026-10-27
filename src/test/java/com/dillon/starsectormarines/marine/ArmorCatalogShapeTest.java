@@ -204,7 +204,6 @@ class ArmorCatalogShapeTest {
                         + SHOVE_IN_SOAK_POINTS * (screen.moveSpeedMult() - 1.0);
                 yield perActivation * duty(system);
             }
-            case MISSILE_POD -> system.usesAmmunition() ? (double) system.startingAmmo() : null;
             // A kit is a squad medic; its worth is squad-medicine.json's, not the catalog's.
             case FIELD_AID -> null;
         };

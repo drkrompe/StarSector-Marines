@@ -207,6 +207,8 @@ public final class InfantryUnitPrep {
         if (!sec.hasAvailableUse(sim.world().secondaryAmmo(id))) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.SQUAD_SMOKE_SCREEN) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.FORWARD_OBSERVER) return false;
+        // A shoulder pod is spent by MissilePodSystem on its own clock, never through the hand.
+        if (sec.isShoulderPod()) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) {
             return tryOpportunitySatchel(unit, sec, sim);
         }
@@ -250,6 +252,7 @@ public final class InfantryUnitPrep {
         if (sec.aiPolicy() == SpecialAiPolicy.FORWARD_OBSERVER) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.CONTACT_DEMOLITION) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.SOFT_CLUSTER_INDIRECT) return false;
+        if (sec.isShoulderPod()) return false;
         if (sec.aiPolicy() == SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT) {
             // A carried pack diverts nobody, so it may switch on mid-bound; a pod to be set down may not.
             DeployableEmplacementSpec spec = sec.deployableEmplacementSpec();

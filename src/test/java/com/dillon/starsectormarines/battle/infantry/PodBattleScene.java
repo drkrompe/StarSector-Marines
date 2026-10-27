@@ -21,8 +21,9 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MissilePodMountGeometry;
-import com.dillon.starsectormarines.battle.infantry.IntegralSystemService.PodLaunch;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import org.json.JSONObject;
 
 import java.nio.file.Files;
@@ -35,7 +36,10 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
-/** Ordinary catalog actors walking into a finite firefight; no balance claim. */
+/**
+ * Ordinary catalog actors walking into a finite firefight; no balance claim. The Arbalest squad
+ * carries the SRM-POD shoulder pod as its billet special.
+ */
 public final class PodBattleScene implements BehaviorScene {
     public static final int WIDTH = 112;
     public static final int HEIGHT = 64;
@@ -58,6 +62,13 @@ public final class PodBattleScene implements BehaviorScene {
                 catalog.ingest(new JSONObject(Files.readString(Path.of("mod").resolve(file))));
             }
             MarineArmorCatalogRegistry.install(catalog);
+        }
+        if (SpecialEquipmentRegistry.installed() == null) {
+            SpecialEquipmentRegistry equipment = new SpecialEquipmentRegistry();
+            for (String file : SpecialEquipmentRegistry.BUILTIN_CATALOGS) {
+                equipment.ingest(new JSONObject(Files.readString(Path.of("mod").resolve(file))));
+            }
+            SpecialEquipmentRegistry.install(equipment);
         }
         String property = UnitUpdateSystem.MINIMUM_PARALLEL_UNITS_PROPERTY;
         String previous = System.getProperty(property);
@@ -91,11 +102,12 @@ public final class PodBattleScene implements BehaviorScene {
             MarineArmorCatalogDef pod = catalog.get(POD_ARMOR);
             MarineArmorCatalogDef regular = catalog.get(REGULAR_ARMOR);
             Map<String, List<Long>> groups = new LinkedHashMap<>();
-            groups.put("pod", spawn(sim, "Arbalest", Faction.MARINE, pod, 18, 13, false));
-            groups.put("regular", spawn(sim, "Legionary", Faction.MARINE, regular, 18, 25, false));
+            SpecialEquipmentDef podItem = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.MISSILE_POD_ID);
+            groups.put("pod", spawn(sim, "Arbalest", Faction.MARINE, pod, podItem, 18, 13, false));
+            groups.put("regular", spawn(sim, "Legionary", Faction.MARINE, regular, null, 18, 25, false));
             groups.put("hound", List.of(scene.members("hound")[0]));
             for (int y : new int[]{13, 25, 35}) {
-                spawn(sim, "Picket", Faction.DEFENDER, regular, y == 13 ? 34 : 54, y, true);
+                spawn(sim, "Picket", Faction.DEFENDER, regular, null, y == 13 ? 34 : 54, y, true);
             }
             Map<Long, float[]> starts = new LinkedHashMap<>();
             Map<Long, Double> distance = new LinkedHashMap<>();
@@ -109,8 +121,8 @@ public final class PodBattleScene implements BehaviorScene {
                             : sim.identity().armorClass(id) == (group.getKey().equals("pod")
                                     ? pod.armorClass() : regular.armorClass());
                     if (group.getKey().equals("pod")) {
-                        match = match && sim.integralSystems().spec(id) != null
-                                && pod.integralSystem().id().equals(sim.integralSystems().spec(id).id());
+                        match = match && sim.world().hasSecondaryWeapon(id)
+                                && podItem.equals(sim.world().specialEquipment(id));
                     }
                     if (match) matches++;
                 }
@@ -133,7 +145,7 @@ public final class PodBattleScene implements BehaviorScene {
             Map<Long, Integer> lastPodAmmo = new LinkedHashMap<>();
             Map<Long, Integer> salvosByCarrier = new LinkedHashMap<>();
             for (long id : groups.get("pod")) {
-                int ammo = sim.integralSystems().ammo(id);
+                int ammo = sim.world().secondaryAmmo(id);
                 podInitialAmmo += ammo;
                 lastPodAmmo.put(id, ammo);
                 salvosByCarrier.put(id, 0);
@@ -159,18 +171,18 @@ public final class PodBattleScene implements BehaviorScene {
                 }
                 for (ShotEvent shot : sim.getShotsThisFrame()) {
                     if (groups.get("pod").contains(shot.shooterId)) {
-                        if (shot.primaryWeaponDef != null && shot.primaryWeaponDef.id.equals(pod.integralSystem().missilePod().weaponDef().id)) {
+                        if (shot.primaryWeaponDef != null && shot.primaryWeaponDef.id.equals(podItem.weaponId())) {
                             podLaunches++;
                             if (firstPodTick < 0) firstPodTick = tick + 1;
                             salvoCarriersThisTick.add(shot.shooterId);
                             float[] center = launchCenters.get(shot.shooterId);
                             double offset = Math.hypot(shot.fromX - center[0], shot.fromY - center[1]);
                             if (offset > 0.01d) offsetLaunches++;
-                            PodLaunch launch = sim.integralSystems().launch(shot.shooterId);
+                            MissilePodSystem.Launch launch = sim.world().podLaunch(shot.shooterId);
                             if (launch != null) {
                                 MissilePodMountGeometry.Pose mount = MissilePodMountGeometry.resolve(
                                         center[0], center[1], launch.bodyBearingDegrees(),
-                                        launch.bearingDegrees(), pod.integralSystem().missilePod().mount());
+                                        launch.bearingDegrees(), podItem.missilePodSpec().mount());
                                 if (Math.abs(shot.fromX - mount.muzzleX()) <= 1e-4f
                                         && Math.abs(shot.fromY - mount.muzzleY()) <= 1e-4f
                                         && Math.abs(shot.fromX - launch.originX()) <= 1e-4f
@@ -201,10 +213,10 @@ public final class PodBattleScene implements BehaviorScene {
                     lastPodTick = tick + 1;
                 }
                 for (long id : groups.get("pod")) {
-                    // Death may remove the system component; that is not ammunition expenditure.
-                    if (!sim.world().isAlive(id) || !sim.integralSystems().has(id)) continue;
+                    // Death may remove the special component; that is not ammunition expenditure.
+                    if (!sim.world().isAlive(id) || !sim.world().hasSecondaryWeapon(id)) continue;
                     int previousAmmo = lastPodAmmo.get(id);
-                    int currentAmmo = sim.integralSystems().ammo(id);
+                    int currentAmmo = sim.world().secondaryAmmo(id);
                     int spent = previousAmmo - currentAmmo;
                     podAmmoConserved &= currentAmmo >= 0 && currentAmmo <= previousAmmo
                             && spent == (salvoCarriersThisTick.contains(id) ? 1 : 0);
@@ -244,13 +256,13 @@ public final class PodBattleScene implements BehaviorScene {
             metrics.put("alignedLaunches", alignedLaunches);
             metrics.put("firstPodTick", firstPodTick);
             metrics.put("podPrimaryShots", podPrimaryShots);
-            int requiredSalvoGap = (int) Math.ceil(pod.integralSystem().sightedStandoff()
+            int requiredSalvoGap = (int) Math.ceil(podItem.missilePodSpec()
                     .squadSalvoIntervalSeconds() / BattleSimulation.TICK_DT);
             int primaryShotsBetweenSalvos = 0;
             for (int tick : podPrimaryShotTicks) if (tick > firstPodTick && tick < lastPodTick) primaryShotsBetweenSalvos++;
             int remainingPodAmmo = 0;
             for (int ammo : lastPodAmmo.values()) remainingPodAmmo += ammo;
-            for (int salvos : salvosByCarrier.values()) podAmmoConserved &= salvos <= pod.integralSystem().startingAmmo();
+            for (int salvos : salvosByCarrier.values()) podAmmoConserved &= salvos <= podItem.startingAmmo();
             metrics.put("podSalvos", podSalvos);
             metrics.put("podFiringCarriers", podFiringCarriers.size());
             metrics.put("lastPodTick", lastPodTick);
@@ -271,7 +283,7 @@ public final class PodBattleScene implements BehaviorScene {
                             && podInitialAmmo == podAmmoSpent + remainingPodAmmo,
                     "Live carrier stock drains by one per actual salvo and never increases or becomes negative; "
                             + podAmmoSpent + " observed uses spent from " + podInitialAmmo));
-            verdicts.add(Verdict.of("actual-pod-launch", podLaunches > 0, podLaunches + " actual integral-system missile launches"));
+            verdicts.add(Verdict.of("actual-pod-launch", podLaunches > 0, podLaunches + " actual shoulder-pod missile launches"));
             verdicts.add(Verdict.of("pod-launch-offset", podLaunches > 0 && offsetLaunches == podLaunches, offsetLaunches + " launches originate away from carrier center"));
             verdicts.add(Verdict.of("pod-muzzle-registration", podLaunches > 0 && alignedLaunches == podLaunches,
                     alignedLaunches + " launches match catalog muzzle geometry and retained committed origin within 0.0001 cell"));
@@ -289,14 +301,16 @@ public final class PodBattleScene implements BehaviorScene {
     }
 
     private static List<Long> spawn(BattleSimulation sim, String name, Faction faction,
-                                   MarineArmorCatalogDef armor, int x, int y, boolean defend) {
+                                   MarineArmorCatalogDef armor, SpecialEquipmentDef special,
+                                   int x, int y, boolean defend) {
         int squadId = sim.mintSquad(faction, UnitType.MARINE);
         List<Long> members = new ArrayList<>();
         for (int i = 0; i < 12; i++) {
             EntitySpec spec = new EntitySpec(name + "-" + squadId + "-" + i,
                     faction, UnitType.MARINE, ORIGIN_X + x + i % 4, ORIGIN_Y + y + i / 4).squad(squadId);
             new MarineLoadout(UnitRole.COMBATANT, null, WeaponRegistry.STARTER_PRIMARY_ID,
-                    EquipmentGrade.SERVICE, SoldierProfile.REGULAR, null, 0, null,
+                    EquipmentGrade.SERVICE, SoldierProfile.REGULAR,
+                    special != null ? special.id() : null, special != null ? special.startingAmmo() : 0, null,
                     armor.appearanceFamily(), armor.armorCapacity(), armor.armorRating(),
                     armor.moveSpeedMult(), armor.incomingAccuracyMult(), null,
                     armor.integralSystem(), armor.armorClass()).seedInto(spec);
@@ -314,7 +328,7 @@ public final class PodBattleScene implements BehaviorScene {
 
     private static String caption(int tick) {
         return String.format(Locale.ROOT,
-                "%.1fs | Arbalest battlesuits + Legionary marines + Hound | Real orders and combat | 1x simulation",
+                "%.1fs | Arbalest battlesuits with SRM-POD + Legionary marines + Hound | Real orders and combat | 1x simulation",
                 tick / 30f);
     }
 }

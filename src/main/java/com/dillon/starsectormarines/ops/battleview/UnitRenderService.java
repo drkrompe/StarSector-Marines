@@ -31,7 +31,7 @@ import com.dillon.starsectormarines.battle.evacuation.flier.HarrierRules;
 import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.MissilePodMountGeometry;
-import com.dillon.starsectormarines.battle.infantry.IntegralSystemService.PodLaunch;
+import com.dillon.starsectormarines.battle.infantry.MissilePodSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechSections;
@@ -1795,14 +1795,14 @@ public final class UnitRenderService implements RenderSystem {
                     EquipmentGrade grade = equipmentGrade != null
                             ? (EquipmentGrade) equipmentGrade[r] : EquipmentGrade.SERVICE;
                     IntegralSystemDef integralSystem = roster.integralSystems().spec(entityId);
-                    PodLaunch podLaunch = roster.integralSystems().launch(entityId);
-                    LayeredUnitComposer.IntegralLaunch launch = null;
-                    if (podLaunch != null && integralSystem != null
-                            && integralSystem.missilePod() != null) {
+                    MissilePodSystem.Launch podLaunch = secondary != null && secondary.isShoulderPod()
+                            ? ctx.sim.world().podLaunch(entityId) : null;
+                    LayeredUnitComposer.ShoulderLaunch launch = null;
+                    if (podLaunch != null) {
                         MissilePodMountGeometry.Pose mount = MissilePodMountGeometry.resolve(
                                 rx[r], ry[r], podLaunch.bodyBearingDegrees(),
-                                podLaunch.bearingDegrees(), integralSystem.missilePod().mount());
-                        launch = new LayeredUnitComposer.IntegralLaunch(
+                                podLaunch.bearingDegrees(), secondary.missilePodSpec().mount());
+                        launch = new LayeredUnitComposer.ShoulderLaunch(
                                 cam.cellToScreenX(mount.muzzleX()), cam.cellToScreenY(mount.muzzleY()),
                                 mount.bearingDegrees(), podLaunch.phase());
                     }

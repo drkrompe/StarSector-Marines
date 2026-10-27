@@ -69,7 +69,8 @@ class SpecialEquipmentRegistryTest {
             assertNotNull(def.aiPolicy(), def.id());
             assertNotNull(def.resourceMode(), def.id());
             assertNotNull(def.presentation(), def.id());
-            assertNotNull(def.presentation().layerClips(), def.id());
+            // A shoulder pod never takes the pose, so it has no clips to name.
+            if (!def.isShoulderPod()) assertNotNull(def.presentation().layerClips(), def.id());
             if (def.resourceMode() == SpecialResourceMode.AMMUNITION) {
                 assertTrue(def.startingAmmo() > 0,
                         def.id() + " is ammunition-gated and must start with uses");
@@ -110,6 +111,15 @@ class SpecialEquipmentRegistryTest {
         smoke.getJSONObject("presentation").getJSONObject("layerClips")
                 .remove("using");
         assertThrows(JSONException.class, () -> SpecialEquipmentDef.parse(smoke));
+
+        // A shoulder pod authors its squad spacing, and may never take the primary's place.
+        JSONObject unspaced = builtInEntry(SpecialEquipmentRegistry.MISSILE_POD_ID);
+        unspaced.getJSONObject("activation").remove("squadSalvoIntervalSeconds");
+        assertThrows(JSONException.class, () -> SpecialEquipmentDef.parse(unspaced));
+        JSONObject replacing = builtInEntry(SpecialEquipmentRegistry.MISSILE_POD_ID);
+        replacing.getJSONObject("presentation").getJSONObject("carrierLayer")
+                .put("replacePrimaryWhileUsing", true);
+        assertThrows(JSONException.class, () -> SpecialEquipmentDef.parse(replacing));
     }
 
     @Test
