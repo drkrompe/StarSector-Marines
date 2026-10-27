@@ -1,11 +1,11 @@
 {
-  "requestId": "U403Klker2T2N7stXNrT",
-  "characterCost": "18",
-  "inputSha256": "84388ff93d2515e1c40e001c8aaa8696da04e41d58695e39fb1a9773a599cb56",
-  "audioSha256": "848e161e1c91c60950020bc1017a1d32f1ec35ae0e8614080a7daa5507145619",
-  "voiceId": "YHcCpa6SBWnKDaCPZJQR",
+  "requestId": "R8SoMjT3gjIP4dwQKkpY",
+  "characterCost": "80",
+  "inputSha256": "34d4584968aea1fa39e594fe9615f85ee2fab04c1fce57a1beafbbaf2dac4478",
+  "audioSha256": "b6d48a2d99a8e1548dff8bf787b7b4d5af19749b5e682eb1fe2110fc87200768",
+  "voiceId": "EXAVITQu4vr4xnSDxMaL",
   "modelId": "eleven_v4",
-  "durationSeconds": 8.8,
+  "durationSeconds": 8.16,
   "outputFormat": "mp3_44100_128",
-  "take": 1
+  "take": 2
 }
