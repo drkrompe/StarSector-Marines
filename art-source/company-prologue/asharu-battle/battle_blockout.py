@@ -1930,7 +1930,7 @@ KEYFRAMES['m2'] = BLOCKED.pop('m2')
 # Morrow's, the one flown ship (M11_T).
 KEYFRAMES['m11'] = BLOCKED.pop('m11')
 SHOTS = {**KEYFRAMES, **BLOCKED}
-SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else []
+SPAN = [k for sp in os.environ['ASHARU_SPAN'].split(',') for k in add_span(sp)] if os.environ.get('ASHARU_SPAN') else []
 
 # Drawn larger than true in the shots, never on the roster sheets (which place hulls their own way):
 # coordinator on r10's k4 (2026-10-22), "the Borers can't be seen" - 3.6 m drones are 9 px at 28 mm.
@@ -5605,9 +5605,9 @@ def main():
     def opt(flag, default=None):
         return argv[argv.index(flag) + 1] if flag in argv else default
 
-    if opt('--span'):            # a lit motion span (add_span): its steps are the frames
+    if opt('--span'):            # lit motion spans (add_span), comma-separated: their steps are the frames
         os.environ['ASHARU_SPAN'] = opt('--span')
-        argv += ['--frames', ','.join(add_span(opt('--span')))]
+        argv += ['--frames', ','.join(k for sp in opt('--span').split(',') for k in add_span(sp))]
     frames = opt('--frames', ','.join(list(KEYFRAMES) + list(ROSTER_SHEETS))).split(',')
     run = Path(opt('--root', REPO / 'build' / 'asharu-battle')) / opt('--run', date.today().isoformat())
     run.mkdir(parents=True, exist_ok=True)
