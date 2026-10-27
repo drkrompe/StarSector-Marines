@@ -162,7 +162,7 @@ public final class FleetArmoryScreen implements Screen {
                 // behind them is the one already bound, so the guard is cleared.
                 boundWeaponTiles = null;
                 boundArmorTiles = null;
-                bindLoadoutCards(candidateSheets, candidate);
+                bindLoadoutCards(built, candidateSheets, candidate);
             }
             if (viewport != null) {
                 built.layout(viewport.documentWidth(), viewport.documentHeight());
@@ -194,8 +194,12 @@ public final class FleetArmoryScreen implements Screen {
      * this runs only when a picker has actually reprojected. A computed signal
      * hands back the same list until it recomputes, which is exactly the
      * question being asked.
+     *
+     * <p>{@code target} is the document {@code instance} is built into: while a document is
+     * being installed that is the candidate, not {@link #document}, which still holds the one
+     * it replaces.
      */
-    private void bindLoadoutCards(SpecSheetBinder binder, MarkupInstance instance) {
+    private void bindLoadoutCards(UiDocument target, SpecSheetBinder binder, MarkupInstance instance) {
         if (binder == null || instance == null) return;
         List<FleetArmoryViewModel.DoctrineTile> weapons = viewModel.weaponDoctrineTiles().get();
         List<FleetArmoryViewModel.DoctrineTile> armor = viewModel.armorDoctrineTiles().get();
@@ -204,8 +208,8 @@ public final class FleetArmoryScreen implements Screen {
         boundArmorTiles = armor;
         ArmorySpecSheets.bindDoctrineTiles(binder, instance, viewModel.weaponDoctrineTiles());
         ArmorySpecSheets.bindDoctrineTiles(binder, instance, viewModel.armorDoctrineTiles());
-        LoadoutCardBricks.bind(document, instance, viewModel.weaponDoctrineTiles()::get);
-        LoadoutCardBricks.bind(document, instance, viewModel.armorDoctrineTiles()::get);
+        LoadoutCardBricks.bind(target, instance, viewModel.weaponDoctrineTiles()::get);
+        LoadoutCardBricks.bind(target, instance, viewModel.armorDoctrineTiles()::get);
     }
 
     private Map<String, Object> props() {
@@ -340,7 +344,7 @@ public final class FleetArmoryScreen implements Screen {
         // Loadout cards come and go with the rarity and supplies filters, so
         // the entries a reader can ask about are wired after reconciliation
         // rather than only when the document was installed.
-        if (view == View.FIRETEAMS) bindLoadoutCards(specSheets, markupInstance);
+        if (view == View.FIRETEAMS) bindLoadoutCards(document, specSheets, markupInstance);
         if (specSheets != null) specSheets.update();
         if (document != null) document.advance(dt);
         if (preparationGuide != null) preparationGuide.update();
