@@ -169,9 +169,9 @@ LEDGER = [
       note='the last of that burst in her drive cluster: she loses thrust, venting (the camera kick at 77.25)'),
 
     # ---- CARAVEL TWO, the Tarsus: drives shot out in S6c, boarded, taken
-    H('tarsus', 68.0, 'rake', 1, (-30, -8, 4), (-.3, -1, .5), to=(-44, -6, 3), by='tracer',
+    H('tarsus', 68.0, 'rake', 1, (-30, -14, 4), (-.3, -1, .5), to=(-44, -12, 3), by='tracer',
       src='S6c k3d tracer wolf-p-b', note='Wolf (P) B rakes aft toward her drives as she passes'),
-    H('tarsus', 70.5, 'breach', 3, (-33, -7, 6), (-.2, .5, 1), by='fire_on', src='S6c k3d tracer wolf-p-b + fire_on',
+    H('tarsus', 70.5, 'breach', 3, (-33, -12, 6), (-.2, .5, 1), by='fire_on', src='S6c k3d tracer wolf-p-b + fire_on',
       burn_until=102.0, note='drives shot out: fire burns up out of the breach (continuity), out before S10'),
     H('tarsus', 81.42, 'rake', 1, (36, -4, 9), (.2, -.3, 1), to=(24, 4, 10), by='tracer',
       src='S7 k3b tracer wolf-p-b', note="the covering Wolf (P)'s inverted gun run scores her deck"),
@@ -197,8 +197,8 @@ LEDGER = [
     H('falcon-p', 104.79, 'breach', 3, (14, -5, -5), (-.3, -.6, .7), by=('tracer', 'blast_on'),
       src='S9b k4b tracer lasher-lead + blast_on',
       note='hit hard: the flank opens and burns; still burning in S10 (continuity)'),
-    H('falcon-p', 107.45, 'he', 2, (-11, 31, 10), (0, -1, .4), by='tracer', src='S9b k4b tracer lasher-lead', vent_s=20.0,
-      note="the Lasher's last rounds, fired before she falls silent at 107.2 s, hole her further aft, venting"),
+    H('falcon-p', 105.5, 'he', 2, (-11, 31, 10), (0, -1, .4), by='tracer', src='S9b k4b tracer lasher-lead', vent_s=20.0,
+      note="the Lasher's last aimed rounds, before her bow starts to go (105.9 s), hole her further aft, venting"),
 
     # ---- the Manticore (P): scored by the lead's guns
     # (her S6 rake from the lead is cut: the lead's guns draw nothing at that range)
@@ -211,7 +211,7 @@ LEDGER = [
     H('wolf-p-a', 95.8, 'he', 1, (-15, -9, 3), (0, -1, .3), by='tracer', src='S8-S9 k4 tracer colossus'),
 
     # ---- Wolf (P) B: the merchant Wolf's bolt (S6c's run through the gap)
-    H('wolf-p-b', 71.6, 'he', 1, (-8, 8, 2), (-.3, 1, .3), by='tracer', src='S6c k3d tracer wolf-m',
+    H('wolf-p-b', 71.6, 'he', 1, (-14, 9, 4), (-.3, 1, .3), by='tracer', src='S6c k3d tracer wolf-m',
       note="the merchant Wolf's bolt, past her front shield onto the flank"),
 
     # ---- Manticore (P): driven off by the Colossus in S9 (Kite (P) B's part before option C: she is on the Tarsus)
@@ -234,7 +234,7 @@ LEDGER = [
       src='S6b k3c tracer wolf-m'),
     H('hound-p-c', 62.83, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6b k3c blast_on + debris',
       note="Lasher B's Ammo Feeder burst lands and breaks her up"),
-    H('hound-p-a', 76.6, 'rake', 1, (6, 5, 3), (0, .4, 1), to=(-8, 6, 3), by='tracer',
+    H('hound-p-a', 76.6, 'rake', 1, (19, 5, 6), (0, .4, 1), to=(5, 6, 5), by='tracer',
       src='S6d k3e tracer hound-m', note="the convoy Hound's first rounds to reach her"),
     H('hound-p-a', 76.83, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6d k3e blast_on + debris',
       note="killed at close range by the convoy Hound's burst: she cooks off"),
@@ -256,7 +256,7 @@ SHOOTER_SIDE = {
      'tarsus@68.0:rake': (-0.09, -0.99, -0.10), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
     'lasher-lead@103.7:breach': (0.98, -0.17, -0.06), 'falcon-p@104.8:breach': (0.69, 0.55, 0.46),
     'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@77.1:breach': (0.82, -0.14, -0.55),
-    'falcon-p@104.6:rake': (0.75, 0.51, 0.43), 'wolf-p-a@73.0:rake': (-0.42, -0.67, 0.62),
+    'falcon-p@104.6:rake': (0.75, 0.51, 0.43), 'falcon-p@105.5:he': (0.46, 0.68, 0.57), 'wolf-p-a@73.0:rake': (-0.42, -0.67, 0.62),
     'hound-p-a@76.8:kill': (0.87, -0.45, 0.19), 'hound-p-a@76.6:rake': (0.96, -0.21, 0.18), 'hound-m@77.2:he': (0.73, -0.22, -0.65),
     'tarsus@81.4:rake': (-0.27, 0.78, 0.57),
     'hound-p-c@61.6:rake': (0.89, 0.14, 0.44),

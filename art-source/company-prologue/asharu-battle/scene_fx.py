@@ -379,11 +379,13 @@ class SceneFx:
                  for x in ([] if sure is None else [sure] if isinstance(sure, (int, float)) else sure)]
 
         def flight(f, pt):
-            """Frames a round fired on f takes to reach pt on her: it keeps the shooter's own velocity."""
-            ma = self.matrix_at(a, f)
-            src, aim0 = ma @ Vector(muzzle_l), self.matrix_at(b, f) @ Vector(pt)
-            va = (self.matrix_at(a, f + 1).translation - ma.translation) * fps
-            return (aim0 - src).length / max(speed + va.dot((aim0 - src).normalized()), 1.0) * fps
+            """Frames a round fired on f takes to reach pt on her where she is when it arrives, at the round's own
+            speed (swfx_guns flies it from the muzzle at that, as the kit's hit frame counts it)."""
+            src = self.matrix_at(a, f) @ Vector(muzzle_l)
+            fl_ = (self.matrix_at(b, f) @ Vector(pt) - src).length / max(speed, 1.0) * fps
+            for _ in range(3):
+                fl_ = (self.matrix_at(b, f + fl_) @ Vector(pt) - src).length / max(speed, 1.0) * fps
+            return fl_
         dead = {}
         if sures:
             fired_at = sorted({int(round(F0 + t_ * fps)) for t_, _i, _k in g.cadence(weapon, (F1 - F0) / fps, feeder)})

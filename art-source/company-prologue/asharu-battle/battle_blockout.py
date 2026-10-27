@@ -1493,8 +1493,8 @@ KEYFRAMES = {
                'hermes-p-b': {'gear_up': 0.5}, 'hermes-p-c': {'gear_up': 1.0}},
         seated={'hermes-p-a': 'tarsus'},
         ships=K3B_SHIPS,
-        fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('tracer', 'hound-p-b', 'hound-m'), ('fire_on', 'tarsus', (-38, 6, 8), (-.2, .5, 1)),
-            ('smoke', 'tarsus', (-38, 6, 8), (-.3, .4, 1))],
+        fx=[('tracer', 'wolf-p-b', 'tarsus', (30, 0, 10)), ('tracer', 'hound-p-b', 'hound-m'), ('fire_on', 'tarsus', (-36, -4, 8), (-.2, .5, 1)),
+            ('smoke', 'tarsus', (-36, -4, 8), (-.3, .4, 1))],
         labels=['tarsus', 'kite-p-a', 'kite-p-b', 'wolf-p-b', 'colossus', 'mule', 'hound-m', 'hound-p-b']),
     'k4': dict(
         shot='S8-S9', title='She will not be taken',
@@ -4116,8 +4116,8 @@ def blender_main(cfg):
                             import asharu_damage
                             tag_ = f"{spec['shot']} {spec['span_of']} tracer {fx[1]}"
                             owed_ = [(fr_(h_.t), h_.at) for h_ in asharu_damage.LEDGER
-                                     if h_.ship == fx[2] and 'tracer' in (h_.by if isinstance(h_.by, tuple) else (h_.by,))
-                                     and h_.src.split(' + ')[0] == tag_ and spec['shot_t'][0] <= h_.t <= spec['shot_t'][1]]
+                                     if h_.ship == fx[2] and h_.src.split(' + ')[0] == tag_
+                                     and spec['shot_t'][0] <= h_.t <= spec['shot_t'][1]]
                             if owed_:
                                 opts['sure'] = ([opts['sure']] if 'sure' in opts else []) + owed_
                         if 'bursts_t' in opts:
