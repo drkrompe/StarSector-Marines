@@ -84,11 +84,9 @@ class DirectControlReticleTest {
     }
 
     @Test
-    void aReloadRefillsTheArcPalerAsItRuns() {
-        var arc = arc(left(Mark.GOOD, new Load(0.6f, 0, 10, true)));
-        float refilled = length(arc, DirectControlReticle.REFILLED);
-        float empty = length(arc, DirectControlReticle.SPENT);
-        assertEquals(0.6f, refilled / (refilled + empty), 1e-3f);
+    void aReloadLeavesTheArcEmptyUntilItEnds() {
+        var arc = arc(left(Mark.GOOD, new Load(0.9f, 3, 10, true)));
+        assertTrue(length(arc, DirectControlReticle.SPENT) > 0f);
         assertEquals(0f, length(arc, DirectControlReticle.GOOD), "nothing reads as loaded until the reload ends");
     }
 

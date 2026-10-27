@@ -191,7 +191,12 @@ preview plays, and the stills did not move when the motion went in (`--check` is
 - **Speeds are relative to the convoy**, whose co-moving frame the battle is staged in: a ship
   on station is at rest in it, a raider closing from astern flies forward through it at her
   class's speed (frigates about 210 m/s, destroyers 170, cruisers 130), a ship falling out drifts
-  aft. The planet turns beneath at orbital speed, about 60 km of desert in an 8 s shot.
+  aft. The planet holds still beneath, in the finals and the preview alike (owner, 2026-10-27).
+  The motion lint holds every hull to her class's top speed and acceleration (`PACE_LIMITS`; owner,
+  2026-10-27: "It shouldn't go accelerating out of the scene insanely fast"): frigates 260 m/s and
+  150 m/s2, destroyers 220 and 100, cruisers 170 and 60, freighters 80 and 20, drones 180 and 300,
+  acceleration taken over a quarter second so a hard turn counts. Designed moves past them are in
+  `PACE_EXEMPT` with their reasons; the pack's climb in S3-S5 is there pending the owner.
 - **A flown ship (`motion.keyed`, `fly()`)** passes through timed attitude keys and flies where
   her nose points, so the path follows the manoeuvre:
   - the roll-overs the plan calls for: Lasher B's 150 to starboard and the merchant Wolf's to
@@ -237,14 +242,21 @@ through ShipFx, so each blinks its beacon, pulses its lift jets and fires its mi
 own. Placements:
 - **S8-S9, the pod:** two Borers hold outboard of and under the Colossus's shot-out port pod,
   cutting the burning wreckage free with their lasers.
-- **S8-S9, the sortie:** two more launch from Morrow's bay, one at 95.4 s from launch point 2 and
-  one at 96.2 s from launch point 3. Each goes for the nearest attackers.
-  - One makes two passes at the Wolf (P), one on each side.
-  - The other runs down the Kite (P) as she breaks away, then comes back for the Wolf.
+- **S8-S9, the sortie:** two more launch from Morrow's bay, one at 94.2 s from launch point 3 and
+  one at 95.0 s from launch point 2, carrying the bay's motion off the deck. Each goes for the
+  attacker sweeping past her.
+  - The first rakes the Kite (P) as she passes (95.8-96.2 s); the second rakes the Wolf (P) on her
+    port side (96.4-97.5 s). Each then turns back for Morrow.
+  - **On a leash to Morrow** (owner, 2026-10-27: "It should be reactive, but not fully leave the
+    shepherd and leave the shot"). She ranges no more than 300 m from her (304 m at the top of her
+    turn home): an attacker past that is let go, and from 180 m out her aim bends back toward
+    Morrow. Both stay in frame to the end of the shot. `drone_lint` holds every drone to her carrier's leash and her top speed, and
+    holds one in frame there to the shot's end, unless the beat is listed in `DRONE_EXEMPT`.
   - Each flies her own pursuit (`sortie`): led by the closing time, turning at up to 150 degrees
     a second, jinking, banking with the turn, and every rate eased so `--check` reports no
     jumps.
-  - Her drives burn with her acceleration (the thrust model), and she reaches 420 m/s.
+  - Her drives burn with her acceleration (the thrust model). She tops out at 150 m/s, pushes at
+    up to 200 m/s2 and turns no harder than 220 m/s2 sideways, so a fast Borer turns wide.
   - Wherever she passes within 110 m of a hull, her mining laser (`beam_t_ws001`) sweeps stern to
     bow down the near side, with sparks where it cuts. The preview draws the beam as a line and
     the sparks as dots.

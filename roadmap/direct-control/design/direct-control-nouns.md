@@ -4,7 +4,8 @@ Status: ACTIVE — Marine, Mech, any player-owned deployed vehicle, friendly War
 
 Written: 2026-09-23
 
-Updated: 2026-10-25 — clicks inside a rack's cycle fire its next group; a hull whose gun builds flux shows it on the HUD.
+Updated: 2026-10-27 — a mission script may run any side's infantry on the shared stamina (Counterattack's raiders).
+Earlier 2026-10-25 — clicks inside a rack's cycle fire its next group; a hull whose gun builds flux shows it on the HUD.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -118,7 +119,9 @@ resource and clock availability, not a guarantee that the barrel is aimed or
 clear. A magazine-fed infantry primary draws its load as rounds rather than a
 number: a strip under the weapon row (rifle cartridges, shotgun shells, or a
 belt in blocks of one burst, so a long belt still reads at a glance), spent
-rounds hollow and a reload pressing them back in. The cursor carries no ammo
+rounds hollow. A reload leaves every round hollow until it ends, with the row's
+countdown as its clock, since not one round can fire before then (owner,
+2026-10-27: rounds pressed back in one by one read as ready to fire). The cursor carries no ammo
 mark. A primary without a magazine shows no counter. Machines draw their loads
 the same way, by what they throw (`Ordnance`, read off how a weapon is drawn: a
 `missile_` sprite, a contrail or a boost is a missile, a beam, laser or authored
@@ -215,8 +218,8 @@ the gun comes ready; a special's clock is its readying or cooldown. A pick with
 limited ammunition also draws a **magazine arc** round the dot on its tick's
 side, one segment a round (a mech's trigger packs, a rotary's belt, a turret's
 ready rounds). Rounds go faint from the end nearest the line
-of fire as they are spent, and a reload refills them from that end, paler than
-loaded rounds until the reload ends. A magazine of more than twenty rounds is
+of fire as they are spent; a reload leaves the whole arc faint until it ends,
+the tick carrying its clock. A magazine of more than twenty rounds is
 one bar split at the same share. The load speaks in brightness only, so hue
 keeps meaning range; a grey tick shows no clock, and a weapon with no magazine,
 such as the pulse rifle, shows its clock alone. A mech's or vehicle's button
@@ -382,7 +385,10 @@ exhaustion. Those values are balance choices; stamina ownership and terrain
 authority are standing laws. The same resource pays for a squad's run order
 (`mission-command-nouns.md`, Run): a body's stamina is one pool whether the
 player's Shift or its squad's or chassis's run order spends it, and the controlled
-body is boosted only by Shift. It does not change campaign condition.
+body is boosted only by Shift. A mission script may run an infantry squad of any
+side on the same pool and the same held fire (`SquadRunSystem.runScripted`),
+each member until the script says it has arrived: Counterattack's road raiders
+sprint into dispatch this way. It does not change campaign condition.
 
 The session stores intent, not a second movement physics model. Existing
 collision and reachability remain authoritative. Losing focus or releasing

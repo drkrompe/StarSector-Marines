@@ -97,7 +97,7 @@ Completion of the Corvus arc and acknowledgement of its aftermath precede the of
 the supply-route outcome does not change eligibility. Hound survival is optional.
 The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and
 **Working Passage**. Salvage Rights uses the company's selected marines and fitted
-boats, with two squads recommended and two four-person squads as its minimum.
+boats, with two squads recommended and one ready marine, or a machine that drops, as its minimum.
 Cooperative militia hold gains; a physical inspection party follows only after
 the company secures the cradle. The protected claim requires safe working time,
 living company cover and a surviving technician. A finite response comes along
@@ -452,12 +452,19 @@ company lift. No line names the fee; the amount lives in the offer's terms.
 2. **Take Back the Depot**: join the local advance, capture dispatch and
    defend it against two finite road attacks. The company's first step inside
    dispatch sends the first attack along both service roads at once and the
-   final one forty seconds later, so the capture is made under attack. The
+   final one forty seconds later, so the capture is made under attack. Each
+   road squad makes straight for dispatch at a sprint, on the Marines' own
+   stamina and holding fire while it runs, and each raider drops to its
+   ordinary pace once inside; the defenders' commander takes the squad over
+   there. The
    final attack brings a militia technical (heavy machine gun) up the south
    service road to park in the loading yard before dispatch's door, in support
    of the raiders already at the warehouse; it counts as a raider, so the hold
    is not won while it stands. A Hound's chaingun kills it in about a quarter
-   of a minute; charged across the open yard it can kill the Hound first. Secure Wayline's offline Hound
+   of a minute; charged across the open yard it can kill the Hound first.
+   A Hound cannot get inside dispatch, so once no friendly infantry is left on
+   the field, a company machine within eight cells of dispatch's door holds it;
+   raiders inside still contest the hold. Secure Wayline's offline Hound
    for the push and warehouse defense.
    Successful settlement pays 9,000 credits, transfers that chassis and closes the arc.
    Mara reports that dispatch can resume and refers the company to other

@@ -37,7 +37,7 @@ import java.util.Set;
  * then the story battle played through the look preset with the company, the Hound recovered, at the moments that
  * decide it: the company's first step into dispatch, each wave on the field, the technical parked, and the end. The
  * company is the evidence's (`DepotHoldEvidenceTest`): twelve troops under autonomous command, sent at the technical
- * once it parks and back into dispatch once it burns, as a player would. Opt-in; seed {@code -Dsnapshot.depot.seed}
+ * once it parks and back to dispatch's door once it burns, as a player would. Opt-in; seed {@code -Dsnapshot.depot.seed}
  * (default 8102). 1920x1080.
  */
 public final class CounterattackDepotLookSuite implements SnapshotSuite {
@@ -145,7 +145,8 @@ public final class CounterattackDepotLookSuite implements SnapshotSuite {
                 if (parked >= 0 && !truckDown && (now - parked) % 600 == 0) order(sim, (int) body.x, (int) body.y, "Take out the technical");
                 if (!truckDown && !sim.convoy().isPresent(truck)) {
                     truckDown = true;
-                    order(sim, hold.x(), hold.y(), "Back into dispatch");
+                    float[] door = hold.door(sim);
+                    order(sim, (int) door[0] - 2, (int) door[1], "Back to dispatch's door");
                 }
             }
             if (now == entered) stills(out, look, sim, hold, "01-company-enters-dispatch", cx, cy, whole);
