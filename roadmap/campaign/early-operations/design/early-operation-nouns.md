@@ -97,7 +97,7 @@ Completion of the Corvus arc and acknowledgement of its aftermath precede the of
 the supply-route outcome does not change eligibility. Hound survival is optional.
 The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and
 **Working Passage**. Salvage Rights uses the company's selected marines and fitted
-boats, with two squads recommended and two four-person squads as its minimum.
+boats, with two squads recommended and one ready marine, or a machine that drops, as its minimum.
 Cooperative militia hold gains; a physical inspection party follows only after
 the company secures the cradle. The protected claim requires safe working time,
 living company cover and a surviving technician. A finite response comes along

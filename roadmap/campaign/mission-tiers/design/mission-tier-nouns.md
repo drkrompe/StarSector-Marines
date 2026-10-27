@@ -124,13 +124,15 @@ smaller one with the same risk.
 
 The offer and briefing surfaces expose quantity and quality separately. They
 name the operation tier and recommended squads, while the briefing compares
-selected ready personnel against the four-person minimum and recommendation and
+selected ready personnel against the minimum and recommendation and
 summarizes their visible issued experience bands against a coarse risk-derived
-opposition expectation. Presentation does not promote the recommendation into
+opposition expectation. The minimum is one ready marine, or none when a bay
+machine drops with the company (owner); it is the same for every mission that
+may launch understrength. Presentation does not promote the recommendation into
 a launch gate or hide an understrength choice behind generated filler. A lift's
 seat count is never a personnel gate either: the opening Wayline operations
 author how many sorties the company's boats fly, not how many marines must
-board, so they launch on the same four-person minimum.
+board, so they launch on the same minimum.
 
 Some legacy factories and headless entry points only know risk. Their
 risk-to-tier default is a temporary compatibility boundary, never an authority

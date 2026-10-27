@@ -29,7 +29,7 @@ import java.util.Set;
 /** Pure quantity/quality read model for a mission deployment. */
 public final class MissionForceEnvelope {
 
-    public static final int MINIMUM_READY_PERSONNEL = 4;
+    public static final int MINIMUM_READY_PERSONNEL = 1;
     public static final int REINFORCED_CONQUEST_SQUADS = 42;
     public static final int FULL_STRENGTH_CONQUEST_SQUADS = 84;
 
@@ -59,10 +59,17 @@ public final class MissionForceEnvelope {
     }
 
     public static int minimumPersonnel(Mission mission, int authoredSeats) {
-        if (SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
-                || DistrictEscortCampaign.isBattle(mission)) return 8;
-        return allowsUnderstrength(mission)
-                ? MINIMUM_READY_PERSONNEL : Math.max(0, authoredSeats);
+        return minimumPersonnel(mission, authoredSeats, false);
+    }
+
+    /**
+     * The launch floor: one ready marine for any mission that may go understrength, or none
+     * when a machine drops with the company instead (owner, 2026-10-27). Other work keeps
+     * its authored seats.
+     */
+    public static int minimumPersonnel(Mission mission, int authoredSeats, boolean machineDrops) {
+        if (!allowsUnderstrength(mission)) return Math.max(0, authoredSeats);
+        return machineDrops ? 0 : MINIMUM_READY_PERSONNEL;
     }
 
     public static int recommendedPersonnel(Mission mission) {

@@ -1154,8 +1154,8 @@ carries campaign-shaped identity without touching campaign state.
 
 For ordinary generated one-shot missions, the selected ready named personnel
 are the deployment manifest even when the player fields less than the tier
-recommendation. The briefing exposes selected headcount, the four-person hard
-minimum, recommended squads, and issued experience-band distribution; it never
+recommendation. The briefing exposes selected headcount, the hard minimum of one
+ready marine (none when a bay machine drops), recommended squads, and issued experience-band distribution; it never
 fills missing seats with anonymous generated marines. Authored missions,
 stationing, and Conquest keep their own personnel requirements.
 

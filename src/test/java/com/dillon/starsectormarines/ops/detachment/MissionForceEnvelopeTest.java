@@ -20,10 +20,10 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class MissionForceEnvelopeTest {
 
     @Test
-    void northWeirSeparatesEightPersonFloorFromTwoFullSquadRecommendation() {
+    void northWeirSeparatesTheOneMarineFloorFromTwoFullSquadRecommendation() {
         Mission mission = AgreusArcCampaign.offer(new AgreusArcProgress(), "Agreus");
         assertTrue(MissionForceEnvelope.allowsUnderstrength(mission));
-        assertEquals(8, MissionForceEnvelope.minimumPersonnel(mission, 24));
+        assertEquals(1, MissionForceEnvelope.minimumPersonnel(mission, 24));
         assertEquals(24, MissionForceEnvelope.recommendedPersonnel(mission));
     }
 
@@ -33,7 +33,7 @@ class MissionForceEnvelopeTest {
                 OperationTier.ESTABLISHED);
 
         assertTrue(MissionForceEnvelope.allowsUnderstrength(mission));
-        assertEquals(4, MissionForceEnvelope.minimumPersonnel(mission, 96));
+        assertEquals(1, MissionForceEnvelope.minimumPersonnel(mission, 96));
         assertEquals(36, MissionForceEnvelope.recommendedPersonnel(mission));
     }
 
@@ -44,7 +44,7 @@ class MissionForceEnvelopeTest {
                 OperationTier.VETERAN);
 
         assertTrue(MissionForceEnvelope.allowsUnderstrength(defence));
-        assertEquals(4, MissionForceEnvelope.minimumPersonnel(defence, 96));
+        assertEquals(1, MissionForceEnvelope.minimumPersonnel(defence, 96));
     }
 
     /** The player's own invasion goes in with whatever the company has, though it is a Conquest. */
@@ -54,7 +54,7 @@ class MissionForceEnvelopeTest {
                 OperationTier.REINFORCED);
 
         assertTrue(MissionForceEnvelope.allowsUnderstrength(invasion));
-        assertEquals(4, MissionForceEnvelope.minimumPersonnel(invasion, 96));
+        assertEquals(1, MissionForceEnvelope.minimumPersonnel(invasion, 96));
     }
 
     /** Take Back the Depot's two Hermes sorties are 24 seats; a company of 11 ready still deploys. */
@@ -70,9 +70,22 @@ class MissionForceEnvelopeTest {
 
             for (Mission mission : new Mission[] {story, recurring}) {
                 assertTrue(MissionForceEnvelope.allowsUnderstrength(mission));
-                assertEquals(4, MissionForceEnvelope.minimumPersonnel(mission, 24));
+                assertEquals(1, MissionForceEnvelope.minimumPersonnel(mission, 24));
             }
         }
+    }
+
+    /** A machine that drops goes in alone; authored work keeps its seats with or without one. */
+    @Test
+    void aDroppingMachineLiftsThePersonnelFloor() {
+        Mission generated = mission(MissionSource.GENERATED, MissionType.RAID,
+                OperationTier.ESTABLISHED);
+        Mission story = mission(MissionSource.STORY, MissionType.RAID,
+                OperationTier.FIRST_CONTRACT);
+
+        assertEquals(0, MissionForceEnvelope.minimumPersonnel(generated, 96, true));
+        assertEquals(1, MissionForceEnvelope.minimumPersonnel(generated, 96, false));
+        assertEquals(24, MissionForceEnvelope.minimumPersonnel(story, 24, true));
     }
 
     @Test
