@@ -3028,6 +3028,66 @@ def blender_main(cfg):
 
     own_hull_done = set()
 
+    def turret_masks(kf, path):
+        """--turret-masks: where each placed finished hull's own plating stands in the way of her own guns, for
+        asharu_gunnery to plan around (asharu_gunnery.MASKS). From each mount's muzzle (OWN_HULL_MUZZLE_M up
+        its axis, past OWN_HULL_CLEAR_M of its own gun, as hull_cross_lint casts it) a ray every MASK_STEP_DEG
+        of bearing and elevation in her frame, out to 1.5 of her length, against her own plating (guns, gear
+        and the kit's effects aside). Written per build into path, merged with what is there."""
+        import asharu_gunnery as g
+        import base64
+        from mathutils import Vector
+        from mathutils.bvhtree import BVHTree
+        base = g.base_kf(kf)
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        out = json.loads(Path(path).read_text()) if Path(path).exists() else {}
+        parts = {}
+        for inst in dg.object_instances:
+            if not inst.is_instance or inst.parent is None:
+                continue
+            ob, top = inst.object.original, inst.parent.original.name
+            name = ship_fx.base_name(ob.name)
+            if (top.startswith('Ship | ') and ob.type == 'MESH' and not name.startswith(('SWFX', 'Stand-in'))
+                    and not re.search(r'\b(Turret|Launcher|Gear|Beam)\b', name)):
+                parts.setdefault(top[7:], []).append((ob, inst.matrix_world.copy()))
+        nb, ne = int(360 / MASK_STEP_DEG), int(180 / MASK_STEP_DEG)
+        for key, obs in parts.items():
+            build = g.build_of(base, key)
+            mounts = g.mounts_of(base, key)
+            if key not in placed or not mounts or build in out or build not in g.MOUNTS:
+                continue
+            to_ship = placed[key]['matrix'].inverted()
+            verts, polys = [], []
+            for ob, mw in obs:
+                me = ob.evaluated_get(dg).to_mesh()
+                m = to_ship @ mw
+                o = len(verts)
+                verts += [m @ v.co for v in me.vertices]
+                polys += [[o + i for i in p.vertices] for p in me.polygons]
+                ob.evaluated_get(dg).to_mesh_clear()
+            bvh = BVHTree.FromPolygons(verts, polys)
+            reach = placed[key]['length'] * 1.5
+            rows = {}
+            for tu, m in mounts.items():
+                o = Vector((m[0][0], m[0][1], m[0][2] + OWN_HULL_MUZZLE_M))
+                bits = bytearray((nb * ne + 7) // 8)
+                for j in range(ne):
+                    el = math.radians(-90 + (j + .5) * MASK_STEP_DEG)
+                    for i in range(nb):
+                        az = math.radians(-180 + (i + .5) * MASK_STEP_DEG)
+                        d = Vector((math.cos(el) * math.cos(az), math.cos(el) * math.sin(az), math.sin(el)))
+                        hit = bvh.ray_cast(o + d * OWN_HULL_CLEAR_M, d, reach)
+                        if hit[0] is not None:
+                            n = j * nb + i
+                            bits[n // 8] |= 1 << (n % 8)
+                rows[str(tu)] = base64.b64encode(bytes(bits)).decode()
+            out[build] = dict(step=MASK_STEP_DEG, mounts=rows)
+            print(f'ASHARU turret masks {base}: {build} ({key}), {len(rows)} mounts, '
+                  + ', '.join(f't{t}: {100 * sum(bin(b).count("1") for b in base64.b64decode(v)) / (nb * ne):.0f}% masked'
+                              for t, v in rows.items()), flush=True)
+        Path(path).write_text(json.dumps(out, indent=1, sort_keys=True))
+
     def build_objects(key):
         """The objects a placed ship is drawn from: her own hull copy (ShipFx, its turrets trained)
         first, then the shared build."""
@@ -4229,6 +4289,8 @@ def blender_main(cfg):
                     print(f'ASHARU state {kf}: {len(off_)} values, worst {w_[0]:.4f} ({w_[1]} {w_[2]})', flush=True)
                     if w_[0] > 1e-3 and not os.environ.get('ASHARU_AUDIT_SOFT'):
                         raise RuntimeError(f'{kf}: {w_[1]} {w_[2]} evaluates {w_[0]:.4f} off its plan {w_[3]:.4f}')
+            if cfg.get('turret_masks'):
+                turret_masks(kf, cfg['turret_masks'])
             if not cfg.get('motion_preview'):    # the preview bakes each ship into one mesh: nothing can come off
                 attachment_lint(kf)
                 hull_cross_lint(kf)
@@ -5141,6 +5203,7 @@ def activity_lint(kf):
 FIRE_ARC_TOL_DEG, FIRE_ARC_STEP_S, BEAM_ARC_DEG = 1.0, .1, 15.0
 # hull_cross_lint: a muzzle above its pivot; the gun's own reach; how near another gun's housing is the mount's clutter
 OWN_HULL_MUZZLE_M, OWN_HULL_CLEAR_M, OWN_HULL_GUN_M = 2.0, 2.5, 3.0
+MASK_STEP_DEG = 3.0       # turret_masks: the grid her own-hull mask is cast on (bearing and elevation, her frame)
 FIRE_ARC_EXEMPT = {}
 
 
@@ -5539,6 +5602,7 @@ def main():
     if '--stage-only' in argv:      # the whole Blender scene build for these frames, CPU only, nothing written
         from blender_path import BLENDER
         env = dict(os.environ, ASHARU_CFG=json.dumps(dict(out=str(run), frames=frames, samples=1, stage_only=True,
+                                                          turret_masks=opt('--turret-masks'),
                                                           los='--los' in argv, swfx='--swfx' in argv,
                                                           fx_check='--fx-check' in argv,
                                                           volume_audit='--volume-audit' in argv,
