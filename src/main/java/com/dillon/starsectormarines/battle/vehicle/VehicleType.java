@@ -523,6 +523,12 @@ public enum VehicleType {
      */
     public boolean crushesUndergrowth() { return weight() != Weight.LIGHT && !isHover(); }
 
+    /**
+     * Whether this hull drives through the light barricades its way covers ({@link BarricadeRam}): every hull that
+     * crushes undergrowth but the dozer, whose blade pushes them down.
+     */
+    public boolean ramsBarricades() { return crushesUndergrowth() && !hasBlade(); }
+
     /** How heavy a hull is to something that runs into it ({@code colony-breach-nouns.md}, Brute). */
     public enum Weight { LIGHT, MEDIUM, HEAVY }
 
