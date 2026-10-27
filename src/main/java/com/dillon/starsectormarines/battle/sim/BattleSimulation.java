@@ -254,6 +254,7 @@ import com.dillon.starsectormarines.battle.mech.MechAttachmentSystem;
 import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
+import com.dillon.starsectormarines.battle.squad.SquadRunSystem;
 import com.dillon.starsectormarines.battle.squad.ReactiveManningService;
 import com.dillon.starsectormarines.battle.squad.ReactiveManningSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -639,6 +640,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SquadMoveOrderService squadMoveOrders = new SquadMoveOrderService();
     private final SquadMoveOrderSystem squadMoveOrderSystem =
             new SquadMoveOrderSystem(squadMoveOrders);
+    /** A running squad's pace, paid out of each Marine's battle stamina. */
+    private final SquadRunSystem squadRun = new SquadRunSystem(squadMoveOrders);
     /** The player's GARRISON stance: opted-in squads man nearby places their side believes pressed. */
     private final ReactiveManningService reactiveManning = new ReactiveManningService();
     private final ReactiveManningSystem reactiveManningSystem =
@@ -1666,6 +1669,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         deathDispatcher.subscribe(swarmHarvest::onDeath);
         rosterService.modifiers().register(swarmHarvest.carrierModifier());
         rosterService.modifiers().register(matriarchActions.runModifier());
+        rosterService.modifiers().register(squadRun.modifier());
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
         // death mailbox as every other post-death reaction. Non-cohort deaths
@@ -2282,6 +2286,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public SquadMoveOrderService getSquadMoveOrderService() { return squadMoveOrders; }
     /** Applies squad tactical moves at the serialized command boundary. */
     public SquadMoveOrderSystem getSquadMoveOrderSystem() { return squadMoveOrderSystem; }
+    public SquadRunSystem squadRun() { return squadRun; }
 
     /** Which player squads stand in the GARRISON stance, and what each is doing about it. */
     public ReactiveManningService getReactiveManning() { return reactiveManning; }
@@ -3249,6 +3254,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         commanders.setAutonomousCommander(faction, commander, disclosure);
     }
 
+    /**
+     * The player commands the Marine company in this battle: mission command stops sending its squads to objectives
+     * ({@link com.dillon.starsectormarines.battle.command.AssignmentArbiter#yieldToPlayer}). Set when a battle is put in front of the player; a headless run leaves
+     * the company on its commander.
+     */
+    public void playerCommandsCompany() {
+        commanders.assignments().yieldToPlayer(Faction.MARINE, this);
+    }
+
+    /** Whether the player, rather than mission command, sends this squad where it goes. */
+    public boolean playerCommands(Squad squad) {
+        return commanders.assignments().playerCommands(squad);
+    }
+
     /** The commander for {@code faction}, or {@code null} if none is wired. Read by debug UI and by integration tests that poke at commander state directly. */
     public CommandStrategy getCommander(Faction faction) {
         return commanders.getCommander(faction);
@@ -3764,6 +3783,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // moves or plants the medic and patient it is updating.
         squadMedics.tick(TICK_DT, this);
         directControl.tick();
+        // After direct control's tick, which has already let every body but its own recover, so
+        // a runner is chosen from this tick's stamina; before the dispatch that moves it.
+        squadRun.beforeMovement(this);
         // Swarm goal fields are rebuilt here, serially and from the positions
         // the unit update starts from, so the dispatch below only reads them.
         if (swarmFlowFieldEnabled) SwarmMovement.prepare(this);
@@ -3775,6 +3797,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         } finally {
             navigation.endSharedGoalPathSnapshot();
         }
+        squadRun.afterMovement(this);
         // Units have moved, so the zone table no longer describes where they stand.
         zoneOccupancy.close();
         tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);

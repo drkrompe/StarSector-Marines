@@ -65,10 +65,11 @@ class TurnAwareCorridorTest {
     @Test
     void pivotsAtABendNoFilletFitsWhereTheTankCanTurnOnTheSpot() {
         NavigationGrid grid = new NavigationGrid(60, 60);
-        // A crossroads of two five-cell rides, as The Burn cuts them: room to turn on the spot at the middle, none for
-        // the turning circle.
-        carve(grid, 28, 0, 32, 59);
-        carve(grid, 0, 28, 59, 32);
+        // A crossroads of two three-cell rides opening to a five-cell square where they cross: room to turn on the spot
+        // at the middle, none for the turning circle.
+        carve(grid, 29, 0, 31, 59);
+        carve(grid, 0, 29, 59, 31);
+        carve(grid, 28, 28, 32, 32);
 
         float[][] route = {new float[]{30.5f, 30.5f, 22.5f}, new float[]{50.5f, 30.5f, 30.5f}};
         TurnAwareCorridor.Result result = TurnAwareCorridor.refine(route, VehicleType.BREAKTHROUGH_TANK, grid);

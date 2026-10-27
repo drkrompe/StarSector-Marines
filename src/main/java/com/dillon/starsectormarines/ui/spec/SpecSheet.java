@@ -24,6 +24,9 @@ import java.util.List;
  * @param teams    a heading per fire team, in seat order; may be empty
  * @param stamp    who issued the item and on what terms, printed under the
  *                 heading; null for an item that carries none
+ * @param scene    a moving picture of the item at work, painted under the
+ *                 heading by whatever source the layer has for its kind; null
+ *                 for none
  */
 public record SpecSheet(String title,
                         String subtitle,
@@ -33,7 +36,8 @@ public record SpecSheet(String title,
                         List<String> notes,
                         List<Seat> seats,
                         List<String> teams,
-                        Stamp stamp) {
+                        Stamp stamp,
+                        Scene scene) {
 
     /** Seats per painted block: a fire team. */
     public static final int TEAM_SIZE = 4;
@@ -41,6 +45,12 @@ public record SpecSheet(String title,
     public SpecSheet(String title, String subtitle, String crestPath, String accent,
                      List<Stat> stats, List<String> notes) {
         this(title, subtitle, crestPath, accent, stats, notes, List.of(), List.of(), null);
+    }
+
+    public SpecSheet(String title, String subtitle, String crestPath, String accent,
+                     List<Stat> stats, List<String> notes, List<Seat> seats,
+                     List<String> teams, Stamp stamp) {
+        this(title, subtitle, crestPath, accent, stats, notes, seats, teams, stamp, null);
     }
 
     public SpecSheet {
@@ -55,12 +65,34 @@ public record SpecSheet(String title,
 
     /** This sheet with one picture per seat, under a heading per fire team. */
     public SpecSheet withSeats(List<Seat> seats, List<String> teams) {
-        return new SpecSheet(title, subtitle, crestPath, accent, stats, notes, seats, teams, stamp);
+        return new SpecSheet(title, subtitle, crestPath, accent, stats, notes, seats, teams, stamp, scene);
     }
 
     /** This sheet with an issuer's stamp under its heading. */
     public SpecSheet withStamp(Stamp stamp) {
-        return new SpecSheet(title, subtitle, crestPath, accent, stats, notes, seats, teams, stamp);
+        return new SpecSheet(title, subtitle, crestPath, accent, stats, notes, seats, teams, stamp, scene);
+    }
+
+    /** This sheet with a moving picture of its item under the heading. */
+    public SpecSheet withScene(Scene scene) {
+        return new SpecSheet(title, subtitle, crestPath, accent, stats, notes, seats, teams, stamp, scene);
+    }
+
+    /**
+     * Which moving picture a sheet shows, by name only: the layer looks its
+     * {@code kind} up among the scene sources installed for it, so this value
+     * stays free of the code that paints it.
+     *
+     * @param kind    the source to ask, such as {@code weapon}
+     * @param subject the item, by its catalog id
+     * @param variant what distinguishes this showing of it, such as a grade; may be empty
+     */
+    public record Scene(String kind, String subject, String variant) {
+        public Scene {
+            if (kind == null || kind.isBlank()) throw new IllegalArgumentException("A scene needs a kind");
+            if (subject == null || subject.isBlank()) throw new IllegalArgumentException("A scene needs a subject");
+            variant = variant == null ? "" : variant;
+        }
     }
 
     /**

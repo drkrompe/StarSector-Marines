@@ -223,6 +223,11 @@ public final class DirectControlSession {
                 && roster.identity().type(unitId) == UnitType.MARINE;
     }
 
+    /** Every Marine's battle stamina, which a running squad spends too ({@code SquadRunSystem}). */
+    public MarineSprint marineStamina() {
+        return marineSprint;
+    }
+
     /** Read-only status for the exact controlled Marine; other carriers have no stamina gauge. */
     public MarineSprint.Status sprintStatus() {
         return unitActive() && roster.isAliveById(unitId)

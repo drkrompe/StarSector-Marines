@@ -120,6 +120,7 @@ public final class SpecSheetBinder {
         liveBindings.clear();
         anchors.clear();
         closeOpen();
+        layer.releaseScenes();
     }
 
     public int size() {

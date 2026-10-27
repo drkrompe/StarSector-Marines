@@ -494,6 +494,7 @@
     "battleOrderAttach": "ATTACH",
     "battleOrderAttachStatus": "FOLLOWS BY DOCTRINE",
     "unitModifierDugIn": "Dug in",
+    "unitModifierSquadRun": "Running",
     "unitModifierLegWound": "Leg wound",
     "unitModifierArmWound": "Arm wound",
     "unitModifierMechCrippled": "Legs destroyed",

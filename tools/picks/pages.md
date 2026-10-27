@@ -16,3 +16,4 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | Boat refit (boat spares, Hermes six-axis refit, Secondhand Wings removal) | https://claude.ai/artifact/5D6B4wFKjXKPBT88NnnMJN |
 | Dust Ledger revamp (Saltwell Cross, side objectives, battle music) | https://claude.ai/artifact/HDbAK1rLgGBysKq84AyNhC (renders: https://claude.ai/artifact/P1MWkkcWVmwYS4kzb8RbVE) |
 | Blind Watch revamp (the Sounding on Warion, hook, side jobs) | https://claude.ai/artifact/5U17x6eWXMDM7P7wEWxN4z (renders: https://claude.ai/artifact/5wJEDtGrRj5B3YDxsasubF) |
+| Reticle ammo cue (manual-fire ammo and readiness at the cursor) | https://claude.ai/artifact/5us7T1cuc1um3SMBeUW4LW |

@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.squad.HoldPlaceDecision;
 import com.dillon.starsectormarines.battle.squad.OccupyPositionDecision;
+import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
 import com.dillon.starsectormarines.battle.ui.highlight.HighlightOverlay;
 import com.dillon.starsectormarines.battle.squad.SquadContactPicture;
@@ -131,6 +132,29 @@ public final class SelectionOrders {
 
     public static void requestMove(BattleSimulation sim, Selection selection, int x, int y) {
         requestMove(sim, selection, x, y, Float.NaN);
+    }
+
+    /**
+     * R: the selected Marine squads that are already under way run, or walk again if every one of
+     * them already runs. A squad with no standing order, a lance and anything else selected are left
+     * alone. Whether any squad was under way to toggle.
+     */
+    public static boolean toggleRun(BattleSimulation sim, Selection selection) {
+        if (sim == null || selection == null || sim.directControl().active()) return false;
+        SquadMoveOrderService orders = sim.getSquadMoveOrderService();
+        List<Integer> underWay = new ArrayList<>();
+        boolean allRunning = true;
+        for (int id : selection.getSelectedSquadIds()) {
+            Squad squad = sim.getSquad(id);
+            if (squad == null || squad.faction != Faction.MARINE || squad.isMechSquad()
+                    || orders.activeOrder(id) == null) continue;
+            underWay.add(id);
+            allRunning &= orders.isRunning(id);
+        }
+        for (int id : underWay) {
+            if (orders.isRunning(id) == allRunning) orders.toggleRun(id);
+        }
+        return !underWay.isEmpty();
     }
 
     /**

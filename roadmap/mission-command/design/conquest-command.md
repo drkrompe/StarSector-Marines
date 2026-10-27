@@ -4,7 +4,13 @@ Status: ACTIVE — paired attacker and defender command is implemented; live con
 
 Written: 2026-08-27
 
-Updated: 2026-10-21 — the procedural missions counter-attack the places that matter to them on a bounded doctrine of their own (see "A place the defender loses" under Defender command).
+Updated: 2026-10-27 — in a battle the player plays, the Marine commander no
+longer moves the player's squads (`mission-command-nouns.md`, Player and faction
+extensions), so Conquest's one to twenty squads all wait for orders. Planned: a
+pass that moves most of Conquest's Marine force to `ALLY` under this commander
+and leaves the player a smaller, focused force to command.
+
+Earlier 2026-10-21 — the procedural missions counter-attack the places that matter to them on a bounded doctrine of their own (see "A place the defender loses" under Defender command).
 
 Earlier 2026-10-11 — the force is spread across the three tracks, the zone cap
 and transit spacing are on by default, and the clumps were found on the approach
