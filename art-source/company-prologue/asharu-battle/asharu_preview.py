@@ -126,17 +126,14 @@ class Drift(tuple):
 
 
 def traced_keyframes():
-    """battle_blockout.KEYFRAMES re-read with motion's functions traced: every pose they make is a
-    Drift, so the preview can play the motion the key frame stills."""
-    real_fleet, real_run = motion.fleet_at, getattr(motion, 'boarding_run', None)
-
-    def fleet_at(ships, t, scale=1.0, keep=()):
-        return {k: (v if k in keep else Drift(v, t, lambda tt, k=k, st=tuple(ships[k]): motion.drift(k, st, tt, scale)))
-                for k, v in real_fleet(ships, t, scale, keep).items()}
+    """battle_blockout.KEYFRAMES re-read with boarding_run traced: every pose it makes is a Drift, so
+    the preview can play the motion the key frame stills. Fleet ships keep fleet_at's own live() poses,
+    the finals' motion: tracing them as drift() let a blockout weave ships the finals crept (owner,
+    2026-10-27: an approved blockout plays exactly what the final renders)."""
+    real_run = getattr(motion, 'boarding_run', None)
 
     def boarding_run(*a, **kw):
         return Drift(real_run(*a, **kw), a[-1], lambda tt: real_run(*a[:-1], tt, **kw))
-    motion.fleet_at = fleet_at
     if real_run is not None:
         motion.boarding_run = boarding_run
     try:
@@ -144,7 +141,6 @@ def traced_keyframes():
         mod = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(mod)
     finally:
-        motion.fleet_at = real_fleet
         if real_run is not None:
             motion.boarding_run = real_run
     return mod.SHOTS

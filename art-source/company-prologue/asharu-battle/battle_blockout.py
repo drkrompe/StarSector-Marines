@@ -1086,6 +1086,21 @@ def _far(look, d=300e3):
     n = math.sqrt(sum(c * c for c in look))
     return tuple(c / n * d for c in look)
 
+# One battle, one clock (cut audit, 2026-10-27). S6 and S6b staged their own Lasher B, Manticore (P) and
+# Buffalo (P) 0.6 to 2.2 km apart across their cut: S6's Lasher B now flies S6b's flight (S6b's camera rides
+# her), and S6b's Manticore and Buffalo fly S6's (S6's camera tracks its Manticore). S7 to S8 is the
+# owner's pick (owner: "suddenly surrounded and opening up with its guns"): ASHARU_S7_FIGHT=1 draws S8's
+# Colossus, Morrow and the Mk.III in S7 where S8 has them, the fight closing beyond the Tarsus (option C).
+# ASHARU_CONTINUITY_BEFORE=1 draws the old S6-S6b staging, for the owner's before/after only. Remove both
+# switches once the owner has picked.
+if not os.environ.get('ASHARU_CONTINUITY_BEFORE'):
+    K3_SHIPS['lasher-b'] = Pose(K3C_SHIPS['lasher-b'].at(K3_T), K3_T, K3C_SHIPS['lasher-b'].at)
+    for _k in ('manticore-p', 'buffalo2-a'):
+        K3C_SHIPS[_k] = Pose(K3_SHIPS[_k].at(K3C_T), K3C_T, K3_SHIPS[_k].at)
+if os.environ.get('ASHARU_S7_FIGHT'):
+    for _k in ('colossus', 'morrow', 'colossus3'):
+        K3B_SHIPS[_k] = Pose(K4_SHIPS[_k].at(K3B_T), K3B_T, K4_SHIPS[_k].at)
+
 KEYFRAMES = {
     'k0': dict(
         shot='S1a', title='The view the player knows',
@@ -1101,7 +1116,9 @@ KEYFRAMES = {
                                                     (13.6, 150, 11000), (14.3, 150, 11000), (14.7, 300, 7000),
                                                     (15.0, 300, 14000), (15.3, 300, 11000), (16, 300, 11000))],
                       10),
-        ships=convoy_at(10),
+        # S1's convoy, stilled at 10 s: a fleet ship's motion hangs off its key time, and convoy_at(10) drew
+        # the Colossus 27 m and Morrow 54 m off where S1 has them at the cut (owner, 2026-10-27, cut audit)
+        ships={k: Pose(v.at(10), 10, v.at) for k, v in convoy_at(16).items()},
         labels=['colossus', 'morrow', 'tarsus', 'mule', 'phaeton', 'buffalo-a', 'lasher-a']),
     'k1': dict(
         shot='S1', title='Low orbit over Asharu',
@@ -1391,7 +1408,7 @@ M2_SHIPS = {**{k: Pose(v.at(M2_T), M2_T, v.at) for k, v in KEYFRAMES['k1']['ship
 ONE_TAKES = (('k1', 'm2', 24.0), ('k1b', 'k2', 38.0))
 CUT_EXEMPT = {('m2', 'lasher-a'): "off frame from 22.5 s in S1 to 26.5 s in S2, whose foreground pass is her "
                                   "own flight (blockout 89c1a6073)"}
-CUT_TOL_M, CUT_TOL_DEG = .05, .5
+CUT_TOL_M, CUT_TOL_DEG, CUT_SEEN_TOL = .05, .5, .01
 
 # S5: the Manticore (P) opens at long range on the column's tail, Hellbore slugs and a Harpoon salvo
 # crossing 3-4 km; her flight is S6's, so the cut into S6 keeps her where she is
@@ -1436,7 +1453,9 @@ _m5 = M5_MANTICORE.at(M5_T)
 _m5_aim = convoy_at(M5_T)['phaeton']
 # The Phaeton and Lasher A fly S6's flights (K3_SHIPS), so the salvos S5 shows leaving (each aimed to
 # land when S6 has it land) meet the ships S6 has them meet, and the Phaeton is where S6 opens on her
-M5_SHIPS = {**{k: v for k, v in convoy_at(M5_T).items() if k in ('tarsus', 'hound-m', 'buffalo-b', 'dram')},
+# the convoy ships S5 shows fly S6's motion (cut audit, 2026-10-27: convoy_at(M5_T) put them 67-186 m off it)
+M5_SHIPS = {**{k: at_time(v, M5_T) for k, v in fleet_at({k: CONVOY[k] for k in ('tarsus', 'hound-m', 'buffalo-b', 'dram')},
+                                                           K3_T).items()},
             **{k: at_time(K3_SHIPS[k], M5_T) for k in ('phaeton', 'lasher-a')},
             **{k: s5_eased(k, M5_T) for k in ('manticore-p', 'wolf-p-b')}}
 _m5_dir = [b - a for a, b in zip(_m5[:3], _m5_aim[:3])]
@@ -4392,27 +4411,77 @@ def hide_lines():
     return out
 
 
+def _in_frame(c, p):
+    """Where p falls in camera pose c at 1920x1080 (36 mm wide), with its distance; None behind it."""
+    f = _unit([c['target'][i] - c['loc'][i] for i in range(3)])
+    r = _unit([f[1], -f[0], 0.0])
+    u = [r[1] * f[2] - r[2] * f[1], r[2] * f[0] - r[0] * f[2], r[0] * f[1] - r[1] * f[0]]
+    d = [p[i] - c['loc'][i] for i in range(3)]
+    z = sum(d[i] * f[i] for i in range(3))
+    if z <= 1.0:
+        return None
+    k = c['lens'] / 36.0 * 1920 / z
+    x, y = 960 + k * sum(d[i] * r[i] for i in range(3)), 540 - k * sum(d[i] * u[i] for i in range(3))
+    return (x, y, z) if -100 <= x <= 2020 and -100 <= y <= 1180 else None
+
+
+def shot_cuts():
+    """Every cut between two key shots, in story order: (shot A, shot B, cut time, one take)."""
+    import asharu_preview
+    segs = [s_ for s_ in asharu_preview.segments(SHOTS)]
+    takes = {(a, b) for a, b, _ in ONE_TAKES}
+    return [(a['kf'], b['kf'], b['start'], (a['kf'], b['kf']) in takes)
+            for a, b in zip(segs, segs[1:]) if a['kf'] and b['kf']]
+
+
 def cut_lines(kf):
-    """Each one-take cut kf is on: every ship both shots draw, at the cut, as shot A flies her against
-    shot B, by position (m) and heading (deg), and the camera by position, and the worst of its aim's turn
-    and roll (deg) and its lens (mm). [(a, b, key, metres, degrees, exempt reason or None)]"""
+    """Each cut kf is on, one shot's last frame against the next's first. A cut inside a take: every ship
+    both shots draw, as shot A flies her against shot B at the cut, by position (m) and heading (deg),
+    and the camera by position and the worst of its aim's turn, roll (deg) and lens (mm). Any other cut
+    (one battle, one clock): every ship in frame on both sides, by position against CUT_SEEN_TOL of her
+    distance (owner, 2026-10-27, S7 to S8: "suddenly surrounded"). [(a, b, key, metres, degrees,
+    exempt reason or None, tolerance m)]"""
     out = []
-    for a, b, tc in ONE_TAKES:
+    for a, b, tc, take in shot_cuts():
         if kf not in (a, b):
             continue
         sa, sb = SHOTS[a]['ships'], SHOTS[b]['ships']
+        ca, cb = SHOTS[a]['camera']['at'](tc - 1 / 24), SHOTS[b]['camera']['at'](tc)
         for k in sorted(set(sa) & set(sb)):
             if not (hasattr(sa[k], 'at') and hasattr(sb[k], 'at')):
                 continue
             pa, pb = sa[k].at(tc), sb[k].at(tc)
             dh = abs((pa[3] - pb[3] + 180) % 360 - 180)
-            out.append((a, b, k, math.dist(pa[:3], pb[:3]), dh, CUT_EXEMPT.get((b, k))))
-        ca, cb = SHOTS[a]['camera']['at'](tc), SHOTS[b]['camera']['at'](tc)
-        da, db = (_unit([c['target'][i] - c['loc'][i] for i in range(3)]) for c in (ca, cb))
-        turn = math.degrees(math.acos(max(-1.0, min(1.0, sum(x * y for x, y in zip(da, db))))))
-        out.append((a, b, 'camera', math.dist(ca['loc'], cb['loc']),
-                     max(turn, abs(ca['roll'] - cb['roll']), abs(ca['lens'] - cb['lens'])), None))
+            if take:
+                out.append((a, b, k, math.dist(pa[:3], pb[:3]), dh, CUT_EXEMPT.get((b, k)), CUT_TOL_M))
+                continue
+            fa, fb = _in_frame(ca, sa[k].at(tc - 1 / 24)[:3]), _in_frame(cb, pb[:3])
+            if fa and fb:
+                out.append((a, b, k, math.dist(pa[:3], pb[:3]), 0.0, CUT_EXEMPT.get((b, k)),
+                            max(1.0, CUT_SEEN_TOL * min(fa[2], fb[2]))))
+        if take:
+            ca = SHOTS[a]['camera']['at'](tc)
+            da, db = (_unit([c['target'][i] - c['loc'][i] for i in range(3)]) for c in (ca, cb))
+            turn = math.degrees(math.acos(max(-1.0, min(1.0, sum(x * y for x, y in zip(da, db))))))
+            out.append((a, b, 'camera', math.dist(ca['loc'], cb['loc']),
+                        max(turn, abs(ca['roll'] - cb['roll']), abs(ca['lens'] - cb['lens'])), None, CUT_TOL_M))
     return out
+
+
+def cut_lint(kf):
+    """A ship must not jump at a cut (owner, 2026-10-27: S1 to S2's Shepherd, S7 to S8's Colossus). Logs
+    every pair; one over its tolerance (or CUT_TOL_DEG) raises unless ASHARU_AUDIT_SOFT."""
+    rows = cut_lines(kf)
+    if not rows:
+        return
+    bad = [r for r in rows if r[5] is None and (r[3] > r[6] or r[4] > CUT_TOL_DEG)]
+    w = max(rows, key=lambda r: (r[5] is None, r[3] / r[6]))
+    print(f'ASHARU cut {kf}: {len(rows)} pairs across its cuts, worst {w[3]:.3f} m {w[4]:.2f} deg ({w[0]}-{w[1]} {w[2]}'
+          f'{", exempt" if w[5] else ""}); jumps: {[f"{r[0]}-{r[1]} {r[2]} {r[3]:.1f} m {r[4]:.1f} deg" for r in bad]}',
+          flush=True)
+    if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
+        raise RuntimeError(f'{kf}: {bad[0][2]} jumps {bad[0][3]:.2f} m, {bad[0][4]:.2f} deg at the cut from '
+                           f'{bad[0][0]} to {bad[0][1]}')
 
 
 def _unit(v):
@@ -4508,20 +4577,6 @@ def motion_lint(kf):
     if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
         raise RuntimeError(f'{kf}: {bad[0][0]} {bad[0][1]} at {bad[0][2]:.2f} s (motion lint)')
 
-
-def cut_lint(kf):
-    """A ship drawn either side of a cut inside a take must not jump at it (owner, 2026-10-27: S1 to S2's
-    Shepherd). Logs every pair; a jump over CUT_TOL_M or CUT_TOL_DEG raises unless ASHARU_AUDIT_SOFT."""
-    rows = cut_lines(kf)
-    if not rows:
-        return
-    bad = [r for r in rows if r[5] is None and (r[3] > CUT_TOL_M or r[4] > CUT_TOL_DEG)]
-    w = max(rows, key=lambda r: (r[5] is None, r[3]))
-    print(f'ASHARU cut {kf}: {len(rows)} ships across the take, worst {w[3]:.3f} m {w[4]:.2f} deg ({w[2]}'
-          f'{", exempt" if w[5] else ""}); jumps: {[f"{r[2]} {r[3]:.1f} m {r[4]:.1f} deg" for r in bad]}', flush=True)
-    if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
-        raise RuntimeError(f'{kf}: {bad[0][2]} jumps {bad[0][3]:.2f} m, {bad[0][4]:.2f} deg at the cut from '
-                           f'{bad[0][0]} to {bad[0][1]}')
 
 
 def turn_lines(kf):
