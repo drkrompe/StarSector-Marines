@@ -412,7 +412,8 @@ so a player reads the same thing the same way wherever it appears:
   picture). It is the card in the Loadout stores and First Refit's choices (both a
   left-hand column beside the squad view), and the sheet a card opens on hover
   anywhere. A weapon card in the stores lists what it issues as **kit bricks**,
-  one per item with its count: each primary, and each secondary as its own piece;
+  one per item with only its count beside it: each primary, and each secondary as
+  its own piece;
 - the **issued-card chip**: a card at a glance (face, name, Firepower or Protection
   Rating, the Restricted seal). Barracks stacks two compact chips on each squad
   card, and the Loadout squad view opens on the same two at full size;
@@ -428,14 +429,16 @@ so a player reads the same thing the same way wherever it appears:
   improves and red where it falls; weapon figures use that marine's own profile;
 - the **kit brick**: a marine's primary and secondary are mounts in the fitting
   rooms' hardware language, so the Mech Lab, the Boat Deck and the Armory read
-  alike. Each is a 1x2 brick-stack at the one brick size (`FittingBricks`) in the
+  alike. Each is a 1x2 brick-stack, one row of two, at the one brick size (`FittingBricks`) in the
   colour of what it throws, read off the weapon's data by `Ordnance` as the battle
   HUD reads it: ballistic yellow, energy red-orange, missile green, and utility
-  teal for a secondary that fires nothing. The item's armoury art stands upright
-  on it, long guns turned by the angle their art lies at (the primaries' shared
+  teal for a secondary that fires nothing. The item's armoury art lies along
+  it, long guns turned level by the angle their art lies at (the primaries' shared
   diagonal, a special's authored `armoryIconLie`). An empty mount is a dark
-  recess. The secondary is the marine's special item; the bricks do not move, they
-  only show what a card issues;
+  recess. A brick carries no name: hovering it opens the item's sheet, and in
+  the squad view a change reads as the brick carried now, an arrow and the brick
+  the card would issue. The secondary is the marine's special item; the bricks do
+  not move, they only show what a card issues;
 - the **licence keys**: tabs, filters and actions on and around cards are flat navy
   keys with the cards' edge colours (blue for a choice, gold for an action), not the
   console keys of the rest of the ship.

@@ -1051,7 +1051,7 @@ public final class FleetArmoryViewModel {
             String icon = EquipmentIcons.primary(weapon, quotedGrade(grades));
             spans.add(new DoctrineSpan(spanId(tileId, "distribution", spans.size()),
                     Strings.format("squadDoctrineCount", count, weapon.modelName()), false,
-                    weaponSheet(weapon, grades), icon, KitBrick.weapon(weapon, icon, EquipmentIcons.PRIMARY_LIE)));
+                    weaponSheet(weapon, grades), icon, KitBrick.weapon(weapon, icon, EquipmentIcons.PRIMARY_LIE), count));
         }
         // Each secondary is a piece of its own, on its own brick: a card issuing a launcher
         // and a radio shows a missile brick and a utility one, not "2 special".
@@ -1064,7 +1064,7 @@ public final class FleetArmoryViewModel {
             if (def == null) continue;
             spans.add(new DoctrineSpan(spanId(tileId, "distribution", spans.size()),
                     Strings.format("squadDoctrineCount", secondary.getValue(), def.displayName()), false,
-                    SpecSheets.special(def), def.armoryIconPath(), KitBrick.secondary(def)));
+                    SpecSheets.special(def), def.armoryIconPath(), KitBrick.secondary(def), secondary.getValue()));
         }
         return last(spans);
     }
@@ -1245,7 +1245,8 @@ public final class FleetArmoryViewModel {
         if (spans.isEmpty()) return List.of();
         DoctrineSpan closing = spans.get(spans.size() - 1);
         spans.set(spans.size() - 1,
-                new DoctrineSpan(closing.id(), closing.text(), true, closing.sheet(), closing.icon(), closing.brick()));
+                new DoctrineSpan(closing.id(), closing.text(), true, closing.sheet(), closing.icon(),
+                        closing.brick(), closing.count()));
         return List.copyOf(spans);
     }
 
@@ -1575,8 +1576,8 @@ public final class FleetArmoryViewModel {
 
         /** The brick rows' height under their 8px of air: each piece is as tall as its 1x2 brick. */
         private int bricksHeight() {
-            int rows = (distributionSpans.size() + 2) / 3;
-            return 8 + rows * 86 + Math.max(0, rows - 1) * 6;
+            int rows = (distributionSpans.size() + 3) / 4;
+            return 8 + rows * 44 + Math.max(0, rows - 1) * 6;
         }
 
         /** A card whose seats carry nothing beside their weapon or suit prints no carries line. */
@@ -1778,7 +1779,7 @@ public final class FleetArmoryViewModel {
                 case "brickSpans" -> issuesAsBricks() ? distributionSpans : List.of();
                 case "bricksId" -> distributionId + "-bricks";
                 case "bricksClasses" -> issuesAsBricks() ? "loadout-card-bricks" : "doctrine-line-hidden";
-                // A grid is as tall as it is told to be: three pieces a row (.loadout-card-brick's width).
+                // A grid is as tall as it is told to be: four pieces a row (.loadout-card-brick's width).
                 case "bricksStyle" -> "height: " + bricksHeight() + "px;";
                 // A line is drawn as spans or as the joined sentence, never as
                 // both: the fallback is what a loadout issuing nothing to list
@@ -1809,11 +1810,11 @@ public final class FleetArmoryViewModel {
      * patterns — and a binding on it then opens nothing.
      */
     public record DoctrineSpan(String id, String text, boolean closing, SpecSheet sheet, String icon,
-                               KitBrick brick)
+                               KitBrick brick, int count)
             implements MarkupPropertySource {
         /** An entry that is no single piece of kit: a pattern, a capability. */
         public DoctrineSpan(String id, String text, boolean closing, SpecSheet sheet, String icon) {
-            this(id, text, closing, sheet, icon, null);
+            this(id, text, closing, sheet, icon, null, 0);
         }
 
         @Override
@@ -1821,6 +1822,8 @@ public final class FleetArmoryViewModel {
             return switch (property) {
                 case "id" -> id;
                 case "brickId" -> id + ":brick";
+                // A brick is named by its hover sheet, so beside it stands only how many.
+                case "count" -> Strings.format("squadDoctrineBrickCount", count);
                 case "label" -> closing ? text : text + "  ·";
                 case "icon" -> icon;
                 case "iconId" -> id + ":icon";

@@ -70,13 +70,14 @@
         <div each="span in tile.distributionSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-issue-span"><img id="{span.iconId}" class="doctrine-equipment-icon" src="{span.icon}" /><div id="{span.textId}" class="doctrine-equipment-name">{span.text}</div></div>
       </div>
     </div>
-    <!-- A weapon card's issue as kit bricks, each piece on its 1x2 brick in the colour of what it
-         throws (as Mech Lab hardware), with how many the card issues. Its element carries the
-         entry's id, so it opens the entry's sheet; LoadoutCardBricks paints the bricks. -->
+    <!-- A weapon card's issue as kit bricks, each piece its 1x2 brick (one row of two) in the colour
+         of what it throws (as Mech Lab hardware), with how many the card issues and no name: its
+         element carries the entry's id, so hovering opens the entry's sheet. LoadoutCardBricks
+         paints the bricks. -->
     <div id="{tile.bricksId}" class="{tile.bricksClasses}" style="{tile.bricksStyle}">
       <div each="span in tile.brickSpans" key="{span.id}" id="{span.id}" class="loadout-card-brick">
-        <canvas id="{span.brickId}" class="loadout-card-brick-canvas" width="32" height="84" />
-        <div id="{span.textId}" class="loadout-card-brick-name label">{span.text}</div>
+        <canvas id="{span.brickId}" class="loadout-card-brick-canvas" width="64" height="42" />
+        <div id="{span.textId}" class="loadout-card-brick-count label">{span.count}</div>
       </div>
     </div>
     <div id="{tile.carriesId}" class="{tile.carriesClasses}">{tile.carriesLine}</div>
@@ -127,7 +128,7 @@
   .doctrine-carries-span { color: #8fd6a6; }
   .doctrine-line-hidden { display: none; }
   .loadout-card-bricks { display: grid; row-gap: 6px; column-gap: 10px; padding-top: 8px; }
-  .loadout-card-brick { flex-direction: row; align-items: center; width: 150px; height: 86px; gap: 8px; }
-  .loadout-card-brick-canvas { width: 32px; height: 84px; pointer-events: none; }
-  .loadout-card-brick-name { width: 0px; flex-grow: 1; white-space: normal; color: #d8bd67; pointer-events: none; }
+  .loadout-card-brick { flex-direction: row; align-items: center; width: 110px; height: 44px; gap: 6px; }
+  .loadout-card-brick-canvas { width: 64px; height: 42px; pointer-events: none; }
+  .loadout-card-brick-count { width: 0px; flex-grow: 1; color: #d8bd67; pointer-events: none; }
 </style>

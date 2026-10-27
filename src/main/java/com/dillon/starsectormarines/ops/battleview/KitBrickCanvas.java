@@ -9,7 +9,7 @@ import java.util.function.Supplier;
 /**
  * A marine's kit mount drawn as Mech Lab hardware ({@link KitBrick}): the piece's bricks in
  * its colour with its armoury art laid along them, or an empty recess when the mount carries
- * nothing. Long art turns to stand upright, as long guns do on the Mech Lab's boards.
+ * nothing. Long art turns level, muzzle forward, to lie along its two bricks.
  */
 public final class KitBrickCanvas implements CanvasProducer {
     /** The rim an empty mount shows: no hardware, so no hardware's colour. */
@@ -46,14 +46,14 @@ public final class KitBrickCanvas implements CanvasProducer {
             scale = Math.min(boxWidth / size[0], boxHeight / size[1]);
             angle = 0f;
         } else {
-            // Long art turns about its centre until its line stands vertical, muzzle up. The
+            // Long art turns about its centre until its line lies level, muzzle forward. The
             // line crosses its picture from edge to edge, so its length is the picture's run
             // over the cosine of its lie (or rise over the sine, past 45 degrees); its slim
-            // girth fits the brick's width without a measure of its own.
+            // girth fits the brick's height without a measure of its own.
             double lie = Math.toRadians(Math.max(0f, Math.min(90f, shown.lie())));
             float length = (float) (lie <= Math.PI / 4 ? size[0] / Math.cos(lie) : size[1] / Math.sin(lie));
-            scale = boxHeight / length;
-            angle = 90f - (float) Math.toDegrees(lie);
+            scale = boxWidth / length;
+            angle = -(float) Math.toDegrees(lie);
         }
         context.sprite(shown.icon(), null, layout.centerX(), layout.centerY(),
                 size[0] * scale, size[1] * scale, angle, Color.WHITE);

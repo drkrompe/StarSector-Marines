@@ -35,9 +35,9 @@ import java.util.regex.Pattern;
  * The squad as the Loadout screen shows it: three fire teams of two by two, each
  * marine with a portrait of the kit they would wear, their primary, secondary, armour
  * and integral system as issued now with what the selected cards would change it
- * to, and the few numbers that change with it. The primary and secondary stand on
- * kit bricks ({@link KitBrick}), the Mech Lab's and Boat Deck's mounts, coloured by
- * what they throw. Read-only; nothing here issues.
+ * to, and the few numbers that change with it. The primary and secondary are kit
+ * bricks ({@link KitBrick}), the Mech Lab's and Boat Deck's mounts, coloured by what
+ * they throw and unnamed: hovering one opens its sheet. Read-only; nothing here issues.
  */
 final class LoadoutInspection {
     private LoadoutInspection() { }
@@ -107,12 +107,15 @@ final class LoadoutInspection {
         return (SpecSheet) ((List<Map<String, Object>>) billet.get("parts")).get(part).get("sheet");
     }
 
-    /** The brick one weapon line of one marine stands its item on, or null for an empty mount. */
+    /**
+     * The brick one weapon line of one marine shows, or null for an empty mount: what they
+     * carry now, or with {@code next} what the selected cards would issue in its place.
+     */
     @SuppressWarnings("unchecked")
-    static KitBrick partBrick(Map<String, Object> inspection, int index, int part) {
+    static KitBrick partBrick(Map<String, Object> inspection, int index, int part, boolean next) {
         Map<String, Object> billet = billetAt(inspection, index);
         if (billet == null) return null;
-        return (KitBrick) ((List<Map<String, Object>>) billet.get("parts")).get(part).get("brick");
+        return (KitBrick) ((List<Map<String, Object>>) billet.get("parts")).get(part).get(next ? "nextBrick" : "brick");
     }
 
     /**
@@ -131,9 +134,11 @@ final class LoadoutInspection {
                         () -> shownKit(inspection.get(), index), assets));
             }
             for (int part : new int[]{WEAPON, SPECIAL}) {
-                UiElement brick = markup.requireElement(brickId(billet, part));
-                if (document.canvases().producerOf(brick) != null) continue;
-                document.canvases().set(brick, new KitBrickCanvas(() -> partBrick(inspection.get(), index, part)));
+                for (boolean next : new boolean[]{false, true}) {
+                    UiElement brick = markup.requireElement(brickId(billet, part) + (next ? "-next" : ""));
+                    if (document.canvases().producerOf(brick) != null) continue;
+                    document.canvases().set(brick, new KitBrickCanvas(() -> partBrick(inspection.get(), index, part, next)));
+                }
             }
         }
     }
@@ -197,19 +202,25 @@ final class LoadoutInspection {
     }
 
     private static Map<String, Object> part(int index, int part, FireTeamBillet before, FireTeamBillet after) {
-        Map<String, Object> line = row(partId(index, part), "tick", "brick", "socket", "icon", "text", "now", "nextRow", "arrow", "next");
+        Map<String, Object> line = row(partId(index, part), "tick", "brick", "brickChange", "brickArrow", "socket", "icon", "text", "now", "nextRow", "arrow", "next");
         SpecSheet now = sheet(before, part), next = sheet(after, part);
         boolean changes = after != null && !Objects.equals(now, next);
         FireTeamBillet shown = after != null ? after : before;
         String icon = icon(shown, part);
-        // A weapon stands on its brick, coloured by what it throws, as Mech Lab hardware does;
-        // the suit's lines keep the slot's colour on a tick and the item in a sunk socket.
-        // An empty slot fades into the card and a changing one is framed in brass.
+        // A weapon is its brick, coloured by what it throws, as Mech Lab hardware is, with no
+        // name: hovering it opens its sheet. A change is the brick carried now, an arrow and
+        // the brick the card would issue. The suit's lines keep the slot's colour on a tick,
+        // the item in a sunk socket and its name. An empty slot fades into the card and a
+        // changing one is framed in brass.
         boolean mount = part == WEAPON || part == SPECIAL;
         line.put("classes", "loadout-part loadout-part-" + PART_KINDS[part] + (mount ? " loadout-part-mount" : "")
                 + (changes ? " changes" : now == null && next == null ? " empty" : ""));
-        line.put("brick", mount ? brick(shown, part) : null);
+        line.put("brick", mount ? brick(before, part) : null);
+        line.put("nextBrick", mount && changes ? brick(after, part) : null);
         line.put("brickClasses", mount ? "loadout-part-brick" : "loadout-hidden");
+        line.put("brickNextId", partId(index, part) + ":brick-next");
+        line.put("brickChangeClasses", mount && changes ? "loadout-part-brick-change" : "loadout-hidden");
+        line.put("textClasses", mount ? "loadout-hidden" : "loadout-part-text");
         line.put("tickClasses", mount ? "loadout-hidden" : "loadout-part-tick");
         line.put("socketClasses", mount ? "loadout-hidden" : "loadout-part-socket");
         line.put("icon", icon);

@@ -5,8 +5,8 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 /**
- * One piece of a marine's carried kit as the fitting rooms draw hardware: a 1x2 brick-stack
- * standing upright, coloured by what it throws (ballistic yellow, energy red-orange, missile
+ * One piece of a marine's carried kit as the fitting rooms draw hardware: a 1x2 brick-stack,
+ * one brick high and two across, coloured by what it throws (ballistic yellow, energy red-orange, missile
  * green, as a mech hardpoint), with a piece that throws nothing in utility teal. The colour
  * is read off the weapon's own data by {@link Ordnance#of(WeaponDef)}, the reading the
  * direct-control HUD draws its load by, so a new or retuned weapon takes its colour from its
@@ -14,12 +14,12 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
  *
  * @param icon the item's armoury art, or empty for none
  * @param ordnance what the item throws, or null for a piece that is not a weapon
- * @param lie the angle in degrees above horizontal at which long art lies, turned upright on
- *            the brick; null for compact art, drawn as it stands
+ * @param lie the angle in degrees above horizontal at which long art lies, turned to lie
+ *            along the bricks; null for compact art, drawn as it stands
  */
 public record KitBrick(String icon, Ordnance ordnance, Float lie) {
-    /** A marine's carried kit mount: one brick across, two down. */
-    public static final int COLUMNS = 1, ROWS = 2;
+    /** A marine's carried kit mount, 1x2: one row of two bricks. */
+    public static final int ROWS = 1, COLUMNS = 2;
 
     public KitBrick {
         icon = icon == null ? "" : icon;

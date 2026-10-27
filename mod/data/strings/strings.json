@@ -743,6 +743,7 @@
     "squadDoctrineWaylineName": "Wayline / {0}",
     "squadDoctrineMigratedName": "{0} Legacy Weapon Issue",
     "squadDoctrineCount": "{0} {1}",
+    "squadDoctrineBrickCount": "x{0}",
     "squadDoctrineRoleCountInClass": "{0} {1} ({2})",
     "squadDoctrineRoleNoKit": "{0} (no kit)",
     "squadDoctrineSectionLine": "SECTION  ·  {0}",
