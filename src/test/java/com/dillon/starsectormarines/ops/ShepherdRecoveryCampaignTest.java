@@ -69,7 +69,7 @@ class ShepherdRecoveryCampaignTest {
     @Test void recoveryKeepsExactFerrySeatsAndDoesNotGiftSupport() {
         var mission = ShepherdRecoveryCampaign.offer(new ShepherdRecoveryProgress(), "Asharu");
         assertEquals(2, MissionForceEnvelope.recommendedSquads(mission));
-        assertEquals(8, MissionForceEnvelope.minimumPersonnel(mission, 100));
+        assertEquals(MissionForceEnvelope.MINIMUM_READY_PERSONNEL, MissionForceEnvelope.minimumPersonnel(mission, 100));
         var boat = FittedBoat.standard(ShuttleType.HERMES);
         for (int people : List.of(8, 24, 53)) {
             var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, List.of(boat), people);

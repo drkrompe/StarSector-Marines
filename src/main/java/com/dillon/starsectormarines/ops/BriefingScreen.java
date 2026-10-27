@@ -1912,7 +1912,8 @@ public class BriefingScreen implements Screen {
     private int requiredPersonnelSeats(Mission m) {
         int base = basePersonnelSeats(m);
         if (MissionForceEnvelope.allowsUnderstrength(m)) {
-            return MissionForceEnvelope.minimumPersonnel(m, base);
+            BriefingLift.Readout lift = liftReadout(m);
+            return MissionForceEnvelope.minimumPersonnel(m, base, lift != null && lift.dropping() > 0);
         }
         if (m == null || m.type != MissionType.CONQUEST) return base;
         MarineRoster roster = liveRoster();

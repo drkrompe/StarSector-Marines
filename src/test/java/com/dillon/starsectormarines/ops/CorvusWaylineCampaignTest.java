@@ -96,7 +96,7 @@ class CorvusWaylineCampaignTest {
         for (CorvusChapter chapter : CorvusChapter.values()) {
             var mission = CorvusWaylineCampaign.offer(progress, chapter.planetName, null);
             assertEquals(chapter.squads, MissionForceEnvelope.recommendedSquads(mission));
-            assertEquals(8, MissionForceEnvelope.minimumPersonnel(mission, 100));
+            assertEquals(MissionForceEnvelope.MINIMUM_READY_PERSONNEL, MissionForceEnvelope.minimumPersonnel(mission, 100));
             assertEquals(FieldPresencePolicy.UNRESTRICTED, mission.fieldPresencePolicy);
             assertEquals(OperationTier.ESTABLISHED, mission.tier);
             var boat = FittedBoat.standard(ShuttleType.AEROSHUTTLE);

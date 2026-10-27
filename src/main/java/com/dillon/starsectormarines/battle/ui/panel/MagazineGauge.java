@@ -13,8 +13,8 @@ import java.util.Locale;
  * burst and a rack in salvos, which is what turns fifty rounds back into something read at a glance:
  * six blocks and a bit. A belt or rack too long for the row folds, one icon to a burst or salvo (to as
  * many whole bursts as it takes to fit, for a long belt), and an icon part spent reads as
- * {@link Round#PART}. While reloading, the rounds pressed back
- * in so far read as {@link Round#LOADING} and the rest as spent. The rounds a held rack trigger has fired
+ * {@link Round#PART}. While reloading, every round reads as spent: not one
+ * can fire until the reload ends, and the row's countdown carries its clock. The rounds a held rack trigger has fired
  * so far read as {@link Round#HELD}, lit, so the salvos building into one spike can be counted as they go.
  *
  * @param loaded rounds left in the load
@@ -28,7 +28,7 @@ public record MagazineGauge(Kind kind, int capacity, int loaded, int group, floa
     /** How a round is drawn: a rifle cartridge, a shotgun shell, a belt link, or a missile. */
     public enum Kind { RIFLE, SHELL, LINK, MISSILE }
 
-    public enum Round { LIVE, SPENT, LOADING, PART, HELD }
+    public enum Round { LIVE, SPENT, PART, HELD }
 
     public MagazineGauge {
         capacity = Math.max(0, capacity);
@@ -78,7 +78,7 @@ public record MagazineGauge(Kind kind, int capacity, int loaded, int group, floa
     public boolean reloading() { return reloadProgress >= 0f; }
 
     public Round round(int index) {
-        if (reloading()) return index < Math.round(capacity * reloadProgress) ? Round.LOADING : Round.SPENT;
+        if (reloading()) return Round.SPENT;
         if (index < loaded) return Round.LIVE;
         return index < loaded + held ? Round.HELD : Round.SPENT;
     }
@@ -127,12 +127,12 @@ public record MagazineGauge(Kind kind, int capacity, int loaded, int group, floa
         return (folded() ? block(index) : round(index)).name().toLowerCase(Locale.ROOT);
     }
 
-    /** A folded icon: its burst whole, gone, part spent, or being loaded. */
+    /** A folded icon: its burst whole, gone, or part spent. */
     private Round block(int index) {
         int fold = fold();
         int first = index * fold;
         int last = Math.min(capacity, first + fold);
-        if (reloading()) return first < Math.round(capacity * reloadProgress) ? Round.LOADING : Round.SPENT;
+        if (reloading()) return Round.SPENT;
         if (loaded >= last) return Round.LIVE;
         if (loaded > first) return Round.PART;
         // A salvo the hold has fired, or begun to, lights up.
