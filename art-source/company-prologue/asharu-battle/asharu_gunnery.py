@@ -413,12 +413,10 @@ def window(kf):
 # the blockout's fx entries.
 INTENT = {
     'm5': {('manticore-p', 'phaeton'): 3},
-    'k3': {('manticore-p', 'lasher-lead'): 2.5, ('falcon-p', 'lasher-lead'): 2, ('falcon-p', 'lasher-b'): 1.5,
-           ('lasher-lead', 'manticore-p'): 3, ('lasher-b', 'wolf-p-a'): 3},
     'k3c': {('lasher-b', 'hound-p-c'): 3, ('wolf-m', 'hound-p-c'): 3, ('buffalo2-a', 'lasher-b'): 2,
             ('hound-p-c', 'lasher-b'): 1.5},
-    'k3d': {('wolf-p-a', 'tarsus'): 3, ('wolf-p-b', 'tarsus'): 3, ('wolf-m', 'wolf-p-a'): 3, ('mule', 'wolf-p-b'): 3,
-            ('tarsus', 'wolf-p-a'): 1, ('tarsus', 'wolf-p-b'): 1},
+    'k3d': {('wolf-p-b', 'tarsus'): 3, ('wolf-m', 'wolf-p-b'): 3, ('mule', 'wolf-p-b'): 3,
+            ('colossus', 'wolf-p-a'): 1.5, ('tarsus', 'wolf-p-b'): 1},
     'k3e': {('hound-m', 'hound-p-a'): 3, ('hound-p-b', 'hound-m'): 3, ('hound-p-a', 'hound-m'): 2},
     'k3b': {('wolf-p-b', 'tarsus'): 3, ('tarsus', 'wolf-p-b'): 1.5},
     'k4': {('colossus3', 'colossus'): 3, ('colossus', 'colossus3'): 1.5, ('colossus', 'kite-p-b'): 2,
@@ -427,7 +425,7 @@ INTENT = {
 }
 # Story aim spots for a standing order, when the story names one (target frame, metres).
 INTENT_AIM = {
-    ('k3d', 'wolf-p-a', 'tarsus'): 'drives', ('k3d', 'wolf-p-b', 'tarsus'): 'drives',
+    ('k3d', 'wolf-p-b', 'tarsus'): 'drives',
     ('k3b', 'wolf-p-b', 'tarsus'): 'forward guns', ('k4', 'colossus3', 'colossus'): 'port pod',
     ('k4b', 'lasher-lead', 'falcon-p'): 'starboard flank',
 }

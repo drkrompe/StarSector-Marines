@@ -549,8 +549,7 @@ def rejoined(key, f, t_light):
 # S6's pack runs, which the climb flies to (S6 draws them staged back by CLIMB_SHORT: K3_SHIPS_RUN)
 K3_T = 56
 K3_RUNS = {
-    'falcon-p': jinking('falcon-p', (-3100, -700, -650, 6, 4, -3, 1), K3_T, 50, 58,
-                        hits=recoil([51.0], kick=.12, shove=.2, every=.8, until=58)),
+    'falcon-p': jinking('falcon-p', (-3100, -700, -650, 6, 4, -3, 1), K3_T, 50, 58),
     'manticore-p': jinking('manticore-p', (-2500, -1000, -480, 8, 3, 4, 1), K3_T, 50, 58,
                            hits=recoil([50.5], kick=.2, shove=.3, every=.6, until=58)),
     'wolf-p-a': jinking('wolf-p-a', (-1250, 200, -120, 2, 6, 25, 1), K3_T, 50, 58),
@@ -698,6 +697,21 @@ def staged_back(run, short):
     return Pose(at(run.t), run.t, at)
 
 
+def jinked(p, t0, t1, hd=2.5, rl=3.0):
+    """She jinks about her course from t0 to t1 (owner, 2026-10-27: "Everyone just decides to be passive
+    while they aren't the star of the shot?"): one swing of her heading either side (hd degrees) and two
+    of her bank (rl), each zero at t0 and t1, so the cuts either side see her as she flies. A ship moves
+    along her own nose at a creep in the convoy's frame (motion.live), so it is her attitude that jinks."""
+    def at(t):
+        q = p.at(t)
+        if not t0 < t < t1:
+            return q
+        u = (t - t0) / (t1 - t0)
+        return (*q[:3], q[3] + hd * math.sin(2 * math.pi * u), q[4], q[5] + rl * math.sin(4 * math.pi * u), *q[6:])
+    at.hits = list(getattr(p.at, 'hits', ()))
+    return Pose(at(p.t), p.t, at)
+
+
 _CLIMBED = {k: climbed(k, PIRATE_LAUNCH[k], LAUNCH[k], K3_RUNS[k]) for k in K3_RUNS}
 CLIMB_SHORT = {k: v[1] for k, v in _CLIMBED.items()}
 K3_SHIPS_RUN = {k: staged_back(K3_RUNS[k], CLIMB_SHORT[k]) for k in K3_RUNS}
@@ -795,7 +809,7 @@ K3_SHIPS = {
     'lasher-lead': fly('lasher-lead', (330, 430, 70, 165, 4, -15, 1), K3_T, [
         dict(t=50, hd=0, pt=0, rl=-5, v=190), dict(t=52.5, hd=70, pt=2, rl=-70), dict(t=54.8, hd=145, pt=4, rl=-45),
         dict(t=58, hd=172, pt=6, rl=-20, v=170)],
-        hits=recoil([55.0], every=.25, until=57.5) + [dict(t=56.0, push=(0, -6, 4), spin=(35, 8, -12), decay=1.2, thr=.55)]),
+        hits=[dict(t=56.0, push=(0, -6, 4), spin=(35, 8, -12), decay=1.2, thr=.55)]),
     'lasher-a': fly('lasher-a', (-150, 560, 160, 10, 6, 40, .2), K3_T, [
         dict(t=50, hd=2, pt=1, rl=3, v=0, thr=.6), dict(t=52.5, hd=4, pt=2, rl=8, thr=.6),
         dict(t=58, hd=13, pt=8, rl=55, v=-40)], v=-25, thrust=None,
@@ -804,9 +818,8 @@ K3_SHIPS = {
         dict(t=50, hd=0, pt=0, rl=2, v=0, thr=.5), dict(t=53.9, hd=.5, pt=0, rl=3, thr=.5),
         dict(t=58, hd=11, pt=-6, rl=38, v=-22)], v=-15, thrust=None,
         hits=[dict(t=54.0, push=(-4, 3, 2), spin=(3, 0, 1), decay=3.0, thr=0.0)]),
-    # steadied on her gun run at the Wolf (P), then starting the turn back that S6b finishes
-    'lasher-b': fly('lasher-b', CONVOY['lasher-b'], K3_T, [dict(t=50, v=0), dict(t=58, hd=-20, rl=40, v=90)], v=0,
-                    hits=recoil([54.5], kick=.3, every=.4, until=57.5)),
+    # steadied, then starting the turn back that S6b finishes
+    'lasher-b': fly('lasher-b', CONVOY['lasher-b'], K3_T, [dict(t=50, v=0), dict(t=58, hd=-20, rl=40, v=90)], v=0),
     'falcon-p': K3_SHIPS_RUN['falcon-p'],
     'manticore-p': K3_SHIPS_RUN['manticore-p'],
     'wolf-p-a': K3_SHIPS_RUN['wolf-p-a'],
@@ -836,18 +849,21 @@ K3C_SHIPS = {
     'manticore-p': jinking('manticore-p', (-3000, -800, -900, 8, 6, 4, 1), K3C_T, 58, 66),
 }
 
-# S6c: the Wolves (P) blink through the gap and rake the Tarsus, whose drives go; the merchant Wolf chases
+# S6c: Wolf (P) B blinks through the gap and rakes the Tarsus, whose drives go; the merchant Wolf chases her.
+# Wolf (P) A runs the column's far side under the Colossus's guns: the slower climb (owner, 2026-10-27: "Take the
+# slower climb: re-render S3 and S4, and re-stage S6c to match") leaves her 1.5 km to port as S6 cuts (58 s), so
+# the run through the gap from starboard is B's, who leaves S6 to starboard (A flying it needed 400 m/s unseen;
+# B makes it at 160 m/s, A her far-side pass at 200)
 K3D_T = 72
 K3D_FLEET = fleet_at({k: CONVOY[k] for k in ('colossus', 'morrow', 'tarsus', 'buffalo-b', 'mule')}, K3D_T)
 K3D_SHIPS = {
     **K3D_FLEET,
     'tarsus': struck(K3D_FLEET['tarsus'], [dict(t=72.3, push=(-8, 1, -1), spin=(4, 0, -2), decay=3.0, thr=0.0)], K3D_T),
-    'wolf-p-a': fly('wolf-p-a', (-380, -60, -30, 75, 6, -60, 1), K3D_T, [
+    'wolf-p-b': fly('wolf-p-b', (-380, -60, -30, 75, 6, -60, 1), K3D_T, [
         dict(t=66, hd=50, pt=4, rl=-30, v=220), dict(t=69.6, hd=65, rl=-45), dict(t=74, hd=105, pt=2, rl=-70)],
         jumps=[(69.0, (90.0, 156.0, 0.0))], hits=recoil([70.0], every=.25, until=73.5)),
-    'wolf-p-b': fly('wolf-p-b', (-180, 80, 10, 95, 4, -70, 1), K3D_T, [
-        dict(t=66, hd=60, rl=-30, v=220), dict(t=69.8, hd=80, rl=-50), dict(t=74, hd=125, rl=-80)],
-        jumps=[(69.4, (40.0, 175.0, 0.0))], hits=recoil([70.3], every=.25, until=73.5)),
+    'wolf-p-a': fly('wolf-p-a', (900, 1000, -150, -20, 6, 25, 1), K3D_T, [
+        dict(t=66, hd=-5, pt=8, rl=15, v=225), dict(t=70, hd=-15, rl=30), dict(t=74, hd=-30, pt=4, rl=40)]),
     'wolf-m': fly('wolf-m', (-560, -300, -60, 70, 4, -20, 1), K3D_T, [
         dict(t=66, hd=40, rl=10, v=230), dict(t=70, hd=60, rl=-15), dict(t=74, hd=85, rl=-35)],
         hits=recoil([69.5], every=.3, until=74)),
@@ -1306,8 +1322,8 @@ def _far(look, d=300e3):
 # switches once the owner has picked.
 if not os.environ.get('ASHARU_CONTINUITY_BEFORE'):
     K3_SHIPS['lasher-b'] = Pose(K3C_SHIPS['lasher-b'].at(K3_T), K3_T, K3C_SHIPS['lasher-b'].at)
-    for _k in ('manticore-p', 'buffalo2-a'):
-        K3C_SHIPS[_k] = Pose(K3_SHIPS[_k].at(K3C_T), K3C_T, K3_SHIPS[_k].at)
+    for _k in ('manticore-p', 'buffalo2-a'):      # still jinking as they close (S6's run holds its last key)
+        K3C_SHIPS[_k] = jinked(Pose(K3_SHIPS[_k].at(K3C_T), K3C_T, K3_SHIPS[_k].at), 58.0, 66.0, hd=3.0, rl=6.0)
 if os.environ.get('ASHARU_S7_FIGHT'):
     for _k in ('colossus', 'morrow', 'colossus3'):
         K3B_SHIPS[_k] = Pose(K4_SHIPS[_k].at(K3B_T), K3B_T, K4_SHIPS[_k].at)
@@ -1390,9 +1406,9 @@ KEYFRAMES = {
         ships={**fleet_at({k: v for k, v in CONVOY.items() if k not in ('lasher-lead', 'lasher-a', 'phaeton', 'wolf-m',
                                                                             'lasher-b')}, K3_T),
                **K3_SHIPS},
-        fx=[('tracer', 'manticore-p', 'lasher-lead'), ('tracer', 'falcon-p', 'lasher-lead'),
-            ('tracer', 'falcon-p', 'lasher-b'), ('tracer', 'lasher-lead', 'manticore-p'),
-            ('tracer', 'lasher-b', 'wolf-p-a'), ('missiles', 'manticore-p', 'phaeton'),
+        # from 3-4 km astern (the climb at class limits) only the Manticore (P)'s Harpoons reach: no gun on
+        # either side is in range in this shot (the firing-arc lint), so none fires; the convoy jinks
+        fx=[('missiles', 'manticore-p', 'phaeton'),
             # the second salvo: the lead Lasher's 55.9 s breach is a Harpoon's (fire-control plan)
             ('missiles', 'manticore-p', 'lasher-lead', 55.9),
             # a Lasher burns (S6's beat): a salvo onto Lasher A first, her fire lit where it meets her
@@ -1432,17 +1448,17 @@ KEYFRAMES = {
         ships=K3D_SHIPS,
         # shields flare on both sides: the raiders' fronts under the Colossus's and the Wolf's fire (the
         # Mule, a stand-in with no kit guns, no longer fires: coordinator, 2026-10-23)
-        shields={'wolf-p-b': dict(toward='colossus', flux=.6), 'wolf-p-a': dict(toward='wolf-m', flux=.45),
-                 'wolf-m': dict(toward='wolf-p-a', flux=.2)},
-        # the lead Wolf (P)'s guns on the Tarsus's drives, held tight: the round that opens them lands at
-        # 70.5 s on her starboard quarter, the face she shows the Wolves (the fire between it and the
+        shields={'wolf-p-b': dict(toward='wolf-m', flux=.45), 'wolf-p-a': dict(toward='colossus', flux=.6),
+                 'wolf-m': dict(toward='wolf-p-b', flux=.2)},
+        # Wolf (P) B's guns on the Tarsus's drives, held tight: the round that opens them lands at
+        # 70.5 s on her starboard quarter, the face she shows the Wolf (the fire between it and the
         # one S7 carries on)
-        fx=[('tracer', 'wolf-p-a', 'tarsus', (-40, 0, 6), dict(walk=.2, bursts_t=[(67.4, 68.6), (69.2, 70.4)])), ('tracer', 'wolf-p-b', 'tarsus'),
-            ('tracer', 'wolf-m', 'wolf-p-a'),
-            # the Colossus's guns on the raiders as they close inside 1.35 km (owner, 2026-10-23: "why are none
-            # of the Colossus turrets taking shots at those Wolfs"): her 360-degree mounts bear on both
-            # (on Wolf (P) A none does in this shot: the firing-arc lint, 2026-10-27; she is the merchant Wolf's)
-            ('tracer', 'colossus', 'wolf-p-b'),
+        fx=[('tracer', 'wolf-p-b', 'tarsus', (-40, 0, 6), dict(walk=.2, bursts_t=[(67.4, 68.6), (69.2, 70.4)])),
+            ('tracer', 'wolf-m', 'wolf-p-b'),
+            # the Colossus's guns on Wolf (P) A running her far side inside 1.35 km (owner, 2026-10-23: "why are
+            # none of the Colossus turrets taking shots at those Wolfs"); Wolf (P) B, through the gap, is the
+            # merchant Wolf's (no Colossus mount bears on her there: the firing-arc lint)
+            ('tracer', 'colossus', 'wolf-p-a'),
             ('fire_on', 'tarsus', (-37, -2, 6), (-.2, .5, 1))],
         labels=['wolf-p-a', 'wolf-p-b', 'tarsus', 'wolf-m', 'colossus']),
     'k3e': dict(
@@ -1828,6 +1844,11 @@ def _k6c_cam(t):
     c = K6_SHIPS['colossus'].at(t)
     return tuple(c[i] - 560.0 * K6_LOOK[i] for i in range(3))
 
+
+# S6: the convoy jinks as the Harpoons come in, the Phaeton until the salvo takes her (54 s): nothing of
+# hers reaches the raiders 3-4 km astern, so she flies (the activity lint)
+for _k, _t1 in (('colossus', 58.0), ('tarsus', 58.0), ('phaeton', 53.9)):
+    KEYFRAMES['k3']['ships'][_k] = jinked(KEYFRAMES['k3']['ships'][_k], 50.0, _t1)
 
 # Option C (owner, 2026-10-27: "no fighting between it and the colossus / shepherd"): S7 sees the fight S8
 # opens on, both ways, the Mk.III's guns on the Colossus's port pod as she comes down, the Colossus's

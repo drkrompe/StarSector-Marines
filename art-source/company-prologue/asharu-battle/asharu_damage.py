@@ -170,8 +170,8 @@ LEDGER = [
 
     # ---- CARAVEL TWO, the Tarsus: drives shot out in S6c, boarded, taken
     H('tarsus', 68.0, 'rake', 1, (-30, -8, 4), (-.3, -1, .5), to=(-44, -6, 3), by='tracer',
-      src='S6c k3d tracer wolf-p-a', note='the Wolves (P) rake aft toward her drives as they pass'),
-    H('tarsus', 70.5, 'breach', 3, (-33, -7, 6), (-.2, .5, 1), by='fire_on', src='S6c k3d tracer wolf-p-a + fire_on',
+      src='S6c k3d tracer wolf-p-b', note='Wolf (P) B rakes aft toward her drives as she passes'),
+    H('tarsus', 70.5, 'breach', 3, (-33, -7, 6), (-.2, .5, 1), by='fire_on', src='S6c k3d tracer wolf-p-b + fire_on',
       burn_until=102.0, note='drives shot out: fire burns up out of the breach (continuity), out before S10'),
     H('tarsus', 81.42, 'rake', 1, (36, -4, 9), (.2, -.3, 1), to=(24, 4, 10), by='tracer',
       src='S7 k3b tracer wolf-p-b', note="the covering Wolf (P)'s inverted gun run scores her deck"),
@@ -204,17 +204,15 @@ LEDGER = [
     # (her S6 rake from the lead is cut: the lead's guns draw nothing at that range)
 
     # ---- Wolf (P) A: grazed, then cut by a Borer
-    H('wolf-p-a', 57.5, 'rake', 0, (10, 6, 3), (0, 1, .2), to=(0, 7, 3), by='tracer',
-      src='S6 k3 tracer lasher-b', note="Lasher B's fire"),
-    H('wolf-p-a', 71.6, 'he', 1, (-8, 8, 2), (-.3, 1, .3), by='tracer', src='S6c k3d tracer wolf-m',
-      note="the merchant Wolf's bolt, past her front shield onto the flank"),
+    H('wolf-p-a', 73.0, 'rake', 0, (8, -8, 3), (0, -1, .4), to=(-4, -8, 3), by='tracer',
+      src='S6c k3d tracer colossus', note="the Colossus's guns as she runs the far side, mostly on her shield"),
     H('wolf-p-a', 96.9, 'cut', 2, (20, -8, 4), (0, -1, .3), to=(-20, -9, 4), by='mining', vent_s=0.0,
       src='S8-S9 k4 mining borer-c', note="a Borer's mining laser cuts a long glowing seam down her side"),
     H('wolf-p-a', 95.8, 'he', 1, (-15, -9, 3), (0, -1, .3), by='tracer', src='S8-S9 k4 tracer colossus'),
 
-    # ---- Wolf (P) B: a graze through her shield
-    H('wolf-p-b', 72.67, 'rake', 0, (8, -8, 3), (0, -1, .2), to=(-4, -8, 3), by='tracer',
-      src='S6c k3d tracer colossus', note="the Colossus's guns, mostly on her shield"),
+    # ---- Wolf (P) B: the merchant Wolf's bolt (S6c's run through the gap)
+    H('wolf-p-b', 71.6, 'he', 1, (-8, 8, 2), (-.3, 1, .3), by='tracer', src='S6c k3d tracer wolf-m',
+      note="the merchant Wolf's bolt, past her front shield onto the flank"),
 
     # ---- Kite (P) B: driven off by the Colossus in S9
     H('kite-p-b', 96.5, 'he', 2, (-10, -10, 3), (0, -1, .4), by='tracer', src='S8-S9 k4 tracer colossus',
@@ -230,9 +228,9 @@ LEDGER = [
       note='a second burst as she swings her grapples away'),
 
     # ---- the Hounds (P) the convoy kills
-    H('hound-p-c', 61.1, 'rake', 1, (5, 8, 4), (0, .3, 1), to=(-10, 8, 4), by='tracer',
+    H('hound-p-c', 61.6, 'rake', 1, (5, 8, 4), (0, .3, 1), to=(-10, 8, 4), by='tracer',
       src='S6b k3c tracer wolf-m', note="bare armour soaks the merchant Wolf's first rounds to land"),
-    H('hound-p-c', 61.6, 'rake', 1, (-5, -8, 4), (0, -.3, 1), to=(10, -8, 4), by='tracer',
+    H('hound-p-c', 62.1, 'rake', 1, (-5, -8, 4), (0, -.3, 1), to=(10, -8, 4), by='tracer',
       src='S6b k3c tracer wolf-m'),
     H('hound-p-c', 62.83, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6b k3c blast_on + debris',
       note="Lasher B's Ammo Feeder burst lands and breaks her up"),
@@ -259,13 +257,13 @@ SHOOTER_SIDE = {
     'kite-p-b@96.5:he': (-0.81, -0.43, 0.39), 'tarsus@68.0:rake': (-0.09, -0.99, -0.10), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
     'lasher-lead@103.7:breach': (0.98, -0.17, -0.06), 'falcon-p@104.8:breach': (0.69, 0.55, 0.46),
     'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@77.1:breach': (0.82, -0.14, -0.55),
-    'falcon-p@104.6:rake': (0.75, 0.51, 0.43), 'wolf-p-b@72.7:rake': (0.39, -0.36, -0.85),
+    'falcon-p@104.6:rake': (0.75, 0.51, 0.43), 'wolf-p-a@73.0:rake': (-0.42, -0.67, 0.62),
     'hound-p-a@76.8:kill': (0.87, -0.45, 0.19), 'hound-p-a@76.6:rake': (0.96, -0.21, 0.18), 'hound-m@77.2:he': (0.73, -0.22, -0.65),
     'tarsus@81.4:rake': (-0.27, 0.78, 0.57),
-    'hound-p-c@61.1:rake': (0.89, 0.14, 0.44),
-    'hound-p-c@62.8:kill': (0.71, 0.31, 0.64), 'hound-p-c@61.6:rake': (0.89, 0.13, 0.44),
-    'lasher-lead@55.9:breach': (0.72, 0.70, -0.04), 'wolf-p-a@57.5:rake': (0.62, 0.55, -0.56),
-    'wolf-p-a@71.6:he': (-0.94, 0.18, 0.30),
+    'hound-p-c@61.6:rake': (0.89, 0.14, 0.44),
+    'hound-p-c@62.8:kill': (0.71, 0.31, 0.64), 'hound-p-c@62.1:rake': (0.89, 0.13, 0.44),
+    'lasher-lead@55.9:breach': (0.72, 0.70, -0.04), 
+    'wolf-p-b@71.6:he': (-0.94, 0.18, 0.30),
 }
 _orphans = sorted(set(SHOOTER_SIDE) - {_h.id for _h in LEDGER})
 if _orphans:        # a retimed hit keeps its id's old time here and would silently lose its side
