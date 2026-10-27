@@ -57,7 +57,7 @@ public interface CommandEffects {
     /**
      * Orders every chassis of mech lance {@code squadId} of {@code side} to stand guard by the garrisonable at the
      * cell, which the side mans (`garrisonables.md`, machine guard; {@code MachineGuards}). A chassis the player has an
-     * order on keeps it.
+     * order on keeps it, and a lance the player commands is never posted.
      *
      * @return the chassis ordered; zero when the squad is not a lance of the side or the side does not man the place
      */
@@ -95,7 +95,7 @@ public interface CommandEffects {
             @Override public int guardPlace(Faction side, int squadId, int cellX, int cellY) {
                 if (!(sim instanceof BattleSimulation live)) return 0;
                 Squad squad = live.getSquad(squadId);
-                if (squad == null || squad.faction != side || !squad.isMechSquad()
+                if (squad == null || squad.faction != side || !squad.isMechSquad() || live.playerCommands(squad)
                         || MachineGuards.targetUnderClick(live, side, cellX, cellY) == null) return 0;
                 int ordered = 0;
                 for (int i = 0, n = live.squadMemberCount(squadId); i < n; i++) {
