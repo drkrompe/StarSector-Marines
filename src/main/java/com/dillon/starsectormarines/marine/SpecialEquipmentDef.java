@@ -26,7 +26,20 @@ public record SpecialEquipmentDef(
         SmokeGrenadeSpec smokeGrenadeSpec,
         SatchelChargeSpec satchelChargeSpec,
         DeployableEmplacementSpec deployableEmplacementSpec,
-        CommsKitSpec commsKitSpec) implements Serializable {
+        CommsKitSpec commsKitSpec,
+        MissilePodSpec missilePodSpec) implements Serializable {
+
+    /** An item with no shoulder pod: every activation except {@link SpecialActivation#SHOULDER_POD}. */
+    public SpecialEquipmentDef(String id, String displayName, String catalogSubtitle, String catalogDescription,
+                               String catalogFactionLogo, SpecialActivation activation, String weaponId,
+                               SpecialResourceMode resourceMode, int startingAmmo, SpecialAiPolicy aiPolicy,
+                               SpecialEquipmentPresentationDef presentation, SmokeGrenadeSpec smokeGrenadeSpec,
+                               SatchelChargeSpec satchelChargeSpec,
+                               DeployableEmplacementSpec deployableEmplacementSpec, CommsKitSpec commsKitSpec) {
+        this(id, displayName, catalogSubtitle, catalogDescription, catalogFactionLogo, activation, weaponId,
+                resourceMode, startingAmmo, aiPolicy, presentation, smokeGrenadeSpec, satchelChargeSpec,
+                deployableEmplacementSpec, commsKitSpec, null);
+    }
 
     /** An item with no comms kit: every activation except {@link SpecialActivation#UTILITY_COMMS}. */
     public SpecialEquipmentDef(String id, String displayName, String catalogSubtitle, String catalogDescription,
@@ -37,8 +50,9 @@ public record SpecialEquipmentDef(
                                DeployableEmplacementSpec deployableEmplacementSpec) {
         this(id, displayName, catalogSubtitle, catalogDescription, catalogFactionLogo, activation, weaponId,
                 resourceMode, startingAmmo, aiPolicy, presentation, smokeGrenadeSpec, satchelChargeSpec,
-                deployableEmplacementSpec, null);
+                deployableEmplacementSpec, null, null);
     }
+
     public String displayName() { return Strings.resolve(displayName); }
 
     public String catalogSubtitle() { return Strings.resolve(catalogSubtitle); }
@@ -84,6 +98,7 @@ public record SpecialEquipmentDef(
         SatchelChargeSpec satchel = null;
         DeployableEmplacementSpec deployable = null;
         CommsKitSpec commsKit = null;
+        MissilePodSpec missilePod = null;
         switch (activation) {
             case DIRECT_EXPLOSIVE, DIRECT_PRECISION -> {
                 if (weaponId == null) {
@@ -158,6 +173,23 @@ public record SpecialEquipmentDef(
                             + "' requires a carrier presentation recipe");
                 }
             }
+            case SHOULDER_POD -> {
+                if (weaponId == null) {
+                    throw new JSONException("Shoulder pod '" + id + "' must declare activation.weaponId");
+                }
+                requirePolicy(aiPolicy, SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT, id);
+                if (resourceMode != SpecialResourceMode.AMMUNITION) {
+                    throw new JSONException("Shoulder pod '" + id
+                            + "' must use the ammunition resource mode");
+                }
+                EquipmentLayerDef carrier = presentation.carrierLayer();
+                if (carrier == null || !carrier.visibleWhileCarried() || carrier.replacePrimaryWhileUsing()
+                        || presentation.usePose() != SpecialUsePose.SHOULDER_MOUNT) {
+                    throw new JSONException("Shoulder pod '" + id + "' requires the shoulder-mount use pose"
+                            + " and a carrier layer that stays visible and never replaces the primary");
+                }
+                missilePod = MissilePodSpec.parse(activationJson, id);
+            }
         }
 
         return new SpecialEquipmentDef(
@@ -175,7 +207,8 @@ public record SpecialEquipmentDef(
                 smoke,
                 satchel,
                 deployable,
-                commsKit);
+                commsKit,
+                missilePod);
     }
 
     public String armoryIconPath() {
@@ -231,6 +264,14 @@ public record SpecialEquipmentDef(
      */
     public boolean isHeldStream() {
         return activation == SpecialActivation.ARC_EXPLOSIVE && weaponId != null && !weaponDef().indirectFire;
+    }
+
+    /**
+     * True for a shoulder pod: it fires from its own mount on its own clock and never takes the hands, so the
+     * carrier keeps the primary up throughout ({@link SpecialActivation#SHOULDER_POD}).
+     */
+    public boolean isShoulderPod() {
+        return activation == SpecialActivation.SHOULDER_POD && missilePodSpec != null;
     }
 
     /** True when the item is a tube the carrier sets down, serves and lifts again. */

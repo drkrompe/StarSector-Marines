@@ -138,6 +138,44 @@
       }
     },
     {
+      "id": "special.missile-pod",
+      "catalog": {
+        "displayName": "@gearCatalogSpecialMissilePodDisplayName",
+        "subtitle": "@gearCatalogSpecialMissilePodSubtitle",
+        "factionLogo": "graphics/factions/tritachyon.png",
+        "description": "@gearCatalogSpecialMissilePodDescription"
+      },
+      "activation": {
+        "type": "shoulder-pod",
+        "weaponId": "weapon.micro-missile",
+        "minimumStandoffCells": 6.0,
+        "squadSalvoIntervalSeconds": 1.5,
+        "mount": { "rightCells": -0.1408164, "forwardCells": 0.0036625, "muzzleForwardCells": 0.114 }
+      },
+      "resource": {
+        "mode": "ammunition",
+        "startingAmmo": 3
+      },
+      "ai": {
+        "policy": "sighted-standoff-contact"
+      },
+      "presentation": {
+        "armoryIcon": "graphics/ui/armory/system-missile-pod.png",
+        "usePose": "shoulder-mount",
+        "carrierLayer": {
+          "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
+          "attachment": "left-shoulder",
+          "widthShoulders": 0.32,
+          "heightShoulders": 0.48,
+          "pivot": [0.5, 0.5],
+          "muzzle": [0.5, 0.1041666667],
+          "carried": { "offsetShoulders": [0.0, 0.0], "angleDegrees": 0.0, "occlusion": "over-body" },
+          "using": { "offsetShoulders": [0.0, 0.0], "angleDegrees": 0.0, "occlusion": "over-body" },
+          "visibleWhileCarried": true
+        }
+      }
+    },
+    {
       "id": "special.anti-materiel-rifle",
       "catalog": {
         "displayName": "@gearCatalogSpecialAntiMaterielRifleDisplayName",

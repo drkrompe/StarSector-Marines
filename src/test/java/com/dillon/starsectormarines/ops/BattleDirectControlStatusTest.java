@@ -308,7 +308,7 @@ class BattleDirectControlStatusTest {
                 "A finite frontal screen.", IntegralSystemEffect.BREACHER_ASSIST, resource,
                 3f, resource == SpecialResourceMode.COOLDOWN ? 12f : 0f,
                 resource == SpecialResourceMode.AMMUNITION ? 2 : 0,
-                new BreacherAssistSpec(1.2f, soak, 120f), null,
+                new BreacherAssistSpec(1.2f, soak, 120f),
                 new ExposedUnderFireSpec(1f, 0f));
     }
 

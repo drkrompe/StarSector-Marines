@@ -122,9 +122,9 @@ and issued tiers retain their existing tradeoffs.
 | Reliquary consecrated battlesuit | 60 | Resistant legacy shell with a severe movement cost |
 | Lion's Mantle guard battlesuit | 60 | Conspicuous prestige shell and a long bounded advance |
 | Foundry-breaker industrial rig | 85 | Huge crude reserve with poor material resistance |
-| Arbalest support battlesuit | 50 | Mechanized support carrying finite shoulder ordnance |
+| Arbalest support battlesuit | 50 | Mechanized support shell; its ordnance is the billet's special |
 | Recovered Specter frame | 36 | Early recovered assault shell with a mid-tech shield |
-| Recovered Arbalest frame | 34 | Early support shell with two salvos and slower movement |
+| Recovered Arbalest frame | 34 | Early support shell with slower movement |
 | Boarding Jack rebuilt frame | 40 | Pirate recovered assault shell: more raw reserve than recovered Specter, worse resistance (6), handling (x0.82) and target profile (x1.04) |
 
 Within tier III the ladder is a trade, not an order of raw capacity. The Boarding

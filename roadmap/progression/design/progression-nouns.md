@@ -10,6 +10,8 @@ Updated: 2026-10-24 — warrant obligations ask loyalty only; service and servic
 
 Updated: 2026-10-27 — every equipment item is shown by a short catalog code.
 
+Updated: 2026-10-27 — the shoulder pod is the SRM-POD carried special, fired without lowering the primary; no suit carries it as an integral system.
+
 ## Purpose
 
 Progression is the cross-tier model for a mercenary company's growing combat
@@ -113,8 +115,8 @@ legibility.
   armour pattern. It is authored per pattern rather than per role, so which
   concrete suit was recovered is what surprises the player, and it never spends
   the billet's carried special item. An integral system must express itself as
-  behavior — movement, protection with a clock on it, a delivered payload,
-  care — never as durability, and it declares the use policy it is spent
+  behavior — movement, protection with a clock on it, care — never as
+  durability, and it declares the use policy it is spent
   on so its trigger is readable from the catalog entry rather than compiled into
   the sweep. Whether a pattern carries one is a question about what that suit is
   for, not a quota: see `integral-system-slate.md`.
@@ -920,13 +922,14 @@ system is readable before contact remains open: reading it at a distance makes a
 fight plannable, and discovering it when a rig comes through a door is more in
 keeping with how the rest of the equipment model treats recovery.
 
-The built-in identities are the rocket launchers, anti-materiel
-rifle, smoke grenades, mag-clamp satchel, fragmentation and incendiary
-grenades, the flamer, the comms radio, the interceptor pod, the interceptor
-pack, and the field mortar. Launchers and the rifle are direct-fire
-activations, grenades and the flamer are arcing weapon activations, smoke,
-satchels and the radio are utility activations, and the pod, pack and mortar
-are deployable activations, but only the item definition owns loadout identity, catalog copy, resource
+The built-in identities are the rocket launchers, the SRM-POD shoulder pod, the
+anti-materiel rifle, smoke grenades, mag-clamp satchel, fragmentation and
+incendiary grenades, the flamer, the comms radio, the interceptor pod, the
+interceptor pack, and the field mortar. Launchers and the rifle are direct-fire
+activations, the shoulder pod is its own `shoulder-pod` activation, grenades and
+the flamer are arcing weapon activations, smoke, satchels and the radio are
+utility activations, and the interceptor pod, pack and mortar are deployable
+activations, but only the item definition owns loadout identity, catalog copy, resource
 mode, initial ammunition, Armory art, activation type, AI policy, use-pose
 profile, and local presentation recipe; the
 referenced weapon definition owns range, damage, accuracy, impact, projectile,
@@ -967,22 +970,34 @@ An integral system may author optional carried hardware in its own presentation.
 The fitted armor's actual system identity selects that hardware, independently
 of the carried special item. It stays visible after ammunition is spent and
 during cooldown, does not replace the primary, and does not infer a shot from
-the duration of an active effect. Aegis Predictive Volley and Arbalest Battery
-Volley carry left-pauldron missile pods; the Specter frames' shield carries a
-small screen emitter. Those art choices do not grant capabilities. A missile
-system may separately declare its physical shoulder mount and muzzle geometry.
-Both the resolved round and its visual shot start at that muzzle, and a committed
-launch drives the short firing pose. The muzzle cannot reach through a blocking
-wall or edge to authorize a shot the wearer could not physically launch.
+the duration of an active effect. The Specter frames' shield carries a small
+screen emitter. Those art choices do not grant capabilities.
 
-Integral missile use is coordinated within a squad. The first eligible wearer
-may launch immediately; the squad then waits the firing pattern's authored
-salvo interval before another wearer may spend a use. Opportunities rotate
-among carriers who are currently ready and have a legal target and muzzle.
-A dead, empty, blocked, or out-of-range wearer cannot reserve the next turn.
-Waiting neither spends ammunition nor interrupts rifle fire, and another
-squad has its own cadence. Individual ammunition and readiness remain with
-each suit; the referenced weapon still owns the missiles within one salvo.
+**Shoulder pod.** The SRM-POD (`special.missile-pod`) is a carried special in the
+SRM family, beside the SRM-1 rockets, and it is no longer any suit's integral
+system: the Packframe, both Arbalests and the Aegis composite are plain armour.
+Its `shoulder-pod` activation never runs through the hand's channel. The pod picks
+its own target, the best visible hostile inside the micro-missile's range and no
+closer than the item's authored standoff (`sighted-standoff-contact`), and fires
+the referenced weapon's whole salvo while the carrier keeps holding and firing the
+primary. Each salvo spends one of the item's uses and starts the weapon's own
+cooldown; its left-shoulder carrier layer is visible whenever it is carried and
+never replaces the primary. The item may declare a physical shoulder mount and
+muzzle geometry. Both the resolved round and its visual shot start at that
+muzzle, a committed launch drives the mount's short recoil and flash, and the
+muzzle cannot reach through a blocking wall or edge to authorize a shot the
+carrier could not physically launch.
+
+Pod use is coordinated within a squad. The first eligible carrier may launch
+immediately; the squad then waits the item's authored salvo interval before
+another carrier may spend a use. Opportunities rotate among carriers who are
+currently ready and have a legal target and muzzle. A dead, empty, blocked, or
+out-of-range carrier cannot reserve the next turn. Waiting neither spends
+ammunition nor interrupts rifle fire, and another squad has its own cadence.
+Individual ammunition and cooldown remain with each carrier; the referenced
+weapon still owns the missiles within one salvo. The Hegemony Fire Support
+Schedule issues it to two automatic riflemen, and Tri-Tachyon defenders carry it
+in their roster special weights.
 
 The anti-materiel rifle is a four-round precision answer to visible hardened
 targets. Its long brace locks one target and cancels when the target or direct
