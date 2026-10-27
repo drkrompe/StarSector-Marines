@@ -419,8 +419,8 @@ INTENT = {
             ('colossus', 'wolf-p-a'): 1.5, ('tarsus', 'wolf-p-b'): 1},
     'k3e': {('hound-m', 'hound-p-a'): 3, ('hound-p-b', 'hound-m'): 3, ('hound-p-a', 'hound-m'): 2},
     'k3b': {('wolf-p-b', 'tarsus'): 3, ('tarsus', 'wolf-p-b'): 1.5},
-    'k4': {('colossus3', 'colossus'): 3, ('colossus', 'colossus3'): 1.5, ('colossus', 'kite-p-b'): 2,
-           ('colossus', 'wolf-p-a'): 2, ('kite-p-b', 'colossus'): 2, ('wolf-p-a', 'colossus'): 1.5},
+    'k4': {('colossus3', 'colossus'): 3, ('colossus', 'colossus3'): 1.5, ('colossus', 'manticore-p'): 2,
+           ('colossus', 'wolf-p-a'): 2, ('manticore-p', 'colossus'): 2, ('wolf-p-a', 'colossus'): 1.5},
     'k4b': {('lasher-lead', 'falcon-p'): 3, ('falcon-p', 'lasher-lead'): 3},
 }
 # Story aim spots for a standing order, when the story names one (target frame, metres).

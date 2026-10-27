@@ -214,10 +214,10 @@ LEDGER = [
     H('wolf-p-b', 71.6, 'he', 1, (-8, 8, 2), (-.3, 1, .3), by='tracer', src='S6c k3d tracer wolf-m',
       note="the merchant Wolf's bolt, past her front shield onto the flank"),
 
-    # ---- Kite (P) B: driven off by the Colossus in S9
-    H('kite-p-b', 96.5, 'he', 2, (-10, -10, 3), (0, -1, .4), by='tracer', src='S8-S9 k4 tracer colossus',
+    # ---- Manticore (P): driven off by the Colossus in S9 (Kite (P) B's part before option C: she is on the Tarsus)
+    H('manticore-p', 96.5, 'he', 2, (-17, -12, 4), (0, -1, .4), by='tracer', src='S8-S9 k4 tracer colossus',
       vent_s=20.0, note='leaks through her failing shield (flux .85): she breaks off, venting'),
-    H('kite-p-b', 95.85, 'cut', 1, (10, -9, 2), (0, -1, .3), to=(-10, -9, 3), by='mining',
+    H('manticore-p', 95.85, 'cut', 1, (17, -11, 3), (0, -1, .3), to=(-17, -11, 4), by='mining',
       src='S8-S9 k4 mining borer-d', note="a Borer's laser on her side"),
 
     # ---- HOOK, the Colossus Mk.III: the Colossus fires up into her belly
@@ -240,21 +240,20 @@ LEDGER = [
       note="killed at close range by the convoy Hound's burst: she cooks off"),
 ]
 
-# Option C (ASHARU_S7_FIGHT): S7 draws S8's fight already running, its tracers both ways
-if os.environ.get('ASHARU_S7_FIGHT'):
-    LEDGER += [
-        H('colossus', 84.6, 'rake', 1, (-50, 27, 8), (0, .5, 1), to=(-62, 31, 6), by='tracer',
-          src='S7 k3b tracer colossus3', note="the Mk.III's guns find the port pod as she comes down"),
-        H('colossus3', 86.4, 'rake', 1, (8, 4, -6), (0, .3, -1), to=(-4, 7, -6), by='tracer',
-          src='S7 k3b tracer colossus', note="the Colossus's turrets answer into her belly"),
-    ]
+# S7 draws S8's fight already running, its tracers both ways (option C)
+LEDGER += [
+    H('colossus', 84.6, 'rake', 1, (-50, 27, 8), (0, .5, 1), to=(-62, 31, 6), by='tracer',
+      src='S7 k3b tracer colossus3', note="the Mk.III's guns find the port pod as she comes down"),
+    H('colossus3', 86.4, 'rake', 1, (8, 4, -6), (0, .3, -1), to=(-4, 7, -6), by='tracer',
+      src='S7 k3b tracer colossus', note="the Colossus's turrets answer into her belly"),
+]
 # Where the shooter really is (asharu_gunnery, 2026-10-23): the unit vector from the target toward
 # the shooter at the hit's time, target frame. A hit is cast onto the face that shooter sees, so a
 # hit whose `at` lies on the far side lands on the near face in line with it.
 SHOOTER_SIDE = {
     'hound-m@76.9:rake': (0.89, -0.07, -0.46),
-    'wolf-p-a@95.8:he': (0.74, 0.61, -0.29),
-    'kite-p-b@96.5:he': (-0.81, -0.43, 0.39), 'tarsus@68.0:rake': (-0.09, -0.99, -0.10), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
+    'wolf-p-a@95.8:he': (0.74, 0.61, -0.29), 'manticore-p@96.5:he': (-0.72, -0.53, 0.45),
+     'tarsus@68.0:rake': (-0.09, -0.99, -0.10), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
     'lasher-lead@103.7:breach': (0.98, -0.17, -0.06), 'falcon-p@104.8:breach': (0.69, 0.55, 0.46),
     'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@77.1:breach': (0.82, -0.14, -0.55),
     'falcon-p@104.6:rake': (0.75, 0.51, 0.43), 'wolf-p-a@73.0:rake': (-0.42, -0.67, 0.62),

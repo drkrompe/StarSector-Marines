@@ -1103,7 +1103,8 @@ K4_SHIPS = {
         dict(t=80, hd=-12, pt=-18, rl=68, v=75), dict(t=83.5, hd=-7, pt=-12, rl=76, v=50),
         dict(t=86, hd=-3, pt=-7, rl=78, v=25),
         dict(t=88, hd=-2, pt=-5, rl=80, v=14), dict(t=102, hd=-6, pt=-10, rl=84, v=8)], v=12, wobble=1.0),
-    'kite-p-b': fly('kite-p-b', (110, 210, 40, -60, 6, 32, 1), K4_T, [
+    # the Manticore (P), unseen since S6b (66 s): Kite (P) B is braked on the Tarsus in S7, so cannot be here
+    'manticore-p': fly('manticore-p', (110, 210, 40, -60, 6, 32, 1), K4_T, [
         dict(t=88, hd=-100, pt=-2, rl=10, v=150), dict(t=93, hd=-80, pt=2, rl=20), dict(t=98, hd=-10, pt=12, rl=55, v=180),
         dict(t=102, hd=30, pt=10, rl=20, v=210)],
         hits=[dict(t=95.3, spin=(12, 3, -6), decay=.8)]),
@@ -1224,8 +1225,8 @@ K4_BORER_C, K4_RAKES_C = sortie('borer-c', K4_SHIPS['borer-c'], 95.0,
                                  ('colossus', K4_SHIPS['colossus'], 0)], home=K4_MORROW_FLOWN)
 K4_BORER_D, K4_RAKES_D = sortie('borer-d', carried(held('borer-d', near(K4_MORROW, (BORER_BAY_M[2][0], BORER_BAY_M[2][1], 7),
                                                                        hd=10, pt=20, rl=-4, thr=.1), K4_T, wobble=0.0),
-                                                   K4_MORROW_FLOWN), 94.2,     # out as Kite B sweeps past
-                                [('kite-p-b', K4_SHIPS['kite-p-b'], -1), ('wolf-p-a', K4_SHIPS['wolf-p-a'], 1),
+                                                   K4_MORROW_FLOWN), 94.2,     # out as the Manticore (P) sweeps past
+                                [('manticore-p', K4_SHIPS['manticore-p'], -1), ('wolf-p-a', K4_SHIPS['wolf-p-a'], 1),
                                  ('colossus', K4_SHIPS['colossus'], 0)], home=K4_MORROW_FLOWN)
 K4_SHIPS.update({'borer-c': K4_BORER_C, 'borer-d': K4_BORER_D})
 K4_RAKES = [('borer-c',) + r for r in K4_RAKES_C] + [('borer-d',) + r for r in K4_RAKES_D]
@@ -1315,18 +1316,14 @@ def _far(look, d=300e3):
 
 # One battle, one clock (cut audit, 2026-10-27). S6 and S6b staged their own Lasher B, Manticore (P) and
 # Buffalo (P) 0.6 to 2.2 km apart across their cut: S6's Lasher B now flies S6b's flight (S6b's camera rides
-# her), and S6b's Manticore and Buffalo fly S6's (S6's camera tracks its Manticore). S7 to S8 is the
-# owner's pick (owner: "suddenly surrounded and opening up with its guns"): ASHARU_S7_FIGHT=1 draws S8's
-# Colossus, Morrow and the Mk.III in S7 where S8 has them, the fight closing beyond the Tarsus (option C).
-# ASHARU_CONTINUITY_BEFORE=1 draws the old S6-S6b staging, for the owner's before/after only. Remove both
-# switches once the owner has picked.
-if not os.environ.get('ASHARU_CONTINUITY_BEFORE'):
-    K3_SHIPS['lasher-b'] = Pose(K3C_SHIPS['lasher-b'].at(K3_T), K3_T, K3C_SHIPS['lasher-b'].at)
-    for _k in ('manticore-p', 'buffalo2-a'):      # still jinking as they close (S6's run holds its last key)
-        K3C_SHIPS[_k] = jinked(Pose(K3_SHIPS[_k].at(K3C_T), K3C_T, K3_SHIPS[_k].at), 58.0, 66.0, hd=3.0, rl=6.0)
-if os.environ.get('ASHARU_S7_FIGHT'):
-    for _k in ('colossus', 'morrow', 'colossus3'):
-        K3B_SHIPS[_k] = Pose(K4_SHIPS[_k].at(K3B_T), K3B_T, K4_SHIPS[_k].at)
+# her), and S6b's Manticore and Buffalo fly S6's (S6's camera tracks its Manticore). S7 draws S8's Colossus,
+# Morrow and the Mk.III where S8 has them, the fight closing beyond the Tarsus (owner, 2026-10-27: "Confirm
+# option C for S7 to S8 as it plays in Latest").
+K3_SHIPS['lasher-b'] = Pose(K3C_SHIPS['lasher-b'].at(K3_T), K3_T, K3C_SHIPS['lasher-b'].at)
+for _k in ('manticore-p', 'buffalo2-a'):      # still jinking as they close (S6's run holds its last key)
+    K3C_SHIPS[_k] = jinked(Pose(K3_SHIPS[_k].at(K3C_T), K3C_T, K3_SHIPS[_k].at), 58.0, 66.0, hd=3.0, rl=6.0)
+for _k in ('colossus', 'morrow', 'colossus3'):
+    K3B_SHIPS[_k] = Pose(K4_SHIPS[_k].at(K3B_T), K3B_T, K4_SHIPS[_k].at)
 
 KEYFRAMES = {
     'k0': dict(
@@ -1489,7 +1486,8 @@ KEYFRAMES = {
         # convoy ahead, then in to her deck as the boats set down (k3b_eye, k3b_aim)
         camera=camera('k3b', [dict(t=80, loc=k3b_eye, target=k3b_aim, lens=28),
                               dict(t=85, loc=k3b_eye, target=k3b_aim, lens=30),
-                              dict(t=88, loc=k3b_eye, target=k3b_aim, lens=45)], K3B_T, shake=.08),
+                              # 34 mm, not 45: the push to 45 cropped the Mk.III at the top edge as she came down
+                              dict(t=88, loc=k3b_eye, target=k3b_aim, lens=34)], K3B_T, shake=.08),
         states={'tarsus': 'tarsus-boarded'},
         knobs={'hermes-p-a': {'gear_up': 0.0, 'door_port': 1.0, 'door_starboard': 1.0},    # down, boarders out
                'hermes-p-b': {'gear_up': 0.5}, 'hermes-p-c': {'gear_up': 1.0}},
@@ -1516,13 +1514,13 @@ KEYFRAMES = {
         knobs={'colossus3': {'grapples': 0.5}},
         ships=K4_SHIPS,
         rakes=K4_RAKES,      # the sortie Borers' mining lasers swept along the attackers' hulls
-        shields={'kite-p-b': dict(toward='colossus', flux=.85)},     # her omni shield nearly gone: she breaks off
+        shields={'manticore-p': dict(toward='colossus', flux=.85)},     # her front shield nearly gone: she breaks off
         # the port pod shot out by the Wolf (P)'s Harpoons (95.5 s), and burning from them
         fx=[('blast_on', 'colossus', 12, (-64, 36, -7), 95.5), ('fire_on', 'colossus', (-60, 36, -2), (-1, .4, .3), 95 - 95.55),
             ('tracer', 'colossus3', 'colossus', (-60, 30, 6)), ('tracer', 'colossus', 'wolf-p-a'),
             # the Colossus's fire on the Mk.III walks wide: about a quarter to a third lands, the rest
             # flies on past her (coordinator, 2026-10-24)
-            ('tracer', 'colossus', 'kite-p-b'), ('tracer', 'colossus', 'colossus3', (0, 0, 0), dict(walk=2.0)),
+            ('tracer', 'colossus', 'manticore-p'), ('tracer', 'colossus', 'colossus3', (0, 0, 0), dict(walk=2.0)),
             ('flares', 'colossus'), ('debris', 'colossus', 45, (-64, 36, -7), 95.5),
             # what her flares answer (owner, 2026-10-23: a flare needs a visible cause): the Wolf's
             # Harpoons (the Mk.III mounts no missiles), landing after the flares go out at 93.8 s,
@@ -1532,8 +1530,8 @@ KEYFRAMES = {
             # by the pod both on the Mk.III above her, the bigger threat; two more, out of the bay, on the Wolf
             # and the Kite
             ('mining', 'borer-a', 'colossus3'), ('mining', 'borer-b', 'colossus3'),
-            ('mining', 'borer-c', 'wolf-p-a'), ('mining', 'borer-d', 'kite-p-b')],
-        labels=['colossus', 'morrow', 'colossus3', 'kite-p-b', 'wolf-p-a']),
+            ('mining', 'borer-c', 'wolf-p-a'), ('mining', 'borer-d', 'manticore-p')],
+        labels=['colossus', 'morrow', 'colossus3', 'manticore-p', 'wolf-p-a']),
     'k4b': dict(
         shot='S9b', title='The lead\'s last run',
         caption='Smoking from S6, the lead Lasher makes one more run over the Falcon (P), rolled onto her back. '
@@ -1854,10 +1852,9 @@ for _k, _t1 in (('colossus', 58.0), ('tarsus', 58.0), ('phaeton', 53.9)):
 # Option C (owner, 2026-10-27: "no fighting between it and the colossus / shepherd"): S7 sees the fight S8
 # opens on, both ways, the Mk.III's guns on the Colossus's port pod as she comes down, the Colossus's
 # turrets answering into her belly (S8's own tracers, carried back; asharu_damage's S7 hits are theirs)
-if os.environ.get('ASHARU_S7_FIGHT'):
-    KEYFRAMES['k3b']['fx'] += [('tracer', 'colossus3', 'colossus', (-60, 30, 6)),
-                               ('tracer', 'colossus', 'colossus3', (0, 0, 0), dict(walk=2.0))]
-    KEYFRAMES['k3b']['labels'] += ['colossus3', 'morrow']
+KEYFRAMES['k3b']['fx'] += [('tracer', 'colossus3', 'colossus', (-60, 30, 6)),
+                           ('tracer', 'colossus', 'colossus3', (0, 0, 0), dict(walk=2.0))]
+KEYFRAMES['k3b']['labels'] += ['colossus3', 'morrow']
 
 
 KEYFRAMES['k6'].update(
