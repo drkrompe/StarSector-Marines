@@ -2911,9 +2911,12 @@ def blender_main(cfg):
         serves the whole shot: every burst asharu_gunnery plans for the shot, sampled every FIRE_ARC_STEP_S,
         is cast in the shooter's own frame from just off its mount (OWN_HULL_MUZZLE_M up its axis, past the
         gun's own body) toward its aim, against her own plating (guns and the kit's effects aside). A ray
-        that meets it before reaching the aim is a fault. A Borer's beam leaves her nose toward its target
-        (mining_hit), so it is cast from there too. ASHARU_OWN_HULL_RAYS (a JSON file of [ship, origin,
-        direction, metres, label] in her frame) adds rays to cast, to compare an attitude not flown."""
+        that meets it before reaching the aim is a fault where her hull reads on screen (OWN_HULL_PX), and a
+        cheat listed with her size where it does not. A stand-in fires from inside her slab and is not
+        cast; another gun's housing within OWN_HULL_GUN_M of the muzzle is the mount's own clutter (the
+        muzzle is placed, not modelled). A Borer's beam leaves her nose toward its target (mining_hit), so
+        it is cast from there too. ASHARU_OWN_HULL_RAYS (a JSON file of [ship, origin, direction, metres,
+        label ending in its time 'N.N s'] in her frame) adds rays, to compare an attitude not flown."""
         import asharu_gunnery as g
         from mathutils import Vector
         from mathutils.bvhtree import BVHTree
@@ -2929,7 +2932,7 @@ def blender_main(cfg):
                 continue
             ob, top = inst.object.original, inst.parent.original.name
             name = ship_fx.base_name(ob.name)
-            if (top.startswith('Ship | ') and ob.type == 'MESH' and not name.startswith('SWFX')
+            if (top.startswith('Ship | ') and ob.type == 'MESH' and not name.startswith(('SWFX', 'Stand-in'))
                     and not re.search(r'\b(Turret|Launcher|Gear|Beam)\b', name)):
                 plating.setdefault(top[7:], []).append((ob, inst.matrix_world.copy()))
 
@@ -2965,7 +2968,7 @@ def blender_main(cfg):
                     o = (m[0][0], m[0][1], m[0][2] + OWN_HULL_MUZZLE_M)
                     v = [aim[j] - o[j] for j in range(3)]
                     dist = math.sqrt(sum(c * c for c in v)) or 1.0
-                    rays.append((a, o, [c / dist for c in v], dist, f'{a} t{e["turret"]} -> {b} {t:.1f} s'))
+                    rays.append((a, o, [c / dist for c in v], dist, f'{a} t{e["turret"]} -> {b} {t:.1f} s', t))
         for fx in spec.get('fx', ()):
             if fx[0] == 'mining' and fx[1] in spec['ships'] and fx[2] in spec['ships'] and fx[1] in placed:
                 a, b = fx[1], fx[2]
@@ -2975,20 +2978,27 @@ def blender_main(cfg):
                     dist = math.sqrt(sum(c * c for c in aim)) or 1.0
                     u = [c / dist for c in aim]
                     o = [c * placed[a]['length'] * .55 for c in u]
-                    rays.append((a, o, u, dist - placed[a]['length'] * .55, f'{a} beam -> {b} {t:.1f} s'))
+                    rays.append((a, o, u, dist - placed[a]['length'] * .55, f'{a} beam -> {b} {t:.1f} s', t))
         if os.environ.get('ASHARU_OWN_HULL_RAYS'):
-            rays += [tuple(r) for r in json.loads(Path(os.environ['ASHARU_OWN_HULL_RAYS']).read_text())
+            rays += [tuple(r) + (float(re.search(r'([\d.]+) s$', r[4]).group(1)),)
+                     for r in json.loads(Path(os.environ['ASHARU_OWN_HULL_RAYS']).read_text())
                      if r[0] in placed and r[0] in spec['ships']]
-        bad = []
-        for key, o, d, dist, label in rays:
+        bad, cheats = {}, {}
+        for key, o, d, dist, label, t in rays:
             o2 = [o[j] + d[j] * OWN_HULL_CLEAR_M for j in range(3)]
             hit = cast(key, o2, d, max(0.0, dist - OWN_HULL_CLEAR_M))
-            if hit is not None:
-                bad.append(f'{label} meets her {hit[1]} {hit[0]:.0f} m out')
-        print(f'ASHARU own hull {base}: {len(rays)} rays cast' + (f'; through her own hull: {bad[:40]}' if bad else ''),
-              flush=True)
+            if hit is None or (hit[1].startswith('Weapon') and hit[0] <= OWN_HULL_GUN_M):
+                continue
+            seen, px = readable(base, key, [t], OWN_HULL_PX)
+            what = label.rsplit(' ', 2)[0]          # one row per gun and target, with its span
+            row = (bad if seen else cheats).setdefault(what, [t, t, hit[1], hit[0], px])
+            row[0], row[1], row[4] = min(row[0], t), max(row[1], t), max(row[4], px)
+        fmt = lambda rows: [f'{w} {r[0]:.1f}-{r[1]:.1f} s meets her {r[2]} {r[3]:.0f} m out ({r[4]:.0f} px)'
+                            for w, r in rows.items()]
+        print(f'ASHARU own hull {base}: {len(rays)} rays cast' + (f'; through her own hull: {fmt(bad)}' if bad else '')
+              + (f'; cheats (too small to read): {fmt(cheats)}' if cheats else ''), flush=True)
         if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
-            raise RuntimeError(f'{base}: {bad[0]} (own-hull lint)')
+            raise RuntimeError(f'{base}: {fmt(bad)[0]} (own-hull lint)')
 
     own_hull_done = set()
 
@@ -4984,6 +4994,40 @@ def drone_lint(kf):
         raise RuntimeError(f'{kf}: {bad[0][0]} {bad[0][6]} (drone lint)')
 
 
+# Some bending of the truth is allowed where nobody can see it (owner, 2026-10-27: "Note some "bending" of the
+# truth for a better shot is warranted. If the camera is close to the action though we run the risk of the
+# player seeing the mistake"). The realism lints (pace, activity, firing arcs, own hull) fail only where the
+# mistake reads on screen; elsewhere they list it as a cheat with its size. A ship reads at READABLE_PX of
+# length: a 100 m hull at 150 px is 1.5 px a metre, so a 4 m turret is 6 px, a mount and its line of fire
+# distinct; or at CENTRE_PX in the middle half of the frame, where the eye is. A ray through her own hull
+# fails from OWN_HULL_PX: at 40 px a 10 m section of a 100 m hull is 4 px, a tracer leaving the wrong side
+# of her already readable.
+READABLE_PX, CENTRE_PX, OWN_HULL_PX = 150.0, 60.0, 40.0
+
+
+def on_screen(kf, key, t):
+    """(her length in px, whether she is in the middle half of the frame) in kf's camera at t: (0, False)
+    off frame."""
+    spec = SHOTS[kf]
+    cam, sp = spec['camera'].get('at'), spec.get('ships', {}).get(key)
+    if cam is None or sp is None:
+        return 0.0, False
+    c = cam(t)
+    f = _in_frame(c, (sp.at(t) if hasattr(sp, 'at') else sp)[:3])
+    if not f:
+        return 0.0, False
+    return SHIP_LENGTH.get(key, 50.0) * c['lens'] / 36.0 * 1920 / f[2], abs(f[0] - 960) < 480 and abs(f[1] - 540) < 270
+
+
+def readable(kf, key, ts, px_min=READABLE_PX):
+    """(whether a mistake on her reads at any of times ts, her largest px then)."""
+    best = (False, 0.0)
+    for t in ts:
+        px, mid = on_screen(kf, key, t)
+        best = (best[0] or px >= px_min or (mid and px >= min(CENTRE_PX, px_min)), max(best[1], px))
+    return best
+
+
 # A ship in frame through a battle beat does something (owner, 2026-10-27, option C's Mk.III: "Everyone just
 # decides to be passive while they aren't the star of the shot?"): activity_lines() samples a shot at 12 fps
 # and fails a ship that is in frame, at least ACTIVE_MIN_PX long, for over IDLE_MAX_S with her heading, pitch
@@ -5045,9 +5089,14 @@ def activity_lint(kf):
         return
     _ACTIVITY_DONE.add(kf)
     rows = activity_lines(kf)
-    bad = [r for r in rows if r[4] is None]
-    print(f'ASHARU activity {kf}: {len(rows)} idle spans, {len(rows) - len(bad)} designed'
-          + (f'; idle: {[f"{r[0]} {r[1]:.1f}-{r[2]:.1f} s ({r[3]:.0f} px)" for r in bad]}' if bad else ''), flush=True)
+    loose = [r for r in rows if r[4] is None]
+    seen = {r: readable(kf, r[0], [r[1] + (r[2] - r[1]) * i / 8 for i in range(9)]) for r in loose}
+    bad = [r for r in loose if seen[r][0]]
+    cheats = [r for r in loose if not seen[r][0]]
+    print(f'ASHARU activity {kf}: {len(rows)} idle spans, {len(rows) - len(loose)} designed'
+          + (f'; idle: {[f"{r[0]} {r[1]:.1f}-{r[2]:.1f} s ({r[3]:.0f} px)" for r in bad]}' if bad else '')
+          + (f'; cheats (too small to read): {[f"{r[0]} {r[1]:.1f}-{r[2]:.1f} s ({r[3]:.0f} px)" for r in cheats]}'
+             if cheats else ''), flush=True)
     if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
         raise RuntimeError(f'{kf}: {bad[0][0]} sits idle in frame {bad[0][1]:.1f}-{bad[0][2]:.1f} s (activity lint)')
 
@@ -5060,15 +5109,19 @@ def activity_lint(kf):
 # a gun delivers has a mount that reaches it, and every tracer the shot asks for has a mount that bears
 # some of the shot (else nothing fires it). A Borer's mining laser is a fixed mount on her nose (the
 # game's drone_borer: arc 30 deg), so her nose is held within BEAM_ARC_DEG of her beam's aim while it is
-# on. FIRE_ARC_EXEMPT keeps a designed exception, (shot, shooter, target): reason. It reports; the hard check is
-# own_hull_lint (owner: "Specifically I just want to make sure it's not firing through it's own hull").
+# on. A fault fails only where it reads on screen (readable); FIRE_ARC_EXEMPT keeps a designed exception, (shot,
+# shooter, target): reason. The strictest check is own_hull_lint (owner: "Specifically I just want to make sure
+# it's not firing through it's own hull").
 FIRE_ARC_TOL_DEG, FIRE_ARC_STEP_S, BEAM_ARC_DEG = 1.0, .1, 15.0
-OWN_HULL_MUZZLE_M, OWN_HULL_CLEAR_M = 2.0, 2.5     # own_hull_lint: a muzzle above its pivot; the gun's own reach
+# own_hull_lint: a muzzle above its pivot; the gun's own reach; how near another gun's housing is the mount's clutter
+OWN_HULL_MUZZLE_M, OWN_HULL_CLEAR_M, OWN_HULL_GUN_M = 2.0, 2.5, 3.0
 FIRE_ARC_EXEMPT = {}
 
 
 def fire_arc_lines(kf):
-    """kf's fire against its mounts: [(shooter, target, what, fault or None, exempt reason or None)]."""
+    """kf's fire against its mounts: [(shooter, target, what, fault or None, exempt reason or None, whether the
+    fault reads on screen, the px it is judged at)]. A fault is judged on the ship it shows on: the shooter's
+    mount, the target a hit lands on, a Borer's nose."""
     import asharu_gunnery as g
     import asharu_preview
     kf = g.base_kf(kf)
@@ -5078,8 +5131,11 @@ def fire_arc_lines(kf):
     ships, out = spec.get('ships', {}), []
     pos = lambda k, t: ships[k].at(t) if hasattr(ships[k], 'at') else ships[k]
 
-    def row(a, b, what, fault):
-        out.append((a, b, what, fault, FIRE_ARC_EXEMPT.get((kf, a, b)) if fault else None))
+    span = (spec['camera']['at'].keys[0]['t'], spec['camera']['at'].keys[-1]['t'])
+
+    def row(a, b, what, fault, who=None, ts=None):
+        seen = readable(kf, who or a, ts or [span[0] + (span[1] - span[0]) * i / 16 for i in range(17)]) if fault else (False, 0.0)
+        out.append((a, b, what, fault, FIRE_ARC_EXEMPT.get((kf, a, b)) if fault else None) + seen)
     p = g.shot_plan(kf)
     for e in p['engagements']:
         a, b, tu = e['shooter'], e['target'], e['turret']
@@ -5097,11 +5153,12 @@ def fire_arc_lines(kf):
                 if not ok and miss > worst[0]:
                     worst = (miss, t)
         row(a, b, f't{tu} {e["start"]:.1f}-{e["end"]:.1f} s',
-            f't{tu} lays {worst[0]:.0f} deg outside her arc at {worst[1]:.2f} s' if worst[0] > FIRE_ARC_TOL_DEG else None)
+            f't{tu} lays {worst[0]:.0f} deg outside her arc at {worst[1]:.2f} s' if worst[0] > FIRE_ARC_TOL_DEG else None,
+            ts=[worst[1]] if worst[1] is not None else None)
     for hid, ok, why in p['owed']:
         if not ok:
-            h = hid.split('@')[0]
-            row('?', h, f'ledger {hid}', f'no gun can deliver it ({why})')
+            h, th = hid.split('@')[0], float(hid.split('@')[1].split(':')[0])
+            row('?', h, f'ledger {hid}', f'no gun can deliver it ({why})', who=h, ts=[th])
     fired = {(e['shooter'], e['target']) for e in p['engagements']}
     for fx in spec.get('fx', ()):
         if fx[0] == 'tracer' and fx[1] in ships and fx[2] in ships and (fx[1], fx[2]) not in fired:
@@ -5126,22 +5183,27 @@ def fire_arc_lines(kf):
                 if off > worst[0]:
                     worst = (off, t)
         row(a, b, 'mining', f'her nose is {worst[0]:.0f} deg off her beam at {worst[1]:.2f} s'
-            if worst[0] > BEAM_ARC_DEG + FIRE_ARC_TOL_DEG else None)
+            if worst[0] > BEAM_ARC_DEG + FIRE_ARC_TOL_DEG else None, ts=[worst[1]])
     return out
 
 
 def fire_arc_lint(kf):
-    """Logs fire_arc_lines once per shot per process. It reports and never stops a build (owner,
-    2026-10-27: the hard check is that no ship fires through her own hull, own_hull_lint)."""
+    """Logs fire_arc_lines once per shot per process; a fault not exempt that reads on screen raises unless
+    ASHARU_AUDIT_SOFT, and one too small to read is listed as a cheat with its size."""
     import asharu_gunnery as g
     kf = g.base_kf(kf)
     if kf in _FIRE_ARC_DONE:
         return
     _FIRE_ARC_DONE.add(kf)
     rows = fire_arc_lines(kf)
-    bad = [r for r in rows if r[3] and not r[4]]
+    bad = [r for r in rows if r[3] and not r[4] and r[5]]
+    cheats = [r for r in rows if r[3] and not r[4] and not r[5]]
     print(f'ASHARU fire arcs {kf}: {len(rows)} lines of fire, {len([r for r in rows if r[4]])} exempt'
-          + (f'; out of arc: {[f"{r[0]} -> {r[1]} {r[3]}" for r in bad]}' if bad else ''), flush=True)
+          + (f'; out of arc: {[f"{r[0]} -> {r[1]} {r[3]} ({r[6]:.0f} px)" for r in bad]}' if bad else '')
+          + (f'; cheats (too small to read): {[f"{r[0]} -> {r[1]} {r[3]} ({r[6]:.0f} px)" for r in cheats]}'
+             if cheats else ''), flush=True)
+    if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
+        raise RuntimeError(f'{kf}: {bad[0][0]} -> {bad[0][1]} {bad[0][3]} at {bad[0][6]:.0f} px (fire-arc lint)')
 
 
 _FIRE_ARC_DONE = set()
@@ -5158,9 +5220,14 @@ def motion_lint(kf):
         print(f'ASHARU motion: pace limits (m/s, m/s2) {PACE_LIMITS}', flush=True)
     _MOTION_DONE.add(kf)
     rows = motion_lines(kf)
-    bad = [r for r in rows if r[3] is None]
-    print(f'ASHARU motion {kf}: {len(rows)} events, {len(rows) - len(bad)} exempt; faults: '
-          f'{[f"{r[0]} {r[1]} {r[2]:.2f}s" for r in bad]}', flush=True)
+    pace = lambda r: r[1].startswith(('speed', 'accel'))
+    seen = {r: readable(kf, r[0], [r[2]]) for r in rows if r[3] is None and pace(r)}
+    bad = [r for r in rows if r[3] is None and (not pace(r) or seen[r][0])]
+    cheats = [r for r in rows if r[3] is None and pace(r) and not seen[r][0]]
+    print(f'ASHARU motion {kf}: {len(rows)} events, {len(rows) - len(bad) - len(cheats)} exempt; faults: '
+          f'{[f"{r[0]} {r[1]} {r[2]:.2f}s" for r in bad]}'
+          + (f'; cheats (too small to read): {[f"{r[0]} {r[1]} {r[2]:.2f}s ({seen[r][1]:.0f} px)" for r in cheats]}'
+             if cheats else ''), flush=True)
     if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
         raise RuntimeError(f'{kf}: {bad[0][0]} {bad[0][1]} at {bad[0][2]:.2f} s (motion lint)')
 

@@ -202,6 +202,12 @@ preview plays, and the stills did not move when the motion went in (`--check` is
   1.5 s in frame with no turn of heading, pitch or roll faster than 1 deg/s, no change of speed
   over 5 m/s2 and no fire of her own (`activity_lines`). A pirate joins the fight at her launch, a
   convoy ship at contact (50 s). A ship meant to hold still is in `DESIGNED_IDLE` with its reason.
+- **Bending the truth where it cannot be seen** (owner, 2026-10-27: "Note some "bending" of the truth
+  for a better shot is warranted. If the camera is close to the action though we run the risk of the player
+  seeing the mistake"). The realism lints (pace, activity, firing arcs, own hull) fail only where the mistake
+  reads: the ship at 150 px of length or more (a 4 m turret is then 6 px), or 60 px in the middle half of the
+  frame. A tracer through the shooter's own hull fails from 40 px (a 10 m section of a 100 m hull is then
+  4 px). Anything smaller, or off frame, is logged as a cheat with its size.
 - **The pack's climb is flown as its classes can fly it** (owner, 2026-10-27: "I want things done
   right"). Each raider eases out of the field as S3 shows (unchanged), then flies a smooth path
   toward her S6 run (`climbed`): no faster than `CLIMB_SPEED` (90% of her class's top speed) and
