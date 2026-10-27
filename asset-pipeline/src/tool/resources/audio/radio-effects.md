@@ -18,6 +18,7 @@ All commands below run from the root of the session worktree required by
 | Clean dialogue exchanges | `dialogue` | Original pitch and tempo; loudness matching |
 | Jangala Approach, Hegemony traffic control (`jangala_arrival_hail_*`) | `orbital_comms` | Original pitch and tempo |
 | Castle on the open cabin intercom in the same exchange | `comms` | Original pitch and tempo |
+| Zoey Venn (`ZOEY VENN / WAYLINE`), every line | `comms` | Original pitch and tempo |
 
 Talon Two currently uses Liam (`TX3LPaxmHKxFdv7VOQHJ`), also used by infantry
 Kestrel Two. Retain the source voice, delivery direction and per-line metadata
