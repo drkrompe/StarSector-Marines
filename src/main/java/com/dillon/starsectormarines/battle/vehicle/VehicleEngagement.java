@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.air.AirBody;
+import com.dillon.starsectormarines.battle.combat.ArmorArcs;
 import com.dillon.starsectormarines.battle.mech.MechDuelBand;
 import com.dillon.starsectormarines.battle.mech.MechDuelBand.Band;
 import com.dillon.starsectormarines.battle.mech.MechDuelBand.Weapon;
@@ -15,6 +16,7 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
+import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -55,9 +57,14 @@ import java.util.Map;
  * ground and still in sight of the target, and a turn begun backing stops once it has given ground to within
  * {@link #HOLD_SLACK} of the band's far edge: a turn that backs a hull round a street corner, or out to where its gun
  * no longer reaches, takes it out of the fight it was turning to. {@code -Dbattle.vehicle.faceInBand=false} is the
- * control. The front goes to the worst hostile machine the hull knows of, which need not be the target it holds its
- * band against ({@link ThreatFront}); a gun on a turning hull shakes ({@link HullPivot}). The retreat from a too-close target backs off it nose-on across the same arc; only a target further behind
+ * control. The front goes where every hostile the hull knows of kills it slowest, each through the plate it would hit
+ * ({@link ThreatFront}), which need not be toward the target it holds its band against; a gun on a turning hull shakes
+ * ({@link HullPivot}). The retreat from a too-close target backs off it nose-on across the same arc; only a target further behind
  * is driven away from, rear on. A forward turn toward that one was tried and parked hulls out of sight in the street.
+ *
+ * <p>A hull with no machine to duel, and an allied hull its story script parks, <b>stands and faces</b>: it drives
+ * nowhere and makes the same rehearsed turn onto that facing, giving no more than {@link #STAND_TURN_GROUND} cells from
+ * where it was parked ({@link #decideStanding}).
  *
  * <p>A hold in band is a hold for as long as it wears the target down. A hull that has held through
  * {@link #stallSeconds} without its target losing any integrity has a <b>stalled</b> hold: its rounds go into the corner
@@ -69,9 +76,10 @@ import java.util.Map;
  *
  * <p>What it does not touch: a player order (an active one owns the chassis and an arrived one hands back here, the
  * way a mech's doctrine resumes after a move), a hull under direct control, delivery legs, allied story columns
- * (their scripts own when they move; an allied hull a mission has enlisted under allied
- * command is not one of those, and fights as the player's do), hulls built unarmed and empty magazines. Infantry is not a duel target:
- * against infantry a hull still holds where it stands and fires.
+ * (their scripts own when they move, and a parked one only stands and faces; an allied hull a mission has enlisted
+ * under allied command is not one of those, and fights as the player's do), hulls built
+ * unarmed and empty magazines. Infantry is not a duel target: against infantry a hull holds where it stands, fires, and
+ * faces. A hull none of this drives brakes.
  *
  * <p>{@code -Dbattle.vehicle.duelRange=false} is the control: a deployed hull holds where it was set down.
  */
@@ -127,6 +135,11 @@ public final class VehicleEngagement {
     static final float REFACE_START_DEGREES = 35f;
     /** Degrees off the nose at which a re-facing hull is square on enough to stop. */
     static final float REFACE_STOP_DEGREES = 10f;
+    /**
+     * Cells a standing hull may give from where it was parked to turn its front onto a threat: a tank's widest backing
+     * turn gives about seven, so any one turn fits, and turn after turn does not walk it off its mark.
+     */
+    static final float STAND_TURN_GROUND = 8f;
     /** Seconds of a turn an in-band hull rehearses before it makes it, and the rehearsal's step. */
     static final float REHEARSAL_SECONDS = 12f;
     static final float REHEARSAL_STEP_SECONDS = 0.1f;
@@ -204,6 +217,12 @@ public final class VehicleEngagement {
          * holding at the very edge stands about where its gun stops reaching.
          */
         float refaceMaxDistance;
+        /** A turn made standing, with no band held: it is bounded by the ground it gives from {@link #anchorX}. */
+        boolean standTurn;
+        /** Where a standing hull was parked, so turn after turn never walks it off its place; set while it stands. */
+        boolean anchored;
+        float anchorX;
+        float anchorY;
         /** Seconds held in band since the target last lost integrity. */
         float stallSeconds;
         /** The target's integrity when last read, or negative when not being watched. */
@@ -259,8 +278,12 @@ public final class VehicleEngagement {
      */
     void tick(long id, float dt) {
         boolean disarmed = enabled && withdraws && disarmed(id);
-        if (!enabled || !(disarmed || eligible(id))) {
+        boolean fights = enabled && !disarmed && eligible(id);
+        boolean stands = enabled && !disarmed && !fights && standsFacing(id);
+        if (!(disarmed || fights || stands)) {
             forget(id);
+            // Nothing drives it here, so nothing may leave it rolling: a hull dropped mid-turn would hold its speed.
+            brake(id, convoy.body(id), dt);
             return;
         }
         Plan plan = plans.computeIfAbsent(id, k -> new Plan());
@@ -285,6 +308,7 @@ public final class VehicleEngagement {
         if (plan.decideIn <= 0f) {
             plan.decideIn = DECIDE_SECONDS;
             if (disarmed) decideWithdrawal(id, plan, body);
+            else if (stands) decideStanding(id, plan, body, convoy.vehicleType(id));
             else decide(id, plan, body);
         }
         if (plan.retreating) {
@@ -345,7 +369,8 @@ public final class VehicleEngagement {
      * as it backs).
      */
     private void reface(long id, Plan plan, GroundBody body, float dt) {
-        if (plan.target == 0L || !isLive(plan.target) || plan.faceTarget == 0L || !isLive(plan.faceTarget)
+        if (!plan.standTurn && (plan.target == 0L || !isLive(plan.target))
+                || plan.faceTarget == 0L || !isLive(plan.faceTarget)
                 || convoy.control(id).wallStuckTime > RETREAT_STUCK_SECONDS) {
             plan.refacing = false;
             plan.restIn = GIVE_UP_REST_SECONDS;
@@ -355,9 +380,12 @@ public final class VehicleEngagement {
         float alpha = offNose(plan.faceTarget, body);
         float[] drive = faceDrive(alpha, plan.refaceForward);
         // A backing turn gives ground for good; a forward one swings out and comes back round.
-        if (Math.abs(alpha) <= REFACE_STOP_DEGREES
-                || !plan.refaceForward && distance(plan.target, body) > plan.refaceMaxDistance) {
+        boolean givenUp = plan.standTurn
+                ? Math.hypot(body.x - plan.anchorX, body.y - plan.anchorY) > STAND_TURN_GROUND
+                : distance(plan.target, body) > plan.refaceMaxDistance;
+        if (Math.abs(alpha) <= REFACE_STOP_DEGREES || !plan.refaceForward && givenUp) {
             plan.refacing = false;
+            if (plan.standTurn && givenUp) plan.restIn = GIVE_UP_REST_SECONDS;
             brake(id, body, dt);
             return;
         }
@@ -418,6 +446,14 @@ public final class VehicleEngagement {
      * backing turn gives is watched as it is driven ({@link Plan#refaceMaxDistance}): the target may be backing too.
      */
     private boolean turnKeepsSight(VehicleType type, GroundBody body, float[] target) {
+        return turnKeepsSight(type, body, target, null);
+    }
+
+    /**
+     * As {@link #turnKeepsSight(VehicleType, GroundBody, float[])}, and with an {@code anchor} a backing turn that
+     * takes the hull more than {@link #STAND_TURN_GROUND} from it fails: a standing hull turns where it was put.
+     */
+    private boolean turnKeepsSight(VehicleType type, GroundBody body, float[] target, float[] anchor) {
         GroundBody scratch = type.createBody();
         if (!(scratch instanceof BicycleBody bicycle)) return true;
         bicycle.teleport(body.x, body.y, body.facingDegrees);
@@ -437,6 +473,8 @@ public final class VehicleEngagement {
             int x = (int) Math.floor(bicycle.x);
             int y = (int) Math.floor(bicycle.y);
             if (!grid.inBounds(x, y) || !grid.isWalkable(x, y)) return false;
+            if (anchor != null && !forward
+                    && Math.hypot(bicycle.x - anchor[0], bicycle.y - anchor[1]) > STAND_TURN_GROUND) return false;
         }
         return false;
     }
@@ -467,7 +505,7 @@ public final class VehicleEngagement {
     }
 
     private void brake(long id, GroundBody body, float dt) {
-        if (Math.abs(body.speed) > 0.05f) controlSystem.tickManual(id, dt, 0f, 0f);
+        if (Math.abs(body.speed) > 0.05f && body instanceof BicycleBody) controlSystem.tickManual(id, dt, 0f, 0f);
         else body.speed = 0f;
     }
 
@@ -642,12 +680,15 @@ public final class VehicleEngagement {
         }
         plan.target = target;
         if (target == 0L) {
-            plan.retreating = false;
-            plan.refacing = false;
-            if (plan.routeX != null) controlSystem.clearRoute(id);
-            plan.routeX = null;
-            plan.routeY = null;
+            // No machine to duel: it holds where it stands and keeps its front on whatever else can hurt it.
+            decideStanding(id, plan, body, type);
             return;
+        }
+        // A machine to duel: the band decides where it stands, and a turn made standing gives way to it.
+        plan.anchored = false;
+        if (plan.standTurn) {
+            plan.refacing = false;
+            plan.standTurn = false;
         }
         if (type.engagementStance() == VehicleType.Stance.AMBUSH) {
             // An ambusher waits in its cover: no band to drive to and nothing to back away from.
@@ -719,6 +760,7 @@ public final class VehicleEngagement {
             if (!wasRefacing && plan.refacing) {
                 plan.refaceForward = Math.abs(alpha) > BACKING_TURN_DEGREES;
                 plan.refaceMaxDistance = band.max() - HOLD_SLACK;
+                plan.standTurn = false;
             }
             return;
         }
@@ -902,6 +944,61 @@ public final class VehicleEngagement {
     }
 
     /**
+     * A hull the duel rule does not drive that still stands and faces: a deployed, mobile fighting hull (one built
+     * with a gun, which it may since have lost: the plate still matters), parked with no route. Mostly an allied hull
+     * a story script owns: the script decides when and where it moves, and which way it faces where it stands is the
+     * hull's own. An ambusher keeps the cover it was set down in.
+     */
+    private boolean standsFacing(long id) {
+        if (!ThreatFront.ENABLED || !facesInBand) return false;
+        if (!convoy.isVehicle(id) || !convoy.isTargetable(id) || convoy.structure(id) <= 0f) return false;
+        if (convoy.body(id).immobilised) return false;
+        VehicleMission mission = convoy.mission(id);
+        if (mission == null || mission.state != VehicleState.DEPLOYED || mission.authoredRouteX != null) return false;
+        VehicleType type = convoy.vehicleType(id);
+        return type != null && type.engagementStance() != VehicleType.Stance.AMBUSH && type.hasTurretWeapon();
+    }
+
+    /**
+     * A hull holding where it stands, with no machine to hold a band against: it drives nowhere, and turns its front
+     * onto the facing that lasts longest against what it knows of ({@link #faceTarget}) once that is off its front arc, by the same rehearsed
+     * manoeuvre as a turn in band. The turn gives no more than {@link #STAND_TURN_GROUND} from where the hull was
+     * parked, so a hull its story put on a mark stays on it, and a screened hull turns only by backing.
+     */
+    private void decideStanding(long id, Plan plan, GroundBody body, VehicleType type) {
+        plan.target = 0L;
+        plan.retreating = false;
+        plan.repositioning = false;
+        unwatch(plan);
+        if (plan.routeX != null) controlSystem.clearRoute(id);
+        plan.routeX = null;
+        plan.routeY = null;
+        if (!plan.anchored) {
+            plan.anchored = true;
+            plan.anchorX = body.x;
+            plan.anchorY = body.y;
+        }
+        long face = facesInBand && type.engagementStance() != VehicleType.Stance.AMBUSH && !body.immobilised
+                ? faceTarget(id, plan.faceTarget, body, 0L) : 0L;
+        if (face != plan.faceTarget) plan.refacing = false;
+        plan.faceTarget = face;
+        if (face == 0L) {
+            plan.refacing = false;
+            return;
+        }
+        float[] faceAt = position(face);
+        float alpha = offNose(face, body);
+        boolean wasRefacing = plan.refacing;
+        plan.refacing = plan.restIn <= 0f && shouldReface(alpha, plan.refacing)
+                && (plan.refacing || (Math.abs(alpha) <= BACKING_TURN_DEGREES || !screened(body, faceAt))
+                && turnKeepsSight(type, body, faceAt, new float[] {plan.anchorX, plan.anchorY}));
+        if (!wasRefacing && plan.refacing) {
+            plan.refaceForward = Math.abs(alpha) > BACKING_TURN_DEGREES;
+            plan.standTurn = true;
+        }
+    }
+
+    /**
      * The hostile machine this hull fights: its current one while still visible and in awareness, else the
      * nearest visible hostile mech or ground vehicle within {@code aware} cells. An {@code indirect} hull also counts
      * a machine its side's spotters see as visible.
@@ -933,31 +1030,58 @@ public final class VehicleEngagement {
     }
 
     /**
-     * The machine hull {@code id} keeps its front on: of the hostile machines it knows of ({@link #knows}), the one
-     * that can do it the most harm from where it stands ({@link ThreatFront}), the one it is facing kept unless another
-     * is clearly worse. The duel target when nothing known can reach it, or with {@link ThreatFront#PROPERTY} off.
+     * What hull {@code id} turns its front onto: the known hostile ({@link #knows}) whose bearing has all of them
+     * killing it slowest, each through the plate it would hit and what that plate has left ({@link ThreatFront}), the
+     * one it is facing kept unless another is clearly better. A hostile is a machine, an emplaced gun, or a soldier with a weapon of his own
+     * (a rocket with rounds left, a profiled rifle); one that fires off baked attack stats has no weapon to weigh and
+     * is not counted. The duel target when nothing known can reach it, or with {@link ThreatFront#PROPERTY} off.
      */
     private long faceTarget(long id, long current, GroundBody body, long duelTarget) {
         if (!ThreatFront.ENABLED) return duelTarget;
         Faction own = convoy.faction(id);
         World world = roster.world();
         float rating = world.hasArmor(id) ? world.armorRating(id) : 0f;
+        ArmorArcs.Profile arcs = convoy.vehicleType(id).armorArcs();
         List<ThreatFront.Threat> threats = new ArrayList<>();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long candidate = roster.get(i);
-            if (!world.hasMechLoadout(candidate) || !hostileMachine(candidate, own) || !knows(own, body, candidate)) {
+            if (convoy.isVehicle(candidate) || !roster.isAliveById(candidate) || roster.unitIndex().withheld(candidate)
+                    || !own.hostileTo(roster.identity().faction(candidate))) {
                 continue;
             }
-            threats.add(new ThreatFront.Threat(candidate,
-                    ThreatFront.harm(weaponsOf(candidate), distance(candidate, body), rating)));
+            addThreat(threats, own, body, candidate, rating, arcs);
         }
         for (long candidate : convoy.entityIds()) {
-            if (candidate == id || !hostileMachine(candidate, own) || !knows(own, body, candidate)) continue;
-            threats.add(new ThreatFront.Threat(candidate,
-                    ThreatFront.harm(weaponsOf(candidate), distance(candidate, body), rating)));
+            if (candidate == id || !hostileMachine(candidate, own)) continue;
+            addThreat(threats, own, body, candidate, rating, arcs);
         }
-        long face = ThreatFront.choose(threats, current);
+        long face = ThreatFront.choose(threats, hold(id, arcs), current);
         return face != 0L ? face : duelTarget;
+    }
+
+    /** What hull {@code id} holds on each plate and behind them; one pool on every plate for a hull without plates. */
+    private ThreatFront.Hold hold(long id, ArmorArcs.Profile arcs) {
+        float structure = convoy.structure(id);
+        HullLocations plates = convoy.locations(id);
+        if (plates == null) {
+            float armor = roster.world().hasArmor(id) ? roster.world().armor(id) : 0f;
+            return new ThreatFront.Hold(armor * arcs.frontPlate(), armor * arcs.sidePlate(), armor * arcs.sidePlate(),
+                    armor * arcs.rearPlate(), structure);
+        }
+        return new ThreatFront.Hold(plates.armor(HullLocations.Plate.FRONT) * arcs.frontPlate(),
+                plates.armor(HullLocations.Plate.LEFT) * arcs.sidePlate(),
+                plates.armor(HullLocations.Plate.RIGHT) * arcs.sidePlate(),
+                plates.armor(HullLocations.Plate.REAR) * arcs.rearPlate(), structure);
+    }
+
+    /** Adds {@code candidate} with the harm it can do from where it stands, if any and if the hull knows of it. */
+    private void addThreat(List<ThreatFront.Threat> threats, Faction own, GroundBody body, long candidate,
+                           float rating, ArmorArcs.Profile arcs) {
+        List<WeaponDef> weapons = weaponsOf(candidate);
+        if (weapons.isEmpty()) return;
+        float[] at = position(candidate);
+        ThreatFront.Threat threat = ThreatFront.threat(candidate, at[0] - body.x, at[1] - body.y, weapons, rating, arcs);
+        if (threat.bare() > 0f && knows(own, body, candidate)) threats.add(threat);
     }
 
     /**
@@ -982,7 +1106,10 @@ public final class VehicleEngagement {
                 && own.hostileTo(roster.identity().faction(candidate));
     }
 
-    /** What a machine can still shoot with: a mech's loaded mounts, or a hull's turret gun while it has one. */
+    /**
+     * What a hostile can still shoot with: a hull's turret gun while it has one, a mech's loaded mounts, an
+     * emplacement's mount, or a soldier's profiled primary and a special weapon with rounds left.
+     */
     private List<WeaponDef> weaponsOf(long candidate) {
         List<WeaponDef> out = new ArrayList<>(3);
         if (convoy.isVehicle(candidate)) {
@@ -990,9 +1117,28 @@ public final class VehicleEngagement {
             if (type != null && convoy.isArmed(candidate)) out.add(type.turretStructure().mount.weapon);
             return out;
         }
-        MechLoadoutComponent loadout = roster.world().mechLoadout(candidate);
-        for (MechWeaponMount mount : loadout.mounts()) {
-            if (mount != null && (mount.hasAmmo() || mount.burstRemaining > 0)) out.add(mount.weaponDef());
+        World world = roster.world();
+        if (world.hasMechLoadout(candidate)) {
+            MechLoadoutComponent loadout = world.mechLoadout(candidate);
+            for (MechWeaponMount mount : loadout.mounts()) {
+                if (mount != null && (mount.hasAmmo() || mount.burstRemaining > 0)) out.add(mount.weaponDef());
+            }
+            return out;
+        }
+        if (roster.turretState().isTurret(candidate)) {
+            out.add(roster.turretState().weapon(candidate));
+            return out;
+        }
+        if (roster.combat().has(candidate)) {
+            WeaponDef primary = roster.combat().primaryWeapon(candidate);
+            if (primary != null) out.add(primary);
+        }
+        if (world.hasSecondaryWeapon(candidate)) {
+            SpecialEquipmentDef special = world.specialEquipment(candidate);
+            if (special != null && special.weaponId() != null
+                    && (!special.usesAmmunition() || world.secondaryAmmo(candidate) > 0)) {
+                out.add(special.weaponDef());
+            }
         }
         return out;
     }
