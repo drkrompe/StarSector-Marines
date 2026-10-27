@@ -4111,6 +4111,17 @@ def blender_main(cfg):
                             opts['cease'] = fr_(opts.pop('cease_t'))
                         if 'sure_t' in opts:     # a round must land then (the kill): laid dead on
                             opts['sure'] = fr_(opts.pop('sure_t'))
+                        # every ledger hit this gun delivers in the shot lands where and when the ledger has it:
+                        # a round laid dead on its point (coordinator, 2026-10-27: S6d's and S9b's finals failed the
+                        # damage link when a restage moved the seeded bursts off the ledger's times)
+                        if 'span_t' in spec:
+                            import asharu_damage
+                            tag_ = f"{spec['shot']} {spec['span_of']} tracer {fx[1]}"
+                            owed_ = [(fr_(h_.t), h_.at) for h_ in asharu_damage.LEDGER
+                                     if h_.ship == fx[2] and 'tracer' in (h_.by if isinstance(h_.by, tuple) else (h_.by,))
+                                     and h_.src.split(' + ')[0] == tag_ and spec['shot_t'][0] <= h_.t <= spec['shot_t'][1]]
+                            if owed_:
+                                opts['sure'] = ([opts['sure']] if 'sure' in opts else []) + owed_
                         if 'bursts_t' in opts:
                             opts['bursts'] = [(fr_(t0_), fr_(t1_)) for t0_, t1_ in opts.pop('bursts_t')]
                         done = sfx_.tracer(fx[1], fx[2], fx[3] if len(fx) > 3 else None,

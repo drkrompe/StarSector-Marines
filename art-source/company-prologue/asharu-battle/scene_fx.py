@@ -216,8 +216,9 @@ class SceneFx:
         scene frame from which it fires no more (b is dead); walk, the share of WALK_R and LEAD_ERR its
         bursts walk and misjudge by (below 1: the burst that kills her lands on her); bursts, [(first, last)]
         scene frames the trigger is held, in place of the weapon's seeded rhythm (a story broadside); sure,
-        the scene frame a round of hers must land on (the kill): a round arriving within SURE_F frames
-        of it is laid dead on, without the walk or the lead error."""
+        the scene frame a round of hers must land on (the kill), or a list of them, each a frame or (frame,
+        the point on b it lands on, metres in her frame): a round arriving within SURE_F frames of one is
+        laid dead on, without the walk or the lead error, and the trigger is held for it."""
         shooter, target = self.ship(a), self.ship(b)
         aim = self.world(b, aim_local or (0, 0, 0))
         mz = self.muzzle_world(a, muzzles[0]) if muzzles[0] is not None else self.world(a)
@@ -410,6 +411,9 @@ class SceneFx:
             t += on + rnd.uniform(*gap_s) * fps
         if held is not None:     # a story broadside: the trigger held exactly when the shot needs it
             bursts = [(float(t0), float(t1)) for t0, t1 in held]
+        # every round that must land (a ledger hit, the kill): (arrival frame, the point on her it lands on)
+        sures = [(float(x), tuple(hit_l)) if isinstance(x, (int, float)) else (float(x[0]), tuple(x[1] or hit_l))
+                 for x in ([] if sure is None else [sure] if isinstance(sure, (int, float)) else sure)]
         bm = self.placed[b]['matrix']
         reach = self.placed[b]['length'] / (bm.to_scale()[0] or 1.0) * self.WALK_R * walk
         walks = []
@@ -420,6 +424,10 @@ class SceneFx:
             r1 = reach * rnd.uniform(-.2, .6)
             walks.append((t0, t1, (math.cos(th) * r0, math.sin(th) * r0), (math.cos(ph) * r1, math.sin(ph) * r1),
                           rnd.gauss(0, self.LEAD_ERR * walk)))
+        for sf, pt in sures:     # the trigger held as the round that must land leaves her (after the seeded walks)
+            ff = sf - (self.matrix_at(b, round(sf)) @ Vector(pt) - self.matrix_at(a, round(sf)) @ Vector(muzzle_l)).length / max(speed, 1.0) * fps
+            bursts.append((ff - 2.0, ff + 2.0))
+            walks.append((ff - 2.0, ff + 2.0, (0.0, 0.0), (0.0, 0.0), 0.0))
         imp = self.m['swfx_impacts']
         mpu = self.placed[a]['mpu']
         copy_at = lambda f: self.matrix_at(a, f) @ Matrix.Scale(mpu, 4)
@@ -433,12 +441,14 @@ class SceneFx:
             src = ma @ Vector(muzzle_l)
             fl = (self.matrix_at(b, f) @ Vector(hit_l) - src).length / max(speed, 1.0) * fps
             jr = random.Random(f'asharu-walk|{a}|{turret}|{b}|{f}')
-            dead_on = False
-            if sure is not None:     # her true flight: the round keeps the shooter's own velocity
-                aim0 = self.matrix_at(b, f) @ Vector(hit_l)
+            dead_on, hl, fl_true = False, Vector(hit_l), fl
+            for sf, pt in sures:     # her true flight: the round keeps the shooter's own velocity
+                aim0 = self.matrix_at(b, f) @ Vector(pt)
                 va = (self.matrix_at(a, f + 1).translation - ma.translation) * fps
-                fl_true = (aim0 - src).length / max(speed + va.dot((aim0 - src).normalized()), 1.0) * fps
-                dead_on = abs(f + fl_true - sure) <= self.SURE_F
+                ft = (aim0 - src).length / max(speed + va.dot((aim0 - src).normalized()), 1.0) * fps
+                if abs(f + ft - sf) <= self.SURE_F:
+                    dead_on, hl, fl_true = True, Vector(pt), ft
+                    break
             ox = oy = err = 0.0
             for t0, t1, c, e, le in walks:
                 if dead_on:
@@ -450,15 +460,15 @@ class SceneFx:
             mt = self.matrix_at(b, f + fl)                          # where she really is when it arrives
             mt = self.matrix_at(b, f + fl_true) if dead_on else mt
             mb = mt if dead_on else self.matrix_at(b, f + fl * (1 + err + jr.gauss(0, .03)))   # where the gunner led her
-            line = (Vector(hit_l) - mb.inverted() @ src).normalized()
+            line = (hl - mb.inverted() @ src).normalized()
             u = line.orthogonal().normalized()
             v = line.cross(u)
-            spread = math.hypot(reach * .08, (Vector(hit_l) - mb.inverted() @ src).length
+            spread = math.hypot(reach * .08, (hl - mb.inverted() @ src).length
                                 * math.tan(math.radians(self.SPREAD_DEG)))
             if not dead_on:
                 ox += jr.gauss(0, spread)
                 oy += jr.gauss(0, spread)
-            aim_w = mb @ (Vector(hit_l) + u * ox + v * oy)          # the round's aim point, in the world
+            aim_w = mb @ (hl + u * ox + v * oy)          # the round's aim point, in the world
             real = mt.inverted()                                    # ... in her frame as she really is then
             aim_l, src_l = real @ aim_w, real @ src
             ray = (aim_l - src_l).normalized()
@@ -466,9 +476,10 @@ class SceneFx:
             # shooter's own hull and counted the round a miss (S8-S9, 2026-10-24: the Colossus at the
             # Mk.III, 0 hits from 165)
             back = min(reach * 4, max((aim_l - src_l).length - 2.0, 1.0))
-            got = imp.ray_to_hull(self.scene, bm, tuple(aim_l - ray * back), tuple(aim_l))
+            # a round laid on a ledger point casts a little past it: the point is the hit's, not her plating's
+            got = imp.ray_to_hull(self.scene, bm, tuple(aim_l - ray * back), tuple(aim_l + ray * (min(reach, 15.0) if dead_on else 0.0)))
             hit = None
-            if got is not None and (Vector(got[0]) - Vector(hit_l)).length < reach * 3:
+            if got is not None and (Vector(got[0]) - hl).length < reach * 3:
                 hit = (Vector(got[0]), Vector(got[1]))
                 aim_w = mt @ hit[0]
             if os.environ.get('ASHARU_SHOT_DEBUG') == f'{a}>{b}':      # why a gun's rounds miss
