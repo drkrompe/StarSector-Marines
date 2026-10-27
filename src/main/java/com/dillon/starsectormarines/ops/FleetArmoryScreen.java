@@ -205,6 +205,7 @@ public final class FleetArmoryScreen implements Screen {
         ArmorySpecSheets.bindDoctrineTiles(binder, instance, viewModel.weaponDoctrineTiles());
         ArmorySpecSheets.bindDoctrineTiles(binder, instance, viewModel.armorDoctrineTiles());
         LoadoutCardBricks.bind(document, instance, viewModel.weaponDoctrineTiles()::get);
+        LoadoutCardBricks.bind(document, instance, viewModel.armorDoctrineTiles()::get);
     }
 
     private Map<String, Object> props() {

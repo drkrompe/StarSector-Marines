@@ -33,7 +33,7 @@ public final class KitBrickCanvas implements CanvasProducer {
             return;
         }
         HardpointBricks.drawFilled(context, layout, 0, 0, layout.columns(), layout.rows(),
-                HardpointBricks.tone(shown.ordnance()));
+                HardpointBricks.tone(shown.kind()));
         if (!shown.icon().isEmpty()) drawArt(context, shown, layout);
     }
 
