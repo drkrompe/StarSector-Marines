@@ -46,6 +46,16 @@ class SurfaceFieldTest {
     }
 
     @Test
+    void theEdgeAtACellsMiddleIsTheCellsSide() {
+        SurfaceField field = new SurfaceField(SurfacePalette.ARID, new Basin(SurfacePalette.VERDANT, .7f, .6f), W, H, 11);
+        for (int x = 0; x < W; x++) for (int y = 0; y < H; y++) {
+            assertEquals(field.rim(x, y), field.edge(x + .5f, y + .5f) < 0f, "at " + x + "," + y);
+        }
+        assertTrue(new SurfaceField(SurfacePalette.ARID, Basin.NONE, W, H, 11).edge(W / 2f, H / 2f) < 0f,
+                "with no basin it is all rim");
+    }
+
+    @Test
     void aBasinOfTheWorldsOwnPaletteIsNoBasin() {
         assertTrue(new SurfaceField(SurfacePalette.VERDANT, new Basin(SurfacePalette.VERDANT, .5f, .5f), W, H, 1).uniform());
         assertFalse(Basin.ravBloom(SurfacePalette.VERDANT, 1f, 1f).present());

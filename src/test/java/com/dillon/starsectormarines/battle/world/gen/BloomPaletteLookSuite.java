@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen;
 
 import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
+import com.dillon.starsectormarines.battle.creep.CreepField;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchFixture;
@@ -30,7 +31,7 @@ import java.util.Locale;
 /**
  * The Rav Bloom maps on one world's palette, through the look preset: Colony Breach, the Cordon's Line and Road, and
  * the heart's Broad Front and The Burn, each whole, then its densest farmland at site and play zoom, and the town's
- * edge where buildings meet fields, and where a desert basin's rim grows dry scrub, its thickest stand. For the owner judging a world's look (Asharu, arid with poor farmland). Opt-in.
+ * edge where buildings meet fields, where a desert basin's rim grows dry scrub, its thickest stand, and where the basin's floor meets its rim most in the open. For the owner judging a world's look (Asharu, arid with poor farmland). Opt-in.
  *
  * <p>{@code -Dsnapshot.bloomPalette.palette=ARID} (the default) picks the palette;
  * {@code -Dsnapshot.bloomPalette.maps=breach,cordon-line,cordon-road,broad-front,the-burn} and
@@ -114,6 +115,11 @@ public final class BloomPaletteLookSuite implements SnapshotSuite {
             look.refocus(scrub[0], scrub[1], PLAY_ZOOM_CELLS);
             out.add(new SnapshotArtifact(tag + "05-rim-scrub.png", look.render(sim, "")));
         }
+        int[] basin = densestBasinEdge(sim, (int) PLAY_ZOOM_CELLS);
+        if (basin != null) {
+            look.refocus(basin[0], basin[1], PLAY_ZOOM_CELLS);
+            out.add(new SnapshotArtifact(tag + "06-basin-edge.png", look.render(sim, "")));
+        }
         int cultivated = 0;
         for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) if (cultivated(topology.getGroundKind(x, y))) cultivated++;
         System.out.printf(Locale.ROOT, "bloom-palette-look %s cultivated %d of %d cells (%.1f%%), farmland %s, edge %s%n",
@@ -135,6 +141,48 @@ public final class BloomPaletteLookSuite implements SnapshotSuite {
                     if (id != null && id.endsWith(NaturalPropShape.DRY) && d.cellX >= x0 && d.cellX < x0 + size
                             && d.cellY >= y0 && d.cellY < y0 + size) count++;
                 }
+                if (count > best) {
+                    best = count;
+                    at = new int[]{x0 + size / 2, y0 + size / 2};
+                }
+            }
+        }
+        return at;
+    }
+
+    /**
+     * The middle of the {@code size}-cell square where the basin's floor meets its rim most often in the open, or null
+     * where the map has no basin: counted by corners where four bare cells of the two sides' open ground, not creeped,
+     * are not all one side ({@link SurfaceField#rim}).
+     */
+    private static int[] densestBasinEdge(BattleSimulation sim, int size) {
+        CellTopology topology = sim.getTopology();
+        SurfaceField field = topology.surfaceField();
+        if (field == null || field.uniform()) return null;
+        CreepField creep = sim.creepFieldIfPresent();
+        GroundKind floor = field.floor().inlandGround(), rim = field.world().inlandGround();
+        int w = topology.getWidth(), h = topology.getHeight(), step = size / 4;
+        boolean[] corner = new boolean[w * h];
+        for (int x = 0; x + 1 < w; x++) {
+            for (int y = 0; y + 1 < h; y++) {
+                int open = 0, rims = 0;
+                for (int i = 0; i < 4; i++) {
+                    int cx = x + (i & 1), cy = y + (i >> 1);
+                    if (creep != null && creep.isCreeped(cx, cy) || topology.getSurface(cx, cy) != 0) continue;
+                    boolean onRim = field.rim(cx, cy);
+                    if (topology.getGroundKind(cx, cy) != (onRim ? rim : floor)) continue;
+                    open++;
+                    if (onRim) rims++;
+                }
+                corner[y * w + x] = open == 4 && rims > 0 && rims < 4;
+            }
+        }
+        int best = 0;
+        int[] at = null;
+        for (int x0 = 0; x0 + size <= w; x0 += step) {
+            for (int y0 = 0; y0 + size <= h; y0 += step) {
+                int count = 0;
+                for (int x = x0; x < x0 + size; x++) for (int y = y0; y < y0 + size; y++) if (corner[y * w + x]) count++;
                 if (count > best) {
                     best = count;
                     at = new int[]{x0 + size / 2, y0 + size / 2};

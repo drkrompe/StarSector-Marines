@@ -60,9 +60,11 @@ public final class OutdoorLandscapeStage implements GenStage {
     }
 
     @Override public void run(GenContext c) {
+        SurfaceField field = SurfaceField.of(c);
+        // The basin's edge is drawn as a line whether or not the landscape below dresses it.
+        if (!field.uniform()) c.topology.setSurfaceField(field);
         if (!Boolean.parseBoolean(System.getProperty("battle.mapgen.outdoorLandscape", "true"))) return;
         if (c.width < 32 || c.height < 32 || TileRegistry.installed() == null) return;
-        SurfaceField field = SurfaceField.of(c);
         PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
         Landscape landscape = plan == null ? Landscape.STOCK : plan.landscape();
         if (landscape.raggedMargin() > 0) raggedMargins(c, landscape.raggedMargin());

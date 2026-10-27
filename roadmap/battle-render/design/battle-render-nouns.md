@@ -105,6 +105,17 @@ Earlier 2026-10-23 — Texture leases: a battle, the company deck, the Armory pr
   review drain draw the same picture. Surface relief stays per cell; the
   feather changes colour, not height. Control switch:
   `-Dbattle.render.groundFeathering=false`.
+- A **basin edge** is where a basin's floor meets its rim (`mapgen-nouns.md`,
+  basin), drawn as the line `SurfaceField.edge` rather than the cells it was
+  cut into. Each cell of either side's open ground (grass and sand on Asharu,
+  no surface of its own) that meets the other side, or that the line crosses,
+  is drawn as both: the floor's ground clipped to where the edge is at or above
+  zero, the rim's where it is below, two marched triangles each, with a half-cell
+  wobble so the line reads as ground rather than pen. Neighbours read the same
+  corners, so the line runs on without a step, and no feather passes between two
+  such cells; fields, yards, roads and the floor's own dirt and sand patches keep
+  their edges and feathers. Four resident sub-layers straight over the base
+  terrain and under the feathers (`BasinEdge`); presentation only.
 - A **shore** is where natural water meets natural ground, drawn as a contour
   instead of the cells' square steps. A field over the cells carries +1 at a
   water cell's centre and -1 at a land cell's, and at each corner twice the
