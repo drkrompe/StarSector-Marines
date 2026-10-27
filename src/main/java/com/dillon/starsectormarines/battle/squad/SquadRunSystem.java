@@ -7,8 +7,10 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.LongPredicate;
 
 /**
  * A running squad's pace, paid for Marine by Marine out of the same battle stamina a controlled
@@ -26,15 +28,34 @@ import java.util.concurrent.ConcurrentHashMap;
  * shot its behaviour asked for and any burst under way are dropped before the firing phase, its
  * cooldown and the threat it has registered untouched. One that has stopped, to fight or because
  * it is held up, spent nothing and fires as ever.
+ *
+ * <p>A mission script may run a squad of any side the same way ({@link #runScripted}): raiders
+ * sprinting down a road to where the fight is, on the same stamina and the same held fire, each
+ * dropping to its ordinary pace once the script says it has arrived.
  */
 public final class SquadRunSystem {
 
     private final SquadMoveOrderService orders;
     /** Marines whose speed carries the run multiplier this tick. Read from any thread. */
     private final Set<Long> boosted = ConcurrentHashMap.newKeySet();
+    /** Squads a mission script runs, each with the test of which of its members still run. */
+    private final Map<Integer, LongPredicate> scripted = new ConcurrentHashMap<>();
 
     public SquadRunSystem(SquadMoveOrderService orders) {
         this.orders = orders;
+    }
+
+    /**
+     * Runs a squad for a mission script until {@link #stopScripted}: each infantry member
+     * {@code stillRunning} accepts runs while its stamina lasts. Any side; replaces an earlier test.
+     */
+    public void runScripted(int squadId, LongPredicate stillRunning) {
+        scripted.put(squadId, stillRunning);
+    }
+
+    /** Ends a script's run of the squad; its members walk from the next tick. */
+    public void stopScripted(int squadId) {
+        scripted.remove(squadId);
     }
 
     /** Picks this tick's runners. Serial, after direct control's tick and before the unit update. */
@@ -47,6 +68,20 @@ public final class SquadRunSystem {
             for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
                 long id = sim.resolveUnit(sim.squadMemberAt(squad.id, i));
                 if (id == 0L || id == controlled || sim.identity().type(id) != UnitType.MARINE) continue;
+                if (stamina.status(id).exhausted()) stamina.releaseHold(id);
+                if (fundable(stamina.status(id))) boosted.add(id);
+            }
+        }
+        for (Map.Entry<Integer, LongPredicate> run : scripted.entrySet()) {
+            int squadId = run.getKey();
+            if (sim.getSquad(squadId) == null || sim.squadMemberCount(squadId) == 0) {
+                scripted.remove(squadId);
+                continue;
+            }
+            for (int i = 0, n = sim.squadMemberCount(squadId); i < n; i++) {
+                long id = sim.resolveUnit(sim.squadMemberAt(squadId, i));
+                if (id == 0L || id == controlled || !sim.identity().type(id).usesInfantryTraining()
+                        || !run.getValue().test(id)) continue;
                 if (stamina.status(id).exhausted()) stamina.releaseHold(id);
                 if (fundable(stamina.status(id))) boosted.add(id);
             }

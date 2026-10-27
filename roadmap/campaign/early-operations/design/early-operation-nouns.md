@@ -452,7 +452,11 @@ company lift. No line names the fee; the amount lives in the offer's terms.
 2. **Take Back the Depot**: join the local advance, capture dispatch and
    defend it against two finite road attacks. The company's first step inside
    dispatch sends the first attack along both service roads at once and the
-   final one forty seconds later, so the capture is made under attack. The
+   final one forty seconds later, so the capture is made under attack. Each
+   road squad makes straight for dispatch at a sprint, on the Marines' own
+   stamina and holding fire while it runs, and each raider drops to its
+   ordinary pace once inside; the defenders' commander takes the squad over
+   there. The
    final attack brings a militia technical (heavy machine gun) up the south
    service road to park in the loading yard before dispatch's door, in support
    of the raiders already at the warehouse; it counts as a raider, so the hold
