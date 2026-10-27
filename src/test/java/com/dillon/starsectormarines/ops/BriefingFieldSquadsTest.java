@@ -4,7 +4,9 @@ import com.dillon.starsectormarines.marine.MarineSquad;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
@@ -26,6 +28,17 @@ class BriefingFieldSquadsTest {
         List<BriefingViewModel.SquadPicture> mostlyHurt = squads(10);
         for (int i = 1; i < 10; i++) mostlyHurt.set(i, squad("hurt-" + i, 11));
         assertEquals(10, BriefingViewModel.stackSquads(mostlyHurt).size());
+    }
+
+    @Test
+    void aDebugBriefingFieldsItsDetachedCompanyLineSquads() {
+        Map<String, Object> props = new HashMap<>();
+        props.put("taskForceRows", List.of());
+        props.put("debugForceRows", BriefingViewModel.debugForceRows(DebugMissionCatalog.starterCompany(3), 0f));
+        List<BriefingViewModel.SquadPicture> tiles = BriefingViewModel.fieldSquads(props);
+        assertEquals(3, tiles.size());
+        assertEquals(36, tiles.stream().mapToInt(tile -> tile.muster().readyCount()).sum());
+        assertEquals(List.of(), BriefingViewModel.debugForceRows(null, 0f));
     }
 
     private static List<BriefingViewModel.SquadPicture> squads(int count) {

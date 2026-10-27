@@ -17,7 +17,8 @@ import java.awt.Color;
  * ({@code SquadRunSystem}).
  *
  * <p>The badge stands at the upper right of the squad's lead body, opposite the medic's cross, and
- * is the squad's rather than the leader's: one per running squad. The bar under it is the mean of
+ * is the squad's rather than the leader's: one per running squad, and only while the player has that
+ * squad selected, so a field of running squads is not a field of badges. The bar under it is the mean of
  * its Marines' stamina, so a squad running itself out shows it before its men drop to a walk; it
  * greys while most of them are winded. Drawn in {@link RenderLayer#UNITS} after the bodies, like
  * the medic's cross. Observation only.
@@ -48,16 +49,15 @@ public final class SquadRunMarkerRenderSystem implements RenderSystem {
         float cellPx = camera.cellPxSize();
         float size = Math.max(MIN_BADGE_PX, Math.min(MAX_BADGE_PX, BADGE_CELLS * cellPx));
         for (Squad squad : sim.getSquads()) {
-            if (squad.faction != Faction.MARINE || !sim.getSquadMoveOrderService().isRunning(squad.id)) continue;
+            if (squad.faction != Faction.MARINE || ctx.selection == null || !ctx.selection.isSquadSelected(squad.id)
+                    || !sim.getSquadMoveOrderService().isRunning(squad.id)) continue;
             long lead = lead(sim, squad);
             if (lead == 0L) continue;
             float x = sim.world().renderX(lead);
             float y = sim.world().renderY(lead);
             float radius = Math.max(0.42f, sim.getRoster().radius(lead));
             if (!view.visible(x, y, radius * 3f)) continue;
-            boolean selected = ctx.selection != null && ctx.selection.isSquadSelected(squad.id);
-            float alpha = ctx.alphaMult * (selected ? MedicMarkerRenderSystem.SELECTED_ALPHA
-                    : MedicMarkerRenderSystem.UNSELECTED_ALPHA);
+            float alpha = ctx.alphaMult * MedicMarkerRenderSystem.SELECTED_ALPHA;
             Stamina stamina = stamina(sim, squad);
             float cx = camera.cellToScreenX(x) + radius * cellPx + size * 0.5f;
             float cy = camera.cellToScreenY(y) + radius * cellPx + size * 0.4f;

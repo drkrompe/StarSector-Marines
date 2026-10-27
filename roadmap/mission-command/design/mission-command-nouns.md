@@ -510,11 +510,15 @@ the share of a full sprint it actually covered, so a Marine held up by a wall, a
 crowd or its own fight spends nothing. A Marine who runs dry walks on, recovers to
 the restart reserve and runs again while the order still runs; nothing is held
 down for it to release. The body under direct control is the player's hand's and
-is never boosted by its squad's run. Running does not change who fires or when:
-local AI still owns contact. A winged foot stands at the upper right of a running
-squad's lead body, opposite the medic's cross, with the squad's mean stamina in a
-bar beneath it that greys while most of its Marines are winded. Evidence:
-`sceneEvidence -Pscene=squad-run`, and its look shot `look/squad-run-*`.
+is never boosted by its squad's run. A Marine running holds fire, as a sprinting
+one does: on a tick it actually ran, the primary shot its behaviour asked for and
+any burst under way are dropped, its cooldown and registered threat untouched. One
+that has stopped, to fight or because it is held up, spent nothing and fires as
+ever; local AI still decides when to stop. While the player has a running squad
+selected, a winged foot stands at the upper right of its lead body, opposite the
+medic's cross, with the squad's mean stamina in a bar beneath it that greys while
+most of its Marines are winded; an unselected squad shows nothing. Evidence:
+`sceneEvidence -Pscene=squad-run`, and its look shots `look/squad-*`.
 
 A frozen **command doctrine profile** may bias legal assignment, reserve,
 recapture, and local-posture choices. It does not add objectives, knowledge,

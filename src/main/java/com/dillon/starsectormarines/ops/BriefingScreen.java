@@ -571,6 +571,8 @@ public class BriefingScreen implements Screen {
                                 liveRoster(), ctx.getSelectedMarineSquadIds()).display()));
         props.put("taskForceRows", !debug && mission.source != MissionSource.STATIONING
                 ? retainedTaskForceRows() : List.of());
+        props.put("debugForceRows", debug
+                ? BriefingViewModel.debugForceRows(ctx.getDebugCompanyRoster(), CampaignClock.dayFloat()) : List.of());
 
         int used = CommandDeck.used(cachedAvailablePowers, selectedPowerIds);
         props.put("commandSummary", Strings.format("briefingUiCommandSlots", used, CommandDeck.BUDGET));

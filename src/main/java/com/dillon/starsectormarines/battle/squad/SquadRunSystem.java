@@ -21,6 +21,11 @@ import java.util.concurrent.ConcurrentHashMap;
  * breath to the sprint's restart reserve, and runs again while the order still runs: nobody is
  * holding a key down for it to let go of. The Marine under direct control is the player's hand's
  * and never boosted here; recovery for everyone else is {@link MarineSprint#tickInactive}'s.
+ *
+ * <p>A Marine running holds fire, as a sprinting one does: on a tick it actually ran, the primary
+ * shot its behaviour asked for and any burst under way are dropped before the firing phase, its
+ * cooldown and the threat it has registered untouched. One that has stopped, to fight or because
+ * it is held up, spent nothing and fires as ever.
  */
 public final class SquadRunSystem {
 
@@ -48,7 +53,10 @@ public final class SquadRunSystem {
         }
     }
 
-    /** Charges each runner for the boost it actually used. Serial, after the unit update. */
+    /**
+     * Charges each runner for the boost it actually used, and lowers the primary of each that ran.
+     * Serial, after the unit update and before the firing phase consumes this tick's intents.
+     */
     public void afterMovement(BattleSimulation sim) {
         if (boosted.isEmpty()) return;
         MarineSprint stamina = sim.directControl().marineStamina();
@@ -61,7 +69,10 @@ public final class SquadRunSystem {
             // and the run's share of the distance is what the multiplier added to it.
             float walking = sim.movement().moveSpeed(id) / MarineSprint.SPEED_SCALE;
             float bonus = moved * (MarineSprint.SPEED_SCALE - 1f) / MarineSprint.SPEED_SCALE;
-            stamina.finishStep(id, true, bonus, walking, dt);
+            if (stamina.finishStep(id, true, bonus, walking, dt)) {
+                sim.combat().dropFireIntent(id);
+                sim.combat().clearPrimaryFire(id);
+            }
         }
     }
 

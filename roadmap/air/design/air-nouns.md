@@ -485,7 +485,7 @@ only while she is over the battle, in her emitter tier's tint. The shield goes
 when she falls or leaves. Other aircraft carry none.
 
 **The fit owns seats, ramp and loaded speed; the deck owns the turnaround.**
-The frame's seats are the cabin's (never fewer than the pattern's), and its
+The frame's seats are the pattern's (the Hermes lands a whole squad), and its
 deboard cadence is the pattern's quickened by the drive. A boat flies slower
 with weight aboard: a machine drags her by its lift class and each marine a
 little (`FittedBoat.carrying`), so she runs back faster than she ran in, and a

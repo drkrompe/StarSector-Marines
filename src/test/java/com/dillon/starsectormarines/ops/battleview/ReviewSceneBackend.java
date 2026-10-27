@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 
 import java.awt.image.BufferedImage;
@@ -21,9 +22,12 @@ interface ReviewSceneBackend {
 
     String PROPERTY = "snapshot.backend";
 
-    /** One frame's world: who is drawn, through which camera, and what a review feed adds ahead of each layer. */
+    /**
+     * One frame's world: who is drawn, through which camera, and what a review feed adds ahead of each layer;
+     * {@code selection} is what the player has selected, for a mark drawn only on a selected squad, or null for none.
+     */
     record Scene(BattleSimulation simulation, BattleCamera camera, EnumSet<RenderLayer> layers,
-                 float clockSeconds, ReviewImpactFx impacts) { }
+                 float clockSeconds, ReviewImpactFx impacts, Selection selection) { }
 
     /** The scene as a {@code width}x{@code height} image, top row first. */
     BufferedImage draw(Scene scene, int width, int height);

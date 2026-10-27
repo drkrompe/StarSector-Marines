@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.scene;
 
+import com.dillon.starsectormarines.battle.ui.picking.Selection;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vision.BuildingVisibilityPass;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -66,10 +67,15 @@ public final class LookReview {
      * stage named ({@link #subject}), which a {@link View#follow following view} keeps in frame.
      */
     public record Placement(LookGround ground, MapResult map, LookGround.Site site, Map<String, Long> subjects,
-                            List<Consumer<BattleSimulation>> beforeTicks) {
+                            List<Consumer<BattleSimulation>> beforeTicks, List<Integer> selectedSquads) {
 
         public Placement(LookGround ground, MapResult map, LookGround.Site site) {
-            this(ground, map, site, new LinkedHashMap<>(), new ArrayList<>());
+            this(ground, map, site, new LinkedHashMap<>(), new ArrayList<>(), new ArrayList<>());
+        }
+
+        /** Draws the shot as though the player had this squad selected, for a mark shown only on a selection. */
+        public void select(int squadId) {
+            selectedSquads.add(squadId);
         }
 
         /**
@@ -310,9 +316,15 @@ public final class LookReview {
             List<List<BufferedImage>> frames = new ArrayList<>(views.size());
             List<StillCandidates> candidates = new ArrayList<>(views.size());
             if (mp4) Files.createDirectories(scratch);
+            Selection selection = null;
+            if (!placement.selectedSquads().isEmpty()) {
+                selection = new Selection();
+                selection.selectSquads(placement.selectedSquads(), placement.selectedSquads().get(0), 0L, false);
+            }
             for (View view : views) {
                 float[] f = view.focus().apply(sim);
-                renderers.add(BattleReviewFrameRenderer.look(modRoot, width, height, f[0], f[1], f[2]));
+                renderers.add(BattleReviewFrameRenderer.look(modRoot, width, height, f[0], f[1], f[2])
+                        .selecting(selection));
                 frames.add(!mp4 || raw ? new CompressedFrameList() : List.of());
                 candidates.add(new StillCandidates(shot.stillFrames(), shot.stills(), gap));
                 if (mp4) {
