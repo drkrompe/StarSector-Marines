@@ -43,6 +43,10 @@ final class BriefingHints {
             binder.bind(markup.requireElement("mission-transport-readout"), landingCraft);
         }
         BriefingLift.bindHints(binder, markup, props);
+        for (Object value : (List<?>) props.getOrDefault("deployLamps", List.of())) {
+            DeployWarnings.Lamp lamp = (DeployWarnings.Lamp) value;
+            binder.bind(markup.requireElement(lamp.kind().id()), lamp.hint());
+        }
         if (!Boolean.TRUE.equals(props.get("debugExpanded"))) return binder;
         // The kit picker's cards open the same field notes and seat sheets they do in the Armory.
         if (props.get("kitPicker") instanceof Map<?, ?> picker && Boolean.TRUE.equals(picker.get("open"))) {

@@ -53,6 +53,7 @@ import com.dillon.starsectormarines.marine.MarinePersonnelLogistics;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.CampaignSquadFoundingResources;
+import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MechBay;
 import com.dillon.starsectormarines.ops.battleview.SquadMuster;
@@ -100,6 +101,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Executors;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static org.lwjgl.opengl.GL11.GL_BLEND;
 import static org.lwjgl.opengl.GL11.GL_LINE_LOOP;
@@ -491,9 +493,6 @@ public class BriefingScreen implements Screen {
             PreparationGuide.Lesson handoff = CampaignLessons.handoff(roster, ctx, ScreenId.BRIEFING);
             if (handoff != null) return handoff;
         }
-        PreparationGuide.Lesson preparation = CampaignLessons.briefing(ctx.getSelectedMission(), roster,
-                ctx.getSelectedMarineSquadIds(), cachedAvailablePowers.stream().anyMatch(p -> MechSupport.ID.equals(p.id)));
-        if (preparation != null) return preparation;
         return SecondSquadPreparation.lesson(ctx.getSelectedMission(), roster,
                 new CampaignSquadFoundingResources(), replaySecondSquadGuide, () -> {
                     roster.acknowledgeSecondSquadPreparation(); replaySecondSquadGuide = false;
@@ -596,10 +595,12 @@ public class BriefingScreen implements Screen {
             props.put("landingCraftHint", new SpecSheet(grounded, grounded, null, "command", List.of(),
                     List.of(repairingLift, Strings.get("boatRepairCopy"))));
         }
-        BriefingLift.put(props, liftReadout(mission));
+        BriefingLift.Readout liftReadout = liftReadout(mission);
+        BriefingLift.put(props, liftReadout);
         BriefingAir.put(props, BriefingAir.read(cachedCarriers, cachedAvailablePowers, gunshipShips()));
         props.put("employerRows", retainedEmployerRows(mission));
         putRetainedActions(props, mission, readiness);
+        putDeployLamps(props, mission, readiness, liftReadout);
         props.put("preparationClasses", SecondSquadPreparation.relevant(mission, liveRoster()) ? "mission-preparation" : "briefing-assign-hidden");
         props.put("prepareReplay", (Runnable) () -> { narration.stop(); replaySecondSquadGuide = true; });
         props.put("prepareArmory", (Runnable) () -> ctx.goTo(ScreenId.BARRACKS));
@@ -1334,6 +1335,45 @@ public class BriefingScreen implements Screen {
             props.put("deployClasses", "briefing-deploy danger-surface briefing-blocked");
             props.put("deployAction", (Runnable) () -> { });
         }
+    }
+
+    /**
+     * The warning lamps beside Deploy and the Replenish key over the field force. A debug or stationing
+     * briefing has no live company to warn about, so it shows neither.
+     */
+    private void putDeployLamps(Map<String, Object> props, Mission mission, PersonnelReadiness readiness,
+                                BriefingLift.Readout liftReadout) {
+        MarineRoster roster = liveRoster();
+        if (mission.source.isDebug() || mission.source == MissionSource.STATIONING || roster == null
+                || readiness == null) return;
+        float day = CampaignClock.dayFloat();
+        Set<String> selected = ctx.getSelectedMarineSquadIds();
+        int replenishable = roster.readyReserveCount() + MarinePersonnelLogistics.availableCargoMarines();
+        CampaignMechSquad lance = roster.mechBay().activeSquad();
+        props.put("deployLamps", List.of(
+                DeployWarnings.undermanned(readiness.selectedReady(), MissionForceEnvelope.recommendedPersonnel(mission)),
+                DeployWarnings.casualties(roster, selected, day, replenishable),
+                DeployWarnings.damage(lance == null ? List.of() : lance.mechs(), day),
+                DeployWarnings.lift(liftReadout)));
+        int vacant = 0;
+        for (String id : selected) {
+            MarineSquad squad = roster.squadById(id);
+            if (squad != null && !squad.stationed()) vacant += roster.vacancies(squad);
+        }
+        int fill = Math.min(vacant, replenishable);
+        props.put("replenishLabel", Strings.upper(Strings.format("briefingUiReplenish", fill)));
+        props.put("replenishClasses", fill > 0 ? "" : "briefing-assign-hidden");
+        props.put("replenishDisabled", fill == 0);
+        props.put("replenishAction", (Runnable) () -> replenish(roster, selected));
+    }
+
+    /** Fills the selected squads' empty billets from ready reserves, then cargo Marines. */
+    private void replenish(MarineRoster roster, Set<String> squadIds) {
+        for (String id : List.copyOf(squadIds)) {
+            MarineSquad squad = roster.squadById(id);
+            if (squad != null && !squad.stationed()) MarinePersonnelLogistics.reinforceSquad(roster, id);
+        }
+        rebuild();
     }
 
     private void reinforce(MarineRoster roster, int shortfall) {
@@ -2599,6 +2639,7 @@ public class BriefingScreen implements Screen {
         if (m == null) return;
         if (!m.source.isDebug() && SecondWindKeeper.missionBlocker() != null) { rebuild(); return; }
         if (MissionLaunch.requiresOfficerInduction(m)) { ctx.openOfficerInduction(); return; }
+        if (!m.source.isDebug() && liveRoster() != null) CampaignLessons.deployed(m, liveRoster());
         prepareSurvey(m);
         if (survey.peek() == null) { installDocument(); return; }
         CampaignStateScript campaignScript = CampaignStateScript.getInstance();
