@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17f50-bc6b-7b73-bab2-4511d1fe1bbf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17f50-bc6b-7b73-bab2-4511d1fe1bbf\\exec-0acd0345-c65b-45c4-a674-efa39cda1519.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\dry-woodland\\raw\\scrub-undergrowth.raw.png",
+    "sha256": "50814a6fac338ffaf0cf81e7546513283835a958f7f2c902c8eb3510fbd50d40",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\dry-woodland\\prompts\\scrub-undergrowth.prompt.txt",
+  "promptSha256": "bfdd5369064cc6106f65a301d2a6d90fffd6323da009952c041ab0169759d064",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the six undergrowth silhouettes and their gaps; reskin, never move\nImage 2: Material/style only: existing painted forest undergrowth; match rendering and light, not plants or palette\nImage 3: Palette reference only: the dry trees this scrub grows beside\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into a production overhead undergrowth sprite sheet for a top-down tactical game. Image 2 is ONLY the material/style reference: the game's existing painted forest undergrowth. Match its painterly realistic rendering, camera, detail scale and soft diffuse overhead light; do NOT copy its green woodland plants or palette. Image 3 is the palette/identity reference: the dry trees this scrub grows beside; match its foliage colours, not its shapes.\nPreserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch, every silhouette's center, size, aspect and outline. Each plant fills its guide silhouette out to the edge (small serrations may refine it inward) and nothing grows beyond it. Do not move, enlarge, tilt or rearrange anything.\nCamera looks STRAIGHT DOWN from directly above: orthographic plan view of low dry-country growth, roughly waist to head high. No side view, no perspective.\nSetting: the dry arid rim of a desert world's green basin; hot, sun-bleached, dusty.\nDirection: GREY DRY-SCRUB, palette of silver-grey, slate green, rusty ochre and straw.\nTop row left to right:\n1. Dead-brush patch (wide): a low tangle of bleached grey dead branches with a few clumps of small grey-green leaves. SPARSE: keep the guide's gaps as genuine transparent holes, about a third of the silhouette.\n2. Small dead-brush (narrow strip): the same, a single short run, sparse with transparent gaps.\n3. Grey thornscrub thicket (large, round): a dense mound of small silver-grey and slate-green leaves on fine twigs, a few rusty ochre dried patches, dark internal recesses, completely opaque.\nBottom row left to right:\n4. Small saltbush: compact mound of mealy blue-grey leaves, completely opaque.\n5. Spinifex hummock bed (long strip): spiky hummock grass seen from above, rings of stiff needle-like straw and grey-green blades radiating from several crowns, opaque.\n6. Scrub saplings: three young grey-olive saplings, each a small airy crown at its guide circle with a hint of a thin stem at its centre; transparent ground between the crowns.\nHand-painted realistic tactical-game environment art, coherent medium detail readable at 1-4 world cells per plant. No baked ground shadow outside the silhouettes, no sand disc, no rocks, no flowers unless named, no labels, no text, no border.\nTrue transparent background, including the named gaps. No colored backdrop or checkerboard. Keep all six precisely registered to the guide and keep the 3:2 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\undergrowth-standing.png",
+      "sha256": "c9288090838ea7595157d48018d362088c2bb67e759b30b9b97dc4bdd589aa32",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the six undergrowth silhouettes and their gaps; reskin, never move"
+    },
+    {
+      "path": "art-source\\tilesets\\forest-undergrowth.raw.png",
+      "sha256": "976911bbb0223d6b10fff6d075440ce9657bcb9c5d90fb86dd95c735b14cf09b",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only: existing painted forest undergrowth; match rendering and light, not plants or palette"
+    },
+    {
+      "path": "art-source\\dry-woodland\\raw\\scrub-canopies.raw.png",
+      "sha256": "0a21eebaafdf39f70a431e07c0f6227121acf9a57b3d3cc307eefb6554abdba4",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Palette reference only: the dry trees this scrub grows beside"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use the image generation tool to reskin the guide, preserving the six placements and transparent gaps."
+  ],
+  "usage": {
+    "input_tokens": 47839,
+    "cached_input_tokens": 36608,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 864,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 57.6
+}
