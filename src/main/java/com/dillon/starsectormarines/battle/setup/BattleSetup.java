@@ -2755,6 +2755,8 @@ public final class BattleSetup {
             }
         }
         sim.installThunderRun(attempt, delivered, reserve);
+        // Raider waves that come sooner and larger until the convoy is out (ThunderRunPressure).
+        sim.getThunderRun().pressure(new ThunderRunPressure(seed));
         sim.installWaylineGunship(true);
         for (var gun : ThunderRunCompound.ANTI_AIR_POSTS) sim.spawn(MapTurret.create("freight-aa-" + gun.y(),
                 Faction.DEFENDER, TurretCatalogRegistry.RIDGE_AA_STRUCTURE_ID, gun.x(), gun.y()));
@@ -4910,7 +4912,7 @@ public final class BattleSetup {
         if (squad != null) squad.originalSize = squadMembers;
     }
 
-    private static EntitySpec makeOpeningMilitia(
+    static EntitySpec makeOpeningMilitia(
             String id, Faction faction, int x, int y, Random rng) {
         return new EntitySpec(id, faction, UnitType.MILITIA, x, y)
                 .primaryWeapon(
@@ -5703,7 +5705,7 @@ public final class BattleSetup {
     }
 
     /** BFS from (cx, cy) over walkable cells, returning the first {@code count} cells in BFS order. */
-    private static List<int[]> pickSpawnCluster(NavigationGrid grid, int cx, int cy, int count) {
+    static List<int[]> pickSpawnCluster(NavigationGrid grid, int cx, int cy, int count) {
         List<int[]> picked = new ArrayList<>();
         Set<Long> seen = new HashSet<>();
         Queue<int[]> q = new ArrayDeque<>();

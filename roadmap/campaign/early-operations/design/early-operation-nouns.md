@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-27 — Junction counterattacks in two blows on a clock that never goes quiet, the first as soon as the first site falls. Earlier the same day: Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
+Updated: 2026-10-27 — Thunder Run's raiders press the militia's back lines and the convoy harder over time, and the final run's haulers go together. Earlier the same day: Junction counterattacks in two blows on a clock that never goes quiet, the first as soon as the first site falls. Earlier the same day: Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
 Earlier 2026-10-27 — Counterattack's road attacks start when the company first enters dispatch, not after the capture.
 Earlier 2026-10-20 — Relief's story chapter starts the company ashore beside Wayline's truck under the ore-dust cover story; Militia Relief keeps company lift.
 
@@ -1277,9 +1277,21 @@ holds ahead of the crossing until the first surviving hauler approaches, then
 pushes on toward the exit. Its hull, turret, ammunition and damage are ordinary
 combat state; losing it does not manufacture a victory or block surviving cargo.
 At the final release, the two APC escorts
-advance along the road flanks and hold the crossing; freight follows after a
-12-second lead interval, with subsequent loads released 16 seconds apart. The escorts leave only after the last surviving load passes
+advance along the road flanks and hold the crossing; after a 12-second lead
+interval every load goes at once, as one column, keeping its spacing on the
+road rather than leaving one at a time. The escorts leave only after the last surviving load passes
 the crossing.
+
+**Pressure rises over the whole run** (`ThunderRunPressure`), on top of the
+finite timetable. From the column's first release, raider waves keep coming in
+down the side arms and the outbound road, each sooner and larger than the last
+(40 s apart falling to 16 s, four raiders growing to eight, twelve waves). While
+the company holds, each wave goes for the militia's back lines, the held posts
+behind the company in turn (the staging shoulders, Dispatch's posts, the gun
+bays), so the company must decide whether to send help back. Once the final run
+is released, every wave goes for the convoy, at the road ahead of the leading
+hauler, carrying scrap rockets. Numbers are untuned: the player is better than
+the autopilot, so balance comes from play.
 
 The sequence decides when each hull moves and where it stops; a column driver
 decides how it drives there. Each leg is a gently weaving lane inside the
