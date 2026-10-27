@@ -1,10 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
+import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
-import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.GeneratedRoads;
@@ -113,10 +112,11 @@ public final class RoadSurfaceStage implements GenStage {
         List<RoadPlan.Route> routes = new ArrayList<>(network.routes());
         if (rural != null) routes.addAll(RuralGround.routes(rural, network.routes(), ctx.seed));
         if (routes.isEmpty()) return;
-        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
-        var margin = (profile == null ? SurfacePalette.ROCK : profile.surface()).inlandGround();
+        var field = SurfaceField.of(ctx);
         var mapping = GenMappingRegistry.installed();
-        int nativeSurface = mapping == null ? 0 : ctx.topology.surfaceIndex(mapping.groundBlockId(margin));
+        int rimSurface = mapping == null ? 0 : ctx.topology.surfaceIndex(mapping.groundBlockId(field.world().inlandGround()));
+        int floorSurface = mapping == null || field.uniform() ? rimSurface
+                : ctx.topology.surfaceIndex(mapping.groundBlockId(field.floor().inlandGround()));
         var allowed = new RoadSurface.Underlay[ctx.width][ctx.height];
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
             var kind = ctx.topology.getGroundKind(x, y);
@@ -137,7 +137,8 @@ public final class RoadSurfaceStage implements GenStage {
             // Natural terrain, props, authored pads and building thresholds keep ownership.
             if (!asphalt && !(id.startsWith("pavement.concrete.") && adjacent(road, x, y))) continue;
             int underlay = ctx.topology.getSurface(x, y);
-            if (asphalt) underlay = claim[x][y] == GrownTrunkPlan.UNOWNED ? nativeSurface
+            if (asphalt) underlay = claim[x][y] == GrownTrunkPlan.UNOWNED
+                    ? (field.rim(x, y) ? rimSurface : floorSurface)
                     : ctx.topology.surfaceIndex(Material.CONCRETE.block(RoadRasterizer.age(.4, ctx.seed, x, y)));
             // Retain the semantic kind too: this pass cannot reroll defense placement,
             // landscape, spawns, navigation costs, or any later combat behavior.

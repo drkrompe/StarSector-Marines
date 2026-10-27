@@ -1,9 +1,8 @@
 package com.dillon.starsectormarines.battle.world.gen.rural;
 
+import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
-import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
@@ -60,8 +59,7 @@ public final class RuralGround {
         int dirt = surface(ctx, mapping, GroundKind.DIRT);
         int sand = surface(ctx, mapping, GroundKind.SAND);
         int[] hedge = hedgePlants();
-        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
-        GroundKind wild = (profile == null ? SurfacePalette.ROCK : profile.surface()).inlandGround();
+        SurfaceField wild = SurfaceField.of(ctx);
         int[] asphalt = new int[3];
         for (int age = 0; age < 3; age++) asphalt[age] = ctx.topology.surfaceIndex(Material.ASPHALT.block(age));
         for (int y = 0; y < ctx.height; y++) {
@@ -81,7 +79,7 @@ public final class RuralGround {
                     surface = dirt;
                 } else if (layout.plotAt(x, y) == null || layout.plotAt(x, y).use() == Use.WILD) {
                     // Ground nobody works is the planet's own, as unclaimed land is.
-                    kind = wild;
+                    kind = wild.at(x, y).inlandGround();
                     surface = 0;
                 } else {
                     kind = plotGround(layout.plotAt(x, y), x, y);

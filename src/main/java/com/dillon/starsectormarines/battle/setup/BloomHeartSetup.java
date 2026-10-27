@@ -38,6 +38,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.Basin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspCityGenerator;
@@ -80,6 +81,11 @@ public final class BloomHeartSetup {
     private static final int ATTEMPTS = 8;
     private static final BspCityGenerator MAP_GEN = new BspCityGenerator();
     private static final long BORE_SALT = 0x4845_4152_5453_4954L;
+    /**
+     * The heart's basin on a desert world ({@link Basin#ravBloom}): wider than the map, so the whole valley is its
+     * green floor and the desert shows only in the corners.
+     */
+    static final float BASIN_REACH_X = 1.12f, BASIN_REACH_Y = 1.15f;
 
     private BloomHeartSetup() { }
 
@@ -249,7 +255,7 @@ public final class BloomHeartSetup {
 
     /** The country from one seed with its patch, or {@code null} when its bores do not seat. */
     private static Built build(Form form, SurfacePalette biome, Density density, long battleSeed, MapPatch patch) {
-        TargetProfile profile = world(biome);
+        TargetProfile profile = world(biome).withBasin(Basin.ravBloom(biome, BASIN_REACH_X, BASIN_REACH_Y));
         PrecinctPlan plan = patch.pinned(HeartCountry.planFor(form, density, battleSeed));
         MapResult map = MAP_GEN.generate(form.scale.width, form.scale.height, battleSeed, null, profile, plan);
         HeartBores heart = bores(form, map, plan, battleSeed);

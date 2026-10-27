@@ -2,9 +2,7 @@ package com.dillon.starsectormarines.battle.world.gen.fortress;
 
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
-import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
-import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.fit.RoomPacker;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
@@ -33,13 +31,10 @@ public final class InstallationGround {
                     mark(apron, x + dx, y + dy);
             }
         }
-        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
-        SurfacePalette planet = profile == null ? SurfacePalette.ROCK : profile.surface();
+        SurfaceField planet = SurfaceField.of(ctx);
         int[] concrete = surfaces(ctx, Material.CONCRETE);
         int[] asphalt = surfaces(ctx, Material.ASPHALT);
-        GroundKind margin = planet.inlandGround();
-        GenMappingRegistry mapping = GenMappingRegistry.installed();
-        int marginSurface = mapping == null ? 0 : ctx.topology.surfaceIndex(mapping.groundBlockId(margin));
+        Earth margin = new Earth(ctx, planet);
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
             if ((!ground[x][y] && !circulation[x][y]) || building[x][y]
                     || ctx.topology.isWall(x, y) || ctx.topology.isFixture(x, y)
@@ -55,8 +50,8 @@ public final class InstallationGround {
                     || old == GroundKind.SIDEWALK || old == GroundKind.COURTYARD) {
                 ctx.topology.setSurface(x, y, concrete[age]);
             } else {
-                ctx.topology.setGroundKind(x, y, margin);
-                ctx.topology.setSurface(x, y, marginSurface);
+                ctx.topology.setGroundKind(x, y, margin.kind(x, y));
+                ctx.topology.setSurface(x, y, margin.surface(x, y));
             }
             ctx.topology.setNatureOverlayIndex(x, y, -1);
             // Explicit surfaces exclude later landscape on these exact cells.
@@ -71,17 +66,38 @@ public final class InstallationGround {
      * ground rather than as the town's pavement. Road across it stays road.
      */
     public static void glacis(GenContext ctx, boolean[][] strip, boolean[][] road) {
-        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
-        SurfacePalette planet = profile == null ? SurfacePalette.ROCK : profile.surface();
-        GroundKind ground = planet.inlandGround();
-        GenMappingRegistry mapping = GenMappingRegistry.installed();
-        int surface = mapping == null ? 0 : ctx.topology.surfaceIndex(mapping.groundBlockId(ground));
+        Earth earth = new Earth(ctx, SurfaceField.of(ctx));
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
             if (!strip[x][y] || road[x][y] || ctx.topology.isWall(x, y) || ctx.topology.isFixture(x, y)
                     || !ctx.grid.isWalkable(x, y)) continue;
-            ctx.topology.setGroundKind(x, y, ground);
-            ctx.topology.setSurface(x, y, surface);
+            ctx.topology.setGroundKind(x, y, earth.kind(x, y));
+            ctx.topology.setSurface(x, y, earth.surface(x, y));
             ctx.topology.setNatureOverlayIndex(x, y, -1);
+        }
+    }
+
+    /** The planet's own unworked earth at a cell, and the surface that lays it: a basin's floor or its rim. */
+    private static final class Earth {
+        private final SurfaceField field;
+        private final GroundKind rim, floor;
+        private final int rimSurface, floorSurface;
+
+        Earth(GenContext ctx, SurfaceField field) {
+            this.field = field;
+            GenMappingRegistry mapping = GenMappingRegistry.installed();
+            rim = field.world().inlandGround();
+            floor = field.floor().inlandGround();
+            rimSurface = mapping == null ? 0 : ctx.topology.surfaceIndex(mapping.groundBlockId(rim));
+            floorSurface = mapping == null || floor == rim ? rimSurface
+                    : ctx.topology.surfaceIndex(mapping.groundBlockId(floor));
+        }
+
+        GroundKind kind(int x, int y) {
+            return floor == rim || field.rim(x, y) ? rim : floor;
+        }
+
+        int surface(int x, int y) {
+            return floor == rim || field.rim(x, y) ? rimSurface : floorSurface;
         }
     }
 
