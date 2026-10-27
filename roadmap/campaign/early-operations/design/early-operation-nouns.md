@@ -452,7 +452,12 @@ company lift. No line names the fee; the amount lives in the offer's terms.
 2. **Take Back the Depot**: join the local advance, capture dispatch and
    defend it against two finite road attacks. The company's first step inside
    dispatch sends the first attack along both service roads at once and the
-   final one forty seconds later, so the capture is made under attack. Secure Wayline's offline Hound
+   final one forty seconds later, so the capture is made under attack. The
+   final attack brings a militia technical (heavy machine gun) up the south
+   service road to park in the loading yard before dispatch's door, in support
+   of the raiders already at the warehouse; it counts as a raider, so the hold
+   is not won while it stands. A Hound's chaingun kills it in about a quarter
+   of a minute; charged across the open yard it can kill the Hound first. Secure Wayline's offline Hound
    for the push and warehouse defense.
    Successful settlement pays 9,000 credits, transfers that chassis and closes the arc.
    Mara reports that dispatch can resume and refers the company to other
