@@ -17,7 +17,7 @@ import org.json.JSONException;
  * <p>{@link #FIELD_AID} sits closest to that line and stays the right side of
  * it. What it buys is not the wearer surviving longer — the wearer gains
  * nothing at all — but a <em>squadmate</em> getting back up, out of a finite
- * satchel, by a marine who had to be next to them to do it. It undoes damage
+ * pool, by a marine who had to be next to them to do it. It undoes damage
  * already taken rather than pre-empting damage to come, and it is spent on
  * somebody else. A system that healed its own wearer passively would be the
  * thing this rule forbids.
@@ -42,10 +42,12 @@ public enum IntegralSystemEffect {
             "graphics/ui/armory/system-missile-pod.png"),
 
     /**
-     * Treatment for a wounded squadmate within arm's reach, out of a finite
-     * satchel. Answers what the marine carrying the section's heavy load is
-     * carrying besides ammunition, and it is the only effect here whose whole
-     * value lands on somebody other than the wearer.
+     * A medical kit for the squad medic: treatment over time for a wounded
+     * squadmate within arm's reach, paid out of the medic's regenerating pool
+     * ({@code squad-medic.md}). Without an officer's Field Medicine the wearer is
+     * a medic of the kit's weaker form; with it, every kit in the squad
+     * complements the officer's medic. Several marines in one squad may carry one. It is the only effect here whose whole value lands on
+     * somebody other than the wearer.
      *
      * <p>Deliberately treats the walking wounded rather than the dead. A marine
      * in this simulation is alive or dead with nothing in between, so a system

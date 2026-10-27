@@ -82,7 +82,8 @@ public record IntegralSystemDef(
                 requireText(json, "effect", armorId), armorId);
         SpecialResourceMode resourceMode = SpecialResourceMode.fromKey(
                 requireText(json, "resource", armorId), armorId);
-        float durationSeconds = positive(json, "durationSeconds", armorId);
+        float durationSeconds = resourceMode == SpecialResourceMode.ENERGY
+                ? 0f : positive(json, "durationSeconds", armorId);
         float cooldownSeconds = json.has("cooldownSeconds")
                 ? positive(json, "cooldownSeconds", armorId) : 0f;
         int startingAmmo = json.optInt("startingAmmo", 0);
@@ -109,6 +110,17 @@ public record IntegralSystemDef(
                             + "' is ammunition-gated and must declare positive startingAmmo");
                 }
             }
+            case ENERGY -> {
+                if (effect != IntegralSystemEffect.FIELD_AID || startingAmmo != 0 || cooldownSeconds != 0f) {
+                    throw new JSONException("Integral system '" + id + "' on armor '" + armorId
+                            + "' is energy-gated: only field aid draws on the medic's pool, and it"
+                            + " declares no startingAmmo or cooldownSeconds (squad-medicine.json holds its numbers)");
+                }
+            }
+        }
+        if (effect == IntegralSystemEffect.FIELD_AID && resourceMode != SpecialResourceMode.ENERGY) {
+            throw new JSONException("Integral system '" + id + "' on armor '" + armorId
+                    + "' is field aid and must be energy-gated: a kit makes its wearer a squad medic");
         }
 
         BreacherAssistSpec breacher = null;
@@ -207,7 +219,7 @@ public record IntegralSystemDef(
         return policy instanceof ExposedUnderFireSpec spec ? spec : null;
     }
 
-    /** This system's field-aid judgement, or null when it declares another policy. */
+    /** This system's field-aid marker, or null when it declares another policy. */
     public FieldAidSpec fieldAid() {
         return policy instanceof FieldAidSpec spec ? spec : null;
     }
@@ -253,7 +265,10 @@ public record IntegralSystemDef(
                 + "' declares unknown grade '" + key + "'. Known grades: " + known);
     }
 
-    /** Ammunition-gated systems run out; cooldown-gated ones only make you wait. */
+    /**
+     * Ammunition-gated systems run out; cooldown-gated ones only make you wait;
+     * an energy-gated kit is a squad medic and spends the medic's pool instead.
+     */
     public boolean usesAmmunition() {
         return resourceMode == SpecialResourceMode.AMMUNITION;
     }

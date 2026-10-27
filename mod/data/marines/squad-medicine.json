@@ -33,5 +33,51 @@
       "treatBelowArmor": 0.5,
       "heavyFirePressure": 2
     }
+  ],
+  "kits": [
+    {
+      "system": "system.parish-aid",
+      "complement": {
+        "energyMax": 10,
+        "energyRegenPerSecond": 0.05,
+        "healthPerSecond": 0.25,
+        "armorPerSecond": 0.25
+      },
+      "energyMax": 20,
+      "energyRegenPerSecond": 0.1,
+      "energyPerPoint": 1,
+      "minStartEnergy": 5,
+      "woundFloorFraction": 0.05,
+      "healthPerSecond": 2,
+      "armorPerSecond": 0.5,
+      "reachCells": 1.5,
+      "approachSeconds": 8,
+      "retrySeconds": 3,
+      "treatBelowHealth": 0.6,
+      "treatBelowArmor": 0.5,
+      "heavyFirePressure": 2
+    },
+    {
+      "system": "system.corpsman-kit",
+      "complement": {
+        "energyMax": 15,
+        "energyRegenPerSecond": 0.1,
+        "healthPerSecond": 0.5,
+        "armorPerSecond": 0.25
+      },
+      "energyMax": 25,
+      "energyRegenPerSecond": 0.15,
+      "energyPerPoint": 1,
+      "minStartEnergy": 6.25,
+      "woundFloorFraction": 0.05,
+      "healthPerSecond": 2.5,
+      "armorPerSecond": 0.75,
+      "reachCells": 1.5,
+      "approachSeconds": 8,
+      "retrySeconds": 3,
+      "treatBelowHealth": 0.7,
+      "treatBelowArmor": 0.5,
+      "heavyFirePressure": 2
+    }
   ]
 }
