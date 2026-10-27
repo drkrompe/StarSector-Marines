@@ -1359,8 +1359,18 @@ def _along(pose, back, up=0.0, side=0.0):
 M2_T = 27.0
 M2_LASHER = fly('lasher-a', (-110, 185, 60, 3, 1, -28, .9), M2_T, [
     dict(t=24, hd=-3, pt=0, rl=-12), dict(t=30, hd=8, pt=2, rl=-35)], v=110)
-M2_SHIPS = {**{k: v for k, v in convoy_at(M2_T).items() if k in ('colossus', 'morrow', 'buffalo-a')},
+# S2 is S1's take continued, so it flies S1's own motion re-keyed at M2_T (owner, 2026-10-27: "the
+# shepherd jumps position while on the 'same' shot"): a fleet ship's live() motion hangs off her key
+# time, and convoy_at(M2_T) put Morrow 123 m, the Colossus 43 m and Buffalo A 98 m off S1 at the cut
+M2_SHIPS = {**{k: Pose(v.at(M2_T), M2_T, v.at) for k, v in KEYFRAMES['k1']['ships'].items()
+               if k in ('colossus', 'morrow', 'buffalo-a')},
             'lasher-a': M2_LASHER}
+# The cuts inside a take (S1-S2, S3-S4): (shot A, shot B, cut time). cut_lines() holds every ship both
+# draw to one continuous flight across the cut; CUT_EXEMPT names a ship that may leave it, with the reason.
+ONE_TAKES = (('k1', 'm2', 24.0), ('k1b', 'k2', 38.0))
+CUT_EXEMPT = {('m2', 'lasher-a'): "off frame from 22.5 s in S1 to 26.5 s in S2, whose foreground pass is her "
+                                  "own flight (blockout 89c1a6073)"}
+CUT_TOL_M, CUT_TOL_DEG = .05, .5
 
 # S5: the Manticore (P) opens at long range on the column's tail, Hellbore slugs and a Harpoon salvo
 # crossing 3-4 km; her flight is S6's, so the cut into S6 keeps her where she is
@@ -3815,6 +3825,7 @@ def blender_main(cfg):
                         raise RuntimeError(f'{kf}: {w_[1]} {w_[2]} evaluates {w_[0]:.4f} off its plan {w_[3]:.4f}')
             if not cfg.get('motion_preview'):    # the preview bakes each ship into one mesh: nothing can come off
                 attachment_lint(kf)
+                cut_lint(kf)
             lab = {}
             for key in spec['labels']:
                 if key in extra3d:
@@ -4348,6 +4359,38 @@ def hide_lines():
             HIDES[k]['cover'], 100 * cv / vol))
         out.append('   %-12s %5.0f m  behind %-24s  seen %3.0f%%  %s' % (k, L, what, 100 * seen, '  '.join(flags)))
     return out
+
+
+def cut_lines(kf):
+    """Each one-take cut kf is on: every ship both shots draw, at the cut, as shot A flies her against
+    shot B, by position (m) and heading (deg). [(a, b, key, metres, degrees, exempt reason or None)]"""
+    out = []
+    for a, b, tc in ONE_TAKES:
+        if kf not in (a, b):
+            continue
+        sa, sb = SHOTS[a]['ships'], SHOTS[b]['ships']
+        for k in sorted(set(sa) & set(sb)):
+            if not (hasattr(sa[k], 'at') and hasattr(sb[k], 'at')):
+                continue
+            pa, pb = sa[k].at(tc), sb[k].at(tc)
+            dh = abs((pa[3] - pb[3] + 180) % 360 - 180)
+            out.append((a, b, k, math.dist(pa[:3], pb[:3]), dh, CUT_EXEMPT.get((b, k))))
+    return out
+
+
+def cut_lint(kf):
+    """A ship drawn either side of a cut inside a take must not jump at it (owner, 2026-10-27: S1 to S2's
+    Shepherd). Logs every pair; a jump over CUT_TOL_M or CUT_TOL_DEG raises unless ASHARU_AUDIT_SOFT."""
+    rows = cut_lines(kf)
+    if not rows:
+        return
+    bad = [r for r in rows if r[5] is None and (r[3] > CUT_TOL_M or r[4] > CUT_TOL_DEG)]
+    w = max(rows, key=lambda r: (r[5] is None, r[3]))
+    print(f'ASHARU cut {kf}: {len(rows)} ships across the take, worst {w[3]:.3f} m {w[4]:.2f} deg ({w[2]}'
+          f'{", exempt" if w[5] else ""}); jumps: {[f"{r[2]} {r[3]:.1f} m {r[4]:.1f} deg" for r in bad]}', flush=True)
+    if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
+        raise RuntimeError(f'{kf}: {bad[0][2]} jumps {bad[0][3]:.2f} m, {bad[0][4]:.2f} deg at the cut from '
+                           f'{bad[0][0]} to {bad[0][1]}')
 
 
 def turn_lines(kf):
