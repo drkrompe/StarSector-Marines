@@ -15,7 +15,8 @@ import java.util.Set;
  */
 public final class JunctionCommand implements AutonomousMissionCommand<ConquestCommandFrame, JunctionCommand.Picture>,
         ReactiveDefenceSource {
-    public record Picture(int targetSite, boolean reserveCommitted, List<Integer> commandedSquads) {
+    /** @param reserveArrived whether the reserve has reached its approach to the first gain: the first blow's go */
+    public record Picture(int targetSite, boolean reserveCommitted, boolean reserveArrived, List<Integer> commandedSquads) {
         public Picture { commandedSquads = List.copyOf(commandedSquads); }
     }
     /** Within this many cells of its target's capture cell the road column stops marching and holds it. */
@@ -46,7 +47,7 @@ public final class JunctionCommand implements AutonomousMissionCommand<ConquestC
     @Override public CommandPlan<Picture> plan(ConquestCommandFrame frame) {
         var sites = frame.facts().compounds();
         var states = sites.stream().map(ConquestCommandFacts.Compound::state).toList();
-        tactics.observe(states);
+        tactics.observe(states, frame.tick());
         if (faction == Faction.DEFENDER && !classified) {
             // Own-force reports only: each squad belongs to whichever waiting post it started nearer.
             for (var squad : frame.squads())
@@ -60,7 +61,7 @@ public final class JunctionCommand implements AutonomousMissionCommand<ConquestC
                 if (directive == null || !strategyId().equals(directive.issuer()) || squad.aliveMembers() <= 0) continue;
                 if (roadColumn.contains(squad.squadId())) {
                     if (!tactics.roadColumnCommitted()) continue;
-                    var target = sites.get(tactics.secondSecured());
+                    var target = sites.get(tactics.roadTarget());
                     if (Math.hypot(squad.centroidX() - target.captureCellX(), squad.centroidY() - target.captureCellY()) <= ROAD_ARRIVAL)
                         roadOnTarget = true;
                 } else if (Math.hypot(squad.centroidX() - 59, squad.centroidY() - 23) <= 5) reserveOnApproach = true;
@@ -116,12 +117,12 @@ public final class JunctionCommand implements AutonomousMissionCommand<ConquestC
         return new CommandPlan<>(faction, strategyId(), reason, frame.tick(), influenceTick,
                 commanded.size(), faction == Faction.DEFENDER && !tactics.reserveCommitted() ? commanded.size() : 0,
                 List.of(JunctionCompound.SITE_NAMES.get(target)), proposals,
-                new Picture(target, tactics.reserveCommitted(), commanded));
+                new Picture(target, tactics.reserveCommitted(), reserveOnApproach, commanded));
     }
     /** The Rill road column waits at its post, marches on the second gain, then holds its capture cell. */
     private ObjectiveAssignment roadAssignment(int squadId, List<ConquestCommandFacts.Compound> sites) {
         if (!tactics.roadColumnCommitted()) return ObjectiveAssignment.defendArea(squadId, roadX, roadY, 3);
-        var target = sites.get(tactics.secondSecured());
+        var target = sites.get(tactics.roadTarget());
         return roadOnTarget ? ObjectiveAssignment.defendArea(squadId, target.captureCellX(), target.captureCellY(), 3)
                 : ObjectiveAssignment.attackMove(squadId, target.captureCellX(), target.captureCellY());
     }

@@ -87,41 +87,40 @@ public final class JunctionLookSuite implements SnapshotSuite {
         }
         var reserve = layout.reserve();
         marks.label(reserve.interiorAnchorX + .5f, reserve.interiorAnchorY - 6f,
-                "Reserve: retakes the first gain once a second site is contested", ReviewStyle.DUG_IN);
+                "Reserve: first blow on the first gain as soon as it falls", ReviewStyle.DUG_IN);
         marks.label(JunctionCompound.RILL_ROAD_X - 20f, JunctionCompound.RILL_ROAD_Y + 10f,
-                "Rill column x12: retakes the second gain", ReviewStyle.DUG_IN);
+                "Rill column x12: second blow on the second gain (45 s after the first gain at most)", ReviewStyle.DUG_IN);
         var warehouse = pressure.warehouse();
         int garrison = 0;
         for (int id : pressure.garrison()) garrison += sim.squadMemberCount(id);
         marks.box(warehouse.left, warehouse.bottom, warehouse.right, warehouse.top,
-                "Bonded warehouse: raiders x" + garrison + ", sally at the first gain", ReviewStyle.FRONT);
-        var yard = records.get(2);
-        marks.arrow(warehouse.interiorAnchorX + .5f, warehouse.top + .5f, yard.captureCellX + .5f, yard.captureCellY + .5f,
-                "Sprints across the road into the Freight Yard", ReviewStyle.APPROACH);
+                "Bonded warehouse: raiders x" + garrison + ", sprint with each blow", ReviewStyle.FRONT);
         List<ReviewAnnotation.Point> road = List.of(new ReviewAnnotation.Point(189.5f, 81.5f),
                 new ReviewAnnotation.Point(172f, 64f), new ReviewAnnotation.Point(146f, 59f),
                 new ReviewAnnotation.Point(110f, 59f));
-        marks.polyline(road, "2 technicals down the main road at the second gain, park beside it", ReviewStyle.DUG_IN);
+        marks.polyline(road, "2 technicals follow the Rill column down the main road", ReviewStyle.DUG_IN);
         return marks.build();
     }
 
     private static void play(BattleSimulation sim, BattleReviewFrameRenderer look, List<SnapshotArtifact> out,
                              float cx, float cy, float whole) throws Exception {
         JunctionPressure pressure = sim.getJunctionPressure();
-        int sally = -1, technicals = -1;
+        int sally = -1, second = -1, technicals = -1;
         for (int tick = 0; tick < MAX_TICKS && !sim.isComplete(); tick++) {
             sim.advance(BattleSimulation.TICK_DT);
             int now = sim.getSimTickIndex();
             if (sally < 0 && pressure.sallied()) sally = now;
+            if (second < 0 && pressure.secondBlowTick() >= 0) second = now;
+            if (second >= 0 && now == second + SETTLE) stills(out, look, sim, "02-second-blow", cx, cy, whole, cx, cy);
             if (technicals < 0 && !pressure.technicalIds().isEmpty() && pressure.technicalIds().get(0) != 0L) technicals = now;
-            if (sally >= 0 && now == sally + SETTLE) stills(out, look, sim, "01-warehouse-sally", cx, cy, whole,
-                    pressure.warehouse().interiorAnchorX, pressure.warehouse().top);
+            if (sally >= 0 && now == sally + SETTLE) stills(out, look, sim, "01-first-blow", cx, cy, whole,
+                    cx, cy);
             if (technicals >= 0 && now == technicals + 4 * SETTLE) {
                 var hull = sim.convoy().body(pressure.technicalIds().get(0));
-                stills(out, look, sim, "02-technicals-on-the-road", cx, cy, whole, hull.x, hull.y);
+                stills(out, look, sim, "03-technicals-on-the-road", cx, cy, whole, hull.x, hull.y);
             }
         }
-        stills(out, look, sim, "03-end-" + (sim.isComplete() ? String.valueOf(sim.getWinner()).toLowerCase() : "unresolved"),
+        stills(out, look, sim, "04-end-" + (sim.isComplete() ? String.valueOf(sim.getWinner()).toLowerCase() : "unresolved"),
                 cx, cy, whole, cx, cy);
     }
 
