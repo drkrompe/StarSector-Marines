@@ -1055,10 +1055,12 @@ def k3b_aim(t):
 # Mk.III settles in from above; the Kite (P) makes her run, is driven off and breaks away
 K4_T = 95
 K4_COLOSSUS_FLOWN = fly('colossus', K4_COLOSSUS, K4_T, [
-    # S7 sees her before S8 does (option C): weaving to unmask her turrets as the Mk.III comes down on her
-    # (Morrow under her keel turns with her)
-    dict(t=80, hd=-1.0, pt=.5, rl=-3, thr=.5), dict(t=84, hd=1.5, pt=-1.5, rl=3, thr=.5),
-    dict(t=86, hd=-.5, pt=-3, rl=-2, thr=.5), dict(t=88, hd=.5, pt=-1, rl=2, thr=.5), dict(t=90.2, hd=.4, pt=-1.3, rl=2.5, thr=.5),
+    # S7 sees her before S8 does (option C): as the Mk.III comes down on her she banks 20 deg to lift her
+    # port turrets onto her (her guns are dorsal and side-facing: level, they cannot reach a ship this
+    # high; the firing-arc lint), then eases back as S8 opens (Morrow under her keel turns with her)
+    dict(t=80, hd=-1.0, pt=.5, rl=-3, thr=.5), dict(t=82, hd=.5, pt=-.5, rl=4, thr=.5),
+    dict(t=84, hd=1.5, pt=-1.5, rl=16, thr=.5), dict(t=86, hd=-.5, pt=-3, rl=21, thr=.5),
+    dict(t=88, hd=.5, pt=-1, rl=12, thr=.5), dict(t=90.2, hd=.4, pt=-1.3, rl=2.5, thr=.5),
     dict(t=102, hd=-2.5, pt=-6, rl=11)], v=4.0, wobble=.5, thrust=None,
     hits=[dict(t=90.3, push=(0, -1.5, -.5), spin=(.8, -.3, -.3), decay=3.0, thr=.2)])
 K4_MORROW_FLOWN = carried(held('morrow', K4_MORROW, K4_T, wobble=.8), K4_COLOSSUS_FLOWN)
@@ -1069,12 +1071,14 @@ K4_SHIPS = {
     'borer-c': carried(keyed('borer-c', near(K4_MORROW, (BORER_BAY_M[1][0], BORER_BAY_M[1][1], 18), hd=10, pt=30, thr=.8),
                              K4_T, [], v=2.5, wobble=0.0), K4_MORROW_FLOWN),
     # S7 sees her come down (owner, 2026-10-27, option C: "floating in space with no fighting ... Not even
-    # any real movement / tilt"): diving in from 450 m astern and above at 75 m/s, braking onto her prize
-    # and rolling onto her side to bring her grapples to bear, before S8 opens on her
-    'colossus3': fly('colossus3', (-60, 70, 175, -4, -8, 64, .6), K4_T, [
-        dict(t=80, hd=-12, pt=-18, rl=8, v=75), dict(t=83.5, hd=-7, pt=-12, rl=28, v=50),
-        dict(t=86, hd=-3, pt=-7, rl=45, v=25),
-        dict(t=88, hd=-2, pt=-5, rl=55, v=14), dict(t=102, hd=-6, pt=-10, rl=70, v=8)], v=12, wobble=1.0),
+    # any real movement / tilt"): diving in from 450 m astern and above at 75 m/s, braking onto her prize.
+    # She comes in rolled onto her side (owner, 2026-10-27: "Check that the MK.III turrets firing down makes
+    # sense"): her guns are dorsal, so only her starboard deck turned toward the Colossus lets them bear
+    # (68 deg of roll at 80 s, 80 by the cut, 84 by 102 s: the firing-arc lint)
+    'colossus3': fly('colossus3', (-60, 70, 175, -4, -8, 80, .6), K4_T, [
+        dict(t=80, hd=-12, pt=-18, rl=68, v=75), dict(t=83.5, hd=-7, pt=-12, rl=76, v=50),
+        dict(t=86, hd=-3, pt=-7, rl=78, v=25),
+        dict(t=88, hd=-2, pt=-5, rl=80, v=14), dict(t=102, hd=-6, pt=-10, rl=84, v=8)], v=12, wobble=1.0),
     'kite-p-b': fly('kite-p-b', (110, 210, 40, -60, 6, 32, 1), K4_T, [
         dict(t=88, hd=-100, pt=-2, rl=10, v=150), dict(t=93, hd=-80, pt=2, rl=20), dict(t=98, hd=-10, pt=12, rl=55, v=180),
         dict(t=102, hd=30, pt=10, rl=20, v=210)],
@@ -4104,6 +4108,7 @@ def blender_main(cfg):
                         raise RuntimeError(f'{kf}: {w_[1]} {w_[2]} evaluates {w_[0]:.4f} off its plan {w_[3]:.4f}')
             if not cfg.get('motion_preview'):    # the preview bakes each ship into one mesh: nothing can come off
                 attachment_lint(kf)
+                fire_arc_lint(kf)
                 contact_lint(kf)
                 cut_lint(kf)
                 motion_lint(kf)
@@ -4959,6 +4964,98 @@ def activity_lint(kf):
         raise RuntimeError(f'{kf}: {bad[0][0]} sits idle in frame {bad[0][1]:.1f}-{bad[0][2]:.1f} s (activity lint)')
 
 
+# A gun fires only from a real mount laid inside its own arc (owner, 2026-10-27, option C's Mk.III: "Check
+# that the MK.III turrets firing down makes sense for those turrets with the orientation selected"): the
+# finals fire what asharu_gunnery plans, mount by mount, from the hull's own hardpoints and arcs
+# (asharu_gunnery.MOUNTS, or a stand-in's game slots). fire_arc_lines() holds that plan to it: every burst
+# of every engagement lays inside its mount's traverse and elevation (FIRE_ARC_TOL_DEG), every story hit
+# a gun delivers has a mount that reaches it, and every tracer the shot asks for has a mount that bears
+# some of the shot (else nothing fires it). A Borer's mining laser is a fixed mount on her nose (the
+# game's drone_borer: arc 30 deg), so her nose is held within BEAM_ARC_DEG of her beam's aim while it is
+# on. FIRE_ARC_EXEMPT keeps a designed exception, (shot, shooter, target): reason.
+FIRE_ARC_TOL_DEG, FIRE_ARC_STEP_S, BEAM_ARC_DEG = 1.0, .1, 15.0
+FIRE_ARC_EXEMPT = {}
+
+
+def fire_arc_lines(kf):
+    """kf's fire against its mounts: [(shooter, target, what, fault or None, exempt reason or None)]."""
+    import asharu_gunnery as g
+    import asharu_preview
+    kf = g.base_kf(kf)
+    spec = SHOTS[kf]
+    if spec['camera'].get('at') is None:
+        return []
+    ships, out = spec.get('ships', {}), []
+    pos = lambda k, t: ships[k].at(t) if hasattr(ships[k], 'at') else ships[k]
+
+    def row(a, b, what, fault):
+        out.append((a, b, what, fault, FIRE_ARC_EXEMPT.get((kf, a, b)) if fault else None))
+    p = g.shot_plan(kf)
+    for e in p['engagements']:
+        a, b, tu = e['shooter'], e['target'], e['turret']
+        m = g.mounts_of(kf, a).get(tu)
+        if m is None:
+            row(a, b, f't{tu}', f'fires from t{tu}, which is not one of her mounts')
+            continue
+        worst = (0.0, None)
+        for on, off in e['bursts']:
+            n = max(1, int(round((off - on) / FIRE_ARC_STEP_S)))
+            for i in range(n + 1):
+                t = on + (off - on) * i / n
+                w = g.to_world(g.frame(pos(b, t)), e['aim'])
+                ok, miss = g.bears(m, g.to_local(g.frame(pos(a, t)), w))
+                if not ok and miss > worst[0]:
+                    worst = (miss, t)
+        row(a, b, f't{tu} {e["start"]:.1f}-{e["end"]:.1f} s',
+            f't{tu} lays {worst[0]:.0f} deg outside her arc at {worst[1]:.2f} s' if worst[0] > FIRE_ARC_TOL_DEG else None)
+    for hid, ok, why in p['owed']:
+        if not ok:
+            h = hid.split('@')[0]
+            row('?', h, f'ledger {hid}', f'no gun can deliver it ({why})')
+    fired = {(e['shooter'], e['target']) for e in p['engagements']}
+    for fx in spec.get('fx', ()):
+        if fx[0] == 'tracer' and fx[1] in ships and fx[2] in ships and (fx[1], fx[2]) not in fired:
+            why = ('she has no guns' if not g.mounts_of(kf, fx[1]) else
+                   'no mount bears in range in the shot, so nothing fires it')
+            row(fx[1], fx[2], 'tracer', why)
+    seg = next((s_ for s_ in asharu_preview.segments(SHOTS) if s_['kf'] == kf), None)
+    for fx in spec.get('fx', ()):
+        if fx[0] != 'mining' or fx[1] not in ships or fx[2] not in ships or seg is None:
+            continue
+        a, b = fx[1], fx[2]
+        rakes = [(r[2], r[3], r) for r in spec.get('rakes', ()) if r[0] == a and r[1] == b]
+        spans = [(r0, r1) for r0, r1, _ in rakes] or [(seg['start'], seg['end'])]
+        worst = (0.0, None)
+        for r0, r1 in spans:
+            n = max(1, int(round((r1 - r0) / FIRE_ARC_STEP_S)))
+            for i in range(n + 1):
+                t = r0 + (r1 - r0) * i / n
+                aim = fx[3] if len(fx) > 3 else (0, 0, 0)
+                v = g.to_local(g.frame(pos(a, t)), g.to_world(g.frame(pos(b, t)), aim))
+                off = math.degrees(math.acos(max(-1.0, min(1.0, v[0] / (math.sqrt(sum(c * c for c in v)) or 1.0)))))
+                if off > worst[0]:
+                    worst = (off, t)
+        row(a, b, 'mining', f'her nose is {worst[0]:.0f} deg off her beam at {worst[1]:.2f} s'
+            if worst[0] > BEAM_ARC_DEG + FIRE_ARC_TOL_DEG else None)
+    return out
+
+
+def fire_arc_lint(kf):
+    """Logs fire_arc_lines once per shot per process; a fault not exempt raises unless ASHARU_AUDIT_SOFT."""
+    import asharu_gunnery as g
+    kf = g.base_kf(kf)
+    if kf in _FIRE_ARC_DONE:
+        return
+    _FIRE_ARC_DONE.add(kf)
+    rows = fire_arc_lines(kf)
+    bad = [r for r in rows if r[3] and not r[4]]
+    print(f'ASHARU fire arcs {kf}: {len(rows)} lines of fire, {len([r for r in rows if r[4]])} exempt'
+          + (f'; out of arc: {[f"{r[0]} -> {r[1]} {r[3]}" for r in bad]}' if bad else ''), flush=True)
+    if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
+        raise RuntimeError(f'{kf}: {bad[0][0]} -> {bad[0][1]} {bad[0][3]} (fire-arc lint)')
+
+
+_FIRE_ARC_DONE = set()
 _ACTIVITY_DONE = set()
 _DRONE_DONE = set()
 _MOTION_DONE = set()
