@@ -1547,7 +1547,8 @@ KEYFRAMES = {
         ships=K4B_SHIPS,
         # her front shield at full flux, torn by the Lasher's guns a moment ago: the flank is open
         shields={'falcon-p': dict(toward='lasher-lead', flux=1.0, overload_s=.4, up_s=6.0)},
-        fx=[('tracer', 'lasher-lead', 'falcon-p'), ('tracer', 'falcon-p', 'lasher-lead', (0, 0, 0),
+        fx=[('tracer', 'lasher-lead', 'falcon-p', (0, 0, 0), dict(cease_t=107.2)),     # silent as her bow blows (asharu_gunnery SILENT)
+            ('tracer', 'falcon-p', 'lasher-lead', (0, 0, 0),
                                                          # her guns bear only until 105 s (then the Lasher swings 60-87
                                                          # deg off them, past their turn rate): the bolts that land her
                                                          # 103.5 s breach and 104.6 s plating loss

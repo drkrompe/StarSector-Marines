@@ -350,7 +350,7 @@ class SceneFx:
     # the flight time), so a moving target slides out from under some bursts and into others.
     # .12 missed 69% of S6b's rounds (verify12); the owner's mark is a third to a half.
     LEAD_ERR = .07
-    SURE_LAY_F = 12     # frames either side of a sure round the gun lays on its point, not her centre
+    SURE_LAY_F = 24     # frames either side of a sure round the gun lays on its point, not her centre
 
     def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track, trained=False,
                 cease=None, walk=1.0, held=None, sure=None):
@@ -574,6 +574,10 @@ class SceneFx:
                                  f'(off target {plan.get(fd, (0, 0, 99))[2]:.1f} deg, line clear {line_clear(fd)[0]})')
             elif shots.get(fd, (None, None))[1] is None:
                 self.rows.append(f'sure {a} t{turret} -> {b}: her round from {fd} missed her hull')
+            else:
+                r_ = next(r for r in recs if r['frame'] == fd)
+                self.rows.append(f'sure {a} t{turret} -> {b}: her round from {fd} lands on {r_.get("hit_frame")} at '
+                                 + (str(tuple(round(c, 1) for c in r_['hit_l'])) if r_.get('hit_l') is not None else 'no hit_l'))
         aims = [math.degrees(plan[f][1]) for f in frames[::24]]
         self.rows.append(f'planned {a} t{turret} -> {b}: {len(recs)} rounds in {len(bursts)} bursts, {hits} hit; '
                          f'skipped {stats}; elevation {"none (traverse only)" if elev is None else f"{min(aims):+.1f}..{max(aims):+.1f} deg"}; '
