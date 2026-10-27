@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -261,9 +262,57 @@ class IntegralSystemDefTest {
     }
 
     /**
-     * Six patterns carry a breach assist and each named its own version
-     * something else. The family and the grade are what let a player compare
-     * them; without a grade a system would be a bare name again.
+     * A suit that names a shared system by {@code ref} carries that system's numbers
+     * exactly, and may lay only its own hardware presentation over them: a shield tier
+     * is defined once, so a reference that tries to retune it is refused.
+     */
+    @Test
+    void aSharedSystemIsReferencedWithItsNumbersAndOnlyThePresentationVaries() throws JSONException {
+        Map<String, JSONObject> shared = Map.of("system.shield-test", breacherAssist().put("id", "system.shield-test"));
+        JSONObject entry = plainPattern().put("battle", plainBattle()
+                .put("integralSystem", new JSONObject().put("ref", "system.shield-test")));
+
+        IntegralSystemDef carried = MarineArmorCatalogDef.parse(entry, shared).integralSystem();
+        IntegralSystemDef direct = IntegralSystemDef.parse(breacherAssist().put("id", "system.shield-test"), "armor.test");
+        assertEquals(direct.id(), carried.id());
+        assertEquals(direct.breacherAssist(), carried.breacherAssist());
+        assertEquals(direct.cooldownSeconds(), carried.cooldownSeconds(), 0f);
+        assertNull(carried.carrierLayer());
+
+        JSONObject retuned = plainPattern().put("battle", plainBattle()
+                .put("integralSystem", new JSONObject().put("ref", "system.shield-test").put("screenSoak", 99.0)));
+        assertThrows(JSONException.class, () -> MarineArmorCatalogDef.parse(retuned, shared));
+
+        JSONObject unknown = plainPattern().put("battle", plainBattle()
+                .put("integralSystem", new JSONObject().put("ref", "system.nowhere")));
+        assertThrows(JSONException.class, () -> MarineArmorCatalogDef.parse(unknown, shared));
+    }
+
+    private static JSONObject plainBattle() throws JSONException {
+        return new JSONObject()
+                .put("appearanceFamily", "CHARCOAL")
+                .put("armorCapacity", 9.0)
+                .put("armorRating", 8.0)
+                .put("moveSpeedMult", 0.96)
+                .put("incomingAccuracyMult", 0.96);
+    }
+
+    private static JSONObject plainPattern() throws JSONException {
+        return new JSONObject()
+                .put("id", "armor.shared")
+                .put("catalog", new JSONObject()
+                        .put("displayName", "Shared suit")
+                        .put("role", "assault")
+                        .put("tradition", "hegemony")
+                        .put("description", "Carries a tier.")
+                        .put("tier", 3)
+                        .put("iconPath", "graphics/ui/armory/armor-tier-3-combat.png"));
+    }
+
+    /**
+     * Ten patterns carry a breach assist across three shield tiers. The family
+     * and the grade are what let a player compare them; without a grade a system
+     * would be a bare name again.
      */
     @Test
     void everySystemDeclaresItsFamilyAndHowWellItIsMade() throws JSONException {

@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 import com.dillon.starsectormarines.battle.combat.FireStance;
-import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.GroundRosterProfile;
 import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
@@ -10,7 +9,6 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
-import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
@@ -51,8 +49,6 @@ class IntegralSystemPolicyTest {
     private static final int H = 16;
     private static final int ROW = 8;
     private static final int CARRIER_X = 6;
-    /** Six cells east of the carrier: inside one authored lookahead and outside another. */
-    private static final int SWEEP_WALL_X = CARRIER_X + 6;
 
     /**
      * Far past any authored salvo total, so a standoff scene measures whether
@@ -98,19 +94,11 @@ class IntegralSystemPolicyTest {
                 case SIGHTED_STANDOFF_CONTACT -> assertTrue(
                         system.sightedStandoff().minimumStandoffCells() > 0f,
                         pattern.id() + " must author the standoff its salvo is judged against");
-                case APPROACHING_DEAD_GROUND -> assertTrue(
-                        system.approachingDeadGround().lookaheadCells() > 0f,
-                        pattern.id() + " must author how far ahead it calls 'ahead'");
                 case WOUNDED_SQUADMATE_IN_REACH -> assertTrue(
                         system.fieldAid().reachCells() > 0f
                                 && system.fieldAid().restoredHealth() > 0f,
                         pattern.id() + " must author how far it will go and what a"
                                 + " dressing is worth");
-                case HOLDING_A_FIRING_POSITION -> assertTrue(
-                        system.holdingFiringPosition().minimumTargetRangeFraction() > 0f
-                                && system.holdingFiringPosition().breakOffRangeCells() > 0f,
-                        pattern.id() + " must author how far out is worth planting for and"
-                                + " how close is too close to be planted");
                 default -> fail(pattern.id() + " declares a policy with no authored parameters: "
                         + system.aiPolicy().key);
             }
@@ -252,36 +240,6 @@ class IntegralSystemPolicyTest {
                 "standing still within reach of the shooter is not the moment");
         assertTrue(screenRaised(Scene.answerable().crossing()),
                 "the same wearer under way is");
-    }
-
-    /**
-     * The third policy's own moment, isolated the same way the other two are.
-     * The carrier never moves under its own power, so {@code heading} is the
-     * single difference between the cases: walking at a wall is dead ground
-     * ahead, walking away from it along open floor is not, and standing on the
-     * spot is not a moment at all however blind the suit is.
-     */
-    @Test
-    void aSweepSpendsItselfOnGroundItCannotSeeIntoAndNotOtherwise() {
-        assertFalse(sweepSpendsItself(/*headingX*/ 0),
-                "standing still is not approaching anything");
-        assertFalse(sweepSpendsItself(/*headingX*/ -1),
-                "walking away down open floor has nothing to read");
-        assertTrue(sweepSpendsItself(/*headingX*/ 1),
-                "walking at a wall is walking at ground the suit cannot see into");
-    }
-
-    /**
-     * A sweep's lookahead is its own number and reaches nothing else. The same
-     * blind wall is inside one authored lookahead and outside another, with the
-     * scene otherwise untouched.
-     */
-    @Test
-    void aSweepsLookaheadDecidesItsOwnMomentAndNoOthers() {
-        assertTrue(sweepSpendsItself(1, /*lookahead*/ 8f),
-                "a suit that looks eight cells ahead sees the wall six cells away");
-        assertFalse(sweepSpendsItself(1, /*lookahead*/ 3f),
-                "one that looks three does not");
     }
 
     /**
@@ -463,61 +421,6 @@ class IntegralSystemPolicyTest {
     }
 
 
-    // ---------------------------------------------------------------- the brace
-
-    /**
-     * The line role's own moment. A marine who has stopped where they mean to
-     * be, holds a live engagement out where accuracy has fallen off, and has
-     * nobody about to arrive, plants — which is the whole of
-     * <b>assault crosses, line holds</b> expressed as a trigger.
-     */
-    @Test
-    void aMarineHoldingAPositionAtRangeBraces() {
-        assertTrue(braces(BraceScene.holding()));
-    }
-
-    /**
-     * Crossing is the other family's occasion. A marine still walking has not
-     * chosen a position yet, so there is nothing to commit to.
-     */
-    @Test
-    void aMarineStillUnderWayDoesNotBrace() {
-        assertFalse(braces(BraceScene.holding().crossing()));
-    }
-
-    /**
-     * Steadiness is worth having where it is scarce. At half a room the round
-     * was going to land anyway, and spending a stance on it is the waste the
-     * authored fraction exists to refuse.
-     */
-    @Test
-    void aTargetTooCloseToBeWorthPlantingForIsRefused() {
-        assertTrue(braces(BraceScene.holding().targetAt(16)),
-                "sixteen cells is past half the wearer's reach");
-        assertFalse(braces(BraceScene.holding().targetAt(7)),
-                "seven cells is not -- and is still outside the break-off, so this is the"
-                        + " range judgement answering rather than the proximity one");
-    }
-
-    /**
-     * The commitment's own counterplay. Planting with somebody about to be on
-     * top of you is the mistake the cost makes possible, and the suit that pays
-     * most for it names the distance at which it will not.
-     */
-    @Test
-    void aContactInsideTheBreakOffDistanceStopsTheStanceBeingWorthIt() {
-        assertFalse(braces(BraceScene.holding().withContactAt(2)),
-                "somebody two cells away is inside the authored break-off");
-        assertTrue(braces(BraceScene.holding().withContactAt(9)),
-                "somebody nine cells away is not");
-    }
-
-    /** Nothing engaged is nothing to be steady for. */
-    @Test
-    void aMarineWithNothingEngagedDoesNotBrace() {
-        assertFalse(braces(BraceScene.holding().engagingNothing()));
-    }
-
     // ---------------------------------------------------------------- scenes
 
     /**
@@ -617,58 +520,6 @@ class IntegralSystemPolicyTest {
     }
 
 
-    /**
-     * One wearer with a reach, one thing it is engaging, and optionally somebody
-     * else standing nearby. The stance resolves from path state, an engagement,
-     * a distance and a proximity count, so the scene needs no ballistics at all:
-     * what varies between cases is exactly the four facts the policy reads.
-     */
-    private static final class BraceScene {
-
-        private static final float REACH = 20f;
-        private static final float MINIMUM_FRACTION = 0.5f;
-        private static final float BREAK_OFF = 4f;
-
-        private int targetDistance = 15;
-        private int contactDistance = -1;
-        private boolean crossing;
-        private boolean engaged = true;
-
-        static BraceScene holding() { return new BraceScene(); }
-
-        BraceScene targetAt(int cells) { this.targetDistance = cells; return this; }
-        BraceScene withContactAt(int cells) { this.contactDistance = cells; return this; }
-        BraceScene crossing() { this.crossing = true; return this; }
-        BraceScene engagingNothing() { this.engaged = false; return this; }
-    }
-
-    /** Plays {@code scene} for one sweep and answers whether the wearer planted. */
-    private static boolean braces(BraceScene scene) {
-        BattleSimulation sim = arena();
-        long wearer = sim.spawn(carrier("wearer", Faction.MARINE)
-                .integralSystem(brace(BraceScene.MINIMUM_FRACTION, BraceScene.BREAK_OFF))
-                .attackRange(BraceScene.REACH)
-                .moveSpeed(scene.crossing ? 2f : 0f)
-                .hp(SURVIVES_THE_SCENE).maxHp(SURVIVES_THE_SCENE));
-        long target = sim.spawn(named("target", Faction.DEFENDER,
-                CARRIER_X + scene.targetDistance));
-        if (scene.contactDistance > 0) {
-            sim.spawn(named("contact", Faction.DEFENDER, CARRIER_X + scene.contactDistance));
-        }
-        // One settled tick so the spatial index holds everybody; the engagement
-        // and the path are written afterwards, because a two-tick walk would
-        // have exhausted the short path this scene uses to mean "under way".
-        advance(sim, 1);
-        assertFalse(sim.integralSystems().isActive(wearer),
-                "fixture assumption: the settle tick offers the stance no reason of its own");
-
-        if (scene.engaged) sim.getRoster().combat().setTargetId(wearer, target);
-        if (scene.crossing) sim.setPath(wearer, crossingPath());
-
-        sweep(sim).tick(BattleSimulation.TICK_DT, sim);
-        return sim.integralSystems().isActive(wearer);
-    }
-
     /** A short there-and-back that keeps a crossing wearer on roughly its own ground. */
     private static int[] crossingPath() {
         return new int[] {CARRIER_X, ROW, CARRIER_X, ROW + 1, CARRIER_X, ROW + 2};
@@ -696,25 +547,6 @@ class IntegralSystemPolicyTest {
         return sim.integralSystems().ammo(gunner) < startingAmmo;
     }
 
-    /**
-     * A scout in front of a wall, driven the way the breacher scenes are: the
-     * carrier cannot walk, so the velocity the policy reads is the one the test
-     * wrote rather than one the pathfinder happened to produce.
-     */
-    private static boolean sweepSpendsItself(int headingX) {
-        return sweepSpendsItself(headingX, 8f);
-    }
-
-    private static boolean sweepSpendsItself(int headingX, float lookaheadCells) {
-        BattleSimulation sim = walledArena();
-        long scout = sim.spawn(carrier("scout", Faction.MARINE)
-                .integralSystem(sweepSystem(lookaheadCells)));
-        advance(sim, 4);
-        if (headingX != 0) setHeading(sim, scout, headingX);
-        sweep(sim).tick(BattleSimulation.TICK_DT, sim);
-        return sim.integralSystems().isActive(scout);
-    }
-
     private static BattleSimulation arena() {
         NavigationGrid grid = new NavigationGrid(W, H);
         for (int y = 0; y < H; y++) {
@@ -739,17 +571,6 @@ class IntegralSystemPolicyTest {
         return new BattleSimulation(grid, new CellTopology(W, H));
     }
 
-    /** The same arena with one solid column east of the carrier, and open floor west. */
-    private static BattleSimulation walledArena() {
-        NavigationGrid grid = new NavigationGrid(W, H);
-        for (int y = 0; y < H; y++) {
-            for (int x = 0; x < W; x++) {
-                if (x != SWEEP_WALL_X) grid.setWalkableFloor(x, y);
-            }
-        }
-        return new BattleSimulation(grid, new CellTopology(W, H));
-    }
-
     private static void advance(BattleSimulation sim, int ticks) {
         for (int i = 0; i < ticks; i++) sim.advance(BattleSimulation.TICK_DT);
     }
@@ -760,23 +581,6 @@ class IntegralSystemPolicyTest {
 
     private static EntitySpec hostile(Faction faction, int cellX) {
         return new EntitySpec("hostile", faction, UnitType.MILITIA, cellX, ROW).moveSpeed(0f);
-    }
-
-    /**
-     * Writes the velocity a crossing suit would have. The carrier's own move
-     * speed is zero so the simulation never writes one, which is exactly what
-     * makes the scene reproducible: the policy is offered a crossing that the
-     * test, not the pathfinder, decided on.
-     */
-    private static void beginCrossing(BattleSimulation sim, long id) {
-        setHeading(sim, id, 1);
-    }
-
-    /** Writes the velocity a carrier under way would have, east or west. */
-    private static void setHeading(BattleSimulation sim, long id, int signX) {
-        UnitRosterService roster = sim.getRoster();
-        roster.entityWorld().setFloat(id, roster.components().MOVEMENT,
-                BattleComponents.MOVEMENT_VEL_X, signX);
     }
 
     /**
@@ -851,52 +655,10 @@ class IntegralSystemPolicyTest {
                 .moveSpeed(0f).hp(SURVIVES_THE_SCENE).maxHp(SURVIVES_THE_SCENE);
     }
 
-    private static IntegralSystemDef brace(float minimumTargetRangeFraction,
-                                           float breakOffRangeCells) {
-        try {
-            return IntegralSystemDef.parse(new JSONObject()
-                    .put("id", "system.test-brace")
-                    .put("grade", "service")
-                    .put("displayName", "Test brace")
-                    .put("description", "Planted, and going nowhere for a while.")
-                    .put("effect", "brace")
-                    .put("resource", "cooldown")
-                    .put("policy", SpecialAiPolicy.HOLDING_A_FIRING_POSITION.key)
-                    .put("minimumTargetRangeFraction", minimumTargetRangeFraction)
-                    .put("breakOffRangeCells", breakOffRangeCells)
-                    .put("durationSeconds", 5.0)
-                    .put("cooldownSeconds", 18.0)
-                    .put("moveSpeedMult", 0.4)
-                    .put("accuracyMult", 1.3), "armor.test");
-        } catch (JSONException failure) {
-            throw new AssertionError("test fixture should parse", failure);
-        }
-    }
-
     private static IntegralSystemDef pod(float minimumStandoffCells) {
         try {
             return IntegralSystemDef.parse(missilePodJson()
                     .put("minimumStandoffCells", minimumStandoffCells), "armor.test");
-        } catch (JSONException failure) {
-            throw new AssertionError("test fixture should parse", failure);
-        }
-    }
-
-    private static IntegralSystemDef sweepSystem(float lookaheadCells) {
-        try {
-            return IntegralSystemDef.parse(new JSONObject()
-                    .put("id", "system.test-sweep")
-                    .put("grade", "service")
-                    .put("displayName", "Test sweep")
-                    .put("description", "One wide active return.")
-                    .put("effect", "perception-sweep")
-                    .put("resource", "cooldown")
-                    .put("policy", SpecialAiPolicy.APPROACHING_DEAD_GROUND.key)
-                    .put("lookaheadCells", lookaheadCells)
-                    .put("durationSeconds", 3.0)
-                    .put("cooldownSeconds", 20.0)
-                    .put("revealRangeCells", 30.0)
-                    .put("wallReadRadiusCells", 6.0), "armor.test");
         } catch (JSONException failure) {
             throw new AssertionError("test fixture should parse", failure);
         }

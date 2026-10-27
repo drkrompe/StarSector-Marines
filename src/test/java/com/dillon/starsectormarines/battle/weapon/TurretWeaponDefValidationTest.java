@@ -49,8 +49,8 @@ class TurretWeaponDefValidationTest {
                   "id": "weapon.test-turret",
                   "mount": "turret-mount",
                   "catalog": {
-                    "displayName": "Test", "modelName": "Test",
-                    "designation": "TST", "designationTiered": false
+                    "displayName": "Test",
+                    "designationTiered": false
                   },
                   "sim": {
                     "range": 10.0, "damage": 10.0, "accuracy": 0.5,

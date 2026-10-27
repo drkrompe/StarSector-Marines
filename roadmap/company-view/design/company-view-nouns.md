@@ -176,7 +176,8 @@ shared mapping instead of assigning paths independently in each screen.
 - **Scrapped machine** — a boat, mech or vehicle the company broke up to free its
   berth or gantry. Everything fitted goes to stores, and its **hull** — its price less
   the stock parts it was built with, which came back on their own — returns at the
-  shop's recycling rate.
+  shop's recycling rate. A Hermes cannot be scrapped for now (owner, 2026-10-27): a
+  company that breaks up its gig and cannot afford another is left with no lift.
 - **Reserve hangar** — the company's store of whole machines: boats, mechs and
   vehicles taken off their berths and gantries with their identity, callsign, fit
   and repair clock intact. A stored machine flies and fights nothing, so no battle
@@ -343,7 +344,7 @@ Other weapon families, specialist suits, and special equipment must be learned.
 Existing saves keep every previously acquired spec.
 
 Wayline offers one free technology transfer: Steady Line permanently teaches
-Milspec Stalwart; Forward Screen teaches Milspec Lancer and Janus scout suits.
+Milspec MG-SUPP; Forward Screen teaches Milspec AR-PULSE and ARM-TACH-2-RCN scout suits.
 Acceptance grants reusable plan intent for both paths, but only the chosen path's
 technology. The other remains obtainable through open-market specs or mission
 rewards. Both featured Milspec specs circulate in the Common access band; military
@@ -363,7 +364,7 @@ acquisition remains the progression gate. Workshop restoration does not gate fit
 
 After Relief, Castle's portrait reward prompt appears over the debrief before its
 ordinary controls accept input. It leads with the free technology, shows the actual
-Stalwart/Lancer/Janus art, and offers one compact **Choose Free Technology**
+MG-SUPP/AR-PULSE/ARM-TACH-2-RCN art, and offers one compact **Choose Free Technology**
 action. Neither the prompt nor the equipment lesson offers a Later button. Escape defers only the prompt; it never dismisses or settles the debrief.
 The prompt does not learn technology. Its primary action opens the full comparison;
 a company with one line squad has that squad selected automatically.
@@ -1154,8 +1155,8 @@ carries campaign-shaped identity without touching campaign state.
 
 For ordinary generated one-shot missions, the selected ready named personnel
 are the deployment manifest even when the player fields less than the tier
-recommendation. The briefing exposes selected headcount, the four-person hard
-minimum, recommended squads, and issued experience-band distribution; it never
+recommendation. The briefing exposes selected headcount, the hard minimum of one
+ready marine (none when a bay machine drops), recommended squads, and issued experience-band distribution; it never
 fills missing seats with anonymous generated marines. Authored missions,
 stationing, and Conquest keep their own personnel requirements.
 

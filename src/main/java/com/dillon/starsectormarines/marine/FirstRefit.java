@@ -12,9 +12,9 @@ import java.util.List;
 public final class FirstRefit implements Serializable {
     public enum Path {
         STEADY_LINE("Steady Line", "wayline:steady-line", SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR,
-                "Learn Milspec Stalwart automatics. Three gunners anchor nine riflemen. Protection uses the armor specs you know."),
+                "Learn Milspec MG-SUPP automatics. Three gunners anchor nine riflemen. Protection uses the armor specs you know."),
         FORWARD_SCREEN("Forward Screen", "wayline:forward-screen", SquadEquipmentDoctrines.LEAGUE_MOBILE_ARMOR,
-                "Learn Milspec Lancer pulse rifles and Janus scout suits. Six pulse rifles and five scout billets trade line protection for eyes and mobility.");
+                "Learn Milspec AR-PULSE rifles and ARM-TACH-2-RCN scout suits. Six pulse rifles and five scout billets trade line protection for eyes and mobility.");
         public final String label, weapons, armor, description;
         public String label() { return Strings.get("openingRefitPath" + name()); }
         public String description() { return Strings.get("openingRefitPathDescription" + name()); }

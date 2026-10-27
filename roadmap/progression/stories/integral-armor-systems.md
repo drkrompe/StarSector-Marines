@@ -87,7 +87,7 @@ Two, chosen because they exercise opposite halves of the model:
 
 The first carried-hardware pass equips Aegis Predictive Volley and Arbalest
 Battery Volley with a compact three-channel left-pauldron missile pod. Specter
-Predictive Breach carries a smaller screen emitter on that shoulder. Both use
+frames' shield carries a smaller screen emitter on that shoulder. Both use
 separate transparent sprites attached to the actual shoulder joint; monolithic
 armor falls back to torso registration. Neither changes the handheld weapon or
 occupies the carried special slot. The hardware remains fitted after a power is
@@ -116,16 +116,12 @@ room to read at battle scale. These are proposed next assets, not shipped art:
 | --- | --- |
 | Packframe Rail Shot | Crude exposed launch rail, retaining its improvised identity |
 | Field aid | Medical satchel or compact treatment pack |
-| Perception sweep | Sensor array or antenna cluster |
-| Powered brace | Recoil brace or actuator where the armor lore supports one |
 | Smoke and fragmentation grenades | Distinct belt canisters or pouches |
-| Cutter or vibro-blade | Hip or back-mounted tool, then the existing use pose |
 | Demolition satchel | Carried pack; planted charge retains separate world art |
-| Interceptor or revetment | Folded kit or case before deployment |
+| Interceptor | Folded kit or case before deployment |
 
-Avoid applying a powered mechanism to an improvised sandbag rest merely because
-both implement brace. Hardware follows the authored equipment identity, while
-active system effects retain the shared capability language.
+Hardware follows the authored equipment identity, while active system effects
+retain the shared capability language.
 
 ## The room reacts
 

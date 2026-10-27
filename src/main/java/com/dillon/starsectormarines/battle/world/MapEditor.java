@@ -23,10 +23,8 @@ import com.dillon.starsectormarines.battle.world.model.PropDamage;
  *
  * <p>Almost all of it is destruction, which is the easy direction: the grid
  * only becomes more permissive, so a route that was legal stays legal. The
- * construction op, {@link #placeDeployedBarrier}, carries the rule that makes
- * construction safe — see its contract — and the one op that closes ground,
- * {@link #closePassage} (a sally door shut again), carries the terms on which
- * it is admitted.
+ * one op that closes ground, {@link #closePassage} (a sally door shut again),
+ * carries the terms on which it is admitted.
  *
  * <p>Each op is inherently cross-domain — it touches navigation walkability,
  * {@link CellTopology} state, and (for roof cave-ins) a decal FX sink — so
@@ -328,55 +326,6 @@ public final class MapEditor {
         return true;
     }
 
-    /**
-     * The runtime construction seam, and the whole of it.
-     *
-     * <p>Every other operation on this coordinator only ever makes the world
-     * <em>more</em> permissive: a breached wall stays walkable, a demolished
-     * mount becomes rubble, a broken barrier opens its edge. That asymmetry is
-     * what lets destruction be cheap — a path that was valid stays valid, a
-     * zone that was connected stays connected, and a unit standing anywhere
-     * legal is still standing somewhere legal. Construction has no such
-     * guarantee for free: closing a transition under existing paths can strand
-     * a unit and invalidate a route a squad is halfway through.
-     *
-     * <p>So construction is admitted on exactly one condition, enforced here
-     * rather than trusted to callers: <b>a runtime-placed feature may not make
-     * the navigation grid less permissive.</b> A profile that
-     * {@linkplain SharedEdgeBarrier.Kind#blocksMovement blocks movement} is
-     * refused outright. What remains — cover, presentation, structure
-     * that explosions can deplete — is invisible to walkability, to zones, to
-     * the navigation mesh, and to retained paths, so nothing derived needs
-     * invalidating and no flush is required.
-     *
-     * <p>Returns {@code null} when the edge cannot take a feature right now
-     * (off-map, either side unwalkable, transition already closed, or already
-     * occupied by another feature). A live placement declines; it does not
-     * throw.
-     */
-    public SharedEdgeBarrier placeDeployedBarrier(int x, int y, Direction direction,
-                                                  SharedEdgeBarrier.Kind kind) {
-        if (kind == null) return null;
-        if (kind.blocksMovement()) {
-            throw new IllegalArgumentException("Runtime construction may not close a"
-                    + " navigation transition; barrier kind '" + kind
-                    + "' blocks movement and is generation-only");
-        }
-        return grid.tryPlaceEdgeBarrier(x, y, direction, kind);
-    }
-
-    /**
-     * Removes a runtime-placed feature that ran out its clock, by spending its
-     * whole structure through the ordinary destruction path. Expiry and
-     * being blown apart therefore leave the map in exactly the same state —
-     * there is one removal path, not two.
-     */
-    public boolean retireDeployedBarrier(SharedEdgeBarrier barrier) {
-        if (barrier == null) return false;
-        return damageEdgeBarrier(barrier.cellX(), barrier.cellY(),
-                barrier.direction(), barrier.maxStructure());
-    }
-
     private void peelRoofAround(int wallX, int wallY) {
         destroyRoof(wallX - 1, wallY, RoofDamage.COLLAPSED);
         destroyRoof(wallX + 1, wallY, RoofDamage.COLLAPSED);
@@ -472,8 +421,8 @@ public final class MapEditor {
     /**
      * Shuts a passage {@link #openPassage} made, putting the cell back exactly as {@code record} found it: wall again,
      * with the hit points it had, the ground and surface it had, and the cover it gave its neighbours. This is the one
-     * runtime change that makes the grid <b>less</b> permissive, so it is admitted on the terms construction was refused
-     * on (see {@link #placeDeployedBarrier}), and they are the caller's to keep: nobody stands in the cell (a sally door
+     * runtime change that makes the grid <b>less</b> permissive, so it is admitted only on terms that are the caller's
+     * to keep: nobody stands in the cell (a sally door
      * never shuts on a body), and the routes that cross it are dropped. The navigation layers are marked for a full
      * rebuild at the tick's flush, because the zone graph's incremental update can only merge. Returns {@code false}
      * when the cell is not open floor (already shut, or never opened).

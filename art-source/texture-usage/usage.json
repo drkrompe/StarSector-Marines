@@ -64936,18 +64936,6 @@
     }
    }
   },
-  "graphics/ui/armory/special-breaching-cutter.png": {
-   "sliced": false,
-   "sources": {
-    "commander-raid": {
-     "displayWidth": 54.4,
-     "displayHeight": 54.4,
-     "domain": "world",
-     "mapWidth": 144,
-     "mapHeight": 80
-    }
-   }
-  },
   "graphics/ui/armory/special-field-mortar.png": {
    "sliced": false,
    "sources": {
@@ -65009,60 +64997,6 @@
     }
    }
   },
-  "graphics/ui/armory/special-field-revetment.png": {
-   "sliced": false,
-   "sources": {
-    "commander-conquest": {
-     "displayWidth": 11.2,
-     "displayHeight": 11.2,
-     "domain": "world",
-     "mapWidth": 560,
-     "mapHeight": 336
-    },
-    "commander-extraction": {
-     "displayWidth": 44.1,
-     "displayHeight": 44.1,
-     "domain": "world",
-     "mapWidth": 144,
-     "mapHeight": 80
-    },
-    "commander-raid": {
-     "displayWidth": 44.1,
-     "displayHeight": 44.1,
-     "domain": "world",
-     "mapWidth": 144,
-     "mapHeight": 80
-    },
-    "snapshot:battery-fort-map": {
-     "displayWidth": 11.2,
-     "displayHeight": 11.2,
-     "domain": "world",
-     "mapWidth": 560,
-     "mapHeight": 336
-    },
-    "snapshot:deployable-cover": {
-     "displayWidth": 56.0,
-     "displayHeight": 56.0,
-     "domain": "world",
-     "mapWidth": 40,
-     "mapHeight": 30
-    },
-    "snapshot:fort-siting": {
-     "displayWidth": 11.2,
-     "displayHeight": 11.2,
-     "domain": "world",
-     "mapWidth": 560,
-     "mapHeight": 336
-    },
-    "snapshot:shield-fort-map": {
-     "displayWidth": 11.2,
-     "displayHeight": 11.2,
-     "domain": "world",
-     "mapWidth": 560,
-     "mapHeight": 336
-    }
-   }
-  },
   "graphics/ui/armory/special-point-defence-pod.png": {
    "sliced": false,
    "sources": {
@@ -65107,53 +65041,6 @@
      "displayWidth": 56.0,
      "displayHeight": 56.0,
      "domain": "ui"
-    }
-   }
-  },
-  "graphics/ui/armory/special-vibro-blade.png": {
-   "sliced": false,
-   "sources": {
-    "commander-conquest": {
-     "displayWidth": 8.6,
-     "displayHeight": 8.6,
-     "domain": "world",
-     "mapWidth": 560,
-     "mapHeight": 336
-    },
-    "commander-corvus": {
-     "displayWidth": 16.8,
-     "displayHeight": 16.8,
-     "domain": "world",
-     "mapWidth": 288,
-     "mapHeight": 160
-    },
-    "commander-extraction": {
-     "displayWidth": 33.7,
-     "displayHeight": 33.7,
-     "domain": "world",
-     "mapWidth": 144,
-     "mapHeight": 80
-    },
-    "snapshot:fort-siting": {
-     "displayWidth": 8.6,
-     "displayHeight": 8.6,
-     "domain": "world",
-     "mapWidth": 560,
-     "mapHeight": 336
-    },
-    "snapshot:mission-objectives": {
-     "displayWidth": 33.7,
-     "displayHeight": 33.7,
-     "domain": "world",
-     "mapWidth": 144,
-     "mapHeight": 80
-    },
-    "snapshot:wayline-corvus": {
-     "displayWidth": 16.8,
-     "displayHeight": 16.8,
-     "domain": "world",
-     "mapWidth": 288,
-     "mapHeight": 160
     }
    }
   },
@@ -65213,31 +65100,6 @@
     }
    }
   },
-  "graphics/ui/armory/system-firing-brace.png": {
-   "sliced": false,
-   "sources": {
-    "snapshot:barracks-command": {
-     "displayWidth": 56.0,
-     "displayHeight": 56.0,
-     "domain": "ui"
-    },
-    "snapshot:equipment-localization": {
-     "displayWidth": 56.0,
-     "displayHeight": 56.0,
-     "domain": "ui"
-    },
-    "snapshot:first-refit": {
-     "displayWidth": 56.0,
-     "displayHeight": 56.0,
-     "domain": "ui"
-    },
-    "snapshot:ui": {
-     "displayWidth": 52.0,
-     "displayHeight": 52.0,
-     "domain": "ui"
-    }
-   }
-  },
   "graphics/ui/armory/system-missile-pod.png": {
    "sliced": false,
    "sources": {
@@ -65254,31 +65116,6 @@
     "snapshot:first-refit": {
      "displayWidth": 56.0,
      "displayHeight": 56.0,
-     "domain": "ui"
-    },
-    "snapshot:ui": {
-     "displayWidth": 52.0,
-     "displayHeight": 52.0,
-     "domain": "ui"
-    }
-   }
-  },
-  "graphics/ui/armory/system-sensor-sweep.png": {
-   "sliced": false,
-   "sources": {
-    "snapshot:barracks-command": {
-     "displayWidth": 56.0,
-     "displayHeight": 56.0,
-     "domain": "ui"
-    },
-    "snapshot:equipment-localization": {
-     "displayWidth": 64.0,
-     "displayHeight": 64.0,
-     "domain": "ui"
-    },
-    "snapshot:first-refit": {
-     "displayWidth": 64.0,
-     "displayHeight": 64.0,
      "domain": "ui"
     },
     "snapshot:ui": {

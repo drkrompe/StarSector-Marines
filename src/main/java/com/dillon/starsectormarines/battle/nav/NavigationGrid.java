@@ -846,8 +846,8 @@ public class NavigationGrid {
      *
      * <p>Fails loud on an illegal edge, which is what a generator wants.
      * Runtime placement goes through {@link #tryPlaceEdgeBarrier} instead: a
-     * marine setting a revetment down on ground another marine claimed a
-     * moment earlier should decline, not crash the battle.
+     * barrier placed mid-battle on an edge something else claimed a moment
+     * earlier should decline, not crash the battle.
      */
     public SharedEdgeBarrier placeEdgeBarrier(
             int x, int y, Direction direction, SharedEdgeBarrier.Kind kind) {

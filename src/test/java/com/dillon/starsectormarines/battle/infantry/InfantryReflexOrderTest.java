@@ -41,7 +41,6 @@ public class InfantryReflexOrderTest {
                         "TREATMENT",
                         "OPPORTUNITY_SPECIAL",
                         "HARDENED_OPPORTUNITY",
-                        "ONSET_SCREEN",
                         "BROKEN_FIRE_TEAM",
                         "LANE_SIDESTEP"),
                 InfantryReflexes.CHAIN.stream().map(Reflex::name).toList(),
@@ -66,7 +65,7 @@ public class InfantryReflexOrderTest {
     /**
      * The other side of the same split: the two narrowing reflexes exist only
      * for the withheld case, and a permitted step must not reach them at all —
-     * or an ordinary marine would fire a rocket and raise a screen through the
+     * or an ordinary marine would fire a rocket through the
      * seam that was meant to keep an advance moving.
      */
     @Test
@@ -76,7 +75,5 @@ public class InfantryReflexOrderTest {
                         1L, null, permitted, null),
                 "the hardened-target rocket is the withheld case's answer, not an "
                         + "always-on second opportunity path");
-        assertFalse(InfantryReflexes.ONSET_SCREEN.interrupt(1L, null, permitted, null),
-                "so is the onset screen");
     }
 }

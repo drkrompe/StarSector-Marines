@@ -75,7 +75,7 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
         g.setColor(new Color(0x111920));
         g.fillRect(0, 0, 1920, 1080);
         text(g, "BOARDING JACK / PIRATE-REBUILT BOARDING FRAME", 40, 48, 28);
-        text(g, "1920 × 1080 · 100% UI scale · production infantry composition · Latch Assist is the left boarding shield", 40, 79, 17);
+        text(g, "1920 × 1080 · 100% UI scale · production infantry composition · the low-tech shield is the left boarding shield", 40, 79, 17);
 
         MarineArmorCatalogDef jackArmor = MarineArmorCatalogRegistry.require(GreyhookRigIssue.PATTERN);
         MarineArmorCatalogDef specterArmor = MarineArmorCatalogRegistry.require("armor.specter-heavy");
@@ -85,7 +85,7 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
 
         text(g, "Separate exported parts · magnified 2×", 40, 125, 20);
         String[] parts = {"body", "shoulder-left", "shoulder-right"};
-        String[] partLabels = {"Torso · power pack · joint backing", "Left boarding shield (Latch Assist)", "Right cargo-frame cap"};
+        String[] partLabels = {"Torso · power pack · joint backing", "Left boarding shield (low-tech shield)", "Right cargo-frame cap"};
         for (int i = 0; i < parts.length; i++) {
             BufferedImage part = image(JACK + parts[i] + ".png");
             int x = 40 + i * 320;
@@ -159,7 +159,7 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
             actor(g, i < 4 ? jack : raider, jackArmor, 1440 + i % 4 * 100, 940 + i / 4 * 70, 24, "walking",
                     phase + i * 0.11f, 0, WeaponRegistry.STARTER_PRIMARY_ID, 0);
         }
-        text(g, "Latch Assist (" + latch.id() + ") is the left boarding shield: directional soak over 100° on that side", 40, 1060, 14);
+        text(g, latch.displayName() + " (" + latch.id() + ") is the left boarding shield: directional soak over " + Math.round(latch.breacherAssist().shieldedArcDegrees()) + "° on that side", 40, 1060, 14);
         g.dispose();
         return output;
     }

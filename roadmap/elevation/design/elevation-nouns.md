@@ -141,9 +141,9 @@ for elevation's sake.
 - Air observers (shuttles, flybys, recon) see every tier: their footprint is
   not limited by ground height, which is how a side without the high ground
   spots onto it.
-- A **sensor sweep** carried by a body on the ground reads past higher ground
+- A **wall-reading ground source** (a mission spotter) reads past higher ground
   as it reads through walls, within its read radius only; beyond it the
-  sweep sees from the carrier's own tier. A suit at the cliff foot reads the
+  source sees from its own tier. A spotter at the cliff foot reads the
   holders just behind the rim, not the whole plateau.
 
 Along a line, the rule reads: a cell no higher than the eye passes as it

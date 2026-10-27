@@ -66,8 +66,21 @@ class RecyclingTest {
         assertEquals(start, purse.credits, "at the full rate building and breaking her up is exactly free");
     }
 
+    @Test void theHermesIsKeptFromTheBreakers() {
+        var deck = boatDeck(ShuttleType.HERMES);
+        var purse = TestPurse.rich().reclaiming(Reclamation.FULL);
+        var workshop = new BoatWorkshop(deck, purse);
+        assertEquals(BoatWorkshop.Status.FABRICATED, workshop.fabricate(0).status());
+        CampaignBoat boat = deck.boats().get(0);
+        long before = purse.credits;
+
+        assertEquals(BoatWorkshop.Status.NOT_SCRAPPABLE, workshop.scrap(boat.id()).status());
+        assertSame(boat, deck.boats().get(0), "she stays in her berth");
+        assertEquals(before, purse.credits);
+    }
+
     @Test void buildingABoatThenRecyclingHerPartsAndScrappingHerNeverTurnsAProfit() {
-        for (ShuttleType pattern : List.of(ShuttleType.HERMES, ShuttleType.VALKYRIE)) {
+        for (ShuttleType pattern : List.of(ShuttleType.VALKYRIE)) {
             for (Reclamation level : Reclamation.values()) {
                 for (boolean tooled : List.of(false, true)) {
                     var deck = boatDeck(pattern);

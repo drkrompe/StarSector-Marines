@@ -124,12 +124,21 @@ public final class BoatWorkshop {
     public Result scrap(String boatId) {
         CampaignBoat boat = deck.boatById(boatId);
         if (boat == null) return Result.of(Status.UNKNOWN_BOAT);
+        if (!scrappable(boat.pattern())) return new Result(Status.NOT_SCRAPPABLE, boat);
         FabricationCost back = scrapQuote(boatId);
         if (back != null && !resources.credit(back)) return new Result(Status.NO_HOLD, boat);
         for (BoatFittingSlot slot : BoatFittingSlot.values()) strip(boatId, slot);
         for (int hardpoint = 0; hardpoint < boat.pattern().hardpoints(); hardpoint++) stripGun(boatId, hardpoint);
         if (!deck.scrap(boatId)) throw new IllegalStateException("a boat found on the deck could not leave her berth");
         return new Result(Status.SCRAPPED, boat);
+    }
+
+    /**
+     * Whether a boat of {@code pattern} may be broken up. The Hermes may not, for now: a company
+     * that scraps its gig and cannot pay for another has no lift left (owner, 2026-10-27).
+     */
+    public static boolean scrappable(ShuttleType pattern) {
+        return pattern != null && pattern != ShuttleType.HERMES;
     }
 
     private static FabricationCost billOf(String partId) {
@@ -312,6 +321,8 @@ public final class BoatWorkshop {
         RECYCLED,
         /** A boat was broken up: her parts are in stores and her berth stands vacant. */
         SCRAPPED,
+        /** Her pattern is kept from the breakers ({@link BoatWorkshop#scrappable}). */
+        NOT_SCRAPPABLE,
         /** The machine shop's machinery is not running, so nothing can be broken down. */
         WORKSHOP_IDLE,
         /** Too little of the price would come back to be worth a credit. */

@@ -731,7 +731,7 @@ Still open inside this story:
   hand-stamped buildings, Boarding Jack rigs at play scale.
 - **Boarding Jack** (art shipped, live acceptance open). The pattern and its
   section card carry trial values supported by `loadoutMatchup`. Its layered art
-  (torso, a hinged left boarding shield that is the Latch Assist presentation and
+  (torso, a hinged left boarding shield that is the low-tech shield presentation and
   sweeps across the chest when firing, a right cargo cap, helmet, feet and five
   paints) is exported from retained Codex ImageGen raws under
   `art-source/marine-modular-topdown/boarding-jack/` and reviewed by

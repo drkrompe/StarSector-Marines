@@ -36,26 +36,6 @@ public enum SpecialAiPolicy {
      */
     AREA_DENIAL_EMPLACEMENT("area-denial-emplacement"),
     /**
-     * Placed directional cover: the carrier sets a screen down on one boundary
-     * of the cell it is standing on, facing a threat it can already see. It
-     * has no gun, no radius, and no opinion about anyone — it is a property of
-     * that boundary, protecting whoever stands on either side of it from fire
-     * crossing it, and nothing else.
-     */
-    DIRECTIONAL_COVER_SCREEN("directional-cover-screen"),
-    /**
-     * Sustained anti-hard contact work: a visible, interruptible channel
-     * against an adjacent hardened actor, or against an authored breach point
-     * the carrier is already standing beside. It never seeks obstacles.
-     */
-    CONTACT_BREACH_CHANNEL("contact-breach-channel"),
-    /**
-     * Short anti-personnel reaction: one strike against an adjacent living
-     * infantry contact. It cannot select a turret, hub, mech, vehicle, wall,
-     * or a target the carrier cannot honestly reach.
-     */
-    CONTACT_REACTION_STRIKE("contact-reaction-strike"),
-    /**
      * Taking fire the carrier cannot presently answer, in a place that is not
      * answering it either. Three facts have to hold at once: enough rounds are
      * landing near them to be worth a long cooldown, the bearing those rounds
@@ -80,13 +60,6 @@ public enum SpecialAiPolicy {
      */
     SIGHTED_STANDOFF_CONTACT("sighted-standoff-contact"),
     /**
-     * Moving onto ground that cannot be seen into: the carrier is under way,
-     * and the ground a short distance along their heading is behind something
-     * their own eyes do not reach past. Dead ground is the moment; what gets
-     * spent on it may do no more than look at it.
-     */
-    APPROACHING_DEAD_GROUND("approaching-dead-ground"),
-    /**
      * A squadmate hurt badly enough to be worth a dressing, close enough to
      * reach, and still on their feet. Names the moment rather than the
      * capability, like every policy here: what arrives is somebody who needs
@@ -98,20 +71,6 @@ public enum SpecialAiPolicy {
      * carrying it.
      */
     WOUNDED_SQUADMATE_IN_REACH("wounded-squadmate-in-reach"),
-    /**
-     * Standing where the carrier means to stand, shooting at something far
-     * enough off to be worth being steady for, with nobody close enough to make
-     * being committed a mistake. Three facts and no opinion: the carrier's path
-     * is exhausted, they hold a live engagement out past a share of their own
-     * reach, and the nearest hostile is further off than the suit's authored
-     * break-off.
-     *
-     * <p>The mirror of {@link #EXPOSED_UNDER_FIRE}, and named to be read beside
-     * it. That policy is the moment for a marine who cannot answer what is
-     * shooting at them; this one is the moment for a marine who can, and whose
-     * whole problem is hitting with it.
-     */
-    HOLDING_A_FIRING_POSITION("holding-a-firing-position"),
     /**
      * A hostile the carrier can see, or has fair reason to believe in, that is worth an aircraft: the carrier works a
      * radio and the side's air pool answers. The moment is the designation, not any shot; the carrier spends nothing

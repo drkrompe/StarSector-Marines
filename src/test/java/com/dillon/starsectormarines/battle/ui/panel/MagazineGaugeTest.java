@@ -22,14 +22,14 @@ class MagazineGaugeTest {
     }
 
     @Test
-    void roundsLeaveFromTheFirstAndAReloadPressesThemBackIn() {
+    void roundsLeaveFromTheFirstAndAReloadShowsNoneUntilItEnds() {
         MagazineGauge firing = MagazineGauge.of(1, 1, 4, 1, 0f, 3f);
         assertEquals(MagazineGauge.Round.LIVE, firing.round(0));
         assertEquals(MagazineGauge.Round.SPENT, firing.round(1));
         MagazineGauge reloading = MagazineGauge.of(1, 1, 4, 0, 1.5f, 3f);
         assertTrue(reloading.reloading());
-        assertEquals(MagazineGauge.Round.LOADING, reloading.round(1));
-        assertEquals(MagazineGauge.Round.SPENT, reloading.round(2));
+        assertEquals(MagazineGauge.Round.SPENT, reloading.round(0));
+        assertEquals(MagazineGauge.Round.SPENT, reloading.round(3));
     }
 
     @Test

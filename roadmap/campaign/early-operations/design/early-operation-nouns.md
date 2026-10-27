@@ -4,7 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-27 — Counterattack's road attacks start when the company first enters dispatch, not after the capture.
+Updated: 2026-10-27 — Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
+Earlier 2026-10-27 — Counterattack's road attacks start when the company first enters dispatch, not after the capture.
 Earlier 2026-10-20 — Relief's story chapter starts the company ashore beside Wayline's truck under the ore-dust cover story; Militia Relief keeps company lift.
 
 Early operations are the opening proof that a new marine company can take
@@ -97,7 +98,7 @@ Completion of the Corvus arc and acknowledgement of its aftermath precede the of
 the supply-route outcome does not change eligibility. Hound survival is optional.
 The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and
 **Working Passage**. Salvage Rights uses the company's selected marines and fitted
-boats, with two squads recommended and two four-person squads as its minimum.
+boats, with two squads recommended and one ready marine, or a machine that drops, as its minimum.
 Cooperative militia hold gains; a physical inspection party follows only after
 the company secures the cradle. The protected claim requires safe working time,
 living company cover and a surviving technician. A finite response comes along
@@ -1068,15 +1069,23 @@ four required territories. Dispatch is the canonical command post. Decorative
 warehouses and the roads toward Rill and Relay Nine add no capture requirements.
 Across the road from the sites stand the bonded warehouse, its hall stocked with
 the impounded machinery and crates, and a fenced impound lot holding four of
-Wayline's haulers. They are scenery. The haulers are civilian, so nobody targets
-them, and nothing there needs taking or guarding.
+Wayline's haulers. The haulers are civilian, so nobody targets them, and
+neither place needs taking. The warehouse is garrisoned: ten raiders wait in
+the hall and fight what they see from it, and when the company secures its
+first site they sprint across the road into the Freight Yard opposite and hold
+it, retaking it if the company has it (`JunctionPressure`).
 Those roads add no campaign decision. The weigh-house has a
 T-shaped service wing; offset freight rooms face the maintenance access, and
 an L-shaped depot encloses a northern loading recess. The broad central
 warehouse still screens long sightlines, and the maintenance reserve retains
 its separate building behind the perimeter. Two manned trench lines cross the
 company's way in, one west of the Freight Yard and one west of Dispatch. Each
-holds its own squad on the trench itself, not in the site behind it.
+holds its own squad on the trench itself, not in the site behind it. The column
+off the Rill road is twelve strong, and when it goes in at the company's second
+site, two technicals come with it down the main road from the east edge and
+park on the road beside the site it is retaking (`RoadTechnical`). Both
+additions answer a playtest: a company with upgraded squads, the Hound and
+Talon Two walked through the junction.
 
 Recovering the depot lets Wayline afford hired close air support. The Junction
 briefing introduces **Talon Two**, a contracted Mudskipper gunship and crew under

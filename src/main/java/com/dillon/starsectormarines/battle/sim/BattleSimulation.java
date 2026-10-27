@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
+import com.dillon.starsectormarines.battle.setup.JunctionPressure;
 import com.dillon.starsectormarines.battle.world.model.PropPower;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.PropDamage;
@@ -40,8 +41,6 @@ import com.dillon.starsectormarines.battle.ambient.WorksCrewSystem;
 import com.dillon.starsectormarines.battle.task.TaskPointService;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
 import com.dillon.starsectormarines.battle.smoke.HazeEdge;
-import com.dillon.starsectormarines.battle.contact.CloseContactService;
-import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.infantry.SquadSupportDeclaration;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
@@ -349,7 +348,6 @@ import com.dillon.starsectormarines.battle.combat.Detonations;
 import com.dillon.starsectormarines.battle.combat.FiringSystem;
 import com.dillon.starsectormarines.battle.combat.HeavyWeapons;
 import com.dillon.starsectormarines.battle.combat.HitResponseSystem;
-import com.dillon.starsectormarines.battle.infantry.CloseContactTactics;
 import com.dillon.starsectormarines.battle.infantry.MortarTactics;
 import com.dillon.starsectormarines.battle.infantry.InfantryWeapons;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -473,9 +471,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final FieldMortarService fieldMortars = new FieldMortarService();
     /** Owner of planetary shield domes: one flux pool per live shield generator, reading ship-grade ordnance through {@link Detonations}. Ticked beside point defence. */
     private final ShieldDomeService shieldDomes;
-    /** Owner of carrier-placed cover screens: placement queue, live screens, and their remaining lifetime. Holds no entities — a screen is a property of a cell boundary, published through {@link MapEditor}. */
-    private final DeployedCoverService deployedCover;
-    private final CloseContactService closeContact;
     /** Committed anti-personnel grenade footprints used for squad overkill prevention. */
     private final com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades;
     /** Alias of {@link NavigationService#getTopology()}. */
@@ -816,6 +811,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         addObjective(salvageRights);
     }
     public DepotHoldSequence getDepotHold() { return depotHold; }
+    private JunctionPressure junctionPressure;
+    /** The Junction's warehouse garrison and road technicals, or null on any other battle. */
+    public JunctionPressure getJunctionPressure() { return junctionPressure; }
+    public void installJunctionPressure(JunctionPressure pressure) {
+        if (simTickIndex != 0 || junctionPressure != null) throw new IllegalStateException("Install Junction pressure once at setup");
+        junctionPressure = pressure;
+    }
     public void installDepotHold(PointOfInterest warehouse, List<List<EntitySpec>> reserves) {
         installDepotHold(new DepotHoldSequence(warehouse, reserves, storyBeats));
     }
@@ -1568,8 +1570,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         this.pointDefense = new PointDefenseService(rng);
         this.shieldDomes = new ShieldDomeService();
         this.shieldDomes.setHolderListener(this::followStructureHolder);
-        this.deployedCover = new DeployedCoverService(mapEditor, this.grid);
-        this.closeContact = new CloseContactService();
         this.fragGrenades = new com.dillon.starsectormarines.battle.grenade.FragGrenadeService();
         this.topology = navigation.getTopology();
         this.zoneGraph = navigation.getZoneGraph();
@@ -1955,8 +1955,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     @Override public FieldMortarService fieldMortars() { return fieldMortars; }
     /** Planetary shield domes, for the renderer, the audio tier and evidence. */
     public ShieldDomeService shieldDomes() { return shieldDomes; }
-    @Override public DeployedCoverService deployedCover() { return deployedCover; }
-    @Override public CloseContactService closeContact() { return closeContact; }
     @Override public com.dillon.starsectormarines.battle.grenade.FragGrenadeService fragGrenades() { return fragGrenades; }
     /** Categorization tags (street / rubble / wall / vehicle / etc.) for renderer + placement filters. Sibling to {@link #grid}; the pathfinder doesn't touch this. */
     public CellTopology getTopology()      { return topology; }
@@ -3915,17 +3913,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         shieldDomes.tick(TICK_DT, rosterService);
         // Hardpoint shields face their threat, rise or fold, drain and recover; a destroyed gun's goes with it.
         tickTurretShields();
-        // Cover screens build, age, and retire here. Nothing downstream of
-        // this pass depends on the ordering: a screen changes only cover,
-        // which every reader samples live at the moment a round resolves.
-        deployedCover.tick(TICK_DT, this);
         // Tenders launch and recover their drones, fly to a site and stand its structure up.
         shipCommands.drain(warships.ships(), tenders.tenders(), Faction.MARINE, grid,
                 (x, y) -> fogOfWar.isCellRevealed(x, y));
         tenders.tick(TICK_DT, this);
         droneBays.tick(TICK_DT, this);
         vehicleDust.tick(simTickIndex, convoy(), topology, effects);
-        closeContact.tick(this);
         com.dillon.starsectormarines.battle.infantry.FragGrenadeTactics.cleanupReservations(this);
         tickProfile.lap(TickProfile.Phase.SATCHELS);
         // Simulated-projectile path — advance each in-flight Projectile by dt,
@@ -4169,6 +4162,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Before the story sequences, so a side job done on the tick its window closes still counts.
         sideObjectives.tick(this);
         if (depotHold != null) depotHold.advance(this);
+        if (junctionPressure != null) junctionPressure.advance(this);
         if (salvageRights != null) salvageRights.advance(this);
         if (coldStart != null) coldStart.advance(this);
         if (workingPassage != null) workingPassage.advance(this);
@@ -4595,11 +4589,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.telemetry().recordSecondaryUsed(carrier);
     }
 
-    /** The audio, effect and noise of a completed breaching cut. */
-    public void reportContactBreach(long carrier, float cellCenterX, float cellCenterY) {
-        infantry.reportContactBreach(carrier, cellCenterX, cellCenterY);
-    }
-
     /** The wall-breach pass, for readings of how many rounds and charges it has spent. */
     public WallBreachSystem wallBreach() { return wallBreach; }
 
@@ -4614,39 +4603,6 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public BruteChargeSystem bruteCharges() { return bruteCharges; }
     /** What each Matriarch is doing with its scythes and crown; its behaviour writes it, its rig reads it. */
     public MatriarchActions matriarchActions() { return matriarchActions; }
-
-    @Override
-    public boolean applyContactStrike(long carrier, long target) {
-        if (!world.hasSecondaryWeapon(carrier) || resolveUnit(carrier) == 0L) return false;
-        SpecialEquipmentDef contactTool = world.specialEquipment(carrier);
-        if (!contactTool.isCloseContactWeapon()) return false;
-        // Re-validated here as well as inside the channel: the payload seam is
-        // the last honest moment, and a contact that became illegal on the
-        // final tick must not land anyway.
-        if (!CloseContactTactics.isLegalUnitContact(carrier, contactTool, target, this)) {
-            return false;
-        }
-        infantry.strikeContact(carrier, target);
-        return true;
-    }
-
-    @Override
-    public boolean applyContactBreach(long carrier, int cellX, int cellY) {
-        if (!world.hasSecondaryWeapon(carrier) || resolveUnit(carrier) == 0L) return false;
-        SpecialEquipmentDef contactTool = world.specialEquipment(carrier);
-        if (!contactTool.isCloseContactWeapon()) return false;
-        if (!CloseContactTactics.isLegalBreachPoint(carrier, contactTool, cellX, cellY, this)) {
-            return false;
-        }
-        int wallDamage = contactTool.wallDamage();
-        if (wallDamage <= 0) return false;
-        // Bounded and local: exactly one authored cell, through the ordinary
-        // map-edit authority, with no radius and no blast.
-        boolean opened = mapEditor.damageWall(cellX, cellY, wallDamage);
-        if (opened) closeContact.consumeBreachPoint(cellX, cellY);
-        infantry.reportContactBreach(carrier, cellX + 0.5f, cellY + 0.5f);
-        return true;
-    }
 
     /** Delegates to {@link TurretFireSystem}. Kept for TurretBehavior and any remaining sim-surface callers on the deprecation path. */
     public void fireShotFrom(float fromX, float fromY, Faction shooterFaction,

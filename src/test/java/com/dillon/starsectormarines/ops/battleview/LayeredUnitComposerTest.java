@@ -31,7 +31,7 @@ class LayeredUnitComposerTest {
                 carried, carried, 0f, null, true, false,
                 EquipmentLayerDef.Attachment.LEFT_SHOULDER, .5f, 20f / 192f);
         IntegralSystemDef system = new IntegralSystemDef("system", "System", null,
-                null, null, null, 0f, 0f, 0, null, null, null, null, null, carrier);
+                null, null, null, 0f, 0f, 0, null, null, null, carrier);
         List<Layer> layers = new ArrayList<>();
         LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
                         layers.add(new Layer(sprite.sourcePath, x, y, angle)),
@@ -106,7 +106,7 @@ class LayeredUnitComposerTest {
         EquipmentLayerDef carrier = new EquipmentLayerDef("unloaded", 1f, 1f, .5f, .5f,
                 state, state, 0f, null, true, false);
         IntegralSystemDef system = new IntegralSystemDef("no-art", "No art", null,
-                null, null, null, 0f, 0f, 0, null, null, null, null, null, carrier);
+                null, null, null, 0f, 0f, 0, null, null, null, carrier);
         List<String> ids = new ArrayList<>();
         LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
                         ids.add(sprite.sourcePath), assets, assets.head, null, true, null,
@@ -132,7 +132,7 @@ class LayeredUnitComposerTest {
         EquipmentLayerDef carrier = new EquipmentLayerDef("mount", .24f, .4f, .5f, .5f,
                 carried, using, recoil, null, false, true, EquipmentLayerDef.Attachment.LEFT_SHOULDER);
         IntegralSystemDef system = new IntegralSystemDef("system", "System", null,
-                null, null, null, 0f, 0f, 0, null, null, null, null, null, carrier);
+                null, null, null, 0f, 0f, 0, null, null, null, carrier);
         List<Layer> layers = new ArrayList<>();
         LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
                         layers.add(new Layer(sprite.sourcePath, x, y, angle)),
@@ -182,7 +182,7 @@ class LayeredUnitComposerTest {
                     null, null, null, null, null);
             SpecialEquipmentDef special = new SpecialEquipmentDef("special", "Special", null,
                     null, null, null, null, null, 0, null, presentation,
-                    null, null, null, null, null);
+                    null, null, null);
             List<String> layers = new ArrayList<>();
             LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
                             layers.add(sprite.sourcePath),
@@ -214,7 +214,7 @@ class LayeredUnitComposerTest {
                 null, null, null, null, null, null, packed);
         SpecialEquipmentDef special = new SpecialEquipmentDef("special", "Special", null,
                 null, null, null, null, null, 0, null, presentation,
-                null, null, null, null, null);
+                null, null, null);
         for (int pose : new int[]{LayeredAppearance.POSE_IDLE, LayeredAppearance.POSE_FIRING}) {
             List<String> layers = new ArrayList<>();
             LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
@@ -246,7 +246,7 @@ class LayeredUnitComposerTest {
                 null, SpecialUsePose.PLANT, carrier, null, null, null, null, null);
         SpecialEquipmentDef special = new SpecialEquipmentDef("special", "Special", null,
                 null, null, null, null, null, 0, null, presentation,
-                null, null, null, null, null);
+                null, null, null);
         List<String> layers = new ArrayList<>();
         LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
                         layers.add(sprite.sourcePath),
@@ -336,7 +336,7 @@ class LayeredUnitComposerTest {
                 null, SpecialUsePose.PLANT, carrier, null, null, null, null, null, handset);
         SpecialEquipmentDef radio = new SpecialEquipmentDef("radio", "Radio", null,
                 null, null, null, null, null, 0, null, presentation,
-                null, null, null, null, null);
+                null, null, null);
         LayeredUnitComposer.emit(out, assets, assets.head, null, true, radio,
                 EquipmentGrade.SERVICE, 0f, 0f, 100f, 0f, 0f, 0f, 0f, pose, flags, 1f, authored);
     }

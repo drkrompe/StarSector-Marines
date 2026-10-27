@@ -299,7 +299,7 @@ many redoubts held is enough) is tuning, set when the Cordon's evidence exists.
 | Need | What exists | Gap |
 | --- | --- | --- |
 | Fire | Presentation only: wreck fire and smoke (`EffectsService`, `ImpactFx`, the smoke-and-fire sheet), weapon fx entries of kind fire, an airframe cook-off that is a one-shot blast (`AirframeCookOffSystem`). | No burning ground, no fire spread, no flammable terrain, no damage over time, no incendiary weapon anywhere in the data. Canopies have no burn state. |
-| Smoke | A standing smoke cloud is a partition that cuts sight both ways (`ai-nouns.md`, smoke as a partition); squads carry smoke pots and can be given a screen. | Fire's smoke is not yet a cloud. |
+| Smoke | A standing smoke cloud is a partition that cuts sight both ways (`ai-nouns.md`, smoke as a partition); squads carry smoke grenades and can be given a screen. | Fire's smoke is not yet a cloud. |
 | Crew-served fire | The fire mission (a cell and a radius) on a squad's order; field mortar sections (52-cell range, set up, serve, pack, lost; friendly veto at launch); standing fire missions and the base of fire (`phased-assault.md`, `conquest-command.md`). | Fire missions are single places; nothing steps forward on a timetable. |
 | Off-map fire | Orbital Barrage, a placed blast after a warning (player command power, charges, ship-grade; `command-powers-nouns.md`), locked by an intact hostile battery; ship and air powers; the defending world's hostile ship support. | No off-map ground artillery, and nothing for the `ALLY` side; no creeping or rolling barrage for ground guns (the rack volley in `air-nouns.md` is a launcher's footprint, not a timetable). |
 
@@ -340,7 +340,7 @@ firebreak have landed there.
 6. **Fire field.** Burning as simulation state the battle owns, beside the
    creep field: per cell, fuel, burning and burnt. Fire spreads by fuel
    (crops, brush, canopies, dead and living creep), burns out, hurts whatever
-   stands in it, and makes smoke that is a partition like a smoke pot's.
+   stands in it, and makes smoke that is a partition like a smoke grenade's.
    Deterministic in the seed; drawn through the existing fire and smoke fx and
    a scorch on the ground. Canopies burn and fall to passable burnt ground.
 7. **Firebreak.** Burnt ground refuses creep until it recovers (the creep

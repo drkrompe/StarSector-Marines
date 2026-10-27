@@ -393,13 +393,13 @@ final class BattleDirectControlStatus {
     }
 
     /**
-     * A hand grenade, named by its model ("Shattercap", "Firebrand"): grenades left of those issued, and a throw
+     * A hand grenade, named by its catalog code ("GRN-FRAG", "GRN-INC"): grenades left of those issued, and a throw
      * the player started on its clock.
      */
     static AbilityStatus grenadeAbility(SpecialEquipmentDef def, int ammo, boolean manualThrow,
                                         float actionRemaining, boolean ready) {
         float active = manualThrow ? Math.max(0f, actionRemaining) : 0f;
-        return new AbilityStatus(DirectControlAbility.GRENADE, def.weaponDef().modelName(), ready,
+        return new AbilityStatus(DirectControlAbility.GRENADE, def.displayName(), ready,
                 active, def.aimDuration(), 0f, 0f, ammo, def.startingAmmo(), 0f, 0f);
     }
 
@@ -417,14 +417,14 @@ final class BattleDirectControlStatus {
                                      float reloadDuration) {
         boolean direct = PointFireAim.supports(weapon) && Float.isFinite(weapon.range) && weapon.range > 0f;
         if (weapon.magazine() == null) {
-            return new WeaponStatus(1, "PRIMARY", weapon.catalogName(grade),
+            return new WeaponStatus(1, "PRIMARY", weapon.gradedName(grade),
                     behavior(weapon, weapon.burstCount), direct,
                     cooldown, cycleDuration, burstRemaining, burstTimer,
                     new Ammo(0, 0, AmmoUnit.UNTRACKED, false));
         }
         boolean reloading = reloadRemaining > 0f;
         Ammo ammo = new Ammo(roundsLoaded, weapon.magazine().size(grade), AmmoUnit.ROUNDS, false);
-        return new WeaponStatus(1, "PRIMARY", weapon.catalogName(grade),
+        return new WeaponStatus(1, "PRIMARY", weapon.gradedName(grade),
                 behavior(weapon, weapon.burstCount), direct,
                 reloading ? reloadRemaining : cooldown, reloading ? reloadDuration : cycleDuration,
                 burstRemaining, burstTimer, ammo, false, "", "", false, reloading);

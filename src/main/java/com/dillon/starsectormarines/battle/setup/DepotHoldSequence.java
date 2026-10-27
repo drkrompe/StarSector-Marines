@@ -20,7 +20,7 @@ import java.util.List;
 /**
  * Two precommitted attacks enter on both service roads once the company steps into dispatch and sprint into it, each
  * raider walking once inside; the final one brings a technical up the south road to park before the warehouse
- * ({@link DepotRoadTechnical}).
+ * ({@link RoadTechnical}).
  */
 public final class DepotHoldSequence implements Objective {
     public static final String CAPTURED = "opening.counterattack.warehouse_captured";
@@ -40,7 +40,7 @@ public final class DepotHoldSequence implements Objective {
     private final List<Integer> approachSquads = new ArrayList<>();
     private final List<Integer> roadSquads = new ArrayList<>();
     private final StoryBeatLog log;
-    private final DepotRoadTechnical technical;
+    private final RoadTechnical technical;
     private final DepotHoldProgress progress = new DepotHoldProgress();
     private int released;
     private float doorX = Float.NaN, doorY;
@@ -50,7 +50,7 @@ public final class DepotHoldSequence implements Objective {
     }
 
     /** @param technical the final wave's truck, or null for none */
-    DepotHoldSequence(PointOfInterest warehouse, List<List<EntitySpec>> forces, DepotRoadTechnical technical,
+    DepotHoldSequence(PointOfInterest warehouse, List<List<EntitySpec>> forces, RoadTechnical technical,
                       StoryBeatLog log) {
         if (forces.size() != 4 || forces.stream().anyMatch(List::isEmpty))
             throw new IllegalArgumentException("Depot defense requires two pairs of road forces");

@@ -33,15 +33,13 @@ public final class DirectControlReticle {
 
     /** The load's faint ink: a tick's unready length, a spent round. */
     static final Color SPENT = new Color(0xF4, 0xF6, 0xF8, 46);
-    /** A round the reload has put back, which cannot fire until the reload ends. */
-    static final Color REFILLED = new Color(0xF4, 0xF6, 0xF8, 140);
 
     private static int alpha(float share) { return Math.round(share * 255f); }
 
     /**
      * A button's trigger: {@code readiness} is how far its cycle or reload has run, 1 when it would fire now;
      * {@code rounds} of {@code capacity} are in the magazine, a capacity of 0 being a pick with no limit on its
-     * rounds, which draws no arc; {@code reloading} is a magazine being changed, whose arc refills as the reload runs.
+     * rounds, which draws no arc; {@code reloading} is a magazine being changed, whose arc stays empty until the reload ends.
      */
     public record Load(float readiness, int rounds, int capacity, boolean reloading) {
         /** Ready, with no magazine: the tick as the mark alone draws it. */
@@ -190,8 +188,8 @@ public final class DirectControlReticle {
 
     /**
      * The magazine arc around the dot on a button's side ({@code (sideX, sideY)}), one segment a round. Rounds
-     * fire from the end nearest the line of fire, so spent rounds go faint from that end, and a reload refills from
-     * it, paler than loaded rounds until the reload ends. A magazine over {@link #MAX_ARC_SEGMENTS} is one bar split
+     * fire from the end nearest the line of fire, so spent rounds go faint from that end. A reload leaves the whole arc
+     * faint until it ends, since not one round can fire before then; the tick carries its clock. A magazine over {@link #MAX_ARC_SEGMENTS} is one bar split
      * at the same share.
      */
     private static void arc(List<DirectControlAimLane.Stroke> out, Load load, float x, float y,
@@ -203,23 +201,19 @@ public final class DirectControlReticle {
         float sign = left ? 1f : -1f;
         float from = (float) Math.toDegrees(Math.atan2(sideY, sideX)) - sign * ARC_HALF_SPAN_DEG;
         float span = sign * 2f * ARC_HALF_SPAN_DEG;
-        boolean reloading = load.reloading();
-        int lit = reloading ? (int) Math.floor(capacity * Math.max(0f, Math.min(1f, load.readiness())))
-                : Math.max(0, Math.min(capacity, load.rounds()));
-        // The front run (nearest the line of fire) is the refilled rounds in a reload, the spent ones otherwise.
-        int front = reloading ? lit : capacity - lit;
-        Color frontColor = reloading ? REFILLED : SPENT;
-        Color backColor = reloading ? SPENT : GOOD;
+        int lit = load.reloading() ? 0 : Math.max(0, Math.min(capacity, load.rounds()));
+        // The spent rounds are the run nearest the line of fire.
+        int front = capacity - lit;
         if (capacity > MAX_ARC_SEGMENTS) {
             float split = span * front / capacity;
-            arcPiece(out, x, y, from, split, frontColor);
-            arcPiece(out, x, y, from + split, span - split, backColor);
+            arcPiece(out, x, y, from, split, SPENT);
+            arcPiece(out, x, y, from + split, span - split, GOOD);
             return;
         }
         float step = span / capacity;
         float gap = sign * Math.min(ARC_GAP_DEG, Math.abs(step) * 0.4f);
         for (int i = 0; i < capacity; i++) {
-            arcPiece(out, x, y, from + i * step, step - gap, i < front ? frontColor : backColor);
+            arcPiece(out, x, y, from + i * step, step - gap, i < front ? SPENT : GOOD);
         }
     }
 

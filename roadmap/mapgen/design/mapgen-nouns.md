@@ -130,11 +130,10 @@ substitute: `ZoneDetector` floods on cell walkability alone while the pathfinder
 honours edges, so a zone-graph answer can say "connected" about a region no unit
 can actually walk out of.
 
-Only the non-blocking case is built. `MapEditor.placeDeployedBarrier` is the
-single runtime construction seam and enforces the condition mechanically, by
-refusing any profile that blocks movement; the carried cover screen in
-`progression-nouns.md` is its one consumer. A future movement-blocking placement
-extends that seam with the reachability proof rather than bypassing it.
+No runtime construction seam exists. A future one admits the non-blocking case
+mechanically, by refusing any profile that blocks movement, and a future
+movement-blocking placement carries the reachability proof in that seam rather
+than bypassing it.
 
 A **shared-edge barrier** is that authored identity. It is stored once on a
 canonical east- or north-facing edge, while reciprocal lookup from either

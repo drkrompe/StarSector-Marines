@@ -35,7 +35,7 @@ class OrdnanceTest {
         return WeaponDef.parse(new JSONObject("""
                 {
                   "id": "weapon.ordnance-evidence", "mount": "marine-primary",
-                  "catalog": { "displayName": "Evidence", "modelName": "Evidence", "designation": "EV",
+                  "catalog": { "displayName": "Evidence",
                                "role": "LINE", "description": "An ordnance fixture." },
                   "sim": { "range": 20.0, "damage": 10.0, "accuracy": 1.0, "cooldown": 0.5, "penetration": 1.0 },
                   "fx": { "impact": [ {"kind": "glow", "radius": 0.2, "lifetime": 0.1} ] }

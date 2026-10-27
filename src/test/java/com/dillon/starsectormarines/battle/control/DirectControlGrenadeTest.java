@@ -40,7 +40,7 @@ class DirectControlGrenadeTest {
             "system.test-screen", "Screen", EquipmentGrade.SERVICE, "",
             IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
             3f, 22f, 0, new BreacherAssistSpec(1.45f, 20f, 120f),
-            null, null, null, new ExposedUnderFireSpec(2f, 1f));
+            null, new ExposedUnderFireSpec(2f, 1f));
 
     private final NavigationGrid grid = new NavigationGrid(30, 12);
     private final UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(30, 12), null);
