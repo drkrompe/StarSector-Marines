@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -59,6 +60,14 @@ class GroundAtlasTest {
                 || bx + SHIPPED_W[b] + GroundAtlas.GUTTER_PX <= ax
                 || ay + SHIPPED_H[a] + GroundAtlas.GUTTER_PX <= by
                 || by + SHIPPED_H[b] + GroundAtlas.GUTTER_PX <= ay;
+    }
+
+    @Test
+    void aSheetTooBigForAnyAtlasIsLeftOutRatherThanFailingTheRest() {
+        int cap = GroundAtlas.MAX_SIDE_PX, gutter = GroundAtlas.GUTTER_PX;
+        assertTrue(GroundAtlas.fitsAlone(cap - 2 * gutter, 61));
+        assertFalse(GroundAtlas.fitsAlone(cap - 2 * gutter + 1, 61), "with its gutters it runs off the atlas");
+        assertFalse(GroundAtlas.fitsAlone(61, cap), "too tall is the same as too wide");
     }
 
     @Test

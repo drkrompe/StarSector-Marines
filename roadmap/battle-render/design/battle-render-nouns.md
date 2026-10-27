@@ -492,7 +492,9 @@ change the physical crash corridor.
     untouched, and a slot carries a gutter because bilinear reaches one texel
     and the sheet next door is a neighbour no sheet had before. Law 20's failure
     clause carries over: any failure at all returns every quad to its own sheet
-    with the same picture. What this is not is a licence to merge sheets a
+    with the same picture, and residency never waits on an atlas that has failed.
+    A sheet too big for any atlas is left out and draws from its own texture
+    rather than failing the rest. What this is not is a licence to merge sheets a
     *reader* distinguishes — an atlas is a submission fact, and the catalog that
     says which block is on which sheet (`moddable-tilesets-nouns.md`) is
     untouched by it. Which coordinate frame the two meet in is the whole risk

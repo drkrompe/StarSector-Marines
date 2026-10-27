@@ -315,8 +315,10 @@ public final class GroundRenderSystem implements RenderSystem {
         // it must not bake before the atlas exists — a mesh baked against the
         // per-sheet coordinates would draw from them for the rest of the battle
         // and the atlas would serve nothing. One extra warm-up frame per
-        // battle, on top of the one the bake already costs.
-        boolean atlasReady = atlas == null || atlas.isServing();
+        // battle, on top of the one the bake already costs. An atlas that has
+        // failed never serves, so the mesh bakes the per-sheet coordinates rather
+        // than leave the whole ground streamed every frame.
+        boolean atlasReady = atlas == null || atlas.isServing() || atlas.failed();
         boolean resident = mesh != null && ctx.hostProfile.residentGroundAllowed() && atlasReady;
 
         // Every sub-layer this system knows how to draw. The mesh holds all of
