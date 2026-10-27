@@ -910,7 +910,13 @@ K4_SHIPS = {
         dict(t=102, hd=-220, rl=-30)]),
 }
 
-def sortie(key, before, t0, runs, vmax=420.0, accel=200.0, t_end=110.0, dt=1 / 48):
+BORER_LEASH = 300.0     # m: how far a sortie Borer ranges from the ship she works from (owner, 2026-10-27: "It should
+                        # be reactive, but not fully leave the shepherd and leave the shot")
+BORER_VMAX = 170.0      # m/s: her top speed against the convoy's frame, a frigate's (420 had her gone in two seconds)
+
+
+def sortie(key, before, t0, runs, vmax=BORER_VMAX, accel=200.0, t_end=110.0, dt=1 / 48, home=None,
+           leash=BORER_LEASH):
     """A Borer's sortie: before t0 she is the pose `before` (in the bay); from t0 she flies her own
     pursuit, run after run at the attackers. Each run is (target key, target pose, side): she steers
     for a point beside the target's hull (side: +1 her port, -1 her starboard, a little above), led by
@@ -918,8 +924,11 @@ def sortie(key, before, t0, runs, vmax=420.0, accel=200.0, t_end=110.0, dt=1 / 4
     velocity jumps for --check), banking with her turn and
     burning with her acceleration (motion's thrust model); a run ends when she has passed within 60 m
     and opened to 140 m again. A run with side 0 is her way home to the ship she works from, flown
-    to the end. Returns (her Pose, her rakes: [(target, t_in, t_out, side)], the spans
-    she is inside 110 m of a target, where her mining laser sweeps the hull)."""
+    to the end. home: the ship she works from (a Pose); she flies on a leash to it, never further
+    than `leash` metres: a target out past the leash is let go (she turns for home and waits on the
+    next run), and from 60% of it her aim bends back toward home. Returns (her Pose, her rakes:
+    [(target, t_in, t_out, side)], the spans she is inside 110 m of a target, where her mining laser
+    sweeps the hull)."""
     x, y, z, hd, pt, rl, _ = before.at(t0)
     v = 2.5
     a_full = A_FULL[mass_class(key)]
@@ -937,6 +946,12 @@ def sortie(key, before, t0, runs, vmax=420.0, accel=200.0, t_end=110.0, dt=1 / 4
         m = _attitude(*q[3:6])[0]
         off = (0.0, side * 30.0, 14.0) if side else (-40.0, 60.0, -30.0)
         aim = [q[i] + sum(m[i][j] * off[j] for j in range(3)) for i in range(3)]
+        if home is not None:
+            hq = home.at(t)
+            hm = _attitude(*hq[3:6])[0]
+            dock = [hq[i] + sum(hm[i][j] * (-40.0, 60.0, -30.0)[j] for j in range(3)) for i in range(3)]
+            w = 1.0 if side and math.dist(q[:3], hq[:3]) > leash else                 max(0.0, min(1.0, (math.dist((x, y, z), hq[:3]) - .6 * leash) / (.3 * leash)))
+            aim = [aim[i] + (dock[i] - aim[i]) * w for i in range(3)]
         dx, dy, dz = (aim[i] - (x, y, z)[i] for i in range(3))
         want_h = math.degrees(math.atan2(dy, dx))
         want_p = max(-55.0, min(55.0, math.degrees(math.atan2(dz, math.hypot(dx, dy)))))
@@ -950,7 +965,8 @@ def sortie(key, before, t0, runs, vmax=420.0, accel=200.0, t_end=110.0, dt=1 / 4
                 wh = nw
             else:
                 wp = nw
-        want_v = vmax if side else max(15.0, min(vmax, .8 * d))          # home: slowing as she arrives
+        d_aim = math.dist((x, y, z), aim)
+        want_v = vmax if side and d_aim > 150.0 else max(15.0, min(vmax, .8 * d_aim))   # slowing as she arrives
         dv = max(-accel * dt, min(accel * dt, want_v - v)) if t - t0 > .3 else 4.0 * dt
         v += dv
         hd += wh * dt
@@ -997,12 +1013,12 @@ def sortie(key, before, t0, runs, vmax=420.0, accel=200.0, t_end=110.0, dt=1 / 4
 
 K4_BORER_C, K4_RAKES_C = sortie('borer-c', K4_SHIPS['borer-c'], 95.4,
                                 [('wolf-p-a', K4_SHIPS['wolf-p-a'], 1), ('wolf-p-a', K4_SHIPS['wolf-p-a'], -1),
-                                 ('colossus', K4_SHIPS['colossus'], 0)])
+                                 ('colossus', K4_SHIPS['colossus'], 0)], home=K4_MORROW_FLOWN)
 K4_BORER_D, K4_RAKES_D = sortie('borer-d', carried(held('borer-d', near(K4_MORROW, (BORER_BAY_M[2][0], BORER_BAY_M[2][1], 7),
                                                                        hd=10, pt=20, rl=-4, thr=.1), K4_T, wobble=0.0),
-                                                   K4_MORROW_FLOWN), 96.2,
+                                                   K4_MORROW_FLOWN), 94.2,     # out as Kite B sweeps past
                                 [('kite-p-b', K4_SHIPS['kite-p-b'], -1), ('wolf-p-a', K4_SHIPS['wolf-p-a'], 1),
-                                 ('colossus', K4_SHIPS['colossus'], 0)])
+                                 ('colossus', K4_SHIPS['colossus'], 0)], home=K4_MORROW_FLOWN)
 K4_SHIPS.update({'borer-c': K4_BORER_C, 'borer-d': K4_BORER_D})
 K4_RAKES = [('borer-c',) + r for r in K4_RAKES_C] + [('borer-d',) + r for r in K4_RAKES_D]
 
@@ -3922,6 +3938,7 @@ def blender_main(cfg):
                 contact_lint(kf)
                 cut_lint(kf)
                 motion_lint(kf)
+                drone_lint(kf)
             lab = {}
             for key in spec['labels']:
                 if key in extra3d:
@@ -4608,6 +4625,57 @@ def motion_lines(kf):
     return out
 
 
+# A drone is flown on a leash to the ship she works from: (that ship, leash m, top speed m/s). drone_lint holds
+# her to it in every shot that draws both, and holds a drone that is in frame there until the shot ends
+# (owner, 2026-10-27, Borer C in S8: "It should be reactive, but not fully leave the shepherd and leave the
+# shot"). A beat that is meant to take a drone away or out of frame is listed in DRONE_EXEMPT with its reason.
+DRONES = {'borer-a': ('colossus3', 120.0, BORER_VMAX), 'borer-b': ('colossus3', 120.0, BORER_VMAX),
+          'borer-c': ('morrow', BORER_LEASH, BORER_VMAX), 'borer-d': ('morrow', BORER_LEASH, BORER_VMAX)}
+DRONE_EXEMPT = {}
+
+
+def drone_lines(kf):
+    """Every drone in kf's shot: [(drone, carrier, furthest m, at s, fastest m/s, frame exit s or None,
+    fault or None)]."""
+    import asharu_preview
+    seg = next((s_ for s_ in asharu_preview.segments(SHOTS) if s_['kf'] == kf), None)
+    spec, fps = SHOTS[kf], 24
+    ships = spec.get('ships', {})
+    if seg is None:
+        return []
+    ts = [seg['start'] + i / fps for i in range(int(round((seg['end'] - seg['start']) * fps)) + 1)]
+    cam = spec['camera']['at']
+    out = []
+    for key, (home, leash, vmax) in DRONES.items():
+        if key not in ships or home not in ships or not hasattr(ships[key], 'at'):
+            continue
+        ps, hs = [ships[key].at(t)[:3] for t in ts], [ships[home].at(t)[:3] for t in ts]
+        far, t_far = max((math.dist(p, h), t) for p, h, t in zip(ps, hs, ts))
+        fast = max(math.dist(a, b) * fps for a, b in zip(ps, ps[1:]))
+        seen = [_in_frame(cam(t), p) is not None for p, t in zip(ps, ts)]
+        exit_t = next((ts[n + 1] for n in range(len(ts) - 1) if seen[n] and not seen[n + 1]), None)
+        fault = (f'{far:.0f} m from {home} at {t_far:.2f} s' if far > leash + 5.0 else
+                 f'{fast:.0f} m/s' if fast > vmax * 1.03 else
+                 f'leaves the frame at {exit_t:.2f} s' if exit_t is not None else None)
+        out.append((key, home, far, t_far, fast, exit_t, None if (kf, key) in DRONE_EXEMPT else fault))
+    return out
+
+
+def drone_lint(kf):
+    """Logs drone_lines once per shot per process; a fault raises unless ASHARU_AUDIT_SOFT."""
+    if kf in _DRONE_DONE:
+        return
+    _DRONE_DONE.add(kf)
+    rows = drone_lines(kf)
+    bad = [r for r in rows if r[6]]
+    print(f'ASHARU drones {kf}: ' + ', '.join(f'{r[0]} <= {r[2]:.0f} m of {r[1]}, <= {r[4]:.0f} m/s'
+                                              + (f', exits {r[5]:.2f} s' if r[5] else '') for r in rows)
+          + (f'; faults: {[f"{r[0]} {r[6]}" for r in bad]}' if bad else ''), flush=True)
+    if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
+        raise RuntimeError(f'{kf}: {bad[0][0]} {bad[0][6]} (drone lint)')
+
+
+_DRONE_DONE = set()
 _MOTION_DONE = set()
 
 

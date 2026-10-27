@@ -208,7 +208,7 @@ LEDGER = [
       src='S6 k3 tracer lasher-b', note="Lasher B's fire"),
     H('wolf-p-a', 71.6, 'he', 1, (-8, 8, 2), (-.3, 1, .3), by='tracer', src='S6c k3d tracer wolf-m',
       note="the merchant Wolf's bolt, past her front shield onto the flank"),
-    H('wolf-p-a', 97.5, 'cut', 2, (20, -8, 4), (0, -1, .3), to=(-20, -9, 4), by='mining', vent_s=0.0,
+    H('wolf-p-a', 96.9, 'cut', 2, (20, -8, 4), (0, -1, .3), to=(-20, -9, 4), by='mining', vent_s=0.0,
       src='S8-S9 k4 mining borer-c', note="a Borer's mining laser cuts a long glowing seam down her side"),
     H('wolf-p-a', 95.8, 'he', 1, (-15, -9, 3), (0, -1, .3), by='tracer', src='S8-S9 k4 tracer colossus'),
 
@@ -219,7 +219,7 @@ LEDGER = [
     # ---- Kite (P) B: driven off by the Colossus in S9
     H('kite-p-b', 96.5, 'he', 2, (-10, -10, 3), (0, -1, .4), by='tracer', src='S8-S9 k4 tracer colossus',
       vent_s=20.0, note='leaks through her failing shield (flux .85): she breaks off, venting'),
-    H('kite-p-b', 98.0, 'cut', 1, (10, -9, 2), (0, -1, .3), to=(-10, -9, 3), by='mining',
+    H('kite-p-b', 95.85, 'cut', 1, (10, -9, 2), (0, -1, .3), to=(-10, -9, 3), by='mining',
       src='S8-S9 k4 mining borer-d', note="a Borer's laser on her side"),
 
     # ---- HOOK, the Colossus Mk.III: the Colossus fires up into her belly

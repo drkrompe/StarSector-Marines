@@ -237,14 +237,19 @@ through ShipFx, so each blinks its beacon, pulses its lift jets and fires its mi
 own. Placements:
 - **S8-S9, the pod:** two Borers hold outboard of and under the Colossus's shot-out port pod,
   cutting the burning wreckage free with their lasers.
-- **S8-S9, the sortie:** two more launch from Morrow's bay, one at 95.4 s from launch point 2 and
-  one at 96.2 s from launch point 3. Each goes for the nearest attackers.
-  - One makes two passes at the Wolf (P), one on each side.
-  - The other runs down the Kite (P) as she breaks away, then comes back for the Wolf.
+- **S8-S9, the sortie:** two more launch from Morrow's bay, one at 94.2 s from launch point 3 and
+  one at 95.4 s from launch point 2. Each goes for the attacker sweeping past her.
+  - The first rakes the Kite (P) as she passes (95.8-96.3 s); the second rakes the Wolf (P) on her
+    port side (96.8-97.5 s). Each then turns back for Morrow.
+  - **On a leash to Morrow** (owner, 2026-10-27: "It should be reactive, but not fully leave the
+    shepherd and leave the shot"). She never ranges more than 300 m from her: an attacker past
+    that is let go, and from 180 m out her aim bends back toward Morrow. Both stay in frame to the
+    end of the shot. `drone_lint` holds every drone to her carrier's leash and her top speed, and
+    holds one in frame there to the shot's end, unless the beat is listed in `DRONE_EXEMPT`.
   - Each flies her own pursuit (`sortie`): led by the closing time, turning at up to 150 degrees
     a second, jinking, banking with the turn, and every rate eased so `--check` reports no
     jumps.
-  - Her drives burn with her acceleration (the thrust model), and she reaches 420 m/s.
+  - Her drives burn with her acceleration (the thrust model), and she tops out at 170 m/s.
   - Wherever she passes within 110 m of a hull, her mining laser (`beam_t_ws001`) sweeps stern to
     bow down the near side, with sparks where it cuts. The preview draws the beam as a line and
     the sparks as dots.
