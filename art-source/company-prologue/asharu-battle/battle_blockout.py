@@ -63,7 +63,7 @@ import wreck_meshes
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / 'asharu-wrecks'))
 import wreck_kit  # noqa: E402  the wreck kit's swap-in contract (plain Python): which kit wreck fills each box
 import roster
-from motion import boarding_run, fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
+from motion import SETTLE_S, boarding_run, fleet_at   # ships move about their stations: seeded weave, bank and breathing spacing  # noqa: E402
 from motion import (A_FULL, IDLE, Pose, camera, carried, drift, follow, held, keyed, mass_class, recoil, riding,  # noqa: E402
                     station, struck)
 
@@ -715,10 +715,31 @@ K3E_SHIPS = {
 
 # S7: the Tarsus adrift, rolling slowly; the Kites (P) hold alongside; the boats come over and the one
 # on her deck rides with her; a Wolf (P) makes a covering pass; the convoy draws away ahead
-def slung(run, mother, t0, launch_off=(-8.0, 0.0, -12.0)):
-    """A boat carried under her mother craft until it drops at t0, then on its run (boat())."""
+SLUNG_TURN_S = 1.2
+
+
+def slung(run, mother, t0, shed, launch_off=(-8.0, 0.0, -12.0)):
+    """A boat carried under her mother craft until it drops at t0, then on its run (boat()). She leaves
+    with her mother's velocity, shed over her run's shed seconds (to its hold or seat), and her attitude,
+    turned onto her run's over SLUNG_TURN_S: the run has her at rest at its launch point, and the switch
+    alone stopped a Hermes from 172 m/s in a frame (owner, 2026-10-27, S7, motion lint). The run's seat
+    is untouched: the carried share is gone by then."""
+    p0, p1 = aboard(mother.at(t0), launch_off), aboard(mother.at(t0 - .01), launch_off)
+    vm = [(p0[i] - p1[i]) / .01 for i in range(3)]
+
     def at(t):
-        return aboard(mother.at(t), launch_off)[:6] + (0.0,) if t < t0 else run.at(t)
+        if t < t0:
+            return aboard(mother.at(t), launch_off)[:6] + (0.0,)
+        r = run.at(t)
+        tau = t - t0
+        if tau >= max(shed, SLUNG_TURN_S):
+            return r
+        u = min(1.0, tau / shed)
+        k = tau * (1 - u) ** 2                       # carried drift: her mother's speed at the drop, shed by the end
+        w = min(1.0, tau / SLUNG_TURN_S)
+        w = w * w * (3 - 2 * w)                      # her attitude turns from her mother's onto her run's
+        ang = [p0[3 + n] + ((r[3 + n] - p0[3 + n] + 180) % 360 - 180) * w for n in range(3)]
+        return (*(r[i] + vm[i] * k for i in range(3)), *ang, *r[6:])
     return Pose(at(run.t), run.t, at)
 
 
@@ -823,7 +844,7 @@ K3B_SHIPS = {
     # second brakes in and keeps station through the shot, the third is still on her way in
     # the boats drop from the Kites as they brake alongside her, on screen (owner, 2026-10-26)
     **{k: slung(boat(K3B_KITE_FLIGHT[m].at(t0), K3B_TARSUS, K3B_SEATS[k], t0, t1, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=h),
-                K3B_KITE_FLIGHT[m], t0)
+                K3B_KITE_FLIGHT[m], t0, (t1 - SETTLE_S - h if h else t1) - t0)
        for k, m, t0, t1, h in (('hermes-p-a', 'kite-p-b', 84.8, 88.5, 0.0), ('hermes-p-b', 'kite-p-a', 85.3, 91.0, 1.5),
                                ('hermes-p-c', 'kite-p-b', 85.8, 93.0, 2.0))},
     'wolf-p-b': fly('wolf-p-b', (-420, 330, 120, -20, -32, 110, 1), K3B_T, [
@@ -1506,9 +1527,18 @@ def _k6_cam(t):
     return tuple(K6_CAM[i] + .55 * (c[i] - _k6c[i]) + 60.0 * (t - K6_T) * K6_LOOK[i] for i in range(3))
 
 
+K6_HOLD_T, K6_SETTLE_S = 134.0, 1.0
+
+
 def _k6_held(t):
-    """From 134 s the camera holds where its ride down left it (the pull-back)."""
-    return _k6_cam(min(t, 134.0))
+    """From 134 s the camera holds where its ride down left it (the pull-back), settling into the hold
+    over K6_SETTLE_S: stopping in a frame dropped it from 234 m/s to rest (owner, 2026-10-27, motion lint)."""
+    if t <= K6_HOLD_T:
+        return _k6_cam(t)
+    p, q = _k6_cam(K6_HOLD_T), _k6_cam(K6_HOLD_T - .01)
+    tau = min(t - K6_HOLD_T, K6_SETTLE_S)
+    k = tau - tau * tau / (2 * K6_SETTLE_S)          # her speed at 134 s, run down to rest
+    return tuple(p[i] + (p[i] - q[i]) / .01 * k for i in range(3))
 
 
 def _k6_aim(t, toward_morrow):
@@ -3826,6 +3856,7 @@ def blender_main(cfg):
             if not cfg.get('motion_preview'):    # the preview bakes each ship into one mesh: nothing can come off
                 attachment_lint(kf)
                 cut_lint(kf)
+                motion_lint(kf)
             lab = {}
             for key in spec['labels']:
                 if key in extra3d:
@@ -4363,7 +4394,8 @@ def hide_lines():
 
 def cut_lines(kf):
     """Each one-take cut kf is on: every ship both shots draw, at the cut, as shot A flies her against
-    shot B, by position (m) and heading (deg). [(a, b, key, metres, degrees, exempt reason or None)]"""
+    shot B, by position (m) and heading (deg), and the camera by position, and the worst of its aim's turn
+    and roll (deg) and its lens (mm). [(a, b, key, metres, degrees, exempt reason or None)]"""
     out = []
     for a, b, tc in ONE_TAKES:
         if kf not in (a, b):
@@ -4375,7 +4407,106 @@ def cut_lines(kf):
             pa, pb = sa[k].at(tc), sb[k].at(tc)
             dh = abs((pa[3] - pb[3] + 180) % 360 - 180)
             out.append((a, b, k, math.dist(pa[:3], pb[:3]), dh, CUT_EXEMPT.get((b, k))))
+        ca, cb = SHOTS[a]['camera']['at'](tc), SHOTS[b]['camera']['at'](tc)
+        da, db = (_unit([c['target'][i] - c['loc'][i] for i in range(3)]) for c in (ca, cb))
+        turn = math.degrees(math.acos(max(-1.0, min(1.0, sum(x * y for x, y in zip(da, db))))))
+        out.append((a, b, 'camera', math.dist(ca['loc'], cb['loc']),
+                     max(turn, abs(ca['roll'] - cb['roll']), abs(ca['lens'] - cb['lens'])), None))
     return out
+
+
+def _unit(v):
+    n = math.sqrt(sum(x * x for x in v)) or 1.0
+    return [x / n for x in v]
+
+
+# A move that hitches, snaps or pulses (owner, 2026-10-27, S6c: "speed up, slow down, speed up"; S1-S2's
+# jumps): motion_lines() samples a shot at 24 fps. A hitch is one frame slower than both sides while
+# heading on; a snap, one frame's change of velocity far over its neighbours'; a pulse, the speed dipping
+# under half both sides within 1.5 s while still heading the same way (a reversal passes zero by right).
+# Floors: camera m/s, aim and roll deg/s, lens mm/s, ships m/s. A camera kick or a ship's hit is quiet
+# for 1.6 s. MOTION_EXEMPT keeps a designed move, (shot, track): reason.
+MOTION_FLOORS = {'camera': 3.0, 'aim': .5, 'lens': 1.0, 'ship': 2.0}
+MOTION_EXEMPT = {
+    ('k0', 'lens'): "S1a's optic zooms in steps and holds between them (owner-approved, dissolves on the steps)",
+    ('k1b', 'falcon-p'): "her thruster slide settles as her drives light at 34 s, then she burns (S3's beat)",
+    ('k3c', 'aim'): "S6b's pan follows a weaving ship: 3 to 0.5 deg/s at 64.5 s, the ship's own weave",
+    ('k3d', 'tarsus'): "her drives are shot out at 72.3 s (the camera's kick marks the hit)",
+    ('k3b', 'hermes-p-c'): "she rides her Kite as it brakes onto the Tarsus's beam, drops as it settles at 85.8 s "
+                           "and burns off for the deck",
+}
+
+
+def _motion_events(ts, vec, floor, quiet):
+    v = [math.sqrt(sum(x * x for x in q)) for q in vec]
+    loud = lambda t: not any(a <= t <= c for a, c in quiet)
+    cos = lambda a, c: sum(x * y for x, y in zip(_unit(a), _unit(c)))
+    dv = lambda i: math.sqrt(sum((vec[i + 1][k] - vec[i][k]) ** 2 for k in range(len(vec[i]))))
+    ev = []
+    for i in range(3, len(v) - 3):
+        if not loud(ts[i]):
+            continue
+        mb, ma = sorted(v[i - 3:i])[1], sorted(v[i + 1:i + 4])[1]
+        if min(mb, ma) > floor and v[i] < .5 * min(mb, ma) and cos(vec[i - 2], vec[i + 2]) > 0:
+            ev.append(('hitch', ts[i]))
+        d = dv(i)
+        if d > floor and d > .4 * max(v[i], v[i + 1]) and d > 4 * max(dv(i - 1), floor * .25) and dv(i + 1) < .5 * d:
+            ev.append(('snap', ts[i]))
+    sm = [sum(v[max(0, i - 2):i + 3]) / len(v[max(0, i - 2):i + 3]) for i in range(len(v))]
+    for i in range(6, len(sm) - 6):
+        if sm[i] < sm[i - 1] and sm[i] <= sm[i + 1] and loud(ts[i]):
+            ia = max(range(max(0, i - 36), i), key=lambda n: sm[n])
+            ic = max(range(i + 1, min(len(sm), i + 37)), key=lambda n: sm[n])
+            if min(sm[ia], sm[ic]) > floor and sm[i] < .5 * min(sm[ia], sm[ic]) and cos(vec[ia], vec[ic]) > .5:
+                ev.append(('pulse', ts[i]))
+    return ev
+
+
+def motion_lines(kf):
+    """Every hitch, snap and pulse in kf's shot, camera and ships: [(track, kind, t, exempt reason or None)]."""
+    import asharu_preview
+    seg = next((s_ for s_ in asharu_preview.segments(SHOTS) if s_['kf'] == kf), None)
+    if seg is None:
+        return []
+    spec, fps = SHOTS[kf], 24
+    ts = [seg['start'] + i / fps for i in range(int(round((seg['end'] - seg['start']) * fps)) + 1)]
+    cam = spec['camera']['at']
+    cs = [cam(t) for t in ts]
+    aims = [_unit([c['target'][i] - c['loc'][i] for i in range(3)]) for c in cs]
+    quiet = [(tk - .1, tk + 1.6) for tk, _ in getattr(cam, 'kicks', [])]
+    tracks = {
+        'camera': [[(cs[n + 1]['loc'][i] - cs[n]['loc'][i]) * fps for i in range(3)] for n in range(len(cs) - 1)],
+        'aim': [[math.degrees(x) * fps for x in (a[1] * c[2] - a[2] * c[1], a[2] * c[0] - a[0] * c[2], a[0] * c[1] - a[1] * c[0])]
+                for a, c in zip(aims, aims[1:])],
+        'lens': [[(cs[n + 1]['lens'] - cs[n]['lens']) * fps] for n in range(len(cs) - 1)],
+    }
+    out = []
+    for name, vec in tracks.items():
+        out += [(name, k, t, MOTION_EXEMPT.get((kf, name))) for k, t in _motion_events(ts, vec, MOTION_FLOORS[name], quiet)]
+    for key, sp in spec.get('ships', {}).items():
+        if not hasattr(sp, 'at'):
+            continue
+        ps = [sp.at(t) for t in ts]
+        hq = [(h['t'] - .1, h['t'] + 1.6) for h in getattr(sp.at, 'hits', ())]
+        vec = [[(ps[n + 1][i] - ps[n][i]) * fps for i in range(3)] for n in range(len(ps) - 1)]
+        out += [(key, k, t, MOTION_EXEMPT.get((kf, key))) for k, t in _motion_events(ts, vec, MOTION_FLOORS['ship'], hq)]
+    return out
+
+
+_MOTION_DONE = set()
+
+
+def motion_lint(kf):
+    """Logs motion_lines once per shot per process; one not exempt raises unless ASHARU_AUDIT_SOFT."""
+    if kf in _MOTION_DONE:
+        return
+    _MOTION_DONE.add(kf)
+    rows = motion_lines(kf)
+    bad = [r for r in rows if r[3] is None]
+    print(f'ASHARU motion {kf}: {len(rows)} events, {len(rows) - len(bad)} exempt; faults: '
+          f'{[f"{r[0]} {r[1]} {r[2]:.2f}s" for r in bad]}', flush=True)
+    if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
+        raise RuntimeError(f'{kf}: {bad[0][0]} {bad[0][1]} at {bad[0][2]:.2f} s (motion lint)')
 
 
 def cut_lint(kf):
