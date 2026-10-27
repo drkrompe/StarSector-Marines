@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
+import com.dillon.starsectormarines.ops.detachment.DebugCompany;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ops.battleview.SquadMuster;
 import com.dillon.starsectormarines.ops.battleview.SquadMusterCanvas;
@@ -649,10 +651,27 @@ final class BriefingViewModel {
      */
     static List<SquadPicture> fieldSquads(Map<String, Object> props) {
         List<SquadPicture> squads = new ArrayList<>();
-        for (Object value : (List<?>) props.getOrDefault("taskForceRows", List.of())) {
-            squads.addAll(((ForceCard) value).squads());
+        for (String key : List.of("taskForceRows", "debugForceRows")) {
+            for (Object value : (List<?>) props.getOrDefault(key, List.of())) {
+                squads.addAll(((ForceCard) value).squads());
+            }
         }
         return stackSquads(squads);
+    }
+
+    /**
+     * A debug briefing's field force: the detached company's line squads under one card. It feeds only the
+     * field inset; the debug layout keeps its kit rows in place of officer cards.
+     */
+    static List<ForceCard> debugForceRows(MarineRoster company, float currentDay) {
+        if (company == null) return List.of();
+        List<SquadMuster> musters = new ArrayList<>();
+        for (String id : DebugCompany.lineSquadIds(company)) {
+            SquadMuster muster = SquadMuster.from(company, id, currentDay);
+            if (muster != null) musters.add(muster);
+        }
+        if (musters.isEmpty()) return List.of();
+        return List.of(forceCard("debug-company", "DEBUG company", "", null, "", false).withSquads(musters));
     }
 
     static List<SquadPicture> stackSquads(List<SquadPicture> squads) {
