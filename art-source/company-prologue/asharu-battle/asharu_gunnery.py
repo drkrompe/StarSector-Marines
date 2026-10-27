@@ -399,6 +399,9 @@ SILENT_TURRET = {
     ('tarsus', 2): (70.5, 'her aft deck burning over the shot-out drives'),
     ('tarsus', 3): (84.4, "silenced by the Wolf (P)'s covering run before the boats land"),
     ('tarsus', 4): (84.4, "silenced by the Wolf (P)'s covering run before the boats land"),
+    # rolled onto her side to fight the Colossus, her port bow turret would fire across her own bow end plate
+    # (hull_cross_lint, 83.3-85.5 s in S7)
+    ('colossus3', 10): (83.0, 'masked by her own bow once she rolls onto her side'),
 }
 # A target is still worth shooting this long after it is killed (the wreck tumbling apart).
 DEAD_LINGER = .4
