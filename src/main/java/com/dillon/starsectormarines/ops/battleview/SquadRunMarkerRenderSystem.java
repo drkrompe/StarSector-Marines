@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.control.MarineSprint;
+import com.dillon.starsectormarines.battle.mech.MechMoveOrderService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -11,10 +12,11 @@ import com.dillon.starsectormarines.ui.retained.CanvasMeshBatch;
 import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 
 import java.awt.Color;
+import java.util.Map;
 
 /**
- * The winged foot over a squad the player has told to run, and beneath it the squad's stamina
- * ({@code SquadRunSystem}).
+ * The winged foot over a squad or mech the player has told to run, and beneath it the squad's or
+ * chassis's stamina ({@code SquadRunSystem}, {@code MechRunSystem}).
  *
  * <p>The badge stands at the upper right of the squad's lead body, opposite the medic's cross, and
  * is the squad's rather than the leader's: one per running squad, and only while the player has that
@@ -62,6 +64,23 @@ public final class SquadRunMarkerRenderSystem implements RenderSystem {
             float cx = camera.cellToScreenX(x) + radius * cellPx + size * 0.5f;
             float cy = camera.cellToScreenY(y) + radius * cellPx + size * 0.4f;
             badge(cx, cy, size, stamina, alpha);
+        }
+        MechMoveOrderService mechOrders = sim.getMechMoveOrderService();
+        if (ctx.selection != null && mechOrders.hasActiveOrders()) {
+            for (Map.Entry<Long, MechMoveOrderService.ActiveOrder> entry : mechOrders.activeOrders()) {
+                long mech = sim.resolveUnit(entry.getKey());
+                if (mech == 0L || !mechOrders.isRunning(mech) || !sim.squad().hasSquad(mech)
+                        || !ctx.selection.isSquadSelected(sim.squad().squadId(mech))) continue;
+                float x = sim.world().renderX(mech);
+                float y = sim.world().renderY(mech);
+                float radius = Math.max(0.42f, sim.getRoster().radius(mech));
+                if (!view.visible(x, y, radius * 3f)) continue;
+                MarineSprint.Status status = sim.directControl().marineStamina().status(mech);
+                float cx = camera.cellToScreenX(x) + radius * cellPx + size * 0.5f;
+                float cy = camera.cellToScreenY(y) + radius * cellPx + size * 0.4f;
+                badge(cx, cy, size, new Stamina(status.staminaFraction(), status.exhausted()),
+                        ctx.alphaMult * MedicMarkerRenderSystem.SELECTED_ALPHA);
+            }
         }
         if (!mesh.isEmpty()) out.addPoly(RenderLayer.UNITS, mesh);
     }

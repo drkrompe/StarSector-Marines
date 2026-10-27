@@ -95,8 +95,8 @@ class BattleDirectControlHelpTest {
         assertTrue(has(mech, "Q", "MechCycleLeft"));
         assertTrue(has(mech, "E", "MechCycleRight"));
         assertTrue(has(mech, "1 2 3", "MechPick"));
-        assertFalse(mech.stream().anyMatch(l -> l.keys().equals("C") || l.keys().equals("G")
-                || l.keys().equals("Shift")));
+        assertTrue(has(mech, "Shift", "MechSprint"));
+        assertFalse(mech.stream().anyMatch(l -> l.keys().equals("C") || l.keys().equals("G")));
 
         var apc = BattleDirectControlHelp.lines(Carrier.VEHICLE);
         assertTrue(has(apc, "W / S", "VehicleDrive"));

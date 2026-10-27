@@ -998,6 +998,21 @@ contact, preserving legal sliding without stored wall pressure. Applied travel
 remains the authority for gait and moving-fire effects. Entry, handback, pause,
 and input suspension clear retained manual drive; natural key release brakes it.
 
+**Run.** Shift sprints the controlled chassis, and R runs a selected chassis's
+standing order (`MechRunSystem`, `MechMoveOrderService#toggleRun`). Both draw on
+the stamina pool a Marine sprints on (`direct-control-nouns.md`, Movement by
+carrier; `mission-command-nouns.md`, Run), keyed by the exact chassis, with the
+same multiplier, capacity and recovery. A run is a pace on an order: a mech
+with none ignores R, a fresh order starts at a walk, a re-resolved destination
+keeps its pace, and the run ends with the order. Only extra travel actually
+gained spends stamina; one that runs dry walks on and runs again at the restart
+reserve. Unlike a Marine, a running mech keeps its weapons up: the torso swivels
+and every mount fires. Its autonomous fire pays for the pace instead, at
+`MechRunSystem.RUN_ACCURACY` (0.75) on a tick it actually ran, on top of its
+fire control and sensors; the player's own aim under Shift takes no penalty. The
+winged foot and stamina bar stand over a selected running chassis as over a
+running squad.
+
 The primary trigger requests all installed ground-direct mounts, each spending
 its own ready ammunition and observing its mechanical cycle, flux admission, and burst state. Indirect
 mounts are withheld. The live cursor owns torso aim and every scheduled

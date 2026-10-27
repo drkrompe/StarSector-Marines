@@ -2189,7 +2189,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
     }
 
-    /** R toggles the selected squads' standing orders between walking and running ({@link SelectionOrders#toggleRun}). */
+    /** R toggles the selected squads' and mechs' standing orders between walking and running ({@link SelectionOrders#toggleRun}). */
     private void handleRunOrder(List<InputEventAPI> events) {
         if (events == null) return;
         BattleSimulation sim = getSim();

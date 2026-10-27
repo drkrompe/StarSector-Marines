@@ -14,7 +14,7 @@ public record ManualIntent(float moveX, float moveY, float aimX, float aimY,
         this(moveX, moveY, aimX, aimY, firing, sprint, false);
     }
 
-    /** Legacy and non-infantry callers have no sprint command. */
+    /** Callers with no sprint command. */
     public ManualIntent(float moveX, float moveY, float aimX, float aimY, boolean firing) {
         this(moveX, moveY, aimX, aimY, firing, false, false);
     }
