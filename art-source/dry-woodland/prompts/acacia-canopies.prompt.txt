@@ -1,0 +1,15 @@
+Use case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into a production overhead tree canopy sprite sheet for a top-down tactical game. Image 2 is ONLY the material/style reference: the game's existing painted temperate tree canopies. Match its painterly realistic rendering, camera, scale of detail and soft diffuse overhead light so the two sets sit together on one map; do NOT copy its green species or palette.
+Preserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch, every crown's center, size, aspect and lobed outline. Do not move, enlarge, tilt or rearrange the silhouettes. Nothing may grow beyond a guide silhouette; small leaf serrations may refine the edge inward.
+Camera looks STRAIGHT DOWN from directly above: orthographic aerial plan view, crowns only. No side view, no isometric, no visible upright trunk in profile.
+Setting: the dry arid rim of a desert world's green basin; hot, sun-bleached, dusty. Foliage is SPARSE: the crown reads clearly as the guide's lobed silhouette, but small transparent gaps inside it (roughly a fifth to a quarter of the silhouette, never at the outer edge) let the sand below show through, and the dark branch structure is visible between leaf clusters.
+Direction: ACACIA / UMBRELLA-THORN savanna woodland.
+Top row left to right:
+1. Large umbrella-thorn acacia: a broad flat-topped crown of fine feathery bipinnate leaflets in layered horizontal tiers, muted khaki-olive and dusty sage, dark grey-brown forked branches radiating from the centre and visible between tiers.
+2. Smaller umbrella-thorn: the same species, younger, warmer yellow-olive, a few pale cream puffball flowers.
+3. Fever-tree acacia: lighter sulphur-green to yellow-khaki airy foliage over pale yellowish branches.
+Bottom row left to right:
+4. Compact whistling-thorn: dense small grey-green leaflets, darker, with pale paired thorns and small black galls among the twigs.
+5. Large camelthorn: wide layered crown of grey-green fine foliage with dark branches, some dry brown seed pods.
+6. Elongated thorn tree (the narrow crown): a long spreading wait-a-bit acacia, olive-khaki leaflets in sprays along two or three main limbs.
+Hand-painted realistic tactical-game environment art, coherent medium detail readable at 3-6 world cells per tree, restrained soft overhead lighting that tolerates quarter-turn rotation. Each sprite is one tree, not a cluster. No baked ground shadow outside the silhouette, no sand disc, no rocks, no grass, no labels, no text, no border.
+True transparent background everywhere outside each silhouette and in the gaps inside it. No colored backdrop or checkerboard. Keep all six precisely registered to the guide and keep the 3:2 canvas.

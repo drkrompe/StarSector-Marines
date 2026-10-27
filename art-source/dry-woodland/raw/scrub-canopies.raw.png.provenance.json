@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17f4f-ee4f-7423-b9d0-7b7cfec1b16d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17f4f-ee4f-7423-b9d0-7b7cfec1b16d\\exec-783e7735-9926-4e04-bd4a-e4e633931de9.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\dry-woodland\\raw\\scrub-canopies.raw.png",
+    "sha256": "0a21eebaafdf39f70a431e07c0f6227121acf9a57b3d3cc307eefb6554abdba4",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\dry-woodland\\prompts\\scrub-canopies.prompt.txt",
+  "promptSha256": "579c84fb5ab3b7024275278ab30d98a5f408cf29490e502d2e0f67fb7cedb697",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the six crown silhouettes, centers, sizes and gaps; reskin, never move\nImage 2: Material/style only: existing painted temperate canopies; match rendering and light, not species or palette\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into a production overhead tree canopy sprite sheet for a top-down tactical game. Image 2 is ONLY the material/style reference: the game's existing painted temperate tree canopies. Match its painterly realistic rendering, camera, scale of detail and soft diffuse overhead light so the two sets sit together on one map; do NOT copy its green species or palette.\nPreserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch, every crown's center, size, aspect and lobed outline. Do not move, enlarge, tilt or rearrange the silhouettes. Nothing may grow beyond a guide silhouette; small leaf serrations may refine the edge inward.\nCamera looks STRAIGHT DOWN from directly above: orthographic aerial plan view, crowns only. No side view, no isometric, no visible upright trunk in profile.\nSetting: the dry arid rim of a desert world's green basin; hot, sun-bleached, dusty. Foliage is SPARSE: the crown reads clearly as the guide's lobed silhouette, but small transparent gaps inside it (roughly a fifth to a quarter of the silhouette, never at the outer edge) let the sand below show through, and the dark branch structure is visible between leaf clusters.\nDirection: GREY DRY-SCRUB WOODLAND (mesquite, wild olive and mopane-like trees).\nTop row left to right:\n1. Large wild olive: a broad crown of tiny narrow silver-grey-green leaves in clumps, twisted pale grey gnarled branches visible between clumps.\n2. Smaller mesquite: an airy crown of fine feathery dull olive leaflets on dark zigzag twigs, a few pale yellow catkin flowers.\n3. Mopane-like tree: paired butterfly-shaped leaves in yellow-khaki and rusty ochre, some leaves dried to brown, pale grey branches.\nBottom row left to right:\n4. Compact grey shrub-tree: dense small silvery leaves, slate grey-green, nearly opaque.\n5. Large gnarled mesquite: wide crown of grey-olive leaflet clusters with dark twisted limbs, several dead bare twig patches.\n6. Elongated desert ironwood (the narrow crown): long sprays of small grey-green leaves along a few pale twisted limbs.\nHand-painted realistic tactical-game environment art, coherent medium detail readable at 3-6 world cells per tree, restrained soft overhead lighting that tolerates quarter-turn rotation. Each sprite is one tree, not a cluster. No baked ground shadow outside the silhouette, no sand disc, no rocks, no grass, no labels, no text, no border.\nTrue transparent background everywhere outside each silhouette and in the gaps inside it. No colored backdrop or checkerboard. Keep all six precisely registered to the guide and keep the 3:2 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\forest-canopies.png",
+      "sha256": "b1f05efedd293569d8c24662a9f32b5eb4100f58bc9bc5a5aad0b85d89a9e534",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the six crown silhouettes, centers, sizes and gaps; reskin, never move"
+    },
+    {
+      "path": "art-source\\tilesets\\forest-canopies.raw.png",
+      "sha256": "91b218ae84c7e1f3fb1a21047fa343572738e8f24ec5a616cde4d6afdc959afb",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only: existing painted temperate canopies; match rendering and light, not species or palette"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one canopy sheet using Image 1’s geometry and Image 2’s painted rendering style, with transparent backgrounds and interior gaps."
+  ],
+  "usage": {
+    "input_tokens": 45588,
+    "cached_input_tokens": 35200,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 601,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 52.7
+}

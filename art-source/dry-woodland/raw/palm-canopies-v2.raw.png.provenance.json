@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17f53-9d05-7b21-9c83-f1f42c6f709e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17f53-9d05-7b21-9c83-f1f42c6f709e\\exec-7cb732fe-c995-493c-bca1-bed932d5e2a0.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\dry-woodland\\raw\\palm-canopies-v2.raw.png",
+    "sha256": "080c18debe37bc6725c7f215cd10f065e7bcb46217c013a023e3140f79d3c3bb",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\dry-woodland\\prompts\\palm-canopies-v2.prompt.txt",
+  "promptSha256": "c8456210604bd5ccb89fbaaf4baeec8e00d6d3b6dc07aab7706b575ae6df3486",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: crown outlines, internal transparent holes and brown branch skeleton; reskin, never move or enlarge\nImage 2: Material/style only: existing painted temperate canopies; match rendering and light, not species or palette\nImage 3: Species and palette identity only, slot for slot; not its size or its closed crowns\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide (crown outlines, internal holes and branch skeleton), into a production overhead tree canopy sprite sheet for a top-down tactical game. Image 2 is ONLY the material/style reference: the game's existing painted temperate tree canopies. Match its painterly realistic rendering, camera, scale of detail and soft diffuse overhead light so the two sets sit together on one map; do NOT copy its green species or palette.\nPreserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch, every crown's center, size, aspect and lobed outline. Do not move, enlarge, tilt or rearrange the silhouettes. Nothing may grow beyond a guide silhouette; small leaf serrations may refine the edge inward.\nCamera looks STRAIGHT DOWN from directly above: orthographic aerial plan view, crowns only. No side view, no isometric, no visible upright trunk in profile.\nSetting: the dry arid rim of a desert world's green basin; hot, sun-bleached, dusty. Foliage is SPARSE, and image 1 says exactly where: the transparent holes inside each crown are part of the geometry contract. Keep every hole as genuine transparency (on the map the sand shows through there). The brown lines in image 1 are the tree's limbs: paint them as real bark branches, forked and twisted, visible across the holes and between leaf clusters. Foliage covers only the coloured lobe areas.\nSIZE: draw each crown at exactly the guide's size. Its outer edge sits ON the guide outline, never outside it; the crowns must not come back larger than in image 1, and no leaf tip, frond or branch crosses the outline.\nDirection: PALM GROVE / OASIS EDGE.\nTop row left to right:\n1. Mature date palm: a radial starburst of long arching feather-pinnate fronds seen from above, dusty grey-green to blue-green, filling the lobed crown; a dense dark centre with golden-orange date clusters; a few dead straw-brown fronds at the rim.\n2. Younger date palm: the same, smaller, fresher olive-green fronds, no fruit.\n3. Doum palm: a crown made of several fan-palm heads (one per lobe), stiff fan-shaped leaves in yellow-olive and dry khaki, forked pale branches between heads.\nBottom row left to right:\n4. Compact clump of dwarf fan palms: many overlapping stiff fan leaves, dusty sage-green, opaque centre.\n5. Large multi-stem date palm cluster: several overlapping frond starbursts in grey-green with straw-brown dead fronds, the cluster still reading as the single guide crown.\n6. Elongated tamarisk (the narrow crown): a feathery tamarisk tree of fine grey-green scale-leaf sprays with faint pink flower plumes, in long sprays along its axis.\nThe radial fronds must stay inside the lobed silhouette; frond tips may not overshoot the guide.\nHand-painted realistic tactical-game environment art, coherent medium detail readable at 3-6 world cells per tree, restrained soft overhead lighting that tolerates quarter-turn rotation. Each sprite is one tree, not a cluster. No baked ground shadow outside the silhouette, no sand disc, no rocks, no grass, no labels, no text, no border.\nTrue transparent background everywhere outside each silhouette and in the gaps inside it. No colored backdrop or checkerboard. Keep all six precisely registered to the guide and keep the 3:2 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\dry-woodland\\guides\\forest-canopies-sparse.png",
+      "sha256": "c37bd0c667d1e0e8feb06817a7d6cb392630cb07cd821e49db143a0af0117635",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: crown outlines, internal transparent holes and brown branch skeleton; reskin, never move or enlarge"
+    },
+    {
+      "path": "art-source\\tilesets\\forest-canopies.raw.png",
+      "sha256": "91b218ae84c7e1f3fb1a21047fa343572738e8f24ec5a616cde4d6afdc959afb",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only: existing painted temperate canopies; match rendering and light, not species or palette"
+    },
+    {
+      "path": "art-source\\dry-woodland\\raw\\palm-canopies.raw.png",
+      "sha256": "1f785238bef5b448fe3c821c135f21bc19270c77c63abd68f28ea24b8a333887",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Species and palette identity only, slot for slot; not its size or its closed crowns"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one sprite sheet, using Image 1 for exact geometry, Image 2 for rendering style, and Image 3 for species and palette."
+  ],
+  "usage": {
+    "input_tokens": 48428,
+    "cached_input_tokens": 39296,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 1069,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 81.7
+}
