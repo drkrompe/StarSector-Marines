@@ -2109,7 +2109,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     id -> new PersonnelDrawResult(roster.fillVacanciesFromReserve(id), 0));
             var command = model.command();
             command.navigation(id -> { }, () -> { }, true);
-            command.returnToBriefing(true);
+            command.missionReturn(MissionReturn.BRIEFING);
             Map<String, Object> properties = new LinkedHashMap<>();
             properties.put("command", command.props());
             properties.put("contextLabel", "FLAGSHIP / FIRST COMMAND");
