@@ -40,4 +40,20 @@ class JunctionTacticsTest {
         assertEquals(2, policy.firstSecured());
         assertEquals(0, policy.assaultTarget(List.of(DEFENDER_HELD, MARINE_HELD, MARINE_HELD, MARINE_HELD)));
     }
+    @Test void aCompanySittingOnItsGainsIsHitOnTheClock() {
+        var policy = new JunctionTactics();
+        var sitting = List.of(MARINE_HELD, MARINE_HELD, DEFENDER_HELD, DEFENDER_HELD);
+        policy.observe(sitting, 100);
+        policy.observe(sitting, 100 + JunctionTactics.QUIET_TICKS - 1);
+        assertFalse(policy.reserveCommitted());
+        policy.observe(sitting, 100 + JunctionTactics.QUIET_TICKS);
+        assertTrue(policy.reserveCommitted(), "the first blow does not wait for the company to push on");
+        policy.observe(List.of(MARINE_HELD, MARINE_HELD, CONTESTED, DEFENDER_HELD), 100 + 2 * JunctionTactics.QUIET_TICKS - 1);
+        assertFalse(policy.roadColumnCommitted());
+        policy.observe(List.of(MARINE_HELD, MARINE_HELD, CONTESTED, DEFENDER_HELD), 100 + 2 * JunctionTactics.QUIET_TICKS);
+        assertTrue(policy.roadColumnCommitted(), "the second blow follows the first on the clock");
+        assertEquals(2, policy.roadTarget(), "it strikes the site the company is fighting for");
+        policy.observe(List.of(MARINE_HELD, MARINE_HELD, DEFENDER_HELD, MARINE_HELD), 100 + 3 * JunctionTactics.QUIET_TICKS);
+        assertEquals(2, policy.roadTarget(), "a launched blow keeps its target");
+    }
 }
