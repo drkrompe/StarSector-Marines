@@ -107,11 +107,16 @@ public final class VehicleRamScene implements BehaviorScene {
     // ---- Runners at a parked hull ----
 
     private static final int PARKED_TICKS = 900, WALL_X = 32;
+    /**
+     * Cells off a hull's side within which a Runner's blow is taken as one on the hull, and how far past touching a
+     * blow is allowed for the tick it is sampled after (a Runner's stride in a tick).
+     */
+    private static final float STRIKE_NEAR = 2.5f, MAX_SLIDE = .1f;
 
     /**
-     * Verdicts: the Runners strike the parked hull (from its side: they cannot reach its centre), and none of them
-     * walks into it over and over (no Runner route stall); behind a hull barring the only gap, none gets past while it
-     * stands. Hull damage, stalls and blows are readings.
+     * Verdicts: the Runners strike the parked hull (from its side: they cannot reach its centre), touching it when they
+     * do, and none of them walks into it over and over (no Runner route stall); behind a hull barring the only gap,
+     * none gets past while it stands. Hull damage, stalls, blows and the farthest blow off the side are readings.
      */
     private SceneReport parked(FrameSink frames, String loop, boolean barricade) {
         SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false).seed(7L);
@@ -140,7 +145,11 @@ public final class VehicleRamScene implements BehaviorScene {
             SceneRun run = SceneRun.of(world).frames(frames, loop, FRAME_EVERY, tick -> String.format(Locale.ROOT,
                     "%s  t=%.1fs  tank %.0f  stalls %d", loop, tick / 30f, sim.world().hp(hull),
                     sim.movement().routeStalls() - stallsBefore));
-            int seen = stallsBefore, stalls = 0;
+            int seen = stallsBefore, stalls = 0, blows = 0;
+            float[] cooldown = new float[runners.length];
+            float strikeGap = 0f;
+            GroundBody at = sim.convoy().body(hull);
+            VehicleType tank = sim.convoy().vehicleType(hull);
             StringBuilder stalled = new StringBuilder();
             while (run.tick() < PARKED_TICKS) {
                 run.step();
@@ -155,6 +164,18 @@ public final class VehicleRamScene implements BehaviorScene {
                     }
                 }
                 for (long r : runners) if (sim.getRoster().isAliveById(r) && sim.world().x(r) < WALL_X - 3) past++;
+                // A fresh blow by a Runner beside the hull is one on the hull: nobody else stands near it.
+                for (int i = 0; i < runners.length; i++) {
+                    if (!sim.getRoster().isAliveById(runners[i])) continue;
+                    float now = sim.combat().cooldownTimer(runners[i]);
+                    float gap = HullReach.gap(at.x, at.y, at.facingDegrees, tank.visualLengthCells / 2f,
+                            tank.visualWidthCells / 2f, sim.world().x(runners[i]), sim.world().y(runners[i]));
+                    if (now > cooldown[i] + 1e-3f && gap <= STRIKE_NEAR) {
+                        blows++;
+                        strikeGap = Math.max(strikeGap, gap - sim.getRoster().radius(runners[i]));
+                    }
+                    cooldown[i] = now;
+                }
             }
             // Plate first: a Runner's blow is mostly turned by a tank's armour, and what it takes off is struck all the same.
             float struck = DEEP - sim.world().hp(hull)
@@ -162,6 +183,9 @@ public final class VehicleRamScene implements BehaviorScene {
             List<Verdict> verdicts = new ArrayList<>();
             verdicts.add(Verdict.of("parked-hull-struck", struck > 0f,
                     String.format(Locale.ROOT, "%.1f health and plate off the tank", struck)));
+            verdicts.add(Verdict.of("claws-at-touch", blows > 0 && strikeGap <= HullReach.TOUCH + MAX_SLIDE,
+                    String.format(Locale.ROOT, "%d blows on the hull, the farthest %.2f cells past the Runner's own"
+                            + " radius off its side", blows, strikeGap)));
             verdicts.add(Verdict.of("no-runner-route-stalls", stalls == 0, stalls + " Runner route stalls" + (stalled.length() == 0 ? "" : ": " + stalled)));
             if (barricade) {
                 verdicts.add(Verdict.of("held-while-it-stands", past == 0 || sim.world().hp(hull) <= 0f,
@@ -169,6 +193,8 @@ public final class VehicleRamScene implements BehaviorScene {
             }
             Map<String, Number> m = new LinkedHashMap<>();
             m.put("hullDamage", struck);
+            m.put("hullBlows", blows);
+            m.put("strikeGap", strikeGap);
             m.put("routeStalls", stalls);
             m.put("runnerTicksPast", past);
             return new SceneReport(id(), loop, PARKED_TICKS, verdicts, m);
