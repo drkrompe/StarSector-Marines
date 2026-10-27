@@ -4,7 +4,8 @@ Status: ACTIVE — Marine, Mech, any player-owned deployed vehicle, friendly War
 
 Written: 2026-09-23
 
-Updated: 2026-10-25 — clicks inside a rack's cycle fire its next group; a hull whose gun builds flux shows it on the HUD.
+Updated: 2026-10-27 — a mission script may run any side's infantry on the shared stamina (Counterattack's raiders).
+Earlier 2026-10-25 — clicks inside a rack's cycle fire its next group; a hull whose gun builds flux shows it on the HUD.
 
 Direct control lets the player temporarily inhabit one of their ground units, or a
 friendly capital hovering over the battle, in
@@ -382,7 +383,10 @@ exhaustion. Those values are balance choices; stamina ownership and terrain
 authority are standing laws. The same resource pays for a squad's run order
 (`mission-command-nouns.md`, Run): a body's stamina is one pool whether the
 player's Shift or its squad's or chassis's run order spends it, and the controlled
-body is boosted only by Shift. It does not change campaign condition.
+body is boosted only by Shift. A mission script may run an infantry squad of any
+side on the same pool and the same held fire (`SquadRunSystem.runScripted`),
+each member until the script says it has arrived: Counterattack's road raiders
+sprint into dispatch this way. It does not change campaign condition.
 
 The session stores intent, not a second movement physics model. Existing
 collision and reachability remain authoritative. Losing focus or releasing

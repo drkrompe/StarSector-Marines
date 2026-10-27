@@ -18,8 +18,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Two precommitted attacks enter on both service roads once the company steps into dispatch; the final one brings a
- * technical up the south road to park before the warehouse ({@link DepotRoadTechnical}).
+ * Two precommitted attacks enter on both service roads once the company steps into dispatch and sprint into it, each
+ * raider walking once inside; the final one brings a technical up the south road to park before the warehouse
+ * ({@link DepotRoadTechnical}).
  */
 public final class DepotHoldSequence implements Objective {
     public static final String CAPTURED = "opening.counterattack.warehouse_captured";
@@ -37,6 +38,7 @@ public final class DepotHoldSequence implements Objective {
     private final PointOfInterest warehouse;
     private final List<List<EntitySpec>> forces;
     private final List<Integer> approachSquads = new ArrayList<>();
+    private final List<Integer> roadSquads = new ArrayList<>();
     private final StoryBeatLog log;
     private final DepotRoadTechnical technical;
     private final DepotHoldProgress progress = new DepotHoldProgress();
@@ -88,7 +90,7 @@ public final class DepotHoldSequence implements Objective {
             if (Faction.MARINE.friendlyTo(faction) && !machine) infantry = true;
             if (faction == Faction.MARINE && sim.world().hasMechLoadout(id) && Math.hypot(x - doorX, y - doorY) <= DOOR_REACH)
                 machineAtDoor = true;
-            if (x <= warehouse.left || x >= warehouse.right || y <= warehouse.top || y >= warehouse.bottom) continue;
+            if (!inside(x, y)) continue;
             if (Faction.MARINE.hostileTo(faction)) enemy = true;
             company |= faction == Faction.MARINE;
             friendly |= faction == Faction.MARINE || faction == Faction.ALLY;
@@ -107,7 +109,9 @@ public final class DepotHoldSequence implements Objective {
         for (int squadId : List.copyOf(approachSquads)) {
             var squad = sim.getSquad(squadId);
             if (sim.squadMemberCount(squadId) == 0) { approachSquads.remove(Integer.valueOf(squadId)); continue; }
-            if (Math.hypot(squad.centroidX - 78, squad.centroidY - 35) <= 6 || squad.hasDirectContactThisTick()) {
+            // Into dispatch first, then the defenders' commander fights them from there.
+            if (anyInside(sim, squadId)) {
+                sim.squadRun().stopScripted(squadId);
                 sim.handoffSquadCommand(squadId, ISSUER, CommandAuthority.MISSION_COMMAND,
                         OpeningOperationCommand.issuer(Faction.DEFENDER), null, "Road reserve assaults captured dispatch");
                 approachSquads.remove(Integer.valueOf(squadId));
@@ -115,6 +119,28 @@ public final class DepotHoldSequence implements Objective {
         }
         if (progress.complete()) emit(sim, SECURED);
     }
+    private boolean anyInside(BattleSimulation sim, int squadId) {
+        for (int i = 0, n = sim.squadMemberCount(squadId); i < n; i++) {
+            long id = sim.resolveUnit(sim.squadMemberAt(squadId, i));
+            if (id != 0L && sim.world().hasPosition(id) && inside(sim.world().x(id), sim.world().y(id))) return true;
+        }
+        return false;
+    }
+
+    /** Dispatch's door as {x, y}, where a company machine may hold it ({@link #DOOR_REACH}). */
+    public float[] door(BattleSimulation sim) {
+        if (Float.isNaN(doorX)) findDoor(sim);
+        return new float[]{doorX, doorY};
+    }
+
+    /** Every road squad released so far, in release order. */
+    public List<Integer> roadSquads() { return List.copyOf(roadSquads); }
+
+    /** Whether a point lies within dispatch's walls. */
+    public boolean inside(float x, float y) {
+        return x > warehouse.left && x < warehouse.right && y > warehouse.top && y < warehouse.bottom;
+    }
+
     /** Dispatch's door: the middle of the walkable gap in its wall facing the yard, or its anchor if none. */
     private void findDoor(BattleSimulation sim) {
         doorX = warehouse.interiorAnchorX + .5f;
@@ -131,9 +157,12 @@ public final class DepotHoldSequence implements Objective {
         int squad = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
         for (EntitySpec spec : force) sim.spawn(spec.squad(squad));
         sim.getSquad(squad).originalSize = force.size();
-        sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, 78, 35),
-                CommandAuthority.SCRIPTED, ISSUER, "Enter depot along the service road");
+        sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad, warehouse.interiorAnchorX, warehouse.interiorAnchorY),
+                CommandAuthority.SCRIPTED, ISSUER, "Enter dispatch from the service road");
+        // They sprint to the fight and take it at a walk: each raider runs until it is inside dispatch.
+        sim.squadRun().runScripted(squad, id -> !inside(sim.world().x(id), sim.world().y(id)));
         approachSquads.add(squad);
+        roadSquads.add(squad);
     }
     private void emit(BattleSimulation sim, String key) { log.emitOnce(sim.getSimTickIndex(), key, StoryBeatLog.Audience.PLAYER); }
     @Override public Faction owningFaction() { return Faction.MARINE; }
