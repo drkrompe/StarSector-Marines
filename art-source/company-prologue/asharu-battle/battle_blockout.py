@@ -2671,7 +2671,7 @@ def blender_main(cfg):
             raise RuntimeError(f'{kf}: {worst[1]} is drawn {worst[0]:.2f} m off its mount on her hull')
 
     contact_bvh = {}         # a hull mesh's name -> its BVH in its own frame (built once; its shape never changes)
-    contact_re = re.compile(r'^SWFX (?:damage scar \| .*|impact (?:scar|damage fire|damage vent|damage smoke) \d+) @([\w-]+)$')
+    contact_re = re.compile(r'^SWFX (?:damage scar \| .*|impact (?:scar|damage fire|damage vent|damage smoke) \d+)$')
 
     def contact_lint(kf):
         """Nothing a hit leaves on a hull floats off it (owner, 2026-10-27: S11's discs below the
@@ -2686,10 +2686,10 @@ def blender_main(cfg):
                 continue
             ob = inst.object.original
             top = inst.parent.original.name
-            name = ship_fx.base_name(ob.name)
-            m = contact_re.match(name)
-            if m is not None:
-                marks.append((m.group(1), name, inst.matrix_world.translation.copy()))
+            name = ship_fx.base_name(ob.name)          # base_name drops the copy's ' @<key>': read it off the raw name
+            at_ = re.search(r' @([\w-]+)$', ob.name)
+            if contact_re.match(name) and at_ is not None:
+                marks.append((at_.group(1), name, inst.matrix_world.translation.copy()))
             elif top.startswith('Ship | ') and ob.type == 'MESH' and not name.startswith('SWFX'):
                 plating.setdefault(top[7:], []).append((ob, inst.matrix_world.copy()))
         worst, far = (0.0, None), []
