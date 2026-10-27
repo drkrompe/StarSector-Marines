@@ -817,8 +817,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     public DepotHoldSequence getDepotHold() { return depotHold; }
     public void installDepotHold(PointOfInterest warehouse, List<List<EntitySpec>> reserves) {
+        installDepotHold(new DepotHoldSequence(warehouse, reserves, storyBeats));
+    }
+    /** Installs a depot hold built by setup, whose story beats go to {@link #getStoryBeatLog()}. */
+    public void installDepotHold(DepotHoldSequence sequence) {
         if (simTickIndex != 0 || depotHold != null) throw new IllegalStateException("Install depot hold once at setup");
-        depotHold = new DepotHoldSequence(warehouse, reserves, storyBeats);
+        depotHold = sequence;
         addObjective(depotHold);
     }
     private SquadCommandClaim playerSupportCommandClaim;

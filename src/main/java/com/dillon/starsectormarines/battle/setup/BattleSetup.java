@@ -1560,7 +1560,14 @@ public final class BattleSetup {
                             Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL));
                 reserves.add(force);
             }
-            sim.installDepotHold(authoredPlace, reserves);
+            // The final wave's technical comes up the south service road and parks in the loading yard before
+            // dispatch's door, a little short of it, to support the raiders already at the warehouse.
+            VehicleClearance lane = VehicleClearance.erode(sim.getGrid(),
+                    VehicleClearance.radiusForWidth(DepotRoadTechnical.TYPE.visualWidthCells));
+            int[] entry = nearestClear(lane, new int[]{78, 3}); // The road mouth at the bottom of the screen.
+            int[] park = nearestClear(lane, new int[]{authoredPlace.left - 8, authoredPlace.interiorAnchorY});
+            sim.installDepotHold(new DepotHoldSequence(authoredPlace, reserves,
+                    new DepotRoadTechnical(entry[0], entry[1], park[0], park[1]), sim.getStoryBeatLog()));
         }
         return sim;
     }
