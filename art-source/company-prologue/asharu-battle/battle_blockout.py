@@ -3045,7 +3045,8 @@ def blender_main(cfg):
         asharu_gunnery to plan around (asharu_gunnery.MASKS). From each mount's muzzle (OWN_HULL_MUZZLE_M up
         its axis, past OWN_HULL_CLEAR_M of its own gun, as hull_cross_lint casts it) a ray every MASK_STEP_DEG
         of bearing and elevation in her frame, out to 1.5 of her length, against her own plating (guns, gear
-        and the kit's effects aside). Written per build into path, merged with what is there."""
+        and the kit's effects aside; another gun's housing only past OWN_HULL_GUN_M, as the lint reads it).
+        Written per build into path, merged with what is there."""
         import asharu_gunnery as g
         import base64
         from mathutils import Vector
@@ -3070,15 +3071,17 @@ def blender_main(cfg):
             if key not in placed or not mounts or build in out or build not in g.MOUNTS:
                 continue
             to_ship = placed[key]['matrix'].inverted()
-            verts, polys = [], []
+            geo = {False: ([], []), True: ([], [])}        # hull, and other guns' housings
             for ob, mw in obs:
+                verts, polys = geo[ship_fx.base_name(ob.name).startswith('Weapon')]
                 me = ob.evaluated_get(dg).to_mesh()
                 m = to_ship @ mw
                 o = len(verts)
                 verts += [m @ v.co for v in me.vertices]
                 polys += [[o + i for i in p.vertices] for p in me.polygons]
                 ob.evaluated_get(dg).to_mesh_clear()
-            bvh = BVHTree.FromPolygons(verts, polys)
+            bvh = BVHTree.FromPolygons(*geo[False])
+            guns = BVHTree.FromPolygons(*geo[True]) if geo[True][0] else None
             reach = placed[key]['length'] * 1.5
             rows = {}
             for tu, m in mounts.items():
@@ -3090,6 +3093,8 @@ def blender_main(cfg):
                         az = math.radians(-180 + (i + .5) * MASK_STEP_DEG)
                         d = Vector((math.cos(el) * math.cos(az), math.cos(el) * math.sin(az), math.sin(el)))
                         hit = bvh.ray_cast(o + d * OWN_HULL_CLEAR_M, d, reach)
+                        if hit[0] is None and guns is not None:
+                            hit = guns.ray_cast(o + d * (OWN_HULL_CLEAR_M + OWN_HULL_GUN_M), d, reach)
                         if hit[0] is not None:
                             n = j * nb + i
                             bits[n // 8] |= 1 << (n % 8)
