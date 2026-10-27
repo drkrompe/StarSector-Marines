@@ -2905,6 +2905,93 @@ def blender_main(cfg):
         if worst[0] > CONTACT_TOL_M and not os.environ.get('ASHARU_AUDIT_SOFT'):
             raise RuntimeError(f'{kf}: {worst[1]} is drawn {worst[0]:.2f} m off her plating')
 
+    def own_hull_lint(kf):
+        """No ship fires through her own hull (owner, 2026-10-27, the Mk.III in S7: "Specifically I just want
+        to make sure it's not firing through it's own hull"). Her hull is rigid, so one staged frame
+        serves the whole shot: every burst asharu_gunnery plans for the shot, sampled every FIRE_ARC_STEP_S,
+        is cast in the shooter's own frame from just off its mount (OWN_HULL_MUZZLE_M up its axis, past the
+        gun's own body) toward its aim, against her own plating (guns and the kit's effects aside). A ray
+        that meets it before reaching the aim is a fault. A Borer's beam leaves her nose toward its target
+        (mining_hit), so it is cast from there too. ASHARU_OWN_HULL_RAYS (a JSON file of [ship, origin,
+        direction, metres, label] in her frame) adds rays to cast, to compare an attitude not flown."""
+        import asharu_gunnery as g
+        from mathutils import Vector
+        from mathutils.bvhtree import BVHTree
+        base = g.base_kf(kf)
+        if base in own_hull_done or 'camera' not in SHOTS[base]:
+            return
+        own_hull_done.add(base)
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        plating = {}
+        for inst in dg.object_instances:
+            if not inst.is_instance or inst.parent is None:
+                continue
+            ob, top = inst.object.original, inst.parent.original.name
+            name = ship_fx.base_name(ob.name)
+            if (top.startswith('Ship | ') and ob.type == 'MESH' and not name.startswith('SWFX')
+                    and not re.search(r'\b(Turret|Launcher|Gear|Beam)\b', name)):
+                plating.setdefault(top[7:], []).append((ob, inst.matrix_world.copy()))
+
+        def cast(key, o, d, dist):
+            """The first of her own plating a ray from o along d (her frame, metres) meets within dist."""
+            if key not in placed or key not in plating:
+                return None
+            sm = placed[key]['matrix']
+            best = None
+            for ob, mw in plating[key]:
+                if ob.name not in contact_bvh:
+                    contact_bvh[ob.name] = BVHTree.FromObject(ob, dg)
+                m = mw.inverted() @ sm          # her frame -> the plating's own
+                o_, e_ = m @ Vector(o), m @ (Vector(o) + Vector(d) * dist)
+                dd = e_ - o_
+                hit = contact_bvh[ob.name].ray_cast(o_, dd.normalized(), dd.length)
+                if hit[0] is not None:
+                    at = (Vector(o) - sm.inverted() @ (mw @ hit[0])).length
+                    if best is None or at < best[0]:
+                        best = (at, ship_fx.base_name(ob.name))
+            return best
+        spec, rays = SHOTS[base], []
+        pos = lambda k, t: spec['ships'][k].at(t) if hasattr(spec['ships'][k], 'at') else spec['ships'][k]
+        for e in g.shot_plan(base)['engagements']:
+            a, b, m = e['shooter'], e['target'], g.mounts_of(base, e['shooter']).get(e['turret'])
+            if m is None or a not in spec['ships'] or b not in spec['ships']:
+                continue
+            for on, off in e['bursts']:
+                n = max(1, int(round((off - on) / FIRE_ARC_STEP_S)))
+                for i in range(n + 1):
+                    t = on + (off - on) * i / n
+                    aim = g.to_local(g.frame(pos(a, t)), g.to_world(g.frame(pos(b, t)), e['aim']))
+                    o = (m[0][0], m[0][1], m[0][2] + OWN_HULL_MUZZLE_M)
+                    v = [aim[j] - o[j] for j in range(3)]
+                    dist = math.sqrt(sum(c * c for c in v)) or 1.0
+                    rays.append((a, o, [c / dist for c in v], dist, f'{a} t{e["turret"]} -> {b} {t:.1f} s'))
+        for fx in spec.get('fx', ()):
+            if fx[0] == 'mining' and fx[1] in spec['ships'] and fx[2] in spec['ships'] and fx[1] in placed:
+                a, b = fx[1], fx[2]
+                cam_ = spec['camera']['at']
+                for t in [cam_.keys[0]['t'] + j * .5 for j in range(int((cam_.keys[-1]['t'] - cam_.keys[0]['t']) / .5) + 1)]:
+                    aim = g.to_local(g.frame(pos(a, t)), g.to_world(g.frame(pos(b, t)), fx[3] if len(fx) > 3 else (0, 0, 0)))
+                    dist = math.sqrt(sum(c * c for c in aim)) or 1.0
+                    u = [c / dist for c in aim]
+                    o = [c * placed[a]['length'] * .55 for c in u]
+                    rays.append((a, o, u, dist - placed[a]['length'] * .55, f'{a} beam -> {b} {t:.1f} s'))
+        if os.environ.get('ASHARU_OWN_HULL_RAYS'):
+            rays += [tuple(r) for r in json.loads(Path(os.environ['ASHARU_OWN_HULL_RAYS']).read_text())
+                     if r[0] in placed and r[0] in spec['ships']]
+        bad = []
+        for key, o, d, dist, label in rays:
+            o2 = [o[j] + d[j] * OWN_HULL_CLEAR_M for j in range(3)]
+            hit = cast(key, o2, d, max(0.0, dist - OWN_HULL_CLEAR_M))
+            if hit is not None:
+                bad.append(f'{label} meets her {hit[1]} {hit[0]:.0f} m out')
+        print(f'ASHARU own hull {base}: {len(rays)} rays cast' + (f'; through her own hull: {bad[:40]}' if bad else ''),
+              flush=True)
+        if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
+            raise RuntimeError(f'{base}: {bad[0]} (own-hull lint)')
+
+    own_hull_done = set()
+
     def build_objects(key):
         """The objects a placed ship is drawn from: her own hull copy (ShipFx, its turrets trained)
         first, then the shared build."""
@@ -4108,6 +4195,7 @@ def blender_main(cfg):
                         raise RuntimeError(f'{kf}: {w_[1]} {w_[2]} evaluates {w_[0]:.4f} off its plan {w_[3]:.4f}')
             if not cfg.get('motion_preview'):    # the preview bakes each ship into one mesh: nothing can come off
                 attachment_lint(kf)
+                own_hull_lint(kf)
                 fire_arc_lint(kf)
                 contact_lint(kf)
                 cut_lint(kf)
@@ -4972,8 +5060,10 @@ def activity_lint(kf):
 # a gun delivers has a mount that reaches it, and every tracer the shot asks for has a mount that bears
 # some of the shot (else nothing fires it). A Borer's mining laser is a fixed mount on her nose (the
 # game's drone_borer: arc 30 deg), so her nose is held within BEAM_ARC_DEG of her beam's aim while it is
-# on. FIRE_ARC_EXEMPT keeps a designed exception, (shot, shooter, target): reason.
+# on. FIRE_ARC_EXEMPT keeps a designed exception, (shot, shooter, target): reason. It reports; the hard check is
+# own_hull_lint (owner: "Specifically I just want to make sure it's not firing through it's own hull").
 FIRE_ARC_TOL_DEG, FIRE_ARC_STEP_S, BEAM_ARC_DEG = 1.0, .1, 15.0
+OWN_HULL_MUZZLE_M, OWN_HULL_CLEAR_M = 2.0, 2.5     # own_hull_lint: a muzzle above its pivot; the gun's own reach
 FIRE_ARC_EXEMPT = {}
 
 
@@ -5041,7 +5131,8 @@ def fire_arc_lines(kf):
 
 
 def fire_arc_lint(kf):
-    """Logs fire_arc_lines once per shot per process; a fault not exempt raises unless ASHARU_AUDIT_SOFT."""
+    """Logs fire_arc_lines once per shot per process. It reports and never stops a build (owner,
+    2026-10-27: the hard check is that no ship fires through her own hull, own_hull_lint)."""
     import asharu_gunnery as g
     kf = g.base_kf(kf)
     if kf in _FIRE_ARC_DONE:
@@ -5051,8 +5142,6 @@ def fire_arc_lint(kf):
     bad = [r for r in rows if r[3] and not r[4]]
     print(f'ASHARU fire arcs {kf}: {len(rows)} lines of fire, {len([r for r in rows if r[4]])} exempt'
           + (f'; out of arc: {[f"{r[0]} -> {r[1]} {r[3]}" for r in bad]}' if bad else ''), flush=True)
-    if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
-        raise RuntimeError(f'{kf}: {bad[0][0]} -> {bad[0][1]} {bad[0][3]} (fire-arc lint)')
 
 
 _FIRE_ARC_DONE = set()
