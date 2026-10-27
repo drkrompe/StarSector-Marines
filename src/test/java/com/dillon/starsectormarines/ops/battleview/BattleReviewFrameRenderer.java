@@ -224,7 +224,13 @@ public final class BattleReviewFrameRenderer {
      * read at a glance (where the mission's places are), never for judging how the ground looks.
      */
     public BufferedImage renderMarked(BattleSimulation simulation, ReviewAnnotations marks) throws IOException {
-        BufferedImage image = render(simulation, "", ReviewAnnotations.NONE, null);
+        return renderMarked(simulation, marks, null);
+    }
+
+    /** {@link #renderMarked(BattleSimulation, ReviewAnnotations)} with the impact particles {@code impacts} has fed. */
+    public BufferedImage renderMarked(BattleSimulation simulation, ReviewAnnotations marks, ReviewImpactFx impacts)
+            throws IOException {
+        BufferedImage image = render(simulation, "", ReviewAnnotations.NONE, impacts);
         Graphics2D graphics = image.createGraphics();
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         graphics.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
