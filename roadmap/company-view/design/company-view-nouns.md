@@ -176,7 +176,8 @@ shared mapping instead of assigning paths independently in each screen.
 - **Scrapped machine** — a boat, mech or vehicle the company broke up to free its
   berth or gantry. Everything fitted goes to stores, and its **hull** — its price less
   the stock parts it was built with, which came back on their own — returns at the
-  shop's recycling rate.
+  shop's recycling rate. A Hermes cannot be scrapped for now (owner, 2026-10-27): a
+  company that breaks up its gig and cannot afford another is left with no lift.
 - **Reserve hangar** — the company's store of whole machines: boats, mechs and
   vehicles taken off their berths and gantries with their identity, callsign, fit
   and repair clock intact. A stored machine flies and fights nothing, so no battle
