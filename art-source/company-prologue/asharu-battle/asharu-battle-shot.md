@@ -204,10 +204,11 @@ preview plays, and the stills did not move when the motion went in (`--check` is
   convoy ship at contact (50 s). A ship meant to hold still is in `DESIGNED_IDLE` with its reason.
 - **Bending the truth where it cannot be seen** (owner, 2026-10-27: "Note some "bending" of the truth
   for a better shot is warranted. If the camera is close to the action though we run the risk of the player
-  seeing the mistake"). The realism lints (pace, activity, firing arcs, own hull) fail only where the mistake
+  seeing the mistake"). The realism lints (pace, activity, firing arcs) fail only where the mistake
   reads: the ship at 150 px of length or more (a 4 m turret is then 6 px), or 60 px in the middle half of the
-  frame. A tracer through the shooter's own hull fails from 40 px (a 10 m section of a 100 m hull is then
-  4 px). Anything smaller, or off frame, is logged as a cheat with its size.
+  frame; anything smaller, or off frame, is logged as a cheat with its size. A tracer is judged by the streak
+  (owner: "Right, the viewer would spot tracers that obviously went through a hull"): one drawn through any
+  hull, the shooter's or another's, fails wherever the crossing is in frame (`hull_cross_lint`).
 - **The pack's climb is flown as its classes can fly it** (owner, 2026-10-27: "I want things done
   right"). Each raider eases out of the field as S3 shows (unchanged), then flies a smooth path
   toward her S6 run (`climbed`): no faster than `CLIMB_SPEED` (90% of her class's top speed) and

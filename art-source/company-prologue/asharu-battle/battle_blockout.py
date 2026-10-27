@@ -2905,18 +2905,19 @@ def blender_main(cfg):
         if worst[0] > CONTACT_TOL_M and not os.environ.get('ASHARU_AUDIT_SOFT'):
             raise RuntimeError(f'{kf}: {worst[1]} is drawn {worst[0]:.2f} m off her plating')
 
-    def own_hull_lint(kf):
-        """No ship fires through her own hull (owner, 2026-10-27, the Mk.III in S7: "Specifically I just want
-        to make sure it's not firing through it's own hull"). Her hull is rigid, so one staged frame
-        serves the whole shot: every burst asharu_gunnery plans for the shot, sampled every FIRE_ARC_STEP_S,
-        is cast in the shooter's own frame from just off its mount (OWN_HULL_MUZZLE_M up its axis, past the
-        gun's own body) toward its aim, against her own plating (guns and the kit's effects aside). A ray
-        that meets it before reaching the aim is a fault where her hull reads on screen (OWN_HULL_PX), and a
-        cheat listed with her size where it does not. A stand-in fires from inside her slab and is not
-        cast; another gun's housing within OWN_HULL_GUN_M of the muzzle is the mount's own clutter (the
-        muzzle is placed, not modelled). A Borer's beam leaves her nose toward its target (mining_hit), so
-        it is cast from there too. ASHARU_OWN_HULL_RAYS (a JSON file of [ship, origin, direction, metres,
-        label ending in its time 'N.N s'] in her frame) adds rays, to compare an attitude not flown."""
+    def hull_cross_lint(kf):
+        """No tracer or beam is drawn through a hull (owner, 2026-10-27, the Mk.III in S7: "Specifically I just
+        want to make sure it's not firing through it's own hull"; "Right, the viewer would spot tracers that
+        obviously went through a hull"). Every burst asharu_gunnery plans for the shot, sampled every
+        FIRE_ARC_STEP_S, flies from just off its mount (OWN_HULL_MUZZLE_M up its axis, past the gun's own body,
+        OWN_HULL_CLEAR_M) to its aim, and each Borer beam from her nose (mining_hit) to its target. Each is
+        cast against the shooter's own plating and every other hull but its target's, as they are posed at
+        that moment (a hull is rigid, so one staged frame serves the whole shot). A streak is bright and long,
+        so one that crosses a hull where the crossing is in frame fails, however small the ships; one
+        crossing out of frame is listed as a cheat. A stand-in fires from inside her slab and is not cast;
+        another gun's housing within OWN_HULL_GUN_M of the muzzle is the mount's own clutter (the muzzle is
+        placed, not modelled). ASHARU_OWN_HULL_RAYS (a JSON file of [ship, origin, direction, metres, label
+        '... -> <target> N.N s'] in her frame) adds rays, to compare an attitude not flown."""
         import asharu_gunnery as g
         from mathutils import Vector
         from mathutils.bvhtree import BVHTree
@@ -2937,7 +2938,8 @@ def blender_main(cfg):
                 plating.setdefault(top[7:], []).append((ob, inst.matrix_world.copy()))
 
         def cast(key, o, d, dist):
-            """The first of her own plating a ray from o along d (her frame, metres) meets within dist."""
+            """The first of her plating a ray from o along d (her frame, metres) meets within dist: (metres
+            along it, part, the point in her frame), or None."""
             if key not in placed or key not in plating:
                 return None
             sm = placed[key]['matrix']
@@ -2950,11 +2952,13 @@ def blender_main(cfg):
                 dd = e_ - o_
                 hit = contact_bvh[ob.name].ray_cast(o_, dd.normalized(), dd.length)
                 if hit[0] is not None:
-                    at = (Vector(o) - sm.inverted() @ (mw @ hit[0])).length
+                    p_ = sm.inverted() @ (mw @ hit[0])
+                    at = (Vector(o) - p_).length
                     if best is None or at < best[0]:
-                        best = (at, ship_fx.base_name(ob.name))
+                        best = (at, ship_fx.base_name(ob.name), tuple(p_))
             return best
         spec, rays = SHOTS[base], []
+        ships = [k for k in spec['ships'] if k in placed and k in plating]
         pos = lambda k, t: spec['ships'][k].at(t) if hasattr(spec['ships'][k], 'at') else spec['ships'][k]
         for e in g.shot_plan(base)['engagements']:
             a, b, m = e['shooter'], e['target'], g.mounts_of(base, e['shooter']).get(e['turret'])
@@ -2968,7 +2972,7 @@ def blender_main(cfg):
                     o = (m[0][0], m[0][1], m[0][2] + OWN_HULL_MUZZLE_M)
                     v = [aim[j] - o[j] for j in range(3)]
                     dist = math.sqrt(sum(c * c for c in v)) or 1.0
-                    rays.append((a, o, [c / dist for c in v], dist, f'{a} t{e["turret"]} -> {b} {t:.1f} s', t))
+                    rays.append((a, o, [c / dist for c in v], dist, f'{a} t{e["turret"]} -> {b}', t, b))
         for fx in spec.get('fx', ()):
             if fx[0] == 'mining' and fx[1] in spec['ships'] and fx[2] in spec['ships'] and fx[1] in placed:
                 a, b = fx[1], fx[2]
@@ -2978,27 +2982,49 @@ def blender_main(cfg):
                     dist = math.sqrt(sum(c * c for c in aim)) or 1.0
                     u = [c / dist for c in aim]
                     o = [c * placed[a]['length'] * .55 for c in u]
-                    rays.append((a, o, u, dist - placed[a]['length'] * .55, f'{a} beam -> {b} {t:.1f} s', t))
+                    rays.append((a, o, u, dist - placed[a]['length'] * .55, f'{a} beam -> {b}', t, b))
         if os.environ.get('ASHARU_OWN_HULL_RAYS'):
-            rays += [tuple(r) + (float(re.search(r'([\d.]+) s$', r[4]).group(1)),)
-                     for r in json.loads(Path(os.environ['ASHARU_OWN_HULL_RAYS']).read_text())
-                     if r[0] in placed and r[0] in spec['ships']]
+            for r in json.loads(Path(os.environ['ASHARU_OWN_HULL_RAYS']).read_text()):
+                mt = re.search(r'^(.*-> (\S+).*?) ([\d.]+) s$', r[4])
+                if r[0] in placed and r[0] in spec['ships'] and mt:
+                    rays.append((r[0], r[1], r[2], r[3], mt.group(1), float(mt.group(3)), mt.group(2)))
+        cam = spec['camera']['at']
         bad, cheats = {}, {}
-        for key, o, d, dist, label, t in rays:
+        for key, o, d, dist, label, t, tgt in rays:
             o2 = [o[j] + d[j] * OWN_HULL_CLEAR_M for j in range(3)]
-            hit = cast(key, o2, d, max(0.0, dist - OWN_HULL_CLEAR_M))
-            if hit is None or (hit[1].startswith('Weapon') and hit[0] <= OWN_HULL_GUN_M):
+            fa = g.frame(pos(key, t))
+            w0 = g.to_world(fa, o2)
+            wd = [g.to_world(fa, d)[j] - g.to_world(fa, (0, 0, 0))[j] for j in range(3)]
+            span = max(0.0, dist - OWN_HULL_CLEAR_M)
+            hits = []
+            h = cast(key, o2, d, span)
+            if h is not None and not (h[1].startswith('Weapon') and h[0] <= OWN_HULL_GUN_M):
+                hits.append(('her own', h[1], h[0], g.to_world(fa, h[2])))
+            for k in ships:
+                if k in (key, tgt):
+                    continue
+                c, r = pos(k, t)[:3], placed[k]['length'] * .6
+                u = max(0.0, min(span, sum((c[j] - w0[j]) * wd[j] for j in range(3))))
+                if math.dist(c, [w0[j] + wd[j] * u for j in range(3)]) > r:
+                    continue                        # nowhere near her
+                fk = g.frame(pos(k, t))
+                lo = g.to_local(fk, w0)
+                ld = [g.to_local(fk, [w0[j] + wd[j] for j in range(3)])[j] - lo[j] for j in range(3)]
+                h = cast(k, lo, ld, span)
+                if h is not None:
+                    hits.append((k + "'s", h[1], h[0], g.to_world(fk, h[2])))
+            if not hits:
                 continue
-            seen, px = readable(base, key, [t], OWN_HULL_PX)
-            what = label.rsplit(' ', 2)[0]          # one row per gun and target, with its span
-            row = (bad if seen else cheats).setdefault(what, [t, t, hit[1], hit[0], px])
-            row[0], row[1], row[4] = min(row[0], t), max(row[1], t), max(row[4], px)
-        fmt = lambda rows: [f'{w} {r[0]:.1f}-{r[1]:.1f} s meets her {r[2]} {r[3]:.0f} m out ({r[4]:.0f} px)'
-                            for w, r in rows.items()]
-        print(f'ASHARU own hull {base}: {len(rays)} rays cast' + (f'; through her own hull: {fmt(bad)}' if bad else '')
-              + (f'; cheats (too small to read): {fmt(cheats)}' if cheats else ''), flush=True)
+            whose, part, at, w = min(hits, key=lambda x: x[2])
+            seen = _in_frame(cam(t), w)
+            row = (bad if seen else cheats).setdefault((label, whose), [t, t, part, at])
+            row[0], row[1] = min(row[0], t), max(row[1], t)
+        fmt = lambda rows: [f'{lab} {r[0]:.1f}-{r[1]:.1f} s crosses {whose} {r[2]} {r[3]:.0f} m out'
+                            for (lab, whose), r in rows.items()]
+        print(f'ASHARU hull cross {base}: {len(rays)} rays cast' + (f'; drawn through a hull in frame: {fmt(bad)}' if bad else '')
+              + (f'; cheats (the crossing out of frame): {fmt(cheats)}' if cheats else ''), flush=True)
         if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
-            raise RuntimeError(f'{base}: {fmt(bad)[0]} (own-hull lint)')
+            raise RuntimeError(f'{base}: {fmt(bad)[0]} (hull-cross lint)')
 
     own_hull_done = set()
 
@@ -4205,7 +4231,7 @@ def blender_main(cfg):
                         raise RuntimeError(f'{kf}: {w_[1]} {w_[2]} evaluates {w_[0]:.4f} off its plan {w_[3]:.4f}')
             if not cfg.get('motion_preview'):    # the preview bakes each ship into one mesh: nothing can come off
                 attachment_lint(kf)
-                own_hull_lint(kf)
+                hull_cross_lint(kf)
                 fire_arc_lint(kf)
                 contact_lint(kf)
                 cut_lint(kf)
@@ -4996,13 +5022,13 @@ def drone_lint(kf):
 
 # Some bending of the truth is allowed where nobody can see it (owner, 2026-10-27: "Note some "bending" of the
 # truth for a better shot is warranted. If the camera is close to the action though we run the risk of the
-# player seeing the mistake"). The realism lints (pace, activity, firing arcs, own hull) fail only where the
-# mistake reads on screen; elsewhere they list it as a cheat with its size. A ship reads at READABLE_PX of
-# length: a 100 m hull at 150 px is 1.5 px a metre, so a 4 m turret is 6 px, a mount and its line of fire
-# distinct; or at CENTRE_PX in the middle half of the frame, where the eye is. A ray through her own hull
-# fails from OWN_HULL_PX: at 40 px a 10 m section of a 100 m hull is 4 px, a tracer leaving the wrong side
-# of her already readable.
-READABLE_PX, CENTRE_PX, OWN_HULL_PX = 150.0, 60.0, 40.0
+# player seeing the mistake"). The realism lints (pace, activity, firing arcs) fail only where the mistake
+# reads on screen; elsewhere they list it as a cheat with its size. A ship reads at READABLE_PX of length: a
+# 100 m hull at 150 px is 1.5 px a metre, so a 4 m turret is 6 px, a mount and its line of fire distinct; or
+# at CENTRE_PX in the middle half of the frame, where the eye is. A tracer drawn through a hull is judged by
+# the streak, not the ships (owner: "Right, the viewer would spot tracers that obviously went through a
+# hull"): hull_cross_lint fails it wherever the crossing is in frame.
+READABLE_PX, CENTRE_PX = 150.0, 60.0
 
 
 def on_screen(kf, key, t):
@@ -5110,10 +5136,10 @@ def activity_lint(kf):
 # some of the shot (else nothing fires it). A Borer's mining laser is a fixed mount on her nose (the
 # game's drone_borer: arc 30 deg), so her nose is held within BEAM_ARC_DEG of her beam's aim while it is
 # on. A fault fails only where it reads on screen (readable); FIRE_ARC_EXEMPT keeps a designed exception, (shot,
-# shooter, target): reason. The strictest check is own_hull_lint (owner: "Specifically I just want to make sure
+# shooter, target): reason. The strictest check is hull_cross_lint (owner: "Specifically I just want to make sure
 # it's not firing through it's own hull").
 FIRE_ARC_TOL_DEG, FIRE_ARC_STEP_S, BEAM_ARC_DEG = 1.0, .1, 15.0
-# own_hull_lint: a muzzle above its pivot; the gun's own reach; how near another gun's housing is the mount's clutter
+# hull_cross_lint: a muzzle above its pivot; the gun's own reach; how near another gun's housing is the mount's clutter
 OWN_HULL_MUZZLE_M, OWN_HULL_CLEAR_M, OWN_HULL_GUN_M = 2.0, 2.5, 3.0
 FIRE_ARC_EXEMPT = {}
 
