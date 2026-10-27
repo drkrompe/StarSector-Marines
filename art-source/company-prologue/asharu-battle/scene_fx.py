@@ -350,6 +350,7 @@ class SceneFx:
     # the flight time), so a moving target slides out from under some bursts and into others.
     # .12 missed 69% of S6b's rounds (verify12); the owner's mark is a third to a half.
     LEAD_ERR = .07
+    SURE_LAY_F = 12     # frames either side of a sure round the gun lays on its point, not her centre
 
     def planned(self, ctx, kit, a, b, turret, weapon, muzzle_l, hit_l, speed, feeder, track, trained=False,
                 cease=None, walk=1.0, held=None, sure=None):
@@ -370,10 +371,39 @@ class SceneFx:
         w = g.WEAPONS[weapon]
         rate = math.radians(w.get('turn', 30.0)) / fps
         F0, F1 = self.span[0] - round(self.PREROLL_S * fps), self.span[1]
+        # every round that must land (a ledger hit, the kill): (arrival frame, the point on her it lands on).
+        # Each is the one of her cadence arriving nearest its frame: the gun lays on its point about it, the
+        # trigger is held for it, the range gate is waived (a story round, as asharu_gunnery forces it), and
+        # it is laid dead on
+        sures = [(float(x), tuple(hit_l)) if isinstance(x, (int, float)) else (float(x[0]), tuple(x[1] or hit_l))
+                 for x in ([] if sure is None else [sure] if isinstance(sure, (int, float)) else sure)]
+
+        def flight(f, pt):
+            """Frames a round fired on f takes to reach pt on her: it keeps the shooter's own velocity."""
+            ma = self.matrix_at(a, f)
+            src, aim0 = ma @ Vector(muzzle_l), self.matrix_at(b, f) @ Vector(pt)
+            va = (self.matrix_at(a, f + 1).translation - ma.translation) * fps
+            return (aim0 - src).length / max(speed + va.dot((aim0 - src).normalized()), 1.0) * fps
+        dead = {}
+        if sures:
+            fired_at = sorted({int(round(F0 + t_ * fps)) for t_, _i, _k in g.cadence(weapon, (F1 - F0) / fps, feeder)})
+            for sf, pt in sures:
+                best = min(((f, flight(f, pt)) for f in fired_at if f < sf and f not in dead),
+                           key=lambda x: abs(x[0] + x[1] - sf), default=None)
+                if best is None:
+                    continue
+                dead[best[0]] = (Vector(pt), best[1])
+                self.rows.append(f'sure {a} t{turret} -> {b}: frame {sf:.0f}, her round from {best[0]} lands '
+                                 f'{best[0] + best[1] - sf:+.1f} frames off')
+        laid = {fd: self.tracking(a, b, muzzle_l, tuple(v[0]), speed) for fd, v in dead.items()}
+
+        def aim_track(f):
+            near = min(laid, key=lambda fd: abs(fd - f), default=None)
+            return laid[near](f) if near is not None and abs(near - f) <= self.SURE_LAY_F else track(f)
         y, p = piv.rotation_euler.z, (elev.rotation_euler.y if elev is not None else 0.0)
         plan, last = {}, None
         for f in range(F0, F1 + 1):
-            got = g.aim_solve(ctx, turret, track(f))
+            got = g.aim_solve(ctx, turret, aim_track(f))
             yd, pd = got[2], (got[3] if got[3] is not None else 0.0)
             ey = math.atan2(math.sin(yd - y), math.cos(yd - y))
             ep = pd - p
@@ -410,9 +440,6 @@ class SceneFx:
             t += on + rnd.uniform(*gap_s) * fps
         if held is not None:     # a story broadside: the trigger held exactly when the shot needs it
             bursts = [(float(t0), float(t1)) for t0, t1 in held]
-        # every round that must land (a ledger hit, the kill): (arrival frame, the point on her it lands on)
-        sures = [(float(x), tuple(hit_l)) if isinstance(x, (int, float)) else (float(x[0]), tuple(x[1] or hit_l))
-                 for x in ([] if sure is None else [sure] if isinstance(sure, (int, float)) else sure)]
         bm = self.placed[b]['matrix']
         reach = self.placed[b]['length'] / (bm.to_scale()[0] or 1.0) * self.WALK_R * walk
         walks = []
@@ -424,27 +451,9 @@ class SceneFx:
             walks.append((t0, t1, (math.cos(th) * r0, math.sin(th) * r0), (math.cos(ph) * r1, math.sin(ph) * r1),
                           rnd.gauss(0, self.LEAD_ERR * walk)))
 
-        def flight(f, pt):
-            """Frames a round fired on f takes to reach pt on her: it keeps the shooter's own velocity."""
-            ma = self.matrix_at(a, f)
-            src, aim0 = ma @ Vector(muzzle_l), self.matrix_at(b, f) @ Vector(pt)
-            va = (self.matrix_at(a, f + 1).translation - ma.translation) * fps
-            return (aim0 - src).length / max(speed + va.dot((aim0 - src).normalized()), 1.0) * fps
-        # each round that must land is the one of her cadence arriving nearest its frame: the trigger held
-        # for it, the range gate waived (a story round, as asharu_gunnery forces it), laid dead on its point
-        dead = {}
-        if sures:
-            fired_at = sorted({int(round(F0 + t_ * fps)) for t_, _i, _k in g.cadence(weapon, (F1 - F0) / fps, feeder)})
-            for sf, pt in sures:
-                best = min(((f, flight(f, pt)) for f in fired_at if f < sf and f not in dead),
-                           key=lambda x: abs(x[0] + x[1] - sf), default=None)
-                if best is None:
-                    continue
-                dead[best[0]] = (Vector(pt), best[1])
-                bursts.append((best[0] - .5, best[0] + .5))       # after the seeded walks: theirs are unchanged
-                walks.append((best[0] - .5, best[0] + .5, (0.0, 0.0), (0.0, 0.0), 0.0))
-                self.rows.append(f'sure {a} t{turret} -> {b}: frame {sf:.0f}, her round from {best[0]} lands '
-                                 f'{best[0] + best[1] - sf:+.1f} frames off')
+        for fd in dead:     # the trigger held for each sure round (after the seeded walks: theirs are unchanged)
+            bursts.append((fd - .5, fd + .5))
+            walks.append((fd - .5, fd + .5, (0.0, 0.0), (0.0, 0.0), 0.0))
         imp = self.m['swfx_impacts']
         mpu = self.placed[a]['mpu']
         copy_at = lambda f: self.matrix_at(a, f) @ Matrix.Scale(mpu, 4)
@@ -559,6 +568,12 @@ class SceneFx:
             if got is not None and r.get('hit_frame') is not None:
                 r['hit_l'], r['hit_n'] = got
                 hits += 1
+        for fd in dead:      # a sure round that did not land says why
+            if not any(r['frame'] == fd for r in recs):
+                self.rows.append(f'sure {a} t{turret} -> {b}: her round from {fd} was not fired '
+                                 f'(off target {plan.get(fd, (0, 0, 99))[2]:.1f} deg, line clear {line_clear(fd)[0]})')
+            elif shots.get(fd, (None, None))[1] is None:
+                self.rows.append(f'sure {a} t{turret} -> {b}: her round from {fd} missed her hull')
         aims = [math.degrees(plan[f][1]) for f in frames[::24]]
         self.rows.append(f'planned {a} t{turret} -> {b}: {len(recs)} rounds in {len(bursts)} bursts, {hits} hit; '
                          f'skipped {stats}; elevation {"none (traverse only)" if elev is None else f"{min(aims):+.1f}..{max(aims):+.1f} deg"}; '
