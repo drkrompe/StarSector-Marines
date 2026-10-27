@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
@@ -54,6 +55,24 @@ class MissionForceEnvelopeTest {
 
         assertTrue(MissionForceEnvelope.allowsUnderstrength(invasion));
         assertEquals(4, MissionForceEnvelope.minimumPersonnel(invasion, 96));
+    }
+
+    /** Take Back the Depot's two Hermes sorties are 24 seats; a company of 11 ready still deploys. */
+    @Test
+    void openingOperationsGateOnTheMinimumNotTheirLiftSeats() {
+        for (OpeningOperationKind kind : OpeningOperationKind.values()) {
+            Mission story = Mission.builder().id(kind.missionId).name("Test")
+                    .type(MissionType.ASSAULT).source(MissionSource.STORY)
+                    .tier(OperationTier.FIRST_CONTRACT).risk(RiskLevel.LOW).build();
+            Mission recurring = Mission.builder().id(kind.recurringId).name("Test")
+                    .type(MissionType.ASSAULT).source(MissionSource.RECURRING)
+                    .tier(OperationTier.FIRST_CONTRACT).risk(RiskLevel.LOW).build();
+
+            for (Mission mission : new Mission[] {story, recurring}) {
+                assertTrue(MissionForceEnvelope.allowsUnderstrength(mission));
+                assertEquals(4, MissionForceEnvelope.minimumPersonnel(mission, 24));
+            }
+        }
     }
 
     @Test

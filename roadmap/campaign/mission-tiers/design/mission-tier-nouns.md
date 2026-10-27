@@ -127,7 +127,10 @@ name the operation tier and recommended squads, while the briefing compares
 selected ready personnel against the four-person minimum and recommendation and
 summarizes their visible issued experience bands against a coarse risk-derived
 opposition expectation. Presentation does not promote the recommendation into
-a launch gate or hide an understrength choice behind generated filler.
+a launch gate or hide an understrength choice behind generated filler. A lift's
+seat count is never a personnel gate either: the opening Wayline operations
+author how many sorties the company's boats fly, not how many marines must
+board, so they launch on the same four-person minimum.
 
 Some legacy factories and headless entry points only know risk. Their
 risk-to-tier default is a temporary compatibility boundary, never an authority

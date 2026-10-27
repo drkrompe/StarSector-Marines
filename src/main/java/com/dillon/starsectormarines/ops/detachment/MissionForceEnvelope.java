@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.marine.SquadExperienceStandard;
 import com.dillon.starsectormarines.ops.Mission;
 import com.dillon.starsectormarines.ops.MissionSource;
 import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
@@ -42,11 +43,15 @@ public final class MissionForceEnvelope {
      * will not wait for a full task force ({@code mission-tier-nouns.md}). A Nexerelin
      * invasion is the one Conquest that may: it is the player's own decision with
      * whatever the company has, not an authored set piece a patron sized.
+     * The opening Wayline operations, story and recurring, may too: their authored
+     * sorties size the lift, not the company, so a seat count from the manifest is
+     * never a launch gate for a starting company with one marine wounded.
      */
     public static boolean allowsUnderstrength(Mission mission) {
         return mission != null
                 && (mission.source == MissionSource.GENERATED
                         || mission.source == MissionSource.POLITY_DEFENCE
+                        || OpeningOperationKind.fromMission(mission) != null
                         || SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
                         || DistrictEscortCampaign.isBattle(mission))
                 && mission.type != MissionType.CONQUEST
