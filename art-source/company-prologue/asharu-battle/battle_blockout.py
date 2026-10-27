@@ -1367,6 +1367,11 @@ M2_SHIPS = {**{k: v for k, v in convoy_at(M2_T).items() if k in ('colossus', 'mo
 M5_T = 47.0
 # The effects the finished kit (scene_fx) draws; under --swfx none of them falls back to a stand-in.
 KIT_FX = ('tracer', 'missiles', 'blast_on', 'debris', 'fire_on', 'smoke', 'flares')
+# A raking Borer's laser (owner, 2026-10-27, S8-S9: "too thick and doesn't read as a pulsing transfer of
+# energy"): core radius and halo multiple (the steady beam's .3 m and 4), the rake table's samples a
+# second, and the seam the cut leaves behind it (s). ASHARU_MINING_STEADY=1 draws the steady beam
+# instead, for the owner's before/after only: remove it once the owner has picked.
+MINING_WIDTH_M, MINING_HALO, RAKE_RATE, RAKE_TRAIL_S = .12, 2.5, 24, .6
 
 
 def at_time(pose, t):
@@ -2405,12 +2410,106 @@ def blender_main(cfg):
             loc, nrm = aim, (emit - aim).normalized()
         return emit, loc, nrm, hit
 
-    def mining(drone, target, local=None):
-        """A Borer's mining laser (swfx_mining) from her emitter onto the target's plating
-        (mining_hit), with that face's normal."""
+    rake_tables = {}
+
+    def rake_table(drone, target, spec, rake):
+        """Where a rake's cut lands on the target's plating, her frame, over the shot: [(t, point,
+        normal)] every 1/RAKE_RATE s. Each aim point of the rake (the target's frame, as the motion
+        preview draws it) is cast onto her hull along the line from the Borer at that time, in her
+        own frame, so the table is the same whichever frame of the shot builds it."""
+        key = (spec['span_of'], drone, target, rake[2])
+        if key in rake_tables:
+            return rake_tables[key]
+        _d, _t, t0, t1, side, *cut = rake
+        half = placed[target]['length'] * .4
+
+        def aim(t):
+            if cut:              # a skimming Borer's cut, given in the target's frame
+                return Vector(cut[0](t))
+            u = (t - t0) / max(t1 - t0, 1e-3)
+            return Vector((half * (1 - 2 * u), side * half * .15, 0))
+        m_at, f_of = ship_matrix_at(spec), lambda t_: anchor + (t_ - spec['key_t']) * fps_s
+        lo, hi = max(t0, spec['shot_t'][0] - RAKE_TRAIL_S), min(t1, spec['shot_t'][1])
+        n = max(1, math.ceil((hi - lo) * RAKE_RATE))
+        mc = placed[target]['matrix']             # her hull as it stands this frame, to cast against
+        rot = mc.to_3x3()
+        sfx_ = placed[target]['fx']
+        names = {o.name for o in (sfx_.hull if sfx_ is not None else placed[target]['lib']['coll']).all_objects}
+        vl = next((v for v in scene.view_layers if v.name == 'ships'), bpy.context.view_layer)
+        vl.update()
+        rows, on_hull = [], 0
+        for i in range(n + 1):
+            t = lo + (hi - lo) * i / n
+            p = aim(t)
+            mt = m_at(target, f_of(t))
+            off = mt.inverted() @ m_at(drone, f_of(t)).translation - p
+            out = off.normalized() if off.length > 1e-3 else Vector((0, 0, 1))
+            start, ray = mc @ (p + out * (off.length + 2.0)), (rot @ -out).normalized()
+            left, found = off.length + 2.0 + placed[target]['length'], None
+            for _ in range(16):      # past the Borer, other ships, the kit, and her turrets (they train)
+                hit, loc, nrm, _i, ob, _m = scene.ray_cast(vl.depsgraph, start, ray, distance=left)
+                if not hit:
+                    break
+                chain, o_ = [], ob
+                while o_ is not None:
+                    chain.append(o_.name)
+                    o_ = o_.parent
+                if ob.name in names and not any('pivot' in c_ for c_ in chain):
+                    found = (loc, nrm)
+                    break
+                left -= (loc - start).length + .05
+                start = loc + ray * .05
+            if found:
+                on_hull += 1
+                rows.append((t, mc.inverted() @ found[0], (rot.transposed() @ found[1]).normalized()))
+            else:
+                rows.append((t, p, out))
+        print(f'ASHARU rake {drone} -> {target} {t0:.2f}-{t1:.2f} s: {on_hull}/{n + 1} cuts on her hull', flush=True)
+        rake_tables[key] = rows
+        return rows
+
+    def rake_point(rows, t):
+        """The rake table at t (clamped to it): her frame's point and normal."""
+        if t <= rows[0][0] or len(rows) == 1:
+            return rows[0][1], rows[0][2]
+        if t >= rows[-1][0]:
+            return rows[-1][1], rows[-1][2]
+        x = (t - rows[0][0]) / (rows[1][0] - rows[0][0])
+        i = min(len(rows) - 2, int(x))
+        u = x - i
+        return rows[i][1].lerp(rows[i + 1][1], u), rows[i][2].lerp(rows[i + 1][2], u).normalized()
+
+    def mining(drone, target, local=None, spec=None):
+        """A Borer's mining laser (swfx_mining) from her emitter onto the target's plating, with that
+        face's normal. In a motion span with rakes for her on this target (spec['rakes']), the beam
+        is on only while one is: thin and pulsed, its cut sliding along her plating (rake_table)
+        trailing a hot seam. Otherwise the steady beam onto one point (mining_hit)."""
         if str(PROLOGUE / 'second-wind-vfx') not in sys.path:
             sys.path.insert(0, str(PROLOGUE / 'second-wind-vfx'))
         import swfx_mining
+        rakes = ([r for r in spec.get('rakes', ()) if r[0] == drone and r[1] == target]
+                 if spec is not None and 'span_t' in spec and not os.environ.get('ASHARU_MINING_STEADY') else [])
+        if rakes:
+            t = spec['span_t']
+            live = next((r for r in rakes if r[2] <= t <= r[3]), None)
+            if live is None:
+                print(f'ASHARU mining {drone} -> {target}: off at {t:.3f} s (no rake)', flush=True)
+                return
+            rows = rake_table(drone, target, spec, live)
+            m_at, f_of = ship_matrix_at(spec), lambda t_: anchor + (t_ - spec['key_t']) * fps_s
+            mt = m_at(target, f_of(t))
+            p, nrm = rake_point(rows, t)
+            loc, nrm = mt @ p, (mt.to_3x3() @ nrm).normalized()
+            d = m_at(drone, f_of(t)).translation
+            emit = d + (loc - d).normalized() * placed[drone]['length'] * .55
+            t_tail = max(rows[0][0], t - RAKE_TRAIL_S)
+            trail = [mt @ rake_point(rows, t_tail + (t - t_tail) * i / 11)[0] for i in range(12)]
+            swfx_mining.laser(f'Mining {drone}', emit, loc, nrm, stage_fx, lights=stage_ships,
+                              seed=zlib.crc32(drone.encode()) % 997, width_m=MINING_WIDTH_M, halo=MINING_HALO,
+                              cut_m=.3, pulse=dict(t=t), trail=trail if t - t_tail > .05 else None)
+            print(f'ASHARU mining {drone} -> {target}: {(loc - emit).length:.0f} m, raking, '
+                  f'cut at {tuple(round(c_, 1) for c_ in p)} her frame', flush=True)
+            return
         emit, loc, nrm, hit = mining_hit(drone, target, local)
         swfx_mining.laser(f'Mining {drone}', emit, loc, nrm, stage_fx, lights=stage_ships,
                           seed=zlib.crc32(drone.encode()) % 997, width_m=.3)
@@ -3638,7 +3737,7 @@ def blender_main(cfg):
                 elif kind == 'blast_on':
                     blast(at(fx[1], fx[3]), fx[2])
                 elif kind == 'mining':
-                    mining(fx[1], fx[2], fx[3] if len(fx) > 3 else None)
+                    mining(fx[1], fx[2], fx[3] if len(fx) > 3 else None, spec)
                 elif kind == 'fire_on':     # optional 4th: the flame's direction in the hull frame (default aft and up)
                     d = fx[3] if len(fx) > 3 else (-1, .4, .3)
                     fire(at(fx[1], fx[2]), (placed[fx[1]]['matrix'].to_3x3() @ Vector(d)).normalized())
