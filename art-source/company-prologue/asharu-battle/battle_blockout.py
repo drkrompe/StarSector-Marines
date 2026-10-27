@@ -1736,7 +1736,9 @@ SPAN = add_span(os.environ['ASHARU_SPAN']) if os.environ.get('ASHARU_SPAN') else
 READABLE = {'borer': 2.5}
 
 ROSTER_SHEETS = ('r1', 'r2')   # top-down and broadside fleet sheets
-CONTACT_TOL_M = .5              # how far a damage scar, fire, vent or smoke anchor may sit off her plating (contact_lint)
+CONTACT_TOL_M = 1.0             # how far a damage scar, fire, vent or smoke anchor may sit off her plating (contact_lint):
+                                # on her plating they measure up to 0.44 m (the cast meets the drawn hull, the BVH is its
+                                # base mesh); S11's off-hull scars measured 3.7 to 20 m
 ATTACH_TOL_M = 1.5              # how far a turret mount or effects copy may sit off its hull (attachment_lint): a
                                 # Colossus head tipped 65 deg on its trunnions carries its mount 1.0 m
 
