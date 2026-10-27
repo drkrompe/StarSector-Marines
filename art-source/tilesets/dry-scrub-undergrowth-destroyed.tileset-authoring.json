@@ -1,0 +1,108 @@
+{
+  "alphaMin": 24,
+  "cellPx": 64,
+  "entries": [
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        2
+      ],
+      "id": "forest.bramble-dry-destroyed",
+      "included": true,
+      "rect": [
+        16,
+        96,
+        480,
+        320
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        1
+      ],
+      "id": "forest.bramble-small-dry-destroyed",
+      "included": true,
+      "rect": [
+        528,
+        136,
+        480,
+        240
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.thicket-dry-destroyed",
+      "included": true,
+      "rect": [
+        1040,
+        16,
+        480,
+        480
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "forest.thicket-small-dry-destroyed",
+      "included": true,
+      "rect": [
+        16,
+        528,
+        480,
+        480
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        2
+      ],
+      "id": "forest.bracken-dry-destroyed",
+      "included": true,
+      "rect": [
+        528,
+        648,
+        480,
+        240
+      ]
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "cover": "none",
+      "footprintCells": [
+        2,
+        2
+      ],
+      "id": "forest.saplings-dry-destroyed",
+      "included": true,
+      "rect": [
+        1040,
+        528,
+        480,
+        480
+      ]
+    }
+  ],
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "forest",
+  "note": "Grey dry-scrub reskin of forest-undergrowth-destroyed (Asharu basin's arid rim): same cells, cuts, footprints, cover, fog surfaces and ballistic heights as the green tileset; ids are the green ids with -dry after the species. Sheet is art-source/dry-woodland/raw/scrub-undergrowth-trampled.raw.png fitted onto its guide by art-source/dry-woodland/fit_sheets.py (each piece's opaque box scaled uniformly into the guide's box and centred). Preserve alpha; never trim or recenter. Prompt: art-source/dry-woodland/prompts/scrub-undergrowth-trampled.prompt.txt.",
+  "sheet": "art-source/dry-woodland/fitted/dry-scrub-undergrowth-destroyed.png",
+  "sheetName": "dry-scrub-undergrowth-destroyed"
+}

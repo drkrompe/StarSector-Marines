@@ -40,3 +40,24 @@ python tools/codex_imagegen.py --prompt "$here/prompts/$d-canopies-v2.prompt.txt
   --ref "$s/forest-canopies.raw.png=Material/style only: existing painted temperate canopies; match rendering and light, not species or palette" \
   --ref "$raw/$d-canopies.raw.png=Species and palette identity only, slot for slot; not its size or its closed crowns"
 fi
+
+# Shipped states (scrub direction): destroyed crowns and the undergrowth's damaged and trampled
+# states, as the green set was made (forests README, "Combat damage art" and "Undergrowth").
+if [ ! -f "$raw/$d-destroyed.raw.png" ]; then
+python tools/codex_imagegen.py --prompt "$here/prompts/$d-destroyed.prompt.txt" --out "$raw/$d-destroyed.raw.png" \
+  --ref "$t/tree-destroyed.png=Geometry/layout authority: stump centers, fallen limbs, gaps and envelope; reskin, never move or enlarge" \
+  --ref "$raw/$d-canopies-v2.raw.png=Species/material identity only, slot for slot; not layout" \
+  --ref "$raw/$d-damaged.raw.png=Bark and broken-wood material only; not layout" &
+fi
+if [ ! -f "$raw/$d-undergrowth-damaged.raw.png" ]; then
+python tools/codex_imagegen.py --prompt "$here/prompts/$d-undergrowth-damaged.prompt.txt" --out "$raw/$d-undergrowth-damaged.raw.png" \
+  --ref "$t/undergrowth-damaged.png=Geometry/layout authority: envelopes, centers, sizes and holes" \
+  --ref "$raw/$d-undergrowth.raw.png=Species, material and palette identity only; not layout" &
+fi
+if [ ! -f "$raw/$d-undergrowth-trampled.raw.png" ]; then
+python tools/codex_imagegen.py --prompt "$here/prompts/$d-undergrowth-trampled.prompt.txt" --out "$raw/$d-undergrowth-trampled.raw.png" \
+  --ref "$t/undergrowth-trampled.png=Geometry/layout authority: where fragments lie, sparse coverage, open ground" \
+  --ref "$raw/$d-undergrowth.raw.png=Species identity only (leaf shapes); not layout, not palette, not brightness" \
+  --ref "$s/forest-undergrowth-destroyed.raw.png=Sparseness and quietness reference only; not palette, not layout" &
+fi
+wait

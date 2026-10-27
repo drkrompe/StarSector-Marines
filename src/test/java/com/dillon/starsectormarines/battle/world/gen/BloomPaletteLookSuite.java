@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
+import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
+import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
@@ -28,7 +30,7 @@ import java.util.Locale;
 /**
  * The Rav Bloom maps on one world's palette, through the look preset: Colony Breach, the Cordon's Line and Road, and
  * the heart's Broad Front and The Burn, each whole, then its densest farmland at site and play zoom, and the town's
- * edge where buildings meet fields. For the owner judging a world's look (Asharu, arid with poor farmland). Opt-in.
+ * edge where buildings meet fields, and where a desert basin's rim grows dry scrub, its thickest stand. For the owner judging a world's look (Asharu, arid with poor farmland). Opt-in.
  *
  * <p>{@code -Dsnapshot.bloomPalette.palette=ARID} (the default) picks the palette;
  * {@code -Dsnapshot.bloomPalette.maps=breach,cordon-line,cordon-road,broad-front,the-burn} and
@@ -107,11 +109,39 @@ public final class BloomPaletteLookSuite implements SnapshotSuite {
             look.refocus(edge[0], edge[1], SITE_CELLS);
             out.add(new SnapshotArtifact(tag + "04-town-edge.png", look.render(sim, "")));
         }
+        int[] scrub = densestScrub(sim, (int) PLAY_ZOOM_CELLS);
+        if (scrub != null) {
+            look.refocus(scrub[0], scrub[1], PLAY_ZOOM_CELLS);
+            out.add(new SnapshotArtifact(tag + "05-rim-scrub.png", look.render(sim, "")));
+        }
         int cultivated = 0;
         for (int x = 0; x < w; x++) for (int y = 0; y < h; y++) if (cultivated(topology.getGroundKind(x, y))) cultivated++;
         System.out.printf(Locale.ROOT, "bloom-palette-look %s cultivated %d of %d cells (%.1f%%), farmland %s, edge %s%n",
                 tag, cultivated, w * h, 100.0 * cultivated / (w * h),
                 farm == null ? "none" : farm[0] + "," + farm[1], edge == null ? "none" : edge[0] + "," + edge[1]);
+    }
+
+    /** The middle of the {@code size}-cell square holding the most dry-country scrub, or null where there is none. */
+    private static int[] densestScrub(BattleSimulation sim, int size) {
+        CellTopology topology = sim.getTopology();
+        int w = topology.getWidth(), h = topology.getHeight(), step = size / 4;
+        int best = 0;
+        int[] at = null;
+        for (int x0 = 0; x0 + size <= w; x0 += step) {
+            for (int y0 = 0; y0 + size <= h; y0 += step) {
+                int count = 0;
+                for (Doodad d : sim.getDoodads()) {
+                    String id = d.definitionId();
+                    if (id != null && id.endsWith(NaturalPropShape.DRY) && d.cellX >= x0 && d.cellX < x0 + size
+                            && d.cellY >= y0 && d.cellY < y0 + size) count++;
+                }
+                if (count > best) {
+                    best = count;
+                    at = new int[]{x0 + size / 2, y0 + size / 2};
+                }
+            }
+        }
+        return at;
     }
 
     /** Grass or turned earth: what a field is laid as on every world (`RuralGround`). */

@@ -114,6 +114,23 @@ its three states and four turns, and look shots: a wood whose tank lane is grown
 over, crossed by a breakthrough tank, and open ground with the floor plants and
 field stones in all three states.
 
+### Dry scrub (a desert basin's rim)
+
+The grey dry scrub (wild olive, mesquite, mopane; owner's recommended pick,
+2026-10-27) is a reskin of every green state: the same `TreeCanopy` and
+`Undergrowth` silhouettes and footprints, placed under the green id with `-dry`
+(`forest.oak-dry`, `forest.bramble-dry-damaged`; `NaturalPropShape.DRY`).
+Raws, prompts and provenance are in `art-source/dry-woodland/` (`generate.sh`).
+The generations came back larger than their guides, so `fit_sheets.py` scales
+each piece's opaque box onto its guide box and flattens the felled sheet as
+`forest-destroyed-flatten.py` does, into `fitted/`, which the
+`art-source/tilesets/dry-scrub-*.tileset-authoring.json` documents cut. Export
+each with `tools/authoring.cmd tileset_export -` and `{"name":"dry-scrub-canopies"}`
+(or `-damaged`, `-destroyed`, `-undergrowth`, `-undergrowth-damaged`,
+`-undergrowth-destroyed`), then `gradlew.bat bakeCreepBlight`, which bakes
+`dry-scrub-blight` and `dry-scrub-blight-felled` beside the green ones.
+`review_export.py <dir>` draws the review sheets.
+
 ## Outdoor map adoption
 
 Outdoor city recipes (including precinct maps) and Relief, Counterattack,

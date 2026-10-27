@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
+import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -46,6 +47,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.function.IntPredicate;
+import java.util.function.Predicate;
 
 /** Closing outdoor pass: optional landscape yields to finished places, circulation and access. */
 public final class OutdoorLandscapeStage implements GenStage {
@@ -953,10 +955,13 @@ public final class OutdoorLandscapeStage implements GenStage {
     static final int TANK_CLEARANCE = 2;
 
     /**
-     * The woods, on green ground. With a basin they grow on its floor alone, thinning from full {@code woodland}
-     * {@link SurfaceField#WOODS_THINNING} in from the floor's edge to none on the rim ({@link SurfaceField#woods}).
+     * The woods, on green ground. With a basin they grow on its floor, thinning from full {@code woodland}
+     * {@link SurfaceField#WOODS_THINNING} in from the floor's edge to none at the band ({@link SurfaceField#woods}),
+     * and a desert rim grows open dry scrub instead, {@link #RIM_SCRUB} as thick, drawn with the dry twins' art
+     * ({@link NaturalPropShape#DRY}) where it is installed.
      */
     private static void trees(GenContext c, boolean[] reserved, float woodland, SurfaceField palettes) {
+        boolean scrub = !palettes.uniform() && palettes.world() == SurfacePalette.ARID && dryScrubInstalled();
         boolean[] paint = new boolean[reserved.length], closed = new boolean[reserved.length];
         // Cells a tank cannot flatten: every crown that is not undergrowth.
         boolean[] hard = new boolean[reserved.length];
@@ -970,6 +975,15 @@ public final class OutdoorLandscapeStage implements GenStage {
             };
             // Exposed faces/talus remain legible; only complete summit cells carry crowns.
             float share = palettes.woods(x, y);
+            if (scrub && palettes.rim(x, y)) {
+                boolean dry = switch (c.topology.getGroundKind(x, y)) {
+                    case SAND, DIRT -> true;
+                    default -> false;
+                };
+                if (dry && openGround(c, x, y) && !terrainVisible(c, x, y))
+                    paint[y * c.width + x] = groves.sample(x, y) < woodland * RIM_SCRUB;
+                continue;
+            }
             if (share <= 0f) continue;
             if (summit || (soil && openGround(c, x, y) && !terrainVisible(c, x, y)))
                 paint[y * c.width + x] = groves.sample(x, y) < (summit ? Math.max(.85f, woodland) : woodland) * share;
@@ -990,8 +1004,19 @@ public final class OutdoorLandscapeStage implements GenStage {
                 break;
             }
         }
-        ForestBrush.stampTrees(accepted, c.grid, c.topology, c.doodads, reserved, true);
-        undergrowth(c, paint, reserved);
+        ForestBrush.stampTrees(accepted, c.grid, c.topology, c.doodads, reserved, true,
+                tree -> scrub && palettes.rim(tree.x() + tree.width() / 2, tree.y() + tree.height() / 2));
+        undergrowth(c, paint, reserved,
+                patch -> scrub && palettes.rim(patch.x() + patch.width() / 2, patch.y() + patch.height() / 2));
+    }
+
+    /** How thick a desert rim's scrub grows, as a share of the floor's woodland. */
+    static final float RIM_SCRUB = .35f;
+
+    /** Whether the dry twins' art is installed: without it a rim grows no scrub rather than green trees. */
+    private static boolean dryScrubInstalled() {
+        TileRegistry tiles = TileRegistry.installed();
+        return tiles != null && tiles.doodad(NaturalPropShape.placedId(TreeCanopy.OAK, true)) != null;
     }
 
     /** Share of the lattice points left open in a wood that grow undergrowth. */
@@ -1005,7 +1030,8 @@ public final class OutdoorLandscapeStage implements GenStage {
      * is undergrowth a crushing hull flattens, so it needs no tank-lane proof; infantry keep the same local way round
      * as a crown leaves them.
      */
-    private static void undergrowth(GenContext c, boolean[] paint, boolean[] reserved) {
+    private static void undergrowth(GenContext c, boolean[] paint, boolean[] reserved,
+                                    Predicate<UndergrowthBrush.Placement> dry) {
         boolean[] floor = fringe(paint, c.width, c.height, UNDERGROWTH_FRINGE);
         Random random = new Random(c.seed ^ 0x554E444552L);
         Undergrowth[] kinds = Undergrowth.values();
@@ -1027,7 +1053,7 @@ public final class OutdoorLandscapeStage implements GenStage {
                 for (int xx = patch.x(); xx < patch.x() + patch.width(); xx++)
                     if (patch.blocks(xx, yy)) grown[yy * c.width + xx] = true;
         }
-        UndergrowthBrush.stamp(placed, c.grid, c.topology, c.doodads, reserved);
+        UndergrowthBrush.stamp(placed, c.grid, c.topology, c.doodads, reserved, dry);
     }
 
     /** Cells within {@code reach} (Chebyshev) of painted wood. */

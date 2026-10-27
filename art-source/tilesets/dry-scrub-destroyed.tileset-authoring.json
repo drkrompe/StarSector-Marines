@@ -1,0 +1,108 @@
+{
+  "sheetName": "dry-scrub-destroyed",
+  "sheet": "art-source/dry-woodland/fitted/dry-scrub-destroyed.png",
+  "cellPx": 64,
+  "gridCols": 3,
+  "gridRows": 2,
+  "idPrefix": "forest",
+  "alphaMin": 40,
+  "note": "Grey dry-scrub reskin of forest-destroyed (Asharu basin's arid rim): same cells, cuts, footprints, cover, fog surfaces and ballistic heights as the green tileset; ids are the green ids with -dry after the species. Sheet is art-source/dry-woodland/raw/scrub-destroyed.raw.png fitted onto its guide by art-source/dry-woodland/fit_sheets.py (each piece's opaque box scaled uniformly into the guide's box and centred), then flattened as forest-destroyed-flatten.py does. Preserve alpha; never trim or recenter. Prompt: art-source/dry-woodland/prompts/scrub-destroyed.prompt.txt.",
+  "entries": [
+    {
+      "id": "forest.oak-dry-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        5
+      ],
+      "rect": [
+        0,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.oak-small-dry-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "rect": [
+        496,
+        0,
+        544,
+        528
+      ]
+    },
+    {
+      "id": "forest.birch-dry-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        5,
+        4
+      ],
+      "rect": [
+        1024,
+        0,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.pine-dry-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        3,
+        3
+      ],
+      "rect": [
+        0,
+        512,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.pine-large-dry-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        4
+      ],
+      "rect": [
+        512,
+        512,
+        512,
+        512
+      ]
+    },
+    {
+      "id": "forest.cedar-dry-destroyed",
+      "included": true,
+      "cover": "none",
+      "ballisticHalfHeight": 0,
+      "footprintCells": [
+        4,
+        6
+      ],
+      "rect": [
+        1088,
+        512,
+        384,
+        512
+      ]
+    }
+  ]
+}

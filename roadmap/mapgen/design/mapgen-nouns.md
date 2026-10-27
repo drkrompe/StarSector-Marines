@@ -2047,8 +2047,11 @@ instead of reading the profile's surface: nature fills, the hinterland and
 road-margin earth, the rural wild ground, installation aprons and glaci. The
 basin's edge is ragged by a slow noise, and across a band floor and rim
 alternate in patches, so the change reads as country thinning out rather than a
-line. The woods grow on the floor alone and thin out across the last stretch
-before the band (`SurfaceField.woods`); a brook keeps its water on the floor and
+line. The woods grow on the floor and thin out across the last stretch before
+the band (`SurfaceField.woods`); a desert rim grows open grey scrub instead,
+about a third as thick, the same silhouettes and states drawn from the
+`dry-scrub-*` sheets (a placement's id carries `-dry`, `NaturalPropShape.DRY`,
+and every state, damage and creep blight follows that id). A brook keeps its water on the floor and
 is a dry stony wash on a desert rim, still a firebreak. Stock hills take the
 world's finish, so they stand as rock outcrops in the green and on the sand
 alike, and a baked cliff lip over sand, stone or snow is bare rather than
