@@ -226,9 +226,11 @@ The arc runs **per infected world** (owner, 2026-10-22): any bloom can carry
 three missions in turn, each a single battle: Colony Breach, then the
 defence (the Line or the Road), then the heart (Broad Front or The Burn), the
 campaign picking each variant, each mission offered on its own and opted into, and the player may stop after any of them;
-a world whose arc stops runs on the ordinary bloom clock. A scripted **sector
-threat** remains a possible authored instance of the same beats on a named
-world (`RavBloomSystem.wakeAt`), not the trigger.
+a world whose arc stops runs on the ordinary bloom clock. The authored
+instance is built: **The Wellhollow Bloom** on Asharu
+(`wellhollow-bloom-arc.md`) offers all five missions as story chapters in a
+fixed order, each unlocked by the last one's victory and replayable once won,
+outside `RavBloomSystem` and the event gate.
 `bloom-mission-arc.md` is the direction for movements 2 and 3 and the sector
 threat: the Cordon (the Line and the Road as variants), the heart (Broad Front
 and The Burn as variants), what each reuses, candidate

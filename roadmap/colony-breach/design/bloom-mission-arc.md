@@ -501,12 +501,14 @@ as the rescue is today.
 
 ### The sector threat
 
-No longer the trigger. It stays as an optional, later **authored instance** of
-the same three beats: a named world, woken with `RavBloomSystem.wakeAt`, whose
-arc runs with fixed, harsher terms (a stronger heart, a set cordon, story
-briefings) whatever the severity preset. It costs one authored setup over
-machinery the ordinary arc already needs, and nothing in the ordinary arc
-waits on it.
+No longer the trigger. Its authored instance is **The Wellhollow Bloom** on
+Asharu (`wellhollow-bloom-arc.md`): story missions rather than a woken bloom,
+every variant of both later beats played in a fixed order (Colony Breach, the
+Line, the Road, The Burn, Broad Front), each chapter unlocked by the last one's
+victory and replayable once won. It never holds the open-event gate and has
+no clock, so nothing in the ordinary arc waits on it; its launch path (a
+story mission building the Cordon and heart fixtures on a world's palette) is
+what the ordinary arc's factories will reuse.
 
 ## Open questions for the owner
 

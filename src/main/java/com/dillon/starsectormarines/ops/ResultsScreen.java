@@ -257,6 +257,14 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                             ? "resultsScreenDistrictLossesCargo" : "resultsScreenDistrictLosses",
                             r.partyLost(), r.constablesLost()));
         }
+        if (outcome != null && WellhollowBloomCampaign.owns(outcome.missionId) && outcome.missionSource == MissionSource.STORY) {
+            var arc = WellhollowBloomCampaign.current();
+            props.put("storyClasses", "story-dispatch console-readout");
+            props.put("storyPortrait", OpeningBroker.CREST);
+            props.put("storySender", Strings.get("wellhollowContactName"));
+            props.put("storyProgress", Strings.format("wellhollowResultProgress", arc == null ? 0 : arc.won()));
+            props.put("storyMessage", WellhollowBloomCampaign.debrief(outcome));
+        }
         if(outcome!=null && outcome.workingPassage!=null) {
             var passage=outcome.workingPassage;
             props.put("storyClasses","story-dispatch console-readout");

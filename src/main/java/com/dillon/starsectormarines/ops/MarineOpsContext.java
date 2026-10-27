@@ -819,6 +819,8 @@ public class MarineOpsContext {
             // its own colony. What it offers is a posting and, while a raid is on the
             // ground, the defence of the colony itself.
             generated = Collections.unmodifiableList(polityDefenceMissions());
+        } else if (WellhollowBloomCampaign.CLIENT_FACTION_ID.equals(client.factionId)) {
+            generated = WellhollowBloomCampaign.offers(planet);
         } else if (DISTRESS_CLIENT_FACTION_ID.equals(client.factionId)) {
             Mission eventMission = localCampaignEventMission();
             generated = eventMission != null
@@ -893,6 +895,14 @@ public class MarineOpsContext {
                     crest,
                     RepLevel.NEUTRAL, false, null));
             seen.add(DISTRESS_CLIENT_FACTION_ID);
+        }
+
+        // 0b'. Warden Maro's board for The Wellhollow Bloom on Asharu: its own
+        //      contact, so other Asharu arcs never list under it.
+        if (WellhollowBloomCampaign.contactAt(planet)
+                && !WellhollowBloomCampaign.offers(planet).isEmpty()) {
+            out.add(WellhollowBloomCampaign.client());
+            seen.add(WellhollowBloomCampaign.CLIENT_FACTION_ID);
         }
 
         // 0c. The player's own colony. Never rep-locked: the polity is the company's
