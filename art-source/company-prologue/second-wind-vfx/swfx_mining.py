@@ -38,8 +38,11 @@ import swfx_entry as se
 PREFIX = 'SWFX mining'
 CORE, FRINGE = (255, 155, 155), (255, 0, 0)     # mininglaser.wpn coreColor, fringeColor
 # a pulsed beam's packets: their spacing and speed, how narrow (sharp), the glow between them (floor,
-# of the peak) and how much they swell the beam (of its width)
-PULSE = dict(wavelength_m=8.0, speed_mps=40.0, sharp=4.0, floor=.15, swell=1.6)
+# of the peak) and how much they swell the core (of its width); the halo's glow between them
+# (halo_floor) and its swell. Owner on r2 (2026-10-27): "pulse is good, but the pulse is too thick",
+# at a core swell of 1.6 with the halo swelling and flaring alongside: now the packet is a brighter
+# bead in a core that barely widens, inside a halo that holds its width and only brightens a little
+PULSE = dict(wavelength_m=8.0, speed_mps=40.0, sharp=4.0, floor=.15, swell=.35, halo_floor=.6, halo_swell=0.0)
 
 
 def _beam_material(name, rgb, strength, soft, cell_m):
@@ -156,7 +159,7 @@ def laser(name, emitter, contact, normal, coll, lights=None, seed=0, width_m=.3,
     given. lights: the collection its two lights go in (the one that lights hulls), or None.
 
     pulse: None for the steady beam, or {'t': seconds} (PULSE's keys override its defaults): packets
-    every wavelength_m running emitter to contact at speed_mps, the beam swelling on each; the flash,
+    every wavelength_m running emitter to contact at speed_mps, the core swelling a little on each; the flash,
     sparks and lights throb with the packets at their end of it, and the flash and sparks are drawn
     afresh for each instant. trail: world points on the plating, oldest first, ending at the contact:
     the seam the beam has cut raking along them."""
@@ -187,18 +190,20 @@ def laser(name, emitter, contact, normal, coll, lights=None, seed=0, width_m=.3,
         pts = [a.lerp(b, i / steps) for i in range(steps + 1)]
         us = [length * i / steps / lam - phase for i in range(steps + 1)]
         radii = [1.0 + pp['swell'] * pulse_packet(u, pp['sharp']) for u in us]
+        halo_radii = [1.0 + pp['halo_swell'] * pulse_packet(u, pp['sharp']) for u in us]
         at_emitter, at_cut = pulse_packet(us[0], pp['sharp']), pulse_packet(us[-1], pp['sharp'])
         rnd = random.Random(seed * 7919 + int(round(pp['t'] * 240)))     # this instant's flash and sparks
         # packets brighter than the steady beam's 14, but short: only the packet clips, never a long
         # white core (blob_lint stops a final on 600 px of it); r1 at 12 never read as a pulse at range
         core_mat = _pulse_material(f'{PREFIX} core pulse', swfx_burst.srgb(CORE), 18.0 * glow, .6, pp['floor'],
                                    pp['sharp'], cell)
-        halo_mat = _pulse_material(f'{PREFIX} halo pulse', swfx_burst.srgb(FRINGE), 4.0 * glow, 2.2, pp['floor'],
-                                   pp['sharp'], cell)
+        halo_mat = _pulse_material(f'{PREFIX} halo pulse', swfx_burst.srgb(FRINGE), 4.0 * glow, 2.2,
+                                   pp['halo_floor'], pp['sharp'], cell)
     throb_cut = .55 + .45 * at_cut if pulse is not None else 1.0
     throb_emitter = .55 + .45 * at_emitter if pulse is not None else 1.0
     se._tube(f'{name} core', pts, [width_m * r for r in radii], us, coll, core_mat, segments=10)
-    se._tube(f'{name} halo', pts, [width_m * halo * r for r in radii], us, coll, halo_mat, segments=14)
+    se._tube(f'{name} halo', pts, [width_m * halo * r for r in (radii if pulse is None else halo_radii)], us, coll,
+             halo_mat, segments=14)
     # the cut: a small jagged flash leaning out of the plating, flattened against it
     flash_me, _ = swfx_burst.lobed_mesh(f'{name} flash', _hot_material(f'{PREFIX} flash', 30.0 * glow, .92), rnd,
                                         lobes=(3, 5), spikes=(3, 6), lean=1.0)
