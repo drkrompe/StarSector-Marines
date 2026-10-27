@@ -65,7 +65,6 @@
   .loadout-part.empty { border-style: solid; background-color: #1b242755; border-color: #2a333360; }
   .loadout-part.changes { background-color: #241e12; border-color: #8c6a28; }
   .loadout-part-label { height: 13px; color: #8b9aaf; pointer-events: none; }
-  .loadout-part.changes .loadout-part-label { color: #d8bd67; }
   /* A brick is the one size every fitting room draws hardware at (FittingBricks: 40px on a
      1080-line document); a mount is 1x2, one row of two. */
   .loadout-part-bricks { flex-direction: row; align-items: center; height: 42px; gap: 6px; pointer-events: none; }
