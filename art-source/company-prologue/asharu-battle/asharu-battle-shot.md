@@ -191,7 +191,7 @@ preview plays, and the stills did not move when the motion went in (`--check` is
 - **Speeds are relative to the convoy**, whose co-moving frame the battle is staged in: a ship
   on station is at rest in it, a raider closing from astern flies forward through it at her
   class's speed (frigates about 210 m/s, destroyers 170, cruisers 130), a ship falling out drifts
-  aft. The planet turns beneath at orbital speed, about 60 km of desert in an 8 s shot.
+  aft. The planet holds still beneath, in the finals and the preview alike (owner, 2026-10-27).
 - **A flown ship (`motion.keyed`, `fly()`)** passes through timed attitude keys and flies where
   her nose points, so the path follows the manoeuvre:
   - the roll-overs the plan calls for: Lasher B's 150 to starboard and the merchant Wolf's to
