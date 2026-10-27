@@ -31,7 +31,7 @@ class DistrictEscortCampaignTest {
         assertEquals(custody.requiredDrops, compact.requiredDrops);
         assertEquals(custody.tier, compact.tier); assertEquals(custody.risk, compact.risk);
         assertNotEquals(custody.flavor, compact.flavor);
-        assertTrue(custody.flavor.startsWith("Rusk's office:")); assertTrue(compact.flavor.startsWith("Lenna Saye:"));
+        assertTrue(custody.flavor.startsWith("Dormer's office:")); assertTrue(compact.flavor.startsWith("Lenna Saye:"));
         assertNotEquals(DistrictEscortCampaign.Letterhead.RUSK_OFFICE.partyName(), DistrictEscortCampaign.Letterhead.LENNA_ASSOCIATION.partyName());
     }
 

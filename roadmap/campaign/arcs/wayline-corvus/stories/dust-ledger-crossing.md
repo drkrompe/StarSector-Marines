@@ -20,7 +20,7 @@ chooses its moment, and pays for preparation with time.
 
 The chapter's place in the arc is unchanged: Asharu, Low risk, two squads
 recommended, 22,000 credits, ordered before Blind Watch. The debrief still names
-Teodor Prell's dispatch authority and the Warion listening post in every
+Jack Prell's dispatch authority and the Warion listening post in every
 victory.
 
 ## Fiction
@@ -34,7 +34,7 @@ consumables a little under its rivals' rates.
 
 **Saltwell Cross** is a dust-road trading post where the
 crawler road from the salvage claims meets the road to the public freight
-apron. Wayline lands freight there on a schedule. Sable Wake's broker, **Oskar
+apron. Wayline lands freight there on a schedule. Sable's broker, **Oskar
 Teague**, keeps a counting house in the old terraforming pump house
 at the east edge of town: tolerated, profitable to the market, not loved.
 
@@ -44,7 +44,7 @@ at the east edge of town: tolerated, profitable to the market, not loved.
   a known, paying hauler doing what it always does.
 - The target is a pirate crew, the one thing the only authority that patrols
   Asharu exists to chase. Castle: "The Hegemony would thank us, if it noticed."
-- Mara has bought the market warden's (Tobias Ankrum's) indifference with a season's freight
+- Zoey has bought the market warden's (Tobias Ankrum's) indifference with a season's freight
   credit. The warden's price: the fight stays at the pump house, and the market
   is not touched. The warden speaks for the town only, not Asharu's government
   or the Independent faction.
@@ -54,19 +54,19 @@ arc.
 
 ## Mission flow
 
-1. **Quiet phase.** Company boats land on the freight apron. Sable Wake is not
+1. **Quiet phase.** Company boats land on the freight apron. Sable is not
    yet hostile; civilians work the market. The player positions squads anywhere
    outside the compound's **exclusion ring**, and may take side objectives.
    The HUD shows the broker's scheduled lift-off clock (starting value tuned in
    play, about five minutes).
 2. **Alarm.** The first of:
    - any shot fired by or at the company;
-   - a company unit inside the exclusion ring seen by a Sable Wake sentry
+   - a company unit inside the exclusion ring seen by a Sable sentry
      (sight, not mere presence; the ring is the compound grounds plus a short
      margin, drawn on the map during the quiet phase);
    - the lift-off clock expiring, in which case the broker's skimmer leaves
      with him aboard and he radios the alarm on his way out.
-   Civilians flee the market (existing flee behaviour); hidden Sable Wake
+   Civilians flee the market (existing flee behaviour); hidden Sable
    drinkers in the cantina arm and join unless the warden's watch holds them.
 3. **Burning ledger.** From the alarm, clerks feed the books into the burn
    barrel: a visible progress bar (about 75 seconds, tuned in play). Seizing the
@@ -114,17 +114,17 @@ the company owes them nothing in settlement.
 
 **The warden's nod.** A squad leader walks to the warden's well house and
 stays there briefly. Payoff: the town watch holds the cantina, so its hidden
-Sable Wake drinkers never join, and two watchmen on market rooftops act as
+Sable drinkers never join, and two watchmen on market rooftops act as
 spotters, revealing the compound yard to the company until the alarm.
 
-**Cutting the feed.** Sable Wake runs the compound's guns off an illegal tap on
+**Cutting the feed.** Sable runs the compound's guns off an illegal tap on
 the town's old terraforming power line. The tap's junction box stands outside
 the ring, between the Harrow lane and the postern. The job is hidden: the
 briefing knows only that the nests are powered from somewhere, and it joins the
 checklist when a company combatant sights the box (12 cells) or reaches it,
 with Castle's line naming the tap. A squad that works it for a
 short, unbroken time cuts the feed. Payoff: the gun nests are dead when the
-alarm sounds. Cutting Sable Wake's own tap offends nobody in town. The pillboxes
+alarm sounds. Cutting Sable's own tap offends nobody in town. The pillboxes
 are manned, not powered, so the feed does not touch them.
 
 A fourth candidate, quietly cutting the compound's radio mast on the ridge to
@@ -148,7 +148,7 @@ rather than new systems.
   (`campaign-kit-arc.md`). The nests are defences, never capture objectives.
 - **Pillboxes.** Small hardened bunkers with firing slits, each covering an
   entrance from inside: the compound gate, the postern, and the pump house's
-  yard doors. They are manned, not powered: Sable Wake crew in them fights from
+  yard doors. They are manned, not powered: Sable crew in them fights from
   the slits under cover. They come from the existing posts (gate, wall and
   clerks), never extra headcount. They are held places, never capture objectives.
 - **Volatile tanks (if the mechanic exists).** Fuel tanks in the tank farm that
@@ -162,10 +162,10 @@ rather than new systems.
   until that hook exists.
 
 - **The rocket truck (owner, 2026-10-26).** A lone Hound with SRMs walked
-  through the nests and pillboxes, so Sable Wake fields one shipped hull: an SRM
+  through the nests and pillboxes, so Sable fields one shipped hull: an SRM
   technical (anti-armor, holds fire at men, rockets reaching 18 cells). It parks
   in the east yard by the ledger room's east door. The quiet phase covers it
-  like every Sable Wake body. From the alarm it works the corners: every two
+  like every Sable body. From the alarm it works the corners: every two
   seconds it looks at the nearest company armor and drives down the yard's lane
   to the stand that armor cannot see (a wall between) that lies nearest it,
   keeping the one it holds unless another is clearly nearer. With armor in reach
@@ -212,7 +212,7 @@ generated yet.
 | Power-line pylons, junction box | an overhead pipe rack; `industrial-switchboard` on a concrete pad |
 | Market cart, burnt-out terraforming pipe | parked trucks; `industrial-pipe-bundle` pieces |
 
-**Garrison.** One finite Sable Wake crew of about 18 at Low quality: gate and
+**Garrison.** One finite Sable crew of about 18 at Low quality: gate and
 wall sentries, roof watch, clerks' guards in the pump house, crawler crew, and
 the cantina drinkers. No reinforcements, vehicles or aircraft.
 
@@ -239,7 +239,7 @@ team; cantina held and spotters), objective checklist and markers. Takes its
 own `Sites` input record so it is built and unit-tested against small
 synthetic grids, independent of piece A.
 
-**C. Story and text (written; `dust-ledger-dialogue.md`).** Briefing scene with Mara and Castle (warden arrangement,
+**C. Story and text (written; `dust-ledger-dialogue.md`).** Briefing scene with Zoey and Castle (warden arrangement,
 broker, lift-off), side-objective field calls (Harrow, the warden), alarm and
 burn barks, and debrief variants over ledger grade x broker caught/escaped,
 with the canonical Prell and Warion facts in all of them. Catalog strings under
@@ -267,7 +267,7 @@ company, and fold the model into `early-operation-nouns.md` on shipping.
 - [x] Broker surrender, escort, escape and clock departure each resolve.
 - [x] Each side objective pays off only if complete before the alarm.
 - [x] Every victory debrief names Prell's authority and the Warion lead: the
-  debrief selects Castle's opening by grade, Mara's finding by grade and broker,
+  debrief selects Castle's opening by grade, Zoey's finding by grade and broker,
   and Castle's close by broker (`MissionDebriefConversation.dustLedgerLines`).
 - [ ] Headless playback with two squads wins with acceptable losses, with and
   without side objectives. Baseline on the second-pass compound

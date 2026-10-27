@@ -51,7 +51,7 @@ final class StorySubtitleOverlay {
     }
 
     static Map<String, Object> props(String subtitle) {
-        return Map.of("speaker", "MARA VENN / WAYLINE",
+        return Map.of("speaker", "ZOEY VENN / WAYLINE",
                 "portrait", OpeningBroker.PORTRAIT, "subtitle", subtitle);
     }
 

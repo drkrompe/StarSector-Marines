@@ -12,7 +12,7 @@ The board's offers half depends on `c11-the-contract-board.md`.
 At a glance, Company HQ says what needs the captain: what is overdue, what the story
 is waiting on, what letter wants an answer and what side work is open. Each item has
 one answer: respond, plot course or open. The answer is drawn as a holographic board
-standing in the air above the deck's plot table. Sabine leans on the table's rim,
+standing in the air above the deck's plot table. Morgan leans on the table's rim,
 reading it. A plain list below the scene carries the same items for keyboard,
 accessibility and detail.
 
@@ -85,7 +85,7 @@ room's space.
   projection, as the deck stations are. Hovering lights it. Choosing it selects the item
   in the list and detail pane. Its primary action stays in the detail pane, so a stray
   click on the picture never flies the ship.
-- **Light:** the board casts cool light on the table top and on Sabine's face and hands,
+- **Light:** the board casts cool light on the table top and on Morgan's face and hands,
   already painted into her card. Castle stands behind the table, inside the board's
   volume; see Open questions.
 
@@ -123,7 +123,7 @@ Each station puts something in the detail pane instead of only pulsing a panel:
 
 | Station | Shows |
 | --- | --- |
-| Plot table and Sabine | Selects the most urgent item and focuses the action list. |
+| Plot table and Morgan | Selects the most urgent item and focuses the action list. |
 | Comms | The intel archive: source windows, dossier and rundown. |
 | Castle | Her daily assessment, with the guidance she is giving now. |
 | Quartermaster | Full finances: runway, cash, upkeep, net and retainers. |

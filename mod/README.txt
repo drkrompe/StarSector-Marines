@@ -44,7 +44,7 @@ Removing
 
 Getting started
 ---------------
-Your company starts with a captain and an empty reserve. Visit Mara Venn on
+Your company starts with a captain and an empty reserve. Visit Zoey Venn on
 Jangala for your first work; the Company HQ screen (from the Company ability
 on your ability bar) plots a course to her office.
 

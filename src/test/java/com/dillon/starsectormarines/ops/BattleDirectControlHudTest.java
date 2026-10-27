@@ -38,7 +38,7 @@ class BattleDirectControlHudTest {
         MechFlux flux = loadout.flux;
         flux.commit(98f);
         var base = preview(Carrier.MECH, false);
-        var snapshot = new Snapshot(base.entityId(), "Wayward", Carrier.MECH, base.durability(),
+        var snapshot = new Snapshot(base.entityId(), "The Hound", Carrier.MECH, base.durability(),
                 mechWeapons(loadout.mounts(), flux), List.of(), MarineSprint.EMPTY,
                 new MechFluxStatus(flux.value(), flux.venting()));
         try (Fixture fixture = fixture(Path.of("mod"), snapshot, 0, false, ignored -> {}, () -> {}, () -> {})) {

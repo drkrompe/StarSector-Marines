@@ -110,7 +110,7 @@ Explosions
 
 Wayline narration
 -----------------
-Mara Venn: generated with ElevenLabs, using Mora - Gritty and Enigmatic
+Zoey Venn: generated with ElevenLabs, using Mora - Gritty and Enigmatic
 (voice YHcCpa6SBWnKDaCPZJQR), model eleven_v4, October 2026.
 Dialogue written for Starsector Marines. Source takes and production metadata
 are retained in asset-pipeline/src/tool/resources/audio/wayline/.
@@ -127,7 +127,7 @@ The shared radio effect is applied separately during the audio build.
 
 Wayline portrait
 ----------------
-Mara Venn portrait generated with built-in imagegen, October 2026.
+Zoey Venn portrait generated with built-in imagegen, October 2026.
 The original master, exact prompt and whole-frame downsample script are retained
 in art-source/portraits/. Runtime portrait is a 256x256 PNG.
 
@@ -152,7 +152,7 @@ this covers:
   - Jangala arrival: hails, Castle's lines, background effects and the score
   - The battle music's quiet beds: Briefing drive, Sequencer pulse, Frontier
     twang and Night ops (generated music; prompts describe the style only)
-  - Sabine and the Shepherd story voices
+  - Morgan and the Shepherd story voices
   - The Rook rifle shot
 Prompts, voice ids, source takes and generation receipts are retained beside
 each clip under asset-pipeline/src/tool/resources/audio/ and art-source/.

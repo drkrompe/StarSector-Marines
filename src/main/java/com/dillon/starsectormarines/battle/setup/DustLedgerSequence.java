@@ -173,12 +173,12 @@ public final class DustLedgerSequence implements Objective {
         public static Area ring(Area grounds) { return grounds.grown(RING_MARGIN_CELLS); }
     }
 
-    /** One Sable Wake combatant watching: its cell and how far it sees. */
+    /** One Sable combatant watching: its cell and how far it sees. */
     record Watcher(int x, int y, float sight) { }
 
     /**
-     * Who the quiet phase hides from hostile scans: all of Sable Wake (the company holds fire), and the company and its
-     * allies outside the exclusion ring (Sable Wake does not treat them as hostile there). Inside the ring the company
+     * Who the quiet phase hides from hostile scans: all of Sable (the company holds fire), and the company and its
+     * allies outside the exclusion ring (Sable does not treat them as hostile there). Inside the ring the company
      * is fair game, and being seen there raises the alarm.
      */
     static boolean covered(Area ring, Faction faction, float x, float y) {
@@ -295,7 +295,7 @@ public final class DustLedgerSequence implements Objective {
     }
 
     /**
-     * Sable Wake's rocket truck, recorded at setup with the stands the map leaves it: covered like every Sable Wake
+     * Sable's rocket truck, recorded at setup with the stands the map leaves it: covered like every Sable
      * body while quiet, and from the alarm working the yard's corners against the company's armor
      * ({@link DustLedgerTechnical}).
      */

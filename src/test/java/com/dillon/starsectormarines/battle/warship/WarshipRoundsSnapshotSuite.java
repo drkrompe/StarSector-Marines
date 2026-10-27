@@ -34,7 +34,7 @@ import java.util.Locale;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
- * Warship rounds in flight, posed beside the hull they are fired at: every weapon of the Black Sluice duel (Rusk's
+ * Warship rounds in flight, posed beside the hull they are fired at: every weapon of the Black Sluice duel (Dormer's
  * Enforcer and Wolf, the Greyhook) as {@code WarshipRenderSystem} draws a round between hulls, one frame each and one
  * of them all in parallel lanes, each with an inset of the base game's own proportion (the hull's sprite and the
  * round at the spec's pixels, at one scale) for comparison. The missiles also get a short GIF of their run in, so the

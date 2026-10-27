@@ -153,7 +153,7 @@ class OpeningOperationStoryTest {
         for (OpeningOperationKind kind : OpeningOperationKind.values()) {
             RecurringMilitiaWork work = new RecurringMilitiaWork(kind);
             assertTrue(work.isEligible(remote));
-            assertFalse(work.build(remote).flavor.contains("Mara Venn"));
+            assertFalse(work.build(remote).flavor.contains("Zoey Venn"));
         }
     }
 

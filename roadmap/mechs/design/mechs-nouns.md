@@ -883,7 +883,7 @@ LRM-15 are the anti-armor racks.
   same footprint and so the same mass, and so the same bill.
   The navies (Hegemony, Tri-Tachyon) weight up the Advanced AT racks. Pirates,
   independents and the Luddic Path weight up the Frag racks. A new company knows
-  both SRM-5s, and Castle's recovered spare for Wayward is the Frag one, since
+  both SRM-5s, and Castle's recovered spare for the Hound is the Frag one, since
   the first operations are fought against men.
 - **Factory fits.** The Bulwark keeps twin AT SRM-15s behind its chainguns. The
   Hound keeps an AT SRM-5. The Warden ships Frag LRM-5s: its heavy cannon is
@@ -1112,7 +1112,7 @@ stock until the player fabricates or recovers them; legacy saves retain the
 starter Bulwark they already owned. Fleet or employer sourcing
 still determines whether Mech Support is available in an operation; ownership
 determines the payload, not the entitlement to call it.
-The Wayline depot chapter introduces a recovered Hound named Wayward, fitted
+The Wayline depot chapter introduces a recovered Hound named the Hound, fitted
 with a nose chaingun and empty missile mounts. It is a normal owned chassis
 after victory, including when Wayline must recover and repair its wreck.
 On Second Wind, this recovery also makes the reserved Mech Lab accessible and
@@ -1127,12 +1127,12 @@ induction. Return from debrief (including salvage settlement) leads to the lab.
 Castle uses the shared portrait modal and isolated input scope above an unchanged
 lab layout. Escape dismisses the current prompt; Close / Try It reveals the
 controls, and a completed fitting action opens the next prompt. Later pauses the
-guide until reopened from the room bar. The lesson selects Wayward's owning lance,
+guide until reopened from the room bar. The lesson selects the Hound's owning lance,
 explains four gantries and active-lance
 support, waits for a real SRM installation, then observes that rack returned to
 stores and refitted into the Hound's single authored shoulder mount. Progress
 and dismissal survive saves; presentation cannot grant another rack. An older
-save that already owns Wayward receives the lesson package once on load.
+save that already owns the Hound receives the lesson package once on load.
 
 New campaigns fabricate only the basic nose chaingun, SRM-5 and Hound pattern.
 These are the existing baseline weapons, without a new quality modifier. Other

@@ -20,7 +20,7 @@ public final class DerelictCaptainDiscovery {
     private static final int ELIGIBILITY_MASK = 7;
 
     private static final String[] NAMES = {
-            "Mara Venn", "Ilya Sorn", "Tamsin Rook", "Corin Vale",
+            "Rhea Moss", "Ilya Sorn", "Tamsin Rook", "Corin Vale",
             "Nadia Kest", "Juno Reeve", "Seth Arden", "Lena Orlov"
     };
     private static final String[] PORTRAITS = {

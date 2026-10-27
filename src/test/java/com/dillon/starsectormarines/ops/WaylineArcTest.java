@@ -32,23 +32,13 @@ class WaylineArcTest {
         MissionOutcome loss = outcome(MissionSource.STORY, false, 0, 0);
         MissionResolver.recordStoryCompletion(roster, loss);
         assertEquals(WaylineArc.Stage.RELIEF, WaylineArc.stage(roster));
-        assertTrue(WaylineArc.debrief(loss).contains("try again"));
+        assertEquals("", WaylineArc.debrief(loss), "A defeat is a retry; Zoey says nothing");
         MissionOutcome recurring = outcome(MissionSource.RECURRING, true, 0, 0);
         MissionResolver.recordStoryCompletion(roster, recurring);
         assertEquals(WaylineArc.Stage.RELIEF, WaylineArc.stage(roster));
         assertEquals("", WaylineArc.debrief(recurring));
         MissionResolver.recordStoryCompletion(roster, outcome(MissionSource.STORY, true, 0, 0));
         assertEquals(WaylineArc.Stage.DEPOT, WaylineArc.stage(roster));
-    }
-
-    @Test void casualtyAcknowledgementUsesOutcomeAndDoesNotClaimSurvivors() {
-        String clean = WaylineArc.debrief(outcome(MissionSource.STORY, true, 0, 0));
-        assertFalse(clean.contains("losses"));
-        assertTrue(clean.contains("traffic logs"));
-        String costly = WaylineArc.debrief(outcome(MissionSource.STORY, true, 12, 2));
-        assertTrue(costly.contains("None of our militia came home"));
-        assertTrue(costly.contains("company's losses"));
-        assertTrue(WaylineArc.debrief(outcome(MissionSource.STORY, true, 3, 0)).contains("families"));
     }
 
     private static MissionOutcome outcome(MissionSource source, boolean victory, int alliedLosses, int losses) {

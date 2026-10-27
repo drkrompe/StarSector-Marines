@@ -151,7 +151,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                 row("result-payout", "Payout", victory ? "20,500 credits" : "—", "tone-good"),
                 row("result-salvage", "Salvage", salvage ? "35% · 8 stacks · 14,200 credits" : "None", "tone-accent"),
                 row("result-casualties", "Marines lost", "1 of 12", "tone-danger"),
-                row("result-captain", "Captain", "Sabine Hale — returned safely", "tone-good"),
+                row("result-captain", "Captain", "Morgan Hale — returned safely", "tone-good"),
                 row("result-xp", "Experience", "+240 XP", "tone-edge")));
         props.put("personnelHeader", "PERSONNEL — RTD / WIA / MIA / KIA");
         props.put("squadRows", List.of(

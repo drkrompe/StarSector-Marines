@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * The story Relief has no squad cap because a new Second Wind company cannot pay for a second squad before it
- * (owner, 2026-10-20). The prepaid depot founds exactly one squad, Sabine's; any other comes out of the hold at the
+ * (owner, 2026-10-20). The prepaid depot founds exactly one squad, Morgan's; any other comes out of the hold at the
  * full {@link SquadFoundingCost#STANDARD} bill: its marines bought into the hold, and its price for the stores.
  * This prices the most desperate liquidation there is, every crewman, all the fuel and both guns sold, with every
  * price at the extreme that favours the player, against that bill.

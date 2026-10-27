@@ -9,7 +9,7 @@ for force scale, and `campaign-battle-bridge-nouns.md` for target authority.
 
 ## Scope
 
-Mara Venn follows Sable Wake's sale of Wayline sailing schedules across Corvus.
+Zoey Venn follows Sable's sale of Wayline sailing schedules across Corvus.
 The Dust Ledger raids a counting house on Asharu; Blind Watch demolishes three
 installations at a temporary Warion listening post; A Cold Account confirms
 pirate evidence and withdraws before Hegemony bombardment on Garnir. These are authored jobs against one pirate crew.
@@ -66,7 +66,7 @@ free replacement troops or chassis.
 Reproduce with `commanderEvidence -Pmission=corvus -PmaxTicks=18000`.
 The baseline uses Frontier Security Equipment and Frontier Patchwork Protection
 for every squad, acting NCOs without officer bonuses, two standard Aeroshuttles,
-and Wayward's recovered nose-chaingun fit with empty missile mounts. Each chapter
+and the Hound's recovered nose-chaingun fit with empty missile mounts. Each chapter
 starts with a fresh full-strength company; this is not campaign casualty carryover.
 The script calls the Hound at the first legal landing pad and otherwise leaves
 command autonomous. Saved launch fixtures, command traces, ten-second samples,
@@ -124,7 +124,7 @@ this chapter. Their voice treats the evidence as a jurisdictional threshold:
 once pirate ownership is established, demolition is an administrative decision.
 The officer believes disciplined military force restores order. Keep their
 speech restrained, formal and brief; the violence of the guns carries the
-threat. Mara remains the human counterpoint. This is a proposed character pass,
+threat. Zoey remains the human counterpoint. This is a proposed character pass,
 not dialogue or a portrait already wired into the battle.
 
 Working concept: Captain Irena Kord, commanding the Onslaught HSS Resolute.
@@ -137,7 +137,7 @@ Proposed event lines:
   Open fire."
 - After the guns: "The installation is no longer operational. Record the matter
   closed."
-- Mara: "Keep the original records. I want an account of what happened here."
+- Zoey: "Keep the original records. I want an account of what happened here."
 
 The bombardment should feel deliberate and overwhelming, with a clear opening
 salvo and sustained structural destruction. Ruthlessness concerns the treatment

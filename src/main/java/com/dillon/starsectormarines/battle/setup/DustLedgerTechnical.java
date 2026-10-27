@@ -17,7 +17,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Sable Wake's rocket truck once the alarm is up: it works the corners. Its rockets reach no farther than a mech's own
+ * Sable's rocket truck once the alarm is up: it works the corners. Its rockets reach no farther than a mech's own
  * rack and a Hound's chaingun reaches farther, so in the open it dies first; behind a wall it waits for armor to come
  * round to it. Every so often it looks at the nearest enemy armor and drives, down the yard's lane, to the stand that
  * armor cannot see that lies nearest it ({@link #choose}); with armor in reach and in sight it holds and fires. Men it

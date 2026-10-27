@@ -2,21 +2,21 @@
 
 Status: IMPLEMENTED — live campaign acceptance open
 Written: 2026-10-11
-Updated: 2026-10-11 — Persistent induction, compact SVG progression controls and Sabine's dedicated portrait implemented.
+Updated: 2026-10-11 — Persistent induction, compact SVG progression controls and Morgan's dedicated portrait implemented.
 
 Alpha pickup under `company-view-nouns.md`, `personnel-nouns.md` and
 `narrative-nouns.md`.
 
-Castle introduces Lieutenant Sabine Hale as the company's recurring first field
+Castle introduces Lieutenant Morgan Hale as the company's recurring first field
 commander. Her portrait popover spotlights the real officer dossier, specialty
 training and home-command controls. Progress follows completed orders, not Next
 clicks. The first ordinary deployment requires this induction; existing saves
 and detached debug companies remain exempt.
 
-Sabine receives the ordinary appointment training point. The player chooses its
+Morgan receives the ordinary appointment training point. The player chooses its
 specialty permanently. Raising her squad retains the normal cargo-backed founding
 bill; the introduction creates no free marines, equipment or machines. Castle is
-a pragmatic matriarch: warm, responsible and direct. Sabine remains an ordinary
+a pragmatic matriarch: warm, responsible and direct. Morgan remains an ordinary
 officer with her own service history and promotion-driven progression, except
 that a lost battle wounds her rather than killing her.
 
@@ -24,8 +24,8 @@ Acceptance:
 - New-company induction persists across save/load and cannot be skipped by
   dismissing the popover or using another deployment entry point.
 - Compact training actions pair specialty SVG emblems with two visible rank markers; no full-width training buttons. Castle's lesson shows five SVG milestones.
-- Sabine uses a dedicated female portrait.
-- Real clicks open Sabine's dossier, train one specialty, found a squad in Armory
+- Morgan uses a dedicated female portrait.
+- Real clicks open Morgan's dossier, train one specialty, found a squad in Armory
   if necessary, and assign it in Barracks. Multiple spotlight holes preserve
   the relevant controls and scrolling.
 - Dismissal permits resupply; Company Guide resumes the unfinished lesson.

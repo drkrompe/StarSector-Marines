@@ -3,11 +3,11 @@ package com.dillon.starsectormarines.campaign;
 /**
  * The two written Latchkey custody agreements the captain may sign after The Yard's Owners.
  * Each constant carries only its standing campaign consequences; neither changes combat,
- * equipment access or a hidden standing score. Both keep Rusk's secured title, the yard
+ * equipment access or a hidden standing score. Both keep Dormer's secured title, the yard
  * debt, the same core equipment rewards and the duty to remove Greyhook's coercion.
  */
 public enum AgreusYardAgreement {
-    /** Rusk's appointed custodians take tool access; workshops run on new leases. */
+    /** Dormer's appointed custodians take tool access; workshops run on new leases. */
     HOUSE_CUSTODY(12_000, AgreusYardAgreement.RUSK_OFFICE, false),
     /** A joint custody party keeps inspected common-service access under repayment. */
     YARD_COMPACT(0, AgreusYardAgreement.LENNA_ASSOCIATION, true);
@@ -22,7 +22,7 @@ public enum AgreusYardAgreement {
     /** Who offers the later district-escort work on this route. */
     public final String escortContactId;
     /**
-     * Rusk's recorded assessment: an independent counterparty rather than his preferred
+     * Dormer's recorded assessment: an independent counterparty rather than his preferred
      * enforcement contractor. A record only; it creates no access penalty by itself.
      */
     public final boolean independentCounterparty;

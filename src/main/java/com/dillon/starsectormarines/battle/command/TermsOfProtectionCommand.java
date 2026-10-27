@@ -141,7 +141,7 @@ public final class TermsOfProtectionCommand implements AutonomousMissionCommand<
             return rank == 1 ? Duty.hold(DISPATCH_X, DISPATCH_Y - 6, 5) : Duty.hold(GATE_COVER_X, GATE_COVER_Y, 5);
         }
         if (f.route == Route.HOUSE_CUSTODY) {
-            // The guards hold the lane on Rusk's terms: the third section is free.
+            // The guards hold the lane on Dormer's terms: the third section is free.
             if (rank == 1) return Duty.hold(DISPATCH_X, DISPATCH_Y - 6, 5);
             if (rank == 2 && counterBattery)
                 return mortar != null ? Duty.advance(mortar.cellX(), mortar.cellY()) : Duty.advance(MORTAR_SEARCH_X, MORTAR_SEARCH_Y);
@@ -172,7 +172,7 @@ public final class TermsOfProtectionCommand implements AutonomousMissionCommand<
 
     static Duty greyhookDuty(Frame f, int squad, float x, float y) {
         int section = f.pell.indexOf(squad);
-        // Pell wants his levy records at dispatch and the association's work in the hall stopped.
+        // Reed wants his levy records at dispatch and the association's work in the hall stopped.
         if (section == 0) return Duty.advance(DISPATCH_X, 70);
         if (section == 1) return Duty.advance(HALL_X, HALL_Y);
         if (squad == f.mortar) {

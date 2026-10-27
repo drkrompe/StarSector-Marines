@@ -323,7 +323,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
                     assertEquals(0, hull.groundShots(), hull.hullId + " never fires at the ground");
                     assertNotNull(duel.entry(hull), hull.hullId + " has a ledger line");
                 }
-                for (Warship ship : duel.rusk()) assertTrue(ship.missionOwned(), "Rusk's ships are the mission's, not the player's");
+                for (Warship ship : duel.rusk()) assertTrue(ship.missionOwned(), "Dormer's ships are the mission's, not the player's");
                 if (result.split()) {
                     assertTrue(duel.ordered(), "Voss's order starts the duel");
                     assertEquals(BlackSluiceDuel.RUSK_PAIR.size(), duel.rusk().size());
@@ -441,7 +441,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
         props.put("locationLabel", "Agreus / Arcadia");
         props.put("clients", List.of(new MissionSelectScreen.ClientRow("client-rusk", "client-rusk-name", "client-rusk-rep",
                 OpeningBroker.CREST, "client-card selected", AgreusArcCampaign.NAME, "Latchkey Yard / Ko Combine concession", false, none)));
-        props.put("missionHeader", "House Rusk / Black Sluice");
+        props.put("missionHeader", "House Dormer / Black Sluice");
         MissionSelectScreen.putAgreus(props, ratified(AgreusYardAgreement.HOUSE_CUSTODY), "");
         props.put("missions", MissionSelectScreen.missionRows(List.of(mission), mission, ignored -> { }));
         props.put("stationingRows", List.of());

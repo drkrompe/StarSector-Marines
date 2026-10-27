@@ -83,7 +83,7 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
                         returnToPort(dialog, memoryMap);
                         return;
                     }
-                    // Paid: the company moves aboard her now, and the walk carries on to Sabine.
+                    // Paid: the company moves aboard her now, and the walk carries on to Morgan.
                     CompanyShipDesignation.designateFoundingShip();
                     DialogHandOff.next(dialog, () -> openOperations(dialog, memoryMap),
                             () -> returnToPort(dialog, memoryMap));
@@ -91,7 +91,7 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
         return true;
     }
 
-    /** Marine operations at Sabine's induction, over the same port dialog; leaving it rebuilds the port menu. */
+    /** Marine operations at Morgan's induction, over the same port dialog; leaving it rebuilds the port menu. */
     private static void openOperations(InteractionDialogAPI dialog, Map<String, MemoryAPI> memoryMap) {
         PlanetAPI planet = dialog.getInteractionTarget() instanceof PlanetAPI docked ? docked : null;
         dialog.showCustomVisualDialog(MarineOpsDialogSize.requestedWidth(), MarineOpsDialogSize.requestedHeight(),
@@ -128,7 +128,7 @@ public final class CompanyYardCMD extends BaseCommandPlugin {
             dialog.getTextPanel().addPara(secondWind(ship)
                     ? Strings.get("openingCompanyYardCMDNessaVennMetUsAtTheBerth")
                     : Strings.get("openingCompanyYardCMDTheYardCanMakeRoomForBunks"));
-            // The player meets Mara through her sister's yard.
+            // The player meets Zoey through her sister's yard.
             if (secondWind(ship)) dialog.getTextPanel().addPara(Strings.get("openingCompanyYardCMDHerRacksAreHalfEmptyMostOf"));
         }
         dialog.getTextPanel().addPara(Strings.format("openingCompanyYardCMDMercenaryCompanyConversion", (ship == null ? "" : " - " + ship.getShipName())));

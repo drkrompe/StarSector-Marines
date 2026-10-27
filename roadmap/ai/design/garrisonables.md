@@ -641,7 +641,7 @@ that (`conquest-command.md`, Defender command) and was reverted.
   company has taken it, it re-contests the stage and walks the story back. A
   Small War measured it: offered every post, the customs watch fell back into
   the customs block's rooms and returned one battle from fuel control to
-  customs, and Rusk's warship went down overhead in three battles of six, which
+  customs, and Dormer's warship went down overhead in three battles of six, which
   it never did in the control. A Small War now offers only posts more than
   twice the duty radius from every stage.
 - `-Dbattle.story.reactiveDefence=false` is the control (and
@@ -685,7 +685,7 @@ defender's shooters standing on one.
 | Relief | 12 | 0 | 0 | identical | 92% / 92% | 4% / 4% | byte for byte |
 | Last Lift | 13 attempts | 7 (Extraction's) | 4 (4) | identical | 96% / 96% | 0% / 0% | unaffected by the story switch |
 | A Small War | 6 | 0 | 0 | identical | 39% / 39% | 51% / 51% | byte for byte: marines 5, Greyhook 1 |
-| A Small War, every post offered (not kept) | 6 | 20 | 18 (18) | 5 of 6 differ | 35% / 39% | 54% / 51% | marines 5, Greyhook 1 in both; customs walked back once, Rusk lost three times |
+| A Small War, every post offered (not kept) | 6 | 20 | 18 (18) | 5 of 6 differ | 35% / 39% | 54% / 51% | marines 5, Greyhook 1 in both; customs walked back once, Dormer lost three times |
 
 - **Counterattack** is where it bites: the rear guard, and on two fixtures the
   yard guard, takes the warehouse beside its stage when the company presses it

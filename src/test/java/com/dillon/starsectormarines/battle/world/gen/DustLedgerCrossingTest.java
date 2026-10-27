@@ -45,7 +45,7 @@ class DustLedgerCrossingTest {
         // The ridge is high ground: its overwatch stands a tier above the compound it looks down on.
         DustLedgerCrossing.Cell rim = layout.ridgeOverwatch().get(0);
         assertEquals(1, grid.elevation().tier(rim.x(), rim.y()));
-        // Sable Wake's rocket truck has a lane: every stand of its is reached from its park by a light hull.
+        // Sable's rocket truck has a lane: every stand of its is reached from its park by a light hull.
         VehicleClearance lane = VehicleClearance.erode(grid, VehicleClearance.radiusForWidth(VehicleType.SRM_TECHNICAL.visualWidthCells));
         DustLedgerCrossing.Cell park = layout.technicalStands().get(0);
         for (DustLedgerCrossing.Cell stand : layout.technicalStands().subList(1, layout.technicalStands().size()))

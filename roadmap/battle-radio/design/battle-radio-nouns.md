@@ -28,7 +28,7 @@ gameplay state nor serves as a continuous voice track.
 - **Company command** is the off-field company officer, distinct from squad
   speakers and employer mission contacts. In Marine Operations she occasionally
   addresses sampled assignment exchanges over a non-positional comms channel.
-- **Field command** is the company's own officer on the ground, Sabine Hale.
+- **Field command** is the company's own officer on the ground, Morgan Hale.
   She sits between company command and the squad callsigns: she speaks for the
   landing as a whole, never for one squad's situation, and never for the ship.
 - The **voice budget** is the single global throttle for every squad cue. It keeps
@@ -185,7 +185,7 @@ Speech runs in real time while simulation speed changes; pause allows the
 current recording to finish but starts no new line. Completion discards pending
 instructions but lets the active mission sentence finish. Leaving a screen stops its owned audio. Resizing does
 not reset the battle cursor or replay briefings. The hybrid debug host has no
-campaign chapter identity and therefore does not play Mara's story dialogue.
+campaign chapter identity and therefore does not play Zoey's story dialogue.
 
 The same catalog may explicitly mark an authored line as text-only, in which case
 its declared reading duration owns the subtitle and no sound lookup occurs.
@@ -194,12 +194,12 @@ relevant; a text-only draft cannot hold a time-critical recording behind silence
 An absent portrait uses the retained text panel. A confirmed terminal report may
 explicitly survive completion and start on the completed battlefield, after any
 active sentence finishes; this exception never retains ordinary tactical
-instructions or delays mission settlement. Cold Account uses recorded Mara,
+instructions or delays mission settlement. Cold Account uses recorded Zoey,
 Castle and Kord lines with speaker-specific voice assignments. Its final patrol
 report starts during the mission-owned departure if it occurs before company
 extraction. The last survivor pickup's physical return owns victory; neither
 capital departure nor audio duration can postpone it. A separate replayable
-Castle/Mara conversation runs on the successful results screen, after settlement,
+Castle/Zoey conversation runs on the successful results screen, after settlement,
 with readable portrait-led turns and explicit Replay and Stop controls. Leaving
 results stops its audio. Valid Corvus retry identities resolve to the same chapter set.
 
@@ -208,7 +208,7 @@ results stops its audio. Valid Corvus retry identities resolve to the same chapt
 The company officer is an original mature British female Voice Design selection,
 retained by stable voice ID with clean source takes and generation provenance.
 Her callsign is Castle. She belongs to the company rather than Wayline.
-Mara remains the employer's
+Zoey remains the employer's
 mission contact. Command replies are available in the Marine Operations battle
 host; the hybrid debug host has no company command identity and retains its
 squad net. Both hosts still use the same squad cue policy.
@@ -242,7 +242,7 @@ increasing the voice budget or inventing tactical facts. A one-line pool remains
 valid and necessarily repeats.
 
 Command subtitles identify CASTLE / COMPANY COMMAND and use her original
-painted portrait; field command identifies SABINE HALE / FIELD COMMAND with
+painted portrait; field command identifies MORGAN HALE / FIELD COMMAND with
 hers; infantry subtitles identify the current exchange's callsign
 and show that radio actor's helmet-interior portrait. The same face follows the
 actor through acknowledgements, readbacks and combat reports. These are radio
@@ -274,8 +274,8 @@ Field command is an alternative voicing of a company-level assignment exchange,
 never a replacement for Castle's direct traffic. When one observation retasks
 more than one squad, the sampled exchange is company-level; if the deployment's
 leading officer is the company's founding officer, the rotation may give it to
-her. Castle then calls Sabine, she acknowledges, Castle reads the same
-instruction a squad would hear, Sabine hands it to the exchange's callsign, and
+her. Castle then calls Morgan, she acknowledges, Castle reads the same
+instruction a squad would hear, Morgan hands it to the exchange's callsign, and
 that callsign reads back. A withdrawal uses her last-out handoff. A single
 squad's new task always stays between Castle and that squad, and when she is
 not leading the deployment (wounded, aboard, or another officer selected) the
@@ -340,7 +340,7 @@ twice at once. Mission sentences retain their priority and completion guarantee
 except for the explicitly authored emergency interruption described above.
 Runtime currently uses one foreground exchange and no secondary-net overlap.
 Pausing starts no new turn; stale pending and ongoing contexts expire in real
-time. Completion drops unspoken turns and lets an active sentence finish. Mara
+time. Completion drops unspoken turns and lets an active sentence finish. Zoey
 preempts incidental speech and discards the interrupted exchange. Leaving the
 host stops its audio; resizing does not restart it. Bespoke covering maneuvers,
 resupply and transport conversations remain authoring auditions until their

@@ -180,7 +180,7 @@ class MissionMlxTest {
             assertEquals("graphics/portraits/portrait_mercenary01.png",
                     instance.requireElement("deployment-preview-0-commander-portrait")
                             .imageSource());
-            assertEquals("Lt. Sabine Hale",
+            assertEquals("Lt. Morgan Hale",
                     instance.requireElement("deployment-preview-0-commander-name").text());
             assertEquals("HOME COMMAND · SELECTED",
                     instance.requireElement("deployment-preview-0-commander-status").text());

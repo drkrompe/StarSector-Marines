@@ -40,7 +40,7 @@ public final class CerberusCompanyStart implements Script {
     public static final int TRAVEL_SUPPLIES = 25;
     /**
      * One unit of fuel (owner, 2026-10-25; the tank started empty). Fuel burns only in hyperspace. The start sets
-     * the fleet down in its port's own system, and the yard, Mara Venn's office and the depot all start there; a
+     * the fleet down in its port's own system, and the yard, Zoey Venn's office and the depot all start there; a
      * re-pick after that port is lost stays in that system while any qualifying port remains in it
      * ({@link OpeningPort}). Fuel is bought at the port when the company leaves.
      * Nothing aboard to sell is also why a second squad is out of reach before Relief

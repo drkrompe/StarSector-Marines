@@ -36,8 +36,8 @@ public final class DustLedgerProgress {
     /**
      * What the battle saw this tick.
      *
-     * @param shot          a shot or thrown round by the company or Sable Wake
-     * @param sighted       a Sable Wake combatant sees a company unit inside the exclusion ring
+     * @param shot          a shot or thrown round by the company or Sable
+     * @param sighted       a Sable combatant sees a company unit inside the exclusion ring
      * @param ledgerSeized  the ledger room is seized (the Raid seizure)
      * @param brokerAlive   the broker is on the field and alive (false once he has left it)
      * @param brokerContact a company combatant is within reach of the broker

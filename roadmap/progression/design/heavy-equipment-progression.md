@@ -106,7 +106,7 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, flux), `convoy-nouns.md`
   machine beats a dear one only by being bought for it (an anti-armor fit against
   a stock tank) or by being used well (a flank), and a mechanic that narrows a gap
   cost or tier says should be wide is called out where it is measured.
-- **Starter content stays useful.** Wayward's nose chaingun and SRM-5 on a stock
+- **Starter content stays useful.** the Hound's nose chaingun and SRM-5 on a stock
   Hound remain a fit worth taking into the first operations. The spare rack is
   the fragmentation SRM-5, and a new company knows both SRM-5 warheads.
 

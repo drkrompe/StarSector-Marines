@@ -1251,7 +1251,9 @@ public class BriefingScreen implements Screen {
         boolean debug = mission.source.isDebug();
         boolean transportOk = mission.source == MissionSource.STATIONING
                 || isTransportSufficient(mission, lift());
-        boolean routeReady = !(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission) || DistrictEscortCampaign.isBattle(mission)) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
+        boolean routeReady = SupplyRouteCampaign.isBattle(mission)
+                ? SupplyRouteCampaign.forceDeployable(liveRoster(), ctx.getSelectedMarineSquadIds())
+                : !(CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission) || DistrictEscortCampaign.isBattle(mission)) || SupplyRouteCampaign.forceReady(liveRoster(), ctx.getSelectedMarineSquadIds());
         boolean personnelOk = (debug || readiness == null || readiness.ready()) && routeReady;
         boolean commandOk = captainCommandReady(mission);
         boolean canAccept = transportOk && personnelOk && commandOk;

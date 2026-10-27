@@ -2,18 +2,18 @@
 
 Status: READY FOR LIVE ACCEPTANCE
 Written: 2026-10-10
-Updated: 2026-10-12 — First-job handoff, personal Mara introduction and casualty-aware first-payment exchange; live acceptance remains.
+Updated: 2026-10-12 — First-job handoff, personal Zoey introduction and casualty-aware first-payment exchange; live acceptance remains.
 
 ## Scope
 
-Mara Venn, an Independent broker based canonically on Jangala, introduces the
+Zoey Venn, an Independent broker based canonically on Jangala, introduces the
 company to Relief and Counterattack for the Wayline freight cooperative. HQ
 shows her portrait, office, payment, local menu route and Plot Course. Other
 Independent brokers refer new companies to her; both opening victories unlock
 their recurring militia work. Existing story completion survives unchanged.
 The shared office policy provides an accessible planetary fallback when needed.
 Castle's preparation handoff puts a founding company's name forward for its first
-paid job. Mara's introduction names the cooperative and the drivers behind the
+paid job. Zoey's introduction names the cooperative and the drivers behind the
 fee. Relief's written victory exchange gives the payment and earned trust room
 before the depot request, with Castle acknowledging actual company deaths.
 This correspondence is text only; existing tactical narration remains recorded.
@@ -40,7 +40,7 @@ Canonical model: `early-operation-nouns.md`; presentation boundaries:
 ## Remaining live acceptance
 
 From a normal new save, follow HQ's Plot Course to Jangala. Open Marine operations,
-choose Mara Venn, inspect her affiliation and Relief, and confirm normal deployment
+choose Zoey Venn, inspect her affiliation and Relief, and confirm normal deployment
 requirements. Save/reload before and after Relief; confirm Counterattack remains
 available and her briefing acknowledges the same militia and cooperative.
 Complete Counterattack and verify the HQ lead retires while Venn preserves the completed chapter record

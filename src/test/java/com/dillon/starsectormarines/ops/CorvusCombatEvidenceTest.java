@@ -109,7 +109,7 @@ class CorvusCombatEvidenceTest {
                 sim.setCommandTraceEnabled(true, fixture.kind());
                 Set<Long> landed = new HashSet<>(), fallen = new HashSet<>(), enemyFallen = new HashSet<>();
                 var marineDeaths = new JSONArray();
-                // Who killed each marine: the latest Sable Wake hit landing within a cell and a half of where they fell
+                // Who killed each marine: the latest Sable hit landing within a cell and a half of where they fell
                 // in the last three seconds (a death carries no killer). {tick, shooter, x, y}.
                 var recentHits = new ArrayList<float[]>();
                 var killers = new TreeMap<String, Integer>();
@@ -497,7 +497,7 @@ class CorvusCombatEvidenceTest {
         var text = new StringBuilder("# Corvus combat evidence\n\n")
                 .append("Independent full-strength companies; Frontier Security Equipment and Frontier Patchwork Protection; ")
                 .append("acting NCOs without officer bonuses; ").append(boats).append(" standard Aeroshuttles. ")
-                .append("One recovered Wayward Hound with nose chaingun and empty missile mounts. ")
+                .append("One recovered the Hound Hound with nose chaingun and empty missile mounts. ")
                 .append("Normal support activation at the first legal pad, then autonomous command. ")
                 .append("Forced-serial headless production simulation; no live campaign or player-control acceptance.\n\n")
                 .append("| Chapter | Result | Seconds | Named infantry lost | Hound | Hound kills |\n")
@@ -521,7 +521,7 @@ class CorvusCombatEvidenceTest {
         return sim.getColdAccount() == null ? 8f : 1f;
     }
 
-    /** What a Sable Wake shooter is, for the killer tally: a structure, a hull by type, or a crewman by duty. */
+    /** What a Sable shooter is, for the killer tally: a structure, a hull by type, or a crewman by duty. */
     private static String shooterClass(BattleSimulation sim, long shooter) {
         if (shooter == 0L) return "anonymous";
         if (sim.convoy().isVehicle(shooter)) return "hull:" + sim.convoy().vehicleType(shooter);

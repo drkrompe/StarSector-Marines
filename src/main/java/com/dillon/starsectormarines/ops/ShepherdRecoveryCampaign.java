@@ -15,7 +15,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
-/** Basin Reclamation's local contract, introduced by Mara after the Corvus account. */
+/** Basin Reclamation's local contract, introduced by Zoey after the Corvus account. */
 public final class ShepherdRecoveryCampaign {
     public static final String NAME="Tamsin Vale", TITLE="A WORKING SHIP / BASIN RECLAMATION";
     public static final List<MissionDialogue.Turn> BRIEF_TURNS = List.of(

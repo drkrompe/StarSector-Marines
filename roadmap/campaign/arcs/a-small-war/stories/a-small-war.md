@@ -21,7 +21,7 @@ formation remains a threat beyond their new suits' protection. The escalation
 is a change in responsibility and endurance, not a demand to administer another
 twenty squads.
 
-**Baronet Elian Rusk** hires the company on **Agreus**, the existing industrial
+**Baronet Elian Dormer** hires the company on **Agreus**, the existing industrial
 moon of Syrinx in **Arcadia**. His house has a secured claim on **Latchkey Yard**
 under Ko Combine administration, inadequate security, and a shrinking ability to
 pay while **Sera Voss's Greyhook flotilla**
@@ -29,7 +29,7 @@ extracts cargo and levies. **Lenna Saye** represents the workers whose knowledge
 keeps the yard useful. The company can remove Greyhook's coercion, but taking the
 yard also forces a decision about who can work there afterward.
 
-Rusk needs Morrow's builders as much as its escort. Static defenses and allied
+Dormer needs Morrow's builders as much as its escort. Static defenses and allied
 holders keep a reopened site safe while the company moves. The first suit
 patterns improve the same named infantry; they do not introduce pilots, another
 roster, enlarged squads or a second lift-seat cost.
@@ -48,7 +48,7 @@ The gate reads Working Passage's actual handover receipt. `shepherd-recovery.md`
 retains the prerequisite's live campaign and save/reload acceptance.
 
 Vale recommends the company through her parts-trading connection to Latchkey.
-Mara forwards the introduction; Rusk becomes the client. Vale's reference names
+Zoey forwards the introduction; Dormer becomes the client. Vale's reference names
 the recovery work and completed departure, without assuming an intact company,
 a surviving Hound, or a healthy bank balance.
 
@@ -95,15 +95,15 @@ breathable outdoor districts. Use the actual Agreus surface context when launchi
 
 ## The warrant
 
-After the first victory, Rusk offers a **civil-security procurement warrant**.
+After the first victory, Dormer offers a **civil-security procurement warrant**.
 Its readable terms precede acceptance of Limited Warrant:
 
 - The company may recover designated depot equipment and retain copies of the
   specifically listed refurbishment patterns after successful recovery.
-- Rusk guarantees the local supplier's release of service documentation,
+- Dormer guarantees the local supplier's release of service documentation,
   calibration tooling and compatible surplus stock. Those suppliers accept his
   bond within his concession's registered procurement terms. The Ko Combine
-  retains planetary administration; Rusk's title confers no authority over its
+  retains planetary administration; Dormer's title confers no authority over its
   other holdings or over Hegemony or Tri-Tachyon arsenals.
 - The task covers Greyhook's armed occupation and coercion at named sites.
   It grants no planetary police commission, authority to seize civilians, or
@@ -111,7 +111,7 @@ Its readable terms precede acceptance of Limited Warrant:
 - Debt enforcement and future yard management require a separate agreement after
   the site is inspected. Accepting this recovery job cannot silently choose it.
 
-The player accepts an identified contract, not an unbounded oath to Rusk. Wording
+The player accepts an identified contract, not an unbounded oath to Dormer. Wording
 and acquired cards make the restricted access tangible. There is no revocable
 software license, equipment lockout, per-suit inventory or new fitting charge.
 Later disagreement can change offered work; already learned cards remain learned.
@@ -124,7 +124,7 @@ Equipment rewards are guaranteed story cards, separate from random recovery.
 
 | Chapter | Place and tactical promise | Recommended company | Credit fee | Equipment / lasting result |
 | --- | --- | --- | ---: | --- |
-| 1. Water Under Seal | North Weir: escort a repair load and reopen the switching rooms | 2 squads, regular issue sufficient | 26,000 | Rusk's sponsorship and the warrant offer; no powered card |
+| 1. Water Under Seal | North Weir: escort a repair load and reopen the switching rooms | 2 squads, regular issue sufficient | 26,000 | Dormer's sponsorship and the warrant offer; no powered card |
 | 2. Limited Warrant | Low Quay bonded stores: recover the service archive and sealed calibration kit | 2 squads, regular issue sufficient | 30,000 | Tri-Tachyon Specter Section card: two recovered Specter breachers in twelve |
 | 3. The Yard's Owners | Latchkey: take the dispatch house, tooling hall and safe operator entrance | 3 squads; recovered Specter useful | 36,000 | Salvage-assisted Section card: two Specter breachers and two Arbalest gunners in twelve |
 | 4. Terms of Protection | Latchkey and the Cinder Steps approach: defend the signed handover while technicians commission captured rig tooling | 3 squads; mixed sections recommended | 32,000 | A Boarding Jack section card, regardless of the chosen yard agreement; agreement ratified only on victory |
@@ -141,7 +141,7 @@ account. Rebalance the whole ledger against a casualty-carryover run.
 The playable first pass uses two existing Recovered Specter wearers among the
 regular Berth Four collectors. Replace those two fittings with the distinct Boarding Jack
 when its pattern and layered art are validated; do not describe the interim kit
-as that unfinished pattern. The completed dossier records Rusk's sponsorship
+as that unfinished pattern. The completed dossier records Dormer's sponsorship
 and opens Limited Warrant without granting equipment.
 
 **Purpose:** establish why this client needs us and show crude powered opponents
@@ -174,15 +174,15 @@ presence. Elapsed time or merely killing the opening guards is insufficient.
 Destroyed repair cargo or loss of every deployed technician fails the attempt.
 Another attempt has explicitly replacement cargo and personnel; no corpses revive.
 
-**Castle briefing:** “Rusk pays for the weir to work when we leave. Edek's crew
+**Castle briefing:** “Dormer pays for the weir to work when we leave. Edek's crew
 will handle the switches. We clear the rooms, cover their load, and give the
 constables a position they can hold.”
 
-**Rusk, victory correspondence:** “Your invoice will be honored. There is also
+**Dormer, victory correspondence:** “Your invoice will be honored. There is also
 equipment in the bonded stores that your people could put to better use than mine.
 I can authorize its release. First we have to recover the records that make it useful.”
 
-**Voss, note to Rusk copied to the company:** “You've made the weir expensive. I
+**Voss, note to Dormer copied to the company:** “You've made the weir expensive. I
 can make other things expensive too.” It names no force and no date; it is the
 first sign that Greyhook is watching the company rather than the yard.
 
@@ -190,7 +190,7 @@ first sign that Greyhook is watching the company rather than the yard.
 
 **Purpose:** earn a credible first suit pattern through a bounded recovery job.
 The stores hold purchased surplus security hardware, not a cache of untouched
-front-line military equipment. Rusk's authority, the supplier's paperwork and
+front-line military equipment. Dormer's authority, the supplier's paperwork and
 physical recovery all matter.
 
 Use a compact bonded-storage compound at Low Quay's industrial edge: a shuttered
@@ -222,7 +222,7 @@ worn actuators and short breach window explain why a small security contractor m
 field them. Castle points to the card and ordinary Armory fitting; no marine
 changes equipment automatically.
 
-**Rusk, signed warrant:** “The schedule names the patterns. The guarantee is mine.
+**Dormer, signed warrant:** “The schedule names the patterns. The guarantee is mine.
 If a supplier offers you anything beyond it, you are negotiating with them.”
 
 **Castle, reward:** “We have the service files and the tools to use them. Take a
@@ -236,7 +236,7 @@ lines; Castle cites it rather than inferring Greyhook's books.
 ## 3 — The Yard's Owners
 
 **Purpose:** use the new assault capability and reveal the conflict that force
-alone cannot settle. The captain knows Rusk has a secured claim before landing.
+alone cannot settle. The captain knows Dormer has a secured claim before landing.
 The new information is what enforcing his proposed terms would mean in practice.
 
 Latchkey's dispatch house, tooling hall and operator entrance form three adjacent
@@ -270,9 +270,9 @@ ledger absolves everybody, and clearing pirates has not ratified repossession.
 
 **Lenna, correspondence:** “You have opened the gate. Before you hand over the
 keys, read who is allowed through it tomorrow. Those benches repair the weir's
-pumps as well as Rusk's cargo gear.”
+pumps as well as Dormer's cargo gear.”
 
-**Lenna, on the company's history:** “Mara Venn says you broke a lien for Wayline
+**Lenna, on the company's history:** “Zoey Venn says you broke a lien for Wayline
 on Jangala. Whose side is the lien on this time?” This is the arc's creditor rhyme
 (`a-small-war-arc.md`, Story spine). It accuses nobody; it makes the captain read
 the custody terms as someone who has stood on the other side of them.
@@ -281,25 +281,25 @@ the custody terms as someone who has stood on the other side of them.
 
 Before Chapter 4, the captain can inspect both written agreements, ask Castle
 to compare their consequences, or leave and return. Only the explicit signing
-action commits a route. Both retain Rusk's secured title, debt, the same core
+action commits a route. Both retain Dormer's secured title, debt, the same core
 equipment rewards and the duty to remove Greyhook's coercive presence.
 
 | Agreement | What the captain undertakes | Concrete benefit | Concrete cost |
 | --- | --- | --- | --- |
-| **House Custody** | Escort Rusk's appointed custodians and put access under their office. Association workshops operate through new leases and debt deductions. | Rusk funds a 12,000-credit premium, payable only with Chapter 5 victory; later district escort work comes through his office. | Independent tool access ends. Lenna records the company's role and does not become its worker-side contracting contact. The court terms remain lawful and burdensome. |
-| **Yard Compact** | Escort a joint custody party and preserve inspected common-service access under a signed repayment schedule. Rusk appoints security; the association retains shop operation and auditable service allocation. | Lenna becomes the contact for later district escort work; the existing common workshop access continues. | The company forgoes the 12,000-credit premium to fund the transition guarantee. Rusk accepts the agreement but records the company as an independent counterparty rather than his preferred enforcement contractor. Debt and security duties remain. |
+| **House Custody** | Escort Dormer's appointed custodians and put access under their office. Association workshops operate through new leases and debt deductions. | Dormer funds a 12,000-credit premium, payable only with Chapter 5 victory; later district escort work comes through his office. | Independent tool access ends. Lenna records the company's role and does not become its worker-side contracting contact. The court terms remain lawful and burdensome. |
+| **Yard Compact** | Escort a joint custody party and preserve inspected common-service access under a signed repayment schedule. Dormer appoints security; the association retains shop operation and auditable service allocation. | Lenna becomes the contact for later district escort work; the existing common workshop access continues. | The company forgoes the 12,000-credit premium to fund the transition guarantee. Dormer accepts the agreement but records the company as an independent counterparty rather than his preferred enforcement contractor. Debt and security duties remain. |
 
 There is no hidden virtue score, instantly cured poverty, or perfect compromise.
-Rusk accepts the compact because he gets productive collateral and inspected
+Dormer accepts the compact because he gets productive collateral and inspected
 repayments; Lenna accepts enforceable debt because she retains meaningful access.
-Under House Custody, Rusk's managers really can stabilize schedules and investment.
+Under House Custody, Dormer's managers really can stabilize schedules and investment.
 Under the compact, divided administration retains genuine friction. Neither
 agreement makes an individual worker universally grateful or hostile.
 
 Waiving the premium fully satisfies the company's contribution to the transition
 guarantee. There is no additional debit, ongoing liability or undisclosed loss of
 equipment access. Any later house-specific offer needs its own authored terms;
-Rusk's recorded assessment alone does not create a hidden access penalty.
+Dormer's recorded assessment alone does not create a hidden access penalty.
 
 The signed route persists through defeat and reload; victory ratifies it. Defeat
 does not let the player sign both versions for their rewards. Before signing,
@@ -313,12 +313,12 @@ player use the mixed section before the finale, and show Greyhook acting against
 itself for the first time. Revisit Latchkey with the secured entrance and
 inspection work visible, rather than erasing the previous victory.
 
-**Voss, attributable warning before the operation:** “Pell collected his share
+**Voss, attributable warning before the operation:** “Reed collected his share
 from that yard. Your new agreement leaves him nothing. I've told him to leave it.
 Plan for him not listening.” Her warning discloses no exact unseen force or
-arrival tick. It establishes that what follows is Pell's choice, not her order.
+arrival tick. It establishes that what follows is Reed's choice, not her order.
 
-House Custody brings a named custodial records carrier, Rusk's estate guards and a
+House Custody brings a named custodial records carrier, Dormer's estate guards and a
 utilities crew. The compact brings a named joint-party carrier, the same utilities
 crew and Lenna's fitters, who will not leave the tools while they are being
 commissioned. Both use ordinary convoy movement, arrivals and vulnerable
@@ -326,14 +326,14 @@ personnel. The actual handover happens at the dispatch house; technician work
 remains in the tooling hall. The agreement changes the problem, not the amount of
 invisible protection:
 
-- **House Custody:** the estate guards hold the Cinder Steps lane on Rusk's terms,
+- **House Custody:** the estate guards hold the Cinder Steps lane on Dormer's terms,
   which frees a company section and leaves the guards' post as the weak point.
 - **Yard Compact:** the fitters stay at the benches under fire, so the hall itself
   must be held rather than merely its approaches.
 
 1. Escort the party in and occupy dispatch. No signature is inferred from proximity.
 2. Protect the hall while technicians finish commissioning the captured rig tools.
-3. Daro Pell's Berth Four arrive to recover their levy records and break the
+3. Daro Reed's Berth Four arrive to recover their levy records and break the
    association's ability to refuse them. They bring a mortar team that ranges on the
    commissioning work and two crude powered rigs: Greyhook's own rebuilt hardware,
    the across-the-line view of the kit the company is about to wear. A second finite
@@ -359,7 +359,7 @@ work and is delivered on either route. It is not payment for endorsing a politic
 choice or a bonus for killing powered wearers. The person explaining the reward
 may change if an actual casualty makes a particular witness unavailable.
 
-**Rusk, in the Chapter 4 debrief:** “I have written to my family. I would rather
+**Dormer, in the Chapter 4 debrief:** “I have written to my family. I would rather
 not have. They will answer, and they will want to know why they had to.” He
 names no ship and no date; Castle does not guess at either.
 
@@ -383,7 +383,7 @@ from the map or announce an unseen force roster.
 
 The map has a causeway customs block, a sheltered fuel-control house and the
 dispatch pier. West of the landing apron lies open approach ground, the basin's
-flats and rim country, which Rusk's ships fly in across; nothing of the ground fight
+flats and rim country, which Dormer's ships fly in across; nothing of the ground fight
 is out there, and the company's boats come in over the north edge. Service galleries provide infantry flanks around exposed road
 approaches. Fuel storage is an explicit preservation objective; its controls are
 a seizure target, not an invitation to destroy the district's usable supply.
@@ -398,7 +398,7 @@ a seizure target, not an invitation to destroy the district's usable supply.
 3. **The split.** When fuel control falls, Voss orders Black Sluice abandoned on an
    open channel the company can hear. Drent Haulage takes the order: its surviving
    crews withdraw physically along the service road and leave the map, and the
-   Greyhook lifts off from her pad south of the ridge. Berth Four refuses. Pell's people hold dispatch
+   Greyhook lifts off from her pad south of the ridge. Berth Four refuses. Reed's people hold dispatch
    out of grudge, and the prize crews split between them. The withdrawal is real
    lost strength for Greyhook, not a scripted despawn of untouched troops, and it
    happens only once the company has actually taken fuel control.
@@ -412,8 +412,8 @@ a seizure target, not an invitation to destroy the district's usable supply.
 
 **The duel overhead.** When Voss orders the withdrawal, the *Greyhook*, Voss's own
 Venture with Voss aboard, lifts alone from her cradle on the pads south of the ridge
-and turns to fight: Rusk's ships are faster than she is, so she does not run at once. The pair
-Rusk's family has lent from Citadel Arcadia, a Hegemony Enforcer destroyer and Rusk's own Wolf,
+and turns to fight: Dormer's ships are faster than she is, so she does not run at once. The pair
+Dormer's family has lent from Citadel Arcadia, a Hegemony Enforcer destroyer and Dormer's own Wolf,
 flies in across the west edge to stop her. What follows is a slugging match in atmosphere that goes wherever the
 fighting takes it, over the basin and the company's fight alike, in full view of it:
 plating torn away, hulls crippled and driven down.
@@ -423,7 +423,7 @@ be an even fight. We could have an enforcer and a wolf even"; later, "We're just
 for something that's fun to watch"). The Enforcer is a slow, armoured Hegemony line ship
 with an omni shield and longer guns than hers, fitted as the Hegemony fits it (the base
 game's Balanced Enforcer: Arbalests and Heavy Mortars, Harpoons and Reapers); the Wolf is
-Rusk's hunter (`wolf_hegemony_Rusk`), fast and fragile; the Greyhook is a heavier, slower
+Dormer's hunter (`wolf_hegemony_Rusk`), fast and fragile; the Greyhook is a heavier, slower
 broadside ship with a cruiser's plate and pool that turns slowly. The pair fight her as a
 pack relay: the sturdier Enforcer holds her guns with its shield on her while the Wolf
 darts in on her quarter and breaks off to vent. Her autocannons glance off the
@@ -438,20 +438,20 @@ small hardpoints, fixed forward, hold a Harpoon and a Sabot rack (owner, 2026-10
 vanilla missile pods in WS 004/007 and drop the PD claim"), so the Wolf's lasers have missiles to shoot.
 
 - The player's fleet stays out of the sky. The company has no air role in the
-  duel and cannot order Rusk's ships; they are the family's, not a support power.
-- Rusk's ships fight the Greyhook, not Black Sluice's ground garrison. They
+  duel and cannot order Dormer's ships; they are the family's, not a support power.
+- Dormer's ships fight the Greyhook, not Black Sluice's ground garrison. They
   answer no calls for fire and make no ground objective easier by existing. Stray
   fire and falling wreckage are real on the ground in both directions.
 - The fight has an ending (owner, 2026-10-19: "We probably need a shorter duel. We
   can add back the escape for the Venture as a story element to give it a
   conclusion"). Voss orders the run 68 to 84 seconds after the first hull fire
   (where in that window is fixed by the moment of her withdrawal order), sooner if
-  her hull falls under half or Rusk's ships are both down; that order is the one
+  her hull falls under half or Dormer's ships are both down; that order is the one
   scripted thing. She flies out across the south
-  edge, over her own pads, fighting what is in reach, with Rusk's ships shooting at
+  edge, over her own pads, fighting what is in reach, with Dormer's ships shooting at
   her; she gets away or is shot down onto the basin short of the edge, and nothing
   decides which but the ships. Either way Voss lives: away, or walking out of the
-  wreck, so her last line stands on both endings. Rusk's ships stay overhead once
+  wreck, so her last line stands on both endings. Dormer's ships stay overhead once
   she is gone. The debrief reports what actually happened, and ground victory never
   depends on it.
 - The mission does not end until the ground objectives are decided and the
@@ -459,14 +459,14 @@ vanilla missile pods in WS 004/007 and drop the PD claim"), so the Wolf's lasers
   won't want the mission to end until all objectives are complete and the Venture
   escapes or is destroyed with the crash"). A ground fight that finishes first
   waits for her; only the company pulling out leaves her still up there.
-- Two ships, one visit. Rusk's letter after Chapter 4 explains their arrival;
+- Two ships, one visit. Dormer's letter after Chapter 4 explains their arrival;
   they stay to the end of the fight they came for, and over the battle after it. Their presence is a warning to the
   Combine and to Agreus, not Hegemony protection of the district.
 - Ship-versus-ship fighting is built (`air-nouns.md`, Overhead ships): hull fire
   is held until Voss's withdrawal beat, and none of the duel's hulls fires at the
   ground. No area is declared for the fight (owner, 2026-10-18); every warship is
   kept off the map's edges by the standing edge pressure.
-- Nothing warps in or out. Rusk's edge is the west, the side the company landed
+- Nothing warps in or out. Dormer's edge is the west, the side the company landed
   on and the far side of the basin, which they fly in across already under way;
   the Greyhook lifts from her pad and leaves, if she leaves, across the south edge
   and no other.
@@ -483,10 +483,10 @@ The ending names the selected agreement, confirmed losses and delivered rewards.
 The company receives the fee and any earned premium and a closed story dossier.
 The once-only settlement sets `AgreusArcProgress.smallWarSettled`, which sends the
 Hegemony auxiliary warrant's offer (`progression-nouns.md`, Kit and armory). The
-warrant comes because Rusk's family, having lent the destroyers, has noticed the
+warrant comes because Dormer's family, having lent the destroyers, has noticed the
 company; the more demanding procurement contact is the Hegemony itself.
 
-**Castle, closing assessment:** “Rusk is asking what it would take to keep us here.
+**Castle, closing assessment:** “Dormer is asking what it would take to keep us here.
 He wasn't asking that when we arrived.” Loss-aware surrounding text acknowledges
 the actual company cost before describing the invitation. The arc ends grey on
 purpose (`a-small-war-arc.md`, Story spine): the company is now the private order
@@ -572,7 +572,7 @@ STANDARD armor and unrelated equipment retain their own access and purposes.
 ## Force, support and failure contract
 
 Target an authored **Established** operation profile throughout, with opposition
-quality and objective duties increasing within it. Rusk's minor house rank does
+quality and objective duties increasing within it. Dormer's minor house rank does
 not imply every chapter is a generated Tier-1 patron job. State authored tier,
 recommendation and hard launch minimum separately on each offer.
 
@@ -585,7 +585,7 @@ ordinary repeated trips; Raid-shaped Chapter 2 explicitly has unrestricted
 presence rather than inheriting the generic covert two-squad limit. More player
 lift never expands the enemy pool to match it.
 
-Rusk contracts a bounded employer heavy-lift sortie for an owned active mech lance
+Dormer contracts a bounded employer heavy-lift sortie for an owned active mech lance
 on Chapters 3-5; an empty bay gives no walker. Briefings name the supplied transport.
 No Hound survival is assumed and baseline acceptance must win without a mech.
 No capital gun run or fighter fleet is supplied. Where a chapter builds,
@@ -595,7 +595,7 @@ Allied constables take stable, separate hold duties only after real company gain
 
 Citadel Arcadia remains a Hegemony logistics and military presence. Greyhook's
 local extortion and cargo diversion exploit scattered contractor yards and
-contested access; they do not establish control of the system. Rusk is paying
+contested access; they do not establish control of the system. Dormer is paying
 for precise concession security and a working handover. His warrant does not
 command a Hegemony fleet, and this arc neither removes its patrols nor promises
 that civilian transport is safe. Broader authorities and markets keep their
@@ -624,10 +624,10 @@ choice survives retries; opening a briefing, preview or course plot commits noth
 ## Afterward and campaign pressure
 
 After victory, **District Escort** is a separate repeatable authored escort job
-through Rusk's office under House Custody or Lenna's association under the compact. Initial fee:
+through Dormer's office under House Custody or Lenna's association under the compact. Initial fee:
 24,000 credits for a new finite two-squad escort job. It uses new cargo, people and
 attempt identities, awards no named story equipment and cannot replay ratification
-or pay another premium. Ordinary patron access, if separately offered by Rusk,
+or pay another premium. Ordinary patron access, if separately offered by Dormer,
 still obeys its normal rules; this story grants no automatic house promotion,
 MRB tier, generic stationing contract or vanilla faction commission.
 
@@ -685,7 +685,7 @@ military equipment to compensate for a harder map.
 ## Implementation order and acceptance
 
 1. Live-test Working Passage's handover through HQ correspondence, normal travel
-   from Corvus to Agreus, Rusk's first offer and Water Under Seal settlement.
+   from Corvus to Agreus, Dormer's first offer and Water Under Seal settlement.
    Verify save/reload before travel, during preparation and after victory; sale/loss
    of Morrow, a different owned tender and changes to that ship after briefing.
 2. Live-check Agreus access in new and existing saves, including missing, hidden,
@@ -766,9 +766,9 @@ Still open inside this story:
   so the owner replaced the Wolfs with two Hegemony Enforcers, which won every seed
   untouched (her Heavy Autocannons glance off an Enforcer's nine hundred of armour), and
   then, wanting a fight that is fun to watch rather than an even one, made the pair one
-  Enforcer and one Wolf (2026-10-19; `warship-behaviours.md`, Rusk's Enforcer and Wolf).
-  The Enforcer tanks in Rusk's refit, the Wolf strikes as fitted, the Greyhook carries a
-  modest refit of her own and goes for the Wolf. Over eight seeds Rusk wins every one: the
+  Enforcer and one Wolf (2026-10-19; `warship-behaviours.md`, Dormer's Enforcer and Wolf).
+  The Enforcer tanks in Dormer's refit, the Wolf strikes as fitted, the Greyhook carries a
+  modest refit of her own and goes for the Wolf. Over eight seeds Dormer wins every one: the
   first hit comes 66 seconds after Voss's order and the Greyhook is shot down 428 to 623
   seconds after it, breached 31 to 51 times; on one seed she takes the Wolf with her
   twenty seconds before she falls, elsewhere the Wolf ends at 9 to 63 percent of its hull;
@@ -794,9 +794,9 @@ Still open inside this story:
 
 All mission, choice and reward text starts as readable correspondence with Castle's
 fact-bound operational briefing. The sample lines above are unrecorded copy, not
-ElevenLabs jobs. New speakers (Rusk, Lenna, Voss, Edek, Nadi, Pell, Drent) ship as
+ElevenLabs jobs. New speakers (Dormer, Lenna, Voss, Edek, Nadi, Reed, Drent) ship as
 text with `voiced: false`: the ElevenLabs account is at its voice limit, so their
-casting is deferred until a slot is free. Castle and Mara lines may be recorded
+casting is deferred until a slot is free. Castle and Zoey lines may be recorded
 with their existing voices. Portraits, location art, voice production and native 1920x1080 / 100%
 UI-scale previews require their own authored assets and acceptance. Headless
 evidence does not establish live travel, host save/reload or campaign-overhaul

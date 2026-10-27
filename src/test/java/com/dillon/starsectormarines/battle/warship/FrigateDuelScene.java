@@ -22,7 +22,7 @@ import java.util.Map;
 
 /**
  * Ship against ship in atmosphere, slice 1 of the frigate duel ({@code warship-behaviours.md}, ship against ship): two Wolf (H) frigates (the
- * Rusk family's, {@link Faction#ALLY}) against two Hound (P) frigates ({@link Faction#DEFENDER}) on stations within
+ * Dormer family's, {@link Faction#ALLY}) against two Hound (P) frigates ({@link Faction#DEFENDER}) on stations within
  * reach of each other, with unarmed bystanders of both sides on the ground beneath.
  *
  * <p>The ships fire on each other with their real hull weapons under {@link ShipFireOrder#ALL}; nothing else is

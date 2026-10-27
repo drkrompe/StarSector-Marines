@@ -1,19 +1,19 @@
 # Second Wind to Wayline: opening dialogue
 
-Status: SHIPPED — the campaign-start and first-contract dialogue register, and the schedule hints through Dust Ledger; applied to the game. Sabine relays company-wide orders on the net; her other ground reports wait on battle evidence.
+Status: SHIPPED — the campaign-start and first-contract dialogue register, and the schedule hints through Dust Ledger; applied to the game. Morgan relays company-wide orders on the net; her other ground reports wait on battle evidence.
 
 Written: 2026-10-14
 
-Updated: 2026-10-20 — Prologue rewritten to seven pages; every forward button is the Commander's line, and the old eighth page folds into A WAY TO SURVIVE.
+Updated: 2026-10-27 — Script review: Relief cut to one briefing turn and two radio calls, the first payment to one Castle line, no defeat lines, schedule hints dropped; cast renamed (Zoey Venn, Morgan Hale, Jack Prell).
 
 ## How to read this script
 
 This is the chronological dialogue register for a new Second Wind company, from
-the new-game choice to Mara Venn's first payment after **Hold Until Relieved**. It
-covers the prologue, Nessa's yard, Castle's preparation lessons, Sabine's
-induction, Castle's hand-off, Mara's introduction, the Relief briefing and the
+the new-game choice to Zoey Venn's first payment after **Hold Until Relieved**. It
+covers the prologue, Nessa's yard, Castle's preparation lessons, Morgan's
+induction, Castle's hand-off, Zoey's introduction, the Relief briefing and the
 first-payment exchange. Counterattack and the recurring jobs are
-out of scope; Sabine's combat callouts are a proposal at the end.
+out of scope; Morgan's combat callouts are a proposal at the end.
 
 Each line names the string key (or the code that builds it) that it would replace.
 Mechanics stated in a line are unchanged: costs, stores, berths, rewards and button
@@ -28,23 +28,23 @@ Castle, Nessa and the founding field commander's canon. **PUBLIC**, **HIDDEN** a
 
 ## Owner calls
 
-1. **Nessa and Mara are sisters.** Castle hears of Wayline through Nessa; the yard
+1. **Nessa and Zoey are sisters.** Castle hears of Wayline through Nessa; the yard
    visit carries the bridge. There is one story for every start port (owner,
    2026-10-20): a start that lands at a fallback port because Jangala is
-   unavailable still meets Nessa, and Castle's, Nessa's and Mara's lines say
+   unavailable still meets Nessa, and Castle's, Nessa's and Zoey's lines say
    Jangala. Only course, objective, Intel and mission text that names a place
    uses the port actually chosen.
 2. **The founding field commander came off the Claim, and so did her squad.** She
    commanded the mine's escort section; twelve of them stayed with her. She is
-   renamed **Sabine Hale** so she cannot be confused with Mara in
+   renamed **Morgan Hale** so she cannot be confused with Zoey in
    passing, and she speaks at story beats instead of being a portrait.
 3. **The player is "Commander"** in every rewritten or new line, Castle's and
-   Mara's alike. Yard staff already say Commander.
+   Zoey's alike. Yard staff already say Commander.
 4. **The company is unlicensed.** It cannot pay the Hegemony mercenary review
    board's licence. Licensed companies will not work for what Wayline can pay;
    unlicensed ones are what independents can afford. This is authored backstory,
    not a game mechanic or prerequisite.
-5. **Sabine cannot be killed.** She carries too much of the long story and the
+5. **Morgan cannot be killed.** She carries too much of the long story and the
    company's radio voice to be a replaceable officer. The one loss path today, a
    wiped-out defeat that kills her squad's officer six times in ten, wounds her
    instead (out of action for 45 days, the existing wipe injury). No other
@@ -53,10 +53,21 @@ Castle, Nessa and the founding field commander's canon. **PUBLIC**, **HIDDEN** a
    say "credits", "the fee" or "paid", and the amount lives only in the offer's
    own terms, so a balance pass never has to rewrite or re-record a line.
 7. **The first job is a delivery.** The company's visitor papers on Jangala
-   forbid work, so its cover is a shipper's escort: Mara buys the company's own
+   forbid work, so its cover is a shipper's escort: Zoey buys the company's own
    ore dust (the cargo declared in the arrival hail), delivered to the checkpoint
-   gate, and Sabine's twelve ride up with it on a Wayline truck. The squad starts
+   gate, and Morgan's twelve ride up with it on a Wayline truck. The squad starts
    Relief on the ground beside that truck; no company boat flies.
+
+8. **Short and to the point** (owner, 2026-10-27). A briefing says what the
+   player must do, under the objective letters the map shows; everything else is
+   cut. The Relief radio exchange, the landing calls and the militia-loss calls
+   are gone: the player sees those things happen.
+9. **Defeat says nothing.** A lost chapter is a retry, not an alternate story, so
+   there are no defeat or loss lines in Zoey's messages, and nothing about one
+   attempt carries into the next.
+10. **No schedule hints for now.** The hint ladder that led to Dust Ledger is cut
+   ("keep it simple"); Dust Ledger's reveal stands on its own until a later pass
+   wants hints again.
 
 ## What was wrong
 
@@ -68,7 +79,7 @@ Castle, Nessa and the founding field commander's canon. **PUBLIC**, **HIDDEN** a
   first paid job.
 - **Two Venns, no explanation.**
 - **The field commander arrives from nowhere**, and says nothing.
-- **Mara's briefing is a work order in her voice.**
+- **Zoey's briefing is a work order in her voice.**
 
 ## Threads and parties
 
@@ -85,11 +96,11 @@ same money.
 **The Harker crew** — PUBLIC: miners, cargo hands and their families; minimum
 crew plus five. They kept the ship running. Castle will not make them fight.
 
-**Sabine Hale and her twelve** — PUBLIC: Sabine commanded the Claim's escort
+**Morgan Hale and her twelve** — PUBLIC: Morgan commanded the Claim's escort
 section on the ore runs. When the operator stopped paying for escorts, twelve of
 her people stayed with her rather than take passage out, and they came aboard
 Second Wind with their rifles and nothing else. They have not been paid in four
-months. Sabine gives clear orders, keeps a counted muster and does the counting
+months. Morgan gives clear orders, keeps a counted muster and does the counting
 herself. The founding squad's bill is their kit, stores and places on the
 company roll; the people are already aboard. HIDDEN: she blames herself for the
 two of her section who did not make the departure roster. UNDECIDED: the twelve's
@@ -97,11 +108,11 @@ names and voices.
 
 **Nessa Venn** — PUBLIC: yard forewoman on Jangala; towed Castle's dead freighter
 home and threatened to cut her loose at every buoy. Generous in deeds, stingy
-with words. Her yard runs on parts that come up the Wayline road. Mara's older
+with words. Her yard runs on parts that come up the Wayline road. Zoey's older
 sister.
 
-**Mara Venn** — PUBLIC: Wayline's broker, and since the spring its acting head;
-Nessa's younger sister. When the cooperative's director, Teodor Prell, left for a post off-world, nobody senior was left who wanted the job, so
+**Zoey Venn** — PUBLIC: Wayline's broker, and since the spring its acting head;
+Nessa's younger sister. When the cooperative's director, Jack Prell, left for a post off-world, nobody senior was left who wanted the job, so
 the youngest person in the office who could read the books got it. She still
 does the brokering because nobody else can. That is the overwork. HIDDEN: Relief's fee is most of what is left in the
 cooperative's security fund; if the checkpoint falls, Wayline sells out to a
@@ -109,7 +120,7 @@ bigger hauler. She hires an unlicensed company because it is the only kind she
 can afford, and she knows Castle knows that. TO BE REVEALED: the fund's state, at
 Counterattack.
 
-**Wayline's drivers and the checkpoint watch** — PUBLIC from Mara's introduction:
+**Wayline's drivers and the checkpoint watch** — PUBLIC from Zoey's introduction:
 Wayline used to run freighters between worlds. It lost cargoes to interception,
 sold its hulls to cover them, and is down to drivers hauling on one planet's
 roads. They pool what is left so nobody has to sell their truck as well. The
@@ -120,7 +131,7 @@ company buys it.
 ### Why Wayline
 
 The opening needs a reason the raiders are on Wayline's road rather than someone
-else's, and Corvus Account already supplies the deep one: Sable Wake is buying
+else's, and Corvus Account already supplies the deep one: Sable is buying
 Wayline's schedules. This proposal makes that the cause of everything the
 opening shows, and lets the player feel it long before anyone names it.
 
@@ -132,29 +143,19 @@ opening shows, and lets the player feel it long before anyone names it.
   happened on its own sailings. The depot fell on the night the gate crew was
   short. Raiders arrive where Wayline will be, when it will be there. Somebody is
   selling the schedules, and they were selling them before the ships were sold.
-- **TO BE REVEALED — Dust Ledger.** The raid on Sable Wake's dispatch archive
+- **TO BE REVEALED — Dust Ledger.** The raid on Sable's dispatch archive
   turns up Wayline's schedules among the papers, released under Prell's own
-  dispatch authority, the last of them dated the week he left. Mara learns her
+  dispatch authority, the last of them dated the week he left. Zoey learns her
   predecessor sold the cooperative he built, and she cannot work out why. Nothing
-  in Corvus answers that. Prell's new post, and whoever Sable Wake answers to,
+  in Corvus answers that. Prell's new post, and whoever Sable answers to,
   is a thread left open for a later arc to pick up.
-- **Prell, as the player meets him.** Only through others, and only well: Mara
+- **Prell, as the player meets him.** Only through others, and only well: Zoey
   quotes his rules, the drivers miss him, and his signature is on the depot's
   old paperwork. Nobody suspects him, which is what makes the reveal land. He
   never appears in person in this arc.
 
-Hints between Relief and Dust Ledger, one line each, none of them explained.
-After Relief they sit in Mara's written victory message, the one place every
-chapter has; she relays what Castle and Sabine saw rather than borrowing their
-voices:
-
-| Chapter | Where | Hint |
-|---|---|---|
-| Relief | Radio, on the way to the gate | "They knew which night the depot's gate crew was short. I still don't know how." |
-| Counterattack | Victory message | They left the strongroom alone and took the dispatch board, every route and every schedule on it. |
-| Open the Junction | Victory message | Sabine says they were dug in before your boats were down. Somebody told them we were coming. |
-| Thunder Run | Victory message | Castle's report says every ambush sat on the loads worth something and let the rest go by. |
-| Dust Ledger | Victory message | The archive holds Wayline's own schedules, released under Teodor Prell's dispatch authority, the last batch dated the week he left. |
+Owner call 10 cut the hints that led up to it: no chapter before Dust Ledger
+mentions the schedules.
 
 ## 0 — New game
 
@@ -290,13 +291,13 @@ people are aboard.
 `openingCompanyPrologueTheDepartureRosterIsInYourHandwriting`
 > The departure roster is in your handwriting. Castle's additions run down the
 > margin in a smaller hand: fuel, seals, filters, one more person who needed a
-> berth, then another. Near the bottom, in block capitals, Sabine Hale has added
+> berth, then another. Near the bottom, in block capitals, Morgan Hale has added
 > her escort section: fifteen names, two struck through. While you were checking
 > the last pressure patch, someone painted SECOND WIND over the old registry and
 > didn't sign it.
 
 `openingCompanyPrologueSabineDidnTAskIfThereWasRoom` — Castle
-> Sabine didn't ask if there was room. She asked where her people should stand.
+> Morgan didn't ask if there was room. She asked where her people should stand.
 > The two she struck off were down the lower shaft when it went dark. She hasn't
 > said their names since, and I haven't asked.
 
@@ -331,7 +332,7 @@ cinematic, so the memory is told here)
 
 `openingCompanyPrologueACargoHandSleepsAgainstTheBridgeHatch`
 > A cargo hand sleeps against the bridge hatch with her boots on. The crew take
-> turns in the bunks that still hold pressure. In the hold, Sabine's twelve sleep
+> turns in the bunks that still hold pressure. In the hold, Morgan's twelve sleep
 > in shifts beside their stacked rifles. Below decks are two wrecked Hermes
 > shuttles and compartments you haven't dared put back on the power bus.
 
@@ -425,7 +426,7 @@ comes out of the ship's account (`openingYardCashDialogue`).
 **Page 2 — TWENTY-TWO DAYS** (`yard-tally`)
 > The lashings are gone from the port-side space. Steel bunks stand in their place,
 > and someone has already put a pair of boots under a rack. Forty-five people
-> sleep aboard tonight: the Harker crew and their families, Sabine and her twelve,
+> sleep aboard tonight: the Harker crew and their families, Morgan and her twelve,
 > and you. The yard bills the berth by the day.
 
 Castle:
@@ -449,7 +450,7 @@ The figures box reads the live account and works the days out from it.
 Castle:
 > I've got a lead on something that actually pays. I don't like it.
 >
-> Nessa's sister Mara got handed the cooperative when the director left. She's
+> Nessa's sister Zoey got handed the cooperative when the director left. She's
 > keeping the drivers from selling their trucks, and she needs guards on that
 > road. She can't afford anyone with a licence, so she'd take us.
 >
@@ -470,12 +471,12 @@ Castle:
 > anybody on Jangala.
 >
 > But a shipper can see its own cargo delivered, right to the buyer's door. We
-> told Approach we were carrying ore dust, and we are. So we sell it to Mara,
-> delivery guaranteed, and Sabine's people ride with it to make sure it arrives.
-> How much dust it takes to make that true is between us and the buyer. Mara
+> told Approach we were carrying ore dust, and we are. So we sell it to Zoey,
+> delivery guaranteed, and Morgan's people ride with it to make sure it arrives.
+> How much dust it takes to make that true is between us and the buyer. Zoey
 > isn't going to weigh it.
 >
-> It isn't quite legal, Commander. But Sabine's people haven't been paid in four
+> It isn't quite legal, Commander. But Morgan's people haven't been paid in four
 > months, and I'd rather explain this to a customs officer than explain that to
 > them.
 
@@ -538,21 +539,21 @@ who kept the roster.
 `openingCerberusCompanyStartTheConversionIsInstalledStayDockedAt`
 > The conversion is in. Stay docked at {0}, open Marine operations and name our
 > Cerberus the company's command ship. While we're docked here, the preparation
-> bills draw on our depot stock. Then we settle Sabine's appointment and put her
+> bills draw on our depot stock. Then we settle Morgan's appointment and put her
 > section on the roll.
 
 `openingCerberusCompanyStartOurShipIsHomeNowStayDocked`
 > She's ours now, Commander, properly. Stay docked while we use the prepaid
-> stores: settle Sabine's first specialty in Barracks, then muster her squad in
+> stores: settle Morgan's first specialty in Barracks, then muster her squad in
 > the Armory and put it under her. I'll take you through each order.
 
 `openingCompanyPreparationGuideCommanderChooseAHomeWithQuartersAnd`
 > Commander, pick our home: a ship with quarters and a boat bay. These stores
-> kit one full squad now and patch one shuttle after Mara's job. Sabine's
+> kit one full squad now and patch one shuttle after Zoey's job. Morgan's
 > appointment is settled, first training point and all.\n\n{0}
 
 `openingCompanyPreparationGuideTheCrewIsPreparingOurQuartersAnd`
-> The crew are clearing our quarters. When they're done we sit down with Sabine
+> The crew are clearing our quarters. When they're done we sit down with Morgan
 > and muster her squad.
 
 `openingCompanyPreparationGuideSecondWindCameWithTwoWreckedHermes`
@@ -560,23 +561,23 @@ who kept the roster.
 > behind the sealed second bay. Let's patch this one for the depot job.
 
 `openingCompanyPreparationGuideOurLiftIsAboardComeToBarracks`
-> Home's ready. Come to Barracks; Sabine's waiting.
+> Home's ready. Come to Barracks; Morgan's waiting.
 
 `openingCompanyPreparationGuideTheBoatsCanWait`
-> The boats can wait. Mara's truck takes us up to the checkpoint; we patch a Hermes
-> after that job. Sabine first.
+> The boats can wait. Zoey's truck takes us up to the checkpoint; we patch a Hermes
+> after that job. Morgan first.
 
 `openingCompanyPreparationGuideWeWillMusterTheSquadOnceOur`
 > We muster the squad once the ship and the field commander are ready.
 > Those first.
 
 `openingCompanyPreparationGuideTwelveMarinesThirtySixSuppliesAndTwenty`
-> Twelve marines, thirty-six supplies and twenty-four food. That's Sabine's
+> Twelve marines, thirty-six supplies and twenty-four food. That's Morgan's
 > section on the company roll: kitted, fed and paid from today. Check the
 > highlighted bill and choose Found Line Squad; then we hand them back to her.
 
 `openingCompanyPreparationGuideTheSquadAndItsFieldKitAre`
-> They're on the roll and kitted. Back to Barracks to give Sabine her standing
+> They're on the roll and kitted. Back to Barracks to give Morgan her standing
 > command. Assigning them costs nothing more.
 
 `openingCompanyPreparationGuideNothingWasSpentByLeavingCommanderOur`
@@ -586,9 +587,9 @@ who kept the roster.
 > where we stopped. Don't buy them twice.
 
 `openingCerberusCompanyStartYourCompanyIsReadyCommanderTheFirst`
-> We're a company, Commander, as far as anyone's asking. Mara's signed for our
-> ore dust; her delivery order is waiting in Headquarters. Whatever stores we
-> didn't use stay in the depot for when we're back.
+> If the authorities ask, we're completing last mile delivery with the
+> transplutonic dust from our hold, Commander. Zoey's signed off on the shipping
+> label.
 
 ### First lift (after Relief)
 
@@ -599,8 +600,8 @@ steps reuse the repair and commission lines above.
 `lessonFirstLiftTitle` / `lessonFirstLiftHandoff`
 > OUR FIRST LIFT
 >
-> No truck takes us into Mara's depot, Commander. That job needs a boat. The
-> prepaid Hermes parts are ours; come to the Boat Deck and we'll get her flying.
+> We need a shuttle first Commander. Go to the Boat Deck and we'll finish repairs
+> first.
 
 `openingCompanyPreparationGuideTheHermesPartsAreStillWaitingAt`
 > The Hermes parts are still waiting at {0}, Commander. They're held ashore, so I
@@ -613,21 +614,21 @@ company's first ferry job. Repair our first Hermes on the Boat Deck."
 The conversion line names no figure; the yard page states it. It says "the
 yard", not "Nessa".
 
-## 4 — Sabine
+## 4 — Morgan
 
 `openingBarracksCommandMiraHaleFoundingFieldCommanderAFormer` — dossier
-> Sabine Hale / Founding field commander. Commanded the escort section on Harker's
+> Morgan Hale / Founding field commander. Commanded the escort section on Harker's
 > Claim's ore runs. When the operator stopped paying for escorts, twelve of her
 > people stayed with her, and all thirteen came aboard Second Wind. She wants clear
 > orders and a counted muster, and she does the counting herself. Her specialty,
 > promotions and service record grow through your decisions.
 
-Sabine always survives to finish her own induction, so these lines can speak
+Morgan always survives to finish her own induction, so these lines can speak
 about her directly.
 
 `openingOfficerInductionGuideFirstCommanderChooseAShipWithQuarters`
 > First, Commander, a ship with quarters and a boat bay. I've counted the stores
-> for a full squad, and for our first lift after Mara's job. Bring the whole bill
+> for a full squad, and for our first lift after Zoey's job. Bring the whole bill
 > aboard before we start, and we'll see this through together.
 
 `openingOfficerInductionGuideOurPeopleNeedAWayDownAnd`
@@ -636,7 +637,7 @@ about her directly.
 > together.
 
 `openingOfficerInductionGuideCommanderWillLeadOurFirstFormationYou`
-> Sabine leads our first formation, Commander. She's been bringing those twelve
+> Morgan leads our first formation, Commander. She's been bringing those twelve
 > home since the ore runs; now she does it for us. You set the course, she brings
 > our people through it. Open her portrait on the left. Let's give her a proper
 > start.
@@ -657,7 +658,7 @@ about her directly.
 > mission. Every officer who goes earns their own service record. Bring them home
 > and we'll build on what they learn.
 
-**New — Sabine, on assignment** (Castle relays it in the lesson's final step,
+**New — Morgan, on assignment** (Castle relays it in the lesson's final step,
 since the lesson panel speaks only with Castle's portrait)
 > Twelve present, Commander. Counted. First time anyone's paid them to stand
 > watch since the Claim. Give me somewhere to take them.
@@ -665,133 +666,47 @@ since the lesson panel speaks only with Castle's portrait)
 ## 5 — The first job
 
 `openingBarracksCommandMaraVennAnsweredWaylineNeedsItsCheckpoint` — Castle
-> Mara Venn answered. She'll take our ore dust, delivered to Wayline's freight
-> checkpoint, and the checkpoint's under attack. Her truck's waiting to carry it
-> up the road, and Sabine's squad rides with it. She sounds like she hasn't slept
-> in a week. First job, Commander. Choose Ready for the briefing, or follow Mara's
-> directions from HQ. Let's give Mara a reason to call again.
+> Zoey answered. Her company's freight checkpoint is under daily harassment, and
+> she has ground transport to get us there from the port. First job, Commander.
 
-### Briefing and landing: the introduction is the briefing
+### Briefing and radio
 
-Relief splits Mara's words by where the player is. Before launch she is a
-stranger asking for help, so the briefing is her introduction: who she is, what
-Wayline lost, and what she is asking for. The tactical detail moves into the
-mission, spoken over the radio while the squad walks from Wayline's truck to the
-gate, when the player is looking at the apron, the gate and the roads it
-describes. The walk takes long enough to carry it, and a briefing heard over the
-ground it names is easier to follow than one heard before the map exists.
+**Briefing, voiced** — Zoey (`marines_mara_relief_briefing_01`, the only turn)
+> So you're delivering my transplutonic dust eh? Well, no time for idle chit chat. Our freight checkpoint has been under attack and I'm desperate for help for my people down there. Stop the shooting by shooting them first.
 
-What the player needs to choose squads stays on the briefing screen as unvoiced
-text, so nothing that matters is only said once over the radio.
+**Briefing, Morgan** (`sabine_relief_briefing_truck`)
+> Shuttle is not flight ready yet Commander, so we'll be ferried from the port to the facility by truck. We're ready when you are.
 
-**Briefing, voiced turns** — Mara (replaces the `WaylineArc` introduction and the
-recorded `relief` briefing; ordered `briefing.*` turns). Shared by every start
-port, so it does not mention Nessa; the sisters are connected only where the
-player has met Nessa.
+**Briefing screen, unvoiced** (`waylineBriefingRelief`)
+> (A) Reinforce the checkpoint gate. No need to sally out these raiders seem motivated to rush the checkpoint.
 
-1. > Castle sent your particulars, and I've read them twice. I broker
-   > for Wayline, and since the spring I run it, because our director took a post
-   > off-world and somebody had to.
-2. > A year ago we ran freighters between worlds. We lost three cargoes in a season
-   > and sold the hulls to cover them, so now we're drivers on one planet's roads,
-   > pooling what's left so nobody has to sell their truck as well.
-3. > Raiders took our depot a month ago. Now they're at our freight
-   > checkpoint{location}, and if that falls there's no road left to haul on. The
-   > watch holding it is paid from the same collection as your fee. I know half of
-   > them from the loading shifts.
-4. > Licensed companies cost more than we have. You cost what we have. On paper
-   > you're escorting a delivery to my checkpoint, and you're paid when it
-   > arrives. In practice, help my watch hold that gate. One job at a time,
-   > Commander.
+**In mission** — Zoey, on `started` and `checkpoint_reached`:
 
-**Briefing, Sabine** (recorded in her voice, after Mara's four turns)
-> We're off the truck behind the gate. Two teams, one on each road in. Get on the
-> wall and let them come to us.
+1. > Our watch is holding, but not for long on their own. Get to covering positions behind that gate.
+2. > Your troops are at the checkpoint. Repel those raiders.
 
-The cover story is said once, before the fight (Mara's turn 4), and paid off once
-after it (Castle's receipt). Nobody in the fight talks about the dust (owner,
-2026-10-20).
-
-This was first written into the mission radio, but a recorded line takes over
-from a text-only one at once, so a text line in the middle of Mara's exchange
-would have flashed and vanished. In the briefing, turns play one after another.
-
-**Briefing screen, unvoiced** — the tactical summary
-> Your squad starts beside Wayline's truck behind the checkpoint. Reinforce the
-> checkpoint gate. Raiders will come up the freight and warehouse service roads.
-> Wayline brings in its militia by shuttle. Break the assault and bring as many
-> people home as you can.
-
-**In mission, while the company moves up** — one ordered exchange that starts at
-launch and plays straight through, a line at a time, while the squad walks from
-the truck to the gate. It is not keyed to individual arrivals, so it cannot fall
-out of order. All Mara.
-
-1. > Mara here. Your people are off the truck and behind the gate. Our watch is
-   > holding, but not for long on their own.
-2. > The raiders are coming up the freight and warehouse service roads. That's
-   > where the gate gets hit.
-3. > Our militia are coming in on the only shuttle we've got. Keep them with your
-   > people. They're drivers defending their road.
-4. > They knew which night the depot's gate crew was short. I still don't know
-   > how. This is where we stop them taking the road as well.
-5. > Break the assault and bring as many of our people home as you can, Commander.
-
-The beats tied to what actually happens keep firing on their own events, after or
-between these turns:
-
-| Beat | Line |
-|---|---|
-| `checkpoint_reached` | You've reached the checkpoint. Hold together, and watch the approaches. We need this gate standing when it's over. |
-| `militia_line_weakened` | The checkpoint watch is taking heavy losses. Get support to the line before it breaks. |
-| `militia_line_lost` | We've lost the checkpoint's own watch. Finish this, Commander. Bring the rest of our people home. |
-
-The old `player_landed` and `employer_landed` lines are folded into the exchange
-and retired. An urgent event line (the militia breaking) interrupts the
-exchange, and the exchange resumes after it rather than being lost. The depot
-hint moves out of the introduction into turn 4, where it has room to sit.
+Landings and the militia's losses are facts, not radio cues
+(`OpeningOperationStoryHooks`).
 
 ## 6 — First payment
 
-`MissionDebriefConversation` first-contract exchange, after Relief victory.
+`MissionDebriefConversation` first-contract line, after Relief victory, whatever
+the losses. Castle (`debriefReliefCostClean`):
+> It's nice to be getting paid again. Crew pay and supplies first and the rest goes to the company account for equipment, repairs, and upgrades for you to decide Commander.
 
-Castle — receipt
-> Payment's in. I counted it twice. Mara paid for one sack of ore dust, delivered.
-> Our first paid job, Commander. Somebody paid us to do exactly what we said we'd
-> do.
+Zoey's victory message (`waylineDebriefReliefWon`):
+> Thanks Commander. Your first payment from Wayline is cleared. I've got more "delivery" work when you're ready.
 
-**New** Sabine — muster, no losses
-> All twelve back aboard. Counted twice.
+## Morgan on the company net
 
-**New** Sabine — muster, with losses
-> I've counted twice. The roll's shorter. I'll give Castle the names.
-
-Mara — names
-> The drivers asked who answered the call. I gave them your company's name.
-> They'll remember it. It's the only good news they've had this month.
-
-Castle — cost, with losses
-> We've got names to take off the roll. I'll see to those before I count what we
-> can afford.
-
-Castle — cost, no losses
-> Crew pay and supplies first. It's good to hold a receipt that isn't for
-> something we had to sell.
-
-Mara — next
-> Get your people in order. When you're ready, come back and we'll talk about the
-> depot. I'd like this to be the start of something. Wayline needs it to be.
-
-## Sabine on the company net
-
-Sabine joins the existing net as one more voice in its rotation, not as a
+Morgan joins the existing net as one more voice in its rotation, not as a
 parallel system. What sets her apart is her authority, not her mechanics. The
 net already has two levels, and she fills the gap between them:
 
 | Voice | Where | Speaks for |
 |---|---|---|
 | Castle | CIC, aboard ship | The company. Coordinates from above, assigns work, relays what the ship can see. |
-| **Sabine** | **On the ground** | **The company on the ground.** Runs control across squads: who moves, who covers, where they gather. |
+| **Morgan** | **On the ground** | **The company on the ground.** Runs control across squads: who moves, who covers, where they gather. |
 | Squad callsigns (Kestrel, Hammer, Viper, Jackal, Ox, Rivet) | On the ground | One squad. Report their own situation and acknowledge. |
 
 So her lines are the ones a ground commander says: she directs one squad in
@@ -804,19 +719,19 @@ accepted assignments, sharing the voice budget, rotating with the callsign cast.
 Her exchanges are **alternatives, not replacements**. Castle keeps talking to
 squads directly, exactly as today; an exchange about more than one squad, or
 about the company as a whole, may be voiced either way, Castle to a callsign or
-Castle through Sabine, and the rotation picks between them. Single-squad
+Castle through Morgan, and the rotation picks between them. Single-squad
 contact reports stay with the callsigns. She is not bound to any squad's roster name. She speaks only in battles she is actually
 deployed in; when she is wounded or left aboard, the net runs exactly as it does
 today. Examples:
 
 | Exchange | Lines |
 |---|---|
-| Castle assigns, Sabine directs | **Castle:** Sabine, CIC. The east compound's yours. **Sabine:** Copy, Castle. Hammer, take the gate. Viper, cover them from the wall. |
-| Landing complete | **Sabine:** Castle, Sabine. Everyone's down and counted. Moving off the pad. |
-| Consolidate after capture | **Sabine:** Compound's ours. Kestrel, sit on it. Everyone else, on me. |
-| Withdrawal | **Sabine:** Castle, we're pulling back to the pad. Ox, you're last out. Nobody gets left. |
-| Company thinning | **Sabine:** Castle, we're thin down here. I can hold. I can't push. |
-| Squads rejoined | **Castle:** Sabine, how's the line? **Sabine:** Back together. Ready when you are. |
+| Castle assigns, Morgan directs | **Castle:** Morgan, CIC. The east compound's yours. **Morgan:** Copy, Castle. Hammer, take the gate. Viper, cover them from the wall. |
+| Landing complete | **Morgan:** Castle, Morgan. Everyone's down and counted. Moving off the pad. |
+| Consolidate after capture | **Morgan:** Compound's ours. Kestrel, sit on it. Everyone else, on me. |
+| Withdrawal | **Morgan:** Castle, we're pulling back to the pad. Ox, you're last out. Nobody gets left. |
+| Company thinning | **Morgan:** Castle, we're thin down here. I can hold. I can't push. |
+| Squads rejoined | **Castle:** Morgan, how's the line? **Morgan:** Back together. Ready when you are. |
 
 The first row is in the game, as the battle-radio model's field-command relay
 (`battle-radio-nouns.md`): when several squads are retasked together and she
@@ -827,16 +742,16 @@ battle fact the net does not observe yet (company landed, compound captured,
 company strength, squads reassembled).
 
 Owner call 6 reaches past the opening. Counterattack, Open the Junction and
-Thunder Run no longer name their fees in Mara's voice. Thunder Run's per-carrier
+Thunder Run no longer name their fees in Zoey's voice. Thunder Run's per-carrier
 schedule is a term the player needs, so it follows her briefing as a plain
 **Terms:** line rather than as something she says.
 
 ## Still open
 
-- Sabine's landing, capture, strength and regroup reports, each once the net
+- Morgan's landing, capture, strength and regroup reports, each once the net
   can observe its fact.
 
-Sabine has a voice (`art-source/audio/sabine/README.md`): calm and low, without
+Morgan has a voice (`art-source/audio/sabine/README.md`): calm and low, without
 the Eastern European accent the brief asked for, which the recording model does
 not keep. Her Relief briefing turn is recorded. Her muster lines and the
 assignment line stay written, because the exchanges they sit in are written

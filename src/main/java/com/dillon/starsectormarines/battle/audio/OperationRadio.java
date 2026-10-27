@@ -401,7 +401,7 @@ public final class OperationRadio {
     public boolean busy() { return current != null || !sequence.isEmpty(); }
     public Transmission current() { return current; }
 
-    /** Mara and host teardown preempt incidental speech. Observed orders remain consumed. */
+    /** Zoey and host teardown preempt incidental speech. Observed orders remain consumed. */
     public void stop() {
         if (sound != null) sound.stop();
         sound = null;

@@ -68,13 +68,13 @@ class CompanyPreparationResumeTest {
                     "getEconomy", stub(EconomyAPI.class, Map.of("getMarket", market)))));
             CerberusCompanyStart.establishDepot(stub(FleetMemberAPI.class, Map.of("getId", "starter")), market);
             var roster = new MarineRoster();
-            var sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+            var sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
             roster.add(sabine); roster.beginCompanyPreparation(sabine);
             assertCaptured(roster, ScreenId.SHIP_TRANSFER);
             roster.setCompanyShip("starter", "Second Wind", 75);
             roster.boatDeck().registerFoundingWrecks("starter");
             roster.boatDeck().reconcile("starter", ShuttleType.HERMES, 1);
-            // The company rides up to Relief on Wayline's truck: Sabine and her squad come straight after the ship.
+            // The company rides up to Relief on Wayline's truck: Morgan and her squad come straight after the ship.
             assertCaptured(roster, ScreenId.BARRACKS);
             var normal = new PreparationGuide.Lesson(1, "MUSTER OUR FIRST SQUAD", "Found the squad.", List.of(), null, null);
             Map<String, Integer> original = CerberusCompanyStart.depot().stock();
@@ -140,7 +140,7 @@ class CompanyPreparationResumeTest {
     @Test void establishedAndLegacyOfficerOnlyCompaniesKeepTheirRoutes() {
         var roster = new MarineRoster();
         for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
-        var sabine = new MarineCaptain("Sabine Hale", null, Rank.LIEUTENANT, 0);
+        var sabine = new MarineCaptain("Morgan Hale", null, Rank.LIEUTENANT, 0);
         roster.add(sabine); roster.beginOfficerInduction(sabine);
         for (ScreenId id : ScreenId.values()) assertEquals(id, CompanyPreparationRoute.resolve(id, roster, false));
     }

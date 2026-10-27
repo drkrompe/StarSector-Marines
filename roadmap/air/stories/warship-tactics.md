@@ -61,7 +61,7 @@ class matchup, read against the hulls' own manoeuvre clocks).
 
 | Matchup | Kill time | Hit share | Paper kill (base game) | Victim's 90° turn | Victim crosses own length |
 | --- | --- | --- | --- | --- | --- |
-| Wolf (Rusk) mirror | 22 s | 100% | 6.6 s | 13.7 s | 24.8 s |
+| Wolf (Dormer) mirror | 22 s | 100% | 6.6 s | 13.7 s | 24.8 s |
 | Wolf vs Hound (P) | 8.8 s, Hound fired 0 rounds | 81% | 12.7 s | 11.9 s | 18.9 s |
 | Hound mirror | unresolved at 300 s, each gun lost 0.6 s after the first hit, hulls overlapped | 100% | 9.8 s | 11.9 s | 18.9 s |
 | Venture (Greyhook) vs Wolf | 32.5 s (Wolf) | 96% | 10 s | 13.7 s | 24.8 s |
@@ -251,7 +251,7 @@ Read with the manoeuvres of slice 2 in place:
 | first Hound down after the first hit | 8.4-9.1s | 7.8-13.1s | 8.3-13.1s |
 
 The asymmetric frigate and destroyer matchups now take at least three of the victim's turns, which is the target.
-The Hounds are not saved by the clock: the Rusk Wolf's Antimatter Blaster (2,400 energy in one shot) and its two
+The Hounds are not saved by the clock: the Dormer Wolf's Antimatter Blaster (2,400 energy in one shot) and its two
 Harpoons (750 each) against a Hound's 2,000 hull and 400 armour is the base game's alpha, and a tempo changes how often
 that blow lands, not what it does. Mirrors of shielded equals do not resolve in the window at any tempo: with
 manoeuvres a ship fires only on its runs, extends and comes about on time, and an equal's shield dissipates between
@@ -319,7 +319,7 @@ Black Sluice, the same five seeds (before the change in brackets):
 | 20261016 | 172.1s (173.7s) | 4622 / 3955 (4668 / 3394) | 1 / 0 (1 / 0) | 8.0s (10.3s) |
 | 31337 | 177.6s (162.7s) | 6000 / 4293 (3550 / 4675) | 1 / 0 (1 / 0) | 9.6s (9.8s) |
 
-Losses are unchanged at every seed and the fight runs longer. The first Hound still goes to the Rusk Wolf's alpha; it
+Losses are unchanged at every seed and the fight runs longer. The first Hound still goes to the Dormer Wolf's alpha; it
 fell earlier at two seeds and later at one. The pressing and come-about controls leave the shipped run exactly as it
 is, and the hardpoint-sight control moves the first-Hound times by about a second either way, so the difference is
 mostly the Wolfs keeping their bows on in the standoff rather than turning away between runs.
@@ -523,7 +523,7 @@ exception, decided here: the old tank turns its stern in reach only once its par
 target, so the target's choice has somewhere better to go. Fights to the death are unchanged: a vent leaves the
 fight's reach but not the fight. A one-on-one stays a duel.
 
-Measured on `warship-tactics`: two of Rusk's Wolfs against a Venture (the Greyhook's fit) and against an Enforcer,
+Measured on `warship-tactics`: two of Dormer's Wolfs against a Venture (the Greyhook's fit) and against an Enforcer,
 each from three openings (the target's start swung north, centre, south), each against a control loop with the relay
 off. Verdicts (all pass): the pack swaps; once turned away, the venting ship is the target's target for at most half
 its vent (28-42%); and the pack spends less of the fight within a tenth of overload than the control. The handover
@@ -553,7 +553,7 @@ changes, so they are readings: while the threat rule was being shaped, the centr
 seconds under one version of it and won in 512 under another.
 
 **In the Black Sluice duel the relay turns a lost fight into an unresolved one, and that fails its verdict.** Measured
-on `greyhook-duel` after the Black Sluice rebalance (Hounds gone, Rusk's Wolfs refit), five seeds, relay on against
+on `greyhook-duel` after the Black Sluice rebalance (Hounds gone, Dormer's Wolfs refit), five seeds, relay on against
 `-Dbattle.warship.packRelay=false`:
 
 | seed | control: decided, Greyhook hull, Wolfs down at | relay: at 897s, Greyhook / Wolf hull | damage to Greyhook side / to Wolfs (control; relay) | hull damage to Greyhook / to Wolfs (control; relay) |
@@ -654,7 +654,7 @@ The Greyhook never takes an Enforcer's hull: her kinetic Heavy Autocannons glanc
 
 ### A mismatched pack, and Black Sluice with an Enforcer and a Wolf
 
-Rusk's pair at Black Sluice became one Enforcer and one Wolf (`a-small-war.md`; `warship-behaviours.md`, Rusk's
+Dormer's pair at Black Sluice became one Enforcer and one Wolf (`a-small-war.md`; `warship-behaviours.md`, Dormer's
 Enforcer and Wolf), which showed two places the relay and the target choice assumed hulls of a kind. Both fixes are
 general.
 
@@ -779,8 +779,8 @@ automatic shield simply was not up yet at rest.
   004/007 and drop the PD claim"). The two PD lasers there sat in fixed-forward hardpoints (arc 5) and engaged once
   in a whole fight. One of each, as a salvage captain would keep: the Sabot works a shield toward lockout, the Harpoon
   is the finisher for it; both are vanilla small racks (4 OP each), so she stands at 63 of the Venture's 115 OP. Her
-  Sabots outreach both sides' guns and open the fight about 41 s after the order, before Rusk is in gun range, so the
-  duel's radio now hears Rusk closing when the first hull fire comes first; the run, timed from the first hull fire,
+  Sabots outreach both sides' guns and open the fight about 41 s after the order, before Dormer is in gun range, so the
+  duel's radio now hears Dormer closing when the first hull fire comes first; the run, timed from the first hull fire,
   comes about 20 s sooner.
 
 `warship-missile-exchange`, restraint against its control (500 s; all verdicts green, the new
@@ -866,13 +866,13 @@ ahead.
 | friendly fire, share of hull hits | 0.1–2.6% / 0 | 0 / 0 | 0.6% / 0 |
 | rounds stopped by a hull they were not fired at | 2–28 / 0 | 0 / 0 | 60 / 0 |
 | hits on escorts | 0 / 0 | 290 / 160 | — |
-| mount-seconds held for a friend in the line | 31–538 (Rusk's pair) / 0 | 669 / 0 | 260 / 0 |
-| Rusk ships lost | 0, 1, 0, 1, 1 / none | — | — |
+| mount-seconds held for a friend in the line | 31–538 (Dormer's pair) / 0 | 669 / 0 | 260 / 0 |
+| Dormer ships lost | 0, 1, 0, 1, 1 / none | — | — |
 
-At Black Sluice only Rusk's pair holds fire: an Enforcer and a Wolf on one hull lay lines across each other. The
+At Black Sluice only Dormer's pair holds fire: an Enforcer and a Wolf on one hull lay lines across each other. The
 check reads the line at the moment of firing, so a friend moving into a round's path in flight, a round carrying on
 past its target and a guided missile's weave can all still find a friend; which of them makes up the 0.1-2.6% is not
-yet measured. Rusk's hull damage taken roughly
+yet measured. Dormer's hull damage taken roughly
 doubles (1,417–1,500 against 696–1,089) and he now loses a ship on three seeds of five; the Greyhook still falls on every
 seed. In `pack-vs-escorted` the escorts take the pin's fire on their plate and both die where the control lost none.
 A screen's charge loses the guns that bear through it, and no helm station moves to reopen a line: that is the open

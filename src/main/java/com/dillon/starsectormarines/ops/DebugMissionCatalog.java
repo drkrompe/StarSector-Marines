@@ -44,7 +44,7 @@ public final class DebugMissionCatalog {
     private static final String PREFIX = "debug:story:";
     public enum Scenario {
         RELIEF("Wayline", "Hold Until Relieved", "Reinforce the freight checkpoint against road attacks.", 1, false),
-        COUNTERATTACK("Wayline", "Take Back the Depot", "Recover Wayward, capture dispatch and hold against two counterattacks.", 1, false),
+        COUNTERATTACK("Wayline", "Take Back the Depot", "Recover the Hound, capture dispatch and hold against two counterattacks.", 1, false),
         JUNCTION("Broken Supply Route", "Open the Junction", "Capture the three road posts while militia hold your gains.", 2, true),
         LAST_LIFT("Shelved concepts", "Last Lift concept", "Escort and board a civilian manifest; later campaign placement and designation undecided.", 2, true),
         RELAY_NINE("Battlefield fixtures", "Relay Nine", "Capture-and-hold map used by recurring Route Security.", 2, true),
@@ -190,7 +190,7 @@ public final class DebugMissionCatalog {
                     .requiredDrops(squads * 2).employerShuttles(0)
                     .marineArrivalPolicy(this == COLD_START || this == RELIEF ? MarineArrivalPolicy.SECURED_GROUND : MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                     .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
-                    .requirements(squads + (this == WORKING_PASSAGE ? " squads / service pulse rifles / starting Ward armor / no Hound or officer bonuses" : " starter squads" + (hound ? " + Wayward (chaingun)" : "")) + "; preset boats supplied")
+                    .requirements(squads + (this == WORKING_PASSAGE ? " squads / service pulse rifles / starting Ward armor / no Hound or officer bonuses" : " starter squads" + (hound ? " + the Hound (chaingun)" : "")) + "; preset boats supplied")
                     .battleSeed(chapter != null ? chapter.mission("unused", chapter.planetName, "").battleSeed
                             : ravBloom() ? RavBloomDebugChoice.seed(poolMap())
                             : 8101L + (this == DEPOT_CLEARANCE ? COUNTERATTACK.ordinal() : ordinal()) * 101).build();

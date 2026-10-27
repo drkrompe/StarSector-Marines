@@ -21,19 +21,19 @@ import java.util.List;
  * The duel over Black Sluice ({@code warship-behaviours.md}, ship against ship). The <i>Greyhook</i>, Voss's Venture,
  * sits landed alone in the cradle south of the ridge from the start, quiet: she fires at nothing on the ground, and the
  * battle's hull fire is held until Voss's withdrawal beat ({@link HullFireHold#untilBeat}). When Voss orders the site
- * abandoned, the <i>Greyhook</i> lifts and turns to fight: Rusk's ships are faster than she is, so she does not run at
- * once. She fights under the ordinary warship doctrine and tactics, and the pair the Rusk family has lent
- * ({@link #RUSK_PAIR}: a Hegemony Enforcer and Rusk's own Wolf) fly in across the west edge, already under way on a
+ * abandoned, the <i>Greyhook</i> lifts and turns to fight: Dormer's ships are faster than she is, so she does not run at
+ * once. She fights under the ordinary warship doctrine and tactics, and the pair the Dormer family has lent
+ * ({@link #RUSK_PAIR}: a Hegemony Enforcer and Dormer's own Wolf) fly in across the west edge, already under way on a
  * heading east, on a visit nobody can command. Two bow-fighting hulls on one target fight it as a pack relay
  * ({@code warship-tactics.md}, slice 7): the sturdier Enforcer holds her eye and the Wolf strikes from her quarter.
  * Each lent hull carries its own refit ({@link RuskHull#refit}), the one thing this mission tunes on them.
  *
  * <p>The fight has an ending, and it is Voss's call ({@link BreakOff}): {@link #breakOffSeconds} after the first hull
- * fire, or sooner if her hull falls under {@link #BREAK_OFF_HULL} or nothing of Rusk's is left to stop her, Voss orders
- * the run, and the <i>Greyhook</i> flies out across her own edge ({@link #GREYHOOK_EDGE}, south) with Rusk's ships on her,
+ * fire, or sooner if her hull falls under {@link #BREAK_OFF_HULL} or nothing of Dormer's is left to stop her, Voss orders
+ * the run, and the <i>Greyhook</i> flies out across her own edge ({@link #GREYHOOK_EDGE}, south) with Dormer's ships on her,
  * answering what is in reach as she goes. She gets off the map or she is shot down onto the basin, a falling wreck
  * that strikes and skids to rest. That is the only way any hull of the duel leaves: every hull holds the field
- * ({@link Warship#holdTheField}), so no doctrine withdraws one and no visit ends, and Rusk's ships stay over the battle
+ * ({@link Warship#holdTheField}), so no doctrine withdraws one and no visit ends, and Dormer's ships stay over the battle
  * once she is gone. The battle is held open until her part has concluded ({@link WarshipSystem#concludeBeforeBattleEnds}):
  * a ground fight that finishes first waits for her escape or her wreck. Nothing warps in or out, and no area is
  * declared for the fight, which goes where the fighting takes it, kept off the map's edges only by the standing edge
@@ -51,14 +51,14 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     /** The Venture and her fitting: her guns, a Harpoon and a Sabot rack in her two small hardpoints, no wing. */
     static final String GREYHOOK_HULL = "venture", GREYHOOK_VARIANT = "venture_Greyhook";
     /**
-     * Rusk's refit: capacity and dissipation raised together (the guns and the shield draw on the one pool) by a
+     * Dormer's refit: capacity and dissipation raised together (the guns and the shield draw on the one pool) by a
      * quarter, the shield's upkeep cut by a quarter and each absorbed point costing a fifth less flux, and the arc
      * widened by twenty degrees. No gun, plate or hull figure changes. Written for his hunting Wolfs, it now rides on
      * his Enforcer ({@link #ENFORCER}).
      */
-    public static final HullRefit RUSK_REFIT = new HullRefit("Rusk's hunter refit", 1.25f, 1.25f, 20f, 0.75f, 0.8f);
+    public static final HullRefit RUSK_REFIT = new HullRefit("Dormer's hunter refit", 1.25f, 1.25f, 20f, 0.75f, 0.8f);
     /**
-     * One of the hulls Rusk lends: what the radio and the captions call it, its hull and fitting, and the refit it
+     * One of the hulls Dormer lends: what the radio and the captions call it, its hull and fitting, and the refit it
      * flies in.
      */
     public record RuskHull(String name, String hullId, String variantId, HullRefit refit) {
@@ -74,23 +74,23 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         }
     }
     /**
-     * Rusk's Enforcer: the base game's own Balanced Enforcer, one of the Hegemony's stock medium-combat fits
+     * Dormer's Enforcer: the base game's own Balanced Enforcer, one of the Hegemony's stock medium-combat fits
      * (Arbalests and Heavy Mortars on the turrets, Harpoons and Reapers in the racks), fitted as Hegemony line ships
-     * are, in Rusk's refit. Nine hundred of armour that her autocannons glance off makes it the pair's anvil: the
+     * are, in Dormer's refit. Nine hundred of armour that her autocannons glance off makes it the pair's anvil: the
      * relay's tank, holding her eye from nearest. The refit is what lets it finish her: measured over the five duel
      * seeds, without it the Enforcer has to break off to vent, she kills the Wolf on four of them, and the lone Enforcer
      * cannot finish her inside the twenty-five-minute bound.
      */
     public static final RuskHull ENFORCER = new RuskHull("Enforcer", "enforcer", "enforcer_Balanced", RUSK_REFIT);
     /**
-     * Rusk's Wolf: his own hunter fitting ({@code wolf_hegemony_Rusk}: an Antimatter Blaster, a pulse laser, Harpoons)
+     * Dormer's Wolf: his own hunter fitting ({@code wolf_hegemony_Rusk}: an Antimatter Blaster, a pulse laser, Harpoons)
      * as fitted, with no refit: the frigate that darts in on her quarter while the Enforcer holds her eye, and the one
      * hull of the pair her autocannons bite. In the hunter refit it ended at 68 to 97 percent of its hull over the five
      * duel seeds; as fitted it is the hull at risk.
      */
     public static final RuskHull WOLF = new RuskHull("Wolf", "wolf_hegemony", "wolf_hegemony_Rusk", HullRefit.NONE);
     /**
-     * The pair Rusk's family lends (owner, 2026-10-19: "We don't need this to be an even fight. We could have an
+     * The pair Dormer's family lends (owner, 2026-10-19: "We don't need this to be an even fight. We could have an
      * enforcer and a wolf even"): one Enforcer and one Wolf, flying in at {@link #RUSK_ENTRY_ALONG} in this order.
      */
     public static final List<RuskHull> RUSK_PAIR = List.of(ENFORCER, WOLF);
@@ -112,18 +112,18 @@ public final class BlackSluiceDuel implements SmallWarDuel {
      */
     static final float RIG_X = BlackSluice.VENTURE_CRADLE.x(), RIG_Y = BlackSluice.VENTURE_CRADLE.y();
     /**
-     * Rusk's edge: west, the side the company landed on and the far side of the basin from the pads, so their
+     * Dormer's edge: west, the side the company landed on and the far side of the basin from the pads, so their
      * whole approach is in sight before a gun bears.
      */
     public static final MapEdge RUSK_EDGE = MapEdge.WEST;
     /**
-     * Where along the west edge Rusk's hulls fly in, in {@link #RUSK_PAIR} order: either side of a line a little north of the pads, clear of the
+     * Where along the west edge Dormer's hulls fly in, in {@link #RUSK_PAIR} order: either side of a line a little north of the pads, clear of the
      * south edge's margin, so they come straight on across the basin rather than turning off the edge.
      */
     static final float[] RUSK_ENTRY_ALONG = {84f + 22f, 84f - 22f};
     /**
      * The Greyhook's edge: south, over her own pads and the salt flats beyond them, away from the ground fight and
-     * square to Rusk's line of approach, so the run shows her flank to his guns the whole way. She leaves across it
+     * square to Dormer's line of approach, so the run shows her flank to his guns the whole way. She leaves across it
      * and no other way. East (her side's ground: dispatch, the berth yard, the berth road) was measured first: the
      * fight sits about three hundred cells in, where the Enforcer's reach meets hers, a hundred and sixty cells and
      * nearly four minutes of flying from the east edge, so the duel ran five to six minutes past the first hit. The
@@ -138,7 +138,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         ORDERED,
         /** Her hull fell under {@link #BREAK_OFF_HULL}. */
         CRIPPLED,
-        /** Nothing of Rusk's is left over the battle to stop her, or no hull fire came at all. */
+        /** Nothing of Dormer's is left over the battle to stop her, or no hull fire came at all. */
         UNOPPOSED
     }
     /**
@@ -153,15 +153,15 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     public static final float BREAK_OFF_HULL = 0.5f;
     /** Seconds after the order with no hull fire at all before she leaves anyway: nobody came to stop her. */
     static final float NO_CONTACT_SECONDS = 150f;
-    /** Rusk's entry heading: due east, in the hull-facing convention. */
+    /** Dormer's entry heading: due east, in the hull-facing convention. */
     static final float RUSK_HEADING = 270f;
     /**
      * Where the Greyhook's lift run turns toward: over the middle of the station, north-west of the
-     * cradle and toward Rusk's side, clear of the south edge's margin. Where they go from there is their doctrine's.
+     * cradle and toward Dormer's side, clear of the south edge's margin. Where they go from there is their doctrine's.
      */
     static final float LIFT_TOWARD_X = BlackSluice.APPROACH + 150f, LIFT_TOWARD_Y = 98f;
     /**
-     * One of Rusk's hulls this many times its own reach from a Greyhook hull is closing: the radio says so. An
+     * One of Dormer's hulls this many times its own reach from a Greyhook hull is closing: the radio says so. An
      * Enforcer's reach is long enough that a wider share would hear it closing the moment it crosses the edge, with
      * the sighting.
      */
@@ -189,19 +189,19 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     private BreakOff breakOff = BreakOff.NONE;
     private boolean sighted, closing, fired, firstDown, greyhookDown, greyhookEscaped, ruskDown;
 
-    /** The chapter's duel: Rusk's Enforcer and Wolf, each in its own refit, the Greyhook in hers. */
+    /** The chapter's duel: Dormer's Enforcer and Wolf, each in its own refit, the Greyhook in hers. */
     public BlackSluiceDuel() {
         this(GREYHOOK_VARIANT, RUSK_PAIR, GREYHOOK_REFIT);
     }
 
     /**
      * The duel with other hulls, fittings or refits on either side, for a tuning diagnostic; the chapter plays the
-     * {@linkplain #BlackSluiceDuel() default}. Rusk's hulls fly in at {@link #RUSK_ENTRY_ALONG} in list order, at most
+     * {@linkplain #BlackSluiceDuel() default}. Dormer's hulls fly in at {@link #RUSK_ENTRY_ALONG} in list order, at most
      * one per entry.
      */
     BlackSluiceDuel(String greyhookVariant, List<RuskHull> pair, HullRefit greyhookRefit) {
         if (pair.isEmpty() || pair.size() > RUSK_ENTRY_ALONG.length) {
-            throw new IllegalArgumentException("Rusk lends one to " + RUSK_ENTRY_ALONG.length + " hulls, not " + pair.size());
+            throw new IllegalArgumentException("Dormer lends one to " + RUSK_ENTRY_ALONG.length + " hulls, not " + pair.size());
         }
         this.greyhookVariant = greyhookVariant;
         this.pair = List.copyOf(pair);
@@ -262,7 +262,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
                 rusk.add(ship);
             }
         } catch (Exception e) {
-            LOG.warn("Black Sluice duel could not fit Rusk's hulls; the Greyhook holds the sky unopposed", e);
+            LOG.warn("Black Sluice duel could not fit Dormer's hulls; the Greyhook holds the sky unopposed", e);
             rusk.clear();
         }
         for (Warship ship : rusk) sim.addWarship(ship);
@@ -297,7 +297,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
 
     /**
      * Voss's call: once she has fought {@link #breakOffSeconds} from the first hull fire, or her hull is under
-     * {@link #BREAK_OFF_HULL}, or nothing of Rusk's is left to stop her, the Greyhook runs for her edge, fighting as
+     * {@link #BREAK_OFF_HULL}, or nothing of Dormer's is left to stop her, the Greyhook runs for her edge, fighting as
      * she goes. Called once a tick; it orders the run at most once.
      */
     private void breakOff(BattleSimulation sim) {
@@ -332,9 +332,9 @@ public final class BlackSluiceDuel implements SmallWarDuel {
     }
 
     /**
-     * The fight on the radio: Rusk's hulls sighted crossing the edge, closing on the Greyhook, the first hull fire, the
-     * first of Rusk's hulls going down while the Greyhook and another of his still fly, the Greyhook going down, and
-     * the last of Rusk's going down.
+     * The fight on the radio: Dormer's hulls sighted crossing the edge, closing on the Greyhook, the first hull fire, the
+     * first of Dormer's hulls going down while the Greyhook and another of his still fly, the Greyhook going down, and
+     * the last of Dormer's going down.
      */
     private void radio(BattleSimulation sim) {
         if (!sighted) {
@@ -386,11 +386,11 @@ public final class BlackSluiceDuel implements SmallWarDuel {
 
     /** The Greyhook, Voss's Venture, or {@code null} when none could be fitted. */
     public Warship greyhook() { return rig; }
-    /** Rusk's hulls once they have come, in {@link #RUSK_PAIR} order. */
+    /** Dormer's hulls once they have come, in {@link #RUSK_PAIR} order. */
     public List<Warship> rusk() { return List.copyOf(rusk); }
-    /** What the radio calls each of Rusk's hulls, in {@link #rusk()} order. */
+    /** What the radio calls each of Dormer's hulls, in {@link #rusk()} order. */
     public List<RuskHull> pair() { return pair; }
-    /** Every hull of the duel: the Greyhook, and Rusk's once they have come. */
+    /** Every hull of the duel: the Greyhook, and Dormer's once they have come. */
     public List<Warship> hulls() {
         List<Warship> out = new ArrayList<>();
         if (rig != null) out.add(rig);
@@ -434,7 +434,7 @@ public final class BlackSluiceDuel implements SmallWarDuel {
         return Strings.get("blackSluiceDuelStateBarelyFlying");
     }
 
-    /** One clause per lent hull, by name: "Rusk's Enforcer was still overhead, scarred; his Wolf was shot down." */
+    /** One clause per lent hull, by name: "Dormer's Enforcer was still overhead, scarred; his Wolf was shot down." */
     private String ruskLine() {
         List<String> parts = new ArrayList<>();
         for (int i = 0; i < rusk.size(); i++) {

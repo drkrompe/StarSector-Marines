@@ -30,7 +30,7 @@ import java.nio.file.Path;
 import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Opt-in, actual boats and one campaign squad: detour to Wayward versus ordinary advance. */
+/** Opt-in, actual boats and one campaign squad: detour to the Hound versus ordinary advance. */
 @Tag("counterattack-command-evidence")
 class DepotHoldEvidenceTest {
     @Test void playWarehouseDefenseWithTwelveCompanyTroopsAndSixMilitia() throws Exception {
@@ -71,7 +71,7 @@ class DepotHoldEvidenceTest {
                         sim.handoffSquadCommand(ordered, "depot-review", CommandAuthority.MISSION_COMMAND,
                                 OpeningOperationCommand.issuer(Faction.MARINE), null, "Join the warehouse assault");
                         handedBack = true;
-                        ImageIO.write(renderer.render(sim, name + " / Wayward online / observer view"), "png", out.resolve(name + "-hound.png").toFile());
+                        ImageIO.write(renderer.render(sim, name + " / the Hound online / observer view"), "png", out.resolve(name + "-hound.png").toFile());
                     }
                     for (int i = 0; i < sim.liveUnitCount(); i++) {
                         long id = sim.liveUnitAt(i);
@@ -194,7 +194,7 @@ class DepotHoldEvidenceTest {
                     assertTrue(everyLivingMilitiaGathered, "every living militiaman must reach the warehouse defense");
                     assertTrue(militiaDefenseShots > 0, "militia must contribute fire during the defense");
                 }
-                if (recover) assertTrue(handedBack, "the real arriving squad must be able to commission Wayward");
+                if (recover) assertTrue(handedBack, "the real arriving squad must be able to commission the Hound");
             }
         }
     }

@@ -67,7 +67,7 @@ class BlindWatchSequenceTest {
         var watch = a.watch = a.sim.installBlindWatch(SITES, a.charges, BlindWatchSequence.riggerSpecs(2), false);
         assertTrue(watch.mastSees(a.sim.getGrid(), Faction.DEFENDER, 70.5f, 2.5f), "inside its reach, on open ground");
         assertFalse(watch.mastSees(a.sim.getGrid(), Faction.DEFENDER, 20.5f, 2.5f), "beyond its reach");
-        assertFalse(watch.mastSees(a.sim.getGrid(), Faction.MARINE, 70.5f, 2.5f), "it watches for Sable Wake only");
+        assertFalse(watch.mastSees(a.sim.getGrid(), Faction.MARINE, 70.5f, 2.5f), "it watches for Sable only");
         a.sim.getGrid().setWalkable(80, 2, false);
         a.sim.getGrid().setSeeThrough(80, 2, false);
         assertFalse(watch.mastSees(a.sim.getGrid(), Faction.DEFENDER, 70.5f, 2.5f), "not through a wall");

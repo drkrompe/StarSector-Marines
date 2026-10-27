@@ -10,7 +10,7 @@ The runtime catalog is `mod/data/marines/company_officer_narration.json`.
 It keeps clean subtitles separate from emotional synthesis directions. There
 are two takes for each of contact, fallback, check fire, enemy mech spotted,
 and confirmed enemy down. These are short command responses to squad reports,
-not squad voice replacements. Mara remains the mission contact.
+not squad voice replacements. Zoey remains the mission contact.
 
 The officer speaks from the command ship to deployed ground teams. The player
 normally oversees the deployment aboard that ship; generic warnings must not
@@ -30,7 +30,7 @@ Use repeatable `--line SOUND_ID` for selected lines; replacing changed existing
 recordings additionally requires `--replace`. Generation is paid authoring work,
 never part of a build. Credentials stay in the author's environment. Each MP3
 is the clean source take with an adjacent JSON hash/duration/provider receipt.
-The same command defaults to Mara's Wayline catalog without changing her takes.
+The same command defaults to Zoey's Wayline catalog without changing her takes.
 
 ## Consistent comms
 

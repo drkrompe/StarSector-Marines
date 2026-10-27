@@ -93,7 +93,7 @@ class MissionFlowLocalizationTest {
     }
 
     @Test void translationReachesTheMissionFlowWhileNamesPassThrough() throws Exception {
-        String officerName = "Sabine's {Second} Hale";
+        String officerName = "Morgan's {Second} Hale";
         String placeName = "Morrow's {Yard}";
         try (var strings = new HeadlessStrings(Path.of("mod"), text -> "«" + text + "»")) {
             assertTrue(FieldPresencePolicy.UNRESTRICTED.briefingText().startsWith("«"));

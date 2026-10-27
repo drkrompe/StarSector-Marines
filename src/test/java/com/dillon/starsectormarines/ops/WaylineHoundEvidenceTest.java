@@ -120,7 +120,7 @@ class WaylineHoundEvidenceTest {
             var recovery = sim.getWaylineHound();
             var renderer = new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080,
                     CounterattackDepot.HOUND_X, CounterattackDepot.HOUND_Y, 72);
-            ImageIO.write(renderer.render(sim, "COUNTERATTACK / Wayward offline in the maintenance berth"),
+            ImageIO.write(renderer.render(sim, "COUNTERATTACK / the Hound offline in the maintenance berth"),
                     "png", OUTPUT.resolve("01-offline.png").toFile());
             int ordered = -1;
             for (int t = 0; t < 9000 && !sim.isComplete() && recovery.mechId() == 0; t++) {
@@ -133,7 +133,7 @@ class WaylineHoundEvidenceTest {
                     ordered = squad.id;
                 }
             }
-            ImageIO.write(renderer.render(sim, "COUNTERATTACK / company secures Wayward"),
+            ImageIO.write(renderer.render(sim, "COUNTERATTACK / company secures the Hound"),
                     "png", OUTPUT.resolve("02-recovery.png").toFile());
             assertNotEquals(0, recovery.mechId(), "real company arrival must be able to reach and secure the berth");
             long mech = recovery.mechId();
@@ -150,7 +150,7 @@ class WaylineHoundEvidenceTest {
                 sim.advance(BattleSimulation.TICK_DT);
                 for (var shot : sim.getShotsThisFrame()) if (shot.shooterId == mech) shots++;
             }
-            ImageIO.write(renderer.render(sim, "COUNTERATTACK / Wayward rejoins the depot advance"),
+            ImageIO.write(renderer.render(sim, "COUNTERATTACK / the Hound rejoins the depot advance"),
                     "png", OUTPUT.resolve("03-advance.png").toFile());
             var order = sim.getSquad(sim.squad().squadId(mech)).assignmentForExecution();
             assertNotNull(order, "handback must retain an executable mission order");
@@ -207,7 +207,7 @@ class WaylineHoundEvidenceTest {
                 reports.put(new JSONObject().put("mission", mission.name).put("arrivalTick", sim.getSimTickIndex())
                         .put("commander", directive.issuer()).put("order", directive.assignment().kind().name()));
                 if (kind == 1) ImageIO.write(new BattleReviewFrameRenderer(Path.of("mod"), 1920, 1080)
-                        .render(sim, "OPEN THE JUNCTION / recovered Wayward arrives by employer heavy lift"),
+                        .render(sim, "OPEN THE JUNCTION / recovered the Hound arrives by employer heavy lift"),
                         "png", OUTPUT.resolve("04-later-deployment.png").toFile());
             }
         }

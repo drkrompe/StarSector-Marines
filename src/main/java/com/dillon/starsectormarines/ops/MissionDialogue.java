@@ -162,7 +162,7 @@ public final class MissionDialogue {
         String name = speaker == null ? "" : speaker.split("/", 2)[0].strip().toLowerCase(Locale.ROOT);
         return switch (name) {
             case "vale", "tamsin vale", "@dialoguespeakervale", "@dialoguespeakertamsinvale" -> "vale";
-            case "mara", "mara venn", "@dialoguespeakermaravenn" -> "mara";
+            case "mara", "mara venn", "zoey", "zoey venn", "@dialoguespeakermaravenn" -> "mara";
             case "rill", "dr. rill", "doctor rill", "@dialoguespeakerdrrill" -> "rill";
             case "iona", "iona serr", "@dialoguespeakerionaserr" -> "iona";
             case "@dialoguespeakercastle" -> "castle";

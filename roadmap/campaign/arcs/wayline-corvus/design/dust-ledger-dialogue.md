@@ -7,10 +7,10 @@ Written: 2026-10-25
 ## How to read this script
 
 The chronological register for **The Dust Ledger** at Saltwell Cross on Asharu:
-Mara and Castle's briefing, field calls, alarm and ledger barks, and the debrief
+Zoey and Castle's briefing, field calls, alarm and ledger barks, and the debrief
 variants. `dust-ledger-crossing.md` owns the mission rules; this file owns what
-is said. Mara is Wayline's tired, businesslike acting head; Castle is dry and
-terse and treats quiet as a resource. Sabine Hale speaks only in field calls
+is said. Zoey is Wayline's tired, businesslike acting head; Castle is dry and
+terse and treats quiet as a resource. Morgan Hale speaks only in field calls
 about ground she can see. Tone and scale follow `shepherd-recovery-dialogue.md`:
 a small, local job on a world nobody governs, not a war.
 
@@ -21,8 +21,8 @@ and `voiced: false`. The catalog is the runtime source; nothing here is wired.
 ## Names settled
 
 - **Saltwell Cross** — the trading post (kept from the placeholder).
-- **Oskar Teague** — Sable Wake's broker (the placeholder "Vey" read too close to Venn and Vale).
-- **Anneke Harrow** — leads the Harrow crew, a Wayline account stranded on the crawler road. (Not "Pell", too close to Prell.)
+- **Oskar Teague** — Sable's broker (the placeholder "Vey" read too close to Venn and Vale).
+- **Anneke Harrow** — leads the Harrow crew, a Wayline account stranded on the crawler road. (Not "Reed", too close to Prell.)
 - **Tobias Ankrum** — Saltwell Cross's market warden. Speaks for the town only.
 
 ## Facts every variant keeps
@@ -35,52 +35,52 @@ authority and the Warion listening post are named in every victory debrief.
 
 ## Briefing (`briefing.01`–`briefing.14`, mission `story_corvus_dust_ledger`)
 
-Mara (01, 03, 05, 07, 09, 11) and Castle (02, 04, 06, 08, 10, 12) alternate:
+Zoey (01, 03, 05, 07, 09, 11) and Castle (02, 04, 06, 08, 10, 12) alternate:
 the post and the broker; who might stop us; the Hegemony's indifference; the
 warden's price; the broker's lift-off; the burn rule; the two favours; the
-ledger and strongbox; orders. Keys `corvusDustLedgerBrief01`–`Brief14`. Turns 13 (Mara: gun nests, pillboxes, generator parts in Wayline's manifests but no word of where the current comes from) and 14 (Castle: find their power first; rockets or the Hound answer live nests; pillboxes by hand). The feed is a hidden side objective, so the briefing never names the tap or the box play after turn 08, so catalog order is 01–08, 13, 14, 09–12.
+ledger and strongbox; orders. Keys `corvusDustLedgerBrief01`–`Brief14`. Turns 13 (Zoey: gun nests, pillboxes, generator parts in Wayline's manifests but no word of where the current comes from) and 14 (Castle: find their power first; rockets or the Hound answer live nests; pillboxes by hand). The feed is a hidden side objective, so the briefing never names the tap or the box play after turn 08, so catalog order is 01–08, 13, 14, 09–12.
 
 ## Field calls (events `corvus.dust_ledger.*`)
 
 | Event | Speaker | Trigger |
 |---|---|---|
-| `harrow_crate` | Mara | the coupling crate is picked up |
-| `harrow_delivered` | Mara | the crate reaches the Harrow yard |
+| `harrow_crate` | Zoey | the coupling crate is picked up |
+| `harrow_delivered` | Zoey | the crate reaches the Harrow yard |
 | `warden_approach` | Castle | a squad leader nears the well house |
-| `warden_nod` | Mara | the stay at the well house completes |
+| `warden_nod` | Zoey | the stay at the well house completes |
 | `clock_short` | Castle | lift-off clock nearly out, once |
 | `alarm_shot` | Castle | alarm by a shot |
 | `alarm_sighted` | Castle | alarm by sentry sighting inside the ring |
-| `alarm_clock` | Mara | alarm by lift-off; broker gone |
-| `cantina_joins` | Sabine | alarm, warden's nod NOT earned |
-| `cantina_held` | Sabine | alarm, warden's nod earned |
+| `alarm_clock` | Zoey | alarm by lift-off; broker gone |
+| `cantina_joins` | Morgan | alarm, warden's nod NOT earned |
+| `cantina_held` | Morgan | alarm, warden's nod earned |
 | `ledger_burning` | Castle | burn starts (at alarm) |
 | `ledger_half` | Castle | burn reaches half |
 | `ledger_seized` | Castle | ledger room seized with books remaining |
-| `ledger_burned` | Mara | burn completes unseized |
+| `ledger_burned` | Zoey | burn completes unseized |
 | `salvage_team` | Castle | alarm, coupling delivered |
-| `spotters` | Sabine | alarm, warden's nod earned (yard revealed before alarm) |
+| `spotters` | Morgan | alarm, warden's nod earned (yard revealed before alarm) |
 | `feed_found` | Castle | a company combatant sights or reaches the junction box (first discovery) |
 | `feed_approach` | Castle | a squad starts working the junction box |
-| `feed_cut` | Mara | the tap is cut before the alarm |
+| `feed_cut` | Zoey | the tap is cut before the alarm |
 | `nests_dark` | Castle | alarm, feed was cut |
 | `feed_lapsed` | Castle | alarm, feed was not cut (nests live) |
 | `nest_destroyed` | Castle | a gun nest is destroyed |
 | `pillbox_contact` | Castle | first fire from a pillbox, once |
 | `broker_flees` | Castle | alarm, broker still on site |
-| `broker_surrendered` | Sabine | company unit reaches broker |
+| `broker_surrendered` | Morgan | company unit reaches broker |
 | `broker_lost` | Castle | held broker killed |
-| `broker_boarded` | Mara | broker reaches the skimmer pad |
-| `broker_apron` | Mara | held broker reaches the apron alive |
+| `broker_boarded` | Zoey | broker reaches the skimmer pad |
+| `broker_apron` | Zoey | held broker reaches the apron alive |
 
 Keys are `corvusDustLedgerField<Name>`.
 
 ## Debrief (victory only)
 
-Three turns: Castle `opening.<grade>`, Mara `finding.<grade>_<broker>`, Castle
+Three turns: Castle `opening.<grade>`, Zoey `finding.<grade>_<broker>`, Castle
 `close.<broker>`. Grade is the unburned share at seizure: `full` (little or none
 burned), `partial` (some burned, ledger seized), `strongbox` (ledger fully
 burned, strongbox only). Broker is `caught` (held and alive at the apron) or
 `escaped` (boarded, departed on the clock, or died in custody). All six
-`finding` lines name Teodor Prell's dispatch authority, the last batch dated the
+`finding` lines name Jack Prell's dispatch authority, the last batch dated the
 week he left, and the Warion listening post. Keys `corvusDustLedgerDebrief*`.
