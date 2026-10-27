@@ -63,10 +63,15 @@ def shot_table():
     text = text[:text.index('\n## ', 4)]
     rows, t = [], 0.0
     for line in text.splitlines():
-        m = re.match(r'\|\s*(S\d+[a-z]?)(?:\s*\*\*K\*\*)?\s*\|\s*([\d.]+)\s*s\s*\|\s*(.*?)\s*\|', line)
+        # a row may give its span in scene time, '31 s (-21 to 10)' (S0's pre-roll, S13): skipping it
+        # put every later shot 10 s early (S7's camera over S6c's action)
+        m = re.match(r'\|\s*(S\d+[a-z]?)(?:\s*\*\*K\*\*)?\s*\|\s*([\d.]+)\s*s\s*'
+                     r'(?:\(\s*(-?[\d.]+)\s*to\s*-?[\d.]+\s*\)\s*)?\|\s*(.*?)\s*\|', line)
         if not m:
             continue
-        desc = m.group(3)
+        if m.group(3) is not None:
+            t = float(m.group(3))
+        desc = m.group(4)
         b = re.match(r'\*\*(.+?)\*\*\s*(.*)', desc)
         title, caption = (b.group(1).rstrip('.'), b.group(2)) if b else (re.split(r'[:.] ', desc)[0], desc)
         rows.append(dict(id=m.group(1), dur=float(m.group(2)), title=title, caption=caption, start=t))
