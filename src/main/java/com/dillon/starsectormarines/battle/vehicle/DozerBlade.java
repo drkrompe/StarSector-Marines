@@ -45,6 +45,11 @@ public final class DozerBlade {
     public static final int MAX_PUSH_STRUCTURE = 100;
     /** Structure spent per second on each cell the blade bears on. A full ordinary wall goes in 1.25 s. */
     public static final float PUSH_PER_SECOND = 80f;
+    /**
+     * How wide the blade bears, cells: the painted blade, wider than the hull behind it, so the gap it cuts is one the
+     * hull drives through.
+     */
+    static final float BLADE_WIDTH_CELLS = 2.5f;
     /** How far past the hull's nose the blade bears, cells. */
     static final float REACH_CELLS = .6f;
     /** How far back from the nose the bearing strip starts, so a cell already touching the hull is still pushed. */
@@ -147,7 +152,7 @@ public final class DozerBlade {
                 });
         bearingCount = 0;
         VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees, stripOffset,
-                stripLength, type.visualWidthCells, grid, (x, y) -> {
+                stripLength, BLADE_WIDTH_CELLS, grid, (x, y) -> {
                     if (grades(grid, x, y)) grid.setTag(x, y, NavigationGrid.CellTag.CRASH_DEBRIS, false);
                     if (!canPush(grid, topology, doodads, x, y)) return;
                     if (bearingCount * 2 >= bearing.length) return;
@@ -217,7 +222,7 @@ public final class DozerBlade {
         float reach = OVERLAP_CELLS + body.speed * dt + CONTACT_CELLS;
         struckCount = 0;
         VehicleFootprint.forEachOverlappedCell(body.x, body.y, body.facingDegrees,
-                type.visualLengthCells * .5f - OVERLAP_CELLS + reach * .5f, reach, type.visualWidthCells, grid,
+                type.visualLengthCells * .5f - OVERLAP_CELLS + reach * .5f, reach, BLADE_WIDTH_CELLS, grid,
                 (x, y) -> {
                     if (!canPush(grid, topology, doodads, x, y) || struckCount * 2 >= struck.length) return;
                     struck[struckCount * 2] = x;

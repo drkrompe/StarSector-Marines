@@ -66,12 +66,14 @@ class SoftBrushTest {
         VehicleTerrainMotion.Result into = brush.sweep(new Pose(9f, 10.5f, 0f), new Pose(9.8f, 10.5f, 0f),
                 LIGHT, grid, false);
         assertTrue(into.blocked());
-        assertEquals(9.55f, into.pose().x, .02f);
+        // Its right side reaches the depth into the growth at x 10, and no further.
+        assertEquals(10f + SoftBrush.DEPTH_CELLS - LIGHT.visualWidthCells / 2f, into.pose().x, .02f);
 
         VehicleTerrainMotion.Result wall = brush.sweep(new Pose(7.5f, 10.5f, 0f), new Pose(6.5f, 10.5f, 0f),
                 LIGHT, grid, false);
         assertTrue(wall.blocked());
-        assertEquals(6.75f, wall.pose().x, .02f);
+        // Its left side stops on the wall's face at x 6.
+        assertEquals(6f + LIGHT.visualWidthCells / 2f, wall.pose().x, .02f);
     }
 
     @Test

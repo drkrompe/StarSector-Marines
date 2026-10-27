@@ -183,10 +183,10 @@ public class VehicleClearanceTest {
     }
 
     @Test
-    public void radiusForWidthRoundsHalfWidth() {
-        assertEquals(1, VehicleClearance.radiusForWidth(1.4f)); // HEAVY_APC width → round(0.7)=1
-        assertEquals(0, VehicleClearance.radiusForWidth(0.8f)); // round(0.4)=0
+    public void radiusForWidthRoundsHalfWidthAndKeepsACellEitherSide() {
+        assertEquals(1, VehicleClearance.radiusForWidth(1.4f)); // round(0.7)=1
+        assertEquals(1, VehicleClearance.radiusForWidth(0.8f)); // round(0.4)=0, floored: room to turn
         assertEquals(1, VehicleClearance.radiusForWidth(2.0f)); // round(1.0)=1
-        assertEquals(0, VehicleClearance.radiusForWidth(0f));
+        assertEquals(2, VehicleClearance.radiusForWidth(3.9f)); // round(1.95)=2
     }
 }

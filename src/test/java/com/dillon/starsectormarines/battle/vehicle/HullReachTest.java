@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,6 +35,29 @@ class HullReachTest {
         float gap = HullReach.gap(HX, HY, FACING, HALF_L, HALF_W, side[0] + .5f, side[1] + .5f);
         assertTrue(gap >= 0.3f && gap <= 1.8f, "beside, at " + gap);
         assertTrue(side[0] + .5f > HX + HALF_W, "on the east side, the striker's side: " + side[0]);
+    }
+
+    @Test
+    void aStrikerTouchesTheSideOnlyWhenAgainstIt() {
+        assertTrue(HullReach.touches(HX, HY, FACING, HALF_L, HALF_W, 11.42f, 10f, .3f),
+                "held off the side by the shove, its radius and 0.12, it touches");
+        assertFalse(HullReach.touches(HX, HY, FACING, HALF_L, HALF_W, 12.5f, 10f, .3f),
+                "a cell and a half off the side is in a Runner's old reach, not touching");
+    }
+
+    @Test
+    void theWayInIsToTheNearestPointOfTheSide() {
+        float[] flank = HullReach.toward(HX, HY, FACING, HALF_L, HALF_W, 13f, 11f);
+        assertEquals(-1f, flank[0], 1e-5f);
+        assertEquals(0f, flank[1], 1e-5f);
+        assertEquals(2f, flank[2], 1e-5f, "square on to the east side");
+        float[] corner = HullReach.toward(HX, HY, FACING, HALF_L, HALF_W, 13f, 14f);
+        assertEquals((float) Math.sqrt(8), corner[2], 1e-5f, "past the bow, to its corner");
+        assertEquals(corner[0], corner[1], 1e-5f);
+        float[] turned = HullReach.toward(HX, HY, 90f, HALF_L, HALF_W, 10f, 13f);
+        assertEquals(-1f, turned[1], 1e-5f);
+        assertEquals(2f, turned[2], 1e-5f, "turned east-west, its side faces north");
+        assertNull(HullReach.toward(HX, HY, FACING, HALF_L, HALF_W, 10.5f, 11f), "no way in from inside");
     }
 
     @Test
