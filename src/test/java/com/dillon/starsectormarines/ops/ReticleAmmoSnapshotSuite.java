@@ -192,7 +192,7 @@ public final class ReticleAmmoSnapshotSuite implements SnapshotSuite {
         int capacity = weapon.magazine() != null ? weapon.magazine().size(moment.grade()) : 0;
         var load = new DirectControlReticle.Load(moment.readiness(), moment.rounds(), capacity, moment.reloading());
         var marks = new DirectControlFireMarks.Marks(staged.leftMark(), Mark.GOOD);
-        for (var stroke : DirectControlReticle.strokes(marks, load, -1f, -1f, x, -y, fx, -fy,
+        for (var stroke : DirectControlReticle.strokes(marks, new DirectControlReticle.Loads(load, DirectControlReticle.Load.READY), -1f, -1f, x, -y, fx, -fy,
                 DirectControlPanel.controlledColor())) {
             graphics.setColor(stroke.color());
             graphics.setStroke(new BasicStroke(stroke.width(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));

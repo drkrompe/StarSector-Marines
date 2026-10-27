@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.ui.panel;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlFireMarks.Mark;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlFireMarks.Marks;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlReticle.Load;
+import com.dillon.starsectormarines.battle.ui.panel.DirectControlReticle.Loads;
 import org.junit.jupiter.api.Test;
 
 import java.awt.Color;
@@ -24,8 +25,8 @@ class DirectControlReticleTest {
 
     /** The strokes for the left button alone, aiming up the screen with the aim point at the origin. */
     private static List<DirectControlAimLane.Stroke> left(Mark mark, Load load) {
-        return DirectControlReticle.strokes(new Marks(mark, Mark.NONE), load, -1f, -1f, 0f, 0f, 0f, 50f,
-                Color.CYAN);
+        return DirectControlReticle.strokes(new Marks(mark, Mark.NONE), new Loads(load, Load.READY), -1f, -1f,
+                0f, 0f, 0f, 50f, Color.CYAN);
     }
 
     /** The magazine arc's strokes: the ones well out from the dot. */
@@ -112,6 +113,25 @@ class DirectControlReticleTest {
         assertEquals(1f, Load.clock(1f, 0f), "no duration is ready");
         assertEquals(0.25f, Load.clock(1.5f, 2f), 1e-6f);
         assertEquals(0f, Load.clock(3f, 2f), "a clock longer than its duration reads as just begun");
+    }
+
+    @Test
+    void theRightButtonsArcMirrorsTheLeftsOnItsOwnSide() {
+        var load = new Load(1f, 3, 10, false);
+        var arc = arc(DirectControlReticle.strokes(new Marks(Mark.NONE, Mark.GOOD), new Loads(Load.READY, load),
+                -1f, -1f, 0f, 0f, 0f, 50f, Color.CYAN));
+        assertTrue(arc.stream().allMatch(s -> s.x() > 0f && s.endX() > 0f), "aiming up, the right arc is on the right");
+        float loaded = length(arc, DirectControlReticle.GOOD);
+        assertEquals(0.3f, loaded / (loaded + length(arc, DirectControlReticle.SPENT)), 1e-3f);
+        assertTrue(meanY(arc, DirectControlReticle.SPENT) > meanY(arc, DirectControlReticle.GOOD),
+                "spent from the line-of-fire end, as on the left");
+    }
+
+    @Test
+    void linkedMountsAreAsReadyAsTheReadierAndCountTheirRoundsTogether() {
+        var merged = Load.merge(Load.merge(null, new Load(0.2f, 3, 4, false)), new Load(0.9f, 10, 20, false));
+        assertEquals(new Load(0.9f, 13, 24, false), merged);
+        assertEquals(new Load(0.5f, 0, 0, false), Load.merge(new Load(0.5f, 0, 0, false), null));
     }
 
     private static float meanY(List<DirectControlAimLane.Stroke> strokes, Color color) {

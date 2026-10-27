@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.HullImpact;
+import com.dillon.starsectormarines.battle.vehicle.HullReach;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
@@ -89,7 +90,10 @@ final class SwarmBruteBehavior {
         float dx = sim.world().x(target) - sim.world().x(brute);
         float dy = sim.world().y(target) - sim.world().y(brute);
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        if (gap(brute, target, sim) <= BruteChargeRules.BLOW_REACH) {
+        float gap = gap(brute, target, sim);
+        boolean hull = sim.convoy().isVehicle(target) && sim.convoy().body(target) != null;
+        // A hull is struck once the Brute touches its side; anything else under its head.
+        if (gap <= (hull ? sim.getRoster().radius(brute) + HullReach.TOUCH : BruteChargeRules.BLOW_REACH)) {
             sim.clearPath(brute);
             if (sim.combat().cooldownTimer(brute) <= 0f) {
                 if (BruteChargeSystem.kind(target, sim) == BruteChargeRules.Kind.INFANTRY) {
@@ -107,6 +111,11 @@ final class SwarmBruteBehavior {
             return;
         }
 
+        // Within its blow's reach of a hull's side it closes the rest straight in.
+        if (hull && gap <= BruteChargeRules.BLOW_REACH && SwarmMovement.closeOnHull(brute, sim.convoy().body(target),
+                sim.convoy().vehicleType(target), sim)) {
+            return;
+        }
         if (tryCharge(brute, target, sim.world().x(target), sim.world().y(target), distance, sim)) return;
 
         BreachPoint breach = breachPointToward(brute, target, sim);

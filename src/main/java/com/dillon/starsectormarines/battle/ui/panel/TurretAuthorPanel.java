@@ -129,7 +129,7 @@ public final class TurretAuthorPanel implements HudPanel {
         int sheetH = frames.sheetHeight;
 
         float frameAspect = (float) cf.w / (float) cf.h;
-        float chassisDrawW = type.visualLengthCells * PREVIEW_CELL_PX;
+        float chassisDrawW = type.drawnLengthCells * PREVIEW_CELL_PX;
         float chassisDrawH = chassisDrawW / frameAspect;
 
         // Background overlay
@@ -331,7 +331,7 @@ public final class TurretAuthorPanel implements HudPanel {
             float localY = dx * s + dy * c;
 
             // Clamp to chassis frame AABB (half-extents in cells)
-            float halfLong = type.visualLengthCells / 2f;
+            float halfLong = type.drawnLengthCells / 2f;
             float aspect = (float) cf.w / (float) cf.h;
             float halfShort = halfLong / aspect;
             localX = clamp(localX, -halfLong, halfLong);

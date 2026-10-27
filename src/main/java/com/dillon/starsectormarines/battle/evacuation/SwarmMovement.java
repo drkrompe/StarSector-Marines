@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
+import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.nav.SharedGoalPolicy;
 import com.dillon.starsectormarines.battle.nav.SwarmFlowFields;
@@ -211,8 +212,9 @@ public final class SwarmMovement {
      * Strikes the stopped hull the prey field leads this body into, once it stands within its reach of the hull's
      * side. A hull costs the field the most a step can ({@link SwarmStepCost}), so the field leads into one only where
      * it bars the only way, and there the swarm tears at it as at a barricade: a Runner's or a Brute's own blow, on
-     * its own cooldown, so a vehicle parked as a barricade holds as long as its hull lasts. True when the body is at
-     * such a hull, struck or waiting to; it holds there rather than pressing into it.
+     * its own cooldown, so a vehicle parked as a barricade holds as long as its hull lasts. Within its reach of the
+     * side it closes until it touches, and strikes from there. True when the body is at such a hull, closing on it,
+     * struck or waiting to; it holds there rather than pressing into it.
      */
     static boolean assaultHull(long body, BattleSimulation sim) {
         UnitType type = sim.identity().type(body);
@@ -231,12 +233,35 @@ public final class SwarmMovement {
         float side = HullReach.gap(at.x, at.y, at.facingDegrees, hullType.visualLengthCells / 2f,
                 hullType.visualWidthCells / 2f, sim.world().x(body), sim.world().y(body));
         if (side > sim.combat().attackRange(body)) return false;
+        if (side > sim.getRoster().radius(body) + HullReach.TOUCH) return closeOnHull(body, at, hullType, sim);
         sim.clearPath(body);
         if (sim.combat().cooldownTimer(body) <= 0f) {
             sim.applyDamage(hull, body, sim.combat().attackDamage(body), 0f, type.moraleImpact);
             sim.swarmCues().post(SwarmCues.Kind.STRIKE, body, sim);
             sim.combat().setCooldownTimer(body, SwarmPressureBehavior.strikeCooldown(body, sim));
         }
+        return true;
+    }
+
+    /**
+     * Steps a body straight at the nearest point of a standing hull's side, no further than its own radius off it:
+     * the last of a striker's approach, which ends a cell off the hull, so it touches before it strikes
+     * ({@link HullReach#touches}). True when it stepped; false when it stands against the side or something stops it.
+     */
+    static boolean closeOnHull(long body, GroundBody hull, VehicleType type, BattleSimulation sim) {
+        float[] way = HullReach.toward(hull.x, hull.y, hull.facingDegrees, type.visualLengthCells / 2f,
+                type.visualWidthCells / 2f, sim.world().x(body), sim.world().y(body));
+        if (way == null) return false;
+        float radius = sim.getRoster().radius(body);
+        float step = sim.movement().moveSpeed(body) * BattleSimulation.TICK_DT;
+        float left = way[2] - radius;
+        if (step <= 0f || left <= 0f) return false;
+        float scale = Math.min(1f, left / step);
+        ManualTerrainMotion.Result preview = sim.movement().previewDirect(body, sim.getGrid(),
+                way[0], way[1], radius, BattleSimulation.TICK_DT, scale);
+        if (Math.hypot(preview.dx(), preview.dy()) < .3f * step * scale) return false;
+        sim.clearPath(body);
+        sim.movement().moveDirectScaled(body, sim.getGrid(), way[0], way[1], radius, BattleSimulation.TICK_DT, scale);
         return true;
     }
 

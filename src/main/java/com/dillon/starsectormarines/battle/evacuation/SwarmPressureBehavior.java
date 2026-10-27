@@ -113,7 +113,9 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             float dy = sim.world().y(target) - sim.world().y(runner);
             distance = (float) Math.sqrt(dx * dx + dy * dy);
         }
-        if (distance <= sim.combat().attackRange(runner)) {
+        // A hull is struck once the Runner touches its side; anything else from its reach.
+        float reach = hull != null ? sim.getRoster().radius(runner) + HullReach.TOUCH : sim.combat().attackRange(runner);
+        if (distance <= reach) {
             sim.clearPath(runner);
             if (sim.combat().cooldownTimer(runner) <= 0f) {
                 SwarmHarvest harvest = sim.swarmHarvest();
@@ -134,6 +136,10 @@ public final class SwarmPressureBehavior implements UnitBehavior {
             return;
         }
         if (hull != null) {
+            // Within its reach of the side it closes the rest straight in; the ground beside a hull is a cell off it.
+            if (distance <= sim.combat().attackRange(runner) && SwarmMovement.closeOnHull(runner, hull, hullType, sim)) {
+                return;
+            }
             int[] side = HullReach.beside(sim.getGrid(), hull.x, hull.y, hull.facingDegrees,
                     hullType.visualLengthCells / 2f, hullType.visualWidthCells / 2f,
                     sim.world().x(runner), sim.world().y(runner), sim.combat().attackRange(runner),

@@ -14,9 +14,9 @@ import java.util.List;
  * right, as a gunsight turns with its gun. A tick also carries its button's landing spread, for the picks that throw
  * rockets or salvos. It stays quiet because the player looks straight through it: no backing and no end caps.
  * Pattern carries what hue does, so the marks read without colour too: white and yellow are solid, red (past range)
- * is dotted, and grey (will not fire) is two wide dashes. The left tick also carries its trigger's {@link Load}: it
- * grows back from the dot over a cycle or reload, its unready length faint, and a magazine-fed pick draws an arc of
- * its rounds beside it. The load speaks in brightness only, so hue keeps meaning range. The strokes are pure geometry,
+ * is dotted, and grey (will not fire) is two wide dashes. Each tick also carries its trigger's {@link Load}: it
+ * grows back from the dot over a cycle or reload, its unready length faint, and a pick with limited ammunition draws
+ * an arc of its rounds round the dot on its side. The load speaks in brightness only, so hue keeps meaning range. The strokes are pure geometry,
  * drawn by the GL panel and by review frames alike.
  */
 public final class DirectControlReticle {
@@ -39,9 +39,9 @@ public final class DirectControlReticle {
     private static int alpha(float share) { return Math.round(share * 255f); }
 
     /**
-     * The left button's trigger: {@code readiness} is how far its cycle or reload has run, 1 when it would fire now;
-     * {@code rounds} of {@code capacity} are in the magazine, a capacity of 0 being a pick with no magazine, which
-     * draws no arc; {@code reloading} is a magazine being changed, whose arc refills as the reload runs.
+     * A button's trigger: {@code readiness} is how far its cycle or reload has run, 1 when it would fire now;
+     * {@code rounds} of {@code capacity} are in the magazine, a capacity of 0 being a pick with no limit on its
+     * rounds, which draws no arc; {@code reloading} is a magazine being changed, whose arc refills as the reload runs.
      */
     public record Load(float readiness, int rounds, int capacity, boolean reloading) {
         /** Ready, with no magazine: the tick as the mark alone draws it. */
@@ -52,6 +52,22 @@ public final class DirectControlReticle {
             if (remaining <= 0f || duration <= 0f) return 1f;
             return Math.max(0f, Math.min(1f, 1f - remaining / duration));
         }
+
+        /**
+         * One button firing this mount and {@code other} together, as LINKED does: it is as ready as the readier,
+         * since that one fires first, and its arc counts their rounds together. Null is no mount yet.
+         */
+        public static Load merge(Load load, Load other) {
+            if (load == null) return other;
+            if (other == null) return load;
+            return new Load(Math.max(load.readiness, other.readiness), load.rounds + other.rounds,
+                    load.capacity + other.capacity, load.reloading && other.reloading);
+        }
+    }
+
+    /** Both buttons' loads. */
+    public record Loads(Load left, Load right) {
+        public static final Loads READY = new Loads(Load.READY, Load.READY);
     }
 
     /** The colour a mark draws in, or null for {@link Mark#NONE}. */
@@ -88,11 +104,11 @@ public final class DirectControlReticle {
     /** The arc is drawn as chords spanning no more than this. */
     private static final float ARC_CHORD_DEG = 4f;
 
-    /** The strokes for {@code marks} with the left button ready and no magazine: see the full form. */
+    /** The strokes for {@code marks} with both buttons ready and no magazine: see the full form. */
     public static List<DirectControlAimLane.Stroke> strokes(Marks marks, float leftSpreadPx,
                                                             float rightSpreadPx, float x, float y,
                                                             float fireX, float fireY, Color centre) {
-        return strokes(marks, Load.READY, leftSpreadPx, rightSpreadPx, x, y, fireX, fireY, centre);
+        return strokes(marks, Loads.READY, leftSpreadPx, rightSpreadPx, x, y, fireX, fireY, centre);
     }
 
     /**
@@ -100,10 +116,10 @@ public final class DirectControlReticle {
      * ({@code leftSpreadPx}, {@code rightSpreadPx}; negative for a pick with no ground burst, whose tick rests).
      * {@code (fireX, fireY)} is the line of fire on screen, y up, from the controlled body toward the cursor: the
      * ticks lie across it, the left button's on the body's own left of that line and the right button's on its
-     * right. A zero line of fire reads as straight up the screen, where left is the screen's left. {@code leftLoad}
-     * is the left button's trigger; a left button with nothing on it draws no load either.
+     * right. A zero line of fire reads as straight up the screen, where left is the screen's left. {@code loads}
+     * are the buttons' triggers; a button with nothing on it draws no load either.
      */
-    public static List<DirectControlAimLane.Stroke> strokes(Marks marks, Load leftLoad, float leftSpreadPx,
+    public static List<DirectControlAimLane.Stroke> strokes(Marks marks, Loads loads, float leftSpreadPx,
                                                             float rightSpreadPx, float x, float y,
                                                             float fireX, float fireY, Color centre) {
         float length = (float) Math.hypot(fireX, fireY);
@@ -113,9 +129,10 @@ public final class DirectControlReticle {
         float leftX = -uy;
         float leftY = ux;
         List<DirectControlAimLane.Stroke> out = new ArrayList<>();
-        tick(out, marks.left(), leftLoad.readiness(), leftSpreadPx, x, y, leftX, leftY);
-        if (marks.left() != Mark.NONE) arc(out, leftLoad, x, y, leftX, leftY);
-        tick(out, marks.right(), 1f, rightSpreadPx, x, y, -leftX, -leftY);
+        tick(out, marks.left(), loads.left().readiness(), leftSpreadPx, x, y, leftX, leftY);
+        if (marks.left() != Mark.NONE) arc(out, loads.left(), x, y, leftX, leftY, true);
+        tick(out, marks.right(), loads.right().readiness(), rightSpreadPx, x, y, -leftX, -leftY);
+        if (marks.right() != Mark.NONE) arc(out, loads.right(), x, y, -leftX, -leftY, false);
         out.add(new DirectControlAimLane.Stroke(x - 1.25f, y, x + 1.25f, y, 2.5f, centre));
         return out;
     }
@@ -172,18 +189,20 @@ public final class DirectControlReticle {
     }
 
     /**
-     * The magazine arc around the dot on the left button's side ({@code (sideX, sideY)}), one segment a round. Rounds
+     * The magazine arc around the dot on a button's side ({@code (sideX, sideY)}), one segment a round. Rounds
      * fire from the end nearest the line of fire, so spent rounds go faint from that end, and a reload refills from
      * it, paler than loaded rounds until the reload ends. A magazine over {@link #MAX_ARC_SEGMENTS} is one bar split
      * at the same share.
      */
     private static void arc(List<DirectControlAimLane.Stroke> out, Load load, float x, float y,
-                            float sideX, float sideY) {
+                            float sideX, float sideY, boolean left) {
         int capacity = load.capacity();
         if (capacity <= 0) return;
-        // Y up, the line of fire is a quarter turn clockwise of the left side: its end of the arc is the lower angle.
-        float from = (float) Math.toDegrees(Math.atan2(sideY, sideX)) - ARC_HALF_SPAN_DEG;
-        float span = 2f * ARC_HALF_SPAN_DEG;
+        // Y up, the line of fire is a quarter turn clockwise of the left side, so its end of the left arc is the lower
+        // angle; the right arc mirrors it, sweeping the other way.
+        float sign = left ? 1f : -1f;
+        float from = (float) Math.toDegrees(Math.atan2(sideY, sideX)) - sign * ARC_HALF_SPAN_DEG;
+        float span = sign * 2f * ARC_HALF_SPAN_DEG;
         boolean reloading = load.reloading();
         int lit = reloading ? (int) Math.floor(capacity * Math.max(0f, Math.min(1f, load.readiness())))
                 : Math.max(0, Math.min(capacity, load.rounds()));
@@ -198,17 +217,17 @@ public final class DirectControlReticle {
             return;
         }
         float step = span / capacity;
-        float gap = Math.min(ARC_GAP_DEG, step * 0.4f);
+        float gap = sign * Math.min(ARC_GAP_DEG, Math.abs(step) * 0.4f);
         for (int i = 0; i < capacity; i++) {
             arcPiece(out, x, y, from + i * step, step - gap, i < front ? frontColor : backColor);
         }
     }
 
-    /** An arc piece from {@code fromDeg} through {@code spanDeg}, as chords. */
+    /** An arc piece from {@code fromDeg} through {@code spanDeg}, either way round, as chords. */
     private static void arcPiece(List<DirectControlAimLane.Stroke> out, float x, float y, float fromDeg,
                                  float spanDeg, Color color) {
-        if (spanDeg <= 0f) return;
-        int chords = Math.max(1, (int) Math.ceil(spanDeg / ARC_CHORD_DEG));
+        if (Math.abs(spanDeg) < 1e-3f) return;
+        int chords = Math.max(1, (int) Math.ceil(Math.abs(spanDeg) / ARC_CHORD_DEG));
         double a0 = Math.toRadians(fromDeg);
         for (int c = 1; c <= chords; c++) {
             double a1 = Math.toRadians(fromDeg + spanDeg * c / chords);
