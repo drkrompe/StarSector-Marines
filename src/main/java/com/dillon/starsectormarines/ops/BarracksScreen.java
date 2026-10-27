@@ -83,7 +83,8 @@ public final class BarracksScreen implements Screen {
         // A prepared company's next step is a contract, so it goes to the board rather than back to HQ.
         MissionReturn missionReturn = MissionReturn.of(context);
         viewModel.command().onPreparationComplete(() -> context.goTo(missionReturn.screen));
-        viewModel.command().missionReturn(missionReturn);
+        viewModel.command().missionReturn(missionReturn, context.clients != null && context.clients.stream()
+                .anyMatch(client -> !client.locked && !MarineOpsContext.DEBUG_CLIENT_FACTION_ID.equals(client.factionId)));
         viewModel.command().navigation(
                 context::openSquadEquipmentFromBarracks,
                 () -> context.goTo(missionReturn.screen),

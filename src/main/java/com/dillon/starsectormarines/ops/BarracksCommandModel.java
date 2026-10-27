@@ -72,7 +72,13 @@ public final class BarracksCommandModel {
     private Runnable missions = () -> { };
     private Consumer<String> editEquipment = id -> { };
     private boolean localMissions;
+    /**
+     * The calling way back to work, a primary-action green. Inline because the theme is the
+     * cascade's final layer and repaints every button's surface, a class's included.
+     */
+    static final String MISSION_CALL_STYLE = "background-color: #1a4a30; border-color: #78d494; color: #e8d9a7;";
     private MissionReturn missionReturn = MissionReturn.MISSIONS;
+    private boolean workHere;
     private int page;
     private String feedback = Strings.get("openingBarracksCommandSelectSquadsThenAssignSelectedOnA");
 
@@ -94,8 +100,11 @@ public final class BarracksCommandModel {
         bind(reactor, "equipmentClasses", () -> equipmentUnread()
                 ? "flow-button console-action equipment-new" : "flow-button console-action");
         props.put("missions", (Runnable) () -> missions.run());
-        bind(reactor, "missionLabel", () -> Strings.get(missionReturn.labelKey));
-        bind(reactor, "missionClasses", () -> localMissions ? "tool-button console-action" : "hidden");
+        bind(reactor, "missionLabel", () -> Strings.get(missionReturn.labelKey(workHere)));
+        bind(reactor, "missionClasses", () -> !localMissions ? "hidden"
+                : missionReturn.calls(workHere) ? "tool-button console-action mission-call"
+                : "tool-button console-action");
+        bind(reactor, "missionStyle", () -> localMissions && missionReturn.calls(workHere) ? MISSION_CALL_STYLE : "");
         bind(reactor, "commands", this::commands);
         bind(reactor, "formationClasses", () -> dossier || companyRoster ? "hidden" : "formation-board panel console-section");
         bind(reactor, "rosterClasses", () -> companyRoster && !dossier ? "company-roster panel console-section" : "hidden");
@@ -887,7 +896,12 @@ public final class BarracksCommandModel {
         var lines = CompanyManagementGuide.lines();
         return lines.isEmpty() ? new CompanyManagementGuide.Line("", Strings.get("openingBarracksCommandGuideUnavailable"), "") : lines.get(Math.min(guideStep, lines.size() - 1));
     }
-    public void missionReturn(MissionReturn value) { missionReturn = value; refresh(); }
+    /** Where the way back to work leads, and whether a contact at this planet has work the company may take. */
+    public void missionReturn(MissionReturn value, boolean workHere) {
+        missionReturn = value;
+        this.workHere = workHere;
+        refresh();
+    }
     private boolean equipmentUnread() {
         return FirstRefit.available(roster)
                 && !roster.hasReviewedCompanyNotice(CompanyNotices.Notice.FIRST_REFIT.id);
