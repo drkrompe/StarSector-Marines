@@ -309,6 +309,10 @@ public final class GroundRenderSystem implements RenderSystem {
      * and the mesh serves from the next one. That is one frame of the old cost
      * per battle, and it is what keeps the collector free of GL.
      */
+    /** The basin edge of {@link #basinEdgeOf}, built once per map: its corners are a whole map of noise. */
+    private BasinEdge basinEdge;
+    private CellTopology basinEdgeOf;
+
     private void emitTerrain(RenderContext ctx, NavigationGrid grid,
                              CellTopology topology, VisibleCellRect view) {
         // The mesh bakes each cell's atlas sub-rectangle once and keeps it, so
@@ -330,8 +334,14 @@ public final class GroundRenderSystem implements RenderSystem {
                         base::resolveConcrete,base::resolveSecondConcrete,base::resolveGravel,base::resolveSecondGravel,
                         base::resolveDirtRoad,base::resolveSecondDirtRoad,base::resolveMarking,
                         new GroundDamage(topology),new Scatter(topology),new DoorDecals(grid,topology)};
+        // A basin's edge lies on the base ground as a line, under the feathers it leaves out between its own cells.
+        if (basinEdgeOf != topology) {
+            basinEdgeOf = topology;
+            basinEdge = BasinEdge.of(topology);
+        }
+        BasinEdge edge = basinEdge;
         // Feathered boundaries lie on the base ground, under road edges and everything raised or laid on it.
-        Feather feather = GroundFeather.enabled() ? Feather.of(this, base, topology) : null;
+        Feather feather = GroundFeather.enabled() ? Feather.of(this, base, topology, edge) : null;
         if (feather != null) {
             int feathers = GroundFeather.RANKS * 4;
             GroundMesh.CellResolver[] expanded = new GroundMesh.CellResolver[sublayers.length + feathers];
@@ -345,10 +355,24 @@ public final class GroundRenderSystem implements RenderSystem {
             System.arraycopy(sublayers, 1, expanded, 1 + feathers, sublayers.length - 1);
             sublayers = expanded;
         }
+        int edgeLayers = 0;
+        if (edge != null) {
+            edgeLayers = 4;
+            GroundMesh.CellResolver[] expanded = new GroundMesh.CellResolver[sublayers.length + edgeLayers];
+            expanded[0] = sublayers[0];
+            // The rim's pieces, then the floor's: each cell's two sides never overlap, so the order is only tidy.
+            for (int piece = 0; piece < edgeLayers; piece++) {
+                final boolean onFloor = piece >= 2;
+                final int triangle = piece % 2;
+                expanded[1 + piece] = (x, y, sink) -> base.resolveBasinEdge(edge, onFloor, triangle, x, y, sink);
+            }
+            System.arraycopy(sublayers, 1, expanded, 1 + edgeLayers, sublayers.length - 1);
+            sublayers = expanded;
+        }
         // The shore lies over the feathered ground and under everything laid on it.
         Shore shore = Shore.of(this, topology);
         if (shore != null) {
-            int at = 1 + (feather != null ? GroundFeather.RANKS * 4 : 0);
+            int at = 1 + edgeLayers + (feather != null ? GroundFeather.RANKS * 4 : 0);
             WaterShore.Band[] bands = WaterShore.Band.values();
             // The bands, then a ford's pebble bed over its shallows.
             int pieces = (bands.length + 1) * WaterShore.TRIANGLES;
@@ -484,7 +508,7 @@ public final class GroundRenderSystem implements RenderSystem {
         private final int surfaces;
         private final GridBlockDef[][] edgeBlocks;
 
-        private final ClippedSink terrainClip=new ClippedSink();
+        private final ClippedSink terrainClip=new ClippedSink(), edgeClip=new ClippedSink();
         private final Color roadFill;
         private final String streetTileId;
 
@@ -632,6 +656,13 @@ public final class GroundRenderSystem implements RenderSystem {
             int inset=block.cellPx>=TileManifest.TILE_SIZE?GROUND_TILE_EDGE_INSET_PX:GROUND_SMALL_TILE_EDGE_INSET_PX;
             sink.patch(sheet,cell[0]*block.cellPx+inset,cell[1]*block.cellPx+inset,
                     block.cellPx-2*inset,block.cellPx-2*inset,patch.vertices());
+        }
+        /** One side's piece of a cell along a basin's edge ({@link BasinEdge}), drawn as that side's open ground. */
+        void resolveBasinEdge(BasinEdge edge,boolean onFloor,int triangle,int x,int y,GroundMesh.CellSink sink) {
+            if(!edge.blends(x,y))return;
+            float[] vertices=edge.piece(x,y,onFloor,triangle);if(vertices==null)return;
+            edgeClip.target=sink;edgeClip.vertices=vertices;
+            resolveFloor(x,y,onFloor?edge.floor():edge.rim(),0,edgeClip);
         }
         private void resolveSecondEdge(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,0,true); }
         private void resolveConcrete(int x,int y,GroundMesh.CellSink sink) { smoothEdge(x,y,sink,1,false); }
@@ -797,6 +828,8 @@ public final class GroundRenderSystem implements RenderSystem {
     private static final class Feather {
         private final BaseTerrain base;
         private final CellTopology topology;
+        /** The basin's edge, whose cells do not feather into one another; null without one. */
+        private final BasinEdge edge;
         private final SpriteAPI sheet;
         /** Each material's baked block, by priority. */
         private final GridBlockDef[] blocks;
@@ -806,10 +839,11 @@ public final class GroundRenderSystem implements RenderSystem {
         private final int[] kindPriority;
         private final int[] winners = new int[3];
 
-        private Feather(BaseTerrain base, CellTopology topology, SpriteAPI sheet, GridBlockDef[] blocks,
+        private Feather(BaseTerrain base, CellTopology topology, BasinEdge edge, SpriteAPI sheet, GridBlockDef[] blocks,
                         int[] surfacePriority, int[] kindPriority) {
             this.base = base;
             this.topology = topology;
+            this.edge = edge;
             this.sheet = sheet;
             this.blocks = blocks;
             this.surfacePriority = surfacePriority;
@@ -817,7 +851,7 @@ public final class GroundRenderSystem implements RenderSystem {
         }
 
         /** The feather for this pass, or null when its sheet is not loaded. */
-        static Feather of(GroundRenderSystem system, BaseTerrain base, CellTopology topology) {
+        static Feather of(GroundRenderSystem system, BaseTerrain base, CellTopology topology, BasinEdge edge) {
             if (system.tileReg == null) return null;
             int count = GroundFeather.MATERIALS.size();
             GridBlockDef[] blocks = new GridBlockDef[count];
@@ -845,7 +879,7 @@ public final class GroundRenderSystem implements RenderSystem {
                         : system.genMapping == null ? null : system.genMapping.groundBlockId(kind);
                 kindPriority[kind.ordinal()] = usable(blocks, key);
             }
-            return new Feather(base, topology, sheet, blocks, surfacePriority, kindPriority);
+            return new Feather(base, topology, edge, sheet, blocks, surfacePriority, kindPriority);
         }
 
         private static int usable(GridBlockDef[] blocks, String key) {
@@ -879,6 +913,12 @@ public final class GroundRenderSystem implements RenderSystem {
             if (self <= 0) return; // the strongest ground has nothing to take from
             int sx = GroundFeather.dx(quadrant), sy = GroundFeather.dy(quadrant);
             int vertical = priority(x, y + sy), horizontal = priority(x + sx, y), diagonal = priority(x + sx, y + sy);
+            if (edge != null && edge.blends(x, y)) {
+                // Two cells along a basin's edge meet on its line, which the feather would step again.
+                if (edge.blends(x, y + sy)) vertical = -1;
+                if (edge.blends(x + sx, y)) horizontal = -1;
+                if (edge.blends(x + sx, y + sy)) diagonal = -1;
+            }
             int n = GroundFeather.winners(self, vertical, horizontal, diagonal, winners);
             // Past the ranks there are, the weakest winners are the ones left out.
             int index = Math.max(0, n - GroundFeather.RANKS) + rank;
