@@ -33,7 +33,8 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 /**
  * What each mouse button would do if clicked now, read at the cursor: one {@link Mark} per button from its
  * trigger's current pick. Cooldown, reload, burst and flux are clocks the panel's ammo strips own, so they never
- * change a mark; a mark answers only whether this point is one the pick can fire at, and how well.
+ * change a mark; a mark answers only whether this point is one the pick can fire at, and how well. The reticle
+ * carries a Marine's left clock and magazine beside the mark ({@link DirectControlLoad}), in brightness, never hue.
  */
 public final class DirectControlFireMarks {
     private DirectControlFireMarks() {}
