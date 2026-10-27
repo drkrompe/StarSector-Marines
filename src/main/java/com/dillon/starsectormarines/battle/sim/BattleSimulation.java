@@ -31,6 +31,7 @@ import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.battle.salvage.FieldSalvage;
 import com.dillon.starsectormarines.battle.salvage.SalvagePlacement;
 import com.dillon.starsectormarines.battle.setup.DepotHoldSequence;
+import com.dillon.starsectormarines.battle.setup.JunctionPressure;
 import com.dillon.starsectormarines.battle.world.model.PropPower;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.battle.world.model.PropDamage;
@@ -816,6 +817,13 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         addObjective(salvageRights);
     }
     public DepotHoldSequence getDepotHold() { return depotHold; }
+    private JunctionPressure junctionPressure;
+    /** The Junction's warehouse garrison and road technicals, or null on any other battle. */
+    public JunctionPressure getJunctionPressure() { return junctionPressure; }
+    public void installJunctionPressure(JunctionPressure pressure) {
+        if (simTickIndex != 0 || junctionPressure != null) throw new IllegalStateException("Install Junction pressure once at setup");
+        junctionPressure = pressure;
+    }
     public void installDepotHold(PointOfInterest warehouse, List<List<EntitySpec>> reserves) {
         installDepotHold(new DepotHoldSequence(warehouse, reserves, storyBeats));
     }
@@ -4169,6 +4177,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // Before the story sequences, so a side job done on the tick its window closes still counts.
         sideObjectives.tick(this);
         if (depotHold != null) depotHold.advance(this);
+        if (junctionPressure != null) junctionPressure.advance(this);
         if (salvageRights != null) salvageRights.advance(this);
         if (coldStart != null) coldStart.advance(this);
         if (workingPassage != null) workingPassage.advance(this);

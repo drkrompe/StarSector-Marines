@@ -51,7 +51,8 @@ public final class JunctionCompound {
     /** Where the second counterattack waits, just inside the map on the road from Rill. */
     public static final int RILL_ROAD_X = 174, RILL_ROAD_Y = 4;
     public static final List<String> SITE_NAMES = List.of("Western turnout", "Weigh Station", "Freight Yard", "Junction Dispatch");
-    public record Layout(MapResult map, List<TacticalNode> sites, PointOfInterest reserve) {
+    /** @param bondedWarehouse the impound hall north of the main road, across it from the Freight Yard */
+    public record Layout(MapResult map, List<TacticalNode> sites, PointOfInterest reserve, PointOfInterest bondedWarehouse) {
         public Layout { sites = List.copyOf(sites); }
     }
     private JunctionCompound() {}
@@ -88,7 +89,7 @@ public final class JunctionCompound {
         }
         for (TacticalNode site : sites) requireRoute(map, site.anchorX, site.anchorY);
         for (PointOfInterest p : c.pois) requireRoute(map, p.interiorAnchorX, p.interiorAnchorY);
-        return new Layout(map, sites, c.pois.get(7));
+        return new Layout(map, sites, c.pois.get(7), c.pois.get(5));
     }
 
     private static void requireRoute(MapResult map, int x, int y) {

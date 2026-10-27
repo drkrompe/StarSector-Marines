@@ -10,20 +10,20 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 /**
- * Counterattack's final-wave technical: a militia pickup with a heavy machine gun that comes in by the south service
- * road with the raiders' final reserve and parks in the loading yard in front of dispatch, to support the attack on the
- * warehouse. It is scripted, not commanded: it drives the one route it is given, stops where it was sent, and its gun
- * fights whatever it sees. A Hound's chaingun takes it in about a quarter of a minute in the open; walls and the
- * weigh office are the company's way to get at it without that trade.
+ * A scripted enemy technical: a militia pickup with a heavy machine gun that enters at a road mouth, drives the one
+ * vehicle-clear route to the cell it was sent to and parks there, its gun fighting whatever it sees. Not commanded.
+ * Counterattack's final wave brings one up the south service road to the loading yard before dispatch; Junction's
+ * counterattack brings two down the main road. A Hound's chaingun takes one in about a quarter of a minute in the
+ * open; walls and buildings are the company's way to get at it without that trade.
  */
-final class DepotRoadTechnical {
+final class RoadTechnical {
     static final VehicleType TYPE = VehicleType.MILITIA_TECHNICAL;
 
     private final int entryX, entryY, parkX, parkY;
     private long id;
 
     /** The hull's first cell at the south road mouth and the cell it parks on, both clear for its footprint. */
-    DepotRoadTechnical(int entryX, int entryY, int parkX, int parkY) {
+    RoadTechnical(int entryX, int entryY, int parkX, int parkY) {
         this.entryX = entryX;
         this.entryY = entryY;
         this.parkX = parkX;

@@ -1563,11 +1563,11 @@ public final class BattleSetup {
             // The final wave's technical comes up the south service road and parks in the loading yard before
             // dispatch's door, a little short of it, to support the raiders already at the warehouse.
             VehicleClearance lane = VehicleClearance.erode(sim.getGrid(),
-                    VehicleClearance.radiusForWidth(DepotRoadTechnical.TYPE.visualWidthCells));
+                    VehicleClearance.radiusForWidth(RoadTechnical.TYPE.visualWidthCells));
             int[] entry = nearestClear(lane, new int[]{78, 3}); // The road mouth at the bottom of the screen.
             int[] park = nearestClear(lane, new int[]{authoredPlace.left - 8, authoredPlace.interiorAnchorY});
             sim.installDepotHold(new DepotHoldSequence(authoredPlace, reserves,
-                    new DepotRoadTechnical(entry[0], entry[1], park[0], park[1]), sim.getStoryBeatLog()));
+                    new RoadTechnical(entry[0], entry[1], park[0], park[1]), sim.getStoryBeatLog()));
         }
         return sim;
     }
@@ -1666,7 +1666,7 @@ public final class BattleSetup {
     }
 
     /** The cell nearest {@code aim} (ring by ring) where a hull of {@code mask}'s clearance fits. */
-    private static int[] nearestClear(VehicleClearance mask, int[] aim) {
+    static int[] nearestClear(VehicleClearance mask, int[] aim) {
         for (int r = 0; r < 12; r++)
             for (int dy = -r; dy <= r; dy++)
                 for (int dx = -r; dx <= r; dx++)
@@ -2513,6 +2513,10 @@ public final class BattleSetup {
     /** Finite territorial prototype; deliberately bypasses the generic siege production/airfield profile. */
     /** Fifteen seconds of holding every Junction site together before the win is confirmed. */
     static final int JUNCTION_CONFIRM_TICKS = 15 * 30;
+    /** Raiders in the column off the Rill road: twelve, up from eight, with the counterattack's technicals. */
+    static final int JUNCTION_ROAD_COLUMN = 12;
+    /** Raiders garrisoning the bonded warehouse north of the main road. */
+    static final int JUNCTION_WAREHOUSE_GARRISON = 10;
 
     public static BattleSimulation createJunction(long seed, List<ShuttleAssignment> playerManifest, TargetProfile profile) {
         if (playerManifest == null || playerManifest.isEmpty() || playerManifest.size() > 4)
@@ -2583,8 +2587,10 @@ public final class BattleSetup {
                         CommandAuthority.GARRISON, "opening-local-garrison", "man the trench across the approach");
             }
         }
-        // A second finite counterattack waits on the road from Rill and comes in once a second site falls.
-        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, JunctionCompound.RILL_ROAD_X, JunctionCompound.RILL_ROAD_Y, 8),
+        // A second finite counterattack waits on the road from Rill and comes in once a second site falls; two
+        // technicals come down the main road with it (JunctionPressure).
+        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, JunctionCompound.RILL_ROAD_X, JunctionCompound.RILL_ROAD_Y,
+                        JUNCTION_ROAD_COLUMN),
                 Faction.DEFENDER, "junction-rill-road", null, rng);
         for (Squad squad : sim.getSquads()) if (squad.faction == Faction.DEFENDER && squad.assignedNode == null
                 && !trenchSquads.contains(squad.id))
@@ -2595,6 +2601,18 @@ public final class BattleSetup {
             sim.setAutonomousCommander(faction, new JunctionCommand(faction, layout.reserve().interiorAnchorX, layout.reserve().interiorAnchorY,
                     JunctionCompound.RILL_ROAD_X, JunctionCompound.RILL_ROAD_Y), ConquestCommandDisclosure.INSTANCE);
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(JunctionCommand.issuer(Faction.MARINE), "Company support joins the operation"));
+        // The bonded warehouse's garrison waits inside across the road and sallies at the first gain (JunctionPressure).
+        PointOfInterest bonded = layout.bondedWarehouse();
+        Set<Integer> beforeWarehouse = new HashSet<>();
+        for (Squad squad : sim.getSquads()) beforeWarehouse.add(squad.id);
+        spawnOpeningMilitiaSquads(sim, pickSpawnCluster(map.grid, bonded.interiorAnchorX, bonded.interiorAnchorY, JUNCTION_WAREHOUSE_GARRISON),
+                Faction.DEFENDER, "junction-warehouse", null, rng, 5);
+        List<Integer> warehouseSquads = new ArrayList<>();
+        for (Squad squad : sim.getSquads()) if (!beforeWarehouse.contains(squad.id)) {
+            JunctionPressure.holdWarehouse(sim, squad.id, bonded);
+            warehouseSquads.add(squad.id);
+        }
+        sim.installJunctionPressure(new JunctionPressure(bonded, warehouseSquads));
         sim.installJunctionStoryHooks();
         // Control: -Dbattle.junction.talonTwo=false fights the junction with no gunship, so its trenches show their cost.
         // Wayline's impounded haulers stand in their lot nose-north: civilian hulls, never a target.

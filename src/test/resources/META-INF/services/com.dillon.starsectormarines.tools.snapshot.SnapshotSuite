@@ -369,3 +369,4 @@ com.dillon.starsectormarines.ops.BriefingLiftSnapshotSuite
 com.dillon.starsectormarines.battle.squad.SquadRunSceneSnapshotSuite
 com.dillon.starsectormarines.ops.ReticleAmmoSnapshotSuite
 com.dillon.starsectormarines.ops.CounterattackDepotLookSuite
+com.dillon.starsectormarines.ops.JunctionLookSuite
