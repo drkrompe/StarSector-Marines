@@ -19,39 +19,42 @@ import java.util.List;
 import java.util.Locale;
 
 /**
- * Each hull's footprint against its sprite: the hulls parked in a row on look ground and drawn through the look
- * preset, with the rectangle the simulation collides, routes and is struck by ({@link VehicleType#visualLengthCells}
- * by {@link VehicleType#visualWidthCells}) outlined over each. {@code footprints.png} has the row at play zoom, and
- * {@code <type>.png} each hull close, 16 cells across. Opt-in: a look review, not part of {@code all}.
+ * Each hull's footprint against its sprite: every {@link VehicleType} parked in rows on look ground and drawn through
+ * the look preset, each named with its footprint's size and outlined with the rectangle the simulation collides,
+ * routes and is struck by ({@link VehicleType#visualLengthCells} by {@link VehicleType#visualWidthCells}).
+ * {@code footprints.png} has them all, {@code row-<n>.png} each row closer, and {@code <type>.png} each hull close,
+ * 16 cells across. Opt-in: a look review, not part of {@code all}.
  */
 public final class VehicleFootprintLookSuite implements SnapshotSuite {
 
-    static final List<VehicleType> TYPES = List.of(VehicleType.SUPPLY_TRUCK, VehicleType.HEAVY_APC,
-            VehicleType.ESCORT_APC, VehicleType.LASER_TANK, VehicleType.BREAKTHROUGH_TANK,
-            VehicleType.DOZER_BREACHER, VehicleType.CARGO_CARRIER, VehicleType.HOVER_SCOUT);
-    /** The window, and the spacing of hulls along it, cells. */
-    static final int SITE_W = 64, SITE_H = 24;
-    static final float SPACING = 7f, CLOSE_CELLS = 16f;
+    /** Hulls a row, the spacing along a row and between rows, cells. */
+    static final int PER_ROW = 6;
+    static final float SPACING = 7f, ROW_SPACING = 11f, CLOSE_CELLS = 16f;
 
     @Override public String id() { return "vehicle-footprint-look"; }
 
-    @Override public String label() { return "Each hull's collision footprint outlined over its sprite"; }
+    @Override public String label() { return "Every hull's collision footprint outlined over its sprite"; }
 
     @Override public boolean inAll() { return false; }
 
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
+        VehicleType[] types = VehicleType.values();
+        int rows = (types.length + PER_ROW - 1) / PER_ROW;
+        float rowWidth = PER_ROW * SPACING, height = rows * ROW_SPACING;
         LookGround ground = LookGround.verdant();
         MapResult map = ground.generate();
         LookReview.Placement placement = new LookReview.Placement(ground, map,
-                LookGround.openSite(map, SITE_W, SITE_H));
+                LookGround.openSite(map, (int) rowWidth + 8, (int) height + 4));
         BattleSimulation sim = placement.holdouts(placement.builder()).build().sim();
         List<Long> hulls = new ArrayList<>();
-        for (int i = 0; i < TYPES.size(); i++) {
-            float[] at = placement.openNear(4f + i * SPACING, SITE_H / 2f);
-            long id = sim.convoy().spawn(TYPES.get(i), Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
-            sim.convoy().body(id).teleport(at[0], at[1], 0f);
+        for (int i = 0; i < types.length; i++) {
+            // Top row first, west to east.
+            float x = placement.site().x(4f + SPACING * (.5f + i % PER_ROW));
+            float y = placement.site().y(2f + height - ROW_SPACING * (.5f + i / PER_ROW));
+            long id = sim.convoy().spawn(types[i], Faction.MARINE, VehicleMission.deployed(x, y));
+            sim.convoy().body(id).teleport(x, y, 0f);
             hulls.add(id);
         }
         for (int t = 0; t < 30; t++) sim.advance(BattleSimulation.TICK_DT);
@@ -61,23 +64,35 @@ public final class VehicleFootprintLookSuite implements SnapshotSuite {
             VehicleType type = sim.convoy().vehicleType(hull);
             marks.polyline(outline(body.x, body.y, body.facingDegrees, type.visualLengthCells,
                     type.visualWidthCells), null, ReviewStyle.KEEP);
+            marks.label(body.x - .5f, body.y - .5f - type.visualLengthCells / 2f - 1.2f,
+                    String.format(Locale.ROOT, "%s %.2f x %.2f", name(type), type.visualLengthCells,
+                            type.visualWidthCells), ReviewStyle.APPROACH);
             System.out.printf(Locale.ROOT, "    [vehicle-footprint-look] %s at %.1f,%.1f footprint %.2f x %.2f%n",
                     type, body.x, body.y, type.visualLengthCells, type.visualWidthCells);
         }
         ReviewAnnotations annotations = marks.build();
         List<SnapshotArtifact> out = new ArrayList<>();
-        GroundBody first = sim.convoy().body(hulls.get(0));
-        GroundBody last = sim.convoy().body(hulls.get(hulls.size() - 1));
+        float centreX = placement.site().x(4f + rowWidth / 2f);
         out.add(new SnapshotArtifact("footprints.png", BattleReviewFrameRenderer.look(context.modRoot(),
-                LookReview.WIDTH, LookReview.HEIGHT, (first.x + last.x) / 2f, first.y,
-                last.x - first.x + 2f * SPACING).renderMarked(sim, annotations)));
+                LookReview.WIDTH, LookReview.HEIGHT, centreX, placement.site().y(2f + height / 2f),
+                Math.max(rowWidth + 4f, (height + 4f) * LookReview.WIDTH / LookReview.HEIGHT))
+                .renderMarked(sim, annotations)));
+        for (int row = 0; row < rows; row++) {
+            float y = placement.site().y(2f + height - ROW_SPACING * (.5f + row));
+            out.add(new SnapshotArtifact("row-" + (row + 1) + ".png", BattleReviewFrameRenderer.look(context.modRoot(),
+                    LookReview.WIDTH, LookReview.HEIGHT, centreX, y, rowWidth + 2f).renderMarked(sim, annotations)));
+        }
         for (long hull : hulls) {
             GroundBody body = sim.convoy().body(hull);
-            String name = sim.convoy().vehicleType(hull).name().toLowerCase(Locale.ROOT).replace('_', '-');
-            out.add(new SnapshotArtifact(name + ".png", BattleReviewFrameRenderer.look(context.modRoot(),
-                    LookReview.WIDTH, LookReview.HEIGHT, body.x, body.y, CLOSE_CELLS).renderMarked(sim, annotations)));
+            out.add(new SnapshotArtifact(name(sim.convoy().vehicleType(hull)) + ".png",
+                    BattleReviewFrameRenderer.look(context.modRoot(), LookReview.WIDTH, LookReview.HEIGHT,
+                            body.x, body.y, CLOSE_CELLS).renderMarked(sim, annotations)));
         }
         return out;
+    }
+
+    private static String name(VehicleType type) {
+        return type.name().toLowerCase(Locale.ROOT).replace('_', '-');
     }
 
     /** The closed outline of a hull's footprint at its pose, as annotation points (each is drawn at its cell's centre). */
