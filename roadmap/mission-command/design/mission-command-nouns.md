@@ -497,6 +497,25 @@ geometry; mission command's directive waits on the shelf underneath. This is the
 unbounded lease: the defense persists until superseded or hard withdrawal rather
 than completing merely because the squad reached its center.
 
+**Run** is a pace on a standing lease, not a lease of its own. R toggles the
+selected Marine infantry squads that are already under an order between walking
+and running; with every one of them running it walks them again. A squad with no
+standing order, a lance and a vehicle ignore the key, and so does a controlled
+battle. A fresh order starts at a walk, a reissue that refreshes the same lease
+(a ride driving off, a compound rebound) keeps its pace, and the run ends with
+the lease. A running squad's Marines are paid for out of the same battle stamina
+a controlled Marine sprints on (`direct-control-nouns.md`, Movement by carrier):
+each one with stamina left moves at the sprint multiplier and is charged only for
+the share of a full sprint it actually covered, so a Marine held up by a wall, a
+crowd or its own fight spends nothing. A Marine who runs dry walks on, recovers to
+the restart reserve and runs again while the order still runs; nothing is held
+down for it to release. The body under direct control is the player's hand's and
+is never boosted by its squad's run. Running does not change who fires or when:
+local AI still owns contact. A winged foot stands at the upper right of a running
+squad's lead body, opposite the medic's cross, with the squad's mean stamina in a
+bar beneath it that greys while most of its Marines are winded. Evidence:
+`sceneEvidence -Pscene=squad-run`, and its look shot `look/squad-run-*`.
+
 A frozen **command doctrine profile** may bias legal assignment, reserve,
 recapture, and local-posture choices. It does not add objectives, knowledge,
 forces, or combat privileges. Mission adapters define which profile axes are

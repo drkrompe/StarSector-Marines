@@ -166,3 +166,4 @@ com.dillon.starsectormarines.battle.evacuation.BombardHazeScene
 com.dillon.starsectormarines.battle.evacuation.BombardScene
 com.dillon.starsectormarines.battle.drone.SensorSearchScene
 com.dillon.starsectormarines.battle.air.FighterBayRenewalScene
+com.dillon.starsectormarines.battle.squad.SquadRunScene

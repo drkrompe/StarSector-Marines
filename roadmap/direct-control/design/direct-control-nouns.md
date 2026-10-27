@@ -352,8 +352,10 @@ blocking input over chrome does not count as releasing a held Shift key.
 Initial tuning is a 1.6 speed multiplier, six seconds of full sprint, a one-second
 recovery delay, four seconds for a full refill, and a quarter-bar reserve after
 exhaustion. Those values are balance choices; stamina ownership and terrain
-authority are standing laws. This resource is specific to manual sprint and
-does not change autonomous movement or campaign condition.
+authority are standing laws. The same resource pays for a squad's run order
+(`mission-command-nouns.md`, Run): a Marine's stamina is one pool whether the
+player's Shift or their squad's order spends it, and the controlled body is
+boosted only by Shift. It does not change campaign condition.
 
 The session stores intent, not a second movement physics model. Existing
 collision and reachability remain authoritative. Losing focus or releasing
