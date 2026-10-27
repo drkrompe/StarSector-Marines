@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.assault.MachineGuards;
 import com.dillon.starsectormarines.battle.decision.goap.action.LinePlacement;
 import com.dillon.starsectormarines.battle.mech.MechAttachmentService;
 import com.dillon.starsectormarines.battle.mech.MechAttachmentSystem;
+import com.dillon.starsectormarines.battle.mech.MechMoveOrderService;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.squad.DigInSystem;
 import com.dillon.starsectormarines.battle.squad.HoldPlaceDecision;
@@ -135,26 +136,33 @@ public final class SelectionOrders {
     }
 
     /**
-     * R: the selected Marine squads that are already under way run, or walk again if every one of
-     * them already runs. A squad with no standing order, a lance and anything else selected are left
-     * alone. Whether any squad was under way to toggle.
+     * R: the selected Marine squads and mechs that are already under way run, or walk again if every
+     * one of them already runs. A squad or chassis with no standing order, and anything else selected,
+     * is left alone. Whether anything was under way to toggle.
      */
     public static boolean toggleRun(BattleSimulation sim, Selection selection) {
         if (sim == null || selection == null || sim.directControl().active()) return false;
         SquadMoveOrderService orders = sim.getSquadMoveOrderService();
+        MechMoveOrderService mechOrders = sim.getMechMoveOrderService();
         List<Integer> underWay = new ArrayList<>();
+        List<Long> mechsUnderWay = new ArrayList<>();
         boolean allRunning = true;
-        for (int id : selection.getSelectedSquadIds()) {
-            Squad squad = sim.getSquad(id);
-            if (squad == null || squad.faction != Faction.MARINE || squad.isMechSquad()
-                    || orders.activeOrder(id) == null) continue;
-            underWay.add(id);
-            allRunning &= orders.isRunning(id);
+        for (Recipient recipient : recipients(sim, selection)) {
+            if (recipient.kind() == RecipientKind.INFANTRY && orders.activeOrder(recipient.squadId()) != null) {
+                underWay.add(recipient.squadId());
+                allRunning &= orders.isRunning(recipient.squadId());
+            } else if (recipient.kind() == RecipientKind.MECH && mechOrders.activeOrder(recipient.id()) != null) {
+                mechsUnderWay.add(recipient.id());
+                allRunning &= mechOrders.isRunning(recipient.id());
+            }
         }
         for (int id : underWay) {
             if (orders.isRunning(id) == allRunning) orders.toggleRun(id);
         }
-        return !underWay.isEmpty();
+        for (long id : mechsUnderWay) {
+            if (mechOrders.isRunning(id) == allRunning) mechOrders.toggleRun(id);
+        }
+        return !underWay.isEmpty() || !mechsUnderWay.isEmpty();
     }
 
     /**

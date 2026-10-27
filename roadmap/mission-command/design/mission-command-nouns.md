@@ -498,10 +498,11 @@ unbounded lease: the defense persists until superseded or hard withdrawal rather
 than completing merely because the squad reached its center.
 
 **Run** is a pace on a standing lease, not a lease of its own. R toggles the
-selected Marine infantry squads that are already under an order between walking
-and running; with every one of them running it walks them again. A squad with no
-standing order, a lance and a vehicle ignore the key, and so does a controlled
-battle. A fresh order starts at a walk, a reissue that refreshes the same lease
+selected Marine infantry squads and mechs that are already under an order between
+walking and running; with every one of them running it walks them again. A squad
+or chassis with no standing order and a vehicle ignore the key, and so does a
+controlled battle. A mech's run is on its own chassis order (`mechs-nouns.md`,
+Run), paid from the same stamina; unlike a Marine it fires as it runs. A fresh order starts at a walk, a reissue that refreshes the same lease
 (a ride driving off, a compound rebound) keeps its pace, and the run ends with
 the lease. A running squad's Marines are paid for out of the same battle stamina
 a controlled Marine sprints on (`direct-control-nouns.md`, Movement by carrier):

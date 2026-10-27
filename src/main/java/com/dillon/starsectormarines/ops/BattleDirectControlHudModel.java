@@ -127,7 +127,7 @@ public final class BattleDirectControlHudModel {
                     : percent(durability.armorFraction()));
             set("armorStyle", width(ship ? 1f : durability.armorFraction()));
             updateFlux(snapshot, mech, ship);
-            boolean stamina = marine;
+            boolean stamina = marine || mech;
             set("staminaRowClasses", stamina ? "row" : HIDDEN_ROW);
             float staminaFraction = Math.max(0f, Math.min(1f, snapshot.sprint().staminaFraction()));
             set("staminaValue", snapshot.sprint().exhausted() ? label("SprintResting")

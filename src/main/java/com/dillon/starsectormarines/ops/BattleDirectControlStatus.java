@@ -279,7 +279,7 @@ final class BattleDirectControlStatus {
             return new Snapshot(id, name, Carrier.MECH, durability,
                     mechWeapons(world.mechLoadout(id).mounts(), world.mechLoadout(id).flux,
                     sim.directControl().triggerPicks(), aimDistance(sim, id)), List.of(),
-                    MarineSprint.EMPTY, new MechFluxStatus(world.mechLoadout(id).flux.value(),
+                    sim.directControl().sprintStatus(), new MechFluxStatus(world.mechLoadout(id).flux.value(),
                     world.mechLoadout(id).flux.venting(),
                     world.mechLoadout(id).flux.capacity()));
         }

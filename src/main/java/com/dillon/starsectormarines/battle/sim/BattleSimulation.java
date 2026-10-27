@@ -255,6 +255,7 @@ import com.dillon.starsectormarines.battle.mech.MechMoveOrderSystem;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderService;
 import com.dillon.starsectormarines.battle.squad.SquadMoveOrderSystem;
 import com.dillon.starsectormarines.battle.squad.SquadRunSystem;
+import com.dillon.starsectormarines.battle.mech.MechRunSystem;
 import com.dillon.starsectormarines.battle.squad.ReactiveManningService;
 import com.dillon.starsectormarines.battle.squad.ReactiveManningSystem;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -633,6 +634,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final MechMoveOrderService mechMoveOrders = new MechMoveOrderService();
     private final MechMoveOrderSystem mechMoveOrderSystem =
             new MechMoveOrderSystem(mechMoveOrders);
+    /** A running mech order's pace, paid out of each chassis's battle stamina. */
+    private final MechRunSystem mechRun = new MechRunSystem(mechMoveOrders);
     /** Player mech squads following player infantry squads, applied after the player's direct orders. */
     private final MechAttachmentService mechAttachments = new MechAttachmentService();
     private final MechAttachmentSystem mechAttachmentSystem = new MechAttachmentSystem(mechAttachments);
@@ -1670,6 +1673,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         rosterService.modifiers().register(swarmHarvest.carrierModifier());
         rosterService.modifiers().register(matriarchActions.runModifier());
         rosterService.modifiers().register(squadRun.modifier());
+        rosterService.modifiers().register(mechRun.modifier());
         deathDispatcher.subscribe(event -> taskPoints.release(event.unitId()));
         // Registered rescue civilians report loss through the same once-only
         // death mailbox as every other post-death reaction. Non-cohort deaths
@@ -1776,7 +1780,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             }
         });
         this.firingSystem = new FiringSystem(grid, rosterService);
-        this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng);
+        this.heavy = new HeavyWeapons(rosterService, grid, ballisticResolver, shots, detonations, rng, mechRun);
         this.airSystem = new AirSystem(navigation, rosterService, tacticalScoring, world, turretFire,
                 rng, this::spawn, effects, resupply, this);
         this.airSystem.setIncomingMissiles(shots::getActiveShots);
@@ -2287,6 +2291,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     /** Applies squad tactical moves at the serialized command boundary. */
     public SquadMoveOrderSystem getSquadMoveOrderSystem() { return squadMoveOrderSystem; }
     public SquadRunSystem squadRun() { return squadRun; }
+
+    public MechRunSystem mechRun() { return mechRun; }
 
     /** Which player squads stand in the GARRISON stance, and what each is doing about it. */
     public ReactiveManningService getReactiveManning() { return reactiveManning; }
@@ -3786,6 +3792,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // After direct control's tick, which has already let every body but its own recover, so
         // a runner is chosen from this tick's stamina; before the dispatch that moves it.
         squadRun.beforeMovement(this);
+        mechRun.beforeMovement(this);
         // Swarm goal fields are rebuilt here, serially and from the positions
         // the unit update starts from, so the dispatch below only reads them.
         if (swarmFlowFieldEnabled) SwarmMovement.prepare(this);
@@ -3798,6 +3805,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             navigation.endSharedGoalPathSnapshot();
         }
         squadRun.afterMovement(this);
+        mechRun.afterMovement(this);
         // Units have moved, so the zone table no longer describes where they stand.
         zoneOccupancy.close();
         tickProfile.lap(TickProfile.Phase.UPDATE_UNITS);

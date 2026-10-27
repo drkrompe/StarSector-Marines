@@ -75,7 +75,8 @@ class BattleDirectControlHudTest {
             assertTrue(hullMeter.height() >= 8f, "a bar a player can read at a glance");
             assertTrue(fixture.status.requireElement("direct-status-armor").box().borderBox().bottom()
                     <= fixture.status.requireElement("direct-status-flux").box().borderBox().y(), "armor above flux");
-            assertHidden(fixture.status.requireElement("direct-status-stamina"));
+            assertEquals("100%", fixture.status.requireElement("direct-status-stamina-value").text(),
+                    "a mech sprints on stamina too");
         }
         try (Fixture fixture = fixture(Path.of("mod"), preview(Carrier.MARINE, true), 0,
                 false, ignored -> {}, () -> {}, () -> {})) {

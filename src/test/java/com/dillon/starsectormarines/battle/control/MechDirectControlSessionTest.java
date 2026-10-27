@@ -114,7 +114,7 @@ class MechDirectControlSessionTest {
         mount.burstPointAim = new PointFireAim(20, 5);
         session.submit(new ManualIntent(1, 0, 20, 5, true, true));
         session.tick();
-        assertEquals(MarineSprint.EMPTY, session.sprintStatus(), "Mechs do not acquire Marine stamina");
+        assertTrue(session.sprintStatus().sprinting(), "a mech sprints on Shift without lowering its guns");
         assertEquals(3f, mount.cycleRemaining, "session cannot tick the heavy-weapon clock");
         assertEquals(ammo, mount.ammo, "session cannot spend a mount trigger");
         session.suspendInput();
@@ -293,6 +293,28 @@ class MechDirectControlSessionTest {
         assertTrue(roster.world().x(mech) < 12.4f);
         assertEquals(-90f, roster.world().mechHipFacingDegrees(mech), .01f);
         assertEquals(8.5f, roster.world().y(mech), .001f);
+    }
+
+    @Test
+    void shiftSprintsAChassisFartherOnItsOwnStamina() {
+        long walker = spawn();
+        long runner = spawn();
+        roster.world().setPos(walker, 4.5f, 4.5f);
+        roster.world().setPos(runner, 4.5f, 11.5f);
+        assertTrue(session.enter(walker));
+        for (int i = 0; i < 30; i++) {
+            session.submit(new ManualIntent(1f, 0f, 20f, 4.5f, false, false));
+            session.tick();
+        }
+        session.exit();
+        assertTrue(session.enter(runner));
+        for (int i = 0; i < 30; i++) {
+            session.submit(new ManualIntent(1f, 0f, 20f, 11.5f, false, true));
+            session.tick();
+        }
+        assertTrue(roster.world().x(runner) - 4.5f > (roster.world().x(walker) - 4.5f) * 1.2f);
+        assertTrue(session.sprintStatus().staminaFraction() < 1f);
+        assertEquals(1f, session.marineStamina().status(walker).staminaFraction());
     }
 
     /** The number-key selection for one hardpoint: one past its slot ordinal. */

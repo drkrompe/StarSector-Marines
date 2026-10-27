@@ -300,11 +300,12 @@ reservations book a throw, so autonomous throwers keep clear of it, but the
 player's own throw is never refused for landing near a squadmate's. Other
 secondary equipment needs its own manual contract before it gains an activation key.
 
-Holding either Shift key requests sprint for every controllable Marine,
+Holding either Shift key requests sprint for every controllable Marine and Mech,
 independently of armor or carried equipment. Sprint is an individual movement
-choice; it does not add a squad order or a Mech or vehicle speed mode. A small Shift
-card in the existing equipment row shows the exact Marine's stamina and running
-or exhausted state. Its bar is distinct from armor and health.
+choice; it does not add a squad order, and a vehicle has no speed mode. A small Shift
+card in the existing equipment row (in a Mech's status, under its flux) shows the
+exact body's stamina and running or exhausted state. Its bar is distinct from armor
+and health.
 
 Intent is sampled at the fixed 30 Hz simulation boundary. A paused battle
 accepts no movement or shot; the aim preview may still move. Direct control
@@ -361,7 +362,13 @@ fire and burst work are cancelled without changing its cooldown or already
 launched shots. Mouse facing and shield protection remain under their ordinary
 manual authorities. Walking or stopping returns normal primary control.
 
-Stamina belongs to the exact Marine within the battle, rather than to an entry
+A Mech sprints on the same law and the same tuning, through its own drive: the
+multiplier raises the speed its handling eases toward, so momentum still builds
+with mass, and releasing Shift caps it back to walking. Unlike a Marine, a
+sprinting Mech keeps its weapons up: the torso swivels and every mount fires as
+ever, and the player's own aim takes no penalty for the pace.
+
+Stamina belongs to the exact Marine or Mech within the battle, rather than to an entry
 into control. It survives handback, switching bodies, and re-entry; those bodies
 recover in simulation time while outside control. Pausing advances neither
 spending nor recovery, and death retires the body's resource. Exhaustion
@@ -373,9 +380,9 @@ Initial tuning is a 1.6 speed multiplier, six seconds of full sprint, a one-seco
 recovery delay, four seconds for a full refill, and a quarter-bar reserve after
 exhaustion. Those values are balance choices; stamina ownership and terrain
 authority are standing laws. The same resource pays for a squad's run order
-(`mission-command-nouns.md`, Run): a Marine's stamina is one pool whether the
-player's Shift or their squad's order spends it, and the controlled body is
-boosted only by Shift. It does not change campaign condition.
+(`mission-command-nouns.md`, Run): a body's stamina is one pool whether the
+player's Shift or its squad's or chassis's run order spends it, and the controlled
+body is boosted only by Shift. It does not change campaign condition.
 
 The session stores intent, not a second movement physics model. Existing
 collision and reachability remain authoritative. Losing focus or releasing
