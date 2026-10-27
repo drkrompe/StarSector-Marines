@@ -133,19 +133,26 @@ def live(key, st, t_key, scale=1.0):
         hr, pr = math.radians(hd), math.radians(pt)
         return (s * math.cos(pr) * math.cos(hr), s * math.cos(pr) * math.sin(hr), s * math.sin(pr))
 
-    def at(tt):
-        n = int(round((tt - t_key) / LIVE_DT))
+    def step(n):
         if n not in memo:
-            step = 1 if n >= 0 else -1
-            m = max((q for q in memo if (q - n) * step <= 0 and q * step >= 0), key=abs, default=0)
+            dn = 1 if n >= 0 else -1
+            m = max((q for q in memo if (q - n) * dn <= 0 and q * dn >= 0), key=abs, default=0)
             pos = memo.get(m, base[:3])
-            for q in range(m, n, step):                  # midpoint steps along her own heading
-                v = vel(t_key + (q + .5 * step) * LIVE_DT)
-                pos = tuple(pos[c] + v[c] * LIVE_DT * step for c in range(3))
-                memo[q + step] = pos
+            for q in range(m, n, dn):                    # midpoint steps along her own heading
+                v = vel(t_key + (q + .5 * dn) * LIVE_DT)
+                pos = tuple(pos[c] + v[c] * LIVE_DT * dn for c in range(3))
+                memo[q + dn] = pos
             memo[n] = pos
-        x, y, z = memo[n]
-        return (x, y, z, *att(tt))
+        return memo[n]
+
+    def at(tt):
+        # between her LIVE_DT steps by their share, not the nearest one: 0.05 s steps rounded at 24 fps held
+        # every ship (and a camera riding her) still one frame in six (owner, 2026-10-27, motion lint)
+        x_ = (tt - t_key) / LIVE_DT
+        n0 = math.floor(x_)
+        a, c = step(n0), step(n0 + 1)
+        w = x_ - n0
+        return (*(a[k] + (c[k] - a[k]) * w for k in range(3)), *att(tt))
     return Pose(at(t_key), t_key, at)
 
 
@@ -715,11 +722,50 @@ def _cr(p0, p1, p2, p3, u):
                   + (-p0[i] + 3 * p1[i] - 3 * p2[i] + p3[i]) * u ** 3) for i in range(len(p1))]
 
 
+def _carry(ks, ps, i, j, s):
+    """The Catmull-Rom parameter on the span i to j at s (0-1, linear in time), timed so the move carries
+    through an inner key at the rate its two spans share (the curve's tangent there is common to both, so
+    the speed carries): at rest at the first and last key, and at a key the value holds into or out of
+    (ps: the values at i-1, i, j, j+1)."""
+    h = ks[j]['t'] - ks[i]['t']
+
+    def rate(n, here, before, after):
+        if n <= 0 or n >= len(ks) - 1 or math.dist(here, before) < 1e-6 or math.dist(here, after) < 1e-6:
+            return 0.0
+        return 2.0 / (ks[n + 1]['t'] - ks[n - 1]['t'])
+    a, b = rate(i, ps[1], ps[0], ps[2]) * h, rate(j, ps[2], ps[1], ps[3]) * h
+    s2, s3 = s * s, s * s * s
+    return (s3 - 2 * s2 + s) * a + (3 * s2 - 2 * s3) + (s3 - s2) * b
+
+
+def _mono(ks, vals, i, j, s):
+    """The monotone cubic (Fritsch-Butland) through keyed values vals[n] at ks[n]['t'], on the span i to j
+    at s (0-1, linear in time): each inner key's slope is the harmonic mean of its spans' slopes, zero
+    where a component holds or turns back, and zero at the first and last key."""
+    def slope(n):
+        if n <= 0 or n >= len(ks) - 1:
+            return [0.0] * len(vals[n])
+        out = []
+        for a, b, c in zip(vals[n - 1], vals[n], vals[n + 1]):
+            d0, d1 = (b - a) / (ks[n]['t'] - ks[n - 1]['t']), (c - b) / (ks[n + 1]['t'] - ks[n]['t'])
+            out.append(0.0 if d0 * d1 <= 0 else 2.0 / (1.0 / d0 + 1.0 / d1))
+        return out
+    if i == j:
+        return list(vals[i])
+    h = ks[j]['t'] - ks[i]['t']
+    m0, m1 = slope(i), slope(j)
+    s2, s3 = s * s, s * s * s
+    return [(2 * s3 - 3 * s2 + 1) * p0 + (s3 - 2 * s2 + s) * h * a + (3 * s2 - 2 * s3) * p1 + (s3 - s2) * h * b
+            for p0, p1, a, b in zip(vals[i], vals[j], m0, m1)]
+
+
 class CameraPath:
     """A camera move through timed keys: dict(t=, loc=(x, y, z) or f(t), target=(x, y, z) or f(t),
     lens=mm, roll=deg, and optionally focus=m and fstop for a focus pull the preview shows; a lit
-    still ignores them). Positions run on a Catmull-Rom curve with each span eased; lens and roll ease
-    between keys. shake: handheld drift, degrees of seeded wander in the aim and the roll (an
+    still ignores them). Positions run on a Catmull-Rom curve. Two keys: the span eased. More: the same
+    curve, timed so the move carries through each inner key (owner, 2026-10-27, S6c: "speed up, slow
+    down, speed up"; easing each span stopped it at every one), at rest only at the first and last key
+    and where a value holds; lens and roll on a monotone cubic through their keys in time. shake: handheld drift, degrees of seeded wander in the aim and the roll (an
     operator aboard a ship that is being shot at). kicks: [(t, degrees)], a jolt to the aim on a
     hit that peaks a fifth of a second later and settles (zero at the key time, like the shake)."""
     def __init__(self, name, keys, shake=0.0, t_key=None, kicks=()):
@@ -753,12 +799,23 @@ class CameraPath:
             i = max(n for n in range(len(ks) - 1) if ks[n]['t'] <= t)
             u = _ease((t - ks[i]['t']) / (ks[i + 1]['t'] - ks[i]['t']))
         j = min(i + 1, len(ks) - 1)
+        if len(ks) <= 2:
+            def curve(field):
+                return _cr(*[self._v(ks[max(0, min(len(ks) - 1, n))], field, t) for n in (i - 1, i, j, j + 1)], u)
+            lens = ks[i].get('lens', 35) + (ks[j].get('lens', 35) - ks[i].get('lens', 35)) * u
+            roll = ks[i].get('roll', 0.0) + (ks[j].get('roll', 0.0) - ks[i].get('roll', 0.0)) * u
+        else:
+            s_ = 0.0 if i == j else max(0.0, min(1.0, (t - ks[i]['t']) / (ks[j]['t'] - ks[i]['t'])))
 
-        def curve(field):
-            return _cr(*[self._v(ks[max(0, min(len(ks) - 1, n))], field, t) for n in (i - 1, i, j, j + 1)], u)
+            def scalar(field, default):
+                vals = {n: [ks[n].get(field, default)] for n in range(max(0, i - 1), min(len(ks), j + 2))}
+                return _mono(ks, vals, i, j, s_)[0]
+
+            def curve(field):
+                ps = [self._v(ks[max(0, min(len(ks) - 1, n))], field, t) for n in (i - 1, i, j, j + 1)]
+                return _cr(*ps, _carry(ks, ps, i, j, s_))
+            lens, roll = scalar('lens', 35), scalar('roll', 0.0)
         loc, target = curve('loc'), curve('target')
-        lens = ks[i].get('lens', 35) + (ks[j].get('lens', 35) - ks[i].get('lens', 35)) * u
-        roll = ks[i].get('roll', 0.0) + (ks[j].get('roll', 0.0) - ks[i].get('roll', 0.0)) * u
         if self.shake:      # still at the key time, so the lit still is the framing the keys say
             d = math.dist(loc, target)
             t0 = t if self.t_key is None else self.t_key
