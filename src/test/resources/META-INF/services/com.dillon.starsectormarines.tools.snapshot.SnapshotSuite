@@ -360,6 +360,7 @@ com.dillon.starsectormarines.battle.setup.CordonedFacilityLookSuite
 com.dillon.starsectormarines.battle.world.gen.DustLedgerCrossingSnapshotSuite
 com.dillon.starsectormarines.battle.world.gen.BlindWatchSoundingSnapshotSuite
 com.dillon.starsectormarines.ops.DustLedgerBattleLookSuite
+com.dillon.starsectormarines.ops.BlindWatchBattleLookSuite
 com.dillon.starsectormarines.ops.DustLedgerTechnicalLookSuite
 com.dillon.starsectormarines.ops.DustLedgerSideObjectivesLookSuite
 com.dillon.starsectormarines.ops.DustLedgerMissionPreviewSuite

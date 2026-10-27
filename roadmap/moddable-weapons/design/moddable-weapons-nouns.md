@@ -92,6 +92,16 @@ without turning a JSON typo into a silent zero-damage battle.
   runtime while owning its storyboard projection as retained panels and
   backend-neutral canvas producers. The shared retained paint targets own live
   and headless rendering; the preview does not own a private raster painter.
+  Composed effect commands are painted by one shared painter for every
+  preview. A marine primary's catalog preview is its **range scene**, shown in
+  the weapon's spec sheet: a marine holding the trigger at the weapon's own
+  **fire cycle** (cooldown, burst, magazine and reload, as `CombatService`
+  applies them, read in closed form for any moment), its rounds crossing to a
+  target plate at their battle velocity with their battle body, tail, muzzle
+  and impact effects, and beneath them the battle HUD's weapon row for that
+  moment, drawn through the HUD's own status, state text and ammo strip. It
+  holds nothing authored of its own, so a new or retuned weapon previews as it
+  plays.
 - A **turret authoring document** is an editor transaction over the linked
   weapon, mount, structure, and defense-post layout catalogs. It presents one
   resolved turret without merging those authorities: saves return every value

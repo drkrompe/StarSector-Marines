@@ -778,8 +778,17 @@ public final class HeartLanes {
                     why = "lane " + lane.number + " goes in on " + a.boreKey + " behind its surge";
                 }
                 default -> {
-                    order = ObjectiveAssignment.defendArea(squad, a.supportX, a.supportY);
-                    why = "lane " + lane.number + " holds its support line on " + a.boreKey;
+                    int[] at = squadCell(sim, squad);
+                    if (at != null && !BoreAssault.holdsSupportLine(
+                            (float) Math.hypot(at[0] - a.supportX, at[1] - a.supportY))) {
+                        // Short of the line it moves up to it, asked again each second until it is there.
+                        lane.assaultOrdered.remove(squad);
+                        order = ObjectiveAssignment.attackMove(squad, a.supportX, a.supportY);
+                        why = "lane " + lane.number + " moves up to its support line on " + a.boreKey;
+                    } else {
+                        order = ObjectiveAssignment.defendArea(squad, a.supportX, a.supportY);
+                        why = "lane " + lane.number + " holds its support line on " + a.boreKey;
+                    }
                 }
             }
             sim.assignSquadCommand(order, CommandAuthority.GARRISON, ISSUER, why);

@@ -29,6 +29,56 @@ public final class AssignmentArbiter {
      * directive it covers, it holds it here and puts it back on handback.
      */
     private final Map<Integer, CommandDirective> shelved = new HashMap<>();
+    /**
+     * The side a player is commanding, or null when nobody is (a headless
+     * evidence run, a test). Its squads take their errands from the player
+     * alone; see {@link #yieldToPlayer}.
+     */
+    private Faction playerSide;
+
+    /**
+     * Hands {@code side}'s own squads to the player for the rest of the battle.
+     *
+     * <p>From now on mission command may still own one of them — claim it, take
+     * it over from a landing craft, release it — but never sends it anywhere:
+     * an assignment at {@link CommandAuthority#MISSION_COMMAND} is refused, or
+     * kept as a bare claim where a handoff carries it, so a squad the player has
+     * not ordered holds where it stands and fights what it sees. The one errand
+     * mission command keeps is {@link AssignmentKind#WITHDRAW}: a squad leaving
+     * the field is the mission ending, not a place to clear. Scripted, payload,
+     * garrison and reinforcement authorities are untouched, and so is every
+     * other side, which is how allied forces keep their commanders.
+     *
+     * <p>An errand mission command already gave one of these squads is taken
+     * back here, so a battle built before the player took it starts clean.
+     */
+    public void yieldToPlayer(Faction side, BattleView sim) {
+        playerSide = Objects.requireNonNull(side, "side");
+        for (Squad squad : sim.getSquads()) {
+            CommandDirective current = active.get(squad.id);
+            if (current != null && withheld(squad, current.authority(), current.assignment())) {
+                install(squad, new CommandDirective(squad.id, current.perspective(),
+                        current.issuer(), current.authority(), current.reason(), null,
+                        current.issuedTick(), -1, current.leaseUntilTick(),
+                        CommandDirective.Status.ACTIVE, "errand withdrawn: the player commands this squad"));
+            }
+            CommandDirective held = shelved.get(squad.id);
+            if (held != null && withheld(squad, held.authority(), held.assignment())) {
+                shelved.remove(squad.id);
+            }
+        }
+    }
+
+    /** Whether the player commands this squad: their side, a body that takes orders, not flying a rescue. */
+    public boolean playerCommands(Squad squad) {
+        return squad.faction == playerSide && !squad.isDroneSquad() && !squad.rescuePickupMech;
+    }
+
+    /** Whether {@code assignment} at {@code authority} is an errand the player owns on this squad. */
+    private boolean withheld(Squad squad, CommandAuthority authority, ObjectiveAssignment assignment) {
+        return authority == CommandAuthority.MISSION_COMMAND && assignment != null
+                && assignment.kind() != AssignmentKind.WITHDRAW && playerCommands(squad);
+    }
 
     /**
      * Adopts assignments written by not-yet-migrated systems before frames are
@@ -379,6 +429,10 @@ public final class AssignmentArbiter {
         if (assignment.squadId() != squad.id) {
             throw new IllegalArgumentException("assignment squad does not match target");
         }
+        if (withheld(squad, authority, assignment)) {
+            claimExternal(squad, authority, issuer, reason, tick);
+            return;
+        }
         CommandDirective incumbent = active.get(squad.id);
         if (!mayReplace(incumbent, authority, issuer, tick)) return;
         if (incumbent != null && incumbent.issuer().equals(issuer)
@@ -429,6 +483,7 @@ public final class AssignmentArbiter {
         if (nextAssignment != null && nextAssignment.squadId() != squad.id) {
             throw new IllegalArgumentException("assignment squad does not match target");
         }
+        if (withheld(squad, nextAuthority, nextAssignment)) nextAssignment = null;
         CommandDirective next = new CommandDirective(squad.id, squad.faction,
                 nextIssuer, nextAuthority, reason, nextAssignment, tick,
                 nextAssignment != null ? stabilityFloor(nextAuthority, tick) : -1,
@@ -559,6 +614,9 @@ public final class AssignmentArbiter {
                     releaseDisposition(incumbent, proposal));
         }
 
+        if (withheld(squad, proposal.authority(), proposal.assignment())) {
+            return rejected(plan, proposal, "the player commands this squad");
+        }
         String invalid = validateShape(proposal.assignment(), topology);
         if (invalid != null) return rejected(plan, proposal, invalid);
         ObjectiveAssignment applied = resolveAppliedAssignment(

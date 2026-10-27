@@ -163,7 +163,7 @@ class NavigationServiceSquadRouteAdmissionTest {
     }
 
     @Test
-    void topologyResetClearsPendingAndTheNextPreparationRequeues() {
+    void topologyResetClearsPendingAndTheNextPreparationServesTheOldestWaitFirst() {
         try (NavigationService navigation = navigation()) {
             List<SquadRouteRequest> requests = wave(budget() + 1, 1, 6);
             SquadRouteRequest deferred = requests.get(budget());
@@ -174,7 +174,9 @@ class NavigationServiceSquadRouteAdmissionTest {
             assertFalse(pending(navigation, deferred));
             assertEquals(1, navigation.lastSquadRoutePending(), "flush retains last-preparation diagnostics");
             navigation.prepareSquadRoutes(requests, 2);
-            assertTrue(pending(navigation, deferred));
+            // The wait outlives the flush, so the squad that waited through it is built before the fresh requests.
+            assertFalse(pending(navigation, deferred));
+            assertEquals(1, navigation.lastSquadRoutePending(), "one fresh request waits in its place");
         }
     }
 

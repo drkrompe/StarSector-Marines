@@ -4,7 +4,8 @@ Status: ACTIVE — the shared autonomous command architecture is in production f
 
 Written: 2026-08-27
 
-Updated: 2026-10-21 — Thunder Run's militia holds are locked positions (`garrisonables.md`); a released squad stays in the pool it was handed to.
+Updated: 2026-10-27 — in a battle the player plays, mission command no longer sends the player's own squads to objectives; it keeps commanding allies, and headless runs keep the Marine autopilot (see "Player and faction extensions").
+Earlier 2026-10-21 — Thunder Run's militia holds are locked positions (`garrisonables.md`); a released squad stays in the pool it was handed to.
 from independent acting-NCO leadership and physical mission routes.
 Earlier 2026-08-31 — active player infantry context now exclusively owns the
 squad's mission-tier plan, including specialist and rescue pickup squads, while
@@ -27,10 +28,12 @@ Earlier: made navigation-revision caching and commander-pulse
 performance evidence part of the shared command boundary.
 
 Mission command is the slow, faction-scoped layer that turns authored mission
-meaning and faction-honest knowledge into stable squad assignments. It is the
-strategic half of the auto-battler baseline: a battle should progress without
-continuous player rescue, while player intervention remains able to tip a
-competent autonomous contest.
+meaning and faction-honest knowledge into stable squad assignments. It commands
+the opposition, allied forces, and, in a headless run only, the player's own
+company. In a battle the player plays, the player clears the map: their squads
+take no objective from mission command (see "Player and faction extensions"),
+so a mission must be balanced against a player giving orders, not against the
+Marine autopilot that evidence runs use.
 
 This feature owns the common command architecture. Each mission document owns
 the geometry, phases, legal disclosure, allocation policy, and opposing-force
@@ -409,7 +412,26 @@ picture may be a mission director rather than a mirrored squad commander.
 
 ## Player and faction extensions
 
-The player is an **intervention authority**, not the baseline commander. A
+**The player commands their own company.** When a battle is put in front of the
+player (`MarineOpsContext.setBattle`), `AssignmentArbiter.yieldToPlayer` hands
+the Marine side to them: mission command may still own one of their squads
+(claim it, take it over from a landing craft, release it) but an assignment at
+`MISSION_COMMAND` is refused, or kept as a bare claim where a handoff carries
+it, and a commander does not post their mech lances as machine guards. A squad
+the player has not ordered holds where it stands and fights what it sees. The
+one errand that still lands is `WITHDRAW`, since leaving the field is the
+mission ending rather than a place to clear. Scripted, payload, garrison and
+reinforcement authorities are untouched, as is every other side, so `ALLY`
+forces keep their commanders; a force a mission wants to fight on its own
+belongs on `ALLY`, not on the Marine side. Drone squads and lances flying a
+rescue pickup are not the player's to order and stay on mission command.
+
+A headless run (evidence tasks, tests, fixtures) never calls `yieldToPlayer`,
+so the Marine commander still plays the company there. That autopilot is a
+stand-in for a player so the opposition has something to fight; its outcomes
+say whether a mission works mechanically, not whether it is hard enough.
+
+Within the player's company, the player's orders are leases. A
 future request may lease a legal priority, rally, reserve commitment, focus, or
 fallback. It cannot manufacture knowledge, bypass objective law, or seize an
 externally owned squad. Expiry hands control back without a planless interval.

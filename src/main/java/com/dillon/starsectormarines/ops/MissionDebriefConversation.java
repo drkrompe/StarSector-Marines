@@ -7,7 +7,9 @@ import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.battle.story.TermsOfProtectionProgress;
+import com.dillon.starsectormarines.battle.setup.BlindWatchSequence;
 import com.dillon.starsectormarines.battle.setup.DustLedgerSequence;
+import com.dillon.starsectormarines.battle.objective.side.SideObjective;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -93,13 +95,33 @@ final class MissionDebriefConversation {
         var route = SupplyRouteCampaign.current();
         if (jangalaClosing(outcome, route)) return jangalaLines(catalog);
         if (dustLedger(outcome)) return dustLedgerLines(outcome.dustLedger);
-        if (blindWatch(outcome)) return List.of("initiative", "ready")
+        if (blindWatch(outcome)) return blindWatchBeats(outcome.blindWatch, outcome.marinesLost)
                 .stream().map(beat -> catalog.find("story_corvus_blind_watch", "debrief.blind_watch." + beat))
                 .filter(Objects::nonNull).toList();
         if (!coldAccount(outcome)) return HoundSalvageDebrief.lines(outcome, catalog);
         return List.of("orders", "consideration", "one_ship", "payroll", "way_out", "debt")
                 .stream().map(beat -> catalog.find("story_corvus_cold_account", "debrief.cold_account." + beat))
                 .filter(Objects::nonNull).toList();
+    }
+
+    /**
+     * Blind Watch's debrief beats in their fixed order ({@code blind-watch-dialogue.md}, Debrief selection): Castle opens
+     * on whether Garnir was warned; Mara reads the routing (a completed warning outranks a sent false schedule); the
+     * recorded initiative; the riggers freed, lost or left; the organ manifest only when it was logged; the cost; the
+     * recorded close. An outcome without a Blind Watch report (an older save) keeps only the two recorded lines.
+     */
+    static List<String> blindWatchBeats(BlindWatchSequence.Report report, int marinesLost) {
+        if (report == null) return List.of("initiative", "ready");
+        List<String> beats = new ArrayList<>();
+        beats.add(report.garnirWarned() ? "opening.warned" : "opening.quiet");
+        beats.add(report.garnirWarned() ? "routing.warned" : report.falseSchedule() ? "routing.schedule" : "routing.quiet");
+        beats.add("initiative");
+        beats.add(report.riggersFreed() ? "riggers.freed"
+                : report.riggers() == SideObjective.State.FAILED ? "riggers.lost" : "riggers.left");
+        if (report.manifestLogged()) beats.add("cold_store.logged");
+        beats.add(marinesLost > 0 ? "cost.losses" : "cost.clean");
+        beats.add("ready");
+        return beats;
     }
 
     /** Shepherd debrief turns are catalog lines, so a recorded take plays where one exists. */

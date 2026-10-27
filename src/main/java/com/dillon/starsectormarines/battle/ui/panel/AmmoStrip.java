@@ -19,6 +19,11 @@ public interface AmmoStrip {
     /** The icon's state, lower case, naming the drawing's variant: {@code live}, {@code spent}. */
     String iconState(int index);
 
+    /** The drawing of one icon, as the battle HUD and every preview of it show it. */
+    default String iconPath(int index) {
+        return "graphics/ui/direct-control/round-" + iconKind() + "-" + iconState(index) + ".svg";
+    }
+
     /** Whether a group ends after this icon. */
     boolean iconGroupEnd(int index);
 

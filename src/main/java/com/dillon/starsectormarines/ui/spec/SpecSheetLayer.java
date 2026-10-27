@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.spec;
 
+import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 import com.dillon.starsectormarines.ui.retained.Rect;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -7,11 +8,14 @@ import com.dillon.starsectormarines.ui.retained.UiTag;
 import com.dillon.starsectormarines.ui.retained.style.StyleSheet;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.WeakHashMap;
+import java.util.function.DoubleSupplier;
+import java.util.function.Supplier;
 
 /**
  * The one floating overlay a document shows a {@link SpecSheet} in
@@ -40,6 +44,11 @@ import java.util.WeakHashMap;
  * directly, so a stylesheet may transition the overlay in. The shipped sheet
  * deliberately declares no transition: headless evidence renders one frame, and
  * a fade would photograph as an empty rectangle.
+ *
+ * <p>A sheet that names a {@link SpecSheet.Scene} gets a canvas under its
+ * heading, painted by the {@link SceneSource} registered for the scene's kind.
+ * The layer knows kinds only by name, so the code that paints a weapon on the
+ * range stays out of this package; a kind with no source shows no canvas.
  */
 public final class SpecSheetLayer {
 
@@ -108,6 +117,7 @@ public final class SpecSheetLayer {
             .spec-sheet-system .spec-sheet-stat-fill { background-color: #c79ce8; }
             .spec-sheet-mech .spec-sheet-stat-fill { background-color: #e2965c; }
             .spec-sheet-note { white-space: normal; }
+            .spec-sheet-scene { width: 360px; height: 168px; }
             .spec-sheet-stamp {
                 flex-direction: column;
                 height: 24px;
@@ -176,6 +186,12 @@ public final class SpecSheetLayer {
             """;
 
     private static final Map<UiDocument, SpecSheetLayer> INSTALLED = new WeakHashMap<>();
+    private static final Map<String, Supplier<SceneSource>> SCENE_SOURCES = new HashMap<>();
+
+    /** Width of a scene's canvas: the overlay's content width. */
+    public static final int SCENE_WIDTH = 360;
+    /** Height of a scene's canvas. */
+    public static final int SCENE_HEIGHT = 168;
     /** The seal a Restricted card's badge carries, the same one its face shows. */
     public static final String RESTRICTED_SEAL = "graphics/ui/company/restricted-seal.svg";
 
@@ -197,6 +213,12 @@ public final class SpecSheetLayer {
     private final List<UiElement> teamLabels = new ArrayList<>();
     private final List<SeatTile> seatTiles = new ArrayList<>();
 
+    private final Map<String, SceneSource> sceneSources = new HashMap<>();
+    private UiElement sceneCanvas;
+    private SpecSheet.Scene shownScene;
+    private long sceneShownNanos;
+    private DoubleSupplier sceneClock;
+
     private String accentClass;
     private int usedStats;
     private int usedNotes;
@@ -204,6 +226,7 @@ public final class SpecSheetLayer {
     private int usedTeams;
     private boolean seatsAttached;
     private boolean stampAttached;
+    private boolean sceneAttached;
 
     private SpecSheetLayer(UiDocument document) {
         this.document = document;
@@ -257,6 +280,41 @@ public final class SpecSheetLayer {
         }
     }
 
+    /**
+     * Registers what paints scenes of one kind. Each layer makes its own
+     * source the first time it shows that kind, so a source's textures belong
+     * to one document.
+     */
+    public static void registerSceneSource(String kind, Supplier<SceneSource> source) {
+        Objects.requireNonNull(kind, "kind");
+        Objects.requireNonNull(source, "source");
+        synchronized (SCENE_SOURCES) {
+            SCENE_SOURCES.put(kind, source);
+        }
+    }
+
+    /**
+     * Replaces the wall clock a scene plays to with a fixed one, for headless
+     * evidence; null restores the wall clock.
+     */
+    public void sceneClock(DoubleSupplier seconds) {
+        sceneClock = seconds;
+    }
+
+    /**
+     * Gives every scene source's resources back, when the document's screen is
+     * put away; a later sheet loads what it shows afresh.
+     */
+    public void releaseScenes() {
+        clearScene();
+        for (SceneSource source : sceneSources.values()) source.release();
+    }
+
+    /** The scene canvas, for tests; null until a sheet with a scene is shown. */
+    public UiElement sceneCanvas() {
+        return sceneCanvas;
+    }
+
     /** The overlay element itself, for tests and for hit-test assertions. */
     public UiElement element() {
         return root;
@@ -307,6 +365,7 @@ public final class SpecSheetLayer {
 
     /** Closes the overlay, leaving its filled content retained for reuse. */
     public void hide() {
+        clearScene();
         if (!visible()) return;
         root.addClass(HIDDEN_CLASS);
         root.style("");
@@ -331,6 +390,7 @@ public final class SpecSheetLayer {
             stampBadge.classed("spec-sheet-stamp-badge-absent", !sheet.stamp().restricted());
             stamp.classed("spec-sheet-stamp-restricted", sheet.stamp().restricted());
         }
+        if (sceneAttached) root.remove(sceneCanvas);
         for (int index = usedStats - 1; index >= 0; index--) root.remove(statRows.get(index).row);
         for (int index = usedNotes - 1; index >= 0; index--) root.remove(notes.get(index));
         if (seatsAttached) root.remove(seats);
@@ -339,6 +399,7 @@ public final class SpecSheetLayer {
         usedNotes = sheet.notes().size();
 
         if (stampAttached) root.child(stamp);
+        fillScene(sheet.scene());
         for (int index = 0; index < usedStats; index++) {
             StatRow row = statRow(index);
             row.apply(sheet.stats().get(index));
@@ -504,6 +565,79 @@ public final class SpecSheetLayer {
     }
 
     /** One accent token, reduced to something that can be a class name. */
+    /**
+     * Shows the sheet's scene under its heading, restarting its clock only when
+     * the scene itself changes, so a live sheet re-filled every frame keeps
+     * playing.
+     */
+    private void fillScene(SpecSheet.Scene scene) {
+        sceneAttached = false;
+        SceneSource source = scene == null ? null : sceneSource(scene.kind());
+        if (source == null) {
+            clearScene();
+            return;
+        }
+        if (sceneCanvas == null) {
+            sceneCanvas = new UiElement(ELEMENT_ID + "-scene").tag(UiTag.CANVAS)
+                    .addClass("spec-sheet-scene")
+                    .canvasSize(SCENE_WIDTH, SCENE_HEIGHT);
+        }
+        root.child(sceneCanvas);
+        sceneAttached = true;
+        if (scene.equals(shownScene) && document.canvases().producerOf(sceneCanvas) != null) return;
+        CanvasProducer producer = source.open(scene, this::sceneSeconds);
+        if (producer == null) {
+            root.remove(sceneCanvas);
+            sceneAttached = false;
+            clearScene();
+            return;
+        }
+        shownScene = scene;
+        sceneShownNanos = System.nanoTime();
+        document.canvases().set(sceneCanvas, producer);
+    }
+
+    private SceneSource sceneSource(String kind) {
+        SceneSource source = sceneSources.get(kind);
+        if (source != null) return source;
+        Supplier<SceneSource> factory;
+        synchronized (SCENE_SOURCES) {
+            factory = SCENE_SOURCES.get(kind);
+        }
+        if (factory == null) return null;
+        source = factory.get();
+        sceneSources.put(kind, source);
+        return source;
+    }
+
+    private double sceneSeconds() {
+        if (sceneClock != null) return sceneClock.getAsDouble();
+        return (System.nanoTime() - sceneShownNanos) / 1e9;
+    }
+
+    /** Takes the producer off the canvas, so the next scene shown starts from its first round. */
+    private void clearScene() {
+        shownScene = null;
+        if (sceneCanvas != null && document.canvases().producerOf(sceneCanvas) != null) {
+            document.canvases().clear(sceneCanvas);
+        }
+    }
+
+    /**
+     * Paints one kind of scene. {@link #open} is asked each time a sheet with a
+     * new scene is shown, and may return null for a subject it cannot show;
+     * the canvas is then left out.
+     */
+    public interface SceneSource {
+        /**
+         * @param seconds time since the scene was first shown
+         */
+        CanvasProducer open(SpecSheet.Scene scene, DoubleSupplier seconds);
+
+        /** Gives back whatever the source loaded. */
+        default void release() {}
+    }
+
     private static String token(String accent) {
         StringBuilder result = new StringBuilder(accent.length());
         for (char character : accent.toLowerCase(Locale.ROOT).toCharArray()) {

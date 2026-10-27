@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ui.spec;
 
+import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 import com.dillon.starsectormarines.ui.retained.Rect;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
@@ -7,9 +8,12 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.function.DoubleSupplier;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -20,6 +24,49 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class SpecSheetLayerTest {
 
     private static final float EPSILON = 0.01f;
+
+    /**
+     * A scene opens once while its sheet is re-filled, so it keeps playing; hiding takes it off the
+     * canvas, and putting the screen away gives its source's resources back.
+     */
+    @Test
+    void aSceneOpensOnceWhileItsSheetStaysAndIsReleasedWithTheScreen() {
+        int[] opened = {0};
+        int[] released = {0};
+        SpecSheetLayer.registerSceneSource("layer-test", () -> new SpecSheetLayer.SceneSource() {
+            @Override
+            public CanvasProducer open(SpecSheet.Scene scene, DoubleSupplier seconds) {
+                opened[0]++;
+                return context -> { };
+            }
+
+            @Override
+            public void release() {
+                released[0]++;
+            }
+        });
+        try (MarkupInstance instance = SpecSheetDocuments.instance()) {
+            UiDocument document = SpecSheetDocuments.laidOut(instance);
+            SpecSheetLayer layer = SpecSheetLayer.install(document);
+            UiElement anchor = instance.requireElement("near-left");
+            SpecSheet sheet = SpecSheetDocuments.sheet("weapon")
+                    .withScene(new SpecSheet.Scene("layer-test", "rifle", ""));
+
+            layer.show(sheet, anchor);
+            layer.show(sheet, anchor);
+            assertEquals(1, opened[0], "a re-filled sheet restarted its scene");
+            assertSame(layer.element(), layer.sceneCanvas().parent());
+            assertNotNull(document.canvases().producerOf(layer.sceneCanvas()));
+
+            layer.hide();
+            assertNull(document.canvases().producerOf(layer.sceneCanvas()));
+            layer.show(SpecSheetDocuments.sheet("weapon"), anchor);
+            assertNull(layer.sceneCanvas().parent(), "a sheet without a scene kept the canvas");
+
+            layer.releaseScenes();
+            assertEquals(1, released[0]);
+        }
+    }
 
     /** The ordinary case: beside the subject, on the side the reader is heading. */
     @Test

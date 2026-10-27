@@ -54,6 +54,8 @@ public final class SpecSheets {
 
     /** Accent tokens the stylesheet keys a border colour on. */
     public static final String ACCENT_WEAPON = "weapon";
+    /** The scene kind a marine primary's sheet shows: the weapon firing on the range. */
+    public static final String SCENE_WEAPON = "weapon";
     public static final String ACCENT_ARMOR = "armor";
     public static final String ACCENT_SPECIAL = "special";
     public static final String ACCENT_SYSTEM = "system";
@@ -132,7 +134,8 @@ public final class SpecSheets {
                 def.catalogFactionLogo,
                 ACCENT_WEAPON,
                 weaponStats(def, issued, CATALOG_SHOOTER),
-                paragraphs(def.catalogDescription()));
+                paragraphs(def.catalogDescription()))
+                .withScene(new SpecSheet.Scene(SCENE_WEAPON, def.id, issued.name()));
     }
 
     /** The primary's ability to overcome armor resistance, on a catalog-wide scale. */

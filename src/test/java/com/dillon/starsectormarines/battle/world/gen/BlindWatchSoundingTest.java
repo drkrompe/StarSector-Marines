@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen;
 
+import com.dillon.starsectormarines.battle.cordon.CordonGapLaw;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.vehicle.TerrainCostField;
@@ -55,6 +56,34 @@ class BlindWatchSoundingTest {
         // Buildings are held places only; the map brings no capture point of its own.
         for (TacticalNode node : layout.map().tacticalMap.all())
             assertEquals(TacticalNode.Kind.INNER_POSITION, node.kind);
+    }
+
+    /**
+     * The west rim gun watches the boulder approach and the rim's west ramp, never the flat: every cell of the flat
+     * approach's corridor, the rover track included, is beyond its gun's reach or out of its sight (the grid's own
+     * line, which lets the high ground see down). The flat is the mortar's.
+     */
+    @Test
+    void theWestRimGunHasNoLineOverTheFlatApproach() {
+        BlindWatchSounding.Layout layout = BlindWatchSounding.generate(7150, WARION);
+        NavigationGrid grid = layout.map().grid;
+        BlindWatchSounding.Cell gun = layout.nests().get(0).cell();
+        List<BlindWatchSounding.Cell> flat = layout.approaches().get(BlindWatchSounding.Approach.FLAT);
+        for (int y = 0; y < grid.getHeight(); y++) for (int x = 0; x < grid.getWidth(); x++) {
+            if (!grid.isWalkable(x, y) || Math.hypot(x - gun.x(), y - gun.y()) > CordonGapLaw.REACH
+                    || !nearLine(x, y, flat, BlindWatchSounding.APPROACH_CORRIDOR)) continue;
+            assertFalse(grid.hasLineOfSight(gun.x(), gun.y(), x, y), "west rim gun sees the flat at " + x + "," + y);
+        }
+    }
+
+    private static boolean nearLine(int x, int y, List<BlindWatchSounding.Cell> line, double within) {
+        for (int i = 1; i < line.size(); i++) {
+            BlindWatchSounding.Cell a = line.get(i - 1), b = line.get(i);
+            double dx = b.x() - a.x(), dy = b.y() - a.y(), length = dx * dx + dy * dy;
+            double t = length == 0 ? 0 : Math.max(0, Math.min(1, ((x - a.x()) * dx + (y - a.y()) * dy) / length));
+            if (Math.hypot(x - a.x() - t * dx, y - a.y() - t * dy) <= within) return true;
+        }
+        return false;
     }
 
     @Test

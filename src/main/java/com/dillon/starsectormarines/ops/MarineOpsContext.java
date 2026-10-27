@@ -694,6 +694,8 @@ public class MarineOpsContext {
         if (battleSimulation != null && battleSimulation != simulation) {
             battleSimulation.close();
         }
+        // A battle in front of the player is theirs to command: the company waits for orders.
+        if (simulation != null && simulation != battleSimulation) simulation.playerCommandsCompany();
         this.battleSimulation = simulation;
         this.battleFixture = simulation != null ? fixture : null;
         this.detachment = simulation != null ? battleDetachment : null;

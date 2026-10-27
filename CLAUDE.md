@@ -151,6 +151,13 @@ its doc for flags and outputs.
   (`SwitchRegistryTest` fails on an unlisted `battle.*` or `marines.*` read in
   `src/main`), and the session that added it removes it with the losing path
   once the comparison is decided. A permanent lever states its reason there.
+- **Balance missions against a player, not the autopilot** (owner). In a
+  played battle the player's squads take no objective from mission command;
+  only allies and the opposition are commanded. Evidence runs still let the
+  Marine commander play the company, so their win rates and durations show a
+  mission works, not that it is hard enough: playtesting found campaign
+  missions too easy that way. Tune for a player giving orders
+  (`mission-command-nouns.md`, Player and faction extensions).
 - **Raise a heap only after finding the retainer**; a battle's live set is well
   under 1 GB (`evidence-tasks.md`, Memory).
 - Never run two of the same Test-based task in one worktree at once.

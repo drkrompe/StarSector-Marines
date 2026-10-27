@@ -145,6 +145,11 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.CanvasMetrics;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
 import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
+import com.dillon.starsectormarines.battle.weapon.WeaponFireCycle;
+import com.dillon.starsectormarines.ops.battleview.HeadlessWeaponPreviewAssets;
+import com.dillon.starsectormarines.ops.battleview.WeaponPreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.WeaponPreviewScenes;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -1746,6 +1751,54 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     }
 
     /** Barracks -> selected squad equipment -> Barracks, at the player's review scale. */
+    /**
+     * A marine's primary hovered, its sheet playing the weapon on the range on a fixed scene clock: the
+     * first marine's weapon as a round leaves, then the first magazine-fed one as a round leaves and
+     * while its load is changed.
+     */
+    private static List<SnapshotArtifact> renderWeaponSceneSheet(SnapshotContext context, HeadlessUiRenderer renderer,
+            UiDocument document, MarkupInstance markup, SpecSheetBinder sheets) throws Exception {
+        SpecSheetLayer.registerSceneSource(SpecSheets.SCENE_WEAPON, () -> new WeaponPreviewScenes(
+                new HeadlessWeaponPreviewAssets(context.modRoot(), context.starsectorCore())));
+        var layer = SpecSheetLayer.install(document);
+        double[] clock = {0d};
+        layer.sceneClock(() -> clock[0]);
+        List<SnapshotArtifact> frames = new ArrayList<>();
+        WeaponPreviewCanvas first = hoverWeaponScene(document, markup, sheets, layer, 0);
+        clock[0] = firingMoment(first.cycle());
+        frames.add(new SnapshotArtifact("03g-weapon-sheet-firing.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+        for (int billet = 1; billet < MarineSquad.CAPACITY; billet++) {
+            WeaponPreviewCanvas scene = hoverWeaponScene(document, markup, sheets, layer, billet);
+            WeaponFireCycle cycle = scene.cycle();
+            if (!cycle.magazineFed()) continue;
+            clock[0] = firingMoment(cycle);
+            frames.add(new SnapshotArtifact("03h-magazine-sheet-firing.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            clock[0] = cycle.releaseTime(cycle.releasesPerLoop() - 1) + 0.12d + cycle.reloadSeconds() * 0.4d;
+            frames.add(new SnapshotArtifact("03i-magazine-sheet-reloading.png", renderRelative(renderer, document, 1920, 1080, 1f)));
+            break;
+        }
+        layer.sceneClock(null);
+        return frames;
+    }
+
+    /** A moment a round has just left, with one already spent from the load. */
+    private static double firingMoment(WeaponFireCycle cycle) {
+        return cycle.releaseTime(Math.min(1, cycle.releasesPerLoop() - 1)) + 0.03d;
+    }
+
+    private static WeaponPreviewCanvas hoverWeaponScene(UiDocument document, MarkupInstance markup,
+            SpecSheetBinder sheets, SpecSheetLayer layer, int billet) {
+        var target = markup.requireElement(LoadoutInspection.partId(billet, LoadoutInspection.WEAPON));
+        var box = target.box().borderBox();
+        document.pointerMoved(box.x() + box.width() / 2, box.y() + box.height() / 2);
+        sheets.update(); document.advance(0.3f);
+        if (sheets.openTarget() != target) throw new AssertionError("Billet " + billet + "'s primary lost its spec sheet");
+        if (!(document.canvases().producerOf(layer.sceneCanvas()) instanceof WeaponPreviewCanvas scene)) {
+            throw new AssertionError("Billet " + billet + "'s primary sheet shows no range scene");
+        }
+        return scene;
+    }
+
     static List<SnapshotArtifact> renderBarracksEquipment(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.modRoot().getParent());
         HeadlessSvgAssets.install(context.modRoot());
@@ -1844,6 +1897,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 sheets.update(); editorDocument.advance(0.3f);
                 if (sheets.openTarget() != target) throw new AssertionError("Proposed equipment lost its spec sheet");
                 frames.add(new SnapshotArtifact("03f-equipment-spec-sheet.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
+                frames.addAll(renderWeaponSceneSheet(context, renderer, editorDocument, editorMarkup, sheets));
                 sheets.clear();
                 clickBarracksFlow(editorDocument, editorMarkup, "page-nav-return");
                 if (routes.get(routes.size() - 1) != ScreenId.BARRACKS) throw new AssertionError("Editor return missed Barracks");

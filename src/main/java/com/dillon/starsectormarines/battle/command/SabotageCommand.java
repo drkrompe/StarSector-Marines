@@ -110,8 +110,11 @@ public final class SabotageCommand implements
 
             Integer priorSite = squadSite.put(squad.squadId(), site.index());
             siteLoad.merge(site.index(), 1, Integer::sum);
-            ObjectiveAssignment assignment = ObjectiveAssignment.clearZone(
-                    squad.squadId(), site.zoneId());
+            // A site indoors is secured by clearing its zone; one on open ground by holding its own cell, since
+            // clearing the exterior sends a squad to whichever corner of the whole map it already stands in.
+            ObjectiveAssignment assignment = site.openGround()
+                    ? ObjectiveAssignment.defendSite(squad.squadId(), site.cellX(), site.cellY())
+                    : ObjectiveAssignment.clearZone(squad.squadId(), site.zoneId());
             boolean preserved = priorSite != null && priorSite == site.index();
             AssignmentReason reason = preserved
                     ? AssignmentReason.SITE_SECURITY_PRESERVED
@@ -198,8 +201,7 @@ public final class SabotageCommand implements
                 || Objects.equals(incumbent.assignment(), assignment)) {
             return CommandStabilityBreak.NONE;
         }
-        SabotageCommandFacts.Site oldSite = siteByZone(frame.facts(),
-                incumbent.assignment().targetZoneId());
+        SabotageCommandFacts.Site oldSite = siteFor(frame.facts(), incumbent.assignment());
         if (oldSite == null || oldSite.complete()) {
             return CommandStabilityBreak.OBJECTIVE_COMPLETED;
         }
@@ -262,7 +264,8 @@ public final class SabotageCommand implements
             for (CommandSquadState squad : frame.squads()) {
                 SquadDirective directive = directives.get(squad.squadId());
                 if (directive != null && directive.siteIndex() == site.index()
-                        && directive.assignmentKind() == AssignmentKind.CLEAR_ZONE) {
+                        && (directive.assignmentKind() == AssignmentKind.CLEAR_ZONE
+                        || directive.assignmentKind() == AssignmentKind.DEFEND_SITE)) {
                     security++;
                     liveMembers += squad.aliveMembers();
                 }
@@ -322,10 +325,13 @@ public final class SabotageCommand implements
         return -1;
     }
 
-    private static SabotageCommandFacts.Site siteByZone(SabotageCommandFacts facts,
-                                                        int zoneId) {
+    /** The site a security order was for: by its cell when it names one, else by its zone. */
+    private static SabotageCommandFacts.Site siteFor(SabotageCommandFacts facts,
+                                                     ObjectiveAssignment assignment) {
         for (SabotageCommandFacts.Site site : facts.sites()) {
-            if (site.zoneId() == zoneId) return site;
+            if (assignment.targetCellX() >= 0
+                    ? site.cellX() == assignment.targetCellX() && site.cellY() == assignment.targetCellY()
+                    : site.zoneId() == assignment.targetZoneId()) return site;
         }
         return null;
     }

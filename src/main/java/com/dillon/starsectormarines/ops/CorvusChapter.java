@@ -3,10 +3,11 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.AssaultBattleFixture;
+import com.dillon.starsectormarines.battle.fixture.BlindWatchBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.ColdAccountBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.DustLedgerBattleFixture;
-import com.dillon.starsectormarines.battle.fixture.SabotageBattleFixture;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.battle.story.BlindWatchProgress;
 import com.dillon.starsectormarines.battle.world.gen.EconomicFunction;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -16,6 +17,7 @@ import com.dillon.starsectormarines.i18n.Strings;
 
 import java.util.Set;
 import java.util.List;
+import java.util.function.Predicate;
 
 /** Authored local raids against the Sable Wake crew, not wars against their host planets. */
 public enum CorvusChapter {
@@ -53,12 +55,22 @@ public enum CorvusChapter {
                 ground, SettlementLink.ROAD);
     }
 
-    /** Same production construction values for campaign launch and opt-in evidence. */
+    /** {@link #fixture(long, List, TargetProfile, Predicate)} on a campaign that holds no marks (evidence, debug). */
     public BattleFixture fixture(long seed, List<ShuttleAssignment> manifest, TargetProfile profile) {
+        return fixture(seed, manifest, profile, mark -> false);
+    }
+
+    /**
+     * Same production construction values for campaign launch and opt-in evidence. {@code campaignHas} answers for the
+     * campaign's marks at this boundary: Blind Watch's post stands to unless the Dust Ledger delivered Teague
+     * ({@link BlindWatchProgress#stoodTo}).
+     */
+    public BattleFixture fixture(long seed, List<ShuttleAssignment> manifest, TargetProfile profile,
+                                 Predicate<String> campaignHas) {
         return switch (this) {
             case DUST_LEDGER -> new DustLedgerBattleFixture(seed, manifest, risk, profile);
-            case BLIND_WATCH -> SabotageBattleFixture.fromFactoryInputs(seed, manifest, false,
-                    OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE, false);
+            case BLIND_WATCH -> new BlindWatchBattleFixture(seed, manifest, risk, profile,
+                    BlindWatchProgress.stoodTo(campaignHas));
             case COLD_ACCOUNT -> new ColdAccountBattleFixture(AssaultBattleFixture.fromFactoryInputs(seed, manifest, false,
                     OperationTier.ESTABLISHED, risk, profile, FlybyRoster.EMPTY, FlybyRoster.EMPTY, PrecinctPlan.Sprawl.REMOTE));
         };

@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.audio.WaylineNarration;
+import com.dillon.starsectormarines.battle.objective.side.SideObjective.State;
+import com.dillon.starsectormarines.battle.setup.BlindWatchSequence;
+import com.dillon.starsectormarines.battle.story.BlindWatchProgress.Warning;
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
@@ -71,6 +74,25 @@ class MissionDebriefConversationTest {
             ResultsScreen.putStoryDebrief(props, outcome);
             assertEquals(losses > 0, props.get("storyMessage").toString().contains("paid for this in lives"));
         }
+    }
+
+    @Test void blindWatchDebriefFollowsTheWarningTheScheduleTheRiggersAndTheCost() throws Exception {
+        var catalog = catalog();
+        var quiet = new BlindWatchSequence.Report(false, Warning.STOPPED, .2f, State.DONE, State.OFFERED, State.DONE, false);
+        var outcome = MissionOutcome.builder().missionId("wayline_corvus_v1_1_2").missionSource(MissionSource.STORY)
+                .victory(true).marinesEngaged(36).marinesLost(0).blindWatch(quiet).build();
+        assertEquals(List.of("opening.quiet", "routing.quiet", "initiative", "riggers.freed", "cold_store.logged",
+                        "cost.clean", "ready"),
+                MissionDebriefConversation.lines(outcome, catalog).stream()
+                        .map(l -> l.event().substring("debrief.blind_watch.".length())).toList());
+        // The warning outranks a false schedule sent before it; the manifest is said only when it was logged.
+        var warned = new BlindWatchSequence.Report(true, Warning.SENT, 1f, State.FAILED, State.DONE, State.LAPSED, true);
+        assertEquals(List.of("opening.warned", "routing.warned", "initiative", "riggers.lost", "cost.losses", "ready"),
+                MissionDebriefConversation.blindWatchBeats(warned, 3));
+        var schedule = new BlindWatchSequence.Report(false, Warning.FALSE_SCHEDULE, .4f, State.WORKING, State.DONE,
+                State.OFFERED, false);
+        assertEquals(List.of("opening.quiet", "routing.schedule", "initiative", "riggers.left", "cost.clean", "ready"),
+                MissionDebriefConversation.blindWatchBeats(schedule, 0));
     }
 
     @Test void unrelatedOutcomesDoNotInventTheInterventionAndSalvageStillWorks() throws Exception {

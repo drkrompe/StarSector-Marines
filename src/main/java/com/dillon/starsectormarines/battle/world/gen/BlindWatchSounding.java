@@ -244,11 +244,12 @@ public final class BlindWatchSounding {
     static final Cell WEST_CROSSING = new Cell(61, 20), MIDDLE_CROSSING = new Cell(103, 20);
 
     /**
-     * The rim guns: one on the rim's south-west spur over the rover track and the flat's east half, one beside the
-     * mast over the crater floor. Machine guns, since what crosses the flat is infantry.
+     * The rim guns, both beside the mast: one west of it over the rim's west ramp and the boulder approach, one east
+     * of it over the crater floor. Neither has a line over the flat or the rover track; the flat is the mortar's,
+     * firing on what the mast sees. Machine guns, since what comes up the boulders is infantry.
      */
-    private static final List<Cell> NEST_CELLS = List.of(new Cell(121, 76), new Cell(143, 93));
-    private static final List<Direction> NEST_FACING = List.of(Direction.SW, Direction.S);
+    static final List<Cell> NEST_CELLS = List.of(new Cell(127, 90), new Cell(143, 93));
+    private static final List<Direction> NEST_FACING = List.of(Direction.W, Direction.S);
     private static final List<String> NEST_GUNS = List.of(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID);
     /** Cells of pad round a nest's mount, kept clear of dressing so its field of fire stays open. */
@@ -883,7 +884,7 @@ public final class BlindWatchSounding {
 
     private static Layout layout(MapResult map, Sites s) {
         Map<PostRole, List<Cell>> posts = new EnumMap<>(PostRole.class);
-        posts.put(PostRole.RIM, List.of(new Cell(124, 78), new Cell(119, 74), new Cell(146, 94), new Cell(140, 92)));
+        posts.put(PostRole.RIM, List.of(new Cell(126, 87), new Cell(130, 88), new Cell(146, 94), new Cell(140, 92)));
         posts.put(PostRole.MAST, List.of(new Cell(130, 91), new Cell(137, 90)));
         List<Cell> hab = new ArrayList<>(slitCells(AIRLOCK_PILLBOX));
         hab.addAll(List.of(new Cell(160, 58), new Cell(176, 56)));

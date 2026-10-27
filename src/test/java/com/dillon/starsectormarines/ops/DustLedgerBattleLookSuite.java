@@ -45,13 +45,16 @@ public final class DustLedgerBattleLookSuite implements SnapshotSuite {
             var fixture = chapter.fixture(mission.battleSeed, manifest, chapter.profile(chapter.surface));
             return LookReview.record(context.modRoot(), new LookReview.Shot("dust-ledger",
                     LookGround.of(SurfacePalette.ARID, mission.battleSeed), 40, 30, placement -> fixture.build(),
-                    placement -> List.of(company(), LookReview.View.close("compound", 179f, 50f, 96f)),
+                    placement -> List.of(company(22f, 65f), LookReview.View.close("compound", 179f, 50f, 96f)),
                     TICKS, EVERY, 4));
         }
     }
 
-    /** Play zoom on the middle of the company's live ground units, eased; holds where it was once they are gone. */
-    static LookReview.View company() {
+    /**
+     * Play zoom on the middle of the company's live ground units, eased; on {@code (startX, startY)} until the first is
+     * down, and holding where it was once they are gone.
+     */
+    static LookReview.View company(float startX, float startY) {
         float[] at = {Float.NaN, Float.NaN};
         return new LookReview.View("company", sim -> {
             float sumX = 0f, sumY = 0f;
@@ -68,7 +71,7 @@ public final class DustLedgerBattleLookSuite implements SnapshotSuite {
                 if (Float.isNaN(at[0])) { at[0] = x; at[1] = y; }
                 else { at[0] += (x - at[0]) * EASE; at[1] += (y - at[1]) * EASE; }
             }
-            if (Float.isNaN(at[0])) return new float[] {22f, 65f, 60f};
+            if (Float.isNaN(at[0])) return new float[] {startX, startY, 60f};
             return new float[] {at[0], at[1], 60f};
         });
     }

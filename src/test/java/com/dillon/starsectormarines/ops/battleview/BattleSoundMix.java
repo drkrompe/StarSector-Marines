@@ -61,6 +61,17 @@ public final class BattleSoundMix {
      * over it is cut. Returns how many starts were mixed.
      */
     public static int mix(Path modRoot, Path log, double seconds, Path wav) throws IOException {
+        return mix(modRoot, log, seconds, wav, 1);
+    }
+
+    /**
+     * {@link #mix(Path, Path, double, Path)} for a recording played at {@code speed} times real speed: every start,
+     * held tick and music cue lands at its battle time divided by {@code speed}, and each sound plays at its own length
+     * and pitch, so a fast recording's gunfire is denser rather than higher.
+     */
+    public static int mix(Path modRoot, Path log, double seconds, Path wav, int speed) throws IOException {
+        if (speed <= 0) throw new IllegalArgumentException("speed must be positive");
+        double secondsPerTick = BattleSimulation.TICK_DT / (double) speed;
         Map<String, List<Take>> takes = takes(modRoot);
         int length = (int) Math.round(seconds * RATE);
         float[] left = new float[length];
@@ -98,13 +109,13 @@ public final class BattleSoundMix {
             int n = plays.merge(id, 1, Integer::sum) - 1;
             Take take = options.get(n % options.size());
             float[] clip = clip(id, take, decoded);
-            int at = (int) Math.round(start.optInt("frame") * (double) BattleSimulation.TICK_DT * RATE);
+            int at = (int) Math.round(start.optInt("frame") * secondsPerTick * RATE);
             float gain = (float) start.optDouble("volume", 1.0) * take.volume();
             float pitch = (float) start.optDouble("pitch", 1.0) * take.pitch();
             float[] pans = pan(start, gain, halfWidth);
             if (add(clip, pitch, at, pans[0], pans[1], left, right)) mixed++;
         }
-        int samplesPerTick = (int) Math.round(BattleSimulation.TICK_DT * RATE);
+        int samplesPerTick = (int) Math.round(secondsPerTick * RATE);
         int fade = Math.round(LOOP_FADE_SECONDS * RATE);
         for (List<JSONObject> ticks : held.values()) {
             for (int from = 0, to; from < ticks.size(); from = to) {
@@ -123,7 +134,7 @@ public final class BattleSoundMix {
                     gainLeft[i - from] = pans[0];
                     gainRight[i - from] = pans[1];
                 }
-                int at = (int) Math.round(first.optInt("frame") * (double) BattleSimulation.TICK_DT * RATE);
+                int at = (int) Math.round(first.optInt("frame") * secondsPerTick * RATE);
                 hold(clip(id, take, decoded), (float) first.optDouble("pitch", 1.0) * take.pitch(), at,
                         samplesPerTick, gainLeft, gainRight, fade, left, right);
                 mixed++;
@@ -139,12 +150,12 @@ public final class BattleSoundMix {
                 continue;
             }
             Take take = options.get(0);
-            int at = (int) Math.round(cue.optInt("frame") * (double) BattleSimulation.TICK_DT * RATE);
+            int at = (int) Math.round(cue.optInt("frame") * secondsPerTick * RATE);
             int end = length;
             int fadeOut = 0;
             if (c + 1 < music.size()) {
                 JSONObject next = music.get(c + 1);
-                end = (int) Math.round(next.optInt("frame") * (double) BattleSimulation.TICK_DT * RATE);
+                end = (int) Math.round(next.optInt("frame") * secondsPerTick * RATE);
                 fadeOut = next.optInt("fadeOut") * RATE;
             }
             music(clip(id, take, decoded), take.volume(), at, cue.optInt("fadeIn") * RATE, end, fadeOut,

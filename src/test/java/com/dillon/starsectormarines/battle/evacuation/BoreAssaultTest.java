@@ -26,6 +26,13 @@ class BoreAssaultTest {
     }
 
     @Test
+    void militiaShortOfTheirSupportLineMoveUpToItRatherThanHoldWhereTheyStand() {
+        // Broad Front verdant 3's lane 4: fifty to eighty cells short of its line.
+        assertFalse(BoreAssault.holdsSupportLine(60f));
+        assertTrue(BoreAssault.holdsSupportLine(BoreAssault.SET_CELLS), "on the line, it holds it");
+    }
+
+    @Test
     void postsStandOnTheNearSideSpreadApart() {
         NavigationGrid grid = open(80, 80);
         VehicleClearance clearance = VehicleClearance.erode(grid, 1);

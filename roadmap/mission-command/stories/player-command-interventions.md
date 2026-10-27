@@ -15,10 +15,15 @@ planning this story.
 
 ## Intent
 
-Let the player tip an autonomous battle through bounded strategic intent rather
-than becoming the only source of competent movement. Direct intervention should
-change priority or tempo, remain explainable, and expire cleanly back into
-mission command.
+Superseded in part (2026-10-27): in a played battle mission command no longer
+moves the player's own squads at all (`mission-command-nouns.md`, Player and
+faction extensions), so the player is the source of their company's movement and
+a strategic request has no Marine directive to tip. What remains here is the
+ownership gap below and whatever requests make sense toward allied forces.
+
+Originally: let the player tip an autonomous battle through bounded strategic
+intent. Direct intervention should change priority or tempo, remain
+explainable, and expire cleanly back into mission command.
 
 ## Scope
 
@@ -83,7 +88,8 @@ mission command.
   The tactical squad move now goes through the arbiter as a lease at
   `PLAYER_INTERVENTION`, so the click path is already provenanced; a strategic
   request must arrive the same way rather than reopening a side channel.
-- Do not tune missions around constant player order throughput.
+- Do not tune missions around the Marine autopilot; tune them for a player
+  giving orders.
 - Faction doctrine remains independent of player intent.
 
 ## Exit
