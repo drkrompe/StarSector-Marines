@@ -288,6 +288,8 @@ public class GroundSystem {
                     // Story columns retain ordinary steering, footprint collision and weapons; so does a defender hull
                     // a mission drives (the Dust Ledger's rocket truck working its corners).
                     if (convoy.faction(id) != Faction.MARINE && m.authoredRouteX != null) {
+                        // The route owns the chassis; a turn it was making where it stood ends here.
+                        engagement.yieldTo(id);
                         if (m.authoredRoutePaused) {
                             controlSystem.tickManual(id, dt, 0f, 0f);
                             break;

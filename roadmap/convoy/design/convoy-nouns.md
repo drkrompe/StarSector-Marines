@@ -469,15 +469,34 @@ round. It applies to whichever plate the hit meets (above).
     line to it) makes only the backing turn: the forward turn drives it out from
     behind the berm before the nose comes round, and the berm is worth more than
     the plate. `-Dbattle.vehicle.faceInBand=false` is the control.
-  - **One front, for the worst threat it knows of.** A hull has one front
-    plate, so with several hostile machines about it turns onto the one that
-    can do it the most harm from where it stands, not merely the nearest. Harm
-    is each weapon's rounds a second, at its accuracy for the range and its
-    armor efficiency against the hull's plate; a gun out of its own reach does
-    none. The threat it faces keeps the front until another is a quarter
-    worse, and everything else takes the side or the rear: two machines from
-    two sides beat the turn. The band is still held against the duel target.
-    `-Dbattle.vehicle.faceWorstThreat=false` is the control (the duel target).
+  - **One front, where it lasts longest.** A hull has one front plate, so with
+    several hostiles about it turns onto the one whose bearing, taken as its
+    facing, has all of them killing it slowest, each through the plate it would
+    hit. A hostile is a machine, an emplaced gun, or a soldier with a weapon of
+    his own (a rocket with rounds left, a profiled rifle); one firing off baked
+    attack stats has no weapon to weigh and is not counted. Harm is each
+    weapon's rounds a second, at its accuracy for the range and its armor
+    efficiency against the plate (the arc's rating times the hull's); a gun out
+    of its own reach does none. A threat kills through a plate in the time it
+    takes to strip what that plate has left (times the arc's plate multiplier)
+    and then the structure behind, which a stripped plate lets every point
+    reach; a facing's cost is the sum of one over those times. So a machine gun
+    that barely marks the glacis is given the front over a cannon that would
+    strip a side, two guns on one side get the front and a lone one the tail,
+    and a side its attackers have stripped is turned away from them. The facing
+    held is kept until another costs a quarter less. The band is still held
+    against the duel target. `-Dbattle.vehicle.faceWorstThreat=false` is the
+    control (the duel target, and no turn without one).
+  - **Standing hulls face too.** A hull with no machine to duel, and an allied
+    hull its story script parks (the script owns when and where it moves; which
+    way it faces where it stands is the hull's), holds where it stands and makes
+    the same rehearsed turn onto the facing above, giving no more than eight
+    cells from where it was parked: a tank's widest backing turn gives about
+    seven, so one turn fits and turn after turn does not walk it off its mark.
+    A hull that has lost its gun still faces, since its plate still matters; an
+    immobilised one cannot, and an ambusher keeps its cover. A route handed to
+    the hull ends any turn it was making. A hull nothing drives brakes rather
+    than keeping whatever speed it had.
   - **It turns only toward what it knows of**: a machine in its own sight, or
     one its side's spotters report (`SideSpotting`). A flanker out of sight, or
     come up behind cover, gets its shots on the side until it is seen. There is

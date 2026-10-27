@@ -43,11 +43,20 @@ class VehicleEngagementFacingTest {
         assertTrue(result[2] >= 30f - 1e-3f, "never closed: nearest " + result[2]);
     }
 
+    @Test
+    void aStandingTankSquaresUpToAGunOffItsBeamWithoutLeavingItsMark() {
+        // A gun 30 cells off, just short of the backing limit round to the right of a hull pointing north: the worst a backing turn faces.
+        double bearing = Math.toRadians(5f - VehicleEngagement.BACKING_TURN_DEGREES);
+        float[] result = turnToward(0f, (float) -Math.sin(bearing) * 30f, (float) Math.cos(bearing) * 30f, false);
+        assertTrue(result[0] <= VehicleEngagement.REFACE_STOP_DEGREES, "faced to " + result[0]);
+        assertTrue(result[3] <= VehicleEngagement.STAND_TURN_GROUND, "gave " + result[3] + " cells");
+    }
+
     /**
      * Drives a breakthrough tank's body, set down at the origin facing {@code facing}, with {@code faceDrive} (a
      * {@code forward} turn kept forward, as a turn begun with the target well behind is) until
      * its nose is within the stop arc of ({@code tx}, {@code ty}) or twenty seconds pass: {@code {final degrees off
-     * the nose, final distance, nearest distance}}.
+     * the nose, final distance, nearest distance, ground given}}.
      */
     private static float[] turnToward(float facing, float tx, float ty, boolean forward) {
         GroundBody body = VehicleType.BREAKTHROUGH_TANK.createBody();
@@ -61,6 +70,7 @@ class VehicleEngagementFacingTest {
             float[] drive = VehicleEngagement.faceDrive(alpha, forward);
             ((BicycleBody) body).tickManual(drive[0], drive[1], DT);
         }
-        return new float[] {Math.abs(alpha), (float) Math.hypot(tx - body.x, ty - body.y), nearest};
+        return new float[] {Math.abs(alpha), (float) Math.hypot(tx - body.x, ty - body.y), nearest,
+                (float) Math.hypot(body.x, body.y)};
     }
 }
