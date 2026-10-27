@@ -48,6 +48,11 @@ final class BriefingViewModel {
         props.put("fieldSquads", List.of());
         props.put("fieldTiles", List.of());
         props.put("airCraft", List.of());
+        props.put("deployLamps", List.of());
+        props.put("replenishLabel", "");
+        props.put("replenishClasses", "briefing-assign-hidden");
+        props.put("replenishDisabled", true);
+        props.put("replenishAction", (Runnable) () -> { });
         props.put("forceSelectedClasses", "label heading tone-edge");
         props.put("prepareReplay", (Runnable) () -> { });
         props.put("prepareArmory", (Runnable) () -> { });

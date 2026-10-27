@@ -62,22 +62,18 @@ class CampaignLessonsTest {
         }
     }
 
-    @Test void briefingNeedsSelectedReadyFormationsOnly() throws Exception {
+    @Test void deployingTheJunctionClosesTheFormationLessons() throws Exception {
         try (var strings = new HeadlessStrings(Path.of("mod"))) {
             var roster = afterCounterattack();
-            assertEquals(CampaignLessons.Step.INVESTMENTS, CampaignLessons.next(roster));
             roster.campaignLessons().reviewInvestments();
             var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
-            Set<String> both = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
             var mission = SecondSquadPreparationTest.junction();
-            assertNull(CampaignLessons.briefing(mission, roster, Set.of(second.id()), true).action());
-            var ready = CampaignLessons.briefing(mission, roster, both, true);
-            assertNotNull(ready.action());
-            assertFalse(roster.campaignLessons().junctionPrepared(), "Opening a briefing is not confirmation");
-            ready.action().run();
+            assertEquals(CampaignLessons.Step.FORMATIONS, CampaignLessons.next(roster));
+            CampaignLessons.deployed(mission, roster);
             roster = restore(roster);
             assertTrue(roster.campaignLessons().junctionPrepared());
             assertTrue(roster.secondSquadPreparationSeen());
+            assertEquals(CampaignLessons.Step.NONE, CampaignLessons.next(roster));
             assertEquals(24, roster.lineReadySoldiers().size(), "Guidance never creates personnel");
         }
     }

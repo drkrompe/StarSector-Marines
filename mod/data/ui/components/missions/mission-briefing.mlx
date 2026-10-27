@@ -1,4 +1,4 @@
-<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles,airCraft">
+<template props="commsText,commsProgress,commsSkipAction,preparationClasses,prepareReplay,prepareArmory,prepareBarracks,narrationSpeaker,narrationRole,narrationNameStyle,narrationPortrait,narrationStatus,narrationSpeakerClasses,replayNarrationAction,stopNarrationAction,employerFactionName,employerFactionCrest,employerFactionCrestStyle,oppositionFactionName,oppositionFactionCrest,oppositionFactionCrestStyle,termActionsStyle,rewardHeader,rewardValue,rewardTerms,surveyStatus,surveyDetails,surveyObjectives,operationScale,operationRisk,scaleIndicators,riskIndicators,forceSelected,forceRecommended,forceSegments,forceAssessment,forceAssessmentClasses,deploymentStatus,carrierEmpty,carrierEmptyStyle,screenHeader,missionKicker,missionTitle,missionFlavor,missionDialogue,missionDialogueStyle,missionFlavorStyle,missionRows,termActions,captainHeader,captainRoleSummary,groupCommandHeading,groupCommandSummary,groupCommandStyle,captains,captainEmpty,captainEmptyStyle,powerEmptyStyle,sourceEmptyStyle,powerListStyle,sourceListStyle,debugToggleArrow,debugToggleClasses,debugToggleLabel,debugToggleDisabled,debugToggleAction,debugHeader,tierSummary,tierSteps,debugControls,debugKitRows,debugBaySlots,debugCommander,kitPicker,airRows,commitmentHeader,personnelSummary,personnelClasses,experienceSummary,taskForceRows,forceSummaryStyle,forceCardsStyle,commandHeader,commandSummary,powerRows,powerEmpty,sourceHeader,sourceRows,sourceEmpty,transportHeader,landingCraftTitle,landingCraftCapacity,landingCraftSchedule,landingCraftOrigin,landingCraftImage,landingCraftImageStyle,landingCraftScheduleClasses,carrierHeader,employerHeader,employerRows,assignLabel,assignClasses,assignDisabled,assignAction,deployLabel,deployClasses,deployDisabled,deployAction,backAction,liftClasses,liftHeader,liftSummary,liftSummaryClasses,liftMachines,liftCarriers,fieldSquads,forceSelectedClasses,fieldTiles,airCraft,deployLamps,replenishLabel,replenishClasses,replenishDisabled,replenishAction">
   <div id="mission-briefing-root" class="mission-briefing-root">
     <div id="mission-briefing-header" class="mission-briefing-header console-header">
       <img id="mission-briefing-lock" class="console-header-lock" src="graphics/ui/console/locking-plate.svg" />
@@ -205,6 +205,11 @@
               <div id="mission-force-selected" class="{forceSelectedClasses}">{forceSelected}</div>
               <div id="mission-force-recommended" class="{forceAssessmentClasses}">{forceRecommended}</div>
             </div>
+            <button id="mission-replenish" class="{replenishClasses}" disabled="{replenishDisabled}" onclick="{replenishAction}">
+              <div id="mission-replenish-signal" class="console-command-signal" />
+              <div id="mission-replenish-legend" class="console-key-legend">{replenishLabel}</div>
+              <img id="mission-replenish-grip" class="console-key-grip" src="graphics/ui/console/key-grip.svg" />
+            </button>
             <button id="mission-assign" class="{assignClasses}" disabled="{assignDisabled}" onclick="{assignAction}">
               <div id="mission-assign-signal" class="console-command-signal" />
               <div id="mission-assign-legend" class="console-key-legend">{assignLabel}</div>
@@ -324,6 +329,13 @@
             <button id="mission-narration-stop" onclick="{stopNarrationAction}">{i18n.briefingCommsSkip}</button>
             <div id="mission-action-spacer" />
             <div id="mission-deployment-status" class="label tone-muted">{deploymentStatus}</div>
+            <!-- Warning lamps: dark while a check passes, lit amber when it does not; the hover says why. -->
+            <div id="mission-deploy-lamps" class="deploy-lamps">
+              <div each="lamp in deployLamps" key="{lamp.id}" id="{lamp.id}" class="{lamp.classes}" tabindex="0">
+                <img id="{lamp.iconId}" class="deploy-lamp-icon" src="{lamp.icon}" />
+                <div id="{lamp.labelId}" class="label deploy-lamp-label">{lamp.label}</div>
+              </div>
+            </div>
             <button id="mission-deploy" class="{deployClasses}" disabled="{deployDisabled}" onclick="{deployAction}">
               <div id="mission-deploy-signal" class="console-command-signal" />
               <div id="mission-deploy-legend" class="console-key-legend">{deployLabel}</div>
@@ -548,10 +560,19 @@
   .mission-briefing-actions button { flex-direction: row; align-items: center; width: 158px; flex-grow: 0; padding: 2px 5px; gap: 5px; border-width: 3px; font-family: heading; text-align: center; height: 30px; }
   #mission-briefing-back { width: 114px; }
   #mission-action-spacer { width: 0px; flex-grow: 1; }
-  #mission-deployment-status { width: 360px; min-height: 32px; text-align: right; white-space: normal; }
+  #mission-deployment-status { width: 300px; min-height: 32px; text-align: right; white-space: normal; }
   .force-heading-row { flex-direction: row; align-items: center; height: 30px; width: 100%; gap: 20px; }
   #mission-force-heading { width: 0px; flex-grow: 1; }
   #mission-assign { flex-direction: row; align-items: center; width: 192px; height: 26px; padding: 2px 5px; gap: 5px; border-width: 2px; font-family: heading; }
+  #mission-replenish { flex-direction: row; align-items: center; width: 192px; height: 26px; padding: 2px 5px; gap: 5px; border-width: 2px; font-family: heading; }
+  #mission-replenish.briefing-assign-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
+  /* Deploy's warning lamps: a dim row of checks; a failed one lights amber, as the field bricks do. */
+  .deploy-lamps { flex-direction: row; align-items: center; height: 30px; gap: 6px; }
+  .deploy-lamp { flex-direction: row; align-items: center; width: 150px; height: 28px; padding: 2px 6px; gap: 5px; border-width: 1px; border-color: #2c3733; background-color: #141b19; opacity: 0.4; }
+  .deploy-lamp-lit { background-color: #4a2410; border-color: #f2b33d; opacity: 1; }
+  .deploy-lamp-icon { width: 20px; height: 20px; pointer-events: none; }
+  .deploy-lamp-label { width: 0px; flex-grow: 1; height: 18px; font-family: heading; overflow: hidden; pointer-events: none; }
+  .deploy-lamp-lit .deploy-lamp-label { color: #f2b33d; }
   #mission-assign.briefing-assign-hidden { width: 0px; height: 0px; padding: 0px; border-width: 0px; overflow: hidden; }
   #mission-force-summary { align-items: start; }
   #mission-task-force { width: 100%; }

@@ -9,7 +9,6 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /** Resumable guidance derived from actual company work, independent of an entry screen. */
 final class CampaignLessons {
@@ -125,18 +124,14 @@ final class CampaignLessons {
                 () -> roster.campaignLessons().deferFormations((int) formations(roster)));
     }
 
-    /** The Junction briefing's lesson; the lance needs no call of its own, so ready formations are enough. */
-    static PreparationGuide.Lesson briefing(Mission mission, MarineRoster roster, Set<String> selected,
-                                              boolean supportAvailable) {
-        if (!SecondSquadPreparation.relevant(mission, roster) || next(roster) != Step.FORMATIONS) return null;
-        boolean ready = SupplyRouteCampaign.forceReady(roster, selected);
-        String copy = !ready ? "lessonJunctionSquads"
-                : supportAvailable ? "lessonJunctionReady" : "lessonJunctionWithoutMech";
-        boolean prepared = ready;
-        return lesson(3, "lessonJunctionTitle", copy,
-                List.of("mission-assign", "mission-power-list", "mission-transport-readout"),
-                prepared ? "lessonReady" : null, prepared
-                        ? () -> { roster.campaignLessons().observePreparation(true, true); roster.acknowledgeSecondSquadPreparation(); } : null);
+    /**
+     * Deploying on the Junction closes the formation lessons. The briefing itself says nothing: the warning
+     * lamps beside Deploy already show a short or wounded force.
+     */
+    static void deployed(Mission mission, MarineRoster roster) {
+        if (!SecondSquadPreparation.relevant(mission, roster) || next(roster) != Step.FORMATIONS) return;
+        roster.campaignLessons().observePreparation(true, true);
+        roster.acknowledgeSecondSquadPreparation();
     }
 
     static PreparationGuide.Lesson lesson(int step, String title, String copy, List<String> targets,
