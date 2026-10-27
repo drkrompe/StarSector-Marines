@@ -3249,6 +3249,20 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         commanders.setAutonomousCommander(faction, commander, disclosure);
     }
 
+    /**
+     * The player commands the Marine company in this battle: mission command stops sending its squads to objectives
+     * ({@link com.dillon.starsectormarines.battle.command.AssignmentArbiter#yieldToPlayer}). Set when a battle is put in front of the player; a headless run leaves
+     * the company on its commander.
+     */
+    public void playerCommandsCompany() {
+        commanders.assignments().yieldToPlayer(Faction.MARINE, this);
+    }
+
+    /** Whether the player, rather than mission command, sends this squad where it goes. */
+    public boolean playerCommands(Squad squad) {
+        return commanders.assignments().playerCommands(squad);
+    }
+
     /** The commander for {@code faction}, or {@code null} if none is wired. Read by debug UI and by integration tests that poke at commander state directly. */
     public CommandStrategy getCommander(Faction faction) {
         return commanders.getCommander(faction);
