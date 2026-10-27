@@ -2750,7 +2750,7 @@ wreck a building (their issued kit), never an enemy's; the wreck order is the or
 fire on the aspect at its destination, with no hostile identity, and squads otherwise leave a fort's aspect cores alone
 (`forts.md`, *Built: fort restraint*). A mission's quiet phase may likewise **cover** bodies from hostile scans
 (`ScanCover`): covered bodies are still seen and hit, only never offered to a search for something to shoot. The Dust
-Ledger covers Sable Wake, and the company outside the exclusion ring, until its alarm (`dust-ledger-crossing.md`).
+Ledger covers Sable, and the company outside the exclusion ring, until its alarm (`dust-ledger-crossing.md`).
 
 Target-faction doctrine is likewise a bounded mission-command extension, not a
 new planner or a source of hidden knowledge. `target-faction-command-doctrine.md`

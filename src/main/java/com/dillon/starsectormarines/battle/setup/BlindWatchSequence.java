@@ -38,7 +38,7 @@ import java.util.Set;
  * Blind Watch at the Sounding ({@code blind-watch-sounding.md}): three charges on three installations that are not
  * interchangeable, so the order they fall in is the company's plan. This adapter reads the battle into
  * {@link BlindWatchProgress}, which owns the rules, and carries out what they decide: the alarm, the uplink's warning to
- * Garnir, each charge's effect (the ranging mast stops spotting for Sable Wake, the uplink falls silent), the riggers'
+ * Garnir, each charge's effect (the ranging mast stops spotting for Sable, the uplink falls silent), the riggers'
  * walk out and the field calls. Its three side objectives are toolkit jobs ({@link BlindWatchSideObjectives}).
  *
  * <p>The charges themselves are the Sabotage plant ({@code sabotage-command.md}): the three
@@ -51,7 +51,7 @@ import java.util.Set;
 public final class BlindWatchSequence implements Objective {
     /** The stable charge-site ids; their world markers read S1, S2 and S3. */
     public static final String MAST_SITE = "SAB-01", UPLINK_SITE = "SAB-02", DISH_SITE = "SAB-03";
-    /** How far the standing mast sees for Sable Wake: a fort's radar ({@link FortSensors#RADAR_RANGE_CELLS}). */
+    /** How far the standing mast sees for Sable: a fort's radar ({@link FortSensors#RADAR_RANGE_CELLS}). */
     public static final float MAST_RANGE_CELLS = FortSensors.RADAR_RANGE_CELLS;
     /** A company combatant this close to a rigger has them on the move. UNTUNED first pass. */
     public static final float RIGGER_ESCORT_CELLS = 8f;
@@ -178,7 +178,7 @@ public final class BlindWatchSequence implements Objective {
     }
 
     /**
-     * Stands the riggers in their module, offers the side jobs and puts the standing mast's eyes on Sable Wake's side.
+     * Stands the riggers in their module, offers the side jobs and puts the standing mast's eyes on Sable's side.
      * Once, at setup.
      */
     public void begin(BattleSimulation sim, List<EntitySpec> riggerSpecs) {
@@ -206,7 +206,7 @@ public final class BlindWatchSequence implements Objective {
     }
 
     /**
-     * Sable Wake's mortar carrier, recorded at setup so its loss is called. While it stands it drives
+     * Sable's mortar carrier, recorded at setup so its loss is called. While it stands it drives
      * {@link Sites#mortarTrack()} round, start to end and again, firing on what its side observes as it goes.
      */
     public void mortar(long id) {
@@ -215,7 +215,7 @@ public final class BlindWatchSequence implements Objective {
     }
 
     /**
-     * Sable Wake's rocket truck on the uplink knoll, recorded at setup with its stands, its park first: from the alarm
+     * Sable's rocket truck on the uplink knoll, recorded at setup with its stands, its park first: from the alarm
      * it works the knoll's corners against the company's armor ({@link DustLedgerTechnical}).
      */
     public void technical(BattleSimulation sim, long id, List<Cell> stands) {
@@ -247,14 +247,14 @@ public final class BlindWatchSequence implements Objective {
     public BlindWatchProgress progress() { return progress; }
     public List<Long> riggers() { return List.copyOf(riggers); }
     public long mortar() { return mortar; }
-    /** The mast is up while its charge has not blown: until then it spots for Sable Wake. */
+    /** The mast is up while its charge has not blown: until then it spots for Sable. */
     public boolean mastUp() { return !mast.isComplete(); }
     public ChargeSiteObjective mastCharge() { return mast; }
     public ChargeSiteObjective uplinkCharge() { return uplink; }
     public ChargeSiteObjective dishCharge() { return dishes; }
 
     /**
-     * Whether the standing mast sees the point for {@code side}: Sable Wake's side only, inside its reach, along a line
+     * Whether the standing mast sees the point for {@code side}: Sable's side only, inside its reach, along a line
      * no structure blocks, as a fort's radar does ({@link FortSensors#sees}). The mortar carrier fires on what this sees.
      */
     public boolean mastSees(NavigationGrid grid, Faction side, float x, float y) {
@@ -358,7 +358,7 @@ public final class BlindWatchSequence implements Objective {
         return out;
     }
 
-    /** Whether a Sable Wake combatant sees any company body, within its sight scaled for a stood-to post. */
+    /** Whether a Sable combatant sees any company body, within its sight scaled for a stood-to post. */
     private boolean sentrySighting(BattleSimulation sim, List<float[]> company) {
         float scale = progress.sightScale();
         NavigationGrid grid = sim.getGrid();

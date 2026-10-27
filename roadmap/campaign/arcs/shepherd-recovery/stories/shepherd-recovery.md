@@ -11,7 +11,7 @@ Updated: 2026-10-14 — Cold Start sampled with and without the Hound and a mort
 Unlock after **A Cold Account** is won and its aftermath has been acknowledged,
 regardless of the earlier freight outcome. This is an optional new
 contract, not an automatic launch or a timed demand while the company is depleted.
-Mara makes the introduction because Basin is a Wayline account: it buys its
+Zoey makes the introduction because Basin is a Wayline account: it buys its
 supplies, fuel and heavy machinery through her, and its repair machinery is
 waiting undelivered in Wayline's shed. Vale is a customer, not a friend, and
 suspects her outsized fuel order leaked through Wayline's dispatch. Wayline
@@ -69,7 +69,7 @@ with her crews; the opposition is this armed outfit occupying her claimed yard,
 not all scavengers or the Independent faction. Their presence reads through
 cutting stations, parked collection vehicles and removed components rather than
 another generic military base. They are opportunists exploiting the gap, not
-another secret arm of Sable Wake. There is no additional capital-ship rescue objective.
+another secret arm of Sable. There is no additional capital-ship rescue objective.
 
 Basin owns Morrow throughout inspection and repair. The original contract pays
 18,000 credits to secure its yard and protect the inspection, then 22,000 credits
@@ -106,7 +106,7 @@ This should feel like acquiring a workshop and crew through work together, not
 being gifted another escalation in firepower.
 
 After successful Working Passage and actual fleet handover, Vale can refer the
-company through Mara to Baronet Rusk on existing Agreus in nearby Arcadia.
+company through Zoey to Baronet Dormer on existing Agreus in nearby Arcadia.
 `a-small-war.md` owns that optional five-chapter follow-on and its recovered suit
 rewards; `agreus-latchkey.md` owns the local setting and cast under Ko Combine
 administration. The referral requires completed departure, not the

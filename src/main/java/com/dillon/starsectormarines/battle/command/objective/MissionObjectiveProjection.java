@@ -82,7 +82,7 @@ public final class MissionObjectiveProjection {
                 for (var post : repair.pickets()) items.add(MissionObjectiveFamilies.coldStartPicket(post));
             }
             else if (objective instanceof WorkingPassageSequence passage) items.add(MissionObjectiveFamilies.workingPassage(passage));
-            else if (objective instanceof DepotHoldSequence depot) items.add(MissionObjectiveFamilies.depot(depot));
+            else if (objective instanceof DepotHoldSequence depot) items.add(MissionObjectiveFamilies.lettered(MissionObjectiveFamilies.depot(depot), 0));
             else if (objective instanceof ColdAccountIntervention intervention) items.add(MissionObjectiveFamilies.coldAccount(intervention,
                     sim.getObjectives().stream().filter(RaidObjective.class::isInstance)
                             .map(RaidObjective.class::cast).findFirst().orElse(null)));
@@ -95,13 +95,13 @@ public final class MissionObjectiveProjection {
                 var command = sim.getCommanderSnapshot(Faction.MARINE);
                 if (command != null && command.detail() instanceof OpeningOperationCommandPicture opening
                         && objective instanceof EliminateFactionObjective)
-                    items.add(MissionObjectiveFamilies.at("opening-" + opening.placeId(), opening.placeName(),
+                    items.add(MissionObjectiveFamilies.lettered(MissionObjectiveFamilies.at("opening-" + opening.placeId(), opening.placeName(),
                             MissionObjectiveFamilies.state(objective), Strings.named("objectivePhase", opening.phase().name()),
                             Strings.get("objectiveOpeningSteps"),
                             Strings.get(objective.isComplete() ? "objectiveOpeningDone" : "objectiveOpeningInstruction"),
                             Strings.get(objective.isComplete() ? "objectiveOpeningDefeated"
                                     : objective.isFailed() ? "objectiveOpeningLost" : "objectiveOpeningUnresolved"), -1, "",
-                            opening.placeCellX(), opening.placeCellY()));
+                            opening.placeCellX(), opening.placeCellY()), 0));
                 else items.add(MissionObjectiveFamilies.generic(objective, index));
             }
         }
@@ -112,11 +112,14 @@ public final class MissionObjectiveProjection {
             List<String> names = strategy.startsWith("junction") ? JunctionCompound.SITE_NAMES
                     : strategy.startsWith("relay-nine") ? RelayNineCompound.SITE_NAMES
                     : sim.getThunderRun() != null ? ThunderRunCompound.SITE_NAMES : List.of();
+            // Junction and Thunder Run briefings letter the sites past the company's start, (A) first.
+            boolean lettered = strategy.startsWith("junction") || sim.getThunderRun() != null;
             int site = 0;
             for (var record : sim.getCompoundService().getRecords()) {
                 String name = site < names.size() ? names.get(site)
                         : Strings.format("objectiveSiteFallback", Strings.named("objectiveSiteKind", record.node.kind.name()), site + 1);
-                items.add(MissionObjectiveFamilies.compound(record, site, name));
+                var item = MissionObjectiveFamilies.compound(record, site, name);
+                items.add(lettered && site > 0 ? MissionObjectiveFamilies.lettered(item, site - 1) : item);
                 site++;
             }
         }

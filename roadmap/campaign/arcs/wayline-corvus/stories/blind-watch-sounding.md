@@ -32,10 +32,10 @@ The two recorded debrief lines (`debrief.blind_watch.initiative`,
 
 **Warion** is a small barren moon of the gas giant Barad, airless and
 uninhabited (vanilla: `corvus_IIIb`, type `barren`). Its sibling moon Garnir
-holds the Garnir Extraction Depot and, in this arc, Sable Wake's dispatch
+holds the Garnir Extraction Depot and, in this arc, Sable's dispatch
 compound. Nobody governs Warion and no patrol lands there.
 
-**The Sounding** is Sable Wake's temporary listening post, set on the rim and
+**The Sounding** is Sable's temporary listening post, set on the rim and
 floor of a small crater on the hemisphere that faces away from Barad, so the
 gas giant never blocks its view of Jangala's departure lanes. It is a season's
 work in prefab modules: a dish field that listens to Wayline's departures, a
@@ -45,7 +45,7 @@ tracks between them.
 
 **Who is really there.** Everyone lives in suits and pressurised modules.
 
-- Sable Wake's post crew: a watch boss and about two dozen security hands at
+- Sable's post crew: a watch boss and about two dozen security hands at
   Low quality, in the bunkers, on the rim guns, driving the post's crawler and
   its rocket truck.
 - Hired signals technicians (four or five): contract specialists who run the
@@ -54,7 +54,7 @@ tracks between them.
   thermal swings. They built the post on a contract and were not let go.
 
 **The cold drop (owner's flavour idea, 2026-10-26).** The Sounding pays for
-itself twice. The intercepts that time Sable Wake's raids also tell smugglers
+itself twice. The intercepts that time Sable's raids also tell smugglers
 when Jangala's lanes are clear of Hegemony patrols, and the post sells those
 windows. Its lander pad is a cold drop for the Sector's quiet trade, using
 vanilla's two contraband goods: **harvested organs** in cryo pods racked
@@ -73,7 +73,7 @@ lands over the horizon from the post. Low risk is the reward of that preparation
 
 **What each side knows.**
 
-| | Company | Sable Wake |
+| | Company | Sable |
 |---|---|---|
 | Before landing | Location, approaches, watch count, what each installation does | A Wayline boat left Jangala; it expects freight on the lanes, not a landing |
 | After the alarm | Its own map picture | The ranging mast's picture while it stands; afterwards only what its crews see |
@@ -88,12 +88,12 @@ rest of the arc.
 different capability, so the order is the plan:
 
 - **The ranging mast (eyes)**, on the rim. While it stands it is an observer
-  for Sable Wake, as a fort's radar spots for its holder (`FortSensors`): the
+  for Sable, as a fort's radar spots for its holder (`FortSensors`): the
   post's mortar carrier fires on whatever its side observes, so a company in the
   open is shelled across the flat. Blown, the mortar sees only what the post's
   crews see.
 - **The uplink (voice)**, on a knoll reached by a ramp. From the alarm it
-  sends Sable Wake's warning to Garnir: a visible progress bar. Blow it before
+  sends Sable's warning to Garnir: a visible progress bar. Blow it before
   the bar fills or Garnir is warned. The battle is still won either way; the
   campaign keeps the mark `corvus.sable_wake.garnir_warned`, for A Cold Account
   to read.
@@ -197,7 +197,7 @@ pad, up the rover track below the rim and back, down the hab street to the dish
 field's north gate, below the uplink and home, every leg proved with `VehicleRoutePlanner.routeDrivable` on its hull's
 clearance. The rocket truck drives up the knoll's ramp to each of its stands.
 
-**Garrison.** About two dozen Sable Wake hands at Low (`Layout.posts`, 24 posts):
+**Garrison.** About two dozen Sable hands at Low (`Layout.posts`, 24 posts):
 rim (4), mast (2), hab (5, three at the airlock pillbox's slits), dish field (5, one
 in the control hut), uplink (5, three at the ramp pillbox's slits), motor pool (2),
 the watch boss (1, in the signals module). The signals technicians shelter in the
@@ -251,7 +251,7 @@ generated POIs through `SabotageSiteLayout.select`, so authored sites need an
 override), the mast as an observer, side objectives, music declaration, checklist
 and markers. Built against its own `Sites` record on small synthetic grids.
 
-**C. Story and text — `blind-watch-dialogue.md`.** Briefing with Mara and
+**C. Story and text — `blind-watch-dialogue.md`.** Briefing with Zoey and
 Castle, field calls (alarm, warning, each charge, side jobs), debrief variants
 over warned / not warned and the side jobs, catalog strings under
 `corvusBlindWatch*`. The two recorded debrief lines stay. Written: names, script, catalog and hook strings are in `blind-watch-dialogue.md`; wiring reads its debrief selection rule.

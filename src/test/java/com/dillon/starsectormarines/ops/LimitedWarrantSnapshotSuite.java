@@ -163,7 +163,7 @@ public final class LimitedWarrantSnapshotSuite implements SnapshotSuite {
         props.put("locationLabel", "Agreus / Arcadia");
         props.put("clients", List.of(new MissionSelectScreen.ClientRow("client-rusk", "client-rusk-name", "client-rusk-rep",
                 OpeningBroker.CREST, "client-card selected", AgreusArcCampaign.NAME, "Low Quay / Ko Combine concession", false, none)));
-        props.put("missionHeader", "House Rusk / Low Quay");
+        props.put("missionHeader", "House Dormer / Low Quay");
         MissionSelectScreen.putAgreus(props, afterWeir(), "");
         props.put("missions", MissionSelectScreen.missionRows(List.of(mission), mission, ignored -> { }));
         props.put("stationingRows", List.of());

@@ -19,7 +19,7 @@ No vanilla economic or ownership mutation is part of this arc.
 Run from a real campaign at 1920x1080 and 100% UI scale:
 
 - Finish Wayline and reload its completed record. Verify the HQ lead,
-  Mara's guaranteed Junction dossier and continuing unrelated/Wayline work.
+  Zoey's guaranteed Junction dossier and continuing unrelated/Wayline work.
   Introduce at Jangala and at the accessible-office fallback; after introduction,
   make the original site inaccessible and verify work pauses instead of moving.
 - Launch Junction with actual issued gear and one or several fitted boats.

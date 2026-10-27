@@ -19,10 +19,10 @@ crater-arcologies and transport tubes, and a Hegemony logistics center capable
 of projecting fleet power throughout the system. These installed files are
 read-only primary references, not mod-authored claims.
 
-House Rusk, Greyhook, every named local person below and the **Latchkey District**
+House Dormer, Greyhook, every named local person below and the **Latchkey District**
 with all its named surface sites are **MOD-AUTHORED** proposals. The concession,
 lease arbitration and local security arrangements are invented beneath Ko Combine
-administration; Rusk is neither Agreus's sovereign nor a substitute for that
+administration; Dormer is neither Agreus's sovereign nor a substitute for that
 administration. Independent decentralization, pirate predation and fragmented
 procurement follow `faction-lore-nouns.md`, `independents-lore-guide.md` and
 `pirates-lore-guide.md`. This document proposes no new system, planet, moon,
@@ -57,7 +57,7 @@ by cranes, floodlights and condensate inside sealed service halls.
 
 **Low Quay** is the district's pressure-habitat port quarter: bonded stores,
 freight offices, a clinic, boarding rooms and a lease-arbitration office. House
-Rusk maintains administrative rooms above a working customs shed. The baronet
+Dormer maintains administrative rooms above a working customs shed. The baronet
 has an office overlooking overdue cargo rather than a palace overlooking subjects.
 
 Low Quay's **bonded stores**, at the quarter's industrial edge, are one walled
@@ -85,7 +85,7 @@ return to their named recipients needs its own implemented outcome.
 **Latchkey Yard** stands along the elevated freight route beyond the habitat
 quarter. It repairs small commercial hulls and manufactures replacement assemblies
 from recovered stock. A workers' association operates its leased machinery and
-shared service spaces. Rusk holds a secured district claim under the Combine's
+shared service spaces. Dormer holds a secured district claim under the Combine's
 administration; the crews have the knowledge that makes possession valuable.
 
 ### The yard on the ground
@@ -196,7 +196,7 @@ along the berth road down the east side. The ships' fight after Voss's order goe
 where its fighting takes it, in sight of the people on the causeway.
 
 West of the landing apron the outer basin runs on as **open approach ground**, the
-ground Rusk's ships cross. North of the ridge it is silt flats under regolith drifts:
+ground Dormer's ships cross. North of the ridge it is silt flats under regolith drifts:
 the transfer road runs on inland from the causeway's landward end, past the first
 settling beds, silted full and abandoned with their walls fallen in stretches, to a
 low broken rim off the north edge. South of it the ridge runs on to the map's edge
@@ -245,25 +245,25 @@ local side has capital-fleet supremacy; wider fleet authorities remain present.
 Ground fighting secures entrances, utilities, traffic and working space under
 ordinary lift, fleet risk and finite support constraints.
 
-## House Rusk and its concession
+## House Dormer and its concession
 
-**House Rusk** is a minor local commercial house holding a district concession
+**House Dormer** is a minor local commercial house holding a district concession
 on Agreus beneath the Ko Combine administration. Its
 material power is a cluster of secured loans, port leases, processing interests
 and rights under an authored district concession and lease agreement. Those assets
 confer bargaining strength and responsibilities. They do not make it owner of every resident or spokesman for
 all Independents.
 
-**Baronet Elian Rusk** is the last of a cadet branch of an Eventide house. The
+**Baronet Elian Dormer** is the last of a cadet branch of an Eventide house. The
 Hegemony's aristocracy still recognises the baronetcy; nobody on Agreus owes it
 anything. The branch lost favour two generations ago and put what money it kept
-into freight and secured lending. Rusk bought into the Latchkey concession with
+into freight and secured lending. Dormer bought into the Latchkey concession with
 the remainder and trades on the name to keep the Combine's lease office answering
 his letters. The title is real, its standing on Eventide is thin, and on an
 Independent world it is a liability as often as an asset: Lenna and Voss both use
 it against him. It confers no Hegemony commission, no authority over Agreus and no
 ordinary claim on Hegemony forces, and the living world's political model does not
-promote House Rusk because of it.
+promote House Dormer because of it.
 
 **Why no authority steps in.** The Ko Combine administers Agreus under its
 corporate charter and treats Latchkey as a tenant's lease dispute beneath its
@@ -274,15 +274,15 @@ beside Syrinx. That gap is the space the company is hired into.
 
 **The family's check.** An Eventide house cannot let a cadet's public failure
 stand on a neighbouring world, and the Hegemony welcomes any occasion to show an
-Independent colony what it can put overhead at short notice. When Pell's raid in
-Chapter 4 shows that Rusk cannot hold his own lease, he writes home. The answer
+Independent colony what it can put overhead at short notice. When Reed's raid in
+Chapter 4 shows that Dormer cannot hold his own lease, he writes home. The answer
 arrives for Chapter 5 as a pair of Hegemony Enforcer destroyers, lent from Citadel Arcadia
 through family patronage rather than ordered out by the navy. Sending two over a
 cadet's embarrassment is itself the message. It is a favour with a price: the
 family now has an interest in how Latchkey ends, and it notices the company that
 fought beneath its ships. `a-small-war.md` owns the engagement.
 
-Rusk can fund a limited series of contracts, release a small depot of restricted
+Dormer can fund a limited series of contracts, release a small depot of restricted
 security equipment and mobilize quay constables and estate guards. His guards
 know their posts and stores; they cannot police Agreus or the system or sustain an
 expeditionary army. Paid shipping services are commercial arrangements, not an
@@ -292,23 +292,23 @@ His immediate object is to restore dependable yard output and stop Greyhook from
 turning coercive access into permanent control. He also wants to consolidate his
 secured interest in Latchkey. Both aims are public enough to appear in agreements.
 
-Latchkey's arrears are real. Rusk advanced money for replacement machinery after
+Latchkey's arrears are real. Dormer advanced money for replacement machinery after
 a major furnace failure; interrupted sailings and pirate levies then prevented
 scheduled repayment. A mod-authored lease-arbitration proceeding under Combine
 administration has authorized repossession. The workers
 dispute the proposed operating terms and accounting, rather than possessing a
 secret document that makes every debt vanish.
 
-Repossession would let Rusk appoint management, control service access and require
+Repossession would let Dormer appoint management, control service access and require
 new leases for association shops. Crews could lose access to shared tools and
 accept debt deductions to keep working. Those consequences can be lawful and still
 severe. Securing a yard against pirates does not itself settle who should control
 it afterward. The story must give the captain enough disclosed terms to understand
 that distinction before accepting an enforcement commitment.
 
-## Elian Rusk: manner, strengths and flaws
+## Elian Dormer: manner, strengths and flaws
 
-Rusk inherited a famous name and very little else young, and learned the business by handling
+Dormer inherited a famous name and very little else young, and learned the business by handling
 freight failures and insurance arguments. He is comfortable reading a repair
 estimate and uncomfortable admitting that the people repairing it have political
 claims of their own. His clothes are good, repeatedly mended and poorly suited
@@ -332,7 +332,7 @@ putting his own funds at risk. He is also capable of asking mercenaries to enfor
 an arrangement from which he benefits. Let both survive scrutiny; kindness need
 not acquit his policy, and ownership need not prove secret cruelty.
 
-**Designer-only intention:** Rusk wants the restored yard to secure his house's
+**Designer-only intention:** Dormer wants the restored yard to secure his house's
 survival and improve its standing. He fears that bargaining away control now
 will teach every creditor and neighboring interest that his concession is insecure.
 These are writing guides, not facts Castle may announce without evidence.
@@ -340,15 +340,15 @@ These are writing guides, not facts Castle may announce without evidence.
 ## The referral and the equipment ceiling
 
 Tamsin Vale knows Latchkey through cooperative parts purchases and reclaimed
-machinery consignments. Rusk asked Basin Reclamation for a competent small company,
+machinery consignments. Dormer asked Basin Reclamation for a competent small company,
 not a celebrity commander or a deniable army. Vale can attest to work she actually
 observed in the basin and to Morrow's completed departure. She cannot guarantee
-Rusk's judgment or disclose thoughts she has never heard.
+Dormer's judgment or disclose thoughts she has never heard.
 
-Mara's network supplies a commercial introduction; Vale supplies the practical
+Zoey's network supplies a commercial introduction; Vale supplies the practical
 reference. Their correspondence makes the opportunity feel earned by the company
 without asserting an intact roster, surviving Hound or universal prosperity.
-Rusk values a company that can protect technicians and reopen a work site. He can
+Dormer values a company that can protect technicians and reopen a work site. He can
 also afford that company more readily than a fully equipped military contractor.
 
 His sponsorship introduces a limited, low-grade restricted suit capability with
@@ -385,7 +385,7 @@ They work in paired entries behind short suppressive bursts, use cutters and
 close-range weapons, and preserve an exit. Dull charcoal pressure gear, pale hook
 marks and repaired rigid plates distinguish them from a military uniform.
 
-**Berth Four**, led by yard boss **Daro Pell**, collect levies and intimidate
+**Berth Four**, led by yard boss **Daro Reed**, collect levies and intimidate
 loading crews. They take their name from the quay berth where most of them once
 worked as stevedores, which is why they know every loading crew by face. They mass rifle fire from prepared corners and rush a shaken line.
 Orange salvage webbing and mismatched work coats identify their dockside origin.
@@ -434,7 +434,7 @@ cannot dismiss its failure as somebody else's mistake.
 
 Her voice is plain, tired and specific. She corrects “the yard” to the shop or
 service being discussed and brings arguments back to who can use it tomorrow.
-She can recognize that Rusk's protection saves lives while refusing his proposed
+She can recognize that Dormer's protection saves lives while refusing his proposed
 leases. She opposes Greyhook's levies and recruitment; opposing repossession is
 not evidence that she wants the pirates to win.
 
@@ -449,7 +449,7 @@ as losing a machine. She is willing to bargain over repayment and security,
 provided bargaining leaves them a continuing voice and a livelihood.
 
 After the arc settles, the signed agreement decides who posts the district's
-recurring escort work. Under House Custody it comes from Rusk's office, written
+recurring escort work. Under House Custody it comes from Dormer's office, written
 on the concession's schedule and carried by his custodial clerks; under the compact
 Lenna's association posts common-service consignments (weir pump parts, recovered
 stock) with its own delegates. Either way the freight leaves Low Quay's loading lane
@@ -468,7 +468,7 @@ the player to grant them agency first.
 
 Castle delivers factual operational briefs: the correspondent, location, agreed
 purpose, available support, known opposition and disclosed commercial terms.
-Rusk, Lenna, Vale and Voss appear through attributable correspondence, meetings
+Dormer, Lenna, Vale and Voss appear through attributable correspondence, meetings
 and radio. Letters can make claims; Castle distinguishes a claim from confirmed
 knowledge. No cinematic scene grants the captain access to private deliberation.
 
@@ -479,6 +479,6 @@ private intention remains silent until an appropriate observation reveals it.
 Completed records preserve the actual agreement and outcome, including losses.
 
 The core tension stays legible after discovery: Greyhook threatens real neighbors,
-Rusk offers real protection with costly ownership terms, and workers need both
+Dormer offers real protection with costly ownership terms, and workers need both
 security and control over the means of earning a living. Winning a battle cannot
 answer every question those facts raise.

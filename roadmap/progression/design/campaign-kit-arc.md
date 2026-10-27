@@ -63,7 +63,7 @@ offers on its own authority. It becomes acquirable only through a **military
 warrant**, a named, recorded authorisation from one tradition. A warrant is granted
 either by a story beat or by close standing with that faction at the Prestige band,
 and it names exactly which Restricted loadout cards it opens. A military warrant is not
-Rusk's *civil-security procurement warrant* on Agreus, which is a contract term and
+Dormer's *civil-security procurement warrant* on Agreus, which is a contract term and
 grants no military status.
 
 - The six approved tier-4 power suits become Restricted. Five are shock suits: the
@@ -91,7 +91,7 @@ What each arc should hand the player, see across the line, and hold back.
 | --- | --- | --- | --- |
 | **Wayline opening** — Relief, Counterattack | Militia holding a checkpoint behind revetments | Watchman's Kit; A Proper Issue's choice (Steady Line or Forward Screen). **Checkpoint Issue**: service rifles, three satchel-charge sappers, smoke, on sale at the broker's market once Relief settles, beside the free choice rather than as a third path. It teaches holding a road by clearing what overlooks it | Everything above Common |
 | **Broken Supply Route** — Junction, Thunder Run | Raiders with rocket tubes against the convoy | **Trench-Clearing Issue** as the Junction reward (opening a defended junction is exactly its job); **Convoy Escort Issue**: rockets plus one Palisade pod, on sale at the employer's market once Thunder Run settles | Powered anything |
-| **The Corvus Account** — Dust Ledger, Blind Watch, Cold Account | Sable Wake mortars and missiles at Blind Watch; at Garnir, Resolute's guns rather than Hegemony infantry: Kord lands no one | **Counter-Battery Issue** (Hegemony): service rifles, two Arrestor packs, one anti-materiel rifle. On sale at Hegemony markets once Cold Account settles, an old counter-mortar table back on the shelves | XIV Shock, the military Arbalest: the company has now seen what it cannot have |
+| **The Corvus Account** — Dust Ledger, Blind Watch, Cold Account | Sable mortars and missiles at Blind Watch; at Garnir, Resolute's guns rather than Hegemony infantry: Kord lands no one | **Counter-Battery Issue** (Hegemony): service rifles, two Arrestor packs, one anti-materiel rifle. On sale at Hegemony markets once Cold Account settles, an old counter-mortar table back on the shelves | XIV Shock, the military Arbalest: the company has now seen what it cannot have |
 | **A Working Ship** — Salvage Rights, Cold Start, Working Passage | Builders working under fire | **Builder's Guard**: revetments and Palisade pods from Tamsin Vale's yard stores, on sale at Asharu once Working Passage settles, for holding a construction site | — |
 | **A Small War** — Agreus | Greyhook's crude boarding rigs and mortar fire on the commissioning work | Recovered Specter and Recovered Arbalest (as shipped), the Salvage-assisted Section, and the planned Boarding Jack. Counter-Battery Issue pairs naturally with the mixed section | Approved sections. The arc's planned procurement lead becomes the **first warrant** |
 | **Beyond Agreus** — the procurement lead | — | The **Hegemony auxiliary warrant** (`progression-nouns.md`, Kit and armory): the military Arbalest first, XIV shock armour after the first honoured obligation period | Other traditions' approved kit, which needs their own warrants |

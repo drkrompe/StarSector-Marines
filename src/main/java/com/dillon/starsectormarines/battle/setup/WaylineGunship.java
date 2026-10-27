@@ -14,14 +14,17 @@ import java.util.ArrayList;
 /** Wayline directs one named aircraft from public progress and friendly positions, never hidden enemies. */
 public final class WaylineGunship {
     public static final String CALLSIGN = "Talon Two";
-    /** Seconds Talon Two keeps working the Dispatch trench after the Freight Yard falls, before heading home. */
-    static final float LAST_PASS_SECONDS = 8f;
+    /**
+     * Station time Talon Two is kept topped up to: it stays over the map until the battle ends rather than heading
+     * home (owner, 2026-10-27), and only the battle's end or its loss takes it away.
+     */
+    static final float STATION_SECONDS = 60f;
     private final boolean freight;
     private final StoryBeatLog log;
     private long aircraft;
     private ShuttleMission sortie;
-    /** Whether Talon Two has gone ahead to the Dispatch trench, and whether its time there is running out. */
-    private boolean ahead, windingDown;
+    /** Whether Talon Two has gone ahead to the Dispatch trench. */
+    private boolean ahead;
     private ThunderRunAirPass freightPass;
 
     public WaylineGunship(boolean freight, StoryBeatLog log) {
@@ -53,17 +56,18 @@ public final class WaylineGunship {
             float y = sites.get(1).captureCellY;
             aircraft = sim.spawnGunship(ShuttleType.MUDSKIPPER, Faction.ALLY, x, y, -12f, y, -12f, y);
             sortie = sim.world().mission(aircraft);
-            sortie.orbitSecondsLeft = 240f;
+            sortie.orbitSecondsLeft = STATION_SECONDS;
             sim.getEntityWorld().setObject(aircraft, sim.getBattleComponents().IDENTITY,
                     BattleComponents.IDENTITY_NAME, CALLSIGN + " / Wayline gunship");
             beat(sim, "inbound");
         }
         if (sortie.destroyed) { beat(sim, "lost"); return; }
-        if (sortie.state == ShuttleState.GONE) { beat(sim, "returned"); return; }
+        if (sortie.state == ShuttleState.GONE) return;
         if (sortie.state == ShuttleState.ORBIT && sim.world().hp(aircraft) >= sim.world().maxHp(aircraft) * .8f)
             beat(sim, "on_station");
         if (sim.world().hp(aircraft) < sim.world().maxHp(aircraft) * .8f) beat(sim, "hit");
         if (sortie.state != ShuttleState.ORBIT) return;
+        sortie.orbitSecondsLeft = STATION_SECONDS;
         // Wayline sends it ahead rather than leaving it over ground already taken: once the Weigh Station
         // falls, Talon Two goes on to the trench in front of Dispatch and works that later obstacle while the
         // company takes the Freight Yard. The trench is an authored work on the briefing map, not a hidden enemy.
@@ -74,10 +78,11 @@ public final class WaylineGunship {
             sortie.orbitCentreY = trench[1] + .5f;
             beat(sim, "working_trench");
         }
-        // Once the Freight Yard is the company's, the trench gets a last pass and Dispatch is left to them.
-        if (ahead && !windingDown && sites.get(2).state == CompoundState.MARINE_HELD) {
-            windingDown = true;
-            sortie.orbitSecondsLeft = Math.min(sortie.orbitSecondsLeft, LAST_PASS_SECONDS);
+        // Once the Freight Yard is the company's, it circles over Junction Dispatch until the battle ends.
+        if (ahead && sites.get(2).state == CompoundState.MARINE_HELD) {
+            var dispatch = sites.get(3);
+            sortie.orbitCentreX = (dispatch.captureCellX >= 0 ? dispatch.captureCellX : dispatch.node.anchorX) + .5f;
+            sortie.orbitCentreY = (dispatch.captureCellY >= 0 ? dispatch.captureCellY : dispatch.node.anchorY) + .5f;
         }
     }
 

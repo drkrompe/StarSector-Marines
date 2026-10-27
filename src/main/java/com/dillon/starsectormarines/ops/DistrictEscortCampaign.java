@@ -68,7 +68,7 @@ public final class DistrictEscortCampaign {
     static boolean isContact(AgreusDistrictEscortProgress p, Client client) {
         return p != null && client != null && p.contactId().equals(client.contactId);
     }
-    /** Lenna replaces Rusk as the Agreus contact once the compact's escort work is open. */
+    /** Lenna replaces Dormer as the Agreus contact once the compact's escort work is open. */
     public static boolean lennaContact() {
         var p = current();
         return p != null && AgreusYardAgreement.LENNA_ASSOCIATION.equals(p.contactId());

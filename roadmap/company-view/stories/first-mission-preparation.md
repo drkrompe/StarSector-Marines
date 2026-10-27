@@ -6,9 +6,9 @@ Updated: 2026-10-20 - the first shuttle moves out of preparation into the first-
 
 ## Outcome
 
-Castle leads a new company through choosing its mercenary ship, meeting Sabine
+Castle leads a new company through choosing its mercenary ship, meeting Morgan
 and choosing her specialty, founding a fully equipped twelve-person squad, and
-assigning that squad to Sabine. The completed sequence hands off to Mara Venn's
+assigning that squad to Morgan. The completed sequence hands off to Zoey Venn's
 first story mission, Hold Until Relieved, on Jangala through the existing
 accessible-office policy. That mission needs no boat: the company rides up on
 Wayline's truck. Its first shuttle is repaired or commissioned in Castle's
@@ -27,7 +27,7 @@ combined remaining cargo bill for one compatible boat and one full squad.
 One boat can make repeated trips. The bill comes from the existing fabrication
 and founding catalogs, combines shared supplies, and is checked again at commit.
 Selection spends nothing; each real workshop order consumes its own bill.
-Sabine retains her ordinary appointment point and needs no invented recruitment fee.
+Morgan retains her ordinary appointment point and needs no invented recruitment fee.
 
 Castle uses a portrait, compact controls, SVG milestones and live click-through
 highlights. Actual state advances the lesson. There is no Later control, and Escape

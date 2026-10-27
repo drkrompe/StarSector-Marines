@@ -343,17 +343,17 @@ public final class StationingScreen extends MissionFlowMlxScreen {
                 management ? "ACTIVE POSTING" : "OFFERED ASSIGNMENT");
         props.put("overviewRows", management ? List.of(
                 row("stationing-state", "Status", responsePending ? "Response pending" : "In good standing"),
-                row("stationing-command", "Command", "Sabine Hale"),
+                row("stationing-command", "Command", "Morgan Hale"),
                 row("stationing-strength", "Detachment", "3 squads · 34 RTD · 2 WIA"),
                 row("stationing-remaining", "Time remaining", "47 days")) : List.of(
                 row("stationing-state", "Status", "Offer pending"),
-                row("stationing-command", "Command", "Sabine Hale"),
+                row("stationing-command", "Command", "Morgan Hale"),
                 row("stationing-strength", "Detachment", "3 / 4 squads · 34 RTD · 2 WIA")));
         props.put("captainHeader", management ? "POSTED COMMAND" : "COMMANDING CAPTAIN");
         props.put("captainRows", management ? List.of(
-                captainCard("stationing-captain-preview-0", "Sabine Hale",
+                captainCard("stationing-captain-preview-0", "Morgan Hale",
                         "Lieutenant · 4 squad command", true, none)) : List.of(
-                captainCard("stationing-captain-preview-0", "Sabine Hale",
+                captainCard("stationing-captain-preview-0", "Morgan Hale",
                         "Lieutenant · 4 squad command", true, none),
                 captainCard("stationing-captain-preview-1", "Tomas Venn",
                         "Ensign · 2 squad command", false, none)));
@@ -375,7 +375,7 @@ public final class StationingScreen extends MissionFlowMlxScreen {
         props.put("minusAction", none); props.put("plusAction", none);
         props.put("noticeClasses", responsePending ? "stationing-notice warning" : "stationing-notice neutral");
         props.put("noticeTitle", responsePending ? "GARRISON DEFENSE — RESPONSE PENDING" : "AVAILABILITY COMMITMENT");
-        props.put("noticeBody", responsePending ? "Rival strike force approaching · Sabine Hale with 36 marines on site."
+        props.put("noticeBody", responsePending ? "Rival strike force approaching · Morgan Hale with 36 marines on site."
                 : "Selected squads and their captain remain unavailable until this posting settles.");
         props.put("backAction", none);
         props.put("primaryDisabled", responsePending);

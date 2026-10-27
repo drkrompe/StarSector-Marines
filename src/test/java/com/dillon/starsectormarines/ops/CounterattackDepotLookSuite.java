@@ -86,7 +86,7 @@ public final class CounterattackDepotLookSuite implements SnapshotSuite {
         marks.label(hold.x() + .5f, hold.y() + .5f, "Dispatch warehouse: hold 8 s", ReviewStyle.KEEP);
         for (LandingPad pad : sim.getMarineLandingPads())
             marks.box(pad.left(), pad.bottom(), pad.right(), pad.top(), "Company lands: 12, two sorties", ReviewStyle.LANDING);
-        marks.label(CounterattackDepot.HOUND_X + .5f, CounterattackDepot.HOUND_Y + .5f, "Hound berth (Wayward)", ReviewStyle.ALLY);
+        marks.label(CounterattackDepot.HOUND_X + .5f, CounterattackDepot.HOUND_Y + .5f, "Hound berth (the Hound)", ReviewStyle.ALLY);
         for (Squad squad : sim.getSquads()) {
             if (squad.aliveMembers <= 0) continue;
             if (squad.faction == Faction.DEFENDER)

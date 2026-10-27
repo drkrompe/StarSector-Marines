@@ -577,7 +577,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         narratedBriefing.put("missionFlavor", narration.find("story_opening_relief", "briefing.01").text());
         // As the first mission opens: one commander card, no command powers and no fleet ships.
         narratedBriefing.put("taskForceRows", List.of(BriefingViewModel.forceCard("op-commander",
-                "Lieutenant Sabine Hale", "1 squad · 12 marines",
+                "Lieutenant Morgan Hale", "1 squad · 12 marines",
                 "graphics/portraits/portrait_mercenary01.png", "").asOperationCommander()));
         narratedBriefing.put("powerRows", List.of());
         narratedBriefing.put("powerEmpty", "No powers available from fleet or employer.");
@@ -2100,7 +2100,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         for (float scale : scales) {
             Reactor reactor = new Reactor();
             MarineRoster roster = new MarineRoster();
-            MarineCaptain sabine = new MarineCaptain("Sabine Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
+            MarineCaptain sabine = new MarineCaptain("Morgan Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
             roster.add(sabine);
             roster.beginCompanyPreparation(sabine);
             frames.addAll(renderPreparationRooms(context, renderer, roster, scale));
@@ -2141,7 +2141,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 capture.accept("03-scroll-choice");
                 click.accept("officer-specialty-SALVAGE_STEWARDSHIP-rank-1");
                 if (sabine.career().level(OfficerSpecialty.SALVAGE_STEWARDSHIP) != 1) {
-                    throw new IllegalStateException("Click-through specialty choice did not train Sabine at scale " + scale);
+                    throw new IllegalStateException("Click-through specialty choice did not train Morgan at scale " + scale);
                 }
                 capture.accept("04-formation");
                 click.accept("officer-formations");
@@ -2604,7 +2604,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
     static List<SnapshotArtifact> renderPreparationResourceBills(SnapshotContext context) throws Exception {
         var renderer = new HeadlessUiRenderer(new HeadlessBattleSceneRenderer(context.modRoot()), context.modRoot(), context.starsectorCore());
         var roster = new MarineRoster();
-        var sabine = new MarineCaptain("Sabine Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
+        var sabine = new MarineCaptain("Morgan Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
         roster.add(sabine); roster.beginCompanyPreparation(sabine);
         return renderPreparationRooms(context, renderer, roster, 1f);
     }

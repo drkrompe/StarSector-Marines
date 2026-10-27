@@ -22,8 +22,9 @@ public final class JunctionStoryHooks {
         if (f.states.size() != 4) throw new IllegalArgumentException("Junction needs four territory facts");
         emit(f.tick, "started", Audience.PLAYER);
         if (f.result == Result.RETREAT) { finish(f.tick, f.result); return; }
-        if (f.playerLanded) emit(f.tick, "player_landed", Audience.PLAYER);
-        if (f.employerLanded) emit(f.tick, "employer_landed", Audience.PLAYER);
+        // Landings are facts the player sees, not cues.
+        if (f.playerLanded) emit(f.tick, "player_landed", Audience.OBSERVER_ONLY);
+        if (f.employerLanded) emit(f.tick, "employer_landed", Audience.OBSERVER_ONLY);
         if (f.militiaHolding) emit(f.tick, "militia_hold_established", Audience.PLAYER);
         if (f.reserveCommitted) emit(f.tick, "reserve_committed", Audience.OBSERVER_ONLY);
         for (int i = 0; i < held.length; i++) {

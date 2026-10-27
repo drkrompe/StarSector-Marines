@@ -54,7 +54,7 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
         BriefingViewModel.putFactionIdentity(props, "employer", "Wayline / Independents", null);
         BriefingViewModel.putFactionIdentity(props, "opposition", "Local raiders", null);
         props.put("missionRows", List.of(BriefingViewModel.info("requirements", "Requires", "Two squads / at least four ready marines each", "")));
-        props.put("missionFlavor", "Mara Venn: Wayline has its depot back, but both outlying roads are cut. Open the junction so we can put people and freight through again.");
+        props.put("missionFlavor", "Zoey Venn: Wayline has its depot back, but both outlying roads are cut. Open the junction so we can put people and freight through again.");
         props.put("preparationClasses", "mission-preparation");
         boolean[] armory = {false}, barracks = {false}, replay = {false};
         props.put("prepareArmory", (Runnable) () -> armory[0] = true);
@@ -88,7 +88,7 @@ public final class SecondSquadSnapshotSuite implements SnapshotSuite {
             if (!replay[0]) throw new AssertionError("Reminder replay failed");
         }
         var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
-        var sabine = new MarineCaptain("Sabine Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
+        var sabine = new MarineCaptain("Morgan Hale", "graphics/portraits/sabine-hale.png", Rank.LIEUTENANT, 0f);
         roster.add(sabine); roster.assignCaptainToSquad(sabine.id(), first.id());
         roster.dismissManagementGuide();
         var reactor = new Reactor();

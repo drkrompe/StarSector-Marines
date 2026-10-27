@@ -109,10 +109,17 @@ public final class SupplyRouteCampaign {
                 .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).targetPlanetName(p.planetName())
                 .mapPosition(0.5f, 0.5f).battleSeed((long) p.planetId().hashCode() * 31 + kind * 1000L + p.job()).build();
     }
+    /**
+     * The supply route's own launch check: at least one deployable squad, every selected one deployable. Two full
+     * squads are recommended, never required; a smaller force is the player's choice (owner, 2026-10-27).
+     */
+    public static boolean forceDeployable(MarineRoster roster, Set<String> selected) {
+        return roster != null && selected != null && !selected.isEmpty() && selected.stream().allMatch(id -> roster.squadById(id) != null
+                && !roster.squadById(id).reserve() && !roster.squadById(id).stationed());
+    }
+    /** The recommended force, and the gate the later arcs still apply: two selected squads of four ready marines. */
     public static boolean forceReady(MarineRoster roster, Set<String> selected) {
-        return roster != null && selected != null
-                && selected.stream().allMatch(id -> roster.squadById(id) != null
-                        && !roster.squadById(id).reserve() && !roster.squadById(id).stationed())
+        return forceDeployable(roster, selected)
                 && roster.squads().stream()
                 .filter(squad -> !squad.reserve() && selected.contains(squad.id()))
                 .filter(squad -> roster.squadMembers(squad).stream()

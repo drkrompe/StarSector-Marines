@@ -39,11 +39,11 @@ Read the arc overview for its missions, cast and rewards, then its local
 
 | Arc home under `arcs/` | Overview | Entry and exit | Current scope |
 | --- | --- | --- | --- |
-| `wayline-opening/` | `wayline-opening-arc.md` | Accessible Mara Venn office, canonically Jangala; completing both chapters opens Broken Supply Route. | Both chapters, first-payment correspondence and separate recurring jobs implemented; first-offer discovery and linked live acceptance remain. |
+| `wayline-opening/` | `wayline-opening-arc.md` | Accessible Zoey Venn office, canonically Jangala; completing both chapters opens Broken Supply Route. | Both chapters, first-payment correspondence and separate recurring jobs implemented; first-offer discovery and linked live acceptance remain. |
 | `broken-supply-route/` | `broken-supply-route-arc.md` | Completed opening arc; the accepted local site is frozen. The won freight run leads onward; a failed run is retried. | Junction, direct Thunder Run follow-on, traceless retries and Route Security implemented; live campaign/save acceptance remains. |
 | `wayline-corvus/` | `wayline-corvus-arc.md` | Closed freight account; Dust Ledger, Blind Watch and A Cold Account cross three existing Corvus worlds. Cold Account victory and acknowledgment of its aftermath enable the Shepherd referral. | Three chapters and their campaign sequence implemented; player-controlled difficulty tuning, live travel/save acceptance and broader generated-map access remain open. |
 | `shepherd-recovery/` | `shepherd-recovery-arc.md` | Post-Cold Account reference to Tamsin Vale on Asharu; actual Working Passage departure and fleet handover unlock the Agreus referral. | All three contracts and once-only Morrow/crew transfer implemented; live campaign/save and later owned support acceptance remain. |
-| `a-small-war/` | `a-small-war-arc.md` | Actual Morrow handover; optional referral to Baronet Elian Rusk on existing Agreus in Arcadia. Cold Start alone is insufficient. | Referral and first three chapters through The Yard's Owners with both recovered-suit rewards implemented. Live transition/mixed-suit acceptance, Chapters 4–5, Boarding Jack and yard agreement remain open. |
+| `a-small-war/` | `a-small-war-arc.md` | Actual Morrow handover; optional referral to Baronet Elian Dormer on existing Agreus in Arcadia. Cold Start alone is insufficient. | Referral and first three chapters through The Yard's Owners with both recovered-suit rewards implemented. Live transition/mixed-suit acceptance, Chapters 4–5, Boarding Jack and yard agreement remain open. |
 
 ## Capability and stakes
 

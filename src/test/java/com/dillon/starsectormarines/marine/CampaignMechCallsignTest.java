@@ -28,8 +28,8 @@ class CampaignMechCallsignTest {
     @Test
     void renameTrimsAndAcceptsUpToTheBound() {
         CampaignMech mech = hound();
-        assertTrue(mech.rename("  Wayward \t"));
-        assertEquals("Wayward", mech.displayName());
+        assertTrue(mech.rename("  The Hound \t"));
+        assertEquals("The Hound", mech.displayName());
 
         String longest = "W".repeat(CampaignMech.CALLSIGN_MAX_LENGTH);
         assertTrue(mech.rename(" " + longest + " "));
@@ -39,7 +39,7 @@ class CampaignMechCallsignTest {
     @Test
     void refusedInputKeepsTheCurrentNameAndEverythingElse() {
         CampaignMech mech = hound();
-        assertTrue(mech.rename("Wayward"));
+        assertTrue(mech.rename("The Hound"));
         MechWeaponComponent arms = mech.arms();
         MechWeaponComponent left = mech.leftShoulder();
         MechWeaponComponent right = mech.rightShoulder();
@@ -49,7 +49,7 @@ class CampaignMechCallsignTest {
         assertFalse(mech.rename(" \t \u0085"));
         assertFalse(mech.rename("W".repeat(CampaignMech.CALLSIGN_MAX_LENGTH + 1)));
 
-        assertEquals("Wayward", mech.displayName());
+        assertEquals("The Hound", mech.displayName());
         assertEquals("support_mech_07", mech.id());
         assertSame(MechVariant.HOUND, mech.variant());
         assertSame(MechRole.ASSAULT, mech.role());
@@ -62,7 +62,7 @@ class CampaignMechCallsignTest {
     void renameChangesNeitherIdentityNorFit() {
         CampaignMech mech = hound();
         MechDeploymentSpec before = mech.freezeForDeployment();
-        assertTrue(mech.rename("Wayward"));
+        assertTrue(mech.rename("The Hound"));
         MechDeploymentSpec after = mech.freezeForDeployment();
 
         assertEquals(before.campaignId(), after.campaignId());
@@ -70,18 +70,18 @@ class CampaignMechCallsignTest {
         assertEquals(before.role(), after.role());
         assertEquals(before.arms(), after.arms());
         assertEquals(before.frame(), after.frame());
-        assertEquals("Wayward", after.displayName());
+        assertEquals("The Hound", after.displayName());
     }
 
     @Test
     void deploymentFreezesTheCallsignAtCommitment() {
         CampaignMech mech = hound();
-        assertTrue(mech.rename("Wayward"));
+        assertTrue(mech.rename("The Hound"));
         MechDeploymentSpec committed = mech.freezeForDeployment();
 
         assertTrue(mech.rename("Second Thoughts"));
 
-        assertEquals("Wayward", committed.displayName());
+        assertEquals("The Hound", committed.displayName());
         assertEquals("support_mech_07", committed.campaignId());
     }
 

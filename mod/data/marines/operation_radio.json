@@ -1381,15 +1381,15 @@
     {
       "id": "marines_op_sabine_call",
       "speaker": "command",
-      "text": "Sabine. This is Command.",
-      "synthesisText": "Sabine. This is Command.",
+      "text": "Morgan. This is Command.",
+      "synthesisText": "Morgan. This is Command.",
       "durationSeconds": 2.08
     },
     {
       "id": "marines_op_sabine_ack",
       "speaker": "sabine",
-      "text": "Sabine. Go ahead, Castle.",
-      "synthesisText": "[calm, focused] Sabine. Go ahead, Castle.",
+      "text": "Morgan. Go ahead, Castle.",
+      "synthesisText": "[calm, focused] Morgan. Go ahead, Castle.",
       "durationSeconds": 2.4
     },
     {
@@ -1479,7 +1479,7 @@
   ],
   "fieldCommand": {
     "id": "sabine",
-    "label": "SABINE HALE / FIELD COMMAND",
+    "label": "MORGAN HALE / FIELD COMMAND",
     "portrait": "graphics/portraits/sabine-hale.png",
     "call": "marines_op_sabine_call",
     "ack": "marines_op_sabine_ack",

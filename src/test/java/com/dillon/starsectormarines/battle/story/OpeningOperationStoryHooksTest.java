@@ -26,7 +26,7 @@ class OpeningOperationStoryHooksTest {
         assertEquals(1, opening.size(), "An old snapshot cannot change beneath a reader");
         assertEquals(8, log.events().size());
         var visible = log.playerEventsAfter(1);
-        assertEquals(5, visible.size());
+        assertEquals(3, visible.size(), "Landings are facts, not cues");
         assertEquals(visible, log.playerEventsAfter(1), "One reader must not drain another reader's cues");
         assertTrue(visible.stream().allMatch(e -> e.audience() == Audience.PLAYER));
         int cursor=visible.get(visible.size()-1).sequence();
@@ -43,10 +43,9 @@ class OpeningOperationStoryHooksTest {
         var hooks=new OpeningOperationStoryHooks(OpeningOperationKind.RELIEF,log);
         hooks.observe(facts(1,false,false,8,8,0,false,Result.RUNNING));
         hooks.observe(facts(2,false,false,8,0,2,false,Result.RUNNING));
-        assertEquals(List.of("opening.relief.started","opening.relief.roads","opening.relief.militia_inbound",
-                "opening.relief.depot","opening.relief.orders","opening.relief.militia_line_lost",
+        assertEquals(List.of("opening.relief.started","opening.relief.militia_line_lost",
                 "opening.relief.freight_wave_arrived","opening.relief.service_wave_arrived"),ids(log));
-        assertEquals(6,log.playerEventsAfter(0).size());
+        assertEquals(1,log.playerEventsAfter(0).size(), "The militia's losses are facts, not cues");
         hooks.observe(facts(3,true,true,8,0,2,false,Result.RUNNING));
         assertTrue(ids(log).contains("opening.relief.checkpoint_reached"));
     }
@@ -54,7 +53,7 @@ class OpeningOperationStoryHooksTest {
         var log=new StoryBeatLog();
         var hooks=new OpeningOperationStoryHooks(OpeningOperationKind.RELIEF,log);
         hooks.observe(facts(1,false,false,0,0,0,false,Result.RUNNING));
-        assertEquals(5,log.events().size(), "Launch starts the whole radio exchange, nothing more");
+        assertEquals(1,log.events().size(), "Launch records the start, nothing more");
         hooks.observe(facts(2,false,false,8,4,0,false,Result.RUNNING));
         hooks.observe(facts(3,false,false,8,0,0,false,Result.RUNNING));
         assertTrue(ids(log).containsAll(List.of("opening.relief.militia_line_weakened","opening.relief.militia_line_lost")));

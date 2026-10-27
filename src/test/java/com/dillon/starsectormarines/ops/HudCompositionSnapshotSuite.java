@@ -211,7 +211,7 @@ public final class HudCompositionSnapshotSuite implements SnapshotSuite {
         subtitle.attach(position);
         subtitle.update(new WaylineNarration.Line("hud-layout", "fixture", "check",
                 "Keep the company together. Select a ship to command it, or take control of one marine when the line needs you.",
-                10, 1, 10, List.of(), "MARA VENN / WAYLINE", OpeningBroker.PORTRAIT), 0);
+                10, 1, 10, List.of(), "ZOEY VENN / WAYLINE", OpeningBroker.PORTRAIT), 0);
         UiViewport messageBounds = subtitle.surface().viewport();
         float messageX = messageBounds.screenX() + messageBounds.width() / 2f;
         float messageY = messageBounds.screenY() + messageBounds.height() / 2f;

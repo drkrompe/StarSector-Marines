@@ -1,6 +1,13 @@
-# Mara Venn narration
+# Zoey Venn narration
 
 Voice: Mora - Gritty and Enigmatic (`YHcCpa6SBWnKDaCPZJQR`), Eleven v4.
+
+Zoey Venn needs a new voice (owner, 2026-10-27): the Mora takes were recorded as
+Mara Venn and every Zoey line is re-recorded once a voice is chosen. The 2026-10-27
+script review also changed the text of lines in other voices; until they are
+re-recorded the old takes play under the new subtitles.
+`python tools/generate_wayline_narration.py --replace` (dry run) lists every
+take whose text no longer matches its recording.
 The runtime catalog at `mod/data/marines/wayline_narration.json` owns each
 subtitle, synthesis text, stable sound/event ID, duration and queue policy.
 Each MP3 has a JSON generation receipt with input/audio hashes.
@@ -15,24 +22,24 @@ Each MP3 has a JSON generation receipt with input/audio hashes.
 | Thunder Run | 1 | 14 |
 | A Cold Account | 0 | 13 |
 
-Blind Watch adds a two-turn Mara/Castle after-action exchange about earned
+Blind Watch adds a two-turn Zoey/Castle after-action exchange about earned
 initiative and preparing the company. Cold Account closes with six alternating
-Castle/Mara turns: state power limits their protection without erasing their work.
+Castle/Zoey turns: state power limits their protection without erasing their work.
 
-Cold Account alternates Mara, Castle and Captain Irena Kord; its cast assignments
+Cold Account alternates Zoey, Castle and Captain Irena Kord; its cast assignments
 are retained in `cold-account-cast.json`. Four ordered opening turns establish
 the patrol's requirement for authenticated proof. Actual company landing and
 dispatch proximity provide two Castle cues. Archive capture cancels unspoken
 approach content and begins the seven intervention beats. Kord's selected
 veteran naval voice and portrait are shared throughout.
-Six additional `debrief.cold_account.*` recordings alternate Castle and Mara
+Six additional `debrief.cold_account.*` recordings alternate Castle and Zoey
 on successful results. They use the same cast and dialogue processing, but are
 selected from the settled outcome rather than battle story events. Replay and
 Stop remain presentation controls.
 
 The opening chapters use their story mission IDs. Broken Supply Route job-zero
 attempt IDs resolve to stable `story_supply_route_*` catalog keys. Recurring
-jobs and branch-choice dossiers are excluded. Mara voices the operational
+jobs and branch-choice dossiers are excluded. Zoey voices the operational
 Rill briefing and radio calls; she does not impersonate Iona.
 
 Intentionally unvoiced hooks:

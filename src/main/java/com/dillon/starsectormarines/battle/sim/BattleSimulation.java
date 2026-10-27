@@ -772,7 +772,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public BlindWatchSequence getBlindWatch() { return blindWatch; }
     /**
      * Installs Blind Watch over its three installed charge sites ({@code blind-watch-sounding.md}): stands the riggers
-     * in their module, offers the side jobs and puts the standing mast's eyes on Sable Wake's side. {@code stoodTo} is the
+     * in their module, offers the side jobs and puts the standing mast's eyes on Sable's side. {@code stoodTo} is the
      * fixture's reading of the campaign ({@link BlindWatchProgress#stoodTo}).
      */
     public BlindWatchSequence installBlindWatch(BlindWatchSequence.Sites sites, List<ChargeSiteObjective> charges,

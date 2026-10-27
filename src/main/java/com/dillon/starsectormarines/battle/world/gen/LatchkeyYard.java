@@ -87,7 +87,7 @@ public final class LatchkeyYard {
     public static final int CALIBRATION_LEFT = 103, CALIBRATION_BOTTOM = 57, CALIBRATION_RIGHT = 111, CALIBRATION_TOP = 66;
     /** Where the commissioning technicians stand to work, inside the calibration room. */
     public static final Place COMMISSIONING = new Place("commissioning", "Captured rig tooling / commissioning", 106, 64);
-    /** Inside the Cinder Steps gate: the post Rusk's estate guards hold under House Custody. */
+    /** Inside the Cinder Steps gate: the post Dormer's estate guards hold under House Custody. */
     public static final Place GUARD_POST = new Place("guard-post", "Estate guards' post / Cinder Steps gate", 123, 43);
     /**
      * Dug pit on the Cinder Steps terraces, within a field mortar's reach of the tooling hall and

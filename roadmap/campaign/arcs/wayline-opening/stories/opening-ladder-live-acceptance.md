@@ -66,7 +66,7 @@ fail to clear the finite assault without inventing a timeout defeat rule.
 
 ## Acceptance
 
-- Relief's first victory retires that chapter and opens Counterattack at Mara
+- Relief's first victory retires that chapter and opens Counterattack at Zoey
   Venn's office. Its local line survives long enough for a company held at
   its start to matter, but cannot win unattended.
 - Relief's defensive anchor reads as a communications/logistics place the local

@@ -1630,12 +1630,12 @@ public final class BattleSetup {
 
     /**
      * The Dust Ledger on Saltwell Cross ({@code dust-ledger-crossing.md}): the company lands openly as Wayline's
-     * freight drop, Sable Wake's finite crew holds the pump house, and the Raid on the ledger room runs under the
+     * freight drop, Sable's finite crew holds the pump house, and the Raid on the ledger room runs under the
      * quiet phase. No reinforcements, vehicles or aircraft; the cantina drinkers and the Harrow salvage team wait
      * for the alarm.
      */
     /**
-     * Sable Wake's rocket truck parks at the first of the map's stands for it, in the east yard by the ledger room's
+     * Sable's rocket truck parks at the first of the map's stands for it, in the east yard by the ledger room's
      * east door, and from the alarm works the yard's corners down the lane the map leaves it
      * ({@code DustLedgerTechnical}). A stand is a cell; the hull takes the nearest its footprint clears.
      */
@@ -1658,7 +1658,7 @@ public final class BattleSetup {
         return stands;
     }
 
-    /** A Sable Wake hull set down at {@code at} with no errand, facing {@code facing}. */
+    /** A Sable hull set down at {@code at} with no errand, facing {@code facing}. */
     private static long parkHull(BattleSimulation sim, VehicleType type, DustLedgerSequence.Cell at, float facing) {
         long hull = sim.convoy().spawn(type, Faction.DEFENDER, VehicleMission.deployed(at.x() + .5f, at.y() + .5f));
         sim.convoy().body(hull).teleport(at.x() + .5f, at.y() + .5f, facing);
@@ -1685,7 +1685,7 @@ public final class BattleSetup {
         DustLedgerCrossing.Layout layout = DustLedgerCrossing.generate(seed, profile);
         MapResult map = layout.map();
         GroundRosterProfile roster = GroundRosterRegistry.resolve("pirates");
-        // The gun nests are the map's stamped posts, spawned on Sable Wake's side by the ordinary defence-post path.
+        // The gun nests are the map's stamped posts, spawned on Sable's side by the ordinary defence-post path.
         List<DefensePost> nestPosts = layout.nests().stream().map(DustLedgerCrossing.Nest::post).toList();
         MapBuild build = buildMap(map, List.of(), nestPosts, List.of(), seed);
         BattleSimulation sim = build.sim();
@@ -1750,7 +1750,7 @@ public final class BattleSetup {
                 squad.holdsFireUntilKillZone = manned;
                 if (manned) pillboxSquads.add(squadId);
                 sim.assignSquadCommand(ObjectiveAssignment.holdNode(squadId, squad.assignedNode),
-                        CommandAuthority.GARRISON, "dust-ledger-post", "Sable Wake " + role.name().toLowerCase()
+                        CommandAuthority.GARRISON, "dust-ledger-post", "Sable " + role.name().toLowerCase()
                                 + (manned ? " pillbox" : " post"));
             }
             for (int i = 0; i < cells.size(); i++) {
@@ -1762,7 +1762,7 @@ public final class BattleSetup {
             }
             squad.originalSize = cells.size();
         }
-        claimMissionMobileSquads(sim, mobile, "raid-defender", "Sable Wake crawler crew");
+        claimMissionMobileSquads(sim, mobile, "raid-defender", "Sable crawler crew");
         List<EntitySpec> drinkers = new ArrayList<>();
         for (DustLedgerCrossing.Cell cell : layout.posts().get(DustLedgerCrossing.PostRole.CANTINA))
             drinkers.add(makeDefender("sable-wake-drinker-" + drinkers.size(), UnitType.MILITIA, cell.x(), cell.y(),
@@ -1801,7 +1801,7 @@ public final class BattleSetup {
         BlindWatchSounding.Layout layout = BlindWatchSounding.generate(seed, profile);
         MapResult map = layout.map();
         GroundRosterProfile roster = GroundRosterRegistry.resolve("pirates");
-        // The rim guns are the map's stamped nests, spawned on Sable Wake's side by the ordinary defence-post path; the
+        // The rim guns are the map's stamped nests, spawned on Sable's side by the ordinary defence-post path; the
         // rim posts beside them are their crews, so they add no headcount.
         List<DefensePost> nestPosts = layout.nests().stream().map(BlindWatchSounding.Nest::post).toList();
         BattleSimulation sim = buildMap(map, List.of(), nestPosts, List.of(), seed).sim();
@@ -1884,7 +1884,7 @@ public final class BattleSetup {
                 squad.patrolRadius = pillbox ? PILLBOX_PATROL_RADIUS : 3;
                 squad.holdsFireUntilKillZone = pillbox;
                 sim.assignSquadCommand(ObjectiveAssignment.holdNode(squadId, squad.assignedNode),
-                        CommandAuthority.GARRISON, "blind-watch-post", "Sable Wake " + duty.replace('_', ' ')
+                        CommandAuthority.GARRISON, "blind-watch-post", "Sable " + duty.replace('_', ' ')
                                 + (pillbox ? " pillbox" : c >= firstBunkCrew ? " off watch" : " post"));
             }
             for (int i = 0; i < cells.size(); i++) {
@@ -1897,7 +1897,7 @@ public final class BattleSetup {
             }
             squad.originalSize = cells.size();
         }
-        claimMissionMobileSquads(sim, mobile, "sabotage-defender", "Sable Wake motor pool crew");
+        claimMissionMobileSquads(sim, mobile, "sabotage-defender", "Sable motor pool crew");
         // The hired signals technicians shelter in their module; the chemist and the lander crew work the cold drop.
         // None of them fights.
         List<BlindWatchSounding.Cell> staff = new ArrayList<>(layout.signalsTechs());
@@ -2191,7 +2191,7 @@ public final class BattleSetup {
      * Latchkey dispatch handover bay, technicians commission the captured rig tooling in the
      * calibration room, and Berth Four's finite assault arrives with a mortar team and two crude
      * powered rigs, followed by a prize-crew party on the Cinder Steps lane. The route chooses which
-     * employer party comes — Rusk's estate guards or Lenna's fitters — and never the opposition.
+     * employer party comes — Dormer's estate guards or Lenna's fitters — and never the opposition.
      */
     public static BattleSimulation createTermsOfProtection(long seed, List<ShuttleAssignment> manifest, TargetProfile profile,
                                                            TermsOfProtectionProgress.Route route) {
@@ -2231,9 +2231,9 @@ public final class BattleSetup {
         sim.getSquad(constables).originalSize = 4;
         sim.claimSquadCommand(constables, CommandAuthority.MISSION_COMMAND, allyClaim, "Constables hold the secured operator entrance");
         int representatives = partySquad(sim, map, start.x(), start.y() + 2, custody
-                ? List.of("House Rusk custodian", "House Rusk custodian")
-                : List.of("Joint party custodian / House Rusk", "Joint party delegate / Latchkey association"),
-                allyClaim, custody ? "Rusk's appointed custodians" : "Joint custody party");
+                ? List.of("House Dormer custodian", "House Dormer custodian")
+                : List.of("Joint party custodian / House Dormer", "Joint party delegate / Latchkey association"),
+                allyClaim, custody ? "Dormer's appointed custodians" : "Joint custody party");
         int technicians = partySquad(sim, map, start.x() + 2, start.y() - 2,
                 List.of("Latchkey utilities technician", "Latchkey utilities technician"), allyClaim, "Utilities crew commissioning the tooling");
         int fitters = custody ? -1 : partySquad(sim, map, start.x() - 2, start.y() - 3,
@@ -2242,9 +2242,9 @@ public final class BattleSetup {
         if (custody) {
             guards = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
             for (int[] cell : pickSpawnCluster(map.grid, start.x() + 4, start.y() + 6, 4))
-                sim.spawn(makeOpeningMilitia("Rusk estate guard", Faction.ALLY, cell[0], cell[1], rng).squad(guards).role(UnitRole.PATROL));
+                sim.spawn(makeOpeningMilitia("Dormer estate guard", Faction.ALLY, cell[0], cell[1], rng).squad(guards).role(UnitRole.PATROL));
             sim.getSquad(guards).originalSize = 4;
-            sim.claimSquadCommand(guards, CommandAuthority.MISSION_COMMAND, allyClaim, "Estate guards hold the Cinder Steps lane on Rusk's terms");
+            sim.claimSquadCommand(guards, CommandAuthority.MISSION_COMMAND, allyClaim, "Estate guards hold the Cinder Steps lane on Dormer's terms");
         }
         long carrier = sim.convoy().spawn(VehicleType.CARGO_CARRIER, Faction.ALLY, VehicleMission.deployed(start.x(), start.y()));
         sim.convoy().body(carrier).teleport(start.x(), start.y(), 0f);
@@ -2282,9 +2282,9 @@ public final class BattleSetup {
     /**
      * Black Sluice, the chapter-five foothold. Greyhook's groups are the finite authored table in
      * {@link SmallWarForces}; holders and the custody party are the employer's. {@code houseCustody}
-     * names who walks the handover (Rusk's custodians or the joint party); it changes no strength.
+     * names who walks the handover (Dormer's custodians or the joint party); it changes no strength.
      * The duel overhead ({@link BlackSluiceDuel}) is installed: the Greyhook alone in her cradle
-     * south of the ridge from the start, and Rusk's lent Enforcer and Wolf once Voss orders the withdrawal.
+     * south of the ridge from the start, and Dormer's lent Enforcer and Wolf once Voss orders the withdrawal.
      */
     public static BattleSimulation createSmallWar(long seed, List<ShuttleAssignment> manifest, TargetProfile profile, boolean houseCustody) {
         return createSmallWar(seed, manifest, profile, houseCustody, true);
@@ -2340,7 +2340,7 @@ public final class BattleSetup {
         for (int duty = 0; duty < 3; duty++) {
             int squad = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
             for (int[] cell : pickSpawnCluster(map.grid, BlackSluice.LANDING_X + 10 + 4 * duty, BlackSluice.LANDING_Y - 7, 4))
-                sim.spawn(makeOpeningMilitia(houseCustody ? "Rusk estate guard" : "Black Sluice constable", Faction.ALLY, cell[0], cell[1], rng)
+                sim.spawn(makeOpeningMilitia(houseCustody ? "Dormer estate guard" : "Black Sluice constable", Faction.ALLY, cell[0], cell[1], rng)
                         .squad(squad).role(UnitRole.PATROL));
             sim.getSquad(squad).originalSize = 4;
             sim.claimSquadCommand(squad, CommandAuthority.MISSION_COMMAND, SmallWarCommand.issuer(Faction.ALLY), "Holders occupy actual company gains");
@@ -2348,7 +2348,7 @@ public final class BattleSetup {
         }
         int custody = sim.mintSquad(Faction.ALLY, UnitType.TECHNICIAN);
         for (int[] cell : pickSpawnCluster(map.grid, BlackSluice.LANDING_X + 4, BlackSluice.LANDING_Y - 7, SmallWarProgress.CUSTODIANS))
-            sim.spawn(new EntitySpec(houseCustody ? "House Rusk appointed custodian" : "Joint custody party member",
+            sim.spawn(new EntitySpec(houseCustody ? "House Dormer appointed custodian" : "Joint custody party member",
                     Faction.ALLY, UnitType.TECHNICIAN, cell[0], cell[1]).squad(custody).role(UnitRole.PATROL));
         sim.getSquad(custody).originalSize = SmallWarProgress.CUSTODIANS;
         sim.claimSquadCommand(custody, CommandAuthority.MISSION_COMMAND, SmallWarCommand.issuer(Faction.ALLY), "Agreed local custody party");

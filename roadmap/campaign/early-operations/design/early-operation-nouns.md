@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-27 — Thunder Run's raiders press the militia's back lines and the convoy harder over time, and the final run's haulers go together. Earlier the same day: Junction counterattacks in two blows on a clock that never goes quiet, the first as soon as the first site falls. Earlier the same day: Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
+Updated: 2026-10-27 — Thunder Run's final run meets a reinforced checkpoint, and the tank and APCs push into its gun line. Earlier the same day: Thunder Run's raiders press the militia's back lines and the convoy harder over time, and the final run's haulers go together. Earlier the same day: Junction counterattacks in two blows on a clock that never goes quiet, the first as soon as the first site falls. Earlier the same day: Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
 Earlier 2026-10-27 — Counterattack's road attacks start when the company first enters dispatch, not after the capture.
 Earlier 2026-10-20 — Relief's story chapter starts the company ashore beside Wayline's truck under the ore-dust cover story; Militia Relief keeps company lift.
 
@@ -23,10 +23,10 @@ Use the arc's own open-work board before changing its plan.
 ## Story arcs, chapters, and recurring work
 
 **A Working Ship** is the post-**A Cold Account** recovery arc on Asharu.
-Mara refers the company to yardmaster **Tamsin Vale** of the **Basin Reclamation
+Zoey refers the company to yardmaster **Tamsin Vale** of the **Basin Reclamation
 Cooperative**, an authored local Independent employer. Basin is a Wayline account:
 recovering Wayline wins back trade by hauling supplies, fuel and heavy machinery
-slightly under rival logistics outfits' rates, and Vale buys through Mara because
+slightly under rival logistics outfits' rates, and Vale buys through Zoey because
 it is cheapest. The referral is a supplier on thin margins recovering a customer,
 not a favour between friends. Vale suspects her
 own outsized fuel order leaked through Wayline's dispatch while its schedules were
@@ -193,7 +193,7 @@ alone grants no fleet member or general construction capability. `shepherd-recov
 retains live campaign, save/reload and subsequent support acceptance.
 
 **A Small War** follows that actual fleet handover. Vale's
-reference leads through Mara to **Baronet Elian Rusk** on **Agreus**, in the
+reference leads through Zoey to **Baronet Elian Dormer** on **Agreus**, in the
 nearby **Arcadia** system. His local concession under Ko Combine administration
 supports a bounded procurement warrant and recovered suit rewards through work against the **Greyhook flotilla**. Equipment
 is issued to individual marines and can be mixed within existing squads. The
@@ -204,7 +204,7 @@ rewards and acceptance. No earlier Shepherd milestone substitutes for departure.
 
 The optional referral identifies existing Agreus in Arcadia and supplies an HQ
 course link without beginning an attempt, granting equipment or starting a clock.
-Rusk's contact operates through Marine Operations at that planet. Missing,
+Dormer's contact operates through Marine Operations at that planet. Missing,
 inaccessible or incompatible administration pauses his work without creating or
 relocating a market. The historical handover survives Morrow's later sale or loss;
 deployment still requires a currently owned, operational Shepherd and the selected
@@ -213,7 +213,7 @@ Ship on Station support card, with its ordinary supply cost and ship settlement.
 **Water Under Seal** opens the arc at North Weir. Two full regular squads are
 recommended; deployment requires two selected squads with four ready people each.
 Their fitted boats carry their actual named personnel through repeated trips.
-Rusk supplies eight constables, two technicians and one physical repair load.
+Dormer supplies eight constables, two technicians and one physical repair load.
 The company escorts the load, clears two enclosed switching rooms, protects the
 technicians' reconnection and commissions a real tender-built road gun before
 handing the position over against two finite road elements. An element resolves
@@ -232,7 +232,7 @@ settlement paths. Only the active attempt's complete physical receipt earns the
 26,000-credit fee once. The completed North Weir dossier offers Limited Warrant;
 it does not itself grant a suit pattern.
 
-**Limited Warrant** is the Low Quay bonded-stores recovery. Rusk's readable
+**Limited Warrant** is the Low Quay bonded-stores recovery. Dormer's readable
 civil-security procurement terms precede deployment. His supplier guarantee
 covers named surplus service files, calibration tooling and compatible stock;
 it grants no military procurement status, planetary police commission, civilian
@@ -282,7 +282,7 @@ inspection receipt pays 36,000 credits and awards one Recovered Arbalest cargo
 card under the same once-only ownership rules. Learning both recovered roles
 exposes Salvage-assisted Section: eight regular, two powered assault and two
 powered support billets within the same named squad. Fitting remains explicit.
-The debrief presents the Combine order, Rusk's proposed leases and Lenna's
+The debrief presents the Combine order, Dormer's proposed leases and Lenna's
 counterproposal as attributed claims, with Lenna Saye's two letters as text-only
 correspondence. The inspection itself signs no custody agreement.
 
@@ -298,17 +298,17 @@ the route that chapter launched under. Both routes keep the title, the debt, the
 same core equipment rewards and the duty against Greyhook. House Custody discloses a
 12,000-credit premium owed only on Chapter 5 victory and paid once after
 ratification; the compact forgoes it. The route names the later district-escort
-contact (Rusk's office or Lenna's association), and under the compact Rusk records
+contact (Dormer's office or Lenna's association), and under the compact Dormer records
 the company as an independent counterparty. These are records and disclosed
 payments only: no hidden virtue score, combat modifier or access penalty. Signing
-opens **Terms of Protection** for Rusk at Latchkey.
+opens **Terms of Protection** for Dormer at Latchkey.
 
 Terms of Protection is the signed route carried out on the ground. The route is
 frozen on the mobilization at launch, so a reload, a defeat or a replacement attempt
 fights under the agreement that was signed and never the other. Both routes bring the
 same employer core: two named representatives, two utilities technicians and a
 records carrier that moves only under company escort and stops when it has none or
-sees a threat. House Custody adds Rusk's estate guards on the Cinder Steps lane, the
+sees a threat. House Custody adds Dormer's estate guards on the Cinder Steps lane, the
 weak post of that route; the Yard Compact adds Lenna's fitters, who stay at the hall
 benches. Four constables hold the operator post on either route. The chapter's facts
 are separate and physical: the party **delivered** to the handover bay, the handover
@@ -319,7 +319,7 @@ hostile inside it, every committed Greyhook assault **resolved**, and **ratifica
 by a representative still at the bay. Proximity signs nothing, interrupted work
 pauses rather than restarts, and the end of an attack ratifies nothing.
 
-Pell's Berth Four commit once commissioning is under way: two sections along the
+Reed's Berth Four commit once commissioning is under way: two sections along the
 south road, each led by a crude powered rig on Boarding Jack numbers, and a mortar
 team that sets up in the terrace pit and shells the hall. The mortar is a findable
 position with an infantry approach, so counter-battery is a real answer; it withdraws
@@ -337,8 +337,8 @@ Jack pattern's presentation is pending its card is not issued at all: the
 entitlement is disclosed before launch as a deferred delivery and is placed in
 cargo once, at settlement or at a later game load, only after that presentation is
 declared. A card already held consumes it; sale or discard never renews it. The
-debrief records Rusk's account, the witnesses to the handover and the lead on Mika
-Drent's dispatch order that opens Chapter 5. Voss's warning and Rusk's family
+debrief records Dormer's account, the witnesses to the handover and the lead on Mika
+Drent's dispatch order that opens Chapter 5. Voss's warning and Dormer's family
 correspondence are text only. Chapter 5 and its acceptance belong to
 `a-small-war.md`.
 
@@ -355,7 +355,7 @@ keeps a squad on each site so the handover does not depend on the holders living
 is held only by uncontested company infantry and can be lost again, so a lost site
 must be reclaimed. Twelve holders take only sites the company has actually held.
 Victory requires all three held together, the marked tank farm standing and a
-living custody party (Rusk's custodians or the joint party, by route) completing
+living custody party (Dormer's custodians or the joint party, by route) completing
 fifteen protected seconds of handover inside fuel control with company infantry
 present. Destroyed tanks or the whole custody party fail the attempt.
 
@@ -378,8 +378,8 @@ last line as unvoiced text.
 
 **District Escort** is the arc's recurring job. It is offered only once *A Small
 War* has settled (Chapter 5) under a ratified agreement, and only by that route's
-escort contact: Rusk's office under House Custody, or Lenna Saye's association
-under the compact, who then replaces Rusk as the Agreus contact. The two offices
+escort contact: Dormer's office under House Custody, or Lenna Saye's association
+under the compact, who then replaces Dormer as the Agreus contact. The two offices
 differ in letterhead, voice and the handover party's title; support, terms and fee
 are identical. Each posting is a finite two-squad escort on the Low Quay freight
 lane: the company links up with a fresh consignment and its two-person handover
@@ -408,14 +408,14 @@ posting, with its own identity and terms, which may reuse a chapter's tactical
 setup without replaying its historical event. Company growth never resets a
 chapter or removes ordinary small jobs.
 
-The opening arc is **Wayline: An Open Road**. **Mara Venn**, an Independent
+The opening arc is **Wayline: An Open Road**. **Zoey Venn**, an Independent
 broker based canonically on **Jangala in Corvus**, represents the **Wayline
 freight cooperative**, an authored local commercial interest. Neither her
 affiliation nor its militia implies that Jangala's government is Independent.
 Wayline used to run freighters between worlds. It lost cargoes to interception,
 sold its hulls to cover them, and is down to drivers hauling on one planet's
 roads, pooling what is left for local protection. Raiders occupied their freight
-depot and now threaten its militia post. Mara is Wayline's broker and, since its
+depot and now threaten its militia post. Zoey is Wayline's broker and, since its
 director left for a post off-world, its acting head; she still does the
 brokering because nobody else can.
 
@@ -423,23 +423,23 @@ Wayline is a soft target, and that is the public answer to why the raiders are o
 its road: no licensed security, no ships left, a watch made of drivers. The
 deeper answer is that someone is selling Wayline's schedules. The interceptions
 that cost the hulls and the depot raid both followed them. The Corvus Account
-reveals the seller as the departed director, Teodor Prell; why he did it, and
-who Sable Wake answers to, stays open beyond Corvus. Until then the opening and
-supply-route chapters only hint at it, one unexplained line at a time. This is a local company story,
+reveals the seller as the departed director, Jack Prell; why he did it, and
+who Sable answers to, stays open beyond Corvus. Until then the opening and
+supply-route chapters say nothing of it (owner, 2026-10-27: no hints for now). This is a local company story,
 not a simulated change to vanilla market ownership, trade, or faction relations.
 
 The opening introduction is a first commercial relationship. Castle puts the
-company forward; Mara introduces herself through the drivers whose pooled money
+company forward; Zoey introduces herself through the drivers whose pooled money
 pays both the checkpoint watch and the company's fee. The preparation handoff
 marks a founding company's first paid job, while the office and mission text
 refer to the first **Wayline** contract so established companies and retries do
-not acquire a fabricated career history. Mara offers further work on the strength
+not acquire a fabricated career history. Zoey offers further work on the strength
 of this job, not a faction commission, permanent payroll or new patron-system status.
 Her personal knowledge of the loading crews makes the cooperative's need concrete.
 
 The company's visitor papers on Jangala forbid paid work, so the first job is
-written as a consignment. Mara buys the company's own ore dust, the cargo its
-arrival hail declared, delivered to the checkpoint gate; Sabine's twelve are the
+written as a consignment. Zoey buys the company's own ore dust, the cargo its
+arrival hail declared, delivered to the checkpoint gate; Morgan's twelve are the
 shipper's escort and ride up the road on a Wayline truck. That is why the story
 chapter starts its squad on the ground and pays on delivery. The cover story
 belongs to the chapter: Militia Relief is another crew's posting and keeps
@@ -468,7 +468,7 @@ company lift. No line names the fee; the amount lives in the offer's terms.
    raiders inside still contest the hold. Secure Wayline's offline Hound
    for the push and warehouse defense.
    Successful settlement pays 9,000 credits, transfers that chassis and closes the arc.
-   Mara reports that dispatch can resume and refers the company to other
+   Zoey reports that dispatch can resume and refers the company to other
    Independent brokers. Her completed dossier preserves both chapter labels.
 
 Mission prose stays in-universe. Contacts address the captain, company, crews
@@ -486,7 +486,7 @@ After the arc, **Militia Relief** and **Depot Clearance** become distinct
 repeatable postings at eligible Independent brokers, including Venn. Their
 names, identities, source, and local-employer briefings distinguish them from
 Wayline's closed chapters. They reuse the finite opening battle setups and
-payments. Their victories never write story-completion facts or replay Mara's
+payments. Their victories never write story-completion facts or replay Zoey's
 story debrief. They remain available after success or failure. This authored
 exception does not fabricate ordinary patron contract rows.
 
@@ -495,7 +495,7 @@ advance directly to the depot; older Counterattack victories close the arc.
 No meeting flag, re-acceptance, or migration resets that history. The final
 victory is authoritative even for a legacy record missing its earlier fact.
 
-Relief's pre-mission briefing is Mara's recorded introduction: who she is, what
+Relief's pre-mission briefing is Zoey's recorded introduction: who she is, what
 Wayline lost and what she is asking for, followed by the founding field
 commander's word on getting off the truck and going to the line together. The
 briefing screen carries an unvoiced tactical summary beside it, so nothing the
@@ -506,13 +506,13 @@ are facts rather than cues, so
 the exchange cannot fall out of order; urgent militia losses interrupt it, and
 an interrupted instruction resumes only within its relevance window.
 
-Story results contain a message from Mara alongside normal settlement and
+Story results contain a message from Zoey alongside normal settlement and
 personnel facts. Allied and company losses are acknowledged only from the frozen
 outcome. A total militia loss is never described as a line saved intact. Story
 text does not introduce a survival bonus or override battle victory.
-Relief victory also carries a short written Castle/Sabine/Mara exchange: the
-first Wayline payment has arrived, Sabine reports her muster, the company has
-earned a name with the drivers, and Mara wants to work together again. Sabine and
+Relief victory also carries a short written Castle/Morgan/Zoey exchange: the
+first Wayline payment has arrived, Morgan reports her muster, the company has
+earned a name with the drivers, and Zoey wants to work together again. Morgan and
 Castle acknowledge company deaths when present; otherwise she turns to crew pay and supplies without promising that
 every survivor is uninjured. The exchange grants nothing and is absent on defeat
 and recurring work. Its unrecorded transcript offers no audio playback controls;
@@ -534,7 +534,7 @@ says so and disables its course control. It never points to an absent planet.
 
 HQ provides opening guidance with Venn's portrait, the Independent crest, her
 current planet/system, the exact mission and payment, and preparation advice.
-The local route is **Marine operations → Mara Venn**. **Plot Course** lays in a
+The local route is **Marine operations → Zoey Venn**. **Plot Course** lays in a
 vanilla navigation course and dismisses HQ; it neither launches an operation nor
 accepts work. Relief completion advances the notice to the depot job. Completing
 the arc retires the notice; its completed dossier and separate recurring work
@@ -545,7 +545,7 @@ refill ordinary patron contracts or add invented news events.
 
 ## Recovery, confidence and scale
 
-The pause after the first Relief victory includes **A Proper Issue**: Mara makes
+The pause after the first Relief victory includes **A Proper Issue**: Zoey makes
 weapon and scout-suit patterns available, and Castle teaches one actual squad
 refit in the Armory. Exactly two equipment paths give the player a manageable
 choice and equipment to use on the depot job. The reward supports the company's
@@ -556,7 +556,7 @@ and issue semantics remain in `progression-nouns.md` and `company-view-nouns.md`
 
 Wayline begins close to dissolution: losing the depot threatens the drivers'
 work and the cooperative's ability to stay together. Relief buys breathing
-room; recovering the depot restores somewhere to organize work. Mara's referrals,
+room; recovering the depot restores somewhere to organize work. Zoey's referrals,
 the recovered Hound and the Hermes refits make the company's
 growing capability tangible.
 No chapter declares the player's finances secure or their roster intact.
@@ -568,20 +568,19 @@ introduction reads the won run's ledger.
 
 Asharu turns reaction into investigation. Blind Watch is the confidence crest:
 intelligence and preparation let the company choose the target and disable the
-listening post. Its successful debrief gives Mara and Castle time to recognize
+listening post. Its successful debrief gives Zoey and Castle time to recognize
 that initiative before asking for the next deployment. Casualties qualify that
 achievement rather than disappearing behind a triumphant speech.
 
 Cold Account puts that earned competence beside state military power. The company
 finds the proof and secures its own extraction; Resolute supplies a scale of force
-it cannot match. Mara's gratitude and continuing work remain real. Naval cooperation
+it cannot match. Zoey's gratitude and continuing work remain real. Naval cooperation
 in this operation grants no promise of future protection. The ending preserves
 what the player built and gives them reason to choose future commitments carefully.
 
 ## Broken Supply Route campaign
 
-After Wayline, Mara introduces dispatch coordinator **Iona Serr** and guarantees
-**Open the Junction** at the accessible office. Opening its dossier explicitly
+After Wayline, Zoey offers **Open the Junction** at the accessible office. Opening its dossier explicitly
 introduces the arc and freezes its planet and local sites. Merely projecting
 an offer or reading HQ does not mutate a save. Later office movement never moves
 accepted work: an inaccessible frozen site pauses deployment, and HQ retains
@@ -601,7 +600,7 @@ on them: the story is told as if the company won the first time, so a retry
 fields all three again. A qualifying victory accounts for all active cargo with
 a surviving company presence and at least one delivery. It pays 6,000 plus 4,000
 per delivery, at most 18,000, once, records that run's deliveries and losses, and
-establishes Mara's **Route Security** arrangement. Failure never closes the
+establishes Zoey's **Route Security** arrangement. Failure never closes the
 account, pays or unlocks. Pre-release branch-save migration
 is not supported.
 
@@ -612,8 +611,9 @@ replaying a chapter bonus. The completed dossier separates historical results
 from the current posting. Existing Wayline repeatables and unrelated contracts
 remain available.
 
-Both chapters and Route Security recommend twenty-four marines. They accept at least two
-selected squads with four ready marines each, using acting NCOs where necessary.
+Both chapters and Route Security recommend two full squads. The two chapters require only
+one deployable selected squad (`SupplyRouteCampaign.forceDeployable`): a smaller or partial
+force is the player's choice (owner, 2026-10-27).
 One to four owned fitted boats cycle until the selected named force is delivered;
 partial final trips contain only real selected personnel. Issued equipment,
 squad identity and command groups cross the ordinary deployment boundary.
@@ -643,17 +643,17 @@ stability, industry or trade simulation is changed.
 ## Wayline across Corvus
 
 **The Corvus Account** follows the closed Thunder Run account, including a
-freight run whose finite ledger ended in failure. Mara's correspondence preserves
+freight run whose finite ledger ended in failure. Zoey's correspondence preserves
 actual deliveries and losses without inventing casualties. The won Thunder Run
-carries the handoff: a Jangala conversation between Mara and Castle. It closes Wayline's brush with bankruptcy, leaves the
+carries the handoff: a Jangala conversation between Zoey and Castle. It closes Wayline's brush with bankruptcy, leaves the
 cause unexplained and ends with Castle's order to plot a course for Asharu. Nothing in it grants a reward
 or advances progression. Existing recurring arrangements
 remain at their original site.
 
-The arc concerns **Sable Wake**, a mod-authored pirate crew buying Wayline's
+The arc concerns **Sable**, a mod-authored pirate crew buying Wayline's
 sailing schedules. The Dust Ledger archive shows them released under the
 authority of Wayline's former director, the last batch dated the week he left;
-Mara learns her predecessor sold the cooperative he built and cannot work out
+Zoey learns her predecessor sold the cooperative he built and cannot work out
 why. It has three ordered, single-payment chapters:
 
 | Chapter | Destination | Objective | Recommended company | Award |
@@ -673,13 +673,13 @@ Older saves with a closed supply-route record start at Asharu.
 Destinations are fixed planet identities in Corvus. Warion's temporary listening
 post needs no populated market. A missing destination pauses the arc rather
 than moving it elsewhere. HQ plots a course; the local Marine operations board
-offers the job through Mara's Independent contact. No chapter changes vanilla
+offers the job through Zoey's Independent contact. No chapter changes vanilla
 market ownership, industry disruption, diplomatic standing or orbital assets.
 Its target profile describes the isolated crew compound, with the actual
 planet's ground palette captured at launch rather than the colony's full defences.
 The Dust Ledger is played on **Saltwell Cross**, an authored Asharu trading post
 (`DustLedgerCrossing`), not a generated settlement. The company lands openly on
-the public freight apron as Wayline's scheduled drop. Sable Wake's finite crew
+the public freight apron as Wayline's scheduled drop. Sable's finite crew
 holds the pump-house compound, with no reinforcements or aircraft. Its one
 vehicle is a rocket truck that works the east yard's corners against armor from the alarm.
 Buildings publish only as held places. The only objectives are the ledger room's
@@ -694,15 +694,15 @@ watch holding the cantina. The rules and their tuning live in
 remain an abstract recovered package under the Raid objective's survivor-egress
 law, with the same numbered **1 / Seize** and **2 / Return** checklist.
 
-Blind Watch is played on **the Sounding**, Sable Wake's authored listening post
+Blind Watch is played on **the Sounding**, Sable's authored listening post
 in a crater on Warion (`BlindWatchSounding`). The company lands behind a ridge
 out of the post's sight. Three named charge sites are the Sabotage plant, and
-they are not interchangeable: the ranging mast spots for Sable Wake while it
+they are not interchangeable: the ranging mast spots for Sable while it
 stands, the uplink sends the **warning** to Garnir from the alarm until it is
 blown, and the dish field is the contract's target. Victory is all three
 charges; a warning that reaches Garnir changes only the campaign mark
 `corvus.sable_wake.garnir_warned` and the debrief. The alarm is a shot, or a
-sentry or the standing mast seeing the company. Sable Wake's finite Low crew,
+sentry or the standing mast seeing the company. Sable's finite Low crew,
 about two dozen, holds the post's posts by duty: its pillboxes are crewed from
 their slit posts, its rim guns are the map's nests, and whoever is off watch
 sleeps in the bunks. A post **stood-to**, because the Dust Ledger did not
@@ -777,13 +777,13 @@ Garnir's market, orbital depot or ownership.
 
 Captain Irena Kord of HSS Resolute is the intervention's one-off Hegemony contact.
 Her original painted portrait identifies her transmissions throughout the operation.
-The opening radio exchange has Mara request a patrol diversion and Kord require
+The opening radio exchange has Zoey request a patrol diversion and Kord require
 authenticated evidence before changing fleet orders for an unknown hired company.
-Mara identifies the dispatch archive as that evidence. Castle's actual landing
+Zoey identifies the dispatch archive as that evidence. Castle's actual landing
 and approach calls connect the request to securing the marked office. The opening
 turns share one ordered presentation queue; speech never delays the simulation,
 and capture retires any unspoken requests for proof or approach instructions.
-After capture, Mara presents the recovered archive as a favor.
+After capture, Zoey presents the recovered archive as a favor.
 Kord accepts the intelligence and turns to gunnery without thanking the company
 or acknowledging its withdrawal. Castle's unanswered call gives way to alarm
 and urgent extraction orders. Her established voice strains to keep control as
@@ -801,8 +801,8 @@ a threat speech or a promise to attack the company. There is no dialogue countdo
 or gameplay wait for a sentence. Only the confirmed terminal line survives
 completion; obsolete withdrawal and firing instructions do not.
 The successful operation's results then carry a separate voiced conversation
-between Castle and Mara, with their portraits, a readable transcript and Replay
-and Stop controls. Castle processes the scale of the threat; Mara acknowledges
+between Castle and Zoey, with their portraits, a readable transcript and Replay
+and Stop controls. Castle processes the scale of the threat; Zoey acknowledges
 that useful intelligence bought no alliance or protection. The exchange names
 no invented survivor count and claims neither an intact Hound nor a completed
 patrol. It reads the settled outcome, cannot delay or repeat settlement, and
@@ -934,7 +934,7 @@ courts; truck bays, cargo and a fenced trailer court establish the depot's use.
 The weigh office, dispatch interior, gate cover and reserve/fallback places
 remain fixed when those peripheral structures change.
 
-The story depot contains **Wayward**, Wayline's offline light Hound, in a marked
+The story depot contains **the Hound**, Wayline's offline light Hound, in a marked
 maintenance berth beyond the gate. It is inert neutral equipment until company
 infantry reaches it. Clear sight from nearby infantry reveals the berth; five
 continuous seconds of nearby, uncontested company presence brings the walker
@@ -949,7 +949,7 @@ fire; Tab or Escape returns it to its crew. No automatic takeover interrupts the
 company's orders.
 
 Castle is the company's shipboard operations officer, distinct from the client,
-Mara Venn. Confirmed discovery, startup, first sampled takeover, first sampled
+Zoey Venn. Confirmed discovery, startup, first sampled takeover, first sampled
 handback and disablement supply named, portrait-backed dialogue. The keyboard
 instructions remain readable; spoken guidance stays in-universe. These are
 once-per-attempt hooks, not compulsory tutorial steps. Obsolete unspoken
@@ -963,7 +963,7 @@ it. The award cannot repeat on settlement replay, completed legacy chapters or
 recurring depot work. Full gantries retain the reward in a separate recovery
 group rather than overwriting an existing asset. Existing owned mechs are preserved.
 
-The qualifying victory debrief includes Castle and Mara's recovery agreement:
+The qualifying victory debrief includes Castle and Zoey's recovery agreement:
 the company keeps the chassis and fitted chaingun, Wayline covers recovery and
 the initial repair, and the company accepts subsequent upkeep. A confirmed
 wreck receives its own closing line; an intact or unused walker never claims
@@ -1045,8 +1045,8 @@ resource production, open-ended reinforcement layer or free garrison sorties.
 This is a mission-scoped exception, not a lower risk setting for a large siege.
 
 **Open the Junction** begins Broken Supply Route.
-Its opponent is **Varro**, a debt-recovery outfit that bought part of what Wayline
-owed when it sold its freighters. Varro holds the junction as security for that
+Its opponent is **Corvus Credit Adjusters**, a debt-recovery outfit that bought part of what Wayline
+owed when it sold its freighters. Corvus Credit Adjusters holds the junction as security for that
 paper. It tolls Wayline's drivers at the Weigh Station and has impounded three
 months of contracted loads: heavy machinery for the upcountry waterworks, and
 stores for the settlements past Rill. Jangala's civil authority treats a lien
@@ -1059,10 +1059,7 @@ shows piracy rather than debt. Each site has a meaning:
 - the Freight Yard holds the bond office that releases the warehouse;
 - Junction Dispatch is the route board.
 
-At Dispatch the company finds this week's Wayline schedule sheets, which no one
-outside the cooperative should have. Mara remarks on it once, as the arc's single
-unexplained hint, and Varro's trenches and reserves suggest someone is funding the
-collection. The freed loads are the cargo that Thunder Run carries out.
+The freed loads are the cargo that Thunder Run carries out.
 
 Its western turnout, Weigh Station, Freight Yard and Junction Dispatch are the
 four required territories. Dispatch is the canonical command post. Decorative
@@ -1103,11 +1100,11 @@ Talon Two is the aviation callsign, separate from infantry radio actor Kestrel T
 It enters as the company approaches the first site and works that position.
 It does not linger over captured ground. When the Weigh Station falls, Wayline
 sends it ahead to the trench in front of Dispatch, which it works while the
-company is still taking the Freight Yard. Once the Freight Yard falls, it makes
-one last pass and leaves. Its circle over that trench also reaches the edge of
-Dispatch. The trenches are where the company most needs it: without Talon Two
+company is still taking the Freight Yard. Once the Freight Yard falls, it circles
+Junction Dispatch and stays over the map until the battle ends or it is shot down
+(owner, 2026-10-27: it never flies off the map). The trenches are where the company most needs it: without Talon Two
 the same matrix loses whole companies. It
-has a bounded visit and uses the ordinary gunship weapons and flight
+uses the ordinary gunship weapons and flight
 rules. It adds no player power card, supply bill, personnel requirement or owned
 boat; the company still captures the rooms and the militia still hold them.
 
@@ -1273,11 +1270,15 @@ East stop, keeping separation behind the leader. Armor moves to the next road st
 defensive window, closing behind the company before Outbound Gate capture
 releases its final breakthrough. The tank takes the forward center position,
 using slower paired high-explosive cannon fire against the exit gun line. It
-holds ahead of the crossing until the first surviving hauler approaches, then
-pushes on toward the exit. Its hull, turret, ammunition and damage are ordinary
+drives up into the gun line itself and fights there until the first surviving
+hauler approaches, then pushes on toward the exit. Its hull, turret, ammunition and damage are ordinary
 combat state; losing it does not manufacture a victory or block surviving cargo.
 At the final release, the two APC escorts
-advance along the road flanks and hold the crossing; after a 12-second lead
+advance along the road flanks up to the gun line beside the tank and fight it
+with them. The checkpoint is reinforced as the final run goes: a raider
+technical drives in from the freight exit and parks among the exit guns, and two
+four-man rifle sections, each with a scrap rocket, take post beside the guns, so
+the armor has a real fight to clear the way; after a 12-second lead
 interval every load goes at once, as one column, keeping its spacing on the
 road rather than leaving one at a time. The escorts leave only after the last surviving load passes
 the crossing.
@@ -1453,14 +1454,14 @@ orders are observer-only facts for authoring and evidence, not intelligence for
 radio or AI. A later sighting-based announcement needs its own confirmed public
 trigger. Scenario keys work for both chapters and recurring work; the enclosing
 mission identity chooses story-specific content, so a recurring job cannot
-replay Mara's historic chapter dialogue accidentally.
+replay Zoey's historic chapter dialogue accidentally.
 
 The battle publishes facts without running presentation callbacks or consuming
 randomness. Both story arcs map public keys to recorded character dialogue
 after simulation advance, with mission-speech precedence as defined in
 `battle-radio-nouns.md`. Active chapter briefings open skippable portrait comms
 on entry, with Replay available afterward. Readable text remains available even
-when a turn has no recording. The retained evacuation prototype has Mara's operational
+when a turn has no recording. The retained evacuation prototype has Zoey's operational
 recordings and Iona's written correspondence; a future placement must revisit
 those cast and setting assumptions.
 
@@ -1477,7 +1478,7 @@ one stable chapter recording set. Repeat attempts reuse wording that remains
 true when the whole column goes again. Recurring jobs cannot replay historical
 chapter narration. Detached evacuation recordings retain their own scenario keys.
 
-Mara's cast assignment is Mora - Gritty and Enigmatic, ElevenLabs voice
+Zoey's cast assignment is Mora - Gritty and Enigmatic, ElevenLabs voice
 `YHcCpa6SBWnKDaCPZJQR`, recorded with `eleven_v4`. The narration catalog retains
 clean subtitles, synthesis text, sound IDs, voice/model settings and duration;
 source takes and generation receipts remain authoring assets. Generation is
@@ -1493,7 +1494,7 @@ cannot defer a missile warning until after the aircraft has gone down.
 
 Shepherd recovery uses Castle for company guidance and Tamsin Vale for the yard's
 repair and departure work. Vale's retained voice is `cZH6erlGkOyAQheipyno`;
-her working-yard authority is distinct from Mara's broker role. Recorded militia
+her working-yard authority is distinct from Zoey's broker role. Recorded militia
 handover reports require a confirmed hold, and departure/transfer dialogue requires
 the corresponding physical mission fact. Text-only beats can coexist with recorded
 lines without borrowing another character's voice or promising an uncompleted task.

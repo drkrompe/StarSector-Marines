@@ -10,7 +10,7 @@
       "missionId": "story_shepherd_salvage",
       "event": "briefing.01",
       "textKey": "shepherdSalvageSchedules",
-      "text": "Mara says you're the company that found out who was selling Wayline's schedules.",
+      "text": "Zoey says you're the company that found out who was selling Wayline's schedules.",
       "priority": 10,
       "expiresSeconds": 60,
       "supersedes": [],
@@ -18,7 +18,7 @@
       "portrait": "graphics/portraits/tamsin-vale.png",
       "voiceId": "cZH6erlGkOyAQheipyno",
       "voiced": true,
-      "synthesisText": "[guarded, measuring] Mara says you're the company that found out who was selling Wayline's schedules.",
+      "synthesisText": "[guarded, measuring] Zoey says you're the company that found out who was selling Wayline's schedules.",
       "durationSeconds": 4.88,
       "selectedTake": null
     },

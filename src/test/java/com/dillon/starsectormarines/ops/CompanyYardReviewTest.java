@@ -47,7 +47,7 @@ class CompanyYardReviewTest {
         var runway = model(Stage.RUNWAY, null);
         assertTrue(runway.get("reserve").toString().contains("Runway: 22 days"));
         assertTrue((boolean) runway.get("backDisabled"));
-        assertTrue(model(Stage.ROAD, null).get("dialogue").toString().contains("Mara"));
+        assertTrue(model(Stage.ROAD, null).get("dialogue").toString().contains("Zoey"));
         assertFalse((boolean) model(Stage.ROAD, null).get("backDisabled"));
         var papers = model(Stage.PAPERS, null);
         assertEquals("4 / 4", papers.get("page"));

@@ -12,7 +12,7 @@ import java.util.Comparator;
 import java.util.List;
 
 /**
- * The one place order for the opening: where Second Wind's yard is and where Mara Venn keeps her office
+ * The one place order for the opening: where Second Wind's yard is and where Zoey Venn keeps her office
  * ({@code early-operation-nouns.md}). Jangala first, then the rest of Corvus, then an Independent world, then
  * whatever is nearest Corvus; market id breaks the last tie so the answer never depends on enumeration order.
  * A yard also needs a spaceport, counted whether or not it is disrupted today: the start port is chosen once

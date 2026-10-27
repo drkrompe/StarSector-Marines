@@ -45,7 +45,7 @@ public final class BlindWatchProgress {
      * What the battle saw this tick.
      *
      * @param shot        a shot or thrown round by or at the company (anyone's but a civilian's)
-     * @param sighted     a Sable Wake sentry sees a company unit
+     * @param sighted     a Sable sentry sees a company unit
      * @param mastSighted the ranging mast, still standing, sees a company unit
      * @param mastDown    the mast's charge has blown
      * @param uplinkDown  the uplink's charge has blown
@@ -142,7 +142,7 @@ public final class BlindWatchProgress {
     /** Whether the warning reached Garnir: the campaign keeps {@link #GARNIR_WARNED}. */
     public boolean garnirWarned() { return warning == Warning.SENT; }
 
-    /** The ranging mast stands: it watches for Sable Wake. */
+    /** The ranging mast stands: it watches for Sable. */
     public boolean mastStanding() { return mastStanding; }
     /** The uplink stands: it can send. */
     public boolean uplinkStanding() { return uplinkStanding; }

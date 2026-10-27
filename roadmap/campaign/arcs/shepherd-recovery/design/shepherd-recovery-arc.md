@@ -14,7 +14,7 @@ Colossus and accompanying wrecks after unnamed low-orbit fighting brought them
 down three cycles ago, and built its camp around the claim over time. Recently
 opening a sealed hold attracted rumors and rivals. Yardmaster Tamsin Vale wants
 access to that shipment; its contents, buyer, legality and value remain undecided.
-Basin buys supplies, fuel and heavy machinery through Wayline; Mara's referral is
+Basin buys supplies, fuel and heavy machinery through Wayline; Zoey's referral is
 a supplier recovering a customer, and Vale suspects her own large fuel order leaked
 through Wayline's dispatch. Her cousin's crew remained hidden inside the Colossus and supplies an offscreen
 report for the first briefing. This adds correspondence, not a rescue mission,
@@ -71,8 +71,8 @@ The yard claim, grounded construction and completed repairs confer no substitute
 The permanent award receipt survives sale or loss; later support requires a
 currently owned eligible working hull and ordinary mission permission.
 
-Actual Morrow handover opens Vale's optional referral through Mara to Baronet
-Elian Rusk on Agreus in Arcadia. `a-small-war-arc.md` introduces that next arc.
+Actual Morrow handover opens Vale's optional referral through Zoey to Baronet
+Elian Dormer on Agreus in Arcadia. `a-small-war-arc.md` introduces that next arc.
 
 ## Remaining acceptance
 

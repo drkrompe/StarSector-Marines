@@ -155,7 +155,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                 name, readiness, "label heading squad-card-readiness "
                         + (selected ? "tone-accent" : "tone-good"),
                 "Field Rifles / Standard Plate", // preview fixture
-                "graphics/portraits/portrait_mercenary01.png", "Lt. Sabine Hale",
+                "graphics/portraits/portrait_mercenary01.png", "Lt. Morgan Hale",
                 Strings.format("deployCommandStatus", Strings.get("deployCommandHome"), Strings.upper(status)),
                 "label heading squad-card-commander-status "
                         + (index == 3 ? "tone-danger" : selected ? "tone-accent" : "tone-good"),

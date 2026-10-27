@@ -64,7 +64,7 @@ class SmallWarSettlementTest {
         assertTrue(text.contains("56,000"));
         assertTrue(text.contains("Keep the pier. I've lost worse berths."));
         assertTrue(text.contains("6 of Greyhook's people walked off"));
-        int cost = text.indexOf("3 of ours"), invitation = text.indexOf("Rusk is asking what it would take to keep us here.");
+        int cost = text.indexOf("3 of ours"), invitation = text.indexOf("Dormer is asking what it would take to keep us here.");
         assertTrue(cost >= 0 && invitation > cost, "the company's cost is acknowledged before the invitation");
 
         var lost = MissionOutcome.builder().mission(m).victory(false).payoutEarned(0)

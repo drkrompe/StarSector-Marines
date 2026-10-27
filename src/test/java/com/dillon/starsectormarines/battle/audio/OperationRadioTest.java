@@ -99,8 +99,8 @@ class OperationRadioTest {
     private static Catalog withFieldCommand() {
         Catalog base = catalog();
         Map<String, Line> lines = new HashMap<>(base.lines());
-        lines.put("sabine_call", new Line("sabine_call", "command", "Sabine. This is Command.", 1));
-        lines.put("sabine_ack", new Line("sabine_ack", "sabine", "Sabine. Go ahead.", 1));
+        lines.put("sabine_call", new Line("sabine_call", "command", "Morgan. This is Command.", 1));
+        lines.put("sabine_ack", new Line("sabine_ack", "sabine", "Morgan. Go ahead.", 1));
         Map<String, String> handoffs = new HashMap<>();
         Map<String, String> withdraw = new HashMap<>();
         for (Actor actor : base.actors()) {
@@ -112,7 +112,7 @@ class OperationRadioTest {
             withdraw.put(actor.id(), out);
         }
         lines.put("withdraw", new Line("withdraw", "command", "Fall back.", 1));
-        FieldCommand field = new FieldCommand("sabine", "SABINE HALE / FIELD COMMAND",
+        FieldCommand field = new FieldCommand("sabine", "MORGAN HALE / FIELD COMMAND",
                 "graphics/portraits/sabine-hale.png", "sabine_call", "sabine_ack", handoffs, withdraw);
         return new Catalog(base.actors(), Map.of(AssignmentKind.ATTACK_MOVE, "order",
                 AssignmentKind.WITHDRAW, "withdraw"), lines, field);
@@ -153,7 +153,7 @@ class OperationRadioTest {
         net.advance(1.3f, true, false, false);
         var ack = net.advance(0.36f, true, false, false);
         assertEquals("sabine_ack", ack.line().id());
-        assertEquals("SABINE HALE / FIELD COMMAND", ack.speaker());
+        assertEquals("MORGAN HALE / FIELD COMMAND", ack.speaker());
         assertEquals("graphics/portraits/sabine-hale.png", ack.portrait());
         List<String> rest = new ArrayList<>();
         for (var turn = ack; turn != null; ) {

@@ -29,7 +29,7 @@ import java.util.Set;
  * Referee for Terms of Protection: a physical custody party under escort, a signing at the
  * dispatch handover bay, technician work in the calibration room, and Berth Four's finite assault.
  *
- * <p>Every enemy group is authored before launch with its ingress and commitment condition. Pell's
+ * <p>Every enemy group is authored before launch with its ingress and commitment condition. Reed's
  * two assault sections and his mortar team commit when the commissioning work is first seen to
  * be under way; the prize-crew party comes down the Cinder Steps lane a fixed interval later. A
  * group resolves through confirmed losses or its survivors' physical withdrawal off the Cinder
@@ -37,9 +37,9 @@ import java.util.Set;
  * Warnings are story beats raised by actual sightings and reports, never by commitment itself.
  */
 public final class TermsOfProtectionSequence implements Objective {
-    /** Commissioning seconds before Pell's people commit: the work has to be under way to be worth stopping. */
+    /** Commissioning seconds before Reed's people commit: the work has to be under way to be worth stopping. */
     public static final float PELL_COMMITS_AFTER_WORK = 10f;
-    /** Ticks between Pell's commitment and the prize crews on the Cinder Steps lane. */
+    /** Ticks between Reed's commitment and the prize crews on the Cinder Steps lane. */
     public static final int LANE_PARTY_DELAY_TICKS = 900;
     /** Fire-mission radius the mortar team serves around the tooling hall. */
     public static final int MORTAR_MISSION_RADIUS = 18;
@@ -72,7 +72,7 @@ public final class TermsOfProtectionSequence implements Objective {
     public TermsOfProtectionSequence(Route route, long carrier, Parties parties, Reserve reserve, StoryBeatLog log) {
         this.progress = new TermsOfProtectionProgress(route);
         this.carrier = carrier; this.parties = parties; this.reserve = reserve; this.log = log;
-        if (reserve.pellSections().size() != 2) throw new IllegalArgumentException("Pell commits two assault sections");
+        if (reserve.pellSections().size() != 2) throw new IllegalArgumentException("Reed commits two assault sections");
         if ((route == Route.HOUSE_CUSTODY) != (parties.guards() >= 0) || (route == Route.YARD_COMPACT) != (parties.fitters() >= 0))
             throw new IllegalArgumentException("Each route brings its own party and no other");
     }
@@ -89,7 +89,7 @@ public final class TermsOfProtectionSequence implements Objective {
     /** Whether the player's own observation has found the mortar team. */
     public boolean mortarSighted() { return mortarSighted; }
     public boolean mortarWithdrawing() { return mortarWithdrawing; }
-    /** Whether the player has actually seen Pell's assault, or the prize crews on the lane. */
+    /** Whether the player has actually seen Reed's assault, or the prize crews on the lane. */
     public boolean pellSighted() { return pellSighted; }
     public boolean laneSighted() { return laneSighted; }
     /** Public referee fact shown on the mission picture: every committed group has been resolved. */

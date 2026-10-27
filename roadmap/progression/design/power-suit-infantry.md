@@ -74,7 +74,7 @@ confirm those relationships rather than assume them from a unit test.
 
 The first story introduction belongs after the Shepherd has completed its
 recovery and joined the player's fleet. `a-small-war.md` sends the company to
-existing Agreus in nearby Arcadia, where Baronet Rusk's bounded procurement warrant and
+existing Agreus in nearby Arcadia, where Baronet Dormer's bounded procurement warrant and
 the company's construction capability make recovered suit technology obtainable.
 `agreus-latchkey.md` owns that local setting and cast. Completing A Cold Account, securing
 the grounded hull, or finishing Cold Start repairs is not this milestone.

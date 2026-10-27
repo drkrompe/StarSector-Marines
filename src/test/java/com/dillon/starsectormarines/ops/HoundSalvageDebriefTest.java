@@ -14,11 +14,12 @@ class HoundSalvageDebriefTest {
         for (boolean disabled : new boolean[]{false, true}) {
             var outcome = outcome(true, MissionSource.STORY, new WaylineHoundRecovery.Report(false, disabled));
             var lines = HoundSalvageDebrief.lines(outcome, catalog);
-            assertEquals(4, lines.size());
+            assertEquals(5, lines.size());
             assertEquals("CASTLE / COMPANY COMMAND", lines.get(0).speaker());
             assertEquals("graphics/portraits/castle.png", lines.get(0).portrait());
-            assertEquals(disabled, lines.get(3).text().contains("wreck"));
-            assertEquals("MARA VENN / WAYLINE", lines.get(3).speaker());
+            assertEquals("debrief.hound.transfer", lines.get(3).event(), "One handover, knocked out or not");
+            assertEquals("ZOEY VENN / WAYLINE", lines.get(3).speaker());
+            assertEquals("CASTLE / COMPANY COMMAND", lines.get(4).speaker(), "Castle closes it at the mech bay");
         }
         assertTrue(HoundSalvageDebrief.lines(outcome(false, MissionSource.STORY,
                 new WaylineHoundRecovery.Report(true, true)), catalog).isEmpty());

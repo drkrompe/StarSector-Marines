@@ -21,7 +21,7 @@ class MechSupportLandedNameTest {
 
     @Test
     void frozenCallsignNamesTheLandedMech() {
-        assertEquals("Wayward", MechSupportPayload.landedName(named("Wayward"), "support-12"));
+        assertEquals("The Hound", MechSupportPayload.landedName(named("The Hound"), "support-12"));
     }
 
     @Test
@@ -36,6 +36,6 @@ class MechSupportLandedNameTest {
         MechDeploymentSpec blank = named("   ");
         assertNull(blank.displayName());
         assertEquals("support-12", MechSupportPayload.landedName(blank, "support-12"));
-        assertEquals("Wayward", named("  Wayward ").displayName());
+        assertEquals("The Hound", named("  The Hound ").displayName());
     }
 }

@@ -97,7 +97,7 @@ public record MechPattern(Kind kind, String definitionId) {
     }
 
     /**
-     * What a new company knows: the Hound, the weapons Wayward teaches (the nose chaingun and
+     * What a new company knows: the Hound, the weapons the Hound teaches (the nose chaingun and
      * both SRM-5 warheads, so the first rack can answer men and the first armor alike), and the
      * stock frame's internals every chassis is built with.
      */

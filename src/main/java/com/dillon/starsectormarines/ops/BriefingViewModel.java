@@ -98,7 +98,7 @@ final class BriefingViewModel {
     static Map<String, Object> actingNcoPreviewProps() {
         Map<String, Object> props = campaignPreviewProps(false);
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
-                "Sabine Hale", "Lieutenant · 3 squad coordination", false, () -> { },
+                "Morgan Hale", "Lieutenant · 3 squad coordination", false, () -> { },
                 "graphics/portraits/portrait_mercenary01.png")));
         props.put("captainEmpty", "");
         props.put("taskForceRows", List.of(forceCard("nco-1", "Squad 01",
@@ -132,7 +132,7 @@ final class BriefingViewModel {
         putFactionIdentity(props, "opposition", "Pirates", "graphics/factions/crest_pirates.png");
         props.put("termActions", List.of());
         props.put("captains", List.of(new ChoiceRow("captain-preview", "choice-row selected",
-                late ? "Hale" : "Sabine Hale", late ? "Colonel · 24 squad coordination" : "Lieutenant · 3 squad coordination", false, none, "graphics/portraits/portrait_mercenary01.png")));
+                late ? "Hale" : "Morgan Hale", late ? "Colonel · 24 squad coordination" : "Lieutenant · 3 squad coordination", false, none, "graphics/portraits/portrait_mercenary01.png")));
         props.put("captainEmpty", "");
         putDebugDrawer(props, true, debugExpanded, none);
         props.put("tierSummary", late ? "Full Strength · 84 squads · 168 sorties"
@@ -171,7 +171,7 @@ final class BriefingViewModel {
                 forceCard("tf-4", "Colonel Reyes", "12 squads · 144 marines",
                         "graphics/portraits/portrait_mercenary04.png", "")).stream()
                 .map(card -> card.withSquads(previewSquads(card.id(), 24))).toList()
-                : List.of(forceCard("tf-1", "Lieutenant Sabine Hale", "1 squad · 12 marines",
+                : List.of(forceCard("tf-1", "Lieutenant Morgan Hale", "1 squad · 12 marines",
                         "graphics/portraits/portrait_mercenary01.png", "").asOperationCommander()
                         .withSquads(previewSquads("tf-1", 1))));
         props.put("commandSummary", "3 / 5 slots");

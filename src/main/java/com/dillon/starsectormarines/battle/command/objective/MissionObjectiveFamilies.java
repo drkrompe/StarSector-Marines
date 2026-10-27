@@ -51,6 +51,19 @@ public final class MissionObjectiveFamilies {
                 state == State.COMPLETE ? "" : state == State.FAILED ? Strings.get("objectiveFailedSentence") : blocker, List.of(new Marker(markerId, name, x, y, phase, state)), markerId);
     }
 
+    /**
+     * The item under its briefing letter, (A) for {@code ordinal} 0: the letter the mission's briefing text uses,
+     * on the HUD row and its map markers alike, so the words and the map name the same place.
+     */
+    public static Item lettered(Item item, int ordinal) {
+        String letter = String.valueOf((char) ('A' + ordinal));
+        return new Item(item.id(), Strings.format("objectiveLettered", letter, item.name()), item.state(), item.phase(),
+                item.steps(), item.instruction(), item.progressText(), item.progress(), item.blocker(),
+                item.markers().stream().map(m -> new Marker(m.id(), Strings.format("objectiveLettered", letter, m.name()),
+                        m.x(), m.y(), m.status(), m.state(), m.footprint(), m.radius())).toList(),
+                item.focusMarkerId(), item.optional());
+    }
+
     public static Item charge(ChargeSiteObjective site) {
         State state = state(site);
         return at("charge-" + site.siteId(), site.displayName(), state,
