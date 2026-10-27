@@ -1266,8 +1266,11 @@ K4B_LEAD = fly('lasher-lead', (-560, 380, 30, -160, -20, 160, 1), K4B_T, [
     hits=recoil([103.5], every=.15, until=106.8)
     + [dict(t=107.6, spin=(20, 3, 5), push=(0, 20, 8), decay=2.5, thr=.1, held=True)])     # the cook-off's own impulse
 K4B_SHIPS = {
+    # she rolls in with her nose down onto the Lasher (2026-10-27, turret masks: level, her own forward hull
+    # stood between her port guns and the Lasher's bow, so the breach at 103.7 s had no gun)
     'falcon-p': fly('falcon-p', (-700, 200, -100, 10, 6, -4, .8), K4B_T, [
-        dict(t=102, hd=8, pt=5, rl=-2), dict(t=110, hd=16, pt=3, rl=-12, v=30)], v=45,
+        dict(t=102, hd=8, pt=5, rl=-2), dict(t=103.3, hd=9, pt=-5, rl=-17),
+        dict(t=110, hd=16, pt=3, rl=-12, v=30)], v=45,
         hits=recoil([106.0], kick=.12, shove=.2, every=.3, until=108.5)
         + [dict(t=104.79, push=(0, -4, -2), spin=(-5, 1, 3), decay=2.0, thr=.5)]),
     'lasher-lead': K4B_LEAD,
@@ -3046,7 +3049,8 @@ def blender_main(cfg):
         its axis, past OWN_HULL_CLEAR_M of its own gun, as hull_cross_lint casts it) a ray every MASK_STEP_DEG
         of bearing and elevation in her frame, out to 1.5 of her length, against her own plating (guns, gear
         and the kit's effects aside; another gun's housing only past OWN_HULL_GUN_M, as the lint reads it).
-        Written per build into path, merged with what is there."""
+        Also every placed hull's real extent in her own frame (_boxes, per build). Written per build into
+        path, merged with what is there."""
         import asharu_gunnery as g
         import base64
         from mathutils import Vector
@@ -3068,7 +3072,7 @@ def blender_main(cfg):
         for key, obs in parts.items():
             build = g.build_of(base, key)
             mounts = g.mounts_of(base, key)
-            if key not in placed or not mounts or build in out or build not in g.MOUNTS:
+            if key not in placed or build is None or (build in out and build in out.get('_boxes', {})):
                 continue
             to_ship = placed[key]['matrix'].inverted()
             geo = {False: ([], []), True: ([], [])}        # hull, and other guns' housings
@@ -3080,6 +3084,12 @@ def blender_main(cfg):
                 verts += [m @ v.co for v in me.vertices]
                 polys += [[o + i for i in p.vertices] for p in me.polygons]
                 ob.evaluated_get(dg).to_mesh_clear()
+            every = geo[False][0] + geo[True][0]
+            if every:       # her real extent in her frame, for the planner's line-of-fire test (blocked)
+                out.setdefault('_boxes', {})[build] = [[round(min(v[i] for v in every), 2) for i in range(3)],
+                                                       [round(max(v[i] for v in every), 2) for i in range(3)]]
+            if not mounts or build in out or build not in g.MOUNTS or not geo[False][0]:
+                continue
             bvh = BVHTree.FromPolygons(*geo[False])
             guns = BVHTree.FromPolygons(*geo[True]) if geo[True][0] else None
             reach = placed[key]['length'] * 1.5

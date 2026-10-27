@@ -355,26 +355,40 @@ def self_masked(build, turret, mount, local):
     el = math.degrees(math.atan2(v[2], math.hypot(v[0], v[1])))
     nb, ne = int(round(360 / step)), int(round(180 / step))
     i, j = min(nb - 1, int((az + 180) / step)), min(ne - 1, int((el + 90) / step))
-    n = j * nb + i
-    return bool(bits[n // 8] >> (n % 8) & 1)
+    for jj in (j - 1, j, j + 1):            # a cell either side: a mast thinner than a cell slips between rays
+        for ii in (i - 1, i, i + 1):
+            if 0 <= jj < ne:
+                n = jj * nb + ii % nb
+                if bits[n // 8] >> (n % 8) & 1:
+                    return True
+    return False
+
+
+def hull_box(kf, key):
+    """Her extent in her own frame, (min corner, max corner) metres: the build's real one (turret_masks.json
+    _boxes), else debris_field.SHIP_HALF of her length about her centre."""
+    b = MASKS.get('_boxes', {}).get(build_of(kf, key))
+    if b:
+        return tuple(b[0]), tuple(b[1])
+    half = [h * length_m(key) for h in SHIP_HALF]
+    return tuple(-h for h in half), tuple(half)
 
 
 def blocked(a, b, others):
-    """The other hull a straight line a -> b passes through, or None. others: [(key, frame, half extents)],
-    each hull taken as her box (debris_field.SHIP_HALF of her length): a bounding sphere of a third of her
-    length missed a long hull's ends (hull_cross_lint, 2026-10-27: S8's fire through the Colossus's drive
-    pods)."""
-    for key, fr, half in others:
+    """The other hull a straight line a -> b passes through, or None. others: [(key, frame, (min, max)
+    corners of her box in her frame)]: a bounding sphere of a third of her length missed a long hull's ends
+    (hull_cross_lint, 2026-10-27: S8's fire through the Colossus's drive pods)."""
+    for key, fr, (bmin, bmax) in others:
         p, q = to_local(fr, a), to_local(fr, b)
         lo, hi = .02, .98                   # the muzzle's and the aim's own ends are not in the way
         for i in range(3):
             d = q[i] - p[i]
             if abs(d) < 1e-9:
-                if abs(p[i]) > half[i]:
+                if not bmin[i] <= p[i] <= bmax[i]:
                     lo, hi = 1.0, 0.0
                     break
                 continue
-            t0, t1 = (-half[i] - p[i]) / d, (half[i] - p[i]) / d
+            t0, t1 = (bmin[i] - p[i]) / d, (bmax[i] - p[i]) / d
             lo, hi = max(lo, min(t0, t1)), min(hi, max(t0, t1))
         if lo < hi:
             return key
@@ -548,7 +562,7 @@ def _valid(sh, key, turret, mount, weapon, target, i, aim_l, force=False):
     lim = force_reach_m(weapon) if force else reach_m(weapon)
     if d > lim:
         return False, d, f'out of range ({d:.0f} m > {lim:.0f})'
-    others = [(k, sh.fr[k][i], [h * length_m(k) for h in SHIP_HALF]) for k in sh.ships if k not in (key, target)]
+    others = [(k, sh.fr[k][i], hull_box(sh.kf, k)) for k in sh.ships if k not in (key, target)]
     b = blocked(mz, aim_w, others)
     if b:
         return False, d, f'line fouled by {b}'
