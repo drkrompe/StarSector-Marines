@@ -11,7 +11,6 @@ import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
-import com.dillon.starsectormarines.battle.ui.panel.DirectControlAimLane;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlFireMarks;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlFireMarks.Mark;
 import com.dillon.starsectormarines.battle.ui.panel.DirectControlPanel;
@@ -35,30 +34,22 @@ import com.dillon.starsectormarines.ui.retained.svg.SvgAsset;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
-import java.awt.Font;
 import java.awt.Graphics2D;
 import java.awt.RenderingHints;
 import java.awt.geom.Line2D;
-import java.awt.geom.Path2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 
 /**
- * Owner mockups for showing a primary's magazine and readiness at the direct-control reticle: four candidate designs,
- * each in four moments, drawn over a real look frame (generated ground, play zoom) under the real active HUD. The
- * candidate geometry lives only here, as Java2D strokes; {@link DirectControlReticle} stays the production reticle
- * until a design is picked. A 4x inset of the cursor sits at the top of each frame, since the reticle is 14 px.
+ * The direct-control reticle carrying a primary's magazine and readiness ({@link DirectControlReticle.Load}), in four
+ * moments, drawn with the production strokes over a real look frame (generated ground, play zoom) under the real
+ * active HUD fed the same moment. A 4x inset of the cursor sits at the top of each frame, since the reticle is 14 px.
  */
-public final class ReticleAmmoMockupSnapshotSuite implements SnapshotSuite {
-    @Override public String id() { return "reticle-ammo-mockups"; }
-    @Override public String label() { return "Reticle ammo and readiness mockups"; }
-
-    /** The candidate designs. */
-    private enum Design { ARC, PIPS, CLOCK, HYBRID }
+public final class ReticleAmmoSnapshotSuite implements SnapshotSuite {
+    @Override public String id() { return "reticle-ammo"; }
+    @Override public String label() { return "Reticle ammo and readiness"; }
 
     /**
      * One moment of the controlled Marine's primary: {@code readiness} is how far the trigger is back from its reload
@@ -82,10 +73,6 @@ public final class ReticleAmmoMockupSnapshotSuite implements SnapshotSuite {
     private static final float AIM_DX = 2.2f;
     private static final float AIM_DY = 1.9f;
 
-    private static final Color WHITE = DirectControlReticle.GOOD;
-    private static final Color DIM = new Color(0xF4, 0xF6, 0xF8, 46);
-    private static final Color REFILL = new Color(0xF4, 0xF6, 0xF8, 140);
-
     @Override
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SvgAsset.Source previous = SvgAsset.setSource(path -> Files.readString(context.modRoot().resolve(path)));
@@ -105,16 +92,13 @@ public final class ReticleAmmoMockupSnapshotSuite implements SnapshotSuite {
                     BufferedImage base = DirectControlUiSnapshotSuite.activeComposite(hud, context.modRoot(), W, H,
                             1f, snapshot, DirectControlUiSnapshotSuite.marinePlate(context.modRoot(), true).document(),
                             false, false, graphics -> graphics.drawImage(staged.frame(), 0, 0, null));
-                    for (Design design : Design.values()) {
-                        BufferedImage frame = copy(base);
-                        Graphics2D graphics = frame.createGraphics();
-                        smooth(graphics);
-                        reticle(graphics, design, moment, staged);
-                        inset(graphics, base, design, moment, staged);
-                        graphics.dispose();
-                        artifacts.add(new SnapshotArtifact(design.name().toLowerCase(Locale.ROOT) + "-"
-                                + moment.name() + ".png", frame));
-                    }
+                    BufferedImage frame = copy(base);
+                    Graphics2D graphics = frame.createGraphics();
+                    smooth(graphics);
+                    reticle(graphics, moment, staged);
+                    inset(graphics, base, moment, staged);
+                    graphics.dispose();
+                    artifacts.add(new SnapshotArtifact(moment.name() + ".png", frame));
                 }
             }
             return artifacts;
@@ -194,151 +178,26 @@ public final class ReticleAmmoMockupSnapshotSuite implements SnapshotSuite {
                 base.durability(), List.of(status), List.of(), MarineSprint.EMPTY);
     }
 
-    private static final float TICK_INNER = 5f;
-    private static final float TICK_OUTER = 14f;
-    private static final float TICK_WIDTH = 1.5f;
-    private static final float ARC_RADIUS = 22f;
-    /** The arc spans this many degrees either side of the left button's side. */
-    private static final float ARC_HALF_SPAN = 70f;
-
     /**
-     * The production right tick and centre dot, then the left button's tick and its ammo as {@code design} draws
-     * them. All in screen pixels, y down.
+     * The production reticle for {@code moment}: the left tick in the staged mark and the moment's load, the right
+     * tick white. It is laid out y up, so it is built mirrored and flipped back, as the HUD suite does. Screen pixels,
+     * y down.
      */
-    private static void reticle(Graphics2D graphics, Design design, Moment moment, Staged staged) {
+    private static void reticle(Graphics2D graphics, Moment moment, Staged staged) {
         float x = staged.aimX();
         float y = staged.aimY();
         float fx = x - staged.bodyX();
         float fy = y - staged.bodyY();
-        float length = (float) Math.hypot(fx, fy);
-        float ux = fx / length;
-        float uy = fy / length;
-        // The body's left of its line of fire, on a y-down screen.
-        float lx = uy;
-        float ly = -ux;
-        var marks = new DirectControlFireMarks.Marks(Mark.NONE, Mark.GOOD);
-        // The production reticle is laid out y up; build it mirrored and flip it back, as the HUD suite does.
-        for (var stroke : DirectControlReticle.strokes(marks, -1f, -1f, x, -y, fx, -fy,
-                DirectControlPanel.controlledColor())) {
-            stroke(graphics, new DirectControlAimLane.Stroke(stroke.x(), -stroke.y(), stroke.endX(), -stroke.endY(),
-                    stroke.width(), stroke.color()));
-        }
         WeaponDef weapon = WeaponRegistry.require(moment.weaponId());
-        boolean magazine = weapon.magazine() != null;
-        int capacity = magazine ? weapon.magazine().size(moment.grade()) : weapon.burstCount;
-        boolean ready = moment.readiness() >= 1f;
-        Color tick = DirectControlReticle.color(staged.leftMark());
-        switch (design) {
-            case ARC, PIPS -> {
-                if (ready) {
-                    line(graphics, x, y, lx, ly, TICK_INNER, TICK_OUTER, tick);
-                } else {
-                    // The production "will not fire" tick: two wide dashes in grey.
-                    line(graphics, x, y, lx, ly, TICK_INNER, TICK_INNER + 3.5f, DirectControlReticle.HELD);
-                    line(graphics, x, y, lx, ly, TICK_OUTER - 3.5f, TICK_OUTER, DirectControlReticle.HELD);
-                }
-                if (design == Design.ARC) arc(graphics, x, y, lx, ly, ux, uy, moment, magazine, capacity);
-                else pips(graphics, x, y, moment, magazine, capacity);
-            }
-            case CLOCK, HYBRID -> {
-                float grown = TICK_INNER + (TICK_OUTER - TICK_INNER) * Math.min(1f, moment.readiness());
-                if (!ready) line(graphics, x, y, lx, ly, grown, TICK_OUTER, DIM);
-                line(graphics, x, y, lx, ly, TICK_INNER, grown, tick);
-                if (design == Design.HYBRID) {
-                    if (magazine) arc(graphics, x, y, lx, ly, ux, uy, moment, true, capacity);
-                } else if (magazine && ready && moment.rounds() * 4 <= capacity) {
-                    count(graphics, x + lx * (TICK_OUTER + 8f), y + ly * (TICK_OUTER + 8f), moment.rounds());
-                }
-            }
+        int capacity = weapon.magazine() != null ? weapon.magazine().size(moment.grade()) : 0;
+        var load = new DirectControlReticle.Load(moment.readiness(), moment.rounds(), capacity, moment.reloading());
+        var marks = new DirectControlFireMarks.Marks(staged.leftMark(), Mark.GOOD);
+        for (var stroke : DirectControlReticle.strokes(marks, load, -1f, -1f, x, -y, fx, -fy,
+                DirectControlPanel.controlledColor())) {
+            graphics.setColor(stroke.color());
+            graphics.setStroke(new BasicStroke(stroke.width(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
+            graphics.draw(new Line2D.Float(stroke.x(), -stroke.y(), stroke.endX(), -stroke.endY()));
         }
-    }
-
-    /**
-     * A half ring on the left button's side, one segment a round, the first to fire nearest the line of fire. A
-     * reload refills the segments in order, paler; a weapon with no magazine draws one segment that fills over its
-     * cycle.
-     */
-    private static void arc(Graphics2D graphics, float x, float y, float lx, float ly, float ux, float uy,
-                            Moment moment, boolean magazine, int capacity) {
-        double side = Math.toDegrees(Math.atan2(ly, lx));
-        double forward = Math.toDegrees(Math.atan2(uy, ux));
-        // Sweep from the end nearest the line of fire.
-        double delta = Math.IEEEremainder(forward - side, 360.0);
-        double sign = delta >= 0 ? 1 : -1;
-        double from = side + sign * ARC_HALF_SPAN;
-        double span = -sign * 2 * ARC_HALF_SPAN;
-        if (!magazine) {
-            arcPiece(graphics, x, y, from, span, DIM, 2.5f);
-            arcPiece(graphics, x, y, from, span * moment.readiness(), WHITE, 2.5f);
-            return;
-        }
-        double step = span / capacity;
-        double gap = Math.signum(span) * 3.0;
-        int refilled = moment.reloading() ? (int) Math.floor(capacity * moment.readiness()) : 0;
-        int spent = capacity - moment.rounds();
-        for (int i = 0; i < capacity; i++) {
-            Color color;
-            if (moment.reloading()) color = i < refilled ? REFILL : DIM;
-            else color = i < spent ? DIM : WHITE;
-            arcPiece(graphics, x, y, from + i * step, step - gap, color, 2.5f);
-        }
-    }
-
-    private static void arcPiece(Graphics2D graphics, float x, float y, double fromDeg, double spanDeg,
-                                 Color color, float width) {
-        int steps = Math.max(2, (int) Math.ceil(Math.abs(spanDeg) / 4.0));
-        Path2D.Float path = new Path2D.Float();
-        for (int s = 0; s <= steps; s++) {
-            double a = Math.toRadians(fromDeg + spanDeg * s / steps);
-            float px = x + (float) (Math.cos(a) * ARC_RADIUS);
-            float py = y + (float) (Math.sin(a) * ARC_RADIUS);
-            if (s == 0) path.moveTo(px, py); else path.lineTo(px, py);
-        }
-        graphics.setColor(color);
-        graphics.setStroke(new BasicStroke(width, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND));
-        graphics.draw(path);
-    }
-
-    /**
-     * A row of upright pips under the dot, one a round (one a burst round for a weapon with no magazine), and a
-     * hairline beneath that fills over a reload or cycle.
-     */
-    private static void pips(Graphics2D graphics, float x, float y, Moment moment, boolean magazine, int capacity) {
-        float pitch = 5f;
-        float left = x - (capacity - 1) * pitch / 2f;
-        int loaded = magazine ? moment.rounds() : (moment.readiness() >= 1f ? capacity : 0);
-        for (int i = 0; i < capacity; i++) {
-            graphics.setColor(i < loaded ? WHITE : DIM);
-            graphics.fill(new Rectangle2D.Float(left + i * pitch - 1.2f, y + 18f, 2.4f, 6f));
-        }
-        if (moment.readiness() < 1f) {
-            float width = (capacity - 1) * pitch + 2.4f;
-            stroke(graphics, new DirectControlAimLane.Stroke(left - 1.2f, y + 28f, left - 1.2f + width, y + 28f,
-                    1f, DIM));
-            stroke(graphics, new DirectControlAimLane.Stroke(left - 1.2f, y + 28f,
-                    left - 1.2f + width * moment.readiness(), y + 28f, 1f, WHITE));
-        }
-    }
-
-    /** The rounds left, in small figures beside the left tick, once the load is a quarter or less. */
-    private static void count(Graphics2D graphics, float x, float y, int rounds) {
-        graphics.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 12));
-        String text = Integer.toString(rounds);
-        var metrics = graphics.getFontMetrics();
-        graphics.setColor(WHITE);
-        graphics.drawString(text, x - metrics.stringWidth(text) / 2f, y + metrics.getAscent() / 2f - 1f);
-    }
-
-    private static void line(Graphics2D graphics, float x, float y, float dx, float dy, float from, float to,
-                             Color color) {
-        stroke(graphics, new DirectControlAimLane.Stroke(x + dx * from, y + dy * from, x + dx * to, y + dy * to,
-                TICK_WIDTH, color));
-    }
-
-    private static void stroke(Graphics2D graphics, DirectControlAimLane.Stroke stroke) {
-        graphics.setColor(stroke.color());
-        graphics.setStroke(new BasicStroke(stroke.width(), BasicStroke.CAP_BUTT, BasicStroke.JOIN_MITER));
-        graphics.draw(new Line2D.Float(stroke.x(), stroke.y(), stroke.endX(), stroke.endY()));
     }
 
     /** Inset size and magnification: a 4x close-up of the cursor, top centre. */
@@ -349,7 +208,7 @@ public final class ReticleAmmoMockupSnapshotSuite implements SnapshotSuite {
      * The cursor's surroundings from {@code base} scaled up, with the reticle drawn again at the inset's scale rather
      * than its pixels enlarged, so the close-up is as sharp as the strokes are, and a hairline round the source.
      */
-    private static void inset(Graphics2D graphics, BufferedImage base, Design design, Moment moment, Staged staged) {
+    private static void inset(Graphics2D graphics, BufferedImage base, Moment moment, Staged staged) {
         int size = INSET_SOURCE * INSET_SCALE;
         int sx = Math.round(staged.aimX()) - INSET_SOURCE / 2;
         int sy = Math.round(staged.aimY()) - INSET_SOURCE / 2;
@@ -363,7 +222,7 @@ public final class ReticleAmmoMockupSnapshotSuite implements SnapshotSuite {
         graphics.translate(dx, dy);
         graphics.scale(INSET_SCALE, INSET_SCALE);
         graphics.translate(-sx, -sy);
-        reticle(graphics, design, moment, staged);
+        reticle(graphics, moment, staged);
         graphics.setTransform(saved);
         graphics.setClip(clip);
         graphics.setColor(new Color(0xA4, 0xAA, 0xB0, 160));

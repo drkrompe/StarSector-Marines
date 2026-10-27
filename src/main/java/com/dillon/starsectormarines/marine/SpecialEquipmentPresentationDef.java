@@ -23,7 +23,7 @@ public record SpecialEquipmentPresentationDef(
     /**
      * Presentation whose armoury art stands as drawn. {@code armoryIconLie} is the angle, in
      * degrees above horizontal, at which long art lies: a kit brick turns the art by it so a
-     * launcher stands upright on its mount (KitBrickCanvas), and null leaves compact art as is.
+     * launcher lies level along its mount (KitBrickCanvas), and null leaves compact art as is.
      */
     public SpecialEquipmentPresentationDef(String armoryIconPath,
                                            SpecialUsePose usePose, EquipmentLayerDef carrierLayer,

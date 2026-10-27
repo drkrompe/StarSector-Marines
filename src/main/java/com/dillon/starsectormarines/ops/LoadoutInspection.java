@@ -35,9 +35,9 @@ import java.util.regex.Pattern;
  * The squad as the Loadout screen shows it: three fire teams of two by two, each
  * marine with a portrait of the kit they would wear, their primary, secondary, armour
  * and integral system as issued now with what the selected cards would change it
- * to, and the few numbers that change with it. The primary and secondary stand on
- * kit bricks ({@link KitBrick}), the Mech Lab's and Boat Deck's mounts, coloured by
- * what they throw. Read-only; nothing here issues.
+ * to, and the few numbers that change with it. Each line is a kit brick
+ * ({@link KitBrick}), the Mech Lab's and Boat Deck's mounts, under its slot's name and
+ * with no item name: hovering one opens its sheet. Read-only; nothing here issues.
  */
 final class LoadoutInspection {
     private LoadoutInspection() { }
@@ -46,6 +46,9 @@ final class LoadoutInspection {
     static final int WEAPON = 0, SPECIAL = 1, ARMOR = 2, SYSTEM = 3, PARTS = 4;
     /** Each line's kind as its class names it, taking the spec sheet's accent for that kind. */
     private static final String[] PART_KINDS = {"weapon", "special", "armor", "system"};
+    /** The name each line's slot is marked with; the integral system is the suit's equipment. */
+    private static final String[] PART_LABELS = {"openingLoadoutSlotPrimary", "openingLoadoutSlotSecondary",
+            "openingLoadoutSlotArmor", "openingLoadoutSlotEquipment"};
 
     /** The numbers a tile compares: the weapon's three that matter most, and the suit's two. */
     private static final List<String> STATS = List.of("DPS", "RNG", "PEN", "ARMOR", "MOVE");
@@ -107,12 +110,15 @@ final class LoadoutInspection {
         return (SpecSheet) ((List<Map<String, Object>>) billet.get("parts")).get(part).get("sheet");
     }
 
-    /** The brick one weapon line of one marine stands its item on, or null for an empty mount. */
+    /**
+     * The brick one kit line of one marine shows, or null for an empty mount: what they
+     * carry now, or with {@code next} what the selected cards would issue in its place.
+     */
     @SuppressWarnings("unchecked")
-    static KitBrick partBrick(Map<String, Object> inspection, int index, int part) {
+    static KitBrick partBrick(Map<String, Object> inspection, int index, int part, boolean next) {
         Map<String, Object> billet = billetAt(inspection, index);
         if (billet == null) return null;
-        return (KitBrick) ((List<Map<String, Object>>) billet.get("parts")).get(part).get("brick");
+        return (KitBrick) ((List<Map<String, Object>>) billet.get("parts")).get(part).get(next ? "nextBrick" : "brick");
     }
 
     /**
@@ -130,10 +136,13 @@ final class LoadoutInspection {
                 document.canvases().set(canvas, new ArmoryMarinePreviewCanvas(
                         () -> shownKit(inspection.get(), index), assets));
             }
-            for (int part : new int[]{WEAPON, SPECIAL}) {
-                UiElement brick = markup.requireElement(brickId(billet, part));
-                if (document.canvases().producerOf(brick) != null) continue;
-                document.canvases().set(brick, new KitBrickCanvas(() -> partBrick(inspection.get(), index, part)));
+            for (int part = 0; part < PARTS; part++) {
+                for (boolean next : new boolean[]{false, true}) {
+                    UiElement brick = markup.requireElement(brickId(billet, part, next));
+                    if (document.canvases().producerOf(brick) != null) continue;
+                    int slot = part;
+                    document.canvases().set(brick, new KitBrickCanvas(() -> partBrick(inspection.get(), index, slot, next)));
+                }
             }
         }
     }
@@ -142,8 +151,8 @@ final class LoadoutInspection {
         return "loadout-billet:" + index + ":part:" + part;
     }
 
-    static String brickId(int index, int part) {
-        return partId(index, part) + ":brick";
+    static String brickId(int index, int part, boolean next) {
+        return partId(index, part) + (next ? ":brickNext" : ":brick");
     }
 
     static String portraitId(int index) {
@@ -197,29 +206,19 @@ final class LoadoutInspection {
     }
 
     private static Map<String, Object> part(int index, int part, FireTeamBillet before, FireTeamBillet after) {
-        Map<String, Object> line = row(partId(index, part), "tick", "brick", "socket", "icon", "text", "now", "nextRow", "arrow", "next");
+        Map<String, Object> line = row(partId(index, part), "label", "bricks", "brick", "brickChange", "brickArrow", "brickNext");
         SpecSheet now = sheet(before, part), next = sheet(after, part);
         boolean changes = after != null && !Objects.equals(now, next);
-        FireTeamBillet shown = after != null ? after : before;
-        String icon = icon(shown, part);
-        // A weapon stands on its brick, coloured by what it throws, as Mech Lab hardware does;
-        // the suit's lines keep the slot's colour on a tick and the item in a sunk socket.
-        // An empty slot fades into the card and a changing one is framed in brass.
-        boolean mount = part == WEAPON || part == SPECIAL;
-        line.put("classes", "loadout-part loadout-part-" + PART_KINDS[part] + (mount ? " loadout-part-mount" : "")
+        // Each line is its slot's name over its brick, coloured as Mech Lab hardware is, with no
+        // item name: hovering it opens its sheet. A change is the brick carried now, an arrow and
+        // the brick the card would issue, the line framed in brass; an empty slot fades into the card.
+        line.put("classes", "loadout-part loadout-part-" + PART_KINDS[part]
                 + (changes ? " changes" : now == null && next == null ? " empty" : ""));
-        line.put("brick", mount ? brick(shown, part) : null);
-        line.put("brickClasses", mount ? "loadout-part-brick" : "loadout-hidden");
-        line.put("tickClasses", mount ? "loadout-hidden" : "loadout-part-tick");
-        line.put("socketClasses", mount ? "loadout-hidden" : "loadout-part-socket");
-        line.put("icon", icon);
-        line.put("iconClasses", icon.isEmpty() ? "loadout-part-icon loadout-part-icon-absent" : "loadout-part-icon");
-        line.put("now", name(before, now, part));
-        // A change reads as the old item dimmed with the new one under an arrow.
-        line.put("nowClasses", "loadout-part-now label " + (now == null || changes ? "tone-muted" : "tone-edge"));
+        line.put("label", Strings.get(PART_LABELS[part]));
+        line.put("brick", brick(before, part));
+        line.put("nextBrick", changes ? brick(after, part) : null);
         line.put("arrow", CHANGE);
-        line.put("next", changes ? name(after, next, part) : "");
-        line.put("nextRowClasses", changes ? "loadout-part-next" : "loadout-hidden");
+        line.put("brickChangeClasses", changes ? "loadout-part-brick-change" : "loadout-hidden");
         line.put("sheet", changes && next != null ? next : now != null ? now : next);
         return line;
     }
@@ -268,26 +267,14 @@ final class LoadoutInspection {
         };
     }
 
-    private static String name(FireTeamBillet kit, SpecSheet sheet, int part) {
-        if (sheet != null) return sheet.title();
-        if (kit == null) return Strings.get("openingLoadoutVacant");
-        return part == SYSTEM ? Strings.get("gearSystemNone") : Strings.get("openingLoadoutNoSecondary");
-    }
-
     private static KitBrick brick(FireTeamBillet kit, int part) {
         if (kit == null) return null;
-        return part == WEAPON
-                ? KitBrick.weapon(kit.primaryDef(), EquipmentIcons.primary(kit.primaryDef(), kit.grade()), EquipmentIcons.PRIMARY_LIE)
-                : KitBrick.secondary(kit.specialDef());
-    }
-
-    private static String icon(FireTeamBillet kit, int part) {
-        if (kit == null) return "";
         return switch (part) {
-            case WEAPON -> EquipmentIcons.primary(kit.primaryDef(), kit.grade());
-            case ARMOR -> kit.armorDef().iconPath();
-            case SPECIAL -> kit.specialDef() == null ? "" : kit.specialDef().armoryIconPath();
-            default -> IntegralSystemCopy.carried(kit.armorDef()) ? IntegralSystemCopy.iconPath(kit.armorDef()) : "";
+            case WEAPON -> KitBrick.weapon(kit.primaryDef(),
+                    EquipmentIcons.primary(kit.primaryDef(), kit.grade()), EquipmentIcons.PRIMARY_LIE);
+            case SPECIAL -> KitBrick.secondary(kit.specialDef());
+            case ARMOR -> KitBrick.armor(kit.armorDef());
+            default -> KitBrick.system(kit.armorDef());
         };
     }
 
