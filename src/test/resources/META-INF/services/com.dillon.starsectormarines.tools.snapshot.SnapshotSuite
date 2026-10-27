@@ -369,3 +369,4 @@ com.dillon.starsectormarines.ops.ReticleAmmoSnapshotSuite
 com.dillon.starsectormarines.ops.CounterattackDepotLookSuite
 com.dillon.starsectormarines.ops.JunctionLookSuite
 com.dillon.starsectormarines.battle.world.gen.BloomPaletteLookSuite
+com.dillon.starsectormarines.battle.world.gen.BasinRimLookSuite
