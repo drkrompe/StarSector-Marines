@@ -39,7 +39,7 @@ PREFIX = 'SWFX mining'
 CORE, FRINGE = (255, 155, 155), (255, 0, 0)     # mininglaser.wpn coreColor, fringeColor
 # a pulsed beam's packets: their spacing and speed, how narrow (sharp), the glow between them (floor,
 # of the peak) and how much they swell the beam (of its width)
-PULSE = dict(wavelength_m=6.0, speed_mps=30.0, sharp=4.0, floor=.25, swell=.8)
+PULSE = dict(wavelength_m=8.0, speed_mps=40.0, sharp=4.0, floor=.15, swell=1.6)
 
 
 def _beam_material(name, rgb, strength, soft, cell_m):
@@ -189,8 +189,9 @@ def laser(name, emitter, contact, normal, coll, lights=None, seed=0, width_m=.3,
         radii = [1.0 + pp['swell'] * pulse_packet(u, pp['sharp']) for u in us]
         at_emitter, at_cut = pulse_packet(us[0], pp['sharp']), pulse_packet(us[-1], pp['sharp'])
         rnd = random.Random(seed * 7919 + int(round(pp['t'] * 240)))     # this instant's flash and sparks
-        # its packets peak below the steady beam's 14 (blob_lint stops a final on a long white core)
-        core_mat = _pulse_material(f'{PREFIX} core pulse', swfx_burst.srgb(CORE), 12.0 * glow, .6, pp['floor'],
+        # packets brighter than the steady beam's 14, but short: only the packet clips, never a long
+        # white core (blob_lint stops a final on 600 px of it); r1 at 12 never read as a pulse at range
+        core_mat = _pulse_material(f'{PREFIX} core pulse', swfx_burst.srgb(CORE), 18.0 * glow, .6, pp['floor'],
                                    pp['sharp'], cell)
         halo_mat = _pulse_material(f'{PREFIX} halo pulse', swfx_burst.srgb(FRINGE), 4.0 * glow, 2.2, pp['floor'],
                                    pp['sharp'], cell)

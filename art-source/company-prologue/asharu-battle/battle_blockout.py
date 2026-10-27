@@ -2463,8 +2463,20 @@ def blender_main(cfg):
                 on_hull += 1
                 rows.append((t, mc.inverted() @ found[0], (rot.transposed() @ found[1]).normalized()))
             else:
-                rows.append((t, p, out))
-        print(f'ASHARU rake {drone} -> {target} {t0:.2f}-{t1:.2f} s: {on_hull}/{n + 1} cuts on her hull', flush=True)
+                rows.append((t, None, None))
+        # an aim point off her hull (a skimming Borer swung past her bow) holds the cut at the nearest
+        # one on it, never a beam ending in space (r1, 2026-10-27: borer-a's ended past the Mk.III's bow)
+        hit_at = [i for i, r_ in enumerate(rows) if r_[1] is not None]
+        for i, (t, p_, _n) in enumerate(rows):
+            if p_ is None:
+                if hit_at:
+                    j = min(hit_at, key=lambda j_: abs(j_ - i))
+                    rows[i] = (t, rows[j][1], rows[j][2])
+                else:
+                    off = m_at(target, f_of(t)).inverted() @ m_at(drone, f_of(t)).translation - aim(t)
+                    rows[i] = (t, aim(t), off.normalized() if off.length > 1e-3 else Vector((0, 0, 1)))
+        print(f'ASHARU rake {drone} -> {target} {t0:.2f}-{t1:.2f} s: {on_hull}/{n + 1} cuts on her hull, '
+              f'the rest held at the nearest', flush=True)
         rake_tables[key] = rows
         return rows
 
