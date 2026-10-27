@@ -118,35 +118,7 @@
         "armorCapacity": 9.0,
         "armorRating": 7.0,
         "moveSpeedMult": 1.02,
-        "incomingAccuracyMult": 0.91,
-        "integralSystem": {
-          "id": "system.predictive-volley",
-          "mount": { "rightCells": -0.1408164, "forwardCells": 0.0036625, "muzzleForwardCells": 0.114 },
-          "presentation": {
-            "carrierLayer": {
-              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
-              "attachment": "left-shoulder",
-              "widthShoulders": 0.32,
-              "heightShoulders": 0.48,
-              "pivot": [0.5, 0.5],
-              "muzzle": [0.5, 0.1041666667],
-              "carried": { "offsetShoulders": [0.0, 0.0], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "using": { "offsetShoulders": [0.0, 0.0], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "visibleWhileCarried": true
-            }
-          },
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemPredictiveVolleyDisplayName",
-          "description": "@gearCatalogSystemPredictiveVolleyDescription",
-          "effect": "missile-pod",
-          "resource": "ammunition",
-          "policy": "sighted-standoff-contact",
-          "minimumStandoffCells": 5.0,
-          "squadSalvoIntervalSeconds": 1.5,
-          "durationSeconds": 1.0,
-          "startingAmmo": 2,
-          "weaponId": "weapon.micro-missile"
-        }
+        "incomingAccuracyMult": 0.91
       }
     },
     {
@@ -490,21 +462,7 @@
         "armorCapacity": 6.0,
         "armorRating": 3.0,
         "moveSpeedMult": 0.96,
-        "incomingAccuracyMult": 1.02,
-        "integralSystem": {
-          "id": "system.rail-shot",
-          "grade": "surplus",
-          "displayName": "@gearCatalogSystemRailShotDisplayName",
-          "description": "@gearCatalogSystemRailShotDescription",
-          "effect": "missile-pod",
-          "resource": "ammunition",
-          "policy": "sighted-standoff-contact",
-          "minimumStandoffCells": 7.0,
-          "squadSalvoIntervalSeconds": 1.5,
-          "durationSeconds": 1.0,
-          "startingAmmo": 1,
-          "weaponId": "weapon.micro-missile"
-        }
+        "incomingAccuracyMult": 1.02
       }
     },
     {
@@ -523,35 +481,7 @@
         "armorCapacity": 50.0,
         "armorRating": 11.0,
         "moveSpeedMult": 0.84,
-        "incomingAccuracyMult": 0.99,
-        "integralSystem": {
-          "id": "system.battery-volley",
-          "mount": { "rightCells": -0.2249142, "forwardCells": 0.0346128, "muzzleForwardCells": 0.12768 },
-          "presentation": {
-            "carrierLayer": {
-              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
-              "attachment": "left-shoulder",
-              "widthShoulders": 0.32,
-              "heightShoulders": 0.48,
-              "pivot": [0.5, 0.5],
-              "muzzle": [0.5, 0.1041666667],
-              "carried": { "offsetShoulders": [-0.10, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "using": { "offsetShoulders": [-0.10, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "visibleWhileCarried": true
-            }
-          },
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemBatteryVolleyDisplayName",
-          "description": "@gearCatalogSystemBatteryVolleyDescription",
-          "effect": "missile-pod",
-          "resource": "ammunition",
-          "policy": "sighted-standoff-contact",
-          "minimumStandoffCells": 6.0,
-          "squadSalvoIntervalSeconds": 1.5,
-          "durationSeconds": 1.0,
-          "startingAmmo": 4,
-          "weaponId": "weapon.micro-missile"
-        }
+        "incomingAccuracyMult": 0.99
       }
     },
     {
@@ -707,59 +637,7 @@
         "armorCapacity": 34.0,
         "armorRating": 9.0,
         "moveSpeedMult": 0.8,
-        "incomingAccuracyMult": 1.02,
-        "integralSystem": {
-          "id": "system.battery-volley",
-          "mount": {
-            "rightCells": -0.2249142,
-            "forwardCells": 0.0346128,
-            "muzzleForwardCells": 0.12768
-          },
-          "presentation": {
-            "carrierLayer": {
-              "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
-              "attachment": "left-shoulder",
-              "widthShoulders": 0.32,
-              "heightShoulders": 0.48,
-              "pivot": [
-                0.5,
-                0.5
-              ],
-              "muzzle": [
-                0.5,
-                0.1041666667
-              ],
-              "carried": {
-                "offsetShoulders": [
-                  -0.1,
-                  0.01
-                ],
-                "angleDegrees": 0.0,
-                "occlusion": "over-body"
-              },
-              "using": {
-                "offsetShoulders": [
-                  -0.1,
-                  0.01
-                ],
-                "angleDegrees": 0.0,
-                "occlusion": "over-body"
-              },
-              "visibleWhileCarried": true
-            }
-          },
-          "grade": "service",
-          "displayName": "@gearCatalogSystemBatteryVolleyDisplayName",
-          "description": "@gearCatalogSystemRecoveredBatteryVolleyDescription",
-          "effect": "missile-pod",
-          "resource": "ammunition",
-          "policy": "sighted-standoff-contact",
-          "minimumStandoffCells": 6.0,
-          "squadSalvoIntervalSeconds": 1.5,
-          "durationSeconds": 1.0,
-          "startingAmmo": 2,
-          "weaponId": "weapon.micro-missile"
-        }
+        "incomingAccuracyMult": 1.02
       }
     },
     {

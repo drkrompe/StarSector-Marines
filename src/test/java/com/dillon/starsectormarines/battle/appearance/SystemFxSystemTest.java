@@ -14,8 +14,7 @@ import com.dillon.starsectormarines.marine.BreacherAssistSpec;
 import com.dillon.starsectormarines.marine.ExposedUnderFireSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.IntegralSystemEffect;
-import com.dillon.starsectormarines.marine.MissilePodSpec;
-import com.dillon.starsectormarines.marine.SightedStandoffSpec;
+import com.dillon.starsectormarines.marine.FieldAidSpec;
 import com.dillon.starsectormarines.marine.SpecialResourceMode;
 import org.junit.jupiter.api.Test;
 
@@ -160,7 +159,7 @@ class SystemFxSystemTest {
     @Test
     void aRunningSystemThatRaisesNoScreenReportsNoArc() {
         UnitRosterService roster = roster();
-        long gunner = roster.spawn(marine().integralSystem(missilePod()));
+        long gunner = roster.spawn(marine().integralSystem(fieldAid()));
         SystemFxSystem presentation = new SystemFxSystem(roster);
 
         assertTrue(roster.integralSystems().activate(gunner));
@@ -332,16 +331,15 @@ class SystemFxSystemTest {
                 "system.test-assist", "Breaching assist", EquipmentGrade.SERVICE, "Rams and a screen.",
                 IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
                 DURATION, COOLDOWN, 0,
-                new BreacherAssistSpec(BOOST, SOAK, arcDegrees), null,
+                new BreacherAssistSpec(BOOST, SOAK, arcDegrees),
                 new ExposedUnderFireSpec(2f, 1f));
     }
 
-    private static IntegralSystemDef missilePod() {
+    private static IntegralSystemDef fieldAid() {
         return new IntegralSystemDef(
-                "system.test-pod", "Predictive volley", EquipmentGrade.SERVICE, "A brace of missiles.",
-                IntegralSystemEffect.MISSILE_POD, SpecialResourceMode.AMMUNITION,
-                1f, 0f, 2,
-                null, new MissilePodSpec("weapon.micro-missile"),
-                new SightedStandoffSpec(5f, 1.5f));
+                "system.test-aid", "Field aid", EquipmentGrade.SERVICE, "A satchel of dressings.",
+                IntegralSystemEffect.FIELD_AID, SpecialResourceMode.AMMUNITION,
+                1.5f, 0f, 3,
+                null, new FieldAidSpec(1.5f, 0.5f, 20f));
     }
 }

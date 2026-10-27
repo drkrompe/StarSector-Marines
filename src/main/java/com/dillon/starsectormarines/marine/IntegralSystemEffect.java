@@ -8,7 +8,7 @@ import org.json.JSONException;
  * ({@code integral-armor-systems.md}).
  *
  * <p>Every value here must express itself as <b>behaviour</b> — movement,
- * protection with a clock on it, a delivered payload, care. An
+ * protection with a clock on it, care. An
  * effect whose whole contribution is "more effective hit points" does not
  * belong in this enum: late equipment is meant to get more interesting, not
  * harder to kill, and the measured campaign arc is already bought mostly on the
@@ -31,15 +31,6 @@ public enum IntegralSystemEffect {
      */
     BREACHER_ASSIST("breacher-assist", "@gearIntegralSystemEffectBREACHERASSIST",
             "graphics/ui/armory/system-breach-assist.png"),
-
-    /**
-     * A small salvo fired from the suit's own shoulder mount against a
-     * self-selected target, from finite onboard ammunition. Answers whether a
-     * suit can put something downrange on its own, the opposite half of the
-     * model from {@link #BREACHER_ASSIST} ({@code integral-armor-systems.md}).
-     */
-    MISSILE_POD("missile-pod", "@gearIntegralSystemEffectMISSILEPOD",
-            "graphics/ui/armory/system-missile-pod.png"),
 
     /**
      * Treatment for a wounded squadmate within arm's reach, out of a finite

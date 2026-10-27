@@ -150,7 +150,9 @@ public final class SquadEquipmentDoctrines {
                     "@squadDoctrineFireSupportWeaponsDescription",
                     team(
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID),
-                            weapon("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID),
+                            // The pod fires from the shoulder, so the automatic keeps firing under it.
+                            weapon("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID,
+                                    SpecialEquipmentRegistry.MISSILE_POD_ID),
                             weapon("Marksman", WeaponRegistry.DMR_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)),
@@ -162,7 +164,9 @@ public final class SquadEquipmentDoctrines {
                                     SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)),
                     team(
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID),
-                            weapon("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID),
+                            // The pod fires from the shoulder, so the automatic keeps firing under it.
+                            weapon("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID,
+                                    SpecialEquipmentRegistry.MISSILE_POD_ID),
                             weapon("Marksman", WeaponRegistry.DMR_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID))),

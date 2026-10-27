@@ -6,6 +6,8 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerTran
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.marine.EquipmentLayerDef;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.MissilePodSpec;
+import com.dillon.starsectormarines.marine.SpecialActivation;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.HandsetLayer;
@@ -24,26 +26,30 @@ class LayeredUnitComposerTest {
     @Test
     void committedPodLaunchUsesIndependentBearingAndPreservesPrimaryLayers() {
         LayeredUnitAssets assets = assets(true);
-        assets.registerIntegralSystem("system", sprite("mount"));
+        assets.registerSpecialEquipment("pod", sprite("mount"));
         EquipmentLayerDef.State carried = new EquipmentLayerDef.State(0f, 0f, 0f,
                 EquipmentLayerDef.Occlusion.OVER_BODY);
         EquipmentLayerDef carrier = new EquipmentLayerDef("mount", .32f, .48f, .5f, .5f,
                 carried, carried, 0f, null, true, false,
                 EquipmentLayerDef.Attachment.LEFT_SHOULDER, .5f, 20f / 192f);
-        IntegralSystemDef system = new IntegralSystemDef("system", "System", null,
-                null, null, null, 0f, 0f, 0, null, null, null, carrier);
+        SpecialEquipmentPresentationDef presentation = new SpecialEquipmentPresentationDef(
+                null, SpecialUsePose.SHOULDER_MOUNT, carrier, null, null, null, null, null);
+        SpecialEquipmentDef pod = new SpecialEquipmentDef("pod", "Pod", null, null, null,
+                SpecialActivation.SHOULDER_POD, null, null, 3, null, presentation,
+                null, null, null, null, new MissilePodSpec(null, 6f, 1.5f));
         List<Layer> layers = new ArrayList<>();
         LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
                         layers.add(new Layer(sprite.sourcePath, x, y, angle)),
-                assets, assets.head, null, true, null, EquipmentGrade.SERVICE,
+                assets, assets.head, null, true, pod, EquipmentGrade.SERVICE,
                 100f, 200f, 150f, 0f, 37f, 0f, .9f,
-                LayeredAppearance.POSE_IDLE, 0, 1f, null, system,
-                new LayeredUnitComposer.IntegralLaunch(85f, 220f, -90f, 0f));
+                LayeredAppearance.POSE_IDLE, 0, 1f, null, null,
+                new LayeredUnitComposer.ShoulderLaunch(85f, 220f, -90f, 0f));
         Layer mount = layers.stream().filter(l -> l.id().equals("mount")).findFirst().orElseThrow();
         assertEquals(-90f, mount.angle());
         assertEquals(85f - 72f * (0.5f - 20f / 192f), mount.x(), .001f);
         assertEquals(220f, mount.y(), .001f);
-        assertTrue(layers.stream().anyMatch(l -> l.id().equals("rifle")));
+        assertTrue(layers.stream().anyMatch(l -> l.id().equals("rifle")),
+                "the pod fires from the shoulder; the primary stays in the hands");
         assertTrue(layers.stream().anyMatch(l -> l.id().equals("flash")));
     }
 
@@ -106,7 +112,7 @@ class LayeredUnitComposerTest {
         EquipmentLayerDef carrier = new EquipmentLayerDef("unloaded", 1f, 1f, .5f, .5f,
                 state, state, 0f, null, true, false);
         IntegralSystemDef system = new IntegralSystemDef("no-art", "No art", null,
-                null, null, null, 0f, 0f, 0, null, null, null, carrier);
+                null, null, null, 0f, 0f, 0, null, null, carrier);
         List<String> ids = new ArrayList<>();
         LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
                         ids.add(sprite.sourcePath), assets, assets.head, null, true, null,
@@ -132,7 +138,7 @@ class LayeredUnitComposerTest {
         EquipmentLayerDef carrier = new EquipmentLayerDef("mount", .24f, .4f, .5f, .5f,
                 carried, using, recoil, null, false, true, EquipmentLayerDef.Attachment.LEFT_SHOULDER);
         IntegralSystemDef system = new IntegralSystemDef("system", "System", null,
-                null, null, null, 0f, 0f, 0, null, null, null, carrier);
+                null, null, null, 0f, 0f, 0, null, null, carrier);
         List<Layer> layers = new ArrayList<>();
         LayeredUnitComposer.emit((sprite, x, y, width, height, angle, r, g, b, alpha) ->
                         layers.add(new Layer(sprite.sourcePath, x, y, angle)),

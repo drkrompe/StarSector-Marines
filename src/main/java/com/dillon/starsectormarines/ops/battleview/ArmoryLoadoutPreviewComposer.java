@@ -220,6 +220,7 @@ public final class ArmoryLoadoutPreviewComposer {
             case BRACED_RIFLE -> LayeredAppearance.POSE_AMR_AIM;
             case THROW -> LayeredAppearance.POSE_SMOKE_THROW;
             case PLANT -> LayeredAppearance.POSE_SATCHEL_PLANT;
+            case SHOULDER_MOUNT -> LayeredAppearance.POSE_IDLE;
         };
     }
 

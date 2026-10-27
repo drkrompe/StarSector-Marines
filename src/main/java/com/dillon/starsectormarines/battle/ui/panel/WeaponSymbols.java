@@ -59,6 +59,7 @@ public final class WeaponSymbols {
         if (SpecialEquipmentRegistry.COMMS_RADIO_ID.equals(special.id())) return "RAD";
         if (SpecialEquipmentRegistry.POINT_DEFENCE_PACK_ID.equals(special.id())) return "PDP";
         if (SpecialEquipmentRegistry.FIELD_MORTAR_ID.equals(special.id())) return "MRT";
+        if (SpecialEquipmentRegistry.MISSILE_POD_ID.equals(special.id())) return "POD";
         return abbreviation(special.displayName());
     }
 

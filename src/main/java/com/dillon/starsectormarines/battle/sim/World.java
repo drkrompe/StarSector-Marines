@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.engine.ThrusterFx;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
+import com.dillon.starsectormarines.battle.infantry.MissilePodSystem;
 import com.dillon.starsectormarines.battle.infantry.SmokeThrowCommit;
 import com.dillon.starsectormarines.battle.modifier.UnitStat;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
@@ -324,6 +325,17 @@ public final class World {
     public void setSmokeThrowCommit(long id, SmokeThrowCommit commit) {
         entityWorld.setObject(id, components.SECONDARY_WEAPON,
                 BattleComponents.SECONDARY_WEAPON_SMOKE_COMMIT, commit);
+    }
+
+    /** The shoulder pod's last committed launch while its pulse lasts, or null. */
+    public MissilePodSystem.Launch podLaunch(long id) {
+        return hasSecondaryWeapon(id) ? (MissilePodSystem.Launch) entityWorld.getObject(id,
+                components.SECONDARY_WEAPON, BattleComponents.SECONDARY_WEAPON_POD_LAUNCH) : null;
+    }
+
+    public void setPodLaunch(long id, MissilePodSystem.Launch launch) {
+        entityWorld.setObject(id, components.SECONDARY_WEAPON,
+                BattleComponents.SECONDARY_WEAPON_POD_LAUNCH, launch);
     }
 
     /** Grant the secondary capability to a live unit at runtime (archetype row-move). Serial-only — never mid-{@code Query} walk. */

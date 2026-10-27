@@ -4,7 +4,7 @@ Status: ACTIVE — direction for which patterns build a suit capability and what
 it should be. Every capability named here is authored and running.
 
 Written: 2026-08-28
-Updated: 2026-10-27 — the breach family is three shared shield tiers; the firing brace and the sensor sweeps were cut for the first release.
+Updated: 2026-10-27 — the breach family is three shared shield tiers; the firing brace and the sensor sweeps were cut for the first release; the missile pod left the slate to become the SRM-POD carried special.
 
 Read `progression-nouns.md` for the standing rules an integral system must obey,
 `equipment-lore-catalog.md` for each pattern's provenance and deliberate limits,
@@ -43,7 +43,7 @@ nothing else:
 - **One family, one role.** The breach family exists because breaching is a role
   definition — an assault suit that could not get through a door would be a
   strange assault suit. The rest are *individual* systems on one named pattern,
-  because a missile rack and a section's dressings are things particular suits
+  because a section's dressings are a thing particular suits
   are built for rather than things a whole role is defined by.
 - **Do not give a faction a system so it has one.** `equipment-lore-catalog.md`
   establishes that absence is meaningful and that a faction-color clone is not a
@@ -78,7 +78,7 @@ and the suit says what is wearing it.
 
 **A capability ladders by grade.** Within one effect, every system of a grade is
 worth more than every system of the grade below: Surplus, Service, Milspec for
-the shields, and the same rule for the missile racks and the medics. What "worth
+the shields, and the same rule for the medics. What "worth
 more" means cannot be a single authored number, because a screen and a shove
 spend a budget on different axes: it is the screen over the arc it actually
 covers, plus the shove priced in soak-equivalents, scaled by how much of the
@@ -99,26 +99,19 @@ version would be exactly the "more effective hit points" that
 Not a family. Each is one capability on one named pattern, because that pattern
 is the one built for it.
 
-Three are shipped:
+Two are shipped:
 
 | Pattern | Tradition | System | The character it buys |
 | --- | --- | --- | --- |
-| `armor.aegis-composite` | Tri-Tachyon | **Predictive volley** | The Specter's threat display is spent on evasion because breaching is what that suit is *for*; the Aegis is built to present a difficult firing solution rather than to cross a room, so its own display is spent the other direction — locking a shot instead of dodging one. A small salvo of `weapon.micro-missile` rounds, self-targeted, from a rack of two that does not refill. |
 | `armor.orderly` | Luddic Church | **Parish aid** | A stretcher party that stayed on the field. Three dressings, a short reach, and a threshold that will not spend one on a scratch — the cheapest possible version of somebody stopping to help. |
 | `armor.corpsman` | Hegemony | **Corpsman kit** | The same act performed by somebody taught how and carrying enough to repeat it. Reaches further, is worth spending on a marine merely hurt rather than nearly finished, and does not run out halfway through the fight it was brought for. |
 
-That is a deliberate choice among three plausible homes. The faction lore
-guides put micro-missile support in Hegemony, League, and Tri-Tachyon
-traditions alike, which is three candidates and no obvious single one; the
-pattern that carries the first pod was picked for what its tradition says
-about *how* it fires rather than to fill a faction-grid slot. Hegemony's
-assault heavies and League's are already spoken for by the breach family, and
-a second system on an already-decorated ASSAULT pattern would blur the "one
-family, one role" rule above. The Aegis was Tri-Tachyon's tier-III line
-pattern — not a breacher, not yet spoken for, and its authored copy already
-says "predictive threat displays" and "a difficult firing solution," which a
-self-selecting missile lock is a truer reading of than a dodge would be — the
-Specter already owns that half of "predictive."
+The shoulder micro-missile pod was once a system here, on the Aegis composite,
+the Packframe and both Arbalests. It is now a carried special, the SRM-POD
+(`progression-nouns.md`, Shoulder pod): a pod that fires while the wearer keeps
+the rifle up is a billet's ordnance choice rather than something only four suits
+could offer, and those suits are plain armour. The slate therefore holds the
+shields and the medics.
 
 The medic is the same reasoning applied to the role `role-and-access.md` adds,
 and it shipped by looking at the wrong end of the problem first.
@@ -132,11 +125,6 @@ that would make it possible; patching people up could not, and never needed to.
 
 Worth keeping as a general lesson: a capability parked behind a missing concept
 is worth re-reading for the version of itself that does not need it.
-
-Note also what the SUPPORT role fixes retroactively: the Aegis's pod is
-described above as "a deliberate choice among three plausible homes" that landed
-on a line suit. It landed there because there was no support role to land in.
-There is now, and the Aegis is its first member.
 
 Everything else in the catalog carries nothing, on purpose. The Church's
 Gilead line suit, the League's Bastion, the pirate Blackforge Mk2, and every tier-I and
@@ -162,7 +150,7 @@ likely to be violated by a *capability* rather than by a stat are:
 ## Where this leaves the board
 
 `integral-armor-systems.md` owns the shipped concept and its remaining scope.
-Directional mitigation and the shoulder pod have both landed, so every authored
+Directional mitigation and field aid have both landed, so every authored
 system now expresses the whole of what it was written to be; every system
 authors the moment it is spent at, and defenders wear the ones their patterns
 declare (`progression-nouns.md`), and a running system is legible on the field:
