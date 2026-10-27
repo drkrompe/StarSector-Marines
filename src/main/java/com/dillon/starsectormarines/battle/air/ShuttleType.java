@@ -19,7 +19,8 @@ import java.util.Locale;
  *
  * <p>{@link #capacity} is the hull's physical maximum. Most fleet transports
  * express that maximum as whole four-marine fire teams, while the purpose-built
- * Aeroshuttle carries a six-marine half-squad. A mission may embark fewer seats
+ * Aeroshuttle carries a six-marine half-squad. The Hermes, the company's boat,
+ * lands one whole twelve-marine squad. A mission may embark fewer seats
  * through {@link ShuttleAssignment#seatsPerSortie}; Conquest deliberately
  * delivers one twelve-marine squad from a synchronized pair of Aeroshuttles.
  * Fire-team identity survives that transport split and becomes authoritative
@@ -69,7 +70,7 @@ public enum ShuttleType implements AirHandling, Airframe {
 
     HERMES(
             "graphics/ships/hermes/hermes_base.png",
-            1, 11f, 0.5f,
+            3, 11f, 0.5f,
             Profiles.NIMBLE, 3, 55f,
             "hermes"),
 
