@@ -6,12 +6,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.CombatService;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.sim.World;
-import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
-import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
 import com.dillon.starsectormarines.marine.ExposedUnderFireSpec;
-import com.dillon.starsectormarines.marine.FieldAidSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 
 import java.util.Locale;
@@ -116,7 +112,6 @@ public final class IntegralSystemSystem {
     private static final float MOVING_EPSILON = 1e-3f;
 
     private final UnitRosterService rosterService;
-    private final LongBucket nearbySquadmates = new LongBucket();
     /** Reused by the serial per-carrier pass; no policy keeps it past its own call. */
     private final PolicyMotion motionScratch = new PolicyMotion(false, 0f, 0f);
 
@@ -153,67 +148,11 @@ public final class IntegralSystemSystem {
                         systems.activate(id);
                     }
                 }
-                case WOUNDED_SQUADMATE_IN_REACH -> {
-                    long patient = worstWoundedInReach(id, def.fieldAid(), sim);
-                    if (patient != 0L && systems.activate(id)) {
-                        treat(patient, def.fieldAid());
-                    }
-                }
+                // A field-aid kit makes its wearer a squad medic; SquadMedicSystem treats.
+                case WOUNDED_SQUADMATE_IN_REACH -> { }
                 default -> { /* No integral system declares the carried-item policies. */ }
             }
         }
-    }
-
-    /**
-     * The squadmate most worth a dressing: the lowest health fraction among
-     * living allies within reach that is still below the authored threshold.
-     * Returns {@code 0L} when nobody qualifies, in which case the satchel stays
-     * shut — a finite supply spent on a scratch is the waste this policy's
-     * threshold exists to prevent.
-     *
-     * <p><b>Never the carrier.</b> The whole value of this role is that it
-     * belongs to the section rather than to the marine carrying it, and a medic
-     * who treated themselves first would be a self-heal with a squad system's
-     * name on it.
-     */
-    private long worstWoundedInReach(long carrier, FieldAidSpec aid, BattleSimulation sim) {
-        if (aid == null) return 0L;
-        UnitSpatialIndex index = sim.getUnitIndex();
-        if (index == null) return 0L;
-        Faction faction = rosterService.identity().faction(carrier);
-        if (faction == null) return 0L;
-        World world = rosterService.world();
-        nearbySquadmates.clear();
-        index.gatherFaction(world.x(carrier), world.y(carrier), aid.reachCells(),
-                faction, nearbySquadmates);
-
-        long worst = 0L;
-        float worstFraction = aid.treatBelowHealthFraction();
-        for (int i = 0; i < nearbySquadmates.size; i++) {
-            long candidate = nearbySquadmates.ids[i];
-            if (candidate == carrier) continue;
-            if (!rosterService.isAliveById(candidate)) continue;
-            if (!rosterService.identity().type(candidate).combatant) continue;
-            float maximum = world.maxHp(candidate);
-            if (maximum <= 0f) continue;
-            float fraction = world.hp(candidate) / maximum;
-            if (fraction < worstFraction) {
-                worstFraction = fraction;
-                worst = candidate;
-            }
-        }
-        return worst;
-    }
-
-    /**
-     * Puts a dressing on. Flat health rather than a fraction, clamped at the
-     * patient's own maximum, so one satchel is worth the same everywhere and
-     * simply goes further on somebody with less to lose.
-     */
-    private void treat(long patient, FieldAidSpec aid) {
-        World world = rosterService.world();
-        float maximum = world.maxHp(patient);
-        world.setHp(patient, Math.min(maximum, world.hp(patient) + aid.restoredHealth()));
     }
 
     /** Facts for the early policy pass; manual preview never mutates movement. */

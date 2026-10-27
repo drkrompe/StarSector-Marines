@@ -174,27 +174,6 @@ class IntegralSystemActivationTest {
         assertEquals(0f, systems.cooldownRemaining(breacher), 1e-6f);
     }
 
-    /**
-     * The other half of the model from the breacher: a dressing is not a stat
-     * effect, so activating it must leave movement completely alone while still
-     * spending exactly one use ({@code integral-armor-systems.md}).
-     */
-    @Test
-    void anAmmunitionSystemSpendsOneUseWithoutTouchingMovement() {
-        UnitRosterService roster = roster();
-        long medic = roster.spawn(marine().integralSystem(fieldAid()));
-        IntegralSystemService systems = roster.integralSystems();
-        float issued = roster.movement().moveSpeed(medic);
-
-        assertEquals(3, systems.ammo(medic));
-        assertTrue(systems.activate(medic));
-
-        assertEquals(issued, roster.movement().moveSpeed(medic), 1e-6f,
-                "a dressing is not a movement effect");
-        assertEquals(1f, systems.moveSpeedMultiplier(medic), 1e-6f);
-        assertEquals(2, systems.ammo(medic), "one use spent");
-    }
-
     @Test
     void theBoostIsMeasuredAgainstTheIssuedSuitNotABareMarine() {
         UnitRosterService roster = roster();
@@ -274,8 +253,8 @@ class IntegralSystemActivationTest {
     private static IntegralSystemDef fieldAid() {
         return new IntegralSystemDef(
                 "system.test-aid", "Field aid", EquipmentGrade.SERVICE, "A satchel of dressings.",
-                IntegralSystemEffect.FIELD_AID, SpecialResourceMode.AMMUNITION,
-                1.5f, 0f, 3,
-                null, new FieldAidSpec(1.5f, 0.5f, 20f));
+                IntegralSystemEffect.FIELD_AID, SpecialResourceMode.ENERGY,
+                0f, 0f, 0,
+                null, new FieldAidSpec());
     }
 }

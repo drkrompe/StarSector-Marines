@@ -527,13 +527,8 @@
           "displayName": "@gearCatalogSystemParishAidDisplayName",
           "description": "@gearCatalogSystemParishAidDescription",
           "effect": "field-aid",
-          "resource": "ammunition",
-          "policy": "wounded-squadmate-in-reach",
-          "reachCells": 3.0,
-          "treatBelowHealthFraction": 0.6,
-          "restoredHealth": 8.0,
-          "durationSeconds": 1.5,
-          "startingAmmo": 3
+          "resource": "energy",
+          "policy": "wounded-squadmate-in-reach"
         }
       }
     },
@@ -560,13 +555,8 @@
           "displayName": "@gearCatalogSystemCorpsmanKitDisplayName",
           "description": "@gearCatalogSystemCorpsmanKitDescription",
           "effect": "field-aid",
-          "resource": "ammunition",
-          "policy": "wounded-squadmate-in-reach",
-          "reachCells": 4.0,
-          "treatBelowHealthFraction": 0.75,
-          "restoredHealth": 22.0,
-          "durationSeconds": 1.5,
-          "startingAmmo": 5
+          "resource": "energy",
+          "policy": "wounded-squadmate-in-reach"
         }
       }
     },

@@ -425,7 +425,12 @@ FIELD_LAID_AS = {'falcon-p': dict(peek=-.75)}
 LAUNCH = {'falcon-p': 33.8, 'manticore-p': 35.0, 'colossus3': 35.6, 'kite-p-a': 36.0, 'wolf-p-a': 36.3,
           'hound-p-a': 36.6, 'wolf-p-b': 35.4, 'kite-p-b': 37.2, 'hound-p-b': 37.5, 'buffalo2-a': 37.8,
           'hound-p-c': 38.2}
-CLIMB_SPEED = {'frigate': 300.0, 'destroyer': 240.0, 'cruiser': 190.0, 'freighter': 150.0}
+# A climbing hull's top speed and sustained burn (owner, 2026-10-27: "I want things done right"): 90% of her
+# class's PACE_LIMITS speed and half its acceleration (the limit leaves room for a hard turn)
+CLIMB_SPEED = {'frigate': 234.0, 'destroyer': 198.0, 'cruiser': 153.0, 'freighter': 72.0}
+CLIMB_ACCEL = {'frigate': 75.0, 'destroyer': 50.0, 'cruiser': 30.0, 'freighter': 10.0}
+# The launch speeds the debris field was laid against (_field's FIELD_LAID_AS rule: it stays laid so)
+LAID_CLIMB_SPEED = {'frigate': 300.0, 'destroyer': 240.0, 'cruiser': 190.0, 'freighter': 150.0}
 
 
 def _near(a, b):
@@ -433,26 +438,29 @@ def _near(a, b):
     return a + ((b - a + 180.0) % 360.0 - 180.0)
 
 
-def launch(key, hide, t_light, climb, early=None):
+def launch(key, hide, t_light, climb, early=None, laid=False):
     """A hidden ship's launch: dark at hide, drives lighting at t_light, easing out along her nose for
     four and a half seconds until she is clear of the structure, then turning onto her climb attitude
     (climb's heading, pitch and roll) as she gathers speed, then burning up toward the column at her class's speed.
-    A ship in EARLY_EASE starts easing out on her thrusters as her lamps wake, and faster."""
+    A ship in EARLY_EASE starts easing out on her thrusters as her lamps wake, and faster. laid: the
+    launch as the debris field was first laid against it (LAID_CLIMB_SPEED, every class at one rate)."""
     x, y, z, hd, pt, rl, _ = hide
     chd, cpt, crl = _near(hd, climb[3]), climb[4], _near(rl, climb[5])
-    v = CLIMB_SPEED[mass_class(key)]
+    v = (LAID_CLIMB_SPEED if laid else CLIMB_SPEED)[mass_class(key)]
+    ve = LAID_CLIMB_SPEED[mass_class(key)]          # her ease out of the field is S3's approved beat, at its rates
     early = key in EARLY_EASE if early is None else early
     if early:
         keys = [dict(t=t_light - LAMPS_LEAD_S, v=0.0, thr=0.0), dict(t=t_light - .05, v=10.0, thr=0.0),
                 dict(t=t_light + .6, v=20.0, thr=.25), dict(t=t_light + 1.2, v=32.0, thr=.5),
-                dict(t=t_light + 2.4, v=.3 * v, thr=.8)]
+                dict(t=t_light + 2.4, v=.3 * ve, thr=.8)]
     else:
         keys = [dict(t=t_light - .05, v=0.0, thr=0.0), dict(t=t_light + .6, v=0.0, thr=.25),
                 dict(t=t_light + 2.4, v=18.0, thr=.6)]
-    keys += [dict(t=t_light + 4.6, v=(.4 if early else .3) * v, thr=1.0),     # still on her nose, clear
-            dict(t=t_light + 7.0, hd=(hd + chd) / 2, pt=(pt + cpt) / 2, rl=(rl + crl) / 2, v=.5 * v),
-            dict(t=t_light + 9.5, hd=chd, pt=cpt, rl=crl, v=.8 * v),
-            dict(t=t_light + 13.0, hd=chd + 3, pt=cpt + 2, rl=crl, v=v)]
+    slow = 1.6 if mass_class(key) == 'freighter' and not laid else 1.0      # a capital swings round at a capital's rate
+    keys += [dict(t=t_light + 4.6, v=(.4 if early else .3) * ve, thr=1.0),    # still on her nose, clear
+            dict(t=t_light + 4.6 + 2.4 * slow, hd=(hd + chd) / 2, pt=(pt + cpt) / 2, rl=(rl + crl) / 2, v=.5 * v),
+            dict(t=t_light + 4.6 + 4.9 * slow, hd=chd, pt=cpt, rl=crl, v=.8 * v),
+            dict(t=t_light + 4.6 + 8.4 * slow, hd=chd + 3, pt=cpt + 2, rl=crl, v=v)]
     if t_light < K1B_T:          # her drives are already lighting at the still
         keys = [k for k in keys if abs(k['t'] - K1B_T) > .05]
     return keyed(key, (x, y, z, hd, pt, rl, 0.0 if t_light >= K1B_T else .08), K1B_T, keys, v=0.0,
@@ -464,20 +472,15 @@ PIRATE_LAUNCH = {k: launch(k, PIRATES_MOORED[k], LAUNCH[k], PIRATES_RISING[k]) f
 # Each pirate rejoins the flight her next shot gives her (S5 and S6 for most): (that shot's start, the
 # offset from her launch to it there). The launch is eased onto it, so a cut never jumps her. Those
 # rejoining at S5 or S6 ease over from 4.6 s after their drives light, once clear of their wrecks;
-# the rest, next seen from S6b on, only once S4 has cut away (44 s). The two S5 ships share theirs
-# with S5 (S5_SHARE). Measured by rejoin_offsets(); --check says when they are stale.
+# the rest, next seen from S6b on, only once S4 has cut away (44 s). The pack S5 and S6 show is not
+# eased: it flies its climb (climbed). Measured by rejoin_offsets(); --check says when they are stale.
 REJOIN = {
-    'manticore-p': (44.0, (-29.3, -565.0, 622.2)),
-    'colossus3': (88.0, (-6730.2, -5615.4, -3326.8)),
-    'falcon-p': (50.0, (-673.7, -2003.1, 930.3)),
-    'buffalo2-a': (50.0, (-1075.1, -147.2, 1026.1)),
-    'hound-p-c': (58.0, (-2472.7, 524.4, 100.3)),
-    'wolf-p-a': (50.0, (413.2, -2007.3, 1033.5)),
-    'wolf-p-b': (44.0, (-53.4, -360.9, 674.1)),
-    'hound-p-a': (74.0, (-11236.5, -3039.9, -4141.1)),
-    'hound-p-b': (74.0, (-10062.0, -3951.7, -3462.5)),
-    'kite-p-a': (80.0, (-11775.0, -6673.0, -5968.8)),
-    'kite-p-b': (80.0, (-11131.8, -5111.7, -5894.5)),
+    'colossus3': (88.0, (-113.4, -1797.4, 733.4)),
+    'hound-p-c': (58.0, (-1645.1, 591.5, 314.7)),
+    'hound-p-a': (74.0, (-8471.0, -2508.2, -2917.7)),
+    'hound-p-b': (74.0, (-7566.7, -3169.6, -2285.6)),
+    'kite-p-a': (74.0, (-7277.1, -4971.4, -2485.9)),
+    'kite-p-b': (74.0, (-7029.4, -3384.0, -2710.2)),
 }
 
 
@@ -543,7 +546,162 @@ def rejoined(key, f, t_light):
 
 # What the shots fly. The debris field was laid out against PIRATE_LAUNCH (its keep-outs), and stays
 # so; hide_lines checks the clearance of these.
-PIRATE_FLIGHT = {k: rejoined(k, f, LAUNCH[k]) for k, f in PIRATE_LAUNCH.items()}
+# S6's pack runs, which the climb flies to (S6 draws them staged back by CLIMB_SHORT: K3_SHIPS_RUN)
+K3_T = 56
+K3_RUNS = {
+    'falcon-p': jinking('falcon-p', (-3100, -700, -650, 6, 4, -3, 1), K3_T, 50, 58,
+                        hits=recoil([51.0], kick=.12, shove=.2, every=.8, until=58)),
+    'manticore-p': jinking('manticore-p', (-2500, -1000, -480, 8, 3, 4, 1), K3_T, 50, 58,
+                           hits=recoil([50.5], kick=.2, shove=.3, every=.6, until=58)),
+    'wolf-p-a': jinking('wolf-p-a', (-1250, 200, -120, 2, 6, 25, 1), K3_T, 50, 58),
+    'wolf-p-b': jinking('wolf-p-b', (-1700, -650, -300, 3, 5, -20, 1), K3_T, 50, 58),
+    'buffalo2-a': jinking('buffalo2-a', (-3600, 150, -760, 0, 5, 3, 1), K3_T, 50, 58),
+}
+CONTACT_T = 50.0      # S6 opens: the pack's climb hands over to its runs
+CLIMB_TURN_ALPHA = math.radians(90.0)    # rad/s^2: how fast a climbing hull's turn builds or lets off
+CLIMB_SETTLE_S = 1.5  # her nose comes onto her run's attitude over these last seconds of the climb
+
+
+def climbed(key, f, t_light, run, t_next=CONTACT_T):
+    """A pirate's climb as her class can fly it (owner, 2026-10-27: "I want things done right"): her
+    launch (f) until she is clear of the structure, then a smooth path from there toward where her run
+    (S6) has her at t_next, flown at no more than CLIMB_SPEED and CLIMB_ACCEL and arriving at her run's
+    speed. The path is a cubic from her course at launch to her run's course; she flies it along her
+    nose, her roll easing onto the run's. Where she cannot make it by t_next she is short of it, and her
+    run is staged back by that much (the shortfall, returned with the Pose): the contact comes later
+    than S6 first had it. Returns (Pose, shortfall vector m)."""
+    c = mass_class(key)
+    vmax, acc = CLIMB_SPEED[c], CLIMB_ACCEL[c]
+    tb = t_light + 4.6
+    h = .02
+    p0, q1 = f.at(tb), run.at(t_next)
+    v0 = [(f.at(tb + h)[i] - f.at(tb - h)[i]) / (2 * h) for i in range(3)]
+    v1 = [(run.at(t_next + h)[i] - run.at(t_next - h)[i]) / (2 * h) for i in range(3)]
+    u0, u1 = math.sqrt(sum(x * x for x in v0)), math.sqrt(sum(x * x for x in v1))
+    dd = math.dist(p0[:3], q1[:3])
+    m0 = [x / max(u0, 1e-9) * dd for x in v0]
+    m1 = [x / max(u1, 1e-9) * dd for x in v1]
+    n = 600
+    pts = []
+    for j in range(n + 1):
+        u = j / n
+        a_, b_, c_, d_ = 2 * u ** 3 - 3 * u ** 2 + 1, u ** 3 - 2 * u ** 2 + u, -2 * u ** 3 + 3 * u ** 2, u ** 3 - u ** 2
+        pts.append([a_ * p0[i] + b_ * m0[i] + c_ * q1[i] + d_ * m1[i] for i in range(3)])
+    arc = [0.0]
+    for j in range(n):
+        arc.append(arc[-1] + math.dist(pts[j], pts[j + 1]))
+    length, span = arc[-1], t_next - tb
+
+    def plan(vc):
+        """Her speed ramps from u0 to vc, holds, and ramps to u1 by t_next: (ramp times, distance)."""
+        t1, t3 = abs(vc - u0) / acc, abs(vc - u1) / acc
+        if t1 + t3 > span:
+            return None
+        return t1, t3, (u0 + vc) / 2 * t1 + vc * (span - t1 - t3) + (vc + u1) / 2 * t3
+    lo, hi = 5.0, vmax
+    while plan(hi) is None:
+        hi -= 1.0
+    if plan(hi)[2] <= length:
+        vc = hi                                         # she cannot make it: flat out, and short
+    else:
+        for _ in range(60):
+            mid = (lo + hi) / 2
+            pm = plan(mid)
+            if pm is None or pm[2] > length:
+                hi = mid
+            else:
+                lo = mid
+        vc = lo
+    t1, t3, _ = plan(vc)
+
+    def speed_dist(t):
+        """(speed, distance flown, throttle) at t: a burn while she gains, a trim at cruise, idle braking."""
+        x = min(max(t - tb, 0.0), span)
+        if x <= t1:
+            sp = u0 + (vc - u0) * x / max(t1, 1e-9)
+            return sp, (u0 + sp) / 2 * x, 1.0 if vc > u0 else IDLE
+        d1 = (u0 + vc) / 2 * t1
+        if x <= span - t3:
+            return vc, d1 + vc * (x - t1), .2
+        y = x - (span - t3)
+        sp = vc + (u1 - vc) * y / max(t3, 1e-9)
+        return sp, d1 + vc * (span - t1 - t3) + (vc + sp) / 2 * y, 1.0 if u1 > vc else IDLE
+
+    def on_path(sd):
+        sd = min(max(sd, 0.0), length)
+        lo_, hi_ = 0, n
+        while hi_ - lo_ > 1:
+            mid_ = (lo_ + hi_) // 2
+            lo_, hi_ = (mid_, hi_) if arc[mid_] <= sd else (lo_, mid_)
+        w = (sd - arc[lo_]) / max(arc[hi_] - arc[lo_], 1e-9)
+        pos = [pts[lo_][i] + (pts[hi_][i] - pts[lo_][i]) * w for i in range(3)]
+        return pos, [pts[hi_][i] - pts[lo_][i] for i in range(3)]
+    # She steers along the path rather than riding it: toward a point a second and a half ahead, turning
+    # no harder than her burn sideways, so a tight bend in the cubic is flown round, not snapped through
+    pos, dn = list(p0[:3]), [x / max(u0, 1e-9) for x in v0]
+    rows, dt, t, rate = [], 1 / 96, tb, 0.0       # rate: her turn, rad/s, built up and let off at CLIMB_TURN_ALPHA
+    while True:
+        sp, sd, thr = speed_dist(t)
+        rows.append((t, *pos, *dn, thr))
+        if t >= t_next - 1e-9:
+            break
+        aim, _ = on_path(sd + max(80.0, 1.5 * sp))
+        want = [aim[i] - pos[i] for i in range(3)]
+        wl = math.sqrt(sum(x * x for x in want)) or 1.0
+        want = [x / wl for x in want]
+        ang = math.acos(max(-1.0, min(1.0, sum(dn[i] * want[i] for i in range(3)))))
+        want_rate = min(ang / dt, acc / max(sp, 1.0))
+        rate += max(-CLIMB_TURN_ALPHA * dt, min(CLIMB_TURN_ALPHA * dt, want_rate - rate))
+        turn = min(ang, rate * dt)
+        if ang > 1e-9:
+            k_ = math.sin(turn) / math.sin(ang) if ang < math.pi - 1e-6 else turn / ang
+            dn = [dn[i] * math.cos(turn) + (want[i] - dn[i] * math.cos(ang)) * k_ for i in range(3)]
+            ln = math.sqrt(sum(x * x for x in dn))
+            dn = [x / ln for x in dn]
+        dt_ = min(dt, t_next - t)
+        pos = [pos[i] + dn[i] * sp * dt_ for i in range(3)]
+        t += dt_
+    r0, r1 = p0[5], _near(p0[5], q1[5])
+    short = tuple(rows[-1][1 + i] - q1[i] for i in range(3))
+
+    def at(t):
+        if t <= tb:
+            return f.at(t)
+        if t >= t_next:
+            q = run.at(t)
+            return (q[0] + short[0], q[1] + short[1], q[2] + short[2], *q[3:])
+        j = min(len(rows) - 2, int((t - tb) / dt))
+        a_, b_ = rows[j], rows[j + 1]
+        w_ = max(0.0, min(1.0, (t - a_[0]) / max(b_[0] - a_[0], 1e-9)))
+        r = [a_[i] + (b_[i] - a_[i]) * w_ for i in range(1, 8)]
+        hd = _near(p0[3], math.degrees(math.atan2(r[4], r[3])))
+        pt = math.degrees(math.atan2(r[5], math.hypot(r[3], r[4])))
+        w = (t - tb) / span
+        w = w * w * (3 - 2 * w)
+        rl = r0 + (r1 - r0) * w
+        e = max(0.0, min(1.0, (t - (t_next - CLIMB_SETTLE_S)) / CLIMB_SETTLE_S))
+        if e > 0.0:                                  # her nose comes onto her run's attitude by t_next
+            e = e * e * (3 - 2 * e)
+            q = run.at(t)
+            hd, pt, rl = hd + (_near(hd, q[3]) - hd) * e, pt + (q[4] - pt) * e, rl + (_near(rl, q[5]) - rl) * e
+        return (*r[:3], hd, pt, rl, r[6])
+    at.hits = list(getattr(run.at, 'hits', ()))
+    return Pose(at(f.t), f.t, at), short
+
+
+def staged_back(run, short):
+    """A run moved back by the climb's shortfall: the same flight, where the climb leaves her."""
+    def at(t):
+        q = run.at(t)
+        return (q[0] + short[0], q[1] + short[1], q[2] + short[2], *q[3:])
+    at.hits = list(getattr(run.at, 'hits', ()))
+    return Pose(at(run.t), run.t, at)
+
+
+_CLIMBED = {k: climbed(k, PIRATE_LAUNCH[k], LAUNCH[k], K3_RUNS[k]) for k in K3_RUNS}
+CLIMB_SHORT = {k: v[1] for k, v in _CLIMBED.items()}
+K3_SHIPS_RUN = {k: staged_back(K3_RUNS[k], CLIMB_SHORT[k]) for k in K3_RUNS}
+PIRATE_FLIGHT = {k: _CLIMBED[k][0] if k in _CLIMBED else rejoined(k, f, LAUNCH[k]) for k, f in PIRATE_LAUNCH.items()}
 K1B_SHIPS = PIRATE_FLIGHT
 K2_CAM = (PLATFORM[0] + 600, PLATFORM[1] - 1500, PLATFORM[2] + 350)     # off the south flank, a little above
 K2_AIM = (PLATFORM[0] + 100, PLATFORM[1] - 60, PLATFORM[2] + 40)
@@ -569,6 +727,10 @@ def s34_aim(t):
     return tuple(PLATFORM[i] + w * (f[i] - PLATFORM[i]) for i in range(3))
 
 
+FLOWN_CLEAR_M = 20.0     # clearance round a flown path that left the launch the field was laid against (45 dropped 12 of 68
+                         # pieces, 20 drops the 8 a hull would hit)
+
+
 def _field():
     """The debris field: a cover wreck per hidden ship, then seeded wreckage across the field kept
     out of every launch corridor, the station's body and S4's camera."""
@@ -585,12 +747,13 @@ def _field():
 
     def corridors(laid):
         out = []
-        for k, f in PIRATE_LAUNCH.items():
-            if laid and k in FIELD_LAID_AS:
-                f = launch(k, PIRATES_MOORED[k], LAUNCH[k], PIRATES_RISING[k], early=False)
+        for k, f in PIRATE_FLIGHT.items():      # what she flies; laid, the launch the field was laid against
+            if laid:
+                f = launch(k, PIRATES_MOORED[k], LAUNCH[k], PIRATES_RISING[k], early=False if k in FIELD_LAID_AS else None,
+                           laid=True)
             for i in range(0, 25):
                 t = LAUNCH[k] + i * .5
-                out.append((to_platform(f.at(t)[:3]), SHIP_LENGTH[k] * .6 + 45.0))
+                out.append((to_platform(f.at(t)[:3]), SHIP_LENGTH[k] * .6 + (45.0 if laid else FLOWN_CLEAR_M)))
         return out
     cover = covers(False)
     keep = [(to_platform(K2_CAM), 450.0)]
@@ -626,8 +789,8 @@ FIELD_COVER, FIELD_WRECKS = _field()
 FIELD = FIELD_COVER + FIELD_WRECKS
 
 # S6: the lead Lasher turns back into the fire and is hit; Lasher A burns and falls back; the
-# Phaeton is struck and drifts aft cooking off; the raiders close at speed, guns kicking
-K3_T = 56
+# Phaeton is struck and drifts aft cooking off; the raiders close at speed, guns kicking (the pack's
+# runs are K3_RUNS, staged back where their climb leaves them: CLIMB_SHORT)
 K3_SHIPS = {
     'lasher-lead': fly('lasher-lead', (330, 430, 70, 165, 4, -15, 1), K3_T, [
         dict(t=50, hd=0, pt=0, rl=-5, v=190), dict(t=52.5, hd=70, pt=2, rl=-70), dict(t=54.8, hd=145, pt=4, rl=-45),
@@ -644,13 +807,11 @@ K3_SHIPS = {
     # steadied on her gun run at the Wolf (P), then starting the turn back that S6b finishes
     'lasher-b': fly('lasher-b', CONVOY['lasher-b'], K3_T, [dict(t=50, v=0), dict(t=58, hd=-20, rl=40, v=90)], v=0,
                     hits=recoil([54.5], kick=.3, every=.4, until=57.5)),
-    'falcon-p': jinking('falcon-p', (-3100, -700, -650, 6, 4, -3, 1), K3_T, 50, 58,
-                        hits=recoil([51.0], kick=.12, shove=.2, every=.8, until=58)),
-    'manticore-p': jinking('manticore-p', (-2500, -1000, -480, 8, 3, 4, 1), K3_T, 50, 58,
-                           hits=recoil([50.5], kick=.2, shove=.3, every=.6, until=58)),
-    'wolf-p-a': jinking('wolf-p-a', (-1250, 200, -120, 2, 6, 25, 1), K3_T, 50, 58),
-    'wolf-p-b': jinking('wolf-p-b', (-1700, -650, -300, 3, 5, -20, 1), K3_T, 50, 58),
-    'buffalo2-a': jinking('buffalo2-a', (-3600, 150, -760, 0, 5, 3, 1), K3_T, 50, 58),
+    'falcon-p': K3_SHIPS_RUN['falcon-p'],
+    'manticore-p': K3_SHIPS_RUN['manticore-p'],
+    'wolf-p-a': K3_SHIPS_RUN['wolf-p-a'],
+    'wolf-p-b': K3_SHIPS_RUN['wolf-p-b'],
+    'buffalo2-a': K3_SHIPS_RUN['buffalo2-a'],
 }
 
 # S6b: Lasher B rolls over to starboard (150) and the merchant Wolf to port (-140), both onto the
@@ -727,6 +888,8 @@ def slung(run, mother, t0, shed, launch_off=(-8.0, 0.0, -12.0)):
     is untouched: the carried share is gone by then."""
     p0, p1 = aboard(mother.at(t0), launch_off), aboard(mother.at(t0 - .01), launch_off)
     vm = [(p0[i] - p1[i]) / .01 for i in range(3)]
+    rt0 = run.at(t0)
+    turn0 = [(rt0[3 + n] - p0[3 + n] + 180) % 360 - 180 for n in range(3)]     # the way round, chosen once at the drop
 
     def at(t):
         if t < t0:
@@ -739,7 +902,7 @@ def slung(run, mother, t0, shed, launch_off=(-8.0, 0.0, -12.0)):
         k = tau * (1 - u) ** 2                       # carried drift: her mother's speed at the drop, shed by the end
         w = min(1.0, tau / SLUNG_TURN_S)
         w = w * w * (3 - 2 * w)                      # her attitude turns from her mother's onto her run's
-        ang = [p0[3 + n] + ((r[3 + n] - p0[3 + n] + 180) % 360 - 180) * w for n in range(3)]
+        ang = [p0[3 + n] + (turn0[n] + _near(rt0[3 + n], r[3 + n]) - rt0[3 + n]) * w for n in range(3)]
         return (*(r[i] + vm[i] * k for i in range(3)), *ang, *r[6:])
     return Pose(at(run.t), run.t, at)
 
@@ -842,11 +1005,13 @@ K3B_SHIPS = {
     'kite-p-a': K3B_KITE_A_FLOWN, 'kite-p-b': K3B_KITE_B_FLOWN,
     # the boats: one down on her deck, one braking in over her stern, one just out from under its Kite
     # S7 (80-88 s) sees all three settle: the first holds over her seat and sets down by the key time, the
-    # second brakes in and keeps station through the shot, the third is still on her way in
+    # second, dropped as Kite A slows (85.6 s), is still braking in over her stern at the cut (dropped at
+    # 85.3 s with a hold, her run had 1.2 s to the hold and lunged to 175 m/s: motion lint), the third is
+    # still on her way in
     # the boats drop from the Kites as they brake alongside her, on screen (owner, 2026-10-26)
     **{k: slung(boat(K3B_KITE_FLIGHT[m].at(t0), K3B_TARSUS, K3B_SEATS[k], t0, t1, K3B_T, carrier=K3B_TARSUS_FLOWN, hold=h),
                 K3B_KITE_FLIGHT[m], t0, (t1 - SETTLE_S - h if h else t1) - t0)
-       for k, m, t0, t1, h in (('hermes-p-a', 'kite-p-b', 84.8, 88.5, 0.0), ('hermes-p-b', 'kite-p-a', 85.3, 91.0, 1.5),
+       for k, m, t0, t1, h in (('hermes-p-a', 'kite-p-b', 84.8, 88.5, 0.0), ('hermes-p-b', 'kite-p-a', 85.6, 91.0, 0.0),
                                ('hermes-p-c', 'kite-p-b', 85.8, 93.0, 2.0))},
     'wolf-p-b': fly('wolf-p-b', (-420, 330, 120, -20, -32, 110, 1), K3B_T, [
         dict(t=80, hd=40, pt=-8, rl=40, v=200), dict(t=84, hd=5, pt=-25, rl=95), dict(t=88, hd=-60, pt=-20, rl=70)],
@@ -890,7 +1055,10 @@ def k3b_aim(t):
 # Mk.III settles in from above; the Kite (P) makes her run, is driven off and breaks away
 K4_T = 95
 K4_COLOSSUS_FLOWN = fly('colossus', K4_COLOSSUS, K4_T, [
-    dict(t=88, hd=.5, pt=-1, rl=2, thr=.5), dict(t=90.2, hd=.4, pt=-1.3, rl=2.5, thr=.5),
+    # S7 sees her before S8 does (option C): weaving to unmask her turrets as the Mk.III comes down on her
+    # (Morrow under her keel turns with her)
+    dict(t=80, hd=-1.0, pt=.5, rl=-3, thr=.5), dict(t=84, hd=1.5, pt=-1.5, rl=3, thr=.5),
+    dict(t=86, hd=-.5, pt=-3, rl=-2, thr=.5), dict(t=88, hd=.5, pt=-1, rl=2, thr=.5), dict(t=90.2, hd=.4, pt=-1.3, rl=2.5, thr=.5),
     dict(t=102, hd=-2.5, pt=-6, rl=11)], v=4.0, wobble=.5, thrust=None,
     hits=[dict(t=90.3, push=(0, -1.5, -.5), spin=(.8, -.3, -.3), decay=3.0, thr=.2)])
 K4_MORROW_FLOWN = carried(held('morrow', K4_MORROW, K4_T, wobble=.8), K4_COLOSSUS_FLOWN)
@@ -900,7 +1068,12 @@ K4_SHIPS = {
     # up at the Mk.III grappling down onto her, the bigger threat; two more out of Morrow's bay, climbing
     'borer-c': carried(keyed('borer-c', near(K4_MORROW, (BORER_BAY_M[1][0], BORER_BAY_M[1][1], 18), hd=10, pt=30, thr=.8),
                              K4_T, [], v=2.5, wobble=0.0), K4_MORROW_FLOWN),
+    # S7 sees her come down (owner, 2026-10-27, option C: "floating in space with no fighting ... Not even
+    # any real movement / tilt"): diving in from 450 m astern and above at 75 m/s, braking onto her prize
+    # and rolling onto her side to bring her grapples to bear, before S8 opens on her
     'colossus3': fly('colossus3', (-60, 70, 175, -4, -8, 64, .6), K4_T, [
+        dict(t=80, hd=-12, pt=-18, rl=8, v=75), dict(t=83.5, hd=-7, pt=-12, rl=28, v=50),
+        dict(t=86, hd=-3, pt=-7, rl=45, v=25),
         dict(t=88, hd=-2, pt=-5, rl=55, v=14), dict(t=102, hd=-6, pt=-10, rl=70, v=8)], v=12, wobble=1.0),
     'kite-p-b': fly('kite-p-b', (110, 210, 40, -60, 6, 32, 1), K4_T, [
         dict(t=88, hd=-100, pt=-2, rl=10, v=150), dict(t=93, hd=-80, pt=2, rl=20), dict(t=98, hd=-10, pt=12, rl=55, v=180),
@@ -1450,27 +1623,7 @@ def at_time(pose, t):
     return Pose(pose.at(t), t, pose.at)
 
 
-# The two pirates S5 shows rejoin their S6 flights across both S4 and S5 rather than in S4's last
-# seconds alone: S4 eases them S5_SHARE of the way (REJOIN), S5 the rest, by 50 s, where S6 picks up.
-S5_SHARE = {'manticore-p': .5, 'wolf-p-b': .4}
-
-
-def s5_eased(key, t_still):
-    """Her S6 flight, still short of it at S5's start by the part of the rejoin S4 left (1 -
-    S5_SHARE), eased onto it by 50 s."""
-    f, raw = K3_SHIPS[key], PIRATE_LAUNCH[key]
-    s6, here = f.at(44.0), raw.at(44.0)
-    e = [(1 - S5_SHARE[key]) * (s6[i] - here[i]) for i in range(3)]
-
-    def at(t):
-        p = f.at(t)
-        u = min(1.0, max(0.0, (t - 44.0) / 6.0))
-        w = 1 - u * u * (3 - 2 * u)
-        return (p[0] - w * e[0], p[1] - w * e[1], p[2] - w * e[2], *p[3:])
-    return Pose(at(t_still), t_still, at)
-
-
-M5_MANTICORE = s5_eased('manticore-p', 47.0)
+M5_MANTICORE = at_time(PIRATE_FLIGHT['manticore-p'], 47.0)
 _m5 = M5_MANTICORE.at(M5_T)
 _m5_aim = convoy_at(M5_T)['phaeton']
 # The Phaeton and Lasher A fly S6's flights (K3_SHIPS), so the salvos S5 shows leaving (each aimed to
@@ -1479,7 +1632,7 @@ _m5_aim = convoy_at(M5_T)['phaeton']
 M5_SHIPS = {**{k: at_time(v, M5_T) for k, v in fleet_at({k: CONVOY[k] for k in ('tarsus', 'hound-m', 'buffalo-b', 'dram')},
                                                            K3_T).items()},
             **{k: at_time(K3_SHIPS[k], M5_T) for k in ('phaeton', 'lasher-a')},
-            **{k: s5_eased(k, M5_T) for k in ('manticore-p', 'wolf-p-b')}}
+            **{k: at_time(PIRATE_FLIGHT[k], M5_T) for k in ('manticore-p', 'wolf-p-b')}}
 _m5_dir = [b - a for a, b in zip(_m5[:3], _m5_aim[:3])]
 _m5_len = math.sqrt(sum(x * x for x in _m5_dir))
 _m5_dir = [x / _m5_len for x in _m5_dir]
@@ -1658,6 +1811,15 @@ def add_span(arg):
 def _k6c_cam(t):
     c = K6_SHIPS['colossus'].at(t)
     return tuple(c[i] - 560.0 * K6_LOOK[i] for i in range(3))
+
+
+# Option C (owner, 2026-10-27: "no fighting between it and the colossus / shepherd"): S7 sees the fight S8
+# opens on, both ways, the Mk.III's guns on the Colossus's port pod as she comes down, the Colossus's
+# turrets answering into her belly (S8's own tracers, carried back; asharu_damage's S7 hits are theirs)
+if os.environ.get('ASHARU_S7_FIGHT'):
+    KEYFRAMES['k3b']['fx'] += [('tracer', 'colossus3', 'colossus', (-60, 30, 6)),
+                               ('tracer', 'colossus', 'colossus3', (0, 0, 0), dict(walk=2.0))]
+    KEYFRAMES['k3b']['labels'] += ['colossus3', 'morrow']
 
 
 KEYFRAMES['k6'].update(
@@ -3946,6 +4108,7 @@ def blender_main(cfg):
                 cut_lint(kf)
                 motion_lint(kf)
                 drone_lint(kf)
+                activity_lint(kf)
             lab = {}
             for key in spec['labels']:
                 if key in extra3d:
@@ -4389,7 +4552,7 @@ def rejoin_offsets():
     starts = sorted((spec['camera']['at'].keys[0]['t'], k) for k, spec in SHOTS.items()
                     if 'at' in spec['camera'] and spec.get('ships'))
     out = {}
-    for p, f in PIRATE_LAUNCH.items():
+    for p, f in ((p, f) for p, f in PIRATE_LAUNCH.items() if p not in K3_RUNS):      # the climbed pack flies, not eases
         nxt = [(t, k) for t, k in starts if t >= 44.0 - 1e-6 and p in SHOTS[k]['ships']]
         if nxt:
             t, k = nxt[0]
@@ -4640,19 +4803,18 @@ def motion_lines(kf):
 PACE_LIMITS = {'frigate': (260.0, 150.0), 'destroyer': (220.0, 100.0), 'cruiser': (170.0, 60.0),
                'freighter': (80.0, 20.0), 'drone': (180.0, 300.0)}
 PACE_WINDOW_S = .25
-CLIMB_PENDING = ("PENDING OWNER (2026-10-27): the pack's climb off the platform runs past her class's limits (to 381 m/s, 305 m/s2); S4's final is done and approved, so slowing it is the owner's call")
 PACE_EXEMPT = {         # (kf, ship) -> why this shot's designed move may go past her class's limits
+    ('k1b', 'falcon-p'): "her thruster slide out of her wreck as her drives light at 34 s, S3's approved beat: "
+                         "61 m/s2 for a quarter second",
     ('k6', 'colossus'): "the wreckfall: she falls through the atmosphere, not under drive (S12)",
     ('k6', 'morrow'): "the wreckfall: she falls through the atmosphere, not under drive (S12)",
     ('k3c', 'wolf-m'): "her roll onto her back over the climbing raiders (S6b's beat), 171 m/s2 in the roll",
     ('k3b', 'kite-p-a'): "she brakes hard onto the Tarsus's beam and latches (S7's boarding), 161 m/s2",
     ('k3b', 'kite-p-b'): "she brakes hard onto the Tarsus's beam and latches (S7's boarding), 214 m/s2",
     ('k3b', 'hermes-p-a'): "slung under her Kite as it pitches up to brake, the boat on a lever arm, 255 m/s2",
+    ('k3b', 'hermes-p-b'): "slung under her Kite as it pitches up to brake, the boat on a lever arm, 235 m/s2",
     ('k3b', 'hermes-p-c'): "slung under her Kite as it pitches up to brake, the boat on a lever arm, 255 m/s2",
     ('k3b', 'hound-p-b'): "her turn onto the Hound at 83 s, out of frame through all of it, 253 m/s2",
-    **{(kf, key): CLIMB_PENDING for kf, key in (
-        ('k1b', 'falcon-p'), ('k2', 'manticore-p'), ('k2', 'colossus3'), ('k2', 'falcon-p'), ('k2', 'buffalo2-a'),
-        ('k2', 'wolf-p-a'), ('k2', 'wolf-p-b'), ('m5', 'manticore-p'), ('m5', 'wolf-p-b'))},
 }
 
 
@@ -4729,6 +4891,75 @@ def drone_lint(kf):
         raise RuntimeError(f'{kf}: {bad[0][0]} {bad[0][6]} (drone lint)')
 
 
+# A ship in frame through a battle beat does something (owner, 2026-10-27, option C's Mk.III: "Everyone just
+# decides to be passive while they aren't the star of the shot?"): activity_lines() samples a shot at 12 fps
+# and fails a ship that is in frame, at least ACTIVE_MIN_PX long, for over IDLE_MAX_S with her heading, pitch
+# and roll all turning slower than ACTIVE_DEG_S, her speed changing slower than ACTIVE_ACCEL and no fire of her
+# own in the shot (a tracer, missiles, a mining laser or flares she sends). The fight is hers from when she
+# joins it: a pirate from her launch (lying dark before), a convoy ship from CONTACT_T (cruising unaware
+# before). A ship meant to hold still is listed in DESIGNED_IDLE, (shot, ship): reason.
+IDLE_MAX_S, ACTIVE_DEG_S, ACTIVE_ACCEL, ACTIVE_MIN_PX = 1.5, 1.0, 5.0, 24.0
+FIRES = ('tracer', 'missiles', 'mining', 'flares')
+DESIGNED_IDLE = {
+    ('k3b', 'tarsus'): "her drives are shot out: she drifts, burning, while the boats set down on her",
+    ('k3b', 'kite-p-a'): "braked alongside the Tarsus, holding station while her boat crosses",
+    ('k3b', 'kite-p-b'): "braked alongside the Tarsus, holding station while her boat crosses",
+    ('k5', 'colossus'): "the fight is over: far below, she has lost her orbit and falls away nose down",
+    ('k5', 'morrow'): "the fight is over: far below, still at the falling Colossus's side",
+    ('m11', 'colossus'): "entry: the plasma building round her and the camera's shake are the beat",
+    ('m11', 'morrow'): "entry: the plasma building round her and the camera's shake are the beat",
+}
+
+
+def activity_lines(kf):
+    """Every idle span of a ship in frame in kf's shot: [(ship, from s, to s, largest px, exempt reason or
+    None)]."""
+    import asharu_preview
+    seg = next((s_ for s_ in asharu_preview.segments(SHOTS) if s_['kf'] == kf), None)
+    spec, fps = SHOTS[kf], 12
+    if seg is None or spec['camera'].get('at') is None:
+        return []
+    firing = {fx[1] for fx in spec.get('fx', ()) if fx[0] in FIRES and len(fx) > 1}
+    ts = [seg['start'] + i / fps for i in range(int(round((seg['end'] - seg['start']) * fps)) + 1)]
+    cam = spec['camera']['at']
+    out = []
+    for key, sp in spec.get('ships', {}).items():
+        if not hasattr(sp, 'at') or key in firing:
+            continue
+        L, run = SHIP_LENGTH.get(key, 50.0), None
+        t_in = LAUNCH.get(key, CONTACT_T)
+        for t in ts:
+            q, q2, q3 = sp.at(t), sp.at(t + .5), sp.at(t + 1.0)
+            seen = t >= t_in and _in_frame(cam(t), q[:3])
+            px = seen and L * cam(t)['lens'] / 36.0 * 1920 / seen[2]
+            turn = max(abs((q2[i] - q[i] + 180) % 360 - 180) for i in (3, 4, 5)) / .5
+            accel = abs(math.dist(q2[:3], q3[:3]) - math.dist(q[:3], q2[:3])) / .25
+            if seen and px >= ACTIVE_MIN_PX and turn < ACTIVE_DEG_S and accel < ACTIVE_ACCEL:
+                run = [run[0] if run else t, t, max(px, run[2] if run else 0.0)]
+                continue
+            if run and run[1] - run[0] > IDLE_MAX_S:
+                out.append((key, run[0], run[1], run[2], DESIGNED_IDLE.get((kf, key))))
+            run = None
+        if run and run[1] - run[0] > IDLE_MAX_S:
+            out.append((key, run[0], run[1], run[2], DESIGNED_IDLE.get((kf, key))))
+    return out
+
+
+def activity_lint(kf):
+    """Logs activity_lines once per shot per process; an idle span not designed raises unless
+    ASHARU_AUDIT_SOFT."""
+    if kf in _ACTIVITY_DONE:
+        return
+    _ACTIVITY_DONE.add(kf)
+    rows = activity_lines(kf)
+    bad = [r for r in rows if r[4] is None]
+    print(f'ASHARU activity {kf}: {len(rows)} idle spans, {len(rows) - len(bad)} designed'
+          + (f'; idle: {[f"{r[0]} {r[1]:.1f}-{r[2]:.1f} s ({r[3]:.0f} px)" for r in bad]}' if bad else ''), flush=True)
+    if bad and not os.environ.get('ASHARU_AUDIT_SOFT'):
+        raise RuntimeError(f'{kf}: {bad[0][0]} sits idle in frame {bad[0][1]:.1f}-{bad[0][2]:.1f} s (activity lint)')
+
+
+_ACTIVITY_DONE = set()
 _DRONE_DONE = set()
 _MOTION_DONE = set()
 

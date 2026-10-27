@@ -14,7 +14,6 @@ import com.dillon.starsectormarines.marine.BreacherAssistSpec;
 import com.dillon.starsectormarines.marine.ExposedUnderFireSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.IntegralSystemEffect;
-import com.dillon.starsectormarines.marine.FieldAidSpec;
 import com.dillon.starsectormarines.marine.SpecialResourceMode;
 import org.junit.jupiter.api.Test;
 
@@ -159,7 +158,7 @@ class SystemFxSystemTest {
     @Test
     void aRunningSystemThatRaisesNoScreenReportsNoArc() {
         UnitRosterService roster = roster();
-        long gunner = roster.spawn(marine().integralSystem(fieldAid()));
+        long gunner = roster.spawn(marine().integralSystem(unscreenedAssist()));
         SystemFxSystem presentation = new SystemFxSystem(roster);
 
         assertTrue(roster.integralSystems().activate(gunner));
@@ -335,11 +334,13 @@ class SystemFxSystemTest {
                 new ExposedUnderFireSpec(2f, 1f));
     }
 
-    private static IntegralSystemDef fieldAid() {
+    /** A breach assist that only rams: it runs, and raises no screen. */
+    private static IntegralSystemDef unscreenedAssist() {
         return new IntegralSystemDef(
-                "system.test-aid", "Field aid", EquipmentGrade.SERVICE, "A satchel of dressings.",
-                IntegralSystemEffect.FIELD_AID, SpecialResourceMode.AMMUNITION,
-                1.5f, 0f, 3,
-                null, new FieldAidSpec(1.5f, 0.5f, 20f));
+                "system.test-ram", "Ram assist", EquipmentGrade.SERVICE, "Rams and no screen.",
+                IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
+                DURATION, COOLDOWN, 0,
+                new BreacherAssistSpec(BOOST, 0f, ARC),
+                new ExposedUnderFireSpec(2f, 1f));
     }
 }

@@ -210,7 +210,7 @@ class JunctionCommandEvidenceTest {
                     .put("termination", sim.isComplete() ? "COMPLETE" : "TIMEOUT").put("winner", sim.getWinner() == null ? JSONObject.NULL : sim.getWinner().name())
                     .put("ticks", sim.getSimTickIndex()).put("firstPlayerLandingTick", firstLanding).put("playerDelivered", landed.size())
                     .put("peakPlayerSquads", peakPlayerSquads).put("reserveCommittedTick", reserveTick)
-                    .put("warehouseSallyTick", sallyTick).put("technicalEnteredTicks", new JSONArray(technicalEntered))
+                    .put("firstBlowTick", sallyTick).put("secondBlowTick", sim.getJunctionPressure().secondBlowTick()).put("technicalEnteredTicks", new JSONArray(technicalEntered))
                     .put("technicalDestroyedTicks", new JSONArray(technicalDestroyed)).put("militiaFootprintArrivalTick", holdArrivalTick)
                     .put("militiaFootprintOccupancyTicks", holdOccupancyTicks).put("playerRemaining", count(sim, Faction.MARINE))
                     .put("alliesRemaining", count(sim, Faction.ALLY)).put("raidersRemaining", count(sim, Faction.DEFENDER))

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-27 — Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
+Updated: 2026-10-27 — Junction counterattacks in two blows on a clock that never goes quiet, the first as soon as the first site falls. Earlier the same day: Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
 Earlier 2026-10-27 — Counterattack's road attacks start when the company first enters dispatch, not after the capture.
 Earlier 2026-10-20 — Relief's story chapter starts the company ashore beside Wayline's truck under the ore-dust cover story; Militia Relief keeps company lift.
 
@@ -1071,9 +1071,7 @@ Across the road from the sites stand the bonded warehouse, its hall stocked with
 the impounded machinery and crates, and a fenced impound lot holding four of
 Wayline's haulers. The haulers are civilian, so nobody targets them, and
 neither place needs taking. The warehouse is garrisoned: ten raiders wait in
-the hall and fight what they see from it, and when the company secures its
-first site they sprint across the road into the Freight Yard opposite and hold
-it, retaking it if the company has it (`JunctionPressure`).
+the hall and fight what they see from it, and go out with each counterattack.
 Those roads add no campaign decision. The weigh-house has a
 T-shaped service wing; offset freight rooms face the maintenance access, and
 an L-shaped depot encloses a northern loading recess. The broad central
@@ -1081,11 +1079,22 @@ warehouse still screens long sightlines, and the maintenance reserve retains
 its separate building behind the perimeter. Two manned trench lines cross the
 company's way in, one west of the Freight Yard and one west of Dispatch. Each
 holds its own squad on the trench itself, not in the site behind it. The column
-off the Rill road is twelve strong, and when it goes in at the company's second
-site, two technicals come with it down the main road from the east edge and
-park on the road beside the site it is retaking (`RoadTechnical`). Both
-additions answer a playtest: a company with upgraded squads, the Hound and
-Talon Two walked through the junction.
+off the Rill road is twelve strong. Both additions answer a playtest: a company
+with upgraded squads, the Hound and Talon Two walked through the junction.
+
+After the first gain the raiders counterattack in **two blows**, not a trickle
+of squads (`JunctionPressure`, `JunctionTactics`). The **first blow** is the
+maintenance reserve with the warehouse garrison: the reserve marches as soon
+as the first site falls, and the garrison holds in the hall until the
+reserve reaches its approach (or 30 s), then sprints into the first gain so
+both hit it together. The **second blow** is the Rill column with two
+technicals: the column marches at the company's second site; the technicals
+wait at the main road's east mouth until the column closes on its target (or
+30 s), then drive in behind it and park on the road beside the site, and the
+garrison's survivors sprint over to join. **Pressure never goes quiet**: if the
+company has not taken a second site 45 s after the first, the second blow
+launches anyway, striking the site the company is fighting for. Numbers are untuned: the player is better than the
+autopilot, so balance comes from play, not evidence.
 
 Recovering the depot lets Wayline afford hired close air support. The Junction
 briefing introduces **Talon Two**, a contracted Mudskipper gunship and crew under

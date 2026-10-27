@@ -204,11 +204,8 @@ class ArmorCatalogShapeTest {
                         + SHOVE_IN_SOAK_POINTS * (screen.moveSpeedMult() - 1.0);
                 yield perActivation * duty(system);
             }
-            // Everything one satchel puts back over a whole battle. Reach and
-            // the treat-below threshold improve with tier too, but they decide
-            // WHO gets a dressing rather than what one is worth.
-            case FIELD_AID -> system.fieldAid() == null || !system.usesAmmunition() ? null
-                    : (double) system.fieldAid().restoredHealth() * system.startingAmmo();
+            // A kit is a squad medic; its worth is squad-medicine.json's, not the catalog's.
+            case FIELD_AID -> null;
         };
     }
 
