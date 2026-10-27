@@ -25,5 +25,5 @@ their fixtures on the ARID pool maps. What remains:
    the outcome does not carry the rescue's evacuee and mother-bore fields
    (`MissionOutcome` reads them only for rescue sources). Carry them so the
    debrief can say how many came out.
-5. **Art and voice.** A Warden portrait (`MissionDialogue.speakerPortrait`),
-   Wellhollow location illustrations (`StoryScene`) and briefing narration.
+5. **Voice.** Briefing narration for the Warden; the portrait and location
+   banners are in, pending the owner's review of the art.

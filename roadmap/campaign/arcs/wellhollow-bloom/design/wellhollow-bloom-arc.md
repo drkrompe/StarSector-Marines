@@ -93,9 +93,13 @@ laws).
   with the Warden's line on what changed (a chapter won) or what still stands
   (a loss).
 
-No narration audio, location illustration or Warden portrait exists yet; the
-briefing falls back to the speaker's name and role. Those are open owner picks
-(*Open*).
+- **The art.** The Warden has a portrait
+  (`art-source/portraits/hollis-maro.*`), and three location banners carry the
+  arc's places (`StoryScene`): the colony floor for chapter 1, the rim cordon
+  for chapters 2 and 3, the burning heart for chapters 4 and 5
+  (`art-source/story-scenes/wellhollow-*`, Codex ImageGen).
+  `createSnapshots -Psnapshot=wellhollow-art` shows them on the Warden's board
+  and the results screen. Briefing narration does not exist yet.
 
 ## Relation to the generic per-world arc
 
@@ -132,7 +136,8 @@ recommended option of each.
    fee; a flat repeatable rate.
 3. **When the arc opens.** Recommended: Broken Supply Route closed.
    Alternatives: from the campaign's start at Asharu; after A Cold Account.
-4. **Art and voice.** A Warden portrait, a Wellhollow location illustration
-   per chapter and narration for the briefings (Codex ImageGen for the art).
+4. **Art and voice.** Recommended and built: the Warden portrait and three
+   location banners now, narration later. The art itself is on the picks page
+   for review.
 
 `stories.md` in this folder is the arc's open-work board.

@@ -8,7 +8,7 @@
 	"marineOps": {
     "wellhollowContactName": "Hollis Maro",
     "wellhollowSpeakerWarden": "Hollis Maro",
-    "wellhollowRoleCompact": "WARDEN / WELLHOLLOW COMPACT",
+    "wellhollowRoleCompact": "WELLHOLLOW COMPACT",
     "wellhollowChapterColonyBreach": "The Wellhollow",
     "wellhollowChapterCordonLine": "Hold the Rim",
     "wellhollowChapterCordonRoad": "Low Sump",
@@ -77,7 +77,8 @@
     "wellhollowDebriefWonTheBurn": "The channel root is down. Now I have columns to spare. Come back and we finish it.",
     "wellhollowDebriefWonBroadFront": "The heart is down. The Wellhollow can be taken back, field by field. The Compact won't forget the company.",
     "wellhollowDebriefWonReplay": "That ground is walked again. Thank you, Castle.",
-    "wellhollowResultProgress": "The Wellhollow Bloom: {0} of 5 chapters won.",
+    "wellhollowResultWon": "The Wellhollow Bloom: chapter {0} of 5 won.",
+    "wellhollowResultOpen": "The Wellhollow Bloom: chapter {0} of 5.",
     "wellhollowDebriefLost": "It still stands. Get your people seen to. The work will be here.",
 
     "missileAaTestTitle": "Missile AA / Fighter Range",

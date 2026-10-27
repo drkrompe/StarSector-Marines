@@ -132,6 +132,7 @@ public final class MissionDialogue {
         return switch (identity(speaker)) {
             case "castle" -> "graphics/portraits/castle.png";
             case "vale" -> "graphics/portraits/tamsin-vale.png";
+            case "warden" -> "graphics/portraits/hollis-maro.png";
             case "mara" -> OpeningBroker.PORTRAIT;
             default -> "";
         };
@@ -153,6 +154,7 @@ public final class MissionDialogue {
         return Strings.get(switch (identity(speaker)) {
             case "castle" -> "briefingRoleCompanyOperations";
             case "vale" -> "briefingRoleBasinReclamation";
+            case "warden" -> "wellhollowRoleCompact";
             case "mara", "iona" -> "briefingRoleWayline";
             default -> "briefingMissionContact";
         });
@@ -166,6 +168,7 @@ public final class MissionDialogue {
             case "rill", "dr. rill", "doctor rill", "@dialoguespeakerdrrill" -> "rill";
             case "iona", "iona serr", "@dialoguespeakerionaserr" -> "iona";
             case "@dialoguespeakercastle" -> "castle";
+            case "@wellhollowspeakerwarden" -> "warden";
             default -> name;
         };
     }
@@ -181,6 +184,7 @@ public final class MissionDialogue {
         String color = switch (identity) {
             case "castle" -> "#e4bd78";
             case "vale" -> "#9fd2a5";
+            case "warden" -> "#d8c48a";
             case "mara" -> "#c8b2e8";
             case "rill" -> "#e7a79d";
             case "iona" -> "#b9cb8b";

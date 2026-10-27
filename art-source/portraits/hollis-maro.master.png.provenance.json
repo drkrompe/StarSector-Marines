@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17fc4-1261-7ad0-aae4-f500e873051d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17fc4-1261-7ad0-aae4-f500e873051d\\exec-447754e1-5fd6-4c7e-833a-76419a7ee369.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\portraits\\hollis-maro.master.png",
+    "sha256": "f6cc30b9707cbd10388aa2c8c946d1c8ab41eb9ee52479e6aac9962afc9decf9",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\portraits\\hollis-maro.prompt.txt",
+  "promptSha256": "0351b405a69c30e37c9cc91fa3b3b1998725063b622d5901100b800aaaad71ae",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Style only: brushwork, light, palette density, crop and framing; not the face, hair or clothes\n\nUse case: stylized-concept\nAsset type: Square in-game dialogue portrait for Hollis Maro, warden of the Wellhollow Compact, the irrigators' water compact and its militia on the desert world Asharu, in a worn low-tech space opera. Runtime 256 x 256; readable at 64 and 128 pixels.\nReference roles: reference 1 (Castle's portrait) is STYLE ONLY: brushwork, light, palette density, crop and framing; do not copy the face, hair or clothes.\nPrimary request: Painted head-and-shoulders character portrait of a person of about fifty, lean and wind-dried, a farmer who has been running a militia for three weeks without sleep. Sun-darkened olive-tan skin, fine dust in the creases, deep squint lines, grey-green eyes, a short salt-and-pepper beard kept close, dark hair cut short under a pushed-back sand-coloured field cap. Slight three-quarter pose, eyes level on the viewer, closed mouth, tired and steady: counting people, not making speeches. A faded khaki irrigation-crew work jacket with a stand collar, an old militia webbing strap across one shoulder, a dust scarf loose round the neck, a small brass water-compact tag on a cord. No visible weapon.\nStyle: Detailed hand-painted 1990s science-fiction RPG portrait, visible brush texture and sharply readable facial planes, natural human proportions, restrained realism rather than photographic gloss; match the visual density and finish of reference 1. Large face, crop shoulders at the bottom, leave small clearance above the cap. Warm late-afternoon desert key light from the front left, soft neutral fill, almost black muted background without discernible objects. Muted khaki, ochre, sage green, charcoal.\nConstraints: Original character, no resemblance to an actor or existing game character. No text, no insignia, no frame, no captions, no holograms, no blue neon, no beauty retouching, no exaggerated scowl, no weapons, no additional people. Single portrait filling a square frame.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\portraits\\castle\\castle-master.png",
+      "sha256": "136dc31a89e0b8143f86e9c0ac80b49ba8230badb1c74d97d7bc6d39104bd37c",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGB",
+      "role": "Style only: brushwork, light, palette density, crop and framing; not the face, hair or clothes"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one portrait, using the reference only for its painted style, lighting, palette, and framing.\n"
+  ],
+  "usage": {
+    "input_tokens": 41526,
+    "cached_input_tokens": 33152,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 517,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 38.1
+}

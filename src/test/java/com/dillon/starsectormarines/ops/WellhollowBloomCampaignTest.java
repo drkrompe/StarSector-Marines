@@ -13,6 +13,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class WellhollowBloomCampaignTest {
@@ -53,13 +54,21 @@ class WellhollowBloomCampaignTest {
         assertFalse(MissionLaunch.isCivilianRescueBattle(line));
     }
 
+    @Test void theWardenSpeaksWithTheirOwnRoleAndPortrait() {
+        var turn = WellhollowBloomCampaign.briefing(new WellhollowBloomProgress(), Chapter.COLONY_BREACH, false).get(0);
+        assertNotEquals(Strings.get("briefingMissionContact"), MissionDialogue.speakerRole(turn.speaker()));
+        assertFalse(MissionDialogue.speakerPortrait(turn.speaker()).isEmpty());
+    }
+
     @Test void everyBriefingAndDebriefLineResolvesInTheShippedCatalog() {
         var complete = wonThrough(Chapter.values().length);
         for (Chapter chapter : Chapter.values()) {
             for (boolean replay : new boolean[]{false, true}) {
                 var p = replay ? complete : wonThrough(chapter.ordinal());
-                for (var turn : WellhollowBloomCampaign.briefing(p, chapter, replay))
+                for (var turn : WellhollowBloomCampaign.briefing(p, chapter, replay)) {
                     assertFalse(Strings.resolve(turn.text()).isBlank());
+                    assertFalse(Strings.resolve(turn.speaker()).isBlank());
+                }
                 assertFalse(WellhollowBloomCampaign.offer(p, chapter, replay, "Asharu").requirements.isBlank());
             }
         }

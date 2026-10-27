@@ -34,7 +34,7 @@ import java.util.List;
 public final class WellhollowBloomCampaign {
     /** The Warden's synthetic client: her board carries only this arc's work. */
     public static final String CLIENT_FACTION_ID = "marines_wellhollow_compact_client";
-    static final String SPEAKER = "@wellhollowSpeakerWarden / @wellhollowRoleCompact";
+    static final String SPEAKER = "@wellhollowSpeakerWarden";
     private static final String CASTLE = "@dialogueSpeakerCastle";
     private static final long SEED_BASE = 16100L;
 
@@ -203,6 +203,13 @@ public final class WellhollowBloomCampaign {
         var p = script == null ? null : script.state().wellhollowBloom;
         if (p == null || o == null || o.missionSource != MissionSource.STORY || !owns(o.missionId)) return -1;
         return p.settle(o.missionId, o.victory, o.payoutEarned);
+    }
+
+    /** Where this result leaves the arc, read from the outcome alone: the chapter, and whether it is won. */
+    static String progress(MissionOutcome o) {
+        Chapter chapter = WellhollowBloomProgress.chapterOf(o.missionId);
+        return Strings.format(o.victory && !WellhollowBloomProgress.replay(o.missionId)
+                ? "wellhollowResultWon" : "wellhollowResultOpen", chapter.number());
     }
 
     /** Results-screen line from the Warden: what changed, or what still stands. */
