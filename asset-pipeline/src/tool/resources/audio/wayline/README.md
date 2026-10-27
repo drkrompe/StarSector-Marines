@@ -1,10 +1,11 @@
 # Zoey Venn narration
 
-Voice: Sarah - Mature, Reassuring, Confident (`EXAVITQu4vr4xnSDxMaL`), Eleven v4.
+Voice: `mJ5wtH88WGlTud22bihm` (ElevenLabs shared library), Eleven v4.
 
-Zoey speaks with a Scottish accent (owner, 2026-10-27): every Zoey synthesis text
-opens with a `[Scottish accent]` tag ahead of its direction tag. Eleven v4 carries
-English-language accents this way; an Eastern European tag had no audible effect.
+Zoey has no accent tag: on v4 a Scottish tag made some takes break down, and an
+Eastern European tag had no audible effect (owner, 2026-10-27). Each Zoey line
+carries one direction tag matched to its passage, and her clips use the `comms`
+treatment so she reads as a voice on the line rather than in the room.
 `python tools/generate_wayline_narration.py --replace` (dry run) lists every
 take whose text no longer matches its recording.
 The runtime catalog at `mod/data/marines/wayline_narration.json` owns each
