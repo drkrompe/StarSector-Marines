@@ -1561,7 +1561,11 @@ Acceptance is the `hover-line` scene:
 
 **Ground dust** is simulation presentation, like a wreck's smoke (`VehicleDustEmitter`).
 A wheeled or tracked hull moving over loose ground throws soft puffs off its trailing
-corners, and raises nothing on pavement. A hover skirt blows a low ring of haze, and
+wheels or track ends, back down their own lines, and raises nothing on pavement. Those
+lines are the hull's **running gear** (`RunningGear`), measured off its sprite: the
+centre line of each track or wheel row and where it touches down fore and aft. They are
+not the footprint, which leaves out jutting wheels and a dozer's blade, so dust and a
+lost drive's smoke come off the gear the paint shows. A hover skirt blows a low ring of haze, and
 spray over water, whether or not it moves. The puffs are queued as events that every host
 draws through its particle system, and they draw nothing from the simulation's random
 stream.
