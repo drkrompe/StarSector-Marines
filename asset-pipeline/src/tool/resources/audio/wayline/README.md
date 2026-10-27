@@ -1,11 +1,10 @@
 # Zoey Venn narration
 
-Voice: Mora - Gritty and Enigmatic (`YHcCpa6SBWnKDaCPZJQR`), Eleven v4.
+Voice: Sarah - Mature, Reassuring, Confident (`EXAVITQu4vr4xnSDxMaL`), Eleven v4.
 
-Zoey Venn needs a new voice (owner, 2026-10-27): the Mora takes were recorded as
-Mara Venn and every Zoey line is re-recorded once a voice is chosen. The 2026-10-27
-script review also changed the text of lines in other voices; until they are
-re-recorded the old takes play under the new subtitles.
+Zoey speaks with a Scottish accent (owner, 2026-10-27): every Zoey synthesis text
+opens with a `[Scottish accent]` tag ahead of its direction tag. Eleven v4 carries
+English-language accents this way; an Eastern European tag had no audible effect.
 `python tools/generate_wayline_narration.py --replace` (dry run) lists every
 take whose text no longer matches its recording.
 The runtime catalog at `mod/data/marines/wayline_narration.json` owns each
