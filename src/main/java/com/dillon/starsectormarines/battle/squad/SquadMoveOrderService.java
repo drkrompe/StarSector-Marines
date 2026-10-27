@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 /** Battle-local mailbox for infantry orders and shared infantry/Mech area defence. */
@@ -124,9 +125,12 @@ public final class SquadMoveOrderService {
 
     private final List<PendingOrder> pending = new ArrayList<>();
     private final Map<Integer, ActiveOrder> active = new ConcurrentHashMap<>();
+    /** Squads whose standing order the player told to run ({@link #toggleRun}). */
+    private final Set<Integer> running = ConcurrentHashMap.newKeySet();
 
     /** Queues a squad-scoped world request for command-phase contextual resolution. */
     public void requestMove(int squadId, int cellX, int cellY) {
+        running.remove(squadId);
         pending.add(new PendingOrder(squadId, cellX, cellY,
                 PendingOrder.Kind.MOVE));
     }
@@ -138,6 +142,7 @@ public final class SquadMoveOrderService {
 
     /** As above, with {@code machines} attached mechs standing within the line among the marines. */
     public void requestLine(int squadId, int x0, int y0, int x1, int y1, int machines) {
+        running.remove(squadId);
         PendingOrder order = new PendingOrder(squadId, x0, y0, PendingOrder.Kind.LINE, x1, y1);
         order.machines = machines;
         pending.add(order);
@@ -145,12 +150,29 @@ public final class SquadMoveOrderService {
 
     /** Queues placement of a persistent 40-cell-diameter defense area. */
     public void requestDefendArea(int squadId, int cellX, int cellY) {
+        running.remove(squadId);
         pending.add(new PendingOrder(squadId, cellX, cellY,
                 PendingOrder.Kind.DEFEND_AREA));
     }
 
     public ActiveOrder activeOrder(int squadId) {
         return active.get(squadId);
+    }
+
+    /**
+     * Toggles the squad's standing order between walking and running, and says whether it now runs.
+     * Run is a pace on an order already under way, so a squad with none stays walking; a fresh
+     * order starts at a walk, and the run ends with the order it was given to.
+     */
+    public boolean toggleRun(int squadId) {
+        if (!active.containsKey(squadId) || running.remove(squadId)) return false;
+        running.add(squadId);
+        return true;
+    }
+
+    /** Whether the squad's standing order is run rather than walked. */
+    public boolean isRunning(int squadId) {
+        return running.contains(squadId) && active.containsKey(squadId);
     }
 
     List<PendingOrder> drainPending() {
@@ -165,7 +187,7 @@ public final class SquadMoveOrderService {
     }
 
     void release(int squadId, ActiveOrder order) {
-        active.remove(squadId, order);
+        if (active.remove(squadId, order)) running.remove(squadId);
     }
 
     Iterable<Map.Entry<Integer, ActiveOrder>> activeEntries() {

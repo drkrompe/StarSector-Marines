@@ -64,7 +64,7 @@ public final class DirectControlPanel implements HudPanel {
         float[] origin = DirectControlFireMarks.fireOrigin(sim);
         float fireX = origin != null ? aimX - camera.cellToScreenX(origin[0]) : 0f;
         float fireY = origin != null ? aimY - camera.cellToScreenY(origin[1]) : 0f;
-        for (var stroke : DirectControlReticle.strokes(DirectControlFireMarks.read(sim),
+        for (var stroke : DirectControlReticle.strokes(DirectControlFireMarks.read(sim), DirectControlLoad.read(sim),
                 spread.leftCells() * cellPx, spread.rightCells() * cellPx, aimX, aimY, fireX, fireY, CONTROLLED)) {
             HudDraw.stroke(stroke, alpha);
         }

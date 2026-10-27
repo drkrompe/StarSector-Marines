@@ -152,12 +152,13 @@ public final class FittedBoat implements Airframe, AirHandling {
     }
 
     /**
-     * Whether this boat carries a cradle. Its seats stay: it ferries squads like
-     * any boat and can instead take one machine of its lift class on a sortie.
+     * Whether this boat lifts a machine, by a cradle or as her pattern was built
+     * (the Hermes lifts Light). Her seats stay: she ferries squads like any boat
+     * and can instead take one machine of her lift class on a sortie.
      * Deboarding stays one kind per sortie.
      */
     public boolean cradled() {
-        return lift.cradle();
+        return liftRating() != LiftRating.NONE;
     }
 
     /**

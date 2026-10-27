@@ -31,6 +31,7 @@ class BoatWorkshopTest {
 
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             BoatFitting top = BoatFitting.catalog(slot).get(BoatFitting.catalog(slot).size() - 1);
+            if (top.standard()) continue;
             workshop.fabricatePart(top.id());
             assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), top.id()).status(), top.id());
             workshop.strip(boat.id(), slot);

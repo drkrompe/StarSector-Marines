@@ -1848,19 +1848,22 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 editorMarkup.styles().forEach(editorDocument::addStyleSheet);
                 // Installed with the document, as the screen does: the cards wear its classes.
                 var sheets = new SpecSheetBinder(editorDocument, SpecSheetLayer.install(editorDocument));
-                LoadoutInspection.bindPortraits(editorDocument, editorMarkup, editor.inspection()::get,
+                LoadoutInspection.bindCanvases(editorDocument, editorMarkup, editor.inspection()::get,
                         new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
                 MarineOpsPageNav.refresh(editorMarkup, MarineOpsPageNav.Page.ARMORY, MarineOpsPageNav.ANY_SHIP,
                         List.of(CompanyNotices.Notice.FIRST_REFIT));
                 frames.add(new SnapshotArtifact("03-existing-equipment-editor.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 editor.showArmorPickerAction().run();
                 editorMarkup.flush();
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.armorDoctrineTiles()::get);
                 frames.add(new SnapshotArtifact("03a-starter-tactics.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 roster.firstRefit().claim(roster, FirstRefit.Path.FORWARD_SCREEN);
                 editor.refresh();
                 editor.showWeaponPickerAction().run();
                 editor.weaponDoctrineTiles().get().get(0).select().run();
                 editorMarkup.flush();
+                // As the screen does after each reconciliation: the weapon cards' bricks get painters.
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.weaponDoctrineTiles()::get);
                 editorDocument.advance(0.3f); // let the selection's border transition settle
                 frames.add(new SnapshotArtifact("03b-earned-weapon-comparison.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 collectArmorTemplates(roster);
@@ -1868,6 +1871,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 editor.showArmorPickerAction().run();
                 editor.armorDoctrineTiles().get().get(0).select().run();
                 editorMarkup.flush();
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.armorDoctrineTiles()::get);
                 editorDocument.advance(0.3f);
                 frames.add(new SnapshotArtifact("03c-earned-armor-comparison.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 // Production pointer targets remain visible at the player's review scale.
@@ -1885,6 +1889,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
                         members.get(11), MarineSoldierStatus.KIA), 100f, 2f);
                 editor.refresh(); editorMarkup.flush();
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.armorDoctrineTiles()::get);
                 frames.add(new SnapshotArtifact("03d-wounded-special-removal.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 clickBarracksFlow(editorDocument, editorMarkup, "loadout-billet:11");
                 frames.add(new SnapshotArtifact("03e-vacant-billet-plan.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
@@ -1899,6 +1904,20 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 frames.add(new SnapshotArtifact("03f-equipment-spec-sheet.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 frames.addAll(renderWeaponSceneSheet(context, renderer, editorDocument, editorMarkup, sheets));
                 sheets.clear();
+                // Every weapon card known, one issuing secondaries chosen: the cards' and the
+                // marines' kit bricks in each colour, a launcher and a rifle on their mounts.
+                for (var doctrine : SquadEquipmentDoctrines.weaponDoctrines()) {
+                    roster.armory().learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.WEAPON, doctrine.id()));
+                }
+                editor.refresh();
+                editor.showWeaponPickerAction().run();
+                editor.weaponDoctrineTiles().get().stream()
+                        .filter(tile -> tile.id().equals("weapon-doctrine:" + SquadEquipmentDoctrines.FIRE_SUPPORT_WEAPONS))
+                        .findFirst().orElseThrow().select().run();
+                editorMarkup.flush();
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.weaponDoctrineTiles()::get);
+                editorDocument.advance(0.3f);
+                frames.add(new SnapshotArtifact("03j-weapon-card-secondaries.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 clickBarracksFlow(editorDocument, editorMarkup, "page-nav-return");
                 if (routes.get(routes.size() - 1) != ScreenId.BARRACKS) throw new AssertionError("Editor return missed Barracks");
             }
@@ -2512,7 +2531,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             document.theme(MarineOpsThemes.standard());
             // As the screen does: the cards wear the spec sheet's classes, and each marine has a portrait.
             SpecSheetLayer.install(document);
-            if (fireteam) LoadoutInspection.bindPortraits(document, instance, viewModel.inspection()::get, armoryPreview.assets());
+            if (fireteam) LoadoutInspection.bindCanvases(document, instance, viewModel.inspection()::get, armoryPreview.assets());
             if (equipmentTooltip) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));

@@ -120,7 +120,10 @@ number: a strip under the weapon row (rifle cartridges, shotgun shells, or a
 belt in blocks of one burst, so a long belt still reads at a glance), spent
 rounds hollow and a reload pressing them back in. The cursor carries no ammo
 mark. A primary without a magazine shows no counter. Machines draw their loads
-the same way, by what they throw (`Ordnance`): a missile mount is a rack of
+the same way, by what they throw (`Ordnance`, read off how a weapon is drawn: a
+`missile_` sprite, a contrail or a boost is a missile, a beam, laser or authored
+`render.energy` is energy, anything else ballistic; the Armory's kit bricks take
+their colour from the same reading): a missile mount is a rack of
 missiles in salvos of one trigger pull, a vehicle's belt is cartridges in
 bursts, and an energy weapon counts nothing but shows charge cells, one per
 bolt of its burst (five for a single shot), emptying through the burst,
@@ -203,8 +206,20 @@ grey is two wide dashes. The ticks are also partly transparent (owner,
 falling-off tick carries less ink), and grey lowest at 60%. LINKED, or any
 pick of several mounts, shows the best mark among them and is grey only when
 none would fire. Cooldown, reload, burst and flux never change a mark: those
-are clocks, and the panel's ammunition strips own them, so a Marine's empty
-magazine is a reload rather than grey. A Marine's left mark is its pick: the
+are clocks, so a Marine's empty magazine is a reload rather than grey. A
+Marine's left tick carries its trigger's **load** beside the mark instead
+(owner, 2026-10-27, after playtesters could not tell when a gun would stop or
+start firing): over a cycle or reload the tick is lit only from the dot out to
+the share of the clock that has run, faint beyond, so it grows back to whole as
+the gun comes ready; a special's clock is its readying or cooldown. A
+magazine-fed primary also draws a **magazine arc** round the dot on the left
+tick's side, one segment a round. Rounds go faint from the end nearest the line
+of fire as they are spent, and a reload refills them from that end, paler than
+loaded rounds until the reload ends. A magazine of more than twenty rounds is
+one bar split at the same share. The load speaks in brightness only, so hue
+keeps meaning range; a grey tick shows no clock, and a weapon with no magazine,
+such as the pulse rifle, shows its clock alone. Vehicles and mechs show no load
+yet; their clocks stay on the panel. A Marine's left mark is its pick: the
 primary, or the special it is on, read at that special's range and accuracy and
 grey once the special is empty; the right mark is the right-button pick: a throw,
 smoke or a hand grenade (red past its throw reach, where it lands short; grey with
@@ -352,8 +367,10 @@ blocking input over chrome does not count as releasing a held Shift key.
 Initial tuning is a 1.6 speed multiplier, six seconds of full sprint, a one-second
 recovery delay, four seconds for a full refill, and a quarter-bar reserve after
 exhaustion. Those values are balance choices; stamina ownership and terrain
-authority are standing laws. This resource is specific to manual sprint and
-does not change autonomous movement or campaign condition.
+authority are standing laws. The same resource pays for a squad's run order
+(`mission-command-nouns.md`, Run): a Marine's stamina is one pool whether the
+player's Shift or their squad's order spends it, and the controlled body is
+boosted only by Shift. It does not change campaign condition.
 
 The session stores intent, not a second movement physics model. Existing
 collision and reachability remain authoritative. Losing focus or releasing

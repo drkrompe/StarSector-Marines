@@ -17,7 +17,22 @@ public record SpecialEquipmentPresentationDef(
         LayerClips layerClips,
         Preview preview,
         HandsetLayer handsetLayer,
-        EquipmentLayerDef packedLayer) implements Serializable {
+        EquipmentLayerDef packedLayer,
+        Float armoryIconLie) implements Serializable {
+
+    /**
+     * Presentation whose armoury art stands as drawn. {@code armoryIconLie} is the angle, in
+     * degrees above horizontal, at which long art lies: a kit brick turns the art by it so a
+     * launcher lies level along its mount (KitBrickCanvas), and null leaves compact art as is.
+     */
+    public SpecialEquipmentPresentationDef(String armoryIconPath,
+                                           SpecialUsePose usePose, EquipmentLayerDef carrierLayer,
+                                           Thrown thrown, Field field, Deployed deployed,
+                                           LayerClips layerClips, Preview preview,
+                                           HandsetLayer handsetLayer, EquipmentLayerDef packedLayer) {
+        this(armoryIconPath, usePose, carrierLayer, thrown, field,
+                deployed, layerClips, preview, handsetLayer, packedLayer, null);
+    }
 
     /** Presentation without a hand-held layer, as every item but a radio authors it. */
     public SpecialEquipmentPresentationDef(String armoryIconPath,
@@ -173,9 +188,11 @@ public record SpecialEquipmentPresentationDef(
             throw new JSONException("Special equipment '" + equipmentId
                     + "' authors a packed layer without the carrier layer it stands in for");
         }
+        Float lie = json.has("armoryIconLie") && !json.isNull("armoryIconLie")
+                ? (float) json.getDouble("armoryIconLie") : null;
         return new SpecialEquipmentPresentationDef(
                 armoryIcon, usePose, carrier, thrown, field,
-                deployed, layerClips, preview, handset, packed);
+                deployed, layerClips, preview, handset, packed, lie);
     }
 
     private static HandsetLayer parseHandset(JSONObject json, String equipmentId)

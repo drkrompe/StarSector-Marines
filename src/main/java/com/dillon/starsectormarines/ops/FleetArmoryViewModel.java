@@ -33,6 +33,7 @@ import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SoldierCareer;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
+import com.dillon.starsectormarines.ops.battleview.KitBrick;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.SquadArmorPlan;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
@@ -1031,10 +1032,8 @@ public final class FleetArmoryViewModel {
      * sentence it always did — {@link #joinSpans} rebuilds it — but a reader
      * can only ask about a name the document knows is a name.
      *
-     * <p>The specialty entry is a count of items that need not be the same
-     * item. It carries a sheet when the loadout names exactly one and none at
-     * all when it mixes them, because there is no single thing "2 special"
-     * would then be describing.
+     * <p>Each secondary is an entry of its own after the primaries, and every
+     * entry stands on its kit brick, the colour of what it throws.
      */
     private static List<DoctrineSpan> weaponDistributionSpans(
             String tileId, SquadWeaponDoctrine doctrine) {
@@ -1049,25 +1048,23 @@ public final class FleetArmoryViewModel {
                 grades.merge(issue.grade(), 1, Integer::sum);
             }
             if (count == 0) continue;
-            spans.add(span(tileId, "distribution", spans.size(),
-                    Strings.format("squadDoctrineCount", count, weapon.modelName()), weaponSheet(weapon, grades),
-                    EquipmentIcons.primary(weapon, quotedGrade(grades))));
+            String icon = EquipmentIcons.primary(weapon, quotedGrade(grades));
+            spans.add(new DoctrineSpan(spanId(tileId, "distribution", spans.size()),
+                    Strings.format("squadDoctrineCount", count, weapon.modelName()), false,
+                    weaponSheet(weapon, grades), icon, KitBrick.weapon(weapon, icon, EquipmentIcons.PRIMARY_LIE), count));
         }
-        int specials = 0;
-        String only = null;
-        boolean mixed = false;
+        // Each secondary is a piece of its own, on its own brick: a card issuing a launcher
+        // and a radio shows a missile brick and a utility one, not "2 special".
+        Map<String, Integer> secondaries = new LinkedHashMap<>();
         for (SquadWeaponIssue issue : doctrine.issues()) {
-            String specialId = issue.specialEquipmentId();
-            if (specialId == null) continue;
-            specials++;
-            if (only == null) only = specialId;
-            else if (!only.equals(specialId)) mixed = true;
+            if (issue.specialEquipmentId() != null) secondaries.merge(issue.specialEquipmentId(), 1, Integer::sum);
         }
-        if (specials > 0) {
-            SpecialEquipmentDef def = mixed ? null : SpecialEquipmentRegistry.get(only);
-            spans.add(span(tileId, "distribution", spans.size(),
-                    Strings.format("openingFleetArmorySpecial", specials), def == null ? null : SpecSheets.special(def),
-                    def == null ? "graphics/ui/equipment/firepower.svg" : def.armoryIconPath()));
+        for (Map.Entry<String, Integer> secondary : secondaries.entrySet()) {
+            SpecialEquipmentDef def = SpecialEquipmentRegistry.get(secondary.getKey());
+            if (def == null) continue;
+            spans.add(new DoctrineSpan(spanId(tileId, "distribution", spans.size()),
+                    Strings.format("squadDoctrineCount", secondary.getValue(), def.displayName()), false,
+                    SpecSheets.special(def), def.armoryIconPath(), KitBrick.secondary(def), secondary.getValue()));
         }
         return last(spans);
     }
@@ -1204,8 +1201,9 @@ public final class FleetArmoryViewModel {
             String family = entry.getKey();
             SpecSheet sheet = shared.containsKey(family)
                     ? null : SpecSheets.integralSystem(carriers.get(family));
-            spans.add(span(tileId, "carries", spans.size(),
-                    Strings.format("squadDoctrineCount", entry.getValue(), family), sheet));
+            spans.add(new DoctrineSpan(spanId(tileId, "carries", spans.size()),
+                    Strings.format("squadDoctrineCount", entry.getValue(), family), false, sheet, "",
+                    KitBrick.system(carriers.get(family)), entry.getValue()));
         }
         return last(spans);
     }
@@ -1219,20 +1217,25 @@ public final class FleetArmoryViewModel {
                 if (issueId.equals(pattern.id())) count++;
             }
             if (count == 0) continue;
-            spans.add(span(tileId, "distribution", spans.size(),
-                    Strings.format("squadDoctrineCount", count, pattern.displayName()), SpecSheets.armor(pattern), pattern.iconPath()));
+            spans.add(new DoctrineSpan(spanId(tileId, "distribution", spans.size()),
+                    Strings.format("squadDoctrineCount", count, pattern.displayName()), false,
+                    SpecSheets.armor(pattern), pattern.iconPath(), KitBrick.armor(pattern), count));
         }
         return last(spans);
     }
 
     private static DoctrineSpan span(String tileId, String line, int index,
                                      String text, SpecSheet sheet) {
-        return new DoctrineSpan(tileId + ":" + line + "-span:" + index, text, false, sheet, "");
+        return new DoctrineSpan(spanId(tileId, line, index), text, false, sheet, "");
     }
 
     private static DoctrineSpan span(String tileId, String line, int index,
                                      String text, SpecSheet sheet, String icon) {
-        return new DoctrineSpan(tileId + ":" + line + "-span:" + index, text, false, sheet, icon);
+        return new DoctrineSpan(spanId(tileId, line, index), text, false, sheet, icon);
+    }
+
+    private static String spanId(String tileId, String line, int index) {
+        return tileId + ":" + line + "-span:" + index;
     }
 
     /**
@@ -1244,7 +1247,8 @@ public final class FleetArmoryViewModel {
         if (spans.isEmpty()) return List.of();
         DoctrineSpan closing = spans.get(spans.size() - 1);
         spans.set(spans.size() - 1,
-                new DoctrineSpan(closing.id(), closing.text(), true, closing.sheet(), closing.icon()));
+                new DoctrineSpan(closing.id(), closing.text(), true, closing.sheet(), closing.icon(),
+                        closing.brick(), closing.count()));
         return List.copyOf(spans);
     }
 
@@ -1560,6 +1564,32 @@ public final class FleetArmoryViewModel {
             return new SpecSheet(name, metadata, factionLogo, accent(), List.of(), List.of(description));
         }
 
+        /**
+         * Whether the card lists what it issues as kit bricks: every card does, a weapon card its
+         * primaries and secondaries, an Equipment card its suits and the systems they carry, each
+         * entry a piece on its brick. A compact card stops at its seats and lists nothing.
+         */
+        boolean issuesAsBricks() {
+            if (compact || distributionSpans.isEmpty()) return false;
+            for (DoctrineSpan span : brickSpans()) {
+                if (span.brick() == null) return false;
+            }
+            return true;
+        }
+
+        /** Every entry the card's bricks show: what it issues, then what that carries. */
+        List<DoctrineSpan> brickSpans() {
+            List<DoctrineSpan> spans = new ArrayList<>(distributionSpans);
+            spans.addAll(carriesSpans);
+            return spans;
+        }
+
+        /** The brick rows' height under their 8px of air: each piece is as tall as its 1x2 brick. */
+        private int bricksHeight() {
+            int rows = (brickSpans().size() + 3) / 4;
+            return 8 + rows * 44 + Math.max(0, rows - 1) * 6;
+        }
+
         /** A card whose seats carry nothing beside their weapon or suit prints no carries line. */
         private boolean carriesShown() {
             return !carriesSpans.isEmpty() || (carries != null && !carries.isBlank());
@@ -1753,19 +1783,26 @@ public final class FleetArmoryViewModel {
                 case "distributionLine" -> Strings.format("squadDoctrineIssuedLine", distribution);
                 case "carriesLine" -> Strings.format("squadDoctrineCarriesLine", carries);
                 case "distribution" -> distribution;
-                case "distributionSpans" -> distributionSpans;
+                // Bricks or spans, never both: each entry's element carries the entry's id, which
+                // its hover sheet is bound to.
+                case "distributionSpans" -> issuesAsBricks() ? List.of() : distributionSpans;
+                case "brickSpans" -> issuesAsBricks() ? brickSpans() : List.of();
+                case "bricksId" -> distributionId + "-bricks";
+                case "bricksClasses" -> issuesAsBricks() ? "loadout-card-bricks" : "doctrine-line-hidden";
+                // A grid is as tall as it is told to be: four pieces a row (.loadout-card-brick's width).
+                case "bricksStyle" -> "height: " + bricksHeight() + "px;";
                 // A line is drawn as spans or as the joined sentence, never as
                 // both: the fallback is what a loadout issuing nothing to list
                 // still has to say.
-                case "distributionClasses" -> distributionSpans.isEmpty() || !seats.isEmpty()
+                case "distributionClasses" -> !issuesAsBricks() && (distributionSpans.isEmpty() || !seats.isEmpty())
                         ? "doctrine-distribution label" : "doctrine-line-hidden";
                 case "distributionRowClasses" -> distributionSpans.isEmpty() || !seats.isEmpty()
                         ? "doctrine-line-hidden" : "doctrine-span-row doctrine-distribution-row";
                 case "carries" -> carries;
-                case "carriesSpans" -> carriesSpans;
-                case "carriesClasses" -> carriesSpans.isEmpty() && carriesShown()
+                case "carriesSpans" -> issuesAsBricks() ? List.of() : carriesSpans;
+                case "carriesClasses" -> !issuesAsBricks() && carriesSpans.isEmpty() && carriesShown()
                         ? "doctrine-carries label" : "doctrine-line-hidden";
-                case "carriesRowClasses" -> carriesSpans.isEmpty()
+                case "carriesRowClasses" -> issuesAsBricks() || carriesSpans.isEmpty()
                         ? "doctrine-line-hidden" : "doctrine-span-row doctrine-carries-row";
                 case "select" -> select;
                 default -> throw new IllegalArgumentException("Unknown doctrine-tile property");
@@ -1782,12 +1819,21 @@ public final class FleetArmoryViewModel {
      * specialty count over mixed items, a capability family filled from two
      * patterns — and a binding on it then opens nothing.
      */
-    public record DoctrineSpan(String id, String text, boolean closing, SpecSheet sheet, String icon)
+    public record DoctrineSpan(String id, String text, boolean closing, SpecSheet sheet, String icon,
+                               KitBrick brick, int count)
             implements MarkupPropertySource {
+        /** An entry that is no single piece of kit: a pattern, a capability. */
+        public DoctrineSpan(String id, String text, boolean closing, SpecSheet sheet, String icon) {
+            this(id, text, closing, sheet, icon, null, 0);
+        }
+
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
                 case "id" -> id;
+                case "brickId" -> id + ":brick";
+                // A brick is named by its hover sheet, so beside it stands only how many.
+                case "count" -> Strings.format("squadDoctrineBrickCount", count);
                 case "label" -> closing ? text : text + "  ·";
                 case "icon" -> icon;
                 case "iconId" -> id + ":icon";

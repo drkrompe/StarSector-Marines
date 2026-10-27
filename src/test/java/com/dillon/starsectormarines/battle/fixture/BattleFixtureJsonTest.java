@@ -232,7 +232,6 @@ class BattleFixtureJsonTest {
         FittedBoat armoured = new FittedBoat(ShuttleType.AEROSHUTTLE, Map.of(
                 BoatFittingSlot.PLATING, BoatFitting.ARMOURED_PLATING,
                 BoatFittingSlot.DRIVE, BoatFitting.TUNED_DRIVE,
-                BoatFittingSlot.CABIN, BoatFitting.TWO_TEAM_CABIN,
                 BoatFittingSlot.EMITTER, BoatFitting.WIDE_EMITTER,
                 BoatFittingSlot.POWER, BoatFitting.CAPACITOR_BANK), "boat_04",
                 new String[]{BoatGun.ARBALEST.structureId()});

@@ -889,7 +889,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
     }
 
     /** The preview Marine (74% health, armor 35 of 60, as its status panel reads) with a leg wound. */
-    private static BattleMarineDollPlate marinePlate(Path modRoot, boolean showKit) {
+    static BattleMarineDollPlate marinePlate(Path modRoot, boolean showKit) {
         var plate = new BattleMarineDollPlate(path -> Files.readString(modRoot.resolve(path)),
                 ModStrings.fromDisk(modRoot), showKit);
         plate.update(marine(modRoot, false, 0, 1, 35f / 60f, .74f));

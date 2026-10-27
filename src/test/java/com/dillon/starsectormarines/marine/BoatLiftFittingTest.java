@@ -23,6 +23,7 @@ class BoatLiftFittingTest {
     @Test
     void aHoldGoesIntoAnyBoatThatDoesNotAlreadyLiftAsMuch() {
         assertTrue(BoatFitting.HEAVY_LIFT_FRAME.supports(ShuttleType.HERMES));
+        assertFalse(BoatFitting.LIFT_CRADLE.supports(ShuttleType.HERMES), "a Hermes lifts Light as built");
         assertTrue(BoatFitting.LIFT_CRADLE.supports(ShuttleType.AEROSHUTTLE));
         assertFalse(BoatFitting.HEAVY_LIFT_FRAME.supports(ShuttleType.VALKYRIE), "a Valkyrie lifts Heavy as built");
         assertTrue(BoatFitting.STANDARD_LIFT.supports(ShuttleType.VALKYRIE));

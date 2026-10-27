@@ -376,6 +376,8 @@ public class BattleRenderer {
                 units,
                 // Over the bodies, like the health bars: who the medic is and what they are doing.
                 new MedicMarkerRenderSystem(sprites),
+                // Beside it: the winged foot over a squad told to run.
+                new SquadRunMarkerRenderSystem(),
                 new SatchelRenderSystem(sprites),
                 new PointDefenseRenderSystem(),
                 new ShieldDomeRenderSystem(),

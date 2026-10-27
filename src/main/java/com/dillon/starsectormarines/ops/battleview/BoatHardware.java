@@ -103,8 +103,6 @@ public final class BoatHardware {
             case "heavy_cradle" -> new Piece("boat-hold-heavy-cradle", 2, 2, tone);
             case "heavy_lift_frame" -> new Piece("weight-heavy", 2, 2, tone);
             case "standard_cabin" -> new Piece("boat-hold-standard", 2, 1, tone);
-            case "half_squad_cabin" -> new Piece("boat-hold-standard", 2, 2, tone);
-            case "two_team_cabin" -> new Piece("vehicle-bay-supply", 2, 2, tone);
             case "standard_emitter" -> new Piece("kit-sensor-pair", 2, 1, tone);
             case "wide_emitter" -> new Piece("kit-sensor-pair", 2, 2, tone);
             case "assault_emitter" -> new Piece("vehicle-systems-mast", 2, 2, tone);

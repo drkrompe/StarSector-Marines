@@ -40,7 +40,8 @@ class BoatDeckViewModelTest {
         model.selectBoatAction(0).run();
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
             model.selectSlotAction(slot).run();
-            assertEquals(BoatFitting.catalog(slot).size(), model.catalogRows().get().size(), slot.name());
+            long offered = BoatFitting.catalog(slot).stream().filter(f -> f.supports(ShuttleType.HERMES)).count();
+            assertEquals(offered, model.catalogRows().get().size(), slot.name());
         }
         assertEquals("0 / 10", meter(model, "FRAME").value());
     }

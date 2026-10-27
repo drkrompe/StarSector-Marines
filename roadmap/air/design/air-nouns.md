@@ -396,12 +396,13 @@ Heavy, its weight class seen from the air (Hound and the heavy APC Light;
 Warden, the escort APC and the militia technical Medium; Bulwark and the
 breakthrough tank Heavy). It is not the machine's inertia, which manual driving
 reads separately. Every airframe has a **lift rating**, the heaviest class it
-takes: a Valkyrie lifts Heavy as built and every other pattern nothing. A
+takes: a Valkyrie lifts Heavy as built, the Hermes Light (a Hound or a light
+APC under her belly), and every other pattern nothing. A
 bus-class boat (Buffalo, Tarsus, Mule, Nebula) earns Light or Medium lift
 through the third fitting slot, the hold: a **cradle** adds the rating and keeps
 the seats, so a cradled boat flies its squad loads like any other boat and then
 machines. Deboarding stays one kind per sortie: a squad load or exactly one
-machine. Small boats never lift a machine. Whether one carrier takes one machine
+machine. Other small boats never lift a machine. Whether one carrier takes one machine
 is a single pure check (`LiftAdmission`) that every consumer asks — the drop
 powers, the briefing and a per-mission lift budget — rather than comparing
 classes itself; a refusal is either *no lift* or *under-rated*.
@@ -485,7 +486,7 @@ only while she is over the battle, in her emitter tier's tint. The shield goes
 when she falls or leaves. Other aircraft carry none.
 
 **The fit owns seats, ramp and loaded speed; the deck owns the turnaround.**
-The frame's seats are the cabin's (never fewer than the pattern's), and its
+The frame's seats are the pattern's (the Hermes lands a whole squad), and its
 deboard cadence is the pattern's quickened by the drive. A boat flies slower
 with weight aboard: a machine drags her by its lift class and each marine a
 little (`FittedBoat.carrying`), so she runs back faster than she ran in, and a

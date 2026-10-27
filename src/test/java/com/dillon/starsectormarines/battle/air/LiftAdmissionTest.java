@@ -44,10 +44,14 @@ class LiftAdmissionTest {
     }
 
     @Test
-    void onlyTheValkyrieLiftsAsBuilt() {
+    void onlyTheValkyrieAndTheHermesLiftAsBuilt() {
         for (ShuttleType pattern : ShuttleType.values()) {
-            assertEquals(pattern == ShuttleType.VALKYRIE ? LiftRating.HEAVY : LiftRating.NONE,
-                    pattern.liftRating(), pattern.name());
+            LiftRating built = switch (pattern) {
+                case VALKYRIE -> LiftRating.HEAVY;
+                case HERMES -> LiftRating.LIGHT;
+                default -> LiftRating.NONE;
+            };
+            assertEquals(built, pattern.liftRating(), pattern.name());
         }
     }
 

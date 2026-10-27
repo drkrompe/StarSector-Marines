@@ -35,15 +35,15 @@ class LandingCraftSummaryTest {
     }
 
     @Test
-    void militiaReliefShowsThreeHermesTripsForOneSelectedSquad() {
+    void militiaReliefShowsOneHermesTripForOneSelectedSquad() {
         Mission mission = Mission.builder().id(OpeningOperationKind.RELIEF.recurringId)
                 .source(MissionSource.RECURRING).type(MissionType.ASSAULT)
                 .requiredDrops(2).employerShuttles(1).build();
         Map<String, Object> props = BriefingViewModel.baseProps();
         BriefingViewModel.putLandingCraft(props, mission,
                 Collections.singletonList(FittedBoat.standard(ShuttleType.HERMES)), 12, "Company ship");
-        assertEquals("3 boat trips planned", props.get("landingCraftSchedule"));
-        assertTrue(props.get("landingCraftCapacity").toString().contains("4 seats / boat trip"));
+        assertEquals("1 boat trip planned", props.get("landingCraftSchedule"));
+        assertTrue(props.get("landingCraftCapacity").toString().contains("12 seats / boat trip"));
     }
 
     @Test

@@ -73,11 +73,13 @@ import java.util.Set;
  * <p>The point is to stop paying a whole replay per question. A battle is deterministic, so stepping to the tick that
  * matters and then asking ten things about it costs one replay; turning on the {@link HitLog} only from that tick
  * costs nothing before it. Every command reads; none changes the battle except {@code advance}/{@code until}, which
- * step it exactly as a harness does, and {@code hitlog}, which only switches an observer.
+ * step it exactly as a harness does, {@code player}, which takes the company off its commander as a played battle
+ * does, and {@code hitlog}, which only switches an observer.
  *
  * <p>Commands, one per line ({@code #} starts a comment):
  * <pre>
  *   tick                                  current tick, whether the battle is over and who won
+ *   player                                hand the company to a player who gives no orders, as a played battle does
  *   advance N                             step N ticks
  *   until T                               step until tick T
  *   until-beat TEXT [max=T]               step until a story beat whose id contains TEXT is published
@@ -132,6 +134,10 @@ public final class BattleProbe {
         this.sim = sim;
         commands.put("tick", a -> status());
         commands.put("presence", a -> presence());
+        commands.put("player", a -> {
+            sim.playerCommandsCompany();
+            return status();
+        });
         commands.put("advance", a -> step(sim.getSimTickIndex() + a.intAt(0), null));
         commands.put("until", a -> step(a.intAt(0), null));
         commands.put("until-beat", a -> step(a.intOr("max", Integer.MAX_VALUE), a.word(0)));

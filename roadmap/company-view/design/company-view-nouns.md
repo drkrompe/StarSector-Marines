@@ -107,7 +107,9 @@ shared mapping instead of assigning paths independently in each screen.
   which is seats; emitter, the shield's arc and flux per hit; and power, the flux
   pool's capacity and venting. Each slot has a standard fitting every boat is
   built with and up to three upgrade tiers; a lift tier goes only on a boat that
-  does not already lift as much. The battle reads every slot (`air-nouns.md`,
+  does not already lift as much. The cabin has no upgrade tier: its stock part
+  seats the pattern's own complement, and on the Hermes that is one whole
+  twelve-marine squad, the company's minimum drop. The battle reads every slot (`air-nouns.md`,
   Fitted boat). The emitter's three tiers are the **low-tech, midline and
   high-tech shields**: wider arcs and less flux per blocked hit, each with its
   own price and its own look (orange, teal, blue). Planned: art of their own for
@@ -409,7 +411,9 @@ so a player reads the same thing the same way wherever it appears:
   crest, issuer stamp with the Restricted banner, metered rating, the fire-team seat
   picture). It is the card in the Loadout stores and First Refit's choices (both a
   left-hand column beside the squad view), and the sheet a card opens on hover
-  anywhere;
+  anywhere. A card in the stores lists what it issues as **kit bricks**, one per
+  item with only its count beside it: a weapon card each primary and each
+  secondary, an Equipment card each suit and each integral system they carry;
 - the **issued-card chip**: a card at a glance (face, name, Firepower or Protection
   Rating, the Restricted seal). Barracks stacks two compact chips on each squad
   card, and the Loadout squad view opens on the same two at full size;
@@ -418,11 +422,24 @@ so a player reads the same thing the same way wherever it appears:
   field, so 100% is the best kit that exists rather than the best the company owns;
 - the **squad view**: the twelve marines as three fire teams of two by two, each
   with a portrait
-  of the kit they would wear, four kit lines (primary weapon, armour, special
-  equipment, integral system) giving what they carry now with an arrow to what the
-  selected card would issue, and five numbers (sustained output, range,
+  of the kit they would wear, four kit lines marked Primary, Secondary, Armor and
+  Equipment (the suit's integral system), each a kit brick, giving what they carry now with an arrow to what the selected card would
+  issue, and five numbers (sustained output, range,
   penetration, armour, movement) now and proposed, the arrow green where the number
   improves and red where it falls; weapon figures use that marine's own profile;
+- the **kit brick**: each piece of a marine's kit is a mount in the fitting rooms'
+  hardware language, so the Mech Lab, the Boat Deck and the Armory read alike.
+  Each is a 1x2 brick-stack, one row of two, at the one brick size (`FittingBricks`).
+  A weapon is the colour of what it throws, read off its data by `Ordnance` as the
+  battle HUD reads it: ballistic yellow, energy red-orange, missile green; a
+  secondary that fires nothing is utility teal, a suit plating grey and its integral
+  system flux violet, as the Mech Lab colours a frame's own parts. The item's armoury art lies along
+  it, long guns turned level by the angle their art lies at (the primaries' shared
+  diagonal, a special's authored `armoryIconLie`). An empty mount is a dark
+  recess. A brick carries no name: hovering it opens the item's sheet, and in
+  the squad view a change reads as the brick carried now, an arrow and the brick
+  the card would issue. The secondary is the marine's special item; the bricks do
+  not move, they only show what a card issues;
 - the **licence keys**: tabs, filters and actions on and around cards are flat navy
   keys with the cards' edge colours (blue for a choice, gold for an action), not the
   console keys of the rest of the ship.
@@ -1228,7 +1245,8 @@ billet identity remains unchanged.
 ## Lift and arrival
 
 Hull capacity is a physical maximum, not a promise that every mission fills the
-hold. Small lifts have four seats, medium lifts eight, and the Valkyrie twelve.
+hold. Small lifts have four seats, medium lifts eight, and the Hermes and the
+Valkyrie twelve.
 The mission arrival policy owns the embarked seats per sortie. An ordinary
 generated mission freezes only the selected named personnel, so its final craft
 or final pass may carry fewer marines than the hull maximum and all force,

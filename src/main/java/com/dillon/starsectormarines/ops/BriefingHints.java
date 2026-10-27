@@ -49,7 +49,9 @@ final class BriefingHints {
             for (String key : List.of("weaponTiles", "armorTiles")) {
                 List<FleetArmoryViewModel.DoctrineTile> tiles = new ArrayList<>();
                 for (Object tile : (List<?>) picker.get(key)) tiles.add((FleetArmoryViewModel.DoctrineTile) tile);
-                if (!tiles.isEmpty()) ArmorySpecSheets.bindDoctrineTiles(binder, markup, new Reactor().signal(tiles));
+                if (tiles.isEmpty()) continue;
+                ArmorySpecSheets.bindDoctrineTiles(binder, markup, new Reactor().signal(tiles));
+                LoadoutCardBricks.bind(document, markup, () -> tiles);
             }
         }
         for (Object value : (List<?>) props.getOrDefault("airRows", List.of())) {

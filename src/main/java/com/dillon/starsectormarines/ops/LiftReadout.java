@@ -62,7 +62,8 @@ public final class LiftReadout {
 
     /** A boat as the briefing names it: pattern and hold. */
     public static String carrierName(FittedBoat boat) {
-        return boat.pattern().displayName() + " / " + boat.lift().displayName();
+        String pattern = boat.pattern().displayName();
+        return boat.lift().cradle() ? pattern + " / " + boat.lift().displayName() : pattern;
     }
 
     /** A lift rating as the deck and the briefing name it. */
