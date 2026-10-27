@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
+import com.dillon.starsectormarines.battle.ui.panel.Ordnance;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.ops.fitting.FittingBricks;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -51,6 +52,16 @@ final class HardpointBricks {
             case ENERGY -> ENERGY;
             case MISSILE -> MISSILE;
             case BALLISTIC -> BALLISTIC;
+        };
+    }
+
+    /** What a marine's piece throws, in its hardpoint's colour; null is a piece that throws nothing. */
+    static Color tone(Ordnance ordnance) {
+        if (ordnance == null) return UTILITY;
+        return switch (ordnance) {
+            case BALLISTIC -> BALLISTIC;
+            case ENERGY -> ENERGY;
+            case MISSILE -> MISSILE;
         };
     }
 

@@ -21,6 +21,7 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-rocket-launcher.png",
+        "armoryIconLie": 32,
         "usePose": "shoulder-launcher",
         "carrierLayer": {
           "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
@@ -93,6 +94,7 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-rocket-launcher.png",
+        "armoryIconLie": 32,
         "usePose": "shoulder-launcher",
         "carrierLayer": {
           "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
@@ -156,6 +158,7 @@
       },
       "presentation": {
         "armoryIcon": "graphics/ui/armory/special-anti-materiel-rifle.png",
+        "armoryIconLie": 32,
         "usePose": "braced-rifle",
         "carrierLayer": {
           "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/anti-materiel-rifle.png",

@@ -120,7 +120,10 @@ number: a strip under the weapon row (rifle cartridges, shotgun shells, or a
 belt in blocks of one burst, so a long belt still reads at a glance), spent
 rounds hollow and a reload pressing them back in. The cursor carries no ammo
 mark. A primary without a magazine shows no counter. Machines draw their loads
-the same way, by what they throw (`Ordnance`): a missile mount is a rack of
+the same way, by what they throw (`Ordnance`, read off how a weapon is drawn: a
+`missile_` sprite, a contrail or a boost is a missile, a beam, laser or authored
+`render.energy` is energy, anything else ballistic; the Armory's kit bricks take
+their colour from the same reading): a missile mount is a rack of
 missiles in salvos of one trigger pull, a vehicle's belt is cartridges in
 bursts, and an energy weapon counts nothing but shows charge cells, one per
 bolt of its burst (five for a single shot), emptying through the burst,

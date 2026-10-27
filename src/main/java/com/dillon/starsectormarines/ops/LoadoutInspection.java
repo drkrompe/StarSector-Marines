@@ -12,6 +12,8 @@ import com.dillon.starsectormarines.marine.SquadEquipmentBillet;
 import com.dillon.starsectormarines.marine.SquadEquipmentPreview;
 import com.dillon.starsectormarines.ops.battleview.ArmoryLoadoutPreviewComposer;
 import com.dillon.starsectormarines.ops.battleview.ArmoryMarinePreviewCanvas;
+import com.dillon.starsectormarines.ops.battleview.KitBrick;
+import com.dillon.starsectormarines.ops.battleview.KitBrickCanvas;
 import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -31,17 +33,19 @@ import java.util.regex.Pattern;
 
 /**
  * The squad as the Loadout screen shows it: three fire teams of two by two, each
- * marine with a portrait of the kit they would wear, their weapon, armour, special
+ * marine with a portrait of the kit they would wear, their primary, secondary, armour
  * and integral system as issued now with what the selected cards would change it
- * to, and the few numbers that change with it. Read-only; nothing here issues.
+ * to, and the few numbers that change with it. The primary and secondary stand on
+ * kit bricks ({@link KitBrick}), the Mech Lab's and Boat Deck's mounts, coloured by
+ * what they throw. Read-only; nothing here issues.
  */
 final class LoadoutInspection {
     private LoadoutInspection() { }
 
-    /** The lines of kit each marine's tile lists, in order. */
-    static final int WEAPON = 0, ARMOR = 1, SPECIAL = 2, SYSTEM = 3, PARTS = 4;
+    /** The lines of kit each marine's tile lists, in order; the special item is the marine's secondary. */
+    static final int WEAPON = 0, SPECIAL = 1, ARMOR = 2, SYSTEM = 3, PARTS = 4;
     /** Each line's kind as its class names it, taking the spec sheet's accent for that kind. */
-    private static final String[] PART_KINDS = {"weapon", "armor", "special", "system"};
+    private static final String[] PART_KINDS = {"weapon", "special", "armor", "system"};
 
     /** The numbers a tile compares: the weapon's three that matter most, and the suit's two. */
     private static final List<String> STATS = List.of("DPS", "RNG", "PEN", "ARMOR", "MOVE");
@@ -103,24 +107,43 @@ final class LoadoutInspection {
         return (SpecSheet) ((List<Map<String, Object>>) billet.get("parts")).get(part).get("sheet");
     }
 
+    /** The brick one weapon line of one marine stands its item on, or null for an empty mount. */
+    @SuppressWarnings("unchecked")
+    static KitBrick partBrick(Map<String, Object> inspection, int index, int part) {
+        Map<String, Object> billet = billetAt(inspection, index);
+        if (billet == null) return null;
+        return (KitBrick) ((List<Map<String, Object>>) billet.get("parts")).get(part).get("brick");
+    }
+
     /**
-     * Gives each marine's portrait its producer, reading the live projection so a
-     * change of card or billet repaints without rebinding. Idempotent per document.
+     * Gives each marine's portrait and kit bricks their producers, reading the live
+     * projection so a change of card or billet repaints without rebinding. Idempotent
+     * per document.
      */
-    static void bindPortraits(UiDocument document, MarkupInstance markup,
-                              Supplier<Map<String, Object>> inspection,
-                              ArmoryLoadoutPreviewComposer.Assets assets) {
+    static void bindCanvases(UiDocument document, MarkupInstance markup,
+                             Supplier<Map<String, Object>> inspection,
+                             ArmoryLoadoutPreviewComposer.Assets assets) {
         for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
-            UiElement canvas = markup.requireElement(portraitId(billet));
-            if (document.canvases().producerOf(canvas) != null) continue;
             int index = billet;
-            document.canvases().set(canvas, new ArmoryMarinePreviewCanvas(
-                    () -> shownKit(inspection.get(), index), assets));
+            UiElement canvas = markup.requireElement(portraitId(billet));
+            if (document.canvases().producerOf(canvas) == null) {
+                document.canvases().set(canvas, new ArmoryMarinePreviewCanvas(
+                        () -> shownKit(inspection.get(), index), assets));
+            }
+            for (int part : new int[]{WEAPON, SPECIAL}) {
+                UiElement brick = markup.requireElement(brickId(billet, part));
+                if (document.canvases().producerOf(brick) != null) continue;
+                document.canvases().set(brick, new KitBrickCanvas(() -> partBrick(inspection.get(), index, part)));
+            }
         }
     }
 
     static String partId(int index, int part) {
         return "loadout-billet:" + index + ":part:" + part;
+    }
+
+    static String brickId(int index, int part) {
+        return partId(index, part) + ":brick";
     }
 
     static String portraitId(int index) {
@@ -174,14 +197,21 @@ final class LoadoutInspection {
     }
 
     private static Map<String, Object> part(int index, int part, FireTeamBillet before, FireTeamBillet after) {
-        Map<String, Object> line = row(partId(index, part), "tick", "socket", "icon", "text", "now", "nextRow", "arrow", "next");
+        Map<String, Object> line = row(partId(index, part), "tick", "brick", "socket", "icon", "text", "now", "nextRow", "arrow", "next");
         SpecSheet now = sheet(before, part), next = sheet(after, part);
         boolean changes = after != null && !Objects.equals(now, next);
-        String icon = icon(after != null ? after : before, part);
-        // Drawn as a Mech Lab mount: the slot's colour on a tick, the item in a sunk socket,
-        // an empty slot faded into the card and a changing one framed in brass.
-        line.put("classes", "loadout-part loadout-part-" + PART_KINDS[part]
+        FireTeamBillet shown = after != null ? after : before;
+        String icon = icon(shown, part);
+        // A weapon stands on its brick, coloured by what it throws, as Mech Lab hardware does;
+        // the suit's lines keep the slot's colour on a tick and the item in a sunk socket.
+        // An empty slot fades into the card and a changing one is framed in brass.
+        boolean mount = part == WEAPON || part == SPECIAL;
+        line.put("classes", "loadout-part loadout-part-" + PART_KINDS[part] + (mount ? " loadout-part-mount" : "")
                 + (changes ? " changes" : now == null && next == null ? " empty" : ""));
+        line.put("brick", mount ? brick(shown, part) : null);
+        line.put("brickClasses", mount ? "loadout-part-brick" : "loadout-hidden");
+        line.put("tickClasses", mount ? "loadout-hidden" : "loadout-part-tick");
+        line.put("socketClasses", mount ? "loadout-hidden" : "loadout-part-socket");
         line.put("icon", icon);
         line.put("iconClasses", icon.isEmpty() ? "loadout-part-icon loadout-part-icon-absent" : "loadout-part-icon");
         line.put("now", name(before, now, part));
@@ -241,7 +271,14 @@ final class LoadoutInspection {
     private static String name(FireTeamBillet kit, SpecSheet sheet, int part) {
         if (sheet != null) return sheet.title();
         if (kit == null) return Strings.get("openingLoadoutVacant");
-        return part == SYSTEM ? Strings.get("gearSystemNone") : Strings.get("openingLoadoutNoSpecialItem");
+        return part == SYSTEM ? Strings.get("gearSystemNone") : Strings.get("openingLoadoutNoSecondary");
+    }
+
+    private static KitBrick brick(FireTeamBillet kit, int part) {
+        if (kit == null) return null;
+        return part == WEAPON
+                ? KitBrick.weapon(kit.primaryDef(), EquipmentIcons.primary(kit.primaryDef(), kit.grade()), EquipmentIcons.PRIMARY_LIE)
+                : KitBrick.secondary(kit.specialDef());
     }
 
     private static String icon(FireTeamBillet kit, int part) {
@@ -263,7 +300,7 @@ final class LoadoutInspection {
 
     private static List<SpecSheet.Stat> stats(FireTeamBillet kit, int kind, MarineSoldier soldier) {
         if (kit == null) return List.of();
-        if (kind == 0) {
+        if (kind == WEAPON) {
             var rows = new ArrayList<>(SpecSheets.weaponStats(kit.primaryDef(), kit.grade(), soldier == null ? null : soldier.profile()));
             rows.add(SpecSheets.weaponPenetration(kit.primaryDef()));
             return rows;

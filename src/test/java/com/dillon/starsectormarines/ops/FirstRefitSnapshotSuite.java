@@ -126,7 +126,7 @@ public final class FirstRefitSnapshotSuite implements SnapshotSuite {
             markup.styles().forEach(document::addStyleSheet);
             var binder = new SpecSheetBinder(document, SpecSheetLayer.install(document));
             FleetArmoryScreen.bindFirstRefitSheets(binder, markup, model);
-            LoadoutInspection.bindPortraits(document, markup, model::inspection,
+            LoadoutInspection.bindCanvases(document, markup, model::inspection,
                     new HeadlessArmoryPreviewRenderer(context.modRoot()).assets());
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));

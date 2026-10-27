@@ -409,7 +409,8 @@ so a player reads the same thing the same way wherever it appears:
   crest, issuer stamp with the Restricted banner, metered rating, the fire-team seat
   picture). It is the card in the Loadout stores and First Refit's choices (both a
   left-hand column beside the squad view), and the sheet a card opens on hover
-  anywhere;
+  anywhere. A weapon card in the stores lists what it issues as **kit bricks**,
+  one per item with its count: each primary, and each secondary as its own piece;
 - the **issued-card chip**: a card at a glance (face, name, Firepower or Protection
   Rating, the Restricted seal). Barracks stacks two compact chips on each squad
   card, and the Loadout squad view opens on the same two at full size;
@@ -418,11 +419,21 @@ so a player reads the same thing the same way wherever it appears:
   field, so 100% is the best kit that exists rather than the best the company owns;
 - the **squad view**: the twelve marines as three fire teams of two by two, each
   with a portrait
-  of the kit they would wear, four kit lines (primary weapon, armour, special
-  equipment, integral system) giving what they carry now with an arrow to what the
-  selected card would issue, and five numbers (sustained output, range,
+  of the kit they would wear, four kit lines (primary, secondary, armour, integral
+  system) giving what they carry now with an arrow to what the selected card would
+  issue, and five numbers (sustained output, range,
   penetration, armour, movement) now and proposed, the arrow green where the number
   improves and red where it falls; weapon figures use that marine's own profile;
+- the **kit brick**: a marine's primary and secondary are mounts in the fitting
+  rooms' hardware language, so the Mech Lab, the Boat Deck and the Armory read
+  alike. Each is a 1x2 brick-stack at the one brick size (`FittingBricks`) in the
+  colour of what it throws, read off the weapon's data by `Ordnance` as the battle
+  HUD reads it: ballistic yellow, energy red-orange, missile green, and utility
+  teal for a secondary that fires nothing. The item's armoury art stands upright
+  on it, long guns turned by the angle their art lies at (the primaries' shared
+  diagonal, a special's authored `armoryIconLie`). An empty mount is a dark
+  recess. The secondary is the marine's special item; the bricks do not move, they
+  only show what a card issues;
 - the **licence keys**: tabs, filters and actions on and around cards are flat navy
   keys with the cards' edge colours (blue for a choice, gold for an action), not the
   console keys of the rest of the ship.

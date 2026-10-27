@@ -3,7 +3,8 @@
        teams of two by two, each marine named by rank and role, five numbers (green
        where they improve, red where they fall) beside a square portrait of the kit
        they would wear, then their four kit lines as carried now with an arrow to what
-       the selected card would issue.
+       the selected card would issue. The primary and secondary stand on 1x2 kit bricks
+       coloured by what they throw, as hardware does in the Mech Lab and the Boat Deck.
        Fed by LoadoutInspection.project; hovers by ArmorySpecSheets.bindInspection;
        portraits by LoadoutInspection.bindPortraits. layout="loadout-billets" stands
        the teams side by side as columns. -->
@@ -27,8 +28,9 @@
             </div>
             <div class="loadout-member-parts" id="{billet.partsId}">
               <div each="part in billet.parts" key="{part.id}" id="{part.id}" class="{part.classes}">
-                <div id="{part.tickId}" class="loadout-part-tick" />
-                <div id="{part.socketId}" class="loadout-part-socket">
+                <div id="{part.tickId}" class="{part.tickClasses}" />
+                <canvas id="{part.brickId}" class="{part.brickClasses}" width="32" height="84" />
+                <div id="{part.socketId}" class="{part.socketClasses}">
                   <img id="{part.iconId}" class="{part.iconClasses}" src="{part.icon}" />
                 </div>
                 <div id="{part.textId}" class="loadout-part-text">
@@ -63,6 +65,10 @@
      light at the bottom and right, and the floor darkens under the top lip. */
   .loadout-member-parts { flex-direction: column; height: 0px; flex-grow: 1; gap: 5px; padding: 0px; border-width: 3px; border-style: inset; border-color: #3e4a48; background-color: #06090b; background-image: linear-gradient(to bottom, #000000c0 0%, #00000000 14%); }
   .loadout-part { flex-direction: row; align-items: center; height: 0px; flex-grow: 1; gap: 4px; padding: 0px 3px 0px 0px; border-width: 2px; border-style: outset; border-color: #3a4745; background-color: #1b2427; }
+  /* A weapon's line is a mount: its 1x2 brick, the one size every fitting room draws hardware at
+     (FittingBricks: 40px a brick on a 1080-line document), so the line is as tall as the brick. */
+  .loadout-part.loadout-part-mount { height: 90px; flex-grow: 0; padding: 0px 3px 0px 2px; gap: 6px; }
+  .loadout-part-brick { width: 32px; height: 84px; pointer-events: none; }
   .loadout-part.empty { border-style: solid; background-color: #1b242755; border-color: #2a333360; }
   .loadout-part.changes { background-color: #241e12; border-color: #8c6a28; }
   .loadout-part-tick { width: 3px; height: 40px; pointer-events: none; }

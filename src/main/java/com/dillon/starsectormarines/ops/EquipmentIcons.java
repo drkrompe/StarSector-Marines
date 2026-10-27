@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /** Armory artwork for a primary weapon at its grade, shared by company readouts and armory cards. */
 public final class EquipmentIcons {
+    /** Every primary's armoury art lies on one diagonal, rising this many degrees to the muzzle. */
+    public static final float PRIMARY_LIE = 32f;
+
     private EquipmentIcons() { }
 
     public static String primary(WeaponDef primary, EquipmentGrade grade) {

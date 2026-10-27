@@ -153,11 +153,11 @@ public final class FleetArmoryScreen implements Screen {
             candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
             if (view == View.FIRST_REFIT) {
                 bindFirstRefitSheets(candidateSheets, candidate, firstRefit);
-                LoadoutInspection.bindPortraits(built, candidate, firstRefit::inspection, previewAssets);
+                LoadoutInspection.bindCanvases(built, candidate, firstRefit::inspection, previewAssets);
             }
             if (view == View.FIRETEAMS) {
                 ArmorySpecSheets.bindInspection(candidateSheets, candidate, viewModel.inspection()::get);
-                LoadoutInspection.bindPortraits(built, candidate, viewModel.inspection()::get, previewAssets);
+                LoadoutInspection.bindCanvases(built, candidate, viewModel.inspection()::get, previewAssets);
                 // A new document holds new elements even where the projection
                 // behind them is the one already bound, so the guard is cleared.
                 boundWeaponTiles = null;
@@ -204,6 +204,7 @@ public final class FleetArmoryScreen implements Screen {
         boundArmorTiles = armor;
         ArmorySpecSheets.bindDoctrineTiles(binder, instance, viewModel.weaponDoctrineTiles());
         ArmorySpecSheets.bindDoctrineTiles(binder, instance, viewModel.armorDoctrineTiles());
+        LoadoutCardBricks.bind(document, instance, viewModel.weaponDoctrineTiles()::get);
     }
 
     private Map<String, Object> props() {
