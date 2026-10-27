@@ -1201,8 +1201,9 @@ public final class FleetArmoryViewModel {
             String family = entry.getKey();
             SpecSheet sheet = shared.containsKey(family)
                     ? null : SpecSheets.integralSystem(carriers.get(family));
-            spans.add(span(tileId, "carries", spans.size(),
-                    Strings.format("squadDoctrineCount", entry.getValue(), family), sheet));
+            spans.add(new DoctrineSpan(spanId(tileId, "carries", spans.size()),
+                    Strings.format("squadDoctrineCount", entry.getValue(), family), false, sheet, "",
+                    KitBrick.system(carriers.get(family)), entry.getValue()));
         }
         return last(spans);
     }
@@ -1216,8 +1217,9 @@ public final class FleetArmoryViewModel {
                 if (issueId.equals(pattern.id())) count++;
             }
             if (count == 0) continue;
-            spans.add(span(tileId, "distribution", spans.size(),
-                    Strings.format("squadDoctrineCount", count, pattern.displayName()), SpecSheets.armor(pattern), pattern.iconPath()));
+            spans.add(new DoctrineSpan(spanId(tileId, "distribution", spans.size()),
+                    Strings.format("squadDoctrineCount", count, pattern.displayName()), false,
+                    SpecSheets.armor(pattern), pattern.iconPath(), KitBrick.armor(pattern), count));
         }
         return last(spans);
     }
@@ -1563,20 +1565,28 @@ public final class FleetArmoryViewModel {
         }
 
         /**
-         * Whether the card lists what it issues as kit bricks: a weapon card does, every entry a
-         * piece on its brick. A compact card stops at its seats and lists nothing.
+         * Whether the card lists what it issues as kit bricks: every card does, a weapon card its
+         * primaries and secondaries, an Equipment card its suits and the systems they carry, each
+         * entry a piece on its brick. A compact card stops at its seats and lists nothing.
          */
         boolean issuesAsBricks() {
             if (compact || distributionSpans.isEmpty()) return false;
-            for (DoctrineSpan span : distributionSpans) {
+            for (DoctrineSpan span : brickSpans()) {
                 if (span.brick() == null) return false;
             }
             return true;
         }
 
+        /** Every entry the card's bricks show: what it issues, then what that carries. */
+        List<DoctrineSpan> brickSpans() {
+            List<DoctrineSpan> spans = new ArrayList<>(distributionSpans);
+            spans.addAll(carriesSpans);
+            return spans;
+        }
+
         /** The brick rows' height under their 8px of air: each piece is as tall as its 1x2 brick. */
         private int bricksHeight() {
-            int rows = (distributionSpans.size() + 3) / 4;
+            int rows = (brickSpans().size() + 3) / 4;
             return 8 + rows * 44 + Math.max(0, rows - 1) * 6;
         }
 
@@ -1776,7 +1786,7 @@ public final class FleetArmoryViewModel {
                 // Bricks or spans, never both: each entry's element carries the entry's id, which
                 // its hover sheet is bound to.
                 case "distributionSpans" -> issuesAsBricks() ? List.of() : distributionSpans;
-                case "brickSpans" -> issuesAsBricks() ? distributionSpans : List.of();
+                case "brickSpans" -> issuesAsBricks() ? brickSpans() : List.of();
                 case "bricksId" -> distributionId + "-bricks";
                 case "bricksClasses" -> issuesAsBricks() ? "loadout-card-bricks" : "doctrine-line-hidden";
                 // A grid is as tall as it is told to be: four pieces a row (.loadout-card-brick's width).
@@ -1789,10 +1799,10 @@ public final class FleetArmoryViewModel {
                 case "distributionRowClasses" -> distributionSpans.isEmpty() || !seats.isEmpty()
                         ? "doctrine-line-hidden" : "doctrine-span-row doctrine-distribution-row";
                 case "carries" -> carries;
-                case "carriesSpans" -> carriesSpans;
-                case "carriesClasses" -> carriesSpans.isEmpty() && carriesShown()
+                case "carriesSpans" -> issuesAsBricks() ? List.of() : carriesSpans;
+                case "carriesClasses" -> !issuesAsBricks() && carriesSpans.isEmpty() && carriesShown()
                         ? "doctrine-carries label" : "doctrine-line-hidden";
-                case "carriesRowClasses" -> carriesSpans.isEmpty()
+                case "carriesRowClasses" -> issuesAsBricks() || carriesSpans.isEmpty()
                         ? "doctrine-line-hidden" : "doctrine-span-row doctrine-carries-row";
                 case "select" -> select;
                 default -> throw new IllegalArgumentException("Unknown doctrine-tile property");

@@ -10,7 +10,7 @@ import java.util.List;
 import java.util.function.Supplier;
 
 /**
- * Paints the kit bricks a weapon card lists its issue on ({@link FleetArmoryViewModel.DoctrineTile#issuesAsBricks}).
+ * Paints the kit bricks a loadout card lists its issue on ({@link FleetArmoryViewModel.DoctrineTile#issuesAsBricks}).
  * Cards arrive and leave as the list is filtered, so this is called again after each
  * reconciliation and skips a brick that already has its producer; each producer finds its
  * card by id in the live list, as the cards' hover sheets do.
@@ -23,7 +23,7 @@ final class LoadoutCardBricks {
         if (document == null || markup == null) return;
         for (FleetArmoryViewModel.DoctrineTile tile : tiles.get()) {
             if (!tile.issuesAsBricks()) continue;
-            List<FleetArmoryViewModel.DoctrineSpan> spans = tile.distributionSpans();
+            List<FleetArmoryViewModel.DoctrineSpan> spans = tile.brickSpans();
             for (int index = 0; index < spans.size(); index++) {
                 UiElement canvas = markup.requireElement(spans.get(index).id() + ":brick");
                 if (document.canvases().producerOf(canvas) != null) continue;
@@ -38,7 +38,8 @@ final class LoadoutCardBricks {
                                     String tileId, int slot) {
         for (FleetArmoryViewModel.DoctrineTile tile : tiles.get()) {
             if (!tile.id().equals(tileId)) continue;
-            return slot < tile.distributionSpans().size() ? tile.distributionSpans().get(slot).brick() : null;
+            List<FleetArmoryViewModel.DoctrineSpan> spans = tile.brickSpans();
+            return slot < spans.size() ? spans.get(slot).brick() : null;
         }
         return null;
     }

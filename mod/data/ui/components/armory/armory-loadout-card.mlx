@@ -70,10 +70,10 @@
         <div each="span in tile.distributionSpans" key="{span.id}" id="{span.id}" class="doctrine-span doctrine-issue-span"><img id="{span.iconId}" class="doctrine-equipment-icon" src="{span.icon}" /><div id="{span.textId}" class="doctrine-equipment-name">{span.text}</div></div>
       </div>
     </div>
-    <!-- A weapon card's issue as kit bricks, each piece its 1x2 brick (one row of two) in the colour
-         of what it throws (as Mech Lab hardware), with how many the card issues and no name: its
-         element carries the entry's id, so hovering opens the entry's sheet. LoadoutCardBricks
-         paints the bricks. -->
+    <!-- A card's issue as kit bricks: a weapon card's primaries and secondaries, an Equipment card's
+         suits and the systems they carry, each piece its 1x2 brick (one row of two) in its colour
+         (as Mech Lab hardware), with how many the card issues and no name: its element carries the
+         entry's id, so hovering opens the entry's sheet. LoadoutCardBricks paints the bricks. -->
     <div id="{tile.bricksId}" class="{tile.bricksClasses}" style="{tile.bricksStyle}">
       <div each="span in tile.brickSpans" key="{span.id}" id="{span.id}" class="loadout-card-brick">
         <canvas id="{span.brickId}" class="loadout-card-brick-canvas" width="64" height="42" />

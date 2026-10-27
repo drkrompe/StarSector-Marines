@@ -1855,6 +1855,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 frames.add(new SnapshotArtifact("03-existing-equipment-editor.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 editor.showArmorPickerAction().run();
                 editorMarkup.flush();
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.armorDoctrineTiles()::get);
                 frames.add(new SnapshotArtifact("03a-starter-tactics.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 roster.firstRefit().claim(roster, FirstRefit.Path.FORWARD_SCREEN);
                 editor.refresh();
@@ -1870,6 +1871,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 editor.showArmorPickerAction().run();
                 editor.armorDoctrineTiles().get().get(0).select().run();
                 editorMarkup.flush();
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.armorDoctrineTiles()::get);
                 editorDocument.advance(0.3f);
                 frames.add(new SnapshotArtifact("03c-earned-armor-comparison.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 // Production pointer targets remain visible at the player's review scale.
@@ -1887,6 +1889,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 roster.applySoldierOutcome(Map.of(members.get(0), MarineSoldierStatus.WIA,
                         members.get(11), MarineSoldierStatus.KIA), 100f, 2f);
                 editor.refresh(); editorMarkup.flush();
+                LoadoutCardBricks.bind(editorDocument, editorMarkup, editor.armorDoctrineTiles()::get);
                 frames.add(new SnapshotArtifact("03d-wounded-special-removal.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
                 clickBarracksFlow(editorDocument, editorMarkup, "loadout-billet:11");
                 frames.add(new SnapshotArtifact("03e-vacant-billet-plan.png", renderRelative(renderer, editorDocument, 1920, 1080, 1f)));
