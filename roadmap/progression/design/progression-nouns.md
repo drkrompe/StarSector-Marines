@@ -8,6 +8,8 @@ Updated: 2026-10-23 — a billet may carry a second, thrown special on the belt.
 
 Updated: 2026-10-24 — warrant obligations ask loyalty only; service and service calls retired with generic contracts.
 
+Updated: 2026-10-27 — every equipment item is shown by a short catalog code.
+
 ## Purpose
 
 Progression is the cross-tier model for a mercenary company's growing combat
@@ -61,6 +63,13 @@ legibility.
   attached to a recipe and concrete item. Provenance governs availability,
   presentation, and at most a bounded side-grade; it is not an allegiance lock,
   a quality tier, or a set bonus.
+- **Shown name** — the short catalog code an item is shown by, such as
+  `AR-PULSE`, `GRN-FRAG`, `SHLD-HT` or `ARM-HEG-3-LN`. Armour codes read
+  type, maker, suit tier and role. It is the item's `displayName` string and the
+  only name the player sees; a primary that takes a grade marking shows it as a
+  suffix (`AR-PULSE-2`, from `designationTiered`), and recruit issue (`GR-RFL`)
+  does not. Ids never change with it. In-universe provenance stays in an item's
+  description, never in a second name.
 - **Special equipment** — one optional billet item carried alongside the
   marine's primary. Rocket launchers, anti-materiel rifles and fragmentation
   grenades activate weapon definitions; smoke, satchel
@@ -276,13 +285,13 @@ cannot overturn the band the player read. This is what makes threat assessment
 a skill rather than a guess, and it applies to defender formations as much as
 to the player's own.
 
-The shipped primary catalog now covers five player-facing decisions. The Rook
-is the rugged chemical-slug baseline, the Lancer is the flexible pulse burst,
-and the Longbow is the deliberate gauss/rail marksman weapon. The Rattler is a
+The shipped primary catalog now covers five player-facing decisions. GR-RFL
+is the rugged chemical-slug baseline, AR-PULSE is the flexible pulse burst,
+and RL-DMR is the deliberate gauss/rail marksman weapon. GR-SMG is a
 close-range flechette shredder: one trigger releases several independently
 resolved projectiles with low penetration, steep falloff, and wide spread. Its
 legacy `SMG` enum name and `weapon.smg` id remain only for save compatibility.
-The Stalwart is the squad automatic slugthrower: one trigger begins a long
+MG-SUPP is the squad automatic slugthrower: one trigger begins a long
 temporal burst that participates in the existing covering-fire and bounding
 model without creating a suppression status or permanent gunner class.
 
@@ -311,7 +320,7 @@ so a squad's band is legible from the deck. A marine in a heavy battlesuit is,
 by construction, one of the people the company put its best kit on.
 
 The primary deliberately does not feed the band. A primary's access tier is
-authored independently of grade; the introductory Milspec Stalwart and Lancer
+authored independently of grade; the introductory Milspec MG-SUPP and AR-PULSE
 circulate as Common technology. Sourcing experience there would fuse axes this
 domain keeps separate — grade supplies quality, profile
 supplies person. For the same reason there is no hidden "promoted because they
@@ -426,8 +435,8 @@ what lets a player learn to judge a hostile formation on sight.
 ### Kit and armory
 
 Wayline's first story relief victory offers one free technology transfer through
-**A Proper Issue** in the Armory. Steady Line learns Milspec Stalwart; Forward Screen
-learns Milspec Lancer and Janus scout suits. Comparison is read-only; acceptance
+**A Proper Issue** in the Armory. Steady Line learns Milspec MG-SUPP; Forward Screen
+learns Milspec AR-PULSE and ARM-TACH-2-RCN scout suits. Comparison is read-only; acceptance
 saves one choice and never changes a marine's kit. The Machine Shop subsequently
 fits any learned gear freely. The unchosen path's specs remain in ordinary open
 markets and faction mission-reward pools. Existing claimed bundles retain both

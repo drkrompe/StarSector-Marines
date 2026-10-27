@@ -301,8 +301,7 @@ class SubmodEquipmentContributionTest {
         JSONObject weapon = new JSONObject(source.getJSONArray("weapons")
                 .getJSONObject(0).toString());
         weapon.put("id", "example.weapon-needle-rifle");
-        weapon.getJSONObject("catalog").put("displayName", "Needle Rifle")
-                .put("modelName", "Sting").put("designation", "OCN");
+        weapon.getJSONObject("catalog").put("displayName", "Needle Rifle");
         return new JSONObject().put("weapons", new JSONArray().put(weapon));
     }
 

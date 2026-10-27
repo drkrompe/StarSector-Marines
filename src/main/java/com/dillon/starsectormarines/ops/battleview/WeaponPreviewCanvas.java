@@ -110,7 +110,7 @@ public final class WeaponPreviewCanvas implements CanvasProducer {
         this.shot = ShotFx.ofPrimary(weapon);
         this.assets = assets;
         this.seconds = seconds;
-        this.name = weapon.catalogName(this.grade);
+        this.name = weapon.gradedName(this.grade);
         float seed = seedTime(weapon.id);
         this.muzzle = compose(FxSlot.MUZZLE, 0f, 0f, seed);
         float longest = 0f;

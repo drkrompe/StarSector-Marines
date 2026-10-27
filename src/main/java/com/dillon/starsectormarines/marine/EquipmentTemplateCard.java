@@ -13,7 +13,7 @@ public record EquipmentTemplateCard(
     public String displayName() {
         if (displayName != null) return Strings.resolve(displayName);
         return switch (kind) {
-            case PRIMARY -> WeaponRegistry.require(equipmentId).catalogName(grade);
+            case PRIMARY -> WeaponRegistry.require(equipmentId).gradedName(grade);
             case ARMOR -> MarineArmorCatalogRegistry.require(equipmentId).displayName();
             case SPECIAL -> SpecialEquipmentRegistry.get(equipmentId).displayName();
         };

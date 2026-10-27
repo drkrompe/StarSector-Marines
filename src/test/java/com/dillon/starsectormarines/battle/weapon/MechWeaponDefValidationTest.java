@@ -97,8 +97,8 @@ class MechWeaponDefValidationTest {
                   "id": "weapon.test-mech",
                   "mount": "mech-mount",
                   "catalog": {
-                    "displayName": "Test Mech Gun", "modelName": "Test",
-                    "designation": "TMG", "designationTiered": false
+                    "displayName": "Test Mech Gun",
+                    "designationTiered": false
                   },
                   "sim": {
                     "range": 20.0, "damage": 10.0, "accuracy": 0.5,

@@ -494,7 +494,7 @@ public final class BattleDirectControlHudModel {
                 () -> select.cycle(FireTrigger.RIGHT), rows);
     }
 
-    /** Each item by its kind; a grenade's model ("Shattercap") goes on its row's second line. */
+    /** Each item by its kind; a grenade's name ("GRN-FRAG") goes on its row's second line. */
     private String abilityName(BattleDirectControlStatus.AbilityStatus ability) {
         return switch (ability.ability()) {
             case SHIELD -> label("Shield");

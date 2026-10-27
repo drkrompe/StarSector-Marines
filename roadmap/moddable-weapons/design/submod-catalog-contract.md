@@ -81,9 +81,11 @@ required and validated so a contributed id cannot quietly fall back to generic a
 
 Equipment display text can be a literal or an `@key` reference into the
 `marineOps` namespace in `data/strings/strings.json`. This applies to weapon
-names, model names, descriptive roles and descriptions; armor and integral-system
+names, descriptive roles and descriptions; armor and integral-system
 names and descriptions; and special-equipment names, subtitles and descriptions.
-References resolve when displayed, not when the catalog loads. Translation mods
+A weapon's name is its whole shown name (a catalog code such as `AR-PULSE`);
+`designationTiered` adds the grade suffix. There is no separate model name or
+designation. References resolve when displayed, not when the catalog loads. Translation mods
 override string values; they do not replace equipment definitions. Use namespaced
 keys for contributed copy. Java consumers use display accessors rather than raw
 text fields.

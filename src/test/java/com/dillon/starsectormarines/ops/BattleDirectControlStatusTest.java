@@ -65,7 +65,7 @@ class BattleDirectControlStatusTest {
         assertEquals(.5f, status.cycleFraction());
         assertEquals(BattleDirectControlStatus.WeaponState.CYCLING, status.state());
         assertTrue(status.directEligible());
-        assertEquals(weapon.catalogName(EquipmentGrade.SERVICE), status.name());
+        assertEquals(weapon.gradedName(EquipmentGrade.SERVICE), status.name());
     }
 
     @Test

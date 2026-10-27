@@ -203,7 +203,7 @@ public final class SquadDeploymentScreen extends MissionFlowMlxScreen {
                 Strings.format("deployInspectorName", soldier.enlistedRank().displayName(), soldier.name()),
                 Strings.format("deployBilletStatus", String.valueOf((char) ('A' + team)), slot + 1, statusLabel(soldier)),
                 Strings.format("deployFirepower", firepower), Strings.format("deployProtection", protection),
-                Strings.format("deployPrimary", primary.catalogName(soldier.primaryGrade()), soldier.primaryGrade().displayName()),
+                Strings.format("deployPrimary", primary.gradedName(soldier.primaryGrade()), soldier.primaryGrade().displayName()),
                 Strings.format("deployArmor", armor.displayName(), armor.role().displayName()),
                 special != null ? Strings.format("deploySpecial", special.displayName()) : Strings.format("deploySpecial", Strings.get("deployNone")),
                 armor.hasIntegralSystem()

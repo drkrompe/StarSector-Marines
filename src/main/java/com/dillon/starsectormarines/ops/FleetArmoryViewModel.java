@@ -862,7 +862,7 @@ public final class FleetArmoryViewModel {
                     armorCatalog != null ? armorCatalog.armorClass().displayName() : Strings.get("openingFleetArmoryVacant"),
                     billet != null ? Strings.format("openingFleetArmoryW", billet.grade().tierMark()) : Strings.get("openingFleetArmoryW2"),
                     billet != null ? Strings.format("openingFleetArmoryA", tierMark(armorCatalog.tier())) : Strings.get("openingFleetArmoryA2"),
-                    billet != null ? primary.catalogName(billet.grade().tier) + "  ·  "
+                    billet != null ? primary.gradedName(billet.grade().tier) + "  ·  "
                             + billet.grade().displayName() : Strings.get("openingFleetArmoryNoPrimary"),
                     primaryFactionLogo, equipmentFactionLogoClasses(primaryFactionLogo),
                     weaponStats(id, billet, soldier),
@@ -1050,7 +1050,7 @@ public final class FleetArmoryViewModel {
             if (count == 0) continue;
             String icon = EquipmentIcons.primary(weapon, quotedGrade(grades));
             spans.add(new DoctrineSpan(spanId(tileId, "distribution", spans.size()),
-                    Strings.format("squadDoctrineCount", count, weapon.modelName()), false,
+                    Strings.format("squadDoctrineCount", count, weapon.displayName()), false,
                     weaponSheet(weapon, grades), icon, KitBrick.weapon(weapon, icon, EquipmentIcons.PRIMARY_LIE), count));
         }
         // Each secondary is a piece of its own, on its own brick: a card issuing a launcher

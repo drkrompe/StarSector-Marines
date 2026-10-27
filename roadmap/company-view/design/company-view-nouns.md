@@ -343,7 +343,7 @@ Other weapon families, specialist suits, and special equipment must be learned.
 Existing saves keep every previously acquired spec.
 
 Wayline offers one free technology transfer: Steady Line permanently teaches
-Milspec Stalwart; Forward Screen teaches Milspec Lancer and Janus scout suits.
+Milspec MG-SUPP; Forward Screen teaches Milspec AR-PULSE and ARM-TACH-2-RCN scout suits.
 Acceptance grants reusable plan intent for both paths, but only the chosen path's
 technology. The other remains obtainable through open-market specs or mission
 rewards. Both featured Milspec specs circulate in the Common access band; military
@@ -363,7 +363,7 @@ acquisition remains the progression gate. Workshop restoration does not gate fit
 
 After Relief, Castle's portrait reward prompt appears over the debrief before its
 ordinary controls accept input. It leads with the free technology, shows the actual
-Stalwart/Lancer/Janus art, and offers one compact **Choose Free Technology**
+MG-SUPP/AR-PULSE/ARM-TACH-2-RCN art, and offers one compact **Choose Free Technology**
 action. Neither the prompt nor the equipment lesson offers a Later button. Escape defers only the prompt; it never dismisses or settles the debrief.
 The prompt does not learn technology. Its primary action opens the full comparison;
 a company with one line squad has that squad selected automatically.

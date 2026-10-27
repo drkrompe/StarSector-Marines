@@ -5,8 +5,6 @@
       "mount": "marine-primary",
       "catalog": {
         "displayName": "@gearCatalogWeaponFieldRifleDisplayName",
-        "modelName": "@gearCatalogWeaponFieldRifleModelName",
-        "designation": "FR-1",
         "designationTiered": false,
         "role": "@gearCatalogWeaponFieldRifleRole",
         "factionLogo": "graphics/factions/neutral_traders.png",
@@ -53,8 +51,6 @@
       "mount": "marine-primary",
       "catalog": {
         "displayName": "@gearCatalogWeaponPulseRifleDisplayName",
-        "modelName": "@gearCatalogWeaponPulseRifleModelName",
-        "designation": "PLS",
         "designationTiered": true,
         "role": "@gearCatalogWeaponFieldRifleRole",
         "factionLogo": "graphics/factions/tritachyon.png",
@@ -92,8 +88,6 @@
       "mount": "marine-primary",
       "catalog": {
         "displayName": "@gearCatalogWeaponSmgDisplayName",
-        "modelName": "@gearCatalogWeaponSmgModelName",
-        "designation": "SHD",
         "designationTiered": true,
         "role": "@gearCatalogWeaponSmgRole",
         "factionLogo": "graphics/factions/pirates.png",
@@ -141,8 +135,6 @@
       "mount": "marine-primary",
       "catalog": {
         "displayName": "@gearCatalogWeaponSquadAutomaticDisplayName",
-        "modelName": "@gearCatalogWeaponSquadAutomaticModelName",
-        "designation": "SA",
         "designationTiered": true,
         "role": "@gearCatalogWeaponSquadAutomaticRole",
         "factionLogo": "graphics/factions/hegemony.png",
@@ -190,8 +182,6 @@
       "mount": "marine-primary",
       "catalog": {
         "displayName": "@gearCatalogWeaponDmrDisplayName",
-        "modelName": "@gearCatalogWeaponDmrModelName",
-        "designation": "RG",
         "designationTiered": true,
         "role": "@gearCatalogWeaponDmrRole",
         "factionLogo": "graphics/factions/persean_league.png",
@@ -239,8 +229,6 @@
       "mount": "marine-primary",
       "catalog": {
         "displayName": "@gearCatalogWeaponDronePulseDisplayName",
-        "modelName": "@gearCatalogWeaponDronePulseModelName",
-        "designation": "DPLS",
         "designationTiered": true,
         "role": "@gearCatalogWeaponDronePulseRole",
         "factionLogo": "graphics/factions/tritachyon.png",
@@ -278,8 +266,6 @@
       "mount": "marine-primary",
       "catalog": {
         "displayName": "@gearCatalogWeaponDroneIonDisplayName",
-        "modelName": "@gearCatalogWeaponDroneIonModelName",
-        "designation": "DION",
         "designationTiered": true,
         "role": "@gearCatalogWeaponDroneIonRole",
         "factionLogo": "graphics/factions/tritachyon.png",
@@ -314,8 +300,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechChaingunDisplayName",
-        "modelName": "@gearCatalogWeaponMechChaingunModelName",
-        "designation": "MCG",
         "designationTiered": false
       },
       "sim": {
@@ -366,8 +350,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechChaingunHfDisplayName",
-        "modelName": "@gearCatalogWeaponMechChaingunHfModelName",
-        "designation": "MCG-H",
         "designationTiered": false
       },
       "sim": {
@@ -418,8 +400,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechPulseLaserDisplayName",
-        "modelName": "@gearCatalogWeaponMechPulseLaserModelName",
-        "designation": "MPL",
         "designationTiered": false
       },
       "sim": {
@@ -467,8 +447,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechBastionAutocannonDisplayName",
-        "modelName": "@gearCatalogWeaponMechBastionAutocannonModelName",
-        "designation": "BAC",
         "designationTiered": false
       },
       "sim": {
@@ -511,8 +489,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechLinearCannonDisplayName",
-        "modelName": "@gearCatalogWeaponMechLinearCannonModelName",
-        "designation": "MLC",
         "designationTiered": false
       },
       "sim": {
@@ -548,8 +524,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechHeavyCannonDisplayName",
-        "modelName": "@gearCatalogWeaponMechHeavyCannonModelName",
-        "designation": "MHC",
         "designationTiered": false
       },
       "sim": {
@@ -593,8 +567,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechDemolitionCannonDisplayName",
-        "modelName": "@gearCatalogWeaponMechDemolitionCannonModelName",
-        "designation": "FBR",
         "designationTiered": false
       },
       "sim": {
@@ -649,8 +621,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechMusterAutogunDisplayName",
-        "modelName": "@gearCatalogWeaponMechMusterAutogunModelName",
-        "designation": "CAG-6",
         "designationTiered": false
       },
       "sim": {
@@ -693,8 +663,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechQuarryBreakerDisplayName",
-        "modelName": "@gearCatalogWeaponMechQuarryBreakerModelName",
-        "designation": "QBC-2",
         "designationTiered": false
       },
       "sim": {
@@ -746,8 +714,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechPioneerRocketDisplayName",
-        "modelName": "@gearCatalogWeaponMechPioneerRocketModelName",
-        "designation": "PRC-4",
         "designationTiered": false
       },
       "sim": {
@@ -795,8 +761,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechSrmPodDisplayName",
-        "modelName": "@gearCatalogWeaponMechSrmPodModelName",
-        "designation": "SRM",
         "designationTiered": false
       },
       "sim": {
@@ -840,8 +804,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechSrmFragDisplayName",
-        "modelName": "@gearCatalogWeaponMechSrmFragModelName",
-        "designation": "SRM-F",
         "designationTiered": false
       },
       "sim": {
@@ -884,8 +846,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechSrmPodDisplayName",
-        "modelName": "@gearCatalogWeaponMechSrmPodModelName",
-        "designation": "SRM",
         "designationTiered": false
       },
       "sim": {
@@ -928,8 +888,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechLrmArtilleryDisplayName",
-        "modelName": "@gearCatalogWeaponMechLrmArtilleryModelName",
-        "designation": "LRM",
         "designationTiered": false
       },
       "sim": {
@@ -977,8 +935,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechLrmFragDisplayName",
-        "modelName": "@gearCatalogWeaponMechLrmFragModelName",
-        "designation": "LRM-F",
         "designationTiered": false
       },
       "sim": {
@@ -1025,8 +981,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechLrmArtilleryDisplayName",
-        "modelName": "@gearCatalogWeaponMechLrmArtilleryModelName",
-        "designation": "LRM",
         "designationTiered": false
       },
       "sim": {
@@ -1073,8 +1027,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechShoulderLaserDisplayName",
-        "modelName": "@gearCatalogWeaponMechShoulderLaserModelName",
-        "designation": "SLC",
         "designationTiered": false
       },
       "sim": {
@@ -1130,8 +1082,6 @@
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechThermalLanceDisplayName",
-        "modelName": "@gearCatalogWeaponMechThermalLanceModelName",
-        "designation": "LBT",
         "designationTiered": false
       },
       "sim": {
@@ -1190,8 +1140,6 @@
       "mount": "marine-secondary",
       "catalog": {
         "displayName": "@gearCatalogWeaponScrapRocketDisplayName",
-        "modelName": "@gearCatalogWeaponScrapRocketModelName",
-        "designation": "RKT-S",
         "designationTiered": false
       },
       "sim": {
@@ -1261,8 +1209,6 @@
       "mount": "marine-secondary",
       "catalog": {
         "displayName": "@gearCatalogWeaponAnnihilatorLauncherDisplayName",
-        "modelName": "@gearCatalogWeaponAnnihilatorLauncherModelName",
-        "designation": "RKT-1",
         "designationTiered": false
       },
       "sim": {
@@ -1303,8 +1249,6 @@
       "mount": "marine-secondary",
       "catalog": {
         "displayName": "@gearCatalogWeaponFragGrenadeDisplayName",
-        "modelName": "@gearCatalogWeaponFragGrenadeModelName",
-        "designation": "FRG-1",
         "designationTiered": false
       },
       "sim": {
@@ -1345,8 +1289,6 @@
       "mount": "marine-secondary",
       "catalog": {
         "displayName": "@gearCatalogWeaponAntiMaterielRifleDisplayName",
-        "modelName": "@gearCatalogWeaponAntiMaterielRifleModelName",
-        "designation": "AMR-1",
         "designationTiered": false
       },
       "sim": {
@@ -1382,8 +1324,6 @@
       "mount": "marine-secondary",
       "catalog": {
         "displayName": "@gearCatalogWeaponMicroMissileDisplayName",
-        "modelName": "@gearCatalogWeaponMicroMissileModelName",
-        "designation": "MSL-1",
         "designationTiered": false
       },
       "sim": {
@@ -1430,8 +1370,6 @@
       "mount": "marine-secondary",
       "catalog": {
         "displayName": "@gearCatalogWeaponIncendiaryGrenadeDisplayName",
-        "modelName": "@gearCatalogWeaponIncendiaryGrenadeModelName",
-        "designation": "INC-2",
         "designationTiered": false
       },
       "sim": {
@@ -1496,8 +1434,6 @@
       "mount": "marine-secondary",
       "catalog": {
         "displayName": "@gearCatalogWeaponFlamerDisplayName",
-        "modelName": "@gearCatalogWeaponFlamerModelName",
-        "designation": "FLM-7",
         "designationTiered": false
       },
       "sim": {
