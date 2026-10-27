@@ -3,8 +3,6 @@ package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
-import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
-import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
@@ -934,10 +932,12 @@ public final class OutdoorLandscapeStage implements GenStage {
     }
 
     /**
-     * The widest ground hull's clearance radius: a crown may close a gap infantry still pass, never one a tank could
+     * The clearance radius a crown keeps open: a crown may close a gap infantry still pass, never one a tank could
      * drive and no longer can, unless it is undergrowth the tank flattens ({@code mapgen-nouns.md}, Authored forests).
+     * Two cells, wider than a tank's own radius now that its footprint is its sprite's width: what the woods were
+     * generated with when the tank was given a 3.9-cell footprint, kept so no generated map moves.
      */
-    static final int TANK_CLEARANCE = VehicleClearance.radiusForWidth(VehicleType.LASER_TANK.visualWidthCells);
+    static final int TANK_CLEARANCE = 2;
 
     private static void trees(GenContext c, boolean[] reserved, float woodland) {
         boolean[] paint = new boolean[reserved.length], closed = new boolean[reserved.length];
