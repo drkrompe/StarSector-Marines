@@ -110,15 +110,9 @@ final class CampaignLessons {
                 vacant || full ? List.of("barracks-command-list", "barracks-formation-board", "barracks-fill-selected",
                         "barracks-missions")
                         : List.of("barracks-command-list", "barracks-formation-board", "barracks-missions"),
-                switch (MissionReturn.of(context)) {
-                    case MISSIONS -> "lessonHeadquarters";
-                    case BRIEFING -> "lessonBriefing";
-                    case DEBRIEF -> "lessonDebrief";
-                },
-                () -> {
-                    MissionReturn back = MissionReturn.of(context);
-                    context.goTo(back == MissionReturn.MISSIONS ? ScreenId.COMPANY_HQ : back.screen);
-                }), roster);
+                MissionReturn.of(context) == MissionReturn.BRIEFING ? "lessonBriefing" : "lessonHeadquarters",
+                () -> context.goTo(MissionReturn.of(context) == MissionReturn.BRIEFING
+                        ? ScreenId.BRIEFING : ScreenId.COMPANY_HQ)), roster);
     }
 
     /**

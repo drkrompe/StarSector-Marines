@@ -2,6 +2,10 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
+import com.dillon.starsectormarines.ops.loot.LootCandidate;
+import com.dillon.starsectormarines.ops.loot.LootKind;
+import com.dillon.starsectormarines.ops.loot.LootManifest;
+import com.dillon.starsectormarines.ops.loot.LootStack;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import org.json.JSONObject;
@@ -121,6 +125,38 @@ class BarracksTurnaroundTest {
         assertTrue(context.isLootSettlementStarted());
         assertFalse(context.preparingAfterSettlement());
         assertFalse(context.tryBeginLootSettlement());
+    }
+
+    @Test void theDebriefsEquipmentLessonSettlesTheOperationBeforeOpeningEquipment() {
+        var context = new MarineOpsContext(null);
+        context.setLastOutcome(MissionOutcome.builder().victory(true).missionSource(MissionSource.GENERATED).build());
+        var screen = new ResultsScreen();
+        screen.context = context;
+        screen.refit();
+        assertEquals(ScreenId.FLEET_ARMORY, context.getCurrentScreen());
+        assertTrue(context.isLootSettlementStarted());
+        assertNull(context.getLastOutcome(), "No company page sees a fought mission");
+        context.returnFromFleetArmoryWorkspace();
+        assertEquals(ScreenId.COMPANY_HQ, context.getCurrentScreen(), "No ship available in this fixture");
+    }
+
+    @Test void theDebriefsEquipmentLessonReviewsSalvageFirst() {
+        var context = new MarineOpsContext(null);
+        context.setLastOutcome(MissionOutcome.builder().victory(true).missionSource(MissionSource.GENERATED).build());
+        var candidate = new LootCandidate(
+                LootKind.COMMODITY, "supplies", "Supplies", null, 100, 1f, 1f, 1, 1);
+        context.setLootManifest(new LootManifest(1L, 100, 100,
+                List.of(new LootStack(candidate, 1))));
+        var screen = new ResultsScreen();
+        screen.context = context;
+        screen.refit();
+        assertEquals(ScreenId.LOOT, context.getCurrentScreen());
+        assertFalse(context.isLootSettlementStarted());
+        assertTrue(context.refittingAfterSettlement());
+        context.forfeitLoot();
+        context.finishOperation(context.preparingAfterSettlement());
+        assertEquals(ScreenId.FLEET_ARMORY, context.getCurrentScreen());
+        assertFalse(context.refittingAfterSettlement());
     }
 
     @Test void resultsPreparationReviewsSalvageBeforeLeavingAndNormalExitStillWorks() {
