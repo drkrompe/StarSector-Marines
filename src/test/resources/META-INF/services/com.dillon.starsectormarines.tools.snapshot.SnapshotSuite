@@ -367,3 +367,4 @@ com.dillon.starsectormarines.ops.DustLedgerMissionPreviewSuite
 com.dillon.starsectormarines.ops.battleview.RavBombardLookSnapshotSuite
 com.dillon.starsectormarines.ops.BriefingLiftSnapshotSuite
 com.dillon.starsectormarines.battle.squad.SquadRunSceneSnapshotSuite
+com.dillon.starsectormarines.ops.ReticleAmmoMockupSnapshotSuite
