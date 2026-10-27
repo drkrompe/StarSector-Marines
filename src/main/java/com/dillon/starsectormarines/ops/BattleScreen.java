@@ -1534,7 +1534,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         for (int i = 0, n = interceptPoints.size(); i < n; i++) {
             float[] point = interceptPoints.get(i);
             renderer.getImpactFx().spawnHeavyImpact(point[0], point[1], INTERCEPT_BURST_CELLS);
-            renderer.getGroundLights().spawnImpact(null, point[0], point[1]);
+            renderer.getGroundLights().spawnHeavyImpact(point[0], point[1], INTERCEPT_BURST_CELLS);
         }
     }
 
@@ -1810,6 +1810,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         if (DevConfig.DEV_MODE && !controlledAtInputStart && !directControlInput.active()) handleDebugDamageInput(events);
         if (!controlledAtInputStart && !directControlInput.active()) handleSallyDoorOrder(events);
+        if (!controlledAtInputStart && !directControlInput.active()) handleRunOrder(events);
         handleCameraInput(events);
         // Apply the current lead at the new zoom before aim is projected.
         followControlledUnit(0f);
@@ -2185,6 +2186,18 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (door < 0) continue;
             sim.sallyDoors().requestOrder(door, Faction.MARINE);
             e.consume();
+        }
+    }
+
+    /** R toggles the selected squads' standing orders between walking and running ({@link SelectionOrders#toggleRun}). */
+    private void handleRunOrder(List<InputEventAPI> events) {
+        if (events == null) return;
+        BattleSimulation sim = getSim();
+        if (sim == null) return;
+        for (InputEventAPI e : events) {
+            if (e.isConsumed() || !e.isKeyDownEvent() || e.isRepeat() || e.getEventValue() != Keyboard.KEY_R) continue;
+            if (e.isCtrlDown() || e.isAltDown() || e.isShiftDown()) continue;
+            if (SelectionOrders.toggleRun(sim, getSelection())) e.consume();
         }
     }
 

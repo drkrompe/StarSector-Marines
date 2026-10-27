@@ -96,7 +96,7 @@ public enum VehicleType {
     },
     /** Heavy convoy spearhead. Turns on conservative rolling arcs, and on the spot where no arc fits ({@link NeutralPivot}). */
     BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
-            0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
+            0, 4.3f, 2.3f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
@@ -118,7 +118,7 @@ public enum VehicleType {
      * (art-source/vehicles/tank-screened).
      */
     SCREENED_TANK("graphics/battle/vehicles/army-tank-screened.png", 0, 4, -90f,
-            0, 4.3f, 3.9f, 2.9f, .95f, 3.0f, .8f, 3.0f,
+            0, 4.3f, 2.3f, 2.9f, .95f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
@@ -143,7 +143,7 @@ public enum VehicleType {
      * laser's blue.
      */
     LASER_TANK("graphics/battle/vehicles/army-tank-laser.png", 0, 5, -90f,
-            0, 4.3f, 3.9f, 3.3f, 1.05f, 3.0f, .8f, 3.0f,
+            0, 4.3f, 2.3f, 3.3f, 1.05f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 1.6f, -90f,
             TurretCatalogRegistry.TANK_BURST_LASER_STRUCTURE_ID, 750f, 500f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
@@ -165,7 +165,7 @@ public enum VehicleType {
      * (art-source/vehicles/tank-laser).
      */
     PD_LASER_TANK("graphics/battle/vehicles/army-tank-pd-laser.png", 0, 5, -90f,
-            0, 4.3f, 3.9f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
+            0, 4.3f, 2.3f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 1.6f, -90f,
             TurretCatalogRegistry.TANK_PD_LASER_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
@@ -186,7 +186,7 @@ public enum VehicleType {
      * The blade is real: it pushes through barricades and ordinary walls in its path ({@link DozerBlade}).
      */
     DOZER_BREACHER("graphics/battle/vehicles/army-tank-dozer.png", 0, 4, -90f,
-            0, 4.6f, 3.9f, 2.4f, .9f, 3.0f, .8f, 3.0f,
+            0, 4.6f, 2.6f, 2.4f, .9f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 1.42f, -90f,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 1400f, 1000f, 38f, 1.45f, 1.1f) {
         @Override public GroundBody createBody() {

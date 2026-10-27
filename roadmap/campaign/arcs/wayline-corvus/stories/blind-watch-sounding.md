@@ -140,7 +140,7 @@ first: the trade the hook is built on.
 The owner's standing concern: a lone Hound walks through a mission. Answers:
 
 - **Rim guns.** Two gun nests (`DefensePostStamper.stampNest`) beside the ranging
-  mast covering the open regolith between the landing ridge and the post.
+  mast, covering the rim's west ramp, the boulder approach and the crater floor.
   Rockets, the Hound or charges kill them; the boulder field reaches them in cover.
 - **Bunkers.** Regolith-bermed pillboxes at the hab cluster's airlock and at the
   foot of the uplink ramp, manned from the security posts (no extra headcount).
@@ -175,13 +175,13 @@ down the east, broken where the rover track and the rille come in.
 |---|---|
 | West | The landing ground behind a low ridge: three berths, one logical landing area (`Layout.landing`). The ridge is three masses with passes between: north (to the boulder field), middle (the rover track), south (to the rille). |
 | Centre | Open regolith flat pocked with impact craters (rims, bowls, ejecta and its boulders), crossed by the rover track, worn into ruts, with dead rovers and wreckage where they stopped; a boulder field to the north (basalt formations on a jittered lattice, slow and covered, `Layout.boulderCover`); a dry sinuous rille to the south (excavation: impassable, see-through), broken by two crossings (`Layout.rilleCrossings`), ending under the dish field's south-west corner, with boulder clusters along its south bank. |
-| North-east | The crater rim, a long arc one tier up whose south-west spur reaches toward the rover track. On it the ranging mast (gravel pad, `Installation.MAST`) and two rim guns (`DefensePostStamper.stampNest`, heavy MGs): one on the spur's tip over the track and the flat's east half, one beside the mast over the crater floor. Two ramps: a four-cell one at the spur's west flank from the boulder field (`Layout.rimRamps` first), a five-cell one from the crater floor. |
+| North-east | The crater rim, a long arc one tier up whose south-west spur reaches toward the rover track. On it the ranging mast (gravel pad, `Installation.MAST`) and two rim guns (`DefensePostStamper.stampNest`, heavy MGs) beside the mast: one west of it over the west ramp and the boulder approach, one east of it over the crater floor. Neither has a line over the flat or the rover track; the flat is the mortar's, firing on what the mast sees. Two ramps: a four-cell one at the spur's west flank from the boulder field (`Layout.rimRamps` first), a five-cell one from the crater floor. |
 | East floor | Inside the post's crater wall. The fenced dish field (six four-cell listening dishes on concrete footings, their cables laid to the control hut, gates north, south and east, `Installation.DISH_FIELD`) with its control hut and console (`Layout.controlHut`, `Layout.console`); the hab cluster either side of the hab street: north the long bunkhouse and a short bunk module joined by a tube, south the signals racks' module (entered through its airlock) and the riggers' module at the row's east end, a narrow tube between them; power laid along the street, antenna masts, oxygen spheres and gas bottle racks behind the bunks, containers and crates; the cold drop between the riggers' module and the lander pad: the cryo pod racks in two rows with the aisle a squad holds them from (`Layout.podRacks`, `Layout.podHold`), their chiller, the chem module and the chemist (`Layout.chemModule`, `Layout.chemist`); on the lander pad the crates on pallets (`Layout.drugCrates`) and the half-loaded cargo crawler with its crew (`Layout.cargoCrawler`, `Layout.landerCrew`); fuel skids on the pad; the motor pool south of the cold drop, its tanker parked. |
 | South-east | The uplink knoll, one tier up, climbed by one six-cell ramp from the west (`Layout.knollRamp`): the uplink's transmitter, switch gear and generator on a gravel pad (`Installation.UPLINK`), and the rocket truck's stands (`Layout.technicalStands`). |
 
 Three approaches are real choices, each proved open on its own ground
 (`Layout.approaches`): **flat** (the rover track through the ridge's middle pass
-to the hab's airlock, under the spur gun), **boulders** (the north pass, through
+to the hab's airlock, under the mortar), **boulders** (the north pass, through
 the field, up the rim's west ramp to the mast), **rille** (the south pass, over
 the west crossing, along the rille's south bank behind its boulders to the dish
 field's south gate). The riggers' walk-out (`Layout.riggersWalkOut`) runs from
@@ -268,11 +268,24 @@ worst-approach and a prepared-approach run, the full-mission preview video.
 - [x] Second map pass: craters on the flat, the post's crater closed round its floor, large dishes, varied modules with airlock and tubes, stores, wrecks and track wear.
 - [x] Each charge's effect fires in a unit test; the warning stops at the uplink charge.
 - [x] Each side job pays off only inside its window.
-- [ ] `commanderEvidence -Pmission=corvus "-Dbattle.corvus.chapter=BLIND_WATCH"`: worst approach (autonomous, no side jobs) and prepared approach (side jobs granted, mast first) both measured; the prepared one clearly easier.
+- [x] `commanderEvidence -Pmission=corvus "-Dbattle.corvus.chapter=BLIND_WATCH"`, after the spur rim gun
+  moved beside the mast (owner's option a; it had killed 28-29 of 36 on the flat in every run):
+  - Prepared (stood-to, every side job, Convoy Escort Issue, Hound SRM shoulder): **victory at tick 4,659**,
+    dish field, mast and uplink blown in turn, 15 of 36 marines lost, 22 of 26 defenders down; the false
+    schedule keeps the warning silent.
+  - Worst approach (stood-to, no side jobs, Field Security): defeat. Mast blown at 4,307, every marine lost by
+    6,689, Garnir warned. Accepted as fine (owner: a real player won't charge in a line).
+  - Quiet post (`corvus.teague.delivered`): defeat at 7,359, no charge blown, Garnir warned.
+  - The rocket truck never moves or fires: the Hound never comes near the uplink knoll.
+  - Open: in the worst run a Hound with no legs and no head, unable to move or fire, kept the battle running to the
+    18,000-tick cap (see Open questions).
 - [ ] Full-mission preview video with sound, 1920x1080, look preset.
 - [ ] Live play on Warion in a campaign.
 
 ## Open questions
+
+- A mech that can neither move nor fire still counts as a company force, so a battle can run forever
+  (worst-approach run above). Whether it counts as out of the fight is on the Blind Watch picks page.
 
 - Side-job pay (proposed: riggers 1,500, false schedule none).
 - Whether Blind Watch reads the Dust Ledger's broker mark: an escaped Teague

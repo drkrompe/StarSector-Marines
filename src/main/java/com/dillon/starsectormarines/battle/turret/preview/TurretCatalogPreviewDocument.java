@@ -4,9 +4,8 @@ import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.weapon.SoftLaunch;
-import com.dillon.starsectormarines.battle.weapon.fx.FxBlend;
+import com.dillon.starsectormarines.battle.weapon.fx.FxCommandPainter;
 import com.dillon.starsectormarines.battle.weapon.fx.FxCompositionContext;
-import com.dillon.starsectormarines.battle.weapon.fx.FxLayerKind;
 import com.dillon.starsectormarines.battle.weapon.fx.FxParticleCommand;
 import com.dillon.starsectormarines.battle.weapon.fx.FxSlot;
 import com.dillon.starsectormarines.battle.weapon.fx.WeaponFxComposer;
@@ -55,9 +54,6 @@ public final class TurretCatalogPreviewDocument {
     private static final float RECOIL_DURATION = 0.12f;
     private static final float RECOIL_DISTANCE_FRACTION = 0.10f;
 
-    private static final String PARTICLE_SHEET = "graphics/particle/smokeAndFire.png";
-    private static final String GLOW_SPRITE = "graphics/fx/particlealpha64linear.png";
-    private static final String EXPLOSION_RING = "graphics/fx/explosion_ring0.png";
 
     private static final Color BACKGROUND = new Color(0x0D, 0x12, 0x19);
     private static final Color PANEL_BACKGROUND = new Color(0x16, 0x1D, 0x27);
@@ -65,6 +61,12 @@ public final class TurretCatalogPreviewDocument {
     private static final Color BORDER = new Color(0x45, 0x57, 0x6B);
     private static final Color LABEL = new Color(0xE0, 0xE8, 0xF2);
     private static final Color WHITE = Color.WHITE;
+
+    private static final FxCommandPainter.Projection PROJECTION = new FxCommandPainter.Projection() {
+        @Override public float x(float cellX) { return worldToX(cellX); }
+        @Override public float y(float cellY) { return worldToY(cellY); }
+        @Override public float cellPx() { return CELL_PX; }
+    };
 
     private TurretCatalogPreviewDocument() {}
 
@@ -389,7 +391,7 @@ public final class TurretCatalogPreviewDocument {
         private int drawVisibleAt(CanvasContext context, List<FxParticleCommand> commands,
                                   float preferredAge, float targetX, float targetY) {
             if (commands == null || commands.isEmpty()) return 0;
-            if (hasLiveCommand(commands, preferredAge)) {
+            if (FxCommandPainter.anyAlive(commands, preferredAge)) {
                 return drawCommandsAt(context, commands, preferredAge, targetX, targetY);
             }
             FxParticleCommand first = commands.get(0);
@@ -406,63 +408,13 @@ public final class TurretCatalogPreviewDocument {
 
         private int drawCommandsAt(CanvasContext context, List<FxParticleCommand> commands,
                                    float snapshotAge, float targetX, float targetY) {
-            if (commands == null || commands.isEmpty()) return 0;
-            int drawn = 0;
-            float translateX = targetX - scene.midpointX;
-            float translateY = targetY - scene.midpointY;
-            for (FxParticleCommand command : commands) {
-                float age = snapshotAge - command.delaySeconds();
-                if (age < 0f || age >= command.lifetimeSeconds()) continue;
-                float lifeFraction = 1f - age / command.lifetimeSeconds();
-                float x = command.x() + translateX + command.velocityX() * age;
-                float y = command.y() + translateY + command.velocityY() * age;
-                float radius = command.radiusCells()
-                        + command.radiusGrowthPerSecond() * age;
-                ParticleSprite particle = particleSprite(command, age);
-                Color tint = new Color(command.color().getRed(), command.color().getGreen(),
-                        command.color().getBlue(),
-                        Math.max(0, Math.min(255, Math.round(255f * lifeFraction))));
-                drawSprite(context, particle.sprite(), worldToX(x), worldToY(y),
-                        Math.max(1f, radius * 2f * CELL_PX), command.angleDegrees(), tint,
-                        particle.region(), command.blend() == FxBlend.ADDITIVE
-                                ? CanvasBlend.ADDITIVE : CanvasBlend.NORMAL);
-                drawn++;
-            }
-            return drawn;
-        }
-
-        private ParticleSprite particleSprite(FxParticleCommand command, float age) {
-            return switch (command.kind()) {
-                case GLOW, DUST -> new ParticleSprite(
-                        requiredSprite(scene.assets, GLOW_SPRITE), CanvasSpriteRegion.FULL);
-                case RING -> new ParticleSprite(
-                        requiredSprite(scene.assets, EXPLOSION_RING), CanvasSpriteRegion.FULL);
-                case EXPLOSION -> new ParticleSprite(requiredSprite(scene.assets,
-                        "graphics/fx/explosion" + Math.floorMod(command.variantIndex(), 7)
-                                + ".png"), CanvasSpriteRegion.FULL);
-                case FIRE, SMOKE -> particleFrame(command.kind(), age,
-                        command.lifetimeSeconds());
-            };
-        }
-
-        /**
-         * Frame band for one particle kind on the shared 4x4 sheet: grey
-         * smoke occupies its first eight frames, orange fire the last eight.
-         *
-         * <p>Those indices are the opposite way round from the ones
-         * {@code ImpactFx} names for the same sheet, and both are right:
-         * {@link CanvasSpriteRegion#frame} counts rows
-         * down from the top of the image, while Starsector's
-         * {@code SpriteAPI.setTexY} counts them up from the bottom of the
-         * texture. A preview document is drawn through the image-space
-         * renderer, so it reads the sheet the way a person looking at the
-         * file would.
-         */
-        private ParticleSprite particleFrame(FxLayerKind kind, float age, float lifetime) {
-            Sprite sheet = requiredSprite(scene.assets, PARTICLE_SHEET);
-            int frame = Math.min(7, (int) (age / Math.max(0.001f, lifetime) * 8f));
-            int index = (kind == FxLayerKind.SMOKE ? 0 : 8) + frame;
-            return new ParticleSprite(sheet, CanvasSpriteRegion.frame(4, 4, index));
+            return FxCommandPainter.draw(context, commands, snapshotAge,
+                    targetX - scene.midpointX, targetY - scene.midpointY, PROJECTION,
+                    path -> {
+                        Sprite sprite = requiredSprite(scene.assets, path);
+                        return new FxCommandPainter.Sprite(sprite.sourcePath, sprite.liveSprite,
+                                sprite.pixelWidth, sprite.pixelHeight);
+                    });
         }
 
         private List<FxParticleCommand> commands(FxSlot slot) {
@@ -499,14 +451,6 @@ public final class TurretCatalogPreviewDocument {
 
     private static Sprite optionalSprite(Assets assets, String path) {
         return path != null ? requiredSprite(assets, path) : null;
-    }
-
-    private static boolean hasLiveCommand(List<FxParticleCommand> commands, float age) {
-        for (FxParticleCommand command : commands) {
-            float commandAge = age - command.delaySeconds();
-            if (commandAge >= 0f && commandAge < command.lifetimeSeconds()) return true;
-        }
-        return false;
     }
 
     private static float sceneCenterX() {
@@ -593,8 +537,6 @@ public final class TurretCatalogPreviewDocument {
     private static float lerp(float from, float to, float fraction) {
         return from + (to - from) * fraction;
     }
-
-    private record ParticleSprite(Sprite sprite, CanvasSpriteRegion region) {}
 
     private record FlightPoint(float x, float y) {}
 

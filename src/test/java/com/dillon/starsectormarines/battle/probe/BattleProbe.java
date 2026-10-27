@@ -25,6 +25,7 @@ import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.HitLog;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.squad.SquadPlan;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.story.StoryBeatLog;
@@ -48,6 +49,9 @@ import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.power.WalkingBarrage;
+import com.dillon.starsectormarines.battle.nav.NavigationService;
+import com.dillon.starsectormarines.battle.decision.goap.SquadRouteGoalProvider;
 import com.dillon.starsectormarines.battle.sim.MovementService;
 import com.dillon.starsectormarines.battle.vehicle.PurePursuit;
 import org.json.JSONArray;
@@ -69,11 +73,13 @@ import java.util.Set;
  * <p>The point is to stop paying a whole replay per question. A battle is deterministic, so stepping to the tick that
  * matters and then asking ten things about it costs one replay; turning on the {@link HitLog} only from that tick
  * costs nothing before it. Every command reads; none changes the battle except {@code advance}/{@code until}, which
- * step it exactly as a harness does, and {@code hitlog}, which only switches an observer.
+ * step it exactly as a harness does, {@code player}, which takes the company off its commander as a played battle
+ * does, and {@code hitlog}, which only switches an observer.
  *
  * <p>Commands, one per line ({@code #} starts a comment):
  * <pre>
  *   tick                                  current tick, whether the battle is over and who won
+ *   player                                hand the company to a player who gives no orders, as a played battle does
  *   advance N                             step N ticks
  *   until T                               step until tick T
  *   until-beat TEXT [max=T]               step until a story beat whose id contains TEXT is published
@@ -128,6 +134,10 @@ public final class BattleProbe {
         this.sim = sim;
         commands.put("tick", a -> status());
         commands.put("presence", a -> presence());
+        commands.put("player", a -> {
+            sim.playerCommandsCompany();
+            return status();
+        });
         commands.put("advance", a -> step(sim.getSimTickIndex() + a.intAt(0), null));
         commands.put("until", a -> step(a.intAt(0), null));
         commands.put("until-beat", a -> step(a.intOr("max", Integer.MAX_VALUE), a.word(0)));
@@ -143,6 +153,8 @@ public final class BattleProbe {
         commands.put("members", a -> members(a.intAt(0)));
         commands.put("watch", this::watch);
         commands.put("stalls", this::stalls);
+        commands.put("topology", this::topology);
+        commands.put("vetoes", this::vetoes);
         commands.put("speed", a -> {
             long id = a.longAt(0);
             JSONArray applied = new JSONArray();
@@ -431,7 +443,8 @@ public final class BattleProbe {
     private JSONObject status() throws Exception {
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("complete", sim.isComplete())
                 .put("winner", sim.isComplete() ? String.valueOf(sim.getWinner()) : JSONObject.NULL)
-                .put("routeStalls", sim.movement().routeStalls());
+                .put("routeStalls", sim.movement().routeStalls())
+                .put("routeWaitStalls", sim.squadRouteWaitStalls());
     }
 
     /** What keeps the company in the battle: its ground bodies, its boats, its reserve, and each objective. */
@@ -687,6 +700,26 @@ public final class BattleProbe {
         put(row, "leader", () -> leader == 0 ? JSONObject.NULL : brief(leader));
         row.put("goal", squad.currentGoal == null ? JSONObject.NULL : squad.currentGoal.name())
                 .put("post", squad.assignedNode != null);
+        SquadPlan plan = squad.currentPlan;
+        SquadPlan.Step step = plan == null ? null : plan.currentStep();
+        row.put("plan", plan == null ? JSONObject.NULL : (plan.currentIndex() + 1) + "/" + plan.stepCount() + " "
+                + (step == null ? "-" : step.action.getClass().getSimpleName()));
+        if (step != null && step.action instanceof SquadRouteGoalProvider provider) {
+            SquadRouteGoalProvider.Goal goal = provider.squadRouteGoal(squad, sim);
+            if (goal != null) {
+                List<Long> assigned = step.allAssignedMembers().stream().distinct()
+                        .filter(member -> sim.resolveUnit(member) != 0L && !sim.isRiding(member)).toList();
+                int[] starts = new int[assigned.size()];
+                for (int i = 0; i < starts.length; i++) {
+                    starts[i] = sim.getGrid().index(sim.world().cellX(assigned.get(i)), sim.world().cellY(assigned.get(i)));
+                }
+                NavigationService.SquadRouteDiagnostic route = sim.inspectSquadRoute(squad.id, squad.routingEpoch, step,
+                        goal.x(), goal.y(), starts);
+                row.put("route", route.status() + " goal " + goal.x() + "," + goal.y() + " wait " + route.waitAgeTicks()
+                        + " build " + route.buildAgeTicks() + " work " + route.lifetimeWorkUnits() + " retry "
+                        + route.retryRemainingTicks() + " covered " + route.coveredStartCount() + "/" + route.startCount());
+            }
+        }
         int members = sim.squadMemberCount(squad.id);
         if (members > 0) {
             float x = 0f;
@@ -857,7 +890,41 @@ public final class BattleProbe {
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("rows", rows);
     }
 
-    /** Steps {@code N} ticks; for each route stall counted, the unit, where it stood, its next waypoint and what is beside it. */
+    /** Steps {@code N} ticks and lists each tick the grid's topology revision changed, with the new revision. */
+    private JSONObject topology(Args a) throws Exception {
+        int ticks = a.intAt(0);
+        JSONArray changes = new JSONArray();
+        long revision = sim.getGrid().topologyRevision();
+        for (int t = 0; t < ticks && !sim.isComplete(); t++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            long now = sim.getGrid().topologyRevision();
+            if (now != revision && changes.length() < 200) changes.put(sim.getSimTickIndex() + ":" + now);
+            revision = now;
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("revision", revision).put("changes", changes);
+    }
+
+    /** Steps {@code N} ticks; for each round the heart's barrage held, the friendly body it was held for. */
+    private JSONObject vetoes(Args a) throws Exception {
+        int ticks = a.intAt(0);
+        int limit = a.intOr("limit", 20);
+        WalkingBarrage barrage = sim.getHeart() == null ? null : sim.getHeart().barrage();
+        if (barrage == null) return new JSONObject().put("error", "no barrage");
+        JSONArray rows = new JSONArray();
+        int seen = barrage.vetoed();
+        for (int t = 0; t < ticks && !sim.isComplete(); t++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            if (barrage.vetoed() == seen) continue;
+            seen = barrage.vetoed();
+            long id = barrage.lastVetoedBy();
+            if (id == 0L || rows.length() >= limit) continue;
+            JSONObject row = brief(id).put("tick", sim.getSimTickIndex()).put("line", barrage.firingLine());
+            if (sim.squad().hasSquad(id)) row.put("squad", sim.squad().squadId(id));
+            rows.put(row);
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("vetoed", barrage.vetoed()).put("rows", rows);
+    }
+
     /** The point the route follower steers {@code id} at this tick, or null with no route left. */
     private Object carrot(long id) throws Exception {
         int[] path = sim.movement().path(id);
@@ -867,6 +934,7 @@ public final class BattleProbe {
         return new JSONObject().put("x", round(c.x)).put("y", round(c.y)).put("next", c.nextIdx).put("atEnd", c.atEnd);
     }
 
+    /** Steps {@code N} ticks; for each route stall counted, the unit, where it stood, its next waypoint and what is beside it. */
     private JSONObject stalls(Args a) throws Exception {
         int ticks = a.intAt(0);
         int limit = a.intOr("limit", 40);

@@ -169,7 +169,8 @@ class DozerBladeTest {
         for (int x = 8; x <= 12; x++) wall(grid, topology, x, 10, 100);
         VehicleType type = VehicleType.DOZER_BREACHER;
         GroundBody body = dozerAtRow10(type);
-        body.speed = type.maxSpeed;
+        // Short of full speed: at full speed its blade's three cells of city wall are less than its way, and it goes through.
+        body.speed = type.maxSpeed * .8f;
         try (NavigationService navigation = new NavigationService(grid, topology, false)) {
             DozerBlade blade = new DozerBlade(navigation, new MapEditor(navigation), null);
             assertTrue(blade.push(body, type, new VehicleControlComponent(), 1f / 30f));

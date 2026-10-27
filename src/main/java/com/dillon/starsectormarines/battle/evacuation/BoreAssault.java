@@ -184,6 +184,16 @@ final class BoreAssault {
     }
 
     /**
+     * Whether a militia squad {@code cells} from its support line holds the line: within {@link #SET_CELLS}. Farther off
+     * it moves up to the line, fighting on the way. Only told to hold the line, a squad short of it held where it stood
+     * and fought whatever was in front of it: Broad Front verdant 3's lane 4 stood fifty to eighty cells short of its
+     * line from tick 9000 to the end, and its satellite was never touched (2026-10-26).
+     */
+    static boolean holdsSupportLine(float cells) {
+        return cells <= SET_CELLS;
+    }
+
+    /**
      * Where a formation coming from ({@code fromX}, {@code fromY}) onto the bore rallies for its assault: the bore's
      * support line on the way it comes. {@code null} when the lane stands that close already, with no advance to make.
      */

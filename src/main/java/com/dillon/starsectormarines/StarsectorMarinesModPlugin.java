@@ -48,7 +48,11 @@ import com.dillon.starsectormarines.intel.LastTestamentIntel;
 import com.dillon.starsectormarines.ops.CompanyShipLossListener;
 import com.dillon.starsectormarines.ops.CompanyViewAbility;
 import com.dillon.starsectormarines.ops.MenuTheme;
+import com.dillon.starsectormarines.render.FullscreenWindowRepair;
 import com.dillon.starsectormarines.ops.event.PlayerEventPresenter;
+import com.dillon.starsectormarines.ops.battleview.WeaponPreviewScenes;
+import com.dillon.starsectormarines.ops.spec.SpecSheets;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.dillon.starsectormarines.marine.LoadoutCardInventory;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
@@ -106,6 +110,8 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Every retained page's press, disabled-press and hover cues, played through the
         // game's own sound player with the base game's UI sound ids.
         UiSounds.install(new UiSounds(id -> Global.getSoundPlayer().playUISound(id, 1f, 1f), System::nanoTime));
+        // A marine primary's sheet shows the weapon firing on the range, wherever the sheet opens.
+        SpecSheetLayer.registerSceneSource(SpecSheets.SCENE_WEAPON, WeaponPreviewScenes::new);
         MarineCatalogManifest marineCatalogs = MarineCatalogManifest.discoverEnabled();
         // Tile definitions and generation mappings use the same enabled-provider
         // manifest as equipment. Mappings follow tiles so every referenced visual
@@ -191,6 +197,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensureCaptainDiscoverySalvageListener();
         ensureCompanyShipLossListener();
         SecondWindKeeper.install(Global.getSector());
+        FullscreenWindowRepair.CampaignHook.install(Global.getSector());
         ensureFactionEquipmentMarketStock();
         ensurePlayerEventPresenter();
         CompanyProloguePresenter.install();
