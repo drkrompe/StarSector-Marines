@@ -160,10 +160,10 @@ LEDGER = [
     # (her S6c blaster graze is cut: nothing in S6c fires on her, and no hit lands without a visible shooter)
 
     # ---- WARDEN FIVE, the convoy's Hound: crippled in S6d
-    # timed to the second Hound (P)'s drawn rounds: her first burst lands on her from 76.2 to 77.25 s
-    H('hound-m', 76.2, 'rake', 1, (8, 6, -2), (0, .6, -1), to=(-6, 7, -2), by='tracer',
+    # timed to the second Hound (P)'s drawn rounds: her first burst lands on her from 76.9 to 77.25 s, once she is in range (the gunnery plan)
+    H('hound-m', 76.9, 'rake', 1, (8, 6, -2), (0, .6, -1), to=(-6, 7, -2), by='tracer',
       src='S6d k3e tracer hound-p-b', note="the second Hound (P)'s guns from below as she rolls"),
-    H('hound-m', 76.5, 'breach', 3, (16, 10, -4), (-.6, .3, .7), by='tracer', src='S6d k3e tracer hound-p-b',
+    H('hound-m', 77.1, 'breach', 3, (16, 10, -4), (-.6, .3, .7), by='tracer', src='S6d k3e tracer hound-p-b',
       note="the burst breaks through her belly plating: it burns"),
     H('hound-m', 77.25, 'he', 2, (-24, -3, 1), (-1, 0, .2), by='tracer', src='S6d k3e tracer hound-p-b', vent_s=20.0,
       note='the last of that burst in her drive cluster: she loses thrust, venting (the camera kick at 77.25)'),
@@ -197,8 +197,8 @@ LEDGER = [
     H('falcon-p', 104.79, 'breach', 3, (14, -5, -5), (-.3, -.6, .7), by=('tracer', 'blast_on'),
       src='S9b k4b tracer lasher-lead + blast_on',
       note='hit hard: the flank opens and burns; still burning in S10 (continuity)'),
-    H('falcon-p', 108.04, 'he', 2, (-11, 31, 10), (0, -1, .4), by='tracer', src='S9b k4b tracer lasher-lead', vent_s=20.0,
-      note="the Lasher's last rounds hole her further aft, venting"),
+    H('falcon-p', 107.45, 'he', 2, (-11, 31, 10), (0, -1, .4), by='tracer', src='S9b k4b tracer lasher-lead', vent_s=20.0,
+      note="the Lasher's last rounds, fired before she falls silent at 107.2 s, hole her further aft, venting"),
 
     # ---- the Manticore (P): scored by the lead's guns
     # (her S6 rake from the lead is cut: the lead's guns draw nothing at that range)
@@ -236,7 +236,7 @@ LEDGER = [
       src='S6b k3c tracer wolf-m'),
     H('hound-p-c', 62.83, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6b k3c blast_on + debris',
       note="Lasher B's Ammo Feeder burst lands and breaks her up"),
-    H('hound-p-a', 75.75, 'rake', 1, (6, 5, 3), (0, .4, 1), to=(-8, 6, 3), by='tracer',
+    H('hound-p-a', 76.6, 'rake', 1, (6, 5, 3), (0, .4, 1), to=(-8, 6, 3), by='tracer',
       src='S6d k3e tracer hound-m', note="the convoy Hound's first rounds to reach her"),
     H('hound-p-a', 76.83, 'kill', 4, (0, 0, 0), (0, 0, 1), by=('blast_on', 'debris'), src='S6d k3e blast_on + debris',
       note="killed at close range by the convoy Hound's burst: she cooks off"),
@@ -254,13 +254,13 @@ if os.environ.get('ASHARU_S7_FIGHT'):
 # the shooter at the hit's time, target frame. A hit is cast onto the face that shooter sees, so a
 # hit whose `at` lies on the far side lands on the near face in line with it.
 SHOOTER_SIDE = {
-    'hound-m@76.2:rake': (0.96, 0.04, -0.27),
+    'hound-m@76.9:rake': (0.89, -0.07, -0.46),
     'wolf-p-a@95.8:he': (0.74, 0.61, -0.29),
     'kite-p-b@96.5:he': (-0.81, -0.43, 0.39), 'tarsus@68.0:rake': (-0.09, -0.99, -0.10), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
     'lasher-lead@103.7:breach': (0.98, -0.17, -0.06), 'falcon-p@104.8:breach': (0.69, 0.55, 0.46),
-    'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@76.5:breach': (0.94, 0.01, -0.33),
+    'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@77.1:breach': (0.82, -0.14, -0.55),
     'falcon-p@104.6:rake': (0.75, 0.51, 0.43), 'wolf-p-b@72.7:rake': (0.39, -0.36, -0.85),
-    'hound-p-a@76.8:kill': (0.87, -0.45, 0.19), 'hound-p-a@75.8:rake': (0.99, -0.08, 0.12), 'hound-m@77.2:he': (0.73, -0.22, -0.65),
+    'hound-p-a@76.8:kill': (0.87, -0.45, 0.19), 'hound-p-a@76.6:rake': (0.96, -0.21, 0.18), 'hound-m@77.2:he': (0.73, -0.22, -0.65),
     'tarsus@81.4:rake': (-0.27, 0.78, 0.57),
     'hound-p-c@61.1:rake': (0.89, 0.14, 0.44),
     'hound-p-c@62.8:kill': (0.71, 0.31, 0.64), 'hound-p-c@61.6:rake': (0.89, 0.13, 0.44),

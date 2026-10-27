@@ -857,13 +857,15 @@ K3D_SHIPS = {
 # second's fire takes her drives: she tumbles back toward the column
 K3E_T = 77
 K3E_SHIPS = {
-    'hound-m': fly('hound-m', (-1500, -150, 110, -160, -25, 110, 1), K3E_T, [
+    'hound-m': fly('hound-m', (-1500, -150, 110, -160, -27, 118, 1), K3E_T, [
         # She has rolled over onto them before the shot opens (72-74 s), so through S6d she is steady enough
         # for her turret to stay on the first Hound (P) and fire down onto her: rolling over inside the shot
         # swung the target 40-93 deg/s across her turret and the 5-degree gate held all but 5 late rounds
         # (owner, 2026-10-23: "I don't see any shots coming out of our hero Hound")
-        dict(t=72, hd=0, pt=2, rl=5, v=160), dict(t=74, hd=-150, pt=-18, rl=95),
-        dict(t=78.5, hd=-170, pt=-18, rl=125, v=120), dict(t=80, hd=-176, pt=-8, rl=145, v=60)],
+        # Her nose held 9-12 deg further down and 4-8 deg more roll (2026-10-27, the firing-arc lint): before, the first Hound (P) sat
+        # 1-4 deg past her turret's arc until 77 s, so the hero burst could not leave it
+        dict(t=72, hd=0, pt=2, rl=5, v=160), dict(t=74, hd=-150, pt=-30, rl=99),
+        dict(t=78.5, hd=-170, pt=-27, rl=133, v=120), dict(t=80, hd=-176, pt=-8, rl=145, v=60)],
         # her gun's kick while her burst runs (74.0-76.2 s), then the drive hit at 77.25 s
         hits=recoil([74.0], every=.2, until=76.2) + [dict(t=77.25, push=(6, -4, 3), spin=(25, 10, -15), decay=1.5, thr=.25)]),
     'hound-p-a': fly('hound-p-a', (-1700, -50, -20, 10, 20, 0, .4), K3E_T, [
@@ -1063,7 +1065,13 @@ K4_COLOSSUS_FLOWN = fly('colossus', K4_COLOSSUS, K4_T, [
     dict(t=88, hd=.5, pt=-1, rl=12, thr=.5), dict(t=90.2, hd=.4, pt=-1.3, rl=2.5, thr=.5),
     dict(t=102, hd=-2.5, pt=-6, rl=11)], v=4.0, wobble=.5, thrust=None,
     hits=[dict(t=90.3, push=(0, -1.5, -.5), spin=(.8, -.3, -.3), decay=3.0, thr=.2)])
-K4_MORROW_FLOWN = carried(held('morrow', K4_MORROW, K4_T, wobble=.8), K4_COLOSSUS_FLOWN)
+# Morrow works under the Colossus's keel (2026-10-27, the activity lint: she sat still in S8 for 7 s at 173 px):
+# bracing as the hit at 90.3 s shoves her charge, trimming level for the Borer launches (94.2, 95.0 s), then
+# heaving up again as the Colossus starts to lose height
+K4_MORROW_FLOWN = carried(keyed('morrow', K4_MORROW, K4_T, [
+    dict(t=80, hd=0, pt=8, rl=4), dict(t=88, hd=0, pt=8, rl=4), dict(t=91, hd=3, pt=13, rl=9),
+    dict(t=94.5, hd=-1, pt=6, rl=0), dict(t=98, hd=2, pt=11, rl=6), dict(t=102, hd=-1, pt=7, rl=1)], v=0.0, wobble=.8),
+    K4_COLOSSUS_FLOWN)
 K4_SHIPS = {
     'colossus': K4_COLOSSUS_FLOWN, 'morrow': K4_MORROW_FLOWN,
     # Borers fight; they are not repair craft (owner, 2026-10-23): the two off the shot-out pod both nose
@@ -1258,8 +1266,11 @@ K4B_LEAD = fly('lasher-lead', (-560, 380, 30, -160, -20, 160, 1), K4B_T, [
     hits=recoil([103.5], every=.15, until=106.8)
     + [dict(t=107.6, spin=(20, 3, 5), push=(0, 20, 8), decay=2.5, thr=.1, held=True)])     # the cook-off's own impulse
 K4B_SHIPS = {
+    # she rolls in with her nose down onto the Lasher (2026-10-27, turret masks: level, her own forward hull
+    # stood between her port guns and the Lasher's bow, so the breach at 103.7 s had no gun)
     'falcon-p': fly('falcon-p', (-700, 200, -100, 10, 6, -4, .8), K4B_T, [
-        dict(t=102, hd=8, pt=5, rl=-2), dict(t=110, hd=16, pt=3, rl=-12, v=30)], v=45,
+        dict(t=102, hd=8, pt=5, rl=-2), dict(t=103.3, hd=9, pt=-5, rl=-17),
+        dict(t=110, hd=16, pt=3, rl=-12, v=30)], v=45,
         hits=recoil([106.0], kick=.12, shove=.2, every=.3, until=108.5)
         + [dict(t=104.79, push=(0, -4, -2), spin=(-5, 1, 3), decay=2.0, thr=.5)]),
     'lasher-lead': K4B_LEAD,
@@ -1430,7 +1441,8 @@ KEYFRAMES = {
             ('tracer', 'wolf-m', 'wolf-p-a'),
             # the Colossus's guns on the raiders as they close inside 1.35 km (owner, 2026-10-23: "why are none
             # of the Colossus turrets taking shots at those Wolfs"): her 360-degree mounts bear on both
-            ('tracer', 'colossus', 'wolf-p-a'), ('tracer', 'colossus', 'wolf-p-b'),
+            # (on Wolf (P) A none does in this shot: the firing-arc lint, 2026-10-27; she is the merchant Wolf's)
+            ('tracer', 'colossus', 'wolf-p-b'),
             ('fire_on', 'tarsus', (-37, -2, 6), (-.2, .5, 1))],
         labels=['wolf-p-a', 'wolf-p-b', 'tarsus', 'wolf-m', 'colossus']),
     'k3e': dict(
@@ -1447,7 +1459,7 @@ KEYFRAMES = {
         fx=[('tracer', 'hound-m', 'hound-p-a', (0, 0, 0), dict(trained=True, cease_t=77.0, walk=2.0, sure_t=76.83)), ('tracer', 'hound-p-b', 'hound-m'),
             ('blast_on', 'hound-p-a', 14, (0, 0, 0), 76.83), ('debris', 'hound-p-a', 40, (0, 0, 0), 76.83),
             # no flares: a Hound mounts no missiles, so nothing here is a seeker for them to answer (owner,
-            # 2026-10-23: flares need a visible cause, an inbound seeker on screen); her 76.5 s breach
+            # 2026-10-23: flares need a visible cause, an inbound seeker on screen); her 77.1 s breach
             # burns where the second Hound (P)'s rounds land (the damage ledger keys that fire)
             ],
         cues={'hound-m': {'fire': 'all'}, 'hound-p-b': {'fire': 'all'}},
@@ -2977,7 +2989,10 @@ def blender_main(cfg):
             if fx[0] == 'mining' and fx[1] in spec['ships'] and fx[2] in spec['ships'] and fx[1] in placed:
                 a, b = fx[1], fx[2]
                 cam_ = spec['camera']['at']
-                for t in [cam_.keys[0]['t'] + j * .5 for j in range(int((cam_.keys[-1]['t'] - cam_.keys[0]['t']) / .5) + 1)]:
+                # the beam is on while a rake of hers on this target is (mining), else the whole shot
+                spans_ = [(r[2], r[3]) for r in spec.get('rakes', ()) if r[0] == a and r[1] == b] or                     [(cam_.keys[0]['t'], cam_.keys[-1]['t'])]
+                for t in [r0 + (r1 - r0) * j / max(1, int((r1 - r0) / .25)) for r0, r1 in spans_
+                          for j in range(max(1, int((r1 - r0) / .25)) + 1)]:
                     aim = g.to_local(g.frame(pos(a, t)), g.to_world(g.frame(pos(b, t)), fx[3] if len(fx) > 3 else (0, 0, 0)))
                     dist = math.sqrt(sum(c * c for c in aim)) or 1.0
                     u = [c / dist for c in aim]
@@ -3027,6 +3042,78 @@ def blender_main(cfg):
             raise RuntimeError(f'{base}: {fmt(bad)[0]} (hull-cross lint)')
 
     own_hull_done = set()
+
+    def turret_masks(kf, path):
+        """--turret-masks: where each placed finished hull's own plating stands in the way of her own guns, for
+        asharu_gunnery to plan around (asharu_gunnery.MASKS). From each mount's muzzle (OWN_HULL_MUZZLE_M up
+        its axis, past OWN_HULL_CLEAR_M of its own gun, as hull_cross_lint casts it) a ray every MASK_STEP_DEG
+        of bearing and elevation in her frame, out to 1.5 of her length, against her own plating (guns, gear
+        and the kit's effects aside; another gun's housing only past OWN_HULL_GUN_M, as the lint reads it).
+        Also every placed hull's real extent in her own frame (_boxes, per build). Written per build into
+        path, merged with what is there."""
+        import asharu_gunnery as g
+        import base64
+        from mathutils import Vector
+        from mathutils.bvhtree import BVHTree
+        base = g.base_kf(kf)
+        bpy.context.view_layer.update()
+        dg = bpy.context.evaluated_depsgraph_get()
+        out = json.loads(Path(path).read_text()) if Path(path).exists() else {}
+        parts = {}
+        for inst in dg.object_instances:
+            if not inst.is_instance or inst.parent is None:
+                continue
+            ob, top = inst.object.original, inst.parent.original.name
+            name = ship_fx.base_name(ob.name)
+            if (top.startswith('Ship | ') and ob.type == 'MESH' and not name.startswith(('SWFX', 'Stand-in'))
+                    and not re.search(r'\b(Turret|Launcher|Gear|Beam)\b', name)):
+                parts.setdefault(top[7:], []).append((ob, inst.matrix_world.copy()))
+        nb, ne = int(360 / MASK_STEP_DEG), int(180 / MASK_STEP_DEG)
+        for key, obs in parts.items():
+            build = g.build_of(base, key)
+            mounts = g.mounts_of(base, key)
+            if key not in placed or build is None or (build in out and build in out.get('_boxes', {})):
+                continue
+            to_ship = placed[key]['matrix'].inverted()
+            geo = {False: ([], []), True: ([], [])}        # hull, and other guns' housings
+            for ob, mw in obs:
+                verts, polys = geo[ship_fx.base_name(ob.name).startswith('Weapon')]
+                me = ob.evaluated_get(dg).to_mesh()
+                m = to_ship @ mw
+                o = len(verts)
+                verts += [m @ v.co for v in me.vertices]
+                polys += [[o + i for i in p.vertices] for p in me.polygons]
+                ob.evaluated_get(dg).to_mesh_clear()
+            every = geo[False][0] + geo[True][0]
+            if every:       # her real extent in her frame, for the planner's line-of-fire test (blocked)
+                out.setdefault('_boxes', {})[build] = [[round(min(v[i] for v in every), 2) for i in range(3)],
+                                                       [round(max(v[i] for v in every), 2) for i in range(3)]]
+            if not mounts or build in out or build not in g.MOUNTS or not geo[False][0]:
+                continue
+            bvh = BVHTree.FromPolygons(*geo[False])
+            guns = BVHTree.FromPolygons(*geo[True]) if geo[True][0] else None
+            reach = placed[key]['length'] * 1.5
+            rows = {}
+            for tu, m in mounts.items():
+                o = Vector((m[0][0], m[0][1], m[0][2] + OWN_HULL_MUZZLE_M))
+                bits = bytearray((nb * ne + 7) // 8)
+                for j in range(ne):
+                    el = math.radians(-90 + (j + .5) * MASK_STEP_DEG)
+                    for i in range(nb):
+                        az = math.radians(-180 + (i + .5) * MASK_STEP_DEG)
+                        d = Vector((math.cos(el) * math.cos(az), math.cos(el) * math.sin(az), math.sin(el)))
+                        hit = bvh.ray_cast(o + d * OWN_HULL_CLEAR_M, d, reach)
+                        if hit[0] is None and guns is not None:
+                            hit = guns.ray_cast(o + d * (OWN_HULL_CLEAR_M + OWN_HULL_GUN_M), d, reach)
+                        if hit[0] is not None:
+                            n = j * nb + i
+                            bits[n // 8] |= 1 << (n % 8)
+                rows[str(tu)] = base64.b64encode(bytes(bits)).decode()
+            out[build] = dict(step=MASK_STEP_DEG, mounts=rows)
+            print(f'ASHARU turret masks {base}: {build} ({key}), {len(rows)} mounts, '
+                  + ', '.join(f't{t}: {100 * sum(bin(b).count("1") for b in base64.b64decode(v)) / (nb * ne):.0f}% masked'
+                              for t, v in rows.items()), flush=True)
+        Path(path).write_text(json.dumps(out, indent=1, sort_keys=True))
 
     def build_objects(key):
         """The objects a placed ship is drawn from: her own hull copy (ShipFx, its turrets trained)
@@ -4229,6 +4316,8 @@ def blender_main(cfg):
                     print(f'ASHARU state {kf}: {len(off_)} values, worst {w_[0]:.4f} ({w_[1]} {w_[2]})', flush=True)
                     if w_[0] > 1e-3 and not os.environ.get('ASHARU_AUDIT_SOFT'):
                         raise RuntimeError(f'{kf}: {w_[1]} {w_[2]} evaluates {w_[0]:.4f} off its plan {w_[3]:.4f}')
+            if cfg.get('turret_masks'):
+                turret_masks(kf, cfg['turret_masks'])
             if not cfg.get('motion_preview'):    # the preview bakes each ship into one mesh: nothing can come off
                 attachment_lint(kf)
                 hull_cross_lint(kf)
@@ -5141,6 +5230,7 @@ def activity_lint(kf):
 FIRE_ARC_TOL_DEG, FIRE_ARC_STEP_S, BEAM_ARC_DEG = 1.0, .1, 15.0
 # hull_cross_lint: a muzzle above its pivot; the gun's own reach; how near another gun's housing is the mount's clutter
 OWN_HULL_MUZZLE_M, OWN_HULL_CLEAR_M, OWN_HULL_GUN_M = 2.0, 2.5, 3.0
+MASK_STEP_DEG = 3.0       # turret_masks: the grid her own-hull mask is cast on (bearing and elevation, her frame)
 FIRE_ARC_EXEMPT = {}
 
 
@@ -5539,6 +5629,7 @@ def main():
     if '--stage-only' in argv:      # the whole Blender scene build for these frames, CPU only, nothing written
         from blender_path import BLENDER
         env = dict(os.environ, ASHARU_CFG=json.dumps(dict(out=str(run), frames=frames, samples=1, stage_only=True,
+                                                          turret_masks=opt('--turret-masks'),
                                                           los='--los' in argv, swfx='--swfx' in argv,
                                                           fx_check='--fx-check' in argv,
                                                           volume_audit='--volume-audit' in argv,
