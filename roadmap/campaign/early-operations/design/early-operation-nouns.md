@@ -4,7 +4,8 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-20 — Relief's story chapter starts the company ashore beside Wayline's truck under the ore-dust cover story; Militia Relief keeps company lift.
+Updated: 2026-10-27 — Counterattack's road attacks start when the company first enters dispatch, not after the capture.
+Earlier 2026-10-20 — Relief's story chapter starts the company ashore beside Wayline's truck under the ore-dust cover story; Militia Relief keeps company lift.
 
 Early operations are the opening proof that a new marine company can take
 meaningful work without being asked to behave like an invasion force. They are
@@ -448,8 +449,10 @@ company lift. No line names the fee; the amount lives in the offer's terms.
    Successful settlement pays 6,000 credits, records Relief complete, and unlocks
    the depot chapter. Recovered traffic logs connect the two operations; the
    story does not require or invent surviving militia witnesses.
-2. **Take Back the Depot**: join the local advance, capture dispatch, then
-   defend it against two finite road attacks. Secure Wayline's offline Hound
+2. **Take Back the Depot**: join the local advance, capture dispatch and
+   defend it against two finite road attacks. The company's first step inside
+   dispatch sends the first attack along both service roads at once and the
+   final one forty seconds later, so the capture is made under attack. Secure Wayline's offline Hound
    for the push and warehouse defense.
    Successful settlement pays 9,000 credits, transfers that chassis and closes the arc.
    Mara reports that dispatch can resume and refers the company to other
