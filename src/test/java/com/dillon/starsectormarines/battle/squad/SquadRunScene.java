@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.squad;
 
+import com.dillon.starsectormarines.battle.combat.FireGate;
 import com.dillon.starsectormarines.battle.control.MarineSprint;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.BehaviorScene;
@@ -27,11 +28,17 @@ import java.util.Map;
  * walkers did; they spend stamina, run themselves out at least once and keep going at a walk; the walkers spend
  * none; the run ends with the order; and the squad's stamina comes back once it stands. Arrival ticks and the
  * lowest mean stamina are metrics.
+ *
+ * <p>{@code walk-contact} and {@code run-contact} put a file of harmless enemy dummies {@link #TARGET_OFFSET} cells
+ * off the route, in rifle range for most of it. Verdicts: the walkers shoot at them on the way; no runner fires on a
+ * tick it ran, as a sprinting Marine holds fire. Shots, and shots while running, are metrics.
  */
 public final class SquadRunScene implements BehaviorScene {
 
     public static final String WALK = "walk";
     public static final String RUN = "run";
+    public static final String WALK_CONTACT = "walk-contact";
+    public static final String RUN_CONTACT = "run-contact";
 
     private static final int WIDTH = 120;
     private static final int HEIGHT = 32;
@@ -43,6 +50,12 @@ public final class SquadRunScene implements BehaviorScene {
     private static final int RUN_TICK = 60;
     private static final int TICKS = 2700;
     private static final int FRAME_EVERY = 15;
+    /** How far north of the route the dummies stand. */
+    private static final int TARGET_OFFSET = 9;
+    private static final int TARGETS = 6;
+    private static final int TARGET_X0 = 30, TARGET_STEP = 10;
+    /** Enough to stand the whole pass, so every loop meets the same file. */
+    private static final float TARGET_HP = 100000f;
 
     private final int frameEvery;
 
@@ -64,17 +77,26 @@ public final class SquadRunScene implements BehaviorScene {
         int[] walkArrival = {-1};
         reports.add(run(WALK, frames, walkArrival));
         reports.add(run(RUN, frames, walkArrival));
+        reports.add(run(WALK_CONTACT, frames, walkArrival));
+        reports.add(run(RUN_CONTACT, frames, walkArrival));
         return reports;
     }
 
     private SceneReport run(String loop, FrameSink frames, int[] walkArrival) {
-        boolean running = loop.equals(RUN);
+        boolean running = loop.equals(RUN) || loop.equals(RUN_CONTACT);
+        boolean contact = loop.equals(WALK_CONTACT) || loop.equals(RUN_CONTACT);
         NavigationGrid field = new NavigationGrid(WIDTH, HEIGHT);
         CellTopology ground = new CellTopology(WIDTH, HEIGHT);
         for (int y = 0; y < HEIGHT; y++) for (int x = 0; x < WIDTH; x++) field.setWalkableFloor(x, y);
         SceneBuilder builder = SceneBuilder.over(field, ground).missionCompletion(false);
         builder.squad("rifles").faction(Faction.MARINE).type(UnitType.MARINE).size(SQUAD_SIZE)
                 .primary("weapon.field-rifle").inFile(START_X, Y - 3, 0, 1).done();
+        if (contact) {
+            for (int i = 0; i < TARGETS; i++) {
+                builder.unit("target-" + i, Faction.DEFENDER, UnitType.MILITIA, TARGET_X0 + i * TARGET_STEP,
+                        Y + TARGET_OFFSET, spec -> spec.moveSpeed(0f).attackDamage(0f).hp(TARGET_HP).maxHp(TARGET_HP));
+            }
+        }
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
         int squadId = world.squadId("rifles");
@@ -86,13 +108,25 @@ public final class SquadRunScene implements BehaviorScene {
         float lowest = 1f;
         boolean runningAfterArrival = false, toggled = false;
         int boostedTicks = 0;
+        int shots = 0, shotsWhileRunning = 0;
+        int[] lastGateTick = new int[members.length];
+        for (int i = 0; i < members.length; i++) lastGateTick[i] = sim.combat().lastFireGateTick(members[i]);
         for (int tick = 0; tick < TICKS; tick++) {
             if (tick == ORDER_TICK) orders.requestMove(squadId, GOAL_X, Y);
             if (running && tick == RUN_TICK) toggled = orders.toggleRun(squadId);
             sim.advance(BattleSimulation.TICK_DT);
             float mean = 0f;
-            for (long member : members) {
+            for (int i = 0; i < members.length; i++) {
+                long member = members[i];
                 MarineSprint.Status status = stamina.status(member);
+                if (sim.resolveUnit(member) != 0L) {
+                    int gateTick = sim.combat().lastFireGateTick(member);
+                    if (gateTick != lastGateTick[i] && sim.combat().lastFireGate(member) == FireGate.FIRED) {
+                        shots++;
+                        if (status.sprinting()) shotsWhileRunning++;
+                    }
+                    lastGateTick[i] = gateTick;
+                }
                 mean += status.staminaFraction();
                 if (status.exhausted() && exhaustedTick < 0) exhaustedTick = tick;
                 if (sim.squadRun().boosted(member)) boostedTicks++;
@@ -112,25 +146,36 @@ public final class SquadRunScene implements BehaviorScene {
         }
 
         List<Verdict> verdicts = new ArrayList<>();
-        verdicts.add(Verdict.of("arrives", arrivedTick >= 0, "the order was over at tick " + arrivedTick));
-        if (running) {
-            verdicts.add(Verdict.of("toggled-under-way", toggled, "R at tick " + RUN_TICK + " ran the squad"));
-            verdicts.add(Verdict.of("arrives-sooner", arrivedTick >= 0 && walkArrival[0] >= 0
-                            && arrivedTick < walkArrival[0],
-                    "running arrived at tick " + arrivedTick + ", walking at tick " + walkArrival[0]));
-            verdicts.add(Verdict.of("spends-stamina", lowest < .5f,
-                    "the squad's mean stamina fell to " + lowest));
-            verdicts.add(Verdict.of("runs-out-and-walks-on", exhaustedTick >= 0 && arrivedTick >= 0,
-                    "first Marine winded at tick " + exhaustedTick + "; the squad still arrived"));
-            verdicts.add(Verdict.of("run-ends-with-order", !runningAfterArrival,
-                    "after arriving the squad was " + (runningAfterArrival ? "still" : "no longer") + " running"));
-            verdicts.add(Verdict.of("recovers", recoveredTick >= 0,
-                    "stamina full again at tick " + recoveredTick));
+        if (contact) {
+            if (running) {
+                verdicts.add(Verdict.of("toggled-under-way", toggled, "R at tick " + RUN_TICK + " ran the squad"));
+                verdicts.add(Verdict.of("ran", boostedTicks > 0, boostedTicks + " boosted Marine-ticks"));
+                verdicts.add(Verdict.of("holds-fire-running", shotsWhileRunning == 0,
+                        shotsWhileRunning + " of " + shots + " shots were fired on a tick the shooter ran"));
+            } else {
+                verdicts.add(Verdict.of("fires-walking", shots > 0, "the walkers fired " + shots + " shots"));
+            }
         } else {
-            walkArrival[0] = arrivedTick;
-            verdicts.add(Verdict.of("walks-free", lowest >= .999f && boostedTicks == 0,
-                    "walking, the squad's mean stamina stayed at " + lowest + " with " + boostedTicks
-                            + " boosted Marine-ticks"));
+            verdicts.add(Verdict.of("arrives", arrivedTick >= 0, "the order was over at tick " + arrivedTick));
+            if (running) {
+                verdicts.add(Verdict.of("toggled-under-way", toggled, "R at tick " + RUN_TICK + " ran the squad"));
+                verdicts.add(Verdict.of("arrives-sooner", arrivedTick >= 0 && walkArrival[0] >= 0
+                                && arrivedTick < walkArrival[0],
+                        "running arrived at tick " + arrivedTick + ", walking at tick " + walkArrival[0]));
+                verdicts.add(Verdict.of("spends-stamina", lowest < .5f,
+                        "the squad's mean stamina fell to " + lowest));
+                verdicts.add(Verdict.of("runs-out-and-walks-on", exhaustedTick >= 0 && arrivedTick >= 0,
+                        "first Marine winded at tick " + exhaustedTick + "; the squad still arrived"));
+                verdicts.add(Verdict.of("run-ends-with-order", !runningAfterArrival,
+                        "after arriving the squad was " + (runningAfterArrival ? "still" : "no longer") + " running"));
+                verdicts.add(Verdict.of("recovers", recoveredTick >= 0,
+                        "stamina full again at tick " + recoveredTick));
+            } else {
+                walkArrival[0] = arrivedTick;
+                verdicts.add(Verdict.of("walks-free", lowest >= .999f && boostedTicks == 0,
+                        "walking, the squad's mean stamina stayed at " + lowest + " with " + boostedTicks
+                                + " boosted Marine-ticks"));
+            }
         }
 
         Map<String, Number> metrics = new LinkedHashMap<>();
@@ -139,6 +184,8 @@ public final class SquadRunScene implements BehaviorScene {
         metrics.put("recoveredTick", recoveredTick);
         metrics.put("lowestMeanStamina", lowest);
         metrics.put("boostedMarineTicks", boostedTicks);
+        metrics.put("shots", shots);
+        metrics.put("shotsWhileRunning", shotsWhileRunning);
         sim.close();
         return new SceneReport(id(), loop, TICKS, verdicts, metrics);
     }
