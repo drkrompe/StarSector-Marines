@@ -1210,6 +1210,12 @@ public final class HeartLanes {
             out.add("lane " + lane.number + " aim " + lane.targetX + "," + lane.targetY + (lane.broken ? " broken" : "")
                     + " militia " + alive + "/" + lane.joinedMembers
                     + (lane.advance == null ? "" : " formation " + lane.advance.describe(sim)));
+            StringBuilder armour = new StringBuilder("  armour");
+            for (long hull : lane.hulls) if (sim.convoy().structure(hull) > 0f)
+                armour.append(' ').append(Math.round(sim.convoy().body(hull).x)).append(',').append(Math.round(sim.convoy().body(hull).y));
+            for (long mech : lane.mechs) if (sim.resolveUnit(mech) != 0L && sim.world().isAlive(mech))
+                armour.append(" m").append(Math.round(sim.world().x(mech))).append(',').append(Math.round(sim.world().y(mech)));
+            out.add(armour.toString());
             for (String column : lane.column.describe(sim)) out.add("  " + column);
         }
         return out;
@@ -1604,6 +1610,12 @@ public final class HeartLanes {
         int[] aim = aim(sim, lane.ground, bore);
         boolean alongY = lane.ground.advancesAlongY();
         int toward = screen == null ? advanceSign : screen.sign();
+        // The armour screens its militia: it goes no further than a screen's distance in front of where they are.
+        float militia = militiaAlong(sim, lane, alongY);
+        if (!Float.isNaN(militia)) {
+            int along = screenedAlong(alongY ? aim[1] : aim[0], militia, toward, armourBehind);
+            aim = alongY ? new int[]{aim[0], along} : new int[]{along, aim[1]};
+        }
         int count = lane.hulls.size() + lane.mechs.size(), i = 0;
         // The allied command drives each machine to its post and fights it from there; it re-orders only
         // when a post has moved, and pulls a goal the woods bar back toward the machine.
@@ -1629,6 +1641,31 @@ public final class HeartLanes {
             int[] at = station(aim, alongY, toward, i++, count);
             allied.stationMech(sim, mech, at[0], at[1]);
         }
+    }
+
+    /**
+     * Where along the advance a lane's armour line is aimed: {@code aimAlong}, but never so far that the line,
+     * stood {@code behind} cells short of its aim (ahead when negative), is more than a screen's distance
+     * ({@link ScreenedAdvance#DEFAULT_SCREEN_AHEAD}) in front of its militia at {@code militiaAlong}. Burn
+     * playtest 2026-10-26: the armour drove to its bore at hull speed and fought there with the militia 40 cells back.
+     */
+    static int screenedAlong(int aimAlong, float militiaAlong, int toward, int behind) {
+        float furthest = militiaAlong + toward * (ScreenedAdvance.DEFAULT_SCREEN_AHEAD + behind);
+        return toward > 0 ? Math.min(aimAlong, (int) Math.floor(furthest)) : Math.max(aimAlong, (int) Math.ceil(furthest));
+    }
+
+    /** Where along the advance the lane's living militia stand, the mean of their squads' leaders; NaN with none. */
+    private static float militiaAlong(BattleSimulation sim, Lane lane, boolean alongY) {
+        if (lane.squads == null) return Float.NaN;
+        float sum = 0f;
+        int n = 0;
+        for (int squad : lane.squads) {
+            long leader = sim.getSquad(squad) == null ? 0L : sim.getSquad(squad).leaderId;
+            if (leader == 0L || sim.resolveUnit(leader) == 0L || !sim.world().isAlive(leader)) continue;
+            sum += alongY ? sim.world().y(leader) : sim.world().x(leader);
+            n++;
+        }
+        return n == 0 ? Float.NaN : sum / n;
     }
 
     private int[] station(int[] aim, boolean alongY, int toward, int i, int count) {

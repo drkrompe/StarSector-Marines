@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.command.HeartLane;
+import com.dillon.starsectormarines.battle.command.allied.ScreenedAdvance;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,6 +38,18 @@ class HeartLanesTest {
         assertTrue(HeartLanes.neighbours(across, waves, 3, 2));
         assertFalse(HeartLanes.neighbours(across, waves, 0, 2), "lane 1's wave would cross lane 2 to reach lane 3's gap");
         assertFalse(HeartLanes.neighbours(across, waves, 0, 3));
+    }
+
+    @Test
+    void armourGoesNoFurtherThanAScreensDistanceInFrontOfItsMilitia() {
+        // The Burn: armour stood 4 cells ahead of its aim, the aim at 181, the militia back at 145.
+        int screen = (int) ScreenedAdvance.DEFAULT_SCREEN_AHEAD;
+        int along = HeartLanes.screenedAlong(181, 145f, 1, -4);
+        assertEquals(145 + screen, along + 4, "the armour's line stands a screen's distance in front of the militia");
+        assertEquals(181, HeartLanes.screenedAlong(181, 179f, 1, -4), "militia up with the aim let the armour go on to it");
+        // Advancing toward lower cells, armour standing 4 behind (above) its aim.
+        assertEquals(100 - screen, HeartLanes.screenedAlong(40, 100f, -1, 4) + 4);
+        assertEquals(40, HeartLanes.screenedAlong(40, 41f, -1, 4));
     }
 
     @Test
