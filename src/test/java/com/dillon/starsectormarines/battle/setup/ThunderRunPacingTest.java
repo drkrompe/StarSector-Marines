@@ -49,15 +49,9 @@ class ThunderRunPacingTest {
         for (int batch = 0; batch < ThunderRunPacing.BATCHES; batch++)
             if (ThunderRunPacing.batchPhase(batch) == 3) assertTrue(ThunderRunPacing.usesOutboundRoad(batch));
     }
-    @Test void dispatchWindowsAndFreightSpacingAreSeparate() {
+    @Test void dispatchWindowsEndAtTheFinalRun() {
         assertEquals(1800, ThunderRunPacing.holdTicks(1));
         assertEquals(2400, ThunderRunPacing.holdTicks(2));
         assertEquals(0, ThunderRunPacing.holdTicks(3));
-        assertFalse(ThunderRunPacing.cargoDue(0, 359));
-        assertTrue(ThunderRunPacing.cargoDue(0, 360));
-        assertFalse(ThunderRunPacing.cargoDue(1, 839));
-        assertTrue(ThunderRunPacing.cargoDue(1, 840));
-        assertFalse(ThunderRunPacing.cargoDue(2, 1319));
-        assertTrue(ThunderRunPacing.cargoDue(2, 1320));
     }
 }

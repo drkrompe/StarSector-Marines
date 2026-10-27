@@ -20,7 +20,6 @@ public final class ThunderRunPacing {
     public static final int RESERVE_SIZE = RAIDERS_PER_BATCH * BATCHES;
     /** First of the rear-post attacks; every later batch is one too. */
     public static final int FIRST_REAR_BATCH = 14;
-    public static final int FREIGHT_SPACING_TICKS = 16 * TICKS_PER_SECOND;
     private static final int[] PHASE = {0, 1, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 2, 2, 2, 2};
     private static final int[] SECOND = {0, 0, 20, 40, 64, 0, 22, 44, 68, 96, 0, 18, 36, 54, 84, 108, 132, 156};
     private final boolean[] released = new boolean[BATCHES];
@@ -67,7 +66,8 @@ public final class ThunderRunPacing {
         return pending;
     }
 
-    public static boolean cargoDue(int ordinal, int elapsedTicks) {
-        return elapsedTicks >= 12 * TICKS_PER_SECOND + ordinal * FREIGHT_SPACING_TICKS;
+    /** The final run's freight goes as one column, every hauler at once, after the armor's lead interval. */
+    public static boolean freightDue(int elapsedTicks) {
+        return elapsedTicks >= 12 * TICKS_PER_SECOND;
     }
 }

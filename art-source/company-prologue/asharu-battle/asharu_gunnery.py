@@ -821,6 +821,15 @@ def _turret_plan(kf, key, turret, weapon):
             mid = (i0 + i1) // 2
             region, at = presented(tb, L, to_local(sh.fr[tgt][mid], sh.fr[key][mid][0]))
             to = None
+        # the steps chose by the face she presented then; the gun lays on this one aim point the whole
+        # engagement, so it fires only while that point is inside the mount's arc (the firing-arc lint)
+        lays = lambda i_: bears(mount, to_local(sh.fr[key][i_], to_world(sh.fr[tgt][i_], at)))[0]
+        while i1 > i0 and not lays(i1):
+            i1 -= 1
+        while i0 < i1 and not lays(i0):
+            i0 += 1
+        if not lays(i0):
+            continue
         hit, walk, d, fam = _accuracy(kf, sh, key, mount, weapon, tgt, i0, i1, at, feeder)
         a = to_local(sh.fr[key][i0], to_world(sh.fr[tgt][i0], at))
         na = math.sqrt(sum(c * c for c in a)) or 1
@@ -833,10 +842,10 @@ def _turret_plan(kf, key, turret, weapon):
         prev_dir, prev_tgt = dirn, tgt
         # the gun starts its swing when it comes free of its last target, not when the new one
         # enters its arc: it trains toward the arc edge meanwhile
-        start, end = max(sh.times[i0], free_at + slew), sh.times[i1] + DT
+        start, end = max(sh.times[i0], free_at + slew), sh.times[i1]     # its last step that bears: no further
         free_at = end
         if mom:                      # the decisive burst: the trigger held through the moment, on target
-            start, end = sh.times[i0], sh.times[i1] + DT
+            start, end = sh.times[i0], sh.times[i1]
             hit, walk = max(hit, MOMENT_HIT), round(.35 * L, 1)
             bursts = [(round(start, 2), round(end, 2))]
         else:
