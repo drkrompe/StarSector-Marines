@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-27 — Junction counterattacks in two blows on a clock that never goes quiet. Earlier the same day: Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
+Updated: 2026-10-27 — Junction counterattacks in two blows on a clock that never goes quiet, the first as soon as the first site falls. Earlier the same day: Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
 Earlier 2026-10-27 — Counterattack's road attacks start when the company first enters dispatch, not after the capture.
 Earlier 2026-10-20 — Relief's story chapter starts the company ashore beside Wayline's truck under the ore-dust cover story; Militia Relief keeps company lift.
 
@@ -1084,17 +1084,16 @@ with upgraded squads, the Hound and Talon Two walked through the junction.
 
 After the first gain the raiders counterattack in **two blows**, not a trickle
 of squads (`JunctionPressure`, `JunctionTactics`). The **first blow** is the
-maintenance reserve with the warehouse garrison: the reserve marches once the
-company contests a second site, and the garrison holds in the hall until the
+maintenance reserve with the warehouse garrison: the reserve marches as soon
+as the first site falls, and the garrison holds in the hall until the
 reserve reaches its approach (or 30 s), then sprints into the first gain so
 both hit it together. The **second blow** is the Rill column with two
 technicals: the column marches at the company's second site; the technicals
 wait at the main road's east mouth until the column closes on its target (or
 30 s), then drive in behind it and park on the road beside the site, and the
-garrison's survivors sprint over to join. **Pressure never goes quiet**: a blow
-whose trigger has not come 45 s after the first gain (the first) or after the
-first blow (the second) launches anyway, the second then striking the site the
-company is fighting for. Numbers are untuned: the player is better than the
+garrison's survivors sprint over to join. **Pressure never goes quiet**: if the
+company has not taken a second site 45 s after the first, the second blow
+launches anyway, striking the site the company is fighting for. Numbers are untuned: the player is better than the
 autopilot, so balance comes from play, not evidence.
 
 Recovering the depot lets Wayline afford hired close air support. The Junction

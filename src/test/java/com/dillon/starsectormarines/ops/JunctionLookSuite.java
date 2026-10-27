@@ -87,9 +87,9 @@ public final class JunctionLookSuite implements SnapshotSuite {
         }
         var reserve = layout.reserve();
         marks.label(reserve.interiorAnchorX + .5f, reserve.interiorAnchorY - 6f,
-                "Reserve: first blow on the first gain once a second site is contested (45 s at most)", ReviewStyle.DUG_IN);
+                "Reserve: first blow on the first gain as soon as it falls", ReviewStyle.DUG_IN);
         marks.label(JunctionCompound.RILL_ROAD_X - 20f, JunctionCompound.RILL_ROAD_Y + 10f,
-                "Rill column x12: second blow on the second gain (45 s after the first at most)", ReviewStyle.DUG_IN);
+                "Rill column x12: second blow on the second gain (45 s after the first gain at most)", ReviewStyle.DUG_IN);
         var warehouse = pressure.warehouse();
         int garrison = 0;
         for (int id : pressure.garrison()) garrison += sim.squadMemberCount(id);
