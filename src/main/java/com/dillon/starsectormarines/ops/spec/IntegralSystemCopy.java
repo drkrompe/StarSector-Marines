@@ -135,8 +135,11 @@ public final class IntegralSystemCopy {
         }
         if (system.fieldAid() != null) {
             SquadMedicine kit = SquadMedicine.forKit(system.id());
+            SquadMedicine.Complement complement = SquadMedicine.complementOf(system.id());
             return Strings.format("gearSystemAid" + suffix, trim(kit.healthPerSecond()),
-                    trim(kit.armorPerSecond()), percent(kit.treatBelowHealth()));
+                    trim(kit.armorPerSecond()), percent(kit.treatBelowHealth()),
+                    trim(complement.energyMax()), trim(complement.healthPerSecond()),
+                    trim(complement.armorPerSecond()));
         }
         return "";
     }

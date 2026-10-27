@@ -7,7 +7,7 @@ starting points, not settled balance.
 
 Written: 2026-10-14
 Updated: 2026-10-23 — keep-moving shipped as the only movement mode (switch and planted path deleted); supplies and cooldown replaced by an energy pool with a start gate; open question 2 closed.
-Updated: 2026-10-27 — the suits' field-aid kits now make their wearers squad medics on the same pool (owner); see Kit medics.
+Updated: 2026-10-27 — the suits' field-aid kits now make their wearers squad medics on the same pool, and under Field Medicine complement the officer's medic instead (owner); see Kit medics.
 
 Read `progression-nouns.md` (officer career, legibility law),
 `combat-durability-nouns.md` (armor break, the no-regeneration rule this story
@@ -143,8 +143,9 @@ The suits' field-aid kits (owner, 2026-10-27: "swap this to the 'medic' system
 commanders provide. If commander has skill this is improved ... these should
 work on Mana system"; then "they feed and also add a weaker form of the role to
 the squad if the commander doesn't have the skill unlocked ... it might be on
-more units in the squad"). The old instant dressings out of a fixed count are
-gone.
+more units in the squad"; and "If they do have it unlocked they should
+complement and make better"). The old instant dressings out of a fixed count
+are gone.
 
 - **A kit makes its wearer a squad medic** with every rule above: treatment over
   time, the energy pool, the start gate, keep-moving, holding fire, re-plating.
@@ -154,13 +155,17 @@ gone.
   0.5 armor a second, treats below 60% health; MED-KIT-Trauma
   (`system.corpsman-kit`) pool 25, 0.15 / s, 2.5 and 0.75, below 70%. Both sit
   under rank one.
-- **With Field Medicine** every kit in the officer's squads treats at the
-  officer's rank, and the officer's own billet medic is still designated.
-- **Several per squad.** A kit is equipment, so every wearer is a medic with
-  their own pool. The kit dies with its wearer and is not passed on. The
-  officer's billet is chosen as before, so the squad card stays right at
-  deployment; if it lands on a kit wearer they are one medic, at the officer's
-  rank, and when it passes on it skips marines who are already a kit's medic.
+- **With Field Medicine** there is still exactly one medic, the officer's
+  billet, and every kit the squad deploys with complements them: each adds its
+  authored `complement` (pool, refill, health and armor rates) to the rank's
+  medicine. Starting numbers: MED-KIT +10 pool, +0.05 / s, +0.25 health and
+  +0.25 armor a second; MED-KIT-Trauma +15, +0.1 / s, +0.5 and +0.25. The start
+  gate stays the rank's. The kits' supplies went into the medic's bag at
+  deployment, so the bonus holds for the battle whoever carried them, and the
+  billet and the squad card are unchanged.
+- **Several per squad.** A kit is equipment, so without Field Medicine every
+  wearer is a medic with their own pool. That kit dies with its wearer and is
+  not passed on.
 - **Two medics never set out for the same patient**: a squadmate another medic
   is approaching or treating is passed over for the next worst hurt.
 - The kit's catalog entry declares `resource: "energy"` and nothing else of its
@@ -223,9 +228,10 @@ This must stay inside the yield and goal rules the scenes have already enforced:
 2. ~~Planted or keep moving.~~ Closed 2026-10-23: keep moving is the only
    behaviour, and not a player option.
 3. **Specialty copy** against the `FIELD_MEDIC` trait, above.
-4. **Kit wearers on the squad card.** The card marks only the officer's billet;
-   kit wearers show their kit on the suit line but carry no card badge. Marking
-   them needs the card to resolve each billet's issued armour.
+4. **Kit wearers on the squad card.** Without Field Medicine the card marks no
+   medic, though kit wearers treat; they show their kit on the suit line but
+   carry no card badge. Marking them needs the card to resolve each billet's
+   issued armour.
 
 ## Evidence so far
 

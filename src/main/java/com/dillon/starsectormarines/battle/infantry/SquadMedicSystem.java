@@ -12,10 +12,11 @@ import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import java.util.Arrays;
 
 /**
- * A squad's medics ({@code squad-medic.md}): the one an officer trained in Field
- * Medicine designates by billet, and one for every marine whose suit carries a
- * field-aid kit. A kit treats with its own weaker medicine unless the officer
- * trains Field Medicine, when it treats at the officer's rank.
+ * A squad's medics ({@code squad-medic.md}). Under an officer trained in Field
+ * Medicine there is one, designated by billet, and every field-aid kit in the
+ * squad complements them: its supplies feed their pool and it quickens their
+ * hands. Without the training every kit's wearer is a medic of their own, with
+ * the kit's weaker medicine.
  *
  * <p>Two halves, split by who may write what. {@link #tick} is serial and runs
  * ahead of the unit dispatch: it designates the medic, regenerates their energy,
@@ -53,16 +54,17 @@ public final class SquadMedicSystem {
         for (Squad squad : sim.getSquads()) {
             if (squad.aliveMembers <= 0) continue;
             int rank = rankOf(squad);
-            if (squad.medic == null && rank > 0) squad.medic = new SquadMedic(SquadMedicine.forRank(rank));
-            if (squad.medic == null && squad.kitMedicsIssued && squad.kitMedics.isEmpty()) continue;
+            if (rank > 0) {
+                if (squad.medic == null) squad.medic = new SquadMedic(complemented(squad, sim, rank));
+            } else if (!squad.kitMedicsIssued) {
+                issueKitMedics(squad, sim);
+            }
+            if (squad.medic == null && squad.kitMedics.isEmpty()) continue;
             SimWard ward = new SimWard(squad, sim, controlled);
             if (squad.medic != null) {
                 step(squad.medic, ward, dt);
                 publishIfTreating(squad.medic);
             }
-            // After the billet medic is designated, so a kit wearer who holds the
-            // billet is one medic rather than two.
-            if (!squad.kitMedicsIssued) issueKitMedics(squad, sim, rank);
             for (int i = 0, n = squad.kitMedics.size(); i < n; i++) {
                 SquadMedic kit = squad.kitMedics.get(i);
                 step(kit, ward, dt);
@@ -72,17 +74,29 @@ public final class SquadMedicSystem {
     }
 
     /**
-     * One medic for every living kit wearer who is not already the officer's
-     * medic, treating at the officer's rank when there is one.
+     * The officer's rank, complemented by every kit the squad deploys with. The
+     * kits' supplies went into the medic's bag at deployment, so the bonus holds
+     * for the battle whoever carried them.
      */
-    private static void issueKitMedics(Squad squad, BattleSimulation sim, int rank) {
-        squad.kitMedicsIssued = true;
-        long billet = squad.medic == null ? 0L : squad.medic.medicId;
+    private static SquadMedicine complemented(Squad squad, BattleSimulation sim, int rank) {
+        SquadMedicine medicine = SquadMedicine.forRank(rank);
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
             long member = sim.squadMemberAt(squad.id, i);
-            if (member == billet || !sim.world().isAlive(member)) continue;
+            if (!sim.world().isAlive(member)) continue;
             String kit = kitOf(sim, member);
-            if (kit != null) squad.kitMedics.add(new SquadMedic(SquadMedicine.forKit(kit, rank), member));
+            if (kit != null) medicine = medicine.complementedBy(SquadMedicine.complementOf(kit));
+        }
+        return medicine;
+    }
+
+    /** Without Field Medicine, one medic of the kit's own medicine for every living kit wearer. */
+    private static void issueKitMedics(Squad squad, BattleSimulation sim) {
+        squad.kitMedicsIssued = true;
+        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
+            long member = sim.squadMemberAt(squad.id, i);
+            if (!sim.world().isAlive(member)) continue;
+            String kit = kitOf(sim, member);
+            if (kit != null) squad.kitMedics.add(new SquadMedic(SquadMedicine.forKit(kit), member));
         }
     }
 
@@ -140,14 +154,13 @@ public final class SquadMedicSystem {
     }
 
     /**
-     * The squad's medic billet: a living squadmate other than the leader and
-     * not already a kit's medic, preferring the middle fire team so the medic
-     * stands near everybody, then seat order. Fixed until that marine dies.
+     * The squad's medic billet: a living squadmate other than the leader,
+     * preferring the middle fire team so the medic stands near everybody, then
+     * seat order. Fixed until that marine dies.
      */
     static long designate(Ward ward) {
         int index = SquadMedicine.medicBillet(ward.memberCount(),
-                i -> ward.alive(ward.memberAt(i)) && ward.memberAt(i) != ward.leader()
-                        && !ward.kitMedic(ward.memberAt(i)),
+                i -> ward.alive(ward.memberAt(i)) && ward.memberAt(i) != ward.leader(),
                 i -> ward.fireTeamIndex(ward.memberAt(i)));
         return index < 0 ? 0L : ward.memberAt(index);
     }
@@ -386,8 +399,6 @@ public final class SquadMedicSystem {
         void setArmor(long member, float armor);
         /** Dresses the limb wounds {@code member} carries. */
         void dressWounds(long member);
-        /** Whether {@code member} is the medic of a field-aid kit in this squad. */
-        boolean kitMedic(long member);
         /** Whether one of the squad's medics other than {@code self} has {@code member} as patient. */
         boolean inOtherHands(SquadMedic self, long member);
     }
@@ -422,10 +433,6 @@ public final class SquadMedicSystem {
         }
         @Override public void setArmor(long member, float armor) { sim.world().setArmor(member, armor); }
         @Override public void dressWounds(long member) { sim.wounds().dress(member); }
-        @Override public boolean kitMedic(long member) {
-            SquadMedic medic = squad.medicOf(member);
-            return medic != null && medic.kit;
-        }
         @Override public boolean inOtherHands(SquadMedic self, long member) {
             if (squad.medic != null && squad.medic != self && squad.medic.patientId == member) return true;
             for (int i = 0, n = squad.kitMedics.size(); i < n; i++) {

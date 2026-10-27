@@ -15,8 +15,9 @@ import java.util.function.IntUnaryOperator;
  * officer's Field Medicine training, or with a field-aid kit carried in a suit
  * when the officer has none. Both are authored in
  * {@code data/marines/squad-medicine.json}, ranks by number and kits by the
- * integral system's id; a kit's medicine is the weaker form, and an officer's
- * training raises every kit in their squads to the rank's.
+ * integral system's id. A kit's own medicine is the weaker form; under an
+ * officer who trains Field Medicine the kit instead complements the officer's
+ * medic ({@link Complement}).
  *
  * <p>The limit is an energy pool: it regenerates slowly and continuously, and a
  * treatment spends it for every point of health or armor it restores
@@ -62,6 +63,30 @@ public record SquadMedicine(float energyMax, float energyRegenPerSecond, float e
 
     private static volatile SquadMedicine[] byRank;
     private static volatile Map<String, SquadMedicine> byKit;
+    private static volatile Map<String, Complement> complementByKit;
+
+    /**
+     * What one kit in the squad adds to the officer's medic when the officer
+     * trains Field Medicine: its supplies feed the pool, and it makes the
+     * treatment faster. Added once per kit, on top of the rank's medicine.
+     */
+    public record Complement(float energyMax, float energyRegenPerSecond,
+                             float healthPerSecond, float armorPerSecond) {
+        static Complement parse(JSONObject json) throws JSONException {
+            return new Complement(positive(json, "energyMax"), positive(json, "energyRegenPerSecond"),
+                    positive(json, "healthPerSecond"), positive(json, "armorPerSecond"));
+        }
+    }
+
+    /** This medicine with {@code kit}'s complement added to its pool, refill and rates. */
+    public SquadMedicine complementedBy(Complement kit) {
+        return new SquadMedicine(energyMax + kit.energyMax(),
+                energyRegenPerSecond + kit.energyRegenPerSecond(), energyPerPoint,
+                minStartEnergy, woundFloorFraction, retrySeconds,
+                healthPerSecond + kit.healthPerSecond(), armorPerSecond + kit.armorPerSecond(),
+                reachCells, leashCells, approachSeconds, treatBelowHealth, treatBelowArmor,
+                heavyFirePressure);
+    }
 
     /** Reads one authored file. */
     @FunctionalInterface
@@ -79,6 +104,7 @@ public record SquadMedicine(float energyMax, float energyRegenPerSecond, float e
         JSONObject root = source.read(PATH);
         SquadMedicine[] ranks = parse(root);
         byKit = parseKits(root);
+        complementByKit = parseComplements(root);
         byRank = ranks;
     }
 
@@ -113,6 +139,19 @@ public record SquadMedicine(float energyMax, float energyRegenPerSecond, float e
             }
         }
         return Map.copyOf(kits);
+    }
+
+    /** Each kit's complement to the officer's medic, keyed like {@link #parseKits}. */
+    static Map<String, Complement> parseComplements(JSONObject root) throws JSONException {
+        Map<String, Complement> complements = new HashMap<>();
+        JSONArray authored = root.optJSONArray("kits");
+        if (authored == null) return Map.copyOf(complements);
+        for (int i = 0; i < authored.length(); i++) {
+            JSONObject k = authored.getJSONObject(i);
+            String system = k.getString("system");
+            complements.put(system, Complement.parse(k.getJSONObject("complement")));
+        }
+        return Map.copyOf(complements);
     }
 
     private static SquadMedicine parseOne(JSONObject r, String label) throws JSONException {
@@ -196,11 +235,14 @@ public record SquadMedicine(float energyMax, float energyRegenPerSecond, float e
         return m;
     }
 
-    /**
-     * What a kit wearer treats with: the officer's rank when they train Field
-     * Medicine (the improved form), else the kit's own weaker form.
-     */
-    public static SquadMedicine forKit(String systemId, int officerRank) {
-        return officerRank > 0 ? forRank(officerRank) : forKit(systemId);
+    /** What {@code systemId}'s kit adds to the officer's medic; fails loud like {@link #forKit}. */
+    public static Complement complementOf(String systemId) {
+        Map<String, Complement> complements = complementByKit;
+        if (complements == null) throw new IllegalStateException("Squad medicine is not installed: " + PATH);
+        Complement c = complements.get(systemId);
+        if (c == null) {
+            throw new IllegalStateException("Field-aid kit '" + systemId + "' has no complement in " + PATH);
+        }
+        return c;
     }
 }

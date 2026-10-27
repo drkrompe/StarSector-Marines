@@ -95,10 +95,11 @@ medic is never their own patient, and the reach is short enough that the fiction
 stays a marine kneeling next to another marine rather than a turret with a
 healing beam. A self-healing version would be exactly the "more effective hit
 points" that `IntegralSystemEffect` forbids. The kit's numbers are its entry in
-`squad-medicine.json`, a weaker form than the officer's first rank; under an
-officer trained in Field Medicine every kit treats at the officer's rank.
-Because it is equipment, several marines in one squad may carry one, each with
-their own pool, and two medics never set out for the same patient.
+`squad-medicine.json`, a weaker form than the officer's first rank. Because it
+is equipment, several marines in one squad may carry one, each with their own
+pool, and two medics never set out for the same patient. Under an officer
+trained in Field Medicine the kits complement instead: the squad keeps the
+officer's one medic, and each kit feeds its pool and quickens its hands.
 
 ## Individual systems
 

@@ -36,6 +36,27 @@ public class SquadMedicineTest {
         assertThrows(JSONException.class, () -> SquadMedicine.parseKits(root));
     }
 
+    @Test
+    public void everyKitAddsItsComplementToTheOfficersMedicine() throws JSONException {
+        JSONObject root = new JSONObject().put("kits", new JSONArray()
+                .put(medicine(12).put("system", "system.a").put("complement", complement(10, 0.5f))));
+        SquadMedicine.Complement kit = SquadMedicine.parseComplements(root).get("system.a");
+        SquadMedicine rank = new SquadMedicine(30f, 0.2f, 1f, 7.5f, 0.05f, 3f,
+                2.5f, 1f, 1.5f, InfantryCohesion.COHESION_RADIUS, 8f, 0.7f, 0.5f, 2f);
+
+        SquadMedicine twoKits = rank.complementedBy(kit).complementedBy(kit);
+        assertEquals(50f, twoKits.energyMax(), 1e-5f);
+        assertEquals(0.4f, twoKits.energyRegenPerSecond(), 1e-5f);
+        assertEquals(3.5f, twoKits.healthPerSecond(), 1e-5f);
+        assertEquals(2f, twoKits.armorPerSecond(), 1e-5f);
+        assertEquals(rank.minStartEnergy(), twoKits.minStartEnergy(), "the start gate is the rank's");
+    }
+
+    private static JSONObject complement(float pool, float rate) throws JSONException {
+        return new JSONObject().put("energyMax", pool).put("energyRegenPerSecond", 0.1)
+                .put("healthPerSecond", rate).put("armorPerSecond", rate);
+    }
+
     private static JSONObject medicine(float pool) throws JSONException {
         return new JSONObject().put("energyMax", pool).put("energyRegenPerSecond", 0.1)
                 .put("energyPerPoint", 1).put("minStartEnergy", pool / 4f)

@@ -42,10 +42,11 @@ public enum IntegralSystemEffect {
             "graphics/ui/armory/system-missile-pod.png"),
 
     /**
-     * A medical kit that makes its wearer a squad medic: treatment over time for
-     * a wounded squadmate within arm's reach, paid out of the medic's
-     * regenerating pool ({@code squad-medic.md}). Several marines in one squad
-     * may carry one. It is the only effect here whose whole value lands on
+     * A medical kit for the squad medic: treatment over time for a wounded
+     * squadmate within arm's reach, paid out of the medic's regenerating pool
+     * ({@code squad-medic.md}). Without an officer's Field Medicine the wearer is
+     * a medic of the kit's weaker form; with it, every kit in the squad
+     * complements the officer's medic. Several marines in one squad may carry one. It is the only effect here whose whole value lands on
      * somebody other than the wearer.
      *
      * <p>Deliberately treats the walking wounded rather than the dead. A marine

@@ -4,12 +4,12 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * Marks a field-aid kit: the suit makes its wearer a squad medic
- * ({@code squad-medic.md}). The kit authors nothing of its own here. What the
- * medic can do is the kit's entry in {@code squad-medicine.json}, the weaker
- * form, or the officer's Field Medicine rank when the officer trains it; and it
- * is paid for out of the medic's regenerating pool rather than a count of
- * dressings.
+ * Marks a field-aid kit ({@code squad-medic.md}). The kit authors nothing of its
+ * own here; its numbers are its entry in {@code squad-medicine.json}. Under an
+ * officer without Field Medicine it makes its wearer a squad medic of the kit's
+ * weaker form; under one who trains it, it complements the officer's medic,
+ * feeding their pool and quickening their hands. Either way it is paid for out
+ * of the medic's regenerating pool rather than a count of dressings.
  *
  * <p>The per-dressing keys of the satchel this replaced are rejected by name, so
  * an author meets the move rather than a kit that quietly ignores them.

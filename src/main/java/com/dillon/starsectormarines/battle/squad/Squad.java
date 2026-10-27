@@ -322,9 +322,10 @@ public final class Squad {
     public SquadMedic medic;
 
     /**
-     * One medic for each marine whose suit carries a field-aid kit, beside the
-     * officer's designated {@link #medic}. Issued once by {@code SquadMedicSystem}'s
-     * serial pass and never re-designated: the kit dies with its wearer.
+     * One medic for each marine whose suit carries a field-aid kit, when the
+     * officer has no Field Medicine (with it, the kits complement {@link #medic}
+     * instead). Issued once by {@code SquadMedicSystem}'s serial pass and never
+     * re-designated: the kit dies with its wearer.
      */
     public final List<SquadMedic> kitMedics = new ArrayList<>();
     /** Whether {@code SquadMedicSystem} has issued {@link #kitMedics} yet. */

@@ -5,9 +5,7 @@ import com.dillon.starsectormarines.battle.combat.WoundService;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -278,13 +276,6 @@ public class SquadMedicSystemTest {
     }
 
     @Test
-    public void theOfficersBilletPassesOverAKitMedic() {
-        Ward ward = squad();
-        ward.kitWearers.add(3L);
-        assertEquals(4L, SquadMedicSystem.designate(ward));
-    }
-
-    @Test
     public void twoMedicsDoNotSetOutForTheSamePatient() {
         Ward ward = squad();
         ward.hp.put(4L, 5f);
@@ -337,7 +328,6 @@ public class SquadMedicSystemTest {
         final Map<Long, Float> armor = new HashMap<>();
         final Map<Long, Float> pressure = new HashMap<>();
         final WoundService wounds = new WoundService();
-        final Set<Long> kitWearers = new HashSet<>();
         /** Patients and the medic holding them. */
         final Map<Long, SquadMedic> held = new HashMap<>();
 
@@ -366,7 +356,6 @@ public class SquadMedicSystemTest {
         @Override public float maxArmor(long member) { return 5f; }
         @Override public void setArmor(long member, float value) { armor.put(member, value); }
         @Override public void dressWounds(long member) { wounds.dress(member); }
-        @Override public boolean kitMedic(long member) { return kitWearers.contains(member); }
         @Override public boolean inOtherHands(SquadMedic self, long member) {
             SquadMedic holder = held.get(member);
             return holder != null && holder != self;

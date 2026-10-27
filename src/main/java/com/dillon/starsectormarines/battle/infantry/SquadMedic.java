@@ -3,7 +3,8 @@ package com.dillon.starsectormarines.battle.infantry;
 /**
  * One squad medic: who it is, the energy they have left, and the treatment in hand.
  * Either the officer's designated medic, re-designated by billet when they fall,
- * or a field-aid kit's wearer, who is the medic for as long as they live.
+ * or, under an officer without Field Medicine, a field-aid kit's wearer, who is
+ * the medic for as long as they live.
  *
  * <p>Written only by {@link SquadMedicSystem}'s serial pass, ahead of the
  * parallel unit dispatch, and only read during it. That split is what lets a
