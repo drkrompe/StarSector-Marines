@@ -4911,7 +4911,7 @@
       "id": "warrant_briefing",
       "missionId": "story_agreus_limited_warrant",
       "event": "briefing",
-      "text": "Recover the bonded archive, escort the supplier into the calibration cage, and cover the sealed load back to our western apron. The Recovered Specter pattern is payment for that recovery. Keep our people with the load.",
+      "text": "Recover the bonded archive, escort the supplier into the calibration cage, and cover the sealed load back to our western apron. The ARM-TACH-3-PWR (QS) pattern is payment for that recovery. Keep our people with the load.",
       "durationSeconds": 10,
       "priority": 12,
       "expiresSeconds": 35,

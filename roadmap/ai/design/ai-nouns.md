@@ -241,7 +241,7 @@ Rank is where a reflex says what it is worth. A marine **rejoining** its squad �
 one who landed after the squad stepped off — sits below the hazards already in
 the air, because a lone marine crossing open ground still has to get out from
 under a grenade, and above every reflex that initiates contact: the
-special-equipment shot, the hardened-target rocket, the onset screen. A late
+special-equipment shot and the hardened-target rocket. A late
 arrival with a rocket tube and a turret in view is exactly the marine that rank
 exists for. It also outranks the broken-fire-team peel, which would otherwise
 send him to cover on his own rather than back to the squad he is trying to
@@ -1350,9 +1350,8 @@ element that was told to move. Anti-hardened direct fire is exempt from that
 rule in both directions: a turret, drone hub, or heavy chassis in range is the
 reason the advance is in trouble rather than a distraction from it, and the
 carrier of the only weapon that meaningfully hurts it is precisely the marine
-the suppression used to silence. A screen at one of the two **onset moments**
-below is exempt on the same grounds. Everything else stays behind the gate:
-satchel, frag, mines and close-contact tools all spend a squad resource or
+the suppression used to silence. Everything else stays behind the gate:
+satchel, frag and mines all spend a squad resource or
 freeze their carrier for something that is a diversion at that instant.
 
 Shoulder missile pods coordinate at squad scope: one successful salvo starts
@@ -1386,14 +1385,13 @@ but vanishes. A hostile ten cells away is the same fact in a room, in a breach,
 in a treeline and in a trench.
 
 Both belong to the equipment vocabulary's standing law — *name the moment, let
-the carried capability answer it*. Neither says what to spend, so a screen
-answers them today and anything authored later answers them for free, on either
-side of the battle.
+the carried capability answer it*. Neither says what to spend, so anything
+authored to answer them does so for free, on either side of the battle.
 
 **A singling-out reads the enemy's own state, and that is legal only because of
 what answers it.** The standing rule is that a marine acts on what a marine can
-know, which is why the dead-ground policy tests the wearer's own sight rather
-than the player's reveal bitmap. A bearing on somebody nobody has seen is the
+know, which is why a suit policy tests the wearer's own sight rather than the
+player's reveal bitmap. A bearing on somebody nobody has seen is the
 kind of thing that rule exists to refuse. It is admissible here because the
 responder is worn: a receiver that tells its wearer they have been painted is
 ordinary hardware. Read from a plain infantry behaviour it would be
@@ -1404,7 +1402,7 @@ clairvoyance, and the distinction is not decorative.
 An onset happens to one person and is not personal. The marine who comes round
 a corner into somebody is the squad's first indication that the ground ahead is
 not what it thought, and left personal it is answered personally — that marine
-screens or goes to ground while the others walk past the same bearing one at a
+goes to ground while the others walk past the same bearing one at a
 time, which is the failure the cooperation layer exists to remove. So a squad
 publishes at most one onset per tick: what a member is looking at, how far off
 it is, and which of the two moments it is.

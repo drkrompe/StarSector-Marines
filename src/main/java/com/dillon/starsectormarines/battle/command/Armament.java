@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.CommsKitSpec;
 import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
-import com.dillon.starsectormarines.marine.SpecialAiPolicy;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 /**
@@ -61,8 +60,6 @@ public record Armament(Delivery delivery, float range, int roundsPerTrigger, flo
         SCREEN,
         /** A radio that directs the side's air onto ground: not a weapon, the means to ask for one. */
         CALLED,
-        /** A tool used standing at the target (a cutter). */
-        CONTACT,
         /** A charge placed at the target and left to go off. */
         CHARGE
     }
@@ -153,13 +150,6 @@ public record Armament(Delivery delivery, float range, int roundsPerTrigger, flo
                 CommsKitSpec spec = item.commsKitSpec();
                 return new Armament(Delivery.CALLED, spec.radioRangeCells(), 1,
                         Math.max(0.1f, spec.callSeconds() + spec.cooldownSeconds()), 0f, 0f, 0, UNLIMITED);
-            }
-            case CLOSE_CONTACT -> {
-                if (item.aiPolicy() != SpecialAiPolicy.CONTACT_BREACH_CHANNEL) return null;
-                WeaponDef weapon = item.weaponDef();
-                return new Armament(Delivery.CONTACT, item.closeContactSpec().contactRange(), 1,
-                        item.closeContactSpec().channelSeconds() + item.closeContactSpec().cooldownSeconds(),
-                        weapon.damage, weapon.penetration, weapon.wallDamage, triggers);
             }
             default -> {
                 return null;

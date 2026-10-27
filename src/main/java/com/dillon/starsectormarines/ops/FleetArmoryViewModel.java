@@ -862,7 +862,7 @@ public final class FleetArmoryViewModel {
                     armorCatalog != null ? armorCatalog.armorClass().displayName() : Strings.get("openingFleetArmoryVacant"),
                     billet != null ? Strings.format("openingFleetArmoryW", billet.grade().tierMark()) : Strings.get("openingFleetArmoryW2"),
                     billet != null ? Strings.format("openingFleetArmoryA", tierMark(armorCatalog.tier())) : Strings.get("openingFleetArmoryA2"),
-                    billet != null ? primary.catalogName(billet.grade().tier) + "  ·  "
+                    billet != null ? primary.gradedName(billet.grade().tier) + "  ·  "
                             + billet.grade().displayName() : Strings.get("openingFleetArmoryNoPrimary"),
                     primaryFactionLogo, equipmentFactionLogoClasses(primaryFactionLogo),
                     weaponStats(id, billet, soldier),
@@ -1050,7 +1050,7 @@ public final class FleetArmoryViewModel {
             if (count == 0) continue;
             String icon = EquipmentIcons.primary(weapon, quotedGrade(grades));
             spans.add(new DoctrineSpan(spanId(tileId, "distribution", spans.size()),
-                    Strings.format("squadDoctrineCount", count, weapon.modelName()), false,
+                    Strings.format("squadDoctrineCount", count, weapon.displayName()), false,
                     weaponSheet(weapon, grades), icon, KitBrick.weapon(weapon, icon, EquipmentIcons.PRIMARY_LIE), count));
         }
         // Each secondary is a piece of its own, on its own brick: a card issuing a launcher
@@ -1155,7 +1155,7 @@ public final class FleetArmoryViewModel {
      * <p>The line beneath it already names the patterns, and a player who knows
      * the catalog by heart could derive this from those names. Nobody should
      * have to: the whole reason a role mix is worth choosing between is that one
-     * sheet puts a sensor sweep and seven braces in the field where another puts
+     * sheet puts two medics and a missile rack in the field where another puts
      * four breachers, and that difference was previously visible only by opening
      * Compare Patterns and cross-referencing twelve names.
      *

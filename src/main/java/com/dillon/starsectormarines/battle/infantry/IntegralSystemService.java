@@ -3,10 +3,8 @@ package com.dillon.starsectormarines.battle.infantry;
 import com.dillon.starsectormarines.battle.combat.MitigationService;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
-import com.dillon.starsectormarines.marine.BraceSpec;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
-import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
 
 /**
  * Owns the live state of the capability a marine's armour pattern carries
@@ -172,37 +170,7 @@ public final class IntegralSystemService {
         IntegralSystemDef def = spec(id);
         if (def == null || !isActive(id)) return 1f;
         BreacherAssistSpec breacher = def.breacherAssist();
-        if (breacher != null) return breacher.moveSpeedMult();
-        BraceSpec brace = def.brace();
-        return brace != null ? brace.moveSpeedMult() : 1f;
-    }
-
-    /**
-     * What this unit's running system does to the accuracy of its own fire, or
-     * {@code 1} when nothing is running. Only a brace contributes one. Read
-     * through {@link IntegralSystemModifier}.
-     */
-    public float accuracyMultiplier(long id) {
-        IntegralSystemDef def = spec(id);
-        if (def == null || !isActive(id)) return 1f;
-        BraceSpec brace = def.brace();
-        return brace != null ? brace.accuracyMult() : 1f;
-    }
-
-    /**
-     * The sweep this unit is running right now, or {@code null} when it carries
-     * no sweep or is not running one.
-     *
-     * <p>A sweep keeps <b>no</b> state of its own here, deliberately. What it
-     * does is contribute a temporary observer to the player's reveal for as
-     * long as this returns non-null, and the projection is rebuilt from
-     * scratch on every tick ({@code IntegralSystemSystem}). There is therefore
-     * nothing to grant on activation and nothing to unwind on expiry: the
-     * standing "no residue" rule holds because there is no residue to leave.
-     */
-    public PerceptionSweepSpec activeSweep(long id) {
-        IntegralSystemDef def = spec(id);
-        return def != null && isActive(id) ? def.perceptionSweep() : null;
+        return breacher != null ? breacher.moveSpeedMult() : 1f;
     }
 
     private void applyEffect(long id, IntegralSystemDef def) {

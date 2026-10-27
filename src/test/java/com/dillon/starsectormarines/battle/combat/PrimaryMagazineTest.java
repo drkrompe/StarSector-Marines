@@ -135,8 +135,8 @@ class PrimaryMagazineTest {
                 {
                   "id": "weapon.magazine-evidence", "mount": "marine-primary",
                   "catalog": {
-                    "displayName": "Evidence Rifle", "modelName": "Evidence",
-                    "designation": "EV", "role": "LINE",
+                    "displayName": "Evidence Rifle",
+                    "role": "LINE",
                     "description": "A magazine fixture."
                   },
                   "sim": {

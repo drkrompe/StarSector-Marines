@@ -43,7 +43,7 @@ public final class Shadowcast {
 
     /**
      * A cast from a body standing on the ground that reads through walls
-     * within {@code readRadius} (a sensor sweep): the same wall rule as
+     * within {@code readRadius} (a mission spotter): the same wall rule as
      * {@link #castFrom}, but the eye stays at the source's own tier, so higher
      * ground beyond the read radius is seen as any ground observer sees it.
      */

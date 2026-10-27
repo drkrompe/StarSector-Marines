@@ -46,8 +46,8 @@ Measured from the catalog (`loadoutCardSheet`), not from intent:
   random wreck. That is the "military patterns first" gap `campaign-learning-curve.md`
   and `a-small-war.md` already record. (The Hegemony Arbalest Section is built on the
   *recovered* Arbalest, a tier-3 Advanced pattern, and is not part of this problem.)
-- **The newest toys have no card.** The Arrestor pack, Palisade pod and Rampart
-  revetment are learnable templates, but a squad is equipped by one weapon card and
+- **The newest toys have no card.** The Arrestor pack and Palisade pod are
+  learnable templates, but a squad is equipped by one weapon card and
   one armour sheet, and no card carries any of them. A player can own the pack and
   never field it.
 - **Story beats award money where they could award a way of fighting.** Corvus and
@@ -89,7 +89,7 @@ What each arc should hand the player, see across the line, and hold back.
 
 | Arc | Shows the player (enemy or ally) | Fun in the player's hands | Held back |
 | --- | --- | --- | --- |
-| **Wayline opening** — Relief, Counterattack | Militia holding a checkpoint behind revetments | Watchman's Kit; A Proper Issue's choice (Steady Line or Forward Screen). **Checkpoint Issue**: service rifles, three Rampart revetments, smoke, on sale at the broker's market once Relief settles, beside the free choice rather than as a third path. It teaches digging in, which is what Relief is about | Everything above Common |
+| **Wayline opening** — Relief, Counterattack | Militia holding a checkpoint behind revetments | Watchman's Kit; A Proper Issue's choice (Steady Line or Forward Screen). **Checkpoint Issue**: service rifles, three satchel-charge sappers, smoke, on sale at the broker's market once Relief settles, beside the free choice rather than as a third path. It teaches holding a road by clearing what overlooks it | Everything above Common |
 | **Broken Supply Route** — Junction, Thunder Run | Raiders with rocket tubes against the convoy | **Trench-Clearing Issue** as the Junction reward (opening a defended junction is exactly its job); **Convoy Escort Issue**: rockets plus one Palisade pod, on sale at the employer's market once Thunder Run settles | Powered anything |
 | **The Corvus Account** — Dust Ledger, Blind Watch, Cold Account | Sable Wake mortars and missiles at Blind Watch; at Garnir, Resolute's guns rather than Hegemony infantry: Kord lands no one | **Counter-Battery Issue** (Hegemony): service rifles, two Arrestor packs, one anti-materiel rifle. On sale at Hegemony markets once Cold Account settles, an old counter-mortar table back on the shelves | XIV Shock, the military Arbalest: the company has now seen what it cannot have |
 | **A Working Ship** — Salvage Rights, Cold Start, Working Passage | Builders working under fire | **Builder's Guard**: revetments and Palisade pods from Tamsin Vale's yard stores, on sale at Asharu once Working Passage settles, for holding a construction site | — |

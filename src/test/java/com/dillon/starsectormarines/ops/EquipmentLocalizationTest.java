@@ -65,7 +65,6 @@ class EquipmentLocalizationTest {
         assertEquals("0 uses", Strings.format("gearUses", 0));
         assertEquals("1 use", Strings.format("gearUses", 1));
         assertEquals("2 uses", Strings.format("gearUses", 2));
-        assertTrue(Strings.format("gearSystemBraceDetail", "15%", "40%").contains("wearer's"));
     }
 
     @Test

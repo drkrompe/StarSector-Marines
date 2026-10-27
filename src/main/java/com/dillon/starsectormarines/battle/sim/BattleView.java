@@ -8,7 +8,6 @@ import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
 import com.dillon.starsectormarines.battle.combat.Projectile;
-import com.dillon.starsectormarines.battle.deployable.DeployedCoverService;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.deployable.PointDefenseService;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
@@ -37,7 +36,6 @@ import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.smoke.SmokeFieldService;
-import com.dillon.starsectormarines.battle.contact.CloseContactService;
 import com.dillon.starsectormarines.battle.satchel.SatchelChargeService;
 import com.dillon.starsectormarines.battle.grenade.FragGrenadeService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
@@ -146,9 +144,6 @@ public interface BattleView {
 
     /** Reusable contact-demolition reservations and armed target attachments. */
     SatchelChargeService satchelCharges();
-
-    /** Close-contact commitments and the authored breach points a cutter may work. */
-    CloseContactService closeContact();
 
     /** Committed fragmentation-grenade landing footprints. */
     FragGrenadeService fragGrenades();
@@ -317,9 +312,6 @@ public interface BattleView {
 
     /** Crew-served tubes (the field mortar) that carriers have set down or are setting down, and their gunners. */
     FieldMortarService fieldMortars();
-
-    /** Live cover screens placed out of the carried special slot, and their remaining lifetime. */
-    DeployedCoverService deployedCover();
 
     /**
      * Whether {@code shooterId} may engage {@code candidateId} right now.

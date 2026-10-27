@@ -8,7 +8,7 @@ import org.json.JSONException;
  * ({@code integral-armor-systems.md}).
  *
  * <p>Every value here must express itself as <b>behaviour</b> — movement,
- * protection with a clock on it, a delivered payload, perception, care. An
+ * protection with a clock on it, a delivered payload, care. An
  * effect whose whole contribution is "more effective hit points" does not
  * belong in this enum: late equipment is meant to get more interesting, not
  * harder to kill, and the measured campaign arc is already bought mostly on the
@@ -42,18 +42,6 @@ public enum IntegralSystemEffect {
             "graphics/ui/armory/system-missile-pod.png"),
 
     /**
-     * A brief, wide, partly wall-tolerant read of the ground around the wearer,
-     * contributed to the player's picture as a temporary observer and gone when
-     * the window closes ({@code fog-of-war-nouns.md}). Answers what a suit built
-     * around sensors spends those sensors on, and it is deliberately the one
-     * effect here that changes nothing about a fight except what the player can
-     * see of it — a sweep that were worth damage would have stopped being
-     * perception.
-     */
-    PERCEPTION_SWEEP("perception-sweep", "@gearIntegralSystemEffectPERCEPTIONSWEEP",
-            "graphics/ui/armory/system-sensor-sweep.png"),
-
-    /**
      * Treatment for a wounded squadmate within arm's reach, out of a finite
      * satchel. Answers what the marine carrying the section's heavy load is
      * carrying besides ammunition, and it is the only effect here whose whole
@@ -67,31 +55,16 @@ public enum IntegralSystemEffect {
      * already there in every battle ({@code integral-system-slate.md}).
      */
     FIELD_AID("field-aid", "@gearIntegralSystemEffectFIELDAID",
-            "graphics/ui/armory/system-field-aid.png"),
+            "graphics/ui/armory/system-field-aid.png");
 
-    /**
-     * A timed stance: the wearer plants, shoots markedly straighter, and gives
-     * up most of their mobility for as long as it runs. The other half of the
-     * model from {@link #BREACHER_ASSIST} and deliberately its mirror —
-     * <b>assault crosses, line holds</b> — which is why one speeds the wearer up
-     * behind a screen and this one slows them down behind nothing
-     * ({@code integral-system-slate.md}).
-     *
-     * <p>Stays the right side of the durability line by improving what the
-     * wearer <em>hits</em> rather than what hits the wearer. A stance that
-     * refused incoming fire would be mitigation with a posture's name on it, and
-     * the concept that owns bounded directional absorption already exists.
-     */
-    BRACE("brace", "@gearIntegralSystemEffectBRACE",
-            "graphics/ui/armory/system-firing-brace.png");
 
     public final String key;
 
     /**
-     * The family name every pattern's take on this effect shares. Six suits
-     * carry a breach assist and each calls its own version something else; the
-     * family is what lets a player see they are the same capability rather than
-     * six unrelated tricks ({@code integral-system-slate.md}).
+     * The family name every system of this effect shares. Ten suits carry a
+     * breach assist across three shield tiers; the family is what lets a player
+     * see the tiers are one capability at three grades
+     * ({@code integral-system-slate.md}).
      */
     private final String displayName;
 

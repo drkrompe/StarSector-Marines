@@ -239,8 +239,6 @@ class WeaponRegistryParityTest {
                 3, 0.09f, 0.30f, 0.4f, 55f);
         assertPresentation(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), new Color(0x80, 0xFF, 0x80),
                 ImpactKind.RIFLE, null, 0f, "pulse_laser_fire");
-        assertEquals("Pulse Rifle", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).displayName());
-        assertEquals("Lancer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).modelName());
     }
 
     @Test
@@ -249,30 +247,24 @@ class WeaponRegistryParityTest {
                 2, 0.10f, 0.35f, 0.5f, 55f);
         assertPresentation(WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID), new Color(0x60, 0xCF, 0xFF),
                 ImpactKind.RIFLE, null, 0f, "pulse_laser_fire");
-        assertEquals("Drone Pulse Laser", WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID).displayName());
-        assertEquals("Wisp", WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID).modelName());
     }
 
     /**
-     * Catalog naming used to be two switch statements over the enum. The
-     * behavior it encoded — a tiered prefix for everything except recruit
-     * issue, which is always FR-1 — is now {@code designation} plus
-     * {@code designationTiered}, and this pins that the swap changed nothing.
+     * The grade marking: a tiered entry carries its equipment tier as a
+     * {@code -<tier>} suffix on its code, an untiered entry (recruit issue)
+     * ignores grade, and a null grade reads as Service.
      */
     @Test
-    void catalogNamingSurvivedTheSwitchToData() {
-        assertEquals("FR-1", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).designation(EquipmentGrade.SERVICE));
-        assertEquals("FR-1", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).designation(EquipmentGrade.MASTERWORK),
+    void aTieredCodeCarriesItsGradeAndAnUntieredOneDoesNot() {
+        WeaponDef recruit = WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID);
+        assertEquals(recruit.displayName(), recruit.gradedName(EquipmentGrade.SERVICE));
+        assertEquals(recruit.displayName(), recruit.gradedName(EquipmentGrade.MASTERWORK),
                 "recruit issue is untiered — its designation ignores grade");
-        assertEquals("PLS-2", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).designation(EquipmentGrade.SERVICE));
-        assertEquals("SHD-3", WeaponRegistry.require(WeaponRegistry.SMG_ID).designation(EquipmentGrade.MILSPEC));
-        assertEquals("SA-2", WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID).designation(EquipmentGrade.SERVICE));
-        assertEquals("RG-4", WeaponRegistry.require(WeaponRegistry.DMR_ID).designation(EquipmentGrade.MASTERWORK));
-        assertEquals("DPLS-1", WeaponRegistry.require(WeaponRegistry.DRONE_PULSE_ID).designation(EquipmentGrade.SURPLUS));
 
-        assertEquals("PLS-2 Lancer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).catalogName(EquipmentGrade.SERVICE));
-        assertEquals("FR-1 Rook", WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).catalogName(null),
-                "a null grade falls back to tier 1, as the switch did");
+        WeaponDef pulse = WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID);
+        assertEquals(pulse.displayName() + "-" + EquipmentGrade.MILSPEC.tier, pulse.gradedName(EquipmentGrade.MILSPEC));
+        assertEquals(pulse.gradedName(EquipmentGrade.SERVICE), pulse.gradedName((EquipmentGrade) null),
+                "a null grade reads as Service");
     }
 
     private static void assertSim(WeaponDef weapon, float range, float damage,

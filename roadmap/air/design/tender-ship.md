@@ -51,7 +51,6 @@ Candidates, in the order they cost least to add (each is a `BuildOption` plus, w
 | --- | --- | --- |
 | Other catalog turrets (arbalest, flak, mortar) | the same structure path | built: number keys 1-4, vulcan first. Time and cost scale from the vulcan (12 s, 1 charge) by the structure's weight: arbalest 15 s / 2, dual flak 17 s / 2, heavy mortar 18 s / 3. Grenade launcher, locust, heavy MG and hephaestus are further data-only candidates once a sixth slot or a selector exists |
 | Point-defence emplacement | `PointDefenseService.queuePlacement` | built: key 5, 8 s / 1 charge. The structure and spec are the carried Palisade pod's (45 s life, 8-round magazine, 44 structure plus armour), so the item stays the one authority; it is lighter than any turret and so quicker. Completion queues the placement with the tender's faction and no carrier. Number keys were extended to 1-5 rather than replacing a turret. The stance AI considers turret kinds only: the pod is quicker than every turret and would win ATTACK every time, and an unpiloted tender has no read on incoming ordnance |
-| Revetment / cover screen | `DeployedCoverService.queuePlacement` | a boundary feature, not an entity, and needs a facing |
 | Sensor, repair, supply | none yet | wait on the systems that would use them |
 
 An option never restates what the structure is. Durability, weapon, magazine and art come from the catalog.

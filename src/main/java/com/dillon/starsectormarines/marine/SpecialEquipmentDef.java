@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -10,7 +9,6 @@ import org.json.JSONObject;
 
 import java.awt.Color;
 import java.io.Serializable;
-import java.util.Locale;
 
 /** Stable, data-authored loadout identity for one special-equipment item. */
 public record SpecialEquipmentDef(
@@ -27,9 +25,7 @@ public record SpecialEquipmentDef(
         SpecialEquipmentPresentationDef presentation,
         SmokeGrenadeSpec smokeGrenadeSpec,
         SatchelChargeSpec satchelChargeSpec,
-        CloseContactSpec closeContactSpec,
         DeployableEmplacementSpec deployableEmplacementSpec,
-        DeployableCoverSpec deployableCoverSpec,
         CommsKitSpec commsKitSpec) implements Serializable {
 
     /** An item with no comms kit: every activation except {@link SpecialActivation#UTILITY_COMMS}. */
@@ -37,12 +33,11 @@ public record SpecialEquipmentDef(
                                String catalogFactionLogo, SpecialActivation activation, String weaponId,
                                SpecialResourceMode resourceMode, int startingAmmo, SpecialAiPolicy aiPolicy,
                                SpecialEquipmentPresentationDef presentation, SmokeGrenadeSpec smokeGrenadeSpec,
-                               SatchelChargeSpec satchelChargeSpec, CloseContactSpec closeContactSpec,
-                               DeployableEmplacementSpec deployableEmplacementSpec,
-                               DeployableCoverSpec deployableCoverSpec) {
+                               SatchelChargeSpec satchelChargeSpec,
+                               DeployableEmplacementSpec deployableEmplacementSpec) {
         this(id, displayName, catalogSubtitle, catalogDescription, catalogFactionLogo, activation, weaponId,
                 resourceMode, startingAmmo, aiPolicy, presentation, smokeGrenadeSpec, satchelChargeSpec,
-                closeContactSpec, deployableEmplacementSpec, deployableCoverSpec, null);
+                deployableEmplacementSpec, null);
     }
     public String displayName() { return Strings.resolve(displayName); }
 
@@ -83,9 +78,7 @@ public record SpecialEquipmentDef(
                 SpecialEquipmentPresentationDef.parse(json.getJSONObject("presentation"), id);
         SmokeGrenadeSpec smoke = null;
         SatchelChargeSpec satchel = null;
-        CloseContactSpec closeContact = null;
         DeployableEmplacementSpec deployable = null;
-        DeployableCoverSpec deployableCover = null;
         CommsKitSpec commsKit = null;
         switch (activation) {
             case DIRECT_EXPLOSIVE, DIRECT_PRECISION -> {
@@ -135,20 +128,9 @@ public record SpecialEquipmentDef(
             case UTILITY_DEPLOYABLE -> {
                 requireNoWeapon(weaponId, id);
                 requirePolicy(id, aiPolicy, SpecialAiPolicy.AREA_DENIAL_EMPLACEMENT,
-                        SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN,
                         SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT);
-                // One activation, two shapes of placed thing. The emplacement
-                // policy leaves an actor behind; the cover policy leaves a
-                // property of a boundary behind. They share the carried item's
-                // channel — commit, freeze, spend one — and nothing else, so
-                // each names its own spec rather than pretending one record
-                // describes both.
-                if (aiPolicy == SpecialAiPolicy.DIRECTIONAL_COVER_SCREEN) {
-                    deployableCover = parseDeployableCover(activationJson, id);
-                } else {
-                    deployable = parseDeployable(activationJson, id,
-                            aiPolicy == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT);
-                }
+                deployable = parseDeployable(activationJson, id,
+                        aiPolicy == SpecialAiPolicy.CREW_SERVED_FIRE_SUPPORT);
                 if (resourceMode != SpecialResourceMode.AMMUNITION) {
                     throw new JSONException("Deployable equipment '" + id
                             + "' must use the ammunition resource mode — a placement"
@@ -157,27 +139,6 @@ public record SpecialEquipmentDef(
                 if (presentation.carrierLayer() == null) {
                     throw new JSONException("Deployable equipment '" + id
                             + "' requires a carrier presentation recipe");
-                }
-            }
-            case CLOSE_CONTACT -> {
-                if (weaponId == null) {
-                    throw new JSONException("Weapon-like special equipment '" + id
-                            + "' must declare activation.weaponId");
-                }
-                requirePolicy(id, aiPolicy, SpecialAiPolicy.CONTACT_BREACH_CHANNEL,
-                        SpecialAiPolicy.CONTACT_REACTION_STRIKE);
-                closeContact = parseCloseContact(activationJson, resource, id);
-                if (resourceMode != SpecialResourceMode.COOLDOWN) {
-                    throw new JSONException("Close-contact equipment '" + id
-                            + "' must use the cooldown resource mode");
-                }
-                if (presentation.carrierLayer() == null) {
-                    throw new JSONException("Close-contact equipment '" + id
-                            + "' requires a carrier presentation recipe");
-                }
-                if (presentation.thrown() != null || presentation.field() != null) {
-                    throw new JSONException("Close-contact equipment '" + id
-                            + "' has no thrown or deployed field payload");
                 }
             }
             case UTILITY_COMMS -> {
@@ -209,15 +170,8 @@ public record SpecialEquipmentDef(
                 presentation,
                 smoke,
                 satchel,
-                closeContact,
                 deployable,
-                deployableCover,
                 commsKit);
-    }
-
-    /** True when this item acts only from honest physical contact. */
-    public boolean isCloseContactWeapon() {
-        return activation == SpecialActivation.CLOSE_CONTACT;
     }
 
     public String armoryIconPath() {
@@ -294,10 +248,8 @@ public record SpecialEquipmentDef(
 
     public float aimDuration() {
         if (deployableEmplacementSpec != null) return deployableEmplacementSpec.deployDuration();
-        if (deployableCoverSpec != null) return deployableCoverSpec.deployDuration();
         if (smokeGrenadeSpec != null) return smokeGrenadeSpec.throwDuration();
         if (satchelChargeSpec != null) return satchelChargeSpec.plantDuration();
-        if (closeContactSpec != null) return closeContactSpec.channelSeconds();
         if (commsKitSpec != null) return commsKitSpec.callSeconds();
         return weaponDef().aimDuration;
     }
@@ -360,33 +312,6 @@ public record SpecialEquipmentDef(
                 !crewServed && activation.optBoolean("carried", false));
     }
 
-    /**
-     * The named profile is resolved and rejected at load, not at placement:
-     * a barricade whose kind does not exist, or whose kind would close a
-     * navigation transition, is a broken catalog rather than a battle that
-     * fails once a marine happens to reach for it.
-     */
-    private static DeployableCoverSpec parseDeployableCover(JSONObject activation, String id)
-            throws JSONException {
-        String kindName = requireText(activation, "barrierKind", id);
-        SharedEdgeBarrier.Kind kind;
-        try {
-            kind = SharedEdgeBarrier.Kind.valueOf(kindName.trim().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
-            throw new JSONException("Cover deployable '" + id
-                    + "' names unknown shared-edge profile '" + kindName + "'");
-        }
-        if (kind.blocksMovement()) {
-            throw new JSONException("Cover deployable '" + id + "' names profile '"
-                    + kindName + "', which closes its navigation transition;"
-                    + " a carried screen may only place a profile that leaves"
-                    + " movement alone");
-        }
-        return new DeployableCoverSpec(kind.name(),
-                positive(activation, "deployDuration", id),
-                positive(activation, "lifetimeSeconds", id));
-    }
-
     private static CommsKitSpec parseCommsKit(JSONObject activation, JSONObject resource, String id)
             throws JSONException {
         return new CommsKitSpec(
@@ -395,14 +320,6 @@ public record SpecialEquipmentDef(
                 positive(activation, "callSeconds", id),
                 positive(resource, "cooldownSeconds", id),
                 positive(activation, "suppressionPressure", id));
-    }
-
-    private static CloseContactSpec parseCloseContact(JSONObject activation, JSONObject resource,
-                                                      String id) throws JSONException {
-        return new CloseContactSpec(
-                positive(activation, "contactRange", id),
-                positive(activation, "channelSeconds", id),
-                positive(resource, "cooldownSeconds", id));
     }
 
     private static float positive(JSONObject json, String key, String id) throws JSONException {

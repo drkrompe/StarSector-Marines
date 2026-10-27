@@ -8,6 +8,8 @@ Updated: 2026-10-23 — a billet may carry a second, thrown special on the belt.
 
 Updated: 2026-10-24 — warrant obligations ask loyalty only; service and service calls retired with generic contracts.
 
+Updated: 2026-10-27 — every equipment item is shown by a short catalog code.
+
 ## Purpose
 
 Progression is the cross-tier model for a mercenary company's growing combat
@@ -51,7 +53,7 @@ legibility.
   a quality tier or merely a technology label.
 - **Delivery mechanism** — how a weapon produces and delivers its payload:
   chemical slug, gauss/rail kinetic, flechette cloud, pulse/laser energy,
-  missile or grenade, or close-contact tool. The weapon catalog owns this
+  missile or grenade. The weapon catalog owns this
   physical/presentation truth. Mechanism does not decide availability, grade,
   faction allegiance, or tactical role by itself.
 - **Equipment grade** — the four-step manufacturing/condition quality axis:
@@ -61,13 +63,20 @@ legibility.
   attached to a recipe and concrete item. Provenance governs availability,
   presentation, and at most a bounded side-grade; it is not an allegiance lock,
   a quality tier, or a set bonus.
+- **Shown name** — the short catalog code an item is shown by, such as
+  `AR-PULSE`, `GRN-FRAG`, `SHLD-HT` or `ARM-HEG-3-LN`. Armour codes read
+  type, maker, suit tier and role. It is the item's `displayName` string and the
+  only name the player sees; a primary that takes a grade marking shows it as a
+  suffix (`AR-PULSE-2`, from `designationTiered`), and recruit issue (`GR-RFL`)
+  does not. Ids never change with it. In-universe provenance stays in an item's
+  description, never in a second name.
 - **Special equipment** — one optional billet item carried alongside the
-  marine's primary. Rocket launchers, anti-materiel rifles, fragmentation
-  grenades, and close-contact tools activate weapon definitions; smoke, satchel
+  marine's primary. Rocket launchers, anti-materiel rifles and fragmentation
+  grenades activate weapon definitions; smoke, satchel
   charges, and deployables activate utility behavior. “Secondary” remains a
   transitional code/catalog name, not the enduring player-facing category.
 - **Deployable** — a special item whose activation leaves a persistent object
-  standing in the world rather than throwing, planting, reaching, or firing
+  standing in the world rather than throwing, planting, or firing
   something. The carried item is spent; the placed object then has a life of its
   own, with its own position, durability, and expiry. A thrown grenade and an
   attached satchel are not deployables: neither is a thing that remains and acts.
@@ -77,11 +86,6 @@ legibility.
   survivability, geometry, force value, magazine, and gun from the shipped
   emplacement catalogs rather than from the backpack that carried it. It is
   never a squad member and never a second soldier.
-- **Placed cover screen** — the other thing a deployable may leave behind: a
-  barricade occupying one boundary between two cells. It is not an actor and
-  never enters the roster — cover is stored per cell per facing, so a screen
-  is a property of the map rather than a body standing on it. It takes its
-  cover, durability, and passability from a named shared-edge profile.
 - **Engagement** — one burst a placed emplacement fires at one warhead. It
   spends a round of the mount's magazine and puts the mount on its interval
   whether or not it connects, so an engagement is an attempt, not an outcome.
@@ -93,16 +97,6 @@ legibility.
 - **Point-defence target** — a round whose weapon data declares it may be
   engaged in flight. The property belongs to the weapon, never to a list held by
   whatever is shooting it down.
-- **Contact reach** — the distance at which a close-contact item may act, plus
-  the requirement that the carrier could physically cross the boundary between
-  its cell and the contact's. Reach is not a very short weapon range: a target
-  one cell away behind a shut barrier is out of reach even though it is close.
-- **Contact reservation** — one carrier's claim on one contact while it is
-  committed. It stops several carriers spending payloads on the same casualty,
-  and it costs nothing to release.
-- **Breach point** — a map cell authored as a legal place to cut an opening. A
-  breaching tool considers only authored breach points, which is what separates
-  a boarding tool from map-wide wall demolition.
 - **Armor role** — the suit's battlefield job: recon, line, assault, or support,
   with UNPOWERED identifying unpowered field kit. Assault means breaching, not
   a carrier class. Role stays independent of armor class and vertical quality.
@@ -120,15 +114,18 @@ legibility.
   concrete suit was recovered is what surprises the player, and it never spends
   the billet's carried special item. An integral system must express itself as
   behavior — movement, protection with a clock on it, a delivered payload,
-  perception — never as durability, and it declares the use policy it is spent
+  care — never as durability, and it declares the use policy it is spent
   on so its trigger is readable from the catalog entry rather than compiled into
   the sweep. Whether a pattern carries one is a question about what that suit is
   for, not a quota: see `integral-system-slate.md`.
-- **System family** — the shared name and icon every pattern's take on one
-  effect has in common, such as a breach assist. Six suits carry that effect and
-  each names its own version something else; the family is what lets a player see
-  they are the same capability rather than six unrelated tricks, so it leads and
-  the tradition's own name follows as flavour.
+- **System family** — the shared name and icon every system of one effect has
+  in common, such as a breach assist. It leads, and the system's own name
+  follows.
+- **Shared system** — an integral system defined once at the armour catalog's
+  top level and carried by several suits by reference. The personal shield is
+  three of these, the Low, Mid and High Tech tiers (`integral-system-slate.md`);
+  a suit referencing one may add its own carried hardware and nothing else, so
+  the tier's numbers and name cannot fork per suit.
 - **Use policy** — the authored moment at which spending a piece of equipment is
   a good idea: what has to be true, not what the thing does. It is a closed
   vocabulary shared by both carriers of equipment behavior, a carried special
@@ -288,13 +285,13 @@ cannot overturn the band the player read. This is what makes threat assessment
 a skill rather than a guess, and it applies to defender formations as much as
 to the player's own.
 
-The shipped primary catalog now covers five player-facing decisions. The Rook
-is the rugged chemical-slug baseline, the Lancer is the flexible pulse burst,
-and the Longbow is the deliberate gauss/rail marksman weapon. The Rattler is a
+The shipped primary catalog now covers five player-facing decisions. GR-RFL
+is the rugged chemical-slug baseline, AR-PULSE is the flexible pulse burst,
+and RL-DMR is the deliberate gauss/rail marksman weapon. GR-SMG is a
 close-range flechette shredder: one trigger releases several independently
 resolved projectiles with low penetration, steep falloff, and wide spread. Its
 legacy `SMG` enum name and `weapon.smg` id remain only for save compatibility.
-The Stalwart is the squad automatic slugthrower: one trigger begins a long
+MG-SUPP is the squad automatic slugthrower: one trigger begins a long
 temporal burst that participates in the existing covering-fire and bounding
 model without creating a suppression status or permanent gunner class.
 
@@ -323,7 +320,7 @@ so a squad's band is legible from the deck. A marine in a heavy battlesuit is,
 by construction, one of the people the company put its best kit on.
 
 The primary deliberately does not feed the band. A primary's access tier is
-authored independently of grade; the introductory Milspec Stalwart and Lancer
+authored independently of grade; the introductory Milspec MG-SUPP and AR-PULSE
 circulate as Common technology. Sourcing experience there would fuse axes this
 domain keeps separate — grade supplies quality, profile
 supplies person. For the same reason there is no hidden "promoted because they
@@ -438,8 +435,8 @@ what lets a player learn to judge a hostile formation on sight.
 ### Kit and armory
 
 Wayline's first story relief victory offers one free technology transfer through
-**A Proper Issue** in the Armory. Steady Line learns Milspec Stalwart; Forward Screen
-learns Milspec Lancer and Janus scout suits. Comparison is read-only; acceptance
+**A Proper Issue** in the Armory. Steady Line learns Milspec MG-SUPP; Forward Screen
+learns Milspec AR-PULSE and ARM-TACH-2-RCN scout suits. Comparison is read-only; acceptance
 saves one choice and never changes a marine's kit. The Machine Shop subsequently
 fits any learned gear freely. The unchosen path's specs remain in ordinary open
 markets and faction mission-reward pools. Existing claimed bundles retain both
@@ -778,13 +775,13 @@ once-only; listing the same card at the same place twice changes nothing. This i
 
 **Arc issue cards are how the early arcs pay in ways of fighting.** Four weapon
 cards carry the kit no older card fielded, each stocked by the arc beat that
-teaches its lesson. *Checkpoint Issue* (Rampart revetments and smoke) is listed at
+teaches its lesson. *Checkpoint Issue* (satchel-charge sappers and smoke) is listed at
 the Wayline broker's market once Relief settles. It is bought beside *A Proper
 Issue*'s free choice, never offered as one of its paths. *Convoy Escort Issue*
 (rocket tubes and one Palisade pod) is listed at the route employer's market once
 Thunder Run opens the road. *Counter-Battery Issue* (two Arrestor packs and an
 anti-materiel rifle) is listed at every Hegemony open market once *A Cold Account*
-settles: Advanced kit, no warrant. *Builder's Guard* (revetments and
+settles: Advanced kit, no warrant. *Builder's Guard* (satchel-charge sappers and
 Palisade pods) is listed at Asharu once the Morrow's Working Passage settles. Each
 listing comes from the arc's own once-only settlement and is laid only on a won
 beat; a settlement that cannot place it logs and moves on rather than unwinding a
@@ -915,15 +912,13 @@ system is readable before contact remains open: reading it at a distance makes a
 fight plannable, and discovering it when a rig comes through a door is more in
 keeping with how the rest of the equipment model treats recovery.
 
-The built-in identities are the rocket launcher, anti-materiel
-rifle, Wayfarer smoke grenades, Breachhand mag-clamp satchel, Shattercap
-fragmentation grenades, the Emberjaw thermal breacher, the Quillon
-vibro-blade, the Palisade interceptor pod, the Arrestor interceptor pack, and the Rampart field revetment.
-The first two are direct-fire activations, Shattercap
-is an arcing weapon activation, smoke and satchels are utility activations,
-the pod and the revetment are deployable activations, and
-the breacher and blade share one close-contact activation,
-but only the item definition owns loadout identity, catalog copy, resource
+The built-in identities are the rocket launchers, anti-materiel
+rifle, smoke grenades, mag-clamp satchel, fragmentation and incendiary
+grenades, the flamer, the comms radio, the interceptor pod, the interceptor
+pack, and the field mortar. Launchers and the rifle are direct-fire
+activations, grenades and the flamer are arcing weapon activations, smoke,
+satchels and the radio are utility activations, and the pod, pack and mortar
+are deployable activations, but only the item definition owns loadout identity, catalog copy, resource
 mode, initial ammunition, Armory art, activation type, AI policy, use-pose
 profile, and local presentation recipe; the
 referenced weapon definition owns range, damage, accuracy, impact, projectile,
@@ -951,41 +946,6 @@ suit cannot borrow a policy written for a grenade and a grenade cannot borrow
 one written for a suit. Both refusals name the policies that would have applied,
 in the style the armour catalog already uses to refuse durability keys.
 
-**Perception is an effect, and it is player-facing by construction.** A sensor
-sweep is the third thing an integral system may be, beside movement-with-a-screen
-and a delivered payload. What it does is contribute a temporary observer to the
-player's own reveal for its authored window — the same shadowcast, the same
-reference count, and the same expiry a shuttle already gets
-(`fog-of-war-nouns.md`), so it is a client of player reveal composition rather
-than a second visibility path. It authors how far it reads and how far that read
-carries into the walls in front of it, and the wall tolerance is bounded strictly
-inside the range: a read that carried through walls as far as it carried through
-air would leave nothing for a wall to do at the rim of its own disc.
-
-A sweep is **information, not authority**. It reveals and does nothing else — it
-does not target, mark, follow, or make anything easier to hit, and no decision
-layer reads it, because fog of war is presentation authority and must never
-become a simulation input. That is also why the moment a sweep is spent at is
-judged from the wearer's own line of sight rather than from the reveal bitmap:
-a policy that read the fog would let what the player has already been shown
-decide what a marine does, which is the same law inverted. The consequence worth
-stating plainly is that a sweep confers no advantage the same information
-obtained by walking round the corner would not.
-
-The corollary is the rule this effect exists to keep: **whatever a sensor system
-finds, the player is shown.** A capability that fed better information to the AI
-and showed the player nothing would be exactly the hidden modifier the
-visible-issue law forbids, and a perception effect is unusually easy to build
-that way by accident. Building the reveal as a player-picture contribution and
-nothing else makes that true by construction rather than by discipline.
-
-**A sweep does not conceal.** Concealment is a separate capability belonging to
-the light/recon role behind its own contract (`powered-assault-armor-roles.md`),
-and a reveal path that recomputed rather than contributed would be the cheapest
-accidental route to it. A running sweep only ever adds to the picture; no cell
-that was open closes because of one, and the wearer is exactly as visible while
-it runs as they were before.
-
 An equipment presentation separates catalog art, attached carrier layers,
 deployed-world art, and preview state. Carrier transforms are authored in
 shoulder-width coordinates with carried/using states, pivot, occlusion,
@@ -1000,7 +960,7 @@ The fitted armor's actual system identity selects that hardware, independently
 of the carried special item. It stays visible after ammunition is spent and
 during cooldown, does not replace the primary, and does not infer a shot from
 the duration of an active effect. Aegis Predictive Volley and Arbalest Battery
-Volley carry left-pauldron missile pods; Specter Predictive Breach carries a
+Volley carry left-pauldron missile pods; the Specter frames' shield carries a
 small screen emitter. Those art choices do not grant capabilities. A missile
 system may separately declare its physical shoulder mount and muzzle geometry.
 Both the resolved round and its visual shot start at that muzzle, and a committed
@@ -1056,7 +1016,7 @@ Activation still uses the integral-system owner and its authored resources,
 duration, cooldown, and movement effect. Protection faces manual mouse aim and
 reads the ordinary directional mitigation pool.
 
-The Breachhand is reusable close-contact demolition for a marine who already
+The Breachhand is reusable contact demolition for a marine who already
 happens to be beside a hostile hardened target. Opportunity AI considers only
 living turrets, drone hubs, and heavy mechs already inside contact range and
 honest line of sight; it never assigns an approach or overrides survival
@@ -1101,56 +1061,6 @@ weapon doctrine issues exactly one
 frag carrier across its twelve billets. All built-in defender roster profiles
 author their own low/medium/high bulk and elite weights: the execution policy
 is faction-neutral, while availability remains faction-shaped and risk-scaled.
-
-Close-contact boarding tools are the sector's two recognizable contact
-implements, and they are one mechanism wearing two tactical identities. Both
-occupy the ordinary special slot, both reference a marine-secondary weapon
-definition for damage, penetration, wall damage, audio, and effects, and both
-run the same typed executor, which replaces the traveling shot with an
-adjacency test. **They are not a universal melee attack.** A marine carrying
-neither gains no contact attack of any kind, and no other special item acquires
-one by sharing the slot.
-
-The **Emberjaw thermal breacher** is anti-hard contact work: a long, visible,
-interruptible channel against an armored actor or emplacement the carrier is
-already standing against. It applies bounded contact work with no area blast,
-and at an authored breach point it applies the weapon's wall damage to that one
-cell through the ordinary map-edit authority. Arbitrary obstacle-seeking and
-map-wide wall chewing are not authorized, and a breach point is reachable only
-from the four cells that share a face with it.
-
-The **Quillon vibro-blade** is anti-personnel reaction equipment: one short
-strike against a living infantry contact when a firefight has already collapsed
-to arm's length. It cannot intentionally select a turret, drone hub, mech,
-convoy vehicle, drone, or non-combatant, and it never opens a wall.
-
-The two are distinguished by AI policy rather than by a second activation.
-Thermal and arc are mechanism variants of the one breach-tool role, and vibro
-and monofilament of the one edge role; provenance may vary within a family
-without earning a fourth definition.
-
-Both actions validate their contact before committing, again on every tick of
-the commitment, and once more at the payload seam. Death, separation, a lost
-line of contact, a barrier closing between the two cells, or a higher-priority
-survival response cancels the commitment before the payload applies, and an
-interrupted commitment costs the carrier nothing. While committed, a carrier
-holds a contact reservation, so several carriers cannot spend several payloads
-on the same contact.
-
-Equipment influences per-action suitability without creating a permanent
-breacher or swordsman role. A carrier uses its tool when ordinary squad
-movement has already brought it into contact; the executor never authors a
-path, never clears one, and never retargets its carrier, so engagement AI
-cannot abandon a firing line or cross its maneuver leash to manufacture a
-contact opportunity. Player and defender carriers obey the same legality,
-interruption, reservation, and target policy. Faction profiles control
-availability and provenance only: the blade is broadly circulated and
-market-reachable, while the cutter is Advanced and reaches the player through
-licensed, patron, and recovery channels.
-
-Both use the shipped contact-work pose rather than introducing a new one.
-Presentation carries the strike's audio, its impact effects, and the localized
-noise a nearby squad may hear; it never decides whether the contact landed.
 
 ### Deployables and placed emplacements
 
@@ -1242,53 +1152,12 @@ carrier was standing on; closing that cell would both trap the carrier and shut
 a navigation edge under existing paths. Only an emplacement that actually sealed
 a cell re-opens one when it dies.
 
-**A deployable leaves behind one of two kinds of thing, and only one of them is
-an actor.** The category's shared part is the carried item's channel: an
-activation that commits the carrier, freezes them for a short build, spends one
-piece of hardware, and enqueues a placement that the serial pass resolves. What
-that placement produces is not shared at all. A **placed emplacement** is an
-actor — an entity on a cell, with hit points and armour, targetable, killable,
-drawn by the ordinary unit pass. A **placed cover screen** is a *property of a
-boundary* — there is no entity, because cover in this game is stored per cell
-per facing and a barricade is the thing that puts some there. Each shape has its
-own owner: an emplacement takes its survivability, geometry, and gun from the
-emplacement catalogs, while a screen takes its cover level, catch height,
-structure, and passability from the named shared-edge profile that
-`mapgen-nouns.md` owns. A future deployable picks the shape that matches what it
-actually leaves standing, rather than being bent into whichever one shipped
-first.
-
-The second deployable is the **Rampart field revetment**: folding baskets and a
-stake kit a marine drops across one boundary of the ground they are already
-holding. It is placed when the carrier is standing still, taking fire from a
-hostile it can locate, and the boundary between them offers nothing — so it is
-free in a battle fought from cover and it never pulls a marine off a firing
-line to build.
-
-**A cover screen protects one boundary, and the boundary belongs to both cells
-it joins.** Whoever stands on either side of it is behind it against fire
-crossing it, which is faction-blind because a barricade does not know who built
-it, and it does nothing whatever against fire from the other three directions.
-That directionality is the whole design: a screen that made its cell safer from
-everywhere would be a durability increase in a costume, which is the same
-mistake the all-round screen refused. It is enforced rather than asserted —
-the damage path resolves cover against the bearing from the target to the hit's
-source whenever the hit has a locatable one, and falls back to the
-direction-blind scalar only for a hit with no bearing at all.
-
-**A screen is cover, not a wall, and that is what makes it placeable at all.**
-It leaves the navigation transition open: a soldier steps over it, shoots over
-it, and sees over it. Nothing about the walkable graph changes when one appears,
-so no path in progress is invalidated, no zone is severed, and no unit can be
-stranded behind one — which is exactly the condition `mapgen-nouns.md` puts on
-runtime construction. A barricade that also blocked movement would be a
-different feature owing a different proof, and would be a portable wall rather
-than a portable piece of cover.
-
-Its bounds are the boundary it occupies, a finite time standing, and a small
-structure that explosive wall damage depletes. Expiry and destruction share
-one removal path, so a screen that ran its clock out and one that was blown
-apart leave the boundary in the same state — the one it was found in.
+**A deployable leaves behind an actor.** The category's shared part is the
+carried item's channel: an activation that commits the carrier, freezes them for
+a short build, spends one piece of hardware, and enqueues a placement that the
+serial pass resolves. A **placed emplacement** is an entity on a cell, with hit
+points and armour, targetable, killable, drawn by the ordinary unit pass, and it
+takes its survivability, geometry, and gun from the emplacement catalogs.
 
 **Which rounds may be engaged is the weapon's declaration, not the
 emplacement's.** A weapon definition opts itself in, and the shipped warhead
@@ -1510,12 +1379,6 @@ The following are direction, not current behavior:
 - A policy's parameters belong to that policy alone. Two systems declaring
   different policies share no numbers, and no parameter may be reachable from a
   policy that did not author it.
-- A perception effect reveals to the player. Feeding a decision layer something
-  the player is not shown is a hidden modifier, not a capability, and reading
-  the player's reveal back into a simulation decision is that law inverted.
-- A perception effect never conceals, marks, targets, or makes anything easier
-  to hit. Concealment belongs to the recon role and its own contract; a sweep
-  that acquired any of those has stopped being perception.
 - Defenders and the player draw a pattern's system from the same catalog entry.
   A defender-only tuning field, a second catalog, or a faction branch in the
   sweep is a defect: a recovered suit must behave identically to the one it was
@@ -1537,14 +1400,8 @@ The following are direction, not current behavior:
 - A billet carries at most one special item and one thrown belt item; nothing
   but smoke or a hand grenade rides the belt. Utilities do not become
   `WeaponDef` entries merely because they share that loadout slot with guns.
-- Contact damage exists only as a carried item. No marine has a fallback melee
-  attack, and no future close-contact family may grant one.
-- A close-contact family earns a definition through behavior, payload, or
-  readable presentation. A mechanism or provenance name — thermal, arc, vibro,
-  monofilament — is flavour on an existing role until it changes one of those.
-- A breaching tool damages a wall only at an authored breach point, one cell at
-  a time and with no radius. Obstacle-seeking demolition is a different feature
-  and requires its own authority.
+- No marine has a melee attack. Contact work is a planted satchel, never a
+  strike.
 - Special-equipment use policy is simulation-owned and faction-neutral;
   template cards express issue, not hidden battle orders.
 - Special-equipment data selects a closed activation and AI policy; executors

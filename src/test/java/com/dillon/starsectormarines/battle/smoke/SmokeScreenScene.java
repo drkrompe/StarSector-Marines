@@ -65,9 +65,9 @@ public final class SmokeScreenScene implements BehaviorScene {
     private static final int BASE_Y = 15;
     private static final String MARINE_RIFLE = "weapon.field-rifle";
 
-    /** The screen the catalog pot stands, as the planner would count on it. Read when a loop is played: the registry is installed by then. */
+    /** A long-burning screen that thins before it clears: two and a half minutes, the last thirty spent contracting. */
     private static SmokeGrenadeSpec pot() {
-        return SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_POT_ID).smokeGrenadeSpec();
+        return new SmokeGrenadeSpec(9f, 1.2f, 0.7f, 1.2f, 3f, 150f, 30f);
     }
 
     /** A heavy screen, wide enough to cut the base of fire's line as well. */

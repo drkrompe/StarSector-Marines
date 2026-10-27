@@ -8,7 +8,7 @@ import java.util.Objects;
 public final class WaterUnderSealIssue {
     private WaterUnderSealIssue() {}
     public static EntitySpec recoveredAssaultRig(EntitySpec member, MarineArmorCatalogDef armor) {
-        Objects.requireNonNull(armor, "Recovered Specter catalog must be installed");
+        Objects.requireNonNull(armor, "armor.specter-recovered must be installed");
         if (!"armor.specter-recovered".equals(armor.id())) throw new IllegalArgumentException("North Weir uses the recovered assault pattern");
         return member.armorClass(armor.armorClass()).layeredArmorFamily(armor.appearanceFamily())
                 .armor(armor.armorCapacity(), armor.armorRating(), armor.moveSpeedMult(), armor.incomingAccuracyMult())

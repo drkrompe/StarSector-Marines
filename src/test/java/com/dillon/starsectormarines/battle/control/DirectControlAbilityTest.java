@@ -44,12 +44,12 @@ class DirectControlAbilityTest {
             "special.test-smoke", "Smoke", "", "", null, SpecialActivation.UTILITY_SMOKE,
             null, SpecialResourceMode.AMMUNITION, 2, SpecialAiPolicy.SQUAD_SMOKE_SCREEN,
             new SpecialEquipmentPresentationDef("", SpecialUsePose.THROW,
-                    null, null, null, null, null, null), SMOKE, null, null, null, null);
+                    null, null, null, null, null, null), SMOKE, null, null);
     private static final IntegralSystemDef SHIELD = new IntegralSystemDef(
             "system.test-screen", "Screen", EquipmentGrade.SERVICE, "",
             IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
             3f, 22f, 0, new BreacherAssistSpec(1.45f, 20f, 120f),
-            null, null, null, new ExposedUnderFireSpec(2f, 1f));
+            null, new ExposedUnderFireSpec(2f, 1f));
 
     private final NavigationGrid grid = new NavigationGrid(20, 12);
     private final UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(20, 12), null);

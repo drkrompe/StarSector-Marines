@@ -44,18 +44,6 @@ class BoardingJackSectionTest {
     }
 
     @Test
-    void latchAssistIsTheExistingBreacherAssistAndNothingMore() {
-        IntegralSystemDef latch = MarineArmorCatalogRegistry.require(SUIT).integralSystem();
-        IntegralSystemDef breach = MarineArmorCatalogRegistry.require("armor.foundry-breaker").integralSystem();
-        assertEquals(breach.effect(), latch.effect());
-        assertEquals(2.0f, latch.durationSeconds(), 1e-6f);
-        assertEquals(22.0f, latch.cooldownSeconds(), 1e-6f);
-        assertEquals(1.15f, latch.breacherAssist().moveSpeedMult(), 1e-6f);
-        assertEquals(4.0f, latch.breacherAssist().screenSoak(), 1e-6f);
-        assertEquals(100.0f, latch.breacherAssist().shieldedArcDegrees(), 1e-6f);
-    }
-
-    @Test
     void theSectionIsLightAndCarriesEveryPatternItWears() {
         MarineArmory armory = new MarineArmory();
         LoadoutCardLearning.learn(armory, CARD.id());

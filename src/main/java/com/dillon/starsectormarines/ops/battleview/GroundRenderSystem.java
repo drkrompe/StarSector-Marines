@@ -80,7 +80,7 @@ public final class GroundRenderSystem implements RenderSystem {
     private static final float EDGE_WINDOW_GLASS_THICKNESS_FRAC = 0.12f;
     private static final float EDGE_WINDOW_GLASS_END_INSET_FRAC = 0.08f;
     /**
-     * A deployed revetment straddles its boundary rather than being projected
+     * A revetment straddles its boundary rather than being projected
      * inward off an owning wall, because it has no owning wall — it is the
      * boundary. Thicker than a window frame and drawn across the whole edge, so
      * "which way does this protect me" is answerable at a glance.
@@ -1334,9 +1334,9 @@ public final class GroundRenderSystem implements RenderSystem {
     }
 
     /**
-     * One deployed revetment: a slab centred on the shared edge with ribs
-     * across it. Centred, not offset to one side, because a screen a marine set
-     * down belongs to the boundary itself and protects whoever is on either
+     * One revetment: a slab centred on the shared edge with ribs
+     * across it. Centred, not offset to one side, because it belongs to the
+     * boundary itself and protects whoever is on either
      * side of it — drawing it inside one of the two cells would claim an
      * ownership it does not have.
      */

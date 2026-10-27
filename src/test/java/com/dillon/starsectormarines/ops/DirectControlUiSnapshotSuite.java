@@ -587,7 +587,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                 new BattleMarineDollPlate.Kit(frag.displayName(),
                         (frag.startingAmmo() - 1) + "/" + frag.startingAmmo(), false,
                         BattleMarineDollPlate.Kit.round(frag), frag.startingAmmo() - 1, frag.startingAmmo()),
-                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemBreacherAssistDisplayName"),
+                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemShieldLowTechDisplayName"),
                         copy.apply("battleMarineDollReady"), false, "shield", 1, 1, true))));
         return plate;
     }
@@ -882,7 +882,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         List<BattleMarineDollPlate.Kit> items = List.of(
                 new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSpecialRocketLauncherDisplayName"), "1/3", false,
                         "missile", 1, 3),
-                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemBreacherAssistDisplayName"),
+                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemShieldLowTechDisplayName"),
                         copy.apply("battleMarineDollReady"), false, "shield", 1, 1, true),
                 new BattleMarineDollPlate.Kit(copy.apply("battleMarineDollMedic"), "0/3", true));
         return new BattleMarineDollPlate.MarineDoll(suit, true, armor, health, arms, legs, items);
