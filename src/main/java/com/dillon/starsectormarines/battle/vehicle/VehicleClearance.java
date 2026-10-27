@@ -20,7 +20,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
  * an edge beside its centre line, and a body three cells wide was pinned on it. The radius is
  * the footprint <em>half-width</em> (the vehicle aligns its length down a
  * corridor, so width is the binding dimension) — e.g. a HEAVY_APC at
- * visualWidth 1.4 erodes by radius 1. A 3-wide street therefore leaves a 1-cell
+ * visualWidth 0.9 erodes by radius 1, the floor. A 3-wide street therefore leaves a 1-cell
  * passable centerline, which is exactly the lane a truck drives; the string-pull
  * and the rolling local planner handle the rest. {@code radiusCells == 0}
  * reproduces the raw walkable set.
@@ -120,12 +120,18 @@ public final class VehicleClearance {
 
     /**
      * Footprint radius (cells) for a vehicle of the given visual width — the
-     * half-width rounded up, floored at 0. The convenience the spawn sites use
-     * so the erosion matches the body that will drive it.
+     * half-width rounded, floored at 1. The convenience the spawn sites use
+     * so the erosion matches the body that will drive it. A route keeps a cell
+     * of ground either side of its centre line however narrow the hull: an
+     * APC's body is under a cell wide, but its wheels are not, and a hull
+     * needs that room to come round a bend; the body alone is what collides.
      */
     public static int radiusForWidth(float visualWidthCells) {
-        return Math.max(0, Math.round(visualWidthCells * 0.5f));
+        return Math.max(MIN_RADIUS, Math.round(visualWidthCells * 0.5f));
     }
+
+    /** The narrowest a route's clearance is eroded, cells either side of its centre line. */
+    static final int MIN_RADIUS = 1;
 
     private boolean fits(NavigationGrid grid, int cx, int cy, int r) {
         fitEvaluations++;

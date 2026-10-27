@@ -369,11 +369,11 @@ public class GroundSystem {
         if (type.isTank()) {
             effects.spawnTankWreck(body.x, body.y, body.facingDegrees);
         } else if (type.isApc()) {
-            effects.spawnApcWreck(body.x, body.y, body.facingDegrees, type.visualLengthCells);
+            effects.spawnApcWreck(body.x, body.y, body.facingDegrees, type.drawnLengthCells);
         } else if (type.isPickup()) {
             effects.spawnTechnicalWreck(body.x, body.y, body.facingDegrees);
         } else if (type.isHover()) {
-            effects.spawnHoverWreck(body.x, body.y, body.facingDegrees, type.visualLengthCells);
+            effects.spawnHoverWreck(body.x, body.y, body.facingDegrees, type.drawnLengthCells);
         } else if (type == VehicleType.CARGO_CARRIER) {
             effects.spawnHaulerWreck(body.x, body.y, body.facingDegrees);
         } else {

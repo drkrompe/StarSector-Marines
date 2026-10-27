@@ -28,7 +28,7 @@ class HybridAStarPlannerStartTest {
     @Test void legalChassisWithInvalidTrackingPadSkipsAllHeuristicStorage() {
         NavigationGrid grid = openGrid();
         grid.setWalkable(7, 8, false);
-        Pose start = new Pose(6.1f, 8.5f, 0f);
+        Pose start = new Pose(6.35f, 8.5f, 0f);
         assertTrue(chassisClear(start, grid));
 
         assertNull(plan(start, grid, true));
@@ -39,7 +39,7 @@ class HybridAStarPlannerStartTest {
 
     @Test void paddedMapEdgeFailureIsNotTerrainOrAnInvalidPhysicalChassis() {
         NavigationGrid grid = openGrid();
-        Pose start = new Pose(.85f, 8.5f, 0f);
+        Pose start = new Pose(.6f, 8.5f, 0f);
         assertTrue(chassisClear(start, grid));
 
         assertNull(plan(start, grid, true));
@@ -64,7 +64,7 @@ class HybridAStarPlannerStartTest {
         NavigationGrid grid = openGrid();
         // Only the far cell refuses this edge; the near cell remains open.
         grid.setEdgePassable(7, 8, Direction.W, false);
-        Pose start = new Pose(6.1f, 8.5f, 0f);
+        Pose start = new Pose(6.35f, 8.5f, 0f);
         assertTrue(chassisClear(start, grid));
 
         assertNull(plan(start, grid, true));
@@ -120,7 +120,7 @@ class HybridAStarPlannerStartTest {
     @Test void controlPaysTheOldWorkForTheSameNullAnswerAndReportsTheSameCause() {
         NavigationGrid grid = openGrid();
         grid.setWalkable(7, 8, false);
-        Pose start = new Pose(6.1f, 8.5f, 0f);
+        Pose start = new Pose(6.35f, 8.5f, 0f);
 
         assertNull(plan(start, grid, false));
 
@@ -135,9 +135,9 @@ class HybridAStarPlannerStartTest {
         NavigationGrid grid = openGrid();
         grid.setWalkable(7, 8, false);
         ReferenceCorridor corridor = new ReferenceCorridor(
-                new float[]{6.1f, 6.1f}, new float[]{8.5f, 22f}, 1);
+                new float[]{6.35f, 6.35f}, new float[]{8.5f, 22f}, 1);
 
-        assertNull(LocalTrajectoryPlanner.plan(new Pose(6.1f, 8.5f, 0f), corridor, TYPE, grid));
+        assertNull(LocalTrajectoryPlanner.plan(new Pose(6.35f, 8.5f, 0f), corridor, TYPE, grid));
 
         assertEquals(1, profile.countOf(Bucket.VEHICLE_LOCAL_PLAN));
         assertEquals(1, profile.countOf(Bucket.VEHICLE_LOCAL_NO_TRAJECTORY));

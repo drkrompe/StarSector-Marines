@@ -18,7 +18,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
  * A round fired past the flank of a chassis at point-blank range must contact
  * its hull. The broad phase gathers candidates whose CENTRE lies within a
  * margin of the ray, so the margin has to be at least the largest body radius
- * in the game — an APC's is 1.2 cells against a 1.0-cell base margin, and the
+ * in the game — a tank's is 2.2 cells against a 1.0-cell base margin, and the
  * speed term that tops it up shrinks to nothing over a two-cell shot.
  */
 class GrazingHullContactTest {
@@ -37,15 +37,15 @@ class GrazingHullContactTest {
         BattleSimulation sim = new BattleSimulation(grid,
                 new CellTopology(grid.getWidth(), grid.getHeight()), 7L);
 
-        // The chassis sits with its centre 1.15 cells off the firing line —
-        // inside its own 1.2-cell hull radius, so the exact contact test says
-        // the round strikes it.
+        // The chassis sits with its centre 1.55 cells off the firing line —
+        // outside the base margin, but its flank stands 0.45 cells from the
+        // line, so the exact contact test says the round strikes it.
         VehicleMission mission = new VehicleMission(
-                new float[]{10.5f, 11.5f}, new float[]{6.65f, 6.65f},
-                new float[]{11.5f, 10.5f}, new float[]{6.65f, 6.65f},
-                0f, VehicleType.HEAVY_APC.capacity);
+                new float[]{10.5f, 11.5f}, new float[]{7.05f, 7.05f},
+                new float[]{11.5f, 10.5f}, new float[]{7.05f, 7.05f},
+                0f, VehicleType.BREAKTHROUGH_TANK.capacity);
         mission.state = VehicleState.INCOMING;
-        long apc = sim.convoy().spawn(VehicleType.HEAVY_APC, Faction.DEFENDER, mission);
+        long apc = sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, Faction.DEFENDER, mission);
 
         long shooter = sim.spawn(new EntitySpec("marine", Faction.MARINE,
                 UnitType.MARINE, 9, 5));

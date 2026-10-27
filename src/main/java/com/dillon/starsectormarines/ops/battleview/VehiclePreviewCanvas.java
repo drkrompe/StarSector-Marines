@@ -40,7 +40,7 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
 
         float aspect = frameAspect(context);
         float hullWidth = Math.min((width - inset * 2f) * 0.92f, (height - inset * 2f) * 0.92f / aspect);
-        drawAt(context, width * 0.5f, height * 0.5f, hullWidth / type.visualLengthCells, false, 1f);
+        drawAt(context, width * 0.5f, height * 0.5f, hullWidth / type.drawnLengthCells, false, 1f);
     }
 
     /**
@@ -48,7 +48,7 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
      * turns the whole vehicle a quarter so it stands on a pad the way the mechs do.
      */
     void drawAt(CanvasContext context, float centerX, float centerY, float cellPx, boolean noseUp, float alpha) {
-        float hullWidth = type.visualLengthCells * cellPx;
+        float hullWidth = type.drawnLengthCells * cellPx;
         float aspect = frameAspect(context);
         float hullHeight = hullWidth * aspect;
         float angle = noseUp ? NOSE_UP_DEGREES : 0f;

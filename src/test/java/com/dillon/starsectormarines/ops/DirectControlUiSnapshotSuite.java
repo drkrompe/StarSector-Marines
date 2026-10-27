@@ -515,10 +515,9 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         float aimX = ringX + (float) (Math.cos(bearing) * cells * px);
         float aimY = ringY + (float) (Math.sin(bearing) * cells * px);
         graphics.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-        // The sheet's four frames draw the nose to the left; the hull spans about 740 px of its frame, which is the
-        // type's visual length.
+        // The sheet's four frames draw the nose to the left; each frame is drawn the type's drawn length long.
         int frame = sheet.getWidth() / 4;
-        double scale = type.visualLengthCells * px / 740.0;
+        double scale = type.drawnLengthCells * px / frame;
         AffineTransform saved = graphics.getTransform();
         graphics.translate(ringX, ringY);
         graphics.rotate(bearing + Math.PI);

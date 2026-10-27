@@ -35,7 +35,7 @@ public enum VehicleType {
     HEAVY_APC(
             "graphics/battle/vehicles/army-apc.png", /*spriteFrame*/ 0, /*frameCount*/ 4,
             /*spriteFacingOffsetDeg*/ -90f,
-            /*capacity*/ 6, /*visualLengthCells*/ 2.4f, /*visualWidthCells*/ 1.4f,
+            /*capacity*/ 6, /*drawnLengthCells*/ 2.4f, /*visualLengthCells*/ 2.25f, /*visualWidthCells*/ .9f,
             /*maxSpeed*/ 2.8f, /*accel*/ 1.8f, /*brakingAccel*/ 3.5f,
             /*deboardInterval*/ 0.8f, /*lookAheadCells*/ 2.2f,
             /*turretFrame*/ 1, /*turretMountX*/ 0f, /*turretMountY*/ 0.15208333f,
@@ -57,7 +57,7 @@ public enum VehicleType {
      * troop carrier rides a Light one. Same hull art; the fresh plate reads as a darker hull.
      */
     UP_ARMORED_APC("graphics/battle/vehicles/army-apc.png", 0, 4, -90f,
-            4, 2.5f, 1.45f, 2.3f, 1.4f, 3.2f, .9f, 2.3f,
+            4, 2.5f, 2.35f, .95f, 2.3f, 1.4f, 3.2f, .9f, 2.3f,
             1, 0f, .15208333f, 0f, 0f, 1.42f, -90f,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 300f, 320f, 24f, 1.3f, .78f) {
         @Override public GroundBody createBody() {
@@ -77,7 +77,7 @@ public enum VehicleType {
      * (art-source/vehicles/mortar-carrier).
      */
     FIRE_SUPPORT_APC("graphics/battle/vehicles/mortar-carrier.png", 0, 4, -90f,
-            0, 2.4f, 1.4f, 2.6f, 1.6f, 3.5f, .8f, 2.2f,
+            0, 2.4f, 2.25f, .9f, 2.6f, 1.6f, 3.5f, .8f, 2.2f,
             1, 0f, .15208333f, 0f, 0f, 2.4f, -90f,
             TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID, 220f, 160f, 18f, 1.25f, .75f) {
         @Override public GroundBody createBody() {
@@ -87,7 +87,7 @@ public enum VehicleType {
     },
     /** Reinforced local convoy escort. Ordinary reinforcement APCs keep their lighter profile. */
     ESCORT_APC("graphics/battle/vehicles/army-apc.png", 0, 4, -90f,
-            0, 3.2f, 1.8f, 3.4f, 1.8f, 3.5f, .8f, 2.8f,
+            0, 3.2f, 3.0f, 1.2f, 3.4f, 1.8f, 3.5f, .8f, 2.8f,
             1, 0f, .20277778f, 0f, 0f, 1.42f, -90f,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 620f, 420f, 24f, 1.25f, .9f) {
         @Override public GroundBody createBody() {
@@ -96,7 +96,7 @@ public enum VehicleType {
     },
     /** Heavy convoy spearhead. Turns on conservative rolling arcs, and on the spot where no arc fits ({@link NeutralPivot}). */
     BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
-            0, 4.3f, 2.3f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
+            0, 4.3f, 3.8f, 2.2f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
@@ -118,7 +118,7 @@ public enum VehicleType {
      * (art-source/vehicles/tank-screened).
      */
     SCREENED_TANK("graphics/battle/vehicles/army-tank-screened.png", 0, 4, -90f,
-            0, 4.3f, 2.3f, 2.9f, .95f, 3.0f, .8f, 3.0f,
+            0, 4.3f, 3.8f, 2.2f, 2.9f, .95f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
@@ -143,7 +143,7 @@ public enum VehicleType {
      * laser's blue.
      */
     LASER_TANK("graphics/battle/vehicles/army-tank-laser.png", 0, 5, -90f,
-            0, 4.3f, 2.3f, 3.3f, 1.05f, 3.0f, .8f, 3.0f,
+            0, 4.3f, 3.85f, 2.25f, 3.3f, 1.05f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 1.6f, -90f,
             TurretCatalogRegistry.TANK_BURST_LASER_STRUCTURE_ID, 750f, 500f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
@@ -165,7 +165,7 @@ public enum VehicleType {
      * (art-source/vehicles/tank-laser).
      */
     PD_LASER_TANK("graphics/battle/vehicles/army-tank-pd-laser.png", 0, 5, -90f,
-            0, 4.3f, 2.3f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
+            0, 4.3f, 3.85f, 2.25f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 1.6f, -90f,
             TurretCatalogRegistry.TANK_PD_LASER_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
@@ -186,7 +186,7 @@ public enum VehicleType {
      * The blade is real: it pushes through barricades and ordinary walls in its path ({@link DozerBlade}).
      */
     DOZER_BREACHER("graphics/battle/vehicles/army-tank-dozer.png", 0, 4, -90f,
-            0, 4.6f, 2.6f, 2.4f, .9f, 3.0f, .8f, 3.0f,
+            0, 4.6f, 3.8f, 2.2f, 2.4f, .9f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 1.42f, -90f,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 1400f, 1000f, 38f, 1.45f, 1.1f) {
         @Override public GroundBody createBody() {
@@ -199,7 +199,7 @@ public enum VehicleType {
      * Its plate turns rifle fire, so it can stand in a road and draw it; crude rockets still get through.
      */
     MILITIA_TECHNICAL("graphics/battle/vehicles/militia-technical.png", 0, 4, -90f,
-            0, 3.0f, 1.5f, 4.0f, 2.4f, 4.0f, .8f, 2.4f,
+            0, 3.0f, 2.9f, 1.4f, 4.0f, 2.4f, 4.0f, .8f, 2.4f,
             1, 0f, -.9875f, 0f, 0f, 1.508943f, -90f,
             TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 480f, 180f, 9f, 1.3f, .65f) {
         @Override public GroundBody createBody() {
@@ -214,7 +214,7 @@ public enum VehicleType {
      * everything else: no gun, no seats, and none of the technical's welded plate (art-source/vehicles/light-roles).
      */
     SUPPLY_TRUCK("graphics/battle/vehicles/supply-truck.png", 0, 4, -90f,
-            0, 3.0f, 1.5f, 3.4f, 2.0f, 3.6f, .8f, 2.4f,
+            0, 3.0f, 2.9f, 1.4f, 3.4f, 2.0f, 3.6f, .8f, 2.4f,
             -1, 0, 0, 0, 0, 0, 0, null, 360f, 60f, 4f, 1.3f, .65f) {
         @Override public GroundBody createBody() {
             return new BicycleBody(1.65f, 30f, 170f, accel, brakingAccel, maxSpeed);
@@ -229,7 +229,7 @@ public enum VehicleType {
      * sight is ordinary line of sight, so it has to be driven somewhere it can look.
      */
     SCOUT_CAR("graphics/battle/vehicles/scout-car.png", 0, 4, -90f,
-            0, 2.5f, 1.5f, 5.2f, 3.0f, 4.5f, .8f, 2.2f,
+            0, 2.5f, 2.4f, 1.4f, 5.2f, 3.0f, 4.5f, .8f, 2.2f,
             -1, 0, 0, 0, 0, 0, 0, null, 200f, 30f, 3f, 1.15f, .6f) {
         @Override public GroundBody createBody() {
             return new BicycleBody(1.35f, 32f, 200f, accel, brakingAccel, maxSpeed);
@@ -245,7 +245,7 @@ public enum VehicleType {
      * emitter at the hull's own scale, so the turret frame spans the hull frame (art-source/vehicles/tt-hover).
      */
     HOVER_SCOUT("graphics/battle/vehicles/tt-hover-scout.png", 0, 4, -90f,
-            0, 2.625f, 1.45f, 4.6f, 3.2f, 4.2f, .8f, 2.2f,
+            0, 2.625f, 2.55f, 1.5f, 4.6f, 3.2f, 4.2f, .8f, 2.2f,
             1, 0f, -.15f, 0f, 0f, 2.625f, -90f,
             TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID, 240f, 50f, 6f, 1.15f, .55f) {
         @Override public GroundBody createBody() {
@@ -263,7 +263,7 @@ public enum VehicleType {
      * Its sheet has no turret frames (art-source/vehicles/tt-hover).
      */
     DRONE_SKIMMER("graphics/battle/vehicles/tt-drone-skimmer.png", 0, 4, -90f,
-            0, 3.25f, 1.85f, 3.6f, 2.4f, 3.8f, .8f, 2.6f,
+            0, 3.25f, 3.15f, 1.9f, 3.6f, 2.4f, 3.8f, .8f, 2.6f,
             -1, 0, 0, 0, 0, 0, 0, null, 360f, 110f, 8f, 1.25f, .6f) {
         @Override public GroundBody createBody() {
             return new BicycleBody(1.7f, 34f, 220f, accel, brakingAccel, maxSpeed);
@@ -281,7 +281,7 @@ public enum VehicleType {
      * the APC's hulls with the mech LRM pod drawn at the hull's scale (art-source/vehicles/missile-carriers).
      */
     LRM_CARRIER("graphics/battle/vehicles/lrm-carrier.png", 0, 4, -90f,
-            0, 2.4f, 1.4f, 2.6f, 1.6f, 3.5f, .8f, 2.2f,
+            0, 2.4f, 2.25f, .9f, 2.6f, 1.6f, 3.5f, .8f, 2.2f,
             1, 0f, .15208333f, 0f, 0f, 2.4f, -90f,
             TurretCatalogRegistry.VEHICLE_LRM_STRUCTURE_ID, 200f, 100f, 14f, 1.25f, .75f) {
         @Override public GroundBody createBody() {
@@ -299,7 +299,7 @@ public enum VehicleType {
      * (art-source/vehicles/missile-carriers).
      */
     SRM_TECHNICAL("graphics/battle/vehicles/srm-technical.png", 0, 4, -90f,
-            0, 3.0f, 1.5f, 4.0f, 2.4f, 4.0f, .8f, 2.4f,
+            0, 3.0f, 2.9f, 1.4f, 4.0f, 2.4f, 4.0f, .8f, 2.4f,
             1, 0f, -.9875f, 0f, 0f, 3.0f, -90f,
             TurretCatalogRegistry.VEHICLE_SRM_STRUCTURE_ID, 260f, 60f, 5f, 1.3f, .65f) {
         @Override public GroundBody createBody() {
@@ -310,7 +310,7 @@ public enum VehicleType {
     },
     /** Long-wheelbase industrial container hauler; no passengers or roof weapon. */
     CARGO_CARRIER("graphics/battle/vehicles/wayline-hauler.png", 0, 2, -90f,
-            0, 4.8f, 1.65f, 2.4f, 1.2f, 3.0f, .8f, 3.2f,
+            0, 4.8f, 4.5f, 1.3f, 2.4f, 1.2f, 3.0f, .8f, 3.2f,
             -1, 0, 0, 0, 0, 0, 0, null, 400f, 120f, 10f, 1.4f, .9f) {
         @Override public GroundBody createBody() {
             return new BicycleBody(2.8f, 26f, 130f, accel, brakingAccel, maxSpeed);
@@ -629,9 +629,20 @@ public enum VehicleType {
      */
     public final float spriteFacingOffsetDeg;
     public final int capacity;
-    /** Sprite long-axis (nose-to-tail) in cells at facing 0. */
+    /**
+     * The sprite frame's long side (nose to tail) as drawn, cells: the scale the hull is painted at. Drawing only;
+     * the frame runs past the hull to its blade, wheels and transparent margin.
+     */
+    public final float drawnLengthCells;
+    /**
+     * The footprint's length, nose to tail, cells: what the simulation collides, routes, crushes and is struck by.
+     * The hull body's painted length, leaving out a dozer's blade.
+     */
     public final float visualLengthCells;
-    /** Sprite short-axis (side-to-side) in cells at facing 0. */
+    /**
+     * The footprint's width, side to side, cells: the hull body's painted width, leaving out wheels that jut past
+     * it. Tracks that run flush along the hull are the hull's own sides.
+     */
     public final float visualWidthCells;
     /** Cruise / max forward velocity, cells/sec. The path follower clamps target speed to this. */
     public final float maxSpeed;
@@ -657,7 +668,7 @@ public enum VehicleType {
     /** Rotation center within the turret sprite, cells from turret sprite center. +X right, +Y forward in turret local frame. */
     public final float turretPivotX;
     public final float turretPivotY;
-    /** Visual size of the turret sprite (longest axis), cells. Same semantics as {@link #visualLengthCells}. */
+    /** Visual size of the turret sprite (longest axis), cells. Same semantics as {@link #drawnLengthCells}. */
     public final float turretVisualCells;
     /** Facing offset for the turret sprite, degrees. Separate from {@link #spriteFacingOffsetDeg} because chassis and turret frames may face different directions in the sheet. */
     public final float turretSpriteFacingOffsetDeg;
@@ -683,7 +694,7 @@ public enum VehicleType {
 
     VehicleType(String spritePath, int spriteFrame, int frameCount,
                 float spriteFacingOffsetDeg,
-                int capacity, float visualLengthCells, float visualWidthCells,
+                int capacity, float drawnLengthCells, float visualLengthCells, float visualWidthCells,
                 float maxSpeed, float accel, float brakingAccel,
                 float deboardInterval, float lookAheadCells,
                 int turretFrame, float turretMountX, float turretMountY,
@@ -697,6 +708,7 @@ public enum VehicleType {
         this.frameCount = frameCount;
         this.spriteFacingOffsetDeg = spriteFacingOffsetDeg;
         this.capacity = capacity;
+        this.drawnLengthCells = drawnLengthCells;
         this.visualLengthCells = visualLengthCells;
         this.visualWidthCells = visualWidthCells;
         this.maxSpeed = maxSpeed;

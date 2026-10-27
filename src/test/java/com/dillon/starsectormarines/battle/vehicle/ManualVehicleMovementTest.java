@@ -42,7 +42,9 @@ class ManualVehicleMovementTest {
         f.body.teleport(3f, 6f, -90f);
         for (int y = 0; y < 20; y++) f.grid.blockSharedEdge(7, y, Direction.E);
         for (int i = 0; i < 180; i++) f.controls.tickManual(f.id, DT, 1f, 0f);
-        assertTrue(f.body.x > 6.7f && f.body.x <= 6.8f);
+        // Its nose stops on the closed edge at x 8, not short of it.
+        float nose = VehicleType.HEAVY_APC.visualLengthCells * .5f;
+        assertTrue(f.body.x > 7.9f - nose && f.body.x <= 8f - nose);
         assertEquals(0f, f.body.speed);
         assertTrue(f.legal());
         float stoppedX = f.body.x;
