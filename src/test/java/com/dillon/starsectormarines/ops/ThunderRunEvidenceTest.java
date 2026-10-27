@@ -448,7 +448,7 @@ class ThunderRunEvidenceTest {
                         .put("result",sim.isComplete()?String.valueOf(sim.getWinner()):"UNRESOLVED").put("phase",column.phase())
                         .put("delivered",column.deliveredCount()).put("lost",column.lostCount()).put("namedSeats",seats)
                         .put("rearContactTicks",new JSONArray(List.of(rearContactTicks[0],rearContactTicks[1])))
-                        .put("retreatTick",retreatTick).put("pressureWaves",column.pressure().sent()).put("rearStart",rearStart).put("openingRocketShots",openingRocketShots).put("advanceWreckTick",advanceWreckTick)
+                        .put("retreatTick",retreatTick).put("pressureWaves",column.pressure().sent()).put("checkpointTechnicalAlive",column.checkpointTechnical()!=0L && sim.convoy().isPresent(column.checkpointTechnical())).put("checkpointRaidersAlive",column.checkpointSquads().stream().mapToInt(sim::squadMemberCount).sum()).put("rearStart",rearStart).put("openingRocketShots",openingRocketShots).put("advanceWreckTick",advanceWreckTick)
                         .put("supportGunsBuilt", column.supportGuns().size()).put("fieldGuns",fieldGuns)
                         .put("sharedAutomaticDefenseTargets", sharedDefenseTargets)
                         .put("pendingRaiders", column.pendingMembers())

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-27 — Thunder Run's raiders press the militia's back lines and the convoy harder over time, and the final run's haulers go together. Earlier the same day: Junction counterattacks in two blows on a clock that never goes quiet, the first as soon as the first site falls. Earlier the same day: Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
+Updated: 2026-10-27 — Thunder Run's final run meets a reinforced checkpoint, and the tank and APCs push into its gun line. Earlier the same day: Thunder Run's raiders press the militia's back lines and the convoy harder over time, and the final run's haulers go together. Earlier the same day: Junction counterattacks in two blows on a clock that never goes quiet, the first as soon as the first site falls. Earlier the same day: Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
 Earlier 2026-10-27 — Counterattack's road attacks start when the company first enters dispatch, not after the capture.
 Earlier 2026-10-20 — Relief's story chapter starts the company ashore beside Wayline's truck under the ore-dust cover story; Militia Relief keeps company lift.
 
@@ -1273,11 +1273,15 @@ East stop, keeping separation behind the leader. Armor moves to the next road st
 defensive window, closing behind the company before Outbound Gate capture
 releases its final breakthrough. The tank takes the forward center position,
 using slower paired high-explosive cannon fire against the exit gun line. It
-holds ahead of the crossing until the first surviving hauler approaches, then
-pushes on toward the exit. Its hull, turret, ammunition and damage are ordinary
+drives up into the gun line itself and fights there until the first surviving
+hauler approaches, then pushes on toward the exit. Its hull, turret, ammunition and damage are ordinary
 combat state; losing it does not manufacture a victory or block surviving cargo.
 At the final release, the two APC escorts
-advance along the road flanks and hold the crossing; after a 12-second lead
+advance along the road flanks up to the gun line beside the tank and fight it
+with them. The checkpoint is reinforced as the final run goes: a raider
+technical drives in from the freight exit and parks among the exit guns, and two
+four-man rifle sections, each with a scrap rocket, take post beside the guns, so
+the armor has a real fight to clear the way; after a 12-second lead
 interval every load goes at once, as one column, keeping its spacing on the
 road rather than leaving one at a time. The escorts leave only after the last surviving load passes
 the crossing.
