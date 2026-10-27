@@ -269,7 +269,10 @@ worse, because the front is held back behind the guns for longer.
 holds its fire while a friend stands in its lane, so armour posted behind its
 own militia mostly waits. The Burn's battlegroup armour posts four cells
 ahead of its infantry rather than four behind
-(`-Dbattle.heart.burnArmourBehind`). Each hull's slot is a post that faces the
+(`-Dbattle.heart.burnArmourBehind`). It leads as a screen and does not run
+off: a lane's armour line goes no further than a screen's distance (six
+cells) in front of where the lane's militia stand, so it waits for them and
+moves up as they walk (`HeartLanes.screenedAlong`). Each hull's slot is a post that faces the
 advance, so allied command stands it on that line and never ahead of it
 (`allied-command.md`, posts and stands); a hull whose slot it reports
 unservable is moved to a second rank one spacing deeper, until the line moves
