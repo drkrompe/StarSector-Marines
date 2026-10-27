@@ -227,7 +227,11 @@ final class BoatDollPanel {
         bricks = bricks(slot.kind(), x + (w - bricks.width()) * .5f, y + HEADER);
         HardpointBricks.drawEmpty(c, bricks, tone);
         // A bare hardpoint is its empty bricks and nothing on them; a missing required part, the warning on them.
-        if (slot.itemId() != null) BoatHardware.draw(c, bricks, BoatHardware.piece(slot.kind(), slot.itemId()), 255);
+        if (slot.itemId() != null) {
+            BoatHardware.Piece piece = BoatHardware.piece(slot.kind(), slot.itemId());
+            BoatHardware.drawClosed(c, bricks, piece);
+            BoatHardware.draw(c, bricks, piece, 255);
+        }
         else if (missing) warning(c, bricks.left() + bricks.width() * .5f - 13f, bricks.top() + bricks.height() * .5f - 13f, 26f);
         if (slot.selected() || hot) {
             MechLabDollCanvas.drawCornerBrackets(c, x - 2f, y - 2f, w + 4f, h + 4f,
