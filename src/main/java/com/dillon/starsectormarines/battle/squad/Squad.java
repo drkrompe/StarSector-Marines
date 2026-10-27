@@ -27,6 +27,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.objects.ObjectIterator;
 
 import java.util.Collection;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.List;
@@ -319,6 +320,26 @@ public final class Squad {
      * the unit dispatch only reads it.
      */
     public SquadMedic medic;
+
+    /**
+     * One medic for each marine whose suit carries a field-aid kit, beside the
+     * officer's designated {@link #medic}. Issued once by {@code SquadMedicSystem}'s
+     * serial pass and never re-designated: the kit dies with its wearer.
+     */
+    public final List<SquadMedic> kitMedics = new ArrayList<>();
+    /** Whether {@code SquadMedicSystem} has issued {@link #kitMedics} yet. */
+    public boolean kitMedicsIssued;
+
+    /** The medic {@code unit} is, the officer's or a kit's, or null. */
+    public SquadMedic medicOf(long unit) {
+        if (medic != null && medic.medicId() == unit) return medic;
+        for (int i = 0, n = kitMedics.size(); i < n; i++) {
+            SquadMedic kit = kitMedics.get(i);
+            if (kit.medicId() == unit) return kit;
+        }
+        return null;
+    }
+
     public String campaignSquadId;
 
     /**

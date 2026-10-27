@@ -4,33 +4,21 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 /**
- * When {@link SpecialAiPolicy#WOUNDED_SQUADMATE_IN_REACH} has arrived, and what
- * the dressing is worth ({@code integral-system-slate.md}).
+ * Marks a field-aid kit: the suit makes its wearer a squad medic
+ * ({@code squad-medic.md}). The kit authors nothing of its own here. What the
+ * medic can do is the kit's entry in {@code squad-medicine.json}, the weaker
+ * form, or the officer's Field Medicine rank when the officer trains it; and it
+ * is paid for out of the medic's regenerating pool rather than a count of
+ * dressings.
  *
- * <p>Three authored numbers, and each is a judgement about the section rather
- * than a fact about the battle:
- *
- * <ul>
- *   <li>{@code reachCells} — how far the carrier will go to somebody. It is
- *       deliberately short. A medic is not a turret with a healing beam; the
- *       fiction is a marine kneeling next to another marine, and a long reach
- *       would quietly turn the section's medic into an area effect.
- *   <li>{@code treatBelowHealthFraction} — how badly hurt is worth a dressing.
- *       This is the whole of the waste guard: the satchel is finite, and a
- *       marine who has lost a scratch is not a casualty.
- *   <li>{@code restoredHealth} — what one dressing is worth, as flat health
- *       rather than a fraction. A fraction would make the same satchel worth
- *       more on a battlesuit than on a rifleman, which is backwards: a bandage
- *       is a bandage, and it goes further on somebody with less to lose.
- * </ul>
- *
- * <p>Nothing here says how many dressings the satchel holds. That is
- * {@link IntegralSystemDef#startingAmmo()}, shared with every other
- * ammunition-gated system, for the same reason the missile pod does not restate
- * its own salvo count.
+ * <p>The per-dressing keys of the satchel this replaced are rejected by name, so
+ * an author meets the move rather than a kit that quietly ignores them.
  */
-public record FieldAidSpec(float reachCells, float treatBelowHealthFraction, float restoredHealth)
-        implements IntegralSystemPolicySpec {
+public record FieldAidSpec() implements IntegralSystemPolicySpec {
+
+    private static final String[] RETIRED_KEYS = {
+            "reachCells", "treatBelowHealthFraction", "restoredHealth", "startingAmmo"
+    };
 
     @Override
     public SpecialAiPolicy aiPolicy() {
@@ -39,14 +27,13 @@ public record FieldAidSpec(float reachCells, float treatBelowHealthFraction, flo
 
     static FieldAidSpec parse(JSONObject json, String armorId, String systemId)
             throws JSONException {
-        float reach = IntegralSystemDef.positive(json, "reachCells", armorId);
-        float threshold = IntegralSystemDef.positive(json, "treatBelowHealthFraction", armorId);
-        if (threshold > 1f) {
-            throw new JSONException("Integral system '" + systemId + "' on armor '" + armorId
-                    + "' authors treatBelowHealthFraction above 1, which would treat marines"
-                    + " who are not hurt. It is a fraction of maximum health.");
+        for (String key : RETIRED_KEYS) {
+            if (json.has(key)) {
+                throw new JSONException("Integral system '" + systemId + "' on armor '" + armorId
+                        + "' declares '" + key + "', but a field-aid kit is a squad medic now: its"
+                        + " numbers belong to the kit's entry in squad-medicine.json");
+            }
         }
-        float restored = IntegralSystemDef.positive(json, "restoredHealth", armorId);
-        return new FieldAidSpec(reach, threshold, restored);
+        return new FieldAidSpec();
     }
 }

@@ -59,6 +59,10 @@ public record SpecialEquipmentDef(
                 requireText(ai, "policy", id), id);
         SpecialResourceMode resourceMode = SpecialResourceMode.fromKey(
                 requireText(resource, "mode", id), id);
+        if (resourceMode == SpecialResourceMode.ENERGY) {
+            throw new JSONException("Special equipment '" + id
+                    + "' cannot be energy-gated: only a suit's field-aid kit draws on the medic's pool");
+        }
         int startingAmmo = resource.optInt("startingAmmo", 0);
         if (startingAmmo < 0) {
             throw new JSONException("Special equipment '" + id

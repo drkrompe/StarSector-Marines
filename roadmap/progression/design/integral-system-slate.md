@@ -87,12 +87,18 @@ It is a comparison index for the catalog's shape and never a balance model: the
 game reads none of it.
 
 **A medic's value lands on somebody else.** Field aid is the only effect in the
-slate whose whole contribution goes to another marine, and the two rules that
-keep it honest are both in `FieldAidSpec`: the carrier is never their own
-patient, and the reach is short enough that the fiction stays a marine kneeling
-next to another marine rather than a turret with a healing beam. A self-healing
-version would be exactly the "more effective hit points" that
-`IntegralSystemEffect` forbids.
+slate whose whole contribution goes to another marine. A field-aid kit makes its
+wearer a squad medic (`squad-medic.md`): the same treatment over time, the same
+regenerating pool and the same rules as the medic an officer's Field Medicine
+designates, so the two rules that keep it honest live in `SquadMedicSystem`: the
+medic is never their own patient, and the reach is short enough that the fiction
+stays a marine kneeling next to another marine rather than a turret with a
+healing beam. A self-healing version would be exactly the "more effective hit
+points" that `IntegralSystemEffect` forbids. The kit's numbers are its entry in
+`squad-medicine.json`, a weaker form than the officer's first rank; under an
+officer trained in Field Medicine every kit treats at the officer's rank.
+Because it is equipment, several marines in one squad may carry one, each with
+their own pool, and two medics never set out for the same patient.
 
 ## Individual systems
 
@@ -104,8 +110,8 @@ Three are shipped:
 | Pattern | Tradition | System | The character it buys |
 | --- | --- | --- | --- |
 | `armor.aegis-composite` | Tri-Tachyon | **Predictive volley** | The Specter's threat display is spent on evasion because breaching is what that suit is *for*; the Aegis is built to present a difficult firing solution rather than to cross a room, so its own display is spent the other direction — locking a shot instead of dodging one. A small salvo of `weapon.micro-missile` rounds, self-targeted, from a rack of two that does not refill. |
-| `armor.orderly` | Luddic Church | **Parish aid** | A stretcher party that stayed on the field. Three dressings, a short reach, and a threshold that will not spend one on a scratch — the cheapest possible version of somebody stopping to help. |
-| `armor.corpsman` | Hegemony | **Corpsman kit** | The same act performed by somebody taught how and carrying enough to repeat it. Reaches further, is worth spending on a marine merely hurt rather than nearly finished, and does not run out halfway through the fight it was brought for. |
+| `armor.orderly` | Luddic Church | **Parish aid** (MED-KIT) | A stretcher party that stayed on the field. Makes its wearer a squad medic with the smallest pool and slowest refill, and a threshold that will not start on a scratch — the cheapest possible version of somebody stopping to help. |
+| `armor.corpsman` | Hegemony | **Corpsman kit** (MED-KIT-Trauma) | The same act performed by somebody taught how and carrying more to do it with. A bigger, faster-refilling pool, quicker hands, and worth starting on a marine merely hurt rather than nearly finished. |
 
 That is a deliberate choice among three plausible homes. The faction lore
 guides put micro-missile support in Hegemony, League, and Tri-Tachyon

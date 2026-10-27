@@ -120,7 +120,8 @@ final class BattleMarineDollPlate {
             }
             IntegralSystemService systems = sim.integralSystems();
             IntegralSystemDef system = systems.has(id) ? systems.spec(id) : null;
-            if (system != null) {
+            // A field-aid kit's row is the medic's pool, below.
+            if (system != null && system.fieldAid() == null) {
                 int left = systems.ammo(id);
                 float cooldown = systems.cooldownRemaining(id);
                 kit.add(system.usesAmmunition()
@@ -130,8 +131,8 @@ final class BattleMarineDollPlate {
                         : new Kit(system.displayName(), clock(cooldown, copy), false));
             }
             Squad squad = sim.squad().hasSquad(id) ? sim.getSquad(sim.squad().squadId(id)) : null;
-            SquadMedic medic = squad != null ? squad.medic : null;
-            if (medic != null && medic.medicId() == id) {
+            SquadMedic medic = squad != null ? squad.medicOf(id) : null;
+            if (medic != null) {
                 int left = (int) Math.floor(medic.energy());
                 kit.add(new Kit(copy.apply("battleMarineDollMedic"), left + "/" + Math.round(medic.medicine.energyMax()),
                         left < medic.medicine.minStartEnergy()));

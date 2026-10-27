@@ -7,6 +7,7 @@ starting points, not settled balance.
 
 Written: 2026-10-14
 Updated: 2026-10-23 — keep-moving shipped as the only movement mode (switch and planted path deleted); supplies and cooldown replaced by an energy pool with a start gate; open question 2 closed.
+Updated: 2026-10-27 — the suits' field-aid kits now make their wearers squad medics on the same pool (owner); see Kit medics.
 
 Read `progression-nouns.md` (officer career, legibility law),
 `combat-durability-nouns.md` (armor break, the no-regeneration rule this story
@@ -136,6 +137,35 @@ early. A planted mode, holding both marines for the treatment, was built and
 measured against this and deleted: it cost the march time and bought nothing the
 energy pool does not already limit.
 
+## Kit medics
+
+The suits' field-aid kits (owner, 2026-10-27: "swap this to the 'medic' system
+commanders provide. If commander has skill this is improved ... these should
+work on Mana system"; then "they feed and also add a weaker form of the role to
+the squad if the commander doesn't have the skill unlocked ... it might be on
+more units in the squad"). The old instant dressings out of a fixed count are
+gone.
+
+- **A kit makes its wearer a squad medic** with every rule above: treatment over
+  time, the energy pool, the start gate, keep-moving, holding fire, re-plating.
+- **Without Field Medicine** a kit treats with its own weaker medicine, authored
+  per kit in `squad-medicine.json` under `kits`, keyed by the integral system id.
+  Starting numbers: MED-KIT (`system.parish-aid`) pool 20, 0.1 / s, 2 health and
+  0.5 armor a second, treats below 60% health; MED-KIT-Trauma
+  (`system.corpsman-kit`) pool 25, 0.15 / s, 2.5 and 0.75, below 70%. Both sit
+  under rank one.
+- **With Field Medicine** every kit in the officer's squads treats at the
+  officer's rank, and the officer's own billet medic is still designated.
+- **Several per squad.** A kit is equipment, so every wearer is a medic with
+  their own pool. The kit dies with its wearer and is not passed on. The
+  officer's billet is chosen as before, so the squad card stays right at
+  deployment; if it lands on a kit wearer they are one medic, at the officer's
+  rank, and when it passes on it skips marines who are already a kit's medic.
+- **Two medics never set out for the same patient**: a squadmate another medic
+  is approaching or treating is passed over for the next worst hurt.
+- The kit's catalog entry declares `resource: "energy"` and nothing else of its
+  own; the retired per-dressing keys are refused by name.
+
 ## Re-plating broken armor
 
 Treatment may restore armor from zero. That amends two standing statements in
@@ -184,10 +214,6 @@ This must stay inside the yield and goal rules the scenes have already enforced:
   treating the wounded needs no new concept and handling bodies does.
 - Defender medics. Officer specialties are a player-company concept. A defender
   equivalent would arrive as authored formation data, not this specialty.
-- Changing the armor-built field aid on `armor.orderly` / `armor.corpsman`. Both
-  stay as they are. A squad with a corpsman suit and a designated medic has two
-  sources of medicine, which is acceptable because both are finite. Revisit only
-  if measurement says otherwise.
 - Campaign-side medicine (the WIA clock). That is Recovery Planning's job.
 
 ## Open questions
@@ -197,6 +223,9 @@ This must stay inside the yield and goal rules the scenes have already enforced:
 2. ~~Planted or keep moving.~~ Closed 2026-10-23: keep moving is the only
    behaviour, and not a player option.
 3. **Specialty copy** against the `FIELD_MEDIC` trait, above.
+4. **Kit wearers on the squad card.** The card marks only the officer's billet;
+   kit wearers show their kit on the suit line but carry no card badge. Marking
+   them needs the card to resolve each billet's issued armour.
 
 ## Evidence so far
 
@@ -219,6 +248,7 @@ nothing in the shipped game slows one marine against another to stage it.
 ## Remaining acceptance
 
 - A balance pass across seeds and against real opposition, settling the
-  movement default and the per-rank numbers.
+  movement default, the per-rank numbers and the per-kit numbers, with
+  several kit wearers in one squad.
 - Live play: train the specialty on an officer, deploy their squad, and see a
   treatment in the real game.

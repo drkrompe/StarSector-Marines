@@ -245,7 +245,14 @@ the wound floor; once started it spends until the patient is whole, the pool is
 empty, or reach is broken, so a medic does not stop fighting to dribble out each
 sliver as it regenerates. An interrupted treatment keeps what landed and simply
 stops spending. The squad never stops for medicine: the patient carries on with
-the squad and the medic walks at their side while treating. In battle the medic wears a small cross badge. A treatment is shown in
+the squad and the medic walks at their side while treating. A suit's field-aid
+kit (MED-KIT, MED-KIT-Trauma) makes its wearer a medic by the same rules, beside
+the officer's: without Field Medicine it treats with the kit's weaker medicine
+(also in `squad-medicine.json`), and under an officer who trains it every kit
+treats at the officer's rank. A kit is equipment, so a squad may hold several,
+each with its own pool; the kit dies with its wearer, while the officer's billet
+passes on, over any marine who is already a kit's medic. Two medics never set
+out for the same patient. In battle the medic wears a small cross badge. A treatment is shown in
 the world, not as an overlay: the medic kneels over an open kit in place of
 whatever special they carry, and the patient gives off hands-on work rather than
 a glow -- pale dressing mist for health, grey-blue sealant flecks settling onto

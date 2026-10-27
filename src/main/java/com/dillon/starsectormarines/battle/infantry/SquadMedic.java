@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.battle.infantry;
 
 /**
- * One squad's medic: who it is, the energy they have left, and the treatment in hand.
+ * One squad medic: who it is, the energy they have left, and the treatment in hand.
+ * Either the officer's designated medic, re-designated by billet when they fall,
+ * or a field-aid kit's wearer, who is the medic for as long as they live.
  *
  * <p>Written only by {@link SquadMedicSystem}'s serial pass, ahead of the
  * parallel unit dispatch, and only read during it. That split is what lets a
@@ -21,6 +23,8 @@ public final class SquadMedic {
     }
 
     public final SquadMedicine medicine;
+    /** Whether this medic is a kit's wearer rather than the officer's billet. */
+    public final boolean kit;
 
     long medicId;
     long patientId;
@@ -43,6 +47,15 @@ public final class SquadMedic {
 
     SquadMedic(SquadMedicine medicine) {
         this.medicine = medicine;
+        this.kit = false;
+        this.energy = medicine.energyMax();
+    }
+
+    /** The medic a field-aid kit makes of its wearer. */
+    SquadMedic(SquadMedicine medicine, long wearer) {
+        this.medicine = medicine;
+        this.kit = true;
+        this.medicId = wearer;
         this.energy = medicine.energyMax();
     }
 

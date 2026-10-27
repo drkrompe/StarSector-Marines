@@ -48,34 +48,40 @@ public final class MedicMarkerRenderSystem implements RenderSystem {
     @Override
     public void collect(RenderContext ctx, DrawList out) {
         if (ctx.sim == null || ctx.camera == null) return;
+        ViewCull view = ViewCull.of(ctx.camera);
+        for (Squad squad : ctx.sim.getSquads()) {
+            if (squad.faction != Faction.MARINE) continue;
+            boolean selected = ctx.selection != null && ctx.selection.isSquadSelected(squad.id);
+            if (squad.medic != null) medic(ctx, view, out, squad.medic, selected);
+            for (int i = 0, n = squad.kitMedics.size(); i < n; i++) {
+                medic(ctx, view, out, squad.kitMedics.get(i), selected);
+            }
+        }
+    }
+
+    private void medic(RenderContext ctx, ViewCull view, DrawList out, SquadMedic medic, boolean selected) {
         BattleSimulation sim = ctx.sim;
         BattleCamera camera = ctx.camera;
-        ViewCull view = ViewCull.of(camera);
         float cellPx = camera.cellPxSize();
-        for (Squad squad : sim.getSquads()) {
-            SquadMedic medic = squad.medic;
-            if (medic == null || squad.faction != Faction.MARINE) continue;
-            long carrier = sim.resolveUnit(medic.medicId());
-            if (carrier == 0L) continue;
-            boolean selected = ctx.selection != null && ctx.selection.isSquadSelected(squad.id);
-            float medicAlpha = ctx.alphaMult * visibleAlpha(ctx, carrier, selected);
-            if (medicAlpha <= 0f) continue;
-            float mx = sim.world().renderX(carrier);
-            float my = sim.world().renderY(carrier);
-            float radius = Math.max(0.42f, sim.getRoster().radius(carrier));
+        long carrier = sim.resolveUnit(medic.medicId());
+        if (carrier == 0L) return;
+        float medicAlpha = ctx.alphaMult * visibleAlpha(ctx, carrier, selected);
+        if (medicAlpha <= 0f) return;
+        float mx = sim.world().renderX(carrier);
+        float my = sim.world().renderY(carrier);
+        float radius = Math.max(0.42f, sim.getRoster().radius(carrier));
 
-            if (medic.phase() == SquadMedic.Phase.TREATING && cellPx >= MIN_PARTICLE_CELL_PX) {
-                long patient = medic.patientId() == 0L ? 0L : sim.resolveUnit(medic.patientId());
-                if (patient != 0L) treatment(ctx, view, out, medic, patient, mx, my);
-            }
-
-            if (!view.visible(mx, my, radius * 3f)) continue;
-            float size = Math.max(MIN_CROSS_PX, Math.min(MAX_CROSS_PX, CROSS_CELLS * cellPx));
-            float fill = MedicPoolGauge.fill(medic.energy(), medic.medicine.energyMax());
-            boolean ready = MedicPoolGauge.ready(medic.energy(), medic.medicine.minStartEnergy());
-            mark(out, camera.cellToScreenX(mx) - radius * cellPx,
-                    camera.cellToScreenY(my) + radius * cellPx, size, fill, ready, medicAlpha);
+        if (medic.phase() == SquadMedic.Phase.TREATING && cellPx >= MIN_PARTICLE_CELL_PX) {
+            long patient = medic.patientId() == 0L ? 0L : sim.resolveUnit(medic.patientId());
+            if (patient != 0L) treatment(ctx, view, out, medic, patient, mx, my);
         }
+
+        if (!view.visible(mx, my, radius * 3f)) return;
+        float size = Math.max(MIN_CROSS_PX, Math.min(MAX_CROSS_PX, CROSS_CELLS * cellPx));
+        float fill = MedicPoolGauge.fill(medic.energy(), medic.medicine.energyMax());
+        boolean ready = MedicPoolGauge.ready(medic.energy(), medic.medicine.minStartEnergy());
+        mark(out, camera.cellToScreenX(mx) - radius * cellPx,
+                camera.cellToScreenY(my) + radius * cellPx, size, fill, ready, medicAlpha);
     }
 
     private void treatment(RenderContext ctx, ViewCull view, DrawList out, SquadMedic medic,
