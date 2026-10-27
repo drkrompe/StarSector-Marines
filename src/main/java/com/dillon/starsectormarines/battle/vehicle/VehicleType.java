@@ -602,6 +602,9 @@ public enum VehicleType {
     /** Half the width of the flux vents across the hull, in cells ({@link #fluxVentAftCells}). */
     public float fluxVentHalfSpanCells() { return 0f; }
 
+    /** Where this hull's tracks or wheels meet the ground, as its sprite paints them ({@link RunningGear}). */
+    public RunningGear runningGear() { return RunningGear.of(this); }
+
     /** Keep authored vehicle bearings and live/wreck registration for every chassis. */
     public SpriteSheetFrames registeredSpriteFrames(SpriteSheetFrames detected) {
         if (detected.sheetWidth % frameCount != 0) {

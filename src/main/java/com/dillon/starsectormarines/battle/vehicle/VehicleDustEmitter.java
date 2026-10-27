@@ -8,8 +8,9 @@ import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 /**
  * The dust a moving hull raises, queued as presentation events for whatever draws the battle.
  *
- * <p>A wheeled or tracked hull moving over loose ground throws a soft puff off each rear corner, back along its
- * track and a little outward, harder the faster it goes; on pavement it raises nothing. A hover hull blows a low
+ * <p>A wheeled or tracked hull moving over loose ground throws a soft puff off each trailing wheel or track end
+ * ({@link RunningGear}), back down that track's line and barely outward, harder the faster it goes; on pavement it
+ * raises nothing. A hover hull blows a low
  * ring of haze out from under its skirt whether or not it is moving, because the lift fans never stop, and over
  * water that haze is spray. Runs in the serial part of the tick and draws nothing from the simulation's random
  * stream: puff placement is a hash of the hull and the tick, so a battle replays identically whoever watches it.
@@ -24,6 +25,8 @@ public final class VehicleDustEmitter {
     static final float MIN_WHEEL_SPEED = .6f;
     /** Puffs in one ring round a skirt. */
     static final int SKIRT_PUFFS = 5;
+    /** How fast a wheel's puff drifts outward from its track, cells per second. */
+    static final float SPLAY = .08f;
 
     public void tick(int tickIndex, ConvoyService convoy, CellTopology topology, EffectsService fx) {
         for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
@@ -61,11 +64,12 @@ public final class VehicleDustEmitter {
         double a = Math.toRadians(body.facingDegrees);
         float fx0 = (float) -Math.sin(a), fy0 = (float) Math.cos(a);
         float rx = fy0, ry = -fx0;
-        // The trailing end is the stern going forward and the bow in reverse.
+        // The trailing contact is the rear wheels or track ends going forward and the front ones in reverse.
+        RunningGear gear = type.runningGear();
         float sign = body.speed >= 0f ? 1f : -1f;
         float speed = Math.abs(body.speed);
-        float back = type.visualLengthCells * .42f * sign;
-        float side = type.visualWidthCells * .42f;
+        float back = (sign > 0f ? gear.rearCells() : gear.frontCells()) * sign;
+        float side = gear.halfGaugeCells();
         float radius = .26f + .05f * Math.min(speed, 5f);
         for (int s = -1; s <= 1; s += 2) {
             float x = body.x - fx0 * back + rx * side * s;
@@ -73,8 +77,9 @@ public final class VehicleDustEmitter {
             if (!topology.inBounds((int) Math.floor(x), (int) Math.floor(y))
                     || !loose(topology.getGroundKind((int) Math.floor(x), (int) Math.floor(y)))) continue;
             float j = jitter(id, tick, s);
-            float vx = -fx0 * sign * speed * .22f + rx * s * (.35f + .15f * j);
-            float vy = -fy0 * sign * speed * .22f + ry * s * (.35f + .15f * j);
+            // Thrown back down the track's own line, splaying only a little: the trail stays in the track's wake.
+            float vx = -fx0 * sign * speed * .22f + rx * s * SPLAY * (1f + .3f * j);
+            float vy = -fy0 * sign * speed * .22f + ry * s * SPLAY * (1f + .3f * j);
             fx.emitGroundDust(x + .08f * j, y - .08f * j, vx, vy, radius, EffectsService.DUST_WHEEL);
         }
     }

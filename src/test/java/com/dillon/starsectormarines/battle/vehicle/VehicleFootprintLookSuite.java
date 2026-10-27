@@ -9,11 +9,13 @@ import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
+import com.dillon.starsectormarines.ops.battleview.ReviewImpactFx;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
+import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -30,6 +32,9 @@ public final class VehicleFootprintLookSuite implements SnapshotSuite {
     /** Hulls a row, the spacing along a row and between rows, cells. */
     static final int PER_ROW = 6;
     static final float SPACING = 7f, ROW_SPACING = 11f, CLOSE_CELLS = 16f;
+    /** How far each hull is driven up through its slot, cells, and how long it has driven when it is shot. */
+    static final float DRIVE_CELLS = 8f;
+    static final int DRIVE_TICKS = 55;
 
     @Override public String id() { return "vehicle-footprint-look"; }
 
@@ -88,7 +93,63 @@ public final class VehicleFootprintLookSuite implements SnapshotSuite {
                     BattleReviewFrameRenderer.look(context.modRoot(), LookReview.WIDTH, LookReview.HEIGHT,
                             body.x, body.y, CLOSE_CELLS).renderMarked(sim, annotations)));
         }
+        drive(context, sim, hulls, centreX, placement.site().y(2f + height / 2f), rowWidth, height, out);
         return out;
+    }
+
+    /**
+     * Every hull backed off its slot and driven up through it over the grass, so what its running gear throws can be
+     * judged against its tracks and wheels: {@code driving.png} all of them, {@code drive-<type>.png} each close, both
+     * plain, and {@code gear-<type>.png} the close one with its gear lines ({@link RunningGear}) marked.
+     */
+    private static void drive(SnapshotContext context, BattleSimulation sim, List<Long> hulls, float centreX,
+                              float centreY, float rowWidth, float height, List<SnapshotArtifact> out)
+            throws Exception {
+        for (long hull : hulls) {
+            GroundBody body = sim.convoy().body(hull);
+            float x = body.x, y = body.y;
+            body.teleport(x, y - DRIVE_CELLS / 2f, 0f);
+            sim.getVehicleMoveOrderService().requestMove(hull, (int) x, (int) (y + DRIVE_CELLS / 2f));
+        }
+        ReviewImpactFx fx = new ReviewImpactFx(context.modRoot());
+        for (int t = 0; t < DRIVE_TICKS; t++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            fx.feed(sim);
+        }
+        ReviewAnnotations.Builder gear = ReviewAnnotations.builder();
+        for (long hull : hulls) {
+            GroundBody body = sim.convoy().body(hull);
+            VehicleType type = sim.convoy().vehicleType(hull);
+            RunningGear g = type.runningGear();
+            System.out.printf(Locale.ROOT, "    [vehicle-footprint-look] %s driving at %.2f cells/s%n", type, body.speed);
+            if (!g.grounded()) continue;
+            for (int s = -1; s <= 1; s += 2) {
+                gear.polyline(gearLine(body, g, s), null, ReviewStyle.LANDING);
+            }
+        }
+        ReviewAnnotations gearMarks = gear.build();
+        out.add(new SnapshotArtifact("driving.png", BattleReviewFrameRenderer.look(context.modRoot(),
+                LookReview.WIDTH, LookReview.HEIGHT, centreX, centreY,
+                Math.max(rowWidth + 4f, (height + 4f) * LookReview.WIDTH / LookReview.HEIGHT))
+                .render(sim, "", ReviewAnnotations.NONE, fx)));
+        for (long hull : hulls) {
+            GroundBody body = sim.convoy().body(hull);
+            String name = name(sim.convoy().vehicleType(hull));
+            BattleReviewFrameRenderer close = BattleReviewFrameRenderer.look(context.modRoot(), LookReview.WIDTH,
+                    LookReview.HEIGHT, body.x, body.y - 1.5f, CLOSE_CELLS);
+            out.add(new SnapshotArtifact("drive-" + name + ".png", close.render(sim, "", ReviewAnnotations.NONE, fx)));
+            BufferedImage marked = close.renderMarked(sim, gearMarks, fx);
+            out.add(new SnapshotArtifact("gear-" + name + ".png", marked));
+        }
+    }
+
+    /** One side's track or wheel line, front contact to rear contact, as annotation points. */
+    static List<ReviewAnnotation.Point> gearLine(GroundBody body, RunningGear gear, int side) {
+        double rad = Math.toRadians(body.facingDegrees);
+        float fx = (float) -Math.sin(rad), fy = (float) Math.cos(rad), sx = fy, sy = -fx;
+        float ox = body.x - .5f + sx * gear.halfGaugeCells() * side, oy = body.y - .5f + sy * gear.halfGaugeCells() * side;
+        return List.of(new ReviewAnnotation.Point(ox + fx * gear.frontCells(), oy + fy * gear.frontCells()),
+                new ReviewAnnotation.Point(ox - fx * gear.rearCells(), oy - fy * gear.rearCells()));
     }
 
     private static String name(VehicleType type) {
