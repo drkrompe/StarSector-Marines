@@ -857,13 +857,15 @@ K3D_SHIPS = {
 # second's fire takes her drives: she tumbles back toward the column
 K3E_T = 77
 K3E_SHIPS = {
-    'hound-m': fly('hound-m', (-1500, -150, 110, -160, -25, 110, 1), K3E_T, [
+    'hound-m': fly('hound-m', (-1500, -150, 110, -160, -27, 118, 1), K3E_T, [
         # She has rolled over onto them before the shot opens (72-74 s), so through S6d she is steady enough
         # for her turret to stay on the first Hound (P) and fire down onto her: rolling over inside the shot
         # swung the target 40-93 deg/s across her turret and the 5-degree gate held all but 5 late rounds
         # (owner, 2026-10-23: "I don't see any shots coming out of our hero Hound")
-        dict(t=72, hd=0, pt=2, rl=5, v=160), dict(t=74, hd=-150, pt=-18, rl=95),
-        dict(t=78.5, hd=-170, pt=-18, rl=125, v=120), dict(t=80, hd=-176, pt=-8, rl=145, v=60)],
+        # Her nose held 9-12 deg further down and 4-8 deg more roll (2026-10-27, the firing-arc lint): before, the first Hound (P) sat
+        # 1-4 deg past her turret's arc until 77 s, so the hero burst could not leave it
+        dict(t=72, hd=0, pt=2, rl=5, v=160), dict(t=74, hd=-150, pt=-30, rl=99),
+        dict(t=78.5, hd=-170, pt=-27, rl=133, v=120), dict(t=80, hd=-176, pt=-8, rl=145, v=60)],
         # her gun's kick while her burst runs (74.0-76.2 s), then the drive hit at 77.25 s
         hits=recoil([74.0], every=.2, until=76.2) + [dict(t=77.25, push=(6, -4, 3), spin=(25, 10, -15), decay=1.5, thr=.25)]),
     'hound-p-a': fly('hound-p-a', (-1700, -50, -20, 10, 20, 0, .4), K3E_T, [
@@ -1063,7 +1065,13 @@ K4_COLOSSUS_FLOWN = fly('colossus', K4_COLOSSUS, K4_T, [
     dict(t=88, hd=.5, pt=-1, rl=12, thr=.5), dict(t=90.2, hd=.4, pt=-1.3, rl=2.5, thr=.5),
     dict(t=102, hd=-2.5, pt=-6, rl=11)], v=4.0, wobble=.5, thrust=None,
     hits=[dict(t=90.3, push=(0, -1.5, -.5), spin=(.8, -.3, -.3), decay=3.0, thr=.2)])
-K4_MORROW_FLOWN = carried(held('morrow', K4_MORROW, K4_T, wobble=.8), K4_COLOSSUS_FLOWN)
+# Morrow works under the Colossus's keel (2026-10-27, the activity lint: she sat still in S8 for 7 s at 173 px):
+# bracing as the hit at 90.3 s shoves her charge, trimming level for the Borer launches (94.2, 95.0 s), then
+# heaving up again as the Colossus starts to lose height
+K4_MORROW_FLOWN = carried(keyed('morrow', K4_MORROW, K4_T, [
+    dict(t=80, hd=0, pt=8, rl=4), dict(t=88, hd=0, pt=8, rl=4), dict(t=91, hd=3, pt=13, rl=9),
+    dict(t=94.5, hd=-1, pt=6, rl=0), dict(t=98, hd=2, pt=11, rl=6), dict(t=102, hd=-1, pt=7, rl=1)], v=0.0, wobble=.8),
+    K4_COLOSSUS_FLOWN)
 K4_SHIPS = {
     'colossus': K4_COLOSSUS_FLOWN, 'morrow': K4_MORROW_FLOWN,
     # Borers fight; they are not repair craft (owner, 2026-10-23): the two off the shot-out pod both nose
@@ -1430,7 +1438,8 @@ KEYFRAMES = {
             ('tracer', 'wolf-m', 'wolf-p-a'),
             # the Colossus's guns on the raiders as they close inside 1.35 km (owner, 2026-10-23: "why are none
             # of the Colossus turrets taking shots at those Wolfs"): her 360-degree mounts bear on both
-            ('tracer', 'colossus', 'wolf-p-a'), ('tracer', 'colossus', 'wolf-p-b'),
+            # (on Wolf (P) A none does in this shot: the firing-arc lint, 2026-10-27; she is the merchant Wolf's)
+            ('tracer', 'colossus', 'wolf-p-b'),
             ('fire_on', 'tarsus', (-37, -2, 6), (-.2, .5, 1))],
         labels=['wolf-p-a', 'wolf-p-b', 'tarsus', 'wolf-m', 'colossus']),
     'k3e': dict(
@@ -1447,7 +1456,7 @@ KEYFRAMES = {
         fx=[('tracer', 'hound-m', 'hound-p-a', (0, 0, 0), dict(trained=True, cease_t=77.0, walk=2.0, sure_t=76.83)), ('tracer', 'hound-p-b', 'hound-m'),
             ('blast_on', 'hound-p-a', 14, (0, 0, 0), 76.83), ('debris', 'hound-p-a', 40, (0, 0, 0), 76.83),
             # no flares: a Hound mounts no missiles, so nothing here is a seeker for them to answer (owner,
-            # 2026-10-23: flares need a visible cause, an inbound seeker on screen); her 76.5 s breach
+            # 2026-10-23: flares need a visible cause, an inbound seeker on screen); her 77.1 s breach
             # burns where the second Hound (P)'s rounds land (the damage ledger keys that fire)
             ],
         cues={'hound-m': {'fire': 'all'}, 'hound-p-b': {'fire': 'all'}},
@@ -2977,7 +2986,10 @@ def blender_main(cfg):
             if fx[0] == 'mining' and fx[1] in spec['ships'] and fx[2] in spec['ships'] and fx[1] in placed:
                 a, b = fx[1], fx[2]
                 cam_ = spec['camera']['at']
-                for t in [cam_.keys[0]['t'] + j * .5 for j in range(int((cam_.keys[-1]['t'] - cam_.keys[0]['t']) / .5) + 1)]:
+                # the beam is on while a rake of hers on this target is (mining), else the whole shot
+                spans_ = [(r[2], r[3]) for r in spec.get('rakes', ()) if r[0] == a and r[1] == b] or                     [(cam_.keys[0]['t'], cam_.keys[-1]['t'])]
+                for t in [r0 + (r1 - r0) * j / max(1, int((r1 - r0) / .25)) for r0, r1 in spans_
+                          for j in range(max(1, int((r1 - r0) / .25)) + 1)]:
                     aim = g.to_local(g.frame(pos(a, t)), g.to_world(g.frame(pos(b, t)), fx[3] if len(fx) > 3 else (0, 0, 0)))
                     dist = math.sqrt(sum(c * c for c in aim)) or 1.0
                     u = [c / dist for c in aim]

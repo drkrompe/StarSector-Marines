@@ -199,6 +199,7 @@ MOUNTS = {
 MOUNTS['tarsus-boarded'] = MOUNTS['tarsus']
 GUN_ELEVATION = bb.GUN_ELEVATION      # a dorsal turret's reach above (and just below) its deck plane
 HARDPOINT_CONE = 6.0                  # half-angle a fixed gun fires within off its keel line
+SHIP_HALF = bb.debris_field.SHIP_HALF       # a hull's box, a share of her length (blocked)
 UNARMED = {'hermes', 'borer', 'phaeton-wreck'}      # the boats carry no guns here; the wreck has none
 
 MEMBERS = {m['key']: m for m in roster.MERCHANT + roster.PIRATE + getattr(roster, 'DRONES', [])}
@@ -327,14 +328,55 @@ def bears(mount, local):
     return in_az and GUN_ELEVATION[0] <= el <= GUN_ELEVATION[1], miss
 
 
+# Where each finished hull's own plating stands in the way of her own guns (battle_blockout --turret-masks,
+# cast from the builds: a ray every MASKS[build]['step'] deg of bearing and elevation from each muzzle, her
+# frame). A gun does not fire through her own hull (owner, 2026-10-27: "Specifically I just want to make sure
+# it's not firing through it's own hull"; hull_cross_lint holds the drawn rounds to it).
+MASK_FILE = HERE / 'turret_masks.json'
+MASKS = json.loads(MASK_FILE.read_text()) if MASK_FILE.exists() else {}
+MUZZLE_UP = 2.0          # the muzzle above its pivot, as the masks and hull_cross_lint place it
+
+
+@lru_cache(maxsize=None)
+def _mask_bits(build, turret):
+    import base64
+    m = MASKS.get(build, {}).get('mounts', {}).get(str(turret))
+    return base64.b64decode(m) if m else None
+
+
+def self_masked(build, turret, mount, local):
+    """Whether her own hull stands between this mount's muzzle and a point in her frame."""
+    bits = _mask_bits(build, turret)
+    if bits is None:
+        return False
+    step = MASKS[build]['step']
+    v = [local[0] - mount[0][0], local[1] - mount[0][1], local[2] - mount[0][2] - MUZZLE_UP]
+    az = math.degrees(math.atan2(v[1], v[0]))
+    el = math.degrees(math.atan2(v[2], math.hypot(v[0], v[1])))
+    nb, ne = int(round(360 / step)), int(round(180 / step))
+    i, j = min(nb - 1, int((az + 180) / step)), min(ne - 1, int((el + 90) / step))
+    n = j * nb + i
+    return bool(bits[n // 8] >> (n % 8) & 1)
+
+
 def blocked(a, b, others):
-    """The other hull a straight line a -> b passes through (bounding sphere), or None."""
-    d = [b[i] - a[i] for i in range(3)]
-    dd = sum(c * c for c in d) or 1e-9
-    for key, c, r in others:
-        u = max(0.0, min(1.0, sum((c[i] - a[i]) * d[i] for i in range(3)) / dd))
-        q = [a[i] + d[i] * u for i in range(3)]
-        if .02 < u < .98 and math.dist(q, c) < r:
+    """The other hull a straight line a -> b passes through, or None. others: [(key, frame, half extents)],
+    each hull taken as her box (debris_field.SHIP_HALF of her length): a bounding sphere of a third of her
+    length missed a long hull's ends (hull_cross_lint, 2026-10-27: S8's fire through the Colossus's drive
+    pods)."""
+    for key, fr, half in others:
+        p, q = to_local(fr, a), to_local(fr, b)
+        lo, hi = .02, .98                   # the muzzle's and the aim's own ends are not in the way
+        for i in range(3):
+            d = q[i] - p[i]
+            if abs(d) < 1e-9:
+                if abs(p[i]) > half[i]:
+                    lo, hi = 1.0, 0.0
+                    break
+                continue
+            t0, t1 = (-half[i] - p[i]) / d, (half[i] - p[i]) / d
+            lo, hi = max(lo, min(t0, t1)), min(hi, max(t0, t1))
+        if lo < hi:
             return key
     return None
 
@@ -499,12 +541,14 @@ def _valid(sh, key, turret, mount, weapon, target, i, aim_l, force=False):
     ok, miss = bears(mount, to_local(fa, aim_w))
     if not ok:
         return False, None, f'out of arc by {miss:.0f} deg'
+    if self_masked(build_of(sh.kf, key), turret, mount, to_local(fa, aim_w)):
+        return False, None, 'masked by her own hull'
     mz = to_world(fa, mount[0])
     d = math.dist(mz, aim_w)
     lim = force_reach_m(weapon) if force else reach_m(weapon)
     if d > lim:
         return False, d, f'out of range ({d:.0f} m > {lim:.0f})'
-    others = [(k, sh.fr[k][i][0], .3 * length_m(k)) for k in sh.ships if k not in (key, target)]
+    others = [(k, sh.fr[k][i], [h * length_m(k) for h in SHIP_HALF]) for k in sh.ships if k not in (key, target)]
     b = blocked(mz, aim_w, others)
     if b:
         return False, d, f'line fouled by {b}'
@@ -826,7 +870,8 @@ def _turret_plan(kf, key, turret, weapon):
             to = None
         # the steps chose by the face she presented then; the gun lays on this one aim point the whole
         # engagement, so it fires only while that point is inside the mount's arc (the firing-arc lint)
-        lays = lambda i_: bears(mount, to_local(sh.fr[key][i_], to_world(sh.fr[tgt][i_], at)))[0]
+        lays = lambda i_: (bears(mount, to_local(sh.fr[key][i_], to_world(sh.fr[tgt][i_], at)))[0] and not
+                           self_masked(build_of(kf, key), turret, mount, to_local(sh.fr[key][i_], to_world(sh.fr[tgt][i_], at))))
         while i1 > i0 and not lays(i1):
             i1 -= 1
         while i0 < i1 and not lays(i0):
