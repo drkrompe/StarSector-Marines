@@ -7,7 +7,7 @@ alone (a frame-change handler), as battle_blockout builds it for each frame of a
 """
 import math
 
-RAKE_M, PERIOD_S, LAG_S, TRAIL_S = 25.0, 3.0, .35, .6
+RAKE_M, PERIOD_S, LAG_S, TRAIL_S = 25.0, 3.0, .35, .35
 BELOW_M = 40.0
 
 

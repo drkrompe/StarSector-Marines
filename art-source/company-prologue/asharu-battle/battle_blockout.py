@@ -1371,7 +1371,7 @@ KIT_FX = ('tracer', 'missiles', 'blast_on', 'debris', 'fire_on', 'smoke', 'flare
 # energy"): core radius and halo multiple (the steady beam's .3 m and 4), the rake table's samples a
 # second, and the seam the cut leaves behind it (s). ASHARU_MINING_STEADY=1 draws the steady beam
 # instead, for the owner's before/after only: remove it once the owner has picked.
-MINING_WIDTH_M, MINING_HALO, RAKE_RATE, RAKE_TRAIL_S = .12, 2.5, 24, .6
+MINING_WIDTH_M, MINING_HALO, RAKE_RATE, RAKE_TRAIL_S = .12, 2.5, 24, .35
 
 
 def at_time(pose, t):

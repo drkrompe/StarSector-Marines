@@ -218,11 +218,12 @@ def laser(name, emitter, contact, normal, coll, lights=None, seed=0, width_m=.3,
     _placed(sc, b + n * cw * .3, n, (s * .05, s, s * sc_rnd.uniform(.6, 1.0)))
     sc.visible_shadow = False
     if trail is not None and len(trail) > 1:
-        # the seam behind the contact, on the plating: hottest at the cut, cooling back along it
+        # the seam behind the contact, a thin hot line in the plating, cooling back along it (bench r1: at
+        # 1.2x the cut's width and strength 8 it read as a glowing plank)
         seam = [Vector(p) + n * cw * .3 for p in reversed(trail)]
         k = len(seam)
-        se._tube(f'{name} seam', seam, [cw * (1.2 - .6 * i / (k - 1)) for i in range(k)],
-                 [i / (k - 1) for i in range(k)], coll, _seam_material(f'{PREFIX} seam', 8.0 * glow), segments=8)
+        se._tube(f'{name} seam', seam, [cw * (.45 - .3 * i / (k - 1)) for i in range(k)],
+                 [i / (k - 1) for i in range(k)], coll, _seam_material(f'{PREFIX} seam', 4.0 * glow), segments=8)
     # molten sparks: thrown off the surface, most of them low along it, cooling as they fly
     ref = Vector((0, 0, 1)) if abs(n.z) < .9 else Vector((0, 1, 0))
     t1 = n.cross(ref).normalized()
