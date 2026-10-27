@@ -182,6 +182,7 @@ import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
+import com.dillon.starsectormarines.battle.world.gen.Basin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.TraversalAxis;
@@ -317,6 +318,8 @@ public final class BattleSetup {
      * needs to be temporarily disabled.
      */
     private static final MapGenerator MAP_GEN = new BspCityGenerator();
+    /** Colony Breach's basin on a desert world ({@link Basin#ravBloom}): the colony green, more of the map desert. */
+    static final float COLONY_BASIN_X = 0.66f, COLONY_BASIN_Y = 0.6f;
 
     /** SABOTAGE: number of charge sites to plant. One per shuttle = one planter per drop. */
     private static final int SABOTAGE_CHARGE_SITES = SabotageSiteLayout.REQUIRED_SITE_COUNT;
@@ -2982,6 +2985,9 @@ public final class BattleSetup {
             throw new IllegalStateException("a Colony Breach pool entry takes no patch yet: seed " + seed);
         }
         TargetProfile mapProfile = pooled != null ? BloomHeartSetup.world(surfaceOrRock(profile)) : profile;
+        if (colony && mapProfile != null) {
+            mapProfile = mapProfile.withBasin(Basin.ravBloom(mapProfile.surface(), COLONY_BASIN_X, COLONY_BASIN_Y));
+        }
         int attempts = pooled != null ? 1 : 8;
         String why = "";
         EnumSet<MapFeature> missing = EnumSet.noneOf(MapFeature.class);

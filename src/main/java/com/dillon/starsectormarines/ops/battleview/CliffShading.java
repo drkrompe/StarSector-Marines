@@ -34,6 +34,8 @@ final class CliffShading {
     private static final float[] ROCK_LIGHT = {156, 144, 127}, ROCK_MID = {116, 104, 90};
     private static final float[] SOIL = {104, 80, 56}, SOIL_DARK = {66, 50, 36}, TALUS = {136, 127, 114};
     private static final float[] TURF_DARK = {52, 70, 30};
+    /** The lip over dry ground (a basin's arid rim): crusted hardpan in shadow, no turf. */
+    private static final float[] DRY_LIP = {74, 60, 42};
     // A graded bank: turf over packed earth.
     private static final float[] BANK_TURF = {88, 100, 56}, DITCH = {58, 52, 38};
 
@@ -47,8 +49,16 @@ final class CliffShading {
     private final int texelsPerCell;
     /** 1 at each cell corner whose raised ground is graded, 0 elsewhere; null when none is. */
     private final double[] graded;
+    /** Cells whose ground is not grass, so their lip is bare rather than turfed; null when every lip is turf. */
+    private final boolean[] dry;
 
     CliffShading(ElevationLayout layout, SunLight sun, int texelsPerCell) {
+        this(layout, sun, texelsPerCell, null);
+    }
+
+    /** @param dry per cell, row-major, whether the ground there is not grass; null for turf everywhere */
+    CliffShading(ElevationLayout layout, SunLight sun, int texelsPerCell, boolean[] dry) {
+        this.dry = dry;
         this.width = layout.width();
         this.height = layout.height();
         this.faceWidth = layout.faceWidth();
@@ -102,6 +112,14 @@ final class CliffShading {
         escarpment(wx, wy, out);
         bank(wx, wy, built);
         for (int i = 0; i < 4; i++) out[i] = lerp(out[i], built[i], g);
+    }
+
+    /** Whether the cell under a world point has bare ground rather than grass. */
+    private boolean dryAt(float wx, float wy) {
+        if (dry == null) return false;
+        int x = Math.max(0, Math.min(width - 1, (int) Math.floor(wx)));
+        int y = Math.max(0, Math.min(height - 1, (int) Math.floor(wy)));
+        return dry[y * width + x];
     }
 
     /** The natural look: the layered escarpment. */
@@ -161,8 +179,9 @@ final class CliffShading {
             if (below < edge) {
                 // Turf hanging over the lip, its underside in shadow: the ground itself, darkened.
                 float shade = smooth(edge - .05f, edge, below) * .7f;
+                float[] lip = dryAt(wx, wy) ? DRY_LIP : TURF_DARK;
                 m = .95f * (1 - shade);
-                cr = TURF_DARK[0] * shade; cg = TURF_DARK[1] * shade; cb = TURF_DARK[2] * shade;
+                cr = lip[0] * shade; cg = lip[1] * shade; cb = lip[2] * shade;
             } else if (below < soilDepth) {
                 float root = smooth(.9, .97, 1 - Math.abs(noise(wx * 3f, wy * 3f + 3f + below * 40f)));
                 float[] soil = mix(SOIL, SOIL_DARK, smooth(edge, soilDepth, below) * .6f + root * .4f);

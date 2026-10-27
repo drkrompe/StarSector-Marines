@@ -61,6 +61,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.MissionLayoutCheck;
 import com.dillon.starsectormarines.battle.world.gen.layout.Piece;
 import com.dillon.starsectormarines.battle.world.gen.layout.Road;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.Basin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
@@ -121,8 +122,12 @@ public final class CordonSetup {
      * this biome, laid out the same whatever market raised the call.
      */
     public static TargetProfile country(SurfacePalette biome) {
-        return new TargetProfile(0, 0, 0, 0, "", Set.of(), biome, SettlementLink.ROAD);
+        return new TargetProfile(0, 0, 0, 0, "", Set.of(), biome, SettlementLink.ROAD)
+                .withBasin(Basin.ravBloom(biome, BASIN_REACH_X, BASIN_REACH_Y));
     }
+
+    /** The colony's basin on a desert world ({@link Basin#ravBloom}): the town and its fields green, the edges desert. */
+    static final float BASIN_REACH_X = 0.74f, BASIN_REACH_Y = 0.68f;
 
     /** The story map a variant plays from in open country ({@code story-map-pools.md}). */
     public static StoryMap storyMap(CordonVariant variant) {

@@ -1,11 +1,10 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
+import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
-import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadPlan.Material;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadRasterizer;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
@@ -74,8 +73,7 @@ public final class HinterlandFillStage implements GenStage {
 
     /** Seed thin scraps too; rectangular nature fills cannot cover every claim-edge cell. */
     static void paintUnclaimedGround(GenContext ctx, int[][] claim, int[][] road) {
-        TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
-        SurfacePalette surface = profile == null ? SurfacePalette.ROCK : profile.surface();
+        SurfaceField surface = SurfaceField.of(ctx);
         int[] asphalt = new int[3];
         for (int age = 0; age < 3; age++) asphalt[age] = ctx.topology.surfaceIndex(Material.ASPHALT.block(age));
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
@@ -83,7 +81,7 @@ public final class HinterlandFillStage implements GenStage {
                     || ctx.isMadeGround(x, y) || ctx.topology.isWall(x, y)
                     || ctx.topology.hasBuildingKindHint(x, y) || ctx.topology.isFixture(x, y)) continue;
             if (road[x][y] == GrownTrunkPlan.UNOWNED) {
-                ctx.topology.setGroundKind(x, y, surface.inlandGround());
+                ctx.topology.setGroundKind(x, y, surface.at(x, y).inlandGround());
             } else {
                 // Welded/gate approach cells can fall beyond the original trunk's
                 // paint. The surviving road mask owns their surface too.
