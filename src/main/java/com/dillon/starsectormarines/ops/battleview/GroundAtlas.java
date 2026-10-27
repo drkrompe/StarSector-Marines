@@ -31,11 +31,17 @@ public final class GroundAtlas extends SpriteAtlas {
      *
      * <p>A sheet wider or taller than this is left out ({@link #fitsAlone}),
      * and a cap the driver then refuses is a fail-soft rather than a crash.
+     * 4096 since the nature strip grew to 3071 texels (2026-10-25): the
+     * texture is only as tall as its shelves, about 4096x300, and the unit
+     * atlas already needs a 4096 side.
      */
-    static final int MAX_SIDE_PX = 2048;
+    static final int MAX_SIDE_PX = 4096;
+
+    /** Widths tried in turn: the narrowest the sheets fit. */
+    private static final int[] SIDES = {2048, MAX_SIDE_PX};
 
     public GroundAtlas() {
-        super("ground atlas", MAX_SIDE_PX);
+        super("ground atlas", SIDES);
     }
 
     /** Visible for the layout test; see {@link SpriteAtlas#shelfPack}. */
