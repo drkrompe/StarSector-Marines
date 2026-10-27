@@ -457,7 +457,10 @@ company lift. No line names the fee; the amount lives in the offer's terms.
    service road to park in the loading yard before dispatch's door, in support
    of the raiders already at the warehouse; it counts as a raider, so the hold
    is not won while it stands. A Hound's chaingun kills it in about a quarter
-   of a minute; charged across the open yard it can kill the Hound first. Secure Wayline's offline Hound
+   of a minute; charged across the open yard it can kill the Hound first.
+   A Hound cannot get inside dispatch, so once no friendly infantry is left on
+   the field, a company machine within eight cells of dispatch's door holds it;
+   raiders inside still contest the hold. Secure Wayline's offline Hound
    for the push and warehouse defense.
    Successful settlement pays 9,000 credits, transfers that chassis and closes the arc.
    Mara reports that dispatch can resume and refers the company to other
