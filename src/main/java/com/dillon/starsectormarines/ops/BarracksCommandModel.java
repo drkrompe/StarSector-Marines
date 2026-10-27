@@ -72,7 +72,7 @@ public final class BarracksCommandModel {
     private Runnable missions = () -> { };
     private Consumer<String> editEquipment = id -> { };
     private boolean localMissions;
-    private boolean returnToBriefing;
+    private MissionReturn missionReturn = MissionReturn.MISSIONS;
     private int page;
     private String feedback = Strings.get("openingBarracksCommandSelectSquadsThenAssignSelectedOnA");
 
@@ -94,7 +94,7 @@ public final class BarracksCommandModel {
         bind(reactor, "equipmentClasses", () -> equipmentUnread()
                 ? "flow-button console-action equipment-new" : "flow-button console-action");
         props.put("missions", (Runnable) () -> missions.run());
-        bind(reactor, "missionLabel", () -> returnToBriefing ? Strings.get("openingBarracksCommandBriefing") : Strings.get("openingBarracksCommandMissions"));
+        bind(reactor, "missionLabel", () -> Strings.get(missionReturn.labelKey));
         bind(reactor, "missionClasses", () -> localMissions ? "tool-button console-action" : "hidden");
         bind(reactor, "commands", this::commands);
         bind(reactor, "formationClasses", () -> dossier || companyRoster ? "hidden" : "formation-board panel console-section");
@@ -887,7 +887,7 @@ public final class BarracksCommandModel {
         var lines = CompanyManagementGuide.lines();
         return lines.isEmpty() ? new CompanyManagementGuide.Line("", Strings.get("openingBarracksCommandGuideUnavailable"), "") : lines.get(Math.min(guideStep, lines.size() - 1));
     }
-    public void returnToBriefing(boolean value) { returnToBriefing = value; refresh(); }
+    public void missionReturn(MissionReturn value) { missionReturn = value; refresh(); }
     private boolean equipmentUnread() {
         return FirstRefit.available(roster)
                 && !roster.hasReviewedCompanyNotice(CompanyNotices.Notice.FIRST_REFIT.id);
