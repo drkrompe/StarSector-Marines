@@ -44,7 +44,6 @@ public record IntegralSystemDef(
         float cooldownSeconds,
         int startingAmmo,
         BreacherAssistSpec breacherAssist,
-        MissilePodSpec missilePod,
         IntegralSystemPolicySpec policy,
         EquipmentLayerDef carrierLayer) implements Serializable {
 
@@ -57,10 +56,9 @@ public record IntegralSystemDef(
                              String description, IntegralSystemEffect effect,
                              SpecialResourceMode resourceMode, float durationSeconds,
                              float cooldownSeconds, int startingAmmo,
-                             BreacherAssistSpec breacherAssist, MissilePodSpec missilePod,
-                             IntegralSystemPolicySpec policy) {
+                             BreacherAssistSpec breacherAssist, IntegralSystemPolicySpec policy) {
         this(id, displayName, grade, description, effect, resourceMode, durationSeconds,
-                cooldownSeconds, startingAmmo, breacherAssist, missilePod, policy, null);
+                cooldownSeconds, startingAmmo, breacherAssist, policy, null);
     }
 
     /**
@@ -124,22 +122,12 @@ public record IntegralSystemDef(
         }
 
         BreacherAssistSpec breacher = null;
-        MissilePodSpec missilePod = null;
-        switch (effect) {
-            case BREACHER_ASSIST -> {
-                if (resourceMode != SpecialResourceMode.COOLDOWN) {
-                    throw new JSONException("Integral system '" + id + "' on armor '" + armorId
-                            + "' is a breacher assist and must be cooldown-gated");
-                }
-                breacher = BreacherAssistSpec.parse(json, armorId, id);
+        if (effect == IntegralSystemEffect.BREACHER_ASSIST) {
+            if (resourceMode != SpecialResourceMode.COOLDOWN) {
+                throw new JSONException("Integral system '" + id + "' on armor '" + armorId
+                        + "' is a breacher assist and must be cooldown-gated");
             }
-            case MISSILE_POD -> {
-                if (resourceMode != SpecialResourceMode.AMMUNITION) {
-                    throw new JSONException("Integral system '" + id + "' on armor '" + armorId
-                            + "' is a missile pod and must be ammunition-gated");
-                }
-                missilePod = MissilePodSpec.parse(json, armorId, id);
-            }
+            breacher = BreacherAssistSpec.parse(json, armorId, id);
         }
 
         return new IntegralSystemDef(
@@ -153,7 +141,6 @@ public record IntegralSystemDef(
                 cooldownSeconds,
                 startingAmmo,
                 breacher,
-                missilePod,
                 parsePolicy(json, armorId, id, effect),
                 parseCarrierLayer(json, id));
     }
@@ -170,16 +157,15 @@ public record IntegralSystemDef(
     /**
      * The policies that can honestly apply to one effect. A policy names the
      * moment worth spending something at, and not every moment fits every
-     * capability: charging a doorway is not something a shoulder rack can do,
-     * and a rack that waits for standoff has nothing to do with a suit that
-     * only moves faster. Keeping the mapping here, next to the effect's own
+     * capability: charging a doorway is not something a satchel of dressings
+     * can do, and a squadmate in reach has nothing to do with a suit that only
+     * moves faster. Keeping the mapping here, next to the effect's own
      * validation, means an author meets the rule at parse time rather than
      * discovering a policy that silently never fires.
      */
     private static SpecialAiPolicy[] applicablePolicies(IntegralSystemEffect effect) {
         return switch (effect) {
             case BREACHER_ASSIST -> new SpecialAiPolicy[] {SpecialAiPolicy.EXPOSED_UNDER_FIRE};
-            case MISSILE_POD -> new SpecialAiPolicy[] {SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT};
             case FIELD_AID ->
                     new SpecialAiPolicy[] {SpecialAiPolicy.WOUNDED_SQUADMATE_IN_REACH};
         };
@@ -195,7 +181,6 @@ public record IntegralSystemDef(
             if (candidate != declared) continue;
             return switch (declared) {
                 case EXPOSED_UNDER_FIRE -> ExposedUnderFireSpec.parse(json, armorId, systemId);
-                case SIGHTED_STANDOFF_CONTACT -> SightedStandoffSpec.parse(json, armorId, systemId);
                 case WOUNDED_SQUADMATE_IN_REACH ->
                         FieldAidSpec.parse(json, armorId, systemId);
                 default -> throw new JSONException("Integral system '" + systemId + "' on armor '"
@@ -222,11 +207,6 @@ public record IntegralSystemDef(
     /** This system's field-aid marker, or null when it declares another policy. */
     public FieldAidSpec fieldAid() {
         return policy instanceof FieldAidSpec spec ? spec : null;
-    }
-
-    /** This system's standoff parameters, or null when it declares another policy. */
-    public SightedStandoffSpec sightedStandoff() {
-        return policy instanceof SightedStandoffSpec spec ? spec : null;
     }
 
     /**

@@ -34,8 +34,8 @@ final class ArmorSheetBundles {
                     "armor.packframe"},
             {SquadEquipmentDoctrines.OUTLAW_LINE_ARMOR, "armor.reaver", "armor.outlaw", "armor.packframe",
                     "armor.scout"},
-            // The lighter rung below the Arbalest Section and the XIV Shock: two rail-shot packs
-            // open a dug-in position for a section in militia plate.
+            // The lighter rung below the Arbalest Section and the XIV Shock: two packframes at the
+            // front of a section in militia plate.
             {SquadEquipmentDoctrines.FREEPORT_ASSAULT_ARMOR, "armor.militia", "armor.packframe"},
             {SquadEquipmentDoctrines.OUTLAW_RAIDER_ARMOR, "armor.outlaw", "armor.lashplate-harness",
                     "armor.packframe"},

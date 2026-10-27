@@ -236,6 +236,7 @@ import com.dillon.starsectormarines.battle.control.ShipCommandService;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemService;
 import com.dillon.starsectormarines.battle.combat.MitigationSystem;
 import com.dillon.starsectormarines.battle.infantry.IntegralSystemSystem;
+import com.dillon.starsectormarines.battle.infantry.MissilePodSystem;
 import com.dillon.starsectormarines.battle.infantry.SquadMedicSystem;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropService;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDropSystem;
@@ -531,6 +532,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final EquipmentDropService equipmentDropService;
     private final EquipmentDropSystem equipmentDropSystem;
     private final IntegralSystemSystem integralSystemSystem;
+    private final MissilePodSystem missilePods;
     private final SquadMedicSystem squadMedics = new SquadMedicSystem();
     /** Per-tick aim + drain of every raised mitigation screen. See {@code combat-durability-nouns.md}. */
     private final MitigationSystem mitigationSystem;
@@ -1767,11 +1769,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A body on a carrier's blades: direct fire never touches it, a blast does behind a switch.
         ballisticResolver.spareHeld(swarmHarvest::isCarried);
         detonations.spareHeld(swarmHarvest::isCarried, swarmHarvest.areaHitsHeld());
+        this.integralSystemSystem = new IntegralSystemSystem(rosterService);
         // Constructed here (rather than alongside the other early per-unit
-        // systems above) because a missile-pod salvo needs the same
+        // systems above) because a shoulder-pod salvo needs the same
         // resolver/shots pipeline InfantryWeapons uses, and both exist only
         // from this point on.
-        this.integralSystemSystem = new IntegralSystemSystem(rosterService, ballisticResolver, shots, rng);
+        this.missilePods = new MissilePodSystem(rosterService, ballisticResolver, shots, rng);
         this.turretFire = new TurretFireSystem(
                 rng, topology, shots, damageService,
                 det -> { synchronized (detonations) { detonations.queue(det); } },
@@ -1825,7 +1828,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                     ? TurretFireSystem.CREW_FRIENDLY_HOLD_CHANCE : 0f, this::friendsInBlast);
         }
         // Fire discipline before the trigger: a trained rifleman, a disciplined crew, a chassis's fire control
-        // and a suit's missile pod look down the lane and at where a burst will land, and hold rather than fire
+        // and a shoulder pod look down the lane and at where a burst will land, and hold rather than fire
         // through or onto their own side. A trained shooter held there longer than a new target takes to register shoots one with a clear
         // lane instead (LaneRetarget). -Dbattle.fire.laneDiscipline=false is the control, leaving only the
         // after-the-fact hold roll.
@@ -1836,7 +1839,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             infantry.setLaneDiscipline(true);
             turretFire.setLaneDiscipline(true);
             heavy.setLaneDiscipline(true);
-            integralSystemSystem.setLaneDiscipline(true);
+            missilePods.setLaneDiscipline(true);
         }
         blade = new DozerBlade(navigation, mapEditor, doodadService);
         groundSystem.setBlade(blade);
@@ -3787,6 +3790,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // whole authored duration instead of losing its first tick to this drain.
         mitigationSystem.tick(TICK_DT, directControl.activeUnitId(), directControl.pointAim());
         integralSystemSystem.tick(TICK_DT, this);
+        missilePods.tick(TICK_DT, this);
         // Treatments land on patients here, serially, so the dispatch below only
         // moves or plants the medic and patient it is updating.
         squadMedics.tick(TICK_DT, this);

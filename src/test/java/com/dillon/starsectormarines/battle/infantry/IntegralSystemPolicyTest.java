@@ -50,14 +50,7 @@ class IntegralSystemPolicyTest {
     private static final int ROW = 8;
     private static final int CARRIER_X = 6;
 
-    /**
-     * Far past any authored salvo total, so a standoff scene measures whether
-     * the pod chose to fire rather than whether its target happened to survive
-     * long enough to be fired at twice.
-     */
-    private static final float OUTLASTS_THE_RACK = 1_000_000f;
-
-    /** Long enough for a stationary pod to acquire and spend, short enough to stay quick. */
+    /** Long enough for a stationary carrier to judge and spend, short enough to stay quick. */
     private static final int OBSERVATION_TICKS = 240;
 
     /**
@@ -91,9 +84,6 @@ class IntegralSystemPolicyTest {
                 case EXPOSED_UNDER_FIRE -> assertTrue(
                         system.exposedUnderFire().incomingPressureThreshold() > 0f,
                         pattern.id() + " must author how much fire is worth its cooldown");
-                case SIGHTED_STANDOFF_CONTACT -> assertTrue(
-                        system.sightedStandoff().minimumStandoffCells() > 0f,
-                        pattern.id() + " must author the standoff its salvo is judged against");
                 // A kit's numbers are its entry in squad-medicine.json, not the catalog's.
                 case WOUNDED_SQUADMATE_IN_REACH -> assertNotNull(system.fieldAid(), pattern.id());
                 default -> fail(pattern.id() + " declares a policy with no authored parameters: "
@@ -110,15 +100,15 @@ class IntegralSystemPolicyTest {
      */
     @Test
     void aPolicyThatCannotApplyToItsEffectIsRefusedNamingTheOnesThatCan() throws JSONException {
-        JSONObject crossingOnAPod = missilePodJson()
+        JSONObject crossingOnAKit = fieldAidJson()
                 .put("policy", SpecialAiPolicy.EXPOSED_UNDER_FIRE.key)
                 .put("incomingPressureThreshold", 2.0)
                 .put("maxCoverLevel", 1);
-        JSONException podFailure = assertThrows(JSONException.class,
-                () -> IntegralSystemDef.parse(crossingOnAPod, "armor.test"));
-        assertTrue(podFailure.getMessage().contains(SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT.key),
-                "the refusal should name the policy a missile pod can declare: "
-                        + podFailure.getMessage());
+        JSONException kitFailure = assertThrows(JSONException.class,
+                () -> IntegralSystemDef.parse(crossingOnAKit, "armor.test"));
+        assertTrue(kitFailure.getMessage().contains(SpecialAiPolicy.WOUNDED_SQUADMATE_IN_REACH.key),
+                "the refusal should name the policy a field-aid kit can declare: "
+                        + kitFailure.getMessage());
 
         JSONObject standoffOnAnAssist = breacherAssistJson()
                 .put("policy", SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT.key)
@@ -159,36 +149,15 @@ class IntegralSystemPolicyTest {
     // ---------------------------------------------------------------- dispatch
 
     /**
-     * The whole reason there is more than one policy. The same scene — a
-     * hostile eight cells away, nobody moving — is the standoff pod's moment
-     * and is not the breacher's, even though that hostile is comfortably inside
-     * the breacher's own threat radius. Set the breacher crossing and its
-     * moment arrives without the pod's scene changing at all.
+     * The screen's moment is fire the wearer cannot answer, not fire as such:
+     * shooting back is the answer to a contact in reach.
      */
     @Test
-    void twoPoliciesSpendThemselvesOnDifferentOccasions() {
-        assertTrue(podSpendsASalvo(/*standoff*/ 5f, /*hostileDistance*/ 8),
-                "a sighted contact at standoff is the pod's moment");
+    void theScreenIsSpentOnlyOnFireTheWearerCannotAnswer() {
         assertFalse(screenRaised(Scene.answerable()),
                 "fire the wearer can shoot back at is not the screen's moment — shoot back");
         assertTrue(screenRaised(Scene.outranged()),
                 "fire the wearer cannot reach back at is");
-        assertFalse(podSpendsASalvo(/*standoff*/ 5f, /*hostileDistance*/ 3),
-                "a contact already on top of the wearer is past the pod's moment");
-    }
-
-    /**
-     * Fire discipline on a delivered payload: a friend standing between the
-     * rail and its target is where the salvo would burst, so the pod holds
-     * and spends nothing. The same friend off the lane, behind the wearer,
-     * changes nothing.
-     */
-    @Test
-    void aFriendInTheLaneHoldsTheSalvo() {
-        assertFalse(podSpendsASalvo(/*standoff*/ 5f, /*hostileDistance*/ 8, /*friendDistance*/ 4),
-                "a salvo through a friend's back is never spent");
-        assertTrue(podSpendsASalvo(/*standoff*/ 5f, /*hostileDistance*/ 8, /*friendDistance*/ -3),
-                "a friend clear of the lane does not hold it");
     }
 
     /**
@@ -422,28 +391,6 @@ class IntegralSystemPolicyTest {
         return new int[] {CARRIER_X, ROW, CARRIER_X, ROW + 1, CARRIER_X, ROW + 2};
     }
 
-    /**
-     * A pod and one durable hostile, both stationary, played by the real
-     * simulation because a delivered payload has to travel. Whether a salvo
-     * left the rack is the answer.
-     */
-    private static boolean podSpendsASalvo(float standoffCells, int hostileDistance) {
-        return podSpendsASalvo(standoffCells, hostileDistance, /*friendDistance*/ 0);
-    }
-
-    /** As above, with a stationary friend {@code friendDistance} cells down the same row (none when zero). */
-    private static boolean podSpendsASalvo(float standoffCells, int hostileDistance,
-                                           int friendDistance) {
-        BattleSimulation sim = arena();
-        long gunner = sim.spawn(carrier("gunner", Faction.MARINE).integralSystem(pod(standoffCells)));
-        int startingAmmo = sim.integralSystems().ammo(gunner);
-        sim.spawn(hostile(Faction.DEFENDER, CARRIER_X + hostileDistance)
-                .health(OUTLASTS_THE_RACK));
-        if (friendDistance != 0) sim.spawn(named("friend", Faction.MARINE, CARRIER_X + friendDistance));
-        advance(sim, OBSERVATION_TICKS);
-        return sim.integralSystems().ammo(gunner) < startingAmmo;
-    }
-
     private static BattleSimulation arena() {
         NavigationGrid grid = new NavigationGrid(W, H);
         for (int y = 0; y < H; y++) {
@@ -486,7 +433,7 @@ class IntegralSystemPolicyTest {
      * decision; every scene that uses this carries a breacher and nothing else.
      */
     private static IntegralSystemSystem sweep(BattleSimulation sim) {
-        return new IntegralSystemSystem(sim.getRoster(), null, null, new Random(7));
+        return new IntegralSystemSystem(sim.getRoster());
     }
 
     // ---------------------------------------------------------------- fixtures
@@ -521,15 +468,6 @@ class IntegralSystemPolicyTest {
                 .moveSpeed(0f).hp(SURVIVES_THE_SCENE).maxHp(SURVIVES_THE_SCENE);
     }
 
-    private static IntegralSystemDef pod(float minimumStandoffCells) {
-        try {
-            return IntegralSystemDef.parse(missilePodJson()
-                    .put("minimumStandoffCells", minimumStandoffCells), "armor.test");
-        } catch (JSONException failure) {
-            throw new AssertionError("test fixture should parse", failure);
-        }
-    }
-
     private static JSONObject breacherAssistJson() throws JSONException {
         return new JSONObject()
                 .put("id", "system.test-assist")
@@ -548,19 +486,14 @@ class IntegralSystemPolicyTest {
                 .put("shieldedArcDegrees", 140.0);
     }
 
-    private static JSONObject missilePodJson() throws JSONException {
+    private static JSONObject fieldAidJson() throws JSONException {
         return new JSONObject()
-                .put("id", "system.test-pod")
+                .put("id", "system.test-aid")
                 .put("grade", "service")
-                .put("displayName", "Test volley")
-                .put("description", "A brace of micro-missiles.")
-                .put("effect", "missile-pod")
-                .put("resource", "ammunition")
-                .put("policy", SpecialAiPolicy.SIGHTED_STANDOFF_CONTACT.key)
-                .put("minimumStandoffCells", 5.0)
-                .put("squadSalvoIntervalSeconds", 1.5)
-                .put("durationSeconds", 1.0)
-                .put("startingAmmo", 2)
-                .put("weaponId", "weapon.micro-missile");
+                .put("displayName", "Test aid")
+                .put("description", "A satchel and somebody willing to kneel down.")
+                .put("effect", "field-aid")
+                .put("resource", "energy")
+                .put("policy", SpecialAiPolicy.WOUNDED_SQUADMATE_IN_REACH.key);
     }
 }

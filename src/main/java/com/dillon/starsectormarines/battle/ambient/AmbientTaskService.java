@@ -699,7 +699,9 @@ public final class AmbientTaskService {
         boolean practiceEquipment = pose.activity() == AmbientActivity.PRACTICING_EQUIPMENT;
         SpecialEquipmentDef carriedSpecial = practiceEquipment && world.hasSecondaryWeapon(actorId)
                 ? world.specialEquipment(actorId) : null;
-        boolean usingSpecial = carriedSpecial != null && pose.actionPhase() >= 0.5f;
+        // A shoulder pod is never handled: its carrier practises with the rifle like anyone else.
+        boolean usingSpecial = carriedSpecial != null && !carriedSpecial.isShoulderPod()
+                && pose.actionPhase() >= 0.5f;
         if (usingSpecial) {
             float cycle = positiveModulo((pose.actionPhase() - 0.5f) * 2f, 1f);
             SpecialUsePose usePose = carriedSpecial.presentation().usePose();
@@ -713,6 +715,7 @@ public final class AmbientTaskService {
                         : LayeredAppearance.POSE_AMR_AIM;
                 case SHOULDER_LAUNCHER -> fired ? LayeredAppearance.POSE_ROCKET_FIRE
                         : LayeredAppearance.POSE_ROCKET_AIM;
+                case SHOULDER_MOUNT -> LayeredAppearance.POSE_IDLE;
             };
             weaponPhase = fired
                     ? (cycle - FIRE_BEGIN) / (FIRE_END - FIRE_BEGIN)

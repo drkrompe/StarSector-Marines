@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
-import com.dillon.starsectormarines.marine.MissilePodSpec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -127,11 +126,6 @@ public final class IntegralSystemCopy {
             return Strings.format("gearSystemBreach" + (system.grantsMitigation() ? "Screen" : "") + suffix,
                     percent(breacher.moveSpeedMult() - 1f), Math.round(breacher.screenSoak()),
                     degrees(breacher.shieldedArcDegrees()));
-        }
-        MissilePodSpec pod = system.missilePod();
-        if (pod != null) {
-            return Strings.format("gearSystemMissiles" + suffix,
-                    Math.max(1, pod.weaponDef().projectilesPerShot()));
         }
         if (system.fieldAid() != null) {
             SquadMedicine kit = SquadMedicine.forKit(system.id());

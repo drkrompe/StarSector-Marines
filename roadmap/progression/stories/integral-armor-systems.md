@@ -7,7 +7,7 @@ power-suit protection is a separate armor-pattern choice under
 Status: IN PROGRESS — systems and running presentation are established;
 hostile capability readability and special-item coordination remain open.
 Written: 2026-08-27
-Updated: 2026-10-13 — squad pod usage rotates among ready carriers with authored spacing between salvos.
+Updated: 2026-10-27 — the shoulder pod left the integral slate to become the SRM-POD carried special; the Aegis, Packframe and Arbalests are plain armour. Earlier 2026-10-13 — squad pod usage rotates among ready carriers with authored spacing between salvos.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`, and
 `equipment-lore-catalog.md` before implementing. Coordinates with
@@ -29,9 +29,9 @@ armor endurance. This story still owns behavior a suit can spend, not that
 pattern-level durability choice.
 
 The setting also supplies distinct capability choices. Faction lore carries
-micro-missile support across Hegemony, League, and Tri-Tachyon traditions, the
-weapon model already anticipates micro-missile as a delivery mechanism, and the
-battle compositor now renders explicitly equipped Aegis and Arbalest shoulder pods.
+micro-missile support across Hegemony, League, and Tri-Tachyon traditions; that
+capability is now the SRM-POD carried special rather than a suit system
+(`progression-nouns.md`, Shoulder pod).
 
 ## Goal
 
@@ -56,15 +56,15 @@ having one would flatten that back out.
   carries at most one special item; a suit's integral system is part of the
   suit. A heavy suit must not cost a marine their grenades, or players will
   read the heavy role as a downgrade.
-- **Infantry authority, not a mech mount.** A shoulder pod on a battlesuit is
+- **Infantry authority, not a mech mount.** A capability on a battlesuit is
   still a one-person infantry billet using infantry cover, pathing, targeting,
   and casualty rules. `mechs-nouns.md` keeps chassis, mounts, lances, and
   support delivery. The visual similarity is not a licence to cross that line.
 - **Reuse the existing activation vocabulary.** Special equipment already has
   authored activation, AI policy, resource mode, and use pose. An integral
   system is a second carrier for that vocabulary, not a second vocabulary.
-- **Presentation stays downstream.** A system may drive a pose and a shoulder
-  pod, but appearance never becomes simulation input.
+- **Presentation stays downstream.** A system may drive a pose and carried
+  hardware, but appearance never becomes simulation input.
 
 ## First systems
 
@@ -76,45 +76,25 @@ Two, chosen because they exercise opposite halves of the model:
   shield is **mitigation**, owned by `combat-durability-nouns.md` as bounded
   directional resistance with an explicit duration — not a second damage path,
   and not extra capacity wearing a costume.
-- **Shoulder micro-missile pod** (`armor.aegis-composite`) — a small salvo
-  with finite ammunition, authored through the existing weapon catalog
-  (`weapon.micro-missile`) as a micro-missile delivery mechanism. Exercises
-  payload delivery from a non-hand mount and the friendly-fire discipline
-  already applied to other explosive specials. Shipped; see
-  `integral-system-slate.md` for why the Aegis carries it.
+- **Shoulder micro-missile pod** — shipped on the Aegis, then moved off the
+  slate: it is the SRM-POD carried special (`special.missile-pod`), issued by a
+  weapons card rather than worn by four suits.
 
 ## Visible equipment
 
-The first carried-hardware pass equips Aegis Predictive Volley and Arbalest
-Battery Volley with a compact three-channel left-pauldron missile pod. Specter
-frames' shield carries a smaller screen emitter on that shoulder. Both use
-separate transparent sprites attached to the actual shoulder joint; monolithic
-armor falls back to torso registration. Neither changes the handheld weapon or
-occupies the carried special slot. The hardware remains fitted after a power is
-spent. Aegis and Arbalest also declare physical shoulder hardpoints: resolved
-missiles and visual shots launch from their muzzle, while an actual launch
-triggers a short pod brace, kick, muzzle flash, and return to the carried pose.
-The pod may aim independently of the wearer's primary. A blocked body-to-muzzle
-segment prevents the launch before ammunition is spent. So does fire discipline:
-a friend in the lane, or any resolved missile bursting where a friend or the
-wearer stands, holds the salvo (`ballistics-nouns.md`). Opening covers and
-individual loaded-tube states remain later animation work.
-
-Pod carriers share a squad firing cadence. One eligible suit launches a salvo,
-then the next eligible squadmate gets the next opportunity after the authored
-interval. Ammunition stays individual, failed launch opportunities spend
-nothing, and rifles keep firing. The shared cadence starts only on a committed
-salvo and does not synchronize separate squads. Target legality is reassessed
-when an opportunity opens, so a missing or obstructed carrier cannot stall the
-formation. This coordinates integral pods; coordination with carried special
-items remains separate open work.
+The first carried-hardware pass equipped the Specter frames' shield with a small
+screen emitter on the shoulder, a separate transparent sprite attached to the
+actual shoulder joint; monolithic armor falls back to torso registration. It
+neither changes the handheld weapon nor occupies the carried special slot, and
+remains fitted after a power is spent. The shoulder pod that pass also drew is
+now the SRM-POD special's own carrier layer, with its physical hardpoint, squad
+cadence and launch pulse (`progression-nouns.md`, Shoulder pod).
 
 Further equipment should have a recognizable physical vocabulary when it has
 room to read at battle scale. These are proposed next assets, not shipped art:
 
 | Capability or item | Visible carrier |
 | --- | --- |
-| Packframe Rail Shot | Crude exposed launch rail, retaining its improvised identity |
 | Field aid | Medical satchel or compact treatment pack |
 | Smoke and fragmentation grenades | Distinct belt canisters or pouches |
 | Demolition satchel | Carried pack; planted charge retains separate world art |
@@ -167,18 +147,6 @@ the effect has — the Hegemony version is the most available, the pirate one th
 least and the crudest — and a test refuses a renamed copy. Which pattern gets
 what, and why a pattern with nothing to say carries nothing, is
 `integral-system-slate.md`.
-
-The second first system is authored too. `armor.aegis-composite` carries
-**Predictive volley**: the suit's own threat display picks a target the wearer
-is not necessarily engaging and puts a brace of `weapon.micro-missile` rounds
-into it, from a rack of two salvos that does not refill. It exercises the
-opposite half of the model from the breach family — a delivered payload
-instead of movement — and is the first live carrier for the ammunition
-resource mode `IntegralSystemDef` has validated since the concept shipped. The
-pod does not touch the billet's carried special item, and its splash follows
-the same friendly-fire discipline as the shipped explosive specials: collateral
-is recorded as its own telemetry quantity, never netted against the intended
-target's damage.
 
 All six members of the breach family now express the whole of what they were
 written to be. The Knightly and Sindrian versions spend most of their design on

@@ -200,7 +200,7 @@ camera framing only. Optional fixtures select `id`, `seed`, `absent`,
 both dispatch windows and replaces it with a move afterward), or `unarmedFinal` (diagnostic empty escort
 magazines on the final leg), or `silentTankFinal` (only the heavy lead
 loses its cannon ammunition). Reports include exit-gun destruction ticks and actual escort shots, damage, kills
-and remaining durability, vehicle repulsion pushes, and the column driver's
+and remaining durability, vehicle repulsion pushes, the rising-pressure waves sent (`pressureWaves`), and the column driver's
 reroutes, wreck/parked-hull swerves, station waits and hauler sprints.
 `holdDamageTaken` says who absorbed the raiders' fire in phases 1-2 (marines,
 militia infantry, militia guns, each hull by structure+armor lost), split by

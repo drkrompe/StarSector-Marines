@@ -7,7 +7,9 @@ public enum SpecialUsePose {
     SHOULDER_LAUNCHER("shoulder-launcher"),
     BRACED_RIFLE("braced-rifle"),
     THROW("throw"),
-    PLANT("plant");
+    PLANT("plant"),
+    /** Never takes the pose: a shoulder-mounted item fires while the hands stay on the primary. */
+    SHOULDER_MOUNT("shoulder-mount");
 
     public final String key;
 

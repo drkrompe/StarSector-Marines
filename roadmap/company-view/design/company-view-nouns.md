@@ -4,6 +4,8 @@ Status: ACTIVE — organization, Fleet Armory authoring, and cross-surface compa
 
 Written: 2026-08-23
 
+Updated: 2026-10-27 — the shoulder pod is the SRM-POD special, a missile-green secondary brick, not a suit system.
+
 Updated: 2026-10-22 — a squad's kit is its two cards; Barracks cards lead with them, and filling vacancies is a wrench on the card or beside the select toggle.
 
 ## Purpose
@@ -439,8 +441,10 @@ so a player reads the same thing the same way wherever it appears:
   diagonal, a special's authored `armoryIconLie`). An empty mount is a dark
   recess. A brick carries no name: hovering it opens the item's sheet, and in
   the squad view a change reads as the brick carried now, an arrow and the brick
-  the card would issue. The secondary is the marine's special item; the bricks do
-  not move, they only show what a card issues;
+  the card would issue. The secondary is the marine's special item (the SRM-1
+  rockets and the SRM-POD shoulder pod are missile green; a suit's integral
+  system is only ever a shield or a medic's kit now); the bricks do not move,
+  they only show what a card issues;
 - the **licence keys**: tabs, filters and actions on and around cards are flat navy
   keys with the cards' edge colours (blue for a choice, gold for an action), not the
   console keys of the rest of the ship.

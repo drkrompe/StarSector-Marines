@@ -49,7 +49,7 @@ class DirectControlAbilityTest {
             "system.test-screen", "Screen", EquipmentGrade.SERVICE, "",
             IntegralSystemEffect.BREACHER_ASSIST, SpecialResourceMode.COOLDOWN,
             3f, 22f, 0, new BreacherAssistSpec(1.45f, 20f, 120f),
-            null, new ExposedUnderFireSpec(2f, 1f));
+            new ExposedUnderFireSpec(2f, 1f));
 
     private final NavigationGrid grid = new NavigationGrid(20, 12);
     private final UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(20, 12), null);

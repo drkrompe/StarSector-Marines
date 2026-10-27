@@ -20,7 +20,13 @@ public enum SpecialActivation {
      * Utility activation whose carrier works a radio rather than a weapon: the item resolves no shot and places
      * nothing, it lets its carrier direct their side's air pool onto ground (see {@link SpecialAiPolicy#FORWARD_OBSERVER}).
      */
-    UTILITY_COMMS("utility-comms");
+    UTILITY_COMMS("utility-comms"),
+    /**
+     * A salvo from a pod on the carrier's shoulder, which picks its own target and fires on its own clock. It never
+     * runs through the hand's channel: the carrier keeps holding, and firing, the primary throughout. Ammunition and
+     * cooldown are the slot's own; the moment is {@link SpecialAiPolicy#SIGHTED_STANDOFF_CONTACT}.
+     */
+    SHOULDER_POD("shoulder-pod");
 
     public final String key;
 
