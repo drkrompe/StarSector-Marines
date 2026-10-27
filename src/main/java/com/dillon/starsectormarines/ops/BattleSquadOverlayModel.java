@@ -274,7 +274,7 @@ final class BattleSquadOverlayModel {
                 hasArmor ? sim.world().armor(unit) : 0f,
                 hasArmor ? sim.world().maxArmor(unit) : 0f,
                 hasArmor ? sim.world().armorRating(unit) : 0f,
-                primary != null ? primary.catalogName(grade) : Strings.get("battleSquadFieldRifle"),
+                primary != null ? primary.gradedName(grade) : Strings.get("battleSquadFieldRifle"),
                 WeaponSymbols.primaryAbbrev(primary, grade), WeaponSymbols.primaryColor(primary),
                 special != null ? specialNames.toString() : null,
                 special != null ? WeaponSymbols.specialAbbrev(special) : null,

@@ -65,7 +65,7 @@ class BattleDirectControlStatusTest {
         assertEquals(.5f, status.cycleFraction());
         assertEquals(BattleDirectControlStatus.WeaponState.CYCLING, status.state());
         assertTrue(status.directEligible());
-        assertEquals(weapon.catalogName(EquipmentGrade.SERVICE), status.name());
+        assertEquals(weapon.gradedName(EquipmentGrade.SERVICE), status.name());
     }
 
     @Test
@@ -308,7 +308,7 @@ class BattleDirectControlStatusTest {
                 "A finite frontal screen.", IntegralSystemEffect.BREACHER_ASSIST, resource,
                 3f, resource == SpecialResourceMode.COOLDOWN ? 12f : 0f,
                 resource == SpecialResourceMode.AMMUNITION ? 2 : 0,
-                new BreacherAssistSpec(1.2f, soak, 120f), null, null, null,
+                new BreacherAssistSpec(1.2f, soak, 120f), null,
                 new ExposedUnderFireSpec(1f, 0f));
     }
 
@@ -317,7 +317,7 @@ class BattleDirectControlStatusTest {
                 SpecialActivation.UTILITY_SMOKE, null, SpecialResourceMode.AMMUNITION, 3,
                 SpecialAiPolicy.SQUAD_SMOKE_SCREEN, null,
                 new SmokeGrenadeSpec(8f, .8f, .5f, 1f, 2f, 10f),
-                null, null, null, null);
+                null, null);
     }
 
     @Test

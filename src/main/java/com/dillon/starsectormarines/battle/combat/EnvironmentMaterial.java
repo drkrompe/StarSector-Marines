@@ -21,7 +21,7 @@ import java.util.Set;
  *
  * <p>The ratings are set against the weapon catalog's penetration. Small arms run
  * from 1 (SMG) through 5 (pulse rifle, squad automatic) and 7 (field rifle) to 11
- * (DMR); the anti-materiel rifle is 18 and the breaching cutter 40. So wood and
+ * (DMR) and the anti-materiel rifle is 18. So wood and
  * wire fall to anything, sandbags to field rifles slowly and to pulse fire not at all, machinery,
  * timber and stone only from the DMR up, and masonry only to anti-materiel
  * rounds. Blast weapons do their structural damage through their own detonation's
@@ -38,7 +38,7 @@ public enum EnvironmentMaterial {
     WIRE(3f),
     /** Steel drum clusters. */
     DRUM(8f),
-    /** Filled sacks: sandbag walls, fort sandbags, field revetments. */
+    /** Filled sacks: sandbag walls, fort sandbags, revetments. */
     SANDBAG(10f),
     /** Generators, consoles, tanks, machine tools. */
     MACHINERY(14f),

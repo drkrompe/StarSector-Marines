@@ -37,11 +37,11 @@ public final class WeaponDef {
 
     // ---- catalog (player-facing naming) ----
     private final String displayName;
-    /** In-universe model name — the "Lancer" in "PLS-2 Lancer". */
-    private final String modelName;
-    /** Fleet catalog prefix. Combined with the equipment tier when {@link #designationTiered}. */
-    public final String designation;
-    /** Whether {@link #designation} takes a {@code -<tier>} suffix. Recruit issue is always "FR-1"; a pulse rifle is "PLS-1" through "PLS-4". */
+    /**
+     * Whether the shown name carries the equipment tier as a {@code -<tier>}
+     * suffix: recruit issue is always "GR-RFL"; a pulse rifle is "AR-PULSE-1"
+     * through "AR-PULSE-4" ({@link #gradedName(int)}).
+     */
     public final boolean designationTiered;
     /** Compact player-facing battlefield role, such as LINE or SUPPORT. */
     private final String catalogRole;
@@ -212,8 +212,8 @@ public final class WeaponDef {
      */
     public final String loopSoundId;
 
-    private WeaponDef(String id, MountClass mount, String displayName, String modelName,
-                      String designation, boolean designationTiered,
+    private WeaponDef(String id, MountClass mount, String displayName,
+                      boolean designationTiered,
                       String catalogRole, String catalogDescription, String catalogFactionLogo,
                       float range, float damage, float accuracy, float cooldown,
                       float penetration, float contactDamage, float contactPenetration,
@@ -239,8 +239,6 @@ public final class WeaponDef {
         this.id = id;
         this.mount = mount;
         this.displayName = displayName;
-        this.modelName = modelName;
-        this.designation = designation;
         this.designationTiered = designationTiered;
         this.catalogRole = catalogRole;
         this.catalogDescription = catalogDescription;
@@ -290,22 +288,17 @@ public final class WeaponDef {
         this.loopSoundId = loopSoundId;
     }
 
-    /** Catalog designation for one equipment tier — "PLS-2", or "FR-1" for an untiered entry. */
-    public String designation(int tier) {
-        return designationTiered ? designation + "-" + tier : designation;
+    /**
+     * The shown name for one equipment tier: the display name with its grade
+     * marking, "AR-PULSE-2", or "GR-RFL" for an untiered entry.
+     */
+    public String gradedName(int tier) {
+        return designationTiered ? displayName() + "-" + tier : displayName();
     }
 
-    /** Catalog designation plus model name, e.g. "PLS-2 Lancer". */
-    public String catalogName(int tier) {
-        return Strings.format("gearWeaponName", designation(tier), modelName());
-    }
-
-    public String designation(EquipmentGrade grade) {
-        return designation(grade != null ? grade.tier : EquipmentGrade.SERVICE.tier);
-    }
-
-    public String catalogName(EquipmentGrade grade) {
-        return catalogName(grade != null ? grade.tier : EquipmentGrade.SERVICE.tier);
+    /** {@link #gradedName(int)} for a grade; a null grade reads as Service. */
+    public String gradedName(EquipmentGrade grade) {
+        return gradedName(grade != null ? grade.tier : EquipmentGrade.SERVICE.tier);
     }
 
     // Record-style accessors keep definition consumers terse without reintroducing
@@ -313,7 +306,6 @@ public final class WeaponDef {
     public String catalogRole() { return Strings.resolve(catalogRole); }
     public String catalogDescription() { return Strings.resolve(catalogDescription); }
     public String displayName() { return Strings.resolve(displayName); }
-    public String modelName() { return Strings.resolve(modelName); }
     public float range() { return range; }
     public float damage() { return damage; }
     public float accuracy() { return accuracy; }
@@ -385,8 +377,6 @@ public final class WeaponDef {
                 id,
                 mount,
                 requireText(catalog, "displayName"),
-                requireText(catalog, "modelName"),
-                requireText(catalog, "designation"),
                 catalog.optBoolean("designationTiered", true),
                 emptyToNull(catalog.optString("role", null)),
                 emptyToNull(catalog.optString("description", null)),

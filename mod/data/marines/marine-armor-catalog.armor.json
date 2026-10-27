@@ -1,4 +1,54 @@
 {
+  "integralSystems": [
+    {
+      "id": "system.shield-lt",
+      "grade": "surplus",
+      "displayName": "@gearCatalogSystemShieldLowTechDisplayName",
+      "description": "@gearCatalogSystemShieldLowTechDescription",
+      "effect": "breacher-assist",
+      "policy": "exposed-under-fire",
+      "incomingPressureThreshold": 2.0,
+      "maxCoverLevel": 0,
+      "resource": "cooldown",
+      "durationSeconds": 2.5,
+      "cooldownSeconds": 24.0,
+      "moveSpeedMult": 1.15,
+      "screenSoak": 4.0,
+      "shieldedArcDegrees": 90.0
+    },
+    {
+      "id": "system.shield-mt",
+      "grade": "service",
+      "displayName": "@gearCatalogSystemShieldMidTechDisplayName",
+      "description": "@gearCatalogSystemShieldMidTechDescription",
+      "effect": "breacher-assist",
+      "policy": "exposed-under-fire",
+      "incomingPressureThreshold": 2.0,
+      "maxCoverLevel": 1,
+      "resource": "cooldown",
+      "durationSeconds": 3.0,
+      "cooldownSeconds": 18.0,
+      "moveSpeedMult": 1.25,
+      "screenSoak": 7.0,
+      "shieldedArcDegrees": 120.0
+    },
+    {
+      "id": "system.shield-ht",
+      "grade": "milspec",
+      "displayName": "@gearCatalogSystemShieldHighTechDisplayName",
+      "description": "@gearCatalogSystemShieldHighTechDescription",
+      "effect": "breacher-assist",
+      "policy": "exposed-under-fire",
+      "incomingPressureThreshold": 2.5,
+      "maxCoverLevel": 1,
+      "resource": "cooldown",
+      "durationSeconds": 4.0,
+      "cooldownSeconds": 22.0,
+      "moveSpeedMult": 1.3,
+      "screenSoak": 18.0,
+      "shieldedArcDegrees": 150.0
+    }
+  ],
   "armor": [
     {
       "id": "armor.field-fatigues",
@@ -154,21 +204,7 @@
         "armorCapacity": 4.0,
         "armorRating": 4.0,
         "moveSpeedMult": 1.06,
-        "incomingAccuracyMult": 0.88,
-        "integralSystem": {
-          "id": "system.aperture-read",
-          "grade": "masterwork",
-          "displayName": "@gearCatalogSystemApertureReadDisplayName",
-          "description": "@gearCatalogSystemApertureReadDescription",
-          "effect": "perception-sweep",
-          "policy": "approaching-dead-ground",
-          "lookaheadCells": 7.0,
-          "resource": "cooldown",
-          "durationSeconds": 4.0,
-          "cooldownSeconds": 20.0,
-          "revealRangeCells": 44.0,
-          "wallReadRadiusCells": 7.0
-        }
+        "incomingAccuracyMult": 0.88
       }
     },
     {
@@ -188,22 +224,7 @@
         "armorRating": 12.0,
         "moveSpeedMult": 0.86,
         "incomingAccuracyMult": 0.98,
-        "integralSystem": {
-          "id": "system.assault-bracing",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemAssaultBracingDisplayName",
-          "description": "@gearCatalogSystemAssaultBracingDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 2.0,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 4.0,
-          "cooldownSeconds": 16.0,
-          "moveSpeedMult": 1.35,
-          "screenSoak": 17.0,
-          "shieldedArcDegrees": 160.0
-        }
+        "integralSystem": { "ref": "system.shield-ht" }
       }
     },
     {
@@ -224,32 +245,36 @@
         "moveSpeedMult": 0.94,
         "incomingAccuracyMult": 0.90,
         "integralSystem": {
-          "id": "system.predictive-breach",
+          "ref": "system.shield-ht",
           "presentation": {
             "carrierLayer": {
               "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/screen-emitter.png",
               "attachment": "left-shoulder",
               "widthShoulders": 0.32,
-              "heightShoulders": 0.40,
-              "pivot": [0.5, 0.5],
-              "carried": { "offsetShoulders": [-0.13, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
-              "using": { "offsetShoulders": [-0.13, 0.01], "angleDegrees": 0.0, "occlusion": "over-body" },
+              "heightShoulders": 0.4,
+              "pivot": [
+                0.5,
+                0.5
+              ],
+              "carried": {
+                "offsetShoulders": [
+                  -0.13,
+                  0.01
+                ],
+                "angleDegrees": 0.0,
+                "occlusion": "over-body"
+              },
+              "using": {
+                "offsetShoulders": [
+                  -0.13,
+                  0.01
+                ],
+                "angleDegrees": 0.0,
+                "occlusion": "over-body"
+              },
               "visibleWhileCarried": true
             }
-          },
-          "grade": "masterwork",
-          "displayName": "@gearCatalogSystemPredictiveBreachDisplayName",
-          "description": "@gearCatalogSystemPredictiveBreachDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 1.5,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 2.0,
-          "cooldownSeconds": 11.0,
-          "moveSpeedMult": 1.40,
-          "screenSoak": 4.5,
-          "shieldedArcDegrees": 100.0
+          }
         }
       }
     },
@@ -270,22 +295,7 @@
         "armorRating": 11.0,
         "moveSpeedMult": 0.90,
         "incomingAccuracyMult": 0.95,
-        "integralSystem": {
-          "id": "system.interlock-advance",
-          "grade": "service",
-          "displayName": "@gearCatalogSystemInterlockAdvanceDisplayName",
-          "description": "@gearCatalogSystemInterlockAdvanceDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 2.5,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 3.5,
-          "cooldownSeconds": 18.0,
-          "moveSpeedMult": 1.30,
-          "screenSoak": 10.0,
-          "shieldedArcDegrees": 200.0
-        }
+        "integralSystem": { "ref": "system.shield-mt" }
       }
     },
     {
@@ -305,22 +315,7 @@
         "armorRating": 14.0,
         "moveSpeedMult": 0.82,
         "incomingAccuracyMult": 0.97,
-        "integralSystem": {
-          "id": "system.consecrated-advance",
-          "grade": "masterwork",
-          "displayName": "@gearCatalogSystemConsecratedAdvanceDisplayName",
-          "description": "@gearCatalogSystemConsecratedAdvanceDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 4.0,
-          "maxCoverLevel": 0,
-          "resource": "cooldown",
-          "durationSeconds": 5.0,
-          "cooldownSeconds": 28.0,
-          "moveSpeedMult": 1.12,
-          "screenSoak": 27.0,
-          "shieldedArcDegrees": 140.0
-        }
+        "integralSystem": { "ref": "system.shield-ht" }
       }
     },
     {
@@ -340,22 +335,7 @@
         "armorRating": 10.0,
         "moveSpeedMult": 0.83,
         "incomingAccuracyMult": 1.01,
-        "integralSystem": {
-          "id": "system.blazon-advance",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemBlazonAdvanceDisplayName",
-          "description": "@gearCatalogSystemBlazonAdvanceDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 3.0,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 4.5,
-          "cooldownSeconds": 30.0,
-          "moveSpeedMult": 1.28,
-          "screenSoak": 18.5,
-          "shieldedArcDegrees": 180.0
-        }
+        "integralSystem": { "ref": "system.shield-ht" }
       }
     },
     {
@@ -375,22 +355,7 @@
         "armorRating": 6.0,
         "moveSpeedMult": 0.80,
         "incomingAccuracyMult": 1.00,
-        "integralSystem": {
-          "id": "system.breacher-assist",
-          "grade": "surplus",
-          "displayName": "@gearCatalogSystemBreacherAssistDisplayName",
-          "description": "@gearCatalogSystemBreacherAssistDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 2.0,
-          "maxCoverLevel": 0,
-          "resource": "cooldown",
-          "durationSeconds": 2.5,
-          "cooldownSeconds": 26.0,
-          "moveSpeedMult": 1.42,
-          "screenSoak": 4.0,
-          "shieldedArcDegrees": 90.0
-        }
+        "integralSystem": { "ref": "system.shield-lt" }
       }
     },
     {
@@ -417,23 +382,7 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-army-green.png"
       },
-      "battle": { "appearanceFamily": "ARMY_GREEN", "armorCapacity": 10.0, "armorRating": 8.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.97,
-        "integralSystem": {
-          "id": "system.legionary-brace",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemLegionaryBraceDisplayName",
-          "description": "@gearCatalogSystemLegionaryBraceDescription",
-          "effect": "brace",
-          "resource": "cooldown",
-          "policy": "holding-a-firing-position",
-          "minimumTargetRangeFraction": 0.45,
-          "breakOffRangeCells": 5.0,
-          "durationSeconds": 5.0,
-          "cooldownSeconds": 18.0,
-          "moveSpeedMult": 0.45,
-          "accuracyMult": 1.3
-        }
-      }
+      "battle": { "appearanceFamily": "ARMY_GREEN", "armorCapacity": 10.0, "armorRating": 8.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.97 }
     },
     {
       "id": "armor.militia",
@@ -446,23 +395,7 @@
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-militia.png"
       },
-      "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96,
-        "integralSystem": {
-          "id": "system.sandbag-rest",
-          "grade": "surplus",
-          "displayName": "@gearCatalogSystemSandbagRestDisplayName",
-          "description": "@gearCatalogSystemSandbagRestDescription",
-          "effect": "brace",
-          "resource": "cooldown",
-          "policy": "holding-a-firing-position",
-          "minimumTargetRangeFraction": 0.55,
-          "breakOffRangeCells": 6.0,
-          "durationSeconds": 4.0,
-          "cooldownSeconds": 20.0,
-          "moveSpeedMult": 0.3,
-          "accuracyMult": 1.2
-        }
-      }
+      "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96 }
     },
     {
       "id": "armor.pathfinder",
@@ -480,21 +413,7 @@
         "armorCapacity": 8.0,
         "armorRating": 6.0,
         "moveSpeedMult": 1.01,
-        "incomingAccuracyMult": 0.93,
-        "integralSystem": {
-          "id": "system.survey-sweep",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemSurveySweepDisplayName",
-          "description": "@gearCatalogSystemSurveySweepDescription",
-          "effect": "perception-sweep",
-          "policy": "approaching-dead-ground",
-          "lookaheadCells": 8.0,
-          "resource": "cooldown",
-          "durationSeconds": 5.0,
-          "cooldownSeconds": 18.0,
-          "revealRangeCells": 50.0,
-          "wallReadRadiusCells": 8.0
-        }
+        "incomingAccuracyMult": 0.93
       }
     },
     {
@@ -513,21 +432,7 @@
         "armorCapacity": 14.0,
         "armorRating": 9.0,
         "moveSpeedMult": 0.98,
-        "incomingAccuracyMult": 0.9,
-        "integralSystem": {
-          "id": "system.coalition-read",
-          "grade": "masterwork",
-          "displayName": "@gearCatalogSystemCoalitionReadDisplayName",
-          "description": "@gearCatalogSystemCoalitionReadDescription",
-          "effect": "perception-sweep",
-          "policy": "approaching-dead-ground",
-          "lookaheadCells": 9.0,
-          "resource": "cooldown",
-          "durationSeconds": 6.0,
-          "cooldownSeconds": 16.0,
-          "revealRangeCells": 58.0,
-          "wallReadRadiusCells": 10.0
-        }
+        "incomingAccuracyMult": 0.9
       }
     },
     {
@@ -546,22 +451,7 @@
         "armorCapacity": 22.0,
         "armorRating": 13.0,
         "moveSpeedMult": 0.78,
-        "incomingAccuracyMult": 0.99,
-        "integralSystem": {
-          "id": "system.redoubt-platform",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemRedoubtPlatformDisplayName",
-          "description": "@gearCatalogSystemRedoubtPlatformDescription",
-          "effect": "brace",
-          "resource": "cooldown",
-          "policy": "holding-a-firing-position",
-          "minimumTargetRangeFraction": 0.4,
-          "breakOffRangeCells": 4.0,
-          "durationSeconds": 6.0,
-          "cooldownSeconds": 15.0,
-          "moveSpeedMult": 0.55,
-          "accuracyMult": 1.45
-        }
+        "incomingAccuracyMult": 0.99
       }
     },
     {
@@ -581,22 +471,7 @@
         "armorRating": 5.0,
         "moveSpeedMult": 0.97,
         "incomingAccuracyMult": 0.97,
-        "integralSystem": {
-          "id": "system.riot-brace",
-          "grade": "surplus",
-          "displayName": "@gearCatalogSystemRiotBraceDisplayName",
-          "description": "@gearCatalogSystemRiotBraceDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 1.5,
-          "maxCoverLevel": 0,
-          "resource": "cooldown",
-          "durationSeconds": 3.0,
-          "cooldownSeconds": 24.0,
-          "moveSpeedMult": 1.06,
-          "screenSoak": 3.0,
-          "shieldedArcDegrees": 70.0
-        }
+        "integralSystem": { "ref": "system.shield-lt" }
       }
     },
     {
@@ -696,22 +571,7 @@
         "armorRating": 8.0,
         "moveSpeedMult": 0.92,
         "incomingAccuracyMult": 0.98,
-        "integralSystem": {
-          "id": "system.suppression-brace",
-          "grade": "service",
-          "displayName": "@gearCatalogSystemSuppressionBraceDisplayName",
-          "description": "@gearCatalogSystemSuppressionBraceDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 2.0,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 3.0,
-          "cooldownSeconds": 24.0,
-          "moveSpeedMult": 1.15,
-          "screenSoak": 7.0,
-          "shieldedArcDegrees": 120.0
-        }
+        "integralSystem": { "ref": "system.shield-mt" }
       }
     },
     {
@@ -798,7 +658,7 @@
         "moveSpeedMult": 0.9,
         "incomingAccuracyMult": 0.94,
         "integralSystem": {
-          "id": "system.predictive-breach",
+          "ref": "system.shield-mt",
           "presentation": {
             "carrierLayer": {
               "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/screen-emitter.png",
@@ -827,20 +687,7 @@
               },
               "visibleWhileCarried": true
             }
-          },
-          "grade": "service",
-          "displayName": "@gearCatalogSystemPredictiveBreachDisplayName",
-          "description": "@gearCatalogSystemPredictiveBreachDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 1.5,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 1.5,
-          "cooldownSeconds": 18.0,
-          "moveSpeedMult": 1.25,
-          "screenSoak": 3.0,
-          "shieldedArcDegrees": 100.0
+          }
         }
       }
     },
@@ -932,22 +779,7 @@
         "armorRating": 6.0,
         "moveSpeedMult": 0.82,
         "incomingAccuracyMult": 1.04,
-        "integralSystem": {
-          "id": "system.latch-assist",
-          "grade": "surplus",
-          "displayName": "@gearCatalogSystemLatchAssistDisplayName",
-          "description": "@gearCatalogSystemLatchAssistDescription",
-          "effect": "breacher-assist",
-          "policy": "exposed-under-fire",
-          "incomingPressureThreshold": 2.0,
-          "maxCoverLevel": 1,
-          "resource": "cooldown",
-          "durationSeconds": 2.0,
-          "cooldownSeconds": 22.0,
-          "moveSpeedMult": 1.15,
-          "screenSoak": 4.0,
-          "shieldedArcDegrees": 100.0
-        }
+        "integralSystem": { "ref": "system.shield-lt" }
       }
     }
   ]

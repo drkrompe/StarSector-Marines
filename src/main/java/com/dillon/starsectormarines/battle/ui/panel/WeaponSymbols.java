@@ -50,9 +50,15 @@ public final class WeaponSymbols {
         if (SpecialEquipmentRegistry.SMOKE_GRENADE_ID.equals(special.id())) return "SMK";
         if (SpecialEquipmentRegistry.SATCHEL_CHARGE_ID.equals(special.id())) return "SAT";
         if (SpecialEquipmentRegistry.FRAG_GRENADE_ID.equals(special.id())) return "FRG";
-        if (SpecialEquipmentRegistry.BREACHING_CUTTER_ID.equals(special.id())) return "CUT";
-        if (SpecialEquipmentRegistry.VIBRO_BLADE_ID.equals(special.id())) return "VBL";
         if (SpecialEquipmentRegistry.POINT_DEFENCE_EMPLACEMENT_ID.equals(special.id())) return "PDE";
+        // The catalog codes share prefixes (DEP-, MBL-, GRN-, SRM-), so a
+        // code's first three letters would not tell these apart.
+        if (SpecialEquipmentRegistry.SCRAP_ROCKET_ID.equals(special.id())) return "SRK";
+        if (SpecialEquipmentRegistry.INCENDIARY_GRENADE_ID.equals(special.id())) return "INC";
+        if (SpecialEquipmentRegistry.FLAMER_ID.equals(special.id())) return "FLM";
+        if (SpecialEquipmentRegistry.COMMS_RADIO_ID.equals(special.id())) return "RAD";
+        if (SpecialEquipmentRegistry.POINT_DEFENCE_PACK_ID.equals(special.id())) return "PDP";
+        if (SpecialEquipmentRegistry.FIELD_MORTAR_ID.equals(special.id())) return "MRT";
         return abbreviation(special.displayName());
     }
 

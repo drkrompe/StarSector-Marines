@@ -204,21 +204,21 @@ public final class SquadEquipmentDoctrines {
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
                             weapon("Sapper", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.FIELD_REVETMENT_ID),
+                                    SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
                             weapon("Sapper", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.FIELD_REVETMENT_ID),
+                                    SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.SMOKE_GRENADE_ID),
                             weapon("Sapper", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.FIELD_REVETMENT_ID),
+                                    SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID))),
             // Broken Supply Route (Thunder Run).
@@ -270,21 +270,21 @@ public final class SquadEquipmentDoctrines {
                     team(
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Sapper", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.FIELD_REVETMENT_ID),
+                                    SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
                             weapon("Point Defence", WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.POINT_DEFENCE_EMPLACEMENT_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Sapper", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.FIELD_REVETMENT_ID),
+                                    SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
                             weapon("Point Defence", WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.POINT_DEFENCE_EMPLACEMENT_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Sapper", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.FIELD_REVETMENT_ID),
+                                    SpecialEquipmentRegistry.SATCHEL_CHARGE_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID))));
 

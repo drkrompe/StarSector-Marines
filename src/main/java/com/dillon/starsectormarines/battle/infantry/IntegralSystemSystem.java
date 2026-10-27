@@ -18,16 +18,12 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
-import com.dillon.starsectormarines.battle.vision.FogOfWarService;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
-import com.dillon.starsectormarines.marine.ApproachingDeadGroundSpec;
 import com.dillon.starsectormarines.marine.ExposedUnderFireSpec;
 import com.dillon.starsectormarines.marine.FieldAidSpec;
-import com.dillon.starsectormarines.marine.HoldingFiringPositionSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MissilePodSpec;
 import com.dillon.starsectormarines.marine.MissilePodMountGeometry;
-import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
 import com.dillon.starsectormarines.marine.SightedStandoffSpec;
 
 import java.util.Locale;
@@ -61,8 +57,7 @@ import java.util.TreeMap;
  * authorable — a suit does not get an opinion about whether it is being shot at
  * or whether it has stopped walking. The authored numbers are only ever the
  * ones that price the spend: how much incoming is worth a cooldown, how much
- * cover makes spending pointless, how far out is worth planting for, how close
- * is too close to be planted. That split is why the occasions can be added to
+ * cover makes spending pointless. That split is why the occasions can be added to
  * without touching a catalog, and why retuning a suit never needs code.
  *
  * <p><b>Read facts that do not depend on where in the tick they are asked.</b>
@@ -81,14 +76,6 @@ import java.util.TreeMap;
  * reaches this sweep through the same component the player's marines do and is
  * offered the same reason to spend it; there is no defender branch and no
  * defender-only tuning field to add one with.
- *
- * <p><b>A sweep reveals to the player and to nobody else.</b> Its whole effect
- * is a temporary observer on {@link FogOfWarService}, rebuilt from live state
- * every tick and gone the tick the window closes. No decision layer reads it,
- * because fog is presentation authority and must not become a simulation input
- * ({@code fog-of-war-nouns.md}) — which is also what makes "information, not
- * authority" true by construction here rather than by discipline: there is no
- * path from a sweep to a shot.
  *
  * <p><b>The pod picks its own target.</b> It does not read the wearer's
  * engaged target ({@code World#targetId}) — that would make the suit a second
@@ -181,22 +168,11 @@ public final class IntegralSystemSystem {
     }
 
     /**
-     * Drains every carrier's clocks, offers the ready ones a reason to fire,
-     * and republishes what the running sweeps are currently letting the player
-     * see.
-     *
-     * <p>The sweep set is <em>replaced</em>, never appended to: a temporary
-     * source lives for exactly as long as the system projecting it is still
-     * running, which is the fog service's standing rule for its own channel
-     * ({@code fog-of-war-nouns.md} law 5) and is what makes an expiry — or a
-     * wearer's death, which drops the whole component — release its reveal with
-     * nothing left over.
+     * Drains every carrier's clocks and offers the ready ones a reason to fire.
      */
     public void tick(float dt, BattleSimulation sim) {
         IntegralSystemService systems = rosterService.integralSystems();
         MovementService movement = rosterService.movement();
-        FogOfWarService fog = sim.getFogOfWar();
-        fog.clearCarriedSweepSources();
         long[] live = rosterService.denseArray();
         int count = rosterService.liveCount();
         podCandidates.clear();
@@ -204,8 +180,6 @@ public final class IntegralSystemSystem {
             long id = live[i];
             if (!systems.has(id)) continue;
             systems.tick(id, dt);
-            // A passenger casts no carried sweep from inside its vehicle.
-            if (!rosterService.isRiding(id)) projectSweep(id, systems, fog);
             if (!systems.canActivate(id)) continue;
             IntegralSystemDef def = systems.spec(id);
             if (def == null) continue;
@@ -256,22 +230,6 @@ public final class IntegralSystemSystem {
                         }
                     }
                 }
-                case APPROACHING_DEAD_GROUND -> {
-                    // AI still needs a pre-movement path heading; its applied
-                    // velocity was reset by beginTick. A controlled wearer's
-                    // legal proposed drive supplies that heading already.
-                    ApproachingDeadGroundSpec ahead = def.approachingDeadGround();
-                    if ((Math.abs(motion.vx()) > MOVING_EPSILON
-                            || Math.abs(motion.vy()) > MOVING_EPSILON)
-                            && deadGroundAhead(id, sim, motion, ahead.lookaheadCells())) {
-                        systems.activate(id);
-                    }
-                }
-                case HOLDING_A_FIRING_POSITION -> {
-                    if (holdingFiringPosition(id, def.holdingFiringPosition(), sim, motion)) {
-                        systems.activate(id);
-                    }
-                }
                 case WOUNDED_SQUADMATE_IN_REACH -> {
                     long patient = worstWoundedInReach(id, def.fieldAid(), sim);
                     if (patient != 0L && systems.activate(id)) {
@@ -306,53 +264,6 @@ public final class IntegralSystemSystem {
                     candidate.def().sightedStandoff().squadSalvoIntervalSeconds(),
                     BattleSimulation.TICK_DT);
         }
-    }
-
-    /**
-     * Publishes one running sweep as a temporary observer for this tick.
-     *
-     * <p>Called for every carrier before its activation is considered, so a
-     * sweep that started on the previous tick is republished and one that has
-     * just expired simply is not. The wall-read radius rides the shadowcast's
-     * existing air-clearance parameter, which is the same bounded
-     * "walls near the source are transparent" rule a flier already uses — the
-     * sweep is a client of that, not a second visibility algorithm.
-     */
-    private void projectSweep(long id, IntegralSystemService systems, FogOfWarService fog) {
-        PerceptionSweepSpec sweep = systems.activeSweep(id);
-        if (sweep == null) return;
-        World world = rosterService.world();
-        fog.addCarriedSweepSource(world.cellX(id), world.cellY(id),
-                Math.round(sweep.revealRangeCells()), sweep.wallReadRadiusCells());
-    }
-
-    /**
-     * Whether the ground this carrier is heading into is ground they cannot see
-     * into: the cell {@code lookaheadCells} along their current heading is
-     * behind something their own line of sight does not reach past.
-     *
-     * <p>Deliberately the wearer's own sight rather than the player's reveal
-     * bitmap. Fog is presentation, and a policy that read it would let what the
-     * player has already been shown decide what a marine does.
-     */
-    private boolean deadGroundAhead(long id, BattleSimulation sim, PolicyMotion motion,
-                                    float lookaheadCells) {
-        float vx = motion.vx();
-        float vy = motion.vy();
-        float speed = (float) Math.sqrt(vx * vx + vy * vy);
-        if (speed <= MOVING_EPSILON) return false;
-        World world = rosterService.world();
-        int fromX = world.cellX(id);
-        int fromY = world.cellY(id);
-        int aheadX = Math.round(fromX + vx / speed * lookaheadCells);
-        int aheadY = Math.round(fromY + vy / speed * lookaheadCells);
-        NavigationGrid grid = sim.getGrid();
-        // Walking off the edge of the map is not dead ground; there is nothing
-        // out there for a sweep to read.
-        if (aheadX < 0 || aheadX >= grid.getWidth() || aheadY < 0 || aheadY >= grid.getHeight()) {
-            return false;
-        }
-        return !grid.hasLineOfSight(fromX, fromY, aheadX, aheadY);
     }
 
     /**
@@ -503,50 +414,6 @@ public final class IntegralSystemSystem {
         float dx = fromX + 0.5f - world.x(id);
         float dy = fromY + 0.5f - world.y(id);
         return dx * dx + dy * dy > reach * reach;
-    }
-
-    /**
-     * Whether this carrier is standing where they mean to stand, shooting at
-     * something worth being steady for, with nobody about to arrive.
-     *
-     * <p>The mirror of {@link #exposedUnderFire}, and read in the same order:
-     * the cheapest disqualifier first, the authored judgements last. A marine
-     * still under way has not chosen a position yet; one with nothing engaged
-     * has nothing to be steady <em>for</em>; one shooting across a room gains
-     * little, because accuracy has barely fallen off at that distance. The
-     * break-off check is last because it is the only one that costs a spatial
-     * query.
-     *
-     * <p>The early motion facts use AI path state or legal manual drive, since
-     * applied velocity is still zero before the movement pass.
-     */
-    private boolean holdingFiringPosition(long id, HoldingFiringPositionSpec spec,
-                                          BattleSimulation sim, PolicyMotion motion) {
-        if (spec == null) return false;
-        if (motion.underway()) return false;
-
-        CombatService combat = rosterService.combat();
-        if (!combat.has(id)) return false;
-        long target = combat.targetId(id);
-        if (target == 0L || !rosterService.isAliveById(target)) return false;
-
-        float reach = combat.attackRange(id);
-        if (reach <= 0f) return false;
-        World world = rosterService.world();
-        float dx = world.x(target) - world.x(id);
-        float dy = world.y(target) - world.y(id);
-        float minimum = spec.minimumTargetRangeFraction() * reach;
-        if (dx * dx + dy * dy < minimum * minimum) return false;
-
-        // Planting with somebody about to be on top of you is the mistake the
-        // commitment makes possible, so the suit that suffers most for it says
-        // so in its own break-off distance.
-        UnitSpatialIndex index = sim.getUnitIndex();
-        if (index == null) return true;
-        Faction faction = rosterService.identity().faction(id);
-        if (faction == null) return false;
-        return index.countHostileCombatants(world.x(id), world.y(id),
-                spec.breakOffRangeCells(), faction, id) == 0;
     }
 
     /**

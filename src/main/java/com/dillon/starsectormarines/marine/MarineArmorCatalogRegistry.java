@@ -25,6 +25,8 @@ public final class MarineArmorCatalogRegistry {
 
     private final Map<String, MarineArmorCatalogDef> byId = new LinkedHashMap<>();
     private final Map<String, CatalogSource> sourceById = new LinkedHashMap<>();
+    /** Integral systems defined once at catalog level and referenced by id from several suits. */
+    private final Map<String, JSONObject> sharedSystems = new LinkedHashMap<>();
 
     public static MarineArmorCatalogRegistry installed() {
         return installed;
@@ -70,9 +72,29 @@ public final class MarineArmorCatalogRegistry {
     }
 
     public void ingest(JSONObject root, CatalogSource source) throws JSONException {
+        JSONArray systems = root.optJSONArray("integralSystems");
+        if (systems != null) {
+            for (int index = 0; index < systems.length(); index++) {
+                JSONObject system = systems.getJSONObject(index);
+                String id = system.optString("id", "").trim();
+                if (id.isEmpty()) {
+                    throw new JSONException("Shared integral system #" + index + " in "
+                            + source.describe() + " has no id");
+                }
+                if (sharedSystems.containsKey(id)) {
+                    throw new JSONException("Duplicate shared integral system id '" + id + "' in "
+                            + source.describe());
+                }
+                // Parsed here as well as at each reference, so a broken tier fails at load even
+                // while no suit carries it.
+                IntegralSystemDef.parse(system, "integral system '" + id + "'");
+                sharedSystems.put(id, system);
+            }
+        }
         JSONArray armor = root.getJSONArray("armor");
         for (int index = 0; index < armor.length(); index++) {
-            MarineArmorCatalogDef def = MarineArmorCatalogDef.parse(armor.getJSONObject(index));
+            MarineArmorCatalogDef def = MarineArmorCatalogDef.parse(armor.getJSONObject(index),
+                    sharedSystems);
             if (byId.containsKey(def.id())) {
                 throw new JSONException("Duplicate marine armor catalog id '" + def.id()
                         + "': first declared by " + sourceById.get(def.id()).describe()

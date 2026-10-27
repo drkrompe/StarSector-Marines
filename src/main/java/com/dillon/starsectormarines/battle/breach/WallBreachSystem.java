@@ -15,7 +15,6 @@ import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.marine.SatchelChargeSpec;
 import com.dillon.starsectormarines.marine.SpecialActivation;
-import com.dillon.starsectormarines.marine.SpecialAiPolicy;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 
 import java.util.HashSet;
@@ -33,7 +32,6 @@ import java.util.Set;
  *   <li>a <b>mech mount</b> that does wall damage, flat or arcing, turns the torso onto the cell and fires at it
  *       when the cell is in its reach and, for a flat round, in its line ({@code HeavyWeapons#fireMountAtPoint});</li>
  *   <li>a carried <b>launcher</b> fires its rocket at the cell, spending a round of its ammunition;</li>
- *   <li>a <b>cutter</b> in a marine's hands cuts the cell when he stands at it;</li>
  *   <li>a <b>satchel</b> in a marine's hands is set on the cell when he stands at it, and cuts every wall in its blast
  *       when its fuse runs out.</li>
  * </ul>
@@ -185,7 +183,7 @@ public final class WallBreachSystem {
         return reaches;
     }
 
-    /** A marine's launcher, cutter or satchel on the cell, if it is in his reach. */
+    /** A marine's launcher or satchel on the cell, if it is in his reach. */
     private void breachWithKit(BattleSimulation sim, NavigationGrid grid, World world, long member,
                                int cellX, int cellY) {
         if (!world.hasSecondaryWeapon(member)) return;
@@ -217,15 +215,6 @@ public final class WallBreachSystem {
                     sim.noteSecondaryUsed(member);
                     roundsAtWalls++;
                 }
-            }
-            case CLOSE_CONTACT -> {
-                if (kit.aiPolicy() != SpecialAiPolicy.CONTACT_BREACH_CHANNEL) return;
-                int wallDamage = kit.wallDamage();
-                if (wallDamage <= 0 || distance > kit.closeContactSpec().contactRange() + CONTACT_SLACK) return;
-                sim.damageCell(cellX, cellY, wallDamage);
-                sim.reportContactBreach(member, targetX, targetY);
-                world.setSecondaryCooldownTimer(member, kit.closeContactSpec().cooldownSeconds());
-                roundsAtWalls++;
             }
             default -> { }
         }

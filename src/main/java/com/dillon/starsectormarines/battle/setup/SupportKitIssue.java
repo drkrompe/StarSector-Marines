@@ -40,7 +40,7 @@ public final class SupportKitIssue {
         missions.sort(Comparator.comparingInt(m -> m.manifestOrdinal));
         SpecialEquipmentDef mortar = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FIELD_MORTAR_ID);
         SpecialEquipmentDef satchel = kit.satchelEvery() > 0 ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID) : null;
-        SpecialEquipmentDef pot = kit.smokeEvery() > 0 ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_POT_ID) : null;
+        SpecialEquipmentDef smoke = kit.smokeEvery() > 0 ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID) : null;
         SpecialEquipmentDef radio = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.COMMS_RADIO_ID);
         int ordinal = 0;
         int issued = 0;
@@ -58,7 +58,7 @@ public final class SupportKitIssue {
                     issued++;
                 }
                 if (kit.sapper(ordinal) && issueFirstFree(cycle, satchel)) issued++;
-                if (kit.screener(ordinal) && issueFirstFree(cycle, pot)) issued++;
+                if (kit.screener(ordinal) && issueFirstFree(cycle, smoke)) issued++;
                 ordinal++;
             }
             mission.marineLoadout = mission.cycleLoadouts[Math.min(Math.max(mission.currentCycle, 0), mission.cycleLoadouts.length - 1)];
@@ -68,7 +68,7 @@ public final class SupportKitIssue {
 
     /**
      * Issues a squad's sapper and screener items into the seats of a freshly rolled lift cycle, by the squad's ordinal across the
-     * force: a satchel charge when {@code kit.sapper(ordinal)}, a smoke pot when {@code kit.screener(ordinal)}, each into the first seat after
+     * force: a satchel charge when {@code kit.sapper(ordinal)}, a smoke grenade when {@code kit.screener(ordinal)}, each into the first seat after
      * the tube-holder and before the launcher that carries no special of its own. The factory squad roll issues only the tube and the
      * radio, so a mission that declares sappers or smoke on a factory force must come through here or it declares them for nothing.
      * Returns how many items were issued.
@@ -76,7 +76,7 @@ public final class SupportKitIssue {
     public static int issueBreachKit(MarineLoadout[] cycle, SquadSupportKit kit, int ordinal) {
         int issued = 0;
         if (kit.sapper(ordinal) && issueFirstFree(cycle, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID))) issued++;
-        if (kit.screener(ordinal) && issueFirstFree(cycle, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_POT_ID))) issued++;
+        if (kit.screener(ordinal) && issueFirstFree(cycle, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID))) issued++;
         return issued;
     }
 
@@ -95,7 +95,7 @@ public final class SupportKitIssue {
         SpecialEquipmentDef mortar = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FIELD_MORTAR_ID);
         SpecialEquipmentDef radio = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.COMMS_RADIO_ID);
         SpecialEquipmentDef satchel = kit.satchelEvery() > 0 ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID) : null;
-        SpecialEquipmentDef pot = kit.smokeEvery() > 0 ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_POT_ID) : null;
+        SpecialEquipmentDef smoke = kit.smokeEvery() > 0 ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID) : null;
         List<MarineSeatCommitment> issued = new ArrayList<>(seats);
         int ordinal = 0;
         for (List<Integer> squad : squads.values()) {
@@ -106,7 +106,7 @@ public final class SupportKitIssue {
                 issueFirstFree(issued, squad.subList(squad.size() - 2, squad.size() - 1), radio);
             }
             if (kit.sapper(ordinal) && squad.size() >= 3) issueFirstFree(issued, squad.subList(1, squad.size() - 1), satchel);
-            if (kit.screener(ordinal) && squad.size() >= 3) issueFirstFree(issued, squad.subList(1, squad.size() - 1), pot);
+            if (kit.screener(ordinal) && squad.size() >= 3) issueFirstFree(issued, squad.subList(1, squad.size() - 1), smoke);
             ordinal++;
         }
         return issued;

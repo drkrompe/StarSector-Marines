@@ -140,7 +140,7 @@ public final class CapabilityProfile {
                         breachBest = wallPerSecond;
                         breachRange = arm.range();
                     }
-                } else if (arm.delivery() == Delivery.CONTACT || arm.delivery() == Delivery.CHARGE) {
+                } else if (arm.delivery() == Delivery.CHARGE) {
                     add(sums, AssaultCapability.CLOSE_BREACH, wallPerSecond, wallReserve);
                 }
             }

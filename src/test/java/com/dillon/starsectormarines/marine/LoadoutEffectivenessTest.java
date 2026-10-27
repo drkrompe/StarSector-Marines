@@ -144,8 +144,8 @@ class LoadoutEffectivenessTest {
                   "id": "%s",
                   "mount": "marine-primary",
                   "catalog": {
-                    "displayName": "Test Rifle", "modelName": "Test",
-                    "designation": "TST", "designationTiered": false,
+                    "displayName": "Test Rifle",
+                    "designationTiered": false,
                     "role": "LINE", "description": "A test primary."
                   },
                   "sim": {

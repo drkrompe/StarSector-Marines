@@ -67,8 +67,8 @@ class SpecSheetsTest {
         assertEquals(quoted(InfantryCombatStats.range(rifle, EquipmentGrade.MILSPEC)),
                 statValue(milspec, "RNG"));
 
-        assertEquals(rifle.catalogName(EquipmentGrade.MILSPEC), milspec.title());
-        assertTrue(milspec.subtitle().contains(rifle.designation(EquipmentGrade.MILSPEC)));
+        assertEquals(rifle.gradedName(EquipmentGrade.MILSPEC), milspec.title());
+        assertTrue(milspec.subtitle().contains(rifle.gradedName(EquipmentGrade.MILSPEC)));
         assertTrue(milspec.subtitle().contains(EquipmentGrade.MILSPEC.displayName()));
         assertEquals(SpecSheets.ACCENT_WEAPON, milspec.accent());
         assertEquals(rifle.catalogFactionLogo, milspec.crestPath());
@@ -214,7 +214,7 @@ class SpecSheetsTest {
         SpecSheet sheet = SpecSheets.card(primary);
         WeaponDef weapon = WeaponRegistry.require(primary.equipmentId());
 
-        assertEquals(weapon.catalogName(primary.grade()), sheet.title(),
+        assertEquals(weapon.gradedName(primary.grade()), sheet.title(),
                 "the title stays the equipment's; a card is a way of owning one");
         assertTrue(sheet.subtitle().startsWith(titleCase(primary.accessTier().name())),
                 "the card's access tier leads: " + sheet.subtitle());

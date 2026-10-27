@@ -41,8 +41,8 @@ class MarineWeaponDefValidationTest {
                   "id": "weapon.test-primary",
                   "mount": "marine-primary",
                   "catalog": {
-                    "displayName": "Test Rifle", "modelName": "Test",
-                    "designation": "TST", "designationTiered": false,
+                    "displayName": "Test Rifle",
+                    "designationTiered": false,
                     "role": "LINE", "description": "A test primary."
                   },
                   "sim": {

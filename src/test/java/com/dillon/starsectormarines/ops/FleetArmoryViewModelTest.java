@@ -171,8 +171,8 @@ class FleetArmoryViewModelTest {
         var doctrine = new SquadWeaponDoctrine("test:mixed-grades", "Mixed marksmen", "", issues);
         var tile = FleetArmoryViewModel.weaponTile("test:card", doctrine, false, () -> {});
         assertEquals("3 MARKSMAN  ·  9 LINE", tile.composition());
-        assertTrue(tile.distribution().contains("3 Longbow"));
-        assertTrue(tile.distribution().contains("9 Rook"));
+        assertTrue(tile.distribution().contains("3 " + WeaponRegistry.require(WeaponRegistry.DMR_ID).displayName()));
+        assertTrue(tile.distribution().contains("9 " + WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID).displayName()));
     }
 
     @Test
@@ -477,7 +477,7 @@ class FleetArmoryViewModelTest {
                 WeaponDef issued = primaryNamedBy(span.text());
                 if (issued == null) continue;
                 weaponEntries++;
-                assertEquals(issued.catalogName(issuedGrade(doctrine, issued)),
+                assertEquals(issued.gradedName(issuedGrade(doctrine, issued)),
                         span.sheet().title(),
                         span.text() + " is not described as this loadout issues it");
             }
@@ -528,7 +528,7 @@ class FleetArmoryViewModelTest {
     private static WeaponDef primaryNamedBy(String text) {
         for (WeaponDef weapon : WeaponRegistry.installed().all()) {
             if (weapon.mount == MountClass.MARINE_PRIMARY
-                    && text.endsWith(" " + weapon.modelName())) {
+                    && text.endsWith(" " + weapon.displayName())) {
                 return weapon;
             }
         }

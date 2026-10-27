@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.smoke;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.marine.SmokeGrenadeSpec;
-import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -87,17 +86,6 @@ class SmokeScreenThinningTest {
         assertEquals(view.remaining(), view.coverSeconds(), 1e-4f, "with no thin it is whole to the end");
         smoke.tick(0.7f);
         assertTrue(smoke.activeFields().isEmpty());
-    }
-
-    @Test
-    void theCatalogPotLastsMinutesAndThinsWhileTheGrenadeDoesNot() {
-        SmokeGrenadeSpec pot = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_POT_ID).smokeGrenadeSpec();
-        SmokeGrenadeSpec grenade = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID).smokeGrenadeSpec();
-        assertTrue(pot.cloudDuration() >= 60f, "long enough to cover a crossing and a plant");
-        assertTrue(pot.cloudDuration() > 5f * grenade.cloudDuration());
-        assertTrue(pot.thinSeconds() > 0f && pot.coverSeconds() > grenade.coverSeconds());
-        assertEquals(0f, grenade.thinSeconds());
-        assertTrue(pot.cloudRadius() >= grenade.cloudRadius());
     }
 
     private static NavigationGrid open(int width, int height) {
