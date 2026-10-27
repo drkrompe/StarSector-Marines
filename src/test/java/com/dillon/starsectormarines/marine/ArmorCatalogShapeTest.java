@@ -208,24 +208,12 @@ class ArmorCatalogShapeTest {
                         + SHOVE_IN_SOAK_POINTS * (screen.moveSpeedMult() - 1.0);
                 yield perActivation * duty(system);
             }
-            case PERCEPTION_SWEEP -> system.perceptionSweep() == null ? null
-                    : system.perceptionSweep().revealRangeCells() * duty(system);
             case MISSILE_POD -> system.usesAmmunition() ? (double) system.startingAmmo() : null;
             // Everything one satchel puts back over a whole battle. Reach and
             // the treat-below threshold improve with tier too, but they decide
             // WHO gets a dressing rather than what one is worth.
             case FIELD_AID -> system.fieldAid() == null || !system.usesAmmunition() ? null
                     : (double) system.fieldAid().restoredHealth() * system.startingAmmo();
-            // Steadiness bought, net of the mobility handed over for it, scaled
-            // by how much of the time it can be had. A heavier suit gives up a
-            // smaller share of a smaller speed, which is a real advantage and
-            // the reason the ladder's top rung both hits harder and commits
-            // less than the sandbag at the bottom of it.
-            case BRACE -> {
-                BraceSpec brace = system.brace();
-                yield brace == null ? null
-                        : (brace.accuracyMult() - 1.0) * brace.moveSpeedMult() * duty(system);
-            }
         };
     }
 

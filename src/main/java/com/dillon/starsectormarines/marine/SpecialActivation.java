@@ -17,13 +17,6 @@ public enum SpecialActivation {
      */
     UTILITY_DEPLOYABLE("utility-deployable"),
     /**
-     * Weapon-like activation whose executor replaces the travelling shot with
-     * an adjacent contact test. One typed channel serves every close-contact
-     * family; which contacts are legal is decided by the item's
-     * {@link SpecialAiPolicy}, never by this activation alone.
-     */
-    CLOSE_CONTACT("close-contact"),
-    /**
      * Utility activation whose carrier works a radio rather than a weapon: the item resolves no shot and places
      * nothing, it lets its carrier direct their side's air pool onto ground (see {@link SpecialAiPolicy#FORWARD_OBSERVER}).
      */

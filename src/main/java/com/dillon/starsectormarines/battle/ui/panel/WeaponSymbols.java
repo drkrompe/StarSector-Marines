@@ -50,8 +50,6 @@ public final class WeaponSymbols {
         if (SpecialEquipmentRegistry.SMOKE_GRENADE_ID.equals(special.id())) return "SMK";
         if (SpecialEquipmentRegistry.SATCHEL_CHARGE_ID.equals(special.id())) return "SAT";
         if (SpecialEquipmentRegistry.FRAG_GRENADE_ID.equals(special.id())) return "FRG";
-        if (SpecialEquipmentRegistry.BREACHING_CUTTER_ID.equals(special.id())) return "CUT";
-        if (SpecialEquipmentRegistry.VIBRO_BLADE_ID.equals(special.id())) return "VBL";
         if (SpecialEquipmentRegistry.POINT_DEFENCE_EMPLACEMENT_ID.equals(special.id())) return "PDE";
         return abbreviation(special.displayName());
     }

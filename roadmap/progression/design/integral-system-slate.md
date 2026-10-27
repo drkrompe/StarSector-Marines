@@ -4,7 +4,7 @@ Status: ACTIVE — direction for which patterns build a suit capability and what
 it should be. Every capability named here is authored and running.
 
 Written: 2026-08-28
-Updated: 2026-08-29 — the firing brace shipped on three line patterns, the last candidate on the slate.
+Updated: 2026-10-27 — the firing brace and the sensor sweeps were cut for the first release.
 
 Read `progression-nouns.md` for the standing rules an integral system must obey,
 `equipment-lore-catalog.md` for each pattern's provenance and deliberate limits,
@@ -84,12 +84,11 @@ version would be exactly the "more effective hit points" that
 {@code IntegralSystemEffect} forbids.
 
 **A capability ladders within its role.** The breach family spans three tiers —
-the Kestrel riot shell at II, the Vigil at III, and the six battlesuits at IV —
-and the brace family spans three of its own, at II, III and IV. The rule that
-binds both is that the *floor* rises: every suit at a tier is worth more than
+the Kestrel riot shell at II, the Vigil at III, and the six battlesuits at IV.
+The rule is that the *floor* rises: every suit at a tier is worth more than
 every suit at the tier below, not merely the best against the best. A capability
 arriving on a single pattern would be a curiosity rather than something to buy up
-towards, which is why the brace shipped on three at once.
+towards.
 
 What "worth more" means cannot be a single authored number, because these suits
 are side-grades and their headline numbers disagree by sevenfold at one tier. It
@@ -98,10 +97,7 @@ soak-equivalents, scaled by how much of the time the system is up. Measured that
 way the six tier-IV suits come out within about 1.4x of each other per
 activation and differ mainly in availability, which is what a side-grade family
 should look like and is not something anyone authored deliberately — it is what
-the numbers already said once there was a way to ask. A brace is measured the
-same way and reads the same shape: the steadiness bought, discounted by the share
-of its own mobility the suit hands over for it, scaled by how much of the time it
-can be had.
+the numbers already said once there was a way to ask.
 
 `ArmorCatalogShapeTest` owns that measure and the rule. It is a comparison index
 for the catalog's shape and never a balance model: the game reads none of it.
@@ -112,56 +108,18 @@ mitigation concept lands they under-express — the Armory correctly advertises 
 Holdfast as a twelve-percent movement boost, which is true and is not what the
 suit is for.
 
-## The brace family
-
-The other half of the model, and deliberately the mirror of the one above. A
-breaching assist buys a window of speed behind a screen, spent crossing ground
-that is expensive to cross. A brace buys the opposite trade: the wearer plants,
-shoots markedly straighter, and gives up most of their mobility for as long as
-it runs. **Assault crosses, line holds**, which reads straight off the role name.
-
-The cost is the design. A stance that only helped would be a stat with extra
-steps, so the movement penalty is authored, validated to be a real reduction,
-and paid for the whole window — being braced in the wrong place has to be a
-mistake worth making. It releases on its own clock and never on an external
-condition, and it improves what the wearer *hits* rather than what hits the
-wearer, which is what keeps it the right side of the durability line.
-
-| Pattern | Tradition | System | The character it buys |
-| --- | --- | --- | --- |
-| `armor.militia` | Independent | **Sandbagged rest** | Not a mechanism at all: a section leader, a lane they were told about, and something to lay the weapon across. The cheapest version of the idea and the one every other version is a refinement of — it plants hardest, holds shortest, and wants the most warning before it will do it at all. |
-| `armor.line` | Hegemony | **Legionary brace** | The suit's own answer to what the sandbag solves badly: actuators locking into a frame the marine stands inside rather than holds up. Field-serviceable, like everything else the Hegemony issues, and expected to be serviced. |
-| `armor.redoubt` | Hegemony | **Redoubt firing platform** | Siege plate with the weight limits already off. There is enough mass to plant against that the wearer stops being a person aiming a weapon and becomes the ground it is aimed from — steadiest, longest, quickest to recover, and proportionally the cheapest, because there was less mobility to give up. |
-
-**Why the Legionary and not the Furnace line.** Both are tier-III line suits and
-the work that authored this held the choice open until the stance existed. The
-Furnace line is the better *fantasy* — a Sindrian state suit planting in a
-doorway and refusing to move — but its whole distinguishing argument is a
-drawback: a conspicuous profile that should make a braced wearer easier to hit.
-Nothing in the shipped stats expresses that as a timed effect, and making it one
-is a threat-weighting change with reach well past a stance. Picking it would have
-shipped the weaker half of its own identity. The Legionary's argument is entirely
-expressible today, and the Redoubt's own copy already calls itself Legionary
-plate with the weight limits taken off — so the ladder reads as one family
-rather than two tricks.
-
-The Furnace line gains nothing and loses nothing. It is complete as a tradeoff,
-and it stays the obvious carrier if a braced marine ever becomes mechanically
-easier to hit.
-
 ## Individual systems
 
 Not a family. Each is one capability on one named pattern, because that pattern
 is the one built for it.
 
-Four are shipped:
+Three are shipped:
 
 | Pattern | Tradition | System | The character it buys |
 | --- | --- | --- | --- |
 | `armor.aegis-composite` | Tri-Tachyon | **Predictive volley** | The Specter's threat display is spent on evasion because breaching is what that suit is *for*; the Aegis is built to present a difficult firing solution rather than to cross a room, so its own display is spent the other direction — locking a shot instead of dodging one. A small salvo of `weapon.micro-missile` rounds, self-targeted, from a rack of two that does not refill. |
 | `armor.orderly` | Luddic Church | **Parish aid** | A stretcher party that stayed on the field. Three dressings, a short reach, and a threshold that will not spend one on a scratch — the cheapest possible version of somebody stopping to help. |
 | `armor.corpsman` | Hegemony | **Corpsman kit** | The same act performed by somebody taught how and carrying enough to repeat it. Reaches further, is worth spending on a marine merely hurt rather than nearly finished, and does not run out halfway through the fight it was brought for. |
-| `armor.scout` | Tri-Tachyon (Janus) | **Aperture read** | The only system that changes nothing about a fight except what the player can see of it. One wide active return, spent when the scout is walking onto ground they cannot see into: it opens the room they are standing against and a short way past its nearer walls, and then the walls start working again. It costs a long recovery and buys no advantage that walking round the corner would not have bought. |
 
 That is a deliberate choice among three plausible homes. The faction lore
 guides put micro-missile support in Hegemony, League, and Tri-Tachyon
@@ -175,11 +133,6 @@ pattern — not a breacher, not yet spoken for, and its authored copy already
 says "predictive threat displays" and "a difficult firing solution," which a
 self-selecting missile lock is a truer reading of than a dodge would be — the
 Specter already owns that half of "predictive."
-
-Holding ground moved to the line role once the assault heavies took breaching,
-and the split is better for it: **assault crosses, line holds.** That reads from
-the role name alone, which the earlier allocation did not. It is a family of its
-own now, above.
 
 The medic is the same reasoning applied to the role `role-and-access.md` adds,
 and it shipped by looking at the wrong end of the problem first.
@@ -210,9 +163,7 @@ likely to be violated by a *capability* rather than by a stat are:
 
 - **Concealment is not a systems answer.** `powered-assault-armor-roles.md`
   places concealment with the light/recon role behind an explicit shared
-  perception contract. The Janus sweep reads the room; it does not hide the
-  wearer, and shipping the seeing half deliberately did not open a door to the
-  hiding half. `integral-armor-systems.md` already argued the breacher case at
+  perception contract. `integral-armor-systems.md` already argued the breacher case at
   length — a room that fails to react is indistinguishable from a room whose AI
   broke — and the same reasoning applies to any suit that would go quiet.
 - **A Tri-Tachyon prediction system is not a hidden neural bonus.** The lore
@@ -246,10 +197,3 @@ describing itself rather than by being added to a list.
 
 Nothing on this slate is waiting on simulation work any more. A pattern not
 listed here is not in a queue — it simply has nothing a capability would add.
-
-Two questions the brace deliberately left alone are both threat-weighting changes
-with reach well past a stance, and neither is scheduled: whether a braced marine
-should be **interruptible** by heavy fire, which is the beginning of a reaction
-system nothing else here has, and whether a braced marine should be mechanically
-**easier to hit**. The second is the Furnace line's whole argument, and answering
-it is what would give that pattern a brace of its own.

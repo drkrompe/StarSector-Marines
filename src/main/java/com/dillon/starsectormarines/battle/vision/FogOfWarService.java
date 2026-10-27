@@ -125,20 +125,9 @@ public final class FogOfWarService {
     private final TemporarySources projected = new TemporarySources();
 
     /**
-     * Sources the simulation itself replaces each tick: a suit whose integral
-     * system is running a sensor sweep. A separate channel from
-     * {@link #projected} because the two are cleared by different owners at
-     * different cadences — the host wipes its own set between frames, and a
-     * sim-owned source pushed into that set would be wiped with it. Both feed
-     * the one footprint rebuild below, so law 5 ("replaced as a set, never
-     * accumulated") holds for each of them independently.
-     */
-    private final TemporarySources carried = new TemporarySources();
-
-    /**
      * Sources a mission keeps open while one of its standing conditions holds: the Dust Ledger's rooftop spotters
-     * over the compound yard. A third channel for the same reason {@link #carried} is a second one: its owner
-     * replaces it on its own cadence, and nobody else's clear may wipe it.
+     * over the compound yard. A separate channel from {@link #projected} because its owner replaces it on its own
+     * cadence, and nobody else's clear may wipe it.
      */
     private final TemporarySources standing = new TemporarySources();
 
@@ -442,34 +431,12 @@ public final class FogOfWarService {
         add(projected, cellX, cellY, range, airLosRadius);
     }
 
-    /**
-     * Clears the simulation-owned sweep source list. Called by the sweep that
-     * owns those sources at the start of every tick, so a source survives
-     * exactly as long as the system projecting it is still running.
-     */
-    public void clearCarriedSweepSources() {
-        carried.clear();
-    }
-
-    /**
-     * Registers a carried sensor sweep as a temporary observer for this tick.
-     *
-     * <p>Deliberately the same seam every other temporary source uses: the
-     * caller supplies a cell, a range, and a wall-read radius, and gets the
-     * ordinary shadowcast and the ordinary reference count. A sweep is a client
-     * of player reveal composition, never a second reveal path
-     * ({@code fog-of-war-nouns.md}).
-     */
-    public void addCarriedSweepSource(int cellX, int cellY, int range, float wallReadRadius) {
-        add(carried, cellX, cellY, range, wallReadRadius);
-    }
-
     /** Clears the mission-held source list; its owner re-pushes the set it still holds. */
     public void clearStandingSources() {
         standing.clear();
     }
 
-    /** Registers a mission-held observer at a cell, as {@link #addCarriedSweepSource} does for a sweep. */
+    /** Registers a mission-held observer at a cell for this tick, reading walls within {@code wallReadRadius}. */
     public void addStandingSource(int cellX, int cellY, int range, float wallReadRadius) {
         add(standing, cellX, cellY, range, wallReadRadius);
     }
@@ -493,8 +460,6 @@ public final class FogOfWarService {
         }
 
         int total = castInto(projected, 0, false);
-        // A sweep is carried by somebody on the ground: it reads walls, not cliffs, beyond its radius.
-        total = castInto(carried, total, true);
         total = castInto(standing, total, true);
         total = revealExposed(total);
         ephemeralPrevCount = total;
@@ -721,7 +686,6 @@ public final class FogOfWarService {
             }
         }
         addClearAirFootprints(projected);
-        addClearAirFootprints(carried);
         addClearAirFootprints(standing);
         adoptClearAir();
     }

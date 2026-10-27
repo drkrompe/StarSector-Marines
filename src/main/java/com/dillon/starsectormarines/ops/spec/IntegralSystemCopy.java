@@ -1,13 +1,11 @@
 package com.dillon.starsectormarines.ops.spec;
 
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.marine.BraceSpec;
 import com.dillon.starsectormarines.marine.BreacherAssistSpec;
 import com.dillon.starsectormarines.marine.FieldAidSpec;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MissilePodSpec;
-import com.dillon.starsectormarines.marine.PerceptionSweepSpec;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -134,16 +132,6 @@ public final class IntegralSystemCopy {
         if (pod != null) {
             return Strings.format("gearSystemMissiles" + suffix,
                     Math.max(1, pod.weaponDef().projectilesPerShot()));
-        }
-        PerceptionSweepSpec sweep = system.perceptionSweep();
-        if (sweep != null) {
-            return Strings.format("gearSystemSweep" + (sweep.wallReadRadiusCells() > 0f ? "Walls" : "") + suffix,
-                    Math.round(sweep.revealRangeCells()), Math.round(sweep.wallReadRadiusCells()));
-        }
-        BraceSpec brace = system.brace();
-        if (brace != null) {
-            return Strings.format("gearSystemBrace" + suffix,
-                    percent(brace.accuracyMult() - 1f), percent(1f - brace.moveSpeedMult()));
         }
         FieldAidSpec aid = system.fieldAid();
         if (aid != null) {

@@ -1155,7 +1155,7 @@ public final class FleetArmoryViewModel {
      * <p>The line beneath it already names the patterns, and a player who knows
      * the catalog by heart could derive this from those names. Nobody should
      * have to: the whole reason a role mix is worth choosing between is that one
-     * sheet puts a sensor sweep and seven braces in the field where another puts
+     * sheet puts two medics and a missile rack in the field where another puts
      * four breachers, and that difference was previously visible only by opening
      * Compare Patterns and cross-referencing twelve names.
      *

@@ -4,8 +4,6 @@
     {
       "factionId": "independent",
       "offers": [
-        { "templateId": "equipment-template:special.breaching-cutter", "sources": { "license": 6, "recovery": 8 } },
-        { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 10, "recovery": 4 } },
         { "templateId": "equipment-template:weapon.field-rifle:surplus", "sources": { "market": 12 } },
         { "templateId": "equipment-template:weapon.field-rifle:service", "sources": { "market": 14 } },
         { "templateId": "equipment-template:weapon.field-rifle:milspec", "sources": { "license": 8, "recovery": 4 } },
@@ -46,7 +44,6 @@
         { "templateId": "equipment-template:special.frag-grenade", "sources": { "market": 7, "recovery": 4 } },
         { "templateId": "equipment-template:special.point-defence-emplacement", "sources": { "license": 4, "recovery": 4 } },
         { "templateId": "equipment-template:special.point-defence-pack", "sources": { "license": 4, "recovery": 4 } },
-        { "templateId": "equipment-template:special.field-revetment", "sources": { "market": 9, "recovery": 4 } },
         { "templateId": "equipment-template:special.field-mortar", "sources": { "license": 5, "recovery": 3 } },
         { "templateId": "equipment-template:special.comms-radio", "sources": { "license": 4, "recovery": 3 }, "_comment": "PLACEHOLDER source weights: untuned." },
         { "templateId": "equipment-template:armor.riot-shell", "sources": {"market": 9, "recovery": 4} },
@@ -64,7 +61,6 @@
       "factionId": "hegemony",
       "offers": [
         { "templateId": "equipment-template:special.point-defence-pack", "sources": { "license": 6, "patron": 4 } },
-        { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 12, "license": 6 } },
         { "templateId": "equipment-template:weapon.field-rifle:service", "sources": { "market": 14 } },
         { "templateId": "equipment-template:weapon.field-rifle:milspec", "sources": { "license": 12, "patron": 5 } },
         { "templateId": "equipment-template:weapon.squad-automatic:service", "sources": { "market": 10 } },
@@ -75,7 +71,6 @@
         { "templateId": "equipment-template:armor.heavy", "sources": { "license": 4, "patron": 8 } },
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 10 } },
         { "templateId": "equipment-template:special.anti-materiel-rifle", "sources": { "patron": 8, "recovery": 3 } },
-        { "templateId": "equipment-template:special.field-revetment", "sources": { "market": 12 } },
         { "templateId": "equipment-template:special.field-mortar", "sources": { "license": 8, "patron": 3 } },
         { "templateId": "equipment-template:special.comms-radio", "sources": { "license": 6, "patron": 3 }, "_comment": "PLACEHOLDER source weights: untuned." },
         { "templateId": "equipment-template:armor.pathfinder", "sources": {"license": 8, "recovery": 4} },
@@ -106,7 +101,6 @@
     {
       "factionId": "persean",
       "offers": [
-        { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 10, "license": 5 } },
         { "templateId": "equipment-template:weapon.field-rifle:service", "sources": { "market": 10 } },
         { "templateId": "equipment-template:weapon.pulse-rifle:service", "sources": { "market": 10 } },
         { "templateId": "equipment-template:weapon.dmr:milspec", "sources": { "license": 8, "patron": 4 } },
@@ -118,7 +112,6 @@
         { "templateId": "equipment-template:special.smoke-grenade", "sources": { "market": 9 } },
         { "templateId": "equipment-template:special.frag-grenade", "sources": { "market": 8 } },
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 7 } },
-        { "templateId": "equipment-template:special.field-revetment", "sources": { "market": 9 } },
         { "templateId": "equipment-template:armor.outrider", "sources": {"patron": 6, "recovery": 3} },
         { "templateId": "equipment-template:armor.riot-shell", "sources": {"market": 8} }
       ]
@@ -126,7 +119,6 @@
     {
       "factionId": "luddic_church",
       "offers": [
-        { "templateId": "equipment-template:special.breaching-cutter", "sources": { "license": 5, "patron": 4, "recovery": 5 } },
         { "templateId": "equipment-template:weapon.field-rifle:surplus", "sources": { "market": 14 } },
         { "templateId": "equipment-template:weapon.field-rifle:service", "sources": { "market": 12 } },
         { "templateId": "equipment-template:weapon.dmr:service", "sources": { "market": 8 } },
@@ -137,7 +129,6 @@
         { "templateId": "equipment-template:armor.palatine", "sources": { "license": 10, "patron": 5 } },
         { "templateId": "equipment-template:special.satchel-charge", "sources": { "market": 7, "recovery": 5 } },
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 6 } },
-        { "templateId": "equipment-template:special.field-revetment", "sources": { "market": 6, "recovery": 4 } },
         { "templateId": "equipment-template:armor.orderly", "sources": {"market": 14, "recovery": 5} }
       ]
     },
@@ -153,14 +144,12 @@
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "patron": 8 } },
         { "templateId": "equipment-template:special.satchel-charge", "sources": { "recovery": 6 } },
         { "templateId": "equipment-template:special.point-defence-emplacement", "sources": { "patron": 4, "recovery": 3 } },
-        { "templateId": "equipment-template:special.point-defence-pack", "sources": { "patron": 4, "recovery": 3 } },
-        { "templateId": "equipment-template:special.field-revetment", "sources": { "market": 6, "recovery": 3 } }
+        { "templateId": "equipment-template:special.point-defence-pack", "sources": { "patron": 4, "recovery": 3 } }
       ]
     },
     {
       "factionId": "luddic_path",
       "offers": [
-        { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 8, "recovery": 5 } },
         { "templateId": "equipment-template:weapon.field-rifle:surplus", "sources": { "market": 10, "recovery": 6 } },
         { "templateId": "equipment-template:weapon.smg:surplus", "sources": { "market": 13, "recovery": 7 } },
         { "templateId": "equipment-template:weapon.smg:service", "sources": { "recovery": 8 } },
@@ -176,7 +165,6 @@
     {
       "factionId": "sindrian_diktat",
       "offers": [
-        { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 10, "license": 4 } },
         { "templateId": "equipment-template:weapon.field-rifle:service", "sources": { "market": 11 } },
         { "templateId": "equipment-template:weapon.pulse-rifle:service", "sources": { "market": 9 } },
         { "templateId": "equipment-template:weapon.squad-automatic:milspec", "sources": { "market": 3, "license": 9 } },
@@ -186,7 +174,6 @@
         { "templateId": "equipment-template:armor.furnace-line", "sources": { "license": 11 } },
         { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 9 } },
         { "templateId": "equipment-template:special.frag-grenade", "sources": { "market": 7 } },
-        { "templateId": "equipment-template:special.field-revetment", "sources": { "market": 8 } },
         { "templateId": "equipment-template:armor.redoubt", "sources": {"patron": 4, "recovery": 3} },
         { "templateId": "equipment-template:armor.vigil", "sources": {"license": 9, "recovery": 4} }
       ]
@@ -207,8 +194,6 @@
     {
       "factionId": "pirates",
       "offers": [
-        { "templateId": "equipment-template:special.breaching-cutter", "sources": { "recovery": 7 } },
-        { "templateId": "equipment-template:special.vibro-blade", "sources": { "market": 12, "recovery": 6 } },
         { "templateId": "equipment-template:weapon.field-rifle:surplus", "sources": { "market": 10, "recovery": 5 } },
         { "templateId": "equipment-template:weapon.smg:surplus", "sources": { "market": 14 } },
         { "templateId": "equipment-template:weapon.smg:service", "sources": { "market": 9, "recovery": 6 } },
@@ -221,7 +206,6 @@
         { "templateId": "equipment-template:armor.foundry-breaker", "sources": { "recovery": 10 } },
         { "templateId": "equipment-template:special.satchel-charge", "sources": { "market": 8, "recovery": 7 } },
         { "templateId": "equipment-template:special.frag-grenade", "sources": { "market": 10 } },
-        { "templateId": "equipment-template:special.field-revetment", "sources": { "recovery": 5 } },
         { "templateId": "equipment-template:armor.packframe", "sources": {"market": 9, "recovery": 6} },
         { "templateId": "equipment-template:armor.riot-shell", "sources": {"market": 7, "recovery": 5} }
       ]

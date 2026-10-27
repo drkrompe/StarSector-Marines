@@ -57,7 +57,7 @@ class SapperKitIssueTest {
     }
 
     @Test
-    void aSapperSquadGetsAChargeAndAScreenerSquadAPotInSeatsNobodyElseHolds() {
+    void aSapperSquadGetsAChargeAndAScreenerSquadSmokeInSeatsNobodyElseHolds() {
         List<MarineSeatCommitment> seats = new ArrayList<>();
         for (int i = 0; i < 6; i++) seats.add(seat("a" + i, "alpha", null));
         for (int i = 0; i < 6; i++) seats.add(seat("b" + i, "bravo", i == 1 ? SpecialEquipmentRegistry.COMMS_RADIO_ID : null));
@@ -70,26 +70,26 @@ class SapperKitIssueTest {
         assertNull(issued.get(5).specialEquipmentId(), "the last seat is the launcher's");
         assertEquals(SpecialEquipmentRegistry.COMMS_RADIO_ID, issued.get(7).specialEquipmentId(), "an issued item is never taken away");
         assertEquals(SpecialEquipmentRegistry.SATCHEL_CHARGE_ID, issued.get(8).specialEquipmentId(), "the next free seat");
-        assertEquals(SpecialEquipmentRegistry.SMOKE_POT_ID, issued.get(9).specialEquipmentId());
+        assertEquals(SpecialEquipmentRegistry.SMOKE_GRENADE_ID, issued.get(9).specialEquipmentId());
     }
 
     @Test
     void aFactoryRolledCycleReceivesItsSapperAndScreenerItemsByOrdinal() {
         SquadSupportKit kit = new SquadSupportKit(0, 0, 3, 2);
         int charges = 0;
-        int pots = 0;
+        int smokes = 0;
         for (int ordinal = 0; ordinal < 6; ordinal++) {
             MarineLoadout[] cycle = InfantryLoadoutRolls.playerSquad(6, new Random(ordinal), false, false);
             int issued = SupportKitIssue.issueBreachKit(cycle, kit, ordinal);
             assertEquals((kit.sapper(ordinal) ? 1 : 0) + (kit.screener(ordinal) ? 1 : 0), issued);
             for (MarineLoadout seat : cycle) {
                 if (SpecialEquipmentRegistry.SATCHEL_CHARGE_ID.equals(seat.specialEquipmentId)) charges++;
-                if (SpecialEquipmentRegistry.SMOKE_POT_ID.equals(seat.specialEquipmentId)) pots++;
+                if (SpecialEquipmentRegistry.SMOKE_GRENADE_ID.equals(seat.specialEquipmentId)) smokes++;
             }
             assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, cycle[5].specialEquipmentId, "the launcher keeps the last seat");
         }
         assertEquals(2, charges);
-        assertEquals(3, pots);
+        assertEquals(3, smokes);
         MarineLoadout[] none = InfantryLoadoutRolls.playerSquad(6, new Random(1), false, false);
         assertEquals(0, SupportKitIssue.issueBreachKit(none, SquadSupportKit.NONE, 2), "a kit with no sappers issues nothing");
     }

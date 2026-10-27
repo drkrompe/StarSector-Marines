@@ -34,11 +34,8 @@ position, and shots remain visible through fog.
   cells, so overlapping sources cannot erase one another's sight.
 - A **temporary source** is a short-lived observer that participates in the same
   bitmap but has no battle-unit visibility row or cohort membership. It arrives
-  through one of three channels. A **projected source** is pushed by a render host
-  each frame — a shuttle, a flyby fighter, a warship. A **carried
-  sweep** is pushed by the simulation each tick from a live unit whose armour
-  pattern is running a sensor system (`progression-nouns.md`), so it exists in
-  every host and in a headless run alike. A **standing source** is held by a
+  through one of two channels. A **projected source** is pushed by a render host
+  each frame — a shuttle, a flyby fighter, a warship. A **standing source** is held by a
   mission while one of its conditions lasts — the Dust Ledger's rooftop spotters
   over the compound yard (`dust-ledger-crossing.md`). The channels are separate
   because they are cleared by different owners at different cadences; each is
@@ -186,12 +183,11 @@ marine's, so nothing hull-borne arrives as a temporary source.
 
 Friendly visible shuttles, friendly flyby fighters, a friendly warship (its hull,
 the ground it is ordered onto and where its rounds and lance tips fall; a hostile
-ship gives the player nothing), and a
-marine running a carried sensor sweep can all provide temporary vision. Their
+ship gives the player nothing) can all provide temporary vision. Their
 footprints may therefore open a roof briefly when they see an interior; that is
 intentional.
 
-A carried sweep additionally uses the shadowcast's existing air-clearance
+A standing source additionally uses the shadowcast's existing air-clearance
 parameter as a bounded wall tolerance, which is the same "walls near the source
 are transparent" rule a flier already relies on rather than a second visibility
 algorithm. It is subject to every law above, and to one that matters especially

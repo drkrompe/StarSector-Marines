@@ -154,21 +154,7 @@
         "armorCapacity": 4.0,
         "armorRating": 4.0,
         "moveSpeedMult": 1.06,
-        "incomingAccuracyMult": 0.88,
-        "integralSystem": {
-          "id": "system.aperture-read",
-          "grade": "masterwork",
-          "displayName": "@gearCatalogSystemApertureReadDisplayName",
-          "description": "@gearCatalogSystemApertureReadDescription",
-          "effect": "perception-sweep",
-          "policy": "approaching-dead-ground",
-          "lookaheadCells": 7.0,
-          "resource": "cooldown",
-          "durationSeconds": 4.0,
-          "cooldownSeconds": 20.0,
-          "revealRangeCells": 44.0,
-          "wallReadRadiusCells": 7.0
-        }
+        "incomingAccuracyMult": 0.88
       }
     },
     {
@@ -417,23 +403,7 @@
         "tier": 3,
         "iconPath": "graphics/ui/armory/armor-army-green.png"
       },
-      "battle": { "appearanceFamily": "ARMY_GREEN", "armorCapacity": 10.0, "armorRating": 8.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.97,
-        "integralSystem": {
-          "id": "system.legionary-brace",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemLegionaryBraceDisplayName",
-          "description": "@gearCatalogSystemLegionaryBraceDescription",
-          "effect": "brace",
-          "resource": "cooldown",
-          "policy": "holding-a-firing-position",
-          "minimumTargetRangeFraction": 0.45,
-          "breakOffRangeCells": 5.0,
-          "durationSeconds": 5.0,
-          "cooldownSeconds": 18.0,
-          "moveSpeedMult": 0.45,
-          "accuracyMult": 1.3
-        }
-      }
+      "battle": { "appearanceFamily": "ARMY_GREEN", "armorCapacity": 10.0, "armorRating": 8.0, "moveSpeedMult": 0.94, "incomingAccuracyMult": 0.97 }
     },
     {
       "id": "armor.militia",
@@ -446,23 +416,7 @@
         "tier": 2,
         "iconPath": "graphics/ui/armory/armor-militia.png"
       },
-      "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96,
-        "integralSystem": {
-          "id": "system.sandbag-rest",
-          "grade": "surplus",
-          "displayName": "@gearCatalogSystemSandbagRestDisplayName",
-          "description": "@gearCatalogSystemSandbagRestDescription",
-          "effect": "brace",
-          "resource": "cooldown",
-          "policy": "holding-a-firing-position",
-          "minimumTargetRangeFraction": 0.55,
-          "breakOffRangeCells": 6.0,
-          "durationSeconds": 4.0,
-          "cooldownSeconds": 20.0,
-          "moveSpeedMult": 0.3,
-          "accuracyMult": 1.2
-        }
-      }
+      "battle": { "appearanceFamily": "MILITIA", "armorCapacity": 5.0, "armorRating": 4.0, "moveSpeedMult": 1.0, "incomingAccuracyMult": 0.96 }
     },
     {
       "id": "armor.pathfinder",
@@ -480,21 +434,7 @@
         "armorCapacity": 8.0,
         "armorRating": 6.0,
         "moveSpeedMult": 1.01,
-        "incomingAccuracyMult": 0.93,
-        "integralSystem": {
-          "id": "system.survey-sweep",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemSurveySweepDisplayName",
-          "description": "@gearCatalogSystemSurveySweepDescription",
-          "effect": "perception-sweep",
-          "policy": "approaching-dead-ground",
-          "lookaheadCells": 8.0,
-          "resource": "cooldown",
-          "durationSeconds": 5.0,
-          "cooldownSeconds": 18.0,
-          "revealRangeCells": 50.0,
-          "wallReadRadiusCells": 8.0
-        }
+        "incomingAccuracyMult": 0.93
       }
     },
     {
@@ -513,21 +453,7 @@
         "armorCapacity": 14.0,
         "armorRating": 9.0,
         "moveSpeedMult": 0.98,
-        "incomingAccuracyMult": 0.9,
-        "integralSystem": {
-          "id": "system.coalition-read",
-          "grade": "masterwork",
-          "displayName": "@gearCatalogSystemCoalitionReadDisplayName",
-          "description": "@gearCatalogSystemCoalitionReadDescription",
-          "effect": "perception-sweep",
-          "policy": "approaching-dead-ground",
-          "lookaheadCells": 9.0,
-          "resource": "cooldown",
-          "durationSeconds": 6.0,
-          "cooldownSeconds": 16.0,
-          "revealRangeCells": 58.0,
-          "wallReadRadiusCells": 10.0
-        }
+        "incomingAccuracyMult": 0.9
       }
     },
     {
@@ -546,22 +472,7 @@
         "armorCapacity": 22.0,
         "armorRating": 13.0,
         "moveSpeedMult": 0.78,
-        "incomingAccuracyMult": 0.99,
-        "integralSystem": {
-          "id": "system.redoubt-platform",
-          "grade": "milspec",
-          "displayName": "@gearCatalogSystemRedoubtPlatformDisplayName",
-          "description": "@gearCatalogSystemRedoubtPlatformDescription",
-          "effect": "brace",
-          "resource": "cooldown",
-          "policy": "holding-a-firing-position",
-          "minimumTargetRangeFraction": 0.4,
-          "breakOffRangeCells": 4.0,
-          "durationSeconds": 6.0,
-          "cooldownSeconds": 15.0,
-          "moveSpeedMult": 0.55,
-          "accuracyMult": 1.45
-        }
+        "incomingAccuracyMult": 0.99
       }
     },
     {

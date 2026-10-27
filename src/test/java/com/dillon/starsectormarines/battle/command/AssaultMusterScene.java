@@ -110,12 +110,10 @@ public final class AssaultMusterScene implements BehaviorScene {
     private static final String MARINE_RIFLE = "weapon.field-rifle";
 
     private static final List<String> ALL_LOOPS = List.of("control-trickle", "plan", "plan-with-lance",
-            "breach-cannon", "breach-charges", "breach-charges-smoke", "breach-charges-pot", "plan-mortar", "plan-air", "plan-mortar-air", "combined-arms");
+            "breach-cannon", "breach-charges", "breach-charges-smoke", "plan-mortar", "plan-air", "plan-mortar-air", "combined-arms");
     private static final String CHARGE_KIT = "special.satchel-charge";
     private static final String ROCKET_KIT = "special.rocket-launcher";
     private static final String RADIO_KIT = "special.comms-radio";
-    /** A cloud thrown to stand at least this long is a pot's, not a hand grenade's. */
-    private static final float POT_SECONDS = 45f;
     /** Ticks between the samples of whether the company's own sight lines are screened. */
     private static final int BLIND_SAMPLE_TICKS = 15;
     /** A marine this near a live nest, with no wall between, is in its own line of fire for the sample. */
@@ -235,7 +233,6 @@ public final class AssaultMusterScene implements BehaviorScene {
             if (chargesLoop(loop) && i % 3 == 1) spec.special(CHARGE_KIT, 4);
             if (chargesLoop(loop) && i % 3 == 2) spec.special(ROCKET_KIT, 4, 3);
             if (loop.equals("breach-charges-smoke") && i % 3 == 0) spec.special(SpecialEquipmentRegistry.SMOKE_GRENADE_ID, 2);
-            if (loop.equals("breach-charges-pot") && i % 3 == 0) spec.special(SpecialEquipmentRegistry.SMOKE_POT_ID, 2);
             issueFireSupport(loop, i, spec);
             spec.done();
         }
@@ -312,7 +309,7 @@ public final class AssaultMusterScene implements BehaviorScene {
 
     /** The loops whose company carries satchels for the sappers and rockets for the base of fire. */
     private static boolean chargesLoop(String loop) {
-        return loop.equals("breach-charges") || loop.equals("breach-charges-smoke") || loop.equals("breach-charges-pot");
+        return loop.equals("breach-charges") || loop.equals("breach-charges-smoke");
     }
 
     private static boolean hasAir(String loop) {
@@ -499,8 +496,7 @@ public final class AssaultMusterScene implements BehaviorScene {
         metrics.put("satchelAskedEngage", sr == null ? 0 : sr.asked(SatchelApproach.Enabler.ENGAGE));
         metrics.put("satchelAskedSmoke", sr == null ? 0 : sr.asked(SatchelApproach.Enabler.SMOKE));
         metrics.put("smokeCloudsStood", t.cloudsStood.size());
-        metrics.put("smokePotClouds", t.potClouds.size());
-        metrics.put("smokeGrenadeClouds", t.cloudsStood.size() - t.potClouds.size());
+        metrics.put("smokeGrenadeClouds", t.cloudsStood.size());
         metrics.put("smokeCloudsThinned", t.thinnedClouds.size());
         metrics.put("smokeLongestCloudSeconds", Math.round(t.longestCloudSeconds));
         metrics.put("smokeCloudTicks", t.cloudTicks);
@@ -789,7 +785,6 @@ public final class AssaultMusterScene implements BehaviorScene {
             return switch (kit.activation()) {
                 case DIRECT_EXPLOSIVE -> kit.weaponDef().wallDamage > 0;
                 case UTILITY_SATCHEL -> kit.satchelChargeSpec().wallBreachDamage() > 0;
-                case CLOSE_CONTACT -> kit.wallDamage() > 0;
                 default -> false;
             };
         }
@@ -883,8 +878,6 @@ public final class AssaultMusterScene implements BehaviorScene {
         /** Every cloud of smoke that stood on the field, by id, and the tick the first did. */
         final Set<Long> cloudsStood = new HashSet<>();
         int firstCloudTick = -1;
-        /** Clouds by how long they were thrown to stand: a grenade's twelve seconds against a pot's minute and a half. */
-        final Set<Long> potClouds = new HashSet<>();
         final Set<Long> thinnedClouds = new HashSet<>();
         int cloudTicks;
         float longestCloudSeconds;
@@ -1057,7 +1050,6 @@ public final class AssaultMusterScene implements BehaviorScene {
             observeFireSupport(sim, tick);
             for (var cloud : sim.smokeFields().activeFields()) {
                 if (cloudsStood.add(cloud.id()) && firstCloudTick < 0) firstCloudTick = tick;
-                if (cloud.totalDuration() >= POT_SECONDS) potClouds.add(cloud.id());
                 if (cloud.radius() < cloud.fullRadius()) thinnedClouds.add(cloud.id());
                 longestCloudSeconds = Math.max(longestCloudSeconds, cloud.totalDuration());
                 cloudTicks++;

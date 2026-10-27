@@ -7,7 +7,7 @@ import java.io.Serializable;
  *
  * @param thinSeconds the last stretch of the cloud's life over which it contracts toward a core and then clears, rather than
  *                    standing at full size until the instant it goes. Zero for a cloud that stands whole and vanishes (the
- *                    hand grenade); a long-lasting screen (the smoke pot) thins, so the ground it screens shrinks before it
+ *                    hand grenade); a long-lasting screen thins, so the ground it screens shrinks before it
  *                    is gone and a planner may count on it at full size only until the thin begins.
  */
 public record SmokeGrenadeSpec(

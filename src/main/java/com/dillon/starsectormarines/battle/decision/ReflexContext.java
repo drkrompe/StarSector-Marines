@@ -12,10 +12,10 @@ package com.dillon.starsectormarines.battle.decision;
  *
  * @param opportunityFirePermitted whether the unit's assigned step tolerates
  *        opportunistic special-equipment fire. A move-only coordinated role
- *        withholds it, because satchel, frag, deployable and close-contact each
+ *        withholds it, because satchel, frag and deployable each
  *        spend a squad resource or freeze the carrier mid-bound. False also
- *        narrows rather than silences: the hardened-target and onset-screen
- *        reflexes exist for exactly that case.
+ *        narrows rather than silences: the hardened-target reflex exists for
+ *        exactly that case.
  */
 public record ReflexContext(boolean opportunityFirePermitted) {
 
