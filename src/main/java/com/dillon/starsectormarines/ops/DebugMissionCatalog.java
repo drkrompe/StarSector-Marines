@@ -203,6 +203,9 @@ public final class DebugMissionCatalog {
                     + (serviceRifles ? " / service pulse rifles / starting Ward armor / no officer bonuses" : "");
         }
     }
+    /** Every debug mission lifts the company as the campaign does: the two Hermes the company ship carries. */
+    private static final ShuttleType CAMPAIGN_LIFT = ShuttleType.HERMES;
+    private static final int CAMPAIGN_LIFT_BOATS = 2;
     private DebugMissionCatalog() { }
     public static Scenario scenario(Mission m) {
         return m == null ? null : scenario(m.id, m.source);
@@ -215,7 +218,7 @@ public final class DebugMissionCatalog {
     public static Preset preset(Mission m) {
         Scenario story = scenario(m);
         if (story != null) return new Preset(DebugCompanyStage.FIRST_CONTRACT, story.squads,
-                story.hound ? 1 : 0, ShuttleType.AEROSHUTTLE, story.opening() ? 1 : 2, true, story == Scenario.WORKING_PASSAGE);
+                story.hound ? 1 : 0, CAMPAIGN_LIFT, CAMPAIGN_LIFT_BOATS, true, story == Scenario.WORKING_PASSAGE);
         DebugCompanyStage stage = switch (m.tier) {
             case FIRST_CONTRACT -> DebugCompanyStage.FIRST_CONTRACT;
             case ESTABLISHED -> DebugCompanyStage.ESTABLISHED;
@@ -224,8 +227,7 @@ public final class DebugMissionCatalog {
             case FULL_STRENGTH -> DebugCompanyStage.FULL_STRENGTH;
         };
         return new Preset(stage, MissionForceEnvelope.recommendedSquads(m), stage.mechs,
-                m.type == MissionType.CONQUEST ? ShuttleType.AEROSHUTTLE : ShuttleType.VALKYRIE,
-                m.type == MissionType.CONQUEST ? 6 : 2, false, false);
+                CAMPAIGN_LIFT, CAMPAIGN_LIFT_BOATS, false, false);
     }
     public static List<Mission> missions(PlanetAPI planet) {
         List<Mission> result = new ArrayList<>();
