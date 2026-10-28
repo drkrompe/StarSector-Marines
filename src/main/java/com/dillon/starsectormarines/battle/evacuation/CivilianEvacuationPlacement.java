@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
+import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LandingKind;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -40,6 +41,8 @@ public final class CivilianEvacuationPlacement {
      * berth's own half-width, so the wall stands beside the company's berths and never round them.
      */
     public static final int CORDON_FIELD_CLEARANCE = LandingKind.BERTH_REACH + PickupCordonWorks.WALL + 3;
+    /** Cells round an authored lift searched for a clear pickup site ({@code story-map-pools.md}, The patch). */
+    static final int AUTHORED_LIFT_REACH = 12;
 
     public final int shelterX;
     public final int shelterY;
@@ -107,6 +110,21 @@ public final class CivilianEvacuationPlacement {
             NavigationGrid grid, CellTopology topology,
             List<PointOfInterest> pointsOfInterest, long seed,
             int representativeCount, FieldOfFire field) {
+        return find(grid, topology, pointsOfInterest, seed, representativeCount, field, null);
+    }
+
+    /**
+     * As {@link #find(NavigationGrid, CellTopology, List, long, int, FieldOfFire)}, with the lift where a person put
+     * it ({@code story-map-pools.md}, The patch): the clear pickup site nearest {@code lift} within
+     * {@link #AUTHORED_LIFT_REACH} cells that the shelter walks to and that seats a formation. None of the field's
+     * rules apply, and there is no fallback: a shelter with no such site near the authored cell has no placement.
+     *
+     * @param lift the authored lift cell, or {@code null} to choose one
+     */
+    public static CivilianEvacuationPlacement find(
+            NavigationGrid grid, CellTopology topology,
+            List<PointOfInterest> pointsOfInterest, long seed,
+            int representativeCount, FieldOfFire field, MapPatch.Cell lift) {
         if (representativeCount <= 0) return null;
         if (grid == null || topology == null
                 || pointsOfInterest == null) return null;
@@ -131,7 +149,7 @@ public final class CivilianEvacuationPlacement {
                     (start + offset) % shelters.size());
             CivilianEvacuationPlacement placement =
                     forShelter(grid, topology, shelter,
-                            representativeCount, field);
+                            representativeCount, field, lift);
             if (placement != null) return placement;
         }
         return null;
@@ -190,12 +208,17 @@ public final class CivilianEvacuationPlacement {
     private static CivilianEvacuationPlacement forShelter(
             NavigationGrid grid, CellTopology topology,
             PointOfInterest shelter,
-            int representativeCount, FieldOfFire field) {
+            int representativeCount, FieldOfFire field, MapPatch.Cell authored) {
         int sx = shelter.interiorAnchorX;
         int sy = shelter.interiorAnchorY;
-        LiftSite lift = field == null ? null : cordonedFieldLift(grid, topology, field, sx, sy);
-        if (lift == null && field != null) lift = nearestFieldLift(grid, topology, field, sx, sy);
-        if (lift == null) lift = farthestReachableLift(grid, topology, sx, sy);
+        LiftSite lift;
+        if (authored != null) {
+            lift = nearestLiftTo(grid, topology, authored.x(), authored.y(), sx, sy);
+        } else {
+            lift = field == null ? null : cordonedFieldLift(grid, topology, field, sx, sy);
+            if (lift == null && field != null) lift = nearestFieldLift(grid, topology, field, sx, sy);
+            if (lift == null) lift = farthestReachableLift(grid, topology, sx, sy);
+        }
         if (lift == null) return null;
         int[] spawns = reachableSpawnCells(
                 grid, shelter, sx, sy, lift.x, lift.y,
@@ -290,6 +313,34 @@ public final class CivilianEvacuationPlacement {
                         || !field.inCountry(x, y - reach, w, h) || !field.inCountry(x, y + reach, w, h)) continue;
                 if (!clearLiftFootprint(grid, topology, x, y)) continue;
                 sites.add(new int[]{x, y, Math.abs(x - sx) + Math.abs(y - sy)});
+            }
+        }
+        sites.sort(Comparator.<int[]>comparingInt(site -> site[2])
+                .thenComparingInt(site -> site[1])
+                .thenComparingInt(site -> site[0]));
+        for (int[] site : sites) {
+            if (Paths.isEmpty(GridPathfinder.findPath(grid, sx, sy, site[0], site[1]))) continue;
+            int[] formation = formationCells(grid, site[0], site[1], formationRadius);
+            if (formation == null) continue;
+            return new LiftSite(site[0], site[1], formationRadius, formation);
+        }
+        return null;
+    }
+
+    /**
+     * The clear pickup site nearest ({@code ax}, {@code ay}) within {@link #AUTHORED_LIFT_REACH} cells that the
+     * shelter can walk to and that seats a formation, or {@code null}. Nearest by straight line, ties toward the low
+     * corner.
+     */
+    private static LiftSite nearestLiftTo(NavigationGrid grid, CellTopology topology,
+                                          int ax, int ay, int sx, int sy) {
+        int formationRadius = formationRadius(grid), reach = AUTHORED_LIFT_REACH;
+        List<int[]> sites = new ArrayList<>();
+        for (int y = ay - reach; y <= ay + reach; y++) {
+            for (int x = ax - reach; x <= ax + reach; x++) {
+                int dx = x - ax, dy = y - ay, distance = dx * dx + dy * dy;
+                if (distance > reach * reach || !clearLiftFootprint(grid, topology, x, y)) continue;
+                sites.add(new int[]{x, y, distance});
             }
         }
         sites.sort(Comparator.<int[]>comparingInt(site -> site[2])

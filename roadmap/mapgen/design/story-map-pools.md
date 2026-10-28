@@ -7,7 +7,7 @@ and skirmish stay fully random.
 
 Written: 2026-10-23
 
-Updated: 2026-10-26 — Colony Breach plays from a pool of one map per biome.
+Updated: 2026-10-28 — a Colony Breach patch places the lift, bores and holdouts. Earlier: Colony Breach plays from a pool of one map per biome.
 
 A story mission's map is the generator's, but the mission does not take any
 seed the dice offer. It plays from a **pool**: for each world biome, a short,
@@ -82,7 +82,8 @@ plays the four maps a player can get. A pooled colony is generated on its
 world's biome alone, never on the market behind it, with no re-roll; a pooled
 seed that no longer seats its shelter, lift, bores, holdouts and opening swarm
 fails, in the campaign and in the regeneration check alike. Its entries take
-no patch yet. The debug stress test and the lower-risk rescues stay random.
+no pin or ruin yet, only the colony's own placements (The patch, below). The
+debug stress test and the lower-risk rescues stay random.
 The first four were screened from seeds 1 to 40 (18 pass, on any biome alike:
 the palette does not move the colony's layout): a different seed per biome,
 each with at least two holdouts and the widest room between holdouts and bores.
@@ -158,8 +159,23 @@ map-editing path:
 A ruin is applied after the setup's map tests run, so it **cannot make a
 failing seed pass**: a seed must pass acceptance on its own (with its pins).
 Ruin is polish on a good map, not rescue for a bad one. Moving a place is a
-pin; there is no op to add a building, road or bore, because a map that needs
-one is a map to swap out.
+pin; there is no op to add a building or road, because a map that needs one is
+a map to swap out.
+
+A Colony Breach entry places the mission's own pieces on the generated map
+instead (`colony-breach-nouns.md`, The colony), each in cells read off the map:
+
+- **`lift`** `[x, y]`: the evac lift and its cordon, on the clear pickup site
+  nearest the cell (within 12 cells).
+- **`bores`** `[{x, y, mother?}]`: the first wave in eruption order and exactly
+  one mother, each on the doorstep of the place nearest it (within 10 cells) or
+  else on the open ground nearest it (within 16).
+- **`holdouts`** `[[x, y]]`: in redoubt order, the held building each cell falls
+  inside.
+
+They replace the setup's choices and its clearances; a placement that cannot
+seat fails the map like any other acceptance. Asharu's ARID entry is placed
+this way from the owner's Asharu Placement Board (`tools/picks/pages.md`).
 
 Patches are authored in the pool file, in cell coordinates read off the
 pool's whole-map review frames (`createSnapshots -Psnapshot=story-map-pools`).

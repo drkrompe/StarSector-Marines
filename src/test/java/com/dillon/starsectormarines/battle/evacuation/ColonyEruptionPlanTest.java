@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
 
@@ -9,6 +10,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ColonyEruptionPlanTest {
@@ -170,6 +172,37 @@ class ColonyEruptionPlanTest {
                 }
             }
         }
+    }
+
+    @Test
+    void authoredBoresStandWhereTheyWerePutAndNoObjectiveMovesThem() {
+        ColonyEruptionPlan plan = ColonyEruptionPlan.select(colony(List.of()), ColonyEruptionPlan.FIRST_WAVE_SITES, 11L);
+        // Near a place's doorstep; out past every place, onto the one open cell near it; and the mother.
+        ColonyEruptionPlan authored = plan.seatedAt(List.of(new MapPatch.Bore(100, 50, false),
+                        new MapPatch.Bore(200, 200, true), new MapPatch.Bore(399, 239, false)),
+                (x, y) -> x == 397 && y == 236);
+
+        assertTrue(authored.isComplete());
+        List<ColonyEruptionPlan.Site> sites = authored.sites();
+        assertEquals(List.of(1, 2, 0), List.of(sites.get(0).number(), sites.get(1).number(), sites.get(2).number()),
+                "the first wave in the order written, then the mother");
+        assertEquals(List.of(102, 54), List.of(sites.get(0).x(), sites.get(0).y()));
+        assertEquals(PointOfInterest.Kind.RESIDENTIAL, sites.get(0).placeKind());
+        assertEquals(List.of(397, 236), List.of(sites.get(1).x(), sites.get(1).y()));
+        assertEquals(0, sites.get(1).delayTicks(), "open at landfall");
+        assertEquals(List.of(198, 198), List.of(sites.get(2).x(), sites.get(2).y()));
+        assertTrue(sites.get(2).mother() && sites.get(2).delayTicks() > 0, "the mother comes later");
+        for (int[] place : authored.places()) {
+            assertFalse(place[0] == 102 && place[1] == 54, "an authored site's place offered again");
+        }
+        assertEquals(sites, authored.clearOf(102, 54, 80).sites(), "an objective's ring leaves authored bores");
+    }
+
+    @Test
+    void anAuthoredBoreWithNoGroundNearItIsAnAuthoringError() {
+        ColonyEruptionPlan plan = ColonyEruptionPlan.select(colony(List.of()), ColonyEruptionPlan.FIRST_WAVE_SITES, 11L);
+        assertThrows(IllegalStateException.class, () -> plan.seatedAt(
+                List.of(new MapPatch.Bore(399, 239, true)), (x, y) -> false));
     }
 
     @Test

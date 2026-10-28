@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
@@ -51,7 +52,7 @@ public final class CivilianEvacuationPayload {
         return map == null ? null
                 : install(sim, map.pointsOfInterest, seed, V1_TYPES.length, true,
                 CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
-                "civilian cohort", map.fieldOfFire);
+                "civilian cohort", map.fieldOfFire, null);
     }
 
     public static CivilianEvacuationPayload install(
@@ -61,7 +62,7 @@ public final class CivilianEvacuationPayload {
                 : install(sim, map.pointsOfInterest, seed,
                 representativeCount, requireAnyEvacuated,
                 CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
-                "civilian cohort", map.fieldOfFire);
+                "civilian cohort", map.fieldOfFire, null);
     }
 
     public static CivilianEvacuationPayload install(
@@ -71,7 +72,7 @@ public final class CivilianEvacuationPayload {
         return map == null ? null
                 : install(sim, map.pointsOfInterest, seed,
                 representativeCount, requireAnyEvacuated,
-                payloadId, payloadName, map.fieldOfFire);
+                payloadId, payloadName, map.fieldOfFire, null);
     }
 
     public static CivilianEvacuationPayload install(
@@ -79,16 +80,23 @@ public final class CivilianEvacuationPayload {
             long seed) {
         return install(sim, pointsOfInterest, seed, V1_TYPES.length, true,
                 CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
-                "civilian cohort", null);
+                "civilian cohort", null, null);
     }
 
     /** As {@link #install(BattleSimulation, List, long)}, with the lift beside the company's landing field when there is one. */
     public static CivilianEvacuationPayload install(
             BattleSimulation sim, List<PointOfInterest> pointsOfInterest,
             long seed, FieldOfFire field) {
+        return install(sim, pointsOfInterest, seed, field, null);
+    }
+
+    /** As {@link #install(BattleSimulation, List, long, FieldOfFire)}, with the lift at an authored cell when one is given. */
+    public static CivilianEvacuationPayload install(
+            BattleSimulation sim, List<PointOfInterest> pointsOfInterest,
+            long seed, FieldOfFire field, MapPatch.Cell lift) {
         return install(sim, pointsOfInterest, seed, V1_TYPES.length, true,
                 CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
-                "civilian cohort", field);
+                "civilian cohort", field, lift);
     }
 
     public static CivilianEvacuationPayload install(
@@ -98,14 +106,14 @@ public final class CivilianEvacuationPayload {
         return install(sim, pointsOfInterest, seed, representativeCount,
                 requireAnyEvacuated,
                 CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
-                "civilian cohort", null);
+                "civilian cohort", null, null);
     }
 
     private static CivilianEvacuationPayload install(
             BattleSimulation sim, List<PointOfInterest> pointsOfInterest,
             long seed, int representativeCount,
             boolean requireAnyEvacuated, String payloadId,
-            String payloadName, FieldOfFire field) {
+            String payloadName, FieldOfFire field, MapPatch.Cell lift) {
         if (sim == null) return null;
         CivilianEvacuationTracker tracker =
                 sim.getCivilianEvacuationTracker();
@@ -114,7 +122,7 @@ public final class CivilianEvacuationPayload {
         CivilianEvacuationPlacement placement =
                 CivilianEvacuationPlacement.find(
                         sim.getGrid(), sim.getTopology(), pointsOfInterest, seed,
-                        representativeCount, field);
+                        representativeCount, field, lift);
         if (placement == null
                 || placement.spawnCount() != representativeCount
                 || tracker.expectedCount() != representativeCount) {

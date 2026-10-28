@@ -38,6 +38,18 @@ class StoryMapPoolTest {
         assertThrows(IllegalArgumentException.class, () -> patch.pinned(plan));
     }
 
+    @Test
+    void aColonyPatchReadsItsLiftBoresAndHoldoutsAndNamesOneMother() throws Exception {
+        MapPatch patch = MapPatch.read(new JSONObject("{\"lift\":[164,24],\"bores\":[{\"x\":30,\"y\":40},"
+                + "{\"x\":50,\"y\":60,\"mother\":true}],\"holdouts\":[[69,83]]}"));
+        assertEquals(new MapPatch.Cell(164, 24), patch.lift());
+        assertEquals(List.of(new MapPatch.Bore(30, 40, false), new MapPatch.Bore(50, 60, true)), patch.bores());
+        assertEquals(List.of(new MapPatch.Cell(69, 83)), patch.holdouts());
+        assertNull(MapPatch.NONE.lift());
+        assertThrows(IllegalArgumentException.class, () -> MapPatch.read(new JSONObject(
+                "{\"bores\":[{\"x\":30,\"y\":40},{\"x\":50,\"y\":60}]}")));
+    }
+
     private static String pool(String map, String verdant) {
         return "{\"version\":2,\"map\":\"" + map + "\",\"biomes\":{\"VERDANT\":" + verdant
                 + ",\"ROCK\":[{\"seed\":1}],\"ARID\":[{\"seed\":1}],\"FROZEN\":[{\"seed\":1}]}}";

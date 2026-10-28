@@ -180,6 +180,7 @@ import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.PlacementGuards;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
+import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPool;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMapPools;
@@ -2982,8 +2983,10 @@ public final class BattleSetup {
             TargetProfile profile, boolean stressTest, HivePosture posture, int liftHardpoints,
             StoryMapPool.Entry pooled) {
         boolean colony = isColonyBreachColony(risk, stressTest);
-        if (pooled != null && !pooled.patch().isEmpty()) {
-            throw new IllegalStateException("a Colony Breach pool entry takes no patch yet: seed " + seed);
+        // A pooled colony's patch places its lift, bores and holdouts; it pins no precinct and ruins nothing yet.
+        MapPatch patch = pooled == null ? MapPatch.NONE : pooled.patch();
+        if (!patch.pins().isEmpty() || !patch.ruin().isEmpty()) {
+            throw new IllegalStateException("a Colony Breach pool entry takes no pin or ruin yet: seed " + seed);
         }
         TargetProfile mapProfile = pooled != null ? BloomHeartSetup.world(surfaceOrRock(profile)) : profile;
         if (colony && mapProfile != null) {
@@ -3030,9 +3033,9 @@ public final class BattleSetup {
             // declared; deriving one from the same mechs would field them twice.
             if (profile != null) sim.setMechDrops(new MechDropService(profile.declaredMechDrops()));
 
-            // The colony's lift stands beside the landing field, its cordon clear of the berths.
+            // The colony's lift stands beside the landing field, its cordon clear of the berths, or where the patch puts it.
             CivilianEvacuationPayload payload =
-                    CivilianEvacuationPayload.install(sim, shelters, battleSeed, map.fieldOfFire);
+                    CivilianEvacuationPayload.install(sim, shelters, battleSeed, map.fieldOfFire, patch.lift());
             why = "no shelter-to-lift payload";
             if (payload == null) continue;
             sim.setAutonomousCommander(Faction.MARINE,
@@ -3079,13 +3082,13 @@ public final class BattleSetup {
             // whose holdouts are chosen clear of its bores.
             ColonyEruptionPlan eruption = stressTest ? null : ColonyEruptionPlan.forColony(
                     sim.getGrid(), sim.getTopology(), map.pointsOfInterest,
-                    payload.placement, lzCells, battleSeed ^ ERUPTION_SEED_SALT);
+                    payload.placement, lzCells, battleSeed ^ ERUPTION_SEED_SALT, patch.bores());
             why = "the bores do not seat";
             if (colony && eruption != null && !eruption.isComplete()) continue;
             // The colony's militia: the shelter guard always, and on the colony
             // map a few held buildings, their emplacements and technicals.
             if (ColonyMilitia.install(sim, map, payload.placement, lzCells,
-                    risk, battleSeed, colony, eruption == null ? List.of() : eruption.sites()) == null) {
+                    risk, battleSeed, colony, eruption == null ? List.of() : eruption.sites(), patch.holdouts()) == null) {
                 why = "the militia and holdouts do not seat";
                 continue;
             }

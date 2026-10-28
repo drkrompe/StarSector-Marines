@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.evacuation;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
@@ -73,6 +74,15 @@ public final class ColonyEruptionPlan {
     static final int CORRIDOR_SPACINGS = 2;
     /** Cells of open ground searched around a building's door for a site. */
     private static final int DOORSTEP_RADIUS = 3;
+    /** Cells round an authored bore searched for a place's doorstep to stand on ({@link #seatedAt}). */
+    static final int AUTHORED_PLACE_REACH = 10;
+    /** Cells round an authored bore searched for open ground where no place is near ({@link #seatedAt}). */
+    static final int AUTHORED_GROUND_REACH = 16;
+
+    /** Whether a cell is open ground a bore could come up on: walkable, outdoors, and walkable to the shelter. */
+    public interface Ground {
+        boolean open(int x, int y);
+    }
 
     private final List<Site> sites;
     private final int requestedFirstWave;
@@ -81,9 +91,12 @@ public final class ColonyEruptionPlan {
     /** The walk in: from the landing field ({@code fieldX}, {@code fieldY}) along the unit ({@code inX}, {@code inY}). */
     private final float fieldX, fieldY, inX, inY;
     private final int corridor;
+    /** Whether the sites are where a person put them, so nothing re-seats them. */
+    private final boolean authored;
 
     private ColonyEruptionPlan(List<Site> sites, int requestedFirstWave, List<int[]> places, int heartX, int heartY,
-                               int spacing, float fieldX, float fieldY, float inX, float inY, int corridor) {
+                               int spacing, float fieldX, float fieldY, float inX, float inY, int corridor,
+                               boolean authored) {
         this.sites = List.copyOf(sites);
         this.requestedFirstWave = requestedFirstWave;
         this.places = List.copyOf(places);
@@ -95,6 +108,7 @@ public final class ColonyEruptionPlan {
         this.inX = inX;
         this.inY = inY;
         this.corridor = corridor;
+        this.authored = authored;
     }
 
     /** Whether a cell stands at least {@link #corridor} cells off the walk in from the field to the shelter. */
@@ -144,7 +158,7 @@ public final class ColonyEruptionPlan {
             if (!near) free.add(p);
         }
         return new ColonyEruptionPlan(sites, requestedFirstWave, free, heartX, heartY, spacing,
-                fieldX, fieldY, inX, inY, corridor);
+                fieldX, fieldY, inX, inY, corridor, authored);
     }
 
     /**
@@ -152,13 +166,14 @@ public final class ColonyEruptionPlan {
      * own bore: a site inside the ring is re-seated at the place outside it nearest where it stood, spaced from
      * the other sites, keeping its number, role and delay (a site with no such place stays put); a first-wave
      * site keeps off the walk in from the field as {@link #select} seats it, taking a place on the walk only where
-     * there is none off it. No place inside the ring is left to bud on.
+     * there is none off it. Authored sites ({@link #seatedAt}) stay where they were put. No place inside the ring
+     * is left to bud on.
      */
     public ColonyEruptionPlan clearOf(int x, int y, int radius) {
         List<int[]> free = new ArrayList<>();
         for (int[] p : places) if (!within(p[0], p[1], x, y, radius)) free.add(p);
         List<Site> seated = new ArrayList<>(sites);
-        for (int i = 0; i < seated.size(); i++) {
+        for (int i = 0; i < seated.size() && !authored; i++) {
             Site site = seated.get(i);
             if (!within(site.x(), site.y(), x, y, radius)) continue;
             List<int[]> others = new ArrayList<>();
@@ -170,7 +185,71 @@ public final class ColonyEruptionPlan {
             seated.set(i, new Site(site.number(), best[0], best[1], site.role(), site.delayTicks(), kind(best[2])));
         }
         return new ColonyEruptionPlan(seated, requestedFirstWave, free, heartX, heartY, spacing,
-                fieldX, fieldY, inX, inY, corridor);
+                fieldX, fieldY, inX, inY, corridor, authored);
+    }
+
+    /**
+     * This plan with its sites where a person put them (a pooled colony's patch, {@code story-map-pools.md}): each
+     * authored bore stands on the doorstep of the place nearest it within {@link #AUTHORED_PLACE_REACH} cells, or
+     * else on the open ground nearest it within {@link #AUTHORED_GROUND_REACH}; the first wave is numbered in the
+     * order written and open at landfall, the mother opening when {@link #select}'s would. None of the selection's
+     * clearances apply, since the author's placement stands, and a side objective's ring ({@link #clearOf}) no
+     * longer moves them. Every place no authored site took stays to bud on.
+     *
+     * @throws IllegalStateException where an authored bore has no ground near it
+     */
+    public ColonyEruptionPlan seatedAt(List<MapPatch.Bore> bores, Ground ground) {
+        List<int[]> free = new ArrayList<>(places);
+        for (Site site : sites) {
+            free.add(new int[]{site.x(), site.y(), site.placeKind() == null ? -1 : site.placeKind().ordinal()});
+        }
+        List<Site> seated = new ArrayList<>();
+        int number = 1;
+        for (MapPatch.Bore bore : bores) {
+            int[] at = nearestPlace(free, bore.x(), bore.y());
+            if (at != null) free.remove(at);
+            else at = nearestGround(ground, bore.x(), bore.y());
+            if (at == null) {
+                throw new IllegalStateException("no open ground within " + AUTHORED_GROUND_REACH
+                        + " cells of the bore authored at " + bore.x() + "," + bore.y());
+            }
+            seated.add(bore.mother()
+                    ? new Site(0, at[0], at[1], Role.MOTHER, seconds(MOTHER_ERUPTION_SECONDS), kind(at[2]))
+                    : new Site(number++, at[0], at[1], Role.FLANK, 0, kind(at[2])));
+        }
+        // Eruption order: the first wave by number, then the mother.
+        seated.sort(Comparator.comparing(Site::mother));
+        return new ColonyEruptionPlan(seated, number - 1, free, heartX, heartY, spacing,
+                fieldX, fieldY, inX, inY, corridor, true);
+    }
+
+    /** Of {@code free}, the place nearest ({@code x}, {@code y}) within {@link #AUTHORED_PLACE_REACH}, or null. */
+    private static int[] nearestPlace(List<int[]> free, int x, int y) {
+        int[] best = null;
+        int bestDistance = AUTHORED_PLACE_REACH * AUTHORED_PLACE_REACH + 1;
+        for (int[] p : free) {
+            int dx = p[0] - x, dy = p[1] - y, distance = dx * dx + dy * dy;
+            if (distance >= bestDistance) continue;
+            bestDistance = distance;
+            best = p;
+        }
+        return best;
+    }
+
+    /** The open cell nearest ({@code x}, {@code y}) within {@link #AUTHORED_GROUND_REACH}, ties to the low row; or null. */
+    private static int[] nearestGround(Ground ground, int x, int y) {
+        int reach = AUTHORED_GROUND_REACH;
+        int[] best = null;
+        int bestDistance = reach * reach + 1;
+        for (int cy = y - reach; cy <= y + reach; cy++) {
+            for (int cx = x - reach; cx <= x + reach; cx++) {
+                int dx = cx - x, dy = cy - y, distance = dx * dx + dy * dy;
+                if (distance >= bestDistance || !ground.open(cx, cy)) continue;
+                bestDistance = distance;
+                best = new int[]{cx, cy, -1};
+            }
+        }
+        return best;
     }
 
     /** Of {@code free}, the place nearest {@code site} spaced from {@code others}, off the walk if {@code offWalk}. */
@@ -228,14 +307,15 @@ public final class ColonyEruptionPlan {
     }
 
     /**
-     * Builds the geometry off a placed rescue and selects its sites.
+     * Builds the geometry off a placed rescue and selects its sites, or seats the authored ones ({@link #seatedAt}).
      *
-     * @param pads the marine landing pads; a site keeps clear of each
+     * @param pads     the marine landing pads; a selected site keeps clear of each
+     * @param authored the bores a pooled colony's patch puts down; empty to select them
      */
     public static ColonyEruptionPlan forColony(NavigationGrid grid, CellTopology topology,
                                                List<PointOfInterest> places,
                                                CivilianEvacuationPlacement placement,
-                                               List<LandingPad> pads, long seed) {
+                                               List<LandingPad> pads, long seed, List<MapPatch.Bore> authored) {
         boolean[] reachable = SwarmDefenseRoster.reachableFromShelter(grid, placement);
         List<int[]> candidates = new ArrayList<>();
         for (PointOfInterest place : places) {
@@ -250,10 +330,14 @@ public final class ColonyEruptionPlan {
         }
         List<int[]> landings = new ArrayList<>();
         if (pads != null) for (LandingPad pad : pads) landings.add(new int[]{pad.centerX, pad.centerY});
-        return select(new Geometry(grid.getWidth(), grid.getHeight(),
+        ColonyEruptionPlan plan = select(new Geometry(grid.getWidth(), grid.getHeight(),
                 placement.shelterX, placement.shelterY, placement.liftX, placement.liftY,
                 placement.formationRadius() + 2, candidates, landings),
                 FIRST_WAVE_SITES, seed);
+        if (authored.isEmpty()) return plan;
+        return plan.seatedAt(authored, (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y)
+                && !grid.isDoorway(x, y) && (topology == null || topology.getBuildingId(x, y) == 0)
+                && reachable[grid.index(x, y)]);
     }
 
     /**
@@ -429,7 +513,7 @@ public final class ColonyEruptionPlan {
         List<int[]> rest = new ArrayList<>();
         for (int[] c : eligible) if (!chosen.contains(c) && c != mother) rest.add(c);
         return new ColonyEruptionPlan(sites, firstWave, rest, g.shelterX(), g.shelterY(), spacing,
-                fx, fy, ux, uy, corridor);
+                fx, fy, ux, uy, corridor, false);
     }
 
     private static void takeSpaced(List<int[]> from, int wanted, List<int[]> chosen, int spacing) {
