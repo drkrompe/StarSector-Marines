@@ -7,19 +7,23 @@ import java.util.List;
  * Where a thing for sale belongs in the store: a {@link Section} and, within it, the slot of the
  * company's equipment it fills. The store page browses by these; nothing else reads them.
  *
- * <p>Marine kit is browsed by what a squad is issued (a weapon loadout or an armor loadout), the
- * mech bay by the kind of part (chassis, weapon, internal, vehicle, kit), and boats by the slot of
- * the boat a part goes into, plus the door guns.
+ * <p>Marine kit is browsed by what a squad is issued (a weapon loadout or an armor loadout). The
+ * mech bay is two sections: the chassis, a mech frame or a vehicle hull, and the parts mechs and
+ * vehicles share, browsed by what the part does (weapon, engine, armor, equipment: a vehicle kit is
+ * the vehicle's own take on the same equipment a mech's internals give). Boats are browsed by the
+ * slot of the boat a part goes into, plus the door guns.
  */
 public enum StoreSlot {
     WEAPON_LOADOUT(Section.MARINE),
     ARMOR_LOADOUT(Section.MARINE),
 
-    MECH_CHASSIS(Section.MECHS),
-    MECH_WEAPON(Section.MECHS),
-    MECH_INTERNAL(Section.MECHS),
-    VEHICLE(Section.MECHS),
-    VEHICLE_KIT(Section.MECHS),
+    MECH_CHASSIS(Section.CHASSIS),
+    VEHICLE(Section.CHASSIS),
+
+    PART_WEAPON(Section.PARTS),
+    PART_ENGINE(Section.PARTS),
+    PART_ARMOR(Section.PARTS),
+    PART_EQUIPMENT(Section.PARTS),
 
     BOAT_PLATING(Section.BOATS),
     BOAT_DRIVE(Section.BOATS),
@@ -29,8 +33,8 @@ public enum StoreSlot {
     BOAT_POWER(Section.BOATS),
     BOAT_GUN(Section.BOATS);
 
-    /** The three kinds of equipment the company buys. */
-    public enum Section { MARINE, MECHS, BOATS }
+    /** The four kinds of equipment the company buys. */
+    public enum Section { MARINE, CHASSIS, PARTS, BOATS }
 
     private final Section section;
 
@@ -64,10 +68,14 @@ public enum StoreSlot {
                 if (pattern == null) return null;
                 return switch (pattern.kind()) {
                     case CHASSIS -> MECH_CHASSIS;
-                    case WEAPON -> MECH_WEAPON;
-                    case INTERNAL -> MECH_INTERNAL;
                     case VEHICLE -> VEHICLE;
-                    case KIT -> VEHICLE_KIT;
+                    case WEAPON -> PART_WEAPON;
+                    case INTERNAL -> switch (pattern.internal().role) {
+                        case ENGINE -> PART_ENGINE;
+                        case PLATING -> PART_ARMOR;
+                        default -> PART_EQUIPMENT;
+                    };
+                    case KIT -> PART_EQUIPMENT;
                 };
             }
             case BOAT_PART -> {
