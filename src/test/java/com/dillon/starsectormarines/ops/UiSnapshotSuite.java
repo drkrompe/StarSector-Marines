@@ -2049,7 +2049,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 SpecSheetBinder hints = new SpecSheetBinder(document, SpecSheetLayer.install(document), true);
                 BarracksCardBindings bindings = new BarracksCardBindings();
                 bindings.update(document, instance, viewModel, hints);
-                if (state.startsWith("call-")) dressMissionCall(instance.requireElement("barracks-missions"), state);
                 images.add(new SnapshotArtifact("barracks-" + state + "-1920x1080.png",
                         renderGuidedBarracks(renderer, document, guide, 1920, 1080, 1f)));
                 if (state.startsWith("dossier") || state.startsWith("guide")) {
@@ -2345,19 +2344,6 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         instance.flush();
         // Let the production selection/disabled transitions reach the new state.
         document.advance(0.25f);
-    }
-
-    /**
-     * The looks put to the owner for a calling mission button, beside the shipped primary
-     * green: a gold accent, and the bright phase of a slow pulse on the green.
-     */
-    private static void dressMissionCall(UiElement button, String state) {
-        if (!button.hasClass("mission-call")) return;
-        if (state.endsWith("-gold")) {
-            button.style("background-color: #3a3120; border-color: #e0b15c; color: #ffd464;");
-        } else if (state.endsWith("-pulse")) {
-            button.style("background-color: #24704a; border-color: #c4ffd6; color: #f4ecc8;");
-        }
     }
 
     private static BufferedImage renderBarracks(
