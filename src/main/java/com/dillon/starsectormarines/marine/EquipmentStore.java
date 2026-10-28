@@ -31,8 +31,9 @@ import java.util.Set;
 public final class EquipmentStore {
 
     /**
-     * What one card costs before the market's tariff. It is the base price the card items carried
-     * on the open market ({@code special_items.csv}), so the store charges what the shelf did.
+     * What a Common card costs before the market's tariff. It is the base price the card items
+     * carried on the open market ({@code special_items.csv}), so a Common card costs what the shelf
+     * charged; higher tiers are a multiple of it ({@link #tierMultiplier}).
      */
     public static final int BASE_PRICE = 5000;
 
@@ -73,9 +74,42 @@ public final class EquipmentStore {
         return relationship != null && relationship.isAtWorst(MIN_LICENSE_RELATIONSHIP);
     }
 
-    /** The price at a market charging {@code tariff} on top of the base price. */
-    public static long price(float tariff) {
-        return Math.max(1L, Math.round(BASE_PRICE * (1.0 + Math.max(0f, tariff))));
+    /**
+     * How many base prices a card of {@code tier} costs: the scarcer the kit, the more the port asks
+     * for teaching it. Restricted kit is only ever on a shelf through a warrant, and is priced as the
+     * dearest of all.
+     */
+    public static int tierMultiplier(EquipmentAccessTier tier) {
+        if (tier == null) return 1;
+        return switch (tier) {
+            case COMMON -> 1;
+            case ADVANCED -> 2;
+            case PRESTIGE -> 4;
+            case RESTRICTED -> 6;
+        };
+    }
+
+    /** The price of a {@code tier} card at a market charging {@code tariff} on top of the tier's price. */
+    public static long price(EquipmentAccessTier tier, float tariff) {
+        return Math.max(1L, Math.round(BASE_PRICE * (double) tierMultiplier(tier)
+                * (1.0 + Math.max(0f, tariff))));
+    }
+
+    private static EquipmentAccessTier tierOf(Kind kind, String id) {
+        return switch (kind) {
+            case LOADOUT -> {
+                LoadoutCard card = LoadoutCard.parse(id);
+                yield card == null ? null : card.accessTier();
+            }
+            case MECH_PATTERN -> {
+                MechPattern pattern = MechPattern.parse(id);
+                yield pattern == null ? null : pattern.accessTier();
+            }
+        };
+    }
+
+    private static Offer offer(Kind kind, String id, Shelf shelf, float tariff) {
+        return new Offer(kind, id, shelf, price(tierOf(kind, id), tariff));
     }
 
     /**
@@ -87,17 +121,16 @@ public final class EquipmentStore {
                                     Set<String> unavailableCardIds, Set<String> unavailablePatternIds,
                                     EquipmentAcquisitionEligibility.Progress progress,
                                     List<String> listedCardIds) {
-        long price = price(place.tariff());
         FactionEquipmentMarketStockPlanner.StockPlan plan = FactionEquipmentMarketStockPlanner.plan(
                 place.factionId(), place.marketId(), place.size(), rotation, place.licensed(),
                 unavailableCardIds, progress, listedCardIds);
         List<Offer> offers = new ArrayList<>();
-        for (String id : plan.listedCardIds()) offers.add(new Offer(Kind.LOADOUT, id, Shelf.LISTED, price));
-        for (String id : plan.marketCardIds()) offers.add(new Offer(Kind.LOADOUT, id, Shelf.MARKET, price));
-        for (String id : plan.licensedCardIds()) offers.add(new Offer(Kind.LOADOUT, id, Shelf.LICENSE, price));
+        for (String id : plan.listedCardIds()) offers.add(offer(Kind.LOADOUT, id, Shelf.LISTED, place.tariff()));
+        for (String id : plan.marketCardIds()) offers.add(offer(Kind.LOADOUT, id, Shelf.MARKET, place.tariff()));
+        for (String id : plan.licensedCardIds()) offers.add(offer(Kind.LOADOUT, id, Shelf.LICENSE, place.tariff()));
         for (String id : FactionEquipmentMarketStockPlanner.mechPattern(place.factionId(), place.marketId(),
                 place.size(), place.military(), rotation, place.licensed(), unavailablePatternIds, progress)) {
-            offers.add(new Offer(Kind.MECH_PATTERN, id, Shelf.MARKET, price));
+            offers.add(offer(Kind.MECH_PATTERN, id, Shelf.MARKET, place.tariff()));
         }
         return List.copyOf(offers);
     }

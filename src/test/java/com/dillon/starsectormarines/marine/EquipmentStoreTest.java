@@ -15,10 +15,19 @@ class EquipmentStoreTest {
             new EquipmentAcquisitionEligibility.Progress(15, 20);
 
     @Test
-    void priceAddsTheMarketTariffToTheBasePrice() {
-        assertEquals(EquipmentStore.BASE_PRICE, EquipmentStore.price(0f));
-        assertEquals(6500, EquipmentStore.price(0.3f));
-        assertEquals(EquipmentStore.BASE_PRICE, EquipmentStore.price(-1f), "a negative tariff is no discount");
+    void priceScalesWithTheAccessTierAndTheMarketTariff() {
+        assertEquals(EquipmentStore.BASE_PRICE, EquipmentStore.price(EquipmentAccessTier.COMMON, 0f));
+        assertEquals(6500, EquipmentStore.price(EquipmentAccessTier.COMMON, 0.3f));
+        assertEquals(13_000, EquipmentStore.price(EquipmentAccessTier.ADVANCED, 0.3f));
+        assertEquals(26_000, EquipmentStore.price(EquipmentAccessTier.PRESTIGE, 0.3f));
+        assertEquals(39_000, EquipmentStore.price(EquipmentAccessTier.RESTRICTED, 0.3f));
+        assertEquals(EquipmentStore.BASE_PRICE, EquipmentStore.price(EquipmentAccessTier.COMMON, -1f),
+                "a negative tariff is no discount");
+        long previous = 0;
+        for (EquipmentAccessTier tier : EquipmentAccessTier.values()) {
+            assertTrue(EquipmentStore.price(tier, 0.3f) > previous, "a scarcer tier costs more: " + tier);
+            previous = EquipmentStore.price(tier, 0.3f);
+        }
     }
 
     @Test
@@ -35,7 +44,11 @@ class EquipmentStoreTest {
         assertTrue(shelf.stream().anyMatch(o -> o.shelf() == EquipmentStore.Shelf.LICENSE));
         assertTrue(shelf.stream().anyMatch(o -> o.kind() == EquipmentStore.Kind.MECH_PATTERN),
                 "a military market carries a mech pattern");
-        assertTrue(shelf.stream().allMatch(o -> o.price() == 6500));
+        for (EquipmentStore.Offer o : shelf) {
+            EquipmentAccessTier tier = o.kind() == EquipmentStore.Kind.LOADOUT
+                    ? LoadoutCard.parse(o.id()).accessTier() : MechPattern.parse(o.id()).accessTier();
+            assertEquals(EquipmentStore.price(tier, 0.3f), o.price(), o.id());
+        }
         assertEquals(shelf, EquipmentStore.shelf(place, 30L, Set.of(), Set.of(), FULL_ACCESS,
                 List.of(listedId)), "the shelf is stable within a month");
     }

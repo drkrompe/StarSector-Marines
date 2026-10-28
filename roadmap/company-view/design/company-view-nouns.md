@@ -883,8 +883,9 @@ planet behind it, from the campaign map, it is closed.
 
 The shelf is `EquipmentStore.shelf`: listed cards, the open market's monthly rotation,
 the licensed rotation and the one mech pattern slot, chosen by the same planner and
-eligibility rules the open market used. A purchase pays the market's base price plus its
-open-market tariff from the company purse and teaches the Armory or the Mech Bay
+eligibility rules the open market used. A purchase pays from the company purse a price set
+by the item's access tier (Common one base price of 5,000; Advanced twice, Prestige four
+times, Restricted six times) plus the market's open-market tariff, and teaches the Armory or the Mech Bay
 directly; nothing is carried and nothing is charged for a card already known. Cards
 that arrive by patron, salvage or story are still cargo, learned by right-click. An item
 bought during a visit stays on the shelf, marked acquired, until the page is next
