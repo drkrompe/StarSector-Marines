@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.testsupport.TaughtBoatDecks;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.ops.fitting.FittingMeter;
 import com.dillon.starsectormarines.ops.fitting.FittingFilterPill;
@@ -34,7 +35,7 @@ class BoatDeckViewModelTest {
 
     @Test
     void theHermesOffersEverySocketAndAFrameMeter() {
-        BoatDeck boats = new BoatDeck();
+        BoatDeck boats = TaughtBoatDecks.taught(new BoatDeck());
         boats.reconcile("courier", ShuttleType.HERMES, 1);
         BoatDeckViewModel model = new BoatDeckViewModel(
                 new Reactor(), boats, new TestPurse(60_000), "Second Wind");
@@ -49,7 +50,7 @@ class BoatDeckViewModelTest {
 
     @Test
     void aBusClassBoatOffersTheLiftSlotAndItsCradles() {
-        BoatDeck boats = new BoatDeck();
+        BoatDeck boats = TaughtBoatDecks.taught(new BoatDeck());
         boats.reconcile("freighter", ShuttleType.BUFFALO, 1);
         BoatDeckViewModel model = new BoatDeckViewModel(
                 new Reactor(), boats, new TestPurse(60_000), "Buffalo");
@@ -451,7 +452,7 @@ class BoatDeckViewModelTest {
     }
 
     private static BoatDeck deck() {
-        BoatDeck deck = new BoatDeck();
+        BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         deck.reconcile("transport", ShuttleType.AEROSHUTTLE, BERTHS);
         return deck;
     }
@@ -552,7 +553,7 @@ class BoatDeckViewModelTest {
      */
     @Test
     void twoHalfGunsDroppedOnOneHardpointReadAsAPod() {
-        BoatDeck boats = new BoatDeck();
+        BoatDeck boats = TaughtBoatDecks.taught(new BoatDeck());
         boats.reconcile("courier", ShuttleType.HERMES, 1);
         BoatDeckViewModel model = new BoatDeckViewModel(
                 new Reactor(), boats, new TestPurse(60_000), "Second Wind");

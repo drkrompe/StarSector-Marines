@@ -51,6 +51,7 @@ public final class BoatWorkshop {
         if (fitting == null && gun == null) return Result.of(Status.UNKNOWN_FITTING);
         FabricationCost bill = fitting != null ? fitting.bill() : gun.bill();
         if (bill == null) return Result.of(Status.NOT_FABRICABLE);
+        if (!deck.knowsPart(partId)) return Result.of(Status.NOT_LEARNED);
         if (!resources.atMarket()) return Result.of(Status.NO_MARKET);
         if (!resources.spend(resources.quote(bill))) return Result.of(Status.CANNOT_AFFORD);
         deck.stow(partId);
@@ -351,6 +352,8 @@ public final class BoatWorkshop {
         NO_MARKET,
         NO_SPARE,
         NOT_FABRICABLE,
+        /** The company has not learned this part; the company store sells the pattern. */
+        NOT_LEARNED,
         NOTHING_TO_STRIP,
         FITTED,
         STRIPPED,

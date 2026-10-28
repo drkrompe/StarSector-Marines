@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.marine.BoatParts;
 import com.dillon.starsectormarines.marine.EquipmentStore;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
@@ -36,12 +37,17 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
             HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
             HeadlessSvgAssets.install(context.modRoot());
             return List.of(
-                    new SnapshotArtifact("store-shelf.png", frame(context, false)),
-                    new SnapshotArtifact("store-after-purchase.png", frame(context, true)));
+                    new SnapshotArtifact("store-shelf.png", frame(context, false, null)),
+                    new SnapshotArtifact("store-after-purchase.png", frame(context, true, null)),
+                    new SnapshotArtifact("store-boats-category.png",
+                            frame(context, false, "SECTION:BOATS")),
+                    new SnapshotArtifact("store-armor-slot.png",
+                            frame(context, false, "SLOT:ARMOR_LOADOUT")));
         }
     }
 
-    private static BufferedImage frame(SnapshotContext context, boolean afterPurchase) throws Exception {
+    private static BufferedImage frame(SnapshotContext context, boolean afterPurchase, String filter)
+            throws Exception {
         Reactor reactor = new Reactor();
         MarineArmory armory = new MarineArmory();
         List<LoadoutCard> cards = LoadoutCards.all();
@@ -54,6 +60,18 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
                 EquipmentStore.Shelf.LICENSE, 6500));
         shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.MECH_PATTERN,
                 MechPattern.offerable().get(0).id(), EquipmentStore.Shelf.MARKET, 6500));
+        List<String> parts = BoatParts.offerable();
+        shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.BOAT_PART, parts.get(0),
+                EquipmentStore.Shelf.MARKET, 6500));
+        shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.BOAT_PART, parts.get(parts.size() - 1),
+                EquipmentStore.Shelf.LICENSE, 13_000));
+        for (LoadoutCard card : cards) {
+            if (card.kind() == LoadoutCard.Kind.SHEET) {
+                shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.LOADOUT, card.id(),
+                        EquipmentStore.Shelf.MARKET, 6500));
+                break;
+            }
+        }
         long[] credits = {afterPurchase ? 20_000 : 9_000};
         FabricationResources purse = new FabricationResources() {
             @Override public long credits() { return credits[0]; }
@@ -63,9 +81,10 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
                 return true;
             }
         };
-        StoreViewModel viewModel = new StoreViewModel(reactor, () -> shelf, () -> armory, MechBay::new,
+        StoreViewModel viewModel = new StoreViewModel(reactor, () -> shelf, () -> new EquipmentStore.Holdings(armory, new MechBay(), null),
                 purse, () -> "Jangala");
         if (afterPurchase) viewModel.buySelected();
+        if (filter != null) viewModel.selectFilter(filter);
 
         Map<String, Object> props = StoreScreen.props(viewModel);
         var saved = MarineOpsPageNav.storeOpen;

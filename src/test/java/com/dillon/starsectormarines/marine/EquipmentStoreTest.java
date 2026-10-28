@@ -35,7 +35,7 @@ class EquipmentStoreTest {
         EquipmentStore.Place place = new EquipmentStore.Place("hegemony", "chicomoztoc", 7, true, 0.3f, true);
         String listedId = LoadoutCards.all().get(0).id();
 
-        List<EquipmentStore.Offer> shelf = EquipmentStore.shelf(place, 30L, Set.of(), Set.of(),
+        List<EquipmentStore.Offer> shelf = EquipmentStore.shelf(place, 30L, Set.of(), Set.of(), Set.of(),
                 FULL_ACCESS, List.of(listedId));
 
         assertEquals(listedId, shelf.get(0).id());
@@ -44,12 +44,17 @@ class EquipmentStoreTest {
         assertTrue(shelf.stream().anyMatch(o -> o.shelf() == EquipmentStore.Shelf.LICENSE));
         assertTrue(shelf.stream().anyMatch(o -> o.kind() == EquipmentStore.Kind.MECH_PATTERN),
                 "a military market carries a mech pattern");
+        assertTrue(shelf.stream().anyMatch(o -> o.kind() == EquipmentStore.Kind.BOAT_PART),
+                "a sizeable market carries boat parts");
+        assertTrue(shelf.stream().allMatch(o -> o.slot() != null), "every offer is filed in a store slot");
         for (EquipmentStore.Offer o : shelf) {
             EquipmentAccessTier tier = o.kind() == EquipmentStore.Kind.LOADOUT
-                    ? LoadoutCard.parse(o.id()).accessTier() : MechPattern.parse(o.id()).accessTier();
+                    ? LoadoutCard.parse(o.id()).accessTier()
+                    : o.kind() == EquipmentStore.Kind.BOAT_PART ? BoatParts.accessTier(o.id())
+                    : MechPattern.parse(o.id()).accessTier();
             assertEquals(EquipmentStore.price(tier, 0.3f), o.price(), o.id());
         }
-        assertEquals(shelf, EquipmentStore.shelf(place, 30L, Set.of(), Set.of(), FULL_ACCESS,
+        assertEquals(shelf, EquipmentStore.shelf(place, 30L, Set.of(), Set.of(), Set.of(), FULL_ACCESS,
                 List.of(listedId)), "the shelf is stable within a month");
     }
 
@@ -57,7 +62,7 @@ class EquipmentStoreTest {
     void anUnlicensedSmallMarketHasNoLicensedShelfAndNoMechPattern() {
         EquipmentStore.Place place = new EquipmentStore.Place("independent", "jangala", 3, false, 0.3f, false);
 
-        List<EquipmentStore.Offer> shelf = EquipmentStore.shelf(place, 12L, Set.of(), Set.of(),
+        List<EquipmentStore.Offer> shelf = EquipmentStore.shelf(place, 12L, Set.of(), Set.of(), Set.of(),
                 FULL_ACCESS, List.of());
 
         assertFalse(shelf.isEmpty());
@@ -71,13 +76,13 @@ class EquipmentStoreTest {
         Purse purse = new Purse(10_000, true);
         EquipmentStore.Offer offer = loadoutOffer(armory, 6500);
 
-        assertEquals(EquipmentStore.Sale.SOLD, EquipmentStore.buy(offer, armory, new MechBay(), purse));
+        assertEquals(EquipmentStore.Sale.SOLD, EquipmentStore.buy(offer, new EquipmentStore.Holdings(armory, new MechBay(), null), purse));
 
         assertEquals(3500, purse.credits);
         assertTrue(armory.knowsLoadoutCard(offer.id()));
-        assertTrue(EquipmentStore.known(offer, armory, new MechBay()));
+        assertTrue(EquipmentStore.known(offer, new EquipmentStore.Holdings(armory, new MechBay(), null)));
         assertEquals(EquipmentStore.Sale.ALREADY_KNOWN,
-                EquipmentStore.buy(offer, armory, new MechBay(), purse));
+                EquipmentStore.buy(offer, new EquipmentStore.Holdings(armory, new MechBay(), null), purse));
         assertEquals(3500, purse.credits, "a card already known is not charged again");
     }
 
@@ -90,7 +95,7 @@ class EquipmentStoreTest {
         EquipmentStore.Offer offer = new EquipmentStore.Offer(
                 EquipmentStore.Kind.MECH_PATTERN, pattern.id(), EquipmentStore.Shelf.MARKET, 5000);
 
-        assertEquals(EquipmentStore.Sale.SOLD, EquipmentStore.buy(offer, new MarineArmory(), bay, purse));
+        assertEquals(EquipmentStore.Sale.SOLD, EquipmentStore.buy(offer, new EquipmentStore.Holdings(new MarineArmory(), bay, null), purse));
 
         assertTrue(bay.knowsPattern(pattern.id()));
         assertEquals(5000, purse.credits);
@@ -102,13 +107,34 @@ class EquipmentStoreTest {
         EquipmentStore.Offer offer = loadoutOffer(armory, 6500);
 
         Purse poor = new Purse(6499, true);
-        assertEquals(EquipmentStore.Sale.CANNOT_AFFORD, EquipmentStore.buy(offer, armory, new MechBay(), poor));
+        assertEquals(EquipmentStore.Sale.CANNOT_AFFORD, EquipmentStore.buy(offer, new EquipmentStore.Holdings(armory, new MechBay(), null), poor));
         assertEquals(6499, poor.credits);
 
         Purse away = new Purse(99_999, false);
-        assertEquals(EquipmentStore.Sale.NOT_AT_MARKET, EquipmentStore.buy(offer, armory, new MechBay(), away));
+        assertEquals(EquipmentStore.Sale.NOT_AT_MARKET, EquipmentStore.buy(offer, new EquipmentStore.Holdings(armory, new MechBay(), null), away));
         assertEquals(99_999, away.credits);
         assertFalse(armory.knowsLoadoutCard(offer.id()));
+    }
+
+    @Test
+    void aBoatPartSaleTeachesTheDeckAndUnlocksTheWorkshop() {
+        BoatDeck deck = new BoatDeck();
+        String part = BoatParts.offerable().get(0);
+        Purse purse = new Purse(10_000, true);
+        EquipmentStore.Offer offer = new EquipmentStore.Offer(
+                EquipmentStore.Kind.BOAT_PART, part, EquipmentStore.Shelf.MARKET, 4000);
+        assertFalse(deck.knowsPart(part));
+
+        assertEquals(EquipmentStore.Sale.SOLD, EquipmentStore.buy(offer,
+                new EquipmentStore.Holdings(null, null, deck), purse));
+
+        assertTrue(deck.knowsPart(part));
+        assertEquals(6000, purse.credits);
+        assertEquals(EquipmentStore.Sale.ALREADY_KNOWN, EquipmentStore.buy(offer,
+                new EquipmentStore.Holdings(null, null, deck), purse));
+        assertEquals(EquipmentStore.Sale.UNAVAILABLE, EquipmentStore.buy(offer,
+                new EquipmentStore.Holdings(null, null, null), purse));
+        assertEquals(6000, purse.credits);
     }
 
     @Test
@@ -116,12 +142,12 @@ class EquipmentStoreTest {
         Purse purse = new Purse(10_000, true);
         EquipmentStore.Offer offer = loadoutOffer(new MarineArmory(), 6500);
 
-        assertEquals(EquipmentStore.Sale.UNAVAILABLE, EquipmentStore.buy(offer, null, new MechBay(), purse));
+        assertEquals(EquipmentStore.Sale.UNAVAILABLE, EquipmentStore.buy(offer, new EquipmentStore.Holdings(null, new MechBay(), null), purse));
         assertEquals(10_000, purse.credits);
         EquipmentStore.Offer unknown = new EquipmentStore.Offer(
                 EquipmentStore.Kind.LOADOUT, "not-a-card", EquipmentStore.Shelf.MARKET, 6500);
         assertEquals(EquipmentStore.Sale.UNAVAILABLE,
-                EquipmentStore.buy(unknown, new MarineArmory(), new MechBay(), purse));
+                EquipmentStore.buy(unknown, new EquipmentStore.Holdings(new MarineArmory(), new MechBay(), null), purse));
         assertEquals(10_000, purse.credits);
     }
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.testsupport.TaughtBoatDecks;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.turret.TurretRole;
@@ -24,7 +25,7 @@ class BoatWorkshopTest {
     /** The Hermes is the company's boat: every upgrade goes on her, from a spare. */
     @Test
     void theHermesTakesEveryUpgradeFromASpare() {
-        BoatDeck deck = new BoatDeck();
+        BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
         BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
@@ -41,7 +42,7 @@ class BoatWorkshopTest {
     /** Her three turret slots: a heavy MG from the yard and two bare ones, each taking any family of gun. */
     @Test
     void theHermesFillsHerBareTurretsWithAnyFamilyAndStripsThemBare() {
-        BoatDeck deck = new BoatDeck();
+        BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
         BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
@@ -68,7 +69,7 @@ class BoatWorkshopTest {
     /** A refit that takes her over the frame's rating is refused; one that lightens her never is. */
     @Test
     void aFitOverTheFrameRatingIsRefusedAndKeepsItsSpare() {
-        BoatDeck deck = new BoatDeck();
+        BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
         BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
@@ -306,7 +307,7 @@ class BoatWorkshopTest {
     /** A deck nobody has reconciled has no berths and nothing to build into them. */
     @Test
     void aDeckThatDoesNotKnowWhatSheCarriesRefusesToBuild() {
-        BoatDeck deck = new BoatDeck();
+        BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         TestPurse hold = TestPurse.rich();
 
         BoatWorkshop.Result result = new BoatWorkshop(deck, hold).fabricate(0);
@@ -372,7 +373,7 @@ class BoatWorkshopTest {
     /** A gun moved between hardpoints leaves its own bare and stores what it displaced; the yard's gun moves too. */
     @Test
     void movingAGunBetweenHardpointsStoresWhatItDisplaced() {
-        BoatDeck deck = new BoatDeck();
+        BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         deck.reconcile("valkyrie", ShuttleType.VALKYRIE, 1);
         BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
@@ -399,7 +400,7 @@ class BoatWorkshopTest {
     /** Buying needs a port: away from one every purchase is refused unspent, while work on what is aboard goes on. */
     @Test
     void awayFromAPortNothingIsBoughtButFittingStrippingMovingAndRecyclingStillWork() {
-        BoatDeck deck = new BoatDeck();
+        BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         deck.reconcile("second-wind", ShuttleType.HERMES, 2);
         TestPurse purse = TestPurse.rich().reclaiming(Reclamation.FULL);
         BoatWorkshop workshop = new BoatWorkshop(deck, purse);
@@ -431,7 +432,7 @@ class BoatWorkshopTest {
         assertEquals(before + purse.refunded, purse.credits);
     }
     private static BoatDeck deck() {
-        BoatDeck deck = new BoatDeck();
+        BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         deck.reconcile("fleet-member-transport", ShuttleType.AEROSHUTTLE, 2);
         return deck;
     }
@@ -441,7 +442,7 @@ class BoatWorkshopTest {
      */
     @Test
     void twoHalfGunsShareOneHardpointAsAPod() {
-        BoatDeck deck = new BoatDeck();
+        BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
         BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);

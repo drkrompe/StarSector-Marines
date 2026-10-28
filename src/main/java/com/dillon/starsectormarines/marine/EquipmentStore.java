@@ -12,6 +12,7 @@ import com.fs.starfarer.api.impl.campaign.ids.Industries;
 import com.fs.starfarer.api.impl.campaign.ids.Submarkets;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -40,7 +41,7 @@ public final class EquipmentStore {
     /** The standing with a market's faction at which its licensed shelf opens. */
     public static final RepLevel MIN_LICENSE_RELATIONSHIP = RepLevel.FAVORABLE;
 
-    public enum Kind { LOADOUT, MECH_PATTERN }
+    public enum Kind { LOADOUT, MECH_PATTERN, BOAT_PART }
 
     /** Which shelf of the market an offer stands on; it is the reason shown for the offer. */
     public enum Shelf { LISTED, MARKET, LICENSE }
@@ -53,6 +54,11 @@ public final class EquipmentStore {
             }
             if (price <= 0) throw new IllegalArgumentException("An offer has a positive price");
         }
+
+        /** Where the store files it; null for an item this build no longer defines. */
+        public StoreSlot slot() {
+            return StoreSlot.of(kind, id);
+        }
     }
 
     public enum Sale {
@@ -63,6 +69,9 @@ public final class EquipmentStore {
         NOT_AT_MARKET,
         CANNOT_AFFORD
     }
+
+    /** What the company already holds: where a purchase is learned, and how it is known to be known. */
+    public record Holdings(MarineArmory armory, MechBay bay, BoatDeck deck) {}
 
     /** The market's side of the shelf plan; everything the policy reads about a place. */
     public record Place(String factionId, String marketId, int size, boolean military,
@@ -105,6 +114,7 @@ public final class EquipmentStore {
                 MechPattern pattern = MechPattern.parse(id);
                 yield pattern == null ? null : pattern.accessTier();
             }
+            case BOAT_PART -> BoatParts.accessTier(id);
         };
     }
 
@@ -119,6 +129,7 @@ public final class EquipmentStore {
      */
     public static List<Offer> shelf(Place place, long rotation,
                                     Set<String> unavailableCardIds, Set<String> unavailablePatternIds,
+                                    Set<String> unavailablePartIds,
                                     EquipmentAcquisitionEligibility.Progress progress,
                                     List<String> listedCardIds) {
         FactionEquipmentMarketStockPlanner.StockPlan plan = FactionEquipmentMarketStockPlanner.plan(
@@ -132,16 +143,23 @@ public final class EquipmentStore {
                 place.size(), place.military(), rotation, place.licensed(), unavailablePatternIds, progress)) {
             offers.add(offer(Kind.MECH_PATTERN, id, Shelf.MARKET, place.tariff()));
         }
+        Shelf partShelf = place.licensed() ? Shelf.LICENSE : Shelf.MARKET;
+        for (String id : FactionEquipmentMarketStockPlanner.boatParts(place.factionId(), place.marketId(),
+                place.size(), rotation, place.licensed(), unavailablePartIds, progress)) {
+            offers.add(offer(Kind.BOAT_PART, id, partShelf, place.tariff()));
+        }
         return List.copyOf(offers);
     }
 
     /** Whether the company already has what the offer teaches. */
-    public static boolean known(Offer offer, MarineArmory armory, MechBay bay) {
+    public static boolean known(Offer offer, Holdings held) {
         return switch (offer.kind()) {
-            case LOADOUT -> LoadoutCardLearning.status(armory, offer.id())
+            case LOADOUT -> LoadoutCardLearning.status(held.armory(), offer.id())
                     == LoadoutCardLearning.Result.ALREADY_KNOWN;
-            case MECH_PATTERN -> MechPatternLearning.status(bay, offer.id())
+            case MECH_PATTERN -> MechPatternLearning.status(held.bay(), offer.id())
                     == MechPatternLearning.Result.ALREADY_KNOWN;
+            case BOAT_PART -> BoatPartLearning.status(held.deck(), offer.id())
+                    == BoatPartLearning.Result.ALREADY_KNOWN;
         };
     }
 
@@ -150,26 +168,35 @@ public final class EquipmentStore {
      * that cannot teach (an armory or bay that is not there, a card this build no longer defines)
      * is never charged.
      */
-    public static Sale buy(Offer offer, MarineArmory armory, MechBay bay, FabricationResources purse) {
+    public static Sale buy(Offer offer, Holdings held, FabricationResources purse) {
         if (offer == null || purse == null) return Sale.UNAVAILABLE;
         if (!purse.atMarket()) return Sale.NOT_AT_MARKET;
         switch (offer.kind()) {
             case LOADOUT -> {
-                LoadoutCardLearning.Result status = LoadoutCardLearning.status(armory, offer.id());
+                LoadoutCardLearning.Result status = LoadoutCardLearning.status(held.armory(), offer.id());
                 if (status == LoadoutCardLearning.Result.ALREADY_KNOWN) return Sale.ALREADY_KNOWN;
                 if (status != LoadoutCardLearning.Result.LEARNED) return Sale.UNAVAILABLE;
             }
             case MECH_PATTERN -> {
-                MechPatternLearning.Result status = MechPatternLearning.status(bay, offer.id());
+                MechPatternLearning.Result status = MechPatternLearning.status(held.bay(), offer.id());
                 if (status == MechPatternLearning.Result.ALREADY_KNOWN) return Sale.ALREADY_KNOWN;
                 if (status != MechPatternLearning.Result.LEARNED) return Sale.UNAVAILABLE;
+            }
+            case BOAT_PART -> {
+                BoatPartLearning.Result status = BoatPartLearning.status(held.deck(), offer.id());
+                if (status == BoatPartLearning.Result.ALREADY_KNOWN) return Sale.ALREADY_KNOWN;
+                if (status != BoatPartLearning.Result.LEARNED) return Sale.UNAVAILABLE;
             }
         }
         FabricationCost cost = FabricationCost.of(offer.price());
         if (!purse.canAfford(cost) || !purse.spend(cost)) return Sale.CANNOT_AFFORD;
         boolean learned = switch (offer.kind()) {
-            case LOADOUT -> LoadoutCardLearning.learn(armory, offer.id()) == LoadoutCardLearning.Result.LEARNED;
-            case MECH_PATTERN -> MechPatternLearning.learn(bay, offer.id()) == MechPatternLearning.Result.LEARNED;
+            case LOADOUT -> LoadoutCardLearning.learn(held.armory(), offer.id())
+                    == LoadoutCardLearning.Result.LEARNED;
+            case MECH_PATTERN -> MechPatternLearning.learn(held.bay(), offer.id())
+                    == MechPatternLearning.Result.LEARNED;
+            case BOAT_PART -> BoatPartLearning.learn(held.deck(), offer.id())
+                    == BoatPartLearning.Result.LEARNED;
         };
         if (!learned) {
             purse.credit(cost);
@@ -201,6 +228,10 @@ public final class EquipmentStore {
         if (unavailablePatterns == null) {
             unavailablePatterns = MechPatternInventory.knownPatternIds(MechPatternInventory.playerBay());
         }
+        MarineRosterScript roster = MarineRosterScript.getInstance();
+        BoatDeck deck = roster != null ? roster.roster().boatDeck() : null;
+        Set<String> unavailableParts = new HashSet<>(BoatParts.starterIds());
+        if (deck != null) unavailableParts.addAll(deck.knownPartIds());
         List<String> listed = new ArrayList<>();
         CampaignStateScript campaign = CampaignStateScript.getInstance();
         if (campaign != null) {
@@ -214,7 +245,7 @@ public final class EquipmentStore {
                 || market.hasIndustry(Industries.HIGHCOMMAND);
         Place place = new Place(market.getFactionId(), market.getId(), market.getSize(), military,
                 open != null ? open.getTariff() : 0f, hasLicenseAccess(relationship));
-        return shelf(place, rotation, unavailableCards, unavailablePatterns,
+        return shelf(place, rotation, unavailableCards, unavailablePatterns, unavailableParts,
                 EquipmentAcquisitionEligibility.currentProgress(), listed);
     }
 }

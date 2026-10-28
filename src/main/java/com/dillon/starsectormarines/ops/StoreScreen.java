@@ -4,10 +4,7 @@ import com.dillon.starsectormarines.campaign.CivilizedPort;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
 import com.dillon.starsectormarines.marine.EquipmentStore;
-import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
-import com.dillon.starsectormarines.marine.MechBay;
-import com.dillon.starsectormarines.marine.MechPatternInventory;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
@@ -57,8 +54,8 @@ public final class StoreScreen implements Screen {
         this.dismissDialog = dismissDialog;
         viewport = MarineOpsUiViewport.from(position);
         if (viewModel == null) {
-            viewModel = new StoreViewModel(reactor, StoreScreen::liveShelf, StoreScreen::armory,
-                    StoreScreen::bay, new CampaignFabricationResources(), StoreScreen::marketName);
+            viewModel = new StoreViewModel(reactor, StoreScreen::liveShelf, StoreScreen::holdings,
+                    new CampaignFabricationResources(), StoreScreen::marketName);
         } else {
             // Opened again: the market may be another one, and the month may have turned.
             viewModel.refresh();
@@ -115,6 +112,7 @@ public final class StoreScreen implements Screen {
         props.put("roomCopy", Strings.get("storeRoomCopy"));
         props.put("contextLabel", viewModel.contextLabel());
         props.put("shelfNote", viewModel.shelfNote());
+        props.put("categoryRows", viewModel.categoryRows());
         props.put("offerRows", viewModel.rows());
         props.put("selectedName", viewModel.selectedName());
         props.put("selectedKind", viewModel.selectedKind());
@@ -131,13 +129,11 @@ public final class StoreScreen implements Screen {
         return EquipmentStore.shelfAt(CivilizedPort.docked());
     }
 
-    private static MarineArmory armory() {
+    private static EquipmentStore.Holdings holdings() {
         MarineRosterScript script = MarineRosterScript.getInstance();
-        return script != null ? script.roster().armory() : null;
-    }
-
-    private static MechBay bay() {
-        return MechPatternInventory.playerBay();
+        return script == null ? new EquipmentStore.Holdings(null, null, null)
+                : new EquipmentStore.Holdings(script.roster().armory(), script.roster().mechBay(),
+                        script.roster().boatDeck());
     }
 
     private static String marketName() {

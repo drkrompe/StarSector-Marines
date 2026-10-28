@@ -891,6 +891,19 @@ that arrive by patron, salvage or story are still cargo, learned by right-click.
 bought during a visit stays on the shelf, marked acquired, until the page is next
 opened; reopening it recomputes the shelf without what the company now knows.
 
+The page is browsed by category (`StoreSlot`): **Marine** (weapon loadouts, armor loadouts),
+**Mechs / Vehicles** (chassis, weapons, internals, vehicles, vehicle kits) and **Boats**
+(plating, drive, lift hold, cabin, shield emitter, power, door guns). Each row counts what
+the shelf holds there; choosing a section or a slot narrows the shelf, and an empty slot says
+so. Boat parts are the Boat Deck's learnable technology: the standard fitting of every slot
+and the yard's gun on every hardpoint (`BoatParts.starterIds`) are known to every company and
+never sold; every other fitting and gun is a pattern (`BoatDeck.knowsPart`) that the
+workshop will not build until it is bought here, and the Boat Deck's card says so
+(`NOT_LEARNED`). Parts already in stores or on a boat in a save from before learning are
+counted as learned, so nothing owned is ever locked away. A part's access tier follows the
+yard's tier: second is Common, third Advanced, fourth Prestige. The shelf carries one boat
+part at a market of size 3 or 4 and two from size 5.
+
 ## Company resource bills
 
 Company rooms show a shared stock strip immediately below navigation, away from
