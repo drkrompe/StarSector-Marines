@@ -146,8 +146,8 @@ rescue: outbreaks wake over hidden reservoirs, go dark and spread when ignored,
 and end when the mother bore falls (`colony-breach-nouns.md`, Campaign: blooms;
 `gradlew.bat bloomEvidence`). Every Rav mission is also a replayable story:
 The Wellhollow Bloom on Asharu unlocks Colony Breach, Cordon Line, Cordon Road,
-The Burn and Broad Front in order after Broken Supply Route
-(`wellhollow-bloom-arc.md`); its owner picks and live acceptance remain. Silent Colony now divides its Marine expedition into
+The Burn and Broad Front in order after A Working Ship, as the alpha's
+end-game challenge (`wellhollow-bloom-arc.md`); its live acceptance remains. Silent Colony now divides its Marine expedition into
 stable archive and survivor branches through the same frozen command envelope.
 Live acceptance for Generic Extraction, Rescue, and Silent Colony remains.
 Each mission keeps its own strategy geometry. See `conquest-command.md`,

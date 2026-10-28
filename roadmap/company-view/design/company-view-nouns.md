@@ -273,9 +273,11 @@ opens squad equipment and fire-team inspection, while deployment and battle comm
 remain squad-granular.
 
 Officer command and enlisted leadership are separate ladders. Lieutenant,
-Captain, Major, Lieutenant Colonel, and Colonel caps are respectively 3, 6, 10,
-16, and 24 squads; any marine-count form is explanatory display only. These
-limits bound named-officer coordination, not whether the force may deploy.
+Captain, Major, Lieutenant Colonel, and Colonel caps are respectively 3, 6, 9,
+12, and 12 squads: one officer commands at most twelve squads, so a larger
+company needs a second officer (owner, 2026-10-27). Any marine-count form is
+explanatory display only. These limits bound named-officer coordination, not
+whether the force may deploy.
 A squad outside available officer capacity acts independently under its own
 NCO and retains ordinary mission execution. Named officers coordinate their
 stable group's tasks and advance in Conquest. Player-chosen officer specialties
@@ -1324,9 +1326,12 @@ company lift, plus operation command. Held-back home officers receive no credit.
 Their rank, XP and specialties come from launch, never from later assignments.
 Each result carries a unique attempt receipt so reopening a result cannot repeat
 an officer's XP, promotion, fate or commendation. Repeatable jobs may share a
-mission id; their attempts do not share receipts. Defeat awards 50 officer XP
-when troops engaged; victory retains payout/100, or payout/150 with more than
-two casualties in that officer's element. Natural Leader multiplies that
+mission id; their attempts do not share receipts. Defeat awards 500 officer XP
+when troops engaged; victory awards payout/10, or payout/15 with more than
+two casualties in that officer's element. That pace is set against the rank
+thresholds (1,000, 2,000, 4,000, 8,000): playing each opening mission once, the
+founding lieutenant is promoted after Counterattack and again after Thunder Run
+(owner, 2026-10-27). Natural Leader multiplies that
 individual officer's award by 1.5. Defeat fate uses each officer's own engaged
 strength and losses; operation command without an element uses the whole force.
 
