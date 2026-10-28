@@ -316,7 +316,7 @@ public final class MachineAssaults {
         AssaultTarget target = targetUnderClick(sim, side, cellX, cellY);
         if (target == null) return null;
         GroundBody body = sim.convoy().body(id);
-        WeaponDef weapon = sim.convoy().vehicleType(id).turretStructure().mount.weapon;
+        WeaponDef weapon = sim.convoy().turretStructure(id).mount.weapon;
         int[] cell = chooseStandoff(sim, target, side, (int) Math.floor(body.x), (int) Math.floor(body.y),
                 weapon.range, null);
         return cell == null ? null : new MachineAssault(target, cell[0], cell[1], sim.getSimTickIndex());
@@ -342,7 +342,7 @@ public final class MachineAssaults {
                 continue;
             }
             GroundBody body = sim.convoy().body(id);
-            WeaponDef weapon = sim.convoy().vehicleType(id).turretStructure().mount.weapon;
+            WeaponDef weapon = sim.convoy().turretStructure(id).mount.weapon;
             aim(assault, sim, id, side, body.x, body.y, weapon.range, weapon.minRange,
                     weapon.wallDamage > 0 && !weapon.indirectFire);
         }

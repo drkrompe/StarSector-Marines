@@ -1139,8 +1139,8 @@ the ground, never faster drops.
 Mechs are the customization system; vehicles are a short chain of fixed
 variants. A second fitting system would double the lab, the save model and the
 balance surface while making the two kinds the same decision in different art.
-So a vehicle's gun and bay are sealed (the engine core and armor point were opened to the mech's own engine and
-plating parts, owner, 2026-10-28; `vehicle-shared-parts.md`). What a company may add is a
+So a vehicle's bay is sealed (the engine core, gun card and armor point were opened to the mech's own engine,
+weapon and plating parts, owner, 2026-10-28; `vehicle-shared-parts.md`). What a company may add is a
 **kit** (owner, 2026-10-24; `mechs-nouns.md`, vehicle kit): a few bolt-on parts in
 a fixed rack, each a number changed at the drop and nothing else, so a kit is
 a small top-up to the hull rather than a second build. A change that needs a
@@ -1286,5 +1286,5 @@ then internals, then lift; vehicles in the bay and the drop choice follow lift.
   is a planted mech.
 - Castle's introduction of each internal needs no recorded dialogue until a live
   pass confirms the ladder.
-- Vehicle weapon swaps stay out: the doll is sealed, and kits are the only fitting.
+- Vehicle weapon swaps are in, typed: the gun card takes the mech weapons of its own type and size, and the bay stays sealed.
   Whether a kit should cost lift (appliqué plate on a Light hull) is unmeasured.

@@ -46,7 +46,7 @@ public final class DirectControlScatter {
             var turret = sim.convoy().turret(id);
             var type = sim.convoy().vehicleType(id);
             var body = sim.convoy().body(id);
-            if (turret == null || type == null || body == null || type.turretStructure() == null) return Spread.NONE;
+            if (turret == null || type == null || body == null || turret.structureFor(type) == null) return Spread.NONE;
             // Each button spreads as widely as the widest of the mounts its pick fires.
             FireGroups.Mount[] mounts = VehicleFireGroups.mounts(type, turret);
             var picks = sim.directControl().triggerPicks();
@@ -58,7 +58,7 @@ public final class DirectControlScatter {
                 MountedGun gun = main ? null : turret.secondaries.get(index - 1);
                 TurretMountGeometry.Point ring = main ? GroundVehicleTurretSystem.mountPoint(type, body)
                         : GroundVehicleTurretSystem.mountPoint(body, gun.mount().mountX(), gun.mount().mountY());
-                WeaponDef weapon = main ? type.turretStructure().mount.weapon : gun.mount().structure().mount.weapon;
+                WeaponDef weapon = main ? turret.structureFor(type).mount.weapon : gun.mount().structure().mount.weapon;
                 float spread = vehicle(weapon, (float) Math.hypot(aim.aimX() - ring.x(), aim.aimY() - ring.y()));
                 if (FireGroups.contains(left, index)) leftSpread = Math.max(leftSpread, spread);
                 if (FireGroups.contains(right, index)) rightSpread = Math.max(rightSpread, spread);

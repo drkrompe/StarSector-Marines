@@ -180,6 +180,7 @@ public final class MechLabScreen implements Screen {
                     .withPadPreview(viewModel::padPreview)
                     .withHover(boardHover);
             dollCanvas.installedInternals(viewModel::installedInternal);
+            dollCanvas.installedWeapons(viewModel::installedWeapon);
             dollCanvas.installedCompartment(viewModel::installedCompartment);
             dollCanvas.selectedVehicle(viewModel::selectedVehicleType);
             dollCanvas.installedKits(viewModel::installedKits);

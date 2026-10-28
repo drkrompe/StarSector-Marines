@@ -58,7 +58,7 @@ public final class DirectControlAimOrigins {
             // The main gun, and each second gun a button's pick fires.
             int fired = sim.directControl().triggerPicks().firedMask(VehicleFireGroups.mounts(type, turret));
             if (FireGroups.contains(fired, VehicleFireGroups.MAIN)) {
-                origins.add(turretOrigin(body, turret, type.turretStructure().mount,
+                origins.add(turretOrigin(body, turret, turret.structureFor(type).mount,
                         GroundVehicleTurretSystem.mountPoint(type, body)));
             }
             for (int i = 0; i < turret.secondaries.size(); i++) {

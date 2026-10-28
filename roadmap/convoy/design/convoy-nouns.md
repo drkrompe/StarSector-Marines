@@ -563,8 +563,8 @@ a gun lost in battle is lost for that battle only.
 
 **A hull's loader refills its magazine** (`GroundTurret.advanceLoader`), the
 way a mech's replenisher refills its racks (`mechs-nouns.md`, missile
-replenisher). Every armed hull carries a stock loader, sealed in its doll like
-its gun. Each mount authors how long its loader takes to put back one **pack**,
+replenisher). Every armed hull carries a stock loader, sealed in its doll and
+staying the hull's own when a weapon is fitted to its gun card (`mechs-nouns.md`, vehicle gun card). Each mount authors how long its loader takes to put back one **pack**,
 the weapon's burst (`TurretMountDef.loaderSeconds`): a group of missiles, a
 volley of the twin cannon, a machine-gun burst, a single bomb. The loader runs
 firing or not, for the whole battle, and never past the magazine, so the

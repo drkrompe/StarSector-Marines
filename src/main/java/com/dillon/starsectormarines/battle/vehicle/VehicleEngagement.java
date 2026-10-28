@@ -669,8 +669,9 @@ public final class VehicleEngagement {
 
     private void decide(long id, Plan plan, GroundBody body) {
         VehicleType type = convoy.vehicleType(id);
-        Weapon gun = Weapon.of(type.turretStructure().mount.weapon);
-        boolean indirect = type.turretStructure().mount.weapon.indirectFire;
+        WeaponDef gunDef = convoy.turretStructure(id).mount.weapon;
+        Weapon gun = Weapon.of(gunDef);
+        boolean indirect = gunDef.indirectFire;
         long target = pickTarget(id, plan.target, body, gun.range() * AWARE_REACH_FACTOR, indirect);
         if (target != plan.target) {
             plan.routeX = null;
@@ -726,7 +727,7 @@ public final class VehicleEngagement {
             plan.routeX = null;
             plan.routeY = null;
             if (!plan.refacing && !indirect && repositionsStalled
-                    && stalled(plan, type.turretStructure().mount.weapon.cooldown, integrity(target)) && plan.restIn <= 0f) {
+                    && stalled(plan, gunDef.cooldown, integrity(target)) && plan.restIn <= 0f) {
                 // Holding in band and not wearing the target down: the rounds are going into whatever stands
                 // between, or the far edge of the band is past where the gun still hits. Another firing position
                 // with a clear lane, at the band's middle, is worth the drive; none, and it holds for another spell.
@@ -1113,7 +1114,7 @@ public final class VehicleEngagement {
         List<WeaponDef> out = new ArrayList<>(3);
         if (convoy.isVehicle(candidate)) {
             VehicleType type = convoy.vehicleType(candidate);
-            if (type != null && convoy.isArmed(candidate)) out.add(type.turretStructure().mount.weapon);
+            if (type != null && convoy.isArmed(candidate)) out.add(convoy.turretStructure(candidate).mount.weapon);
             return out;
         }
         World world = roster.world();
@@ -1177,7 +1178,7 @@ public final class VehicleEngagement {
         if (!convoy.isVehicle(target)) return MechDuelRange.ownWeapons(roster.world().mechLoadout(target));
         List<Weapon> out = new ArrayList<>(1);
         VehicleType type = convoy.vehicleType(target);
-        if (type != null && convoy.isArmed(target)) out.add(Weapon.of(type.turretStructure().mount.weapon));
+        if (type != null && convoy.isArmed(target)) out.add(Weapon.of(convoy.turretStructure(target).mount.weapon));
         return out;
     }
 }

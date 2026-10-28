@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.cordon.AlliedColumns;
 import com.dillon.starsectormarines.battle.deployable.FieldMortarService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.SquadAlertLevel;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.ops.RiskLevel;
@@ -808,7 +809,7 @@ public final class HeartLanes {
         for (long hull : lane.hulls) {
             if (sim.convoy().structure(hull) <= 0f) continue;
             VehicleType type = sim.convoy().vehicleType(hull);
-            int[] post = post(sim, a, clearance(sim, type), BoreAssault.ringFor(reach(type)), i++, count, taken);
+            int[] post = post(sim, a, clearance(sim, type), BoreAssault.ringFor(reach(sim.convoy().turretStructure(hull))), i++, count, taken);
             taken.add(post);
             allied.station(sim, hull, post[0], post[1], a.boreX - post[0], a.boreY - post[1]);
         }
@@ -841,13 +842,14 @@ public final class HeartLanes {
         for (long hull : lane.section) {
             if (sim.convoy().structure(hull) <= 0f) continue;
             VehicleType type = sim.convoy().vehicleType(hull);
+            float reach = reach(sim.convoy().turretStructure(hull));
             int[] post = BoreAssault.ringPost(sim.getGrid(), clearance(sim, type), a.boreX, a.boreY, a.nearX, a.nearY,
-                    BoreAssault.sectionRing(reach(type), militiaFromBore, SECTION_BEHIND), BoreAssault.slotDegrees(i++, count),
+                    BoreAssault.sectionRing(reach, militiaFromBore, SECTION_BEHIND), BoreAssault.slotDegrees(i++, count),
                     taken, ARMOUR_SPACING);
             // Trailing with no ground on its arc, it keeps to its militia; at the bore, where its reach has no ground on
             // the arc, the nearest ring behind the support line, then the line itself.
-            boolean trailing = BoreAssault.sectionRing(reach(type), militiaFromBore, SECTION_BEHIND)
-                    > BoreAssault.sectionRing(reach(type));
+            boolean trailing = BoreAssault.sectionRing(reach, militiaFromBore, SECTION_BEHIND)
+                    > BoreAssault.sectionRing(reach);
             if (post == null && trailing) post = walkableNear(sim, militia[0], militia[1]);
             if (post == null) post = BoreAssault.ringPost(sim.getGrid(), clearance(sim, type), a.boreX, a.boreY, a.nearX,
                     a.nearY, BoreAssault.sectionRing(0f), BoreAssault.slotDegrees(i - 1, count), taken, ARMOUR_SPACING);
@@ -898,7 +900,10 @@ public final class HeartLanes {
 
     private static float reach(VehicleType type) {
         if (type == null || !type.hasTurretWeapon()) return 0f;
-        var structure = type.turretStructure();
+        return reach(type.turretStructure());
+    }
+
+    private static float reach(StructureDef structure) {
         return structure == null || structure.mount == null || structure.mount.weapon == null
                 ? 0f : structure.mount.weapon.range;
     }

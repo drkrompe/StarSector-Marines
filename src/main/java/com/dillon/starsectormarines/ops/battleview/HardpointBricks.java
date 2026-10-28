@@ -70,6 +70,7 @@ final class HardpointBricks {
         if (type == null) return OMNI;
         return switch (type) {
             case BALLISTIC -> BALLISTIC;
+            case ENERGY -> ENERGY;
             case MISSILE -> MISSILE;
             case OMNI -> OMNI;
             case ENGINE -> ENGINE;

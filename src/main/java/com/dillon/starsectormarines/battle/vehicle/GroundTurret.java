@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 
 import java.util.ArrayList;
@@ -24,6 +25,11 @@ import java.util.List;
  */
 public final class GroundTurret {
 
+    /**
+     * The structure this hull's gun stands in when a weapon other than its own is fitted ({@link VehicleGun}); null for
+     * the hull's own gun. Read through {@link #structureFor}.
+     */
+    public StructureDef structure;
     /** Barrel facing in world frame (0° = +Y, positive CCW). */
     public float facingDeg;
     /** Sim-seconds until the turret can fire again. */
@@ -101,6 +107,11 @@ public final class GroundTurret {
 
     /** Who has been hitting the hull, and from where: whether its crew is caught in crossfire. */
     public final Crossfire crossfire = new Crossfire();
+
+    /** The structure this turret stands in: the fitted gun's, or {@code type}'s own. */
+    public StructureDef structureFor(VehicleType type) {
+        return structure != null ? structure : type.turretStructure();
+    }
 
     public GroundTurret(int startingAmmo) {
         this(startingAmmo, null);

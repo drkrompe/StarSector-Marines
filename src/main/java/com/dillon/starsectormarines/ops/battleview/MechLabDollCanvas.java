@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
+import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignMech;
@@ -105,6 +106,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     /** The pointer on the board, shared with the room's drag; @see BoardHover */
     private BoardHover hover = new BoardHover();
     private Function<SocketId, MechInternal> installedInternals = socket -> null;
+    private Function<SocketId, MechWeaponComponent> installedWeapons = socket -> null;
     private Supplier<List<MechInternal>> installedCompartment = List::of;
     private Supplier<VehicleType> selectedVehicle = () -> null;
     private Supplier<List<VehicleKit>> installedKits = List::of;
@@ -160,6 +162,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
      */
     public void installedInternals(Function<SocketId, MechInternal> source) {
         installedInternals = source != null ? source : socket -> null;
+    }
+
+    /** The weapon in the selected vehicle's gun card; null for the hull's own gun, and for a mech. */
+    public void installedWeapons(Function<SocketId, MechWeaponComponent> source) {
+        installedWeapons = source != null ? source : socket -> null;
     }
 
     /** What the selected machine's auxiliary compartment holds, in fitted order. */
@@ -731,6 +738,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 drawVehiclePart(c, target, socket);
                 continue;
             }
+            if (socket.id() == SocketId.ARMS) {
+                drawVehicleGun(c, target, socket, type);
+                continue;
+            }
             boolean rack = socket.id() == SocketId.AUXILIARY;
             MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, socket.id()),
                     VehicleDoll.art(type, socket.id()),
@@ -742,11 +753,12 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 kitBoxes.add(new KitBox(kits.get(row), MechSocketConsole.kitBox(target, socket, row)));
             }
         }
-        // Only the rack and the armor point answer the pointer: sealed cards take no drops and no selection.
+        // Only the rack, the armor point, the engine core and the gun card answer the pointer: sealed cards take no
+        // drops and no selection.
         List<SocketDropTarget> live = new ArrayList<>();
         for (SocketDropTarget target : targets) {
             if (target.id() == SocketId.AUXILIARY || target.id() == SocketId.PLATING
-                    || target.id() == SocketId.CORE) live.add(target);
+                    || target.id() == SocketId.CORE || target.id() == SocketId.ARMS) live.add(target);
         }
         lastSocketTargets = List.copyOf(live);
         lastKitBoxes = List.copyOf(kitBoxes);
@@ -755,7 +767,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             if (!target.contains(hover.x(), hover.y())) continue;
             SocketDef socket = socketById(sockets, target.id());
             String title = VehicleDoll.caption(type, socket.id(), kits, installedInternals.apply(SocketId.PLATING),
-                    installedInternals.apply(SocketId.CORE));
+                    installedInternals.apply(SocketId.CORE), installedWeapons.apply(SocketId.ARMS));
             if (socket.id() == SocketId.AUXILIARY) {
                 // On the rack, the kit under the pointer.
                 title = null;
@@ -791,6 +803,29 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 selects(id, selectedSocket.get()), hoveredSocket == id,
                 draggingHere && hasInternal && snapped, draggingHere && hasInternal && !snapped, draggingHere,
                 elapsedSeconds.getAsDouble());
+    }
+
+    /**
+     * A vehicle's gun card: the hull's own gun as the sealed cards draw it until a weapon is fitted or carried to it,
+     * then as a mech's weapon socket is drawn, lit as a fit or a refusal by {@link VehicleGunCard#accepts}.
+     */
+    private void drawVehicleGun(CanvasContext c, SocketDropTarget target, SocketDef socket, VehicleType type) {
+        VehicleGunCard card = VehicleGunCard.of(type);
+        MechWeaponComponent fitted = installedWeapons.apply(SocketId.ARMS);
+        MechWeaponComponent carried = dragPreview != null ? dragPreview.component() : null;
+        boolean selected = selects(SocketId.ARMS, selectedSocket.get());
+        if (fitted == null && carried == null) {
+            MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, SocketId.ARMS),
+                    VehicleDoll.art(type, SocketId.ARMS), List.of(), selected, hoveredSocket == SocketId.ARMS,
+                    elapsedSeconds.getAsDouble());
+            return;
+        }
+        boolean draggingHere = dragPreview != null && dragPreview.target() == SocketId.ARMS;
+        boolean snapped = carriedSnapped();
+        boolean compatible = draggingHere ? snapped : card.accepts(carried);
+        MechSocketConsole.draw(c, target, socket, fitted, draggingHere && snapped ? carried : null, null, false,
+                null, null, assets.get(), selected, hoveredSocket == SocketId.ARMS, compatible,
+                draggingHere && !snapped, draggingHere, elapsedSeconds.getAsDouble());
     }
 
     private static SocketDef socketById(List<SocketDef> sockets, SocketId id) {

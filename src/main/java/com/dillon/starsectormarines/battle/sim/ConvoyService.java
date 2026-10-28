@@ -15,7 +15,9 @@ import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.MountedGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearances;
 import com.dillon.starsectormarines.battle.drone.DroneRole;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
+import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
@@ -123,6 +125,12 @@ public final class ConvoyService implements BodyCarrier {
     /** As above, running the engine its engine core holds ({@link VehicleEngine}). */
     public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
                       Faction faction, VehicleMission mission) {
+        return spawn(type, kits, plating, engine, null, faction, mission);
+    }
+
+    /** As above, with {@code weapon} in the gun card instead of the hull's own gun ({@link VehicleGun}); null for its own. */
+    public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
+                      MechWeaponComponent weapon, Faction faction, VehicleMission mission) {
         VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type);
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
@@ -133,10 +141,12 @@ public final class ConvoyService implements BodyCarrier {
         float spawnX = mission.inboundX[0], spawnY = mission.inboundY[0];
         float nextX = mission.inboundX[1], nextY = mission.inboundY[1];
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
-        TurretMountDef gun = type.hasTurretWeapon() ? type.turretStructure().mount : null;
+        StructureDef fittedStructure = type.hasTurretWeapon() ? VehicleGun.fit(type.turretStructure(), weapon) : null;
+        TurretMountDef gun = fittedStructure != null ? fittedStructure.mount : null;
         GroundTurret turret = gun != null
                 ? GroundTurret.fitted(gun, Math.round(gun.ammoCapacity * fitted.ammoFactor()), fitted,
                         HullTurretSection.forHull(type, fitted)) : null;
+        if (turret != null && weapon != null) turret.structure = fittedStructure;
         HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null, fitted);
         if (turret != null) {
             for (VehicleMount mount : type.secondaryMounts()) turret.secondaries.add(MountedGun.of(mount, fitted));
@@ -309,8 +319,19 @@ public final class ConvoyService implements BodyCarrier {
     public float weaponRange(long id) {
         VehicleType type = vehicleType(id);
         if (!isArmed(id)) return 0f;
-        StructureDef structure = type.turretStructure();
+        StructureDef structure = turretStructure(id);
         return structure != null ? structure.mount.weapon.range : 0f;
+    }
+
+    /**
+     * The structure {@code id}'s gun stands in: the weapon fitted to its gun card, or its hull's own gun; null for an
+     * unarmed hull. Every read of a live hull's gun goes through here, never through its type alone.
+     */
+    public StructureDef turretStructure(long id) {
+        VehicleType type = vehicleType(id);
+        if (type == null || !type.hasTurretWeapon()) return null;
+        GroundTurret turret = turret(id);
+        return turret != null ? turret.structureFor(type) : type.turretStructure();
     }
 
     /** Circular contact radius used by ballistic and blast broad phases. */

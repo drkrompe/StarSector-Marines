@@ -20,7 +20,7 @@ public final class VehicleFireGroups {
     public static FireGroups.Mount[] mounts(VehicleType type, GroundTurret turret) {
         if (type == null || turret == null || !type.hasTurretWeapon()) return new FireGroups.Mount[0];
         FireGroups.Mount[] out = new FireGroups.Mount[1 + turret.secondaries.size()];
-        if (!turret.destroyed()) out[MAIN] = mount(type.turretStructure(), false, false);
+        if (!turret.destroyed()) out[MAIN] = mount(turret.structureFor(type), false, false);
         for (int i = 0; i < turret.secondaries.size(); i++) {
             VehicleMount mount = turret.secondaries.get(i).mount();
             out[i + 1] = mount(mount.structure(), true, mount.crewed());

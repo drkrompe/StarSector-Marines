@@ -234,6 +234,17 @@ public final class TurretMountDef {
                 render != null && render.optBoolean("casings", false), scorch);
     }
 
+    /**
+     * This carriage carrying another gun: the same traverse, loader, muzzles and body, with {@code weapon} in it, a
+     * magazine of {@code ammoCapacity} pulls and the given flux and hardened-target rule. A vehicle's fitted weapon is
+     * the stock mount with the weapon's own ballistics ({@code VehicleGun}).
+     */
+    public TurretMountDef withGun(WeaponDef weapon, int ammoCapacity, Flux flux, boolean hardenedTargetsOnly) {
+        return new TurretMountDef(id, weapon.id, weapon, ammoCapacity, turnRateDegPerSec, visualCells,
+                muzzleOffsetCells, muzzleLateralOffsetCells, muzzles, hardenedTargetsOnly, flux, loaderSeconds,
+                engagesAir, maxDepressionDeg, spritePath, recoilSpritePath, recoil, ejectsCasings, scorchCells);
+    }
+
     /** A mount's flux frame ({@link TurretMountDef#flux}). */
     public record Flux(float capacity, float perRound, float dissipationPerSec, float ventPerSec) { }
 

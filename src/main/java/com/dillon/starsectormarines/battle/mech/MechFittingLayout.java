@@ -52,6 +52,8 @@ public final class MechFittingLayout {
     public enum SocketType {
         ENGINE("@gearSocketEngine"),
         BALLISTIC("@gearSocketBallistic"),
+        /** No mech socket is energy-only (energy hardware goes in omni sockets); a vehicle's laser turret is. */
+        ENERGY("@gearSocketEnergy"),
         MISSILE("@gearSocketMissile"),
         OMNI("@gearSocketOmni"),
         AUXILIARY("@gearSocketTypeAuxiliary"),

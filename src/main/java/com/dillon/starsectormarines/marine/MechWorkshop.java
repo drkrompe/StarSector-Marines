@@ -214,6 +214,28 @@ public final class MechWorkshop {
         return bay.stripEngine(vehicleId) ? new Result(Status.STRIPPED, null, vehicle) : Result.of(Status.INVALID);
     }
 
+    /**
+     * Puts a weapon in a vehicle's gun card from stores, as a mech's weapon is fitted: building one is its own step.
+     * The weapon it replaces goes back to stores.
+     */
+    public Result fitGun(String vehicleId, MechWeaponComponent gun) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null || gun == null) return Result.of(Status.INVALID);
+        if (vehicle.gun() == gun) return Result.of(Status.ALREADY_INSTALLED);
+        if (!bay.canFitGun(vehicleId, gun)) return Result.of(Status.INCOMPATIBLE);
+        if (bay.availableWeapon(gun.id) <= 0) return Result.of(Status.INSUFFICIENT_MATERIALS);
+        return bay.fitGun(vehicleId, gun) ? new Result(Status.INSTALLED_FROM_STORES, null, vehicle)
+                : Result.of(Status.INVALID);
+    }
+
+    /** Takes the weapon out of a vehicle's gun card back to stores. */
+    public Result stripGun(String vehicleId) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null) return Result.of(Status.INVALID);
+        if (vehicle.gun() == null) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripGun(vehicleId) ? new Result(Status.STRIPPED, null, vehicle) : Result.of(Status.INVALID);
+    }
+
     /** Takes the first vent array out of the compartment. */
     public Result stripVentArray(String mechId) {
         return stripInternal(mechId, MechInternal.Role.VENT_ARRAY);

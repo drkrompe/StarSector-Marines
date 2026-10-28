@@ -89,7 +89,7 @@ public final class DirectControlLoad {
     private static Loads vehicle(BattleSimulation sim, long id) {
         GroundTurret turret = sim.convoy().turret(id);
         var type = sim.convoy().vehicleType(id);
-        if (turret == null || type == null || type.turretStructure() == null) return Loads.READY;
+        if (turret == null || type == null || turret.structureFor(type) == null) return Loads.READY;
         FireGroups.Mount[] mounts = VehicleFireGroups.mounts(type, turret);
         TriggerPicks picks = sim.directControl().triggerPicks();
         int left = picks.leftMask(mounts);
@@ -99,7 +99,7 @@ public final class DirectControlLoad {
             if (!FireGroups.contains(left | right, index)) continue;
             Load load;
             if (index == VehicleFireGroups.MAIN) {
-                load = turret(turret, type.turretStructure().mount);
+                load = turret(turret, turret.structureFor(type).mount);
             } else {
                 MountedGun gun = turret.secondaries.get(index - 1);
                 load = turret(gun.turret(), gun.mount().structure().mount);
