@@ -148,7 +148,7 @@ public final class FortTactics {
         boolean ours = perspective.friendlyTo(air.originalHolder());
         picks.add(new Pick(air, ours ? Role.RETAKE : Role.TAKE, skyWanted ? -1 : AIR_LAST_RANK, 1, false,
                 skyWanted ? "open the sky: the anti-air over this fort is refusing our air strikes, take its yard"
-                        : "take the anti-air yard: its mounts shoot down our boats and sorties"));
+                        : "take the anti-air yard: its mounts shoot down our shuttles and sorties"));
     }
 
     private static void chooseBattery(Faction perspective, DefenceStructureFact bunker, DefenceStructureFact plant,

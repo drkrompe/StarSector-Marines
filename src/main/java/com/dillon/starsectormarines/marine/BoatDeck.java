@@ -49,6 +49,14 @@ public final class BoatDeck implements Serializable {
      */
     private Map<String, Integer> spares = new HashMap<>();
 
+    /**
+     * {@link BoatParts} ids the company has learned beyond the yard's starter set. Permanent:
+     * nothing removes one. Null in a save from before parts were learned, which
+     * {@link #readResolve} fills with everything the company already owns, so no existing part
+     * is ever locked away from it.
+     */
+    private Set<String> learnedParts = new HashSet<>();
+
     /** The ship whose berths these boats are currently standing in. */
     private String shipId;
     private Set<String> recoverySettlements = new HashSet<>();
@@ -252,6 +260,24 @@ public final class BoatDeck implements Serializable {
         return boat;
     }
 
+    /** Whether the workshop may build {@code partId}: a starter part, or one the company has learned. */
+    public boolean knowsPart(String partId) {
+        return partId != null && BoatParts.exists(partId)
+                && (BoatParts.starter(partId) || learnedParts.contains(partId));
+    }
+
+    /** True when the part was registered and not yet known. Never removes a part. */
+    boolean learnPart(String partId) {
+        return BoatParts.exists(partId) && !BoatParts.starter(partId) && learnedParts.add(partId);
+    }
+
+    /** Every part the workshop may build: the starter set and everything learned. */
+    public Set<String> knownPartIds() {
+        Set<String> known = new HashSet<>(BoatParts.starterIds());
+        known.addAll(learnedParts);
+        return Collections.unmodifiableSet(known);
+    }
+
     /** How many of one part are in stores. */
     public int spares(String partId) {
         if (partId == null || spares == null) return 0;
@@ -345,9 +371,30 @@ public final class BoatDeck implements Serializable {
         return name.charAt(0) + name.substring(1).toLowerCase(Strings.locale());
     }
 
+    /** Every non-starter part in stores or on a boat: what a save from before learning already owns. */
+    private Set<String> ownedParts() {
+        Set<String> owned = new HashSet<>();
+        for (String id : spares.keySet()) {
+            if (BoatParts.exists(id)) owned.add(id);
+        }
+        for (CampaignBoat boat : berths) {
+            if (boat == null) continue;
+            for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+                BoatFitting fitting = boat.fittingIn(slot);
+                if (fitting != null) owned.add(fitting.id());
+            }
+            for (int hardpoint = 0; hardpoint < boat.pattern().hardpoints(); hardpoint++) {
+                for (BoatGun gun : boat.gunsOn(hardpoint)) owned.add(gun.id());
+            }
+        }
+        owned.removeAll(BoatParts.starterIds());
+        return owned;
+    }
+
     private Object readResolve() {
         if (berths == null) berths = new ArrayList<>();
         if (spares == null) spares = new HashMap<>();
+        if (learnedParts == null) learnedParts = ownedParts();
         nextTailNumber = Math.max(nextTailNumber, berths.size() + 1);
         return this;
     }

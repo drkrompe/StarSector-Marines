@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.testsupport.TaughtBoatDecks;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.LiftRating;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -31,7 +32,7 @@ class BoatLiftFittingTest {
 
     @Test
     void aHermesFittedWithAHeavyLiftFrameLiftsHeavyAndKeepsHerSeats() {
-        BoatDeck deck = new BoatDeck();
+        BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
         BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
@@ -47,7 +48,7 @@ class BoatLiftFittingTest {
 
     @Test
     void aCradleOnAFreighterSpendsItsBillWhenBuilt() {
-        BoatDeck deck = new BoatDeck();
+        BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         deck.reconcile("freighter", ShuttleType.BUFFALO, 1);
         TestPurse hold = TestPurse.rich();
         long before = hold.credits;

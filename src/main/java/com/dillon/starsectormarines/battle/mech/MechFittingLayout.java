@@ -32,7 +32,12 @@ public final class MechFittingLayout {
         /** The shared auxiliary compartment: capacitor banks, vent arrays and loaders. */
         AUXILIARY("@gearSocketAuxiliary"),
         /** A second compartment bay that pools with {@link #AUXILIARY} (the Bulwark's right flank). */
-        AUXILIARY_2("@gearSocketAuxiliaryRight");
+        AUXILIARY_2("@gearSocketAuxiliaryRight"),
+        /**
+         * The armor point: the plating that covers the frame, one plate at a time. A plate is only ever
+         * replaced here, never left out.
+         */
+        PLATING("@gearSocketPlating");
 
         private final String label;
 
@@ -49,7 +54,8 @@ public final class MechFittingLayout {
         BALLISTIC("@gearSocketBallistic"),
         MISSILE("@gearSocketMissile"),
         OMNI("@gearSocketOmni"),
-        AUXILIARY("@gearSocketTypeAuxiliary");
+        AUXILIARY("@gearSocketTypeAuxiliary"),
+        PLATING("@gearSocketTypePlating");
 
         private final String label;
 
@@ -156,7 +162,7 @@ public final class MechFittingLayout {
     public boolean occupied(SocketId id) {
         if (!byId.containsKey(id)) return false;
         return switch (id) {
-            case CORE, AUXILIARY, AUXILIARY_2 -> true;
+            case CORE, AUXILIARY, AUXILIARY_2, PLATING -> true;
             case ARMS -> variant.arms != null;
             case LEFT_ARM -> variant.leftArm != null;
             case RIGHT_ARM -> variant.rightArm != null;
@@ -181,7 +187,9 @@ public final class MechFittingLayout {
                 socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 2,
                         -0.30f, -0.58f, -0.42f, 0.72f, 0.85f, 0.68f, false),
                 socket(SocketId.AUXILIARY_2, SocketType.AUXILIARY, 2, 2,
-                        0.30f, -0.58f, 0.42f, 0.72f, 0.85f, 0.68f, false))));
+                        0.30f, -0.58f, 0.42f, 0.72f, 0.85f, 0.68f, false),
+                socket(SocketId.PLATING, SocketType.PLATING, 2, 1,
+                        0f, 0.30f, 0f, -0.90f, 1.00f, 0.68f, false))));
         layouts.put(MechVariant.HOUND, layout(MechVariant.HOUND, 180f, List.of(
                 socket(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, false),
@@ -192,7 +200,9 @@ public final class MechFittingLayout {
                 socket(SocketId.RIGHT_SHOULDER, SocketType.MISSILE, 2, 2,
                         0.62f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false),
                 socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 2,
-                        0f, -0.54f, 0f, 0.68f, 1.64f, 0.68f, false))));
+                        0f, -0.54f, 0f, 0.68f, 1.64f, 0.68f, false),
+                socket(SocketId.PLATING, SocketType.PLATING, 2, 1,
+                        0f, 0.30f, 0f, -0.90f, 1.00f, 0.68f, false))));
         layouts.put(MechVariant.WARDEN, layout(MechVariant.WARDEN, 180f, List.of(
                 socket(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, false),
@@ -203,7 +213,9 @@ public final class MechFittingLayout {
                 socket(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.64f, 0.04f, 1.34f, -0.46f, 1.36f, 0.72f, false),
                 socket(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 3,
-                        0f, -0.55f, 0f, 0.68f, 1.64f, 0.68f, false))));
+                        0f, -0.55f, 0f, 0.68f, 1.64f, 0.68f, false),
+                socket(SocketId.PLATING, SocketType.PLATING, 2, 1,
+                        0f, 0.30f, 0f, -0.90f, 1.00f, 0.68f, false))));
         return Map.copyOf(layouts);
     }
 

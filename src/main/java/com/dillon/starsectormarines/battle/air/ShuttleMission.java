@@ -135,6 +135,12 @@ public final class ShuttleMission {
      * {@link ShuttleState#PENDING}) for the next machine drop it can lift.
      */
     public boolean standby;
+    /**
+     * Lift the company does not own (an employer's, a mission's or a hull's heavy lift) standing
+     * in the ferry for the machine drops: it never takes a squad sortie, so the company's marines
+     * land in the company's own boats.
+     */
+    public boolean machinesOnly;
     /** The queued drop this sortie is flying, or 0 for any other sortie. */
     public long machineDropId;
     /** Ordered rescue-perimeter points patrolled by a delivered pickup mech. */

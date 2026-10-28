@@ -211,7 +211,8 @@ legibility.
   *revoked*. An *honoured* period is one that ended with loyalty kept.
 - **Market listing** — a named card a story beat has put on sale at one named
   market, or at every open market of one faction, until the company knows or
-  carries it. Authored stock the market channel displays, not a fifth channel.
+  carries it. Authored stock the company store shows at that market, not a fifth
+  channel.
 - **Armory** — the persistent campaign authority for collected equipment
   templates and reusable squad definitions. Materialized marine kit persists on
   the marine; the Machine Shop fits learned technology for free.
@@ -248,13 +249,12 @@ empty, or reach is broken, so a medic does not stop fighting to dribble out each
 sliver as it regenerates. An interrupted treatment keeps what landed and simply
 stops spending. The squad never stops for medicine: the patient carries on with
 the squad and the medic walks at their side while treating. A suit's field-aid
-kit (MED-KIT, MED-KIT-Trauma) works with the same medicine. Without Field
-Medicine it makes its wearer a medic of the kit's weaker form (also in
-`squad-medicine.json`); a kit is equipment, so a squad may hold several, each
-with its own pool, and the kit dies with its wearer. Under an officer who trains
-Field Medicine the kits complement rather than duplicate: the squad keeps its
-one billet medic, and every kit it deployed with adds its authored complement
-to that medic's pool, refill and rates. Two medics never set out for the same
+kit (MED-KIT, MED-KIT-Trauma) works with the same medicine and makes its wearer
+a medic of the kit's weaker form (also in `squad-medicine.json`). A kit is
+equipment, so a squad may hold several, each wearer a medic with their own pool,
+and the kit dies with its wearer. Field Medicine promotes a single medic only in
+a squad that deploys with no kit; a squad with a kit anywhere in it relies on
+its kit medics and the officer's training adds no medic. Two medics never set out for the same
 patient. In battle the medic wears a small cross badge. A treatment is shown in
 the world, not as an overlay: the medic kneels over an open kit in place of
 whatever special they carry, and the patient gives off hands-on work rather than
@@ -779,8 +779,8 @@ because the story is the permission. It never bypasses the Restricted tier: list
 a Restricted card needs a military warrant naming it, and a shelf never shows a
 Restricted card the company is not warranted for. A listing is withdrawn while the company knows
 or carries the card and returns if it stops doing so; nothing else expires it.
-Creating one restocks the markets at once, so the debrief's promise is on the shelf
-now. The card's tooltip names the event that stocked it. Settlement code owns
+The store reads its shelf when the page opens, so a new listing is on the shelf at once
+and the shelf's row names the event that stocked it. Settlement code owns
 once-only; listing the same card at the same place twice changes nothing. This is global reachability, not universal faction availability.
 
 **Arc issue cards are how the early arcs pay in ways of fighting.** Four weapon

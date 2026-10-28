@@ -266,7 +266,7 @@ public final class MechLabScreen implements Screen {
                 () -> context.goTo(ScreenId.BARRACKS),
                 () -> context.openCompanyArmoryFrom(ScreenId.MECH_LAB),
                 viewModel.overviewAction(),
-                () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering);
+                () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering, context::openStore);
         return props;
     }
 
@@ -316,8 +316,7 @@ public final class MechLabScreen implements Screen {
                 }
             }
             // The whole row is the drag handle, not only its picture.
-            boolean draggable = row.weaponPreview() != null || row.internalPreview() != null
-                    && row.internalPreview().role != MechInternal.Role.PLATING;
+            boolean draggable = row.weaponPreview() != null || row.internalPreview() != null;
             UiElement card = instance.requireElement(row.id());
             card.onPointerDown(event -> {
                 if (row.selectsOnClick()) row.select().run();
@@ -402,7 +401,7 @@ public final class MechLabScreen implements Screen {
         // A compartment part is lifted by itself; the engine is the core's only part.
         MechInternal internal = socket != null && socket.compartment() ? dollCanvas.partAt(point.x(), point.y())
                 : socket != null ? viewModel.installedInternal(socket) : null;
-        if (internal != null) {
+        if (viewModel.liftable(internal)) {
             weaponDrag.begin(event, new WeaponDrag(null, internal, null, socket));
             return;
         }

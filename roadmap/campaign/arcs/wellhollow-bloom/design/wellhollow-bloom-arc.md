@@ -80,6 +80,12 @@ current chapter. A replay:
 - briefs with one replay line from the Warden (the Compact still needs the
   ground walked) rather than the chapter's first briefing.
 
+The debug mission player lists all five chapters under Asharu (WB1 to WB5,
+`DebugMissionCatalog.Scenario.wellhollow`), each on its pool's first vetted
+ARID map (`WellhollowBloomCampaign.fixedSeed`), so a chapter plays the same map
+every time. It briefs with the chapter's first exchange and sets up the
+challenge force: a Veteran Company of seven squads and four machines.
+
 One attempt is active at a time; launch freezes it and only its own receipt
 settles it, once (`early-operation-nouns.md`, the shared authored-operation
 laws).

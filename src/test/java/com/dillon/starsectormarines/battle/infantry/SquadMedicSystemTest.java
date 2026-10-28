@@ -66,7 +66,7 @@ public class SquadMedicSystemTest {
         ward.hp.put(3L, 5f);
         SquadMedic kit = new SquadMedic(RANK_ONE, 2L);
         kit.patientId = 3L;
-        ward.held.put(3L, kit);
+        ward.medics.add(kit);
         assertEquals(0L, SquadMedicSystem.worstHurt(medicFor(ward), ward));
     }
 
@@ -307,11 +307,77 @@ public class SquadMedicSystemTest {
         ward.hp.put(5L, 10f);
         SquadMedic first = medicFor(ward);
         first.patientId = 4L;
-        ward.held.put(4L, first);
+        ward.medics.add(first);
         SquadMedic second = new SquadMedic(RANK_ONE, 2L);
         ward.x.put(2L, 6.5f);
         assertEquals(5L, SquadMedicSystem.worstHurt(second, ward),
                 "the worst hurt is in the first medic's hands, so the second takes the next");
+    }
+
+    @Test
+    public void theNearestFreeMedicTakesThePatientWhateverTheSeatOrder() {
+        Ward ward = squad();
+        ward.hp.put(4L, 5f);
+        SquadMedic far = medicFor(ward);
+        SquadMedic near = new SquadMedic(RANK_ONE, 5L);
+        ward.medics.add(far);
+        ward.medics.add(near);
+        assertEquals(0L, SquadMedicSystem.worstHurt(far, ward), "the medic beside them is free to go");
+        assertEquals(4L, SquadMedicSystem.worstHurt(near, ward));
+
+        ward.medics.clear();
+        ward.medics.add(near);
+        ward.medics.add(far);
+        assertEquals(0L, SquadMedicSystem.worstHurt(far, ward));
+        assertEquals(4L, SquadMedicSystem.worstHurt(near, ward));
+    }
+
+    @Test
+    public void aNearerMedicWhoCannotTakeThePatientDoesNotHoldAnyoneBack() {
+        Ward ward = squad();
+        ward.hp.put(4L, 5f);
+        SquadMedic far = medicFor(ward);
+        SquadMedic near = new SquadMedic(RANK_ONE, 5L);
+        ward.medics.add(far);
+        ward.medics.add(near);
+
+        near.phase = SquadMedic.Phase.APPROACHING;
+        assertEquals(4L, SquadMedicSystem.worstHurt(far, ward), "busy");
+        near.phase = SquadMedic.Phase.IDLE;
+        near.energy = 0f;
+        assertEquals(4L, SquadMedicSystem.worstHurt(far, ward), "empty pool");
+        near.energy = RANK_ONE.energyMax();
+        near.retryTimer = 1f;
+        assertEquals(4L, SquadMedicSystem.worstHurt(far, ward), "waiting to retry");
+        near.retryTimer = 0f;
+        ward.pressure.put(5L, RANK_ONE.heavyFirePressure());
+        assertEquals(4L, SquadMedicSystem.worstHurt(far, ward), "under heavy fire");
+    }
+
+    @Test
+    public void equidistantMedicsFallBackToSeatOrder() {
+        Ward ward = squad();
+        ward.hp.put(4L, 5f);
+        ward.x.put(4L, 4.5f);
+        SquadMedic first = medicFor(ward);
+        SquadMedic second = new SquadMedic(RANK_ONE, 5L);
+        ward.medics.add(first);
+        ward.medics.add(second);
+        assertEquals(4L, SquadMedicSystem.worstHurt(first, ward));
+        assertEquals(0L, SquadMedicSystem.worstHurt(second, ward));
+    }
+
+    @Test
+    public void aMedicDefersOnlyOnThePatientsASeatNearerMedicTakes() {
+        Ward ward = squad();
+        ward.hp.put(4L, 5f);
+        ward.hp.put(2L, 15f);
+        SquadMedic far = medicFor(ward);
+        SquadMedic near = new SquadMedic(RANK_ONE, 5L);
+        ward.medics.add(far);
+        ward.medics.add(near);
+        assertEquals(2L, SquadMedicSystem.worstHurt(far, ward),
+                "the worse-hurt marine is the other medic's; this one takes the next they are nearest to");
     }
 
     /** Leader 1 and marine 2 in team 0; 3 (the medic), 4 and 5 in team 1; all whole. */
@@ -353,8 +419,8 @@ public class SquadMedicSystemTest {
         final Map<Long, Float> armor = new HashMap<>();
         final Map<Long, Float> pressure = new HashMap<>();
         final WoundService wounds = new WoundService();
-        /** Patients and the medic holding them. */
-        final Map<Long, SquadMedic> held = new HashMap<>();
+        /** The squad's medics, in seat order. */
+        final java.util.List<SquadMedic> medics = new java.util.ArrayList<>();
 
         Ward(long leader) { this.leader = leader; }
 
@@ -381,9 +447,7 @@ public class SquadMedicSystemTest {
         @Override public float maxArmor(long member) { return 5f; }
         @Override public void setArmor(long member, float value) { armor.put(member, value); }
         @Override public void dressWounds(long member) { wounds.dress(member); }
-        @Override public boolean inOtherHands(SquadMedic self, long member) {
-            SquadMedic holder = held.get(member);
-            return holder != null && holder != self;
-        }
+        @Override public int medicCount() { return medics.size(); }
+        @Override public SquadMedic medicAt(int index) { return medics.get(index); }
     }
 }

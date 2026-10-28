@@ -64,14 +64,11 @@ public final class ArcIssueListings {
      * @param scopeId the market id for a market-scoped beat; ignored for a faction-scoped one
      * @return true when this call created the listing
      */
-    public static boolean after(CampaignState state, Beat beat, boolean earned, String scopeId, int day,
-                                boolean restock) {
+    public static boolean after(CampaignState state, Beat beat, boolean earned, String scopeId, int day) {
         if (!earned || state == null || beat == null) return false;
         String scope = beat.scope == MarketListings.Scope.FACTION ? COLD_ACCOUNT_FACTION : scopeId;
         if (scope == null || scope.isBlank()) return false;
-        return restock
-                ? MarketListings.listAndRestock(state, beat.cardId(), beat.scope, scope, beat.reasonKey, day)
-                : MarketListings.list(state, beat.cardId(), beat.scope, scope, beat.reasonKey, day);
+        return MarketListings.list(state, beat.cardId(), beat.scope, scope, beat.reasonKey, day);
     }
 
     /**
@@ -87,7 +84,7 @@ public final class ArcIssueListings {
         String marketId = market == null ? null : market.getId();
         try {
             int day = Global.getSector() != null ? CampaignClock.day() : 0;
-            if (after(script.state(), beat, true, marketId, day, true)) {
+            if (after(script.state(), beat, true, marketId, day)) {
                 LOG.info("MarineOps: " + beat + " listed " + beat.cardId() + " at " + marketId);
             }
         } catch (RuntimeException failure) {

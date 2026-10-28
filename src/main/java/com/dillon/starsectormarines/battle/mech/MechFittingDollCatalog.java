@@ -153,7 +153,9 @@ public final class MechFittingDollCatalog {
                 new SocketDef(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 2,
                         0.0f, -0.16f, -1.34f, -0.46f, 1.36f, 0.68f, false, "SHOULDER"),
                 new SocketDef(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 2,
-                        0.0f, -0.26f, 0.0f, 0.68f, 1.36f, 0.68f, false, "AUXILIARY")
+                        0.0f, -0.26f, 0.0f, 0.68f, 1.36f, 0.68f, false, "AUXILIARY"),
+                new SocketDef(SocketId.PLATING, SocketType.PLATING, 2, 1,
+                        0.0f, 0.30f, 0.0f, -0.90f, 1.00f, 0.68f, false, "PLATING")
         )));
 
         // Warden (5 sockets, a compartment two wide and three deep)
@@ -167,7 +169,9 @@ public final class MechFittingDollCatalog {
                 new SocketDef(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,
                         0.36f, -0.15f, 1.34f, -0.46f, 1.36f, 0.68f, false, "R. SHOULDER"),
                 new SocketDef(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 3,
-                        0.0f, -0.26f, 0.0f, 0.68f, 1.36f, 0.68f, false, "AUXILIARY")
+                        0.0f, -0.26f, 0.0f, 0.68f, 1.36f, 0.68f, false, "AUXILIARY"),
+                new SocketDef(SocketId.PLATING, SocketType.PLATING, 2, 1,
+                        0.0f, 0.30f, 0.0f, -0.90f, 1.00f, 0.68f, false, "PLATING")
         )));
 
         // Bulwark (7 sockets: a gun on each arm, a compartment of two 2x2 flank bays)
@@ -185,7 +189,9 @@ public final class MechFittingDollCatalog {
                 new SocketDef(SocketId.AUXILIARY, SocketType.AUXILIARY, 2, 2,
                         -0.30f, -0.26f, -0.42f, 0.72f, 0.85f, 0.68f, false, "L. AUXILIARY"),
                 new SocketDef(SocketId.AUXILIARY_2, SocketType.AUXILIARY, 2, 2,
-                        0.30f, -0.26f, 0.42f, 0.72f, 0.85f, 0.68f, false, "R. AUXILIARY")
+                        0.30f, -0.26f, 0.42f, 0.72f, 0.85f, 0.68f, false, "R. AUXILIARY"),
+                new SocketDef(SocketId.PLATING, SocketType.PLATING, 2, 1,
+                        0.0f, 0.30f, 0.0f, -0.90f, 1.00f, 0.68f, false, "PLATING")
         )));
 
         return new MechFittingDollCatalog(dolls);

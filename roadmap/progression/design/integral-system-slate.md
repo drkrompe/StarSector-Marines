@@ -90,16 +90,15 @@ game reads none of it.
 slate whose whole contribution goes to another marine. A field-aid kit makes its
 wearer a squad medic (`squad-medic.md`): the same treatment over time, the same
 regenerating pool and the same rules as the medic an officer's Field Medicine
-designates, so the two rules that keep it honest live in `SquadMedicSystem`: the
-medic is never their own patient, and the reach is short enough that the fiction
-stays a marine kneeling next to another marine rather than a turret with a
-healing beam. A self-healing version would be exactly the "more effective hit
-points" that `IntegralSystemEffect` forbids. The kit's numbers are its entry in
+promotes. The reach is short enough that the fiction stays a marine kneeling next
+to another marine rather than a turret with a healing beam, and a medic may bind
+their own wounds only by stopping and holding fire for it, from the same pool
+and under the same gates as treating anyone, so self-treatment is never free. The kit's numbers are its entry in
 `squad-medicine.json`, a weaker form than the officer's first rank. Because it
 is equipment, several marines in one squad may carry one, each with their own
-pool, and two medics never set out for the same patient. Under an officer
-trained in Field Medicine the kits complement instead: the squad keeps the
-officer's one medic, and each kit feeds its pool and quickens its hands.
+pool, and two medics never set out for the same patient. A squad with a kit
+anywhere in it relies on its kit medics: the officer's Field Medicine promotes a
+medic only in a squad that carries none.
 
 ## Individual systems
 

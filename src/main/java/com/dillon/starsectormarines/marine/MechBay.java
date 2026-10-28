@@ -240,8 +240,9 @@ public final class MechBay implements Serializable {
         for (String vehicleId : vehicleIds) {
             CampaignVehicle vehicle = removeVehicle(vehicleId);
             if (vehicle == null) continue;
-            // The kits on its rack go down with it.
+            // The kits on its rack and the plating at its armor point go down with it.
             for (VehicleKit kit : vehicle.kits()) strike(ownedKits, kit.id);
+            if (vehicle.plating() != null) strike(ownedInternals, vehicle.plating().id);
             lost++;
         }
         return lost;
@@ -257,17 +258,21 @@ public final class MechBay implements Serializable {
         return mech != null && loseChassis(mech) ? mech : null;
     }
 
-    /** Takes a vehicle off its gantry into the reserve hangar, its kits with it; null when none holds it. */
+    /** Takes a vehicle off its gantry into the reserve hangar, its kits and plating with it; null when none holds it. */
     CampaignVehicle stowVehicle(String vehicleId) {
         CampaignVehicle vehicle = removeVehicle(vehicleId);
-        if (vehicle != null) for (VehicleKit kit : vehicle.kits()) strike(ownedKits, kit.id);
+        if (vehicle != null) {
+            for (VehicleKit kit : vehicle.kits()) strike(ownedKits, kit.id);
+            if (vehicle.plating() != null) strike(ownedInternals, vehicle.plating().id);
+        }
         return vehicle;
     }
 
-    /** Puts a stored vehicle back on a vacant gantry and owns its kits again. */
+    /** Puts a stored vehicle back on a vacant gantry and owns its kits and plating again. */
     boolean berthVehicle(String squadId, CampaignVehicle vehicle) {
         if (!canAddMech(squadId) || !addVehicle(squadId, vehicle)) return false;
         for (VehicleKit kit : vehicle.kits()) addKit(kit.id, 1);
+        if (vehicle.plating() != null) addInternal(vehicle.plating().id, 1);
         return true;
     }
 
@@ -494,6 +499,7 @@ public final class MechBay implements Serializable {
             for (CampaignMech mech : squad.mechs()) {
                 for (MechInternal fitted : fittedInternals(mech)) if (fitted == internal) installed++;
             }
+            for (CampaignVehicle vehicle : squad.vehicles()) if (vehicle.plating() == internal) installed++;
         }
         return installed;
     }
@@ -578,9 +584,32 @@ public final class MechBay implements Serializable {
         return vehicle != null && vehicle.remove(kit);
     }
 
+    /** Whether {@code plating} would go at the vehicle's armor point: a plating tier above the hull's own plate. */
+    public boolean canFitPlating(String vehicleId, MechInternal plating) {
+        return vehicleById(vehicleId) != null && CampaignVehicle.takesPlating(plating);
+    }
+
+    /**
+     * Puts a spare plating part at a vehicle's armor point; the plate it replaces returns to stores.
+     * False with no spare or a part that does not go.
+     */
+    public boolean fitPlating(String vehicleId, MechInternal plating) {
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        if (vehicle == null || !CampaignVehicle.takesPlating(plating) || availableInternal(plating.id) <= 0) {
+            return false;
+        }
+        return vehicle.fitPlating(plating);
+    }
+
+    /** Takes the plating off a vehicle's armor point back to stores; the hull wears its own plate again. */
+    public boolean stripPlating(String vehicleId) {
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        return vehicle != null && vehicle.stripPlating();
+    }
+
     /**
      * Whether {@code internal} physically fits this mech. An engine needs the core to hold its
-     * footprint; plating covers the frame and needs no socket; a compartment part needs the
+     * footprint; plating needs the plating socket; a compartment part needs the
      * compartment, after the refit (a bank or loader replacing the one there, a vent going in
      * beside the others), to keep its role limits and pack ({@link MechCompartment}). Mass is a
      * separate question ({@link #withinBudget}).
@@ -631,7 +660,7 @@ public final class MechBay implements Serializable {
      */
     public boolean stripInternal(String mechId, MechInternal.Role role) {
         CampaignMech mech = mechById(mechId);
-        if (mech == null || role == null || role.socket() == null || mech.internal(role) == null) return false;
+        if (mech == null || role == null || role.replaceOnly() || mech.internal(role) == null) return false;
         if (role.compartment()) return mech.removePart(mech.internal(role));
         mech.installInternal(role, null);
         return true;
@@ -828,12 +857,32 @@ public final class MechBay implements Serializable {
         };
     }
 
+    /**
+     * Saves from before the armor point owned armor as two rack kits: each appliqué plate is now a composite
+     * plating part and each spaced skirt a heavy one (those fitted were converted with their vehicle,
+     * {@link CampaignVehicle}), and a company that knew the kit's pattern knows its plating's.
+     */
+    private void retireArmorKits() {
+        Integer applique = ownedKits.remove(CampaignVehicle.RETIRED_APPLIQUE_PLATE);
+        Integer skirts = ownedKits.remove(CampaignVehicle.RETIRED_SPACED_SKIRTS);
+        if (applique != null && applique > 0) ownedInternals.merge(MechInternal.COMPOSITE_PLATING.id, applique, Integer::sum);
+        if (skirts != null && skirts > 0) ownedInternals.merge(MechInternal.HEAVY_PLATING.id, skirts, Integer::sum);
+        if (knownPatternIds == null) return;
+        if (knownPatternIds.remove("kit:" + CampaignVehicle.RETIRED_APPLIQUE_PLATE)) {
+            knownPatternIds.add(MechPattern.of(MechInternal.COMPOSITE_PLATING).id());
+        }
+        if (knownPatternIds.remove("kit:" + CampaignVehicle.RETIRED_SPACED_SKIRTS)) {
+            knownPatternIds.add(MechPattern.of(MechInternal.HEAVY_PLATING).id());
+        }
+    }
+
     private Object readResolve() {
         if (squads == null) squads = new ArrayList<>();
         if (ownedReplenishers == null) ownedReplenishers = new HashMap<>();
         if (ownedWeapons == null) ownedWeapons = new HashMap<>();
         if (ownedInternals == null) ownedInternals = new HashMap<>();
         if (ownedKits == null) ownedKits = new HashMap<>();
+        retireArmorKits();
         if (knownPatternIds == null) {
             knownPatternIds = starterPatternsOnly ? starterPatternIds() : allPatternIds();
         }

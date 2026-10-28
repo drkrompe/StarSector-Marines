@@ -37,9 +37,7 @@ final class HardwareArt {
             ART.put(component, SvgAsset.load(ROOT + stem(component) + ".svg"));
         }
         for (MechInternal internal : MechInternal.values()) {
-            if (internal.role != MechInternal.Role.PLATING) {
-                INTERNALS.put(internal, SvgAsset.load(ROOT + stem(internal) + ".svg"));
-            }
+            INTERNALS.put(internal, SvgAsset.load(ROOT + stem(internal) + ".svg"));
         }
         for (String stem : VehicleDoll.ART) VEHICLE.put(stem, SvgAsset.load(ROOT + stem + ".svg"));
         for (VehicleKit kit : VehicleKit.values()) KITS.put(kit, SvgAsset.load(ROOT + stem(kit) + ".svg"));
@@ -59,7 +57,7 @@ final class HardwareArt {
         return draw(c, KITS.get(kit), x, y, width, height, alpha);
     }
 
-    /** {@code kit.applique-plate} draws from {@code kit-applique-plate.svg}. */
+    /** {@code kit.spall-liner} draws from {@code kit-spall-liner.svg}. */
     static String stem(VehicleKit kit) {
         return kit.id.replace('.', '-');
     }
@@ -108,7 +106,9 @@ final class HardwareArt {
             case AUXILIARY_VENT_ARRAY -> "vent-auxiliary";
             case STANDARD_LOADER -> "loader-standard";
             case ACCELERATED_LOADER -> "loader-accelerated";
-            case FACTORY_PLATING, COMPOSITE_PLATING, HEAVY_PLATING -> null;
+            case FACTORY_PLATING -> "plating-factory";
+            case COMPOSITE_PLATING -> "plating-composite";
+            case HEAVY_PLATING -> "plating-heavy";
         };
     }
 

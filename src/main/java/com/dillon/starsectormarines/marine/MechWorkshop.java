@@ -170,6 +170,28 @@ public final class MechWorkshop {
         return bay.stripKit(vehicleId, kit) ? new Result(Status.STRIPPED, null, vehicle) : Result.of(Status.INVALID);
     }
 
+    /**
+     * Puts a plating part at a vehicle's armor point from stores, as a kit is fitted: building one is its own
+     * step. The plate it replaces goes back to stores.
+     */
+    public Result fitPlating(String vehicleId, MechInternal plating) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null || plating == null) return Result.of(Status.INVALID);
+        if (vehicle.plating() == plating) return Result.of(Status.ALREADY_INSTALLED);
+        if (!bay.canFitPlating(vehicleId, plating)) return Result.of(Status.INCOMPATIBLE);
+        if (bay.availableInternal(plating.id) <= 0) return Result.of(Status.INSUFFICIENT_MATERIALS);
+        return bay.fitPlating(vehicleId, plating) ? new Result(Status.INSTALLED_FROM_STORES, null, vehicle)
+                : Result.of(Status.INVALID);
+    }
+
+    /** Takes the plating off a vehicle's armor point back to stores. */
+    public Result stripPlating(String vehicleId) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null) return Result.of(Status.INVALID);
+        if (vehicle.plating() == null) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripPlating(vehicleId) ? new Result(Status.STRIPPED, null, vehicle) : Result.of(Status.INVALID);
+    }
+
     /** Takes the first vent array out of the compartment. */
     public Result stripVentArray(String mechId) {
         return stripInternal(mechId, MechInternal.Role.VENT_ARRAY);
@@ -181,7 +203,7 @@ public final class MechWorkshop {
      */
     public Result stripInternal(String mechId, MechInternal.Role role) {
         CampaignMech mech = bay.mechById(mechId);
-        if (mech == null || role == null || role.socket() == null) return Result.of(Status.INVALID);
+        if (mech == null || role == null || role.replaceOnly()) return Result.of(Status.INVALID);
         if (mech.internal(role) == null) return Result.of(Status.ALREADY_STRIPPED);
         return bay.stripInternal(mechId, role) ? Result.of(Status.STRIPPED) : Result.of(Status.INVALID);
     }

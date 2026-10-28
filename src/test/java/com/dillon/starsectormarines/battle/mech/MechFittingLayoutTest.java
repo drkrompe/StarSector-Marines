@@ -51,7 +51,7 @@ class MechFittingLayoutTest {
             }
             if (variant == MechVariant.HOUND) {
                 assertEquals(EnumSet.of(SocketId.CORE, SocketId.ARMS,
-                        SocketId.LEFT_SHOULDER, SocketId.AUXILIARY), ids);
+                        SocketId.LEFT_SHOULDER, SocketId.AUXILIARY, SocketId.PLATING), ids);
             } else if (variant.twoArmed()) {
                 assertEquals(EnumSet.complementOf(EnumSet.of(SocketId.ARMS)), ids,
                         "a two-armed chassis has an arm socket each side and no centreline mount");

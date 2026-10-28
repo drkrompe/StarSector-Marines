@@ -315,16 +315,15 @@ public final class Squad {
     public CommandGroupIdentity commandGroupIdentity;
 
     /**
-     * The squad's designated medic, from an officer trained in Field Medicine,
-     * or null. Created and written by {@code SquadMedicSystem}'s serial pass;
+     * The squad's designated medic, promoted by an officer trained in Field
+     * Medicine in a squad that deploys with no field-aid kit, or null. Created and written by {@code SquadMedicSystem}'s serial pass;
      * the unit dispatch only reads it.
      */
     public SquadMedic medic;
 
     /**
-     * One medic for each marine whose suit carries a field-aid kit, when the
-     * officer has no Field Medicine (with it, the kits complement {@link #medic}
-     * instead). Issued once by {@code SquadMedicSystem}'s serial pass and never
+     * One medic for each marine whose suit carries a field-aid kit; a squad
+     * with any has no {@link #medic}. Issued once by {@code SquadMedicSystem}'s serial pass and never
      * re-designated: the kit dies with its wearer.
      */
     public final List<SquadMedic> kitMedics = new ArrayList<>();

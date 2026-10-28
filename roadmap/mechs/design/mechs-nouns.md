@@ -186,24 +186,22 @@ increasing an encounter's total armored threat.
   locked down otherwise, and its doll in the Mech Lab says so: the same schematic
   as a mech's, with the drive in the middle, the turret ahead, the secondary
   mounts and the bay (seats, supply stock or drones) either side and the kit rack
-  behind, every card but the rack **sealed** with its factory part drawn in it,
-  readable and never draggable. The rack holds one kit per slot: a Light hull has
-  one slot, a Medium two, a Heavy three (`VehicleType.weight`). A vehicle carries
-  at most one of each kit, and a kit may need something of the hull (a magazine to
-  extend, tracks to skirt). Kits are inventory parts exactly as internals are:
+  behind, every card but the rack and the armor point **sealed** with its factory
+  part drawn in it, readable and never draggable. The rack holds one kit per slot:
+  a Light hull has one slot, a Medium two, a Heavy three (`VehicleType.weight`). A
+  vehicle carries at most one of each kit, and a kit may need something of the hull
+  (a magazine to extend, a gun to feed). Kits are inventory parts exactly as internals are:
   learned as patterns, bought for their price into stores, dragged onto the rack and
   off it again, lost with the hull and spared by a scrap. A kit changes the
   vehicle's numbers when it is frozen for a drop, or gives a hull with no drone
   bay one the battle already flies, so it adds no behaviour of its own and no
   balance surface beyond its own effect:
-  - **Appliqué plate** (Common): a quarter more armor capacity on every plate.
   - **Spall liner** (Common): a fifth more structure.
   - **Ready rack** (Common, armed hulls): half again the turret's magazine.
   - **Accelerated loader** (Advanced, armed hulls): every mount's loader puts a
     pack back in three quarters of the stock time (`convoy-nouns.md`, the loader).
   - **Capacitor pack** (Advanced, armed hulls, whose every gun builds flux):
     half again the flux the gun holds before it overloads.
-  - **Spaced skirts** (Advanced, tracked hulls): +2 armor rating.
   - **Sensor drone pair** (Advanced, hulls with no bay of their own): two sensor
     drones that fly ahead of the bow, so an indirect-fire hull fed by them fires
     over cover with no spotter (`convoy-nouns.md`, the missile carriers).
@@ -211,6 +209,19 @@ increasing an encounter's total armored threat.
   behaviour or a system of its own (active protection, a blade, a mortar) stays a
   **variant** (`heavy-equipment-progression.md`, Vehicles: variants and kits).
   A vehicle saved before kits has an empty rack; a bought hull comes with one.
+- A vehicle's **armor point** (`SocketId.PLATING`) is the one place armor is fitted,
+  as on a mech and a boat, and it takes the same three plating parts a mech wears
+  (`MechInternal`, plating role). The hull's own plate is no part: an empty armor
+  point is that plate, so only **composite** (a quarter more armor capacity on every
+  plate) and **heavy** plating (two fifths more, and +2 armor rating on a tracked
+  hull, which is what skirts were) are fitted. They are ordinary inventory: learned
+  as patterns, built into stores, dragged onto the armor point and off it again, the
+  plate they replace returning to stores, lost with the hull and spared by a scrap.
+  The drop carries the tier (`VehiclePlating`), so the battle sees a factor, never a
+  part. The armor point stands under the rest of the doll, wired to nothing, and the
+  kit rack no longer holds armor (the appliqué plate and spaced skirts were retired
+  into composite and heavy plating; a save converts the fitted ones with their
+  vehicle, and the spares and learned patterns with the bay).
 - The **bay manifest** is the active squad's bay spaces frozen at launch: its
   mechs in gantry order, then its vehicles, each with chassis or hull, weight
   class and callsign. Vehicles carry their campaign id across the launch-fixture
@@ -252,8 +263,9 @@ increasing an encounter's total armored threat.
   against owned quantity; a refit transaction returns the target mech's
   current component before evaluating the replacement.
 - An **internal** is a non-weapon fitting that changes the frame (`MechInternal`):
-  an **engine** in the CORE socket, **plating**, which covers the whole frame and has
-  no socket, and the parts that share the auxiliary compartment: **capacitor banks**,
+  an **engine** in the CORE socket, **plating**, which covers the whole frame but is
+  fitted at its own PLATING socket, the armor point, and the parts that share the
+  auxiliary compartment: **capacitor banks**,
   **vent arrays** and **missile loaders**. The **stock frame** is the industrial
   engine, factory plating, and a factory capacitor bank and standard loader in the
   compartment; an existing mech with no recorded internals resolves to it. Each
@@ -530,13 +542,14 @@ increasing an encounter's total armored threat.
   build strip under its piece: its price and a wide BUY button;
   it buys one into stores and fits nothing, and is dimmed while the credits are
   short or the fleet is away from a civilized port (`company-view-nouns.md`, Civilized port). A row with a spare offers no build at all: the spare is what to drag, and
-  stripping a part back to stores takes the offer away again. Plating is the one exception: it covers the whole frame and
-  has no mount to drop on, so a spare plate is fitted from its row. Internals
+  stripping a part back to stores takes the offer away again. Plating is dragged onto
+  the armor point like any other part. Internals
   drag off like weapons (or come off by their X) and leave their room empty. An
   engine and a capacitor bank are **required**: a mech missing either is
   `INCOMPLETE`, a readiness beside damaged and under repair, and stays off the
   drop manifest until both are fitted; its empty sockets warn on the doll and in
-  the slot list. Plating covers the frame and is only ever replaced. Until a
+  the slot list. Plating covers the frame and is only ever replaced: the armor point
+  has no X and its plate cannot be lifted off a mech, only dropped over. Until a
   refit, an empty socket reads as the stock part for the engine budget, the
   lightest real fit, so nothing fitted meanwhile can exceed a budget a refit
   would honour. The stores filters follow the

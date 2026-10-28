@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.testsupport.TaughtBoatDecks;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import org.junit.jupiter.api.Test;
 import java.io.*;
@@ -77,13 +78,13 @@ class BoatRecoveryTest {
         deck.settleRecovery("two", Map.of(boat.id(), .8f), List.of(), 2f);
         assertEquals(BoatWorkshop.Status.STALE_REPAIR, yard.expedite(stale, 2f).status());
         assertEquals(0, stores.spends);
-        var wrecks = new BoatDeck(); wrecks.requireCommissioning();
+        var wrecks = TaughtBoatDecks.taught(new BoatDeck()); wrecks.requireCommissioning();
         wrecks.registerFoundingWrecks("original"); wrecks.reconcile("original", ShuttleType.HERMES, 2);
         assertTrue(wrecks.flightReady(100f).isEmpty());
         assertTrue(wrecks.wreckInBerth(0)); assertTrue(wrecks.wreckInBerth(1));
     }
 
-    private static BoatDeck deck(int count) { var deck = new BoatDeck(); deck.reconcile("ship", ShuttleType.AEROSHUTTLE, count); return deck; }
+    private static BoatDeck deck(int count) { var deck = TaughtBoatDecks.taught(new BoatDeck()); deck.reconcile("ship", ShuttleType.AEROSHUTTLE, count); return deck; }
     private static BoatDeck reload(BoatDeck deck) throws Exception {
         var bytes = new ByteArrayOutputStream();
         try (var out = new ObjectOutputStream(bytes)) { out.writeObject(deck); }

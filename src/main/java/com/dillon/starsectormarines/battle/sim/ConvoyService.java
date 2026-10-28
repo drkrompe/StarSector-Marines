@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.vehicle.MountedGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearances;
 import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
@@ -109,7 +110,13 @@ public final class ConvoyService implements BodyCarrier {
 
     /** As above, set down with what the kits on its rack make of it ({@link VehicleKit}). */
     public long spawn(VehicleType type, List<VehicleKit> kits, Faction faction, VehicleMission mission) {
-        VehicleKit.Effect fitted = VehicleKit.Effect.of(kits);
+        return spawn(type, kits, VehiclePlating.FACTORY, faction, mission);
+    }
+
+    /** As above, in the plating its armor point holds ({@link VehiclePlating}). */
+    public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, Faction faction,
+                      VehicleMission mission) {
+        VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type);
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
 

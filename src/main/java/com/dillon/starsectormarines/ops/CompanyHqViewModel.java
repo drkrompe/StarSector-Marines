@@ -72,6 +72,7 @@ final class CompanyHqViewModel {
             Runnable openMechLab,
             Runnable openBoatDeck,
             Runnable openShipView,
+            Runnable openStore,
             Runnable close,
             Function<CompanyClocks.Entry, Runnable> respond, Consumer<SectorEntityToken> plotCourse,
             AuxiliaryWarrantDesk.Row auxiliary, AgreusHandoverDesk.Row handover) {
@@ -87,7 +88,7 @@ final class CompanyHqViewModel {
                 rosterScript == null ? null : rosterScript.roster(), respond, plotCourse, auxiliary, handover);
         return build(standing, items, news, day, aboard,
                 openBarracks, openArmory,
-                openMechLab, openBoatDeck, openShipView, close);
+                openMechLab, openBoatDeck, openShipView, openStore, close);
     }
 
     private static CompanyHqViewModel build(
@@ -101,6 +102,7 @@ final class CompanyHqViewModel {
             Runnable openMechLab,
             Runnable openBoatDeck,
             Runnable openShipView,
+            Runnable openStore,
             Runnable close) {
         Map<String, Object> props = baseLabels();
         NumberFormat credits = NumberFormat.getIntegerInstance();
@@ -130,7 +132,7 @@ final class CompanyHqViewModel {
         props.put("auxiliary", AuxiliaryWarrantDesk.hidden());
         props.put("handover", AgreusHandoverDesk.hidden());
         MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, aboard, close,
-                () -> { }, openBarracks, openArmory, openMechLab, openBoatDeck, openShipView);
+                () -> { }, openBarracks, openArmory, openMechLab, openBoatDeck, openShipView, openStore);
         return new CompanyHqViewModel(props);
     }
 

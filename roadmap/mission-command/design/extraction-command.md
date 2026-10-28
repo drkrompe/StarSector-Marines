@@ -176,7 +176,8 @@ under Purge against the mother. The published picture and the trace carry the
 posture, the gate and its inputs, the detachment and every decision.
 
 Authored shelter and pickup guards remain outside the command pool under their
-existing garrison or payload authority. The commander does not invent a missing
+existing garrison or payload authority. Both are allied squads, not the
+company's (the pickup guard is the evac cordon, `colony-breach-nouns.md`). The commander does not invent a missing
 pickup-guard post. Mission command owns where the mobile force is useful while
 the evacuation tracker, squad doctrine, and individual combat behavior retain
 their existing authority.

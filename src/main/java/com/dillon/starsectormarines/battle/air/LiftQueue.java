@@ -18,10 +18,10 @@ import java.util.List;
  *
  * <p>The opening squad loads stand at its head: each ferry craft's own sorties were queued
  * when the battle was set up, bound to that craft, so a craft flies every one of them
- * before anything ordered later. A craft standing by takes a squad sortie another ferry
- * craft still owes before it takes a machine ({@link #takeSquadSortie}), so heavy lift that
- * joined the ferry with no seats of its own booked lands squads too, and no machine comes
- * down while a squad still waits. Behind them come the machine drops the player orders, one
+ * before anything ordered later. A company craft standing by takes a squad sortie another
+ * ferry craft still owes before it takes a machine ({@link #takeSquadSortie}), so no machine
+ * comes down on it while a squad still waits; lift the company does not own flies machines
+ * only ({@link ShuttleMission#machinesOnly}). Behind them come the machine drops the player orders, one
  * machine each, first in first out. A craft that has flown its own loads takes the first
  * queued drop its lift rating admits ({@link LiftAdmission}); one that admits nothing
  * leaves when its loads are done, as before. A sortie carries its squad load or exactly one
@@ -145,9 +145,11 @@ public final class LiftQueue {
      * would have: same landing ground, route, landing area, arrival group and claim. A load
      * larger than {@code seats} is split, the rest staying with its craft; a load of plain
      * combatants (no loadouts to split) is taken only whole. False, with nothing changed,
-     * when no squad sortie is owed that this craft can seat.
+     * when no squad sortie is owed that this craft can seat, or the craft is lift the company
+     * does not own ({@link ShuttleMission#machinesOnly}).
      */
     public static boolean takeSquadSortie(World world, Iterable<Long> air, ShuttleMission mission, int seats) {
+        if (mission.machinesOnly) return false;
         List<ShuttleMission> ferry = new ArrayList<>();
         for (long id : air) {
             ShuttleMission other = world.mission(id);

@@ -103,11 +103,27 @@ public final class PowerCatalog {
                                              List<FittedBoat> committedBoats) {
         List<CommandPower> powers = bayManifest(resolveSourced(committedShips, m, configuredMechs),
                 arrangedHeavyLift(m), configuredMechs, configuredVehicles);
-        if (committedBoats == null || committedBoats.isEmpty()) return powers;
+        boolean companyLiftOnly = SupplyRouteCampaign.freight(m);
+        if ((committedBoats == null || committedBoats.isEmpty()) && !companyLiftOnly) return powers;
         Map<String, CommandPower> byId = new LinkedHashMap<>();
         for (CommandPower power : powers) byId.put(power.id, power);
         assignCompanyLift(byId, fleetGranted(committedShips, m), committedBoats, arrangedHeavyLift(m));
+        if (companyLiftOnly) dropSyntheticLift(byId);
         return List.copyOf(byId.values());
+    }
+
+    /**
+     * Thunder Run's employer lifts only its own militia (owner, 2026-10-28): the company's armour
+     * comes down in a company boat that lifts it, or not at all.
+     */
+    static void dropSyntheticLift(Map<String, CommandPower> byId) {
+        if (!(byId.get(MechSupport.ID) instanceof MechSupport mech)) return;
+        if (mech.companyCarrier() == null) {
+            byId.remove(MechSupport.ID);
+        } else {
+            byId.put(MechSupport.ID, MechSupport.configured(mech.deployments(), mech.vehicles(),
+                    mech.companyCarrier(), false));
+        }
     }
 
     /**

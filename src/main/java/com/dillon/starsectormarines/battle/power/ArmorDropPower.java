@@ -37,8 +37,9 @@ import java.util.Map;
  *
  * <p><b>Who flies.</b> Only ferry craft. A committed cradled company boat, or the heavy
  * lift a mission, employer or hull supplies, joins the ferry as a craft of its own when no
- * ferry craft already lifts its class; standing by, it lands squad sorties the ferry still
- * owes before it flies any machine ({@link LiftQueue#takeSquadSortie}).
+ * ferry craft already lifts its class. Standing by, a company boat lands squad sorties the
+ * ferry still owes before it flies any machine ({@link LiftQueue#takeSquadSortie}); supplied
+ * lift flies machines only, so the company's marines land in the company's own boats.
  */
 public abstract class ArmorDropPower extends AirDeliveryPower {
 
@@ -268,12 +269,15 @@ public abstract class ArmorDropPower extends AirDeliveryPower {
             if (LiftQueue.ferryRated(battle.world(), battle.getAirEntityIds(), carrier.rating())) {
                 continue;
             }
-            joinFerry(battle, carrier.frame());
+            joinFerry(battle, carrier.frame(), !carrier.company());
         }
     }
 
-    /** Puts {@code frame} in the ferry as a standby craft waiting off-map for a job. */
-    private static void joinFerry(BattleControl battle, Airframe frame) {
+    /**
+     * Puts {@code frame} in the ferry as a standby craft waiting off-map for a job; lift the
+     * company does not own ({@code machinesOnly}) flies machines and never a squad.
+     */
+    private static void joinFerry(BattleControl battle, Airframe frame, boolean machinesOnly) {
         ShuttleType pattern = ShuttleType.fromAirframe(frame);
         if (pattern == null) return;
         float x = battle.getGrid().getWidth() * 0.5f;
@@ -282,6 +286,7 @@ public abstract class ArmorDropPower extends AirDeliveryPower {
                 route[0], route[1], route[2], route[3], 0f, 1);
         ShuttleMission mission = battle.world().mission(craft);
         mission.ferry = true;
+        mission.machinesOnly = machinesOnly;
         mission.payload = ArmorDropPayload.INSTANCE;
         LiftQueue.standBy(mission, 0f);
     }

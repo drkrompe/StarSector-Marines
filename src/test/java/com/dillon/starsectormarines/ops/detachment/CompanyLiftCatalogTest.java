@@ -17,6 +17,7 @@ import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -59,6 +60,23 @@ class CompanyLiftCatalogTest {
         MechSupport mech = (MechSupport) byId.get(MechSupport.ID);
         assertSame(LIGHT, mech.companyCarrier());
         assertTrue(mech.syntheticLift(), "the arranged lift still flies what she cannot");
+    }
+
+    @Test
+    void withoutEmployerLiftTheBayFliesOnlyOnTheCompanysBoat() {
+        Map<String, CommandPower> carried = new LinkedHashMap<>();
+        carried.put(MechSupport.ID, MechSupport.configured(List.of(
+                MechDeploymentSpec.standard(MechVariant.HOUND)), LIGHT, true));
+        PowerCatalog.dropSyntheticLift(carried);
+        MechSupport mech = (MechSupport) carried.get(MechSupport.ID);
+        assertSame(LIGHT, mech.companyCarrier());
+        assertFalse(mech.syntheticLift(), "no Valkyrie behind her");
+
+        Map<String, CommandPower> unlifted = new LinkedHashMap<>();
+        unlifted.put(MechSupport.ID, MechSupport.configured(List.of(
+                MechDeploymentSpec.standard(MechVariant.HOUND))));
+        PowerCatalog.dropSyntheticLift(unlifted);
+        assertFalse(unlifted.containsKey(MechSupport.ID), "no company boat lifts the bay, so no call");
     }
 
     @Test

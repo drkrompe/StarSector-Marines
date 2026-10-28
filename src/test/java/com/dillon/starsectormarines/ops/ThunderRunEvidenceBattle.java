@@ -1,8 +1,13 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.air.LiftAdmission;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.power.BayManifest;
+import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -25,7 +30,7 @@ import java.util.stream.Collectors;
  * offer, a named company frozen from a roster, two fitted Valkyries, and the production supply-route launch.
  *
  * <p>Shared by {@code ThunderRunEvidenceTest} and the battle probe, so a battle questioned in the probe is the battle
- * the evidence reports on. Fixture fields read here: {@code seed}, {@code companySize} (default 24) and
+ * the evidence reports on. Fixture fields read here: {@code seed}, {@code companySize} (default 24), {@code boats=hermes} (the company's one Hermes in place of the two Valkyries), {@code mech=true} (a Hound in the bay, armed as the campaign arms it) and
  * {@code retry} (a prior attempt that delivered load 0 and lost load 1). Diagnostic fixture fields the evidence test
  * applies after construction (absent arrival, cleared flak, destroyed cargo) are not construction and stay there.
  */
@@ -59,13 +64,23 @@ public final class ThunderRunEvidenceBattle {
         roster.ensureActiveSoldiers(companySize);
         var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
         var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, companySize);
-        var boats = List.of(
+        var boats = fixture.optString("boats").equals("hermes")
+                ? List.of(new FittedBoat(ShuttleType.HERMES, BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE, "freight-hermes"))
+                : List.of(
                 new FittedBoat(ShuttleType.VALKYRIE, BoatFitting.STANDARD_PLATING, BoatFitting.STANDARD_DRIVE, "freight-alpha"),
                 new FittedBoat(ShuttleType.VALKYRIE, BoatFitting.requireById("reinforced_plating"),
                         BoatFitting.requireById("tuned_drive"), "freight-bravo"));
         var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, companySize);
         var profile = new TargetProfile(0, 0, 0, 0, "", Set.of(), SurfacePalette.VERDANT, SettlementLink.ROAD);
         BattleSimulation sim = MissionLaunch.supplyRouteBuilder(route, fixture.getLong("seed"), manifest, profile).get();
+        if (fixture.optBoolean("mech")) {
+            // As PowerCatalog arms it here: on the company boat that lifts the bay, with no employer lift behind her.
+            MechSupport bay = MechSupport.configured(List.of(MechDeploymentSpec.standard(MechVariant.HOUND)));
+            FittedBoat carrier = LiftAdmission.bestCarrier(boats,
+                    bay.manifest().entries().stream().map(BayManifest.Entry::weightClass).toList(), Set.of());
+            if (carrier != null)
+                sim.setCommandPowers(List.of(MechSupport.configured(bay.deployments(), bay.vehicles(), carrier, false)));
+        }
         return new Staged(sim, route, mission, manifest, deployment, companySize);
     }
 

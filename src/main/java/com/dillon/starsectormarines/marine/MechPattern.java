@@ -85,11 +85,9 @@ public record MechPattern(Kind kind, String definitionId) {
         VEHICLE_TIERS.put(VehicleType.HOVER_SCOUT, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.DRONE_SKIMMER, EquipmentAccessTier.PRESTIGE);
 
-        // Vehicle kits: bolt-on plate, liner and magazine any workshop makes; skirts are a military pattern.
-        KIT_TIERS.put(VehicleKit.APPLIQUE_PLATE, EquipmentAccessTier.COMMON);
+        // Vehicle kits: the liner and magazine any workshop makes; the rest are military patterns.
         KIT_TIERS.put(VehicleKit.SPALL_LINER, EquipmentAccessTier.COMMON);
         KIT_TIERS.put(VehicleKit.READY_RACK, EquipmentAccessTier.COMMON);
-        KIT_TIERS.put(VehicleKit.SPACED_SKIRTS, EquipmentAccessTier.ADVANCED);
         KIT_TIERS.put(VehicleKit.SENSOR_PAIR, EquipmentAccessTier.ADVANCED);
         // The upgrades on a hull's own systems, a faster feed or a deeper flux bank, as the mech parts they echo.
         KIT_TIERS.put(VehicleKit.ACCELERATED_LOADER, EquipmentAccessTier.ADVANCED);

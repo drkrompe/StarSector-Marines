@@ -1,10 +1,12 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.world.model.RoomPurpose;
+import com.dillon.starsectormarines.campaign.CivilizedPort;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 
 import java.util.Map;
 import java.util.List;
+import java.util.function.BooleanSupplier;
 import java.util.function.Function;
 
 /** Shared property contract for the persistent shipboard-room navigation shell. */
@@ -56,7 +58,16 @@ final class MarineOpsPageNav {
          * opposite reason {@link #HQ} does not: every hull with an interior has
          * a deck, so there is nothing here a ship can fail to have.
          */
-        SHIP_VIEW(null, "engineering");
+        SHIP_VIEW(null, "engineering"),
+        /**
+         * Where the company buys technology. Not a compartment, and not a place a hull
+         * can lack: it is a counter at a port, so it is open exactly while the fleet is
+         * docked at a civilized market ({@link #storeOpen}) and absent otherwise.
+         *
+         * <p>Its button is named {@code shop} because {@code store} is already a property of
+         * the Boat Deck and Mech Lab pages (their spares), and the shell writes into the same map.
+         */
+        STORE(null, "shop");
 
         private final RoomPurpose room;
         private final String button;
@@ -82,6 +93,7 @@ final class MarineOpsPageNav {
 
         /** What a ship offering these rooms can say about this page. */
         Aboard availableAboard(Function<RoomPurpose, Aboard> aboard) {
+            if (this == STORE) return storeOpen.getAsBoolean() ? Aboard.YES : Aboard.NO;
             return room == null ? Aboard.YES : aboard.apply(room);
         }
     }
@@ -91,6 +103,12 @@ final class MarineOpsPageNav {
      * particular hull and have no business pretending to be.
      */
     static final Function<RoomPurpose, Aboard> ANY_SHIP = purpose -> Aboard.YES;
+
+    /**
+     * Whether the store is open now: the fleet is docked at a civilized market it can trade
+     * with. Swappable so the shell can be exercised without a campaign.
+     */
+    static BooleanSupplier storeOpen = () -> CivilizedPort.docked() != null;
 
     private MarineOpsPageNav() {
     }
@@ -104,7 +122,7 @@ final class MarineOpsPageNav {
                     Runnable returnAction, Runnable hqAction,
                     Runnable barracksAction,
                     Runnable armoryAction, Runnable mechLabAction,
-                    Runnable boatsAction, Runnable engineeringAction) {
+                    Runnable boatsAction, Runnable engineeringAction, Runnable storeAction) {
         if (props == null) throw new IllegalArgumentException("props are required");
         if (current == null) throw new IllegalArgumentException("current page is required");
         if (aboard == null) throw new IllegalArgumentException("the ship's rooms are required");
@@ -117,6 +135,18 @@ final class MarineOpsPageNav {
         put(props, Page.MECH_LAB, current, aboard, mechLabAction);
         put(props, Page.BOAT_DECK, current, aboard, boatsAction);
         put(props, Page.SHIP_VIEW, current, aboard, engineeringAction);
+        put(props, Page.STORE, current, aboard, storeAction);
+    }
+
+    /** Compatibility helper for focused fixtures without a store route. */
+    static void put(Map<String, Object> props, Page current,
+                    Function<RoomPurpose, Aboard> aboard,
+                    Runnable returnAction, Runnable hqAction,
+                    Runnable barracksAction,
+                    Runnable armoryAction, Runnable mechLabAction,
+                    Runnable boatsAction, Runnable engineeringAction) {
+        put(props, current, aboard, returnAction, hqAction, barracksAction, armoryAction,
+                mechLabAction, boatsAction, engineeringAction, () -> { });
     }
 
     /** Compatibility helper for focused fixtures without engineering navigation. */

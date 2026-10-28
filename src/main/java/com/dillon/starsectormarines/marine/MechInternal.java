@@ -11,7 +11,8 @@ import com.dillon.starsectormarines.i18n.Strings;
  * can buy back.
  *
  * <p>Higher tiers take more room: a larger footprint, or more mass against the engine's output.
- * Plating is frame-wide and has no socket, the engine has the core, and the rest share the one
+ * Plating covers the whole frame but has its own point on the doll ({@link SocketId#PLATING}), the
+ * engine has the core, and the rest share the one
  * {@link SocketId#AUXILIARY} compartment, whose rules are {@link MechCompartment}'s.</p>
  */
 public enum MechInternal {
@@ -27,11 +28,11 @@ public enum MechInternal {
             EquipmentAccessTier.PRESTIGE, 2, 2, 3f, 1.50f, 1.0f, 0f, 0f, -0.5f),
 
     FACTORY_PLATING("internal.plating-factory", "@gearInternalFactoryPlating", Role.PLATING,
-            EquipmentAccessTier.COMMON, 0, 0, 0f, 0f, 0f, 0f, 0f, 0f),
+            EquipmentAccessTier.COMMON, 2, 1, 0f, 0f, 0f, 0f, 0f, 0f),
     COMPOSITE_PLATING("internal.plating-composite", "@gearInternalCompositePlating", Role.PLATING,
-            EquipmentAccessTier.ADVANCED, 0, 0, 1.0f, 0f, 0f, 0.5f, 0f, 0f),
+            EquipmentAccessTier.ADVANCED, 2, 1, 1.0f, 0f, 0f, 0.5f, 0f, 0f),
     HEAVY_PLATING("internal.plating-heavy", "@gearInternalHeavyPlating", Role.PLATING,
-            EquipmentAccessTier.PRESTIGE, 0, 0, 2.5f, 0f, 0f, 1.0f, 0f, 0f),
+            EquipmentAccessTier.PRESTIGE, 2, 1, 2.5f, 0f, 0f, 1.0f, 0f, 0f),
 
     FACTORY_CAPACITOR_BANK("internal.capacitor-bank-factory", "@gearInternalFactoryCapacitorBank", Role.CAPACITOR_BANK,
             EquipmentAccessTier.COMMON, 2, 1, 0f, 0f, 0f, 0f, 100f, 6f),
@@ -61,7 +62,7 @@ public enum MechInternal {
     /** What part of the frame an internal replaces. */
     public enum Role {
         ENGINE(SocketId.CORE),
-        PLATING(null),
+        PLATING(SocketId.PLATING),
         CAPACITOR_BANK(SocketId.AUXILIARY),
         /** Optional, and they stack: the stock frame fits none. */
         VENT_ARRAY(SocketId.AUXILIARY),
@@ -72,8 +73,10 @@ public enum MechInternal {
 
         Role(SocketId socket) { this.socket = socket; }
 
-        /** Null for plating, which covers the whole frame. */
         public SocketId socket() { return socket; }
+
+        /** Whether a part of this role is only ever replaced: plating covers the frame and is never left out. */
+        public boolean replaceOnly() { return this == PLATING; }
 
         /** Whether this role's parts share the auxiliary compartment. */
         public boolean compartment() { return socket == SocketId.AUXILIARY; }
