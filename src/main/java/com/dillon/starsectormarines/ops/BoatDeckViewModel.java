@@ -503,6 +503,7 @@ public final class BoatDeckViewModel {
             case PART_FABRICATED -> Strings.format("boatDeckPartBuilt", partName(itemId));
             case CANNOT_AFFORD -> Strings.get("openingBoatDeckRefitBlockedRequiredFleetMaterialsAreShort");
             case NO_MARKET -> Strings.get("fabricationNoPort");
+            case NOT_LEARNED -> Strings.get("boatDeckPartNotLearned");
             default -> Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged");
         });
     }
@@ -831,7 +832,9 @@ public final class BoatDeckViewModel {
                             FabricationCost bill) {
         int spares = deck.spares(itemId);
         boolean build = !free && spares == 0 && bill != null;
-        boolean affordable = build && resources.canBuy(bill);
+        // A part the company has not learned cannot be built; the company store sells its pattern.
+        boolean locked = build && !deck.knowsPart(itemId);
+        boolean affordable = build && !locked && resources.canBuy(bill);
         String classes = "catalog-row" + (held ? " selected" : "") + (build ? " requires-fabrication" : "");
         int[] footprint = BoatHardware.footprint(kind, itemId);
         int weight = partWeight(kind, itemId, free);
@@ -849,13 +852,14 @@ public final class BoatDeckViewModel {
                 delta.isEmpty() ? "catalog-delta neutral" : fitted ? "label heading catalog-delta neutral"
                         : delta.startsWith("-") ? "label heading catalog-delta negative"
                         : "label heading catalog-delta positive",
-                detail, build ? Strings.get("openingMechLabFab") : "",
-                affordable ? Strings.get("boatDeckFabHint")
+                detail, locked ? Strings.get("boatDeckPartLocked") : build ? Strings.get("openingMechLabFab") : "",
+                locked ? Strings.get("boatDeckPartLockedHint")
+                : affordable ? Strings.get("boatDeckFabHint")
                         : !resources.atMarket() ? Strings.get("fabricationNoPort")
                         : Strings.get("openingMechLabNotEnoughMaterialsHoverACostFor"),
                 !build || !affordable, true, materials,
                 materials.isEmpty() ? "hidden" : back != null ? "material-costs recovery" : "material-costs",
-                build ? () -> fabricatePart(itemId) : null, null, null,
+                build && !locked ? () -> fabricatePart(itemId) : null, null, null,
                 back == null ? null : new FittingCard.Recycle(itemId.equals(armedRecycle), () -> recyclePart(itemId)));
         return new CatalogRow(card, kind, itemId);
     }

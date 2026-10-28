@@ -29,6 +29,11 @@ public enum ScreenId {
     MECH_LAB(true),
     /** The company's own boats and their fittings, over the ship's hangars. */
     BOAT_DECK(true),
+    /**
+     * Where the company buys technology from the port it is docked at. Not aboard: it is a counter
+     * at a market, so it needs no deck, and it is reachable only while the fleet can trade there.
+     */
+    STORE,
     BRIEFING,
     SQUAD_DEPLOYMENT,
     STATIONING,

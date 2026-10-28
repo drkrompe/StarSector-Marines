@@ -11,6 +11,7 @@ final class FactionEquipmentMarketStockPlanner {
 
     private static final int MAX_MARKET_SLOTS = 4;
     private static final int MAX_LICENSE_SLOTS = 2;
+    private static final int MAX_BOAT_PART_SLOTS = 2;
     /** Smallest civilian market that carries a mech pattern shelf; military markets always do. */
     static final int MIN_MECH_PATTERN_MARKET_SIZE = 5;
 
@@ -79,6 +80,21 @@ final class FactionEquipmentMarketStockPlanner {
         return !licensed.isEmpty() ? licensed
                 : MechPatternPicker.pick(factionId, FactionEquipmentSource.MARKET, 1, seed,
                         unavailablePatternIds, progress);
+    }
+
+    /**
+     * The boat part slots of an open market, on the same monthly rotation: one for a market of
+     * size 3 or 4, two from size 5. Drawn through the licence channel when the company holds a
+     * licence there, else the ordinary market channel, as the mech pattern slot is.
+     */
+    static List<String> boatParts(String factionId, String marketId, int marketSize, long rotation,
+                                  boolean hasLicenseAccess, Set<String> unavailablePartIds,
+                                  EquipmentAcquisitionEligibility.Progress progress) {
+        int slots = Math.max(0, Math.min(MAX_BOAT_PART_SLOTS, (marketSize - 1) / 2));
+        if (slots == 0) return List.of();
+        return BoatPartPicker.pick(factionId,
+                hasLicenseAccess ? FactionEquipmentSource.LICENSE : FactionEquipmentSource.MARKET,
+                slots, seed(factionId, marketId, rotation, "boat-part"), unavailablePartIds, progress);
     }
 
     static boolean carriesMechPattern(int marketSize, boolean militaryMarket) {

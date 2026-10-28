@@ -76,6 +76,7 @@ public class MarineOpsPanelPlugin extends BaseCustomUIPanelPlugin {
         screens.put(ScreenId.FLEET_ARMORY,  new FleetArmoryScreen());
         screens.put(ScreenId.MECH_LAB,      new MechLabScreen());
         screens.put(ScreenId.BOAT_DECK,     new BoatDeckScreen());
+        screens.put(ScreenId.STORE,         new StoreScreen());
         screens.put(ScreenId.BRIEFING,       new BriefingScreen());
         screens.put(ScreenId.SQUAD_DEPLOYMENT, new SquadDeploymentScreen());
         screens.put(ScreenId.STATIONING,     new StationingScreen());

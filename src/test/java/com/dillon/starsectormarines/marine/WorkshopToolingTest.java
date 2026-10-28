@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.testsupport.TaughtBoatDecks;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.ops.BoatDeckViewModel;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -22,7 +23,7 @@ class WorkshopToolingTest {
         boolean[] equipped = {true};
         var purse = TestPurse.rich();
         purse.quote = base -> WorkshopTooling.quote(base, equipped[0]);
-        var deck = new BoatDeck(); deck.reconcile("ship", ShuttleType.AEROSHUTTLE, 1);
+        var deck = TaughtBoatDecks.taught(new BoatDeck()); deck.reconcile("ship", ShuttleType.AEROSHUTTLE, 1);
         var model = new BoatDeckViewModel(new Reactor(), deck, purse, "Second Wind");
         model.selectBoatAction(0).run();
         var row = model.catalogRows().get().stream().filter(r -> r.id().endsWith("reinforced_plating")).findFirst().orElseThrow();

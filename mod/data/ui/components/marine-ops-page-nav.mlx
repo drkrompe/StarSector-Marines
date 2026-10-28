@@ -1,4 +1,4 @@
-<template props="returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,engineeringClasses,contextLabel">
+<template props="returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,boatsClasses,engineeringClasses,shopAction,shopClasses,contextLabel">
   <div id="marine-ops-page-nav" class="panel surface-dark">
     <img id="marine-ops-console-lock" src="graphics/ui/console/locking-plate.svg" />
     <div id="marine-ops-page-routes">
@@ -31,6 +31,11 @@
         <div id="page-nav-engineering-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
         <div id="page-nav-engineering-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavEngineering}</div>
       </button>
+      <button id="page-nav-shop" class="{shopClasses}" onclick="{shopAction}">
+        <div id="page-nav-shop-lamp" class="console-toggle-lamp" />
+        <div id="page-nav-shop-news" class="page-nav-news">{i18n.openingUiMarineOpsPageNavNew}</div>
+        <div id="page-nav-shop-legend" class="console-key-legend">{i18n.openingUiMarineOpsPageNavStore}</div>
+      </button>
     </div>
     <div id="marine-ops-page-context" class="label heading tone-edge">{contextLabel}</div>
     <img id="marine-ops-console-vent" src="graphics/ui/console/vent-plate.svg" />
@@ -48,7 +53,7 @@
 
   #marine-ops-console-lock { width: 34px; height: 34px; pointer-events: none; }
   #marine-ops-console-vent { width: 78px; height: 34px; pointer-events: none; }
-  #marine-ops-page-routes { flex-direction: row; width: 930px; gap: 6px; }
+  #marine-ops-page-routes { flex-direction: row; width: 1040px; gap: 6px; }
   #marine-ops-page-routes button {
     flex-direction: row;
     align-items: center;

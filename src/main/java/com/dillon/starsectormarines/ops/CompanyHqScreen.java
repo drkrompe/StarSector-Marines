@@ -90,6 +90,7 @@ public final class CompanyHqScreen implements Screen {
                 this::onMechLab,
                 this::onBoatDeck,
                 this::onShipView,
+                this::onStore,
                 this::onClose,
                 this::responseAction, this::plotCourse, auxiliary.row().get(), handover.row().get());
         Map<String, Object> props = viewModel.props();
@@ -194,6 +195,10 @@ public final class CompanyHqScreen implements Screen {
         // empty page called the ship.
         context.goTo(context.companyDeck() == null
                 ? ScreenId.SHIP_TRANSFER : ScreenId.SHIP_VIEW);
+    }
+
+    private void onStore() {
+        if (context != null) context.openStore();
     }
 
     private void onClose() {

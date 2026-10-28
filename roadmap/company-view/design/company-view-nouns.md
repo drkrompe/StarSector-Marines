@@ -871,6 +871,39 @@ thrown. Fittings do not change the picture, and they do not change the
 turnaround: a better boat is faster and tougher in the air and is not serviced
 faster on the deck.
 
+## Company Store
+
+**The Store** is a navigation tab beside HQ, Barracks, Mech Lab, Boats and Engineering,
+reached from every company room. It is where the company buys technology: the loadout
+cards and mech patterns that used to sit as cargo on a market's open submarket. It is a
+counter at a port, not a compartment, so no hull can lack it: the tab is open exactly
+while the fleet is docked at a civilized market it can trade with (`CivilizedPort.docked`,
+the same gate the workshops' `atMarket` reads) and shows absent otherwise. Opened with no
+planet behind it, from the campaign map, it is closed.
+
+The shelf is `EquipmentStore.shelf`: listed cards, the open market's monthly rotation,
+the licensed rotation and the one mech pattern slot, chosen by the same planner and
+eligibility rules the open market used. A purchase pays from the company purse a price set
+by the item's access tier (Common one base price of 5,000; Advanced twice, Prestige four
+times, Restricted six times) plus the market's open-market tariff, and teaches the Armory or the Mech Bay
+directly; nothing is carried and nothing is charged for a card already known. Cards
+that arrive by patron, salvage or story are still cargo, learned by right-click. An item
+bought during a visit stays on the shelf, marked acquired, until the page is next
+opened; reopening it recomputes the shelf without what the company now knows.
+
+The page is browsed by category (`StoreSlot`): **Marine** (weapon loadouts, armor loadouts),
+**Mechs / Vehicles** (chassis, weapons, internals, vehicles, vehicle kits) and **Boats**
+(plating, drive, lift hold, cabin, shield emitter, power, door guns). Each row counts what
+the shelf holds there; choosing a section or a slot narrows the shelf, and an empty slot says
+so. Boat parts are the Boat Deck's learnable technology: the standard fitting of every slot
+and the yard's gun on every hardpoint (`BoatParts.starterIds`) are known to every company and
+never sold; every other fitting and gun is a pattern (`BoatDeck.knowsPart`) that the
+workshop will not build until it is bought here, and the Boat Deck's card says so
+(`NOT_LEARNED`). Parts already in stores or on a boat in a save from before learning are
+counted as learned, so nothing owned is ever locked away. A part's access tier follows the
+yard's tier: second is Common, third Advanced, fourth Prestige. The shelf carries one boat
+part at a market of size 3 or 4 and two from size 5.
+
 ## Company resource bills
 
 Company rooms show a shared stock strip immediately below navigation, away from

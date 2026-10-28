@@ -602,6 +602,14 @@ public class MarineOpsContext {
         goTo(companyDeck() == null ? ScreenId.SHIP_TRANSFER : ScreenId.SHIP_VIEW);
     }
 
+    /**
+     * Opens the store, which is a counter at the port the fleet is docked at: with no port to
+     * trade at there is nothing to open, so the route is not taken.
+     */
+    public void openStore() {
+        if (MarineOpsPageNav.storeOpen.getAsBoolean()) goTo(ScreenId.STORE);
+    }
+
     /** Compatibility route: company equipment is now reached through Barracks. */
     public void openCompanyArmoryFrom(ScreenId returnScreen) {
         armoryReturnScreen = returnScreen != null ? returnScreen : ScreenId.COMPANY_HQ;

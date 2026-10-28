@@ -58,7 +58,7 @@ import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
-import com.dillon.starsectormarines.marine.FactionEquipmentMarketStock;
+import com.dillon.starsectormarines.marine.LegacyMarketCardPurge;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.OfficerInduction;
@@ -198,7 +198,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensureCompanyShipLossListener();
         SecondWindKeeper.install(Global.getSector());
         FullscreenWindowRepair.CampaignHook.install(Global.getSector());
-        ensureFactionEquipmentMarketStock();
+        removeLegacyMarketCards();
         ensurePlayerEventPresenter();
         CompanyProloguePresenter.install();
         ArrivalCinematicPresenter.install();
@@ -335,12 +335,10 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         }
     }
 
-    private static void ensureFactionEquipmentMarketStock() {
-        SectorAPI sector = Global.getSector();
-        sector.getListenerManager().removeListenerOfClass(FactionEquipmentMarketStock.class);
-        sector.getListenerManager().addListener(new FactionEquipmentMarketStock(), true);
-        FactionEquipmentMarketStock.refreshAllMarkets();
-        LOG.info("Starsector Marines: faction equipment market stock registered");
+    /** The company's store sells cards now; older saves still carry them as cargo on market shelves. */
+    private static void removeLegacyMarketCards() {
+        int removed = LegacyMarketCardPurge.purgeAllMarkets();
+        if (removed > 0) LOG.info("Starsector Marines: removed " + removed + " legacy market card stacks");
     }
 
     private static void ensureCampaignState() {
