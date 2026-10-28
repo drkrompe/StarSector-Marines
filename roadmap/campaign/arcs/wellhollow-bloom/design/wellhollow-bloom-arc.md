@@ -25,11 +25,33 @@ the floor with the desert rim round it (`Basin.ravBloom`, the hybrid basin
 every Rav map on an ARID world already carries). The aquifer is an old
 seeding site, and this season it turned. "There's been a bloom on Asharu."
 
-- **Warden Hollis Maro**, warden of the **Wellhollow Compact**, the irrigators'
-  water compact and its militia. Speaks for the Wellhollow, not for Asharu or
-  any faction; hires the company because nobody else is coming. Plain,
-  tired, counts people, calls them **ravs** and the bores **holes**.
+The bloom comes up all over the planet at once, and the work is the planetary
+government's (owner, 2026-10-28). Asharu's settlers keep a small **Defence
+Force** sized for pirates and tariff men, and a militia in every settlement;
+the government (named in lines as the **Assembly**) hires outside outfits,
+the company among several, to back them up. The arc's four jobs follow the
+government's response:
+
+1. **Caught off guard.** The Defence Force holds what it can (the water works,
+   the port) and hires muscle for the population centres it cannot reach: the
+   Wellhollow colony.
+2. **Organising.** A defended line across the rim roads, with the farms walked
+   out behind it, but people still beyond the wire, and the regulars committed
+   to an offensive elsewhere. The company is hired for Low Sump.
+3. **and 4. Taking it back.** The Defence Force turns to the Wellhollow, and
+   the company fights attached to its brigade in the push on the channel root
+   and then the heart.
+
+- **Hollis Maro**, an irrigation-crew boss on the Wellhollow floor until the
+  Defence Force called up its reserve and gave him the district. Hires and
+  briefs the company for every job. Plain, tired, counts people, calls them
+  **ravs** and the bores **holes**. His portrait still shows the farmer in a
+  work jacket with militia webbing, which fits a reservist one week in.
 - **Castle**, the company's operations voice, as in every arc.
+
+Asharu in the base game is an independent world whose settlers keep no
+government the Hegemony recognises; the Assembly and its Defence Force are this
+arc's own and are not a game faction.
 
 No line names the maker or says the weapon is gone (`swarm-lore-guide.md`, the
 open maker rule). The arc ends with the Wellhollow's heart down and the
@@ -43,11 +65,11 @@ ARID pool maps (`story-map-pools.md`). Winning a chapter unlocks the next.
 | # | Chapter | Mission | Story beat | Fee |
 | --- | --- | --- | --- | --- |
 | 1 | **The Wellhollow** | Colony Breach | The colony on the basin floor erupts. Lift the people out; put the deep hole down if you can. It is not enough: the bloom is in the aquifer. | 20,000 |
-| 2 | **Low Sump** | Cordon Road | The Compact's redoubts across the rim roads let the floor's farms walk out, but the line went round the pumping town at the basin's low end. Keep the gap open while the convoys go in and bring its people out. | 28,000 |
-| 3 | **The Channel Root** | The Burn | The bloom has followed the irrigation channels east and seeded a second root. The Compact has guns but no men left: burn in behind the barrage and collapse it. | 32,000 |
-| 4 | **The Heart of the Wellhollow** | Broad Front | With the channel root down and the line held, every column the Compact has goes in together on the mother heart. Collapsing it ends the bloom; the reservoir rests. | 40,000 |
+| 2 | **Low Sump** | Cordon Road | The Defence Force's redoubts across the rim roads let the floor's farms walk out, but the line went round the pumping town at the basin's low end. Keep the gap open while the convoys go in and bring its people out. | 28,000 |
+| 3 | **The Channel Root** | The Burn | The bloom has followed the irrigation channels east and seeded a second root. The Defence Force turns to the Wellhollow, and the company, attached to its brigade, burns in behind the barrage and collapses it. | 32,000 |
+| 4 | **The Heart of the Wellhollow** | Broad Front | With the channel root down and the line held, every column the Defence Force has goes in together on the mother heart. Collapsing it ends the bloom; the reservoir rests. | 40,000 |
 
-The order runs from the company alone to the whole Compact beside it, as
+The order runs from the company hired alone to the whole Defence Force beside it, as
 `bloom-mission-arc.md` (*The arc in one paragraph*) orders its movements: a
 rescue, a road held open, a march behind the guns, then the all-in finale.
 The Burn comes before Broad Front because the largest battle is the finale.
@@ -58,7 +80,7 @@ not alternatives.
 ## Unlocks
 
 - **The arc opens** when Morrow departs at the end of A Working Ship, at
-  Asharu, through the Warden as a separate contact on the planet's mission
+  Asharu, through Maro as a separate contact on the planet's mission
   board (owner, 2026-10-27). These are the alpha campaign's **challenge
   missions**: every chapter recommends seven squads and four mechs or vehicles
   (`MissionForceEnvelope.recommendedMachines`), a lieutenant colonel's company,
@@ -66,12 +88,12 @@ not alternatives.
 - **A chapter unlocks the next on victory.** A loss leaves the same chapter on
   offer with a short retry briefing and no fee; nothing is consumed. There is
   no clock and no expiry, as in every authored arc.
-- **The arc completes** when chapter 4 is won: the Warden's closing briefing
+- **The arc completes** when chapter 4 is won: Maro's closing briefing
   says the heart is down and the country can be taken back.
 
 ## Replay
 
-Every chapter won stays on the Warden's board as a **replay** next to the
+Every chapter won stays on Maro's board as a **replay** next to the
 current chapter. A replay:
 
 - plays the same mission with a fresh vetted map from the chapter's ARID pool
@@ -79,7 +101,7 @@ current chapter. A replay:
 - pays half the chapter fee on victory and nothing on a loss;
 - carries no unlock, no completion and no one-time reward, and never rewrites
   the arc's progress;
-- briefs with one replay line from the Warden (the Compact still needs the
+- briefs with one replay line from Maro (the Defence Force still needs the
   ground walked) rather than the chapter's first briefing.
 
 The debug mission player lists all four chapters under Asharu (WB1 to WB4,
@@ -95,21 +117,21 @@ laws).
 ## Where the narrative lives
 
 - **Briefings.** Each chapter's first briefing is a short exchange between
-  the Warden and Castle (`MissionDialogue` turns, strings under
+  Maro and Castle (`MissionDialogue` turns, strings under
   `wellhollow*` in `strings.json`); a retry and a replay each get one line.
-- **The board.** The Warden's offer rows carry the chapter name, its place in
+- **The board.** Maro's offer rows carry the chapter name, its place in
   the arc ("Wellhollow 2 of 4") and the arc status (chapters won).
 - **The debrief.** The results screen's story message closes each chapter
-  with the Warden's line on what changed (a chapter won) or what still stands
+  with Maro's line on what changed (a chapter won) or what still stands
   (a loss).
 
-- **The art.** The Warden has a portrait
+- **The art.** Maro has a portrait
   (`art-source/portraits/hollis-maro.*`), and three location banners carry the
   arc's places (`StoryScene`): the colony floor for chapter 1, the rim cordon
   for chapter 2, the burning heart for chapters 3 and 4
   (`art-source/story-scenes/wellhollow-*`, Codex ImageGen); the rim banner
   now serves Low Sump alone.
-  `createSnapshots -Psnapshot=wellhollow-art` shows them on the Warden's board
+  `createSnapshots -Psnapshot=wellhollow-art` shows them on Maro's board
   and the results screen. Briefing narration does not exist yet.
 
 ## Relation to the generic per-world arc
@@ -147,7 +169,7 @@ recommended option of each.
    fee; a flat repeatable rate.
 3. **When the arc opens.** Decided (owner, 2026-10-27): after A Working Ship,
    as end-of-alpha challenge missions.
-4. **Art and voice.** Recommended and built: the Warden portrait and three
+4. **Art and voice.** Recommended and built: the Maro portrait and three
    location banners now, narration later. The art itself is on the picks page
    for review.
 

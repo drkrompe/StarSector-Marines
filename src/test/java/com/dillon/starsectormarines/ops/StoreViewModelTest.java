@@ -71,7 +71,7 @@ class StoreViewModelTest {
         assertTrue(model.rows().get().get(0).classes().contains("selected"),
                 "the selection moves to what is still shown");
 
-        model.selectFilter("SECTION:CHASSIS");
+        model.selectFilter("SECTION:MECHS");
         assertTrue(model.categoryRows().get().stream().noneMatch(row -> row.id().equals("store-cat-ARMOR_LOADOUT")),
                 "opening one section collapses the others");
         assertTrue(model.rows().get().isEmpty());

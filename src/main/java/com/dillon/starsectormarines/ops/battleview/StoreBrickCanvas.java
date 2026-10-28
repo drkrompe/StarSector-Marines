@@ -30,9 +30,9 @@ public final class StoreBrickCanvas implements CanvasProducer {
         this.pieces = pieces;
     }
 
-    /** Whether a slot has a symbol: the shuttle parts are not drawn as bricks. */
+    /** Whether a slot has a symbol: every slot does. */
     public static boolean has(StoreSlot slot) {
-        return slot != null && slot.section() != StoreSlot.Section.BOATS;
+        return slot != null;
     }
 
     /** The symbol for a slot, or null for one without. */
@@ -41,15 +41,21 @@ public final class StoreBrickCanvas implements CanvasProducer {
         return switch (slot) {
             case WEAPON_LOADOUT -> single(KitBrick.COLUMNS, KitBrick.ROWS, HardpointBricks.tone(KitBrick.Kind.BALLISTIC));
             case ARMOR_LOADOUT -> single(KitBrick.COLUMNS, KitBrick.ROWS, HardpointBricks.tone(KitBrick.Kind.ARMOR));
-            case PART_WEAPON -> single(2, 2, HardpointBricks.tone(KitBrick.Kind.ENERGY));
-            case PART_ENGINE -> single(2, 2, HardpointBricks.tone(MechInternal.Role.ENGINE));
-            case PART_ARMOR -> single(2, 2, HardpointBricks.tone(MechInternal.Role.PLATING));
-            case PART_EQUIPMENT -> new StoreBrickCanvas(2, 1, List.of(
+            case MECH_WEAPON -> single(2, 2, HardpointBricks.tone(KitBrick.Kind.ENERGY));
+            case MECH_ENGINE -> single(2, 2, HardpointBricks.tone(MechInternal.Role.ENGINE));
+            case MECH_ARMOR -> single(2, 2, HardpointBricks.tone(MechInternal.Role.PLATING));
+            case MECH_EQUIPMENT -> new StoreBrickCanvas(2, 1, List.of(
                     new Piece(0, 0, 1, 1, HardpointBricks.tone(MechInternal.Role.CAPACITOR_BANK)),
                     new Piece(1, 0, 1, 1, HardpointBricks.tone(MechInternal.Role.VENT_ARRAY))));
             case MECH_CHASSIS -> single(2, 3, HardpointBricks.OMNI);
-            case VEHICLE -> single(3, 2, HardpointBricks.OMNI);
-            default -> null;
+            // A shuttle's slots are drawn in the tones the Boat Deck draws them in, one 2x2 each.
+            case BOAT_ENGINE -> single(2, 2, BoatHardware.tone(BoatDoll.Kind.DRIVE));
+            case BOAT_WEAPON -> single(2, 2, HardpointBricks.tone(KitBrick.Kind.ENERGY));
+            case BOAT_ARMOR -> single(2, 2, BoatHardware.tone(BoatDoll.Kind.PLATING));
+            case BOAT_LIFT -> single(2, 2, BoatHardware.tone(BoatDoll.Kind.LIFT));
+            case BOAT_CABIN -> single(2, 2, BoatHardware.tone(BoatDoll.Kind.CABIN));
+            case BOAT_EMITTER -> single(2, 2, BoatHardware.tone(BoatDoll.Kind.EMITTER));
+            case BOAT_POWER -> single(2, 2, BoatHardware.tone(BoatDoll.Kind.POWER));
         };
     }
 

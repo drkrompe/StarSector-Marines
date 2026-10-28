@@ -888,13 +888,14 @@ that arrive by patron, salvage or story are still cargo, learned by right-click.
 bought during a visit stays on the shelf, marked acquired, until the page is next
 opened; reopening it recomputes the shelf without what the company now knows.
 
-The page is browsed by category (`StoreSlot`): **Marine** (weapon loadouts, armor loadouts),
-**Chassis** (mech chassis, vehicle hulls), **Parts** (weapons, engines, armor, equipment: one
-shelf for the parts mechs and vehicles share, so the license is the same thing whichever machine
-the part goes on; a vehicle kit is the vehicle's take on the equipment a mech's internals give,
-and plating is the armor point both dolls carry) and **Boats** (plating, drive, lift hold,
-cabin, shield emitter, power, door guns). A vehicle's own gun and drive are sealed today, so a
-weapon or engine license is a mech's until a hull can take one. Each section has its own icon and colour (green marine doll, amber bulwark and tank dolls, purple fabrication cog, blue shuttle), carried down its slot rows as an accent strip so the grouping reads at a glance. The slot rows keep the brick symbols (`StoreBrickCanvas`, drawn by `HardpointBricks`, the squad view's and Mech Lab's own brick code). The shelf rows show each offer as the rest of the game shows it: a marine loadout as its faction's flag, a mech chassis or vehicle as its damage doll, and a part (weapon, engine, armor, equipment) as the Mech Lab draws hardware, its bricks under its painted symbol (`StoreSymbolCanvas`), so the store draws nothing of its own. Selecting a marine loadout prints its loadout card in the page's middle, the Armory's own card built by the same `FleetArmoryViewModel` builders. Shuttle parts carry no symbol. The list is an
+The page is browsed by category (`StoreSlot`) in three sections that share one vocabulary: **Marines**
+(weapon loadouts, armor loadouts), **Mechs / Vehicles** (chassis, engines, weapons, armor, equipment) and
+**Shuttles** (engines, weapons, armor, lift holds, cabins, shield emitters, power). The same word names the
+same kind of part wherever it is sold. A mech chassis and a vehicle hull are both a chassis; a vehicle kit
+is the vehicle's take on the equipment a mech's internals give (capacitors, vents, loaders) and plating is
+the armor point both dolls carry; a shuttle has no chassis to sell, its yard builds the hull. A vehicle's
+own gun and drive are sealed today, so a mech weapon or engine license is a mech's until a hull can take
+one. Each section has its own icon and colour (green marine doll, amber bulwark and tank dolls, blue shuttle), carried down its slot rows as an accent strip so the grouping reads at a glance. The slot rows keep the brick symbols (`StoreBrickCanvas`, drawn by `HardpointBricks`, the squad view's and Mech Lab's own brick code). The shelf rows show each offer as the rest of the game shows it: a marine loadout as its faction's flag, a mech chassis or vehicle as its damage doll, and a part (weapon, engine, armor, equipment) as the Mech Lab draws hardware, and a shuttle part as the Boat Deck does, its bricks under its painted symbol (`StoreSymbolCanvas`), so the store draws nothing of its own. Selecting a marine loadout prints its loadout card in the page's middle, the Armory's own card built by the same `FleetArmoryViewModel` builders. The list is an
 accordion: one section is open at a time, showing its slots, and opening another collapses it.
 The page opens on the first section with stock. Each row counts what the shelf holds there;
 choosing a section shows all of it, choosing a slot narrows it, and an empty category says so. Boat parts are the Boat Deck's learnable technology: the standard fitting of every slot

@@ -46,10 +46,8 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
             return List.of(
                     new SnapshotArtifact("store-shelf.png", frame(context, false, null)),
                     new SnapshotArtifact("store-after-purchase.png", frame(context, true, null)),
-                    new SnapshotArtifact("store-chassis-category.png",
-                            frame(context, false, "SECTION:CHASSIS")),
-                    new SnapshotArtifact("store-parts-category.png",
-                            frame(context, false, "SECTION:PARTS")),
+                    new SnapshotArtifact("store-mechs-category.png",
+                            frame(context, false, "SECTION:MECHS")),
                     new SnapshotArtifact("store-boats-category.png",
                             frame(context, false, "SECTION:BOATS")),
                     new SnapshotArtifact("store-armor-slot.png",
@@ -76,11 +74,12 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
                     EquipmentStore.Shelf.MARKET, 6500);
             if (seen.add(offer.slot())) shelf.add(offer);
         }
-        List<String> parts = BoatParts.offerable();
-        shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.BOAT_PART, parts.get(0),
-                EquipmentStore.Shelf.MARKET, 6500));
-        shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.BOAT_PART, parts.get(parts.size() - 1),
-                EquipmentStore.Shelf.LICENSE, 13_000));
+        // One shuttle part for every slot it can fill.
+        for (String part : BoatParts.offerable()) {
+            EquipmentStore.Offer offer = new EquipmentStore.Offer(EquipmentStore.Kind.BOAT_PART, part,
+                    EquipmentStore.Shelf.MARKET, 6500);
+            if (seen.add(offer.slot())) shelf.add(offer);
+        }
         for (LoadoutCard card : cards) {
             if (card.kind() == LoadoutCard.Kind.SHEET) {
                 shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.LOADOUT, card.id(),
