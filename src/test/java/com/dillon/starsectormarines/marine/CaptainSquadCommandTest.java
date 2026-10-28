@@ -20,7 +20,7 @@ class CaptainSquadCommandTest {
 
     @Test
     void rankCapsCommandInWholeSquads() {
-        int[] expected = {3, 6, 10, 16, 24};
+        int[] expected = {3, 6, 9, 12, 12};
 
         for (Rank rank : Rank.values()) {
             assertEquals(expected[rank.ordinal()], rank.squadCommandCap());

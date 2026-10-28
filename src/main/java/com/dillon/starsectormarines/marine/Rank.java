@@ -10,19 +10,24 @@ import com.dillon.starsectormarines.i18n.Strings;
  * also bounds named multi-squad coordination. Ordinary deployments beyond that
  * capacity use independent acting NCOs; stationing still requires named leadership.
  *
+ * <p>One officer commands at most twelve squads (owner, 2026-10-27): the ladder tops
+ * out there, so a company larger than twelve squads needs a second officer.
+ *
  * <p>{@link #xpToNext} is the XP threshold to advance from this rank to the next.
- * XP doubles per tier, so early promotions feel fast (a few medium-risk missions)
- * and late ones are real long-haul rewards. The terminal rank returns
- * {@link Integer#MAX_VALUE} — see {@link #isTerminal()}.
+ * XP doubles per tier. Mission XP is sized against it ({@code OfficerMissionResult})
+ * so the opening's second mission promotes a lieutenant and Thunder Run a captain,
+ * each played once; later ranks are real long-haul rewards. The terminal rank
+ * returns {@link Integer#MAX_VALUE} — see {@link #isTerminal()}.
  */
 public enum Rank {
     /** A platoon, and the rank the player's company starts under. */
     LIEUTENANT("openingRankLieutenant", 3, 1000),
     /** A merc-sized company. */
     CAPTAIN("openingRankCaptain", 6, 2000),
-    MAJOR("openingRankMajor", 10, 4000),
-    LT_COLONEL("openingRankLtColonel", 16, 8000),
-    COLONEL("openingRankColonel", 24, Integer.MAX_VALUE);
+    MAJOR("openingRankMajor", 9, 4000),
+    LT_COLONEL("openingRankLtColonel", 12, 8000),
+    /** Seniority past the command cap: no more squads than a lieutenant colonel. */
+    COLONEL("openingRankColonel", 12, Integer.MAX_VALUE);
 
     private final String displayName;
     private final int squadCommandCap;
