@@ -404,8 +404,11 @@ the cohort's walk from the shelter and the company's way in from its nearest
 pad cross the works: the company, its mechs and its vehicles come in by them
 with the survivors. Nothing is set down on a pad, a door, a building or a prop
 already there. Each militia team still lands at its formation point and is
-then ordered into the stretch of trench nearest it, which it mans as a
-garrison mans a run; the mech keeps its patrol inside.
+then ordered into its stretch of trench, which it mans as a garrison mans a
+run: the dug trench is cut into five even stretches, each point taking the
+nearest one left, so where a pad, a gate or the map edge takes a side the
+teams spread over what remains rather than sharing a corner. The mech keeps
+its patrol inside.
 `-Dbattle.colonyBreach.cordonWorks=false` is the control: the line holds the
 open ground round its posts.
 

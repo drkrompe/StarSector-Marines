@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -101,7 +102,7 @@ public final class PickupCordonWorks {
      *                  the map's edge closes that side and a line facing it faces nothing
      * @param lanes     the ways the gates are cut on (the cohort's walk, the company's way in), each a list of
      *                  {x, y} cells from the lift outward; each ring is gated once a lane, where it first crosses it
-     * @param formation the pickup formation's points as {x, y} pairs, each given the trench cell nearest it
+     * @param formation the pickup formation's points as {x, y} pairs, each given a post ({@link #posts})
      */
     static Layout layout(int liftX, int liftY, Open open, Open map, List<List<int[]>> lanes, int[] formation,
                          long seed) {
@@ -143,21 +144,38 @@ public final class PickupCordonWorks {
             if (gated.contains(key(c[0], c[1])) || !open.at(c[0], c[1]) || !walled(liftX, liftY, c, TRENCH, map)) continue;
             trench.add(c);
         }
+        return new Layout(trench, bags, wall, posts(trench, formation), gated, leaks);
+    }
+
+    /**
+     * Each formation point's post: the dug trench cut into as many even stretches as there are points, by its cells
+     * in bearing order, and each point given the middle of the nearest stretch not yet taken. Even by what was dug,
+     * not by the ring: where a pad, a gate or the map edge takes a side, the teams spread over what is left rather
+     * than two of them sharing the corner nearest both.
+     */
+    static int[] posts(List<int[]> trench, int[] formation) {
+        int points = formation.length / 2;
         int[] posts = new int[formation.length];
-        for (int p = 0; p + 1 < formation.length; p += 2) {
-            int[] nearest = null;
-            int best = Integer.MAX_VALUE;
-            for (int[] c : trench) {
-                int dx = c[0] - formation[p], dy = c[1] - formation[p + 1], d = dx * dx + dy * dy;
-                if (d < best) {
-                    best = d;
-                    nearest = c;
+        Arrays.fill(posts, -1);
+        if (trench.isEmpty()) return posts;
+        List<int[]> slots = new ArrayList<>();
+        for (int k = 0; k < points; k++) slots.add(trench.get((2 * k + 1) * trench.size() / (2 * points)));
+        for (int p = 0; p < points; p++) {
+            int best = -1;
+            int bestD = Integer.MAX_VALUE;
+            for (int s = 0; s < slots.size(); s++) {
+                int dx = slots.get(s)[0] - formation[p * 2], dy = slots.get(s)[1] - formation[p * 2 + 1];
+                int d = dx * dx + dy * dy;
+                if (d < bestD) {
+                    bestD = d;
+                    best = s;
                 }
             }
-            posts[p] = nearest == null ? -1 : nearest[0];
-            posts[p + 1] = nearest == null ? -1 : nearest[1];
+            posts[p * 2] = slots.get(best)[0];
+            posts[p * 2 + 1] = slots.get(best)[1];
+            slots.remove(best);
         }
-        return new Layout(trench, bags, wall, posts, gated, leaks);
+        return posts;
     }
 
     /** Whether the wall straight out from a cell of ring {@code r} stands on the map. */

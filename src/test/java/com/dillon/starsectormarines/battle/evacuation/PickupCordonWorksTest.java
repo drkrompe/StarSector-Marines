@@ -85,15 +85,25 @@ class PickupCordonWorksTest {
     }
 
     @Test
-    void eachPostIsTheTrenchCellNearestItsFormationPoint() {
+    void postsSpreadOverTheTrenchThatWasDug() {
         int[] formation = formation();
-        PickupCordonWorks.Layout layout = PickupCordonWorks.layout(LIFT, LIFT, (x, y) -> true, BOARD, List.of(), formation, 1L);
-        // The northern point stands thirteen up from the lift: its post is the trench straight out beyond it.
-        assertEquals(LIFT, layout.posts()[0]);
-        assertEquals(LIFT - PickupCordonWorks.TRENCH, layout.posts()[1]);
-        for (int p = 0; p < formation.length; p += 2) {
-            assertEquals(PickupCordonWorks.TRENCH,
-                    PickupCordonWorks.ring(layout.posts()[p] - LIFT, layout.posts()[p + 1] - LIFT));
+        PickupCordonWorks.Layout whole = PickupCordonWorks.layout(LIFT, LIFT, (x, y) -> true, BOARD, List.of(), formation, 1L);
+        assertSpread(whole.posts(), 12);
+        // Half the ring gone, as a map edge or a hill takes it: the five teams share the half that is left, apart.
+        PickupCordonWorks.Layout half = PickupCordonWorks.layout(LIFT, LIFT, (x, y) -> x >= LIFT, BOARD, List.of(),
+                formation, 1L);
+        for (int p = 0; p < formation.length; p += 2) assertTrue(half.posts()[p] >= LIFT);
+        assertSpread(half.posts(), 5);
+    }
+
+    /** Every post is a trench cell, at least {@code apart} cells from every other. */
+    private static void assertSpread(int[] posts, int apart) {
+        for (int p = 0; p < posts.length; p += 2) {
+            assertEquals(PickupCordonWorks.TRENCH, PickupCordonWorks.ring(posts[p] - LIFT, posts[p + 1] - LIFT));
+            for (int q = p + 2; q < posts.length; q += 2) {
+                double d = Math.hypot(posts[p] - posts[q], posts[p + 1] - posts[q + 1]);
+                assertTrue(d >= apart, "posts " + p / 2 + " and " + q / 2 + " are " + d + " apart");
+            }
         }
     }
 

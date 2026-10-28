@@ -28,8 +28,8 @@ import java.util.Random;
  * pool, never the company's, for as long as any of the cohort is still out.
  *
  * <p>Where the pickup is fortified ({@link PickupCordonWorks}), each team the
- * shuttles set down at a post is then ordered into the stretch of trench
- * nearest that post, and mans it as a garrison mans a run.
+ * shuttles set down at a post is then ordered into that post's stretch of
+ * trench, and mans it as a garrison mans a run.
  */
 public final class RescuePickupSupportSystem {
 
