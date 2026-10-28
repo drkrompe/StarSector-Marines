@@ -130,6 +130,7 @@ public final class StoreScreen implements Screen {
         props.put("selectedName", viewModel.selectedName());
         props.put("selectedKind", viewModel.selectedKind());
         props.put("selectedCards", viewModel.selectedCards());
+        props.put("dollClasses", viewModel.dollClasses());
         props.put("selectedDetail", viewModel.selectedDetail());
         props.put("priceLabel", viewModel.priceLabel());
         props.put("buyLabel", viewModel.buyLabel());
@@ -161,6 +162,7 @@ public final class StoreScreen implements Screen {
      * with the evidence suite, which draws the page the same way.
      */
     static void bindSymbols(UiDocument target, MarkupInstance instance, StoreViewModel model) {
+        bindSymbol(target, instance, "store-doll", StoreSymbolCanvas.selectedDoll(model::selectedOffer));
         for (StoreViewModel.OfferRow row : model.rows().get()) {
             bindSymbol(target, instance, row.symbolId(),
                     StoreSymbolCanvas.of(row.offer().kind(), row.offer().id()));

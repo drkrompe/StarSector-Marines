@@ -58,6 +58,7 @@ final class StoreViewModel {
     private final ComputedSignal<List<CategoryRow>> categoryRows;
     private final ComputedSignal<List<OfferRow>> rows;
     private final ComputedSignal<String> shelfNote;
+    private final ComputedSignal<String> dollClasses;
     private final ComputedSignal<String> selectedName;
     private final ComputedSignal<List<FleetArmoryViewModel.DoctrineTile>> selectedCards;
     /** The loadout card each marine offer is shown as, built once per offer; null for none. */
@@ -96,6 +97,11 @@ final class StoreViewModel {
             filter.get();
             return Strings.get(shelf.isEmpty() ? "storeShelfEmpty"
                     : visible().isEmpty() ? "storeShelfEmptyCategory" : "storeShelfNote");
+        });
+        dollClasses = reactor.computed(() -> {
+            EquipmentStore.Offer offer = selected();
+            return offer != null && StoreSymbolCanvas.hasDoll(offer.kind(), offer.id()) ? "store-doll"
+                    : "store-doll none";
         });
         selectedCards = reactor.computed(() -> {
             EquipmentStore.Offer offer = selected();
@@ -234,6 +240,8 @@ final class StoreViewModel {
 
     Signal<List<OfferRow>> rows() { return rows; }
     Signal<String> shelfNote() { return shelfNote; }
+    /** Shows the doll's canvas while a chassis or a vehicle hull is selected, and hides it otherwise. */
+    Signal<String> dollClasses() { return dollClasses; }
     Signal<String> selectedName() { return selectedName; }
     /** The selected marine loadout as the Armory prints it; empty for any other offer. */
     Signal<List<FleetArmoryViewModel.DoctrineTile>> selectedCards() { return selectedCards; }
@@ -326,6 +334,9 @@ final class StoreViewModel {
         FleetArmoryViewModel.DoctrineTile tile = cardTile(offer);
         return tile == null || tile.factionLogo() == null ? "" : tile.factionLogo();
     }
+
+    /** The selected offer, or null; the page draws its doll from it. */
+    EquipmentStore.Offer selectedOffer() { return selected(); }
 
     private EquipmentStore.Offer selected() {
         String key = selectedKey.get();

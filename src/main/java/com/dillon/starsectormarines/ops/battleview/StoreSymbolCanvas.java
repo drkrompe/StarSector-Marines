@@ -12,11 +12,12 @@ import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 
 import java.awt.Color;
 import java.util.function.BiConsumer;
+import java.util.function.Supplier;
 
 /**
  * A mech or vehicle pattern's picture on the company store's shelf, drawn by the code that
  * draws it in the Mech Lab, so the store shows what the lab shows: a chassis or a vehicle as
- * the sockets of its doll ({@link DollSchematicCanvas}), and a weapon, an internal or a kit as the lab draws
+ * its damage doll ({@link DamageDollCanvas}), and a weapon, an internal or a kit as the lab draws
  * hardware: its bricks under its painted symbol. A shuttle part is drawn as the Boat Deck
  * draws it ({@link BoatHardware}). A marine loadout is drawn as its faction's flag instead, an image in the
  * page's markup.
@@ -38,10 +39,14 @@ public final class StoreSymbolCanvas {
         if (pattern == null) return null;
         switch (pattern.kind()) {
             case CHASSIS -> {
-                return DollSchematicCanvas.ofChassis(pattern.variant());
+                DamageDollCanvas.View view = new DamageDollCanvas.View();
+                view.readChassis(pattern.variant());
+                return DamageDollCanvas.bare(view);
             }
             case VEHICLE -> {
-                return DollSchematicCanvas.ofVehicle(pattern.vehicleType());
+                DamageDollCanvas.View view = new DamageDollCanvas.View();
+                view.readStock(pattern.vehicleType());
+                return DamageDollCanvas.bare(view);
             }
             case WEAPON -> {
                 MechWeaponComponent component = pattern.component();
@@ -62,6 +67,47 @@ public final class StoreSymbolCanvas {
             }
         }
         return null;
+    }
+
+    /** Whether a selected offer has a doll of its sockets to show: a chassis or a vehicle hull. */
+    public static boolean hasDoll(EquipmentStore.Kind kind, String id) {
+        return doll(kind, id) != null;
+    }
+
+    /**
+     * The sockets of a chassis or vehicle hull as the lab's doll lays them out ({@link DollSchematicCanvas}),
+     * or null for any other offer.
+     */
+    public static CanvasProducer doll(EquipmentStore.Kind kind, String id) {
+        if (kind != EquipmentStore.Kind.MECH_PATTERN) return null;
+        MechPattern pattern = MechPattern.parse(id);
+        if (pattern == null) return null;
+        return switch (pattern.kind()) {
+            case CHASSIS -> DollSchematicCanvas.ofChassis(pattern.variant());
+            case VEHICLE -> DollSchematicCanvas.ofVehicle(pattern.vehicleType());
+            default -> null;
+        };
+    }
+
+    /**
+     * The doll of whichever offer is selected, drawn from one binding that follows the selection; the
+     * doll is built once per selected offer, not on every draw.
+     */
+    public static CanvasProducer selectedDoll(Supplier<EquipmentStore.Offer> selected) {
+        return new CanvasProducer() {
+            private EquipmentStore.Offer built;
+            private CanvasProducer doll;
+
+            @Override
+            public void draw(CanvasContext context) {
+                EquipmentStore.Offer offer = selected.get();
+                if (offer != built) {
+                    built = offer;
+                    doll = offer == null ? null : doll(offer.kind(), offer.id());
+                }
+                if (doll != null) doll.draw(context);
+            }
+        };
     }
 
     /** A shuttle fitting or door gun as the Boat Deck draws it, fitted to the picture. */

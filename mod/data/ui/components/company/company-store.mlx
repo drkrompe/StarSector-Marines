@@ -1,4 +1,4 @@
-<template props="resourceStock,roomTitle,roomCopy,contextLabel,shelfNote,categoryRows,offerRows,selectedName,selectedKind,selectedCards,selectedDetail,priceLabel,buyLabel,buyClasses,buyAction,verdict,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,shopAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopClasses">
+<template props="resourceStock,roomTitle,roomCopy,contextLabel,shelfNote,categoryRows,offerRows,selectedName,selectedKind,selectedCards,dollClasses,selectedDetail,priceLabel,buyLabel,buyClasses,buyAction,verdict,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,shopAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopClasses">
   <div id="store-root" class="store-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <div id="store-room-bar" class="panel store-room-bar console-header">
@@ -48,6 +48,7 @@
             <div id="store-buy-label" class="label heading store-buy-label">{buyLabel}</div>
           </button>
         </div>
+        <canvas id="store-doll" class="{dollClasses}" width="640" height="300" />
         <div id="store-card-slot" class="store-card-slot">
           <armory-loadout-card each="tile in selectedCards" key="{tile.id}" tile="{tile}" />
         </div>
@@ -95,6 +96,8 @@
   .store-offer-icon { width: 80px; height: 58px; pointer-events: none; }
   .store-offer-flag { width: 80px; height: 58px; pointer-events: none; }
   .store-offer-flag.none { display: none; }
+  .store-doll { width: 100%; height: 300px; pointer-events: none; }
+  .store-doll.none { display: none; }
   .store-card-slot { flex-direction: column; width: 100%; }
   .store-offer-icon.none { display: none; }
   .store-offer-name { height: auto; white-space: normal; }
