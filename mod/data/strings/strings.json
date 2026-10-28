@@ -3595,7 +3595,6 @@
     "storeNotAtMarket": "The fleet is not docked at a port that will trade. Nothing was charged.",
     "storeCannotAffordFmt": "The company is {0} credits short. Nothing was charged.",
     "storeCategoriesHeading": "CATEGORIES",
-    "storeCategoryAll": "Everything",
     "storeCategoryCountFmt": "{0} · {1}",
     "storeShelfEmptyCategory": "Nothing in this category on the shelf this month. Try another category, or check back next month.",
     "storeSectionMARINE": "MARINE",

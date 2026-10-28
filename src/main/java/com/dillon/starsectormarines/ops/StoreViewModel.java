@@ -42,7 +42,10 @@ final class StoreViewModel {
     private final MutableSignal<Integer> revision;
     private final MutableSignal<String> selectedKey;
     private final MutableSignal<String> verdictText;
-    /** What the shelf is narrowed to: {@link #FILTER_ALL}, {@code SECTION:<name>} or {@code SLOT:<name>}. */
+    /**
+     * What the shelf is narrowed to: {@code SECTION:<name>} or {@code SLOT:<name>}. There is always
+     * one, because the category list is an accordion: exactly one section is open, showing its slots.
+     */
     private final MutableSignal<String> filter;
     private final ComputedSignal<List<CategoryRow>> categoryRows;
     private final ComputedSignal<List<OfferRow>> rows;
@@ -60,7 +63,7 @@ final class StoreViewModel {
     /** Offers bought on this visit; they stay listed so the shelf does not shift under the cursor. */
     private final Set<String> acquired = new LinkedHashSet<>();
 
-    static final String FILTER_ALL = "ALL";
+    private static final String DEFAULT_FILTER = "SECTION:" + StoreSlot.Section.MARINE.name();
 
     StoreViewModel(Reactor reactor, Supplier<List<EquipmentStore.Offer>> shelfSource,
                    Supplier<EquipmentStore.Holdings> holdings,
@@ -72,7 +75,7 @@ final class StoreViewModel {
         revision = reactor.signal(0);
         selectedKey = reactor.signal("");
         verdictText = reactor.signal("");
-        filter = reactor.signal(FILTER_ALL);
+        filter = reactor.signal(DEFAULT_FILTER);
         categoryRows = reactor.computed(this::buildCategoryRows);
         rows = reactor.computed(this::buildRows);
         shelfNote = reactor.computed(() -> {
@@ -124,9 +127,17 @@ final class StoreViewModel {
         shelf = shelfSource.get();
         acquired.clear();
         verdictText.set("");
-        filter.set(FILTER_ALL);
-        EquipmentStore.Offer first = shelf.isEmpty() ? null : shelf.get(0);
-        selectedKey.set(first == null ? "" : key(first));
+        // Open the first section that has something on the shelf, so the page never opens empty.
+        String opening = DEFAULT_FILTER;
+        for (StoreSlot.Section section : StoreSlot.Section.values()) {
+            if (count("SECTION:" + section.name()) > 0) {
+                opening = "SECTION:" + section.name();
+                break;
+            }
+        }
+        filter.set(opening);
+        List<EquipmentStore.Offer> shown = visible();
+        selectedKey.set(shown.isEmpty() ? "" : key(shown.get(0)));
         revision.set(revision.get() + 1);
     }
 
@@ -153,7 +164,6 @@ final class StoreViewModel {
     }
 
     private static boolean matches(String filterKey, StoreSlot slot) {
-        if (FILTER_ALL.equals(filterKey)) return true;
         if (slot == null) return false;
         return filterKey.equals("SECTION:" + slot.section().name()) || filterKey.equals("SLOT:" + slot.name());
     }
@@ -162,12 +172,14 @@ final class StoreViewModel {
         revision.get();
         String current = filter.get();
         List<CategoryRow> out = new ArrayList<>();
-        out.add(categoryRow(FILTER_ALL, "store-cat-all", "store-cat all", Strings.get("storeCategoryAll"),
-                shelf.size(), current));
+        StoreSlot.Section open = openSection(current);
         for (StoreSlot.Section section : StoreSlot.Section.values()) {
             String sectionKey = "SECTION:" + section.name();
+            boolean expanded = section == open;
             out.add(categoryRow(sectionKey, "store-cat-" + section.name(), "store-cat section",
-                    Strings.get("storeSection" + section.name()), count(sectionKey), current));
+                    (expanded ? "- " : "+ ") + Strings.get("storeSection" + section.name()),
+                    count(sectionKey), current));
+            if (!expanded) continue;
             for (StoreSlot slot : StoreSlot.of(section)) {
                 String slotKey = "SLOT:" + slot.name();
                 out.add(categoryRow(slotKey, "store-cat-" + slot.name(), "store-cat slot",
@@ -175,6 +187,12 @@ final class StoreViewModel {
             }
         }
         return List.copyOf(out);
+    }
+
+    /** The one section whose slots are showing: the filter's own, or the section of its slot. */
+    private static StoreSlot.Section openSection(String filterKey) {
+        if (filterKey.startsWith("SLOT:")) return StoreSlot.valueOf(filterKey.substring("SLOT:".length())).section();
+        return StoreSlot.Section.valueOf(filterKey.substring("SECTION:".length()));
     }
 
     private CategoryRow categoryRow(String key, String id, String classes, String label, int count,

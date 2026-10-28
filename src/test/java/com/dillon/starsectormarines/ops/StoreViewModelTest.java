@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatParts;
 import com.dillon.starsectormarines.marine.EquipmentStore;
 import com.dillon.starsectormarines.marine.LoadoutCard;
+import com.dillon.starsectormarines.marine.StoreSlot;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.LoadoutCards;
@@ -59,11 +60,11 @@ class StoreViewModelTest {
                 () -> new EquipmentStore.Holdings(new MarineArmory(), new MechBay(), new BoatDeck()),
                 purse(new long[]{20_000}), () -> "Jangala");
 
-        assertEquals(3, model.rows().get().size(), "everything is shown to begin with");
-        assertTrue(model.categoryRows().get().get(0).label().endsWith(" 3"));
-
-        model.selectFilter("SECTION:MARINE");
-        assertEquals(2, model.rows().get().size());
+        assertEquals(2, model.rows().get().size(), "the page opens on the first section with stock");
+        assertEquals(StoreSlot.Section.values().length + StoreSlot.of(StoreSlot.Section.MARINE).size(),
+                model.categoryRows().get().size(), "only the open section shows its slots");
+        assertTrue(model.categoryRows().get().get(0).label().startsWith("- "), "the open section is marked open");
+        assertTrue(model.categoryRows().get().get(0).label().endsWith(" 2"));
 
         model.selectFilter("SLOT:ARMOR_LOADOUT");
         assertEquals(1, model.rows().get().size());
@@ -71,6 +72,8 @@ class StoreViewModelTest {
                 "the selection moves to what is still shown");
 
         model.selectFilter("SECTION:MECHS");
+        assertTrue(model.categoryRows().get().stream().noneMatch(row -> row.id().equals("store-cat-ARMOR_LOADOUT")),
+                "opening one section collapses the others");
         assertTrue(model.rows().get().isEmpty());
         assertEquals(EquipmentStore.Sale.UNAVAILABLE, model.buySelected(), "nothing is selected in an empty category");
 
