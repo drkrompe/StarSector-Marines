@@ -64,6 +64,9 @@ enum StoryScene {
             case SALVAGE_RIGHTS -> SALVAGE_RIGHTS;
             case COLD_START -> COLD_START;
             case WORKING_PASSAGE -> WORKING_PASSAGE;
+            case WELLHOLLOW_BREACH -> WELLHOLLOW_COLONY;
+            case WELLHOLLOW_LINE, WELLHOLLOW_ROAD -> WELLHOLLOW_RIM;
+            case WELLHOLLOW_BURN, WELLHOLLOW_FRONT -> WELLHOLLOW_HEART;
         };
         if (source == MissionSource.CAMPAIGN_EVENT)
             return SilentColonyMissionKey.parse(id) == null ? null : SILENT_COLONY;
