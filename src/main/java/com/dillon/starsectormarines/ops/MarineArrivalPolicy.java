@@ -29,9 +29,13 @@ public enum MarineArrivalPolicy {
         return craft.seats();
     }
 
-    /** Resolves the ground-battle craft from the committed campaign lift. */
+    /**
+     * Resolves the ground-battle craft from the committed campaign lift: a paired descent flies the
+     * committed boat when she handles as an Aeroshuttle does (the Hermes), and an Aeroshuttle for
+     * any heavier hull.
+     */
     public ShuttleType deliveryCraft(ShuttleType committedLift) {
-        return this == PAIRED_HALF_SQUAD
+        return this == PAIRED_HALF_SQUAD && !committedLift.nimbleClass()
                 ? ShuttleType.AEROSHUTTLE : committedLift;
     }
 }

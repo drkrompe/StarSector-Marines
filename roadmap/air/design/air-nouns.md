@@ -1628,8 +1628,11 @@ militia retain their separate sortie or authored arrival-group identities.
 
 
 The Aeroshuttle is a purpose-built six-seat half-squad craft. Conquest keeps
-the committed campaign hull as its lift source but resolves the visible final
-descent to ownership-separated paired Aeroshuttles. Its mission configuration
+the committed campaign hull as its lift source and resolves the visible final
+descent to ownership-separated pairs: the company's Hermes fly it themselves,
+fit and all, repeating in berth order as anonymous copies when the pairs outnumber
+the boats, and any heavier hull's place is taken by a plain Aeroshuttle
+(`ShuttleType.nimbleClass`, `ShuttleArrivalPlan.frameFor`). Its mission configuration
 owns the active zone count, reusable player pairs per zone, and timing jitter.
 Those final-descent craft are reusable: committed lift and selected personnel
 become additional cycles, not additional permanent landing berths. Seeded
