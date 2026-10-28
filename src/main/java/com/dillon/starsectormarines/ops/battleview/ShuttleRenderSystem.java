@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.MountedTurret;
+import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.engine.EngineHullLighting;
@@ -181,21 +182,35 @@ public final class ShuttleRenderSystem implements RenderSystem {
         }
     }
 
+    /** How large each of a pod's two guns is drawn against the same gun alone on a mount. */
+    static final float POD_GUN_SCALE = 0.8f;
+    private static final float[] POD_HOUSING = {0.17f, 0.19f, 0.2f};
+    private static final float[] POD_HOUSING_EDGE = {0.05f, 0.055f, 0.06f};
+
     /**
-     * Draws one mounted gun, base and recoiling barrel, centred on its screen point.
+     * Draws one mounted gun, base and recoiling barrel, about its mount's screen point.
      *
      * <p>Shared with the parked hulls {@link UnitRenderService} draws, so a gun on a boat in its
      * berth is the same picture, at the same size, as that gun on her once she lifts.
+     *
+     * <p>A pod's two guns are drawn a little smaller, each on its own side of the mount
+     * ({@link MountedTurret#barrelOffset}), over one housing laid under them as the lead is drawn:
+     * a saddle between two barrels, or, for two missile guns, one launcher box round both.
      */
     static void emitTurret(DrawList out, RenderLayer layer, BattleSprites sprites, MountedTurret mt,
                            float screenX, float screenY, float scaleMult, float cellPx, float alphaMult) {
         ShuttleSpriteCache base = sprites.turretSprites().get(mt.mount.structureId);
         if (base == null) return;
+        if (mt.podPartner != null) emitPodHousing(out, layer, mt, screenX, screenY, scaleMult, cellPx, alphaMult);
+        float[] side = mt.barrelOffset(scaleMult);
+        screenX += side[0] * cellPx;
+        screenY += side[1] * cellPx;
         // Turret SIZE is intrinsic to the kind — an ARBALEST is the same
         // physical size on every hull, exactly like a ground MapTurret
         // (UnitRenderService draws it at visualCells flat). Only the altitude
         // visual zoom applies; the hull never scales turret size.
-        float layerVisualCells = mt.mount.mountDef().visualCells * scaleMult;
+        float layerVisualCells = mt.mount.mountDef().visualCells * scaleMult
+                * (mt.podSide() != 0 ? POD_GUN_SCALE : 1f);
         TurretLayerPose pose = TurretLayerPose.resolve(
                 screenX, screenY, mt.facingDegrees, layerVisualCells, cellPx,
                 mt.recoilTimer, BattleRenderer.RECOIL_DURATION,
@@ -208,6 +223,31 @@ public final class ShuttleRenderSystem implements RenderSystem {
         }
         emitTurretLayer(out, layer, base, pose.facingDegrees(), pose.spriteHeightPx(),
                 pose.baseCenterX(), pose.baseCenterY(), alphaMult);
+    }
+
+    /**
+     * The housing a pod's two guns sit on: a bar across the pod's facing joining both barrels'
+     * mounts, or, when both guns are missiles, a deeper box the two launchers ride in.
+     */
+    private static void emitPodHousing(DrawList out, RenderLayer layer, MountedTurret lead,
+                                       float screenX, float screenY, float scaleMult, float cellPx, float alphaMult) {
+        boolean missiles = missile(lead) && missile(lead.podPartner);
+        double facing = Math.toRadians(lead.podFacingDegrees());
+        float acrossX = (float) Math.cos(facing), acrossY = (float) Math.sin(facing);
+        float half = (MountedTurret.POD_BARREL_OFFSET_CELLS + (missiles ? 0.12f : 0.16f)) * scaleMult * cellPx;
+        float depth = (missiles ? 0.46f : 0.3f) * scaleMult * cellPx;
+        float x0 = screenX - acrossX * half, y0 = screenY - acrossY * half;
+        float x1 = screenX + acrossX * half, y1 = screenY + acrossY * half;
+        float edge = Math.max(1f, 0.05f * scaleMult * cellPx);
+        out.addLine(layer, x0, y0, x1, y1, depth + edge * 2f,
+                POD_HOUSING_EDGE[0], POD_HOUSING_EDGE[1], POD_HOUSING_EDGE[2], 0.9f * alphaMult);
+        out.addLine(layer, x0, y0, x1, y1, depth,
+                POD_HOUSING[0], POD_HOUSING[1], POD_HOUSING[2], alphaMult);
+    }
+
+    private static boolean missile(MountedTurret mt) {
+        BoatGun gun = mt == null ? null : BoatGun.forStructure(mt.mount.structureId);
+        return gun != null && gun.family() == BoatGun.Family.MISSILE;
     }
 
     private static void emitTurretLayer(DrawList out, RenderLayer layer, ShuttleSpriteCache cache,

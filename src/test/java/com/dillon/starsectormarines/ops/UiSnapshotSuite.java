@@ -58,6 +58,7 @@ import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatGun;
+import com.dillon.starsectormarines.marine.BoatHardpoint;
 import com.dillon.starsectormarines.battle.air.engine.TurretSlotResolver;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
@@ -2703,7 +2704,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 // The pointer resting on the fitted Arbalest, nothing in hand: its spec sheet opens.
                 new SnapshotArtifact("boat-deck-hover-part-wide.png",
                         renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
-                                true, false, NO_DEPARTURE, 0, BoatDoll.HARDPOINT_KEY + 0)));
+                                true, false, NO_DEPARTURE, 0, BoatDoll.positionKey(0, BoatHardpoint.TOP))),
+                // Two 2x1 guns on one hardpoint: a twin SRM pod on her second, twin pulse lasers on her third.
+                new SnapshotArtifact("boat-deck-pod-wide.png",
+                        renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
+                                true, false, POD, 2)));
     }
 
     static List<SnapshotArtifact> renderMechConsole(SnapshotContext context) throws Exception {
@@ -3397,6 +3402,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             workshop.fabricatePart(BoatGun.PULSE_LASER.id());
             workshop.fitGun(deck.boats().get(0).id(), 2, BoatGun.PULSE_LASER.id());
         }
+        if (departure == POD && deck.berths() > 0 && deck.boats().get(0) != null) {
+            // A second gun beside each 2x1 gun already on: her SRM pod and her laser each become a pod of two.
+            workshop.fabricatePart(BoatGun.SRM_POD.id());
+            workshop.fitGun(deck.boats().get(0).id(), 1, BoatHardpoint.BOTTOM, BoatGun.SRM_POD.id());
+            workshop.fabricatePart(BoatGun.PULSE_LASER.id());
+            workshop.fitGun(deck.boats().get(0).id(), 2, BoatHardpoint.BOTTOM, BoatGun.PULSE_LASER.id());
+        }
         if (departure == STRIPPED && deck.berths() > 0 && deck.boats().get(0) != null) {
             // Her drive, plating and gun dragged off into stores: the drive's socket warns and she is off the lift;
             // the plating's reads a bare hull, which flies weak.
@@ -3484,7 +3496,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
      * overview with one boat in the reserve hangar and her berth vacant; or the fleet away from a port.
      */
     private static final int NO_DEPARTURE = 0, DOOR_OPENING = 1, AT_OPENING = 2, RECYCLING = 3, RECYCLING_HALF = 4,
-            STRIPPED = 5, SCRAP_ARMED = 6, STORE_ARMED = 7, RESERVE_STRIP = 8, NO_PORT = 9;
+            STRIPPED = 5, SCRAP_ARMED = 6, STORE_ARMED = 7, RESERVE_STRIP = 8, NO_PORT = 9, POD = 10;
 
     /** Catch the bay door half open for a real departure, before the boat reaches it. */
     private static void seekDoorOpening(CompanyDeck ship, DeckGraph.Compartment bay) {

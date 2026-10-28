@@ -288,7 +288,8 @@ public final class BoatDeckScreen implements Screen {
         if (socket != null && socket.equals(carried.source())) socket = null;
         bayCanvas.previewDrop(socket, socket != null && (carried.source() == null
                 ? viewModel.canDropOnSocket(carried.kind(), carried.itemId(), socket)
-                : viewModel.canMoveBetweenSockets(carried.source(), socket)));
+                : viewModel.canMoveBetweenSockets(carried.source(), socket)),
+                BoatHardware.footprint(carried.kind(), carried.itemId())[1] > 1);
         returnDropNote.classed("drop-active", carried.source() != null && overStores(event));
         invalidateBay();
     }

@@ -56,6 +56,7 @@ com.dillon.starsectormarines.battle.warship.WarshipScreenScene
 com.dillon.starsectormarines.battle.warship.WarshipMissileTacticsScene
 com.dillon.starsectormarines.battle.shield.ShieldDomeScene
 com.dillon.starsectormarines.battle.battery.FortressBatteryScene
+com.dillon.starsectormarines.battle.air.BoatPodScene
 com.dillon.starsectormarines.battle.air.CloseAirSupportScene
 com.dillon.starsectormarines.battle.turret.DefenceNestFieldScene
 com.dillon.starsectormarines.battle.turret.RaisedGunScene

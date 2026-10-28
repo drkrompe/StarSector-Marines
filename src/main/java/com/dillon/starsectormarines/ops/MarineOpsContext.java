@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
@@ -294,7 +295,7 @@ public class MarineOpsContext {
     }
 
     /** @see BoatDeck#doorGuns() */
-    static String[][] companyDoorGuns() {
+    static FittedBoat[] companyDoorGuns() {
         if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         if (script == null || script.roster() == null) return null;

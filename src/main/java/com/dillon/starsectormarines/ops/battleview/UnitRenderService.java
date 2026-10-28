@@ -1068,10 +1068,11 @@ public final class UnitRenderService implements RenderSystem {
     private void emitParkedGuns(DrawList out, BattleCamera cam, AirfieldService.Berth berth,
                                 float centerCellX, float centerCellY, float cellPx, float alphaMult) {
         String[] kit = berth.doorGuns != null ? berth.doorGuns : berth.airframe.kitFor(TurretRole.A2G);
+        String[] pods = berth.doorGuns != null ? berth.doorGunPods : berth.airframe.podKitFor(TurretRole.A2G);
         ParkedGuns guns = parkedGuns.get(berth);
-        if (guns == null || !Arrays.equals(guns.kit(), kit)) {
-            guns = new ParkedGuns(kit.clone(), AirArmament.mounts(kit, berth.airframe.renderHullId(),
-                    berth.facingDegrees, berth.doorGuns != null));
+        if (guns == null || !Arrays.equals(guns.kit(), kit) || !Arrays.equals(guns.pods(), pods)) {
+            guns = new ParkedGuns(kit.clone(), pods == null ? null : pods.clone(), AirArmament.mounts(kit, pods,
+                    berth.airframe.renderHullId(), berth.facingDegrees, berth.doorGuns != null));
             parkedGuns.put(berth, guns);
         }
         if (guns.mounts().length == 0) return;
@@ -1090,7 +1091,7 @@ public final class UnitRenderService implements RenderSystem {
     }
 
     /** The guns drawn on one parked hull, and the kit they were laid out from. */
-    private record ParkedGuns(String[] kit, MountedTurret[] mounts) {}
+    private record ParkedGuns(String[] kit, String[] pods, MountedTurret[] mounts) {}
 
     private void emitHull(DrawList out, BattleCamera cam, Airframe airframe, float facingDegrees,
                           float centerCellX, float centerCellY, float cellPx,

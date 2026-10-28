@@ -435,6 +435,54 @@ class BoatWorkshopTest {
         deck.reconcile("fleet-member-transport", ShuttleType.AEROSHUTTLE, 2);
         return deck;
     }
+    /**
+     * A hardpoint takes two 2x1 guns as one pod: each is fitted, stripped and moved by its own
+     * position, both weigh, and both fly. A 2x2 gun dropped on either position takes the whole mount.
+     */
+    @Test
+    void twoHalfGunsShareOneHardpointAsAPod() {
+        BoatDeck deck = new BoatDeck();
+        deck.reconcile("second-wind", ShuttleType.HERMES, 1);
+        BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
+        CampaignBoat boat = deck.flightReady().get(0);
+        assertNull(boat.gunsAt(0)[BoatHardpoint.BOTTOM], "a boat from before pods has an open bottom position");
+        for (BoatGun gun : List.of(BoatGun.PULSE_LASER, BoatGun.PULSE_LASER, BoatGun.HEAVY_MG, BoatGun.ARBALEST)) {
+            workshop.fabricatePart(gun.id());
+        }
+
+        assertEquals(BoatWorkshop.Status.FITTED,
+                workshop.fitGun(boat.id(), 1, BoatHardpoint.TOP, BoatGun.PULSE_LASER.id()).status());
+        assertEquals(BoatWorkshop.Status.FITTED,
+                workshop.fitGun(boat.id(), 1, BoatHardpoint.BOTTOM, BoatGun.PULSE_LASER.id()).status());
+        assertEquals(List.of(BoatGun.PULSE_LASER, BoatGun.PULSE_LASER), boat.gunsOn(1));
+        assertEquals(2 * BoatGun.PULSE_LASER.weight(), BoatFrame.weight(boat), "each gun of a pod weighs");
+        assertEquals(BoatWorkshop.Status.FITTED,
+                workshop.fitGun(boat.id(), 0, BoatHardpoint.BOTTOM, BoatGun.HEAVY_MG.id()).status());
+        assertEquals(2 * BoatGun.PULSE_LASER.weight() + BoatGun.HEAVY_MG.weight(), BoatFrame.weight(boat),
+                "the yard's gun is free on top only; a second one beside it weighs");
+
+        FittedBoat flown = boat.freezeForDeployment();
+        assertEquals(BoatGun.PULSE_LASER.structureId(), flown.guns().get(1));
+        assertEquals(BoatGun.PULSE_LASER.structureId(), flown.pods().get(1), "both lasers fly, from one pod");
+        assertEquals(BoatGun.HEAVY_MG.structureId(), flown.pods().get(0));
+        assertNull(flown.pods().get(2));
+
+        assertEquals(BoatWorkshop.Status.STRIPPED, workshop.stripGun(boat.id(), 1, BoatHardpoint.TOP).status());
+        assertNull(boat.gunsAt(1)[BoatHardpoint.TOP]);
+        assertSame(BoatGun.PULSE_LASER, boat.gunsAt(1)[BoatHardpoint.BOTTOM], "the other position keeps its gun");
+        assertEquals(1, deck.spares(BoatGun.PULSE_LASER.id()));
+        assertEquals(BoatWorkshop.Status.FITTED,
+                workshop.moveGun(boat.id(), 1, BoatHardpoint.BOTTOM, 1, BoatHardpoint.TOP).status());
+        assertSame(BoatGun.PULSE_LASER, boat.gunOn(1), "a gun moves between its own hardpoint's positions");
+        assertNull(boat.gunsAt(1)[BoatHardpoint.BOTTOM]);
+
+        assertEquals(BoatWorkshop.Status.FITTED,
+                workshop.fitGun(boat.id(), 0, BoatHardpoint.BOTTOM, BoatGun.ARBALEST.id()).status());
+        assertEquals(List.of(BoatGun.ARBALEST), boat.gunsOn(0), "a 2x2 gun takes the whole hardpoint");
+        assertEquals(2, deck.spares(BoatGun.HEAVY_MG.id()), "both machine guns it displaced are in stores");
+        assertEquals(BoatWorkshop.Status.STRIPPED, workshop.stripGun(boat.id(), 1).status());
+        assertEquals(List.of(), boat.gunsOn(1));
+    }
 }
 
 

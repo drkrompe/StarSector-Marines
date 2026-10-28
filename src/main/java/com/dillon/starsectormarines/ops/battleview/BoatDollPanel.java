@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.BoatHardpoint;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
@@ -20,6 +21,11 @@ import java.util.List;
  * in the order their mounts sit on the hull, plating and drive on either flank
  * and the hold beneath. Where a gun actually sits is shown on the boat in her
  * berth, not here; this is the parts board.
+ *
+ * <p>A hardpoint socket is two 2x1 positions, top and bottom: a 2x2 gun fills both, and a
+ * 2x1 gun takes one and leaves the other open for a second ({@code BoatHardpoint}). Its card
+ * answers a point by position ({@link BoatDoll#positionKey}), so a gun goes on, comes off or
+ * moves by the row it was let go over.
  */
 final class BoatDollPanel {
 
@@ -52,8 +58,12 @@ final class BoatDollPanel {
     private static final Color TAKES = new Color(0x7e, 0xe0, 0x9a);
     private static final Color REFUSES = new Color(0xe8, 0x5a, 0x4a);
 
-    /** A piece being carried over a socket: which socket, and whether it would take it. */
-    record Drop(String key, boolean valid) { }
+    /**
+     * A piece being carried over a socket: which socket, and whether it would take it. A
+     * {@code whole} piece fills every brick of the socket, so a hardpoint lights as one rather
+     * than the one row under the pointer.
+     */
+    record Drop(String key, boolean valid, boolean whole) { }
 
     private BoatDollPanel() { }
 
@@ -156,13 +166,42 @@ final class BoatDollPanel {
             if (placed.get(i).target() != core) wire(c, placed.get(i), core, seconds, i);
         }
         if (plainCore) core(c, core, doll);
-        List<CardTarget> targets = new ArrayList<>(placed.size());
+        List<CardTarget> targets = new ArrayList<>(placed.size() + guns.size());
         for (Placed socket : placed) {
-            console(c, socket.target(), socket.slot(), socket.slot().key().equals(hovered), seconds);
-            if (drop != null && socket.slot().key().equals(drop.key())) dropMark(c, socket.target(), drop.valid());
-            targets.add(socket.target());
+            console(c, socket.target(), socket.slot(), BoatDoll.sameSocket(socket.slot().key(), hovered), seconds);
+            List<CardTarget> parts = socket.slot().kind() == BoatDoll.Kind.HARDPOINT
+                    ? positions(socket.target(), socket.slot()) : List.of(socket.target());
+            if (drop != null && BoatDoll.sameSocket(socket.slot().key(), drop.key())) {
+                CardTarget lit = socket.target();
+                if (!drop.whole()) {
+                    for (CardTarget part : parts) if (part.key().equals(drop.key())) lit = part;
+                }
+                dropMark(c, lit, drop.valid());
+            }
+            targets.addAll(parts);
         }
         return List.copyOf(targets);
+    }
+
+    /**
+     * A hardpoint card split at the seam between its two rows of bricks, top position over
+     * bottom, each answering its own {@link BoatDoll#positionKey}; the header goes with the top.
+     */
+    private static List<CardTarget> positions(CardTarget card, BoatDoll.Slot slot) {
+        int hardpoint = BoatDoll.hardpointOf(slot.key());
+        HardpointBricks.Layout bricks = cardBricks(card, slot.kind());
+        float seam = bricks.brickY(1) - BRICK_GAP * 0.5f;
+        return List.of(
+                new CardTarget(BoatDoll.positionKey(hardpoint, BoatHardpoint.TOP), card.left(), card.top(),
+                        card.width(), seam - card.top()),
+                new CardTarget(BoatDoll.positionKey(hardpoint, BoatHardpoint.BOTTOM), card.left(), seam,
+                        card.width(), card.bottom() - seam));
+    }
+
+    /** A socket's bricks as its card draws them: centred under the header. */
+    private static HardpointBricks.Layout cardBricks(CardTarget card, BoatDoll.Kind kind) {
+        HardpointBricks.Layout bricks = bricks(kind, 0f, 0f);
+        return bricks(kind, card.left() + (card.width() - bricks.width()) * .5f, card.top() + HEADER);
     }
 
     private record Placed(BoatDoll.Slot slot, CardTarget target) { }
@@ -223,11 +262,21 @@ final class BoatDollPanel {
         c.fillRect(x + 8f, y + 7f, 3f, 9f, missing ? REFUSES : tone);
         c.text(Fonts.ORBITRON_12_BOLD, clip(slot.title(), w - 24f, Fonts.ORBITRON_12_BOLD), x + 16f,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
-        HardpointBricks.Layout bricks = bricks(slot.kind(), 0f, 0f);
-        bricks = bricks(slot.kind(), x + (w - bricks.width()) * .5f, y + HEADER);
+        HardpointBricks.Layout bricks = cardBricks(t, slot.kind());
         HardpointBricks.drawEmpty(c, bricks, tone);
         // A bare hardpoint is its empty bricks and nothing on them; a missing required part, the warning on them.
-        if (slot.itemId() != null) {
+        if (slot.kind() == BoatDoll.Kind.HARDPOINT) {
+            // Two positions, each its own gun: an open one stays open for a second 2x1 gun.
+            if (slot.itemId() != null) BoatHardware.drawAt(c, bricks, BoatHardware.piece(slot.kind(), slot.itemId()), 0, 255);
+            if (slot.podItemId() != null) {
+                BoatHardware.drawAt(c, bricks, BoatHardware.piece(slot.kind(), slot.podItemId()), 1, 255);
+            }
+            if (slot.itemId() == null || slot.podItemId() != null
+                    || BoatHardware.piece(slot.kind(), slot.itemId()).rows() < bricks.rows()) {
+                seam(c, bricks, tone);
+            }
+        }
+        else if (slot.itemId() != null) {
             BoatHardware.Piece piece = BoatHardware.piece(slot.kind(), slot.itemId());
             BoatHardware.drawClosed(c, bricks, piece);
             BoatHardware.draw(c, bricks, piece, 255);
@@ -236,6 +285,15 @@ final class BoatDollPanel {
         if (slot.selected() || hot) {
             MechLabDollCanvas.drawCornerBrackets(c, x - 2f, y - 2f, w + 4f, h + 4f,
                     withAlpha(AMBER, (int) (180 + pulse * 65)), slot.selected() ? 2.4f : 1.4f, 17f, 5f);
+        }
+    }
+
+    /** The line between a hardpoint's two positions, so an open one reads as room for a gun of its own. */
+    private static void seam(CanvasContext c, HardpointBricks.Layout bricks, Color tone) {
+        float y = bricks.brickY(1) - BRICK_GAP * 0.5f;
+        float left = bricks.left() - 5f, right = bricks.left() + bricks.width() + 5f;
+        for (float x = left; x < right; x += 7f) {
+            c.line(x, y, Math.min(right, x + 4f), y, withAlpha(tone, 150), 1.2f);
         }
     }
 

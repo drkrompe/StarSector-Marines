@@ -98,19 +98,25 @@ public final class BoatHardware {
         };
     }
 
-    /** The piece a fitting or gun id is drawn as; an id this does not know fills its socket plainly. */
+    /**
+     * The piece a fitting or gun id is drawn as; an id this does not know fills its socket plainly.
+     * A gun's rows are its own ({@link BoatGun#half}): a 2x1 gun takes one of a hardpoint's two
+     * positions, a 2x2 gun the whole hardpoint.
+     */
     static Piece piece(BoatDoll.Kind kind, String itemId) {
         Color tone = kind == BoatDoll.Kind.HARDPOINT ? gunTone(itemId) : tone(kind);
         String id = itemId == null ? "" : itemId;
+        BoatGun gun = kind == BoatDoll.Kind.HARDPOINT ? BoatGun.findById(id) : null;
+        int gunRows = gun != null && gun.half() ? 1 : 2;
         return switch (id) {
-            case "door_heavy_mg" -> new Piece("boat-door-heavy-mg", 2, 1, tone);
-            case "door_grenade_launcher" -> new Piece("boat-door-grenade", 2, 1, tone);
-            case "door_arbalest" -> new Piece("boat-door-arbalest", 2, 2, tone);
-            case "door_hephaestus" -> new Piece("boat-door-hephaestus", 2, 2, tone);
-            case "boat_pulse_laser" -> new Piece("pulse-laser", 2, 1, tone);
-            case "boat_burst_laser" -> new Piece("shoulder-laser", 2, 2, tone);
-            case "boat_srm_pod" -> new Piece("srm-5", 2, 1, tone);
-            case "boat_lrm_rack" -> new Piece("lrm-5", 2, 2, tone);
+            case "door_heavy_mg" -> new Piece("boat-door-heavy-mg", 2, gunRows, tone);
+            case "door_grenade_launcher" -> new Piece("boat-door-grenade", 2, gunRows, tone);
+            case "door_arbalest" -> new Piece("boat-door-arbalest", 2, gunRows, tone);
+            case "door_hephaestus" -> new Piece("boat-door-hephaestus", 2, gunRows, tone);
+            case "boat_pulse_laser" -> new Piece("pulse-laser", 2, gunRows, tone);
+            case "boat_burst_laser" -> new Piece("shoulder-laser", 2, gunRows, tone);
+            case "boat_srm_pod" -> new Piece("srm-5", 2, gunRows, tone);
+            case "boat_lrm_rack" -> new Piece("lrm-5", 2, gunRows, tone);
             case "standard_plating" -> new Piece("boat-plating-standard", 2, 1, tone);
             case "reinforced_plating" -> new Piece("boat-plating-reinforced", 2, 2, tone);
             case "armoured_plating" -> new Piece("boat-plating-armoured", 2, 2, tone);
@@ -137,10 +143,16 @@ public final class BoatHardware {
 
     /** Draws a piece over its bricks, placed at the top-left of the layout's grid. */
     static void draw(CanvasContext c, HardpointBricks.Layout bricks, Piece piece, int alpha) {
-        int columns = Math.min(bricks.columns(), piece.columns());
         int rows = Math.min(bricks.rows(), piece.rows());
+        drawAt(c, bricks, piece, (bricks.rows() - rows) / 2, alpha);
+    }
+
+    /** Draws a piece over its bricks from brick row {@code row}: a hardpoint's bottom gun starts on the second. */
+    static void drawAt(CanvasContext c, HardpointBricks.Layout bricks, Piece piece, int row, int alpha) {
+        int columns = Math.min(bricks.columns(), piece.columns());
+        int rows = Math.min(bricks.rows() - row, piece.rows());
+        if (rows <= 0) return;
         int column = (bricks.columns() - columns) / 2;
-        int row = (bricks.rows() - rows) / 2;
         HardpointBricks.drawFilled(c, bricks, column, row, columns, rows, piece.tone());
         SvgAsset art = art(piece.art());
         if (art != null) {
@@ -153,7 +165,8 @@ public final class BoatHardware {
     /**
      * Closes the bricks a fitted piece leaves over in its socket: a socket takes one part, so the
      * spare capacity of a 2x2 socket holding a 2x1 part is shut, darker than an empty brick and
-     * hatched, never left reading as room for a second part.
+     * hatched, never left reading as room for a second part. Not a hardpoint's: its bottom row is
+     * room for a second 2x1 gun, and stays open.
      */
     static void drawClosed(CanvasContext c, HardpointBricks.Layout bricks, Piece piece) {
         int columns = Math.min(bricks.columns(), piece.columns());

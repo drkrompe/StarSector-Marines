@@ -2993,11 +2993,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     @Override
-    public long spawnGunship(ShuttleType type, Faction faction,
+    public long spawnGunship(Airframe frame, Faction faction,
                              float centreX, float centreY, float entryX, float entryY,
                              float exitX, float exitY) {
         requireInternalAir("spawnGunship");
-        return airSystem.spawnGunship(type, faction, centreX, centreY, entryX, entryY, exitX, exitY);
+        return airSystem.spawnGunship(frame, faction, centreX, centreY, entryX, entryY, exitX, exitY);
     }
 
     public void addConvoyVehicle(VehicleType type, Faction faction, VehicleMission mission) {

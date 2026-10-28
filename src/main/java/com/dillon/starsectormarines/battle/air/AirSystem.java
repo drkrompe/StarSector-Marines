@@ -447,22 +447,23 @@ public class AirSystem {
     }
 
     /**
-     * Puts a gunship into the air: a {@code type} hull that flies in from {@code (entryX, entryY)},
+     * Puts a gunship into the air: a {@code frame} hull that flies in from {@code (entryX, entryY)},
      * circles overhead of {@code (centreX, centreY)} for
      * {@link GunshipOrbit#STATION_SECONDS}, and leaves by {@code (exitX, exitY)}.
      *
      * <p>Armed as any armed craft is, with the hull's own turret at the hull's own slot, and given
-     * no passengers: a gunship is a sortie, not a delivery, so nothing is ever set down.
+     * no passengers: a gunship is a sortie, not a delivery, so nothing is ever set down. A
+     * company boat flies her yard's guns, pods and all, on their hardpoints' arcs.
      */
-    public long spawnGunship(ShuttleType type, Faction faction,
+    public long spawnGunship(Airframe frame, Faction faction,
                              float centreX, float centreY, float entryX, float entryY,
                              float exitX, float exitY) {
-        long id = spawnSortie(type, faction, centreX, centreY, entryX, entryY, exitX, exitY, 0f);
+        long id = spawnSortie(frame, faction, centreX, centreY, entryX, entryY, exitX, exitY, 0f);
         ShuttleMission mission = world.mission(id);
         AirBody body = world.kinematics(id);
         GunshipOrbit.begin(mission, body.x, body.y, body.facingDegrees);
         mission.assignedRole = TurretRole.A2G;
-        attachTurrets(id, AirArmament.mounts(type, mission.assignedRole, body.facingDegrees));
+        attachTurrets(id, AirArmament.mounts(frame, mission.assignedRole, body.facingDegrees));
         return id;
     }
 
@@ -1635,6 +1636,12 @@ public class AirSystem {
         return true;
     }
 
+    /** Whether {@code target} stands within a mount's reach from its origin: past its minimum, inside its range. */
+    private boolean reaches(MountedTurret mt, long target, float originX, float originY) {
+        float dist = TacticalScoring.cellDistance(originX, originY, world.x(target), world.y(target));
+        return dist <= mt.mount.weaponDef().range && dist >= mt.mount.weaponDef().minRange;
+    }
+
     private void tickShuttleTurrets(float dt) {
         for (long id : air) {
             ShuttleMission mission = world.mission(id);
@@ -1694,6 +1701,16 @@ public class AirSystem {
                 float worldX = mt.worldX(body, c, si, 1f);
                 float worldY = mt.worldY(body, c, si, 1f);
 
+                // A pod turns as one: its second gun comes round to where the lead is laid, and takes
+                // the lead's target when it can reach it, so both barrels fire down one line. With the
+                // lead idle, the second gun leads the pod (below).
+                MountedTurret lead = mt.podLead;
+                boolean leadLaid = lead != null && roster.isAliveById(lead.targetId);
+                if (leadLaid && mt.burstRemaining == 0) {
+                    mt.facingDegrees = lead.facingDegrees;
+                    if (reaches(mt, lead.targetId, worldX, worldY)) mt.targetId = lead.targetId;
+                }
+
                 TurretAim.State aim = new TurretAim.State();
                 aim.originCellX = (int) Math.floor(worldX);
                 aim.originCellY = (int) Math.floor(worldY);
@@ -1721,6 +1738,7 @@ public class AirSystem {
                 mt.facingDegrees = aim.facingDegrees;
                 mt.cooldownTimer = aim.cooldownTimer;
                 mt.setTarget(aim.target);
+                if (lead != null && !leadLaid) lead.facingDegrees = mt.facingDegrees;
 
                 // Shot origin Y carries the shuttle's visual altitude so the
                 // rendered round leaves the turret at its drawn position
@@ -1728,7 +1746,9 @@ public class AirSystem {
                 // Sim LOS / aim still use the ground-projection worldY above —
                 // that's the right cell for "what wall is this shuttle hovering
                 // over" decisions. This offset is purely a render-origin nudge.
-                float shotOriginY = worldY + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id));
+                float[] barrel = mt.barrelOffset(1f);
+                float shotOriginX = worldX + barrel[0];
+                float shotOriginY = worldY + barrel[1] + AirAppearance.visualAltitudeOffsetCells(world.altitudeT(id));
 
                 // Burst continuation runs ahead of fresh trigger pulls. The
                 // mount commits to its salvo target — closer enemies walking
@@ -1738,7 +1758,7 @@ public class AirSystem {
                     if (mt.burstTimer <= 0f) {
                         int releaseIndex = TurretMountGeometry.releaseIndex(
                                 mt.mount.weaponDef().burstCount, mt.burstRemaining);
-                        fireSink.fire(0L, worldX, shotOriginY, faction,
+                        fireSink.fire(0L, shotOriginX, shotOriginY, faction,
                                 mt.mount.structure(), currentBurstTarget,
                                 /*aerialShooter*/ true, /*hasLos*/ true,
                                 mt.facingDegrees, releaseIndex);
@@ -1753,7 +1773,7 @@ public class AirSystem {
                 }
 
                 if (aim.fireThisTick) {
-                    fireSink.fire(0L, worldX, shotOriginY, faction,
+                    fireSink.fire(0L, shotOriginX, shotOriginY, faction,
                             mt.mount.structure(), aim.target,
                             /*aerialShooter*/ true, /*hasLos*/ true,
                             mt.facingDegrees, 0);

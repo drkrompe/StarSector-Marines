@@ -45,9 +45,17 @@ public final class CampaignBoat implements Serializable {
      * The door gun on each hardpoint, by {@link BoatGun} id. Null, or a null or
      * unknown entry, reads as the hardpoint's yard-standard gun — which is what
      * every boat saved before hardpoints could be refitted is carrying;
-     * {@link #EMPTY} is a hardpoint stripped bare.
+     * {@link #EMPTY} is a hardpoint stripped bare. This is each hardpoint's
+     * {@linkplain BoatHardpoint#TOP top} position, which a 2x2 gun fills whole.
      */
     private String[] gunIds;
+    /**
+     * The 2x1 gun in each hardpoint's {@linkplain BoatHardpoint#BOTTOM bottom} position,
+     * by {@link BoatGun} id; a null or unknown entry is none. Null on every save from
+     * before two guns could share a hardpoint, which reads as each bottom position empty,
+     * so those boats load carrying the one gun a mount they always had.
+     */
+    private String[] podGunIds;
     private float repairUntilDay;
 
     /** A socket stripped bare, as persisted. */
@@ -135,13 +143,17 @@ public final class CampaignBoat implements Serializable {
      * <p>Only a {@linkplain #flightReady flight-ready} boat is flown; one missing a
      * required part still freezes, for the hangar to draw, with that slot's
      * standard part standing in. Empty plating freezes as a bare hull, an empty
-     * emitter as no shield and a bare hardpoint as no gun ({@link FittedBoat}).
+     * emitter as no shield and a bare hardpoint as no gun ({@link FittedBoat}). A
+     * hardpoint with two 2x1 guns freezes the bottom one as its pod's second gun.
      */
     public FittedBoat freezeForDeployment() {
         String[] guns = new String[pattern.hardpoints()];
+        String[] pods = new String[guns.length];
         for (int index = 0; index < guns.length; index++) {
             BoatGun gun = gunOn(index);
             guns[index] = gun != null ? gun.structureId() : FittedBoat.BARE;
+            BoatGun pod = gunsAt(index)[BoatHardpoint.BOTTOM];
+            pods[index] = pod != null ? pod.structureId() : null;
         }
         Map<BoatFittingSlot, BoatFitting> fit = new EnumMap<>(BoatFittingSlot.class);
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
@@ -149,7 +161,7 @@ public final class CampaignBoat implements Serializable {
             if (fitted != null) fit.put(slot, fitted);
             else if (FittedBoat.optional(slot)) fit.put(slot, null);
         }
-        return new FittedBoat(pattern, fit, id, guns);
+        return new FittedBoat(pattern, fit, id, guns, pods);
     }
 
     /** Whether the pattern has a hardpoint {@code index}, bare or armed. */
@@ -158,8 +170,9 @@ public final class CampaignBoat implements Serializable {
     }
 
     /**
-     * The gun on hardpoint {@code index}, or null for a bare hardpoint or one
-     * the pattern does not have ({@link #hasHardpoint} tells them apart). A
+     * The gun in the top position of hardpoint {@code index}, which is the whole
+     * hardpoint for a 2x2 gun, or null for an empty top or a hardpoint the
+     * pattern does not have ({@link #hasHardpoint} tells them apart). A
      * hardpoint nobody refitted carries the yard's own gun, which on some
      * hardpoints is none.
      */
@@ -172,17 +185,44 @@ public final class CampaignBoat implements Serializable {
     }
 
     /**
-     * Puts a gun on one hardpoint, or, with null, strips it bare.
+     * Both positions of hardpoint {@code index}, top then bottom, null where empty
+     * ({@link BoatHardpoint}); two nulls for a hardpoint the pattern does not have.
+     */
+    public BoatGun[] gunsAt(int index) {
+        BoatGun[] pair = new BoatGun[BoatHardpoint.POSITIONS];
+        if (!hasHardpoint(index)) return pair;
+        pair[BoatHardpoint.TOP] = gunOn(index);
+        if (pair[BoatHardpoint.TOP] == null || pair[BoatHardpoint.TOP].half()) {
+            pair[BoatHardpoint.BOTTOM] = BoatGun.findById(podGunIds != null && index < podGunIds.length
+                    ? podGunIds[index] : null);
+        }
+        return pair;
+    }
+
+    /** Every gun on hardpoint {@code index}, top first: none, one, or a pod's two. */
+    public List<BoatGun> gunsOn(int index) {
+        return BoatHardpoint.guns(gunsAt(index));
+    }
+
+    /**
+     * Sets both positions of one hardpoint, top then bottom, null for empty.
      * Package-private for the reason {@link #install} is.
      */
-    void installGun(int index, BoatGun gun) {
-        if (!hasHardpoint(index)) return;
-        if (gunIds == null || gunIds.length != pattern.hardpoints()) {
-            String[] grown = new String[pattern.hardpoints()];
-            if (gunIds != null) System.arraycopy(gunIds, 0, grown, 0, Math.min(gunIds.length, grown.length));
-            gunIds = grown;
-        }
-        gunIds[index] = gun == null ? EMPTY : gun.id();
+    void installGuns(int index, BoatGun[] pair) {
+        if (!hasHardpoint(index) || pair == null || pair.length != BoatHardpoint.POSITIONS) return;
+        gunIds = sized(gunIds);
+        podGunIds = sized(podGunIds);
+        BoatGun top = pair[BoatHardpoint.TOP];
+        BoatGun bottom = top != null && !top.half() ? null : pair[BoatHardpoint.BOTTOM];
+        gunIds[index] = top == null ? EMPTY : top.id();
+        podGunIds[index] = bottom == null ? null : bottom.id();
+    }
+
+    private String[] sized(String[] ids) {
+        if (ids != null && ids.length == pattern.hardpoints()) return ids;
+        String[] grown = new String[pattern.hardpoints()];
+        if (ids != null) System.arraycopy(ids, 0, grown, 0, Math.min(ids.length, grown.length));
+        return grown;
     }
 
     /**

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.model.PropPower;
@@ -801,11 +803,13 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      * <p>Presentation only: a refit at the Boat Deck shows on the parked hull at once rather
      * than waiting for the ship to be laid out again.
      */
-    public void fitDoorGuns(String[][] guns) {
+    public void fitDoorGuns(FittedBoat[] guns) {
         if (guns == null) return;
         for (int boat = 0; boat < boatBerths.size() && boat < guns.length; boat++) {
             AirfieldService.Berth berth = boatBerths.get(boat);
-            if (berth != null && guns[boat] != null) berth.doorGuns = guns[boat].clone();
+            if (berth == null || guns[boat] == null) continue;
+            berth.doorGuns = guns[boat].kitFor(TurretRole.A2G);
+            berth.doorGunPods = guns[boat].podKitFor(TurretRole.A2G);
         }
     }
 

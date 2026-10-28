@@ -69,7 +69,8 @@ public final class AirArmament {
     public static MountedTurret[] mounts(Airframe airframe, TurretRole role, float noseFacing) {
         if (airframe == null || airframe.hardpoints() <= 0) return new MountedTurret[0];
         // A company boat's guns keep their hull slot's arc, so her stern gun covers only the stern.
-        return mounts(airframe.kitFor(role), airframe.renderHullId(), noseFacing, airframe instanceof FittedBoat);
+        return mounts(airframe.kitFor(role), airframe.podKitFor(role), airframe.renderHullId(), noseFacing,
+                airframe instanceof FittedBoat);
     }
 
     /**
@@ -82,20 +83,44 @@ public final class AirArmament {
 
     /** As {@link #mounts(String[], String, float)}, each mount held to its slot's arc when {@code arced}. */
     public static MountedTurret[] mounts(String[] kit, String hullId, float noseFacing, boolean arced) {
+        return mounts(kit, null, hullId, noseFacing, arced);
+    }
+
+    /**
+     * As {@link #mounts(String[], String, float, boolean)}, with {@code pods[i]} a second gun on
+     * slot {@code i}. The two share the slot's place and arc as one pod: the top gun is the pod's
+     * lead and the second is laid {@linkplain MountedTurret#podPartner beside it}, each firing on
+     * its own cadence. A slot with only a second gun mounts it alone.
+     */
+    public static MountedTurret[] mounts(String[] kit, String[] pods, String hullId, float noseFacing,
+                                         boolean arced) {
         if (kit == null) return new MountedTurret[0];
         // Zip kind[i] with slot[i]; clamp to whichever runs out first.
         List<WeaponSlot> slots = TurretSlotResolver.mounts(hullId);
         int fitted = Math.min(kit.length, slots.size());
         List<MountedTurret> turrets = new ArrayList<>(Math.max(0, fitted));
         for (int i = 0; i < fitted; i++) {
-            if (kit[i] == null) continue;
+            String pod = pods != null && i < pods.length ? pods[i] : null;
+            String lead = kit[i] != null ? kit[i] : pod;
+            if (lead == null) continue;
             WeaponSlot slot = slots.get(i);
-            float arc = arced && slot.arcDeg() > 0f ? slot.arcDeg() : TurretMount.ALL_ROUND;
-            MountedTurret turret = new MountedTurret(new TurretMount(kit[i], slot.localX(), slot.localY(),
-                    slot.angleDeg(), arc));
-            turret.facingDegrees = arced ? noseFacing + slot.angleDeg() : noseFacing;
-            turrets.add(turret);
+            MountedTurret first = mount(lead, slot, noseFacing, arced);
+            turrets.add(first);
+            if (kit[i] != null && pod != null) {
+                MountedTurret second = mount(pod, slot, noseFacing, arced);
+                first.podPartner = second;
+                second.podLead = first;
+                turrets.add(second);
+            }
         }
         return turrets.toArray(new MountedTurret[0]);
+    }
+
+    private static MountedTurret mount(String structureId, WeaponSlot slot, float noseFacing, boolean arced) {
+        float arc = arced && slot.arcDeg() > 0f ? slot.arcDeg() : TurretMount.ALL_ROUND;
+        MountedTurret turret = new MountedTurret(new TurretMount(structureId, slot.localX(), slot.localY(),
+                slot.angleDeg(), arc));
+        turret.facingDegrees = arced ? noseFacing + slot.angleDeg() : noseFacing;
+        return turret;
     }
 }

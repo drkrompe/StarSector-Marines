@@ -165,6 +165,11 @@ public final class AirfieldService {
          * here, so the parked hull carries what was just fitted to her.
          */
         public String[] doorGuns;
+        /**
+         * The second gun of each mount's pod beside {@link #doorGuns}, as {@link Airframe#podKitFor}
+         * lists them; null, or a null entry, for a mount with one gun. Read only with {@link #doorGuns}.
+         */
+        public String[] doorGunPods;
 
         /** Whether this berth's craft has somewhere off this map to go. */
         public boolean hasOffship() {
