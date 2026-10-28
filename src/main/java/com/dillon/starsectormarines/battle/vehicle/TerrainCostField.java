@@ -79,6 +79,20 @@ public final class TerrainCostField {
      * that pays more for ground it has to work through ({@link HeavyTracks#costField}). A new field; this one is
      * unchanged.
      */
+    /** A cell test, by coordinates. */
+    interface CellTest { boolean test(int x, int y); }
+
+    /** This field with every cell {@code test} passes priced at least {@code floor}. */
+    TerrainCostField withFloor(CellTest test, float floor) {
+        float[] raised = cost.clone();
+        for (int y = 0; y < height; y++) {
+            for (int x = 0; x < width; x++) {
+                if (test.test(x, y)) raised[y * width + x] = Math.max(raised[y * width + x], floor);
+            }
+        }
+        return new TerrainCostField(width, height, raised);
+    }
+
     TerrainCostField withFloor(NavigationGrid grid, NavigationGrid.CellTag tag, float floor) {
         if (grid.getWidth() != width || grid.getHeight() != height) {
             throw new IllegalArgumentException("Cost field and grid dimensions differ");

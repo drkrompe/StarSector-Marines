@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.ops.fitting.BoardHover;
 import com.dillon.starsectormarines.battle.air.AirAppearance;
 import com.dillon.starsectormarines.battle.air.BayDoor;
+import com.dillon.starsectormarines.battle.air.MountedTurret;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
@@ -112,7 +113,17 @@ public final class BoatDeckCanvas implements CanvasProducer {
      * bare hardpoint or a gun the turret catalog does not know.
      */
     private static float gunRadiusPx(BoatDoll.Slot slot, float cellPx) {
-        BoatGun gun = slot.itemId() == null ? null : BoatGun.findById(slot.itemId());
+        if (pod(slot)) {
+            // Each of a pod's guns is drawn smaller and off to its side of the mount.
+            float barrel = Math.max(gunRadiusPx(slot.itemId(), cellPx), gunRadiusPx(slot.podItemId(), cellPx));
+            return barrel * ShuttleRenderSystem.POD_GUN_SCALE
+                    + MountedTurret.POD_BARREL_OFFSET_CELLS * AirAppearance.GROUND_SCALE * cellPx / GUN_ART_SHARE;
+        }
+        return gunRadiusPx(slot.itemId() != null ? slot.itemId() : slot.podItemId(), cellPx);
+    }
+
+    private static float gunRadiusPx(String gunId, float cellPx) {
+        BoatGun gun = gunId == null ? null : BoatGun.findById(gunId);
         if (gun == null || TurretCatalogRegistry.installed() == null) return 0f;
         try {
             float cells = TurretCatalogRegistry.requireStructure(gun.structureId()).mount.visualCells;
@@ -120,6 +131,11 @@ public final class BoatDeckCanvas implements CanvasProducer {
         } catch (IllegalStateException unknown) {
             return 0f;
         }
+    }
+
+    /** Whether a hardpoint carries two guns, which fly as one pod. */
+    private static boolean pod(BoatDoll.Slot slot) {
+        return slot.itemId() != null && slot.podItemId() != null;
     }
     /** How thick a leaf is through the hull, in cells. */
     private static final float LEAF_DEPTH = 1.0f;
@@ -156,9 +172,12 @@ public final class BoatDeckCanvas implements CanvasProducer {
     private BoardHover hover = new BoardHover();
     private BoatDollPanel.Drop drop;
 
-    /** Lights the socket a carried catalog piece is over: green where it would fit, red where not. */
-    public void previewDrop(String key, boolean valid) {
-        drop = key == null ? null : new BoatDollPanel.Drop(key, valid);
+    /**
+     * Lights the socket a carried catalog piece is over: green where it would fit, red where not.
+     * A {@code whole} piece, a 2x2 gun, lights its whole hardpoint; a 2x1 gun the position under it.
+     */
+    public void previewDrop(String key, boolean valid, boolean whole) {
+        drop = key == null ? null : new BoatDollPanel.Drop(key, valid, whole);
     }
 
     public void clearDropPreview() { drop = null; }
@@ -414,7 +433,9 @@ public final class BoatDeckCanvas implements CanvasProducer {
                     radius / Math.max(1f, cellPx), reach, tone, slot.selected());
             BoatDollPanel.ring(context, x, y, radius, new Color(0, 0, 0, 190), 4f);
             BoatDollPanel.ring(context, x, y, radius, tone, 2f);
-            String label = Strings.format("boatDeckHardpointShort", BoatDoll.hardpointOf(slot.key()) + 1);
+            // A pod is one turret on the mount's one arc; its label says it carries two guns.
+            String label = Strings.format(pod(slot) ? "boatDeckHardpointPodShort" : "boatDeckHardpointShort",
+                    BoatDoll.hardpointOf(slot.key()) + 1);
             float labelX = x + radius + 4f;
             context.fillRect(labelX, y - 9f, Fonts.ORBITRON_10.measureWidth(label) + 8f, 16f, new Color(8, 12, 14, 220));
             context.text(Fonts.ORBITRON_10, label, labelX + 4f, y - 7f, tone);
@@ -570,8 +591,13 @@ public final class BoatDeckCanvas implements CanvasProducer {
         for (BoatDollPanel.CardTarget card : cards) {
             if (!card.key().equals(hoveredCard)) continue;
             for (BoatDoll.Slot slot : shown.slots()) {
-                if (!slot.key().equals(hoveredCard) || slot.itemId() == null) continue;
-                return new PointedPart(slot.kind(), slot.itemId(), card.left(), card.top(),
+                if (!BoatDoll.sameSocket(slot.key(), hoveredCard)) continue;
+                // A hardpoint's card answers by position: the gun in that row, or a 2x2 gun in either.
+                String item = slot.itemAt(BoatDoll.positionOf(hoveredCard));
+                if (item == null && slot.itemId() != null
+                        && BoatHardware.footprint(slot.kind(), slot.itemId())[1] > 1) item = slot.itemId();
+                if (item == null) continue;
+                return new PointedPart(slot.kind(), item, card.left(), card.top(),
                         card.left() + card.width(), card.top() + card.height());
             }
         }

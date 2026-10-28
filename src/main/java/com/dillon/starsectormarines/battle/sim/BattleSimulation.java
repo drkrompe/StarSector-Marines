@@ -170,6 +170,7 @@ import com.dillon.starsectormarines.ops.FieldPresencePolicy;
 import com.dillon.starsectormarines.battle.combat.fx.EffectsService;
 import com.dillon.starsectormarines.battle.combat.fx.RollingBlast;
 import com.dillon.starsectormarines.battle.combat.fx.OrdnanceRelease;
+import com.dillon.starsectormarines.battle.vehicle.BarricadeRam;
 import com.dillon.starsectormarines.battle.vehicle.DozerBlade;
 import com.dillon.starsectormarines.battle.vehicle.HeavyTracks;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
@@ -1845,10 +1846,18 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         groundSystem.setBlade(blade);
         // Heavy-lift hulls flatten the undergrowth and lone boulders they drive into (HeavyTracks); its switch is the
         // control, under which every hull stops at them.
+        HeavyTracks tracks = null;
         if (!"false".equalsIgnoreCase(System.getProperty(HeavyTracks.PROPERTY))) {
-            HeavyTracks tracks = new HeavyTracks(navigation, mapEditor);
+            tracks = new HeavyTracks(navigation, mapEditor);
             groundSystem.setTracks(tracks);
             blade.setTracks(tracks);
+        }
+        // Medium and heavy hulls drive through the light barricades their way covers (BarricadeRam); its switch is the
+        // control, under which every hull stops at them.
+        if (!"false".equalsIgnoreCase(System.getProperty(BarricadeRam.PROPERTY))) {
+            BarricadeRam barricadeRam = new BarricadeRam(navigation, mapEditor, doodadService);
+            barricadeRam.setTracks(tracks);
+            groundSystem.setRam(barricadeRam);
         }
         // A move order's last rung brushes soft ground (SoftBrush); its switch is the control, under which the order is
         // given up as before.
@@ -2984,11 +2993,11 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     @Override
-    public long spawnGunship(ShuttleType type, Faction faction,
+    public long spawnGunship(Airframe frame, Faction faction,
                              float centreX, float centreY, float entryX, float entryY,
                              float exitX, float exitY) {
         requireInternalAir("spawnGunship");
-        return airSystem.spawnGunship(type, faction, centreX, centreY, entryX, entryY, exitX, exitY);
+        return airSystem.spawnGunship(frame, faction, centreX, centreY, entryX, entryY, exitX, exitY);
     }
 
     public void addConvoyVehicle(VehicleType type, Faction faction, VehicleMission mission) {

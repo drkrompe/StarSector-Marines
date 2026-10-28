@@ -391,6 +391,19 @@ untouched. A better boat is faster, tougher or better armed, not a different
 aircraft. A gun is mounted on the hull's turret slots before its fixed rails, so
 the one gun a Kite-hulled boat carries sits on her turret.
 
+**A pod is two guns on one hardpoint.** A company boat's hardpoint takes two 2x1
+guns (owner pick, 2026-10-27; `FittedBoat.podKitFor` beside `kitFor`). They are
+mounted as two `MountedTurret`s on the one slot with its one arc, the top gun the
+pod's lead and the second its partner (`podLead`, `podPartner`). The pod turns as
+one: the second gun comes round to where the lead is laid and takes the lead's
+target when it can reach it, and with the lead idle the second gun leads. Each gun
+keeps its own cooldown, burst and magazine, and every round charges the boat's flux
+pool by its family. The barrels sit either side of the slot across the pod's
+facing (`MountedTurret.barrelOffset`), which is where a round leaves and where each
+gun is drawn, a little smaller than alone, over one housing: a saddle between two
+barrels, or a launcher box round two missile guns (`ShuttleRenderSystem.emitTurret`).
+Evidence: the `boat-pod` scene.
+
 **Lift.** Every machine a drop carries has a **lift class** — Light, Medium or
 Heavy, its weight class seen from the air (Hound and the heavy APC Light;
 Warden, the escort APC and the militia technical Medium; Bulwark and the
@@ -439,7 +452,13 @@ breathing whenever it will not drop. Its words are its hover, which gives
 one verdict: drops, no lift of its class,
 lift spent ahead of it, no drop call at all, or held back. It asks the
 `LiftBudget` the drop power will build, machine by machine in bay order, and
-decides nothing itself (`BriefingLift`). Beside it, the briefing's **air cover**
+decides nothing itself (`BriefingLift`). Beside Deploy, four **warning lamps**
+sum the force as it would launch: strength under the recommendation, wounded or
+empty billets in the selected squads (hours until the wounded are fit, and what
+Replenish can draw for the empty ones), lance mechs under repair (hours left),
+and machines that stay aboard. A lamp is dark while its check passes, lit amber
+when not, and never blocks the launch; its words are its hover
+(`DeployWarnings`). Beside the lift row, the briefing's **air cover**
 shows what flies over the company as plans in the same hand: one tile per fighter
 type with how many aircraft its carriers put up (one a bay, every carrier aboard,
 no toggle), and the close-air-support gunship, one per fleet ship that brings it
@@ -1613,6 +1632,13 @@ Those final-descent craft are reusable: committed lift and selected personnel
 become additional cycles, not additional permanent landing berths. Seeded
 per-craft launch and re-arm offsets prevent lockstep flight without weakening
 deterministic fixture replay.
+
+Everywhere else a company boat seats her whole cabin each trip, so a
+twelve-seat Hermes lands a squad whole (owner, 2026-10-27): the half-squad
+cap belongs to Conquest's paired descent, never to a story mission that
+authors the paired policy (`DetachmentResolver.companySeatsPerTrip`). A
+mission that arranges heavy lift still flies its machines on the company's own
+boat when she can lift them, with the arranged lift behind her for the rest.
 
 ### Fighters and drones
 

@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.infantry.SquadMedicine;
+import com.dillon.starsectormarines.marine.IntegralSystemDef;
+import com.dillon.starsectormarines.marine.IntegralSystemEffect;
 import com.dillon.starsectormarines.marine.MarineCaptain;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldier;
@@ -13,6 +15,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
+import java.util.function.Predicate;
 
 /**
  * Current twelve-billet formation, detached from the campaign roster. WIA
@@ -28,8 +31,9 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
 
     /**
      * One current place, with plain value labels for ordinary retained hover UI.
-     * {@code medic} marks the billet that carries the squad medic in battle,
-     * present only while the squad's home officer has Field Medicine.
+     * {@code medic} marks a billet that is a squad medic in battle: the one
+     * Field Medicine designates, or without it every ready marine whose suit
+     * carries a field-aid kit.
      */
     public record Billet(int index, String marineId, String name, String rankLabel,
                          State state, float recoveryDays, boolean leader, boolean medic) {
@@ -129,18 +133,38 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
     }
 
     /**
-     * Marks the billet {@link SquadMedicine#medicBillet} picks when the squad's
-     * home officer trains Field Medicine: ready marines other than the NCO, the
-     * fire team derived from billet order. A WIA marine does not deploy, so
-     * cannot carry it.
+     * Marks the squad's medics. When the squad's home officer trains Field
+     * Medicine that is the one billet {@link SquadMedicine#medicBillet} picks:
+     * ready marines other than the NCO, the fire team derived from billet
+     * order (the kits then only complement it). Without the training it is every
+     * ready marine whose suit carries a field-aid kit, the NCO included. A WIA
+     * marine does not deploy, so cannot carry either.
      */
     private static void markMedic(MarineRoster roster, MarineSquad squad, List<Billet> billets) {
         MarineCaptain officer = roster.captainForSquad(squad.id());
-        if (officer == null || officer.career().level(OfficerSpecialty.FIELD_MEDICINE) <= 0) return;
-        int index = SquadMedicine.medicBillet(billets.size(),
-                i -> billets.get(i).state() == State.READY && !billets.get(i).leader(),
-                i -> billets.get(i).teamIndex());
-        if (index < 0) return;
+        if (officer != null && officer.career().level(OfficerSpecialty.FIELD_MEDICINE) > 0) {
+            int index = SquadMedicine.medicBillet(billets.size(),
+                    i -> billets.get(i).state() == State.READY && !billets.get(i).leader(),
+                    i -> billets.get(i).teamIndex());
+            if (index >= 0) markAsMedic(billets, index);
+            return;
+        }
+        markKitMedics(billets, billet -> {
+            MarineSoldier marine = roster.soldierById(billet.marineId());
+            IntegralSystemDef system = marine == null ? null : marine.armorDef().integralSystem();
+            return system != null && system.effect() == IntegralSystemEffect.FIELD_AID;
+        });
+    }
+
+    /** Marks every ready billet whose marine {@code carriesKit}; a wounded or vacant billet deploys nobody. */
+    static void markKitMedics(List<Billet> billets, Predicate<Billet> carriesKit) {
+        for (int i = 0; i < billets.size(); i++) {
+            Billet billet = billets.get(i);
+            if (billet.state() == State.READY && carriesKit.test(billet)) markAsMedic(billets, i);
+        }
+    }
+
+    private static void markAsMedic(List<Billet> billets, int index) {
         Billet b = billets.get(index);
         billets.set(index, new Billet(b.index(), b.marineId(), b.name(), b.rankLabel(),
                 b.state(), b.recoveryDays(), b.leader(), true));

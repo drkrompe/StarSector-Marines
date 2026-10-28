@@ -38,7 +38,8 @@ import java.util.Random;
  *
  * <p>Run with {@code gradlew.bat bakeCreepBlight}; it rewrites
  * {@code mod/graphics/doodads/forest-blight.png},
- * {@code mod/graphics/doodads/forest-blight-felled.png} and their tilesets.
+ * {@code mod/graphics/doodads/forest-blight-felled.png} and their tilesets, and the same for each other tree set
+ * in {@link #FAMILIES} whose sheets exist.
  */
 public final class CreepBlightBaker {
 
@@ -86,28 +87,44 @@ public final class CreepBlightBaker {
     public static void main(String[] args) throws Exception {
         Path mod = Path.of(args.length > 0 ? args[0] : "mod");
         dense = args.length > 1 && "dense".equals(args[1]);
-        BufferedImage canopies = ImageIO.read(mod.resolve("graphics/doodads/forest-canopies.png").toFile());
-        BufferedImage damaged = ImageIO.read(mod.resolve("graphics/doodads/forest-damaged.png").toFile());
-        JSONObject tileset = new JSONObject(Files.readString(mod.resolve("data/tilesets/forest-canopies.tileset.json")));
+        for (String family : FAMILIES) {
+            if (!Files.exists(mod.resolve("graphics/doodads/" + family + "-canopies.png"))) continue;
+            bakeFamily(mod, family);
+        }
+    }
+
+    /**
+     * The tree sets baked, each from its own {@code <family>-canopies}, {@code -damaged} and {@code -destroyed}
+     * sheets into {@code <family>-blight} and {@code <family>-blight-felled}: the green woods and the dry scrub a
+     * desert basin's rim grows. The ids are the sources', so each set's blight follows its own placements.
+     */
+    static final String[] FAMILIES = {"forest", "dry-scrub"};
+
+    private static void bakeFamily(Path mod, String family) throws Exception {
+        BufferedImage canopies = ImageIO.read(mod.resolve("graphics/doodads/" + family + "-canopies.png").toFile());
+        BufferedImage damaged = ImageIO.read(mod.resolve("graphics/doodads/" + family + "-damaged.png").toFile());
+        JSONObject tileset = new JSONObject(Files.readString(mod.resolve("data/tilesets/" + family + "-canopies.tileset.json")));
         BufferedImage sheet = bake(canopies, damaged, tileset.getJSONArray("doodads"), CreepPalette.HIVE);
-        File png = mod.resolve("graphics/doodads/forest-blight.png").toFile();
+        String blight = family + "-blight";
+        File png = mod.resolve("graphics/doodads/" + blight + ".png").toFile();
         ImageIO.write(sheet, "png", png);
-        Files.writeString(mod.resolve("data/tilesets/forest-blight.tileset.json"),
-                tileset(tileset.getJSONArray("doodads")).toString(2) + "\n", StandardCharsets.UTF_8);
+        Files.writeString(mod.resolve("data/tilesets/" + blight + ".tileset.json"),
+                tileset(tileset.getJSONArray("doodads"), blight).toString(2) + "\n", StandardCharsets.UTF_8);
         System.out.println("[creep-blight] wrote " + png + " (" + sheet.getWidth() + "x" + sheet.getHeight() + ")");
 
-        BufferedImage destroyed = ImageIO.read(mod.resolve("graphics/doodads/forest-destroyed.png").toFile());
-        JSONArray fallen = new JSONObject(Files.readString(mod.resolve("data/tilesets/forest-destroyed.tileset.json")))
+        BufferedImage destroyed = ImageIO.read(mod.resolve("graphics/doodads/" + family + "-destroyed.png").toFile());
+        JSONArray fallen = new JSONObject(Files.readString(mod.resolve("data/tilesets/" + family + "-destroyed.tileset.json")))
                 .getJSONArray("doodads");
-        File felledPng = mod.resolve("graphics/doodads/" + FELLED_SHEET + ".png").toFile();
+        String felled = family + "-blight-felled";
+        File felledPng = mod.resolve("graphics/doodads/" + felled + ".png").toFile();
         ImageIO.write(felledSheet(destroyed, fallen, CreepPalette.HIVE), "png", felledPng);
-        Files.writeString(mod.resolve("data/tilesets/" + FELLED_SHEET + ".tileset.json"),
-                felledTileset(fallen).toString(2) + "\n", StandardCharsets.UTF_8);
+        Files.writeString(mod.resolve("data/tilesets/" + felled + ".tileset.json"),
+                felledTileset(fallen, felled).toString(2) + "\n", StandardCharsets.UTF_8);
         System.out.println("[creep-blight] wrote " + felledPng);
     }
 
-    /** The felled dead trees' sheet, and the suffix on a destroyed tree's id naming its dead-wood twin. */
-    static final String FELLED_SHEET = "forest-blight-felled", FELLED_SUFFIX = "-blight";
+    /** The suffix on a destroyed tree's id naming its dead-wood twin. */
+    static final String FELLED_SUFFIX = "-blight";
 
     /** The felled sheet: every destroyed tree as dead wood, where the destroyed sheet has it. */
     static BufferedImage felledSheet(BufferedImage destroyed, JSONArray doodads, CreepPalette pal) throws Exception {
@@ -123,7 +140,7 @@ public final class CreepBlightBaker {
     }
 
     /** The felled sheet's tileset: each destroyed tree's footprint, cover and placement, renamed. */
-    static JSONObject felledTileset(JSONArray doodads) throws Exception {
+    static JSONObject felledTileset(JSONArray doodads, String sheet) throws Exception {
         JSONArray cells = new JSONArray(), defs = new JSONArray();
         for (int i = 0; i < doodads.length(); i++) {
             JSONObject def = new JSONObject(doodads.getJSONObject(i).toString());
@@ -132,7 +149,7 @@ public final class CreepBlightBaker {
             defs.put(def);
             cells.put(new JSONObject().put("name", id).put("col", def.getInt("col")).put("row", def.getInt("row")));
         }
-        return new JSONObject().put("cellPx", CELL).put("sheet", "graphics/doodads/" + FELLED_SHEET + ".png")
+        return new JSONObject().put("cellPx", CELL).put("sheet", "graphics/doodads/" + sheet + ".png")
                 .put("cells", cells).put("doodads", defs);
     }
 
@@ -217,7 +234,7 @@ public final class CreepBlightBaker {
     }
 
     /** The tileset: every canopy's stages, footprint, cover and fog surface as its source has them. */
-    static JSONObject tileset(JSONArray doodads) throws Exception {
+    static JSONObject tileset(JSONArray doodads, String sheet) throws Exception {
         JSONArray cells = new JSONArray(), defs = new JSONArray();
         for (int s = 0; s < SLOTS.size(); s++) {
             Slot slot = SLOTS.get(s);
@@ -233,7 +250,7 @@ public final class CreepBlightBaker {
                 cells.put(new JSONObject().put("name", id).put("col", def.getInt("col")).put("row", def.getInt("row")));
             }
         }
-        return new JSONObject().put("cellPx", CELL).put("sheet", "graphics/doodads/forest-blight.png")
+        return new JSONObject().put("cellPx", CELL).put("sheet", "graphics/doodads/" + sheet + ".png")
                 .put("cells", cells).put("doodads", defs);
     }
 

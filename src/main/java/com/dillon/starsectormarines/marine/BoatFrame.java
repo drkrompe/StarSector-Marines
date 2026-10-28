@@ -9,7 +9,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
  * yard standard has a weight, and the frame has a rating: a Hermes fitted to
  * lift a Bulwark, with the drive that keeps her fast under it, has that much
  * less for armour, shield, flux and guns. Yard-standard parts weigh nothing,
- * and so does a hardpoint's own yard gun.
+ * and so does a hardpoint's own yard gun in its top position. Every gun counts:
+ * a pod's two 2x1 guns weigh what both of them do.
  */
 public final class BoatFrame {
 
@@ -27,7 +28,7 @@ public final class BoatFrame {
     public static int weight(CampaignBoat boat) {
         int total = 0;
         for (BoatFittingSlot slot : BoatFittingSlot.values()) total += fittingWeight(boat.fittingIn(slot));
-        for (int index = 0; index < boat.pattern().hardpoints(); index++) total += gunWeight(boat, index, boat.gunOn(index));
+        for (int index = 0; index < boat.pattern().hardpoints(); index++) total += gunsWeight(boat, index, boat.gunsAt(index));
         return total;
     }
 
@@ -36,9 +37,17 @@ public final class BoatFrame {
         return weight(boat) - fittingWeight(boat.fittingIn(fitting.slot())) + fitting.weight();
     }
 
-    /** What the boat would weigh with {@code gun} on hardpoint {@code index} instead of what is there. */
-    public static int weightWithGun(CampaignBoat boat, int index, BoatGun gun) {
-        return weight(boat) - gunWeight(boat, index, boat.gunOn(index)) + gunWeight(boat, index, gun);
+    /**
+     * What the boat would weigh with {@code gun} put in {@code position} of hardpoint {@code index},
+     * and whatever that takes off gone ({@link BoatHardpoint#placed}).
+     */
+    public static int weightWithGun(CampaignBoat boat, int index, int position, BoatGun gun) {
+        return weightWithGuns(boat, index, BoatHardpoint.placed(boat.gunsAt(index), position, gun));
+    }
+
+    /** What the boat would weigh with hardpoint {@code index} holding {@code pair}, top then bottom. */
+    public static int weightWithGuns(CampaignBoat boat, int index, BoatGun[] pair) {
+        return weight(boat) - gunsWeight(boat, index, boat.gunsAt(index)) + gunsWeight(boat, index, pair);
     }
 
     /**
@@ -54,7 +63,10 @@ public final class BoatFrame {
         return fitting == null ? 0 : fitting.weight();
     }
 
-    private static int gunWeight(CampaignBoat boat, int index, BoatGun gun) {
-        return gun == null || gun.standardOn(boat.pattern(), index) ? 0 : gun.weight();
+    /** A hardpoint's guns: the yard's own gun is free on top only, so a second one beside it weighs. */
+    private static int gunsWeight(CampaignBoat boat, int index, BoatGun[] pair) {
+        BoatGun top = pair[BoatHardpoint.TOP], bottom = pair[BoatHardpoint.BOTTOM];
+        int total = top == null || top.standardOn(boat.pattern(), index) ? 0 : top.weight();
+        return total + (bottom == null ? 0 : bottom.weight());
     }
 }

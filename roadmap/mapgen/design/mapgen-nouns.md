@@ -2036,6 +2036,30 @@ symptom in isolation, so the contrast — cultivated lawn beside wild regolith o
 the *same* world — is what is pinned, in `CultivatedGroundTest`. What survives
 in the built area is the colony's; what surrounds it is the planet's.
 
+**A basin is a second palette in the map's middle.** A `TargetProfile` may carry
+a `Basin`: a floor palette out to an ellipse sized as shares of the map's
+half-axes, the world's own palette (the rim) beyond it. Rav Bloom country on a
+desert world is the case (Asharu): `Basin.ravBloom` gives an ARID world a
+VERDANT floor and every other world none. The heart's basin is wider than its
+map, so the desert shows only in the corners; the Cordon's and Colony Breach's
+leave more of the map rim. Every wild-ground pass asks `SurfaceField` per cell
+instead of reading the profile's surface: nature fills, the hinterland and
+road-margin earth, the rural wild ground, installation aprons and glaci. The
+basin's edge is ragged by a slow noise, and across a band floor and rim
+alternate in patches, so the change reads as country thinning out rather than a
+line; the renderer draws the patches' outline as the continuous field the cells
+were sampled from (`SurfaceField.edge`, `battle-render-nouns.md`, basin edge),
+so it is not stepped either. The woods grow on the floor and thin out across the last stretch before
+the band (`SurfaceField.woods`); a desert rim grows open grey scrub instead,
+about a third as thick, the same silhouettes and states drawn from the
+`dry-scrub-*` sheets (a placement's id carries `-dry`, `NaturalPropShape.DRY`,
+and every state, damage and creep blight follows that id). A brook keeps its water on the floor and
+is a dry stony wash on a desert rim, still a firebreak. Stock hills take the
+world's finish, so they stand as rock outcrops in the green and on the sand
+alike, and a baked cliff lip over sand, stone or snow is bare rather than
+turfed. All of it is arithmetic on the map's size and seed with no random draw,
+so a map with no basin is the map it was.
+
 **A world the palette has no entry for is a world that looks like every other
 one.** `GroundKind.SNOW` was declared and then emitted by nothing: unmapped in
 `groundRender`, skipped outright by the renderer, refused relief by the

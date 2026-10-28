@@ -49,7 +49,9 @@ public record OfficerMissionResult(OfficerCommandProfile officer, Set<String> so
             int casualties = ids.isEmpty() ? lost : (int) ids.stream().filter(fallen::contains).count();
             int strength = ids.isEmpty() ? engaged : ids.size();
             // A cancelled landing neither teaches field experience nor uses a specialty.
-            int xp = strength == 0 ? 0 : victory ? payout / (casualties <= 2 ? 100 : 150) : 50;
+            // A tenth of the fee, a fifteenth after heavy losses: Relief and Counterattack
+            // together promote a lieutenant, Junction and Thunder Run a captain (owner, 2026-10-27).
+            int xp = strength == 0 ? 0 : victory ? payout / (casualties <= 2 ? 10 : 15) : 500;
             if (officer.naturalLeader()) xp = (int) (xp * 1.5f);
             xp = Math.round(xp * xpMult);
             Rank rank = officer.rank();

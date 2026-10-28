@@ -25,6 +25,9 @@ reading advice, or leaving must not impersonate fitting or field practice.
 - [x] Mech Lab: fit the free SRM, remove and reuse it through ordinary controls.
 - [x] Junction: show the real founding bill, preserve wounded billets, prepare
   two formations (the lance rides with them) without requiring optional yard work.
+  The briefing itself carries no Castle callout (owner: it nagged on the third
+  mission); the warning lamps beside Deploy show a short, wounded or grounded
+  force, and deploying closes the formation lessons.
 - [x] Reopening HQ, Barracks, Equipment, Mech Lab or briefing resumes unfinished
   work from saved facts; save/reload neither duplicates gifts nor resets progress.
 - [x] Player-facing lesson text uses the localization catalog, including labels,

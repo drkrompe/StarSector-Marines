@@ -29,13 +29,19 @@ public final class GroundAtlas extends SpriteAtlas {
      * The widest atlas this will plan, before the driver's own maximum is
      * consulted.
      *
-     * <p>Every ground sheet this mod ships is under two thousand texels wide,
+     * <p>A sheet wider or taller than this is left out ({@link #fitsAlone}),
      * and a cap the driver then refuses is a fail-soft rather than a crash.
+     * 4096 since the nature strip grew to 3071 texels (2026-10-25): the
+     * texture is only as tall as its shelves, about 4096x300, and the unit
+     * atlas already needs a 4096 side.
      */
-    static final int MAX_SIDE_PX = 2048;
+    static final int MAX_SIDE_PX = 4096;
+
+    /** Widths tried in turn: the narrowest the sheets fit. */
+    private static final int[] SIDES = {2048, MAX_SIDE_PX};
 
     public GroundAtlas() {
-        super("ground atlas", MAX_SIDE_PX);
+        super("ground atlas", SIDES);
     }
 
     /** Visible for the layout test; see {@link SpriteAtlas#shelfPack}. */
@@ -55,18 +61,37 @@ public final class GroundAtlas extends SpriteAtlas {
     public boolean plan(BattleSprites sprites) {
         if (sprites == null) return isPlanned();
         List<Source> candidates = new ArrayList<>();
-        candidates.add(new Source(sprites.tileSheet(),
-                sprites.tileSheetPxW(), sprites.tileSheetPxH()));
-        candidates.add(new Source(sprites.roadSheet(),
-                sprites.roadSheetPxW(), sprites.roadSheetPxH()));
-        candidates.add(new Source(sprites.floorsSheet(),
-                sprites.floorsSheetPxW(), sprites.floorsSheetPxH()));
-        candidates.add(new Source(sprites.waterSheet(),
-                sprites.waterSheetPxW(), sprites.waterSheetPxH()));
-        candidates.add(new Source(sprites.urbanTile3Sheet(),
-                sprites.urbanTile3SheetPxW(), sprites.urbanTile3SheetPxH()));
-        candidates.add(new Source(sprites.natureSheet(),
-                sprites.natureSheetPxW(), sprites.natureSheetPxH()));
+        offer(candidates, new Source(sprites.tileSheet(),
+                sprites.tileSheetPxW(), sprites.tileSheetPxH(), "tile sheet"));
+        offer(candidates, new Source(sprites.roadSheet(),
+                sprites.roadSheetPxW(), sprites.roadSheetPxH(), "road sheet"));
+        offer(candidates, new Source(sprites.floorsSheet(),
+                sprites.floorsSheetPxW(), sprites.floorsSheetPxH(), "floors sheet"));
+        offer(candidates, new Source(sprites.waterSheet(),
+                sprites.waterSheetPxW(), sprites.waterSheetPxH(), "water sheet"));
+        offer(candidates, new Source(sprites.urbanTile3Sheet(),
+                sprites.urbanTile3SheetPxW(), sprites.urbanTile3SheetPxH(), "urban tile 3 sheet"));
+        offer(candidates, new Source(sprites.natureSheet(),
+                sprites.natureSheetPxW(), sprites.natureSheetPxH(), "nature sheet"));
         return plan(candidates, 2);
+    }
+
+    /**
+     * Offers a sheet, or leaves one too big for any atlas this plans out, so it draws from its own texture
+     * and the rest still share one. Offered, it failed the whole layout: the nature strip grew to 3071 texels
+     * wide (2026-10-25), the atlas stopped serving, and with it the resident ground (The Burn whole-map,
+     * 63 ms of GROUND a frame).
+     */
+    private void offer(List<Source> into, Source source) {
+        if (source.sheet() != null && !fitsAlone(source.contentW(), source.contentH())) {
+            exclude(Exclusion.OVER_CAP, source.name() + " " + source.contentW() + "x" + source.contentH());
+            return;
+        }
+        into.add(source);
+    }
+
+    /** Whether a sheet this size, with a gutter on every side, fits the widest atlas this plans. */
+    static boolean fitsAlone(int w, int h) {
+        return w + 2 * GUTTER_PX <= MAX_SIDE_PX && h + 2 * GUTTER_PX <= MAX_SIDE_PX;
     }
 }

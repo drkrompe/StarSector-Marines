@@ -1,0 +1,65 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17f50-e693-7fc0-aac8-d2e9e63bb6e8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17f50-e693-7fc0-aac8-d2e9e63bb6e8\\exec-a435924c-c611-41e4-ab05-8964e5b71c29.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\dry-woodland\\raw\\acacia-undergrowth.raw.png",
+    "sha256": "30f03c85b3f9ef3160823b220f6adcca6f99bd27cb087ad23fb301d9c01e3d06",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\dry-woodland\\prompts\\acacia-undergrowth.prompt.txt",
+  "promptSha256": "0c63ca5a75fa54c911f5e8b3a80d69e06c294f5acf377ea98a14c8c85c011643",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: the six undergrowth silhouettes and their gaps; reskin, never move\nImage 2: Material/style only: existing painted forest undergrowth; match rendering and light, not plants or palette\nImage 3: Palette reference only: the dry trees this scrub grows beside\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into a production overhead undergrowth sprite sheet for a top-down tactical game. Image 2 is ONLY the material/style reference: the game's existing painted forest undergrowth. Match its painterly realistic rendering, camera, detail scale and soft diffuse overhead light; do NOT copy its green woodland plants or palette. Image 3 is the palette/identity reference: the dry trees this scrub grows beside; match its foliage colours, not its shapes.\nPreserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch, every silhouette's center, size, aspect and outline. Each plant fills its guide silhouette out to the edge (small serrations may refine it inward) and nothing grows beyond it. Do not move, enlarge, tilt or rearrange anything.\nCamera looks STRAIGHT DOWN from directly above: orthographic plan view of low dry-country growth, roughly waist to head high. No side view, no perspective.\nSetting: the dry arid rim of a desert world's green basin; hot, sun-bleached, dusty.\nDirection: ACACIA savanna scrub, palette of dusty khaki, sage and straw.\nTop row left to right:\n1. Thornbush patch (wide): a low tangle of grey-brown wait-a-bit thorn canes with small sparse olive-khaki leaflet clusters and pale hooked thorns. SPARSE: keep the guide's gaps between canes as genuine transparent holes, about a third of the silhouette.\n2. Small thornbush (narrow strip): the same thornbush, a single short run of canes, sparse with transparent gaps.\n3. Saltbush thicket (large, round): a dense mound of silvery blue-grey saltbush, many small mealy rounded leaves, a few dull pink seed bracts, dark internal recesses, completely opaque.\nBottom row left to right:\n4. Small saltbush: the same, a compact clump, completely opaque.\n5. Dry bunchgrass bed (long strip): tall dry grass tussocks seen from above, fountains of straw-gold and pale khaki blades radiating from several crowns, a little green at the bases, opaque.\n6. Thorn saplings: three young umbrella-thorn saplings, each a small flat feathery khaki-olive crown at its guide circle with a hint of a thin stem at its centre; transparent ground between the crowns.\nHand-painted realistic tactical-game environment art, coherent medium detail readable at 1-4 world cells per plant. No baked ground shadow outside the silhouettes, no sand disc, no rocks, no flowers unless named, no labels, no text, no border.\nTrue transparent background, including the named gaps. No colored backdrop or checkerboard. Keep all six precisely registered to the guide and keep the 3:2 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\undergrowth-standing.png",
+      "sha256": "c9288090838ea7595157d48018d362088c2bb67e759b30b9b97dc4bdd589aa32",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: the six undergrowth silhouettes and their gaps; reskin, never move"
+    },
+    {
+      "path": "art-source\\tilesets\\forest-undergrowth.raw.png",
+      "sha256": "976911bbb0223d6b10fff6d075440ce9657bcb9c5d90fb86dd95c735b14cf09b",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only: existing painted forest undergrowth; match rendering and light, not plants or palette"
+    },
+    {
+      "path": "art-source\\dry-woodland\\raw\\acacia-canopies.raw.png",
+      "sha256": "1f4ecf58b3d35973f3687691506da871c99e8bfdc06d9e8de4c02bbf2758a84e",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Palette reference only: the dry trees this scrub grows beside"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet using Image 1 for the exact layout and Images 2–3 for rendering style and palette."
+  ],
+  "usage": {
+    "input_tokens": 47826,
+    "cached_input_tokens": 36480,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 797,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 66.7
+}

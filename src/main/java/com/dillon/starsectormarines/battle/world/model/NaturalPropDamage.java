@@ -63,12 +63,13 @@ public final class NaturalPropDamage {
                     || !grid.hasTag(gx, gy, NavigationGrid.CellTag.NATURAL_SOLID)) return;
             cells.add(grid.index(gx, gy));
         }
-        DoodadDef damaged = registry.doodad(shape.id() + "-damaged");
-        DoodadDef destroyed = registry.doodad(shape.id() + "-destroyed");
+        // The placed id, not the shape's: a dry-country twin has its own damage art.
+        DoodadDef damaged = registry.doodad(prop.definitionId() + "-damaged");
+        DoodadDef destroyed = registry.doodad(prop.definitionId() + "-destroyed");
         if (damaged == null || destroyed == null
                 || damaged.footprintCellsX != shape.width() || damaged.footprintCellsY != shape.height()
                 || destroyed.footprintCellsX != shape.width() || destroyed.footprintCellsY != shape.height())
-            throw new IllegalStateException("Missing or mismatched natural prop damage pair for " + shape.id());
+            throw new IllegalStateException("Missing or mismatched natural prop damage pair for " + prop.definitionId());
         Entry entry = new Entry(index, prop, damaged, destroyed, cells.stream().mapToInt(Integer::intValue).toArray(), shape.hitPoints());
         entry.undergrowth = shape.undergrowth();
         entries.add(entry);

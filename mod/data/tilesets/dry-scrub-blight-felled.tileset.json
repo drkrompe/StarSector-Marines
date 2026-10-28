@@ -1,0 +1,104 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "forest.oak-dry-destroyed-blight",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "forest.oak-small-dry-destroyed-blight",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "forest.birch-dry-destroyed-blight",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "forest.pine-dry-destroyed-blight",
+      "row": 5
+    },
+    {
+      "col": 3,
+      "name": "forest.pine-large-dry-destroyed-blight",
+      "row": 5
+    },
+    {
+      "col": 7,
+      "name": "forest.cedar-dry-destroyed-blight",
+      "row": 5
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "forest.oak-dry-destroyed-blight",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.oak-small-dry-destroyed-blight",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "forest.birch-dry-destroyed-blight",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.pine-dry-destroyed-blight",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.pine-large-dry-destroyed-blight",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "footprintCells": [
+        4,
+        6
+      ],
+      "id": "forest.cedar-dry-destroyed-blight",
+      "row": 5
+    }
+  ],
+  "sheet": "graphics/doodads/dry-scrub-blight-felled.png"
+}

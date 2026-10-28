@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
 import com.dillon.starsectormarines.campaign.refit.ShipRefits;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
@@ -157,6 +158,8 @@ public class MarineOpsContext {
     /** Screen and ready-seat target associated with the current armory visit. */
     private String requestedArmorySquadId;
     private boolean prepareAfterSettlement;
+    /** The debrief's equipment lesson opens once the operation settles; @see #refitAfterSettlement */
+    private boolean refitAfterSettlement;
     private ScreenId armoryReturnScreen = ScreenId.MISSION_SELECT;
     /** Back target for the retained company workspace inside an armory visit. */
     private ScreenId fleetArmoryWorkspaceBackScreen = ScreenId.BARRACKS;
@@ -292,7 +295,7 @@ public class MarineOpsContext {
     }
 
     /** @see BoatDeck#doorGuns() */
-    static String[][] companyDoorGuns() {
+    static FittedBoat[] companyDoorGuns() {
         if (Global.getSector() == null) return null;
         MarineRosterScript script = MarineRosterScript.getInstance();
         if (script == null || script.roster() == null) return null;
@@ -743,6 +746,7 @@ public class MarineOpsContext {
         this.lootSettlementStarted = false;
         this.lootSettlement = null;
         prepareAfterSettlement = false;
+        refitAfterSettlement = false;
     }
 
     public boolean isLootSettlementStarted() {
@@ -772,17 +776,35 @@ public class MarineOpsContext {
         }
     }
 
-    public void prepareAfterSettlement(boolean value) { prepareAfterSettlement = value; }
+    public void prepareAfterSettlement(boolean value) {
+        prepareAfterSettlement = value;
+        refitAfterSettlement = false;
+    }
     public boolean preparingAfterSettlement() { return prepareAfterSettlement; }
+
+    /**
+     * Leaves the debrief for its equipment lesson. The operation settles first, so no company
+     * page is reached with a fought mission still selected (owner): settling then opens the
+     * Fleet Armory, whose way back is the company's own page, not the debrief.
+     */
+    public void refitAfterSettlement() {
+        prepareAfterSettlement = true;
+        refitAfterSettlement = true;
+    }
+    public boolean refittingAfterSettlement() { return refitAfterSettlement; }
 
     /** Called only after the existing salvage authority has settled or explicitly forfeited. */
     public void finishOperation(boolean prepareCompany) {
         if (!lootSettlementStarted) return;
         ScreenId returnScreen = lastOutcome != null && lastOutcome.missionSource.isDebug()
                 ? ScreenId.DEBUG_MISSIONS : shipReady() ? ResultsScreen.returnDestination(lastOutcome) : ScreenId.MISSION_SELECT;
+        boolean refit = refitAfterSettlement;
         clearResolvedMission();
         prepareAfterSettlement = false;
-        goTo(prepareCompany ? (shipReady() ? ScreenId.BARRACKS : ScreenId.COMPANY_HQ) : returnScreen);
+        refitAfterSettlement = false;
+        ScreenId company = shipReady() ? ScreenId.BARRACKS : ScreenId.COMPANY_HQ;
+        if (refit) openFleetArmoryWorkspaceFrom(company);
+        else goTo(prepareCompany ? company : returnScreen);
     }
 
     /** Clears the finished mission while preserving its closed settlement gate. */
@@ -819,6 +841,8 @@ public class MarineOpsContext {
             // its own colony. What it offers is a posting and, while a raid is on the
             // ground, the defence of the colony itself.
             generated = Collections.unmodifiableList(polityDefenceMissions());
+        } else if (WellhollowBloomCampaign.CLIENT_FACTION_ID.equals(client.factionId)) {
+            generated = WellhollowBloomCampaign.offers(planet);
         } else if (DISTRESS_CLIENT_FACTION_ID.equals(client.factionId)) {
             Mission eventMission = localCampaignEventMission();
             generated = eventMission != null
@@ -893,6 +917,14 @@ public class MarineOpsContext {
                     crest,
                     RepLevel.NEUTRAL, false, null));
             seen.add(DISTRESS_CLIENT_FACTION_ID);
+        }
+
+        // 0b'. Warden Maro's board for The Wellhollow Bloom on Asharu: its own
+        //      contact, so other Asharu arcs never list under it.
+        if (WellhollowBloomCampaign.contactAt(planet)
+                && !WellhollowBloomCampaign.offers(planet).isEmpty()) {
+            out.add(WellhollowBloomCampaign.client());
+            seen.add(WellhollowBloomCampaign.CLIENT_FACTION_ID);
         }
 
         // 0c. The player's own colony. Never rep-locked: the polity is the company's

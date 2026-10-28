@@ -523,6 +523,12 @@ public enum VehicleType {
      */
     public boolean crushesUndergrowth() { return weight() != Weight.LIGHT && !isHover(); }
 
+    /**
+     * Whether this hull drives through the light barricades its way covers ({@link BarricadeRam}): every hull that
+     * crushes undergrowth but the dozer, whose blade pushes them down.
+     */
+    public boolean ramsBarricades() { return crushesUndergrowth() && !hasBlade(); }
+
     /** How heavy a hull is to something that runs into it ({@code colony-breach-nouns.md}, Brute). */
     public enum Weight { LIGHT, MEDIUM, HEAVY }
 
@@ -601,6 +607,9 @@ public enum VehicleType {
 
     /** Half the width of the flux vents across the hull, in cells ({@link #fluxVentAftCells}). */
     public float fluxVentHalfSpanCells() { return 0f; }
+
+    /** Where this hull's tracks or wheels meet the ground, as its sprite paints them ({@link RunningGear}). */
+    public RunningGear runningGear() { return RunningGear.of(this); }
 
     /** Keep authored vehicle bearings and live/wreck registration for every chassis. */
     public SpriteSheetFrames registeredSpriteFrames(SpriteSheetFrames detected) {

@@ -47,7 +47,49 @@ public final class VehicleRamSceneSnapshotSuite extends BehaviorSceneSnapshotSui
                 LookReview.Shot.of("rav-strike-parked-truck", LOOK_W, LOOK_H, placement -> stage(placement, false),
                         VehicleRamSceneSnapshotSuite::views, LOOK_TICKS),
                 LookReview.Shot.of("rav-claw-barricade-truck", LOOK_W, LOOK_H, placement -> stage(placement, true),
-                        VehicleRamSceneSnapshotSuite::views, LOOK_TICKS));
+                        VehicleRamSceneSnapshotSuite::views, LOOK_TICKS),
+                LookReview.Shot.of("ram-barricade-line", LOOK_W, LOOK_H, VehicleRamSceneSnapshotSuite::ramLine,
+                        placement -> List.of(LookReview.View.followAtPlay(placement, "apc", "tank"),
+                                LookReview.View.follow("close-apc", placement, 16f, "apc"),
+                                LookReview.View.follow("close-tank", placement, 16f, "tank")), RAM_TICKS)
+                        .withStills(RAM_STILLS));
+    }
+
+    /** How long the hulls drive at the barricade line, ticks. */
+    static final int RAM_TICKS = 420;
+    /** The recorded frames kept as stills (a frame every 6 ticks): closing, at the line, through it, beyond. */
+    static final int[] RAM_STILLS = {24, 31, 37, 50};
+
+    /**
+     * A sandbag and fence line across the whole map through the middle of the window, no gap in it, and an APC and a
+     * gun tank west of it ordered across ({@code BarricadeRam}). Under {@code -Dbattle.vehicle.ramBarricades=false}
+     * they are held at it.
+     */
+    private static BattleSimulation ramLine(LookReview.Placement placement) {
+        float[] at = placement.openNear(LOOK_W / 2f, LOOK_H / 2f);
+        int lx = (int) at[0] - placement.site().x0(), ly = (int) at[1] - placement.site().y0();
+        BattleSimulation sim = placement.holdouts(placement.builder()).build().sim();
+        TileRegistry registry = TileRegistry.installed();
+        int x = (int) at[0];
+        for (int y = 0; y < sim.getGrid().getHeight(); y++) {
+            if (!sim.getGrid().isWalkable(x, y)) continue;
+            sim.getGrid().setWalkable(x, y, false);
+            sim.addDoodad(new Doodad(x, y, registry.doodad(Math.abs(y - (int) at[1]) <= 6
+                    ? "doodad.sandbag-straight-e" : "doodad.industrial-fence-straight-v")));
+        }
+        String[] names = {"apc", "tank"};
+        VehicleType[] types = {VehicleType.HEAVY_APC, VehicleType.BREAKTHROUGH_TANK};
+        for (int i = 0; i < 2; i++) {
+            float[] start = placement.openNear(lx - 16f, ly + (i == 0 ? -3f : 3f));
+            long hull = sim.convoy().spawn(types[i], Faction.MARINE, VehicleMission.deployed(start[0], start[1]));
+            sim.convoy().body(hull).teleport(start[0], start[1], -90f);
+            sim.world().setMaxHp(hull, DEEP);
+            sim.world().setHp(hull, DEEP);
+            placement.subject(names[i], hull);
+            float[] goal = placement.openNear(lx + 16f, ly + (i == 0 ? -3f : 3f));
+            sim.getVehicleMoveOrderService().requestMove(hull, (int) goal[0], (int) goal[1]);
+        }
+        return sim;
     }
 
     private static List<LookReview.View> views(LookReview.Placement placement) {

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.forest;
 
+import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -7,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /** Generation-time forest construction. Editing replays the plan on clean ground, never a live battle. */
 public final class ForestBrush {
@@ -25,6 +27,13 @@ public final class ForestBrush {
     /** Selected production crowns may stand on complete grassy summit cells, never on cliff faces. */
     public static void stampTrees(List<ForestField.Tree> trees, NavigationGrid grid, CellTopology topology,
                                   List<Doodad> doodads, boolean[] reserved, boolean allowSummits) {
+        stampTrees(trees, grid, topology, doodads, reserved, allowSummits, tree -> false);
+    }
+
+    /** As above, each tree {@code dry} names drawn as its dry-country twin ({@link NaturalPropShape#DRY}). */
+    public static void stampTrees(List<ForestField.Tree> trees, NavigationGrid grid, CellTopology topology,
+                                  List<Doodad> doodads, boolean[] reserved, boolean allowSummits,
+                                  Predicate<ForestField.Tree> dry) {
         int w = grid.getWidth(), h = grid.getHeight();
         if (topology.getWidth() != w || topology.getHeight() != h || (reserved != null && reserved.length != w * h))
             throw new IllegalArgumentException("Forest and map dimensions differ");
@@ -37,9 +46,10 @@ public final class ForestBrush {
             for (int y = tree.y(); y < tree.y() + tree.height(); y++)
                 for (int x = tree.x(); x < tree.x() + tree.width(); x++)
                     if (tree.blocks(x, y)) blocked[y * w + x] = true;
-            var def = tiles == null ? null : tiles.doodad(tree.canopy().id);
+            String id = NaturalPropShape.placedId(tree.canopy(), dry.test(tree));
+            var def = tiles == null ? null : tiles.doodad(id);
             if (def == null || def.footprintCellsX != tree.canopy().width || def.footprintCellsY != tree.canopy().height)
-                throw new IllegalStateException("Missing or mismatched tree canopy " + tree.canopy().id);
+                throw new IllegalStateException("Missing or mismatched tree canopy " + id);
             additions.add(new Doodad(tree.x(), tree.y(), def, tree.turns()));
         }
         // The entire canopy is protected, not just its trunk. Refusal is atomic.

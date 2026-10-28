@@ -65,8 +65,8 @@ public final class LootScreen extends MissionFlowMlxScreen {
         props.put("backAction", (Runnable) () -> context.goTo(ScreenId.RESULTS));
         props.put("confirmDisabled", preview == null);
         props.put("confirmAction", (Runnable) this::confirm);
-        props.put("confirmLabel", Strings.get(context.preparingAfterSettlement()
-                ? "lootScreenConfirmPrepare" : "lootScreenConfirm"));
+        props.put("confirmLabel", Strings.get(context.refittingAfterSettlement() ? "lootScreenConfirmRefit"
+                : context.preparingAfterSettlement() ? "lootScreenConfirmPrepare" : "lootScreenConfirm"));
         return props;
     }
 

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.bsp.stage;
 
+import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.ElevationMap;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -7,8 +8,8 @@ import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenStage;
 import com.dillon.starsectormarines.battle.world.gen.PreparedGround;
 import com.dillon.starsectormarines.battle.world.gen.PatchField;
+import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
-import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationBrush;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
@@ -46,6 +47,7 @@ import java.util.Comparator;
 import java.util.List;
 import java.util.Random;
 import java.util.function.IntPredicate;
+import java.util.function.Predicate;
 
 /** Closing outdoor pass: optional landscape yields to finished places, circulation and access. */
 public final class OutdoorLandscapeStage implements GenStage {
@@ -58,15 +60,16 @@ public final class OutdoorLandscapeStage implements GenStage {
     }
 
     @Override public void run(GenContext c) {
+        SurfaceField field = SurfaceField.of(c);
+        // The basin's edge is drawn as a line whether or not the landscape below dresses it.
+        if (!field.uniform()) c.topology.setSurfaceField(field);
         if (!Boolean.parseBoolean(System.getProperty("battle.mapgen.outdoorLandscape", "true"))) return;
         if (c.width < 32 || c.height < 32 || TileRegistry.installed() == null) return;
-        TargetProfile profile = c.get(BspKeys.MARKET_PROFILE);
-        SurfacePalette surface = profile == null ? SurfacePalette.ROCK : profile.surface();
         PrecinctPlan plan = c.get(BspKeys.PRECINCTS);
         Landscape landscape = plan == null ? Landscape.STOCK : plan.landscape();
         if (landscape.raggedMargin() > 0) raggedMargins(c, landscape.raggedMargin());
         clearTracks(c, landscape);
-        List<int[]> brookCells = runBrooks(c, landscape);
+        List<int[]> brookCells = runBrooks(c, landscape, field);
         boolean[] reserved = reservations(c, hostAnchors, true);
         reserveRamps(c, reserved);
         reserveTracks(c, landscape, reserved);
@@ -78,15 +81,16 @@ public final class OutdoorLandscapeStage implements GenStage {
         List<RidgePlanner.Band> ridges = landscapeBands(c, landscape);
         // No stock hill grows where the mission named high ground: it would be all the ridge found there.
         boolean[][] ridgeGround = ridges.isEmpty() ? null : RidgePlanner.heldGround(ridges, c.width, c.height, 0);
-        if (c.topology.terrainSurface() == null) hills(c, surface, reserved, ridgeGround, random);
+        if (c.topology.terrainSurface() == null) hills(c, field, reserved, ridgeGround, random);
         int plateaus = plateausWanted(c);
         if (plateaus > 0) plateaus(c, reserved, plateaus, new Random(c.seed ^ 0x504c4154L));
         if (!ridges.isEmpty() && c.grid.elevation() == null) {
             ridges(c, reserved, reserved, ridges, false, List.of(), new boolean[c.width * c.height],
                     landscape.sealed().isEmpty() ? null : mainBody(c));
         }
-        if (surface == SurfacePalette.VERDANT) trees(c, reserved, landscape.woodland());
-        else FormationBrush.scatter(c,surface,reserved);
+        // A basin's woods grow on its floor and thin out toward its rim; the rim's own palette dresses the rest.
+        if (field.floor() == SurfacePalette.VERDANT) trees(c, reserved, landscape.woodland(), field);
+        if (field.world() != SurfacePalette.VERDANT) FormationBrush.scatter(c, field.world(), reserved);
         // Hills, trees and formations turn cells non-walkable after TacticalRegionStage
         // published, so refresh the artifact: "non-walkable => regionId -1" must hold.
         if (c.get(BspKeys.TACTICAL_REGIONS) != null) {
@@ -433,8 +437,13 @@ public final class OutdoorLandscapeStage implements GenStage {
         return own != null && x >= 0 && y >= 0 && x < c.width && y < c.height && own[y * c.width + x];
     }
 
-    private static void hills(GenContext c, SurfacePalette surface, boolean[] reserved, boolean[][] ridgeGround,
+    /**
+     * Stock hills. The finish is the map's, and is the world's own where a basin greens the middle: a rock outcrop
+     * reads in green country, a grass-topped hill does not on desert. Each hill's shape is its own cell's palette.
+     */
+    private static void hills(GenContext c, SurfaceField palettes, boolean[] reserved, boolean[][] ridgeGround,
                               Random random) {
+        SurfacePalette surface = palettes.world();
         TerrainPlan plan = new TerrainPlan(c.width, c.height,
                 surface == SurfacePalette.VERDANT ? TerrainPlan.Finish.GRASS_TOP
                         : surface == SurfacePalette.FROZEN ? TerrainPlan.Finish.ICE : TerrainPlan.Finish.ROCK,
@@ -444,7 +453,7 @@ public final class OutdoorLandscapeStage implements GenStage {
         for (int attempt = 0; attempt < desired * 12 && plan.strokes().size() < desired; attempt++) {
             int radius = 7 + random.nextInt(6);
             int x = 10 + random.nextInt(c.width - 20), y = 10 + random.nextInt(c.height - 20);
-            var stroke = ridge(c,surface,x,y,radius,attempt);
+            var stroke = ridge(c,palettes.at(x,y),x,y,radius,attempt);
             TerrainField field = TerrainField.build(new TerrainPlan(c.width, c.height, plan.finish(),
                     plan.faceDepth(), plan.ruggedness(), plan.seed(), List.of(stroke)));
             int l = Math.max(0,(int)Math.floor(stroke.points().stream().mapToDouble(TerrainPlan.Point::x).min().orElseThrow()-stroke.radius()-4));
@@ -851,9 +860,10 @@ public final class OutdoorLandscapeStage implements GenStage {
      * A plan's brooks run across the country: water on open natural ground
      * along each centre line, a sand strip on either bank, and at every ford
      * a stony bed right across under shallow water, waded slowly. Returns the
-     * centre cells, for the reservations.
+     * centre cells, for the reservations. Where the world bears no open water (a basin's dry rim) the bed is
+     * a dry wash of stones instead, walked over and still a firebreak.
      */
-    private static List<int[]> runBrooks(GenContext c, Landscape landscape) {
+    private static List<int[]> runBrooks(GenContext c, Landscape landscape, SurfaceField palettes) {
         List<int[]> centres = new ArrayList<>();
         for (Landscape.Brook brook : landscape.brooks()) {
             List<int[]> line = brook.line();
@@ -864,7 +874,14 @@ public final class OutdoorLandscapeStage implements GenStage {
                     int x = centre[0] + dx, y = centre[1] + dy;
                     if (x < 0 || y < 0 || x >= c.width || y >= c.height) continue;
                     float d = (float) Math.sqrt(dx * dx + dy * dy);
-                    if (d <= r) {
+                    if (d <= r && palettes.dryRim(x, y)) {
+                        // Past a basin's floor the brook is a dry wash: a stony bed, walked, that still does not burn.
+                        if (brookGround(c, x, y)) {
+                            c.topology.setSurface(x, y, 0);
+                            c.topology.setGroundKind(x, y, GroundKind.STONE);
+                            c.topology.setNatureOverlayIndex(x, y, -1);
+                        }
+                    } else if (d <= r) {
                         if (brookGround(c, x, y)) {
                             c.topology.setSurface(x, y, 0);
                             c.topology.setGroundKind(x, y, GroundKind.WATER);
@@ -939,7 +956,14 @@ public final class OutdoorLandscapeStage implements GenStage {
      */
     static final int TANK_CLEARANCE = 2;
 
-    private static void trees(GenContext c, boolean[] reserved, float woodland) {
+    /**
+     * The woods, on green ground. With a basin they grow on its floor, thinning from full {@code woodland}
+     * {@link SurfaceField#WOODS_THINNING} in from the floor's edge to none at the band ({@link SurfaceField#woods}),
+     * and a desert rim grows open dry scrub instead, {@link #RIM_SCRUB} as thick, drawn with the dry twins' art
+     * ({@link NaturalPropShape#DRY}) where it is installed.
+     */
+    private static void trees(GenContext c, boolean[] reserved, float woodland, SurfaceField palettes) {
+        boolean scrub = !palettes.uniform() && palettes.world() == SurfacePalette.ARID && dryScrubInstalled();
         boolean[] paint = new boolean[reserved.length], closed = new boolean[reserved.length];
         // Cells a tank cannot flatten: every crown that is not undergrowth.
         boolean[] hard = new boolean[reserved.length];
@@ -952,8 +976,19 @@ public final class OutdoorLandscapeStage implements GenStage {
                 default -> false;
             };
             // Exposed faces/talus remain legible; only complete summit cells carry crowns.
+            float share = palettes.woods(x, y);
+            if (scrub && palettes.rim(x, y)) {
+                boolean dry = switch (c.topology.getGroundKind(x, y)) {
+                    case SAND, DIRT -> true;
+                    default -> false;
+                };
+                if (dry && openGround(c, x, y) && !terrainVisible(c, x, y))
+                    paint[y * c.width + x] = groves.sample(x, y) < woodland * RIM_SCRUB;
+                continue;
+            }
+            if (share <= 0f) continue;
             if (summit || (soil && openGround(c, x, y) && !terrainVisible(c, x, y)))
-                paint[y * c.width + x] = groves.sample(x, y) < (summit ? Math.max(.85f, woodland) : woodland);
+                paint[y * c.width + x] = groves.sample(x, y) < (summit ? Math.max(.85f, woodland) : woodland) * share;
         }
         ForestField field = ForestField.build(c.width, c.height, c.seed ^ 0x5452454553L, ForestPlan.Woodland.MIXED, paint);
         List<ForestField.Tree> accepted = new ArrayList<>();
@@ -971,8 +1006,19 @@ public final class OutdoorLandscapeStage implements GenStage {
                 break;
             }
         }
-        ForestBrush.stampTrees(accepted, c.grid, c.topology, c.doodads, reserved, true);
-        undergrowth(c, paint, reserved);
+        ForestBrush.stampTrees(accepted, c.grid, c.topology, c.doodads, reserved, true,
+                tree -> scrub && palettes.rim(tree.x() + tree.width() / 2, tree.y() + tree.height() / 2));
+        undergrowth(c, paint, reserved,
+                patch -> scrub && palettes.rim(patch.x() + patch.width() / 2, patch.y() + patch.height() / 2));
+    }
+
+    /** How thick a desert rim's scrub grows, as a share of the floor's woodland. */
+    static final float RIM_SCRUB = .35f;
+
+    /** Whether the dry twins' art is installed: without it a rim grows no scrub rather than green trees. */
+    private static boolean dryScrubInstalled() {
+        TileRegistry tiles = TileRegistry.installed();
+        return tiles != null && tiles.doodad(NaturalPropShape.placedId(TreeCanopy.OAK, true)) != null;
     }
 
     /** Share of the lattice points left open in a wood that grow undergrowth. */
@@ -986,7 +1032,8 @@ public final class OutdoorLandscapeStage implements GenStage {
      * is undergrowth a crushing hull flattens, so it needs no tank-lane proof; infantry keep the same local way round
      * as a crown leaves them.
      */
-    private static void undergrowth(GenContext c, boolean[] paint, boolean[] reserved) {
+    private static void undergrowth(GenContext c, boolean[] paint, boolean[] reserved,
+                                    Predicate<UndergrowthBrush.Placement> dry) {
         boolean[] floor = fringe(paint, c.width, c.height, UNDERGROWTH_FRINGE);
         Random random = new Random(c.seed ^ 0x554E444552L);
         Undergrowth[] kinds = Undergrowth.values();
@@ -1008,7 +1055,7 @@ public final class OutdoorLandscapeStage implements GenStage {
                 for (int xx = patch.x(); xx < patch.x() + patch.width(); xx++)
                     if (patch.blocks(xx, yy)) grown[yy * c.width + xx] = true;
         }
-        UndergrowthBrush.stamp(placed, c.grid, c.topology, c.doodads, reserved);
+        UndergrowthBrush.stamp(placed, c.grid, c.topology, c.doodads, reserved, dry);
     }
 
     /** Cells within {@code reach} (Chebyshev) of painted wood. */

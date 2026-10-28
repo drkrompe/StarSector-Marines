@@ -1,0 +1,1080 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "forest.oak-dry-blight-1",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "forest.oak-small-dry-blight-1",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "forest.birch-dry-blight-1",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "forest.pine-dry-blight-1",
+      "row": 5
+    },
+    {
+      "col": 3,
+      "name": "forest.pine-large-dry-blight-1",
+      "row": 5
+    },
+    {
+      "col": 7,
+      "name": "forest.cedar-dry-blight-1",
+      "row": 5
+    },
+    {
+      "col": 14,
+      "name": "forest.oak-dry-blight-2",
+      "row": 0
+    },
+    {
+      "col": 19,
+      "name": "forest.oak-small-dry-blight-2",
+      "row": 0
+    },
+    {
+      "col": 23,
+      "name": "forest.birch-dry-blight-2",
+      "row": 0
+    },
+    {
+      "col": 14,
+      "name": "forest.pine-dry-blight-2",
+      "row": 5
+    },
+    {
+      "col": 17,
+      "name": "forest.pine-large-dry-blight-2",
+      "row": 5
+    },
+    {
+      "col": 21,
+      "name": "forest.cedar-dry-blight-2",
+      "row": 5
+    },
+    {
+      "col": 28,
+      "name": "forest.oak-dry-blight-3",
+      "row": 0
+    },
+    {
+      "col": 33,
+      "name": "forest.oak-small-dry-blight-3",
+      "row": 0
+    },
+    {
+      "col": 37,
+      "name": "forest.birch-dry-blight-3",
+      "row": 0
+    },
+    {
+      "col": 28,
+      "name": "forest.pine-dry-blight-3",
+      "row": 5
+    },
+    {
+      "col": 31,
+      "name": "forest.pine-large-dry-blight-3",
+      "row": 5
+    },
+    {
+      "col": 35,
+      "name": "forest.cedar-dry-blight-3",
+      "row": 5
+    },
+    {
+      "col": 42,
+      "name": "forest.oak-dry-blight-4",
+      "row": 0
+    },
+    {
+      "col": 47,
+      "name": "forest.oak-small-dry-blight-4",
+      "row": 0
+    },
+    {
+      "col": 51,
+      "name": "forest.birch-dry-blight-4",
+      "row": 0
+    },
+    {
+      "col": 42,
+      "name": "forest.pine-dry-blight-4",
+      "row": 5
+    },
+    {
+      "col": 45,
+      "name": "forest.pine-large-dry-blight-4",
+      "row": 5
+    },
+    {
+      "col": 49,
+      "name": "forest.cedar-dry-blight-4",
+      "row": 5
+    },
+    {
+      "col": 0,
+      "name": "forest.oak-dry-damaged-blight-1",
+      "row": 11
+    },
+    {
+      "col": 5,
+      "name": "forest.oak-small-dry-damaged-blight-1",
+      "row": 11
+    },
+    {
+      "col": 9,
+      "name": "forest.birch-dry-damaged-blight-1",
+      "row": 11
+    },
+    {
+      "col": 0,
+      "name": "forest.pine-dry-damaged-blight-1",
+      "row": 16
+    },
+    {
+      "col": 3,
+      "name": "forest.pine-large-dry-damaged-blight-1",
+      "row": 16
+    },
+    {
+      "col": 7,
+      "name": "forest.cedar-dry-damaged-blight-1",
+      "row": 16
+    },
+    {
+      "col": 14,
+      "name": "forest.oak-dry-damaged-blight-2",
+      "row": 11
+    },
+    {
+      "col": 19,
+      "name": "forest.oak-small-dry-damaged-blight-2",
+      "row": 11
+    },
+    {
+      "col": 23,
+      "name": "forest.birch-dry-damaged-blight-2",
+      "row": 11
+    },
+    {
+      "col": 14,
+      "name": "forest.pine-dry-damaged-blight-2",
+      "row": 16
+    },
+    {
+      "col": 17,
+      "name": "forest.pine-large-dry-damaged-blight-2",
+      "row": 16
+    },
+    {
+      "col": 21,
+      "name": "forest.cedar-dry-damaged-blight-2",
+      "row": 16
+    },
+    {
+      "col": 28,
+      "name": "forest.oak-dry-damaged-blight-3",
+      "row": 11
+    },
+    {
+      "col": 33,
+      "name": "forest.oak-small-dry-damaged-blight-3",
+      "row": 11
+    },
+    {
+      "col": 37,
+      "name": "forest.birch-dry-damaged-blight-3",
+      "row": 11
+    },
+    {
+      "col": 28,
+      "name": "forest.pine-dry-damaged-blight-3",
+      "row": 16
+    },
+    {
+      "col": 31,
+      "name": "forest.pine-large-dry-damaged-blight-3",
+      "row": 16
+    },
+    {
+      "col": 35,
+      "name": "forest.cedar-dry-damaged-blight-3",
+      "row": 16
+    },
+    {
+      "col": 42,
+      "name": "forest.oak-dry-damaged-blight-4",
+      "row": 11
+    },
+    {
+      "col": 47,
+      "name": "forest.oak-small-dry-damaged-blight-4",
+      "row": 11
+    },
+    {
+      "col": 51,
+      "name": "forest.birch-dry-damaged-blight-4",
+      "row": 11
+    },
+    {
+      "col": 42,
+      "name": "forest.pine-dry-damaged-blight-4",
+      "row": 16
+    },
+    {
+      "col": 45,
+      "name": "forest.pine-large-dry-damaged-blight-4",
+      "row": 16
+    },
+    {
+      "col": 49,
+      "name": "forest.cedar-dry-damaged-blight-4",
+      "row": 16
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "fogSurface": [
+        ".###.",
+        "#####",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "forest.oak-dry-blight-1",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.oak-small-dry-blight-1",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "fogSurface": [
+        "####.",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "forest.birch-dry-blight-1",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "fogSurface": [
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.pine-dry-blight-1",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.pine-large-dry-blight-1",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "fogSurface": [
+        ".##.",
+        "####",
+        "####",
+        "####",
+        "####",
+        ".##."
+      ],
+      "footprintCells": [
+        4,
+        6
+      ],
+      "id": "forest.cedar-dry-blight-1",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "fogSurface": [
+        ".###.",
+        "#####",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "forest.oak-dry-blight-2",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 19,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.oak-small-dry-blight-2",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 23,
+      "cover": "none",
+      "fogSurface": [
+        "####.",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "forest.birch-dry-blight-2",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "fogSurface": [
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.pine-dry-blight-2",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 17,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.pine-large-dry-blight-2",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 21,
+      "cover": "none",
+      "fogSurface": [
+        ".##.",
+        "####",
+        "####",
+        "####",
+        "####",
+        ".##."
+      ],
+      "footprintCells": [
+        4,
+        6
+      ],
+      "id": "forest.cedar-dry-blight-2",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 28,
+      "cover": "none",
+      "fogSurface": [
+        ".###.",
+        "#####",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "forest.oak-dry-blight-3",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 33,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.oak-small-dry-blight-3",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 37,
+      "cover": "none",
+      "fogSurface": [
+        "####.",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "forest.birch-dry-blight-3",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 28,
+      "cover": "none",
+      "fogSurface": [
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.pine-dry-blight-3",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 31,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.pine-large-dry-blight-3",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 35,
+      "cover": "none",
+      "fogSurface": [
+        ".##.",
+        "####",
+        "####",
+        "####",
+        "####",
+        ".##."
+      ],
+      "footprintCells": [
+        4,
+        6
+      ],
+      "id": "forest.cedar-dry-blight-3",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 42,
+      "cover": "none",
+      "fogSurface": [
+        ".###.",
+        "#####",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "forest.oak-dry-blight-4",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 47,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.oak-small-dry-blight-4",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 51,
+      "cover": "none",
+      "fogSurface": [
+        "####.",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "forest.birch-dry-blight-4",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 42,
+      "cover": "none",
+      "fogSurface": [
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.pine-dry-blight-4",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 45,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.pine-large-dry-blight-4",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 49,
+      "cover": "none",
+      "fogSurface": [
+        ".##.",
+        "####",
+        "####",
+        "####",
+        "####",
+        ".##."
+      ],
+      "footprintCells": [
+        4,
+        6
+      ],
+      "id": "forest.cedar-dry-blight-4",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "fogSurface": [
+        ".###.",
+        "#####",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "forest.oak-dry-damaged-blight-1",
+      "row": 11
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.oak-small-dry-damaged-blight-1",
+      "row": 11
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "fogSurface": [
+        "####.",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "forest.birch-dry-damaged-blight-1",
+      "row": 11
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "fogSurface": [
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.pine-dry-damaged-blight-1",
+      "row": 16
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.pine-large-dry-damaged-blight-1",
+      "row": 16
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "fogSurface": [
+        ".##.",
+        "####",
+        "####",
+        "####",
+        "####",
+        ".##."
+      ],
+      "footprintCells": [
+        4,
+        6
+      ],
+      "id": "forest.cedar-dry-damaged-blight-1",
+      "row": 16
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "fogSurface": [
+        ".###.",
+        "#####",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "forest.oak-dry-damaged-blight-2",
+      "row": 11
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 19,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.oak-small-dry-damaged-blight-2",
+      "row": 11
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 23,
+      "cover": "none",
+      "fogSurface": [
+        "####.",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "forest.birch-dry-damaged-blight-2",
+      "row": 11
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 14,
+      "cover": "none",
+      "fogSurface": [
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.pine-dry-damaged-blight-2",
+      "row": 16
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 17,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.pine-large-dry-damaged-blight-2",
+      "row": 16
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 21,
+      "cover": "none",
+      "fogSurface": [
+        ".##.",
+        "####",
+        "####",
+        "####",
+        "####",
+        ".##."
+      ],
+      "footprintCells": [
+        4,
+        6
+      ],
+      "id": "forest.cedar-dry-damaged-blight-2",
+      "row": 16
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 28,
+      "cover": "none",
+      "fogSurface": [
+        ".###.",
+        "#####",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "forest.oak-dry-damaged-blight-3",
+      "row": 11
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 33,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.oak-small-dry-damaged-blight-3",
+      "row": 11
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 37,
+      "cover": "none",
+      "fogSurface": [
+        "####.",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "forest.birch-dry-damaged-blight-3",
+      "row": 11
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 28,
+      "cover": "none",
+      "fogSurface": [
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.pine-dry-damaged-blight-3",
+      "row": 16
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 31,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.pine-large-dry-damaged-blight-3",
+      "row": 16
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 35,
+      "cover": "none",
+      "fogSurface": [
+        ".##.",
+        "####",
+        "####",
+        "####",
+        "####",
+        ".##."
+      ],
+      "footprintCells": [
+        4,
+        6
+      ],
+      "id": "forest.cedar-dry-damaged-blight-3",
+      "row": 16
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 42,
+      "cover": "none",
+      "fogSurface": [
+        ".###.",
+        "#####",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "forest.oak-dry-damaged-blight-4",
+      "row": 11
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 47,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.oak-small-dry-damaged-blight-4",
+      "row": 11
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 51,
+      "cover": "none",
+      "fogSurface": [
+        "####.",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "forest.birch-dry-damaged-blight-4",
+      "row": 11
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 42,
+      "cover": "none",
+      "fogSurface": [
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.pine-dry-damaged-blight-4",
+      "row": 16
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 45,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.pine-large-dry-damaged-blight-4",
+      "row": 16
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 49,
+      "cover": "none",
+      "fogSurface": [
+        ".##.",
+        "####",
+        "####",
+        "####",
+        "####",
+        ".##."
+      ],
+      "footprintCells": [
+        4,
+        6
+      ],
+      "id": "forest.cedar-dry-damaged-blight-4",
+      "row": 16
+    }
+  ],
+  "sheet": "graphics/doodads/dry-scrub-blight.png"
+}

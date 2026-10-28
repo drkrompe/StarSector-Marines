@@ -469,15 +469,34 @@ round. It applies to whichever plate the hit meets (above).
     line to it) makes only the backing turn: the forward turn drives it out from
     behind the berm before the nose comes round, and the berm is worth more than
     the plate. `-Dbattle.vehicle.faceInBand=false` is the control.
-  - **One front, for the worst threat it knows of.** A hull has one front
-    plate, so with several hostile machines about it turns onto the one that
-    can do it the most harm from where it stands, not merely the nearest. Harm
-    is each weapon's rounds a second, at its accuracy for the range and its
-    armor efficiency against the hull's plate; a gun out of its own reach does
-    none. The threat it faces keeps the front until another is a quarter
-    worse, and everything else takes the side or the rear: two machines from
-    two sides beat the turn. The band is still held against the duel target.
-    `-Dbattle.vehicle.faceWorstThreat=false` is the control (the duel target).
+  - **One front, where it lasts longest.** A hull has one front plate, so with
+    several hostiles about it turns onto the one whose bearing, taken as its
+    facing, has all of them killing it slowest, each through the plate it would
+    hit. A hostile is a machine, an emplaced gun, or a soldier with a weapon of
+    his own (a rocket with rounds left, a profiled rifle); one firing off baked
+    attack stats has no weapon to weigh and is not counted. Harm is each
+    weapon's rounds a second, at its accuracy for the range and its armor
+    efficiency against the plate (the arc's rating times the hull's); a gun out
+    of its own reach does none. A threat kills through a plate in the time it
+    takes to strip what that plate has left (times the arc's plate multiplier)
+    and then the structure behind, which a stripped plate lets every point
+    reach; a facing's cost is the sum of one over those times. So a machine gun
+    that barely marks the glacis is given the front over a cannon that would
+    strip a side, two guns on one side get the front and a lone one the tail,
+    and a side its attackers have stripped is turned away from them. The facing
+    held is kept until another costs a quarter less. The band is still held
+    against the duel target. `-Dbattle.vehicle.faceWorstThreat=false` is the
+    control (the duel target, and no turn without one).
+  - **Standing hulls face too.** A hull with no machine to duel, and an allied
+    hull its story script parks (the script owns when and where it moves; which
+    way it faces where it stands is the hull's), holds where it stands and makes
+    the same rehearsed turn onto the facing above, giving no more than eight
+    cells from where it was parked: a tank's widest backing turn gives about
+    seven, so one turn fits and turn after turn does not walk it off its mark.
+    A hull that has lost its gun still faces, since its plate still matters; an
+    immobilised one cannot, and an ambusher keeps its cover. A route handed to
+    the hull ends any turn it was making. A hull nothing drives brakes rather
+    than keeping whatever speed it had.
   - **It turns only toward what it knows of**: a machine in its own sight, or
     one its side's spotters report (`SideSpotting`). A flanker out of sight, or
     come up behind cover, gets its shots on the side until it is seen. There is
@@ -1265,6 +1284,28 @@ across young or creep-killed wood drives through it, felling what it touches
 living mature wood holds every hull, and a scout car is held by the young wood
 that a troop APC crushes through.
 
+A medium or heavy hull **rams** light barricades (`BarricadeRam`; owner's pick,
+2026-10-27). A cell is *rammable* while it is closed and holds a sandbag, fence or
+crate piece of structure 100 or less that is not a fort's or an objective's works:
+works are rammed by nothing, as a Brute's charge rams them rather than bowling them
+over. Every hull that crushes undergrowth but the dozer, whose blade already pushes
+barricades down, drives into rammable cells spending its **momentum** on them, as
+the blade does: where its way covers all the pieces its footprint reaches they fall
+at once to their destroyed art and it drives on at the speed the rest gives, so an
+APC at full speed keeps about nine tenths of its way through one piece and a gun
+tank barely notices a row; where it does not, they share its way and it is brought
+up. A hull held by rammable cells and nothing else shoves at them at 40 structure a
+second until they give, and that counts as progress for its recovery, so a hull that
+came at a barricade slowly still gets through, slowly. Each hull plans over its own
+**breach view**: its crush view with every rammable cell opened whose structure its
+top speed carries, kept and caught up with the live grid cell by cell as the crush
+view is; its sweep still reads the crush view, where the piece stands until it is
+rammed. Rammable ground costs a route more than rubble, so a hull goes round a
+barricade where going round is short. `-Dbattle.vehicle.ramBarricades=false` is the
+control. Acceptance is the `vehicle-ram` scene's `ram-line` loops: an APC and a gun
+tank cross a sandbag and fence line with no way round, slowed and not stopped, where
+the control APC is held at it.
+
 A hull that runs into something that stops it is heard: a stopped move at half
 a cell a second or more is a **bump** (`GroundBody.recordBlocked`), and the
 machinery audio plays a heavy impact for it (`MachineAudio`, vanilla's
@@ -1561,7 +1602,11 @@ Acceptance is the `hover-line` scene:
 
 **Ground dust** is simulation presentation, like a wreck's smoke (`VehicleDustEmitter`).
 A wheeled or tracked hull moving over loose ground throws soft puffs off its trailing
-corners, and raises nothing on pavement. A hover skirt blows a low ring of haze, and
+wheels or track ends, back down their own lines, and raises nothing on pavement. Those
+lines are the hull's **running gear** (`RunningGear`), measured off its sprite: the
+centre line of each track or wheel row and where it touches down fore and aft. They are
+not the footprint, which leaves out jutting wheels and a dozer's blade, so dust and a
+lost drive's smoke come off the gear the paint shows. A hover skirt blows a low ring of haze, and
 spray over water, whether or not it moves. The puffs are queued as events that every host
 draws through its particle system, and they draw nothing from the simulation's random
 stream.

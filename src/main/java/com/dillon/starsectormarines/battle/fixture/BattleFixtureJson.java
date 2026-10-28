@@ -82,6 +82,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /** Headless JSON codec for versioned battle-construction fixtures. */
@@ -492,7 +493,7 @@ public final class BattleFixtureJson {
             boolean fitted = encoded.has("platingId") || encoded.has("driveId");
             Airframe frame = fitted
                     ? new FittedBoat(type, fitFromJson(encoded),
-                            encoded.optString("boatId", null), gunsFromJson(encoded))
+                            encoded.optString("boatId", null), gunsFromJson(encoded), podsFromJson(encoded))
                     : type;
             shuttles.add(new ShuttleAssignment(type, frame, cycles, seats,
                     encoded.has("embarkedPersonnel")
@@ -922,9 +923,22 @@ public final class BattleFixtureJson {
      * still reads, and still writes, the way it did.
      */
     private static void putRefittedGuns(JSONObject encoded, FittedBoat boat) throws Exception {
+        if (boat.pods().stream().anyMatch(Objects::nonNull)) {
+            // A pod's second gun, mount by mount; a mount with one gun is written blank.
+            encoded.put("pods", new JSONArray(boat.pods().stream().map(pod -> pod == null ? "" : pod).toList()));
+        }
         if (boat.guns().equals(FittedBoat.standard(boat.pattern()).guns())) return;
         // A bare hardpoint is written blank, which the codec reads back as bare.
         encoded.put("guns", new JSONArray(boat.guns().stream().map(gun -> gun == null ? FittedBoat.BARE : gun).toList()));
+    }
+
+    /** Each mount's second gun, or null for a fixture whose boats carry no pod. */
+    private static String[] podsFromJson(JSONObject encoded) throws Exception {
+        JSONArray pods = encoded.optJSONArray("pods");
+        if (pods == null) return null;
+        String[] decoded = new String[pods.length()];
+        for (int index = 0; index < decoded.length; index++) decoded[index] = pods.optString(index, null);
+        return decoded;
     }
 
     private static String[] gunsFromJson(JSONObject encoded) throws Exception {
@@ -938,7 +952,7 @@ public final class BattleFixtureJson {
     private static FittedBoat boatFromJson(JSONObject encoded) throws Exception {
         return new FittedBoat(
                 enumValue(ShuttleType.class, encoded.getString("type"), "shuttle type"),
-                fitFromJson(encoded), encoded.optString("boatId", null), gunsFromJson(encoded));
+                fitFromJson(encoded), encoded.optString("boatId", null), gunsFromJson(encoded), podsFromJson(encoded));
     }
 
     /**

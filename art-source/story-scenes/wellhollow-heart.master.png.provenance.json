@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17fc5-cfdf-75f1-8adc-7ab01a96e1bc",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17fc5-cfdf-75f1-8adc-7ab01a96e1bc\\exec-29929478-1d48-4d07-beb1-0d4879629dc3.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\story-scenes\\wellhollow-heart.master.png",
+    "sha256": "1bca4c220a68055d1fecbb23c042e1a582ccf72ea703708db64a74df23313b30",
+    "dimensions": [
+      2172,
+      724
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "art-source\\story-scenes\\wellhollow-heart.prompt.txt",
+  "promptSha256": "8bab63bd2f7b7de5e51ea7461421f66903fa50f5b4da6ab18756878d7e194396",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material/style only: finish, palette restraint and painting density of the existing dossier banners; not layout or subject\n\nUse case: illustration-story. Asset type: mission dossier location illustration for Starsector Marines, with a 3:1 panoramic composition intended for a 1200x400 in-game banner. Generate 3072x1024 if possible, full bleed single image. Late 1990s / early 2000s military science-fiction strategy-game matte painting, grounded realism, restrained palette, not neon cyberpunk, not horror-movie gore. Setting: the Wellhollow on the desert world Asharu, a sunk basin over an old aquifer: its floor is green, wooded and irrigated with orchards, channels and windbreak trees, ringed by a dry desert rim of grey dry scrub, sand and dirt roads. Something old and engineered has erupted from underground: the bloom. Its sign on the land is creep, a dark organic crust spreading over ground and up trees, and bores, ragged holes in the earth with ridged rims; never fix a colour for it beyond dark and organic. No visible monsters in close-up; at most a few distant low shapes. Tense pre-operation location portrait, not a victory scene or casualty claim. Strong small-size silhouettes, key subjects in the middle horizontal band. No text, numbers, logos, UI, borders, panels or watermark.\nScene: dawn over the overgrown heart of the basin. Dense irrigated woodland grown over by creep, trees crusted and bowed; at the centre an old well field and pump-house ruins sunk among several great bores with high ridged rims, faint mist rising. In the foreground, the edge of the advance: a burnt firebreak of black ground and smouldering stumps, artillery shell bursts walking ahead into the trees, and small figures of soldiers and a few light vehicles on a road leading in. The desert rim far behind under a pale sky.\nCorrection after a first attempt that read as clean green woodland round a quarry: the heart must read as infested at banner size. Most of the mid and far woodland is overgrown by the dark organic creep: trunks and canopies crusted, sagging and darkened, ground between them covered, only a few green trees left near the edges. The bores are organic: three or four great raised mounds with ridged, fleshy-looking rims and dark open throats, mist and spores rising, not stone pits or quarries, no waterfalls. The old pump-house ruins are half swallowed by the crust. Keep the burnt firebreak, the walking barrage bursts in the trees and the small advancing figures in the foreground.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\story-scenes\\salvage-rights.master.png",
+      "sha256": "dea09faa09da415f6b9a1a33fd0c8fe2a7634488c886a5b0db6996e7a0984144",
+      "dimensions": [
+        2172,
+        724
+      ],
+      "mode": "RGB",
+      "role": "Material/style only: finish, palette restraint and painting density of the existing dossier banners; not layout or subject"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one panoramic image, with the infested woodland and organic bores clearly readable at banner size."
+  ],
+  "usage": {
+    "input_tokens": 39459,
+    "cached_input_tokens": 32384,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 760,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 67.4
+}

@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.creep;
 
+import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.MapEditor;
@@ -229,6 +230,7 @@ public final class CreepVegetation {
         for (String suffix : new String[]{"-damaged", "-destroyed"}) {
             if (base.endsWith(suffix)) base = base.substring(0, base.length() - suffix.length());
         }
+        if (base.endsWith(NaturalPropShape.DRY)) base = base.substring(0, base.length() - NaturalPropShape.DRY.length());
         for (TreeCanopy c : TreeCanopy.values()) if (c.id.equals(base)) return c;
         return null;
     }

@@ -38,11 +38,36 @@ public class SquadMedicSystemTest {
     }
 
     @Test
-    public void aHurtMedicAloneHasNobodyToTreat() {
+    public void aHurtMedicAloneTreatsThemselvesWithoutAnApproach() {
         Ward ward = squad();
         ward.hp.put(3L, 5f);
         SquadMedic medic = medicFor(ward);
-        assertEquals(0L, SquadMedicSystem.worstHurt(medic, ward));
+        assertEquals(3L, SquadMedicSystem.worstHurt(medic, ward));
+
+        SquadMedicSystem.step(medic, ward, DT);
+        assertEquals(SquadMedic.Phase.TREATING, medic.phase());
+        assertEquals(3L, medic.patientId());
+        runUntilIdle(medic, ward);
+        assertEquals(25f, ward.hp.get(3L), 1e-4f);
+        assertEquals(1, medic.completed());
+    }
+
+    @Test
+    public void aWorseHurtSquadmateIsTreatedBeforeTheMedic() {
+        Ward ward = squad();
+        ward.hp.put(3L, 12f);
+        ward.hp.put(4L, 5f);
+        assertEquals(4L, SquadMedicSystem.worstHurt(medicFor(ward), ward));
+    }
+
+    @Test
+    public void aMedicDoesNotTreatThemselvesWhileAnotherMedicHasThem() {
+        Ward ward = squad();
+        ward.hp.put(3L, 5f);
+        SquadMedic kit = new SquadMedic(RANK_ONE, 2L);
+        kit.patientId = 3L;
+        ward.held.put(3L, kit);
+        assertEquals(0L, SquadMedicSystem.worstHurt(medicFor(ward), ward));
     }
 
     @Test

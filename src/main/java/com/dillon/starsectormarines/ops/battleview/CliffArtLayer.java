@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationBrush;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationLayout;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
+import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.render2d.GlStateBracket;
 import com.dillon.starsectormarines.render2d.ShaderProgram;
@@ -107,7 +108,7 @@ final class CliffArtLayer implements RenderSystem {
         CellTopology topology = ctx.sim.getTopology();
         ElevationLayout art = topology == null ? null : topology.cliffArt();
         if (art == null) return;
-        bake(art);
+        bake(art, topology);
         if (pixels.length == 0) return;
         BattleCamera camera = ctx.camera;
         VisibleCellRect view = camera.visibleCells(1, mapW, mapH);
@@ -125,8 +126,28 @@ final class CliffArtLayer implements RenderSystem {
 
     // ---- bake ------------------------------------------------------------------
 
+    /**
+     * Cells of sand, stone or snow, where a lip is bare rather than turfed (raised ground on a basin's dry rim); null
+     * when there are none, as on a green map. A dirt patch on a meadow keeps its turf.
+     */
+    static boolean[] dryGround(CellTopology topology) {
+        if (topology == null) return null;
+        int w = topology.getWidth(), h = topology.getHeight();
+        boolean[] dry = new boolean[w * h];
+        boolean any = false;
+        for (int y = 0; y < h; y++) {
+            for (int x = 0; x < w; x++) {
+                GroundKind kind = topology.getGroundKind(x, y);
+                if (kind != GroundKind.SAND && kind != GroundKind.STONE && kind != GroundKind.SNOW) continue;
+                dry[y * w + x] = true;
+                any = true;
+            }
+        }
+        return any ? dry : null;
+    }
+
     /** Bakes the layout's look, unless it is already baked for this layout and sun. GL-free. */
-    void bake(ElevationLayout art) {
+    void bake(ElevationLayout art, CellTopology topology) {
         if (art == baked && sun.azimuthDegrees() == bakedAzimuth && sun.elevationDegrees() == bakedElevation) return;
         baked = art;
         bakedAzimuth = sun.azimuthDegrees();
@@ -164,7 +185,7 @@ final class CliffArtLayer implements RenderSystem {
             originX[i] = origins.get(i)[0];
             originY[i] = origins.get(i)[1];
         }
-        CliffShading shading = new CliffShading(art, sun, texels);
+        CliffShading shading = new CliffShading(art, sun, texels, dryGround(topology));
         pixels = new byte[count][];
         IntStream.range(0, count).parallel().forEach(i -> pixels[i] = bakeChunk(shading, near, originX[i], originY[i]));
     }

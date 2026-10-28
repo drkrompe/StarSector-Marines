@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -128,9 +129,9 @@ public final class CompanyDeck {
     }
 
     /** The door guns on each of her boats, mount by mount; read on this thread, as she is adopted and on each {@link #refitDoorGuns()}. */
-    private Supplier<String[][]> doorGuns = () -> null;
+    private Supplier<FittedBoat[]> doorGuns = () -> null;
 
-    public CompanyDeck doorGuns(Supplier<String[][]> guns) {
+    public CompanyDeck doorGuns(Supplier<FittedBoat[]> guns) {
         doorGuns = guns == null ? () -> null : guns;
         return this;
     }
@@ -478,6 +479,20 @@ public final class CompanyDeck {
         return lastHeld;
     }
 
+    /**
+     * Loads one file {@link #HELD_FILE} names, if it still exists. The file outlives the build that
+     * wrote it, so it can name art a later build removed; the game reports a missing file with a
+     * {@code RuntimeException}. The lease does not hold such a path, so the next
+     * {@link #rememberHeld} drops it from the file.
+     */
+    static void reacquireHeld(TextureLease held, String path) {
+        try {
+            held.acquire(path);
+        } catch (IOException | RuntimeException missing) {
+            // The loaders below report anything she still draws, as they would have the first time.
+        }
+    }
+
     private static void rememberHeld(Collection<String> paths) {
         lastHeld = List.copyOf(paths);
         try {
@@ -641,13 +656,7 @@ public final class CompanyDeck {
         TextureLease held = lease;
         List<String> lastHeld = lastHeld();
         for (String path : lastHeld) {
-            steps.add(new TextureLoadQueue.Step("held " + path, () -> {
-                try {
-                    held.acquire(path);
-                } catch (IOException missing) {
-                    // The loaders below report it, as they would have the first time.
-                }
-            }));
+            steps.add(new TextureLoadQueue.Step("held " + path, () -> reacquireHeld(held, path)));
         }
         steps.add(new TextureLoadQueue.Step("urban sheet", s::ensureUrbanSheet));
         // Only the catalog sheets her deck places; another loads on its first draw.

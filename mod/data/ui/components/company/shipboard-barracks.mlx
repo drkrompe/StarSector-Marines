@@ -17,7 +17,7 @@
       <button id="barracks-officer-dossier" class="{command.dossierButtonClasses}" onclick="{command.openDossier}">{i18n.openingUiShipboardBarracksOfficerDossier}</button>
       <button id="barracks-company-roster-open" class="flow-button console-action" onclick="{command.openRoster}">{i18n.companyRosterOpen}</button>
       <button id="barracks-guide-help" class="flow-button console-action" disabled="{command.guideHelpDisabled}" onclick="{command.guideHelp}">{command.guideHelpLabel}</button>
-      <button id="barracks-missions" class="{command.missionClasses}" onclick="{command.missions}">{command.missionLabel}</button>
+      <button id="barracks-missions" class="{command.missionClasses}" style="{command.missionStyle}" onclick="{command.missions}">{command.missionLabel}</button>
     </div>
     <div id="barracks-command-board" class="command-board">
       <div id="barracks-command-rail" class="command-rail panel console-section">
@@ -335,6 +335,7 @@
   .guide-dismiss { width: 82px; height: 28px; font-family: heading; text-align: center; }
   .guide-close-hint { width: 0px; flex-grow: 1; min-height: 30px; white-space: normal; font-family: compact; }
   .equipment-new { border-color: #cfaa69; color: #ffd464; }
+  .mission-call { width: 190px; }
   .flow-button { white-space: normal; width: 190px; min-height: 38px; font-family: heading; text-align: center; }
   .assignment-reason { height: 35px; }
   .recruit-stock { flex-direction: row; align-items: center; width: 290px; height: 36px; gap: 8px; padding: 0px 8px; }

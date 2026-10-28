@@ -135,6 +135,8 @@ public class GroundSystem {
 
     public void setTracks(HeavyTracks tracks) { controlSystem.setTracks(tracks); }
 
+    public void setRam(BarricadeRam ram) { controlSystem.setRam(ram); }
+
     /** Lets a move order's last rung brush soft ground ({@link SoftBrush}). */
     public void setBrush(SoftBrush brush) { controlSystem.setBrush(brush); }
 
@@ -288,6 +290,8 @@ public class GroundSystem {
                     // Story columns retain ordinary steering, footprint collision and weapons; so does a defender hull
                     // a mission drives (the Dust Ledger's rocket truck working its corners).
                     if (convoy.faction(id) != Faction.MARINE && m.authoredRouteX != null) {
+                        // The route owns the chassis; a turn it was making where it stood ends here.
+                        engagement.yieldTo(id);
                         if (m.authoredRoutePaused) {
                             controlSystem.tickManual(id, dt, 0f, 0f);
                             break;

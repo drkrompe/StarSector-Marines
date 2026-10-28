@@ -73,6 +73,15 @@ public interface Airframe {
     }
 
     /**
+     * The second gun sharing each hardpoint's turret as a pod, by turret structure, in hardpoint
+     * order beside {@link #kitFor}; null, or a null entry, for a mount with one gun. Only a
+     * company boat whose yard put two 2x1 guns on one hardpoint has any.
+     */
+    default String[] podKitFor(TurretRole role) {
+        return null;
+    }
+
+    /**
      * How this aircraft flies.
      *
      * <p>Asked rather than implemented, because the two kinds of airframe know

@@ -35,6 +35,7 @@ com.dillon.starsectormarines.ops.MissionUiSnapshotSuite
 com.dillon.starsectormarines.ops.MechConsoleSnapshotSuite
 com.dillon.starsectormarines.ops.BoatConsoleSnapshotSuite
 com.dillon.starsectormarines.ops.BarracksCommandSnapshotSuite
+com.dillon.starsectormarines.ops.BarracksMissionCallSnapshotSuite
 com.dillon.starsectormarines.ops.BarracksMedicSnapshotSuite
 com.dillon.starsectormarines.ops.OfficerDossierSnapshotSuite
 com.dillon.starsectormarines.ops.FirstContractSnapshotSuite
@@ -138,6 +139,7 @@ com.dillon.starsectormarines.ops.EquipmentLocalizationSnapshotSuite
 com.dillon.starsectormarines.ops.MissionFlowLocalizationSnapshotSuite
 com.dillon.starsectormarines.ops.EngineeringOverlaySnapshotSuite
 com.dillon.starsectormarines.ops.ColdStartSnapshotSuite
+com.dillon.starsectormarines.battle.air.BoatPodSceneSnapshotSuite
 com.dillon.starsectormarines.battle.air.CloseAirSupportSceneSnapshotSuite
 com.dillon.starsectormarines.battle.command.DefenceStructureCommandSceneSnapshotSuite
 com.dillon.starsectormarines.ops.ResourceBillSnapshotSuite
@@ -368,3 +370,5 @@ com.dillon.starsectormarines.battle.squad.SquadRunSceneSnapshotSuite
 com.dillon.starsectormarines.ops.ReticleAmmoSnapshotSuite
 com.dillon.starsectormarines.ops.CounterattackDepotLookSuite
 com.dillon.starsectormarines.ops.JunctionLookSuite
+com.dillon.starsectormarines.battle.world.gen.BloomPaletteLookSuite
+com.dillon.starsectormarines.ops.WellhollowArtSnapshotSuite

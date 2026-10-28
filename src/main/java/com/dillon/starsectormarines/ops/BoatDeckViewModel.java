@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.marine.BoatFrame;
 import com.dillon.starsectormarines.marine.BoatGun;
+import com.dillon.starsectormarines.marine.BoatHardpoint;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
 import com.dillon.starsectormarines.ops.battleview.BoatDoll;
 import com.dillon.starsectormarines.marine.CampaignBoat;
@@ -394,8 +395,8 @@ public final class BoatDeckViewModel {
         if (kind == BoatDoll.Kind.HARDPOINT) {
             int hardpoint = BoatDoll.hardpointOf(key);
             BoatGun gun = BoatGun.findById(itemId);
-            return deck.spares(itemId) > 0
-                    && BoatFrame.admits(boat, before, BoatFrame.weightWithGun(boat, hardpoint, gun));
+            return deck.spares(itemId) > 0 && BoatFrame.admits(boat, before,
+                    BoatFrame.weightWithGun(boat, hardpoint, BoatDoll.positionOf(key), gun));
         }
         BoatFitting fitting = BoatFitting.findById(itemId);
         return deck.spares(itemId) > 0 && BoatFrame.admits(boat, before, BoatFrame.weightWith(boat, fitting));
@@ -421,13 +422,16 @@ public final class BoatDeckViewModel {
         return slot == null ? null : dollKind(slot);
     }
 
-    /** What a socket holds, as a drag lifting it off carries it; null for an unknown socket. */
+    /**
+     * What a socket holds, as a drag lifting it off carries it; null for an unknown socket. A
+     * hardpoint answers by position: the gun in that row, or a 2x2 gun in either.
+     */
     public String installedIn(String key) {
         CampaignBoat boat = selectedBoat();
         if (boat == null || key == null) return null;
         int hardpoint = BoatDoll.hardpointOf(key);
         if (hardpoint >= 0) {
-            BoatGun gun = boat.gunOn(hardpoint);
+            BoatGun gun = BoatHardpoint.occupant(boat.gunsAt(hardpoint), BoatDoll.positionOf(key));
             return gun == null ? null : gun.id();
         }
         BoatFittingSlot slot = slotOf(key);
@@ -435,16 +439,25 @@ public final class BoatDeckViewModel {
         return fitting == null ? null : fitting.id();
     }
 
-    /** Whether a part lifted off one socket can go straight onto another: a gun, to another hardpoint. */
+    /**
+     * Whether a part lifted off one socket can go straight onto another: a gun, to another
+     * hardpoint position, the other position of its own hardpoint included for a 2x1 gun.
+     */
     public boolean canMoveBetweenSockets(String from, String to) {
         CampaignBoat boat = selectedBoat();
         if (boat == null || from == null || to == null || from.equals(to) || !canLiftOff(from)) return false;
         int source = BoatDoll.hardpointOf(from);
         int target = BoatDoll.hardpointOf(to);
-        return source >= 0 && boat.hasHardpoint(target) && boat.gunOn(target) != boat.gunOn(source);
+        if (source < 0 || !boat.hasHardpoint(target)) return false;
+        int fromPosition = BoatDoll.positionOf(from), toPosition = BoatDoll.positionOf(to);
+        BoatGun gun = BoatHardpoint.occupant(boat.gunsAt(source), fromPosition);
+        if (source == target && (fromPosition == toPosition || !gun.half())) return false;
+        BoatGun[] landing = source == target
+                ? BoatHardpoint.placed(boat.gunsAt(source), fromPosition, null) : boat.gunsAt(target);
+        return BoatHardpoint.occupant(landing, toPosition) != gun;
     }
 
-    /** Moves a gun lifted off one hardpoint onto another; see {@link BoatWorkshop#moveGun}. */
+    /** Moves a gun lifted off one hardpoint position onto another; see {@link BoatWorkshop#moveGun}. */
     public void moveBetweenSockets(String from, String to) {
         CampaignBoat boat = selectedBoat();
         if (!canMoveBetweenSockets(from, to)) {
@@ -453,8 +466,9 @@ public final class BoatDeckViewModel {
         }
         int source = BoatDoll.hardpointOf(from);
         int target = BoatDoll.hardpointOf(to);
-        BoatGun gun = boat.gunOn(source);
-        BoatWorkshop.Result result = workshop.moveGun(boat.id(), source, target);
+        BoatGun gun = BoatHardpoint.occupant(boat.gunsAt(source), BoatDoll.positionOf(from));
+        BoatWorkshop.Result result = workshop.moveGun(boat.id(), source, BoatDoll.positionOf(from),
+                target, BoatDoll.positionOf(to));
         selectDollSlot(to);
         report(result, result.succeeded()
                 ? Strings.format("boatDeckGunMoved", gun.displayName(), hardpointLabel(source), hardpointLabel(target))
@@ -473,7 +487,7 @@ public final class BoatDeckViewModel {
         int hardpoint = BoatDoll.hardpointOf(key);
         BoatFittingSlot slot = hardpoint >= 0 ? null : slotOf(key);
         BoatWorkshop.Result result = hardpoint >= 0
-                ? workshop.stripGun(boat.id(), hardpoint)
+                ? workshop.stripGun(boat.id(), hardpoint, BoatDoll.positionOf(key))
                 : workshop.strip(boat.id(), slot);
         selectDollSlot(key);
         report(result, !result.succeeded() ? Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged")
@@ -559,7 +573,8 @@ public final class BoatDeckViewModel {
         int hardpoint = BoatDoll.hardpointOf(key);
         if (kind == BoatDoll.Kind.HARDPOINT) {
             BoatGun gun = BoatGun.findById(itemId);
-            return gun != null && boat.hasHardpoint(hardpoint) && boat.gunOn(hardpoint) != gun
+            return gun != null && boat.hasHardpoint(hardpoint)
+                    && BoatHardpoint.occupant(boat.gunsAt(hardpoint), BoatDoll.positionOf(key)) != gun
                     && gun.supports(boat.pattern());
         }
         BoatFitting fitting = BoatFitting.findById(itemId);
@@ -576,7 +591,7 @@ public final class BoatDeckViewModel {
         boolean takes = socketTakes(kind, itemId, key);
         selectDollSlot(key);
         if (!takes) return;
-        if (kind == BoatDoll.Kind.HARDPOINT) fitGun(BoatDoll.hardpointOf(key), itemId);
+        if (kind == BoatDoll.Kind.HARDPOINT) fitGun(BoatDoll.hardpointOf(key), BoatDoll.positionOf(key), itemId);
         else fit(itemId);
     }
 
@@ -788,7 +803,10 @@ public final class BoatDeckViewModel {
         boolean free = false;
         FabricationCost bill = resources.quote(gun.bill());
         boolean held = selectedHardpoint.get() != NO_HARDPOINT && mounts.contains(selectedHardpoint.get());
-        String on = mounts.stream().map(index -> Strings.format("boatDeckHardpointShort", index + 1))
+        // A pod of two of this gun reads as its hardpoint twice over, not as two hardpoints.
+        String on = mounts.stream().distinct().map(index -> Strings.format(
+                        mounts.indexOf(index) == mounts.lastIndexOf(index) ? "boatDeckHardpointShort"
+                                : "boatDeckHardpointPair", index + 1))
                 .reduce((a, b) -> a + "  ·  " + b).orElse("");
         return card(BoatDoll.Kind.HARDPOINT, gun.id(), "boat-catalog:gun:" + gun.id(), gun.displayName(),
                 gun.tier(), gun.effect(),
@@ -855,7 +873,7 @@ public final class BoatDeckViewModel {
                     Strings.get("boatDeckArmor"));
             case DRIVE -> signed(pattern.maxSpeed() * (fitting.speedFactor() - installed.speedFactor()),
                     Strings.get("openingBoatDeckSpeed"));
-            case LIFT -> Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
+            case LIFT -> Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftOn(pattern)));
             case CABIN, EMITTER, POWER -> effect(fitting);
         };
     }
@@ -865,11 +883,11 @@ public final class BoatDeckViewModel {
         return (amount < 0f ? "-" : "+") + value + " " + stat;
     }
 
-    /** The hardpoints a gun is on, in order. */
+    /** The hardpoints a gun is on, in order, once for each of it there: a pod of two lists its hardpoint twice. */
     private static List<Integer> mountsCarrying(CampaignBoat boat, BoatGun gun) {
         List<Integer> mounts = new ArrayList<>();
         for (int index = 0; index < boat.pattern().hardpoints(); index++) {
-            if (boat.gunOn(index) == gun) mounts.add(index);
+            for (BoatGun fitted : boat.gunsOn(index)) if (fitted == gun) mounts.add(index);
         }
         return mounts;
     }
@@ -901,18 +919,23 @@ public final class BoatDeckViewModel {
             rows.add(readiness("no-shield", "warn", Strings.get("boatReadinessNoShield"),
                     Strings.get("boatReadinessNoShieldDetail"), BoatDoll.slotKey(BoatFittingSlot.EMITTER)));
         }
+        // A mount is empty with no gun on it at all; one 2x1 gun with room beside it is armed.
         int bare = 0;
+        int guns = 0;
         int firstBare = -1;
         for (int index = 0; index < pattern.hardpoints(); index++) {
-            if (boat.gunOn(index) != null) continue;
+            int on = boat.gunsOn(index).size();
+            guns += on;
+            if (on > 0) continue;
             bare++;
             if (firstBare < 0) firstBare = index;
         }
         if (bare > 0) {
+            int armed = pattern.hardpoints() - bare;
             rows.add(readiness("bare-mounts", "warn",
                     Strings.format("boatReadinessBareMounts", bare, pattern.hardpoints()),
-                    Strings.get(bare == pattern.hardpoints() ? "boatReadinessNoGunsDetail"
-                            : "boatReadinessBareMountsDetail"),
+                    bare == pattern.hardpoints() ? Strings.get("boatReadinessNoGunsDetail")
+                            : Strings.format("boatReadinessBareMountsDetail", guns, armed),
                     BoatDoll.HARDPOINT_KEY + firstBare));
         }
         if (rows.isEmpty()) {
@@ -1045,13 +1068,16 @@ public final class BoatDeckViewModel {
         }
         List<WeaponSlot> mounts = TurretSlotResolver.mounts(pattern.renderHullId());
         for (int index = 0; index < pattern.hardpoints(); index++) {
-            BoatGun gun = boat.gunOn(index);
+            BoatGun[] pair = boat.gunsAt(index);
+            BoatGun gun = pair[BoatHardpoint.TOP], pod = pair[BoatHardpoint.BOTTOM];
+            BoatGun named = gun != null ? gun : pod;
             WeaponSlot mount = index < mounts.size() ? mounts.get(index) : null;
-            slots.add(gun == null
-                    ? BoatDoll.Slot.hardpoint(index, null, hardpointLabel(index), Strings.get("boatDeckHardpointBare"),
-                            "", index == hardpoint, mount)
-                    : BoatDoll.Slot.hardpoint(index, gun.id(), hardpointLabel(index), gun.displayName(),
-                            gunTier(boat, index, gun), index == hardpoint, mount));
+            String fitted = named == null ? Strings.get("boatDeckHardpointBare")
+                    : gun != null && pod != null ? Strings.format("boatDeckPodFitted", gun.displayName(), pod.displayName())
+                    : named.displayName();
+            slots.add(BoatDoll.Slot.hardpoint(index, gun == null ? null : gun.id(), pod == null ? null : pod.id(),
+                    hardpointLabel(index), fitted, named == null ? "" : gunTier(boat, index, named),
+                    index == hardpoint, mount));
         }
         return new BoatDoll(pattern, boat.displayName(), pattern.displayName(), List.copyOf(slots));
     }
@@ -1109,17 +1135,17 @@ public final class BoatDeckViewModel {
         feedbackClasses.set("boat-deck-feedback tone-muted surface-dark");
     }
 
-    private void fitGun(int hardpoint, String gunId) {
+    private void fitGun(int hardpoint, int position, String gunId) {
         CampaignBoat boat = selectedBoat();
         BoatGun gun = BoatGun.findById(gunId);
         if (boat == null || gun == null) return;
-        BoatWorkshop.Result result = workshop.fitGun(boat.id(), hardpoint, gunId);
+        BoatWorkshop.Result result = workshop.fitGun(boat.id(), hardpoint, position, gunId);
         feedbackText.set(switch (result.status()) {
             case FITTED -> Strings.format("boatDeckGunFitted", gun.displayName(), hardpointLabel(hardpoint), boat.displayName());
             case ALREADY_FITTED -> Strings.format("openingBoatDeckIsAlreadyFittedTo", gun.displayName(), boat.displayName());
             case NO_SPARE -> Strings.format("boatDeckNoSpare", gun.displayName());
             case OVER_FRAME -> Strings.format("boatDeckOverFrame", gun.displayName(),
-                    BoatFrame.weightWithGun(boat, hardpoint, gun), BoatFrame.rating(boat.pattern()));
+                    BoatFrame.weightWithGun(boat, hardpoint, position, gun), BoatFrame.rating(boat.pattern()));
             case INCOMPATIBLE_FITTING -> Strings.get("boatDeckHardpointHermes");
             default -> Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged");
         });
@@ -1291,6 +1317,12 @@ public final class BoatDeckViewModel {
         return recipe == null ? "" : CompanyResources.creditAmount(workshop.fabricationQuote(recipe.pattern()).credits());
     }
 
+    /** The selected boat's pattern, for what her parts do on her; null with no boat selected. */
+    public ShuttleType selectedPattern() {
+        CampaignBoat boat = selectedBoat();
+        return boat == null ? null : boat.pattern();
+    }
+
     private CampaignBoat selectedBoat() {
         revision.get();
         int berth = selectedBerth.get();
@@ -1311,7 +1343,8 @@ public final class BoatDeckViewModel {
         CampaignBoat boat = selectedBoat();
         return switch (fitting.slot()) {
             case PLATING -> Strings.format("boatDeckArmorEffect", factor(fitting.armorFactor()));
-            case LIFT -> Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
+            case LIFT -> Strings.format("boatDeckLiftEffect",
+                    LiftReadout.ratingName(fitting.liftOn(boat == null ? null : boat.pattern())));
             case DRIVE -> Strings.format("boatDeckDriveEffect", factor(fitting.speedFactor()),
                     factor(fitting.deboardFactor()));
             case CABIN -> Strings.format("boatDeckCabinEffect",

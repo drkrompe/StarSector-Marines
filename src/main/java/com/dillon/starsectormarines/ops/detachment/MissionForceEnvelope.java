@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.DistrictEscortCampaign;
+import com.dillon.starsectormarines.ops.WellhollowBloomCampaign;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.i18n.Strings;
 
@@ -53,7 +54,7 @@ public final class MissionForceEnvelope {
                         || mission.source == MissionSource.POLITY_DEFENCE
                         || OpeningOperationKind.fromMission(mission) != null
                         || SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
-                        || DistrictEscortCampaign.isBattle(mission))
+                        || DistrictEscortCampaign.isBattle(mission) || WellhollowBloomCampaign.isBattle(mission))
                 && mission.type != MissionType.CONQUEST
                 || mission != null && mission.source == MissionSource.NEX_INVASION;
     }
@@ -87,9 +88,15 @@ public final class MissionForceEnvelope {
     public static int recommendedSquads(Mission mission) {
         if (ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
                 || DistrictEscortCampaign.isBattle(mission)) return 2;
+        if (WellhollowBloomCampaign.isBattle(mission)) return WellhollowBloomCampaign.RECOMMENDED_SQUADS;
         if (CorvusWaylineCampaign.isBattle(mission)) return CorvusWaylineProgress.forMission(mission.id).squads;
         if (mission != null && SupplyRouteCampaign.owns(mission.id)) return 2;
         return mission != null ? recommendedSquads(mission.type, mission.tier) : 0;
+    }
+
+    /** Mechs or vehicles recommended beside the squads: only end-game challenge work names any. */
+    public static int recommendedMachines(Mission mission) {
+        return WellhollowBloomCampaign.isBattle(mission) ? WellhollowBloomCampaign.RECOMMENDED_MACHINES : 0;
     }
 
     public static int recommendedSquads(MissionType type, OperationTier tier) {

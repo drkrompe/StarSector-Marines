@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a17f61-9509-7700-8bd7-5da438fd80c9",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a17f61-9509-7700-8bd7-5da438fd80c9\\exec-1a51b794-e3e5-4655-8368-500933bf0b03.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\dry-woodland\\raw\\scrub-undergrowth-damaged.raw.png",
+    "sha256": "30216e6866b2e38990bb0bf0f1a6957b2433f3ebd9a5f1fcddd16f5a92bb274f",
+    "dimensions": [
+      1536,
+      1024
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\dry-woodland\\prompts\\scrub-undergrowth-damaged.prompt.txt",
+  "promptSha256": "035a251417c4f5cd9e18e1434bcd6ce4712882493f0450d0094d2bda575b7cb7",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: envelopes, centers, sizes and holes\nImage 2: Species, material and palette identity only; not layout\n\nUse case: sketch-to-render. RESKIN image 1, the authoritative geometry guide, into a transparent sprite sheet of DAMAGED overhead dry-country undergrowth for a top-down tactical game. Image 2 is the intact sheet and is the species, material and palette identity: the same six grey dry-scrub plants in the same places, now shot through and torn. Do not copy its exact pixels; follow image 1's thinned layout.\nPreserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch, every silhouette's center, size and envelope. Nothing grows beyond the guide envelope; do not enlarge anything.\nCamera STRAIGHT DOWN, orthographic plan view, as image 2.\nOrder: dead-brush patch, small dead-brush, grey thornscrub thicket; small saltbush, spinifex hummock bed, scrub saplings. Each is still standing and still its own plant, but thinned: torn and missing leaf clumps, snapped pale splintered twigs, some browned and scorched leaves, more transparent holes than the intact sheet so ground shows through. The dead-brush keeps its tangled grey branches; the spinifex keeps its spiky hummocks, some crushed and frayed; the saplings keep three separate smaller crowns.\nPalette as image 2: silver-grey, slate green, grey-olive, rusty ochre and straw. Painterly realistic rendering matching image 2. No ground shadow, no sand or soil disc, no debris outside the envelope, no labels, no text, no border. True transparent background including every hole. Keep all six registered to the guide and keep the 3:2 canvas.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\templates\\undergrowth-damaged.png",
+      "sha256": "d65f9fca42926aafdcd055f649b2918fe6763dfa80ea77f4b3503d5efde56fc1",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: envelopes, centers, sizes and holes"
+    },
+    {
+      "path": "art-source\\dry-woodland\\raw\\scrub-undergrowth.raw.png",
+      "sha256": "50814a6fac338ffaf0cf81e7546513283835a958f7f2c902c8eb3510fbd50d40",
+      "dimensions": [
+        1536,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Species, material and palette identity only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one transparent sprite sheet using Image 1 for geometry and Image 2 for species, materials, and palette."
+  ],
+  "usage": {
+    "input_tokens": 70543,
+    "cached_input_tokens": 58240,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 721,
+    "reasoning_output_tokens": 22
+  },
+  "elapsedSeconds": 84.2
+}

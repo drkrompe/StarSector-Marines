@@ -8,6 +8,7 @@ starting points, not settled balance.
 Written: 2026-10-14
 Updated: 2026-10-23 — keep-moving shipped as the only movement mode (switch and planted path deleted); supplies and cooldown replaced by an energy pool with a start gate; open question 2 closed.
 Updated: 2026-10-27 — the suits' field-aid kits now make their wearers squad medics on the same pool, and under Field Medicine complement the officer's medic instead (owner); see Kit medics.
+Updated: 2026-10-27 — a medic may treat themselves (owner); the squad card marks kit-wearing medics; open question 4 closed.
 
 Read `progression-nouns.md` (officer career, legibility law),
 `combat-durability-nouns.md` (armor break, the no-regeneration rule this story
@@ -114,10 +115,16 @@ couple of minutes of fighting — a Conquest's long middle, not one firefight.
   waits three seconds before setting out again, so a patient they cannot reach
   is not chased afresh every tick. A finished or interrupted treatment has no
   delay; the start gate already keeps an empty pool from restarting.
-- **Never the medic themselves.** This is the same rule as field aid.
+- **A medic may treat themselves** (owner, 2026-10-27). They count as a
+  squadmate when choosing a patient, so a worse-hurt squadmate still comes
+  first, and they are always in their own reach, so there is no approach. Unlike
+  treating another, self-treatment holds the medic where they stand as well as
+  holding fire: the price of binding your own wounds. It spends the same pool
+  and meets the same gates, and a medic never treats themselves while another
+  medic has them as a patient.
 - A patient qualifies below 70% health, or with armor below 50% of capacity
-  (including broken). The worst-hurt qualifying squadmate wins, and health
-  outranks armor at equal need.
+  (including broken). The worst-hurt qualifying squadmate (the medic included)
+  wins, and health outranks armor at equal need.
 - Squadmates only. Not other squads, not allied factions.
 
 The treatment ends when the patient is healed to its maxima, when the pool is
@@ -228,10 +235,8 @@ This must stay inside the yield and goal rules the scenes have already enforced:
 2. ~~Planted or keep moving.~~ Closed 2026-10-23: keep moving is the only
    behaviour, and not a player option.
 3. **Specialty copy** against the `FIELD_MEDIC` trait, above.
-4. **Kit wearers on the squad card.** Without Field Medicine the card marks no
-   medic, though kit wearers treat; they show their kit on the suit line but
-   carry no card badge. Marking them needs the card to resolve each billet's
-   issued armour.
+4. ~~Kit wearers on the squad card.~~ Closed 2026-10-27: without Field Medicine the card marks
+   every ready billet whose issued suit carries a field-aid kit; with it, only the officer's billet.
 
 ## Evidence so far
 

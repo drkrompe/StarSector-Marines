@@ -59,9 +59,50 @@ public final class MountedTurret {
      */
     public float recoilTimer = 1f;
 
+    /**
+     * The second gun sharing this one's turret as a pod, or null. A company boat's hardpoint takes
+     * two 2x1 guns (owner pick, 2026-10-27): both sit on the one slot with its one arc, the pod
+     * turns as one on whichever of them has a target, lead first, and each fires on its own
+     * cadence. Set only by {@link AirArmament}.
+     */
+    public MountedTurret podPartner;
+    /** The pod's lead gun when this is its second gun, or null. */
+    public MountedTurret podLead;
+
+    /**
+     * How far each of a pod's barrels sits off its slot, in cells across the pod's facing: the
+     * lead to the left, the second gun to the right.
+     */
+    public static final float POD_BARREL_OFFSET_CELLS = 0.24f;
+
     public MountedTurret(TurretMount mount) {
         this.mount = mount;
         this.ammo = mount.mountDef().ammoCapacity;
+    }
+
+    /** Which side of its pod this gun's barrel is on: -1 left for the lead, +1 right for the second, 0 alone. */
+    public int podSide() {
+        return podPartner != null ? -1 : podLead != null ? 1 : 0;
+    }
+
+    /** The facing the pod's housing turns to: its lead's, or this gun's own when it has no pod. */
+    public float podFacingDegrees() {
+        return podLead != null ? podLead.facingDegrees : facingDegrees;
+    }
+
+    /**
+     * The world-frame offset of this gun's barrel from its slot, {x, y} in cells, scaled by
+     * {@code extraScale}: across the pod's facing by {@link #POD_BARREL_OFFSET_CELLS} on its
+     * {@linkplain #podSide side}, nothing for a gun alone. Shared by the sim's shot origin and
+     * the renderer.
+     */
+    public float[] barrelOffset(float extraScale) {
+        int side = podSide();
+        if (side == 0) return new float[]{0f, 0f};
+        double facing = Math.toRadians(podFacingDegrees());
+        // Facing 0 is +Y, counter-clockwise positive, so the pod's right is (cos, sin).
+        float reach = side * POD_BARREL_OFFSET_CELLS * extraScale;
+        return new float[]{reach * (float) Math.cos(facing), reach * (float) Math.sin(facing)};
     }
 
     /** Write the locked target id ({@code 0L} = none) into {@link #targetId}. */

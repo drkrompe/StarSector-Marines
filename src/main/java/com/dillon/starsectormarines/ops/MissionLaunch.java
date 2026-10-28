@@ -258,6 +258,11 @@ public final class MissionLaunch {
             if (!AgreusArcCampaign.atSite(ctx.planet))
                 throw new IllegalStateException("Travel to Agreus in Arcadia before deploying.");
         }
+        if (WellhollowBloomCampaign.owns(m.id)) {
+            WellhollowBloomCampaign.requireCurrent(m);
+            if (!WellhollowBloomCampaign.atSite(ctx.planet))
+                throw new IllegalStateException("Travel to Asharu before deploying.");
+        }
         boolean enemyHasHeavyArmor = enemyHasHeavyArmor(ctx, m);
         final TargetProfile profile = targetProfile(ctx, m);
 
@@ -302,6 +307,9 @@ public final class MissionLaunch {
                     : AgreusArcProgress.limitedWarrant(m.id)
                     ? () -> BattleSetup.createLimitedWarrant(seed, constructionDetachment.shuttleManifest, profile, records)
                     : () -> BattleSetup.createWaterUnderSeal(seed, constructionDetachment.shuttleManifest, profile);
+        } else if (WellhollowBloomCampaign.isBattle(m) && !WellhollowBloomCampaign.isColonyBreach(m)) {
+            fixture = WellhollowBloomCampaign.fixture(m, seed, constructionDetachment.shuttleManifest);
+            builder = fixture::build;
         } else if (DistrictEscortCampaign.isBattle(m)) {
             String party = DistrictEscortCampaign.partyName(m);
             builder = () -> BattleSetup.createDistrictEscort(seed, constructionDetachment.shuttleManifest, profile, party);
@@ -406,7 +414,7 @@ public final class MissionLaunch {
                 FighterWingCommitment.captureRoster(constructionDetachment.marineWings),
                 FighterWingCommitment.captureRoster(m.enemyFighterSupport));
         String defenderFactionId = SupplyRouteCampaign.isBattle(m) || openingOperation != null || isSilentColonyBattle(m)
-                || isCivilianRescueBattle(m) ? "" : profile.factionId();
+                || isCivilianRescueBattle(m) || WellhollowBloomCampaign.isBattle(m) ? "" : profile.factionId();
         return new ScenarioPlan(key, det, firstPlayerShuttle, fixture, builder, defenderFactionId,
                 hostileShipFor(m, profile, defenderFactionId, null));
     }
@@ -433,6 +441,7 @@ public final class MissionLaunch {
                 : AgreusArcCampaign.isBattle(m) ? AgreusArcCampaign.profile(m)
                 : DistrictEscortCampaign.isBattle(m) ? DistrictEscortCampaign.profile(m)
                 : ShepherdRecoveryCampaign.isBattle(m) ? ShepherdRecoveryCampaign.profile(m)
+                : WellhollowBloomCampaign.isBattle(m) ? WellhollowBloomCampaign.profile(m)
                 : CorvusWaylineCampaign.isBattle(m) ? CorvusWaylineCampaign.profile(m)
                 : SupplyRouteCampaign.isBattle(m)
                 ? TargetProfileResolver.fromMarket(SupplyRouteCampaign.destination().planet().getMarket())
@@ -477,7 +486,7 @@ public final class MissionLaunch {
                 && !AgreusArcCampaign.isBattle(m) && !DistrictEscortCampaign.isBattle(m)
                 && !ShepherdRecoveryCampaign.isBattle(m) && !CorvusWaylineCampaign.isBattle(m)
                 && !SupplyRouteCampaign.isBattle(m) && OpeningOperationKind.fromMission(m) == null
-                && !isSilentColonyBattle(m) && !isCivilianRescueBattle(m);
+                && !isSilentColonyBattle(m) && !isCivilianRescueBattle(m) && !WellhollowBloomCampaign.isBattle(m);
     }
 
     /**
@@ -628,6 +637,7 @@ public final class MissionLaunch {
             if (shepherd) ShepherdRecoveryCampaign.begin(m);
             if (agreus) AgreusArcCampaign.begin(m);
             if (escort) DistrictEscortCampaign.begin(m);
+            if (WellhollowBloomCampaign.isBattle(m)) WellhollowBloomCampaign.begin(m);
             return new PreparedBattle(sim, fixture, det);
         } catch (RuntimeException | Error failure) {
             sim.close();
@@ -649,6 +659,7 @@ public final class MissionLaunch {
             ShepherdRecoveryCampaign.current().abandon(m.id);
         if (AgreusArcCampaign.isBattle(m) && AgreusArcCampaign.current() != null)
             AgreusArcCampaign.current().abandon(m.id);
+        WellhollowBloomCampaign.abandon(m);
     }
 
     /**
@@ -705,7 +716,8 @@ public final class MissionLaunch {
         return mission.source == MissionSource.DEBUG_CIVILIAN_RESCUE
                 || mission.source
                     == MissionSource.DEBUG_CANONICAL_CIVILIAN_RESCUE
-                || CivilianRescueMissionKey.parse(mission.id) != null;
+                || CivilianRescueMissionKey.parse(mission.id) != null
+                || WellhollowBloomCampaign.isColonyBreach(mission);
     }
 
     /** All named personnel selected for a Conquest launch; none stay in orbit. */

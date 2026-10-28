@@ -1,0 +1,17 @@
+Use case: sketch-to-render. RESKIN image 1, the authoritative geometry guide (crown outlines, internal holes and branch skeleton), into a production overhead tree canopy sprite sheet for a top-down tactical game. Image 2 is ONLY the material/style reference: the game's existing painted temperate tree canopies. Match its painterly realistic rendering, camera, scale of detail and soft diffuse overhead light so the two sets sit together on one map; do NOT copy its green species or palette.
+Preserve image 1 exactly: 1536x1024 canvas, 3 columns x 2 rows at 512px pitch, every crown's center, size, aspect and lobed outline. Do not move, enlarge, tilt or rearrange the silhouettes. Nothing may grow beyond a guide silhouette; small leaf serrations may refine the edge inward.
+Camera looks STRAIGHT DOWN from directly above: orthographic aerial plan view, crowns only. No side view, no isometric, no visible upright trunk in profile.
+Setting: the dry arid rim of a desert world's green basin; hot, sun-bleached, dusty. Foliage is SPARSE, and image 1 says exactly where: the transparent holes inside each crown are part of the geometry contract. Keep every hole as genuine transparency (on the map the sand shows through there). The brown lines in image 1 are the tree's limbs: paint them as real bark branches, forked and twisted, visible across the holes and between leaf clusters. Foliage covers only the coloured lobe areas.
+SIZE: draw each crown at exactly the guide's size. Its outer edge sits ON the guide outline, never outside it; the crowns must not come back larger than in image 1, and no leaf tip, frond or branch crosses the outline.
+Direction: PALM GROVE / OASIS EDGE.
+Top row left to right:
+1. Mature date palm: a radial starburst of long arching feather-pinnate fronds seen from above, dusty grey-green to blue-green, filling the lobed crown; a dense dark centre with golden-orange date clusters; a few dead straw-brown fronds at the rim.
+2. Younger date palm: the same, smaller, fresher olive-green fronds, no fruit.
+3. Doum palm: a crown made of several fan-palm heads (one per lobe), stiff fan-shaped leaves in yellow-olive and dry khaki, forked pale branches between heads.
+Bottom row left to right:
+4. Compact clump of dwarf fan palms: many overlapping stiff fan leaves, dusty sage-green, opaque centre.
+5. Large multi-stem date palm cluster: several overlapping frond starbursts in grey-green with straw-brown dead fronds, the cluster still reading as the single guide crown.
+6. Elongated tamarisk (the narrow crown): a feathery tamarisk tree of fine grey-green scale-leaf sprays with faint pink flower plumes, in long sprays along its axis.
+The radial fronds must stay inside the lobed silhouette; frond tips may not overshoot the guide.
+Hand-painted realistic tactical-game environment art, coherent medium detail readable at 3-6 world cells per tree, restrained soft overhead lighting that tolerates quarter-turn rotation. Each sprite is one tree, not a cluster. No baked ground shadow outside the silhouette, no sand disc, no rocks, no grass, no labels, no text, no border.
+True transparent background everywhere outside each silhouette and in the gaps inside it. No colored backdrop or checkerboard. Keep all six precisely registered to the guide and keep the 3:2 canvas.

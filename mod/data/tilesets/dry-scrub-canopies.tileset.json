@@ -1,0 +1,142 @@
+{
+  "cellPx": 64,
+  "cells": [
+    {
+      "col": 0,
+      "name": "forest.oak-dry",
+      "row": 0
+    },
+    {
+      "col": 5,
+      "name": "forest.oak-small-dry",
+      "row": 0
+    },
+    {
+      "col": 9,
+      "name": "forest.birch-dry",
+      "row": 0
+    },
+    {
+      "col": 0,
+      "name": "forest.pine-dry",
+      "row": 5
+    },
+    {
+      "col": 3,
+      "name": "forest.pine-large-dry",
+      "row": 5
+    },
+    {
+      "col": 7,
+      "name": "forest.cedar-dry",
+      "row": 5
+    }
+  ],
+  "doodads": [
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "fogSurface": [
+        ".###.",
+        "#####",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        5
+      ],
+      "id": "forest.oak-dry",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 5,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        ".###"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.oak-small-dry",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 9,
+      "cover": "none",
+      "fogSurface": [
+        "####.",
+        "#####",
+        "#####",
+        ".###."
+      ],
+      "footprintCells": [
+        5,
+        4
+      ],
+      "id": "forest.birch-dry",
+      "row": 0
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 0,
+      "cover": "none",
+      "fogSurface": [
+        "###",
+        "###",
+        "###"
+      ],
+      "footprintCells": [
+        3,
+        3
+      ],
+      "id": "forest.pine-dry",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 3,
+      "cover": "none",
+      "fogSurface": [
+        "####",
+        "####",
+        "####",
+        "####"
+      ],
+      "footprintCells": [
+        4,
+        4
+      ],
+      "id": "forest.pine-large-dry",
+      "row": 5
+    },
+    {
+      "ballisticHalfHeight": 0,
+      "col": 7,
+      "cover": "none",
+      "fogSurface": [
+        ".##.",
+        "####",
+        "####",
+        "####",
+        "####",
+        ".##."
+      ],
+      "footprintCells": [
+        4,
+        6
+      ],
+      "id": "forest.cedar-dry",
+      "row": 5
+    }
+  ],
+  "sheet": "graphics/doodads/dry-scrub-canopies.png"
+}

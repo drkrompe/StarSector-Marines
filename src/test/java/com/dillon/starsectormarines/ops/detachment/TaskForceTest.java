@@ -127,17 +127,17 @@ class TaskForceTest {
 
     @Test
     void assigningSquadsToOfficersIsWhatBuysScale() {
-        // The point of the story. Thirty-four squads is past every rank, but
+        // The point of the story. Thirty squads is past every rank, but
         // spread across three officers each is inside their own cap.
-        MarineRoster roster = rosterWith(34);
-        MarineCaptain lead = captain(roster, "Vance", Rank.LT_COLONEL);   // 16
-        MarineCaptain second = captain(roster, "Okonkwo", Rank.MAJOR);    // 10
-        MarineCaptain third = captain(roster, "Reyes", Rank.MAJOR);       // 10
+        MarineRoster roster = rosterWith(30);
+        MarineCaptain lead = captain(roster, "Vance", Rank.LT_COLONEL);   // 12
+        MarineCaptain second = captain(roster, "Okonkwo", Rank.MAJOR);    // 9
+        MarineCaptain third = captain(roster, "Reyes", Rank.MAJOR);       // 9
 
         List<MarineSquad> line = roster.squads().stream()
                 .filter(s -> !s.reserve()).toList();
         for (int i = 0; i < line.size(); i++) {
-            MarineCaptain owner = i < 16 ? lead : i < 26 ? second : third;
+            MarineCaptain owner = i < 12 ? lead : i < 21 ? second : third;
             assertTrue(roster.assignCaptainToSquad(owner.id(), line.get(i).id()),
                     "assignment " + i + " is inside " + owner.name() + "'s cap");
         }
@@ -145,10 +145,10 @@ class TaskForceTest {
         TaskForce force = TaskForce.of(roster, lead, lineSquadIds(roster));
 
         assertEquals(3, force.officerCount());
-        assertEquals(34, force.squadCount());
-        assertEquals(34 * MarineSquad.CAPACITY, force.marines());
+        assertEquals(30, force.squadCount());
+        assertEquals(30 * MarineSquad.CAPACITY, force.marines());
         assertTrue(force.isValid(),
-                "408 marines deploy because command is per officer, not per operation");
+                "360 marines deploy because command is per officer, not per operation");
         assertTrue(CaptainDeploymentPolicy.isValidCommand(roster, lead, lineSquadIds(roster)));
     }
 

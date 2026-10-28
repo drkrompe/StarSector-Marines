@@ -50,7 +50,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
 
     private final NarrationSequence debriefNarration = new NarrationSequence();
     private final DebriefRewardPrompt rewardPrompt = new DebriefRewardPrompt(new Reactor(),
-            () -> context.openFleetArmoryWorkspaceFrom(ScreenId.RESULTS), this::startDebriefNarration);
+            this::refit, this::startDebriefNarration);
     private MissionOutcome narratedOutcome;
     private MissionOutcome presentedOutcome;
     private MarkupInstance resultMarkup;
@@ -109,8 +109,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         props.put("missionMeta", outcomeMeta(outcome, manifest));
         props.put("resultRows", resultRows(outcome, manifest));
         putStoryDebrief(props, outcome);
-        putFirstRefit(props, outcome, CompanyPreparationGuide.roster(),
-                () -> context.openFleetArmoryWorkspaceFrom(ScreenId.RESULTS));
+        putFirstRefit(props, outcome, CompanyPreparationGuide.roster(), this::refit);
         props.put("rewardPrompt", rewardPrompt.row());
         boolean preparation = outcome != null && !outcome.missionSource.isDebug();
         props.put("preparationClasses", preparation ? "console-action" : "hidden");
@@ -182,7 +181,7 @@ public class ResultsScreen extends MissionFlowMlxScreen {
         return props;
     }
 
-    /** Opens the lesson with Results as the return target; pending salvage stays untouched. */
+    /** Offers the equipment lesson; opening it settles the operation first ({@link #refit}). */
     static void putFirstRefit(Map<String, Object> props, MissionOutcome outcome, MarineRoster roster, Runnable open) {
         boolean available = outcome != null && !outcome.missionSource.isDebug() && FirstRefit.available(roster);
         props.put("refitClasses", available ? "results-refit console-readout" : "hidden");
@@ -256,6 +255,13 @@ public class ResultsScreen extends MissionFlowMlxScreen {
                     + Strings.format(r.cargoLost()
                             ? "resultsScreenDistrictLossesCargo" : "resultsScreenDistrictLosses",
                             r.partyLost(), r.constablesLost()));
+        }
+        if (outcome != null && WellhollowBloomCampaign.owns(outcome.missionId) && outcome.missionSource == MissionSource.STORY) {
+            props.put("storyClasses", "story-dispatch console-readout");
+            props.put("storyPortrait", MissionDialogue.speakerPortrait(WellhollowBloomCampaign.SPEAKER));
+            props.put("storySender", Strings.get("wellhollowContactName"));
+            props.put("storyProgress", WellhollowBloomCampaign.progress(outcome));
+            props.put("storyMessage", WellhollowBloomCampaign.debrief(outcome));
         }
         if(outcome!=null && outcome.workingPassage!=null) {
             var passage=outcome.workingPassage;
@@ -660,6 +666,19 @@ public class ResultsScreen extends MissionFlowMlxScreen {
             context.goTo(ScreenId.LOOT);
         } else {
             context.forfeitLoot();
+            context.finishOperation(true);
+        }
+    }
+
+    /** The equipment lesson, after the operation settles: salvage is reviewed first when there is any. */
+    void refit() {
+        LootManifest manifest = context.getLootManifest();
+        if (manifest != null && !manifest.isEmpty()) {
+            context.refitAfterSettlement();
+            context.goTo(ScreenId.LOOT);
+        } else {
+            context.forfeitLoot();
+            context.refitAfterSettlement();
             context.finishOperation(true);
         }
     }

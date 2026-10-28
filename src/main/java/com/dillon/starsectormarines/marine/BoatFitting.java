@@ -228,6 +228,15 @@ public record BoatFitting(
     }
 
     /**
+     * What a {@code pattern} boat lifts with this hold fitted: the hold's own rating or her
+     * hull's, whichever is heavier, as {@code FittedBoat#liftRating} flies her. A passenger hold
+     * on a Hermes lifts light machines, because the Hermes does.
+     */
+    public LiftRating liftOn(ShuttleType pattern) {
+        return pattern == null ? liftRating() : LiftRating.max(pattern.liftRating(), liftRating());
+    }
+
+    /**
      * Whether this hold lifts a machine. The seats stay, so the boat still
      * ferries squads; one sortie carries one kind or the other.
      */

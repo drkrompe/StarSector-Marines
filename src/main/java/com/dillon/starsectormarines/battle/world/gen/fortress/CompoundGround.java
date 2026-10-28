@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.fortress;
 
+import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
@@ -35,11 +36,12 @@ public final class CompoundGround {
                 GrownTrunkPlan.Profile.of(0), program, fortification);
         c.put(BspKeys.PRECINCTS, new PrecinctPlan(List.of(precinct), attackerFrom));
         var claim = new int[c.width][c.height];
+        var wild = SurfaceField.of(c);
         for (int x = 0; x < c.width; x++) {
             Arrays.fill(claim[x], GrownTrunkPlan.UNOWNED);
             for (int y = 0; y < c.height; y++) {
                 c.grid.setWalkableFloor(x, y);
-                c.topology.setGroundKind(x, y, c.get(BspKeys.MARKET_PROFILE).surface().inlandGround());
+                c.topology.setGroundKind(x, y, wild.at(x, y).inlandGround());
                 if (site.contains(x, y)) claim[x][y] = 0;
             }
         }

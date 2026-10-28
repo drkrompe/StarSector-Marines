@@ -273,9 +273,11 @@ opens squad equipment and fire-team inspection, while deployment and battle comm
 remain squad-granular.
 
 Officer command and enlisted leadership are separate ladders. Lieutenant,
-Captain, Major, Lieutenant Colonel, and Colonel caps are respectively 3, 6, 10,
-16, and 24 squads; any marine-count form is explanatory display only. These
-limits bound named-officer coordination, not whether the force may deploy.
+Captain, Major, Lieutenant Colonel, and Colonel caps are respectively 3, 6, 9,
+12, and 12 squads: one officer commands at most twelve squads, so a larger
+company needs a second officer (owner, 2026-10-27). Any marine-count form is
+explanatory display only. These limits bound named-officer coordination, not
+whether the force may deploy.
 A squad outside available officer capacity acts independently under its own
 NCO and retains ordinary mission execution. Named officers coordinate their
 stable group's tasks and advance in Conquest. Player-chosen officer specialties
@@ -371,12 +373,15 @@ action. Neither the prompt nor the equipment lesson offers a Later button. Escap
 The prompt does not learn technology. Its primary action opens the full comparison;
 a company with one line squad has that squad selected automatically.
 
-Accepting or deferring the handoff acknowledges this presented outcome, so returning
-from the Armory does not immediately repeat it. An unfinished lesson can be prompted
-on the next non-debug debrief; completion ends the reminders. An accepted transfer
-instead offers **Fit Free Equipment**. The persistent debrief/HQ notice remains a
-resume route. Narration waits until the reward prompt is dismissed or the player
-returns. Pending salvage remains untouched across this handoff.
+Accepting or deferring the handoff acknowledges this presented outcome. An unfinished
+lesson can be prompted on the next non-debug debrief; completion ends the reminders.
+An accepted transfer instead offers **Fit Free Equipment**. The persistent debrief/HQ
+notice remains a resume route. Narration waits until the reward prompt is deferred.
+Opening the lesson from the debrief settles the operation first (owner): pending
+salvage is reviewed on the salvage screen, whose confirm then opens the Armory, and
+the Armory's way back is the company's own page. No company page is reached with a
+fought mission still selected, so Barracks' way back to work is only ever the board
+or an unfought mission's briefing (`MissionReturn`).
 
 Reward, fit, and navigation actions use compact buttons in action rows, never
 full-width acceptance bars. The two equipment choices remain comparison cards.
@@ -702,7 +707,11 @@ footprint. A card with no spare is greyed with its price and a BUY that buys one
 into stores; away from a civilized port BUY refuses and the card says why. A spare is dragged onto a doll socket, which lights green where it fits
 and red where it does not. Any fitted part, stock ones and the yard's gun included,
 is lifted off the doll the same way: dropped on the stores it goes back as a spare
-and the socket stands empty, and a gun dropped on another hardpoint moves there. What a fit displaces goes
+and the socket stands empty, and a gun dropped on another hardpoint position moves there. A hardpoint
+socket is two 2x1 rows that answer by position: a 2x1 gun goes on, comes off or moves by the row it is
+let go over, its open neighbour stays open for a second gun, and a 2x2 gun lights and fills the whole
+socket. The ring on the berthed boat marks a pod as one mount (`HP n POD`) on its one arc, and the
+readiness line counts mounts with no gun at all ("N of M mounts empty") and the guns on the rest. What a fit displaces goes
 into stores. A card with a spare, while the machine shop runs, carries a RECYCLE
 beside its recovery in green; the first press arms it and says what comes back, and
 a second press on the same card commits (Company resource bills, Recycling). The stores cards, filter pills, meters and selected-mount card are the
@@ -812,9 +821,17 @@ stock strip of the company's credits and whether the fleet is at a civilized por
 separate from the selected part's or boat's price row; the Mech Lab's strip is the
 same.
 
-**A hardpoint carries a gun, fitted per hardpoint.** A boat has as many
-hardpoints as its pattern and each holds one gun from the yard's boat-gun catalog,
-or none; hardpoints are fitted by index, not as a slot. Guns come in three
+**A hardpoint carries guns, fitted per hardpoint and position.** A boat has as
+many hardpoints as its pattern, fitted by index, not as a slot. A hardpoint is
+2x2 bricks with two positions, top and bottom (`BoatHardpoint`): it holds one 2x2
+gun, or up to two 2x1 guns (`BoatGun.half`), or none (owner pick, 2026-10-27).
+Two guns on one hardpoint are a **pod**: one turret on the hardpoint's one slot
+and arc with a left and a right barrel, each gun firing on its own cadence and
+charging the boat's flux pool; families mix, and two missile guns ride one
+launcher box. A 2x2 gun let go over either position takes the whole hardpoint and
+whatever was on it goes to stores; a 2x1 gun put beside a 2x2 one displaces it.
+Every gun weighs on the frame except the yard's own gun in its top position.
+Guns come in three
 **families**: ballistic door guns, energy guns that fire on flux and carry no
 magazine, and missile pods with a few salvos a sortie. **Any family goes on any
 hardpoint**: the hull's slots are small ballistic turrets, but a boat's yard is not
@@ -830,7 +847,7 @@ covers the stern. The fitted guns replace the kit only for an air-to-ground sort
 other roles still arm by role.
 
 **The Hermes is the company's boat, and every refit is built around her.** She
-takes every slot's upgrades, and a gun on each of her three turrets, from stores,
+takes every slot's upgrades, and a gun or a pod of two on each of her three turrets, from stores,
 within her frame. The
 Boat Deck shows the frame as a meter (weight / rating) and every part's weight on
 its card and sheet.
@@ -1321,9 +1338,12 @@ company lift, plus operation command. Held-back home officers receive no credit.
 Their rank, XP and specialties come from launch, never from later assignments.
 Each result carries a unique attempt receipt so reopening a result cannot repeat
 an officer's XP, promotion, fate or commendation. Repeatable jobs may share a
-mission id; their attempts do not share receipts. Defeat awards 50 officer XP
-when troops engaged; victory retains payout/100, or payout/150 with more than
-two casualties in that officer's element. Natural Leader multiplies that
+mission id; their attempts do not share receipts. Defeat awards 500 officer XP
+when troops engaged; victory awards payout/10, or payout/15 with more than
+two casualties in that officer's element. That pace is set against the rank
+thresholds (1,000, 2,000, 4,000, 8,000): playing each opening mission once, the
+founding lieutenant is promoted after Counterattack and again after Thunder Run
+(owner, 2026-10-27). Natural Leader multiplies that
 individual officer's award by 1.5. Defeat fate uses each officer's own engaged
 strength and losses; operation command without an element uses the whole force.
 

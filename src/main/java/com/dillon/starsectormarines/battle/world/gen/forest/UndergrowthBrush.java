@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.world.gen.forest;
 
+import com.dillon.starsectormarines.battle.world.gen.nature.NaturalPropShape;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid.CellTag;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -7,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.model.Doodad;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Predicate;
 
 /**
  * Generation-time undergrowth. Choosing where it grows is the caller's; this closes exactly the cells each
@@ -32,6 +34,12 @@ public final class UndergrowthBrush {
 
     public static void stamp(List<Placement> placements, NavigationGrid grid, CellTopology topology,
                              List<Doodad> props, boolean[] reserved) {
+        stamp(placements, grid, topology, props, reserved, p -> false);
+    }
+
+    /** As above, each patch {@code dry} names drawn as its dry-country twin ({@link NaturalPropShape#DRY}). */
+    public static void stamp(List<Placement> placements, NavigationGrid grid, CellTopology topology,
+                             List<Doodad> props, boolean[] reserved, Predicate<Placement> dry) {
         int w = grid.getWidth(), h = grid.getHeight();
         if (topology.getWidth() != w || topology.getHeight() != h || (reserved != null && reserved.length != w * h))
             throw new IllegalArgumentException("Undergrowth and map dimensions differ");
@@ -44,9 +52,10 @@ public final class UndergrowthBrush {
         for (Placement p : placements) {
             if (!fits(p, grid, topology, reserved))
                 throw new IllegalArgumentException("Undergrowth overlaps protected ground at " + p.x() + "," + p.y());
-            var def = registry.doodad(p.kind().id);
+            String id = NaturalPropShape.placedId(p.kind(), dry.test(p));
+            var def = registry.doodad(id);
             if (def == null || def.footprintCellsX != p.kind().width || def.footprintCellsY != p.kind().height)
-                throw new IllegalStateException("Missing or mismatched undergrowth " + p.kind().id);
+                throw new IllegalStateException("Missing or mismatched undergrowth " + id);
             additions.add(new Doodad(p.x(), p.y(), def, p.turns()));
             byte level = (byte) (p.kind().seeThrough ? 1 : 2);
             for (int y = p.y(); y < p.y() + p.height(); y++) for (int x = p.x(); x < p.x() + p.width(); x++)

@@ -126,8 +126,12 @@ public final class VehicleDamageFxSystem {
 
         int seen = burst.get(id);
         if ((raised & DRIVE) != 0) {
-            float aft = 0.28f * length;
-            float side = 0.46f * width;
+            // On the tracks or wheel rows themselves, over the rear drive and along their run.
+            RunningGear gear = type.runningGear();
+            float aft = gear.grounded() ? 0.75f * gear.rearCells() : 0.28f * length;
+            float side = gear.grounded() ? gear.halfGaugeCells() : 0.46f * width;
+            float forward = gear.grounded() ? gear.frontCells() : 0.35f * length;
+            float back = gear.grounded() ? gear.rearCells() : 0.35f * length;
             if ((seen & DRIVE) == 0) {
                 seen |= DRIVE;
                 for (int s = -1; s <= 1; s += 2) {
@@ -138,7 +142,8 @@ public final class VehicleDamageFxSystem {
             } else if (FxHash.onCadence(id, tick, DRIVE_SMOKE_PERIOD_TICKS, SALT_DRIVE)) {
                 // Low along the running gear, one side and then the other, sliding fore and aft.
                 float s = FxHash.jitter(id, tick, SALT_DRIVE) < 0f ? -1f : 1f;
-                float along = 0.35f * length * FxHash.jitter(id, tick, SALT_DRIVE + 1);
+                float j = FxHash.jitter(id, tick, SALT_DRIVE + 1);
+                float along = j >= 0f ? forward * j : back * j;
                 fx.emitSmokePuff(body.x + fwdX * along + rightX * side * s, body.y + fwdY * along + rightY * side * s,
                         (0.2f + 0.05f * FxHash.jitter(id, tick, SALT_DRIVE + 2)) * size);
             }

@@ -43,7 +43,6 @@ public final class ThunderRunSequence {
     private final List<Integer> releasedCargo = new ArrayList<>();
     private final int[] gunWork = new int[2];
     private final boolean[] gunsBuilt = new boolean[2];
-    private final boolean[] armorStaged = new boolean[3];
     private final List<Long> supportGuns = new ArrayList<>();
     /** Raider squads sent at an arm's militia block: squad to {arm, road objective x}. */
     private final Map<Integer, int[]> screened = new LinkedHashMap<>();
@@ -143,14 +142,8 @@ public final class ThunderRunSequence {
         currentTick = sim.getSimTickIndex();
         beat(sim, "started");
         if (advanceHauler != 0L) beat(sim, "advance_distress");
-        if (phase > 0 && phase < 3 && holdRemainingTicks() == 0) {
+        if (phase > 0 && phase < 3 && holdRemainingTicks() == 0)
             beat(sim, phase == 1 ? "dispatch_window_complete" : "crossing_window_complete");
-            if (!armorStaged[phase] && heldThrough(sim, phase)) {
-                armorStaged[phase] = true;
-                for (long id : escorts) order(sim, id);
-                order(sim, heavyLead);
-            }
-        }
         releaseBatches(sim);
         if (pressure != null) pressure.tick(sim, phase, leadCargoX(sim));
         releaseBrokenBlocks(sim);
@@ -158,7 +151,7 @@ public final class ThunderRunSequence {
         prepareSupportGuns(sim);
         observeDefendOrder(sim);
         if (sim.convoy().isVehicle(advanceHauler)) {
-            if (sim.convoy().mission(advanceHauler).state == VehicleState.WRECKED) beat(sim, "advance_load_lost");
+            if (stranded(sim, advanceHauler)) beat(sim, "advance_load_lost");
             else if (sim.convoy().body(advanceHauler).x > ThunderRunCompound.WIDTH + 2) {
                 beat(sim, "advance_load_clear");
                 sim.convoy().despawn(advanceHauler);
@@ -170,7 +163,7 @@ public final class ThunderRunSequence {
         for (var entry : cargo.entrySet()) {
             int key = entry.getKey(); long id = entry.getValue();
             if (delivered.contains(key) || lost.contains(key)) continue;
-            if (!sim.convoy().isVehicle(id) || sim.convoy().mission(id).state == VehicleState.WRECKED) {
+            if (stranded(sim, id)) {
                 lost.add(key); beat(sim, "cargo_" + key + "_lost");
             } else if (phase == 3 && sim.convoy().body(id).x > ThunderRunCompound.WIDTH + 2) {
                 delivered.add(key); beat(sim, "cargo_" + key + "_delivered"); sim.convoy().despawn(id);
@@ -191,7 +184,7 @@ public final class ThunderRunSequence {
                 }
             if (!heavyExitOrdered && freightReleased) {
                 boolean leadApproaching = cargo.values().stream().anyMatch(id ->
-                        sim.convoy().isTargetable(id) && sim.convoy().body(id).x >= 280);
+                        !stranded(sim, id) && sim.convoy().body(id).x >= 280);
                 if (leadApproaching) {
                     heavyExitOrdered = true;
                     order(sim, heavyLead);
@@ -199,15 +192,16 @@ public final class ThunderRunSequence {
                 }
             }
             boolean rearPassed = releasedCargo.size() == cargo.size();
-            for (long id : cargo.values()) if (sim.convoy().isTargetable(id) && sim.convoy().body(id).x < 282) rearPassed = false;
+            for (long id : cargo.values()) if (!stranded(sim, id) && sim.convoy().body(id).x < 282) rearPassed = false;
             if (rearPassed && !escortExitOrdered) {
                 escortExitOrdered = true;
                 for (long id : escorts) order(sim, id);
                 beat(sim, "rear_clear");
             }
         }
-        // Militia must retain earlier gains when a new leg is released. A release is not revocable mid-road.
-        if (phase < 3 && heldThrough(sim, phase + 1) && holdRemainingTicks() == 0 && columnStopped(sim)) {
+        // Militia must retain earlier gains when a new leg is released. A release is not revocable mid-road, and a
+        // hull still on its last leg is simply sent on to the next goal rather than waited for.
+        if (phase < 3 && heldThrough(sim, phase + 1) && holdRemainingTicks() == 0) {
             phase++;
             phaseTick = currentTick;
             beat(sim, phase == 1 ? "column_released" : phase == 2 ? "crossing_secured" : "final_run");
@@ -217,6 +211,9 @@ public final class ThunderRunSequence {
                     if (ordinal++ == 0 || phase == 2) order(sim, id);
                 }
                 order(sim, advanceHauler);
+                // The armor goes up with the freight it guards, to stand over the site through its hold.
+                for (long id : escorts) order(sim, id);
+                order(sim, heavyLead);
                 // The technical goes forward with the first release, to block its arm for both holds.
                 if (phase == 1) order(sim, technical);
                 beat(sim, phase == 1 ? "defend_dispatch" : "defend_crossing");
@@ -234,7 +231,7 @@ public final class ThunderRunSequence {
         float lead = -1;
         for (var entry : cargo.entrySet()) {
             long id = entry.getValue();
-            if (delivered.contains(entry.getKey()) || !sim.convoy().isTargetable(id)) continue;
+            if (delivered.contains(entry.getKey()) || stranded(sim, id)) continue;
             lead = Math.max(lead, sim.convoy().body(id).x);
         }
         return lead;
@@ -276,10 +273,10 @@ public final class ThunderRunSequence {
         for (int i = 0; i <= lastSite; i++) if (sites.get(i).state != CompoundState.MARINE_HELD) return false;
         return true;
     }
-    private boolean columnStopped(BattleSimulation sim) {
-        for (long id : cargo.values()) if (sim.convoy().isVehicle(id)
-                && sim.convoy().mission(id).state != VehicleState.WRECKED && sim.convoy().mission(id).authoredRouteX != null) return false;
-        return true;
+    /** A hauler that will never reach the exit: gone, burnt out, or with its drive shot away where it stands. */
+    private static boolean stranded(BattleSimulation sim, long id) {
+        return !sim.convoy().isVehicle(id) || sim.convoy().mission(id).state == VehicleState.WRECKED
+                || sim.convoy().body(id).immobilised;
     }
     private void order(BattleSimulation sim, long id) {
         if (!sim.convoy().isVehicle(id) || sim.convoy().mission(id).state == VehicleState.WRECKED) return;

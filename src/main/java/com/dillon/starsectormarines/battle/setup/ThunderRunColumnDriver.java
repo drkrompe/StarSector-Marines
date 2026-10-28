@@ -28,7 +28,7 @@ import java.util.Map;
  *       its hull between. Escorts keep their flank lanes, which are the screen.</li>
  *   <li><b>Under fire.</b> A hauler that has just been hit stops cruising and
  *       runs at full speed, jinking harder.</li>
- *   <li><b>Wrecks and parked hulls.</b> The lane is moved, across the whole
+ *   <li><b>Wrecks and parked hulls.</b> Immobilised hulls count as wrecks. The lane is moved, across the whole
  *       band if it must be, to the nearest line that clears every burnt-out or
  *       stationary hull ahead; a goal that lies on one is met beside it.</li>
  *   <li><b>Station keeping.</b> A hull closes no nearer than a few cells to
@@ -168,7 +168,8 @@ final class ThunderRunColumnDriver {
     }
 
     private static boolean drivable(BattleSimulation sim, long id) {
-        return sim.convoy().isVehicle(id) && sim.convoy().mission(id).state != VehicleState.WRECKED;
+        return sim.convoy().isVehicle(id) && sim.convoy().mission(id).state != VehicleState.WRECKED
+                && !sim.convoy().body(id).immobilised;
     }
 
     private static float wantedLane(BattleSimulation sim, long id, Plan plan, GroundBody body, VehicleType type) {
@@ -239,10 +240,11 @@ final class ThunderRunColumnDriver {
         return room;
     }
 
-    /** A hull that will not move out of the way by itself: burnt out, or parked with no leg to drive. */
+    /** A hull that will not move out of the way by itself: burnt out, its drive shot away, or parked with no leg. */
     private static boolean blocker(ConvoyService convoy, long id) {
         VehicleMission mission = convoy.mission(id);
         return mission.state == VehicleState.WRECKED
+                || mission.isVisible() && convoy.body(id).immobilised
                 || mission.isVisible() && mission.authoredRouteX == null && Math.abs(convoy.body(id).speed) < .2f;
     }
 

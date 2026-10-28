@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.world.gen.BlockLeaf;
 import com.dillon.starsectormarines.battle.world.gen.FillerParams;
 import com.dillon.starsectormarines.battle.world.gen.GenContext;
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
+import com.dillon.starsectormarines.battle.world.gen.SurfaceField;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
@@ -92,38 +93,60 @@ public final class NatureZoneFiller implements BlockFiller {
         NavigationGrid grid = ctx.grid;
         CellTopology topology = ctx.topology;
         Random rng = ctx.rng;
-        GenMappingRegistry mapping = GenMappingRegistry.installed();
         TargetProfile profile = ctx.get(BspKeys.MARKET_PROFILE);
         SurfacePalette palette = (profile == null) ? null : profile.surface();
-        FillerParams params = (mapping == null) ? null : mapping.fillerParams(kind, palette);
-        paintBase(leaf, grid, topology, rng, params, new PatchField(ctx.seed, PATCH_CELLS));
+        Ground ground = Ground.of(kind, palette, SurfaceField.of(ctx));
+        paintBase(leaf, grid, topology, rng, ground, new PatchField(ctx.seed, PATCH_CELLS));
         TileRegistry reg = TileRegistry.installed();
         // Overlays need both the tile defs (TileRegistry) and the pools/chances
         // (FillerParams). Skip them if either is unavailable — base ground is still
         // painted. Both are installed at app load + by the test bootstrap.
-        if (reg == null || params == null) return;
-        scatterOverlays(leaf, grid, topology, rng, reg, params);
+        if (reg == null || !ground.authored()) return;
+        scatterOverlays(leaf, grid, topology, rng, reg, ground);
     }
 
     /** Dress only eligible open country, without changing navigation or consuming layout randomness. */
     public static void dressOpenGround(GenContext ctx, boolean[] eligible) {
         if (eligible.length != ctx.width * ctx.height) throw new IllegalArgumentException("Ground mask size");
         var filler = new NatureZoneFiller(BlockKind.NATURE_GRASSLAND);
-        var mapping = GenMappingRegistry.installed();
         var profile = ctx.get(BspKeys.MARKET_PROFILE);
-        var palette = profile == null ? SurfacePalette.ROCK : profile.surface();
-        var params = mapping == null ? null : mapping.fillerParams(BlockKind.NATURE_GRASSLAND, palette);
+        var field = SurfaceField.of(ctx);
+        var ground = Ground.of(BlockKind.NATURE_GRASSLAND, profile == null ? SurfacePalette.ROCK : profile.surface(), field);
         var patches = new PatchField(ctx.seed, PATCH_CELLS);
         var random = new Random(ctx.seed ^ 0x4649454c4453L);
         var tiles = TileRegistry.installed();
         for (int y = 0; y < ctx.height; y++) for (int x = 0; x < ctx.width; x++) {
             if (!eligible[y * ctx.width + x]) continue;
-            ctx.topology.setGroundKind(x, y, params == null ? palette.inlandGround()
+            FillerParams params = ground.at(x, y);
+            ctx.topology.setGroundKind(x, y, params == null ? field.at(x, y).inlandGround()
                     : filler.pickBaseGround(patches.sample(x, y), params));
         }
-        if (params != null && tiles != null)
+        if (ground.authored() && tiles != null)
             filler.scatterOverlays(new BlockLeaf(0, 0, ctx.width - 1, ctx.height - 1, true),
-                    ctx.grid, ctx.topology, random, tiles, params, eligible);
+                    ctx.grid, ctx.topology, random, tiles, ground, eligible);
+    }
+
+    /**
+     * The authored filler params of each cell: the world's palette, or the basin floor's inside a basin
+     * ({@link SurfaceField}). One set throughout on a map with no basin.
+     */
+    private record Ground(FillerParams rim, FillerParams floor, SurfaceField field) {
+
+        static Ground of(BlockKind kind, SurfacePalette world, SurfaceField field) {
+            GenMappingRegistry mapping = GenMappingRegistry.installed();
+            FillerParams rim = mapping == null ? null : mapping.fillerParams(kind, world);
+            FillerParams floor = field.uniform() || mapping == null ? rim
+                    : mapping.fillerParams(kind, field.floor());
+            return new Ground(rim, floor, field);
+        }
+
+        FillerParams at(int x, int y) {
+            return floor == rim || field.rim(x, y) ? rim : floor;
+        }
+
+        boolean authored() {
+            return rim != null && floor != null;
+        }
     }
 
     /**
@@ -132,14 +155,14 @@ public final class NatureZoneFiller implements BlockFiller {
      * everything else stays walkable.
      */
     private void paintBase(BlockLeaf leaf, NavigationGrid grid, CellTopology topology,
-                           Random rng, FillerParams params, PatchField patches) {
+                           Random rng, Ground ground, PatchField patches) {
         if (kind == BlockKind.NATURE_WETLAND) {
             paintWetlandBase(leaf, grid, topology, rng);
             return;
         }
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
-                GroundKind g = pickBaseGround(patches.sample(x, y), params);
+                GroundKind g = pickBaseGround(patches.sample(x, y), ground.at(x, y));
                 topology.setGroundKind(x, y, g);
                 grid.setWalkableFloor(x, y);
             }
@@ -342,13 +365,13 @@ public final class NatureZoneFiller implements BlockFiller {
      */
     private void scatterOverlays(BlockLeaf leaf, NavigationGrid grid,
                                  CellTopology topology, Random rng,
-                                 TileRegistry reg, FillerParams params) {
-        scatterOverlays(leaf, grid, topology, rng, reg, params, null);
+                                 TileRegistry reg, Ground ground) {
+        scatterOverlays(leaf, grid, topology, rng, reg, ground, null);
     }
 
     private void scatterOverlays(BlockLeaf leaf, NavigationGrid grid,
                                  CellTopology topology, Random rng,
-                                 TileRegistry reg, FillerParams params, boolean[] openGround) {
+                                 TileRegistry reg, Ground ground, boolean[] openGround) {
         for (int y = leaf.top; y <= leaf.bottom; y++) {
             for (int x = leaf.left; x <= leaf.right; x++) {
                 if (openGround != null && !openGround[y * grid.getWidth() + x]) continue;
@@ -358,6 +381,7 @@ public final class NatureZoneFiller implements BlockFiller {
                 if (baseId == null) continue;
                 TileDef baseDef = reg.tile(baseId);
                 if (baseDef == null) continue;
+                FillerParams params = ground.at(x, y);
 
                 // Plant attempt — only meaningful on grass cells.
                 if (base == GroundKind.GRASS && rng.nextFloat() < params.plantChance) {

@@ -7,16 +7,13 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
-import com.dillon.starsectormarines.battle.power.MechSupport;
-import com.dillon.starsectormarines.ops.spec.SpecSheets;
-import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
+import com.dillon.starsectormarines.marine.MarineSoldierStatus;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
-import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
-import java.nio.file.Files;
+import java.util.Map;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /** Shipped portrait/spotlight markup at 1920x1080 and 100% UI scale. */
 public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
@@ -28,7 +25,6 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
             var roster = CampaignLessonsTest.afterCounterattack();
             roster.campaignLessons().reviewInvestments();
             var second = roster.createSquad(); roster.recruitToSquad(second.id(), 12);
-            Set<String> both = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
             var mission = SecondSquadPreparationTest.junction();
             var props = BriefingViewModel.campaignPreviewProps(false);
             props.put("missionTitle", mission.name);
@@ -49,31 +45,35 @@ public final class CastleCampaignSnapshotSuite implements SnapshotSuite {
             props.put("preparationClasses", "mission-preparation");
             BriefingViewModel.putDebugDrawer(props, false, false, () -> {});
             BriefingViewModel.putForceComparison(props, OperationTier.FIRST_CONTRACT, RiskLevel.LOW, 24, 24);
-            var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
-                    List.of("data/ui/components/missions/mission-dialogue.mlx",
-                            "data/ui/components/missions/mission-comms.mlx",
-                "data/ui/components/missions/mission-briefing.mlx"));
             var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                     new HeadlessBattleSceneRenderer(context.modRoot(), true));
-            // The lance needs no call of its own: the lesson waits on the formations, then is ready.
             props.put("commandSummary", "0 / 5 slots");
             props.put("powerRows", List.of());
-            for (int step = 0; step < 2; step++) {
-                int stage = step;
-                try (var markup = loader.reloadAndBuild(new Reactor(), "mission-briefing", props)) {
-                    var doc = PreparationGuide.document(markup.root()).theme(MarineOpsThemes.standard());
-                    markup.styles().forEach(doc::addStyleSheet);
-                    BriefingViewModel.applyVisibility(markup, props);
-                    BriefingViewModel.installMusters(doc, markup, props);
-                    var guide = new PreparationGuide(doc, () -> CampaignLessons.briefing(mission, roster,
-                            stage == 0 ? Set.of(second.id()) : both, true), () -> {},
-                            new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
-                                    List.of("data/ui/components/company/preparation-guide.mlx")));
-                    doc.layout(1920, 1080); guide.update();
-                    frames.add(new SnapshotArtifact("junction-" + step + ".png", renderer.render(doc, 1920, 1080)));
-                }
-            }
+            // Junction has no callout: the lamps beside Deploy carry the checks. One squad, two wounded and one
+            // empty billet lights strength and casualties (with and without the casualty hover); a whole force lights nothing.
+            var members = roster.squadMembers(second);
+            roster.applySoldierOutcome(Map.of(members.get(0).id(), MarineSoldierStatus.WIA,
+                    members.get(1).id(), MarineSoldierStatus.WIA, members.get(2).id(), MarineSoldierStatus.KIA),
+                    0f, 0.6f);
+            putLamps(props, roster, Set.of(second.id()), 9, 3);
+            frames.add(new SnapshotArtifact("junction-0.png", UiSnapshotSuite.renderMissionBriefing(context, renderer,
+                    1920, 1080, props, 1f, false, "mission-lamp-casualties")));
+            frames.add(new SnapshotArtifact("junction-1.png", UiSnapshotSuite.renderMissionBriefing(context, renderer,
+                    1920, 1080, props, 1f, false, null)));
+            putLamps(props, roster, Set.of(), 24, 0);
+            frames.add(new SnapshotArtifact("junction-2.png", UiSnapshotSuite.renderMissionBriefing(context, renderer,
+                    1920, 1080, props, 1f, false, null)));
             return frames;
         }
+    }
+
+    private static void putLamps(Map<String, Object> props, MarineRoster roster, Set<String> selected, int ready,
+                                 int replenishable) {
+        props.put("deployLamps", List.of(DeployWarnings.undermanned(ready, 24),
+                DeployWarnings.casualties(roster, selected, 0f, replenishable),
+                DeployWarnings.damage(List.of(), 0f), DeployWarnings.lift(null)));
+        props.put("replenishLabel", replenishable > 0 && !selected.isEmpty() ? "REPLENISH +1" : "");
+        props.put("replenishClasses", replenishable > 0 && !selected.isEmpty() ? "" : "briefing-assign-hidden");
+        props.put("replenishDisabled", false);
     }
 }

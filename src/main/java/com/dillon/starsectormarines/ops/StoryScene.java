@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
+import com.dillon.starsectormarines.campaign.WellhollowBloomProgress;
 import com.dillon.starsectormarines.ops.mission.story.VeteransJobStory;
 
 import java.util.regex.Matcher;
@@ -24,7 +25,10 @@ enum StoryScene {
     SILENT_COLONY("silent-colony", "DISTRESS BEACON / COLONY"),
     SALVAGE_RIGHTS("salvage-rights", "ASHARU / MORROW RECOVERY BASIN"),
     COLD_START("salvage-rights", "ASHARU / SAME MORROW RECOVERY BASIN"),
-    WORKING_PASSAGE("salvage-rights", "ASHARU / MORROW DEPARTURE CORRIDOR");
+    WORKING_PASSAGE("salvage-rights", "ASHARU / MORROW DEPARTURE CORRIDOR"),
+    WELLHOLLOW_COLONY("wellhollow-colony", "ASHARU / THE WELLHOLLOW FLOOR"),
+    WELLHOLLOW_RIM("wellhollow-rim", "ASHARU / THE WELLHOLLOW RIM"),
+    WELLHOLLOW_HEART("wellhollow-heart", "ASHARU / THE WELLHOLLOW HEART");
 
     private static final Pattern ROUTE_RECORD = Pattern.compile(
             Pattern.quote(BrokenSupplyRouteProgress.PREFIX) + "([134])_(0|[1-9][0-9]*)_[1-9][0-9]*");
@@ -67,6 +71,12 @@ enum StoryScene {
             if (OpeningOperationKind.RELIEF.recurringId.equals(id)) return RELIEF;
             if (OpeningOperationKind.COUNTERATTACK.recurringId.equals(id)) return DEPOT;
         } else if (source == MissionSource.STORY) {
+            var wellhollow = WellhollowBloomProgress.chapterOf(id);
+            if (wellhollow != null) return switch (wellhollow) {
+                case COLONY_BREACH -> WELLHOLLOW_COLONY;
+                case CORDON_LINE, CORDON_ROAD -> WELLHOLLOW_RIM;
+                case THE_BURN, BROAD_FRONT -> WELLHOLLOW_HEART;
+            };
             if(ShepherdRecoveryCampaign.owns(id))return ShepherdRecoveryProgress.workingPassage(id)?WORKING_PASSAGE:ShepherdRecoveryProgress.coldStart(id)?COLD_START:SALVAGE_RIGHTS;
             if (VeteransJobStory.ID.equals(id)) return VETERANS_JOB;
             var corvus = CorvusWaylineProgress.forMission(id);
