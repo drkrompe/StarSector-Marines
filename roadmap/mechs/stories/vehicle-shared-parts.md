@@ -1,6 +1,6 @@
 # Story — Vehicles fit the shared engines and weapons
 
-Status: PROPOSED
+Status: PROPOSED — scope decided by the owner 2026-10-28; not started
 
 Written: 2026-10-28
 
@@ -27,7 +27,7 @@ card is the hull's own part, as an empty armor point is the hull's own plate. Th
 fabrication catalog and stores inventory need no new concept; the vehicle fitting path starts accepting what they
 already hold.
 
-Out of scope: secondary mounts (`VehicleType.secondaryMounts`), the bay, the sight mast, a blade and active
+Out of scope: shuttle weapon mounts (their own item, below), secondary mounts (`VehicleType.secondaryMounts`), the bay, the sight mast, a blade and active
 protection stay sealed and stay hull variants (`heavy-equipment-progression.md`). New engines or weapons. Any change
 to what a mech does with the same parts.
 
@@ -71,26 +71,32 @@ to what a mech does with the same parts.
 
 ### Weapons (slice 2)
 
-- The gun card is sized by the stock gun (`VehicleDoll.Gun`: rows 1 to 3 and a hardpoint family). **A weapon fits if
-  it is the same hardpoint family and no taller than the card**, and if it keeps the hull's **fire mode**: a hull whose
-  stock gun is indirect fire (the LRM carrier, the mortar) takes indirect weapons only, and a direct-fire hull takes
-  direct ones. This is the rule that keeps `VehicleType.engagementStance()` and the indirect-fire spotter logic
-  (`VehicleEngagement`) valid with no AI change; a swap across the line is the larger story the ruling warned of and
-  stays out.
-- The ARMS card today is typed MISSILE or BALLISTIC and draws an energy gun as ballistic. It gets the true
-  hardpoint type (an energy card), so the card, the compatibility test and the colour agree.
-- A fitted weapon becomes a **derived mount**: the stock structure's physical fields stay (turn rate, muzzle
-  geometry, `visualCells`, hit shares, raise and fold), and the fitted weapon supplies the `WeaponDef`, the magazine
-  (the component's pulls times `projectilesPerTrigger`), and its flux numbers, where the loader seconds follow the
-  stock mount. `antiArmorOnly` maps to `hardenedTargetsOnly`. The mapping is data, not a per-weapon branch, so it
-  respects `moddable-weapons-nouns.md`: the mechanical authority is the weapon and mount catalogs.
+- **A vehicle is a mech for parts** (owner, 2026-10-28). Its gun card is a typed weapon socket, and a weapon fits it by
+  the mech's own rules: the socket's hardpoint type (ballistic, energy or missile) against the weapon's, and the
+  weapon's footprint against the card (`MechLabDollCanvas.isSocketCompatible`, `MechWeaponComponent.hardpointType`).
+  Not any weapon fits any card. A card is **omni** only where a hull is truly authored with an omni mount; no vehicle
+  hull is today.
+- **The card takes the type and size of the stock gun.** `VehicleDoll.Gun` already gives each hull's turret a
+  hardpoint family and one to three rows; the card becomes that type (the ARMS card today draws an energy gun as
+  ballistic, so it gains the true energy type) and that size. A hull still carries what its turret was built for: a
+  cannon hull takes ballistic weapons up to its card's height, a laser hull energy ones, a missile hull missile ones.
+- **The AI follows the gun.** A missile card takes both direct (SRM) and indirect (LRM) weapons, so engagement stance
+  (`VehicleType.engagementStance()`: duel, standoff, ambush) and the spotter requirement for indirect fire
+  (`VehicleEngagement`) are read from the weapon actually on the hull, not fixed per hull type. The stock hull's stance
+  is the default for its stock gun. Slice 4.
+- A fitted weapon becomes a **derived mount**: the stock structure's physical fields stay (turn rate, muzzle geometry,
+  `visualCells`, hit shares, raise and fold), and the fitted weapon supplies the `WeaponDef`, the magazine (the
+  component's pulls times `projectilesPerTrigger`) and its flux numbers, where the loader seconds follow the stock
+  mount. `antiArmorOnly` maps to `hardenedTargetsOnly`. The mapping is data, not a per-weapon branch, so it respects
+  `moddable-weapons-nouns.md`: the mechanical authority is the weapon and mount catalogs.
 - **Kits read the fitted gun.** `VehicleKit.suits` and `VehicleKit.Effect` (ready rack, accelerated loader,
-  capacitor pack) must read the gun actually on the hull, not `type.turretStructure()`. A kit that stops suiting a
-  newly fitted gun (a capacitor pack on a gun that builds no flux) is refused at fitting and returned to stores when
-  the gun changes, as plating is.
-- **Art stays.** A hull's turret is a frame of its sprite sheet, and the renderer cannot yet draw a mech gun there. The
-  fitted weapon changes the hull's numbers and its doll and caption, not its turret sprite. Accepted for this story;
-  a sprite per swap is a later art story if the owner wants it.
+  capacitor pack) read the gun actually on the hull, not `type.turretStructure()`. A kit that stops suiting a newly
+  fitted gun (a capacitor pack on a gun that builds no flux) is refused at fitting and returned to stores when the
+  gun changes, as plating is.
+- **The turret sprite follows the gun** (owner, 2026-10-28). A hull's turret is a frame of its sprite sheet
+  (`turretFrame`, `ConvoyRenderSystem`), which cannot draw a mech gun. Slice 5 gives the fitted weapon its own turret
+  art on the hull: either a turret frame per weapon over the hull's turret mount, or the layered mech gun composited
+  there. The choice is an art decision and comes back to the owner as picture cards.
 
 ### Doll and Mech Lab
 
@@ -98,7 +104,7 @@ to what a mech does with the same parts.
   and fall back to the hull's own. The lab draws and answers drops on them as it does on the armor point, with the
   same fit, refuse and strip behaviour and the same spare arithmetic.
 - The Mech Lab catalog for a selected vehicle gains an engine and a weapon list, each filtered to what fits, with the
-  reason shown for a refusal (family, height, fire mode, a kit that would no longer suit).
+  reason shown for a refusal (hardpoint type, height, a kit that would no longer suit).
 - Store copy loses its caveat that a licence is a mech's alone.
 
 ### Data and saves
@@ -122,18 +128,21 @@ Each slice is green and integrable on its own.
 2. **Engines:** `CampaignVehicle` field, `MechBay` and `MechWorkshop` commands, speed factor in body construction,
    `VehicleDeploymentSpec` and `ConvoyService.spawn`, the doll's engine card, Mech Lab engine catalog, fit and
    strip. Ships alone.
-3. **Weapons:** the fit rule and ARMS energy type, the derived mount, `GroundTurret.fitted`, kits reading the fitted gun,
-   the doll's gun card, Mech Lab weapon catalog, fit and strip.
-4. **Documents:** amend the sealed-hull statements (below), the Store caveat and the Mech Lab copy, and fold.
+3. **Weapons:** the typed gun card and mech fit rules, the derived mount, `GroundTurret.fitted`, kits reading the
+   fitted gun, the doll's gun card, Mech Lab weapon catalog, fit and strip.
+4. **Stance follows the gun:** engagement stance and the spotter requirement read from the fitted weapon, with each
+   stock hull's behaviour unchanged for its stock gun.
+5. **Turret art:** the fitted weapon's sprite on the hull.
+6. **Documents:** amend the sealed-hull statements (below), the Store caveat and the Mech Lab copy, and fold.
 
-## Decisions for the owner
+## Decisions (owner, 2026-10-28)
 
-- The engine factors (Uprated 1.10, Military 1.20 proposed) and whether a Light hull may take a Military engine.
-- Whether a hull may fit any weapon of its family and fire mode (proposed), or only the weapons its own variant
-  family already fields.
-- Whether a swap across fire mode (a direct hull fitting an indirect weapon) is wanted, knowing it needs
-  engagement-stance and spotter work.
-- Whether a fitted gun should one day change the turret sprite.
+- Engines: the factors stand (Uprated 1.10, Military 1.20) and a Light hull may take a Military engine.
+- Weapons: think of vehicles as just being mechs. A vehicle's gun card is typed like a mech's socket and takes only
+  weapons of its type, unless truly omni; the AI follows the fitted gun.
+- Turret art: a fitted weapon changes the turret sprite.
+- Shuttle weapon mounts are a separate item: each is a truly **omni** slot that takes any shared weapon (the Store
+  already sells shuttle Weapons in the shared vocabulary). Not part of this story.
 
 ## Constraints
 
@@ -163,7 +172,7 @@ Each slice is green and integrable on its own.
   round trip, as `VehiclePlatingTest`.
 - `MechBay`: spare arithmetic with a fitted engine and weapon, loss, stow and berth, as `MechBayVehicleTest`.
 - The speed factor on body construction, and its composition with a crippled drive.
-- The fit rule: family, height, fire mode, and a kit refused after a gun swap.
+- The fit rule: hardpoint type, height, and a kit refused after a gun swap; a stance read from the fitted gun.
 - The derived mount from a `MechWeaponComponent` and a stock structure, on the smallest input.
 - Existing tests that encode the sealed hull (`MechLabViewModelTest`, `VehicleKitsTest`, `VehicleVariantLadderTest`)
   are updated where they assert it, and deleted where they only restated the content.
@@ -173,11 +182,12 @@ Each slice is green and integrable on its own.
 
 ## Risks
 
-- **Hull-keyed AI.** Engagement stance and the indirect-fire spotter are set per hull. The fire-mode rule above
-  exists to avoid touching them; if the owner wants cross-mode swaps this becomes a larger story.
+- **Hull-keyed AI.** Engagement stance and the indirect-fire spotter are set per hull today; slice 4 moves them to the
+  fitted gun. Every convoy and breakthrough hull's stock behaviour must read the same, which a control run against
+  stock guns shows.
 - **Magazine and flux mismatch.** Mech weapons count pulls and draw on a chassis reservoir; vehicle guns count rounds
   with a loader and a per-gun flux block. The derived mount is the one place the two are reconciled, and the place to
   look first if a fitted gun fires wrongly.
 - **Save ripple.** `VehicleDeploymentSpec`'s record change touches every constructor call; the fixture format gains
   fields.
-- **Art.** The fitted weapon is invisible on the hull until a sprite story exists.
+- **Art.** A turret sprite per fitted weapon is real art work, and the most open-ended slice.
