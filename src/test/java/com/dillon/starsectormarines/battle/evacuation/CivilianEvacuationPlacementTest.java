@@ -173,10 +173,10 @@ class CivilianEvacuationPlacementTest {
                 List.of(home), 5L, CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT, field);
 
         assertNotNull(placement);
-        // As far toward the town as the cordon's wall keeps to the country (39 + 19 = 58), and out to the side of the
+        // As far toward the town as the cordon's wall keeps to the country (40 + 18 = 58), and out to the side of the
         // berths by just enough that the wall clears them; the west of the two tied flanks.
-        assertEquals(55, placement.liftX);
-        assertEquals(39, placement.liftY);
+        assertEquals(58, placement.liftX);
+        assertEquals(40, placement.liftY);
         int dx = placement.liftX - field.centerX(), dy = placement.liftY - field.centerY();
         assertTrue(dx * dx + dy * dy >= CivilianEvacuationPlacement.CORDON_FIELD_CLEARANCE
                 * CivilianEvacuationPlacement.CORDON_FIELD_CLEARANCE);

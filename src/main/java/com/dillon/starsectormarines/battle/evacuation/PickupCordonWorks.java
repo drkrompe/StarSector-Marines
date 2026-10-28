@@ -8,9 +8,11 @@ import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.CellTopology.GroundKind;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
+import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -22,10 +24,13 @@ import java.util.Set;
  * the pickup, so the allied line the company brings the survivors back to fights from a trench rather than the open.
  *
  * <p>From the lift out: a <b>trench</b> ({@link #TRENCH} rings out), the run each militia team mans; a sandbag
- * <b>parapet</b> on its lip, bags facing out; a cell of open ground; and a <b>wall</b> of hedgehogs with a crate
+ * <b>parapet</b> on its lip, bags facing out, closed to movement and open to sight; and hard against the bags a
+ * <b>wall</b> of hedgehogs with a crate
  * stack or a scrap pile here and there, closed to movement and open to sight, laid as barricade so the swarm tears it
- * down where the way round is long. Rings are measured on an octagon ({@link #ring}): four straight sides joined by
- * staircase chamfers, so every ring is a closed loop of edge-joined cells and the trench art joins all the way round.
+ * down where the way round is long. No open ground is left outside the bags, so the line stands in the trench rather
+ * than on the bags' far side (owner, 2026-10-28: "defense forces should be in the trenches"). Rings are measured on an
+ * octagon ({@link #ring}): four straight sides joined by staircase chamfers, so every ring is a closed loop of
+ * edge-joined cells and the trench art joins all the way round.
  *
  * <p>Two <b>gates</b> are left, each {@code 2 * GATE_HALF + 1} cells wide through all three rings, where the
  * cohort's walk from the shelter and the company's way from its pads cross the works: the company comes in by them
@@ -40,8 +45,11 @@ public final class PickupCordonWorks {
     static final int TRENCH = CivilianEvacuationPlacement.PICKUP_FORMATION_RADIUS + 3;
     /** Ring the parapet's bags stand on, on the trench's outer lip. */
     static final int BAGS = TRENCH + 1;
-    /** Ring the wall stands on, a walkway out from the bags. */
-    static final int WALL = TRENCH + 3;
+    /**
+     * Ring the wall stands on, against the bags: a walkable cell beside a parapet is part of its fighting position
+     * ({@code FightingPositionIndex}), so a walkway there would put the line outside its own bags.
+     */
+    static final int WALL = BAGS + 1;
     /** How far the corners are cut: each straight side runs {@code 2 * (TRENCH - CHAMFER) + 1} cells. */
     static final int CHAMFER = TRENCH / 2;
     /** Cells either side of a lane's line that a gate keeps open: five wide, a mech's way. */
@@ -103,9 +111,10 @@ public final class PickupCordonWorks {
      * @param lanes     the ways the gates are cut on (the cohort's walk, the company's way in), each a list of
      *                  {x, y} cells from the lift outward; each ring is gated once a lane, where it first crosses it
      * @param formation the pickup formation's points as {x, y} pairs, each given a post ({@link #posts})
+     * @param threatX   where the swarm is expected from, the posts weighted toward it ({@link #posts})
      */
     static Layout layout(int liftX, int liftY, Open open, Open map, List<List<int[]>> lanes, int[] formation,
-                         long seed) {
+                         int threatX, int threatY, long seed) {
         Set<Long> gated = new HashSet<>();
         for (List<int[]> lane : lanes) {
             for (int r : new int[]{TRENCH, BAGS, WALL}) {
@@ -144,22 +153,46 @@ public final class PickupCordonWorks {
             if (gated.contains(key(c[0], c[1])) || !open.at(c[0], c[1]) || !walled(liftX, liftY, c, TRENCH, map)) continue;
             trench.add(c);
         }
-        return new Layout(trench, bags, wall, posts(trench, formation), gated, leaks);
+        return new Layout(trench, bags, wall, posts(trench, formation, liftX, liftY, threatX, threatY), gated, leaks);
     }
 
     /**
-     * Each formation point's post: the dug trench cut into as many even stretches as there are points, by its cells
-     * in bearing order, and each point given the middle of the nearest stretch not yet taken. Even by what was dug,
-     * not by the ring: where a pad, a gate or the map edge takes a side, the teams spread over what is left rather
-     * than two of them sharing the corner nearest both.
+     * Each formation point's post, weighted toward where the swarm comes from (owner, 2026-10-28: "mainly manning
+     * positions in directions where the ravs are likely to come from"). The dug trench is split at the bearing square
+     * to the threat: all teams but one spread evenly over the half facing it, each in the middle of an even stretch
+     * of its cells in bearing order, and the last watches the rear, at the dug cell most nearly opposite the threat.
+     * Where one half has no trench (a map edge, a pad or a gate took it) every team spreads over the other. Even by
+     * what was dug, not by the ring, so two teams never share the corner nearest both; and only on a stretch long
+     * enough to be a fighting position ({@link FightingPositionIndex#MIN_RUN_CELLS}), never a stub cut off between
+     * two gates. Each formation point is then given the nearest post not yet taken.
      */
-    static int[] posts(List<int[]> trench, int[] formation) {
+    static int[] posts(List<int[]> dug, int[] formation, int liftX, int liftY, int threatX, int threatY) {
         int points = formation.length / 2;
         int[] posts = new int[formation.length];
         Arrays.fill(posts, -1);
+        List<int[]> trench = manned(dug);
         if (trench.isEmpty()) return posts;
+        double toward = Math.atan2(threatY - liftY, threatX - liftX);
+        List<int[]> front = new ArrayList<>();
+        List<int[]> rear = new ArrayList<>();
+        for (int[] c : trench) (Math.abs(off(c, liftX, liftY, toward)) <= Math.PI / 2 ? front : rear).add(c);
+        // In bearing order from one flank of the front round to the other.
+        front.sort((a, b) -> Double.compare(off(a, liftX, liftY, toward), off(b, liftX, liftY, toward)));
         List<int[]> slots = new ArrayList<>();
-        for (int k = 0; k < points; k++) slots.add(trench.get((2 * k + 1) * trench.size() / (2 * points)));
+        if (front.isEmpty() || rear.isEmpty()) {
+            List<int[]> half = front.isEmpty() ? rear : front;
+            if (front.isEmpty()) half.sort((a, b) -> Double.compare(off(a, liftX, liftY, toward + Math.PI),
+                    off(b, liftX, liftY, toward + Math.PI)));
+            for (int k = 0; k < points; k++) slots.add(half.get((2 * k + 1) * half.size() / (2 * points)));
+        } else {
+            int forward = points - 1;
+            for (int k = 0; k < forward; k++) slots.add(front.get((2 * k + 1) * front.size() / (2 * forward)));
+            int[] back = rear.get(0);
+            for (int[] c : rear) {
+                if (Math.abs(off(c, liftX, liftY, toward)) > Math.abs(off(back, liftX, liftY, toward))) back = c;
+            }
+            slots.add(back);
+        }
         for (int p = 0; p < points; p++) {
             int best = -1;
             int bestD = Integer.MAX_VALUE;
@@ -176,6 +209,44 @@ public final class PickupCordonWorks {
             slots.remove(best);
         }
         return posts;
+    }
+
+    /**
+     * The trench cells on an edge-joined stretch of at least {@link FightingPositionIndex#MIN_RUN_CELLS}, in their
+     * order; every cell where no stretch is that long.
+     */
+    private static List<int[]> manned(List<int[]> trench) {
+        Set<Long> cells = new HashSet<>();
+        for (int[] c : trench) cells.add(key(c[0], c[1]));
+        Set<Long> kept = new HashSet<>();
+        Set<Long> seen = new HashSet<>();
+        for (int[] start : trench) {
+            if (!seen.add(key(start[0], start[1]))) continue;
+            List<Long> run = new ArrayList<>();
+            ArrayDeque<int[]> queue = new ArrayDeque<>();
+            queue.add(start);
+            while (!queue.isEmpty()) {
+                int[] c = queue.poll();
+                run.add(key(c[0], c[1]));
+                for (int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                    int x = c[0] + d[0], y = c[1] + d[1];
+                    if (cells.contains(key(x, y)) && seen.add(key(x, y))) queue.add(new int[]{x, y});
+                }
+            }
+            if (run.size() >= FightingPositionIndex.MIN_RUN_CELLS) kept.addAll(run);
+        }
+        if (kept.isEmpty()) return trench;
+        List<int[]> out = new ArrayList<>();
+        for (int[] c : trench) if (kept.contains(key(c[0], c[1]))) out.add(c);
+        return out;
+    }
+
+    /** A cell's bearing from the lift off {@code toward}, in {@code (-PI, PI]}. */
+    private static double off(int[] c, int liftX, int liftY, double toward) {
+        double d = Math.atan2(c[1] - liftY, c[0] - liftX) - toward;
+        while (d <= -Math.PI) d += 2 * Math.PI;
+        while (d > Math.PI) d -= 2 * Math.PI;
+        return d;
     }
 
     /** Whether the wall straight out from a cell of ring {@code r} stands on the map. */
@@ -214,8 +285,9 @@ public final class PickupCordonWorks {
 
     /**
      * Plans and lays the works round the pickup on the live map before the first tick, gates cut along the cohort's
-     * walk and the company's way in from its nearest pad. Returns the trench post of each formation point
-     * ({x, y} pairs, -1 where none), or {@code null} when the art is missing and nothing was laid.
+     * walk and the company's way in from its nearest pad, and the line's posts weighted toward the town: the shelter
+     * stands at its heart, where the bores bud toward and the swarm comes out of. Returns the trench post of each
+     * formation point ({x, y} pairs, -1 where none), or {@code null} when the art is missing and nothing was laid.
      */
     public static int[] raise(BattleSimulation sim, CivilianEvacuationPlacement placement, long seed) {
         TileRegistry registry = TileRegistry.installed();
@@ -244,7 +316,7 @@ public final class PickupCordonWorks {
                 && topology.getBuildingId(x, y) == 0 && !topology.isFixture(x, y) && !topology.isWall(x, y)
                 && !dressed.contains(key(x, y)) && !onPad(pads, x, y);
         Layout layout = layout(placement.liftX, placement.liftY, open, grid::inBounds, lanes,
-                placement.formationCells(), seed);
+                placement.formationCells(), placement.shelterX, placement.shelterY, seed);
         lay(sim, registry, layout);
         return layout.posts();
     }
@@ -296,6 +368,13 @@ public final class PickupCordonWorks {
         List<RedoubtWorks.Piece> wall = new ArrayList<>();
         for (RedoubtWorks.Piece piece : layout.wall()) if (registry.doodad(piece.doodad()) != null) wall.add(piece);
         RedoubtWorks.lay(sim, new RedoubtWorks.Plan(0, 0, 0, 0, wall, bags, -1, -1, -1, -1, layout.leaks()));
+        // The parapet is fought over, not stood on: closed to movement like the wall, so the only ground the line's
+        // run holds is the trench behind it, and the way in is by the gates.
+        for (RedoubtWorks.Bag bag : bags) grid.setWalkable(bag.x(), bag.y(), false);
+        for (RedoubtWorks.Bag bag : bags)
+            for (int y = bag.y() - 1; y <= bag.y() + 1; y++)
+                for (int x = bag.x() - 1; x <= bag.x() + 1; x++)
+                    if (grid.inBounds(x, y)) grid.recomputeCoverAt(x, y);
     }
 
     /** The sandbag art's facing letter for a world direction, as the prepared-ground courses name it. */

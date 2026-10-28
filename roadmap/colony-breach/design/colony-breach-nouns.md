@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-28 — a pooled colony's patch may place its lift, bores and holdouts (Asharu's are the owner's). Earlier: the swarm strikes a standing vehicle from its side and claws one that bars its only way; its flow fields go round one where they can. Earlier: the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
+Updated: 2026-10-28 — the evac cordon's line stands in its trench, four teams facing the town and one on the rear. Earlier: a pooled colony's patch may place its lift, bores and holdouts (Asharu's are the owner's). Earlier: the swarm strikes a standing vehicle from its side and claws one that bars its only way; its flow fields go round one where they can. Earlier: the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
 
@@ -407,19 +407,25 @@ On the colony the cordon fights from **works** thrown up round the pickup
 (`PickupCordonWorks`; owner, 2026-10-28: "trenches and sandbag / doodad walls
 with space for the players forces to come through"). They stand on an octagon
 round the lift, just outside its protected square: a trench sixteen out, a
-sandbag parapet on its lip facing out, a cell of open ground, and a wall of
-hedgehogs with crate stacks and scrap piles nineteen out, closed to movement,
-open to sight and laid as barricade, so the swarm tears it down where the way
-round is long. Two **gates**, five cells wide through every ring, are cut where
+sandbag parapet on its lip facing out, and hard against it a wall of hedgehogs
+with crate stacks and scrap piles eighteen out. Parapet and wall are closed to
+movement and open to sight, the wall laid as barricade so the swarm tears it
+down where the way round is long. Nothing walkable is left beside the bags, so
+the trench is the only ground the line can man (owner, 2026-10-28: "defense
+forces should be in the trenches"). Two **gates**, five cells wide through every ring, are cut where
 the cohort's walk from the shelter and the company's way in from its nearest
 pad cross the works: the company, its mechs and its vehicles come in by them
-with the survivors. Nothing is set down on a pad, a door, a building or a prop
-already there. Each militia team still lands at its formation point and is
-then ordered into its stretch of trench, which it mans as a garrison mans a
-run: the dug trench is cut into five even stretches, each point taking the
-nearest one left, so where a pad, a gate or the map edge takes a side the
-teams spread over what remains rather than sharing a corner. The mech keeps
-its patrol inside.
+with the survivors (owner, 2026-10-28: "there will need to be an opening for a
+walk in by the player and the colonists"). Nothing is set down on a pad, a door,
+a building or a prop already there. Each militia team still lands at its
+formation point and is then ordered onto its post in the trench, which it mans
+as a garrison mans a run. The line faces the town, where the swarm comes from
+(owner, 2026-10-28: "mainly manning positions in directions where the ravs are
+likely to come from"): four teams spread evenly over the half of the trench
+facing the shelter, and one watches the rear opposite it. Posts go only on
+stretches long enough to be a fighting position, never on a stub cut off
+between the gates, and where one half has no trench all five share the other.
+The mech keeps its patrol inside.
 `-Dbattle.colonyBreach.cordonWorks=false` is the control: the line holds the
 open ground round its posts.
 

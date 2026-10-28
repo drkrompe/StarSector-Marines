@@ -35,14 +35,14 @@ class PickupCordonWorksTest {
 
     @Test
     void theWallShutsTheLiftInExceptThroughTheGates() {
-        PickupCordonWorks.Layout shut = PickupCordonWorks.layout(LIFT, LIFT, (x, y) -> true, BOARD, List.of(), formation(), 1L);
+        PickupCordonWorks.Layout shut = PickupCordonWorks.layout(LIFT, LIFT, (x, y) -> true, BOARD, List.of(), formation(), LIFT, SIZE, 1L);
         assertFalse(reachesLift(shut), "with no lane the wall closes all the way round");
         assertEquals(0, shut.leaks());
 
         // The survivors' walk comes in from the south edge straight up to the lift.
         List<int[]> lane = new ArrayList<>();
         for (int y = LIFT; y < SIZE; y++) lane.add(new int[]{LIFT, y});
-        PickupCordonWorks.Layout gated = PickupCordonWorks.layout(LIFT, LIFT, (x, y) -> true, BOARD, List.of(lane), formation(), 1L);
+        PickupCordonWorks.Layout gated = PickupCordonWorks.layout(LIFT, LIFT, (x, y) -> true, BOARD, List.of(lane), formation(), LIFT, SIZE, 1L);
         assertTrue(reachesLift(gated), "the gate lets the company in");
         Set<Long> wall = wallCells(gated);
         for (int dx = -PickupCordonWorks.GATE_HALF; dx <= PickupCordonWorks.GATE_HALF; dx++) {
@@ -60,7 +60,7 @@ class PickupCordonWorksTest {
         for (int y = LIFT; y <= LIFT + PickupCordonWorks.WALL + 1; y++) lane.add(new int[]{LIFT, y});
         for (int x = LIFT + 1; x < SIZE; x++) lane.add(new int[]{x, LIFT + PickupCordonWorks.WALL + 1});
         PickupCordonWorks.Layout layout = PickupCordonWorks.layout(LIFT, LIFT, (x, y) -> true, BOARD, List.of(lane),
-                formation(), 1L);
+                formation(), LIFT, SIZE, 1L);
         assertTrue(wallCells(layout).contains(PickupCordonWorks.key(LIFT + 8, LIFT + PickupCordonWorks.WALL)),
                 "the wall stands where the lane only runs beside it");
         assertFalse(wallCells(layout).contains(PickupCordonWorks.key(LIFT, LIFT + PickupCordonWorks.WALL)));
@@ -71,7 +71,7 @@ class PickupCordonWorksTest {
         // The lift sixteen cells in from the west edge: the west wall would stand off the map.
         int lift = 16;
         PickupCordonWorks.Layout layout = PickupCordonWorks.layout(lift, LIFT, (x, y) -> BOARD.at(x, y),
-                BOARD, List.of(), formation(), 1L);
+                BOARD, List.of(), formation(), LIFT, SIZE, 1L);
         for (int[] c : layout.trench()) assertTrue(c[0] > lift - PickupCordonWorks.TRENCH, "trench at " + c[0]);
         for (RedoubtWorks.Piece p : layout.wall()) assertTrue(p.x() >= 0);
     }
@@ -80,20 +80,39 @@ class PickupCordonWorksTest {
     void groundThatTakesNoPieceIsLeftOpenAndCounted() {
         // A building's frontage across the east side of the wall ring.
         PickupCordonWorks.Open open = (x, y) -> x != LIFT + PickupCordonWorks.WALL;
-        PickupCordonWorks.Layout layout = PickupCordonWorks.layout(LIFT, LIFT, open, BOARD, List.of(), formation(), 1L);
+        PickupCordonWorks.Layout layout = PickupCordonWorks.layout(LIFT, LIFT, open, BOARD, List.of(), formation(), LIFT, SIZE, 1L);
         assertEquals(2 * (PickupCordonWorks.WALL - PickupCordonWorks.CHAMFER) + 1, layout.leaks());
     }
 
     @Test
-    void postsSpreadOverTheTrenchThatWasDug() {
+    void theLineFacesTheThreatWithOneTeamOnTheRear() {
         int[] formation = formation();
-        PickupCordonWorks.Layout whole = PickupCordonWorks.layout(LIFT, LIFT, (x, y) -> true, BOARD, List.of(), formation, 1L);
-        assertSpread(whole.posts(), 12);
-        // Half the ring gone, as a map edge or a hill takes it: the five teams share the half that is left, apart.
-        PickupCordonWorks.Layout half = PickupCordonWorks.layout(LIFT, LIFT, (x, y) -> x >= LIFT, BOARD, List.of(),
-                formation, 1L);
-        for (int p = 0; p < formation.length; p += 2) assertTrue(half.posts()[p] >= LIFT);
+        // The swarm's way is due north.
+        PickupCordonWorks.Layout whole = PickupCordonWorks.layout(LIFT, LIFT, (x, y) -> true, BOARD, List.of(),
+                formation, LIFT, SIZE, 1L);
+        int north = 0, south = 0;
+        for (int p = 0; p < formation.length; p += 2) {
+            if (whole.posts()[p + 1] >= LIFT) north++;
+            else south++;
+        }
+        assertEquals(4, north, "four teams on the half facing the threat");
+        assertEquals(1, south, "one on the rear");
+        assertSpread(whole.posts(), 8);
+        // The northern half gone, as a map edge or a hill takes it: the five teams share what is left, apart.
+        PickupCordonWorks.Layout half = PickupCordonWorks.layout(LIFT, LIFT, (x, y) -> y < LIFT, BOARD, List.of(),
+                formation, LIFT, SIZE, 1L);
+        for (int p = 0; p < formation.length; p += 2) assertTrue(half.posts()[p + 1] < LIFT);
         assertSpread(half.posts(), 5);
+    }
+
+    @Test
+    void noTeamIsPostedOnAStubTooShortToMan() {
+        // The south half of the ring, and five cells of trench cut off on the north side between two gates.
+        List<int[]> trench = new ArrayList<>();
+        for (int[] c : PickupCordonWorks.loop(LIFT, LIFT, PickupCordonWorks.TRENCH)) if (c[1] < LIFT) trench.add(c);
+        for (int x = LIFT; x < LIFT + 5; x++) trench.add(new int[]{x, LIFT + PickupCordonWorks.TRENCH});
+        int[] posts = PickupCordonWorks.posts(trench, formation(), LIFT, LIFT, LIFT, SIZE);
+        for (int p = 0; p < posts.length; p += 2) assertTrue(posts[p + 1] < LIFT, "a team posted on the stub");
     }
 
     /** Every post is a trench cell, at least {@code apart} cells from every other. */
