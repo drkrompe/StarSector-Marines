@@ -177,13 +177,13 @@ final class StoreViewModel {
         for (StoreSlot.Section section : StoreSlot.Section.values()) {
             String sectionKey = "SECTION:" + section.name();
             boolean expanded = section == open;
-            out.add(categoryRow(sectionKey, "store-cat-" + section.name(), "store-cat section", section,
+            out.add(categoryRow(sectionKey, "store-cat-" + section.name(), "store-cat section", section, null,
                     (expanded ? "- " : "+ ") + Strings.get("storeSection" + section.name()),
                     count(sectionKey), current));
             if (!expanded) continue;
             for (StoreSlot slot : StoreSlot.of(section)) {
                 String slotKey = "SLOT:" + slot.name();
-                out.add(categoryRow(slotKey, "store-cat-" + slot.name(), "store-cat slot", section,
+                out.add(categoryRow(slotKey, "store-cat-" + slot.name(), "store-cat slot", section, slot,
                         Strings.get("storeSlot" + slot.name()), count(slotKey), current));
             }
         }
@@ -197,13 +197,15 @@ final class StoreViewModel {
     }
 
     private CategoryRow categoryRow(String key, String id, String classes, StoreSlot.Section section,
-                                    String label, int count, String current) {
+                                    StoreSlot slot, String label, int count, String current) {
         boolean isSection = classes.endsWith("section");
         String icon = "graphics/ui/store/" + (isSection ? "section-" : "slot-")
                 + section.name().toLowerCase(Locale.ROOT) + ".svg";
+        boolean loadout = slot == StoreSlot.WEAPON_LOADOUT || slot == StoreSlot.ARMOR_LOADOUT;
+        if (loadout) icon = offerIcon(slot);
         return new CategoryRow(id, classes + (key.equals(current) ? " selected" : "")
                 + (count == 0 ? " empty" : ""), Strings.format("storeCategoryCountFmt", label, count),
-                icon, isSection ? "store-cat-icon" : "store-cat-tick", "store-cat-strip sec-" + section.name(),
+                icon, isSection ? "store-cat-icon" : loadout ? "store-cat-symbol" : "store-cat-tick", "store-cat-strip sec-" + section.name(),
                 () -> selectFilter(key));
     }
 
@@ -264,9 +266,16 @@ final class StoreViewModel {
                     + (owned ? " acquired" : "");
             out.add(new OfferRow(id, classes, name(offer), kind(offer) + " / " + shelfLabel(offer.shelf()),
                     owned ? Strings.get("storeRowAcquired") : CompanyResources.creditAmount(offer.price()),
+                    offerIcon(offer.slot()), offer.slot() == StoreSlot.WEAPON_LOADOUT
+                            || offer.slot() == StoreSlot.ARMOR_LOADOUT ? "store-offer-icon" : "store-offer-icon none",
                     () -> select(key)));
         }
         return List.copyOf(out);
+    }
+
+    /** The symbol that tells a marine weapon loadout from an armor loadout; other rows carry none. */
+    private static String offerIcon(StoreSlot slot) {
+        return "graphics/ui/store/" + (slot == StoreSlot.ARMOR_LOADOUT ? "offer-armor.svg" : "offer-weapon.svg");
     }
 
     private EquipmentStore.Offer selected() {
@@ -411,7 +420,8 @@ final class StoreViewModel {
     }
 
     /** One line of the shelf. */
-    record OfferRow(String id, String classes, String name, String detail, String price, Runnable select)
+    record OfferRow(String id, String classes, String name, String detail, String price, String icon,
+                    String iconClasses, Runnable select)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -421,6 +431,10 @@ final class StoreViewModel {
                 case "nameId" -> id + ":name";
                 case "detailId" -> id + ":detail";
                 case "priceId" -> id + ":price";
+                case "iconId" -> id + ":icon";
+                case "copyId" -> id + ":copy";
+                case "icon" -> icon;
+                case "iconClasses" -> iconClasses;
                 case "name" -> name;
                 case "detail" -> detail;
                 case "price" -> price;

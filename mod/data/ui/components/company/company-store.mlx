@@ -27,9 +27,12 @@
         <div id="store-shelf-copy" class="label tone-muted rail-copy">{shelfNote}</div>
         <div id="store-offer-list" class="store-offer-list">
           <button each="offer in offerRows" key="{offer.id}" id="{offer.id}" class="{offer.classes}" onclick="{offer.select}">
-            <div id="{offer.nameId}" class="label store-offer-name">{offer.name}</div>
-            <div id="{offer.detailId}" class="label tone-muted store-offer-detail">{offer.detail}</div>
-            <div id="{offer.priceId}" class="label heading tone-accent store-offer-price">{offer.price}</div>
+            <img id="{offer.iconId}" class="{offer.iconClasses}" src="{offer.icon}" />
+            <div id="{offer.copyId}" class="store-offer-copy">
+              <div id="{offer.nameId}" class="label store-offer-name">{offer.name}</div>
+              <div id="{offer.detailId}" class="label tone-muted store-offer-detail">{offer.detail}</div>
+              <div id="{offer.priceId}" class="label heading tone-accent store-offer-price">{offer.price}</div>
+            </div>
           </button>
         </div>
       </div>
@@ -78,12 +81,16 @@
   .store-category-label { width: 0px; flex-grow: 1; height: auto; white-space: nowrap; }
   .store-cat-icon { width: 48px; height: 36px; pointer-events: none; }
   .store-cat-tick { width: 14px; height: 14px; pointer-events: none; }
+  .store-cat-symbol { width: 20px; height: 20px; pointer-events: none; }
   .store-rail { flex-direction: column; width: 420px; padding: 10px; gap: 8px; overflow: hidden; border-width: 2px; }
   .rail-copy { height: 36px; white-space: normal; }
   .store-offer-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
-  .store-row { flex-direction: column; width: 100%; height: 74px; padding: 8px 10px; gap: 4px; border-width: 2px; text-align: left; background-color: #20282d; border-color: #526065; }
+  .store-row { flex-direction: row; align-items: center; width: 100%; height: 74px; padding: 8px 10px; gap: 10px; border-width: 2px; text-align: left; background-color: #20282d; border-color: #526065; }
   .store-row.selected { background-color: #183b50; border-color: #ffd464; }
   .store-row.acquired { opacity: 0.55; border-color: #4f9a68; }
+  .store-offer-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }
+  .store-offer-icon { width: 44px; height: 44px; pointer-events: none; }
+  .store-offer-icon.none { display: none; }
   .store-offer-name { height: auto; white-space: normal; }
   .store-offer-detail, .store-offer-price { height: auto; white-space: normal; }
   .store-stage { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 9px; overflow: hidden; border-width: 2px; }
