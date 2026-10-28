@@ -927,7 +927,7 @@ public class MarineOpsContext {
             seen.add(DISTRESS_CLIENT_FACTION_ID);
         }
 
-        // 0b'. Warden Maro's board for The Wellhollow Bloom on Asharu: its own
+        // 0b'. Colonel Maro's board for The Wellhollow Bloom on Asharu: its own
         //      contact, so other Asharu arcs never list under it.
         if (WellhollowBloomCampaign.contactAt(planet)
                 && !WellhollowBloomCampaign.offers(planet).isEmpty()) {

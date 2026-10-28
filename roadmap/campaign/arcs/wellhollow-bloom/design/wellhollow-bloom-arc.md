@@ -42,11 +42,16 @@ government's response:
    the company fights attached to its brigade in the push on the channel root
    and then the heart.
 
-- **Hollis Maro**, an irrigation-crew boss on the Wellhollow floor until the
-  Defence Force called up its reserve and gave him the district. Hires and
-  briefs the company for every job. Plain, tired, counts people, calls them
-  **ravs** and the bores **holes**. His portrait still shows the farmer in a
-  work jacket with militia webbing, which fits a reservist one week in.
+- **Colonel Hollis Maro**, the Defence Force's field commander for the
+  Wellhollow district (owner, 2026-10-28: a stressed planetary field commander
+  organising a frantic defence, not a civilian drafted in). His command is a
+  patchwork, as allied commands were: one regular battalion, a militia in every
+  town answering to its own council, and hired outfits under their own
+  officers, the company among them. He coordinates more than he orders, until
+  the line stabilises and Command gives him a brigade. Hires and briefs the
+  company for every job. Stressed, plain, counts people, calls them **ravs**
+  and the bores **holes**. His portrait still shows a farmer in a work jacket
+  with militia webbing and is due a regeneration in Defence Force officer kit.
 - **Castle**, the company's operations voice, as in every arc.
 
 Asharu in the base game is an independent world whose settlers keep no
