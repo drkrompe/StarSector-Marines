@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatGun;
@@ -26,15 +27,19 @@ final class BoatDeckSpecSheets {
 
     private BoatDeckSpecSheets() { }
 
-    /** Binds each stores card to its part's sheet; cards already bound are left alone. */
+    /**
+     * Binds each stores card to its part's sheet, written when it opens so it describes the part
+     * on the boat selected then; cards already bound are left alone.
+     */
     static void bindCatalogRows(SpecSheetBinder binder, MarkupInstance markup,
-                                List<BoatDeckViewModel.CatalogRow> rows) {
+                                List<BoatDeckViewModel.CatalogRow> rows, Supplier<ShuttleType> pattern) {
         if (binder == null) return;
         for (BoatDeckViewModel.CatalogRow row : rows) {
             UiElement card = markup.requireElement(row.id());
             if (binder.isBound(card)) continue;
-            SpecSheet sheet = partSheet(row.kind(), row.itemId());
-            if (sheet != null) binder.bind(card, sheet);
+            BoatDoll.Kind kind = row.kind();
+            String itemId = row.itemId();
+            binder.bind(card, () -> partSheet(kind, itemId, pattern.get()));
         }
     }
 
@@ -44,10 +49,10 @@ final class BoatDeckSpecSheets {
      * nothing, so no sheet covers the socket it is going into.
      */
     static void bindDoll(SpecSheetBinder binder, UiDocument document, UiElement bay,
-                         Supplier<BoatDeckCanvas> canvas) {
+                         Supplier<BoatDeckCanvas> canvas, Supplier<ShuttleType> pattern) {
         binder.bindLive(bay, () -> {
             BoatDeckCanvas.PointedPart part = pointed(canvas);
-            return part == null ? null : partSheet(part.kind(), part.itemId());
+            return part == null ? null : partSheet(part.kind(), part.itemId(), pattern.get());
         }, () -> {
             BoatDeckCanvas.PointedPart part = pointed(canvas);
             if (part == null) return null;
@@ -64,8 +69,11 @@ final class BoatDeckSpecSheets {
         return current == null ? null : current.pointedPart();
     }
 
-    /** A door gun's or a fitting's sheet: its tier and kind, its figures, and its yard's account of it. */
-    static SpecSheet partSheet(BoatDoll.Kind kind, String itemId) {
+    /**
+     * A door gun's or a fitting's sheet: its tier and kind, its figures on a {@code pattern} boat,
+     * and its yard's account of it.
+     */
+    static SpecSheet partSheet(BoatDoll.Kind kind, String itemId, ShuttleType pattern) {
         if (itemId == null) return null;
         if (kind == BoatDoll.Kind.HARDPOINT) {
             BoatGun gun = BoatGun.findById(itemId);
@@ -86,7 +94,7 @@ final class BoatDeckSpecSheets {
                         "×" + BoatDeckViewModel.factor(fitting.accelFactor())));
             }
             case LIFT -> stats.add(SpecSheet.Stat.of(Strings.get("boatDeckLift"),
-                    LiftReadout.ratingName(fitting.liftRating())));
+                    LiftReadout.ratingName(fitting.liftOn(pattern))));
             case CABIN -> {
                 if (fitting.seats() > 0) {
                     stats.add(SpecSheet.Stat.of(Strings.get("openingBoatDeckSeats"), String.valueOf(fitting.seats())));

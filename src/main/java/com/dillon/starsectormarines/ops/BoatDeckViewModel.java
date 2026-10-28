@@ -855,7 +855,7 @@ public final class BoatDeckViewModel {
                     Strings.get("boatDeckArmor"));
             case DRIVE -> signed(pattern.maxSpeed() * (fitting.speedFactor() - installed.speedFactor()),
                     Strings.get("openingBoatDeckSpeed"));
-            case LIFT -> Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
+            case LIFT -> Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftOn(pattern)));
             case CABIN, EMITTER, POWER -> effect(fitting);
         };
     }
@@ -1291,6 +1291,12 @@ public final class BoatDeckViewModel {
         return recipe == null ? "" : CompanyResources.creditAmount(workshop.fabricationQuote(recipe.pattern()).credits());
     }
 
+    /** The selected boat's pattern, for what her parts do on her; null with no boat selected. */
+    public ShuttleType selectedPattern() {
+        CampaignBoat boat = selectedBoat();
+        return boat == null ? null : boat.pattern();
+    }
+
     private CampaignBoat selectedBoat() {
         revision.get();
         int berth = selectedBerth.get();
@@ -1311,7 +1317,8 @@ public final class BoatDeckViewModel {
         CampaignBoat boat = selectedBoat();
         return switch (fitting.slot()) {
             case PLATING -> Strings.format("boatDeckArmorEffect", factor(fitting.armorFactor()));
-            case LIFT -> Strings.format("boatDeckLiftEffect", LiftReadout.ratingName(fitting.liftRating()));
+            case LIFT -> Strings.format("boatDeckLiftEffect",
+                    LiftReadout.ratingName(fitting.liftOn(boat == null ? null : boat.pattern())));
             case DRIVE -> Strings.format("boatDeckDriveEffect", factor(fitting.speedFactor()),
                     factor(fitting.deboardFactor()));
             case CABIN -> Strings.format("boatDeckCabinEffect",

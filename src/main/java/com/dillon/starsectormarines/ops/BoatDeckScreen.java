@@ -159,7 +159,7 @@ public final class BoatDeckScreen implements Screen {
             specSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built))
                     .heldWhile(boardHover::held);
             // A fitted part on the doll opens the sheet its stores card does, beside the part.
-            BoatDeckSpecSheets.bindDoll(specSheets, built, bayElement, () -> bayCanvas);
+            BoatDeckSpecSheets.bindDoll(specSheets, built, bayElement, () -> bayCanvas, viewModel::selectedPattern);
             wireStores(candidate, built);
             bayElement.onPointerMove(this::pointAtBerth);
             bayElement.onPointerDown(this::pressBerth);
@@ -257,7 +257,7 @@ public final class BoatDeckScreen implements Screen {
     private void wireStores(MarkupInstance instance, UiDocument target) {
         List<BoatDeckViewModel.CatalogRow> rows = viewModel.catalogRows().get();
         wireCatalogPreviews(instance, target, rows);
-        BoatDeckSpecSheets.bindCatalogRows(specSheets, instance, rows);
+        BoatDeckSpecSheets.bindCatalogRows(specSheets, instance, rows, viewModel::selectedPattern);
         for (BoatDeckViewModel.CatalogRow row : rows) {
             UiElement card = instance.requireElement(row.id());
             card.onPointerDown(event -> pickUp(event, row));

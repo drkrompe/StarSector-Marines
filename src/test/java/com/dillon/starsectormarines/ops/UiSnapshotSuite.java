@@ -3462,7 +3462,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 }
                 if (at == null) throw new IllegalStateException("No doll socket drawn for " + pointAt);
                 SpecSheetBinder binder = new SpecSheetBinder(document, SpecSheetLayer.install(document));
-                BoatDeckSpecSheets.bindDoll(binder, document, bayElement, () -> bayCanvas);
+                BoatDeckSpecSheets.bindDoll(binder, document, bayElement, () -> bayCanvas, viewModel::selectedPattern);
                 CanvasMetrics metrics = document.canvasMetrics(bayElement, 1f);
                 document.pointerMoved(metrics.toDocumentX(at[0]), metrics.toDocumentY(at[1]));
                 bayCanvas.pointAt(at[0], at[1]);
