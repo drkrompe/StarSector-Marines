@@ -67,7 +67,7 @@
   .store-categories { flex-direction: column; width: 270px; padding: 10px; gap: 8px; overflow: hidden; border-width: 2px; }
   .store-category-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 4px; overflow: scroll; }
   .store-cat { flex-direction: row; width: 100%; height: 28px; gap: 8px; padding: 0px 8px 0px 0px; border-width: 1px; text-align: left; align-items: center; background-color: #20282d; border-color: #526065; }
-  .store-cat.section { height: 40px; background-color: #2a3238; border-color: #6a7a80; font-family: heading; }
+  .store-cat.section { height: 46px; background-color: #2a3238; border-color: #6a7a80; font-family: heading; }
   .store-cat.slot { padding: 0px 8px 0px 14px; }
   .store-cat-strip { width: 5px; height: 100%; pointer-events: none; }
   .store-cat-strip.sec-MARINE { background-color: #8fcf8a; }
@@ -76,7 +76,7 @@
   .store-cat.selected { background-color: #183b50; border-color: #ffd464; }
   .store-cat.empty { opacity: 0.5; }
   .store-category-label { width: 0px; flex-grow: 1; height: auto; white-space: nowrap; }
-  .store-cat-icon { width: 32px; height: 32px; pointer-events: none; }
+  .store-cat-icon { width: 48px; height: 36px; pointer-events: none; }
   .store-cat-tick { width: 14px; height: 14px; pointer-events: none; }
   .store-rail { flex-direction: column; width: 420px; padding: 10px; gap: 8px; overflow: hidden; border-width: 2px; }
   .rail-copy { height: 36px; white-space: normal; }

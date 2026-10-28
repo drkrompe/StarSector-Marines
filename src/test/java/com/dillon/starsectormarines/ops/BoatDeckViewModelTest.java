@@ -150,7 +150,7 @@ class BoatDeckViewModelTest {
             assertEquals(BoatFitting.STANDARD_PLATING.displayName(), row.plating());
             assertEquals(BoatFitting.STANDARD_DRIVE.displayName(), row.drive());
         }
-        assertTrue(viewModel.deckSummary().get().startsWith("6 boats aboard"),
+        assertTrue(viewModel.deckSummary().get().startsWith("6 shuttles aboard"),
                 viewModel.deckSummary().get());
         assertTrue(viewModel.deckSummary().get().contains("carried by Valkyrie"));
         assertTrue(viewModel.overviewClasses().get().contains("boat-overview"));
@@ -257,7 +257,7 @@ class BoatDeckViewModelTest {
                 new Reactor(), deck, new TestPurse(60_000), "Valkyrie");
 
         String summary = viewModel.deckSummary().get();
-        assertTrue(summary.startsWith("5 boats aboard"), summary);
+        assertTrue(summary.startsWith("5 shuttles aboard"), summary);
         assertTrue(summary.contains("1 berth empty"), summary);
 
         deck.lose(List.of(deck.boats().get(0).id()));
@@ -322,7 +322,7 @@ class BoatDeckViewModelTest {
         assertEquals(deck.boats().get(2).displayName(), viewModel.selectedBoatName().get());
         assertEquals(deck.boats().get(2).displayName(),
                 viewModel.boatRows().get().get(2).name());
-        assertTrue(viewModel.deckSummary().get().startsWith("6 boats aboard"),
+        assertTrue(viewModel.deckSummary().get().startsWith("6 shuttles aboard"),
                 viewModel.deckSummary().get());
         assertTrue(viewModel.feedbackClasses().get().contains("tone-good"));
         assertTrue(viewModel.feedbackText().get().contains("BERTH 03"),

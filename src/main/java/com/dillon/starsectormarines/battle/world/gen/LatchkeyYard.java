@@ -95,7 +95,7 @@ public final class LatchkeyYard {
      */
     public static final Place MORTAR_POST = new Place("mortar-post", "Mortar pit / Cinder Steps terraces", 140, 64);
     /** Where a custody party forms up on the apron before moving in under escort. */
-    public static final Place PARTY_START = new Place("party-start", "Custody party / boat apron", 8, 56);
+    public static final Place PARTY_START = new Place("party-start", "Custody party / shuttle apron", 8, 56);
 
     private static final String YARD_WALL = "installation.dark-concrete-wall";
     private static final String SHOP_WALL = "colony.olive-wall";

@@ -90,9 +90,9 @@ class OpeningLocalizationTest {
 
     @Test
     void quantitiesApostrophesAndReorderedPlayerNamesSurviveFormatting() throws Exception {
-        assertEquals("0 boats aboard", Strings.format("openingBoatCount", 0));
-        assertEquals("1 boat aboard", Strings.format("openingBoatCount", 1));
-        assertEquals("2 boats aboard", Strings.format("openingBoatCount", 2));
+        assertEquals("0 shuttles aboard", Strings.format("openingBoatCount", 0));
+        assertEquals("1 shuttle aboard", Strings.format("openingBoatCount", 1));
+        assertEquals("2 shuttles aboard", Strings.format("openingBoatCount", 2));
         String name = "Morgan's {Second Wind}";
         try (var strings = new HeadlessStrings(Path.of("mod"), text -> switch (text) {
             case "Reach {0}" -> "{0} — Castle''s destination";

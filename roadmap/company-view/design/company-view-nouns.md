@@ -95,7 +95,8 @@ shared mapping instead of assigning paths independently in each screen.
   It has no per-squad drill-down; a squad card's Loadout opens that squad's
   Armory equipment workspace. Its bulk orders use roster and cargo authorities; it never simulates recovery
   or owns a second inventory.
-- **Boat Deck** — the shipboard room over the company's ship's boats, standing
+- **Boat Deck** — (shown to the player as **Shuttle Deck**; the code and these docs keep the older
+  `Boat` names) the shipboard room over the company's ship's boats, standing
   in the hull's own hangars. It presents the deck and refits one boat at a time,
   mutating nothing except through the credit-backed boat workshop.
 - **Campaign boat** — one persistent, company-owned ship's boat: a stable id, a
@@ -893,7 +894,7 @@ opened; reopening it recomputes the shelf without what the company now knows.
 
 The page is browsed by category (`StoreSlot`): **Marine** (weapon loadouts, armor loadouts),
 **Mechs / Vehicles** (chassis, weapons, internals, vehicles, vehicle kits) and **Boats**
-(plating, drive, lift hold, cabin, shield emitter, power, door guns). Each section has its own icon and colour (green infantry, amber mech, blue boat), carried down its slot rows as an accent strip so the grouping reads at a glance. The list is an
+(plating, drive, lift hold, cabin, shield emitter, power, door guns). Each section has its own icon and colour (green marine doll, amber bulwark and tank dolls, blue shuttle), carried down its slot rows as an accent strip so the grouping reads at a glance. The list is an
 accordion: one section is open at a time, showing its slots, and opening another collapses it.
 The page opens on the first section with stock. Each row counts what the shelf holds there;
 choosing a section shows all of it, choosing a slot narrows it, and an empty category says so. Boat parts are the Boat Deck's learnable technology: the standard fitting of every slot
