@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
+Updated: 2026-10-28 — lift the company does not own flies machines only, never a squad sortie, and a standby craft taking a squad sortie comes in on its donor's approach. Earlier, 2026-10-26: a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -425,16 +425,19 @@ sources stay where `command-powers-nouns.md` puts them. The player's machines
 ride the **ferry**, the marine transports that bring the company in, through one
 first-in-first-out **lift queue**. The opening squad loads go first: each craft
 flies its own sorties, then a lift-rated craft waits off-map on **standby**. A
-standby craft first takes the last squad sortie another ferry craft still owes
-(from the craft owing most, flown to that craft's landing ground with its marines,
-a load larger than its seats split), so no machine comes down while a squad still
-waits. Each player order is a **machine drop** job; a standby craft with no squad
+company standby craft first takes the last squad sortie another ferry craft still owes
+(from the craft owing most, flown in on that craft's approach to its landing ground
+with its marines, a load larger than its seats split), so no machine comes down while
+a squad still waits. Lift the company does not own never takes a squad sortie: the
+company lands in its own boats (owner, 2026-10-28; an employer Valkyrie flying a
+Hermes's second load from its standby point crossed Thunder Run's flak and was lost
+with the squad). Each player order is a **machine drop** job; a standby craft with no squad
 sortie left to take takes the oldest job it can carry (`LiftAdmission`) and flies exactly that machine to its landing ground,
 so a boat shot down with a machine aboard settles as that boat's loss like any
 other. A budget carrier no ferry craft matches (the employer's or a ship's heavy
 lift, or a committed cradle with no seat in the arrival) joins the ferry as an
-ordinary standby craft of its pattern, so heavy lift is one more ferry craft,
-lands squads with the rest of the ferry, and is not a separate delivery. An Aeroshuttle standing in for a cradled hull (Conquest
+ordinary standby craft of its pattern, so heavy lift is one more ferry craft and
+not a separate delivery; supplied lift among them flies machines only. An Aeroshuttle standing in for a cradled hull (Conquest
 paired arrivals) inherits its lift rating; one standing in for a Valkyrie does
 not, and that heavy lift joins as above. A job waits until a craft that can
 carry it is free, and reads as having no craft when none is left alive. The

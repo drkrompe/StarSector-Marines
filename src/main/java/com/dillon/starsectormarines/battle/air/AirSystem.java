@@ -999,7 +999,13 @@ public class AirSystem {
                         // path below. Then the oldest machine it can lift.
                         if (mission.pendingDelay > 0f) break;
                         if (LiftQueue.takeSquadSortie(world, air, mission,
-                                frame.seats())) break;
+                                frame.seats())) {
+                            // Standby waits anywhere off-map; the sortie comes in on its donor's approach.
+                            body.teleport(mission.entryX, mission.entryY, AirBody.facingToward(
+                                    mission.lzX - mission.entryX, mission.lzY - mission.entryY));
+                            world.setAltitudeT(id, 1f);
+                            break;
+                        }
                         LiftQueue.MachineDrop job = liftQueue.takeFor(frame);
                         if (job == null) break;
                         LiftQueue.loadMachine(mission, job);
