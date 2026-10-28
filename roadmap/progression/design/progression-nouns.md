@@ -211,7 +211,8 @@ legibility.
   *revoked*. An *honoured* period is one that ended with loyalty kept.
 - **Market listing** — a named card a story beat has put on sale at one named
   market, or at every open market of one faction, until the company knows or
-  carries it. Authored stock the market channel displays, not a fifth channel.
+  carries it. Authored stock the company store shows at that market, not a fifth
+  channel.
 - **Armory** — the persistent campaign authority for collected equipment
   templates and reusable squad definitions. Materialized marine kit persists on
   the marine; the Machine Shop fits learned technology for free.
@@ -778,8 +779,8 @@ because the story is the permission. It never bypasses the Restricted tier: list
 a Restricted card needs a military warrant naming it, and a shelf never shows a
 Restricted card the company is not warranted for. A listing is withdrawn while the company knows
 or carries the card and returns if it stops doing so; nothing else expires it.
-Creating one restocks the markets at once, so the debrief's promise is on the shelf
-now. The card's tooltip names the event that stocked it. Settlement code owns
+The store reads its shelf when the page opens, so a new listing is on the shelf at once
+and the shelf's row names the event that stocked it. Settlement code owns
 once-only; listing the same card at the same place twice changes nothing. This is global reachability, not universal faction availability.
 
 **Arc issue cards are how the early arcs pay in ways of fighting.** Four weapon

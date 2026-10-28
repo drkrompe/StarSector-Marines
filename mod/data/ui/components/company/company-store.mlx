@@ -1,0 +1,77 @@
+<template props="resourceStock,roomTitle,roomCopy,contextLabel,shelfNote,offerRows,selectedName,selectedKind,selectedDetail,priceLabel,buyLabel,buyClasses,buyAction,verdict,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,shopAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopClasses">
+  <div id="store-root" class="store-root">
+    <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
+    <div id="store-room-bar" class="panel store-room-bar console-header">
+      <img id="store-service-plate" class="company-service-plate" src="graphics/ui/console/service-plate.svg" />
+      <div id="store-room-title" class="label heading tone-edge">{roomTitle}</div>
+      <div id="store-room-copy" class="label tone-muted">{roomCopy}</div>
+      <div id="store-stock-slot" class="header-stock-slot">
+        <company-resource-stock stockId="store-resource-stock" rows="{resourceStock}" />
+      </div>
+    </div>
+
+    <div id="store-body" class="store-body">
+      <div id="store-shelf" class="panel store-rail console-section">
+        <div id="store-shelf-heading" class="label heading tone-edge section-heading">{i18n.storeShelfHeading}</div>
+        <div id="store-shelf-copy" class="label tone-muted rail-copy">{shelfNote}</div>
+        <div id="store-offer-list" class="store-offer-list">
+          <button each="offer in offerRows" key="{offer.id}" id="{offer.id}" class="{offer.classes}" onclick="{offer.select}">
+            <div id="{offer.nameId}" class="label store-offer-name">{offer.name}</div>
+            <div id="{offer.detailId}" class="label tone-muted store-offer-detail">{offer.detail}</div>
+            <div id="{offer.priceId}" class="label heading tone-accent store-offer-price">{offer.price}</div>
+          </button>
+        </div>
+      </div>
+
+      <div id="store-stage" class="panel store-stage console-section">
+        <div id="store-selected-heading" class="store-selected-heading console-header">
+          <div id="store-selected-copy" class="store-selected-copy">
+            <div id="store-selected-name" class="label store-selected-name tone-accent">{selectedName}</div>
+            <div id="store-selected-kind" class="label tone-muted">{selectedKind}</div>
+          </div>
+          <button id="store-buy" class="{buyClasses}" onclick="{buyAction}">
+            <div id="store-buy-label" class="label heading store-buy-label">{buyLabel}</div>
+          </button>
+        </div>
+        <div id="store-selected-detail" class="label store-selected-detail console-well">{selectedDetail}</div>
+        <div id="store-verdict-bar" class="store-verdict-bar console-readout">
+          <div id="store-verdict" class="label heading tone-accent store-verdict">{verdict}</div>
+          <div id="store-price" class="label store-price">{priceLabel}</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</template>
+
+<style>
+  .header-stock-slot { flex-direction: column; width: 640px; height: 46px; }
+  .store-root { flex-direction: column; padding: 10px; gap: 7px; border-width: 2px; overflow: hidden; }
+  .label { overflow: hidden; }
+  .heading { font-family: heading; }
+  .section-heading { height: 19px; }
+  .store-room-bar { flex-direction: row; height: 54px; padding: 4px 10px; gap: 12px; align-items: center; border-width: 2px; }
+  #store-room-title { width: 282px; height: auto; white-space: normal; }
+  #store-room-copy { width: 0px; flex-grow: 1; text-align: left; height: auto; white-space: normal; }
+  .store-body { flex-direction: row; width: 100%; height: 0px; flex-grow: 1; gap: 7px; overflow: hidden; }
+  .store-rail { flex-direction: column; width: 420px; padding: 10px; gap: 8px; overflow: hidden; border-width: 2px; }
+  .rail-copy { height: 36px; white-space: normal; }
+  .store-offer-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
+  .store-row { flex-direction: column; width: 100%; height: 74px; padding: 8px 10px; gap: 4px; border-width: 2px; text-align: left; background-color: #20282d; border-color: #526065; }
+  .store-row.selected { background-color: #183b50; border-color: #ffd464; }
+  .store-row.acquired { opacity: 0.55; border-color: #4f9a68; }
+  .store-offer-name { height: auto; white-space: normal; }
+  .store-offer-detail, .store-offer-price { height: auto; white-space: normal; }
+  .store-stage { flex-direction: column; width: 0px; flex-grow: 1; padding: 10px; gap: 9px; overflow: hidden; border-width: 2px; }
+  .store-selected-heading { flex-direction: row; height: 70px; padding: 8px 10px; gap: 8px; align-items: center; border-width: 2px; }
+  .store-selected-copy { flex-direction: column; height: 52px; width: 0px; flex-grow: 1; gap: 6px; }
+  .store-selected-name { height: 25px; font-family: title; }
+  .store-buy { width: 254px; height: 42px; padding: 5px; border-width: 3px; border-color: #ffd464; background-color: #343c3e; }
+  .store-buy.current { border-color: #31485f; opacity: 0.6; }
+  .store-buy.unaffordable { border-color: #c44b4b; opacity: 0.55; }
+  .store-buy-label { height: auto; text-align: center; white-space: normal; }
+  .store-selected-detail { width: 100%; height: 0px; flex-grow: 1; padding: 12px; border-width: 2px; white-space: normal; }
+  .store-verdict-bar { flex-direction: row; height: 66px; padding: 8px 9px; gap: 10px; border-width: 2px; align-items: center; }
+  .store-verdict { width: 54%; flex-grow: 0; height: auto; white-space: normal; }
+  .store-price { width: 0px; height: auto; text-align: left; flex-grow: 1; white-space: normal; }
+  .company-service-plate { width: 58px; height: 30px; pointer-events: none; }
+</style>

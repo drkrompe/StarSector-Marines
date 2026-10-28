@@ -13,7 +13,7 @@ final class CompanyPreparationRoute {
             return requested;
         return switch (requested) {
             case BARRACKS, SHIP_TRANSFER, SHIP_VIEW, FLEET_ARMORY,
-                    MECH_LAB, BOAT_DECK, MISSION_SELECT, BRIEFING, SQUAD_DEPLOYMENT ->
+                    MECH_LAB, BOAT_DECK, STORE, MISSION_SELECT, BRIEFING, SQUAD_DEPLOYMENT ->
                     switch (roster.officerInduction().step(roster)) {
                         case SHIP -> ScreenId.SHIP_TRANSFER;
                         default -> ScreenId.BARRACKS;

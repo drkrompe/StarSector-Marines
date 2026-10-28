@@ -30,8 +30,8 @@ class ArcIssueListingsTest {
     void eachEarnedBeatListsItsOwnCardExactlyOnce() {
         for (ArcIssueListings.Beat beat : ArcIssueListings.Beat.values()) {
             CampaignState state = new CampaignState();
-            assertTrue(ArcIssueListings.after(state, beat, true, "jangala", 3, false), beat.name());
-            assertFalse(ArcIssueListings.after(state, beat, true, "jangala", 9, false),
+            assertTrue(ArcIssueListings.after(state, beat, true, "jangala", 3), beat.name());
+            assertFalse(ArcIssueListings.after(state, beat, true, "jangala", 9),
                     beat + ": a repeated settlement creates nothing");
 
             List<MarketListings.Listing> listings = MarketListings.all(state);
@@ -47,8 +47,8 @@ class ArcIssueListingsTest {
     @Test
     void anUnearnedBeatOrAMarketThatCannotBeFoundListsNothing() {
         CampaignState state = new CampaignState();
-        assertFalse(ArcIssueListings.after(state, ArcIssueListings.Beat.THUNDER_RUN, false, "jangala", 0, false));
-        assertFalse(ArcIssueListings.after(state, ArcIssueListings.Beat.WORKING_PASSAGE, true, null, 0, false));
+        assertFalse(ArcIssueListings.after(state, ArcIssueListings.Beat.THUNDER_RUN, false, "jangala", 0));
+        assertFalse(ArcIssueListings.after(state, ArcIssueListings.Beat.WORKING_PASSAGE, true, null, 0));
         assertTrue(MarketListings.all(state).isEmpty());
     }
 

@@ -106,6 +106,48 @@ class MarineOpsPageNavTest {
         }
     }
 
+    @Test void storeIsOnlyOpenWhileDockedAtAPortThatTrades() throws Exception {
+        var open = new boolean[]{false};
+        var visits = new int[1];
+        var saved = MarineOpsPageNav.storeOpen;
+        MarineOpsPageNav.storeOpen = () -> open[0];
+        try {
+            var props = new LinkedHashMap<String, Object>();
+            MarineOpsPageNav.put(props, MarineOpsPageNav.Page.HQ, MarineOpsPageNav.ANY_SHIP,
+                    () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> {}, () -> visits[0]++);
+            props.put("contextLabel", "COMPANY SHIP / HQ");
+            var loader = new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
+                    List.of("data/ui/components/marine-ops-page-nav.mlx"));
+            try (var markup = loader.reloadAndBuild(new Reactor(), "marine-ops-page-nav", props)) {
+                var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
+                markup.styles().forEach(document::addStyleSheet);
+                document.layout(1920, 60);
+                var store = markup.requireElement("page-nav-shop");
+
+                // Away from a port the tab is shown as absent and does nothing.
+                MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.HQ, MarineOpsPageNav.ANY_SHIP);
+                assertTrue(store.hasClass("page-nav-absent"));
+                click(document, store);
+                assertEquals(0, visits[0]);
+
+                // Docked at a market that trades, the same retained button opens.
+                open[0] = true;
+                MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.HQ, MarineOpsPageNav.ANY_SHIP);
+                assertFalse(store.hasClass("page-nav-absent"));
+                click(document, store);
+                assertEquals(1, visits[0]);
+                MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.STORE, MarineOpsPageNav.ANY_SHIP);
+                assertTrue(store.hasClass("page-nav-current"));
+                var b = store.box().borderBox();
+                var legend = markup.requireElement("page-nav-shop-legend").box().borderBox();
+                assertTrue(legend.x() + legend.width() <= b.x() + b.width(), "the legend fits its button");
+                assertTrue(b.x() + b.width() <= 1920, "the Store tab stays inside the viewport");
+            }
+        } finally {
+            MarineOpsPageNav.storeOpen = saved;
+        }
+    }
+
     private static void click(UiDocument document, UiElement button) {
         var box = button.box().borderBox();
         document.pointerDown(box.x() + 8, box.y() + 8);

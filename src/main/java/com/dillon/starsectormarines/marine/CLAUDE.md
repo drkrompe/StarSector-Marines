@@ -99,7 +99,10 @@ equipment fitting itself is free.
 
 Equipment acquisition enters the campaign as a **loadout card**: a parameterized
 special cargo item (`LoadoutCardItemPlugin`) whose data is a stable card id naming a
-Weapon Loadout or Tactic Sheet. Markets, patrons and salvage offer only these;
+Weapon Loadout or Tactic Sheet. Patrons and salvage hand out only these as cargo; **markets
+sell them through the company store** (`EquipmentStore`), which never stocks market cargo:
+a purchase pays from the company purse and learns the card directly. Do not put a card
+back on a market's submarket; `LegacyMarketCardPurge` clears old saves.
 `LoadoutCardLearning` teaches the whole loadout (its templates, and for a sheet the
 sheet itself) and writes only to `MarineArmory`. The older single-template item
 (`EquipmentTemplateCardItemPlugin`) survives for story rewards and held saves. Do not implement `BlueprintProviderItem` or call

@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
-import com.fs.starfarer.api.Global;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -73,17 +72,6 @@ public final class MarketListings {
         return state.recordMarketListing(card.id(), scope.code, scopeId, reasonKey, day) >= 0;
     }
 
-    /**
-     * {@link #list}, then restocks the open markets at once so the debrief's promise is on
-     * the shelf now rather than at the next monthly restock. Restocking is deterministic for
-     * the month, so the rotating stock a player already saw does not reshuffle.
-     */
-    public static boolean listAndRestock(CampaignState state, String cardId, Scope scope, String scopeId,
-                                         String reasonKey, int day) {
-        boolean created = list(state, cardId, scope, scopeId, reasonKey, day);
-        if (created && Global.getSector() != null) FactionEquipmentMarketStock.refreshAllMarkets();
-        return created;
-    }
     /** Every listing standing at {@code marketId}, whose owner is {@code factionId}, in listing order. */
     public static List<Listing> at(CampaignState state, String marketId, String factionId) {
         List<Listing> listings = new ArrayList<>();

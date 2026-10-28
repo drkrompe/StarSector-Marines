@@ -124,7 +124,7 @@ public final class ShipTransferScreen implements Screen {
                 () -> context.goTo(ScreenId.BARRACKS),
                 () -> context.openCompanyArmoryFrom(ScreenId.SHIP_TRANSFER),
                 () -> context.goTo(ScreenId.MECH_LAB),
-                () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering);
+                () -> context.goTo(ScreenId.BOAT_DECK), context::openEngineering, context::openStore);
         return props;
     }
 
