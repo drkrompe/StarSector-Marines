@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-28 — the evac cordon's line stands in its trench, four teams facing the town and one on the rear. Earlier: a pooled colony's patch may place its lift, bores and holdouts (Asharu's are the owner's). Earlier: the swarm strikes a standing vehicle from its side and claws one that bars its only way; its flow fields go round one where they can. Earlier: the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
+Updated: 2026-10-28 — the evac cordon is the defence force's staging post: its line dug in before landfall, a field HQ, aid station and supply dump with the company's cache inside the ring. Earlier: the evac cordon's line stands in its trench, four teams facing the town and one on the rear. Earlier: a pooled colony's patch may place its lift, bores and holdouts (Asharu's are the owner's). Earlier: the swarm strikes a standing vehicle from its side and claws one that bars its only way; its flow fields go round one where they can. Earlier: the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
 
@@ -417,17 +417,37 @@ the cohort's walk from the shelter and the company's way in from its nearest
 pad cross the works: the company, its mechs and its vehicles come in by them
 with the survivors (owner, 2026-10-28: "there will need to be an opening for a
 walk in by the player and the colonists"). Nothing is set down on a pad, a door,
-a building or a prop already there. Each militia team still lands at its
-formation point and is then ordered onto its post in the trench, which it mans
-as a garrison mans a run. The line faces the town, where the swarm comes from
+a building or a prop already there. The line is the defence force's own, dug in
+before the company was called (owner, 2026-10-28: "a staging point the
+available APDF has set up? We the mercs are brought in as the muscle"): each
+team stands in its stretch of trench from the first tick, already ordered onto
+its post, which it mans as a garrison mans a run. Only the mech and the reserve
+come by air; a team whose post has no trench, or every team where no works went
+up, flies in to its formation point as before. The line faces the town, where the swarm comes from
 (owner, 2026-10-28: "mainly manning positions in directions where the ravs are
 likely to come from"): four teams spread evenly over the half of the trench
 facing the shelter, and one watches the rear opposite it. Posts go only on
 stretches long enough to be a fighting position, never on a stub cut off
 between the gates, and where one half has no trench all five share the other.
 The mech keeps its patrol inside.
-`-Dbattle.colonyBreach.cordonWorks=false` is the control: the line holds the
-open ground round its posts.
+`-Dbattle.colonyBreach.cordonWorks=false` is the control: the line flies in
+and holds the open ground round its posts.
+
+Inside the ring the cordon is the defence force's **staging post**
+(`CordonStagingPost`): three **stations** behind the line, on the half of the
+ring away from the town. The **field HQ** (a tactical table, consoles, a radar
+dish, a generator and a parked APC) stands straight back; the **supply dump**
+(crates, pallets, drums and fuel) on the flank the company's way in comes
+through, with a resupply cache for the company in front of it, three air
+drops' worth, so falling back to the post re-arms the company; the **aid
+station** (treatment tables and cots) on the other flank, where the survivors
+are seen to on their way to the lift. Each station is set down whole, turned a
+quarter if that is how it fits, inside the trench by a walkway, clear of the
+lift's craft, of the line's landing points and of every lane in through a gate;
+one with no room behind the line is left out rather than put in its way. Its
+pieces are closed to movement and open to sight. Orens's Colony Breach briefing
+names the post: his reservists dug it, they hold the ring, and the company is
+the muscle that goes into town.
 
 **Redoubt.** A place the cohort is holed up in. The **main redoubt** is the
 shelter, with the largest share of the cohort and the sealed, hidden shelter

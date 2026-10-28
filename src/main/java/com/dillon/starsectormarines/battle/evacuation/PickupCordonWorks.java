@@ -318,6 +318,14 @@ public final class PickupCordonWorks {
         Layout layout = layout(placement.liftX, placement.liftY, open, grid::inBounds, lanes,
                 placement.formationCells(), placement.shelterX, placement.shelterY, seed);
         lay(sim, registry, layout);
+        // Inside the ring, behind the line: the defence force's staging post, read against the works just laid.
+        int padX = nearest != null ? nearest.centerX : placement.liftX, padY = nearest != null ? nearest.centerY : placement.liftY;
+        // The evac craft flies in from the map edge nearest the lift and sets down along that axis.
+        int w = grid.getWidth(), h = grid.getHeight();
+        boolean craftAlongY = Math.min(placement.liftY, h - 1 - placement.liftY)
+                <= Math.min(placement.liftX, w - 1 - placement.liftX);
+        CordonStagingPost.lay(sim, CordonStagingPost.plan(placement.liftX, placement.liftY, open, lanes,
+                placement.formationCells(), placement.shelterX, placement.shelterY, padX, padY, craftAlongY));
         return layout.posts();
     }
 

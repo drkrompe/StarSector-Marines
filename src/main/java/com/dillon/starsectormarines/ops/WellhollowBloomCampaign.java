@@ -40,8 +40,11 @@ public final class WellhollowBloomCampaign {
     static final String SPEAKER = "@wellhollowSpeakerWarden";
     private static final String CASTLE = "@dialogueSpeakerCastle";
     private static final long SEED_BASE = 16100L;
-    /** Each chapter's first briefing: seven turns, Orens's first, last and every other. */
-    private static final int BRIEFING_LINES = 7;
+    /**
+     * Each chapter's first briefing: seven turns, Orens's first, last and every other. Colony Breach has two more,
+     * Orens naming the staging post his reservists dug at the fields (owner, 2026-10-28).
+     */
+    private static final int BRIEFING_LINES = 7, BREACH_BRIEFING_LINES = 9;
     /** The end-of-alpha challenge force (owner, 2026-10-27): a lieutenant colonel's company with its machines. */
     public static final int RECOMMENDED_SQUADS = 7, RECOMMENDED_MACHINES = 4;
 
@@ -136,8 +139,9 @@ public final class WellhollowBloomCampaign {
             case BROAD_FRONT -> "wellhollowFront";
         };
         if (p.lastLost(chapter)) return List.of(warden("@" + stem + "Retry"));
-        List<MissionDialogue.Turn> turns = new ArrayList<>(BRIEFING_LINES);
-        for (int i = 1; i <= BRIEFING_LINES; i++) {
+        int lines = chapter == Chapter.COLONY_BREACH ? BREACH_BRIEFING_LINES : BRIEFING_LINES;
+        List<MissionDialogue.Turn> turns = new ArrayList<>(lines);
+        for (int i = 1; i <= lines; i++) {
             String text = "@" + stem + i;
             turns.add(i % 2 == 1 ? warden(text) : new MissionDialogue.Turn("castle", CASTLE, text));
         }

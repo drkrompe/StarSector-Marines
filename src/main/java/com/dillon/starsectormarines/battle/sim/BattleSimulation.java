@@ -99,6 +99,7 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneRoute;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
 import com.dillon.starsectormarines.battle.infantry.EquipmentDrop;
+import com.dillon.starsectormarines.battle.logistics.ResupplyCache;
 import com.dillon.starsectormarines.battle.combat.EnvironmentWear;
 import com.dillon.starsectormarines.battle.combat.fx.Decal;
 import com.dillon.starsectormarines.battle.combat.StaggerService;
@@ -2239,9 +2240,23 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
             float reinforcementLzX, float reinforcementLzY,
             float entryX, float entryY, float exitX, float exitY,
             long seed, RiskLevel risk) {
+        return configureRescuePickupSupport(placement, reinforcementLzX, reinforcementLzY,
+                entryX, entryY, exitX, exitY, seed, risk, false);
+    }
+    /** As above; a {@code dugIn} line is stood in its trench by {@link #fortifyRescuePickup} instead of flying in. */
+    public boolean configureRescuePickupSupport(
+            CivilianEvacuationPlacement placement,
+            float reinforcementLzX, float reinforcementLzY,
+            float entryX, float entryY, float exitX, float exitY,
+            long seed, RiskLevel risk, boolean dugIn) {
         return rescuePickupSupport.configure(placement,
                 reinforcementLzX, reinforcementLzY,
-                entryX, entryY, exitX, exitY, seed, risk, this);
+                entryX, entryY, exitX, exitY, seed, risk, dugIn, this);
+    }
+    /** Sets a resupply cache down on the field at setup: a store laid out before the battle, not an air drop. */
+    public void addResupplyCache(ResupplyCache cache) {
+        if (simTickIndex != 0) throw new IllegalStateException("Lay resupply caches down at setup");
+        resupply.add(cache);
     }
     public boolean isRescuePickupSupportConfigured() {
         return rescuePickupSupport.isConfigured();
@@ -2253,7 +2268,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public void fortifyRescuePickup(CivilianEvacuationPlacement placement, long seed) {
         if (simTickIndex != 0 || !rescuePickupSupport.isConfigured())
             throw new IllegalStateException("Fortify the rescue pickup at setup, once its support is configured");
-        rescuePickupSupport.fortify(PickupCordonWorks.raise(this, placement, seed));
+        rescuePickupSupport.fortify(PickupCordonWorks.raise(this, placement, seed), this);
     }
     public int liveRescuePickupGuards() {
         return rescuePickupSupport.liveGuardCount(this);

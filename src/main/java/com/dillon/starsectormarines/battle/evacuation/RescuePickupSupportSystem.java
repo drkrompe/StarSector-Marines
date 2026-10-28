@@ -7,14 +7,20 @@ import com.dillon.starsectormarines.battle.air.MechSupportPayload;
 import com.dillon.starsectormarines.battle.command.AssignmentKind;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.world.model.FightingPositionIndex;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Random;
 
 /**
@@ -59,6 +65,8 @@ public final class RescuePickupSupportSystem {
     private float accumulator = WAVE_INTERVAL_SECONDS;
     private float mechAccumulator = WAVE_INTERVAL_SECONDS;
     private boolean configured;
+    /** Whether the initial line waits for {@link #fortify} to stand it in the trench rather than flying in. */
+    private boolean lineDeferred;
 
     public RescuePickupSupportSystem(CivilianEvacuationTracker tracker) {
         if (tracker == null) throw new IllegalArgumentException("tracker is required");
@@ -71,6 +79,22 @@ public final class RescuePickupSupportSystem {
                              float entryX, float entryY,
                              float exitX, float exitY,
                              long seed, RiskLevel risk,
+                             BattleSimulation sim) {
+        return configure(placement, reinforcementLzX, reinforcementLzY, entryX, entryY, exitX, exitY, seed, risk,
+                false, sim);
+    }
+
+    /**
+     * As {@link #configure(CivilianEvacuationPlacement, float, float, float, float, float, float, long, RiskLevel,
+     * BattleSimulation)}; where the line is {@code dugIn}, the pickup is a staging post the colony's defence force
+     * set up before the company was called in, so its teams are not flown in: {@link #fortify} stands them in their
+     * trench before the first tick. Only the mech and the reserve still come by air.
+     */
+    public boolean configure(CivilianEvacuationPlacement placement,
+                             float reinforcementLzX, float reinforcementLzY,
+                             float entryX, float entryY,
+                             float exitX, float exitY,
+                             long seed, RiskLevel risk, boolean dugIn,
                              BattleSimulation sim) {
         if (configured || placement == null || sim == null) return false;
         this.placement = placement;
@@ -87,7 +111,9 @@ public final class RescuePickupSupportSystem {
         this.loadoutRng = new Random(seed ^ 0x72C5A4D93E10B68FL);
         this.risk = risk != null ? risk : RiskLevel.LOW;
         configured = true;
-        dispatchInitialSupport(sim);
+        lineDeferred = dugIn;
+        if (!dugIn) dispatchInitialMilitia(sim);
+        dispatchInitialMech(sim);
         return true;
     }
 
@@ -105,9 +131,48 @@ public final class RescuePickupSupportSystem {
     /**
      * Gives the line the cordon's trench: each formation point's post, the trench
      * cell {@link PickupCordonWorks} chose for it. Set once, after {@link #configure}.
+     * A dug-in line is stood in its trench here, each team on the run cells nearest
+     * its post and already ordered to hold it; a team whose post has no run, or
+     * every team when no works went up, flies in as an undug line does.
      */
-    public void fortify(int[] posts) {
-        if (configured && posts != null && posts.length == formationCells.length) trenchPosts = posts.clone();
+    public void fortify(int[] posts, BattleSimulation sim) {
+        if (!configured) return;
+        if (posts != null && posts.length == formationCells.length) trenchPosts = posts.clone();
+        if (!lineDeferred) return;
+        lineDeferred = false;
+        for (int point = 0; point < TARGET_GUARD_SQUADS; point++) {
+            if (!standInTrench(sim, point)) dispatchMilitiaShuttle(sim, WAVE_SIZE, initialDelay(point), point);
+        }
+    }
+
+    /** Stands one team of the line in its stretch of trench at setup; false where its post has no run. */
+    private boolean standInTrench(BattleSimulation sim, int point) {
+        if (trenchPosts == null || trenchPosts[point * 2] < 0) return false;
+        int x = trenchPosts[point * 2], y = trenchPosts[point * 2 + 1];
+        FightingPositionIndex index = sim.fightingPositions();
+        int run = index.runIdAt(x, y);
+        if (run < 0) return false;
+        List<int[]> cells = new ArrayList<>();
+        for (int i = 0; i < index.runSize(run); i++) cells.add(new int[]{index.runCellX(run, i), index.runCellY(run, i)});
+        cells.sort(Comparator.<int[]>comparingInt(c -> (c[0] - x) * (c[0] - x) + (c[1] - y) * (c[1] - y))
+                .thenComparingInt(c -> c[1]).thenComparingInt(c -> c[0]));
+        int squadId = sim.mintSquad(Faction.ALLY, UnitType.MILITIA);
+        Squad squad = sim.getSquad(squadId);
+        squad.rescuePickupGuard = true;
+        sim.assignSquadCommand(ObjectiveAssignment.defendRun(squadId, x, y, PickupCordonWorks.POST_RADIUS, run),
+                CommandAuthority.PAYLOAD, "rescue-pickup-support", "dug in at the staging post");
+        MarineLoadout[] loadouts = InfantryLoadoutRolls.defenderSquad(WAVE_SIZE, UnitType.MILITIA, risk, loadoutRng);
+        int size = Math.min(WAVE_SIZE, cells.size());
+        for (int i = 0; i < size; i++) {
+            int[] cell = cells.get(i);
+            EntitySpec spec = new EntitySpec("Cordon Militia " + (point + 1) + "-" + (i + 1),
+                    Faction.ALLY, UnitType.MILITIA, cell[0], cell[1]).squad(squadId);
+            loadouts[i].seedInto(spec);
+            long id = sim.spawn(spec);
+            if (squad.leaderId == 0L) squad.leaderId = id;
+        }
+        squad.originalSize = size;
+        return size > 0;
     }
 
     /**
@@ -220,14 +285,19 @@ public final class RescuePickupSupportSystem {
         mission.rescueGuardY = guardY;
     }
 
-    private void dispatchInitialSupport(BattleSimulation sim) {
+    private void dispatchInitialMilitia(BattleSimulation sim) {
         for (int point = 0; point < TARGET_GUARD_SQUADS; point++) {
-            int sequence = point < 2 ? point : point + 1;
-            dispatchMilitiaShuttle(sim, WAVE_SIZE,
-                    INITIAL_ARRIVAL_DELAY_SECONDS
-                            + sequence * INITIAL_SORTIE_STAGGER_SECONDS,
-                    point);
+            dispatchMilitiaShuttle(sim, WAVE_SIZE, initialDelay(point), point);
         }
+    }
+
+    /** When the initial line's sortie to a formation point lands: staggered, the mech's slot left between them. */
+    private static float initialDelay(int point) {
+        int sequence = point < 2 ? point : point + 1;
+        return INITIAL_ARRIVAL_DELAY_SECONDS + sequence * INITIAL_SORTIE_STAGGER_SECONDS;
+    }
+
+    private void dispatchInitialMech(BattleSimulation sim) {
         dispatchMechShuttle(sim,
                 INITIAL_ARRIVAL_DELAY_SECONDS
                         + 2f * INITIAL_SORTIE_STAGGER_SECONDS);
