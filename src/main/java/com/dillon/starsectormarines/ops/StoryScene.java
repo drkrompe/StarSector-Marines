@@ -65,7 +65,7 @@ enum StoryScene {
             case COLD_START -> COLD_START;
             case WORKING_PASSAGE -> WORKING_PASSAGE;
             case WELLHOLLOW_BREACH -> WELLHOLLOW_COLONY;
-            case WELLHOLLOW_LINE, WELLHOLLOW_ROAD -> WELLHOLLOW_RIM;
+            case WELLHOLLOW_ROAD -> WELLHOLLOW_RIM;
             case WELLHOLLOW_BURN, WELLHOLLOW_FRONT -> WELLHOLLOW_HEART;
         };
         if (source == MissionSource.CAMPAIGN_EVENT)
@@ -77,7 +77,7 @@ enum StoryScene {
             var wellhollow = WellhollowBloomProgress.chapterOf(id);
             if (wellhollow != null) return switch (wellhollow) {
                 case COLONY_BREACH -> WELLHOLLOW_COLONY;
-                case CORDON_LINE, CORDON_ROAD -> WELLHOLLOW_RIM;
+                case CORDON_ROAD -> WELLHOLLOW_RIM;
                 case THE_BURN, BROAD_FRONT -> WELLHOLLOW_HEART;
             };
             if(ShepherdRecoveryCampaign.owns(id))return ShepherdRecoveryProgress.workingPassage(id)?WORKING_PASSAGE:ShepherdRecoveryProgress.coldStart(id)?COLD_START:SALVAGE_RIGHTS;

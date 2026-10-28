@@ -40,6 +40,8 @@ public final class WellhollowBloomCampaign {
     static final String SPEAKER = "@wellhollowSpeakerWarden";
     private static final String CASTLE = "@dialogueSpeakerCastle";
     private static final long SEED_BASE = 16100L;
+    /** Each chapter's first briefing: seven turns, the Warden's first, last and every other. */
+    private static final int BRIEFING_LINES = 7;
     /** The end-of-alpha challenge force (owner, 2026-10-27): a lieutenant colonel's company with its machines. */
     public static final int RECOMMENDED_SQUADS = 7, RECOMMENDED_MACHINES = 4;
 
@@ -118,7 +120,6 @@ public final class WellhollowBloomCampaign {
     static String key(Chapter chapter) {
         return switch (chapter) {
             case COLONY_BREACH -> "ColonyBreach";
-            case CORDON_LINE -> "CordonLine";
             case CORDON_ROAD -> "CordonRoad";
             case THE_BURN -> "TheBurn";
             case BROAD_FRONT -> "BroadFront";
@@ -130,15 +131,13 @@ public final class WellhollowBloomCampaign {
         if (replay) return List.of(warden("@wellhollowReplay"));
         String stem = switch (chapter) {
             case COLONY_BREACH -> "wellhollowBreach";
-            case CORDON_LINE -> "wellhollowLine";
             case CORDON_ROAD -> "wellhollowRoad";
             case THE_BURN -> "wellhollowBurn";
             case BROAD_FRONT -> "wellhollowFront";
         };
         if (p.lastLost(chapter)) return List.of(warden("@" + stem + "Retry"));
-        int lines = chapter == Chapter.CORDON_ROAD ? 5 : 7;
-        List<MissionDialogue.Turn> turns = new ArrayList<>(lines);
-        for (int i = 1; i <= lines; i++) {
+        List<MissionDialogue.Turn> turns = new ArrayList<>(BRIEFING_LINES);
+        for (int i = 1; i <= BRIEFING_LINES; i++) {
             String text = "@" + stem + i;
             turns.add(i % 2 == 1 ? warden(text) : new MissionDialogue.Turn("castle", CASTLE, text));
         }
@@ -150,7 +149,6 @@ public final class WellhollowBloomCampaign {
     static StoryMap storyMap(Chapter chapter) {
         return switch (chapter) {
             case COLONY_BREACH -> StoryMap.COLONY_BREACH;
-            case CORDON_LINE -> CordonSetup.storyMap(CordonVariant.LINE, density(chapter));
             case CORDON_ROAD -> CordonSetup.storyMap(CordonVariant.ROAD, density(chapter));
             case THE_BURN -> BloomHeartSetup.storyMap(HeartCountry.Form.THE_BURN, heartDensity());
             case BROAD_FRONT -> BloomHeartSetup.storyMap(HeartCountry.Form.BROAD_FRONT, heartDensity());
@@ -198,7 +196,6 @@ public final class WellhollowBloomCampaign {
      */
     static BattleFixture fixture(Chapter chapter, long seed, List<ShuttleAssignment> manifest) {
         return switch (chapter) {
-            case CORDON_LINE -> new CordonBattleFixture(seed, CordonVariant.LINE, SurfacePalette.ARID, density(chapter), manifest);
             case CORDON_ROAD -> new CordonBattleFixture(seed, CordonVariant.ROAD, SurfacePalette.ARID, density(chapter), manifest);
             case THE_BURN -> new BloomHeartBattleFixture(seed, HeartCountry.Form.THE_BURN, SurfacePalette.ARID, heartDensity(), manifest);
             case BROAD_FRONT -> new BloomHeartBattleFixture(seed, HeartCountry.Form.BROAD_FRONT, SurfacePalette.ARID, heartDensity(), manifest);

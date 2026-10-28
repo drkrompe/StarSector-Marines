@@ -37,7 +37,7 @@ class StorySceneTest {
             case SALVAGE_RIGHTS -> "basin_salvage_v1_1";
             case COLD_START -> "basin_cold_start_v1_2";
             case WORKING_PASSAGE -> "basin_working_passage_v1_3";
-            case WELLHOLLOW_BREACH, WELLHOLLOW_LINE, WELLHOLLOW_ROAD, WELLHOLLOW_BURN, WELLHOLLOW_FRONT ->
+            case WELLHOLLOW_BREACH, WELLHOLLOW_ROAD, WELLHOLLOW_BURN, WELLHOLLOW_FRONT ->
                     new WellhollowBloomProgress().missionId(scenario.wellhollow(), false);
         };
         MissionSource source = switch (scenario) {

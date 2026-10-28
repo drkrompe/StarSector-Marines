@@ -503,8 +503,8 @@ as the rescue is today.
 
 No longer the trigger. Its authored instance is **The Wellhollow Bloom** on
 Asharu (`wellhollow-bloom-arc.md`): story missions rather than a woken bloom,
-every variant of both later beats played in a fixed order (Colony Breach, the
-Line, the Road, The Burn, Broad Front), each chapter unlocked by the last one's
+the Road and both heart forms played in a fixed order (Colony Breach, the
+Road, The Burn, Broad Front; the Line is cut from this release), each chapter unlocked by the last one's
 victory and replayable once won. It never holds the open-event gate and has
 no clock, so nothing in the ordinary arc waits on it; its launch path (a
 story mission building the Cordon and heart fixtures on a world's palette) is
