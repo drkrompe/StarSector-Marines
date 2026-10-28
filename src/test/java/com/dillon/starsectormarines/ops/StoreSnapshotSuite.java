@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.BoatParts;
 import com.dillon.starsectormarines.marine.EquipmentStore;
+import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.LoadoutCard;
@@ -17,6 +18,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.dillon.starsectormarines.ui.retained.headless.HeadlessUiRenderer;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
@@ -35,6 +37,8 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         try (var strings = new HeadlessStrings(context.modRoot())) {
             HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
+            // A loadout card is built from the catalogs the Armory reads, medicine among them.
+            DiskRegistries.install();
             HeadlessSvgAssets.install(context.modRoot());
             return List.of(
                     new SnapshotArtifact("store-shelf.png", frame(context, false, null)),
@@ -101,14 +105,15 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
             Runnable none = () -> { };
             MarineOpsPageNav.put(props, MarineOpsPageNav.Page.STORE, MarineOpsPageNav.ANY_SHIP,
                     none, none, none, none, none, none, none, none);
-            var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)), List.of(
-                    "data/ui/components/company/company-resource-stock.mlx",
-                    "data/ui/components/company/company-resource-cost.mlx",
-                    "data/ui/components/marine-ops-page-nav.mlx", "data/ui/components/company/company-store.mlx"));
+            var loader = new MarkupLoader(path -> Files.readString(context.modRoot().resolve(path)),
+                    StoreScreen.COMPONENT_PATHS);
             try (var markup = loader.reloadAndBuild(reactor, "company-store", props)) {
                 MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.STORE, MarineOpsPageNav.ANY_SHIP);
                 var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
                 markup.styles().forEach(document::addStyleSheet);
+                SpecSheetLayer.install(document);
+                StoreScreen.bindSymbols(document, markup, viewModel);
+                StoreScreen.bindCard(document, null, markup, viewModel);
                 var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                         new HeadlessBattleSceneRenderer(context.modRoot(), true));
                 return renderer.renderRelative(document, 1920, 1080, 1f,

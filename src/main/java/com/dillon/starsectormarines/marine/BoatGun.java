@@ -29,16 +29,13 @@ import java.util.List;
  * did, and one that does has chosen.
  *
  * <p><b>Any family goes on any hardpoint.</b> The hull's slots are small
- * ballistic turrets, but a boat's yard is not bound by that: what limits a
- * hardpoint is the frame's weight ({@link BoatFrame}), not the slot's type.
- * The slot's position and arc stay the hull's.
+ * ballistic turrets, but a boat's yard is not bound by that: nothing limits a
+ * hardpoint but the guns the company has. The slot's position and arc stay the hull's.
  *
  * @param structureId the turret structure the battle mounts, from the turret
  *     catalog the airframe's kit already names
  * @param bill what the yard charges, in credits, to build one spare
  * @param effect one line on what the gun does in play, for its catalog row
- * @param weight what it takes out of the boat's frame rating ({@link BoatFrame})
- *     on a hardpoint whose yard gun it is not
  * @param half a 2x1 gun, which takes one of a hardpoint's two positions, so two of them share
  *     the mount as a pod; a 2x2 gun takes the whole hardpoint
  */
@@ -50,7 +47,6 @@ public record BoatGun(
         FabricationCost bill,
         String effect,
         String provenance,
-        int weight,
         Family family,
         boolean half) {
 
@@ -73,37 +69,37 @@ public record BoatGun(
 
     public static final BoatGun HEAVY_MG = new BoatGun(
             "door_heavy_mg", "@boatGunHeavyMg", TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 1,
-            credits(800), "@boatGunHeavyMgEffect", "@boatGunHeavyMgProvenance", 1, Family.BALLISTIC, true);
+            credits(800), "@boatGunHeavyMgEffect", "@boatGunHeavyMgProvenance", Family.BALLISTIC, true);
 
     public static final BoatGun ARBALEST = new BoatGun(
             "door_arbalest", "@boatGunArbalest", TurretCatalogRegistry.ARBALEST_STRUCTURE_ID, 2,
-            credits(2350), "@boatGunArbalestEffect", "@boatGunArbalestProvenance", 2, Family.BALLISTIC, false);
+            credits(2350), "@boatGunArbalestEffect", "@boatGunArbalestProvenance", Family.BALLISTIC, false);
 
     public static final BoatGun GRENADE_LAUNCHER = new BoatGun(
             "door_grenade_launcher", "@boatGunGrenadeLauncher",
             TurretCatalogRegistry.GRENADE_LAUNCHER_STRUCTURE_ID, 2,
-            credits(2700), "@boatGunGrenadeLauncherEffect", "@boatGunGrenadeLauncherProvenance", 1,
+            credits(2700), "@boatGunGrenadeLauncherEffect", "@boatGunGrenadeLauncherProvenance",
             Family.BALLISTIC, true);
 
     public static final BoatGun HEPHAESTUS = new BoatGun(
             "door_hephaestus", "@boatGunHephaestus", TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 3,
-            credits(5400), "@boatGunHephaestusEffect", "@boatGunHephaestusProvenance", 3, Family.BALLISTIC, false);
+            credits(5400), "@boatGunHephaestusEffect", "@boatGunHephaestusProvenance", Family.BALLISTIC, false);
 
     public static final BoatGun PULSE_LASER = new BoatGun(
             "boat_pulse_laser", "@boatGunPulseLaser", TurretCatalogRegistry.BOAT_PULSE_STRUCTURE_ID, 1,
-            credits(2050), "@boatGunPulseLaserEffect", "@boatGunPulseLaserProvenance", 1, Family.ENERGY, true);
+            credits(2050), "@boatGunPulseLaserEffect", "@boatGunPulseLaserProvenance", Family.ENERGY, true);
 
     public static final BoatGun BURST_LASER = new BoatGun(
             "boat_burst_laser", "@boatGunBurstLaser", TurretCatalogRegistry.BOAT_BURST_LASER_STRUCTURE_ID, 2,
-            credits(4450), "@boatGunBurstLaserEffect", "@boatGunBurstLaserProvenance", 2, Family.ENERGY, false);
+            credits(4450), "@boatGunBurstLaserEffect", "@boatGunBurstLaserProvenance", Family.ENERGY, false);
 
     public static final BoatGun SRM_POD = new BoatGun(
             "boat_srm_pod", "@boatGunSrmPod", TurretCatalogRegistry.BOAT_SRM_STRUCTURE_ID, 2,
-            credits(2550), "@boatGunSrmPodEffect", "@boatGunSrmPodProvenance", 1, Family.MISSILE, true);
+            credits(2550), "@boatGunSrmPodEffect", "@boatGunSrmPodProvenance", Family.MISSILE, true);
 
     public static final BoatGun LRM_RACK = new BoatGun(
             "boat_lrm_rack", "@boatGunLrmRack", TurretCatalogRegistry.BOAT_LRM_STRUCTURE_ID, 3,
-            credits(4950), "@boatGunLrmRackEffect", "@boatGunLrmRackProvenance", 2, Family.MISSILE, false);
+            credits(4950), "@boatGunLrmRackEffect", "@boatGunLrmRackProvenance", Family.MISSILE, false);
 
     private static final List<BoatGun> CATALOG = List.of(HEAVY_MG, ARBALEST, GRENADE_LAUNCHER, HEPHAESTUS,
             PULSE_LASER, BURST_LASER, SRM_POD, LRM_RACK);
@@ -118,7 +114,6 @@ public record BoatGun(
         }
         if (tier < 1 || tier > 3) throw new IllegalArgumentException("Boat gun tier must be 1..3: " + tier);
         if (bill == null) throw new IllegalArgumentException("Boat gun bill is required");
-        if (weight < 0) throw new IllegalArgumentException("Boat gun weight cannot be negative: " + weight);
         if (family == null) throw new IllegalArgumentException("Boat gun family is required");
     }
 

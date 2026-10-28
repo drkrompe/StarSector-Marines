@@ -9,7 +9,13 @@ import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.MechPattern;
+import com.dillon.starsectormarines.marine.ArmorIssueResolver;
+import com.dillon.starsectormarines.marine.SquadArmorPlan;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
+import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.marine.StoreSlot;
+import com.dillon.starsectormarines.ops.battleview.StoreBrickCanvas;
+import com.dillon.starsectormarines.ops.battleview.StoreSymbolCanvas;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -17,9 +23,11 @@ import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -52,6 +60,9 @@ final class StoreViewModel {
     private final ComputedSignal<List<OfferRow>> rows;
     private final ComputedSignal<String> shelfNote;
     private final ComputedSignal<String> selectedName;
+    private final ComputedSignal<List<FleetArmoryViewModel.DoctrineTile>> selectedCards;
+    /** The loadout card each marine offer is shown as, built once per offer; null for none. */
+    private final Map<String, FleetArmoryViewModel.DoctrineTile> cardTiles = new HashMap<>();
     private final ComputedSignal<String> selectedKind;
     private final ComputedSignal<String> selectedDetail;
     private final ComputedSignal<String> priceLabel;
@@ -64,6 +75,8 @@ final class StoreViewModel {
     /** Offers bought on this visit; they stay listed so the shelf does not shift under the cursor. */
     private final Set<String> acquired = new LinkedHashSet<>();
 
+    /** An image a row that shows no flag still names, so its hidden flag loads. */
+    private static final String NO_FLAG = "graphics/ui/store/slot-marine.svg";
     private static final String DEFAULT_FILTER = "SECTION:" + StoreSlot.Section.MARINE.name();
 
     StoreViewModel(Reactor reactor, Supplier<List<EquipmentStore.Offer>> shelfSource,
@@ -84,6 +97,11 @@ final class StoreViewModel {
             filter.get();
             return Strings.get(shelf.isEmpty() ? "storeShelfEmpty"
                     : visible().isEmpty() ? "storeShelfEmptyCategory" : "storeShelfNote");
+        });
+        selectedCards = reactor.computed(() -> {
+            EquipmentStore.Offer offer = selected();
+            FleetArmoryViewModel.DoctrineTile tile = offer == null ? null : cardTile(offer);
+            return tile == null ? List.of() : List.of(tile);
         });
         selectedName = reactor.computed(() -> {
             EquipmentStore.Offer offer = selected();
@@ -201,12 +219,12 @@ final class StoreViewModel {
         boolean isSection = classes.endsWith("section");
         String icon = "graphics/ui/store/" + (isSection ? "section-" : "slot-")
                 + section.name().toLowerCase(Locale.ROOT) + ".svg";
-        boolean loadout = hasBrick(slot);
-        if (loadout) icon = brickIcon(slot);
+        boolean brick = StoreBrickCanvas.has(slot);
         return new CategoryRow(id, classes + (key.equals(current) ? " selected" : "")
                 + (count == 0 ? " empty" : ""), Strings.format("storeCategoryCountFmt", label, count),
-                icon, isSection ? "store-cat-icon" : loadout ? "store-cat-symbol" : "store-cat-tick", "store-cat-strip sec-" + section.name(),
-                () -> selectFilter(key));
+                icon, isSection ? "store-cat-icon" : brick ? "store-cat-tick none" : "store-cat-tick",
+                "store-cat-strip sec-" + section.name(), brick ? slot : null,
+                brick ? "store-cat-symbol" : "store-cat-symbol none", () -> selectFilter(key));
     }
 
     private int count(String filterKey) {
@@ -220,6 +238,8 @@ final class StoreViewModel {
     Signal<List<OfferRow>> rows() { return rows; }
     Signal<String> shelfNote() { return shelfNote; }
     Signal<String> selectedName() { return selectedName; }
+    /** The selected marine loadout as the Armory prints it; empty for any other offer. */
+    Signal<List<FleetArmoryViewModel.DoctrineTile>> selectedCards() { return selectedCards; }
     Signal<String> selectedKind() { return selectedKind; }
     Signal<String> selectedDetail() { return selectedDetail; }
     Signal<String> priceLabel() { return priceLabel; }
@@ -262,29 +282,52 @@ final class StoreViewModel {
             String key = key(offer);
             boolean owned = owned(offer);
             String id = "store-offer:" + key;
+            String flag = flag(offer);
             String classes = "store-row" + (key.equals(selected) ? " selected" : "")
                     + (owned ? " acquired" : "");
             out.add(new OfferRow(id, classes, name(offer), kind(offer) + " / " + shelfLabel(offer.shelf()),
                     owned ? Strings.get("storeRowAcquired") : CompanyResources.creditAmount(offer.price()),
-                    brickIcon(offer.slot()), hasBrick(offer.slot()) ? "store-offer-icon" : "store-offer-icon none",
+                    offer, StoreSymbolCanvas.has(offer.kind(), offer.id()) ? "store-offer-icon" : "store-offer-icon none",
+                    flag.isEmpty() ? NO_FLAG : flag, flag.isEmpty() ? "store-offer-flag none" : "store-offer-flag",
                     () -> select(key)));
         }
         return List.copyOf(out);
     }
 
-    /** Whether a slot has a brick symbol: marine and mech kit does; boat parts carry none. */
-    private static boolean hasBrick(StoreSlot slot) {
-        return slot != null && slot.section() != StoreSlot.Section.BOATS;
+    /**
+     * A marine loadout offer as the card the Armory and the First Refit print, from the same
+     * builders ({@link FleetArmoryViewModel#weaponTile}, {@link FleetArmoryViewModel#armorTile}), so
+     * the card cannot drift from the one the company will hold. Null for any other offer, or a
+     * loadout whose definition is only written into an Armory once chosen.
+     */
+    private FleetArmoryViewModel.DoctrineTile cardTile(EquipmentStore.Offer offer) {
+        if (offer.kind() != EquipmentStore.Kind.LOADOUT) return null;
+        String key = key(offer);
+        if (cardTiles.containsKey(key)) return cardTiles.get(key);
+        FleetArmoryViewModel.DoctrineTile tile = null;
+        LoadoutCard card = LoadoutCard.parse(offer.id());
+        if (card != null && card.kind() == LoadoutCard.Kind.WEAPON) {
+            SquadWeaponDoctrine doctrine = SquadEquipmentDoctrines.weaponById(card.definitionId());
+            if (doctrine != null) {
+                tile = FleetArmoryViewModel.weaponTile("store-card:" + offer.id(), doctrine, false, () -> { });
+            }
+        } else if (card != null) {
+            SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(card.definitionId());
+            if (plan != null) {
+                // The armor accent is read off this prefix.
+                tile = FleetArmoryViewModel.armorTile("armor-doctrine:store:" + offer.id(), plan,
+                        ArmorIssueResolver.issueSheet(plan), FleetArmoryViewModel.roleComposition(plan, (r, c) -> true),
+                        false, () -> { });
+            }
+        }
+        cardTiles.put(key, tile);
+        return tile;
     }
 
-    /**
-     * The slot's brick symbol: the footprint and tone its piece is drawn with in the squad view
-     * and the Mech Lab (a weapon yellow, armor grey, mech weapons orange, internals blue, violet
-     * and teal). A slot without one answers a harmless path the row hides.
-     */
-    private static String brickIcon(StoreSlot slot) {
-        StoreSlot shown = hasBrick(slot) ? slot : StoreSlot.WEAPON_LOADOUT;
-        return "graphics/ui/store/brick-" + shown.name().toLowerCase(Locale.ROOT).replace('_', '-') + ".svg";
+    /** The faction flag a marine loadout is drawn as on the shelf; empty for any other offer. */
+    private String flag(EquipmentStore.Offer offer) {
+        FleetArmoryViewModel.DoctrineTile tile = cardTile(offer);
+        return tile == null || tile.factionLogo() == null ? "" : tile.factionLogo();
     }
 
     private EquipmentStore.Offer selected() {
@@ -408,8 +451,10 @@ final class StoreViewModel {
 
     /** One line of the category list: a section header or one of its slots, each with its section's icon. */
     record CategoryRow(String id, String classes, String label, String icon, String iconClasses,
-                       String stripClasses, Runnable select)
+                       String stripClasses, StoreSlot symbol, String symbolClasses, Runnable select)
             implements MarkupPropertySource {
+        String symbolId() { return id + ":symbol"; }
+
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
@@ -420,6 +465,8 @@ final class StoreViewModel {
                 case "label" -> label;
                 case "icon" -> icon;
                 case "iconClasses" -> iconClasses;
+                case "symbolId" -> symbolId();
+                case "symbolClasses" -> symbolClasses;
                 case "stripId" -> id + ":strip";
                 case "stripClasses" -> stripClasses;
                 case "select" -> select;
@@ -429,9 +476,12 @@ final class StoreViewModel {
     }
 
     /** One line of the shelf. */
-    record OfferRow(String id, String classes, String name, String detail, String price, String icon,
-                    String iconClasses, Runnable select)
+    record OfferRow(String id, String classes, String name, String detail, String price,
+                    EquipmentStore.Offer offer, String symbolClasses, String flag, String flagClasses,
+                    Runnable select)
             implements MarkupPropertySource {
+        String symbolId() { return id + ":symbol"; }
+
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
@@ -440,10 +490,12 @@ final class StoreViewModel {
                 case "nameId" -> id + ":name";
                 case "detailId" -> id + ":detail";
                 case "priceId" -> id + ":price";
-                case "iconId" -> id + ":icon";
+                case "symbolId" -> symbolId();
+                case "symbolClasses" -> symbolClasses;
+                case "flagId" -> id + ":flag";
+                case "flag" -> flag;
+                case "flagClasses" -> flagClasses;
                 case "copyId" -> id + ":copy";
-                case "icon" -> icon;
-                case "iconClasses" -> iconClasses;
                 case "name" -> name;
                 case "detail" -> detail;
                 case "price" -> price;

@@ -5,7 +5,14 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
 import com.dillon.starsectormarines.marine.EquipmentStore;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.marine.StoreSlot;
+import com.dillon.starsectormarines.ops.battleview.StoreBrickCanvas;
+import com.dillon.starsectormarines.ops.battleview.StoreSymbolCanvas;
+import com.dillon.starsectormarines.ui.retained.CanvasProducer;
+import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
+import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -31,9 +38,11 @@ import java.util.Map;
 public final class StoreScreen implements Screen {
 
     private static final String ROOT_COMPONENT = "company-store";
-    private static final List<String> COMPONENT_PATHS = List.of(
+    /** Every component the page loads, in order; shared with the evidence suite. */
+    static final List<String> COMPONENT_PATHS = List.of(
             "data/ui/components/company/company-resource-stock.mlx",
             "data/ui/components/company/company-resource-cost.mlx", "data/ui/components/marine-ops-page-nav.mlx",
+            "data/ui/components/armory/armory-loadout-card.mlx",
             "data/ui/components/company/company-store.mlx");
 
     private final Reactor reactor = new Reactor();
@@ -46,6 +55,8 @@ public final class StoreScreen implements Screen {
     private UiViewport viewport;
     private UiDocument document;
     private MarkupInstance markupInstance;
+    /** Hover sheets over the selected loadout card, as the Armory's cards open theirs. */
+    private SpecSheetBinder specSheets;
     private StarsectorUiInputAdapter input;
 
     @Override
@@ -68,6 +79,7 @@ public final class StoreScreen implements Screen {
     private void installDocument() {
         MarkupInstance candidate = markup.reloadAndBuild(reactor, ROOT_COMPONENT, props());
         UiDocument built;
+        SpecSheetBinder candidateSheets;
         try {
             for (String id : List.of("store-root", "marine-ops-page-nav", "page-nav-return", "page-nav-shop",
                     "store-room-bar", "store-body", "store-offer-list", "store-buy", "store-selected-detail")) {
@@ -76,6 +88,7 @@ public final class StoreScreen implements Screen {
             built = PreparationGuide.document(candidate.root());
             for (var style : candidate.styles()) built.addStyleSheet(style);
             built.theme(MarineOpsThemes.standard()).onCancel(this::close);
+            candidateSheets = new SpecSheetBinder(built, SpecSheetLayer.install(built));
             if (viewport != null) built.layout(viewport.documentWidth(), viewport.documentHeight());
         } catch (RuntimeException failure) {
             candidate.close();
@@ -84,6 +97,7 @@ public final class StoreScreen implements Screen {
         UiDocument previousDocument = document;
         MarkupInstance previousInstance = markupInstance;
         document = built;
+        specSheets = candidateSheets;
         markupInstance = candidate;
         if (previousDocument != null) previousDocument.deactivateInput();
         if (previousInstance != null) previousInstance.close();
@@ -116,6 +130,7 @@ public final class StoreScreen implements Screen {
         props.put("offerRows", viewModel.rows());
         props.put("selectedName", viewModel.selectedName());
         props.put("selectedKind", viewModel.selectedKind());
+        props.put("selectedCards", viewModel.selectedCards());
         props.put("selectedDetail", viewModel.selectedDetail());
         props.put("priceLabel", viewModel.priceLabel());
         props.put("buyLabel", viewModel.buyLabel());
@@ -141,6 +156,37 @@ public final class StoreScreen implements Screen {
         return market == null ? "" : market.getName();
     }
 
+    /**
+     * Gives each shelf row and slot row its brick symbol. Rows are keyed and come and go as the
+     * category changes, so this runs after every reconciliation; a row keeps its picture. Shared
+     * with the evidence suite, which draws the page the same way.
+     */
+    static void bindSymbols(UiDocument target, MarkupInstance instance, StoreViewModel model) {
+        for (StoreViewModel.OfferRow row : model.rows().get()) {
+            bindSymbol(target, instance, row.symbolId(),
+                    StoreSymbolCanvas.of(row.offer().kind(), row.offer().id()));
+        }
+        for (StoreViewModel.CategoryRow row : model.categoryRows().get()) {
+            bindSymbol(target, instance, row.symbolId(), StoreBrickCanvas.of(row.symbol()));
+        }
+    }
+
+    private static void bindSymbol(UiDocument target, MarkupInstance instance, String id, CanvasProducer symbol) {
+        if (symbol == null) return;
+        UiElement canvas = instance.requireElement(id);
+        if (target.canvases().producerOf(canvas) == null) target.canvases().set(canvas, symbol);
+    }
+
+    /**
+     * The selected loadout card's kit bricks and hover sheets, the Armory's own bindings
+     * ({@link LoadoutCardBricks}, {@link ArmorySpecSheets}); the card comes and goes with the selection.
+     */
+    static void bindCard(UiDocument target, SpecSheetBinder binder, MarkupInstance instance, StoreViewModel model) {
+        if (model.selectedCards().get().isEmpty()) return;
+        ArmorySpecSheets.bindDoctrineTiles(binder, instance, model.selectedCards());
+        LoadoutCardBricks.bind(target, instance, model.selectedCards()::get);
+    }
+
     private void close() {
         if (dismissDialog != null) dismissDialog.run();
     }
@@ -148,10 +194,15 @@ public final class StoreScreen implements Screen {
     @Override
     public void advance(float dt) {
         if (markupInstance != null) markupInstance.flush();
+        if (markupInstance != null && document != null) {
+            bindSymbols(document, markupInstance, viewModel);
+            bindCard(document, specSheets, markupInstance, viewModel);
+        }
         if (context != null) {
             MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.STORE, context::roomAboard,
                     CompanyNotices.current());
         }
+        if (specSheets != null) specSheets.update();
         if (document != null) document.advance(dt);
     }
 

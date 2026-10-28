@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class BoatDeckViewModelTest {
 
     @Test
-    void theHermesOffersEverySocketAndAFrameMeter() {
+    void theHermesOffersEverySocketAndNoFrameMeter() {
         BoatDeck boats = TaughtBoatDecks.taught(new BoatDeck());
         boats.reconcile("courier", ShuttleType.HERMES, 1);
         BoatDeckViewModel model = new BoatDeckViewModel(
@@ -45,7 +45,7 @@ class BoatDeckViewModelTest {
             long offered = BoatFitting.catalog(slot).stream().filter(f -> f.supports(ShuttleType.HERMES)).count();
             assertEquals(offered, model.catalogRows().get().size(), slot.name());
         }
-        assertEquals("0 / 10", meter(model, "FRAME").value());
+        assertTrue(model.performanceMeters().get().stream().noneMatch(m -> m.label().equals("FRAME")));
     }
 
     @Test
@@ -173,7 +173,6 @@ class BoatDeckViewModelTest {
         assertFalse(viewModel.fittingClasses().get().contains("hidden"));
 
         List<BoatDeckViewModel.ReadinessRow> readiness = viewModel.readinessRows().get();
-        assertTrue(readiness.get(readiness.size() - 1).id().endsWith(":frame"), "her frame closes the list");
         assertTrue(readiness.stream().noneMatch(row -> row.classes().contains("readiness-danger")),
                 "a boat at standard fit is missing nothing");
         assertEquals(List.of("boat-filter:all", "boat-filter:hardpoint", "boat-filter:plating", "boat-filter:drive",

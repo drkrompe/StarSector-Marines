@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
@@ -55,7 +54,7 @@ class DebugMissionLaunchEvidenceTest {
                     .collect(Collectors.toSet());
             assertEquals(12, expected.size());
             var preset = DebugMissionCatalog.preset(mission);
-            var lift = Collections.nCopies(preset.boats(), FittedBoat.standard(preset.boat()));
+            var lift = Collections.nCopies(preset.boats(), DebugMissionCatalog.maxFitted(preset.boat()));
             var plan = MissionLaunch.captureScenario(context, mission, lift, FlybyRoster.EMPTY,
                     List.of(), List.of(), null, mission.battleSeed);
             try (var prepared = MissionLaunch.finishSimulation(context, mission, FlybyRoster.EMPTY,
@@ -131,7 +130,7 @@ class DebugMissionLaunchEvidenceTest {
             var context = new MarineOpsContext(null);
             context.resetDebugPreset(mission);
             var preset = DebugMissionCatalog.preset(mission);
-            var lift = Collections.nCopies(preset.boats(), FittedBoat.standard(preset.boat()));
+            var lift = Collections.nCopies(preset.boats(), DebugMissionCatalog.maxFitted(preset.boat()));
             var plan = MissionLaunch.captureScenario(context, mission, lift, FlybyRoster.EMPTY, List.of(), List.of(), null, 42);
             try (var battle = MissionLaunch.finishSimulation(context, mission, FlybyRoster.EMPTY, plan, plan.builder().get())) {
                 battle.simulation().advance(1f / 30f);
@@ -144,7 +143,7 @@ class DebugMissionLaunchEvidenceTest {
         var preset = DebugMissionCatalog.preset(mission);
         var context = new MarineOpsContext(null);
         context.resetDebugPreset(mission);
-        var lift = Collections.nCopies(preset.boats(), FittedBoat.standard(preset.boat()));
+        var lift = Collections.nCopies(preset.boats(), DebugMissionCatalog.maxFitted(preset.boat()));
         var mechs = preset.mechs() == 1 ? DebugMechRoster.recoveredHound() : DebugMechRoster.randomized(0, 0);
         var plan = MissionLaunch.captureScenario(context, mission, lift, FlybyRoster.EMPTY, List.of(MechSupport.ID), List.of(), mechs, mission.battleSeed);
         try (var battle = MissionLaunch.finishSimulation(context, mission, FlybyRoster.EMPTY, plan, plan.builder().get())) {
