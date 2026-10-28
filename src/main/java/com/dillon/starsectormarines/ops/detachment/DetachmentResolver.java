@@ -204,6 +204,15 @@ public final class DetachmentResolver {
         return out;
     }
 
+    /**
+     * Marines one trip of a company boat carries: her whole cabin wherever the selected force sizes
+     * the lift, so a twelve-seat Hermes lands a squad whole (owner, 2026-10-27). Only Conquest's
+     * arrival plan, which pairs its own Aeroshuttles, still lands half-squads.
+     */
+    public static int companySeatsPerTrip(Mission m, FittedBoat boat) {
+        return usesSelectedPersonnel(m) ? boat.seats() : m.marineArrivalPolicy.seatsPerSortie(boat);
+    }
+
     /** Company-selected personnel own lift demand; authored minimums remain launch gates. */
     public static boolean usesSelectedPersonnel(Mission mission) {
         return mission.source != MissionSource.STATIONING
@@ -239,7 +248,7 @@ public final class DetachmentResolver {
         for (int i = 0; i < playerShuttles.size(); i++) {
             if (passengers[i] == 0) continue;
             FittedBoat boat = playerShuttles.get(i);
-            int seatsPerSortie = m.marineArrivalPolicy.seatsPerSortie(boat);
+            int seatsPerSortie = companySeatsPerTrip(m, boat);
             int cycles = (passengers[i] + seatsPerSortie - 1) / seatsPerSortie;
             out.add(new ShuttleAssignment(boat.pattern(), boat, cycles,
                     seatsPerSortie, passengers[i]));
@@ -266,8 +275,7 @@ public final class DetachmentResolver {
         int remaining = personnel;
         while (remaining > 0) {
             for (int i = 0; i < boats.size() && remaining > 0; i++) {
-                int load = Math.min(remaining,
-                        m.marineArrivalPolicy.seatsPerSortie(boats.get(i)));
+                int load = Math.min(remaining, companySeatsPerTrip(m, boats.get(i)));
                 passengers[i] += load;
                 remaining -= load;
             }

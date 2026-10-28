@@ -1633,6 +1633,13 @@ become additional cycles, not additional permanent landing berths. Seeded
 per-craft launch and re-arm offsets prevent lockstep flight without weakening
 deterministic fixture replay.
 
+Everywhere else a company boat seats her whole cabin each trip, so a
+twelve-seat Hermes lands a squad whole (owner, 2026-10-27): the half-squad
+cap belongs to Conquest's paired descent, never to a story mission that
+authors the paired policy (`DetachmentResolver.companySeatsPerTrip`). A
+mission that arranges heavy lift still flies its machines on the company's own
+boat when she can lift them, with the arranged lift behind her for the rest.
+
 ### Fighters and drones
 
 Fighters fly the same sortie as anything else the air model puts up. A

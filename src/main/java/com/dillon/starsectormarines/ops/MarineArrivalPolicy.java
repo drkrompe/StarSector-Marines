@@ -7,7 +7,11 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 public enum MarineArrivalPolicy {
     /** Historical behavior: each craft lands independently with a full hold. */
     INDEPENDENT_FULL_LOAD,
-    /** Two craft share an arrival area and each delivers half a 12-marine squad. */
+    /**
+     * Two craft share an arrival area and each delivers half a 12-marine squad. Only Conquest's
+     * paired descent lands half-squads; a company boat elsewhere seats her cabin
+     * ({@code DetachmentResolver.companySeatsPerTrip}).
+     */
     PAIRED_HALF_SQUAD,
     /** Selected company already occupies the secured site; boats remain in reserve. */
     SECURED_GROUND;

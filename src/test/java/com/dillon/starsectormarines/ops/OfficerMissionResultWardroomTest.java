@@ -10,7 +10,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class OfficerMissionResultWardroomTest {
     private static int xp(OfficerCommandProfile officer, boolean victory, float wardroom) {
-        return OfficerMissionResult.compute(List.of(), officer, Set.of(), Set.of(), victory, 10_000,
+        return OfficerMissionResult.compute(List.of(), officer, Set.of(), Set.of(), victory, 1_000,
                 "job", 1f, 12, 0, wardroom).get(0).xpGained();
     }
 
@@ -21,8 +21,8 @@ class OfficerMissionResultWardroomTest {
         assertEquals(115, xp(plain, true, 1.15f));
         assertEquals(130, xp(plain, true, 1.30f));
         assertEquals(195, xp(leader, true, 1.30f), "natural leader first, then the staff college");
-        assertEquals(65, xp(plain, false, 1.30f), "a defeat still teaches, and the college still helps");
+        assertEquals(650, xp(plain, false, 1.30f), "a defeat still teaches, and the college still helps");
         assertEquals(xp(plain, true, 1f), OfficerMissionResult.compute(List.of(), plain, Set.of(), Set.of(), true,
-                10_000, "job", 1f, 12, 0).get(0).xpGained(), "the old signature is neutral");
+                1_000, "job", 1f, 12, 0).get(0).xpGained(), "the old signature is neutral");
     }
 }

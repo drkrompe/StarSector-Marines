@@ -88,10 +88,15 @@ public final class MissionForceEnvelope {
     public static int recommendedSquads(Mission mission) {
         if (ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
                 || DistrictEscortCampaign.isBattle(mission)) return 2;
-        if (WellhollowBloomCampaign.isBattle(mission)) return 3;
+        if (WellhollowBloomCampaign.isBattle(mission)) return WellhollowBloomCampaign.RECOMMENDED_SQUADS;
         if (CorvusWaylineCampaign.isBattle(mission)) return CorvusWaylineProgress.forMission(mission.id).squads;
         if (mission != null && SupplyRouteCampaign.owns(mission.id)) return 2;
         return mission != null ? recommendedSquads(mission.type, mission.tier) : 0;
+    }
+
+    /** Mechs or vehicles recommended beside the squads: only end-game challenge work names any. */
+    public static int recommendedMachines(Mission mission) {
+        return WellhollowBloomCampaign.isBattle(mission) ? WellhollowBloomCampaign.RECOMMENDED_MACHINES : 0;
     }
 
     public static int recommendedSquads(MissionType type, OperationTier tier) {

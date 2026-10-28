@@ -118,6 +118,14 @@ class SupplyRouteCampaignTest {
         assertFalse(SupplyRouteCampaign.forceDeployable(roster,Set.of()));
         assertFalse(SupplyRouteCampaign.forceDeployable(roster,Set.of("unknown")));
     }
+    @Test void aTwelveSeatBoatLandsWholeSquadsNotHalves() {
+        var mission=SupplyRouteCampaign.offers(new BrokenSupplyRouteProgress("jangala","Jangala","Corvus")).get(0);
+        var boat=FittedBoat.standard(ShuttleType.VALKYRIE);
+        var manifest=DetachmentResolver.buildShuttleManifestForPersonnel(mission,List.of(boat),24);
+        assertEquals(boat.seats(),DetachmentResolver.companySeatsPerTrip(mission,boat));
+        assertEquals(boat.seats(),manifest.get(0).seatsPerSortie);
+        assertEquals((24+boat.seats()-1)/boat.seats(),manifest.get(0).cycles);
+    }
     @Test void hqRetainsFrozenSiteWhenAccessDisappearsAndReportsPendingWithoutSuccess() {
         var p=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");var guide=new SupplyRouteWorkGuide(p,null,()->{});
         assertEquals("Jangala / Corvus",guide.markupProperty("location"));assertEquals(true,guide.markupProperty("courseDisabled"));

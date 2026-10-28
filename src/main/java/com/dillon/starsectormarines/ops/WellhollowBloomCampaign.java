@@ -37,14 +37,19 @@ public final class WellhollowBloomCampaign {
     static final String SPEAKER = "@wellhollowSpeakerWarden";
     private static final String CASTLE = "@dialogueSpeakerCastle";
     private static final long SEED_BASE = 16100L;
+    /** The end-of-alpha challenge force (owner, 2026-10-27): a lieutenant colonel's company with its machines. */
+    public static final int RECOMMENDED_SQUADS = 7, RECOMMENDED_MACHINES = 4;
 
     private WellhollowBloomCampaign() { }
 
-    /** The ledger, or null while Broken Supply Route is still open. Old saves enter at chapter one. */
+    /**
+     * The ledger, or null until Morrow has departed: the arc is the alpha's end-game challenge
+     * (owner, 2026-10-27). Old saves enter at chapter one.
+     */
     public static WellhollowBloomProgress current() {
         if (Global.getSector() == null) return null;
         var script = CampaignStateScript.getInstance();
-        if (script == null || !CorvusWaylineCampaign.unlocked(script.state().brokenSupplyRoute)) return null;
+        if (script == null || script.state().shepherdRecovery == null || !script.state().shepherdRecovery.departed()) return null;
         return script.state().wellhollowBloom == null ? new WellhollowBloomProgress() : script.state().wellhollowBloom;
     }
     public static boolean owns(String id) { return WellhollowBloomProgress.owns(id); }
