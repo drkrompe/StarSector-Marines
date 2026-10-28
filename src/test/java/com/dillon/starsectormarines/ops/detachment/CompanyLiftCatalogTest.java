@@ -18,6 +18,7 @@ import java.util.Set;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Which committed boat flies which drop power. */
 class CompanyLiftCatalogTest {
@@ -32,7 +33,7 @@ class CompanyLiftCatalogTest {
         byId.put(MechSupport.ID, MechSupport.configured(List.of(
                 MechDeploymentSpec.standard(MechVariant.HOUND))));
 
-        PowerCatalog.assignCompanyLift(byId, Set.of(MechSupport.ID), List.of(SEATED, MEDIUM, LIGHT));
+        PowerCatalog.assignCompanyLift(byId, Set.of(MechSupport.ID), List.of(SEATED, MEDIUM, LIGHT), false);
 
         assertSame(LIGHT, ((MechSupport) byId.get(MechSupport.ID)).companyCarrier());
     }
@@ -42,9 +43,22 @@ class CompanyLiftCatalogTest {
         Map<String, CommandPower> byId = new LinkedHashMap<>();
         byId.put(MechSupport.ID, new MechSupport());
 
-        PowerCatalog.assignCompanyLift(byId, Set.of(), List.of(LIGHT));
+        PowerCatalog.assignCompanyLift(byId, Set.of(), List.of(LIGHT), false);
 
         assertNull(((MechSupport) byId.get(MechSupport.ID)).companyCarrier());
+    }
+
+    @Test
+    void anArrangedLiftFliesOnTheCompanysOwnBoatWithItsValkyrieBehindHer() {
+        Map<String, CommandPower> byId = new LinkedHashMap<>();
+        byId.put(MechSupport.ID, MechSupport.configured(List.of(
+                MechDeploymentSpec.standard(MechVariant.HOUND))));
+
+        PowerCatalog.assignCompanyLift(byId, Set.of(), List.of(LIGHT), true);
+
+        MechSupport mech = (MechSupport) byId.get(MechSupport.ID);
+        assertSame(LIGHT, mech.companyCarrier());
+        assertTrue(mech.syntheticLift(), "the arranged lift still flies what she cannot");
     }
 
     @Test

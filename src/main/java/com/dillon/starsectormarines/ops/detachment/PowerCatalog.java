@@ -106,7 +106,7 @@ public final class PowerCatalog {
         if (committedBoats == null || committedBoats.isEmpty()) return powers;
         Map<String, CommandPower> byId = new LinkedHashMap<>();
         for (CommandPower power : powers) byId.put(power.id, power);
-        assignCompanyLift(byId, fleetGranted(committedShips, m), committedBoats);
+        assignCompanyLift(byId, fleetGranted(committedShips, m), committedBoats, arrangedHeavyLift(m));
         return List.copyOf(byId.values());
     }
 
@@ -163,16 +163,17 @@ public final class PowerCatalog {
     }
 
     /**
-     * Hands a fleet-granted Mech Support the cradled company boat best suited to
-     * its manifest. A power the employer offered keeps its synthetic carrier,
-     * and the synthetic lift stays behind a company boat for the calls it
-     * cannot fly.
+     * Hands Mech Support the company boat best suited to its manifest, whether a fleet ship
+     * granted it or the mission arranged its lift: the company's own boat drops its own armour
+     * when she can lift it (owner, 2026-10-27). An arranged power keeps its synthetic carrier
+     * behind her for the calls she cannot fly; an employer's offer with no arranged lift keeps
+     * only its own.
      */
     static void assignCompanyLift(Map<String, CommandPower> byId, Set<String> fleetGranted,
-                                  List<FittedBoat> committedBoats) {
+                                  List<FittedBoat> committedBoats, boolean arrangedLift) {
         if (committedBoats == null || committedBoats.isEmpty()) return;
-        if (fleetGranted.contains(MechSupport.ID)
-                && byId.get(MechSupport.ID) instanceof MechSupport mech) {
+        if (byId.get(MechSupport.ID) instanceof MechSupport mech
+                && (fleetGranted.contains(MechSupport.ID) || arrangedLift)) {
             List<LiftClass> load = mech.manifest().entries().stream()
                     .map(BayManifest.Entry::weightClass).toList();
             FittedBoat boat = LiftAdmission.bestCarrier(committedBoats, load, Set.of());
