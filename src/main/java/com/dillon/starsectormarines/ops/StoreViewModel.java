@@ -201,8 +201,8 @@ final class StoreViewModel {
         boolean isSection = classes.endsWith("section");
         String icon = "graphics/ui/store/" + (isSection ? "section-" : "slot-")
                 + section.name().toLowerCase(Locale.ROOT) + ".svg";
-        boolean loadout = slot == StoreSlot.WEAPON_LOADOUT || slot == StoreSlot.ARMOR_LOADOUT;
-        if (loadout) icon = offerIcon(slot);
+        boolean loadout = hasBrick(slot);
+        if (loadout) icon = brickIcon(slot);
         return new CategoryRow(id, classes + (key.equals(current) ? " selected" : "")
                 + (count == 0 ? " empty" : ""), Strings.format("storeCategoryCountFmt", label, count),
                 icon, isSection ? "store-cat-icon" : loadout ? "store-cat-symbol" : "store-cat-tick", "store-cat-strip sec-" + section.name(),
@@ -266,16 +266,25 @@ final class StoreViewModel {
                     + (owned ? " acquired" : "");
             out.add(new OfferRow(id, classes, name(offer), kind(offer) + " / " + shelfLabel(offer.shelf()),
                     owned ? Strings.get("storeRowAcquired") : CompanyResources.creditAmount(offer.price()),
-                    offerIcon(offer.slot()), offer.slot() == StoreSlot.WEAPON_LOADOUT
-                            || offer.slot() == StoreSlot.ARMOR_LOADOUT ? "store-offer-icon" : "store-offer-icon none",
+                    brickIcon(offer.slot()), hasBrick(offer.slot()) ? "store-offer-icon" : "store-offer-icon none",
                     () -> select(key)));
         }
         return List.copyOf(out);
     }
 
-    /** The symbol that tells a marine weapon loadout from an armor loadout; other rows carry none. */
-    private static String offerIcon(StoreSlot slot) {
-        return "graphics/ui/store/" + (slot == StoreSlot.ARMOR_LOADOUT ? "offer-armor.svg" : "offer-weapon.svg");
+    /** Whether a slot has a brick symbol: marine and mech kit does; boat parts carry none. */
+    private static boolean hasBrick(StoreSlot slot) {
+        return slot != null && slot.section() != StoreSlot.Section.BOATS;
+    }
+
+    /**
+     * The slot's brick symbol: the footprint and tone its piece is drawn with in the squad view
+     * and the Mech Lab (a weapon yellow, armor grey, mech weapons orange, internals blue, violet
+     * and teal). A slot without one answers a harmless path the row hides.
+     */
+    private static String brickIcon(StoreSlot slot) {
+        StoreSlot shown = hasBrick(slot) ? slot : StoreSlot.WEAPON_LOADOUT;
+        return "graphics/ui/store/brick-" + shown.name().toLowerCase(Locale.ROOT).replace('_', '-') + ".svg";
     }
 
     private EquipmentStore.Offer selected() {

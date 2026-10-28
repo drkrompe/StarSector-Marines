@@ -19,6 +19,8 @@ import com.dillon.starsectormarines.battle.setup.MissileAaTestSetup;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
+import com.dillon.starsectormarines.campaign.WellhollowBloomProgress;
+import com.dillon.starsectormarines.campaign.WellhollowBloomProgress.Chapter;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
@@ -71,6 +73,11 @@ public final class DebugMissionCatalog {
         CORDON_ROAD("Rav Bloom", "Cordon Road", "Guard the relief road through the gap to the cut-off town while convoys bring its people out. Density, biome and seed are chosen on the launcher.", 3, false),
         BROAD_FRONT("Rav Bloom", "Broad Front", "Push north on the wide front to the heart and collapse every mother. Density, biome and seed are chosen on the launcher.", 3, false),
         THE_BURN("Rav Bloom", "The Burn", "Drive east through the deep country to the heart, under the Burn's guns. Density, biome and seed are chosen on the launcher.", 3, false),
+        WELLHOLLOW_BREACH("The Wellhollow Bloom", "@wellhollowChapterColonyBreach", "@wellhollowFlavorColonyBreach", WellhollowBloomCampaign.RECOMMENDED_SQUADS, false),
+        WELLHOLLOW_LINE("The Wellhollow Bloom", "@wellhollowChapterCordonLine", "@wellhollowFlavorCordonLine", WellhollowBloomCampaign.RECOMMENDED_SQUADS, false),
+        WELLHOLLOW_ROAD("The Wellhollow Bloom", "@wellhollowChapterCordonRoad", "@wellhollowFlavorCordonRoad", WellhollowBloomCampaign.RECOMMENDED_SQUADS, false),
+        WELLHOLLOW_BURN("The Wellhollow Bloom", "@wellhollowChapterTheBurn", "@wellhollowFlavorTheBurn", WellhollowBloomCampaign.RECOMMENDED_SQUADS, false),
+        WELLHOLLOW_FRONT("The Wellhollow Bloom", "@wellhollowChapterBroadFront", "@wellhollowFlavorBroadFront", WellhollowBloomCampaign.RECOMMENDED_SQUADS, false),
         MISSILE_AA("Battlefield fixtures", "@missileAaTestTitle", "@missileAaTestDescription", 1, false);
         public final String group, title, description;
         public final int squads;
@@ -86,7 +93,17 @@ public final class DebugMissionCatalog {
                 default -> null;
             };
         }
-        /** The four Rav Bloom missions, whose density, biome and seed come from {@link RavBloomDebugChoice}. */
+        /** The Wellhollow Bloom chapter this plays, on its fixed Asharu map; null for every other scenario. */
+        public Chapter wellhollow() {
+            return switch (this) {
+                case WELLHOLLOW_BREACH -> Chapter.COLONY_BREACH;
+                case WELLHOLLOW_LINE -> Chapter.CORDON_LINE;
+                case WELLHOLLOW_ROAD -> Chapter.CORDON_ROAD;
+                case WELLHOLLOW_BURN -> Chapter.THE_BURN;
+                case WELLHOLLOW_FRONT -> Chapter.BROAD_FRONT;
+                default -> null;
+            };
+        }
         /** Whether the picker lists it: the campaign's story and repeatable work, and the Rav Bloom missions. */
         public boolean offered() {
             return switch (this) {
@@ -99,6 +116,7 @@ public final class DebugMissionCatalog {
             return this == WATER_UNDER_SEAL || this == LIMITED_WARRANT || this == YARD_OWNERS
                     || this == TERMS_OF_PROTECTION || this == SMALL_WAR || this == DISTRICT_ESCORT;
         }
+        /** The four Rav Bloom missions, whose density, biome and seed come from {@link RavBloomDebugChoice}. */
         public boolean ravBloom() { return this == CORDON_LINE || this == CORDON_ROAD || this == BROAD_FRONT || this == THE_BURN; }
         StoryMap poolMap() {
             CordonVariant variant = this == CORDON_ROAD ? CordonVariant.ROAD : CordonVariant.LINE;
@@ -124,6 +142,7 @@ public final class DebugMissionCatalog {
                 case CORDON_ROAD -> "RB2";
                 case BROAD_FRONT -> "RB3";
                 case THE_BURN -> "RB4";
+                case WELLHOLLOW_BREACH, WELLHOLLOW_LINE, WELLHOLLOW_ROAD, WELLHOLLOW_BURN, WELLHOLLOW_FRONT -> "WB" + wellhollow().number();
                 case RELIEF -> "01";
                 case COUNTERATTACK -> "02";
                 case JUNCTION -> "03";
@@ -146,6 +165,7 @@ public final class DebugMissionCatalog {
             if (this == MISSILE_AA) return Strings.get("missileAaTestLocation");
             if (ravBloom()) return "Bloomed world";
             if (agreus()) return "Agreus";
+            if (wellhollow() != null) return "Asharu";
             if(this==SALVAGE_RIGHTS || this==COLD_START || this==WORKING_PASSAGE)return "Asharu";
             if (corvus() != null) return corvus().planetName;
             return this == VETERANS_JOB || this == SILENT_COLONY || this == LAST_LIFT || this == CREW_RECOVERY ? "Unfixed site" : "Jangala";
@@ -161,6 +181,11 @@ public final class DebugMissionCatalog {
                 case DISTRICT_ESCORT -> "Repeatable work / Opens after A Small War";
                 case CORDON_LINE, CORDON_ROAD -> "Rav Bloom / The Cordon / " + RavBloomDebugChoice.label();
                 case BROAD_FRONT, THE_BURN -> "Rav Bloom / The heart / " + RavBloomDebugChoice.label();
+                case WELLHOLLOW_BREACH -> "Wellhollow Bloom 1 of 5 / After A Working Ship / Fixed Asharu map";
+                case WELLHOLLOW_LINE -> "Wellhollow Bloom 2 of 5 / After The Wellhollow / Fixed Asharu map";
+                case WELLHOLLOW_ROAD -> "Wellhollow Bloom 3 of 5 / After Hold the Rim / Fixed Asharu map";
+                case WELLHOLLOW_BURN -> "Wellhollow Bloom 4 of 5 / After Low Sump / Fixed Asharu map";
+                case WELLHOLLOW_FRONT -> "Wellhollow Bloom 5 of 5 / After The Channel Root / Fixed Asharu map";
                 case RELIEF -> "Wayline introduction";
                 case COUNTERATTACK -> "After Jangala 01 / Relief";
                 case JUNCTION -> "After Jangala 02 / Counterattack";
@@ -180,6 +205,7 @@ public final class DebugMissionCatalog {
             };
         }
         public Mission mission() {
+            if (wellhollow() != null) return wellhollowMission(wellhollow());
             CorvusChapter chapter = corvus();
             Mission.Builder builder = chapter == null ? Mission.builder().type(this == LAST_LIFT || this == CREW_RECOVERY || this == SILENT_COLONY
                     ? MissionType.EXTRACTION : this == VETERANS_JOB ? MissionType.RAID : MissionType.ASSAULT)
@@ -194,6 +220,20 @@ public final class DebugMissionCatalog {
                     .battleSeed(chapter != null ? chapter.mission("unused", chapter.planetName, "").battleSeed
                             : ravBloom() ? RavBloomDebugChoice.seed(poolMap())
                             : 8101L + (this == DEPOT_CLEARANCE ? COUNTERATTACK.ordinal() : ordinal()) * 101).build();
+        }
+        /** The chapter as the Warden briefs it on first play, with no fee and on its fixed map. */
+        private Mission wellhollowMission(Chapter chapter) {
+            boolean breach = chapter == Chapter.COLONY_BREACH;
+            return Mission.builder().id(PREFIX + name()).name(Strings.resolve(title)).source(MissionSource.DEBUG).payout(0)
+                    .type(breach ? MissionType.EXTRACTION : MissionType.ASSAULT)
+                    .tier(OperationTier.ESTABLISHED).risk(RiskLevel.HIGH).targetPlanetName(location())
+                    .flavor(Strings.resolve(description))
+                    .dialogue(WellhollowBloomCampaign.briefing(new WellhollowBloomProgress(), chapter, false))
+                    .requirements(Strings.format("wellhollowPlace", chapter.number()) + Strings.get("wellhollowForce"))
+                    .requiredDrops(breach ? 4 : 6).employerShuttles(0)
+                    .marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
+                    .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
+                    .battleSeed(WellhollowBloomCampaign.fixedSeed(chapter)).build();
         }
     }
     public record Preset(DebugCompanyStage stage, int squads, int mechs, ShuttleType boat, int boats, boolean starterIssue, boolean serviceRifles) {
@@ -214,6 +254,8 @@ public final class DebugMissionCatalog {
     }
     public static Preset preset(Mission m) {
         Scenario story = scenario(m);
+        if (story != null && story.wellhollow() != null) return new Preset(DebugCompanyStage.VETERAN_COMPANY, story.squads,
+                WellhollowBloomCampaign.RECOMMENDED_MACHINES, ShuttleType.VALKYRIE, 3, false, false);
         if (story != null) return new Preset(DebugCompanyStage.FIRST_CONTRACT, story.squads,
                 story.hound ? 1 : 0, ShuttleType.AEROSHUTTLE, story.opening() ? 1 : 2, true, story == Scenario.WORKING_PASSAGE);
         DebugCompanyStage stage = switch (m.tier) {
@@ -265,6 +307,7 @@ public final class DebugMissionCatalog {
         return List.copyOf(result);
     }
     static BattleSimulation build(Scenario scenario, long seed, List<ShuttleAssignment> manifest) {
+        if (scenario.wellhollow() != null) return WellhollowBloomCampaign.fixture(scenario.wellhollow(), seed, manifest).build();
         CorvusChapter chapter = scenario.corvus();
         if (chapter != null) return chapter.fixture(seed, manifest, chapter.profile(chapter.surface)).build();
         TargetProfile profile = new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.VERDANT, SettlementLink.ROAD);

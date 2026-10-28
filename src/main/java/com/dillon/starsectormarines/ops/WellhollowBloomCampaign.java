@@ -1,10 +1,13 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
+import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.cordon.CordonPlan;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
+import com.dillon.starsectormarines.battle.evacuation.SwarmDefenseRoster;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BloomHeartBattleFixture;
+import com.dillon.starsectormarines.battle.fixture.CivilianRescueBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
@@ -112,7 +115,7 @@ public final class WellhollowBloomCampaign {
                 .battleSeed(seed(chapter, p.attempt())).build();
     }
 
-    private static String key(Chapter chapter) {
+    static String key(Chapter chapter) {
         return switch (chapter) {
             case COLONY_BREACH -> "ColonyBreach";
             case CORDON_LINE -> "CordonLine";
@@ -186,13 +189,29 @@ public final class WellhollowBloomCampaign {
     static BattleFixture fixture(Mission m, long seed, List<ShuttleAssignment> manifest) {
         requireCurrent(m);
         Chapter chapter = WellhollowBloomProgress.chapterOf(m.id);
+        if (chapter == Chapter.COLONY_BREACH) throw new IllegalStateException("Colony Breach launches through the rescue path");
+        return fixture(chapter, seed, manifest);
+    }
+    /**
+     * A chapter's battle on Asharu outside the campaign, for the debug player. Colony Breach builds the rescue a
+     * campaign launch builds for this chapter, on the seed given rather than a pool pick from a roll.
+     */
+    static BattleFixture fixture(Chapter chapter, long seed, List<ShuttleAssignment> manifest) {
         return switch (chapter) {
             case CORDON_LINE -> new CordonBattleFixture(seed, CordonVariant.LINE, SurfacePalette.ARID, density(chapter), manifest);
             case CORDON_ROAD -> new CordonBattleFixture(seed, CordonVariant.ROAD, SurfacePalette.ARID, density(chapter), manifest);
             case THE_BURN -> new BloomHeartBattleFixture(seed, HeartCountry.Form.THE_BURN, SurfacePalette.ARID, heartDensity(), manifest);
             case BROAD_FRONT -> new BloomHeartBattleFixture(seed, HeartCountry.Form.BROAD_FRONT, SurfacePalette.ARID, heartDensity(), manifest);
-            case COLONY_BREACH -> throw new IllegalStateException("Colony Breach launches through the rescue path");
+            case COLONY_BREACH -> CivilianRescueBattleFixture.fromFactoryInputs(seed, manifest, false, RiskLevel.HIGH,
+                    SwarmDefenseRoster.countFor(RiskLevel.HIGH), BloomHeartSetup.world(SurfacePalette.ARID), false, HivePosture.DEFAULT);
         };
+    }
+    /** The first vetted ARID map of the chapter's pool: the one map the debug player always plays. */
+    static long fixedSeed(Chapter chapter) {
+        long fallback = SEED_BASE + 7919L * chapter.ordinal();
+        if (!StoryMapPools.installed()) return fallback;
+        List<StoryMapPool.Entry> entries = StoryMapPools.pool(storyMap(chapter)).entries(SurfacePalette.ARID);
+        return entries == null || entries.isEmpty() ? fallback : entries.get(0).seed();
     }
     static void begin(Mission m) {
         var p = requireCurrent(m);
