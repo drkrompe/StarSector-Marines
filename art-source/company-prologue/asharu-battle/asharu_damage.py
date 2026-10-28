@@ -169,9 +169,9 @@ LEDGER = [
       note='the last of that burst in her drive cluster: she loses thrust, venting (the camera kick at 77.25)'),
 
     # ---- CARAVEL TWO, the Tarsus: drives shot out in S6c, boarded, taken
-    H('tarsus', 68.0, 'rake', 1, (-30, -14, 4), (-.3, -1, .5), to=(-44, -12, 3), by='tracer',
+    H('tarsus', 68.17, 'rake', 1, (-30, -14, 4), (-.3, -1, .5), to=(-44, -12, 3), by='tracer',
       src='S6c k3d tracer wolf-p-b', note='Wolf (P) B rakes aft toward her drives as she passes'),
-    H('tarsus', 70.5, 'breach', 3, (-33, -12, 6), (-.2, .5, 1), by='fire_on', src='S6c k3d tracer wolf-p-b + fire_on',
+    H('tarsus', 69.96, 'breach', 3, (-32, -14, 5), (-.2, .5, 1), by='fire_on', src='S6c k3d tracer wolf-p-b + fire_on',
       burn_until=102.0, note='drives shot out: fire burns up out of the breach (continuity), out before S10'),
     H('tarsus', 81.42, 'rake', 1, (36, -4, 9), (.2, -.3, 1), to=(24, 4, 10), by='tracer',
       src='S7 k3b tracer wolf-p-b', note="the covering Wolf (P)'s inverted gun run scores her deck"),
@@ -253,7 +253,7 @@ LEDGER += [
 SHOOTER_SIDE = {
     'hound-m@76.9:rake': (0.89, -0.07, -0.46),
     'wolf-p-a@95.8:he': (0.74, 0.61, -0.29), 'manticore-p@96.5:he': (-0.72, -0.53, 0.45),
-     'tarsus@68.0:rake': (-0.09, -0.99, -0.10), 'tarsus@70.5:breach': (0.85, -0.52, -0.07),
+     'tarsus@68.2:rake': (-0.09, -0.99, -0.10), 'tarsus@70.0:breach': (0.85, -0.52, -0.07),
     'lasher-lead@103.7:breach': (0.98, -0.17, -0.06), 'falcon-p@104.8:breach': (0.69, 0.55, 0.46),
     'colossus3@96.0:rake': (0.40, -0.91, -0.05), 'hound-m@77.1:breach': (0.82, -0.14, -0.55),
     'falcon-p@104.6:rake': (0.75, 0.51, 0.43), 'falcon-p@105.5:he': (0.46, 0.68, 0.57), 'wolf-p-a@73.0:rake': (-0.42, -0.67, 0.62),

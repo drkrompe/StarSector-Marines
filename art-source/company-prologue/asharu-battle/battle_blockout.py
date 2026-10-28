@@ -1448,7 +1448,7 @@ KEYFRAMES = {
         shields={'wolf-p-b': dict(toward='wolf-m', flux=.45), 'wolf-p-a': dict(toward='colossus', flux=.6),
                  'wolf-m': dict(toward='wolf-p-b', flux=.2)},
         # Wolf (P) B's guns on the Tarsus's drives, held tight: the round that opens them lands at
-        # 70.5 s on her starboard quarter, the face she shows the Wolf (the fire between it and the
+        # 70.0 s on her starboard quarter, the face she shows the Wolf (the fire between it and the
         # one S7 carries on)
         fx=[('tracer', 'wolf-p-b', 'tarsus', (-40, 0, 6), dict(walk=.2, bursts_t=[(67.4, 68.6), (69.2, 70.4)])),
             ('tracer', 'wolf-m', 'wolf-p-b'),

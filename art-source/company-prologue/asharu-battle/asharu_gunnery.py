@@ -449,8 +449,8 @@ SILENT = {
 }
 # Per-turret silences: (ship, turret) -> (t, why).
 SILENT_TURRET = {
-    ('tarsus', 1): (70.5, 'her aft deck burning over the shot-out drives'),
-    ('tarsus', 2): (70.5, 'her aft deck burning over the shot-out drives'),
+    ('tarsus', 1): (70.0, 'her aft deck burning over the shot-out drives'),
+    ('tarsus', 2): (70.0, 'her aft deck burning over the shot-out drives'),
     ('tarsus', 3): (84.4, "silenced by the Wolf (P)'s covering run before the boats land"),
     ('tarsus', 4): (84.4, "silenced by the Wolf (P)'s covering run before the boats land"),
     # rolled onto her side to fight the Colossus, her port bow turret would fire across her own bow end plate
@@ -495,7 +495,7 @@ def silent_from(key, turret=None):
 # ledger's own story hits and get no gun (its owner's call), so their rows here are inert.
 GUN_MADE = {
     'hound-p-c@61.9:kill': ('lasher-b', 'wolf-m'),          # the Ammo Feeder burst breaks her up (S6b)
-    'tarsus@70.5:breach': ('wolf-p-a', 'wolf-p-b'),         # the Wolves (P) shoot her drives out (S6c)
+    'tarsus@70.0:breach': ('wolf-p-b',),                    # Wolf (P) B shoots her drives out (S6c)
     'hound-m@75.5:breach': ('hound-p-b',),                  # drives hit (S6d)
     'hound-m@77.4:he': ('hound-p-b',),                      # the round that takes her thrust (S6d)
     'hound-p-a@76.9:kill': ('hound-m',),                    # killed at close range (S6d)
