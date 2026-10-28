@@ -39,6 +39,8 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
             return List.of(
                     new SnapshotArtifact("store-shelf.png", frame(context, false, null)),
                     new SnapshotArtifact("store-after-purchase.png", frame(context, true, null)),
+                    new SnapshotArtifact("store-mechs-category.png",
+                            frame(context, false, "SECTION:MECHS")),
                     new SnapshotArtifact("store-boats-category.png",
                             frame(context, false, "SECTION:BOATS")),
                     new SnapshotArtifact("store-armor-slot.png",
@@ -58,8 +60,14 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
         }
         shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.LOADOUT, cards.get(3).id(),
                 EquipmentStore.Shelf.LICENSE, 6500));
-        shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.MECH_PATTERN,
-                MechPattern.offerable().get(0).id(), EquipmentStore.Shelf.MARKET, 6500));
+        for (MechPattern.Kind kind : MechPattern.Kind.values()) {
+            for (MechPattern pattern : MechPattern.offerable()) {
+                if (pattern.kind() != kind) continue;
+                shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.MECH_PATTERN, pattern.id(),
+                        EquipmentStore.Shelf.MARKET, 6500));
+                break;
+            }
+        }
         List<String> parts = BoatParts.offerable();
         shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.BOAT_PART, parts.get(0),
                 EquipmentStore.Shelf.MARKET, 6500));

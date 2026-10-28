@@ -81,7 +81,7 @@
   .store-category-label { width: 0px; flex-grow: 1; height: auto; white-space: nowrap; }
   .store-cat-icon { width: 48px; height: 36px; pointer-events: none; }
   .store-cat-tick { width: 14px; height: 14px; pointer-events: none; }
-  .store-cat-symbol { width: 20px; height: 20px; pointer-events: none; }
+  .store-cat-symbol { width: 28px; height: 28px; pointer-events: none; }
   .store-rail { flex-direction: column; width: 420px; padding: 10px; gap: 8px; overflow: hidden; border-width: 2px; }
   .rail-copy { height: 36px; white-space: normal; }
   .store-offer-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }
@@ -89,7 +89,7 @@
   .store-row.selected { background-color: #183b50; border-color: #ffd464; }
   .store-row.acquired { opacity: 0.55; border-color: #4f9a68; }
   .store-offer-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }
-  .store-offer-icon { width: 44px; height: 44px; pointer-events: none; }
+  .store-offer-icon { width: 56px; height: 56px; pointer-events: none; }
   .store-offer-icon.none { display: none; }
   .store-offer-name { height: auto; white-space: normal; }
   .store-offer-detail, .store-offer-price { height: auto; white-space: normal; }
