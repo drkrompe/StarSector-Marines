@@ -51,7 +51,7 @@ class RescuePickupSupportSystemTest {
         List<Long> guards = new ArrayList<>();
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) == Faction.MARINE
+            if (sim.identity().faction(unit) == Faction.ALLY
                     && sim.identity().type(unit) == UnitType.MILITIA) guards.add(unit);
         }
         for (int i = 0; i < 5; i++) sim.releaseFromRegistry(guards.get(i));
@@ -141,7 +141,7 @@ class RescuePickupSupportSystemTest {
         int count = 0;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) == Faction.MARINE
+            if (sim.identity().faction(unit) == Faction.ALLY
                     && sim.identity().type(unit) == UnitType.MILITIA) count++;
         }
         return count;
@@ -152,7 +152,7 @@ class RescuePickupSupportSystemTest {
         int count = 0;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) != Faction.MARINE
+            if (sim.identity().faction(unit) != Faction.ALLY
                     || sim.identity().type(unit) != UnitType.HEAVY_MECH) continue;
             count++;
             variant = sim.identity().mechVariant(unit);
@@ -178,6 +178,10 @@ class RescuePickupSupportSystemTest {
         int[] pointSorties = new int[placement.formationPointCount()];
         for (long id : sim.getAirEntityIds()) {
             ShuttleMission mission = sim.world().mission(id);
+            if (mission.rescueMilitiaTransport || mission.rescuePickupMechTransport) {
+                assertEquals(Faction.ALLY, sim.world().airFaction(id),
+                        "the evac cordon's shuttles are allied, never the company's");
+            }
             if (mission.rescueMilitiaTransport) {
                 militiaSorties++;
                 assertEquals(4, mission.marinesRemaining);
@@ -237,7 +241,7 @@ class RescuePickupSupportSystemTest {
         int count = 0;
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) == Faction.MARINE
+            if (sim.identity().faction(unit) == Faction.ALLY
                     && sim.identity().type(unit) == UnitType.HEAVY_MECH
                     && sim.squad().hasSquad(unit)
                     && sim.squadOf(unit).rescuePickupGuard) count++;
@@ -248,7 +252,7 @@ class RescuePickupSupportSystemTest {
     private static long pickupMechId(BattleSimulation sim) {
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long unit = sim.liveUnitAt(i);
-            if (sim.identity().faction(unit) == Faction.MARINE
+            if (sim.identity().faction(unit) == Faction.ALLY
                     && sim.identity().type(unit) == UnitType.HEAVY_MECH
                     && sim.squad().hasSquad(unit)
                     && sim.squadOf(unit).rescuePickupMech) return unit;

@@ -65,13 +65,11 @@ public record RescueCommandFacts(
         }
         Map<Integer, AuthoredDuty> duties = new HashMap<>();
         for (Squad squad : sim.getSquads()) {
-            // The shelter guard is an allied squad and the pickup guard is
-            // still one of the player's, so the faction filter belongs to the
-            // duty it guards rather than to the loop.
+            // The shelter guard and the pickup guard are both allied squads,
+            // so each is named by its duty rather than by its faction.
             if (sim.isShelterGuard(squad.id)) {
                 duties.put(squad.id, AuthoredDuty.SHELTER_GUARD);
-            } else if (squad.faction == Faction.MARINE
-                    && squad.rescuePickupGuard) {
+            } else if (squad.rescuePickupGuard) {
                 duties.put(squad.id, AuthoredDuty.PICKUP_GUARD);
             }
         }

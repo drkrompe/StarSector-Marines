@@ -382,6 +382,16 @@ come down where the company came down, for the same reason, at the clear pickup
 site on the field nearest the shelter and clear of the berths. Land in the
 fields, fight in to the redoubts, bring the survivors back out.
 
+**Evac cordon** (owner, 2026-10-28: "an allied evac cordon which the player
+needs to get the survivors back to"). The militia line and the mech standing
+round the pickup (`RescuePickupSupportSystem`). It is allied, never the
+company: the player does not command it, it is not counted among the Marines,
+and its shuttles are neither a lift nor a drop point for the company. It
+replenishes from its own pool, a shuttle of militia whenever casualties pull
+the line under strength and a fresh mech when the mech falls, for as long as
+any of the cohort is still out, so the cordon does not fall. The company's job
+is to get the survivors to it.
+
 **Redoubt.** A place the cohort is holed up in. The **main redoubt** is the
 shelter, with the largest share of the cohort and the sealed, hidden shelter
 guard; it is redoubt 1. On the colony map the shelter stands inside the

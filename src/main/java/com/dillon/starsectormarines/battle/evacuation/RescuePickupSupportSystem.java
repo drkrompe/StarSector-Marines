@@ -18,6 +18,12 @@ import java.util.Random;
 /**
  * Holds a capped local-militia line around the rescue pickup and dispatches a
  * visible replacement shuttle when casualties pull that line below strength.
+ *
+ * <p>The line is the allied evac cordon the company brings the survivors back
+ * to (owner): its shuttles, militia and mech are {@link Faction#ALLY}, so the
+ * player never commands them, never counts them as the company and never
+ * boards or lands through their shuttles. The cordon replenishes from its own
+ * pool, never the company's, for as long as any of the cohort is still out.
  */
 public final class RescuePickupSupportSystem {
 
@@ -162,7 +168,7 @@ public final class RescuePickupSupportSystem {
         int guardX = formationCells[formationPoint * 2];
         int guardY = formationCells[formationPoint * 2 + 1];
         long shuttle = sim.spawnShuttle(
-                ShuttleType.AEROSHUTTLE, Faction.MARINE,
+                ShuttleType.AEROSHUTTLE, Faction.ALLY,
                 guardX + 0.5f, guardY + 0.5f,
                 entryX, entryY, exitX, exitY, delaySeconds);
         ShuttleMission mission = sim.world().mission(shuttle);
@@ -191,7 +197,7 @@ public final class RescuePickupSupportSystem {
     private void dispatchMechShuttle(BattleSimulation sim,
                                      float delaySeconds) {
         long shuttle = sim.spawnShuttle(
-                ShuttleType.VALKYRIE, Faction.MARINE,
+                ShuttleType.VALKYRIE, Faction.ALLY,
                 reinforcementLzX, reinforcementLzY,
                 entryX, entryY, exitX, exitY, delaySeconds);
         ShuttleMission mission = sim.world().mission(shuttle);
