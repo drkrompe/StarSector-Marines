@@ -54,6 +54,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachObjectives;
+import com.dillon.starsectormarines.battle.evacuation.PickupCordonWorks;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
@@ -3020,14 +3021,18 @@ public final class BattleSetup {
                     buildMap(map, vehiclePlacements,
                             Collections.emptyList(), parkedAircraft, battleSeed).sim();
             sim.setSurface(surfaceOf(profile));
+            // A rescue is fought for people, not ground: the colony's barracks and
+            // the company's landing field stay places, never compounds to take.
+            sim.dropCompoundLayer();
             // Heavy assets are what the player brought: the company's mechs and
             // vehicles arrive through its own Mech Support power, which every
             // battle honours. A lance allowance is only what the mission itself
             // declared; deriving one from the same mechs would field them twice.
             if (profile != null) sim.setMechDrops(new MechDropService(profile.declaredMechDrops()));
 
+            // The colony's lift stands beside the landing field, its cordon clear of the berths.
             CivilianEvacuationPayload payload =
-                    CivilianEvacuationPayload.install(sim, shelters, battleSeed);
+                    CivilianEvacuationPayload.install(sim, shelters, battleSeed, map.fieldOfFire);
             why = "no shelter-to-lift payload";
             if (payload == null) continue;
             sim.setAutonomousCommander(Faction.MARINE,
@@ -3088,6 +3093,8 @@ public final class BattleSetup {
             installRescuePickup(sim, payload.placement,
                     sim.getCivilianEvacuationTracker().expectedCount(), battleSeed,
                     risk, scale.width, scale.height);
+            // On the colony the pickup's allied line fights from works thrown up round it.
+            if (colony && PickupCordonWorks.enabled()) sim.fortifyRescuePickup(payload.placement, battleSeed);
             SwarmDefenseRoster swarm = stressTest
                     ? SwarmDefenseRoster.install(
                             sim, payload.placement, swarmCount, battleSeed)

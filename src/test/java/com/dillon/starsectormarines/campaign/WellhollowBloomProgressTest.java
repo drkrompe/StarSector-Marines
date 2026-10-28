@@ -19,7 +19,7 @@ class WellhollowBloomProgressTest {
     void chaptersUnlockInOrderOnVictoryOnly() {
         var p = new WellhollowBloomProgress();
         assertEquals(Chapter.COLONY_BREACH, p.current());
-        assertFalse(p.matches(p.missionId(Chapter.CORDON_LINE, false)));
+        assertFalse(p.matches(p.missionId(Chapter.CORDON_ROAD, false)));
 
         assertEquals(0, play(p, p.missionId(Chapter.COLONY_BREACH, false), false));
         assertEquals(Chapter.COLONY_BREACH, p.current());
@@ -46,8 +46,8 @@ class WellhollowBloomProgressTest {
         assertEquals(Chapter.COLONY_BREACH.fee / 2, play(p, replay, true));
         assertEquals(1, p.won());
         assertEquals(1, p.replaysWon());
-        assertEquals(Chapter.CORDON_LINE, p.current());
-        assertFalse(p.matches(p.missionId(Chapter.CORDON_LINE, true)));
+        assertEquals(Chapter.CORDON_ROAD, p.current());
+        assertFalse(p.matches(p.missionId(Chapter.CORDON_ROAD, true)));
     }
 
     @Test

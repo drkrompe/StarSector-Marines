@@ -295,6 +295,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmReinforcementSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
+import com.dillon.starsectormarines.battle.evacuation.PickupCordonWorks;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
@@ -2245,6 +2246,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     public boolean isRescuePickupSupportConfigured() {
         return rescuePickupSupport.isConfigured();
     }
+    /**
+     * Throws the evac cordon's works up round the configured pickup and puts its
+     * line in the trench ({@code colony-breach-nouns.md}, Evac cordon). Setup only.
+     */
+    public void fortifyRescuePickup(CivilianEvacuationPlacement placement, long seed) {
+        if (simTickIndex != 0 || !rescuePickupSupport.isConfigured())
+            throw new IllegalStateException("Fortify the rescue pickup at setup, once its support is configured");
+        rescuePickupSupport.fortify(PickupCordonWorks.raise(this, placement, seed));
+    }
     public int liveRescuePickupGuards() {
         return rescuePickupSupport.liveGuardCount(this);
     }
@@ -2758,6 +2768,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // on whatever the service has, so a missed init leaves the layer
         // silently inert.
         compoundService.initFrom(map);
+    }
+    /**
+     * Plays this battle with no compound layer: the tactical map keeps its barracks, armouries and beachhead as
+     * places, but none is a compound, so none is drawn as a capture beacon, taken, garrisoned or produces supply. For
+     * a battle fought over something other than ground (a civilian rescue). Setup only, after {@link #setTacticalMap}.
+     */
+    public void dropCompoundLayer() {
+        compoundService.initFrom(null);
     }
     /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
     public void setDefensePosts(List<DefensePost> posts) {

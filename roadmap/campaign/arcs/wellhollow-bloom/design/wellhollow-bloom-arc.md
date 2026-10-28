@@ -1,14 +1,17 @@
 # The Wellhollow Bloom
 
-Status: ACTIVE — authored Rav Bloom arc on Asharu, the alpha campaign's end-game challenge; all five chapters are offered in a launched campaign; live acceptance remains.
+Status: ACTIVE — authored Rav Bloom arc on Asharu, the alpha campaign's end-game challenge; all four chapters are offered in a launched campaign; live acceptance remains.
 
 Written: 2026-10-27
 
 The authored instance of the Rav Bloom arc (`bloom-mission-arc.md`, *The
-sector threat*): one named world, every Rav mission in a fixed order, and a
+sector threat*): one named world, every Rav mission but Cordon Line in a fixed order, and a
 narrative carried by the unlocks (owner, 2026-10-27: "missions unlock in their
 prescribed order, but we have an overarching narrative with the unlocking
-missions"). Every chapter stays replayable once it is unlocked. Read
+missions"). Every chapter stays replayable once it is unlocked. Cordon Line
+is not a chapter in this release (owner, 2026-10-28): it and Cordon Road were
+each half built, and the Road has the stronger hook, so the Road carries the
+cordon beat alone. Read
 `colony-breach-nouns.md`, `cordon-nouns.md` and `bloom-mission-arc.md` for the
 battles; this doc owns only the arc: its order, gates, replay, narrative and
 its boundary with the generic per-world arc. Voice follows
@@ -40,18 +43,17 @@ ARID pool maps (`story-map-pools.md`). Winning a chapter unlocks the next.
 | # | Chapter | Mission | Story beat | Fee |
 | --- | --- | --- | --- | --- |
 | 1 | **The Wellhollow** | Colony Breach | The colony on the basin floor erupts. Lift the people out; put the deep hole down if you can. It is not enough: the bloom is in the aquifer. | 20,000 |
-| 2 | **Hold the Rim** | Cordon Line | The Compact throws redoubts across the rim roads. The company is the reserve while the floor's farms walk out behind the line. | 26,000 |
-| 3 | **Low Sump** | Cordon Road | The pumping town at the basin's low end is cut off. Keep the gap open while the convoys go in and bring its people out. | 28,000 |
-| 4 | **The Channel Root** | The Burn | The bloom has followed the irrigation channels east and seeded a second root. The Compact has guns but no men left: burn in behind the barrage and collapse it. | 32,000 |
-| 5 | **The Heart of the Wellhollow** | Broad Front | With the channel root down and the line held, every column the Compact has goes in together on the mother heart. Collapsing it ends the bloom; the reservoir rests. | 40,000 |
+| 2 | **Low Sump** | Cordon Road | The Compact's redoubts across the rim roads let the floor's farms walk out, but the line went round the pumping town at the basin's low end. Keep the gap open while the convoys go in and bring its people out. | 28,000 |
+| 3 | **The Channel Root** | The Burn | The bloom has followed the irrigation channels east and seeded a second root. The Compact has guns but no men left: burn in behind the barrage and collapse it. | 32,000 |
+| 4 | **The Heart of the Wellhollow** | Broad Front | With the channel root down and the line held, every column the Compact has goes in together on the mother heart. Collapsing it ends the bloom; the reservoir rests. | 40,000 |
 
 The order runs from the company alone to the whole Compact beside it, as
-`bloom-mission-arc.md` (*The arc in one paragraph*) orders its movements. The
-Line comes before the Road because holding comes before reaching out; The Burn
-comes before Broad Front because the largest battle is the finale. Both
-Cordon variants and both heart forms are played, which is the arc's departure
-from the generic arc's one-variant-per-beat rule: here the variants are
-separate places on one world, not alternatives.
+`bloom-mission-arc.md` (*The arc in one paragraph*) orders its movements: a
+rescue, a road held open, a march behind the guns, then the all-in finale.
+The Burn comes before Broad Front because the largest battle is the finale.
+Both heart forms are played, which is the arc's departure from the generic
+arc's one-variant-per-beat rule: here they are separate places on one world,
+not alternatives.
 
 ## Unlocks
 
@@ -64,7 +66,7 @@ separate places on one world, not alternatives.
 - **A chapter unlocks the next on victory.** A loss leaves the same chapter on
   offer with a short retry briefing and no fee; nothing is consumed. There is
   no clock and no expiry, as in every authored arc.
-- **The arc completes** when chapter 5 is won: the Warden's closing briefing
+- **The arc completes** when chapter 4 is won: the Warden's closing briefing
   says the heart is down and the country can be taken back.
 
 ## Replay
@@ -80,7 +82,7 @@ current chapter. A replay:
 - briefs with one replay line from the Warden (the Compact still needs the
   ground walked) rather than the chapter's first briefing.
 
-The debug mission player lists all five chapters under Asharu (WB1 to WB5,
+The debug mission player lists all four chapters under Asharu (WB1 to WB4,
 `DebugMissionCatalog.Scenario.wellhollow`), each on its pool's first vetted
 ARID map (`WellhollowBloomCampaign.fixedSeed`), so a chapter plays the same map
 every time. It briefs with the chapter's first exchange and sets up the
@@ -96,7 +98,7 @@ laws).
   the Warden and Castle (`MissionDialogue` turns, strings under
   `wellhollow*` in `strings.json`); a retry and a replay each get one line.
 - **The board.** The Warden's offer rows carry the chapter name, its place in
-  the arc ("Wellhollow 2 of 5") and the arc status (chapters won).
+  the arc ("Wellhollow 2 of 4") and the arc status (chapters won).
 - **The debrief.** The results screen's story message closes each chapter
   with the Warden's line on what changed (a chapter won) or what still stands
   (a loss).
@@ -104,8 +106,9 @@ laws).
 - **The art.** The Warden has a portrait
   (`art-source/portraits/hollis-maro.*`), and three location banners carry the
   arc's places (`StoryScene`): the colony floor for chapter 1, the rim cordon
-  for chapters 2 and 3, the burning heart for chapters 4 and 5
-  (`art-source/story-scenes/wellhollow-*`, Codex ImageGen).
+  for chapter 2, the burning heart for chapters 3 and 4
+  (`art-source/story-scenes/wellhollow-*`, Codex ImageGen); the rim banner
+  now serves Low Sump alone.
   `createSnapshots -Psnapshot=wellhollow-art` shows them on the Warden's board
   and the results screen. Briefing narration does not exist yet.
 
@@ -120,7 +123,7 @@ foresaw, built differently on purpose:
 | | Generic arc | The Wellhollow Bloom |
 | --- | --- | --- |
 | Trigger | Any bloom the system wakes | Fixed: Asharu, after A Working Ship |
-| Beats | Three; one variant each, chosen by outcome | Five chapters; both variants of each, in fixed order |
+| Beats | Three; one variant each, chosen by outcome | Four chapters: the Road, then both heart forms, in fixed order |
 | Source | Campaign events (`BLOOM_CORDON`, `BLOOM_HEART`, planned) | Story missions (`MissionSource.STORY`) with their own ledger |
 | Gate | Holds the one-open-event gate while committed | Never touches the event gate, so random blooms keep calling |
 | Clock | The bloom's stage clocks, with hold hooks | None; no expiry |
@@ -137,9 +140,9 @@ fixtures on a world's palette) is what the generic arc's factories will reuse.
 Sent to the Rav Bloom coordinator for the picks page; the arc is built on the
 recommended option of each.
 
-1. **Order of the middle beats.** Recommended: Line before Road (hold, then
-   reach out). Alternative: Road first (go back for the colony's people at
-   once).
+1. **The middle beat.** Decided (owner, 2026-10-28): Cordon Line is cut
+   from this release and Low Sump carries the cordon. A save that had won
+   Hold the Rim counts it as Low Sump won.
 2. **Replay pay.** Recommended: half the chapter fee. Alternatives: the full
    fee; a flat repeatable rate.
 3. **When the arc opens.** Decided (owner, 2026-10-27): after A Working Ship,

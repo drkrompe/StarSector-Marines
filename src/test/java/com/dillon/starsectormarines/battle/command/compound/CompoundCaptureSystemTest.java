@@ -6,11 +6,15 @@ import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.decision.TacticalNode;
 import com.dillon.starsectormarines.battle.unit.TestUnits;
 import org.junit.jupiter.api.Test;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * Synthetic-grid coverage for {@link CompoundCaptureSystem}. Each test
@@ -363,5 +367,21 @@ public class CompoundCaptureSystemTest {
         assertEquals(CompoundService.CompoundState.DEFENDER_HELD,
                 service.getRecord(beachhead).state,
                 "a defender standing alone on the beachhead does not take it");
+    }
+
+    @Test
+    public void aBattleWithNoCompoundLayerKeepsItsPlacesButTakesNone() {
+        BattleSimulation sim = openSim();
+        TacticalNode beachhead = new TacticalNode(TacticalNode.Kind.BEACHHEAD, 2, 2,
+                1, 1, 3, 3, Faction.MARINE, 75, 0);
+        sim.setTacticalMap(new TacticalMap(List.of(barracksAt(7, 7), beachhead)));
+        assertEquals(2, sim.getCompoundService().getRecords().size());
+
+        // A civilian rescue: the barracks and the landing field are still on
+        // the map, but nothing registers them as ground to take or hold.
+        sim.dropCompoundLayer();
+        assertTrue(sim.getCompoundService().getRecords().isEmpty());
+        assertEquals(2, sim.getTacticalMap().size(),
+                "the places stay on the tactical map");
     }
 }

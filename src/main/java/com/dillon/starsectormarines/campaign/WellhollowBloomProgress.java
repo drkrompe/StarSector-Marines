@@ -4,7 +4,7 @@ import java.io.Serializable;
 
 /**
  * Save-owned ledger for *The Wellhollow Bloom*, the authored Rav Bloom arc on Asharu
- * ({@code wellhollow-bloom-arc.md}). Its five chapters unlock in order, each on the previous
+ * ({@code wellhollow-bloom-arc.md}). Its four chapters unlock in order, each on the previous
  * chapter's victory; a chapter already won stays offered as a replay that pays half its fee and
  * never moves the arc. Every attempt carries a fresh identity; only the active attempt settles,
  * and only once.
@@ -17,7 +17,6 @@ public final class WellhollowBloomProgress implements Serializable {
     /** The arc's chapters in their prescribed order, each one shipped Rav mission. */
     public enum Chapter {
         COLONY_BREACH("breach", 20_000),
-        CORDON_LINE("line", 26_000),
         CORDON_ROAD("road", 28_000),
         THE_BURN("burn", 32_000),
         BROAD_FRONT("front", 40_000);
@@ -34,8 +33,11 @@ public final class WellhollowBloomProgress implements Serializable {
     private int attempt = 1;
     private String activeId;
     private int replaysWon, losses, paid;
-    /** The story chapter whose last attempt was lost, so its retry briefs as one; null otherwise. */
-    private Chapter lastLost;
+    /**
+     * The story chapter whose last attempt was lost, by name, so its retry briefs as one; null otherwise. A name
+     * rather than the enum so a save naming a chapter since cut (Hold the Rim, 2026-10-28) still loads.
+     */
+    private String lastLost;
 
     public static boolean owns(String id) { return id != null && id.startsWith(PREFIX); }
     public static boolean replay(String id) { return owns(id) && id.startsWith(PREFIX + REPLAY); }
@@ -53,7 +55,7 @@ public final class WellhollowBloomProgress implements Serializable {
     public int replaysWon() { return replaysWon; }
     public int losses() { return losses; }
     public int paid() { return paid; }
-    public boolean lastLost(Chapter chapter) { return chapter != null && chapter == lastLost; }
+    public boolean lastLost(Chapter chapter) { return chapter != null && chapter.name().equals(lastLost); }
     public boolean active() { return activeId != null; }
     public boolean complete() { return won >= Chapter.values().length; }
     /** The chapter the story offers next, or null once the arc is complete. */
@@ -96,7 +98,7 @@ public final class WellhollowBloomProgress implements Serializable {
         boolean replay = replay(id);
         if (!victory) {
             losses++;
-            if (!replay) lastLost = chapterOf(id);
+            if (!replay) lastLost = chapterOf(id).name();
         } else if (replay) replaysWon++;
         else {
             won++;

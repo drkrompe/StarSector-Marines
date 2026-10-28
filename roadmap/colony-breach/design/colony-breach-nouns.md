@@ -228,8 +228,8 @@ defence (the Line or the Road), then the heart (Broad Front or The Burn), the
 campaign picking each variant, each mission offered on its own and opted into, and the player may stop after any of them;
 a world whose arc stops runs on the ordinary bloom clock. The authored
 instance is built: **The Wellhollow Bloom** on Asharu
-(`wellhollow-bloom-arc.md`) offers all five missions as story chapters in a
-fixed order, each unlocked by the last one's victory and replayable once won,
+(`wellhollow-bloom-arc.md`) offers Colony Breach, the Road, The Burn and
+Broad Front as story chapters in a fixed order, each unlocked by the last one's victory and replayable once won,
 outside `RavBloomSystem` and the event gate.
 `bloom-mission-arc.md` is the direction for movements 2 and 3 and the sector
 threat: the Cordon (the Line and the Road as variants), the heart (Broad Front
@@ -378,9 +378,13 @@ reaches it, then follows a squad of the company out to the lift (the squad leads
 follow it) and boards only once a shuttle
 is physically down. On the colony the cohort is spread over several redoubts,
 and the **lift is on the landing field**: the shuttles taking the survivors off
-come down where the company came down, for the same reason, at the clear pickup
-site on the field nearest the shelter and clear of the berths. Land in the
-fields, fight in to the redoubts, bring the survivors back out.
+come down where the company came down, for the same reason, beside the company's
+pads on the town side. The pickup is the clear site nearest the shelter whose
+cordon (below) stands wholly in the field's open country and whose wall keeps a
+berth's reach and more off the berths (`CivilianEvacuationPlacement`,
+`CORDON_FIELD_CLEARANCE`); where no such site exists it falls back to the
+nearest clear site on the field, then to the farthest reachable site. Land in
+the fields, fight in to the redoubts, bring the survivors back out.
 
 **Evac cordon** (owner, 2026-10-28: "an allied evac cordon which the player
 needs to get the survivors back to"). The militia line and the mech standing
@@ -391,6 +395,26 @@ replenishes from its own pool, a shuttle of militia whenever casualties pull
 the line under strength and a fresh mech when the mech falls, for as long as
 any of the cohort is still out, so the cordon does not fall. The company's job
 is to get the survivors to it.
+
+On the colony the cordon fights from **works** thrown up round the pickup
+(`PickupCordonWorks`; owner, 2026-10-28: "trenches and sandbag / doodad walls
+with space for the players forces to come through"). They stand on an octagon
+round the lift, just outside its protected square: a trench sixteen out, a
+sandbag parapet on its lip facing out, a cell of open ground, and a wall of
+hedgehogs with crate stacks and scrap piles nineteen out, closed to movement,
+open to sight and laid as barricade, so the swarm tears it down where the way
+round is long. Two **gates**, five cells wide through every ring, are cut where
+the cohort's walk from the shelter and the company's way in from its nearest
+pad cross the works: the company, its mechs and its vehicles come in by them
+with the survivors. Nothing is set down on a pad, a door, a building or a prop
+already there. Each militia team still lands at its formation point and is
+then ordered into its stretch of trench, which it mans as a garrison mans a
+run: the dug trench is cut into five even stretches, each point taking the
+nearest one left, so where a pad, a gate or the map edge takes a side the
+teams spread over what remains rather than sharing a corner. The mech keeps
+its patrol inside.
+`-Dbattle.colonyBreach.cordonWorks=false` is the control: the line holds the
+open ground round its posts.
 
 **Redoubt.** A place the cohort is holed up in. The **main redoubt** is the
 shelter, with the largest share of the cohort and the sealed, hidden shelter
@@ -2445,6 +2469,11 @@ argument.
 - **Deterministic.** Same seed, same breach: eruption places, timings, strains
   and growth are seeded. Evidence replays must match byte for byte.
 - **One story.** The breach sequence is the battle's one story sequence.
+- **No ground to take.** A rescue is fought for people, not ground, so it plays
+  no compound layer (`BattleSimulation.dropCompoundLayer`): the installation's
+  barracks and armouries and the company's landing field stay places on the
+  tactical map, but none is a compound, so none shows a capture beacon, is
+  taken or held, or produces supply. The capture points are conquest's.
 
 ## Boundaries
 

@@ -10,11 +10,11 @@ chapter and a replay of every chapter won (`WellhollowBloomProgress`). Colony
 Breach launches through the rescue path; the Cordon and heart chapters build
 their fixtures on the ARID pool maps. What remains:
 
-1. **Owner picks** (`wellhollow-bloom-arc.md`, *Open*): middle order, replay
-   pay, the opening gate, art and voice. Change the built recommendation if a
+1. **Owner picks** (`wellhollow-bloom-arc.md`, *Open*): replay pay, art and
+   voice. Change the built recommendation if a
    pick differs: the order is `WellhollowBloomProgress.Chapter`, the replay fee
    `Chapter.replayFee`, the gate `WellhollowBloomCampaign.current`.
-2. **Live acceptance.** Play all five chapters in a launched campaign: the
+2. **Live acceptance.** Play all four chapters in a launched campaign: the
    Warden appears at Asharu, each victory unlocks the next row, a loss briefs as
    a retry, a replay pays half and leaves the arc where it was, and the ledger
    survives save and reload.

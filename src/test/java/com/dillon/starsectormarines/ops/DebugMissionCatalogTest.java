@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.air.LiftRating;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -18,6 +21,20 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DebugMissionCatalogTest {
+    @ParameterizedTest @EnumSource(ShuttleType.class)
+    void debugBoatsTakeTheTopTierOfEveryFittingTheirHullAccepts(ShuttleType pattern) {
+        var boat = DebugMissionCatalog.maxFitted(pattern);
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            int top = BoatFitting.catalog(slot).stream().filter(f -> f.supports(pattern))
+                    .mapToInt(BoatFitting::tier).max().orElseThrow();
+            assertEquals(top, boat.fitting(slot).tier(), pattern + " " + slot);
+        }
+    }
+
+    @Test void aMaxFittedHermesLiftsHeavyMachines() {
+        assertEquals(LiftRating.HEAVY, DebugMissionCatalog.maxFitted(ShuttleType.HERMES).liftRating());
+    }
+
     @Test void workingPassageExpectedCompanyUsesServiceRiflesWithStartingArmorAndNoHound() {
         var mission = DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission();
         var context = new MarineOpsContext(null);
@@ -38,7 +55,7 @@ class DebugMissionCatalogTest {
                 WeaponRegistry.PULSE_RIFLE_ID.equals(s.primaryId()) && s.primaryGrade() == EquipmentGrade.SERVICE));
         assertEquals("04", DebugMissionCatalog.Scenario.WORKING_PASSAGE.sequence());
     }
-    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"WORKING_PASSAGE", "WELLHOLLOW_BREACH", "WELLHOLLOW_LINE", "WELLHOLLOW_ROAD", "WELLHOLLOW_BURN", "WELLHOLLOW_FRONT"}, mode = EnumSource.Mode.EXCLUDE)
+    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"WORKING_PASSAGE", "WELLHOLLOW_BREACH", "WELLHOLLOW_ROAD", "WELLHOLLOW_BURN", "WELLHOLLOW_FRONT"}, mode = EnumSource.Mode.EXCLUDE)
     void otherAuthoredCompaniesKeepTheirStarterIssue(DebugMissionCatalog.Scenario scenario) {
         var context = new MarineOpsContext(null);
         context.resetDebugPreset(scenario.mission());
@@ -68,7 +85,7 @@ class DebugMissionCatalogTest {
         context.resetDebugPreset(mission);
         var company = context.getDebugCompanyRoster();
         assertEquals(preset.squads() * 12, company.lineReadySoldiers().size());
-        var lift = Collections.nCopies(preset.boats(), FittedBoat.standard(preset.boat()));
+        var lift = Collections.nCopies(preset.boats(), DebugMissionCatalog.maxFitted(preset.boat()));
         var mechs = preset.mechs() == 1 ? DebugMechRoster.recoveredHound() : DebugMechRoster.randomized(0, 0);
         var plan = MissionLaunch.captureScenario(context, mission, lift, FlybyRoster.EMPTY, List.of(MechSupport.ID), List.of(), mechs, 42);
         var repeat = MissionLaunch.captureScenario(context, mission, lift, FlybyRoster.EMPTY, List.of(MechSupport.ID), List.of(), mechs, 42);
@@ -100,7 +117,7 @@ class DebugMissionCatalogTest {
         var jangala = DebugMissionScreen.visible(catalog, 0, "Jangala");
         assertEquals(List.of("01", "02", "03", "04", "R1", "R2", "R3"),
                 jangala.stream().map(m -> DebugMissionCatalog.scenario(m).sequence()).toList());
-        assertEquals(List.of("01", "02", "03", "04", "WB1", "WB2", "WB3", "WB4", "WB5"), DebugMissionScreen.visible(catalog, 0, "Asharu").stream()
+        assertEquals(List.of("01", "02", "03", "04", "WB1", "WB2", "WB3", "WB4"), DebugMissionScreen.visible(catalog, 0, "Asharu").stream()
                 .map(m -> DebugMissionCatalog.scenario(m).sequence()).toList());
         var grouped = DebugMissionScreen.visible(catalog, 0, "All locations");
         assertEquals(jangala, grouped.subList(0, jangala.size()));

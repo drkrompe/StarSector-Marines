@@ -124,13 +124,15 @@ public record ShuttleArrivalPlan(
             int firstCycles = pairedCycles
                     + (oddSortie && pair == activePairs - 1 ? 1 : 0);
             if (firstCycles > 0) {
-                resolved.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE,
-                        frameFor(source, from, to, taken++), firstCycles,
+                Airframe first = frameFor(source, from, to, taken++);
+                resolved.add(new ShuttleAssignment(ShuttleType.fromAirframe(first),
+                        first, firstCycles,
                         seatsPerSortie, Math.max(1, firstCycles) * seatsPerSortie));
             }
             if (pairedCycles <= 0) continue;
-            resolved.add(new ShuttleAssignment(ShuttleType.AEROSHUTTLE,
-                    frameFor(source, from, to, taken++), pairedCycles,
+            Airframe second = frameFor(source, from, to, taken++);
+            resolved.add(new ShuttleAssignment(ShuttleType.fromAirframe(second),
+                    second, pairedCycles,
                     seatsPerSortie, Math.max(1, pairedCycles) * seatsPerSortie));
         }
     }
@@ -145,19 +147,25 @@ public record ShuttleArrivalPlan(
      * same order the manifest was built in: the company's first boats are the
      * ones that go down, fit and all.
      *
-     * <p>Only an Aeroshuttle-pattern boat carries through, because the pair the
-     * collapse builds is an Aeroshuttle. A Valkyrie's plating has nothing to do
-     * with the craft that replaces her. A cradle does carry through: the
+     * <p>A boat that handles as an Aeroshuttle does (an Aeroshuttle, a Hermes) makes the descent
+     * herself, fit and all. The pair count can be more than the boats, so a craft past the
+     * boats repeats them in berth order as an anonymous copy: the same hull and fit, but not the
+     * boat, whose loss must settle once. Any heavier hull's plating has nothing to do with the
+     * Aeroshuttle that replaces her, and she is not repeated. A cradle does carry through: the
      * Aeroshuttle standing in for a cradled boat inherits its lift rating, so
      * the boat's machine sorties still fly ({@code air-nouns.md}, Lift).
      */
     static Airframe frameFor(List<ShuttleAssignment> source,
                              int from, int to, int index) {
-        int at = from + index;
-        if (at < from || at >= to || at >= source.size()) return ShuttleType.AEROSHUTTLE;
-        ShuttleAssignment origin = source.get(at);
+        int span = Math.min(to, source.size()) - from;
+        if (index < 0 || span <= 0) return ShuttleType.AEROSHUTTLE;
+        ShuttleAssignment origin = source.get(from + index % span);
         if (origin == null) return ShuttleType.AEROSHUTTLE;
-        if (origin.type == ShuttleType.AEROSHUTTLE) return origin.airframe;
+        boolean repeat = index >= span;
+        if (origin.type.nimbleClass()) {
+            return repeat && origin.airframe instanceof FittedBoat boat ? boat.anonymous() : origin.airframe;
+        }
+        if (repeat) return ShuttleType.AEROSHUTTLE;
         if (origin.airframe instanceof FittedBoat boat && boat.cradled()) {
             return new FittedBoat(ShuttleType.AEROSHUTTLE, BoatFitting.STANDARD_PLATING,
                     BoatFitting.STANDARD_DRIVE, boat.lift(), null);

@@ -115,9 +115,6 @@ final class BoatDeckSpecSheets {
                         "×" + BoatDeckViewModel.factor(fitting.fluxDissipationFactor())));
             }
         }
-        if (fitting.weight() > 0) {
-            stats.add(SpecSheet.Stat.of(Strings.get("boatDeckFrame"), String.valueOf(fitting.weight())));
-        }
         return new SpecSheet(fitting.displayName(), BoatDeckViewModel.kindLine(fitting.tier(), kind), null, "item",
                 List.copyOf(stats), List.of(fitting.provenance()));
     }

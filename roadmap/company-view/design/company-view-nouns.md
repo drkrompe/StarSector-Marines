@@ -118,10 +118,10 @@ shared mapping instead of assigning paths independently in each screen.
   own price and its own look (orange, teal, blue). Planned: art of their own for
   the energy guns and missile pods, and a tuning pass on the part numbers
   against a matchup run.
-- **Frame** — what a boat can carry in upgrades: every non-standard fitting and
-  door gun has a **weight**, and their sum may not pass the frame's rating (10).
-  The workshop refuses a fit that would take her over it, unless the fit makes her
-  lighter, so heavy lift and a fast drive compete with plating and guns.
+- **No weight limit** — a boat's upgrades and guns are limited only by what the
+  company owns: a part has a price and a tier, never a weight, and a boat can carry
+  every upgrade at once (owner, 2026-10-28). Heavy lift, a fast drive, plating and
+  guns do not compete with one another.
 - **Boat spare** — a fitting or boat gun in the boat deck's **stores**, counted per
   part. A spare is bought for its price, or comes off a boat; fitting one takes it
   out of stores. Stores are the company's, not a boat's, so a part moves between
@@ -831,12 +831,11 @@ and arc with a left and a right barrel, each gun firing on its own cadence and
 charging the boat's flux pool; families mix, and two missile guns ride one
 launcher box. A 2x2 gun let go over either position takes the whole hardpoint and
 whatever was on it goes to stores; a 2x1 gun put beside a 2x2 one displaces it.
-Every gun weighs on the frame except the yard's own gun in its top position.
 Guns come in three
 **families**: ballistic door guns, energy guns that fire on flux and carry no
 magazine, and missile pods with a few salvos a sortie. **Any family goes on any
 hardpoint**: the hull's slots are small ballistic turrets, but a boat's yard is not
-bound by a slot's type; the frame's weight is the limit. A hardpoint nobody has
+bound by a slot's type. A hardpoint nobody has
 refitted carries the pattern's air-to-ground kit for that mount, and putting that
 yard gun back is free; on the Hermes that is a heavy MG on her first turret and the
 other two **bare**. Stripping a gun puts the yard's own back, which on a bare
@@ -848,10 +847,7 @@ covers the stern. The fitted guns replace the kit only for an air-to-ground sort
 other roles still arm by role.
 
 **The Hermes is the company's boat, and every refit is built around her.** She
-takes every slot's upgrades, and a gun or a pod of two on each of her three turrets, from stores,
-within her frame. The
-Boat Deck shows the frame as a meter (weight / rating) and every part's weight on
-its card and sheet.
+takes every slot's upgrades, and a gun or a pod of two on each of her three turrets, from stores.
 
 A failed fit or purchase changes nothing but the room's feedback line — neither the
 boat nor the purse — because the workshop rechecks the port and the credits at the
@@ -893,8 +889,12 @@ bought during a visit stays on the shelf, marked acquired, until the page is nex
 opened; reopening it recomputes the shelf without what the company now knows.
 
 The page is browsed by category (`StoreSlot`): **Marine** (weapon loadouts, armor loadouts),
-**Mechs / Vehicles** (chassis, weapons, internals, vehicles, vehicle kits) and **Boats**
-(plating, drive, lift hold, cabin, shield emitter, power, door guns). Each section has its own icon and colour (green marine doll, amber bulwark and tank dolls, blue shuttle), carried down its slot rows as an accent strip so the grouping reads at a glance. Marine and mech slots carry a brick-swatch symbol on their shelf rows and slot rows: the same footprint and tone the squad view and Mech Lab draw that piece with (weapon yellow, armor grey, mech weapon orange, internals blue / violet / teal, chassis and vehicle grey, kit teal). Shuttle parts carry none. The list is an
+**Chassis** (mech chassis, vehicle hulls), **Parts** (weapons, engines, armor, equipment: one
+shelf for the parts mechs and vehicles share, so the license is the same thing whichever machine
+the part goes on; a vehicle kit is the vehicle's take on the equipment a mech's internals give,
+and plating is the armor point both dolls carry) and **Boats** (plating, drive, lift hold,
+cabin, shield emitter, power, door guns). A vehicle's own gun and drive are sealed today, so a
+weapon or engine license is a mech's until a hull can take one. Each section has its own icon and colour (green marine doll, amber bulwark and tank dolls, purple fabrication cog, blue shuttle), carried down its slot rows as an accent strip so the grouping reads at a glance. The slot rows keep the brick symbols (`StoreBrickCanvas`, drawn by `HardpointBricks`, the squad view's and Mech Lab's own brick code). The shelf rows show each offer as the rest of the game shows it: a marine loadout as its faction's flag, a mech chassis or vehicle as its damage doll, and a part (weapon, engine, armor, equipment) as the Mech Lab draws hardware, its bricks under its painted symbol (`StoreSymbolCanvas`), so the store draws nothing of its own. Selecting a marine loadout prints its loadout card in the page's middle, the Armory's own card built by the same `FleetArmoryViewModel` builders. Shuttle parts carry no symbol. The list is an
 accordion: one section is open at a time, showing its slots, and opening another collapses it.
 The page opens on the first section with stock. Each row counts what the shelf holds there;
 choosing a section shows all of it, choosing a slot narrows it, and an empty category says so. Boat parts are the Boat Deck's learnable technology: the standard fitting of every slot
