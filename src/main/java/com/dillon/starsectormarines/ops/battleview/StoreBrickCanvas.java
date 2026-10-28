@@ -13,7 +13,8 @@ import java.util.List;
  * draw their hardware with ({@link HardpointBricks#drawFilled}), so a change to how a brick
  * looks reaches the store with no art to redraw. Each slot is the footprint and tone of the
  * piece it teaches: a marine weapon's yellow 1x2 and an armor's grey one ({@link KitBrick}),
- * a mech weapon's 2x2, the three internal roles side by side, a chassis, a vehicle, a kit.
+ * a part's weapon (2x2), engine (blue 2x2), armor plating, and equipment (the capacitor and vent
+ * tones), then a chassis and a vehicle.
  */
 public final class StoreBrickCanvas implements CanvasProducer {
 
@@ -40,14 +41,14 @@ public final class StoreBrickCanvas implements CanvasProducer {
         return switch (slot) {
             case WEAPON_LOADOUT -> single(KitBrick.COLUMNS, KitBrick.ROWS, HardpointBricks.tone(KitBrick.Kind.BALLISTIC));
             case ARMOR_LOADOUT -> single(KitBrick.COLUMNS, KitBrick.ROWS, HardpointBricks.tone(KitBrick.Kind.ARMOR));
-            case MECH_WEAPON -> single(2, 2, HardpointBricks.tone(KitBrick.Kind.ENERGY));
-            case MECH_INTERNAL -> new StoreBrickCanvas(3, 1, List.of(
-                    new Piece(0, 0, 1, 1, HardpointBricks.tone(MechInternal.Role.ENGINE)),
-                    new Piece(1, 0, 1, 1, HardpointBricks.tone(MechInternal.Role.CAPACITOR_BANK)),
-                    new Piece(2, 0, 1, 1, HardpointBricks.tone(MechInternal.Role.VENT_ARRAY))));
+            case PART_WEAPON -> single(2, 2, HardpointBricks.tone(KitBrick.Kind.ENERGY));
+            case PART_ENGINE -> single(2, 2, HardpointBricks.tone(MechInternal.Role.ENGINE));
+            case PART_ARMOR -> single(2, 2, HardpointBricks.tone(MechInternal.Role.PLATING));
+            case PART_EQUIPMENT -> new StoreBrickCanvas(2, 1, List.of(
+                    new Piece(0, 0, 1, 1, HardpointBricks.tone(MechInternal.Role.CAPACITOR_BANK)),
+                    new Piece(1, 0, 1, 1, HardpointBricks.tone(MechInternal.Role.VENT_ARRAY))));
             case MECH_CHASSIS -> single(2, 3, HardpointBricks.OMNI);
             case VEHICLE -> single(3, 2, HardpointBricks.OMNI);
-            case VEHICLE_KIT -> single(2, 1, HardpointBricks.tone(KitBrick.Kind.UTILITY));
             default -> null;
         };
     }

@@ -79,7 +79,8 @@
   .store-cat.slot { padding: 0px 8px 0px 14px; }
   .store-cat-strip { width: 5px; height: 100%; pointer-events: none; }
   .store-cat-strip.sec-MARINE { background-color: #8fcf8a; }
-  .store-cat-strip.sec-MECHS { background-color: #e8b45a; }
+  .store-cat-strip.sec-CHASSIS { background-color: #e8b45a; }
+  .store-cat-strip.sec-PARTS { background-color: #b08be8; }
   .store-cat-strip.sec-BOATS { background-color: #72bde8; }
   .store-cat.selected { background-color: #183b50; border-color: #ffd464; }
   .store-cat.empty { opacity: 0.5; }

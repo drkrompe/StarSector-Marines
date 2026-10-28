@@ -27,7 +27,8 @@ class StoreSlotTest {
         for (MechPattern pattern : MechPattern.offerable()) {
             StoreSlot slot = StoreSlot.of(EquipmentStore.Kind.MECH_PATTERN, pattern.id());
             assertNotNull(slot, pattern.id());
-            assertEquals(StoreSlot.Section.MECHS, slot.section(), pattern.id());
+            assertTrue(slot.section() == StoreSlot.Section.CHASSIS || slot.section() == StoreSlot.Section.PARTS,
+                    pattern.id());
         }
         Set<StoreSlot> boatSlots = EnumSet.noneOf(StoreSlot.class);
         for (String id : BoatParts.offerable()) {

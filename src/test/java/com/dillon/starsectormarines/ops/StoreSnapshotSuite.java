@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.BoatParts;
 import com.dillon.starsectormarines.marine.EquipmentStore;
+import com.dillon.starsectormarines.marine.StoreSlot;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
@@ -27,6 +28,8 @@ import java.awt.image.BufferedImage;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Map;
 
 /** The company store page over a fixed shelf, 1920x1080 at 100% UI scale. */
@@ -43,8 +46,10 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
             return List.of(
                     new SnapshotArtifact("store-shelf.png", frame(context, false, null)),
                     new SnapshotArtifact("store-after-purchase.png", frame(context, true, null)),
-                    new SnapshotArtifact("store-mechs-category.png",
-                            frame(context, false, "SECTION:MECHS")),
+                    new SnapshotArtifact("store-chassis-category.png",
+                            frame(context, false, "SECTION:CHASSIS")),
+                    new SnapshotArtifact("store-parts-category.png",
+                            frame(context, false, "SECTION:PARTS")),
                     new SnapshotArtifact("store-boats-category.png",
                             frame(context, false, "SECTION:BOATS")),
                     new SnapshotArtifact("store-armor-slot.png",
@@ -64,13 +69,12 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
         }
         shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.LOADOUT, cards.get(3).id(),
                 EquipmentStore.Shelf.LICENSE, 6500));
-        for (MechPattern.Kind kind : MechPattern.Kind.values()) {
-            for (MechPattern pattern : MechPattern.offerable()) {
-                if (pattern.kind() != kind) continue;
-                shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.MECH_PATTERN, pattern.id(),
-                        EquipmentStore.Shelf.MARKET, 6500));
-                break;
-            }
+        // One mech or vehicle pattern for every slot it can fill.
+        Set<StoreSlot> seen = new HashSet<>();
+        for (MechPattern pattern : MechPattern.offerable()) {
+            EquipmentStore.Offer offer = new EquipmentStore.Offer(EquipmentStore.Kind.MECH_PATTERN, pattern.id(),
+                    EquipmentStore.Shelf.MARKET, 6500);
+            if (seen.add(offer.slot())) shelf.add(offer);
         }
         List<String> parts = BoatParts.offerable();
         shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.BOAT_PART, parts.get(0),
