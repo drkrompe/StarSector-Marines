@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import org.junit.jupiter.api.Test;
@@ -158,6 +159,27 @@ class CivilianEvacuationPlacementTest {
                         "every cell in the 5x5 pickup trigger must be outdoors");
             }
         }
+    }
+
+    @Test
+    void aFieldLiftStandsBesideTheBerthsWithItsCordonInTheOpenCountry() {
+        // A field against the north edge (country 10 + 40 + 8 = 58 deep), the shelter across the town to the south.
+        NavigationGrid grid = openGrid(160, 100);
+        FieldOfFire field = new FieldOfFire(80, 10, 40);
+        PointOfInterest home = poi(PointOfInterest.Kind.RESIDENTIAL, 80, 90);
+
+        CivilianEvacuationPlacement placement = CivilianEvacuationPlacement.find(grid, new CellTopology(160, 100),
+                List.of(home), 5L, CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT, field);
+
+        assertNotNull(placement);
+        // As far toward the town as the cordon's wall keeps to the country (39 + 19 = 58), and out to the side of the
+        // berths by just enough that the wall clears them; the west of the two tied flanks.
+        assertEquals(55, placement.liftX);
+        assertEquals(39, placement.liftY);
+        int dx = placement.liftX - field.centerX(), dy = placement.liftY - field.centerY();
+        assertTrue(dx * dx + dy * dy >= CivilianEvacuationPlacement.CORDON_FIELD_CLEARANCE
+                * CivilianEvacuationPlacement.CORDON_FIELD_CLEARANCE);
+        assertTrue(field.inCountry(placement.liftX, placement.liftY + PickupCordonWorks.WALL, 160, 100));
     }
 
     private static NavigationGrid openGrid(int width, int height) {

@@ -32,7 +32,7 @@ import java.util.Locale;
  * trench), then four seconds recorded through the look preset on the pickup, the whole cordon ({@code cordon}) and
  * the field round it ({@code wide}) and the colony round that ({@code region}). Each seed plays twice, with the works ({@code works}) and on the control
  * {@code -Dbattle.colonyBreach.cordonWorks=false} ({@code open}). {@code -Dsnapshot.evacCordon.seeds} (default
- * {@code 38/arid,16/rock}, the pooled maps) picks the seeds, each {@code seed} or {@code seed/biome}. Opt-in.
+ * {@code 38/arid}, the campaign map) picks the seeds, each {@code seed} or {@code seed/biome}. Opt-in.
  */
 public final class EvacCordonLookSuite implements SnapshotSuite {
 
@@ -55,7 +55,7 @@ public final class EvacCordonLookSuite implements SnapshotSuite {
         int tick = Integer.getInteger("snapshot.evacCordon.tick", 1200);
         try (HeadlessStrings strings = HeadlessBattles.install(context.projectRoot())) {
             List<SnapshotArtifact> out = new ArrayList<>();
-            for (String token : System.getProperty("snapshot.evacCordon.seeds", "38/arid,16/rock").split(",")) {
+            for (String token : System.getProperty("snapshot.evacCordon.seeds", "38/arid").split(",")) {
                 String[] seedAndBiome = token.trim().split("/");
                 long seed = Long.parseLong(seedAndBiome[0]);
                 String biome = seedAndBiome.length > 1 ? seedAndBiome[1].toUpperCase(Locale.ROOT) : null;

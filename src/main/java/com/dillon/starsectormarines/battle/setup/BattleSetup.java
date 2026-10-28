@@ -3027,8 +3027,9 @@ public final class BattleSetup {
             // declared; deriving one from the same mechs would field them twice.
             if (profile != null) sim.setMechDrops(new MechDropService(profile.declaredMechDrops()));
 
+            // The colony's lift stands beside the landing field, its cordon clear of the berths.
             CivilianEvacuationPayload payload =
-                    CivilianEvacuationPayload.install(sim, shelters, battleSeed);
+                    CivilianEvacuationPayload.install(sim, shelters, battleSeed, map.fieldOfFire);
             why = "no shelter-to-lift payload";
             if (payload == null) continue;
             sim.setAutonomousCommander(Faction.MARINE,

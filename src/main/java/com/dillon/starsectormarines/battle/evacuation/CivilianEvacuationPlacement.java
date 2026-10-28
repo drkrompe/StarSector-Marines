@@ -35,6 +35,11 @@ public final class CivilianEvacuationPlacement {
      * evacuation shuttle and a re-arming one do not come down on each other.
      */
     public static final int FIELD_LIFT_CLEARANCE = LandingKind.BERTH_REACH + LIFT_ZONE_RADIUS + 4;
+    /**
+     * How far from a landing field's centre a cordoned lift stands: the berths' reach, the cordon's wall ring and a
+     * berth's own half-width, so the wall stands beside the company's berths and never round them.
+     */
+    public static final int CORDON_FIELD_CLEARANCE = LandingKind.BERTH_REACH + PickupCordonWorks.WALL + 3;
 
     public final int shelterX;
     public final int shelterY;
@@ -188,7 +193,8 @@ public final class CivilianEvacuationPlacement {
             int representativeCount, FieldOfFire field) {
         int sx = shelter.interiorAnchorX;
         int sy = shelter.interiorAnchorY;
-        LiftSite lift = field == null ? null : nearestFieldLift(grid, topology, field, sx, sy);
+        LiftSite lift = field == null ? null : cordonedFieldLift(grid, topology, field, sx, sy);
+        if (lift == null && field != null) lift = nearestFieldLift(grid, topology, field, sx, sy);
         if (lift == null) lift = farthestReachableLift(grid, topology, sx, sy);
         if (lift == null) return null;
         int[] spawns = reachableSpawnCells(
@@ -246,6 +252,44 @@ public final class CivilianEvacuationPlacement {
                 if (onFieldLiftSite(grid, topology, field, x, y, formationRadius)) {
                     sites.add(new int[]{x, y, Math.abs(x - sx) + Math.abs(y - sy)});
                 }
+            }
+        }
+        sites.sort(Comparator.<int[]>comparingInt(site -> site[2])
+                .thenComparingInt(site -> site[1])
+                .thenComparingInt(site -> site[0]));
+        for (int[] site : sites) {
+            if (Paths.isEmpty(GridPathfinder.findPath(grid, sx, sy, site[0], site[1]))) continue;
+            int[] formation = formationCells(grid, site[0], site[1], formationRadius);
+            if (formation == null) continue;
+            return new LiftSite(site[0], site[1], formationRadius, formation);
+        }
+        return null;
+    }
+
+    /**
+     * The pickup site beside the company's landing field with room for the evac cordon round it
+     * ({@code colony-breach-nouns.md}, Evac cordon), nearest the shelter the shelter can walk to and that seats a
+     * formation, or {@code null}: far enough from the field's centre that the cordon's wall clears every berth
+     * ({@link #CORDON_FIELD_CLEARANCE}), with the whole wall ring on the map and in the field's open country, off the
+     * town. Nearest by straight-line steps, ties broken toward the low corner. The shelter is across the town from the
+     * field, so this is the field's flank on the town side: the survivors walk out of the town into the cordon, and
+     * the company lands beside it.
+     */
+    private static LiftSite cordonedFieldLift(NavigationGrid grid, CellTopology topology,
+                                              FieldOfFire field, int sx, int sy) {
+        int formationRadius = formationRadius(grid);
+        if (formationRadius != PICKUP_FORMATION_RADIUS) return null;
+        int w = grid.getWidth(), h = grid.getHeight(), reach = PickupCordonWorks.WALL;
+        long clearance = (long) CORDON_FIELD_CLEARANCE * CORDON_FIELD_CLEARANCE;
+        List<int[]> sites = new ArrayList<>();
+        for (int y = reach + 1; y < h - reach - 1; y++) {
+            for (int x = reach + 1; x < w - reach - 1; x++) {
+                long dx = x - field.centerX(), dy = y - field.centerY();
+                if (dx * dx + dy * dy < clearance) continue;
+                if (!field.inCountry(x - reach, y, w, h) || !field.inCountry(x + reach, y, w, h)
+                        || !field.inCountry(x, y - reach, w, h) || !field.inCountry(x, y + reach, w, h)) continue;
+                if (!clearLiftFootprint(grid, topology, x, y)) continue;
+                sites.add(new int[]{x, y, Math.abs(x - sx) + Math.abs(y - sy)});
             }
         }
         sites.sort(Comparator.<int[]>comparingInt(site -> site[2])
