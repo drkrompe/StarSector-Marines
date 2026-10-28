@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
@@ -180,6 +181,30 @@ class CivilianEvacuationPlacementTest {
         assertTrue(dx * dx + dy * dy >= CivilianEvacuationPlacement.CORDON_FIELD_CLEARANCE
                 * CivilianEvacuationPlacement.CORDON_FIELD_CLEARANCE);
         assertTrue(field.inCountry(placement.liftX, placement.liftY + PickupCordonWorks.WALL, 160, 100));
+    }
+
+    @Test
+    void anAuthoredLiftTakesTheNearestClearSiteAndNeverFallsBackToTheField() {
+        NavigationGrid grid = openGrid(160, 100);
+        CellTopology topology = new CellTopology(160, 100);
+        FieldOfFire field = new FieldOfFire(80, 10, 40);
+        PointOfInterest home = poi(PointOfInterest.Kind.RESIDENTIAL, 80, 90);
+        topology.setBuildingId(120, 60, 7);
+
+        CivilianEvacuationPlacement placement = CivilianEvacuationPlacement.find(grid, topology, List.of(home), 5L,
+                CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT, field, new MapPatch.Cell(120, 60));
+
+        assertNotNull(placement);
+        // The building cell spoils every footprint within two cells; three steps off, toward the low row.
+        assertEquals(120, placement.liftX);
+        assertEquals(57, placement.liftY);
+
+        int reach = CivilianEvacuationPlacement.AUTHORED_LIFT_REACH + CivilianEvacuationPlacement.LIFT_ZONE_RADIUS;
+        for (int y = 60 - reach; y <= 60 + reach; y++) {
+            for (int x = 120 - reach; x <= 120 + reach; x++) topology.setBuildingId(x, y, 7);
+        }
+        assertNull(CivilianEvacuationPlacement.find(grid, topology, List.of(home), 5L,
+                CivilianEvacuationTracker.V1_REPRESENTATIVE_COUNT, field, new MapPatch.Cell(120, 60)));
     }
 
     private static NavigationGrid openGrid(int width, int height) {

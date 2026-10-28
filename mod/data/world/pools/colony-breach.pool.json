@@ -3,7 +3,13 @@
   "map": "colony-breach",
   "biomes": {
     "ROCK": [{"seed": 16, "note": "3 holdouts; nearest holdout to bore 134 cells"}],
-    "ARID": [{"seed": 38, "note": "3 holdouts; nearest holdout to bore 77 cells"}],
+    "ARID": [{"seed": 38, "note": "Asharu, the campaign's map: 3 holdouts; lift and bores placed by the owner (2026-10-28), holdouts kept where they stood",
+      "patch": {
+        "lift": [164, 24],
+        "bores": [{"x": 307, "y": 103}, {"x": 26, "y": 102}, {"x": 124, "y": 126}, {"x": 379, "y": 133},
+                  {"x": 352, "y": 200, "mother": true}],
+        "holdouts": [[69, 83], [28, 204], [145, 199]]
+      }}],
     "VERDANT": [{"seed": 4, "note": "2 holdouts; nearest holdout to bore 60 cells"}],
     "FROZEN": [{"seed": 27, "note": "2 holdouts; nearest holdout to bore 73 cells"}]
   }

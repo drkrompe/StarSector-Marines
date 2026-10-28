@@ -15,14 +15,26 @@ import java.util.Set;
 
 /**
  * A pooled seed's authored fix ({@code story-map-pools.md}): places pinned
- * before generation, and ruin strokes applied at battle assembly through the
- * authored damage layer. Both ride the regeneration, so a generator change
- * still reaches a patched map.
+ * before generation, ruin strokes applied at battle assembly through the
+ * authored damage layer, and on a Colony Breach colony where its lift, bores
+ * and holdouts stand. All ride the regeneration, so a generator change still
+ * reaches a patched map.
+ *
+ * @param lift     the cell the colony's lift is wanted at, or {@code null} to let the setup choose
+ * @param bores    the colony's eruption sites, the first wave in order and one mother; empty to let the setup choose
+ * @param holdouts a cell inside each building the colony holds out in, in redoubt order; empty to let the setup choose
  */
-public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin) {
+public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin, Cell lift, List<Bore> bores,
+                       List<Cell> holdouts) {
 
     /** The patch of a seed that needs none. */
     public static final MapPatch NONE = new MapPatch(List.of(), List.of());
+
+    /** A cell a person put something on, read off the pool's whole-map review frame. */
+    public record Cell(int x, int y) { }
+
+    /** An eruption site a person put down: the mother bore, or one of the first wave. */
+    public record Bore(int x, int y, boolean mother) { }
 
     /** The name of the damage layer a patch's ruin is applied as. */
     static final String RUIN_LAYER = "story-map-pool patch";
@@ -37,13 +49,25 @@ public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin) {
     public MapPatch {
         pins = List.copyOf(pins);
         ruin = List.copyOf(ruin);
+        bores = List.copyOf(bores);
+        holdouts = List.copyOf(holdouts);
         Set<String> places = new HashSet<>();
         for (Pin pin : pins) {
             if (!places.add(pin.place())) throw new IllegalArgumentException("place pinned twice: " + pin.place());
         }
+        int mothers = 0;
+        for (Bore bore : bores) if (bore.mother()) mothers++;
+        if (!bores.isEmpty() && mothers != 1) throw new IllegalArgumentException("authored bores name one mother, not " + mothers);
     }
 
-    public boolean isEmpty() { return pins.isEmpty() && ruin.isEmpty(); }
+    /** A patch of pins and ruin alone. */
+    public MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin) {
+        this(pins, ruin, null, List.of(), List.of());
+    }
+
+    public boolean isEmpty() {
+        return pins.isEmpty() && ruin.isEmpty() && lift == null && bores.isEmpty() && holdouts.isEmpty();
+    }
 
     /** The plan with every pinned place moved; a pin naming no place of the plan is an authoring error. */
     public PrecinctPlan pinned(PrecinctPlan plan) {
@@ -109,6 +133,25 @@ public record MapPatch(List<Pin> pins, List<DamagePlan.Stroke> ruin) {
                 ruin.add(new DamagePlan.Stroke(mode, s.getDouble("radius"), points));
             }
         }
-        return new MapPatch(pins, ruin);
+        JSONArray liftCell = json.optJSONArray("lift");
+        Cell lift = liftCell == null ? null : cell(liftCell);
+        List<Bore> bores = new ArrayList<>();
+        JSONArray boreArray = json.optJSONArray("bores");
+        if (boreArray != null) {
+            for (int i = 0; i < boreArray.length(); i++) {
+                JSONObject b = boreArray.getJSONObject(i);
+                bores.add(new Bore(b.getInt("x"), b.getInt("y"), b.optBoolean("mother", false)));
+            }
+        }
+        List<Cell> holdouts = new ArrayList<>();
+        JSONArray holdoutArray = json.optJSONArray("holdouts");
+        if (holdoutArray != null) {
+            for (int i = 0; i < holdoutArray.length(); i++) holdouts.add(cell(holdoutArray.getJSONArray(i)));
+        }
+        return new MapPatch(pins, ruin, lift, bores, holdouts);
+    }
+
+    private static Cell cell(JSONArray xy) throws JSONException {
+        return new Cell(xy.getInt(0), xy.getInt(1));
     }
 }

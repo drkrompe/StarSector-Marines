@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
+import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
@@ -91,12 +92,16 @@ public final class ColonyMilitia {
      *
      * @param colony whether this is the Colony Breach colony; a smaller rescue
      *               map seats the shelter guard alone
-     * @param bores  the bore sites the breach plans; a holdout keeps {@link ColonyRedoubts#BREACH_CLEARANCE} from each
+     * @param bores    the bore sites the breach plans; a chosen holdout keeps {@link ColonyRedoubts#BREACH_CLEARANCE}
+     *                 from each
+     * @param authored a cell inside each building a pooled colony's patch makes a holdout, in redoubt order; empty
+     *                 to choose them
      */
     public static Installed install(BattleSimulation sim, MapResult map,
                                     CivilianEvacuationPlacement placement,
                                     List<LandingPad> pads, RiskLevel risk, long seed,
-                                    boolean colony, List<ColonyEruptionPlan.Site> bores) {
+                                    boolean colony, List<ColonyEruptionPlan.Site> bores,
+                                    List<MapPatch.Cell> authored) {
         RescueShelterGarrison shelter = RescueShelterGarrison.install(sim, map, placement, risk, seed);
         if (shelter == null) return null;
         if (!colony || !enabled()) return new Installed(shelter, List.of(), List.of(), List.of(), List.of());
@@ -111,7 +116,8 @@ public final class ColonyMilitia {
         boolean redoubts = ColonyRedoubts.enabled();
         int wanted = redoubts ? ColonyRedoubts.holdoutsFor(seed) : OUTLYING_POSTS;
         int seats = POST_SIZE + (redoubts ? ColonyRedoubts.MAX_COHORT : 0);
-        List<Post> posts = choosePosts(sim, map, placement, pads, seed, wanted, seats, claimed, bores);
+        List<Post> posts = redoubts && !authored.isEmpty() ? authoredPosts(sim, map, authored, seats)
+                : choosePosts(sim, map, placement, pads, seed, wanted, seats, claimed, bores);
         if (redoubts && posts.size() < ColonyRedoubts.MIN_HOLDOUTS) return null;
         List<Integer> holdouts = new ArrayList<>();
         boolean[] walk = routeMask(sim.getGrid(), placement, 1);
@@ -239,6 +245,40 @@ public final class ColonyMilitia {
         pick(grid, placement, candidates, fixed, chosen, wanted, spacing, reach, RedoubtWorks.MIN_ROOM);
         pick(grid, placement, candidates, fixed, chosen, wanted, spacing, reach, 0f);
         return chosen;
+    }
+
+    /**
+     * The holdouts a person put down ({@code story-map-pools.md}, The patch): for each cell, in order, the held
+     * building it falls inside. None of {@link #choosePosts}'s clearances apply, since the author's placement
+     * stands; each building must still be a held place with room indoors for {@code seats}.
+     *
+     * @throws IllegalStateException where a cell names no such building
+     */
+    private static List<Post> authoredPosts(BattleSimulation sim, MapResult map, List<MapPatch.Cell> holdouts,
+                                            int seats) {
+        boolean works = ColonyRedoubts.worksEnabled();
+        RedoubtWorks.Ground ground = works ? RedoubtWorks.ground(sim) : null;
+        List<Post> posts = new ArrayList<>();
+        for (MapPatch.Cell cell : holdouts) {
+            PointOfInterest place = null;
+            for (PointOfInterest p : map.pointsOfInterest) {
+                if (p != null && p.kind != PointOfInterest.Kind.LANDING_SITE && p.left <= cell.x()
+                        && cell.x() <= p.right && p.top <= cell.y() && cell.y() <= p.bottom) {
+                    place = p;
+                    break;
+                }
+            }
+            TacticalNode node = place == null ? null : heldPlace(map, place);
+            List<int[]> cells = node == null ? List.of() : interiorCells(sim, place);
+            if (cells.size() < seats) {
+                throw new IllegalStateException("the holdout authored at " + cell.x() + "," + cell.y()
+                        + " names no held building with room for " + seats);
+            }
+            float room = works ? RedoubtWorks.room(ground, place.left, place.top, place.right, place.bottom,
+                    RedoubtWorks.HOLDOUT_MARGIN) : 1f;
+            posts.add(new Post(place, node, cells, room));
+        }
+        return posts;
     }
 
     /** Adds picks to {@code chosen} from the candidates with at least {@code floor} room, up to {@code wanted}. */

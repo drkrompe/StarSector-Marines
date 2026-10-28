@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-26 — the swarm strikes a standing vehicle from its side and claws one that bars its only way; its flow fields go round one where they can. Earlier: the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
+Updated: 2026-10-28 — a pooled colony's patch may place its lift, bores and holdouts (Asharu's are the owner's). Earlier: the swarm strikes a standing vehicle from its side and claws one that bars its only way; its flow fields go round one where they can. Earlier: the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
 
@@ -256,7 +256,14 @@ eruption sites, enough held buildings with room indoors to be holdouts and a
 clear landing field; a map that lacks any re-rolls the seed. In the campaign
 the colony is not rolled at all: it plays from a story-map pool of one vetted
 map per world biome while the mission is tuned (`story-map-pools.md`), on the
-biome alone and with no re-roll. Lower risks and the
+biome alone and with no re-roll. A pooled map's patch may put its lift, bores
+and holdouts where a person placed them (owner, 2026-10-28, for Asharu: the
+Asharu Placement Board in `tools/picks/pages.md`): the lift takes the clear
+pickup site nearest its cell, each bore the doorstep or open ground nearest
+its cell, each holdout the held building its cell falls in. The rules below
+that choose them, clearances included, then do not apply, a side objective
+never moves an authored bore, and a placement that cannot seat fails the map.
+Lower risks and the
 debug stress path keep their tier map and run the same breach on it, seating
 whatever eruption sites that smaller map has room for.
 
