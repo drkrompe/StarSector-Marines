@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
@@ -50,7 +51,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
      * close as the shells land.
      */
     @Override protected List<LookReview.Shot> lookShots() {
-        return List.of(idle(), shelling(), armor(), wrecks());
+        return List.of(idle(), shelling(), armor(), wrecks(), fitted());
     }
 
     private static LookReview.Shot shelling() {
@@ -113,6 +114,32 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
             return sim;
         }, placement -> List.of(LookReview.View.followAtPlay(placement, "apc", "target"),
                 LookReview.View.follow("target", placement, 14f, "target")), 1500);
+    }
+
+    /**
+     * Six hulls each carrying a mech weapon its gun card takes, parked with their turrets turned off the hull's axis:
+     * how a fitted weapon is drawn ({@code -Dbattle.vehicle.fittedTurretArt}), close and at play zoom.
+     */
+    private static LookReview.Shot fitted() {
+        return LookReview.Shot.of("fitted-turrets", 32, 14, placement -> {
+            SceneWorld world = placement.holdouts(placement.builder()).build();
+            BattleSimulation sim = world.sim();
+            VehicleType[] types = {VehicleType.BREAKTHROUGH_TANK, VehicleType.BREAKTHROUGH_TANK, VehicleType.LASER_TANK,
+                    VehicleType.LRM_CARRIER, VehicleType.SRM_TECHNICAL, VehicleType.FIRE_SUPPORT_APC};
+            MechWeaponComponent[] guns = {MechWeaponComponent.SINGLE_HEAVY_CANNON, MechWeaponComponent.LINEAR_CANNON,
+                    MechWeaponComponent.SHOULDER_LASER_CANNON, MechWeaponComponent.SRM_5, MechWeaponComponent.LRM_5,
+                    MechWeaponComponent.CHAINGUN};
+            for (int i = 0; i < types.length; i++) {
+                float[] at = placement.openNear(5f + 4.4f * i, 7f);
+                long hull = sim.convoy().spawn(types[i], List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK, guns[i],
+                        Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
+                sim.convoy().body(hull).teleport(at[0], at[1], 0f);
+                sim.convoy().turret(hull).facingDeg = 25f - 10f * i;
+                placement.subject("hull" + i, hull);
+            }
+            return sim;
+        }, placement -> List.of(LookReview.View.follow("close", placement, 30f, "hull0", "hull1", "hull2", "hull3",
+                "hull4", "hull5"), LookReview.View.follow("tank", placement, 8f, "hull0", "hull1")), 60).withStills(2);
     }
 
     /** Three hulls with roof launchers or tubes, destroyed on the first tick and left to smoke. */

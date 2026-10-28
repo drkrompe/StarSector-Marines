@@ -149,8 +149,11 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     drawCellX += (float) Math.sin(bearing) * recoil;
                     drawCellY -= (float) Math.cos(bearing) * recoil;
                 }
+                LayeredSpriteCache gun = wrecked || turret == null ? null
+                        : VehicleGunArt.sprite(sprites.layeredMechSprites(), turret.weapon);
+                boolean replaced = gun != null && VehicleGunArt.mode() == VehicleGunArt.Mode.REPLACE;
                 float drawFacingDeg = turretFacingDeg;
-                if (!wrecked && turret != null && type.turretRaiseFold() < 1f && turret.elevation > 0f) {
+                if (!replaced && !wrecked && turret != null && type.turretRaiseFold() < 1f && turret.elevation > 0f) {
                     // Standing up to fire, pitched to the angle its rounds leave at. The battle is drawn with
                     // height as screen-up, as the missiles' arcs are, so a pitched rack's nose rises up the screen
                     // as well as running toward the target: it draws along the arc's first tangent, turned off the
@@ -179,11 +182,17 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     tDrawLong *= (float) Math.hypot(axisX, axisY);
                     tDrawShort *= 1f + RAISE_WIDEN * (1f - cos);
                 }
-                out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
-                        tf.x, tf.y, tf.w, tf.h,
-                        cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),
-                        tDrawLong, tDrawShort, drawFacingDeg,
-                        1f, 1f, 1f, alphaMult);
+                if (!replaced) {
+                    out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
+                            tf.x, tf.y, tf.w, tf.h,
+                            cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),
+                            tDrawLong, tDrawShort, drawFacingDeg,
+                            1f, 1f, 1f, alphaMult);
+                }
+                if (gun != null) {
+                    VehicleGunArt.draw(out, gun, cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),
+                            type.visualWidthCells * cellPx, turretStateFacing, alphaMult);
+                }
                 if (locations != null && locations.turret() != null) {
                     VehicleScuffs.Mask mask = VehicleScuffs.turretMask(sprites, type, frames);
                     float wear = VehicleScuffs.wear(locations.turret().armor(), locations.turret().maxArmor());

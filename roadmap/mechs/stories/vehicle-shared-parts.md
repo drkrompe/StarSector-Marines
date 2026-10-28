@@ -1,6 +1,6 @@
 # Story — Vehicles fit the shared engines and weapons
 
-Status: IN PROGRESS — slices 1 to 4 (fixture seam, engines, typed gun card and derived mount, stance) implemented; turret art remains
+Status: IN PROGRESS — slices 1 to 5 (fixture seam, engines, typed gun card and derived mount, stance, turret art) implemented; the turret-art look awaits the owner's pick, then the documents fold
 
 Written: 2026-10-28
 
@@ -135,7 +135,12 @@ Each slice is green and integrable on its own.
    stock hull's behaviour unchanged for its stock gun. Implemented as `VehicleStance`: the spotter requirement already
    read the weapon (`WeaponDef.indirectFire`), and the stance now does too for a fitted weapon, while a hull on its own
    gun keeps its type's. The raised-launcher pose (`VehicleType.turretRaiseFold`) is art and waits for slice 5.
-5. **Turret art:** the fitted weapon's sprite on the hull.
+5. **Turret art:** the fitted weapon's sprite on the hull. Implemented behind `-Dbattle.vehicle.fittedTurretArt`
+   (`VehicleGunArt`): `replace` draws the weapon's own mech drawing where the turret stood (the default and the
+   recommended look), `overlay` draws it smaller on the stock turret, `stock` keeps the hull's turret. The owner picks on
+   the picks page (`vehicle-turret-art`, `fitted-turrets` look shot in the fire-support APC suite); the losing modes and
+   the switch go with the answer. Limits: the weapon turns about its middle, muzzle flashes keep the hull's muzzle
+   point, a wreck keeps its stock turret, and the raised-launcher pose applies only to a hull's own turret.
 6. **Documents:** amend the sealed-hull statements (below), the Store caveat and the Mech Lab copy, and fold.
 
 ## Decisions (owner, 2026-10-28)

@@ -298,6 +298,23 @@ final class LayeredMechComposer {
         };
     }
 
+    /**
+     * The drawing a mech weapon's appearance selector stands for, arm gun or shoulder pod; null for none. A vehicle's
+     * fitted weapon is drawn from the same layers ({@link VehicleGunArt}).
+     */
+    static LayeredSpriteCache weaponSprite(LayeredMechAssets assets, int selector) {
+        LayeredSpriteCache arm = armSprite(assets, selector);
+        if (arm != null) return arm;
+        return switch (selector) {
+            case LayeredMechAppearance.POD_SHOULDER_LASER -> assets.shoulderLaser;
+            case LayeredMechAppearance.POD_THERMAL_LANCE -> assets.thermalLance;
+            case LayeredMechAppearance.POD_PIONEER_ROCKET -> assets.pioneerRocketCradle;
+            case LayeredMechAppearance.POD_SMALL_SRM, LayeredMechAppearance.POD_LARGE_SRM -> assets.srmPod;
+            case LayeredMechAppearance.POD_SMALL_LRM, LayeredMechAppearance.POD_LARGE_LRM -> assets.lrmPod;
+            default -> null;
+        };
+    }
+
     private static LayeredSpriteCache armSprite(LayeredMechAssets assets, int gun) {
         return switch (gun) {
             case LayeredMechAppearance.ARMS_CHAINGUN,

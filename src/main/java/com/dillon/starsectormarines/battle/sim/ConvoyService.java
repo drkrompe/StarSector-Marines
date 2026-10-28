@@ -147,7 +147,10 @@ public final class ConvoyService implements BodyCarrier {
         GroundTurret turret = gun != null
                 ? GroundTurret.fitted(gun, Math.round(gun.ammoCapacity * fitted.ammoFactor()), fitted,
                         HullTurretSection.forHull(type, fitted)) : null;
-        if (turret != null && weapon != null) turret.structure = fittedStructure;
+        if (turret != null && weapon != null) {
+            turret.structure = fittedStructure;
+            turret.weapon = weapon;
+        }
         HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null, fitted);
         if (turret != null) {
             for (VehicleMount mount : type.secondaryMounts()) turret.secondaries.add(MountedGun.of(mount, fitted));

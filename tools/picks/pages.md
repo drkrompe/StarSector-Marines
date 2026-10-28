@@ -18,3 +18,4 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | Blind Watch revamp (the Sounding on Warion, hook, side jobs) | https://claude.ai/artifact/5U17x6eWXMDM7P7wEWxN4z (renders: https://claude.ai/artifact/5wJEDtGrRj5B3YDxsasubF) |
 | Reticle ammo cue (manual-fire ammo and readiness at the cursor) | https://claude.ai/artifact/5us7T1cuc1um3SMBeUW4LW |
 | Colony Breach coordinator (evac cordon, Asharu placement board) | https://claude.ai/artifact/3ak8D67UjrNmLsr7Zo7GUS (placement board: cordon, bores, objectives) |
+| Vehicle shared parts (engines, typed gun card, stance, turret art) | https://claude.ai/artifact/Rjh22zrwHUGwK4PAyZuFPp |

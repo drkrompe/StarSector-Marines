@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 
@@ -30,6 +31,8 @@ public final class GroundTurret {
      * the hull's own gun. Read through {@link #structureFor}.
      */
     public StructureDef structure;
+    /** The mech weapon in the hull's gun card that {@link #structure} was derived from; null for the hull's own gun. */
+    public MechWeaponComponent weapon;
     /** Barrel facing in world frame (0° = +Y, positive CCW). */
     public float facingDeg;
     /** Sim-seconds until the turret can fire again. */
