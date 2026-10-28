@@ -17,7 +17,6 @@ import com.dillon.starsectormarines.marine.BoatDeck;
 import com.dillon.starsectormarines.marine.BoatFabricationCatalog;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
-import com.dillon.starsectormarines.marine.BoatFrame;
 import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.marine.BoatHardpoint;
 import com.dillon.starsectormarines.marine.BoatWorkshop;
@@ -384,22 +383,12 @@ public final class BoatDeckViewModel {
 
     /**
      * Whether a stores part carried onto the board would fit the socket under it: a socket
-     * that {@linkplain #socketTakes takes the part}, a spare to fit, and room on the frame.
+     * that {@linkplain #socketTakes takes the part}, and a spare to fit.
      * The drag lights the socket green or red by this, so a refusal shows before the part is
      * let go.
      */
     public boolean canDropOnSocket(BoatDoll.Kind kind, String itemId, String key) {
-        if (!socketTakes(kind, itemId, key)) return false;
-        CampaignBoat boat = selectedBoat();
-        int before = BoatFrame.weight(boat);
-        if (kind == BoatDoll.Kind.HARDPOINT) {
-            int hardpoint = BoatDoll.hardpointOf(key);
-            BoatGun gun = BoatGun.findById(itemId);
-            return deck.spares(itemId) > 0 && BoatFrame.admits(boat, before,
-                    BoatFrame.weightWithGun(boat, hardpoint, BoatDoll.positionOf(key), gun));
-        }
-        BoatFitting fitting = BoatFitting.findById(itemId);
-        return deck.spares(itemId) > 0 && BoatFrame.admits(boat, before, BoatFrame.weightWith(boat, fitting));
+        return socketTakes(kind, itemId, key) && deck.spares(itemId) > 0;
     }
 
     /** Whether a stores card can be picked up: a spare is in stores. A card with none only offers BUY. */
@@ -716,8 +705,6 @@ public final class BoatDeckViewModel {
         int seats = cabin > 0 ? cabin : pattern.capacity;
         int maxSeats = pattern.capacity;
         for (BoatFitting part : BoatFitting.catalog(BoatFittingSlot.CABIN)) maxSeats = Math.max(maxSeats, part.seats());
-        int weight = BoatFrame.weight(boat);
-        int rating = BoatFrame.rating(pattern);
         // A damaged hull reads as a deficit under her pattern's own figure; plating is armour over it,
         // read against the pattern's stock skin, so a refit is gain past it and a bare hull a deficit.
         float armorCeiling = pattern.armor() * bestFactor(pattern, BoatFittingSlot.PLATING, BoatFitting::armorFactor);
@@ -739,10 +726,7 @@ public final class BoatDeckViewModel {
                                         LiftReadout.ratingName(fitted.liftRating())),
                                 seats, maxSeats)
                         : FittingMeter.of("boat-meter:seats", Strings.get("openingBoatDeckSeats"),
-                                Strings.format("openingBoatDeckSeats2", seats), seats, maxSeats),
-                FittingMeter.of("boat-meter:frame", Strings.get("boatDeckFrame"),
-                        Strings.format("boatDeckFrameValue", weight, rating), weight, rating,
-                        weight, weight, FittingMeter.FLUX_TONE));
+                                Strings.format("openingBoatDeckSeats2", seats), seats, maxSeats));
     }
 
     /**
@@ -837,9 +821,7 @@ public final class BoatDeckViewModel {
         boolean affordable = build && !locked && resources.canBuy(bill);
         String classes = "catalog-row" + (held ? " selected" : "") + (build ? " requires-fabrication" : "");
         int[] footprint = BoatHardware.footprint(kind, itemId);
-        int weight = partWeight(kind, itemId, free);
-        String detail = Strings.format("boatDeckGrid", footprint[0], footprint[1])
-                + (weight > 0 ? "  ·  " + Strings.format("boatDeckWeight", weight) : "");
+        String detail = Strings.format("boatDeckGrid", footprint[0], footprint[1]);
         // A spare in stores can be broken down while the machine shop runs; its refund takes
         // the strip a price would, in green.
         FabricationCost back = !free && spares > 0 ? workshop.recycleQuote(itemId) : null;
@@ -946,11 +928,6 @@ public final class BoatDeckViewModel {
             rows.add(readiness("whole", "good", Strings.get("boatReadinessWhole"),
                     Strings.get("boatReadinessWholeDetail"), null));
         }
-        rows.add(readiness("frame", "muted",
-                Strings.get("boatDeckFrame") + "  " + Strings.format("boatDeckFrameValue", BoatFrame.weight(boat),
-                        BoatFrame.rating(pattern)),
-                Strings.format("boatReadinessFrameDetail",
-                        Math.max(0, BoatFrame.rating(pattern) - BoatFrame.weight(boat))), null));
         return List.copyOf(rows);
     }
 
@@ -977,17 +954,6 @@ public final class BoatDeckViewModel {
         if (liftable(pattern)) kinds.add(BoatDoll.Kind.LIFT);
         kinds.add(BoatDoll.Kind.EMITTER);
         return kinds;
-    }
-
-    /** What a stores part weighs on this boat: nothing for a free yard part. */
-    private static int partWeight(BoatDoll.Kind kind, String itemId, boolean free) {
-        if (free) return 0;
-        if (kind == BoatDoll.Kind.HARDPOINT) {
-            BoatGun gun = BoatGun.findById(itemId);
-            return gun == null ? 0 : gun.weight();
-        }
-        BoatFitting fitting = BoatFitting.findById(itemId);
-        return fitting == null ? 0 : fitting.weight();
     }
 
     /** The part a filter pill draws: what the yard puts in that kind of socket. */
@@ -1148,8 +1114,6 @@ public final class BoatDeckViewModel {
             case FITTED -> Strings.format("boatDeckGunFitted", gun.displayName(), hardpointLabel(hardpoint), boat.displayName());
             case ALREADY_FITTED -> Strings.format("openingBoatDeckIsAlreadyFittedTo", gun.displayName(), boat.displayName());
             case NO_SPARE -> Strings.format("boatDeckNoSpare", gun.displayName());
-            case OVER_FRAME -> Strings.format("boatDeckOverFrame", gun.displayName(),
-                    BoatFrame.weightWithGun(boat, hardpoint, position, gun), BoatFrame.rating(boat.pattern()));
             case INCOMPATIBLE_FITTING -> Strings.get("boatDeckHardpointHermes");
             default -> Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged");
         });
@@ -1252,8 +1216,6 @@ public final class BoatDeckViewModel {
             case FITTED -> Strings.format("openingBoatDeckFittedToOutOfFleetStores", fitting.displayName(), boat.displayName());
             case ALREADY_FITTED -> Strings.format("openingBoatDeckIsAlreadyFittedTo", fitting.displayName(), boat.displayName());
             case NO_SPARE -> Strings.format("boatDeckNoSpare", fitting.displayName());
-            case OVER_FRAME -> Strings.format("boatDeckOverFrame", fitting.displayName(),
-                    BoatFrame.weightWith(boat, fitting), BoatFrame.rating(boat.pattern()));
             case INCOMPATIBLE_FITTING -> Strings.get("openingBoatDeckTheHermesHasNoUpgradePathReplace");
             default -> Strings.get("openingBoatDeckRefitBlockedNothingAboardWasChanged");
         });

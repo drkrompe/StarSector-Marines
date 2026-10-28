@@ -194,6 +194,14 @@ public final class FittedBoat implements Airframe, AirHandling {
      */
     public String boatId() { return boatId; }
 
+    /**
+     * The same hull and fit flying as a craft nobody owns: another craft standing in for this boat
+     * must not be nameable as her, or her loss would settle once for each of them.
+     */
+    public FittedBoat anonymous() {
+        return new FittedBoat(pattern, fit, null, guns, pods);
+    }
+
     @Override public String spritePath()  { return pattern.spritePath(); }
     @Override public String renderHullId() { return pattern.renderHullId(); }
     @Override public AirOrdnance ordnance() { return pattern.ordnance(); }

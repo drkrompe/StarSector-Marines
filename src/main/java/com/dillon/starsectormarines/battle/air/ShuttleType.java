@@ -191,6 +191,14 @@ public enum ShuttleType implements AirHandling, Airframe {
     }
 
     /**
+     * Whether this hull flies the nimble profile an Aeroshuttle does (Aeroshuttle, Kite, Hermes),
+     * so it can make a paired Conquest descent in the Aeroshuttle's place.
+     */
+    public boolean nimbleClass() {
+        return handling == Profiles.NIMBLE;
+    }
+
+    /**
      * Whether this is a bus-class hull — a heavy freighter or dedicated
      * transport with a hold a lift cradle can be built into.
      */

@@ -17,10 +17,6 @@ import java.util.List;
  * A boat left without a required part cannot fly until one is fitted
  * ({@link CampaignBoat#missingParts}).
  *
- * <p>A fit is weighed against the boat's frame ({@link BoatFrame}): one that
- * would take her over the rating is refused, unless it leaves her no heavier
- * than she is.
- *
  * <p><b>A failed commit changes nothing.</b> Every check runs before anything
  * moves, and a build pays its whole price before the spare is stowed, so a
  * refusal or a short purse leaves the boat, the stores and the purse exactly as
@@ -164,9 +160,6 @@ public final class BoatWorkshop {
         BoatFitting outgoing = boat.fittingIn(fitting.slot());
         if (outgoing != null && fitting.id().equals(outgoing.id())) return new Result(Status.ALREADY_FITTED, boat);
         if (!fitting.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
-        if (!BoatFrame.admits(boat, BoatFrame.weight(boat), BoatFrame.weightWith(boat, fitting))) {
-            return new Result(Status.OVER_FRAME, boat);
-        }
         if (!deck.take(fitting.id())) return new Result(Status.NO_SPARE, boat);
         boat.install(fitting);
         if (outgoing != null) deck.stow(outgoing.id());
@@ -210,9 +203,6 @@ public final class BoatWorkshop {
         if (BoatHardpoint.occupant(before, position) == gun) return new Result(Status.ALREADY_FITTED, boat);
         if (!gun.supports(boat.pattern())) return new Result(Status.INCOMPATIBLE_FITTING, boat);
         BoatGun[] after = BoatHardpoint.placed(before, position, gun);
-        if (!BoatFrame.admits(boat, BoatFrame.weight(boat), BoatFrame.weightWithGuns(boat, hardpoint, after))) {
-            return new Result(Status.OVER_FRAME, boat);
-        }
         if (!deck.take(gun.id())) return new Result(Status.NO_SPARE, boat);
         boat.installGuns(hardpoint, after);
         for (BoatGun off : BoatHardpoint.displaced(before, after)) deck.stow(off.id());
@@ -271,11 +261,6 @@ public final class BoatWorkshop {
         BoatGun[] target = from == to ? source : boat.gunsAt(to);
         if (BoatHardpoint.occupant(target, toPosition) == gun) return new Result(Status.ALREADY_FITTED, boat);
         BoatGun[] landed = BoatHardpoint.placed(target, toPosition, gun);
-        int before = BoatFrame.weight(boat);
-        // The source loses the gun and the target takes it: both changes at once.
-        int after = from == to ? BoatFrame.weightWithGuns(boat, to, landed)
-                : BoatFrame.weightWithGuns(boat, from, source) + BoatFrame.weightWithGuns(boat, to, landed) - before;
-        if (!BoatFrame.admits(boat, before, after)) return new Result(Status.OVER_FRAME, boat);
         if (from != to) boat.installGuns(from, source);
         boat.installGuns(to, landed);
         for (BoatGun off : BoatHardpoint.displaced(target, landed)) deck.stow(off.id());
@@ -345,7 +330,6 @@ public final class BoatWorkshop {
         UNKNOWN_FITTING,
         UNKNOWN_HARDPOINT,
         INCOMPATIBLE_FITTING,
-        OVER_FRAME,
         ALREADY_FITTED,
         CANNOT_AFFORD,
         /** Buying needs the fleet docked at a civilized market, and it is not. */
