@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.BrokenSupplyRouteProgress;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.campaign.SilentColonyMissionKey;
+import com.dillon.starsectormarines.campaign.WellhollowBloomProgress;
 import com.dillon.starsectormarines.ops.mission.story.VeteransJobStory;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,6 +37,8 @@ class StorySceneTest {
             case SALVAGE_RIGHTS -> "basin_salvage_v1_1";
             case COLD_START -> "basin_cold_start_v1_2";
             case WORKING_PASSAGE -> "basin_working_passage_v1_3";
+            case WELLHOLLOW_BREACH, WELLHOLLOW_LINE, WELLHOLLOW_ROAD, WELLHOLLOW_BURN, WELLHOLLOW_FRONT ->
+                    new WellhollowBloomProgress().missionId(scenario.wellhollow(), false);
         };
         MissionSource source = switch (scenario) {
             case MILITIA_RELIEF, DEPOT_CLEARANCE, CREW_RECOVERY, ROUTE_SECURITY -> MissionSource.RECURRING;

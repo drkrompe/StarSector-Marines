@@ -617,7 +617,7 @@ public final class MissionLaunch {
             }
             var debugScenario = DebugMissionCatalog.scenario(m);
             boolean authoredDebugLift = debugScenario != null && !debugScenario.opening()
-                    && debugScenario.corvus() == null && !debugScenario.ravBloom() && debugScenario != DebugMissionCatalog.Scenario.SILENT_COLONY
+                    && debugScenario.corvus() == null && !debugScenario.ravBloom() && debugScenario.wellhollow() == null && debugScenario != DebugMissionCatalog.Scenario.SILENT_COLONY
                     && debugScenario != DebugMissionCatalog.Scenario.VETERANS_JOB;
             if (authoredDebugLift && !sim.companyStartsOnGround()) deployment.applyToAuthoredPlayerLift(sim);
             BattleLaunchOverlay launch = BattleLaunchOverlay.capture(
