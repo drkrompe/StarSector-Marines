@@ -54,6 +54,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPayload;
 import com.dillon.starsectormarines.battle.evacuation.ColonyBreachObjectives;
+import com.dillon.starsectormarines.battle.evacuation.PickupCordonWorks;
 import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationPlacement;
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
 import com.dillon.starsectormarines.battle.evacuation.ColonyEruptionPlan;
@@ -3088,6 +3089,8 @@ public final class BattleSetup {
             installRescuePickup(sim, payload.placement,
                     sim.getCivilianEvacuationTracker().expectedCount(), battleSeed,
                     risk, scale.width, scale.height);
+            // On the colony the pickup's allied line fights from works thrown up round it.
+            if (colony && PickupCordonWorks.enabled()) sim.fortifyRescuePickup(payload.placement, battleSeed);
             SwarmDefenseRoster swarm = stressTest
                     ? SwarmDefenseRoster.install(
                             sim, payload.placement, swarmCount, battleSeed)

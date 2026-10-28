@@ -392,6 +392,23 @@ the line under strength and a fresh mech when the mech falls, for as long as
 any of the cohort is still out, so the cordon does not fall. The company's job
 is to get the survivors to it.
 
+On the colony the cordon fights from **works** thrown up round the pickup
+(`PickupCordonWorks`; owner, 2026-10-28: "trenches and sandbag / doodad walls
+with space for the players forces to come through"). They stand on an octagon
+round the lift, just outside its protected square: a trench sixteen out, a
+sandbag parapet on its lip facing out, a cell of open ground, and a wall of
+hedgehogs with crate stacks and scrap piles nineteen out, closed to movement,
+open to sight and laid as barricade, so the swarm tears it down where the way
+round is long. Two **gates**, five cells wide through every ring, are cut where
+the cohort's walk from the shelter and the company's way in from its nearest
+pad cross the works: the company, its mechs and its vehicles come in by them
+with the survivors. Nothing is set down on a pad, a door, a building or a prop
+already there. Each militia team still lands at its formation point and is
+then ordered into the stretch of trench nearest it, which it mans as a
+garrison mans a run; the mech keeps its patrol inside.
+`-Dbattle.colonyBreach.cordonWorks=false` is the control: the line holds the
+open ground round its posts.
+
 **Redoubt.** A place the cohort is holed up in. The **main redoubt** is the
 shelter, with the largest share of the cohort and the sealed, hidden shelter
 guard; it is redoubt 1. On the colony map the shelter stands inside the

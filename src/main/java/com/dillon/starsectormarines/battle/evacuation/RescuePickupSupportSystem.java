@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.MechSupportPayload;
+import com.dillon.starsectormarines.battle.command.AssignmentKind;
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.setup.InfantryLoadoutRolls;
@@ -24,6 +26,10 @@ import java.util.Random;
  * player never commands them, never counts them as the company and never
  * boards or lands through their shuttles. The cordon replenishes from its own
  * pool, never the company's, for as long as any of the cohort is still out.
+ *
+ * <p>Where the pickup is fortified ({@link PickupCordonWorks}), each team the
+ * shuttles set down at a post is then ordered into the stretch of trench
+ * nearest that post, and mans it as a garrison mans a run.
  */
 public final class RescuePickupSupportSystem {
 
@@ -45,6 +51,8 @@ public final class RescuePickupSupportSystem {
     private float exitX;
     private float exitY;
     private int[] formationCells;
+    /** Each formation point's trench post ({x, y} pairs, -1 where none), or null on an unfortified pickup. */
+    private int[] trenchPosts;
     private MechVariant pickupMechVariant;
     private Random loadoutRng;
     private RiskLevel risk;
@@ -91,6 +99,37 @@ public final class RescuePickupSupportSystem {
                 mechAccumulator + elapsed);
         reinforceMilitia(sim);
         reinforceMech(sim);
+        manTrench(sim);
+    }
+
+    /**
+     * Gives the line the cordon's trench: each formation point's post, the trench
+     * cell {@link PickupCordonWorks} chose for it. Set once, after {@link #configure}.
+     */
+    public void fortify(int[] posts) {
+        if (configured && posts != null && posts.length == formationCells.length) trenchPosts = posts.clone();
+    }
+
+    /**
+     * Orders every team still on its born escort of a post into that post's
+     * stretch of trench: the run under it, near the post. A team whose post has
+     * no trench keeps the open ground round it.
+     */
+    private void manTrench(BattleSimulation sim) {
+        if (trenchPosts == null) return;
+        for (Squad squad : sim.getSquads()) {
+            if (!squad.rescuePickupGuard || squad.rescuePickupMech || squad.aliveMembers <= 0) continue;
+            ObjectiveAssignment assignment = squad.assignmentForExecution();
+            if (assignment == null || assignment.kind() != AssignmentKind.ESCORT) continue;
+            int point = formationPointOf(assignment.targetCellX(), assignment.targetCellY());
+            if (point < 0 || trenchPosts[point * 2] < 0) continue;
+            int x = trenchPosts[point * 2], y = trenchPosts[point * 2 + 1];
+            int run = sim.fightingPositions().runIdAt(x, y);
+            sim.assignSquadCommand(run >= 0
+                            ? ObjectiveAssignment.defendRun(squad.id, x, y, PickupCordonWorks.POST_RADIUS, run)
+                            : ObjectiveAssignment.defendArea(squad.id, x, y, PickupCordonWorks.POST_RADIUS),
+                    CommandAuthority.PAYLOAD, "rescue-pickup-support", "man the cordon trench");
+        }
     }
 
     private void reinforceMilitia(BattleSimulation sim) {
@@ -243,10 +282,13 @@ public final class RescuePickupSupportSystem {
                 assignment.targetCellY());
     }
 
+    /** The formation point a cell is: the point itself, or the trench post its team mans. */
     private int formationPointOf(int x, int y) {
         for (int point = 0; point < TARGET_GUARD_SQUADS; point++) {
             if (formationCells[point * 2] == x
                     && formationCells[point * 2 + 1] == y) return point;
+            if (trenchPosts != null && trenchPosts[point * 2] == x
+                    && trenchPosts[point * 2 + 1] == y) return point;
         }
         return -1;
     }

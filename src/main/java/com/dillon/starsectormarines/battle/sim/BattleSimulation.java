@@ -295,6 +295,7 @@ import com.dillon.starsectormarines.battle.evacuation.CivilianEvacuationSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmReinforcementSystem;
 import com.dillon.starsectormarines.battle.evacuation.SwarmPressureSnapshot;
 import com.dillon.starsectormarines.battle.evacuation.RescuePickupSupportSystem;
+import com.dillon.starsectormarines.battle.evacuation.PickupCordonWorks;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftAttempt;
 import com.dillon.starsectormarines.battle.evacuation.LastLiftSequence;
 import com.dillon.starsectormarines.battle.creep.BoreCreep;
@@ -2244,6 +2245,15 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
     public boolean isRescuePickupSupportConfigured() {
         return rescuePickupSupport.isConfigured();
+    }
+    /**
+     * Throws the evac cordon's works up round the configured pickup and puts its
+     * line in the trench ({@code colony-breach-nouns.md}, Evac cordon). Setup only.
+     */
+    public void fortifyRescuePickup(CivilianEvacuationPlacement placement, long seed) {
+        if (simTickIndex != 0 || !rescuePickupSupport.isConfigured())
+            throw new IllegalStateException("Fortify the rescue pickup at setup, once its support is configured");
+        rescuePickupSupport.fortify(PickupCordonWorks.raise(this, placement, seed));
     }
     public int liveRescuePickupGuards() {
         return rescuePickupSupport.liveGuardCount(this);
