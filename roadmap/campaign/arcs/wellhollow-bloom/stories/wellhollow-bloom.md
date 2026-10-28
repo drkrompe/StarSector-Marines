@@ -1,4 +1,4 @@
-# The Wellhollow Bloom: remaining work
+# The Khettara Bloom: remaining work
 
 Status: IN PROGRESS
 

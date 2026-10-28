@@ -4,7 +4,7 @@ Status: ACTIVE — campaign route and planning index; individual arcs retain the
 
 Written: 2026-10-13
 
-Updated: 2026-10-27 — The Wellhollow Bloom: the authored Rav Bloom arc on Asharu, alongside the Corvus Account; 2026-10-13 — Agreus now offers both recovered-suit rewards through its first three chapters.
+Updated: 2026-10-27 — The Khettara Bloom: the authored Rav Bloom arc on Asharu, alongside the Corvus Account; 2026-10-13 — Agreus now offers both recovered-suit rewards through its first three chapters.
 
 ## The company's journey
 
@@ -26,7 +26,7 @@ Company preparation / Castle's first lessons
   -> The Corvus Account — Asharu -> Warion -> Garnir
   -> A Working Ship — Asharu, Corvus
        Salvage Rights -> Cold Start -> Working Passage -> Morrow joins fleet
-  -> (alongside Agreus) The Wellhollow Bloom — Asharu, end-of-alpha challenge, replayable
+  -> (alongside Agreus) The Khettara Bloom — Asharu, end-of-alpha challenge, replayable
        Colony Breach -> Cordon Line -> Cordon Road -> The Burn -> Broad Front
   -> A Small War — Agreus, Arcadia
        Water Under Seal -> Limited Warrant -> The Yard's Owners -> two planned chapters

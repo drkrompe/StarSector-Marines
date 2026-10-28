@@ -145,7 +145,7 @@ and its `stories.md`. On the campaign layer the Rav Bloom now raises every
 rescue: outbreaks wake over hidden reservoirs, go dark and spread when ignored,
 and end when the mother bore falls (`colony-breach-nouns.md`, Campaign: blooms;
 `gradlew.bat bloomEvidence`). Every Rav mission but Cordon Line is also a replayable story:
-The Wellhollow Bloom on Asharu unlocks Colony Breach, Cordon Road, The Burn
+The Khettara Bloom on Asharu unlocks Colony Breach, Cordon Road, The Burn
 and Broad Front in order after A Working Ship, as the alpha's
 end-game challenge (`wellhollow-bloom-arc.md`); its live acceptance remains. Silent Colony now divides its Marine expedition into
 stable archive and survivor branches through the same frozen command envelope.

@@ -1,4 +1,4 @@
-# The Wellhollow Bloom
+# The Khettara Bloom
 
 Status: ACTIVE — authored Rav Bloom arc on Asharu, the alpha campaign's end-game challenge; all four chapters are offered in a launched campaign; live acceptance remains.
 
@@ -20,17 +20,24 @@ its boundary with the generic per-world arc. Voice follows
 ## Premise, place and cast
 
 Asharu is dust roads, salvage claims and sand farms. Its one green country is
-**the Wellhollow**: a sunk basin over an old aquifer, wooded and irrigated on
+**the Khettara**: a sunk basin over an old aquifer, wooded and irrigated on
 the floor with the desert rim round it (`Basin.ravBloom`, the hybrid basin
 every Rav map on an ARID world already carries). The aquifer is an old
 seeding site, and this season it turned. "There's been a bloom on Asharu."
+
+Place names take after Morocco so the world reads less invented (owner,
+2026-10-28): the basin is named for the khettara, the hand-dug tunnels that
+lead an aquifer out to the fields; chapter 1's farm town is **Tazrout**
+(Tamazight "rock"); chapter 2's pumping town is **Ain Tafrant** (*ain*,
+spring). Names drop accents for the game's fonts. The arc was first called the
+Wellhollow, and its slugs, string keys, classes and save ids keep that name.
 
 The bloom comes up all over the planet at once, and the work is the planetary
 government's (owner, 2026-10-28). The **Free Asharian Assembly** is Asharu's
 government, recognised by the Hegemony as the system's vassal state. Its
 **Asharu Planetary Defense Force (APDF)** is spread across the planet holding
 the capitals and critical infrastructure, and in the funded, strategic places
-it is winning handily. The Wellhollow is not one of them: it is a regional
+it is winning handily. The Khettara is not one of them: it is a regional
 backwater, the equivalent of the far end of a small nation, and the arc's
 response is played down to that scale. The APDF's resources are redeployed
 across the surface; the district gets what is left, its **reservists** (a
@@ -40,10 +47,10 @@ jobs follow the district's response:
 
 1. **Caught off guard.** The district's one battalion holds what it can (the
    water works, the port) and hires muscle for the population centres it
-   cannot reach: the Wellhollow colony.
+   cannot reach: the Khettara colony.
 2. **Organising.** A defended line across the rim roads, with the farms walked
    out behind it, but people still beyond the wire, and the regulars pulled
-   north for Regional Command's offensive. The company is hired for Low Sump.
+   north for Regional Command's offensive. The company is hired for Ain Tafrant.
 3. **and 4. Taking it back.** **Regional Command** (the APDF's regional
    headquarters, planning offensives in many other places) sends the district
    batteries, more battalions and then its columns: a real force, never the
@@ -51,7 +58,7 @@ jobs follow the district's response:
    the push on the channel root and then the heart.
 
 - **Colonel Bradley Orens** (renamed from Hollis Maro, owner, 2026-10-28), the
-  APDF's field commander for the Wellhollow district: a stressed planetary
+  APDF's field commander for the Khettara district: a stressed planetary
   field commander organising a frantic defence, not a civilian drafted in. His
   command is a patchwork, as allied commands were: one regular battalion, the
   basin towns' reservists under their own officers, and hired merc outfits
@@ -70,7 +77,7 @@ Hegemony's recognised vassal government (owner), and neither it nor the APDF is
 a game faction.
 
 No line names the maker or says the weapon is gone (`swarm-lore-guide.md`, the
-open maker rule). The arc ends with the Wellhollow's heart down and the
+open maker rule). The arc ends with the Khettara's heart down and the
 reservoir resting.
 
 ## Chapters, in order
@@ -80,10 +87,10 @@ ARID pool maps (`story-map-pools.md`). Winning a chapter unlocks the next.
 
 | # | Chapter | Mission | Story beat | Fee |
 | --- | --- | --- | --- | --- |
-| 1 | **The Wellhollow** | Colony Breach | The colony on the basin floor erupts. Lift the people out; put the deep hole down if you can. It is not enough: the bloom is in the aquifer. | 20,000 |
-| 2 | **Low Sump** | Cordon Road | The district's redoubts across the rim roads let the floor's farms walk out, but the line went round the pumping town at the basin's low end. Keep the gap open while the convoys go in and bring its people out. | 28,000 |
+| 1 | **The Khettara** | Colony Breach | The colony on the basin floor erupts. Lift the people out; put the deep hole down if you can. It is not enough: the bloom is in the aquifer. | 20,000 |
+| 2 | **Ain Tafrant** | Cordon Road | The district's redoubts across the rim roads let the floor's farms walk out, but the line went round the pumping town at the basin's low end. Keep the gap open while the convoys go in and bring its people out. | 28,000 |
 | 3 | **The Channel Root** | The Burn | The bloom has followed the irrigation channels east and seeded a second root. Regional Command sends the district batteries and battalions, and the company, attached to the district brigade, burns in behind the barrage and collapses it. | 32,000 |
-| 4 | **The Heart of the Wellhollow** | Broad Front | With the channel root down and the line held, the columns Regional Command sends go in together on the mother heart. Collapsing it ends the bloom; the reservoir rests. | 40,000 |
+| 4 | **The Heart of the Khettara** | Broad Front | With the channel root down and the line held, the columns Regional Command sends go in together on the mother heart. Collapsing it ends the bloom; the reservoir rests. | 40,000 |
 
 The order runs from the company hired alone to Regional Command's columns beside it, as
 `bloom-mission-arc.md` (*The arc in one paragraph*) orders its movements: a
@@ -136,7 +143,7 @@ laws).
   Orens and Castle (`MissionDialogue` turns, strings under
   `wellhollow*` in `strings.json`); a retry and a replay each get one line.
 - **The board.** Orens's offer rows carry the chapter name, its place in
-  the arc ("Wellhollow 2 of 4") and the arc status (chapters won).
+  the arc ("Khettara 2 of 4") and the arc status (chapters won).
 - **The debrief.** The results screen's story message closes each chapter
   with Orens's line on what changed (a chapter won) or what still stands
   (a loss).
@@ -146,7 +153,7 @@ laws).
   arc's places (`StoryScene`): the colony floor for chapter 1, the rim cordon
   for chapter 2, the burning heart for chapters 3 and 4
   (`art-source/story-scenes/wellhollow-*`, Codex ImageGen); the rim banner
-  now serves Low Sump alone.
+  now serves Ain Tafrant alone.
   `createSnapshots -Psnapshot=wellhollow-art` shows them on Orens's board
   and the results screen. Briefing narration does not exist yet.
 
@@ -155,10 +162,10 @@ laws).
 The generic arc (`bloom-mission-arc.md`, *Tie to the campaign*) runs on any
 world `RavBloomSystem` blooms: three beats, the campaign picking each variant
 from the last beat's outcome, campaign events under the one-open-event gate.
-The Wellhollow Bloom is the authored instance its *sector threat* section
+The Khettara Bloom is the authored instance its *sector threat* section
 foresaw, built differently on purpose:
 
-| | Generic arc | The Wellhollow Bloom |
+| | Generic arc | The Khettara Bloom |
 | --- | --- | --- |
 | Trigger | Any bloom the system wakes | Fixed: Asharu, after A Working Ship |
 | Beats | Three; one variant each, chosen by outcome | Four chapters: the Road, then both heart forms, in fixed order |
@@ -168,7 +175,7 @@ foresaw, built differently on purpose:
 | Replay | None: a beat happens once per bloom | Every unlocked chapter replays |
 | Outcome feed | Ledger facts carried beat to beat | Victory only unlocks; no carried facts yet |
 
-The Wellhollow is not a `RavBloomSystem` bloom: Asharu carries no *Rav Bloom*
+The Khettara is not a `RavBloomSystem` bloom: Asharu carries no *Rav Bloom*
 market condition and the system may still wake a bloom there by its own rules.
 The launch code the arc adds (a story mission building the Cordon and heart
 fixtures on a world's palette) is what the generic arc's factories will reuse.
@@ -179,8 +186,8 @@ Sent to the Rav Bloom coordinator for the picks page; the arc is built on the
 recommended option of each.
 
 1. **The middle beat.** Decided (owner, 2026-10-28): Cordon Line is cut
-   from this release and Low Sump carries the cordon. A save that had won
-   Hold the Rim counts it as Low Sump won.
+   from this release and Ain Tafrant carries the cordon. A save that had won
+   Hold the Rim counts it as Ain Tafrant won.
 2. **Replay pay.** Recommended: half the chapter fee. Alternatives: the full
    fee; a flat repeatable rate.
 3. **When the arc opens.** Decided (owner, 2026-10-27): after A Working Ship,

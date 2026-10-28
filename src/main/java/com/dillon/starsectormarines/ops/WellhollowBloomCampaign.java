@@ -29,8 +29,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Campaign boundary for *The Wellhollow Bloom*, the authored Rav Bloom arc on Asharu
- * ({@code wellhollow-bloom-arc.md}). Colonel Bradley Orens, the Asharu Planetary Defense Force's field commander for the Wellhollow district, offers on his board the current chapter and a replay of
+ * Campaign boundary for *The Khettara Bloom*, the authored Rav Bloom arc on Asharu
+ * ({@code wellhollow-bloom-arc.md}). Colonel Bradley Orens, the Asharu Planetary Defense Force's field commander for the Khettara district, offers on his board the current chapter and a replay of
  * every chapter won. Projection never starts an attempt; launch begins one and only its own receipt
  * settles it. Independent of {@code RavBloomSystem}: no bloom, no campaign event, no clock.
  */
@@ -154,7 +154,7 @@ public final class WellhollowBloomCampaign {
             case BROAD_FRONT -> BloomHeartSetup.storyMap(HeartCountry.Form.BROAD_FRONT, heartDensity());
         };
     }
-    /** Low Sump is a town; the rest is open basin country. */
+    /** Ain Tafrant is a town; the rest is open basin country. */
     private static CordonPlan.Density density(Chapter chapter) {
         return chapter == Chapter.CORDON_ROAD ? CordonPlan.Density.TOWN : CordonPlan.Density.RURAL;
     }
@@ -175,7 +175,7 @@ public final class WellhollowBloomCampaign {
         var p = current();
         if (!isBattle(m) || p == null || !p.matches(m.id) || m.payout != WellhollowBloomProgress.fee(m.id)
                 || !m.targetPlanetName.equals(site() == null ? null : site().getName()))
-            throw new IllegalStateException("This Wellhollow contract is no longer current.");
+            throw new IllegalStateException("This Khettara contract is no longer current.");
         return p;
     }
     /** Asharu as the Rav maps read it: a desert world, the basin carried by each map's own setup. */
@@ -212,7 +212,7 @@ public final class WellhollowBloomCampaign {
     }
     static void begin(Mission m) {
         var p = requireCurrent(m);
-        if (!p.begin(m.id)) throw new IllegalStateException("This Wellhollow contract has already launched.");
+        if (!p.begin(m.id)) throw new IllegalStateException("This Khettara contract has already launched.");
         CampaignStateScript.getInstance().state().wellhollowBloom = p;
     }
     static void abandon(Mission m) {

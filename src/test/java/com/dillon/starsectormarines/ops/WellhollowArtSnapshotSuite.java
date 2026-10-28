@@ -18,10 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** The Wellhollow Bloom's Orens portrait and location art on Colonel Orens's board and the results screen, at 1920x1080. */
+/** The Khettara Bloom's Orens portrait and location art on Colonel Orens's board and the results screen, at 1920x1080. */
 public final class WellhollowArtSnapshotSuite implements SnapshotSuite {
     public String id() { return "wellhollow-art"; }
-    public String label() { return "The Wellhollow Bloom: Warden portrait and location art"; }
+    public String label() { return "The Khettara Bloom: Orens portrait and location art"; }
 
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         TileRegistryTestInstaller.install(context.projectRoot());
