@@ -30,7 +30,7 @@ import java.util.List;
 
 /**
  * Campaign boundary for *The Wellhollow Bloom*, the authored Rav Bloom arc on Asharu
- * ({@code wellhollow-bloom-arc.md}). Hollis Maro, the Asharu Defence Force's district coordinator, offers on his board the current chapter and a replay of
+ * ({@code wellhollow-bloom-arc.md}). Colonel Hollis Maro, the Asharu Defence Force's field commander for the Wellhollow district, offers on his board the current chapter and a replay of
  * every chapter won. Projection never starts an attempt; launch begins one and only its own receipt
  * settles it. Independent of {@code RavBloomSystem}: no bloom, no campaign event, no clock.
  */
