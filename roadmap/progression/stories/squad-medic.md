@@ -8,7 +8,7 @@ starting points, not settled balance.
 Written: 2026-10-14
 Updated: 2026-10-23 — keep-moving shipped as the only movement mode (switch and planted path deleted); supplies and cooldown replaced by an energy pool with a start gate; open question 2 closed.
 Updated: 2026-10-27 — the suits' field-aid kits now make their wearers squad medics on the same pool (owner); see Kit medics.
-Updated: 2026-10-28 — a squad with a kit anywhere in it relies on its kit medics and Field Medicine promotes no one; the complement is gone (owner).
+Updated: 2026-10-28 — a squad with a kit anywhere in it relies on its kit medics and Field Medicine promotes no one; the complement is gone (owner). The nearest free medic takes each patient (owner).
 Updated: 2026-10-27 — a medic may treat themselves (owner); the squad card marks kit-wearing medics; open question 4 closed.
 
 Read `progression-nouns.md` (officer career, legibility law),
@@ -175,6 +175,13 @@ are gone.
   and is not passed on.
 - **Two medics never set out for the same patient**: a squadmate another medic
   is approaching or treating is passed over for the next worst hurt.
+- **The nearest free medic takes the patient** (owner, 2026-10-28). A medic
+  passes over a squadmate when another medic, free to set out for them now (idle,
+  not waiting to retry, pool not empty, not under heavy fire, the squadmate
+  qualifying for that medic and clearing its start gate), is nearer; equal
+  distances fall to seat order. Seat order alone no longer decides who crosses
+  the squad. It does not cap how many medics are away at once: each hurt
+  squadmate still draws one medic.
 - The kit's catalog entry declares `resource: "energy"` and nothing else of its
   own; the retired per-dressing keys are refused by name.
 
