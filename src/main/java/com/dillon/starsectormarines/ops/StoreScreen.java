@@ -5,7 +5,10 @@ import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.CampaignFabricationResources;
 import com.dillon.starsectormarines.marine.EquipmentStore;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
+import com.dillon.starsectormarines.marine.StoreSlot;
+import com.dillon.starsectormarines.ops.battleview.StoreBrickCanvas;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
+import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiViewport;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupInstance;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
@@ -141,6 +144,27 @@ public final class StoreScreen implements Screen {
         return market == null ? "" : market.getName();
     }
 
+    /**
+     * Gives each shelf row and slot row its brick symbol. Rows are keyed and come and go as the
+     * category changes, so this runs after every reconciliation; a row keeps its picture. Shared
+     * with the evidence suite, which draws the page the same way.
+     */
+    static void bindSymbols(UiDocument target, MarkupInstance instance, StoreViewModel model) {
+        for (StoreViewModel.OfferRow row : model.rows().get()) {
+            bindSymbol(target, instance, row.symbolId(), row.symbol());
+        }
+        for (StoreViewModel.CategoryRow row : model.categoryRows().get()) {
+            bindSymbol(target, instance, row.symbolId(), row.symbol());
+        }
+    }
+
+    private static void bindSymbol(UiDocument target, MarkupInstance instance, String id, StoreSlot slot) {
+        StoreBrickCanvas symbol = StoreBrickCanvas.of(slot);
+        if (symbol == null) return;
+        UiElement canvas = instance.requireElement(id);
+        if (target.canvases().producerOf(canvas) == null) target.canvases().set(canvas, symbol);
+    }
+
     private void close() {
         if (dismissDialog != null) dismissDialog.run();
     }
@@ -148,6 +172,7 @@ public final class StoreScreen implements Screen {
     @Override
     public void advance(float dt) {
         if (markupInstance != null) markupInstance.flush();
+        if (markupInstance != null && document != null) bindSymbols(document, markupInstance, viewModel);
         if (context != null) {
             MarineOpsPageNav.refresh(markupInstance, MarineOpsPageNav.Page.STORE, context::roomAboard,
                     CompanyNotices.current());

@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.StoreSlot;
+import com.dillon.starsectormarines.ops.battleview.StoreBrickCanvas;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
 import com.dillon.starsectormarines.ui.retained.reactive.MutableSignal;
@@ -201,12 +202,12 @@ final class StoreViewModel {
         boolean isSection = classes.endsWith("section");
         String icon = "graphics/ui/store/" + (isSection ? "section-" : "slot-")
                 + section.name().toLowerCase(Locale.ROOT) + ".svg";
-        boolean loadout = hasBrick(slot);
-        if (loadout) icon = brickIcon(slot);
+        boolean brick = StoreBrickCanvas.has(slot);
         return new CategoryRow(id, classes + (key.equals(current) ? " selected" : "")
                 + (count == 0 ? " empty" : ""), Strings.format("storeCategoryCountFmt", label, count),
-                icon, isSection ? "store-cat-icon" : loadout ? "store-cat-symbol" : "store-cat-tick", "store-cat-strip sec-" + section.name(),
-                () -> selectFilter(key));
+                icon, isSection ? "store-cat-icon" : brick ? "store-cat-tick none" : "store-cat-tick",
+                "store-cat-strip sec-" + section.name(), brick ? slot : null,
+                brick ? "store-cat-symbol" : "store-cat-symbol none", () -> selectFilter(key));
     }
 
     private int count(String filterKey) {
@@ -266,25 +267,11 @@ final class StoreViewModel {
                     + (owned ? " acquired" : "");
             out.add(new OfferRow(id, classes, name(offer), kind(offer) + " / " + shelfLabel(offer.shelf()),
                     owned ? Strings.get("storeRowAcquired") : CompanyResources.creditAmount(offer.price()),
-                    brickIcon(offer.slot()), hasBrick(offer.slot()) ? "store-offer-icon" : "store-offer-icon none",
+                    StoreBrickCanvas.has(offer.slot()) ? offer.slot() : null,
+                    StoreBrickCanvas.has(offer.slot()) ? "store-offer-icon" : "store-offer-icon none",
                     () -> select(key)));
         }
         return List.copyOf(out);
-    }
-
-    /** Whether a slot has a brick symbol: marine and mech kit does; boat parts carry none. */
-    private static boolean hasBrick(StoreSlot slot) {
-        return slot != null && slot.section() != StoreSlot.Section.BOATS;
-    }
-
-    /**
-     * The slot's brick symbol: the footprint and tone its piece is drawn with in the squad view
-     * and the Mech Lab (a weapon yellow, armor grey, mech weapons orange, internals blue, violet
-     * and teal). A slot without one answers a harmless path the row hides.
-     */
-    private static String brickIcon(StoreSlot slot) {
-        StoreSlot shown = hasBrick(slot) ? slot : StoreSlot.WEAPON_LOADOUT;
-        return "graphics/ui/store/brick-" + shown.name().toLowerCase(Locale.ROOT).replace('_', '-') + ".svg";
     }
 
     private EquipmentStore.Offer selected() {
@@ -408,8 +395,10 @@ final class StoreViewModel {
 
     /** One line of the category list: a section header or one of its slots, each with its section's icon. */
     record CategoryRow(String id, String classes, String label, String icon, String iconClasses,
-                       String stripClasses, Runnable select)
+                       String stripClasses, StoreSlot symbol, String symbolClasses, Runnable select)
             implements MarkupPropertySource {
+        String symbolId() { return id + ":symbol"; }
+
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
@@ -420,6 +409,8 @@ final class StoreViewModel {
                 case "label" -> label;
                 case "icon" -> icon;
                 case "iconClasses" -> iconClasses;
+                case "symbolId" -> symbolId();
+                case "symbolClasses" -> symbolClasses;
                 case "stripId" -> id + ":strip";
                 case "stripClasses" -> stripClasses;
                 case "select" -> select;
@@ -429,9 +420,11 @@ final class StoreViewModel {
     }
 
     /** One line of the shelf. */
-    record OfferRow(String id, String classes, String name, String detail, String price, String icon,
-                    String iconClasses, Runnable select)
+    record OfferRow(String id, String classes, String name, String detail, String price, StoreSlot symbol,
+                    String symbolClasses, Runnable select)
             implements MarkupPropertySource {
+        String symbolId() { return id + ":symbol"; }
+
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
@@ -440,10 +433,9 @@ final class StoreViewModel {
                 case "nameId" -> id + ":name";
                 case "detailId" -> id + ":detail";
                 case "priceId" -> id + ":price";
-                case "iconId" -> id + ":icon";
+                case "symbolId" -> symbolId();
+                case "symbolClasses" -> symbolClasses;
                 case "copyId" -> id + ":copy";
-                case "icon" -> icon;
-                case "iconClasses" -> iconClasses;
                 case "name" -> name;
                 case "detail" -> detail;
                 case "price" -> price;

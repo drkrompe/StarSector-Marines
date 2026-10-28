@@ -109,6 +109,7 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
                 MarineOpsPageNav.refresh(markup, MarineOpsPageNav.Page.STORE, MarineOpsPageNav.ANY_SHIP);
                 var document = new UiDocument(markup.root()).theme(MarineOpsThemes.standard());
                 markup.styles().forEach(document::addStyleSheet);
+                StoreScreen.bindSymbols(document, markup, viewModel);
                 var renderer = new HeadlessUiRenderer(HeadlessBattleSceneRenderer.resourceRoots(context.modRoot()),
                         new HeadlessBattleSceneRenderer(context.modRoot(), true));
                 return renderer.renderRelative(document, 1920, 1080, 1f,
