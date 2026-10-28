@@ -27,7 +27,9 @@ import java.util.Arrays;
  *
  * <p>The medic holds fire while treating and walks with the squad: the patient
  * carries on with whatever the squad is doing, and the medic keeps at their
- * side. Treatment is paid for out of an energy pool ({@link MedicEnergy}).
+ * side. A medic who is their own worst-hurt patient stops where they stand and
+ * dresses their own wounds. Treatment is paid for out of an energy pool
+ * ({@link MedicEnergy}).
  */
 public final class SquadMedicSystem {
 
@@ -193,8 +195,10 @@ public final class SquadMedicSystem {
     /**
      * The squadmate most in need within the leash: lowest health fraction
      * among those below the health threshold, and only when nobody is, the
-     * lowest armor fraction among those below the armor threshold. Never the
-     * medic, and never a squadmate another medic has already set out for.
+     * lowest armor fraction among those below the armor threshold. The medic
+     * counts as a squadmate: they are already in reach of themselves, so they
+     * treat themselves without an approach. Never a squadmate another medic has
+     * already set out for.
      */
     static long worstHurt(SquadMedic medic, Ward ward) {
         SquadMedicine m = medic.medicine;
@@ -205,7 +209,7 @@ public final class SquadMedicSystem {
         float lowestArmor = m.treatBelowArmor();
         for (int i = 0, n = ward.memberCount(); i < n; i++) {
             long member = ward.memberAt(i);
-            if (member == carrier || !ward.alive(member) || ward.maxHp(member) <= 0f) continue;
+            if (!ward.alive(member) || ward.maxHp(member) <= 0f) continue;
             if (ward.inOtherHands(medic, member)) continue;
             if (ward.distance(carrier, member) > m.leashCells()) continue;
             float health = ward.hp(member) / ward.maxHp(member);
