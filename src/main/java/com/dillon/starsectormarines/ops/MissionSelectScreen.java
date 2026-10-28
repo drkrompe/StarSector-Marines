@@ -334,9 +334,9 @@ public final class MissionSelectScreen implements Screen {
             String base = "mission-" + i;
             boolean isSelected = selected != null && selected.id.equals(mission.id);
             int recommended = MissionForceEnvelope.recommendedSquads(mission);
-            String active = mission.fieldPresencePolicy.limited()
+            String active = machines(mission) + (mission.fieldPresencePolicy.limited()
                     ? Strings.format("missionSelectActiveLimit", mission.fieldPresencePolicy.activeSquadLimit())
-                    : "";
+                    : "");
             int multiplier = mission.cashMultiplier & 0xFF;
             if (multiplier <= 0) multiplier = 100;
             long payout = (long) mission.payout * multiplier / 100L;
@@ -414,6 +414,7 @@ public final class MissionSelectScreen implements Screen {
         props.put("detailTitle", present ? mission.name : Strings.get("missionSelectSelectAContract"));
         props.put("detailMeta", present
                 ? Strings.format("missionSelectRecommendation", tierName(mission.tier), MissionForceEnvelope.recommendedSquads(mission))
+                        + machines(mission)
                 : Strings.get("missionSelectChooseARowInTheContractList"));
         props.put("detailFlavor", present ? mission.flavor :
                 Strings.get("missionSelectTheSelectedOperationSScaleFieldPresence"));
@@ -736,5 +737,11 @@ public final class MissionSelectScreen implements Screen {
                 case "action" -> action; default -> null;
             };
         }
+    }
+
+    /** The machines recommended beside the squads, as a suffix; empty for work that names none. */
+    static String machines(Mission mission) {
+        int machines = MissionForceEnvelope.recommendedMachines(mission);
+        return machines > 0 ? Strings.format("missionSelectMachines", machines) : "";
     }
 }

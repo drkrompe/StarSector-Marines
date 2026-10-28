@@ -4,7 +4,7 @@ Status: IN PROGRESS
 
 Written: 2026-10-27
 
-The arc is reachable: after Broken Supply Route closes, Asharu's board lists
+The arc is reachable: after Morrow departs (A Working Ship), Asharu's board lists
 Warden Hollis Maro (`WellhollowBloomCampaign`), whose rows are the current
 chapter and a replay of every chapter won (`WellhollowBloomProgress`). Colony
 Breach launches through the rescue path; the Cordon and heart chapters build

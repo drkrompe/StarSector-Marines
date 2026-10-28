@@ -1,6 +1,6 @@
 # The Wellhollow Bloom
 
-Status: ACTIVE — authored Rav Bloom arc on Asharu; all five chapters are offered in a launched campaign; owner picks and live acceptance remain.
+Status: ACTIVE — authored Rav Bloom arc on Asharu, the alpha campaign's end-game challenge; all five chapters are offered in a launched campaign; live acceptance remains.
 
 Written: 2026-10-27
 
@@ -55,10 +55,12 @@ separate places on one world, not alternatives.
 
 ## Unlocks
 
-- **The arc opens** when Broken Supply Route closes (the gate the Corvus
-  Account uses), at Asharu, through the Warden as a separate contact on the
-  planet's mission board. Nothing else gates it: the Corvus Account, A Working
-  Ship and the arc run side by side.
+- **The arc opens** when Morrow departs at the end of A Working Ship, at
+  Asharu, through the Warden as a separate contact on the planet's mission
+  board (owner, 2026-10-27). These are the alpha campaign's **challenge
+  missions**: every chapter recommends seven squads and four mechs or vehicles
+  (`MissionForceEnvelope.recommendedMachines`), a lieutenant colonel's company,
+  and the board and briefing say so. Any ready force may still deploy.
 - **A chapter unlocks the next on victory.** A loss leaves the same chapter on
   offer with a short retry briefing and no fee; nothing is consumed. There is
   no clock and no expiry, as in every authored arc.
@@ -111,7 +113,7 @@ foresaw, built differently on purpose:
 
 | | Generic arc | The Wellhollow Bloom |
 | --- | --- | --- |
-| Trigger | Any bloom the system wakes | Fixed: Asharu, after Broken Supply Route |
+| Trigger | Any bloom the system wakes | Fixed: Asharu, after A Working Ship |
 | Beats | Three; one variant each, chosen by outcome | Five chapters; both variants of each, in fixed order |
 | Source | Campaign events (`BLOOM_CORDON`, `BLOOM_HEART`, planned) | Story missions (`MissionSource.STORY`) with their own ledger |
 | Gate | Holds the one-open-event gate while committed | Never touches the event gate, so random blooms keep calling |
@@ -134,8 +136,8 @@ recommended option of each.
    once).
 2. **Replay pay.** Recommended: half the chapter fee. Alternatives: the full
    fee; a flat repeatable rate.
-3. **When the arc opens.** Recommended: Broken Supply Route closed.
-   Alternatives: from the campaign's start at Asharu; after A Cold Account.
+3. **When the arc opens.** Decided (owner, 2026-10-27): after A Working Ship,
+   as end-of-alpha challenge missions.
 4. **Art and voice.** Recommended and built: the Warden portrait and three
    location banners now, narration later. The art itself is on the picks page
    for review.

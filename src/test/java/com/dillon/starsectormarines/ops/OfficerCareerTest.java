@@ -85,7 +85,7 @@ class OfficerCareerTest {
         lead.setName("Changed"); second.traits().clear();
         var survivors = deployment.commitments().stream().map(s -> s.campaignSoldierId()).collect(Collectors.toSet());
         var results = OfficerMissionResult.compute(deployment.commitments(), frozenCommander,
-                survivors, Set.of(), true, 100000, "same-job", 10f, 24, 0);
+                survivors, Set.of(), true, 10000, "same-job", 10f, 24, 0);
         assertEquals(2, results.size());
         assertEquals("Lead", results.get(0).officer().name());
         assertEquals(1500, results.get(1).xpGained());
@@ -114,7 +114,7 @@ class OfficerCareerTest {
         var result = OfficerMissionResult.compute(deployment.commitments(), OfficerCommandProfile.capture(lead),
                 Set.of(), dead, false, 0, "boat-down", 20f, 1, 1);
         assertEquals(1, result.size()); assertEquals(dead, result.get(0).soldierIds());
-        assertEquals(50, result.get(0).xpGained());
+        assertEquals(500, result.get(0).xpGained());
         assertTrue(result.get(0).status() == Status.KIA || result.get(0).injuredUntilDay() == 65f);
         assertEquals(result, OfficerMissionResult.compute(deployment.commitments(), OfficerCommandProfile.capture(lead),
                 Set.of(), dead, false, 0, "boat-down", 20f, 1, 1));
