@@ -4,7 +4,7 @@ Status: ACTIVE — campaign route and planning index; individual arcs retain the
 
 Written: 2026-10-13
 
-Updated: 2026-10-27 — The Wellhollow Bloom: the authored Rav Bloom arc on Asharu, alongside the Corvus Account; 2026-10-13 — Agreus now offers both recovered-suit rewards through its first three chapters.
+Updated: 2026-10-27 — The Khettara Bloom: the authored Rav Bloom arc on Asharu, alongside the Corvus Account; 2026-10-13 — Agreus now offers both recovered-suit rewards through its first three chapters.
 
 ## The company's journey
 
@@ -26,7 +26,7 @@ Company preparation / Castle's first lessons
   -> The Corvus Account — Asharu -> Warion -> Garnir
   -> A Working Ship — Asharu, Corvus
        Salvage Rights -> Cold Start -> Working Passage -> Morrow joins fleet
-  -> (alongside Agreus) The Wellhollow Bloom — Asharu, end-of-alpha challenge, replayable
+  -> (alongside Agreus) The Khettara Bloom — Asharu, end-of-alpha challenge, replayable
        Colony Breach -> Cordon Line -> Cordon Road -> The Burn -> Broad Front
   -> A Small War — Agreus, Arcadia
        Water Under Seal -> Limited Warrant -> The Yard's Owners -> two planned chapters
@@ -44,7 +44,7 @@ Read the arc overview for its missions, cast and rewards, then its local
 | `wayline-opening/` | `wayline-opening-arc.md` | Accessible Zoey Venn office, canonically Jangala; completing both chapters opens Broken Supply Route. | Both chapters, first-payment correspondence and separate recurring jobs implemented; first-offer discovery and linked live acceptance remain. |
 | `broken-supply-route/` | `broken-supply-route-arc.md` | Completed opening arc; the accepted local site is frozen. The won freight run leads onward; a failed run is retried. | Junction, direct Thunder Run follow-on, traceless retries and Route Security implemented; live campaign/save acceptance remains. |
 | `wayline-corvus/` | `wayline-corvus-arc.md` | Closed freight account; Dust Ledger, Blind Watch and A Cold Account cross three existing Corvus worlds. Cold Account victory and acknowledgment of its aftermath enable the Shepherd referral. | Three chapters and their campaign sequence implemented; player-controlled difficulty tuning, live travel/save acceptance and broader generated-map access remain open. |
-| `wellhollow-bloom/` | `wellhollow-bloom-arc.md` | Morrow's departure (A Working Ship); Hollis Maro's own contact on Asharu. Challenge missions: seven squads and four machines recommended. Each victory unlocks the next chapter; won chapters replay at half fee. | All five Rav missions offered in order with briefings and replays; owner picks, art/voice and live acceptance remain. |
+| `wellhollow-bloom/` | `wellhollow-bloom-arc.md` | Morrow's departure (A Working Ship); Colonel Bradley Orens's own contact on Asharu. Challenge missions: seven squads and four machines recommended. Each victory unlocks the next chapter; won chapters replay at half fee. | All five Rav missions offered in order with briefings and replays; owner picks, art/voice and live acceptance remain. |
 | `shepherd-recovery/` | `shepherd-recovery-arc.md` | Post-Cold Account reference to Tamsin Vale on Asharu; actual Working Passage departure and fleet handover unlock the Agreus referral. | All three contracts and once-only Morrow/crew transfer implemented; live campaign/save and later owned support acceptance remain. |
 | `a-small-war/` | `a-small-war-arc.md` | Actual Morrow handover; optional referral to Baronet Elian Dormer on existing Agreus in Arcadia. Cold Start alone is insufficient. | Referral and first three chapters through The Yard's Owners with both recovered-suit rewards implemented. Live transition/mixed-suit acceptance, Chapters 4–5, Boarding Jack and yard agreement remain open. |
 

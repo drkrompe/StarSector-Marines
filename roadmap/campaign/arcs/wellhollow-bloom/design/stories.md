@@ -1,4 +1,4 @@
-# The Wellhollow Bloom — open work
+# The Khettara Bloom — open work
 
 Status: ACTIVE
 
@@ -8,4 +8,4 @@ Read `wellhollow-bloom-arc.md` first.
 
 | Story | Status | Outcome |
 | --- | --- | --- |
-| `wellhollow-bloom.md` | IN PROGRESS | All four chapters, ordered unlocks, replays and briefings are offered by Hollis Maro on Asharu; owner picks, art and voice, live campaign/save acceptance and carried outcomes remain. |
+| `wellhollow-bloom.md` | IN PROGRESS | All four chapters, ordered unlocks, replays and briefings are offered by Colonel Bradley Orens on Asharu; owner picks, art and voice, live campaign/save acceptance and carried outcomes remain. |

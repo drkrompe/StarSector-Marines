@@ -301,29 +301,58 @@ public final class MechLabDollCanvas implements CanvasProducer {
      * draws none.
      */
     private void drawPatternSchematic(CanvasContext c, MechVariant variant, float width, float height) {
+        drawBareChassis(c, variant, width * SCHEMATIC_SHARE, height, assets.get(), elapsedSeconds.getAsDouble());
+    }
+
+    /**
+     * A chassis's doll as the lab shows a bought pattern and the company store shows a selected one:
+     * the drafting panel, the sockets laid out and wired to the engine core, and each card as it stands
+     * on a bare frame. {@code assets} may be null where no machine art is loaded; only a part
+     * being carried over the doll needs it.
+     */
+    static void drawBareChassis(CanvasContext c, MechVariant variant, float panelWidth, float height,
+                                LayeredMechAssets assets, double seconds) {
         MechFrameBudget.Fit frame = MechFrameBudget.Fit.frame(variant);
         MechFittingLayout layout = MechFittingLayout.forVariant(variant);
-        float panelWidth = width * SCHEMATIC_SHARE;
         drawSchematicPanel(c, panelWidth, height);
         List<SocketDropTarget> targets = schematicTargets(layout.sockets(), panelWidth, height);
-        drawWires(c, targets, id -> HardpointBricks.tone(layout.socket(id).type()), 1f);
+        drawWires(c, targets, id -> HardpointBricks.tone(layout.socket(id).type()));
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
             MechMountSlot mount = mountFor(socket.id());
             MechSocketConsole.draw(c, target, socket, mount != null ? frame.weaponAt(mount) : null, null,
                     socket.id() == SocketId.PLATING ? MechInternal.FACTORY_PLATING : null, false,
-                    socket.id().compartment() ? List.of() : null, null, assets.get(),
-                    false, false, false, false, false, elapsedSeconds.getAsDouble());
+                    socket.id().compartment() ? List.of() : null, null, assets,
+                    false, false, false, false, false, seconds);
+        }
+    }
+
+    /**
+     * A vehicle hull's doll with its kit rack empty, laid out as the lab lays out a selected vehicle's
+     * ({@link VehicleDoll}): every card sealed, the armor point showing the hull's own plate.
+     */
+    static void drawBareVehicle(CanvasContext c, VehicleType type, float panelWidth, float height, double seconds) {
+        List<SocketDef> sockets = VehicleDoll.sockets(type);
+        drawSchematicPanel(c, panelWidth, height);
+        List<SocketDropTarget> targets = schematicTargets(sockets, panelWidth, height);
+        drawWires(c, targets, id -> VehicleDoll.tone(type, id));
+        for (SocketDropTarget target : targets) {
+            SocketDef socket = socketById(sockets, target.id());
+            if (socket.id() == SocketId.PLATING) {
+                MechSocketConsole.draw(c, target, socket, null, null, null, false, null, null, null,
+                        false, false, false, false, false, seconds);
+                continue;
+            }
+            MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, socket.id()),
+                    VehicleDoll.art(type, socket.id()), List.of(), false, false, seconds);
         }
     }
 
     /**
      * The schematic's wires: each card but the armor point wired back to the engine core in its own
-     * tone, a mechanical tick where it meets the core. {@code scale} thins them for a small drawing
-     * (the store's chassis symbol), which draws no ticks.
+     * tone, a mechanical tick where it meets the core.
      */
-    static void drawWires(CanvasContext c, List<SocketDropTarget> targets, Function<SocketId, Color> tone,
-                          float scale) {
+    static void drawWires(CanvasContext c, List<SocketDropTarget> targets, Function<SocketId, Color> tone) {
         SocketDropTarget core = null;
         for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
         for (SocketDropTarget target : targets) {
@@ -332,11 +361,11 @@ public final class MechLabDollCanvas implements CanvasProducer {
             List<float[]> path = wireToCore(target, core);
             for (int i = 0; i < path.size() - 1; i++) {
                 float[] a = path.get(i), b = path.get(i + 1);
-                c.line(a[0], a[1], b[0], b[1], new Color(0, 0, 0, 190), 5f * scale);
-                c.line(a[0], a[1], b[0], b[1], withAlpha(wire, 150), 2f * scale);
+                c.line(a[0], a[1], b[0], b[1], new Color(0, 0, 0, 190), 5f);
+                c.line(a[0], a[1], b[0], b[1], withAlpha(wire, 150), 2f);
             }
             float[] end = path.get(path.size() - 1);
-            if (scale >= 1f) drawAnchorMechanicalTick(c, end[0], end[1], wire, false);
+            drawAnchorMechanicalTick(c, end[0], end[1], wire, false);
         }
     }
 
@@ -693,20 +722,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawSchematicPanel(c, panelWidth, canvasHeight);
         List<SocketDef> sockets = VehicleDoll.sockets(type);
         List<SocketDropTarget> targets = schematicTargets(sockets, panelWidth, canvasHeight);
-        SocketDropTarget core = null;
-        for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
-        for (SocketDropTarget target : targets) {
-            if (core == null || target == core || target.id() == SocketId.PLATING) continue;
-            Color wire = VehicleDoll.tone(type, target.id());
-            List<float[]> path = wireToCore(target, core);
-            for (int i = 0; i < path.size() - 1; i++) {
-                float[] a = path.get(i), b = path.get(i + 1);
-                c.line(a[0], a[1], b[0], b[1], new Color(0, 0, 0, 190), 5f);
-                c.line(a[0], a[1], b[0], b[1], withAlpha(wire, 150), 2f);
-            }
-            float[] end = path.get(path.size() - 1);
-            drawAnchorMechanicalTick(c, end[0], end[1], wire, false);
-        }
+        drawWires(c, targets, id -> VehicleDoll.tone(type, id));
         List<KitBox> kitBoxes = new ArrayList<>();
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());

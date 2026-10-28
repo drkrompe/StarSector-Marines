@@ -29,18 +29,18 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Campaign boundary for *The Wellhollow Bloom*, the authored Rav Bloom arc on Asharu
- * ({@code wellhollow-bloom-arc.md}). Colonel Hollis Maro, the Asharu Defence Force's field commander for the Wellhollow district, offers on his board the current chapter and a replay of
+ * Campaign boundary for *The Khettara Bloom*, the authored Rav Bloom arc on Asharu
+ * ({@code wellhollow-bloom-arc.md}). Colonel Bradley Orens, the Asharu Planetary Defense Force's field commander for the Khettara district, offers on his board the current chapter and a replay of
  * every chapter won. Projection never starts an attempt; launch begins one and only its own receipt
  * settles it. Independent of {@code RavBloomSystem}: no bloom, no campaign event, no clock.
  */
 public final class WellhollowBloomCampaign {
-    /** Maro's synthetic client: his board carries only this arc's work. The id predates the Defence Force framing and stays for saves. */
+    /** Orens's synthetic client: his board carries only this arc's work. The id predates the APDF framing and stays for saves. */
     public static final String CLIENT_FACTION_ID = "marines_wellhollow_compact_client";
     static final String SPEAKER = "@wellhollowSpeakerWarden";
     private static final String CASTLE = "@dialogueSpeakerCastle";
     private static final long SEED_BASE = 16100L;
-    /** Each chapter's first briefing: seven turns, Maro's first, last and every other. */
+    /** Each chapter's first briefing: seven turns, Orens's first, last and every other. */
     private static final int BRIEFING_LINES = 7;
     /** The end-of-alpha challenge force (owner, 2026-10-27): a lieutenant colonel's company with its machines. */
     public static final int RECOMMENDED_SQUADS = 7, RECOMMENDED_MACHINES = 4;
@@ -75,7 +75,7 @@ public final class WellhollowBloomCampaign {
         var site = site();
         return planet != null && site != null && planet.getId().equals(site.getId());
     }
-    /** Whether Maro is on this planet's board. */
+    /** Whether Orens is on this planet's board. */
     public static boolean contactAt(PlanetAPI planet) { return atSite(planet) && current() != null; }
     public static Client client() {
         return new Client(CLIENT_FACTION_ID, Strings.get("wellhollowContactName"), OpeningBroker.CREST,
@@ -154,7 +154,7 @@ public final class WellhollowBloomCampaign {
             case BROAD_FRONT -> BloomHeartSetup.storyMap(HeartCountry.Form.BROAD_FRONT, heartDensity());
         };
     }
-    /** Low Sump is a town; the rest is open basin country. */
+    /** Ain Tafrant is a town; the rest is open basin country. */
     private static CordonPlan.Density density(Chapter chapter) {
         return chapter == Chapter.CORDON_ROAD ? CordonPlan.Density.TOWN : CordonPlan.Density.RURAL;
     }
@@ -175,7 +175,7 @@ public final class WellhollowBloomCampaign {
         var p = current();
         if (!isBattle(m) || p == null || !p.matches(m.id) || m.payout != WellhollowBloomProgress.fee(m.id)
                 || !m.targetPlanetName.equals(site() == null ? null : site().getName()))
-            throw new IllegalStateException("This Wellhollow contract is no longer current.");
+            throw new IllegalStateException("This Khettara contract is no longer current.");
         return p;
     }
     /** Asharu as the Rav maps read it: a desert world, the basin carried by each map's own setup. */
@@ -212,7 +212,7 @@ public final class WellhollowBloomCampaign {
     }
     static void begin(Mission m) {
         var p = requireCurrent(m);
-        if (!p.begin(m.id)) throw new IllegalStateException("This Wellhollow contract has already launched.");
+        if (!p.begin(m.id)) throw new IllegalStateException("This Khettara contract has already launched.");
         CampaignStateScript.getInstance().state().wellhollowBloom = p;
     }
     static void abandon(Mission m) {
@@ -233,7 +233,7 @@ public final class WellhollowBloomCampaign {
                 ? "wellhollowResultWon" : "wellhollowResultOpen", chapter.number());
     }
 
-    /** Results-screen line from Maro: what changed, or what still stands. */
+    /** Results-screen line from Orens: what changed, or what still stands. */
     static String debrief(MissionOutcome o) {
         Chapter chapter = WellhollowBloomProgress.chapterOf(o.missionId);
         if (!o.victory) return Strings.get("wellhollowDebriefLost");

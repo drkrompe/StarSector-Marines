@@ -501,7 +501,7 @@ as the rescue is today.
 
 ### The sector threat
 
-No longer the trigger. Its authored instance is **The Wellhollow Bloom** on
+No longer the trigger. Its authored instance is **The Khettara Bloom** on
 Asharu (`wellhollow-bloom-arc.md`): story missions rather than a woken bloom,
 the Road and both heart forms played in a fixed order (Colony Breach, the
 Road, The Burn, Broad Front; the Line is cut from this release), each chapter unlocked by the last one's

@@ -227,7 +227,7 @@ three missions in turn, each a single battle: Colony Breach, then the
 defence (the Line or the Road), then the heart (Broad Front or The Burn), the
 campaign picking each variant, each mission offered on its own and opted into, and the player may stop after any of them;
 a world whose arc stops runs on the ordinary bloom clock. The authored
-instance is built: **The Wellhollow Bloom** on Asharu
+instance is built: **The Khettara Bloom** on Asharu
 (`wellhollow-bloom-arc.md`) offers Colony Breach, the Road, The Burn and
 Broad Front as story chapters in a fixed order, each unlocked by the last one's victory and replayable once won,
 outside `RavBloomSystem` and the event gate.

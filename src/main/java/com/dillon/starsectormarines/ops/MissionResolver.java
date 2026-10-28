@@ -568,7 +568,7 @@ public final class MissionResolver {
             return;
         }
         if (WellhollowBloomCampaign.owns(outcome.missionId) && (cargo == null || WellhollowBloomCampaign.settle(outcome) < 0)) {
-            LOG.info("MarineOps: refused stale or invalid Wellhollow outcome " + outcome.missionId);
+            LOG.info("MarineOps: refused stale or invalid Khettara outcome " + outcome.missionId);
             return;
         }
         if (cargo != null) {

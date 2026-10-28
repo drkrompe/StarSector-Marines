@@ -18,10 +18,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-/** The Wellhollow Bloom's Warden and location art on Warden Maro's board and the results screen, at 1920x1080. */
+/** The Khettara Bloom's Orens portrait and location art on Colonel Orens's board and the results screen, at 1920x1080. */
 public final class WellhollowArtSnapshotSuite implements SnapshotSuite {
     public String id() { return "wellhollow-art"; }
-    public String label() { return "The Wellhollow Bloom: Warden portrait and location art"; }
+    public String label() { return "The Khettara Bloom: Orens portrait and location art"; }
 
     public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         TileRegistryTestInstaller.install(context.projectRoot());
@@ -35,7 +35,7 @@ public final class WellhollowArtSnapshotSuite implements SnapshotSuite {
             Mission mission = offers.get(0);
             String name = String.format("%02d-%s", chapter.number(), chapter.code);
             var props = MissionSelectScreen.previewProps();
-            props.put("missionHeader", "Hollis Maro");
+            props.put("missionHeader", "Colonel Bradley Orens");
             props.put("missions", MissionSelectScreen.missionRows(offers, mission, m -> {}));
             props.put("stationingRows", List.of());
             MissionSelectScreen.putDetail(props, mission, () -> {}, () -> {});
