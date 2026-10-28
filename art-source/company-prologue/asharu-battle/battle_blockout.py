@@ -3354,7 +3354,7 @@ def blender_main(cfg):
 
     def white_blob_lint(kf, display, effects_owned):
         """blob_lint on a finished span frame: near-white regions the effects own, held too long. The
-        ships' drives are excluded by where their engines project. Finals raise; ASHARU_AUDIT_SOFT logs.
+        ships' drives are excluded by where their engines project, and the missiles' motors by theirs. Finals raise; ASHARU_AUDIT_SOFT logs.
         Each frame's regions are saved beside it (<span>_blobs_f<n>.json) for the cross-seam check."""
         import blob_lint
         from bpy_extras.object_utils import world_to_camera_view
@@ -3364,6 +3364,15 @@ def blender_main(cfg):
         for key, pl in placed.items():
             for pos, _d, _r, _s in pl['lib'].get('engines', ()):
                 c = world_to_camera_view(scene, scene.camera, pl['matrix'] @ (pos * pl['mpu']))
+                if c.z > 0:
+                    engines.append((c.x * w_, (1.0 - c.y) * h_))
+        # a Harpoon's motor and its glare burn as long as a drive does, by design: each one lit this frame
+        # is a drive too (S5 final f01135, 2026-10-28: a salvo leaving the Manticore's tubes on the long lens)
+        vl_ = next((v for v in scene.view_layers if v.name == 'effects'), bpy.context.view_layer)
+        vl_.update()
+        for inst_ in vl_.depsgraph.object_instances:
+            if inst_.object.name.startswith(('SWFX missile motor ', 'SWFX missile glare ')):
+                c = world_to_camera_view(scene, scene.camera, inst_.matrix_world.translation)
                 if c.z > 0:
                     engines.append((c.x * w_, (1.0 - c.y) * h_))
         # the hulls burning into the air (fx 'plasma', 'entry_sheath'): each one's screen box, padded by half

@@ -14,7 +14,9 @@ blob's area, that persists past a flash's frames, is flagged with its frame and 
               f02208, 2026-10-25: a beam core 1195 px in an 84x358 box, about 3 px thick, held while the
               beam fired, once effects_owned counted additive light)
   excluded    a ship's drives: a region holding the screen point of any engine (engines_px) is a
-              drive glow, by position, never by loosening the thresholds; and a hull burning into the
+              drive glow, by position, never by loosening the thresholds; a missile's motor and its
+              glare count as engines (S5 final f01135, 2026-10-28: a Harpoon salvo leaving her tubes,
+              lit for its whole burn); and a hull burning into the
               air: a region centred in the screen box of a hull the shot wraps in entry plasma (zones,
               S11 and S12) is her sheath, a glow held by design (S11 light check, 2026-10-26)
 

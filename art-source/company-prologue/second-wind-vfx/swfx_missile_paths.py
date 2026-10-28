@@ -566,9 +566,15 @@ def contrail_material(ctx, colour, glow, broken=0.0):
     return m
 
 
-def _contrail(ctx, coll, fl, inv, mpu, sides=6):
+TRAIL_SIDES = 16         # a ring's sides: at 6 a trail near the camera read as a hexagonal box (Asharu S5, 2026-10-28)
+TRAIL_GROW_F = 4         # frames from ignition over which the tube grows from a point to its width
+
+
+def _contrail(ctx, coll, fl, inv, mpu, sides=TRAIL_SIDES):
     """One tube along the powered stretch of the flight, rings every half frame, each stamped
-    with its birth frame. Built in the ship's effects space (inv: collection <- world)."""
+    with its birth frame. Built in the ship's effects space (inv: collection <- world). It starts
+    at a point where the motor lights and reaches its width TRAIL_GROW_F frames on, so its first
+    ring is never an open end facing the camera."""
     bpy = _bpy()
     prof = fl.prof
     f_end = fl.end['frame'] if fl.end and fl.end['kind'] in ('kill', 'decoy', 'hit') else fl.last
@@ -591,10 +597,12 @@ def _contrail(ctx, coll, fl, inv, mpu, sides=6):
         prev_n = n
         bnorm = t.cross(n)
         pl = inv @ p
+        u = min(1.0, (f - f0) / TRAIL_GROW_F)
+        ri = r * u * u * (3 - 2 * u)
         for k in range(sides):
             ang = 2 * math.pi * k / sides
             w = (n * math.cos(ang) + bnorm * math.sin(ang))
-            verts.append(pl + (inv.to_3x3() @ w).normalized() * r)
+            verts.append(pl + (inv.to_3x3() @ w).normalized() * ri)
             birth.append(f)
     for i in range(len(samples) - 1):
         for k in range(sides):
