@@ -55,7 +55,7 @@ class DebugMissionCatalogTest {
                 WeaponRegistry.PULSE_RIFLE_ID.equals(s.primaryId()) && s.primaryGrade() == EquipmentGrade.SERVICE));
         assertEquals("04", DebugMissionCatalog.Scenario.WORKING_PASSAGE.sequence());
     }
-    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"WORKING_PASSAGE", "WELLHOLLOW_BREACH", "WELLHOLLOW_LINE", "WELLHOLLOW_ROAD", "WELLHOLLOW_BURN", "WELLHOLLOW_FRONT"}, mode = EnumSource.Mode.EXCLUDE)
+    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"WORKING_PASSAGE", "WELLHOLLOW_BREACH", "WELLHOLLOW_ROAD", "WELLHOLLOW_BURN", "WELLHOLLOW_FRONT"}, mode = EnumSource.Mode.EXCLUDE)
     void otherAuthoredCompaniesKeepTheirStarterIssue(DebugMissionCatalog.Scenario scenario) {
         var context = new MarineOpsContext(null);
         context.resetDebugPreset(scenario.mission());
@@ -117,7 +117,7 @@ class DebugMissionCatalogTest {
         var jangala = DebugMissionScreen.visible(catalog, 0, "Jangala");
         assertEquals(List.of("01", "02", "03", "04", "R1", "R2", "R3"),
                 jangala.stream().map(m -> DebugMissionCatalog.scenario(m).sequence()).toList());
-        assertEquals(List.of("01", "02", "03", "04", "WB1", "WB2", "WB3", "WB4", "WB5"), DebugMissionScreen.visible(catalog, 0, "Asharu").stream()
+        assertEquals(List.of("01", "02", "03", "04", "WB1", "WB2", "WB3", "WB4"), DebugMissionScreen.visible(catalog, 0, "Asharu").stream()
                 .map(m -> DebugMissionCatalog.scenario(m).sequence()).toList());
         var grouped = DebugMissionScreen.visible(catalog, 0, "All locations");
         assertEquals(jangala, grouped.subList(0, jangala.size()));

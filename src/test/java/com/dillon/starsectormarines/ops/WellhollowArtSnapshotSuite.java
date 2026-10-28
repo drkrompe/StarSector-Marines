@@ -29,7 +29,7 @@ public final class WellhollowArtSnapshotSuite implements SnapshotSuite {
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         var renderer = new HeadlessUiRenderer(context.modRoot(), context.starsectorCore());
         var frames = new ArrayList<SnapshotArtifact>();
-        for (Chapter chapter : List.of(Chapter.COLONY_BREACH, Chapter.CORDON_LINE, Chapter.THE_BURN)) {
+        for (Chapter chapter : List.of(Chapter.COLONY_BREACH, Chapter.CORDON_ROAD, Chapter.THE_BURN)) {
             var progress = wonThrough(chapter.ordinal());
             var offers = WellhollowBloomCampaign.offers(progress, "Asharu");
             Mission mission = offers.get(0);

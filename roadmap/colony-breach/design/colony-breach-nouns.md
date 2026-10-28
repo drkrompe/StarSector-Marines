@@ -228,8 +228,8 @@ defence (the Line or the Road), then the heart (Broad Front or The Burn), the
 campaign picking each variant, each mission offered on its own and opted into, and the player may stop after any of them;
 a world whose arc stops runs on the ordinary bloom clock. The authored
 instance is built: **The Wellhollow Bloom** on Asharu
-(`wellhollow-bloom-arc.md`) offers all five missions as story chapters in a
-fixed order, each unlocked by the last one's victory and replayable once won,
+(`wellhollow-bloom-arc.md`) offers Colony Breach, the Road, The Burn and
+Broad Front as story chapters in a fixed order, each unlocked by the last one's victory and replayable once won,
 outside `RavBloomSystem` and the event gate.
 `bloom-mission-arc.md` is the direction for movements 2 and 3 and the sector
 threat: the Cordon (the Line and the Road as variants), the heart (Broad Front
