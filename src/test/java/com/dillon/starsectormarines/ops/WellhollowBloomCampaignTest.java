@@ -35,23 +35,23 @@ class WellhollowBloomCampaignTest {
     @Test void theBoardOffersTheCurrentChapterThenEveryWonChapterAsAReplay() {
         List<Mission> offers = WellhollowBloomCampaign.offers(wonThrough(2), "Asharu");
         assertEquals(3, offers.size());
-        assertEquals(Chapter.CORDON_ROAD, WellhollowBloomProgress.chapterOf(offers.get(0).id));
+        assertEquals(Chapter.THE_BURN, WellhollowBloomProgress.chapterOf(offers.get(0).id));
         assertFalse(WellhollowBloomProgress.replay(offers.get(0).id));
-        assertEquals(Chapter.CORDON_ROAD.fee, offers.get(0).payout);
-        assertEquals(Chapter.CORDON_LINE, WellhollowBloomProgress.chapterOf(offers.get(1).id));
+        assertEquals(Chapter.THE_BURN.fee, offers.get(0).payout);
+        assertEquals(Chapter.CORDON_ROAD, WellhollowBloomProgress.chapterOf(offers.get(1).id));
         assertTrue(WellhollowBloomProgress.replay(offers.get(1).id));
-        assertEquals(Chapter.CORDON_LINE.replayFee(), offers.get(1).payout);
+        assertEquals(Chapter.CORDON_ROAD.replayFee(), offers.get(1).payout);
         for (Mission m : offers) assertEquals(MissionSource.STORY, m.source);
     }
 
     @Test void onlyTheColonyBreachChapterTakesTheRescuePath() {
         var p = new WellhollowBloomProgress();
         Mission breach = WellhollowBloomCampaign.offer(p, Chapter.COLONY_BREACH, false, "Asharu");
-        Mission line = WellhollowBloomCampaign.offer(wonThrough(1), Chapter.CORDON_LINE, false, "Asharu");
+        Mission road = WellhollowBloomCampaign.offer(wonThrough(1), Chapter.CORDON_ROAD, false, "Asharu");
         assertTrue(WellhollowBloomCampaign.isColonyBreach(breach));
         assertTrue(MissionLaunch.isCivilianRescueBattle(breach));
         assertEquals(RiskLevel.HIGH, breach.risk);
-        assertFalse(MissionLaunch.isCivilianRescueBattle(line));
+        assertFalse(MissionLaunch.isCivilianRescueBattle(road));
     }
 
     @Test void theWardenSpeaksWithTheirOwnRoleAndPortrait() {

@@ -78,7 +78,6 @@ public final class DebugMissionCatalog {
         BROAD_FRONT("Rav Bloom", "Broad Front", "Push north on the wide front to the heart and collapse every mother. Density, biome and seed are chosen on the launcher.", 3, false),
         THE_BURN("Rav Bloom", "The Burn", "Drive east through the deep country to the heart, under the Burn's guns. Density, biome and seed are chosen on the launcher.", 3, false),
         WELLHOLLOW_BREACH("The Wellhollow Bloom", "@wellhollowChapterColonyBreach", "@wellhollowFlavorColonyBreach", WellhollowBloomCampaign.RECOMMENDED_SQUADS, false),
-        WELLHOLLOW_LINE("The Wellhollow Bloom", "@wellhollowChapterCordonLine", "@wellhollowFlavorCordonLine", WellhollowBloomCampaign.RECOMMENDED_SQUADS, false),
         WELLHOLLOW_ROAD("The Wellhollow Bloom", "@wellhollowChapterCordonRoad", "@wellhollowFlavorCordonRoad", WellhollowBloomCampaign.RECOMMENDED_SQUADS, false),
         WELLHOLLOW_BURN("The Wellhollow Bloom", "@wellhollowChapterTheBurn", "@wellhollowFlavorTheBurn", WellhollowBloomCampaign.RECOMMENDED_SQUADS, false),
         WELLHOLLOW_FRONT("The Wellhollow Bloom", "@wellhollowChapterBroadFront", "@wellhollowFlavorBroadFront", WellhollowBloomCampaign.RECOMMENDED_SQUADS, false),
@@ -101,7 +100,6 @@ public final class DebugMissionCatalog {
         public Chapter wellhollow() {
             return switch (this) {
                 case WELLHOLLOW_BREACH -> Chapter.COLONY_BREACH;
-                case WELLHOLLOW_LINE -> Chapter.CORDON_LINE;
                 case WELLHOLLOW_ROAD -> Chapter.CORDON_ROAD;
                 case WELLHOLLOW_BURN -> Chapter.THE_BURN;
                 case WELLHOLLOW_FRONT -> Chapter.BROAD_FRONT;
@@ -146,7 +144,7 @@ public final class DebugMissionCatalog {
                 case CORDON_ROAD -> "RB2";
                 case BROAD_FRONT -> "RB3";
                 case THE_BURN -> "RB4";
-                case WELLHOLLOW_BREACH, WELLHOLLOW_LINE, WELLHOLLOW_ROAD, WELLHOLLOW_BURN, WELLHOLLOW_FRONT -> "WB" + wellhollow().number();
+                case WELLHOLLOW_BREACH, WELLHOLLOW_ROAD, WELLHOLLOW_BURN, WELLHOLLOW_FRONT -> "WB" + wellhollow().number();
                 case RELIEF -> "01";
                 case COUNTERATTACK -> "02";
                 case JUNCTION -> "03";
@@ -185,11 +183,10 @@ public final class DebugMissionCatalog {
                 case DISTRICT_ESCORT -> "Repeatable work / Opens after A Small War";
                 case CORDON_LINE, CORDON_ROAD -> "Rav Bloom / The Cordon / " + RavBloomDebugChoice.label();
                 case BROAD_FRONT, THE_BURN -> "Rav Bloom / The heart / " + RavBloomDebugChoice.label();
-                case WELLHOLLOW_BREACH -> "Wellhollow Bloom 1 of 5 / After A Working Ship / Fixed Asharu map";
-                case WELLHOLLOW_LINE -> "Wellhollow Bloom 2 of 5 / After The Wellhollow / Fixed Asharu map";
-                case WELLHOLLOW_ROAD -> "Wellhollow Bloom 3 of 5 / After Hold the Rim / Fixed Asharu map";
-                case WELLHOLLOW_BURN -> "Wellhollow Bloom 4 of 5 / After Low Sump / Fixed Asharu map";
-                case WELLHOLLOW_FRONT -> "Wellhollow Bloom 5 of 5 / After The Channel Root / Fixed Asharu map";
+                case WELLHOLLOW_BREACH -> "Wellhollow Bloom 1 of 4 / After A Working Ship / Fixed Asharu map";
+                case WELLHOLLOW_ROAD -> "Wellhollow Bloom 2 of 4 / After The Wellhollow / Fixed Asharu map";
+                case WELLHOLLOW_BURN -> "Wellhollow Bloom 3 of 4 / After Low Sump / Fixed Asharu map";
+                case WELLHOLLOW_FRONT -> "Wellhollow Bloom 4 of 4 / After The Channel Root / Fixed Asharu map";
                 case RELIEF -> "Wayline introduction";
                 case COUNTERATTACK -> "After Jangala 01 / Relief";
                 case JUNCTION -> "After Jangala 02 / Counterattack";
