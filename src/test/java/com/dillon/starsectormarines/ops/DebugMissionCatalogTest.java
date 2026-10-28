@@ -1,7 +1,10 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.air.LiftRating;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
+import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
@@ -18,6 +21,20 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.*;
 
 class DebugMissionCatalogTest {
+    @ParameterizedTest @EnumSource(ShuttleType.class)
+    void debugBoatsTakeTheTopTierOfEveryFittingTheirHullAccepts(ShuttleType pattern) {
+        var boat = DebugMissionCatalog.maxFitted(pattern);
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            int top = BoatFitting.catalog(slot).stream().filter(f -> f.supports(pattern))
+                    .mapToInt(BoatFitting::tier).max().orElseThrow();
+            assertEquals(top, boat.fitting(slot).tier(), pattern + " " + slot);
+        }
+    }
+
+    @Test void aMaxFittedHermesLiftsHeavyMachines() {
+        assertEquals(LiftRating.HEAVY, DebugMissionCatalog.maxFitted(ShuttleType.HERMES).liftRating());
+    }
+
     @Test void workingPassageExpectedCompanyUsesServiceRiflesWithStartingArmorAndNoHound() {
         var mission = DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission();
         var context = new MarineOpsContext(null);
@@ -68,7 +85,7 @@ class DebugMissionCatalogTest {
         context.resetDebugPreset(mission);
         var company = context.getDebugCompanyRoster();
         assertEquals(preset.squads() * 12, company.lineReadySoldiers().size());
-        var lift = Collections.nCopies(preset.boats(), FittedBoat.standard(preset.boat()));
+        var lift = Collections.nCopies(preset.boats(), DebugMissionCatalog.maxFitted(preset.boat()));
         var mechs = preset.mechs() == 1 ? DebugMechRoster.recoveredHound() : DebugMechRoster.randomized(0, 0);
         var plan = MissionLaunch.captureScenario(context, mission, lift, FlybyRoster.EMPTY, List.of(MechSupport.ID), List.of(), mechs, 42);
         var repeat = MissionLaunch.captureScenario(context, mission, lift, FlybyRoster.EMPTY, List.of(MechSupport.ID), List.of(), mechs, 42);
