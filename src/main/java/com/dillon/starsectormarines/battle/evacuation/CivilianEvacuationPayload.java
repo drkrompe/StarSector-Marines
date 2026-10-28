@@ -82,6 +82,15 @@ public final class CivilianEvacuationPayload {
                 "civilian cohort", null);
     }
 
+    /** As {@link #install(BattleSimulation, List, long)}, with the lift beside the company's landing field when there is one. */
+    public static CivilianEvacuationPayload install(
+            BattleSimulation sim, List<PointOfInterest> pointsOfInterest,
+            long seed, FieldOfFire field) {
+        return install(sim, pointsOfInterest, seed, V1_TYPES.length, true,
+                CivilianEvacuationObjective.DEFAULT_PAYLOAD_ID,
+                "civilian cohort", field);
+    }
+
     public static CivilianEvacuationPayload install(
             BattleSimulation sim, List<PointOfInterest> pointsOfInterest,
             long seed, int representativeCount,

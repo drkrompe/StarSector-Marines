@@ -378,9 +378,13 @@ reaches it, then follows a squad of the company out to the lift (the squad leads
 follow it) and boards only once a shuttle
 is physically down. On the colony the cohort is spread over several redoubts,
 and the **lift is on the landing field**: the shuttles taking the survivors off
-come down where the company came down, for the same reason, at the clear pickup
-site on the field nearest the shelter and clear of the berths. Land in the
-fields, fight in to the redoubts, bring the survivors back out.
+come down where the company came down, for the same reason, beside the company's
+pads on the town side. The pickup is the clear site nearest the shelter whose
+cordon (below) stands wholly in the field's open country and whose wall keeps a
+berth's reach and more off the berths (`CivilianEvacuationPlacement`,
+`CORDON_FIELD_CLEARANCE`); where no such site exists it falls back to the
+nearest clear site on the field, then to the farthest reachable site. Land in
+the fields, fight in to the redoubts, bring the survivors back out.
 
 **Evac cordon** (owner, 2026-10-28: "an allied evac cordon which the player
 needs to get the survivors back to"). The militia line and the mech standing
