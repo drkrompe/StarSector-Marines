@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.ui.retained.reactive.Signal;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.function.Supplier;
 
@@ -176,13 +177,13 @@ final class StoreViewModel {
         for (StoreSlot.Section section : StoreSlot.Section.values()) {
             String sectionKey = "SECTION:" + section.name();
             boolean expanded = section == open;
-            out.add(categoryRow(sectionKey, "store-cat-" + section.name(), "store-cat section",
+            out.add(categoryRow(sectionKey, "store-cat-" + section.name(), "store-cat section", section,
                     (expanded ? "- " : "+ ") + Strings.get("storeSection" + section.name()),
                     count(sectionKey), current));
             if (!expanded) continue;
             for (StoreSlot slot : StoreSlot.of(section)) {
                 String slotKey = "SLOT:" + slot.name();
-                out.add(categoryRow(slotKey, "store-cat-" + slot.name(), "store-cat slot",
+                out.add(categoryRow(slotKey, "store-cat-" + slot.name(), "store-cat slot", section,
                         Strings.get("storeSlot" + slot.name()), count(slotKey), current));
             }
         }
@@ -195,10 +196,14 @@ final class StoreViewModel {
         return StoreSlot.Section.valueOf(filterKey.substring("SECTION:".length()));
     }
 
-    private CategoryRow categoryRow(String key, String id, String classes, String label, int count,
-                                    String current) {
+    private CategoryRow categoryRow(String key, String id, String classes, StoreSlot.Section section,
+                                    String label, int count, String current) {
+        boolean isSection = classes.endsWith("section");
+        String icon = "graphics/ui/store/" + (isSection ? "section-" : "slot-")
+                + section.name().toLowerCase(Locale.ROOT) + ".svg";
         return new CategoryRow(id, classes + (key.equals(current) ? " selected" : "")
                 + (count == 0 ? " empty" : ""), Strings.format("storeCategoryCountFmt", label, count),
+                icon, isSection ? "store-cat-icon" : "store-cat-tick", "store-cat-strip sec-" + section.name(),
                 () -> selectFilter(key));
     }
 
@@ -383,8 +388,9 @@ final class StoreViewModel {
         return text.toString();
     }
 
-    /** One line of the category list: the whole shelf, a section, or one slot. */
-    record CategoryRow(String id, String classes, String label, Runnable select)
+    /** One line of the category list: a section header or one of its slots, each with its section's icon. */
+    record CategoryRow(String id, String classes, String label, String icon, String iconClasses,
+                       String stripClasses, Runnable select)
             implements MarkupPropertySource {
         @Override
         public Object markupProperty(String property) {
@@ -392,7 +398,12 @@ final class StoreViewModel {
                 case "id" -> id;
                 case "classes" -> classes;
                 case "labelId" -> id + ":label";
+                case "iconId" -> id + ":icon";
                 case "label" -> label;
+                case "icon" -> icon;
+                case "iconClasses" -> iconClasses;
+                case "stripId" -> id + ":strip";
+                case "stripClasses" -> stripClasses;
                 case "select" -> select;
                 default -> null;
             };
