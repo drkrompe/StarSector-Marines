@@ -8,6 +8,8 @@ import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
@@ -810,6 +812,10 @@ public final class BattleFixtureJson {
                     frozen.put("type", vehicle.type().name());
                     putNullable(frozen, "campaignId", vehicle.campaignId());
                     putNullable(frozen, "callsign", vehicle.callsign());
+                    JSONArray kits = new JSONArray();
+                    for (VehicleKit kit : vehicle.kits()) kits.put(kit.id);
+                    if (kits.length() > 0) frozen.put("kits", kits);
+                    if (vehicle.plating() != VehiclePlating.FACTORY) frozen.put("plating", vehicle.plating().name());
                     vehicles.put(frozen);
                 }
                 encoded.put("vehicleDeployments", vehicles);
@@ -892,10 +898,20 @@ public final class BattleFixtureJson {
             JSONArray encodedVehicles = encoded.optJSONArray("vehicleDeployments");
             for (int j = 0; encodedVehicles != null && j < encodedVehicles.length(); j++) {
                 JSONObject frozen = encodedVehicles.getJSONObject(j);
+                List<VehicleKit> kits = new ArrayList<>();
+                JSONArray encodedKits = frozen.optJSONArray("kits");
+                for (int k = 0; encodedKits != null && k < encodedKits.length(); k++) {
+                    VehicleKit kit = VehicleKit.findById(encodedKits.getString(k));
+                    if (kit == null) throw new IllegalArgumentException("Unknown vehicle kit: " + encodedKits.getString(k));
+                    kits.add(kit);
+                }
                 vehicles.add(new VehicleDeploymentSpec(
                         frozen.isNull("campaignId") ? null : frozen.optString("campaignId", null),
                         frozen.isNull("callsign") ? null : frozen.optString("callsign", null),
-                        enumValue(VehicleType.class, frozen.getString("type"), "vehicle type")));
+                        enumValue(VehicleType.class, frozen.getString("type"), "vehicle type"), kits,
+                        frozen.has("plating")
+                                ? enumValue(VehiclePlating.class, frozen.getString("plating"), "vehicle plating")
+                                : VehiclePlating.FACTORY));
             }
             JSONObject carrier = encoded.optJSONObject("companyCarrier");
             powers.add(new CommandPowerCommitment(

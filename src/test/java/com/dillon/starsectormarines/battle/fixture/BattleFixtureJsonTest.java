@@ -33,6 +33,10 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.power.MechSupport;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -533,6 +537,29 @@ class BattleFixtureJsonTest {
         BattleLaunchFixture legacy = (BattleLaunchFixture) BattleFixtureJson.fromJson(encoded);
         assertEquals(MechFrame.stock(MechVariant.WARDEN),
                 legacy.launch().commandPowers().get(0).mechDeployments().get(0).frame());
+    }
+
+    @Test
+    void aFittedVehicleRoundTripsItsKitsAndPlatingAndAnAbsentFittingIsStock() throws Exception {
+        VehicleDeploymentSpec fitted = new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC,
+                List.of(VehicleKit.SPALL_LINER), VehiclePlating.HEAVY);
+        BattleLaunchFixture fixture = new BattleLaunchFixture(
+                canonicalFixture(), new BattleLaunchOverlay(
+                        0, List.of(), List.of(), List.of(),
+                        List.of(new CommandPowerCommitment(MechSupport.ID, List.of(), List.of(), List.of(fitted), null)),
+                        0, FieldPresencePolicy.CAPTURE_TEAM));
+        JSONObject encoded = BattleFixtureJson.toJson(fixture);
+        BattleLaunchFixture decoded = (BattleLaunchFixture) BattleFixtureJson.fromJson(encoded);
+        assertEquals(List.of(fitted), decoded.launch().commandPowers().get(0).vehicleDeployments());
+        assertEquals(encoded.toString(), BattleFixtureJson.toJson(decoded).toString());
+
+        JSONObject frozen = encoded.getJSONObject("launch").getJSONArray("commandPowers").getJSONObject(0)
+                .getJSONArray("vehicleDeployments").getJSONObject(0);
+        frozen.remove("kits");
+        frozen.remove("plating");
+        BattleLaunchFixture legacy = (BattleLaunchFixture) BattleFixtureJson.fromJson(encoded);
+        assertEquals(List.of(new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC)),
+                legacy.launch().commandPowers().get(0).vehicleDeployments());
     }
 
     @Test
