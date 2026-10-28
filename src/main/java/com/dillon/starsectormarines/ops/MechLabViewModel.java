@@ -98,14 +98,10 @@ public final class MechLabViewModel {
     private final MutableSignal<MechWeaponComponent> hoveredWeapon;
     /** A catalog internal under the pointer, previewed on the meters and the budget. */
     private final MutableSignal<MechInternal> hoveredInternal;
-    /** Plating has no socket; while true the catalog lists plating instead of a socket. */
-    private final MutableSignal<Boolean> platingSelected;
     /** Stores list every part rather than what fits the selected mount. */
     private final MutableSignal<Boolean> browsingStores;
     private final ComputedSignal<String> budgetText;
     private final ComputedSignal<String> budgetClasses;
-    private final ComputedSignal<String> platingText;
-    private final ComputedSignal<String> platingClasses;
     private final ComputedSignal<String> shipRefitText;
     /** The company ship's refits, read live here; a launch freezes them into each deployment. */
     private final Supplier<ShipCondition> shipCondition;
@@ -216,7 +212,6 @@ public final class MechLabViewModel {
         previewRecipeId = reactor.signal(null);
         hoveredWeapon = reactor.signal(null);
         hoveredInternal = reactor.signal(null);
-        platingSelected = reactor.signal(false);
         browsingStores = reactor.signal(false);
         categoryFilterPills = reactor.computed(this::buildFilterPills);
         categoryFilterClasses = reactor.computed(() -> categoryFilterPills.get().isEmpty()
@@ -282,18 +277,10 @@ public final class MechLabViewModel {
             boolean over = mech.fit().overBudget() || candidate != null && candidate.overBudget();
             return over ? "label heading mech-budget tone-danger" : "label heading mech-budget tone-edge";
         });
-        platingText = reactor.computed(() -> {
-            CampaignMech mech = selectedMech();
-            return mech != null ? Strings.format("openingMechLabPlatingRow",
-                    mech.internal(MechInternal.Role.PLATING).displayName()) : "";
-        });
         shipRefitText = reactor.computed(() -> {
             revision.get();
             return selectedMech() == null ? "" : RefitText.mechLine(shipCondition.get());
         });
-        platingClasses = reactor.computed(() -> selectedMech() == null ? "plating-select hidden"
-                : platingSelected.get() ? "plating-select console-action selected"
-                : "plating-select console-action");
         leftSlotRows = reactor.computed(() -> buildSlots(List.of(
                 SocketId.CORE, SocketId.ARMS, SocketId.LEFT_ARM, SocketId.LEFT_SHOULDER)));
         rightSlotRows = reactor.computed(() -> buildSlots(List.of(
@@ -304,13 +291,14 @@ public final class MechLabViewModel {
             MechFittingLayout layout = MechFittingLayout.forVariant(mech.variant());
             return buildSlots(layout.sockets().stream().map(SocketDef::id).toList());
         });
-        selectedSlotRows = reactor.computed(() -> platingSelected.get() || browsingStores.get() ? List.<SlotRow>of()
+        selectedSlotRows = reactor.computed(() -> browsingStores.get() ? List.<SlotRow>of()
                 : slotRows.get().stream().filter(row -> row.socketId() == selectedSlot.get()).toList());
         selectedSlotTitle = reactor.computed(() -> {
             if (fabricatingChassis()) return Strings.get("openingMechLabChassisPatterns");
-            if (selectedVehicle() != null) return Strings.get("openingMechLabKitRack");
+            if (selectedVehicle() != null) {
+                return selectedSlot.get() == SocketId.PLATING ? SocketId.PLATING.label() : Strings.get("openingMechLabKitRack");
+            }
             CampaignMech mech = selectedMech();
-            if (mech != null && platingSelected.get()) return Strings.get("openingMechLabFramePlating");
             if (mech != null && browsingStores.get()) return Strings.get("openingMechLabAllParts");
             if (mech != null) {
                 SocketDef def = MechFittingLayout.forVariant(mech.variant()).socket(selectedSlot.get());
@@ -712,7 +700,6 @@ public final class MechLabViewModel {
     public void showAllParts() {
         if (selectedMech() == null) return;
         browsingStores.set(true);
-        platingSelected.set(false);
         catalogFilter.set(CategoryFilter.ALL);
         feedbackText.set(Strings.get("openingMechLabAllPartsFeedback"));
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
@@ -746,21 +733,16 @@ public final class MechLabViewModel {
     }
     public Signal<String> budgetText() { return budgetText; }
     public Signal<String> budgetClasses() { return budgetClasses; }
-    public Signal<String> platingText() { return platingText; }
-    public Signal<String> platingClasses() { return platingClasses; }
     /** The ship's Mech Lab refits as the selected mech will deploy with them; empty when neutral. */
     public Signal<String> shipRefitText() { return shipRefitText; }
-    public Runnable selectPlatingAction() { return this::selectPlating; }
-    public boolean platingSelected() { return platingSelected.get(); }
+    /** Whether the mech's armor point is the selected socket, so the catalog lists plating. */
+    public boolean platingSelected() { return selectedMech() != null && selectedSlot.get() == SocketId.PLATING; }
 
     /** Fitting-budget and plating bindings, shared by the screen and its evidence. */
     public void putInternalProps(Map<String, Object> props) {
         props.put("budgetText", budgetText);
         props.put("budgetClasses", budgetClasses);
-        props.put("platingText", platingText);
-        props.put("platingClasses", platingClasses);
         props.put("shipRefitText", shipRefitText);
-        props.put("selectPlating", selectPlatingAction());
     }
 
     /** Battle-damage repair bindings, shared by the screen and its evidence. */
@@ -798,6 +780,8 @@ public final class MechLabViewModel {
      * empty core, and the auxiliary compartment, which shows {@link #installedCompartment}.
      */
     public MechInternal installedInternal(SocketId id) {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle != null) return id == SocketId.PLATING ? vehicle.plating() : null;
         CampaignMech mech = selectedMech();
         MechInternal.Role role = id != null ? roleFor(id) : null;
         return mech != null && role != null ? mech.internal(role) : null;
@@ -821,7 +805,7 @@ public final class MechLabViewModel {
     public Signal<String> feedbackClasses() { return feedbackClasses; }
 
     /** Current authored fitting socket; shared with the physical room overlay. */
-    public SocketId selectedSocket() { return platingSelected.get() || browsingStores.get() ? null : selectedSlot.get(); }
+    public SocketId selectedSocket() { return browsingStores.get() ? null : selectedSlot.get(); }
 
     /** Whether the garage camera should frame the selected asset for fitting. */
     public boolean fittingFocused() { return fittingFocused.get(); }
@@ -846,7 +830,7 @@ public final class MechLabViewModel {
     public boolean socketOccupied(SocketId id) {
         CampaignMech mech = selectedMech();
         return mech != null && (installedWeapon(id) != null
-                || id == SocketId.CORE && installedInternal(id) != null
+                || id != null && roleFor(id) != null && installedInternal(id) != null
                 || id != null && id.compartment() && !compartmentPlacements(id).isEmpty());
     }
 
@@ -883,6 +867,11 @@ public final class MechLabViewModel {
      * the compartment), from a spare, where it packs, within the engine budget.
      */
     public boolean canDropCatalogInternal(MechInternal internal, SocketId target) {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle != null) {
+            return internal != null && target == SocketId.PLATING && vehicle.plating() != internal
+                    && inStores(internal) && bay.canFitPlating(vehicle.id(), internal);
+        }
         CampaignMech mech = selectedMech();
         if (mech == null || internal == null || target == null
                 || (internal.role.compartment() ? !target.compartment() : internal.role.socket() != target)
@@ -894,8 +883,7 @@ public final class MechLabViewModel {
     public boolean dropCatalogInternal(MechInternal internal, SocketId target) {
         if (!canDropCatalogInternal(internal, target)) return false;
         selectedSlot.set(target);
-        platingSelected.set(false);
-        return fitInternal(internal);
+        return selectedVehicle() != null ? fitVehiclePlating(internal) : fitInternal(internal);
     }
 
     /** Installed assemblies can move only to vacant, compatible hardpoints. */
@@ -916,7 +904,6 @@ public final class MechLabViewModel {
         if (mech == null || component == null || mount == null
                 || bay.availableWeapon(component.id) <= 0) return false;
         selectedSlot.set(target);
-        platingSelected.set(false);
         MechFrameBudget.Fit proposed = mech.fit().withWeapon(mount, component);
         return applyWeaponResult(workshop.fitWeapon(mech.id(), mount, component), component, proposed);
     }
@@ -959,11 +946,11 @@ public final class MechLabViewModel {
      * one is fitted.
      */
     public boolean removeInstalledInternal(SocketId source) {
+        if (selectedVehicle() != null) return source == SocketId.PLATING && stripVehiclePlating();
         CampaignMech mech = selectedMech();
         MechInternal.Role role = source != null ? roleFor(source) : null;
         if (mech == null || role == null) return false;
         selectedSlot.set(source);
-        platingSelected.set(false);
         MechInternal previous = mech.internal(role);
         MechWorkshop.Result result = workshop.stripInternal(mech.id(), role);
         feedbackText.set(switch (result.status()) {
@@ -983,7 +970,6 @@ public final class MechLabViewModel {
         CampaignMech mech = selectedMech();
         if (mech == null || part == null) return false;
         selectedSlot.set(SocketId.AUXILIARY);
-        platingSelected.set(false);
         MechWorkshop.Result result = workshop.stripPart(mech.id(), part);
         feedbackText.set(switch (result.status()) {
             case STRIPPED -> Strings.format("openingMechLabInternalStripped", part.displayName());
@@ -1177,7 +1163,7 @@ public final class MechLabViewModel {
     private List<FittingMeter> buildFittingMeters() {
         revision.get();
         CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle != null) return vehicleMeters(vehicle.type(), "", VehicleKit.Effect.of(vehicle.kits()));
+        if (vehicle != null) return vehicleMeters(vehicle.type(), "", effect(vehicle));
         CampaignMech mech = selectedMech();
         if (mech == null) return List.of();
         MechFrameBudget.Fit fit = mech.fit();
@@ -1185,7 +1171,7 @@ public final class MechLabViewModel {
         int currentMissiles = missileTriggers(mech);
 
         MechWeaponComponent candidate = hoveredWeapon.get();
-        MechMountSlot mount = platingSelected.get() ? null : mountFor(selectedSlot.get());
+        MechMountSlot mount = mountFor(selectedSlot.get());
         float ghostRange = currentRange;
         int ghostMissiles = currentMissiles;
         if (candidate != null && mount != null) {
@@ -1257,7 +1243,7 @@ public final class MechLabViewModel {
         MechInternal internal = hoveredInternal.get();
         if (internal != null) return mech.fit().withInternal(internal.role, internal);
         MechWeaponComponent weapon = hoveredWeapon.get();
-        MechMountSlot mount = platingSelected.get() ? null : mountFor(selectedSlot.get());
+        MechMountSlot mount = mountFor(selectedSlot.get());
         return weapon != null && mount != null ? mech.fit().withWeapon(mount, weapon) : null;
     }
 
@@ -1341,12 +1327,13 @@ public final class MechLabViewModel {
                 telemetry = Strings.get("openingMechLabUnfittedHardpoint");
             }
 
-            boolean canStrip = !locked && (weapon != null || internal != null);
+            // A plate is only ever replaced, so its card has no X.
+            boolean canStrip = !locked && (weapon != null || internal != null && !internal.role.replaceOnly());
             String stripClasses = canStrip ? "slot-strip-action" : "slot-strip-action hidden";
 
             String base = "mech-slot:" + slot.name().toLowerCase(Locale.ROOT);
             rows.add(new SlotRow(new FittingSlotCard(base,
-                    slot == selectedSlot.get() && !platingSelected.get() && !browsingStores.get()
+                    slot == selectedSlot.get() && !browsingStores.get()
                             ? "doll-slot selected" : "doll-slot",
                     definition.label(), badge, badgeClasses,
                     slotComponent(mech, slot), telemetry, slotType(definition),
@@ -1359,15 +1346,18 @@ public final class MechLabViewModel {
 
     private String buildSelectedSlotCopy() {
         CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle != null) return vehicleSummary(vehicle.type(), VehicleKit.Effect.of(vehicle.kits()));
+        if (vehicle != null) {
+            return selectedSlot.get() == SocketId.PLATING ? Strings.get("openingMechLabVehiclePlatingCopy")
+                    : vehicleSummary(vehicle.type(), effect(vehicle));
+        }
         CampaignMech mech = selectedMech();
         if (mech == null) return fabricatingChassis()
                 ? Strings.get("openingMechLabFabricateACompleteStandardFitWalkerHere")
                 : Strings.get("openingMechLabNoHeavyAssetSelected");
-        if (platingSelected.get()) return Strings.get("openingMechLabPlatingCopy");
         if (browsingStores.get()) return Strings.get("openingMechLabAllPartsCopy");
         return switch (selectedSlot.get()) {
             case CORE -> Strings.get("openingMechLabEngineCopy");
+            case PLATING -> Strings.get("openingMechLabPlatingCopy");
             case AUXILIARY, AUXILIARY_2 -> Strings.get("openingMechLabCompartmentCopy");
             case ARMS, LEFT_ARM, RIGHT_ARM, LEFT_SHOULDER, RIGHT_SHOULDER ->
                     slotComponent(mech, selectedSlot.get()).equals(Strings.get("openingMechLabEmptyHardpoint"))
@@ -1382,9 +1372,9 @@ public final class MechLabViewModel {
         }
         CampaignVehicle vehicle = selectedVehicle();
         if (vehicle != null) {
-            return Strings.format("openingMechLabVehicleKitRule", vehicle.kits().size(), VehicleKit.slots(vehicle.type()));
+            return selectedSlot.get() == SocketId.PLATING ? Strings.get("openingMechLabVehiclePlatingRule")
+                    : Strings.format("openingMechLabVehicleKitRule", vehicle.kits().size(), VehicleKit.slots(vehicle.type()));
         }
-        if (selectedMech() != null && platingSelected.get()) return Strings.get("openingMechLabPlatingRule");
         if (selectedMech() != null && browsingStores.get()) return Strings.get("openingMechLabAllPartsRule");
         SocketDef definition = selectedSocketDefinition();
         if (definition == null) return Strings.get("openingMechLabNoSocketDefinition");
@@ -1398,8 +1388,9 @@ public final class MechLabViewModel {
         CampaignMech mech = selectedMech();
         if (fabricatingChassis()) return chassisCatalog();
         // A vehicle's gun, plate and drive are sealed: only its kit rack is fitted.
-        if (selectedVehicle() != null) return kitCatalog(selectedVehicle());
-        if (mech != null && platingSelected.get()) return internalCatalog(mech, MechInternal.Role.PLATING);
+        if (selectedVehicle() != null) {
+            return selectedSlot.get() == SocketId.PLATING ? platingCatalog(selectedVehicle()) : kitCatalog(selectedVehicle());
+        }
         if (mech != null && browsingStores.get()) return allPartsCatalog(mech);
         if (selectedSlot.get().compartment() && mech != null) {
             List<CatalogRow> rows = new ArrayList<>(internalCatalog(mech, MechInternal.Role.CAPACITOR_BANK));
@@ -1445,6 +1436,7 @@ public final class MechLabViewModel {
             rows.addAll(internalCatalog(mech, MechInternal.Role.LOADER));
             rows.addAll(internalCatalog(mech, MechInternal.Role.VENT_ARRAY));
         }
+        if (all || filter == CategoryFilter.PLATING) rows.addAll(internalCatalog(mech, MechInternal.Role.PLATING));
         return List.copyOf(rows);
     }
 
@@ -1609,7 +1601,7 @@ public final class MechLabViewModel {
             String badgeClasses = FittedBadge.classes(installed);
 
             float mass = MechFrameBudget.mass(internal, mech.variant());
-            String detail = role.socket() == null
+            String detail = plating
                     ? Strings.format("openingMechLabInternalDetailFrameWide", number(mass))
                     : Strings.format("openingMechLabInternalDetail", number(mass),
                             internal.footprintColumns, internal.footprintRows);
@@ -1622,23 +1614,17 @@ public final class MechLabViewModel {
                 deltaClasses = delta.classes();
             }
 
-            // Plating covers the whole frame and has no mount to drop on, so a spare is fitted
-            // from its row; every other part is dragged onto its mount.
-            boolean fitFromRow = plating && inCargo;
+            // Every part is dragged onto its mount, the armor point's plate as the engine onto the core.
             boolean offerFab = !locked && !inCargo;
-            String actionLabel = fitFromRow ? Strings.get("openingMechLabFit")
-                    : offerFab ? Strings.get("openingMechLabFab") : "";
-            String actionHint = fitFromRow ? !withinBudget ? overBudgetHint(proposed)
-                    : Strings.get("openingMechLabInternalSpareHint")
-                    : affordable ? Strings.get("openingMechLabFabHint")
-                    : shortHint();
-            disabled = fitFromRow ? !withinBudget : !offerFab || !affordable;
+            String actionLabel = offerFab ? Strings.get("openingMechLabFab") : "";
+            String actionHint = affordable ? Strings.get("openingMechLabFabHint") : shortHint();
+            disabled = !offerFab || !affordable;
 
             String base = "mech-catalog:" + internal.id;
             boolean showMaterials = offerFab;
             FabricationCost back = inCargo ? workshop.internalRecovery(internal) : null;
             List<Row> materials = showMaterials ? materialRows(base, resources.quote(recipe.cost())) : recoveryRows(base, back);
-            rows.add(catalogRow(base, internal.role == MechInternal.Role.PLATING ? "catalog-preview hidden" : "catalog-preview",
+            rows.add(catalogRow(base, "catalog-preview",
                     null, null, internal, null,
                     showMaterials ? "catalog-row requires-fabrication" : "catalog-row", internal.displayName(),
                     badge, badgeClasses,
@@ -1646,7 +1632,7 @@ public final class MechLabViewModel {
                     internalTelemetry(proposed, internal), deltaText, deltaClasses,
                     detail, actionLabel, actionHint,
                     disabled, materials, showMaterials ? "material-costs" : recoveryClasses(back),
-                    fitFromRow ? () -> fitInternal(internal) : () -> fabricateInternal(internal), null,
+                    () -> fabricateInternal(internal), null,
                     recycleButton(base, back, () -> workshop.recycleInternal(internal), internal.displayName())));
         }
         return List.copyOf(rows);
@@ -1694,6 +1680,78 @@ public final class MechLabViewModel {
                     recycleButton(base, back, () -> workshop.recycleKit(kit), kit.displayName())));
         }
         return List.copyOf(rows);
+    }
+
+    /** What a vehicle is set down with: its plating and the kits on its rack. */
+    private static VehicleKit.Effect effect(CampaignVehicle vehicle) {
+        return VehicleKit.Effect.of(vehicle.kits(), vehicle.platingTier(), vehicle.type());
+    }
+
+    /**
+     * The plating a vehicle's armor point can take: every plate above the hull's own with a spare or a known
+     * pattern. A plate is dragged onto the armor point, as a mech's is onto its own.
+     */
+    private List<CatalogRow> platingCatalog(CampaignVehicle vehicle) {
+        List<CatalogRow> rows = new ArrayList<>();
+        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.internals()) {
+            MechInternal plating = recipe.internal();
+            if (!CampaignVehicle.takesPlating(plating)) continue;
+            int free = bay.availableInternal(plating.id);
+            boolean locked = !bay.canFabricate(plating);
+            if (locked && free == 0) continue;
+            boolean installed = vehicle.plating() == plating;
+            boolean inCargo = free > 0;
+            boolean affordable = resources.canBuy(resources.quote(recipe.cost()));
+            boolean offerFab = !locked && !inCargo;
+            String actionLabel = offerFab ? Strings.get("openingMechLabFab") : "";
+            String actionHint = installed ? Strings.get("openingMechLabPlatingOnHull")
+                    : inCargo ? Strings.get("openingMechLabPlatingSpareHint")
+                    : affordable ? Strings.get("openingMechLabFabHint")
+                    : shortHint();
+
+            String base = "mech-catalog:" + plating.id;
+            FabricationCost back = inCargo ? workshop.internalRecovery(plating) : null;
+            List<Row> materials = offerFab ? materialRows(base, resources.quote(recipe.cost())) : recoveryRows(base, back);
+            rows.add(catalogRow(base, "catalog-preview", null, null, plating, null,
+                    offerFab ? "catalog-row requires-fabrication" : "catalog-row", plating.displayName(),
+                    FittedBadge.label(installed), FittedBadge.classes(installed),
+                    Strings.format("openingMechLabOwnFree", recipe.provenance(), spareCount(free)),
+                    Strings.get("vehiclePlatingEffect" + plating.name()), "", "catalog-delta hidden",
+                    Strings.get("openingMechLabVehiclePlatingDetail"), actionLabel, actionHint,
+                    !offerFab || !affordable, materials, offerFab ? "material-costs" : recoveryClasses(back),
+                    () -> fabricateInternal(plating), null,
+                    recycleButton(base, back, () -> workshop.recycleInternal(plating), plating.displayName())));
+        }
+        return List.copyOf(rows);
+    }
+
+    /** Puts a spare plate at the selected vehicle's armor point; the plate it replaces returns to stores. */
+    public boolean fitVehiclePlating(MechInternal plating) {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle == null || plating == null) return false;
+        MechWorkshop.Result result = workshop.fitPlating(vehicle.id(), plating);
+        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabPlatingFitted", plating.displayName())
+                : Strings.get("openingMechLabPlatingBlocked"));
+        clearHoverInternal();
+        finishWeaponCommand(result);
+        return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
+    }
+
+    /** Takes the plate off the selected vehicle's armor point; the hull wears its own plate again. */
+    public boolean stripVehiclePlating() {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle == null) return false;
+        MechInternal previous = vehicle.plating();
+        MechWorkshop.Result result = workshop.stripPlating(vehicle.id());
+        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabPlatingStripped", previous.displayName())
+                : Strings.get("openingMechLabPlatingBlocked"));
+        finishWeaponCommand(result);
+        return result.status() == MechWorkshop.Status.STRIPPED;
+    }
+
+    /** Whether a part on the doll can be lifted off it: a mech's plate is only ever replaced, a vehicle's comes off. */
+    public boolean liftable(MechInternal internal) {
+        return internal != null && (!internal.role.replaceOnly() || selectedVehicle() != null);
     }
 
     /** The kits on the selected vehicle's rack, in fitted order; empty for a mech or nothing. */
@@ -1890,7 +1948,11 @@ public final class MechLabViewModel {
      * the compartment, which holds several roles at once.
      */
     static MechInternal.Role roleFor(SocketId socket) {
-        return socket == SocketId.CORE ? MechInternal.Role.ENGINE : null;
+        return switch (socket) {
+            case CORE -> MechInternal.Role.ENGINE;
+            case PLATING -> MechInternal.Role.PLATING;
+            default -> null;
+        };
     }
 
     public Signal<List<Row>> materialStock() { return materialStock; }
@@ -1988,7 +2050,6 @@ public final class MechLabViewModel {
         callSignDraft.set("");
         selectedGantry.set(0);
         selectedSlot.set(SocketId.AUXILIARY);
-        platingSelected.set(false);
         fittingFocused.set(false);
         feedbackText.set(Strings.format("openingMechLabIsNowTheActiveMechSupportLance", squad.displayName()));
         feedbackClasses.set("mech-lab-feedback tone-good surface-dark");
@@ -2009,7 +2070,6 @@ public final class MechLabViewModel {
         selectedVehicleId.set(null);
         callSignDraft.set(squad.mechById(mechId).displayName());
         selectedSlot.set(defaultFittingSlot(squad.mechById(mechId)));
-        platingSelected.set(false);
         browsingStores.set(true);
         fittingFocused.set(true);
         assetPickerOpen.set(false);
@@ -2053,7 +2113,6 @@ public final class MechLabViewModel {
         selectedVehicleId.set(vehicle != null ? vehicle.id() : null);
         callSignDraft.set(occupant != null ? occupant : "");
         selectedSlot.set(defaultFittingSlot(mech));
-        platingSelected.set(false);
         browsingStores.set(mech != null);
         fittingFocused.set(true);
         assetPickerOpen.set(false);
@@ -2084,12 +2143,17 @@ public final class MechLabViewModel {
     }
 
     public void selectSlot(SocketId slot) {
+        if (selectedVehicle() != null) {
+            // Only the rack and the armor point are live on a vehicle's doll; the rest is sealed.
+            if (slot != SocketId.PLATING && slot != SocketId.AUXILIARY) return;
+            selectedSlot.set(slot);
+            return;
+        }
         CampaignMech mech = selectedMech();
         if (mech == null) return;
         MechFittingLayout layout = MechFittingLayout.forVariant(mech.variant());
         if (!layout.hasSocket(slot)) return;
         selectedSlot.set(slot);
-        platingSelected.set(false);
         browsingStores.set(false);
         fittingFocused.set(true);
         SocketDef def = layout.socket(slot);
@@ -2102,16 +2166,9 @@ public final class MechLabViewModel {
         feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
     }
 
-    /** Plating covers the whole frame, so it is chosen beside the sockets rather than in one. */
+    /** Selects the armor point, whose catalog lists the plating the frame can wear. */
     public void selectPlating() {
-        CampaignMech mech = selectedMech();
-        if (mech == null) return;
-        platingSelected.set(true);
-        browsingStores.set(false);
-        clearHoverCandidates();
-        feedbackText.set(Strings.format("openingMechLabSelected", Strings.get("openingMechLabFramePlating"),
-                Strings.get("openingMechLabInternalPartsReady")));
-        feedbackClasses.set("mech-lab-feedback tone-muted surface-dark");
+        selectSlot(SocketId.PLATING);
     }
 
     private static SocketId defaultFittingSlot(CampaignMech mech) {
@@ -2389,7 +2446,6 @@ public final class MechLabViewModel {
             callSignDraft.set(fabricated.displayName());
             selectedGantry.set(Math.max(0, squad.mechs().size() - 1));
             selectedSlot.set(fabricated.variant().twoArmed() ? SocketId.LEFT_ARM : SocketId.ARMS);
-            platingSelected.set(false);
             fittingFocused.set(true);
         }
         feedbackText.set(switch (result.status()) {
@@ -2636,6 +2692,7 @@ public final class MechLabViewModel {
         if (mech == null) return Strings.get("openingMechLabNoAsset");
         return switch (slot) {
             case CORE -> internalName(mech, MechInternal.Role.ENGINE);
+            case PLATING -> internalName(mech, MechInternal.Role.PLATING);
             case ARMS -> componentName(mech.arms());
             case LEFT_ARM -> componentName(mech.leftArm());
             case RIGHT_ARM -> componentName(mech.rightArm());
@@ -2810,7 +2867,7 @@ public final class MechLabViewModel {
         if (fabricatingChassis()) return CategoryFilter.PATTERNS;
         if (selectedMech() == null) return List.of();
         if (browsingStores.get()) return CategoryFilter.PARTS;
-        if (platingSelected.get() || mountFor(selectedSlot.get()) == null) return List.of();
+        if (mountFor(selectedSlot.get()) == null) return List.of();
         SocketDef socket = selectedSocketDefinition();
         return socket != null && socket.type() == MechFittingLayout.SocketType.OMNI
                 ? CategoryFilter.WEAPONS : List.of();
@@ -2932,6 +2989,7 @@ public final class MechLabViewModel {
         ENGINE("openingMechLabFilterEngine", "graphics/ui/mech-hardware/engine-industrial.svg", "#5e96d2"),
         CAPACITORS("openingMechLabFilterCapacitors", "graphics/ui/mech-hardware/capacitor-factory.svg", "#a07edc"),
         UTILITY("openingMechLabFilterUtility", "graphics/ui/mech-hardware/loader-standard.svg", "#4cb4a6"),
+        PLATING("openingMechLabFilterPlating", "graphics/ui/mech-hardware/plating-composite.svg", "#a4a8a0"),
         // A vacant pad's patterns, on the plate of a walker and the olive of a hull.
         WALKERS("openingMechLabFilterWalkers", "graphics/ui/mech-hardware/pattern-walker.svg", "#b9b6a2"),
         VEHICLES("openingMechLabFilterVehicles", "graphics/ui/mech-hardware/pattern-vehicle.svg", "#8fa06a");
@@ -2947,7 +3005,7 @@ public final class MechLabViewModel {
         public String tone() { return tone; }
 
         static final List<CategoryFilter> WEAPONS = List.of(BALLISTIC, MISSILE, ENERGY);
-        static final List<CategoryFilter> PARTS = List.of(BALLISTIC, MISSILE, ENERGY, ENGINE, CAPACITORS, UTILITY);
+        static final List<CategoryFilter> PARTS = List.of(BALLISTIC, MISSILE, ENERGY, ENGINE, CAPACITORS, UTILITY, PLATING);
         static final List<CategoryFilter> PATTERNS = List.of(WALKERS, VEHICLES);
     }
 

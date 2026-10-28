@@ -743,7 +743,7 @@ class MechLabViewModelTest {
         assertTrue(viewModel.browsingStores().get());
         assertNull(viewModel.selectedSocket(), "no mount is chosen while browsing");
         assertEquals(List.of("mech-filter:ballistic", "mech-filter:missile", "mech-filter:energy",
-                        "mech-filter:engine", "mech-filter:capacitors", "mech-filter:utility"),
+                        "mech-filter:engine", "mech-filter:capacitors", "mech-filter:utility", "mech-filter:plating"),
                 viewModel.categoryFilterPills().get().stream().map(FittingFilterPill::id).toList());
         List<MechLabViewModel.CatalogRow> everything = viewModel.catalogRows().get();
         assertTrue(everything.stream().anyMatch(row -> row.weaponPreview() != null));
@@ -928,7 +928,7 @@ class MechLabViewModelTest {
     }
 
     @Test
-    void platingIsChosenBesideTheSocketsAndPreviewsArmor() {
+    void platingIsChosenAtTheArmorPointAndPreviewsArmor() {
         MechBay bay = MechBay.legacyStarterFixture();
         MechLabViewModel viewModel = new MechLabViewModel(
                 new Reactor(), bay, new TestPurse(60_000));
@@ -937,8 +937,7 @@ class MechLabViewModelTest {
 
         viewModel.selectPlating();
         assertTrue(viewModel.platingSelected());
-        assertNull(viewModel.selectedSocket());
-        assertTrue(viewModel.platingClasses().get().contains("selected"));
+        assertEquals(SocketId.PLATING, viewModel.selectedSocket());
         assertFalse(viewModel.catalogRows().get().isEmpty());
         assertTrue(viewModel.catalogRows().get().stream().allMatch(row ->
                 row.internalPreview() != null && row.internalPreview().role == MechInternal.Role.PLATING));
@@ -995,8 +994,11 @@ class MechLabViewModelTest {
                 MechInternal internal = row.internalPreview();
                 boolean within = mech.internal(internal.role) == internal || bay.withinBudget(
                         mech.id(), mech.fit().withInternal(internal.role, internal));
-                // A spare plate is fitted from its row, and only when the engine can carry it.
-                if (row.actionLabel().equals("FIT")) assertEquals(!within, row.actionDisabled(), internal.id);
+                // A spare plate is dropped on the armor point, and only when the engine can carry it.
+                if (viewModel.inStores(internal)) {
+                    assertEquals(within && mech.internal(internal.role) != internal,
+                            viewModel.canDropCatalogInternal(internal, SocketId.PLATING), internal.id);
+                }
             }
         }
     }
@@ -1006,20 +1008,54 @@ class MechLabViewModelTest {
         MechBay bay = MechBay.legacyStarterFixture();
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
-        bay.addKit(VehicleKit.APPLIQUE_PLATE.id, 1);
+        bay.addKit(VehicleKit.SPALL_LINER.id, 1);
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
         viewModel.gantryRows().get().get(1).select().run();
         assertEquals(VehicleType.BREAKTHROUGH_TANK, viewModel.selectedVehicleType());
 
-        MechLabViewModel.CatalogRow plate = viewModel.catalogRows().get().stream()
-                .filter(row -> row.name().equals(VehicleKit.APPLIQUE_PLATE.displayName()))
+        MechLabViewModel.CatalogRow liner = viewModel.catalogRows().get().stream()
+                .filter(row -> row.name().equals(VehicleKit.SPALL_LINER.displayName()))
                 .findFirst().orElseThrow();
-        assertFalse(plate.actionDisabled(), plate.actionHint());
-        plate.action().run();
-        assertEquals(List.of(VehicleKit.APPLIQUE_PLATE), viewModel.installedKits());
-        assertTrue(viewModel.removeKit(VehicleKit.APPLIQUE_PLATE));
+        assertFalse(liner.actionDisabled(), liner.actionHint());
+        liner.action().run();
+        assertEquals(List.of(VehicleKit.SPALL_LINER), viewModel.installedKits());
+        assertTrue(viewModel.removeKit(VehicleKit.SPALL_LINER));
         assertTrue(tank.kits().isEmpty());
-        assertEquals(1, bay.availableKit(VehicleKit.APPLIQUE_PLATE.id), "the kit is a spare again");
+        assertEquals(1, bay.availableKit(VehicleKit.SPALL_LINER.id), "the kit is a spare again");
+    }
+
+    @Test
+    void aVehicleTakesPlatingAtItsArmorPointByDropAndGivesItBack() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
+        bay.addInternal(MechInternal.COMPOSITE_PLATING.id, 1);
+        bay.addInternal(MechInternal.HEAVY_PLATING.id, 1);
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
+        viewModel.gantryRows().get().get(1).select().run();
+
+        assertFalse(viewModel.canDropCatalogInternal(MechInternal.COMPOSITE_PLATING, SocketId.CORE), "only the armor point takes it");
+        assertTrue(viewModel.canDropCatalogInternal(MechInternal.COMPOSITE_PLATING, SocketId.PLATING));
+        assertTrue(viewModel.dropCatalogInternal(MechInternal.COMPOSITE_PLATING, SocketId.PLATING));
+        assertEquals(MechInternal.COMPOSITE_PLATING, viewModel.installedInternal(SocketId.PLATING));
+        assertFalse(viewModel.canDropCatalogInternal(MechInternal.COMPOSITE_PLATING, SocketId.PLATING), "already on the hull");
+
+        assertTrue(viewModel.dropCatalogInternal(MechInternal.HEAVY_PLATING, SocketId.PLATING));
+        assertEquals(1, bay.availableInternal(MechInternal.COMPOSITE_PLATING.id), "the outgoing plate is a spare");
+        assertTrue(viewModel.removeInstalledInternal(SocketId.PLATING));
+        assertNull(tank.plating());
+        assertEquals(1, bay.availableInternal(MechInternal.HEAVY_PLATING.id));
+    }
+
+    @Test
+    void aMechsPlateIsOnlyEverReplacedNeverLiftedOff() {
+        MechBay bay = MechBay.legacyStarterFixture();
+        MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
+        viewModel.gantryRows().get().get(0).select().run();
+        assertFalse(viewModel.liftable(MechInternal.FACTORY_PLATING));
+        assertTrue(viewModel.liftable(MechInternal.INDUSTRIAL_ENGINE));
+        assertFalse(viewModel.removeInstalledInternal(SocketId.PLATING));
+        assertNotNull(bay.mechById(MechBay.STARTER_MECH_ID).internal(MechInternal.Role.PLATING));
     }
 
     @Test

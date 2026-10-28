@@ -9,7 +9,7 @@ import java.util.Set;
 
 /**
  * A bolt-on part a company fits to a vehicle's kit rack (mechs-nouns.md, vehicle kit). A vehicle's
- * gun, plate and drive are sealed; a kit is the one thing that changes, and it changes only what the hull is
+ * gun, plate and drive are sealed; plating has its own point on the doll ({@link VehiclePlating}), and a kit is the one rack part that changes, and it changes only what the hull is
  * set down with: its numbers, or a drone bay on a hull that has none ({@link #SENSOR_PAIR}). It adds no behaviour
  * of its own; the bay's drones fly as any bay's do.
  *
@@ -17,14 +17,10 @@ import java.util.Set;
  * something of the hull ({@link #suits}).</p>
  */
 public enum VehicleKit {
-    /** A quarter more armor capacity on every plate and the turret. */
-    APPLIQUE_PLATE("kit.applique-plate", "@vehicleKitAppliquePlate", 1.25f, 1f, 1f, 0f),
     /** A fifth more structure. */
     SPALL_LINER("kit.spall-liner", "@vehicleKitSpallLiner", 1f, 1.2f, 1f, 0f),
     /** Half again the rounds aboard the turret at the drop. Armed hulls only. */
     READY_RACK("kit.ready-rack", "@vehicleKitReadyRack", 1f, 1f, 1.5f, 0f),
-    /** +2 armor rating. Tracked hulls only. */
-    SPACED_SKIRTS("kit.spaced-skirts", "@vehicleKitSpacedSkirts", 1f, 1f, 1f, 2f),
     /**
      * A tethered pair of sensor drones the hull launches and flies ahead of its bow: sight past cover the hull
      * cannot see over, which is what an indirect-fire hull otherwise needs a spotter for. Hulls with no bay of
@@ -75,16 +71,15 @@ public enum VehicleKit {
 
     /**
      * Whether the hull has what this kit works on: a magazine for the ready rack or the loader, flux for the
-     * capacitors, tracks for the skirts.
+     * capacitors.
      */
     public boolean suits(VehicleType type) {
         if (type == null) return false;
         return switch (this) {
             case READY_RACK, ACCELERATED_LOADER -> type.hasTurretWeapon();
             case CAPACITOR_PACK -> type.hasTurretWeapon() && type.turretStructure().mount.flux != null;
-            case SPACED_SKIRTS -> type.isTank();
             case SENSOR_PAIR -> type.droneBay().isEmpty();
-            case APPLIQUE_PLATE, SPALL_LINER -> true;
+            case SPALL_LINER -> true;
         };
     }
 
@@ -114,6 +109,11 @@ public enum VehicleKit {
         public static final Effect NONE = new Effect(1f, 1f, 1f, 0f, 1f, 1f);
 
         public static Effect of(List<VehicleKit> kits) {
+            return of(kits, VehiclePlating.FACTORY, null);
+        }
+
+        /** As above, in the plating the hull wears: its armor factor and, on a tracked hull, its skirts. */
+        public static Effect of(List<VehicleKit> kits, VehiclePlating plating, VehicleType type) {
             float armor = 1f, structure = 1f, ammo = 1f, rating = 0f, loader = 1f, flux = 1f;
             for (VehicleKit kit : kits) {
                 armor *= kit.armorFactor;
@@ -122,6 +122,10 @@ public enum VehicleKit {
                 rating += kit.armorRatingBonus;
                 loader *= kit.loaderFactor;
                 flux *= kit.fluxCapacityFactor;
+            }
+            if (plating != null) {
+                armor *= plating.armorFactor();
+                rating += plating.armorRatingBonus(type);
             }
             return new Effect(armor, structure, ammo, rating, loader, flux);
         }

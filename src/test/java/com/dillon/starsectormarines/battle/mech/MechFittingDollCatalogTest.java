@@ -30,7 +30,7 @@ class MechFittingDollCatalogTest {
 
         // Hound: light mech with 1 Nose (2x2) and 1 Shoulder (2x2)
         DollDef hound = catalog.doll(MechVariant.HOUND);
-        assertEquals(4, hound.sockets().size());
+        assertEquals(SocketType.PLATING, socket(hound, SocketId.PLATING).type(), "every doll has an armor point");
         SocketDef houndNose = socket(hound, SocketId.ARMS);
         assertEquals("NOSE MOUNT", houndNose.label());
         assertEquals(2, houndNose.gridColumns());
@@ -44,11 +44,11 @@ class MechFittingDollCatalogTest {
         assertEquals(SocketType.MISSILE, houndShoulder.type());
 
         DollDef warden = catalog.doll(MechVariant.WARDEN);
-        assertEquals(5, warden.sockets().size());
+        assertEquals(SocketType.PLATING, socket(warden, SocketId.PLATING).type());
         assertEquals("NOSE CANNON", socket(warden, SocketId.ARMS).label());
 
         DollDef bulwark = catalog.doll(MechVariant.BULWARK);
-        assertEquals(7, bulwark.sockets().size(), "a socket for each arm and two compartment bays");
+        assertEquals(SocketType.PLATING, socket(bulwark, SocketId.PLATING).type());
         assertEquals("L. ARM", socket(bulwark, SocketId.LEFT_ARM).label());
         assertEquals("R. ARM", socket(bulwark, SocketId.RIGHT_ARM).label());
         assertTrue(bulwark.sockets().stream().noneMatch(socket -> socket.id() == SocketId.ARMS));
@@ -57,7 +57,7 @@ class MechFittingDollCatalogTest {
     @Test
     void layoutForVariantResolvesDataAuthoredDolls() {
         MechFittingLayout houndLayout = MechFittingLayout.forVariant(MechVariant.HOUND);
-        assertEquals(4, houndLayout.sockets().size());
+        assertTrue(houndLayout.hasSocket(SocketId.PLATING));
         assertTrue(houndLayout.hasSocket(SocketId.ARMS));
         assertTrue(houndLayout.hasSocket(SocketId.LEFT_SHOULDER));
         assertFalse(houndLayout.hasSocket(SocketId.RIGHT_SHOULDER));

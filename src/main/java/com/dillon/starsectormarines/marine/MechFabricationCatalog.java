@@ -68,10 +68,8 @@ public final class MechFabricationCatalog {
 
     /** Bolt-on vehicle kits; bills are derived like a part's. */
     private static final List<Recipe> KITS = List.of(
-            kit(VehicleKit.APPLIQUE_PLATE, "@gearFabricationStandardIssue"),
             kit(VehicleKit.SPALL_LINER, "@gearFabricationStandardIssue"),
             kit(VehicleKit.READY_RACK, "@gearFabricationStandardIssue"),
-            kit(VehicleKit.SPACED_SKIRTS, "@gearFabricationMilitaryPattern"),
             kit(VehicleKit.SENSOR_PAIR, "@gearFabricationMilitaryPattern"),
             kit(VehicleKit.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"),
             kit(VehicleKit.CAPACITOR_PACK, "@gearFabricationMilitaryPattern"));

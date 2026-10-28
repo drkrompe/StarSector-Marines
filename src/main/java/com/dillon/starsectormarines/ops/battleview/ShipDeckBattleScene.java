@@ -691,7 +691,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
             if (vehicle == null) continue;
             Gantry gantry = gantries.get(index);
             float x = gantry.worldCenterX(), y = gantry.worldCenterY();
-            long hull = simulation.convoy().spawn(vehicle.type(), vehicle.kits(), Faction.MARINE,
+            long hull = simulation.convoy().spawn(vehicle.type(), vehicle.kits(), vehicle.plating(), Faction.MARINE,
                     VehicleMission.deployed(x, y));
             simulation.convoy().body(hull).teleport(x, y, parkedFacing(gantry));
             berthedVehicles[index] = hull;

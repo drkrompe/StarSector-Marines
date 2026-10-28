@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.i18n.Strings;
 
@@ -14,7 +15,8 @@ import java.util.List;
  *
  * <p>It shares the gantry with mechs and nothing else: no chassis, sockets, flux or
  * weapon components. Its hull, turret and kinematics are its {@link VehicleType}'s and are
- * sealed; the one thing fitted to it is the {@link VehicleKit}s on its rack.
+ * sealed; what is fitted to it is the plating at its armor point (a {@link MechInternal} of the
+ * plating role, as a mech wears) and the {@link VehicleKit}s on its rack.
  */
 public final class CampaignVehicle implements Serializable {
 
@@ -23,6 +25,11 @@ public final class CampaignVehicle implements Serializable {
     private final VehicleType type;
     /** Kit ids on the rack, in fitted order; null in a save from before kits (an empty rack). */
     private List<String> kitIds = new ArrayList<>();
+    /**
+     * The plating part at its armor point; null is the hull's own plate, which is no inventory part
+     * and is what a stripped armor point reads as.
+     */
+    private String platingId;
 
     public CampaignVehicle(String id, String displayName, VehicleType type) {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("Vehicle id is required");
@@ -38,6 +45,38 @@ public final class CampaignVehicle implements Serializable {
     public String id() { return id; }
     public String displayName() { return displayName; }
     public VehicleType type() { return type; }
+
+    /** The plating part fitted at the armor point; null when the hull wears its own plate. */
+    public MechInternal plating() {
+        MechInternal plating = MechInternal.findById(platingId);
+        return plating != null && plating.role == MechInternal.Role.PLATING && !plating.stock() ? plating : null;
+    }
+
+    /** Whether {@code plating} goes at the armor point: a plating tier above the hull's own plate. */
+    public static boolean takesPlating(MechInternal plating) {
+        return plating != null && plating.role == MechInternal.Role.PLATING && !plating.stock();
+    }
+
+    /** Fits {@code plating} at the armor point, replacing what was there; false for a part that does not go. */
+    boolean fitPlating(MechInternal plating) {
+        if (!takesPlating(plating)) return false;
+        platingId = plating.id;
+        return true;
+    }
+
+    /** Takes the plating off the armor point, back to the hull's own plate; false when none was fitted. */
+    boolean stripPlating() {
+        boolean fitted = plating() != null;
+        platingId = null;
+        return fitted;
+    }
+
+    /** What the plating at the armor point makes of the hull at the drop. */
+    public VehiclePlating platingTier() {
+        MechInternal plating = plating();
+        if (plating == null) return VehiclePlating.FACTORY;
+        return plating == MechInternal.HEAVY_PLATING ? VehiclePlating.HEAVY : VehiclePlating.COMPOSITE;
+    }
 
     /** The kits on the rack, in fitted order. */
     public List<VehicleKit> kits() {
@@ -87,8 +126,27 @@ public final class CampaignVehicle implements Serializable {
 
     /** The frozen value Mech Support carries; the campaign object stays in the bay. */
     public VehicleDeploymentSpec freezeForDeployment() {
-        return new VehicleDeploymentSpec(id, displayName, type, kits());
+        return new VehicleDeploymentSpec(id, displayName, type, kits(), platingTier());
     }
+
+    /**
+     * Saves from before the armor point kept armor as two rack kits: the appliqué plate is composite plating
+     * and the spaced skirts heavy plating, the heavier of the two winning when a hull wore both.
+     */
+    private Object readResolve() {
+        if (kitIds == null) kitIds = new ArrayList<>();
+        boolean applique = kitIds.remove(RETIRED_APPLIQUE_PLATE);
+        boolean skirts = kitIds.remove(RETIRED_SPACED_SKIRTS);
+        if (platingId == null) {
+            if (skirts) platingId = MechInternal.HEAVY_PLATING.id;
+            else if (applique) platingId = MechInternal.COMPOSITE_PLATING.id;
+        }
+        return this;
+    }
+
+    /** The retired armor kits' ids: migration input only ({@link #readResolve}, {@link MechBay}). */
+    static final String RETIRED_APPLIQUE_PLATE = "kit.applique-plate";
+    static final String RETIRED_SPACED_SKIRTS = "kit.spaced-skirts";
 
     /** Player-facing name of a vehicle hull: its role and weapon, short ("LRM Standoff Carrier"). */
     public static String typeName(VehicleType type) {

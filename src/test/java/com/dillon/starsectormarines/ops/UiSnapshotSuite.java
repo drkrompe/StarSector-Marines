@@ -2997,11 +2997,13 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             CampaignVehicle tank = new CampaignVehicle("support_vehicle_04", "Breaker 04", VehicleType.BREAKTHROUGH_TANK);
             bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank);
             for (VehicleKit kit : VehicleKit.values()) bay.learnPattern(MechPattern.of(kit).id());
-            bay.addKit(VehicleKit.APPLIQUE_PLATE.id, 1);
-            bay.addKit(VehicleKit.SPACED_SKIRTS.id, 1);
+            bay.addKit(VehicleKit.SPALL_LINER.id, 1);
+            bay.addKit(VehicleKit.CAPACITOR_PACK.id, 1);
             bay.addKit(VehicleKit.READY_RACK.id, 1);
-            bay.fitKit(tank.id(), VehicleKit.APPLIQUE_PLATE);
-            bay.fitKit(tank.id(), VehicleKit.SPACED_SKIRTS);
+            bay.fitKit(tank.id(), VehicleKit.SPALL_LINER);
+            bay.fitKit(tank.id(), VehicleKit.CAPACITOR_PACK);
+            bay.addInternal(MechInternal.COMPOSITE_PLATING.id, 1);
+            bay.fitPlating(tank.id(), MechInternal.COMPOSITE_PLATING);
             viewModel.gantryRows().get().get(3).select().run();
         }
         // Spare assemblies in stores, each with its RECYCLE and green recovery; one card armed.

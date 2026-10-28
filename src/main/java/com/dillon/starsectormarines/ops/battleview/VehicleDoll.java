@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.marine.MechInternal;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -43,6 +44,7 @@ final class VehicleDoll {
         }
         sockets.add(card(SocketId.AUXILIARY, SocketType.AUXILIARY, Math.max(1, VehicleKit.slots(type)),
                 "@vehicleDollKitRack"));
+        sockets.add(card(SocketId.PLATING, SocketType.PLATING, 1, "@gearSocketPlating"));
         return List.copyOf(sockets);
     }
 
@@ -51,7 +53,7 @@ final class VehicleDoll {
     }
 
     /** What a sealed card holds, as its caption; the rack's caption is its fill. */
-    static String caption(VehicleType type, SocketId card, List<VehicleKit> kits) {
+    static String caption(VehicleType type, SocketId card, List<VehicleKit> kits, MechInternal plating) {
         return switch (card) {
             case CORE -> Strings.get(type.isHover() ? "vehicleDollHover" : type.isTank() ? "vehicleDollTracked"
                     : "vehicleDollWheeled");
@@ -59,6 +61,7 @@ final class VehicleDoll {
             case LEFT_SHOULDER -> bay(type);
             case RIGHT_SHOULDER -> String.join(Strings.get("separatorDot"), systems(type));
             case AUXILIARY -> Strings.format("vehicleDollRackCaption", kits.size(), VehicleKit.slots(type));
+            case PLATING -> plating != null ? plating.displayName() : Strings.get("vehicleDollHullPlate");
             default -> "";
         };
     }
@@ -122,12 +125,13 @@ final class VehicleDoll {
             case CORE -> HardpointBricks.ENGINE;
             case ARMS -> HardpointBricks.tone(Gun.of(type.turretStructureId).hardpoint);
             case RIGHT_SHOULDER -> HardpointBricks.UTILITY;
+            case PLATING -> HardpointBricks.OMNI;
             default -> HardpointBricks.AUXILIARY;
         };
     }
 
     /**
-     * A kit's colour: armour is plating's omni grey; the ready rack and the loader feed the gun as a mech's loader
+     * A kit's colour: the ready rack and the loader feed the gun as a mech's loader
      * does, and the capacitor pack is a capacitor bank's flux violet.
      */
     static Color tone(VehicleKit kit) {

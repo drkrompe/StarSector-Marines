@@ -309,7 +309,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         SocketDropTarget core = null;
         for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
         for (SocketDropTarget target : targets) {
-            if (core == null || target == core) continue;
+            if (core == null || target == core || target.id() == SocketId.PLATING) continue;
             Color wire = HardpointBricks.tone(layout.socket(target.id()).type());
             List<float[]> path = wireToCore(target, core);
             for (int i = 0; i < path.size() - 1; i++) {
@@ -324,7 +324,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
             SocketDef socket = layout.socket(target.id());
             MechMountSlot mount = mountFor(socket.id());
             MechSocketConsole.draw(c, target, socket, mount != null ? frame.weaponAt(mount) : null, null,
-                    null, false, socket.id().compartment() ? List.of() : null, null, assets.get(),
+                    socket.id() == SocketId.PLATING ? MechInternal.FACTORY_PLATING : null, false,
+                    socket.id().compartment() ? List.of() : null, null, assets.get(),
                     false, false, false, false, false, elapsedSeconds.getAsDouble());
         }
     }
@@ -596,7 +597,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             }
         }
         for (SocketDropTarget target : targets) {
-            if (core == null || target == core) continue;
+            if (core == null || target == core || target.id() == SocketId.PLATING) continue;
             SocketDef socket = layout.socket(target.id());
             boolean selected = selects(socket.id(), selectedSocket);
             MechWeaponComponent active = dragPreview != null ? dragPreview.component() : candidate;
@@ -685,7 +686,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         SocketDropTarget core = null;
         for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
         for (SocketDropTarget target : targets) {
-            if (core == null || target == core) continue;
+            if (core == null || target == core || target.id() == SocketId.PLATING) continue;
             Color wire = VehicleDoll.tone(type, target.id());
             List<float[]> path = wireToCore(target, core);
             for (int i = 0; i < path.size() - 1; i++) {
@@ -699,6 +700,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
         List<KitBox> kitBoxes = new ArrayList<>();
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
+            if (socket.id() == SocketId.PLATING) {
+                drawVehiclePlating(c, target, socket);
+                continue;
+            }
             boolean rack = socket.id() == SocketId.AUXILIARY;
             MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, socket.id()),
                     VehicleDoll.art(type, socket.id()),
@@ -710,16 +715,18 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 kitBoxes.add(new KitBox(kits.get(row), MechSocketConsole.kitBox(target, socket, row)));
             }
         }
-        // Only the rack answers the pointer: sealed cards take no drops and no selection.
+        // Only the rack and the armor point answer the pointer: sealed cards take no drops and no selection.
         List<SocketDropTarget> live = new ArrayList<>();
-        for (SocketDropTarget target : targets) if (target.id() == SocketId.AUXILIARY) live.add(target);
+        for (SocketDropTarget target : targets) {
+            if (target.id() == SocketId.AUXILIARY || target.id() == SocketId.PLATING) live.add(target);
+        }
         lastSocketTargets = List.copyOf(live);
         lastKitBoxes = List.copyOf(kitBoxes);
         lastPartBoxes = Map.of();
         for (SocketDropTarget target : targets) {
             if (!target.contains(hover.x(), hover.y())) continue;
             SocketDef socket = socketById(sockets, target.id());
-            String title = VehicleDoll.caption(type, socket.id(), kits);
+            String title = VehicleDoll.caption(type, socket.id(), kits, installedInternals.apply(SocketId.PLATING));
             if (socket.id() == SocketId.AUXILIARY) {
                 // On the rack, the kit under the pointer.
                 title = null;
@@ -733,6 +740,24 @@ public final class MechLabDollCanvas implements CanvasProducer {
             BoardTooltip.draw(c, hover, canvasWidth, canvasHeight, title, socket.label());
             break;
         }
+    }
+
+    /**
+     * A vehicle's armor point: the one live card besides the rack, drawn as a mech's plating card is, with
+     * the plating fitted at it or the hull's own plate under it, and lit as a fit or a refusal while a
+     * plate is carried over it.
+     */
+    private void drawVehiclePlating(CanvasContext c, SocketDropTarget target, SocketDef socket) {
+        boolean snapped = carriedSnapped();
+        boolean draggingHere = dragPreview != null && dragPreview.target() == SocketId.PLATING;
+        boolean hasInternal = dragPreview != null && dragPreview.internal() != null;
+        MechInternal shown = snapped && hasInternal && dragPreview.source() == null && draggingHere
+                ? dragPreview.internal() : installedInternals.apply(SocketId.PLATING);
+        boolean preview = shown != null && shown != installedInternals.apply(SocketId.PLATING);
+        MechSocketConsole.draw(c, target, socket, null, null, shown, preview, null, null, assets.get(),
+                selects(SocketId.PLATING, selectedSocket.get()), hoveredSocket == SocketId.PLATING,
+                draggingHere && hasInternal && snapped, draggingHere && hasInternal && !snapped, draggingHere,
+                elapsedSeconds.getAsDouble());
     }
 
     private static SocketDef socketById(List<SocketDef> sockets, SocketId id) {
@@ -836,6 +861,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             case LEFT_SHOULDER -> "L. SHLDR";
             case RIGHT_SHOULDER -> "R. SHLDR";
             case AUXILIARY, AUXILIARY_2 -> "AUX";
+            case PLATING -> "PLATE";
         };
         return name + " [" + cols + "×" + rows + "]";
     }
@@ -852,7 +878,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     private static boolean occupied(MechDeploymentSpec deployment, SocketId socket) {
-        if (socket == SocketId.CORE || socket.compartment()) return true;
+        if (socket == SocketId.CORE || socket == SocketId.PLATING || socket.compartment()) return true;
         return weaponAt(deployment, socket) != null;
     }
 
@@ -906,7 +932,10 @@ public final class MechLabDollCanvas implements CanvasProducer {
         SocketDef bay = byId.get(SocketId.AUXILIARY);
         SocketDef secondBay = byId.get(SocketId.AUXILIARY_2);
         float backH = Math.max(cardHeight(bay), cardHeight(secondBay));
-        float total = armsH + (armsH > 0f ? SCHEMATIC_GAP_Y : 0f) + coreH + (backH > 0f ? SCHEMATIC_GAP_Y + backH : 0f);
+        SocketDef plating = byId.get(SocketId.PLATING);
+        float platingH = cardHeight(plating);
+        float total = armsH + (armsH > 0f ? SCHEMATIC_GAP_Y : 0f) + coreH + (backH > 0f ? SCHEMATIC_GAP_Y + backH : 0f)
+                + (platingH > 0f ? SCHEMATIC_GAP_Y + platingH : 0f);
         float top = Math.max(SCHEMATIC_MARGIN, (panelHeight - total) * 0.5f);
         float centerX = panelWidth * 0.5f;
         float coreY = top + armsH + (armsH > 0f ? SCHEMATIC_GAP_Y : 0f) + coreH * 0.5f;
@@ -926,6 +955,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
             place(targets, bay, centerX - SCHEMATIC_GAP_X * 0.5f - cardWidth(bay) * 0.5f, backY);
             place(targets, secondBay, centerX + SCHEMATIC_GAP_X * 0.5f + cardWidth(secondBay) * 0.5f, backY);
         }
+        // The armor point stands last, under everything: it covers the frame and is wired to nothing.
+        float frameY = (backH > 0f ? backY + backH * 0.5f : coreY + coreH * 0.5f) + SCHEMATIC_GAP_Y + platingH * 0.5f;
+        place(targets, plating, centerX, frameY);
         return List.copyOf(targets);
     }
 

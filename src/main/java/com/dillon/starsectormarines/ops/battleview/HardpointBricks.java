@@ -74,6 +74,7 @@ final class HardpointBricks {
             case OMNI -> OMNI;
             case ENGINE -> ENGINE;
             case AUXILIARY -> AUXILIARY;
+            case PLATING -> OMNI;
         };
     }
 
