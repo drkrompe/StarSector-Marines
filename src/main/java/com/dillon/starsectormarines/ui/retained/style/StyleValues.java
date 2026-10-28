@@ -37,7 +37,7 @@ final class StyleValues {
             case ALIGN_ITEMS -> parseAlignItems(value);
             case JUSTIFY_CONTENT -> parseJustifyContent(value);
             case POSITION -> parsePosition(value);
-            case LEFT, TOP -> parseLength(value, true);
+            case LEFT, TOP -> parseOffset(value);
             case POINTER_EVENTS -> parsePointerEvents(value);
             case WIDTH, HEIGHT, MIN_WIDTH, MIN_HEIGHT -> parseLength(value, true);
             case FLEX_GROW -> nonNegativeNumber(property, value);
@@ -167,6 +167,14 @@ final class StyleValues {
             throw new UiStyleException(property.cssName() + " cannot be negative: " + value);
         }
         return result;
+    }
+
+    /**
+     * An absolutely positioned box's offset, which may be negative as in CSS: a box drawn just
+     * outside its parent's content box (a frame around a room at the deck's edge) starts there.
+     */
+    private static Length parseOffset(String value) {
+        return Length.parse(value, true);
     }
 
     private static Length parseLength(String value, boolean autoAllowed) {
