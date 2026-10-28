@@ -563,8 +563,8 @@ a gun lost in battle is lost for that battle only.
 
 **A hull's loader refills its magazine** (`GroundTurret.advanceLoader`), the
 way a mech's replenisher refills its racks (`mechs-nouns.md`, missile
-replenisher). Every armed hull carries a stock loader, sealed in its doll like
-its gun. Each mount authors how long its loader takes to put back one **pack**,
+replenisher). Every armed hull carries a stock loader, sealed in its doll and
+staying the hull's own when a weapon is fitted to its gun card (`mechs-nouns.md`, vehicle gun card). Each mount authors how long its loader takes to put back one **pack**,
 the weapon's burst (`TurretMountDef.loaderSeconds`): a group of missiles, a
 volley of the twin cannon, a machine-gun burst, a single bomb. The loader runs
 firing or not, for the whole battle, and never past the magazine, so the
@@ -1053,7 +1053,10 @@ retains the same existing cross-domain behavior as an autonomous hull.
   (`VehicleType.Stance`): a dueller takes it as chosen; a **stand-off** hull holds
   beyond the target's reach where its gun out-reaches it and at the outer edge of
   its own reach otherwise, never closer; an **ambusher** never drives at armor and
-  holds where it was set down (the missile carriers, below). `-Dbattle.vehicle.duelRange=false`
+  holds where it was set down (the missile carriers, below). A hull on its own gun has its type's stance; a hull
+  carrying a weapon in its gun card takes the one the weapon asks for (`VehicleStance`: an indirect-fire weapon
+  stands off, taking a spotter's call; a direct anti-armor rack ambushes; anything else duels), which gives every
+  stock hull the stance its type states. `-Dbattle.vehicle.duelRange=false`
   is the control. Its route arrays are
   degenerate on purpose — fabricating a journey it never took would give it an
   errand to resume the moment an order was released.

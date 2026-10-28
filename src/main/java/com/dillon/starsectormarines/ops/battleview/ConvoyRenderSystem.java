@@ -164,7 +164,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                             cam.cellToScreenX(drawCellX + lift), cam.cellToScreenY(drawCellY + lift),
                             tDrawLong, tDrawShort, turretFacingDeg,
                             0f, 0f, 0f, alphaMult * RAISE_SHADOW_ALPHA * turret.elevation);
-                    WeaponDef weapon = type.turretStructure().mount.weapon;
+                    WeaponDef weapon = turret.structureFor(type).mount.weapon;
                     float bearing = (float) Math.toRadians(turretStateFacing);
                     float ux = -(float) Math.sin(bearing);
                     float uy = (float) Math.cos(bearing);
@@ -240,7 +240,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
     private void collectFluxHaze(RenderContext ctx, VehicleType type, GroundTurret turret, GroundBody body,
                                  BattleCamera cam, float cellPx, float alphaMult, DrawList out) {
         if (turret == null) return;
-        StructureDef structure = type.turretStructure();
+        StructureDef structure = turret.structureFor(type);
         // Every hull gun builds flux; only a hull whose art authors vents shows it rising off them.
         if (structure == null || structure.mount.flux == null || type.fluxVentAftCells() <= 0f) return;
         float level = Math.min(1f, turret.flux / turret.fluxCapacity(structure.mount));

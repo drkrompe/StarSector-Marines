@@ -511,14 +511,14 @@ final class BattleDirectControlStatus {
         GroundTurret turret = sim.convoy().turret(id);
         VehicleType type = sim.convoy().vehicleType(id);
         GroundBody body = sim.convoy().body(id);
-        if (turret == null || type == null || type.turretStructure() == null) return List.of();
+        if (turret == null || type == null || turret.structureFor(type) == null) return List.of();
         FireGroups.Mount[] mounts = VehicleFireGroups.mounts(type, turret);
         TriggerPicks picks = sim.directControl().triggerPicks();
         boolean grouped = !turret.secondaries.isEmpty();
         List<WeaponStatus> weapons = new ArrayList<>();
         if (!turret.destroyed()) {
             int index = VehicleFireGroups.MAIN;
-            weapons.add(vehicleWeapon(turret, type.turretStructure().mount,
+            weapons.add(vehicleWeapon(turret, turret.structureFor(type).mount,
                     vehicleAimDistance(sim, GroundVehicleTurretSystem.mountPoint(type, body)), index + 1, "TURRET",
                     grouped ? FireGroups.badge(mounts, picks, index) : "",
                     grouped ? FireGroups.group(mounts, index) : ""));
@@ -541,8 +541,8 @@ final class BattleDirectControlStatus {
     static MechFluxStatus vehicleFlux(BattleSimulation sim, long id) {
         GroundTurret turret = sim.convoy().turret(id);
         VehicleType type = sim.convoy().vehicleType(id);
-        if (turret == null || type == null || type.turretStructure() == null || turret.destroyed()) return null;
-        TurretMountDef mount = type.turretStructure().mount;
+        if (turret == null || type == null || turret.structureFor(type) == null || turret.destroyed()) return null;
+        TurretMountDef mount = turret.structureFor(type).mount;
         if (mount.flux == null) return null;
         return new MechFluxStatus(turret.flux, turret.overloaded, turret.fluxCapacity(mount));
     }

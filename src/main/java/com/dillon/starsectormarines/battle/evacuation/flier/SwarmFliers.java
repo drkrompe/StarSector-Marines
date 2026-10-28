@@ -125,7 +125,7 @@ public final class SwarmFliers {
         for (int i = 0, n = sim.bodies().bodyCount(); i < n; i++) {
             long b = sim.bodies().bodyAt(i);
             if (!convoy.isVehicle(b) || !preySide(convoy.faction(b))) continue;
-            if (airMount(convoy.vehicleType(b).turretStructure())) return true;
+            if (airMount(convoy.turretStructure(b))) return true;
         }
         return false;
     }
@@ -741,7 +741,7 @@ public final class SwarmFliers {
         for (int i = 0, n = sim.bodies().bodyCount(); i < n; i++) {
             long b = sim.bodies().bodyAt(i);
             if (!convoy.isVehicle(b) || !preySide(convoy.faction(b)) || !sim.bodies().isTargetable(b)) continue;
-            StructureDef mount = convoy.vehicleType(b).turretStructure();
+            StructureDef mount = convoy.turretStructure(b);
             if (airMount(mount)) {
                 airGuns.add(new float[]{world.x(b), world.y(b), mount.mount.weapon != null ? mount.mount.weapon.range : 0f});
             }

@@ -1,0 +1,73 @@
+package com.dillon.starsectormarines.marine;
+
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import org.junit.jupiter.api.Test;
+
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+/** A vehicle's gun card: the weapons it takes, and how they are kept in stores. */
+class VehicleGunsTest {
+
+    @Test
+    void theGunCardTakesOnlyAWeaponOfItsTypeAndSize() {
+        assertTrue(CampaignVehicle.takesGun(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.SINGLE_HEAVY_CANNON));
+        assertFalse(CampaignVehicle.takesGun(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.PULSE_LASER));
+        assertFalse(CampaignVehicle.takesGun(VehicleType.SUPPLY_TRUCK, MechWeaponComponent.CHAINGUN), "no card, no gun");
+
+        CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
+        assertNull(tank.gun());
+        assertNull(tank.freezeForDeployment().gun(), "the hull fires its own gun");
+    }
+
+    @Test
+    void aGunFitsFromStoresReplacesToStoresAndGoesDownWithTheHullButNotWithAScrap() {
+        MechBay bay = new MechBay();
+        CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
+
+        assertFalse(bay.fitGun("v1", MechWeaponComponent.SINGLE_HEAVY_CANNON), "nothing in stores");
+        bay.addWeapon(MechWeaponComponent.SINGLE_HEAVY_CANNON.id, 1);
+        bay.addWeapon(MechWeaponComponent.LINEAR_CANNON.id, 1);
+        bay.addWeapon(MechWeaponComponent.PULSE_LASER.id, 1);
+        assertFalse(bay.fitGun("v1", MechWeaponComponent.PULSE_LASER), "an energy weapon is not a ballistic one");
+        assertTrue(bay.fitGun("v1", MechWeaponComponent.SINGLE_HEAVY_CANNON));
+        assertEquals(0, bay.availableWeapon(MechWeaponComponent.SINGLE_HEAVY_CANNON.id));
+        assertSame(MechWeaponComponent.SINGLE_HEAVY_CANNON, tank.freezeForDeployment().gun(), "the drop carries the gun");
+
+        assertTrue(bay.fitGun("v1", MechWeaponComponent.LINEAR_CANNON));
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.SINGLE_HEAVY_CANNON.id), "the outgoing gun is a spare");
+
+        assertTrue(bay.stripGun("v1"));
+        assertNull(tank.gun());
+        assertFalse(bay.stripGun("v1"), "the hull fires its own gun already");
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.LINEAR_CANNON.id));
+
+        assertTrue(bay.fitGun("v1", MechWeaponComponent.LINEAR_CANNON));
+        assertTrue(bay.scrapVehicle("v1"));
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.LINEAR_CANNON.id), "a scrap spares the gun");
+
+        CampaignVehicle lost = new CampaignVehicle("v2", "Lost", VehicleType.BREAKTHROUGH_TANK);
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, lost));
+        assertTrue(bay.fitGun("v2", MechWeaponComponent.SINGLE_HEAVY_CANNON));
+        assertEquals(1, bay.loseVehicles(List.of("v2")));
+        assertEquals(0, bay.ownedWeapon(MechWeaponComponent.SINGLE_HEAVY_CANNON.id), "a wrecked hull takes its gun with it");
+    }
+
+    @Test
+    void aFittedGunCountsAsInstalledSoItIsNeverAlsoASpare() {
+        MechBay bay = new MechBay();
+        CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
+        bay.addWeapon(MechWeaponComponent.LINEAR_CANNON.id, 1);
+        assertTrue(bay.fitGun("v1", MechWeaponComponent.LINEAR_CANNON));
+        assertEquals(1, bay.installedWeapon(MechWeaponComponent.LINEAR_CANNON.id));
+        assertEquals(0, bay.availableWeapon(MechWeaponComponent.LINEAR_CANNON.id));
+    }
+}

@@ -140,7 +140,8 @@ knowledge.
 Turret catalogs load after weapons and resolve structure → mount → weapon
 references immediately. A static emplacement takes durability, collision
 geometry and force value from its structure; carriers such as shuttles and
-vehicles keep their own durability and geometry. Mount capacity, traverse and
+vehicles keep their own durability and geometry. A vehicle's fitted mech weapon is the one place a vehicle's
+mount is derived: the hull's carriage with the weapon's own definition in it (`VehicleGun`). Mount capacity, traverse and
 optional layered appearance remain mount policy, while the shared weapon owns
 ballistics, contact and area payloads, audio and composed effects. Static-turret
 ECS state, shuttle mounts, vehicles, map generation, and sprite caches carry

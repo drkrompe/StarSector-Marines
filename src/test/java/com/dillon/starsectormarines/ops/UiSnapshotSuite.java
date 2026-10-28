@@ -2749,6 +2749,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-kits")),
                 new SnapshotArtifact("mech-vehicle-apc-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-apc")),
+                new SnapshotArtifact("mech-vehicle-gun-1920x1080.png",
+                        renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "vehicle-gun")),
                 new SnapshotArtifact("mech-fitting-1920x1080.png", idle),
                 new SnapshotArtifact("mech-internal-engine-1920x1080.png",
                         renderMechLab(context, renderer, 1920, 1080, 1f, false, false, false, false, null, "internal-engine")),
@@ -3029,6 +3031,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             bay.fitKit(apc.id(), VehicleKit.SPALL_LINER);
             viewModel.gantryRows().get().get(3).select().run();
         }
+        // A tank with a heavy cannon fitted in its gun card and a linear cannon spare, the gun card selected:
+        // the stores list the weapons the cannon card takes.
+        if ("vehicle-gun".equals(materialHint)) {
+            CampaignVehicle tank = new CampaignVehicle("support_vehicle_04", "Breaker 04", VehicleType.BREAKTHROUGH_TANK);
+            bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank);
+            bay.addWeapon(MechWeaponComponent.SINGLE_HEAVY_CANNON.id, 1);
+            bay.addWeapon(MechWeaponComponent.LINEAR_CANNON.id, 1);
+            bay.fitGun(tank.id(), MechWeaponComponent.SINGLE_HEAVY_CANNON);
+            viewModel.gantryRows().get().get(3).select().run();
+            viewModel.selectSlot(SocketId.ARMS);
+        }
         if ("internal-flux".equals(materialHint)) {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.AUXILIARY);
@@ -3110,6 +3123,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .withSideShift(() -> camera.pose().sideShift())
                     .withPadPreview(viewModel::padPreview);
             fittingCanvas.installedInternals(viewModel::installedInternal);
+            fittingCanvas.installedWeapons(viewModel::installedWeapon);
             fittingCanvas.installedCompartment(viewModel::installedCompartment);
             fittingCanvas.selectedVehicle(viewModel::selectedVehicleType);
             fittingCanvas.installedKits(viewModel::installedKits);

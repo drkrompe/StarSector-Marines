@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignMech;
@@ -55,6 +56,7 @@ import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.DoubleSupplier;
 import java.util.function.IntSupplier;
+import java.util.function.Predicate;
 import java.util.function.Supplier;
 
 /** Spatial doll projection and command surface for the campaign-authoritative {@link MechBay}. */
@@ -298,6 +300,7 @@ public final class MechLabViewModel {
             if (selectedVehicle() != null) {
                 SocketId slot = selectedSlot.get();
                 return slot == SocketId.PLATING || slot == SocketId.CORE ? slot.label()
+                        : slot == SocketId.ARMS ? Strings.get("vehicleDollTurret")
                         : Strings.get("openingMechLabKitRack");
             }
             CampaignMech mech = selectedMech();
@@ -828,6 +831,8 @@ public final class MechLabViewModel {
 
     /** Installed weapon currently projected into one fitting-rack row. */
     public MechWeaponComponent installedWeapon(SocketId id) {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle != null) return id == SocketId.ARMS ? vehicle.gun() : null;
         return slotWeapon(selectedMech(), id);
     }
 
@@ -848,6 +853,11 @@ public final class MechLabViewModel {
      * can be dragged: fabrication is its own step, from the row's FAB button.
      */
     public boolean canDropCatalogWeapon(MechWeaponComponent component, SocketId target) {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle != null) {
+            return target == SocketId.ARMS && component != null && bay.availableWeapon(component.id) > 0
+                    && vehicle.gun() != component && bay.canFitGun(vehicle.id(), component);
+        }
         CampaignMech mech = selectedMech();
         MechMountSlot mount = mountFor(target);
         if (mech == null || component == null || mount == null
@@ -905,6 +915,11 @@ public final class MechLabViewModel {
     }
 
     public boolean dropCatalogWeapon(MechWeaponComponent component, SocketId target) {
+        if (selectedVehicle() != null) {
+            if (!canDropCatalogWeapon(component, target)) return false;
+            selectedSlot.set(target);
+            return fitVehicleGun(component);
+        }
         CampaignMech mech = selectedMech();
         MechMountSlot mount = mountFor(target);
         if (mech == null || component == null || mount == null
@@ -933,6 +948,7 @@ public final class MechLabViewModel {
     }
 
     public boolean removeInstalledWeapon(SocketId source) {
+        if (selectedVehicle() != null) return source == SocketId.ARMS && stripVehicleGun();
         CampaignMech mech = selectedMech();
         MechMountSlot mount = mountFor(source);
         if (mech == null || mount == null || mech.weaponAt(mount) == null) return false;
@@ -1357,6 +1373,7 @@ public final class MechLabViewModel {
         if (vehicle != null) {
             return selectedSlot.get() == SocketId.PLATING ? Strings.get("openingMechLabVehiclePlatingCopy")
                     : selectedSlot.get() == SocketId.CORE ? Strings.get("openingMechLabVehicleEngineCopy")
+                    : selectedSlot.get() == SocketId.ARMS ? Strings.get("openingMechLabVehicleGunCopy")
                     : vehicleSummary(vehicle.type(), effect(vehicle));
         }
         CampaignMech mech = selectedMech();
@@ -1383,6 +1400,7 @@ public final class MechLabViewModel {
         if (vehicle != null) {
             return selectedSlot.get() == SocketId.PLATING ? Strings.get("openingMechLabVehiclePlatingRule")
                     : selectedSlot.get() == SocketId.CORE ? Strings.get("openingMechLabVehicleEngineRule")
+                    : selectedSlot.get() == SocketId.ARMS ? gunRule(vehicle.type())
                     : Strings.format("openingMechLabVehicleKitRule", vehicle.kits().size(), VehicleKit.slots(vehicle.type()));
         }
         if (selectedMech() != null && browsingStores.get()) return Strings.get("openingMechLabAllPartsRule");
@@ -1397,11 +1415,12 @@ public final class MechLabViewModel {
         revision.get();
         CampaignMech mech = selectedMech();
         if (fabricatingChassis()) return chassisCatalog();
-        // A vehicle's gun and bay are sealed: its engine, plating and kit rack are fitted.
+        // A vehicle's bay and systems are sealed: its engine, plating, gun and kit rack are fitted.
         if (selectedVehicle() != null) {
             return switch (selectedSlot.get()) {
                 case PLATING -> platingCatalog(selectedVehicle());
                 case CORE -> engineCatalog(selectedVehicle());
+                case ARMS -> gunCatalog(selectedVehicle());
                 default -> kitCatalog(selectedVehicle());
             };
         }
@@ -1455,20 +1474,32 @@ public final class MechLabViewModel {
     }
 
     private List<CatalogRow> weaponCatalog(CampaignMech mech, MechMountSlot mount) {
-        List<CatalogRow> rows = new ArrayList<>();
-        CategoryFilter filter = effectiveFilter();
         // Without a mount the list is every weapon in stores, compared against nothing.
         MechWeaponComponent current = mount != null ? slotWeapon(mech, selectedSlot.get()) : null;
+        SocketDef socket = mount != null ? selectedSocketDefinition() : null;
+        return weaponRows(current, component -> mount == null || socket != null && component.accepts(mount)
+                && (socket.type() == MechFittingLayout.SocketType.OMNI
+                || socket.type().name().equals(component.hardpointType.name())));
+    }
+
+    /**
+     * The weapons a vehicle's gun card can take: those of the type and size of the gun its hull was built around,
+     * compared against the weapon fitted, or against nothing while the hull fires its own gun.
+     */
+    private List<CatalogRow> gunCatalog(CampaignVehicle vehicle) {
+        return weaponRows(vehicle.gun(), component -> CampaignVehicle.takesGun(vehicle.type(), component));
+    }
+
+    private List<CatalogRow> weaponRows(MechWeaponComponent current, Predicate<MechWeaponComponent> fits) {
+        List<CatalogRow> rows = new ArrayList<>();
+        CategoryFilter filter = effectiveFilter();
 
         for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.weapons()) {
             MechWeaponComponent component = recipe.component();
             // Stores, not the mech: a fitted assembly is on the doll, and a row with no spare
             // appears only while its pattern can build one.
             if (!bay.canFabricate(component) && bay.availableWeapon(component.id) == 0) continue;
-            SocketDef socket = mount != null ? selectedSocketDefinition() : null;
-            if (mount != null && (socket == null || !component.accepts(mount)
-                    || socket.type() != MechFittingLayout.SocketType.OMNI
-                    && !socket.type().name().equals(component.hardpointType.name()))) continue;
+            if (!fits.test(component)) continue;
 
             int free = bay.availableWeapon(component.id);
 
@@ -1799,6 +1830,39 @@ public final class MechLabViewModel {
                 : Strings.get("openingMechLabEngineBlocked"));
         finishWeaponCommand(result);
         return result.status() == MechWorkshop.Status.STRIPPED;
+    }
+
+    /** Puts a spare weapon in the selected vehicle's gun card; the weapon it replaces returns to stores. */
+    public boolean fitVehicleGun(MechWeaponComponent gun) {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle == null || gun == null) return false;
+        MechWorkshop.Result result = workshop.fitGun(vehicle.id(), gun);
+        feedbackText.set(switch (result.status()) {
+            case INSTALLED_FROM_STORES -> Strings.format("openingMechLabGunFitted", gun.displayName());
+            case INCOMPATIBLE -> Strings.get("openingMechLabGunWrongCard");
+            default -> Strings.get("openingMechLabGunBlocked");
+        });
+        finishWeaponCommand(result);
+        return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
+    }
+
+    /** Takes the weapon out of the selected vehicle's gun card; the hull fires its own gun again. */
+    public boolean stripVehicleGun() {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle == null) return false;
+        MechWeaponComponent previous = vehicle.gun();
+        MechWorkshop.Result result = workshop.stripGun(vehicle.id());
+        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabGunStripped", previous.displayName())
+                : Strings.get("openingMechLabGunBlocked"));
+        finishWeaponCommand(result);
+        return result.status() == MechWorkshop.Status.STRIPPED;
+    }
+
+    /** The gun card's rule line: its type and size, as a mech's socket grid line reads. */
+    private static String gunRule(VehicleType type) {
+        VehicleGunCard card = VehicleGunCard.of(type);
+        return card == null ? "" : Strings.format("openingMechLabSocketGrid", card.hardpoint.name(),
+                VehicleGunCard.COLUMNS, card.rows, Strings.get("openingMechLabOpen"));
     }
 
     /** Puts a spare plate at the selected vehicle's armor point; the plate it replaces returns to stores. */
@@ -2220,8 +2284,10 @@ public final class MechLabViewModel {
 
     public void selectSlot(SocketId slot) {
         if (selectedVehicle() != null) {
-            // Only the rack, the armor point and the engine core are live on a vehicle's doll; the rest is sealed.
-            if (slot != SocketId.PLATING && slot != SocketId.AUXILIARY && slot != SocketId.CORE) return;
+            // Only the rack, the armor point, the engine core and an armed hull's gun card are live on a vehicle's
+            // doll; the rest is sealed.
+            boolean gunCard = slot == SocketId.ARMS && VehicleGunCard.of(selectedVehicle().type()) != null;
+            if (slot != SocketId.PLATING && slot != SocketId.AUXILIARY && slot != SocketId.CORE && !gunCard) return;
             selectedSlot.set(slot);
             return;
         }

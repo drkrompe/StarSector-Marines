@@ -541,9 +541,10 @@ class BattleFixtureJsonTest {
     }
 
     @Test
-    void aFittedVehicleRoundTripsItsKitsPlatingAndEngineAndAnAbsentFittingIsStock() throws Exception {
+    void aFittedVehicleRoundTripsItsKitsPlatingEngineAndGunAndAnAbsentFittingIsStock() throws Exception {
         VehicleDeploymentSpec fitted = new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC,
-                List.of(VehicleKit.SPALL_LINER), VehiclePlating.HEAVY, VehicleEngine.MILITARY);
+                List.of(VehicleKit.SPALL_LINER), VehiclePlating.HEAVY, VehicleEngine.MILITARY,
+                MechWeaponComponent.LINEAR_CANNON);
         BattleLaunchFixture fixture = new BattleLaunchFixture(
                 canonicalFixture(), new BattleLaunchOverlay(
                         0, List.of(), List.of(), List.of(),
@@ -559,6 +560,7 @@ class BattleFixtureJsonTest {
         frozen.remove("kits");
         frozen.remove("plating");
         frozen.remove("engine");
+        frozen.remove("gun");
         BattleLaunchFixture legacy = (BattleLaunchFixture) BattleFixtureJson.fromJson(encoded);
         assertEquals(List.of(new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC)),
                 legacy.launch().commandPowers().get(0).vehicleDeployments());

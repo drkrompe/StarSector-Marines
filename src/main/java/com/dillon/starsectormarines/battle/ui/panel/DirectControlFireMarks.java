@@ -149,7 +149,7 @@ public final class DirectControlFireMarks {
         var turret = sim.convoy().turret(id);
         var type = sim.convoy().vehicleType(id);
         var body = sim.convoy().body(id);
-        if (turret == null || type == null || body == null || type.turretStructure() == null) return Marks.NONE;
+        if (turret == null || type == null || body == null || turret.structureFor(type) == null) return Marks.NONE;
         FireGroups.Mount[] mounts = VehicleFireGroups.mounts(type, turret);
         TriggerPicks picks = sim.directControl().triggerPicks();
         int left = picks.leftMask(mounts);
@@ -159,7 +159,7 @@ public final class DirectControlFireMarks {
             if (!FireGroups.contains(left | right, index)) continue;
             Mark mark;
             if (index == VehicleFireGroups.MAIN) {
-                mark = turret(sim, body, turret, type.turretStructure().mount,
+                mark = turret(sim, body, turret, turret.structureFor(type).mount,
                         GroundVehicleTurretSystem.mountPoint(type, body), aimX, aimY);
             } else {
                 MountedGun gun = turret.secondaries.get(index - 1);

@@ -350,7 +350,7 @@ public final class MachineGuards {
         AssaultTarget target = targetUnderClick(sim, side, cellX, cellY);
         if (target == null) return null;
         GroundBody body = sim.convoy().body(id);
-        WeaponDef weapon = sim.convoy().vehicleType(id).turretStructure().mount.weapon;
+        WeaponDef weapon = sim.convoy().turretStructure(id).mount.weapon;
         float[] axis = threatAxis(sim, side, target, body.x, body.y);
         int[] cell = chooseGuardCell(sim, target, (int) Math.floor(body.x), (int) Math.floor(body.y),
                 weapon.range, axis[0], axis[1], null);

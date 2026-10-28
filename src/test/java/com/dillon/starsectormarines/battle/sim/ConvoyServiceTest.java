@@ -3,11 +3,16 @@ package com.dillon.starsectormarines.battle.sim;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
+
+import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -39,6 +44,31 @@ public class ConvoyServiceTest {
                 new float[]{0.5f, 1.5f}, new float[]{0.5f, 0.5f},   // inbound (head is the spawn cell)
                 new float[]{1.5f, 0.5f}, new float[]{0.5f, 0.5f},   // outbound
                 0f, VehicleType.HEAVY_APC.capacity);
+    }
+
+    @Test
+    public void aFittedWeaponIsTheGunOfThatHullAloneAndNotItsType() {
+        UnitRosterService r = roster();
+        ConvoyService convoy = r.convoy();
+        long stock = convoy.spawn(VehicleType.LRM_CARRIER, Faction.MARINE, mission());
+        long fitted = convoy.spawn(VehicleType.LRM_CARRIER, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+                MechWeaponComponent.SRM_5, Faction.MARINE, mission());
+
+        assertSame(VehicleType.LRM_CARRIER.turretStructure(), convoy.turretStructure(stock));
+        assertSame(MechWeaponComponent.SRM_5.weaponDef(), convoy.turretStructure(fitted).mount.weapon);
+        assertSame(VehicleType.LRM_CARRIER.turretStructure(), convoy.turretStructure(stock), "the type is unchanged");
+        assertEquals(convoy.turretStructure(fitted).mount.weapon.range, convoy.weaponRange(fitted), 1e-4f);
+    }
+
+    @Test
+    public void aHullFightsAsItsFittedWeaponAsksAndAsItsTypeStatesOtherwise() {
+        ConvoyService convoy = roster().convoy();
+        long stock = convoy.spawn(VehicleType.LRM_CARRIER, Faction.MARINE, mission());
+        long fitted = convoy.spawn(VehicleType.LRM_CARRIER, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+                MechWeaponComponent.PULSE_LASER, Faction.MARINE, mission());
+
+        assertEquals(VehicleType.Stance.STANDOFF, convoy.engagementStance(stock));
+        assertEquals(VehicleType.Stance.DUEL, convoy.engagementStance(fitted), "a laser does not fight from stand-off");
     }
 
     @Test

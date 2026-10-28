@@ -34,7 +34,7 @@ public final class HullPivot implements TurretFireSystem.ShooterAccuracy {
         VehicleType type = convoy.vehicleType(shooterId);
         if (type == null || !type.hasTurretWeapon()) return 1f;
         return accuracyMultiplier(convoy.body(shooterId).yawRateDegPerSec(),
-                type.turretStructure().mount.turnRateDegPerSec);
+                convoy.turretStructure(shooterId).mount.turnRateDegPerSec);
     }
 
     /**

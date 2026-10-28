@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
+import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -17,7 +19,8 @@ import java.util.List;
  * <p>It shares the gantry with mechs and nothing else: no chassis, sockets, flux or
  * weapon components. Its hull, turret and kinematics are its {@link VehicleType}'s and are
  * its type's; what is fitted to it, as to a mech, is the engine at its engine core and the plating at its armor
- * point (each a {@link MechInternal} of its role) and the {@link VehicleKit}s on its rack.
+ * point (each a {@link MechInternal} of its role), the weapon in its gun card (a {@link MechWeaponComponent}) and
+ * the {@link VehicleKit}s on its rack.
  */
 public final class CampaignVehicle implements Serializable {
 
@@ -36,6 +39,11 @@ public final class CampaignVehicle implements Serializable {
      * stripped engine core reads as. Null in a save from before engines.
      */
     private String engineId;
+    /**
+     * The weapon component in its gun card; null is the hull's own gun, which is no inventory part and is what a
+     * stripped gun card reads as. Null in a save from before gun fitting.
+     */
+    private String gunId;
 
     public CampaignVehicle(String id, String displayName, VehicleType type) {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("Vehicle id is required");
@@ -80,6 +88,32 @@ public final class CampaignVehicle implements Serializable {
     boolean stripEngine() {
         boolean fitted = engine() != null;
         engineId = null;
+        return fitted;
+    }
+
+    /** The weapon fitted in the gun card; null when the hull fires its own gun. */
+    public MechWeaponComponent gun() {
+        MechWeaponComponent gun = MechWeaponComponent.findById(gunId);
+        return gun != null && takesGun(type, gun) ? gun : null;
+    }
+
+    /** Whether {@code gun} goes in {@code type}'s gun card: an armed hull, and a weapon the card accepts. */
+    public static boolean takesGun(VehicleType type, MechWeaponComponent gun) {
+        VehicleGunCard card = VehicleGunCard.of(type);
+        return card != null && card.accepts(gun);
+    }
+
+    /** Fits {@code gun} in the gun card, replacing what was there; false for a weapon that does not go. */
+    boolean fitGun(MechWeaponComponent gun) {
+        if (!takesGun(type, gun)) return false;
+        gunId = gun.id;
+        return true;
+    }
+
+    /** Takes the weapon out of the gun card, back to the hull's own gun; false when none was fitted. */
+    boolean stripGun() {
+        boolean fitted = gun() != null;
+        gunId = null;
         return fitted;
     }
 
@@ -164,7 +198,7 @@ public final class CampaignVehicle implements Serializable {
 
     /** The frozen value Mech Support carries; the campaign object stays in the bay. */
     public VehicleDeploymentSpec freezeForDeployment() {
-        return new VehicleDeploymentSpec(id, displayName, type, kits(), platingTier(), engineTier());
+        return new VehicleDeploymentSpec(id, displayName, type, kits(), platingTier(), engineTier(), gun());
     }
 
     /**

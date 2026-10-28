@@ -115,7 +115,7 @@ public final class GroundVehicleTurretSystem {
                 turret.clearQueuedFire();
                 continue;
             }
-            StructureDef structure = type.turretStructure();
+            StructureDef structure = turret.structureFor(type);
             TurretMountGeometry.Point mount = mountPoint(type, body);
             float mountX = mount.x();
             float mountY = mount.y();

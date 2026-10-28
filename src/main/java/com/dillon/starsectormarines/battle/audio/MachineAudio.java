@@ -177,7 +177,7 @@ public final class MachineAudio {
         for (long id : convoy.entityIds()) {
             if (!convoy.isPresent(id)) continue;
             VehicleType type = convoy.vehicleType(id);
-            if (!type.hasTurretWeapon() || type.turretStructure().mount.flux == null) continue;
+            if (!type.hasTurretWeapon() || convoy.turretStructure(id).mount.flux == null) continue;
             GroundTurret turret = convoy.turret(id);
             GroundBody body = convoy.body(id);
             if (turret == null || body == null) continue;

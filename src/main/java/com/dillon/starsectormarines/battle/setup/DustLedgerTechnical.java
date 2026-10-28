@@ -45,7 +45,7 @@ final class DustLedgerTechnical {
         this.stands = List.copyOf(stands);
         VehicleType type = sim.convoy().vehicleType(id);
         this.lane = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(type.visualWidthCells));
-        this.reach = type.turretStructure().mount.weapon.range;
+        this.reach = sim.convoy().turretStructure(id).mount.weapon.range;
     }
 
     long id() { return id; }

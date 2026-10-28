@@ -3,9 +3,10 @@ package com.dillon.starsectormarines.ops.battleview;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
-import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointType;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.i18n.Strings;
@@ -18,9 +19,10 @@ import java.util.List;
 /**
  * A vehicle's doll in the Mech Lab (mechs-nouns.md, vehicle kit): the mech schematic's shape with
  * the engine in the middle, as on every machine, the turret ahead, the bay and the systems either
- * side and the kit rack behind. Every card but the rack, the engine core and the armor point is sealed; it is derived from the hull's
- * type, never authored, so a new vehicle gets a doll by having a turret, seats or systems. The engine core
- * and the armor point are live, as on a mech: they take the same engine and plating parts.
+ * side and the kit rack behind. Every card but the rack, the engine core, the armor point and the gun card is sealed; it is derived
+ * from the hull's type, never authored, so a new vehicle gets a doll by having a turret, seats or systems. The engine
+ * core, the armor point and the gun card are live, as on a mech: they take the same engine, plating and weapon parts,
+ * the gun card by the type and size of the gun the hull was built around ({@link VehicleGunCard}).
  *
  * <p>The cards reuse the mech socket ids for their places on the schematic: {@code CORE} is the
  * engine, {@code ARMS} the turret, the shoulders the bay and the systems, {@code AUXILIARY} the rack.</p>
@@ -35,9 +37,12 @@ final class VehicleDoll {
         sockets.add(card(SocketId.CORE, SocketType.ENGINE, type.weight() == VehicleType.Weight.LIGHT ? 1 : 2,
                 "@gearSocketEngine"));
         if (type.hasTurretWeapon()) {
-            Gun gun = Gun.of(type.turretStructureId);
-            sockets.add(card(SocketId.ARMS, gun.hardpoint == HardpointType.MISSILE ? SocketType.MISSILE
-                    : SocketType.BALLISTIC, gun.rows, "@vehicleDollTurret"));
+            VehicleGunCard gun = VehicleGunCard.of(type);
+            sockets.add(card(SocketId.ARMS, switch (gun.hardpoint) {
+                case MISSILE -> SocketType.MISSILE;
+                case ENERGY -> SocketType.ENERGY;
+                case BALLISTIC -> SocketType.BALLISTIC;
+            }, gun.rows, "@vehicleDollTurret"));
         }
         if (bay(type) != null) sockets.add(card(SocketId.LEFT_SHOULDER, SocketType.AUXILIARY, 2, "@vehicleDollBay"));
         if (!systems(type).isEmpty()) {
@@ -55,15 +60,15 @@ final class VehicleDoll {
 
     /**
      * What a card holds, as its caption; the rack's caption is its fill. The engine core and the armor point are
-     * live: they name the part fitted, or the hull's own.
+     * live: they name the part fitted, or the hull's own. The gun card names the weapon fitted, or the hull's turret.
      */
     static String caption(VehicleType type, SocketId card, List<VehicleKit> kits, MechInternal plating,
-                          MechInternal engine) {
+                          MechInternal engine, MechWeaponComponent gun) {
         return switch (card) {
             case CORE -> engine != null ? engine.displayName()
                     : Strings.get(type.isHover() ? "vehicleDollHover" : type.isTank() ? "vehicleDollTracked"
                     : "vehicleDollWheeled");
-            case ARMS -> turretName(type);
+            case ARMS -> gun != null ? Strings.upper(gun.displayName()) : turretName(type);
             case LEFT_SHOULDER -> bay(type);
             case RIGHT_SHOULDER -> String.join(Strings.get("separatorDot"), systems(type));
             case AUXILIARY -> Strings.format("vehicleDollRackCaption", kits.size(), VehicleKit.slots(type));
@@ -73,40 +78,19 @@ final class VehicleDoll {
     }
 
     /**
-     * A turret's gun as the lab already draws it: the mech or door gun of the same kind, its footprint
-     * that drawing's, its colour its hardpoint's. Only the mortar has no such gun, so it has its own.
+     * A turret's gun as the lab already draws it: the mech or door gun of the same kind. Only the mortar has no such
+     * gun, so it has its own.
      */
-    private enum Gun {
-        CANNON("heavy-cannon", 3, HardpointType.BALLISTIC),
-        HEAVY_MG("boat-door-heavy-mg", 1, HardpointType.BALLISTIC),
-        MORTAR("vehicle-turret-mortar", 2, HardpointType.BALLISTIC),
-        LASER("shoulder-laser", 3, HardpointType.ENERGY),
-        PULSE("pulse-laser", 2, HardpointType.ENERGY),
-        LRM("lrm-5", 2, HardpointType.MISSILE),
-        SRM("srm-5", 2, HardpointType.MISSILE);
-
-        final String art;
-        final int rows;
-        final HardpointType hardpoint;
-
-        Gun(String art, int rows, HardpointType hardpoint) {
-            this.art = art;
-            this.rows = rows;
-            this.hardpoint = hardpoint;
-        }
-
-        static Gun of(String structureId) {
-            if (structureId == null) return HEAVY_MG;
-            return switch (structureId) {
-                case TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID -> CANNON;
-                case TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID, TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID -> MORTAR;
-                case TurretCatalogRegistry.TANK_BURST_LASER_STRUCTURE_ID -> LASER;
-                case TurretCatalogRegistry.TANK_PD_LASER_STRUCTURE_ID, TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID -> PULSE;
-                case TurretCatalogRegistry.VEHICLE_LRM_STRUCTURE_ID -> LRM;
-                case TurretCatalogRegistry.VEHICLE_SRM_STRUCTURE_ID -> SRM;
-                default -> HEAVY_MG;
-            };
-        }
+    private static String gunArt(VehicleGunCard card) {
+        return switch (card) {
+            case CANNON -> "heavy-cannon";
+            case HEAVY_MG -> "boat-door-heavy-mg";
+            case MORTAR -> "vehicle-turret-mortar";
+            case LASER -> "shoulder-laser";
+            case PULSE -> "pulse-laser";
+            case LRM -> "lrm-5";
+            case SRM -> "srm-5";
+        };
     }
 
     /** Every drawing a sealed card can show, for {@link HardwareArt#preload()}. */
@@ -117,7 +101,7 @@ final class VehicleDoll {
                 "engine-industrial", "engine-uprated", "engine-military",
                 "boat-hold-standard", "vehicle-bay-supply", "vehicle-bay-drones",
                 "vehicle-systems-blade", "vehicle-systems-aps", "vehicle-systems-mast", "vehicle-systems-secondary"));
-        for (Gun gun : Gun.values()) if (!stems.contains(gun.art)) stems.add(gun.art);
+        for (VehicleGunCard gun : VehicleGunCard.values()) if (!stems.contains(gunArt(gun))) stems.add(gunArt(gun));
         return List.copyOf(stems);
     }
 
@@ -129,7 +113,7 @@ final class VehicleDoll {
     static Color tone(VehicleType type, SocketId card) {
         return switch (card) {
             case CORE -> HardpointBricks.ENGINE;
-            case ARMS -> HardpointBricks.tone(Gun.of(type.turretStructureId).hardpoint);
+            case ARMS -> HardpointBricks.tone(VehicleGunCard.of(type).hardpoint);
             case RIGHT_SHOULDER -> HardpointBricks.UTILITY;
             case PLATING -> HardpointBricks.OMNI;
             default -> HardpointBricks.AUXILIARY;
@@ -159,7 +143,7 @@ final class VehicleDoll {
                 case MEDIUM -> "engine-uprated";
                 case HEAVY -> "engine-military";
             };
-            case ARMS -> Gun.of(type.turretStructureId).art;
+            case ARMS -> gunArt(VehicleGunCard.of(type));
             case LEFT_SHOULDER -> type.capacity > 0 ? "boat-hold-standard"
                     : type.supplyStock() > 0 ? "vehicle-bay-supply" : "vehicle-bay-drones";
             case RIGHT_SHOULDER -> type.hasBlade() ? "vehicle-systems-blade"

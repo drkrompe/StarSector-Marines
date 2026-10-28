@@ -106,6 +106,14 @@ public final class StructureDef {
         this.fireControlRadius = fireControlRadius;
     }
 
+    /** This structure with {@code carriage} as its mount: a vehicle's hull around the gun it was fitted with. */
+    public StructureDef withMount(TurretMountDef carriage) {
+        return new StructureDef(id, displayName, maxStructure, armorCapacity, armorRating, radius, hitHalfHeight,
+                footprintCellsX, footprintCellsY, plinthTiers, forceScore, mountId, carriage, batteryLoadoutId,
+                fireControlRadius, dome, art, targetRole, fortAspect, buildingArt, gatehouseArt, looks, fluxShield,
+                builds);
+    }
+
     /** Whether this structure is a fortress battery: it carries ship-grade guns and a fire-control point. */
     public boolean isBattery() {
         return batteryLoadoutId != null;
