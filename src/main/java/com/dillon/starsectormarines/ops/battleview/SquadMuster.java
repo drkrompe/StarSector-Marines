@@ -31,9 +31,9 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
 
     /**
      * One current place, with plain value labels for ordinary retained hover UI.
-     * {@code medic} marks a billet that is a squad medic in battle: the one
-     * Field Medicine designates, or without it every ready marine whose suit
-     * carries a field-aid kit.
+     * {@code medic} marks a billet that is a squad medic in battle: every
+     * ready marine whose suit carries a field-aid kit, or, in a squad with
+     * none, the one billet Field Medicine promotes.
      */
     public record Billet(int index, String marineId, String name, String rankLabel,
                          State state, float recoveryDays, boolean leader, boolean medic) {
@@ -133,27 +133,26 @@ public record SquadMuster(String squadId, String squadName, boolean stationed,
     }
 
     /**
-     * Marks the squad's medics. When the squad's home officer trains Field
-     * Medicine that is the one billet {@link SquadMedicine#medicBillet} picks:
-     * ready marines other than the NCO, the fire team derived from billet
-     * order (the kits then only complement it). Without the training it is every
-     * ready marine whose suit carries a field-aid kit, the NCO included. A WIA
-     * marine does not deploy, so cannot carry either.
+     * Marks the squad's medics: every ready marine whose suit carries a
+     * field-aid kit, the NCO included. Only when the squad has none does the
+     * home officer's Field Medicine promote a single billet, the one
+     * {@link SquadMedicine#medicBillet} picks: ready marines other than the NCO,
+     * the fire team derived from billet order. A WIA marine does not deploy, so
+     * cannot carry either.
      */
     private static void markMedic(MarineRoster roster, MarineSquad squad, List<Billet> billets) {
-        MarineCaptain officer = roster.captainForSquad(squad.id());
-        if (officer != null && officer.career().level(OfficerSpecialty.FIELD_MEDICINE) > 0) {
-            int index = SquadMedicine.medicBillet(billets.size(),
-                    i -> billets.get(i).state() == State.READY && !billets.get(i).leader(),
-                    i -> billets.get(i).teamIndex());
-            if (index >= 0) markAsMedic(billets, index);
-            return;
-        }
         markKitMedics(billets, billet -> {
             MarineSoldier marine = roster.soldierById(billet.marineId());
             IntegralSystemDef system = marine == null ? null : marine.armorDef().integralSystem();
             return system != null && system.effect() == IntegralSystemEffect.FIELD_AID;
         });
+        if (billets.stream().anyMatch(Billet::medic)) return;
+        MarineCaptain officer = roster.captainForSquad(squad.id());
+        if (officer == null || officer.career().level(OfficerSpecialty.FIELD_MEDICINE) <= 0) return;
+        int index = SquadMedicine.medicBillet(billets.size(),
+                i -> billets.get(i).state() == State.READY && !billets.get(i).leader(),
+                i -> billets.get(i).teamIndex());
+        if (index >= 0) markAsMedic(billets, index);
     }
 
     /** Marks every ready billet whose marine {@code carriesKit}; a wounded or vacant billet deploys nobody. */

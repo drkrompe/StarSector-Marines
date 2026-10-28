@@ -37,12 +37,6 @@
   "kits": [
     {
       "system": "system.parish-aid",
-      "complement": {
-        "energyMax": 10,
-        "energyRegenPerSecond": 0.05,
-        "healthPerSecond": 0.25,
-        "armorPerSecond": 0.25
-      },
       "energyMax": 20,
       "energyRegenPerSecond": 0.1,
       "energyPerPoint": 1,
@@ -59,12 +53,6 @@
     },
     {
       "system": "system.corpsman-kit",
-      "complement": {
-        "energyMax": 15,
-        "energyRegenPerSecond": 0.1,
-        "healthPerSecond": 0.5,
-        "armorPerSecond": 0.25
-      },
       "energyMax": 25,
       "energyRegenPerSecond": 0.15,
       "energyPerPoint": 1,

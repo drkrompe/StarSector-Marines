@@ -12,11 +12,11 @@ import com.dillon.starsectormarines.marine.OfficerCommandProfile;
 import java.util.Arrays;
 
 /**
- * A squad's medics ({@code squad-medic.md}). Under an officer trained in Field
- * Medicine there is one, designated by billet, and every field-aid kit in the
- * squad complements them: its supplies feed their pool and it quickens their
- * hands. Without the training every kit's wearer is a medic of their own, with
- * the kit's weaker medicine.
+ * A squad's medics ({@code squad-medic.md}). Every marine whose suit carries a
+ * field-aid kit is a medic of their own, with the kit's medicine, so a loadout
+ * with two kits has two medics. Only a squad deploying with no kit at all is
+ * medicated by its officer: one that trains Field Medicine promotes a single
+ * marine, designated by billet, to medic.
  *
  * <p>Two halves, split by who may write what. {@link #tick} is serial and runs
  * ahead of the unit dispatch: it designates the medic, regenerates their energy,
@@ -55,11 +55,11 @@ public final class SquadMedicSystem {
         treatingCount = 0;
         for (Squad squad : sim.getSquads()) {
             if (squad.aliveMembers <= 0) continue;
-            int rank = rankOf(squad);
-            if (rank > 0) {
-                if (squad.medic == null) squad.medic = new SquadMedic(complemented(squad, sim, rank));
-            } else if (!squad.kitMedicsIssued) {
+            if (!squad.kitMedicsIssued) {
                 issueKitMedics(squad, sim);
+                // A kit anywhere in the squad leaves the medicine to the kits.
+                int rank = rankOf(squad);
+                if (squad.kitMedics.isEmpty() && rank > 0) squad.medic = new SquadMedic(SquadMedicine.forRank(rank));
             }
             if (squad.medic == null && squad.kitMedics.isEmpty()) continue;
             SimWard ward = new SimWard(squad, sim, controlled);
@@ -75,23 +75,7 @@ public final class SquadMedicSystem {
         }
     }
 
-    /**
-     * The officer's rank, complemented by every kit the squad deploys with. The
-     * kits' supplies went into the medic's bag at deployment, so the bonus holds
-     * for the battle whoever carried them.
-     */
-    private static SquadMedicine complemented(Squad squad, BattleSimulation sim, int rank) {
-        SquadMedicine medicine = SquadMedicine.forRank(rank);
-        for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
-            long member = sim.squadMemberAt(squad.id, i);
-            if (!sim.world().isAlive(member)) continue;
-            String kit = kitOf(sim, member);
-            if (kit != null) medicine = medicine.complementedBy(SquadMedicine.complementOf(kit));
-        }
-        return medicine;
-    }
-
-    /** Without Field Medicine, one medic of the kit's own medicine for every living kit wearer. */
+    /** One medic of the kit's own medicine for every living kit wearer. */
     private static void issueKitMedics(Squad squad, BattleSimulation sim) {
         squad.kitMedicsIssued = true;
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {

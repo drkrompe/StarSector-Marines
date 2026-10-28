@@ -33,8 +33,8 @@ import java.util.Map;
  *
  * <p>Eight armored marines march east under a commander's attack move. Four
  * start hurt: one badly with their plate shot away, one moderately, one with
- * only their armor down, and the medic themselves — who must never be their own
- * patient. A tough target stands just past the objective inside carbine reach,
+ * only their armor down, and the medic themselves — who treats themselves once
+ * nobody worse is in reach. A tough target stands just past the objective inside carbine reach,
  * so the squad has something to shoot at once it arrives and "the medic holds
  * fire while treating" is a reading rather than a vacuous zero.
  *
@@ -154,9 +154,9 @@ public final class SquadMedicScene implements BehaviorScene {
                         + " the health threshold)"));
         verdicts.add(Verdict.of("re-plated", medic.armorReplated() >= 1,
                 medic.armorReplated() + " broken plate(s) brought back (wanted at least 1)"));
-        verdicts.add(Verdict.of("never-self", !instrument.medicHealed,
-                instrument.medicHealed ? "a medic was their own patient or their health rose"
-                        : "no medic was ever their own patient or had their health raised"));
+        verdicts.add(Verdict.of("tends-self", instrument.medicHealed,
+                instrument.medicHealed ? "a hurt medic was their own patient and their health rose"
+                        : "no medic ever treated themselves, though the medic started hurt"));
         verdicts.add(Verdict.of("held-fire", instrument.shotsWhileTreating == 0,
                 instrument.shotsWhileTreating + " round(s) fired by the medic while treating, against "
                         + instrument.medicShots + " over the whole loop (wanted 0 while treating)"));
