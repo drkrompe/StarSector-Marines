@@ -727,6 +727,12 @@ TURN_IN = {'manticore-p': (3.0, 1.0), 'wolf-p-b': (5.5, .7)}
 TURN_IN_RAMP_S = 1.5  # s: her turn, and her bank with it, eases in from 44 s and out onto her run over this
 TURN_IN_BANK = 40.0   # deg: her bank at a hard turn's sideways pull
 TURN_IN_G = 60.0      # m/s^2 of sideways pull that banks her about three quarters of TURN_IN_BANK
+# Her roll out of the bank (owner, 2026-10-28: "slow down the 'tilt back' I do not want S6 to need to re-render.
+# We can slightly cheat if required because S6 goes to a different camera position"): she holds her deepest bank,
+# rolls out over the last TURN_IN_ROLL_OUT_S of S5 and is still this much of it from her run's roll at the cut,
+# which S6's new camera takes up (the cut lint reads position and heading only).
+TURN_IN_ROLL_OUT_S = 3.0
+TURN_IN_ROLL_LEFT = .4
 
 
 def turned_in(key, p, run, late, steady, t_next=CONTACT_T, t_from=TURN_IN_T):
@@ -743,7 +749,8 @@ def turned_in(key, p, run, late, steady, t_next=CONTACT_T, t_from=TURN_IN_T):
     then brakes into it; the step to her run's speed falls on the cut. Her nose turns `steady` of the way to an
     even turn and the rest with her track, so it leads her track through the middle of the turn (a slip, at most
     about 20 deg) and meets it again at each end. Any part of her run's spot out of the turn's plane is eased in
-    as a drift. She banks with her track's sideways pull; at t_next she is where and as S6 has her."""
+    as a drift. She banks with her track's sideways pull, holds her deepest bank and rolls slowly out of it
+    (TURN_IN_ROLL_OUT_S); at t_next she is where S6 has her, heading as it does, her roll still part way out."""
     h = 1 / 96
     N = 600
     tb, T = t_from, t_next - t_from
@@ -806,30 +813,46 @@ def turned_in(key, p, run, late, steady, t_next=CONTACT_T, t_from=TURN_IN_T):
         w = x - i
         return arr[i] + (arr[i + 1] - arr[i]) * w
 
+    def nose_at(t):
+        a_ = sample(t, nose_th)
+        n_ = [d0[k] * math.cos(a_) + e2[k] * math.sin(a_) for k in range(3)]
+        return math.degrees(math.atan2(n_[1], n_[0])), math.degrees(math.atan2(n_[2], math.hypot(n_[0], n_[1])))
+
+    def banked(t):
+        """Her roll from the climb's onto her turn's bank, which follows her track's sideways pull."""
+        hd = nose_at(t)[0]
+        ta, tb_ = sample(max(tb, t - .15), th), sample(min(t_next, t + .15), th)
+        rate = (tb_ - ta) / (min(t_next, t + .15) - max(tb, t - .15))
+        side = unit([e2[k] * math.cos(sample(t, th)) - d0[k] * math.sin(sample(t, th)) for k in range(3)])
+        port = side[1] * math.cos(math.radians(hd)) - side[0] * math.sin(math.radians(hd))     # + when she turns to port
+        bank = -TURN_IN_BANK * math.tanh(sample(t, speeds) * rate / TURN_IN_G) * (1 if port >= 0 else -1)
+        e_in = min(1.0, (t - tb) / TURN_IN_RAMP_S)
+        e_in = e_in * e_in * (3 - 2 * e_in)
+        return q0[5] + (_near(q0[5], bank) - q0[5]) * e_in
+    # her bank holds at its deepest once she has it, then rolls out slowly over TURN_IN_ROLL_OUT_S, only part way
+    t_deep = max((tb + T * i / N for i in range(N + 1) if tb + T * i / N >= tb + TURN_IN_RAMP_S),
+                 key=lambda t: abs(_near(q1[5], banked(t)) - q1[5]))
+    deep = _near(q1[5], banked(t_deep))
+    rl_cut = q1[5] + (deep - q1[5]) * TURN_IN_ROLL_LEFT
+
     def at(t):
         if t <= tb:
             return p.at(t)
         if t >= t_next:
             return run.at(t)
         pos = [sample(t, [pt[k] for pt in pts]) for k in range(3)]
-        a_ = sample(t, nose_th)
-        n_ = [d0[k] * math.cos(a_) + e2[k] * math.sin(a_) for k in range(3)]
-        hd, pt = math.degrees(math.atan2(n_[1], n_[0])), math.degrees(math.atan2(n_[2], math.hypot(n_[0], n_[1])))
-        ta, tb_ = sample(max(tb, t - .15), th), sample(min(t_next, t + .15), th)
-        sp = sample(t, speeds)
-        rate = (tb_ - ta) / (min(t_next, t + .15) - max(tb, t - .15))
-        side = unit([e2[k] * math.cos(sample(t, th)) - d0[k] * math.sin(sample(t, th)) for k in range(3)])
-        port = side[1] * math.cos(math.radians(hd)) - side[0] * math.sin(math.radians(hd))     # + when she turns to port
-        bank = -TURN_IN_BANK * math.tanh(sp * rate / TURN_IN_G) * (1 if port >= 0 else -1)
+        hd, pt = nose_at(t)
         u = (t - tb) / T
-        e_in = min(1.0, (t - tb) / TURN_IN_RAMP_S)
-        e_in = e_in * e_in * (3 - 2 * e_in)
-        rl = q0[5] + (_near(q0[5], bank) - q0[5]) * e_in
+        rl = banked(t) if t < t_deep else deep
         q = (*pos, _near(q0[3], hd), pt, rl, q0[6])
-        g = max(0.0, 1.0 - (t_next - t) / TURN_IN_RAMP_S)
-        if g > 0.0:                  # her nose eases onto her run's own (a degree or two off her course) and her roll onto its
+        g = max(0.0, 1.0 - (t_next - t) / TURN_IN_ROLL_OUT_S)
+        if g > 0.0:                  # her roll eases out toward rl_cut, the S6 cut taking the rest
             g = g * g * (3 - 2 * g)
-            q = (*q[:3], q[3] + end_off[0] * g, q[4] + end_off[1] * g, q[5] + (_near(q[5], q1[5]) - q[5]) * g, q[6])
+            q = (*q[:4], q[4], q[5] + (_near(q[5], rl_cut) - q[5]) * g, q[6])
+        g = max(0.0, 1.0 - (t_next - t) / TURN_IN_RAMP_S)
+        if g > 0.0:                  # her nose eases onto her run's own (a degree or two off her course)
+            g = g * g * (3 - 2 * g)
+            q = (*q[:3], q[3] + end_off[0] * g, q[4] + end_off[1] * g, *q[5:])
         if u < 1e-6:
             return (*q[:3], q0[3], q0[4], q0[5], q0[6])
         return q
@@ -5533,7 +5556,9 @@ def turn_lines(kf):
             continue
         hits = [h['t'] for h in getattr(sp.at, 'hits', ()) if 'kick' not in h]
         for t, j in motion.turn_jumps(sp.at, seg['start'], seg['end'], limit=TURN_JUMP_LIMIT):
-            why = 'a hit' if any(abs(t - th) < .1 for th in hits) else ('setting down' if key.startswith('hermes') else 'CHECK')
+            why = ('a hit' if any(abs(t - th) < .1 for th in hits) else 'setting down' if key.startswith('hermes')
+                   else 'her roll cheated at the cut (TURN_IN_ROLL_LEFT)' if key in TURN_IN and seg['end'] - t < 2 / 24
+                   else 'CHECK')
             out.append(f'turn     {key:12} angular velocity jumps {j:.0f} deg/s at {t:.2f} s ({why})')
     return out
 
