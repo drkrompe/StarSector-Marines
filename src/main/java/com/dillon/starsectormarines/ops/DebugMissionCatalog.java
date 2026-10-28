@@ -25,6 +25,8 @@ import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
+import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
@@ -38,7 +40,9 @@ import com.dillon.starsectormarines.ops.detachment.MissionForceEnvelope;
 import com.fs.starfarer.api.campaign.PlanetAPI;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** Disposable mission fixtures. Debug identity never doubles as a campaign receipt. */
@@ -246,6 +250,20 @@ public final class DebugMissionCatalog {
     /** Every debug mission lifts the company as the campaign does: the two Hermes the company ship carries. */
     private static final ShuttleType CAMPAIGN_LIFT = ShuttleType.HERMES;
     private static final int CAMPAIGN_LIFT_BOATS = 2;
+    /**
+     * A debug lift boat: {@code pattern} with the top tier of every fitting its hull takes. The frame's
+     * weight rating is a campaign yard's limit, not a battle rule, so a debug boat is not held to it.
+     */
+    public static FittedBoat maxFitted(ShuttleType pattern) {
+        Map<BoatFittingSlot, BoatFitting> fit = new EnumMap<>(BoatFittingSlot.class);
+        for (BoatFittingSlot slot : BoatFittingSlot.values()) {
+            BoatFitting best = BoatFitting.standard(slot);
+            for (BoatFitting fitting : BoatFitting.catalog(slot))
+                if (fitting.supports(pattern) && fitting.tier() > best.tier()) best = fitting;
+            fit.put(slot, best);
+        }
+        return new FittedBoat(pattern, fit, null, null);
+    }
     private DebugMissionCatalog() { }
     public static Scenario scenario(Mission m) {
         return m == null ? null : scenario(m.id, m.source);

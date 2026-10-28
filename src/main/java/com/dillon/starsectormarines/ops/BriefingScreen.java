@@ -2337,7 +2337,7 @@ public class BriefingScreen implements Screen {
     }
 
     /**
-     * A debug briefing's synthetic craft are patterns at standard fit. The
+     * A debug briefing's synthetic craft are patterns at their top fit. The
      * picker chooses a hull rather than one of the company's boats, so there
      * is no yard's work on them to carry.
      */
@@ -2345,7 +2345,7 @@ public class BriefingScreen implements Screen {
         int count = Math.max(0, Math.min(mission.requiredDrops, debugTransportCount));
         if (count != debugTransportCount) debugTransportCount = count;
         List<FittedBoat> roster = new ArrayList<>(count);
-        for (int i = 0; i < count; i++) roster.add(FittedBoat.standard(debugTransportType));
+        for (int i = 0; i < count; i++) roster.add(DebugMissionCatalog.maxFitted(debugTransportType));
         return roster;
     }
 
