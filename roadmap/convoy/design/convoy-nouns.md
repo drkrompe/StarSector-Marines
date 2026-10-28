@@ -1053,7 +1053,10 @@ retains the same existing cross-domain behavior as an autonomous hull.
   (`VehicleType.Stance`): a dueller takes it as chosen; a **stand-off** hull holds
   beyond the target's reach where its gun out-reaches it and at the outer edge of
   its own reach otherwise, never closer; an **ambusher** never drives at armor and
-  holds where it was set down (the missile carriers, below). `-Dbattle.vehicle.duelRange=false`
+  holds where it was set down (the missile carriers, below). A hull on its own gun has its type's stance; a hull
+  carrying a weapon in its gun card takes the one the weapon asks for (`VehicleStance`: an indirect-fire weapon
+  stands off, taking a spotter's call; a direct anti-armor rack ambushes; anything else duels), which gives every
+  stock hull the stance its type states. `-Dbattle.vehicle.duelRange=false`
   is the control. Its route arrays are
   degenerate on purpose — fabricating a journey it never took would give it an
   errand to resume the moment an order was released.

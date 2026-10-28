@@ -61,6 +61,17 @@ public class ConvoyServiceTest {
     }
 
     @Test
+    public void aHullFightsAsItsFittedWeaponAsksAndAsItsTypeStatesOtherwise() {
+        ConvoyService convoy = roster().convoy();
+        long stock = convoy.spawn(VehicleType.LRM_CARRIER, Faction.MARINE, mission());
+        long fitted = convoy.spawn(VehicleType.LRM_CARRIER, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+                MechWeaponComponent.PULSE_LASER, Faction.MARINE, mission());
+
+        assertEquals(VehicleType.Stance.STANDOFF, convoy.engagementStance(stock));
+        assertEquals(VehicleType.Stance.DUEL, convoy.engagementStance(fitted), "a laser does not fight from stand-off");
+    }
+
+    @Test
     public void spawnBuildsWorldEntityWithComponentColumns() {
         UnitRosterService r = roster();
         ConvoyService convoy = r.convoy();

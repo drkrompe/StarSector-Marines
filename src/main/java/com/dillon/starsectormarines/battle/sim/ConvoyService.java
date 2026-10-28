@@ -18,6 +18,7 @@ import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
+import com.dillon.starsectormarines.battle.vehicle.VehicleStance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
@@ -321,6 +322,18 @@ public final class ConvoyService implements BodyCarrier {
         if (!isArmed(id)) return 0f;
         StructureDef structure = turretStructure(id);
         return structure != null ? structure.mount.weapon.range : 0f;
+    }
+
+    /**
+     * How {@code id} fights: the stance its fitted weapon asks for ({@link VehicleStance}), or its type's own for the
+     * hull's own gun.
+     */
+    public VehicleType.Stance engagementStance(long id) {
+        VehicleType type = vehicleType(id);
+        if (type == null) return VehicleType.Stance.DUEL;
+        GroundTurret turret = type.hasTurretWeapon() ? turret(id) : null;
+        return turret != null && turret.structure != null ? VehicleStance.of(turret.structure.mount)
+                : type.engagementStance();
     }
 
     /**

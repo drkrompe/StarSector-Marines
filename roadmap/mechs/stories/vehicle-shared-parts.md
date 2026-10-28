@@ -1,6 +1,6 @@
 # Story — Vehicles fit the shared engines and weapons
 
-Status: IN PROGRESS — slices 1 to 3 (fixture seam, engines, typed gun card and derived mount) implemented; stance and turret art remain
+Status: IN PROGRESS — slices 1 to 4 (fixture seam, engines, typed gun card and derived mount, stance) implemented; turret art remains
 
 Written: 2026-10-28
 
@@ -132,7 +132,9 @@ Each slice is green and integrable on its own.
    fitted gun, the doll's gun card, Mech Lab weapon catalog, fit and strip. Implemented; two limits stand: a rotary mech
    gun fires as plain bursts on a turret, and a weapon with no magazine limit runs on the hull's own magazine.
 4. **Stance follows the gun:** engagement stance and the spotter requirement read from the fitted weapon, with each
-   stock hull's behaviour unchanged for its stock gun.
+   stock hull's behaviour unchanged for its stock gun. Implemented as `VehicleStance`: the spotter requirement already
+   read the weapon (`WeaponDef.indirectFire`), and the stance now does too for a fitted weapon, while a hull on its own
+   gun keeps its type's. The raised-launcher pose (`VehicleType.turretRaiseFold`) is art and waits for slice 5.
 5. **Turret art:** the fitted weapon's sprite on the hull.
 6. **Documents:** amend the sealed-hull statements (below), the Store caveat and the Mech Lab copy, and fold.
 

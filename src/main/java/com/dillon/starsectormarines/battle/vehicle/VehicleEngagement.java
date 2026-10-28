@@ -33,7 +33,8 @@ import java.util.Map;
  * the outer part of its own. Inside the band it stops and lets the turret work, which acquires on its own as it
  * always has. A single-gun hull has no shorter band to close to, so it never closes into contact.
  *
- * <p>A hull's {@link VehicleType.Stance} adjusts this. A stand-off hull (the LRM carrier) holds beyond the target's
+ * <p>A hull's {@link VehicleType.Stance} adjusts this: its type's for its own gun, the one its fitted weapon asks for
+ * otherwise ({@link VehicleStance}). A stand-off hull (the LRM carrier) holds beyond the target's
  * reach where its gun out-reaches it and at the outer edge of its own reach otherwise, never closer; with an
  * indirect-fire gun it also takes a target a spotter on its side is looking at ({@link SideSpotting}), and does not
  * drive in to see it for itself. An ambusher (the SRM technical) never drives at armor: it holds where it was set
@@ -691,7 +692,8 @@ public final class VehicleEngagement {
             plan.refacing = false;
             plan.standTurn = false;
         }
-        if (type.engagementStance() == VehicleType.Stance.AMBUSH) {
+        VehicleType.Stance stance = convoy.engagementStance(id);
+        if (stance == VehicleType.Stance.AMBUSH) {
             // An ambusher waits in its cover: no band to drive to and nothing to back away from.
             plan.retreating = false;
             plan.refacing = false;
@@ -706,7 +708,7 @@ public final class VehicleEngagement {
             plan.refacing = false;
             return;
         }
-        if (type.engagementStance() == VehicleType.Stance.STANDOFF) band = standoff(band, gun.range());
+        if (stance == VehicleType.Stance.STANDOFF) band = standoff(band, gun.range());
         float distance = (float) Math.hypot(at[0] - body.x, at[1] - body.y);
         if (plan.retreating ? distance < band.min() : distance < band.min() - innerSlack(band)) {
             if (!plan.retreating && plan.routeX != null) controlSystem.clearRoute(id);
@@ -956,7 +958,7 @@ public final class VehicleEngagement {
         VehicleMission mission = convoy.mission(id);
         if (mission == null || mission.state != VehicleState.DEPLOYED || mission.authoredRouteX != null) return false;
         VehicleType type = convoy.vehicleType(id);
-        return type != null && type.engagementStance() != VehicleType.Stance.AMBUSH && type.hasTurretWeapon();
+        return type != null && convoy.engagementStance(id) != VehicleType.Stance.AMBUSH && type.hasTurretWeapon();
     }
 
     /**
@@ -978,7 +980,7 @@ public final class VehicleEngagement {
             plan.anchorX = body.x;
             plan.anchorY = body.y;
         }
-        long face = facesInBand && type.engagementStance() != VehicleType.Stance.AMBUSH
+        long face = facesInBand && convoy.engagementStance(id) != VehicleType.Stance.AMBUSH
                 ? faceTarget(id, plan.faceTarget, body, 0L) : 0L;
         if (face != plan.faceTarget) plan.refacing = false;
         plan.faceTarget = face;

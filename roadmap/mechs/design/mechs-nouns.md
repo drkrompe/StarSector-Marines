@@ -228,7 +228,8 @@ increasing an encounter's total armored threat.
   is only ever an addition from stores. A fitted weapon is the hull's turret with the weapon's ballistics in it
   (`VehicleGun`): the carriage (traverse, loader, muzzles, flux bank, hit shares) stays the hull's, the weapon
   fires with the range, damage and cadence it has on a mech, its pulls are the magazine and a round costs its flux in
-  the hull's own bank. The drop carries the weapon (`VehicleDeploymentSpec.gun`) and the hull's own
+  the hull's own bank. The hull fights as the weapon asks (`VehicleStance`): an arcing launcher stands off and
+  fires on a spotter's call, a direct anti-armor rack waits in cover, anything else duels. The drop carries the weapon (`VehicleDeploymentSpec.gun`) and the hull's own
   `GroundTurret.structure` holds the derived structure, read through `ConvoyService.turretStructure`, never through
   the type alone. A shuttle's mounts are a separate, truly omni item (`vehicle-shared-parts.md`).
 - A vehicle's **armor point** (`SocketId.PLATING`) is the one place armor is fitted,
