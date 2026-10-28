@@ -2,12 +2,14 @@ package com.dillon.starsectormarines.battle.evacuation;
 
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.squad.Squad;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.ops.battleview.BattleReviewFrameRenderer;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotation;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
@@ -17,11 +19,15 @@ import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotArtifact;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotContext;
 import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
@@ -59,6 +65,8 @@ public final class EvacCordonLookSuite implements SnapshotSuite {
                 String[] seedAndBiome = token.trim().split("/");
                 long seed = Long.parseLong(seedAndBiome[0]);
                 String biome = seedAndBiome.length > 1 ? seedAndBiome[1].toUpperCase(Locale.ROOT) : null;
+                out.add(placement(context, seed, biome));
+                if (Boolean.getBoolean("snapshot.evacCordon.placementOnly")) continue;
                 out.addAll(marked(context, seed, biome));
                 for (boolean works : new boolean[]{true, false}) {
                     String before = System.getProperty(SWITCH);
@@ -136,6 +144,70 @@ public final class EvacCordonLookSuite implements SnapshotSuite {
             }
         }
         return out;
+    }
+
+    /**
+     * The colony as the owner places things on it (owner, 2026-10-28: click where the cordon, the bores and the
+     * objectives should go): the whole map through the look preset, unmarked, at setup with the works off, and beside
+     * it {@code placement/colony-s<seed>.json} holding the frame's cell scale, the map's open ground (walkable and
+     * outside every building, a row-major bit set, base64) and where the lift, shelter, holdouts, company pads and
+     * eruption sites stand today. A placement page draws its marks over the picture from that file.
+     */
+    private static SnapshotArtifact placement(SnapshotContext context, long seed, String biome) throws Exception {
+        String before = System.getProperty(SWITCH);
+        System.setProperty(SWITCH, "false");
+        try (BattleSimulation sim = HeadlessBattles.fixture(colony(seed, biome))) {
+            NavigationGrid grid = sim.getGrid();
+            CellTopology topology = sim.getTopology();
+            int w = grid.getWidth(), h = grid.getHeight();
+            float across = Math.max(w, h * LookReview.WIDTH / (float) LookReview.HEIGHT);
+            byte[] open = new byte[(w * h + 7) / 8];
+            for (int y = 0; y < h; y++) {
+                for (int x = 0; x < w; x++) {
+                    if (!grid.isWalkable(x, y) || topology.getBuildingId(x, y) != 0) continue;
+                    int bit = y * w + x;
+                    open[bit >> 3] |= (byte) (1 << (bit & 7));
+                }
+            }
+            float[] lift = lift(sim);
+            JSONObject json = new JSONObject()
+                    .put("seed", seed).put("width", w).put("height", h)
+                    .put("frameWidth", LookReview.WIDTH).put("frameHeight", LookReview.HEIGHT)
+                    .put("cellPx", (int) Math.floor(LookReview.WIDTH / across))
+                    .put("open", Base64.getEncoder().encodeToString(open))
+                    .put("lift", new JSONArray().put(Math.round(lift[0])).put(Math.round(lift[1])))
+                    .put("cordonTrench", PickupCordonWorks.TRENCH).put("cordonWall", PickupCordonWorks.WALL);
+            JSONArray redoubts = new JSONArray();
+            for (CivilianRedoubt r : sim.getCivilianRedoubts()) {
+                redoubts.put(new JSONObject().put("label", r.isMain() ? "Shelter" : "Holdout " + r.number())
+                        .put("box", new JSONArray().put(r.left()).put(r.bottom()).put(r.right()).put(r.top())));
+            }
+            json.put("redoubts", redoubts);
+            JSONArray pads = new JSONArray();
+            for (LandingPad pad : sim.getMarineLandingPads()) pads.put(new JSONArray().put(pad.centerX).put(pad.centerY));
+            json.put("pads", pads);
+            JSONArray bores = new JSONArray();
+            if (sim.getColonyBreach() != null) {
+                for (ColonyEruptionPlan.Site site : sim.getColonyBreach().plan().sites()) {
+                    bores.put(new JSONObject().put("label", site.mother() ? "Mother bore" : "Bore " + site.number())
+                            .put("x", site.x()).put("y", site.y()));
+                }
+            }
+            json.put("bores", bores);
+            Path file = context.projectRoot().resolve(String.format(Locale.ROOT,
+                    "build/snapshots/evac-cordon-look/placement/colony-s%d.json", seed));
+            Files.createDirectories(file.getParent());
+            Files.writeString(file, json.toString(), StandardCharsets.UTF_8);
+            System.out.printf("    [placement/s%d] %dx%d cells, %d px a cell, wrote %s%n",
+                    seed, w, h, json.getInt("cellPx"), file);
+            BattleReviewFrameRenderer look = BattleReviewFrameRenderer.look(context.modRoot(), LookReview.WIDTH,
+                    LookReview.HEIGHT, w / 2f, h / 2f, across);
+            return new SnapshotArtifact(String.format(Locale.ROOT, "placement/colony-s%d.png", seed),
+                    look.renderMarked(sim, ReviewAnnotations.builder().build()));
+        } finally {
+            if (before == null) System.clearProperty(SWITCH);
+            else System.setProperty(SWITCH, before);
+        }
     }
 
     /** The marks {@link #marked} draws, printing each guard team's reading as it goes. */
