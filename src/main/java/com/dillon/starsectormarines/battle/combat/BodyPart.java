@@ -24,7 +24,7 @@ public final class BodyPart {
         NONE,
         /** A limb wound ({@link WoundService}): a leg slows the man, an arm costs him his aim. */
         LIMB_WOUND,
-        /** A mech's legs: at zero the chassis is crippled and can no longer walk. */
+        /** A mech's legs: at zero the chassis is crippled and walks on at a crawl. */
         CRIPPLE,
         /** A mech's weapon mount: at zero the weapon on it is destroyed. */
         MOUNT_LOSS,

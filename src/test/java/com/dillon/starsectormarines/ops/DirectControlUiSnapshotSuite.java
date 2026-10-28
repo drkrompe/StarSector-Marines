@@ -971,7 +971,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
 
     /**
      * A breakthrough tank shot from its left through the production located-damage law: the left plate
-     * stripped and the hull behind it hit, the drive gone (immobilised), and one round that found the
+     * stripped and the hull behind it hit, the drive gone (crippled), and one round that found the
      * turret. Front, right and rear plates stay whole.
      */
     private static FlankedTank flankedTank(Path modRoot) {

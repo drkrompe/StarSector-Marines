@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.combat.Crippled;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
@@ -31,14 +32,14 @@ import java.util.Map;
  * after the opening: every round is the production fire path and every section roll the production
  * one. The story the model promises is the pod going first (the smallest pool, and every
  * shoulder-height round lands on it), then the legs (the largest share of hits), then a crippled
- * machine that pivots and keeps firing where it stands, and finally a torso kill, the only way it
+ * machine that limps on at its crawl and keeps firing, and finally a torso kill, the only way it
  * dies.
  *
  * <p><b>The order is a roll, not a law</b>, which is why there are two loops. The recorded
  * {@code rifles-and-rockets} loop is one seed in which the story comes out in order; the
  * {@code seed-sweep} loop plays eight seeds with the rocket tube and eight rifles-only and asserts
  * only what must hold on every one of them — death only through the torso, a crippled chassis never
- * walks, a destroyed mount never fires — while it reports how often each ordering came out. A rocket
+ * walks faster than its crawl, a destroyed mount never fires — while it reports how often each ordering came out. A rocket
  * (162 damage, penetration 18) takes whichever section it lands on in one round and spills the rest
  * into torso structure, so the tube's first round decides most of the story: the pod on one seed,
  * the legs or the nose gun on another.
@@ -83,8 +84,14 @@ public final class MechLocationalDamageScene implements BehaviorScene {
 
     private static final String RIFLE = "weapon.field-rifle";
     private static final String ROCKETS = "special.rocket-launcher";
-    /** Crippled means planted; what a pivot on the spot may shift the body by. */
-    private static final double CRIPPLED_DRIFT_BAR = 0.5;
+    /**
+     * Crippled means slowed, never planted: the fastest step a crippled Hound takes is at most its crawl
+     * ({@link Crippled#SPEED_SHARE} of the fastest it stepped on whole legs), with this much headroom for
+     * the walk's own ramp and a pivot's shift.
+     */
+    private static final double CRAWL_HEADROOM = 1.15;
+    /** Cells a tick a pivot on the spot may shift the body by, on top of the crawl. */
+    private static final double PIVOT_SHIFT = 0.02;
 
     private static final String HOUND = "hound";
     private static final String SQUAD = "rifles";
@@ -179,6 +186,9 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         float crippledY = Float.NaN;
         double crippledDrift;
         double travelBeforeCrippled;
+        double travelCrippled;
+        double topStepBefore;
+        double topStepCrippled;
         float lastX = Float.NaN;
         float lastY = Float.NaN;
 
@@ -208,7 +218,14 @@ public final class MechLocationalDamageScene implements BehaviorScene {
             float x = sim.world().x(hound);
             float y = sim.world().y(hound);
             boolean crippled = legsLostTick >= 0;
-            if (!Float.isNaN(lastX) && !crippled) travelBeforeCrippled += Math.hypot(x - lastX, y - lastY);
+            double step = Float.isNaN(lastX) ? 0d : Math.hypot(x - lastX, y - lastY);
+            if (!crippled) {
+                travelBeforeCrippled += step;
+                topStepBefore = Math.max(topStepBefore, step);
+            } else if (tick > legsLostTick) {
+                travelCrippled += step;
+                topStepCrippled = Math.max(topStepCrippled, step);
+            }
             lastX = x;
             lastY = y;
             if (crippled) {
@@ -256,6 +273,11 @@ public final class MechLocationalDamageScene implements BehaviorScene {
             return String.format(Locale.ROOT, "%.0f+%.0f", sections.armor(section), sections.structure(section));
         }
 
+        /** Whether the fastest step after the legs went is within the crawl. */
+        boolean crawls() {
+            return topStepCrippled <= topStepBefore * Crippled.SPEED_SHARE * CRAWL_HEADROOM + PIVOT_SHIFT;
+        }
+
         /** Whether the nose gun or the pod was still fitted when the legs went. */
         boolean armedWhenCrippled() {
             boolean gunGone = armsLostTick >= 0 && armsLostTick <= legsLostTick;
@@ -286,9 +308,10 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         verdicts.add(Verdict.of("legs-before-death", t.legsLostTick >= 0
                         && (t.deathTick < 0 || t.legsLostTick < t.deathTick),
                 "legs lost at " + seconds(t.legsLostTick) + ", death at " + seconds(t.deathTick)));
-        verdicts.add(Verdict.of("crippled-stands", t.legsLostTick >= 0 && t.crippledDrift < CRIPPLED_DRIFT_BAR,
-                String.format(Locale.ROOT, "%.2f cells of drift after the legs went (wanted under %.1f; %.1f cells"
-                        + " walked before)", t.crippledDrift, CRIPPLED_DRIFT_BAR, t.travelBeforeCrippled)));
+        verdicts.add(Verdict.of("crippled-crawls", t.legsLostTick >= 0 && t.crawls(),
+                String.format(Locale.ROOT, "fastest step %.3f cells a tick after the legs went, %.3f before (wanted"
+                        + " at most %.0f%% of it); %.1f cells walked crippled, %.1f before", t.topStepCrippled,
+                        t.topStepBefore, Crippled.SPEED_SHARE * 100f, t.travelCrippled, t.travelBeforeCrippled)));
         verdicts.add(Verdict.of("fires-crippled", t.shotsAfterCrippled > 0,
                 t.shotsAfterCrippled + " shots fired after crippling, the first at "
                         + seconds(t.firstCrippledShotTick) + (t.armsLostTick >= 0
@@ -317,6 +340,9 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         m.put("shotsFromLostMounts", t.shotsFromLostMounts);
         m.put("crippledDriftCells", t.crippledDrift);
         m.put("travelBeforeCrippledCells", t.travelBeforeCrippled);
+        m.put("travelCrippledCells", t.travelCrippled);
+        m.put("topStepBeforeCells", t.topStepBefore);
+        m.put("topStepCrippledCells", t.topStepCrippled);
         if (t.sections != null) {
             for (MechSection section : MechSection.values()) {
                 String key = "end." + section.name();
@@ -333,7 +359,7 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         int deaths = 0;
         int torsoKills = 0;
         int crippled = 0;
-        int crippledStood = 0;
+        int crippledCrawled = 0;
         int lostMountRounds = 0;
         int podFirst = 0;
         int podBeforeLegs = 0;
@@ -350,7 +376,7 @@ public final class MechLocationalDamageScene implements BehaviorScene {
             if (t.deathTick >= 0 && t.torsoAtZeroOnDeath) torsoKills++;
             if (t.legsLostTick >= 0) {
                 crippled++;
-                if (t.crippledDrift < CRIPPLED_DRIFT_BAR) crippledStood++;
+                if (t.crawls()) crippledCrawled++;
                 if (t.shotsAfterCrippled > 0) firedCrippled++;
                 if (t.armedWhenCrippled()) {
                     crippledArmed++;
@@ -373,7 +399,7 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         m.put("deaths", deaths);
         m.put("torsoKills", torsoKills);
         m.put("crippled", crippled);
-        m.put("crippledStood", crippledStood);
+        m.put("crippledCrawled", crippledCrawled);
         m.put("firedWhileCrippled", firedCrippled);
         m.put("crippledWithAWeaponLeft", crippledArmed);
         m.put("podAmongFirstLosses", podFirst);
@@ -385,12 +411,11 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("every-death-a-torso-kill", deaths > 0 && torsoKills == deaths,
                 torsoKills + " of " + deaths + " deaths with the torso at zero, over " + sweep.size() + " plays"));
-        verdicts.add(Verdict.of("every-crippled-hound-stands", crippledStood == crippled,
-                crippledStood + " of " + crippled + " crippled Hounds moved under "
-                        + CRIPPLED_DRIFT_BAR + " cells afterwards"));
+        verdicts.add(Verdict.of("every-crippled-hound-crawls", crippledCrawled == crippled,
+                crippledCrawled + " of " + crippled + " crippled Hounds stepped no faster than their crawl"));
         verdicts.add(Verdict.of("lost-mounts-silent", lostMountRounds == 0,
                 lostMountRounds + " rounds from destroyed mounts across the sweep (wanted none)"));
-        // The turret promise: a crippled Hound fights on from where it fell. Wanted on every play
+        // The limping promise: a crippled Hound fights on. Wanted on every play
         // that crippled one with a weapon still fitted; one disarmed first has nothing to fire.
         verdicts.add(Verdict.of("every-armed-crippled-hound-fires",
                 crippledArmed > 0 && armedFiredCrippled == crippledArmed,

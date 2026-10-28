@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.combat.Crippled;
 /**
  * Pose + integration step for one ground vehicle. Sibling abstraction to
  * {@link com.dillon.starsectormarines.battle.air.AirBody} — both expose
@@ -37,10 +38,10 @@ public abstract class GroundBody {
     public float speed;
 
     /**
-     * Whether the drive is gone ({@link HullLocations}): the hull holds where it stands, neither driving nor
-     * turning, for the rest of the battle. Its turret still turns and fires.
+     * Whether the drive is gone ({@link HullLocations}): for the rest of the battle the hull drives, reverses and
+     * turns at {@link Crippled#SPEED_SHARE} of its speed. It is slowed, never stranded.
      */
-    public boolean immobilised;
+    public boolean crippled;
 
     /**
      * Velocity and spin a hit left the hull with, cells a second and radians a second, on top of its own

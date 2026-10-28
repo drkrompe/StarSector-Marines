@@ -12,8 +12,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * What section loss does to doctrine ({@code mechs-nouns.md}, Section loss), asked of the
- * decisions directly: a crippled mech is a turret, a disarmed one declines to attack and withdraws
- * if it can walk, and a lost mount takes its reach with it.
+ * decisions directly: a crippled mech limps on and fights, a disarmed one declines to attack and
+ * withdraws, and a lost mount takes its reach with it.
  */
 class MechDamageDoctrineTest {
 
@@ -22,30 +22,23 @@ class MechDamageDoctrineTest {
     @Test
     void postureFollowsLegsAndWeapons() {
         assertEquals(Posture.FIGHT, MechDamageDoctrine.posture(false, true));
-        assertEquals(Posture.TURRET, MechDamageDoctrine.posture(true, true));
+        assertEquals(Posture.LIMPING, MechDamageDoctrine.posture(true, true));
         assertEquals(Posture.WITHDRAW, MechDamageDoctrine.posture(false, false));
-        assertEquals(Posture.HOLD, MechDamageDoctrine.posture(true, false));
+        assertEquals(Posture.WITHDRAW, MechDamageDoctrine.posture(true, false), "crippled legs still carry it off");
     }
 
     @Test
-    void onlyALegsUpPostureWalksAndOnlyAnArmedOneAttacks() {
-        assertTrue(Posture.FIGHT.walks());
-        assertTrue(Posture.WITHDRAW.walks());
-        assertFalse(Posture.TURRET.walks(), "a turret requests no movement");
-        assertFalse(Posture.HOLD.walks());
-
+    void onlyAnArmedPostureAttacks() {
         assertTrue(Posture.FIGHT.attacks());
-        assertTrue(Posture.TURRET.attacks(), "a crippled mech keeps firing");
+        assertTrue(Posture.LIMPING.attacks(), "a crippled mech keeps fighting");
         assertFalse(Posture.WITHDRAW.attacks());
-        assertFalse(Posture.HOLD.attacks());
     }
 
     @Test
     void onlyAFightingMechAnchorsItsLanceOrAScreenedAdvance() {
         assertTrue(Posture.FIGHT.anchorsOthers());
-        assertFalse(Posture.TURRET.anchorsOthers(), "the lance is not held on a crippled mech");
+        assertFalse(Posture.LIMPING.anchorsOthers(), "the lance is not held to a crippled mech's pace");
         assertFalse(Posture.WITHDRAW.anchorsOthers());
-        assertFalse(Posture.HOLD.anchorsOthers());
     }
 
     @Test
@@ -71,7 +64,7 @@ class MechDamageDoctrineTest {
     }
 
     @Test
-    void legsAtZeroMakeATurretAndThenAHold() {
+    void legsAtZeroLimpAndThenWithdraw() {
         MechLoadoutComponent loadout = VARIANT.createLoadout(null);
         MechSections sections = loadout.sectionsFor(VARIANT.maxStructure, VARIANT.maxStructure,
                 0f, 0f);
@@ -79,10 +72,10 @@ class MechDamageDoctrineTest {
                 VARIANT.armorRating, new DurabilityModel.Resolution(), new Hit());
 
         assertTrue(MechDamageDoctrine.crippled(sections));
-        assertEquals(Posture.TURRET, MechDamageDoctrine.postureOf(loadout));
+        assertEquals(Posture.LIMPING, MechDamageDoctrine.postureOf(loadout));
 
         for (MechMountSlot slot : MechMountSlot.values()) loadout.destroyMount(slot);
-        assertEquals(Posture.HOLD, MechDamageDoctrine.postureOf(loadout));
+        assertEquals(Posture.WITHDRAW, MechDamageDoctrine.postureOf(loadout));
     }
 
     @Test
@@ -90,13 +83,6 @@ class MechDamageDoctrineTest {
         assertFalse(MechDamageDoctrine.lanceDeclinesAttack(0, 0), "an empty lance declines nothing");
         assertFalse(MechDamageDoctrine.lanceDeclinesAttack(3, 1));
         assertTrue(MechDamageDoctrine.lanceDeclinesAttack(3, 0));
-    }
-
-    @Test
-    void aDisarmedLanceWithdrawsOnlyIfSomeoneCanWalk() {
-        assertTrue(MechDamageDoctrine.lanceWithdraws(2, 0, 1));
-        assertFalse(MechDamageDoctrine.lanceWithdraws(2, 0, 0), "crippled and disarmed: hold");
-        assertFalse(MechDamageDoctrine.lanceWithdraws(2, 1, 2), "an armed lance does not withdraw");
     }
 
     @Test

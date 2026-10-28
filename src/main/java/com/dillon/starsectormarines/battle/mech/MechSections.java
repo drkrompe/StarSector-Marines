@@ -166,7 +166,7 @@ public final class MechSections {
         return destroyed[section.ordinal()];
     }
 
-    /** Legs at zero: the chassis cannot walk. */
+    /** Legs at zero: the chassis walks on at a crawl ({@code Crippled}). */
     public boolean crippled() {
         return destroyed[MechSection.LEGS.ordinal()];
     }

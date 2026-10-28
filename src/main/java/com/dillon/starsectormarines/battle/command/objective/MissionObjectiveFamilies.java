@@ -390,7 +390,8 @@ public final class MissionObjectiveFamilies {
                 Strings.get("objectiveFreightInstruction"),
                 Strings.format("objectiveFreightTally", column.deliveredCount(), column.lostCount(),
                         column.cargoIdentities().size() - column.deliveredCount() - column.lostCount()),
-                -1, column.holdSite() > 0 ? Strings.format("objectiveFreightHold", seconds(column.holdRemainingTicks() / 30f)) : "",
+                -1, column.holdSite() > 0 ? Strings.format(column.holdSite() == 1 ? "objectiveFreightHoldDispatch" : "objectiveFreightHoldCrossing",
+                        seconds(column.holdRemainingTicks() / 30f)) : "",
                 List.of(), "");
     }
 

@@ -129,7 +129,7 @@ public final class MachineAudio {
             VehicleType type = convoy.vehicleType(id);
             EngineVoice voice = engineVoice(type);
             // A hull with its drive shot away still has its engine running; it idles.
-            float throttle = body.immobilised ? 0f : throttle(body.speed, type.maxSpeed);
+            float throttle = throttle(body.speed, type.maxSpeed);
             double heading = Math.toRadians(body.facingDegrees + 90f);
             heard.add(new Loop(voice.soundId, body, voice.pitch(throttle) + pitchJitter(id), voice.volume(throttle),
                     body.x, body.y, (float) Math.cos(heading) * body.speed, (float) Math.sin(heading) * body.speed));

@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
+Updated: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -380,8 +380,10 @@ to the law that a mitigation arc is no argument for localized armor
   the **hull**, the structure behind them and the only pool whose zero is
   death; the **turret** section above (armor and structure, optional); and the
   **drive** (tracks, wheels, lift fans), a structure pool whose zero
-  **immobilises** the hull: it can no longer drive or turn, still traverses its
-  turret and fires, and is not dead. These names are the contract the damage
+  **cripples** the hull: it drives, reverses and turns on at a crawl
+  (`Crippled.SPEED_SHARE` of its speed), still traverses its turret and fires,
+  and is not dead. Crippled is slowed, never stranded (owner): a hull a story
+  or an order needs somewhere still gets there, late. These names are the contract the damage
   doll draws (`direct-control-nouns.md`) and change only in both.
 - **Which plate.** A hit meets the plate on the side it arrives from: front and
   rear by the arc (below), a side hit split left or right by which side of the
@@ -493,8 +495,8 @@ round. It applies to whichever plate the hit meets (above).
     the same rehearsed turn onto the facing above, giving no more than eight
     cells from where it was parked: a tank's widest backing turn gives about
     seven, so one turn fits and turn after turn does not walk it off its mark.
-    A hull that has lost its gun still faces, since its plate still matters; an
-    immobilised one cannot, and an ambusher keeps its cover. A route handed to
+    A hull that has lost its gun still faces, since its plate still matters, and
+    so does a crippled one, slowly; an ambusher keeps its cover. A route handed to
     the hull ends any turn it was making. A hull nothing drives brakes rather
     than keeping whatever speed it had.
   - **It turns only toward what it knows of**: a machine in its own sight, or

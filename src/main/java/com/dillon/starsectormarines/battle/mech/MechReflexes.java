@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.infantry.InfantryReflexes;
 import com.dillon.starsectormarines.battle.mech.MechDamageDoctrine.Posture;
 import com.dillon.starsectormarines.battle.mech.components.MechLoadoutComponent;
-import com.dillon.starsectormarines.battle.nav.Paths;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -27,9 +26,8 @@ import java.util.List;
  * chassis-level interrupt has a rank to be given rather than a branch to be
  * added above the loop.
  *
- * <p>The second entry is the crippled chassis ({@link #CRIPPLED_CHASSIS}), which holds a mech
- * whose legs are gone as a turret under any plan step. The third is the melee stand-off
- * ({@link #MELEE_STANDOFF}), which steps a walking mech back from a charging Rav.
+ * <p>The second is the melee stand-off ({@link #MELEE_STANDOFF}), which steps a mech back from a
+ * charging Rav. A crippled mech has no entry of its own: its legs slow it, they do not hold it.
  *
  * @see InfantryReflexes the marine's eight-entry chain
  */
@@ -51,26 +49,6 @@ public final class MechReflexes {
         }
     };
 
-    /**
-     * A crippled chassis is a turret, whatever step its lance is executing. It holds where it
-     * stands, drops any path or pending route it owned, and — while it still has a weapon —
-     * acquires and fires at whatever it can engage from there; the torso and the planted hips
-     * turn onto that target as they always do. It never authors movement, so no plan step,
-     * doctrine or order can walk a chassis whose legs are gone. Ranked below the player's move,
-     * which releases itself for a crippled chassis rather than driving legs that cannot carry it.
-     */
-    public static final Reflex CRIPPLED_CHASSIS = new Reflex() {
-        @Override public String name() { return "CRIPPLED_CHASSIS"; }
-        @Override public boolean interrupt(long unit, Squad squad,
-                                           ReflexContext context, BattleControl sim) {
-            MechLoadoutComponent loadout = sim.world().mechLoadout(unit);
-            Posture posture = MechDamageDoctrine.postureOf(loadout);
-            if (posture.walks()) return false;
-            standFast(unit, loadout, posture, sim);
-            return true;
-        }
-    };
-
     /** Cells within which a melee Rav makes a walking mech step back ({@link #MELEE_STANDOFF}). */
     static final float STANDOFF_CELLS = 6f;
     /** Cells a mech steps back, straight away from the melee Rav inside its stand-off. */
@@ -81,8 +59,8 @@ public final class MechReflexes {
      * {@link #STANDOFF_CELLS}, it steps {@link #BACK_STEP_CELLS} straight away from them, firing as it
      * goes, and leaves the charge to the infantry and its own guns. Its plan step otherwise walks it into
      * the charge to close on its aim (Broad Front verdant 3, 2026-10-25: three of the company's four mechs
-     * fell to Brute charges by tick 9000; stepping back, all four stood at 15000). Ranked below the player's move and the crippled chassis: an ordered
-     * mech goes where it was sent, and one without legs cannot step anywhere.
+     * fell to Brute charges by tick 9000; stepping back, all four stood at 15000). Ranked below the player's move: an
+     * ordered mech goes where it was sent.
      */
     public static final Reflex MELEE_STANDOFF = new Reflex() {
         @Override public String name() { return "MELEE_STANDOFF"; }
@@ -90,7 +68,6 @@ public final class MechReflexes {
                                            ReflexContext context, BattleControl sim) {
             MechLoadoutComponent loadout = sim.world().mechLoadout(unit);
             Posture posture = MechDamageDoctrine.postureOf(loadout);
-            if (!posture.walks()) return false;
             float[] away = awayFromMelee(unit, sim);
             if (away == null) return false;
             int[] step = backStep(sim.getGrid(), sim.world().cellX(unit), sim.world().cellY(unit), away[0], away[1]);
@@ -104,8 +81,8 @@ public final class MechReflexes {
     /**
      * A mech squad attached to an infantry squad stands by its doctrine relative to that squad
      * ({@link MechAttachmentSystem}): the attachment owns its locomotion, not its plan, as a move order
-     * does. Ranked below the player's move (which ends the attachment on the next command pass), the
-     * crippled chassis and the melee stand-off, which are what keep a mech alive wherever it was sent.
+     * does. Ranked below the player's move (which ends the attachment on the next command pass) and
+     * the melee stand-off, which are what keep a mech alive wherever it was sent.
      */
     public static final Reflex ATTACHED = new Reflex() {
         @Override public String name() { return "ATTACHED"; }
@@ -116,7 +93,7 @@ public final class MechReflexes {
     };
 
     /** The lance's reflex chain, highest priority first. */
-    public static final List<Reflex> CHAIN = List.of(PLAYER_LOCOMOTION, CRIPPLED_CHASSIS, MELEE_STANDOFF, ATTACHED);
+    public static final List<Reflex> CHAIN = List.of(PLAYER_LOCOMOTION, MELEE_STANDOFF, ATTACHED);
 
     private static final ThreadLocal<LongBucket> NEARBY = ThreadLocal.withInitial(LongBucket::new);
 
@@ -165,15 +142,6 @@ public final class MechReflexes {
             }
         }
         return null;
-    }
-
-    private static void standFast(long unit, MechLoadoutComponent loadout, Posture posture,
-                                  BattleControl sim) {
-        if (loadout.routeIntent.pending() || !Paths.isEmpty(sim.world().path(unit))) {
-            sim.clearPath(unit);
-        }
-        loadout.routeIntent.cancel();
-        fireFromHere(unit, posture, sim);
     }
 
     /** Acquires and fires at whatever the chassis can engage from where it stands, or stands its target down. */

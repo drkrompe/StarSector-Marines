@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.combat.Crippled;
 import com.dillon.starsectormarines.battle.combat.ArmorArcs;
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 
@@ -16,7 +17,8 @@ import com.dillon.starsectormarines.battle.combat.DurabilityModel;
  * <p>Some hits land on the drive instead of the hull behind the plate: an authored share by arc, larger from the
  * sides and rear, where the running gear shows. Such a hit still meets that side's plate first; what gets through
  * spends the drive's structure, and what the drive cannot hold goes on into the hull. At zero the hull is
- * <b>immobilised</b>: it can no longer move, still turns its turret and fires, and is not dead.
+ * <b>crippled</b>: it moves on at {@link Crippled#SPEED_SHARE} of its speed, still turns its turret and fires, and
+ * is not dead.
  *
  * <p>The front plate holds the whole of the armor a hull of one pool had, so a hull shot head-on lasts as long as
  * it did; the side and rear plates and the drive are held on top of that and only matter to a hull caught from
@@ -39,7 +41,7 @@ public final class HullLocations {
     private final float[] armor = new float[PLATES.length];
     private final float maxDrive;
     private float drive;
-    private boolean immobilised;
+    private boolean crippled;
     private final float driveFront;
     private final float driveSide;
     private final float driveRear;
@@ -140,11 +142,11 @@ public final class HullLocations {
 
     /**
      * Spends the drive outright, outside the damage path and without touching the world's columns (the caller lowers
-     * the structure column by {@link #maxDrive}): for staging a look at an immobilised hull, never for play.
+     * the structure column by {@link #maxDrive}): for staging a look at a crippled hull, never for play.
      */
     void stageDriveLost() {
         drive = 0f;
-        immobilised = true;
+        crippled = true;
     }
 
     public float drive() {
@@ -155,9 +157,9 @@ public final class HullLocations {
         return maxDrive;
     }
 
-    /** Whether the drive is gone: the hull cannot move. Once true it stays true for the battle. */
-    public boolean immobilised() {
-        return immobilised;
+    /** Whether the drive is gone: the hull moves on slowly. Once true it stays true for the battle. */
+    public boolean crippled() {
+        return crippled;
     }
 
     /**
@@ -213,8 +215,8 @@ public final class HullLocations {
                 driveDamage = scratch.structureDamage();
                 drive = Math.max(0f, driveBefore - driveDamage);
                 if (driveDamage >= driveBefore) {
-                    driveNowDestroyed = !immobilised;
-                    immobilised = true;
+                    driveNowDestroyed = !crippled;
+                    crippled = true;
                     float toBreak = armorBefore > 0f
                             ? armorBefore * hullPlate / DurabilityModel.armorEfficiency(penetration, hullRating) : 0f;
                     hullDamage = Math.min(hullStructure, Math.max(0f, toHull - toBreak - driveBefore));
@@ -260,7 +262,7 @@ public final class HullLocations {
             return gunDestroyed;
         }
 
-        /** Whether this hit took the drive to zero: the hull is now immobilised. */
+        /** Whether this hit took the drive to zero: the hull is now crippled. */
         public boolean driveDestroyed() {
             return driveDestroyed;
         }

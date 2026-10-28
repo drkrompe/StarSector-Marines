@@ -285,17 +285,10 @@ public final class GoapMechBehavior implements UnitBehavior {
         return MechDamageDoctrine.lanceDeclinesAttack(counts[0], counts[1]);
     }
 
-    /** Whether a disarmed lance has a member that can still walk away. */
-    static boolean lanceWithdraws(Squad squad, BattleView sim) {
-        int[] counts = damageCounts(squad, sim);
-        return MechDamageDoctrine.lanceWithdraws(counts[0], counts[1], counts[2]);
-    }
-
-    /** Standing, armed and mobile mechs among the lance's plannable members. */
+    /** Standing and armed mechs among the lance's plannable members. */
     private static int[] damageCounts(Squad squad, BattleView sim) {
         int standing = 0;
         int armed = 0;
-        int mobile = 0;
         for (int i = 0, n = sim.squadMemberCount(squad.id); i < n; i++) {
             long member = sim.squadMemberAt(squad.id, i);
             if (!sim.world().isAlive(member) || !squad.availableToPlan(member, sim)) continue;
@@ -303,9 +296,8 @@ public final class GoapMechBehavior implements UnitBehavior {
             if (loadout == null) continue;
             standing++;
             if (MechDamageDoctrine.armed(loadout.mounts())) armed++;
-            if (!MechDamageDoctrine.crippled(loadout.sections())) mobile++;
         }
-        return new int[]{standing, armed, mobile};
+        return new int[]{standing, armed};
     }
 
     /**

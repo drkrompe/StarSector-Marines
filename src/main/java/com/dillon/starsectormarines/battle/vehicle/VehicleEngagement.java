@@ -952,7 +952,6 @@ public final class VehicleEngagement {
     private boolean standsFacing(long id) {
         if (!ThreatFront.ENABLED || !facesInBand) return false;
         if (!convoy.isVehicle(id) || !convoy.isTargetable(id) || convoy.structure(id) <= 0f) return false;
-        if (convoy.body(id).immobilised) return false;
         VehicleMission mission = convoy.mission(id);
         if (mission == null || mission.state != VehicleState.DEPLOYED || mission.authoredRouteX != null) return false;
         VehicleType type = convoy.vehicleType(id);
@@ -978,7 +977,7 @@ public final class VehicleEngagement {
             plan.anchorX = body.x;
             plan.anchorY = body.y;
         }
-        long face = facesInBand && type.engagementStance() != VehicleType.Stance.AMBUSH && !body.immobilised
+        long face = facesInBand && type.engagementStance() != VehicleType.Stance.AMBUSH
                 ? faceTarget(id, plan.faceTarget, body, 0L) : 0L;
         if (face != plan.faceTarget) plan.refacing = false;
         plan.faceTarget = face;
