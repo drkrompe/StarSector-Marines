@@ -391,6 +391,19 @@ untouched. A better boat is faster, tougher or better armed, not a different
 aircraft. A gun is mounted on the hull's turret slots before its fixed rails, so
 the one gun a Kite-hulled boat carries sits on her turret.
 
+**A pod is two guns on one hardpoint.** A company boat's hardpoint takes two 2x1
+guns (owner pick, 2026-10-27; `FittedBoat.podKitFor` beside `kitFor`). They are
+mounted as two `MountedTurret`s on the one slot with its one arc, the top gun the
+pod's lead and the second its partner (`podLead`, `podPartner`). The pod turns as
+one: the second gun comes round to where the lead is laid and takes the lead's
+target when it can reach it, and with the lead idle the second gun leads. Each gun
+keeps its own cooldown, burst and magazine, and every round charges the boat's flux
+pool by its family. The barrels sit either side of the slot across the pod's
+facing (`MountedTurret.barrelOffset`), which is where a round leaves and where each
+gun is drawn, a little smaller than alone, over one housing: a saddle between two
+barrels, or a launcher box round two missile guns (`ShuttleRenderSystem.emitTurret`).
+Evidence: the `boat-pod` scene.
+
 **Lift.** Every machine a drop carries has a **lift class** — Light, Medium or
 Heavy, its weight class seen from the air (Hound and the heavy APC Light;
 Warden, the escort APC and the militia technical Medium; Bulwark and the

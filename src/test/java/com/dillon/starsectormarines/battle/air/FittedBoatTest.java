@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.marine.BoatFitting;
 import com.dillon.starsectormarines.marine.BoatGun;
 import com.dillon.starsectormarines.battle.turret.ShieldTint;
+import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.marine.BoatFittingSlot;
 import org.junit.jupiter.api.Test;
 
@@ -186,5 +187,19 @@ class FittedBoatTest {
                 > FittedBoat.fluxPerRound(BoatGun.HEAVY_MG.structureId()));
         assertTrue(FittedBoat.fluxPerRound(BoatGun.HEAVY_MG.structureId()) > 0f);
         assertEquals(0f, FittedBoat.fluxPerRound(BoatGun.SRM_POD.structureId()));
+    }
+    /** A hardpoint's second gun rides beside its first for an air-to-ground sortie, and is part of the boat. */
+    @Test
+    void aPodsSecondGunIsKitForTheGroundSortieOnly() {
+        String laser = BoatGun.PULSE_LASER.structureId();
+        FittedBoat pod = new FittedBoat(ShuttleType.HERMES, Map.of(), "boat_01",
+                new String[]{laser, null, null}, new String[]{laser, "", null});
+
+        assertEquals(laser, pod.podKitFor(TurretRole.A2G)[0]);
+        assertNull(pod.podKitFor(TurretRole.A2G)[1], "a blank entry is a mount with one gun");
+        assertNull(pod.podKitFor(TurretRole.AA));
+        assertNotEquals(new FittedBoat(ShuttleType.HERMES, Map.of(), "boat_01", new String[]{laser, null, null}), pod,
+                "a boat with a pod is not the boat without it");
+        assertNull(FittedBoat.standard(ShuttleType.HERMES).pods().get(0));
     }
 }

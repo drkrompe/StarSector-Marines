@@ -1,9 +1,9 @@
 package com.dillon.starsectormarines.marine;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
-import com.dillon.starsectormarines.battle.turret.TurretRole;
 
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -283,14 +283,15 @@ public final class BoatDeck implements Serializable {
     }
 
     /**
-     * Each berth's door guns, mount by mount as her frame carries them, or null for a berth
-     * with nothing in it: what a ship's parked boats are drawn wearing.
+     * Each berth's boat as she would fly, or null for a berth with nothing in it: what a ship's
+     * parked boats are drawn wearing, mount by mount ({@link FittedBoat#kitFor}) and pod by pod
+     * ({@link FittedBoat#podKitFor}).
      */
-    public String[][] doorGuns() {
-        String[][] guns = new String[berths.size()][];
+    public FittedBoat[] doorGuns() {
+        FittedBoat[] guns = new FittedBoat[berths.size()];
         for (int berth = 0; berth < berths.size(); berth++) {
             CampaignBoat boat = berths.get(berth);
-            if (boat != null) guns[berth] = boat.freezeForDeployment().kitFor(TurretRole.A2G);
+            if (boat != null) guns[berth] = boat.freezeForDeployment();
         }
         return guns;
     }

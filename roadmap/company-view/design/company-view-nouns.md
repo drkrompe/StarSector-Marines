@@ -707,7 +707,11 @@ footprint. A card with no spare is greyed with its price and a BUY that buys one
 into stores; away from a civilized port BUY refuses and the card says why. A spare is dragged onto a doll socket, which lights green where it fits
 and red where it does not. Any fitted part, stock ones and the yard's gun included,
 is lifted off the doll the same way: dropped on the stores it goes back as a spare
-and the socket stands empty, and a gun dropped on another hardpoint moves there. What a fit displaces goes
+and the socket stands empty, and a gun dropped on another hardpoint position moves there. A hardpoint
+socket is two 2x1 rows that answer by position: a 2x1 gun goes on, comes off or moves by the row it is
+let go over, its open neighbour stays open for a second gun, and a 2x2 gun lights and fills the whole
+socket. The ring on the berthed boat marks a pod as one mount (`HP n POD`) on its one arc, and the
+readiness line counts mounts with no gun at all ("N of M mounts empty") and the guns on the rest. What a fit displaces goes
 into stores. A card with a spare, while the machine shop runs, carries a RECYCLE
 beside its recovery in green; the first press arms it and says what comes back, and
 a second press on the same card commits (Company resource bills, Recycling). The stores cards, filter pills, meters and selected-mount card are the
@@ -817,9 +821,17 @@ stock strip of the company's credits and whether the fleet is at a civilized por
 separate from the selected part's or boat's price row; the Mech Lab's strip is the
 same.
 
-**A hardpoint carries a gun, fitted per hardpoint.** A boat has as many
-hardpoints as its pattern and each holds one gun from the yard's boat-gun catalog,
-or none; hardpoints are fitted by index, not as a slot. Guns come in three
+**A hardpoint carries guns, fitted per hardpoint and position.** A boat has as
+many hardpoints as its pattern, fitted by index, not as a slot. A hardpoint is
+2x2 bricks with two positions, top and bottom (`BoatHardpoint`): it holds one 2x2
+gun, or up to two 2x1 guns (`BoatGun.half`), or none (owner pick, 2026-10-27).
+Two guns on one hardpoint are a **pod**: one turret on the hardpoint's one slot
+and arc with a left and a right barrel, each gun firing on its own cadence and
+charging the boat's flux pool; families mix, and two missile guns ride one
+launcher box. A 2x2 gun let go over either position takes the whole hardpoint and
+whatever was on it goes to stores; a 2x1 gun put beside a 2x2 one displaces it.
+Every gun weighs on the frame except the yard's own gun in its top position.
+Guns come in three
 **families**: ballistic door guns, energy guns that fire on flux and carry no
 magazine, and missile pods with a few salvos a sortie. **Any family goes on any
 hardpoint**: the hull's slots are small ballistic turrets, but a boat's yard is not
@@ -835,7 +847,7 @@ covers the stern. The fitted guns replace the kit only for an air-to-ground sort
 other roles still arm by role.
 
 **The Hermes is the company's boat, and every refit is built around her.** She
-takes every slot's upgrades, and a gun on each of her three turrets, from stores,
+takes every slot's upgrades, and a gun or a pod of two on each of her three turrets, from stores,
 within her frame. The
 Boat Deck shows the frame as a meter (weight / rating) and every part's weight on
 its card and sheet.

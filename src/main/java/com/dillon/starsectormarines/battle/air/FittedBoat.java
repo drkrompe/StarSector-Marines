@@ -65,6 +65,11 @@ public final class FittedBoat implements Airframe, AirHandling {
     private final String boatId;
     /** Turret structure per hardpoint for an air-to-ground sortie; a null entry is a bare hardpoint. */
     private final String[] guns;
+    /**
+     * The second gun sharing each hardpoint's turret as a pod, by turret structure; a null entry
+     * is a mount with one gun. A hardpoint takes two 2x1 guns (owner pick, 2026-10-27).
+     */
+    private final String[] pods;
 
     /** A hardpoint entry naming no gun at all, where null or a missing entry is the sortie kit's own. */
     public static final String BARE = "";
@@ -104,6 +109,17 @@ public final class FittedBoat implements Airframe, AirHandling {
      *     {@link #BARE} for no gun
      */
     public FittedBoat(ShuttleType pattern, Map<BoatFittingSlot, BoatFitting> fit, String boatId, String[] guns) {
+        this(pattern, fit, boatId, guns, null);
+    }
+
+    /**
+     * As {@link #FittedBoat(ShuttleType, Map, String, String[])}, with a second gun on some hardpoints.
+     *
+     * @param pods the turret structure of the second gun sharing each hardpoint's pod, or null
+     *     (or a null or blank entry) for a mount with one gun
+     */
+    public FittedBoat(ShuttleType pattern, Map<BoatFittingSlot, BoatFitting> fit, String boatId, String[] guns,
+                      String[] pods) {
         this.pattern = Objects.requireNonNull(pattern, "pattern");
         this.fit = new EnumMap<>(BoatFittingSlot.class);
         for (BoatFittingSlot slot : BoatFittingSlot.values()) {
@@ -121,6 +137,11 @@ public final class FittedBoat implements Airframe, AirHandling {
         for (int index = 0; index < kit.length; index++) {
             String fitted = guns != null && index < guns.length ? guns[index] : null;
             this.guns[index] = fitted == null ? kit[index] : fitted.isBlank() ? null : fitted;
+        }
+        this.pods = new String[kit.length];
+        for (int index = 0; index < kit.length; index++) {
+            String pod = pods != null && index < pods.length ? pods[index] : null;
+            this.pods[index] = pod == null || pod.isBlank() ? null : pod;
         }
     }
 
@@ -187,8 +208,20 @@ public final class FittedBoat implements Airframe, AirHandling {
         return role == TurretRole.A2G ? guns.clone() : pattern.kitFor(role);
     }
 
+    /**
+     * The second gun on each hardpoint, sharing its turret as a pod, for an air-to-ground sortie;
+     * any other role is the pattern's, which pairs nothing.
+     */
+    @Override
+    public String[] podKitFor(TurretRole role) {
+        return role == TurretRole.A2G ? pods.clone() : null;
+    }
+
     /** The turret structure on each hardpoint, in hardpoint order; null for a bare one. */
     public List<String> guns() { return Collections.unmodifiableList(Arrays.asList(guns.clone())); }
+
+    /** The second gun of each hardpoint's pod, in hardpoint order; null where a mount has one gun. */
+    public List<String> pods() { return Collections.unmodifiableList(Arrays.asList(pods.clone())); }
     @Override public AirHandling flight() { return this; }
 
     /** Her hull is the pattern's; plating is armour over it, not more of it. */
@@ -321,7 +354,7 @@ public final class FittedBoat implements Airframe, AirHandling {
             if (!Objects.equals(idOf(fit.get(slot)), idOf(boat.fit.get(slot)))) return false;
         }
         return Objects.equals(boatId, boat.boatId)
-                && Arrays.equals(guns, boat.guns);
+                && Arrays.equals(guns, boat.guns) && Arrays.equals(pods, boat.pods);
     }
 
     @Override
@@ -329,6 +362,7 @@ public final class FittedBoat implements Airframe, AirHandling {
         int result = pattern.hashCode();
         for (BoatFittingSlot slot : BoatFittingSlot.values()) result = 31 * result + Objects.hashCode(idOf(fit.get(slot)));
         result = 31 * result + Arrays.hashCode(guns);
+        result = 31 * result + Arrays.hashCode(pods);
         return 31 * result + Objects.hashCode(boatId);
     }
 

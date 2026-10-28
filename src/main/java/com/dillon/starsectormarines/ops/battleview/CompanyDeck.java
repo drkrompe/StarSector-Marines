@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.DevConfig;
+import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -128,9 +129,9 @@ public final class CompanyDeck {
     }
 
     /** The door guns on each of her boats, mount by mount; read on this thread, as she is adopted and on each {@link #refitDoorGuns()}. */
-    private Supplier<String[][]> doorGuns = () -> null;
+    private Supplier<FittedBoat[]> doorGuns = () -> null;
 
-    public CompanyDeck doorGuns(Supplier<String[][]> guns) {
+    public CompanyDeck doorGuns(Supplier<FittedBoat[]> guns) {
         doorGuns = guns == null ? () -> null : guns;
         return this;
     }
