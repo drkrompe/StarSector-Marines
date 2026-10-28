@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.combat.ArmorArcs;
+import com.dillon.starsectormarines.battle.combat.Crippled;
 import com.dillon.starsectormarines.battle.combat.DurabilityModel;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations.Plate;
 import org.junit.jupiter.api.Test;
@@ -55,15 +56,15 @@ class HullLocationsTest {
     }
 
     @Test
-    void aLostDriveImmobilisesAndSpillsIntoTheHull() {
+    void aLostDriveCripplesAndSpillsIntoTheHull() {
         HullLocations hull = new HullLocations(0f, SHARES, 50f, DRIVE_HITS, null);
         DurabilityModel.Resolution scratch = new DurabilityModel.Resolution();
         HullLocations.Hit hit = new HullLocations.Hit();
         hull.resolve(false, true, Plate.REAR, 30f, 30f, 20f, 1f, 20f, 1f, 500f, scratch, hit);
-        assertFalse(hull.immobilised());
+        assertFalse(hull.crippled());
         assertEquals(20f, hull.drive(), 1e-3f);
         hull.resolve(false, true, Plate.REAR, 50f, 30f, 20f, 1f, 20f, 1f, 470f, scratch, hit);
-        assertTrue(hull.immobilised());
+        assertTrue(hull.crippled());
         assertTrue(hit.driveDestroyed());
         assertEquals(50f, hit.structureDamage(), 1e-3f, "twenty on the drive, thirty through into the hull");
         assertFalse(hit.hullDestroyed());
@@ -82,15 +83,21 @@ class HullLocationsTest {
     }
 
     @Test
-    void anImmobilisedBodyNeitherDrivesNorTurns() {
-        BicycleBody body = new BicycleBody(1.6f, 22f, 150f, 1.8f, 3.5f, 2.8f);
-        body.teleport(5f, 5f, 0f);
-        body.immobilised = true;
-        for (int i = 0; i < 30; i++) body.tick(20f, 20f, 2.8f, 1f / 30f);
-        assertEquals(5f, body.x);
-        assertEquals(5f, body.y);
-        assertEquals(0f, body.facingDegrees);
-        assertEquals(0f, body.speed);
+    void aCrippledBodyStillDrivesAndTurnsOnTheSpotButSlowly() {
+        BicycleBody whole = new BicycleBody(1.6f, 22f, 150f, 1.8f, 3.5f, 2.8f);
+        BicycleBody crippled = new BicycleBody(1.6f, 22f, 150f, 1.8f, 3.5f, 2.8f);
+        whole.teleport(5f, 5f, 0f);
+        crippled.teleport(5f, 5f, 0f);
+        crippled.crippled = true;
+        for (int i = 0; i < 90; i++) {
+            whole.tick(5f, 50f, 2.8f, 1f / 30f);
+            crippled.tick(5f, 50f, 2.8f, 1f / 30f);
+        }
+        assertEquals(2.8f * Crippled.SPEED_SHARE, crippled.speed, 1e-4f, "slowed to its share, not stopped");
+        assertTrue(crippled.y > 5f && crippled.y - 5f < (whole.y - 5f) * .5f);
+
+        crippled.pivot(10f, 1f / 30f);
+        assertEquals(10f * Crippled.SPEED_SHARE, crippled.facingDegrees, 1e-3f, "it turns on the spot, slowly");
     }
 
     private static Plate plate(HullLocations hull, float facing, float dx, float dy) {

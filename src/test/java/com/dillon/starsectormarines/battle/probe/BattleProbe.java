@@ -548,7 +548,7 @@ public final class BattleProbe {
             GroundBody body = convoy.body(id);
             if (body != null) {
                 vehicle.put("facing", round(body.facingDegrees)).put("speed", round(body.speed))
-                        .put("immobilised", body.immobilised);
+                        .put("crippled", body.crippled);
             }
             VehicleMoveOrderService orders = sim.getVehicleMoveOrderService();
             VehicleMoveOrderService.ActiveOrder order = orders.activeOrder(id);

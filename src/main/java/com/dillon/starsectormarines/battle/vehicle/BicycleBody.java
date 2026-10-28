@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.combat.Crippled;
 import com.dillon.starsectormarines.battle.air.AirBody;
 
 /**
@@ -82,10 +83,7 @@ public class BicycleBody extends GroundBody {
      * through the turn, as it does every other move.
      */
     public void pivot(float signedDeg, float dt) {
-        if (immobilised) {
-            speed = 0f;
-            return;
-        }
+        if (crippled) signedDeg *= Crippled.SPEED_SHARE;
         speed = 0f;
         float steeringStep = steeringSlewRadPerSec * dt;
         steeringRad -= Math.max(-steeringStep, Math.min(steeringStep, steeringRad));
@@ -102,10 +100,6 @@ public class BicycleBody extends GroundBody {
 
     @Override
     public void tick(float carrotX, float carrotY, float targetSpeed, float dt) {
-        if (immobilised) {
-            speed = 0f;
-            return;
-        }
         float dx = carrotX - x;
         float dy = carrotY - y;
         float dist = (float) Math.sqrt(dx * dx + dy * dy);
@@ -159,15 +153,16 @@ public class BicycleBody extends GroundBody {
         if (dSteer < -steeringStep) dSteer = -steeringStep;
         steeringRad += dSteer;
 
-        // Adjust speed toward targetSpeed. Reverse is capped at a fraction of forward max.
-        float maxReverse = maxSpeed * reverseFraction;
-        float clampedTarget = Math.max(-maxReverse, Math.min(maxSpeed, targetSpeed));
+        // Adjust speed toward targetSpeed. Reverse is capped at a fraction of forward max; a lost drive caps both.
+        float top = crippled ? maxSpeed * Crippled.SPEED_SHARE : maxSpeed;
+        float maxReverse = top * reverseFraction;
+        float clampedTarget = Math.max(-maxReverse, Math.min(top, targetSpeed));
         float dv = clampedTarget - speed;
         float speedStep = (dv >= 0f) ? accel * dt : brakingAccel * dt;
         if (dv >  speedStep) dv =  speedStep;
         if (dv < -speedStep) dv = -speedStep;
         speed += dv;
-        if (speed >  maxSpeed) speed = maxSpeed;
+        if (speed >  top) speed = top;
         if (speed < -maxReverse) speed = -maxReverse;
 
         // Bicycle heading update: θ' = (v / L) · tan(δ). Our convention

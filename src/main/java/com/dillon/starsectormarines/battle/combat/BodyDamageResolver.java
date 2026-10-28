@@ -39,7 +39,7 @@ import java.util.Random;
  * <p>A ground hull is resolved by location ({@link HullLocations}): for a hull whose turret is a section of it
  * ({@link HullTurretSection}) a roll on the battle's random stream decides whether the hit lands on the turret,
  * then a drive roll whose share depends on the arc, and the hit meets the plate on the side it arrives from. Only
- * the hull's own structure decides death; a hull whose drive goes is immobilised where it stands. A hit with no
+ * the hull's own structure decides death; a hull whose drive goes is {@link Crippled}, slowed but not stranded. A hit with no
  * origin meets the front plate and rolls no drive.
  *
  * <p>An attributed hit on an armed hull is noted by its crew, shooter and bearing, so two machines hitting it from two
@@ -117,7 +117,7 @@ public final class BodyDamageResolver {
             hitPart = onTurret ? "TURRET" : onDrive ? "DRIVE" : "HULL:" + plate;
             armorDamage = locatedHit.armorDamage();
             hpAfter = locatedHit.hullDestroyed() ? 0f : Math.max(0f, hpBefore - locatedHit.structureDamage());
-            if (locatedHit.driveDestroyed() && body != null) body.immobilised = true;
+            if (locatedHit.driveDestroyed() && body != null) body.crippled = true;
         } else {
             DurabilityModel.resolvePlatedInto(postCover, penetration,
                     armorBefore, rating * arcs.rating(hullArc), arcs.plate(hullArc), hpBefore, durability);

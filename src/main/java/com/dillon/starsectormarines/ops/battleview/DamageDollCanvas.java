@@ -318,9 +318,9 @@ public final class DamageDollCanvas implements CanvasProducer {
                     maxHp - turretMax - locations.maxDrive());
             set(DollLocation.HULL.ordinal(), true, false, 0f, hull, dead);
             set(DollLocation.DRIVE.ordinal(), true, false, 0f, fraction(locations.drive(), locations.maxDrive()),
-                    locations.immobilised());
+                    locations.crippled());
             readTurret(turret, hull, dead);
-            immobile = locations.immobilised();
+            immobile = locations.crippled();
             crippled = false;
             sensorsLost = false;
         }

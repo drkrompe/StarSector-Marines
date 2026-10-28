@@ -497,7 +497,7 @@ does.
   one armor rating, and only the torso's structure decides death. Ground hulls
   are the same exception by theirs (`convoy-nouns.md`, a hull holds its damage
   where it lands): four armor plates read by the side a hit arrives from, a
-  drive whose loss immobilises, an optional turret section that loses only the
+  drive whose loss cripples (slowed, never stranded), an optional turret section that loses only the
   gun, and the hull's own structure behind them, the only pool whose zero is
   death. Each pool resolves by the same calculation and the hull's one rating.
 - Armor does not alter hit chance. Movement and incoming-accuracy modifiers

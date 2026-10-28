@@ -5169,7 +5169,7 @@
 		"battleDamageDollRear": "REAR",
 		"battleDamageDollLeft": "L",
 		"battleDamageDollRight": "R",
-		"battleDamageDollImmobile": "IMMOBILE",
+		"battleDamageDollImmobile": "DRIVE CRIPPLED",
 		"battleDamageDollGunLost": "GUN LOST",
 		"battleMarineDollLegWound": "LEG WOUND",
 		"battleMarineDollArmWound": "ARM WOUND",

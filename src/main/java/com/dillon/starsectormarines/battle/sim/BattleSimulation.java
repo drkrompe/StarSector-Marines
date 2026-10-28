@@ -4011,7 +4011,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // A crippled mech's leg smoke and a lost section's burst and smoulder: presentation
         // events into the same per-frame queues, read off settled section state.
         mechSectionFx.tick(simTickIndex);
-        // A worn hull's engine-deck smoke, an immobilised drive's and a lost turret's: the same queues, read off
+        // A worn hull's engine-deck smoke, a crippled drive's and a lost turret's: the same queues, read off
         // the hull's settled locations.
         vehicleDamageFx.tick(simTickIndex, convoy(), effects);
         tickProfile.lap(TickProfile.Phase.PLUMES);

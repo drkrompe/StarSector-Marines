@@ -31,7 +31,7 @@ public final class VehicleDamageFxSystem {
     /** Ticks between engine-deck puffs on a worn hull, and on a failing one. */
     static final int WORN_SMOKE_PERIOD_TICKS = 22;
     static final int FAILING_SMOKE_PERIOD_TICKS = 11;
-    /** Ticks between puffs at an immobilised hull's running gear. */
+    /** Ticks between puffs at a crippled hull's running gear. */
     static final int DRIVE_SMOKE_PERIOD_TICKS = 14;
     /** Ticks between smoulder puffs on a lost turret's ring. */
     static final int TURRET_SMOKE_PERIOD_TICKS = 18;
@@ -62,7 +62,7 @@ public final class VehicleDamageFxSystem {
             float structure = convoy.structure(id);
             if (locations == null || body == null || structure <= 0f) continue;
             int raised = emitters(hullShare(locations, structure, convoy.maxStructure(id)),
-                    meanPlateWear(locations), locations.immobilised(),
+                    meanPlateWear(locations), locations.crippled(),
                     locations.turret() != null && locations.turret().destroyed());
             if (raised != 0) emit(id, tickIndex, type, body, raised, fx);
         }
@@ -70,14 +70,14 @@ public final class VehicleDamageFxSystem {
 
     /**
      * Which emitters a hull raises from its state: {@link #WORN} (with {@link #FAILING} under it) from its own
-     * structure share and its plates' mean wear, {@link #DRIVE} once immobilised, {@link #TURRET} once the turret
+     * structure share and its plates' mean wear, {@link #DRIVE} once crippled, {@link #TURRET} once the turret
      * section is gone.
      */
-    static int emitters(float hullShare, float plateWear, boolean immobilised, boolean turretLost) {
+    static int emitters(float hullShare, float plateWear, boolean crippled, boolean turretLost) {
         int raised = 0;
         if (hullShare <= WORN_STRUCTURE || plateWear >= WORN_PLATES) raised |= WORN;
         if (hullShare <= FAILING_STRUCTURE) raised |= WORN | FAILING;
-        if (immobilised) raised |= DRIVE;
+        if (crippled) raised |= DRIVE;
         if (turretLost) raised |= TURRET;
         return raised;
     }

@@ -273,10 +273,9 @@ public final class ThunderRunSequence {
         for (int i = 0; i <= lastSite; i++) if (sites.get(i).state != CompoundState.MARINE_HELD) return false;
         return true;
     }
-    /** A hauler that will never reach the exit: gone, burnt out, or with its drive shot away where it stands. */
+    /** A hauler that will never reach the exit: gone or burnt out. One with its drive shot away limps on. */
     private static boolean stranded(BattleSimulation sim, long id) {
-        return !sim.convoy().isVehicle(id) || sim.convoy().mission(id).state == VehicleState.WRECKED
-                || sim.convoy().body(id).immobilised;
+        return !sim.convoy().isVehicle(id) || sim.convoy().mission(id).state == VehicleState.WRECKED;
     }
     private void order(BattleSimulation sim, long id) {
         if (!sim.convoy().isVehicle(id) || sim.convoy().mission(id).state == VehicleState.WRECKED) return;

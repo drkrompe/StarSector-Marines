@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-27 — crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -395,20 +395,20 @@ increasing an encounter's total armored threat.
   heavy, slow rounds spread about 1.5-2 times the control's spread rather than
   the tenfold swing they had before.
 - **Section loss** is a capability before it is the machine. Legs at zero
-  **cripple** the mech: no walking speed, autonomous or manual, while it still
-  pivots its hips onto its target, turns its torso and fires. A mount at zero
+  **cripple** the mech: it walks on at a crawl (`Crippled.SPEED_SHARE` of its
+  speed), autonomous or manual, and still pivots its hips onto its target, turns
+  its torso and fires. Crippled is slowed, never stranded (owner). A mount at zero
   **destroys its weapon**: the mount becomes absent for the rest of the battle.
   The head at zero **loses the sensors**: vision halves and weapon accuracy
   drops. The torso at zero is the only death; legs are never a kill. Damage above
   zero costs only that section's protection, with no hidden stat penalty.
-  Doctrine follows the loss. A crippled mech is a **turret** under any order:
-  it holds, turns and fires at what it can engage, asks for no movement, and is
-  never an anchor its lance or a screened infantry advance keys movement to, so
-  nobody is held waiting on it; a player's move order releases itself. A mech
-  that has lost every mount is **disarmed**: it declines its doctrine's attack
-  and breaks contact while it can walk, and a lance with no armed standing mech
-  declines its attack goals as broken morale does, without touching the
-  command's assignment; crippled and disarmed, it simply holds. One lost mount
+  Doctrine follows the loss. A crippled mech is **limping**: it serves its
+  doctrine and any move order as before, at its crawl, and is never an anchor
+  its lance or a screened infantry advance keys movement to, so nobody is held
+  to its pace. A mech that has lost every mount is **disarmed**: it declines its
+  doctrine's attack and breaks contact, crippled or not, and a lance with no
+  armed standing mech declines its attack goals as broken morale does, without
+  touching the command's assignment. One lost mount
   needs no posture: doctrine and engagement range read only the surviving
   mounts. `-Dbattle.mech.locationalDamage=false` is the whole-body
   control. The battle keeps each owned mech's section record (pools, what was
@@ -747,8 +747,7 @@ it closes on it. While its rounds are landing the mech takes the contact to
 stand where the fire comes from, not where it was last seen: a long-reach
 shooter is usually beyond sight, and its last-seen cell is wherever it stood
 before it stepped back. The rule sits below the
-reflexes — a player's move order still owns the chassis, a crippled one is
-still a turret, and a walking one steps back from a charging Brute or Matriarch
+reflexes — a player's move order still owns the chassis, and a mech steps back from a charging Brute or Matriarch
 inside six cells, firing as it goes (`MechReflexes.MELEE_STANDOFF`) — and keeps to command ground: every cell must be legal
 under the active assignment, and a mech outside its command (an exact cell not
 yet reached) is left to its doctrine. The one stretch is the **sortie**: a mech
@@ -1096,7 +1095,7 @@ a tick ends the attachment it reaches on that tick, and an attachment accepted o
 a tick cancels the direct order it replaces, so neither undoes the other. It also
 stands down a commander's guard on the chassis, as a player's move does. The
 attached chassis is served from the lance's reflex chain (`ATTACHED`, below the
-player's move, the crippled chassis and the melee stand-off) and hands back to the
+player's move and the melee stand-off) and hands back to the
 still-current plan step with no planless tick.
 
 Defender setup produces a deterministic sequence of variants, not an

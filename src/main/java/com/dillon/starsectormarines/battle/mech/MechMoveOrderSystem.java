@@ -67,9 +67,7 @@ public final class MechMoveOrderSystem {
         }
         for (PendingOrder request : service.drainPending()) {
             Squad squad = validLance(request.mechId, request.commanded, sim);
-            if (squad == null || !sim.movement().has(request.mechId)
-                    || MechDamageDoctrine.crippled(
-                            sim.world().mechLoadout(request.mechId).sections())) continue;
+            if (squad == null || !sim.movement().has(request.mechId)) continue;
             ObjectiveAssignment assignment = squad.assignmentForExecution();
             if (assignment != null && assignment.kind() == AssignmentKind.WITHDRAW) {
                 service.release(request.mechId);
@@ -130,13 +128,6 @@ public final class MechMoveOrderSystem {
         if (order == null) return false;
         if (validLance(mech, order.commanded(), sim) != squad || !sim.movement().has(mech)) {
             service.release(mech, order);
-            return false;
-        }
-        if (MechDamageDoctrine.crippled(sim.world().mechLoadout(mech).sections())) {
-            // Legs that cannot carry the chassis cannot carry the order either; release it
-            // and let the crippled-chassis reflex hold the mech as a turret.
-            service.release(mech, order);
-            sim.clearPath(mech);
             return false;
         }
         ObjectiveAssignment assignment = squad.assignmentForExecution();
