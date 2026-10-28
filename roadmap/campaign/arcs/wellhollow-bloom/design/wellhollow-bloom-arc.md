@@ -50,8 +50,9 @@ government's response:
   officers, the company among them. He coordinates more than he orders, until
   the line stabilises and Command gives him a brigade. Hires and briefs the
   company for every job. Stressed, plain, counts people, calls them **ravs**
-  and the bores **holes**. His portrait still shows a farmer in a work jacket
-  with militia webbing and is due a regeneration in Defence Force officer kit.
+  and the bores **holes**. His portrait (owner pick, 2026-10-28) is a career
+  colonel in his late fifties in worn olive field kit, a headset round his
+  neck and a map in his pocket.
 - **Castle**, the company's operations voice, as in every arc.
 
 Asharu in the base game is an independent world whose settlers keep no
