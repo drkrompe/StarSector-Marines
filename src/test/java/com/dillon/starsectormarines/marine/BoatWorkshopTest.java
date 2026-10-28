@@ -55,7 +55,6 @@ class BoatWorkshopTest {
         workshop.fabricatePart(BoatGun.PULSE_LASER.id());
         assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 1, BoatGun.SRM_POD.id()).status());
         assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 2, BoatGun.PULSE_LASER.id()).status());
-        assertEquals(BoatGun.SRM_POD.weight() + BoatGun.PULSE_LASER.weight(), BoatFrame.weight(boat));
 
         assertEquals(BoatWorkshop.Status.STRIPPED, workshop.stripGun(boat.id(), 1).status());
         assertNull(boat.gunOn(1), "a stripped turret goes back bare");
@@ -66,24 +65,18 @@ class BoatWorkshopTest {
         assertEquals(BoatWorkshop.Status.UNKNOWN_HARDPOINT, workshop.stripGun(boat.id(), 3).status());
     }
 
-    /** A refit that takes her over the frame's rating is refused; one that lightens her never is. */
+    /** A boat has no weight limit: every upgrade can be fitted at once. */
     @Test
-    void aFitOverTheFrameRatingIsRefusedAndKeepsItsSpare() {
+    void everyUpgradeFitsTogether() {
         BoatDeck deck = TaughtBoatDecks.taught(new BoatDeck());
         deck.reconcile("second-wind", ShuttleType.HERMES, 1);
         BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
-        for (String part : List.of("heavy_lift_frame", "uprated_drive", "armoured_plating")) workshop.fabricatePart(part);
-        workshop.fit(boat.id(), "heavy_lift_frame");
-        workshop.fit(boat.id(), "uprated_drive");
-        assertEquals(9, BoatFrame.weight(boat));
-
-        assertEquals(BoatWorkshop.Status.OVER_FRAME, workshop.fit(boat.id(), "armoured_plating").status());
-        assertEquals(1, deck.spares("armoured_plating"));
-        assertSame(BoatFitting.STANDARD_PLATING, boat.plating());
-        assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), "standard_drive").status(),
-                "taking weight off is always allowed");
-        assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), "armoured_plating").status());
+        for (String part : List.of("heavy_lift_frame", "uprated_drive", "armoured_plating")) {
+            workshop.fabricatePart(part);
+            assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), part).status(), part);
+        }
+        assertSame(BoatFitting.ARMOURED_PLATING, boat.plating());
     }
 
     @Test
@@ -438,7 +431,7 @@ class BoatWorkshopTest {
     }
     /**
      * A hardpoint takes two 2x1 guns as one pod: each is fitted, stripped and moved by its own
-     * position, both weigh, and both fly. A 2x2 gun dropped on either position takes the whole mount.
+     * position, and both fly. A 2x2 gun dropped on either position takes the whole mount.
      */
     @Test
     void twoHalfGunsShareOneHardpointAsAPod() {
@@ -456,11 +449,8 @@ class BoatWorkshopTest {
         assertEquals(BoatWorkshop.Status.FITTED,
                 workshop.fitGun(boat.id(), 1, BoatHardpoint.BOTTOM, BoatGun.PULSE_LASER.id()).status());
         assertEquals(List.of(BoatGun.PULSE_LASER, BoatGun.PULSE_LASER), boat.gunsOn(1));
-        assertEquals(2 * BoatGun.PULSE_LASER.weight(), BoatFrame.weight(boat), "each gun of a pod weighs");
         assertEquals(BoatWorkshop.Status.FITTED,
                 workshop.fitGun(boat.id(), 0, BoatHardpoint.BOTTOM, BoatGun.HEAVY_MG.id()).status());
-        assertEquals(2 * BoatGun.PULSE_LASER.weight() + BoatGun.HEAVY_MG.weight(), BoatFrame.weight(boat),
-                "the yard's gun is free on top only; a second one beside it weighs");
 
         FittedBoat flown = boat.freezeForDeployment();
         assertEquals(BoatGun.PULSE_LASER.structureId(), flown.guns().get(1));
