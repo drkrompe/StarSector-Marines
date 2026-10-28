@@ -8,7 +8,7 @@ starting points, not settled balance.
 Written: 2026-10-14
 Updated: 2026-10-23 — keep-moving shipped as the only movement mode (switch and planted path deleted); supplies and cooldown replaced by an energy pool with a start gate; open question 2 closed.
 Updated: 2026-10-27 — the suits' field-aid kits now make their wearers squad medics on the same pool, and under Field Medicine complement the officer's medic instead (owner); see Kit medics.
-Updated: 2026-10-27 — a medic may treat themselves (owner).
+Updated: 2026-10-27 — a medic may treat themselves (owner); the squad card marks kit-wearing medics; open question 4 closed.
 
 Read `progression-nouns.md` (officer career, legibility law),
 `combat-durability-nouns.md` (armor break, the no-regeneration rule this story
@@ -235,10 +235,8 @@ This must stay inside the yield and goal rules the scenes have already enforced:
 2. ~~Planted or keep moving.~~ Closed 2026-10-23: keep moving is the only
    behaviour, and not a player option.
 3. **Specialty copy** against the `FIELD_MEDIC` trait, above.
-4. **Kit wearers on the squad card.** Without Field Medicine the card marks no
-   medic, though kit wearers treat; they show their kit on the suit line but
-   carry no card badge. Marking them needs the card to resolve each billet's
-   issued armour.
+4. ~~Kit wearers on the squad card.~~ Closed 2026-10-27: without Field Medicine the card marks
+   every ready billet whose issued suit carries a field-aid kit; with it, only the officer's billet.
 
 ## Evidence so far
 
