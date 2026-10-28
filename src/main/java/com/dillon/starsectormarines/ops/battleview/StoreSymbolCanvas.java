@@ -16,7 +16,7 @@ import java.util.function.BiConsumer;
 /**
  * A mech or vehicle pattern's picture on the company store's shelf, drawn by the code that
  * draws it in the Mech Lab, so the store shows what the lab shows: a chassis or a vehicle as
- * its damage doll ({@link DamageDollCanvas}), and a weapon, an internal or a kit as the lab draws
+ * the sockets of its doll ({@link DollSchematicCanvas}), and a weapon, an internal or a kit as the lab draws
  * hardware: its bricks under its painted symbol. A shuttle part is drawn as the Boat Deck
  * draws it ({@link BoatHardware}). A marine loadout is drawn as its faction's flag instead, an image in the
  * page's markup.
@@ -38,14 +38,10 @@ public final class StoreSymbolCanvas {
         if (pattern == null) return null;
         switch (pattern.kind()) {
             case CHASSIS -> {
-                DamageDollCanvas.View view = new DamageDollCanvas.View();
-                view.readChassis(pattern.variant());
-                return DamageDollCanvas.bare(view);
+                return DollSchematicCanvas.ofChassis(pattern.variant());
             }
             case VEHICLE -> {
-                DamageDollCanvas.View view = new DamageDollCanvas.View();
-                view.readStock(pattern.vehicleType());
-                return DamageDollCanvas.bare(view);
+                return DollSchematicCanvas.ofVehicle(pattern.vehicleType());
             }
             case WEAPON -> {
                 MechWeaponComponent component = pattern.component();

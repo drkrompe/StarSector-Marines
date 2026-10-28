@@ -306,20 +306,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         float panelWidth = width * SCHEMATIC_SHARE;
         drawSchematicPanel(c, panelWidth, height);
         List<SocketDropTarget> targets = schematicTargets(layout.sockets(), panelWidth, height);
-        SocketDropTarget core = null;
-        for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
-        for (SocketDropTarget target : targets) {
-            if (core == null || target == core || target.id() == SocketId.PLATING) continue;
-            Color wire = HardpointBricks.tone(layout.socket(target.id()).type());
-            List<float[]> path = wireToCore(target, core);
-            for (int i = 0; i < path.size() - 1; i++) {
-                float[] a = path.get(i), b = path.get(i + 1);
-                c.line(a[0], a[1], b[0], b[1], new Color(0, 0, 0, 190), 5f);
-                c.line(a[0], a[1], b[0], b[1], withAlpha(wire, 150), 2f);
-            }
-            float[] end = path.get(path.size() - 1);
-            drawAnchorMechanicalTick(c, end[0], end[1], wire, false);
-        }
+        drawWires(c, targets, id -> HardpointBricks.tone(layout.socket(id).type()), 1f);
         for (SocketDropTarget target : targets) {
             SocketDef socket = layout.socket(target.id());
             MechMountSlot mount = mountFor(socket.id());
@@ -327,6 +314,29 @@ public final class MechLabDollCanvas implements CanvasProducer {
                     socket.id() == SocketId.PLATING ? MechInternal.FACTORY_PLATING : null, false,
                     socket.id().compartment() ? List.of() : null, null, assets.get(),
                     false, false, false, false, false, elapsedSeconds.getAsDouble());
+        }
+    }
+
+    /**
+     * The schematic's wires: each card but the armor point wired back to the engine core in its own
+     * tone, a mechanical tick where it meets the core. {@code scale} thins them for a small drawing
+     * (the store's chassis symbol), which draws no ticks.
+     */
+    static void drawWires(CanvasContext c, List<SocketDropTarget> targets, Function<SocketId, Color> tone,
+                          float scale) {
+        SocketDropTarget core = null;
+        for (SocketDropTarget target : targets) if (target.id() == SocketId.CORE) core = target;
+        for (SocketDropTarget target : targets) {
+            if (core == null || target == core || target.id() == SocketId.PLATING) continue;
+            Color wire = tone.apply(target.id());
+            List<float[]> path = wireToCore(target, core);
+            for (int i = 0; i < path.size() - 1; i++) {
+                float[] a = path.get(i), b = path.get(i + 1);
+                c.line(a[0], a[1], b[0], b[1], new Color(0, 0, 0, 190), 5f * scale);
+                c.line(a[0], a[1], b[0], b[1], withAlpha(wire, 150), 2f * scale);
+            }
+            float[] end = path.get(path.size() - 1);
+            if (scale >= 1f) drawAnchorMechanicalTick(c, end[0], end[1], wire, false);
         }
     }
 

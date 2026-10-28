@@ -17,7 +17,6 @@
           <button each="category in categoryRows" key="{category.id}" id="{category.id}" class="{category.classes}" onclick="{category.select}">
             <div id="{category.stripId}" class="{category.stripClasses}"></div>
             <img id="{category.iconId}" class="{category.iconClasses}" src="{category.icon}" />
-            <canvas id="{category.symbolId}" class="{category.symbolClasses}" width="30" height="30" />
             <div id="{category.labelId}" class="label store-category-label">{category.label}</div>
           </button>
         </div>
@@ -85,10 +84,7 @@
   .store-cat.empty { opacity: 0.5; }
   .store-category-label { width: 0px; flex-grow: 1; height: auto; white-space: nowrap; }
   .store-cat-icon { width: 48px; height: 36px; pointer-events: none; }
-  .store-cat-tick { width: 14px; height: 14px; pointer-events: none; }
-  .store-cat-symbol { width: 30px; height: 30px; pointer-events: none; }
-  .store-cat-symbol.none { display: none; }
-  .store-cat-tick.none { display: none; }
+  .store-cat-tick { width: 22px; height: 22px; pointer-events: none; }
   .store-rail { flex-direction: column; width: 420px; padding: 10px; gap: 8px; overflow: hidden; border-width: 2px; }
   .rail-copy { height: 36px; white-space: normal; }
   .store-offer-list { flex-direction: column; height: 0px; flex-grow: 1; gap: 8px; overflow: scroll; }

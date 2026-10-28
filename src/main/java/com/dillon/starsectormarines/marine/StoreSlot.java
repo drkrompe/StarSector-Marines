@@ -40,6 +40,24 @@ public enum StoreSlot {
         this.section = section;
     }
 
+    /**
+     * The name of this slot's icon, shared by every slot of the same kind of part: a weapon is one
+     * icon whether a marine's, a machine's or a shuttle's.
+     */
+    public String symbol() {
+        return switch (this) {
+            case WEAPON_LOADOUT, MECH_WEAPON, BOAT_WEAPON -> "weapons";
+            case ARMOR_LOADOUT, MECH_ARMOR, BOAT_ARMOR -> "armor";
+            case MECH_ENGINE, BOAT_ENGINE -> "engines";
+            case MECH_CHASSIS -> "chassis";
+            case MECH_EQUIPMENT -> "equipment";
+            case BOAT_LIFT -> "lift";
+            case BOAT_CABIN -> "cabin";
+            case BOAT_EMITTER -> "emitter";
+            case BOAT_POWER -> "power";
+        };
+    }
+
     public Section section() {
         return section;
     }

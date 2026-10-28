@@ -14,7 +14,6 @@ import com.dillon.starsectormarines.marine.SquadArmorPlan;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
 import com.dillon.starsectormarines.marine.StoreSlot;
-import com.dillon.starsectormarines.ops.battleview.StoreBrickCanvas;
 import com.dillon.starsectormarines.ops.battleview.StoreSymbolCanvas;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.ComputedSignal;
@@ -217,14 +216,12 @@ final class StoreViewModel {
     private CategoryRow categoryRow(String key, String id, String classes, StoreSlot.Section section,
                                     StoreSlot slot, String label, int count, String current) {
         boolean isSection = classes.endsWith("section");
-        String icon = "graphics/ui/store/" + (isSection ? "section-" : "slot-")
-                + section.name().toLowerCase(Locale.ROOT) + ".svg";
-        boolean brick = StoreBrickCanvas.has(slot);
+        String icon = "graphics/ui/store/" + (isSection ? "section-" + section.name().toLowerCase(Locale.ROOT)
+                : "cat-" + slot.symbol()) + ".svg";
         return new CategoryRow(id, classes + (key.equals(current) ? " selected" : "")
                 + (count == 0 ? " empty" : ""), Strings.format("storeCategoryCountFmt", label, count),
-                icon, isSection ? "store-cat-icon" : brick ? "store-cat-tick none" : "store-cat-tick",
-                "store-cat-strip sec-" + section.name(), brick ? slot : null,
-                brick ? "store-cat-symbol" : "store-cat-symbol none", () -> selectFilter(key));
+                icon, isSection ? "store-cat-icon" : "store-cat-tick",
+                "store-cat-strip sec-" + section.name(), () -> selectFilter(key));
     }
 
     private int count(String filterKey) {
@@ -451,10 +448,8 @@ final class StoreViewModel {
 
     /** One line of the category list: a section header or one of its slots, each with its section's icon. */
     record CategoryRow(String id, String classes, String label, String icon, String iconClasses,
-                       String stripClasses, StoreSlot symbol, String symbolClasses, Runnable select)
+                       String stripClasses, Runnable select)
             implements MarkupPropertySource {
-        String symbolId() { return id + ":symbol"; }
-
         @Override
         public Object markupProperty(String property) {
             return switch (property) {
@@ -465,8 +460,6 @@ final class StoreViewModel {
                 case "label" -> label;
                 case "icon" -> icon;
                 case "iconClasses" -> iconClasses;
-                case "symbolId" -> symbolId();
-                case "symbolClasses" -> symbolClasses;
                 case "stripId" -> id + ":strip";
                 case "stripClasses" -> stripClasses;
                 case "select" -> select;

@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.marine.CampaignFabricationResources;
 import com.dillon.starsectormarines.marine.EquipmentStore;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.StoreSlot;
-import com.dillon.starsectormarines.ops.battleview.StoreBrickCanvas;
 import com.dillon.starsectormarines.ops.battleview.StoreSymbolCanvas;
 import com.dillon.starsectormarines.ui.retained.CanvasProducer;
 import com.dillon.starsectormarines.ui.spec.SpecSheetBinder;
@@ -157,7 +156,7 @@ public final class StoreScreen implements Screen {
     }
 
     /**
-     * Gives each shelf row and slot row its brick symbol. Rows are keyed and come and go as the
+     * Gives each shelf row its symbol. Rows are keyed and come and go as the
      * category changes, so this runs after every reconciliation; a row keeps its picture. Shared
      * with the evidence suite, which draws the page the same way.
      */
@@ -165,9 +164,6 @@ public final class StoreScreen implements Screen {
         for (StoreViewModel.OfferRow row : model.rows().get()) {
             bindSymbol(target, instance, row.symbolId(),
                     StoreSymbolCanvas.of(row.offer().kind(), row.offer().id()));
-        }
-        for (StoreViewModel.CategoryRow row : model.categoryRows().get()) {
-            bindSymbol(target, instance, row.symbolId(), StoreBrickCanvas.of(row.symbol()));
         }
     }
 
