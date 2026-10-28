@@ -3021,6 +3021,9 @@ public final class BattleSetup {
                     buildMap(map, vehiclePlacements,
                             Collections.emptyList(), parkedAircraft, battleSeed).sim();
             sim.setSurface(surfaceOf(profile));
+            // A rescue is fought for people, not ground: the colony's barracks and
+            // the company's landing field stay places, never compounds to take.
+            sim.dropCompoundLayer();
             // Heavy assets are what the player brought: the company's mechs and
             // vehicles arrive through its own Mech Support power, which every
             // battle honours. A lance allowance is only what the mission itself

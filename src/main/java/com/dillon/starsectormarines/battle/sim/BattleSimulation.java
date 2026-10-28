@@ -2769,6 +2769,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         // silently inert.
         compoundService.initFrom(map);
     }
+    /**
+     * Plays this battle with no compound layer: the tactical map keeps its barracks, armouries and beachhead as
+     * places, but none is a compound, so none is drawn as a capture beacon, taken, garrisoned or produces supply. For
+     * a battle fought over something other than ground (a civilian rescue). Setup only, after {@link #setTacticalMap}.
+     */
+    public void dropCompoundLayer() {
+        compoundService.initFrom(null);
+    }
     /** Stamped defense posts (conquest only). Called once by {@code BattleSetup} right after construction; safe to pass null/empty for missions without posts. */
     public void setDefensePosts(List<DefensePost> posts) {
         FortWorks.settle(topology, posts);

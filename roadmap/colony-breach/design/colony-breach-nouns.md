@@ -2465,6 +2465,11 @@ argument.
 - **Deterministic.** Same seed, same breach: eruption places, timings, strains
   and growth are seeded. Evidence replays must match byte for byte.
 - **One story.** The breach sequence is the battle's one story sequence.
+- **No ground to take.** A rescue is fought for people, not ground, so it plays
+  no compound layer (`BattleSimulation.dropCompoundLayer`): the installation's
+  barracks and armouries and the company's landing field stay places on the
+  tactical map, but none is a compound, so none shows a capture beacon, is
+  taken or held, or produces supply. The capture points are conquest's.
 
 ## Boundaries
 
