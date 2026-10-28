@@ -356,7 +356,6 @@ class MechLabViewModelTest {
         assertEquals(List.of("STRUCTURE", "ARMOR", "MOBILITY", "PASSENGERS"), meters);
         assertEquals(VehicleType.ESCORT_APC.capacity + " SEATS",
                 viewModel.performanceMeters().get().get(3).value());
-        assertTrue(viewModel.selectedSlotRule().get().contains("SEALED HULL"));
 
         assertNull(viewModel.selectedVariant());
         assertEquals(1, viewModel.gantryDeployments().size());

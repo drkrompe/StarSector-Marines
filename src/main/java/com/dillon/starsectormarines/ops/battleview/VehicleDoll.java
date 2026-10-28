@@ -18,8 +18,9 @@ import java.util.List;
 /**
  * A vehicle's doll in the Mech Lab (mechs-nouns.md, vehicle kit): the mech schematic's shape with
  * the engine in the middle, as on every machine, the turret ahead, the bay and the systems either
- * side and the kit rack behind. Every card but the rack is sealed; it is derived from the hull's
- * type, never authored, so a new vehicle gets a doll by having a turret, seats or systems.
+ * side and the kit rack behind. Every card but the rack, the engine core and the armor point is sealed; it is derived from the hull's
+ * type, never authored, so a new vehicle gets a doll by having a turret, seats or systems. The engine core
+ * and the armor point are live, as on a mech: they take the same engine and plating parts.
  *
  * <p>The cards reuse the mech socket ids for their places on the schematic: {@code CORE} is the
  * engine, {@code ARMS} the turret, the shoulders the bay and the systems, {@code AUXILIARY} the rack.</p>
@@ -52,10 +53,15 @@ final class VehicleDoll {
         return new SocketDef(id, type, 2, rows, 0f, 0f, 0f, 1f, 1f, 1f, false, label);
     }
 
-    /** What a sealed card holds, as its caption; the rack's caption is its fill. */
-    static String caption(VehicleType type, SocketId card, List<VehicleKit> kits, MechInternal plating) {
+    /**
+     * What a card holds, as its caption; the rack's caption is its fill. The engine core and the armor point are
+     * live: they name the part fitted, or the hull's own.
+     */
+    static String caption(VehicleType type, SocketId card, List<VehicleKit> kits, MechInternal plating,
+                          MechInternal engine) {
         return switch (card) {
-            case CORE -> Strings.get(type.isHover() ? "vehicleDollHover" : type.isTank() ? "vehicleDollTracked"
+            case CORE -> engine != null ? engine.displayName()
+                    : Strings.get(type.isHover() ? "vehicleDollHover" : type.isTank() ? "vehicleDollTracked"
                     : "vehicleDollWheeled");
             case ARMS -> turretName(type);
             case LEFT_SHOULDER -> bay(type);

@@ -296,7 +296,9 @@ public final class MechLabViewModel {
         selectedSlotTitle = reactor.computed(() -> {
             if (fabricatingChassis()) return Strings.get("openingMechLabChassisPatterns");
             if (selectedVehicle() != null) {
-                return selectedSlot.get() == SocketId.PLATING ? SocketId.PLATING.label() : Strings.get("openingMechLabKitRack");
+                SocketId slot = selectedSlot.get();
+                return slot == SocketId.PLATING || slot == SocketId.CORE ? slot.label()
+                        : Strings.get("openingMechLabKitRack");
             }
             CampaignMech mech = selectedMech();
             if (mech != null && browsingStores.get()) return Strings.get("openingMechLabAllParts");
@@ -781,7 +783,9 @@ public final class MechLabViewModel {
      */
     public MechInternal installedInternal(SocketId id) {
         CampaignVehicle vehicle = selectedVehicle();
-        if (vehicle != null) return id == SocketId.PLATING ? vehicle.plating() : null;
+        if (vehicle != null) {
+            return id == SocketId.PLATING ? vehicle.plating() : id == SocketId.CORE ? vehicle.engine() : null;
+        }
         CampaignMech mech = selectedMech();
         MechInternal.Role role = id != null ? roleFor(id) : null;
         return mech != null && role != null ? mech.internal(role) : null;
@@ -869,8 +873,9 @@ public final class MechLabViewModel {
     public boolean canDropCatalogInternal(MechInternal internal, SocketId target) {
         CampaignVehicle vehicle = selectedVehicle();
         if (vehicle != null) {
-            return internal != null && target == SocketId.PLATING && vehicle.plating() != internal
-                    && inStores(internal) && bay.canFitPlating(vehicle.id(), internal);
+            if (internal == null || !inStores(internal)) return false;
+            if (target == SocketId.PLATING) return vehicle.plating() != internal && bay.canFitPlating(vehicle.id(), internal);
+            return target == SocketId.CORE && vehicle.engine() != internal && bay.canFitEngine(vehicle.id(), internal);
         }
         CampaignMech mech = selectedMech();
         if (mech == null || internal == null || target == null
@@ -883,7 +888,8 @@ public final class MechLabViewModel {
     public boolean dropCatalogInternal(MechInternal internal, SocketId target) {
         if (!canDropCatalogInternal(internal, target)) return false;
         selectedSlot.set(target);
-        return selectedVehicle() != null ? fitVehiclePlating(internal) : fitInternal(internal);
+        if (selectedVehicle() == null) return fitInternal(internal);
+        return target == SocketId.CORE ? fitVehicleEngine(internal) : fitVehiclePlating(internal);
     }
 
     /** Installed assemblies can move only to vacant, compatible hardpoints. */
@@ -946,7 +952,9 @@ public final class MechLabViewModel {
      * one is fitted.
      */
     public boolean removeInstalledInternal(SocketId source) {
-        if (selectedVehicle() != null) return source == SocketId.PLATING && stripVehiclePlating();
+        if (selectedVehicle() != null) {
+            return source == SocketId.PLATING ? stripVehiclePlating() : source == SocketId.CORE && stripVehicleEngine();
+        }
         CampaignMech mech = selectedMech();
         MechInternal.Role role = source != null ? roleFor(source) : null;
         if (mech == null || role == null) return false;
@@ -1348,6 +1356,7 @@ public final class MechLabViewModel {
         CampaignVehicle vehicle = selectedVehicle();
         if (vehicle != null) {
             return selectedSlot.get() == SocketId.PLATING ? Strings.get("openingMechLabVehiclePlatingCopy")
+                    : selectedSlot.get() == SocketId.CORE ? Strings.get("openingMechLabVehicleEngineCopy")
                     : vehicleSummary(vehicle.type(), effect(vehicle));
         }
         CampaignMech mech = selectedMech();
@@ -1373,6 +1382,7 @@ public final class MechLabViewModel {
         CampaignVehicle vehicle = selectedVehicle();
         if (vehicle != null) {
             return selectedSlot.get() == SocketId.PLATING ? Strings.get("openingMechLabVehiclePlatingRule")
+                    : selectedSlot.get() == SocketId.CORE ? Strings.get("openingMechLabVehicleEngineRule")
                     : Strings.format("openingMechLabVehicleKitRule", vehicle.kits().size(), VehicleKit.slots(vehicle.type()));
         }
         if (selectedMech() != null && browsingStores.get()) return Strings.get("openingMechLabAllPartsRule");
@@ -1387,9 +1397,13 @@ public final class MechLabViewModel {
         revision.get();
         CampaignMech mech = selectedMech();
         if (fabricatingChassis()) return chassisCatalog();
-        // A vehicle's gun, plate and drive are sealed: only its kit rack is fitted.
+        // A vehicle's gun and bay are sealed: its engine, plating and kit rack are fitted.
         if (selectedVehicle() != null) {
-            return selectedSlot.get() == SocketId.PLATING ? platingCatalog(selectedVehicle()) : kitCatalog(selectedVehicle());
+            return switch (selectedSlot.get()) {
+                case PLATING -> platingCatalog(selectedVehicle());
+                case CORE -> engineCatalog(selectedVehicle());
+                default -> kitCatalog(selectedVehicle());
+            };
         }
         if (mech != null && browsingStores.get()) return allPartsCatalog(mech);
         if (selectedSlot.get().compartment() && mech != null) {
@@ -1723,6 +1737,68 @@ public final class MechLabViewModel {
                     recycleButton(base, back, () -> workshop.recycleInternal(plating), plating.displayName())));
         }
         return List.copyOf(rows);
+    }
+
+    /**
+     * The engines a vehicle's engine core can take: every engine above the hull's own with a spare or a known
+     * pattern, the same parts a mech runs. An engine is dragged onto the engine core, as plating onto the armor point.
+     */
+    private List<CatalogRow> engineCatalog(CampaignVehicle vehicle) {
+        List<CatalogRow> rows = new ArrayList<>();
+        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.internals()) {
+            MechInternal engine = recipe.internal();
+            if (!CampaignVehicle.takesEngine(engine)) continue;
+            int free = bay.availableInternal(engine.id);
+            boolean locked = !bay.canFabricate(engine);
+            if (locked && free == 0) continue;
+            boolean installed = vehicle.engine() == engine;
+            boolean inCargo = free > 0;
+            boolean affordable = resources.canBuy(resources.quote(recipe.cost()));
+            boolean offerFab = !locked && !inCargo;
+            String actionLabel = offerFab ? Strings.get("openingMechLabFab") : "";
+            String actionHint = installed ? Strings.get("openingMechLabEngineOnHull")
+                    : inCargo ? Strings.get("openingMechLabEngineSpareHint")
+                    : affordable ? Strings.get("openingMechLabFabHint")
+                    : shortHint();
+
+            String base = "mech-catalog:" + engine.id;
+            FabricationCost back = inCargo ? workshop.internalRecovery(engine) : null;
+            List<Row> materials = offerFab ? materialRows(base, resources.quote(recipe.cost())) : recoveryRows(base, back);
+            rows.add(catalogRow(base, "catalog-preview", null, null, engine, null,
+                    offerFab ? "catalog-row requires-fabrication" : "catalog-row", engine.displayName(),
+                    FittedBadge.label(installed), FittedBadge.classes(installed),
+                    Strings.format("openingMechLabOwnFree", recipe.provenance(), spareCount(free)),
+                    Strings.get("vehicleEngineEffect" + engine.name()), "", "catalog-delta hidden",
+                    Strings.get("openingMechLabVehicleEngineDetail"), actionLabel, actionHint,
+                    !offerFab || !affordable, materials, offerFab ? "material-costs" : recoveryClasses(back),
+                    () -> fabricateInternal(engine), null,
+                    recycleButton(base, back, () -> workshop.recycleInternal(engine), engine.displayName())));
+        }
+        return List.copyOf(rows);
+    }
+
+    /** Puts a spare engine at the selected vehicle's engine core; the engine it replaces returns to stores. */
+    public boolean fitVehicleEngine(MechInternal engine) {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle == null || engine == null) return false;
+        MechWorkshop.Result result = workshop.fitEngine(vehicle.id(), engine);
+        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabEngineFitted", engine.displayName())
+                : Strings.get("openingMechLabEngineBlocked"));
+        clearHoverInternal();
+        finishWeaponCommand(result);
+        return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
+    }
+
+    /** Takes the engine off the selected vehicle's engine core; the hull runs its own drive again. */
+    public boolean stripVehicleEngine() {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle == null) return false;
+        MechInternal previous = vehicle.engine();
+        MechWorkshop.Result result = workshop.stripEngine(vehicle.id());
+        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabEngineStripped", previous.displayName())
+                : Strings.get("openingMechLabEngineBlocked"));
+        finishWeaponCommand(result);
+        return result.status() == MechWorkshop.Status.STRIPPED;
     }
 
     /** Puts a spare plate at the selected vehicle's armor point; the plate it replaces returns to stores. */
@@ -2144,8 +2220,8 @@ public final class MechLabViewModel {
 
     public void selectSlot(SocketId slot) {
         if (selectedVehicle() != null) {
-            // Only the rack and the armor point are live on a vehicle's doll; the rest is sealed.
-            if (slot != SocketId.PLATING && slot != SocketId.AUXILIARY) return;
+            // Only the rack, the armor point and the engine core are live on a vehicle's doll; the rest is sealed.
+            if (slot != SocketId.PLATING && slot != SocketId.AUXILIARY && slot != SocketId.CORE) return;
             selectedSlot.set(slot);
             return;
         }

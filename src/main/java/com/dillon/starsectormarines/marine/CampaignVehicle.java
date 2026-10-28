@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -15,8 +16,8 @@ import java.util.List;
  *
  * <p>It shares the gantry with mechs and nothing else: no chassis, sockets, flux or
  * weapon components. Its hull, turret and kinematics are its {@link VehicleType}'s and are
- * sealed; what is fitted to it is the plating at its armor point (a {@link MechInternal} of the
- * plating role, as a mech wears) and the {@link VehicleKit}s on its rack.
+ * its type's; what is fitted to it, as to a mech, is the engine at its engine core and the plating at its armor
+ * point (each a {@link MechInternal} of its role) and the {@link VehicleKit}s on its rack.
  */
 public final class CampaignVehicle implements Serializable {
 
@@ -30,6 +31,11 @@ public final class CampaignVehicle implements Serializable {
      * and is what a stripped armor point reads as.
      */
     private String platingId;
+    /**
+     * The engine part at its engine core; null is the hull's own drive, which is no inventory part and is what a
+     * stripped engine core reads as. Null in a save from before engines.
+     */
+    private String engineId;
 
     public CampaignVehicle(String id, String displayName, VehicleType type) {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("Vehicle id is required");
@@ -50,6 +56,38 @@ public final class CampaignVehicle implements Serializable {
     public MechInternal plating() {
         MechInternal plating = MechInternal.findById(platingId);
         return plating != null && plating.role == MechInternal.Role.PLATING && !plating.stock() ? plating : null;
+    }
+
+    /** The engine part fitted at the engine core; null when the hull runs its own drive. */
+    public MechInternal engine() {
+        MechInternal engine = MechInternal.findById(engineId);
+        return engine != null && engine.role == MechInternal.Role.ENGINE && !engine.stock() ? engine : null;
+    }
+
+    /** Whether {@code engine} goes at the engine core: an engine above the industrial one, which is the hull's own. */
+    public static boolean takesEngine(MechInternal engine) {
+        return engine != null && engine.role == MechInternal.Role.ENGINE && !engine.stock();
+    }
+
+    /** Fits {@code engine} at the engine core, replacing what was there; false for a part that does not go. */
+    boolean fitEngine(MechInternal engine) {
+        if (!takesEngine(engine)) return false;
+        engineId = engine.id;
+        return true;
+    }
+
+    /** Takes the engine off the engine core, back to the hull's own drive; false when none was fitted. */
+    boolean stripEngine() {
+        boolean fitted = engine() != null;
+        engineId = null;
+        return fitted;
+    }
+
+    /** What the engine at the engine core makes of the hull at the drop. */
+    public VehicleEngine engineTier() {
+        MechInternal engine = engine();
+        if (engine == null) return VehicleEngine.STOCK;
+        return engine == MechInternal.MILITARY_ENGINE ? VehicleEngine.MILITARY : VehicleEngine.UPRATED;
     }
 
     /** Whether {@code plating} goes at the armor point: a plating tier above the hull's own plate. */
@@ -126,7 +164,7 @@ public final class CampaignVehicle implements Serializable {
 
     /** The frozen value Mech Support carries; the campaign object stays in the bay. */
     public VehicleDeploymentSpec freezeForDeployment() {
-        return new VehicleDeploymentSpec(id, displayName, type, kits(), platingTier());
+        return new VehicleDeploymentSpec(id, displayName, type, kits(), platingTier(), engineTier());
     }
 
     /**

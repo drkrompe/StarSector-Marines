@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -816,6 +817,7 @@ public final class BattleFixtureJson {
                     for (VehicleKit kit : vehicle.kits()) kits.put(kit.id);
                     if (kits.length() > 0) frozen.put("kits", kits);
                     if (vehicle.plating() != VehiclePlating.FACTORY) frozen.put("plating", vehicle.plating().name());
+                    if (vehicle.engine() != VehicleEngine.STOCK) frozen.put("engine", vehicle.engine().name());
                     vehicles.put(frozen);
                 }
                 encoded.put("vehicleDeployments", vehicles);
@@ -911,7 +913,10 @@ public final class BattleFixtureJson {
                         enumValue(VehicleType.class, frozen.getString("type"), "vehicle type"), kits,
                         frozen.has("plating")
                                 ? enumValue(VehiclePlating.class, frozen.getString("plating"), "vehicle plating")
-                                : VehiclePlating.FACTORY));
+                                : VehiclePlating.FACTORY,
+                        frozen.has("engine")
+                                ? enumValue(VehicleEngine.class, frozen.getString("engine"), "vehicle engine")
+                                : VehicleEngine.STOCK));
             }
             JSONObject carrier = encoded.optJSONObject("companyCarrier");
             powers.add(new CommandPowerCommitment(

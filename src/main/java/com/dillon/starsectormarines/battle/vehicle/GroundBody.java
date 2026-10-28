@@ -44,6 +44,12 @@ public abstract class GroundBody {
     public boolean crippled;
 
     /**
+     * What the engine fitted to the hull makes of its speed ({@link VehicleEngine}): a multiple of the hull's own top
+     * speed and of its acceleration and braking, 1 for the hull's own drive. Set once, at the drop.
+     */
+    public float speedFactor = 1f;
+
+    /**
      * Velocity and spin a hit left the hull with, cells a second and radians a second, on top of its own
      * drive; {@link HullSlide} spends them against the tires or tracks. Zero when nothing has struck it.
      */

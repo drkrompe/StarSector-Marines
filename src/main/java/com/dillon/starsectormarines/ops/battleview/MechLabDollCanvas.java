@@ -338,8 +338,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
         drawWires(c, targets, id -> VehicleDoll.tone(type, id));
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
-            if (socket.id() == SocketId.PLATING) {
-                MechSocketConsole.draw(c, target, socket, null, null, null, false, null, null, null,
+            if (socket.id() == SocketId.PLATING || socket.id() == SocketId.CORE) {
+                MechSocketConsole.draw(c, target, socket, null, null,
+                        socket.id() == SocketId.CORE ? MechInternal.INDUSTRIAL_ENGINE : null, false, null, null, null,
                         false, false, false, false, false, seconds);
                 continue;
             }
@@ -726,8 +727,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         List<KitBox> kitBoxes = new ArrayList<>();
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
-            if (socket.id() == SocketId.PLATING) {
-                drawVehiclePlating(c, target, socket);
+            if (socket.id() == SocketId.PLATING || socket.id() == SocketId.CORE) {
+                drawVehiclePart(c, target, socket);
                 continue;
             }
             boolean rack = socket.id() == SocketId.AUXILIARY;
@@ -744,7 +745,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         // Only the rack and the armor point answer the pointer: sealed cards take no drops and no selection.
         List<SocketDropTarget> live = new ArrayList<>();
         for (SocketDropTarget target : targets) {
-            if (target.id() == SocketId.AUXILIARY || target.id() == SocketId.PLATING) live.add(target);
+            if (target.id() == SocketId.AUXILIARY || target.id() == SocketId.PLATING
+                    || target.id() == SocketId.CORE) live.add(target);
         }
         lastSocketTargets = List.copyOf(live);
         lastKitBoxes = List.copyOf(kitBoxes);
@@ -752,7 +754,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         for (SocketDropTarget target : targets) {
             if (!target.contains(hover.x(), hover.y())) continue;
             SocketDef socket = socketById(sockets, target.id());
-            String title = VehicleDoll.caption(type, socket.id(), kits, installedInternals.apply(SocketId.PLATING));
+            String title = VehicleDoll.caption(type, socket.id(), kits, installedInternals.apply(SocketId.PLATING),
+                    installedInternals.apply(SocketId.CORE));
             if (socket.id() == SocketId.AUXILIARY) {
                 // On the rack, the kit under the pointer.
                 title = null;
@@ -769,19 +772,23 @@ public final class MechLabDollCanvas implements CanvasProducer {
     }
 
     /**
-     * A vehicle's armor point: the one live card besides the rack, drawn as a mech's plating card is, with
-     * the plating fitted at it or the hull's own plate under it, and lit as a fit or a refusal while a
-     * plate is carried over it.
+     * One of a vehicle's live part cards besides the rack, the armor point and the engine core, drawn as a
+     * mech's card is: with the part fitted at it, or the hull's own under it (its plate; the factory engine), and
+     * lit as a fit or a refusal while a part is carried over it.
      */
-    private void drawVehiclePlating(CanvasContext c, SocketDropTarget target, SocketDef socket) {
+    private void drawVehiclePart(CanvasContext c, SocketDropTarget target, SocketDef socket) {
+        SocketId id = socket.id();
         boolean snapped = carriedSnapped();
-        boolean draggingHere = dragPreview != null && dragPreview.target() == SocketId.PLATING;
+        boolean draggingHere = dragPreview != null && dragPreview.target() == id;
         boolean hasInternal = dragPreview != null && dragPreview.internal() != null;
+        MechInternal fitted = installedInternals.apply(id);
         MechInternal shown = snapped && hasInternal && dragPreview.source() == null && draggingHere
-                ? dragPreview.internal() : installedInternals.apply(SocketId.PLATING);
-        boolean preview = shown != null && shown != installedInternals.apply(SocketId.PLATING);
+                ? dragPreview.internal() : fitted;
+        boolean preview = shown != null && shown != fitted;
+        // The hull's own engine is drawn as the mech's factory one; its own plate is no part.
+        if (shown == null && id == SocketId.CORE) shown = MechInternal.INDUSTRIAL_ENGINE;
         MechSocketConsole.draw(c, target, socket, null, null, shown, preview, null, null, assets.get(),
-                selects(SocketId.PLATING, selectedSocket.get()), hoveredSocket == SocketId.PLATING,
+                selects(id, selectedSocket.get()), hoveredSocket == id,
                 draggingHere && hasInternal && snapped, draggingHere && hasInternal && !snapped, draggingHere,
                 elapsedSeconds.getAsDouble());
     }

@@ -177,7 +177,8 @@ increasing an encounter's total armored threat.
   or a **company vehicle** (`CampaignVehicle`): an id, a callsign and a
   `VehicleType`, plus the **kits** fitted to it. The gantry is the only thing the
   two share. A vehicle has no chassis, flux, engine budget or weapon components:
-  its gun, plate, drive and bay are its type's and never come off. Mechs and vehicles count against
+  its gun and bay are its type's and never come off; its engine and plate are the hull's own until the
+  company fits the mech's (below). Mechs and vehicles count against
   the same four gantries and the same restored berths, are bought for credits
   against a learned pattern, and a save from before vehicles
   keeps every gantry a mech.
@@ -209,6 +210,15 @@ increasing an encounter's total armored threat.
   behaviour or a system of its own (active protection, a blade, a mortar) stays a
   **variant** (`heavy-equipment-progression.md`, Vehicles: variants and kits).
   A vehicle saved before kits has an empty rack; a bought hull comes with one.
+- A vehicle's **engine core** (`SocketId.CORE`) takes the same engine parts a mech runs
+  (`MechInternal`, engine role), as the armor point takes plating (owner, 2026-10-28: a vehicle is a
+  mech for parts). The hull's own drive is no part: an empty engine core is that drive, drawn as the
+  factory engine, so only the **uprated** and **military** engines are fitted. A vehicle has no
+  output budget, mass or flux reservoir, so only an engine's speed maps: an uprated engine gives a tenth
+  more top speed and acceleration, a military engine a fifth more, on the hull's own band, so a
+  heavy hull stays slower than a light one (`VehicleEngine`). The drop carries the tier, so the
+  battle sees a factor, never a part; a drive shot out still cripples the hull to the same share of
+  whatever its speed is. Engines are ordinary inventory exactly as plating is.
 - A vehicle's **armor point** (`SocketId.PLATING`) is the one place armor is fitted,
   as on a mech and a boat, and it takes the same three plating parts a mech wears
   (`MechInternal`, plating role). The hull's own plate is no part: an empty armor
@@ -508,7 +518,7 @@ increasing an encounter's total armored threat.
   engine is a blue piece, a capacitor bank flux violet, and a vent array or
   missile loader utility teal, each a brick piece like any weapon. Every machine's
   doll has its engine as the blue card in the centre, wired to the rest: a mech's
-  engine core, a vehicle's sealed engine, a boat's drive. A part another machine
+  engine core, a vehicle's engine core, a boat's drive. A part another machine
   already has is drawn with that machine's icon (a vehicle's heavy MG is the boat
   door gun, its cannon the mech's). Size reads from shape, not text: every
   grid cell is a chamfered brick narrower than it is tall, and a footprint is its

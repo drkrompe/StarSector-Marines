@@ -1,6 +1,6 @@
 # Story — Vehicles fit the shared engines and weapons
 
-Status: PROPOSED — scope decided by the owner 2026-10-28; not started
+Status: IN PROGRESS — slices 1 and 2 (fixture seam, engines) implemented; weapons, stance and turret art remain
 
 Written: 2026-10-28
 

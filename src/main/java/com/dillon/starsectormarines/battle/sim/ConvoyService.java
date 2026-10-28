@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.vehicle.HullTurretSection;
 import com.dillon.starsectormarines.battle.vehicle.MountedGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearances;
 import com.dillon.starsectormarines.battle.drone.DroneRole;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
@@ -116,12 +117,19 @@ public final class ConvoyService implements BodyCarrier {
     /** As above, in the plating its armor point holds ({@link VehiclePlating}). */
     public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, Faction faction,
                       VehicleMission mission) {
+        return spawn(type, kits, plating, VehicleEngine.STOCK, faction, mission);
+    }
+
+    /** As above, running the engine its engine core holds ({@link VehicleEngine}). */
+    public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
+                      Faction faction, VehicleMission mission) {
         VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type);
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
 
         // Build the kinematics + (optional) turret the mission is agnostic of.
         GroundBody body = type.createBody();
+        body.speedFactor = engine.speedFactor();
         float spawnX = mission.inboundX[0], spawnY = mission.inboundY[0];
         float nextX = mission.inboundX[1], nextY = mission.inboundY[1];
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));

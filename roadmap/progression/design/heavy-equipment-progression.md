@@ -1139,7 +1139,8 @@ the ground, never faster drops.
 Mechs are the customization system; vehicles are a short chain of fixed
 variants. A second fitting system would double the lab, the save model and the
 balance surface while making the two kinds the same decision in different art.
-So a vehicle's gun, plate, drive and bay are sealed. What a company may add is a
+So a vehicle's gun and bay are sealed (the engine core and armor point were opened to the mech's own engine and
+plating parts, owner, 2026-10-28; `vehicle-shared-parts.md`). What a company may add is a
 **kit** (owner, 2026-10-24; `mechs-nouns.md`, vehicle kit): a few bolt-on parts in
 a fixed rack, each a number changed at the drop and nothing else, so a kit is
 a small top-up to the hull rather than a second build. A change that needs a

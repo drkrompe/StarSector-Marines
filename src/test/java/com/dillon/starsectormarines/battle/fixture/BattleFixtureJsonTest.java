@@ -37,6 +37,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
@@ -540,9 +541,9 @@ class BattleFixtureJsonTest {
     }
 
     @Test
-    void aFittedVehicleRoundTripsItsKitsAndPlatingAndAnAbsentFittingIsStock() throws Exception {
+    void aFittedVehicleRoundTripsItsKitsPlatingAndEngineAndAnAbsentFittingIsStock() throws Exception {
         VehicleDeploymentSpec fitted = new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC,
-                List.of(VehicleKit.SPALL_LINER), VehiclePlating.HEAVY);
+                List.of(VehicleKit.SPALL_LINER), VehiclePlating.HEAVY, VehicleEngine.MILITARY);
         BattleLaunchFixture fixture = new BattleLaunchFixture(
                 canonicalFixture(), new BattleLaunchOverlay(
                         0, List.of(), List.of(), List.of(),
@@ -557,6 +558,7 @@ class BattleFixtureJsonTest {
                 .getJSONArray("vehicleDeployments").getJSONObject(0);
         frozen.remove("kits");
         frozen.remove("plating");
+        frozen.remove("engine");
         BattleLaunchFixture legacy = (BattleLaunchFixture) BattleFixtureJson.fromJson(encoded);
         assertEquals(List.of(new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC)),
                 legacy.launch().commandPowers().get(0).vehicleDeployments());

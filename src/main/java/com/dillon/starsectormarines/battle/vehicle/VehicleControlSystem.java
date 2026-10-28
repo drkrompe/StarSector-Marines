@@ -481,7 +481,8 @@ public final class VehicleControlSystem {
         // look-ahead on straights for smoothness. Uses last tick's speed (the
         // one-tick lag is negligible) and the speed is already curvature-limited
         // below, so approaching a bend naturally tightens tracking.
-        float speedFrac = type.maxSpeed > 0f ? Math.min(1f, Math.abs(body.speed) / type.maxSpeed) : 0f;
+        float topSpeed = type.maxSpeed * body.speedFactor;
+        float speedFrac = topSpeed > 0f ? Math.min(1f, Math.abs(body.speed) / topSpeed) : 0f;
         float lookAhead = Math.min(type.lookAheadCells,
                 VehicleController.MIN_LOOKAHEAD_CELLS + speedFrac * (type.lookAheadCells - VehicleController.MIN_LOOKAHEAD_CELLS));
 
@@ -516,9 +517,9 @@ public final class VehicleControlSystem {
         //    planned arc, instead of overshooting at cruise and reversing out (the
         //    "tiny reverses at a missed turn" failure).
         float remaining = s.corridor.remainingLength(body.x, body.y);
-        float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
-        float curveCap = VehicleController.curvatureSpeedCap(px, py, startIdx, body.x, body.y, type.maxSpeed);
-        float terrainSpeed = type.maxSpeed * motionGrid(type).groundSpeedMultiplier(body.x, body.y);
+        float taper = (float) Math.sqrt(2f * type.brakingAccel * body.speedFactor * Math.max(0f, remaining));
+        float curveCap = VehicleController.curvatureSpeedCap(px, py, startIdx, body.x, body.y, topSpeed);
+        float terrainSpeed = type.maxSpeed * body.speedFactor * motionGrid(type).groundSpeedMultiplier(body.x, body.y);
         float targetSpeed = Math.min(Math.min(Math.min(terrainSpeed, taper), curveCap), Math.max(0f, mission.speedCap));
         body.speed = Math.copySign(Math.min(Math.abs(body.speed), terrainSpeed), body.speed);
 
@@ -616,10 +617,10 @@ public final class VehicleControlSystem {
             bicycle.endPivot();
         }
         float remaining = s.corridor.remainingLength(body.x, body.y);
-        float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
-        float terrainSpeed = type.maxSpeed * motionGrid(type).groundSpeedMultiplier(body.x, body.y);
+        float taper = (float) Math.sqrt(2f * type.brakingAccel * body.speedFactor * Math.max(0f, remaining));
+        float terrainSpeed = type.maxSpeed * body.speedFactor * motionGrid(type).groundSpeedMultiplier(body.x, body.y);
         float fraction = brushing ? SoftBrush.CRAWL_FRACTION : NeutralPivot.TRACK_SPEED_FRACTION;
-        float targetSpeed = Math.min(Math.min(type.maxSpeed * fraction, terrainSpeed),
+        float targetSpeed = Math.min(Math.min(type.maxSpeed * body.speedFactor * fraction, terrainSpeed),
                 Math.min(taper, mission.speedCap));
         body.tick(carrot.x, carrot.y, targetSpeed, dt);
         if (!applySweep(body, type, prevX, prevY, prevFacing, false, brushing)) return true;
@@ -647,8 +648,8 @@ public final class VehicleControlSystem {
         float error = NeutralPivot.signedDegrees(AirBody.facingToward(dx, dy) - body.facingDegrees);
         if (Math.abs(error) > 90f) return false;
         float remaining = s.corridor.remainingLength(body.x, body.y);
-        float taper = (float) Math.sqrt(2f * type.brakingAccel * Math.max(0f, remaining));
-        float terrainSpeed = type.maxSpeed * motionGrid(type).groundSpeedMultiplier(body.x, body.y);
+        float taper = (float) Math.sqrt(2f * type.brakingAccel * body.speedFactor * Math.max(0f, remaining));
+        float terrainSpeed = type.maxSpeed * body.speedFactor * motionGrid(type).groundSpeedMultiplier(body.x, body.y);
         float targetSpeed = Math.min(Math.min(type.maxSpeed * SoftBrush.CRAWL_FRACTION, terrainSpeed),
                 Math.min(taper, mission.speedCap));
         float prevX = body.x, prevY = body.y, prevFacing = body.facingDegrees;

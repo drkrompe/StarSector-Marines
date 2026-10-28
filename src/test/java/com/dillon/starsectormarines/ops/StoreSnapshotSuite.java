@@ -44,18 +44,21 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
             DiskRegistries.install();
             HeadlessSvgAssets.install(context.modRoot());
             return List.of(
-                    new SnapshotArtifact("store-shelf.png", frame(context, false, null)),
-                    new SnapshotArtifact("store-after-purchase.png", frame(context, true, null)),
+                    new SnapshotArtifact("store-shelf.png", frame(context, false, null, false)),
+                    new SnapshotArtifact("store-after-purchase.png", frame(context, true, null, false)),
                     new SnapshotArtifact("store-mechs-category.png",
-                            frame(context, false, "SECTION:MECHS")),
+                            frame(context, false, "SECTION:MECHS", false)),
+                    new SnapshotArtifact("store-vehicle-chassis.png",
+                            frame(context, false, "SLOT:MECH_CHASSIS", true)),
                     new SnapshotArtifact("store-boats-category.png",
-                            frame(context, false, "SECTION:BOATS")),
+                            frame(context, false, "SECTION:BOATS", false)),
                     new SnapshotArtifact("store-armor-slot.png",
-                            frame(context, false, "SLOT:ARMOR_LOADOUT")));
+                            frame(context, false, "SLOT:ARMOR_LOADOUT", false)));
         }
     }
 
-    private static BufferedImage frame(SnapshotContext context, boolean afterPurchase, String filter)
+    private static BufferedImage frame(SnapshotContext context, boolean afterPurchase, String filter,
+                                       boolean vehicleChassis)
             throws Exception {
         Reactor reactor = new Reactor();
         MarineArmory armory = new MarineArmory();
@@ -70,6 +73,8 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
         // One mech or vehicle pattern for every slot it can fill.
         Set<StoreSlot> seen = new HashSet<>();
         for (MechPattern pattern : MechPattern.offerable()) {
+            // The chassis row is a mech's frame, or with vehicleChassis a vehicle hull.
+            if (vehicleChassis && pattern.kind() == MechPattern.Kind.CHASSIS) continue;
             EquipmentStore.Offer offer = new EquipmentStore.Offer(EquipmentStore.Kind.MECH_PATTERN, pattern.id(),
                     EquipmentStore.Shelf.MARKET, 6500);
             if (seen.add(offer.slot())) shelf.add(offer);

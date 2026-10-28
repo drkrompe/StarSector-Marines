@@ -9,8 +9,8 @@ import java.util.Set;
 
 /**
  * A bolt-on part a company fits to a vehicle's kit rack (mechs-nouns.md, vehicle kit). A vehicle's
- * gun, plate and drive are sealed; plating has its own point on the doll ({@link VehiclePlating}), and a kit is the one rack part that changes, and it changes only what the hull is
- * set down with: its numbers, or a drone bay on a hull that has none ({@link #SENSOR_PAIR}). It adds no behaviour
+ * gun and bay are sealed; its plating and engine have their own points on the doll ({@link VehiclePlating},
+ * {@link VehicleEngine}), and a kit is the one rack part, and it changes only what the hull is set down with: its numbers, or a drone bay on a hull that has none ({@link #SENSOR_PAIR}). It adds no behaviour
  * of its own; the bay's drones fly as any bay's do.
  *
  * <p>A rack holds one kit per slot ({@link #slots}) and at most one of each kit; a kit may need

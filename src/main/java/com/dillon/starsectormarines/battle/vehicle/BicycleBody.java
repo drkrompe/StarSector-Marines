@@ -140,7 +140,7 @@ public class BicycleBody extends GroundBody {
         }
         throttle = Math.max(-1f, Math.min(1f, throttle));
         steering = Math.max(-1f, Math.min(1f, steering));
-        float targetSpeed = throttle * maxSpeed * (throttle < 0f ? reverseFraction : 1f);
+        float targetSpeed = throttle * maxSpeed * speedFactor * (throttle < 0f ? reverseFraction : 1f);
         integrateSteering(steering * maxSteeringRad, targetSpeed, dt);
     }
 
@@ -154,11 +154,12 @@ public class BicycleBody extends GroundBody {
         steeringRad += dSteer;
 
         // Adjust speed toward targetSpeed. Reverse is capped at a fraction of forward max; a lost drive caps both.
-        float top = crippled ? maxSpeed * Crippled.SPEED_SHARE : maxSpeed;
+        float fitted = maxSpeed * speedFactor;
+        float top = crippled ? fitted * Crippled.SPEED_SHARE : fitted;
         float maxReverse = top * reverseFraction;
         float clampedTarget = Math.max(-maxReverse, Math.min(top, targetSpeed));
         float dv = clampedTarget - speed;
-        float speedStep = (dv >= 0f) ? accel * dt : brakingAccel * dt;
+        float speedStep = ((dv >= 0f) ? accel : brakingAccel) * speedFactor * dt;
         if (dv >  speedStep) dv =  speedStep;
         if (dv < -speedStep) dv = -speedStep;
         speed += dv;

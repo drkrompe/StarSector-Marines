@@ -240,9 +240,10 @@ public final class MechBay implements Serializable {
         for (String vehicleId : vehicleIds) {
             CampaignVehicle vehicle = removeVehicle(vehicleId);
             if (vehicle == null) continue;
-            // The kits on its rack and the plating at its armor point go down with it.
+            // The kits on its rack, the plating at its armor point and the engine at its core go down with it.
             for (VehicleKit kit : vehicle.kits()) strike(ownedKits, kit.id);
             if (vehicle.plating() != null) strike(ownedInternals, vehicle.plating().id);
+            if (vehicle.engine() != null) strike(ownedInternals, vehicle.engine().id);
             lost++;
         }
         return lost;
@@ -258,21 +259,23 @@ public final class MechBay implements Serializable {
         return mech != null && loseChassis(mech) ? mech : null;
     }
 
-    /** Takes a vehicle off its gantry into the reserve hangar, its kits and plating with it; null when none holds it. */
+    /** Takes a vehicle off its gantry into the reserve hangar, its kits, plating and engine with it; null when none holds it. */
     CampaignVehicle stowVehicle(String vehicleId) {
         CampaignVehicle vehicle = removeVehicle(vehicleId);
         if (vehicle != null) {
             for (VehicleKit kit : vehicle.kits()) strike(ownedKits, kit.id);
             if (vehicle.plating() != null) strike(ownedInternals, vehicle.plating().id);
+            if (vehicle.engine() != null) strike(ownedInternals, vehicle.engine().id);
         }
         return vehicle;
     }
 
-    /** Puts a stored vehicle back on a vacant gantry and owns its kits and plating again. */
+    /** Puts a stored vehicle back on a vacant gantry and owns its kits, plating and engine again. */
     boolean berthVehicle(String squadId, CampaignVehicle vehicle) {
         if (!canAddMech(squadId) || !addVehicle(squadId, vehicle)) return false;
         for (VehicleKit kit : vehicle.kits()) addKit(kit.id, 1);
         if (vehicle.plating() != null) addInternal(vehicle.plating().id, 1);
+        if (vehicle.engine() != null) addInternal(vehicle.engine().id, 1);
         return true;
     }
 
@@ -499,7 +502,9 @@ public final class MechBay implements Serializable {
             for (CampaignMech mech : squad.mechs()) {
                 for (MechInternal fitted : fittedInternals(mech)) if (fitted == internal) installed++;
             }
-            for (CampaignVehicle vehicle : squad.vehicles()) if (vehicle.plating() == internal) installed++;
+            for (CampaignVehicle vehicle : squad.vehicles()) {
+                if (vehicle.plating() == internal || vehicle.engine() == internal) installed++;
+            }
         }
         return installed;
     }
@@ -582,6 +587,29 @@ public final class MechBay implements Serializable {
     public boolean stripKit(String vehicleId, VehicleKit kit) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
         return vehicle != null && vehicle.remove(kit);
+    }
+
+    /** Whether {@code engine} would go at the vehicle's engine core: an engine above the hull's own drive. */
+    public boolean canFitEngine(String vehicleId, MechInternal engine) {
+        return vehicleById(vehicleId) != null && CampaignVehicle.takesEngine(engine);
+    }
+
+    /**
+     * Puts a spare engine at a vehicle's engine core; the engine it replaces returns to stores.
+     * False with no spare or a part that does not go.
+     */
+    public boolean fitEngine(String vehicleId, MechInternal engine) {
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        if (vehicle == null || !CampaignVehicle.takesEngine(engine) || availableInternal(engine.id) <= 0) {
+            return false;
+        }
+        return vehicle.fitEngine(engine);
+    }
+
+    /** Takes the engine off a vehicle's engine core back to stores; the hull runs its own drive again. */
+    public boolean stripEngine(String vehicleId) {
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        return vehicle != null && vehicle.stripEngine();
     }
 
     /** Whether {@code plating} would go at the vehicle's armor point: a plating tier above the hull's own plate. */

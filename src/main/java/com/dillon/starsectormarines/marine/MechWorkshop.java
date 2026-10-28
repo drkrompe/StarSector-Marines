@@ -192,6 +192,28 @@ public final class MechWorkshop {
         return bay.stripPlating(vehicleId) ? new Result(Status.STRIPPED, null, vehicle) : Result.of(Status.INVALID);
     }
 
+    /**
+     * Puts an engine at a vehicle's engine core from stores, as plating is fitted: building one is its own
+     * step. The engine it replaces goes back to stores.
+     */
+    public Result fitEngine(String vehicleId, MechInternal engine) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null || engine == null) return Result.of(Status.INVALID);
+        if (vehicle.engine() == engine) return Result.of(Status.ALREADY_INSTALLED);
+        if (!bay.canFitEngine(vehicleId, engine)) return Result.of(Status.INCOMPATIBLE);
+        if (bay.availableInternal(engine.id) <= 0) return Result.of(Status.INSUFFICIENT_MATERIALS);
+        return bay.fitEngine(vehicleId, engine) ? new Result(Status.INSTALLED_FROM_STORES, null, vehicle)
+                : Result.of(Status.INVALID);
+    }
+
+    /** Takes the engine off a vehicle's engine core back to stores. */
+    public Result stripEngine(String vehicleId) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null) return Result.of(Status.INVALID);
+        if (vehicle.engine() == null) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripEngine(vehicleId) ? new Result(Status.STRIPPED, null, vehicle) : Result.of(Status.INVALID);
+    }
+
     /** Takes the first vent array out of the compartment. */
     public Result stripVentArray(String mechId) {
         return stripInternal(mechId, MechInternal.Role.VENT_ARRAY);
