@@ -721,13 +721,16 @@ PACE_LIMITS = {'frigate': (260.0, 150.0), 'destroyer': (220.0, 100.0), 'cruiser'
 
 
 TURN_IN_T = 44.0      # S5's first frame: the climb's turn onto the run starts no earlier, so S3-S4 keep their flight
-TURN_IN_SHIPS = ('manticore-p', 'wolf-p-b')     # the raiders S5 sees on their climb (the others are off its frame)
+# the raiders S5 sees on their climb (the others are off its frame), and when each joins her S6 run: the turn
+# carries on through the cut, wide and slow (owner, 2026-10-28: "a gradual turn we take further back so that this
+# ship has the 'feel' of being big"), to the time her run's speed meets her own, so she joins it on screen at it
+TURN_IN_JOIN = {'manticore-p': 54.0, 'wolf-p-b': 52.0}
 TURN_IN_BANK = 45.0   # deg: her bank at a hard turn's sideways pull
 TURN_IN_G = 50.0      # m/s^2 of sideways pull that banks her about three quarters of TURN_IN_BANK
-TURN_IN_ROLL_S = (.4, .8)   # s: her bank eases in over the first, and out onto her run's roll over the second
+TURN_IN_ROLL_S = (1.5, 1.0)   # s: her bank eases in over the first, and out onto her run's roll over the second
 
 
-def turned_in(key, p, run, t_climb, t_next=CONTACT_T, t_from=TURN_IN_T):
+def turned_in(key, p, run, t_climb, t_next=CONTACT_T, t_from=TURN_IN_T, gentle=.3):
     """Her climb's last seconds flown as a banked, controlled turn onto her run (owner, 2026-10-28: "around
     frame 1658 the manticore does a harsh turn toward the fleet to setup S6. Can we should make that a more
     banked controlled turn"). The climb's steering ended 40-90 deg off her run's course, and CLIMB_SETTLE_S
@@ -739,7 +742,9 @@ def turned_in(key, p, run, t_climb, t_next=CONTACT_T, t_from=TURN_IN_T):
     her there at t_next, and the handles the pair that need the least. Her speed at t_next is what that
     leaves (her run's own may differ: the step falls on the cut, 3-4 km out in S6, as the old climb's
     120-210 m/s did). Her nose rides her track (its offset from it easing from the climb's to the run's)
-    and she banks with her sideways pull. At t_next she is where and as S6 has her, on her run's course."""
+    and she banks with her sideways pull, her climb's roll and nose handing over to it as the bank comes on;
+    over the last TURN_IN_ROLL_S[1] her attitude eases onto her run's own as it flies. t_next on the cut (CONTACT_T),
+    her speed there is what that leaves; inside S6 (TURN_IN_JOIN), it is her run's."""
     h = 1 / 96
     tb = max(t_from, t_climb)
     T = t_next - tb
@@ -755,6 +760,7 @@ def turned_in(key, p, run, t_climb, t_next=CONTACT_T, t_from=TURN_IN_T):
     vmax, amax = PACE_LIMITS[mass_class(key)]
     vmax *= .99
     n = 600
+    mid_shot = t_next != CONTACT_T   # she joins her run inside S6, on screen: at its speed, not on a cut
 
     def curve(k0, k1):
         """The quintic with handles k0 * D and k1 * D: its samples, step lengths and curvature at each."""
@@ -776,38 +782,49 @@ def turned_in(key, p, run, t_climb, t_next=CONTACT_T, t_from=TURN_IN_T):
         kap[0], kap[n] = kap[1], kap[n - 1]
         return pts, ds, kap
 
-    def flown(ds, kap, acc):
-        """Her speed at each sample, flown as fast as acc allows from s0, and the time it takes (None and
-        forever if s0 itself is too fast for a bend ahead)."""
-        v = [min(vmax, math.sqrt(acc / max(k, 1e-12))) for k in kap]
+    def flown(ds, kap, acc, cap=None):
+        """Her speed at each sample, flown as fast as acc and cap allow from s0 (to s1 at the end when she
+        joins her run inside a shot), and the time it takes (None and forever if she cannot)."""
+        v = [min(cap or vmax, math.sqrt(acc / max(k, 1e-12))) for k in kap]
         if v[0] < s0 - 1.0:
             return None, 1e9
         v[0] = s0
+        if mid_shot:
+            v[n] = min(v[n], s1)
         for j in range(n):
             at_ = math.sqrt(max(0.0, acc ** 2 - (v[j] ** 2 * kap[j]) ** 2))
             v[j + 1] = min(v[j + 1], math.sqrt(v[j] ** 2 + 2 * at_ * ds[j]))
         for j in range(n - 1, -1, -1):
             at_ = math.sqrt(max(0.0, acc ** 2 - (v[j + 1] ** 2 * kap[j + 1]) ** 2))
             v[j] = min(v[j], math.sqrt(v[j + 1] ** 2 + 2 * at_ * ds[j]))
-        if v[0] < s0 - 1.0:
+        if v[0] < s0 - 1.0 or (mid_shot and v[n] < s1 - 1.0):
             return None, 1e9
         return v, sum(2 * ds[j] / max(v[j] + v[j + 1], 1e-6) for j in range(n))
     shapes = [curve(.3 + .1 * i, .3 + .1 * j) + ((.3 + .1 * i, .3 + .1 * j),) for i in range(11) for j in range(8)]
 
     def least(acc):
         return min(((flown(ds, kap, acc)[1], q) for q, (_p, ds, kap, _k) in enumerate(shapes)), key=lambda r: r[0])
-    lo, hi = .3 * amax, 3 * amax
-    for _ in range(24):              # the least budget that makes t_next: below it she arrives late
-        mid = (lo + hi) / 2
-        lo, hi = (mid, hi) if least(mid)[0] > T else (lo, mid)
-    acc = hi
+    lo, hi = gentle * amax, 3 * amax
+    if least(lo)[0] <= T:            # the gentle budget makes it: the shape that needs it least
+        acc = lo
+    else:
+        for _ in range(24):          # the least budget that makes t_next: below it she arrives late
+            mid = (lo + hi) / 2
+            lo, hi = (mid, hi) if least(mid)[0] > T else (lo, mid)
+        acc = hi
     _t, q = least(acc)
     pts, ds, kap, ks = shapes[q]
-    v, _t = flown(ds, kap, acc)
+    clo, chi = max(s0, s1 if mid_shot else 0.0, 1.0), vmax
+    for _ in range(30):              # her cruise held down so she arrives at t_next itself
+        mid = (clo + chi) / 2
+        clo, chi = (mid, chi) if flown(ds, kap, acc, mid)[1] > T else (clo, mid)
+    v, _t = flown(ds, kap, acc, chi)
+    if v is None:
+        v, _t = flown(ds, kap, acc)
     times = [0.0]
     for j in range(n):
         times.append(times[-1] + 2 * ds[j] / max(v[j] + v[j + 1], 1e-6))
-    stretch = T / times[-1]          # the bisection leaves her a hair early: she takes exactly T
+    stretch = T / times[-1]          # what the bisections leave: a hair
     times = [x * stretch for x in times]
     TURNED_IN[key] = dict(handles=tuple(round(k, 1) for k in ks), accel=round(acc), over=round(acc / amax, 2),
                           top=round(max(v) / stretch), end_speed=round(v[-1] / stretch), run_speed=round(s1))
@@ -825,26 +842,31 @@ def turned_in(key, p, run, t_climb, t_next=CONTACT_T, t_from=TURN_IN_T):
         a, b = pos(t - h), pos(t + h)
         v_ = [(b[i] - a[i]) / (2 * h) for i in range(3)]
         return math.degrees(math.atan2(v_[1], v_[0])), math.degrees(math.atan2(v_[2], math.hypot(v_[0], v_[1]))), v_
-    q0, q1 = p.at(tb), run.at(t_next)
+    q0 = p.at(tb)
     th0, tp0, _v = track(tb + h)
-    th1, tp1, _v = track(t_next - h)
     oh0, op0 = _near(0.0, q0[3] - th0), q0[4] - tp0
-    oh1, op1 = _near(0.0, q1[3] - th1), q1[4] - tp1
 
     def at(t):
         if t <= tb:
             return p.at(t)
         if t >= t_next:
             return run.at(t)
-        u = (t - tb) / T
-        w = u * u * (3 - 2 * u)
         hd, pt, v_ = track(t)
-        hd2, _p, _v = track(t + .05)
-        pull = math.hypot(v_[0], v_[1]) * math.radians(_near(0.0, hd2 - hd) / .05)     # sideways, + to port
-        e = min(1.0, (t - tb) / TURN_IN_ROLL_S[0], (t_next - t) / TURN_IN_ROLL_S[1])
-        bank = -TURN_IN_BANK * math.tanh(pull / TURN_IN_G) * e * e * (3 - 2 * e)
-        rl = q0[5] + (_near(q0[5], q1[5]) - q0[5]) * w + bank
-        return (*pos(t), _near(q0[3], hd + oh0 + (oh1 - oh0) * w), pt + op0 + (op1 - op0) * w, rl, q0[6])
+        ha, _p, _v = track(max(tb + h, t - .15))
+        hb, _p, _v = track(min(t_next - h, t + .15))
+        span_ = min(t_next - h, t + .15) - max(tb + h, t - .15)
+        pull = math.hypot(v_[0], v_[1]) * math.radians(_near(0.0, hb - ha) / span_)     # sideways, + to port
+        e = min(1.0, (t - tb) / TURN_IN_ROLL_S[0])
+        e = e * e * (3 - 2 * e)          # the climb's roll hands over to the turn's bank
+        bank = -TURN_IN_BANK * math.tanh(pull / TURN_IN_G)
+        q = (*pos(t), _near(q0[3], hd + oh0 * (1 - e)), pt + op0 * (1 - e), q0[5] + (_near(q0[5], bank) - q0[5]) * e, q0[6])
+        g = max(0.0, 1.0 - (t_next - t) / TURN_IN_ROLL_S[1])
+        if g > 0.0:                  # her attitude eases onto her run's own, as it flies (it may be jinking)
+            g = g * g * (3 - 2 * g)
+            r = run.at(t)
+            q = (*q[:3], q[3] + (_near(q[3], r[3]) - q[3]) * g, q[4] + (r[4] - q[4]) * g,
+                 q[5] + (_near(q[5], r[5]) - q[5]) * g, q[6])
+        return q
     at.hits = list(getattr(run.at, 'hits', ()))
     return Pose(at(p.t), p.t, at)
 
@@ -855,7 +877,8 @@ TURNED_IN = {}   # key: the turn's handles, its acceleration budget (m/s^2) and 
 _CLIMBED = {k: climbed(k, PIRATE_LAUNCH[k], LAUNCH[k], K3_RUNS[k]) for k in K3_RUNS}
 CLIMB_SHORT = {k: v[1] for k, v in _CLIMBED.items()}
 K3_SHIPS_RUN = {k: staged_back(K3_RUNS[k], CLIMB_SHORT[k]) for k in K3_RUNS}
-PIRATE_FLIGHT = {k: (turned_in(k, _CLIMBED[k][0], K3_SHIPS_RUN[k], LAUNCH[k] + 4.6) if k in TURN_IN_SHIPS else _CLIMBED[k][0])
+PIRATE_FLIGHT = {k: (turned_in(k, _CLIMBED[k][0], K3_SHIPS_RUN[k], LAUNCH[k] + 4.6, t_next=TURN_IN_JOIN[k])
+                     if k in TURN_IN_JOIN else _CLIMBED[k][0])
                  if k in _CLIMBED else rejoined(k, f, LAUNCH[k]) for k, f in PIRATE_LAUNCH.items()}
 K1B_SHIPS = PIRATE_FLIGHT
 K2_CAM = (PLATFORM[0] + 600, PLATFORM[1] - 1500, PLATFORM[2] + 350)     # off the south flank, a little above
@@ -962,9 +985,9 @@ K3_SHIPS = {
     # steadied, then starting the turn back that S6b finishes
     'lasher-b': fly('lasher-b', CONVOY['lasher-b'], K3_T, [dict(t=50, v=0), dict(t=58, hd=-20, rl=40, v=90)], v=0),
     'falcon-p': K3_SHIPS_RUN['falcon-p'],
-    'manticore-p': K3_SHIPS_RUN['manticore-p'],
+    'manticore-p': PIRATE_FLIGHT['manticore-p'],     # her turn onto her run, joining it at TURN_IN_JOIN
     'wolf-p-a': K3_SHIPS_RUN['wolf-p-a'],
-    'wolf-p-b': K3_SHIPS_RUN['wolf-p-b'],
+    'wolf-p-b': PIRATE_FLIGHT['wolf-p-b'],
     'buffalo2-a': K3_SHIPS_RUN['buffalo2-a'],
 }
 
@@ -5210,8 +5233,6 @@ PACE_EXEMPT = {         # (kf, ship) -> why this shot's designed move may go pas
     ('k3b', 'hermes-p-b'): "slung under her Kite as it pitches up to brake, the boat on a lever arm, 235 m/s2",
     ('k3b', 'hermes-p-c'): "slung under her Kite as it pitches up to brake, the boat on a lever arm, 255 m/s2",
     ('k3b', 'hound-p-b'): "her turn onto the Hound at 83 s, out of frame through all of it, 253 m/s2",
-    # PENDING OWNER (2026-10-28): the least that brings her onto S6's run where and as S6 has her (turned_in)
-    ('m5', 'manticore-p'): "her banked turn onto her S6 run, 44-50 s: 112 m/s2 at its tightest, 48.5 s",
 }
 
 
