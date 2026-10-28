@@ -290,6 +290,15 @@ public final class DamageDollCanvas implements CanvasProducer {
             immobile = false;
         }
 
+        /** Shows a mech chassis whole, every location fitted: a pattern is a frame, not a machine. */
+        public void readChassis(MechVariant variant) {
+            begin(dollPath(variant));
+            for (DollLocation location : DollLocation.values()) set(location.ordinal(), true, false, 0f, 1f, false);
+            crippled = false;
+            sensorsLost = false;
+            immobile = false;
+        }
+
         /** Shows a vehicle whole: the bay keeps no damage on one. */
         public void readStock(VehicleType type) {
             begin(dollPath(type));

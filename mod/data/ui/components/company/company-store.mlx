@@ -1,4 +1,4 @@
-<template props="resourceStock,roomTitle,roomCopy,contextLabel,shelfNote,categoryRows,offerRows,selectedName,selectedKind,selectedDetail,priceLabel,buyLabel,buyClasses,buyAction,verdict,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,shopAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopClasses">
+<template props="resourceStock,roomTitle,roomCopy,contextLabel,shelfNote,categoryRows,offerRows,selectedName,selectedKind,selectedCards,selectedDetail,priceLabel,buyLabel,buyClasses,buyAction,verdict,returnAction,hqAction,barracksAction,armoryAction,mechLabAction,boatsAction,engineeringAction,shopAction,hqClasses,barracksClasses,armoryClasses,mechLabClasses,engineeringClasses,boatsClasses,shopClasses">
   <div id="store-root" class="store-root">
     <marine-ops-page-nav returnAction="{returnAction}" hqAction="{hqAction}" barracksAction="{barracksAction}" armoryAction="{armoryAction}" mechLabAction="{mechLabAction}" boatsAction="{boatsAction}" engineeringAction="{engineeringAction}" shopAction="{shopAction}" shopClasses="{shopClasses}" engineeringClasses="{engineeringClasses}" hqClasses="{hqClasses}" barracksClasses="{barracksClasses}" armoryClasses="{armoryClasses}" mechLabClasses="{mechLabClasses}" boatsClasses="{boatsClasses}" contextLabel="{contextLabel}" />
     <div id="store-room-bar" class="panel store-room-bar console-header">
@@ -28,7 +28,8 @@
         <div id="store-shelf-copy" class="label tone-muted rail-copy">{shelfNote}</div>
         <div id="store-offer-list" class="store-offer-list">
           <button each="offer in offerRows" key="{offer.id}" id="{offer.id}" class="{offer.classes}" onclick="{offer.select}">
-            <canvas id="{offer.symbolId}" class="{offer.symbolClasses}" width="56" height="56" />
+            <canvas id="{offer.symbolId}" class="{offer.symbolClasses}" width="80" height="58" />
+            <img id="{offer.flagId}" class="{offer.flagClasses}" src="{offer.flag}" />
             <div id="{offer.copyId}" class="store-offer-copy">
               <div id="{offer.nameId}" class="label store-offer-name">{offer.name}</div>
               <div id="{offer.detailId}" class="label tone-muted store-offer-detail">{offer.detail}</div>
@@ -47,6 +48,9 @@
           <button id="store-buy" class="{buyClasses}" onclick="{buyAction}">
             <div id="store-buy-label" class="label heading store-buy-label">{buyLabel}</div>
           </button>
+        </div>
+        <div id="store-card-slot" class="store-card-slot">
+          <armory-loadout-card each="tile in selectedCards" key="{tile.id}" tile="{tile}" />
         </div>
         <div id="store-selected-detail" class="label store-selected-detail console-well">{selectedDetail}</div>
         <div id="store-verdict-bar" class="store-verdict-bar console-readout">
@@ -92,7 +96,10 @@
   .store-row.selected { background-color: #183b50; border-color: #ffd464; }
   .store-row.acquired { opacity: 0.55; border-color: #4f9a68; }
   .store-offer-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }
-  .store-offer-icon { width: 56px; height: 56px; pointer-events: none; }
+  .store-offer-icon { width: 80px; height: 58px; pointer-events: none; }
+  .store-offer-flag { width: 80px; height: 58px; pointer-events: none; }
+  .store-offer-flag.none { display: none; }
+  .store-card-slot { flex-direction: column; width: 100%; }
   .store-offer-icon.none { display: none; }
   .store-offer-name { height: auto; white-space: normal; }
   .store-offer-detail, .store-offer-price { height: auto; white-space: normal; }
