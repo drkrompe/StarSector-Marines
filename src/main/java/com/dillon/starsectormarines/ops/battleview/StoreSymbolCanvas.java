@@ -2,6 +2,8 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.marine.BoatFittingSlot;
+import com.dillon.starsectormarines.marine.BoatParts;
 import com.dillon.starsectormarines.marine.EquipmentStore;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.MechPattern;
@@ -15,8 +17,9 @@ import java.util.function.BiConsumer;
  * A mech or vehicle pattern's picture on the company store's shelf, drawn by the code that
  * draws it in the Mech Lab, so the store shows what the lab shows: a chassis or a vehicle as
  * its damage doll ({@link DamageDollCanvas}), and a weapon, an internal or a kit as the lab draws
- * hardware: its bricks under its painted symbol. A marine loadout is drawn as its faction's flag
- * instead, an image in the page's markup.
+ * hardware: its bricks under its painted symbol. A shuttle part is drawn as the Boat Deck
+ * draws it ({@link BoatHardware}). A marine loadout is drawn as its faction's flag instead, an image in the
+ * page's markup.
  */
 public final class StoreSymbolCanvas {
 
@@ -29,6 +32,7 @@ public final class StoreSymbolCanvas {
 
     /** The picture for an offer, or null when it is drawn some other way. */
     public static CanvasProducer of(EquipmentStore.Kind kind, String id) {
+        if (kind == EquipmentStore.Kind.BOAT_PART) return boatPart(id);
         if (kind != EquipmentStore.Kind.MECH_PATTERN) return null;
         MechPattern pattern = MechPattern.parse(id);
         if (pattern == null) return null;
@@ -62,6 +66,26 @@ public final class StoreSymbolCanvas {
             }
         }
         return null;
+    }
+
+    /** A shuttle fitting or door gun as the Boat Deck draws it, fitted to the picture. */
+    private static CanvasProducer boatPart(String id) {
+        BoatFittingSlot slot = BoatParts.slot(id);
+        if (!BoatParts.exists(id)) return null;
+        BoatDoll.Kind kind = slot == null ? BoatDoll.Kind.HARDPOINT : switch (slot) {
+            case PLATING -> BoatDoll.Kind.PLATING;
+            case DRIVE -> BoatDoll.Kind.DRIVE;
+            case LIFT -> BoatDoll.Kind.LIFT;
+            case CABIN -> BoatDoll.Kind.CABIN;
+            case EMITTER -> BoatDoll.Kind.EMITTER;
+            case POWER -> BoatDoll.Kind.POWER;
+        };
+        return context -> {
+            BoatHardware.Piece piece = BoatHardware.piece(kind, id);
+            HardpointBricks.Layout bricks = HardpointBricks.fit(0f, 0f, context.metrics().surfaceWidth(),
+                    context.metrics().surfaceHeight(), piece.columns(), piece.rows(), HardpointBricks.BRICK_GAP);
+            BoatHardware.draw(context, bricks, piece, 255);
+        };
     }
 
     /**

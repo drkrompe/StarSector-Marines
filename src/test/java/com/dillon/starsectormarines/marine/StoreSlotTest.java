@@ -27,8 +27,7 @@ class StoreSlotTest {
         for (MechPattern pattern : MechPattern.offerable()) {
             StoreSlot slot = StoreSlot.of(EquipmentStore.Kind.MECH_PATTERN, pattern.id());
             assertNotNull(slot, pattern.id());
-            assertTrue(slot.section() == StoreSlot.Section.CHASSIS || slot.section() == StoreSlot.Section.PARTS,
-                    pattern.id());
+            assertEquals(StoreSlot.Section.MECHS, slot.section(), pattern.id());
         }
         Set<StoreSlot> boatSlots = EnumSet.noneOf(StoreSlot.class);
         for (String id : BoatParts.offerable()) {
@@ -37,15 +36,15 @@ class StoreSlotTest {
             assertEquals(StoreSlot.Section.BOATS, slot.section(), id);
             boatSlots.add(slot);
         }
-        assertTrue(boatSlots.contains(StoreSlot.BOAT_GUN), "door guns are sold");
-        assertTrue(boatSlots.contains(StoreSlot.BOAT_PLATING), "plating is sold");
+        assertTrue(boatSlots.contains(StoreSlot.BOAT_WEAPON), "door guns are sold");
+        assertTrue(boatSlots.contains(StoreSlot.BOAT_ARMOR), "plating is sold");
     }
 
     @Test
     void boatFittingsFollowTheirOwnSlotAndGunsAreTheirOwn() {
-        assertEquals(StoreSlot.BOAT_DRIVE, StoreSlot.of(EquipmentStore.Kind.BOAT_PART, BoatFitting.TUNED_DRIVE.id()));
+        assertEquals(StoreSlot.BOAT_ENGINE, StoreSlot.of(EquipmentStore.Kind.BOAT_PART, BoatFitting.TUNED_DRIVE.id()));
         assertEquals(StoreSlot.BOAT_EMITTER, StoreSlot.of(EquipmentStore.Kind.BOAT_PART, BoatFitting.WIDE_EMITTER.id()));
-        assertEquals(StoreSlot.BOAT_GUN, StoreSlot.of(EquipmentStore.Kind.BOAT_PART, BoatGun.ARBALEST.id()));
+        assertEquals(StoreSlot.BOAT_WEAPON, StoreSlot.of(EquipmentStore.Kind.BOAT_PART, BoatGun.ARBALEST.id()));
         assertNull(StoreSlot.of(EquipmentStore.Kind.BOAT_PART, "not-a-part"));
         assertNull(StoreSlot.of(EquipmentStore.Kind.LOADOUT, "not-a-card"));
     }

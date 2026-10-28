@@ -7,34 +7,32 @@ import java.util.List;
  * Where a thing for sale belongs in the store: a {@link Section} and, within it, the slot of the
  * company's equipment it fills. The store page browses by these; nothing else reads them.
  *
- * <p>Marine kit is browsed by what a squad is issued (a weapon loadout or an armor loadout). The
- * mech bay is two sections: the chassis, a mech frame or a vehicle hull, and the parts mechs and
- * vehicles share, browsed by what the part does (weapon, engine, armor, equipment: a vehicle kit is
- * the vehicle's own take on the same equipment a mech's internals give). Boats are browsed by the
- * slot of the boat a part goes into, plus the door guns.
+ * <p>Each section is browsed by what a part does, in one vocabulary: a squad's issue (weapon or armor
+ * loadout) for marines, and for mechs and vehicles and for shuttles alike the chassis, engine, weapon,
+ * armor and the rest, so the same word names the same kind of part in every section. A mech chassis
+ * and a vehicle hull are both a chassis; a vehicle kit is the vehicle's take on the equipment a mech's
+ * internals give. A shuttle has no chassis to sell: its yard builds the hull.
  */
 public enum StoreSlot {
     WEAPON_LOADOUT(Section.MARINE),
     ARMOR_LOADOUT(Section.MARINE),
 
-    MECH_CHASSIS(Section.CHASSIS),
-    VEHICLE(Section.CHASSIS),
+    MECH_CHASSIS(Section.MECHS),
+    MECH_ENGINE(Section.MECHS),
+    MECH_WEAPON(Section.MECHS),
+    MECH_ARMOR(Section.MECHS),
+    MECH_EQUIPMENT(Section.MECHS),
 
-    PART_WEAPON(Section.PARTS),
-    PART_ENGINE(Section.PARTS),
-    PART_ARMOR(Section.PARTS),
-    PART_EQUIPMENT(Section.PARTS),
-
-    BOAT_PLATING(Section.BOATS),
-    BOAT_DRIVE(Section.BOATS),
+    BOAT_ENGINE(Section.BOATS),
+    BOAT_WEAPON(Section.BOATS),
+    BOAT_ARMOR(Section.BOATS),
     BOAT_LIFT(Section.BOATS),
     BOAT_CABIN(Section.BOATS),
     BOAT_EMITTER(Section.BOATS),
-    BOAT_POWER(Section.BOATS),
-    BOAT_GUN(Section.BOATS);
+    BOAT_POWER(Section.BOATS);
 
-    /** The four kinds of equipment the company buys. */
-    public enum Section { MARINE, CHASSIS, PARTS, BOATS }
+    /** The three kinds of equipment the company buys. */
+    public enum Section { MARINE, MECHS, BOATS }
 
     private final Section section;
 
@@ -67,24 +65,23 @@ public enum StoreSlot {
                 MechPattern pattern = MechPattern.parse(id);
                 if (pattern == null) return null;
                 return switch (pattern.kind()) {
-                    case CHASSIS -> MECH_CHASSIS;
-                    case VEHICLE -> VEHICLE;
-                    case WEAPON -> PART_WEAPON;
+                    case CHASSIS, VEHICLE -> MECH_CHASSIS;
+                    case WEAPON -> MECH_WEAPON;
                     case INTERNAL -> switch (pattern.internal().role) {
-                        case ENGINE -> PART_ENGINE;
-                        case PLATING -> PART_ARMOR;
-                        default -> PART_EQUIPMENT;
+                        case ENGINE -> MECH_ENGINE;
+                        case PLATING -> MECH_ARMOR;
+                        default -> MECH_EQUIPMENT;
                     };
-                    case KIT -> PART_EQUIPMENT;
+                    case KIT -> MECH_EQUIPMENT;
                 };
             }
             case BOAT_PART -> {
                 if (!BoatParts.exists(id)) return null;
                 BoatFittingSlot slot = BoatParts.slot(id);
-                if (slot == null) return BOAT_GUN;
+                if (slot == null) return BOAT_WEAPON;
                 return switch (slot) {
-                    case PLATING -> BOAT_PLATING;
-                    case DRIVE -> BOAT_DRIVE;
+                    case PLATING -> BOAT_ARMOR;
+                    case DRIVE -> BOAT_ENGINE;
                     case LIFT -> BOAT_LIFT;
                     case CABIN -> BOAT_CABIN;
                     case EMITTER -> BOAT_EMITTER;
