@@ -30,17 +30,17 @@ import java.util.List;
 
 /**
  * Campaign boundary for *The Wellhollow Bloom*, the authored Rav Bloom arc on Asharu
- * ({@code wellhollow-bloom-arc.md}). Warden Maro's board offers the current chapter and a replay of
+ * ({@code wellhollow-bloom-arc.md}). Hollis Maro, the Asharu Defence Force's district coordinator, offers on his board the current chapter and a replay of
  * every chapter won. Projection never starts an attempt; launch begins one and only its own receipt
  * settles it. Independent of {@code RavBloomSystem}: no bloom, no campaign event, no clock.
  */
 public final class WellhollowBloomCampaign {
-    /** The Warden's synthetic client: her board carries only this arc's work. */
+    /** Maro's synthetic client: his board carries only this arc's work. The id predates the Defence Force framing and stays for saves. */
     public static final String CLIENT_FACTION_ID = "marines_wellhollow_compact_client";
     static final String SPEAKER = "@wellhollowSpeakerWarden";
     private static final String CASTLE = "@dialogueSpeakerCastle";
     private static final long SEED_BASE = 16100L;
-    /** Each chapter's first briefing: seven turns, the Warden's first, last and every other. */
+    /** Each chapter's first briefing: seven turns, Maro's first, last and every other. */
     private static final int BRIEFING_LINES = 7;
     /** The end-of-alpha challenge force (owner, 2026-10-27): a lieutenant colonel's company with its machines. */
     public static final int RECOMMENDED_SQUADS = 7, RECOMMENDED_MACHINES = 4;
@@ -75,7 +75,7 @@ public final class WellhollowBloomCampaign {
         var site = site();
         return planet != null && site != null && planet.getId().equals(site.getId());
     }
-    /** Whether the Warden is on this planet's board. */
+    /** Whether Maro is on this planet's board. */
     public static boolean contactAt(PlanetAPI planet) { return atSite(planet) && current() != null; }
     public static Client client() {
         return new Client(CLIENT_FACTION_ID, Strings.get("wellhollowContactName"), OpeningBroker.CREST,
@@ -233,7 +233,7 @@ public final class WellhollowBloomCampaign {
                 ? "wellhollowResultWon" : "wellhollowResultOpen", chapter.number());
     }
 
-    /** Results-screen line from the Warden: what changed, or what still stands. */
+    /** Results-screen line from Maro: what changed, or what still stands. */
     static String debrief(MissionOutcome o) {
         Chapter chapter = WellhollowBloomProgress.chapterOf(o.missionId);
         if (!o.victory) return Strings.get("wellhollowDebriefLost");
