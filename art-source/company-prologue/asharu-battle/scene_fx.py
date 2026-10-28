@@ -217,8 +217,9 @@ class SceneFx:
         bursts walk and misjudge by (below 1: the burst that kills her lands on her); bursts, [(first, last)]
         scene frames the trigger is held, in place of the weapon's seeded rhythm (a story broadside); sure,
         the scene frame a round of hers must land on (the kill), or a list of them, each a frame or (frame,
-        the point on b it lands on, metres in her frame): the round of her cadence arriving nearest it is
-        laid dead on, without the walk or the lead error, the trigger held for it."""
+        the point on b it lands on, metres in her frame[, quiet]): the round of her cadence arriving nearest it is
+        laid dead on, without the walk or the lead error, the trigger held for it; a quiet one strikes nothing
+        of its own (a blast_on or fire_on draws that hit's burst)."""
         shooter, target = self.ship(a), self.ship(b)
         aim = self.world(b, aim_local or (0, 0, 0))
         mz = self.muzzle_world(a, muzzles[0]) if muzzles[0] is not None else self.world(a)
@@ -260,7 +261,7 @@ class SceneFx:
                                             held=bursts, sure=sure)
                         if recs is not None:
                             planned_any = True       # the plan owns this gun, firing or holding
-                            placed_hits += [(r['hit_frame'], r['hit_l'], r['hit_n']) for r in recs
+                            placed_hits += [(r['hit_frame'], r['hit_l'], r['hit_n'], r.get('quiet', False)) for r in recs
                                             if r.get('hit_frame') is not None and r.get('hit_l') is not None]
                             if recs:
                                 fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
@@ -283,12 +284,13 @@ class SceneFx:
             if planned_any:
                 self.rows.append(f'tracer {a} -> {b}: planned, no round on target in this shot')
             return planned_any
-        self.impacts += [(b, int(f_), int(f_), tuple(hl_), f'{a} round') for f_, hl_, _n in placed_hits]
+        self.impacts += [(b, int(f_), int(f_), tuple(hl_), f'{a} round') for f_, hl_, _n, _q in placed_hits]
         if placed_hits:      # planned rounds: each strike where its own straight line met her hull
             he = self.hit_kind(a, fired)
             placed_hits = [h for h in sorted(placed_hits, key=lambda h: h[0])
                            if h[0] >= self.span[0] - round(1.5 * self.fps)]
-            self.strikes_at(b, placed_hits[::2], he)
+            # thinned before the quiet rounds go, so every other round strikes where it did
+            self.strikes_at(b, [h[:3] for h in placed_hits[::2] if not h[3]], he)
         landed = sorted(set(landed))
         if hit_l is not None:
             self.impacts += [(b, int(f_), int(f_), tuple(hit_l), f'{a} round') for f_ in landed]
@@ -375,7 +377,8 @@ class SceneFx:
         # Each is the one of her cadence arriving nearest its frame: the gun lays on its point about it, the
         # trigger is held for it, the range gate is waived (a story round, as asharu_gunnery forces it), and
         # it is laid dead on
-        sures = [(float(x), tuple(hit_l)) if isinstance(x, (int, float)) else (float(x[0]), tuple(x[1] or hit_l))
+        sures = [(float(x), tuple(hit_l), False) if isinstance(x, (int, float))
+                 else (float(x[0]), tuple(x[1] or hit_l), len(x) > 2 and bool(x[2]))
                  for x in ([] if sure is None else [sure] if isinstance(sure, (int, float)) else sure)]
 
         def flight(f, pt):
@@ -386,15 +389,17 @@ class SceneFx:
             for _ in range(3):
                 fl_ = (self.matrix_at(b, f + fl_) @ Vector(pt) - src).length / max(speed, 1.0) * fps
             return fl_
-        dead = {}
+        dead, quiet = {}, set()
         if sures:
             fired_at = sorted({int(round(F0 + t_ * fps)) for t_, _i, _k in g.cadence(weapon, (F1 - F0) / fps, feeder)})
-            for sf, pt in sures:
+            for sf, pt, q in sures:
                 best = min(((f, flight(f, pt)) for f in fired_at if f < sf and f not in dead),
                            key=lambda x: abs(x[0] + x[1] - sf), default=None)
                 if best is None:
                     continue
                 dead[best[0]] = (Vector(pt), best[1])
+                if q:
+                    quiet.add(best[0])
                 self.rows.append(f'sure {a} t{turret} -> {b}: frame {sf:.0f}, her round from {best[0]} lands '
                                  f'{best[0] + best[1] - sf:+.1f} frames off')
         laid = {fd: self.tracking(a, b, muzzle_l, tuple(v[0]), speed) for fd, v in dead.items()}
@@ -569,6 +574,7 @@ class SceneFx:
             got = shots.get(r['frame'], (None, None))[1]
             if got is not None and r.get('hit_frame') is not None:
                 r['hit_l'], r['hit_n'] = got
+                r['quiet'] = r['frame'] in quiet
                 hits += 1
         for fd in dead:      # a sure round that did not land says why
             if not any(r['frame'] == fd for r in recs):

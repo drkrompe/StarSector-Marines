@@ -4124,7 +4124,10 @@ def blender_main(cfg):
                         if 'span_t' in spec:
                             import asharu_damage
                             tag_ = f"{spec['shot']} {spec['span_of']} tracer {fx[1]}"
-                            owed_ = [(fr_(h_.t), h_.at) for h_ in asharu_damage.LEDGER
+                            # quiet: a blast_on or fire_on draws the hit's burst, so the round strikes nothing of its
+                            # own there (S9b final f02491, 2026-10-28: the Falcon's strike on the breach blast held white)
+                            owed_ = [(fr_(h_.t), h_.at, bool({'blast_on', 'fire_on'} & set(h_.bys)))
+                                     for h_ in asharu_damage.LEDGER
                                      if h_.ship == fx[2] and h_.src.split(' + ')[0] == tag_
                                      and spec['shot_t'][0] <= h_.t <= spec['shot_t'][1]]
                             if owed_:
