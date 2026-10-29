@@ -72,6 +72,6 @@ The third skin (red collar on white) was not kept and is deleted.
 
 `army-tank-laser.png` is eight frames: the five above, then the red skin's live, wreck and firing turret (frames 5, 6
 and 7, the PD laser tank's own, packed by `registration.json` from `pd-skin-red-raw.png`, `-wreck-raw.png` and
-`-open-raw.png`). A laser tank with the PD laser part fitted draws them in place of the white head
-(`MechWeaponComponent.tankHead`, `VehicleType.headFrame`); with the burst laser part fitted or none, it draws the white
+`-open-raw.png`). A laser tank with the heavy PD laser part fitted draws them in place of the white head
+(`MechWeaponComponent.tankHead`, `VehicleType.headFrame`); with the heavy burst laser part fitted or none, it draws the white
 head. Both fire from the head's lens, 0.625 cells forward, whichever part is fitted.

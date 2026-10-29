@@ -8,6 +8,10 @@ import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.marine.BoatFitting;
+import com.dillon.starsectormarines.ops.Mission;
+import com.dillon.starsectormarines.ops.MissionSource;
+import com.dillon.starsectormarines.ops.MissionType;
+import com.dillon.starsectormarines.ops.RiskLevel;
 import org.junit.jupiter.api.Test;
 
 import java.util.LinkedHashMap;
@@ -34,40 +38,27 @@ class CompanyLiftCatalogTest {
         byId.put(MechSupport.ID, MechSupport.configured(List.of(
                 MechDeploymentSpec.standard(MechVariant.HOUND))));
 
-        PowerCatalog.assignCompanyLift(byId, Set.of(MechSupport.ID), List.of(SEATED, MEDIUM, LIGHT), false);
+        PowerCatalog.assignCompanyLift(byId, Set.of(MechSupport.ID), List.of(SEATED, MEDIUM, LIGHT), true);
 
         assertSame(LIGHT, ((MechSupport) byId.get(MechSupport.ID)).companyCarrier());
     }
 
     @Test
-    void anEmployerOfferKeepsItsSyntheticCarrier() {
+    void whereHeavyLiftIsProvidedAnEmployerOfferKeepsItsSyntheticCarrier() {
         Map<String, CommandPower> byId = new LinkedHashMap<>();
         byId.put(MechSupport.ID, new MechSupport());
 
-        PowerCatalog.assignCompanyLift(byId, Set.of(), List.of(LIGHT), false);
+        PowerCatalog.assignCompanyLift(byId, Set.of(), List.of(LIGHT), true);
 
         assertNull(((MechSupport) byId.get(MechSupport.ID)).companyCarrier());
     }
 
     @Test
-    void anArrangedLiftFliesOnTheCompanysOwnBoatWithItsValkyrieBehindHer() {
-        Map<String, CommandPower> byId = new LinkedHashMap<>();
-        byId.put(MechSupport.ID, MechSupport.configured(List.of(
-                MechDeploymentSpec.standard(MechVariant.HOUND))));
-
-        PowerCatalog.assignCompanyLift(byId, Set.of(), List.of(LIGHT), true);
-
-        MechSupport mech = (MechSupport) byId.get(MechSupport.ID);
-        assertSame(LIGHT, mech.companyCarrier());
-        assertTrue(mech.syntheticLift(), "the arranged lift still flies what she cannot");
-    }
-
-    @Test
-    void withoutEmployerLiftTheBayFliesOnlyOnTheCompanysBoat() {
+    void withoutProvidedLiftTheBayFliesOnlyOnTheCompanysBoat() {
         Map<String, CommandPower> carried = new LinkedHashMap<>();
         carried.put(MechSupport.ID, MechSupport.configured(List.of(
-                MechDeploymentSpec.standard(MechVariant.HOUND)), LIGHT, true));
-        PowerCatalog.dropSyntheticLift(carried);
+                MechDeploymentSpec.standard(MechVariant.HOUND))));
+        PowerCatalog.assignCompanyLift(carried, Set.of(), List.of(SEATED, LIGHT), false);
         MechSupport mech = (MechSupport) carried.get(MechSupport.ID);
         assertSame(LIGHT, mech.companyCarrier());
         assertFalse(mech.syntheticLift(), "no Valkyrie behind her");
@@ -75,8 +66,17 @@ class CompanyLiftCatalogTest {
         Map<String, CommandPower> unlifted = new LinkedHashMap<>();
         unlifted.put(MechSupport.ID, MechSupport.configured(List.of(
                 MechDeploymentSpec.standard(MechVariant.HOUND))));
-        PowerCatalog.dropSyntheticLift(unlifted);
-        assertFalse(unlifted.containsKey(MechSupport.ID), "no company boat lifts the bay, so no call");
+        PowerCatalog.assignCompanyLift(unlifted, Set.of(), List.of(SEATED), false);
+        MechSupport stranded = (MechSupport) unlifted.get(MechSupport.ID);
+        assertNull(stranded.companyCarrier());
+        assertFalse(stranded.syntheticLift());
+        assertTrue(stranded.budget().carriers().isEmpty(), "no boat lifts the bay, so nothing comes down");
+    }
+
+    @Test
+    void onlyConquestProvidesHeavyLift() {
+        assertTrue(PowerCatalog.providesHeavyLift(mission(MissionType.CONQUEST)));
+        assertFalse(PowerCatalog.providesHeavyLift(mission(MissionType.EXTRACTION)));
     }
 
     @Test
@@ -87,6 +87,11 @@ class CompanyLiftCatalogTest {
         CommandPower restored = CommandPowerCommitment.capture(power).toPower();
 
         assertEquals(LIGHT, ((MechSupport) restored).companyCarrier());
+    }
+
+    private static Mission mission(MissionType type) {
+        return Mission.builder().id("lift-test").name("Lift").type(type)
+                .source(MissionSource.GENERATED).risk(RiskLevel.LOW).build();
     }
 
     private static FittedBoat cradled(String id, BoatFitting cradle) {

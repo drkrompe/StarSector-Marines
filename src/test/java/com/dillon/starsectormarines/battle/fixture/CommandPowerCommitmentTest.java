@@ -99,7 +99,11 @@ class CommandPowerCommitmentTest {
         MechSupport backed = assertInstanceOf(MechSupport.class, CommandPowerCommitment.capture(
                 MechSupport.configured(mechs, cradle, true)).toPower());
 
+        MechSupport unlifted = assertInstanceOf(MechSupport.class, CommandPowerCommitment.capture(
+                MechSupport.configured(mechs, null, false)).toPower());
+
         assertEquals(false, alone.syntheticLift());
         assertEquals(true, backed.syntheticLift());
+        assertEquals(false, unlifted.syntheticLift(), "a bay no boat lifts gains no Valkyrie at launch");
     }
 }

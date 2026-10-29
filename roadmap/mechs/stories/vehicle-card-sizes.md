@@ -1,6 +1,6 @@
 # Story — A vehicle's gun card is sized and locked by its hull
 
-Status: IN PROGRESS (slices 1 and 2 shipped: the small omni card and the light weapons, then the laser parts and the PD laser tank's retirement; the Thermal Lance and Pioneer regrade and the balance pass remain)
+Status: IN PROGRESS (slices 1 to 3 shipped: the small omni card and the light weapons, the laser parts and the PD laser tank's retirement, then the laser ladder in its white orb-lens look; the Thermal Lance and Pioneer regrade and the balance pass remain)
 
 Written: 2026-10-28
 
@@ -50,16 +50,20 @@ they no longer out-punch a 2x2 gun from two cells). Footprint is the power cap; 
 
 ## The laser tanks' guns become parts
 
-Owner direction (2026-10-29), partly built: lasers come in three strengths, 1x2, 2x2 and 3x2, in two families, the PD
-laser (a slight red motif) and the burst laser (clean white and blue), every one with a glass blue orb lens at the
-front and white electronics behind it, built into the arm; the 2x2 and the 1x2 are progressively miniaturized 3x2s. On a
-laser tank the 3x2 laser wears the turret head the hull had before, the PD laser the red head the PD laser tank carried
-and the burst laser the white head the laser tank carries (built: `MechWeaponComponent.tankHead`, the red head's frames
-on the laser tank's sheet); the olive part drawing no longer appears on a tank. The new mech drawings, the three missing
-parts and the renaming of the existing ones are the remaining work.
+Slice 3 is shipped (owner, 2026-10-29). Lasers are a ladder of three strengths, 1x2, 2x2 and 3x2, in two families: the PD
+laser (steady lances that run cool, a slight red motif) and the burst laser (short heavy volleys that vent, clean white
+and blue). Every part has a glass blue orb lens at the front and white electronics built into the arm; the 2x2 and the 1x2
+are progressively miniaturized 3x2s, drawn from the picked 3x2 designs. The six parts: light PD (`LIGHT_PULSE_LASER`,
+24 dps), PD (`PD_LASER`), heavy PD (`HEAVY_PD_LASER`), light burst (`LIGHT_BURST_LASER`), burst (`MEDIUM_BURST_LASER`) and
+heavy burst (`BURST_LASER`); the constants keep the names they shipped under, so BURST_LASER is the 3x2. The two heavy
+parts are nose guns only (the centreline mount), like the heavy cannon, and are Prestige; the others fit any arm. One
+white finish for every faction (no livery mask). On a laser tank the 3x2 laser wears the turret head the hull had before:
+the heavy burst laser the white head, the heavy PD laser the red head the PD laser tank carried (`MechWeaponComponent.tankHead`,
+the red head's frames on the laser tank's sheet, fired from the head's lens); the lighter lasers are drawn as their own
+mech drawings on the mount ring, which is a darker olive than they are. The stats are first proposals for the balance pass.
 
-Slice 2 is shipped. The burst laser (`BURST_LASER`, an energy arm gun of two columns by three rows, centreline only
-like the heavy cannon, Prestige) and the PD laser (`PD_LASER`, two by two, Advanced) are red weapon parts that fill
+Slice 2 shipped the laser tanks' guns as parts (since redrawn and extended to the ladder above): the burst laser (an energy arm gun of two columns by three rows, centreline only
+like the heavy cannon, Prestige) and the PD laser (two by two, Advanced) are red weapon parts that fill
 the laser tank's three-row red card, bought and fitted like any mech weapon, each with its own drawing, liveries,
 selector, geometry, weapon definition and Store entry. The burst laser is restated on a mech's cadence (four
 16-damage pulses on a 1.8-second cycle at 38 flux, the flux hog) and the PD laser likewise (ten 7-damage pulses on a
@@ -86,6 +90,9 @@ own burst-laser and PD-laser turret art stays as the hull's stock look until a h
 
 - Whether the laser tank should ship with the burst laser part fitted, rather than the card empty (decided for
   now: empty, the hull's own gun the burst laser turret, which keeps the stock gun out of the Store).
+- Whether the lighter lasers on a tank should sit on a ring painted to match them, or the ring should follow the hull
+  (the olive ring is the mount every fitted part stands on).
+- Whether the white lasers should take faction colour on a trim line; they have one finish for every faction.
 - A campaign vehicle saved as a `PD_LASER_TANK` no longer loads: the constant is deleted, with no migration.
 - The footprints and stats of the light weapons, which belong to a balance pass against `armorMatchup` and
   `loadoutMatchup`.

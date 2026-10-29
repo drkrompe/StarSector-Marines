@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-27 — Thunder Run's final run meets a reinforced checkpoint, and the tank and APCs push into its gun line. Earlier the same day: Thunder Run's raiders press the militia's back lines and the convoy harder over time, and the final run's haulers go together. Earlier the same day: Junction counterattacks in two blows on a clock that never goes quiet, the first as soon as the first site falls. Earlier the same day: Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
+Updated: 2026-10-29 — employers grant the drop call but never the lift: the company's cradled boat flies its armour. Earlier, 2026-10-27: Thunder Run's final run meets a reinforced checkpoint, and the tank and APCs push into its gun line. Earlier the same day: Thunder Run's raiders press the militia's back lines and the convoy harder over time, and the final run's haulers go together. Earlier the same day: Junction counterattacks in two blows on a clock that never goes quiet, the first as soon as the first site falls. Earlier the same day: Junction garrisons the bonded warehouse and sends two technicals with a twelve-strong Rill column.
 Earlier 2026-10-27 — Counterattack's road attacks start when the company first enters dispatch, not after the capture.
 Earlier 2026-10-20 — Relief's story chapter starts the company ashore beside Wayline's truck under the ore-dust cover story; Militia Relief keeps company lift.
 
@@ -273,8 +273,8 @@ surviving ordinary prop damage, and a living technician completing twelve protec
 seconds at the tooling with company infantry present. Eliminating all raiders does
 not replace that work. Losing the machine or both technicians fails the attempt.
 Three full squads are recommended; the existing two-squad minimum remains. Actual
-owned tender support and employer heavy lift for an owned active mech lance are
-available, without granting a walker, orbital fire or fighter support.
+owned tender support and the drop call for an owned active mech lance, flown by
+the company's cradled boat, are available, without granting a walker, orbital fire or fighter support.
 
 Replacement attempts explicitly refit the machine and provide a new inspection
 party; confirmed tooling and employer losses remain recorded. The active complete
@@ -347,7 +347,7 @@ ground fight never depends on the frigate duel overhead: the duel, when it exist
 is told when Voss gives her order and reports what happened, and nothing it does
 is read by the ground referee. Three full squads are recommended, with the same
 two-squad minimum and fitted lift, no tender (the chapter has no construction
-step) and optional employer heavy lift for an owned mech. The company takes the
+step) and an optional drop call for an owned mech, flown by the company's boat. The company takes the
 causeway customs block, which its holders occupy at once; it forms up on the
 staging ground south of customs while its lift is still landing (bounded, and
 gating nothing), then takes fuel control, then dispatch, and through the handover
@@ -623,8 +623,9 @@ squad, preserving its NCO, fire-team billets and command group; a berth is not
 a separate tactical destination. Arrival assembly counts every member once and
 releases the squad's duty when its committed strength has landed.
 Employer militia remain a separate force.
-Wayline supplies heavy lift for the company's active mech lance on these chapters
-and their recurring jobs. Mech Support carries only owned chassis with their
+Wayline grants the drop call for the company's active mech lance on these chapters
+and their recurring jobs; the company's own cradled boat flies it, with no
+employer lift behind her (owner, 2026-10-29). Mech Support carries only owned chassis with their
 frozen installed equipment; an empty bay grants no substitute walker. The company
 selects the support power in its briefing and calls it onto clear ground during
 battle. Arriving mechs join that operation's mission commander and remain eligible

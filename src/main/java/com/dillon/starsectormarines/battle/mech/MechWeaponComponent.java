@@ -71,7 +71,17 @@ public enum MechWeaponComponent {
             WeaponRegistry.MECH_LIGHT_PULSE_LASER_ID, 4, -1,
             LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER),
 
-    // The laser tanks' guns as parts: a large three-row burst laser (a flux hog) and a medium PD laser (runs cool).
+    // The laser ladder (vehicle-card-sizes.md): a PD family (steady lances that run cool, a slight red motif) and a burst
+    // family (short heavy volleys that vent, clean white and blue), each in three sizes. Named by their size in the
+    // family: the light PD laser is LIGHT_PULSE_LASER above, the heavy burst laser BURST_LASER here.
+    LIGHT_BURST_LASER("component.mech-light-burst-laser", "@gearMechWeaponComponentLIGHTBURSTLASER",
+            MountFamily.ARMS, HardpointType.ENERGY, 2, 1,
+            WeaponRegistry.MECH_LIGHT_BURST_LASER_ID, 2, -1,
+            LayeredMechAppearance.ARMS_LIGHT_BURST_LASER),
+    MEDIUM_BURST_LASER("component.mech-medium-burst-laser", "@gearMechWeaponComponentMEDIUMBURSTLASER",
+            MountFamily.ARMS, HardpointType.ENERGY, 2, 2,
+            WeaponRegistry.MECH_MEDIUM_BURST_LASER_ID, 3, -1,
+            LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER),
     BURST_LASER("component.mech-burst-laser", "@gearMechWeaponComponentBURSTLASER",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 3,
             WeaponRegistry.MECH_BURST_LASER_ID, 4, -1,
@@ -80,6 +90,10 @@ public enum MechWeaponComponent {
             MountFamily.ARMS, HardpointType.ENERGY, 2, 2,
             WeaponRegistry.MECH_PD_LASER_ID, 10, -1,
             LayeredMechAppearance.ARMS_PD_LASER),
+    HEAVY_PD_LASER("component.mech-heavy-pd-laser", "@gearMechWeaponComponentHEAVYPDLASER",
+            MountFamily.ARMS, HardpointType.ENERGY, 2, 3,
+            WeaponRegistry.MECH_HEAVY_PD_LASER_ID, 14, -1,
+            LayeredMechAppearance.ARMS_HEAVY_PD_LASER),
 
     // The anti-armor racks: a contact warhead fired only at hardened targets (mechs-nouns.md, Missile warheads).
     SRM_5("component.mech-srm-5", "@gearMechWeaponComponentSRM5", MountFamily.SHOULDER,
@@ -178,7 +192,7 @@ public enum MechWeaponComponent {
     public boolean centrelineOnly() {
         return switch (this) {
             case NOSE_CHAINGUN, NOSE_CHAINGUN_HF, NOSE_MUSTER_AUTOGUN, SINGLE_HEAVY_CANNON,
-                 DEMOLITION_CANNON, QUARRY_BREAKER_CANNON, BURST_LASER -> true;
+                 DEMOLITION_CANNON, QUARRY_BREAKER_CANNON, BURST_LASER, HEAVY_PD_LASER -> true;
             default -> false;
         };
     }
@@ -188,13 +202,13 @@ public enum MechWeaponComponent {
 
     /**
      * The laser tank's turret head this weapon wears when fitted to a hull that carries one ({@code VehicleType.headFrame}):
-     * the burst laser the white head the laser tank has always carried, the PD laser the red head the PD laser tank
-     * carried. Every other weapon is drawn as its own drawing on the mount ring.
+     * the heavy (three-row) burst laser the white head the laser tank has always carried, the heavy PD laser the red head
+     * the PD laser tank carried. Every other weapon is drawn as its own drawing on the mount ring.
      */
     public TankHead tankHead() {
         return switch (this) {
             case BURST_LASER -> TankHead.WHITE;
-            case PD_LASER -> TankHead.RED;
+            case HEAVY_PD_LASER -> TankHead.RED;
             default -> TankHead.NONE;
         };
     }
@@ -279,6 +293,9 @@ public enum MechWeaponComponent {
             case LIGHT_ROCKET_POD -> 6f;
             case BURST_LASER -> 1.8f;
             case PD_LASER -> 1.6f;
+            case HEAVY_PD_LASER -> 1.8f;
+            case MEDIUM_BURST_LASER -> 1.6f;
+            case LIGHT_BURST_LASER -> 1.4f;
         };
     }
 
@@ -344,6 +361,9 @@ public enum MechWeaponComponent {
             // The burst laser is a flux hog, as on the tank; the PD laser runs cool.
             case BURST_LASER -> 38f;
             case PD_LASER -> 16f;
+            case HEAVY_PD_LASER -> 28f;
+            case MEDIUM_BURST_LASER -> 26f;
+            case LIGHT_BURST_LASER -> 14f;
         };
     }
 

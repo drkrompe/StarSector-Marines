@@ -225,7 +225,7 @@ increasing an encounter's total armored threat.
   (`vehicle-card-sizes.md`), and takes the mech weapon parts that fit it by the mech's own rule: the lock's type, if
   any, and a footprint no larger than the card. The small class (the APCs, the dozer, the technicals and the hover
   scout) is one row and unlocked, an omni card that takes any one-row part: the light machine gun, light pulse laser
-  and light rocket pod authored for it, the Thermal Lance and the Pioneer Rocket Cradle. A cannon card takes the heavy
+  and light rocket pod authored for it (and the light burst laser), the Thermal Lance and the Pioneer Rocket Cradle. A cannon card takes the heavy
   cannon, a laser tank's card takes energy weapons. Footprint is the only cap on a weapon's power.
   The hull's own gun is no part: an empty gun card is that gun, drawn as the sealed cards draw it, so a weapon
   is only ever an addition from stores. A fitted weapon is the hull's turret with the weapon's ballistics in it

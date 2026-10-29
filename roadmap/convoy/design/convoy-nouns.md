@@ -1480,13 +1480,14 @@ the air or a burst under way, its dome's shutter stands open on the lens; idle, 
 Its lance is the burst PD laser's blue.
 
 The PD laser tank is retired (owner, 2026-10-28): its gun is a part. The plain PD laser every frigate
-carries is the **PD laser** weapon part (`MechWeaponComponent.PD_LASER`, medium, two rows), and the
-laser tank's own gun is the **burst laser** part (`BURST_LASER`, large, three rows), both fitted
-to the laser tank's red three-row gun card like any mech weapon (`vehicle-card-sizes.md`,
-`mechs-nouns.md`). A laser tank with the PD laser fitted is what the PD laser tank was: a steady
-lance, ten pulses a second for a second at a time, that runs cool and trades longer where the
-burst laser trades harder. Everything above about reach, the air and carrying no blast holds for
-both. The hull's own gun, with no part fitted, is still the burst laser turret.
+carries is the PD family of laser parts, and the laser tank's own gun is the burst family, each in three sizes
+(`MechWeaponComponent`: `LIGHT_PULSE_LASER`, `PD_LASER`, `HEAVY_PD_LASER`; `LIGHT_BURST_LASER`, `MEDIUM_BURST_LASER`,
+`BURST_LASER`), fitted to the laser tank's red three-row gun card like any mech weapon (`vehicle-card-sizes.md`,
+`mechs-nouns.md`). A laser tank with the heavy PD laser fitted wears the red turret head the PD laser tank carried, and is
+what the PD laser tank was: a steady lance, fourteen pulses at a time, that runs cool and trades longer where the heavy
+burst laser, in the white head, trades harder. The lighter parts are drawn as their own mech drawings on the mount ring.
+Everything above about reach, the air and carrying no blast holds for
+both. The hull's own gun, with no part fitted, is still the burst laser turret (the white head).
 
 **A laser's lance is drawn as the space game draws a beam.** A turret weapon with no
 projectile art that authors a beam (`WeaponDef.hitscanBeam`) is a hitscan beam, as a

@@ -1140,10 +1140,13 @@ public final class MechLabDollCanvas implements CanvasProducer {
                   token("quarry-breaker-cannon.png", 72, 124),
                   token("pioneer-rocket-cradle.png", 76, 112),
                   token("light-machine-gun.png", 34, 88),
-                  token("light-pulse-laser.png", 28, 88),
+                  token("light-pulse-laser.png", 35, 84),
                   token("light-rocket-pod.png", 29, 70),
-                  token("burst-laser.png", 50, 136),
-                  token("pd-laser.png", 40, 116),
+                  token("burst-laser.png", 54, 136),
+                  token("pd-laser.png", 40, 112),
+                  token("heavy-pd-laser.png", 50, 136),
+                  token("medium-burst-laser.png", 40, 112),
+                  token("light-burst-laser.png", 26, 84),
                   LayeredSpriteCache.headless(
                         "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png",
                         48, 48));

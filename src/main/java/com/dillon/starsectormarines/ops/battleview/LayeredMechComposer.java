@@ -281,6 +281,9 @@ final class LayeredMechComposer {
                     || gun == LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER
                     || gun == LayeredMechAppearance.ARMS_BURST_LASER
                     || gun == LayeredMechAppearance.ARMS_PD_LASER
+                    || gun == LayeredMechAppearance.ARMS_HEAVY_PD_LASER
+                    || gun == LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER
+                    || gun == LayeredMechAppearance.ARMS_LIGHT_BURST_LASER
                     || (gun == LayeredMechAppearance.ARMS_CHAINGUN
                     && chassis != LayeredMechAppearance.CHASSIS_CLEAN) ? 1f : 0.5f;
             emitFromRearPivot(out, sprite, actorX, actorY, hullWidth, facingDeg,
@@ -338,6 +341,9 @@ final class LayeredMechComposer {
             case LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER -> assets.lightPulseLaser;
             case LayeredMechAppearance.ARMS_BURST_LASER -> assets.burstLaser;
             case LayeredMechAppearance.ARMS_PD_LASER -> assets.pdLaser;
+            case LayeredMechAppearance.ARMS_HEAVY_PD_LASER -> assets.heavyPdLaser;
+            case LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER -> assets.mediumBurstLaser;
+            case LayeredMechAppearance.ARMS_LIGHT_BURST_LASER -> assets.lightBurstLaser;
             default -> null;
         };
     }

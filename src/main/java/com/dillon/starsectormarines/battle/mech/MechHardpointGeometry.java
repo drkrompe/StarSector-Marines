@@ -63,12 +63,15 @@ public final class MechHardpointGeometry {
             case LayeredMechAppearance.ARMS_HEAVY_CANNON -> 0.47f;
             case LayeredMechAppearance.ARMS_DEMOLITION_CANNON,
                  LayeredMechAppearance.ARMS_QUARRY_BREAKER -> 0.42f;
-            // The light weapons are 88 px long: 0.42 hull widths from the rear pivot.
+            // The light weapons are 84 to 88 px long: about 0.41 hull widths from the rear pivot.
             case LayeredMechAppearance.ARMS_LIGHT_MG,
-                 LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER -> 0.27f;
-            // The burst laser is 136 px long (0.65 hull widths) and the PD laser 116 px (0.56).
-            case LayeredMechAppearance.ARMS_BURST_LASER -> 0.50f;
-            case LayeredMechAppearance.ARMS_PD_LASER -> 0.41f;
+                 LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER,
+                 LayeredMechAppearance.ARMS_LIGHT_BURST_LASER -> 0.27f;
+            // The laser ladder: 136 px long (0.65 hull widths) for the heavy two, 112 px (0.54) for the medium two.
+            case LayeredMechAppearance.ARMS_BURST_LASER,
+                 LayeredMechAppearance.ARMS_HEAVY_PD_LASER -> 0.50f;
+            case LayeredMechAppearance.ARMS_PD_LASER,
+                 LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER -> 0.41f;
             default -> Float.NaN;
         };
     }
@@ -86,9 +89,12 @@ public final class MechHardpointGeometry {
             case LayeredMechAppearance.ARMS_PULSE_LASER -> 0.49f;
             case LayeredMechAppearance.ARMS_BASTION_AUTOCANNON -> 0.59f;
             case LayeredMechAppearance.ARMS_LIGHT_MG,
-                 LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER -> 0.37f;
-            case LayeredMechAppearance.ARMS_BURST_LASER -> 0.60f;
-            case LayeredMechAppearance.ARMS_PD_LASER -> 0.51f;
+                 LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER,
+                 LayeredMechAppearance.ARMS_LIGHT_BURST_LASER -> 0.37f;
+            case LayeredMechAppearance.ARMS_BURST_LASER,
+                 LayeredMechAppearance.ARMS_HEAVY_PD_LASER -> 0.60f;
+            case LayeredMechAppearance.ARMS_PD_LASER,
+                 LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER -> 0.51f;
             default -> Float.NaN;
         };
     }

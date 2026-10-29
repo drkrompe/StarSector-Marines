@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.air.FittedBoat;
-import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
@@ -103,7 +101,7 @@ final class CorvusEvidenceCompany {
         throw new IllegalArgumentException(chapter.name());
     }
 
-    /** Stands the company up for {@code mission} in {@code kit}, on {@code boats} aeroshuttles. */
+    /** Stands the company up for {@code mission} in {@code kit}, on {@code boats} of the Second Wind's fitted lift. */
     static Muster muster(CorvusChapter chapter, Mission mission, int boats, Predicate<String> campaignHas, Kit kit)
             throws Exception {
         var roster = new MarineRoster();
@@ -121,11 +119,11 @@ final class CorvusEvidenceCompany {
         }
         // Same campaign organization path; each squad has an acting NCO, with no officer buffs.
         var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, chapter.squads * 12, null);
-        var fitted = IntStream.range(0, boats).mapToObj(i -> FittedBoat.standard(ShuttleType.AEROSHUTTLE)).toList();
+        var fitted = IntStream.range(0, boats).mapToObj(i -> DebugMissionCatalog.maxFitted(DebugMissionCatalog.CAMPAIGN_LIFT)).toList();
         var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, fitted, deployment.size());
         var fixture = chapter.fixture(mission.battleSeed, manifest, chapter.profile(chapter.surface), campaignHas);
         fixture = BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
-        var powers = PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment());
+        var powers = PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment(), null, fitted);
         if (powers.size() != 1) throw new IllegalStateException("expected the Hound's drop alone, got " + powers);
         var resources = new FiniteCommandPowerResources(SUPPLIES);
         var overlay = BattleLaunchOverlay.capture(0, deployment, FlybyRoster.EMPTY, FlybyRoster.EMPTY, powers,

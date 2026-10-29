@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-08-23
 
-Updated: 2026-10-28 — lift the company does not own flies machines only, never a squad sortie, and a standby craft taking a squad sortie comes in on its donor's approach. Earlier, 2026-10-26: a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
+Updated: 2026-10-29 — only the company's own boats land the company's armour; heavy lift a mission provides is Conquest's alone, and the briefing shows a mission-lift slot only there. Earlier, 2026-10-28: lift the company does not own flies machines only, never a squad sortie, and a standby craft taking a squad sortie comes in on its donor's approach. Earlier, 2026-10-26: a player's carrier bay is renewable: one airframe on station, a refit after each sortie it comes home from and a replacement after each loss, never running out. Earlier the same day, machines ride the ferry through one shared lift queue, one machine a sortie; a cradle keeps its seats; a standby craft (heavy lift included) takes squad sorties still owed before any machine. Earlier, 2026-10-25: a planted Bombard an operator sees is designated ahead of a lone nest.
 
 Earlier 2026-09-01 — an aircraft on its stand is a unit and only a unit: the
 3x3 of navigation grid a parked hull used to stamp around itself is gone, along
@@ -434,8 +434,8 @@ Hermes's second load from its standby point crossed Thunder Run's flak and was l
 with the squad). Each player order is a **machine drop** job; a standby craft with no squad
 sortie left to take takes the oldest job it can carry (`LiftAdmission`) and flies exactly that machine to its landing ground,
 so a boat shot down with a machine aboard settles as that boat's loss like any
-other. A budget carrier no ferry craft matches (the employer's or a ship's heavy
-lift, or a committed cradle with no seat in the arrival) joins the ferry as an
+other. A budget carrier no ferry craft matches (Conquest's provided heavy lift,
+or a committed cradle with no seat in the arrival) joins the ferry as an
 ordinary standby craft of its pattern, so heavy lift is one more ferry craft and
 not a separate delivery; supplied lift among them flies machines only. An Aeroshuttle standing in for a cradled hull (Conquest
 paired arrivals) inherits its lift rating; one standing in for a Valkyrie does
@@ -445,9 +445,14 @@ carrier crosses launch in the power's commitment like the rest of its payload.
 The commander AI's mech drop and enemy lances keep their own deliveries.
 
 **The briefing reads lift before launch.** Its lift row shows one slot per boat
-berth on the company ship (an empty or grounded berth stays visible) and a slot
-for the **mission lift** (heavy lift a ship, employer or contract supplies), each
-with a weight symbol for its rating. Every bay machine sits in the field inset
+berth on the company ship (an empty or grounded berth stays visible), each with
+a weight symbol for its rating. The company's boats are the only lift for the
+company's forces (owner, 2026-10-29); a mission that brings craft of its own flies
+its own people and cargo in them. Conquest alone, where the company commands
+hundreds, provides heavy lift behind the company's boats
+(`PowerCatalog.providesHeavyLift`), and only there does the row add a slot for the
+**mission lift**. With no boat that lifts a machine, the drop call stays and each
+machine reads no lift of its class. Every bay machine sits in the field inset
 beside the squads, as a small damage doll under its chassis or vehicle type,
 carrying the wear its repair still leaves, and two stacked bricks: its weight,
 lit red when lift falls short of its class, and a warning, lit and slowly
@@ -1642,9 +1647,9 @@ deterministic fixture replay.
 Everywhere else a company boat seats her whole cabin each trip, so a
 twelve-seat Hermes lands a squad whole (owner, 2026-10-27): the half-squad
 cap belongs to Conquest's paired descent, never to a story mission that
-authors the paired policy (`DetachmentResolver.companySeatsPerTrip`). A
-mission that arranges heavy lift still flies its machines on the company's own
-boat when she can lift them, with the arranged lift behind her for the rest.
+authors the paired policy (`DetachmentResolver.companySeatsPerTrip`). The
+company's machines likewise come down only on the company's own cradled boat,
+outside Conquest; no employer, story or contract lift stands behind her.
 
 ### Fighters and drones
 

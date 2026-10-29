@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
@@ -175,10 +174,11 @@ class WaylineHoundEvidenceTest {
             MissionResolver.recordStoryCompletion(roster, MissionOutcome.builder()
                     .missionId(OpeningOperationKind.COUNTERATTACK.missionId).missionSource(MissionSource.STORY)
                     .victory(true).waylineHound(new WaylineHoundRecovery.Report(true, true)).build());
-            var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission,
-                    List.of(FittedBoat.standard(ShuttleType.AEROSHUTTLE), FittedBoat.standard(ShuttleType.AEROSHUTTLE)), 24);
-            var power = (MechSupport) CommandPowerCommitment.capture(
-                    PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment()).get(0)).toPower();
+            var boats = List.of(DebugMissionCatalog.maxFitted(DebugMissionCatalog.CAMPAIGN_LIFT),
+                    DebugMissionCatalog.maxFitted(DebugMissionCatalog.CAMPAIGN_LIFT));
+            var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, 24);
+            var power = (MechSupport) CommandPowerCommitment.capture(PowerCatalog.resolve(List.of(), mission,
+                    roster.mechBay().activeDeployment(), null, boats).get(0)).toPower();
             try (var sim = MissionLaunch.supplyRouteBuilder(route, 9301, manifest, profile()).get()) {
                 CampaignMarineDeployment.freeze(roster, 24).applyToAuthoredPlayerLift(sim);
                 sim.setCommandPowers(List.of(power));

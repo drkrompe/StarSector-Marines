@@ -76,6 +76,9 @@ public final class WeaponRegistry {
     /** The laser tanks' guns as parts, restated on a mech's cadence ({@code vehicle-card-sizes.md}). */
     public static final String MECH_BURST_LASER_ID = "weapon.mech-burst-laser";
     public static final String MECH_PD_LASER_ID = "weapon.mech-pd-laser";
+    public static final String MECH_HEAVY_PD_LASER_ID = "weapon.mech-heavy-pd-laser";
+    public static final String MECH_MEDIUM_BURST_LASER_ID = "weapon.mech-medium-burst-laser";
+    public static final String MECH_LIGHT_BURST_LASER_ID = "weapon.mech-light-burst-laser";
 
     /**
      * Core resources retained for standalone tools and compatibility tests.
