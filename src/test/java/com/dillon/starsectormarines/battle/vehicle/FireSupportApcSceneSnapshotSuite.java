@@ -118,7 +118,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
 
     /**
      * Six hulls each carrying a mech weapon its gun card takes, parked with their turrets turned off the hull's axis:
-     * how a fitted weapon is drawn ({@code -Dbattle.vehicle.fittedTurretArt}), close and at play zoom.
+     * how a fitted weapon is drawn, close and at play zoom.
      */
     private static LookReview.Shot fitted() {
         return LookReview.Shot.of("fitted-turrets", 32, 14, placement -> {

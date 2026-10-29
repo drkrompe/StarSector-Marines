@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a184f2-c7c9-7961-ba69-db58336dcbd8",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a184f2-c7c9-7961-ba69-db58336dcbd8\\exec-fc8d894b-d276-4f4e-8ac4-82a4e2fd3a30.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\gun-mount\\master.png",
+    "sha256": "8ffcd732b5ab0ef2b2b020c2d323e0647796904814bd49da0203043049bd1ecd",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\gun-mount\\prompt.txt",
+  "promptSha256": "6b773d2fb69ce18eaa158c79ecf681a9eba7a3924d5570d3cfc4602cb1fadecb",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Material, palette and lighting style only; not layout, not a weapon to draw\nImage 2: Material and palette style only; not layout\n\nA single top-down game sprite: a circular armoured turret mount for a ground vehicle, seen straight from above, the base a mech-scale weapon (cannon, autogun, missile pod) is bolted onto. It is a round turret ring about as wide as the image, a darker steel outer race with bolt heads and a raised circular platform inside it, two small squared trunnion cheek plates on the left and right of the middle where a gun cradle would pivot, and a few worn paint chips and panel seams. Nothing sits on it: no gun, no barrel, no pod and no ammunition; the centre is an empty flat platform for a weapon to stand on. Perfectly symmetrical left to right and centred in the square canvas.\n\nPalette and finish match the references: dull olive-drab painted armour with darker steel edges, grime and small amber warning marks like the mech weapon reference (material and style reference only, never layout). Crisp pixel-art-leaning painterly rendering with hard edges, the same lighting from the upper left as the reference, no soft glow.\n\nTrue transparent background including the corners outside the ring; no ground, shadow slab, cast shadow, border, text or labels. Square canvas, the ring filling about 90 percent of it.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "mod\\graphics\\battle\\mech-modular-topdown\\heavy-cannon.png",
+      "sha256": "4cd48402b0e601e573ece6a6deea7ce3e5ef9df8caa720aff9d9d6dad0e2c776",
+      "dimensions": [
+        64,
+        128
+      ],
+      "mode": "RGBA",
+      "role": "Material, palette and lighting style only; not layout, not a weapon to draw"
+    },
+    {
+      "path": "mod\\graphics\\battle\\mech-modular-topdown\\shoulder-laser-cannon.png",
+      "sha256": "88c677ef5ccd078f06adfc3f243c1ee59846b30913f88d7701c73c9bdfcbba65",
+      "dimensions": [
+        76,
+        128
+      ],
+      "mode": "RGBA",
+      "role": "Material and palette style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one turret-mount sprite using the references for materials, palette, and lighting.\n"
+  ],
+  "usage": {
+    "input_tokens": 35644,
+    "cached_input_tokens": 24064,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 352,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 60.5
+}

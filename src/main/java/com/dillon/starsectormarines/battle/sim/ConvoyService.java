@@ -142,7 +142,7 @@ public final class ConvoyService implements BodyCarrier {
         float spawnX = mission.inboundX[0], spawnY = mission.inboundY[0];
         float nextX = mission.inboundX[1], nextY = mission.inboundY[1];
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
-        StructureDef fittedStructure = type.hasTurretWeapon() ? VehicleGun.fit(type.turretStructure(), weapon) : null;
+        StructureDef fittedStructure = type.hasTurretWeapon() ? VehicleGun.fit(type, weapon) : null;
         TurretMountDef gun = fittedStructure != null ? fittedStructure.mount : null;
         GroundTurret turret = gun != null
                 ? GroundTurret.fitted(gun, Math.round(gun.ammoCapacity * fitted.ammoFactor()), fitted,

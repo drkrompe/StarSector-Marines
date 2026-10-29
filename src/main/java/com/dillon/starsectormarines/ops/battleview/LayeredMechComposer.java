@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts.LayerTran
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechSection;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 
 /**
  * Emits a mech as hull-width-relative, independently animated hardpoints.
@@ -299,12 +300,13 @@ final class LayeredMechComposer {
     }
 
     /**
-     * The drawing a mech weapon's appearance selector stands for, arm gun or shoulder pod; null for none. A vehicle's
-     * fitted weapon is drawn from the same layers ({@link VehicleGunArt}).
+     * The drawing a mech weapon's appearance selector stands for, arm gun or shoulder pod (the two families number
+     * their selectors alike, so the family says which); null for none. A vehicle's fitted weapon is drawn from the
+     * same layers ({@link VehicleGunArt}).
      */
-    static LayeredSpriteCache weaponSprite(LayeredMechAssets assets, int selector) {
-        LayeredSpriteCache arm = armSprite(assets, selector);
-        if (arm != null) return arm;
+    static LayeredSpriteCache weaponSprite(LayeredMechAssets assets, MechWeaponComponent weapon) {
+        int selector = weapon.appearanceSelector;
+        if (weapon.mountFamily == MechWeaponComponent.MountFamily.ARMS) return armSprite(assets, selector);
         return switch (selector) {
             case LayeredMechAppearance.POD_SHOULDER_LASER -> assets.shoulderLaser;
             case LayeredMechAppearance.POD_THERMAL_LANCE -> assets.thermalLance;

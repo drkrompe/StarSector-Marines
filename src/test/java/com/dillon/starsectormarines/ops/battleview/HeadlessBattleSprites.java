@@ -117,6 +117,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final SpriteSheetFrames urban3Frames;
     private final SpriteSheetFrames natureFrames;
     private final LayeredMechAssets mech;
+    private final LayeredSpriteCache gunMount;
     private SpriteAPI decals;
     private SpriteSheetFrames decalFrames;
     private SpriteAPI warshipEngineFlame;
@@ -178,6 +179,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         ensureObjectiveIcons();
         loadDecals();
         mech = loadMech();
+        gunMount = optionalLayer("graphics/battle/vehicles/gun-mount.png");
     }
 
     /**
@@ -333,6 +335,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public RavSpitterAssets ravSpitterSprites() { return ravSpitter; }
     @Override public RavBombardAssets ravBombardSprites() { return ravBombard; }
     @Override public LayeredMechAssets layeredMechSprites() { return mech; }
+    @Override public LayeredSpriteCache vehicleGunMount() { return gunMount; }
     @Override public EnumMap<VehicleType, UnitSpriteCache> convoySprites() { return vehicles; }
     @Override public Map<Airframe, ShuttleSpriteCache> airframeSprites() { return airframes; }
     /** Off the resource roots: the base class reads through {@code Global.getSettings().openStream}, a stub here. */

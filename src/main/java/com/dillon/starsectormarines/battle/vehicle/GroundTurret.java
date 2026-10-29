@@ -33,6 +33,15 @@ public final class GroundTurret {
     public StructureDef structure;
     /** The mech weapon in the hull's gun card that {@link #structure} was derived from; null for the hull's own gun. */
     public MechWeaponComponent weapon;
+    /**
+     * Whether this gun stands up to fire as an arcing rack does ({@link #elevation}): a fitted weapon asks for it by
+     * being a missile pod, the hull's own gun by its type.
+     */
+    public boolean raises(VehicleType type) {
+        return weapon != null ? weapon.hardpointType == MechWeaponComponent.HardpointType.MISSILE
+                : type.turretRaiseFold() < 1f;
+    }
+
     /** Barrel facing in world frame (0° = +Y, positive CCW). */
     public float facingDeg;
     /** Sim-seconds until the turret can fire again. */

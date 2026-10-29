@@ -150,6 +150,7 @@ public class BattleSprites {
     private final java.util.EnumMap<Faction, MechLivery> mechLiveryBySide =
             new java.util.EnumMap<>(Faction.class);
     private boolean layeredMechSpritesLoadAttempted;
+    private LayeredSpriteCache vehicleGunMount;
 
     // ---- vehicle sheets -----------------------------------------------------
 
@@ -279,6 +280,8 @@ public class BattleSprites {
     /** The Bombard's rig sprites, or null when incomplete (the Bombard then keeps its stand-in art). */
     public RavBombardAssets ravBombardSprites() { return ravBombard; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
+    /** The turret mount ring a vehicle's fitted weapon stands on; null when the art did not load. */
+    public LayeredSpriteCache vehicleGunMount() { return vehicleGunMount; }
     /** Pools under fallen layered bodies; empty when the art did not load. */
     public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
 
@@ -1324,6 +1327,7 @@ public class BattleSprites {
                 demolitionCannon, thermalLance, musterAutogun,
                 quarryBreakerCannon, pioneerRocketCradle, flash);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
+        vehicleGunMount = loadLayeredSprite("graphics/battle/vehicles/gun-mount.png");
         mechBase = new MechBase(socketedChassis, foot, thighBone, flash);
     }
 

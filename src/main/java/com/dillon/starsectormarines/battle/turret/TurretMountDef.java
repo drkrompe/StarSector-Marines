@@ -235,13 +235,15 @@ public final class TurretMountDef {
     }
 
     /**
-     * This carriage carrying another gun: the same traverse, loader, muzzles and body, with {@code weapon} in it, a
-     * magazine of {@code ammoCapacity} pulls and the given flux and hardened-target rule. A vehicle's fitted weapon is
+     * This carriage carrying another gun: the same traverse, loader and body, with {@code weapon} in it, a
+     * magazine of {@code ammoCapacity} pulls, the given flux and hardened-target rule, and the weapon's own single muzzle
+     * {@code muzzleOffsetCells} out from the mount with its own casing and scorch effects. A vehicle's fitted weapon is
      * the stock mount with the weapon's own ballistics ({@code VehicleGun}).
      */
-    public TurretMountDef withGun(WeaponDef weapon, int ammoCapacity, Flux flux, boolean hardenedTargetsOnly) {
+    public TurretMountDef withGun(WeaponDef weapon, int ammoCapacity, Flux flux, boolean hardenedTargetsOnly,
+                                  float muzzleOffsetCells, boolean ejectsCasings, float scorchCells) {
         return new TurretMountDef(id, weapon.id, weapon, ammoCapacity, turnRateDegPerSec, visualCells,
-                muzzleOffsetCells, muzzleLateralOffsetCells, muzzles, hardenedTargetsOnly, flux, loaderSeconds,
+                muzzleOffsetCells, 0f, List.of(), hardenedTargetsOnly, flux, loaderSeconds,
                 engagesAir, maxDepressionDeg, spritePath, recoilSpritePath, recoil, ejectsCasings, scorchCells);
     }
 

@@ -107,6 +107,47 @@ public final class MechHardpointGeometry {
         return isSmallPod(podAppearance) ? 0.12f : 0.16f;
     }
 
+    /** Where an arm gun's barrel pivots on its mount, and a shoulder pod's, in hull widths (the rear of its drawing). */
+    private static final float ARM_PIVOT = -0.15f;
+    private static final float POD_PIVOT = -0.30f;
+
+    /**
+     * How long a weapon's drawing is from its rear pivot to its muzzle, in hull widths; zero for a weapon with no
+     * drawing. A vehicle carrying the weapon draws and fires it at this length ({@code VehicleGun}).
+     */
+    public static float barrelHullWidths(MechWeaponComponent weapon) {
+        int appearance = weapon.appearanceSelector;
+        if (weapon.mountFamily == MechWeaponComponent.MountFamily.ARMS) {
+            float arm = sideArmForward(appearance);
+            return Float.isNaN(arm) ? 0f : arm - ARM_PIVOT;
+        }
+        boolean pod = appearance >= LayeredMechAppearance.POD_SMALL_SRM
+                && appearance <= LayeredMechAppearance.POD_PIONEER_ROCKET;
+        return pod ? podForward(appearance) - POD_PIVOT : 0f;
+    }
+
+    /**
+     * How far a weapon's drawing kicks back as it fires, in hull widths, as the mech renderer draws it: the rapid
+     * guns and the missile pods kick, the cannons and lasers stay planted.
+     */
+    public static float recoilHullWidths(MechWeaponComponent weapon) {
+        int appearance = weapon.appearanceSelector;
+        if (weapon.mountFamily == MechWeaponComponent.MountFamily.ARMS) {
+            return switch (appearance) {
+                case LayeredMechAppearance.ARMS_CHAINGUN, LayeredMechAppearance.ARMS_NOSE_CHAINGUN,
+                     LayeredMechAppearance.ARMS_PULSE_LASER, LayeredMechAppearance.ARMS_BASTION_AUTOCANNON,
+                     LayeredMechAppearance.ARMS_MUSTER_AUTOGUN, LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN -> 0.025f;
+                default -> 0f;
+            };
+        }
+        return switch (appearance) {
+            case LayeredMechAppearance.POD_SMALL_SRM, LayeredMechAppearance.POD_LARGE_SRM,
+                 LayeredMechAppearance.POD_PIONEER_ROCKET -> 0.018f;
+            case LayeredMechAppearance.POD_SMALL_LRM, LayeredMechAppearance.POD_LARGE_LRM -> 0.024f;
+            default -> 0f;
+        };
+    }
+
     /** Zero-based release about to leave this mount. */
     public static int nextReleaseIndex(MechWeaponMount mount) {
         return mount.burstRemaining > 0

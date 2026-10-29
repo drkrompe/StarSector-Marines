@@ -130,7 +130,7 @@ public final class GroundVehicleTurretSystem {
                 if (turret.burstPointAim != null) turret.clearQueuedFire();
                 tickAutonomous(id, turret, body, structure, mountX, mountY, dt);
             }
-            if (type.turretRaiseFold() < 1f) {
+            if (turret.raises(type)) {
                 raise(turret, structure.mount.weapon, dt);
                 aimRange(turret, mountX, mountY);
             }

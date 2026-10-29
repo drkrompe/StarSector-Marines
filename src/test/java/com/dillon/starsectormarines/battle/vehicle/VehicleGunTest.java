@@ -36,7 +36,7 @@ class VehicleGunTest {
     void aFittedWeaponFiresWithItsOwnBallisticsFromTheHullsCarriage() {
         StructureDef stock = VehicleType.LRM_CARRIER.turretStructure();
         MechWeaponComponent srm = MechWeaponComponent.SRM_5;
-        StructureDef fitted = VehicleGun.fit(stock, srm);
+        StructureDef fitted = VehicleGun.fit(VehicleType.LRM_CARRIER, srm);
 
         assertSame(srm.weaponDef(), fitted.mount.weapon, "the weapon's own ballistics");
         assertEquals(stock.mount.turnRateDegPerSec, fitted.mount.turnRateDegPerSec, "the hull's own carriage");
@@ -44,6 +44,21 @@ class VehicleGunTest {
         assertEquals(srm.ammoCapacity * Math.max(1, srm.weaponDef().burstCount), fitted.mount.ammoCapacity,
                 "a magazine of the weapon's pulls");
         assertEquals(stock.mount.flux.capacity(), fitted.mount.flux.capacity(), "the hull's own flux bank");
-        assertSame(stock, VehicleGun.fit(stock, null), "no weapon is the hull's own gun");
+        assertSame(stock, VehicleGun.fit(VehicleType.LRM_CARRIER, null), "no weapon is the hull's own gun");
     }
+
+    @Test
+    void aFittedWeaponBringsItsOwnMuzzleAndEffects() {
+        VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
+        StructureDef cannon = VehicleGun.fit(tank, MechWeaponComponent.SINGLE_HEAVY_CANNON);
+        assertEquals((1f - VehicleGun.RING_FROM_REAR) * VehicleGun.lengthCells(tank, MechWeaponComponent.SINGLE_HEAVY_CANNON),
+                cannon.mount.muzzleOffsetCells, 1e-5f, "the muzzle is the tip of the weapon's drawing");
+        assertEquals(0, cannon.mount.muzzles.size(), "one barrel, not the hull's stock muzzle points");
+        assertEquals(tank.turretStructure().mount.ejectsCasings, cannon.mount.ejectsCasings);
+
+        StructureDef pod = VehicleGun.fit(VehicleType.LRM_CARRIER, MechWeaponComponent.SRM_5);
+        assertEquals(false, pod.mount.ejectsCasings, "a missile pod ejects no casings");
+        assertEquals(0f, pod.mount.scorchCells, 0f);
+    }
+
 }

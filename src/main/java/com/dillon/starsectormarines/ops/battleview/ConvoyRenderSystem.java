@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.MountedGun;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
+import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -139,59 +140,89 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 float drawCellX = body.x + mountWorldX - pivotWorldX;
                 float drawCellY = body.y + mountWorldY - pivotWorldY;
 
-                if (!wrecked && type.turretRecoilCells() > 0f) {
-                    float recoil = 0f;
+                LayeredSpriteCache gun = wrecked || turret == null ? null
+                        : VehicleGunArt.sprite(sprites.layeredMechSprites(), type, turret.weapon);
+                float recoilCells = gun != null ? VehicleGun.recoilCells(type, turret.weapon) : type.turretRecoilCells();
+                float recoil = 0f;
+                if (!wrecked && recoilCells > 0f) {
                     for (var shot : ctx.sim.getActiveShots()) if (shot.shooterId == id) {
                         float age = shot.lifetimeMax - shot.lifetime;
-                        recoil = Math.max(recoil, type.turretRecoilCells() * Math.max(0f, 1f - age / .22f));
+                        recoil = Math.max(recoil, recoilCells * Math.max(0f, 1f - age / .22f));
                     }
                     float bearing = (float) Math.toRadians(turretStateFacing);
                     drawCellX += (float) Math.sin(bearing) * recoil;
                     drawCellY -= (float) Math.cos(bearing) * recoil;
                 }
-                LayeredSpriteCache gun = wrecked || turret == null ? null
-                        : VehicleGunArt.sprite(sprites.layeredMechSprites(), turret.weapon);
-                boolean replaced = gun != null && VehicleGunArt.mode() == VehicleGunArt.Mode.REPLACE;
                 float drawFacingDeg = turretFacingDeg;
-                if (!replaced && !wrecked && turret != null && type.turretRaiseFold() < 1f && turret.elevation > 0f) {
-                    // Standing up to fire, pitched to the angle its rounds leave at. The battle is drawn with
-                    // height as screen-up, as the missiles' arcs are, so a pitched rack's nose rises up the screen
-                    // as well as running toward the target: it draws along the arc's first tangent, turned off the
-                    // true bearing and longer pointing north than south. It stays centred on its turntable, never
-                    // moved off it; the raise is only that turn and foreshortening, a nose a little wider for coming
-                    // up toward the eye, and a full-length shadow left on the deck down and right of it, like the
-                    // sheets' baked shadows.
-                    float lift = RAISE_SHADOW_CELLS * turret.elevation;
-                    out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
-                            tf.x, tf.y, tf.w, tf.h,
-                            cam.cellToScreenX(drawCellX + lift), cam.cellToScreenY(drawCellY + lift),
-                            tDrawLong, tDrawShort, turretFacingDeg,
-                            0f, 0f, 0f, alphaMult * RAISE_SHADOW_ALPHA * turret.elevation);
-                    WeaponDef weapon = turret.structureFor(type).mount.weapon;
+                boolean raised = !wrecked && turret != null && turret.raises(type) && turret.elevation > 0f;
+                // Standing up to fire, pitched to the angle its rounds leave at. The battle is drawn with
+                // height as screen-up, as the missiles' arcs are, so a pitched rack's nose rises up the screen
+                // as well as running toward the target: it draws along the arc's first tangent, turned off the
+                // true bearing and longer pointing north than south. It stays centred on its turntable, never
+                // moved off it; the raise is only that turn and foreshortening, a nose a little wider for coming
+                // up toward the eye, and a full-length shadow left on the deck down and right of it, like the
+                // sheets' baked shadows.
+                float pitchAxisX = 0f, pitchAxisY = 0f, pitchCos = 1f;
+                if (raised) {
                     float bearing = (float) Math.toRadians(turretStateFacing);
                     float ux = -(float) Math.sin(bearing);
                     float uy = (float) Math.cos(bearing);
+                    WeaponDef weapon = turret.structureFor(type).mount.weapon;
                     float pitch = Math.min(launchPitch(weapon.arcHeight,
                             Float.isFinite(turret.raiseRangeCells) ? turret.raiseRangeCells : weapon.range),
                             readablePitch(uy)) * turret.elevation;
-                    float cos = (float) Math.cos(pitch);
-                    float axisX = ux * cos;
-                    float axisY = uy * cos + (float) Math.sin(pitch);
-                    drawFacingDeg = (float) Math.toDegrees(Math.atan2(-axisX, axisY))
-                            + type.turretSpriteFacingOffsetDeg;
-                    tDrawLong *= (float) Math.hypot(axisX, axisY);
-                    tDrawShort *= 1f + RAISE_WIDEN * (1f - cos);
+                    pitchCos = (float) Math.cos(pitch);
+                    pitchAxisX = ux * pitchCos;
+                    pitchAxisY = uy * pitchCos + (float) Math.sin(pitch);
                 }
-                if (!replaced) {
+                if (gun == null) {
+                    if (raised) {
+                        float lift = RAISE_SHADOW_CELLS * turret.elevation;
+                        out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
+                                tf.x, tf.y, tf.w, tf.h,
+                                cam.cellToScreenX(drawCellX + lift), cam.cellToScreenY(drawCellY + lift),
+                                tDrawLong, tDrawShort, turretFacingDeg,
+                                0f, 0f, 0f, alphaMult * RAISE_SHADOW_ALPHA * turret.elevation);
+                        drawFacingDeg = (float) Math.toDegrees(Math.atan2(-pitchAxisX, pitchAxisY))
+                                + type.turretSpriteFacingOffsetDeg;
+                        tDrawLong *= (float) Math.hypot(pitchAxisX, pitchAxisY);
+                        tDrawShort *= 1f + RAISE_WIDEN * (1f - pitchCos);
+                    }
                     out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                             tf.x, tf.y, tf.w, tf.h,
                             cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),
                             tDrawLong, tDrawShort, drawFacingDeg,
                             1f, 1f, 1f, alphaMult);
-                }
-                if (gun != null) {
-                    VehicleGunArt.draw(out, gun, cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),
-                            type.visualWidthCells * cellPx, turretStateFacing, alphaMult);
+                } else {
+                    // The fitted weapon is the turret: its own drawing, turning on the mount ring, with the
+                    // weapon's own recoil and raise, at the length it fires from ({@link VehicleGun}).
+                    float bearing = (float) Math.toRadians(turretStateFacing);
+                    float ringX = body.x + mountWorldX - (float) Math.sin(bearing) * recoil;
+                    float ringY = body.y + mountWorldY + (float) Math.cos(bearing) * recoil;
+                    float length = VehicleGun.lengthCells(type, turret.weapon);
+                    float centreAhead = (.5f - VehicleGun.RING_FROM_REAR) * length;
+                    float gunX = ringX - (float) Math.sin(bearing) * centreAhead;
+                    float gunY = ringY + (float) Math.cos(bearing) * centreAhead;
+                    float mountPx = VehicleGun.mountCells(type) * cellPx;
+                    LayeredSpriteCache mount = sprites.vehicleGunMount();
+                    if (mount != null) {
+                        out.addSprite(RenderLayer.CONVOY, mount.sprite, cam.cellToScreenX(body.x + mountWorldX),
+                                cam.cellToScreenY(body.y + mountWorldY), mountPx, mountPx, 0f, 1f, 1f, 1f, alphaMult);
+                    }
+                    float gunFacing = turretStateFacing;
+                    float lengthScale = 1f;
+                    float widthScale = 1f;
+                    if (raised) {
+                        float lift = RAISE_SHADOW_CELLS * turret.elevation;
+                        VehicleGunArt.draw(out, gun, cam.cellToScreenX(gunX + lift), cam.cellToScreenY(gunY + lift),
+                                length * cellPx, turretStateFacing, 1f, 1f, 0f,
+                                alphaMult * RAISE_SHADOW_ALPHA * turret.elevation);
+                        gunFacing = (float) Math.toDegrees(Math.atan2(-pitchAxisX, pitchAxisY));
+                        lengthScale = (float) Math.hypot(pitchAxisX, pitchAxisY);
+                        widthScale = 1f + RAISE_WIDEN * (1f - pitchCos);
+                    }
+                    VehicleGunArt.draw(out, gun, cam.cellToScreenX(gunX), cam.cellToScreenY(gunY),
+                            length * cellPx, gunFacing, lengthScale, widthScale, 1f, alphaMult);
                 }
                 if (locations != null && locations.turret() != null) {
                     VehicleScuffs.Mask mask = VehicleScuffs.turretMask(sprites, type, frames);

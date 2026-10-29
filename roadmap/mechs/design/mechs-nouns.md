@@ -226,12 +226,23 @@ increasing an encounter's total armored threat.
   takes the heavy cannon, a one-row machine-gun card takes no mech weapon, a laser tank's card takes energy weapons.
   The hull's own gun is no part: an empty gun card is that gun, drawn as the sealed cards draw it, so a weapon
   is only ever an addition from stores. A fitted weapon is the hull's turret with the weapon's ballistics in it
-  (`VehicleGun`): the carriage (traverse, loader, muzzles, flux bank, hit shares) stays the hull's, the weapon
-  fires with the range, damage and cadence it has on a mech, its pulls are the magazine and a round costs its flux in
-  the hull's own bank. The weapon is drawn on the turret as its own mech drawing (`VehicleGunArt`). The hull fights as the weapon asks (`VehicleStance`): an arcing launcher stands off and
-  fires on a spotter's call, a direct anti-armor rack waits in cover, anything else duels. The drop carries the weapon (`VehicleDeploymentSpec.gun`) and the hull's own
+  (`VehicleGun`): the carriage (traverse, loader, flux bank, hit shares) stays the hull's, the weapon
+  fires with the range, damage and cadence it has on a mech, its pulls are the magazine (a weapon with no limit
+  runs on the hull's own magazine) and a round costs its flux in the hull's own bank. Kits keep reading the hull's
+  stock flux bank, so any kit that suits a hull suits whatever it carries. The weapon is the turret: it is drawn as
+  its own mech drawing on a turret mount ring (`VehicleGunArt`, `gun-mount.png`), in place of the hull's turret,
+  at the scale where a mech's hull width is 1.5 of the hull's visual width, so a wider hull carries a bigger gun;
+  and the weapon owns its effects, which come from the same mech geometry the mech renderer reads
+  (`MechHardpointGeometry`): one muzzle at the tip of its drawing, out from the ring it turns on, the kick it
+  has on a mech (the rapid guns and pods kick, the cannons and lasers stay planted), casings and scorch only
+  for a ballistic weapon on a ballistic carriage, and a missile pod standing up to fire as an arcing rack does
+  (`GroundTurret.raises`). A wreck keeps its hull's wrecked turret. A rotary mech gun fires as plain bursts on a
+  turret. The hull fights as the weapon asks (`VehicleStance`): an arcing launcher stands off and
+  fires on a spotter's call, a direct anti-armor rack waits in cover, anything else duels, and each stock hull
+  keeps the stance its type states for its own gun. The drop carries the weapon (`VehicleDeploymentSpec.gun`) and the hull's own
   `GroundTurret.structure` holds the derived structure, read through `ConvoyService.turretStructure`, never through
-  the type alone. A shuttle's mounts are a separate, truly omni item (`vehicle-shared-parts.md`).
+  the type alone. A shuttle's weapon mounts are not this card: each is to be a truly omni slot taking any shared
+  weapon, and is not built (`shuttle-omni-mounts.md`).
 - A vehicle's **armor point** (`SocketId.PLATING`) is the one place armor is fitted,
   as on a mech and a boat, and it takes the same three plating parts a mech wears
   (`MechInternal`, plating role). The hull's own plate is no part: an empty armor
