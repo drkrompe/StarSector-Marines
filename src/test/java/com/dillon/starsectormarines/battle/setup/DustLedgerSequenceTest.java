@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -69,6 +70,13 @@ class DustLedgerSequenceTest {
         assertEquals(new Cell(5, 5), one.grown(2).centre());
         assertEquals(8, Area.rect(0, 0, 2, 2).outline().size());
         assertEquals(3, Area.rect(0, 0, 2, 2).reach(new Cell(0, 0)));
+    }
+
+    /** The checklist asks for the ring's outline on every frame it draws; an area never changes, so it is worked out once. */
+    @Test void anAreaWorksOutItsOutlineAndCentreOnce() {
+        Area ring = Area.rect(0, 0, 40, 40);
+        assertSame(ring.outline(), ring.outline());
+        assertSame(ring.centre(), ring.centre());
     }
 
     @Test void aControlRunGrantsTheSideObjectivesItNamesAndRejectsOthers() {

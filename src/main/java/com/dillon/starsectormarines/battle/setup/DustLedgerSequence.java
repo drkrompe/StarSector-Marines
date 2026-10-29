@@ -71,12 +71,28 @@ public final class DustLedgerSequence implements Objective {
 
     public record Cell(int x, int y) { }
 
-    /** A set of cells: a room, a yard, the exclusion ring. Never empty. */
-    public record Area(Set<Cell> cells) {
-        public Area {
+    /**
+     * A set of cells: a room, a yard, the exclusion ring. Never empty, and never changes, so the centre and the outline
+     * are worked out once: the checklist asks for the ring's outline on every frame it is drawn, and the ring is
+     * thousands of cells. Two threads may race to fill a cache and both store the same value.
+     */
+    public static final class Area {
+        private final Set<Cell> cells;
+        private Cell centre;
+        private List<Cell> outline;
+
+        public Area(Set<Cell> cells) {
             if (cells == null || cells.isEmpty()) throw new IllegalArgumentException("an area needs at least one cell");
-            cells = Set.copyOf(cells);
+            this.cells = Set.copyOf(cells);
         }
+
+        public Set<Cell> cells() { return cells; }
+
+        @Override public boolean equals(Object other) { return other instanceof Area area && cells.equals(area.cells); }
+
+        @Override public int hashCode() { return cells.hashCode(); }
+
+        @Override public String toString() { return "Area[cells=" + cells + "]"; }
 
         public static Area rect(int left, int top, int right, int bottom) {
             Set<Cell> cells = new HashSet<>();
@@ -99,6 +115,12 @@ public final class DustLedgerSequence implements Objective {
 
         /** The member cell nearest the area's centroid, so a concave area still names one of its own cells. */
         public Cell centre() {
+            Cell known = centre;
+            if (known == null) centre = known = nearestCentroid();
+            return known;
+        }
+
+        private Cell nearestCentroid() {
             double sx = 0, sy = 0;
             for (Cell c : cells) { sx += c.x(); sy += c.y(); }
             double cx = sx / cells.size(), cy = sy / cells.size();
@@ -120,12 +142,18 @@ public final class DustLedgerSequence implements Objective {
 
         /** The member cells with a four-neighbour outside the area: the outline a map marker draws. */
         public List<Cell> outline() {
+            List<Cell> known = outline;
+            if (known == null) outline = known = perimeter();
+            return known;
+        }
+
+        private List<Cell> perimeter() {
             List<Cell> out = new ArrayList<>();
             for (Cell c : cells)
                 if (!contains(c.x() + 1, c.y()) || !contains(c.x() - 1, c.y())
                         || !contains(c.x(), c.y() + 1) || !contains(c.x(), c.y() - 1)) out.add(c);
             out.sort((a, b) -> a.y() != b.y() ? Integer.compare(a.y(), b.y()) : Integer.compare(a.x(), b.x()));
-            return out;
+            return List.copyOf(out);
         }
     }
 
