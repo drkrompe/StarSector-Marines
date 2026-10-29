@@ -1,6 +1,6 @@
 # Story — A vehicle's gun card is sized and locked by its hull
 
-Status: IN PROGRESS (slice 1 shipped: the small omni card and the three light weapons; the laser parts, the Thermal Lance and Pioneer regrade and the balance pass remain)
+Status: IN PROGRESS (slices 1 and 2 shipped: the small omni card and the light weapons, then the laser parts and the PD laser tank's retirement; the Thermal Lance and Pioneer regrade and the balance pass remain)
 
 Written: 2026-10-28
 
@@ -50,14 +50,16 @@ they no longer out-punch a 2x2 gun from two cells). Footprint is the power cap; 
 
 ## The laser tanks' guns become parts
 
-The burst laser (the laser tank's) and the PD laser (the PD laser tank's) become red weapon parts that fill the
-laser tank's 3x2 red card, bought and fitted like any mech weapon, instead of being what two hulls are built
-around. The PD laser tank retires as a hull: it is the laser tank with the PD laser fitted. Their turret stats are
-vehicle-scale (the burst laser fires four 16-damage pulses on a 0.55-second cooldown, the PD laser ten 7-damage
-pulses a second), far above a mech laser's, so each part is restated on a mech's cadence and flux (a cycle and a
-flux per trigger, as `MechWeaponComponent` states them) and sized by the power-against-footprint grade above. The
-burst laser is a large part and the PD laser a medium one. Emplacement and drone PD lasers, and the screened tank's
-active protection, are not touched.
+Slice 2 is shipped. The burst laser (`BURST_LASER`, an energy arm gun of two columns by three rows, centreline only
+like the heavy cannon, Prestige) and the PD laser (`PD_LASER`, two by two, Advanced) are red weapon parts that fill
+the laser tank's three-row red card, bought and fitted like any mech weapon, each with its own drawing, liveries,
+selector, geometry, weapon definition and Store entry. The burst laser is restated on a mech's cadence (four
+16-damage pulses on a 1.8-second cycle at 38 flux, the flux hog) and the PD laser likewise (ten 7-damage pulses on a
+1.6-second cycle at 16 flux, running cool, with the held-lance loop sound); both are first proposals for the balance
+pass. The PD laser tank is gone as a hull: `PD_LASER_TANK`, its turret structure and weapon, its sheet, strings,
+fabrication, tier and credits entries are deleted, and a laser tank with the PD laser fitted is what it was. The hull's
+own gun, with no part fitted, is still the burst laser turret; emplacement and drone PD lasers and the screened tank's
+active protection are untouched.
 
 ## Every new part is a mech weapon too
 
@@ -74,11 +76,9 @@ own burst-laser and PD-laser turret art stays as the hull's stock look until a h
 
 ## Not decided
 
-- How the laser tank ships once its gun is a part: with the burst laser fitted as a default part, or with the card
-  empty and the hull's own gun still the burst laser (the existing "empty card is the stock gun" rule), which
-  keeps the stock gun out of the Store.
-- What becomes of the PD laser tank's livery and art (`army-tank-pd-laser`), its Prestige line and Heavy lift,
-  its credits and fabrication entries, and any campaign vehicle already holding one.
+- Whether the laser tank should ship with the burst laser part fitted, rather than the card empty (decided for
+  now: empty, the hull's own gun the burst laser turret, which keeps the stock gun out of the Store).
+- A campaign vehicle saved as a `PD_LASER_TANK` no longer loads: the constant is deleted, with no migration.
 - The footprints and stats of the light weapons, which belong to a balance pass against `armorMatchup` and
   `loadoutMatchup`.
 - Whether the mortar carrier's 2x2 yellow card takes a mortar-class part only or any medium ballistic weapon; the

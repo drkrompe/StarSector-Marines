@@ -22,7 +22,7 @@ class VehicleVariantLadderTest {
 
     private static final List<VehicleType> VARIANTS = List.of(VehicleType.UP_ARMORED_APC,
             VehicleType.FIRE_SUPPORT_APC, VehicleType.DOZER_BREACHER,
-            VehicleType.SCREENED_TANK, VehicleType.LASER_TANK, VehicleType.PD_LASER_TANK);
+            VehicleType.SCREENED_TANK, VehicleType.LASER_TANK);
 
     @Test
     void eachVariantIsItsOwnVehiclePatternAtAnAuthoredTier() {

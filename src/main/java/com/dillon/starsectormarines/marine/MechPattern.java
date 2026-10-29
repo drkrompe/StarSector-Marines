@@ -46,6 +46,8 @@ public record MechPattern(Kind kind, String definitionId) {
         WEAPON_TIERS.put(MechWeaponComponent.LIGHT_MACHINE_GUN, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.LIGHT_ROCKET_POD, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.LIGHT_PULSE_LASER, EquipmentAccessTier.ADVANCED);
+        WEAPON_TIERS.put(MechWeaponComponent.PD_LASER, EquipmentAccessTier.ADVANCED);
+        WEAPON_TIERS.put(MechWeaponComponent.BURST_LASER, EquipmentAccessTier.PRESTIGE);
         WEAPON_TIERS.put(MechWeaponComponent.CHAINGUN, EquipmentAccessTier.COMMON);
         // The better chaingun: spin-up, refill and damage are what a better rotary gun buys.
         WEAPON_TIERS.put(MechWeaponComponent.CHAINGUN_HF, EquipmentAccessTier.ADVANCED);
@@ -77,7 +79,6 @@ public record MechPattern(Kind kind, String definitionId) {
         VEHICLE_TIERS.put(VehicleType.DOZER_BREACHER, EquipmentAccessTier.PRESTIGE);
         VEHICLE_TIERS.put(VehicleType.SCREENED_TANK, EquipmentAccessTier.PRESTIGE);
         VEHICLE_TIERS.put(VehicleType.LASER_TANK, EquipmentAccessTier.PRESTIGE);
-        VEHICLE_TIERS.put(VehicleType.PD_LASER_TANK, EquipmentAccessTier.PRESTIGE);
         // The light roles: lines of their own, one hull each.
         VEHICLE_TIERS.put(VehicleType.SUPPLY_TRUCK, EquipmentAccessTier.COMMON);
         VEHICLE_TIERS.put(VehicleType.SCOUT_CAR, EquipmentAccessTier.ADVANCED);

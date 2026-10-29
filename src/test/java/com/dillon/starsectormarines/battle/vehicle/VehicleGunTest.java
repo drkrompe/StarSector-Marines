@@ -41,6 +41,16 @@ class VehicleGunTest {
     }
 
     @Test
+    void theLaserTankTakesTheLaserPartsAndNoOtherColour() {
+        VehicleGunCard laser = VehicleGunCard.of(VehicleType.LASER_TANK);
+        assertSame(VehicleGunCard.LASER, laser);
+        assertTrue(laser.accepts(MechWeaponComponent.BURST_LASER), "the burst laser fills the three-row red card");
+        assertTrue(laser.accepts(MechWeaponComponent.PD_LASER));
+        assertFalse(laser.accepts(MechWeaponComponent.SINGLE_HEAVY_CANNON), "a ballistic gun is not an energy one");
+        assertFalse(VehicleGunCard.SMALL.accepts(MechWeaponComponent.BURST_LASER), "a three-row part does not fit a small card");
+    }
+
+    @Test
     void anUnarmedHullHasNoCard() {
         assertNull(VehicleGunCard.of(VehicleType.SUPPLY_TRUCK));
     }

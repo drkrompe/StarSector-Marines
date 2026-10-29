@@ -86,7 +86,7 @@ public final class MachineAudio {
      *  APC lines, a fan for hover, wheels otherwise. */
     static EngineVoice engineVoice(VehicleType type) {
         if (type.isHover()) return HOVER;
-        if (type == VehicleType.LASER_TANK || type == VehicleType.PD_LASER_TANK) return TURBINE;
+        if (type == VehicleType.LASER_TANK) return TURBINE;
         if (type.hasAnimatedTreads()) return TRACKED;
         return WHEELED;
     }

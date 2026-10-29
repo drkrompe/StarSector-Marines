@@ -305,3 +305,15 @@ under "weapon", "machine gun" and "ordnance" wording and succeeded when reworded
 a "piece of mechanical equipment". The rocket pod's pass came back framed larger than its source, so it was
 cropped to its own visible bounds and placed on the source's bounds (`light-rocket-pod-raw.png` keeps the raw
 pass); the other two registered within three pixels as returned.
+
+# Laser parts (the laser tanks' guns as mech weapons)
+
+Generated through `tools/codex_imagegen.py` on 2026-10-28 for `vehicle-card-sizes.md` slice 2: the burst laser
+(a large three-row arm gun: three emitter barrels over finned capacitor banks) and the PD laser (a medium two-row arm
+gun: one barrel in a ribbed cooling jacket). Two designs of each (`laser-options/`) went to the owner's picks page; the
+recommended A of each (`burst-laser.png`, `pd-laser.png`) was built on meanwhile: cleaned to alpha with
+`clean_imagegen_backgrounds.py`, classified by an ImageGen material-ID pass (`weapon-material-id/`) in the neutral
+"colour-classification pass over a piece of mechanical equipment" wording that clears the safety filter, and registered
+in `build_assets.py` and `derive_faction_weapons.py` at their own aspect (70x136 and 40x116, drawn at their true
+proportions rather than stretched). Both use the strict-zenith prompt block of `README.md` with red-orange lamps.
+The full prompt and references of each generation are in the `.provenance.json` beside it.

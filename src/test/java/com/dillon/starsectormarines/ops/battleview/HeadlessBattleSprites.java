@@ -678,6 +678,8 @@ final class HeadlessBattleSprites extends BattleSprites {
                   layer(MECH_ROOT + "light-machine-gun.png"),
                   layer(MECH_ROOT + "light-pulse-laser.png"),
                   layer(MECH_ROOT + "light-rocket-pod.png"),
+                  layer(MECH_ROOT + "burst-laser.png"),
+                  layer(MECH_ROOT + "pd-laser.png"),
                   layer("graphics/battle/marine-modular-topdown/marine-muzzle-flash.png"));
     }
 

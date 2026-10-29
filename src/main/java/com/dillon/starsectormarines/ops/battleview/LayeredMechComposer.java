@@ -279,6 +279,8 @@ final class LayeredMechComposer {
             float widthScale = gun == LayeredMechAppearance.ARMS_LINEAR_CANNON
                     || gun == LayeredMechAppearance.ARMS_LIGHT_MG
                     || gun == LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER
+                    || gun == LayeredMechAppearance.ARMS_BURST_LASER
+                    || gun == LayeredMechAppearance.ARMS_PD_LASER
                     || (gun == LayeredMechAppearance.ARMS_CHAINGUN
                     && chassis != LayeredMechAppearance.CHASSIS_CLEAN) ? 1f : 0.5f;
             emitFromRearPivot(out, sprite, actorX, actorY, hullWidth, facingDeg,
@@ -334,6 +336,8 @@ final class LayeredMechComposer {
             case LayeredMechAppearance.ARMS_QUARRY_BREAKER -> assets.quarryBreakerCannon;
             case LayeredMechAppearance.ARMS_LIGHT_MG -> assets.lightMachineGun;
             case LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER -> assets.lightPulseLaser;
+            case LayeredMechAppearance.ARMS_BURST_LASER -> assets.burstLaser;
+            case LayeredMechAppearance.ARMS_PD_LASER -> assets.pdLaser;
             default -> null;
         };
     }

@@ -60,7 +60,6 @@ public final class TurretCatalogRegistry {
     /** The laser tank's burst laser: a starship's point-defence emitter turned on the ground. */
     public static final String TANK_BURST_LASER_STRUCTURE_ID = "structure.tank-burst-laser";
     /** The PD laser tank's emitter: the plain PD laser, a steady lance where the burst laser fires in bursts. */
-    public static final String TANK_PD_LASER_STRUCTURE_ID = "structure.tank-pd-laser";
     /** The hover scout's twin pulse emitter, a vehicle mount of the Wisp drone-emitter family. */
     public static final String HOVER_PULSE_STRUCTURE_ID = "structure.hover-pulse";
     /** The LRM carrier's twin rail launcher: the mech anti-armor LRM rack on a vehicle turntable. */

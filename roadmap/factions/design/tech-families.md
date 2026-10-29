@@ -116,7 +116,6 @@ Correct it here when a pattern's lore says otherwise.
 | Escort APC | Low-tech hull | League convoy grade; a midline refit candidate |
 | Breakthrough tank, Screened tank, Dozer breacher | Low-tech | "A shape older than anyone's records" |
 | Burst laser tank | High-tech refit of a low-tech hull | Tri-Tachyon emitter, livery and power plant |
-| PD laser tank | Midline refit of a low-tech hull | League PD refit; the only midline-coded vehicle |
 | Militia technical, SRM technical, Supply truck, Scout car | Low-tech | Field rigs on workshop pickups |
 | Hover scout, Drone skimmer | High-tech | Tri-Tachyon Asset Protection |
 | Wayline cargo hauler | Midline (reading) | Commercial industrial standard; unowned |
@@ -158,10 +157,8 @@ Low-tech exists. Midline and high-tech are open (`interior-tech-styles.md`).
 ## Gaps
 
 - **Midline is missing almost everywhere.** It has no visual language, no ground engine
-  voice and no interior. On the ground, only the PD laser tank's turret, and two mechs
-  whose art doesn't yet read as anything in particular, carry it.
-- **The PD laser tank currently runs the high-tech turbine**, because no midline engine
-  voice exists yet. By law 3 it should get the midline voice once that exists.
+  voice and no interior. On the ground, only two mechs whose art doesn't yet read as
+  anything in particular carry it (the PD laser tank, once the only midline-coded vehicle, retired).
 - **There is no high-tech mech.** Tri-Tachyon fields Wardens, a Sindrian hull that doesn't
   read as Tri-Tachyon. Six of the nine mech lines are open (`mech-lines.md`).
 - **No mech or weapon sound varies by family.** Footsteps vary by chassis weight only, and

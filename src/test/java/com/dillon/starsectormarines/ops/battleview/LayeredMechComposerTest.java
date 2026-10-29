@@ -1,16 +1,29 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
+import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class LayeredMechComposerTest {
+
+    @Test
+    void everyWeaponPartHasADrawingAndARegisteredMuzzle() {
+        LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
+        for (MechWeaponComponent weapon : MechWeaponComponent.values()) {
+            assertNotNull(LayeredMechComposer.weaponSprite(assets, weapon), weapon.name() + " has no drawing");
+            assertTrue(MechHardpointGeometry.barrelHullWidths(weapon) > 0f,
+                    weapon.name() + " has no muzzle geometry");
+        }
+    }
 
     @Test
     void bareChassisPreviewOmitsEveryWeaponLayer() {

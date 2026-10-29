@@ -52,7 +52,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
      */
     @Override protected List<LookReview.Shot> lookShots() {
         return List.of(idle(), shelling(), armor(), wrecks(), fitted(), fittedWrecks(), fittedRotary(),
-                lightWeapons(), lightWeaponsFire());
+                lightWeapons(), lightWeaponsFire(), laserParts());
     }
 
     private static LookReview.Shot shelling() {
@@ -218,6 +218,34 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
             }
             return sim;
         }, placement -> List.of(LookReview.View.followAtPlay(placement, "hull0", "hull1", "hull2")), 300);
+    }
+
+    private static final MechWeaponComponent[] LASER_GUNS = {null, MechWeaponComponent.BURST_LASER,
+            MechWeaponComponent.PD_LASER};
+
+    /**
+     * Three laser tanks side by side, the hull's own gun, the burst laser part and the PD laser part, firing at a
+     * stationary picket 24 cells east: the parts as a tank turret, and how each lance reads.
+     */
+    private static LookReview.Shot laserParts() {
+        return LookReview.Shot.of("laser-parts", 48, 24, placement -> {
+            SceneBuilder builder = placement.holdouts(placement.builder());
+            int px = (int) placement.openNear(34.5f, 12.5f)[0] - placement.site().x0();
+            int py = (int) placement.openNear(34.5f, 12.5f)[1] - placement.site().y0();
+            builder.squad("hostile").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(6)
+                    .inFile(px, py - 6, 0, 2).primary("weapon.smg").stationary().done();
+            SceneWorld world = builder.build();
+            BattleSimulation sim = world.sim();
+            for (int i = 0; i < LASER_GUNS.length; i++) {
+                float[] at = placement.openNear(11.5f, 7.5f + 5f * i);
+                long hull = sim.convoy().spawn(VehicleType.LASER_TANK, List.of(), VehiclePlating.FACTORY,
+                        VehicleEngine.STOCK, LASER_GUNS[i], Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
+                sim.convoy().body(hull).teleport(at[0], at[1], 0f);
+                placement.subject("hull" + i, hull);
+            }
+            return sim;
+        }, placement -> List.of(LookReview.View.followAtPlay(placement, "hull0", "hull1", "hull2"),
+                LookReview.View.follow("tanks", placement, 14f, "hull0", "hull1", "hull2")), 300);
     }
 
     /** A tank on its own with a chaingun in the gun card, the enemy 20 cells off: it spins up and fires on its own. */

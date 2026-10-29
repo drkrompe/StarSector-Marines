@@ -71,6 +71,16 @@ public enum MechWeaponComponent {
             WeaponRegistry.MECH_LIGHT_PULSE_LASER_ID, 4, -1,
             LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER),
 
+    // The laser tanks' guns as parts: a large three-row burst laser (a flux hog) and a medium PD laser (runs cool).
+    BURST_LASER("component.mech-burst-laser", "@gearMechWeaponComponentBURSTLASER",
+            MountFamily.ARMS, HardpointType.ENERGY, 2, 3,
+            WeaponRegistry.MECH_BURST_LASER_ID, 4, -1,
+            LayeredMechAppearance.ARMS_BURST_LASER),
+    PD_LASER("component.mech-pd-laser", "@gearMechWeaponComponentPDLASER",
+            MountFamily.ARMS, HardpointType.ENERGY, 2, 2,
+            WeaponRegistry.MECH_PD_LASER_ID, 10, -1,
+            LayeredMechAppearance.ARMS_PD_LASER),
+
     // The anti-armor racks: a contact warhead fired only at hardened targets (mechs-nouns.md, Missile warheads).
     SRM_5("component.mech-srm-5", "@gearMechWeaponComponentSRM5", MountFamily.SHOULDER,
             HardpointType.MISSILE, 2, 2, Variants.srm(),
@@ -168,7 +178,7 @@ public enum MechWeaponComponent {
     public boolean centrelineOnly() {
         return switch (this) {
             case NOSE_CHAINGUN, NOSE_CHAINGUN_HF, NOSE_MUSTER_AUTOGUN, SINGLE_HEAVY_CANNON,
-                 DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> true;
+                 DEMOLITION_CANNON, QUARRY_BREAKER_CANNON, BURST_LASER -> true;
             default -> false;
         };
     }
@@ -250,6 +260,8 @@ public enum MechWeaponComponent {
             case LIGHT_MACHINE_GUN -> 1.9f;
             case LIGHT_PULSE_LASER -> 1.8f;
             case LIGHT_ROCKET_POD -> 6f;
+            case BURST_LASER -> 1.8f;
+            case PD_LASER -> 1.6f;
         };
     }
 
@@ -312,6 +324,9 @@ public enum MechWeaponComponent {
             case LIGHT_MACHINE_GUN -> 6f;
             case LIGHT_PULSE_LASER -> 7f;
             case LIGHT_ROCKET_POD -> 14f;
+            // The burst laser is a flux hog, as on the tank; the PD laser runs cool.
+            case BURST_LASER -> 38f;
+            case PD_LASER -> 16f;
         };
     }
 

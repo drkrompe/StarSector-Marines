@@ -55,7 +55,8 @@ The owner kept two turret skins and split the tank in two:
 - **Burst laser tank** (`LASER_TANK`, Tri-Tachyon): `registration.json` packs
   `hull-raw-b4.png` with the `tt` skin (`pd-skin-tt-raw.png`, its open frame, and
   `pd-skin-tt-wreck-raw.png`) into `mod/graphics/battle/vehicles/army-tank-laser.png`.
-- **PD laser tank** (`PD_LASER_TANK`, League): `registration-pd.json` packs
+- **PD laser tank** (`PD_LASER_TANK`, League; retired 2026-10-28, its gun is the PD laser part and the shipped sheet
+  is deleted; these sources are kept): `registration-pd.json` packs
   `hull-raw-pd.png` with the `red` skin into `army-tank-pd-laser.png`:
   `python art-source/vehicles/tank-laser/pack.py registration-pd.json mod/graphics/battle/vehicles/army-tank-pd-laser.png`.
 

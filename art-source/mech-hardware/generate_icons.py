@@ -403,6 +403,8 @@ def build():
     f['light-machine-gun'] = banded(150, 100, autogun(38, 8, 142, 22, drum=True), 'LMG')
     f['light-rocket-pod'] = banded(150, 100, missile_rack(150, 100, 2, 'rocket') + rect(14, 86, 124, 5, D, rx=2), 'LRP')
     f['light-pulse-laser'] = banded(150, 100, pulse_laser(46, 8, 142, 42), 'LPL')
+    f['burst-laser'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 66, rings=7)), 'BST')
+    f['pd-laser'] = banded(150, 200, upright2(pulse_laser(75, 10, 190, 56)), 'PDL')
 
     # Demolition cannon: a short, very wide siege barrel. Breech block, recoil buffers, a
     # tapering barrel bound by heavy bands, and a flared muzzle collar.

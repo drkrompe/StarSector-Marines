@@ -2,12 +2,15 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
@@ -41,10 +44,10 @@ import java.util.Set;
  */
 public final class TankVariantsSnapshotSuite implements SnapshotSuite {
     private static final List<VehicleType> LINE = List.of(
-            VehicleType.BREAKTHROUGH_TANK, VehicleType.SCREENED_TANK, VehicleType.LASER_TANK, VehicleType.PD_LASER_TANK,
+            VehicleType.BREAKTHROUGH_TANK, VehicleType.SCREENED_TANK, VehicleType.LASER_TANK,
             VehicleType.DOZER_BREACHER);
     private static final List<String> NAMES = List.of(
-            "BREAKTHROUGH TANK", "SCREENED TANK", "BURST LASER TANK", "PD LASER TANK", "DOZER BREACHER");
+            "BREAKTHROUGH TANK", "SCREENED TANK", "BURST LASER TANK", "DOZER BREACHER");
 
     @Override public String id() { return "tank-variants"; }
     @Override public String label() { return "Tank variants side by side, wrecks and a battle frame"; }
@@ -87,7 +90,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
                     context.modRoot(), 1920, 1080, 32.5f, 19.5f, 52);
             artifacts.add(new SnapshotArtifact("lineup.png", renderer.render(sim,
-                    "Tank variants | breakthrough, screened, burst laser, PD laser, dozer / live and wrecked / crosses mark the ballistic muzzle"
+                    "Tank variants | breakthrough, screened, burst laser, dozer / live and wrecked / crosses mark the ballistic muzzle"
                             + " | 1920 x 1080, UI 100%", labels.build())));
             artifacts.add(new SnapshotArtifact("lineup-battle-scale.png", renderer.refocus(32, 19.5f, 60).render(sim,
                     "Tank variants | battle-scale camera, 60 cells across | 1920 x 1080, UI 100%", labels.build())));
@@ -103,7 +106,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         try (BattleSimulation sim = scene(40, 32)) {
             sim.setMissionCompletionEnabled(false);
             long burst = spawn(sim, VehicleType.LASER_TANK, Faction.MARINE, 14, 10, 90, 90);
-            long pd = spawn(sim, VehicleType.PD_LASER_TANK, Faction.MARINE, 26, 10, 90, 90);
+            long pd = spawnFitted(sim, VehicleType.LASER_TANK, MechWeaponComponent.PD_LASER, 26, 10, 90, 90);
             for (int i = 0; i < 3; i++) {
                 spawn(sim, VehicleType.CARGO_CARRIER, Faction.DEFENDER, 12 + i * 8, 21, 270, 270);
             }
@@ -124,7 +127,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                 var a = sim.convoy().body(burst);
                 var b = sim.convoy().body(pd);
                 labels.label(a.x, a.y - 3.2f, "BURST LASER TANK", ReviewStyle.NOTE);
-                labels.label(b.x, b.y - 3.2f, "PD LASER TANK", ReviewStyle.NOTE);
+                labels.label(b.x, b.y - 3.2f, "LASER TANK / PD LASER", ReviewStyle.NOTE);
                 BufferedImage frame = renderer.render(sim,
                         "Laser lances | burst PD laser (blue, bursts) beside PD laser (red, held, throbbing)"
                                 + " | flux haze on the rear vents, venting when overloaded | 1920 x 1080, UI 100%", labels.build(), impacts);
@@ -271,6 +274,16 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         long id = sim.convoy().spawn(type, faction, VehicleMission.deployed(x, y));
         sim.convoy().body(id).teleport(x, y, hull);
         if (type.hasTurretWeapon()) sim.convoy().turret(id).facingDeg = turret;
+        return id;
+    }
+
+    /** A hull with a mech weapon fitted in its gun card, parked as {@link #spawn} parks one. */
+    private static long spawnFitted(BattleSimulation sim, VehicleType type, MechWeaponComponent gun,
+                                    float x, float y, float hull, float turret) {
+        long id = sim.convoy().spawn(type, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK, gun,
+                Faction.MARINE, VehicleMission.deployed(x, y));
+        sim.convoy().body(id).teleport(x, y, hull);
+        sim.convoy().turret(id).facingDeg = turret;
         return id;
     }
 

@@ -170,6 +170,11 @@ def main() -> None:
               "light-rocket-pod.png", (29, 70))
     normalize("weapon-concepts/light-pulse-laser.png",
               "light-pulse-laser.png", (28, 88))
+    # The laser parts (the laser tank's burst laser and the PD laser): a large three-row arm gun and a medium two-row one.
+    normalize("weapon-concepts/burst-laser.png",
+              "burst-laser.png", (70, 136))
+    normalize("weapon-concepts/pd-laser.png",
+              "pd-laser.png", (40, 116))
     build_faction_weapons()
     preview("idle.png", moving=False, firing=False)
     preview("moving-and-firing.png", moving=True, firing=True)

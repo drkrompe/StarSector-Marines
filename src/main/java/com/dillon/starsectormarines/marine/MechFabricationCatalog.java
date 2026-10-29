@@ -47,7 +47,9 @@ public final class MechFabricationCatalog {
             weapon(MechWeaponComponent.PIONEER_ROCKET_CRADLE, "@gearFabricationCommonMarket"),
             weapon(MechWeaponComponent.LIGHT_MACHINE_GUN, "@gearFabricationCommonMarket"),
             weapon(MechWeaponComponent.LIGHT_ROCKET_POD, "@gearFabricationCommonMarket"),
-            weapon(MechWeaponComponent.LIGHT_PULSE_LASER, "@gearFabricationTriTachyonPattern"));
+            weapon(MechWeaponComponent.LIGHT_PULSE_LASER, "@gearFabricationTriTachyonPattern"),
+            weapon(MechWeaponComponent.BURST_LASER, "@gearFabricationTriTachyonPattern"),
+            weapon(MechWeaponComponent.PD_LASER, "@gearFabricationMilitaryPattern"));
 
     private static final List<Recipe> CHASSIS = List.of(
             chassis(MechVariant.HOUND, "@gearFabricationLightChassisStandardFit", 21510),
@@ -97,7 +99,6 @@ public final class MechFabricationCatalog {
             // The laser tank trades the shells for an emitter and the plant that feeds it: transplutonics, not plate.
             vehicle(VehicleType.LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 45000),
             // The PD laser tank keeps the hull's plate and feeds a plainer emitter from three cells and a radar.
-            vehicle(VehicleType.PD_LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 42300),
             // Field rigs are workshop pickups, not issue hulls: the supply pickup is mostly bodywork, the spotter's
             // bill the transplutonics in its salvaged sensor mast.
             vehicle(VehicleType.SUPPLY_TRUCK, "@gearFabricationFieldRig", 12110),

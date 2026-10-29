@@ -59,7 +59,6 @@ public final class TankVersusAirScene implements BehaviorScene {
         reports.add(loop(frames, "laser-gunship", VehicleType.LASER_TANK, false));
         reports.add(loop(frames, "cannon-gunship", VehicleType.BREAKTHROUGH_TANK, false));
         reports.add(loop(frames, "laser-gunship-and-men", VehicleType.LASER_TANK, true));
-        reports.add(loop(frames, "pd-laser-gunship", VehicleType.PD_LASER_TANK, false));
         return reports;
     }
 

@@ -181,6 +181,18 @@
       "factionLogo": "graphics/factions/tritachyon.png",
       "designation": "LPL-1",
       "description": "@gearCatalogComponentMechLightPulseLaserDescription"
+    },
+    {
+      "component": "component.mech-burst-laser",
+      "factionLogo": "graphics/factions/tritachyon.png",
+      "designation": "TBL-3",
+      "description": "@gearCatalogComponentMechBurstLaserDescription"
+    },
+    {
+      "component": "component.mech-pd-laser",
+      "factionLogo": "graphics/factions/neutral_traders.png",
+      "designation": "PDL-2",
+      "description": "@gearCatalogComponentMechPdLaserDescription"
     }
   ]
 }

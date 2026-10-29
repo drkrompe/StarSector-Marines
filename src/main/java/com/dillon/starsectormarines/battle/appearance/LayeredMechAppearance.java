@@ -38,6 +38,8 @@ public final class LayeredMechAppearance {
     public static final int ARMS_QUARRY_BREAKER = 10;
     public static final int ARMS_LIGHT_MG = 11;
     public static final int ARMS_LIGHT_PULSE_LASER = 12;
+    public static final int ARMS_BURST_LASER = 13;
+    public static final int ARMS_PD_LASER = 14;
     public static final int CHASSIS_CLEAN = 0;
     public static final int CHASSIS_SOCKETED = 1;
     public static final int CHASSIS_HOUND = 2;

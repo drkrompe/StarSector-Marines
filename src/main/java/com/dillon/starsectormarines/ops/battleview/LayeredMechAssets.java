@@ -27,6 +27,8 @@ public final class LayeredMechAssets {
     public final LayeredSpriteCache lightMachineGun;
     public final LayeredSpriteCache lightPulseLaser;
     public final LayeredSpriteCache lightRocketPod;
+    public final LayeredSpriteCache burstLaser;
+    public final LayeredSpriteCache pdLaser;
     public final LayeredSpriteCache muzzleFlash;
 
     public LayeredMechAssets(LayeredSpriteCache chassis, LayeredSpriteCache socketedChassis,
@@ -48,6 +50,8 @@ public final class LayeredMechAssets {
                              LayeredSpriteCache lightMachineGun,
                              LayeredSpriteCache lightPulseLaser,
                              LayeredSpriteCache lightRocketPod,
+                             LayeredSpriteCache burstLaser,
+                             LayeredSpriteCache pdLaser,
                              LayeredSpriteCache muzzleFlash) {
         this.chassis = chassis;
         this.socketedChassis = socketedChassis;
@@ -71,6 +75,8 @@ public final class LayeredMechAssets {
         this.lightMachineGun = lightMachineGun;
         this.lightPulseLaser = lightPulseLaser;
         this.lightRocketPod = lightRocketPod;
+        this.burstLaser = burstLaser;
+        this.pdLaser = pdLaser;
         this.muzzleFlash = muzzleFlash;
     }
 
@@ -84,6 +90,6 @@ public final class LayeredMechAssets {
                 foot, thighBone, chaingunArm, linearCannon, heavyCannon, srmPod, lrmPod,
                 shoulderLaser, pulseLaserArm, bastionAutocannon, demolitionCannon,
                 thermalLance, musterAutogun, quarryBreakerCannon, pioneerRocketCradle,
-                lightMachineGun, lightPulseLaser, lightRocketPod, muzzleFlash);
+                lightMachineGun, lightPulseLaser, lightRocketPod, burstLaser, pdLaser, muzzleFlash);
     }
 }

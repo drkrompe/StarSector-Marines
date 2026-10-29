@@ -141,6 +141,8 @@ final class HardwareArt {
             case LIGHT_MACHINE_GUN -> "light-machine-gun";
             case LIGHT_PULSE_LASER -> "light-pulse-laser";
             case LIGHT_ROCKET_POD -> "light-rocket-pod";
+            case BURST_LASER -> "burst-laser";
+            case PD_LASER -> "pd-laser";
         };
     }
 }

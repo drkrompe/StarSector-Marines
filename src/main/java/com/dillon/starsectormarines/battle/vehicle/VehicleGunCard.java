@@ -16,7 +16,6 @@ public enum VehicleGunCard {
     CANNON(HardpointType.BALLISTIC, 3),
     MORTAR(HardpointType.BALLISTIC, 2),
     LASER(HardpointType.ENERGY, 3),
-    PULSE(HardpointType.ENERGY, 2),
     LRM(HardpointType.MISSILE, 2);
 
     /** Every gun card is two columns wide, as every mech weapon is. */
@@ -39,7 +38,6 @@ public enum VehicleGunCard {
             case TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID,
                     TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID -> MORTAR;
             case TurretCatalogRegistry.TANK_BURST_LASER_STRUCTURE_ID -> LASER;
-            case TurretCatalogRegistry.TANK_PD_LASER_STRUCTURE_ID -> PULSE;
             case TurretCatalogRegistry.VEHICLE_LRM_STRUCTURE_ID -> LRM;
             default -> SMALL;
         };

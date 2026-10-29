@@ -66,6 +66,9 @@ public final class MechHardpointGeometry {
             // The light weapons are 88 px long: 0.42 hull widths from the rear pivot.
             case LayeredMechAppearance.ARMS_LIGHT_MG,
                  LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER -> 0.27f;
+            // The burst laser is 136 px long (0.65 hull widths) and the PD laser 116 px (0.56).
+            case LayeredMechAppearance.ARMS_BURST_LASER -> 0.50f;
+            case LayeredMechAppearance.ARMS_PD_LASER -> 0.41f;
             default -> Float.NaN;
         };
     }
@@ -84,6 +87,8 @@ public final class MechHardpointGeometry {
             case LayeredMechAppearance.ARMS_BASTION_AUTOCANNON -> 0.59f;
             case LayeredMechAppearance.ARMS_LIGHT_MG,
                  LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER -> 0.37f;
+            case LayeredMechAppearance.ARMS_BURST_LASER -> 0.60f;
+            case LayeredMechAppearance.ARMS_PD_LASER -> 0.51f;
             default -> Float.NaN;
         };
     }

@@ -73,6 +73,10 @@ WEAPONS = (
            "light-rocket-pod.png", (29, 70)),
     Weapon("weapon-concepts/light-pulse-laser.png", "light-pulse-laser.png",
            "light-pulse-laser.png", (28, 88)),
+    Weapon("weapon-concepts/burst-laser.png", "burst-laser.png",
+           "burst-laser.png", (70, 136)),
+    Weapon("weapon-concepts/pd-laser.png", "pd-laser.png",
+           "pd-laser.png", (40, 116)),
 )
 
 CHASSIS = ("chassis.png", "chassis-hound.png", "chassis-warden.png")

@@ -1479,17 +1479,14 @@ a law any sheet may author): while the gun is engaged, with a target on the grou
 the air or a burst under way, its dome's shutter stands open on the lens; idle, it closes.
 Its lance is the burst PD laser's blue.
 
-The **PD laser tank** (`PD_LASER_TANK`, Prestige, Heavy lift) is its midline sibling,
-the League's: the same hull with the plain PD laser every frigate carries. Everything
-above about reach, the air, and carrying no blast holds for it too. What differs is
-how it delivers. It holds one steady lance on a target, ten pulses a second for a
-second at a time, and runs cool: its flux barely outpaces its dissipation, so it
-overloads only after a long held fight. Each pulse hits for far less than a burst,
-so the burst laser trades harder and the PD laser trades longer. A fire-control radar and three cells take less room than the
-capacitor pack, so the hull keeps the breakthrough tank's plate and pace. It looks
-it: the same hull in worn gunmetal with red running lamps, the radar over the rear
-deck, and the vanilla PD laser in its own red on the same mount, with the same
-firing frame.
+The PD laser tank is retired (owner, 2026-10-28): its gun is a part. The plain PD laser every frigate
+carries is the **PD laser** weapon part (`MechWeaponComponent.PD_LASER`, medium, two rows), and the
+laser tank's own gun is the **burst laser** part (`BURST_LASER`, large, three rows), both fitted
+to the laser tank's red three-row gun card like any mech weapon (`vehicle-card-sizes.md`,
+`mechs-nouns.md`). A laser tank with the PD laser fitted is what the PD laser tank was: a steady
+lance, ten pulses a second for a second at a time, that runs cool and trades longer where the
+burst laser trades harder. Everything above about reach, the air and carrying no blast holds for
+both. The hull's own gun, with no part fitted, is still the burst laser turret.
 
 **A laser's lance is drawn as the space game draws a beam.** A turret weapon with no
 projectile art that authors a beam (`WeaponDef.hitscanBeam`) is a hitscan beam, as a

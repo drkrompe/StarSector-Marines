@@ -69,8 +69,6 @@ public final class TankVersusInfantryScene implements BehaviorScene {
         reports.add(loop(frames, "laser-line", VehicleType.LASER_TANK, Plate.LINE));
         reports.add(loop(frames, "cannon-suits", VehicleType.BREAKTHROUGH_TANK, Plate.SUITS));
         reports.add(loop(frames, "laser-suits", VehicleType.LASER_TANK, Plate.SUITS));
-        reports.add(loop(frames, "pd-laser-line", VehicleType.PD_LASER_TANK, Plate.LINE));
-        reports.add(loop(frames, "pd-laser-suits", VehicleType.PD_LASER_TANK, Plate.SUITS));
         return reports;
     }
 
@@ -179,7 +177,7 @@ public final class TankVersusInfantryScene implements BehaviorScene {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("turret-fires-at-men", rounds > 0,
                 rounds + " rounds fired over " + traces.size() + " plays"));
-        if (type == VehicleType.LASER_TANK || type == VehicleType.PD_LASER_TANK) {
+        if (type == VehicleType.LASER_TANK) {
             verdicts.add(Verdict.of("laser-carries-no-blast", roundsThatBreak == 0,
                     roundsThatBreak + " laser rounds carried blast or wall damage"));
         }

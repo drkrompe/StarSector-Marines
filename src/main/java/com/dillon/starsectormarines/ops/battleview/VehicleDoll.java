@@ -87,7 +87,6 @@ final class VehicleDoll {
             case SMALL -> "light-machine-gun";
             case MORTAR -> "vehicle-turret-mortar";
             case LASER -> "shoulder-laser";
-            case PULSE -> "pulse-laser";
             case LRM -> "lrm-5";
         };
     }
