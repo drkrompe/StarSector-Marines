@@ -1,7 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.air.FittedBoat;
-import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.fixture.BattleFixtureJson;
 import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.fixture.FiniteCommandPowerResources;
@@ -74,11 +72,11 @@ public final class DustLedgerTechnicalLookSuite implements SnapshotSuite {
             for (String squad : selected) roster.applySquadEquipment(squad, SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS,
                     SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
             var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, chapter.squads * 12, null);
-            var boats = IntStream.range(0, 2).mapToObj(i -> FittedBoat.standard(ShuttleType.AEROSHUTTLE)).toList();
+            var boats = IntStream.range(0, 2).mapToObj(i -> DebugMissionCatalog.maxFitted(DebugMissionCatalog.CAMPAIGN_LIFT)).toList();
             var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, boats, deployment.size());
             var fixture = BattleFixtureJson.fromJson(BattleFixtureJson.toJson(
                     chapter.fixture(mission.battleSeed, manifest, chapter.profile(chapter.surface))));
-            List<CommandPower> powers = PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment());
+            List<CommandPower> powers = PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment(), null, boats);
             return LookReview.record(context.modRoot(), new LookReview.Shot("dust-ledger-technical",
                     LookGround.of(SurfacePalette.ARID, mission.battleSeed), 40, 30, placement -> {
                         BattleSimulation sim = fixture.build();

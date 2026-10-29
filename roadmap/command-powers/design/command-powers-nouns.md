@@ -4,7 +4,7 @@ Status: ACTIVE — fleet-sourced availability, pre-battle commitment, and simula
 
 Written: 2026-08-23
 
-Updated: 2026-10-26 — Mech Support orders one machine at a time, free, through the shared lift queue; the picker pauses the battle and a queued drop can be cancelled.
+Updated: 2026-10-29 — the company's own boats fly Mech Support everywhere but Conquest; no employer or story heavy lift. Earlier, 2026-10-26: Mech Support orders one machine at a time, free, through the shared lift queue; the picker pauses the battle and a queued drop can be cancelled.
 Earlier 2026-10-14 — Air Strike: a side's regenerating bomber/fighter pool, directed by comms operators (a pool request, not a card with charges).
 Earlier 2026-10-14 — Close Air Support: a committed Mudskipper is the source of a called gunship that circles overhead of targeted ground (law 9 gives it no campaign bridge).
 Earlier 2026-10-13 — Ship on Station delivers its own writeback bridge (law 9); the compact battle tray identifies its campaign-backed sources.
@@ -86,13 +86,13 @@ commitment.
   the service's drop-cancel request, which the simulation honours only while no
   craft has taken the job.
   Valkyries and ground-support fittings are production sources; a story battle
-  whose employer arranges the heavy lift grants it for whatever the bay holds,
-  vehicles alone included. It is the only power that brings the company's
+  whose employer brings the drop call grants it for whatever the bay holds,
+  vehicles alone included, and the company's own boats fly it. It is the only power that brings the company's
   vehicles down. The production
   power remains Bulwark-only; mixed specialist lances are explicitly debug
   iteration support. Sources decide who may call; lift decides who flies: every
-  carrier behind the budget (a committed cradled boat, or employer, story or
-  ship heavy lift) flies as a ferry craft (`air-nouns.md`, the lift queue). A **commander-called mech drop** is the same delivery paid from a mission allowance instead
+  carrier behind the budget (a committed cradled boat, or in Conquest alone the
+  provided heavy lift) flies as a ferry craft (`air-nouns.md`, the lift queue). A **commander-called mech drop** is the same delivery paid from a mission allowance instead
   of command points: see `mechs-nouns.md` and `reinforcement-nouns.md`; it is not a command power and the player's
   power is unchanged.
 - **Orbital Barrage** targets a zone, presents a warning, then resolves a heavy

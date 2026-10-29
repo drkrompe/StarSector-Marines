@@ -22,8 +22,8 @@ import java.util.Objects;
  *
  * @param companyCarrier the committed company boat a drop power flies with, or
  *     {@code null} for the synthetic carrier alone
- * @param companyLiftOnly whether that boat flies with no synthetic carrier behind her; false
- *     (a frozen commitment from before it was kept) restores the synthetic carrier
+ * @param companyLiftOnly whether the drop has no synthetic carrier, behind that boat or at
+ *     all; false (a frozen commitment from before it was kept) restores the synthetic carrier
  */
 public record CommandPowerCommitment(
         String id,
@@ -42,7 +42,6 @@ public record CommandPowerCommitment(
         ships = ships == null ? List.of() : List.copyOf(ships);
         vehicleDeployments = vehicleDeployments == null
                 ? List.of() : List.copyOf(vehicleDeployments);
-        companyLiftOnly &= companyCarrier != null;
     }
 
     public CommandPowerCommitment(String id, List<MechDeploymentSpec> mechDeployments,

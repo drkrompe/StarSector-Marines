@@ -39,6 +39,7 @@ import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.campaign.PlanetaryAssaultTerms;
 import com.dillon.starsectormarines.campaign.systems.RivalStrikeGarrisonService;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
+import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
 import com.dillon.starsectormarines.ops.detachment.HostileShipIntel;
 import com.dillon.starsectormarines.ops.detachment.CaptainDeploymentPolicy;
 import com.dillon.starsectormarines.ops.detachment.PersonnelReadiness;
@@ -1213,10 +1214,8 @@ public class BriefingScreen implements Screen {
                 employerRow("basin-militia", "briefingUiEmpLabelMilitia", "briefingUiBasinYardMilitia"));
         if (ShepherdRecoveryCampaign.isBattle(mission)) return List.of(
                 employerRow("basin-militia", "briefingUiEmpLabelMilitia", "briefingUiBasinWorkshopMilitia"),
-                employerRow("basin-crew", "briefingUiBasinInspectionLabel", "briefingUiBasinInspection"),
-                employerRow("basin-lift", "briefingUiEmpLabelHeavyLift", "briefingUiBasinLift"));
+                employerRow("basin-crew", "briefingUiBasinInspectionLabel", "briefingUiBasinInspection"));
         if (CorvusWaylineCampaign.isBattle(mission)) {
-            rows.add(employerRow("employer-heavy-lift", "briefingUiEmpLabelHeavyLift", "briefingUiEmpWaylineLift"));
             rows.add(employerRow("employer-force", "briefingUiWaylineLocalSupportLabel", "briefingUiWaylineLocalSupport"));
             return List.copyOf(rows);
         }
@@ -1228,7 +1227,6 @@ public class BriefingScreen implements Screen {
             rows.add(employerRow("employer-transport", "briefingUiRouteCraftLabel",
                     kind == 2 ? "briefingUiRoutePickup"
                             : (kind == 3 || kind == 4) ? "briefingUiRouteTwoShuttles" : "briefingUiRouteOneShuttle"));
-            rows.add(employerRow("employer-heavy-lift", "briefingUiEmpLabelHeavyLift", "briefingUiEmpWaylineLift"));
             if (kind == 4) rows.add(employerRow("employer-convoy", "briefingUiRouteFreightLabel", "briefingUiRouteFreight"));
             return List.copyOf(rows);
         }
@@ -1819,7 +1817,7 @@ public class BriefingScreen implements Screen {
                 : DetachmentResolver.resolve(mission, lift(), committedWings(),
                         committedPowerSourceMembers()).powers;
         return debugMechRoster(mission) != null
-                ? debugMechRoster(mission).applyTo(powers, lift(), DebugMissionCatalog.arrangesHeavyLift(mission))
+                ? debugMechRoster(mission).applyTo(powers, lift(), PowerCatalog.providesHeavyLift(mission))
                 : powers;
     }
 
