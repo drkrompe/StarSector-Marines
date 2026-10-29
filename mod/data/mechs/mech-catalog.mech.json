@@ -193,6 +193,24 @@
       "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "PDL-2",
       "description": "@gearCatalogComponentMechPdLaserDescription"
+    },
+    {
+      "component": "component.mech-heavy-pd-laser",
+      "factionLogo": "graphics/factions/neutral_traders.png",
+      "designation": "PDL-3",
+      "description": "@gearCatalogComponentMechHeavyPdLaserDescription"
+    },
+    {
+      "component": "component.mech-medium-burst-laser",
+      "factionLogo": "graphics/factions/tritachyon.png",
+      "designation": "TBL-2",
+      "description": "@gearCatalogComponentMechMediumBurstLaserDescription"
+    },
+    {
+      "component": "component.mech-light-burst-laser",
+      "factionLogo": "graphics/factions/tritachyon.png",
+      "designation": "TBL-1",
+      "description": "@gearCatalogComponentMechLightBurstLaserDescription"
     }
   ]
 }

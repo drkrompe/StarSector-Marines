@@ -39,6 +39,8 @@ class Weapon:
     material_id: str
     output: str
     size: tuple[int, int]
+    # False: one finish for every faction (the laser ladder's white parts), so no paint mask.
+    livery: bool = True
 
 
 WEAPONS = (
@@ -71,12 +73,12 @@ WEAPONS = (
            "light-machine-gun.png", (34, 88)),
     Weapon("weapon-concepts/light-rocket-pod.png", "light-rocket-pod.png",
            "light-rocket-pod.png", (29, 70)),
-    Weapon("weapon-concepts/light-pulse-laser.png", "light-pulse-laser.png",
-           "light-pulse-laser.png", (28, 88)),
-    Weapon("weapon-concepts/burst-laser.png", "burst-laser.png",
-           "burst-laser.png", (50, 136)),
-    Weapon("weapon-concepts/pd-laser.png", "pd-laser.png",
-           "pd-laser.png", (40, 116)),
+    Weapon("weapon-concepts/light-pulse-laser.png", "", "light-pulse-laser.png", (35, 84), livery=False),
+    Weapon("weapon-concepts/light-burst-laser.png", "", "light-burst-laser.png", (26, 84), livery=False),
+    Weapon("weapon-concepts/pd-laser.png", "", "pd-laser.png", (40, 112), livery=False),
+    Weapon("weapon-concepts/medium-burst-laser.png", "", "medium-burst-laser.png", (40, 112), livery=False),
+    Weapon("weapon-concepts/heavy-pd-laser.png", "", "heavy-pd-laser.png", (50, 136), livery=False),
+    Weapon("weapon-concepts/burst-laser.png", "", "burst-laser.png", (54, 136), livery=False),
 )
 
 CHASSIS = ("chassis.png", "chassis-hound.png", "chassis-warden.png")
@@ -270,6 +272,8 @@ def build_faction_weapons() -> None:
     MASK_ROOT.mkdir(parents=True, exist_ok=True)
     masks = {}
     for weapon in WEAPONS:
+        if not weapon.livery:
+            continue
         mask = normalized_mask(weapon)
         mask.save(MASK_ROOT / weapon.output)
         masks[weapon.output] = mask
@@ -279,7 +283,7 @@ def build_faction_weapons() -> None:
         output_root.mkdir(parents=True, exist_ok=True)
         for weapon in WEAPONS:
             base = Image.open(ROOT / weapon.output).convert("RGBA")
-            result = recolor(base, masks[weapon.output], colors)
+            result = base if not weapon.livery else recolor(base, masks[weapon.output], colors)
             if result.getchannel("A").tobytes() != base.getchannel("A").tobytes():
                 raise ValueError(f"alpha changed for {faction}/{weapon.output}")
             result.save(output_root / weapon.output)

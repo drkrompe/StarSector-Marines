@@ -846,6 +846,138 @@
       "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
     },
     {
+      "id": "weapon.mech-heavy-pd-laser",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponMechHeavyPdLaserDisplayName",
+        "designationTiered": false
+      },
+      "sim": {
+        "tracksFliers": true,
+        "range": 28.0,
+        "damage": 8.0,
+        "accuracy": 0.85,
+        "cooldown": 1.8,
+        "penetration": 2.0,
+        "burstCount": 14,
+        "burstSpacing": 0.1,
+        "hitSpread": 0.2,
+        "roundVelocity": 320.0,
+        "flightSec": 0.05,
+        "noiseMagnitude": 0.4
+      },
+      "render": {
+        "tracerColor": "FFF4F2",
+        "beam": {
+          "coreWidthPx": 2.4,
+          "glowColor": "E01A12",
+          "glowWidthPx": 12.0,
+          "pulseCycles": 1.0,
+          "lifetimeSec": 0.10
+        },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.09, "color": "FF6464" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.36, "lifetime": 0.12, "color": "FF5A4A" },
+          { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
+        ]
+      },
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+    },
+    {
+      "id": "weapon.mech-medium-burst-laser",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponMechMediumBurstLaserDisplayName",
+        "designationTiered": false
+      },
+      "sim": {
+        "tracksFliers": true,
+        "range": 28.0,
+        "damage": 15.0,
+        "accuracy": 0.85,
+        "cooldown": 1.6,
+        "penetration": 3.0,
+        "burstCount": 3,
+        "burstSpacing": 0.06,
+        "hitSpread": 0.2,
+        "roundVelocity": 320.0,
+        "flightSec": 0.05,
+        "noiseMagnitude": 0.4
+      },
+      "render": {
+        "tracerColor": "EEF2FF",
+        "beam": {
+          "coreWidthPx": 2.4,
+          "glowColor": "4A6BFF",
+          "glowWidthPx": 11.0,
+          "pulseCycles": 1.0,
+          "lifetimeSec": 0.10
+        },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.09, "color": "7A8CFF" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.36, "lifetime": 0.12, "color": "6A7EFF" },
+          { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
+        ]
+      },
+      "audio": { "fireSound": "burst_pd_fire" }
+    },
+    {
+      "id": "weapon.mech-light-burst-laser",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponMechLightBurstLaserDisplayName",
+        "designationTiered": false
+      },
+      "sim": {
+        "tracksFliers": true,
+        "range": 26.0,
+        "damage": 14.0,
+        "accuracy": 0.85,
+        "cooldown": 1.4,
+        "penetration": 3.0,
+        "burstCount": 2,
+        "burstSpacing": 0.06,
+        "hitSpread": 0.2,
+        "roundVelocity": 320.0,
+        "flightSec": 0.05,
+        "noiseMagnitude": 0.4
+      },
+      "render": {
+        "tracerColor": "EEF2FF",
+        "beam": {
+          "coreWidthPx": 2.0,
+          "glowColor": "4A6BFF",
+          "glowWidthPx": 9.0,
+          "pulseCycles": 1.0,
+          "lifetimeSec": 0.10
+        },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.09, "color": "7A8CFF" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.36, "lifetime": 0.12, "color": "6A7EFF" },
+          { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
+        ]
+      },
+      "audio": { "fireSound": "burst_pd_fire" }
+    },
+    {
       "id": "weapon.mech-light-mg",
       "mount": "mech-mount",
       "catalog": {
@@ -910,10 +1042,10 @@
         "noiseMagnitude": 0.8
       },
       "render": {
-        "tracerColor": "FFD2B8",
+        "tracerColor": "FFF4F2",
         "beam": {
           "coreWidthPx": 1.6,
-          "glowColor": "E06A3C",
+          "glowColor": "E01A12",
           "glowWidthPx": 6.0,
           "pulseCycles": 1.0,
           "lifetimeSec": 0.10
@@ -923,11 +1055,11 @@
       },
       "fx": {
         "muzzle": [
-          { "kind": "glow", "radius": 0.40, "lifetime": 0.07, "color": "FF9A5C" },
-          { "kind": "ring", "radius": 0.20, "lifetime": 0.09, "color": "FFE0CC" }
+          { "kind": "glow", "radius": 0.40, "lifetime": 0.07, "color": "FF6464" },
+          { "kind": "ring", "radius": 0.20, "lifetime": 0.09, "color": "FFD0CC" }
         ],
         "impact": [
-          { "kind": "glow", "radius": 0.34, "lifetime": 0.10, "color": "FF8A4C" },
+          { "kind": "glow", "radius": 0.34, "lifetime": 0.10, "color": "FF5A4A" },
           { "kind": "dust", "radius": 0.18, "lifetime": 0.18 }
         ]
       },

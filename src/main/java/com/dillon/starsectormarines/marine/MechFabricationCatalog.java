@@ -49,7 +49,10 @@ public final class MechFabricationCatalog {
             weapon(MechWeaponComponent.LIGHT_ROCKET_POD, "@gearFabricationCommonMarket"),
             weapon(MechWeaponComponent.LIGHT_PULSE_LASER, "@gearFabricationTriTachyonPattern"),
             weapon(MechWeaponComponent.BURST_LASER, "@gearFabricationTriTachyonPattern"),
-            weapon(MechWeaponComponent.PD_LASER, "@gearFabricationMilitaryPattern"));
+            weapon(MechWeaponComponent.PD_LASER, "@gearFabricationMilitaryPattern"),
+            weapon(MechWeaponComponent.HEAVY_PD_LASER, "@gearFabricationMilitaryPattern"),
+            weapon(MechWeaponComponent.MEDIUM_BURST_LASER, "@gearFabricationTriTachyonPattern"),
+            weapon(MechWeaponComponent.LIGHT_BURST_LASER, "@gearFabricationTriTachyonPattern"));
 
     private static final List<Recipe> CHASSIS = List.of(
             chassis(MechVariant.HOUND, "@gearFabricationLightChassisStandardFit", 21510),

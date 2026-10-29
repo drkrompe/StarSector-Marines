@@ -29,6 +29,9 @@ public final class LayeredMechAssets {
     public final LayeredSpriteCache lightRocketPod;
     public final LayeredSpriteCache burstLaser;
     public final LayeredSpriteCache pdLaser;
+    public final LayeredSpriteCache heavyPdLaser;
+    public final LayeredSpriteCache mediumBurstLaser;
+    public final LayeredSpriteCache lightBurstLaser;
     public final LayeredSpriteCache muzzleFlash;
 
     public LayeredMechAssets(LayeredSpriteCache chassis, LayeredSpriteCache socketedChassis,
@@ -52,6 +55,9 @@ public final class LayeredMechAssets {
                              LayeredSpriteCache lightRocketPod,
                              LayeredSpriteCache burstLaser,
                              LayeredSpriteCache pdLaser,
+                             LayeredSpriteCache heavyPdLaser,
+                             LayeredSpriteCache mediumBurstLaser,
+                             LayeredSpriteCache lightBurstLaser,
                              LayeredSpriteCache muzzleFlash) {
         this.chassis = chassis;
         this.socketedChassis = socketedChassis;
@@ -77,6 +83,9 @@ public final class LayeredMechAssets {
         this.lightRocketPod = lightRocketPod;
         this.burstLaser = burstLaser;
         this.pdLaser = pdLaser;
+        this.heavyPdLaser = heavyPdLaser;
+        this.mediumBurstLaser = mediumBurstLaser;
+        this.lightBurstLaser = lightBurstLaser;
         this.muzzleFlash = muzzleFlash;
     }
 
@@ -90,6 +99,7 @@ public final class LayeredMechAssets {
                 foot, thighBone, chaingunArm, linearCannon, heavyCannon, srmPod, lrmPod,
                 shoulderLaser, pulseLaserArm, bastionAutocannon, demolitionCannon,
                 thermalLance, musterAutogun, quarryBreakerCannon, pioneerRocketCradle,
-                lightMachineGun, lightPulseLaser, lightRocketPod, burstLaser, pdLaser, muzzleFlash);
+                lightMachineGun, lightPulseLaser, lightRocketPod, burstLaser, pdLaser, heavyPdLaser, mediumBurstLaser,
+                lightBurstLaser, muzzleFlash);
     }
 }

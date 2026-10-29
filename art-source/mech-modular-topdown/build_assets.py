@@ -169,12 +169,19 @@ def main() -> None:
     normalize("weapon-concepts/light-rocket-pod.png",
               "light-rocket-pod.png", (29, 70))
     normalize("weapon-concepts/light-pulse-laser.png",
-              "light-pulse-laser.png", (28, 88))
-    # The laser parts (the laser tank's burst laser and the PD laser): a large three-row arm gun and a medium two-row one.
-    normalize("weapon-concepts/burst-laser.png",
-              "burst-laser.png", (50, 136))
+              "light-pulse-laser.png", (35, 84))
+    # The laser ladder (vehicle-card-sizes.md): the PD family (red motif) and the burst family (clean white and blue),
+    # each a glass blue orb lens on white electronics, in three sizes, drawn at their true proportions.
+    normalize("weapon-concepts/light-burst-laser.png",
+              "light-burst-laser.png", (26, 84))
     normalize("weapon-concepts/pd-laser.png",
-              "pd-laser.png", (40, 116))
+              "pd-laser.png", (40, 112))
+    normalize("weapon-concepts/medium-burst-laser.png",
+              "medium-burst-laser.png", (40, 112))
+    normalize("weapon-concepts/heavy-pd-laser.png",
+              "heavy-pd-laser.png", (50, 136))
+    normalize("weapon-concepts/burst-laser.png",
+              "burst-laser.png", (54, 136))
     build_faction_weapons()
     preview("idle.png", moving=False, firing=False)
     preview("moving-and-firing.png", moving=True, firing=True)

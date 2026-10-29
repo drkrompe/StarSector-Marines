@@ -161,6 +161,9 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
             case LIGHT_ROCKET_POD -> assets.lightRocketPod;
             case BURST_LASER -> assets.burstLaser;
             case PD_LASER -> assets.pdLaser;
+            case HEAVY_PD_LASER -> assets.heavyPdLaser;
+            case MEDIUM_BURST_LASER -> assets.mediumBurstLaser;
+            case LIGHT_BURST_LASER -> assets.lightBurstLaser;
         };
     }
 

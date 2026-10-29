@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a18812-5745-7261-a5ff-0360abfbf58e",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a18812-5745-7261-a5ff-0360abfbf58e\\exec-a1ea921c-f533-4522-bf1c-faa33a5b953a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\weapon-concepts\\laser-look2\\burst-medium.png",
+    "sha256": "6322f2434e1679b73847caf68171ced71038162389b6673c3b8e2c6a87570577",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\7d94e03d-844c-4d9f-ae8f-f73961fb427d\\scratchpad\\lp\\ll2\\burst-medium.txt",
+  "promptSha256": "84716c31921427bed1f7d1528faf7fee31b5b03c9d1091affed40584b4f43767",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Image 1: design authority for the whole family; keep lens, materials, colours and view\n\nImage 1 is the design authority: the large version of this laser weapon. Keep its identity exactly: the same glass blue orb lens at the north tip, the same white ceramic panels, graphite parts, vent grilles, lights and colour scheme, the same strict zenith orthographic top-down view with the weapon pointing north, the same painted sprite finish and upper-left baked lighting.\nUse case: precise-object-edit\nAsset type: production-source concept for one modular top-down tactical-game mech ARM weapon sprite\nPrimary request: a MEDIUM miniaturized version of Image 1: the same weapon scaled down and simplified, about 80 percent of the original length and noticeably less bulky, with the same orb lens, the same arrangement of parts in fewer and larger panels, fewer vents and fewer lights.\nComposition/framing: exactly one isolated vertical module centred with generous padding on a flat featureless pure white isolation plate (no gradient, shadow, halo, floor, border or checkerboard). Symmetrical, with a short rear mounting plate. The glass orb lens stays a true sphere seen as a round dome.\nAvoid: changing the lens design or colours, olive-drab paint, side view, perspective, isometric, multiple objects, hands, mech body, vehicle, turret base, text, logo, watermark, cropping.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\7d94e03d-844c-4d9f-ae8f-f73961fb427d\\scratchpad\\lp\\c2\\burst-laser.png",
+      "sha256": "bed7b8490d23a595662ab76dbd47161a042c3a6a69ec27d36027e67503bea581",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Image 1: design authority for the whole family; keep lens, materials, colours and view"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one medium variant using the imagegen skill, preserving the orb lens, materials, colours, and top-down view.\n"
+  ],
+  "usage": {
+    "input_tokens": 91255,
+    "cached_input_tokens": 77568,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 592,
+    "reasoning_output_tokens": 33
+  },
+  "elapsedSeconds": 54.4
+}

@@ -331,3 +331,11 @@ laser tank turret head (`art-source/vehicles/tank-laser/pd-skin-tt-raw.png`, `pd
 white-electronics language only, and the earlier olive burst laser for footprint and finish. The orb is a true sphere, so
 it is drawn as a round glass dome from above (unlike the older weapons, whose muzzles face away from the camera). The
 full prompt and references of each generation are in the `.provenance.json` beside it.
+
+The owner picked burst A and PD B (2026-10-29). Each pick is the 3x2 part (`burst-laser.png`, `heavy-pd-laser.png`); the
+four smaller parts (`medium-burst-laser.png`, `light-burst-laser.png`, `pd-laser.png`, `light-pulse-laser.png`) are
+ImageGen edits of the pick asking for the same weapon miniaturized to about 80 and 60 percent of its length, with the
+pick as the design authority. All six are cleaned to alpha with `clean_imagegen_backgrounds.py` and have no material-ID
+pass: the family has one white finish for every faction, so `derive_faction_weapons.py` copies the base sprite
+(`livery=False`) into each faction folder. They are registered at their true proportions: 54x136, 50x136 (heavy), 40x112
+(medium) and 26x84, 35x84 (light).

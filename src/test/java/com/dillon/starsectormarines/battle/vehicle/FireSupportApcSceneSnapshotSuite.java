@@ -1,6 +1,11 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
+import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
@@ -11,6 +16,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.ops.battleview.ReviewAnnotations;
 import com.dillon.starsectormarines.ops.battleview.ReviewStyle;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -52,7 +58,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
      */
     @Override protected List<LookReview.Shot> lookShots() {
         return List.of(idle(), shelling(), armor(), wrecks(), fitted(), fittedWrecks(), fittedRotary(),
-                lightWeapons(), lightWeaponsFire(), laserParts());
+                lightWeapons(), lightWeaponsFire(), laserParts(), laserMechs(), laserArms());
     }
 
     private static LookReview.Shot shelling() {
@@ -220,12 +226,14 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
         }, placement -> List.of(LookReview.View.followAtPlay(placement, "hull0", "hull1", "hull2")), 300);
     }
 
+    /** The laser ladder, heaviest first: the hull's own gun, then the two heavy parts, the two medium, the two light. */
     private static final MechWeaponComponent[] LASER_GUNS = {null, MechWeaponComponent.BURST_LASER,
-            MechWeaponComponent.PD_LASER};
+            MechWeaponComponent.HEAVY_PD_LASER, MechWeaponComponent.MEDIUM_BURST_LASER, MechWeaponComponent.PD_LASER,
+            MechWeaponComponent.LIGHT_BURST_LASER, MechWeaponComponent.LIGHT_PULSE_LASER};
 
     /**
-     * Three laser tanks side by side, the hull's own gun, the burst laser part and the PD laser part, firing at a
-     * stationary picket 24 cells east: the parts as a tank turret, and how each lance reads.
+     * Seven laser tanks in two columns, the hull's own gun and each laser part of the ladder, firing at a stationary
+     * picket 24 cells east: the heavy parts as the tank's own white and red heads, the rest as their own drawings.
      */
     private static LookReview.Shot laserParts() {
         return LookReview.Shot.of("laser-parts", 48, 24, placement -> {
@@ -237,15 +245,72 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
             SceneWorld world = builder.build();
             BattleSimulation sim = world.sim();
             for (int i = 0; i < LASER_GUNS.length; i++) {
-                float[] at = placement.openNear(11.5f, 7.5f + 5f * i);
+                boolean second = i >= 3;
+                float[] at = second ? placement.openNear(17.5f, 4.5f + 4.6f * (i - 3))
+                        : placement.openNear(10.5f, 7.5f + 5f * i);
                 long hull = sim.convoy().spawn(VehicleType.LASER_TANK, List.of(), VehiclePlating.FACTORY,
                         VehicleEngine.STOCK, LASER_GUNS[i], Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
                 sim.convoy().body(hull).teleport(at[0], at[1], 0f);
                 placement.subject("hull" + i, hull);
             }
             return sim;
-        }, placement -> List.of(LookReview.View.followAtPlay(placement, "hull0", "hull1", "hull2"),
-                LookReview.View.follow("tanks", placement, 14f, "hull0", "hull1", "hull2")), 300);
+        }, placement -> List.of(LookReview.View.followAtPlay(placement, "hull0", "hull1", "hull2", "hull3", "hull4",
+                "hull5", "hull6"),
+                LookReview.View.follow("tanks", placement, 22f, "hull0", "hull1", "hull2", "hull3", "hull4", "hull5",
+                        "hull6")), 300);
+    }
+
+    /** The six ladder parts as the nose gun of six Hounds (the PD lasers in a row, the burst lasers in another). */
+    private static LookReview.Shot laserMechs() {
+        return mechLook("laser-mechs", MechVariant.HOUND, new MechWeaponComponent[] {MechWeaponComponent.HEAVY_PD_LASER,
+                MechWeaponComponent.PD_LASER, MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.BURST_LASER,
+                MechWeaponComponent.MEDIUM_BURST_LASER, MechWeaponComponent.LIGHT_BURST_LASER});
+    }
+
+    /** The four lasers a side arm takes (the heavy two are nose guns), a pair on each arm of four Bulwarks. */
+    private static LookReview.Shot laserArms() {
+        return mechLook("laser-arms", MechVariant.BULWARK, new MechWeaponComponent[] {MechWeaponComponent.PD_LASER,
+                MechWeaponComponent.LIGHT_PULSE_LASER, null, MechWeaponComponent.MEDIUM_BURST_LASER,
+                MechWeaponComponent.LIGHT_BURST_LASER, null});
+    }
+
+    /**
+     * Mechs of {@code variant} in two rows of three, row-major, each carrying its gun (a null leaves the place empty),
+     * firing at a stationary picket: one close view a row, named after the shot.
+     */
+    private static LookReview.Shot mechLook(String name, MechVariant variant, MechWeaponComponent[] guns) {
+        return LookReview.Shot.of(name, 48, 24, placement -> {
+            SceneBuilder builder = placement.holdouts(placement.builder());
+            int px = (int) placement.openNear(36.5f, 12.5f)[0] - placement.site().x0();
+            int py = (int) placement.openNear(36.5f, 12.5f)[1] - placement.site().y0();
+            builder.squad("hostile").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(6)
+                    .inFile(px, py - 6, 0, 2).primary("weapon.smg").stationary().done();
+            for (int i = 0; i < guns.length; i++) {
+                if (guns[i] == null) continue;
+                float[] at = placement.openNear(8f + 6.5f * (i % 3), 7f + 8f * (i / 3));
+                int x = (int) at[0] - placement.site().x0();
+                int y = (int) at[1] - placement.site().y0();
+                int holdX = (int) at[0];
+                int holdY = (int) at[1];
+                MechDeploymentSpec spec = new MechDeploymentSpec(variant, MechRole.BALANCED,
+                        MissileReplenisherComponent.STANDARD, guns[i], MechWeaponComponent.SRM_5, MechWeaponComponent.SRM_5);
+                builder.squad("mech" + i).faction(Faction.MARINE).size(1).at(x, y).mech(spec)
+                        .assigned(id -> ObjectiveAssignment.defendArea(id, holdX, holdY)).done();
+            }
+            SceneWorld world = builder.build();
+            for (int i = 0; i < guns.length; i++) {
+                if (guns[i] != null) placement.subject("mech" + i, world.members("mech" + i)[0]);
+            }
+            return world.sim();
+        }, placement -> List.of(
+                LookReview.View.follow("first", placement, 16f, rowOf(guns, 0)),
+                LookReview.View.follow("second", placement, 16f, rowOf(guns, 1))), 300);
+    }
+
+    private static String[] rowOf(MechWeaponComponent[] guns, int row) {
+        List<String> names = new ArrayList<>();
+        for (int i = row * 3; i < row * 3 + 3; i++) if (guns[i] != null) names.add("mech" + i);
+        return names.toArray(new String[0]);
     }
 
     /** A tank on its own with a chaingun in the gun card, the enemy 20 cells off: it spins up and fires on its own. */

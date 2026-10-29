@@ -106,7 +106,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         try (BattleSimulation sim = scene(40, 32)) {
             sim.setMissionCompletionEnabled(false);
             long burst = spawn(sim, VehicleType.LASER_TANK, Faction.MARINE, 14, 10, 90, 90);
-            long pd = spawnFitted(sim, VehicleType.LASER_TANK, MechWeaponComponent.PD_LASER, 26, 10, 90, 90);
+            long pd = spawnFitted(sim, VehicleType.LASER_TANK, MechWeaponComponent.HEAVY_PD_LASER, 26, 10, 90, 90);
             for (int i = 0; i < 3; i++) {
                 spawn(sim, VehicleType.CARGO_CARRIER, Faction.DEFENDER, 12 + i * 8, 21, 270, 270);
             }

@@ -1313,6 +1313,9 @@ public class BattleSprites {
         LayeredSpriteCache lightRocketPod = loadLayeredSprite(root + "light-rocket-pod.png");
         LayeredSpriteCache burstLaser = loadLayeredSprite(root + "burst-laser.png");
         LayeredSpriteCache pdLaser = loadLayeredSprite(root + "pd-laser.png");
+        LayeredSpriteCache heavyPdLaser = loadLayeredSprite(root + "heavy-pd-laser.png");
+        LayeredSpriteCache mediumBurstLaser = loadLayeredSprite(root + "medium-burst-laser.png");
+        LayeredSpriteCache lightBurstLaser = loadLayeredSprite(root + "light-burst-laser.png");
         LayeredSpriteCache flash = loadLayeredSprite(
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
         if (chassis == null || socketedChassis == null || houndChassis == null
@@ -1324,7 +1327,8 @@ public class BattleSprites {
                 || musterAutogun == null || quarryBreakerCannon == null
                 || pioneerRocketCradle == null || lightMachineGun == null
                 || lightPulseLaser == null || lightRocketPod == null || burstLaser == null
-                || pdLaser == null || flash == null) {
+                || pdLaser == null || heavyPdLaser == null || mediumBurstLaser == null || lightBurstLaser == null
+                || flash == null) {
             LOG.warn("BattleSprites: modular mech layers incomplete; mechs fall back to plain markers");
             return;
         }
@@ -1333,7 +1337,8 @@ public class BattleSprites {
                 srm, lrm, shoulderLaser, pulseLaserArm, bastionAutocannon,
                 demolitionCannon, thermalLance, musterAutogun,
                 quarryBreakerCannon, pioneerRocketCradle, lightMachineGun, lightPulseLaser,
-                lightRocketPod, burstLaser, pdLaser, flash);
+                lightRocketPod, burstLaser, pdLaser, heavyPdLaser,
+                mediumBurstLaser, lightBurstLaser, flash);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
         vehicleGunMount = loadLayeredSprite("graphics/battle/vehicles/gun-mount.png");
         mechBase = new MechBase(socketedChassis, foot, thighBone, flash);
@@ -1372,6 +1377,9 @@ public class BattleSprites {
         LayeredSpriteCache lightRocketPod = loadLayeredSprite(root + "light-rocket-pod.png");
         LayeredSpriteCache burstLaser = loadLayeredSprite(root + "burst-laser.png");
         LayeredSpriteCache pdLaser = loadLayeredSprite(root + "pd-laser.png");
+        LayeredSpriteCache heavyPdLaser = loadLayeredSprite(root + "heavy-pd-laser.png");
+        LayeredSpriteCache mediumBurstLaser = loadLayeredSprite(root + "medium-burst-laser.png");
+        LayeredSpriteCache lightBurstLaser = loadLayeredSprite(root + "light-burst-laser.png");
         if (chassis == null || houndChassis == null || wardenChassis == null
                 || arm == null || linearCannon == null || heavyCannon == null
                 || srm == null || lrm == null || shoulderLaser == null
@@ -1380,7 +1388,7 @@ public class BattleSprites {
                 || musterAutogun == null || quarryBreakerCannon == null
                 || pioneerRocketCradle == null || lightMachineGun == null
                 || lightPulseLaser == null || lightRocketPod == null || burstLaser == null
-                || pdLaser == null) {
+                || pdLaser == null || heavyPdLaser == null || mediumBurstLaser == null || lightBurstLaser == null) {
             LOG.warn("BattleSprites: modular mech livery " + livery
                     + " incomplete; actors using it keep the complete base set");
             return;
@@ -1391,7 +1399,8 @@ public class BattleSprites {
                 srm, lrm, shoulderLaser, pulseLaserArm, bastionAutocannon,
                 demolitionCannon, thermalLance, musterAutogun,
                 quarryBreakerCannon, pioneerRocketCradle, lightMachineGun, lightPulseLaser,
-                lightRocketPod, burstLaser, pdLaser, flash));
+                lightRocketPod, burstLaser, pdLaser, heavyPdLaser,
+                mediumBurstLaser, lightBurstLaser, flash));
     }
 
     private void loadLayeredFamilyAt(LayeredArmorFamily familyId, String familyRoot,

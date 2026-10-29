@@ -48,6 +48,9 @@ public record MechPattern(Kind kind, String definitionId) {
         WEAPON_TIERS.put(MechWeaponComponent.LIGHT_PULSE_LASER, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.PD_LASER, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.BURST_LASER, EquipmentAccessTier.PRESTIGE);
+        WEAPON_TIERS.put(MechWeaponComponent.HEAVY_PD_LASER, EquipmentAccessTier.PRESTIGE);
+        WEAPON_TIERS.put(MechWeaponComponent.MEDIUM_BURST_LASER, EquipmentAccessTier.ADVANCED);
+        WEAPON_TIERS.put(MechWeaponComponent.LIGHT_BURST_LASER, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.CHAINGUN, EquipmentAccessTier.COMMON);
         // The better chaingun: spin-up, refill and damage are what a better rotary gun buys.
         WEAPON_TIERS.put(MechWeaponComponent.CHAINGUN_HF, EquipmentAccessTier.ADVANCED);
