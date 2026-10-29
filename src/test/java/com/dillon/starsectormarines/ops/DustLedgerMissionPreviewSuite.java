@@ -237,6 +237,9 @@ public final class DustLedgerMissionPreviewSuite implements SnapshotSuite {
                 releasedAt = tick;
                 return;
             }
+            // The stand-in player presses each job's verb whenever a squad is close enough to have it on offer.
+            sim.getSideObjectives().choose("dust-ledger-feed", "cut");
+            sim.getSideObjectives().choose("dust-ledger-warden", "respects");
             long carrier = coupling.trigger() instanceof SideTrigger.Carry carry ? carry.carrier() : 0L;
             int carrierSquad = carrier != 0L ? squadOf(sim, squads, carrier) : -1;
             Cell yard = sites.harrowYard().centre();

@@ -1,4 +1,4 @@
-<template props="missionClasses,missionCards,optionalCards,optionalHeadingClasses,optionalListStyle,missionPanelStyle,missionListStyle,missionScore,timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveTitle,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle,objectiveLocateClasses,objectiveLocateDisabled,objectiveLocateAction,liftClasses,liftStyle,liftSummary,liftRows">
+<template props="missionClasses,missionCards,optionalCards,optionalHeadingClasses,optionalHeading,optionalListStyle,missionPanelStyle,missionListStyle,missionScore,timeLabel,pauseLabel,normalLabel,doubleLabel,quadLabel,pauseClasses,normalClasses,doubleClasses,quadClasses,pauseStyle,normalStyle,doubleStyle,quadStyle,pauseAction,normalAction,doubleAction,quadAction,objectivePanelClasses,objectiveTitle,objectiveScore,objectiveTally,objectiveChips,objectiveFocusClasses,objectiveFocus,objectiveProgressStyle,objectiveLocateClasses,objectiveLocateDisabled,objectiveLocateAction,liftClasses,liftStyle,liftSummary,liftRows">
   <div id="battle-hud-overlay" class="battle-hud-overlay hud-glass">
     <div id="battle-lift-queue" class="{liftClasses}" style="{liftStyle}">
       <div id="battle-lift-queue-header" class="lift-header">
@@ -48,7 +48,7 @@
           </div>
         </div>
         <div id="battle-optional-list" class="mission-list" style="{optionalListStyle}">
-          <div id="mission-optional-heading" class="{optionalHeadingClasses}">{i18n.battleHudOptionalObjectives}</div>
+          <div id="mission-optional-heading" class="{optionalHeadingClasses}">{optionalHeading}</div>
           <div id="battle-optional-cards" class="optional-cards">
             <div each="card in optionalCards" key="{card.id}" id="{card.id}" class="{card.classes}">
               <div id="{card.headerId}" class="mission-card-header">
@@ -114,6 +114,10 @@
   .mission-optional.mission-complete .mission-phase { color: #78d494; }
   .mission-optional.mission-failed .mission-phase { color: #e98b83; }
   .mission-optional.mission-failed .mission-name { color: #8f9893; }
+  .mission-compact .mission-steps, .mission-compact .mission-instruction, .mission-compact .mission-blocker { display: none; }
+  .mission-compact .mission-card { height: 84px; }
+  .mission-compact .mission-optional .mission-secondary { display: none; }
+  .mission-compact .mission-optional { height: 62px; }
   .optional-strike { position: absolute; left: 13px; top: 9px; width: 220px; height: 1px; background-color: #e98b83; }
 
   .battle-hud-overlay {

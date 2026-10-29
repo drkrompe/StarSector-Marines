@@ -229,6 +229,7 @@ public class BattleScreen implements Screen, BattleUiContext {
     private BattleHudOverlay retainedOverlay;
     private BattleDirectControlOverlay directControlOverlay;
     private BattleManualObjectiveOverlay manualObjectives;
+    private BattleSidePromptOverlay sidePrompt;
     private final BattleDirectControlInput directControlInput = new BattleDirectControlInput();
     private BattleSimulation directControlSimulation;
     private boolean directControlHudActive;
@@ -643,6 +644,10 @@ public class BattleScreen implements Screen, BattleUiContext {
             BattleSimulation current = ctx != null ? ctx.getBattleSimulation() : null;
             retainedRetreatOverlay.update(dt, exitPhase(current), retryOffer());
         }
+        if (sidePrompt != null) {
+            if (directControlInput.active()) sidePrompt.detach();
+            else sidePrompt.update(dt, ctx != null ? ctx.getBattleSimulation() : null, camera);
+        }
         // Park the OpenAL listener at the camera focus every frame so positional SFX (gunfire,
         // explosions, ambient loops, death VO) pan + attenuate around what the player is looking
         // at. setListenerPosOverrideOneFrame is a one-frame override, so it has to be re-armed
@@ -859,6 +864,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (shipOrderTargeting != null) shipOrderTargeting.cancel();
         if (shipCommandOverlay != null) shipCommandOverlay.detach();
         if (manualObjectives != null) manualObjectives.detach();
+        if (sidePrompt != null) sidePrompt.detach();
         // Release the decal accumulator's FBO + color texture. Without this, an
         // attach/detach cycle leaks one FBO per battle — fine for a single
         // session, ugly across a multi-mission run.
@@ -1104,6 +1110,8 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (rangeTrial != null) directControlOverlay.setExitLabelKey("armoryRangeExit");
         if (manualObjectives == null) manualObjectives = new BattleManualObjectiveOverlay();
         manualObjectives.attach(position, sim);
+        if (sidePrompt == null) sidePrompt = new BattleSidePromptOverlay();
+        sidePrompt.attach(position);
     }
 
     private void toggleSquadOrderTargeting(SquadOrderTargetingPanel.Mode mode) {
@@ -1764,6 +1772,7 @@ public class BattleScreen implements Screen, BattleUiContext {
             if (retainedOrderOverlay != null) retainedOrderOverlay.processInput(events);
             if (retainedRetreatOverlay != null) retainedRetreatOverlay.processInput(events);
         }
+        if (sidePrompt != null) sidePrompt.processInput(events);
         if (manualObjectives != null) manualObjectives.processInput(events);
         if (directControlOverlay != null) directControlOverlay.processInput(events);
         if (rangeFinished) return;
@@ -2149,6 +2158,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         if (directControlOverlay != null
                 && directControlOverlay.blocksWorldPointer(screenX, screenY)) return true;
         if (manualObjectives != null && manualObjectives.blocksWorldPointer(screenX, screenY)) return true;
+        if (sidePrompt != null && sidePrompt.blocksWorldPointer(screenX, screenY)) return true;
         if (directControlInput.active()) return false;
         return retainedOverlay != null
                 && retainedOverlay.blocksWorldPointer(screenX, screenY)
@@ -2335,6 +2345,7 @@ public class BattleScreen implements Screen, BattleUiContext {
         }
         if (!authoring) {
             if (manualObjectives != null) manualObjectives.render(alphaMult);
+            if (sidePrompt != null) sidePrompt.render(alphaMult);
             if (directControlOverlay != null) directControlOverlay.render(alphaMult);
             storySubtitles.render(alphaMult);
         }

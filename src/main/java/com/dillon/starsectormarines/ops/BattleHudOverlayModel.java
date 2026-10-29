@@ -19,6 +19,7 @@ import java.util.Collection;
 import java.util.EnumMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Set;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.function.LongConsumer;
@@ -50,6 +51,11 @@ final class BattleHudOverlayModel {
     private static final String OPTIONAL_LIST_HIDDEN = "display: none;";
     /** The Optional section's heading and each of its rows, card and gap, in document pixels. */
     static final float OPTIONAL_HEADING_HEIGHT = 29f, OPTIONAL_ROW_HEIGHT = 66f;
+    /**
+     * A mission with side objectives gives the rail less to each row ({@code mission-compact}: no steps, instruction or
+     * blocker lines, and a shorter Optional card), so the jobs fit beside the required objectives.
+     */
+    static final float COMPACT_MISSION_ROW_HEIGHT = 90f, COMPACT_OPTIONAL_ROW_HEIGHT = 68f, MISSION_ROW_HEIGHT = 174f;
     private static final String LIFT_PANEL = "lift-queue-panel";
     private static final String LIFT_PANEL_HIDDEN = "lift-queue-panel lift-queue-hidden";
     /** Rows the lift queue shows before folding the rest into a count; keeps it in its bounds. */
@@ -62,6 +68,7 @@ final class BattleHudOverlayModel {
     private final MutableSignal<String> missionScore;
     private final MutableSignal<List<MissionCard>> optionalCards;
     private final MutableSignal<String> optionalHeadingClasses;
+    private final MutableSignal<String> optionalHeading;
     private final MutableSignal<String> optionalListStyle;
     private final MutableSignal<String> pauseClasses;
     private final MutableSignal<String> normalClasses;
@@ -103,6 +110,7 @@ final class BattleHudOverlayModel {
         missionScore = reactor.signal("");
         optionalCards = reactor.signal(List.of());
         optionalHeadingClasses = reactor.signal(OPTIONAL_HEADING_HIDDEN);
+        optionalHeading = reactor.signal(Strings.get("battleHudOptionalObjectives"));
         optionalListStyle = reactor.signal(OPTIONAL_LIST_HIDDEN);
         pauseClasses = reactor.signal(TIME_CLASSES);
         normalClasses = reactor.signal(TIME_SELECTED_CLASSES);
@@ -137,6 +145,7 @@ final class BattleHudOverlayModel {
         props.put("missionScore", missionScore);
         props.put("optionalCards", optionalCards);
         props.put("optionalHeadingClasses", optionalHeadingClasses);
+        props.put("optionalHeading", optionalHeading);
         props.put("optionalListStyle", optionalListStyle);
         props.put("timeLabel", Strings.get("battleTime"));
         props.put("pauseLabel", speedLabels[0]);
@@ -267,17 +276,28 @@ final class BattleHudOverlayModel {
     }
 
     Presentation updateMission(MissionObjectiveSnapshot snapshot, Consumer<MissionObjectiveSnapshot.Marker> locate) {
+        return updateMission(snapshot, Set.of(), locate);
+    }
+
+    /** {@code far} are the ids of side objectives the company is not in reach of: not listed, only counted in the heading. */
+    Presentation updateMission(MissionObjectiveSnapshot snapshot, Set<String> far,
+                               Consumer<MissionObjectiveSnapshot.Marker> locate) {
         if (snapshot.objectives().isEmpty()) return new Presentation(false);
         objectivePanelClasses.set(OBJECTIVE_PANEL_HIDDEN);
-        missionClasses.set("mission-panel");
         var required = snapshot.required();
         var optional = snapshot.optional();
+        var listed = optional.stream().filter(i -> !far.contains(i.id())).toList();
+        boolean compact = !optional.isEmpty();
+        missionClasses.set(compact ? "mission-panel mission-compact" : "mission-panel");
         int count = Math.min(2, required.size());
-        float optionalHeight = optionalHeight(optional.size());
-        missionPanelStyle.set("height: " + (33 + count * 174 + Math.round(optionalHeight)) + "px;");
-        missionListStyle.set("height: " + (count * 174) + "px;");
+        float optionalHeight = compact ? optionalHeight(listed.size(), optional.size()) : 0f;
+        float rowHeight = compact ? COMPACT_MISSION_ROW_HEIGHT : MISSION_ROW_HEIGHT;
+        missionPanelStyle.set("height: " + (33 + Math.round(count * rowHeight) + Math.round(optionalHeight)) + "px;");
+        missionListStyle.set("height: " + Math.round(count * rowHeight) + "px;");
         // The Optional section has its own list, so it stays in view however the mission's rows scroll.
         optionalListStyle.set(optional.isEmpty() ? OPTIONAL_LIST_HIDDEN : "height: " + Math.round(optionalHeight - 6) + "px;");
+        optionalHeading.set(listed.size() == optional.size() ? Strings.get("battleHudOptionalObjectives")
+                : Strings.format("battleHudOptionalInReach", listed.size(), optional.size()));
         // Side objectives never count toward the tally.
         missionScore.set(required.stream().filter(i -> i.state() == MissionObjectiveSnapshot.State.COMPLETE).count()
                 + " / " + required.size());
@@ -285,15 +305,20 @@ final class BattleHudOverlayModel {
             if (i.focus() != null) locate.accept(i.focus());
         })).toList());
         optionalHeadingClasses.set(optional.isEmpty() ? OPTIONAL_HEADING_HIDDEN : OPTIONAL_HEADING);
-        optionalCards.set(optional.stream().map(i -> new MissionCard(i, () -> {
+        optionalCards.set(listed.stream().map(i -> new MissionCard(i, () -> {
             if (i.focus() != null) locate.accept(i.focus());
         })).toList());
-        return new Presentation(true, count, 0, optional.size());
+        return new Presentation(true, count, 0, listed.size(), optional.size());
     }
 
     /** Height, in document pixels, of the Optional section with {@code rows} rows; 0 without any. */
     static float optionalHeight(int rows) {
         return rows == 0 ? 0f : OPTIONAL_HEADING_HEIGHT + rows * OPTIONAL_ROW_HEIGHT;
+    }
+
+    /** The compact section's height with {@code rows} of {@code total} side objectives listed; 0 with none at all. */
+    static float optionalHeight(int rows, int total) {
+        return total == 0 ? 0f : OPTIONAL_HEADING_HEIGHT + rows * COMPACT_OPTIONAL_ROW_HEIGHT;
     }
 
     record MissionCard(MissionObjectiveSnapshot.Item item, Runnable locate) implements MarkupPropertySource {
@@ -554,16 +579,24 @@ final class BattleHudOverlayModel {
      *
      * @param missionRows mission objective cards on the right rail
      * @param liftRows    rows the lift queue shows on the left, 0 when it is hidden
-     * @param optionalRows side objectives in the rail's Optional section
+     * @param optionalRows side objectives listed in the rail's Optional section
+     * @param optionalTotal side objectives the mission has, listed or not; the rail runs compact when there are any
      */
-    record Presentation(boolean objectivesVisible, int missionRows, int liftRows, int optionalRows) {
-        Presentation(boolean objectivesVisible) { this(objectivesVisible, 0, 0, 0); }
+    record Presentation(boolean objectivesVisible, int missionRows, int liftRows, int optionalRows, int optionalTotal) {
+        Presentation(boolean objectivesVisible) { this(objectivesVisible, 0, 0, 0, 0); }
 
-        Presentation(boolean objectivesVisible, int missionRows) { this(objectivesVisible, missionRows, 0, 0); }
+        Presentation(boolean objectivesVisible, int missionRows) { this(objectivesVisible, missionRows, 0, 0, 0); }
 
-        Presentation(boolean objectivesVisible, int missionRows, int liftRows) { this(objectivesVisible, missionRows, liftRows, 0); }
+        Presentation(boolean objectivesVisible, int missionRows, int liftRows) { this(objectivesVisible, missionRows, liftRows, 0, 0); }
 
-        Presentation withLiftRows(int rows) { return new Presentation(objectivesVisible, missionRows, rows, optionalRows); }
+        Presentation(boolean objectivesVisible, int missionRows, int liftRows, int optionalRows) {
+            this(objectivesVisible, missionRows, liftRows, optionalRows, optionalRows);
+        }
+
+        /** Whether the rail runs compact: a mission with side objectives, listed or not. */
+        boolean compact() { return optionalTotal > 0; }
+
+        Presentation withLiftRows(int rows) { return new Presentation(objectivesVisible, missionRows, rows, optionalRows, optionalTotal); }
     }
 
     record ObjectiveChip(String id, String label, String classes)

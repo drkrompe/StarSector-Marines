@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "28",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Decoy flares launching in a rapid series: popping thumps and fizzing hissing burns, no music, no voices",
+    "duration_seconds": 2.5,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "a2bce1e587bb5a1e2fbedbfbd9851a6dcc719b67bcce24890c490573c1aac07d",
+  "durationSeconds": 2.48,
+  "peakDb": -23.2,
+  "integratedLufs": -36.9
+}

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "55",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A warship's ammunition magazine exploding: a huge deep blast with a chain of rapid secondary pops and a long rumbling tail, no music, no voices",
+    "duration_seconds": 5.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "c729cdfc648b25fade2a57c1e3520a821e7e1ca95489adb3a5bf00c1b8daab9e",
+  "durationSeconds": 5.0,
+  "peakDb": 0.0,
+  "integratedLufs": -15.9
+}

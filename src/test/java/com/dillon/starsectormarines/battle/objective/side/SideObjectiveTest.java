@@ -78,6 +78,50 @@ class SideObjectiveTest {
         assertEquals(Reading.DONE, hold.judge(field, .1f));
     }
 
+    @Test void anInteractionDoesNothingUntilAVerbIsPressedAndLapsesWhenTheCompanyLeaves() {
+        var interact = new SideTrigger.Interact(Who.COMBATANT, YARD, 5f, new SideTrigger.Hold(Who.COMBATANT, YARD, .2f),
+                SideTrigger.Interact.Layout.CARD, List.of("cut"));
+        var field = new Field().put(1, 10, 0);
+        assertEquals(Reading.IDLE, interact.judge(field, .1f), "standing on the place is not a choice");
+        assertFalse(interact.press("sell", field), "a verb the job does not have");
+        assertTrue(interact.press("cut", field));
+        assertEquals(Reading.WORKING, interact.judge(field, .1f));
+        field.put(1, 30, 30);
+        assertEquals(Reading.IDLE, interact.judge(field, .1f));
+        assertFalse(interact.engaged(), "walking away drops the choice");
+        assertFalse(interact.press("cut", field), "too far to choose");
+        field.put(1, 10, 0);
+        assertEquals(Reading.IDLE, interact.judge(field, .1f), "and coming back asks again");
+        interact.press("cut", field);
+        interact.judge(field, .1f);
+        assertEquals(Reading.DONE, interact.judge(field, .1f));
+    }
+
+    @Test void theServiceOffersAJobOnlyWhileTheCompanyIsNearAndEngagesItOnTheChoice() {
+        var service = new SideObjectiveService();
+        var interact = new SideTrigger.Interact(Who.COMBATANT, YARD, 5f, new SideTrigger.Hold(Who.COMBATANT, YARD, .2f),
+                SideTrigger.Interact.Layout.LINES, List.of("respects"));
+        service.install(new SideObjective("nod", new Hook("test", "offerer", null), interact, Window.always(), null, null, null));
+        var field = new Field().put(1, 40, 40);
+        assertTrue(service.offers(field).isEmpty(), "nobody near");
+        field.put(1, 10, 3);
+        var offers = service.offers(field);
+        assertEquals(1, offers.size());
+        assertEquals("nod", offers.get(0).key());
+        assertEquals("respects", offers.get(0).verbs().get(0).id());
+        service.tick(field, .1f, 1, null);
+        assertEquals(State.OFFERED, service.job("nod").state(), "no choice, no work");
+        service.choose("nod", "respects");
+        service.tick(field, .1f, 2, null);
+        assertEquals(State.OFFERED, service.job("nod").state(), "chosen, but nobody is on the place yet");
+        assertTrue(service.offers(field).isEmpty(), "an engaged job is no longer offered");
+        field.put(1, 10, 1);
+        service.tick(field, .1f, 3, null);
+        assertEquals(State.WORKING, service.job("nod").state());
+        service.tick(field, .2f, 4, null);
+        assertEquals(State.DONE, service.job("nod").state());
+    }
+
     @Test void carryIsPickedUpCarriedDroppedWhereItsCarrierFellAndDelivered() {
         var carry = new SideTrigger.Carry(Who.COMBATANT, new Cell(1, 1), 1.5f, YARD);
         var field = new Field().put(7, 5, 5);

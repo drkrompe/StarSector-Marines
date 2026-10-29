@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "33",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Heavy cannon rounds raking along a huge ship's hull: rapid hard metallic impacts walking along the plating, no music, no voices",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "1b0301116605c14513ac2ebc49248c911e358aec10d70c77f0c99ed0ee690a9c",
+  "durationSeconds": 3.0,
+  "peakDb": -0.8,
+  "integratedLufs": -20.3
+}

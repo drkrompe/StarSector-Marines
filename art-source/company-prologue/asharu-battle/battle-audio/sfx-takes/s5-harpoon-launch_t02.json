@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "33",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A salvo of guided missiles launching in quick succession: sharp rocket motor ignitions with hissing crackling trails streaking away, no music, no voices",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "bef6f0fbc246a89d6ac4f58eaaac254e5e9f45e1ab6c35fb908db02acb34b112",
+  "durationSeconds": 3.0,
+  "peakDb": 0.0,
+  "integratedLufs": -6.3
+}

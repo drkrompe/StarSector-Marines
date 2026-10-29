@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "33",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Muffled breaching charge blasts and gunfire inside a ship's corridors, shouting impossible to make out",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.6,
+    "loop": true
+  },
+  "audioSha256": "90436901067c899c3e571ea7a8c79bff6f17a8ec2968714bddb4852849820ec8",
+  "durationSeconds": 3.0,
+  "peakDb": -10.3,
+  "integratedLufs": -19.5
+}

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "33",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A ship's engines blowing apart: a heavy explosion followed by the engine roar sputtering and dying into crackling fire, no music, no voices",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "e694a732b0f35603753e148e301ba93d9234b9a237ce820b2f874561343272ca",
+  "durationSeconds": 3.0,
+  "peakDb": 0.0,
+  "integratedLufs": -2.6
+}

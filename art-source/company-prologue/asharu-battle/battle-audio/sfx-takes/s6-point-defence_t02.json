@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "44",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Rapid point-defence machine guns firing long bursts: fast mechanical chattering gunfire from several turrets at once, no music, no voices",
+    "duration_seconds": 4.0,
+    "prompt_influence": 0.6,
+    "loop": true
+  },
+  "audioSha256": "ad77593f8069c8571e1ce0b15f18196f759377ded4d68ccbd2415543fc72b0f4",
+  "durationSeconds": 4.0,
+  "peakDb": 0.0,
+  "integratedLufs": -10.4
+}

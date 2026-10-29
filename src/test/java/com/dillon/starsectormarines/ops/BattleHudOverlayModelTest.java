@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -70,6 +71,28 @@ class BattleHudOverlayModelTest {
             assertTrue(fill.box().borderBox().width() > 0f);
             assertTrue(fill.box().borderBox().width() < track.box().borderBox().width());
         }
+    }
+
+    @Test
+    void aMissionWithSideObjectivesRunsCompactAndListsOnlyTheJobsInReach() {
+        var near = new MissionObjectiveSnapshot.Item("side-feed", "Feed", MissionObjectiveSnapshot.State.ACTIVE, "", "", "", "", -1f, "",
+                List.of(), "", true);
+        var far = new MissionObjectiveSnapshot.Item("side-warden", "Warden", MissionObjectiveSnapshot.State.ACTIVE, "", "", "", "", -1f, "",
+                List.of(), "", true);
+        var raid = new MissionObjectiveSnapshot.Item("raid", "Raid", MissionObjectiveSnapshot.State.ACTIVE, "", "", "", "", -1f, "",
+                List.of(), "");
+        var model = new BattleHudOverlayModel(new Reactor(), speed -> { }, "Pause", "1x", "2x", "4x");
+        model.updateProjected(1, List.of());
+        var snapshot = new MissionObjectiveSnapshot(List.of(raid, near, far), List.of());
+        var all = model.updateMission(snapshot, Set.of(), ignored -> { });
+        var reach = model.updateMission(snapshot, Set.of("side-warden"), ignored -> { });
+        assertTrue(reach.compact());
+        assertEquals(2, all.optionalRows());
+        assertEquals(1, reach.optionalRows());
+        assertEquals(2, reach.optionalTotal(), "the heading still counts the jobs left off");
+        assertTrue(BattleHudOverlay.documentHeight(reach) < BattleHudOverlay.documentHeight(all));
+        var plain = model.updateMission(new MissionObjectiveSnapshot(List.of(raid), List.of()), ignored -> { });
+        assertFalse(plain.compact(), "a mission with no side objectives keeps its full rows");
     }
 
     @Test

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "33",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "An urgent military cockpit missile warning alarm: fast repeating high electronic beeps, harsh and insistent, no music, no voices",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.7,
+    "loop": true
+  },
+  "audioSha256": "d7913339a69ce39aff9d03d4f09a25507de034cad6b15e6030a688c8037f8d46",
+  "durationSeconds": 3.0,
+  "peakDb": -0.0,
+  "integratedLufs": -6.0
+}

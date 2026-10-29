@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "33",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A small warship breaking apart: a sharp explosion with metal shrieking and tearing and debris scattering, no music, no voices",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "2c6cb36a683554c915465074c8093662c9fd6503027f53fc9a7e7cc6de97a4ad",
+  "durationSeconds": 3.0,
+  "peakDb": 0.0,
+  "integratedLufs": -6.3
+}
