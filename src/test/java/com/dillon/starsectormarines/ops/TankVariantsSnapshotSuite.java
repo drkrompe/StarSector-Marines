@@ -33,6 +33,7 @@ import com.dillon.starsectormarines.tools.snapshot.SnapshotSuite;
 
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Set;
 
@@ -56,6 +57,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         DiskRegistries.installMapGeneration(context.projectRoot());
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         lineup(context, artifacts);
+        laserLineup(context, artifacts);
         lances(context, artifacts);
         battle(context, artifacts);
         return List.copyOf(artifacts);
@@ -94,6 +96,46 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                             + " | 1920 x 1080, UI 100%", labels.build())));
             artifacts.add(new SnapshotArtifact("lineup-battle-scale.png", renderer.refocus(32, 19.5f, 60).render(sim,
                     "Tank variants | battle-scale camera, 60 cells across | 1920 x 1080, UI 100%", labels.build())));
+        }
+    }
+
+    /** The laser tank with each laser of the ladder installed as its turret, as the game draws it, labelled. */
+    private static final List<MechWeaponComponent> LASER_LINE = Arrays.asList(null,
+            MechWeaponComponent.BURST_LASER, MechWeaponComponent.HEAVY_PD_LASER, null,
+            MechWeaponComponent.MEDIUM_BURST_LASER, MechWeaponComponent.PD_LASER,
+            MechWeaponComponent.LIGHT_BURST_LASER, MechWeaponComponent.LIGHT_PULSE_LASER);
+    private static final List<String> LASER_NAMES = List.of(
+            "NO PART: the hull's own burst laser turret", "HEAVY BURST LASER 3x2: white head",
+            "HEAVY PD LASER 3x2: red head", "",
+            "BURST LASER 2x2", "PD LASER 2x2", "LIGHT BURST LASER 1x2", "LIGHT PD LASER 1x2");
+
+    /** Two rows of laser tanks, the first row the three heads and the second the four lighter parts, guns posed forward. */
+    private static void laserLineup(SnapshotContext context, List<SnapshotArtifact> artifacts) throws Exception {
+        try (BattleSimulation sim = scene(48, 30)) {
+            sim.setMissionCompletionEnabled(false);
+            ReviewAnnotations.Builder labels = ReviewAnnotations.builder();
+            List<float[]> places = new ArrayList<>();
+            List<Long> tanks = new ArrayList<>();
+            for (int i = 0; i < LASER_LINE.size(); i++) {
+                if (LASER_NAMES.get(i).isEmpty()) continue;
+                float x = 10 + 6.5f * (i % 4);
+                float y = i < 4 ? 17 : 9;
+                places.add(new float[] {x, y});
+                tanks.add(spawnFitted(sim, VehicleType.LASER_TANK, LASER_LINE.get(i), x, y, 90, 90));
+                labels.label(x, y - 2.5f, LASER_NAMES.get(i), ReviewStyle.NOTE);
+            }
+            long dummy = spawn(sim, VehicleType.CARGO_CARRIER, Faction.DEFENDER, 46, 28, 90, 0);
+            for (int tick = 0; tick < 60; tick++) sim.advance(BattleSimulation.TICK_DT);
+            for (int i = 0; i < tanks.size(); i++) {
+                sim.convoy().body(tanks.get(i)).teleport(places.get(i)[0], places.get(i)[1], 90);
+                sim.convoy().turret(tanks.get(i)).facingDeg = 90;
+            }
+            sim.convoy().body(dummy).teleport(46, 28, 90);
+            BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
+                    context.modRoot(), 1920, 1080, 19.75f, 12.8f, 26.5f);
+            artifacts.add(new SnapshotArtifact("laser-lineup.png", renderer.render(sim,
+                    "Laser tank turrets | every laser of the ladder installed in the gun card as the game draws it"
+                            + " | 1920 x 1080, UI 100%", labels.build())));
         }
     }
 
