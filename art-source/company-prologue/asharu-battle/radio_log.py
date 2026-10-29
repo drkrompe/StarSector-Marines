@@ -98,7 +98,7 @@ TRAFFIC = [
     ('S8', 'CARAVEL', 88.4, 92.6, 'Taking fire on the port pod! Morrow, keep pressure with the '
                                   'drones!', False),
     ('S9', 'MORROW', 91.6, 93.59, 'Under you. Borers are out —', False),
-    ('S9', 'CARAVEL', 93.4, 96.32, 'Flares, flares! Missiles on the pod —', False),
+    ('S9', 'CARAVEL', 93.4, 96.08, "Hits on the port pod! Drive's failing —", False),
     ('S9', 'CARAVEL', 96.47, 99.21, "Pod's gone! Turrets on that freighter!", False),
     ('S9', 'MORROW', 96.6, 99.01, "Destroyer's venting — she's breaking off!", False),
     ('S9', 'CARAVEL', 99.36, 102.34, "She's putting out grapples. Keep the turrets on her!", False),
