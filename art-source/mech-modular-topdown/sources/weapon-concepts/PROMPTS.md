@@ -319,3 +319,15 @@ equipment" wording that clears the safety filter, and registered in `build_asset
 `derive_faction_weapons.py` at its own aspect (drawn at true proportions rather than stretched). Both use the
 strict-zenith prompt block of `README.md` with red-orange lamps. The full prompt and references of each generation
 are in the `.provenance.json` beside it.
+
+# Laser look, round 2 (white electronics and a glass orb lens)
+
+Generated through `tools/codex_imagegen.py` on 2026-10-29 after the owner redirected the laser parts
+(`vehicle-card-sizes.md`): every laser has a glass blue orb lens at the front and futuristic white electronics built
+into the arm, in three strengths (3x2 bulky, 2x2 and 1x2 progressively miniaturized), with the PD laser carrying a
+slight red motif and the burst laser clean mono white and blue. Two options each of the 3x2 burst and PD laser
+(`laser-look/`) went to the picks page; the 2x2 and 1x2 follow the pick. Reference roles: the white (burst) or red (PD)
+laser tank turret head (`art-source/vehicles/tank-laser/pd-skin-tt-raw.png`, `pd-skin-red-raw.png`) for the lens and
+white-electronics language only, and the earlier olive burst laser for footprint and finish. The orb is a true sphere, so
+it is drawn as a round glass dome from above (unlike the older weapons, whose muzzles face away from the camera). The
+full prompt and references of each generation are in the `.provenance.json` beside it.
