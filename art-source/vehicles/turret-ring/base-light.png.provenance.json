@@ -1,0 +1,45 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a18828-4188-7e60-9007-7c107039ffcf",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a18828-4188-7e60-9007-7c107039ffcf\\exec-0e81b51c-99ea-41f2-bad6-775a2ea3b4e5.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\turret-ring\\base-light.png",
+    "sha256": "f407fd114e9ea627e9a72c96165f3595d853ada2cd11aa204f5b9396638ee87b",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\7d94e03d-844c-4d9f-ae8f-f73961fb427d\\scratchpad\\lp\\tr\\base-light.txt",
+  "promptSha256": "fbe3feb502a6e912038a46a3adab2d6430f971a42dd6427358cb4f4aeb1395ac",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Image 1: style authority\n\nImage 1 is the style authority: the white laser turret head of a ground vehicle, a circular domed shell. Keep its language: round white ceramic shell, graphite trim, a cool cyan light.\nUse case: stylized-concept\nAsset type: production-source concept for a top-down tactical-game sprite: a LIGHT TURRET BASE, the small round housing a light laser is mounted in, with no gun.\nPrimary request: a small, simple circular turret housing seen from above, about half the width of Image 1 and plainer: a smooth domed white ceramic shell with a thin graphite collar ring, a single cyan light and few seams, with a short flat gun port notch at the top (north) with a dark recessed cradle. Nothing sits in the port: no barrel, no gun, no lens. Symmetrical left to right.\nAvoid: any gun, barrel, lens, blue orb, olive-drab paint, red, perspective, side view, text.\n\nTrue isolation: exactly one object centred in a square canvas on a flat featureless pure white plate (no gradient, shadow, halo, ground, border, text or labels); the object fills about 90 percent of the canvas. Strict 90-degree zenith orthographic top-down view, lighting from the upper left, crisp painted game-sprite finish with fine surface noise, panel seams, fasteners and restrained wear, like Image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\pd-skin-tt-raw.png",
+      "sha256": "31a6ba9d1d09a68ff6e1d2a861638f705262b43d706d0fa825100c3dff1a03fe",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Image 1: style authority"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one turret base using the reference’s white ceramic, graphite trim, and cyan light."
+  ],
+  "usage": {
+    "input_tokens": 41104,
+    "cached_input_tokens": 32896,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 396,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.9
+}

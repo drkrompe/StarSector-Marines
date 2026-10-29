@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a18828-41ca-7f33-ab8b-6d10176a74fc",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a18828-41ca-7f33-ab8b-6d10176a74fc\\exec-88e4eced-cc3a-4aac-a94f-f249f5f8a284.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\turret-ring\\base-medium.png",
+    "sha256": "1d584a4f22a11467045564d1bc0baf4676b6bdca47fe8b3853eff8cd9506ca3d",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\7d94e03d-844c-4d9f-ae8f-f73961fb427d\\scratchpad\\lp\\tr\\base-medium.txt",
+  "promptSha256": "873de26ad0bef375debef999ab209928fcdb86438b23461c0284b7f45087a417",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Image 1: style authority\nImage 2: Image 2: scale only\n\nImage 1 is the style authority: the white laser turret head of a ground vehicle, a circular domed shell. Keep its language: a round white ceramic shell with panel seams, graphite trim and a cool cyan light. Image 2 is a scale reference only.\nUse case: stylized-concept\nAsset type: production-source concept for a top-down tactical-game sprite: a MEDIUM TURRET BASE, the round housing a laser gun is mounted in, with no gun.\nPrimary request: a compact circular turret housing seen from above, about two thirds the width of Image 1: a smooth domed white ceramic shell with a graphite collar ring at its edge, two small sensor blocks on its sides, panel seams and a cyan light, and at the top (north) a short flat gun port, a squared notch with a dark recessed cradle where a gun barrel exits. The centre of the dome has a flat seat where the gun's rear mount sits. Nothing sits in the port: no barrel, no gun, no lens. Symmetrical left to right.\nAvoid: any gun, barrel, lens, blue orb, olive-drab paint, red, perspective, side view, text.\n\nTrue isolation: exactly one object centred in a square canvas on a flat featureless pure white plate (no gradient, shadow, halo, ground, border, text or labels); the object fills about 90 percent of the canvas. Strict 90-degree zenith orthographic top-down view, lighting from the upper left, crisp painted game-sprite finish with fine surface noise, panel seams, fasteners and restrained wear, like Image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\pd-skin-tt-raw.png",
+      "sha256": "31a6ba9d1d09a68ff6e1d2a861638f705262b43d706d0fa825100c3dff1a03fe",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Image 1: style authority"
+    },
+    {
+      "path": "mod\\graphics\\battle\\vehicles\\gun-mount.png",
+      "sha256": "3dcd0eafcad11bf2c05561c46af2ccdbde557633bd36c5e64b7784bd11f0b8c2",
+      "dimensions": [
+        256,
+        256
+      ],
+      "mode": "RGBA",
+      "role": "Image 2: scale only"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one turret-base concept using Image 1’s white ceramic, graphite, and cyan styling."
+  ],
+  "usage": {
+    "input_tokens": 41494,
+    "cached_input_tokens": 33024,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 421,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 51.9
+}

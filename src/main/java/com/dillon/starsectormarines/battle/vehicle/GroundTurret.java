@@ -197,8 +197,14 @@ public final class GroundTurret {
      * never traverses, and the hull reads as unarmed to every threat and engagement question.
      */
     public boolean destroyed() {
-        return section != null && section.destroyed();
+        return removed || (section != null && section.destroyed());
     }
+
+    /**
+     * Whether no head is fitted: a modular hull's gun card is empty ({@link VehicleType#hasModularTurret}), so the ring
+     * stands bare. It reads as a shot-away gun to the rest of the simulation, and is drawn as the bare ring.
+     */
+    public boolean removed;
 
     /** Releases queued work without refunding ammunition or resetting the fire clock. */
     public void clearQueuedFire() {

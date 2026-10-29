@@ -1485,9 +1485,9 @@ carries is the PD family of laser parts, and the laser tank's own gun is the bur
 `BURST_LASER`), fitted to the laser tank's red three-row gun card like any mech weapon (`vehicle-card-sizes.md`,
 `mechs-nouns.md`). A laser tank with the heavy PD laser fitted wears the red turret head the PD laser tank carried, and is
 what the PD laser tank was: a steady lance, fourteen pulses at a time, that runs cool and trades longer where the heavy
-burst laser, in the white head, trades harder. The lighter parts are drawn as their own mech drawings on the mount ring.
+burst laser, in the white head, trades harder. The lighter parts are drawn short, as turrets, each in a round base on the ring's collar with its muzzle just past the ring.
 Everything above about reach, the air and carrying no blast holds for
-both. The hull's own gun, with no part fitted, is still the burst laser turret (the white head).
+both. The laser tank has no default turret head (owner, 2026-10-29): with no part fitted it shows its bare machinery turret ring and has no gun, and a spawn that names no part (a scene, a mission) fits the heavy burst laser (`VehicleType.standardPart`).
 
 **A laser's lance is drawn as the space game draws a beam.** A turret weapon with no
 projectile art that authors a beam (`WeaponDef.hitscanBeam`) is a hitscan beam, as a

@@ -59,8 +59,19 @@ heavy burst (`BURST_LASER`); the constants keep the names they shipped under, so
 parts are nose guns only (the centreline mount), like the heavy cannon, and are Prestige; the others fit any arm. One
 white finish for every faction (no livery mask). On a laser tank the 3x2 laser wears the turret head the hull had before:
 the heavy burst laser the white head, the heavy PD laser the red head the PD laser tank carried (`MechWeaponComponent.tankHead`,
-the red head's frames on the laser tank's sheet, fired from the head's lens); the lighter lasers are drawn as their own
-mech drawings on the mount ring, which is a darker olive than they are. The stats are first proposals for the balance pass.
+the red head's frames on the laser tank's sheet, fired from the head's lens). The stats are first proposals for the balance pass.
+
+**A turret is modular, and a turret is not an arm** (owner, 2026-10-29). There is no default turret head for a hull
+that takes parts: the laser tank's gun card is the only thing that gives it a turret. A modular hull (`VehicleType.hasModularTurret`,
+the laser tank so far; every other hull still carries the gun its sheet was drawn with) always shows an exposed
+machinery ring (`gun-mount.png`) with a collar that turns inside it (`turret-collar.png`), so the player sees the
+head driven. A hull with no part fitted has the ring bare and no gun (`GroundTurret.removed`, which reads as a shot-away
+gun); content that fields a laser tank by name gets `VehicleType.standardPart` (the heavy burst laser) instead.
+The heavy lasers are the old white and red heads on the ring. The lighter lasers (3x2 aside) are drawn short, a turret
+and not a mech arm: each stands in a round turret base on the collar (`turret-base-medium.png` for two rows,
+`turret-base-light.png` for one) with its muzzle only just past the ring (`VehicleGun.lengthCells`, `baseCells`). The
+mech arm drawing is a different style from the vehicle turret and is not reused at arm length on a hull. Art:
+`art-source/vehicles/turret-ring/`; the lineup is the `tank-variants` suite's `laser-lineup*`.
 
 Slice 2 shipped the laser tanks' guns as parts (since redrawn and extended to the ladder above): the burst laser (an energy arm gun of two columns by three rows, centreline only
 like the heavy cannon, Prestige) and the PD laser (two by two, Advanced) are red weapon parts that fill
@@ -84,14 +95,13 @@ selectors share numbers, so a new part is keyed by its mount family as well as i
 of the story: roughly one new weapon drawing per light weapon (a light MG, a light rocket pod, a light pulse laser),
 plus the burst laser and the PD laser, each a mech arm or shoulder piece first and a vehicle gun second, drawn
 by the geometry-first ImageGen method (`geometry-first-imagegen.md`) from the existing weapon concepts. The tank's
-own burst-laser and PD-laser turret art stays as the hull's stock look until a hull carries the part.
+own burst-laser and PD-laser turret heads stay as the 3x2 laser's look on a hull.
 
 ## Not decided
 
-- Whether the laser tank should ship with the burst laser part fitted, rather than the card empty (decided for
-  now: empty, the hull's own gun the burst laser turret, which keeps the stock gun out of the Store).
-- Whether the lighter lasers on a tank should sit on a ring painted to match them, or the ring should follow the hull
-  (the olive ring is the mount every fitted part stands on).
+- Which other hulls become modular turrets (mortar carrier, breakthrough, screened): each needs its own ring and bare
+  state; today only the laser tank is, and other fitted parts stand on the machinery ring.
+- Whether the heavy lasers' old domed heads should gain the blue orb lens the lighter ones have.
 - Whether the white lasers should take faction colour on a trim line; they have one finish for every faction.
 - A campaign vehicle saved as a `PD_LASER_TANK` no longer loads: the constant is deleted, with no migration.
 - The footprints and stats of the light weapons, which belong to a balance pass against `armorMatchup` and

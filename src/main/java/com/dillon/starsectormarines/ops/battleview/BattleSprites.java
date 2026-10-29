@@ -151,6 +151,9 @@ public class BattleSprites {
             new java.util.EnumMap<>(Faction.class);
     private boolean layeredMechSpritesLoadAttempted;
     private LayeredSpriteCache vehicleGunMount;
+    private LayeredSpriteCache vehicleTurretCollar;
+    private LayeredSpriteCache vehicleTurretBase;
+    private LayeredSpriteCache vehicleTurretBaseLight;
 
     // ---- vehicle sheets -----------------------------------------------------
 
@@ -282,6 +285,10 @@ public class BattleSprites {
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
     /** The turret mount ring a vehicle's fitted weapon stands on; null when the art did not load. */
     public LayeredSpriteCache vehicleGunMount() { return vehicleGunMount; }
+    /** The collar that turns with a modular turret inside its ring; null when the art did not load. */
+    public LayeredSpriteCache vehicleTurretCollar() { return vehicleTurretCollar; }
+    /** The round base a laser stands in on a modular turret: two rows or more, one row. Null when the art did not load. */
+    public LayeredSpriteCache vehicleTurretBase(boolean light) { return light ? vehicleTurretBaseLight : vehicleTurretBase; }
     /** Pools under fallen layered bodies; empty when the art did not load. */
     public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
 
@@ -1341,6 +1348,9 @@ public class BattleSprites {
                 mediumBurstLaser, lightBurstLaser, flash);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
         vehicleGunMount = loadLayeredSprite("graphics/battle/vehicles/gun-mount.png");
+        vehicleTurretCollar = loadLayeredSprite("graphics/battle/vehicles/turret-collar.png");
+        vehicleTurretBase = loadLayeredSprite("graphics/battle/vehicles/turret-base-medium.png");
+        vehicleTurretBaseLight = loadLayeredSprite("graphics/battle/vehicles/turret-base-light.png");
         mechBase = new MechBase(socketedChassis, foot, thighBone, flash);
     }
 
