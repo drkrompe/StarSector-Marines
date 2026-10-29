@@ -67,6 +67,12 @@ WEAPONS = (
            "quarry-breaker-cannon.png", (72, 124)),
     Weapon("weapon-concepts/pioneer-rocket-cradle.png", "pioneer-rocket-cradle.png",
            "pioneer-rocket-cradle.png", (76, 112)),
+    Weapon("weapon-concepts/light-machine-gun.png", "light-machine-gun.png",
+           "light-machine-gun.png", (34, 88)),
+    Weapon("weapon-concepts/light-rocket-pod.png", "light-rocket-pod.png",
+           "light-rocket-pod.png", (29, 70)),
+    Weapon("weapon-concepts/light-pulse-laser.png", "light-pulse-laser.png",
+           "light-pulse-laser.png", (28, 88)),
 )
 
 CHASSIS = ("chassis.png", "chassis-hound.png", "chassis-warden.png")

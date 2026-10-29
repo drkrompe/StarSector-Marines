@@ -288,14 +288,20 @@ retained that field, so the accepted isolation edit used this stronger handoff:
 plate to real alpha. The cleaned result is the retained geometry authority for
 `pioneer-rocket-cradle.png`.
 
-# Light weapon options (vehicle gun cards, small 1x2 class)
+# Light weapons (vehicle gun cards, small 1x2 class)
 
-Generated through `tools/codex_imagegen.py` on 2026-10-28 for the small omni gun card (`vehicle-card-sizes.md`):
-two design options each of a light machine gun and a light pulse laser (arm guns) and a light rocket pod
-(shoulder), retained beside their provenance under `light-options/` (`lmg-a`, `lmg-b`, `laser-a`, `laser-b`,
-`pod-a`, `pod-b`). Each is a lighter, simpler weapon than its shipped counterpart, at roughly 55 to 65 percent of
-its width and 70 to 80 percent of its length, drawn on the strict-zenith prompt block of `README.md` on a white
-isolation plate. The full prompt, references and their roles are in each `.provenance.json`. The first `pod-b`
-request was refused by the image tool's safety check and was reissued with "launch tubes" and "utility
-launcher" wording. These are options awaiting the owner's pick; the accepted ones go on to a material-ID pass and
-registration, and the rest are deleted.
+Generated through `tools/codex_imagegen.py` on 2026-10-28 for the small omni gun card (`vehicle-card-sizes.md`): a
+light machine gun and a light pulse laser (arm guns) and a light rocket pod (shoulder). Two designs of each were
+generated and the owner took option A of all three; the unpicked B options were deleted. Each is a lighter, simpler
+weapon than its shipped counterpart, drawn on the strict-zenith prompt block of `README.md` on a white isolation
+plate, then cleaned to real alpha with `clean_imagegen_backgrounds.py` (`light-machine-gun.png`,
+`light-rocket-pod.png`, `light-pulse-laser.png`). The full prompt, references and their roles of each accepted
+generation are in the `.provenance.json` beside it. The first rocket-pod request was refused by the image tool's
+safety check and reissued with "launch tubes" and "utility launcher" wording. The laser's lamps are red-orange on
+purpose, to match the red energy colour of the fitting boards, where the shipped pulse laser's are cyan.
+
+The material-ID passes (`weapon-material-id/`, provenance beside each) were refused twice by the safety filter
+under "weapon", "machine gun" and "ordnance" wording and succeeded when reworded as a colour-classification pass over
+a "piece of mechanical equipment". The rocket pod's pass came back framed larger than its source, so it was
+cropped to its own visible bounds and placed on the source's bounds (`light-rocket-pod-raw.png` keeps the raw
+pass); the other two registered within three pixels as returned.

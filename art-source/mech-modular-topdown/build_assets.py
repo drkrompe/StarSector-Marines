@@ -162,6 +162,14 @@ def main() -> None:
               "quarry-breaker-cannon.png", (72, 124))
     normalize("weapon-concepts/pioneer-rocket-cradle.png",
               "pioneer-rocket-cradle.png", (76, 112))
+    # The light weapons: one-row parts for the small gun card, drawn at 70 to 80 percent of the length of the
+    # two-row weapon of their colour (vehicle-card-sizes.md).
+    normalize("weapon-concepts/light-machine-gun.png",
+              "light-machine-gun.png", (34, 88))
+    normalize("weapon-concepts/light-rocket-pod.png",
+              "light-rocket-pod.png", (29, 70))
+    normalize("weapon-concepts/light-pulse-laser.png",
+              "light-pulse-laser.png", (28, 88))
     build_faction_weapons()
     preview("idle.png", moving=False, firing=False)
     preview("moving-and-firing.png", moving=True, firing=True)
