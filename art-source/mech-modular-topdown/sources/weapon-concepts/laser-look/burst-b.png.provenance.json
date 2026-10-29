@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a187e1-ce30-7652-80ea-ee712155e02c",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a187e1-ce30-7652-80ea-ee712155e02c\\exec-364bba93-686b-47d5-930c-3e5927b7b905.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\weapon-concepts\\laser-look\\burst-b.png",
+    "sha256": "4f20e5d06b5569c6821c7ca305099cd817d5cbe7ce0dd19a0da68811ce8f415b",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\7d94e03d-844c-4d9f-ae8f-f73961fb427d\\scratchpad\\lp\\ll\\burst-b.txt",
+  "promptSha256": "3898d5a480ec4178c7cd84044e335e9bb8201e05537d849b526728ff98d6afbe",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Image 1: lens and white-electronics identity only; not layout\nImage 2: Image 2: footprint, orientation and finish only; not design or colour\n\nImage 1 is the identity reference only: the laser turret head this weapon family comes from, a glass lens dome inside white electronics. Take its lens, white ceramic panels and graphite parts as the language; do not copy its round turret outline. Image 2 is a footprint and finish reference only: an older heavy arm laser module, for scale, orientation and sprite density; do not copy its design or its olive colour.\nUse case: stylized-concept\nAsset type: production-source concept for one modular top-down tactical-game mech ARM weapon sprite\nPrimary request: the largest BURST laser for a mech: a large bulky arm cannon where the electronics are built into the arm itself. A glass orb lens (clear glass sphere, deep blue interior) sits at the north tip, seated in a short smooth white barrel sleeve; behind it two long parallel white capacitor cylinders either side of a central graphite spine, stepped armoured white housings with small blue status lights, and a stacked cooling-plate block at the rear. A clean mono colour scheme: white and light grey with graphite and blue only, no red.\nCritical perspective: strict 90-degree zenith orthographic top-down view of a weapon module, the camera looking straight down at its top surfaces, the weapon pointing toward the NORTH/TOP edge of the canvas. The glass orb lens at the north tip is a true sphere, so from above it reads as a round glass dome with a bright specular highlight and a deep blue interior; that round lens is expected and wanted. Everything else is flat top surfaces seen from directly above.\nStyle/medium: crisp high-resolution painted game sprite matching Image 2's finish: fine surface noise, panel seams, fasteners, restrained wear, upper-left baked object lighting. Futuristic clean white ceramic-composite electronics, light grey and graphite secondary parts, small cool indicator lights.\nComposition/framing: exactly one isolated vertical module centred with generous padding on a flat featureless pure white isolation plate (no gradient, shadow, halo, floor, border or checkerboard). Symmetrical enough to mirror to either side, with a short rear mounting plate that disappears beneath a mech chassis. Bulky: about 1.9 to 2.2 times as long as it is wide.\nAvoid: side view, perspective, isometric, multiple objects, hands, mech body, vehicle, turret base, olive-drab paint, rifle stock, text, logo, watermark, cropping.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\tank-laser\\pd-skin-tt-raw.png",
+      "sha256": "31a6ba9d1d09a68ff6e1d2a861638f705262b43d706d0fa825100c3dff1a03fe",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Image 1: lens and white-electronics identity only; not layout"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\weapon-concepts\\burst-laser.png",
+      "sha256": "ce333194a5bd0eb4f453c28aa105699ec685d0c5ede6de9e8a1593ee388082f9",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Image 2: footprint, orientation and finish only; not design or colour"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the lens identity, bulky arm-module proportions, and strict top-down view you specified."
+  ],
+  "usage": {
+    "input_tokens": 112404,
+    "cached_input_tokens": 101504,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 807,
+    "reasoning_output_tokens": 38
+  },
+  "elapsedSeconds": 61.5
+}

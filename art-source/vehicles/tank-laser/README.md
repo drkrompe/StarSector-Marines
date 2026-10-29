@@ -67,3 +67,11 @@ capacitor pack's footprint (`hull-prompt-pd.txt`): worn gunmetal, red lamps, red
 hazard trim. `hull-wreck-pd-raw.png` wrecks it (`hull-wreck-pd-prompt.txt`), and
 `pd-skin-tt-wreck-raw.png` wrecks the `tt` turret (`pd-skin-tt-wreck-prompt.txt`).
 The third skin (red collar on white) was not kept and is deleted.
+
+## The red head on the laser tank's sheet (2026-10-29)
+
+`army-tank-laser.png` is eight frames: the five above, then the red skin's live, wreck and firing turret (frames 5, 6
+and 7, the PD laser tank's own, packed by `registration.json` from `pd-skin-red-raw.png`, `-wreck-raw.png` and
+`-open-raw.png`). A laser tank with the PD laser part fitted draws them in place of the white head
+(`MechWeaponComponent.tankHead`, `VehicleType.headFrame`); with the burst laser part fitted or none, it draws the white
+head. Both fire from the head's lens, 0.625 cells forward, whichever part is fitted.

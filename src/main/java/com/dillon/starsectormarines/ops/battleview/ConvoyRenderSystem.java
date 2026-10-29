@@ -120,6 +120,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 if (!wrecked && type.turretFiringFrame() >= 0 && turret != null && engaged(turret)) {
                     turretFrame = type.turretFiringFrame();
                 }
+                if (turret != null) turretFrame = type.headFrame(turret.weapon, turretFrame);
                 SpriteSheetFrames.Frame tf = frames.frames[turretFrame];
                 float turretAspect = (float) tf.w / (float) tf.h;
                 float tDrawLong = type.turretVisualCells * cellPx;

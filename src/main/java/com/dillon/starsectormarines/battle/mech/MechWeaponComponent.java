@@ -182,6 +182,23 @@ public enum MechWeaponComponent {
             default -> false;
         };
     }
+
+    /** The turret head a heavy hull draws for a weapon of this family in its gun card, instead of the weapon's own drawing. */
+    public enum TankHead { NONE, WHITE, RED }
+
+    /**
+     * The laser tank's turret head this weapon wears when fitted to a hull that carries one ({@code VehicleType.headFrame}):
+     * the burst laser the white head the laser tank has always carried, the PD laser the red head the PD laser tank
+     * carried. Every other weapon is drawn as its own drawing on the mount ring.
+     */
+    public TankHead tankHead() {
+        return switch (this) {
+            case BURST_LASER -> TankHead.WHITE;
+            case PD_LASER -> TankHead.RED;
+            default -> TankHead.NONE;
+        };
+    }
+
     public enum HardpointType { BALLISTIC, ENERGY, MISSILE }
 
     public final String id;

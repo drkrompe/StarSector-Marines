@@ -38,8 +38,12 @@ public final class VehicleGun {
         return type.visualWidthCells * HULL_WIDTHS_PER_MECH_WIDTH;
     }
 
-    /** {@code weapon}'s length on {@code type}, rear pivot to muzzle, in cells; zero for a weapon with no drawing. */
+    /**
+     * {@code weapon}'s length on {@code type}, rear pivot to muzzle, in cells; zero for a weapon with no drawing of its
+     * own on the hull, which fires from the hull's turret head ({@link VehicleType#wearsHeadOf}).
+     */
     public static float lengthCells(VehicleType type, MechWeaponComponent weapon) {
+        if (type.wearsHeadOf(weapon)) return 0f;
         return MechHardpointGeometry.barrelHullWidths(weapon) * cellsPerMechWidth(type);
     }
 

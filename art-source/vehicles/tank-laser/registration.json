@@ -1,5 +1,5 @@
 {
- "outputSize": [3840, 768],
+ "outputSize": [6144, 768],
  "turretCells": 1.6,
  "turretBodyCells": 1.25,
  "frames": [
@@ -12,6 +12,12 @@
   {"role": "turret", "source": "pd-skin-tt-wreck-raw.png",
    "note": "Wreck turret, edited from the live skin; the fit takes out any scale ImageGen drifted to."},
   {"role": "turret", "source": "pd-skin-tt-open-raw.png",
-   "note": "Firing turret: the same skin with the dome's shutter open on its lens (VehicleType.turretFiringFrame)."}
+   "note": "Firing turret: the same skin with the dome's shutter open on its lens (VehicleType.turretFiringFrame)."},
+  {"role": "turret", "source": "pd-skin-red-raw.png",
+   "note": "Red head, live: the vanilla-red PD laser turret the PD laser tank carried, for a PD laser part fitted to this hull (MechWeaponComponent.TankHead.RED, VehicleType.headFrame)."},
+  {"role": "turret", "source": "pd-skin-red-wreck-raw.png",
+   "note": "Red head, wreck."},
+  {"role": "turret", "source": "pd-skin-red-open-raw.png",
+   "note": "Red head, firing: the shutter open on its lens."}
  ]
 }
