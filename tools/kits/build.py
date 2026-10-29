@@ -170,19 +170,42 @@ def main():
             "thrown": e["activation"]["type"] in ("arc-explosive", "utility-smoke", "utility-satchel"),
         })
 
+    armor_doc = load(MOD / "data/marines/marine-armor-catalog.armor.json")
+    effect_icon = {"breacher-assist": "graphics/ui/armory/system-breach-assist.png",
+                   "field-aid": "graphics/ui/armory/system-field-aid.png"}
+    for icon in effect_icon.values():
+        images[icon] = image(icon)
+    systems = {}
+
+    def add_system(sd):
+        if sd["id"] in systems:
+            return
+        if sd["effect"] == "breacher-assist":
+            stats = "arc %g° · soak %g · %gs window / %gs recovery · shove x%g" % (
+                sd["shieldedArcDegrees"], sd["screenSoak"], sd["durationSeconds"], sd["cooldownSeconds"], sd["moveSpeedMult"])
+        else:
+            stats = "makes the wearer a squad medic"
+        systems[sd["id"]] = {"id": sd["id"], "name": text(sd["displayName"]), "grade": sd["grade"].upper(),
+                             "effect": sd["effect"], "icon": effect_icon[sd["effect"]], "stats": stats,
+                             "note": text(sd["description"])[:140].rsplit(" ", 1)[0] + "…"}
+
+    for sd in armor_doc["integralSystems"]:
+        add_system(sd)
     armors = []
-    for a in load(MOD / "data/marines/marine-armor-catalog.armor.json")["armor"]:
+    for a in armor_doc["armor"]:
         c, bt = a["catalog"], a["battle"]
         icon = c["iconPath"]
         images[icon] = image(icon)
         system = a.get("integralSystem") or bt.get("integralSystem")
-        sys_icon = None
+        sys_id = None
         if system:
-            # A shared shield reference is the breach assist; a suit's own block here is field aid.
-            sys_icon = "graphics/ui/armory/system-breach-assist.png" if "ref" in system else "graphics/ui/armory/system-field-aid.png"
-            images[sys_icon] = image(sys_icon)
+            if "ref" in system:
+                sys_id = system["ref"]
+            else:
+                add_system(system)
+                sys_id = system["id"]
         armors.append({
-            "id": a["id"], "name": text(c["displayName"]), "icon": icon, "systemIcon": sys_icon,
+            "id": a["id"], "name": text(c["displayName"]), "icon": icon, "system": sys_id,
             "role": c["role"], "tier": c["tier"], "powered": c["armorClass"] == "power-suit",
             "access": access.get(a["id"], "COMMON"),
             "stats": "tier %d · %s · armour %g / rating %g" % (c["tier"], c["role"], bt.get("armorCapacity", 0), bt.get("armorRating", 0)),
@@ -277,7 +300,7 @@ def main():
     stations = [{"id": s[0], "name": s[1], "group": s[2], "note": s[3]} for s in STATIONS]
     page = (Path(__file__).with_name("template.html")).read_text(encoding="utf-8")
     for key, value in (("__PRIMARIES__", primaries), ("__SPECIALS__", specials), ("__KITS__", kits),
-                       ("__ARMORKITS__", armor_kits), ("__STATIONS__", stations), ("__ARMORS__", armors),
+                       ("__ARMORKITS__", armor_kits), ("__STATIONS__", stations), ("__ARMORS__", armors), ("__SYSTEMS__", list(systems.values())),
                        ("__IMAGES__", images)):
         page = page.replace(key, json.dumps(value, ensure_ascii=False))
     if artifact:

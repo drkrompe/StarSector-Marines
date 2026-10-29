@@ -30,6 +30,7 @@ input,select{background:var(--surface);border:1px solid var(--line);border-radiu
 .cat{display:flex;flex-wrap:wrap;gap:10px}
 .tile{display:grid;gap:3px;justify-items:start;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);width:104px}
 .tile b{font:600 12px var(--display)}.tile small{color:var(--muted);font-size:11px;line-height:1.2}
+.filters{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:8px}.filters button{padding:2px 8px;font-size:12px}.filters button.on{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
 .legend{display:flex;gap:12px;font:11px var(--mono);color:var(--muted);flex-wrap:wrap}.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;background:var(--t);vertical-align:-1px}
 .tb{display:inline-block;font:700 10px var(--mono);padding:0 5px;border-radius:3px;border:1px solid var(--tc);color:var(--tc);letter-spacing:.04em}
 /* unlock timeline */
@@ -91,19 +92,19 @@ textarea#out{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--m
 <main><h2 id="mtitle">Marines · drop a piece on one</h2><div class="teams" id="teams"></div><div class="hint" style="margin-top:8px" id="mhint"></div></main>
 <aside class="right panel"><h2>3 · Inventory</h2><div class="legend" id="legend"></div>
 <div id="inv-w"><div><h2>Primaries</h2><div class="cat" id="cat-p"></div></div><div style="margin-top:10px"><h2>Secondaries and belt items</h2><div class="cat" id="cat-s"></div></div></div>
-<div id="inv-a"><h2>Armour</h2><div class="cat" id="cat-a"></div></div></aside>
+<div id="inv-a"><h2>Armour</h2><div class="filters" id="afilters"></div><div class="cat" id="cat-a"></div><h2 style="margin-top:10px">Internal systems</h2><div class="cat" id="cat-y"></div></div></aside>
 </div>
 </div>
 <textarea id="out" hidden></textarea>
 </div>
 <script>
-const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED_W=__KITS__,SEED_A=__ARMORKITS__,STATIONS=__STATIONS__,ARMORS=__ARMORS__,IMAGES=__IMAGES__;
+const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED_W=__KITS__,SEED_A=__ARMORKITS__,STATIONS=__STATIONS__,ARMORS=__ARMORS__,SYSTEMS=__SYSTEMS__,IMAGES=__IMAGES__;
 const GRADES=["SURPLUS","SERVICE","MILSPEC","MASTERWORK"],RANK={COMMON:0,ADVANCED:1,PRESTIGE:2,RESTRICTED:3};
 const KEY="kit-ladder-v2",$=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const A=Object.fromEntries(ARMORS.map(a=>[a.id,a])),P=Object.fromEntries(PRIMARIES.map(p=>[p.id,p])),S=Object.fromEntries(SPECIALS.map(s=>[s.id,s])),ST=Object.fromEntries(STATIONS.map(s=>[s.id,s]));
+const A=Object.fromEntries(ARMORS.map(a=>[a.id,a])),Y=Object.fromEntries(SYSTEMS.map(y=>[y.id,y])),P=Object.fromEntries(PRIMARIES.map(p=>[p.id,p])),S=Object.fromEntries(SPECIALS.map(s=>[s.id,s])),ST=Object.fromEntries(STATIONS.map(s=>[s.id,s]));
 const GATE={COMMON:"Store shelf at any civilised market.",ADVANCED:"Licensed store shelf (Favorable standing, MRB 5+), or recovery after 5 victories.",PRESTIGE:"Licensed store shelf at MRB 20+, or recovery after 15 victories.",RESTRICTED:"No ordinary route: a military warrant only."};
-const sizes={};let state=null,db=null,saveTimer=null,view="ladder";
+const sizes={};let state=null,db=null,saveTimer=null,view="ladder",armorRole="all",armorDesc=false;
 const clone=o=>JSON.parse(JSON.stringify(o));
 function seedState(){return{weapon:clone(SEED_W),armor:clone(SEED_A),sel:{l:"weapon",id:SEED_W[0].id}}}
 const FREE=new Set([...SEED_W,...SEED_A].filter(k=>k.grant==="free-pick").map(k=>k.id));
@@ -115,7 +116,7 @@ function persist(){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{lo
 const L=()=>state.sel.l,list=l=>state[l||L()],kit=()=>list().find(k=>k.id===state.sel.id)||list()[0];
 function piece(type,id,grade){if(type==="p"){const p=P[id];return p&&{kind:p.kind,lie:p.lie,icon:p.icons[grade||"SERVICE"],name:p.name}}
  if(type==="a"){const a=A[id];return a&&{kind:"ARMOR",lie:null,icon:a.icon,name:a.name}}
- if(type==="y"){const a=A[id];return a&&a.systemIcon&&{kind:"SYSTEM",lie:null,icon:a.systemIcon,name:a.name+" system"}}
+ if(type==="y"){const y=Y[id];return y&&{kind:"SYSTEM",lie:null,icon:y.icon,name:y.name}}
  const s=S[id];return s&&{kind:s.kind,lie:s.lie,icon:s.icon,name:s.name}}
 function brick(pc,count,payload){const el=document.createElement("div");el.className="brick"+(pc?"":" empty");
  const t=pc?"var(--"+pc.kind+")":"var(--EMPTY)";
@@ -133,13 +134,14 @@ function bricksOf(l,k,draggable){const out=[],add=(pc,n,pl)=>out.push(brick(pc,n
   for(const [key,n] of prim){const [id,g]=key.split("|");add(piece("p",id,g),n,{t:"p",id})}
   for(const [id,n] of sec)add(piece("s",id),n,{t:"s",id})}
  else{const arm=new Map(),sys=new Map();
-  for(const m of k.members)if(m.armor){arm.set(m.armor,(arm.get(m.armor)||0)+1);if(A[m.armor]&&A[m.armor].systemIcon)sys.set(m.armor,(sys.get(m.armor)||0)+1)}
+  for(const m of k.members)if(m.armor){arm.set(m.armor,(arm.get(m.armor)||0)+1);{const y=systemOf(m);if(y)sys.set(y,(sys.get(y)||0)+1)}}
   for(const [id,n] of arm)add(piece("a",id),n,{t:"a",id});for(const [id,n] of sys)add(piece("y",id),n,null)}
  return out}
 function cardTier(l,k){let r=0;const up=t=>{if(t&&RANK[t]>r)r=RANK[t]};
  for(const m of k.members){if(l==="weapon"){const p=P[m.primary];up(p&&p.access[m.grade]);for(const s of [m.special,m.belt])up(S[s]&&S[s].access)}else up(A[m.armor]&&A[m.armor].access)}
  return Object.keys(RANK).find(t=>RANK[t]===r)}
 const powered=k=>k.members.filter(m=>A[m.armor]&&A[m.armor].powered).length;
+const systemOf=m=>m.system==="none"?null:(m.system||(A[m.armor]&&A[m.armor].system)||null);
 const tb=t=>'<span class="tb" style="--tc:var(--t-'+t+')">'+t.slice(0,1)+' '+t.toLowerCase()+'</span>';
 function stationName(id){const s=ST[id||"none"];return s?s.name:"Not sold yet"}
 function hints(l,k){const t=cardTier(l,k),st=ST[k.station||"none"],out=[];
@@ -147,6 +149,7 @@ function hints(l,k){const t=cardTier(l,k),st=ST[k.station||"none"],out=[];
  const free=k.grant==="free-pick";
  out.push(k.station&&k.station!=="none"?(free?"Free pick at <b>":"Store sells it after <b>")+esc(st.name)+"</b> · "+esc(st.group)+". "+esc(st.note):"Not placed on the timeline: only the ordinary store, licence and recovery routes reach it.");
  if(free)out.push("One Wayline path is free; the path not picked is sold in the store.");
+ if(l==="armor"){const ov=k.members.filter(m=>m.system&&m.system!==((A[m.armor]&&A[m.armor].system)||"none")).length;if(ov)out.push('<span class="w">'+ov+" seat"+(ov>1?"s":"")+" carry a system different from the suit's own: in the game a system belongs to its suit pattern, so this is a proposal.</span>")}
  if(l==="armor"){const n=powered(k);out.push("Powered seats: <b>"+n+" of 12</b>"+(n?" (power suits in the squad)":""))}
  if(free&&k.station!=="relief")out.push('<span class="w">Free picks exist only at Relief. Switch this card to a store sale.</span>');
  if(t==="RESTRICTED"&&!["none","warrant-hegemony","warrant-other"].includes(k.station||"none"))out.push('<span class="w">Restricted kit with no warrant: place it on a warrant station.</span>');
@@ -182,8 +185,15 @@ function memberEl(k,mi){const m=k.members[mi],weapon=L()==="weapon",el=document.
  if(weapon){const g=document.createElement("select");g.setAttribute("aria-label","Primary grade");GRADES.forEach(x=>{const o=document.createElement("option");o.value=x;o.textContent=x.toLowerCase();if(x===m.grade)o.selected=true;g.appendChild(o)});g.onchange=()=>{m.grade=g.value;changed()};who.appendChild(g)}
  el.appendChild(who);
  if(weapon)for(const w of ["primary","special","belt"])el.appendChild(slotEl(k,mi,w));
- else{el.appendChild(slotEl(k,mi,"armor"));const sy=document.createElement("div");sy.className="slot";const a=A[m.armor];
-  sy.appendChild(brick(a&&a.systemIcon?piece("y",m.armor):null,1,null));sy.insertAdjacentHTML("beforeend",'<span class="nm">'+(a&&a.systemIcon?"system":"no system")+'</span><span class="slotlab">integral</span>');el.appendChild(sy)}
+ else{el.appendChild(slotEl(k,mi,"armor"));
+  const ys=document.createElement("select");ys.setAttribute("aria-label","Internal system");const def=A[m.armor]&&A[m.armor].system;
+  ys.innerHTML='<option value="">System: suit default ('+esc(def?Y[def].name:"none")+')</option><option value="none">System: none</option>'+SYSTEMS.map(y=>'<option value="'+y.id+'">'+esc(y.name)+" · "+y.grade.toLowerCase()+"</option>").join("");
+  ys.value=m.system||"";ys.onchange=()=>{m.system=ys.value||undefined;changed()};who.appendChild(ys);
+  const sy=document.createElement("div");sy.className="slot";const cur=systemOf(m);
+  const sw=document.createElement("div");sw.className="wrapper";sw.appendChild(brick(cur?piece("y",cur):null,1,cur?{t:"y",id:cur}:null));
+  if(m.system){const x=document.createElement("button");x.className="x";x.textContent="×";x.title="Back to the suit default";x.onclick=e=>{e.stopPropagation();m.system=undefined;changed()};sw.appendChild(x)}
+  sy.appendChild(sw);sy.insertAdjacentHTML("beforeend",'<span class="nm">'+esc(cur?Y[cur].name:"no system")+'</span><span class="slotlab">system'+(m.system?" · set":"")+'</span>');
+  dropTarget(sy,pl=>{apply(k,mi,"system",pl);changed()});el.appendChild(sy)}
  dropTarget(el,pl=>{apply(k,mi,null,pl);changed()});return el}
 function dropTarget(el,fn){let depth=0;
  el.addEventListener("dragenter",e=>{e.preventDefault();e.stopPropagation();depth++;el.classList.add("over")});
@@ -194,6 +204,7 @@ function dropTarget(el,fn){let depth=0;
 function apply(k,mi,slot,pl){const m=k.members[mi],weapon=L()==="weapon";
  if(pl.t==="kit")return;
  if(pl.t==="a"){if(weapon)return say("That is armour: select an Equipment card.");m.armor=pl.id;return}
+ if(pl.t==="y"){if(weapon)return say("That is an armour system: select an Equipment card.");m.system=pl.id;return}
  if(!weapon)return say("That is a weapon: select a weapon card.");
  if(pl.t==="p"){m.primary=pl.id;return}
  const thrown=S[pl.id]&&S[pl.id].thrown;
@@ -214,18 +225,24 @@ function render(){const l=L(),k=kit();state.sel.id=k.id;
  $("tab-weapon").className=l==="weapon"?"on":"";$("tab-armor").className=l==="armor"?"on":"";
  $("legend").innerHTML=(l==="weapon"?["BALLISTIC","ENERGY","MISSILE","UTILITY"]:["ARMOR","SYSTEM"]).map(x=>'<span style="--t:var(--'+x+')">'+x.toLowerCase()+'</span>').join("");
  $("inv-w").hidden=l!=="weapon";$("inv-a").hidden=l!=="armor";
- const cp=$("cat-p"),cs=$("cat-s"),ca=$("cat-a");cp.innerHTML=cs.innerHTML=ca.innerHTML="";
+ const cp=$("cat-p"),cs=$("cat-s"),ca=$("cat-a"),cy=$("cat-y");cp.innerHTML=cs.innerHTML=ca.innerHTML=cy.innerHTML="";
  const tile=(pc,pl,name,sub,t)=>{const d=document.createElement("div");d.className="tile";d.appendChild(brick(pc,1,pl));d.insertAdjacentHTML("beforeend","<b>"+esc(name)+"</b><small>"+esc(sub)+"</small>"+(t?tb(t):""));return d};
  for(const p of PRIMARIES)cp.appendChild(tile(piece("p",p.id,"SERVICE"),{t:"p",id:p.id},p.name,p.stats,p.access.SERVICE));
  for(const s of SPECIALS)cs.appendChild(tile(piece("s",s.id),{t:"s",id:s.id},s.name,s.note+(s.thrown?" · thrown":""),s.access));
- for(const a of ARMORS)ca.appendChild(tile(piece("a",a.id),{t:"a",id:a.id},a.name,a.stats+(a.systemIcon?" · system":""),a.access));
+ const roles=[["all","All"],["line","Line"],["assault","Assault"],["support","Support"],["recon","Recon"],["unpowered","Unpowered"]];
+ const af=$("afilters");af.innerHTML="";
+ for(const [r,n] of roles){const b=document.createElement("button");b.textContent=n+" ("+(r==="all"?ARMORS.length:ARMORS.filter(a=>a.role===r).length)+")";b.className=armorRole===r?"on":"";b.onclick=()=>{armorRole=r;render()};af.appendChild(b)}
+ {const b=document.createElement("button");const mx=Math.max(...ARMORS.map(x=>x.tier));b.textContent="Tier "+(armorDesc?mx+"→1":"1→"+mx);b.title="Sort by tier";b.onclick=()=>{armorDesc=!armorDesc;render()};af.appendChild(b)}
+ const shown=ARMORS.filter(a=>armorRole==="all"||a.role===armorRole).sort((x,y)=>(armorDesc?y.tier-x.tier:x.tier-y.tier)||x.name.localeCompare(y.name));
+ for(const a of shown)ca.appendChild(tile(piece("a",a.id),{t:"a",id:a.id},a.name,a.stats+(a.system?" · "+Y[a.system].name:""),a.access));
+ for(const y of SYSTEMS)cy.appendChild(tile(piece("y",y.id),{t:"y",id:y.id},y.name,y.grade.toLowerCase()+" · "+y.stats,null));
  renderTimeline();renderList();
  const kn=$("kname"),kd=$("kdesc");if(document.activeElement!==kn)kn.value=k.name;if(document.activeElement!==kd)kd.value=k.description;
  const ks=$("kstation");ks.innerHTML=STATIONS.map(s=>'<option value="'+s.id+'">'+(s.id==="none"?"Not sold yet":"Unlocks after: "+esc(s.name)+" ("+esc(s.group)+")")+'</option>').join("");ks.value=k.station||"none";
  const kg=$("kgrant");kg.innerHTML='<option value="sale">On sale in the store</option><option value="free-pick"'+(k.station==="relief"?"":" disabled")+'>Free pick (Relief only; the other path is sold)</option>';kg.value=k.grant||"sale";
  renderSide();
  $("mtitle").textContent=l==="weapon"?"Marines · drop a weapon on one":"Marines · drop a suit on one";
- $("mhint").textContent=l==="weapon"?"Drag a slot's brick onto another marine to copy it. × clears a secondary or belt item. Grade sets the primary's grade. Dropping on a team header fills all four. Armour is on the Equipment cards, not here.":"Suits come from the card's armour bundle in the game; the seating here is the intent per marine. A suit's integral system shows beside it. Dropping on a team header fills all four.";
+ $("mhint").textContent=l==="weapon"?"Drag a slot's brick onto another marine to copy it. × clears a secondary or belt item. Grade sets the primary's grade. Dropping on a team header fills all four. Armour is on the Equipment cards, not here.":"Suits come from the card's armour bundle in the game; the seating here is the intent per marine. Each marine's internal system defaults to their suit's own; pick another from the list or drop one from the inventory on the system slot. Dropping on a team header fills all four.";
  const teams=$("teams");teams.innerHTML="";
  for(let t=0;t<3;t++){const tm=document.createElement("div");tm.className="team";
   tm.innerHTML="<h4><span>Team "+(t+1)+"</span><span>drop here to fill all four</span></h4>";
