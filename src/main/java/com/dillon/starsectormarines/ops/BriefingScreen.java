@@ -1819,7 +1819,8 @@ public class BriefingScreen implements Screen {
                 : DetachmentResolver.resolve(mission, lift(), committedWings(),
                         committedPowerSourceMembers()).powers;
         return debugMechRoster(mission) != null
-                ? debugMechRoster(mission).applyTo(powers) : powers;
+                ? debugMechRoster(mission).applyTo(powers, lift(), DebugMissionCatalog.arrangesHeavyLift(mission))
+                : powers;
     }
 
     private void buildButtons() {

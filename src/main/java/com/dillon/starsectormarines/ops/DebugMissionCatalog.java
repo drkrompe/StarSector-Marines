@@ -117,6 +117,20 @@ public final class DebugMissionCatalog {
                 default -> true;
             };
         }
+        /**
+         * Whether the chapter this stands in for has its employer lift the company's armour, as
+         * {@code PowerCatalog.arrangedHeavyLift} answers for the campaign mission: the Broken
+         * Supply Route's operations but Thunder Run, the Corvus Account, the Shepherd recovery,
+         * and Agreus from Yard Owners on.
+         */
+        public boolean arrangesHeavyLift() {
+            return switch (this) {
+                case JUNCTION, RELAY_NINE, ROUTE_SECURITY, DUST_LEDGER, BLIND_WATCH, COLD_ACCOUNT,
+                        SALVAGE_RIGHTS, COLD_START, WORKING_PASSAGE, YARD_OWNERS, TERMS_OF_PROTECTION,
+                        SMALL_WAR, DISTRICT_ESCORT -> true;
+                default -> false;
+            };
+        }
         /** The Agreus arc's chapters and its escort work, each standing in for its campaign offer. */
         public boolean agreus() {
             return this == WATER_UNDER_SEAL || this == LIMITED_WARRANT || this == YARD_OWNERS
@@ -284,6 +298,11 @@ public final class DebugMissionCatalog {
         if (source != MissionSource.DEBUG || id == null || !id.startsWith(PREFIX)) return null;
         try { return Scenario.valueOf(id.substring(PREFIX.length())); }
         catch (IllegalArgumentException ignored) { return null; }
+    }
+    /** Whether a debug mission's armour has the employer's heavy lift behind the company boat; never for generated missions. */
+    public static boolean arrangesHeavyLift(Mission m) {
+        Scenario story = scenario(m);
+        return story != null && story.arrangesHeavyLift();
     }
     public static Preset preset(Mission m) {
         Scenario story = scenario(m);

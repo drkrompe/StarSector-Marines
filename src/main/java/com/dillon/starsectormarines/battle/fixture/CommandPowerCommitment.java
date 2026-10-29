@@ -22,13 +22,16 @@ import java.util.Objects;
  *
  * @param companyCarrier the committed company boat a drop power flies with, or
  *     {@code null} for the synthetic carrier alone
+ * @param companyLiftOnly whether that boat flies with no synthetic carrier behind her; false
+ *     (a frozen commitment from before it was kept) restores the synthetic carrier
  */
 public record CommandPowerCommitment(
         String id,
         List<MechDeploymentSpec> mechDeployments,
         List<ShipSupportSource> ships,
         List<VehicleDeploymentSpec> vehicleDeployments,
-        FittedBoat companyCarrier) {
+        FittedBoat companyCarrier,
+        boolean companyLiftOnly) {
 
     public CommandPowerCommitment {
         if (id == null || id.isBlank()) {
@@ -39,6 +42,14 @@ public record CommandPowerCommitment(
         ships = ships == null ? List.of() : List.copyOf(ships);
         vehicleDeployments = vehicleDeployments == null
                 ? List.of() : List.copyOf(vehicleDeployments);
+        companyLiftOnly &= companyCarrier != null;
+    }
+
+    public CommandPowerCommitment(String id, List<MechDeploymentSpec> mechDeployments,
+                                  List<ShipSupportSource> ships,
+                                  List<VehicleDeploymentSpec> vehicleDeployments,
+                                  FittedBoat companyCarrier) {
+        this(id, mechDeployments, ships, vehicleDeployments, companyCarrier, false);
     }
 
     public CommandPowerCommitment(String id, List<MechDeploymentSpec> mechDeployments,
@@ -67,7 +78,8 @@ public record CommandPowerCommitment(
                 ? mechSupport.vehicles() : List.of();
         FittedBoat carrier = power instanceof MechSupport mechSupport
                 ? mechSupport.companyCarrier() : null;
-        return new CommandPowerCommitment(power.id, deployments, ships, vehicles, carrier);
+        boolean companyOnly = power instanceof MechSupport mechSupport && !mechSupport.syntheticLift();
+        return new CommandPowerCommitment(power.id, deployments, ships, vehicles, carrier, companyOnly);
     }
 
     /**
@@ -76,6 +88,6 @@ public record CommandPowerCommitment(
      */
     public CommandPower toPower() {
         return PowerCatalog.restore(id, mechDeployments, ships, vehicleDeployments,
-                companyCarrier);
+                companyCarrier, !companyLiftOnly);
     }
 }

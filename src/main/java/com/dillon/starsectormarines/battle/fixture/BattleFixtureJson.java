@@ -825,6 +825,7 @@ public final class BattleFixtureJson {
             }
             if (commitment.companyCarrier() != null) {
                 encoded.put("companyCarrier", boatToJson(commitment.companyCarrier()));
+                if (commitment.companyLiftOnly()) encoded.put("companyLiftOnly", true);
             }
             powers.put(encoded);
         }
@@ -923,7 +924,7 @@ public final class BattleFixtureJson {
             JSONObject carrier = encoded.optJSONObject("companyCarrier");
             powers.add(new CommandPowerCommitment(
                     encoded.getString("id"), deployments, ships, vehicles,
-                    carrier != null ? boatFromJson(carrier) : null));
+                    carrier != null ? boatFromJson(carrier) : null, encoded.optBoolean("companyLiftOnly", false)));
         }
         return List.copyOf(powers);
     }

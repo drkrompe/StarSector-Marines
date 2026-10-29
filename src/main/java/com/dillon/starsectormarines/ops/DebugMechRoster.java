@@ -1,8 +1,12 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.air.LiftAdmission;
+import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
+import com.dillon.starsectormarines.battle.power.BayManifest;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
@@ -14,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /** Immutable briefing-selected mech family roster used only by debug missions. */
 public final class DebugMechRoster {
@@ -32,14 +37,22 @@ public final class DebugMechRoster {
         return new DebugMechRoster(List.of(MechVariant.HOUND), true);
     }
 
-    private MechSupport support() {
-        if (recoveredHound) return MechSupport.configured(List.of(WaylineHound.deployment()));
-        if (vehicles.isEmpty()) return new MechSupport(variants);
+    /**
+     * The bay's drop, flown as the campaign would fly it (owner: a player cannot just get a
+     * Valkyrie): the committed company boat that lifts the most of it, with heavy lift behind
+     * her only where the chapter's employer arranges it. {@code null} when neither carries it.
+     */
+    private MechSupport support(List<FittedBoat> boats, boolean arrangedLift) {
         List<MechDeploymentSpec> mechs = new ArrayList<>();
-        for (MechVariant variant : variants) mechs.add(MechDeploymentSpec.standard(variant));
+        if (recoveredHound) mechs.add(WaylineHound.deployment());
+        else for (MechVariant variant : variants) mechs.add(MechDeploymentSpec.standard(variant));
         List<VehicleDeploymentSpec> bay = new ArrayList<>();
         for (VehicleType type : vehicles) bay.add(VehicleDeploymentSpec.standard(type));
-        return MechSupport.configured(mechs, bay, null, true);
+        List<LiftClass> load = BayManifest.of(mechs, bay).entries().stream()
+                .map(BayManifest.Entry::weightClass).toList();
+        FittedBoat boat = LiftAdmission.bestCarrier(boats, load, Set.of());
+        if (boat == null && !arrangedLift) return null;
+        return MechSupport.configured(mechs, bay, boat, arrangedLift);
     }
 
     private DebugMechRoster(List<MechVariant> variants) { this(variants, false); }
@@ -96,15 +109,19 @@ public final class DebugMechRoster {
         return variants;
     }
 
-    /** Replace a sourced/default Mech Support in place, or append the debug grant. */
-    public List<CommandPower> applyTo(List<CommandPower> powers) {
+    /**
+     * Replace a sourced/default Mech Support in place, or append the debug grant, flown by
+     * {@code boats} and, where {@code arrangedLift}, the employer's heavy lift.
+     */
+    public List<CommandPower> applyTo(List<CommandPower> powers, List<FittedBoat> boats, boolean arrangedLift) {
+        MechSupport support = count() > 0 ? support(boats, arrangedLift) : null;
         List<CommandPower> configured = new ArrayList<>();
         boolean inserted = false;
         if (powers != null) {
             for (CommandPower power : powers) {
                 if (MechSupport.ID.equals(power.id)) {
-                    if (!inserted && count() > 0) {
-                        configured.add(support());
+                    if (!inserted && support != null) {
+                        configured.add(support);
                         inserted = true;
                     }
                 } else {
@@ -112,14 +129,14 @@ public final class DebugMechRoster {
                 }
             }
         }
-        if (!inserted && count() > 0) configured.add(support());
+        if (!inserted && support != null) configured.add(support);
         return configured;
     }
 
-    public Detachment applyTo(Detachment detachment) {
+    public Detachment applyTo(Detachment detachment, List<FittedBoat> boats, boolean arrangedLift) {
         if (detachment == null) return Detachment.EMPTY;
         return new Detachment(detachment.shuttleManifest, detachment.marineWings,
-                applyTo(detachment.powers));
+                applyTo(detachment.powers, boats, arrangedLift));
     }
 
     /** A debug detachment with the easter-egg powers added, whatever the bay holds. */

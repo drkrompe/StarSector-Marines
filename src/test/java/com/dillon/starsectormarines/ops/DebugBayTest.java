@@ -27,7 +27,7 @@ class DebugBayTest {
                 DebugBaySlot.of(VehicleType.BREAKTHROUGH_TANK), DebugBaySlot.EMPTY));
         assertEquals(2, roster.count());
         assertEquals(2, roster.slots().size());
-        var powers = roster.applyTo(List.of());
+        var powers = roster.applyTo(List.of(), List.of(), true);
         assertEquals(1, powers.size());
     }
 

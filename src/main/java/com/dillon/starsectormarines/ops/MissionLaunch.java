@@ -202,7 +202,8 @@ public final class MissionLaunch {
         if (debugScenario != null) {
             var manifest = DebugMissionCatalog.manifest(m, committedShuttles, ctx.getDebugCompanyRoster().lineReadySoldiers().size());
             Detachment det = new Detachment(manifest, FlybyRoster.EMPTY, List.of());
-            if (debugMechs != null) det = debugMechs.applyTo(det);
+            if (debugMechs != null)
+                det = debugMechs.applyTo(det, committedShuttles, DebugMissionCatalog.arrangesHeavyLift(m));
             det = DebugMechRoster.withEasterEggs(det);
             det = CommandDeck.apply(det, selectedPowerIds);
             Detachment frozen = det;
@@ -223,7 +224,8 @@ public final class MissionLaunch {
                         ? DetachmentResolver.resolve(m, committedShuttles, committedWings)
                         : DetachmentResolver.resolve(m, committedShuttles, m.source.isDebug() ? FlybyRoster.EMPTY : committedWings,
                                 m.source.isDebug() ? List.of() : committedPowerSources);
-        if (debugMechs != null) det = debugMechs.applyTo(det);
+        if (debugMechs != null)
+            det = debugMechs.applyTo(det, committedShuttles, DebugMissionCatalog.arrangesHeavyLift(m));
         if (m.source.isDebug()) det = DebugMechRoster.withEasterEggs(det);
         det = CommandDeck.apply(det, selectedPowerIds);
         if (DetachmentResolver.usesSelectedPersonnel(m)) {

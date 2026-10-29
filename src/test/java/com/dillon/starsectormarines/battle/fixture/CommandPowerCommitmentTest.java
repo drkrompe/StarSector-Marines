@@ -87,4 +87,19 @@ class CommandPowerCommitmentTest {
         assertEquals(cradle, restored.companyCarrier());
         assertEquals(2, restored.manifest().size());
     }
+
+    @Test
+    void aDropTheCompanyBoatFliesAloneLaunchesWithoutSyntheticLift() {
+        FittedBoat cradle = new FittedBoat(ShuttleType.BUFFALO, BoatFitting.STANDARD_PLATING,
+                BoatFitting.STANDARD_DRIVE, BoatFitting.LIFT_CRADLE, "buffalo-1");
+        List<MechDeploymentSpec> mechs = List.of(MechDeploymentSpec.standard(MechVariant.HOUND));
+
+        MechSupport alone = assertInstanceOf(MechSupport.class, CommandPowerCommitment.capture(
+                MechSupport.configured(mechs, cradle, false)).toPower());
+        MechSupport backed = assertInstanceOf(MechSupport.class, CommandPowerCommitment.capture(
+                MechSupport.configured(mechs, cradle, true)).toPower());
+
+        assertEquals(false, alone.syntheticLift());
+        assertEquals(true, backed.syntheticLift());
+    }
 }

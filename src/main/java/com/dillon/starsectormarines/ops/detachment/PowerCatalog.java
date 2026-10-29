@@ -307,9 +307,21 @@ public final class PowerCatalog {
                                        List<ShipSupportSource> ships,
                                        List<VehicleDeploymentSpec> vehicleDeployments,
                                        FittedBoat companyCarrier) {
+        return restore(id, mechDeployments, ships, vehicleDeployments, companyCarrier, true);
+    }
+
+    /**
+     * As above, saying whether synthetic lift stands behind the company boat: a drop the
+     * company's own boat flies alone (Thunder Run, a debug bay) launches without it.
+     */
+    public static CommandPower restore(String id,
+                                       List<MechDeploymentSpec> mechDeployments,
+                                       List<ShipSupportSource> ships,
+                                       List<VehicleDeploymentSpec> vehicleDeployments,
+                                       FittedBoat companyCarrier, boolean syntheticLift) {
         if (RETIRED_ARMOUR_SUPPORT.equals(id)
                 && vehicleDeployments != null && !vehicleDeployments.isEmpty()) {
-            return restore(MechSupport.ID, List.of(), List.of(), vehicleDeployments, companyCarrier);
+            return restore(MechSupport.ID, List.of(), List.of(), vehicleDeployments, companyCarrier, syntheticLift);
         }
         if (RETIRED_IDS.contains(id)) {
             LOG.info("PowerCatalog: dropping retired command power '" + id + "' from a frozen commitment");
@@ -319,7 +331,7 @@ public final class PowerCatalog {
             CommandPower base = restore(id, mechDeployments, ships, vehicleDeployments, null);
             if (base instanceof MechSupport mech) {
                 return MechSupport.configured(mech.deployments(), mech.vehicles(),
-                        companyCarrier, true);
+                        companyCarrier, syntheticLift);
             }
             throw new IllegalArgumentException("Power '" + id + "' cannot carry a company boat");
         }

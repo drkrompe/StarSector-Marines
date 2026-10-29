@@ -144,7 +144,7 @@ class DebugMissionCatalogTest {
         assertEquals(WellhollowBloomCampaign.RECOMMENDED_MACHINES, preset.mechs());
     }
     @Test void recoveredHoundIsItsCampaignChaingunFit() {
-        var support = (MechSupport) DebugMechRoster.recoveredHound().applyTo(List.of()).get(0);
+        var support = (MechSupport) DebugMechRoster.recoveredHound().applyTo(List.of(), List.of(), true).get(0);
         assertEquals(List.of(WaylineHound.deployment()), support.deployments());
     }
 }

@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.air.FittedBoat;
+import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.fixture.CommandPowerCommitment;
 import com.dillon.starsectormarines.battle.power.CommandPower;
@@ -10,7 +12,9 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class DebugMechRosterTest {
 
@@ -22,7 +26,7 @@ public class DebugMechRosterTest {
         assertEquals(first.variants(), second.variants());
         assertEquals(101, first.count());
         MechSupport support = assertInstanceOf(MechSupport.class,
-                first.applyTo(List.of()).get(0));
+                first.applyTo(List.of(), List.of(), true).get(0));
         assertEquals(101, support.availableCalls());
         assertEquals(101, support.deployments().size());
         MechSupport restored = assertInstanceOf(MechSupport.class,
@@ -36,7 +40,7 @@ public class DebugMechRosterTest {
     public void configuredRosterReplacesPowerInPlaceWithEveryMechAboard() {
         DebugMechRoster roster = DebugMechRoster.randomized(9, 7L);
         List<CommandPower> powers = roster.applyTo(
-                List.of(new OrbitalBarrage(), new MechSupport()));
+                List.of(new OrbitalBarrage(), new MechSupport()), List.of(), true);
 
         assertEquals(2, powers.size());
         assertInstanceOf(OrbitalBarrage.class, powers.get(0));
@@ -48,8 +52,24 @@ public class DebugMechRosterTest {
     public void zeroRosterRemovesDebugMechSupport() {
         List<CommandPower> powers = DebugMechRoster.randomized(0, 1L)
                 .applyTo(List.of(new OrbitalBarrage(),
-                        new MechSupport(List.of(MechVariant.HOUND))));
+                        new MechSupport(List.of(MechVariant.HOUND))), List.of(), true);
 
         assertEquals(List.of(OrbitalBarrage.ID), powers.stream().map(p -> p.id).toList());
+    }
+
+    @Test
+    public void theBayFliesTheCompanyBoatWithHeavyLiftOnlyWhereTheEmployerArrangesIt() {
+        FittedBoat hermes = DebugMissionCatalog.maxFitted(ShuttleType.HERMES);
+        DebugMechRoster roster = DebugMechRoster.randomized(2, 3L);
+
+        MechSupport own = assertInstanceOf(MechSupport.class,
+                roster.applyTo(List.of(), List.of(hermes), false).get(0));
+        MechSupport arranged = assertInstanceOf(MechSupport.class,
+                roster.applyTo(List.of(), List.of(hermes), true).get(0));
+
+        assertEquals(hermes, own.companyCarrier());
+        assertFalse(own.syntheticLift());
+        assertTrue(arranged.syntheticLift());
+        assertEquals(List.of(), roster.applyTo(List.of(), List.of(), false));
     }
 }
