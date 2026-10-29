@@ -104,4 +104,24 @@ class VehicleGunTest {
         assertEquals(0f, pod.mount.scorchCells, 0f);
     }
 
+    @Test
+    void theLaserTankWearsItsOwnHeadForTheLaserPartsAndNoOtherHullDoes() {
+        VehicleType tank = VehicleType.LASER_TANK;
+        assertTrue(tank.wearsHeadOf(MechWeaponComponent.BURST_LASER));
+        assertTrue(tank.wearsHeadOf(MechWeaponComponent.PD_LASER));
+        assertFalse(tank.wearsHeadOf(MechWeaponComponent.CHAINGUN), "any other part is drawn as itself");
+        assertFalse(tank.wearsHeadOf(null));
+        assertFalse(VehicleType.BREAKTHROUGH_TANK.wearsHeadOf(MechWeaponComponent.BURST_LASER));
+
+        assertEquals(0f, VehicleGun.lengthCells(tank, MechWeaponComponent.PD_LASER), 0f, "no drawing of its own to size");
+        assertEquals(tank.turretStructure().mount.muzzleOffsetCells,
+                VehicleGun.fit(tank, MechWeaponComponent.PD_LASER).mount.muzzleOffsetCells, 0f,
+                "it fires from the head's lens");
+
+        assertEquals(1, tank.headFrame(MechWeaponComponent.BURST_LASER, 1), "the white head is the stock frames");
+        assertEquals(5, tank.headFrame(MechWeaponComponent.PD_LASER, 1));
+        assertEquals(6, tank.headFrame(MechWeaponComponent.PD_LASER, 3));
+        assertEquals(7, tank.headFrame(MechWeaponComponent.PD_LASER, 4));
+        assertEquals(1, tank.headFrame(null, 1));
+    }
 }

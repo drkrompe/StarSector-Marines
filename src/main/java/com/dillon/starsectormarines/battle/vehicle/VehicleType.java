@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.combat.ArmorArcs;
 import com.dillon.starsectormarines.battle.drone.DroneRole;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.UnitType;
@@ -142,7 +143,7 @@ public enum VehicleType {
      * lens while it fires ({@link #turretFiringFrame}; art-source/vehicles/tank-laser). Its lance is the burst PD
      * laser's blue.
      */
-    LASER_TANK("graphics/battle/vehicles/army-tank-laser.png", 0, 5, -90f,
+    LASER_TANK("graphics/battle/vehicles/army-tank-laser.png", 0, 8, -90f,
             0, 4.3f, 3.85f, 2.25f, 3.3f, 1.05f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 1.6f, -90f,
             TurretCatalogRegistry.TANK_BURST_LASER_STRUCTURE_ID, 750f, 500f, 18f, 1.4f, 1.1f) {
@@ -575,6 +576,28 @@ public enum VehicleType {
     static final float LASER_VENT_HALF_SPAN_CELLS = 0.55f;
 
     public int turretFiringFrame() { return -1; }
+
+    /**
+     * Whether {@code weapon} fitted to this hull is drawn as the hull's own turret head rather than as its own drawing
+     * on the mount ring: the laser tank's white and red heads ({@link MechWeaponComponent#tankHead}).
+     */
+    public boolean wearsHeadOf(MechWeaponComponent weapon) {
+        return this == LASER_TANK && weapon != null && weapon.tankHead() != MechWeaponComponent.TankHead.NONE;
+    }
+
+    /**
+     * The sheet frame a turret draws: {@code stockFrame} (live, wreck or firing) for the hull's own head, or the same
+     * state of the red head for a weapon that wears it. The red head's frames follow the white's on the laser tank's sheet.
+     */
+    public int headFrame(MechWeaponComponent weapon, int stockFrame) {
+        if (!wearsHeadOf(weapon) || weapon.tankHead() != MechWeaponComponent.TankHead.RED) return stockFrame;
+        return switch (stockFrame) {
+            case 1 -> 5;
+            case 3 -> 6;
+            case 4 -> 7;
+            default -> stockFrame;
+        };
+    }
 
     /**
      * How far aft of the hull's centre, in cells, the vents its gun's flux haze rises from

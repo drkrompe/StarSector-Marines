@@ -778,10 +778,10 @@
         "noiseMagnitude": 0.5
       },
       "render": {
-        "tracerColor": "FFE8D8",
+        "tracerColor": "EEF2FF",
         "beam": {
           "coreWidthPx": 2.5,
-          "glowColor": "FF6A2A",
+          "glowColor": "4A6BFF",
           "glowWidthPx": 12.0,
           "pulseCycles": 1.0,
           "lifetimeSec": 0.10
@@ -791,11 +791,11 @@
       },
       "fx": {
         "muzzle": [
-          { "kind": "glow", "radius": 0.6, "lifetime": 0.07, "color": "FF9A5C" },
-          { "kind": "ring", "radius": 0.28, "lifetime": 0.09, "color": "FFE0CC" }
+          { "kind": "glow", "radius": 0.6, "lifetime": 0.07, "color": "7A8CFF" },
+          { "kind": "ring", "radius": 0.28, "lifetime": 0.09, "color": "DCE2FF" }
         ],
         "impact": [
-          { "kind": "glow", "radius": 0.4, "lifetime": 0.12, "color": "FF8A4C" },
+          { "kind": "glow", "radius": 0.4, "lifetime": 0.12, "color": "6A7EFF" },
           { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
         ]
       },

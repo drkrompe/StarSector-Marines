@@ -50,6 +50,14 @@ they no longer out-punch a 2x2 gun from two cells). Footprint is the power cap; 
 
 ## The laser tanks' guns become parts
 
+Owner direction (2026-10-29), partly built: lasers come in three strengths, 1x2, 2x2 and 3x2, in two families, the PD
+laser (a slight red motif) and the burst laser (clean white and blue), every one with a glass blue orb lens at the
+front and white electronics behind it, built into the arm; the 2x2 and the 1x2 are progressively miniaturized 3x2s. On a
+laser tank the 3x2 laser wears the turret head the hull had before, the PD laser the red head the PD laser tank carried
+and the burst laser the white head the laser tank carries (built: `MechWeaponComponent.tankHead`, the red head's frames
+on the laser tank's sheet); the olive part drawing no longer appears on a tank. The new mech drawings, the three missing
+parts and the renaming of the existing ones are the remaining work.
+
 Slice 2 is shipped. The burst laser (`BURST_LASER`, an energy arm gun of two columns by three rows, centreline only
 like the heavy cannon, Prestige) and the PD laser (`PD_LASER`, two by two, Advanced) are red weapon parts that fill
 the laser tank's three-row red card, bought and fitted like any mech weapon, each with its own drawing, liveries,
