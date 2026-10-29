@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
 import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.render2d.texture.TextureLease;
 import com.dillon.starsectormarines.render2d.texture.TextureLedger;
@@ -37,6 +38,7 @@ import com.dillon.starsectormarines.marine.SpecialEquipmentPresentationDef.Hands
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.graphics.SpriteAPI;
+import java.util.EnumMap;
 import org.apache.log4j.Logger;
 
 import java.awt.image.BufferedImage;
@@ -150,7 +152,8 @@ public class BattleSprites {
     private final java.util.EnumMap<Faction, MechLivery> mechLiveryBySide =
             new java.util.EnumMap<>(Faction.class);
     private boolean layeredMechSpritesLoadAttempted;
-    private LayeredSpriteCache vehicleGunMount;
+    private final EnumMap<TurretMountStyle, LayeredSpriteCache> vehicleGunMounts =
+            new EnumMap<>(TurretMountStyle.class);
     private LayeredSpriteCache vehicleTurretCollar;
     private LayeredSpriteCache vehicleTurretBase;
     private LayeredSpriteCache vehicleTurretBaseLight;
@@ -283,8 +286,8 @@ public class BattleSprites {
     /** The Bombard's rig sprites, or null when incomplete (the Bombard then keeps its stand-in art). */
     public RavBombardAssets ravBombardSprites() { return ravBombard; }
     public LayeredMechAssets layeredMechSprites() { return layeredMechSprites; }
-    /** The turret mount ring a vehicle's fitted weapon stands on; null when the art did not load. */
-    public LayeredSpriteCache vehicleGunMount() { return vehicleGunMount; }
+    /** The turret mount ring of this finish that a vehicle's gun stands on; null when the art did not load. */
+    public LayeredSpriteCache vehicleGunMount(TurretMountStyle style) { return vehicleGunMounts.get(style); }
     /** The collar that turns with a modular turret inside its ring; null when the art did not load. */
     public LayeredSpriteCache vehicleTurretCollar() { return vehicleTurretCollar; }
     /** The round base a laser stands in on a modular turret: two rows or more, one row. Null when the art did not load. */
@@ -1347,7 +1350,10 @@ public class BattleSprites {
                 lightRocketPod, burstLaser, pdLaser, heavyPdLaser,
                 mediumBurstLaser, lightBurstLaser, flash);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
-        vehicleGunMount = loadLayeredSprite("graphics/battle/vehicles/gun-mount.png");
+        for (TurretMountStyle style : TurretMountStyle.values()) {
+            LayeredSpriteCache ring = loadLayeredSprite("graphics/battle/vehicles/" + style.ringTexture);
+            if (ring != null) vehicleGunMounts.put(style, ring);
+        }
         vehicleTurretCollar = loadLayeredSprite("graphics/battle/vehicles/turret-collar.png");
         vehicleTurretBase = loadLayeredSprite("graphics/battle/vehicles/turret-base-medium.png");
         vehicleTurretBaseLight = loadLayeredSprite("graphics/battle/vehicles/turret-base-light.png");

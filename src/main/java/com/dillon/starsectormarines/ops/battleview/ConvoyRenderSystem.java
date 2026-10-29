@@ -183,7 +183,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     float ringX = cam.cellToScreenX(body.x + mountWorldX);
                     float ringY = cam.cellToScreenY(body.y + mountWorldY);
                     float ringPx = VehicleGun.mountCells(type) * cellPx;
-                    LayeredSpriteCache ring = sprites.vehicleGunMount();
+                    LayeredSpriteCache ring = sprites.vehicleGunMount(type.mountStyle());
                     if (ring != null) {
                         out.addSprite(RenderLayer.CONVOY, ring.sprite, ringX, ringY, ringPx, ringPx, 0f,
                                 ringShade, ringShade, ringShade, alphaMult);
@@ -229,7 +229,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     float gunX = ringX - (float) Math.sin(bearing) * centreAhead;
                     float gunY = ringY + (float) Math.cos(bearing) * centreAhead;
                     float mountPx = VehicleGun.mountCells(type) * cellPx;
-                    LayeredSpriteCache mount = modular ? null : sprites.vehicleGunMount();
+                    LayeredSpriteCache mount = modular ? null : sprites.vehicleGunMount(type.mountStyle());
                     if (modular) {
                         // A laser stands in a round base on the collar, its muzzle just showing past the ring.
                         boolean light = turret.weapon.footprintRows < 2;

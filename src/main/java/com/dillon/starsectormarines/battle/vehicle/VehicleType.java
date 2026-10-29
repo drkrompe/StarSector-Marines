@@ -584,6 +584,15 @@ public enum VehicleType {
      */
     public boolean hasModularTurret() { return this == LASER_TANK; }
 
+    /** The finish of the turret mount ring this hull's gun stands on: the laser tank white, the hovers silver, the rest army green. */
+    public TurretMountStyle mountStyle() {
+        return switch (this) {
+            case LASER_TANK -> TurretMountStyle.WHITE;
+            case HOVER_SCOUT, DRONE_SKIMMER -> TurretMountStyle.SILVER;
+            default -> TurretMountStyle.GREEN;
+        };
+    }
+
     /**
      * The part a spawn that names none fits, for the scenes, missions and fixtures that field a hull as a stock unit: the
      * laser tank's burst laser. Null for a hull that is not modular. A spawn that names its card as empty is not this one,

@@ -58,6 +58,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         List<SnapshotArtifact> artifacts = new ArrayList<>();
         lineup(context, artifacts);
         laserLineup(context, artifacts);
+        mountStyles(context, artifacts);
         lances(context, artifacts);
         battle(context, artifacts);
         return List.copyOf(artifacts);
@@ -144,6 +145,44 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                     renderer.refocus(16.5f, 17f, 19f).render(sim, title, headLabels.build())));
             artifacts.add(new SnapshotArtifact("laser-lineup-parts.png",
                     renderer.refocus(19.75f, 7.5f, 25f).render(sim, title, partLabels.build())));
+        }
+    }
+
+    private static final List<VehicleType> STYLE_HULLS = List.of(VehicleType.ESCORT_APC, VehicleType.MILITIA_TECHNICAL,
+            VehicleType.BREAKTHROUGH_TANK, VehicleType.HOVER_SCOUT, VehicleType.UP_ARMORED_APC, VehicleType.LASER_TANK);
+    private static final List<MechWeaponComponent> STYLE_GUNS = List.of(MechWeaponComponent.LIGHT_PULSE_LASER,
+            MechWeaponComponent.LIGHT_BURST_LASER, MechWeaponComponent.SINGLE_HEAVY_CANNON,
+            MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.LIGHT_MACHINE_GUN,
+            MechWeaponComponent.BURST_LASER);
+    private static final List<String> STYLE_NAMES = List.of("GREEN (low): ESCORT APC", "GREEN: MILITIA TECHNICAL",
+            "GREEN: BREAKTHROUGH TANK", "SILVER (mid): HOVER SCOUT", "GREEN: UP-ARMORED APC", "WHITE (top): LASER TANK");
+
+    /** One hull of each mount style, each carrying a part in its gun card, labelled by the style of its ring. */
+    private static void mountStyles(SnapshotContext context, List<SnapshotArtifact> artifacts) throws Exception {
+        try (BattleSimulation sim = scene(48, 30)) {
+            sim.setMissionCompletionEnabled(false);
+            ReviewAnnotations.Builder labels = ReviewAnnotations.builder();
+            List<float[]> places = new ArrayList<>();
+            List<Long> hulls = new ArrayList<>();
+            for (int i = 0; i < STYLE_HULLS.size(); i++) {
+                float x = 9 + 10 * (i % 3);
+                float y = i < 3 ? 17 : 8;
+                places.add(new float[] {x, y});
+                hulls.add(spawnFitted(sim, STYLE_HULLS.get(i), STYLE_GUNS.get(i), x, y, 90, 90));
+                labels.label(x, y - 3.4f, STYLE_NAMES.get(i), ReviewStyle.NOTE);
+            }
+            long dummy = spawn(sim, VehicleType.CARGO_CARRIER, Faction.DEFENDER, 46, 28, 90, 0);
+            for (int tick = 0; tick < 60; tick++) sim.advance(BattleSimulation.TICK_DT);
+            for (int i = 0; i < hulls.size(); i++) {
+                sim.convoy().body(hulls.get(i)).teleport(places.get(i)[0], places.get(i)[1], 90);
+                if (sim.convoy().turret(hulls.get(i)) != null) sim.convoy().turret(hulls.get(i)).facingDeg = 90;
+            }
+            sim.convoy().body(dummy).teleport(46, 28, 90);
+            BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
+                    context.modRoot(), 1920, 1080, 19f, 12.2f, 27f);
+            artifacts.add(new SnapshotArtifact("mount-styles.png", renderer.render(sim,
+                    "Turret mount styles | green ring (army hulls), silver ring (hover hulls), white ring (laser tank)"
+                            + " | 1920 x 1080, UI 100%", labels.build())));
         }
     }
 

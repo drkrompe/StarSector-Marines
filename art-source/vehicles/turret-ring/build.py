@@ -1,6 +1,8 @@
 """Build the modular turret's sprites in mod/graphics/battle/vehicles/ from the ImageGen masters beside this file.
 
-  ring.png       -> gun-mount.png         the exposed turntable every fitted gun stands on (static, 256 px)
+  ring.png       -> gun-mount-white.png   the exposed turntable the laser tank's turret stands on (static, 256 px)
+  ring-silver.png-> gun-mount-silver.png  the same for the silver hover hulls (mid class)
+  ring-green.png -> gun-mount-green.png   the same for the army hulls (low class)
   collar.png     -> turret-collar.png     the toothed collar that turns with the turret (256 px, open centre)
   base-medium.png-> turret-base-medium.png  the round housing of a two-row laser, gun port to the top (192 px)
   base-light.png -> turret-base-light.png   the same for a one-row laser (160 px)
@@ -19,7 +21,8 @@ sys.path.insert(0, str(REPO / "art-source" / "mech-modular-topdown"))
 from clean_imagegen_backgrounds import clean  # noqa: E402
 
 OUT = REPO / "mod" / "graphics" / "battle" / "vehicles"
-SPRITES = (("ring.png", "gun-mount.png", 256), ("collar.png", "turret-collar.png", 256),
+SPRITES = (("ring.png", "gun-mount-white.png", 256), ("ring-silver.png", "gun-mount-silver.png", 256),
+           ("ring-green.png", "gun-mount-green.png", 256), ("collar.png", "turret-collar.png", 256),
            ("base-medium.png", "turret-base-medium.png", 192), ("base-light.png", "turret-base-light.png", 160))
 
 

@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.drone.Drone;
+import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
 import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -117,7 +118,8 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final SpriteSheetFrames urban3Frames;
     private final SpriteSheetFrames natureFrames;
     private final LayeredMechAssets mech;
-    private final LayeredSpriteCache gunMount;
+    private final EnumMap<TurretMountStyle, LayeredSpriteCache> gunMounts =
+            new EnumMap<>(TurretMountStyle.class);
     private final LayeredSpriteCache turretCollar;
     private final LayeredSpriteCache turretBase;
     private final LayeredSpriteCache turretBaseLight;
@@ -182,7 +184,10 @@ final class HeadlessBattleSprites extends BattleSprites {
         ensureObjectiveIcons();
         loadDecals();
         mech = loadMech();
-        gunMount = optionalLayer("graphics/battle/vehicles/gun-mount.png");
+        for (TurretMountStyle style : TurretMountStyle.values()) {
+            LayeredSpriteCache ring = optionalLayer("graphics/battle/vehicles/" + style.ringTexture);
+            if (ring != null) gunMounts.put(style, ring);
+        }
         turretCollar = optionalLayer("graphics/battle/vehicles/turret-collar.png");
         turretBase = optionalLayer("graphics/battle/vehicles/turret-base-medium.png");
         turretBaseLight = optionalLayer("graphics/battle/vehicles/turret-base-light.png");
@@ -341,7 +346,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public RavSpitterAssets ravSpitterSprites() { return ravSpitter; }
     @Override public RavBombardAssets ravBombardSprites() { return ravBombard; }
     @Override public LayeredMechAssets layeredMechSprites() { return mech; }
-    @Override public LayeredSpriteCache vehicleGunMount() { return gunMount; }
+    @Override public LayeredSpriteCache vehicleGunMount(TurretMountStyle style) { return gunMounts.get(style); }
     @Override public LayeredSpriteCache vehicleTurretCollar() { return turretCollar; }
     @Override public LayeredSpriteCache vehicleTurretBase(boolean light) { return light ? turretBaseLight : turretBase; }
     @Override public EnumMap<VehicleType, UnitSpriteCache> convoySprites() { return vehicles; }

@@ -73,6 +73,13 @@ and not a mech arm: each stands in a round turret base on the collar (`turret-ba
 mech arm drawing is a different style from the vehicle turret and is not reused at arm length on a hull. Art:
 `art-source/vehicles/turret-ring/`; the lineup is the `tank-variants` suite's `laser-lineup*`.
 
+**The ring has three finishes by hull class** (owner, 2026-10-29), `VehicleType.mountStyle` / `TurretMountStyle`: the army
+hulls (APCs, technicals, trucks, tanks, carriers) an olive-drab bolted ring (`gun-mount-green.png`), the silver hover hulls
+(hover scout, drone skimmer) a brushed-silver ring with cyan edge lights (`gun-mount-silver.png`), and the futuristic
+laser tank the white one (`gun-mount-white.png`), which alone has the turning collar and the laser bases. A hull that
+becomes a modular turret later brings its own collar and bases in its finish; the `tank-variants` suite's `mount-styles`
+frame shows one hull of each.
+
 Slice 2 shipped the laser tanks' guns as parts (since redrawn and extended to the ladder above): the burst laser (an energy arm gun of two columns by three rows, centreline only
 like the heavy cannon, Prestige) and the PD laser (two by two, Advanced) are red weapon parts that fill
 the laser tank's three-row red card, bought and fitted like any mech weapon, each with its own drawing, liveries,
