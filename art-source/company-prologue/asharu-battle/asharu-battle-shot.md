@@ -618,7 +618,7 @@ Rules:
 | S7 | 84.9-90.11 | SOBIESKI | Boarding craft! Security, marines topside, repel boarders! Boarders — |
 | S8 | 88.4-92.6 | CARAVEL | Taking fire on the port pod! Morrow, keep pressure with the drones! |
 | S9 | 91.6-93.59 | MORROW | Under you. Borers are out — |
-| S9 | 93.4-96.32 | CARAVEL | Flares, flares! Missiles on the pod — |
+| S9 | 93.4-96.08 | CARAVEL | Hits on the port pod! Drive's failing — |
 | S9 | 96.47-99.21 | CARAVEL | Pod's gone! Turrets on that freighter! |
 | S9 | 96.6-99.01 | MORROW | Destroyer's venting — she's breaking off! |
 | S9 | 99.36-102.34 | CARAVEL | She's putting out grapples. Keep the turrets on her! |
