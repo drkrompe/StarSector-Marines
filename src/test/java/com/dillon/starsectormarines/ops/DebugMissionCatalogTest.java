@@ -31,6 +31,16 @@ class DebugMissionCatalogTest {
         }
     }
 
+    @Test void everyPresetLiftsWithTheBoatsTheSecondWindCarries() {
+        assertEquals(ShuttleType.HERMES, DebugMissionCatalog.CAMPAIGN_LIFT);
+        assertEquals(2, DebugMissionCatalog.CAMPAIGN_LIFT_BOATS);
+        for (var mission : DebugMissionCatalog.missions(null)) {
+            var preset = DebugMissionCatalog.preset(mission);
+            assertEquals(DebugMissionCatalog.CAMPAIGN_LIFT, preset.boat(), mission.id);
+            assertEquals(DebugMissionCatalog.CAMPAIGN_LIFT_BOATS, preset.boats(), mission.id);
+        }
+    }
+
     @Test void aMaxFittedHermesLiftsHeavyMachines() {
         assertEquals(LiftRating.HEAVY, DebugMissionCatalog.maxFitted(ShuttleType.HERMES).liftRating());
     }
