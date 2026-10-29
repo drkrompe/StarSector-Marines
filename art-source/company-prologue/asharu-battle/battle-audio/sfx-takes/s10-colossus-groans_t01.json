@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "66",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "An enormous ship's hull groaning and buckling under stress: deep slow metal creaks and shudders, no music, no voices",
+    "duration_seconds": 6.0,
+    "prompt_influence": 0.5,
+    "loop": true
+  },
+  "audioSha256": "9ca8024952e4748b28411552f31e426e5d34ed367547d777c9b79977487c586c",
+  "durationSeconds": 6.0,
+  "peakDb": -10.5,
+  "integratedLufs": -26.8
+}

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "28",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Heavy magnetic docking clamps slamming onto a ship's hull: deep metallic thuds and a grinding lock, no music, no voices",
+    "duration_seconds": 2.5,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "44ac53899a7f6bf7b3ff61b77197c94e7fc28c06717c8c66ebd45c4e58216dfc",
+  "durationSeconds": 2.48,
+  "peakDb": -7.3,
+  "integratedLufs": -27.3
+}

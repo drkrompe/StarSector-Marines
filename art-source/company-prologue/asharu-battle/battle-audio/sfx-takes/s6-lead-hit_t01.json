@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "28",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Two missiles hitting a warship one right after the other: two heavy explosions, metal tearing, gas venting with a roar, no music, no voices",
+    "duration_seconds": 2.5,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "bfdc6dcc35b6628e7ef2e78dbe72802007bc0c8486fe7173f6ab5c564bb05d6e",
+  "durationSeconds": 2.48,
+  "peakDb": 0.0,
+  "integratedLufs": -6.9
+}

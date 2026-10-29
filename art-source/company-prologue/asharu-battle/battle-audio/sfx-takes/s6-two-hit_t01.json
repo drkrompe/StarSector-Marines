@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "28",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A missile slamming into a warship's armoured hull: a sharp heavy explosion with a metallic crunch and a short sizzle of fire, no music, no voices",
+    "duration_seconds": 2.5,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "e1748edad1ced15e19787425ce76a605ae41b5055cd88123e77a262facf947b1",
+  "durationSeconds": 2.48,
+  "peakDb": 0.0,
+  "integratedLufs": -8.0
+}

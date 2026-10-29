@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "33",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A close-range explosion of a small warship: a sharp violent blast and burst of debris pinging off a hull, no music, no voices",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "9b606e77d50f1d869de0a72a1cd4eab643cf64d17fb8e437495c5e59e8f8d45a",
+  "durationSeconds": 3.0,
+  "peakDb": 0.0,
+  "integratedLufs": -7.2
+}

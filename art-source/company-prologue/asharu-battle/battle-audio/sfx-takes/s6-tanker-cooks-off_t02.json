@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "66",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A huge fuel tanker exploding: a deep booming blast that cooks off into a chain of secondary explosions, with a long rolling rumble fading out, no music, no voices",
+    "duration_seconds": 6.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "397e716eda8634b5ae5d5854beeab4a348c84508012abcea6423050979093dd6",
+  "durationSeconds": 6.0,
+  "peakDb": -0.1,
+  "integratedLufs": -13.7
+}

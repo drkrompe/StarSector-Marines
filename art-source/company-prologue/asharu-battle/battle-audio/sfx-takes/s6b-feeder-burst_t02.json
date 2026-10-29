@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "22",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A cannon spinning up into an extremely rapid burst of fire, a ripping mechanical roar of shots, no music, no voices",
+    "duration_seconds": 2.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "5cc033432fc69978f8a41a436e9d7e464e928dfefc26e07f496412ce241540cb",
+  "durationSeconds": 2.0,
+  "peakDb": 0.0,
+  "integratedLufs": -3.4
+}

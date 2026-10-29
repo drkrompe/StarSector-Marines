@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "22",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "An energy shield overloading: a rising electric whine that snaps into a loud crackling discharge, no music, no voices",
+    "duration_seconds": 2.0,
+    "prompt_influence": 0.7,
+    "loop": false
+  },
+  "audioSha256": "64b257bb35d45dea864bfd0e1f2d14e886134e1a825566da621e6d8f0cd50c6a",
+  "durationSeconds": 2.0,
+  "peakDb": 0.0,
+  "integratedLufs": -8.1
+}

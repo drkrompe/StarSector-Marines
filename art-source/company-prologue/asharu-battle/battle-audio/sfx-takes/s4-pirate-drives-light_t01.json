@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "55",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Several rocket drives igniting one after another in the distance, each a deep thump and crackling roar building into a combined rumble, burning rocket fuel: bass and crackling combustion like a shuttle launch, never compressed air, hum or chimes, no music, no voices",
+    "duration_seconds": 5.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "4ddfa95bd6de71297bc96deca3056e943b84e7bd02f1acb1f4feec77c3b53264",
+  "durationSeconds": 5.0,
+  "peakDb": -0.4,
+  "integratedLufs": -10.0
+}

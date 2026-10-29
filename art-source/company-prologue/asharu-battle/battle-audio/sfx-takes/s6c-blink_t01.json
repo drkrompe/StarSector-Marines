@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "17",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A short science fiction phase jump: a sharp electric crack and a deep pressure pop with a quick rising whine, no music, no voices",
+    "duration_seconds": 1.5,
+    "prompt_influence": 0.7,
+    "loop": false
+  },
+  "audioSha256": "770b6b25489bc3658a7af8dd0d6fa06017b97aa59ca4ecb9823167997e5a9eaf",
+  "durationSeconds": 1.48,
+  "peakDb": 0.0,
+  "integratedLufs": -8.8
+}

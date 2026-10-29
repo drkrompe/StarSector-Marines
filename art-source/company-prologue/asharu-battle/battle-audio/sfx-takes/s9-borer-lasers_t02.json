@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "44",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "An industrial mining laser beam cutting metal: a steady harsh electric hum with sizzling and crackling, no music, no voices",
+    "duration_seconds": 4.0,
+    "prompt_influence": 0.6,
+    "loop": true
+  },
+  "audioSha256": "93ba195df1fdf03c7e7fb609108017eabcd32f9cb5d5bc9ff341cf53cd1dfe8b",
+  "durationSeconds": 4.0,
+  "peakDb": -0.0,
+  "integratedLufs": -7.3
+}
