@@ -58,7 +58,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
      */
     @Override protected List<LookReview.Shot> lookShots() {
         return List.of(idle(), shelling(), armor(), wrecks(), fitted(), fittedWrecks(), fittedRotary(),
-                lightWeapons(), lightWeaponsFire(), laserParts(), laserMechs(), laserArms());
+                lightWeapons(), lightWeaponsFire(), laserParts(), laserMechs(), laserArms(), laserWardens());
     }
 
     private static LookReview.Shot shelling() {
@@ -267,6 +267,13 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
                 MechWeaponComponent.MEDIUM_BURST_LASER, MechWeaponComponent.LIGHT_BURST_LASER});
     }
 
+    /** The six ladder parts as the nose gun of six Wardens (the PD lasers in a row, the burst lasers in another). */
+    private static LookReview.Shot laserWardens() {
+        return mechLook("laser-wardens", MechVariant.WARDEN, new MechWeaponComponent[] {MechWeaponComponent.HEAVY_PD_LASER,
+                MechWeaponComponent.PD_LASER, MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.BURST_LASER,
+                MechWeaponComponent.MEDIUM_BURST_LASER, MechWeaponComponent.LIGHT_BURST_LASER}, true);
+    }
+
     /** The four lasers a side arm takes (the heavy two are nose guns), a pair on each arm of four Bulwarks. */
     private static LookReview.Shot laserArms() {
         return mechLook("laser-arms", MechVariant.BULWARK, new MechWeaponComponent[] {MechWeaponComponent.PD_LASER,
@@ -279,6 +286,12 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
      * firing at a stationary picket: one close view a row, named after the shot.
      */
     private static LookReview.Shot mechLook(String name, MechVariant variant, MechWeaponComponent[] guns) {
+        return mechLook(name, variant, guns, false);
+    }
+
+    /** As above; with {@code closeUps}, also one close view a mech, named {@code mech0} on. */
+    private static LookReview.Shot mechLook(String name, MechVariant variant, MechWeaponComponent[] guns,
+            boolean closeUps) {
         return LookReview.Shot.of(name, 48, 24, placement -> {
             SceneBuilder builder = placement.holdouts(placement.builder());
             int px = (int) placement.openNear(36.5f, 12.5f)[0] - placement.site().x0();
@@ -302,9 +315,17 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
                 if (guns[i] != null) placement.subject("mech" + i, world.members("mech" + i)[0]);
             }
             return world.sim();
-        }, placement -> List.of(
-                LookReview.View.follow("first", placement, 16f, rowOf(guns, 0)),
-                LookReview.View.follow("second", placement, 16f, rowOf(guns, 1))), 300);
+        }, placement -> {
+            List<LookReview.View> views = new ArrayList<>(List.of(
+                    LookReview.View.follow("first", placement, 16f, rowOf(guns, 0)),
+                    LookReview.View.follow("second", placement, 16f, rowOf(guns, 1))));
+            if (closeUps) {
+                for (int i = 0; i < guns.length; i++) {
+                    if (guns[i] != null) views.add(LookReview.View.follow("mech" + i, placement, 6f, "mech" + i));
+                }
+            }
+            return views;
+        }, 300);
     }
 
     private static String[] rowOf(MechWeaponComponent[] guns, int row) {
