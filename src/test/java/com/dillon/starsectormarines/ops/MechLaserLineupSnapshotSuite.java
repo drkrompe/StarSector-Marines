@@ -31,6 +31,7 @@ import java.util.List;
  * a 2x2 or 1x2 laser on both arms, and Wardens with each of the six lasers as the nose gun, the PD family above and the
  * burst family below. Only fits the Mech Lab would accept are drawn ({@link #require}): energy parts fit omni sockets,
  * which are the Bulwark's arms and the Warden's 2x3 nose; a Hound's nose is a two by two ballistic socket and takes none.
+ * A third frame shows the older energy parts that still wear the olive and red mech art.
  */
 public final class MechLaserLineupSnapshotSuite implements SnapshotSuite {
     private static final MechWeaponComponent[] ARM_LINE = {MechWeaponComponent.PD_LASER,
@@ -44,16 +45,41 @@ public final class MechLaserLineupSnapshotSuite implements SnapshotSuite {
     private static final String[] NOSE_NAMES = {"HEAVY PD LASER 3x2", "PD LASER 2x2", "LIGHT PD LASER 1x2",
             "HEAVY BURST LASER 3x2", "BURST LASER 2x2", "LIGHT BURST LASER 1x2"};
 
+    private static final SocketId[] BULWARK_ARMS = {SocketId.LEFT_ARM, SocketId.RIGHT_ARM};
+    private static final SocketId[] NOSE = {SocketId.ARMS};
+
+    /** One mech in a lineup: its variant, the part in its arm sockets and in its right shoulder, and its label. */
+    private record Entry(MechVariant variant, SocketId[] armSockets, MechWeaponComponent arms,
+                         MechWeaponComponent rightShoulder, String name) { }
+
     @Override public String id() { return "mech-laser-lineup"; }
     @Override public String label() { return "Bulwarks and Wardens lined up with each fitting laser installed"; }
 
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         SceneRegistries.installArmoury(context.projectRoot());
         List<SnapshotArtifact> artifacts = new ArrayList<>();
-        lineup(context, MechVariant.BULWARK, ARM_LINE, ARM_NAMES, new SocketId[] {SocketId.LEFT_ARM, SocketId.RIGHT_ARM},
-                2, 7, 5, new float[] {13.5f, 8.4f, 19f}, "both arms", artifacts);
-        lineup(context, MechVariant.WARDEN, NOSE_LINE, NOSE_NAMES, new SocketId[] {SocketId.ARMS},
-                3, 5, 5, new float[] {15f, 9.4f, 16.5f}, "the nose", artifacts);
+        List<Entry> bulwarks = new ArrayList<>();
+        for (int i = 0; i < ARM_LINE.length; i++) {
+            bulwarks.add(new Entry(MechVariant.BULWARK, BULWARK_ARMS, ARM_LINE[i], MechWeaponComponent.SRM_5, ARM_NAMES[i]));
+        }
+        artifacts.add(lineup(context, "bulwark-lineup.png", "BULWARK | each laser it can fit installed on both arms",
+                bulwarks, 2, 7, 5, new float[] {13.5f, 8.4f, 19f}));
+        List<Entry> wardens = new ArrayList<>();
+        for (int i = 0; i < NOSE_LINE.length; i++) {
+            wardens.add(new Entry(MechVariant.WARDEN, NOSE, NOSE_LINE[i], MechWeaponComponent.SRM_5, NOSE_NAMES[i]));
+        }
+        artifacts.add(lineup(context, "warden-lineup.png", "WARDEN | each laser it can fit installed on the nose",
+                wardens, 3, 5, 5, new float[] {15f, 9.4f, 16.5f}));
+        // The energy parts older than the ladder, still in the olive and red mech art.
+        List<Entry> legacy = List.of(
+                new Entry(MechVariant.BULWARK, BULWARK_ARMS, MechWeaponComponent.PULSE_LASER, MechWeaponComponent.SRM_5,
+                        "PULSE LASER 2x2 (old art)"),
+                new Entry(MechVariant.WARDEN, NOSE, MechWeaponComponent.LINEAR_CANNON,
+                        MechWeaponComponent.SHOULDER_LASER_CANNON, "SHOULDER LASER CANNON 3x2 (old art)"),
+                new Entry(MechVariant.WARDEN, NOSE, MechWeaponComponent.LINEAR_CANNON, MechWeaponComponent.THERMAL_LANCE,
+                        "THERMAL LANCE 1x2 (old art)"));
+        artifacts.add(lineup(context, "legacy-lineup.png", "OLDER ENERGY PARTS | still the olive and red mech art",
+                legacy, 3, 5, 5, new float[] {15f, 6.4f, 16.5f}));
         return List.copyOf(artifacts);
     }
 
@@ -66,21 +92,22 @@ public final class MechLaserLineupSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static void lineup(SnapshotContext context, MechVariant variant, MechWeaponComponent[] line,
-            String[] names, SocketId[] sockets, int columns, int stepX, int stepY, float[] camera, String where,
-            List<SnapshotArtifact> artifacts) throws Exception {
+    private static SnapshotArtifact lineup(SnapshotContext context, String file, String title, List<Entry> line,
+            int columns, int stepX, int stepY, float[] camera) throws Exception {
         SceneBuilder builder = SceneBuilder.openGround(160, 60).missionCompletion(false);
         builder.unit("marine-holdout", Faction.MARINE, UnitType.MARINE, 1, 1, spec -> spec.moveSpeed(0f));
         builder.unit("defender-holdout", Faction.DEFENDER, UnitType.MARINE, 158, 58, spec -> spec.moveSpeed(0f));
-        int rows = (line.length + columns - 1) / columns;
-        for (int i = 0; i < line.length; i++) {
-            for (SocketId socket : sockets) require(variant, socket, line[i]);
-            require(variant, SocketId.LEFT_SHOULDER, MechWeaponComponent.SRM_5);
-            require(variant, SocketId.RIGHT_SHOULDER, MechWeaponComponent.SRM_5);
+        int rows = (line.size() + columns - 1) / columns;
+        for (int i = 0; i < line.size(); i++) {
+            Entry entry = line.get(i);
+            for (SocketId socket : entry.armSockets()) require(entry.variant(), socket, entry.arms());
+            require(entry.variant(), SocketId.LEFT_SHOULDER, MechWeaponComponent.SRM_5);
+            require(entry.variant(), SocketId.RIGHT_SHOULDER, entry.rightShoulder());
             int x = 10 + stepX * (i % columns);
             int y = 6 + stepY * (rows - 1 - i / columns);
-            MechDeploymentSpec spec = new MechDeploymentSpec(variant, MechRole.BALANCED,
-                    MissileReplenisherComponent.STANDARD, line[i], MechWeaponComponent.SRM_5, MechWeaponComponent.SRM_5);
+            MechDeploymentSpec spec = new MechDeploymentSpec(entry.variant(), MechRole.BALANCED,
+                    MissileReplenisherComponent.STANDARD, entry.arms(), MechWeaponComponent.SRM_5,
+                    entry.rightShoulder());
             builder.squad("mech" + i).faction(Faction.MARINE).size(1).at(x, y).mech(spec)
                     .assigned(id -> ObjectiveAssignment.defendArea(id, x, y)).done();
         }
@@ -89,15 +116,13 @@ public final class MechLaserLineupSnapshotSuite implements SnapshotSuite {
             // Long enough for the drop-in to finish; the only enemy is far outside sight, so no mech turns from the line.
             for (int tick = 0; tick < 300; tick++) sim.advance(BattleSimulation.TICK_DT);
             ReviewAnnotations.Builder labels = ReviewAnnotations.builder();
-            for (int i = 0; i < line.length; i++) {
+            for (int i = 0; i < line.size(); i++) {
                 long id = world.members("mech" + i)[0];
-                labels.label(sim.world().renderX(id), sim.world().renderY(id) - 2.4f, names[i], ReviewStyle.NOTE);
+                labels.label(sim.world().renderX(id), sim.world().renderY(id) - 2.4f, line.get(i).name(), ReviewStyle.NOTE);
             }
             BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
                     context.modRoot(), 1920, 1080, camera[0], camera[1], camera[2]);
-            artifacts.add(new SnapshotArtifact(variant.name().toLowerCase() + "-lineup.png", renderer.render(sim,
-                    variant.name() + " | each laser it can fit installed on " + where + " | 1920 x 1080, UI 100%",
-                    labels.build())));
+            return new SnapshotArtifact(file, renderer.render(sim, title + " | 1920 x 1080, UI 100%", labels.build()));
         }
     }
 }

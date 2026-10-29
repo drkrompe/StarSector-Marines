@@ -59,6 +59,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         lineup(context, artifacts);
         laserLineup(context, artifacts);
         mountStyles(context, artifacts);
+        legacyEnergy(context, artifacts);
         lances(context, artifacts);
         battle(context, artifacts);
         return List.copyOf(artifacts);
@@ -182,6 +183,44 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                     context.modRoot(), 1920, 1080, 19f, 12.2f, 27f);
             artifacts.add(new SnapshotArtifact("mount-styles.png", renderer.render(sim,
                     "Turret mount styles | green ring (army hulls), silver ring (hover hulls), white ring (laser tank)"
+                            + " | 1920 x 1080, UI 100%", labels.build())));
+        }
+    }
+
+    private static final List<VehicleType> LEGACY_HULLS = List.of(VehicleType.LASER_TANK, VehicleType.LASER_TANK,
+            VehicleType.LASER_TANK, VehicleType.ESCORT_APC, VehicleType.HOVER_SCOUT, VehicleType.MILITIA_TECHNICAL);
+    private static final List<MechWeaponComponent> LEGACY_GUNS = List.of(MechWeaponComponent.PULSE_LASER,
+            MechWeaponComponent.SHOULDER_LASER_CANNON, MechWeaponComponent.THERMAL_LANCE,
+            MechWeaponComponent.THERMAL_LANCE, MechWeaponComponent.THERMAL_LANCE, MechWeaponComponent.THERMAL_LANCE);
+    private static final List<String> LEGACY_NAMES = List.of("LASER TANK: PULSE LASER 2x2",
+            "LASER TANK: SHOULDER LASER CANNON 3x2", "LASER TANK: THERMAL LANCE 1x2", "ESCORT APC: THERMAL LANCE",
+            "HOVER SCOUT: THERMAL LANCE", "MILITIA TECHNICAL: THERMAL LANCE");
+
+    /** The older energy parts, still in the olive and red mech art, on the laser tank and the small hulls. */
+    private static void legacyEnergy(SnapshotContext context, List<SnapshotArtifact> artifacts) throws Exception {
+        try (BattleSimulation sim = scene(48, 30)) {
+            sim.setMissionCompletionEnabled(false);
+            ReviewAnnotations.Builder labels = ReviewAnnotations.builder();
+            List<float[]> places = new ArrayList<>();
+            List<Long> hulls = new ArrayList<>();
+            for (int i = 0; i < LEGACY_HULLS.size(); i++) {
+                float x = 9 + 10 * (i % 3);
+                float y = i < 3 ? 17 : 8;
+                places.add(new float[] {x, y});
+                hulls.add(spawnFitted(sim, LEGACY_HULLS.get(i), LEGACY_GUNS.get(i), x, y, 90, 90));
+                labels.label(x, y - 3.4f, LEGACY_NAMES.get(i), ReviewStyle.NOTE);
+            }
+            long dummy = spawn(sim, VehicleType.CARGO_CARRIER, Faction.DEFENDER, 46, 28, 90, 0);
+            for (int tick = 0; tick < 60; tick++) sim.advance(BattleSimulation.TICK_DT);
+            for (int i = 0; i < hulls.size(); i++) {
+                sim.convoy().body(hulls.get(i)).teleport(places.get(i)[0], places.get(i)[1], 90);
+                if (sim.convoy().turret(hulls.get(i)) != null) sim.convoy().turret(hulls.get(i)).facingDeg = 90;
+            }
+            sim.convoy().body(dummy).teleport(46, 28, 90);
+            BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
+                    context.modRoot(), 1920, 1080, 19f, 12.2f, 27f);
+            artifacts.add(new SnapshotArtifact("legacy-energy.png", renderer.render(sim,
+                    "Older energy parts | pulse laser, shoulder laser cannon and Thermal Lance, still the olive and red art"
                             + " | 1920 x 1080, UI 100%", labels.build())));
         }
     }
