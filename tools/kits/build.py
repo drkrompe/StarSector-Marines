@@ -1,6 +1,7 @@
 """Build the weapon-kit ladder page: a self-contained HTML tool for authoring squad weapon kits.
 
-    python tools/kits/build.py [out.html]        (default build/kits/kit-ladder.html)
+    python tools/kits/build.py [--artifact] [out.html]    (default build/kits/kit-ladder.html;
+    --artifact drops the html/head/body wrapper for publishing through the Artifact tool)
 
 Reads the shipped marine weapon and special-equipment catalogs, the strings, the armoury icons and
 the built-in weapon doctrines in SquadEquipmentDoctrines.java, and embeds all of it in one file.
@@ -56,6 +57,8 @@ def image(path):
 
 
 def main():
+    argv = [a for a in sys.argv[1:] if a != "--artifact"]
+    artifact = "--artifact" in sys.argv
     strings = flat(load(MOD / "data/strings/strings.json"))
     text = lambda key: strings.get(key.lstrip("@"), key) if key else ""
     weapons = {}
@@ -109,6 +112,24 @@ def main():
             "thrown": e["activation"]["type"] in ("arc-explosive", "utility-smoke", "utility-satchel"),
         })
 
+    armor_doc = load(MOD / "data/marines/marine-armor-catalog.armor.json")
+    armors = []
+    for a in armor_doc["armor"]:
+        c, bt = a["catalog"], a["battle"]
+        icon = c["iconPath"]
+        images[icon] = image(icon)
+        system = a.get("integralSystem") or bt.get("integralSystem")
+        sys_icon = None
+        if system:
+            # A shared shield reference is the breach assist; a suit's own block here is field aid.
+            sys_icon = "graphics/ui/armory/system-breach-assist.png" if "ref" in system else "graphics/ui/armory/system-field-aid.png"
+            images[sys_icon] = image(sys_icon)
+        armors.append({
+            "id": a["id"], "name": text(c["displayName"]), "icon": icon, "systemIcon": sys_icon,
+            "role": c["role"], "tier": c["tier"], "powered": c["armorClass"] == "power-suit",
+            "stats": "tier %d · %s · armour %g / rating %g" % (c["tier"], c["role"], bt.get("armorCapacity", 0), bt.get("armorRating", 0)),
+        })
+
     ids = {}
     for name in ("battle/weapon/WeaponRegistry.java", "marine/SpecialEquipmentRegistry.java", "marine/SquadEquipmentDoctrines.java"):
         ids.update(constants(JAVA / name))
@@ -125,7 +146,7 @@ def main():
             members.append({
                 "role": val(args[0]), "primary": val(args[1]),
                 "grade": "SURPLUS" if call.group(1) == "starterWeapon" else "SERVICE",
-                "special": val(args[2]) if len(args) > 2 else None,
+                "special": val(args[2]) if len(args) > 2 else None, "armor": None,
                 "belt": val(args[3]) if len(args) > 3 else None,
             })
         if len(members) != 12:
@@ -134,9 +155,12 @@ def main():
                      "members": members})
 
     page = (Path(__file__).with_name("template.html")).read_text(encoding="utf-8")
-    for key, value in (("__PRIMARIES__", primaries), ("__SPECIALS__", specials), ("__KITS__", kits), ("__IMAGES__", images)):
+    for key, value in (("__PRIMARIES__", primaries), ("__SPECIALS__", specials), ("__KITS__", kits), ("__ARMORS__", armors), ("__IMAGES__", images)):
         page = page.replace(key, json.dumps(value, ensure_ascii=False))
-    out = Path(sys.argv[1]) if len(sys.argv) > 1 else ROOT / "build/kits/kit-ladder.html"
+    if artifact:
+        # The Artifact tool wraps the page in its own skeleton, so publish only the content.
+        page = page[page.index("<title>"):].replace("</head><body>", "", 1).replace("</body></html>", "")
+    out = Path(argv[0]) if argv else ROOT / "build/kits/kit-ladder.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(page, encoding="utf-8")
     print("wrote %s: %d primaries, %d secondaries, %d kits, %.0f KB" % (out, len(primaries), len(specials), len(kits), out.stat().st_size / 1024))

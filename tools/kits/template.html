@@ -1,10 +1,13 @@
 <!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>Kit Ladder</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{--bg:#f3f1f6;--surface:#fff;--ink:#221d2b;--muted:#6c6478;--line:#ddd7e5;--accent:#7a4fa8;--accent-soft:#ece3f6;
- --BALLISTIC:#e2c248;--ENERGY:#e06a3c;--MISSILE:#6cc45e;--UTILITY:#4cb4a6;--EMPTY:#a4a8a0;
+ --BALLISTIC:#e2c248;--ENERGY:#e06a3c;--MISSILE:#6cc45e;--UTILITY:#4cb4a6;--EMPTY:#a4a8a0;--ARMOR:#a4a8a0;--SYSTEM:#a07edc;
  --display:"Chakra Petch","Segoe UI",system-ui,sans-serif;--body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17141c;--surface:#211d28;--ink:#ece8f2;--muted:#a79fb4;--line:#3a3346;--accent:#b996e0;--accent-soft:#33284a;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#17141c;--surface:#211d28;--ink:#ece8f2;--muted:#a79fb4;--line:#3a3346;--accent:#b996e0;--accent-soft:#33284a;color-scheme:dark}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--body)}
 .wrap{max-width:1500px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left)) 60px;display:grid;gap:18px}
 h1{font:700 28px/1.1 var(--display);margin:0}h2{font:600 13px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px}
@@ -45,7 +48,7 @@ textarea.desc{min-height:58px;font:13px var(--body);margin-top:6px}
 .teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px}
 .team{border:1px solid var(--line);border-radius:8px;padding:8px;display:grid;gap:6px;background:var(--bg)}
 .team h4{margin:0;font:600 12px var(--mono);text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
-.member{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:center;padding:5px;border-radius:7px;background:var(--surface);border:1px solid var(--line)}
+.member{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto auto;gap:8px;align-items:center;padding:5px;border-radius:7px;background:var(--surface);border:1px solid var(--line)}
 .member .who{display:grid;gap:3px}.member .who{min-width:0}.member .who input,.member .who select{font-size:12px;width:100%;box-sizing:border-box}
 .slot{display:grid;gap:2px;justify-items:center;padding:2px;border-radius:6px}.slot .nm{font:600 10px var(--mono);max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
 .slot .x{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;padding:0;font-size:10px;line-height:14px;display:none}
@@ -64,18 +67,18 @@ textarea{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--mono)
 <input id="kname" aria-label="Card name" style="width:100%;box-sizing:border-box"><textarea id="kdesc" class="desc" aria-label="Card description" placeholder="Description"></textarea></section>
 <section class="panel"><h2>2 · Card preview · all twelve marines as assigned</h2><div id="preview"></div></section>
 </div>
-<main><h2>Marines · drop a weapon on one</h2><div class="teams" id="teams"></div><div class="hint" style="margin-top:8px">Drag a slot's brick onto another marine to copy it. × clears a secondary or belt item. Grade sets the primary's grade (rifle and DMR art change with it, as in the armoury). Dropping on a team header fills all four.</div></main>
+<main><h2>Marines · drop a weapon on one</h2><div class="teams" id="teams"></div><div class="hint" style="margin-top:8px">Armour left empty means the card's armour sheet decides. Drag a slot's brick onto another marine to copy it. × clears a secondary or belt item. Grade sets the primary's grade (rifle and DMR art change with it, as in the armoury). Dropping on a team header fills all four.</div></main>
 <aside class="right panel"><h2>3 · Weapon inventory</h2><div class="legend" id="legend"></div>
-<div><h2>Primaries</h2><div class="cat" id="cat-p"></div></div><div><h2>Secondaries and belt items</h2><div class="cat" id="cat-s"></div></div></aside>
+<div><h2>Primaries</h2><div class="cat" id="cat-p"></div></div><div><h2>Secondaries and belt items</h2><div class="cat" id="cat-s"></div></div><div><h2>Armour</h2><div class="cat" id="cat-a"></div></div></aside>
 </div>
 <textarea id="out" hidden></textarea>
 </div>
 <script>
-const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED=__KITS__,IMAGES=__IMAGES__;
+const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED=__KITS__,ARMORS=__ARMORS__,IMAGES=__IMAGES__;
 const GRADES=["SURPLUS","SERVICE","MILSPEC","MASTERWORK"];
 const KEY="kit-ladder-v1",$=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const P=Object.fromEntries(PRIMARIES.map(p=>[p.id,p])),S=Object.fromEntries(SPECIALS.map(s=>[s.id,s]));
+const A=Object.fromEntries(ARMORS.map(a=>[a.id,a])),P=Object.fromEntries(PRIMARIES.map(p=>[p.id,p])),S=Object.fromEntries(SPECIALS.map(s=>[s.id,s]));
 const sizes={};let state=null,db=null,saveTimer=null;
 const clone=o=>JSON.parse(JSON.stringify(o));
 function seedState(){return{kits:clone(SEED),selected:SEED[0].id}}
@@ -84,6 +87,8 @@ function persist(){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{lo
  if(db){try{await db.doc("kits/state").set({json:JSON.stringify(state),at:new Date().toISOString()});$("status").textContent="Saved to this page"}catch{$("status").textContent="Saved in this browser only"}}else $("status").textContent="Saved in this browser (export to keep)"},300)}
 const kit=()=>state.kits.find(k=>k.id===state.selected)||state.kits[0];
 function piece(type,id,grade){if(type==="p"){const p=P[id];return p&&{key:id,kind:p.kind,lie:p.lie,icon:p.icons[grade||"SERVICE"],name:p.name}}
+ if(type==="a"){const a=A[id];return a&&{key:id,kind:"ARMOR",lie:null,icon:a.icon,name:a.name}}
+ if(type==="y"){const a=A[id];return a&&a.systemIcon&&{key:id,kind:"SYSTEM",lie:null,icon:a.systemIcon,name:a.name+" system"}}
  const s=S[id];return s&&{key:id,kind:s.kind,lie:s.lie,icon:s.icon,name:s.name}}
 function brick(pc,count,payload){const el=document.createElement("div");el.className="brick"+(pc?"":" empty");
  const t=pc?"var(--"+pc.kind+")":"var(--EMPTY)";
@@ -95,40 +100,44 @@ function brick(pc,count,payload){const el=document.createElement("div");el.class
   if(count>1){const n=document.createElement("span");n.className="n";n.textContent="×"+count;el.appendChild(n)}
   if(payload){el.draggable=true;el.classList.add("drag");el.title=pc.name;el.addEventListener("dragstart",e=>{e.stopPropagation();e.dataTransfer.setData("text/plain",JSON.stringify(payload));e.dataTransfer.effectAllowed="copy"})}}
  return el}
-function counts(k){const prim=new Map(),sec=new Map();
+function counts(k){const prim=new Map(),sec=new Map(),arm=new Map(),sys=new Map();
  for(const m of k.members){const key=m.primary+"|"+m.grade;prim.set(key,(prim.get(key)||0)+1);
-  for(const sid of [m.special,m.belt])if(sid)sec.set(sid,(sec.get(sid)||0)+1)}
- return{prim,sec}}
+  for(const sid of [m.special,m.belt])if(sid)sec.set(sid,(sec.get(sid)||0)+1);
+  if(m.armor){arm.set(m.armor,(arm.get(m.armor)||0)+1);if(A[m.armor]&&A[m.armor].systemIcon)sys.set(m.armor,(sys.get(m.armor)||0)+1)}}
+ return{prim,sec,arm,sys}}
 function previewEl(k){const el=document.createElement("div");el.className="card";
  el.innerHTML='<h3>'+esc(k.name)+'</h3><p>'+esc(k.description)+'</p><div class="bricks"></div>';
- const box=el.querySelector(".bricks"),{prim,sec}=counts(k);
+ const box=el.querySelector(".bricks"),{prim,sec,arm,sys}=counts(k);
  for(const [key,n] of prim){const [id,g]=key.split("|");box.appendChild(brick(piece("p",id,g),n,{t:"p",id}))}
  for(const [id,n] of sec)box.appendChild(brick(piece("s",id),n,{t:"s",id}));
+ for(const [id,n] of arm)box.appendChild(brick(piece("a",id),n,{t:"a",id}));
+ for(const [id,n] of sys)box.appendChild(brick(piece("y",id),n,null));
  return el}
 function move(k,d){const j=state.kits.indexOf(k),t=j+d;if(t>=0&&t<state.kits.length){[state.kits[j],state.kits[t]]=[state.kits[t],state.kits[j]];changed()}}
 function slotEl(k,mi,which){const m=k.members[mi];const id=which==="primary"?m.primary:m[which];
- const pc=id?piece(which==="primary"?"p":"s",id,m.grade):null;
+ const pc=id?piece(which==="primary"?"p":which==="armor"?"a":"s",id,m.grade):null;
  const s=document.createElement("div");s.className="slot";
  const w=document.createElement("div");w.className="wrapper";
- w.appendChild(brick(pc,1,id?{t:which==="primary"?"p":"s",id}:null));
+ w.appendChild(brick(pc,1,id?{t:which==="primary"?"p":which==="armor"?"a":"s",id}:null));
  if(id&&which!=="primary"){const x=document.createElement("button");x.className="x";x.textContent="×";x.title="Clear";x.onclick=e=>{e.stopPropagation();m[which]=null;changed()};w.appendChild(x)}
- s.appendChild(w);s.insertAdjacentHTML("beforeend",'<span class="nm">'+esc(pc?pc.name:"empty")+'</span><span class="slotlab">'+(which==="primary"?"primary":which==="special"?"secondary":"belt")+'</span>');
+ s.appendChild(w);s.insertAdjacentHTML("beforeend",'<span class="nm">'+esc(pc?pc.name:"empty")+'</span><span class="slotlab">'+(which==="primary"?"primary":which==="special"?"secondary":which==="armor"?"armour":"belt")+'</span>');
  dropTarget(s,pl=>{apply(k,mi,which,pl);changed()});return s}
 function memberEl(k,mi){const m=k.members[mi],el=document.createElement("div");el.className="member";
  const who=document.createElement("div");who.className="who";
  const role=document.createElement("input");role.value=m.role;role.setAttribute("aria-label","Role");role.oninput=()=>{m.role=role.value;persist()};
  const g=document.createElement("select");g.setAttribute("aria-label","Primary grade");GRADES.forEach(x=>{const o=document.createElement("option");o.value=x;o.textContent=x.toLowerCase();if(x===m.grade)o.selected=true;g.appendChild(o)});
  g.onchange=()=>{m.grade=g.value;changed()};who.append(role,g);el.appendChild(who);
- for(const w of ["primary","special","belt"])el.appendChild(slotEl(k,mi,w));
+ for(const w of ["primary","special","belt","armor"])el.appendChild(slotEl(k,mi,w));
  dropTarget(el,pl=>{apply(k,mi,null,pl);changed()});return el}
 function dropTarget(el,fn){let depth=0;
  el.addEventListener("dragenter",e=>{e.preventDefault();e.stopPropagation();depth++;el.classList.add("over")});
  el.addEventListener("dragover",e=>{e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect="copy"});
  el.addEventListener("dragleave",e=>{e.stopPropagation();if(--depth<=0){depth=0;el.classList.remove("over")}});
  el.addEventListener("drop",e=>{e.preventDefault();e.stopPropagation();depth=0;el.classList.remove("over");let pl;try{pl=JSON.parse(e.dataTransfer.getData("text/plain"))}catch{return}if(pl&&pl.t)fn(pl)})}
-/* A primary always sets the primary. A secondary lands where it is dropped; dropped on the member, it fills the secondary slot, and a thrown item goes to the belt once the secondary is taken. */
+/* A primary always sets the primary and armour the armour slot. A secondary lands where it is dropped; dropped on the member, it fills the secondary slot, and a thrown item goes to the belt once the secondary is taken. */
 function apply(k,mi,slot,pl){const m=k.members[mi];
  if(pl.t==="p"){m.primary=pl.id;return}
+ if(pl.t==="a"){m.armor=pl.id;return}
  const thrown=S[pl.id]&&S[pl.id].thrown;
  if(slot==="belt"&&thrown){m.belt=pl.id;return}
  if(slot){m.special=pl.id;return}
@@ -141,8 +150,9 @@ function ladderOnly(){const list=$("klist");list.innerHTML="";
   r.onclick=()=>{state.selected=k.id;render()};list.appendChild(r)});
  const pv=$("preview");pv.innerHTML="";pv.appendChild(previewEl(kit()))}
 function render(){
- $("legend").innerHTML=["BALLISTIC","ENERGY","MISSILE","UTILITY"].map(k=>'<span style="--t:var(--'+k+')">'+k.toLowerCase()+'</span>').join("");
- const cp=$("cat-p"),cs=$("cat-s");cp.innerHTML=cs.innerHTML="";
+ $("legend").innerHTML=["BALLISTIC","ENERGY","MISSILE","UTILITY","ARMOR","SYSTEM"].map(k=>'<span style="--t:var(--'+k+')">'+k.toLowerCase()+'</span>').join("");
+ const cp=$("cat-p"),cs=$("cat-s"),ca=$("cat-a");cp.innerHTML=cs.innerHTML=ca.innerHTML="";
+ for(const a of ARMORS){const t=document.createElement("div");t.className="tile";t.appendChild(brick(piece("a",a.id),1,{t:"a",id:a.id}));t.insertAdjacentHTML("beforeend","<b>"+esc(a.name)+"</b><small>"+esc(a.stats+(a.systemIcon?" · system":""))+"</small>");ca.appendChild(t)}
  for(const p of PRIMARIES){const t=document.createElement("div");t.className="tile";t.appendChild(brick(piece("p",p.id,"SERVICE"),1,{t:"p",id:p.id}));
   t.insertAdjacentHTML("beforeend","<b>"+esc(p.name)+"</b><small>"+esc(p.stats)+"</small>");cp.appendChild(t)}
  for(const s of SPECIALS){const t=document.createElement("div");t.className="tile";t.appendChild(brick(piece("s",s.id),1,{t:"s",id:s.id}));
