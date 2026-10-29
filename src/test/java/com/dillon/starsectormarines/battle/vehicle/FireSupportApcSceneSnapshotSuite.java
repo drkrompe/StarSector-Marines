@@ -51,7 +51,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
      * close as the shells land.
      */
     @Override protected List<LookReview.Shot> lookShots() {
-        return List.of(idle(), shelling(), armor(), wrecks(), fitted());
+        return List.of(idle(), shelling(), armor(), wrecks(), fitted(), fittedWrecks(), fittedRotary());
     }
 
     private static LookReview.Shot shelling() {
@@ -124,11 +124,8 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
         return LookReview.Shot.of("fitted-turrets", 32, 14, placement -> {
             SceneWorld world = placement.holdouts(placement.builder()).build();
             BattleSimulation sim = world.sim();
-            VehicleType[] types = {VehicleType.BREAKTHROUGH_TANK, VehicleType.BREAKTHROUGH_TANK, VehicleType.LASER_TANK,
-                    VehicleType.LRM_CARRIER, VehicleType.SRM_TECHNICAL, VehicleType.FIRE_SUPPORT_APC};
-            MechWeaponComponent[] guns = {MechWeaponComponent.SINGLE_HEAVY_CANNON, MechWeaponComponent.LINEAR_CANNON,
-                    MechWeaponComponent.SHOULDER_LASER_CANNON, MechWeaponComponent.SRM_5, MechWeaponComponent.LRM_5,
-                    MechWeaponComponent.CHAINGUN};
+            VehicleType[] types = FITTED_TYPES;
+            MechWeaponComponent[] guns = FITTED_GUNS;
             for (int i = 0; i < types.length; i++) {
                 float[] at = placement.openNear(5f + 4.4f * i, 7f);
                 long hull = sim.convoy().spawn(types[i], List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK, guns[i],
@@ -140,6 +137,58 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
             return sim;
         }, placement -> List.of(LookReview.View.follow("close", placement, 30f, "hull0", "hull1", "hull2", "hull3",
                 "hull4", "hull5"), LookReview.View.follow("tank", placement, 8f, "hull0", "hull1")), 60).withStills(2);
+    }
+
+    /** The six fitted hulls destroyed on the first tick: a wreck keeps the weapon it carried, charred, on its ring. */
+    private static LookReview.Shot fittedWrecks() {
+        return LookReview.Shot.of("fitted-wrecks", 32, 14, placement -> {
+            SceneWorld world = placement.holdouts(placement.builder()).build();
+            BattleSimulation sim = world.sim();
+            long[] hulls = new long[FITTED_TYPES.length];
+            for (int i = 0; i < hulls.length; i++) {
+                float[] at = placement.openNear(5f + 4.4f * i, 7f);
+                hulls[i] = sim.convoy().spawn(FITTED_TYPES[i], List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+                        FITTED_GUNS[i], Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
+                sim.convoy().body(hulls[i]).teleport(at[0], at[1], 0f);
+                sim.convoy().turret(hulls[i]).facingDeg = 25f - 10f * i;
+                placement.subject("hull" + i, hulls[i]);
+            }
+            boolean[] done = {false};
+            placement.beforeTick(s -> {
+                if (done[0]) return;
+                done[0] = true;
+                for (long hull : hulls) s.convoy().destroy(hull);
+            });
+            return sim;
+        }, placement -> List.of(LookReview.View.follow("close", placement, 30f, "hull0", "hull1", "hull2", "hull3",
+                "hull4", "hull5"), LookReview.View.follow("tank", placement, 8f, "hull0", "hull1")), 1500)
+                .withStills(150, 249);
+    }
+
+    private static final VehicleType[] FITTED_TYPES = {VehicleType.BREAKTHROUGH_TANK, VehicleType.BREAKTHROUGH_TANK,
+            VehicleType.LASER_TANK, VehicleType.LRM_CARRIER, VehicleType.SRM_TECHNICAL, VehicleType.FIRE_SUPPORT_APC};
+    private static final MechWeaponComponent[] FITTED_GUNS = {MechWeaponComponent.SINGLE_HEAVY_CANNON,
+            MechWeaponComponent.LINEAR_CANNON, MechWeaponComponent.SHOULDER_LASER_CANNON, MechWeaponComponent.SRM_5,
+            MechWeaponComponent.LRM_5, MechWeaponComponent.CHAINGUN};
+
+    /** A tank on its own with a chaingun in the gun card, the enemy 20 cells off: it spins up and fires on its own. */
+    private static LookReview.Shot fittedRotary() {
+        return LookReview.Shot.of("fitted-chaingun", 48, 24, placement -> {
+            SceneBuilder builder = placement.holdouts(placement.builder());
+            builder.squad("hostile").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(6)
+                    .inFile((int) placement.openNear(30.5f, 12.5f)[0] - placement.site().x0(),
+                            (int) placement.openNear(30.5f, 12.5f)[1] - placement.site().y0() - 6, 0, 2)
+                    .primary("weapon.smg").stationary().done();
+            SceneWorld world = builder.build();
+            BattleSimulation sim = world.sim();
+            float[] at = placement.openNear(10.5f, 12.5f);
+            long tank = sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, List.of(), VehiclePlating.FACTORY,
+                    VehicleEngine.STOCK, MechWeaponComponent.CHAINGUN, Faction.MARINE,
+                    VehicleMission.deployed(at[0], at[1]));
+            sim.convoy().body(tank).teleport(at[0], at[1], 0f);
+            placement.subject("tank", tank);
+            return sim;
+        }, placement -> List.of(LookReview.View.followAtPlay(placement, "tank")), 300);
     }
 
     /** Three hulls with roof launchers or tubes, destroyed on the first tick and left to smoke. */

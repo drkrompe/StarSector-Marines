@@ -112,6 +112,7 @@ public final class DirectControlLoad {
 
     /** One gun's cooldown and ready rounds; a mount authored with no capacity never runs dry and draws no arc. */
     static Load turret(GroundTurret turret, TurretMountDef mount) {
+        if (turret.rotary != null) return new Load(1f, turret.rotary.beltRounds(), turret.rotary.def().belt(), false);
         boolean limited = mount.ammoCapacity > 0;
         return new Load(Load.clock(turret.cooldownTimer, mount.weapon.cooldown),
                 limited ? turret.ammo : 0, limited ? turret.capacity : 0, false);

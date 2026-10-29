@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 
@@ -40,6 +41,27 @@ public final class GroundTurret {
     public boolean raises(VehicleType type) {
         return weapon != null ? weapon.hardpointType == MechWeaponComponent.HardpointType.MISSILE
                 : type.turretRaiseFold() < 1f;
+    }
+
+    /**
+     * The barrels and belt of a fitted rotary gun ({@link RotaryFeed}), which fires while its trigger is held and
+     * spends its belt rather than a magazine; null for any other gun.
+     */
+    public RotaryFeed rotary;
+    /**
+     * Whether the gun draws on no magazine: a mount authored with no capacity ({@code TurretMountDef#ammoCapacity}
+     * zero) never runs dry, and only its flux (or, for a rotary gun, its belt) limits how long it fires.
+     */
+    public boolean unlimited;
+
+    /** Whether the gun has a round to fire: any, for a gun with no magazine. */
+    public boolean loaded() {
+        return unlimited || ammo > 0;
+    }
+
+    /** One round leaves the gun; a gun with no magazine has none to spend. */
+    public void spend() {
+        if (!unlimited) ammo--;
     }
 
     /** Barrel facing in world frame (0° = +Y, positive CCW). */
@@ -142,6 +164,7 @@ public final class GroundTurret {
     public static GroundTurret fitted(TurretMountDef mount, int rounds, VehicleKit.Effect kits,
                                       HullTurretSection section) {
         GroundTurret turret = new GroundTurret(rounds, section);
+        turret.unlimited = mount.ammoCapacity == 0;
         turret.loaderSeconds = mount.loaderSeconds * kits.loaderFactor();
         turret.fluxCapacityFactor = kits.fluxCapacityFactor();
         return turret;

@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.vehicle.MountedGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearances;
 import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleStance;
@@ -150,6 +151,7 @@ public final class ConvoyService implements BodyCarrier {
         if (turret != null && weapon != null) {
             turret.structure = fittedStructure;
             turret.weapon = weapon;
+            if (weapon.rotary() != null) turret.rotary = new RotaryFeed(weapon.rotary());
         }
         HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null, fitted);
         if (turret != null) {

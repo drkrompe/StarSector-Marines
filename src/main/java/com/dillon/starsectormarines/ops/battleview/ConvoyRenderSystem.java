@@ -140,7 +140,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 float drawCellX = body.x + mountWorldX - pivotWorldX;
                 float drawCellY = body.y + mountWorldY - pivotWorldY;
 
-                LayeredSpriteCache gun = wrecked || turret == null ? null
+                LayeredSpriteCache gun = turret == null ? null
                         : VehicleGunArt.sprite(sprites.layeredMechSprites(), type, turret.weapon);
                 float recoilCells = gun != null ? VehicleGun.recoilCells(type, turret.weapon) : type.turretRecoilCells();
                 float recoil = 0f;
@@ -195,7 +195,10 @@ public final class ConvoyRenderSystem implements RenderSystem {
                             1f, 1f, 1f, alphaMult);
                 } else {
                     // The fitted weapon is the turret: its own drawing, turning on the mount ring, with the
-                    // weapon's own recoil and raise, at the length it fires from ({@link VehicleGun}).
+                    // weapon's own recoil and raise, at the length it fires from ({@link VehicleGun}). A wreck keeps
+                    // it where it last pointed, charred and knocked a little off its bearing.
+                    float shade = wrecked ? WRECK_SHADE : 1f;
+                    float wreckSkewDeg = wrecked ? Math.floorMod(id ^ TURRET_SEED, 31L) - 15f : 0f;
                     float bearing = (float) Math.toRadians(turretStateFacing);
                     float ringX = body.x + mountWorldX - (float) Math.sin(bearing) * recoil;
                     float ringY = body.y + mountWorldY + (float) Math.cos(bearing) * recoil;
@@ -207,9 +210,9 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     LayeredSpriteCache mount = sprites.vehicleGunMount();
                     if (mount != null) {
                         out.addSprite(RenderLayer.CONVOY, mount.sprite, cam.cellToScreenX(body.x + mountWorldX),
-                                cam.cellToScreenY(body.y + mountWorldY), mountPx, mountPx, 0f, 1f, 1f, 1f, alphaMult);
+                                cam.cellToScreenY(body.y + mountWorldY), mountPx, mountPx, 0f, shade, shade, shade, alphaMult);
                     }
-                    float gunFacing = turretStateFacing;
+                    float gunFacing = turretStateFacing + wreckSkewDeg;
                     float lengthScale = 1f;
                     float widthScale = 1f;
                     if (raised) {
@@ -222,7 +225,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                         widthScale = 1f + RAISE_WIDEN * (1f - pitchCos);
                     }
                     VehicleGunArt.draw(out, gun, cam.cellToScreenX(gunX), cam.cellToScreenY(gunY),
-                            length * cellPx, gunFacing, lengthScale, widthScale, 1f, alphaMult);
+                            length * cellPx, gunFacing, lengthScale, widthScale, shade, alphaMult);
                 }
                 if (locations != null && locations.turret() != null) {
                     VehicleScuffs.Mask mask = VehicleScuffs.turretMask(sprites, type, frames);
@@ -242,6 +245,9 @@ public final class ConvoyRenderSystem implements RenderSystem {
             sweepDurabilityBars(ids, convoy, cam, cellPx, alphaMult, out);
         }
     }
+
+    /** How dark a wrecked gun is drawn: charred, not black. */
+    private static final float WRECK_SHADE = .35f;
 
     /** Mixed into a turret's seed, so it does not repeat its hull's front plate. */
     private static final long TURRET_SEED = 0x5DEECE66DL;
@@ -374,7 +380,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
         float mountX = body.x + localX * cc - localY * cs;
         float mountY = body.y + localX * cs + localY * cc;
         float heightPx = structure.mount.visualCells * cellPx;
-        float shade = wrecked ? .35f : 1f;
+        float shade = wrecked ? WRECK_SHADE : 1f;
         float sx = cam.cellToScreenX(mountX);
         float sy = cam.cellToScreenY(mountY);
         if (barrel != null) {

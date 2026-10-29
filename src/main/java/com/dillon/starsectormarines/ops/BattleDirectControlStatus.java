@@ -567,6 +567,18 @@ final class BattleDirectControlStatus {
     static WeaponStatus vehicleWeapon(GroundTurret turret, TurretMountDef mount, float aimDistance, int number,
                                       String slotKey, String trigger, String group) {
         WeaponDef weapon = mount.weapon;
+        if (turret.rotary != null) {
+            // A rotary gun reads as it does on a mech: its belt as rounds and its spin as the cycle.
+            RotaryFeed feed = turret.rotary;
+            float spinUp = feed.def().spinUpSeconds();
+            return new WeaponStatus(number, slotKey, weapon.displayName(),
+                    new Behavior(FireKind.ROTARY, BELT_BLOCK_ROUNDS, 0f, weapon.projectilesPerShot, null,
+                            Ordnance.of(weapon)),
+                    ManualPointFire.supportsPointFire(weapon), (1f - feed.spin()) * spinUp, spinUp, 0, 0f,
+                    new Ammo(feed.beltRounds(), feed.def().belt(), AmmoUnit.ROUNDS, false),
+                    turret.overloaded, "", trigger, ManualPointFire.tooClose(weapon, aimDistance), false, group,
+                    turret.holdRounds);
+        }
         return new WeaponStatus(number, slotKey, weapon.displayName(), behavior(weapon, weapon.burstCount),
                 ManualPointFire.supportsPointFire(weapon),
                 turret.cooldownTimer, weapon.cooldown, turret.burstRemaining, turret.burstTimer,

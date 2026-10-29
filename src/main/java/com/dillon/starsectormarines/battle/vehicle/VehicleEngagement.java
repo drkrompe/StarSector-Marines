@@ -517,7 +517,7 @@ public final class VehicleEngagement {
         if (scripted(id)) return false;
         VehicleType type = convoy.vehicleType(id);
         GroundTurret turret = convoy.turret(id);
-        return type != null && convoy.isArmed(id) && turret != null && turret.ammo > 0;
+        return type != null && convoy.isArmed(id) && turret != null && turret.loaded();
     }
 
     /** A deployed hull, ours to drive, whose gun has been shot away: it has a turret weapon and it no longer fires. */

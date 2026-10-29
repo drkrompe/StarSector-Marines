@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -438,13 +439,15 @@ class GroundVehicleTurretSystemTest {
         final TurretFireSystem fire;
 
         Fixture() { this(VehicleType.HEAVY_APC); }
-        Fixture(VehicleType type) {
+        Fixture(VehicleType type) { this(type, null); }
+        /** {@code type} with {@code gun} in its gun card; its own gun for null. */
+        Fixture(VehicleType type, MechWeaponComponent gun) {
             this.type = type;
-            mount = type.turretStructure();
+            mount = VehicleGun.fit(type, gun);
             weapon = mount.mount.weapon;
             for (int y = 0; y < 96; y++) for (int x = 0; x < 96; x++) grid.setWalkableFloor(x, y);
-            id = roster.convoy().spawn(type, Faction.MARINE,
-                    VehicleMission.deployed(20.5f, 20.5f));
+            id = roster.convoy().spawn(type, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK, gun,
+                    Faction.MARINE, VehicleMission.deployed(20.5f, 20.5f));
             body = roster.convoy().body(id);
             body.facingDegrees = 0f;
             turret = roster.convoy().turret(id);
@@ -472,6 +475,35 @@ class GroundVehicleTurretSystemTest {
         long enemy(int x, int y) {
             return roster.spawn(new EntitySpec("turret target", Faction.DEFENDER, UnitType.MARINE, x, y));
         }
+    }
+
+    @Test
+    void aFittedRotaryGunFiresRoundByRoundWhileHeldAndSpinsDownWhenLetGo() {
+        Fixture f = new Fixture(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.CHAINGUN);
+        int belt = f.turret.rotary.def().belt();
+        for (int i = 0; i < 60; i++) f.tick(f.north(), false);
+        assertEquals(belt, f.turret.rotary.beltRounds(), "a gun nobody holds spends nothing");
+        assertEquals(0f, f.turret.rotary.spin());
+
+        for (int i = 0; i < 60; i++) f.tick(f.north(), true);
+        assertTrue(f.turret.rotary.spin() > .3f, "held, the barrels come up to speed");
+        assertTrue(f.turret.rotary.beltRounds() < belt - 5, "rounds come off the belt, not a magazine");
+        assertTrue(f.turret.flux > 0f, "each round commits its own flux to the hull's bank");
+        assertEquals(0, f.turret.burstRemaining, "no burst is queued: the feed sets the pace");
+        assertEquals(0f, f.turret.cooldownTimer, "a rotary gun has no cooldown");
+
+        for (int i = 0; i < 600; i++) f.tick(f.north(), false);
+        assertEquals(0f, f.turret.rotary.spin(), "let go, the barrels coast and spin down");
+    }
+
+    @Test
+    void aFittedGunWithNoLimitOnAMechFiresWithoutSpendingAMagazine() {
+        Fixture f = new Fixture(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.LINEAR_CANNON);
+        assertTrue(f.turret.unlimited);
+        f.tick(f.north(), true);
+        assertEquals(1, f.shots.getActiveShots().size());
+        assertEquals(0, f.turret.ammo);
+        assertTrue(f.turret.loaded(), "only its flux limits it");
     }
 
     @Test

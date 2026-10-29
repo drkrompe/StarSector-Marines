@@ -48,6 +48,26 @@ class VehicleGunTest {
     }
 
     @Test
+    void aWeaponWithNoLimitOnAMechHasNoMagazineHereAndAFiniteOneKeepsItsPulls() {
+        VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
+        assertEquals(0, VehicleGun.fit(tank, MechWeaponComponent.LINEAR_CANNON).mount.ammoCapacity);
+        assertEquals(0, VehicleGun.fit(tank, MechWeaponComponent.CHAINGUN).mount.ammoCapacity,
+                "a rotary gun's belt is its feed");
+        assertEquals(MechWeaponComponent.DEMOLITION_CANNON.ammoCapacity,
+                VehicleGun.fit(tank, MechWeaponComponent.DEMOLITION_CANNON).mount.ammoCapacity);
+
+        GroundTurret open = GroundTurret.fitted(VehicleGun.fit(tank, MechWeaponComponent.LINEAR_CANNON).mount, 0,
+                VehicleKit.Effect.NONE, null);
+        open.spend();
+        assertTrue(open.loaded());
+        assertEquals(0, open.ammo);
+        GroundTurret limited = new GroundTurret(2);
+        limited.spend();
+        limited.spend();
+        assertFalse(limited.loaded());
+    }
+
+    @Test
     void aFittedWeaponBringsItsOwnMuzzleAndEffects() {
         VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
         StructureDef cannon = VehicleGun.fit(tank, MechWeaponComponent.SINGLE_HEAVY_CANNON);

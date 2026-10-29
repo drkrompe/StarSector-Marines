@@ -50,16 +50,16 @@ public final class VehicleGun {
 
     /**
      * {@code type}'s turret carrying {@code weapon}; the hull's own for a null weapon. The
-     * magazine is the weapon's pulls (a gun that never runs dry on a mech runs on the hull's own feed) and a round
-     * costs the weapon's flux, in the hull's own bank.
+     * magazine is the weapon's pulls, and a weapon with no limit on a mech has none here either (flux alone limits
+     * it; a rotary gun's belt is its feed, {@code GroundTurret#rotary}). A round costs the weapon's flux, in the
+     * hull's own bank.
      */
     public static StructureDef fit(VehicleType type, MechWeaponComponent weapon) {
         StructureDef stock = type.turretStructure();
         if (stock == null || weapon == null) return stock;
         TurretMountDef carriage = stock.mount;
         WeaponDef def = weapon.weaponDef();
-        int magazine = weapon.ammoCapacity < 0 ? carriage.ammoCapacity
-                : weapon.ammoCapacity * Math.max(1, def.burstCount);
+        int magazine = weapon.ammoCapacity < 0 ? 0 : weapon.ammoCapacity * Math.max(1, def.burstCount);
         TurretMountDef.Flux bank = carriage.flux;
         TurretMountDef.Flux flux = bank == null ? null : new TurretMountDef.Flux(bank.capacity(),
                 perRound(weapon, def), bank.dissipationPerSec(), bank.ventPerSec());

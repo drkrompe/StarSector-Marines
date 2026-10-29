@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.combat.SalvoChain;
 import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.decision.TacticalScoring;
 import com.dillon.starsectormarines.battle.mech.MechTargeting;
+import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
@@ -129,6 +130,7 @@ public final class GroundVehicleTurretSystem {
             } else {
                 if (turret.burstPointAim != null) turret.clearQueuedFire();
                 tickAutonomous(id, turret, body, structure, mountX, mountY, dt);
+                if (turret.rotary != null) releaseRotary(id, turret, body, structure, mountX, mountY, dt);
             }
             if (turret.raises(type)) {
                 raise(turret, structure.mount.weapon, dt);
@@ -208,10 +210,70 @@ public final class GroundVehicleTurretSystem {
         turret.elevation = raised ? Math.min(1f, turret.elevation + step) : Math.max(0f, turret.elevation - step);
     }
 
+    /**
+     * A rotary gun under a driver's hand: it fires while the button is held, at the rate its barrels have spun up
+     * to and off its belt, a round at a time through the same point fire the other guns use
+     * ({@link RotaryFeed}). A round its gates refuse (the barrel not on the cursor, flux, a wall at the muzzle) uses
+     * its slot and spends nothing, so a blocked gun builds no backlog.
+     */
+    private void tickRotaryManual(long id, GroundTurret turret, GroundBody body, StructureDef structure,
+                                  float mountX, float mountY, float dt, PointFireAim cursor, boolean trigger) {
+        turret.clearQueuedFire();
+        TurretMountDef mount = structure.mount;
+        RotaryFeed feed = turret.rotary;
+        feed.releaseLease();
+        boolean aimed = cursor != null && cursor.validFrom(mountX, mountY);
+        if (aimed) {
+            turret.facingDeg = TurretAim.slewToward(turret.facingDeg,
+                    TurretAim.bearingTo(mountX, mountY, cursor.x(), cursor.y()), mount.turnRateDegPerSec * dt);
+        }
+        int rounds = feed.advance(dt, trigger && aimed);
+        for (int r = 0; r < rounds; r++) {
+            if (!ready(turret, mount) || !firePoint(id, turret, body, structure, mountX, mountY, cursor, 0)) break;
+            feed.spend();
+            addFlux(turret, mount);
+        }
+    }
+
+    /**
+     * An autonomous rotary gun's trigger: the rounds its feed asks for this tick go to the body the aim loop has
+     * leased it on, a craft if the lease is on one the gun is engaging. The feed keeps the reserve on its belt and
+     * the barrels turning between looks ({@link RotaryFeed}).
+     */
+    private void releaseRotary(long id, GroundTurret turret, GroundBody body, StructureDef structure,
+                               float mountX, float mountY, float dt) {
+        TurretMountDef mount = structure.mount;
+        RotaryFeed feed = turret.rotary;
+        int rounds = feed.advance(dt, false);
+        for (int r = 0; r < rounds; r++) {
+            long target = feed.leaseTarget();
+            boolean air = target != 0L && target == turret.airTargetId;
+            if (target == 0L || !world.isAlive(target) || !air && scoring.isFlier(target)) {
+                feed.releaseLease();
+                break;
+            }
+            if (!ready(turret, mount)) break;
+            TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, 0);
+            if (!barrelClear(body, muzzle)) break;
+            if (air) {
+                airFire.fire(id, convoy.faction(id), structure, target, muzzle.x(), muzzle.y());
+            } else if (!fireSink.fire(id, mountX, mountY, convoy.faction(id), structure, target, false, true,
+                    turret.facingDeg, 0)) {
+                break;
+            }
+            feed.spend();
+            addFlux(turret, mount);
+        }
+    }
+
     private void tickManual(long id, GroundTurret turret, GroundBody body, StructureDef structure,
                             float mountX, float mountY, float dt, PointFireAim cursor, boolean trigger) {
+        if (turret.rotary != null) {
+            tickRotaryManual(id, turret, body, structure, mountX, mountY, dt, cursor, trigger);
+            return;
+        }
         if (turret.burstRemaining > 0 && turret.burstPointAim == null) turret.clearQueuedFire();
-        if (turret.ammo <= 0) turret.clearQueuedFire();
+        if (!turret.loaded()) turret.clearQueuedFire();
         turret.targetId = 0L;
         TurretMountDef mount = structure.mount;
         WeaponDef weapon = mount.weapon;
@@ -231,14 +293,14 @@ public final class GroundVehicleTurretSystem {
                     TurretAim.bearingTo(mountX, mountY, aim.x(), aim.y()),
                     mount.turnRateDegPerSec * dt);
         }
-        if (turret.ammo <= 0) return;
+        if (!turret.loaded()) return;
         // APC cadence starts its cooldown recovery after the committed burst finishes.
         if (turret.burstRemaining > 0) {
             turret.burstTimer -= dt;
             int release = TurretMountGeometry.releaseIndex(weapon.burstCount, turret.burstRemaining);
             if (turret.burstTimer <= 0f
                     && firePoint(id, turret, body, structure, mountX, mountY, aim, release)) {
-                turret.ammo--;
+                turret.spend();
                 if (holding) turret.holdRounds++;
                 addFlux(turret, structure.mount);
                 finishBurstRound(turret, weapon);
@@ -249,11 +311,11 @@ public final class GroundVehicleTurretSystem {
         if (!trigger || !turret.clockReady() || !ready(turret, mount)
                 || !firePoint(id, turret, body, structure, mountX, mountY, aim, 0)) return;
         turret.commitChained();
-        turret.ammo--;
+        turret.spend();
         if (holding) turret.holdRounds++;
         addFlux(turret, structure.mount);
         turret.cooldownTimer = weapon.cooldown;
-        turret.burstRemaining = turret.ammo > 0 ? Math.max(0, weapon.burstCount - 1) : 0;
+        turret.burstRemaining = turret.loaded() ? Math.max(0, weapon.burstCount - 1) : 0;
         turret.burstTimer = turret.burstRemaining > 0 ? weapon.burstSpacing : 0f;
         turret.burstPointAim = turret.burstRemaining > 0 ? aim : null;
         turret.burstTargetId = 0L;
@@ -287,7 +349,7 @@ public final class GroundVehicleTurretSystem {
     private void tickAutonomous(long id, GroundTurret turret, GroundBody body, StructureDef structure,
                                 float mountX, float mountY, float dt) {
         TurretMountDef mount = structure.mount;
-        if (turret.ammo <= 0) {
+        if (!turret.loaded()) {
             turret.clearQueuedFire();
             turret.targetId = 0L;
             turret.facingDeg = idleFacing(turret.facingDeg, idleHeading(id, body), mount.turnRateDegPerSec, dt);
@@ -317,7 +379,7 @@ public final class GroundVehicleTurretSystem {
                     mountX, mountY, turret.facingDeg, mount, release))) {
                 if (fireSink.fire(id, mountX, mountY, convoy.faction(id), structure,
                         burstTarget, false, true, turret.facingDeg, release)) {
-                    turret.ammo--;
+                    turret.spend();
                     addFlux(turret, structure.mount);
                     finishBurstRound(turret, weapon);
                 } else {
@@ -348,7 +410,7 @@ public final class GroundVehicleTurretSystem {
             long occupant = assault.occupantId();
             if (occupant != 0L && roster.isAliveById(occupant)) {
                 held = occupant;
-            } else if (assault.hasWall() && weapon.wallDamage > 0) {
+            } else if (assault.hasWall() && weapon.wallDamage > 0 && turret.rotary == null) {
                 tickAssaultWall(id, turret, body, structure, mountX, mountY, dt, assault);
                 return;
             }
@@ -367,7 +429,8 @@ public final class GroundVehicleTurretSystem {
         aim.minRange = weapon.minRange;
         // A venting gun holds the trigger the way a cooldown does, until its flux is gone.
         aim.cooldownTimer = Math.max(turret.cooldownTimer, fluxWait(turret, mount));
-        aim.attackCooldown = weapon.cooldown;
+        // A rotary gun has no cooldown: the aim loop only says whether the barrel is on, and the feed sets the pace.
+        aim.attackCooldown = turret.rotary != null ? 0f : weapon.cooldown;
         aim.tracksFliers = weapon.tracksFliers();
         aim.target = held;
         float agedCooldown = turret.cooldownTimer > 0f ? turret.cooldownTimer - dt : turret.cooldownTimer;
@@ -379,6 +442,12 @@ public final class GroundVehicleTurretSystem {
             turret.facingDeg = idleFacing(turret.facingDeg, idleHeading(id, body), mount.turnRateDegPerSec, dt);
             return;
         }
+        if (turret.rotary != null) {
+            // Engaged: lease the trigger while the barrel is on the target, keep the barrels turning while it comes round.
+            if (aim.fireThisTick) turret.rotary.demand(aim.target);
+            else turret.rotary.hold();
+            return;
+        }
         if (aim.fireThisTick && aim.target != 0L) {
             if (!barrelClear(body, TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, 0))) {
                 turret.cooldownTimer = agedCooldown;
@@ -386,9 +455,9 @@ public final class GroundVehicleTurretSystem {
             }
             if (!fireSink.fire(id, mountX, mountY, convoy.faction(id), structure, aim.target,
                     false, aim.lastFireHadLos, turret.facingDeg, 0)) return;
-            turret.ammo--;
+            turret.spend();
             addFlux(turret, structure.mount);
-            if (turret.ammo > 0 && weapon.burstCount > 1 && world.isAlive(aim.target)) {
+            if (turret.loaded() && weapon.burstCount > 1 && world.isAlive(aim.target)) {
                 turret.burstRemaining = weapon.burstCount - 1;
                 turret.burstTimer = weapon.burstSpacing;
                 turret.burstTargetId = aim.target;
@@ -413,6 +482,16 @@ public final class GroundVehicleTurretSystem {
         turret.targetId = 0L;
         float bearing = TurretAim.bearingTo(mountX, mountY, world.x(craft), world.y(craft));
         turret.facingDeg = TurretAim.slewToward(turret.facingDeg, bearing, mount.turnRateDegPerSec * dt);
+        if (turret.rotary != null) {
+            // A rotary gun leases its trigger on the craft while the barrel is on it, and keeps turning otherwise.
+            if (ready(turret, mount)
+                    && Math.abs(TurretAim.shortestAngleDelta(turret.facingDeg, bearing)) <= TurretAim.FIRE_ARC_DEG) {
+                turret.rotary.demand(craft);
+            } else {
+                turret.rotary.hold();
+            }
+            return true;
+        }
         if (turret.cooldownTimer > 0f) turret.cooldownTimer -= dt;
         if (turret.cooldownTimer > 0f || !ready(turret, mount)
                 || Math.abs(TurretAim.shortestAngleDelta(turret.facingDeg, bearing)) > TurretAim.FIRE_ARC_DEG) {
@@ -420,10 +499,10 @@ public final class GroundVehicleTurretSystem {
         }
         TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, 0);
         airFire.fire(id, side, structure, craft, muzzle.x(), muzzle.y());
-        turret.ammo--;
+        turret.spend();
         addFlux(turret, structure.mount);
         turret.cooldownTimer = weapon.cooldown;
-        if (turret.ammo > 0 && weapon.burstCount > 1) {
+        if (turret.loaded() && weapon.burstCount > 1) {
             turret.burstRemaining = weapon.burstCount - 1;
             turret.burstTimer = weapon.burstSpacing;
             turret.burstAir = true;
@@ -448,7 +527,7 @@ public final class GroundVehicleTurretSystem {
         int release = TurretMountGeometry.releaseIndex(mount.weapon.burstCount, turret.burstRemaining);
         TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, release);
         airFire.fire(id, side, structure, craft, muzzle.x(), muzzle.y());
-        turret.ammo--;
+        turret.spend();
         addFlux(turret, structure.mount);
         finishBurstRound(turret, mount.weapon);
         if (turret.burstRemaining == 0) turret.burstAir = false;
@@ -487,7 +566,7 @@ public final class GroundVehicleTurretSystem {
         if (turret.cooldownTimer > 0f) turret.cooldownTimer -= dt;
         if (turret.cooldownTimer > 0f || !ready(turret, structure.mount)
                 || !firePoint(id, turret, body, structure, mountX, mountY, aim, 0)) return;
-        turret.ammo--;
+        turret.spend();
         addFlux(turret, structure.mount);
         turret.cooldownTimer = weapon.cooldown;
     }
@@ -536,7 +615,7 @@ public final class GroundVehicleTurretSystem {
         boolean chained = turret.chainedTrigger();
         int loadedSalvos = turret.ammo / Math.max(1, weapon.burstCount);
         turret.commitChained();
-        turret.ammo--;
+        turret.spend();
         addFlux(turret, structure.mount);
         turret.cooldownTimer = weapon.cooldown;
         if (!chained && SalvoChain.chains(weapon)) {
@@ -545,7 +624,7 @@ public final class GroundVehicleTurretSystem {
                     hardened(target), world.hasMechLoadout(target), screened.test(target)) - 1;
             turret.chainTargetId = target;
         }
-        if (turret.ammo > 0 && weapon.burstCount > 1) {
+        if (turret.loaded() && weapon.burstCount > 1) {
             turret.burstRemaining = weapon.burstCount - 1;
             turret.burstTimer = weapon.burstSpacing;
             turret.burstTargetId = target;
@@ -674,7 +753,7 @@ public final class GroundVehicleTurretSystem {
     }
 
     private static void finishBurstRound(GroundTurret turret, WeaponDef weapon) {
-        if (turret.ammo <= 0) {
+        if (!turret.loaded()) {
             turret.clearQueuedFire();
             return;
         }
