@@ -186,10 +186,13 @@ function renderTimeline(){const tl=$("tl");tl.innerHTML="";const g=document.crea
    dropTarget(c,pl=>{if(pl.t!=="item"||pl.l!==l)return say("Licences stay in their own ladder.");state.place[pl.id]=s.id;state.selItem={l,id:pl.id};changed()})}}
  tl.appendChild(g);renderItemBar()}
 function renderItemBar(){const el=$("itembar");const sel=state.selItem;const it=sel&&ITEMS[sel.l].find(x=>x.id===sel.id);
- if(!it){el.innerHTML='<span class="hint">Click a licence chip to see its gate and where the store sells it.</span>';return}
+ if(!it){el.innerHTML='<span class="hint">Click a licence chip to see its gate, and to move it with a dropdown if dragging does not work for you.</span>';return}
  const st=ST[state.place[it.id]||"none"];
  el.innerHTML=(it.icon?'<div><span class="ico" style="--t:var(--'+it.tone+');display:inline-grid;width:72px;height:72px;border-radius:6px;place-items:center;border:1px solid var(--t);background:color-mix(in srgb,var(--t) 60%,#101311)"><img src="'+it.icon+'" alt="" style="max-width:100%;max-height:100%"></span></div>':"")+"<div><b>"+esc(it.name)+"</b> · "+esc(it.sub)+" "+tb(it.access)+"</div><div>Gate: "+esc(GATE[it.access])+"</div><div>"+(state.place[it.id]&&state.place[it.id]!=="none"?"Store sells it after <b>"+esc(st.name)+"</b> · "+esc(st.group)+". "+esc(st.note):"Not placed: only the ordinary store, licence and recovery routes reach it.")+"</div>"
- +(RANK[it.access]>=1&&!["none","start"].includes(state.place[it.id]||"none")&&!String(state.place[it.id]).startsWith("wins")&&!String(state.place[it.id]).startsWith("post-alpha")?'<div class="w" style="color:var(--warn)">An authored store listing: it skips the '+(it.access==="RESTRICTED"?"warrant":it.access.toLowerCase()+" licence")+" gate at that mission.</div>":"")}
+ +(RANK[it.access]>=1&&!["none","start"].includes(state.place[it.id]||"none")&&!String(state.place[it.id]).startsWith("wins")&&!String(state.place[it.id]).startsWith("post-alpha")?'<div class="w" style="color:var(--warn)">An authored store listing: it skips the '+(it.access==="RESTRICTED"?"warrant":it.access.toLowerCase()+" licence")+" gate at that mission.</div>":"")
+ +'<div><select id="itemstation" aria-label="Move this licence to a mission" style="max-width:100%"></select></div>';
+ const ss=$("itemstation");ss.innerHTML=STATIONS.map(s=>'<option value="'+s.id+'">'+(s.id==="none"?"Not sold yet":"Sold after: "+esc(s.name)+" ("+esc(s.group)+")")+"</option>").join("");ss.value=state.place[it.id]||"none";
+ ss.onchange=()=>{state.place[it.id]=ss.value;changed()}}
 /* editor */
 function slotEl(k,mi,which){const m=k.members[mi],armor=which==="armor";const id=which==="primary"?m.primary:m[which];
  const pc=id?piece(which==="primary"?"p":armor?"a":"s",id,m.grade):null;
