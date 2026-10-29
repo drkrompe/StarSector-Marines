@@ -86,8 +86,9 @@ commitment.
   the service's drop-cancel request, which the simulation honours only while no
   craft has taken the job.
   Valkyries and ground-support fittings are production sources; a story battle
-  whose employer brings the drop call grants it for whatever the bay holds,
-  vehicles alone included, and the company's own boats fly it. It is the only power that brings the company's
+  that drops the company's own bay grants it for whatever the bay holds,
+  vehicles alone included, flown on the company's configured shuttles; the
+  mission offers no lift. It is the only power that brings the company's
   vehicles down. The production
   power remains Bulwark-only; mixed specialist lances are explicitly debug
   iteration support. Sources decide who may call; lift decides who flies: every

@@ -100,7 +100,7 @@ public final class PowerCatalog {
                                              List<VehicleDeploymentSpec> configuredVehicles,
                                              List<FittedBoat> committedBoats) {
         List<CommandPower> powers = bayManifest(resolveSourced(committedShips, m, configuredMechs),
-                employerDropCall(m), configuredMechs, configuredVehicles);
+                companyBayDrop(m), configuredMechs, configuredVehicles);
         Map<String, CommandPower> byId = new LinkedHashMap<>();
         for (CommandPower power : powers) byId.put(power.id, power);
         assignCompanyLift(byId, fleetGranted(committedShips, m), committedBoats, providesHeavyLift(m));
@@ -132,11 +132,11 @@ public final class PowerCatalog {
     /**
      * One bay, one call: Mech Support carries the bay's vehicles in its manifest after its
      * mechs, so the player calls any bay space from one picker ({@code mechs-nouns.md}, Armor
-     * drop). Story battles whose employer arranges the heavy lift grant Mech Support for a
-     * bay that holds only vehicles, as they do for its mechs. {@code null} vehicles means no
+     * drop). The story battles whose drop is the company's own bay ({@link #companyBayDrop})
+     * grant Mech Support for a bay that holds only vehicles, as they do for its mechs. {@code null} vehicles means no
      * bay was consulted, and the roster is unchanged.
      */
-    static List<CommandPower> bayManifest(List<CommandPower> powers, boolean arrangedLift,
+    static List<CommandPower> bayManifest(List<CommandPower> powers, boolean companyBay,
                                           List<MechDeploymentSpec> configuredMechs,
                                           List<VehicleDeploymentSpec> configuredVehicles) {
         if (configuredVehicles == null || configuredVehicles.isEmpty()) return powers;
@@ -151,7 +151,7 @@ public final class PowerCatalog {
                 out.add(power);
             }
         }
-        if (!carried && arrangedLift) {
+        if (!carried && companyBay) {
             out.add(MechSupport.configured(configuredMechs != null ? configuredMechs : List.of(),
                     configuredVehicles, null, true));
         }
@@ -160,8 +160,8 @@ public final class PowerCatalog {
 
     /**
      * Powers a fleet ship (or a debug grant) brings, as opposed to the employer's
-     * offer or a story mission's arranged lift: only these may be flown by the
-     * company's own boats.
+     * offer or a story mission's own-bay drop; Conquest reads it to keep its heavy lift
+     * behind a fleet ship's power.
      */
     static Set<String> fleetGranted(List<FleetMemberAPI> committedShips, Mission m) {
         if (AgreusArcCampaign.isBattle(m) || SupplyRouteCampaign.isBattle(m)
@@ -195,10 +195,11 @@ public final class PowerCatalog {
     }
 
     /**
-     * The story battles whose employer brings the drop call for the company's own armour, which
-     * the company's boats then fly; see {@link #resolveSourced}.
+     * The story battles whose armour drop is simply the company's own: the machines in its bay,
+     * flown by its configured shuttles. The mission offers no lift and no drop call of its own
+     * (owner, 2026-10-29); see {@link #resolveSourced}.
      */
-    private static boolean employerDropCall(Mission m) {
+    private static boolean companyBayDrop(Mission m) {
         if (AgreusArcCampaign.isBattle(m)) {
             return AgreusArcProgress.yardOwners(m.id) || AgreusArcProgress.termsOfProtection(m.id)
                     || AgreusArcProgress.smallWar(m.id);
@@ -218,8 +219,9 @@ public final class PowerCatalog {
                 powers.add(MechSupport.configured(configuredMechs));
             return List.copyOf(powers);
         }
-        // Wayline arranges the heavy lift, but supplies no free chassis. Empty
-        // bays must not fall through MechSupport's legacy debug default.
+        // The company drops what its bay holds on its own shuttles; the mission supplies
+        // neither lift nor chassis. Empty bays must not fall through MechSupport's legacy
+        // debug default.
         if (SupplyRouteCampaign.isBattle(m) || CorvusWaylineCampaign.isBattle(m) || ShepherdRecoveryCampaign.isBattle(m)
                 || DistrictEscortCampaign.isBattle(m)) {
             return configuredMechs == null || configuredMechs.isEmpty() ? List.of()
