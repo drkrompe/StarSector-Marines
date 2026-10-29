@@ -103,12 +103,14 @@ const GRADES=["SURPLUS","SERVICE","MILSPEC","MASTERWORK"],RANK={COMMON:0,ADVANCE
 const KEY="kit-ladder-v2",$=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const A=Object.fromEntries(ARMORS.map(a=>[a.id,a])),Y=Object.fromEntries(SYSTEMS.map(y=>[y.id,y])),P=Object.fromEntries(PRIMARIES.map(p=>[p.id,p])),S=Object.fromEntries(SPECIALS.map(s=>[s.id,s])),ST=Object.fromEntries(STATIONS.map(s=>[s.id,s]));
-const GATE={COMMON:"Store shelf at any civilised market.",ADVANCED:"Licensed store shelf (Favorable standing, MRB 5+), or recovery after 5 victories.",PRESTIGE:"Licensed store shelf at MRB 20+, or recovery after 15 victories.",RESTRICTED:"No ordinary route: a military warrant only."};
+const GATE={COMMON:"Store shelf at any civilised market.",ADVANCED:"Licensed store shelf (Favorable standing, MRB 5+), or recovery after 5 victories.",PRESTIGE:"Licensed store shelf at MRB 20+, or recovery after 15 victories.",RESTRICTED:"No ordinary route: a military warrant only (warrants are post-alpha)."};
 const sizes={};let state=null,db=null,saveTimer=null,view="ladder",armorRole="all",armorDesc=false;
 const clone=o=>JSON.parse(JSON.stringify(o));
 function seedState(){return{weapon:clone(SEED_W),armor:clone(SEED_A),sel:{l:"weapon",id:SEED_W[0].id}}}
 const FREE=new Set([...SEED_W,...SEED_A].filter(k=>k.grant==="free-pick").map(k=>k.id));
-function migrate(s){for(const k of [...s.weapon,...s.armor])if(!k.grant)k.grant=FREE.has(k.id)?"free-pick":"sale";return s}
+const ALIAS={"water-under-seal":"post-alpha-small-war","limited-warrant":"post-alpha-small-war","yards-owners":"post-alpha-small-war","small-war-late":"post-alpha-small-war","warrant-hegemony":"post-alpha-warrants","warrant-other":"post-alpha-warrants"};
+function migrate(s){for(const k of [...s.weapon,...s.armor]){if(ALIAS[k.station])k.station=ALIAS[k.station];if(k.station&&!ST[k.station])k.station="none"}
+ for(const k of [...s.weapon,...s.armor])if(!k.grant)k.grant=FREE.has(k.id)?"free-pick":"sale";return s}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.weapon&&s.armor&&s.sel)return migrate(s)}catch{}return seedState()}
 function say(t){$("status").textContent=t}
 function persist(){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}
@@ -152,8 +154,7 @@ function hints(l,k){const t=cardTier(l,k),st=ST[k.station||"none"],out=[];
  if(l==="armor"){const ov=k.members.filter(m=>m.system&&m.system!==((A[m.armor]&&A[m.armor].system)||"none")).length;if(ov)out.push('<span class="w">'+ov+" seat"+(ov>1?"s":"")+" carry a system different from the suit's own: in the game a system belongs to its suit pattern, so this is a proposal.</span>")}
  if(l==="armor"){const n=powered(k);out.push("Powered seats: <b>"+n+" of 12</b>"+(n?" (power suits in the squad)":""))}
  if(free&&k.station!=="relief")out.push('<span class="w">Free picks exist only at Relief. Switch this card to a store sale.</span>');
- if(t==="RESTRICTED"&&!["none","warrant-hegemony","warrant-other"].includes(k.station||"none"))out.push('<span class="w">Restricted kit with no warrant: place it on a warrant station.</span>');
- else if(RANK[t]>=1&&k.station&&!["none","start"].includes(k.station)&&!k.station.startsWith("warrant")&&!k.station.startsWith("wins"))out.push('<span class="w">An authored listing: it skips the '+t.toLowerCase()+' licence gate at that mission.</span>');
+ if(RANK[t]>=1&&k.station&&!["none","start","post-alpha-warrants"].includes(k.station)&&!k.station.startsWith("wins"))out.push('<span class="w">An authored store listing: it skips the '+(t==="RESTRICTED"?"warrant":t.toLowerCase()+" licence")+' gate at that mission.</span>');
  if(k.station==="start"&&RANK[t]>0)out.push('<span class="w">Starter issue holds '+t.toLowerCase()+' pieces.</span>');
  return out.map(x=>"<div>"+x+"</div>").join("")}
 /* timeline */

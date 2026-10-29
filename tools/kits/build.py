@@ -44,22 +44,18 @@ STATIONS = [
     ("cold-account", "A Cold Account", "Corvus Account", "Garnir. Counter-Battery Issue goes on sale at Hegemony markets."),
     ("salvage-rights", "Salvage Rights", "A Working Ship", "Shepherd recovery, first contract."),
     ("cold-start", "Cold Start", "A Working Ship", "Shepherd recovery, second contract."),
-    ("working-passage", "Working Passage", "A Working Ship", "The Morrow flies. Builder's Guard goes on sale at Asharu."),
+    ("working-passage", "Working Passage", "A Working Ship", "The Morrow flies. Builder's Guard goes on sale at Asharu, and the end-game equipment wall opens here, before the Bloom challenge."),
     ("colony-breach", "Colony Breach", "Khettara Bloom", "Rav Bloom challenge, chapter 1 (replayable)."),
     ("cordon-line", "Cordon Line", "Khettara Bloom", "Chapter 2."),
     ("cordon-road", "Cordon Road", "Khettara Bloom", "Chapter 3."),
     ("the-burn", "The Burn", "Khettara Bloom", "Chapter 4."),
     ("broad-front", "Broad Front", "Khettara Bloom", "Chapter 5, the end-of-alpha challenge."),
-    ("water-under-seal", "Water Under Seal", "A Small War", "Agreus opening; opens the offer, grants no equipment."),
-    ("limited-warrant", "Limited Warrant", "A Small War", "Recovered Specter, for sale in the store."),
-    ("yards-owners", "The Yard's Owners", "A Small War", "Recovered Arbalest after inspection, for sale in the store."),
-    ("small-war-late", "A Small War, later chapters", "A Small War", "Planned chapters: Boarding Jack and the yard agreement, for sale in the store."),
     ("wins-3", "3 victories", "Count-based", "Any three won operations (VictoryMilestones)."),
     ("wins-4", "4 victories", "Count-based", "Any four won operations."),
     ("wins-5-risk", "5 victories + 1 high-risk", "Count-based", "The first chase."),
     ("wins-15", "15 victories", "Count-based", "Prestige recovery opens."),
-    ("warrant-hegemony", "Hegemony auxiliary warrant", "Warrants", "After Agreus: the approved Arbalest, XIV shock after the first honoured obligation period."),
-    ("warrant-other", "Other military warrants", "Warrants", "Approved kit from another tradition; needs that tradition's own warrant."),
+    ("post-alpha-small-war", "A Small War (cut from alpha)", "Post-alpha", "Agreus cards parked here: the recovered Specter and Arbalest sections and the Boarding Jack."),
+    ("post-alpha-warrants", "Military warrants (post-alpha)", "Post-alpha", "Approved kit that needs a tradition's warrant; warrants arrive with A Small War."),
 ]
 
 # Where the shipped code already puts each card (ArcIssueListings, VictoryMilestones, the Agreus rewards).
@@ -69,9 +65,9 @@ PLACED = {
     "weapons:counter-battery": "cold-account", "weapons:builders-guard": "working-passage",
     "weapons:line-infantry": "wins-5-risk",
     "armor:field-fatigues": "start", "armor:hegemony-auxiliary": "relief", "armor:league-mobile": "relief",
-    "armor:sindrian-security": "wins-3", "armor:corporate-specter-section": "limited-warrant",
-    "armor:hegemony-arbalest-section": "yards-owners", "armor:boarding-jack-section": "small-war-late",
-    "armor:hegemony-auxiliary-section": "warrant-hegemony", "armor:hegemony-shock": "warrant-hegemony",
+    "armor:sindrian-security": "wins-3", "armor:corporate-specter-section": "post-alpha-small-war",
+    "armor:hegemony-arbalest-section": "post-alpha-small-war", "armor:boarding-jack-section": "post-alpha-small-war",
+    "armor:hegemony-auxiliary-section": "post-alpha-warrants", "armor:hegemony-shock": "post-alpha-warrants",
 }
 
 
