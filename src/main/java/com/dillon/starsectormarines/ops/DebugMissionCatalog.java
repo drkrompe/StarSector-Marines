@@ -13,6 +13,10 @@ import com.dillon.starsectormarines.battle.setup.BloomHeartSetup;
 import com.dillon.starsectormarines.battle.setup.CordonSetup;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartCountry.Form;
 import com.dillon.starsectormarines.battle.world.gen.pool.StoryMap;
+import com.dillon.starsectormarines.battle.world.gen.ship.CompanyShip;
+import com.dillon.starsectormarines.battle.world.gen.ship.HullClass;
+import com.dillon.starsectormarines.battle.world.gen.ship.HullRole;
+import com.dillon.starsectormarines.battle.world.gen.ship.ShipsBoats;
 import com.fs.starfarer.api.campaign.RepLevel;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.setup.MissileAaTestSetup;
@@ -244,9 +248,20 @@ public final class DebugMissionCatalog {
                     + (serviceRifles ? " / service pulse rifles / starting Ward armor / no officer bonuses" : "");
         }
     }
-    /** Every debug mission lifts the company as the campaign does: the two Hermes the company ship carries. */
-    private static final ShuttleType CAMPAIGN_LIFT = ShuttleType.HERMES;
-    private static final int CAMPAIGN_LIFT_BOATS = 2;
+    /**
+     * The Second Wind as the campaign gives her to the player, bay restored: the hull facts of
+     * {@code CerberusCompanyStart}'s ship (a converted frigate freighter, 20 to 68 crew, 75 cargo), headless.
+     * The proportions only stand in for her outline; the berth count does not depend on them.
+     */
+    private static final CompanyShip SECOND_WIND = new CompanyShip(HullClass.FRIGATE, HullRole.FREIGHTER,
+            20, 68, 75, 0.75f, null, null, true, CompanyShip.BoatBayState.RESTORED);
+    /**
+     * Every debug mission lifts the company as the campaign does: the boats the Second Wind carries,
+     * read off her hull by the same {@link ShipsBoats} answer a campaign briefing asks, and fitted
+     * to the top by {@link #maxFitted}. No debug preset names a boat of its own.
+     */
+    static final ShuttleType CAMPAIGN_LIFT = ShipsBoats.carriedBy(SECOND_WIND);
+    static final int CAMPAIGN_LIFT_BOATS = ShipsBoats.aboard(SECOND_WIND).size();
     /**
      * A debug lift boat: {@code pattern} with the top tier of every fitting its hull takes. The frame's
      * weight rating is a campaign yard's limit, not a battle rule, so a debug boat is not held to it.
@@ -273,7 +288,7 @@ public final class DebugMissionCatalog {
     public static Preset preset(Mission m) {
         Scenario story = scenario(m);
         if (story != null && story.wellhollow() != null) return new Preset(DebugCompanyStage.VETERAN_COMPANY, story.squads,
-                WellhollowBloomCampaign.RECOMMENDED_MACHINES, ShuttleType.VALKYRIE, 3, false, false);
+                WellhollowBloomCampaign.RECOMMENDED_MACHINES, CAMPAIGN_LIFT, CAMPAIGN_LIFT_BOATS, false, false);
         if (story != null) return new Preset(DebugCompanyStage.FIRST_CONTRACT, story.squads,
                 story.hound ? 1 : 0, CAMPAIGN_LIFT, CAMPAIGN_LIFT_BOATS, true, story == Scenario.WORKING_PASSAGE);
         DebugCompanyStage stage = switch (m.tier) {
