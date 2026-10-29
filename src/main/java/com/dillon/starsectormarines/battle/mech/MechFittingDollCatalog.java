@@ -162,8 +162,8 @@ public final class MechFittingDollCatalog {
         dolls.put(MechVariant.WARDEN, new DollDef(180f, List.of(
                 new SocketDef(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0.0f, 0.0f, 0.0f, -1.45f, 1.36f, 0.68f, false, "ENGINE CORE"),
-                new SocketDef(SocketId.ARMS, SocketType.BALLISTIC, 2, 3,
-                        0.0f, 0.26f, 0.0f, 1.45f, 1.70f, 0.68f, false, "NOSE CANNON"),
+                new SocketDef(SocketId.ARMS, SocketType.OMNI, 2, 3,
+                        0.0f, 0.26f, 0.0f, 1.45f, 1.70f, 0.68f, false, "NOSE MOUNT"),
                 new SocketDef(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 3,
                         -0.36f, -0.15f, -1.34f, -0.46f, 1.36f, 0.68f, false, "L. SHOULDER"),
                 new SocketDef(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, 3,

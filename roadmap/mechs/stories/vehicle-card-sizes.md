@@ -56,7 +56,7 @@ and blue). Every part has a glass blue orb lens at the front and white electroni
 are progressively miniaturized 3x2s, drawn from the picked 3x2 designs. The six parts: light PD (`LIGHT_PULSE_LASER`,
 24 dps), PD (`PD_LASER`), heavy PD (`HEAVY_PD_LASER`), light burst (`LIGHT_BURST_LASER`), burst (`MEDIUM_BURST_LASER`) and
 heavy burst (`BURST_LASER`); the constants keep the names they shipped under, so BURST_LASER is the 3x2. The two heavy
-parts are nose guns only (the centreline mount), like the heavy cannon, and are Prestige; the others fit any arm. One
+parts are nose guns only (the centreline mount), like the heavy cannon, and are Prestige; on a mech they fit the Warden's nose, which is an omni socket for it (the Hound's stays a 2x2 ballistic one, so it takes none); the others fit any arm. One
 white finish for every faction (no livery mask). On a laser tank the 3x2 laser wears the turret head the hull had before:
 the heavy burst laser the white head, the heavy PD laser the red head the PD laser tank carried (`MechWeaponComponent.tankHead`,
 the red head's frames on the laser tank's sheet, fired from the head's lens). The stats are first proposals for the balance pass.

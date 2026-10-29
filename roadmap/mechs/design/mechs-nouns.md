@@ -43,8 +43,9 @@ increasing an encounter's total armored threat.
 - A **mount** is physical hardware at an arm or shoulder position. An absent
   mount is genuinely absent, never a dummy weapon or a hidden firing band.
   The arm positions come in two shapes, and a chassis has one or the other:
-  a **centreline arm mount** (`ARMS`, the gun under the Hound's nose or the
-  Warden's chin) or a **left and a right arm mount** (`LEFT_ARM`,
+  a **centreline arm mount** (`ARMS`, the gun under the Hound's nose, a 2x2
+  ballistic socket, or the Warden's chin, a 2x3 omni socket that also takes the
+  energy parts, the heavy lasers among them, owner, 2026-10-29) or a **left and a right arm mount** (`LEFT_ARM`,
   `RIGHT_ARM`, the Bulwark's two arms, each with its own gun). Every arm gun is
   one gun: there is no paired or "dual" component, because a pair is two arm
   mounts, each fitted, damaged, lost and fired on its own. A gun whose art only

@@ -45,7 +45,7 @@ class MechFittingDollCatalogTest {
 
         DollDef warden = catalog.doll(MechVariant.WARDEN);
         assertEquals(SocketType.PLATING, socket(warden, SocketId.PLATING).type());
-        assertEquals("NOSE CANNON", socket(warden, SocketId.ARMS).label());
+        assertEquals("NOSE MOUNT", socket(warden, SocketId.ARMS).label());
 
         DollDef bulwark = catalog.doll(MechVariant.BULWARK);
         assertEquals(SocketType.PLATING, socket(bulwark, SocketId.PLATING).type());

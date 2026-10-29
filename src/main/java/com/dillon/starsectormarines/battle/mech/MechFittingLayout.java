@@ -208,7 +208,7 @@ public final class MechFittingLayout {
         layouts.put(MechVariant.WARDEN, layout(MechVariant.WARDEN, 180f, List.of(
                 socket(SocketId.CORE, SocketType.ENGINE, 2, 2,
                         0f, 0.02f, 0f, -1.45f, 1.70f, 0.68f, false),
-                socket(SocketId.ARMS, SocketType.BALLISTIC, 2, 3,
+                socket(SocketId.ARMS, SocketType.OMNI, 2, 3,
                         0f, 0.72f, 0f, 1.45f, 2.08f, 0.68f, false),
                 socket(SocketId.LEFT_SHOULDER, SocketType.MISSILE, 2, 3,
                         -0.64f, 0.04f, -1.34f, -0.46f, 1.36f, 0.72f, false),
