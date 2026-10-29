@@ -34,21 +34,23 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Mockups for how the player acts on the Dust Ledger's side objectives: a prompt on the thing itself (A) and buttons on
- * the checklist row (B), drawn over the real look-preset scene and the real rail. The prompts and row buttons are
- * mockups, not the game's: the cards are the game's own UI renderer on a test-only component
- * ({@code mockups/side-objective/world-prompt.mlx}), and the row buttons are spliced into a copy of the rail's markup.
- * Nothing here ships. 1920x1080 at 100%. Look evidence, opt-in.
+ * Mockups for how the player acts on the Dust Ledger's side objectives, drawn over the real look-preset scene and the
+ * real rail. The prompts are battle glass with small buttons, shown only for a thing a company unit is in reach of and
+ * the camera has in view; the rail frames show three ways to give the side jobs less of the rail. The cards are the
+ * game's own UI renderer on a test-only component ({@code mockups/side-objective/world-prompt.mlx}) and the rail is a
+ * patched copy of its markup ({@link SideObjectiveRailMock}); nothing here ships. 1920x1080 at 100%. Look evidence,
+ * opt-in.
  */
 public final class SideObjectiveInteractionMockSuite implements SnapshotSuite {
     private static final int HUD_INSET = 12, SCREEN_W = 1920, SCREEN_H = 1080;
     private static final String PROMPT_PATH = "mockups/side-objective/world-prompt.mlx";
     /** The junction box and its work cell, and the leader's stand-in a few cells off it. */
     private static final int FEED_X = 122, FEED_Y = 32;
+    private static final String GLASS = "p-glass hud-glass", PILL = "p-pill hud-glass";
 
     @Override public String id() { return "side-objective-interaction-mock"; }
 
-    @Override public String label() { return "Side-objective interaction mockups: world prompts and rail row buttons"; }
+    @Override public String label() { return "Side-objective interaction mockups: glass world prompts and rail space"; }
 
     @Override public boolean inAll() { return false; }
 
@@ -68,12 +70,11 @@ public final class SideObjectiveInteractionMockSuite implements SnapshotSuite {
                 sim.spawn(new EntitySpec("Linesman", Faction.MARINE, UnitType.MARINE, FEED_X - 7, FEED_Y + 2));
                 advance(sim, 4f);
                 float cx = FEED_X - 3f, cy = FEED_Y - 1f;
-                Prompt card = new Prompt("p-card", "Junction box", "FEED TAP", "", 300,
-                        List.of(new Verb("cut", "CUT THE FEED", "10 s unbroken / the gun nests go dark", true)), "Squad 2 in reach", 0);
-                Prompt chip = new Prompt("p-chip", "", "", "", 168,
-                        List.of(new Verb("cut", "CUT FEED  10 s", "", true)), "", 0);
-                out.add(frame(context, sim, "q1-a-action-card", cx, cy, FEED_X + .5f, FEED_Y + .5f, card, null));
-                out.add(frame(context, sim, "q1-b-compact-chip", cx, cy, FEED_X + .5f, FEED_Y + .5f, chip, null));
+                Prompt card = new Prompt(GLASS, "Junction box", "FEED TAP", "10 s unbroken / the gun nests go dark", 236,
+                        List.of(new Verb("cut", "CUT 10 s", true), new Verb("send", "SEND", false)), List.of(), 1);
+                Prompt pill = new Prompt(PILL, "", "", "", 104, List.of(new Verb("cut", "CUT 10 s", true)), List.of(), 0);
+                out.add(frame(context, sim, "q4-a-glass-card", cx, cy, FEED_X + .5f, FEED_Y + .5f, card, null));
+                out.add(frame(context, sim, "q4-b-glass-pill", cx, cy, FEED_X + .5f, FEED_Y + .5f, pill, null));
             }
 
             try (BattleSimulation sim = chapter.fixture(mission.battleSeed, manifest, chapter.profile(chapter.surface)).build()) {
@@ -86,78 +87,85 @@ public final class SideObjectiveInteractionMockSuite implements SnapshotSuite {
                 sim.spawn(new EntitySpec("Rifleman", Faction.MARINE, UnitType.MARINE, anchor.x() - 7, anchor.y() - 3));
                 advance(sim, 2f);
                 float cx = anchor.x() - 4f, cy = anchor.y() - 2f;
-                Prompt verbs = new Prompt("p-card", "Tobias Ankrum", "MARKET WARDEN", "", 330,
-                        List.of(new Verb("respects", "PAY YOUR RESPECTS", "8 s / the watch holds the cantina and spots the yard", true),
-                                new Verb("price", "OFFER FREIGHT CREDIT", "Illustrative second choice / a different payoff", false),
-                                new Verb("leave", "NOT NOW", "", false)),
-                        "Squad leader in reach", 0);
-                Prompt speech = new Prompt("p-card", "Tobias Ankrum", "MARKET WARDEN",
-                        "\"He speaks for Saltwell Cross, not for any faction. Show me you can wait.\"", 460,
-                        List.of(new Verb("respects", "PAY RESPECTS", "", true), new Verb("price", "OFFER CREDIT", "", false),
-                                new Verb("leave", "NOT NOW", "", false)),
-                        "", 1);
-                out.add(frame(context, sim, "q2-a-verb-list", cx, cy, anchor.x() + .5f, anchor.y() + .5f, verbs, null));
-                out.add(frame(context, sim, "q2-b-speech-card", cx, cy, anchor.x() + .5f, anchor.y() + .5f, speech, null));
-                out.add(frame(context, sim, "q3-a-row-strip", cx, cy, 0, 0, null, RowMode.STRIP));
-                out.add(frame(context, sim, "q3-b-row-expand", cx, cy, 0, 0, null, RowMode.EXPAND));
+                float ax = anchor.x() + .5f, ay = anchor.y() + .5f;
+                Prompt buttons = new Prompt(GLASS, "Tobias Ankrum", "WARDEN", "8 s at the well house / the watch holds the cantina", 350,
+                        List.of(new Verb("respects", "RESPECTS", true), new Verb("price", "OFFER", false),
+                                new Verb("leave", "LEAVE", false)), List.of(), 1);
+                Prompt lines = new Prompt(GLASS, "Tobias Ankrum", "WARDEN", "", 330, List.of(),
+                        List.of(new Line("respects", "RESPECTS", "the watch holds the cantina", true),
+                                new Line("price", "OFFER", "illustrative second price", false),
+                                new Line("leave", "LEAVE", "", false)), 0);
+                out.add(frame(context, sim, "q5-a-glass-buttons", cx, cy, ax, ay, buttons, null));
+                out.add(frame(context, sim, "q5-b-glass-lines", cx, cy, ax, ay, lines, null));
+                for (SideObjectiveRailMock.Mode mode : SideObjectiveRailMock.Mode.values())
+                    out.add(frame(context, sim, "q6-" + mode.name().toLowerCase().replace('_', '-'), cx, cy, ax, ay, buttons, mode));
             }
         }
         return out;
     }
 
-    enum RowMode { STRIP, EXPAND }
-
-    /** One verb on a prompt; {@code primary} is the gold one. */
-    private record Verb(String id, String name, String detail, boolean primary) implements MarkupPropertySource {
+    /** One small button on a prompt; {@code primary} is the gold one. */
+    private record Verb(String id, String name, boolean primary) implements MarkupPropertySource {
         @Override public Object markupProperty(String key) {
             return switch (key) {
                 case "id" -> "verb-" + id;
                 case "name" -> name;
-                case "detail" -> detail;
-                case "classes" -> (detail.isEmpty() ? "p-verb-row" : "p-verb") + (primary ? (detail.isEmpty() ? " p-verb-row-primary" : " p-verb-primary") : "");
+                case "detail" -> "";
+                case "classes" -> "p-cta" + (primary ? " selected" : "");
                 case "nameId" -> "verb-" + id + "-name";
                 case "detailId" -> "verb-" + id + "-detail";
-                case "detailClasses" -> detail.isEmpty() ? "p-detail p-hidden" : "p-detail";
+                case "detailClasses" -> "p-detail p-hidden";
                 default -> throw new IllegalArgumentException(key);
             };
         }
     }
 
-    /** A world prompt: its card, text and verbs; {@code quoteLines} sizes the quote block, 0 for none. */
-    private record Prompt(String rootClasses, String title, String tag, String quote, int width, List<Verb> verbs,
-                          String foot, int quoteLines) {
-        Prompt {
-            if (!quote.isEmpty() && quoteLines == 0) throw new IllegalArgumentException("a quote needs its lines");
+    /** One choice as a small button with what it does beside it. */
+    private record Line(String id, String name, String detail, boolean primary) implements MarkupPropertySource {
+        @Override public Object markupProperty(String key) {
+            return switch (key) {
+                case "id" -> "line-" + id;
+                case "name" -> name;
+                case "detail" -> detail;
+                case "classes" -> "p-cta" + (primary ? " selected" : "");
+                case "buttonId" -> "line-" + id + "-button";
+                case "nameId" -> "line-" + id + "-name";
+                case "textId" -> "line-" + id + "-text";
+                default -> throw new IllegalArgumentException(key);
+            };
         }
+    }
 
-        boolean chip() { return rootClasses.equals("p-chip"); }
-        boolean rowVerbs() { return quoteLines > 0 || chip(); }
+    /** A world prompt in battle glass: a title, one line of what it does, then small buttons in a row or as lines. */
+    private record Prompt(String rootClasses, String title, String tag, String quote, int width, List<Verb> verbs,
+                          List<Line> lines, int quoteLines) {
+        boolean pill() { return rootClasses.equals(PILL); }
 
         int height() {
-            if (chip()) return 28;
-            int h = 12 + 16 + 4;
-            if (quoteLines > 0) h += quoteLines * 15 + 4;
-            boolean detail = verbs.stream().anyMatch(v -> !v.detail().isEmpty());
-            if (rowVerbs()) h += 22 + 4;
-            else h += verbs.size() * (detail ? 30 : 22) + (verbs.size() - 1) * 4 + 4;
-            if (!foot.isEmpty()) h += 13 + 4;
+            if (pill()) return 20;
+            int h = 4 + 16 + 3;
+            if (quoteLines > 0) h += quoteLines * 15 + 3;
+            if (!verbs.isEmpty()) h += 20 + 3;
+            if (!lines.isEmpty()) h += lines.size() * 20 + (lines.size() - 1) * 4 + 3;
             return h;
         }
     }
 
     private static BufferedImage promptImage(SnapshotContext context, Prompt prompt) throws Exception {
         Reactor reactor = new Reactor();
-        Map<String, Object> props = Map.of(
-                "rootClasses", reactor.signal(prompt.rootClasses()),
-                "headClasses", reactor.signal(prompt.chip() ? "p-head p-hidden" : "p-head"),
-                "title", reactor.signal(prompt.title()),
-                "tag", reactor.signal(prompt.tag()),
-                "quoteClasses", reactor.signal(prompt.quote().isEmpty() ? "p-quote p-hidden" : "p-quote"),
-                "quote", reactor.signal(prompt.quote()),
-                "verbsClasses", reactor.signal(prompt.rowVerbs() ? "p-verbs-row" : "p-verbs"),
-                "verbs", reactor.signal(prompt.verbs()),
-                "footClasses", reactor.signal(prompt.foot().isEmpty() ? "p-foot p-hidden" : "p-foot"),
-                "foot", reactor.signal(prompt.foot()));
+        Map<String, Object> props = Map.ofEntries(
+                Map.entry("rootClasses", reactor.signal(prompt.rootClasses())),
+                Map.entry("headClasses", reactor.signal(prompt.title().isEmpty() ? "p-head p-hidden" : "p-head")),
+                Map.entry("title", reactor.signal(prompt.title())),
+                Map.entry("tag", reactor.signal(prompt.tag())),
+                Map.entry("quoteClasses", reactor.signal(prompt.quote().isEmpty() ? "p-quote p-hidden" : "p-quote")),
+                Map.entry("quote", reactor.signal(prompt.quote())),
+                Map.entry("verbsClasses", reactor.signal(prompt.verbs().isEmpty() ? "p-hidden" : "p-verbs-row")),
+                Map.entry("verbs", reactor.signal(prompt.verbs())),
+                Map.entry("linesClasses", reactor.signal(prompt.lines().isEmpty() ? "p-hidden" : "p-verbs")),
+                Map.entry("lines", reactor.signal(prompt.lines())),
+                Map.entry("footClasses", reactor.signal("p-foot p-hidden")),
+                Map.entry("foot", reactor.signal("")));
         var loader = new MarkupLoader(path -> Files.readString(context.projectRoot().resolve("src/test/resources").resolve(path)),
                 List.of(PROMPT_PATH));
         loader.reload();
@@ -171,7 +179,7 @@ public final class SideObjectiveInteractionMockSuite implements SnapshotSuite {
     }
 
     private static SnapshotArtifact frame(SnapshotContext context, BattleSimulation sim, String name, float cameraX, float cameraY,
-                                       float anchorX, float anchorY, Prompt prompt, RowMode rows) throws Exception {
+                                          float anchorX, float anchorY, Prompt prompt, SideObjectiveRailMock.Mode rows) throws Exception {
         var picture = MissionObjectiveProjection.capture(sim);
         Reactor reactor = new Reactor();
         BattleHudOverlayModel model = new BattleHudOverlayModel(reactor, ignored -> { }, "Pause", "1x", "2x", "4x");
@@ -202,15 +210,15 @@ public final class SideObjectiveInteractionMockSuite implements SnapshotSuite {
         }
     }
 
-    /** The card above the thing, a leader line down to it, clear of the rail. */
+    /** The prompt above the thing with a leader line down to it, clear of the rail. */
     private static void drawPrompt(BufferedImage world, BattleCamera camera, float cellX, float cellY, BufferedImage card) {
         int sx = Math.round(camera.cellToScreenX(cellX)), sy = Math.round(SCREEN_H - camera.cellToScreenY(cellY));
         int left = Math.max(16, Math.min(sx - card.getWidth() / 2, 1530 - card.getWidth()));
-        int top = Math.max(16, sy - 90 - card.getHeight());
+        int top = Math.max(16, sy - 70 - card.getHeight());
         var g = world.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setColor(new Color(0xffd464));
-        g.setStroke(new BasicStroke(2f));
+        g.setStroke(new BasicStroke(1.5f));
         g.drawLine(Math.max(left + 14, Math.min(sx, left + card.getWidth() - 14)), top + card.getHeight(), sx, sy - 6);
         g.drawOval(sx - 6, sy - 6, 12, 12);
         g.drawImage(card, left, top, null);

@@ -1,4 +1,4 @@
-<template props="rootClasses,headClasses,title,tag,quoteClasses,quote,verbsClasses,verbs,footClasses,foot">
+<template props="rootClasses,headClasses,title,tag,quoteClasses,quote,verbsClasses,verbs,linesClasses,lines,footClasses,foot">
   <div id="prompt" class="{rootClasses}">
     <div id="prompt-head" class="{headClasses}">
       <div id="prompt-title" class="label heading p-title">{title}</div>
@@ -11,25 +11,40 @@
         <div id="{verb.detailId}" class="{verb.detailClasses}">{verb.detail}</div>
       </button>
     </div>
+    <div id="prompt-lines" class="{linesClasses}">
+      <div each="line in lines" key="{line.id}" id="{line.id}" class="p-line">
+        <button id="{line.buttonId}" class="{line.classes}">
+          <div id="{line.nameId}" class="label heading p-verb-name">{line.name}</div>
+        </button>
+        <div id="{line.textId}" class="label p-line-text">{line.detail}</div>
+      </div>
+    </div>
     <div id="prompt-foot" class="{footClasses}">{foot}</div>
   </div>
 </template>
 <style>
   .p-card { padding: 6px; gap: 4px; border-width: 1px; border-color: #7fc8e8aa; background-color: #0a1418ee; }
   .p-chip { padding: 3px; border-width: 1px; border-color: #ffd464aa; background-color: #0a1418ee; }
+  .p-glass { padding: 2px; gap: 3px; border-width: 0px; background-color: transparent; }
+  .p-pill { padding: 0px; gap: 0px; border-width: 0px; background-color: transparent; }
   .p-hidden { display: none; }
   .p-head { width: 100%; height: 16px; flex-direction: row; gap: 6px; }
   .p-title { width: 0px; flex-grow: 1; height: 16px; color: #e6e7da; }
   .p-tag { width: 120px; height: 16px; text-align: right; color: #7fc8e8; }
   .p-quote { width: 100%; white-space: normal; overflow: hidden; color: #d4ddd5; }
+  .p-glass .p-quote { color: #c5d6cb; }
   .p-verbs { width: 100%; flex-direction: column; gap: 4px; }
   .p-verbs-row { width: 100%; flex-direction: row; gap: 4px; }
   .p-verb { width: 100%; height: 30px; padding: 4px; gap: 2px; border-width: 1px; border-color: #c3cec933; background-color: #ffffff0d; }
   .p-verb-primary { border-color: #ffd464aa; background-color: #3a3018; }
   .p-verb-row { width: 0px; flex-grow: 1; height: 22px; padding: 3px; border-width: 1px; border-color: #c3cec933; background-color: #ffffff0d; }
   .p-verb-row-primary { border-color: #ffd464aa; background-color: #3a3018; }
+  .p-cta { width: 0px; flex-grow: 1; height: 20px; padding: 2px; }
+  .p-line { width: 100%; height: 20px; flex-direction: row; gap: 6px; }
+  .p-line .p-cta { width: 84px; flex-grow: 0; }
+  .p-line-text { width: 0px; flex-grow: 1; height: 20px; padding: 3px 0px; color: #c5d6cb; }
   .p-verb-name { height: 14px; color: #c5d6cb; white-space: nowrap; text-align: center; }
-  .p-verb-primary .p-verb-name, .p-verb-row-primary .p-verb-name { color: #ffd464; }
+  .p-verb-primary .p-verb-name, .p-verb-row-primary .p-verb-name, .selected .p-verb-name { color: #ffd464; }
   .p-verb .p-verb-name { text-align: left; }
   .p-detail { height: 12px; font-family: compact; color: #a0ada8; white-space: nowrap; }
   .p-foot { width: 100%; height: 13px; font-family: compact; color: #a8b6c6; white-space: nowrap; }
