@@ -45,7 +45,7 @@ input,select{background:var(--surface);border:1px solid var(--line);border-radiu
 .chip.sel{border-color:var(--accent);background:var(--accent-soft)}
 .chip b{font:600 12px/1.2 var(--display);display:flex;gap:5px;align-items:flex-start;justify-content:space-between}
 .chip .open{font-size:11px;padding:2px 6px;justify-self:start}.chip .mini{display:flex;flex-wrap:wrap;gap:3px}.chip .mini .brick{zoom:.5}
-.chip.item{padding:4px 5px;gap:3px;cursor:grab;grid-template-columns:auto 1fr;align-items:center}.chip.item .ico{width:46px;height:46px;border-radius:5px;display:grid;place-items:center;overflow:hidden;background:linear-gradient(180deg,color-mix(in srgb,var(--t) 78%,#fff 22%),color-mix(in srgb,var(--t) 52%,#101311));border:1px solid var(--t)}.chip.item .ico .pic{width:100%;height:100%;background:center/contain no-repeat;pointer-events:none}.chip.item .ico img{max-width:100%;max-height:100%;display:block;pointer-events:none;-webkit-user-drag:none}.chip.item .txt{display:grid;gap:2px;min-width:0}.chip.item b{font:600 11px/1.2 var(--display)}.chip.item small{color:var(--muted);font-size:10px}
+.chip.item{padding:4px 5px;gap:3px;cursor:grab;grid-template-columns:auto 1fr;align-items:center}.chip.item .ico{width:46px;height:46px;border-radius:5px;display:grid;place-items:center;overflow:hidden;background:linear-gradient(180deg,color-mix(in srgb,var(--t) 78%,#fff 22%),color-mix(in srgb,var(--t) 52%,#101311));border:1px solid var(--t)}.chip.item .ico .pic{width:100%;height:100%;background:center/contain no-repeat;pointer-events:none}.chip.item .ico img{max-width:100%;max-height:100%;display:block;pointer-events:none;-webkit-user-drag:none}.fp{display:inline-grid;vertical-align:-1px;gap:1px;margin-right:3px;grid-template-columns:repeat(var(--c),6px)}.fp i{width:6px;height:8px;border-radius:1px;background:var(--t,var(--muted));opacity:.9}.fp.big{gap:2px;grid-template-columns:repeat(var(--c),12px)}.fp.big i{width:12px;height:16px;border-radius:2px}.chip.item .txt{display:grid;gap:2px;min-width:0}.chip.item b{font:600 11px/1.2 var(--display)}.chip.item small{color:var(--muted);font-size:10px}
 .itembar{margin-top:8px;font-size:12px;display:grid;gap:3px}
 .over{outline:2px dashed var(--accent);outline-offset:-2px;background:var(--accent-soft)!important}
 /* editor */
@@ -177,6 +177,9 @@ function grab(ch,payload){let moved=false;
    if(!ghost)return;moved=true;setTimeout(()=>{moved=false},0);ghost.remove();ch.classList.remove("lifted");const c=ev.type==="pointerup"?cellAt(ev.clientX,ev.clientY):null;if(over)over.classList.remove("over");if(c)c._fn(payload)};
   document.addEventListener("pointermove",mv);document.addEventListener("pointerup",end);document.addEventListener("pointercancel",end)})}
 /* timeline */
+const area=it=>it.fp?it.fp[0]*it.fp[1]:0;
+const fpEl=(it,big)=>it.fp?'<span class="fp'+(big?" big":"")+'" style="--c:'+it.fp[0]+";--t:var(--"+it.tone+')" title="Brick size '+it.fp[0]+"x"+it.fp[1]+'">'+"<i></i>".repeat(area(it))+"</span>":"";
+const fpTxt=it=>it.fp?it.fp[0]+"×"+it.fp[1]+" · ":"";
 function renderTimeline(){const tl=$("tl");tl.innerHTML="";const g=document.createElement("div");g.className="grid";
  g.style.gridTemplateColumns="96px "+STATIONS.map(s=>s.id==="none"?"190px":"184px").join(" ");
  const add=(cls,html,style)=>{const d=document.createElement("div");d.className=cls;if(html!=null)d.innerHTML=html;if(style)d.style.cssText=style;g.appendChild(d);return d};
@@ -192,9 +195,9 @@ function renderTimeline(){const tl=$("tl");tl.innerHTML="";const g=document.crea
    dropTarget(c,pl=>{if(pl.t!=="kit"||pl.l!==l)return say("Cards stay in their own ladder.");const k=list(l).find(x=>x.id===pl.id);if(k){k.station=s.id;if(s.id!=="relief"&&k.grant==="free-pick")k.grant="sale";changed()}})}}
  for(const [l,label] of MACH){add("rl",label);
   for(const s of STATIONS){const c=add("cell","");c.dataset.l=l;c.dataset.s=s.id;
-   const here=ITEMS[l].filter(it=>(state.place[it.id]||"none")===s.id).sort((a,b)=>RANK[a.access]-RANK[b.access]||a.name.localeCompare(b.name));
+   const here=ITEMS[l].filter(it=>(state.place[it.id]||"none")===s.id).sort((a,b)=>RANK[a.access]-RANK[b.access]||area(b)-area(a)||a.name.localeCompare(b.name));
    for(const it of here){const ch=document.createElement("div");ch.className="chip item"+(state.selItem&&state.selItem.id===it.id?" sel":"");
-    ch.innerHTML=(it.icon?'<span class="ico" style="--t:var(--'+it.tone+')"><span class="pic" style="background-image:url('+it.icon+')"></span></span>':"")+'<span class="txt"><b><span>'+esc(it.name)+"</span>"+tb(it.access)+"</b><small>"+esc(it.sub)+"</small></span>";
+    ch.innerHTML=(it.icon?'<span class="ico" style="--t:var(--'+it.tone+')"><span class="pic" style="background-image:url('+it.icon+')"></span></span>':"")+'<span class="txt"><b><span>'+esc(it.name)+"</span>"+tb(it.access)+"</b><small>"+fpEl(it)+esc(fpTxt(it)+it.sub)+"</small></span>";
     grab(ch,{t:"item",l,id:it.id});
     ch.onclick=()=>{state.selItem={l,id:it.id};renderTimeline();renderItemBar()};c.appendChild(ch)}
    dropTarget(c,pl=>{if(pl.t!=="item"||pl.l!==l)return say("Licences stay in their own ladder.");state.place[pl.id]=s.id;state.selItem={l,id:pl.id};changed()})}}
@@ -202,7 +205,7 @@ function renderTimeline(){const tl=$("tl");tl.innerHTML="";const g=document.crea
 function renderItemBar(){const el=$("itembar");const sel=state.selItem;const it=sel&&ITEMS[sel.l].find(x=>x.id===sel.id);
  if(!it){el.innerHTML='<span class="hint">Click a licence chip to see its gate, and to move it with a dropdown if dragging does not work for you.</span>';return}
  const st=ST[state.place[it.id]||"none"];
- el.innerHTML=(it.icon?'<div><span class="ico" style="--t:var(--'+it.tone+');display:inline-grid;width:72px;height:72px;border-radius:6px;place-items:center;border:1px solid var(--t);background:color-mix(in srgb,var(--t) 60%,#101311)"><img src="'+it.icon+'" alt="" style="max-width:100%;max-height:100%"></span></div>':"")+"<div><b>"+esc(it.name)+"</b> · "+esc(it.sub)+" "+tb(it.access)+"</div><div>Gate: "+esc(GATE[it.access])+"</div><div>"+(state.place[it.id]&&state.place[it.id]!=="none"?"Store sells it after <b>"+esc(st.name)+"</b> · "+esc(st.group)+". "+esc(st.note):"Not placed: only the ordinary store, licence and recovery routes reach it.")+"</div>"
+ el.innerHTML=(it.icon?'<div><span class="ico" style="--t:var(--'+it.tone+');display:inline-grid;width:72px;height:72px;border-radius:6px;place-items:center;border:1px solid var(--t);background:color-mix(in srgb,var(--t) 60%,#101311)"><img src="'+it.icon+'" alt="" style="max-width:100%;max-height:100%"></span></div>':"")+"<div><b>"+esc(it.name)+"</b> · "+esc(it.sub)+" "+tb(it.access)+"</div>"+(it.fp?"<div>"+fpEl(it,true)+' <b>Brick size '+it.fp[0]+"×"+it.fp[1]+"</b> · "+area(it)+(area(it)===1?" brick":" bricks")+"</div>":"")+"<div>Gate: "+esc(GATE[it.access])+"</div><div>"+(state.place[it.id]&&state.place[it.id]!=="none"?"Store sells it after <b>"+esc(st.name)+"</b> · "+esc(st.group)+". "+esc(st.note):"Not placed: only the ordinary store, licence and recovery routes reach it.")+"</div>"
  +(RANK[it.access]>=1&&!["none","start"].includes(state.place[it.id]||"none")&&!String(state.place[it.id]).startsWith("wins")&&!String(state.place[it.id]).startsWith("post-alpha")?'<div class="w" style="color:var(--warn)">An authored store listing: it skips the '+(it.access==="RESTRICTED"?"warrant":it.access.toLowerCase()+" licence")+" gate at that mission.</div>":"")
  +'<div><select id="itemstation" aria-label="Move this licence to a mission" style="max-width:100%"></select></div>';
  const ss=$("itemstation");ss.innerHTML=STATIONS.map(s=>'<option value="'+s.id+'">'+(s.id==="none"?"Not sold yet":"Sold after: "+esc(s.name)+" ("+esc(s.group)+")")+"</option>").join("");ss.value=state.place[it.id]||"none";
