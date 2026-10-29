@@ -26,16 +26,23 @@ input,select{background:var(--surface);border:1px solid var(--line);border-radiu
 .tile{display:grid;gap:3px;justify-items:start;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);width:104px}
 .tile b{font:600 12px var(--display)}.tile small{color:var(--muted);font-size:11px;line-height:1.2}
 .legend{display:flex;gap:12px;font:11px var(--mono);color:var(--muted);flex-wrap:wrap}.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;background:var(--t);vertical-align:-1px}
-.ladder{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
-.card{flex:none;width:236px;border:2px solid var(--line);border-radius:10px;background:var(--surface);padding:8px;display:grid;gap:6px;align-content:start;cursor:pointer}
+.studio{display:grid;grid-template-columns:330px minmax(0,1fr) 350px;gap:14px;align-items:start}
+.studio>*{min-width:0}.left{display:grid;gap:14px}
+.right{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto;display:grid;gap:10px}
+.klist{display:grid;gap:4px;margin-bottom:10px}
+.kitem{display:grid;grid-template-columns:auto 1fr auto auto;gap:6px;align-items:center;padding:4px 6px;border:1px solid var(--line);border-radius:6px;cursor:pointer;background:var(--bg)}
+.kitem.sel{border-color:var(--accent);background:var(--accent-soft);font-weight:600}.kitem .r{font:600 11px var(--mono);color:var(--muted)}.kitem button{padding:0 5px;font-size:11px}
+textarea.desc{min-height:58px;font:13px var(--body);margin-top:6px}
+@media (max-width:1100px){.studio{grid-template-columns:minmax(0,1fr)}.right{position:static;max-height:none;order:-1}}
+.card{border:2px solid var(--accent);border-radius:10px;background:var(--surface);padding:10px;display:grid;gap:6px;align-content:start}
 .card.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
 .over{outline:2px dashed var(--accent);outline-offset:2px;background:var(--accent-soft)!important}
-.card .rung{font:600 11px var(--mono);color:var(--muted)}.card h3{font:600 15px/1.2 var(--display);margin:0}.card p{margin:0;font-size:12px;color:var(--muted);max-height:4.4em;overflow:hidden}
-.bricks{display:grid;grid-template-columns:repeat(2,88px);gap:6px 8px}
+.card .rung{font:600 11px var(--mono);color:var(--muted)}.card h3{font:600 15px/1.2 var(--display);margin:0}.card p{margin:0;font-size:12px;color:var(--muted)}
+.bricks{display:grid;grid-template-columns:repeat(2,88px);gap:6px 8px;justify-content:start}
 .cardbtns{display:flex;gap:4px}.cardbtns button{padding:2px 7px}
 .editor{display:grid;gap:12px}
 .meta{display:grid;grid-template-columns:minmax(160px,260px) 1fr;gap:8px}
-.teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:12px}
+.teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px}
 .team{border:1px solid var(--line);border-radius:8px;padding:8px;display:grid;gap:6px;background:var(--bg)}
 .team h4{margin:0;font:600 12px var(--mono);text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
 .member{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:center;padding:5px;border-radius:7px;background:var(--surface);border:1px solid var(--line)}
@@ -48,14 +55,19 @@ input,select{background:var(--surface);border:1px solid var(--line);border-radiu
 textarea{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--mono);background:var(--surface);border:1px solid var(--line);border-radius:6px}
 </style></head><body><div class="wrap">
 <header><h1>Kit Ladder</h1>
-<p class="lead">Author squad weapon kits. Drag a weapon from the catalog (or from any kit card) onto a member's slot to set their primary or secondary. Drop on a member to route it by type, on a team to fill all four, or on a kit card to fill the squad. Cards draw as they do on the Barracks loadout page.</p></header>
-<div class="bar"><button class="primary" id="new">New kit</button><button id="dup">Duplicate</button><button id="del">Delete</button>
-<span class="sp"></span><span class="status" id="status"></span><button id="export">Download kits.json</button><button id="copy">Copy JSON</button><button id="import">Import…</button><button id="reset">Reset to shipped kits</button><input type="file" id="file" accept=".json" hidden></div>
-<section class="panel"><h2>Catalog · drag onto a member</h2><div class="legend" id="legend"></div>
-<div style="display:grid;gap:10px;margin-top:8px"><div><h2>Primaries</h2><div class="cat" id="cat-p"></div></div><div><h2>Secondaries and belt items</h2><div class="cat" id="cat-s"></div></div></div></section>
-<section><h2>Ladder · left is the bottom rung · ◀ ▶ reorders</h2><div class="ladder" id="ladder"></div></section>
-<section class="panel editor"><div class="meta"><input id="kname" aria-label="Kit name"><input id="kdesc" aria-label="Kit description" placeholder="Description"></div>
-<div class="teams" id="teams"></div><div class="hint">Drag one slot's brick onto another member to copy it. × on a brick clears a secondary or belt item. Grade sets the primary's grade (rifle and DMR art change with it, as in the armoury).</div></section>
+<p class="lead">Edit one weapon card at a time. Drag a weapon from the inventory on the right onto an individual marine's primary, secondary or belt slot (or onto the marine to route it by type); the card preview updates as you go and draws as it does on the Barracks loadout page.</p></header>
+<div class="bar"><button class="primary" id="new">New card</button><button id="dup">Duplicate</button><button id="del">Delete</button>
+<span class="sp"></span><span class="status" id="status"></span><button id="export">Download kits.json</button><button id="copy">Copy JSON</button><button id="import">Import…</button><button id="reset">Reset to shipped cards</button><input type="file" id="file" accept=".json" hidden></div>
+<div class="studio">
+<div class="left">
+<section class="panel"><h2>1 · Edit card · ▲▼ reorders the ladder</h2><div class="klist" id="klist"></div>
+<input id="kname" aria-label="Card name" style="width:100%;box-sizing:border-box"><textarea id="kdesc" class="desc" aria-label="Card description" placeholder="Description"></textarea></section>
+<section class="panel"><h2>2 · Card preview · all twelve marines as assigned</h2><div id="preview"></div></section>
+</div>
+<main><h2>Marines · drop a weapon on one</h2><div class="teams" id="teams"></div><div class="hint" style="margin-top:8px">Drag a slot's brick onto another marine to copy it. × clears a secondary or belt item. Grade sets the primary's grade (rifle and DMR art change with it, as in the armoury). Dropping on a team header fills all four.</div></main>
+<aside class="right panel"><h2>3 · Weapon inventory</h2><div class="legend" id="legend"></div>
+<div><h2>Primaries</h2><div class="cat" id="cat-p"></div></div><div><h2>Secondaries and belt items</h2><div class="cat" id="cat-s"></div></div></aside>
+</div>
 <textarea id="out" hidden></textarea>
 </div>
 <script>
@@ -87,14 +99,13 @@ function counts(k){const prim=new Map(),sec=new Map();
  for(const m of k.members){const key=m.primary+"|"+m.grade;prim.set(key,(prim.get(key)||0)+1);
   for(const sid of [m.special,m.belt])if(sid)sec.set(sid,(sec.get(sid)||0)+1)}
  return{prim,sec}}
-function cardEl(k,i){const el=document.createElement("div");el.className="card"+(k.id===state.selected?" sel":"");
- el.innerHTML='<span class="rung">RUNG '+(i+1)+'</span><h3>'+esc(k.name)+'</h3><p>'+esc(k.description)+'</p><div class="bricks"></div><div class="cardbtns"><button data-a="l" title="Move down the ladder">◀</button><button data-a="r" title="Move up the ladder">▶</button></div>';
+function previewEl(k){const el=document.createElement("div");el.className="card";
+ el.innerHTML='<h3>'+esc(k.name)+'</h3><p>'+esc(k.description)+'</p><div class="bricks"></div>';
  const box=el.querySelector(".bricks"),{prim,sec}=counts(k);
  for(const [key,n] of prim){const [id,g]=key.split("|");box.appendChild(brick(piece("p",id,g),n,{t:"p",id}))}
  for(const [id,n] of sec)box.appendChild(brick(piece("s",id),n,{t:"s",id}));
- el.addEventListener("click",e=>{const a=e.target.dataset?.a;if(a){const j=state.kits.indexOf(k),t=a==="l"?j-1:j+1;if(t>=0&&t<state.kits.length){[state.kits[j],state.kits[t]]=[state.kits[t],state.kits[j]];changed()}return}state.selected=k.id;render()});
- dropTarget(el,pl=>{for(let m=0;m<12;m++)apply(k,m,null,pl);state.selected=k.id;changed()});
  return el}
+function move(k,d){const j=state.kits.indexOf(k),t=j+d;if(t>=0&&t<state.kits.length){[state.kits[j],state.kits[t]]=[state.kits[t],state.kits[j]];changed()}}
 function slotEl(k,mi,which){const m=k.members[mi];const id=which==="primary"?m.primary:m[which];
  const pc=id?piece(which==="primary"?"p":"s",id,m.grade):null;
  const s=document.createElement("div");s.className="slot";
@@ -123,7 +134,12 @@ function apply(k,mi,slot,pl){const m=k.members[mi];
  if(slot){m.special=pl.id;return}
  if(thrown&&m.special&&m.special!==pl.id&&!m.belt){m.belt=pl.id;return}
  m.special=pl.id}
-function ladderOnly(){const lad=$("ladder"),s=lad.scrollLeft;lad.innerHTML="";state.kits.forEach((k,i)=>lad.appendChild(cardEl(k,i)));lad.scrollLeft=s}
+function ladderOnly(){const list=$("klist");list.innerHTML="";
+ state.kits.forEach((k,i)=>{const r=document.createElement("div");r.className="kitem"+(k.id===state.selected?" sel":"");
+  r.innerHTML='<span class="r">'+(i+1)+'</span><span>'+esc(k.name)+'</span><button title="Lower rung">▲</button><button title="Higher rung">▼</button>';
+  const [u,d]=r.querySelectorAll("button");u.onclick=e=>{e.stopPropagation();move(k,-1)};d.onclick=e=>{e.stopPropagation();move(k,1)};
+  r.onclick=()=>{state.selected=k.id;render()};list.appendChild(r)});
+ const pv=$("preview");pv.innerHTML="";pv.appendChild(previewEl(kit()))}
 function render(){
  $("legend").innerHTML=["BALLISTIC","ENERGY","MISSILE","UTILITY"].map(k=>'<span style="--t:var(--'+k+')">'+k.toLowerCase()+'</span>').join("");
  const cp=$("cat-p"),cs=$("cat-s");cp.innerHTML=cs.innerHTML="";
