@@ -70,7 +70,9 @@ gun); content that fields a laser tank by name gets `VehicleType.standardPart` (
 The heavy lasers are the old white and red heads on the ring. The lighter lasers (3x2 aside) are drawn short, a turret
 and not a mech arm: each stands in a round turret base on the collar (`turret-base-medium.png` for two rows,
 `turret-base-light.png` for one) with its muzzle only just past the ring (`VehicleGun.lengthCells`, `baseCells`). The
-mech arm drawing is a different style from the vehicle turret and is not reused at arm length on a hull. Art:
+mech arm drawing is a different style from the vehicle turret and is not reused at arm length on a hull. A fabricated vehicle starts with its gun card empty
+(owner, 2026-10-29): outfitting it is part of the play, so a fabricated laser tank is a bare ring until a part is fitted, and a
+saved one with an empty card loads the same way. Art:
 `art-source/vehicles/turret-ring/`; the lineup is the `tank-variants` suite's `laser-lineup*`.
 
 **The ring has three finishes by hull class** (owner, 2026-10-29), `VehicleType.mountStyle` / `TurretMountStyle`: the army
