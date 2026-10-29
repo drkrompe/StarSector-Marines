@@ -1,0 +1,37 @@
+<template props="title,tag,detailClasses,detail,verbsClasses,verbs,linesClasses,lines">
+  <div id="side-prompt" class="p-glass hud-glass">
+    <div id="side-prompt-head" class="p-head">
+      <div id="side-prompt-title" class="label heading p-title">{title}</div>
+      <div id="side-prompt-tag" class="label p-tag">{tag}</div>
+    </div>
+    <div id="side-prompt-detail" class="{detailClasses}">{detail}</div>
+    <div id="side-prompt-verbs" class="{verbsClasses}">
+      <button each="verb in verbs" key="{verb.id}" id="{verb.id}" class="p-cta selected" onclick="{verb.action}">
+        <div id="{verb.nameId}" class="label heading p-verb-name">{verb.name}</div>
+      </button>
+    </div>
+    <div id="side-prompt-lines" class="{linesClasses}">
+      <div each="line in lines" key="{line.id}" id="{line.id}" class="p-line">
+        <button id="{line.buttonId}" class="p-cta selected" onclick="{line.action}">
+          <div id="{line.nameId}" class="label heading p-verb-name">{line.name}</div>
+        </button>
+        <div id="{line.textId}" class="label p-line-text">{line.result}</div>
+      </div>
+    </div>
+  </div>
+</template>
+<style>
+  .p-glass { width: 100%; height: 100%; padding: 2px; gap: 3px; border-width: 0px; background-color: transparent; }
+  .p-hidden { display: none; }
+  .p-head { width: 100%; height: 16px; flex-direction: row; gap: 6px; }
+  .p-title { width: 0px; flex-grow: 1; height: 16px; color: #e6e7da; }
+  .p-tag { width: 120px; height: 16px; text-align: right; color: #7fc8e8; }
+  .p-detail { width: 100%; height: 15px; white-space: normal; overflow: hidden; color: #c5d6cb; }
+  .p-verbs-row { width: 100%; flex-direction: row; gap: 4px; }
+  .p-lines { width: 100%; flex-direction: column; gap: 4px; }
+  .p-cta { width: 0px; flex-grow: 1; height: 20px; padding: 2px; }
+  .p-line { width: 100%; height: 20px; flex-direction: row; gap: 6px; }
+  .p-verbs-row .p-cta, .p-line .p-cta { width: 84px; flex-grow: 0; }
+  .p-line-text { width: 0px; flex-grow: 1; height: 20px; padding: 3px 0px; color: #c5d6cb; }
+  .p-verb-name { height: 14px; color: #ffd464; white-space: nowrap; text-align: center; }
+</style>

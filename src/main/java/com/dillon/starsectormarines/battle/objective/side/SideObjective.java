@@ -71,6 +71,17 @@ public final class SideObjective {
         public String target() { return Strings.get(prefix + "Target"); }
         public String destination() { return Strings.get(prefix + "Destination"); }
 
+        /** An offer's heading, its tag beside it and the one line of what it does, for a job that waits for a verb. */
+        public String promptTitle() { return Strings.get(prefix + "PromptTitle"); }
+        public String promptTag() { return Strings.get(prefix + "PromptTag"); }
+        public String promptDetail() { return Strings.get(prefix + "PromptDetail"); }
+
+        /** The small button a verb is pressed with, and (on a lines layout) what it does, beside it. */
+        public String verbName(String verb) { return Strings.get(prefix + "Verb" + capitalised(verb)); }
+        public String verbResult(String verb) { return Strings.get(prefix + "Verb" + capitalised(verb) + "Result"); }
+
+        private static String capitalised(String word) { return Character.toUpperCase(word.charAt(0)) + word.substring(1); }
+
         public String phase(State state) {
             String key = prefix + state.keyPart();
             String text = Strings.get(key);
@@ -198,6 +209,9 @@ public final class SideObjective {
     public String key() { return key; }
     public Hook hook() { return hook; }
     public SideTrigger trigger() { return trigger; }
+
+    /** The job's trigger if it waits for a verb, else null. */
+    public SideTrigger.Interact interaction() { return trigger instanceof SideTrigger.Interact interact ? interact : null; }
     public Return ret() { return ret; }
     public State state() { return state; }
     public boolean done() { return state == State.DONE; }

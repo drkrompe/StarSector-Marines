@@ -10,7 +10,9 @@ import com.dillon.starsectormarines.battle.objective.side.SideObjectiveService;
 import com.dillon.starsectormarines.battle.objective.side.SideTrigger;
 import com.dillon.starsectormarines.i18n.Strings;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 /**
  * The Optional section of the shared mission picture: one row per known side objective, in offer order, with its
@@ -24,6 +26,28 @@ public final class SideObjectiveRows {
         List<Item> items = new ArrayList<>();
         for (SideObjective job : service.jobs()) if (job.known()) items.add(item(job, field));
         return items;
+    }
+
+    /**
+     * How close a company combatant must be to a job's place for its row to be listed on the rail while it is still
+     * offered. UNTUNED first pass; the prompt on the field comes up closer ({@code DustLedgerSideObjectives.PROMPT_CELLS}).
+     */
+    public static final float IN_REACH_CELLS = 24f;
+
+    /**
+     * The ids ({@link Item#id}) of the rows to leave off the rail because the company is not in reach of them: a job
+     * still only offered whose place no company combatant is near. A job being worked or settled stays listed, and so
+     * does one with no place to be near.
+     */
+    public static Set<String> far(SideObjectiveService service, SideField field) {
+        Set<String> out = new HashSet<>();
+        for (SideObjective job : service.jobs()) {
+            if (!job.known() || job.state() != SideObjective.State.OFFERED) continue;
+            SideTrigger.Spot place = job.trigger().target(field);
+            if (place != null && field.nearest(SideField.Who.COMBATANT, place.x() + .5f, place.y() + .5f, IN_REACH_CELLS) == 0L)
+                out.add(id(job));
+        }
+        return out;
     }
 
     static Item item(SideObjective job, SideField field) {

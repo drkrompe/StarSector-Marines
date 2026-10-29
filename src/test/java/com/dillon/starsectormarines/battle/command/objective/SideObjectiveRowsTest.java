@@ -8,8 +8,10 @@ import com.dillon.starsectormarines.battle.objective.side.SideField;
 import com.dillon.starsectormarines.battle.objective.side.SideObjective;
 import com.dillon.starsectormarines.battle.objective.side.SideObjective.Hook;
 import com.dillon.starsectormarines.battle.objective.side.SideObjective.Window;
+import com.dillon.starsectormarines.battle.objective.side.SideObjectiveService;
 import com.dillon.starsectormarines.battle.objective.side.SideTrigger;
 import java.util.List;
+import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -37,6 +39,22 @@ class SideObjectiveRowsTest {
         assertEquals(-1f, row.progress(), "an untouched hold shows no invented progress");
         assertEquals(new Cell(4, 4), new Cell(row.focus().x(), row.focus().y()));
         assertEquals(2, row.focus().footprint().size());
+    }
+
+    @Test void aJobStillOfferedIsFarUntilACombatantIsNearItsPlace() {
+        var well = Ground.of(List.of(new Cell(40, 4)));
+        var service = new SideObjectiveService();
+        service.install(new SideObjective("warden", new Hook("test", "offerer", null),
+                new SideTrigger.Hold(SideField.Who.LEADER, well, 8f), Window.always(), null, null, null));
+        SideField near = new SideField() {
+            @Override public boolean anyIn(Who who, Ground ground) { return false; }
+            @Override public long nearest(Who who, float x, float y, float reach) { return Math.hypot(x - 30f, y - 4f) <= reach ? 1L : 0L; }
+            @Override public boolean onField(long id) { return false; }
+            @Override public float x(long id) { return 0f; }
+            @Override public float y(long id) { return 0f; }
+        };
+        assertEquals(Set.of("side-warden"), SideObjectiveRows.far(service, EMPTY), "nobody about");
+        assertTrue(SideObjectiveRows.far(service, near).isEmpty(), "a company unit 10 cells away");
     }
 
     @Test void theTallyCountsOnlyTheMissionsOwnRows() {

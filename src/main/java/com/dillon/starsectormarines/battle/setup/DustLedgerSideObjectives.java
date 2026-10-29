@@ -41,6 +41,8 @@ final class DustLedgerSideObjectives {
     static final float NOD_SECONDS = 8f;
     /** How long a company combatant works the feed junction, unbroken, to cut the nests' power. UNTUNED first pass. */
     static final float FEED_SECONDS = 10f;
+    /** How close a company unit must be to the well house or the junction box for its verbs to be on offer. UNTUNED first pass. */
+    static final float PROMPT_CELLS = 14f;
     /** How far a company combatant spots the tap's junction box from. UNTUNED first pass. */
     static final float FEED_SIGHT_CELLS = 12f;
     /** Wayline's delivery fee for the coupling, beside a 22,000-credit Low contract (owner, 2026-10-26). */
@@ -64,7 +66,9 @@ final class DustLedgerSideObjectives {
     static SideObjective warden(Sites sites, DustLedgerProgress progress, BooleanSupplier spottersUp) {
         return new SideObjective(WARDEN, new Hook("dustLedgerSideWarden", "dustLedgerSideOffererWarden",
                 Map.of(State.WORKING, LINE + "warden_approach", State.DONE, LINE + "warden_nod")),
-                new SideTrigger.Hold(Who.LEADER, ground(sites.wellHouse()), NOD_SECONDS),
+                new SideTrigger.Interact(Who.LEADER, ground(sites.wellHouse()), PROMPT_CELLS,
+                        new SideTrigger.Hold(Who.LEADER, ground(sites.wellHouse()), NOD_SECONDS),
+                        SideTrigger.Interact.Layout.LINES, List.of("respects")),
                 Window.phase(progress::quiet), Effect.NONE, Return.done("corvus.saltwell.warden_nod"),
                 () -> spottersUp.getAsBoolean() ? markers("dust-ledger-spotter-", "dustLedgerHudSpotter",
                         "dustLedgerHudSpotterStatus", sites.spotterPosts(), MissionObjectiveSnapshot.State.COMPLETE) : List.of());
@@ -79,7 +83,9 @@ final class DustLedgerSideObjectives {
         Ground junction = ground(sites.feedJunction());
         return new SideObjective(FEED, new Hook("dustLedgerSideFeed", "dustLedgerSideOffererCompany",
                 Map.of(State.WORKING, LINE + "feed_approach", State.DONE, LINE + "feed_cut", State.LAPSED, LINE + "feed_lapsed")),
-                new SideTrigger.Hold(Who.COMBATANT, junction, FEED_SECONDS),
+                new SideTrigger.Interact(Who.COMBATANT, junction, PROMPT_CELLS,
+                        new SideTrigger.Hold(Who.COMBATANT, junction, FEED_SECONDS),
+                        SideTrigger.Interact.Layout.CARD, List.of("cut")),
                 Window.phase(progress::quiet), cutNests, Return.done("corvus.sable_wake.feed_cut"),
                 // The nests are marked while they can still fire on the company.
                 () -> nestsPowered.getAsBoolean() ? markers("dust-ledger-nest-", "dustLedgerHudNest", "dustLedgerHudNestStatus",

@@ -39,6 +39,66 @@ public interface SideTrigger {
         static Spot of(Ground ground) { return new Spot(ground.anchor().x(), ground.anchor().y(), ground.outline()); }
     }
 
+    /**
+     * A job that waits for the player to choose a verb. While a company unit of the right kind is within
+     * {@code nearCells} of the job's place, the job is on offer: the HUD draws its verbs there, and pressing one
+     * ({@link SideObjectiveService#choose}) engages the work, which is then judged by the inner trigger: the choice stands
+     * while the company stays near, so it may press first and walk the squad in after. It lapses when the company
+     * leaves, so a squad walking past does nothing.
+     */
+    final class Interact implements SideTrigger {
+        /** How the offer reads on screen. */
+        public enum Layout {
+            /** A card: title, one line of what it does, then the verbs in a row. */
+            CARD,
+            /** One line per verb: a small button with what it does beside it. */
+            LINES
+        }
+
+        private final Who who;
+        private final Ground ground;
+        private final float nearCells;
+        private final SideTrigger work;
+        private final List<String> verbs;
+        private final Layout layout;
+        private boolean engaged;
+
+        public Interact(Who who, Ground ground, float nearCells, SideTrigger work, Layout layout, List<String> verbs) {
+            if (verbs.isEmpty()) throw new IllegalArgumentException("an interaction needs at least one verb");
+            if (!(nearCells > 0f)) throw new IllegalArgumentException("an interaction needs a positive reach");
+            this.who = who; this.ground = ground; this.nearCells = nearCells; this.work = work;
+            this.layout = layout; this.verbs = List.copyOf(verbs);
+        }
+
+        @Override public Reading judge(SideField field, float dt) {
+            if (engaged && !near(field)) engaged = false;
+            return engaged ? work.judge(field, dt) : Reading.IDLE;
+        }
+
+        /** Whether a company unit of the right kind is close enough to the job's place for it to be on offer. */
+        public boolean near(SideField field) {
+            return field.nearest(who, ground.anchor().x() + .5f, ground.anchor().y() + .5f, nearCells) != 0L;
+        }
+
+        /** Engages the work if {@code verb} is one of this job's and the company is near; true when it did. */
+        boolean press(String verb, SideField field) {
+            if (!verbs.contains(verb) || !near(field)) return false;
+            engaged = true;
+            return true;
+        }
+
+        public boolean engaged() { return engaged; }
+        public List<String> verbs() { return verbs; }
+        public Layout layout() { return layout; }
+        public Ground ground() { return ground; }
+
+        @Override public Spot target(SideField field) { return work.target(field); }
+        @Override public Ground destination() { return work.destination(); }
+        @Override public boolean destinationShownIdle() { return work.destinationShownIdle(); }
+        @Override public float worked() { return work.worked(); }
+        @Override public float required() { return work.required(); }
+    }
+
     /** A company unit enters an area. */
     final class Reach implements SideTrigger {
         private final Who who;

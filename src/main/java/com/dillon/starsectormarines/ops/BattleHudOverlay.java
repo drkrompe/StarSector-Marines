@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.command.objective.RaidObjective;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
+import com.dillon.starsectormarines.battle.command.objective.SideObjectiveRows;
+import com.dillon.starsectormarines.battle.objective.side.SideField;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.battle.air.LiftQueueReadout;
 import com.dillon.starsectormarines.battle.power.ArmorDropPower;
@@ -22,6 +24,7 @@ import com.fs.starfarer.api.ui.PositionAPI;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 /**
@@ -228,8 +231,12 @@ final class BattleHudOverlay {
     }
 
     static float documentHeight(BattleHudOverlayModel.Presentation presentation) {
-        float rail = presentation.missionRows() > 0 || presentation.optionalRows() > 0
-                ? Math.max(300, 96 + presentation.missionRows() * 174 + BattleHudOverlayModel.optionalHeight(presentation.optionalRows()))
+        float rail = presentation.missionRows() > 0 || presentation.optionalTotal() > 0
+                ? Math.max(300, 96 + presentation.missionRows() * (presentation.compact()
+                        ? BattleHudOverlayModel.COMPACT_MISSION_ROW_HEIGHT : BattleHudOverlayModel.MISSION_ROW_HEIGHT)
+                        + (presentation.compact()
+                        ? BattleHudOverlayModel.optionalHeight(presentation.optionalRows(), presentation.optionalTotal())
+                        : BattleHudOverlayModel.optionalHeight(presentation.optionalRows())))
                 : presentation.objectivesVisible() ? OBJECTIVE_HEIGHT : TIME_ONLY_HEIGHT;
         return presentation.liftRows() > 0 ? Math.max(rail, liftHeight(presentation.liftRows())) : rail;
     }
@@ -279,6 +286,7 @@ final class BattleHudOverlay {
                 sim == null ? List.of() : sim.getCompoundService().getRecords());
         var mission = MissionObjectiveProjection.capture(sim);
         if (!mission.objectives().isEmpty()) return model.updateMission(mission,
+                sim == null ? Set.of() : SideObjectiveRows.far(sim.getSideObjectives(), SideField.of(sim)),
                 marker -> camera.centerOn(marker.x() + .5f, marker.y() + .5f));
         if (sim != null && sim.getThunderRun() != null) {
             var column = sim.getThunderRun();

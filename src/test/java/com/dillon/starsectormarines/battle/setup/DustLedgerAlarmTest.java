@@ -94,6 +94,9 @@ class DustLedgerAlarmTest {
         long linesman = sim.spawn(new EntitySpec("linesman", Faction.MARINE, UnitType.MARINE, 5, 4));
         int ticks = (int) Math.ceil(DustLedgerSideObjectives.FEED_SECONDS / BattleSimulation.TICK_DT) + 1;
         for (int i = 0; i < ticks; i++) step(sim, ledger);
+        assertFalse(ledger.feedCut(), "standing on the junction box does nothing until the player chooses");
+        sim.getSideObjectives().choose(DustLedgerSideObjectives.FEED, "cut");
+        for (int i = 0; i < ticks; i++) step(sim, ledger);
         assertTrue(ledger.feedCut());
         assertTrue(sim.turretState().unpowered(nest));
         assertFalse(sim.turretState().unpowered(other), "only the tap's nests lose power");

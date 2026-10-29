@@ -354,7 +354,7 @@ A **side objective** is an optional, mission-owned job with no bearing on
 victory or defeat; it never enters `WinCheckSystem`. A mission declares one
 (`SideObjective`) as a **hook** (offerer, name, steps, a line per state, story
 keys under one prefix), a **trigger** (`SideTrigger`: reach, hold, carry,
-escort, or the mission's own), a **window** (always, a phase, a clock, or
+escort, interact, or the mission's own), a **window** (always, a phase, a clock, or
 another job's state), a **battle effect** applied once on completion through
 existing seams, and a **return** (a debrief line per outcome, a namespaced
 campaign mark, and credits paid when done: either, both or neither, as fits
@@ -384,6 +384,17 @@ fixture boundary, never by a live battle: Blind Watch's fixture asks whether
 stood-to (`BlindWatchProgress.stoodTo`). The
 rolled pool in `optional-objectives.md` is a sibling: a pool rolls against the
 laid map, a side objective is authored for one mission.
+
+A job that wants a decision is an **interaction** (`SideTrigger.Interact`): a company unit of the right kind
+near its place puts the job **on offer**, and nothing happens until the player presses one of its verbs
+(`SideObjectiveService.choose`, taken on the next tick). The press engages the job's inner trigger and stands
+while the company stays near; leaving drops it. An offer is drawn as a battle-glass **world prompt** over the
+place (`BattleSidePromptOverlay`): a card (heading, one line, small buttons) or one line per verb, shown only
+while the company is near and the place is in view, never under the right rail. A mission with side jobs also runs
+the rail **compact** (no steps, instruction or blocker lines) and lists only the jobs in reach
+(`SideObjectiveRows.far`) under an "n of m in reach" count; a job being worked or settled stays listed. Owner
+decisions (2026-10-29): the prompt is glass, not a black card; buttons are small; the rail has no room for per-row
+buttons.
 
 The effect hook works through existing seams only (allies released, defences
 cut, a reveal, a hostile group standing down) and never grants victory or

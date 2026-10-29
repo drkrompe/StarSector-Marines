@@ -112,8 +112,8 @@ team (militia quality, allied, separate from the company) advances on the
 compound's east gate from the crawler road. They are a real force that can die;
 the company owes them nothing in settlement.
 
-**The warden's nod.** A squad leader walks to the warden's well house and
-stays there briefly. Payoff: the town watch holds the cantina, so its hidden
+**The warden's nod.** A squad leader walks to the warden's well house, chooses
+Respects on the prompt there, and stays briefly. Payoff: the town watch holds the cantina, so its hidden
 Sable drinkers never join, and two watchmen on market rooftops act as
 spotters, revealing the compound yard to the company until the alarm.
 
@@ -122,7 +122,7 @@ the town's old terraforming power line. The tap's junction box stands outside
 the ring, between the Harrow lane and the postern. The job is hidden: the
 briefing knows only that the nests are powered from somewhere, and it joins the
 checklist when a company combatant sights the box (12 cells) or reaches it,
-with Castle's line naming the tap. A squad that works it for a
+with Castle's line naming the tap. A squad that chooses Cut on the prompt at the box and works it for a
 short, unbroken time cuts the feed. Payoff: the gun nests are dead when the
 alarm sounds. Cutting Sable's own tap offends nobody in town. The pillboxes
 are manned, not powered, so the feed does not touch them.

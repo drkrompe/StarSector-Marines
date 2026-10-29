@@ -18,7 +18,18 @@ public final class SideObjectiveService {
         public Transition(int tick, String key, State state) { this(tick, key, state, false); }
     }
 
+    /** One verb on an offer: the key it is pressed with, its small button and what it does. */
+    public record OfferVerb(String id, String name, String result) { }
+
+    /**
+     * A job on offer to the player: its place, how it reads and the verbs that engage it. Drawn at {@code cellX/cellY}
+     * while the company is near and the place is on screen.
+     */
+    public record Offer(String key, int cellX, int cellY, SideTrigger.Interact.Layout layout, String title, String tag,
+                        String detail, List<OfferVerb> verbs) { }
+
     private final List<SideObjective> jobs = new ArrayList<>();
+    private final List<String[]> chosen = new ArrayList<>();
     private final List<Transition> transitions = new ArrayList<>();
     private float elapsed;
     private boolean ended;
@@ -35,6 +46,7 @@ public final class SideObjectiveService {
         if (jobs.isEmpty() || ended || sim.isComplete()) return;
         elapsed += BattleSimulation.TICK_DT;
         SideField field = SideField.of(sim);
+        engage(field);
         for (SideObjective job : jobs) step(job, field, BattleSimulation.TICK_DT, sim, sim.getSimTickIndex(), sim.getStoryBeatLog());
     }
 
@@ -42,7 +54,39 @@ public final class SideObjectiveService {
     void tick(SideField field, float dt, int tick, StoryBeatLog beats) {
         if (ended) return;
         elapsed += dt;
+        engage(field);
         for (SideObjective job : jobs) step(job, field, dt, null, tick, beats);
+    }
+
+    /**
+     * The player picked {@code verb} on the job {@code key}: it takes effect on the next tick, if the job is still open
+     * and the company still near. A pick the job has no verb for is ignored.
+     */
+    public void choose(String key, String verb) { chosen.add(new String[] {key, verb}); }
+
+    /** The jobs on offer now: open, known, not yet engaged, with the company near. At most one per job; in offer order. */
+    public List<Offer> offers(SideField field) {
+        List<Offer> out = new ArrayList<>();
+        for (SideObjective job : jobs) {
+            SideTrigger.Interact interact = job.interaction();
+            if (interact == null || !job.known() || job.state().isFinal() || interact.engaged() || !interact.near(field)) continue;
+            List<OfferVerb> verbs = new ArrayList<>(interact.verbs().size());
+            for (String verb : interact.verbs()) verbs.add(new OfferVerb(verb, job.hook().verbName(verb), job.hook().verbResult(verb)));
+            var anchor = interact.ground().anchor();
+            out.add(new Offer(job.key(), anchor.x(), anchor.y(), interact.layout(), job.hook().promptTitle(),
+                    job.hook().promptTag(), job.hook().promptDetail(), List.copyOf(verbs)));
+        }
+        return out;
+    }
+
+    private void engage(SideField field) {
+        if (chosen.isEmpty()) return;
+        for (String[] pick : chosen) {
+            SideObjective job = job(pick[0]);
+            SideTrigger.Interact interact = job == null ? null : job.interaction();
+            if (interact != null && job.known() && !job.state().isFinal()) interact.press(pick[1], field);
+        }
+        chosen.clear();
     }
 
     private void step(SideObjective job, SideField field, float dt, BattleSimulation sim, int tick, StoryBeatLog beats) {
