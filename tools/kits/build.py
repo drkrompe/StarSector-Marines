@@ -1,13 +1,16 @@
-"""Build the weapon-kit ladder page: a self-contained HTML tool for authoring squad weapon kits.
+"""Build the kit ladder page: a self-contained HTML tool for authoring squad cards and when they unlock.
 
     python tools/kits/build.py [--artifact] [out.html]    (default build/kits/kit-ladder.html;
     --artifact drops the html/head/body wrapper for publishing through the Artifact tool)
 
-Reads the shipped marine weapon and special-equipment catalogs, the strings, the armoury icons and
-the built-in weapon doctrines in SquadEquipmentDoctrines.java, and embeds all of it in one file.
-The page draws each kit the way a Barracks loadout card does (kit bricks coloured by what each piece
-throws) and lets a catalog piece be dragged onto a squad member. Exports a kits.json: per kit, twelve
-members of {role, primary, grade, special, belt}, in ladder order.
+Reads the shipped marine weapon, special-equipment and armour catalogs, the equipment access tiers,
+the strings, the armoury icons and the built-in weapon and armour doctrines in
+SquadEquipmentDoctrines.java / ArmorSheetBundles.java, and embeds all of it in one file.
+
+Two ladders, never mixed: weapon cards (primaries and secondaries per marine) and Equipment cards
+(armour per marine). Each card draws the way a Barracks loadout card does (kit bricks coloured by
+what each piece throws or wears) and can be placed on the Alpha mission timeline to say after which
+mission it goes on sale. Exports a kits.json holding both ladders.
 """
 import base64
 import glob
@@ -25,13 +28,57 @@ JAVA = ROOT / "src/main/java/com/dillon/starsectormarines"
 NOT_KIT_PRIMARY = {"weapon.drone-pulse", "weapon.drone-ion"}
 PRIMARY_ICON = {"RIFLE": "weapon-rifle", "DMR": "weapon-dmr", "LASER_GUN": "weapon-laser-gun", "SMG": "weapon-smg"}
 PRIMARY_LIE = 32
-ART_PX = 192
+ART_PX = 160
+
+# The Alpha mission timeline, in campaign order (campaign-overview.md). A card placed on a station
+# goes on sale once that mission settles; "start" is the company's opening issue, "none" is not sold.
+STATIONS = [
+    ("none", "Not sold yet", "Unplaced", "Reachable only by ordinary shelves, licences, patrons and recovery for its tier."),
+    ("start", "Company start", "Start", "What a fresh company holds."),
+    ("relief", "Relief", "Wayline opening", "First Wayline job. A Proper Issue's free choice, and Checkpoint Issue goes on sale at the broker's market."),
+    ("counterattack", "Counterattack", "Wayline opening", "Recovered Hound and first refit."),
+    ("junction", "Open the Junction", "Broken Supply Route", "Defended junction. Trench-Clearing Issue is the reward."),
+    ("thunder-run", "Thunder Run", "Broken Supply Route", "Convoy escort. Convoy Escort Issue goes on sale at the employer's market."),
+    ("dust-ledger", "Dust Ledger", "Corvus Account", "Saltwell Cross; side objectives."),
+    ("blind-watch", "Blind Watch", "Corvus Account", "The Sounding on Warion; sable mortars and missiles."),
+    ("cold-account", "A Cold Account", "Corvus Account", "Garnir. Counter-Battery Issue goes on sale at Hegemony markets."),
+    ("salvage-rights", "Salvage Rights", "A Working Ship", "Shepherd recovery, first contract."),
+    ("cold-start", "Cold Start", "A Working Ship", "Shepherd recovery, second contract."),
+    ("working-passage", "Working Passage", "A Working Ship", "The Morrow flies. Builder's Guard goes on sale at Asharu."),
+    ("colony-breach", "Colony Breach", "Khettara Bloom", "Rav Bloom challenge, chapter 1 (replayable)."),
+    ("cordon-line", "Cordon Line", "Khettara Bloom", "Chapter 2."),
+    ("cordon-road", "Cordon Road", "Khettara Bloom", "Chapter 3."),
+    ("the-burn", "The Burn", "Khettara Bloom", "Chapter 4."),
+    ("broad-front", "Broad Front", "Khettara Bloom", "Chapter 5, the end-of-alpha challenge."),
+    ("water-under-seal", "Water Under Seal", "A Small War", "Agreus opening; opens the offer, grants no equipment."),
+    ("limited-warrant", "Limited Warrant", "A Small War", "Recovered Specter cargo card."),
+    ("yards-owners", "The Yard's Owners", "A Small War", "Recovered Arbalest after inspection."),
+    ("small-war-late", "A Small War, later chapters", "A Small War", "Planned chapters: Boarding Jack and the yard agreement."),
+    ("wins-3", "3 victories", "Count-based", "Any three won operations (VictoryMilestones)."),
+    ("wins-4", "4 victories", "Count-based", "Any four won operations."),
+    ("wins-5-risk", "5 victories + 1 high-risk", "Count-based", "The first chase."),
+    ("wins-15", "15 victories", "Count-based", "Prestige recovery opens."),
+    ("warrant-hegemony", "Hegemony auxiliary warrant", "Warrants", "After Agreus: the approved Arbalest, XIV shock after the first honoured obligation period."),
+    ("warrant-other", "Other military warrants", "Warrants", "Approved kit from another tradition; needs that tradition's own warrant."),
+]
+
+# Where the shipped code already puts each card (ArcIssueListings, VictoryMilestones, the Agreus rewards).
+PLACED = {
+    "weapons:field-security": "start", "weapons:checkpoint": "relief", "wayline:steady-line": "relief",
+    "wayline:forward-screen": "relief", "weapons:trench-clearing": "junction", "weapons:convoy-escort": "thunder-run",
+    "weapons:counter-battery": "cold-account", "weapons:builders-guard": "working-passage",
+    "weapons:line-infantry": "wins-5-risk",
+    "armor:field-fatigues": "start", "armor:hegemony-auxiliary": "relief", "armor:league-mobile": "relief",
+    "armor:sindrian-security": "wins-3", "armor:corporate-specter-section": "limited-warrant",
+    "armor:hegemony-arbalest-section": "yards-owners", "armor:boarding-jack-section": "small-war-late",
+    "armor:hegemony-auxiliary-section": "warrant-hegemony", "armor:hegemony-shock": "warrant-hegemony",
+}
 
 
 def load(path):
     """Starsector's relaxed JSON: whole-line # comments and trailing commas are allowed."""
     raw = re.sub(r"(?m)^\s*#.*$", "", Path(path).read_text(encoding="utf-8"))
-    return json.loads(re.sub(r",(\s*[}\]])", r"", raw))
+    return json.loads(re.sub(r",(\s*[}\]])", r"\1", raw))
 
 
 def flat(tree, out=None):
@@ -61,6 +108,10 @@ def main():
     artifact = "--artifact" in sys.argv
     strings = flat(load(MOD / "data/strings/strings.json"))
     text = lambda key: strings.get(key.lstrip("@"), key) if key else ""
+    templates = load(MOD / "data/marines/equipment-templates.template.json")
+    access = {e["equipmentId"]: e["accessTier"].upper() for e in templates["armor"] + templates["specialEquipment"]}
+    grade_access = {e["equipmentId"]: {g.upper(): v["accessTier"].upper() for g, v in e["grades"].items()}
+                    for e in templates["primaries"]}
     weapons = {}
     for f in glob.glob(str(MOD / "data/marines/*.weapon.json")):
         for w in load(f)["weapons"]:
@@ -98,6 +149,7 @@ def main():
         primaries.append({
             "id": w["id"], "name": text(w["catalog"]["displayName"]), "kind": kind_of(w["id"]),
             "lie": PRIMARY_LIE, "icons": variants, "note": text(w["catalog"].get("role")),
+            "access": grade_access.get(w["id"], {}),
             "stats": "range %g · dmg %g × %d burst" % (sim.get("range", 0), sim.get("damage", 0), sim.get("burstCount", 1)),
         })
 
@@ -109,12 +161,12 @@ def main():
         specials.append({
             "id": e["id"], "name": text(e["catalog"]["displayName"]), "kind": kind_of(wid),
             "lie": e["presentation"].get("armoryIconLie"), "icon": icon, "note": text(e["catalog"].get("subtitle")),
+            "access": access.get(e["id"], "COMMON"),
             "thrown": e["activation"]["type"] in ("arc-explosive", "utility-smoke", "utility-satchel"),
         })
 
-    armor_doc = load(MOD / "data/marines/marine-armor-catalog.armor.json")
     armors = []
-    for a in armor_doc["armor"]:
+    for a in load(MOD / "data/marines/marine-armor-catalog.armor.json")["armor"]:
         c, bt = a["catalog"], a["battle"]
         icon = c["iconPath"]
         images[icon] = image(icon)
@@ -127,35 +179,100 @@ def main():
         armors.append({
             "id": a["id"], "name": text(c["displayName"]), "icon": icon, "systemIcon": sys_icon,
             "role": c["role"], "tier": c["tier"], "powered": c["armorClass"] == "power-suit",
+            "access": access.get(a["id"], "COMMON"),
             "stats": "tier %d · %s · armour %g / rating %g" % (c["tier"], c["role"], bt.get("armorCapacity", 0), bt.get("armorRating", 0)),
         })
+    armor_by_id = {a["id"]: a for a in armors}
 
     ids = {}
     for name in ("battle/weapon/WeaponRegistry.java", "marine/SpecialEquipmentRegistry.java", "marine/SquadEquipmentDoctrines.java"):
         ids.update(constants(JAVA / name))
     ids.update(constants(JAVA / "marine/BilletRoles.java"))
     src = (JAVA / "marine/SquadEquipmentDoctrines.java").read_text(encoding="utf-8")
-    weapon_list = src[src.index("List<SquadWeaponDoctrine> WEAPONS"):src.index("ARMOR_PLANS =")]
+
+    def val(token):
+        return token.strip('"') if token.startswith('"') else ids[token.split(".")[-1]]
+
     kits = []
+    weapon_list = src[src.index("List<SquadWeaponDoctrine> WEAPONS"):src.index("ARMOR_PLANS =")]
     for block in re.split(r"(?=weaponDoctrine\()", weapon_list)[1:]:
         head = re.match(r'weaponDoctrine\((\w+),\s*"([^"]+)",\s*"([^"]+)"', block)
         members = []
         for call in re.finditer(r"\b(starterWeapon|weapon)\(([^()]*)\)", block):
-            args = [a.strip() for a in call.group(2).split(",")]
-            val = lambda a: a.strip('"') if a.startswith('"') else ids[a.split(".")[-1]]
+            parts = [p.strip() for p in call.group(2).split(",")]
             members.append({
-                "role": val(args[0]), "primary": val(args[1]),
+                "role": val(parts[0]), "primary": val(parts[1]),
                 "grade": "SURPLUS" if call.group(1) == "starterWeapon" else "SERVICE",
-                "special": val(args[2]) if len(args) > 2 else None, "armor": None,
-                "belt": val(args[3]) if len(args) > 3 else None,
+                "special": val(parts[2]) if len(parts) > 2 else None,
+                "belt": val(parts[3]) if len(parts) > 3 else None,
             })
         if len(members) != 12:
             raise SystemExit("kit %s parsed %d members" % (head.group(1), len(members)))
         kits.append({"id": ids[head.group(1)], "name": text(head.group(2)), "description": text(head.group(3)),
                      "members": members})
 
+    def seats(primary, grade="SERVICE", automatic=None):
+        out = []
+        for i in range(12):
+            leader = i % 4 == 0
+            gun = automatic if automatic and i % 4 == 1 else primary
+            out.append({"role": "Team Leader" if leader else ("Automatic Rifleman" if gun != primary else "Rifleman"),
+                        "primary": gun, "grade": "MILSPEC" if gun != primary else grade, "special": None, "belt": None})
+        return out
+
+    # First Refit's two Wayline paths are built in code (FirstRefit.weapons), so they are seeded by hand.
+    steady = seats("weapon.field-rifle", "SURPLUS", automatic="weapon.squad-automatic")
+    forward = seats("weapon.field-rifle", "SURPLUS")
+    for i in (0, 1, 4, 5, 8, 9):
+        forward[i].update(primary="weapon.pulse-rifle", grade="MILSPEC")
+    kits.insert(1, {"id": "wayline:steady-line", "name": text("@openingRefitPathSTEADY_LINE"),
+                    "description": "Three Milspec automatics anchor nine riflemen (seeded by hand; built in code).", "members": steady})
+    kits.insert(2, {"id": "wayline:forward-screen", "name": text("@openingRefitPathFORWARD_SCREEN"),
+                    "description": "Six Milspec pulse rifles on the leaders and second seats (seeded by hand; built in code).", "members": forward})
+
+    # Armour cards. ArmorSheetBundles lists each sheet's suits; the doctrines list says how many seats
+    # are power suits. The game picks a seat's suit by role, so the seeded seating here is an even spread.
+    bundles = {}
+    bundle_src = (JAVA / "marine/ArmorSheetBundles.java").read_text(encoding="utf-8")
+    for row in re.finditer(r"\{\s*SquadEquipmentDoctrines\.(\w+),((?:\s*\"armor\.[a-z-]+\",?)+)\s*\}", bundle_src):
+        bundles[ids[row.group(1)]] = re.findall(r'"(armor\.[a-z-]+)"', row.group(2))
+    plan_src = src[src.index("ARMOR_PLANS ="):src.index("private SquadEquipmentDoctrines()")]
+    armor_kits = []
+    for m in re.finditer(r'(?:new SquadArmorPlan|powerSuitPlan|plan)\((\w+),\s*"([^"]+)",\s*"([^"]+)",\s*ArmorTradition\.(\w+),\s*SquadRoleMix\.(\w+)(.*?)\)[,;]\s*(?=\n\s*(?:plan|powerSuitPlan|new SquadArmorPlan|private|$)|\Z)', plan_src, re.S):
+        sheet, name, desc, tradition, mix, rest = m.groups()
+        sheet_id = ids[sheet]
+        patterns = bundles.get(sheet_id, [])
+        if not patterns:
+            continue
+        classes = re.findall(r"ArmorClass\.(STANDARD|POWER_SUIT)", rest)
+        if m.group(0).startswith("powerSuitPlan"):
+            classes = ["POWER_SUIT"] * 12
+        elif len(classes) >= 13:
+            classes = classes[1:13]
+        else:
+            classes = ["STANDARD"] * 12
+        standard = [p for p in patterns if not armor_by_id[p]["powered"]] or patterns
+        power = [p for p in patterns if armor_by_id[p]["powered"]] or patterns
+        members, si, pi = [], 0, 0
+        for i, cls in enumerate(classes):
+            if cls == "POWER_SUIT":
+                suit, pi = power[pi % len(power)], pi + 1
+            else:
+                suit, si = standard[si % len(standard)], si + 1
+            members.append({"role": "Team Leader" if i % 4 == 0 else "Rifleman", "armor": suit})
+        armor_kits.append({"id": sheet_id, "name": text(name), "description": text(desc) + " (" + tradition.replace("_", " ").title()
+                           + " tradition, " + mix.replace("_", " ").lower() + " mix)", "members": members})
+    if len(armor_kits) < 20:
+        raise SystemExit("armour plans parsed: %d" % len(armor_kits))
+
+    for kit in kits + armor_kits:
+        kit["station"] = PLACED.get(kit["id"], "none")
+
+    stations = [{"id": s[0], "name": s[1], "group": s[2], "note": s[3]} for s in STATIONS]
     page = (Path(__file__).with_name("template.html")).read_text(encoding="utf-8")
-    for key, value in (("__PRIMARIES__", primaries), ("__SPECIALS__", specials), ("__KITS__", kits), ("__ARMORS__", armors), ("__IMAGES__", images)):
+    for key, value in (("__PRIMARIES__", primaries), ("__SPECIALS__", specials), ("__KITS__", kits),
+                       ("__ARMORKITS__", armor_kits), ("__STATIONS__", stations), ("__ARMORS__", armors),
+                       ("__IMAGES__", images)):
         page = page.replace(key, json.dumps(value, ensure_ascii=False))
     if artifact:
         # The Artifact tool wraps the page in its own skeleton, so publish only the content.
@@ -163,7 +280,8 @@ def main():
     out = Path(argv[0]) if argv else ROOT / "build/kits/kit-ladder.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(page, encoding="utf-8")
-    print("wrote %s: %d primaries, %d secondaries, %d kits, %.0f KB" % (out, len(primaries), len(specials), len(kits), out.stat().st_size / 1024))
+    print("wrote %s: %d primaries, %d secondaries, %d suits, %d weapon cards, %d equipment cards, %.0f KB" % (
+        out, len(primaries), len(specials), len(armors), len(kits), len(armor_kits), out.stat().st_size / 1024))
 
 
 if __name__ == "__main__":

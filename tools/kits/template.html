@@ -3,21 +3,22 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-:root{--bg:#f3f1f6;--surface:#fff;--ink:#221d2b;--muted:#6c6478;--line:#ddd7e5;--accent:#7a4fa8;--accent-soft:#ece3f6;
+:root{--bg:#f3f1f6;--surface:#fff;--ink:#221d2b;--muted:#6c6478;--line:#ddd7e5;--accent:#7a4fa8;--accent-soft:#ece3f6;--warn:#a85a00;
  --BALLISTIC:#e2c248;--ENERGY:#e06a3c;--MISSILE:#6cc45e;--UTILITY:#4cb4a6;--EMPTY:#a4a8a0;--ARMOR:#a4a8a0;--SYSTEM:#a07edc;
+ --t-COMMON:#6c6478;--t-ADVANCED:#2f7fb5;--t-PRESTIGE:#b0802a;--t-RESTRICTED:#b03a3a;
  --display:"Chakra Petch","Segoe UI",system-ui,sans-serif;--body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17141c;--surface:#211d28;--ink:#ece8f2;--muted:#a79fb4;--line:#3a3346;--accent:#b996e0;--accent-soft:#33284a;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#17141c;--surface:#211d28;--ink:#ece8f2;--muted:#a79fb4;--line:#3a3346;--accent:#b996e0;--accent-soft:#33284a;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17141c;--surface:#211d28;--ink:#ece8f2;--muted:#a79fb4;--line:#3a3346;--accent:#b996e0;--accent-soft:#33284a;--warn:#e0a050;--t-COMMON:#a79fb4;--t-ADVANCED:#6bb4e8;--t-PRESTIGE:#e0b860;--t-RESTRICTED:#e87878;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#17141c;--surface:#211d28;--ink:#ece8f2;--muted:#a79fb4;--line:#3a3346;--accent:#b996e0;--accent-soft:#33284a;--warn:#e0a050;--t-COMMON:#a79fb4;--t-ADVANCED:#6bb4e8;--t-PRESTIGE:#e0b860;--t-RESTRICTED:#e87878;color-scheme:dark}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--body)}
-.wrap{max-width:1500px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left)) 60px;display:grid;gap:18px}
+.wrap{max-width:1560px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
+.wrap>*{min-width:0}
 h1{font:700 28px/1.1 var(--display);margin:0}h2{font:600 13px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px}
-p.lead{margin:6px 0 0;color:var(--muted);max-width:90ch}
+p.lead{margin:6px 0 0;color:var(--muted);max-width:95ch}
 button,input,select,textarea{font:inherit;color:inherit}
 button{cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:5px 10px}
 button:hover{border-color:var(--accent)}button.primary{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
 input,select{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:4px 7px;min-width:0}
 .bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.bar .sp{flex:1}.status{font:12px var(--mono);color:var(--muted)}
-.wrap>*{min-width:0}
 .panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
 .brick{position:relative;width:88px;height:44px;display:grid;grid-template-columns:1fr 1fr;gap:3px;flex:none}
 .brick i{display:block;border-radius:4px;background:linear-gradient(180deg,color-mix(in srgb,var(--t) 78%,#fff 22%),color-mix(in srgb,var(--t) 52%,#101311));border:1px solid var(--t);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
@@ -29,67 +30,87 @@ input,select{background:var(--surface);border:1px solid var(--line);border-radiu
 .tile{display:grid;gap:3px;justify-items:start;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);width:104px}
 .tile b{font:600 12px var(--display)}.tile small{color:var(--muted);font-size:11px;line-height:1.2}
 .legend{display:flex;gap:12px;font:11px var(--mono);color:var(--muted);flex-wrap:wrap}.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;background:var(--t);vertical-align:-1px}
-.studio{display:grid;grid-template-columns:330px minmax(0,1fr) 350px;gap:14px;align-items:start}
+.tb{display:inline-block;font:700 10px var(--mono);padding:0 5px;border-radius:3px;border:1px solid var(--tc);color:var(--tc);letter-spacing:.04em}
+/* unlock timeline */
+.tl{overflow:auto;border:1px solid var(--line);border-radius:10px;background:var(--surface);max-height:78vh}
+.grid{display:grid;grid-auto-rows:auto;width:max-content}
+.grid>div{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:6px;min-width:0}
+.gh{font:600 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);background:var(--bg)}
+.sh{font:600 12px var(--display);background:var(--bg);display:grid;gap:2px;align-content:start}.sh small{font:400 11px var(--body);color:var(--muted);text-transform:none}
+.rl{position:sticky;left:0;z-index:2;background:var(--bg);font:600 12px var(--mono);text-transform:uppercase;color:var(--muted);display:flex;align-items:center}
+.cell{display:flex;flex-direction:column;gap:6px;min-height:60px}
+.chip{border:2px solid var(--line);border-radius:8px;background:var(--surface);padding:5px;display:grid;gap:3px;cursor:grab}
+.chip.sel{border-color:var(--accent);background:var(--accent-soft)}
+.chip b{font:600 12px/1.2 var(--display);display:flex;gap:5px;align-items:flex-start;justify-content:space-between}
+.chip .mini{display:flex;flex-wrap:wrap;gap:3px}.chip .mini .brick{zoom:.5}
+.over{outline:2px dashed var(--accent);outline-offset:-2px;background:var(--accent-soft)!important}
+/* editor */
+.studio{display:grid;grid-template-columns:340px minmax(0,1fr) 350px;gap:14px;align-items:start}
 .studio>*{min-width:0}.left{display:grid;gap:14px}
 .right{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto;display:grid;gap:10px}
-.klist{display:grid;gap:4px;margin-bottom:10px}
+.tabs{display:flex;gap:6px;margin-bottom:8px}.tabs button.on{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
+.klist{display:grid;gap:4px;margin-bottom:10px;max-height:260px;overflow:auto}
 .kitem{display:grid;grid-template-columns:auto 1fr auto auto;gap:6px;align-items:center;padding:4px 6px;border:1px solid var(--line);border-radius:6px;cursor:pointer;background:var(--bg)}
-.kitem.sel{border-color:var(--accent);background:var(--accent-soft);font-weight:600}.kitem .r{font:600 11px var(--mono);color:var(--muted)}.kitem button{padding:0 5px;font-size:11px}
-textarea.desc{min-height:58px;font:13px var(--body);margin-top:6px}
-@media (max-width:1100px){.studio{grid-template-columns:minmax(0,1fr)}.right{position:static;max-height:none;order:-1}}
+.kitem.sel{border-color:var(--accent);background:var(--accent-soft);font-weight:600}.kitem small{color:var(--muted);font-weight:400;display:block;font-size:11px}.kitem button{padding:0 5px;font-size:11px}
+textarea.desc{min-height:58px;font:13px var(--body);margin-top:6px;width:100%;box-sizing:border-box;background:var(--surface);border:1px solid var(--line);border-radius:6px}
+.hintbox{display:grid;gap:4px;font-size:12px;margin-top:8px;padding:8px;border-radius:6px;background:var(--bg);border:1px solid var(--line)}
+.hintbox .w{color:var(--warn)}
 .card{border:2px solid var(--accent);border-radius:10px;background:var(--surface);padding:10px;display:grid;gap:6px;align-content:start}
-.card.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
-.over{outline:2px dashed var(--accent);outline-offset:2px;background:var(--accent-soft)!important}
-.card .rung{font:600 11px var(--mono);color:var(--muted)}.card h3{font:600 15px/1.2 var(--display);margin:0}.card p{margin:0;font-size:12px;color:var(--muted)}
+.card h3{font:600 15px/1.2 var(--display);margin:0}.card p{margin:0;font-size:12px;color:var(--muted)}
 .bricks{display:grid;grid-template-columns:repeat(2,88px);gap:6px 8px;justify-content:start}
-.cardbtns{display:flex;gap:4px}.cardbtns button{padding:2px 7px}
-.editor{display:grid;gap:12px}
-.meta{display:grid;grid-template-columns:minmax(160px,260px) 1fr;gap:8px}
 .teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,420px),1fr));gap:12px}
 .team{border:1px solid var(--line);border-radius:8px;padding:8px;display:grid;gap:6px;background:var(--bg)}
 .team h4{margin:0;font:600 12px var(--mono);text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
 .member{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto auto;gap:8px;align-items:center;padding:5px;border-radius:7px;background:var(--surface);border:1px solid var(--line)}
-.member .who{display:grid;gap:3px}.member .who{min-width:0}.member .who input,.member .who select{font-size:12px;width:100%;box-sizing:border-box}
+.member.armoronly{grid-template-columns:minmax(0,1fr) auto auto}
+.member .who{display:grid;gap:3px;min-width:0}.member .who input,.member .who select{font-size:12px;width:100%;box-sizing:border-box}
 .slot{display:grid;gap:2px;justify-items:center;padding:2px;border-radius:6px}.slot .nm{font:600 10px var(--mono);max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
 .slot .x{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;padding:0;font-size:10px;line-height:14px;display:none}
 .slot .wrapper{position:relative}.slot:hover .x{display:block}
 .slotlab{font:600 9px var(--mono);color:var(--muted);text-transform:uppercase}
 .hint{font-size:12px;color:var(--muted)}
-textarea{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--mono);background:var(--surface);border:1px solid var(--line);border-radius:6px}
+textarea#out{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--mono);background:var(--surface);border:1px solid var(--line);border-radius:6px}
+@media (max-width:1100px){.studio{grid-template-columns:minmax(0,1fr)}.right{position:static;max-height:none;order:-1}}
 </style></head><body><div class="wrap">
 <header><h1>Kit Ladder</h1>
-<p class="lead">Edit one weapon card at a time. Drag a weapon from the inventory on the right onto an individual marine's primary, secondary or belt slot (or onto the marine to route it by type); the card preview updates as you go and draws as it does on the Barracks loadout page.</p></header>
+<p class="lead">Two separate card ladders: weapon cards (primaries and secondaries) and Equipment cards (armour). Drag a card along the Alpha mission timeline to set when it goes on sale. Select a card to edit it: drag inventory pieces onto individual marines and the preview card updates as it draws on the Barracks loadout page.</p></header>
 <div class="bar"><button class="primary" id="new">New card</button><button id="dup">Duplicate</button><button id="del">Delete</button>
 <span class="sp"></span><span class="status" id="status"></span><button id="export">Download kits.json</button><button id="copy">Copy JSON</button><button id="import">Import…</button><button id="reset">Reset to shipped cards</button><input type="file" id="file" accept=".json" hidden></div>
+<section><h2>Unlock ladder · drag a card to the mission after which it goes on sale</h2><div class="tl" id="tl"></div></section>
 <div class="studio">
 <div class="left">
-<section class="panel"><h2>1 · Edit card · ▲▼ reorders the ladder</h2><div class="klist" id="klist"></div>
-<input id="kname" aria-label="Card name" style="width:100%;box-sizing:border-box"><textarea id="kdesc" class="desc" aria-label="Card description" placeholder="Description"></textarea></section>
+<section class="panel"><h2>1 · Edit card</h2><div class="tabs"><button id="tab-weapon">Weapon cards</button><button id="tab-armor">Equipment cards</button></div>
+<div class="klist" id="klist"></div>
+<input id="kname" aria-label="Card name" style="width:100%;box-sizing:border-box"><textarea id="kdesc" class="desc" aria-label="Card description" placeholder="Description"></textarea>
+<div style="margin-top:8px"><select id="kstation" aria-label="Unlocks after" style="width:100%"></select></div><div class="hintbox" id="hints"></div></section>
 <section class="panel"><h2>2 · Card preview · all twelve marines as assigned</h2><div id="preview"></div></section>
 </div>
-<main><h2>Marines · drop a weapon on one</h2><div class="teams" id="teams"></div><div class="hint" style="margin-top:8px">Armour left empty means the card's armour sheet decides. Drag a slot's brick onto another marine to copy it. × clears a secondary or belt item. Grade sets the primary's grade (rifle and DMR art change with it, as in the armoury). Dropping on a team header fills all four.</div></main>
-<aside class="right panel"><h2>3 · Weapon inventory</h2><div class="legend" id="legend"></div>
-<div><h2>Primaries</h2><div class="cat" id="cat-p"></div></div><div><h2>Secondaries and belt items</h2><div class="cat" id="cat-s"></div></div><div><h2>Armour</h2><div class="cat" id="cat-a"></div></div></aside>
+<main><h2 id="mtitle">Marines · drop a piece on one</h2><div class="teams" id="teams"></div><div class="hint" style="margin-top:8px" id="mhint"></div></main>
+<aside class="right panel"><h2>3 · Inventory</h2><div class="legend" id="legend"></div>
+<div id="inv-w"><div><h2>Primaries</h2><div class="cat" id="cat-p"></div></div><div style="margin-top:10px"><h2>Secondaries and belt items</h2><div class="cat" id="cat-s"></div></div></div>
+<div id="inv-a"><h2>Armour</h2><div class="cat" id="cat-a"></div></div></aside>
 </div>
 <textarea id="out" hidden></textarea>
 </div>
 <script>
-const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED=__KITS__,ARMORS=__ARMORS__,IMAGES=__IMAGES__;
-const GRADES=["SURPLUS","SERVICE","MILSPEC","MASTERWORK"];
-const KEY="kit-ladder-v1",$=id=>document.getElementById(id);
+const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED_W=__KITS__,SEED_A=__ARMORKITS__,STATIONS=__STATIONS__,ARMORS=__ARMORS__,IMAGES=__IMAGES__;
+const GRADES=["SURPLUS","SERVICE","MILSPEC","MASTERWORK"],RANK={COMMON:0,ADVANCED:1,PRESTIGE:2,RESTRICTED:3};
+const KEY="kit-ladder-v2",$=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
-const A=Object.fromEntries(ARMORS.map(a=>[a.id,a])),P=Object.fromEntries(PRIMARIES.map(p=>[p.id,p])),S=Object.fromEntries(SPECIALS.map(s=>[s.id,s]));
+const A=Object.fromEntries(ARMORS.map(a=>[a.id,a])),P=Object.fromEntries(PRIMARIES.map(p=>[p.id,p])),S=Object.fromEntries(SPECIALS.map(s=>[s.id,s])),ST=Object.fromEntries(STATIONS.map(s=>[s.id,s]));
+const GATE={COMMON:"Open market shelf at any civilised market.",ADVANCED:"Licensed shelf (Favorable standing, MRB 5+), or recovery after 5 victories.",PRESTIGE:"Licensed shelf at MRB 20+, or recovery after 15 victories.",RESTRICTED:"No ordinary route: a military warrant only."};
 const sizes={};let state=null,db=null,saveTimer=null;
 const clone=o=>JSON.parse(JSON.stringify(o));
-function seedState(){return{kits:clone(SEED),selected:SEED[0].id}}
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.kits&&s.kits.length)return s}catch{}return seedState()}
+function seedState(){return{weapon:clone(SEED_W),armor:clone(SEED_A),sel:{l:"weapon",id:SEED_W[0].id}}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.weapon&&s.armor&&s.sel)return s}catch{}return seedState()}
+function say(t){$("status").textContent=t}
 function persist(){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}
- if(db){try{await db.doc("kits/state").set({json:JSON.stringify(state),at:new Date().toISOString()});$("status").textContent="Saved to this page"}catch{$("status").textContent="Saved in this browser only"}}else $("status").textContent="Saved in this browser (export to keep)"},300)}
-const kit=()=>state.kits.find(k=>k.id===state.selected)||state.kits[0];
-function piece(type,id,grade){if(type==="p"){const p=P[id];return p&&{key:id,kind:p.kind,lie:p.lie,icon:p.icons[grade||"SERVICE"],name:p.name}}
- if(type==="a"){const a=A[id];return a&&{key:id,kind:"ARMOR",lie:null,icon:a.icon,name:a.name}}
- if(type==="y"){const a=A[id];return a&&a.systemIcon&&{key:id,kind:"SYSTEM",lie:null,icon:a.systemIcon,name:a.name+" system"}}
- const s=S[id];return s&&{key:id,kind:s.kind,lie:s.lie,icon:s.icon,name:s.name}}
+ if(db){try{await db.doc("kits/state").set({json:JSON.stringify(state),at:new Date().toISOString()});say("Saved to this page")}catch{say("Saved in this browser only")}}else say("Saved in this browser (export to keep)")},300)}
+const L=()=>state.sel.l,list=l=>state[l||L()],kit=()=>list().find(k=>k.id===state.sel.id)||list()[0];
+function piece(type,id,grade){if(type==="p"){const p=P[id];return p&&{kind:p.kind,lie:p.lie,icon:p.icons[grade||"SERVICE"],name:p.name}}
+ if(type==="a"){const a=A[id];return a&&{kind:"ARMOR",lie:null,icon:a.icon,name:a.name}}
+ if(type==="y"){const a=A[id];return a&&a.systemIcon&&{kind:"SYSTEM",lie:null,icon:a.systemIcon,name:a.name+" system"}}
+ const s=S[id];return s&&{kind:s.kind,lie:s.lie,icon:s.icon,name:s.name}}
 function brick(pc,count,payload){const el=document.createElement("div");el.className="brick"+(pc?"":" empty");
  const t=pc?"var(--"+pc.kind+")":"var(--EMPTY)";
  el.innerHTML='<i style="--t:'+t+'"></i><i style="--t:'+t+'"></i>';
@@ -100,91 +121,130 @@ function brick(pc,count,payload){const el=document.createElement("div");el.class
   if(count>1){const n=document.createElement("span");n.className="n";n.textContent="×"+count;el.appendChild(n)}
   if(payload){el.draggable=true;el.classList.add("drag");el.title=pc.name;el.addEventListener("dragstart",e=>{e.stopPropagation();e.dataTransfer.setData("text/plain",JSON.stringify(payload));e.dataTransfer.effectAllowed="copy"})}}
  return el}
-function counts(k){const prim=new Map(),sec=new Map(),arm=new Map(),sys=new Map();
- for(const m of k.members){const key=m.primary+"|"+m.grade;prim.set(key,(prim.get(key)||0)+1);
-  for(const sid of [m.special,m.belt])if(sid)sec.set(sid,(sec.get(sid)||0)+1);
-  if(m.armor){arm.set(m.armor,(arm.get(m.armor)||0)+1);if(A[m.armor]&&A[m.armor].systemIcon)sys.set(m.armor,(sys.get(m.armor)||0)+1)}}
- return{prim,sec,arm,sys}}
-function previewEl(k){const el=document.createElement("div");el.className="card";
- el.innerHTML='<h3>'+esc(k.name)+'</h3><p>'+esc(k.description)+'</p><div class="bricks"></div>';
- const box=el.querySelector(".bricks"),{prim,sec,arm,sys}=counts(k);
- for(const [key,n] of prim){const [id,g]=key.split("|");box.appendChild(brick(piece("p",id,g),n,{t:"p",id}))}
- for(const [id,n] of sec)box.appendChild(brick(piece("s",id),n,{t:"s",id}));
- for(const [id,n] of arm)box.appendChild(brick(piece("a",id),n,{t:"a",id}));
- for(const [id,n] of sys)box.appendChild(brick(piece("y",id),n,null));
- return el}
-function move(k,d){const j=state.kits.indexOf(k),t=j+d;if(t>=0&&t<state.kits.length){[state.kits[j],state.kits[t]]=[state.kits[t],state.kits[j]];changed()}}
-function slotEl(k,mi,which){const m=k.members[mi];const id=which==="primary"?m.primary:m[which];
- const pc=id?piece(which==="primary"?"p":which==="armor"?"a":"s",id,m.grade):null;
- const s=document.createElement("div");s.className="slot";
- const w=document.createElement("div");w.className="wrapper";
- w.appendChild(brick(pc,1,id?{t:which==="primary"?"p":which==="armor"?"a":"s",id}:null));
+function bricksOf(l,k,draggable){const out=[],add=(pc,n,pl)=>out.push(brick(pc,n,draggable?pl:null));
+ if(l==="weapon"){const prim=new Map(),sec=new Map();
+  for(const m of k.members){const key=m.primary+"|"+m.grade;prim.set(key,(prim.get(key)||0)+1);for(const s of [m.special,m.belt])if(s)sec.set(s,(sec.get(s)||0)+1)}
+  for(const [key,n] of prim){const [id,g]=key.split("|");add(piece("p",id,g),n,{t:"p",id})}
+  for(const [id,n] of sec)add(piece("s",id),n,{t:"s",id})}
+ else{const arm=new Map(),sys=new Map();
+  for(const m of k.members)if(m.armor){arm.set(m.armor,(arm.get(m.armor)||0)+1);if(A[m.armor]&&A[m.armor].systemIcon)sys.set(m.armor,(sys.get(m.armor)||0)+1)}
+  for(const [id,n] of arm)add(piece("a",id),n,{t:"a",id});for(const [id,n] of sys)add(piece("y",id),n,null)}
+ return out}
+function cardTier(l,k){let r=0;const up=t=>{if(t&&RANK[t]>r)r=RANK[t]};
+ for(const m of k.members){if(l==="weapon"){const p=P[m.primary];up(p&&p.access[m.grade]);for(const s of [m.special,m.belt])up(S[s]&&S[s].access)}else up(A[m.armor]&&A[m.armor].access)}
+ return Object.keys(RANK).find(t=>RANK[t]===r)}
+const tb=t=>'<span class="tb" style="--tc:var(--t-'+t+')">'+t.slice(0,1)+' '+t.toLowerCase()+'</span>';
+function stationName(id){const s=ST[id||"none"];return s?s.name:"Not sold yet"}
+function hints(l,k){const t=cardTier(l,k),st=ST[k.station||"none"],out=[];
+ out.push("Gate "+tb(t)+" "+esc(GATE[t]));
+ out.push(k.station&&k.station!=="none"?"On sale: <b>"+esc(st.name)+"</b> · "+esc(st.group)+". "+esc(st.note):"Not placed on the timeline: only the ordinary channels above reach it.");
+ if(t==="RESTRICTED"&&!["none","warrant-hegemony","warrant-other"].includes(k.station||"none"))out.push('<span class="w">Restricted kit with no warrant: place it on a warrant station.</span>');
+ else if(RANK[t]>=1&&k.station&&!["none","start"].includes(k.station)&&!k.station.startsWith("warrant")&&!k.station.startsWith("wins"))out.push('<span class="w">An authored listing: it skips the '+t.toLowerCase()+' licence gate at that mission.</span>');
+ if(k.station==="start"&&RANK[t]>0)out.push('<span class="w">Starter issue holds '+t.toLowerCase()+' pieces.</span>');
+ return out.map(x=>"<div>"+x+"</div>").join("")}
+/* timeline */
+function renderTimeline(){const tl=$("tl");tl.innerHTML="";const g=document.createElement("div");g.className="grid";
+ g.style.gridTemplateColumns="96px "+STATIONS.map(s=>s.id==="none"?"190px":"184px").join(" ");
+ const add=(cls,html,style)=>{const d=document.createElement("div");d.className=cls;if(html!=null)d.innerHTML=html;if(style)d.style.cssText=style;g.appendChild(d);return d};
+ add("rl gh","");let prev=null;for(const s of STATIONS){add("gh",prev===s.group?"":esc(s.group));prev=s.group}
+ add("rl","");for(const s of STATIONS)add("sh","<span>"+esc(s.name)+"</span><small>"+esc(s.note)+"</small>");
+ for(const l of ["weapon","armor"]){add("rl",l==="weapon"?"Weapon cards":"Equipment cards");
+  for(const s of STATIONS){const c=add("cell","");c.dataset.l=l;c.dataset.s=s.id;
+   for(const k of list(l).filter(k=>(k.station||"none")===s.id)){const ch=document.createElement("div");ch.className="chip"+(L()===l&&state.sel.id===k.id?" sel":"");ch.draggable=true;
+    ch.innerHTML="<b><span>"+esc(k.name)+"</span>"+tb(cardTier(l,k))+'</b><div class="mini"></div>';
+    for(const b of bricksOf(l,k,false))ch.querySelector(".mini").appendChild(b);
+    ch.addEventListener("dragstart",e=>{e.dataTransfer.setData("text/plain",JSON.stringify({t:"kit",l,id:k.id}));e.dataTransfer.effectAllowed="move"});
+    ch.onclick=()=>{state.sel={l,id:k.id};render()};c.appendChild(ch)}
+   dropTarget(c,pl=>{if(pl.t!=="kit"||pl.l!==l)return say("Cards stay in their own ladder.");const k=list(l).find(x=>x.id===pl.id);if(k){k.station=s.id;changed()}})}}
+ tl.appendChild(g)}
+/* editor */
+function slotEl(k,mi,which){const m=k.members[mi],armor=which==="armor";const id=which==="primary"?m.primary:m[which];
+ const pc=id?piece(which==="primary"?"p":armor?"a":"s",id,m.grade):null;
+ const s=document.createElement("div");s.className="slot";const w=document.createElement("div");w.className="wrapper";
+ w.appendChild(brick(pc,1,id?{t:which==="primary"?"p":armor?"a":"s",id}:null));
  if(id&&which!=="primary"){const x=document.createElement("button");x.className="x";x.textContent="×";x.title="Clear";x.onclick=e=>{e.stopPropagation();m[which]=null;changed()};w.appendChild(x)}
- s.appendChild(w);s.insertAdjacentHTML("beforeend",'<span class="nm">'+esc(pc?pc.name:"empty")+'</span><span class="slotlab">'+(which==="primary"?"primary":which==="special"?"secondary":which==="armor"?"armour":"belt")+'</span>');
+ s.appendChild(w);s.insertAdjacentHTML("beforeend",'<span class="nm">'+esc(pc?pc.name:"empty")+'</span><span class="slotlab">'+(which==="primary"?"primary":which==="special"?"secondary":armor?"armour":"belt")+'</span>');
  dropTarget(s,pl=>{apply(k,mi,which,pl);changed()});return s}
-function memberEl(k,mi){const m=k.members[mi],el=document.createElement("div");el.className="member";
+function memberEl(k,mi){const m=k.members[mi],weapon=L()==="weapon",el=document.createElement("div");el.className="member"+(weapon?"":" armoronly");
  const who=document.createElement("div");who.className="who";
- const role=document.createElement("input");role.value=m.role;role.setAttribute("aria-label","Role");role.oninput=()=>{m.role=role.value;persist()};
- const g=document.createElement("select");g.setAttribute("aria-label","Primary grade");GRADES.forEach(x=>{const o=document.createElement("option");o.value=x;o.textContent=x.toLowerCase();if(x===m.grade)o.selected=true;g.appendChild(o)});
- g.onchange=()=>{m.grade=g.value;changed()};who.append(role,g);el.appendChild(who);
- for(const w of ["primary","special","belt","armor"])el.appendChild(slotEl(k,mi,w));
+ const role=document.createElement("input");role.value=m.role;role.setAttribute("aria-label","Role");role.oninput=()=>{m.role=role.value;persist()};who.appendChild(role);
+ if(weapon){const g=document.createElement("select");g.setAttribute("aria-label","Primary grade");GRADES.forEach(x=>{const o=document.createElement("option");o.value=x;o.textContent=x.toLowerCase();if(x===m.grade)o.selected=true;g.appendChild(o)});g.onchange=()=>{m.grade=g.value;changed()};who.appendChild(g)}
+ el.appendChild(who);
+ if(weapon)for(const w of ["primary","special","belt"])el.appendChild(slotEl(k,mi,w));
+ else{el.appendChild(slotEl(k,mi,"armor"));const sy=document.createElement("div");sy.className="slot";const a=A[m.armor];
+  sy.appendChild(brick(a&&a.systemIcon?piece("y",m.armor):null,1,null));sy.insertAdjacentHTML("beforeend",'<span class="nm">'+(a&&a.systemIcon?"system":"no system")+'</span><span class="slotlab">integral</span>');el.appendChild(sy)}
  dropTarget(el,pl=>{apply(k,mi,null,pl);changed()});return el}
 function dropTarget(el,fn){let depth=0;
  el.addEventListener("dragenter",e=>{e.preventDefault();e.stopPropagation();depth++;el.classList.add("over")});
  el.addEventListener("dragover",e=>{e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect="copy"});
  el.addEventListener("dragleave",e=>{e.stopPropagation();if(--depth<=0){depth=0;el.classList.remove("over")}});
  el.addEventListener("drop",e=>{e.preventDefault();e.stopPropagation();depth=0;el.classList.remove("over");let pl;try{pl=JSON.parse(e.dataTransfer.getData("text/plain"))}catch{return}if(pl&&pl.t)fn(pl)})}
-/* A primary always sets the primary and armour the armour slot. A secondary lands where it is dropped; dropped on the member, it fills the secondary slot, and a thrown item goes to the belt once the secondary is taken. */
-function apply(k,mi,slot,pl){const m=k.members[mi];
+/* A primary sets the primary, armour the armour slot. A secondary lands where dropped; on the marine it fills the secondary slot, and a thrown item goes to the belt once that is taken. */
+function apply(k,mi,slot,pl){const m=k.members[mi],weapon=L()==="weapon";
+ if(pl.t==="kit")return;
+ if(pl.t==="a"){if(weapon)return say("That is armour: select an Equipment card.");m.armor=pl.id;return}
+ if(!weapon)return say("That is a weapon: select a weapon card.");
  if(pl.t==="p"){m.primary=pl.id;return}
- if(pl.t==="a"){m.armor=pl.id;return}
  const thrown=S[pl.id]&&S[pl.id].thrown;
  if(slot==="belt"&&thrown){m.belt=pl.id;return}
  if(slot){m.special=pl.id;return}
  if(thrown&&m.special&&m.special!==pl.id&&!m.belt){m.belt=pl.id;return}
  m.special=pl.id}
-function ladderOnly(){const list=$("klist");list.innerHTML="";
- state.kits.forEach((k,i)=>{const r=document.createElement("div");r.className="kitem"+(k.id===state.selected?" sel":"");
-  r.innerHTML='<span class="r">'+(i+1)+'</span><span>'+esc(k.name)+'</span><button title="Lower rung">▲</button><button title="Higher rung">▼</button>';
+function move(k,d){const a=list(),j=a.indexOf(k),t=j+d;if(t>=0&&t<a.length){[a[j],a[t]]=[a[t],a[j]];changed()}}
+function renderList(){const l=$("klist");l.innerHTML="";
+ list().forEach((k,i)=>{const r=document.createElement("div");r.className="kitem"+(k.id===state.sel.id?" sel":"");
+  r.innerHTML='<span>'+(i+1)+'</span><span>'+esc(k.name)+'<small>'+esc(stationName(k.station))+'</small></span><button title="Earlier">▲</button><button title="Later">▼</button>';
   const [u,d]=r.querySelectorAll("button");u.onclick=e=>{e.stopPropagation();move(k,-1)};d.onclick=e=>{e.stopPropagation();move(k,1)};
-  r.onclick=()=>{state.selected=k.id;render()};list.appendChild(r)});
- const pv=$("preview");pv.innerHTML="";pv.appendChild(previewEl(kit()))}
-function render(){
- $("legend").innerHTML=["BALLISTIC","ENERGY","MISSILE","UTILITY","ARMOR","SYSTEM"].map(k=>'<span style="--t:var(--'+k+')">'+k.toLowerCase()+'</span>').join("");
+  r.onclick=()=>{state.sel.id=k.id;render()};l.appendChild(r)})}
+function render(){const l=L(),k=kit();state.sel.id=k.id;
+ $("tab-weapon").className=l==="weapon"?"on":"";$("tab-armor").className=l==="armor"?"on":"";
+ $("legend").innerHTML=(l==="weapon"?["BALLISTIC","ENERGY","MISSILE","UTILITY"]:["ARMOR","SYSTEM"]).map(x=>'<span style="--t:var(--'+x+')">'+x.toLowerCase()+'</span>').join("");
+ $("inv-w").hidden=l!=="weapon";$("inv-a").hidden=l!=="armor";
  const cp=$("cat-p"),cs=$("cat-s"),ca=$("cat-a");cp.innerHTML=cs.innerHTML=ca.innerHTML="";
- for(const a of ARMORS){const t=document.createElement("div");t.className="tile";t.appendChild(brick(piece("a",a.id),1,{t:"a",id:a.id}));t.insertAdjacentHTML("beforeend","<b>"+esc(a.name)+"</b><small>"+esc(a.stats+(a.systemIcon?" · system":""))+"</small>");ca.appendChild(t)}
- for(const p of PRIMARIES){const t=document.createElement("div");t.className="tile";t.appendChild(brick(piece("p",p.id,"SERVICE"),1,{t:"p",id:p.id}));
-  t.insertAdjacentHTML("beforeend","<b>"+esc(p.name)+"</b><small>"+esc(p.stats)+"</small>");cp.appendChild(t)}
- for(const s of SPECIALS){const t=document.createElement("div");t.className="tile";t.appendChild(brick(piece("s",s.id),1,{t:"s",id:s.id}));
-  t.insertAdjacentHTML("beforeend","<b>"+esc(s.name)+"</b><small>"+esc(s.note+(s.thrown?" · thrown":""))+"</small>");cs.appendChild(t)}
- ladderOnly();
- const k=kit(),kn=$("kname"),kd=$("kdesc");if(document.activeElement!==kn)kn.value=k.name;if(document.activeElement!==kd)kd.value=k.description;
+ const tile=(pc,pl,name,sub,t)=>{const d=document.createElement("div");d.className="tile";d.appendChild(brick(pc,1,pl));d.insertAdjacentHTML("beforeend","<b>"+esc(name)+"</b><small>"+esc(sub)+"</small>"+(t?tb(t):""));return d};
+ for(const p of PRIMARIES)cp.appendChild(tile(piece("p",p.id,"SERVICE"),{t:"p",id:p.id},p.name,p.stats,p.access.SERVICE));
+ for(const s of SPECIALS)cs.appendChild(tile(piece("s",s.id),{t:"s",id:s.id},s.name,s.note+(s.thrown?" · thrown":""),s.access));
+ for(const a of ARMORS)ca.appendChild(tile(piece("a",a.id),{t:"a",id:a.id},a.name,a.stats+(a.systemIcon?" · system":""),a.access));
+ renderTimeline();renderList();
+ const kn=$("kname"),kd=$("kdesc");if(document.activeElement!==kn)kn.value=k.name;if(document.activeElement!==kd)kd.value=k.description;
+ const ks=$("kstation");ks.innerHTML=STATIONS.map(s=>'<option value="'+s.id+'">'+(s.id==="none"?"Not sold yet":"Unlocks after: "+esc(s.name)+" ("+esc(s.group)+")")+'</option>').join("");ks.value=k.station||"none";
+ renderSide();
+ $("mtitle").textContent=l==="weapon"?"Marines · drop a weapon on one":"Marines · drop a suit on one";
+ $("mhint").textContent=l==="weapon"?"Drag a slot's brick onto another marine to copy it. × clears a secondary or belt item. Grade sets the primary's grade. Dropping on a team header fills all four. Armour is on the Equipment cards, not here.":"Suits come from the card's armour bundle in the game; the seating here is the intent per marine. A suit's integral system shows beside it. Dropping on a team header fills all four.";
  const teams=$("teams");teams.innerHTML="";
  for(let t=0;t<3;t++){const tm=document.createElement("div");tm.className="team";
   tm.innerHTML="<h4><span>Team "+(t+1)+"</span><span>drop here to fill all four</span></h4>";
   for(let j=0;j<4;j++)tm.appendChild(memberEl(k,t*4+j));
   dropTarget(tm,pl=>{for(let j=0;j<4;j++)apply(k,t*4+j,null,pl);changed()});teams.appendChild(tm)}}
+function renderSide(){const l=L(),k=kit();$("hints").innerHTML=hints(l,k);
+ const pv=$("preview");pv.innerHTML="";const el=document.createElement("div");el.className="card";
+ el.innerHTML="<h3>"+esc(k.name)+"</h3><p>"+esc(k.description)+'</p><div class="bricks"></div><div>'+tb(cardTier(l,k))+"</div>";
+ for(const b of bricksOf(l,k,true))el.querySelector(".bricks").appendChild(b);pv.appendChild(el)}
 function changed(){render();persist()}
-$("kname").oninput=e=>{kit().name=e.target.value;ladderOnly();persist()};
-$("kdesc").oninput=e=>{kit().description=e.target.value;ladderOnly();persist()};
-function slug(n){return "weapons:"+(n||"kit").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
-function uniqueId(base){let id=base,i=2;while(state.kits.some(k=>k.id===id))id=base+"-"+i++;return id}
-$("new").onclick=()=>{const members=Array.from({length:12},(_,i)=>({role:i%4===0?"Team Leader":"Rifleman",primary:"weapon.field-rifle",grade:"SURPLUS",special:null,belt:null}));
- const k={id:uniqueId("weapons:new-kit"),name:"New Kit",description:"",members};state.kits.push(k);state.selected=k.id;changed()};
-$("dup").onclick=()=>{const k=clone(kit());k.name+=" copy";k.id=uniqueId(slug(k.name));state.kits.splice(state.kits.indexOf(kit())+1,0,k);state.selected=k.id;changed()};
-$("del").onclick=()=>{if(state.kits.length<2||!confirm("Delete \""+kit().name+"\"?"))return;state.kits.splice(state.kits.indexOf(kit()),1);state.selected=state.kits[0].id;changed()};
-$("reset").onclick=()=>{if(confirm("Replace all kits with the shipped ones?")){state=seedState();changed()}};
-function exported(){return JSON.stringify({kits:state.kits.map(k=>({id:k.id,name:k.name,description:k.description,members:k.members}))},null,1)}
+$("kname").oninput=e=>{kit().name=e.target.value;renderList();renderTimeline();renderSide();persist()};
+$("kdesc").oninput=e=>{kit().description=e.target.value;renderSide();persist()};
+$("kstation").onchange=e=>{kit().station=e.target.value;changed()};
+$("tab-weapon").onclick=()=>{state.sel={l:"weapon",id:state.weapon[0].id};render()};
+$("tab-armor").onclick=()=>{state.sel={l:"armor",id:state.armor[0].id};render()};
+function slug(n,l){return (l==="armor"?"armor:":"weapons:")+(n||"card").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+function uniqueId(base){let id=base,i=2;const all=[...state.weapon,...state.armor];while(all.some(k=>k.id===id))id=base+"-"+i++;return id}
+$("new").onclick=()=>{const l=L();const members=Array.from({length:12},(_,i)=>l==="weapon"?{role:i%4===0?"Team Leader":"Rifleman",primary:"weapon.field-rifle",grade:"SURPLUS",special:null,belt:null}:{role:i%4===0?"Team Leader":"Rifleman",armor:"armor.field-fatigues"});
+ const k={id:uniqueId(slug("new card",l)),name:"New Card",description:"",station:"none",members};list().push(k);state.sel.id=k.id;changed()};
+$("dup").onclick=()=>{const l=L(),k=clone(kit());k.name+=" copy";k.id=uniqueId(slug(k.name,l));list().splice(list().indexOf(kit())+1,0,k);state.sel.id=k.id;changed()};
+$("del").onclick=()=>{if(list().length<2)return;list().splice(list().indexOf(kit()),1);state.sel.id=list()[0].id;changed()};
+$("reset").onclick=()=>{if(window.__confirmReset){state=seedState();window.__confirmReset=false;$("reset").textContent="Reset to shipped cards";changed()}else{window.__confirmReset=true;$("reset").textContent="Click again to replace all cards";setTimeout(()=>{window.__confirmReset=false;$("reset").textContent="Reset to shipped cards"},4000)}};
+function exported(){const f=a=>a.map(k=>({id:k.id,name:k.name,description:k.description,unlocksAfter:k.station||"none",members:k.members}));return JSON.stringify({weaponCards:f(state.weapon),equipmentCards:f(state.armor)},null,1)}
 $("export").onclick=async()=>{let dl=null;try{dl=await (window.claude?.use?.("downloads")??null)}catch{}
  if(dl){try{await dl.save({filename:"kits.json",data:exported()})}catch{}return}
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([exported()],{type:"application/json"}));a.download="kits.json";a.click()};
-$("copy").onclick=async()=>{try{await navigator.clipboard.writeText(exported());$("status").textContent="Copied"}catch{const t=$("out");t.hidden=false;t.value=exported();t.select();$("status").textContent="Copy from the box below"}};
+$("copy").onclick=async()=>{try{await navigator.clipboard.writeText(exported());say("Copied")}catch{const t=$("out");t.hidden=false;t.value=exported();t.select();say("Copy from the box below")}};
 $("import").onclick=()=>$("file").click();
-$("file").onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());if(!j.kits||!j.kits.every(k=>k.members&&k.members.length===12))throw 0;state={kits:j.kits,selected:j.kits[0].id};changed()}catch{$("status").textContent="Not a kits.json"}e.target.value=""};
+$("file").onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());const g=a=>a.map(k=>({id:k.id,name:k.name,description:k.description,station:k.unlocksAfter||"none",members:k.members}));
+ if(!j.weaponCards||!j.equipmentCards)throw 0;state={weapon:g(j.weaponCards),armor:g(j.equipmentCards),sel:{l:"weapon",id:j.weaponCards[0].id}};changed()}catch{say("Not a kits.json from this page")}e.target.value=""};
 async function start(){await Promise.all(Object.entries(IMAGES).map(([k,v])=>new Promise(r=>{const i=new Image();i.onload=()=>{sizes[k]=[i.naturalWidth,i.naturalHeight];r()};i.onerror=r;i.src=v})));
  state=load();render();
  try{db=await (window.claude?.use?.("db")??null)}catch{}
- if(db){try{const d=await db.doc("kits/state").get();const j=d&&(d.data?d.data():d);if(j&&j.json){state=JSON.parse(j.json);render()}}catch{}}
- $("status").textContent=db?"Saves to this page":"Saved in this browser (export to keep)"}
+ if(db){try{const d=await db.doc("kits/state").get();const j=d&&d.exists&&d.data();if(j&&j.json){const s=JSON.parse(j.json);if(s.weapon&&s.armor&&s.sel){state=s;render()}}}catch{}}
+ say(db?"Saves to this page":"Saved in this browser (export to keep)")}
 start();
 </script></body></html>
