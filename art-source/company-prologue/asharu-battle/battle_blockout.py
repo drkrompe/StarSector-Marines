@@ -1674,10 +1674,9 @@ KEYFRAMES = {
             # flies on past her (coordinator, 2026-10-24)
             ('tracer', 'colossus', 'manticore-p'), ('tracer', 'colossus', 'colossus3', (0, 0, 0), dict(walk=2.0)),
             ('flares', 'colossus'), ('debris', 'colossus', 45, (-64, 36, -7), 95.5),
-            # what her flares answer (owner, 2026-10-23: a flare needs a visible cause): the Wolf's
-            # Harpoons (the Mk.III mounts no missiles), landing after the flares go out at 93.8 s,
-            # one of them pulled off onto a flare
-            ('missiles', 'wolf-p-a', 'colossus', 95.6, 1, (-62, 30, 0)),     # at her port pod
+            # no Harpoons here (owner, 2026-10-29: "missiles fired at this close of range comes across
+            # goofy"): the Wolf's salvo at her port pod is cut, and the pod's 95.5 s blast is the
+            # Mk.III's guns, already walking onto it (the tracer at (-60, 30, 6) above)
             # every Borer's laser is on an attacker (owner, 2026-10-23: Borers are not repair ships): the two
             # by the pod both on the Mk.III above her, the bigger threat; two more, out of the bay, on the Wolf
             # and the Kite

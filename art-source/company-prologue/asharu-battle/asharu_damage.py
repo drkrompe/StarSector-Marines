@@ -179,10 +179,10 @@ LEDGER = [
     # ---- CARAVEL, the Colossus: port pod shot out in S8, the other failing, she falls
     H('colossus', 97.67, 'rake', 1, (-74, 39, -19), (0, .5, 1), to=(-58, 30, 6), by='tracer',
       src='S8-S9 k4 tracer colossus3', note="the Mk.III's guns walk onto the burning port pod from above"),
-    H('colossus', 95.5, 'he', 4, (-64, 36, -7), (-.4, 1, .2), by=('missile', 'blast_on', 'debris', 'fire_on'),
-      src='S8-S9 k4 missiles wolf-p-a + blast_on + debris + fire_on', vent_s=40.0,
-      note="the Wolf (P)'s Harpoons the flares did not take shoot out her port tug pod: torn open, its lines "
-           "venting, and it burns into the atmosphere"),
+    H('colossus', 95.5, 'he', 4, (-64, 36, -7), (-.4, 1, .2), by=('tracer', 'blast_on', 'debris', 'fire_on'),
+      src='S8-S9 k4 tracer colossus3 + blast_on + debris + fire_on', vent_s=40.0,
+      note="the Mk.III's guns shoot out her port tug pod: torn open, its lines venting, and it burns into "
+           "the atmosphere"),
     H('colossus', 108.0, 'he', 2, (-62, -30, 0), (-.4, -1, .2), src='story (between S9b and S10)', vent_s=40.0,
       note='the starboard pod failing: an overstrained plate gives, venting'),
     H('colossus', 113.3, 'debris', 3, (-30, 0, 10), (0, 0, 1), by='debris', cause='colossus@95.5:he', src='S10 k5 debris (her port pod fire, burning since 95.5 s)',
