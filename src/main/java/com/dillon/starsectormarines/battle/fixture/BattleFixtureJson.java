@@ -825,8 +825,8 @@ public final class BattleFixtureJson {
             }
             if (commitment.companyCarrier() != null) {
                 encoded.put("companyCarrier", boatToJson(commitment.companyCarrier()));
-                if (commitment.companyLiftOnly()) encoded.put("companyLiftOnly", true);
             }
+            if (commitment.companyLiftOnly()) encoded.put("companyLiftOnly", true);
             powers.put(encoded);
         }
         return powers;

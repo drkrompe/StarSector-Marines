@@ -83,16 +83,14 @@ public abstract class ArmorDropPower extends AirDeliveryPower {
     /**
      * @param companyCarrier a committed cradled company boat whose lift counts in the
      *     budget, or {@code null}
-     * @param heavyLift whether a mission, employer, hull or ship supplies heavy lift
+     * @param heavyLift whether heavy lift stands behind the company boat (Conquest only); with
+     *     neither, every machine is refused for want of lift
      */
     protected ArmorDropPower(String id, String displayName, int slotWeight,
                              List<MechDeploymentSpec> mechs, List<VehicleDeploymentSpec> vehicles,
                              FittedBoat companyCarrier, boolean heavyLift) {
         super(id, displayName, 0f, 0f, 0, 0, slotWeight, ShuttleType.VALKYRIE,
                 ArmorDropPayload.INSTANCE, DROP_CLEARANCE);
-        if (companyCarrier == null && !heavyLift) {
-            throw new IllegalArgumentException(id + " needs a company carrier or heavy lift");
-        }
         this.manifest = BayManifest.of(mechs, vehicles);
         this.companyCarrier = companyCarrier;
         this.heavyLift = heavyLift;

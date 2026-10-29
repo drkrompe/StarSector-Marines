@@ -58,7 +58,7 @@ public class DebugMechRosterTest {
     }
 
     @Test
-    public void theBayFliesTheCompanyBoatWithHeavyLiftOnlyWhereTheEmployerArrangesIt() {
+    public void theBayFliesTheCompanyBoatWithHeavyLiftOnlyWhereTheMissionProvidesIt() {
         FittedBoat hermes = DebugMissionCatalog.maxFitted(ShuttleType.HERMES);
         DebugMechRoster roster = DebugMechRoster.randomized(2, 3L);
 
@@ -70,6 +70,8 @@ public class DebugMechRosterTest {
         assertEquals(hermes, own.companyCarrier());
         assertFalse(own.syntheticLift());
         assertTrue(arranged.syntheticLift());
-        assertEquals(List.of(), roster.applyTo(List.of(), List.of(), false));
+        MechSupport stranded = assertInstanceOf(MechSupport.class,
+                roster.applyTo(List.of(), List.of(), false).get(0));
+        assertTrue(stranded.budget().carriers().isEmpty(), "no boat, no lift: the bay stays aboard");
     }
 }

@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.ops.Mission;
+import com.dillon.starsectormarines.ops.MissionType;
 import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
 import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
@@ -91,39 +92,41 @@ public final class PowerCatalog {
     }
 
     /**
-     * As above, with the company boats committed to the operation. A cradled
-     * boat that lifts the drop flies Mech Support in place of
-     * the synthetic Valkyrie when a fleet ship grants the power; where the
-     * mission or the employer supplies the lift the synthetic carrier stays.
-     * Who may call is unchanged: this only decides who flies.
+     * As above, with the company boats committed to the operation, which decide who flies the
+     * drop ({@link #assignCompanyLift}). Who may call is unchanged.
      */
     public static List<CommandPower> resolve(List<FleetMemberAPI> committedShips, Mission m,
                                              List<MechDeploymentSpec> configuredMechs,
                                              List<VehicleDeploymentSpec> configuredVehicles,
                                              List<FittedBoat> committedBoats) {
         List<CommandPower> powers = bayManifest(resolveSourced(committedShips, m, configuredMechs),
-                arrangedHeavyLift(m), configuredMechs, configuredVehicles);
-        boolean companyLiftOnly = SupplyRouteCampaign.freight(m);
-        if ((committedBoats == null || committedBoats.isEmpty()) && !companyLiftOnly) return powers;
+                employerDropCall(m), configuredMechs, configuredVehicles);
         Map<String, CommandPower> byId = new LinkedHashMap<>();
         for (CommandPower power : powers) byId.put(power.id, power);
-        assignCompanyLift(byId, fleetGranted(committedShips, m), committedBoats, arrangedHeavyLift(m));
-        if (companyLiftOnly) dropSyntheticLift(byId);
+        assignCompanyLift(byId, fleetGranted(committedShips, m), committedBoats, providesHeavyLift(m));
         return List.copyOf(byId.values());
     }
 
     /**
-     * Thunder Run's employer lifts only its own militia (owner, 2026-10-28): the company's armour
-     * comes down in a company boat that lifts it, or not at all.
+     * Whether heavy lift beyond the company's own boats lands the player's armour: only in
+     * Conquest, where the company commands hundreds (owner, 2026-10-29). Everywhere else the
+     * company's boats carry the company; a mission that brings its own craft flies its own
+     * people and cargo in them, never the player's forces.
      */
-    static void dropSyntheticLift(Map<String, CommandPower> byId) {
-        if (!(byId.get(MechSupport.ID) instanceof MechSupport mech)) return;
-        if (mech.companyCarrier() == null) {
-            byId.remove(MechSupport.ID);
-        } else {
-            byId.put(MechSupport.ID, MechSupport.configured(mech.deployments(), mech.vehicles(),
-                    mech.companyCarrier(), false));
-        }
+    public static boolean providesHeavyLift(Mission m) {
+        return m != null && m.type == MissionType.CONQUEST;
+    }
+
+    /**
+     * Mech Support flown by the committed boat that lifts the most of its manifest, with heavy
+     * lift behind her where {@code heavyLift}. With neither, every machine is refused for want
+     * of lift, which the briefing and the picker say.
+     */
+    public static MechSupport flownBy(MechSupport mech, List<FittedBoat> committedBoats, boolean heavyLift) {
+        List<LiftClass> load = mech.manifest().entries().stream()
+                .map(BayManifest.Entry::weightClass).toList();
+        FittedBoat boat = LiftAdmission.bestCarrier(committedBoats, load, Set.of());
+        return MechSupport.configured(mech.deployments(), mech.vehicles(), boat, heavyLift);
     }
 
     /**
@@ -179,29 +182,23 @@ public final class PowerCatalog {
     }
 
     /**
-     * Hands Mech Support the company boat best suited to its manifest, whether a fleet ship
-     * granted it or the mission arranged its lift: the company's own boat drops its own armour
-     * when she can lift it (owner, 2026-10-27). An arranged power keeps its synthetic carrier
-     * behind her for the calls she cannot fly; an employer's offer with no arranged lift keeps
-     * only its own.
+     * Hands Mech Support the company boat best suited to its manifest: the company's own boat
+     * drops its own armour (owner, 2026-10-27), and without {@code heavyLift} nothing stands
+     * behind her (owner, 2026-10-29). Where heavy lift is provided (Conquest) a fleet ship's
+     * power keeps its Valkyrie behind her, and an employer's offer keeps only its own carrier.
      */
     static void assignCompanyLift(Map<String, CommandPower> byId, Set<String> fleetGranted,
-                                  List<FittedBoat> committedBoats, boolean arrangedLift) {
-        if (committedBoats == null || committedBoats.isEmpty()) return;
-        if (byId.get(MechSupport.ID) instanceof MechSupport mech
-                && (fleetGranted.contains(MechSupport.ID) || arrangedLift)) {
-            List<LiftClass> load = mech.manifest().entries().stream()
-                    .map(BayManifest.Entry::weightClass).toList();
-            FittedBoat boat = LiftAdmission.bestCarrier(committedBoats, load, Set.of());
-            if (boat != null) {
-                byId.put(MechSupport.ID, MechSupport.configured(mech.deployments(),
-                        mech.vehicles(), boat, true));
-            }
-        }
+                                  List<FittedBoat> committedBoats, boolean heavyLift) {
+        if (!(byId.get(MechSupport.ID) instanceof MechSupport mech)) return;
+        if (heavyLift && !fleetGranted.contains(MechSupport.ID)) return;
+        byId.put(MechSupport.ID, flownBy(mech, committedBoats, heavyLift));
     }
 
-    /** The story battles whose employer lifts the company's own armour; see {@link #resolveSourced}. */
-    private static boolean arrangedHeavyLift(Mission m) {
+    /**
+     * The story battles whose employer brings the drop call for the company's own armour, which
+     * the company's boats then fly; see {@link #resolveSourced}.
+     */
+    private static boolean employerDropCall(Mission m) {
         if (AgreusArcCampaign.isBattle(m)) {
             return AgreusArcProgress.yardOwners(m.id) || AgreusArcProgress.termsOfProtection(m.id)
                     || AgreusArcProgress.smallWar(m.id);
@@ -312,7 +309,8 @@ public final class PowerCatalog {
 
     /**
      * As above, saying whether synthetic lift stands behind the company boat: a drop the
-     * company's own boat flies alone (Thunder Run, a debug bay) launches without it.
+     * company's own boat flies alone, or that no boat lifts (anywhere but Conquest), launches
+     * without it.
      */
     public static CommandPower restore(String id,
                                        List<MechDeploymentSpec> mechDeployments,
@@ -327,12 +325,13 @@ public final class PowerCatalog {
             LOG.info("PowerCatalog: dropping retired command power '" + id + "' from a frozen commitment");
             return null;
         }
-        if (companyCarrier != null) {
+        if (companyCarrier != null || !syntheticLift) {
             CommandPower base = restore(id, mechDeployments, ships, vehicleDeployments, null);
             if (base instanceof MechSupport mech) {
                 return MechSupport.configured(mech.deployments(), mech.vehicles(),
                         companyCarrier, syntheticLift);
             }
+            if (companyCarrier == null) return base;
             throw new IllegalArgumentException("Power '" + id + "' cannot carry a company boat");
         }
         if (vehicleDeployments != null && !vehicleDeployments.isEmpty()) {

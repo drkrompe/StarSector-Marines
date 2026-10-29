@@ -74,7 +74,7 @@ public final class BriefingLift {
      * @param companyBest    the best rating among the company's boats
      * @param cradled        how many company boats carry a cradle
      * @param berths         boat berths the company ship has, flown or not
-     * @param missionLift    whether a mission, employer, hull or ship supplies heavy lift
+     * @param missionLift    whether the mission provides heavy lift behind the company's (Conquest)
      */
     public record Readout(List<FittedBoat> boats, int berths, FittedBoat companyCarrier, LiftRating companyBest,
                           int cradled, boolean missionLift, boolean dropCall, List<Machine> machines) {
@@ -278,7 +278,10 @@ public final class BriefingLift {
         BriefingViewModel.putFieldTiles(props);
     }
 
-    /** One slot per berth the ship has, filled or not, then the mission's heavy lift. */
+    /**
+     * One slot per berth the ship has, filled or not, then the mission's heavy lift where the
+     * mission provides it (Conquest); elsewhere the company's boats are all the lift there is.
+     */
     static List<Carrier> carriers(Readout readout) {
         List<Carrier> carriers = new ArrayList<>();
         String company = companyLine(readout);
@@ -299,13 +302,15 @@ public final class BriefingLift {
                         List.of(Strings.get("briefingLiftBerthEmptyNote")))));
             }
         }
-        LiftRating mission = readout.missionLift() ? ShuttleType.VALKYRIE.liftRating() : LiftRating.NONE;
-        String role = Strings.get("briefingLiftMissionLabel");
-        carriers.add(new Carrier("briefing-lift-mission", "lift-carrier console-readout"
-                + (readout.missionLift() ? "" : " lift-carrier-empty"), ShuttleType.VALKYRIE.spritePath, role,
-                readout.missionLift() ? ShuttleType.VALKYRIE.displayName() : Strings.get("briefingLiftMissionNone"),
-                mission, new SpecSheet(role, LiftReadout.ratingName(mission), ShuttleType.VALKYRIE.spritePath,
-                "command", List.of(), List.of(missionLine(readout)))));
+        if (readout.missionLift()) {
+            LiftRating mission = ShuttleType.VALKYRIE.liftRating();
+            String role = Strings.get("briefingLiftMissionLabel");
+            carriers.add(new Carrier("briefing-lift-mission", "lift-carrier console-readout",
+                    ShuttleType.VALKYRIE.spritePath, role, ShuttleType.VALKYRIE.displayName(), mission,
+                    new SpecSheet(role, LiftReadout.ratingName(mission), ShuttleType.VALKYRIE.spritePath,
+                    "command", List.of(), List.of(Strings.format("briefingLiftMissionHeavy",
+                    LiftReadout.ratingName(mission), ShuttleType.VALKYRIE.displayName())))));
+        }
         return List.copyOf(carriers);
     }
 
@@ -391,14 +396,6 @@ public final class BriefingLift {
                     readout.boats().get(0).pattern().displayName());
         }
         return Strings.format("briefingLiftCompanyCradled", rating, readout.cradled());
-    }
-
-    static String missionLine(Readout readout) {
-        if (readout.missionLift()) {
-            return Strings.format("briefingLiftMissionHeavy",
-                    LiftReadout.ratingName(ShuttleType.VALKYRIE.liftRating()), ShuttleType.VALKYRIE.displayName());
-        }
-        return Strings.get(readout.dropCall() ? "briefingLiftMissionNoHeavy" : "briefingLiftMissionNoCall");
     }
 
     static String statusLine(Machine machine) {
