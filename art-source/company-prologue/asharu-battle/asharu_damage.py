@@ -168,7 +168,7 @@ LEDGER = [
     H('hound-m', 77.25, 'he', 2, (-24, -3, 1), (-1, 0, .2), by='tracer', src='S6d k3e tracer hound-p-b', vent_s=20.0,
       note='the last of that burst in her drive cluster: she loses thrust, venting (the camera kick at 77.25)'),
 
-    # ---- CARAVEL TWO, the Tarsus: drives shot out in S6c, boarded, taken
+    # ---- SOBIESKI, the Tarsus: drives shot out in S6c, boarded, taken
     H('tarsus', 68.17, 'rake', 1, (-30, -14, 4), (-.3, -1, .5), to=(-44, -12, 3), by='tracer',
       src='S6c k3d tracer wolf-p-b', note='Wolf (P) B rakes aft toward her drives as she passes'),
     H('tarsus', 69.96, 'breach', 3, (-32, -14, 5), (-.2, .5, 1), by='fire_on', src='S6c k3d tracer wolf-p-b + fire_on',

@@ -520,7 +520,7 @@ About 2 minutes 15 (134 s): 10 s of recording, 40 s of setup and ambush, 60 s of
 | S10 **K** | 8 s | The prize taken: the Tarsus clamped to the Colossus Mk.III; far below, the Colossus nose-down and losing her orbit, Morrow with her. | Falcon (P), Colossus Mk.III, Tarsus; Colossus and Morrow below | 35 mm, behind and above | **ZOOM OUT to scale:** long on the clamped prize (85 mm), widening and tilting down to the Colossus falling away (24 mm). |
 | S11 | 8 s | Entry: from just behind, plasma builds round both hulls; Morrow drifts apart from her. The radio breaks up, the picture breaks into the recording screen's static, the channels drop out, and END OF RECORDING. | Colossus, Morrow | 50 mm, chase | **Chase:** just behind and above the Colossus, closing a little and shaking harder as the plasma builds (42 to 38 mm), framed to keep Morrow as she drifts apart. From 124.5 s the picture breaks into the recording screen's static, and CARAVEL's and MORROW's channels drop out. END OF RECORDING is in S13, back on the log. Blocked for the preview only (`m11`). Entry plasma is **new effects work**: the preview draws it as a sheath cone from each bow, building from 118 to 124 s. |
 | S12 **K** | 12 s | **The wreckfall.** After the recording breaks up, in silence: the Colossus and Morrow come down belly first, tilted back as if still trying to climb, each burning in plasma shaped by her own hull (`swfx_entry.sheath`): hot on the front and belly, flames peeling off the windward edges into a smoke wake. Around them, thin and behind, four burning chunks and ten faint streaks of the ships the battle lost. Look passed (owner, 2026-10-22, close still 9: "this would work enough for me. Not perfect but passable"). | colossus, morrow, the wreckfall | 50 mm at the key, from the pirates' orbit | **Tracking push-in:** rides down with the Colossus, 40 mm to the plate's 50 mm at the key, on to 85 mm holding both hulls. **Then the pull-back** (owner, 2026-10-26): from 134 s the observer holds where its ride down left it and zooms back out (85 to 18 mm) to the wider planet, the two trails falling into it, before the log returns at 138 s. |
-| S13 | 24.5 s (138 to 162.5) | **Back on the log.** The terminal again, with CARAVEL's and MORROW's channels dark. The survivors call each other; Warden gives up on Caravel and the Morrow and reads the pirates as content with what they caught (owner, 2026-10-22: no pirate sign-off). It opens inside the optic and pulls back out to the whole screen (138.25-139.4 s); the optic keeps the fight's remains: the wrecks marked where they died with debris falling to the limb, CARAVEL TWO among the pirates, and CARAVEL and MORROW arcing down over the limb, their tracks projected to a crash site. The terminal weighs it local, with no outside faction, and stamps it NOT ESCALATED; it pulls back to Corvus, where the patrol route is redrawn with Asharu left outside it, archives the event on the sector view, sweeps on to other systems, and shuts down to a CRT tune-out. | (none) | (a screen, not a camera) | **Timed 2D plate** (`recording_plate.py s13`), synced to `radio_log.CLOSING`: NOT ESCALATED from about 145.5 s, Corvus 149.15, sector 152.75, ARCHIVED 153.4, the crest back 157.7, tune-out 161.0-161.9. |
+| S13 | 24.5 s (138 to 162.5) | **Back on the log.** The terminal again, with CARAVEL's and MORROW's channels dark. The survivors call each other; Warden gives up on Caravel and the Morrow and reads the pirates as content with what they caught (owner, 2026-10-22: no pirate sign-off). It opens inside the optic and pulls back out to the whole screen (138.25-139.4 s); the optic keeps the fight's remains: the wrecks marked where they died with debris falling to the limb, SOBIESKI among the pirates, and CARAVEL and MORROW arcing down over the limb, their tracks projected to a crash site. The terminal weighs it local, with no outside faction, and stamps it NOT ESCALATED; it pulls back to Corvus, where the patrol route is redrawn with Asharu left outside it, archives the event on the sector view, sweeps on to other systems, and shuts down to a CRT tune-out. | (none) | (a screen, not a camera) | **Timed 2D plate** (`recording_plate.py s13`), synced to `radio_log.CLOSING`: NOT ESCALATED from about 145.5 s, Corvus 149.15, sector 152.75, ARCHIVED 153.4, the crest back 157.7, tune-out 161.0-161.9. |
 
 ## Radio traffic (draft)
 
@@ -556,7 +556,9 @@ her as an ordinary prize.
 Rules:
 - **Callsigns, never hull classes** (owner, 2026-10-22: "Ford Focus I need you to be on my flank
   Chrysler Challenger out"). The convoy flies under one callsign, CARAVEL: the Colossus, its master's
-  ship, is CARAVEL, and its freighters are numbered. Its escorts are WARDENs, with the lead Lasher as
+  ship, is CARAVEL, and its merchant ships answer to their own names, after Second World War
+  merchantmen (owner, 2026-10-28): the Tarsus is SOBIESKI, the Mule THYSVILLE, the Phaeton BATORY and
+  the first Buffalo ALBERTVILLE. Its escorts are WARDENs, numbered, with the lead Lasher as
   WARDEN LEAD. Morrow keeps her own name, because the player later reads it on her name plate. The
   pirates have handles: BARON (the Falcon (P)), HOOK (the Colossus Mk.III), LATCH (the boarding Kite),
   ANVIL, KNIFE, CUR, SACK. A caption leads with the callsign under the registry prefix the game gives
@@ -592,7 +594,7 @@ Rules:
 | S1 | 1.8-6.4 | CARAVEL | All Caravel ships, Caravel. Window opens in forty. Ease to two-thirds. |
 | S1 | 6.9-9.7 | WARDEN LEAD | Warden Lead copies. Wardens, close up the column. |
 | S1 | 16.8-18.6 | WARDEN TWO | Two, on station. *(placeholder)* |
-| S1 | 20.2-22.4 | CARAVEL SEVEN | Seven, two-thirds, aye. *(placeholder)* |
+| S1 | 20.2-22.4 | ALBERTVILLE | Albertville, two-thirds, aye. *(placeholder)* |
 | S2 | 24.6-28.6 | MORROW | Caravel, Morrow. Standing off your starboard quarter. Drones stowed. |
 | S3 | 31.2-34.0 | BARON | Hold. ... Hold. ... Light them. |
 | S4 | 38.6-41.6 | WARDEN FIVE | Lead, Five. Drives behind us. Low, off that old station. A lot of them. |
@@ -600,20 +602,20 @@ Rules:
 | S4 | 42.9-43.9 | WARDEN FIVE | Eleven. Climbing. |
 | S5 | 44.4-46.9 | WARDEN LEAD | Wardens, come about. Caravel, full burn, now. |
 | S5 | 47.2-49.8 | CARAVEL | We're committed to the window. We can't outrun them from here. |
-| S6 | 51.0-53.2 | CARAVEL SIX | Six, we're hit, we're venting, we're — |
+| S6 | 51.0-53.2 | BATORY | Batory, we're hit, we're venting, we're — |
 | S6 | 54.5-56.6 | WARDEN LEAD | Lead turning back. Cover the tail. |
 | S6b | 58.4-60.6 | WARDEN THREE | Three, rolling in. Four, take her left. |
 | S6b | 61.0-62.6 | WARDEN FOUR | She's got no shield. Hit her. |
 | S6b | 63.0-65.6 | WARDEN THREE | Feeders on. ... She's breaking up. One down. |
-| S6c | 66.4-68.4 | CARAVEL FOUR | Two frigates in the gap! They're in the column! |
-| S6c | 68.8-71.4 | WARDEN FOUR | Shields up, they blinked, where — on Two, they're on Caravel Two! |
-| S6c | 71.8-73.9 | CARAVEL TWO | Taking fire aft, flux at ninety, I can't hold the shield — |
+| S6c | 66.4-68.4 | THYSVILLE | Two frigates in the gap! They're in the column! |
+| S6c | 68.8-71.4 | WARDEN FOUR | Shields up, they blinked, where — there, they're on the Sobieski! |
+| S6c | 71.8-73.9 | SOBIESKI | Taking fire aft, flux at ninety, I can't hold the shield — |
 | S6d | 74.4-76.6 | WARDEN FIVE | Two on me. ... Got one. Got one! |
 | S6d | 77.4-79.6 | WARDEN FIVE | Drives hit. Falling back on the column. Flares out. |
-| S7 | 80.8-83.8 | LATCH | Caravel Two. Open your locks and you all walk away. |
-| S7 | 84.4-87.0 | CARAVEL TWO | Drives are gone. They're alongside. Boarders, boarders — |
+| S7 | 80.8-83.8 | LATCH | Sobieski. Open your locks and you all walk away. |
+| S7 | 84.4-87.0 | SOBIESKI | Drives are gone. They're alongside. Boarders, boarders — |
 | S8 | 88.6-91.0 | CARAVEL | Port pod's gone. Morrow, get under us. |
-| S8 | 91.8-93.6 | CARAVEL FOUR | Four, flux at sixty, holding. *(placeholder)* |
+| S8 | 91.8-93.6 | THYSVILLE | Thysville, flux at sixty, holding. *(placeholder)* |
 | S9 | 94.4-96.0 | MORROW | Under you. Taking the weight. |
 | S9 | 96.4-98.0 | MORROW | Borers out. *(placeholder)* |
 | S9 | 98.6-101.2 | HOOK | Caravel. Heave to. You're next. |
@@ -621,13 +623,13 @@ Rules:
 | S9b | 105.0-106.6 | BARON | Shield up. ... Shield's overloading — |
 | S9b | 106.9-107.9 | WARDEN LEAD | She's open. She's open! |
 | S9b | 108.2-109.9 | BARON | Broadside. Burn that frigate off my hull. |
-| S10 | 110.4-113.4 | BARON | Let her go. She's going down anyway. Take Caravel Two. |
+| S10 | 110.4-113.4 | BARON | Let her go. She's going down anyway. Take the Sobieski. |
 | S10 | 113.9-116.0 | CARAVEL | We're losing the orbit. Morrow, break off. |
 | S10 | 116.4-117.4 | MORROW | Staying with you. |
 | S11 | 119.0-121.4 | CARAVEL | Caravel, hull temperature climbing. *(placeholder)* |
 | S11 | 121.8-123.6 | MORROW | Morrow, losing you in the — *(placeholder)* |
 | S11 | 124.5- | | static; the plasma takes the channel; CARAVEL and MORROW drop out |
-| S13 | 139.2-142.4 | CARAVEL FOUR | All Caravel ships, Caravel Four. Who is still with me? |
+| S13 | 139.2-142.4 | THYSVILLE | All Caravel ships, Thysville. Who is still with me? |
 | S13 | 143.0-145.4 | WARDEN THREE | Warden Three. Still here. The column is scattered. |
 | S13 | 145.9-148.6 | WARDEN THREE | Nothing from Caravel or the Morrow. ... They're not chasing. Looks like they're happy with what they caught. |
 | S13 | ~145.5 / 153.4 | | NOT ESCALATED; ARCHIVED |

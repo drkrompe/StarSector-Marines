@@ -173,7 +173,7 @@ QUERIES = [
     (8.3, 'optic.task(OBS-3, CV-2215)', 'ACQUIRING', 'ok'),
     (39.6, 'sensor.sweep(ASHARU PLATFORM)', '11 drives  no transponders  UNREGISTERED', 'flag'),
     (51.2, 'engagement.detect(CV-2215)', 'weapons fire  Tanker lost', 'flag'),
-    (87.0, 'transponder.lost(ISS CARAVEL TWO)', 'Freighter  boarded', 'flag'),
+    (87.0, 'transponder.lost(ISS SOBIESKI)', 'Freighter  boarded', 'flag'),
     (125.0, 'transponder.lost(ISS CARAVEL, ISS MORROW)', 'Heavy Freighter  atmospheric entry', 'flag'),
     (138.3, 'engagement.summary(CV-2215)', 'concluded  convoy dispersed  4 lost', 'note'),
     (140.0, 'faction.weight(PIRATES, CORVUS)', 'local  GARNIR-linked  no outside faction', 'down'),
@@ -210,7 +210,7 @@ ATTR = {
     'PERSEAN LEAGUE': [(EVENT_OPEN, 0), (R[0] - .05, 0), (R[0] + .2, .02), (138, .01)],
 }
 FORCE_A = [(R[3] - .05, 0), (R[3] + .2, 12)]
-# the convoy's four lost (the shot doc's tally): CARAVEL SIX destroyed, CARAVEL TWO taken, WARDEN LEAD
+# the convoy's four lost (the shot doc's tally): BATORY destroyed, SOBIESKI taken, WARDEN LEAD
 # burned off the Falcon's hull, CARAVEL down through the atmosphere; the pirates lose two Hounds
 FORCE_A_LOST = [(51, 0), (52, 1), (87, 1), (88, 2), (108.5, 2), (109.5, 3), (125, 3), (126, 4)]
 FORCE_B = [(40.0, 0), (41, 11)]
@@ -819,9 +819,9 @@ def optic_label(c, x, y, text, col, size=9, glow=False, right=False):
 
 
 # S13's optic, in optic-relative points: the wrecks (label, x, y, colour) and the prize
-WRECKS = [('ISS CARAVEL SIX  WRECK', 60, 300, PH_D), ('ISS WARDEN LEAD  WRECK', 560, 262, PH_D),
+WRECKS = [('ISS BATORY  WRECK', 60, 300, PH_D), ('ISS WARDEN LEAD  WRECK', 560, 262, PH_D),
           ('WRECK', 720, 185, RED_D), ('WRECK', 720, 300, RED_D)]
-PRIZE = ('ISS CARAVEL TWO  TAKEN', 620, 120)
+PRIZE = ('ISS SOBIESKI  TAKEN', 620, 120)
 # The two ships coming down, each a decaying orbit: (label, angle round the planet from overhead at the
 # start and at the limb, in radians, height above the limb at the start in px, lag on the fall in s).
 # Past the limb the track is projected on to the surface, to where each is reckoned to come down.
