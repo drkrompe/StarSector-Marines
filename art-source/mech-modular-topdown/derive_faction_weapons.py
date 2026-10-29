@@ -74,7 +74,7 @@ WEAPONS = (
     Weapon("weapon-concepts/light-pulse-laser.png", "light-pulse-laser.png",
            "light-pulse-laser.png", (28, 88)),
     Weapon("weapon-concepts/burst-laser.png", "burst-laser.png",
-           "burst-laser.png", (70, 136)),
+           "burst-laser.png", (50, 136)),
     Weapon("weapon-concepts/pd-laser.png", "pd-laser.png",
            "pd-laser.png", (40, 116)),
 )

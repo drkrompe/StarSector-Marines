@@ -309,11 +309,13 @@ pass); the other two registered within three pixels as returned.
 # Laser parts (the laser tanks' guns as mech weapons)
 
 Generated through `tools/codex_imagegen.py` on 2026-10-28 for `vehicle-card-sizes.md` slice 2: the burst laser
-(a large three-row arm gun: three emitter barrels over finned capacitor banks) and the PD laser (a medium two-row arm
-gun: one barrel in a ribbed cooling jacket). Two designs of each (`laser-options/`) went to the owner's picks page; the
-recommended A of each (`burst-laser.png`, `pd-laser.png`) was built on meanwhile: cleaned to alpha with
-`clean_imagegen_backgrounds.py`, classified by an ImageGen material-ID pass (`weapon-material-id/`) in the neutral
-"colour-classification pass over a piece of mechanical equipment" wording that clears the safety filter, and registered
-in `build_assets.py` and `derive_faction_weapons.py` at their own aspect (70x136 and 40x116, drawn at their true
-proportions rather than stretched). Both use the strict-zenith prompt block of `README.md` with red-orange lamps.
-The full prompt and references of each generation are in the `.provenance.json` beside it.
+(a large three-row arm gun) and the PD laser (a medium two-row arm gun: one barrel in a ribbed cooling jacket). Two
+designs of each went to the owner's picks page and the owner took B of the burst laser (a broad central barrel
+between two spars, stepped olive housings with lamp banks and a vent grille over the breech; `burst-laser.png`,
+registered at 50x136) and A of the PD laser (`pd-laser.png`, 40x116); the unpicked options were deleted. Each
+accepted concept was cleaned to alpha with `clean_imagegen_backgrounds.py`, classified by an ImageGen
+material-ID pass (`weapon-material-id/`) in the neutral "colour-classification pass over a piece of mechanical
+equipment" wording that clears the safety filter, and registered in `build_assets.py` and
+`derive_faction_weapons.py` at its own aspect (drawn at true proportions rather than stretched). Both use the
+strict-zenith prompt block of `README.md` with red-orange lamps. The full prompt and references of each generation
+are in the `.provenance.json` beside it.
