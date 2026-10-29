@@ -1,0 +1,36 @@
+<template props="rootClasses,headClasses,title,tag,quoteClasses,quote,verbsClasses,verbs,footClasses,foot">
+  <div id="prompt" class="{rootClasses}">
+    <div id="prompt-head" class="{headClasses}">
+      <div id="prompt-title" class="label heading p-title">{title}</div>
+      <div id="prompt-tag" class="label p-tag">{tag}</div>
+    </div>
+    <div id="prompt-quote" class="{quoteClasses}">{quote}</div>
+    <div id="prompt-verbs" class="{verbsClasses}">
+      <button each="verb in verbs" key="{verb.id}" id="{verb.id}" class="{verb.classes}">
+        <div id="{verb.nameId}" class="label heading p-verb-name">{verb.name}</div>
+        <div id="{verb.detailId}" class="{verb.detailClasses}">{verb.detail}</div>
+      </button>
+    </div>
+    <div id="prompt-foot" class="{footClasses}">{foot}</div>
+  </div>
+</template>
+<style>
+  .p-card { padding: 6px; gap: 4px; border-width: 1px; border-color: #7fc8e8aa; background-color: #0a1418ee; }
+  .p-chip { padding: 3px; border-width: 1px; border-color: #ffd464aa; background-color: #0a1418ee; }
+  .p-hidden { display: none; }
+  .p-head { width: 100%; height: 16px; flex-direction: row; gap: 6px; }
+  .p-title { width: 0px; flex-grow: 1; height: 16px; color: #e6e7da; }
+  .p-tag { width: 120px; height: 16px; text-align: right; color: #7fc8e8; }
+  .p-quote { width: 100%; white-space: normal; overflow: hidden; color: #d4ddd5; }
+  .p-verbs { width: 100%; flex-direction: column; gap: 4px; }
+  .p-verbs-row { width: 100%; flex-direction: row; gap: 4px; }
+  .p-verb { width: 100%; height: 30px; padding: 4px; gap: 2px; border-width: 1px; border-color: #c3cec933; background-color: #ffffff0d; }
+  .p-verb-primary { border-color: #ffd464aa; background-color: #3a3018; }
+  .p-verb-row { width: 0px; flex-grow: 1; height: 22px; padding: 3px; border-width: 1px; border-color: #c3cec933; background-color: #ffffff0d; }
+  .p-verb-row-primary { border-color: #ffd464aa; background-color: #3a3018; }
+  .p-verb-name { height: 14px; color: #c5d6cb; white-space: nowrap; text-align: center; }
+  .p-verb-primary .p-verb-name, .p-verb-row-primary .p-verb-name { color: #ffd464; }
+  .p-verb .p-verb-name { text-align: left; }
+  .p-detail { height: 12px; font-family: compact; color: #a0ada8; white-space: nowrap; }
+  .p-foot { width: 100%; height: 13px; font-family: compact; color: #a8b6c6; white-space: nowrap; }
+</style>

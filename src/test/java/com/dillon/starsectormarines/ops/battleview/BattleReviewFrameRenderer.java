@@ -197,6 +197,11 @@ public final class BattleReviewFrameRenderer {
         return this;
     }
 
+    /** The camera this renderer draws {@code simulation} through, so a caller can place its own marks on the frame. */
+    public BattleCamera cameraOf(BattleSimulation simulation) {
+        return cameraFor(width, height, simulation);
+    }
+
     public int width() { return width; }
 
     public int height() { return height; }
