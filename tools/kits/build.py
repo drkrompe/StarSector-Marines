@@ -35,7 +35,7 @@ ART_PX = 160
 STATIONS = [
     ("none", "Not sold yet", "Unplaced", "Reachable only by ordinary shelves, licences, patrons and recovery for its tier."),
     ("start", "Company start", "Start", "What a fresh company holds."),
-    ("relief", "Relief", "Wayline opening", "First Wayline job. A Proper Issue's free choice, and Checkpoint Issue goes on sale at the broker's market."),
+    ("relief", "Relief", "Wayline opening", "First Wayline job: the one free pick (Steady Line or Forward Screen, with its armour sheet). The other path and Checkpoint Issue go on sale in the store."),
     ("counterattack", "Counterattack", "Wayline opening", "Recovered Hound and first refit."),
     ("junction", "Open the Junction", "Broken Supply Route", "Defended junction. Trench-Clearing Issue is the reward."),
     ("thunder-run", "Thunder Run", "Broken Supply Route", "Convoy escort. Convoy Escort Issue goes on sale at the employer's market."),
@@ -51,9 +51,9 @@ STATIONS = [
     ("the-burn", "The Burn", "Khettara Bloom", "Chapter 4."),
     ("broad-front", "Broad Front", "Khettara Bloom", "Chapter 5, the end-of-alpha challenge."),
     ("water-under-seal", "Water Under Seal", "A Small War", "Agreus opening; opens the offer, grants no equipment."),
-    ("limited-warrant", "Limited Warrant", "A Small War", "Recovered Specter cargo card."),
-    ("yards-owners", "The Yard's Owners", "A Small War", "Recovered Arbalest after inspection."),
-    ("small-war-late", "A Small War, later chapters", "A Small War", "Planned chapters: Boarding Jack and the yard agreement."),
+    ("limited-warrant", "Limited Warrant", "A Small War", "Recovered Specter, for sale in the store."),
+    ("yards-owners", "The Yard's Owners", "A Small War", "Recovered Arbalest after inspection, for sale in the store."),
+    ("small-war-late", "A Small War, later chapters", "A Small War", "Planned chapters: Boarding Jack and the yard agreement, for sale in the store."),
     ("wins-3", "3 victories", "Count-based", "Any three won operations (VictoryMilestones)."),
     ("wins-4", "4 victories", "Count-based", "Any four won operations."),
     ("wins-5-risk", "5 victories + 1 high-risk", "Count-based", "The first chase."),
@@ -73,6 +73,11 @@ PLACED = {
     "armor:hegemony-arbalest-section": "yards-owners", "armor:boarding-jack-section": "small-war-late",
     "armor:hegemony-auxiliary-section": "warrant-hegemony", "armor:hegemony-shock": "warrant-hegemony",
 }
+
+
+# The only free unlock after the opening: Relief's pick of one Wayline path, with its armour sheet.
+# The path not picked is sold in the store.
+FREE_PICK = {"wayline:steady-line", "wayline:forward-screen", "armor:hegemony-auxiliary", "armor:league-mobile"}
 
 
 def load(path):
@@ -267,6 +272,7 @@ def main():
 
     for kit in kits + armor_kits:
         kit["station"] = PLACED.get(kit["id"], "none")
+        kit["grant"] = "free-pick" if kit["id"] in FREE_PICK else "sale"
 
     stations = [{"id": s[0], "name": s[1], "group": s[2], "note": s[3]} for s in STATIONS]
     page = (Path(__file__).with_name("template.html")).read_text(encoding="utf-8")

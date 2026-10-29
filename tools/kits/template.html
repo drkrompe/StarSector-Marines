@@ -74,10 +74,10 @@ textarea#out{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--m
 @media (max-width:1100px){.studio{grid-template-columns:minmax(0,1fr)}.right{position:static;max-height:none;order:-1}}
 </style></head><body><div class="wrap">
 <header><h1>Kit Ladder</h1>
-<p class="lead">Two separate card ladders: weapon cards (primaries and secondaries) and Equipment cards (armour). Drag a card along the Alpha mission timeline to set when it goes on sale. Select a card to edit it: drag inventory pieces onto individual marines and the preview card updates as it draws on the Barracks loadout page.</p></header>
+<p class="lead">Two separate card ladders: weapon cards (primaries and secondaries) and Equipment cards (armour). Drag a card along the Alpha mission timeline to set when it goes on sale in the store. Only Relief has a free pick; every other unlock is a store sale. Select a card to edit it: drag inventory pieces onto individual marines and the preview card updates as it draws on the Barracks loadout page.</p></header>
 <div class="bar"><button class="primary" id="new-weapon">New weapon card</button><button class="primary" id="new-armor">New armor card</button>
 <span class="sp"></span><span class="status" id="status"></span><button id="export">Download kits.json</button><button id="copy">Copy JSON</button><button id="import">Import…</button><button id="reset">Reset to shipped cards</button><input type="file" id="file" accept=".json" hidden></div>
-<section id="ladderview"><h2>Unlock ladder · drag a card to the mission after which it goes on sale · Open edits a card</h2><div class="tl" id="tl"></div></section>
+<section id="ladderview"><h2>Unlock ladder · drag a card to the mission after which the store sells it · Open edits a card</h2><div class="tl" id="tl"></div></section>
 <div id="cardview" hidden class="wrap" style="padding:0;gap:18px">
 <div class="bar"><button class="primary" id="back">← Back to ladder</button><b id="cvname" style="font:600 18px var(--display)"></b><span class="sp"></span><button id="dup">Duplicate</button><button id="del">Delete</button></div>
 <div class="studio">
@@ -85,7 +85,7 @@ textarea#out{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--m
 <section class="panel"><h2>1 · Edit card</h2><div class="tabs"><button id="tab-weapon">Weapon cards</button><button id="tab-armor">Equipment cards</button></div>
 <div class="klist" id="klist"></div>
 <input id="kname" aria-label="Card name" style="width:100%;box-sizing:border-box"><textarea id="kdesc" class="desc" aria-label="Card description" placeholder="Description"></textarea>
-<div style="margin-top:8px"><select id="kstation" aria-label="Unlocks after" style="width:100%"></select></div><div class="hintbox" id="hints"></div></section>
+<div style="margin-top:8px;display:grid;gap:6px"><select id="kstation" aria-label="Unlocks after" style="width:100%"></select><select id="kgrant" aria-label="How it unlocks" style="width:100%"></select></div><div class="hintbox" id="hints"></div></section>
 <section class="panel"><h2>2 · Card preview · all twelve marines as assigned</h2><div id="preview"></div></section>
 </div>
 <main><h2 id="mtitle">Marines · drop a piece on one</h2><div class="teams" id="teams"></div><div class="hint" style="margin-top:8px" id="mhint"></div></main>
@@ -102,11 +102,13 @@ const GRADES=["SURPLUS","SERVICE","MILSPEC","MASTERWORK"],RANK={COMMON:0,ADVANCE
 const KEY="kit-ladder-v2",$=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 const A=Object.fromEntries(ARMORS.map(a=>[a.id,a])),P=Object.fromEntries(PRIMARIES.map(p=>[p.id,p])),S=Object.fromEntries(SPECIALS.map(s=>[s.id,s])),ST=Object.fromEntries(STATIONS.map(s=>[s.id,s]));
-const GATE={COMMON:"Open market shelf at any civilised market.",ADVANCED:"Licensed shelf (Favorable standing, MRB 5+), or recovery after 5 victories.",PRESTIGE:"Licensed shelf at MRB 20+, or recovery after 15 victories.",RESTRICTED:"No ordinary route: a military warrant only."};
+const GATE={COMMON:"Store shelf at any civilised market.",ADVANCED:"Licensed store shelf (Favorable standing, MRB 5+), or recovery after 5 victories.",PRESTIGE:"Licensed store shelf at MRB 20+, or recovery after 15 victories.",RESTRICTED:"No ordinary route: a military warrant only."};
 const sizes={};let state=null,db=null,saveTimer=null,view="ladder";
 const clone=o=>JSON.parse(JSON.stringify(o));
 function seedState(){return{weapon:clone(SEED_W),armor:clone(SEED_A),sel:{l:"weapon",id:SEED_W[0].id}}}
-function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.weapon&&s.armor&&s.sel)return s}catch{}return seedState()}
+const FREE=new Set([...SEED_W,...SEED_A].filter(k=>k.grant==="free-pick").map(k=>k.id));
+function migrate(s){for(const k of [...s.weapon,...s.armor])if(!k.grant)k.grant=FREE.has(k.id)?"free-pick":"sale";return s}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.weapon&&s.armor&&s.sel)return migrate(s)}catch{}return seedState()}
 function say(t){$("status").textContent=t}
 function persist(){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}
  if(db){try{await db.doc("kits/state").set({json:JSON.stringify(state),at:new Date().toISOString()});say("Saved to this page")}catch{say("Saved in this browser only")}}else say("Saved in this browser (export to keep)")},300)}
@@ -137,11 +139,16 @@ function bricksOf(l,k,draggable){const out=[],add=(pc,n,pl)=>out.push(brick(pc,n
 function cardTier(l,k){let r=0;const up=t=>{if(t&&RANK[t]>r)r=RANK[t]};
  for(const m of k.members){if(l==="weapon"){const p=P[m.primary];up(p&&p.access[m.grade]);for(const s of [m.special,m.belt])up(S[s]&&S[s].access)}else up(A[m.armor]&&A[m.armor].access)}
  return Object.keys(RANK).find(t=>RANK[t]===r)}
+const powered=k=>k.members.filter(m=>A[m.armor]&&A[m.armor].powered).length;
 const tb=t=>'<span class="tb" style="--tc:var(--t-'+t+')">'+t.slice(0,1)+' '+t.toLowerCase()+'</span>';
 function stationName(id){const s=ST[id||"none"];return s?s.name:"Not sold yet"}
 function hints(l,k){const t=cardTier(l,k),st=ST[k.station||"none"],out=[];
  out.push("Gate "+tb(t)+" "+esc(GATE[t]));
- out.push(k.station&&k.station!=="none"?"On sale: <b>"+esc(st.name)+"</b> · "+esc(st.group)+". "+esc(st.note):"Not placed on the timeline: only the ordinary channels above reach it.");
+ const free=k.grant==="free-pick";
+ out.push(k.station&&k.station!=="none"?(free?"Free pick at <b>":"Store sells it after <b>")+esc(st.name)+"</b> · "+esc(st.group)+". "+esc(st.note):"Not placed on the timeline: only the ordinary store, licence and recovery routes reach it.");
+ if(free)out.push("One Wayline path is free; the path not picked is sold in the store.");
+ if(l==="armor"){const n=powered(k);out.push("Powered seats: <b>"+n+" of 12</b>"+(n?" (power suits in the squad)":""))}
+ if(free&&k.station!=="relief")out.push('<span class="w">Free picks exist only at Relief. Switch this card to a store sale.</span>');
  if(t==="RESTRICTED"&&!["none","warrant-hegemony","warrant-other"].includes(k.station||"none"))out.push('<span class="w">Restricted kit with no warrant: place it on a warrant station.</span>');
  else if(RANK[t]>=1&&k.station&&!["none","start"].includes(k.station)&&!k.station.startsWith("warrant")&&!k.station.startsWith("wins"))out.push('<span class="w">An authored listing: it skips the '+t.toLowerCase()+' licence gate at that mission.</span>');
  if(k.station==="start"&&RANK[t]>0)out.push('<span class="w">Starter issue holds '+t.toLowerCase()+' pieces.</span>');
@@ -155,11 +162,11 @@ function renderTimeline(){const tl=$("tl");tl.innerHTML="";const g=document.crea
  for(const l of ["weapon","armor"]){add("rl",l==="weapon"?"Weapon cards":"Equipment cards");
   for(const s of STATIONS){const c=add("cell","");c.dataset.l=l;c.dataset.s=s.id;
    for(const k of list(l).filter(k=>(k.station||"none")===s.id)){const ch=document.createElement("div");ch.className="chip"+(L()===l&&state.sel.id===k.id?" sel":"");ch.draggable=true;
-    ch.innerHTML="<b><span>"+esc(k.name)+"</span>"+tb(cardTier(l,k))+'</b><div class="mini"></div><button class="open">Open '+(l==="weapon"?"weapon":"armor")+' card</button>';
+    const pw=l==="armor"?powered(k):0;ch.innerHTML="<b><span>"+esc(k.name)+"</span>"+tb(cardTier(l,k))+"</b>"+(k.grant==="free-pick"?'<span class="tb" style="--tc:var(--accent)">FREE PICK</span>':"")+(pw?'<small class="hint">'+pw+" of 12 powered</small>":"")+'<div class="mini"></div><button class="open">Open '+(l==="weapon"?"weapon":"armor")+' card</button>';
     for(const b of bricksOf(l,k,false))ch.querySelector(".mini").appendChild(b);
     ch.addEventListener("dragstart",e=>{e.dataTransfer.setData("text/plain",JSON.stringify({t:"kit",l,id:k.id}));e.dataTransfer.effectAllowed="move"});
     ch.onclick=()=>{open(l,k.id)};c.appendChild(ch)}
-   dropTarget(c,pl=>{if(pl.t!=="kit"||pl.l!==l)return say("Cards stay in their own ladder.");const k=list(l).find(x=>x.id===pl.id);if(k){k.station=s.id;changed()}})}}
+   dropTarget(c,pl=>{if(pl.t!=="kit"||pl.l!==l)return say("Cards stay in their own ladder.");const k=list(l).find(x=>x.id===pl.id);if(k){k.station=s.id;if(s.id!=="relief"&&k.grant==="free-pick")k.grant="sale";changed()}})}}
  tl.appendChild(g)}
 /* editor */
 function slotEl(k,mi,which){const m=k.members[mi],armor=which==="armor";const id=which==="primary"?m.primary:m[which];
@@ -215,6 +222,7 @@ function render(){const l=L(),k=kit();state.sel.id=k.id;
  renderTimeline();renderList();
  const kn=$("kname"),kd=$("kdesc");if(document.activeElement!==kn)kn.value=k.name;if(document.activeElement!==kd)kd.value=k.description;
  const ks=$("kstation");ks.innerHTML=STATIONS.map(s=>'<option value="'+s.id+'">'+(s.id==="none"?"Not sold yet":"Unlocks after: "+esc(s.name)+" ("+esc(s.group)+")")+'</option>').join("");ks.value=k.station||"none";
+ const kg=$("kgrant");kg.innerHTML='<option value="sale">On sale in the store</option><option value="free-pick"'+(k.station==="relief"?"":" disabled")+'>Free pick (Relief only; the other path is sold)</option>';kg.value=k.grant||"sale";
  renderSide();
  $("mtitle").textContent=l==="weapon"?"Marines · drop a weapon on one":"Marines · drop a suit on one";
  $("mhint").textContent=l==="weapon"?"Drag a slot's brick onto another marine to copy it. × clears a secondary or belt item. Grade sets the primary's grade. Dropping on a team header fills all four. Armour is on the Equipment cards, not here.":"Suits come from the card's armour bundle in the game; the seating here is the intent per marine. A suit's integral system shows beside it. Dropping on a team header fills all four.";
@@ -230,30 +238,31 @@ function renderSide(){const l=L(),k=kit();$("hints").innerHTML=hints(l,k);
 function changed(){render();persist()}
 $("kname").oninput=e=>{kit().name=e.target.value;renderList();renderTimeline();renderSide();persist()};
 $("kdesc").oninput=e=>{kit().description=e.target.value;renderSide();persist()};
-$("kstation").onchange=e=>{kit().station=e.target.value;changed()};
+$("kstation").onchange=e=>{const k=kit();k.station=e.target.value;if(k.station!=="relief"&&k.grant==="free-pick")k.grant="sale";changed()};
+$("kgrant").onchange=e=>{kit().grant=e.target.value;changed()};
 $("tab-weapon").onclick=()=>{state.sel={l:"weapon",id:state.weapon[0].id};render()};
 $("tab-armor").onclick=()=>{state.sel={l:"armor",id:state.armor[0].id};render()};
 function slug(n,l){return (l==="armor"?"armor:":"weapons:")+(n||"card").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
 function uniqueId(base){let id=base,i=2;const all=[...state.weapon,...state.armor];while(all.some(k=>k.id===id))id=base+"-"+i++;return id}
 function makeNew(l){const members=Array.from({length:12},(_,i)=>l==="weapon"?{role:i%4===0?"Team Leader":"Rifleman",primary:"weapon.field-rifle",grade:"SURPLUS",special:null,belt:null}:{role:i%4===0?"Team Leader":"Rifleman",armor:"armor.field-fatigues"});
- const k={id:uniqueId(slug("new card",l)),name:"New Card",description:"",station:"none",members};state[l].push(k);open(l,k.id);persist()}
+ const k={id:uniqueId(slug("new card",l)),name:"New Card",description:"",station:"none",grant:"sale",members};state[l].push(k);open(l,k.id);persist()}
 $("new-weapon").onclick=()=>makeNew("weapon");$("new-armor").onclick=()=>makeNew("armor");
 $("back").onclick=back;
 $("dup").onclick=()=>{const l=L(),k=clone(kit());k.name+=" copy";k.id=uniqueId(slug(k.name,l));list().splice(list().indexOf(kit())+1,0,k);state.sel.id=k.id;changed()};
 $("del").onclick=()=>{if(list().length<2)return;list().splice(list().indexOf(kit()),1);state.sel.id=list()[0].id;changed()};
 $("reset").onclick=()=>{if(window.__confirmReset){state=seedState();window.__confirmReset=false;$("reset").textContent="Reset to shipped cards";changed()}else{window.__confirmReset=true;$("reset").textContent="Click again to replace all cards";setTimeout(()=>{window.__confirmReset=false;$("reset").textContent="Reset to shipped cards"},4000)}};
-function exported(){const f=a=>a.map(k=>({id:k.id,name:k.name,description:k.description,unlocksAfter:k.station||"none",members:k.members}));return JSON.stringify({weaponCards:f(state.weapon),equipmentCards:f(state.armor)},null,1)}
+function exported(){const f=a=>a.map(k=>({id:k.id,name:k.name,description:k.description,unlocksAfter:k.station||"none",grant:k.grant||"sale",members:k.members}));return JSON.stringify({weaponCards:f(state.weapon),equipmentCards:f(state.armor)},null,1)}
 $("export").onclick=async()=>{let dl=null;try{dl=await (window.claude?.use?.("downloads")??null)}catch{}
  if(dl){try{await dl.save({filename:"kits.json",data:exported()})}catch{}return}
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([exported()],{type:"application/json"}));a.download="kits.json";a.click()};
 $("copy").onclick=async()=>{try{await navigator.clipboard.writeText(exported());say("Copied")}catch{const t=$("out");t.hidden=false;t.value=exported();t.select();say("Copy from the box below")}};
 $("import").onclick=()=>$("file").click();
-$("file").onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());const g=a=>a.map(k=>({id:k.id,name:k.name,description:k.description,station:k.unlocksAfter||"none",members:k.members}));
+$("file").onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());const g=a=>a.map(k=>({id:k.id,name:k.name,description:k.description,station:k.unlocksAfter||"none",grant:k.grant||"sale",members:k.members}));
  if(!j.weaponCards||!j.equipmentCards)throw 0;state={weapon:g(j.weaponCards),armor:g(j.equipmentCards),sel:{l:"weapon",id:j.weaponCards[0].id}};changed()}catch{say("Not a kits.json from this page")}e.target.value=""};
 async function start(){await Promise.all(Object.entries(IMAGES).map(([k,v])=>new Promise(r=>{const i=new Image();i.onload=()=>{sizes[k]=[i.naturalWidth,i.naturalHeight];r()};i.onerror=r;i.src=v})));
  state=load();render();
  try{db=await (window.claude?.use?.("db")??null)}catch{}
- if(db){try{const d=await db.doc("kits/state").get();const j=d&&d.exists&&d.data();if(j&&j.json){const s=JSON.parse(j.json);if(s.weapon&&s.armor&&s.sel){state=s;render()}}}catch{}}
+ if(db){try{const d=await db.doc("kits/state").get();const j=d&&d.exists&&d.data();if(j&&j.json){const s=JSON.parse(j.json);if(s.weapon&&s.armor&&s.sel){state=migrate(s);render()}}}catch{}}
  say(db?"Saves to this page":"Saved in this browser (export to keep)")}
 start();
 </script></body></html>
