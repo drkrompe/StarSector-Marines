@@ -179,7 +179,9 @@ LEDGER = [
     # ---- CARAVEL, the Colossus: port pod shot out in S8, the other failing, she falls
     H('colossus', 97.67, 'rake', 1, (-74, 39, -19), (0, .5, 1), to=(-58, 30, 6), by='tracer',
       src='S8-S9 k4 tracer colossus3', note="the Mk.III's guns walk onto the burning port pod from above"),
-    H('colossus', 95.5, 'he', 4, (-64, 36, -7), (-.4, 1, .2), by=('tracer', 'blast_on', 'debris', 'fire_on'),
+    # the round lands on the pod's top, where the Mk.III's guns above can reach it (her sure round laid on
+    # its port face, out of their line, missed: final asharu-final-n2-s89-k4-nosalvo, 2026-10-29)
+    H('colossus', 95.5, 'he', 4, (-60, 30, 6), (0, .4, 1), by=('tracer', 'blast_on', 'debris', 'fire_on'),
       src='S8-S9 k4 tracer colossus3 + blast_on + debris + fire_on', vent_s=40.0,
       note="the Mk.III's guns shoot out her port tug pod: torn open, its lines venting, and it burns into "
            "the atmosphere"),
