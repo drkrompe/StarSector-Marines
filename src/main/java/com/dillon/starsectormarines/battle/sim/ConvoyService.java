@@ -127,10 +127,14 @@ public final class ConvoyService implements BodyCarrier {
     /** As above, running the engine its engine core holds ({@link VehicleEngine}). */
     public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
                       Faction faction, VehicleMission mission) {
-        return spawn(type, kits, plating, engine, null, faction, mission);
+        return spawn(type, kits, plating, engine, type.standardPart(), faction, mission);
     }
 
-    /** As above, with {@code weapon} in the gun card instead of the hull's own gun ({@link VehicleGun}); null for its own. */
+    /**
+     * As above, with {@code weapon} in the gun card instead of the hull's own gun ({@link VehicleGun}); null for its own,
+     * or for a modular hull ({@link VehicleType#hasModularTurret}) for the bare ring, which has no gun and reads as a
+     * shot-away turret ({@link GroundTurret#removed}).
+     */
     public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
                       MechWeaponComponent weapon, Faction faction, VehicleMission mission) {
         VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type);
@@ -148,6 +152,7 @@ public final class ConvoyService implements BodyCarrier {
         GroundTurret turret = gun != null
                 ? GroundTurret.fitted(gun, Math.round(gun.ammoCapacity * fitted.ammoFactor()), fitted,
                         HullTurretSection.forHull(type, fitted)) : null;
+        if (turret != null && weapon == null && type.hasModularTurret()) turret.removed = true;
         if (turret != null && weapon != null) {
             turret.structure = fittedStructure;
             turret.weapon = weapon;
