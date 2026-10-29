@@ -1,0 +1,162 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Kit Ladder</title>
+<style>
+:root{--bg:#f3f1f6;--surface:#fff;--ink:#221d2b;--muted:#6c6478;--line:#ddd7e5;--accent:#7a4fa8;--accent-soft:#ece3f6;
+ --BALLISTIC:#e2c248;--ENERGY:#e06a3c;--MISSILE:#6cc45e;--UTILITY:#4cb4a6;--EMPTY:#a4a8a0;
+ --display:"Chakra Petch","Segoe UI",system-ui,sans-serif;--body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17141c;--surface:#211d28;--ink:#ece8f2;--muted:#a79fb4;--line:#3a3346;--accent:#b996e0;--accent-soft:#33284a;color-scheme:dark}}
+body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--body)}
+.wrap{max-width:1500px;margin:0 auto;padding:20px max(16px,env(safe-area-inset-left)) 60px;display:grid;gap:18px}
+h1{font:700 28px/1.1 var(--display);margin:0}h2{font:600 13px var(--mono);text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:0 0 8px}
+p.lead{margin:6px 0 0;color:var(--muted);max-width:90ch}
+button,input,select,textarea{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:5px 10px}
+button:hover{border-color:var(--accent)}button.primary{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
+input,select{background:var(--surface);border:1px solid var(--line);border-radius:5px;padding:4px 7px;min-width:0}
+.bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center}.bar .sp{flex:1}.status{font:12px var(--mono);color:var(--muted)}
+.wrap>*{min-width:0}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px}
+.brick{position:relative;width:88px;height:44px;display:grid;grid-template-columns:1fr 1fr;gap:3px;flex:none}
+.brick i{display:block;border-radius:4px;background:linear-gradient(180deg,color-mix(in srgb,var(--t) 78%,#fff 22%),color-mix(in srgb,var(--t) 52%,#101311));border:1px solid var(--t);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+.brick.empty i{background:#181d1a;border:1px dashed #5b625d;box-shadow:none}
+.brick img{position:absolute;left:50%;top:50%;transform-origin:center;pointer-events:none}
+.brick .n{position:absolute;right:2px;bottom:1px;font:700 12px var(--mono);color:#fff;background:rgba(0,0,0,.65);padding:0 4px;border-radius:3px}
+.drag{cursor:grab}.drag:active{cursor:grabbing}
+.cat{display:flex;flex-wrap:wrap;gap:10px}
+.tile{display:grid;gap:3px;justify-items:start;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--bg);width:104px}
+.tile b{font:600 12px var(--display)}.tile small{color:var(--muted);font-size:11px;line-height:1.2}
+.legend{display:flex;gap:12px;font:11px var(--mono);color:var(--muted);flex-wrap:wrap}.legend span::before{content:"";display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;background:var(--t);vertical-align:-1px}
+.ladder{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px}
+.card{flex:none;width:236px;border:2px solid var(--line);border-radius:10px;background:var(--surface);padding:8px;display:grid;gap:6px;align-content:start;cursor:pointer}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent-soft)}
+.over{outline:2px dashed var(--accent);outline-offset:2px;background:var(--accent-soft)!important}
+.card .rung{font:600 11px var(--mono);color:var(--muted)}.card h3{font:600 15px/1.2 var(--display);margin:0}.card p{margin:0;font-size:12px;color:var(--muted);max-height:4.4em;overflow:hidden}
+.bricks{display:grid;grid-template-columns:repeat(2,88px);gap:6px 8px}
+.cardbtns{display:flex;gap:4px}.cardbtns button{padding:2px 7px}
+.editor{display:grid;gap:12px}
+.meta{display:grid;grid-template-columns:minmax(160px,260px) 1fr;gap:8px}
+.teams{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,440px),1fr));gap:12px}
+.team{border:1px solid var(--line);border-radius:8px;padding:8px;display:grid;gap:6px;background:var(--bg)}
+.team h4{margin:0;font:600 12px var(--mono);text-transform:uppercase;color:var(--muted);display:flex;justify-content:space-between}
+.member{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto;gap:8px;align-items:center;padding:5px;border-radius:7px;background:var(--surface);border:1px solid var(--line)}
+.member .who{display:grid;gap:3px}.member .who{min-width:0}.member .who input,.member .who select{font-size:12px;width:100%;box-sizing:border-box}
+.slot{display:grid;gap:2px;justify-items:center;padding:2px;border-radius:6px}.slot .nm{font:600 10px var(--mono);max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+.slot .x{position:absolute;top:-6px;right:-6px;width:16px;height:16px;border-radius:50%;padding:0;font-size:10px;line-height:14px;display:none}
+.slot .wrapper{position:relative}.slot:hover .x{display:block}
+.slotlab{font:600 9px var(--mono);color:var(--muted);text-transform:uppercase}
+.hint{font-size:12px;color:var(--muted)}
+textarea{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--mono);background:var(--surface);border:1px solid var(--line);border-radius:6px}
+</style></head><body><div class="wrap">
+<header><h1>Kit Ladder</h1>
+<p class="lead">Author squad weapon kits. Drag a weapon from the catalog (or from any kit card) onto a member's slot to set their primary or secondary. Drop on a member to route it by type, on a team to fill all four, or on a kit card to fill the squad. Cards draw as they do on the Barracks loadout page.</p></header>
+<div class="bar"><button class="primary" id="new">New kit</button><button id="dup">Duplicate</button><button id="del">Delete</button>
+<span class="sp"></span><span class="status" id="status"></span><button id="export">Download kits.json</button><button id="copy">Copy JSON</button><button id="import">Import…</button><button id="reset">Reset to shipped kits</button><input type="file" id="file" accept=".json" hidden></div>
+<section class="panel"><h2>Catalog · drag onto a member</h2><div class="legend" id="legend"></div>
+<div style="display:grid;gap:10px;margin-top:8px"><div><h2>Primaries</h2><div class="cat" id="cat-p"></div></div><div><h2>Secondaries and belt items</h2><div class="cat" id="cat-s"></div></div></div></section>
+<section><h2>Ladder · left is the bottom rung · ◀ ▶ reorders</h2><div class="ladder" id="ladder"></div></section>
+<section class="panel editor"><div class="meta"><input id="kname" aria-label="Kit name"><input id="kdesc" aria-label="Kit description" placeholder="Description"></div>
+<div class="teams" id="teams"></div><div class="hint">Drag one slot's brick onto another member to copy it. × on a brick clears a secondary or belt item. Grade sets the primary's grade (rifle and DMR art change with it, as in the armoury).</div></section>
+<textarea id="out" hidden></textarea>
+</div>
+<script>
+const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED=__KITS__,IMAGES=__IMAGES__;
+const GRADES=["SURPLUS","SERVICE","MILSPEC","MASTERWORK"];
+const KEY="kit-ladder-v1",$=id=>document.getElementById(id);
+const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const P=Object.fromEntries(PRIMARIES.map(p=>[p.id,p])),S=Object.fromEntries(SPECIALS.map(s=>[s.id,s]));
+const sizes={};let state=null,db=null,saveTimer=null;
+const clone=o=>JSON.parse(JSON.stringify(o));
+function seedState(){return{kits:clone(SEED),selected:SEED[0].id}}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.kits&&s.kits.length)return s}catch{}return seedState()}
+function persist(){clearTimeout(saveTimer);saveTimer=setTimeout(async()=>{try{localStorage.setItem(KEY,JSON.stringify(state))}catch{}
+ if(db){try{await db.doc("kits/state").set({json:JSON.stringify(state),at:new Date().toISOString()});$("status").textContent="Saved to this page"}catch{$("status").textContent="Saved in this browser only"}}else $("status").textContent="Saved in this browser (export to keep)"},300)}
+const kit=()=>state.kits.find(k=>k.id===state.selected)||state.kits[0];
+function piece(type,id,grade){if(type==="p"){const p=P[id];return p&&{key:id,kind:p.kind,lie:p.lie,icon:p.icons[grade||"SERVICE"],name:p.name}}
+ const s=S[id];return s&&{key:id,kind:s.kind,lie:s.lie,icon:s.icon,name:s.name}}
+function brick(pc,count,payload){const el=document.createElement("div");el.className="brick"+(pc?"":" empty");
+ const t=pc?"var(--"+pc.kind+")":"var(--EMPTY)";
+ el.innerHTML='<i style="--t:'+t+'"></i><i style="--t:'+t+'"></i>';
+ if(pc){const sz=sizes[pc.icon];if(sz){const bw=88*.92,bh=44*.94;let scale,ang=0;
+   if(pc.lie==null){scale=Math.min(bw/sz[0],bh/sz[1])}else{const l=Math.max(0,Math.min(90,pc.lie))*Math.PI/180;const len=l<=Math.PI/4?sz[0]/Math.cos(l):sz[1]/Math.sin(l);scale=bw/len;ang=-pc.lie}
+   const im=document.createElement("img");im.src=IMAGES[pc.icon];im.alt=pc.name;im.style.width=sz[0]*scale+"px";im.style.height=sz[1]*scale+"px";
+   im.style.transform="translate(-50%,-50%) rotate("+ang+"deg)";el.appendChild(im)}
+  if(count>1){const n=document.createElement("span");n.className="n";n.textContent="×"+count;el.appendChild(n)}
+  if(payload){el.draggable=true;el.classList.add("drag");el.title=pc.name;el.addEventListener("dragstart",e=>{e.stopPropagation();e.dataTransfer.setData("text/plain",JSON.stringify(payload));e.dataTransfer.effectAllowed="copy"})}}
+ return el}
+function counts(k){const prim=new Map(),sec=new Map();
+ for(const m of k.members){const key=m.primary+"|"+m.grade;prim.set(key,(prim.get(key)||0)+1);
+  for(const sid of [m.special,m.belt])if(sid)sec.set(sid,(sec.get(sid)||0)+1)}
+ return{prim,sec}}
+function cardEl(k,i){const el=document.createElement("div");el.className="card"+(k.id===state.selected?" sel":"");
+ el.innerHTML='<span class="rung">RUNG '+(i+1)+'</span><h3>'+esc(k.name)+'</h3><p>'+esc(k.description)+'</p><div class="bricks"></div><div class="cardbtns"><button data-a="l" title="Move down the ladder">◀</button><button data-a="r" title="Move up the ladder">▶</button></div>';
+ const box=el.querySelector(".bricks"),{prim,sec}=counts(k);
+ for(const [key,n] of prim){const [id,g]=key.split("|");box.appendChild(brick(piece("p",id,g),n,{t:"p",id}))}
+ for(const [id,n] of sec)box.appendChild(brick(piece("s",id),n,{t:"s",id}));
+ el.addEventListener("click",e=>{const a=e.target.dataset?.a;if(a){const j=state.kits.indexOf(k),t=a==="l"?j-1:j+1;if(t>=0&&t<state.kits.length){[state.kits[j],state.kits[t]]=[state.kits[t],state.kits[j]];changed()}return}state.selected=k.id;render()});
+ dropTarget(el,pl=>{for(let m=0;m<12;m++)apply(k,m,null,pl);state.selected=k.id;changed()});
+ return el}
+function slotEl(k,mi,which){const m=k.members[mi];const id=which==="primary"?m.primary:m[which];
+ const pc=id?piece(which==="primary"?"p":"s",id,m.grade):null;
+ const s=document.createElement("div");s.className="slot";
+ const w=document.createElement("div");w.className="wrapper";
+ w.appendChild(brick(pc,1,id?{t:which==="primary"?"p":"s",id}:null));
+ if(id&&which!=="primary"){const x=document.createElement("button");x.className="x";x.textContent="×";x.title="Clear";x.onclick=e=>{e.stopPropagation();m[which]=null;changed()};w.appendChild(x)}
+ s.appendChild(w);s.insertAdjacentHTML("beforeend",'<span class="nm">'+esc(pc?pc.name:"empty")+'</span><span class="slotlab">'+(which==="primary"?"primary":which==="special"?"secondary":"belt")+'</span>');
+ dropTarget(s,pl=>{apply(k,mi,which,pl);changed()});return s}
+function memberEl(k,mi){const m=k.members[mi],el=document.createElement("div");el.className="member";
+ const who=document.createElement("div");who.className="who";
+ const role=document.createElement("input");role.value=m.role;role.setAttribute("aria-label","Role");role.oninput=()=>{m.role=role.value;persist()};
+ const g=document.createElement("select");g.setAttribute("aria-label","Primary grade");GRADES.forEach(x=>{const o=document.createElement("option");o.value=x;o.textContent=x.toLowerCase();if(x===m.grade)o.selected=true;g.appendChild(o)});
+ g.onchange=()=>{m.grade=g.value;changed()};who.append(role,g);el.appendChild(who);
+ for(const w of ["primary","special","belt"])el.appendChild(slotEl(k,mi,w));
+ dropTarget(el,pl=>{apply(k,mi,null,pl);changed()});return el}
+function dropTarget(el,fn){let depth=0;
+ el.addEventListener("dragenter",e=>{e.preventDefault();e.stopPropagation();depth++;el.classList.add("over")});
+ el.addEventListener("dragover",e=>{e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect="copy"});
+ el.addEventListener("dragleave",e=>{e.stopPropagation();if(--depth<=0){depth=0;el.classList.remove("over")}});
+ el.addEventListener("drop",e=>{e.preventDefault();e.stopPropagation();depth=0;el.classList.remove("over");let pl;try{pl=JSON.parse(e.dataTransfer.getData("text/plain"))}catch{return}if(pl&&pl.t)fn(pl)})}
+/* A primary always sets the primary. A secondary lands where it is dropped; dropped on the member, it fills the secondary slot, and a thrown item goes to the belt once the secondary is taken. */
+function apply(k,mi,slot,pl){const m=k.members[mi];
+ if(pl.t==="p"){m.primary=pl.id;return}
+ const thrown=S[pl.id]&&S[pl.id].thrown;
+ if(slot==="belt"&&thrown){m.belt=pl.id;return}
+ if(slot){m.special=pl.id;return}
+ if(thrown&&m.special&&m.special!==pl.id&&!m.belt){m.belt=pl.id;return}
+ m.special=pl.id}
+function ladderOnly(){const lad=$("ladder"),s=lad.scrollLeft;lad.innerHTML="";state.kits.forEach((k,i)=>lad.appendChild(cardEl(k,i)));lad.scrollLeft=s}
+function render(){
+ $("legend").innerHTML=["BALLISTIC","ENERGY","MISSILE","UTILITY"].map(k=>'<span style="--t:var(--'+k+')">'+k.toLowerCase()+'</span>').join("");
+ const cp=$("cat-p"),cs=$("cat-s");cp.innerHTML=cs.innerHTML="";
+ for(const p of PRIMARIES){const t=document.createElement("div");t.className="tile";t.appendChild(brick(piece("p",p.id,"SERVICE"),1,{t:"p",id:p.id}));
+  t.insertAdjacentHTML("beforeend","<b>"+esc(p.name)+"</b><small>"+esc(p.stats)+"</small>");cp.appendChild(t)}
+ for(const s of SPECIALS){const t=document.createElement("div");t.className="tile";t.appendChild(brick(piece("s",s.id),1,{t:"s",id:s.id}));
+  t.insertAdjacentHTML("beforeend","<b>"+esc(s.name)+"</b><small>"+esc(s.note+(s.thrown?" · thrown":""))+"</small>");cs.appendChild(t)}
+ ladderOnly();
+ const k=kit(),kn=$("kname"),kd=$("kdesc");if(document.activeElement!==kn)kn.value=k.name;if(document.activeElement!==kd)kd.value=k.description;
+ const teams=$("teams");teams.innerHTML="";
+ for(let t=0;t<3;t++){const tm=document.createElement("div");tm.className="team";
+  tm.innerHTML="<h4><span>Team "+(t+1)+"</span><span>drop here to fill all four</span></h4>";
+  for(let j=0;j<4;j++)tm.appendChild(memberEl(k,t*4+j));
+  dropTarget(tm,pl=>{for(let j=0;j<4;j++)apply(k,t*4+j,null,pl);changed()});teams.appendChild(tm)}}
+function changed(){render();persist()}
+$("kname").oninput=e=>{kit().name=e.target.value;ladderOnly();persist()};
+$("kdesc").oninput=e=>{kit().description=e.target.value;ladderOnly();persist()};
+function slug(n){return "weapons:"+(n||"kit").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-|-$/g,"")}
+function uniqueId(base){let id=base,i=2;while(state.kits.some(k=>k.id===id))id=base+"-"+i++;return id}
+$("new").onclick=()=>{const members=Array.from({length:12},(_,i)=>({role:i%4===0?"Team Leader":"Rifleman",primary:"weapon.field-rifle",grade:"SURPLUS",special:null,belt:null}));
+ const k={id:uniqueId("weapons:new-kit"),name:"New Kit",description:"",members};state.kits.push(k);state.selected=k.id;changed()};
+$("dup").onclick=()=>{const k=clone(kit());k.name+=" copy";k.id=uniqueId(slug(k.name));state.kits.splice(state.kits.indexOf(kit())+1,0,k);state.selected=k.id;changed()};
+$("del").onclick=()=>{if(state.kits.length<2||!confirm("Delete \""+kit().name+"\"?"))return;state.kits.splice(state.kits.indexOf(kit()),1);state.selected=state.kits[0].id;changed()};
+$("reset").onclick=()=>{if(confirm("Replace all kits with the shipped ones?")){state=seedState();changed()}};
+function exported(){return JSON.stringify({kits:state.kits.map(k=>({id:k.id,name:k.name,description:k.description,members:k.members}))},null,1)}
+$("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([exported()],{type:"application/json"}));a.download="kits.json";a.click()};
+$("copy").onclick=async()=>{try{await navigator.clipboard.writeText(exported());$("status").textContent="Copied"}catch{const t=$("out");t.hidden=false;t.value=exported();t.select();$("status").textContent="Copy from the box below"}};
+$("import").onclick=()=>$("file").click();
+$("file").onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());if(!j.kits||!j.kits.every(k=>k.members&&k.members.length===12))throw 0;state={kits:j.kits,selected:j.kits[0].id};changed()}catch{$("status").textContent="Not a kits.json"}e.target.value=""};
+async function start(){await Promise.all(Object.entries(IMAGES).map(([k,v])=>new Promise(r=>{const i=new Image();i.onload=()=>{sizes[k]=[i.naturalWidth,i.naturalHeight];r()};i.onerror=r;i.src=v})));
+ state=load();render();
+ try{db=await (window.claude?.use?.("db")??null)}catch{}
+ if(db){try{const d=await db.doc("kits/state").get();const j=d&&(d.data?d.data():d);if(j&&j.json){state=JSON.parse(j.json);render()}}catch{}}
+ $("status").textContent=db?"Saves to this page":"Saved in this browser (export to keep)"}
+start();
+</script></body></html>
