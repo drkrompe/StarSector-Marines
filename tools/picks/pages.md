@@ -20,3 +20,4 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | Colony Breach coordinator (evac cordon, Asharu placement board) | https://claude.ai/artifact/3ak8D67UjrNmLsr7Zo7GUS (placement board: cordon, bores, objectives) |
 | Vehicle shared parts (engines, typed gun card, stance, turret art) | https://claude.ai/artifact/Rjh22zrwHUGwK4PAyZuFPp |
 | Side-objective interaction (world prompts and rail row buttons for the Dust Ledger's side objectives) | https://claude.ai/artifact/8jujynWvfs7s8c6pMD4zc8 |
+| Kit ladder (weapon and armour kit authoring, drag-and-drop onto marines; kit state in the page db) | https://claude.ai/artifact/LuCPJvBHLeTQG1CpXHRRbC |

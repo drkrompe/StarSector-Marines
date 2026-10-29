@@ -175,7 +175,9 @@ $("dup").onclick=()=>{const k=clone(kit());k.name+=" copy";k.id=uniqueId(slug(k.
 $("del").onclick=()=>{if(state.kits.length<2||!confirm("Delete \""+kit().name+"\"?"))return;state.kits.splice(state.kits.indexOf(kit()),1);state.selected=state.kits[0].id;changed()};
 $("reset").onclick=()=>{if(confirm("Replace all kits with the shipped ones?")){state=seedState();changed()}};
 function exported(){return JSON.stringify({kits:state.kits.map(k=>({id:k.id,name:k.name,description:k.description,members:k.members}))},null,1)}
-$("export").onclick=()=>{const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([exported()],{type:"application/json"}));a.download="kits.json";a.click()};
+$("export").onclick=async()=>{let dl=null;try{dl=await (window.claude?.use?.("downloads")??null)}catch{}
+ if(dl){try{await dl.save({filename:"kits.json",data:exported()})}catch{}return}
+ const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([exported()],{type:"application/json"}));a.download="kits.json";a.click()};
 $("copy").onclick=async()=>{try{await navigator.clipboard.writeText(exported());$("status").textContent="Copied"}catch{const t=$("out");t.hidden=false;t.value=exported();t.select();$("status").textContent="Copy from the box below"}};
 $("import").onclick=()=>$("file").click();
 $("file").onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());if(!j.kits||!j.kits.every(k=>k.members&&k.members.length===12))throw 0;state={kits:j.kits,selected:j.kits[0].id};changed()}catch{$("status").textContent="Not a kits.json"}e.target.value=""};
