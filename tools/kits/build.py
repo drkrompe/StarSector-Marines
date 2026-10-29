@@ -298,38 +298,75 @@ def main():
     tiers = {}
     for kind, name, tier in re.findall(r"(CHASSIS|WEAPON|VEHICLE|KIT)_TIERS\.put\(\w+\.(\w+),\s*EquipmentAccessTier\.(\w+)\)", pattern_src):
         tiers[(kind, name)] = tier
+    hw_src = (JAVA / "ops/battleview/HardwareArt.java").read_text(encoding="utf-8")
+    doll_src = (JAVA / "ops/battleview/DamageDollCanvas.java").read_text(encoding="utf-8")
+
+    def stems(source, anchor):
+        body = source[source.index(anchor):]
+        body = body[:body.index("};")]
+        out = {}
+        for names, stem in re.findall(r'case ([A-Z_0-9, ]+) -> "([a-z0-9-]+)";', body):
+            for n in names.split(","):
+                out[n.strip()] = stem
+        return out
+
+    weapon_stem = stems(hw_src, "private static String stem(MechWeaponComponent component)")
+    internal_stem = stems(hw_src, "private static String stem(MechInternal internal)")
+    vehicle_doll = stems(doll_src, "public static String dollPath(VehicleType type)")
+
+    def svg_uri(path, light=False):
+        data = (MOD / path).read_text(encoding="utf-8")
+        if light:
+            data = data.replace("currentColor", "#dbe5df")
+        return "data:image/svg+xml;base64," + base64.b64encode(data.encode("utf-8")).decode()
+
+    def weapon_tone(stem):
+        if any(k in stem for k in ("laser", "lance")):
+            return "ENERGY"
+        if any(k in stem for k in ("srm", "lrm", "rocket")):
+            return "MISSILE"
+        return "BALLISTIC"
+
     weight = {"COMMON": "light", "ADVANCED": "medium", "PRESTIGE": "heavy"}
     starters = {("CHASSIS", "HOUND"), ("WEAPON", "NOSE_CHAINGUN"), ("WEAPON", "SRM_5"), ("WEAPON", "SRM_5_FRAG")}
     items = {"hull": [], "mweapon": [], "mpart": []}
 
-    def item(ladder, kind, enum, name, sub, tier, seed_start=False):
+    def item(ladder, kind, enum, name, sub, tier, seed_start=False, icon=None, tone="DOLL"):
         items[ladder].append({"id": "%s:%s" % (kind.lower(), enum), "name": name, "sub": sub, "access": tier,
-                              "station": "start" if seed_start else "none"})
+                              "station": "start" if seed_start else "none", "icon": icon, "tone": tone})
 
     variants = re.findall(r'^\s+(\w+)\("[a-z-]+", "(@[^"]+)"', (JAVA / "battle/mech/MechVariant.java").read_text(encoding="utf-8"), re.M)
     for enum, key in variants:
         tier = tiers.get(("CHASSIS", enum))
         if tier:
-            item("hull", "CHASSIS", enum, text(key), "mech · " + weight[tier], tier, ("CHASSIS", enum) in starters)
+            item("hull", "CHASSIS", enum, text(key), "mech · " + weight[tier], tier, ("CHASSIS", enum) in starters,
+                 svg_uri("graphics/ui/dolls/mech-%s.svg" % enum.lower(), True))
     for enum in re.findall(r"^\s+(\w+)\(", (JAVA / "battle/vehicle/VehicleType.java").read_text(encoding="utf-8"), re.M):
         tier = tiers.get(("VEHICLE", enum))
         if tier:
-            item("hull", "VEHICLE", enum, text("@vehicleTypeName" + enum), "vehicle · " + weight[tier], tier)
+            item("hull", "VEHICLE", enum, text("@vehicleTypeName" + enum), "vehicle · " + weight[tier], tier,
+                 icon=svg_uri("graphics/ui/dolls/%s.svg" % vehicle_doll[enum], True) if enum in vehicle_doll else None)
     comps = re.findall(r'^\s+(\w+)\("component\.[^"]+",\s*"(@[^"]+)"(?:,\s*MountFamily\.(\w+))?',
                        (JAVA / "battle/mech/MechWeaponComponent.java").read_text(encoding="utf-8"), re.M)
     for enum, key, mount in comps:
         tier = tiers.get(("WEAPON", enum))
         if tier:
-            item("mweapon", "WEAPON", enum, text(key), (mount.lower() + " mount") if mount else "mech weapon", tier, ("WEAPON", enum) in starters)
+            item("mweapon", "WEAPON", enum, text(key), (mount.lower() + " mount") if mount else "mech weapon", tier, ("WEAPON", enum) in starters,
+                 svg_uri("graphics/ui/mech-hardware/%s.svg" % weapon_stem[enum]), weapon_tone(weapon_stem[enum]))
     internals = re.findall(r'^\s+(\w+)\("internal\.[^"]+", "(@[^"]+)", Role\.(\w+),\s*EquipmentAccessTier\.(\w+)',
                            (JAVA / "marine/MechInternal.java").read_text(encoding="utf-8"), re.M)
     starter_internals = {"INDUSTRIAL_ENGINE", "FACTORY_PLATING", "FACTORY_CAPACITOR_BANK", "STANDARD_LOADER"}
     for enum, key, role, tier in internals:
-        item("mpart", "INTERNAL", enum, text(key), role.lower().replace("_", " "), tier, enum in starter_internals)
+        internal_tone = {"ENGINE": "ENGINE", "PLATING": "ARMOR", "CAPACITOR_BANK": "FLUX"}.get(role, "UTILITY")
+        item("mpart", "INTERNAL", enum, text(key), role.lower().replace("_", " "), tier, enum in starter_internals,
+             svg_uri("graphics/ui/mech-hardware/%s.svg" % internal_stem[enum]), internal_tone)
     for enum, key in re.findall(r'^\s+(\w+)\("kit\.[^"]+", "(@[^"]+)"', (JAVA / "battle/vehicle/VehicleKit.java").read_text(encoding="utf-8"), re.M):
         tier = tiers.get(("KIT", enum))
         if tier:
-            item("mpart", "KIT", enum, text(key), "vehicle kit", tier)
+            kit_id = re.search(r'^\s+%s\("(kit\.[^"]+)"' % enum, (JAVA / "battle/vehicle/VehicleKit.java").read_text(encoding="utf-8"), re.M).group(1)
+            item("mpart", "KIT", enum, text(key), "vehicle kit", tier, False,
+                 svg_uri("graphics/ui/mech-hardware/%s.svg" % kit_id.replace(".", "-")),
+                 "FLUX" if enum == "CAPACITOR_PACK" else "UTILITY" if enum in ("READY_RACK", "ACCELERATED_LOADER") else "AUX")
     for lst in items.values():
         lst.sort(key=lambda x: (x["name"]))
 

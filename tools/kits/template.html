@@ -4,7 +4,7 @@
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
 :root{--bg:#f3f1f6;--surface:#fff;--ink:#221d2b;--muted:#6c6478;--line:#ddd7e5;--accent:#7a4fa8;--accent-soft:#ece3f6;--warn:#a85a00;
- --BALLISTIC:#e2c248;--ENERGY:#e06a3c;--MISSILE:#6cc45e;--UTILITY:#4cb4a6;--EMPTY:#a4a8a0;--ARMOR:#a4a8a0;--SYSTEM:#a07edc;
+ --BALLISTIC:#e2c248;--ENERGY:#e06a3c;--MISSILE:#6cc45e;--UTILITY:#4cb4a6;--EMPTY:#a4a8a0;--ARMOR:#a4a8a0;--SYSTEM:#a07edc;--ENGINE:#5e96d2;--FLUX:#a07edc;--AUX:#8aa4b8;--DOLL:#2b3330;
  --t-COMMON:#6c6478;--t-ADVANCED:#2f7fb5;--t-PRESTIGE:#b0802a;--t-RESTRICTED:#b03a3a;
  --display:"Chakra Petch","Segoe UI",system-ui,sans-serif;--body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace}
 @media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17141c;--surface:#211d28;--ink:#ece8f2;--muted:#a79fb4;--line:#3a3346;--accent:#b996e0;--accent-soft:#33284a;--warn:#e0a050;--t-COMMON:#a79fb4;--t-ADVANCED:#6bb4e8;--t-PRESTIGE:#e0b860;--t-RESTRICTED:#e87878;color-scheme:dark}}
@@ -45,7 +45,7 @@ input,select{background:var(--surface);border:1px solid var(--line);border-radiu
 .chip.sel{border-color:var(--accent);background:var(--accent-soft)}
 .chip b{font:600 12px/1.2 var(--display);display:flex;gap:5px;align-items:flex-start;justify-content:space-between}
 .chip .open{font-size:11px;padding:2px 6px;justify-self:start}.chip .mini{display:flex;flex-wrap:wrap;gap:3px}.chip .mini .brick{zoom:.5}
-.chip.item{padding:4px 5px;gap:2px;cursor:grab}.chip.item b{font:600 11px/1.2 var(--display)}.chip.item small{color:var(--muted);font-size:10px}
+.chip.item{padding:4px 5px;gap:3px;cursor:grab;grid-template-columns:auto 1fr;align-items:center}.chip.item .ico{width:46px;height:46px;border-radius:5px;display:grid;place-items:center;overflow:hidden;background:linear-gradient(180deg,color-mix(in srgb,var(--t) 78%,#fff 22%),color-mix(in srgb,var(--t) 52%,#101311));border:1px solid var(--t)}.chip.item .ico img{max-width:100%;max-height:100%;display:block}.chip.item .txt{display:grid;gap:2px;min-width:0}.chip.item b{font:600 11px/1.2 var(--display)}.chip.item small{color:var(--muted);font-size:10px}
 .itembar{margin-top:8px;font-size:12px;display:grid;gap:3px}
 .over{outline:2px dashed var(--accent);outline-offset:-2px;background:var(--accent-soft)!important}
 /* editor */
@@ -180,7 +180,7 @@ function renderTimeline(){const tl=$("tl");tl.innerHTML="";const g=document.crea
   for(const s of STATIONS){const c=add("cell","");c.dataset.l=l;c.dataset.s=s.id;
    const here=ITEMS[l].filter(it=>(state.place[it.id]||"none")===s.id).sort((a,b)=>RANK[a.access]-RANK[b.access]||a.name.localeCompare(b.name));
    for(const it of here){const ch=document.createElement("div");ch.className="chip item"+(state.selItem&&state.selItem.id===it.id?" sel":"");ch.draggable=true;
-    ch.innerHTML="<b><span>"+esc(it.name)+"</span>"+tb(it.access)+"</b><small>"+esc(it.sub)+"</small>";
+    ch.innerHTML=(it.icon?'<span class="ico" style="--t:var(--'+it.tone+')"><img src="'+it.icon+'" alt=""></span>':"")+'<span class="txt"><b><span>'+esc(it.name)+"</span>"+tb(it.access)+"</b><small>"+esc(it.sub)+"</small></span>";
     ch.addEventListener("dragstart",e=>{e.dataTransfer.setData("text/plain",JSON.stringify({t:"item",l,id:it.id}));e.dataTransfer.effectAllowed="copyMove"});
     ch.onclick=()=>{state.selItem={l,id:it.id};renderTimeline();renderItemBar()};c.appendChild(ch)}
    dropTarget(c,pl=>{if(pl.t!=="item"||pl.l!==l)return say("Licences stay in their own ladder.");state.place[pl.id]=s.id;state.selItem={l,id:pl.id};changed()})}}
@@ -188,7 +188,7 @@ function renderTimeline(){const tl=$("tl");tl.innerHTML="";const g=document.crea
 function renderItemBar(){const el=$("itembar");const sel=state.selItem;const it=sel&&ITEMS[sel.l].find(x=>x.id===sel.id);
  if(!it){el.innerHTML='<span class="hint">Click a licence chip to see its gate and where the store sells it.</span>';return}
  const st=ST[state.place[it.id]||"none"];
- el.innerHTML="<div><b>"+esc(it.name)+"</b> · "+esc(it.sub)+" "+tb(it.access)+"</div><div>Gate: "+esc(GATE[it.access])+"</div><div>"+(state.place[it.id]&&state.place[it.id]!=="none"?"Store sells it after <b>"+esc(st.name)+"</b> · "+esc(st.group)+". "+esc(st.note):"Not placed: only the ordinary store, licence and recovery routes reach it.")+"</div>"
+ el.innerHTML=(it.icon?'<div><span class="ico" style="--t:var(--'+it.tone+');display:inline-grid;width:72px;height:72px;border-radius:6px;place-items:center;border:1px solid var(--t);background:color-mix(in srgb,var(--t) 60%,#101311)"><img src="'+it.icon+'" alt="" style="max-width:100%;max-height:100%"></span></div>':"")+"<div><b>"+esc(it.name)+"</b> · "+esc(it.sub)+" "+tb(it.access)+"</div><div>Gate: "+esc(GATE[it.access])+"</div><div>"+(state.place[it.id]&&state.place[it.id]!=="none"?"Store sells it after <b>"+esc(st.name)+"</b> · "+esc(st.group)+". "+esc(st.note):"Not placed: only the ordinary store, licence and recovery routes reach it.")+"</div>"
  +(RANK[it.access]>=1&&!["none","start"].includes(state.place[it.id]||"none")&&!String(state.place[it.id]).startsWith("wins")&&!String(state.place[it.id]).startsWith("post-alpha")?'<div class="w" style="color:var(--warn)">An authored store listing: it skips the '+(it.access==="RESTRICTED"?"warrant":it.access.toLowerCase()+" licence")+" gate at that mission.</div>":"")}
 /* editor */
 function slotEl(k,mi,which){const m=k.members[mi],armor=which==="armor";const id=which==="primary"?m.primary:m[which];
