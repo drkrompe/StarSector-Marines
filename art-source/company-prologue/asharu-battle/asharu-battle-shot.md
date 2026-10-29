@@ -532,10 +532,10 @@ the traffic's density and whether the edit follows the radio.
 
 It is **voiced**: an in-universe cast, which the game otherwise never has.
 
-**The final script is a writer's job, not the blockout's** (owner, 2026-10-22: a Fable writer
-session writes the battle's comms log). The lines below are a draft. They exist to time the edit
-and to show where the traffic falls. Lines marked *placeholder* only hold a gap's timing and are
-not dialogue to keep. The writer needs three things, all here:
+**The script is the voiced draft** worked out with the owner line by line on the Battle Cut page
+(2026-10-28), each line voiced (ElevenLabs) and placed against its take; `radio_log.TRAFFIC` holds it,
+and the table below is that list. It replaced the first draft, written only to time the edit. It
+was written to three things, all here:
 - **the shot timings, locked** (owner, 2026-10-22, approving the r10 key frames): the "Shot list"
   table above, where sequence time is battle time (S0 0-10 s through S13 138-151 s). Shot lengths
   and cut points stay as they are. **The comms are written to fit the locked cuts; the edit no
@@ -591,47 +591,47 @@ Rules:
 
 | Shot | t (s) | Speaker | Line |
 |---|---|---|---|
-| S1 | 1.8-6.4 | CARAVEL | All Caravel ships, Caravel. Window opens in forty. Ease to two-thirds. |
-| S1 | 6.9-9.7 | WARDEN LEAD | Warden Lead copies. Wardens, close up the column. |
-| S1 | 16.8-18.6 | WARDEN TWO | Two, on station. *(placeholder)* |
-| S1 | 20.2-22.4 | ALBERTVILLE | Albertville, two-thirds, aye. *(placeholder)* |
-| S2 | 24.6-28.6 | MORROW | Caravel, Morrow. Standing off your starboard quarter. Drones stowed. |
-| S3 | 31.2-34.0 | BARON | Hold. ... Hold. ... Light them. |
-| S4 | 38.6-41.6 | WARDEN FIVE | Lead, Five. Drives behind us. Low, off that old station. A lot of them. |
-| S4 | 41.9-42.6 | WARDEN LEAD | Say again. |
-| S4 | 42.9-43.9 | WARDEN FIVE | Eleven. Climbing. |
-| S5 | 44.4-46.9 | WARDEN LEAD | Wardens, come about. Caravel, full burn, now. |
-| S5 | 47.2-49.8 | CARAVEL | We're committed to the window. We can't outrun them from here. |
-| S6 | 51.0-53.2 | BATORY | Batory, we're hit, we're venting, we're — |
-| S6 | 54.5-56.6 | WARDEN LEAD | Lead turning back. Cover the tail. |
-| S6b | 58.4-60.6 | WARDEN THREE | Three, rolling in. Four, take her left. |
-| S6b | 61.0-62.6 | WARDEN FOUR | She's got no shield. Hit her. |
-| S6b | 63.0-65.6 | WARDEN THREE | Feeders on. ... She's breaking up. One down. |
-| S6c | 66.4-68.4 | THYSVILLE | Two frigates in the gap! They're in the column! |
-| S6c | 68.8-71.4 | WARDEN FOUR | Shields up, they blinked, where — there, they're on the Sobieski! |
-| S6c | 71.8-73.9 | SOBIESKI | Taking fire aft, flux at ninety, I can't hold the shield — |
-| S6d | 74.4-76.6 | WARDEN FIVE | Two on me. ... Got one. Got one! |
-| S6d | 77.4-79.6 | WARDEN FIVE | Drives hit. Falling back on the column. Flares out. |
-| S7 | 80.8-83.8 | LATCH | Sobieski. Open your locks and you all walk away. |
-| S7 | 84.4-87.0 | SOBIESKI | Drives are gone. They're alongside. Boarders, boarders — |
-| S8 | 88.6-91.0 | CARAVEL | Port pod's gone. Morrow, get under us. |
-| S8 | 91.8-93.6 | THYSVILLE | Thysville, flux at sixty, holding. *(placeholder)* |
-| S9 | 94.4-96.0 | MORROW | Under you. Taking the weight. |
-| S9 | 96.4-98.0 | MORROW | Borers out. *(placeholder)* |
-| S9 | 98.6-101.2 | HOOK | Caravel. Heave to. You're next. |
-| S9b | 102.4-104.6 | WARDEN LEAD | Lead. One more pass. On their flagship. |
-| S9b | 105.0-106.6 | BARON | Shield up. ... Shield's overloading — |
-| S9b | 106.9-107.9 | WARDEN LEAD | She's open. She's open! |
-| S9b | 108.2-109.9 | BARON | Broadside. Burn that frigate off my hull. |
-| S10 | 110.4-113.4 | BARON | Let her go. She's going down anyway. Take the Sobieski. |
-| S10 | 113.9-116.0 | CARAVEL | We're losing the orbit. Morrow, break off. |
-| S10 | 116.4-117.4 | MORROW | Staying with you. |
-| S11 | 119.0-121.4 | CARAVEL | Caravel, hull temperature climbing. *(placeholder)* |
-| S11 | 121.8-123.6 | MORROW | Morrow, losing you in the — *(placeholder)* |
+| S1 | 1.8-7.92 | CARAVEL | All escorts, Caravel. Window opens in forty. Enjoy the view before deep space. |
+| S1a | 10-12.94 | WARDEN LEAD | Nothing but void and the odd picket from here. |
+| S1 | 16-21.43 | WARDEN TWO | Ha more picket "ping" to drive me crazy. Guess they keep us honest. |
+| S2 | 24.6-30.17 | MORROW | Caravel, Morrow. Standing off your starboard quarter. Long ride even to the jump point. |
+| S4 | 37.6-41.65 | WARDEN FIVE | Scanners picking up new contacts behind us. No identification. |
+| S4 | 42-42.67 | WARDEN LEAD | Say again? |
+| S5 | 44.9-49.7 | WARDEN LEAD | Wardens, come about! Caravel, full burn for the nearest picket, now! |
+| S5 | 48.38-50 | WARDEN FIVE | Launch, launch! |
+| S5 | 50.15-53.81 | WARDEN FIVE | Missiles inbound! Twelve! Point defence, now! |
+| S6 | 53.3-54.45 | WARDEN TWO | Two's hit! |
+| S6 | 53.8-56.42 | BATORY | Batory, we're hit, we're venting, we're — |
+| S6 | 56.99-59 | WARDEN LEAD | Lead turning back. Cover the — |
+| S6b | 58-61.77 | WARDEN THREE | Three, rolling in. Four, take her left. |
+| S6b | 60.6-62.39 | WARDEN FOUR | No shield. Hit her! |
+| S6b | 61.92-62.97 | WARDEN THREE | Feeders on! |
+| S6b | 63.12-65.18 | WARDEN THREE | She's breaking up! One down! |
+| S6c | 66.4-69.16 | THYSVILLE | Wolf coming in! Another on the far side! |
+| S6c | 69.1-74.09 | WARDEN FOUR | Shields up, she blinked — where — there, she's right on them! |
+| S6c | 69.8-76.09 | SOBIESKI | Taking fire aft! Flux at ninety, can't hold shield and guns — drives! We've lost drives! |
+| S6c | 72.6-75.17 | THYSVILLE | She's through the gap! She's in the column! |
+| S6d | 74.3-75.04 | WARDEN FIVE | Two on me — |
+| S6d | 76.9-78.36 | WARDEN FIVE | Got one! Got — |
+| S7 | 81.21-84.44 | WARDEN FIVE | Shuttles going past me! They're heading for the Sobieski! |
+| S7 | 82-85.32 | CARAVEL | That big freighter's armed! She's coming down on us! |
+| S7 | 84.9-90.11 | SOBIESKI | Boarding craft! Security, marines topside, repel boarders! Boarders — |
+| S8 | 88.4-92.6 | CARAVEL | Taking fire on the port pod! Morrow, keep pressure with the drones! |
+| S9 | 91.6-93.59 | MORROW | Under you. Borers are out — |
+| S9 | 93.4-96.32 | CARAVEL | Flares, flares! Missiles on the pod — |
+| S9 | 96.47-99.21 | CARAVEL | Pod's gone! Turrets on that freighter! |
+| S9 | 96.6-99.01 | MORROW | Destroyer's venting — she's breaking off! |
+| S9 | 99.36-102.34 | CARAVEL | She's putting out grapples. Keep the turrets on her! |
+| S9b | 104.91-107.6 | WARDEN LEAD | Her shield's down! Keep on her, make them back off — I'm — |
+| S10 | 110.4-113.35 | SOBIESKI | They're in the hold — Caravel, they've got us — |
+| S10 | 112.4-117.27 | CARAVEL | We're losing thrust, we're in the well, we're going down. Morrow, break off. |
+| S10 | 116.4-118.05 | MORROW | Staying with you. |
+| S11 | 118.2-124.8 | CARAVEL | Hull temperature's climbing — helm, hold forty degrees angle of attack, belly to the burn! Don't let her nose — |
 | S11 | 124.5- | | static; the plasma takes the channel; CARAVEL and MORROW drop out |
-| S13 | 139.2-142.4 | THYSVILLE | All Caravel ships, Thysville. Who is still with me? |
-| S13 | 143.0-145.4 | WARDEN THREE | Warden Three. Still here. The column is scattered. |
-| S13 | 145.9-148.6 | WARDEN THREE | Nothing from Caravel or the Morrow. ... They're not chasing. Looks like they're happy with what they caught. |
+| S11 | 125-127.54 | MORROW | Come again Caravel losing your signal in the — |
+| S12 | 130-137.11 | THYSVILLE | All ships this is Thysville. Regroup on me, we need to tighten formation. Helm what's the pirates heading? |
+| S13 | 139-145.14 | WARDEN THREE | This is Three. We're scattered, ships going down. Do we go back for Caravel? Morrow? |
+| S13 | 146-151.6 | THYSVILLE | Negative, we don't have the numbers. We form up and continue burn for the nearest picket. |
 | S13 | ~145.5 / 153.4 | | NOT ESCALATED; ARCHIVED |
 
 Open for the owner:
@@ -782,9 +782,9 @@ One line each, with its owner. Keep this list current, and remove an item when i
   we're good"): S8-S9 (k4) with the Borers' mining lasers (`swfx_mining`) re-rendered and shown; S3/S4
   (k1b, k2) shown; the S12 lit span shown. Then the final render plan (24 fps, layered, per-shot chunk
   jobs on the final lane), which waits for the render coordinator's gate and the owner. Blockout session.
-- **The final comms script.** Fable writer session; the timings are locked (owner, 2026-10-22), so
-  it can start. It replaces `radio_log.TRAFFIC`, including its placeholder lines (see "Radio traffic
-  (draft)"), and blocks no render.
+- **The comms script.** The voiced draft is in `radio_log.TRAFFIC` (see "Radio traffic (draft)");
+  the owner is still refining lines and takes on the Battle Cut page, and each change there is
+  carried back here. It blocks no render.
 - **The wreck kit is swapped in** for lit renders (`roster.WRECKS`, `builds/asharu-wrecks/33513e7f8`,
   pinned by sha256): the station as one modelled piece, and each box filled by `wreck_kit.pick`.
   The motion preview, and `--blockout-wrecks`, keep the stand-ins. `--check` reports the kit:

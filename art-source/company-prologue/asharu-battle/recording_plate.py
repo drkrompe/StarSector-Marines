@@ -160,7 +160,7 @@ SLATE_OUT_TYPE = 158.4
 TUNE_OUT = (161.0, 161.9)
 ROLL_LOCK_S = 1.0               # S0: after the tube opens, the picture rolls and the snow clears, this long
 LIST_GONE_S = ARCHIVE_S + .7
-TAP_CLOSE_S = 148.8
+TAP_CLOSE_S = radio_log.CLOSING[-1][3] + .2    # S13: the tap closes as the last survivor's line ends
 ADVISED_S = 150.2               # S13, on Corvus: the patrol route redrawn, Asharu left outside it
 
 # The query log: (t typed, call, answer, kind). The terminal's lookups; their answers move the numbers.
