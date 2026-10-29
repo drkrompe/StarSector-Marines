@@ -76,6 +76,27 @@ public final class MechHardpointGeometry {
         };
     }
 
+    /**
+     * Where every laser's muzzle stands on the centreline mount, in hull widths: level with the heavy laser, which is
+     * the one that shows past the nose cowl, so each size of the ladder pokes out of it the same distance.
+     */
+    private static final float CENTRELINE_LASER_TIP = 0.60f;
+
+    /**
+     * How far forward a laser's drawing is set on the centreline mount, in hull widths, so its muzzle is at
+     * {@link #CENTRELINE_LASER_TIP}: the shorter lasers are drawn short and would end inside the nose cowl. Zero for
+     * the heavy lasers and every other gun, which end where they are drawn.
+     */
+    public static float centrelineDrawingShift(int armsAppearance) {
+        return switch (armsAppearance) {
+            case LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER,
+                 LayeredMechAppearance.ARMS_LIGHT_BURST_LASER -> CENTRELINE_LASER_TIP - 0.37f;
+            case LayeredMechAppearance.ARMS_PD_LASER,
+                 LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER -> CENTRELINE_LASER_TIP - 0.51f;
+            default -> 0f;
+        };
+    }
+
     /** Muzzle forward of a gun on the centreline mount. */
     private static float centrelineForward(int armsAppearance) {
         return switch (armsAppearance) {
@@ -88,13 +109,11 @@ public final class MechHardpointGeometry {
             case LayeredMechAppearance.ARMS_LINEAR_CANNON -> 0.61f;
             case LayeredMechAppearance.ARMS_PULSE_LASER -> 0.49f;
             case LayeredMechAppearance.ARMS_BASTION_AUTOCANNON -> 0.59f;
-            case LayeredMechAppearance.ARMS_LIGHT_MG,
-                 LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER,
-                 LayeredMechAppearance.ARMS_LIGHT_BURST_LASER -> 0.37f;
-            case LayeredMechAppearance.ARMS_BURST_LASER,
-                 LayeredMechAppearance.ARMS_HEAVY_PD_LASER -> 0.60f;
-            case LayeredMechAppearance.ARMS_PD_LASER,
-                 LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER -> 0.51f;
+            case LayeredMechAppearance.ARMS_LIGHT_MG -> 0.37f;
+            case LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER, LayeredMechAppearance.ARMS_LIGHT_BURST_LASER,
+                 LayeredMechAppearance.ARMS_BURST_LASER, LayeredMechAppearance.ARMS_HEAVY_PD_LASER,
+                 LayeredMechAppearance.ARMS_PD_LASER, LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER ->
+                    CENTRELINE_LASER_TIP;
             default -> Float.NaN;
         };
     }

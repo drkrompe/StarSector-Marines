@@ -53,7 +53,7 @@ public final class MechLaserLineupSnapshotSuite implements SnapshotSuite {
         lineup(context, MechVariant.BULWARK, ARM_LINE, ARM_NAMES, new SocketId[] {SocketId.LEFT_ARM, SocketId.RIGHT_ARM},
                 2, 7, 5, new float[] {13.5f, 8.4f, 19f}, "both arms", artifacts);
         lineup(context, MechVariant.WARDEN, NOSE_LINE, NOSE_NAMES, new SocketId[] {SocketId.ARMS},
-                3, 5, 5, new float[] {15f, 9.1f, 16.5f}, "the nose", artifacts);
+                3, 5, 5, new float[] {15f, 9.4f, 16.5f}, "the nose", artifacts);
         return List.copyOf(artifacts);
     }
 

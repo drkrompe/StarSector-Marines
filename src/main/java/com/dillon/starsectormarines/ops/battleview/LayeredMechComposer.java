@@ -294,7 +294,7 @@ final class LayeredMechComposer {
                     || gun == LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN
                     || gun == LayeredMechAppearance.ARMS_MUSTER_AUTOGUN ? -0.02f : -0.05f;
             emitFromRearPivot(out, sprite, actorX, actorY, hullWidth, facingDeg,
-                    0f, pivot + recoil, 1f, 0f, alpha);
+                    0f, pivot + MechHardpointGeometry.centrelineDrawingShift(gun) + recoil, 1f, 0f, alpha);
         }
     }
 
