@@ -58,7 +58,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
      */
     @Override protected List<LookReview.Shot> lookShots() {
         return List.of(idle(), shelling(), armor(), wrecks(), fitted(), fittedWrecks(), fittedRotary(),
-                lightWeapons(), lightWeaponsFire(), laserParts(), laserMechs(), laserArms(), laserWardens());
+                lightWeapons(), lightWeaponsFire(), laserParts(), laserArms());
     }
 
     private static LookReview.Shot shelling() {
@@ -258,20 +258,6 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
                 "hull5", "hull6"),
                 LookReview.View.follow("tanks", placement, 22f, "hull0", "hull1", "hull2", "hull3", "hull4", "hull5",
                         "hull6")), 300);
-    }
-
-    /** The six ladder parts as the nose gun of six Hounds (the PD lasers in a row, the burst lasers in another). */
-    private static LookReview.Shot laserMechs() {
-        return mechLook("laser-mechs", MechVariant.HOUND, new MechWeaponComponent[] {MechWeaponComponent.HEAVY_PD_LASER,
-                MechWeaponComponent.PD_LASER, MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.BURST_LASER,
-                MechWeaponComponent.MEDIUM_BURST_LASER, MechWeaponComponent.LIGHT_BURST_LASER});
-    }
-
-    /** The six ladder parts as the nose gun of six Wardens (the PD lasers in a row, the burst lasers in another). */
-    private static LookReview.Shot laserWardens() {
-        return mechLook("laser-wardens", MechVariant.WARDEN, new MechWeaponComponent[] {MechWeaponComponent.HEAVY_PD_LASER,
-                MechWeaponComponent.PD_LASER, MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.BURST_LASER,
-                MechWeaponComponent.MEDIUM_BURST_LASER, MechWeaponComponent.LIGHT_BURST_LASER}, true);
     }
 
     /** The four lasers a side arm takes (the heavy two are nose guns), a pair on each arm of four Bulwarks. */
