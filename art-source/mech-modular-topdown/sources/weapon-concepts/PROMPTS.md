@@ -287,3 +287,15 @@ retained that field, so the accepted isolation edit used this stronger handoff:
 `clean_imagegen_backgrounds.py` then converted only that uniform isolation
 plate to real alpha. The cleaned result is the retained geometry authority for
 `pioneer-rocket-cradle.png`.
+
+# Light weapon options (vehicle gun cards, small 1x2 class)
+
+Generated through `tools/codex_imagegen.py` on 2026-10-28 for the small omni gun card (`vehicle-card-sizes.md`):
+two design options each of a light machine gun and a light pulse laser (arm guns) and a light rocket pod
+(shoulder), retained beside their provenance under `light-options/` (`lmg-a`, `lmg-b`, `laser-a`, `laser-b`,
+`pod-a`, `pod-b`). Each is a lighter, simpler weapon than its shipped counterpart, at roughly 55 to 65 percent of
+its width and 70 to 80 percent of its length, drawn on the strict-zenith prompt block of `README.md` on a white
+isolation plate. The full prompt, references and their roles are in each `.provenance.json`. The first `pod-b`
+request was refused by the image tool's safety check and was reissued with "launch tubes" and "utility
+launcher" wording. These are options awaiting the owner's pick; the accepted ones go on to a material-ID pass and
+registration, and the rest are deleted.
