@@ -293,10 +293,50 @@ def main():
         kit["station"] = PLACED.get(kit["id"], "none")
         kit["grant"] = "free-pick" if kit["id"] in FREE_PICK else "sale"
 
+    # Machine licences: one chip per pattern the store can teach, tiered by MechPattern's own tables.
+    pattern_src = (JAVA / "marine/MechPattern.java").read_text(encoding="utf-8")
+    tiers = {}
+    for kind, name, tier in re.findall(r"(CHASSIS|WEAPON|VEHICLE|KIT)_TIERS\.put\(\w+\.(\w+),\s*EquipmentAccessTier\.(\w+)\)", pattern_src):
+        tiers[(kind, name)] = tier
+    weight = {"COMMON": "light", "ADVANCED": "medium", "PRESTIGE": "heavy"}
+    starters = {("CHASSIS", "HOUND"), ("WEAPON", "NOSE_CHAINGUN"), ("WEAPON", "SRM_5"), ("WEAPON", "SRM_5_FRAG")}
+    items = {"hull": [], "mweapon": [], "mpart": []}
+
+    def item(ladder, kind, enum, name, sub, tier, seed_start=False):
+        items[ladder].append({"id": "%s:%s" % (kind.lower(), enum), "name": name, "sub": sub, "access": tier,
+                              "station": "start" if seed_start else "none"})
+
+    variants = re.findall(r'^\s+(\w+)\("[a-z-]+", "(@[^"]+)"', (JAVA / "battle/mech/MechVariant.java").read_text(encoding="utf-8"), re.M)
+    for enum, key in variants:
+        tier = tiers.get(("CHASSIS", enum))
+        if tier:
+            item("hull", "CHASSIS", enum, text(key), "mech · " + weight[tier], tier, ("CHASSIS", enum) in starters)
+    for enum in re.findall(r"^\s+(\w+)\(", (JAVA / "battle/vehicle/VehicleType.java").read_text(encoding="utf-8"), re.M):
+        tier = tiers.get(("VEHICLE", enum))
+        if tier:
+            item("hull", "VEHICLE", enum, text("@vehicleTypeName" + enum), "vehicle · " + weight[tier], tier)
+    comps = re.findall(r'^\s+(\w+)\("component\.[^"]+",\s*"(@[^"]+)"(?:,\s*MountFamily\.(\w+))?',
+                       (JAVA / "battle/mech/MechWeaponComponent.java").read_text(encoding="utf-8"), re.M)
+    for enum, key, mount in comps:
+        tier = tiers.get(("WEAPON", enum))
+        if tier:
+            item("mweapon", "WEAPON", enum, text(key), (mount.lower() + " mount") if mount else "mech weapon", tier, ("WEAPON", enum) in starters)
+    internals = re.findall(r'^\s+(\w+)\("internal\.[^"]+", "(@[^"]+)", Role\.(\w+),\s*EquipmentAccessTier\.(\w+)',
+                           (JAVA / "marine/MechInternal.java").read_text(encoding="utf-8"), re.M)
+    starter_internals = {"INDUSTRIAL_ENGINE", "FACTORY_PLATING", "FACTORY_CAPACITOR_BANK", "STANDARD_LOADER"}
+    for enum, key, role, tier in internals:
+        item("mpart", "INTERNAL", enum, text(key), role.lower().replace("_", " "), tier, enum in starter_internals)
+    for enum, key in re.findall(r'^\s+(\w+)\("kit\.[^"]+", "(@[^"]+)"', (JAVA / "battle/vehicle/VehicleKit.java").read_text(encoding="utf-8"), re.M):
+        tier = tiers.get(("KIT", enum))
+        if tier:
+            item("mpart", "KIT", enum, text(key), "vehicle kit", tier)
+    for lst in items.values():
+        lst.sort(key=lambda x: (x["name"]))
+
     stations = [{"id": s[0], "name": s[1], "group": s[2], "note": s[3]} for s in STATIONS]
     page = (Path(__file__).with_name("template.html")).read_text(encoding="utf-8")
     for key, value in (("__PRIMARIES__", primaries), ("__SPECIALS__", specials), ("__KITS__", kits),
-                       ("__ARMORKITS__", armor_kits), ("__STATIONS__", stations), ("__ARMORS__", armors), ("__SYSTEMS__", list(systems.values())),
+                       ("__ARMORKITS__", armor_kits), ("__STATIONS__", stations), ("__ARMORS__", armors), ("__ITEMS__", items), ("__SYSTEMS__", list(systems.values())),
                        ("__IMAGES__", images)):
         page = page.replace(key, json.dumps(value, ensure_ascii=False))
     if artifact:
@@ -305,8 +345,8 @@ def main():
     out = Path(argv[0]) if argv else ROOT / "build/kits/kit-ladder.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(page, encoding="utf-8")
-    print("wrote %s: %d primaries, %d secondaries, %d suits, %d weapon cards, %d equipment cards, %.0f KB" % (
-        out, len(primaries), len(specials), len(armors), len(kits), len(armor_kits), out.stat().st_size / 1024))
+    print("wrote %s: %d primaries, %d secondaries, %d suits, %d weapon cards, %d equipment cards, machine licences %s, %.0f KB" % (
+        out, len(primaries), len(specials), len(armors), len(kits), len(armor_kits), {k: len(v) for k, v in items.items()}, out.stat().st_size / 1024))
 
 
 if __name__ == "__main__":

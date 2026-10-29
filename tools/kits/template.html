@@ -45,6 +45,8 @@ input,select{background:var(--surface);border:1px solid var(--line);border-radiu
 .chip.sel{border-color:var(--accent);background:var(--accent-soft)}
 .chip b{font:600 12px/1.2 var(--display);display:flex;gap:5px;align-items:flex-start;justify-content:space-between}
 .chip .open{font-size:11px;padding:2px 6px;justify-self:start}.chip .mini{display:flex;flex-wrap:wrap;gap:3px}.chip .mini .brick{zoom:.5}
+.chip.item{padding:4px 5px;gap:2px;cursor:grab}.chip.item b{font:600 11px/1.2 var(--display)}.chip.item small{color:var(--muted);font-size:10px}
+.itembar{margin-top:8px;font-size:12px;display:grid;gap:3px}
 .over{outline:2px dashed var(--accent);outline-offset:-2px;background:var(--accent-soft)!important}
 /* editor */
 .studio{display:grid;grid-template-columns:340px minmax(0,1fr) 350px;gap:14px;align-items:start}
@@ -75,10 +77,10 @@ textarea#out{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--m
 @media (max-width:1100px){.studio{grid-template-columns:minmax(0,1fr)}.right{position:static;max-height:none;order:-1}}
 </style></head><body><div class="wrap">
 <header><h1>Kit Ladder</h1>
-<p class="lead">Two separate card ladders: weapon cards (primaries and secondaries) and Equipment cards (armour). Drag a card along the Alpha mission timeline to set when it goes on sale in the store. Only Relief has a free pick; every other unlock is a store sale. Select a card to edit it: drag inventory pieces onto individual marines and the preview card updates as it draws on the Barracks loadout page.</p></header>
+<p class="lead">Separate ladders: weapon cards (primaries and secondaries), Equipment cards (armour), and licence rows for mech and vehicle hulls, mech weapons and parts. Drag a card along the Alpha mission timeline to set when it goes on sale in the store. Only Relief has a free pick; every other unlock is a store sale. Select a card to edit it: drag inventory pieces onto individual marines and the preview card updates as it draws on the Barracks loadout page.</p></header>
 <div class="bar"><button class="primary" id="new-weapon">New weapon card</button><button class="primary" id="new-armor">New armor card</button>
 <span class="sp"></span><span class="status" id="status"></span><button id="export">Download kits.json</button><button id="copy">Copy JSON</button><button id="import">Import…</button><button id="reset">Reset to shipped cards</button><input type="file" id="file" accept=".json" hidden></div>
-<section id="ladderview"><h2>Unlock ladder · drag a card to the mission after which the store sells it · Open edits a card</h2><div class="tl" id="tl"></div></section>
+<section id="ladderview"><h2>Unlock ladder · drag a card to the mission after which the store sells it · Open edits a card</h2><div class="tl" id="tl"></div><div class="itembar" id="itembar"></div></section>
 <div id="cardview" hidden class="wrap" style="padding:0;gap:18px">
 <div class="bar"><button class="primary" id="back">← Back to ladder</button><b id="cvname" style="font:600 18px var(--display)"></b><span class="sp"></span><button id="dup">Duplicate</button><button id="del">Delete</button></div>
 <div class="studio">
@@ -98,7 +100,8 @@ textarea#out{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--m
 <textarea id="out" hidden></textarea>
 </div>
 <script>
-const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED_W=__KITS__,SEED_A=__ARMORKITS__,STATIONS=__STATIONS__,ARMORS=__ARMORS__,SYSTEMS=__SYSTEMS__,IMAGES=__IMAGES__;
+const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED_W=__KITS__,SEED_A=__ARMORKITS__,STATIONS=__STATIONS__,ARMORS=__ARMORS__,ITEMS=__ITEMS__,SYSTEMS=__SYSTEMS__,IMAGES=__IMAGES__;
+const MACH=[["hull","Mech & vehicle hulls"],["mweapon","Mech weapons"],["mpart","Mech & vehicle parts"]];
 const GRADES=["SURPLUS","SERVICE","MILSPEC","MASTERWORK"],RANK={COMMON:0,ADVANCED:1,PRESTIGE:2,RESTRICTED:3};
 const KEY="kit-ladder-v2",$=id=>document.getElementById(id);
 const esc=s=>String(s??"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
@@ -106,10 +109,12 @@ const A=Object.fromEntries(ARMORS.map(a=>[a.id,a])),Y=Object.fromEntries(SYSTEMS
 const GATE={COMMON:"Store shelf at any civilised market.",ADVANCED:"Licensed store shelf (Favorable standing, MRB 5+), or recovery after 5 victories.",PRESTIGE:"Licensed store shelf at MRB 20+, or recovery after 15 victories.",RESTRICTED:"No ordinary route: a military warrant only (warrants are post-alpha)."};
 const sizes={};let state=null,db=null,saveTimer=null,view="ladder",armorRole="all",armorDesc=false;
 const clone=o=>JSON.parse(JSON.stringify(o));
-function seedState(){return{weapon:clone(SEED_W),armor:clone(SEED_A),sel:{l:"weapon",id:SEED_W[0].id}}}
+function seedPlace(){const p={};for(const [l] of MACH)for(const it of ITEMS[l])p[it.id]=it.station;return p}
+function seedState(){return{weapon:clone(SEED_W),armor:clone(SEED_A),place:seedPlace(),sel:{l:"weapon",id:SEED_W[0].id}}}
 const FREE=new Set([...SEED_W,...SEED_A].filter(k=>k.grant==="free-pick").map(k=>k.id));
 const ALIAS={"water-under-seal":"post-alpha-small-war","limited-warrant":"post-alpha-small-war","yards-owners":"post-alpha-small-war","small-war-late":"post-alpha-small-war","warrant-hegemony":"post-alpha-warrants","warrant-other":"post-alpha-warrants"};
-function migrate(s){for(const k of [...s.weapon,...s.armor]){if(ALIAS[k.station])k.station=ALIAS[k.station];if(k.station&&!ST[k.station])k.station="none"}
+function migrate(s){s.place=s.place||{};for(const [l] of MACH)for(const it of ITEMS[l])if(!(it.id in s.place)||(s.place[it.id]&&!ST[s.place[it.id]]))s.place[it.id]=ST[s.place[it.id]]?s.place[it.id]:it.station;
+ for(const k of [...s.weapon,...s.armor]){if(ALIAS[k.station])k.station=ALIAS[k.station];if(k.station&&!ST[k.station])k.station="none"}
  for(const k of [...s.weapon,...s.armor])if(!k.grant)k.grant=FREE.has(k.id)?"free-pick":"sale";return s}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY)||"null");if(s&&s.weapon&&s.armor&&s.sel)return migrate(s)}catch{}return seedState()}
 function say(t){$("status").textContent=t}
@@ -171,7 +176,20 @@ function renderTimeline(){const tl=$("tl");tl.innerHTML="";const g=document.crea
     ch.addEventListener("dragstart",e=>{e.dataTransfer.setData("text/plain",JSON.stringify({t:"kit",l,id:k.id}));e.dataTransfer.effectAllowed="copyMove"});
     ch.onclick=()=>{open(l,k.id)};c.appendChild(ch)}
    dropTarget(c,pl=>{if(pl.t!=="kit"||pl.l!==l)return say("Cards stay in their own ladder.");const k=list(l).find(x=>x.id===pl.id);if(k){k.station=s.id;if(s.id!=="relief"&&k.grant==="free-pick")k.grant="sale";changed()}})}}
- tl.appendChild(g)}
+ for(const [l,label] of MACH){add("rl",label);
+  for(const s of STATIONS){const c=add("cell","");c.dataset.l=l;c.dataset.s=s.id;
+   const here=ITEMS[l].filter(it=>(state.place[it.id]||"none")===s.id).sort((a,b)=>RANK[a.access]-RANK[b.access]||a.name.localeCompare(b.name));
+   for(const it of here){const ch=document.createElement("div");ch.className="chip item"+(state.selItem&&state.selItem.id===it.id?" sel":"");ch.draggable=true;
+    ch.innerHTML="<b><span>"+esc(it.name)+"</span>"+tb(it.access)+"</b><small>"+esc(it.sub)+"</small>";
+    ch.addEventListener("dragstart",e=>{e.dataTransfer.setData("text/plain",JSON.stringify({t:"item",l,id:it.id}));e.dataTransfer.effectAllowed="copyMove"});
+    ch.onclick=()=>{state.selItem={l,id:it.id};renderTimeline();renderItemBar()};c.appendChild(ch)}
+   dropTarget(c,pl=>{if(pl.t!=="item"||pl.l!==l)return say("Licences stay in their own ladder.");state.place[pl.id]=s.id;state.selItem={l,id:pl.id};changed()})}}
+ tl.appendChild(g);renderItemBar()}
+function renderItemBar(){const el=$("itembar");const sel=state.selItem;const it=sel&&ITEMS[sel.l].find(x=>x.id===sel.id);
+ if(!it){el.innerHTML='<span class="hint">Click a licence chip to see its gate and where the store sells it.</span>';return}
+ const st=ST[state.place[it.id]||"none"];
+ el.innerHTML="<div><b>"+esc(it.name)+"</b> · "+esc(it.sub)+" "+tb(it.access)+"</div><div>Gate: "+esc(GATE[it.access])+"</div><div>"+(state.place[it.id]&&state.place[it.id]!=="none"?"Store sells it after <b>"+esc(st.name)+"</b> · "+esc(st.group)+". "+esc(st.note):"Not placed: only the ordinary store, licence and recovery routes reach it.")+"</div>"
+ +(RANK[it.access]>=1&&!["none","start"].includes(state.place[it.id]||"none")&&!String(state.place[it.id]).startsWith("wins")&&!String(state.place[it.id]).startsWith("post-alpha")?'<div class="w" style="color:var(--warn)">An authored store listing: it skips the '+(it.access==="RESTRICTED"?"warrant":it.access.toLowerCase()+" licence")+" gate at that mission.</div>":"")}
 /* editor */
 function slotEl(k,mi,which){const m=k.members[mi],armor=which==="armor";const id=which==="primary"?m.primary:m[which];
  const pc=id?piece(which==="primary"?"p":armor?"a":"s",id,m.grade):null;
@@ -269,14 +287,16 @@ $("back").onclick=back;
 $("dup").onclick=()=>{const l=L(),k=clone(kit());k.name+=" copy";k.id=uniqueId(slug(k.name,l));list().splice(list().indexOf(kit())+1,0,k);state.sel.id=k.id;changed()};
 $("del").onclick=()=>{if(list().length<2)return;list().splice(list().indexOf(kit()),1);state.sel.id=list()[0].id;changed()};
 $("reset").onclick=()=>{if(window.__confirmReset){state=seedState();window.__confirmReset=false;$("reset").textContent="Reset to shipped cards";changed()}else{window.__confirmReset=true;$("reset").textContent="Click again to replace all cards";setTimeout(()=>{window.__confirmReset=false;$("reset").textContent="Reset to shipped cards"},4000)}};
-function exported(){const f=a=>a.map(k=>({id:k.id,name:k.name,description:k.description,unlocksAfter:k.station||"none",grant:k.grant||"sale",members:k.members}));return JSON.stringify({weaponCards:f(state.weapon),equipmentCards:f(state.armor)},null,1)}
+function exported(){const f=a=>a.map(k=>({id:k.id,name:k.name,description:k.description,unlocksAfter:k.station||"none",grant:k.grant||"sale",members:k.members}));const mach={};for(const [l] of MACH)mach[l]=ITEMS[l].map(it=>({id:it.id,name:it.name,access:it.access,unlocksAfter:state.place[it.id]||"none"}));
+ return JSON.stringify({weaponCards:f(state.weapon),equipmentCards:f(state.armor),machineLicences:mach},null,1)}
 $("export").onclick=async()=>{let dl=null;try{dl=await (window.claude?.use?.("downloads")??null)}catch{}
  if(dl){try{await dl.save({filename:"kits.json",data:exported()})}catch{}return}
  const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([exported()],{type:"application/json"}));a.download="kits.json";a.click()};
 $("copy").onclick=async()=>{try{await navigator.clipboard.writeText(exported());say("Copied")}catch{const t=$("out");t.hidden=false;t.value=exported();t.select();say("Copy from the box below")}};
 $("import").onclick=()=>$("file").click();
 $("file").onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());const g=a=>a.map(k=>({id:k.id,name:k.name,description:k.description,station:k.unlocksAfter||"none",grant:k.grant||"sale",members:k.members}));
- if(!j.weaponCards||!j.equipmentCards)throw 0;state={weapon:g(j.weaponCards),armor:g(j.equipmentCards),sel:{l:"weapon",id:j.weaponCards[0].id}};changed()}catch{say("Not a kits.json from this page")}e.target.value=""};
+ if(!j.weaponCards||!j.equipmentCards)throw 0;const place=seedPlace();for(const [l] of MACH)for(const it of (j.machineLicences&&j.machineLicences[l])||[])if(it.id in place)place[it.id]=it.unlocksAfter||"none";
+ state={weapon:g(j.weaponCards),armor:g(j.equipmentCards),place,sel:{l:"weapon",id:j.weaponCards[0].id}};changed()}catch{say("Not a kits.json from this page")}e.target.value=""};
 async function start(){await Promise.all(Object.entries(IMAGES).map(([k,v])=>new Promise(r=>{const i=new Image();i.onload=()=>{sizes[k]=[i.naturalWidth,i.naturalHeight];r()};i.onerror=r;i.src=v})));
  state=load();render();
  try{db=await (window.claude?.use?.("db")??null)}catch{}
