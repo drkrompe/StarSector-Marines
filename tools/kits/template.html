@@ -167,7 +167,7 @@ function renderTimeline(){const tl=$("tl");tl.innerHTML="";const g=document.crea
    for(const k of list(l).filter(k=>(k.station||"none")===s.id)){const ch=document.createElement("div");ch.className="chip"+(L()===l&&state.sel.id===k.id?" sel":"");ch.draggable=true;
     const pw=l==="armor"?powered(k):0;ch.innerHTML="<b><span>"+esc(k.name)+"</span>"+tb(cardTier(l,k))+"</b>"+(k.grant==="free-pick"?'<span class="tb" style="--tc:var(--accent)">FREE PICK</span>':"")+(pw?'<small class="hint">'+pw+" of 12 powered</small>":"")+'<div class="mini"></div><button class="open">Open '+(l==="weapon"?"weapon":"armor")+' card</button>';
     for(const b of bricksOf(l,k,false))ch.querySelector(".mini").appendChild(b);
-    ch.addEventListener("dragstart",e=>{e.dataTransfer.setData("text/plain",JSON.stringify({t:"kit",l,id:k.id}));e.dataTransfer.effectAllowed="move"});
+    ch.addEventListener("dragstart",e=>{e.dataTransfer.setData("text/plain",JSON.stringify({t:"kit",l,id:k.id}));e.dataTransfer.effectAllowed="copyMove"});
     ch.onclick=()=>{open(l,k.id)};c.appendChild(ch)}
    dropTarget(c,pl=>{if(pl.t!=="kit"||pl.l!==l)return say("Cards stay in their own ladder.");const k=list(l).find(x=>x.id===pl.id);if(k){k.station=s.id;if(s.id!=="relief"&&k.grant==="free-pick")k.grant="sale";changed()}})}}
  tl.appendChild(g)}
@@ -197,7 +197,7 @@ function memberEl(k,mi){const m=k.members[mi],weapon=L()==="weapon",el=document.
  dropTarget(el,pl=>{apply(k,mi,null,pl);changed()});return el}
 function dropTarget(el,fn){let depth=0;
  el.addEventListener("dragenter",e=>{e.preventDefault();e.stopPropagation();depth++;el.classList.add("over")});
- el.addEventListener("dragover",e=>{e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect="copy"});
+ el.addEventListener("dragover",e=>{e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect=e.dataTransfer.effectAllowed==="move"?"move":"copy"});
  el.addEventListener("dragleave",e=>{e.stopPropagation();if(--depth<=0){depth=0;el.classList.remove("over")}});
  el.addEventListener("drop",e=>{e.preventDefault();e.stopPropagation();depth=0;el.classList.remove("over");let pl;try{pl=JSON.parse(e.dataTransfer.getData("text/plain"))}catch{return}if(pl&&pl.t)fn(pl)})}
 /* A primary sets the primary, armour the armour slot. A secondary lands where dropped; on the marine it fills the secondary slot, and a thrown item goes to the belt once that is taken. */
