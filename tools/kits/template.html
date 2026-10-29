@@ -41,7 +41,7 @@ input,select{background:var(--surface);border:1px solid var(--line);border-radiu
 .sh{font:600 12px var(--display);background:var(--bg);display:grid;gap:2px;align-content:start}.sh small{font:400 11px var(--body);color:var(--muted);text-transform:none}
 .rl{position:sticky;left:0;z-index:2;background:var(--bg);font:600 12px var(--mono);text-transform:uppercase;color:var(--muted);display:flex;align-items:center}
 .cell{display:flex;flex-direction:column;gap:6px;min-height:60px}
-.chip{border:2px solid var(--line);border-radius:8px;background:var(--surface);padding:5px;display:grid;gap:3px;cursor:grab}
+.chip.lifted{opacity:.35}.chip{user-select:none;-webkit-user-select:none;border:2px solid var(--line);border-radius:8px;background:var(--surface);padding:5px;display:grid;gap:3px;cursor:grab}
 .chip.sel{border-color:var(--accent);background:var(--accent-soft)}
 .chip b{font:600 12px/1.2 var(--display);display:flex;gap:5px;align-items:flex-start;justify-content:space-between}
 .chip .open{font-size:11px;padding:2px 6px;justify-self:start}.chip .mini{display:flex;flex-wrap:wrap;gap:3px}.chip .mini .brick{zoom:.5}
@@ -162,6 +162,20 @@ function hints(l,k){const t=cardTier(l,k),st=ST[k.station||"none"],out=[];
  if(RANK[t]>=1&&k.station&&!["none","start","post-alpha-warrants"].includes(k.station)&&!k.station.startsWith("wins"))out.push('<span class="w">An authored store listing: it skips the '+(t==="RESTRICTED"?"warrant":t.toLowerCase()+" licence")+' gate at that mission.</span>');
  if(k.station==="start"&&RANK[t]>0)out.push('<span class="w">Starter issue holds '+t.toLowerCase()+' pieces.</span>');
  return out.map(x=>"<div>"+x+"</div>").join("")}
+/* Timeline chips are dragged with pointer events, not HTML5 drag-and-drop, which some viewers block. */
+function grab(ch,payload){let moved=false;
+ ch.addEventListener("click",e=>{if(moved){e.stopImmediatePropagation();e.preventDefault();moved=false}},true);
+ ch.addEventListener("pointerdown",e=>{if(e.button!==0||e.target.closest("button"))return;
+  const sx=e.clientX,sy=e.clientY,r=ch.getBoundingClientRect(),tl=$("tl");let ghost=null,over=null,px=sx,py=sy,timer=null;
+  const cellAt=(x,y)=>{const el=document.elementFromPoint(x,y),c=el&&el.closest(".cell");return c&&c._fn?c:null};
+  const place=()=>{ghost.style.transform="translate("+(px-(sx-r.left))+"px,"+(py-(sy-r.top))+"px)";const c=cellAt(px,py);if(c!==over){if(over)over.classList.remove("over");over=c;if(over)over.classList.add("over")}};
+  const mv=ev=>{px=ev.clientX;py=ev.clientY;if(!ghost){if(Math.hypot(px-sx,py-sy)<6)return;
+    ghost=ch.cloneNode(true);ghost.classList.add("ghost");ghost.style.cssText="position:fixed;left:0;top:0;z-index:50;pointer-events:none;opacity:.88;width:"+r.width+"px";document.body.appendChild(ghost);ch.classList.add("lifted");
+    timer=setInterval(()=>{const b=tl.getBoundingClientRect();if(px<b.left+50)tl.scrollLeft-=16;else if(px>b.right-50)tl.scrollLeft+=16;if(py<b.top+40)window.scrollBy(0,-14);else if(py>innerHeight-40)window.scrollBy(0,14);place()},30)}
+   place()};
+  const end=ev=>{document.removeEventListener("pointermove",mv);document.removeEventListener("pointerup",end);document.removeEventListener("pointercancel",end);clearInterval(timer);
+   if(!ghost)return;moved=true;setTimeout(()=>{moved=false},0);ghost.remove();ch.classList.remove("lifted");const c=ev.type==="pointerup"?cellAt(ev.clientX,ev.clientY):null;if(over)over.classList.remove("over");if(c)c._fn(payload)};
+  document.addEventListener("pointermove",mv);document.addEventListener("pointerup",end);document.addEventListener("pointercancel",end)})}
 /* timeline */
 function renderTimeline(){const tl=$("tl");tl.innerHTML="";const g=document.createElement("div");g.className="grid";
  g.style.gridTemplateColumns="96px "+STATIONS.map(s=>s.id==="none"?"190px":"184px").join(" ");
@@ -170,18 +184,18 @@ function renderTimeline(){const tl=$("tl");tl.innerHTML="";const g=document.crea
  add("rl","");for(const s of STATIONS)add("sh","<span>"+esc(s.name)+"</span><small>"+esc(s.note)+"</small>");
  for(const l of ["weapon","armor"]){add("rl",l==="weapon"?"Weapon cards":"Equipment cards");
   for(const s of STATIONS){const c=add("cell","");c.dataset.l=l;c.dataset.s=s.id;
-   for(const k of list(l).filter(k=>(k.station||"none")===s.id)){const ch=document.createElement("div");ch.className="chip"+(L()===l&&state.sel.id===k.id?" sel":"");ch.draggable=true;
+   for(const k of list(l).filter(k=>(k.station||"none")===s.id)){const ch=document.createElement("div");ch.className="chip"+(L()===l&&state.sel.id===k.id?" sel":"");
     const pw=l==="armor"?powered(k):0;ch.innerHTML="<b><span>"+esc(k.name)+"</span>"+tb(cardTier(l,k))+"</b>"+(k.grant==="free-pick"?'<span class="tb" style="--tc:var(--accent)">FREE PICK</span>':"")+(pw?'<small class="hint">'+pw+" of 12 powered</small>":"")+'<div class="mini"></div><button class="open">Open '+(l==="weapon"?"weapon":"armor")+' card</button>';
     for(const b of bricksOf(l,k,false))ch.querySelector(".mini").appendChild(b);
-    ch.addEventListener("dragstart",e=>{e.dataTransfer.setData("text/plain",JSON.stringify({t:"kit",l,id:k.id}));e.dataTransfer.effectAllowed="copyMove"});
+    grab(ch,{t:"kit",l,id:k.id});
     ch.onclick=()=>{open(l,k.id)};c.appendChild(ch)}
    dropTarget(c,pl=>{if(pl.t!=="kit"||pl.l!==l)return say("Cards stay in their own ladder.");const k=list(l).find(x=>x.id===pl.id);if(k){k.station=s.id;if(s.id!=="relief"&&k.grant==="free-pick")k.grant="sale";changed()}})}}
  for(const [l,label] of MACH){add("rl",label);
   for(const s of STATIONS){const c=add("cell","");c.dataset.l=l;c.dataset.s=s.id;
    const here=ITEMS[l].filter(it=>(state.place[it.id]||"none")===s.id).sort((a,b)=>RANK[a.access]-RANK[b.access]||a.name.localeCompare(b.name));
-   for(const it of here){const ch=document.createElement("div");ch.className="chip item"+(state.selItem&&state.selItem.id===it.id?" sel":"");ch.draggable=true;
+   for(const it of here){const ch=document.createElement("div");ch.className="chip item"+(state.selItem&&state.selItem.id===it.id?" sel":"");
     ch.innerHTML=(it.icon?'<span class="ico" style="--t:var(--'+it.tone+')"><span class="pic" style="background-image:url('+it.icon+')"></span></span>':"")+'<span class="txt"><b><span>'+esc(it.name)+"</span>"+tb(it.access)+"</b><small>"+esc(it.sub)+"</small></span>";
-    ch.addEventListener("dragstart",e=>{e.dataTransfer.setData("text/plain",JSON.stringify({t:"item",l,id:it.id}));e.dataTransfer.effectAllowed="copyMove"});
+    grab(ch,{t:"item",l,id:it.id});
     ch.onclick=()=>{state.selItem={l,id:it.id};renderTimeline();renderItemBar()};c.appendChild(ch)}
    dropTarget(c,pl=>{if(pl.t!=="item"||pl.l!==l)return say("Licences stay in their own ladder.");state.place[pl.id]=s.id;state.selItem={l,id:pl.id};changed()})}}
  tl.appendChild(g);renderItemBar()}
@@ -217,7 +231,7 @@ function memberEl(k,mi){const m=k.members[mi],weapon=L()==="weapon",el=document.
   sy.appendChild(sw);sy.insertAdjacentHTML("beforeend",'<span class="nm">'+esc(cur?Y[cur].name:"no system")+'</span><span class="slotlab">system'+(m.system?" · set":"")+'</span>');
   dropTarget(sy,pl=>{apply(k,mi,"system",pl);changed()});el.appendChild(sy)}
  dropTarget(el,pl=>{apply(k,mi,null,pl);changed()});return el}
-function dropTarget(el,fn){let depth=0;
+function dropTarget(el,fn){let depth=0;el._fn=fn;
  el.addEventListener("dragenter",e=>{e.preventDefault();e.stopPropagation();depth++;el.classList.add("over")});
  el.addEventListener("dragover",e=>{e.preventDefault();e.stopPropagation();e.dataTransfer.dropEffect=e.dataTransfer.effectAllowed==="move"?"move":"copy"});
  el.addEventListener("dragleave",e=>{e.stopPropagation();if(--depth<=0){depth=0;el.classList.remove("over")}});
