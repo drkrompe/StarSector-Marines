@@ -204,6 +204,9 @@ public final class ShipViewScreen implements Screen {
         if (document != null) document.advance(dt);
         if (deck != null) controls.advance(dt, deck.camera());
         if (overlay != null) overlay.update(dt, shownDeck, deck);
+        // The reveal flies the deck and advances that flight itself; once it ends mid-flight nothing
+        // else would, and a flight that never lands keeps re-aiming the camera every frame.
+        if (deck != null && (overlay == null || !overlay.revealing())) deck.advance(dt);
     }
 
     @Override

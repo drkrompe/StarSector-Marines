@@ -99,13 +99,13 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    /** The laser tank with each laser of the ladder installed as its turret, as the game draws it, labelled. */
+    /** The laser tank with nothing in its gun card, then each laser of the ladder installed as its turret, as the game draws it. */
     private static final List<MechWeaponComponent> LASER_LINE = Arrays.asList(null,
             MechWeaponComponent.BURST_LASER, MechWeaponComponent.HEAVY_PD_LASER, null,
             MechWeaponComponent.MEDIUM_BURST_LASER, MechWeaponComponent.PD_LASER,
             MechWeaponComponent.LIGHT_BURST_LASER, MechWeaponComponent.LIGHT_PULSE_LASER);
     private static final List<String> LASER_NAMES = List.of(
-            "NO PART: the hull's own burst laser turret", "HEAVY BURST LASER 3x2: white head",
+            "NO PART: the bare ring, no turret", "HEAVY BURST LASER 3x2: white head",
             "HEAVY PD LASER 3x2: red head", "",
             "BURST LASER 2x2", "PD LASER 2x2", "LIGHT BURST LASER 1x2", "LIGHT PD LASER 1x2");
 
@@ -114,6 +114,8 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         try (BattleSimulation sim = scene(48, 30)) {
             sim.setMissionCompletionEnabled(false);
             ReviewAnnotations.Builder labels = ReviewAnnotations.builder();
+            ReviewAnnotations.Builder headLabels = ReviewAnnotations.builder();
+            ReviewAnnotations.Builder partLabels = ReviewAnnotations.builder();
             List<float[]> places = new ArrayList<>();
             List<Long> tanks = new ArrayList<>();
             for (int i = 0; i < LASER_LINE.size(); i++) {
@@ -123,12 +125,13 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                 places.add(new float[] {x, y});
                 tanks.add(spawnFitted(sim, VehicleType.LASER_TANK, LASER_LINE.get(i), x, y, 90, 90));
                 labels.label(x, y - 2.5f, LASER_NAMES.get(i), ReviewStyle.NOTE);
+                (i < 4 ? headLabels : partLabels).label(x, y - 2.5f, LASER_NAMES.get(i), ReviewStyle.NOTE);
             }
             long dummy = spawn(sim, VehicleType.CARGO_CARRIER, Faction.DEFENDER, 46, 28, 90, 0);
             for (int tick = 0; tick < 60; tick++) sim.advance(BattleSimulation.TICK_DT);
             for (int i = 0; i < tanks.size(); i++) {
                 sim.convoy().body(tanks.get(i)).teleport(places.get(i)[0], places.get(i)[1], 90);
-                sim.convoy().turret(tanks.get(i)).facingDeg = 90;
+                if (sim.convoy().turret(tanks.get(i)) != null) sim.convoy().turret(tanks.get(i)).facingDeg = 90;
             }
             sim.convoy().body(dummy).teleport(46, 28, 90);
             BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
@@ -136,6 +139,11 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             artifacts.add(new SnapshotArtifact("laser-lineup.png", renderer.render(sim,
                     "Laser tank turrets | every laser of the ladder installed in the gun card as the game draws it"
                             + " | 1920 x 1080, UI 100%", labels.build())));
+            String title = "Laser tank turrets, close | 1920 x 1080, UI 100%";
+            artifacts.add(new SnapshotArtifact("laser-lineup-heads.png",
+                    renderer.refocus(16.5f, 17f, 19f).render(sim, title, headLabels.build())));
+            artifacts.add(new SnapshotArtifact("laser-lineup-parts.png",
+                    renderer.refocus(19.75f, 7.5f, 25f).render(sim, title, partLabels.build())));
         }
     }
 
@@ -325,7 +333,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         long id = sim.convoy().spawn(type, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK, gun,
                 Faction.MARINE, VehicleMission.deployed(x, y));
         sim.convoy().body(id).teleport(x, y, hull);
-        sim.convoy().turret(id).facingDeg = turret;
+        if (sim.convoy().turret(id) != null) sim.convoy().turret(id).facingDeg = turret;
         return id;
     }
 

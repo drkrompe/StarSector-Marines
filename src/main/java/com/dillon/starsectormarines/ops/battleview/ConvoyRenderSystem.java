@@ -176,7 +176,28 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     pitchAxisX = ux * pitchCos;
                     pitchAxisY = uy * pitchCos + (float) Math.sin(pitch);
                 }
-                if (gun == null) {
+                boolean modular = type.hasModularTurret();
+                if (modular) {
+                    // The ring is bare machinery; the collar in it turns with the head, so the player sees the head driven.
+                    float ringShade = wrecked ? WRECK_SHADE : 1f;
+                    float ringX = cam.cellToScreenX(body.x + mountWorldX);
+                    float ringY = cam.cellToScreenY(body.y + mountWorldY);
+                    float ringPx = VehicleGun.mountCells(type) * cellPx;
+                    LayeredSpriteCache ring = sprites.vehicleGunMount();
+                    if (ring != null) {
+                        out.addSprite(RenderLayer.CONVOY, ring.sprite, ringX, ringY, ringPx, ringPx, 0f,
+                                ringShade, ringShade, ringShade, alphaMult);
+                    }
+                    LayeredSpriteCache collar = sprites.vehicleTurretCollar();
+                    if (collar != null) {
+                        float collarPx = ringPx * COLLAR_SHARE_OF_RING;
+                        out.addSprite(RenderLayer.CONVOY, collar.sprite, ringX, ringY, collarPx, collarPx,
+                                turretStateFacing, ringShade, ringShade, ringShade, alphaMult);
+                    }
+                }
+                if (modular && (turret == null || turret.removed)) {
+                    // No part in the gun card: the ring stands bare, and the hull has no turret and no gun.
+                } else if (gun == null) {
                     if (raised) {
                         float lift = RAISE_SHADOW_CELLS * turret.elevation;
                         out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
@@ -208,7 +229,18 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     float gunX = ringX - (float) Math.sin(bearing) * centreAhead;
                     float gunY = ringY + (float) Math.cos(bearing) * centreAhead;
                     float mountPx = VehicleGun.mountCells(type) * cellPx;
-                    LayeredSpriteCache mount = sprites.vehicleGunMount();
+                    LayeredSpriteCache mount = modular ? null : sprites.vehicleGunMount();
+                    if (modular) {
+                        // A laser stands in a round base on the collar, its muzzle just showing past the ring.
+                        boolean light = turret.weapon.footprintRows < 2;
+                        LayeredSpriteCache base = sprites.vehicleTurretBase(light);
+                        if (base != null) {
+                            float basePx = VehicleGun.baseCells(turret.weapon) * cellPx;
+                            out.addSprite(RenderLayer.CONVOY, base.sprite, cam.cellToScreenX(body.x + mountWorldX),
+                                    cam.cellToScreenY(body.y + mountWorldY), basePx, basePx, turretStateFacing + wreckSkewDeg,
+                                    shade, shade, shade, alphaMult);
+                        }
+                    }
                     if (mount != null) {
                         out.addSprite(RenderLayer.CONVOY, mount.sprite, cam.cellToScreenX(body.x + mountWorldX),
                                 cam.cellToScreenY(body.y + mountWorldY), mountPx, mountPx, 0f, shade, shade, shade, alphaMult);
@@ -246,6 +278,9 @@ public final class ConvoyRenderSystem implements RenderSystem {
             sweepDurabilityBars(ids, convoy, cam, cellPx, alphaMult, out);
         }
     }
+
+    /** How wide the turning collar is drawn against the turret ring it rides in. */
+    private static final float COLLAR_SHARE_OF_RING = .86f;
 
     /** How dark a wrecked gun is drawn: charred, not black. */
     private static final float WRECK_SHADE = .35f;

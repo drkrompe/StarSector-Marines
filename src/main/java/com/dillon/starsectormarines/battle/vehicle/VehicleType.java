@@ -578,6 +578,22 @@ public enum VehicleType {
     public int turretFiringFrame() { return -1; }
 
     /**
+     * Whether this hull's turret is a modular head on an exposed turret ring ({@code vehicle-card-sizes.md}): a hull
+     * with no part in its gun card has the bare ring and no gun. Only the laser tank so far; every other hull
+     * still carries the gun its sheet was drawn with.
+     */
+    public boolean hasModularTurret() { return this == LASER_TANK; }
+
+    /**
+     * The part a spawn that names none fits, for the scenes, missions and fixtures that field a hull as a stock unit: the
+     * laser tank's burst laser. Null for a hull that is not modular. A spawn that names its card as empty is not this one,
+     * and fields the bare ring.
+     */
+    public MechWeaponComponent standardPart() {
+        return this == LASER_TANK ? MechWeaponComponent.BURST_LASER : null;
+    }
+
+    /**
      * Whether {@code weapon} fitted to this hull is drawn as the hull's own turret head rather than as its own drawing
      * on the mount ring: the laser tank's white and red heads ({@link MechWeaponComponent#tankHead}).
      */

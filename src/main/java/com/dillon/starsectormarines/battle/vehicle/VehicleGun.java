@@ -28,6 +28,19 @@ public final class VehicleGun {
     /** The share of the hull's width its turret mount ring spans: the base every fitted weapon stands on. */
     private static final float MOUNT_SHARE_OF_HULL_WIDTH = .7f;
 
+    /** How far a laser's muzzle shows past the edge of the turret ring on a modular turret, in cells: two rows, one row. */
+    private static final float PROTRUSION_CELLS = .16f;
+    private static final float LIGHT_PROTRUSION_CELLS = .08f;
+
+    /** The diameter of the round base a laser on a modular turret is housed in, in cells: two rows or more, one row. */
+    private static final float BASE_CELLS = 1.25f;
+    private static final float LIGHT_BASE_CELLS = 1.0f;
+
+    /** The diameter of the round base {@code weapon} stands in on a modular turret, in cells. */
+    public static float baseCells(MechWeaponComponent weapon) {
+        return weapon.footprintRows >= 2 ? BASE_CELLS : LIGHT_BASE_CELLS;
+    }
+
     /** The diameter of the mount ring a fitted weapon stands on, in cells. */
     public static float mountCells(VehicleType type) {
         return type.visualWidthCells * MOUNT_SHARE_OF_HULL_WIDTH;
@@ -44,6 +57,12 @@ public final class VehicleGun {
      */
     public static float lengthCells(VehicleType type, MechWeaponComponent weapon) {
         if (type.wearsHeadOf(weapon)) return 0f;
+        if (type.hasModularTurret()) {
+            // A turret, not an arm: the gun is drawn short, standing in its base with its muzzle just past the ring.
+            if (MechHardpointGeometry.barrelHullWidths(weapon) <= 0f) return 0f;
+            float past = weapon.footprintRows >= 2 ? PROTRUSION_CELLS : LIGHT_PROTRUSION_CELLS;
+            return (mountCells(type) / 2f + past) / (1f - RING_FROM_REAR);
+        }
         return MechHardpointGeometry.barrelHullWidths(weapon) * cellsPerMechWidth(type);
     }
 
