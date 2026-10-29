@@ -59,7 +59,7 @@ heavy burst (`BURST_LASER`); the constants keep the names they shipped under, so
 parts are nose guns only (the centreline mount), like the heavy cannon, and are Prestige; on a mech they fit the Warden's nose, which is an omni socket for it (the Hound's stays a 2x2 ballistic one, so it takes none); the others fit any arm. One
 white finish for every faction (no livery mask). On a laser tank the 3x2 laser wears the turret head the hull had before:
 the heavy burst laser the white head, the heavy PD laser the red head the PD laser tank carried (`MechWeaponComponent.tankHead`,
-the red head's frames on the laser tank's sheet, fired from the head's lens). The stats are first proposals for the balance pass.
+the red head's frames on the laser tank's sheet, fired from the head's lens). Those two heads are final as they are (owner, 2026-10-29): they are not regraded to match the lighter lasers. The stats are first proposals for the balance pass.
 
 **A turret is modular, and a turret is not an arm** (owner, 2026-10-29). There is no default turret head for a hull
 that takes parts: the laser tank's gun card is the only thing that gives it a turret. A modular hull (`VehicleType.hasModularTurret`,
@@ -110,7 +110,6 @@ own burst-laser and PD-laser turret heads stay as the 3x2 laser's look on a hull
 
 - Which other hulls become modular turrets (mortar carrier, breakthrough, screened): each needs its own ring and bare
   state; today only the laser tank is, and other fitted parts stand on the machinery ring.
-- Whether the heavy lasers' old domed heads should gain the blue orb lens the lighter ones have.
 - Whether the white lasers should take faction colour on a trim line; they have one finish for every faction.
 - A campaign vehicle saved as a `PD_LASER_TANK` no longer loads: the constant is deleted, with no migration.
 - The footprints and stats of the light weapons, which belong to a balance pass against `armorMatchup` and
