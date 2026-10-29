@@ -38,7 +38,7 @@ final class VehicleDoll {
                 "@gearSocketEngine"));
         if (type.hasTurretWeapon()) {
             VehicleGunCard gun = VehicleGunCard.of(type);
-            sockets.add(card(SocketId.ARMS, switch (gun.hardpoint) {
+            sockets.add(card(SocketId.ARMS, gun.hardpoint == null ? SocketType.OMNI : switch (gun.hardpoint) {
                 case MISSILE -> SocketType.MISSILE;
                 case ENERGY -> SocketType.ENERGY;
                 case BALLISTIC -> SocketType.BALLISTIC;
@@ -84,12 +84,11 @@ final class VehicleDoll {
     private static String gunArt(VehicleGunCard card) {
         return switch (card) {
             case CANNON -> "heavy-cannon";
-            case HEAVY_MG -> "boat-door-heavy-mg";
+            case SMALL -> "light-machine-gun";
             case MORTAR -> "vehicle-turret-mortar";
             case LASER -> "shoulder-laser";
             case PULSE -> "pulse-laser";
             case LRM -> "lrm-5";
-            case SRM -> "srm-5";
         };
     }
 

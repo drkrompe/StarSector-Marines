@@ -44,7 +44,10 @@ public final class MechFabricationCatalog {
             weapon(MechWeaponComponent.LRM_15_FRAG, "@gearFabricationStandardIssue"),
             weapon(MechWeaponComponent.SHOULDER_LASER_CANNON, "@gearFabricationTriTachyonPattern"),
             weapon(MechWeaponComponent.THERMAL_LANCE, "@gearFabricationLionsGuardPattern"),
-            weapon(MechWeaponComponent.PIONEER_ROCKET_CRADLE, "@gearFabricationCommonMarket"));
+            weapon(MechWeaponComponent.PIONEER_ROCKET_CRADLE, "@gearFabricationCommonMarket"),
+            weapon(MechWeaponComponent.LIGHT_MACHINE_GUN, "@gearFabricationCommonMarket"),
+            weapon(MechWeaponComponent.LIGHT_ROCKET_POD, "@gearFabricationCommonMarket"),
+            weapon(MechWeaponComponent.LIGHT_PULSE_LASER, "@gearFabricationTriTachyonPattern"));
 
     private static final List<Recipe> CHASSIS = List.of(
             chassis(MechVariant.HOUND, "@gearFabricationLightChassisStandardFit", 21510),

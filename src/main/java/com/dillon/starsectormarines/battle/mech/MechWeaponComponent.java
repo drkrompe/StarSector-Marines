@@ -61,6 +61,15 @@ public enum MechWeaponComponent {
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2,
             "weapon.mech-quarry-breaker", 1, 4,
             LayeredMechAppearance.ARMS_QUARRY_BREAKER),
+    // The light weapons: one-row parts that stock a small vehicle gun card (vehicle-card-sizes.md).
+    LIGHT_MACHINE_GUN("component.mech-light-mg", "@gearMechWeaponComponentLIGHTMACHINEGUN",
+            MountFamily.ARMS, HardpointType.BALLISTIC, 2, 1,
+            WeaponRegistry.MECH_LIGHT_MG_ID, 5, -1,
+            LayeredMechAppearance.ARMS_LIGHT_MG),
+    LIGHT_PULSE_LASER("component.mech-light-pulse-laser", "@gearMechWeaponComponentLIGHTPULSELASER",
+            MountFamily.ARMS, HardpointType.ENERGY, 2, 1,
+            WeaponRegistry.MECH_LIGHT_PULSE_LASER_ID, 4, -1,
+            LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER),
 
     // The anti-armor racks: a contact warhead fired only at hardened targets (mechs-nouns.md, Missile warheads).
     SRM_5("component.mech-srm-5", "@gearMechWeaponComponentSRM5", MountFamily.SHOULDER,
@@ -99,7 +108,11 @@ public enum MechWeaponComponent {
     PIONEER_ROCKET_CRADLE("component.mech-pioneer-rocket", "@gearMechWeaponComponentPIONEERROCKETCRADLE",
             MountFamily.SHOULDER, HardpointType.MISSILE, 2, 1,
             "weapon.mech-pioneer-rocket", 4, 3,
-            LayeredMechAppearance.POD_PIONEER_ROCKET);
+            LayeredMechAppearance.POD_PIONEER_ROCKET),
+    LIGHT_ROCKET_POD("component.mech-light-rocket-pod", "@gearMechWeaponComponentLIGHTROCKETPOD",
+            MountFamily.SHOULDER, HardpointType.MISSILE, 2, 1,
+            WeaponRegistry.MECH_LIGHT_ROCKET_POD_ID, 3, 4,
+            LayeredMechAppearance.POD_LIGHT_ROCKET);
 
     /**
      * Whether the split into anti-armor and fragmentation racks is live.
@@ -234,6 +247,9 @@ public enum MechWeaponComponent {
             case QUARRY_BREAKER_CANNON -> 5.5f;
             case SHOULDER_LASER_CANNON, PIONEER_ROCKET_CRADLE -> 7f;
             case THERMAL_LANCE -> 4.8f;
+            case LIGHT_MACHINE_GUN -> 1.9f;
+            case LIGHT_PULSE_LASER -> 1.8f;
+            case LIGHT_ROCKET_POD -> 6f;
         };
     }
 
@@ -293,6 +309,9 @@ public enum MechWeaponComponent {
             case SHOULDER_LASER_CANNON -> 35f;
             case THERMAL_LANCE -> 32f;
             case PIONEER_ROCKET_CRADLE -> 24f;
+            case LIGHT_MACHINE_GUN -> 6f;
+            case LIGHT_PULSE_LASER -> 7f;
+            case LIGHT_ROCKET_POD -> 14f;
         };
     }
 

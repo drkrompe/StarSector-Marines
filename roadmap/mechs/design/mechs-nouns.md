@@ -220,10 +220,13 @@ increasing an encounter's total armored threat.
   battle sees a factor, never a part; a drive shot out still cripples the hull to the same share of
   whatever its speed is. Engines are ordinary inventory exactly as plating is.
 - A vehicle's **gun card** (`SocketId.ARMS`, `VehicleGunCard`) is a typed weapon socket, as a mech's arm
-  socket is (owner, 2026-10-28: a vehicle is a mech for parts, and not any weapon fits any gun card). It is typed
-  and sized by the gun its hull was built around (ballistic, energy or missile, two columns wide, as tall as that gun),
-  and takes the mech weapon parts of that type no larger than itself, by the mech's own fit rule; a cannon card
-  takes the heavy cannon, a one-row machine-gun card takes no mech weapon, a laser tank's card takes energy weapons.
+  socket is (owner, 2026-10-28: a vehicle is a mech for parts, and not any weapon fits any gun card). It is two
+  columns wide and as tall as its hull's size class, and locked to a hardpoint type where the hull is a specialist
+  (`vehicle-card-sizes.md`), and takes the mech weapon parts that fit it by the mech's own rule: the lock's type, if
+  any, and a footprint no larger than the card. The small class (the APCs, the dozer, the technicals and the hover
+  scout) is one row and unlocked, an omni card that takes any one-row part: the light machine gun, light pulse laser
+  and light rocket pod authored for it, the Thermal Lance and the Pioneer Rocket Cradle. A cannon card takes the heavy
+  cannon, a laser tank's card takes energy weapons. Footprint is the only cap on a weapon's power.
   The hull's own gun is no part: an empty gun card is that gun, drawn as the sealed cards draw it, so a weapon
   is only ever an addition from stores. A fitted weapon is the hull's turret with the weapon's ballistics in it
   (`VehicleGun`): the carriage (traverse, loader, flux bank, hit shares) stays the hull's, the weapon

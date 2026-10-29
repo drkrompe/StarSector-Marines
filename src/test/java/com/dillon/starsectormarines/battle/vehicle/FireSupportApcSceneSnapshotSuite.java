@@ -51,7 +51,8 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
      * close as the shells land.
      */
     @Override protected List<LookReview.Shot> lookShots() {
-        return List.of(idle(), shelling(), armor(), wrecks(), fitted(), fittedWrecks(), fittedRotary());
+        return List.of(idle(), shelling(), armor(), wrecks(), fitted(), fittedWrecks(), fittedRotary(),
+                lightWeapons(), lightWeaponsFire());
     }
 
     private static LookReview.Shot shelling() {
@@ -170,6 +171,54 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
     private static final MechWeaponComponent[] FITTED_GUNS = {MechWeaponComponent.SINGLE_HEAVY_CANNON,
             MechWeaponComponent.LINEAR_CANNON, MechWeaponComponent.SHOULDER_LASER_CANNON, MechWeaponComponent.SRM_5,
             MechWeaponComponent.LRM_5, MechWeaponComponent.CHAINGUN};
+
+    private static final VehicleType[] LIGHT_TYPES = {VehicleType.UP_ARMORED_APC, VehicleType.ESCORT_APC,
+            VehicleType.MILITIA_TECHNICAL, VehicleType.SRM_TECHNICAL, VehicleType.HOVER_SCOUT,
+            VehicleType.DOZER_BREACHER};
+    private static final MechWeaponComponent[] LIGHT_GUNS = {MechWeaponComponent.LIGHT_MACHINE_GUN,
+            MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.LIGHT_ROCKET_POD,
+            MechWeaponComponent.LIGHT_MACHINE_GUN, MechWeaponComponent.LIGHT_PULSE_LASER,
+            MechWeaponComponent.LIGHT_ROCKET_POD};
+
+    /** Six small hulls each carrying a light weapon in its small omni card, parked with turrets turned off axis. */
+    private static LookReview.Shot lightWeapons() {
+        return LookReview.Shot.of("light-weapons", 32, 14, placement -> {
+            SceneWorld world = placement.holdouts(placement.builder()).build();
+            BattleSimulation sim = world.sim();
+            for (int i = 0; i < LIGHT_TYPES.length; i++) {
+                float[] at = placement.openNear(5f + 4.4f * i, 7f);
+                long hull = sim.convoy().spawn(LIGHT_TYPES[i], List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+                        LIGHT_GUNS[i], Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
+                sim.convoy().body(hull).teleport(at[0], at[1], 0f);
+                sim.convoy().turret(hull).facingDeg = 25f - 10f * i;
+                placement.subject("hull" + i, hull);
+            }
+            return sim;
+        }, placement -> List.of(LookReview.View.follow("close", placement, 30f, "hull0", "hull1", "hull2", "hull3",
+                "hull4", "hull5"), LookReview.View.follow("technical", placement, 8f, "hull2", "hull3")), 60)
+                .withStills(2);
+    }
+
+    /** Three small hulls with a light weapon each, a stationary picket 18 cells east: each fires as the part does. */
+    private static LookReview.Shot lightWeaponsFire() {
+        return LookReview.Shot.of("light-weapons-fire", 48, 24, placement -> {
+            SceneBuilder builder = placement.holdouts(placement.builder());
+            int px = (int) placement.openNear(32.5f, 12.5f)[0] - placement.site().x0();
+            int py = (int) placement.openNear(32.5f, 12.5f)[1] - placement.site().y0();
+            builder.squad("hostile").faction(Faction.DEFENDER).type(UnitType.MILITIA).size(6)
+                    .inFile(px, py - 6, 0, 2).primary("weapon.smg").stationary().done();
+            SceneWorld world = builder.build();
+            BattleSimulation sim = world.sim();
+            for (int i = 0; i < 3; i++) {
+                float[] at = placement.openNear(12.5f, 7.5f + 5f * i);
+                long hull = sim.convoy().spawn(LIGHT_TYPES[i], List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+                        LIGHT_GUNS[i], Faction.MARINE, VehicleMission.deployed(at[0], at[1]));
+                sim.convoy().body(hull).teleport(at[0], at[1], 0f);
+                placement.subject("hull" + i, hull);
+            }
+            return sim;
+        }, placement -> List.of(LookReview.View.followAtPlay(placement, "hull0", "hull1", "hull2")), 300);
+    }
 
     /** A tank on its own with a chaingun in the gun card, the enemy 20 cells off: it spins up and fires on its own. */
     private static LookReview.Shot fittedRotary() {

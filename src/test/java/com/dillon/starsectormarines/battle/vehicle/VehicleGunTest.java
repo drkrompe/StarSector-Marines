@@ -21,10 +21,23 @@ class VehicleGunTest {
         assertTrue(cannon.accepts(MechWeaponComponent.CHAINGUN), "a smaller gun of the type fits a larger card");
         assertFalse(cannon.accepts(MechWeaponComponent.PULSE_LASER), "an energy weapon is not a ballistic one");
         assertFalse(cannon.accepts(MechWeaponComponent.LRM_5));
-        assertFalse(VehicleGunCard.HEAVY_MG.accepts(MechWeaponComponent.CHAINGUN), "two rows do not fit a one-row card");
+        assertFalse(VehicleGunCard.SMALL.accepts(MechWeaponComponent.CHAINGUN), "two rows do not fit a one-row card");
         assertFalse(VehicleGunCard.LRM.accepts(MechWeaponComponent.SRM_15), "three rows do not fit a two-row card");
         assertTrue(VehicleGunCard.LRM.accepts(MechWeaponComponent.SRM_5), "launchers are one type, whichever mount family");
         assertFalse(VehicleGunCard.CANNON.accepts(null));
+    }
+
+    @Test
+    void anOmniCardTakesAnyOneRowPartWhateverItsType() {
+        VehicleGunCard small = VehicleGunCard.SMALL;
+        assertNull(small.hardpoint, "unlocked");
+        assertEquals(1, small.rows);
+        assertTrue(small.accepts(MechWeaponComponent.LIGHT_MACHINE_GUN));
+        assertTrue(small.accepts(MechWeaponComponent.LIGHT_PULSE_LASER));
+        assertTrue(small.accepts(MechWeaponComponent.LIGHT_ROCKET_POD));
+        assertFalse(small.accepts(MechWeaponComponent.PULSE_LASER), "footprint is the only cap: two rows are too tall");
+        assertFalse(small.accepts(null));
+        assertFalse(VehicleGunCard.CANNON.accepts(MechWeaponComponent.LIGHT_PULSE_LASER), "a locked card keeps its lock");
     }
 
     @Test

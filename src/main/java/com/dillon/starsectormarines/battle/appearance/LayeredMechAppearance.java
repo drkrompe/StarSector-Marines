@@ -36,6 +36,8 @@ public final class LayeredMechAppearance {
     public static final int ARMS_MUSTER_AUTOGUN = 8;
     public static final int ARMS_NOSE_MUSTER_AUTOGUN = 9;
     public static final int ARMS_QUARRY_BREAKER = 10;
+    public static final int ARMS_LIGHT_MG = 11;
+    public static final int ARMS_LIGHT_PULSE_LASER = 12;
     public static final int CHASSIS_CLEAN = 0;
     public static final int CHASSIS_SOCKETED = 1;
     public static final int CHASSIS_HOUND = 2;
@@ -48,6 +50,7 @@ public final class LayeredMechAppearance {
     public static final int POD_SHOULDER_LASER = 5;
     public static final int POD_THERMAL_LANCE = 6;
     public static final int POD_PIONEER_ROCKET = 7;
+    public static final int POD_LIGHT_ROCKET = 8;
     /** Compatibility names retained for authored tests and older call sites. */
     public static final int POD_SRM = POD_SMALL_SRM;
     public static final int POD_LRM = POD_LARGE_LRM;

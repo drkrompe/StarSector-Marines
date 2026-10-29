@@ -138,6 +138,9 @@ final class HardwareArt {
             case SHOULDER_LASER_CANNON -> "shoulder-laser";
             case THERMAL_LANCE -> "thermal-lance";
             case PIONEER_ROCKET_CRADLE -> "pioneer-rocket";
+            case LIGHT_MACHINE_GUN -> "light-machine-gun";
+            case LIGHT_PULSE_LASER -> "light-pulse-laser";
+            case LIGHT_ROCKET_POD -> "light-rocket-pod";
         };
     }
 }

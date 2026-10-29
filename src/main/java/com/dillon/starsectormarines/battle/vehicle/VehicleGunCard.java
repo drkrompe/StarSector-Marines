@@ -5,23 +5,24 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent.HardpointTyp
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 
 /**
- * The gun card on a vehicle's doll (mechs-nouns.md, a vehicle is a mech for parts): the socket its turret fills, typed
- * by the stock gun's hardpoint family and as tall as that gun is, as a mech's arm socket is typed and sized. A mech
- * weapon fits it by the mech's own rule: the same hardpoint type, and a footprint the card accommodates. A hull is
- * built around the gun it was designed for, so it carries what its turret was built for and no more.
+ * The gun card on a vehicle's doll (mechs-nouns.md, a vehicle is a mech for parts): the socket its turret fills, set by
+ * the hull's size class and lock (vehicle-card-sizes.md), as a mech's arm socket is typed and sized. A mech weapon
+ * fits it by the mech's own rule: the lock's hardpoint type, if it has one, and a footprint the card accommodates; the
+ * footprint is the only cap on a weapon's power. A small card is unlocked, an omni slot that takes any one-row part.
  */
 public enum VehicleGunCard {
+    /** Small, unlocked: the APCs, the dozer, the technicals and the hover scout. */
+    SMALL(null, 1),
     CANNON(HardpointType.BALLISTIC, 3),
-    HEAVY_MG(HardpointType.BALLISTIC, 1),
     MORTAR(HardpointType.BALLISTIC, 2),
     LASER(HardpointType.ENERGY, 3),
     PULSE(HardpointType.ENERGY, 2),
-    LRM(HardpointType.MISSILE, 2),
-    SRM(HardpointType.MISSILE, 2);
+    LRM(HardpointType.MISSILE, 2);
 
     /** Every gun card is two columns wide, as every mech weapon is. */
     public static final int COLUMNS = 2;
 
+    /** The one hardpoint type the card takes; null for an omni card, which takes any. */
     public final HardpointType hardpoint;
     public final int rows;
 
@@ -30,19 +31,17 @@ public enum VehicleGunCard {
         this.rows = rows;
     }
 
-    /** The card for a turret structure; the heavy MG's for a hull with none authored. */
+    /** The card for a turret structure; the small card for a hull with none authored. */
     public static VehicleGunCard of(String structureId) {
-        if (structureId == null) return HEAVY_MG;
+        if (structureId == null) return SMALL;
         return switch (structureId) {
             case TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID -> CANNON;
             case TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID,
                     TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID -> MORTAR;
             case TurretCatalogRegistry.TANK_BURST_LASER_STRUCTURE_ID -> LASER;
-            case TurretCatalogRegistry.TANK_PD_LASER_STRUCTURE_ID,
-                    TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID -> PULSE;
+            case TurretCatalogRegistry.TANK_PD_LASER_STRUCTURE_ID -> PULSE;
             case TurretCatalogRegistry.VEHICLE_LRM_STRUCTURE_ID -> LRM;
-            case TurretCatalogRegistry.VEHICLE_SRM_STRUCTURE_ID -> SRM;
-            default -> HEAVY_MG;
+            default -> SMALL;
         };
     }
 
@@ -51,9 +50,9 @@ public enum VehicleGunCard {
         return type != null && type.hasTurretWeapon() ? of(type.turretStructureId) : null;
     }
 
-    /** Whether {@code weapon} goes in this card: the same hardpoint type, no wider or taller than the card. */
+    /** Whether {@code weapon} goes in this card: the lock's hardpoint type if any, no wider or taller than the card. */
     public boolean accepts(MechWeaponComponent weapon) {
-        return weapon != null && weapon.hardpointType == hardpoint
+        return weapon != null && (hardpoint == null || weapon.hardpointType == hardpoint)
                 && weapon.footprintColumns <= COLUMNS && weapon.footprintRows <= rows;
     }
 }

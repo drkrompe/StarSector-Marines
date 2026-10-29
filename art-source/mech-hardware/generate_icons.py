@@ -398,6 +398,12 @@ def build():
     f['muster-autogun'] = banded(150, 200, upright2(autogun(56, 10, 190, 40)), 'AG')
     f['muster-autogun-nose'] = banded(150, 200, autogun(84, 8, 144, 34), 'AG')
 
+    # The light weapons, 2x1 pieces for the small gun card: a light machine gun on its drum, a two-rocket pod and
+    # a short pulse laser, side-on and pointing right as the other one-row pieces are.
+    f['light-machine-gun'] = banded(150, 100, autogun(38, 8, 142, 22, drum=True), 'LMG')
+    f['light-rocket-pod'] = banded(150, 100, missile_rack(150, 100, 2, 'rocket') + rect(14, 86, 124, 5, D, rx=2), 'LRP')
+    f['light-pulse-laser'] = banded(150, 100, pulse_laser(46, 8, 142, 42), 'LPL')
+
     # Demolition cannon: a short, very wide siege barrel. Breech block, recoil buffers, a
     # tapering barrel bound by heavy bands, and a flared muzzle collar.
     b = block(6, 60, 50, 140, 8)

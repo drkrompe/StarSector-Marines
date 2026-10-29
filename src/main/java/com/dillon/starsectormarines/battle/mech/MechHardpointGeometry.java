@@ -63,6 +63,9 @@ public final class MechHardpointGeometry {
             case LayeredMechAppearance.ARMS_HEAVY_CANNON -> 0.47f;
             case LayeredMechAppearance.ARMS_DEMOLITION_CANNON,
                  LayeredMechAppearance.ARMS_QUARRY_BREAKER -> 0.42f;
+            // The light weapons are 88 px long: 0.42 hull widths from the rear pivot.
+            case LayeredMechAppearance.ARMS_LIGHT_MG,
+                 LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER -> 0.27f;
             default -> Float.NaN;
         };
     }
@@ -79,6 +82,8 @@ public final class MechHardpointGeometry {
             case LayeredMechAppearance.ARMS_LINEAR_CANNON -> 0.61f;
             case LayeredMechAppearance.ARMS_PULSE_LASER -> 0.49f;
             case LayeredMechAppearance.ARMS_BASTION_AUTOCANNON -> 0.59f;
+            case LayeredMechAppearance.ARMS_LIGHT_MG,
+                 LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER -> 0.37f;
             default -> Float.NaN;
         };
     }
@@ -104,6 +109,7 @@ public final class MechHardpointGeometry {
         if (podAppearance == LayeredMechAppearance.POD_SHOULDER_LASER
                 || podAppearance == LayeredMechAppearance.POD_THERMAL_LANCE) return 0.32f;
         if (podAppearance == LayeredMechAppearance.POD_PIONEER_ROCKET) return 0.22f;
+        if (podAppearance == LayeredMechAppearance.POD_LIGHT_ROCKET) return 0.04f;
         return isSmallPod(podAppearance) ? 0.12f : 0.16f;
     }
 
@@ -122,7 +128,7 @@ public final class MechHardpointGeometry {
             return Float.isNaN(arm) ? 0f : arm - ARM_PIVOT;
         }
         boolean pod = appearance >= LayeredMechAppearance.POD_SMALL_SRM
-                && appearance <= LayeredMechAppearance.POD_PIONEER_ROCKET;
+                && appearance <= LayeredMechAppearance.POD_LIGHT_ROCKET;
         return pod ? podForward(appearance) - POD_PIVOT : 0f;
     }
 
@@ -136,13 +142,14 @@ public final class MechHardpointGeometry {
             return switch (appearance) {
                 case LayeredMechAppearance.ARMS_CHAINGUN, LayeredMechAppearance.ARMS_NOSE_CHAINGUN,
                      LayeredMechAppearance.ARMS_PULSE_LASER, LayeredMechAppearance.ARMS_BASTION_AUTOCANNON,
-                     LayeredMechAppearance.ARMS_MUSTER_AUTOGUN, LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN -> 0.025f;
+                     LayeredMechAppearance.ARMS_MUSTER_AUTOGUN, LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN,
+                     LayeredMechAppearance.ARMS_LIGHT_MG -> 0.025f;
                 default -> 0f;
             };
         }
         return switch (appearance) {
             case LayeredMechAppearance.POD_SMALL_SRM, LayeredMechAppearance.POD_LARGE_SRM,
-                 LayeredMechAppearance.POD_PIONEER_ROCKET -> 0.018f;
+                 LayeredMechAppearance.POD_PIONEER_ROCKET, LayeredMechAppearance.POD_LIGHT_ROCKET -> 0.018f;
             case LayeredMechAppearance.POD_SMALL_LRM, LayeredMechAppearance.POD_LARGE_LRM -> 0.024f;
             default -> 0f;
         };

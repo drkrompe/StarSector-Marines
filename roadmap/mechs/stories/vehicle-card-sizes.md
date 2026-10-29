@@ -1,6 +1,6 @@
 # Story — A vehicle's gun card is sized and locked by its hull
 
-Status: PROPOSED
+Status: IN PROGRESS (slice 1 shipped: the small omni card and the three light weapons; the laser parts, the Thermal Lance and Pioneer regrade and the balance pass remain)
 
 Written: 2026-10-28
 
@@ -35,7 +35,13 @@ claim about the stock gun.
 
 ## The small weapons
 
-Only two mech weapons are one row today, the Thermal Lance (38 damage, 14 penetration) and the Pioneer Rocket
+Slice 1 is shipped: the small omni card (`VehicleGunCard.SMALL`, the APCs, dozer, technicals and hover scout) and
+the three light weapons it is stocked with (`LIGHT_MACHINE_GUN`, `LIGHT_PULSE_LASER`, `LIGHT_ROCKET_POD`), each
+a one-row mech part with its own drawing, liveries, selector, geometry, weapon definition, catalogue and Store
+entries; their stats are first proposals awaiting the balance pass. The text below is the original problem, kept
+for the rows that are not done.
+
+Only two mech weapons were one row before it, the Thermal Lance (38 damage, 14 penetration) and the Pioneer Rocket
 Cradle; the one-row MG card takes none. A small omni slot would therefore take a Thermal Lance on a 480-structure
 technical. The owner chose to author light weapons: one or two one-row parts per colour (a light MG, a light rocket
 pod, a light pulse laser), graded so a one-row part is clearly weaker per shot and per second than the two-row

@@ -1861,7 +1861,7 @@ public final class MechLabViewModel {
     /** The gun card's rule line: its type and size, as a mech's socket grid line reads. */
     private static String gunRule(VehicleType type) {
         VehicleGunCard card = VehicleGunCard.of(type);
-        return card == null ? "" : Strings.format("openingMechLabSocketGrid", card.hardpoint.name(),
+        return card == null ? "" : Strings.format("openingMechLabSocketGrid", card.hardpoint != null ? card.hardpoint.name() : "OMNI",
                 VehicleGunCard.COLUMNS, card.rows, Strings.get("openingMechLabOpen"));
     }
 

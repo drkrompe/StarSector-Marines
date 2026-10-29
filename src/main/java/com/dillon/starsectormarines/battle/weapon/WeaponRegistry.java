@@ -69,6 +69,10 @@ public final class WeaponRegistry {
     public static final String MECH_MUSTER_AUTOGUN_ID = "weapon.mech-muster-autogun";
     public static final String MECH_QUARRY_BREAKER_ID = "weapon.mech-quarry-breaker";
     public static final String MECH_PIONEER_ROCKET_ID = "weapon.mech-pioneer-rocket";
+    /** The one-row light weapons that stock a small vehicle gun card ({@code vehicle-card-sizes.md}). */
+    public static final String MECH_LIGHT_MG_ID = "weapon.mech-light-mg";
+    public static final String MECH_LIGHT_PULSE_LASER_ID = "weapon.mech-light-pulse-laser";
+    public static final String MECH_LIGHT_ROCKET_POD_ID = "weapon.mech-light-rocket-pod";
 
     /**
      * Core resources retained for standalone tools and compatibility tests.

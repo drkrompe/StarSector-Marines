@@ -757,6 +757,141 @@
       }
     },
     {
+      "id": "weapon.mech-light-mg",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponMechLightMgDisplayName",
+        "designationTiered": false
+      },
+      "sim": {
+        "tracksFliers": true,
+        "range": 22.0,
+        "damage": 6.0,
+        "accuracy": 0.5,
+        "cooldown": 1.9,
+        "penetration": 3.0,
+        "burstCount": 5,
+        "burstSpacing": 0.10,
+        "hitSpread": 1.2,
+        "roundVelocity": 240.0,
+        "flightSec": 0.09,
+        "aoeRadius": 0.3,
+        "wallDamage": 1,
+        "noiseMagnitude": 0.9
+      },
+      "render": {
+        "tracerColor": "FFD69A",
+        "tracerTailCells": 0.6,
+        "projectileSprite": "graphics/missiles/shell_small_yellow.png",
+        "projectileVisualCells": 0.14
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.34, "lifetime": 0.06, "color": "FFE080" },
+          { "kind": "smoke", "radius": 0.16, "lifetime": 0.30 }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.24, "lifetime": 0.09, "color": "FFC860" },
+          { "kind": "dust", "radius": 0.20, "lifetime": 0.22 }
+        ]
+      },
+      "audio": { "fireSound": "chaingun_fire" }
+    },
+    {
+      "id": "weapon.mech-light-pulse-laser",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponMechLightPulseLaserDisplayName",
+        "designationTiered": false
+      },
+      "sim": {
+        "tracksFliers": true,
+        "range": 24.0,
+        "damage": 11.0,
+        "accuracy": 0.7,
+        "cooldown": 1.8,
+        "penetration": 5.0,
+        "burstCount": 4,
+        "burstSpacing": 0.08,
+        "hitSpread": 0.6,
+        "roundVelocity": 320.0,
+        "flightSec": 0.08,
+        "aoeRadius": 0.3,
+        "wallDamage": 2,
+        "noiseMagnitude": 0.8
+      },
+      "render": {
+        "tracerColor": "FFD2B8",
+        "beam": {
+          "coreWidthPx": 1.6,
+          "glowColor": "E06A3C",
+          "glowWidthPx": 6.0,
+          "pulseCycles": 1.0,
+          "lifetimeSec": 0.10
+        },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.40, "lifetime": 0.07, "color": "FF9A5C" },
+          { "kind": "ring", "radius": 0.20, "lifetime": 0.09, "color": "FFE0CC" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.34, "lifetime": 0.10, "color": "FF8A4C" },
+          { "kind": "dust", "radius": 0.18, "lifetime": 0.18 }
+        ]
+      },
+      "audio": { "fireSound": "pulse_laser_fire" }
+    },
+    {
+      "id": "weapon.mech-light-rocket-pod",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponMechLightRocketPodDisplayName",
+        "designationTiered": false
+      },
+      "sim": {
+        "pointDefenseTarget": true,
+        "range": 17.0,
+        "damage": 12.0,
+        "accuracy": 0.42,
+        "cooldown": 6.0,
+        "penetration": 5.0,
+        "burstCount": 3,
+        "burstSpacing": 0.18,
+        "hitSpread": 0.9,
+        "roundVelocity": 30.76923,
+        "flightSec": 0.55,
+        "aoeRadius": 0.8,
+        "wallDamage": 8,
+        "wallDamageRadius": 0.8,
+        "interceptableProjectile": true,
+        "noiseMagnitude": 1.2
+      },
+      "render": {
+        "tracerColor": "FFB86A",
+        "projectileSprite": "graphics/missiles/missile_SRM.png",
+        "projectileVisualCells": 0.30
+      },
+      "fx": {
+        "trail": [
+          { "kind": "glow", "radius": 0.12, "lifetime": 0.18, "color": "FF9040" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.40, "lifetime": 0.12, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.30, "lifetime": 0.30 },
+          { "kind": "smoke", "radius": [0.32, 0.50], "lifetime": [0.75, 1.05],
+            "count": [2, 3], "jitter": 0.30 },
+          { "kind": "dust", "radius": 0.36, "lifetime": 0.26 }
+        ]
+      },
+      "audio": {
+        "fireSound": "pilum_lrm_fire",
+        "impactSound": "marines_explosion"
+      }
+    },
+    {
       "id": "weapon.mech-srm-pod",
       "mount": "mech-mount",
       "catalog": {

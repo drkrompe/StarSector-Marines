@@ -163,6 +163,24 @@
       "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "PRC-4",
       "description": "@gearCatalogComponentMechPioneerRocketDescription"
+    },
+    {
+      "component": "component.mech-light-mg",
+      "factionLogo": "graphics/factions/neutral_traders.png",
+      "designation": "LMG-1",
+      "description": "@gearCatalogComponentMechLightMgDescription"
+    },
+    {
+      "component": "component.mech-light-rocket-pod",
+      "factionLogo": "graphics/factions/neutral_traders.png",
+      "designation": "LRP-2",
+      "description": "@gearCatalogComponentMechLightRocketPodDescription"
+    },
+    {
+      "component": "component.mech-light-pulse-laser",
+      "factionLogo": "graphics/factions/tritachyon.png",
+      "designation": "LPL-1",
+      "description": "@gearCatalogComponentMechLightPulseLaserDescription"
     }
   ]
 }
