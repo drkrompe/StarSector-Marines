@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "55",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A massive explosion tearing a section off a giant ship: a deep thunderous blast, metal ripping apart, a long burning rumble, no music, no voices",
+    "duration_seconds": 5.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "cd5e56650e94c01f31fee094a565b8e936f10233e13253c6676a733713b12c2f",
+  "durationSeconds": 5.0,
+  "peakDb": 0.0,
+  "integratedLufs": -6.5
+}

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "44",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Inside a ship under fire: rounds hammering the hull, a damage alarm, and creaking stressed metal, no music, no voices",
+    "duration_seconds": 4.0,
+    "prompt_influence": 0.6,
+    "loop": true
+  },
+  "audioSha256": "24fa8593324305acb74fce8abce547848c4613b936ae58a7137900301ed15359",
+  "durationSeconds": 4.0,
+  "peakDb": 0.0,
+  "integratedLufs": -14.8
+}

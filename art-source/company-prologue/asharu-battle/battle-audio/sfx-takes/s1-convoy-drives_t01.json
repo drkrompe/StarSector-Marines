@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "132",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A slow convoy of huge freighters heard from far away in space: a deep steady low rumble of big drives burning rocket fuel: bass and crackling combustion like a shuttle launch, never compressed air, hum or chimes, constant and distant, no music, no voices",
+    "duration_seconds": 12.0,
+    "prompt_influence": 0.4,
+    "loop": true
+  },
+  "audioSha256": "51059bfbe4ab417fca7b9d790a2ea9f4265e286533c1cdeaffcd09df56487afc",
+  "durationSeconds": 12.0,
+  "peakDb": -0.4,
+  "integratedLufs": -13.8
+}

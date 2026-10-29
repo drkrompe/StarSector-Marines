@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "28",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Huge mechanical grapple arms swinging out: heavy hydraulic hissing and deep metal clanks, no music, no voices",
+    "duration_seconds": 2.5,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "f1369bafbe600a2a2daf90794461d3335b92935a692e98dbbcdb1c413e4fd716",
+  "durationSeconds": 2.48,
+  "peakDb": 0.0,
+  "integratedLufs": -10.5
+}

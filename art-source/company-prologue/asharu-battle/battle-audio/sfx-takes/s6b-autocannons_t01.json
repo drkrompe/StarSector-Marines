@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "44",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Heavy autocannons firing steady rhythmic bursts: deep punchy mechanical cannon shots with shell casings rattling, no music, no voices",
+    "duration_seconds": 4.0,
+    "prompt_influence": 0.6,
+    "loop": true
+  },
+  "audioSha256": "add435ac8f5f42aeb8cc58e4cdd2145fe3530384ed58004027c4583dd45163c1",
+  "durationSeconds": 4.0,
+  "peakDb": 0.0,
+  "integratedLufs": -12.1
+}

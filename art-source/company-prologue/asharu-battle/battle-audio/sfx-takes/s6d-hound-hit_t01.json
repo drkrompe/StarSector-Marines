@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "22",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A burst of cannon rounds smashing into a ship's belly: rapid heavy impacts and a sputtering engine cutting out, no music, no voices",
+    "duration_seconds": 2.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "711b0f1485c8d8b9af50146e4f5aa960aec32da40abc882208b396f43ee6d7a3",
+  "durationSeconds": 2.0,
+  "peakDb": 0.0,
+  "integratedLufs": -3.9
+}

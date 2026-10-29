@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "22",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A radio signal breaking up: a harsh burst of loud static and digital crackle cutting out, no music, no voices",
+    "duration_seconds": 2.0,
+    "prompt_influence": 0.7,
+    "loop": false
+  },
+  "audioSha256": "e56f29d23944a5bf5e43ab01f925951b2e2a11d27ea87e4f87b2683cf7146e87",
+  "durationSeconds": 2.0,
+  "peakDb": 0.0,
+  "integratedLufs": -8.1
+}

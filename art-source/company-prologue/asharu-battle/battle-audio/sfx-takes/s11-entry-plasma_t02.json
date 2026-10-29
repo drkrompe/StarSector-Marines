@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "77",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A spacecraft entering the atmosphere: a roaring rushing wall of superheated plasma, buffeting and rising in intensity, no music, no voices",
+    "duration_seconds": 7.0,
+    "prompt_influence": 0.5,
+    "loop": true
+  },
+  "audioSha256": "5f0699261a34e79a2bba515fbc440c3737df47f888ea9b504b653cd123333cb8",
+  "durationSeconds": 7.0,
+  "peakDb": -1.0,
+  "integratedLufs": -12.4
+}

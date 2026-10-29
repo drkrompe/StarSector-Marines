@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "33",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "Inside a burning ship: a damage alarm klaxon wailing over loud hissing venting gas and creaking metal, no music, no voices",
+    "duration_seconds": 3.0,
+    "prompt_influence": 0.6,
+    "loop": true
+  },
+  "audioSha256": "5184127c46b0be2c53dfe1cc5cd84b0271b3f785e9a16d65ef8dbf5c384c1b98",
+  "durationSeconds": 3.0,
+  "peakDb": 0.0,
+  "integratedLufs": -4.4
+}

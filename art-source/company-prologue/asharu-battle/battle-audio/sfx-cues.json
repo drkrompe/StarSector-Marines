@@ -1,0 +1,182 @@
+{
+ "s1-convoy-drives": {
+  "prompt": "A slow convoy of huge freighters heard from far away in space: a deep steady low rumble of big drives burning rocket fuel: bass and crackling combustion like a shuttle launch, never compressed air, hum or chimes, constant and distant, no music, no voices",
+  "seconds": 12,
+  "loop": true,
+  "influence": 0.4
+ },
+ "s4-pirate-drives-light": {
+  "prompt": "Several rocket drives igniting one after another in the distance, each a deep thump and crackling roar building into a combined rumble, burning rocket fuel: bass and crackling combustion like a shuttle launch, never compressed air, hum or chimes, no music, no voices",
+  "seconds": 5,
+  "loop": false,
+  "influence": 0.5
+ },
+ "s5-full-burn": {
+  "prompt": "A gigantic freighter's main drives throttling up to full burn: a deep swelling roar of combustion, the hull shuddering, burning rocket fuel: bass and crackling combustion like a shuttle launch, never compressed air, hum or chimes, no music, no voices",
+  "seconds": 5,
+  "loop": false,
+  "influence": 0.5
+ },
+ "s5-harpoon-launch": {
+  "prompt": "A salvo of guided missiles launching in quick succession: sharp rocket motor ignitions with hissing crackling trails streaking away, no music, no voices",
+  "seconds": 3,
+  "loop": false,
+  "influence": 0.6
+ },
+ "s5-missile-warning": {
+  "prompt": "An urgent military cockpit missile warning alarm: fast repeating high electronic beeps, harsh and insistent, no music, no voices",
+  "seconds": 3,
+  "loop": true,
+  "influence": 0.7
+ },
+ "s6-point-defence": {
+  "prompt": "Rapid point-defence machine guns firing long bursts: fast mechanical chattering gunfire from several turrets at once, no music, no voices",
+  "seconds": 4,
+  "loop": true,
+  "influence": 0.6
+ },
+ "s6-tanker-cooks-off": {
+  "prompt": "A huge fuel tanker exploding: a deep booming blast that cooks off into a chain of secondary explosions, with a long rolling rumble fading out, no music, no voices",
+  "seconds": 6,
+  "loop": false,
+  "influence": 0.5
+ },
+ "s6-two-hit": {
+  "prompt": "A missile slamming into a warship's armoured hull: a sharp heavy explosion with a metallic crunch and a short sizzle of fire, no music, no voices",
+  "seconds": 2.5,
+  "loop": false,
+  "influence": 0.6
+ },
+ "s6-batory-alarm": {
+  "prompt": "Inside a burning ship: a damage alarm klaxon wailing over loud hissing venting gas and creaking metal, no music, no voices",
+  "seconds": 3,
+  "loop": true,
+  "influence": 0.6
+ },
+ "s6-lead-hit": {
+  "prompt": "Two missiles hitting a warship one right after the other: two heavy explosions, metal tearing, gas venting with a roar, no music, no voices",
+  "seconds": 2.5,
+  "loop": false,
+  "influence": 0.6
+ },
+ "s6b-autocannons": {
+  "prompt": "Heavy autocannons firing steady rhythmic bursts: deep punchy mechanical cannon shots with shell casings rattling, no music, no voices",
+  "seconds": 4,
+  "loop": true,
+  "influence": 0.6
+ },
+ "s6b-feeder-burst": {
+  "prompt": "A cannon spinning up into an extremely rapid burst of fire, a ripping mechanical roar of shots, no music, no voices",
+  "seconds": 2,
+  "loop": false,
+  "influence": 0.6
+ },
+ "s6b-hound-breaks-up": {
+  "prompt": "A small warship breaking apart: a sharp explosion with metal shrieking and tearing and debris scattering, no music, no voices",
+  "seconds": 3,
+  "loop": false,
+  "influence": 0.5
+ },
+ "s6c-blink": {
+  "prompt": "A short science fiction phase jump: a sharp electric crack and a deep pressure pop with a quick rising whine, no music, no voices",
+  "seconds": 1.5,
+  "loop": false,
+  "influence": 0.7
+ },
+ "s6c-sobieski-drives": {
+  "prompt": "A ship's engines blowing apart: a heavy explosion followed by the engine roar sputtering and dying into crackling fire, no music, no voices",
+  "seconds": 3,
+  "loop": false,
+  "influence": 0.5
+ },
+ "s6c-sobieski-bridge": {
+  "prompt": "Inside a ship under fire: rounds hammering the hull, a damage alarm, and creaking stressed metal, no music, no voices",
+  "seconds": 4,
+  "loop": true,
+  "influence": 0.6
+ },
+ "s6d-hound-kill": {
+  "prompt": "A close-range explosion of a small warship: a sharp violent blast and burst of debris pinging off a hull, no music, no voices",
+  "seconds": 3,
+  "loop": false,
+  "influence": 0.5
+ },
+ "s6d-hound-hit": {
+  "prompt": "A burst of cannon rounds smashing into a ship's belly: rapid heavy impacts and a sputtering engine cutting out, no music, no voices",
+  "seconds": 2,
+  "loop": false,
+  "influence": 0.6
+ },
+ "s7-boats-clamp": {
+  "prompt": "Heavy magnetic docking clamps slamming onto a ship's hull: deep metallic thuds and a grinding lock, no music, no voices",
+  "seconds": 2.5,
+  "loop": false,
+  "influence": 0.6
+ },
+ "s7-breach-inside": {
+  "prompt": "Muffled breaching charge blasts and gunfire inside a ship's corridors, shouting impossible to make out",
+  "seconds": 3,
+  "loop": true,
+  "influence": 0.6
+ },
+ "s8-pod-raked": {
+  "prompt": "Heavy cannon rounds raking along a huge ship's hull: rapid hard metallic impacts walking along the plating, no music, no voices",
+  "seconds": 3,
+  "loop": false,
+  "influence": 0.6
+ },
+ "s9-flares": {
+  "prompt": "Decoy flares launching in a rapid series: popping thumps and fizzing hissing burns, no music, no voices",
+  "seconds": 2.5,
+  "loop": false,
+  "influence": 0.6
+ },
+ "s9-pod-explodes": {
+  "prompt": "A massive explosion tearing a section off a giant ship: a deep thunderous blast, metal ripping apart, a long burning rumble, no music, no voices",
+  "seconds": 5,
+  "loop": false,
+  "influence": 0.5
+ },
+ "s9-borer-lasers": {
+  "prompt": "An industrial mining laser beam cutting metal: a steady harsh electric hum with sizzling and crackling, no music, no voices",
+  "seconds": 4,
+  "loop": true,
+  "influence": 0.6
+ },
+ "s9-grapples": {
+  "prompt": "Huge mechanical grapple arms swinging out: heavy hydraulic hissing and deep metal clanks, no music, no voices",
+  "seconds": 2.5,
+  "loop": false,
+  "influence": 0.6
+ },
+ "s9b-shield-overload": {
+  "prompt": "An energy shield overloading: a rising electric whine that snaps into a loud crackling discharge, no music, no voices",
+  "seconds": 2,
+  "loop": false,
+  "influence": 0.7
+ },
+ "s9b-lead-breaks": {
+  "prompt": "A warship's ammunition magazine exploding: a huge deep blast with a chain of rapid secondary pops and a long rumbling tail, no music, no voices",
+  "seconds": 5,
+  "loop": false,
+  "influence": 0.5
+ },
+ "s10-colossus-groans": {
+  "prompt": "An enormous ship's hull groaning and buckling under stress: deep slow metal creaks and shudders, no music, no voices",
+  "seconds": 6,
+  "loop": true,
+  "influence": 0.5
+ },
+ "s11-entry-plasma": {
+  "prompt": "A spacecraft entering the atmosphere: a roaring rushing wall of superheated plasma, buffeting and rising in intensity, no music, no voices",
+  "seconds": 7,
+  "loop": true,
+  "influence": 0.5
+ },
+ "s11-signal-breaks": {
+  "prompt": "A radio signal breaking up: a harsh burst of loud static and digital crackle cutting out, no music, no voices",
+  "seconds": 2,
+  "loop": false,
+  "influence": 0.7
+ }
+}

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "55",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A gigantic freighter's main drives throttling up to full burn: a deep swelling roar of combustion, the hull shuddering, burning rocket fuel: bass and crackling combustion like a shuttle launch, never compressed air, hum or chimes, no music, no voices",
+    "duration_seconds": 5.0,
+    "prompt_influence": 0.5,
+    "loop": false
+  },
+  "audioSha256": "8dc3bba6b9d9d5f7c3386286644de443633c207da12319848d8b340de24a75cb",
+  "durationSeconds": 5.0,
+  "peakDb": -0.2,
+  "integratedLufs": -8.0
+}
