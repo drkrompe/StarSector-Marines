@@ -375,3 +375,4 @@ com.dillon.starsectormarines.battle.world.gen.BloomPaletteLookSuite
 com.dillon.starsectormarines.ops.WellhollowArtSnapshotSuite
 com.dillon.starsectormarines.ops.StoreSnapshotSuite
 com.dillon.starsectormarines.ops.SideObjectiveInteractionMockSuite
+com.dillon.starsectormarines.ops.MechLaserLineupSnapshotSuite
