@@ -403,6 +403,8 @@ def build():
     f['light-machine-gun'] = banded(150, 100, autogun(38, 8, 142, 22, drum=True), 'LMG')
     f['light-rocket-pod'] = banded(150, 100, missile_rack(150, 100, 2, 'rocket') + rect(14, 86, 124, 5, D, rx=2), 'LRP')
     f['light-pulse-laser'] = banded(150, 100, pulse_laser(46, 8, 142, 42), 'LPL')
+    # The SRM technical's roof pod: the light rocket pod's two-row rack, with short-range missiles.
+    f['vehicle-srm-pod'] = banded(150, 100, missile_rack(150, 100, 2, 'srm') + rect(14, 86, 124, 5, D, rx=2), 'SRM')
     f['burst-laser'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 66, rings=7)), 'HBL')
     f['heavy-pd-laser'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 60, rings=5)), 'HPD')
     f['medium-burst-laser'] = banded(150, 200, upright2(laser_cannon(75, 10, 190, 56, rings=4)), 'BST')

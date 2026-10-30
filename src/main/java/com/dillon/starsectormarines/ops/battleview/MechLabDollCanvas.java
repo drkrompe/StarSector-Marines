@@ -347,7 +347,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
             SocketDef socket = socketById(sockets, target.id());
             if (socket.id() == SocketId.PLATING || socket.id() == SocketId.CORE) {
                 MechSocketConsole.draw(c, target, socket, null, null,
-                        socket.id() == SocketId.CORE ? MechInternal.INDUSTRIAL_ENGINE : null, false, null, null, null,
+                        socket.id() == SocketId.CORE ? MechInternal.INDUSTRIAL_ENGINE : MechInternal.FACTORY_PLATING,
+                        false, null, null, null,
                         false, false, false, false, false, seconds);
                 continue;
             }
@@ -797,8 +798,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
         MechInternal shown = snapped && hasInternal && dragPreview.source() == null && draggingHere
                 ? dragPreview.internal() : fitted;
         boolean preview = shown != null && shown != fitted;
-        // The hull's own engine is drawn as the mech's factory one; its own plate is no part.
-        if (shown == null && id == SocketId.CORE) shown = MechInternal.INDUSTRIAL_ENGINE;
+        // The hull's own engine and plate are drawn as the mech's factory ones, so the card reads as fitted.
+        if (shown == null) shown = id == SocketId.CORE ? MechInternal.INDUSTRIAL_ENGINE : MechInternal.FACTORY_PLATING;
         MechSocketConsole.draw(c, target, socket, null, null, shown, preview, null, null, assets.get(),
                 selects(id, selectedSocket.get()), hoveredSocket == id,
                 draggingHere && hasInternal && snapped, draggingHere && hasInternal && !snapped, draggingHere,

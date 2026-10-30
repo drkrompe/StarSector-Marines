@@ -91,6 +91,20 @@ final class VehicleDoll {
         };
     }
 
+    /**
+     * The drawing of the gun a hull's turret actually is. The card sizes the socket, and a small card is shared by
+     * several guns, so the heavy machine gun, the SRM pod and the hover pulse emitter each carry their own picture
+     * rather than the light machine gun's; any other turret reads from its card.
+     */
+    private static String gunArt(VehicleType type) {
+        return switch (type.turretStructureId == null ? "" : type.turretStructureId) {
+            case TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID -> "boat-door-heavy-mg";
+            case TurretCatalogRegistry.VEHICLE_SRM_STRUCTURE_ID -> "vehicle-srm-pod";
+            case TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID -> "light-pulse-laser";
+            default -> gunArt(VehicleGunCard.of(type));
+        };
+    }
+
     /** Every drawing a sealed card can show, for {@link HardwareArt#preload()}. */
     static final List<String> ART = artStems();
 
@@ -100,6 +114,7 @@ final class VehicleDoll {
                 "boat-hold-standard", "vehicle-bay-supply", "vehicle-bay-drones",
                 "vehicle-systems-blade", "vehicle-systems-aps", "vehicle-systems-mast", "vehicle-systems-secondary"));
         for (VehicleGunCard gun : VehicleGunCard.values()) if (!stems.contains(gunArt(gun))) stems.add(gunArt(gun));
+        stems.addAll(List.of("boat-door-heavy-mg", "vehicle-srm-pod", "light-pulse-laser"));
         return List.copyOf(stems);
     }
 
@@ -141,7 +156,7 @@ final class VehicleDoll {
                 case MEDIUM -> "engine-uprated";
                 case HEAVY -> "engine-military";
             };
-            case ARMS -> gunArt(VehicleGunCard.of(type));
+            case ARMS -> gunArt(type);
             case LEFT_SHOULDER -> type.capacity > 0 ? "boat-hold-standard"
                     : type.supplyStock() > 0 ? "vehicle-bay-supply" : "vehicle-bay-drones";
             case RIGHT_SHOULDER -> type.hasBlade() ? "vehicle-systems-blade"
