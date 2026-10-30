@@ -43,7 +43,7 @@ public final class TurretStateService {
 
     private final EntityWorld entityWorld;
     private final BattleComponents components;
-    /** Turrets whose power is cut: they hold fire for the rest of the battle. Written serially, read in the update. */
+    /** Turrets whose power is cut: they hold fire until it is restored. Written serially, read in the update. */
     private final LongOpenHashSet unpowered = new LongOpenHashSet();
 
     public TurretStateService(EntityWorld entityWorld, BattleComponents components) {
@@ -52,8 +52,11 @@ public final class TurretStateService {
     }
 
     /** Presence check — true iff {@code id} is a live turret (carries TURRET_STATE). Gate the other reads on this. */
-    /** Cuts turret {@code id}'s power for good (the Dust Ledger's feed): it stands, can be wrecked, and never fires. */
+    /** Cuts turret {@code id}'s power (the Dust Ledger's feed): it stands, can be wrecked, and holds fire until restored. */
     public void cutPower(long id) { unpowered.add(id); }
+
+    /** Restores turret {@code id}'s power: a mission's switched gun (Blind Watch's battery, live while its mast spots). */
+    public void restorePower(long id) { unpowered.remove(id); }
 
     /** Whether turret {@code id}'s power has been cut. */
     public boolean unpowered(long id) { return !unpowered.isEmpty() && unpowered.contains(id); }

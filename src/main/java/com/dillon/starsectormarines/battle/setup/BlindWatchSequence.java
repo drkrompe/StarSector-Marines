@@ -128,9 +128,9 @@ public final class BlindWatchSequence implements Objective {
     private int riggerGoalPlannedTick = -1;
     private boolean begun, riggersFreed, riggersEscorted, revealed;
     private boolean mastDown, uplinkDown, dishesDown;
-    private long mortar;
-    /** Where on its track the mortar carrier's current leg ends, as an index into the track. */
-    private int mortarAt;
+    private long mortar, crawler, battery;
+    /** Where on its track the mortar carrier's and the crawler's current legs end, as indexes into the track. */
+    private int mortarAt, crawlerAt;
     private DustLedgerTechnical technical;
     private BattleView field;
 
@@ -215,6 +215,38 @@ public final class BlindWatchSequence implements Objective {
     }
 
     /**
+     * Sable's plated crawler, recorded at setup: it drives the mortar carrier's track round as the carrier does,
+     * starting from the lander pad, and its roof gun fires on what it sees.
+     */
+    public void crawler(BattleSimulation sim, long id) {
+        if (crawler != 0L) throw new IllegalStateException("record the crawler once");
+        crawler = id;
+        var body = sim.convoy().body(id);
+        crawlerAt = nearestOnTrack(sites.mortarTrack(), body.x, body.y);
+    }
+
+    /** The index of the track cell nearest {@code (x, y)}. Pure. */
+    static int nearestOnTrack(List<Cell> track, float x, float y) {
+        int best = 0;
+        float nearest = Float.MAX_VALUE;
+        for (int i = 0; i < track.size(); i++) {
+            float dx = track.get(i).x() + .5f - x, dy = track.get(i).y() + .5f - y;
+            if (dx * dx + dy * dy < nearest) { nearest = dx * dx + dy * dy; best = i; }
+        }
+        return best;
+    }
+
+    /**
+     * Sable's Locust battery, recorded at setup. It fires on everything in its band whether or not anyone sees it, so
+     * it is powered only from the alarm while the mast stands: the mast is its eyes.
+     */
+    public void battery(BattleSimulation sim, long id) {
+        if (battery != 0L) throw new IllegalStateException("record the battery once");
+        battery = id;
+        sim.turretState().cutPower(id);
+    }
+
+    /**
      * Sable's rocket truck on the uplink knoll, recorded at setup with its stands, its park first: from the alarm
      * it works the knoll's corners against the company's armor ({@link DustLedgerTechnical}).
      */
@@ -247,6 +279,8 @@ public final class BlindWatchSequence implements Objective {
     public BlindWatchProgress progress() { return progress; }
     public List<Long> riggers() { return List.copyOf(riggers); }
     public long mortar() { return mortar; }
+    public long crawler() { return crawler; }
+    public long battery() { return battery; }
     /** The mast is up while its charge has not blown: until then it spots for Sable. */
     public boolean mastUp() { return !mast.isComplete(); }
     public ChargeSiteObjective mastCharge() { return mast; }
@@ -295,21 +329,29 @@ public final class BlindWatchSequence implements Objective {
             if (warning == Warning.SENT) beat(sim, "warning_sent");
             else if (warning == Warning.STOPPED && warningBefore == Warning.SENDING) beat(sim, "warning_stopped");
         }
-        if (mortar != 0L && !mortarPresent(sim)) beat(sim, "mortar_destroyed");
-        else if (mortar != 0L) driveMortar(sim);
+        if (mortar != 0L && !present(sim, mortar)) beat(sim, "mortar_destroyed");
+        else if (mortar != 0L) mortarAt = drive(sim, mortar, mortarAt);
+        if (crawler != 0L && present(sim, crawler)) crawlerAt = drive(sim, crawler, crawlerAt);
+        if (battery != 0L) {
+            if (!progress.quiet() && mastUp()) sim.turretState().restorePower(battery);
+            else sim.turretState().cutPower(battery);
+        }
         if (technical != null && !progress.quiet()) technical.tick(sim);
         tendRiggers(sim);
     }
 
-    /** Sends the carrier on along its track, a leg at a time, round again from the start once it is home. */
-    private void driveMortar(BattleSimulation sim) {
+    /**
+     * Sends a hull on along the track, a leg at a time, round again from the start once it is home. Returns where its
+     * next leg starts.
+     */
+    private int drive(BattleSimulation sim, long hull, int at) {
         List<Cell> track = sites.mortarTrack();
-        VehicleMission mission = sim.convoy().mission(mortar);
+        VehicleMission mission = sim.convoy().mission(hull);
         if (track.size() < 2 || mission == null || mission.state != VehicleState.DEPLOYED
-                || mission.authoredRouteX != null) return;
-        int from = mortarAt, to = mortarLegEnd(track, from);
-        mortarAt = to == track.size() - 1 ? 0 : to;
-        if (to == from) return;
+                || mission.authoredRouteX != null) return at;
+        int from = at, to = mortarLegEnd(track, from);
+        int next = to == track.size() - 1 ? 0 : to;
+        if (to == from) return next;
         float[] routeX = new float[to - from + 1], routeY = new float[to - from + 1];
         for (int i = from; i <= to; i++) {
             routeX[i - from] = track.get(i).x() + .5f;
@@ -319,6 +361,7 @@ public final class BlindWatchSequence implements Objective {
         mission.authoredRouteY = routeY;
         mission.authoredLeg = VehicleLeg.MOVE_ORDER;
         mission.authoredRoutePaused = false;
+        return next;
     }
 
     /**
@@ -380,9 +423,9 @@ public final class BlindWatchSequence implements Objective {
         return false;
     }
 
-    private boolean mortarPresent(BattleSimulation sim) {
+    private static boolean present(BattleSimulation sim, long hull) {
         ConvoyService convoy = sim.convoy();
-        return convoy.isVehicle(mortar) && convoy.isPresent(mortar);
+        return convoy.isVehicle(hull) && convoy.isPresent(hull);
     }
 
     /** The first rigger still on the field, or 0 once none is: the escort follows them. */

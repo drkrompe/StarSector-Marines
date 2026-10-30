@@ -87,7 +87,8 @@ class CorvusCombatEvidenceTest {
             }
             Path dir = output.resolve(chapter.name().toLowerCase(Locale.ROOT));
             Files.createDirectories(dir);
-            var muster = CorvusEvidenceCompany.muster(chapter, mission, boatCount, campaignMarks::contains, kit);
+            var chapterKit = kit.forChapter(chapter);
+            var muster = CorvusEvidenceCompany.muster(chapter, mission, boatCount, campaignMarks::contains, chapterKit);
             var fixture = muster.fixture();
             var deployment = muster.deployment();
             var resources = muster.resources();
@@ -146,6 +147,7 @@ class CorvusCombatEvidenceTest {
                         approachGuards.add(id);
                 }
                 int approachFirstShotAt = -1, approachShots = 0, approachDeathsAtEvidence = -1;
+                int machinesCalled = 0;
                 int requestedAt = -1, houndLandedAt = -1, firstLandedAt = -1, allLandedAt = -1, firstShotAt = -1;
                 long hound = -1;
                 int houndShots = 0, houndKills = 0;
@@ -181,8 +183,11 @@ class CorvusCombatEvidenceTest {
                 var mechs = new MechTimeToKillProbe();
                 writeFrame(renderer, sim, chapter, dir);
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
-                    // An armor drop names its machine: the recovered Hound is the only one aboard.
-                    if (requestedAt < 0 && CorvusEvidenceCompany.callHound(sim)) requestedAt = sim.getSimTickIndex() + 1;
+                    // An armor drop names one machine per order: the recovered Hound first, then the kit's mechs and vehicles.
+                    if (machinesCalled < chapterKit.machines() && CorvusEvidenceCompany.callMachine(sim, machinesCalled)) {
+                        if (requestedAt < 0) requestedAt = sim.getSimTickIndex() + 1;
+                        machinesCalled++;
+                    }
                     var beforePhase = sim.getColdAccount() == null ? null : sim.getColdAccount().phase();
                     int beforeShipShots = sim.getColdAccount() == null ? 0 : sim.getColdAccount().shotsFired();
                     var beforeNarration = narration.current();
@@ -295,10 +300,11 @@ class CorvusCombatEvidenceTest {
                         Float previousDurability = withdrawalDurability.put(id, durability);
                         if (firstCapitalShotAt >= 0 && previousDurability != null)
                             marineDurabilityLostAfterFirstSalvo += Math.max(0f, previousDurability - durability);
+                        // A kit with mechs drops other machines beside the Hound; the Hound is the one named.
                         if (sim.identity().type(id) == UnitType.HEAVY_MECH) {
+                            if (!WaylineHound.NAME.equals(sim.identity().name(id))) continue;
                             if (hound < 0) {
                                 hound = id; houndLandedAt = tick;
-                                assertEquals(WaylineHound.NAME, sim.identity().name(id));
                                 sim.getEntityWorld().addComponent(id, sim.getBattleComponents().TELEMETRY);
                             }
                             assertEquals(hound, id, "Exactly one owned Hound must land");
@@ -392,7 +398,7 @@ class CorvusCombatEvidenceTest {
                         .put("armorCapacity", seat.armorCapacity()).put("armorRating", seat.armorRating()));
                 var report = new JSONObject().put("chapter", chapter.title()).put("seed",mission.battleSeed)
                         .put("companyBoats",boatCount).put("captainBonuses",false)
-                        .put("weapons",kit.squadWeapons()).put("houndShoulder",kit.houndPod() == null ? "" : kit.houndPod().name())
+                        .put("weapons",chapterKit.squadWeapons()).put("houndShoulder",chapterKit.houndPod() == null ? "" : kit.houndPod().name())
                         .put("armor",SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR)
                         .put("result", sim.isComplete() ? String.valueOf(sim.getWinner()) : "TIMEOUT")
                         .put("ticks",sim.getSimTickIndex()).put("namedSeats",deployment.size()).put("landed",landed.size())

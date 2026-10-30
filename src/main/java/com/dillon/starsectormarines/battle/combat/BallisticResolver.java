@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.LongBucket;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 import com.dillon.starsectormarines.battle.unit.UnitSpatialIndex;
+import com.dillon.starsectormarines.battle.weapon.BeamWander;
 import com.dillon.starsectormarines.battle.world.model.DoodadService;
 
 import java.util.ArrayList;
@@ -460,6 +461,18 @@ public final class BallisticResolver {
                                float finalAccuracy, float effectiveSpread,
                                float roundVelocity, float maximumTargetingRange,
                                int bodyPenetrations, Random rng) {
+        return resolve(source, target, finalAccuracy, effectiveSpread, roundVelocity, maximumTargetingRange,
+                bodyPenetrations, null, rng);
+    }
+
+    /**
+     * As above, for one pulse of a crawling beam: a non-null {@code wander} commits the pulse's aim off the beam's
+     * continuous path ({@link TargetPlaneAim#crawl}) instead of fresh draws, at the same hit chance and mean miss.
+     */
+    public Resolution resolve(Source source, long target,
+                               float finalAccuracy, float effectiveSpread,
+                               float roundVelocity, float maximumTargetingRange,
+                               int bodyPenetrations, BeamWander wander, Random rng) {
         if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
             throw new IllegalArgumentException("roundVelocity must be finite and positive");
         }
@@ -502,9 +515,12 @@ public final class BallisticResolver {
         // structural trace uses, and it degrades the sight picture instead of
         // stopping anything. The round itself crosses the cloud untouched.
         float obscuredAccuracy = finalAccuracy * SmokeObscuration.onLine(grid, fromX, fromY, targetX, targetY);
-        TargetPlaneAim.Sample aim = TargetPlaneAim.sample(
-                obscuredAccuracy, world.incomingAccuracyMult(target), effectiveSpread,
-                targetRadius(target), targetHitHalfHeight(target), rng);
+        TargetPlaneAim.Sample aim = wander != null
+                ? TargetPlaneAim.crawl(obscuredAccuracy, world.incomingAccuracyMult(target), effectiveSpread,
+                        targetRadius(target), targetHitHalfHeight(target), wander.sample(rng))
+                : TargetPlaneAim.sample(
+                        obscuredAccuracy, world.incomingAccuracyMult(target), effectiveSpread,
+                        targetRadius(target), targetHitHalfHeight(target), rng);
         float baseDx = leadX - fromX;
         float baseDy = leadY - fromY;
         float baseDist = (float) Math.sqrt(baseDx * baseDx + baseDy * baseDy);
@@ -571,7 +587,7 @@ public final class BallisticResolver {
         return resolvePoint(new Source(shooter, world.renderX(shooter), world.renderY(shooter),
                         0f, roster.identity().faction(shooter)),
                 aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
-                maximumTargetingRange, 0, dispersion, rng);
+                maximumTargetingRange, 0, dispersion, null, rng);
     }
 
     public Resolution resolvePoint(Source source, float aimX, float aimY,
@@ -598,13 +614,26 @@ public final class BallisticResolver {
                                    float roundVelocity, float maximumTargetingRange,
                                    int bodyPenetrations, Random rng) {
         return resolvePoint(source, aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
-                maximumTargetingRange, bodyPenetrations, PointAimDispersion.WEAPON, rng);
+                maximumTargetingRange, bodyPenetrations, PointAimDispersion.WEAPON, null, rng);
+    }
+
+    /**
+     * As above, for one pulse of a crawling beam: a non-null {@code wander} places the pulse in the same error disk
+     * off the beam's continuous path rather than a fresh draw ({@link BeamWander}).
+     */
+    public Resolution resolvePoint(Source source, float aimX, float aimY,
+                                   float finalAccuracy, float effectiveSpread,
+                                   float roundVelocity, float maximumTargetingRange,
+                                   int bodyPenetrations, BeamWander wander, Random rng) {
+        return resolvePoint(source, aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity,
+                maximumTargetingRange, bodyPenetrations, PointAimDispersion.WEAPON, wander, rng);
     }
 
     private Resolution resolvePoint(Source source, float aimX, float aimY,
                                     float finalAccuracy, float effectiveSpread,
                                     float roundVelocity, float maximumTargetingRange,
-                                    int bodyPenetrations, PointAimDispersion dispersion, Random rng) {
+                                    int bodyPenetrations, PointAimDispersion dispersion, BeamWander wander,
+                                    Random rng) {
         if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
             throw new IllegalArgumentException("roundVelocity must be finite and positive");
         }
@@ -629,7 +658,7 @@ public final class BallisticResolver {
         float obscuredAccuracy = finalAccuracy * SmokeObscuration.onLine(grid, source.x(), source.y(),
                 source.x() + baseDirX * sightDistance, source.y() + baseDirY * sightDistance);
         PointAim.Sample aim = PointAim.sample(obscuredAccuracy, effectiveSpread,
-                maximumTargetingRange, dispersion, rng);
+                maximumTargetingRange, dispersion, wander, rng);
         float dirX = baseDirX - baseDirY * aim.lateralSlope();
         float dirY = baseDirY + baseDirX * aim.lateralSlope();
         float directionLength = (float) Math.hypot(dirX, dirY);
@@ -657,6 +686,18 @@ public final class BallisticResolver {
                                          float finalAccuracy, float effectiveSpread,
                                          float roundVelocity, float weaponRange,
                                          int bodyPenetrations, Random rng) {
+        return resolveGroundBurst(source, aimX, aimY, finalAccuracy, effectiveSpread, roundVelocity, weaponRange,
+                bodyPenetrations, null, rng);
+    }
+
+    /**
+     * As above, for one pulse of a crawling beam: a non-null {@code wander} places the pulse in the same scatter disk
+     * off the beam's continuous path rather than a fresh draw ({@link BeamWander}).
+     */
+    public Resolution resolveGroundBurst(Source source, float aimX, float aimY,
+                                         float finalAccuracy, float effectiveSpread,
+                                         float roundVelocity, float weaponRange,
+                                         int bodyPenetrations, BeamWander wander, Random rng) {
         if (!(roundVelocity > 0f) || !Float.isFinite(roundVelocity)) {
             throw new IllegalArgumentException("roundVelocity must be finite and positive");
         }
@@ -678,7 +719,7 @@ public final class BallisticResolver {
         float obscuredAccuracy = finalAccuracy * SmokeObscuration.onLine(grid, source.x(), source.y(),
                 source.x() + baseDirX * throwDistance, source.y() + baseDirY * throwDistance);
         GroundBurstAim.Offset scatter = GroundBurstAim.sample(obscuredAccuracy, effectiveSpread,
-                weaponRange, throwDistance, rng);
+                weaponRange, throwDistance, wander, rng);
         float burstDx = baseDirX * throwDistance + scatter.dx();
         float burstDy = baseDirY * throwDistance + scatter.dy();
         float burstDistance = (float) Math.hypot(burstDx, burstDy);

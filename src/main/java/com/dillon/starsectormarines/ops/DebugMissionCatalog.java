@@ -61,7 +61,7 @@ public final class DebugMissionCatalog {
         THUNDER_RUN("Broken Supply Route", "Thunder Run", "Open the corridor for the tank, APCs and three loaded freight haulers.", 2, true),
         DUST_LEDGER("The Corvus Account", "The Dust Ledger", "Seize the dispatch archive and extract on Asharu.", 2, true),
         BLIND_WATCH("The Corvus Account", "Blind Watch", "Cover the planters at the three Warion installations.", 3, true),
-        COLD_ACCOUNT("The Corvus Account", "A Cold Account", "Secure the records, withdraw and call in the Navy on Garnir.", 4, true),
+        COLD_ACCOUNT("The Corvus Account", "A Cold Account", "Secure the records, withdraw and call in the Navy on Garnir.", 5, true),
         MILITIA_RELIEF("Repeatable work", "Militia Relief", "A fresh checkpoint relief posting.", 1, false),
         DEPOT_CLEARANCE("Repeatable work", "Depot Clearance", "Clear the depot without the story Hound or warehouse counterattacks.", 1, false),
         CREW_RECOVERY("Shelved concepts", "Crew Recovery concept", "Detached rescue variation; no campaign posting.", 2, true),
@@ -221,7 +221,7 @@ public final class DebugMissionCatalog {
                     .requiredDrops(squads * 2).employerShuttles(0)
                     .marineArrivalPolicy(this == COLD_START || this == RELIEF ? MarineArrivalPolicy.SECURED_GROUND : MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                     .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
-                    .requirements(squads + (this == WORKING_PASSAGE ? " squads / service pulse rifles / starting Ward armor / no Hound or officer bonuses" : " starter squads" + (hound ? " + the Hound (chaingun)" : "")) + "; preset boats supplied")
+                    .requirements(squads + (this == WORKING_PASSAGE ? " squads / service pulse rifles / starting Ward armor / no Hound or officer bonuses" : " starter squads" + (this == COLD_ACCOUNT ? " + " + ColdAccountCompany.BAY : hound ? " + the Hound (chaingun)" : "")) + "; preset boats supplied")
                     .battleSeed(chapter != null ? chapter.mission("unused", chapter.planetName, "").battleSeed
                             : ravBloom() ? RavBloomDebugChoice.seed(poolMap())
                             : 8101L + (this == DEPOT_CLEARANCE ? COUNTERATTACK.ordinal() : ordinal()) * 101).build();
@@ -244,7 +244,7 @@ public final class DebugMissionCatalog {
     public record Preset(DebugCompanyStage stage, int squads, int mechs, ShuttleType boat, int boats, boolean starterIssue, boolean serviceRifles) {
         public String summary() {
             return squads + (squads == 1 ? " squad" : " squads") + " / " + squads * 12 + " marines / "
-                    + boats + " " + boat.displayName() + (mechs > 0 ? " / " + mechs + (starterIssue ? " chaingun Hound" : " mechs") : " / no deployed mechs")
+                    + boats + " " + boat.displayName() + (mechs > 0 ? " / " + mechs + (starterIssue && mechs == 1 ? " chaingun Hound" : starterIssue ? " machines with the chaingun Hound" : " mechs") : " / no deployed mechs")
                     + (serviceRifles ? " / service pulse rifles / starting Ward armor / no officer bonuses" : "");
         }
     }
@@ -290,7 +290,8 @@ public final class DebugMissionCatalog {
         if (story != null && story.wellhollow() != null) return new Preset(DebugCompanyStage.VETERAN_COMPANY, story.squads,
                 WellhollowBloomCampaign.RECOMMENDED_MACHINES, CAMPAIGN_LIFT, CAMPAIGN_LIFT_BOATS, false, false);
         if (story != null) return new Preset(DebugCompanyStage.FIRST_CONTRACT, story.squads,
-                story.hound ? 1 : 0, CAMPAIGN_LIFT, CAMPAIGN_LIFT_BOATS, true, story == Scenario.WORKING_PASSAGE);
+                story == Scenario.COLD_ACCOUNT ? ColdAccountCompany.MACHINES : story.hound ? 1 : 0,
+                CAMPAIGN_LIFT, CAMPAIGN_LIFT_BOATS, true, story == Scenario.WORKING_PASSAGE);
         DebugCompanyStage stage = switch (m.tier) {
             case FIRST_CONTRACT -> DebugCompanyStage.FIRST_CONTRACT;
             case ESTABLISHED -> DebugCompanyStage.ESTABLISHED;

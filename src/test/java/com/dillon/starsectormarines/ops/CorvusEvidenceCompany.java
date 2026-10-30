@@ -6,13 +6,16 @@ import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.fixture.FiniteCommandPowerResources;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.marine.CampaignMech;
+import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
@@ -21,6 +24,7 @@ import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
 import com.dillon.starsectormarines.ops.detachment.PowerCatalog;
 
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -41,6 +45,8 @@ final class CorvusEvidenceCompany {
     static final String SQUAD_WEAPONS_PROPERTY = "battle.corvus.squadWeapons";
     /** The Hound's left-shoulder pod, a {@link MechWeaponComponent} name; none by default, as recovered. */
     static final String HOUND_SHOULDER_PROPERTY = "battle.corvus.houndShoulder";
+    /** Vehicles on the lance's gantries beside the Hound, {@link VehicleType} names comma separated; none by default. */
+    static final String MACHINES_PROPERTY = "battle.corvus.machines";
     /** The armor-drop pick that names the recovered Hound, the one machine in the bay. */
     static final List<Integer> HOUND_PICK = List.of(0);
     /** Supplies the company brings for its command powers. */
@@ -51,18 +57,45 @@ final class CorvusEvidenceCompany {
      *
      * @param squadWeapons the weapon card every squad is issued
      * @param houndPod     the Hound's left-shoulder pod, or {@code null} for none
+     * @param vehicles     the vehicles on the lance's gantries beside the Hound, called down after it
+     * @param mechs        standard-fit mechs on the lance's gantries, called down after the Hound and before the vehicles
      */
-    record Kit(String squadWeapons, MechWeaponComponent houndPod) {
+    record Kit(String squadWeapons, MechWeaponComponent houndPod, List<VehicleType> vehicles, List<MechVariant> mechs) {
         /** The first contract's kit: Field Security rifles and the Hound as recovered. */
-        static final Kit RECOVERED = new Kit(SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS, null);
+        static final Kit RECOVERED = new Kit(SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS, null, List.of());
         /** What a prepared company brings to the Corvus account: the Convoy Escort Issue and the Hound's SRMs. */
-        static final Kit PREPARED = new Kit(SquadEquipmentDoctrines.CONVOY_ESCORT_WEAPONS, MechWeaponComponent.SRM_5);
+        static final Kit PREPARED = new Kit(SquadEquipmentDoctrines.CONVOY_ESCORT_WEAPONS, MechWeaponComponent.SRM_5,
+                List.of());
+
+        Kit {
+            vehicles = List.copyOf(vehicles);
+            mechs = List.copyOf(mechs);
+        }
+
+        Kit(String squadWeapons, MechWeaponComponent houndPod, List<VehicleType> vehicles) {
+            this(squadWeapons, houndPod, vehicles, List.of());
+        }
+
+        /** Machines aboard: the Hound, its mechs and every vehicle. */
+        int machines() { return 1 + mechs.size() + vehicles.size(); }
+
+        /**
+         * This kit as {@code chapter} is played: A Cold Account brings {@link ColdAccountCompany}'s bay unless the
+         * properties named machines of their own.
+         */
+        Kit forChapter(CorvusChapter chapter) {
+            if (chapter != CorvusChapter.COLD_ACCOUNT || !vehicles.isEmpty() || !mechs.isEmpty()) return this;
+            return new Kit(squadWeapons, houndPod, ColdAccountCompany.VEHICLES, ColdAccountCompany.MECHS);
+        }
 
         /** The kit the system properties name, {@link #RECOVERED} where they name nothing. */
         static Kit fromSystemProperties() {
             String pod = System.getProperty(HOUND_SHOULDER_PROPERTY, "");
+            List<VehicleType> vehicles = new ArrayList<>();
+            for (String name : System.getProperty(MACHINES_PROPERTY, "").split(","))
+                if (!name.isBlank()) vehicles.add(VehicleType.valueOf(name.trim()));
             return new Kit(System.getProperty(SQUAD_WEAPONS_PROPERTY, RECOVERED.squadWeapons()),
-                    pod.isBlank() ? null : MechWeaponComponent.valueOf(pod));
+                    pod.isBlank() ? null : MechWeaponComponent.valueOf(pod), vehicles);
         }
     }
 
@@ -109,6 +142,15 @@ final class CorvusEvidenceCompany {
         if (!roster.mechBay().receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID,
                 houndDeployment(kit.houndPod()))))
             throw new IllegalStateException("the Hound did not board");
+        String lance = roster.mechBay().activeSquad().id();
+        for (MechVariant variant : kit.mechs())
+            if (roster.mechBay().fabricateChassis(lance, variant) == null)
+                throw new IllegalStateException(variant + " did not board");
+        for (int i = 0; i < kit.vehicles().size(); i++) {
+            VehicleType type = kit.vehicles().get(i);
+            if (!roster.mechBay().addVehicle(lance, new CampaignVehicle("evidence_vehicle_" + i, type.name(), type)))
+                throw new IllegalStateException(type + " did not board");
+        }
         // A company buys its later cards; the evidence company is simply handed the one it is issued.
         roster.armory().learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.WEAPON, kit.squadWeapons()));
         var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
@@ -123,7 +165,8 @@ final class CorvusEvidenceCompany {
         var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, fitted, deployment.size());
         var fixture = chapter.fixture(mission.battleSeed, manifest, chapter.profile(chapter.surface), campaignHas);
         fixture = BattleFixtureJson.fromJson(BattleFixtureJson.toJson(fixture));
-        var powers = PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment(), null, fitted);
+        var powers = PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment(),
+                roster.mechBay().activeVehicleDeployment(), fitted);
         if (powers.size() != 1) throw new IllegalStateException("expected the Hound's drop alone, got " + powers);
         var resources = new FiniteCommandPowerResources(SUPPLIES);
         var overlay = BattleLaunchOverlay.capture(0, deployment, FlybyRoster.EMPTY, FlybyRoster.EMPTY, powers,
@@ -136,11 +179,20 @@ final class CorvusEvidenceCompany {
      * tick it is requested; call it before each tick until then.
      */
     static boolean callHound(BattleSimulation sim) {
+        return callMachine(sim, HOUND_PICK.get(0));
+    }
+
+    /**
+     * Calls the machine at manifest index {@code pick} down on the first landing pad the drop can reach, once the drop
+     * is ready: one machine per order, the Hound first. Returns true on the tick it is requested.
+     */
+    static boolean callMachine(BattleSimulation sim, int pick) {
         var service = sim.getCommandPowerService();
         var support = service.getPower(MechSupport.ID);
         if (!service.canActivate(support)) return false;
-        for (var pad : sim.getMarineLandingPads()) if (support.canTarget(pad.centerX, pad.centerY, sim, HOUND_PICK)) {
-            service.requestActivation(MechSupport.ID, pad.centerX, pad.centerY, HOUND_PICK);
+        List<Integer> selection = List.of(pick);
+        for (var pad : sim.getMarineLandingPads()) if (support.canTarget(pad.centerX, pad.centerY, sim, selection)) {
+            service.requestActivation(MechSupport.ID, pad.centerX, pad.centerY, selection);
             return true;
         }
         return false;

@@ -112,6 +112,19 @@ public final class PointDefenseService {
         active.add(pod);
     }
 
+    /**
+     * Stands a fixed mount at battle setup: an emplacement nobody carried, credited to itself, that runs
+     * until its magazine is spent or it is destroyed. Serial only. Returns the emplacement's entity.
+     */
+    public synchronized long placeFixed(BattleControl sim, Faction faction, int cellX, int cellY, String structureId) {
+        StructureDef structure = DeployedEmplacement.requireBounded(structureId);
+        long entityId = sim.spawn(DeployedEmplacement.create("emplacement-" + nextId, faction, structureId, cellX, cellY));
+        DeployableEmplacementSpec spec = new DeployableEmplacementSpec(structureId, 0f, Float.POSITIVE_INFINITY);
+        active.add(new LiveEmplacement(nextId++, entityId, entityId, faction, structure, spec,
+                cellX + 0.5f, cellY + 0.5f));
+        return entityId;
+    }
+
     /** Rounds hull {@code hullId}'s active protection engaged and stopped, as {@code {engaged, stopped}}. */
     public synchronized int[] hullInterceptions(long hullId) {
         int[] counts = hullMounts.get(hullId);

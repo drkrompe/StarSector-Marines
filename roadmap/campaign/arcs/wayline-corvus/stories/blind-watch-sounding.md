@@ -22,11 +22,17 @@ preparation let the company choose the target. This story rebuilds it as an
 authored map and a mission whose three sites are **not interchangeable**, so
 the order the player takes them in is the decision.
 
-The chapter's place is unchanged: Warion, Low risk, three squads recommended,
-30,000 credits, after The Dust Ledger and before A Cold Account. Every victory
+The chapter's place is unchanged: Warion, Low risk, 30,000 credits, after The Dust Ledger and before A Cold Account. Every victory
 debrief still says the post is silent and the routing tables point to Garnir.
 The two recorded debrief lines (`debrief.blind_watch.initiative`,
 `debrief.blind_watch.ready`) stay valid.
+
+**Sized for a company with armour (owner, 2026-10-30).** Blind Watch expects
+five squads and three machines (the Hound and two vehicles, one an LRM carrier),
+so `CorvusChapter.BLIND_WATCH` recommends five squads. Every machine Sable fields
+is outranged by such a company's standoff hulls (heavy MG 24 cells, Hephaestus 32;
+the LRM carrier 40, the mortar APC 38), so the post defends in depth: forward
+pickets, a gate line with anti-armour guns, and indirect fire behind them.
 
 ## Fiction
 
@@ -139,9 +145,24 @@ first: the trade the hook is built on.
 
 The owner's standing concern: a lone Hound walks through a mission. Answers:
 
-- **Rim guns.** Two gun nests (`DefensePostStamper.stampNest`) beside the ranging
-  mast, covering the rim's west ramp, the boulder approach and the crater floor.
-  Rockets, the Hound or charges kill them; the boulder field reaches them in cover.
+- **Rim guns.** Three gun nests (`DefensePostStamper.stampNest`) beside the ranging
+  mast: two heavy MGs covering the rim's west ramp, the boulder approach and the
+  crater floor, and a Hephaestus behind them over the ramp's head for what climbs
+  it in armour, out of reach of the flat. Rockets, the Hound or charges kill them;
+  the boulder field reaches them in cover.
+- **The works** (`Layout.works`, `DefensePostStamper.stampAuthored`), three belts
+  against a company with armour:
+  - *Forward pickets*, some forty cells out, one per approach: a sandbagged light
+    post in the boulder field, a medium checkpoint post north of the rover track
+    with a cannon hardpoint south of it, a light post on the rille's south bank.
+  - *The gate*: a concrete line of two Hephaestus cannons south of the track's
+    entry, held by Sable's hardest hands (elite, `MARINE_RED`); a sandbagged
+    medium post on the rille bank; a cannon hardpoint at the dish field's south gate.
+  - *Depth*: the Locust battery south of the motor pool. Its band, 30 to 100
+    cells, covers the flat and none of the landing ground. A Locust fires on
+    everything in its band whether or not anyone sees it, so the mission powers it
+    only from the alarm while the mast stands: blowing the mast blinds both the
+    mortar and the battery.
 - **Bunkers.** Regolith-bermed pillboxes at the hab cluster's airlock and at the
   foot of the uplink ramp, manned from the security posts (no extra headcount).
 - **The mortar carrier.** The shipped `FIRE_SUPPORT_APC` (STANDOFF, indirect
@@ -149,10 +170,13 @@ The owner's standing concern: a lone Hound walks through a mission. Answers:
   standing it reaches the whole flat. It has a driven lane along the rover track
   between the three installations, checked with `VehicleRoutePlanner`, and falls
   to rockets, the Hound or a squad that reaches it.
-- **The patrol crawler (if the first runs are still easy).** An APC in heavy
-  plating on the same track. Not before the first measurement (owner: don't over-tune).
-- **The rocket truck.** The Dust Ledger's SRM technical behaviour on the uplink
-  knoll: from the alarm it works the knoll's corners against company armor.
+- **The patrol crawler.** A `HEAVY_APC` on the mortar's track, starting from
+  the lander pad; its roof gun fires on what it sees.
+- **The reaction squad.** Six elite hands in the motor pool, mobile from the
+  start, sent by the defender command to the threatened site.
+- **The rocket truck.** The Dust Ledger's SRM technical behaviour: from the alarm
+  it works its stands against company armor, the knoll's corners and two at the
+  gate, either side of the track's entry.
 
 ## Map
 
@@ -197,10 +221,14 @@ pad, up the rover track below the rim and back, down the hab street to the dish
 field's north gate, below the uplink and home, every leg proved with `VehicleRoutePlanner.routeDrivable` on its hull's
 clearance. The rocket truck drives up the knoll's ramp to each of its stands.
 
-**Garrison.** About two dozen Sable hands at Low (`Layout.posts`, 24 posts):
-rim (4), mast (2), hab (5, three at the airlock pillbox's slits), dish field (5, one
-in the control hut), uplink (5, three at the ramp pillbox's slits), motor pool (2),
-the watch boss (1, in the signals module). The signals technicians shelter in the
+**Garrison.** Fifty-nine Sable hands (`Layout.posts`, 53 posts, and the reaction
+squad's six): rim (4), mast (2), hab (5, three at the airlock pillbox's slits),
+dish field (5, one in the control hut), uplink (5, three at the ramp pillbox's
+slits), motor pool (2), the watch boss (1, in the signals module), and the works'
+crews: boulder picket (4), track checkpoint (6), crossing picket (4), gate (8,
+elite), rille post (4), battery (3). A quiet post watches with half its posts
+(`BlindWatchSites.USUAL_WATCH`), the rest asleep in the bunks; a stood-to post
+mans every one. The signals technicians shelter in the
 signals module (`Layout.signalsTechs`), the riggers in their module
 (`Layout.riggers`); the chemist and the lander crew are at the cold drop.
 
@@ -280,6 +308,15 @@ worst-approach and a prepared-approach run, the full-mission preview video.
   - Open: in the worst run a Hound with no legs and no head, unable to move or fire, kept the battle running to the
     18,000-tick cap (see Open questions).
 - [ ] Full-mission preview video with sound, 1920x1080, look preset.
+- [ ] Defence in depth for five squads and three machines (owner, 2026-10-30: option A, three belts,
+  the Locust battery and a reaction squad). Built. First `commanderEvidence` runs, four boats, five squads, Convoy
+  Escort Issue, the Hound with SRMs, every side job:
+  - Stood-to, Hound only: defeat at tick 5,496, 60 of 60 marines lost, 33 of 71 Sable down, no charge blown. Most
+    marines fell to the gate's elite crew and the reaction squad as the autonomous company pushed down the track.
+  - Quiet post, Hound only: defeat at tick 5,194, 16 of 71 Sable down.
+  - Stood-to with an LRM carrier and a mortar APC beside the Hound (`-Dbattle.corvus.machines`): the autonomous
+    company never moves its vehicles off the landing ground, and with vehicles in the lance the Hound stays with
+    them, so the run measures nothing about armour. The autopilot is not the player; tune in play, not on these.
 - [ ] Live play on Warion in a campaign.
 
 ## Open questions

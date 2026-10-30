@@ -169,11 +169,17 @@ retreat. This is equipment-loop evidence, not acceptance of a story reward.
 
 `-Pmission=corvus` plays the three fixed Corvus chapters with their recommended
 named companies, starter squad equipment and recovered chaingun-only Hound.
-It requests normal Mech Support at the first legal pad, then leaves command
+A Cold Account adds the rest of `ColdAccountCompany`'s bay (a Warden, an LRM
+carrier and a breakthrough tank), one drop order per machine, unless
+`battle.corvus.machines` names vehicles of its own. It
+requests normal Mech Support at the first legal pad, then leaves command
 autonomous. Each chapter starts fresh; no campaign casualty carryover or officer
 bonuses are assumed. Default observation is 18000 ticks with two Aeroshuttles.
 `-Dbattle.corvus.boats=4` selects a different allowed lift count and separate
 output folder; `-Dbattle.corvus.chapter=BLIND_WATCH` selects one chapter.
+`-Dbattle.corvus.machines=LRM_CARRIER,FIRE_SUPPORT_APC` puts those vehicles on
+the lance's gantries beside the Hound; the run calls each down after it, one
+machine per order.
 Reports retain exact launch fixtures, losses, delivery times, mech output,
 command traces, minute frames and unit/route diagnostics. Corvus also accepts
 `-PsnapshotEveryTicks=15` for denser action replay frames with weapons, impacts

@@ -45,8 +45,13 @@ free replacement troops or chassis.
   survive directive stability expiry, contact cannot erase the search order,
   and gate approaches are guaranteed after optional road pruning. The earlier
   routes to outdoor search waypoints did not prove access inside the base.
-- [ ] Tune A Cold Account: the unchanged High-risk force defeats all 48 infantry
-  and the Hound at 9,202 ticks (5:07). Resolution is fixed; balance is not accepted.
+- [ ] Tune A Cold Account against five squads and four machines: the authored
+  force (`ColdAccountForce`) and its emplacements are in place but unplayed
+  against that company. `ColdAccountCompany` is that company (five starter
+  squads, the recovered Hound, a Warden, an LRM carrier and a breakthrough
+  tank); the debug briefing lands it and the Corvus evidence musters it. The
+  evidence plays it autonomously, so its outcomes show the mission resolves,
+  not how hard it is for a player.
 - [x] Blind Watch uses its authored remote layout, a finite light garrison and
   Low risk. Both charge handoff and active-kit selection are repaired. With
   two boats it wins at 4,230 ticks (2:21), losing 12/36 infantry with the Hound

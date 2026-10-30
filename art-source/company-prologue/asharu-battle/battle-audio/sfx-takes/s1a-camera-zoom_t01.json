@@ -1,0 +1,8 @@
+{
+  "requestId": null,
+  "source": "Owner's clip UIMvmt-zoom_camera-Elevenlabs.wav (ElevenLabs), converted to 192 kb/s mp3",
+  "cues": {"s1a-zoom-60": 11.0, "s1a-zoom-150": 12.7, "s1a-zoom-300": 14.3},
+  "audioSha256": "7d6cdca03ea520849deaa3f5818261b2f433a3f934951cac7797c5ce0af66664",
+  "durationSeconds": 0.8,
+  "peakDb": -0.3
+}

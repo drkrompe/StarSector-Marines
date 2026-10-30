@@ -711,6 +711,22 @@ public final class DefensePostStamper implements GenStage {
         return new DefensePost(stamped.tier, stamped.layoutId, cx, cy, turrets, null, null);
     }
 
+    /**
+     * Stamps an authored map's post: the shipped layout of {@code tier} and {@code shape} (null for a tier's default)
+     * at {@code (cx, cy)}, built in {@code style}. Post-finalize callers use it, so it draws no random numbers.
+     */
+    public static DefensePost stampAuthored(NavigationGrid grid, CellTopology topology, List<Doodad> doodads,
+                                            DefensePostKind tier, DefensePostShape shape, int cx, int cy,
+                                            EmplacementStyle style) {
+        return stampPost(grid, topology, doodads, tier, shape, cx, cy, style);
+    }
+
+    /** True when an authored post of {@code tier} and {@code shape} fits at {@code (cx, cy)} by the rules every post obeys. */
+    public static boolean authoredFits(NavigationGrid grid, CellTopology topology, DefensePostKind tier,
+                                       DefensePostShape shape, int cx, int cy) {
+        return hasValidFootprint(grid, topology, null, cx, cy, layout(tier, shape));
+    }
+
     private static TileManifest.TileFrame barrierTile(DefensePostLayoutDef.Cell cell) {
         return switch (cell.appearance()) {
             case VENT -> TileManifest.lightPostVent();

@@ -32,10 +32,13 @@ import java.util.Set;
  *
  * @param fluxPerRound flux each round commits to the chassis reservoir
  * @param beam a beam: unlimited, flux-bound, at speed on the press; {@code belt} and {@code refillPerSecond} unused
+ * @param wanderPeriodSeconds a beam's aim crawl ({@link BeamWander}): beam seconds between the path's knots; 0 for a
+ *     feed whose every round draws its own offset
+ * @param wanderAmplitude a beam's crawl amplitude, 1 spending the weapon's error budget exactly; unused without a period
  */
 public record RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinDownSeconds,
                             float firstTurnRate, float fullRate, int belt, float refillPerSecond,
-                            float fluxPerRound, boolean beam) {
+                            float fluxPerRound, boolean beam, float wanderPeriodSeconds, float wanderAmplitude) {
 
     /**
      * The engagement the rated rate is quoted over: what a commander, a target picker or a stat sheet
@@ -45,7 +48,8 @@ public record RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinD
 
     private static final Set<String> FIELDS = Set.of("spinUp", "coast", "spinDown", "firstTurnRate",
             "fullRate", "belt", "refill", "fluxPerRound");
-    private static final Set<String> BEAM_FIELDS = Set.of("pulseRate", "fluxPerSecond");
+    private static final Set<String> BEAM_FIELDS = Set.of("pulseRate", "fluxPerSecond", "wanderPeriod",
+            "wanderAmplitude");
 
     /**
      * An autonomous beam stops asking for pulses once the reservoir holds this share of its capacity, and asks again
@@ -64,7 +68,9 @@ public record RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinD
         if (!(spinUpSeconds >= 0f) || coastSeconds < 0f || !(spinDownSeconds >= 0f)
                 || !(firstTurnRate > 0f) || fullRate < firstTurnRate
                 || !beam && (belt < 1 || !(refillPerSecond > 0f))
-                || fluxPerRound < 0f || beam && !(fluxPerRound > 0f)) {
+                || fluxPerRound < 0f || beam && !(fluxPerRound > 0f)
+                || !(wanderPeriodSeconds >= 0f) || !Float.isFinite(wanderPeriodSeconds)
+                || wanderPeriodSeconds > 0f && (!beam || !(wanderAmplitude > 0f) || !Float.isFinite(wanderAmplitude))) {
             throw new IllegalArgumentException("Invalid rotary feed");
         }
     }
@@ -73,7 +79,7 @@ public record RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinD
     public RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinDownSeconds, float firstTurnRate,
                          float fullRate, int belt, float refillPerSecond, float fluxPerRound) {
         this(spinUpSeconds, coastSeconds, spinDownSeconds, firstTurnRate, fullRate, belt, refillPerSecond,
-                fluxPerRound, false);
+                fluxPerRound, false, 0f, 0f);
     }
 
     /**
@@ -81,8 +87,27 @@ public record RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinD
      * speed on the press, stopped on release, no belt.
      */
     public static RotaryFeedDef beam(float pulseRate, float fluxPerSecond) {
+        return beam(pulseRate, fluxPerSecond, 0f, 0f);
+    }
+
+    /**
+     * As {@link #beam(float, float)}, its aim crawling along a {@link BeamWander} path whose knots are
+     * {@code wanderPeriodSeconds} of beam time apart at {@code wanderAmplitude}; a period of 0 aims every pulse afresh.
+     */
+    public static RotaryFeedDef beam(float pulseRate, float fluxPerSecond, float wanderPeriodSeconds,
+                                     float wanderAmplitude) {
         if (!(pulseRate > 0f) || !(fluxPerSecond > 0f)) throw new IllegalArgumentException("Invalid beam");
-        return new RotaryFeedDef(0f, 0f, 0f, pulseRate, pulseRate, 0, 0f, fluxPerSecond / pulseRate, true);
+        return new RotaryFeedDef(0f, 0f, 0f, pulseRate, pulseRate, 0, 0f, fluxPerSecond / pulseRate, true,
+                wanderPeriodSeconds, wanderAmplitude);
+    }
+
+    /**
+     * A fresh crawl for one mount of this beam, or null when its pulses aim afresh: a rotary gun, a beam authored
+     * without a wander, or the {@code battle.mech.pdBeamWander} control.
+     */
+    public BeamWander newWander() {
+        return beam && wanderPeriodSeconds > 0f && BeamWander.ON
+                ? new BeamWander(wanderPeriodSeconds, wanderAmplitude) : null;
     }
 
     /** Flux a second with the trigger held at full rate: a beam's whole cost, a rotary gun's at full spin. */
@@ -139,7 +164,8 @@ public record RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinD
             }
         }
         try {
-            return beam((float) beam.getDouble("pulseRate"), (float) beam.getDouble("fluxPerSecond"));
+            return beam((float) beam.getDouble("pulseRate"), (float) beam.getDouble("fluxPerSecond"),
+                    (float) beam.optDouble("wanderPeriod", 0.0), (float) beam.optDouble("wanderAmplitude", 1.0));
         } catch (IllegalArgumentException e) {
             throw new JSONException("Weapon '" + weaponId + "' beam: " + e.getMessage());
         }

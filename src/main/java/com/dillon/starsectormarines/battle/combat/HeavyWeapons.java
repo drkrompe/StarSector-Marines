@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.component.BattleComponents;
 import com.dillon.starsectormarines.engine.ecs.ArchetypeTable;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.dillon.starsectormarines.battle.weapon.BeamWander;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
@@ -305,7 +306,7 @@ public class HeavyWeapons {
     public void fireMechWeapon(long shooter, long target, WeaponDef weapon, float accuracyMult) {
         World world = roster.world();
         fireMechWeaponAt(shooter, target, weapon, accuracyMult,
-                world.renderX(shooter), world.renderY(shooter));
+                world.renderX(shooter), world.renderY(shooter), null);
     }
 
     /** Fires from the installed mount's posed hardpoint rather than the chassis center. */
@@ -315,7 +316,12 @@ public class HeavyWeapons {
         int releaseIndex = MechHardpointGeometry.nextReleaseIndex(mount);
         MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, releaseIndex);
         fireMechWeaponAt(shooter, target, mount.weaponDef(), accuracyMult,
-                muzzle.x(), muzzle.y());
+                muzzle.x(), muzzle.y(), wanderOf(mount));
+    }
+
+    /** A crawling beam's aim path, which its pulses sample instead of fresh draws; null for any other mount. */
+    private static BeamWander wanderOf(MechWeaponMount mount) {
+        return mount.rotary != null ? mount.rotary.wander() : null;
     }
 
     /**
@@ -342,13 +348,13 @@ public class HeavyWeapons {
     }
 
     private void fireMechWeaponAt(long shooter, long target, WeaponDef weapon,
-                                  float accuracyMult, float fromX, float fromY) {
+                                  float accuracyMult, float fromX, float fromY, BeamWander wander) {
         roster.telemetry().recordRoundFired(shooter);
         World world = roster.world();
         if (world.hasMechLoadout(shooter)) accuracyMult *= sensorAccuracy(world.mechLoadout(shooter));
         if (run != null) accuracyMult *= run.accuracy(shooter);
         if (weapon.arcHeight <= 0f) {
-            fireDirectRound(shooter, target, weapon, accuracyMult, fromX, fromY);
+            fireDirectRound(shooter, target, weapon, accuracyMult, fromX, fromY, wander);
             return;
         }
 
@@ -357,7 +363,7 @@ public class HeavyWeapons {
 
     /** Modeled ground-level round for chaingun, cannon, and SRM tracks. */
     private void fireDirectRound(long shooter, long target, WeaponDef weapon,
-                                 float accuracyMult, float fromX, float fromY) {
+                                 float accuracyMult, float fromX, float fromY, BeamWander wander) {
         World world = roster.world();
         float effectiveAccuracy = weapon.accuracy * accuracyMult;
         Faction shooterFaction = roster.identity().faction(shooter);
@@ -371,7 +377,7 @@ public class HeavyWeapons {
         BallisticResolver.Source source = new BallisticResolver.Source(shooter, fromX, fromY, 0f, shooterFaction);
         BallisticResolver.Resolution res = resolver.resolve(source, target,
                 effectiveAccuracy, effectiveSpread, weapon.roundVelocity,
-                weapon.range, weapon.bodyPenetrations, rng);
+                weapon.range, weapon.bodyPenetrations, wander, rng);
         // And on where the round will burst: one that would reach a friend, or the chassis itself, is not fired.
         if (laneDiscipline && weapon.aoeRadius > 0f && res.impacts()
                 && resolver.friendInBlast(shooter, shooterFaction, res.endX(), res.endY(), weapon.aoeRadius)) return;
@@ -411,7 +417,7 @@ public class HeavyWeapons {
                 ? resolver.resolveGroundBurst(source, target.x(), target.y(), accuracy, spread,
                         weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, rng)
                 : resolver.resolvePoint(source, target.x(), target.y(), accuracy, spread,
-                        weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, rng);
+                        weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, wanderOf(mount), rng);
         roster.telemetry().recordRoundFired(shooter);
         deliverDirectRound(shooter, weapon, resolution, muzzle.x(), muzzle.y());
         return true;
