@@ -155,7 +155,16 @@ laws).
   (`art-source/story-scenes/wellhollow-*`, Codex ImageGen); the rim banner
   now serves Ain Tafrant alone.
   `createSnapshots -Psnapshot=wellhollow-art` shows them on Orens's board
-  and the results screen. Briefing narration does not exist yet.
+  and the results screen.
+- **The voices.** Every briefing turn, retry and replay is recorded
+  (`wellhollow_narration.json`, `tools/generate_wellhollow_audio.py`): Orens
+  is the ElevenLabs library voice Brock (owner's cast, 2026-10-30), Castle the
+  company voice shared with every arc, on Eleven v4 with one direction tag per
+  line and the in-room dialogue treatment. Each turn names its recording
+  (`WellhollowBloomCampaign.briefing`); a chapter, its replay and its debug run
+  hear the chapter's catalog (`narrationMissionId`). A changed string plays as
+  text until it is re-recorded: the generator refuses a stale take until its
+  synthesis text is refreshed. Debriefs on the results screen are unvoiced.
 
 ## Relation to the generic per-world arc
 
@@ -193,7 +202,7 @@ recommended option of each.
 3. **When the arc opens.** Decided (owner, 2026-10-27): after A Working Ship,
    as end-of-alpha challenge missions.
 4. **Art and voice.** Recommended and built: the Orens portrait and three
-   location banners now, narration later. The art itself is on the picks page
-   for review.
+   location banners, then briefing narration with Orens cast as Brock (owner,
+   2026-10-30). The art itself is on the picks page for review.
 
 `stories.md` in this folder is the arc's open-work board.

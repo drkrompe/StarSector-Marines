@@ -25,5 +25,6 @@ their fixtures on the ARID pool maps. What remains:
    the outcome does not carry the rescue's evacuee and mother-bore fields
    (`MissionOutcome` reads them only for rescue sources). Carry them so the
    debrief can say how many came out.
-5. **Voice.** Briefing narration for Orens; the portrait and location
-   banners are in, pending the owner's review of the art.
+5. **Voice.** Briefings, retries and replays are voiced (Orens as Brock,
+   Castle as in every arc); hear them in a launched campaign. Results-screen
+   debriefs are still text only.

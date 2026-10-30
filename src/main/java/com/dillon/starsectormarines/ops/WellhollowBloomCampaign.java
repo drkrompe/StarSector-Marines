@@ -27,6 +27,7 @@ import com.fs.starfarer.api.campaign.RepLevel;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * Campaign boundary for *The Khettara Bloom*, the authored Rav Bloom arc on Asharu
@@ -129,25 +130,34 @@ public final class WellhollowBloomCampaign {
         };
     }
 
-    /** First briefing, one retry line after a loss on this chapter, or one replay line. */
+    /** The chapter's recordings in {@code wellhollow_narration.json}: a replay hears its chapter's, as a debug run does. */
+    public static String narrationMissionId(Chapter chapter) {
+        return "story_wellhollow_" + chapter.name().toLowerCase(Locale.ROOT);
+    }
+
+    /**
+     * First briefing, one retry line after a loss on this chapter, or one replay line. Each turn names
+     * its recording, so a line whose string changed after recording plays as text until it is re-recorded.
+     */
     static List<MissionDialogue.Turn> briefing(WellhollowBloomProgress p, Chapter chapter, boolean replay) {
-        if (replay) return List.of(warden("@wellhollowReplay"));
+        if (replay) return List.of(warden("@wellhollowReplay", "wellhollow_replay"));
         String stem = switch (chapter) {
-            case COLONY_BREACH -> "wellhollowBreach";
-            case CORDON_ROAD -> "wellhollowRoad";
-            case THE_BURN -> "wellhollowBurn";
-            case BROAD_FRONT -> "wellhollowFront";
+            case COLONY_BREACH -> "Breach";
+            case CORDON_ROAD -> "Road";
+            case THE_BURN -> "Burn";
+            case BROAD_FRONT -> "Front";
         };
-        if (p.lastLost(chapter)) return List.of(warden("@" + stem + "Retry"));
+        String sound = "wellhollow_" + stem.toLowerCase(Locale.ROOT) + "_";
+        if (p.lastLost(chapter)) return List.of(warden("@wellhollow" + stem + "Retry", sound + "retry"));
         int lines = chapter == Chapter.COLONY_BREACH ? BREACH_BRIEFING_LINES : BRIEFING_LINES;
         List<MissionDialogue.Turn> turns = new ArrayList<>(lines);
         for (int i = 1; i <= lines; i++) {
-            String text = "@" + stem + i;
-            turns.add(i % 2 == 1 ? warden(text) : new MissionDialogue.Turn("castle", CASTLE, text));
+            String text = "@wellhollow" + stem + i, id = sound + String.format(Locale.ROOT, "%02d", i);
+            turns.add(i % 2 == 1 ? warden(text, id) : new MissionDialogue.Turn("castle", CASTLE, text, id));
         }
         return List.copyOf(turns);
     }
-    private static MissionDialogue.Turn warden(String text) { return new MissionDialogue.Turn("warden", SPEAKER, text); }
+    private static MissionDialogue.Turn warden(String text, String sound) { return new MissionDialogue.Turn("warden", SPEAKER, text, sound); }
 
     /** The story map each chapter plays from on Asharu. */
     static StoryMap storyMap(Chapter chapter) {
