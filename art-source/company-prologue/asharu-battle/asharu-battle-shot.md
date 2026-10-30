@@ -672,8 +672,8 @@ one ship carries a pan from where she sits in frame at its time.
 S6 a Harpoons stem: each missile the shot draws leaves its tube with the `harpoon-launch-one` take
 (a thunk, then the motor lighting), and its own motor (the looped `harpoon-motor` take) burns from
 ignition to its hit, placed by the camera as the engines are, and where it meets the hull its
-warhead goes off with the game's own hit (\xplosion_missile_01\ under \gun_hit_heavy_01\/\_02\). The launch and hit times are the
-finished renders' salvo rows, one tube every 3 frames, lit 0.35 s after the eject. The missile
+warhead goes off with the game's own hit (`explosion_missile_01` under `gun_hit_heavy_01`/`_02`).
+The launch and hit times are the finished renders' salvo rows, one tube every 3 frames, lit 0.35 s after the eject. The missile
 warning runs from the first ignition (47.0 s) to under Warden Five's "Missiles inbound!".
 
 **Every round a turret fires is heard on its own** (owner, 2026-10-30). The finished kit logs a
