@@ -647,6 +647,8 @@ public class HeavyWeapons {
                                boolean held, PointFireAim aim) {
         RotaryFeed feed = mount.rotary;
         if (controlled) feed.releaseLease();
+        // A beam's autonomous reserve is the reservoir's share, not a belt (RotaryFeed.observeFlux).
+        feed.observeFlux(m.flux.value() / m.flux.capacity());
         int rounds = feed.advance(BattleSimulation.TICK_DT, controlled && held && aim != null);
         float flux = mount.component.fluxPerRound();
         for (int r = 0; r < rounds; r++) {

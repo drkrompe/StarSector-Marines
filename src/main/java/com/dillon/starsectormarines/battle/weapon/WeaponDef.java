@@ -121,8 +121,14 @@ public final class WeaponDef {
     public int incendiaryHeat() { return incendiaryHeat; }
     /** The handheld primary's magazine, or {@code null} when the weapon cycles without one. */
     public MagazineDef magazine() { return magazine; }
-    /** The rotary feed of a held-trigger mech gun, or {@code null}. */
+    /**
+     * The held-trigger feed of a mech weapon, or {@code null}: a rotary gun's barrels and belt ({@code sim.rotary}),
+     * or a beam's emitter ({@code sim.beam}, {@link RotaryFeedDef#beam()}).
+     */
     public RotaryFeedDef rotary() { return rotary; }
+
+    /** A held continuous beam ({@code sim.beam}): fires while held, flux its only limit. */
+    public boolean heldBeam() { return rotary != null && rotary.beam(); }
     /** Carrier-owned pre-fire commitment window for handheld specials. */
     public final float aimDuration;
     /** Maximum-range travel time retained for projectile presentation. */
@@ -438,6 +444,11 @@ public final class WeaponDef {
             throw new JSONException("Weapon '" + id + "' declares a magazine outside the marine-primary mount class");
         }
         def.rotary = RotaryFeedDef.parse(sim.optJSONObject("rotary"), id);
+        RotaryFeedDef beam = RotaryFeedDef.parseBeam(sim.optJSONObject("beam"), id);
+        if (beam != null && def.rotary != null) {
+            throw new JSONException("Weapon '" + id + "' declares both a rotary feed and a beam");
+        }
+        if (beam != null) def.rotary = beam;
         if (def.rotary != null && def.mount != MountClass.MECH_MOUNT) {
             throw new JSONException("Weapon '" + id + "' declares a rotary feed outside the mech-mount class");
         }

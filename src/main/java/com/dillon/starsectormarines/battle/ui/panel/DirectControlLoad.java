@@ -79,6 +79,8 @@ public final class DirectControlLoad {
     }
 
     static Load mech(MechWeaponMount mount) {
+        // A beam has nothing to count: flux, read on its own gauge, is all that stops it.
+        if (mount.isRotary() && mount.rotary.beam()) return new Load(1f, 0, 0, false);
         if (mount.isRotary()) return new Load(1f, mount.rotary.beltRounds(), mount.rotary.def().belt(), false);
         int capacity = mount.component.ammoCapacity;
         float recharge = capacity >= 0 && mount.ammo <= 0 ? mount.rechargeRemaining() : 0f;
@@ -116,6 +118,7 @@ public final class DirectControlLoad {
 
     /** One gun's cooldown and ready rounds; a mount authored with no capacity never runs dry and draws no arc. */
     static Load turret(GroundTurret turret, TurretMountDef mount) {
+        if (turret.rotary != null && turret.rotary.beam()) return new Load(1f, 0, 0, false);
         if (turret.rotary != null) return new Load(1f, turret.rotary.beltRounds(), turret.rotary.def().belt(), false);
         boolean limited = mount.ammoCapacity > 0;
         return new Load(Load.clock(turret.cooldownTimer, mount.weapon.cooldown),

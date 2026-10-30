@@ -25,11 +25,17 @@ import java.util.Set;
  * @param fullRate rounds a second at full speed
  * @param belt rounds the belt holds
  * @param refillPerSecond rounds the hopper puts back on the belt every second, firing or not
+ * <p>A <b>beam</b> ({@link #beam}, {@code sim.beam}) is the energy weapon's held trigger (mechs-nouns.md, Beam
+ * weapons): no barrels and no belt, only an emitter that lays pulses down the lance at a fixed rate while the
+ * trigger is held, each committing its share of the beam's flux a second. Flux is the only thing that stops it,
+ * so it has no belt to empty, no hopper and nothing for a loader or a ready rack to multiply.
+ *
  * @param fluxPerRound flux each round commits to the chassis reservoir
+ * @param beam a beam: unlimited, flux-bound, at speed on the press; {@code belt} and {@code refillPerSecond} unused
  */
 public record RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinDownSeconds,
                             float firstTurnRate, float fullRate, int belt, float refillPerSecond,
-                            float fluxPerRound) {
+                            float fluxPerRound, boolean beam) {
 
     /**
      * The engagement the rated rate is quoted over: what a commander, a target picker or a stat sheet
@@ -39,21 +45,58 @@ public record RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinD
 
     private static final Set<String> FIELDS = Set.of("spinUp", "coast", "spinDown", "firstTurnRate",
             "fullRate", "belt", "refill", "fluxPerRound");
+    private static final Set<String> BEAM_FIELDS = Set.of("pulseRate", "fluxPerSecond");
+
+    /**
+     * An autonomous beam stops asking for pulses once the reservoir holds this share of its capacity, and asks again
+     * at {@link #BEAM_AI_RESUME_SHARE}: it fires in measured lances and leaves the frame's other mounts headroom
+     * (a missile salvo's 40 still fits under the AI's 90 of the stock 100), rather than riding the reservoir up to
+     * the AI's own hold at 75.
+     */
+    public static final float BEAM_AI_STOP_SHARE = 0.5f;
+    public static final float BEAM_AI_RESUME_SHARE = 0.3f;
+
+    /** The stock frame a beam's rated rate is quoted on: 100 capacity shedding 6 a second ({@code MechFlux}). */
+    private static final float STOCK_CAPACITY = 100f;
+    private static final float STOCK_DISSIPATION = 6f;
 
     public RotaryFeedDef {
         if (!(spinUpSeconds >= 0f) || coastSeconds < 0f || !(spinDownSeconds >= 0f)
-                || !(firstTurnRate > 0f) || fullRate < firstTurnRate || belt < 1
-                || !(refillPerSecond > 0f) || fluxPerRound < 0f) {
+                || !(firstTurnRate > 0f) || fullRate < firstTurnRate
+                || !beam && (belt < 1 || !(refillPerSecond > 0f))
+                || fluxPerRound < 0f || beam && !(fluxPerRound > 0f)) {
             throw new IllegalArgumentException("Invalid rotary feed");
         }
     }
 
+    /** A rotary gun's feed: barrels, a belt and a hopper. */
+    public RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinDownSeconds, float firstTurnRate,
+                         float fullRate, int belt, float refillPerSecond, float fluxPerRound) {
+        this(spinUpSeconds, coastSeconds, spinDownSeconds, firstTurnRate, fullRate, belt, refillPerSecond,
+                fluxPerRound, false);
+    }
+
+    /**
+     * A beam laying {@code pulseRate} pulses a second down its lance while held, costing {@code fluxPerSecond}: at
+     * speed on the press, stopped on release, no belt.
+     */
+    public static RotaryFeedDef beam(float pulseRate, float fluxPerSecond) {
+        if (!(pulseRate > 0f) || !(fluxPerSecond > 0f)) throw new IllegalArgumentException("Invalid beam");
+        return new RotaryFeedDef(0f, 0f, 0f, pulseRate, pulseRate, 0, 0f, fluxPerSecond / pulseRate, true);
+    }
+
+    /** Flux a second with the trigger held at full rate: a beam's whole cost, a rotary gun's at full spin. */
+    public float fluxPerSecond() {
+        return fluxPerRound * fullRate;
+    }
+
     /**
      * This feed on a machine whose loader refills at {@code loaderFactor} ({@link LoaderPace}) and whose ready rack
-     * holds {@code beltFactor} times the belt; {@code this} for the standard loader and the authored belt.
+     * holds {@code beltFactor} times the belt; {@code this} for the standard loader and the authored belt, and for a
+     * beam, which has neither.
      */
     public RotaryFeedDef fitted(float loaderFactor, float beltFactor) {
-        if (loaderFactor == LoaderPace.STANDARD && beltFactor == 1f) return this;
+        if (beam || loaderFactor == LoaderPace.STANDARD && beltFactor == 1f) return this;
         return new RotaryFeedDef(spinUpSeconds, coastSeconds, spinDownSeconds, firstTurnRate, fullRate,
                 Math.max(1, Math.round(belt * beltFactor)), LoaderPace.refillPerSecond(refillPerSecond, loaderFactor),
                 fluxPerRound);
@@ -72,11 +115,34 @@ public record RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinD
 
     /**
      * Rounds a second over {@link #RATED_ENGAGEMENT_SECONDS} from a full belt, holding back the reserve an
-     * autonomous gunner keeps: the figure estimates and sheets read instead of the peak.
+     * autonomous gunner keeps: the figure estimates and sheets read instead of the peak. A beam's limit is flux
+     * rather than a belt: on the stock frame from a cool start, the share an autonomous gunner spends before it holds
+     * ({@link #BEAM_AI_STOP_SHARE}) plus what the frame sheds over the engagement.
      */
     public float ratedRoundsPerSecond() {
+        if (beam) {
+            float flux = BEAM_AI_STOP_SHARE * STOCK_CAPACITY + STOCK_DISSIPATION * RATED_ENGAGEMENT_SECONDS;
+            return Math.min(fullRate, flux / fluxPerRound / RATED_ENGAGEMENT_SECONDS);
+        }
         float rounds = refillPerSecond * RATED_ENGAGEMENT_SECONDS + belt * 0.8f;
         return Math.min(fullRate, rounds / RATED_ENGAGEMENT_SECONDS);
+    }
+
+    /** Reads {@code sim.beam}; null when the weapon has none. */
+    static RotaryFeedDef parseBeam(JSONObject beam, String weaponId) throws JSONException {
+        if (beam == null) return null;
+        var keys = beam.keys();
+        while (keys.hasNext()) {
+            String key = String.valueOf(keys.next());
+            if (!BEAM_FIELDS.contains(key)) {
+                throw new JSONException("Weapon '" + weaponId + "' beam has unknown field '" + key + "'");
+            }
+        }
+        try {
+            return beam((float) beam.getDouble("pulseRate"), (float) beam.getDouble("fluxPerSecond"));
+        } catch (IllegalArgumentException e) {
+            throw new JSONException("Weapon '" + weaponId + "' beam: " + e.getMessage());
+        }
     }
 
     /** Reads {@code sim.rotary}; null when the weapon has none. */

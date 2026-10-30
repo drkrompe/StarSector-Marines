@@ -17,6 +17,12 @@ import com.dillon.starsectormarines.battle.weapon.RotaryFeedDef;
  *
  * <p>Rounds are released whole. A round the mount asked for and could not fire (no aim, a wall at the
  * muzzle, no flux) still uses its slot, so a blocked gun never builds a backlog it would dump on release.
+ *
+ * <p>A beam ({@link RotaryFeedDef#beam()}) is the same trigger with no belt: its pulses never run out, and its
+ * autonomous reserve is the reservoir's rather than a belt's. The owner reports the reservoir's share each tick
+ * ({@link #observeFlux}); above {@link RotaryFeedDef#BEAM_AI_STOP_SHARE} the AI stops asking for pulses until it is
+ * back to {@link RotaryFeedDef#BEAM_AI_RESUME_SHARE}. A pilot's beam stops only on release or on the reservoir's
+ * own vent.
  */
 public final class RotaryFeed {
 
@@ -62,6 +68,7 @@ public final class RotaryFeed {
      * the belt keeps its size and the rounds on it.
      */
     public void fitLoader(float loaderFactor) {
+        if (def.beam()) return; // nothing to feed
         def = new RotaryFeedDef(def.spinUpSeconds(), def.coastSeconds(), def.spinDownSeconds(), def.firstTurnRate(),
                 def.fullRate(), def.belt(), LoaderPace.refillPerSecond(authored.refillPerSecond(), loaderFactor),
                 def.fluxPerRound());
@@ -73,10 +80,23 @@ public final class RotaryFeed {
     /** 0 at rest, 1 at full speed. */
     public float spin() { return spin; }
 
-    /** Whole rounds on the belt. */
-    public int beltRounds() { return (int) belt; }
+    /** Whole rounds on the belt; a beam, which has none, reads as never empty. */
+    public int beltRounds() { return def.beam() ? Integer.MAX_VALUE : (int) belt; }
 
-    public float beltFraction() { return belt / def.belt(); }
+    public float beltFraction() { return def.beam() ? 1f : belt / def.belt(); }
+
+    /** Whether this is a beam's emitter rather than a rotary gun's barrels. */
+    public boolean beam() { return def.beam(); }
+
+    /**
+     * A beam's autonomous reserve: the reservoir now holds {@code share} of its capacity. Above the stop share the AI
+     * holds its pulses until the resume share; a rotary gun's reserve is its belt's and ignores this.
+     */
+    public void observeFlux(float share) {
+        if (!def.beam()) return;
+        if (share >= RotaryFeedDef.BEAM_AI_STOP_SHARE) reserveHeld = true;
+        else if (share <= RotaryFeedDef.BEAM_AI_RESUME_SHARE) reserveHeld = false;
+    }
 
     /** Rounds a second the barrels would release now with the trigger held. */
     public float rate() { return def.rate(spin); }
@@ -118,7 +138,7 @@ public final class RotaryFeed {
      */
     public int advance(float dt, boolean pilotHeld) {
         float step = Math.max(0f, dt);
-        belt = Math.min(def.belt(), belt + def.refillPerSecond() * step);
+        if (!def.beam()) belt = Math.min(def.belt(), belt + def.refillPerSecond() * step);
         sinceRound += step;
         boolean aiAsking = lease > 0f;
         if (aiAsking) lease = Math.max(0f, lease - step);
@@ -140,21 +160,22 @@ public final class RotaryFeed {
         if (demandedLastTick) pending += def.rate(spin) * step;
         else pending = Math.max(pending, 1f);
         demandedLastTick = true;
-        int ready = Math.min((int) pending, (int) belt);
+        int ready = def.beam() ? (int) pending : Math.min((int) pending, (int) belt);
         pending -= ready;
         // A dry belt banks no backlog: the next round waits on the hopper, not on the clock.
-        if (belt - ready < 1f) pending = Math.min(pending, 1f);
+        if (!def.beam() && belt - ready < 1f) pending = Math.min(pending, 1f);
         return ready;
     }
 
     /** One requested round actually left the barrel. */
     public void spend() {
-        belt = Math.max(0f, belt - 1f);
+        if (!def.beam()) belt = Math.max(0f, belt - 1f);
         sinceRound = 0f;
         updateReserve();
     }
 
     private void updateReserve() {
+        if (def.beam()) return;
         float fraction = beltFraction();
         if (fraction < AI_STOP_FRACTION) reserveHeld = true;
         else if (fraction >= AI_RESUME_FRACTION) reserveHeld = false;

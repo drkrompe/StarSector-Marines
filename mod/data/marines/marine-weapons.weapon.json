@@ -839,6 +839,50 @@
       "sim": {
         "tracksFliers": true,
         "range": 26.0,
+        "damage": 3.2,
+        "accuracy": 0.95,
+        "cooldown": 1.6,
+        "penetration": 5.0,
+        "hitSpread": 0.12,
+        "roundVelocity": 320.0,
+        "flightSec": 0.05,
+        "wallDamage": 1,
+        "noiseMagnitude": 0.4,
+        "beam": { "pulseRate": 15.0, "fluxPerSecond": 15.0 }
+      },
+      "render": {
+        "tracerColor": "FFF4F2",
+        "beam": {
+          "coreWidthPx": 2.2,
+          "glowColor": "E01A12",
+          "glowWidthPx": 11.0,
+          "lifetimeSec": 0.085,
+          "texture": { "texelCells": 0.45, "scrollCellsPerSec": 5.0, "roughness": 0.9, "throbHz": 6.0 }
+        },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.12, "color": "FF6464" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.36, "lifetime": 0.14, "color": "FF5A4A" },
+          { "kind": "dust", "radius": 0.12, "lifetime": 0.12 }
+        ]
+      },
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+    },
+    {
+      "id": "weapon.mech-pd-laser-burst",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponMechPdLaserDisplayName",
+        "designationTiered": false
+      },
+      "sim": {
+        "tracksFliers": true,
+        "range": 26.0,
         "damage": 7.0,
         "accuracy": 0.85,
         "cooldown": 1.6,
@@ -1058,6 +1102,50 @@
     },
     {
       "id": "weapon.mech-light-pulse-laser",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponMechLightPulseLaserDisplayName",
+        "designationTiered": false
+      },
+      "sim": {
+        "tracksFliers": true,
+        "range": 24.0,
+        "damage": 1.8,
+        "accuracy": 0.95,
+        "cooldown": 1.8,
+        "penetration": 2.0,
+        "hitSpread": 0.15,
+        "roundVelocity": 320.0,
+        "flightSec": 0.05,
+        "wallDamage": 1,
+        "noiseMagnitude": 0.4,
+        "beam": { "pulseRate": 15.0, "fluxPerSecond": 9.0 }
+      },
+      "render": {
+        "tracerColor": "FFF4F2",
+        "beam": {
+          "coreWidthPx": 1.5,
+          "glowColor": "E01A12",
+          "glowWidthPx": 6.5,
+          "lifetimeSec": 0.085,
+          "texture": { "texelCells": 0.4, "scrollCellsPerSec": 6.0, "roughness": 0.8, "throbHz": 7.0 }
+        },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.36, "lifetime": 0.1, "color": "FF6464" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.28, "lifetime": 0.12, "color": "FF5A4A" },
+          { "kind": "dust", "radius": 0.1, "lifetime": 0.12 }
+        ]
+      },
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+    },
+    {
+      "id": "weapon.mech-light-pulse-laser-burst",
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechLightPulseLaserDisplayName",

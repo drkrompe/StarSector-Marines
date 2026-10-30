@@ -323,6 +323,28 @@ public final class SpecSheets {
         }
         MechCatalog.ComponentEntry entry = MechCatalog.require(component);
         RotaryFeedDef rotary = component.rotary();
+        if (rotary != null && rotary.beam()) {
+            // A beam is chosen on what it delivers and what it costs a second, and on how well it bites armor.
+            WeaponDef weapon = component.weaponDef();
+            float fluxPerSecond = rotary.fluxPerSecond();
+            float net = fluxPerSecond - dissipationPerSecond;
+            return new SpecSheet(
+                    component.displayName(),
+                    joined(entry.designation(), mountLabel(component),
+                            Strings.get("gearHardpoint" + component.hardpointType.name())),
+                    entry.factionLogo(),
+                    ACCENT_MECH,
+                    List.of(stat("DPS", oneDecimal(weapon.damage * rotary.fullRate())),
+                            stat("PEN", oneDecimal(weapon.penetration)),
+                            stat("RNG", whole(weapon.range)),
+                            stat("Flux / s", oneDecimal(fluxPerSecond) + " / " + whole(fluxCapacity)),
+                            // How long it holds from cool on this frame alone before the vent stops it.
+                            stat("Hold alone", net > 0f
+                                    ? Strings.format("gearSeconds", oneDecimal(scaledVent(fluxCapacity) / net))
+                                    : "-")),
+                    List.of(entry.description(), Strings.get("gearBeamExplanation"),
+                            Strings.get("gearFluxExplanation")));
+        }
         if (rotary != null) {
             // A rotary gun is chosen on what makes a better one: spin-up, refill and the round's weight.
             return new SpecSheet(
@@ -446,6 +468,11 @@ public final class SpecSheets {
 
     private static String percent(float fraction) {
         return String.format(Strings.locale(), "%.0f%%", fraction * 100f);
+    }
+
+    /** Where a reservoir of {@code capacity} vents and stops a held trigger: 95 of the stock 100 ({@code MechFlux}). */
+    private static float scaledVent(float capacity) {
+        return 0.95f * capacity;
     }
 
     private static Stat stat(String id, String value) {

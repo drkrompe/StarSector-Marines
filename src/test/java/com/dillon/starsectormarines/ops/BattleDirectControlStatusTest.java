@@ -196,6 +196,22 @@ class BattleDirectControlStatusTest {
     }
 
     @Test
+    void aBeamCountsNothingAndReadsWhatItCostsASecond() {
+        var arms = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.PD_LASER);
+        assertTrue(arms.rotary != null && arms.rotary.beam(), "the PD laser is a held beam");
+        var flux = new MechFlux();
+        var beam = BattleDirectControlStatus.mechWeapons(new MechWeaponMount[]{arms}, flux, TriggerPicks.LINKED).get(0);
+        assertEquals(BattleDirectControlStatus.FireKind.BEAM, beam.behavior().kind());
+        assertEquals(arms.rotary.def().fluxPerSecond(), beam.behavior().fluxPerSecond(), 1e-6f);
+        assertEquals(BattleDirectControlStatus.AmmoUnit.UNTRACKED, beam.ammo().unit());
+        assertEquals(BattleDirectControlStatus.WeaponState.LOADED, beam.state());
+        assertNull(BattleDirectControlHudModel.strip(beam), "no cells to fill under the row");
+        flux.commit(96f);
+        assertTrue(BattleDirectControlStatus.mechWeapons(new MechWeaponMount[]{arms}, flux, TriggerPicks.LINKED).get(0)
+                .fluxBlocked(), "a vented reservoir holds the beam");
+    }
+
+    @Test
     void anArcingVehicleLauncherIsHandFireableAndReadsTooCloseInsideItsMinimum() {
         var mount = VehicleType.LRM_CARRIER.turretStructure().mount;
         GroundTurret turret = new GroundTurret(mount.ammoCapacity);

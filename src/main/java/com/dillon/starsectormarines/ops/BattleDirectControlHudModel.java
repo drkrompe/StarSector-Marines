@@ -423,6 +423,8 @@ public final class BattleDirectControlHudModel {
     static AmmoStrip strip(WeaponStatus weapon) {
         var behavior = weapon.behavior();
         var ammo = weapon.ammo();
+        // A beam has no cells to fill: it fires while held, and its flux shows on the reservoir's own gauge.
+        if (behavior.kind() == BattleDirectControlStatus.FireKind.BEAM) return null;
         if (ammo.unit() == BattleDirectControlStatus.AmmoUnit.FUEL) {
             return ChargeGauge.fuel(ammo.capacity(), ammo.remaining());
         }
@@ -640,6 +642,11 @@ public final class BattleDirectControlHudModel {
         // A rotary gun has no pull to count: it fires while held.
         if (behavior.kind() == BattleDirectControlStatus.FireKind.ROTARY) return label("ROTARY");
         if (behavior.kind() == BattleDirectControlStatus.FireKind.STREAM) return label("STREAM");
+        // A beam has no pull either; what it costs a second is the number a pilot holds it against.
+        if (behavior.kind() == BattleDirectControlStatus.FireKind.BEAM) {
+            return label("BEAM") + " · " + String.format(Strings.locale(), "%.1f", behavior.fluxPerSecond()) + " "
+                    + label("FluxPerSecond");
+        }
         String value = label(behavior.kind().name());
         int count = behavior.kind() == BattleDirectControlStatus.FireKind.PACKET
                 ? behavior.projectilesPerShot() : behavior.projectilesPerTrigger();

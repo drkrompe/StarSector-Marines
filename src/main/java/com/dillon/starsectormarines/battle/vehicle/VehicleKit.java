@@ -132,10 +132,10 @@ public enum VehicleKit {
         };
     }
 
-    /** Whether the hull's own gun draws on ammunition a loader refills: a magazine, or a rotary gun's belt. */
+    /** Whether the hull's own gun draws on ammunition a loader refills: a magazine, or a rotary gun's belt (a beam has none). */
     private static boolean fed(VehicleType type) {
         MechWeaponComponent weapon = type.ownGun();
-        return weapon != null && weapon.rotary() != null || ownGun(type).mount.ammoCapacity > 0;
+        return weapon != null && weapon.rotary() != null && !weapon.rotary().beam() || ownGun(type).mount.ammoCapacity > 0;
     }
 
     /** The hull's own gun as it is set down: its turret, or the mech weapon its turret carries ({@link VehicleType#ownGun}). */
