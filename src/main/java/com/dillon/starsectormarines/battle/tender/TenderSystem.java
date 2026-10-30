@@ -291,9 +291,11 @@ public final class TenderSystem {
             }
             case TRANSIT -> {
                 Warship ship = t.ship();
-                boolean there = t.grounded() ? t.groundSiteReachable(o.siteX(), o.siteY(), grid) : t.piloted() || t.lowHover()
+                // A recovery host's builders fly out to wherever the site was laid; a pilot brings the hull near.
+                boolean there = t.piloted()
                         ? Math.hypot(ship.x - o.siteX(), ship.y - o.siteY()) <= PILOT_REACH_CELLS
-                        : Math.hypot(ship.x - o.standoffX(), ship.y - o.standoffY()) <= ARRIVE_CELLS
+                        : t.grounded() || t.lowHover()
+                        || Math.hypot(ship.x - o.standoffX(), ship.y - o.standoffY()) <= ARRIVE_CELLS
                                 && ship.speed() <= ARRIVE_SPEED;
                 if (there) {
                     o.startWork();
@@ -376,7 +378,7 @@ public final class TenderSystem {
 
     /** Whether a pilot has flown the tender too far from {@code o}'s site for its builders to keep working. */
     public static boolean outOfReach(Tender t, ConstructionOrder o) {
-        return (t.piloted() || t.lowHover()) && Math.hypot(t.ship().x - o.siteX(), t.ship().y - o.siteY()) > PILOT_LEASH_CELLS;
+        return t.piloted() && Math.hypot(t.ship().x - o.siteX(), t.ship().y - o.siteY()) > PILOT_LEASH_CELLS;
     }
 
 

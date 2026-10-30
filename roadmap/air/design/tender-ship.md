@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-12
 
+Updated: 2026-10-30 — Morrow hovers at the Onslaught power's scale, builds a heavy MG or Locust battery anywhere seen and open, and takes a blocked move as far as she clears.
+
 Updated: 2026-10-25 — an unpiloted tender builds flak first while the swarm has fliers about.
 
 Updated: 2026-10-14 — builder cues and interceptor pod retained; Working Passage low hover, physical departure and owned campaign support boundaries documented.
@@ -49,7 +51,8 @@ Candidates, in the order they cost least to add (each is a `BuildOption` plus, w
 
 | Candidate | Path it would use | Note |
 | --- | --- | --- |
-| Other catalog turrets (arbalest, flak, mortar) | the same structure path | built: number keys 1-4, vulcan first. Time and cost scale from the vulcan (12 s, 1 charge) by the structure's weight: arbalest 15 s / 2, dual flak 17 s / 2, heavy mortar 18 s / 3. Grenade launcher, locust, heavy MG and hephaestus are further data-only candidates once a sixth slot or a selector exists |
+| Other catalog turrets (arbalest, flak, mortar) | the same structure path | built: number keys 1-4, vulcan first. Time and cost scale from the vulcan (12 s, 1 charge) by the structure's weight: arbalest 15 s / 2, dual flak 17 s / 2, heavy mortar 18 s / 3. Grenade launcher and hephaestus are further data-only candidates once a sixth slot or a selector exists |
+| Recovery guns (heavy MG, Locust) | the same structure path | built, for Morrow only (owner, 2026-10-30): a recovery host (grounded or low hover) offers exactly these two, `BuildOption.RECOVERY`, and a flying tender keeps the five above. Heavy MG 15 s / 2; Locust battery, indirect rocket artillery with a 30-cell minimum range, 20 s / 3 |
 | Point-defence emplacement | `PointDefenseService.queuePlacement` | built: key 5, 8 s / 1 charge. The structure and spec are the carried Palisade pod's (45 s life, 8-round magazine, 44 structure plus armour), so the item stays the one authority; it is lighter than any turret and so quicker. Completion queues the placement with the tender's faction and no carrier. Number keys were extended to 1-5 rather than replacing a turret. The stance AI considers turret kinds only: the pod is quicker than every turret and would win ATTACK every time, and an unpiloted tender has no read on incoming ordnance |
 | Sensor, repair, supply | none yet | wait on the systems that would use them |
 
@@ -111,12 +114,26 @@ The mining laser's mount arc in its `.ship` slot (30 degrees) is not applied: th
 
 ## Vulnerability
 
-**A recovering tender can use a full-size low hover.** Working Passage supplies
-Morrow at the same 24 by 20-cell scale as her grounded body. Her fixed attitude
-and swept footprint must clear terrain through mission travel, remote movement
-and direct control. Construction stays within the moving hull's working reach,
-outside its footprint, and ordinary builders, threat stand-down and turret damage
-still own the job. Completed or cancelled remote build work releases mission
+**A recovering tender can use a low hover.** Working Passage fits Morrow's body
+at the Onslaught power's presence (`SpawnInOnslaught.PRESENCE`), so beside the
+company's Onslaught she reads as the small hull she is, about eight cells long,
+rather than the 24 by 20-cell grounded body she was (owner, 2026-10-30). Her
+footprint is that hull's own length and beam, and her fixed attitude and swept
+footprint must clear terrain through mission travel, remote movement and direct
+control. A move order whose straight sweep is blocked is taken as far along the
+line as the footprint clears, and refused only when that buys less than a cell; a
+step that would touch blocked ground slides along the clear axis rather than
+stopping dead.
+
+**A recovery host builds wherever the player has seen open ground** (owner,
+2026-10-30), on Cold Start and Working Passage alike: anywhere off the hull
+itself, because the builders fly out to the work. The hull does not move to the
+site and no builder reach or bay corridor limits it; threat stand-down, builder
+loss and turret damage still own the job. The site rule is one method
+(`Tender.buildableSite`) read by the placement marker and by the order alike, so
+a site the marker shows open is one the tender takes. The mission's own handover
+test (`groundSiteReachable`) still asks that the bay be within builder reach of
+its scripted plot. Completed or cancelled remote build work releases mission
 travel; explicit Hold and Move continue to own the helm. Climb-out uses ordinary
 propulsion and cloud-deck presentation, but the mission accepts only the whole
 hull physically leaving the map. Timeout removal is a failed departure, never

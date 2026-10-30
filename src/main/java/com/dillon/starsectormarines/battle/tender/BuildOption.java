@@ -67,6 +67,20 @@ public record BuildOption(String id, String label, Kind kind, String structureId
     public static final BuildOption POINT_DEFENCE_POD = new BuildOption(
             "point-defence-pod", "Interceptor pod", Kind.POINT_DEFENCE, POD_STRUCTURE_ID, 8f, 1);
 
+    /**
+     * The recovery tender's two guns, catalog turrets through the same structure path, timed and costed from the
+     * vulcan by weight as above: a heavy machine gun (structure plus armour 180, force 10) and a Locust battery,
+     * indirect rocket artillery that cannot fire inside its minimum range (220, force 18).
+     */
+    public static final BuildOption HEAVY_MG_TURRET = new BuildOption(
+            "heavy-mg-turret", "Heavy MG turret", Kind.TURRET, TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 15f, 2);
+
+    public static final BuildOption LOCUST_TURRET = new BuildOption(
+            "locust-turret", "Locust artillery", Kind.TURRET, TurretCatalogRegistry.LOCUST_STRUCTURE_ID, 20f, 3);
+
+    /** What Morrow builds on her recovery missions, grounded or in low hover. */
+    public static final List<BuildOption> RECOVERY = List.of(HEAVY_MG_TURRET, LOCUST_TURRET);
+
     /** Every option a tender offers, in the order a player selects them (number keys 1-5). */
     public static final List<BuildOption> ALL = List.of(
             VULCAN_TURRET, ARBALEST_TURRET, FLAK_TURRET, MORTAR_TURRET, POINT_DEFENCE_POD);

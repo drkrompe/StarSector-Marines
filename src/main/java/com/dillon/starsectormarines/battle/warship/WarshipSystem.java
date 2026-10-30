@@ -1240,9 +1240,22 @@ public final class WarshipSystem {
                 || WarshipEscort.liveLead(ship) != null || ship.departing();
     }
 
+    /**
+     * Keeps a low-hovering hull's footprint off blocked ground. A step that would touch it slides along the obstacle on
+     * whichever axis is still clear, losing the blocked axis's speed, so the hull skirts a wall rather than sticking.
+     */
     private static void enforceLowHoverClearance(BattleSimulation sim, Warship ship, float x, float y) {
-        if (ship.lowHovering() && !LowHoverClearance.sweptClear(sim.getGrid(), x, y, ship.x, ship.y,
-                ship.lowHoverWidth(), ship.lowHoverHeight())) {
+        if (!ship.lowHovering()) return;
+        float w = ship.lowHoverWidth(), h = ship.lowHoverHeight();
+        if (LowHoverClearance.sweptClear(sim.getGrid(), x, y, ship.x, ship.y, w, h)) return;
+        float nx = ship.x, ny = ship.y;
+        if (LowHoverClearance.sweptClear(sim.getGrid(), x, y, nx, y, w, h)) {
+            ship.y = y;
+            ship.velocityY = 0f;
+        } else if (LowHoverClearance.sweptClear(sim.getGrid(), x, y, x, ny, w, h)) {
+            ship.x = x;
+            ship.velocityX = 0f;
+        } else {
             ship.x = x;
             ship.y = y;
             ship.velocityX = 0f;

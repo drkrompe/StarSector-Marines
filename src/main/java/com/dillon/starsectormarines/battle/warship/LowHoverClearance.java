@@ -19,6 +19,25 @@ public final class LowHoverClearance {
         return true;
     }
 
+    /**
+     * The farthest point along the straight line from {@code (x, y)} toward {@code (nextX, nextY)} that the footprint
+     * reaches without touching blocked ground: the destination itself when the whole sweep is clear, the start when
+     * the first step is blocked.
+     */
+    public static float[] farthestClear(NavigationGrid grid, float x, float y, float nextX, float nextY,
+                                        float width, float height) {
+        int steps = Math.max(1, (int) Math.ceil(Math.hypot(nextX - x, nextY - y) * 4));
+        float[] reached = {x, y};
+        for (int i = 1; i <= steps; i++) {
+            float share = (float) i / steps;
+            float px = x + (nextX - x) * share, py = y + (nextY - y) * share;
+            if (!clear(grid, px, py, width, height)) break;
+            reached[0] = px;
+            reached[1] = py;
+        }
+        return reached;
+    }
+
     public static boolean sweptClear(NavigationGrid grid, float x, float y, float nextX, float nextY,
                                      float width, float height) {
         int steps = Math.max(1, (int) Math.ceil(Math.hypot(nextX - x, nextY - y) * 4));

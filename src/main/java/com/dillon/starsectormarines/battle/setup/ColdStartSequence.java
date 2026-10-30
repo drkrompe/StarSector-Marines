@@ -193,7 +193,7 @@ public final class ColdStartSequence implements Objective {
             }
         }
         sim.tenders().add(sim, tender);
-        sim.getCommandPowerService().register(new YardConstruction(tender));
+        for (YardConstruction yard : YardConstruction.forEachOption(tender)) sim.getCommandPowerService().register(yard);
         if (!tender.groundSiteReachable(BUILD_X + .5f, BUILD_Y + .5f, sim.getGrid()))
             throw new IllegalStateException("Cold Start recommended turret site is unreachable");
     }

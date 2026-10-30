@@ -219,10 +219,10 @@ Beat order:
    Successful connection restores the yard-light circuit around the pumps and
    cradle immediately; emergency lights remain on throughout. A later mobilization
    retains completed shore power.
-3. Restored power exposes **Build Vulcan Turret** in the ordinary command tray.
-   Choose its card, then clear exterior ground near Morrow. Target cancellation uses
-   the normal command interface. The first builder deployment uses the real Tender construction path, limited
-   to the grounded ship's safe working reach. A suggested gun position protects
+3. Restored power exposes **Build Heavy MG turret** and **Build Locust artillery**
+   in the ordinary command tray. Choose a card, then any open ground already seen.
+   Target cancellation uses the normal command interface. The first builder
+   deployment uses the real Tender construction path; builders fly out to the plot. A suggested gun position protects
    the cradle approach. Contact interrupts unsafe work under ordinary tender rules;
    no special invulnerable tutorial drone flies through fire.
 4. Hold the repair yard and pump approach while the crew finishes a finite repair

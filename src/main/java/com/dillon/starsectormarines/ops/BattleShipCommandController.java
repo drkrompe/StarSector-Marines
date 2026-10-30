@@ -67,7 +67,8 @@ final class BattleShipCommandController {
         if (selected != null && !roster.contains(selected)) { selection.clear(); selected = null; }
         if (previousSelection != selected) {
             targeting.cancel();
-            if (previousSelection != null && "yard-construction".equals(powerTarget.get())) powerToggle.accept("yard-construction");
+            String armed = powerTarget.get();
+            if (previousSelection != null && yardPower(armed)) powerToggle.accept(armed);
             previousSelection = selected;
         }
         ids.keySet().retainAll(roster); callbacks.keySet().retainAll(roster);
@@ -122,15 +123,16 @@ final class BattleShipCommandController {
         }
         if (tender != null) {
             if (grounded) {
-                CommandPower power = sim.getCommandPowerService().getPower("yard-construction");
-                if (power instanceof YardConstruction yard && yard.source() == tender) {
-                    actions.add(action(ship, "build-vulcan-turret", buildLabel(BuildOption.VULCAN_TURRET),
-                            buildIcon(BuildOption.VULCAN_TURRET), text("GroundBuildHint"), text("Build"),
+                for (BuildOption option : tender.options()) {
+                    CommandPower power = sim.getCommandPowerService().getPower(YardConstruction.ID_PREFIX + option.id());
+                    if (!(power instanceof YardConstruction yard) || yard.source() != tender) continue;
+                    actions.add(action(ship, "build-" + option.id(), buildLabel(option),
+                            buildIcon(option), text("GroundBuildHint"), text("Build"),
                             sim.getCommandPowerService().canActivate(power), power.id.equals(powerTarget.get()),
                             () -> powerToggle.accept(power.id)));
                 }
             } else {
-                for (BuildOption option : BuildOption.ALL) {
+                for (BuildOption option : tender.options()) {
                     boolean ready = mobile && TenderPilot.liveSites(tender) < TenderPilot.MAX_SITES
                             && (!tender.metered() || tender.stock() >= option.cost());
                     String detail = Strings.format("battleShipBuildHint", option.label(), Math.round(option.buildSeconds()));
@@ -173,7 +175,7 @@ final class BattleShipCommandController {
         Notice notice = targeting.active() ? targeting.notice() : sim.shipCommands().notice(ship);
         if (notice.ordinal() >= Notice.UNAVAILABLE.ordinal()) return text("Notice" + notice.name());
         if (targeting.active()) return text(targeting.option() == null ? "PlaceMove" : "PlaceBuild");
-        if ("yard-construction".equals(powerTarget.get())) return text("PlaceBuild");
+        if (yardPower(powerTarget.get())) return text("PlaceBuild");
         return text(tender != null && tender.grounded() ? "GroundedHint" : "SelectedHint");
     }
     private static String status(Warship ship, Tender tender) {
@@ -198,5 +200,6 @@ final class BattleShipCommandController {
         if (option.kind() == BuildOption.Kind.POINT_DEFENCE) return "graphics/ui/armory/special-point-defence-pod.png";
         return TurretCatalogRegistry.requireStructure(option.structureId()).mount.spritePath;
     }
+    private static boolean yardPower(String id) { return id != null && id.startsWith(YardConstruction.ID_PREFIX); }
     private static String text(String suffix) { return Strings.get("battleShip" + suffix); }
 }

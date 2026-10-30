@@ -97,6 +97,10 @@ public final class TenderPilot {
         if (!Float.isFinite(x) || !Float.isFinite(y) || !grid.inBounds(cx, cy)) return Placement.OFF_MAP;
         if (!revealed.test(cx, cy)) return Placement.UNSEEN;
         if (!grid.isWalkable(cx, cy)) return Placement.BLOCKED;
+        // The same ground rules as Tender.lay, so a site the marker shows open is one the tender takes.
+        if (!tender.buildableSite(cx + 0.5f, cy + 0.5f) || tender.groundPlotReserved(cx + 0.5f, cy + 0.5f)) {
+            return Placement.BLOCKED;
+        }
         for (ConstructionOrder other : tender.orders()) {
             if (other.phase().terminal()) continue;
             if (Math.hypot(other.siteX() - (cx + 0.5f), other.siteY() - (cy + 0.5f)) < Tender.SITE_SPACING) {
