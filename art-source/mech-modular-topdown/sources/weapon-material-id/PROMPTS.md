@@ -38,7 +38,7 @@ table below.
 | `pl-2-ap.png` | `../weapon-concepts/pl-2-ap.png` | Broad rear mounting housing and center armor plate, paired olive side housings beside the focusing rails, olive plates around the capacitor banks, and rear mounting tab | Twin gunmetal focusing rails, recessed cyan optical path, edge-on exit slit, capacitor indicators, frames, conduits, vents, fasteners, lamps, mechanisms, gaps, cavities, and outlines |
 | `ac-6.png` | `../weapon-concepts/ac-6.png` | Every olive-drab external armor casing plate, including its small painted service marks | Black barrel and shroud, muzzle slit, recoil rails and cylinders, ammunition belt and feed, hoses, vents, fasteners, gaps, cavities, outlines, and bare metal |
 | `dc-5.png` | `../weapon-concepts/dc-5.png` | Olive and rust-red external plates, welded armor braces, access hatch, and painted rear mount casing | Oversized barrel and muzzle slit, weld beads, recoil ram, pressure-cylinder hardware, hoses, pipes, clamps, bolts, joints, gaps, cavities, outlines, and bare steel |
-| `lions-guard-thermal-lance.png` | `../weapon-concepts/lions-guard-thermal-lance.png` | Deep-red lacquer plates, cream identification chevrons, and gold/brass external trim plates | Dark emitter body, edge-on amber emitter seam, cooling fins, heat exchangers, lamps and glowing cells, pipes, vents, fasteners, gaps, cavities, outlines, gunmetal mechanisms, and mounting socket |
+| `lions-guard-thermal-lance.png` | `../weapon-concepts/lions-guard-thermal-lance.png` | Rear housing cover plates (the two large angled side plates and the central rear cover with its vent surround) and the two forward side cheek plates beside the barrel root | Barrel top and its breech blocks, radiator fins and the gaps between them, heat-stained muzzle shroud and its glowing slit, every orange glow, pipes, hoses, collars, fasteners, vents and grilles, rear mounting socket plate, gaps, cavities, and outlines |
 | `ac-6-qs.png` | `../weapon-concepts/ac-6-qs.png` | Olive central receiver cover, paired side armor panels, rear mounting housing and access plates, and their connected casing | Barrel, collars, recoil cylinders, exposed ammunition belt and feed hose, vents, fasteners, pivots, lamps, gaps, outlines, and bare metal |
 | `dc-4-qs.png` | `../weapon-concepts/dc-4-qs.png` | Large olive central armor, paired side supports, longitudinal frame plates, and rear mounting casing | Oversized dark barrel and muzzle, breech, welds, three loose shells, hydraulic cylinders and hazard stripes, hoses, rails, bolts, wheels, gaps, and bare metal |
 | `srm-3-qs.png` | `../weapon-concepts/srm-3-qs.png` | Long olive side armor, four olive square service or clamp covers, olive lower/rear universal mount, and connected cover plates | All four rockets and yellow bands, dark rails, noses, fins, clamp bands, ignition leads and orange wiring, pipes, fasteners, lamps, hinges, gaps, outlines, and bare metal |
@@ -61,10 +61,18 @@ casing variant from this retained semantic pass.
 
 The three faction-signature passes used the same classification-only handoff.
 The Bastion and demolition passes returned aligned checker previews. The
-thermal-lance pass added a non-authoritative magenta halo; it is harmless
+original thermal-lance pass added a non-authoritative magenta halo; it is harmless
 because the builder resamples the semantic field to the accepted source crop
 and multiplies it by the normalized base sprite's exact alpha before measuring
 or applying paint. All three passed the reviewed 20–82% casing-coverage guard.
+
+The thermal lance's pass was regenerated on 2026-10-30 for the radiator-barrel
+concept. Its prompt also selected the flat top of the barrel housing, which
+painted the barrel in red liveries; barrels take no faction paint. The barrel
+column north of the rear housing (x 430-595, y 0-1001 of the 1024x1536 canvas)
+was therefore put back to the concept's own pixels in greyscale, deterministically,
+so only the housing and cheek plates key as paint (24.3% of the opaque sprite,
+from 39.0%); `lions-guard-thermal-lance.png.provenance.json` records the edit.
 
 The three common-market passes use the same authority split. ImageGen selected
 semantic painted casing only; normalization, alpha, silhouette, lighting, noise,

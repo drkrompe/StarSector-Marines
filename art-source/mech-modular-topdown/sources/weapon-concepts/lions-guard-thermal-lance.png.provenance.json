@@ -1,0 +1,61 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a18eec-e6a3-75d1-89d9-c0f8ee75d7c0",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a18eec-e6a3-75d1-89d9-c0f8ee75d7c0\\exec-356a33e4-a66f-465c-a7bf-fbf3c5ec83de.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\b034663a-cd3b-484f-b55f-d86ead8b619f\\scratchpad\\thermal-lance-art\\masters\\option-a-v1.png",
+    "sha256": "43e5c17e9ba7081f50015dd76e6d116ba69f83c3390f2d492036153eebaafa9c",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\b034663a-cd3b-484f-b55f-d86ead8b619f\\scratchpad\\thermal-lance-art\\briefs\\option-a.txt",
+  "promptSha256": "2bfce5c302acfbb19de6c069ebb3e3374b18bc56ce4706bb6057bcb396cdf10c",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Image 1: footprint, envelope, mount position and finish only; not colour or design\nImage 2: Image 2: zenith perspective of a north-firing energy barrel and finish only; not colour or geometry\n\nImage 1 is the current thermal lance this concept replaces: use it ONLY for footprint, overall length-to-width envelope (about 2.7 times as long as it is wide), rear mounting plate position and sprite finish/density. Do not copy its colours (red lacquer, gold, cream), its swept fin wings or its exact layout. Image 2 is the shipped shoulder laser cannon: use it ONLY as the perspective reference for how a north-firing energy barrel is drawn from the zenith (long parallel rails, narrow recessed optical path, edge-on muzzle line) and for finish; do not copy its olive colour, its cyan light or its geometry.\nUse case: stylized-concept\nAsset type: production-source concept for one modular top-down tactical-game mech SHOULDER weapon pod sprite (a 2x1 shoulder hardpoint that replaces a missile rack)\nPrimary request: a heavy THERMAL LANCE, a direct-fire heat-projection emitter. Option A, \"radiator barrel\": one thick, heavy armoured barrel running the full length, wrapped along its middle and rear two-thirds by stacked transverse radiator fins (rows of thin parallel steel plates seen edge-on from above, like a heavy machine-gun cooling jacket or a power-plant radiator), with a boxy armoured capacitor and coolant housing at the rear. At the north end the barrel ends in a deep square muzzle shroud with the emitter lens recessed far inside it, so from above you see only the shroud's two heavy cheeks and a thin edge-on glowing slit between them at the tip; the hottest near-white point is that slit, and the shroud cheeks and the first fins behind it are heat-blued and straw-stained. Thin orange glow lines only in the deepest gaps between the first few radiator fins nearest the muzzle, cooling to dark further back. Two short armoured cover plates on the rear housing carry the service paint.\nCritical perspective: strict 90-degree zenith orthographic top-down view. The camera looks straight down at the TOP surfaces of the weapon. The weapon fires horizontally toward the NORTH/TOP edge of the canvas, parallel to the battlefield plane. The muzzle faces AWAY from the camera, so the camera cannot see a circular bore, aperture face, dish, lens, or glowing front surface. At the extreme northmost tip show only a very thin, almost edge-on horizontal exit slit. Keep the optical path narrow, recessed, and mostly dark. Do not use a broad glowing window on the top face. Constant-width top surfaces, no foreshortening; the whole module lies flat in the ground plane. Rear shoulder pivot / mounting plate at the bottom (south) edge, which disappears beneath a mech chassis; symmetrical enough to mirror to either shoulder.\n\nColour and material direction (most important change from Image 1): grounded, worn, believable heavy industrial-military hardware, NOT a saturated red prestige toy. Body in dull desaturated gunmetal and dark steel with chipped, matte, slightly olive-grey service paint on the external armour cover plates; tarnish, grime, soot streaks running back from the vents, scuffed edges showing bare steel. Near the emitter, bare metal shows heat staining as on real welded or exhaust steel: bands of straw-gold, bronze-brown, purple and steel-blue temper colours, plus black soot. The ONLY light sources are thin seams at the emitter slit and a few vent gaps, glowing in a physical blackbody temperature gradient: dull red-orange at the cooler edges, orange, then yellow, and near-white at the single hottest point at the emitter. The glow is small and narrow; most of the weapon is dark, matte metal. No red lacquer, no gold or brass trim, no cream chevrons, no lion emblem, no bright saturated colour fields anywhere.\n\nStyle/medium: crisp high-resolution painted game sprite matching the finish of Images 1 and 2: dark outline, fine surface noise, panel seams, fasteners, restrained wear, upper-left baked object lighting, readable when shrunk to about 48 by 132 pixels (keep large shapes bold and few, detail secondary).\n\nComposition/framing: exactly one isolated vertical weapon module centred with generous padding on a flat featureless pure white isolation plate (no gradient, shadow, halo, floor, border or checkerboard). Portrait canvas.\n\nAvoid: side view, perspective, isometric, a visible round lens or bore facing the camera, a beam, flame, sparks or any VFX beyond the seam glow, multiple objects, mech body, text, logo, watermark, cropping, red lacquer, gold trim.\n",
+  "adopted": true,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\b034663a-cd3b-484f-b55f-d86ead8b619f\\scratchpad\\thermal-lance-art\\ref\\current-thermal-lance-master.png",
+      "sha256": "455639617bcb71b29f084c0c672d6902cb73cf904efd3138f2fa29d6ea09934b",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Image 1: footprint, envelope, mount position and finish only; not colour or design"
+    },
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\b034663a-cd3b-484f-b55f-d86ead8b619f\\scratchpad\\thermal-lance-art\\ref\\shoulder-laser-cannon-master.png",
+      "sha256": "de55312fee0e636f731d009d2033943d72c428e615601d0afe97108d317499cb",
+      "dimensions": [
+        1058,
+        1487
+      ],
+      "mode": "RGBA",
+      "role": "Image 2: zenith perspective of a north-firing energy barrel and finish only; not colour or geometry"
+    }
+  ],
+  "agentMessages": [
+    "I\u00e2\u20ac\u2122ll generate one thermal lance concept using your perspective, radiator-barrel design, and restrained industrial finish.\n"
+  ],
+  "usage": {
+    "input_tokens": 46754,
+    "cached_input_tokens": 35968,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 847,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.8,
+  "retained": {
+    "path": "art-source/mech-modular-topdown/sources/weapon-concepts/lions-guard-thermal-lance.png",
+    "sha256": "b9a42effbc2fc04950619efc0140a88c0d1e5e9903026de6f07b4c69d79540d8",
+    "processing": "the generation above (white isolation plate) cleaned to real alpha with clean_imagegen_backgrounds.clean; geometry and colour otherwise unchanged",
+    "chosen": "owner, 2026-10-30: option A (radiator barrel) of three thermal-lance concepts"
+  }
+}

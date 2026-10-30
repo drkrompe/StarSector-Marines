@@ -1,13 +1,16 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.audio.WaylineNarration;
 import com.dillon.starsectormarines.campaign.WellhollowBloomProgress;
 import com.dillon.starsectormarines.campaign.WellhollowBloomProgress.Chapter;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -30,6 +33,27 @@ class WellhollowBloomCampaignTest {
             p.settle(id, true, WellhollowBloomProgress.fee(id));
         }
         return p;
+    }
+
+    @Test void everyBriefingTurnNamesItsChaptersRecording() throws Exception {
+        var catalog = WaylineNarration.parse(new JSONObject(Files.readString(Path.of("mod/data/marines/wellhollow_narration.json"))));
+        for (Chapter chapter : Chapter.values()) {
+            var lost = new WellhollowBloomProgress();
+            for (Chapter before : Chapter.values()) {
+                String id = lost.missionId(lost.current(), false);
+                lost.begin(id);
+                lost.settle(id, before != chapter, 0);
+                if (before == chapter) break;
+            }
+            var recordings = catalog.briefing(WellhollowBloomCampaign.narrationMissionId(chapter));
+            for (boolean replay : new boolean[]{false, true})
+                for (var progress : List.of(new WellhollowBloomProgress(), lost))
+                    for (var turn : WellhollowBloomCampaign.briefing(progress, chapter, replay)) {
+                        var line = recordings.stream().filter(l -> l.id().equals(turn.narrationId())).findFirst();
+                        assertTrue(line.isPresent(), chapter + " " + turn.narrationId());
+                        assertEquals(Strings.resolve(turn.text()), line.get().text(), turn.narrationId());
+                    }
+        }
     }
 
     @Test void theBoardOffersTheCurrentChapterThenEveryWonChapterAsAReplay() {

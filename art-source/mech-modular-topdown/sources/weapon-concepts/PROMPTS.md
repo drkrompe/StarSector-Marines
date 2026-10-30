@@ -180,29 +180,30 @@ checker cleanup.
 
 ## Lion's Guard thermal lance
 
-> Create one isolated modular mech shoulder weapon concept for a 2D tactical
-> game: a Lion's Guard prestige thermal lance, an experimental direct-fire
-> energy projector that replaces a missile rack. Match the painterly,
-> weathered, high-detail language and transparent-cutout presentation of the
-> reference weapons while creating distinct geometry. True orthographic
-> top-down view, camera directly above at 90 degrees, zero perspective and
-> foreshortening. The whole weapon lies flat in the ground plane. Rear shoulder
-> pivot at the bottom; emitter points toward the top edge. The emitter must not
-> point toward the viewer: show only a thin edge-on luminous slit at the top,
-> never a circular lens. Use an armored rectangular projector body, oversized
-> symmetrical cooling vanes, compact fuel-cell heat exchangers, dark gunmetal
-> machinery, deep Sindrian red lacquer, brass-gold trim, and restrained cream
-> identification marks. Prestigious, aggressive, heavily supported prototype
-> hardware; a subtle hot-amber seam is acceptable, but no beam or VFX. No lion
-> icon, text, hands, or chassis; padded transparent cutout with no cast shadow,
-> floor, background, label, or border.
+Generated with Codex CLI's built-in image_gen on 2026-10-30, the owner's pick
+(option A, "radiator barrel") of three concepts that replaced the red-lacquer
+prestige drawing. Two references were attached: the previous thermal lance
+(footprint, envelope and finish only) and the shoulder laser cannon (zenith
+perspective of a north-firing energy barrel only). The prompt:
 
-The concept returned with a dark amber halo. A cleanup edit preserved its
-accepted identity while requesting fully transparent pixels outside the hard
-weapon silhouette and removal of all black backdrop, halo, bloom, haze, and
-cast light. ImageGen simplified a few subpixel details during that cleanup, so
-the cleaned result—not the haloed draft—is the explicit retained geometry
-authority for `lions-guard-thermal-lance.png`.
+> Image 1 is the current thermal lance this concept replaces: use it ONLY for footprint, overall length-to-width envelope (about 2.7 times as long as it is wide), rear mounting plate position and sprite finish/density. Do not copy its colours (red lacquer, gold, cream), its swept fin wings or its exact layout. Image 2 is the shipped shoulder laser cannon: use it ONLY as the perspective reference for how a north-firing energy barrel is drawn from the zenith (long parallel rails, narrow recessed optical path, edge-on muzzle line) and for finish; do not copy its olive colour, its cyan light or its geometry.
+> Use case: stylized-concept
+> Asset type: production-source concept for one modular top-down tactical-game mech SHOULDER weapon pod sprite (a 2x1 shoulder hardpoint that replaces a missile rack)
+> Primary request: a heavy THERMAL LANCE, a direct-fire heat-projection emitter. Option A, "radiator barrel": one thick, heavy armoured barrel running the full length, wrapped along its middle and rear two-thirds by stacked transverse radiator fins (rows of thin parallel steel plates seen edge-on from above, like a heavy machine-gun cooling jacket or a power-plant radiator), with a boxy armoured capacitor and coolant housing at the rear. At the north end the barrel ends in a deep square muzzle shroud with the emitter lens recessed far inside it, so from above you see only the shroud's two heavy cheeks and a thin edge-on glowing slit between them at the tip; the hottest near-white point is that slit, and the shroud cheeks and the first fins behind it are heat-blued and straw-stained. Thin orange glow lines only in the deepest gaps between the first few radiator fins nearest the muzzle, cooling to dark further back. Two short armoured cover plates on the rear housing carry the service paint.
+> Critical perspective: strict 90-degree zenith orthographic top-down view. The camera looks straight down at the TOP surfaces of the weapon. The weapon fires horizontally toward the NORTH/TOP edge of the canvas, parallel to the battlefield plane. The muzzle faces AWAY from the camera, so the camera cannot see a circular bore, aperture face, dish, lens, or glowing front surface. At the extreme northmost tip show only a very thin, almost edge-on horizontal exit slit. Keep the optical path narrow, recessed, and mostly dark. Do not use a broad glowing window on the top face. Constant-width top surfaces, no foreshortening; the whole module lies flat in the ground plane. Rear shoulder pivot / mounting plate at the bottom (south) edge, which disappears beneath a mech chassis; symmetrical enough to mirror to either shoulder.
+>
+> Colour and material direction (most important change from Image 1): grounded, worn, believable heavy industrial-military hardware, NOT a saturated red prestige toy. Body in dull desaturated gunmetal and dark steel with chipped, matte, slightly olive-grey service paint on the external armour cover plates; tarnish, grime, soot streaks running back from the vents, scuffed edges showing bare steel. Near the emitter, bare metal shows heat staining as on real welded or exhaust steel: bands of straw-gold, bronze-brown, purple and steel-blue temper colours, plus black soot. The ONLY light sources are thin seams at the emitter slit and a few vent gaps, glowing in a physical blackbody temperature gradient: dull red-orange at the cooler edges, orange, then yellow, and near-white at the single hottest point at the emitter. The glow is small and narrow; most of the weapon is dark, matte metal. No red lacquer, no gold or brass trim, no cream chevrons, no lion emblem, no bright saturated colour fields anywhere.
+>
+> Style/medium: crisp high-resolution painted game sprite matching the finish of Images 1 and 2: dark outline, fine surface noise, panel seams, fasteners, restrained wear, upper-left baked object lighting, readable when shrunk to about 48 by 132 pixels (keep large shapes bold and few, detail secondary).
+>
+> Composition/framing: exactly one isolated vertical weapon module centred with generous padding on a flat featureless pure white isolation plate (no gradient, shadow, halo, floor, border or checkerboard). Portrait canvas.
+>
+> Avoid: side view, perspective, isometric, a visible round lens or bore facing the camera, a beam, flame, sparks or any VFX beyond the seam glow, multiple objects, mech body, text, logo, watermark, cropping, red lacquer, gold trim.
+
+The first generation was accepted. Its white isolation plate was cleaned to real
+alpha with `clean_imagegen_backgrounds.py`, and the cleaned image is the
+geometry authority for `lions-guard-thermal-lance.png`
+(`lions-guard-thermal-lance.png.provenance.json`).
 
 # Common-market mech weapons
 

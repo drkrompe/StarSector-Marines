@@ -11,6 +11,8 @@ import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.ops.CorvusChapter;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
+import com.dillon.starsectormarines.ops.WellhollowBloomCampaign;
+import com.dillon.starsectormarines.campaign.WellhollowBloomProgress;
 import com.dillon.starsectormarines.campaign.AgreusArcProgress;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
 import com.fs.starfarer.api.Global;
@@ -29,7 +31,8 @@ import java.util.regex.Pattern;
 public final class WaylineNarration {
     public static final String PATH = "data/marines/wayline_narration.json";
     /** Per-feature catalogs of the same shape, merged into the built-ins; a missing one costs only its own lines. */
-    public static final List<String> FEATURE_PATHS = List.of("data/marines/colony_breach_narration.json");
+    public static final List<String> FEATURE_PATHS = List.of("data/marines/colony_breach_narration.json",
+            "data/marines/wellhollow_narration.json");
     /** The Colony Breach catalog's mission id: the breach is a campaign event, not a story chapter, so it is keyed by the battle. */
     public static final String COLONY_BREACH = "story_colony_breach";
     private static final Pattern SUPPLY_STORY_ID = Pattern.compile(
@@ -153,6 +156,8 @@ public final class WaylineNarration {
         for (OpeningOperationKind kind : OpeningOperationKind.values())
             if (kind.missionId.equals(mission.id)) return mission.id;
         if (mission.id == null) return null;
+        if (WellhollowBloomCampaign.isBattle(mission))
+            return WellhollowBloomCampaign.narrationMissionId(WellhollowBloomProgress.chapterOf(mission.id));
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.smallWar(mission.id)) return "story_agreus_small_war";
         if (AgreusArcCampaign.isBattle(mission)) return AgreusArcProgress.termsOfProtection(mission.id) ? "story_agreus_terms_of_protection" : AgreusArcProgress.yardOwners(mission.id) ? "story_agreus_yard_owners" : AgreusArcProgress.limitedWarrant(mission.id) ? "story_agreus_limited_warrant" : "story_agreus_water_under_seal";
         if(ShepherdRecoveryCampaign.isBattle(mission))return ShepherdRecoveryProgress.workingPassage(mission.id)?"story_shepherd_working_passage":ShepherdRecoveryProgress.coldStart(mission.id)
@@ -171,6 +176,7 @@ public final class WaylineNarration {
     /** A debug scenario replays a story chapter, so it hears that chapter's recordings; repeatable and event scenarios have none. */
     private static String debugStoryMissionId(DebugMissionCatalog.Scenario scenario) {
         if (scenario == null) return null;
+        if (scenario.wellhollow() != null) return WellhollowBloomCampaign.narrationMissionId(scenario.wellhollow());
         return switch (scenario) {
             case RELIEF -> OpeningOperationKind.RELIEF.missionId;
             case COUNTERATTACK -> OpeningOperationKind.COUNTERATTACK.missionId;

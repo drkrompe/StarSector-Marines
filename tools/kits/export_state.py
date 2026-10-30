@@ -3,7 +3,7 @@
     python tools/kits/export_state.py <export dir> [--page <page.html>] [--no-notes]
 
 <export dir> is the folder an agent filled with the ArtifactData tool (no script can reach the artifact's
-database; kit-ladder.md, "Export"):
+database; kit-ladder.md, "Export"), <page> being the url `python tools/kits/bootstrap.py url` prints:
     ArtifactData get  url=<page> collection=kits         doc_id=state           out_dir=<export dir>
     ArtifactData list url=<page> collection=weapon-notes query={"limit": 1000} out_dir=<export dir>
 which leaves <export dir>/kits/state.json and <export dir>/weapon-notes/<clip id>.json.
@@ -11,6 +11,8 @@ which leaves <export dir>/kits/state.json and <export dir>/weapon-notes/<clip id
 Writes, never touching game data:
   tools/kits/review/weapon-notes.json   the owner's notes and statuses per weapon clip, normalized and tracked
                                         (review input, not game data; skipped with --no-notes or with no notes)
+  tools/kits/review/page-state.json     the page's whole working state, normalized and tracked, so the artifact's
+                                        db is never its only copy (bootstrap.py seed restores it; --no-state skips)
   build/kits/export/ladder-state.json   the page state, normalized (untracked: the repo's data is canonical)
   build/kits/export/ladder-diff.md      the diff report, also printed: adds, moves, conflicts, orphans, unknown
   build/kits/export/ladder-diff.json    stations, card content edits (ladder.diff documents each kind)
@@ -30,6 +32,7 @@ import ladder  # noqa: E402
 
 OUT = ladder.ROOT / "build/kits/export"
 NOTES = ladder.REVIEW / "weapon-notes.json"
+PAGE_STATE = ladder.REVIEW / "page-state.json"
 
 
 def load_notes(folder):
@@ -44,6 +47,24 @@ def load_notes(folder):
         if clip not in notes or note["updatedAt"] > notes[clip]["updatedAt"]:
             notes[clip] = note
     return notes
+
+
+def page_state(folder):
+    """{"at": <saved at>, "state": <the page's working state>} from an export dir: the db doc kits/state with its
+    `json` field parsed, ids the game has since renamed read as their current ids (ladder.load_state). Everything the
+    page saves is kept (selection too), so bootstrap.py seed can give a new artifact exactly this state back."""
+    path = state_path(folder)
+    raw = json.loads(path.read_text(encoding="utf-8"))
+    state = ladder.translate_retired(json.loads(raw["json"]) if isinstance(raw.get("json"), str) else dict(raw))
+    return {"at": raw.get("at") or "", "state": state}
+
+
+def write_page_state(folder):
+    """The tracked, normalized copy of the page's working state: stable key order, one value per line, so the db is
+    never its only copy and a re-export diffs readably."""
+    ladder.REVIEW.mkdir(parents=True, exist_ok=True)
+    PAGE_STATE.write_text(json.dumps(page_state(folder), indent=1, sort_keys=True, ensure_ascii=False) + "\n",
+                          encoding="utf-8", newline="\n")
 
 
 def state_path(folder):
@@ -88,6 +109,7 @@ def main():
     ap.add_argument("folder")
     ap.add_argument("--page", help="the published page's HTML (an Artifact read's saved file) as the diff's base")
     ap.add_argument("--no-notes", action="store_true")
+    ap.add_argument("--no-state", action="store_true", help="do not rewrite tools/kits/review/page-state.json")
     args = ap.parse_args()
     state, game, entries, md = report(args.folder, args.page)
     OUT.mkdir(parents=True, exist_ok=True)
@@ -96,6 +118,9 @@ def main():
     (OUT / "ladder-state.json").write_text(json.dumps(clean, indent=1, ensure_ascii=False), encoding="utf-8", newline="\n")
     (OUT / "ladder-diff.md").write_text(md, encoding="utf-8", newline="\n")
     (OUT / "ladder-diff.json").write_text(json.dumps(entries, indent=1), encoding="utf-8", newline="\n")
+    if not args.no_state:
+        write_page_state(args.folder)
+        print("page state -> %s" % PAGE_STATE)
     notes = load_notes(args.folder)
     if notes and not args.no_notes:
         ladder.REVIEW.mkdir(parents=True, exist_ok=True)

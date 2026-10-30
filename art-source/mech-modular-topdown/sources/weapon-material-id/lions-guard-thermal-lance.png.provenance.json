@@ -1,0 +1,50 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a18ef0-bf9a-7c22-9af9-84b0c3e0c155",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a18ef0-bf9a-7c22-9af9-84b0c3e0c155\\exec-dda400d9-47eb-4f4f-b78b-f37aacb3349c.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\b034663a-cd3b-484f-b55f-d86ead8b619f\\scratchpad\\thermal-lance-art\\material-id\\option-a.png",
+    "sha256": "8283585cf1b816ab9d3c1b789ee8ab3d5fb99f8fd90d820a6b196194b518f7fa",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\b034663a-cd3b-484f-b55f-d86ead8b619f\\scratchpad\\thermal-lance-art\\briefs\\mid-a.txt",
+  "promptSha256": "29be7a5e050486e08e357f21c31441bc3e86a42a97415ed588cb4cab4424c72b",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Image 1: exact edit target; preserve geometry and registration\n\nImage 1 is the exact edit target: an accepted top-down mech shoulder module sprite. This is a semantic material-ID classification pass, not an improvement pass. Do not redesign, restyle, relight, move, resize, crop or add anything.\nRecolor ONLY the faction-paintable external armor casing to extremely saturated uniform #ff00ff magenta, including shaded faces of those same painted plates. Paintable casing here: the matte olive-grey and grey service-painted cover plates on the rear housing (the two large angled side plates, the two forward side cheek plates beside the barrel root, and the central rear cover plate with its vent surround), and the flat painted top plates of the long central barrel housing. Preserve the exact geometry, registration, alpha, perspective, lighting, and protected hardware. Do NOT recolor: the radiator fins and the dark gaps between them, the heat-stained muzzle shroud and its glowing slit, every orange glow, pipes, hoses, collars, fasteners, vents and grilles, the rear mounting socket plate with its round boss, gaps, cavities and outlines. Keep every protected part exactly as in Image 1. Same canvas, same framing, on the same flat pure white background.\n",
+  "adopted": true,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\b034663a-cd3b-484f-b55f-d86ead8b619f\\scratchpad\\thermal-lance-art\\clean\\option-a.png",
+      "sha256": "b9a42effbc2fc04950619efc0140a88c0d1e5e9903026de6f07b4c69d79540d8",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Image 1: exact edit target; preserve geometry and registration"
+    }
+  ],
+  "agentMessages": [
+    "I\u00e2\u20ac\u2122ll use image_gen for one material-ID edit, preserving the sprite\u00e2\u20ac\u2122s geometry and protected hardware.\n"
+  ],
+  "usage": {
+    "input_tokens": 39070,
+    "cached_input_tokens": 31488,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 429,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 37.6,
+  "retained": {
+    "path": "art-source/mech-modular-topdown/sources/weapon-material-id/lions-guard-thermal-lance.png",
+    "sha256": "1e64758e424d0ad7d472898a65859244d802394c6f371a4dedf2c2d2a9c61aa2",
+    "processing": "barrel protected deterministically: the generation marked the barrel's flat top and its two breech blocks magenta, so every pixel of the barrel column north of the rear housing (x 430-595, y 0-1001 of the 1024x1536 canvas) was replaced with the concept generation's own pixel in greyscale (no magenta dominance, so the heat staining's faint purple cannot score as paint). Side cover plates and the rear housing keep the generation's marking."
+  }
+}
