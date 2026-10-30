@@ -52,7 +52,7 @@ excellent without making the entire pirate faction elite.
 
 ### Weapons and equipment
 
-Prefer common slug weapons, shredder or flechette carbines, squad automatics, stolen
+Prefer common slug weapons, submachine guns, squad automatics, stolen
 gauss or energy arms, improvised launchers, breaching tools, combat stims, carried
 charges, and jury-rigged support weapons. Mixed magazines, hand-marked controls,
 cut-down stocks, safety bypasses, and repaired power cells convey provenance.

@@ -17,7 +17,7 @@ Read `progression-nouns.md`, `faction-lore-nouns.md`, and
 `MarineArmory.recordVictory` is still the whole guaranteed milestone ladder:
 
 - 2 victories: `PULSE_RIFLE` MILSPEC
-- 3: shredder-carbine (`SMG` compatibility handle) MILSPEC
+- 3: submachine gun (`SMG`) MILSPEC
 - 4: `DMR` and `SQUAD_AUTOMATIC` MILSPEC
 - 5 victories and at least one high-risk: `DMR` MASTERWORK
 
@@ -151,9 +151,9 @@ Starsector's factions differ enormously and the mod should read that:
 | Tri-Tachyon | Pulse and eventual distinct laser families, precision gauss weapons, micro-missile candidates, and visible neural/HUD integration; high ceiling, finicky and expensive |
 | Persean League | Balanced slug, gauss, pulse, grenade, and support-weapon mix with dependable mass issue and flexible local manufacture |
 | Luddic Church | Maintained slug/gauss patterns, industrial arc cutters, protective gear, and tightly sanctioned advanced energy equipment |
-| Luddic Path | Crude slugthrowers, shredder carbines, combat stims, carried IEDs, and defender-only martyr rigs; dangerous to user and target alike |
+| Luddic Path | Crude slugthrowers, rebuilt submachine guns, combat stims, carried IEDs, and defender-only martyr rigs; dangerous to user and target alike |
 | Sindrian Diktat | State-issue ballistic/energy mix, grenade/support weapons, and concentrated prestige grades for guard formations |
-| Pirate / outlaw | Scavenged shredder and slug weapons, stolen energy gear, illicit stims, and carried improvised charges; widest condition variance |
+| Pirate / outlaw | Scavenged submachine guns and slug weapons, stolen energy gear, illicit stims, and carried improvised charges; widest condition variance |
 | Independent / MRB | Service slug baseline with mixed gauss, energy, breaching, and mercenary specialist acquisitions |
 
 Mechanism guides plausible sources without becoming a faction lock. Elite

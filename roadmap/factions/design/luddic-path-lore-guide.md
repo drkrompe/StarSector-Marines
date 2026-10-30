@@ -51,7 +51,7 @@ capability with visible cost and counterplay.
 
 ### Weapons and equipment
 
-Prefer common slugthrowers, machine weapons, shredder/flechette carbines, simple
+Prefer common slugthrowers, machine weapons, rebuilt submachine guns, simple
 rockets, flamers where appropriate, industrial cutters, stolen service arms, illicit
 stims, carried IEDs, and cell-built demolition. Expensive energy or gauss weapons fit
 captured specialists and caches, not a standardized baseline.

@@ -96,23 +96,23 @@
       "sim": {
         "tracksFliers": true,
         "range": 14.0,
-        "damage": 3.0,
-        "accuracy": 0.68,
-        "cooldown": 0.40,
-        "penetration": 1.0,
+        "damage": 4.0,
+        "accuracy": 0.80,
+        "cooldown": 0.50,
+        "penetration": 2.0,
         "burstCount": 6,
-        "burstSpacing": 0.06,
+        "burstSpacing": 0.065,
         "projectilesPerShot": 1,
-        "accuracyFalloff": 0.75,
+        "accuracyFalloff": 0.85,
         "hitSpread": 1.0,
         "roundVelocity": 45.0,
         "magazine": {
-          "size": [36, 48, 60, 72],
-          "reload": 3.2,
+          "size": [30, 32, 36, 40],
+          "reload": 2.4,
           "trigger": "auto",
-          "recoil": 0.0225,
-          "recoilMax": 0.4,
-          "recoilRecovery": 0.25
+          "recoil": 0.03,
+          "recoilMax": 0.35,
+          "recoilRecovery": 0.4
         }
       },
       "render": {

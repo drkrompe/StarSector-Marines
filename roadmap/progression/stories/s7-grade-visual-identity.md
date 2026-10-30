@@ -34,7 +34,7 @@ sprite family per grade.
 
 Practically: `ShotFx` and the appearance/render collectors take grade as an
 input beside weapon family and delivery mechanism. Mechanism owns the baseline
-slug, gauss, flechette, pulse/laser, explosive, or contact-tool read; grade may
+slug, gauss, pulse/laser, explosive, or contact-tool read; grade may
 modulate it but never turn one mechanism into another. Appearance stays
 authored component data written by presentation systems
 ([[feedback_appearance_authored_component]]) — the sim must not read any
@@ -57,7 +57,7 @@ Scale existing effect parameters by grade rather than authoring new assets:
   The mod ships a public-release licensing constraint
   ([[project_audio_licensing_policy]]); reuse before authoring.
 
-The expanded catalog must first make a flechette cloud, chemical slug, gauss
+The expanded catalog must first make a submachine-gun stream, chemical slug, gauss
 bolt, pulse burst, explosive projectile, and close-contact tool readable as
 their own mechanisms. Grade chrome composes on top; a Masterwork slugthrower
 does not acquire a laser beam, and a Surplus energy carbine does not fire a
@@ -121,7 +121,7 @@ owns anything driven by **the person**.
   presentation-only discipline for audio and it applies here.
 - Effects are grade-keyed, not type-keyed: adding a weapon family requires
   no new grade-specific code.
-- Representative slug, gauss, flechette, energy, explosive, and contact-tool
+- Representative slug, gauss, submachine-gun, energy, explosive, and contact-tool
   evidence remains distinguishable at the same grade before modulation is
   judged.
 - The surface-relief light budget is respected; no new light sources.

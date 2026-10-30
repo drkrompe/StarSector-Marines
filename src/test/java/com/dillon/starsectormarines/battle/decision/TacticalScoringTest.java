@@ -919,13 +919,13 @@ public class TacticalScoringTest {
     }
 
     @Test
-    public void shredderCarrierClosesInsideItsUsefulBand() {
-        BattleSimulation shredderSim = openArena(52, 10);
-        long shredder = shredderSim.spawn(new EntitySpec("shredder", Faction.MARINE,
+    public void smgCarrierClosesInsideItsUsefulBand() {
+        BattleSimulation smgSim = openArena(52, 10);
+        long smg = smgSim.spawn(new EntitySpec("smg", Faction.MARINE,
                 UnitType.MARINE, 2, 5).primaryWeapon(WeaponRegistry.require(WeaponRegistry.SMG_ID)));
-        long shredderTarget = unit(shredderSim, Faction.DEFENDER, 40, 5);
-        int[] shredderSpot = shredderSim.getTacticalScoring()
-                .findFiringPosition(shredder, shredderTarget);
+        long smgTarget = unit(smgSim, Faction.DEFENDER, 40, 5);
+        int[] smgSpot = smgSim.getTacticalScoring()
+                .findFiringPosition(smg, smgTarget);
 
         BattleSimulation pulseSim = openArena(52, 10);
         long pulse = pulseSim.spawn(new EntitySpec("pulse", Faction.MARINE,
@@ -934,13 +934,13 @@ public class TacticalScoringTest {
         int[] pulseSpot = pulseSim.getTacticalScoring()
                 .findFiringPosition(pulse, pulseTarget);
 
-        assertNotNull(shredderSpot);
+        assertNotNull(smgSpot);
         assertNotNull(pulseSpot);
-        assertTrue(shredderSpot[0] > pulseSpot[0],
-                "the shorter-range shredder must advance farther before taking a firing lane");
-        assertTrue(TacticalScoring.cellDistance(shredderSpot[0], shredderSpot[1], 40, 5)
+        assertTrue(smgSpot[0] > pulseSpot[0],
+                "the shorter-range submachine gun must advance farther before taking a firing lane");
+        assertTrue(TacticalScoring.cellDistance(smgSpot[0], smgSpot[1], 40, 5)
                         <= WeaponRegistry.require(WeaponRegistry.SMG_ID).range(),
-                "the selected lane must be inside the authored shredder band");
+                "the selected lane must be inside the authored submachine-gun band");
     }
 
     @Test

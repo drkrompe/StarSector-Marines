@@ -134,9 +134,32 @@ public final class TtkHarness {
         }
     }
 
-    /** One measurable combination: who shoots what, with which kit, from how far, into how much cover. */
+    /**
+     * One measurable combination: who shoots what, with which kit, from how far, into how much cover.
+     * The distance is {@code rangeFraction} of the weapon's own effective range unless
+     * {@code fixedCells} is positive, in which case every weapon stands at the same distance — the
+     * only way to compare families whose ranges differ.
+     */
     public record Scenario(WeaponDef weapon, EquipmentGrade grade, SoldierProfile profile,
-                           Defender defender, float rangeFraction, Cover cover) {}
+                           Defender defender, float rangeFraction, Cover cover, int fixedCells) {
+
+        public Scenario(WeaponDef weapon, EquipmentGrade grade, SoldierProfile profile,
+                        Defender defender, float rangeFraction, Cover cover) {
+            this(weapon, grade, profile, defender, rangeFraction, cover, 0);
+        }
+
+        /** Every weapon at the same {@code cells}, whatever its range. */
+        public static Scenario atCells(WeaponDef weapon, EquipmentGrade grade, SoldierProfile profile,
+                                       Defender defender, int cells, Cover cover) {
+            return new Scenario(weapon, grade, profile, defender, 0f, cover, cells);
+        }
+
+        /** The shooter-to-target distance this scenario is measured at. */
+        public int distanceCells() {
+            return fixedCells > 0 ? fixedCells : Math.max(1, Math.round(
+                    InfantryCombatStats.range(weapon, grade) * rangeFraction));
+        }
+    }
 
     /**
      * One scenario's measured outcome. {@code meanTtkSeconds} averages only
@@ -159,8 +182,7 @@ public final class TtkHarness {
     }
 
     public static Measurement measure(Scenario scenario, int trials) {
-        int distance = Math.max(1, Math.round(
-                InfantryCombatStats.range(scenario.weapon(), scenario.grade()) * scenario.rangeFraction()));
+        int distance = scenario.distanceCells();
         int targetCellX = SHOOTER_CELL_X + distance;
         int width = targetCellX + ARENA_TAIL_CELLS;
 

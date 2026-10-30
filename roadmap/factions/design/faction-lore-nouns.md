@@ -103,7 +103,7 @@ and local manufacture. Their identity is expressed through procurement preferenc
 maintenance culture, concentration of scarce gear, training, and the jobs equipment
 is used for—not exclusive colored arsenals.
 
-The mod's slug, gauss, pulse/laser, shredder, micro-missile, breaching-tool, combat-
+The mod's slug, gauss, pulse/laser, submachine-gun, micro-missile, breaching-tool, combat-
 stim, neural-uplink, and demolition vocabularies are setting translations. A faction
 guide may weight or contextualize them, but `progression-nouns.md` and its S2 stories
 own their actual behavior. Powered armor follows the same law: role and pattern are

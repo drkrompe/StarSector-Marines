@@ -53,7 +53,7 @@ story. Name the employer, settlement, and reason these people fight.
 ### Weapons and equipment
 
 Use service slug rifles as the most portable baseline, then add gauss, energy,
-shredder, breaching, grenade, support, and specialist gear according to local supply.
+submachine-gun, breaching, grenade, support, and specialist gear according to local supply.
 Industrial colonies naturally field cutters and load frames; wealthy stations may buy
 high-tech security systems; veteran mercenaries may maintain a curated mixed arsenal.
 

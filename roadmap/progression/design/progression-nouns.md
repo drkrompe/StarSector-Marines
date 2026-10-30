@@ -54,7 +54,7 @@ legibility.
   firing pattern, baseline behavior, and family presentation. A family is not
   a quality tier or merely a technology label.
 - **Delivery mechanism** — how a weapon produces and delivers its payload:
-  chemical slug, gauss/rail kinetic, flechette cloud, pulse/laser energy,
+  chemical slug, gauss/rail kinetic, pulse/laser energy,
   missile or grenade. The weapon catalog owns this
   physical/presentation truth. Mechanism does not decide availability, grade,
   faction allegiance, or tactical role by itself.
@@ -298,11 +298,21 @@ to the player's own.
 The shipped primary catalog now covers five player-facing decisions. GR-RFL
 is the rugged chemical-slug baseline, AR-PULSE is the flexible pulse burst,
 and RL-DMR is the deliberate gauss/rail marksman weapon. GR-SMG is a
-close-range flechette submachine gun: one trigger begins a short, fast
-temporal burst of single rounds with low penetration, steep falloff, moderate
-spread, and light per-round recoil that blooms over a held burst and recovers
-between them. It reads as an automatic, never as a shotgun cloud. Its
-legacy `SMG` enum name and `weapon.smg` id remain only for save compatibility.
+pistol-calibre submachine gun for rooms, trenches and breaches: one trigger
+begins a fast temporal burst of single rounds (one tracer and one report each),
+light per-round recoil blooms over the burst and recovers in the pause, and a
+small magazine empties in a few seconds of held fire and reloads quickly. It
+reads as an automatic, never as a shotgun cloud. Its role is set against the
+other primaries at the same distance (`TtkReportTest`'s fixed-distance table),
+not against its own range: at room distance it kills unarmored and
+line-armored targets faster than any other primary; across a street it only
+matches the pulse rifle and the marksman's rifle beats it through line plate;
+near the edge of its short range the squad automatic out-trades it, and past it
+the rifles fight alone. Low penetration strips battlesuit plate at about a
+quarter of a marksman's rate per point, so beyond point blank it is the weakest
+answer to a battlesuit after the field rifle: a close anti-personnel weapon,
+not a stronger rifle. The `SMG` enum name
+and `weapon.smg` id are kept for save compatibility.
 MG-SUPP is the squad automatic slugthrower: one trigger begins a long
 temporal burst that participates in the existing covering-fire and bounding
 model without creating a suppression status or permanent gunner class.

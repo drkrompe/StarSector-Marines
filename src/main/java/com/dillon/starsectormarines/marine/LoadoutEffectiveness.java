@@ -58,12 +58,13 @@ public final class LoadoutEffectiveness {
      * grades that raise damage raise accuracy too, so the ladder between grades
      * comes out shallower than it plays if the two are not resolved together.
      * Penetration is the term it is most tempting to leave out and the one that
-     * changes the answer most: the submachine gun puts out the highest raw
-     * output in the catalog and strips a battlesuit at a sixth of the rate a
-     * marksman's rifle does, because {@link DurabilityModel}'s efficiency floor
-     * is a tenth and it is nowhere near that floor. A rating that scored the
-     * submachine gun top would be recommending the wrong weapon in exactly the
-     * fights the player loses.
+     * changes the answer most: the submachine gun throws one of the largest
+     * volumes of fire in the catalog, yet each point of it strips a battlesuit
+     * at about a quarter of the rate a marksman's round does, because its
+     * penetration sits far below the suit's rating and {@link DurabilityModel}
+     * only guarantees a tenth. A rating that scored the submachine gun on volume
+     * would be recommending the wrong weapon in exactly the fights the player
+     * loses.
      *
      * <p>Reach is <em>not</em> scored. Each weapon is asked how it does at half
      * of its own effective range, which measures how well it does its own job

@@ -153,7 +153,7 @@ public class ShotFxTest {
                 assertEquals(0.65f, fx.tracerTail().lengthCells(), 0f);
                 assertSame(w.tracerColor(), fx.tracerTail().color());
             } else if (WeaponRegistry.SMG_ID.equals(w.id)) {
-                assertNotNull(fx.tracerTail(), "SMG flechettes carry compact tracer tails");
+                assertNotNull(fx.tracerTail(), "SMG rounds carry compact tracer tails");
                 assertEquals(0.40f, fx.tracerTail().lengthCells(), 0f);
                 assertSame(w.tracerColor(), fx.tracerTail().color());
             } else if (WeaponRegistry.SQUAD_AUTOMATIC_ID.equals(w.id)) {

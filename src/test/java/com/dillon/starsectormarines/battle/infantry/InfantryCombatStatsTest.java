@@ -65,28 +65,31 @@ public class InfantryCombatStatsTest {
 
     @Test
     public void comparisonStatsRepresentBurstOutputAndRangeFalloff() {
-        assertEquals(27f, InfantryCombatStats.volleyDamage(
-                WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.SERVICE), 1e-6f);
-        assertEquals(27f, InfantryCombatStats.estimatedDps(
-                WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
-        assertEquals(18f, InfantryCombatStats.volleyDamage(
-                WeaponRegistry.require(WeaponRegistry.SMG_ID), EquipmentGrade.SERVICE), 1e-6f);
-        assertEquals(24f, InfantryCombatStats.estimatedDps(
-                WeaponRegistry.require(WeaponRegistry.SMG_ID), EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
-        assertEquals(46.4f, InfantryCombatStats.volleyDamage(
-                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.SERVICE), 1e-6f);
-        assertEquals(29f, InfantryCombatStats.estimatedDps(
-                WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-6f);
+        // Without a magazine the sustained output is one volley per cycle.
+        WeaponDef pulse = WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID);
+        float pulseVolley = pulse.damage() * pulse.burstCount() * pulse.projectilesPerShot();
+        assertEquals(pulseVolley, InfantryCombatStats.volleyDamage(pulse, EquipmentGrade.SERVICE), 1e-6f);
+        assertEquals(pulseVolley / pulse.cooldown(), InfantryCombatStats.estimatedDps(
+                pulse, EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-4f);
 
-        float near = InfantryCombatStats.accuracyAtRangeFraction(
-                WeaponRegistry.require(WeaponRegistry.SMG_ID), EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 0.2f);
-        float middle = InfantryCombatStats.accuracyAtRangeFraction(
-                WeaponRegistry.require(WeaponRegistry.SMG_ID), EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 0.6f);
-        float maximum = InfantryCombatStats.accuracyAtRangeFraction(
-                WeaponRegistry.require(WeaponRegistry.SMG_ID), EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 1f);
+        // With one, a load is averaged over its trigger pulls and the reload that ends it, so a
+        // fast cycle never reads as free damage.
+        WeaponDef smg = WeaponRegistry.require(WeaponRegistry.SMG_ID);
+        int rounds = smg.magazine().size(EquipmentGrade.SERVICE);
+        int pulls = (rounds + smg.burstCount() - 1) / smg.burstCount();
+        float load = (pulls - 1) * smg.cooldown()
+                + Math.max(smg.cooldown(), smg.magazine().reloadSeconds());
+        assertEquals(smg.damage() * rounds * smg.projectilesPerShot() / load,
+                InfantryCombatStats.estimatedDps(smg, EquipmentGrade.SERVICE, SoldierProfile.REGULAR), 1e-4f);
+        assertTrue(InfantryCombatStats.estimatedDps(smg, EquipmentGrade.SERVICE, SoldierProfile.REGULAR)
+                < InfantryCombatStats.volleyDamage(smg, EquipmentGrade.SERVICE) / smg.cooldown());
+
+        float near = InfantryCombatStats.accuracyAtRangeFraction(smg, EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 0.2f);
+        float middle = InfantryCombatStats.accuracyAtRangeFraction(smg, EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 0.6f);
+        float maximum = InfantryCombatStats.accuracyAtRangeFraction(smg, EquipmentGrade.SERVICE, SoldierProfile.REGULAR, 1f);
         assertTrue(near > middle);
         assertTrue(middle > maximum);
-        assertEquals(0.17f, maximum, 1e-6f);
+        assertEquals(smg.accuracy() * (1f - smg.accuracyFalloff()), maximum, 1e-6f);
     }
 
     @Test

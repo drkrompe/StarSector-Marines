@@ -26,7 +26,7 @@ public final class SwarmStageStats {
     private static final Stats[] RUNNER = {
             new Stats(12f, 0f, 0f, 3f, 1.3f, 3.6f),
             new Stats(20f, 0f, 0f, 5f, 1.5f, 3.2f),
-            // Light plate: an SMG's spray slides off the pack leader, rifles do not.
+            // Light plate: it blunts an SMG's pistol rounds on the pack leader; rifles go through.
             new Stats(34f, 6f, 4f, 8f, 1.8f, 2.9f),
     };
     private static final Stats[] BRUTE = {

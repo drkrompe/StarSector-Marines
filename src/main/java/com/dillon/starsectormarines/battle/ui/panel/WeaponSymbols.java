@@ -28,7 +28,7 @@ public final class WeaponSymbols {
         if (w == null) return "RIF";
         if (WeaponRegistry.STARTER_PRIMARY_ID.equals(w.id)) return "FLD";
         if (WeaponRegistry.PULSE_RIFLE_ID.equals(w.id)) return "RIF";
-        if (WeaponRegistry.SMG_ID.equals(w.id)) return "SHD";
+        if (WeaponRegistry.SMG_ID.equals(w.id)) return "SMG";
         if (WeaponRegistry.SQUAD_AUTOMATIC_ID.equals(w.id)) return "SAW";
         if (WeaponRegistry.DMR_ID.equals(w.id)) return "DMR";
         return abbreviation(w.displayName());

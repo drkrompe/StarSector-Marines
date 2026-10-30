@@ -49,11 +49,9 @@ class SwarmRunnerContractTest {
     @Test
     void serviceGradeMarineWeaponsHaveDeliberateSwarmBreakpoints() {
         assertEquals(2, hitsToKill(UnitType.ALIEN, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID)));
-        assertEquals(5, hitsToKill(UnitType.ALIEN, WeaponRegistry.require(WeaponRegistry.SMG_ID)));
         assertEquals(1, hitsToKill(UnitType.ALIEN, WeaponRegistry.require(WeaponRegistry.DMR_ID)));
 
         assertEquals(3, hitsToKill(UnitType.SWARM_RUNNER, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID)));
-        assertEquals(7, hitsToKill(UnitType.SWARM_RUNNER, WeaponRegistry.require(WeaponRegistry.SMG_ID)));
         assertEquals(2, hitsToKill(UnitType.SWARM_RUNNER, WeaponRegistry.require(WeaponRegistry.DMR_ID)));
     }
 

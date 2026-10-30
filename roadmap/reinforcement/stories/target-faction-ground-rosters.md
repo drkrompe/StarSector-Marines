@@ -44,9 +44,9 @@ The first mergeable catalog covers all core factions and an explicit fallback:
 | Tri-Tachyon | Compact corporate-security teams with high-quality specialists | Pulse/laser-weighted primaries, precision gauss, micro-missile candidates, smoke, visible neural/HUD integration, composite light/line suits, and drone-paired specialists |
 | Persean League | Balanced line infantry and flexible local regulars | Dependable slug/gauss/pulse mix, grenade and support weapons, practical light/line armor, and broad local support rather than one extreme |
 | Luddic Church | Local militia stiffened by well-equipped faithful | Maintained slug/gauss arms, industrial arc cutters, legacy line suits, and artisan heavy armor among spiritually sanctioned elites; limited taboo energy issue |
-| Luddic Path | Fanatical assault cells and demolition specialists | Crude slugthrowers, shredder carbines, illicit stims, carried IEDs, rare explicit martyr-rig specialists, industrial exoskeletons, and welded heavy rigs; no hidden immunity to their risks |
+| Luddic Path | Fanatical assault cells and demolition specialists | Crude slugthrowers, rebuilt submachine guns, illicit stims, carried IEDs, rare explicit martyr-rig specialists, industrial exoskeletons, and welded heavy rigs; no hidden immunity to their risks |
 | Sindrian Diktat | Rigid state-security troops and selected guard formations | Mixed ballistic/energy primaries, grenade/support weapons, state-security line suits, and prestige heavy guard equipment concentrated in selected formations |
-| Pirates | Irregular raiders with dangerous specialists | Scavenged slug/shredder arms, stolen energy weapons, illicit stims, carried improvised charges, civilian load frames, scrap plate, and dangerously modified heavy rigs |
+| Pirates | Irregular raiders with dangerous specialists | Scavenged slug arms and submachine guns, stolen energy weapons, illicit stims, carried improvised charges, civilian load frames, scrap plate, and dangerously modified heavy rigs |
 | Independents | Local militia with mercenary or professional stiffening | Service slug baseline with mixed gauss, energy, breaching, and mercenary specialist gear; mixed light/line patterns and acquired heavy suits |
 
 Unknown and modded factions use the Independent profile unless merged content
@@ -100,10 +100,10 @@ loudly; an unknown faction id itself does not fail the battle.
 - Focused tests cover known/fallback resolution, distinct shared-roller output,
   battle-frozen initial issue, faction heavy-support cycles, and factional
   walk-in/shuttle payloads.
-- The shipped shredder carbine and squad automatic now participate in those
+- The shipped submachine gun and squad automatic now participate in those
   same weighted rolls. Hegemony, League, Church, Diktat, and Independent
   profiles issue automatic support; Path and pirate profiles retain their
-  stronger close-range shredder identity without acquiring automatics by
+  stronger close-range submachine-gun identity without acquiring automatics by
   generic fallback.
 - Defender armor tables now issue the concrete Aegis/Specter, Bulwark,
   Palatine/Reliquary, Furnace/Mantle, and Reaver/Foundry pattern families. Low-risk
@@ -128,7 +128,7 @@ discovery for submods and representative live Conquest acceptance also remain.
   or vehicle roster.
 - The same fixtures visibly differ in primary and special issue: slug/gauss
   discipline, pulse/precision corporate teams, Church cutter specialists,
-  rare Pather martyr/IED cells, and pirate shredder/stim demolition teams. Each
+  rare Pather martyr/IED cells, and pirate submachine-gun/stim demolition teams. Each
   distinction disappears when the corresponding item is not selected.
 - Unknown/modded factions produce the documented Independent baseline and can
   override it through merged data without Java changes.

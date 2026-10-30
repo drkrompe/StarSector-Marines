@@ -130,6 +130,12 @@ filler batches, deck runs). Tag a method or class
 `@Tag("generated-space-evidence")` to put it here. It still asserts, so run it
 when touching world generation, setup or the deck sim.
 
+It also carries `TtkReportTest`, the time-to-kill instrument for weapon and
+armor tuning (`--tests '*TtkReportTest'`, a few seconds): it writes
+`build/reports/balance/ttk-baseline.md` (each family at a share of its own
+range) and `ttk-primaries.md` (every primary at the same 4-20 cell distances,
+the table a weapon's role is tuned against).
+
 ### `storyMapPools`
 
 The Rav Bloom story maps (Cordon Line and Road, The Burn, Broad Front) play

@@ -306,7 +306,7 @@ public class InfantryWeapons {
 
         // Resolve the whole trigger pull first, then decide whether this
         // soldier recognizes a bad sight picture in time to hold it. A
-        // flechette cloud is one trigger decision: any committed friendly
+        // multi-projectile release is one trigger decision: any committed friendly
         // contact makes the entire release eligible for one discipline roll.
         // The caller still consumes the firing opportunity and burst slot.
         if (friendlyThreat && shooterType.usesInfantryTraining()) {
@@ -314,7 +314,7 @@ public class InfantryWeapons {
                     .experienceTier();
             if (rng.nextFloat() < experience.friendlyFireHoldChance) return;
         }
-        // The release leaves the muzzle: it costs a round of the load (one per trigger, however many flechettes).
+        // The release leaves the muzzle: it costs a round of the load (one per trigger, however many projectiles).
         if (weapon != null) roster.combat().spendPrimaryRound(shooter);
 
         float moraleImpact = shooterType != null ? shooterType.moraleImpact : 1.0f;
@@ -340,7 +340,7 @@ public class InfantryWeapons {
             if (!drill) shots.queueStrike(res, shooter, damage, penetration);
 
             // One visible traveling body per projectile. Simultaneous
-            // flechettes share the muzzle timestamp but keep independent
+            // projectiles share the muzzle timestamp but keep independent
             // physical endpoints and interception outcomes.
             float lifetime = Math.max(res.flightTime(), 0.05f);
             boolean struckUnit = res.victimId() != 0L;

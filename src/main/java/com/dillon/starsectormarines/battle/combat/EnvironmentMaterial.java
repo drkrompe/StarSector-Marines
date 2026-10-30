@@ -20,7 +20,7 @@ import java.util.Set;
  * here and nowhere else.
  *
  * <p>The ratings are set against the weapon catalog's penetration. Small arms run
- * from 1 (SMG) through 5 (pulse rifle, squad automatic) and 7 (field rifle) to 11
+ * from 2 (SMG) through 5 (pulse rifle, squad automatic) and 7 (field rifle) to 11
  * (DMR) and the anti-materiel rifle is 18. So wood and
  * wire fall to anything, sandbags to field rifles slowly and to pulse fire not at all, machinery,
  * timber and stone only from the DMR up, and masonry only to anti-materiel
