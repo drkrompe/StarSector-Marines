@@ -2,203 +2,207 @@
  "artifactUrl": "https://claude.ai/artifact/LuCPJvBHLeTQG1CpXHRRbC",
  "clips": {
   "infantry-anti-materiel-rifle": {
-   "url": "/_blob/2e0dcbb61ad0ed25990990371d756bf5",
+   "url": "/_blob/ddf829cbf3835cd5cef9eb307aa86ee2",
    "weaponId": "weapon.anti-materiel-rifle"
   },
   "infantry-dmr": {
-   "url": "/_blob/9dbaadd8544f06c0aa4ac7a9fde16727",
+   "url": "/_blob/0b0a12918c469f85706d30beaf1ec4e2",
    "weaponId": "weapon.dmr"
   },
   "infantry-field-mortar": {
-   "url": "/_blob/de358bbbf3b12440ca22abfc652972fe",
+   "url": "/_blob/200dad5990ea65f26ec9b301e91b72aa",
    "weaponId": "weapon.field-mortar"
   },
   "infantry-field-rifle": {
-   "url": "/_blob/a71cb2eb3bfaccdbc629fea4e57e76a3",
+   "url": "/_blob/27078faff202619b81f1441f53dc0d0a",
    "weaponId": "weapon.field-rifle"
   },
   "infantry-flamer": {
-   "url": "/_blob/8b2db3c16f66df68920cfe1e12720830",
+   "url": "/_blob/821798187bb09a1ea9b55e4a969010a9",
    "weaponId": "weapon.flamer"
   },
   "infantry-frag-grenade": {
-   "url": "/_blob/75e0d5dcef2139c1994fc83f9eddf57b",
+   "url": "/_blob/f6e936ba8b840c61726e5b4b99e18102",
    "weaponId": "weapon.frag-grenade"
   },
   "infantry-incendiary-grenade": {
-   "url": "/_blob/2b52153fc14e4399f3a78498e963df61",
+   "url": "/_blob/f0f72b1e1c9125be9df90fb25f90a754",
    "weaponId": "weapon.incendiary-grenade"
   },
   "infantry-pulse-rifle": {
-   "url": "/_blob/15833d675611f5e3d06508bfd6ada9f2",
+   "url": "/_blob/4d0f140078768d095278c7d3b40d614e",
    "weaponId": "weapon.pulse-rifle"
   },
   "infantry-smg": {
-   "url": "/_blob/1d966809232004cc63787fca16e2705c",
+   "url": "/_blob/e99a75b3f6625d8760a688bae9512ebd",
    "weaponId": "weapon.smg"
   },
   "infantry-squad-automatic": {
-   "url": "/_blob/e51bd459fef7e90e8764bbb35f938426",
+   "url": "/_blob/c8d0cc080194a38f60ee8217c717db87",
    "weaponId": "weapon.squad-automatic"
   },
   "infantry-srm-1": {
-   "url": "/_blob/5169bcdc4faf022921a9b6d854cf024a",
+   "url": "/_blob/e51172d50ed06a42077a4c6d72f90a68",
    "weaponId": "weapon.srm-1"
   },
   "infantry-srm-1-qs": {
-   "url": "/_blob/060796834e2325cb768fb26f8f423781",
+   "url": "/_blob/bf4c96b64651bcc7c88855a22375decd",
    "weaponId": "weapon.srm-1-qs"
   },
   "infantry-srm-3-pod": {
-   "url": "/_blob/a039c29e28121d71e6fa034517e856eb",
+   "url": "/_blob/d7c636e78d6fc8d37ab595968ba23b2a",
    "weaponId": "weapon.srm-3-pod"
   },
   "mech-ac-6": {
-   "url": "/_blob/749aa53ade207a7fb7322afbf9b7af20",
+   "url": "/_blob/6314378298fd9795b075756449c2c802",
    "weaponId": "weapon.mech-ac-6"
   },
   "mech-ac-6-qs": {
-   "url": "/_blob/18693c37be3f2b41e0682185e085d009",
+   "url": "/_blob/94b6be1c06101b5b9238c360603506f5",
    "weaponId": "weapon.mech-ac-6-qs"
   },
   "mech-bl-1": {
-   "url": "/_blob/ef6f8b56a84768d0a36fc2f1f692dcc1",
+   "url": "/_blob/b45869d88ce7f808f1f8d4dc371eb09d",
    "weaponId": "weapon.mech-bl-1"
   },
   "mech-bl-2": {
-   "url": "/_blob/0b9fb9b214c67b2981aa7229611d7707",
+   "url": "/_blob/cca85650d8296c2c6d3cdc65fffb9a6d",
    "weaponId": "weapon.mech-bl-2"
   },
   "mech-chaingun": {
-   "url": "/_blob/756e5dc4352cc040b07521eaf50e5d18",
+   "url": "/_blob/377ff688a60bc49a2071c826b474a521",
    "weaponId": "weapon.mech-chaingun"
   },
   "mech-chaingun-hf": {
-   "url": "/_blob/400fe04d5a96077b85c7746ae1f67473",
+   "url": "/_blob/5deb20d7fc4cfaff8e2559084397e93d",
    "weaponId": "weapon.mech-chaingun-hf"
   },
   "mech-dc-4-qs": {
-   "url": "/_blob/e3205981fba0a3b153af62c45f3d3606",
+   "url": "/_blob/131191eaf4a023790c2271ad9eaa05c5",
    "weaponId": "weapon.mech-dc-4-qs"
   },
   "mech-dc-5": {
-   "url": "/_blob/cff1e3a9c81c198d5c7c745059495164",
+   "url": "/_blob/b104a53085d87133253e3b5dcbd212b3",
    "weaponId": "weapon.mech-dc-5"
   },
   "mech-hc-10": {
-   "url": "/_blob/741c74fcfc0c39c52d69d2ada3cbca28",
+   "url": "/_blob/4d65e815bf05a00d00381b8af8a0b3c0",
    "weaponId": "weapon.mech-hc-10"
   },
   "mech-hc-20": {
-   "url": "/_blob/710c7ed53ff07d9df38207964d90536f",
+   "url": "/_blob/f2b8aa1196688925fee32e4a84f6edc2",
    "weaponId": "weapon.mech-hc-20"
   },
   "mech-light-machine-gun": {
-   "url": "/_blob/d45c280297696f7c1befc5201b545f48",
+   "url": "/_blob/72b78dd4dabb940af0ab2b403fff7fce",
    "weaponId": "weapon.mech-light-mg"
   },
   "mech-ll-3": {
-   "url": "/_blob/5374e1e7be9ea7a394b262dd618b29c1",
+   "url": "/_blob/98e3b631278f27a7ba47766bd345368a",
    "weaponId": "weapon.mech-ll-3"
   },
   "mech-lrm-15": {
-   "url": "/_blob/0aecee9cecd28ebca56ed41d18462593",
+   "url": "/_blob/3005576a62ed67aff515f1b600971e18",
    "weaponId": "weapon.mech-lrm"
   },
   "mech-lrm-15-frag": {
-   "url": "/_blob/2e6e1524c8dc6a3e34fae9e95668b819",
+   "url": "/_blob/a4dc734d28b891789dfcf8dcf6b534de",
    "weaponId": "weapon.mech-lrm-frag"
   },
   "mech-lrm-5": {
-   "url": "/_blob/1a7e96aa1b7c47005848ca28bb26c884",
+   "url": "/_blob/95ab99a7ce773c73667f001b699d38a1",
    "weaponId": "weapon.mech-lrm"
   },
   "mech-lrm-5-frag": {
-   "url": "/_blob/b0eb85180254ca9092e1f3cbc2e7b94d",
+   "url": "/_blob/42b6399cf52cd66265a06bdf9da308b6",
    "weaponId": "weapon.mech-lrm-frag"
   },
   "mech-pl-1": {
-   "url": "/_blob/7d225ee16c211bfb5d72110e3144744e",
+   "url": "/_blob/afa8e2447ca79628060e36acd737d523",
    "weaponId": "weapon.mech-pl-1"
   },
   "mech-pl-2": {
-   "url": "/_blob/a174cfa166609368649835c6a669b6a4",
+   "url": "/_blob/f94c5d0d8719e308ace6b68c59f209a6",
    "weaponId": "weapon.mech-pl-2"
   },
   "mech-pl-2-ap": {
-   "url": "/_blob/36ba3540bc946589af04445ff5a160c9",
+   "url": "/_blob/0ec939ed01685430bf77ef00f242989b",
    "weaponId": "weapon.mech-pl-2-ap"
   },
   "mech-pl-3": {
-   "url": "/_blob/3df2113711befe7222aa245266dfd87f",
+   "url": "/_blob/abde4d9f7a56c39c4f8a514c653788ef",
    "weaponId": "weapon.mech-pl-3"
   },
   "mech-pl-3-sweep": {
-   "url": "/_blob/ff93c7fdd519949bb1da65eaf3a77479",
+   "url": "/_blob/8b0e9205f8c86f2881ea8ee01b18621c",
    "weaponId": "weapon.mech-pl-3-sweep"
   },
   "mech-srm-15": {
-   "url": "/_blob/44f8004d906284a007750d9773b8266b",
+   "url": "/_blob/b35072863a7aaa14e50959a5206c8fcd",
    "weaponId": "weapon.mech-srm"
   },
   "mech-srm-15-frag": {
-   "url": "/_blob/0584d829883c4cf9d4088321481af527",
+   "url": "/_blob/c1350c0d78c268c0e30c7bc65caf8bfd",
    "weaponId": "weapon.mech-srm-frag"
   },
   "mech-srm-3-qs": {
-   "url": "/_blob/a77985df9c52ae0dc77a1cb3923a8ffb",
+   "url": "/_blob/9a35670de6bcc05eaa10a732e9e1dc71",
    "weaponId": "weapon.mech-srm-3-qs"
   },
   "mech-srm-5": {
-   "url": "/_blob/fa1ae1d7242ba34271560207e6959621",
+   "url": "/_blob/cd9cea9e42718301f7444299a56d8b11",
    "weaponId": "weapon.mech-srm"
   },
   "mech-srm-5-frag": {
-   "url": "/_blob/de28fffdf79e9d284d1266cc73830538",
+   "url": "/_blob/431417c29acb5b6f26c558f2632163c5",
    "weaponId": "weapon.mech-srm-frag"
   },
   "mech-thermal-lance": {
-   "url": "/_blob/0ce911d64331be39a09856a752a20708",
+   "url": "/_blob/63683484a2d85b3ef89dbc34365ef141",
    "weaponId": "weapon.mech-thermal-lance"
   },
   "vehicle-breakthrough-tank": {
-   "url": "/_blob/982bd1cbd08e4ba5f7bbefed1aabd7d9",
+   "url": "/_blob/26bc7f249ae94429ad49d4ce24eec9f6",
    "weaponId": "weapon.mech-hc-20"
   },
   "vehicle-breakthrough-tank-ac-6": {
-   "url": "/_blob/ecd36183b894da1c683fe2d334495a8f",
+   "url": "/_blob/9443eaf327093730e4a755ba82249e22",
    "weaponId": "weapon.mech-ac-6"
   },
   "vehicle-breakthrough-tank-chaingun": {
-   "url": "/_blob/7223fc94539ac63ba56db9b735b4d0c3",
+   "url": "/_blob/93431c7e0b0d44bc86d01cc6368102df",
    "weaponId": "weapon.mech-chaingun"
   },
+  "vehicle-breakthrough-tank-chaingun-hf": {
+   "url": "/_blob/c12ce40eb5f78fd2c3bb418dcd0cb693",
+   "weaponId": "weapon.mech-chaingun-hf"
+  },
   "vehicle-fire-support-apc": {
-   "url": "/_blob/be8cb3d6c710c0c50a2f4b3f1f8675fe",
+   "url": "/_blob/1ee3200f84f5218640da724fc4c1c111",
    "weaponId": "weapon.vehicle-mortar"
   },
   "vehicle-heavy-apc": {
-   "url": "/_blob/958a8cdf997c70996df796f5bf40905a",
+   "url": "/_blob/b15f8dd70f958d50a457e8da289b8ed5",
    "weaponId": "weapon.mech-light-mg"
   },
   "vehicle-hover-scout": {
-   "url": "/_blob/3d5b627914b5795ed9f091f6347f885f",
+   "url": "/_blob/e0af02bb8c89c536209144eb5209a3f0",
    "weaponId": "weapon.hover-pulse"
   },
   "vehicle-laser-tank": {
-   "url": "/_blob/b1594e0aef6f75a3571ce676d9160df8",
+   "url": "/_blob/40addea7ea0d6f613c343c32d407cae2",
    "weaponId": "weapon.mech-pl-3"
   },
   "vehicle-laser-tank-pl-3-sweep": {
-   "url": "/_blob/073f7930a1ceb178b78f027d950718c6",
+   "url": "/_blob/dba32c15bcf3ac99435c49897af33238",
    "weaponId": "weapon.mech-pl-3-sweep"
   },
   "vehicle-lrm-carrier": {
-   "url": "/_blob/a01d19de9986a682e0e88ef25f4fa1a1",
+   "url": "/_blob/eddd2c90334dc78f5fe45a1ae7c54adc",
    "weaponId": "weapon.vehicle-lrm-15"
   },
   "vehicle-srm-technical": {
-   "url": "/_blob/5366f5ef4db27e172955e77bdd6607c5",
+   "url": "/_blob/6b3b7b15a9182bebcaebbd0a2f9ed5cd",
    "weaponId": "weapon.vehicle-srm-30"
   }
  },
@@ -239,24 +243,24 @@
   "armor:corporate-heavy": "a409980c2956",
   "armor:corporate-line": "9f53fe388fef",
   "armor:corporate-specter-section": "7c2838891b81",
-  "armor:field-fatigues": "d242479aa45f",
-  "armor:fleet-combat": "3c5c3e2837df",
+  "armor:field-fatigues": "a80a56de8255",
+  "armor:fleet-combat": "657260b85f42",
   "armor:freeport-assault": "0d53c7ece8d2",
   "armor:hegemony-arbalest-section": "51944521afd8",
-  "armor:hegemony-auxiliary": "6cc57ef6d953",
-  "armor:hegemony-auxiliary-section": "6719ec7bb7fd",
+  "armor:hegemony-auxiliary": "afba6c83715e",
+  "armor:hegemony-auxiliary-section": "5aaaf0eb4081",
   "armor:hegemony-shock": "d3728673b1b8",
   "armor:knights-heavy": "65409cfca83d",
   "armor:league-heavy": "594c03c004f3",
   "armor:league-line": "011ae8f76f21",
-  "armor:league-mobile": "7c1fc0928be0",
+  "armor:league-mobile": "7e6cc94b2956",
   "armor:lions-guard-heavy": "d8591539eadd",
   "armor:outlaw-heavy": "3e01c1075f82",
   "armor:outlaw-line": "58298a4928eb",
   "armor:outlaw-raiders": "7b3bc7815e3f",
-  "armor:recon": "c85a2c238575",
+  "armor:recon": "ff9395321fe3",
   "armor:salvage-assisted": "fccc82b5fbad",
-  "armor:sindrian-line": "5ed114eb466c",
+  "armor:sindrian-line": "ea9690f1b2f6",
   "armor:sindrian-security": "3f9845b63270",
   "chassis:BULWARK": "45f5ee206741",
   "chassis:HOUND": "4c7246b53784",
@@ -276,8 +280,8 @@
   "clip:infantry-srm-3-pod": "2b276c6c9b22",
   "clip:mech-ac-6": "ec85ef1a79e7",
   "clip:mech-ac-6-qs": "ca5f969b09bb",
-  "clip:mech-bl-1": "9f42d0b54e16",
-  "clip:mech-bl-2": "517d2c307d8f",
+  "clip:mech-bl-1": "60a74e32e56e",
+  "clip:mech-bl-2": "a4a8306564c0",
   "clip:mech-chaingun": "a0aecbd56c02",
   "clip:mech-chaingun-hf": "7903a7c82442",
   "clip:mech-dc-4-qs": "d051e302e3b6",
@@ -285,16 +289,16 @@
   "clip:mech-hc-10": "a4059fb411d3",
   "clip:mech-hc-20": "9dcf6c53782d",
   "clip:mech-light-machine-gun": "50c044239aa4",
-  "clip:mech-ll-3": "ffddbd62c474",
+  "clip:mech-ll-3": "41ff631ec9d7",
   "clip:mech-lrm-15": "d5e5b8e9fd4b",
   "clip:mech-lrm-15-frag": "bbf1ffc2a1c9",
   "clip:mech-lrm-5": "d80952b36788",
   "clip:mech-lrm-5-frag": "355d1a1c5da4",
-  "clip:mech-pl-1": "b9c5001c859c",
-  "clip:mech-pl-2": "ce6b9f0cc417",
-  "clip:mech-pl-2-ap": "8e1bb0ec1fe3",
-  "clip:mech-pl-3": "68a505e7b9be",
-  "clip:mech-pl-3-sweep": "7df5d3bf5f4c",
+  "clip:mech-pl-1": "ea8f9b9d5453",
+  "clip:mech-pl-2": "15716c931f9d",
+  "clip:mech-pl-2-ap": "e56acf468c99",
+  "clip:mech-pl-3": "e830eb64ed4a",
+  "clip:mech-pl-3-sweep": "56876c51d92b",
   "clip:mech-srm-15": "607d637e17c7",
   "clip:mech-srm-15-frag": "b34f14c4e8ce",
   "clip:mech-srm-3-qs": "ab579f3fec6d",
@@ -304,11 +308,12 @@
   "clip:vehicle-breakthrough-tank": "146fd847ee4c",
   "clip:vehicle-breakthrough-tank-ac-6": "12ceed4e7975",
   "clip:vehicle-breakthrough-tank-chaingun": "116f7e69ae67",
+  "clip:vehicle-breakthrough-tank-chaingun-hf": "c5e653879878",
   "clip:vehicle-fire-support-apc": "f861e84058ac",
   "clip:vehicle-heavy-apc": "bd134546f1ed",
-  "clip:vehicle-hover-scout": "fe6e16e86a1f",
-  "clip:vehicle-laser-tank": "7dd9caca9c61",
-  "clip:vehicle-laser-tank-pl-3-sweep": "83da8dcf2ce9",
+  "clip:vehicle-hover-scout": "03f9c1cf90a1",
+  "clip:vehicle-laser-tank": "b8b4300b59da",
+  "clip:vehicle-laser-tank-pl-3-sweep": "c24dff70133f",
   "clip:vehicle-lrm-carrier": "fc7ae432b77c",
   "clip:vehicle-srm-technical": "3ac441f412a7",
   "internal:ACCELERATED_LOADER": "0bb3bea5a85e",
@@ -347,14 +352,14 @@
   "vehicle:FIRE_SUPPORT_APC": "ce5ad5bd1efb",
   "vehicle:HEAVY_APC": "54ed04230a2c",
   "vehicle:HOVER_SCOUT": "a6dd7621246e",
-  "vehicle:LASER_TANK": "35d05ad67950",
+  "vehicle:LASER_TANK": "15c9ff757141",
   "vehicle:LRM_CARRIER": "cb6af18b5a43",
   "vehicle:MILITIA_TECHNICAL": "4d536ad26163",
   "vehicle:SCOUT_CAR": "539b841260ed",
   "vehicle:SRM_TECHNICAL": "dfe89974eb82",
   "vehicle:SUPPLY_TRUCK": "9fd9957ebaae",
-  "wayline:forward-screen": "d45d44c059bf",
-  "wayline:steady-line": "82bacd0b85b9",
+  "wayline:forward-screen": "7dcfe73a2e52",
+  "wayline:steady-line": "de5a986ea65c",
   "weapon.dmr": "2de44b21730d",
   "weapon.field-rifle": "05c71b779979",
   "weapon.pulse-rifle": "9bdf485da552",
@@ -362,8 +367,8 @@
   "weapon.squad-automatic": "160bc645ebdb",
   "weapon:AC_6": "400a100ca2b9",
   "weapon:AC_6_QS": "cb385927bd3f",
-  "weapon:BL_1": "b3f1b5e5bee7",
-  "weapon:BL_2": "050e9092f70f",
+  "weapon:BL_1": "eb0a8e443bf0",
+  "weapon:BL_2": "b7c4b62b1397",
   "weapon:CHAINGUN": "4333bb1f0dc5",
   "weapon:CHAINGUN_HF": "28cfcd497b4e",
   "weapon:DC_4_QS": "8fb482cff650",
@@ -371,16 +376,16 @@
   "weapon:HC_10": "7fbdd6a17141",
   "weapon:HC_20": "0427feceeadd",
   "weapon:LIGHT_MACHINE_GUN": "2b96e78f435d",
-  "weapon:LL_3": "3fe3ecd792cd",
+  "weapon:LL_3": "c72e1e28f1c3",
   "weapon:LRM_15": "b43861c41556",
   "weapon:LRM_15_FRAG": "e26d21f4b61c",
   "weapon:LRM_5": "749b9be5d993",
   "weapon:LRM_5_FRAG": "0cf0b2e2da05",
-  "weapon:PL_1": "9e6f50bf8c45",
-  "weapon:PL_2": "869530c73d32",
-  "weapon:PL_2_AP": "99812d5f1c79",
-  "weapon:PL_3": "dc97f62b0e29",
-  "weapon:PL_3_SWEEP": "49a606c1d123",
+  "weapon:PL_1": "7061d0b6ce66",
+  "weapon:PL_2": "cce2b3f6586d",
+  "weapon:PL_2_AP": "3a210688efa5",
+  "weapon:PL_3": "ce837b2f34cb",
+  "weapon:PL_3_SWEEP": "ff87ef36b4ba",
   "weapon:SRM_15": "684ea8942aa6",
   "weapon:SRM_15_FRAG": "aacdf9b30caf",
   "weapon:SRM_3_QS": "eb1a772e6cce",
@@ -390,13 +395,13 @@
   "weapons:assault": "3e08b37037d4",
   "weapons:builders-guard": "1283fc76de53",
   "weapons:checkpoint": "bdfd704c7c7d",
-  "weapons:convoy-escort": "ff9aebb2618d",
-  "weapons:counter-battery": "b511a0afb635",
-  "weapons:field-security": "c872a838b371",
-  "weapons:fire-support": "c3304a67b7cd",
-  "weapons:line-infantry": "70f0a669becd",
+  "weapons:convoy-escort": "0a1a4f112ce9",
+  "weapons:counter-battery": "561b2de97f89",
+  "weapons:field-security": "ac7fd90ee718",
+  "weapons:fire-support": "ef8d34e705ee",
+  "weapons:line-infantry": "1f412cf877da",
   "weapons:luddic-path-assault": "1f6726f68978",
-  "weapons:trench-clearing": "06755a15b2d1"
+  "weapons:trench-clearing": "2c9182c4ad6c"
  },
  "leftOut": [
   "vehicle dozer-breacher: its light machine gun is the heavy APC's clip",
@@ -480,8 +485,8 @@
   "clip:infantry-srm-3-pod": "SRM-3 (Pod)",
   "clip:mech-ac-6": "AC-6",
   "clip:mech-ac-6-qs": "AC-6 (QS)",
-  "clip:mech-bl-1": "Light PD laser",
-  "clip:mech-bl-2": "PD laser",
+  "clip:mech-bl-1": "BL-1",
+  "clip:mech-bl-2": "BL-2",
   "clip:mech-chaingun": "Chaingun",
   "clip:mech-chaingun-hf": "High-feed chaingun",
   "clip:mech-dc-4-qs": "DC-4 (QS)",
@@ -489,16 +494,16 @@
   "clip:mech-hc-10": "HC-10",
   "clip:mech-hc-20": "HC-20",
   "clip:mech-light-machine-gun": "Light machine gun",
-  "clip:mech-ll-3": "Shoulder laser cannon",
+  "clip:mech-ll-3": "LL-3",
   "clip:mech-lrm-15": "LRM-15",
   "clip:mech-lrm-15-frag": "LRM-15 (Frag)",
   "clip:mech-lrm-5": "LRM-5",
   "clip:mech-lrm-5-frag": "LRM-5 (Frag)",
-  "clip:mech-pl-1": "Light burst laser",
-  "clip:mech-pl-2": "Burst laser",
-  "clip:mech-pl-2-ap": "Pulse laser",
-  "clip:mech-pl-3": "Heavy burst laser",
-  "clip:mech-pl-3-sweep": "Heavy PD laser",
+  "clip:mech-pl-1": "PL-1",
+  "clip:mech-pl-2": "PL-2",
+  "clip:mech-pl-2-ap": "PL-2 (AP)",
+  "clip:mech-pl-3": "PL-3",
+  "clip:mech-pl-3-sweep": "PL-3 (Sweep)",
   "clip:mech-srm-15": "SRM-15",
   "clip:mech-srm-15-frag": "SRM-15 (Frag)",
   "clip:mech-srm-3-qs": "SRM-3 (QS)",
@@ -508,11 +513,12 @@
   "clip:vehicle-breakthrough-tank": "HC-20 on the breakthrough-tank",
   "clip:vehicle-breakthrough-tank-ac-6": "AC-6 on the breakthrough-tank",
   "clip:vehicle-breakthrough-tank-chaingun": "Chaingun on the breakthrough-tank",
+  "clip:vehicle-breakthrough-tank-chaingun-hf": "High-feed chaingun on the breakthrough-tank",
   "clip:vehicle-fire-support-apc": "Heavy Mortar on the fire-support-apc",
   "clip:vehicle-heavy-apc": "Light machine gun on the heavy-apc",
-  "clip:vehicle-hover-scout": "Hover Pulse Emitter on the hover-scout",
-  "clip:vehicle-laser-tank": "Heavy burst laser on the laser-tank",
-  "clip:vehicle-laser-tank-pl-3-sweep": "Heavy PD laser on the laser-tank",
+  "clip:vehicle-hover-scout": "Twin PE-1 Pulse Emitter on the hover-scout",
+  "clip:vehicle-laser-tank": "PL-3 on the laser-tank",
+  "clip:vehicle-laser-tank-pl-3-sweep": "PL-3 (Sweep) on the laser-tank",
   "clip:vehicle-lrm-carrier": "LRM-15 on the lrm-carrier",
   "clip:vehicle-srm-technical": "SRM-30 on the srm-technical",
   "internal:ACCELERATED_LOADER": "Accelerated loader",
@@ -551,7 +557,7 @@
   "vehicle:FIRE_SUPPORT_APC": "Mortar Carrier",
   "vehicle:HEAVY_APC": "MG Troop Carrier",
   "vehicle:HOVER_SCOUT": "Pulse Hover Scout",
-  "vehicle:LASER_TANK": "Burst-Laser Tank",
+  "vehicle:LASER_TANK": "Pulse-Laser Tank",
   "vehicle:LRM_CARRIER": "LRM Standoff Carrier",
   "vehicle:MILITIA_TECHNICAL": "MG Technical",
   "vehicle:SCOUT_CAR": "Spotter Pickup",
@@ -566,8 +572,8 @@
   "weapon.squad-automatic": "MG-SUPP",
   "weapon:AC_6": "AC-6",
   "weapon:AC_6_QS": "AC-6 (QS)",
-  "weapon:BL_1": "Light PD laser",
-  "weapon:BL_2": "PD laser",
+  "weapon:BL_1": "BL-1",
+  "weapon:BL_2": "BL-2",
   "weapon:CHAINGUN": "Chaingun",
   "weapon:CHAINGUN_HF": "High-feed chaingun",
   "weapon:DC_4_QS": "DC-4 (QS)",
@@ -575,16 +581,16 @@
   "weapon:HC_10": "HC-10",
   "weapon:HC_20": "HC-20",
   "weapon:LIGHT_MACHINE_GUN": "Light machine gun",
-  "weapon:LL_3": "Shoulder laser cannon",
+  "weapon:LL_3": "LL-3",
   "weapon:LRM_15": "LRM-15",
   "weapon:LRM_15_FRAG": "LRM-15 (Frag)",
   "weapon:LRM_5": "LRM-5",
   "weapon:LRM_5_FRAG": "LRM-5 (Frag)",
-  "weapon:PL_1": "Light burst laser",
-  "weapon:PL_2": "Burst laser",
-  "weapon:PL_2_AP": "Pulse laser",
-  "weapon:PL_3": "Heavy burst laser",
-  "weapon:PL_3_SWEEP": "Heavy PD laser",
+  "weapon:PL_1": "PL-1",
+  "weapon:PL_2": "PL-2",
+  "weapon:PL_2_AP": "PL-2 (AP)",
+  "weapon:PL_3": "PL-3",
+  "weapon:PL_3_SWEEP": "PL-3 (Sweep)",
   "weapon:SRM_15": "SRM-15",
   "weapon:SRM_15_FRAG": "SRM-15 (Frag)",
   "weapon:SRM_3_QS": "SRM-3 (QS)",
