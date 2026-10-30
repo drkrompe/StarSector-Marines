@@ -13,14 +13,6 @@ import com.dillon.starsectormarines.marine.ArmorClass;
 final class BlastImpulseRules {
 
     /**
-     * {@code -Dbattle.blastImpulse=false} is the control: no blast shoves anything. Temporary (an A/B, CLAUDE.md):
-     * remove it with the losing arm once {@code armorMatchup} and {@code loadoutMatchup} have been read against it
-     * (`switches.md`).
-     */
-    static final String PROPERTY = "battle.blastImpulse";
-    static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
-
-    /**
      * What a body on foot weighs to a blast, tonnes: more than the man, because he stands braced on the ground. A
      * power suit is a rig of its own.
      */

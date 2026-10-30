@@ -882,50 +882,6 @@
       "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
-      "id": "weapon.mech-bl-2-burst",
-      "mount": "mech-mount",
-      "catalog": {
-        "displayName": "@gearCatalogWeaponMechBl2DisplayName",
-        "designationTiered": false
-      },
-      "sim": {
-        "tracksFliers": true,
-        "range": 26.0,
-        "damage": 7.0,
-        "accuracy": 0.85,
-        "cooldown": 1.6,
-        "penetration": 2.0,
-        "burstCount": 10,
-        "burstSpacing": 0.1,
-        "hitSpread": 0.2,
-        "roundVelocity": 320.0,
-        "flightSec": 0.05,
-        "noiseMagnitude": 0.4
-      },
-      "render": {
-        "tracerColor": "FFF4F2",
-        "beam": {
-          "coreWidthPx": 2.2,
-          "glowColor": "E01A12",
-          "glowWidthPx": 11.0,
-          "lifetimeSec": 0.105,
-          "texture": { "texelCells": 0.45, "scrollCellsPerSec": 5.0, "roughness": 0.9, "throbHz": 6.0 }
-        },
-        "projectileSprite": null,
-        "projectileVisualCells": 0.0
-      },
-      "fx": {
-        "muzzle": [
-          { "kind": "glow", "radius": 0.5, "lifetime": 0.12, "color": "FF6464" }
-        ],
-        "impact": [
-          { "kind": "glow", "radius": 0.36, "lifetime": 0.14, "color": "FF5A4A" },
-          { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
-        ]
-      },
-      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
-    },
-    {
       "id": "weapon.mech-pl-3-sweep",
       "mount": "mech-mount",
       "catalog": {
@@ -1153,53 +1109,6 @@
       "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.35, "loopFadeOut": 0.2, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
-      "id": "weapon.mech-bl-1-burst",
-      "mount": "mech-mount",
-      "catalog": {
-        "displayName": "@gearCatalogWeaponMechBl1DisplayName",
-        "designationTiered": false
-      },
-      "sim": {
-        "tracksFliers": true,
-        "range": 24.0,
-        "damage": 11.0,
-        "accuracy": 0.7,
-        "cooldown": 1.8,
-        "penetration": 5.0,
-        "burstCount": 4,
-        "burstSpacing": 0.08,
-        "hitSpread": 0.6,
-        "roundVelocity": 320.0,
-        "flightSec": 0.08,
-        "aoeRadius": 0.3,
-        "wallDamage": 2,
-        "noiseMagnitude": 0.8
-      },
-      "render": {
-        "tracerColor": "FFF4F2",
-        "beam": {
-          "coreWidthPx": 1.6,
-          "glowColor": "E01A12",
-          "glowWidthPx": 6.0,
-          "pulseCycles": 1.0,
-          "lifetimeSec": 0.10
-        },
-        "projectileSprite": null,
-        "projectileVisualCells": 0.0
-      },
-      "fx": {
-        "muzzle": [
-          { "kind": "glow", "radius": 0.40, "lifetime": 0.07, "color": "FF6464" },
-          { "kind": "ring", "radius": 0.20, "lifetime": 0.09, "color": "FFD0CC" }
-        ],
-        "impact": [
-          { "kind": "glow", "radius": 0.34, "lifetime": 0.10, "color": "FF5A4A" },
-          { "kind": "dust", "radius": 0.18, "lifetime": 0.18 }
-        ]
-      },
-      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.35, "loopFadeOut": 0.2, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
-    },
-    {
       "id": "weapon.mech-srm",
       "mount": "mech-mount",
       "catalog": {
@@ -1264,49 +1173,6 @@
         "flightSec": 0.55,
         "aoeRadius": 1.8,
         "wallDamage": 10,
-        "wallDamageRadius": 1.3,
-        "interceptableProjectile": true,
-        "boostRamp": true
-      },
-      "render": {
-        "tracerColor": "FFC080",
-        "projectileSprite": "graphics/missiles/missile_SRM.png",
-        "projectileVisualCells": 0.40
-      },
-      "fx": {
-        "trail": [
-          { "kind": "glow", "radius": 0.18, "lifetime": 0.25, "color": "FF9040" }
-        ],
-        "impact": [
-          { "kind": "glow", "radius": 0.70, "lifetime": 0.16, "color": "FFE080" },
-          { "kind": "fire", "radius": 0.55, "lifetime": 0.45 },
-          { "kind": "smoke", "radius": [0.55, 0.80], "lifetime": [1.10, 1.50], "count": [2, 3], "jitter": 0.45 },
-          { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
-        ]
-      },
-      "audio": { "fireSound": "annihilator_fire", "impactSound": "marines_explosion" }
-    },
-    {
-      "id": "weapon.mech-srm-legacy",
-      "mount": "mech-mount",
-      "catalog": {
-        "displayName": "@gearCatalogWeaponMechSrmDisplayName",
-        "designationTiered": false
-      },
-      "sim": {
-        "blast": { "impulse": 1.1, "falloff": 1.5 },
-        "pointDefenseTarget": true,
-        "range": 18.0,
-        "damage": 49.5,
-        "accuracy": 0.55,
-        "cooldown": 5.5,
-        "penetration": 14.0,
-        "burstCount": 5,
-        "burstSpacing": 0.10,
-        "roundVelocity": 32.727272,
-        "flightSec": 0.55,
-        "aoeRadius": 1.3,
-        "wallDamage": 25,
         "wallDamageRadius": 1.3,
         "interceptableProjectile": true,
         "boostRamp": true
@@ -1400,53 +1266,6 @@
         "arcHeight": 5.0,
         "aoeRadius": 2.8,
         "wallDamage": 15,
-        "wallDamageRadius": 2.0,
-        "interceptableProjectile": true,
-        "boostRamp": true,
-        "indirectFire": true,
-        "noLosAccuracyMult": 0.55
-      },
-      "render": {
-        "tracerColor": "C8D8FF",
-        "projectileSprite": "graphics/missiles/missile_LRM.png",
-        "projectileVisualCells": 0.65
-      },
-      "fx": {
-        "trail": [
-          { "kind": "glow", "radius": 0.18, "lifetime": 0.25, "color": "FF9040" }
-        ],
-        "impact": [
-          { "kind": "glow", "radius": 0.70, "lifetime": 0.16, "color": "FFE080" },
-          { "kind": "fire", "radius": 0.55, "lifetime": 0.45 },
-          { "kind": "smoke", "radius": [0.55, 0.80], "lifetime": [1.10, 1.50], "count": [2, 3], "jitter": 0.45 },
-          { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
-        ]
-      },
-      "audio": { "fireSound": "pilum_lrm_fire", "impactSound": "marines_explosion" }
-    },
-    {
-      "id": "weapon.mech-lrm-legacy",
-      "mount": "mech-mount",
-      "catalog": {
-        "displayName": "@gearCatalogWeaponMechLrmDisplayName",
-        "designationTiered": false
-      },
-      "sim": {
-        "blast": { "impulse": 1.5, "falloff": 1.5 },
-        "pointDefenseTarget": true,
-        "range": 40.0,
-        "damage": 81.0,
-        "accuracy": 0.55,
-        "cooldown": 9.0,
-        "penetration": 16.0,
-        "burstCount": 5,
-        "burstSpacing": 0.11,
-        "hitSpread": 1.5,
-        "roundVelocity": 28.571428,
-        "flightSec": 1.40,
-        "arcHeight": 5.0,
-        "aoeRadius": 2.0,
-        "wallDamage": 40,
         "wallDamageRadius": 2.0,
         "interceptableProjectile": true,
         "boostRamp": true,

@@ -1028,8 +1028,8 @@ Per rocket:
 | LRM AT | 95 / 30 | 15 / 6 / 1.0 | 40 |
 | LRM Frag | — | 50 / 4 / 2.8 | 15 |
 
-Controls: `-Dbattle.mech.missileVariants=false` (the single-warhead rack on the
-AT ids) and `-Dbattle.mech.damageAwareTargeting=false` (nearest-target choice).
+Control: `-Dbattle.mech.damageAwareTargeting=false` (nearest-target choice). The
+single-warhead control columns below were read before that rack was retired.
 
 Readings were taken on top of the bastion and pulse-laser flux changes above and
 of the armor fire order (against a machine, the reservoir goes to the mounts that

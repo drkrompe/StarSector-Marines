@@ -39,9 +39,7 @@ import java.util.Map;
  * <p>Verdicts are mechanics only: an anti-armor rack never starts a salvo at a soft target, a
  * fragmentation rack does fire at men, and in the mixed loop the mech aims at the tank beyond
  * close-threat range. Who wins, how many die and how fast are readings. Run the scene again under
- * {@code -Dbattle.mech.missileVariants=false} for the single-warhead control (the anti-armor loop
- * then fires the old rack) and under {@code -Dbattle.mech.damageAwareTargeting=false} for
- * nearest-target choice in the mixed loop.
+ * {@code -Dbattle.mech.damageAwareTargeting=false} for nearest-target choice in the mixed loop.
  */
 public final class MechVersusInfantryScene implements BehaviorScene {
 
@@ -271,7 +269,6 @@ public final class MechVersusInfantryScene implements BehaviorScene {
         Map<String, Number> m = new LinkedHashMap<>();
         m.put("plays", traces.size());
         m.put("ticks", ticks);
-        m.put("missileVariants", MechWeaponComponent.missileVariants() ? 1 : 0);
         m.put("damageAwareTargeting", MechTargeting.DAMAGE_AWARE ? 1 : 0);
         m.put("menPerPlay", mixed ? SCREEN_SIZE : SECTION_SIZE);
         m.put("menKilled", menKilled);

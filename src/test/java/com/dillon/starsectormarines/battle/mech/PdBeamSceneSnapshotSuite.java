@@ -24,8 +24,7 @@ import java.util.function.Function;
  * turret ring, a laser tank with the PD laser and an APC with the light PD laser ({@code pd-beam-turret}). Each fires
  * at a stationary militia picket fourteen cells east; the close view frames the shooter and the beam's whole length.
  * {@code pd-beam-crawl} records a Warden's chin beam on a stock Hound held in place fourteen cells off, a frame every
- * tick, so consecutive frames of its recording show the lance crawling over the hull ({@code BeamWander}). Run again
- * under {@code -Dbattle.mech.pdBeamWander=false} for the jumping control.
+ * tick, so consecutive frames of its recording show the lance crawling over the hull ({@code BeamWander}).
  */
 public final class PdBeamSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
 

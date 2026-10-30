@@ -29,7 +29,7 @@ import java.util.Map;
  *
  * <p>One planted Bulwark with the same gun on both arms and nothing on its shoulders, a twelve-strong rifle section
  * fifteen cells east of it, four seeds a loop: the BL-1, the BL-2, and the chaingun and AC-6 as the
- * guns they are read against. Run again under {@code -Dbattle.mech.pdBeam=false} for the pulsed-burst control.
+ * guns they are read against.
  *
  * <p>Verdicts are mechanics only: a beam fires at men, and an autonomous beam's reservoir never passes its stop
  * share by more than the pulses both arms may lay in the tick they cross it. Who wins, how many die, how fast, and
@@ -38,7 +38,7 @@ import java.util.Map;
  * <p>The {@code bl-crawl} loop reads the crawl ({@link BeamWander}): a Warden's chin BL-2 on an unarmed
  * Hound standing fourteen cells off, four seeds. Its readings are how far the lance moves between consecutive pulses
  * (the beam line's offset from the target's centre, and the impact point between consecutive hits), the hit rate, and
- * how much the hit rate swings from second to second; {@code -Dbattle.mech.pdBeamWander=false} is the jumping control.
+ * how much the hit rate swings from second to second.
  */
 public final class PdBeamScene implements BehaviorScene {
 
@@ -147,7 +147,6 @@ public final class PdBeamScene implements BehaviorScene {
                 + " plays"));
         Map<String, Number> m = new LinkedHashMap<>();
         m.put("plays", plays.size());
-        m.put("wander", BeamWander.ON ? 1 : 0);
         m.put("pulses", pulses);
         m.put("hitRate", pulses > 0 ? hits / (float) pulses : 0f);
         m.put("meanAimStepCells", aimSteps > 0 ? (float) (aimStepSum / aimSteps) : 0f);
@@ -373,7 +372,6 @@ public final class PdBeamScene implements BehaviorScene {
         Map<String, Number> m = new LinkedHashMap<>();
         m.put("plays", traces.size());
         m.put("ticks", ticks);
-        m.put("pdBeam", MechWeaponComponent.pdBeam() ? 1 : 0);
         m.put("menPerPlay", SECTION_SIZE);
         m.put("menKilled", menKilled);
         m.put("sectionsBroken", sectionsBroken);

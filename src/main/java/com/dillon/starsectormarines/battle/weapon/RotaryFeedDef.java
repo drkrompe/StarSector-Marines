@@ -102,11 +102,11 @@ public record RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinD
     }
 
     /**
-     * A fresh crawl for one mount of this beam, or null when its pulses aim afresh: a rotary gun, a beam authored
-     * without a wander, or the {@code battle.mech.pdBeamWander} control.
+     * A fresh crawl for one mount of this beam, or null when its pulses aim afresh: a rotary gun, or a beam authored
+     * without a wander.
      */
     public BeamWander newWander() {
-        return beam && wanderPeriodSeconds > 0f && BeamWander.ON
+        return beam && wanderPeriodSeconds > 0f
                 ? new BeamWander(wanderPeriodSeconds, wanderAmplitude) : null;
     }
 

@@ -18,15 +18,8 @@ import java.util.Random;
  * freezes it and the next press resumes the crawl where the last lance left off. Its seed is drawn once from the
  * battle's seeded stream on the first pulse ({@link #sample}); every knot after that is a hash of the seed and the
  * knot's index, so the path never consumes the battle stream again and plays the same serially or side by side.
- *
- * <p>{@code -Dbattle.mech.pdBeamWander=false} is the control: no beam builds a wander, and every pulse draws its own
- * offset as it did before. Temporary A/B lever: remove it with the per-pulse path once the owner has accepted the
- * crawl in play.
  */
 public final class BeamWander {
-
-    /** Whether held beams crawl ({@code battle.mech.pdBeamWander}); see the class note. */
-    public static final boolean ON = Boolean.parseBoolean(System.getProperty("battle.mech.pdBeamWander", "true"));
 
     /**
      * Knots are standard-normal draws clipped to this many deviations, which bounds how fast the path can move. Only

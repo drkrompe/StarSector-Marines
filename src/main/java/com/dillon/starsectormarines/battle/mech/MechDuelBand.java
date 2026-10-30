@@ -104,8 +104,7 @@ public final class MechDuelBand {
          * otherwise its area payload, each at its armor efficiency.
          */
         public static Weapon of(WeaponDef def, float targetRating) {
-            if (!MechWeaponComponent.missileVariants()
-                    || !(WeaponRegistry.isMechSrm(def.id) || WeaponRegistry.isMechLrm(def.id))) {
+            if (!(WeaponRegistry.isMechSrm(def.id) || WeaponRegistry.isMechLrm(def.id))) {
                 return of(def);
             }
             float perRound = def.contactDamage > 0f

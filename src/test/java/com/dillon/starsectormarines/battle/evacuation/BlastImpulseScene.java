@@ -45,7 +45,6 @@ import java.util.Map;
  *       scout car.</li>
  *   <li>{@code wall}: a DC-5 shell drives a man into a wall, which he does not pass.</li>
  * </ul>
- * {@code -Dbattle.blastImpulse=false} is the control: nothing moves.
  */
 public final class BlastImpulseScene implements BehaviorScene {
 
@@ -187,23 +186,22 @@ public final class BlastImpulseScene implements BehaviorScene {
 
     private SceneReport report(String loop, Setup setup, Trace trace) {
         List<Verdict> verdicts = new ArrayList<>();
-        boolean on = BlastImpulseRules.ENABLED;
         int tumbled = trace.tumbled.size(), staggered = trace.staggered.size();
         verdicts.add(Verdict.of("slides-not-jumps", trace.maxStep <= .25f,
                 "largest move of a body in one tick " + trace.maxStep + " cells"));
         switch (loop) {
             case "srm-single" -> verdicts.add(Verdict.of("staggers-not-tumbles",
-                    !on || trace.staggered.contains(setup.struck) && tumbled == 0,
+                    trace.staggered.contains(setup.struck) && tumbled == 0,
                     "struck man staggered " + trace.staggered.contains(setup.struck) + ", " + tumbled + " down"));
             case "srm-salvo-at" -> verdicts.add(Verdict.of("knocks-its-man-down",
-                    !on || trace.tumbled.contains(setup.struck),
+                    trace.tumbled.contains(setup.struck),
                     tumbled + " of " + setup.squad.size() + " down, struck man " + trace.tumbled.contains(setup.struck)));
-            case "srm-salvo-frag" -> verdicts.add(Verdict.of("knocks-the-squad-down", !on || tumbled >= 3,
+            case "srm-salvo-frag" -> verdicts.add(Verdict.of("knocks-the-squad-down", tumbled >= 3,
                     tumbled + " of " + setup.squad.size() + " down"));
             case "srm-salvo-suits" -> verdicts.add(Verdict.of("suits-mostly-stand", tumbled <= 1,
                     tumbled + " of " + setup.squad.size() + " down, " + staggered + " staggered"));
             case "lrm-scout-car" -> verdicts.add(Verdict.of("shoves-a-light-hull",
-                    !on || trace.hullShift >= .1f && trace.hullShift <= 2f,
+                    trace.hullShift >= .1f && trace.hullShift <= 2f,
                     "scout car shifted " + trace.hullShift + " cells, turned " + trace.hullTurn + " degrees"));
             case "lrm-tank" -> verdicts.add(Verdict.of("tank-unmoved", trace.hullShift < .01f,
                     "tank shifted " + trace.hullShift + " cells"));
@@ -212,10 +210,10 @@ public final class BlastImpulseScene implements BehaviorScene {
             case "lrm-hound" -> verdicts.add(Verdict.of("light-mech-a-trace", trace.mechShift < .1f,
                     "Hound shifted " + trace.mechShift + " cells"));
             case "mortar", "dc-5" -> {
-                verdicts.add(Verdict.of("shoves-men-and-hull", !on || staggered + tumbled >= 2 && trace.hullShift > .02f,
+                verdicts.add(Verdict.of("shoves-men-and-hull", staggered + tumbled >= 2 && trace.hullShift > .02f,
                         tumbled + " down, " + staggered + " staggered, scout car shifted " + trace.hullShift));
                 if (loop.equals("dc-5")) {
-                    verdicts.add(Verdict.of("demolition-shell-knocks-down", !on || tumbled >= 1, tumbled + " down"));
+                    verdicts.add(Verdict.of("demolition-shell-knocks-down", tumbled >= 1, tumbled + " down"));
                 }
             }
             case "wall" -> verdicts.add(Verdict.of("never-through-a-wall", trace.maxX + .25f <= 22f + 1e-3f,

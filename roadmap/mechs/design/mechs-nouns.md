@@ -124,8 +124,7 @@ increasing an encounter's total armored threat.
   facing's aim point. The path advances one pulse spacing per pulse fired, so a released trigger
   freezes it and the next press resumes where the last lance left off; it is seeded
   once from the battle's stream and hashed thereafter. Arm, nose and turret share
-  it; air fire and the PL-3 (Sweep) do not crawl. `-Dbattle.mech.pdBeamWander=false`
-  is the control: each pulse aims afresh.
+  it; air fire and the PL-3 (Sweep) do not crawl.
   Nothing counts down: flux is the only limit, so the reservoir's own gates stop a
   held beam as a dry belt stops a chaingun (a pilot's beam vents at 95 and waits
   to 55; it holds no reserve of its own). There is no loader or ready-rack effect.
@@ -159,8 +158,7 @@ increasing an encounter's total armored threat.
   0.15 s hold; at most 16 weapon tones sound at once.
   The direct-control HUD names it `Beam · hold` with its flux a second and counts
   no load; its sheet reads DPS, PEN, RNG, flux a second and how long it holds alone
-  on that frame. `-Dbattle.mech.pdBeam=false` is the control: both fire the pulsed
-  bursts they had before.
+  on that frame.
 - A **pulse laser** (the PL-1, PL-2 and PL-3: two, three and four pulses a
   trigger) is not a rotary gun but fires like one in miniature: a click is a short
   stutter of pulses, each its own beam, muzzle flash and fire tick from the drawn
@@ -1159,11 +1157,6 @@ fires them as more salvos; it does not fire stronger ones. A mech rack's salvo i
 - Infantry rockets launch one at a time and carry their reloads: the SRM-1 and
   SRM-1 (QS) fire one rocket a trigger, and the SRM-3 (Pod) three.
 
-`-Dbattle.mech.missileBuffers=false` is the control: the mech racks before the
-rescale (SRM-5 two-missile packets six deep, SRM-15 four-missile packets six deep,
-LRM-5 two-missile packets four deep, the QS three salvos, each pack restored on
-its own at 12 s or 18 s). The turret magazines are data and have no control.
-
 ## Missile warheads
 
 Every SRM and LRM rack size comes with two warheads. A rack's size, footprint,
@@ -1225,11 +1218,9 @@ The cannons follow the same rule (Weapon names).
   Hound keeps an AT SRM-5. The Warden ships LRM-5 (Frag) racks: its HC-20 is
   its answer to armor, and its racks are artillery against men.
 
-`-Dbattle.mech.missileVariants=false` is the control: the AT ids fire the
-single-warhead rack every SRM and LRM was before the split (area damage at
-penetration 14 and 16), at any target. Readings are in
-`heavy-equipment-progression.md` (missile warheads); `MechVersusInfantryScene`
-is the infantry acceptance and `armorMatchup` the armor one.
+Readings are in `heavy-equipment-progression.md` (missile warheads);
+`MechVersusInfantryScene` is the infantry acceptance and `armorMatchup` the armor
+one.
 
 ## Blast impulse
 
@@ -1280,8 +1271,7 @@ Brute): the same slide, knockdown, hold, weight classes and hull exchange
 
 The radius is each weapon's splash. Autocannon, chainguns, machine guns,
 lasers, flamers, incendiary grenades and the swarm's acid and spores carry no
-blast. `-Dbattle.blastImpulse=false` is the control: nothing is pushed.
-`BlastImpulseScene` (`sceneEvidence -Pscene=blast-impulse`) is the acceptance.
+blast. `BlastImpulseScene` (`sceneEvidence -Pscene=blast-impulse`) is the acceptance.
 
 ## Ground clearance and arrival
 
