@@ -278,12 +278,12 @@ final class LayeredMechComposer {
             // The arm guns were authored as narrow barrels; the HC-10 and the light and laser parts are drawn slim already.
             float widthScale = gun == LayeredMechAppearance.ARMS_HC_10
                     || gun == LayeredMechAppearance.ARMS_LIGHT_MG
-                    || gun == LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER
-                    || gun == LayeredMechAppearance.ARMS_BURST_LASER
-                    || gun == LayeredMechAppearance.ARMS_PD_LASER
-                    || gun == LayeredMechAppearance.ARMS_HEAVY_PD_LASER
-                    || gun == LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER
-                    || gun == LayeredMechAppearance.ARMS_LIGHT_BURST_LASER
+                    || gun == LayeredMechAppearance.ARMS_BL_1
+                    || gun == LayeredMechAppearance.ARMS_PL_3
+                    || gun == LayeredMechAppearance.ARMS_BL_2
+                    || gun == LayeredMechAppearance.ARMS_PL_3_SWEEP
+                    || gun == LayeredMechAppearance.ARMS_PL_2
+                    || gun == LayeredMechAppearance.ARMS_PL_1
                     || (gun == LayeredMechAppearance.ARMS_CHAINGUN
                     && chassis != LayeredMechAppearance.CHASSIS_CLEAN) ? 1f : 0.5f;
             emitFromRearPivot(out, sprite, actorX, actorY, hullWidth, facingDeg,
@@ -315,7 +315,7 @@ final class LayeredMechComposer {
         int selector = weapon.appearanceSelector;
         if (weapon.mountFamily == MechWeaponComponent.MountFamily.ARMS) return armSprite(assets, selector);
         return switch (selector) {
-            case LayeredMechAppearance.POD_SHOULDER_LASER -> assets.shoulderLaser;
+            case LayeredMechAppearance.POD_LL_3 -> assets.ll3;
             case LayeredMechAppearance.POD_THERMAL_LANCE -> assets.thermalLance;
             case LayeredMechAppearance.POD_SRM_3_QS -> assets.srm3QsPod;
             case LayeredMechAppearance.POD_SMALL_SRM, LayeredMechAppearance.POD_LARGE_SRM -> assets.srmPod;
@@ -330,19 +330,19 @@ final class LayeredMechComposer {
                  LayeredMechAppearance.ARMS_NOSE_CHAINGUN -> assets.chaingunArm;
             case LayeredMechAppearance.ARMS_HC_10 -> assets.hc10;
             case LayeredMechAppearance.ARMS_HC_20 -> assets.hc20;
-            case LayeredMechAppearance.ARMS_PULSE_LASER -> assets.pulseLaserArm;
+            case LayeredMechAppearance.ARMS_PL_2_AP -> assets.pl2Ap;
             case LayeredMechAppearance.ARMS_AC_6 -> assets.ac6;
             case LayeredMechAppearance.ARMS_DC_5 -> assets.dc5;
             case LayeredMechAppearance.ARMS_AC_6_QS,
                  LayeredMechAppearance.ARMS_NOSE_AC_6_QS -> assets.ac6Qs;
             case LayeredMechAppearance.ARMS_DC_4_QS -> assets.dc4Qs;
             case LayeredMechAppearance.ARMS_LIGHT_MG -> assets.lightMachineGun;
-            case LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER -> assets.lightPulseLaser;
-            case LayeredMechAppearance.ARMS_BURST_LASER -> assets.burstLaser;
-            case LayeredMechAppearance.ARMS_PD_LASER -> assets.pdLaser;
-            case LayeredMechAppearance.ARMS_HEAVY_PD_LASER -> assets.heavyPdLaser;
-            case LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER -> assets.mediumBurstLaser;
-            case LayeredMechAppearance.ARMS_LIGHT_BURST_LASER -> assets.lightBurstLaser;
+            case LayeredMechAppearance.ARMS_BL_1 -> assets.bl1;
+            case LayeredMechAppearance.ARMS_PL_3 -> assets.pl3;
+            case LayeredMechAppearance.ARMS_BL_2 -> assets.bl2;
+            case LayeredMechAppearance.ARMS_PL_3_SWEEP -> assets.pl3Sweep;
+            case LayeredMechAppearance.ARMS_PL_2 -> assets.pl2;
+            case LayeredMechAppearance.ARMS_PL_1 -> assets.pl1;
             default -> null;
         };
     }
@@ -435,7 +435,7 @@ final class LayeredMechComposer {
                                        int installedPod,
                                        float actorX, float actorY, float hullWidth,
                                        float facingDeg, float localX, float alpha) {
-        if (installedPod != LayeredMechAppearance.POD_SHOULDER_LASER
+        if (installedPod != LayeredMechAppearance.POD_LL_3
                 && installedPod != LayeredMechAppearance.POD_THERMAL_LANCE) return;
         emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
                 localX, MechHardpointGeometry.podForward(installedPod), 0f, alpha);
@@ -445,8 +445,8 @@ final class LayeredMechComposer {
                                 float actorX, float actorY, float hullWidth,
                                 float facingDeg, float localX,
                                 float srmKick, float lrmKick, float alpha) {
-        if (pod == LayeredMechAppearance.POD_SHOULDER_LASER) {
-            emitFromRearPivot(out, assets.shoulderLaser, actorX, actorY, hullWidth, facingDeg,
+        if (pod == LayeredMechAppearance.POD_LL_3) {
+            emitFromRearPivot(out, assets.ll3, actorX, actorY, hullWidth, facingDeg,
                     localX, -0.30f, 1f, 0f, alpha);
         } else if (pod == LayeredMechAppearance.POD_THERMAL_LANCE) {
             emitFromRearPivot(out, assets.thermalLance, actorX, actorY, hullWidth, facingDeg,

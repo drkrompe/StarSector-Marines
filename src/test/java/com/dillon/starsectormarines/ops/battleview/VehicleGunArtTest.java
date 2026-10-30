@@ -15,7 +15,7 @@ class VehicleGunArtTest {
 
     @Test
     void otherWeaponsAndAnEmptyCardFallBackToTheMechDrawing() {
-        assertNull(VehicleGunArt.vehicleDrawingPath(MechWeaponComponent.LIGHT_PULSE_LASER));
+        assertNull(VehicleGunArt.vehicleDrawingPath(MechWeaponComponent.BL_1));
         assertNull(VehicleGunArt.vehicleDrawingPath(null));
     }
 }

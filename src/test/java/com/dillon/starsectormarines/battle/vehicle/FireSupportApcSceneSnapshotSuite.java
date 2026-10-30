@@ -175,15 +175,15 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
     private static final VehicleType[] FITTED_TYPES = {VehicleType.BREAKTHROUGH_TANK, VehicleType.BREAKTHROUGH_TANK,
             VehicleType.LASER_TANK, VehicleType.LRM_CARRIER, VehicleType.SRM_TECHNICAL, VehicleType.FIRE_SUPPORT_APC};
     private static final MechWeaponComponent[] FITTED_GUNS = {MechWeaponComponent.HC_20,
-            MechWeaponComponent.HC_10, MechWeaponComponent.SHOULDER_LASER_CANNON, MechWeaponComponent.SRM_5,
+            MechWeaponComponent.HC_10, MechWeaponComponent.LL_3, MechWeaponComponent.SRM_5,
             MechWeaponComponent.LRM_5, MechWeaponComponent.CHAINGUN};
 
     private static final VehicleType[] LIGHT_TYPES = {VehicleType.HEAVY_APC, VehicleType.HEAVY_APC,
             VehicleType.MILITIA_TECHNICAL, VehicleType.SRM_TECHNICAL, VehicleType.HOVER_SCOUT,
             VehicleType.DOZER_BREACHER};
     private static final MechWeaponComponent[] LIGHT_GUNS = {MechWeaponComponent.LIGHT_MACHINE_GUN,
-            MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.SRM_3_QS,
-            MechWeaponComponent.LIGHT_MACHINE_GUN, MechWeaponComponent.LIGHT_PULSE_LASER,
+            MechWeaponComponent.BL_1, MechWeaponComponent.SRM_3_QS,
+            MechWeaponComponent.LIGHT_MACHINE_GUN, MechWeaponComponent.BL_1,
             MechWeaponComponent.SRM_3_QS};
 
     /** Six small hulls each carrying a light weapon in its small omni card, parked with turrets turned off axis. */
@@ -227,9 +227,9 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
     }
 
     /** The laser ladder, heaviest first: the hull's own gun, then the two heavy parts, the two medium, the two light. */
-    private static final MechWeaponComponent[] LASER_GUNS = {null, MechWeaponComponent.BURST_LASER,
-            MechWeaponComponent.HEAVY_PD_LASER, MechWeaponComponent.MEDIUM_BURST_LASER, MechWeaponComponent.PD_LASER,
-            MechWeaponComponent.LIGHT_BURST_LASER, MechWeaponComponent.LIGHT_PULSE_LASER};
+    private static final MechWeaponComponent[] LASER_GUNS = {null, MechWeaponComponent.PL_3,
+            MechWeaponComponent.PL_3_SWEEP, MechWeaponComponent.PL_2, MechWeaponComponent.BL_2,
+            MechWeaponComponent.PL_1, MechWeaponComponent.BL_1};
 
     /**
      * Seven laser tanks in two columns, the hull's own gun and each laser part of the ladder, firing at a stationary
@@ -262,9 +262,9 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
 
     /** The four lasers a side arm takes (the heavy two are nose guns), a pair on each arm of four Bulwarks. */
     private static LookReview.Shot laserArms() {
-        return mechLook("laser-arms", MechVariant.BULWARK, new MechWeaponComponent[] {MechWeaponComponent.PD_LASER,
-                MechWeaponComponent.LIGHT_PULSE_LASER, null, MechWeaponComponent.MEDIUM_BURST_LASER,
-                MechWeaponComponent.LIGHT_BURST_LASER, null});
+        return mechLook("laser-arms", MechVariant.BULWARK, new MechWeaponComponent[] {MechWeaponComponent.BL_2,
+                MechWeaponComponent.BL_1, null, MechWeaponComponent.PL_2,
+                MechWeaponComponent.PL_1, null});
     }
 
     /**

@@ -34,16 +34,16 @@ import java.util.List;
  * A third frame shows the older energy parts that still wear the olive and red mech art.
  */
 public final class MechLaserLineupSnapshotSuite implements SnapshotSuite {
-    private static final MechWeaponComponent[] ARM_LINE = {MechWeaponComponent.PD_LASER,
-            MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.MEDIUM_BURST_LASER,
-            MechWeaponComponent.LIGHT_BURST_LASER};
-    private static final String[] ARM_NAMES = {"PD LASER 2x2", "LIGHT PD LASER 1x2", "BURST LASER 2x2",
-            "LIGHT BURST LASER 1x2"};
-    private static final MechWeaponComponent[] NOSE_LINE = {MechWeaponComponent.HEAVY_PD_LASER,
-            MechWeaponComponent.PD_LASER, MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.BURST_LASER,
-            MechWeaponComponent.MEDIUM_BURST_LASER, MechWeaponComponent.LIGHT_BURST_LASER};
-    private static final String[] NOSE_NAMES = {"HEAVY PD LASER 3x2", "PD LASER 2x2", "LIGHT PD LASER 1x2",
-            "HEAVY BURST LASER 3x2", "BURST LASER 2x2", "LIGHT BURST LASER 1x2"};
+    private static final MechWeaponComponent[] ARM_LINE = {MechWeaponComponent.BL_2,
+            MechWeaponComponent.BL_1, MechWeaponComponent.PL_2,
+            MechWeaponComponent.PL_1};
+    private static final String[] ARM_NAMES = {"BL-2 2x2", "BL-1 1x2", "PL-2 2x2",
+            "PL-1 1x2"};
+    private static final MechWeaponComponent[] NOSE_LINE = {MechWeaponComponent.PL_3_SWEEP,
+            MechWeaponComponent.BL_2, MechWeaponComponent.BL_1, MechWeaponComponent.PL_3,
+            MechWeaponComponent.PL_2, MechWeaponComponent.PL_1};
+    private static final String[] NOSE_NAMES = {"PL-3 (SWEEP) 3x2", "BL-2 2x2", "BL-1 1x2",
+            "PL-3 3x2", "PL-2 2x2", "PL-1 1x2"};
 
     private static final SocketId[] BULWARK_ARMS = {SocketId.LEFT_ARM, SocketId.RIGHT_ARM};
     private static final SocketId[] NOSE = {SocketId.ARMS};
@@ -72,10 +72,10 @@ public final class MechLaserLineupSnapshotSuite implements SnapshotSuite {
                 wardens, 3, 5, 5, new float[] {15f, 9.4f, 16.5f}));
         // The energy parts older than the ladder, still in the olive and red mech art.
         List<Entry> legacy = List.of(
-                new Entry(MechVariant.BULWARK, BULWARK_ARMS, MechWeaponComponent.PULSE_LASER, MechWeaponComponent.SRM_5,
-                        "PULSE LASER 2x2 (old art)"),
+                new Entry(MechVariant.BULWARK, BULWARK_ARMS, MechWeaponComponent.PL_2_AP, MechWeaponComponent.SRM_5,
+                        "PL-2 (AP) 2x2 (old art)"),
                 new Entry(MechVariant.WARDEN, NOSE, MechWeaponComponent.HC_10,
-                        MechWeaponComponent.SHOULDER_LASER_CANNON, "SHOULDER LASER CANNON 3x2 (old art)"),
+                        MechWeaponComponent.LL_3, "LL-3 3x2 (old art)"),
                 new Entry(MechVariant.WARDEN, NOSE, MechWeaponComponent.HC_10, MechWeaponComponent.THERMAL_LANCE,
                         "THERMAL LANCE 1x2 (old art)"));
         artifacts.add(lineup(context, "legacy-lineup.png", "OLDER ENERGY PARTS | still the olive and red mech art",

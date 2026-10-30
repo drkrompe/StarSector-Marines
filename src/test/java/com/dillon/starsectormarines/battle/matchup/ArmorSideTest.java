@@ -44,12 +44,12 @@ class ArmorSideTest {
 
     @Test
     void weaponsAndInternalsByPatternId() {
-        ArmorSide.Mech custom = mech("bulwark:arms=hc-10,rs=component.mech-shoulder-laser,"
+        ArmorSide.Mech custom = mech("bulwark:arms=hc-10,rs=component.mech-ll-3,"
                 + "engine=uprated,capacitors=internal.capacitor-bank-double,vents=auxiliary,role=assault");
         assertEquals(MechWeaponComponent.HC_10, custom.fit().leftArm());
         assertEquals(MechWeaponComponent.HC_10, custom.fit().rightArm(), "arms= fits every arm");
         assertEquals(MechWeaponComponent.SRM_15, custom.fit().leftShoulder());
-        assertEquals(MechWeaponComponent.SHOULDER_LASER_CANNON, custom.fit().rightShoulder());
+        assertEquals(MechWeaponComponent.LL_3, custom.fit().rightShoulder());
         assertEquals(MechInternal.UPRATED_ENGINE, custom.fit().engine());
         assertEquals(MechInternal.DOUBLE_CAPACITOR_BANK, custom.fit().capacitorBank());
         assertEquals(MechInternal.AUXILIARY_VENT_ARRAY, custom.fit().ventArray());

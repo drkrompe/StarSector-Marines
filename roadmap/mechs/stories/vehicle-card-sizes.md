@@ -36,7 +36,7 @@ claim about the stock gun.
 ## The small weapons
 
 Slice 1 is shipped: the small omni card (`VehicleGunCard.SMALL`, the APCs, dozer, technicals and hover scout) and
-the light weapons it is stocked with (`LIGHT_MACHINE_GUN`, `LIGHT_PULSE_LASER`; the light rocket pod shipped with
+the light weapons it is stocked with (`LIGHT_MACHINE_GUN`, `BL_1`; the light rocket pod shipped with
 them and was retired for the SRM-3 (QS), owner 2026-10-30), each a one-row mech part with its own drawing, liveries, selector, geometry, weapon definition, catalogue and Store
 entries; their stats are first proposals awaiting the balance pass. The text below is the original problem, kept
 for the rows that are not done.
@@ -53,9 +53,9 @@ they no longer out-punch a 2x2 gun from two cells). Footprint is the power cap; 
 Slice 3 is shipped (owner, 2026-10-29). Lasers are a ladder of three strengths, 1x2, 2x2 and 3x2, in two families: the PD
 laser (steady lances that run cool, a slight red motif) and the burst laser (short heavy volleys that vent, clean white
 and blue). Every part has a glass blue orb lens at the front and white electronics built into the arm; the 2x2 and the 1x2
-are progressively miniaturized 3x2s, drawn from the picked 3x2 designs. The six parts: light PD (`LIGHT_PULSE_LASER`,
-24 dps), PD (`PD_LASER`), heavy PD (`HEAVY_PD_LASER`), light burst (`LIGHT_BURST_LASER`), burst (`MEDIUM_BURST_LASER`) and
-heavy burst (`BURST_LASER`); the constants keep the names they shipped under, so BURST_LASER is the 3x2. The two heavy
+are progressively miniaturized 3x2s, drawn from the picked 3x2 designs. The six parts: light PD (`BL_1`,
+24 dps), PD (`BL_2`), heavy PD (`PL_3_SWEEP`), light burst (`PL_1`), burst (`PL_2`) and
+heavy burst (`PL_3`); they are named BL-1, BL-2, PL-3 (Sweep), PL-1, PL-2 and PL-3 now (`mechs-nouns.md`, Weapon names). The two heavy
 parts are nose guns only (the centreline mount), like the HC-20, and are Prestige; on a mech they fit the Warden's nose, which is an omni socket for it (the Hound's stays a 2x2 ballistic one, so it takes none); the others fit any arm. One
 white finish for every faction (no livery mask). On a laser tank the 3x2 laser wears the turret head the hull had before:
 the heavy burst laser the white head, the heavy PD laser the red head the PD laser tank carried (`MechWeaponComponent.tankHead`,

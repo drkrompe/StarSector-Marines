@@ -27,13 +27,6 @@
   "text": "needs a meatier \"hit sound effect\" of an exploding round. all AC weapons should use that \"impact\" sound once we get it.",
   "updatedAt": "2026-10-30T16:11:20.318Z"
  },
- "mech-burst-laser": {
-  "weaponId": "weapon.mech-burst-laser",
-  "name": "Heavy burst laser",
-  "status": "",
-  "text": "Should use the same sound effect as PD laser",
-  "updatedAt": "2026-10-30T16:13:20.487Z"
- },
  "mech-dc-5": {
   "weaponId": "weapon.mech-dc-5",
   "name": "DC-5",
@@ -41,19 +34,26 @@
   "text": "",
   "updatedAt": "2026-10-30T16:12:29.376Z"
  },
- "mech-light-burst-laser": {
-  "weaponId": "weapon.mech-light-burst-laser",
+ "mech-pl-1": {
+  "weaponId": "weapon.mech-pl-1",
   "name": "Light burst laser",
   "status": "",
   "text": "Should use the same sound effect as PD laser",
   "updatedAt": "2026-10-30T16:13:13.444Z"
  },
- "mech-medium-burst-laser": {
-  "weaponId": "weapon.mech-medium-burst-laser",
+ "mech-pl-2": {
+  "weaponId": "weapon.mech-pl-2",
   "name": "Burst laser",
   "status": "",
   "text": "Should use the same sound effect as PD laser",
   "updatedAt": "2026-10-30T16:13:26.439Z"
+ },
+ "mech-pl-3": {
+  "weaponId": "weapon.mech-pl-3",
+  "name": "Heavy burst laser",
+  "status": "",
+  "text": "Should use the same sound effect as PD laser",
+  "updatedAt": "2026-10-30T16:13:20.487Z"
  },
  "vehicle-breakthrough-tank-chaingun": {
   "weaponId": "weapon.mech-chaingun",

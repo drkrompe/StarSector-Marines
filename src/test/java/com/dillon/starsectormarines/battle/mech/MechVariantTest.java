@@ -56,7 +56,7 @@ class MechVariantTest {
                 bulwark.mount(MechMountSlot.LEFT_SHOULDER).component);
         assertSame(MechWeaponComponent.SRM_15,
                 bulwark.mount(MechMountSlot.RIGHT_SHOULDER).component);
-        assertFalse(bulwark.hasWeapon(WeaponRegistry.MECH_SHOULDER_LASER_ID));
+        assertFalse(bulwark.hasWeapon(WeaponRegistry.MECH_LL_3_ID));
 
         MechLoadoutComponent hound = MechVariant.HOUND.createLoadout(null);
         assertFalse(hound.hasWeapon(WeaponRegistry.MECH_LRM_ID));
@@ -103,23 +103,23 @@ class MechVariantTest {
         MechLoadoutComponent independent = FactionMechLoadouts.create(
                 MechVariant.BULWARK, null, "independent");
 
-        assertSame(MechWeaponComponent.PULSE_LASER,
+        assertSame(MechWeaponComponent.PL_2_AP,
                 triTachyon.mount(MechMountSlot.RIGHT_ARM).component);
         assertSame(MechWeaponComponent.SRM_15,
                 triTachyon.mount(MechMountSlot.LEFT_SHOULDER).component);
-        assertSame(MechWeaponComponent.SHOULDER_LASER_CANNON,
+        assertSame(MechWeaponComponent.LL_3,
                 triTachyon.mount(MechMountSlot.RIGHT_SHOULDER).component);
-        assertTrue(triTachyon.hasWeapon(WeaponRegistry.MECH_SHOULDER_LASER_ID));
-        assertTrue(triTachyon.hasWeapon(WeaponRegistry.MECH_PULSE_LASER_ID));
+        assertTrue(triTachyon.hasWeapon(WeaponRegistry.MECH_LL_3_ID));
+        assertTrue(triTachyon.hasWeapon(WeaponRegistry.MECH_PL_2_AP_ID));
         assertSame(MechWeaponComponent.CHAINGUN,
                 independent.mount(MechMountSlot.RIGHT_ARM).component);
         assertSame(MechWeaponComponent.SRM_15,
                 independent.mount(MechMountSlot.RIGHT_SHOULDER).component);
-        assertFalse(independent.hasWeapon(WeaponRegistry.MECH_SHOULDER_LASER_ID));
+        assertFalse(independent.hasWeapon(WeaponRegistry.MECH_LL_3_ID));
         assertFalse(independent.hasWeapon(WeaponRegistry.MECH_AC_6_QS_ID));
         assertFalse(independent.hasWeapon(WeaponRegistry.MECH_DC_4_QS_ID));
         assertFalse(independent.hasWeapon(WeaponRegistry.MECH_SRM_3_QS_ID));
-        assertFalse(independent.hasWeapon(WeaponRegistry.MECH_PULSE_LASER_ID));
+        assertFalse(independent.hasWeapon(WeaponRegistry.MECH_PL_2_AP_ID));
 
         BattleSimulation sim = arena();
         long bulwark = sim.spawn(MechVariant.BULWARK.applyTo(new EntitySpec(
@@ -128,7 +128,7 @@ class MechVariantTest {
         assertEquals(MechVariant.BULWARK.maxWeaponRange(),
                 sim.world().attackRange(bulwark), 0.001f);
         sim.world().attachMechLoadout(bulwark, triTachyon);
-        assertEquals(WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID).range,
+        assertEquals(WeaponRegistry.require(WeaponRegistry.MECH_LL_3_ID).range,
                 sim.world().attackRange(bulwark), 0.001f,
                 "installed faction hardware owns the live targeting envelope");
     }

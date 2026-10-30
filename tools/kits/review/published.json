@@ -60,9 +60,13 @@
    "url": "/_blob/18693c37be3f2b41e0682185e085d009",
    "weaponId": "weapon.mech-ac-6-qs"
   },
-  "mech-burst-laser": {
-   "url": "/_blob/3df2113711befe7222aa245266dfd87f",
-   "weaponId": "weapon.mech-burst-laser"
+  "mech-bl-1": {
+   "url": "/_blob/ef6f8b56a84768d0a36fc2f1f692dcc1",
+   "weaponId": "weapon.mech-bl-1"
+  },
+  "mech-bl-2": {
+   "url": "/_blob/0b9fb9b214c67b2981aa7229611d7707",
+   "weaponId": "weapon.mech-bl-2"
   },
   "mech-chaingun": {
    "url": "/_blob/756e5dc4352cc040b07521eaf50e5d18",
@@ -88,21 +92,13 @@
    "url": "/_blob/710c7ed53ff07d9df38207964d90536f",
    "weaponId": "weapon.mech-hc-20"
   },
-  "mech-heavy-pd-laser": {
-   "url": "/_blob/ff93c7fdd519949bb1da65eaf3a77479",
-   "weaponId": "weapon.mech-heavy-pd-laser"
-  },
-  "mech-light-burst-laser": {
-   "url": "/_blob/7d225ee16c211bfb5d72110e3144744e",
-   "weaponId": "weapon.mech-light-burst-laser"
-  },
   "mech-light-machine-gun": {
    "url": "/_blob/d45c280297696f7c1befc5201b545f48",
    "weaponId": "weapon.mech-light-mg"
   },
-  "mech-light-pulse-laser": {
-   "url": "/_blob/ef6f8b56a84768d0a36fc2f1f692dcc1",
-   "weaponId": "weapon.mech-light-pulse-laser"
+  "mech-ll-3": {
+   "url": "/_blob/5374e1e7be9ea7a394b262dd618b29c1",
+   "weaponId": "weapon.mech-ll-3"
   },
   "mech-lrm-15": {
    "url": "/_blob/0aecee9cecd28ebca56ed41d18462593",
@@ -120,21 +116,25 @@
    "url": "/_blob/b0eb85180254ca9092e1f3cbc2e7b94d",
    "weaponId": "weapon.mech-lrm-frag"
   },
-  "mech-medium-burst-laser": {
+  "mech-pl-1": {
+   "url": "/_blob/7d225ee16c211bfb5d72110e3144744e",
+   "weaponId": "weapon.mech-pl-1"
+  },
+  "mech-pl-2": {
    "url": "/_blob/a174cfa166609368649835c6a669b6a4",
-   "weaponId": "weapon.mech-medium-burst-laser"
+   "weaponId": "weapon.mech-pl-2"
   },
-  "mech-pd-laser": {
-   "url": "/_blob/0b9fb9b214c67b2981aa7229611d7707",
-   "weaponId": "weapon.mech-pd-laser"
-  },
-  "mech-pulse-laser": {
+  "mech-pl-2-ap": {
    "url": "/_blob/36ba3540bc946589af04445ff5a160c9",
-   "weaponId": "weapon.mech-pulse-laser"
+   "weaponId": "weapon.mech-pl-2-ap"
   },
-  "mech-shoulder-laser-cannon": {
-   "url": "/_blob/5374e1e7be9ea7a394b262dd618b29c1",
-   "weaponId": "weapon.mech-shoulder-laser"
+  "mech-pl-3": {
+   "url": "/_blob/3df2113711befe7222aa245266dfd87f",
+   "weaponId": "weapon.mech-pl-3"
+  },
+  "mech-pl-3-sweep": {
+   "url": "/_blob/ff93c7fdd519949bb1da65eaf3a77479",
+   "weaponId": "weapon.mech-pl-3-sweep"
   },
   "mech-srm-15": {
    "url": "/_blob/44f8004d906284a007750d9773b8266b",
@@ -186,11 +186,11 @@
   },
   "vehicle-laser-tank": {
    "url": "/_blob/b1594e0aef6f75a3571ce676d9160df8",
-   "weaponId": "weapon.mech-burst-laser"
+   "weaponId": "weapon.mech-pl-3"
   },
-  "vehicle-laser-tank-heavy-pd-laser": {
+  "vehicle-laser-tank-pl-3-sweep": {
    "url": "/_blob/073f7930a1ceb178b78f027d950718c6",
-   "weaponId": "weapon.mech-heavy-pd-laser"
+   "weaponId": "weapon.mech-pl-3-sweep"
   },
   "vehicle-lrm-carrier": {
    "url": "/_blob/a01d19de9986a682e0e88ef25f4fa1a1",
@@ -275,25 +275,25 @@
   "clip:infantry-srm-3-pod": "2b276c6c9b22",
   "clip:mech-ac-6": "ec85ef1a79e7",
   "clip:mech-ac-6-qs": "ca5f969b09bb",
-  "clip:mech-burst-laser": "68a505e7b9be",
+  "clip:mech-bl-1": "9f42d0b54e16",
+  "clip:mech-bl-2": "517d2c307d8f",
   "clip:mech-chaingun": "a0aecbd56c02",
   "clip:mech-chaingun-hf": "7903a7c82442",
   "clip:mech-dc-4-qs": "d051e302e3b6",
   "clip:mech-dc-5": "b79cfe7a5535",
   "clip:mech-hc-10": "a4059fb411d3",
   "clip:mech-hc-20": "9dcf6c53782d",
-  "clip:mech-heavy-pd-laser": "7df5d3bf5f4c",
-  "clip:mech-light-burst-laser": "b9c5001c859c",
   "clip:mech-light-machine-gun": "50c044239aa4",
-  "clip:mech-light-pulse-laser": "9f42d0b54e16",
+  "clip:mech-ll-3": "ffddbd62c474",
   "clip:mech-lrm-15": "d5e5b8e9fd4b",
   "clip:mech-lrm-15-frag": "bbf1ffc2a1c9",
   "clip:mech-lrm-5": "d80952b36788",
   "clip:mech-lrm-5-frag": "355d1a1c5da4",
-  "clip:mech-medium-burst-laser": "ce6b9f0cc417",
-  "clip:mech-pd-laser": "517d2c307d8f",
-  "clip:mech-pulse-laser": "8e1bb0ec1fe3",
-  "clip:mech-shoulder-laser-cannon": "ffddbd62c474",
+  "clip:mech-pl-1": "b9c5001c859c",
+  "clip:mech-pl-2": "ce6b9f0cc417",
+  "clip:mech-pl-2-ap": "8e1bb0ec1fe3",
+  "clip:mech-pl-3": "68a505e7b9be",
+  "clip:mech-pl-3-sweep": "7df5d3bf5f4c",
   "clip:mech-srm-15": "607d637e17c7",
   "clip:mech-srm-15-frag": "b34f14c4e8ce",
   "clip:mech-srm-3-qs": "ab579f3fec6d",
@@ -307,7 +307,7 @@
   "clip:vehicle-heavy-apc": "bd134546f1ed",
   "clip:vehicle-hover-scout": "fe6e16e86a1f",
   "clip:vehicle-laser-tank": "7dd9caca9c61",
-  "clip:vehicle-laser-tank-heavy-pd-laser": "83da8dcf2ce9",
+  "clip:vehicle-laser-tank-pl-3-sweep": "83da8dcf2ce9",
   "clip:vehicle-lrm-carrier": "fc7ae432b77c",
   "clip:vehicle-srm-technical": "3ac441f412a7",
   "internal:ACCELERATED_LOADER": "0bb3bea5a85e",
@@ -361,25 +361,25 @@
   "weapon.squad-automatic": "160bc645ebdb",
   "weapon:AC_6": "400a100ca2b9",
   "weapon:AC_6_QS": "cb385927bd3f",
-  "weapon:BURST_LASER": "dc97f62b0e29",
+  "weapon:BL_1": "b3f1b5e5bee7",
+  "weapon:BL_2": "050e9092f70f",
   "weapon:CHAINGUN": "4333bb1f0dc5",
   "weapon:CHAINGUN_HF": "28cfcd497b4e",
   "weapon:DC_4_QS": "8fb482cff650",
   "weapon:DC_5": "97a096715e92",
   "weapon:HC_10": "7fbdd6a17141",
   "weapon:HC_20": "0427feceeadd",
-  "weapon:HEAVY_PD_LASER": "49a606c1d123",
-  "weapon:LIGHT_BURST_LASER": "9e6f50bf8c45",
   "weapon:LIGHT_MACHINE_GUN": "2b96e78f435d",
-  "weapon:LIGHT_PULSE_LASER": "b3f1b5e5bee7",
+  "weapon:LL_3": "3fe3ecd792cd",
   "weapon:LRM_15": "b43861c41556",
   "weapon:LRM_15_FRAG": "e26d21f4b61c",
   "weapon:LRM_5": "749b9be5d993",
   "weapon:LRM_5_FRAG": "0cf0b2e2da05",
-  "weapon:MEDIUM_BURST_LASER": "869530c73d32",
-  "weapon:PD_LASER": "050e9092f70f",
-  "weapon:PULSE_LASER": "99812d5f1c79",
-  "weapon:SHOULDER_LASER_CANNON": "3fe3ecd792cd",
+  "weapon:PL_1": "9e6f50bf8c45",
+  "weapon:PL_2": "869530c73d32",
+  "weapon:PL_2_AP": "99812d5f1c79",
+  "weapon:PL_3": "dc97f62b0e29",
+  "weapon:PL_3_SWEEP": "49a606c1d123",
   "weapon:SRM_15": "684ea8942aa6",
   "weapon:SRM_15_FRAG": "aacdf9b30caf",
   "weapon:SRM_3_QS": "eb1a772e6cce",
@@ -479,25 +479,25 @@
   "clip:infantry-srm-3-pod": "SRM-3 (Pod)",
   "clip:mech-ac-6": "AC-6",
   "clip:mech-ac-6-qs": "AC-6 (QS)",
-  "clip:mech-burst-laser": "Heavy burst laser",
+  "clip:mech-bl-1": "Light PD laser",
+  "clip:mech-bl-2": "PD laser",
   "clip:mech-chaingun": "Chaingun",
   "clip:mech-chaingun-hf": "High-feed chaingun",
   "clip:mech-dc-4-qs": "DC-4 (QS)",
   "clip:mech-dc-5": "DC-5",
   "clip:mech-hc-10": "HC-10",
   "clip:mech-hc-20": "HC-20",
-  "clip:mech-heavy-pd-laser": "Heavy PD laser",
-  "clip:mech-light-burst-laser": "Light burst laser",
   "clip:mech-light-machine-gun": "Light machine gun",
-  "clip:mech-light-pulse-laser": "Light PD laser",
+  "clip:mech-ll-3": "Shoulder laser cannon",
   "clip:mech-lrm-15": "LRM-15",
   "clip:mech-lrm-15-frag": "LRM-15 (Frag)",
   "clip:mech-lrm-5": "LRM-5",
   "clip:mech-lrm-5-frag": "LRM-5 (Frag)",
-  "clip:mech-medium-burst-laser": "Burst laser",
-  "clip:mech-pd-laser": "PD laser",
-  "clip:mech-pulse-laser": "Pulse laser",
-  "clip:mech-shoulder-laser-cannon": "Shoulder laser cannon",
+  "clip:mech-pl-1": "Light burst laser",
+  "clip:mech-pl-2": "Burst laser",
+  "clip:mech-pl-2-ap": "Pulse laser",
+  "clip:mech-pl-3": "Heavy burst laser",
+  "clip:mech-pl-3-sweep": "Heavy PD laser",
   "clip:mech-srm-15": "SRM-15",
   "clip:mech-srm-15-frag": "SRM-15 (Frag)",
   "clip:mech-srm-3-qs": "SRM-3 (QS)",
@@ -511,7 +511,7 @@
   "clip:vehicle-heavy-apc": "Light machine gun on the heavy-apc",
   "clip:vehicle-hover-scout": "Hover Pulse Emitter on the hover-scout",
   "clip:vehicle-laser-tank": "Heavy burst laser on the laser-tank",
-  "clip:vehicle-laser-tank-heavy-pd-laser": "Heavy PD laser on the laser-tank",
+  "clip:vehicle-laser-tank-pl-3-sweep": "Heavy PD laser on the laser-tank",
   "clip:vehicle-lrm-carrier": "LRM-15 on the lrm-carrier",
   "clip:vehicle-srm-technical": "SRM-30 on the srm-technical",
   "internal:ACCELERATED_LOADER": "Accelerated loader",
@@ -565,25 +565,25 @@
   "weapon.squad-automatic": "MG-SUPP",
   "weapon:AC_6": "AC-6",
   "weapon:AC_6_QS": "AC-6 (QS)",
-  "weapon:BURST_LASER": "Heavy burst laser",
+  "weapon:BL_1": "Light PD laser",
+  "weapon:BL_2": "PD laser",
   "weapon:CHAINGUN": "Chaingun",
   "weapon:CHAINGUN_HF": "High-feed chaingun",
   "weapon:DC_4_QS": "DC-4 (QS)",
   "weapon:DC_5": "DC-5",
   "weapon:HC_10": "HC-10",
   "weapon:HC_20": "HC-20",
-  "weapon:HEAVY_PD_LASER": "Heavy PD laser",
-  "weapon:LIGHT_BURST_LASER": "Light burst laser",
   "weapon:LIGHT_MACHINE_GUN": "Light machine gun",
-  "weapon:LIGHT_PULSE_LASER": "Light PD laser",
+  "weapon:LL_3": "Shoulder laser cannon",
   "weapon:LRM_15": "LRM-15",
   "weapon:LRM_15_FRAG": "LRM-15 (Frag)",
   "weapon:LRM_5": "LRM-5",
   "weapon:LRM_5_FRAG": "LRM-5 (Frag)",
-  "weapon:MEDIUM_BURST_LASER": "Burst laser",
-  "weapon:PD_LASER": "PD laser",
-  "weapon:PULSE_LASER": "Pulse laser",
-  "weapon:SHOULDER_LASER_CANNON": "Shoulder laser cannon",
+  "weapon:PL_1": "Light burst laser",
+  "weapon:PL_2": "Burst laser",
+  "weapon:PL_2_AP": "Pulse laser",
+  "weapon:PL_3": "Heavy burst laser",
+  "weapon:PL_3_SWEEP": "Heavy PD laser",
   "weapon:SRM_15": "SRM-15",
   "weapon:SRM_15_FRAG": "SRM-15 (Frag)",
   "weapon:SRM_3_QS": "SRM-3 (QS)",
@@ -663,25 +663,25 @@
   "wayline:steady-line": "relief",
   "weapon:AC_6": "thunder-run",
   "weapon:AC_6_QS": "counterattack",
-  "weapon:BURST_LASER": "thunder-run",
+  "weapon:BL_1": "counterattack",
+  "weapon:BL_2": "junction",
   "weapon:CHAINGUN": "counterattack",
   "weapon:CHAINGUN_HF": "junction",
   "weapon:DC_4_QS": "counterattack",
   "weapon:DC_5": "thunder-run",
   "weapon:HC_10": "thunder-run",
   "weapon:HC_20": "thunder-run",
-  "weapon:HEAVY_PD_LASER": "thunder-run",
-  "weapon:LIGHT_BURST_LASER": "counterattack",
   "weapon:LIGHT_MACHINE_GUN": "start",
-  "weapon:LIGHT_PULSE_LASER": "counterattack",
+  "weapon:LL_3": "thunder-run",
   "weapon:LRM_15": "junction",
   "weapon:LRM_15_FRAG": "junction",
   "weapon:LRM_5": "counterattack",
   "weapon:LRM_5_FRAG": "counterattack",
-  "weapon:MEDIUM_BURST_LASER": "junction",
-  "weapon:PD_LASER": "junction",
-  "weapon:PULSE_LASER": "thunder-run",
-  "weapon:SHOULDER_LASER_CANNON": "thunder-run",
+  "weapon:PL_1": "counterattack",
+  "weapon:PL_2": "junction",
+  "weapon:PL_2_AP": "thunder-run",
+  "weapon:PL_3": "thunder-run",
+  "weapon:PL_3_SWEEP": "thunder-run",
   "weapon:SRM_15": "junction",
   "weapon:SRM_15_FRAG": "junction",
   "weapon:SRM_3_QS": "counterattack",

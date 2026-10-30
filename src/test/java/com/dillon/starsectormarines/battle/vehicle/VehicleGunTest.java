@@ -24,7 +24,7 @@ class VehicleGunTest {
         assertSame(VehicleGunCard.CANNON, cannon);
         assertTrue(cannon.accepts(MechWeaponComponent.HC_20));
         assertTrue(cannon.accepts(MechWeaponComponent.CHAINGUN), "a smaller gun of the type fits a larger card");
-        assertFalse(cannon.accepts(MechWeaponComponent.PULSE_LASER), "an energy weapon is not a ballistic one");
+        assertFalse(cannon.accepts(MechWeaponComponent.PL_2_AP), "an energy weapon is not a ballistic one");
         assertFalse(cannon.accepts(MechWeaponComponent.LRM_5));
         assertFalse(VehicleGunCard.SMALL.accepts(MechWeaponComponent.CHAINGUN), "two rows do not fit a one-row card");
         assertFalse(VehicleGunCard.LRM.accepts(MechWeaponComponent.SRM_15), "three rows do not fit a two-row card");
@@ -38,21 +38,21 @@ class VehicleGunTest {
         assertNull(small.hardpoint, "unlocked");
         assertEquals(1, small.rows);
         assertTrue(small.accepts(MechWeaponComponent.LIGHT_MACHINE_GUN));
-        assertTrue(small.accepts(MechWeaponComponent.LIGHT_PULSE_LASER));
+        assertTrue(small.accepts(MechWeaponComponent.BL_1));
         assertTrue(small.accepts(MechWeaponComponent.SRM_3_QS));
-        assertFalse(small.accepts(MechWeaponComponent.PULSE_LASER), "footprint is the only cap: two rows are too tall");
+        assertFalse(small.accepts(MechWeaponComponent.PL_2_AP), "footprint is the only cap: two rows are too tall");
         assertFalse(small.accepts(null));
-        assertFalse(VehicleGunCard.CANNON.accepts(MechWeaponComponent.LIGHT_PULSE_LASER), "a locked card keeps its lock");
+        assertFalse(VehicleGunCard.CANNON.accepts(MechWeaponComponent.BL_1), "a locked card keeps its lock");
     }
 
     @Test
     void theLaserTankTakesTheLaserPartsAndNoOtherColour() {
         VehicleGunCard laser = VehicleGunCard.of(VehicleType.LASER_TANK);
         assertSame(VehicleGunCard.LASER, laser);
-        assertTrue(laser.accepts(MechWeaponComponent.BURST_LASER), "the burst laser fills the three-row red card");
-        assertTrue(laser.accepts(MechWeaponComponent.PD_LASER));
+        assertTrue(laser.accepts(MechWeaponComponent.PL_3), "the burst laser fills the three-row red card");
+        assertTrue(laser.accepts(MechWeaponComponent.BL_2));
         assertFalse(laser.accepts(MechWeaponComponent.HC_20), "a ballistic gun is not an energy one");
-        assertFalse(VehicleGunCard.SMALL.accepts(MechWeaponComponent.BURST_LASER), "a three-row part does not fit a small card");
+        assertFalse(VehicleGunCard.SMALL.accepts(MechWeaponComponent.PL_3), "a three-row part does not fit a small card");
     }
 
     @Test
@@ -113,22 +113,22 @@ class VehicleGunTest {
     @Test
     void theLaserTankWearsItsOwnHeadForTheLaserPartsAndNoOtherHullDoes() {
         VehicleType tank = VehicleType.LASER_TANK;
-        assertTrue(tank.wearsHeadOf(MechWeaponComponent.BURST_LASER));
-        assertTrue(tank.wearsHeadOf(MechWeaponComponent.HEAVY_PD_LASER));
-        assertFalse(tank.wearsHeadOf(MechWeaponComponent.PD_LASER), "the lighter lasers are drawn as themselves");
+        assertTrue(tank.wearsHeadOf(MechWeaponComponent.PL_3));
+        assertTrue(tank.wearsHeadOf(MechWeaponComponent.PL_3_SWEEP));
+        assertFalse(tank.wearsHeadOf(MechWeaponComponent.BL_2), "the lighter lasers are drawn as themselves");
         assertFalse(tank.wearsHeadOf(MechWeaponComponent.CHAINGUN), "any other part is drawn as itself");
         assertFalse(tank.wearsHeadOf(null));
-        assertFalse(VehicleType.BREAKTHROUGH_TANK.wearsHeadOf(MechWeaponComponent.BURST_LASER));
+        assertFalse(VehicleType.BREAKTHROUGH_TANK.wearsHeadOf(MechWeaponComponent.PL_3));
 
-        assertEquals(0f, VehicleGun.lengthCells(tank, MechWeaponComponent.HEAVY_PD_LASER), 0f, "no drawing of its own to size");
+        assertEquals(0f, VehicleGun.lengthCells(tank, MechWeaponComponent.PL_3_SWEEP), 0f, "no drawing of its own to size");
         assertEquals(tank.turretStructure().mount.muzzleOffsetCells,
-                VehicleGun.fit(tank, MechWeaponComponent.HEAVY_PD_LASER).mount.muzzleOffsetCells, 0f,
+                VehicleGun.fit(tank, MechWeaponComponent.PL_3_SWEEP).mount.muzzleOffsetCells, 0f,
                 "it fires from the head's lens");
 
-        assertEquals(1, tank.headFrame(MechWeaponComponent.BURST_LASER, 1), "the white head is the stock frames");
-        assertEquals(5, tank.headFrame(MechWeaponComponent.HEAVY_PD_LASER, 1));
-        assertEquals(6, tank.headFrame(MechWeaponComponent.HEAVY_PD_LASER, 3));
-        assertEquals(7, tank.headFrame(MechWeaponComponent.HEAVY_PD_LASER, 4));
+        assertEquals(1, tank.headFrame(MechWeaponComponent.PL_3, 1), "the white head is the stock frames");
+        assertEquals(5, tank.headFrame(MechWeaponComponent.PL_3_SWEEP, 1));
+        assertEquals(6, tank.headFrame(MechWeaponComponent.PL_3_SWEEP, 3));
+        assertEquals(7, tank.headFrame(MechWeaponComponent.PL_3_SWEEP, 4));
         assertEquals(1, tank.headFrame(null, 1));
     }
 
@@ -165,7 +165,7 @@ class VehicleGunTest {
         }
         assertEquals(3, strips.size(), "each head its own gun");
         assertEquals(onager.gunLayer(MechWeaponComponent.HC_20), onager.gunLayer(null), "the stock head's gun");
-        assertNull(VehicleType.LASER_TANK.gunLayer(MechWeaponComponent.HEAVY_PD_LASER), "a laser head draws whole");
+        assertNull(VehicleType.LASER_TANK.gunLayer(MechWeaponComponent.PL_3_SWEEP), "a laser head draws whole");
     }
 
     @Test
@@ -212,7 +212,7 @@ class VehicleGunTest {
                 "not on the rocket pickup");
         assertEquals(0f, VehicleGun.plateCells(VehicleType.FIRE_SUPPORT_APC, MechWeaponComponent.AC_6),
                 "nor under a fixed hull's other cannons");
-        assertEquals(0f, VehicleGun.plateCells(VehicleType.LASER_TANK, MechWeaponComponent.LIGHT_PULSE_LASER),
+        assertEquals(0f, VehicleGun.plateCells(VehicleType.LASER_TANK, MechWeaponComponent.BL_1),
                 "a white hull's weapon stands in its own base");
         assertEquals(0f, VehicleGun.plateCells(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.HC_20),
                 "a head needs no plate");

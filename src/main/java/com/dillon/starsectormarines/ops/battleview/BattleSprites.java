@@ -1333,8 +1333,8 @@ public class BattleSprites {
         LayeredSpriteCache hc20 = loadLayeredSprite(root + "hc-20.png");
         LayeredSpriteCache srm = loadLayeredSprite(root + "srm-rack.png");
         LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-rack.png");
-        LayeredSpriteCache shoulderLaser = loadLayeredSprite(root + "shoulder-laser-cannon.png");
-        LayeredSpriteCache pulseLaserArm = loadLayeredSprite(root + "pulse-laser-arm.png");
+        LayeredSpriteCache ll3 = loadLayeredSprite(root + "ll-3.png");
+        LayeredSpriteCache pl2Ap = loadLayeredSprite(root + "pl-2-ap.png");
         LayeredSpriteCache ac6 = loadLayeredSprite(
                 root + "ac-6.png");
         LayeredSpriteCache dc5 = loadLayeredSprite(
@@ -1347,35 +1347,35 @@ public class BattleSprites {
         LayeredSpriteCache srm3QsPod = loadLayeredSprite(
                 root + "srm-3-qs.png");
         LayeredSpriteCache lightMachineGun = loadLayeredSprite(root + "light-machine-gun.png");
-        LayeredSpriteCache lightPulseLaser = loadLayeredSprite(root + "light-pulse-laser.png");
-        LayeredSpriteCache burstLaser = loadLayeredSprite(root + "burst-laser.png");
-        LayeredSpriteCache pdLaser = loadLayeredSprite(root + "pd-laser.png");
-        LayeredSpriteCache heavyPdLaser = loadLayeredSprite(root + "heavy-pd-laser.png");
-        LayeredSpriteCache mediumBurstLaser = loadLayeredSprite(root + "medium-burst-laser.png");
-        LayeredSpriteCache lightBurstLaser = loadLayeredSprite(root + "light-burst-laser.png");
+        LayeredSpriteCache bl1 = loadLayeredSprite(root + "bl-1.png");
+        LayeredSpriteCache pl3 = loadLayeredSprite(root + "pl-3.png");
+        LayeredSpriteCache bl2 = loadLayeredSprite(root + "bl-2.png");
+        LayeredSpriteCache pl3Sweep = loadLayeredSprite(root + "pl-3-sweep.png");
+        LayeredSpriteCache pl2 = loadLayeredSprite(root + "pl-2.png");
+        LayeredSpriteCache pl1 = loadLayeredSprite(root + "pl-1.png");
         LayeredSpriteCache flash = loadLayeredSprite(
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
         if (chassis == null || socketedChassis == null || houndChassis == null
                 || wardenChassis == null || foot == null || thighBone == null || arm == null
                 || hc10 == null || hc20 == null
-                || srm == null || lrm == null || shoulderLaser == null
-                || pulseLaserArm == null || ac6 == null
+                || srm == null || lrm == null || ll3 == null
+                || pl2Ap == null || ac6 == null
                 || dc5 == null || thermalLance == null
                 || ac6Qs == null || dc4Qs == null
                 || srm3QsPod == null || lightMachineGun == null
-                || lightPulseLaser == null || burstLaser == null
-                || pdLaser == null || heavyPdLaser == null || mediumBurstLaser == null || lightBurstLaser == null
+                || bl1 == null || pl3 == null
+                || bl2 == null || pl3Sweep == null || pl2 == null || pl1 == null
                 || flash == null) {
             LOG.warn("BattleSprites: modular mech layers incomplete; mechs fall back to plain markers");
             return;
         }
         layeredMechSprites = new LayeredMechAssets(chassis, socketedChassis,
                 houndChassis, wardenChassis, foot, thighBone, arm, hc10, hc20,
-                srm, lrm, shoulderLaser, pulseLaserArm, ac6,
+                srm, lrm, ll3, pl2Ap, ac6,
                 dc5, thermalLance, ac6Qs,
-                dc4Qs, srm3QsPod, lightMachineGun, lightPulseLaser,
-                burstLaser, pdLaser, heavyPdLaser,
-                mediumBurstLaser, lightBurstLaser, flash);
+                dc4Qs, srm3QsPod, lightMachineGun, bl1,
+                pl3, bl2, pl3Sweep,
+                pl2, pl1, flash);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
         for (TurretMountStyle style : TurretMountStyle.values()) {
             LayeredSpriteCache ring = loadLayeredSprite("graphics/battle/vehicles/" + style.ringTexture);
@@ -1410,8 +1410,8 @@ public class BattleSprites {
         LayeredSpriteCache hc20 = loadLayeredSprite(root + "hc-20.png");
         LayeredSpriteCache srm = loadLayeredSprite(root + "srm-rack.png");
         LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-rack.png");
-        LayeredSpriteCache shoulderLaser = loadLayeredSprite(root + "shoulder-laser-cannon.png");
-        LayeredSpriteCache pulseLaserArm = loadLayeredSprite(root + "pulse-laser-arm.png");
+        LayeredSpriteCache ll3 = loadLayeredSprite(root + "ll-3.png");
+        LayeredSpriteCache pl2Ap = loadLayeredSprite(root + "pl-2-ap.png");
         LayeredSpriteCache ac6 = loadLayeredSprite(
                 root + "ac-6.png");
         LayeredSpriteCache dc5 = loadLayeredSprite(
@@ -1424,21 +1424,21 @@ public class BattleSprites {
         LayeredSpriteCache srm3QsPod = loadLayeredSprite(
                 root + "srm-3-qs.png");
         LayeredSpriteCache lightMachineGun = loadLayeredSprite(root + "light-machine-gun.png");
-        LayeredSpriteCache lightPulseLaser = loadLayeredSprite(root + "light-pulse-laser.png");
-        LayeredSpriteCache burstLaser = loadLayeredSprite(root + "burst-laser.png");
-        LayeredSpriteCache pdLaser = loadLayeredSprite(root + "pd-laser.png");
-        LayeredSpriteCache heavyPdLaser = loadLayeredSprite(root + "heavy-pd-laser.png");
-        LayeredSpriteCache mediumBurstLaser = loadLayeredSprite(root + "medium-burst-laser.png");
-        LayeredSpriteCache lightBurstLaser = loadLayeredSprite(root + "light-burst-laser.png");
+        LayeredSpriteCache bl1 = loadLayeredSprite(root + "bl-1.png");
+        LayeredSpriteCache pl3 = loadLayeredSprite(root + "pl-3.png");
+        LayeredSpriteCache bl2 = loadLayeredSprite(root + "bl-2.png");
+        LayeredSpriteCache pl3Sweep = loadLayeredSprite(root + "pl-3-sweep.png");
+        LayeredSpriteCache pl2 = loadLayeredSprite(root + "pl-2.png");
+        LayeredSpriteCache pl1 = loadLayeredSprite(root + "pl-1.png");
         if (chassis == null || houndChassis == null || wardenChassis == null
                 || arm == null || hc10 == null || hc20 == null
-                || srm == null || lrm == null || shoulderLaser == null
-                || pulseLaserArm == null || ac6 == null
+                || srm == null || lrm == null || ll3 == null
+                || pl2Ap == null || ac6 == null
                 || dc5 == null || thermalLance == null
                 || ac6Qs == null || dc4Qs == null
                 || srm3QsPod == null || lightMachineGun == null
-                || lightPulseLaser == null || burstLaser == null
-                || pdLaser == null || heavyPdLaser == null || mediumBurstLaser == null || lightBurstLaser == null) {
+                || bl1 == null || pl3 == null
+                || bl2 == null || pl3Sweep == null || pl2 == null || pl1 == null) {
             LOG.warn("BattleSprites: modular mech livery " + livery
                     + " incomplete; actors using it keep the complete base set");
             return;
@@ -1446,11 +1446,11 @@ public class BattleSprites {
         layeredMechLiveries.put(livery, new LayeredMechAssets(
                 chassis, socketedChassis, houndChassis, wardenChassis,
                 foot, thighBone, arm, hc10, hc20,
-                srm, lrm, shoulderLaser, pulseLaserArm, ac6,
+                srm, lrm, ll3, pl2Ap, ac6,
                 dc5, thermalLance, ac6Qs,
-                dc4Qs, srm3QsPod, lightMachineGun, lightPulseLaser,
-                burstLaser, pdLaser, heavyPdLaser,
-                mediumBurstLaser, lightBurstLaser, flash));
+                dc4Qs, srm3QsPod, lightMachineGun, bl1,
+                pl3, bl2, pl3Sweep,
+                pl2, pl1, flash));
     }
 
     private void loadLayeredFamilyAt(LayeredArmorFamily familyId, String familyRoot,

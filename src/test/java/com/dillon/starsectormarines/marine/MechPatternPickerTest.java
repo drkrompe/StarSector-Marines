@@ -50,7 +50,7 @@ class MechPatternPickerTest {
         assertEquals(MechPattern.offerable().size(), drawn.size());
 
         Set<String> held = Set.of(MechPattern.of(MechVariant.BULWARK).id(),
-                MechPattern.of(MechWeaponComponent.PULSE_LASER).id());
+                MechPattern.of(MechWeaponComponent.PL_2_AP).id());
         List<String> remaining = MechPatternPicker.pick("tritachyon",
                 FactionEquipmentSource.PATRON, 100, 7L, held, VETERAN);
         assertTrue(remaining.stream().noneMatch(held::contains));
@@ -84,9 +84,9 @@ class MechPatternPickerTest {
                 > MechPatternPicker.weight("independent", lance));
         assertEquals(MechPatternPicker.BASE_WEIGHT, MechPatternPicker.weight(null, lance));
         assertTrue(MechPatternPicker.weight("tritachyon",
-                MechPattern.of(MechWeaponComponent.SHOULDER_LASER_CANNON))
+                MechPattern.of(MechWeaponComponent.LL_3))
                 > MechPatternPicker.weight("hegemony",
-                MechPattern.of(MechWeaponComponent.SHOULDER_LASER_CANNON)));
+                MechPattern.of(MechWeaponComponent.LL_3)));
     }
 
     @Test

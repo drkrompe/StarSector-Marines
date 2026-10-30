@@ -185,7 +185,7 @@ def mech_parts(text, registry_ids):
     enum_body = src[src.index("public enum MechWeaponComponent {"):src.index("public static boolean missileVariants()")]
     # The lever-chosen ids: Variants.srm()/lrm() and PdBeam.lightPd()/pd() with their levers on (the shipped default).
     levers = {"Variants.srm()": "MECH_SRM_ID", "Variants.lrm()": "MECH_LRM_ID",
-              "PdBeam.lightPd()": "MECH_LIGHT_PULSE_LASER_ID", "PdBeam.pd()": "MECH_PD_LASER_ID"}
+              "PdBeam.lightPd()": "MECH_BL_1_ID", "PdBeam.pd()": "MECH_BL_2_ID"}
     flux_consts = {name: float(value) for name, value in re.findall(
         r'static final float (\w+) = Float\.parseFloat\(\s*System\.getProperty\("[^"]+",\s*"([\d.]+)"\)\)', src)}
 

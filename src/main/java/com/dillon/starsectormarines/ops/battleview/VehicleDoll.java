@@ -88,7 +88,7 @@ final class VehicleDoll {
             case CANNON -> "hc-20";
             case SMALL -> "light-machine-gun";
             case MORTAR -> "vehicle-turret-mortar";
-            case LASER -> "shoulder-laser";
+            case LASER -> "ll-3";
             case LRM -> "lrm-5";
         };
     }
@@ -101,7 +101,7 @@ final class VehicleDoll {
     private static String gunArt(VehicleType type) {
         return switch (type.turretStructureId == null ? "" : type.turretStructureId) {
             case TurretCatalogRegistry.VEHICLE_SRM_STRUCTURE_ID -> "vehicle-srm-5";
-            case TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID -> "light-pulse-laser";
+            case TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID -> "bl-1";
             default -> gunArt(VehicleGunCard.of(type));
         };
     }
@@ -115,7 +115,7 @@ final class VehicleDoll {
                 "boat-hold-standard", "vehicle-bay-supply", "vehicle-bay-drones",
                 "vehicle-systems-blade", "vehicle-systems-mast", "vehicle-systems-secondary"));
         for (VehicleGunCard gun : VehicleGunCard.values()) if (!stems.contains(gunArt(gun))) stems.add(gunArt(gun));
-        stems.addAll(List.of("vehicle-srm-5", "light-pulse-laser"));
+        stems.addAll(List.of("vehicle-srm-5", "bl-1"));
         return List.copyOf(stems);
     }
 

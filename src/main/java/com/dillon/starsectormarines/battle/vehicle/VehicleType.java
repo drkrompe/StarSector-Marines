@@ -552,12 +552,12 @@ public enum VehicleType {
 
     /**
      * The part a spawn that names none fits, for the scenes, missions and fixtures that field a hull as a stock unit: the
-     * laser tank's heavy burst laser, the Onager's heavy cannon; a fixed hull's own gun. A spawn that names its card as
+     * laser tank's PL-3, the Onager's heavy cannon; a fixed hull's own gun. A spawn that names its card as
      * empty is not this one, and fields the bare ring.
      */
     public MechWeaponComponent standardPart() {
         return switch (this) {
-            case LASER_TANK -> MechWeaponComponent.BURST_LASER;
+            case LASER_TANK -> MechWeaponComponent.PL_3;
             case BREAKTHROUGH_TANK -> MechWeaponComponent.HC_20;
             default -> ownGun();
         };

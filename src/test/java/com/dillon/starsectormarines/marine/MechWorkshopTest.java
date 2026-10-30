@@ -68,13 +68,13 @@ class MechWorkshopTest {
         TestPurse resources = TestPurse.rich().reclaiming(Reclamation.MACHINERY);
         MechWorkshop workshop = new MechWorkshop(bay, resources);
         long before = resources.credits;
-        FabricationCost bill = workshop.weaponQuote(MechWeaponComponent.PULSE_LASER);
+        FabricationCost bill = workshop.weaponQuote(MechWeaponComponent.PL_2_AP);
 
         MechWorkshop.Result result = workshop.fitWeapon(MechBay.STARTER_MECH_ID,
-                MechMountSlot.LEFT_ARM, MechWeaponComponent.PULSE_LASER);
+                MechMountSlot.LEFT_ARM, MechWeaponComponent.PL_2_AP);
 
         assertEquals(MechWorkshop.Status.FABRICATED_AND_INSTALLED, result.status());
-        assertEquals(MechWeaponComponent.PULSE_LASER,
+        assertEquals(MechWeaponComponent.PL_2_AP,
                 bay.mechById(MechBay.STARTER_MECH_ID).leftArm());
         assertEquals(before - bill.credits(), resources.credits);
         assertEquals(1, bay.availableWeapon(MechWeaponComponent.CHAINGUN.id));
@@ -87,14 +87,14 @@ class MechWorkshopTest {
         MechWorkshop workshop = new MechWorkshop(bay, resources);
 
         MechWorkshop.Result result = workshop.fitWeapon(MechBay.STARTER_MECH_ID,
-                MechMountSlot.LEFT_ARM, MechWeaponComponent.PULSE_LASER);
+                MechMountSlot.LEFT_ARM, MechWeaponComponent.PL_2_AP);
 
         assertEquals(MechWorkshop.Status.INSUFFICIENT_MATERIALS, result.status());
         assertEquals(MechWeaponComponent.CHAINGUN,
                 bay.mechById(MechBay.STARTER_MECH_ID).leftArm());
         assertEquals(5, resources.credits);
         assertEquals(0, resources.spends);
-        assertEquals(0, bay.ownedWeapon(MechWeaponComponent.PULSE_LASER.id));
+        assertEquals(0, bay.ownedWeapon(MechWeaponComponent.PL_2_AP.id));
     }
 
     @Test
@@ -175,9 +175,9 @@ class MechWorkshopTest {
         long before = purse.credits;
 
         purse.away();
-        assertEquals(MechWorkshop.Status.NO_MARKET, workshop.fabricateWeapon(MechWeaponComponent.PULSE_LASER).status());
+        assertEquals(MechWorkshop.Status.NO_MARKET, workshop.fabricateWeapon(MechWeaponComponent.PL_2_AP).status());
         assertEquals(MechWorkshop.Status.NO_MARKET, workshop.fitWeapon(MechBay.STARTER_MECH_ID,
-                MechMountSlot.LEFT_ARM, MechWeaponComponent.PULSE_LASER).status());
+                MechMountSlot.LEFT_ARM, MechWeaponComponent.PL_2_AP).status());
         assertEquals(MechWorkshop.Status.NO_MARKET,
                 new MechWorkshop(new MechBay(), purse).fabricateChassis(MechBay.STARTER_SQUAD_ID, MechVariant.HOUND).status());
         assertEquals(before, purse.credits);

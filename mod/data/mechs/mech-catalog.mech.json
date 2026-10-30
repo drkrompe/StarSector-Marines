@@ -51,10 +51,10 @@
       "description": "@gearCatalogComponentMechHc20Description"
     },
     {
-      "component": "component.mech-pulse-laser",
+      "component": "component.mech-pl-2-ap",
       "factionLogo": "graphics/factions/tritachyon.png",
-      "designation": "MPL",
-      "description": "@gearCatalogComponentMechPulseLaserDescription"
+      "designation": "PL-2 (AP)",
+      "description": "@gearCatalogComponentMechPl2ApDescription"
     },
     {
       "component": "component.mech-ac-6",
@@ -129,10 +129,10 @@
       "description": "@gearCatalogComponentMechLrm15FragDescription"
     },
     {
-      "component": "component.mech-shoulder-laser",
+      "component": "component.mech-ll-3",
       "factionLogo": "graphics/factions/tritachyon.png",
-      "designation": "SLC",
-      "description": "@gearCatalogComponentMechShoulderLaserDescription"
+      "designation": "LL-3",
+      "description": "@gearCatalogComponentMechLl3Description"
     },
     {
       "component": "component.mech-thermal-lance",
@@ -153,40 +153,40 @@
       "description": "@gearCatalogComponentMechLightMgDescription"
     },
     {
-      "component": "component.mech-light-pulse-laser",
+      "component": "component.mech-bl-1",
       "factionLogo": "graphics/factions/tritachyon.png",
-      "designation": "LPL-1",
-      "description": "@gearCatalogComponentMechLightPulseLaserDescription"
+      "designation": "BL-1",
+      "description": "@gearCatalogComponentMechBl1Description"
     },
     {
-      "component": "component.mech-burst-laser",
+      "component": "component.mech-pl-3",
       "factionLogo": "graphics/factions/tritachyon.png",
-      "designation": "TBL-3",
-      "description": "@gearCatalogComponentMechBurstLaserDescription"
+      "designation": "PL-3",
+      "description": "@gearCatalogComponentMechPl3Description"
     },
     {
-      "component": "component.mech-pd-laser",
+      "component": "component.mech-bl-2",
       "factionLogo": "graphics/factions/neutral_traders.png",
-      "designation": "PDL-2",
-      "description": "@gearCatalogComponentMechPdLaserDescription"
+      "designation": "BL-2",
+      "description": "@gearCatalogComponentMechBl2Description"
     },
     {
-      "component": "component.mech-heavy-pd-laser",
+      "component": "component.mech-pl-3-sweep",
       "factionLogo": "graphics/factions/neutral_traders.png",
-      "designation": "PDL-3",
-      "description": "@gearCatalogComponentMechHeavyPdLaserDescription"
+      "designation": "PL-3 (Sweep)",
+      "description": "@gearCatalogComponentMechPl3SweepDescription"
     },
     {
-      "component": "component.mech-medium-burst-laser",
+      "component": "component.mech-pl-2",
       "factionLogo": "graphics/factions/tritachyon.png",
-      "designation": "TBL-2",
-      "description": "@gearCatalogComponentMechMediumBurstLaserDescription"
+      "designation": "PL-2",
+      "description": "@gearCatalogComponentMechPl2Description"
     },
     {
-      "component": "component.mech-light-burst-laser",
+      "component": "component.mech-pl-1",
       "factionLogo": "graphics/factions/tritachyon.png",
-      "designation": "TBL-1",
-      "description": "@gearCatalogComponentMechLightBurstLaserDescription"
+      "designation": "PL-1",
+      "description": "@gearCatalogComponentMechPl1Description"
     }
   ]
 }

@@ -65,8 +65,8 @@ def rows(doc=None, enums=None, station_list=None):
 
 def load_state(path):
     """The page state from an ArtifactData out_dir file (kits/state.json: {"json": "<state>", "at": ...}),
-    or a bare state object, or a kits.json the page's Download button wrote. Special ids the game has since renamed
-    (kitdata.RETIRED_SPECIALS) are read as their current ids."""
+    or a bare state object, or a kits.json the page's Download button wrote. Special ids and machine pattern page ids the
+    game has since renamed (kitdata.RETIRED_SPECIALS, kitdata.RETIRED_PAGE_IDS) are read as their current ids."""
     return translate_retired(_load_state(path))
 
 
@@ -76,7 +76,26 @@ def translate_retired(state):
             for f in ("special", "belt"):
                 if m.get(f) in kitdata.RETIRED_SPECIALS:
                     m[f] = kitdata.RETIRED_SPECIALS[m[f]]
+    if state.get("place"):
+        state["place"] = {kitdata.current_key(key): station for key, station in state["place"].items()}
     return state
+
+
+def translate_base(base):
+    """A published page's manifest with renamed page ids and clip ids read as their current ids (kitdata.current_key)."""
+    if not base:
+        return base
+    out = {}
+    for field, table in base.items():
+        if not isinstance(table, dict):
+            out[field] = table
+            continue
+        out[field] = {kitdata.current_key(key): value for key, value in table.items()}
+        if field == "clips":
+            for clip in out[field].values():
+                if isinstance(clip, dict) and clip.get("weaponId") in kitdata.RETIRED_WEAPONS:
+                    clip["weaponId"] = kitdata.RETIRED_WEAPONS[clip["weaponId"]]
+    return out
 
 
 def _load_state(path):
@@ -368,9 +387,10 @@ def game(reel_index=None):
 
 
 def load_base(page=None):
-    """The published page's manifest: from a page HTML when given, else the tracked review/published.json, else None."""
+    """The published page's manifest: from a page HTML when given, else the tracked review/published.json, else None.
+    Ids renamed since it was published are read as their successors (translate_base)."""
     if page:
-        return manifest(page_data(read(page)))
+        return translate_base(manifest(page_data(read(page))))
     if PUBLISHED.exists():
-        return json.loads(read(PUBLISHED))
+        return translate_base(json.loads(read(PUBLISHED)))
     return None

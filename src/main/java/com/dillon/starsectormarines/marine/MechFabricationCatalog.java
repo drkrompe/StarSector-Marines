@@ -26,7 +26,7 @@ public final class MechFabricationCatalog {
             weapon(MechWeaponComponent.CHAINGUN_HF, "@gearFabricationMilitaryPattern"),
             weapon(MechWeaponComponent.HC_10, "@gearFabricationMilitaryPattern"),
             weapon(MechWeaponComponent.HC_20, "@gearFabricationMilitaryPattern"),
-            weapon(MechWeaponComponent.PULSE_LASER, "@gearFabricationTriTachyonPattern"),
+            weapon(MechWeaponComponent.PL_2_AP, "@gearFabricationTriTachyonPattern"),
             weapon(MechWeaponComponent.AC_6, "@gearFabricationHegemonyPattern"),
             weapon(MechWeaponComponent.DC_5, "@gearFabricationPatherConversion"),
             weapon(MechWeaponComponent.AC_6_QS, "@gearFabricationCommonMarket"),
@@ -39,16 +39,16 @@ public final class MechFabricationCatalog {
             weapon(MechWeaponComponent.SRM_15_FRAG, "@gearFabricationStandardIssue"),
             weapon(MechWeaponComponent.LRM_5_FRAG, "@gearFabricationStandardIssue"),
             weapon(MechWeaponComponent.LRM_15_FRAG, "@gearFabricationStandardIssue"),
-            weapon(MechWeaponComponent.SHOULDER_LASER_CANNON, "@gearFabricationTriTachyonPattern"),
+            weapon(MechWeaponComponent.LL_3, "@gearFabricationTriTachyonPattern"),
             weapon(MechWeaponComponent.THERMAL_LANCE, "@gearFabricationLionsGuardPattern"),
             weapon(MechWeaponComponent.SRM_3_QS, "@gearFabricationCommonMarket"),
             weapon(MechWeaponComponent.LIGHT_MACHINE_GUN, "@gearFabricationCommonMarket"),
-            weapon(MechWeaponComponent.LIGHT_PULSE_LASER, "@gearFabricationTriTachyonPattern"),
-            weapon(MechWeaponComponent.BURST_LASER, "@gearFabricationTriTachyonPattern"),
-            weapon(MechWeaponComponent.PD_LASER, "@gearFabricationMilitaryPattern"),
-            weapon(MechWeaponComponent.HEAVY_PD_LASER, "@gearFabricationMilitaryPattern"),
-            weapon(MechWeaponComponent.MEDIUM_BURST_LASER, "@gearFabricationTriTachyonPattern"),
-            weapon(MechWeaponComponent.LIGHT_BURST_LASER, "@gearFabricationTriTachyonPattern"));
+            weapon(MechWeaponComponent.BL_1, "@gearFabricationTriTachyonPattern"),
+            weapon(MechWeaponComponent.PL_3, "@gearFabricationTriTachyonPattern"),
+            weapon(MechWeaponComponent.BL_2, "@gearFabricationMilitaryPattern"),
+            weapon(MechWeaponComponent.PL_3_SWEEP, "@gearFabricationMilitaryPattern"),
+            weapon(MechWeaponComponent.PL_2, "@gearFabricationTriTachyonPattern"),
+            weapon(MechWeaponComponent.PL_1, "@gearFabricationTriTachyonPattern"));
 
     private static final List<Recipe> CHASSIS = List.of(
             chassis(MechVariant.HOUND, "@gearFabricationLightChassisStandardFit", 21510),

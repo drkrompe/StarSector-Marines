@@ -16,8 +16,8 @@ public final class LayeredMechAssets {
     public final LayeredSpriteCache hc20;
     public final LayeredSpriteCache srmPod;
     public final LayeredSpriteCache lrmPod;
-    public final LayeredSpriteCache shoulderLaser;
-    public final LayeredSpriteCache pulseLaserArm;
+    public final LayeredSpriteCache ll3;
+    public final LayeredSpriteCache pl2Ap;
     public final LayeredSpriteCache ac6;
     public final LayeredSpriteCache dc5;
     public final LayeredSpriteCache thermalLance;
@@ -25,12 +25,12 @@ public final class LayeredMechAssets {
     public final LayeredSpriteCache dc4Qs;
     public final LayeredSpriteCache srm3QsPod;
     public final LayeredSpriteCache lightMachineGun;
-    public final LayeredSpriteCache lightPulseLaser;
-    public final LayeredSpriteCache burstLaser;
-    public final LayeredSpriteCache pdLaser;
-    public final LayeredSpriteCache heavyPdLaser;
-    public final LayeredSpriteCache mediumBurstLaser;
-    public final LayeredSpriteCache lightBurstLaser;
+    public final LayeredSpriteCache bl1;
+    public final LayeredSpriteCache pl3;
+    public final LayeredSpriteCache bl2;
+    public final LayeredSpriteCache pl3Sweep;
+    public final LayeredSpriteCache pl2;
+    public final LayeredSpriteCache pl1;
     public final LayeredSpriteCache muzzleFlash;
 
     public LayeredMechAssets(LayeredSpriteCache chassis, LayeredSpriteCache socketedChassis,
@@ -41,8 +41,8 @@ public final class LayeredMechAssets {
                              LayeredSpriteCache hc10, LayeredSpriteCache hc20,
                              LayeredSpriteCache srmPod,
                              LayeredSpriteCache lrmPod,
-                             LayeredSpriteCache shoulderLaser,
-                             LayeredSpriteCache pulseLaserArm,
+                             LayeredSpriteCache ll3,
+                             LayeredSpriteCache pl2Ap,
                              LayeredSpriteCache ac6,
                              LayeredSpriteCache dc5,
                              LayeredSpriteCache thermalLance,
@@ -50,12 +50,12 @@ public final class LayeredMechAssets {
                              LayeredSpriteCache dc4Qs,
                              LayeredSpriteCache srm3QsPod,
                              LayeredSpriteCache lightMachineGun,
-                             LayeredSpriteCache lightPulseLaser,
-                             LayeredSpriteCache burstLaser,
-                             LayeredSpriteCache pdLaser,
-                             LayeredSpriteCache heavyPdLaser,
-                             LayeredSpriteCache mediumBurstLaser,
-                             LayeredSpriteCache lightBurstLaser,
+                             LayeredSpriteCache bl1,
+                             LayeredSpriteCache pl3,
+                             LayeredSpriteCache bl2,
+                             LayeredSpriteCache pl3Sweep,
+                             LayeredSpriteCache pl2,
+                             LayeredSpriteCache pl1,
                              LayeredSpriteCache muzzleFlash) {
         this.chassis = chassis;
         this.socketedChassis = socketedChassis;
@@ -68,8 +68,8 @@ public final class LayeredMechAssets {
         this.hc20 = hc20;
         this.srmPod = srmPod;
         this.lrmPod = lrmPod;
-        this.shoulderLaser = shoulderLaser;
-        this.pulseLaserArm = pulseLaserArm;
+        this.ll3 = ll3;
+        this.pl2Ap = pl2Ap;
         this.ac6 = ac6;
         this.dc5 = dc5;
         this.thermalLance = thermalLance;
@@ -77,12 +77,12 @@ public final class LayeredMechAssets {
         this.dc4Qs = dc4Qs;
         this.srm3QsPod = srm3QsPod;
         this.lightMachineGun = lightMachineGun;
-        this.lightPulseLaser = lightPulseLaser;
-        this.burstLaser = burstLaser;
-        this.pdLaser = pdLaser;
-        this.heavyPdLaser = heavyPdLaser;
-        this.mediumBurstLaser = mediumBurstLaser;
-        this.lightBurstLaser = lightBurstLaser;
+        this.bl1 = bl1;
+        this.pl3 = pl3;
+        this.bl2 = bl2;
+        this.pl3Sweep = pl3Sweep;
+        this.pl2 = pl2;
+        this.pl1 = pl1;
         this.muzzleFlash = muzzleFlash;
     }
 
@@ -94,9 +94,9 @@ public final class LayeredMechAssets {
     public List<LayeredSpriteCache> layers() {
         return Arrays.asList(chassis, socketedChassis, houndChassis, wardenChassis,
                 foot, thighBone, chaingunArm, hc10, hc20, srmPod, lrmPod,
-                shoulderLaser, pulseLaserArm, ac6, dc5,
+                ll3, pl2Ap, ac6, dc5,
                 thermalLance, ac6Qs, dc4Qs, srm3QsPod,
-                lightMachineGun, lightPulseLaser, burstLaser, pdLaser, heavyPdLaser, mediumBurstLaser,
-                lightBurstLaser, muzzleFlash);
+                lightMachineGun, bl1, pl3, bl2, pl3Sweep, pl2,
+                pl1, muzzleFlash);
     }
 }

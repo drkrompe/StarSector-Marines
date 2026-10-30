@@ -49,7 +49,7 @@ public final class TurretCatalogRegistry {
     public static final String HEAVY_MG_STRUCTURE_ID = "structure.turret-heavy-mg";
     /** A boat's twin pulse laser: the hover scout's emitter on a door ring. Fires on flux, no magazine. */
     public static final String BOAT_PULSE_STRUCTURE_ID = "structure.boat-pulse";
-    /** A boat's burst laser: the laser tank's emitter, small enough for a door ring; it tracks fliers. */
+    /** A boat's PL-3 pulse laser: the laser tank's emitter, small enough for a door ring; it tracks fliers. */
     public static final String BOAT_BURST_LASER_STRUCTURE_ID = "structure.boat-burst-laser";
     /** A boat's SRM-15: three salvos of five a sortie, a hard opening strike on the run in. */
     public static final String BOAT_SRM_STRUCTURE_ID = "structure.boat-srm";
@@ -57,7 +57,7 @@ public final class TurretCatalogRegistry {
     public static final String BOAT_LRM_STRUCTURE_ID = "structure.boat-lrm";
 
     public static final String TANK_CANNON_STRUCTURE_ID = "structure.tank-twin-cannon";
-    /** The laser tank's burst laser: a starship's point-defence emitter turned on the ground. */
+    /** The laser tank's PL-3 pulse laser: a starship's point-defence emitter turned on the ground. */
     public static final String TANK_BURST_LASER_STRUCTURE_ID = "structure.tank-burst-laser";
     /** The PD laser tank's emitter: the plain PD laser, a steady lance where the burst laser fires in bursts. */
     /** The hover scout's twin pulse emitter, a vehicle mount of the Wisp drone-emitter family. */

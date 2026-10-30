@@ -1004,7 +1004,7 @@ public final class MechBay implements Serializable {
         // a mech still holding one falls back to its chassis's stock weapon (CampaignMech.resolve).
         ownedWeapons.keySet().removeIf(id -> MechWeaponComponent.findById(id) == null);
         knownPatternIds.removeIf(id -> id.startsWith(MechPattern.PREFIX + "weapon:") && MechPattern.parse(id) == null);
-        // A renamed weapon (the cannons before their <Family>-<N> names, the linear cannon now the HC-10) is carried
+        // A renamed weapon (the cannons and lasers before their <Family>-<N> names, the linear cannon now the HC-10) is carried
         // over to its successor's id in stores and patterns; a mech's fitted id resolves the same way (findById).
         migrateRenamedWeapons();
         squads.removeIf(squad -> squad == null);

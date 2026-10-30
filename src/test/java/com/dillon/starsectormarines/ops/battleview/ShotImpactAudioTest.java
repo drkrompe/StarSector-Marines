@@ -14,7 +14,7 @@ class ShotImpactAudioTest {
 
     @Test
     void authoredShoulderLaserImpactCuePlaysAtItsTerminalStop() {
-        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID);
+        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_LL_3_ID);
         ShotEvent impact = shot(laser, BallisticResolver.StopKind.WALL);
 
         ShotImpactAudio.Cue cue = ShotImpactAudio.resolve(impact, "fallback-explosion");
@@ -25,7 +25,7 @@ class ShotImpactAudioTest {
 
     @Test
     void overshootingPenetrativeBeamDoesNotManufactureAnImpactCue() {
-        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID);
+        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_LL_3_ID);
 
         assertNull(ShotImpactAudio.resolve(
                 shot(laser, BallisticResolver.StopKind.OVERSHOOT), "fallback-explosion"));

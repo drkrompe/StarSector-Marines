@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Sweep)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -45,11 +45,11 @@ increasing an encounter's total armored threat.
   The arm positions come in two shapes, and a chassis has one or the other:
   a **centreline arm mount** (`ARMS`, the gun under the Hound's nose, a 2x2
   ballistic socket, or the Warden's chin, a 2x3 omni socket that also takes the
-  energy parts, the heavy lasers among them, owner, 2026-10-29) or a **left and a right arm mount** (`LEFT_ARM`,
+  energy parts, the three-row PL lasers among them, owner, 2026-10-29) or a **left and a right arm mount** (`LEFT_ARM`,
   `RIGHT_ARM`, the Bulwark's two arms, each with its own gun). Every arm gun is
   one gun: there is no paired or "dual" component, because a pair is two arm
   mounts, each fitted, damaged, lost and fired on its own. A gun whose art only
-  reads on the centreline (the HC-20, the DC-5 and DC-4 (QS), the heavy lasers)
+  reads on the centreline (the HC-20, the DC-5 and DC-4 (QS), the PL-3 and PL-3 (Sweep))
   fits only a centreline mount; the other arm guns, the HC-10 among them, fit any arm
   mount. A weapon's **presentation** (its drawing, Mech Lab icon, muzzle and kick)
   is resolved from the mount it sits in, never by a second component
@@ -101,7 +101,7 @@ increasing an encounter's total armored threat.
   round off a mount is drawn red-orange with a longer, glowing streak
   (`render.tracerEvery`, `submod-catalog-contract.md`); the stock gun's rounds are
   all plain (owner, 2026-10-30).
-- A **beam weapon** (the light PD laser and the PD laser; owner, 2026-10-30) is the
+- A **beam weapon** (the BL-1 and BL-2 beam lasers; owner, 2026-10-30) is the
   energy counterpart of a rotary gun: it fires while its trigger is held, a
   continuous lance from the drawn muzzle that tracks the cursor (a pilot's) or the
   leased target (the AI's), and stops on release. It is the same held-trigger feed
@@ -111,7 +111,7 @@ increasing an encounter's total armored threat.
   beam's **flux a second** to the one reservoir, a mech's or a vehicle's hull bank.
   The lance **crawls** rather than jumps (owner, 2026-10-30): its aim offset is one
   continuous **wander** path per mount (`BeamWander`, `sim.beam.wanderPeriod` and
-  `wanderAmplitude`: 0.8 s for the light PD laser, 1.0 s for the PD laser, amplitude
+  `wanderAmplitude`: 0.8 s for the BL-1, 1.0 s for the BL-2, amplitude
   1), smooth noise between knots a period of beam time apart, and every pulse reads
   the path where it stands instead of drawing a fresh offset. Over a hold the path
   spends exactly the per-pulse budget (its share is uniform, so the same hit chance,
@@ -124,7 +124,7 @@ increasing an encounter's total armored threat.
   facing's aim point. The path advances one pulse spacing per pulse fired, so a released trigger
   freezes it and the next press resumes where the last lance left off; it is seeded
   once from the battle's stream and hashed thereafter. Arm, nose and turret share
-  it; air fire and the heavy PD laser do not crawl. `-Dbattle.mech.pdBeamWander=false`
+  it; air fire and the PL-3 (Sweep) do not crawl. `-Dbattle.mech.pdBeamWander=false`
   is the control: each pulse aims afresh.
   Nothing counts down: flux is the only limit, so the reservoir's own gates stop a
   held beam as a dry belt stops a chaingun (a pilot's beam vents at 95 and waits
@@ -135,15 +135,15 @@ increasing an encounter's total armored threat.
   hold at 75 and a missile salvo's 40 still fits under the AI's 90. Its rated rate,
   the figure estimates and sheets read, is what the stock frame can pay for over a
   thirty-second engagement from cool (half the reservoir plus thirty seconds of
-  dissipation). The light PD laser is weak against plate (penetration 2: under a
+  dissipation). The BL-1 is weak against plate (penetration 2: under a
   quarter of a Hound's 14, an armor efficiency of about 0.23 against it and 0.15
-  against the dozer's 38, full against militia and most infantry plate); the PD
-  laser bites harder (penetration 5, about 0.42 against a Hound, 0.35 against a
-  Bulwark or tank) for more flux a second. Both keep their point-defence role: they
+  against the dozer's 38, full against militia and most infantry plate); the BL-2
+  bites harder (penetration 5, about 0.42 against a Hound, 0.35 against a
+  Bulwark or tank) for more flux a second. Both keep a point-defence role against fliers: they
   track fliers (`tracksFliers`), so drones and light craft overhead are engaged by
   the same lease, measured the same way; neither intercepts missiles, which stays
-  the hull-borne point-defence mount's job. The heavy PD laser keeps its long lance
-  a pull at a time. A beam is presented as any arm gun: its drawing, muzzle
+  the hull-borne point-defence mount's job, so a beam is never called a PD laser. The PL-3 (Sweep) keeps its long
+  stream of pulses a pull at a time. A beam is presented as any arm gun: its drawing, muzzle
   (`MechHardpointGeometry`) and mount rules (side arm, centreline nose, vehicle
   turret ring by `VehicleGunArt`) are its component's, and its pulses are drawn as
   one lance (a grained `render.beam` whose life just outlasts a pulse's spacing)
@@ -153,15 +153,15 @@ increasing an encounter's total armored threat.
   `loopPitchDrop`): full for at least 0.15 s, then a cosine fade with the pitch
   sagging, like a coil or capacitor spinning down (owner, 2026-10-30). A pulse in
   the tail carries the same tone back up with no new intro clip; past it, the next
-  pulse is a new lance. Burst and pulse lasers ring 0.35-0.55 s, the PD beams bleed
-  0.35-0.45 s, and the shoulder laser cannon's single 1 s lance is held at full for
+  pulse is a new lance. The PL lasers ring 0.35-0.55 s, the BL beams bleed
+  0.35-0.45 s, and the LL-3's single 1 s lance is held at full for
   its second and spins down over 0.45 s. A weapon with no tail keys keeps the plain
   0.15 s hold; at most 16 weapon tones sound at once.
   The direct-control HUD names it `Beam · hold` with its flux a second and counts
   no load; its sheet reads DPS, PEN, RNG, flux a second and how long it holds alone
   on that frame. `-Dbattle.mech.pdBeam=false` is the control: both fire the pulsed
   bursts they had before.
-- A **burst laser** (light, medium and heavy: two, three and four pulses a
+- A **pulse laser** (the PL-1, PL-2 and PL-3: two, three and four pulses a
   trigger) is not a rotary gun but fires like one in miniature: a click is a short
   stutter of pulses, each its own beam, muzzle flash and fire tick from the drawn
   muzzle, 0.10, 0.12 and 0.13 s apart, with each beam briefer than the gap so the
@@ -353,8 +353,8 @@ increasing an encounter's total armored threat.
   columns wide and as tall as its hull's size class, and locked to a hardpoint type where the hull is a specialist
   (`vehicle-card-sizes.md`), and takes the mech weapon parts that fit it by the mech's own rule: the lock's type, if
   any, and a footprint no larger than the card. The small class (the APCs, the dozer, the technicals and the hover
-  scout) is one row and unlocked, an omni card that takes any one-row part: the light machine gun and light pulse
-  laser authored for it (and the light burst laser), the Thermal Lance and the SRM-3 (QS) rack (`SRM_3_QS`). A cannon card takes the heavy
+  scout) is one row and unlocked, an omni card that takes any one-row part: the light machine gun and the BL-1
+  authored for it (and the PL-1), the Thermal Lance and the SRM-3 (QS) rack (`SRM_3_QS`). A cannon card takes the heavy
   cannon, a laser tank's card takes energy weapons. Footprint is the only cap on a weapon's power.
   The hull's own gun is no part: an empty gun card is that gun, drawn as the sealed cards draw it (a modular hull, the laser tank or the Onager, has no own gun: its empty card is a bare turret ring, `vehicle-card-sizes.md`), so a weapon
   is only ever an addition from stores. A machine-gun hull's own gun is the mech light machine gun itself
@@ -862,8 +862,8 @@ increasing an encounter's total armored threat.
 
 The Bulwark is the durable all-band anchor and compatibility control case. Its
 neutral production fit carries a chaingun on each arm and twin anti-armor
-SRM shoulders (Missile warheads). Tri-Tachyon issue replaces them with a rapid pulse laser on
-each arm and the right omni shoulder with a long-cooldown direct laser cannon whose
+SRM shoulders (Missile warheads). Tri-Tachyon issue replaces them with a PL-2 (AP) on
+each arm and the right omni shoulder with an LL-3, a long-cooldown lance laser whose
 lance can pass through one body. Those are explicit faction hardware swaps;
 livery changes only the accepted casing paint of whichever components are
 installed. Hegemony Bulwarks put an AC-6 autocannon (the Bastion) on each
@@ -1079,8 +1079,39 @@ part's description.
 | DC, demolition cannon | DC-5 | 2x2 | Five shells, broad blast and wall damage; centreline only | Advanced, Path issue (the Hound's nose) |
 | | DC-4 (QS) | 2x2 | Four shells, shorter, weaker and less accurate; centreline only | Common market |
 
-The HC-10 took the linear cannon's place: the linear cannon is retired. A save
-holding a renamed or retired id carries it to its successor
+The HC-10 took the linear cannon's place: the linear cannon is retired.
+
+**A laser's family is how it fires and its number is its size** (owner,
+2026-10-30): `<N>` is the footprint's rows (1, 2 or 3), and what the laser is
+for lives in its description, never in its name. **BL**, a beam laser, fires
+while the trigger is held (Beam weapons); **PL**, a pulse laser, fires a burst of
+spaced pulses a trigger (Pulse lasers); **LL**, a lance laser, fires one heavy
+lance a trigger. Two pulse lasers share a size with a standard PL, and a moniker
+tells them apart by the same rule as `(QS)` and `(Frag)`: **a PL moniker marks a
+pulse laser of that size built for one job**, `(AP)` fewer, harder pulses that
+pierce plate, `(Sweep)` a long stream of light pulses for infantry and fliers.
+None of them is called a PD laser: none shoots down a missile.
+
+| Family | Part | Footprint | What it is |
+| --- | --- | --- | --- |
+| BL, beam laser | BL-1 | 2x1 | A thin held beam that shreds drones, fliers and men in the open; weak against plate |
+| | BL-2 | 2x2 | A held beam that bites light plate, still tracks fliers |
+| PL, pulse laser | PL-1 | 2x1 | Two pulses and a vent |
+| | PL-2 | 2x2 | Three pulses and a vent |
+| | PL-3 | 2x3 | Four heavy pulses, then a long vent; the laser tank's white head; centreline only |
+| | PL-2 (AP) | 2x2 | Eight hard pulses that pierce plate (penetration 9), the longest pulse-laser reach; Tri-Tachyon Prestige |
+| | PL-3 (Sweep) | 2x3 | Fourteen light pulses (penetration 2) a pull, cool enough to repeat; the laser tank's red head; centreline only |
+| LL, lance laser | LL-3 | 2x3 shoulder | One heavy lance through a body, contact burn and wall damage, a 7 s cycle; the Lance Cannon in lore |
+
+The Thermal Lance is not a laser and keeps its name: its lore, drawing and sound
+make it a thermal projector (Lion's Brand, a fuel-cell heat lance whose impact
+burns, fired with a plasma cannon's report), so it stands outside the laser
+families as the chainguns stand outside the cannons. The hull-borne PL-3 (the
+laser tank's turret, the shuttle's door gun) carries the part's name; the
+emplacement lasers, the Laser Hardpoint, the drone Halo laser and the hover scout's
+twin pulse emitter are their own guns and keep their names (`convoy-nouns.md`).
+
+A save holding a renamed or retired id carries it to its successor
 (`MechWeaponComponent.findById`, `MechBay.readResolve`). On the Onager both HC
 cannons wear the single-cannon head, the AC and DC cannons the autocannon head
 (`convoy-nouns.md`, the Onager's turret is modular).
@@ -1895,7 +1926,7 @@ reaches its 100-flux cap about 140 rounds into a 200-round belt (owner,
 2026-10-23, after 0.75 let it dump the whole belt with almost no flux). A Bulwark
 holding both arm guns runs hot within seconds.
 A beam commits its flux pulse by pulse too, authored as flux a second (9 for the
-light PD laser, 15 for the PD laser): held alone from cool, a stock Hound frame
+BL-1, 15 for the BL-2): held alone from cool, a stock Hound frame
 reaches its vent in about 30 and 10 seconds.
 An SRM or LRM salvo of five costs 40 flux from either size of rack (Missile racks).
 Burst continuation must also finish before another trigger.

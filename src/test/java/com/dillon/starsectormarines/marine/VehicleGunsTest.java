@@ -18,7 +18,7 @@ class VehicleGunsTest {
     @Test
     void theGunCardTakesOnlyAWeaponOfItsTypeAndSize() {
         assertTrue(CampaignVehicle.takesGun(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.HC_20));
-        assertFalse(CampaignVehicle.takesGun(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.PULSE_LASER));
+        assertFalse(CampaignVehicle.takesGun(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.PL_2_AP));
         assertFalse(CampaignVehicle.takesGun(VehicleType.SUPPLY_TRUCK, MechWeaponComponent.CHAINGUN), "no card, no gun");
 
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
@@ -35,8 +35,8 @@ class VehicleGunsTest {
         assertFalse(bay.fitGun("v1", MechWeaponComponent.HC_20), "nothing in stores");
         bay.addWeapon(MechWeaponComponent.HC_20.id, 1);
         bay.addWeapon(MechWeaponComponent.HC_10.id, 1);
-        bay.addWeapon(MechWeaponComponent.PULSE_LASER.id, 1);
-        assertFalse(bay.fitGun("v1", MechWeaponComponent.PULSE_LASER), "an energy weapon is not a ballistic one");
+        bay.addWeapon(MechWeaponComponent.PL_2_AP.id, 1);
+        assertFalse(bay.fitGun("v1", MechWeaponComponent.PL_2_AP), "an energy weapon is not a ballistic one");
         assertTrue(bay.fitGun("v1", MechWeaponComponent.HC_20));
         assertEquals(0, bay.availableWeapon(MechWeaponComponent.HC_20.id));
         assertSame(MechWeaponComponent.HC_20, tank.freezeForDeployment().gun(), "the drop carries the gun");

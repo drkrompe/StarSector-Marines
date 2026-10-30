@@ -148,10 +148,10 @@ def main() -> None:
     normalize("thigh-bone.png", "thigh-bone.png", (40, 112))
     normalize("srm-rack.png", "srm-rack.png", (62, 88))
     normalize("lrm-rack.png", "lrm-rack.png", (76, 96))
-    normalize("weapon-concepts/shoulder-laser-cannon.png",
-              "shoulder-laser-cannon.png", (76, 128))
-    normalize("weapon-concepts/pulse-laser-arm.png",
-              "pulse-laser-arm.png", (62, 112))
+    normalize("weapon-concepts/ll-3.png",
+              "ll-3.png", (76, 128))
+    normalize("weapon-concepts/pl-2-ap.png",
+              "pl-2-ap.png", (62, 112))
     normalize("weapon-concepts/ac-6.png",
               "ac-6.png", (64, 132))
     normalize("weapon-concepts/dc-5.png",
@@ -169,20 +169,20 @@ def main() -> None:
     # two-row weapon of their colour (vehicle-card-sizes.md).
     normalize("weapon-concepts/light-machine-gun.png",
               "light-machine-gun.png", (34, 88))
-    normalize("weapon-concepts/light-pulse-laser.png",
-              "light-pulse-laser.png", (35, 84))
+    normalize("weapon-concepts/bl-1.png",
+              "bl-1.png", (35, 84))
     # The laser ladder (vehicle-card-sizes.md): the PD family (red motif) and the burst family (clean white and blue),
     # each a glass blue orb lens on white electronics, in three sizes, drawn at their true proportions.
-    normalize("weapon-concepts/light-burst-laser.png",
-              "light-burst-laser.png", (26, 84))
-    normalize("weapon-concepts/pd-laser.png",
-              "pd-laser.png", (40, 112))
-    normalize("weapon-concepts/medium-burst-laser.png",
-              "medium-burst-laser.png", (40, 112))
-    normalize("weapon-concepts/heavy-pd-laser.png",
-              "heavy-pd-laser.png", (50, 136))
-    normalize("weapon-concepts/burst-laser.png",
-              "burst-laser.png", (54, 136))
+    normalize("weapon-concepts/pl-1.png",
+              "pl-1.png", (26, 84))
+    normalize("weapon-concepts/bl-2.png",
+              "bl-2.png", (40, 112))
+    normalize("weapon-concepts/pl-2.png",
+              "pl-2.png", (40, 112))
+    normalize("weapon-concepts/pl-3-sweep.png",
+              "pl-3-sweep.png", (50, 136))
+    normalize("weapon-concepts/pl-3.png",
+              "pl-3.png", (54, 136))
     build_faction_weapons()
     preview("idle.png", moving=False, firing=False)
     preview("moving-and-firing.png", moving=True, firing=True)

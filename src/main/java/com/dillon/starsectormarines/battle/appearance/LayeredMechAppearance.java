@@ -30,19 +30,19 @@ public final class LayeredMechAppearance {
     public static final int ARMS_HC_10 = 2;
     public static final int ARMS_NOSE_CHAINGUN = 3;
     public static final int ARMS_HC_20 = 4;
-    public static final int ARMS_PULSE_LASER = 5;
+    public static final int ARMS_PL_2_AP = 5;
     public static final int ARMS_AC_6 = 6;
     public static final int ARMS_DC_5 = 7;
     public static final int ARMS_AC_6_QS = 8;
     public static final int ARMS_NOSE_AC_6_QS = 9;
     public static final int ARMS_DC_4_QS = 10;
     public static final int ARMS_LIGHT_MG = 11;
-    public static final int ARMS_LIGHT_PULSE_LASER = 12;
-    public static final int ARMS_BURST_LASER = 13;
-    public static final int ARMS_PD_LASER = 14;
-    public static final int ARMS_HEAVY_PD_LASER = 15;
-    public static final int ARMS_MEDIUM_BURST_LASER = 16;
-    public static final int ARMS_LIGHT_BURST_LASER = 17;
+    public static final int ARMS_BL_1 = 12;
+    public static final int ARMS_PL_3 = 13;
+    public static final int ARMS_BL_2 = 14;
+    public static final int ARMS_PL_3_SWEEP = 15;
+    public static final int ARMS_PL_2 = 16;
+    public static final int ARMS_PL_1 = 17;
     public static final int CHASSIS_CLEAN = 0;
     public static final int CHASSIS_SOCKETED = 1;
     public static final int CHASSIS_HOUND = 2;
@@ -52,7 +52,7 @@ public final class LayeredMechAppearance {
     public static final int POD_SMALL_LRM = 2;
     public static final int POD_LARGE_SRM = 3;
     public static final int POD_LARGE_LRM = 4;
-    public static final int POD_SHOULDER_LASER = 5;
+    public static final int POD_LL_3 = 5;
     public static final int POD_THERMAL_LANCE = 6;
     public static final int POD_SRM_3_QS = 7;
     /** Compatibility names retained for authored tests and older call sites. */

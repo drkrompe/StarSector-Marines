@@ -187,7 +187,7 @@ class BattleDirectControlStatusTest {
 
     @Test
     void aBeamCountsNothingAndReadsWhatItCostsASecond() {
-        var arms = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.PD_LASER);
+        var arms = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.BL_2);
         assertTrue(arms.rotary != null && arms.rotary.beam(), "the PD laser is a held beam");
         var flux = new MechFlux();
         var beam = BattleDirectControlStatus.mechWeapons(new MechWeaponMount[]{arms}, flux, TriggerPicks.LINKED).get(0);

@@ -16,7 +16,7 @@ class MechBurstCadenceTest {
 
     @Test
     void aBurstSpansItsRoundsAtTheWeaponsSpacing() {
-        MechWeaponComponent laser = MechWeaponComponent.BURST_LASER;
+        MechWeaponComponent laser = MechWeaponComponent.PL_3;
         assertEquals((laser.projectilesPerTrigger - 1) * laser.weaponDef().burstSpacing, laser.burstSeconds(), 1e-6f);
         assertTrue(laser.burstSeconds() > 0f, "a burst laser's pulses leave one after another, not at once");
         assertEquals(0f, MechWeaponComponent.AC_6.burstSeconds(), "a rotary gun has no trigger burst");
@@ -37,7 +37,7 @@ class MechBurstCadenceTest {
 
     @Test
     void aClickFiresOnePulseAndQueuesTheRestASpacingApart() {
-        MechWeaponMount mount = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.MEDIUM_BURST_LASER);
+        MechWeaponMount mount = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.PL_2);
         mount.commitTrigger(7L, null);
         assertEquals(mount.component.projectilesPerTrigger - 1, mount.burstRemaining);
         assertEquals(mount.weaponDef().burstSpacing, mount.burstTimer, 1e-6f);

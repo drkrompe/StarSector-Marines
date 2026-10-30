@@ -206,7 +206,7 @@ class DirectFireUnificationTest {
         long interposer = sim.spawn(new EntitySpec("interposer", Faction.DEFENDER,
                 UnitType.MARINE, 6, ROW));
         long victim = target(sim);
-        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID);
+        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_LL_3_ID);
 
         sim.fireMechWeapon(mech, victim, laser, 2f);
 
@@ -232,7 +232,7 @@ class DirectFireUnificationTest {
         BattleSimulation sim = arena(true, 12345L);
         long mech = sim.spawn(new EntitySpec("tri-tachyon bulwark", Faction.MARINE,
                 UnitType.HEAVY_MECH, 2, ROW));
-        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID);
+        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_LL_3_ID);
 
         sim.fireMechWeapon(mech, target(sim), laser, 2f);
 

@@ -40,8 +40,8 @@ Tri-Tachyon, Persean League, Luddic Church, Knights of Ludd, Luddic Path,
 Sindrian Diktat, Lion's Guard, pirates, and the Independent/mercenary fallback.
 Every family repeats `chassis.png`, `chassis-hound.png`,
 `chassis-warden.png`, `chaingun-arm.png`, `hc-10.png`,
-`hc-20.png`, `srm-rack.png`, `lrm-rack.png`, `shoulder-laser-cannon.png`,
-`pulse-laser-arm.png`, `ac-6.png`,
+`hc-20.png`, `srm-rack.png`, `lrm-rack.png`, `ll-3.png`,
+`pl-2-ap.png`, `ac-6.png`,
 `dc-5.png`, `lions-guard-thermal-lance.png`,
 `ac-6-qs.png`, `dc-4-qs.png`, and
 `srm-3-qs.png`. The builder applies each accepted base sprite's

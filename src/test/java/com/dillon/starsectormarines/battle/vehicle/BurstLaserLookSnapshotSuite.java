@@ -107,7 +107,7 @@ public final class BurstLaserLookSnapshotSuite implements SnapshotSuite {
         int holdX = (int) at[0];
         int holdY = (int) at[1];
         MechDeploymentSpec spec = new MechDeploymentSpec(MechVariant.BULWARK, MechRole.BALANCED,
-                MissileReplenisherComponent.STANDARD, MechWeaponComponent.MEDIUM_BURST_LASER, null, null);
+                MissileReplenisherComponent.STANDARD, MechWeaponComponent.PL_2, null, null);
         builder.squad("mech").faction(Faction.MARINE).size(1)
                 .at(holdX - placement.site().x0(), holdY - placement.site().y0()).mech(spec)
                 .assigned(id -> ObjectiveAssignment.defendArea(id, holdX, holdY)).done();
@@ -121,7 +121,7 @@ public final class BurstLaserLookSnapshotSuite implements SnapshotSuite {
                 if (mount != null) most = Math.max(most, mount.burstRemaining);
             }
             return most;
-        }, MechWeaponComponent.MEDIUM_BURST_LASER.projectilesPerTrigger);
+        }, MechWeaponComponent.PL_2.projectilesPerTrigger);
     }
 
     private static Stage laserTank(LookReview.Placement placement) {

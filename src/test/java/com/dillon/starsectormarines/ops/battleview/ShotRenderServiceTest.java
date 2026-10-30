@@ -152,7 +152,7 @@ class ShotRenderServiceTest {
 
     @Test
     void rapidPulseLaserLeavesOnlyABriefOverlappingBeamPulse() {
-        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_PULSE_LASER_ID);
+        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_PL_2_AP_ID);
         ShotEvent shot = new ShotEvent(3f, 5f, 17f, 5f, true, Faction.MARINE, 0.10f,
                 null, null, null, laser);
         BeamFxService beams = new BeamFxService();
@@ -176,7 +176,7 @@ class ShotRenderServiceTest {
 
     @Test
     void shoulderLaserLingersForOneSecondWithoutChangingItsShotClock() {
-        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_SHOULDER_LASER_ID);
+        WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_LL_3_ID);
         ShotEvent shot = new ShotEvent(3f, 5f, 17f, 5f, true, Faction.MARINE, 0.10f,
                 null, null, null, laser);
         BeamFxService beams = new BeamFxService();

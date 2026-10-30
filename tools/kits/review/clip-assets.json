@@ -59,8 +59,12 @@
   "url": "/_blob/18693c37be3f2b41e0682185e085d009",
   "sha1": null
  },
- "mech-burst-laser": {
-  "url": "/_blob/3df2113711befe7222aa245266dfd87f",
+ "mech-bl-1": {
+  "url": "/_blob/ef6f8b56a84768d0a36fc2f1f692dcc1",
+  "sha1": null
+ },
+ "mech-bl-2": {
+  "url": "/_blob/0b9fb9b214c67b2981aa7229611d7707",
   "sha1": null
  },
  "mech-chaingun": {
@@ -87,20 +91,12 @@
   "url": "/_blob/710c7ed53ff07d9df38207964d90536f",
   "sha1": null
  },
- "mech-heavy-pd-laser": {
-  "url": "/_blob/ff93c7fdd519949bb1da65eaf3a77479",
-  "sha1": null
- },
- "mech-light-burst-laser": {
-  "url": "/_blob/7d225ee16c211bfb5d72110e3144744e",
-  "sha1": null
- },
  "mech-light-machine-gun": {
   "url": "/_blob/d45c280297696f7c1befc5201b545f48",
   "sha1": null
  },
- "mech-light-pulse-laser": {
-  "url": "/_blob/ef6f8b56a84768d0a36fc2f1f692dcc1",
+ "mech-ll-3": {
+  "url": "/_blob/5374e1e7be9ea7a394b262dd618b29c1",
   "sha1": null
  },
  "mech-lrm-15": {
@@ -119,20 +115,24 @@
   "url": "/_blob/b0eb85180254ca9092e1f3cbc2e7b94d",
   "sha1": null
  },
- "mech-medium-burst-laser": {
+ "mech-pl-1": {
+  "url": "/_blob/7d225ee16c211bfb5d72110e3144744e",
+  "sha1": null
+ },
+ "mech-pl-2": {
   "url": "/_blob/a174cfa166609368649835c6a669b6a4",
   "sha1": null
  },
- "mech-pd-laser": {
-  "url": "/_blob/0b9fb9b214c67b2981aa7229611d7707",
-  "sha1": null
- },
- "mech-pulse-laser": {
+ "mech-pl-2-ap": {
   "url": "/_blob/36ba3540bc946589af04445ff5a160c9",
   "sha1": null
  },
- "mech-shoulder-laser-cannon": {
-  "url": "/_blob/5374e1e7be9ea7a394b262dd618b29c1",
+ "mech-pl-3": {
+  "url": "/_blob/3df2113711befe7222aa245266dfd87f",
+  "sha1": null
+ },
+ "mech-pl-3-sweep": {
+  "url": "/_blob/ff93c7fdd519949bb1da65eaf3a77479",
   "sha1": null
  },
  "mech-srm-15": {
@@ -187,7 +187,7 @@
   "url": "/_blob/b1594e0aef6f75a3571ce676d9160df8",
   "sha1": null
  },
- "vehicle-laser-tank-heavy-pd-laser": {
+ "vehicle-laser-tank-pl-3-sweep": {
   "url": "/_blob/073f7930a1ceb178b78f027d950718c6",
   "sha1": null
  },
