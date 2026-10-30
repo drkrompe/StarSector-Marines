@@ -41,8 +41,8 @@ public final class GroundAntiAirSystem {
     private final List<HullRound> hullRounds = new ArrayList<>();
     /** The hull each mount's salvo was loosed at, by mount id: the rest of the salvo follows the first round to it. */
     private final Map<Long, Warship> hullSalvos = new HashMap<>();
-    /** How high a low-flying hull's rounds are drawn bursting, in cells: about a strafing gunship's height. */
-    private static final float LOW_HULL_HEIGHT_CELLS = 4f;
+    /** How far past a low-flying hull's side a round that misses it passes, in cells. */
+    private static final float HULL_MISS_CLEARANCE_CELLS = 1.5f;
     private final List<Missile> missiles = new ArrayList<>();
     private static final class Missile {
         final long shooter;
@@ -359,14 +359,23 @@ public final class GroundAntiAirSystem {
         if (hit && weapon.airMissile != null && weapon.airMissile.guided()
                 && sim.random().nextFloat() < WarshipPointDefence.groundMissileStopChance(hull)) hit = false;
         float x = aimX, y = aimY;
-        if (!hit) { x += 2f; y += 1f; }
+        if (!hit) {
+            // A miss passes clear of the hull's side, to a side the roll chooses.
+            float dx = aimX - muzzle.x(), dy = aimY - muzzle.y();
+            float len = Math.max(1e-3f, (float) Math.hypot(dx, dy));
+            float off = (0.5f * Math.max(hull.widthCells, hull.lengthCells) + HULL_MISS_CLEARANCE_CELLS)
+                    * (sim.random().nextBoolean() ? 1f : -1f);
+            x += -dy / len * off;
+            y += dx / len * off;
+        }
         Faction side = sim.identity().faction(id);
         sim.telemetry().recordRoundFired(id);
         if (hit) {
             hullRounds.add(new HullRound(id, side, hull, muzzle.x(), muzzle.y(), weapon.damage, weapon.penetration,
                     sim.getSimTickIndex() + Math.max(1, Math.round(flight / BattleSimulation.TICK_DT))));
         }
-        sim.postShot(new ShotEvent(muzzle.x(), muzzle.y(), 0f, x, y, LOW_HULL_HEIGHT_CELLS, hit,
+        // A hull is drawn where it flies, with no altitude lift, so the round is drawn reaching the hull itself.
+        sim.postShot(new ShotEvent(muzzle.x(), muzzle.y(), 0f, x, y, 0f, hit,
                 side, flight, structure, null, null, null, 0f, hit, null, id));
     }
 
