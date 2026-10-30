@@ -158,7 +158,8 @@ public final class MechVersusInfantryScene implements BehaviorScene {
         int armRounds;
         int rackRounds;
         int lastMenKilled;
-        final boolean[] wasBursting = new boolean[3];
+        /** One per hardpoint, indexed as {@link MechLoadoutComponent#mounts()} is: by slot ordinal. */
+        final boolean[] wasBursting = new boolean[MechMountSlot.values().length];
 
         Trace(long mech, long[] men, long tank) {
             this.mech = mech;
@@ -192,7 +193,7 @@ public final class MechVersusInfantryScene implements BehaviorScene {
             MechLoadoutComponent loadout = sim.world().mechLoadout(mech);
             MechWeaponMount[] mounts = loadout.mounts();
             boolean rackLoaded = false;
-            for (int i = 0; i < mounts.length && i < wasBursting.length; i++) {
+            for (int i = 0; i < mounts.length; i++) {
                 MechWeaponMount mount = mounts[i];
                 boolean bursting = mount != null && mount.burstRemaining > 0;
                 if (mount != null && mount.component.mountFamily == MechWeaponComponent.MountFamily.SHOULDER) {
