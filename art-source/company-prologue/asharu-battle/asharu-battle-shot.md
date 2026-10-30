@@ -592,17 +592,17 @@ Rules:
 | Shot | t (s) | Speaker | Line |
 |---|---|---|---|
 | S1 | 1.8-7.92 | CARAVEL | All escorts, Caravel. Window opens in forty. Enjoy the view before deep space. |
-| S1a | 10-12.94 | WARDEN LEAD | Nothing but void and the odd picket from here. |
+| S1a | 10-12.66 | WARDEN LEAD | Nothing but void and the odd picket from here. |
 | S1 | 16-21.43 | WARDEN TWO | Ha more picket "ping" to drive me crazy. Guess they keep us honest. |
 | S2 | 24.6-30.17 | MORROW | Caravel, Morrow. Standing off your starboard quarter. Long ride even to the jump point. |
 | S4 | 37.6-41.85 | WARDEN FIVE | Scanners picking up new contacts behind us. No identification. |
-| S4 | 42-42.67 | WARDEN LEAD | Say again? |
-| S5 | 44.9-49.7 | WARDEN LEAD | Wardens, come about! Caravel, full burn for the nearest picket, now! |
+| S4 | 42-42.58 | WARDEN LEAD | Say again? |
+| S5 | 44.9-49.53 | WARDEN LEAD | Wardens, come about! Caravel, full burn for the nearest picket, now! |
 | S5 | 48.38-50.1 | WARDEN FIVE | Launch, launch! |
 | S5 | 50.15-54.1 | WARDEN FIVE | Missiles inbound! Twelve! Point defence, now! |
 | S6 | 53.3-54.45 | WARDEN TWO | Two's hit! |
 | S6 | 53.8-56.42 | BATORY | Batory, we're hit, we're venting, we're — |
-| S6 | 56.99-59 | WARDEN LEAD | Lead turning back. Cover the — |
+| S6 | 56.99-58.68 | WARDEN LEAD | Lead turning back. Cover the — |
 | S6b | 58-61.77 | WARDEN THREE | Three, rolling in. Four, take her left. |
 | S6b | 60.6-62.39 | WARDEN FOUR | No shield. Hit her! |
 | S6b | 61.92-62.97 | WARDEN THREE | Feeders on! |

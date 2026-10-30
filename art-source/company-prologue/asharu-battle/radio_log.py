@@ -64,21 +64,21 @@ SCREEN_CHANNELS = ['CARAVEL', 'WARDEN LEAD', 'WARDEN TWO', 'MORROW', 'WARDEN FIV
 TRAFFIC = [
     ('S1', 'CARAVEL', 1.8, 7.92, 'All escorts, Caravel. Window opens in forty. Enjoy the view before deep '
                                  'space.', False),
-    ('S1a', 'WARDEN LEAD', 10.0, 12.94, 'Nothing but void and the odd picket from here.', False),
+    ('S1a', 'WARDEN LEAD', 10.0, 12.66, 'Nothing but void and the odd picket from here.', False),
     ('S1', 'WARDEN TWO', 16.0, 21.43, 'Ha more picket "ping" to drive me crazy. Guess they keep us '
                                       'honest.', False),
     ('S2', 'MORROW', 24.6, 30.17, 'Caravel, Morrow. Standing off your starboard quarter. Long ride even to '
                                   'the jump point.', False),
     ('S4', 'WARDEN FIVE', 37.6, 41.85, 'Scanners picking up new contacts behind us. No '
                                        'identification.', False),
-    ('S4', 'WARDEN LEAD', 42.0, 42.67, 'Say again?', False),
-    ('S5', 'WARDEN LEAD', 44.9, 49.7, 'Wardens, come about! Caravel, full burn for the nearest picket, '
+    ('S4', 'WARDEN LEAD', 42.0, 42.58, 'Say again?', False),
+    ('S5', 'WARDEN LEAD', 44.9, 49.53, 'Wardens, come about! Caravel, full burn for the nearest picket, '
                                       'now!', False),
     ('S5', 'WARDEN FIVE', 48.38, 50.1, 'Launch, launch!', False),
     ('S5', 'WARDEN FIVE', 50.15, 54.1, 'Missiles inbound! Twelve! Point defence, now!', False),
     ('S6', 'WARDEN TWO', 53.3, 54.45, "Two's hit!", False),
     ('S6', 'BATORY', 53.8, 56.42, "Batory, we're hit, we're venting, we're —", False),
-    ('S6', 'WARDEN LEAD', 56.99, 59.0, 'Lead turning back. Cover the —', False),
+    ('S6', 'WARDEN LEAD', 56.99, 58.68, 'Lead turning back. Cover the —', False),
     ('S6b', 'WARDEN THREE', 58.0, 61.77, 'Three, rolling in. Four, take her left.', False),
     ('S6b', 'WARDEN FOUR', 60.6, 62.39, 'No shield. Hit her!', False),
     ('S6b', 'WARDEN THREE', 61.92, 62.97, 'Feeders on!', False),
