@@ -18,7 +18,6 @@ import java.util.List;
 
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.DROPS;
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.HELD_BACK;
-import static com.dillon.starsectormarines.ops.BriefingLift.Status.LIFT_SPENT;
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.NO_DROP_CALL;
 import static com.dillon.starsectormarines.ops.BriefingLift.Status.NO_LIFT;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -53,13 +52,13 @@ class BriefingLiftTest {
     }
 
     @Test
-    void aLightCradleAloneRefusesMediumAndRunsOutAfterTwoLifts() {
+    void aLightCradleAloneRefusesMediumAndLiftsEveryLightMachine() {
         List<CommandPower> powers = List.of(MechSupport.configured(List.of(HOUND, WARDEN, HOUND, HOUND),
                 BUFFALO, false));
         var readout = BriefingLift.read(List.of(BUFFALO), 2, powers,
                 List.of(), List.of(), List.of());
         // Refused first, then what drops, each in bay order.
-        assertEquals(List.of(NO_LIFT, LIFT_SPENT, DROPS, DROPS), statuses(readout));
+        assertEquals(List.of(NO_LIFT, DROPS, DROPS, DROPS), statuses(readout));
         assertEquals(LiftRating.LIGHT, readout.companyBest());
         assertEquals(BUFFALO, readout.companyCarrier());
         assertFalse(readout.missionLift());
