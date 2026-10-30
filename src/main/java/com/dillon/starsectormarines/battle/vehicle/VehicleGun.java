@@ -41,6 +41,20 @@ public final class VehicleGun {
         return weapon.footprintRows >= 2 ? BASE_CELLS : LIGHT_BASE_CELLS;
     }
 
+    /** The share of the mount ring's diameter the turning plate under a fitted weapon spans: the ring's race shows round it. */
+    private static final float PLATE_SHARE_OF_MOUNT = .9f;
+
+    /**
+     * The diameter of the armoured plate that turns with {@code weapon} on {@code type}'s mount ring, in cells: the
+     * turret a fixed hull's fitted weapon is carried on, so a small gun reads as a turret and not a gun lying on the
+     * ring. Zero where there is none: a modular hull, whose weapon stands in its own base on the collar, a weapon
+     * drawn as the hull's own head, and an empty card.
+     */
+    public static float plateCells(VehicleType type, MechWeaponComponent weapon) {
+        if (weapon == null || type.hasModularTurret() || lengthCells(type, weapon) <= 0f) return 0f;
+        return mountCells(type) * PLATE_SHARE_OF_MOUNT;
+    }
+
     /** The diameter of the mount ring a fitted weapon stands on, in cells. */
     public static float mountCells(VehicleType type) {
         return type.visualWidthCells * MOUNT_SHARE_OF_HULL_WIDTH;

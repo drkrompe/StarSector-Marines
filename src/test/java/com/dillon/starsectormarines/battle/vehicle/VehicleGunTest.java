@@ -125,4 +125,13 @@ class VehicleGunTest {
         assertEquals(7, tank.headFrame(MechWeaponComponent.HEAVY_PD_LASER, 4));
         assertEquals(1, tank.headFrame(null, 1));
     }
+
+    @Test
+    void aWeaponDrawnOnAFixedHullsRingTurnsOnAPlateInsideTheRing() {
+        float plate = VehicleGun.plateCells(VehicleType.HEAVY_APC, MechWeaponComponent.LIGHT_MACHINE_GUN);
+        assertTrue(plate > 0f && plate < VehicleGun.mountCells(VehicleType.HEAVY_APC), "inside the ring's race");
+        assertEquals(0f, VehicleGun.plateCells(VehicleType.HEAVY_APC, null), "an empty card has no plate");
+        assertEquals(0f, VehicleGun.plateCells(VehicleType.LASER_TANK, MechWeaponComponent.LIGHT_PULSE_LASER),
+                "a modular hull's weapon stands in its own base");
+    }
 }
