@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MechInternal;
+import com.dillon.starsectormarines.marine.VehicleRack;
 
 import java.awt.Color;
 import java.util.ArrayList;
@@ -31,7 +32,7 @@ final class VehicleDoll {
 
     private VehicleDoll() { }
 
-    /** The cards a hull of {@code type} shows, the kit rack last. */
+    /** The cards a hull of {@code type} shows: the kit rack's bay or bays ({@link VehicleRack#grids}) near last. */
     static List<SocketDef> sockets(VehicleType type) {
         List<SocketDef> sockets = new ArrayList<>();
         sockets.add(card(SocketId.CORE, SocketType.ENGINE, type.weight() == VehicleType.Weight.LIGHT ? 1 : 2,
@@ -48,8 +49,7 @@ final class VehicleDoll {
         if (!systems(type).isEmpty()) {
             sockets.add(card(SocketId.RIGHT_SHOULDER, SocketType.OMNI, 2, "@vehicleDollSystems"));
         }
-        sockets.add(card(SocketId.AUXILIARY, SocketType.AUXILIARY, Math.max(1, VehicleKit.slots(type)),
-                "@vehicleDollKitRack"));
+        sockets.addAll(VehicleRack.grids(type));
         sockets.add(card(SocketId.PLATING, SocketType.PLATING, 1, "@gearSocketPlating"));
         return List.copyOf(sockets);
     }
@@ -59,10 +59,11 @@ final class VehicleDoll {
     }
 
     /**
-     * What a card holds, as its caption; the rack's caption is its fill. The engine core and the armor point are
-     * live: they name the part fitted, or the hull's own. The gun card names the weapon fitted, or the hull's turret.
+     * What a card holds, as its caption; the rack's caption is its fill, {@code rackRows} of its slots taken. The
+     * engine core and the armor point are live: they name the part fitted, or the hull's own. The gun card names the
+     * weapon fitted, or the hull's turret.
      */
-    static String caption(VehicleType type, SocketId card, List<VehicleKit> kits, MechInternal plating,
+    static String caption(VehicleType type, SocketId card, int rackRows, MechInternal plating,
                           MechInternal engine, MechWeaponComponent gun) {
         return switch (card) {
             case CORE -> engine != null ? engine.displayName()
@@ -72,7 +73,7 @@ final class VehicleDoll {
                     : type.ownGun() != null ? Strings.upper(type.ownGun().displayName()) : turretName(type);
             case LEFT_SHOULDER -> bay(type);
             case RIGHT_SHOULDER -> String.join(Strings.get("separatorDot"), systems(type));
-            case AUXILIARY -> Strings.format("vehicleDollRackCaption", kits.size(), VehicleKit.slots(type));
+            case AUXILIARY, AUXILIARY_2 -> Strings.format("vehicleDollRackCaption", rackRows, VehicleRack.slots(type));
             case PLATING -> plating != null ? plating.displayName() : Strings.get("vehicleDollHullPlate");
             default -> "";
         };
@@ -134,13 +135,12 @@ final class VehicleDoll {
     }
 
     /**
-     * A kit's colour: the ready rack and the loader feed the gun as a mech's loader
-     * does, and the capacitor pack is a capacitor bank's flux violet.
+     * A kit's colour: the ready rack and the loader feed the gun as a mech's loader does. A bank or vent array on
+     * the rack wears its own role's colour, as in a mech's compartment.
      */
     static Color tone(VehicleKit kit) {
         return switch (kit) {
             case READY_RACK, ACCELERATED_LOADER -> HardpointBricks.UTILITY;
-            case CAPACITOR_PACK -> HardpointBricks.FLUX;
             default -> HardpointBricks.OMNI;
         };
     }

@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
+import com.dillon.starsectormarines.marine.VehicleRack;
 import com.dillon.starsectormarines.ui.Fonts;
 import com.dillon.starsectormarines.ui.retained.CanvasContext;
 
@@ -189,29 +190,41 @@ final class MechSocketConsole {
 
     /**
      * A vehicle's card ({@link VehicleDoll}): sealed, its bricks filled as one factory piece under its
-     * mark and a SEALED tag; or the kit rack, one kit to a row, each lifted off by being dragged.
+     * mark and a SEALED tag; or a kit rack bay, its kits, capacitor bank and vent arrays at their packed places
+     * ({@link VehicleRack}), each lifted off by being dragged. A rack bay of an armed hull with no bank warns, as a
+     * mech's compartment does: the hull cannot drop.
+     *
+     * @param parts the parts packed into this bay; empty for a sealed card
      */
     static void drawVehicle(CanvasContext c, MechLabDollCanvas.SocketDropTarget t, SocketDef socket,
-                            Color tone, String art, List<VehicleKit> kits,
+                            Color tone, String art, List<VehicleRack.Placement> parts, boolean missing,
                             boolean selected, boolean hovered, double time) {
-        boolean rack = socket.id() == SocketId.AUXILIARY;
+        boolean rack = socket.id().compartment();
         float pulse = (float) (.5 + .5 * Math.sin(time * 3.5));
         float x = t.left(), y = t.top(), w = t.width(), h = t.height();
-        plate(c, x, y, w, h, PLATE);
-        HardpointBricks.rim(c, x, y, w, h, CUT, rack && kits.isEmpty() ? tone
-                : new Color(tone.getRed(), tone.getGreen(), tone.getBlue(), 70), 1.2f);
-        c.fillRect(x + 8, y + 7, 3, 9, rack ? tone : MUTED);
-        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - 24), x + 16,
+        plate(c, x, y, w, h, missing ? MISSING_PLATE : PLATE);
+        HardpointBricks.rim(c, x, y, w, h, CUT, missing ? new Color(RED.getRed(), RED.getGreen(), RED.getBlue(),
+                (int) (150 + pulse * 105)) : rack && parts.isEmpty() ? tone
+                : new Color(tone.getRed(), tone.getGreen(), tone.getBlue(), 70), missing ? 2f : 1.2f);
+        c.fillRect(x + 8, y + 7, 3, 9, missing ? RED : rack ? tone : MUTED);
+        c.text(Fonts.ORBITRON_12_BOLD, fit(socket.label(), w - (missing ? LABEL_RESERVE : 24)), x + 16,
                 y + (HEADER - Fonts.ORBITRON_12_BOLD.getLineHeight()) * .5f, SILVER);
+        if (missing) drawWarningBadge(c, x + w - 26f, y + 5f);
         // A sealed card says so by its muted rim and its one factory piece; how full the rack is
         // its bricks show.
         HardpointBricks.Layout bricks = placed(t, socket);
         HardpointBricks.drawEmpty(c, bricks, tone);
         if (rack) {
-            for (int row = 0; row < kits.size() && row < bricks.rows(); row++) {
-                HardpointBricks.drawFilled(c, bricks, 0, row, 2, 1, VehicleDoll.tone(kits.get(row)));
-                HardwareArt.draw(c, kits.get(row), bricks.left(), bricks.brickY(row), bricks.width(),
-                        bricks.brickHeight(), 255);
+            for (VehicleRack.Placement part : parts) {
+                VehicleKit kit = part.part().kit();
+                MechInternal internal = part.part().internal();
+                HardpointBricks.drawFilled(c, bricks, part.column(), part.row(), part.columns(), part.rows(),
+                        kit != null ? VehicleDoll.tone(kit) : HardpointBricks.tone(internal.role));
+                float left = bricks.brickX(part.column()), top = bricks.brickY(part.row());
+                float width = bricks.span(part.columns(), bricks.brickWidth());
+                float height = bricks.span(part.rows(), bricks.brickHeight());
+                if (kit != null) HardwareArt.draw(c, kit, left, top, width, height, 255);
+                else HardwareArt.draw(c, internal, left, top, width, height, 255);
             }
         } else {
             HardpointBricks.drawFilled(c, bricks, 0, 0, bricks.columns(), bricks.rows(),
@@ -225,11 +238,13 @@ final class MechSocketConsole {
         }
     }
 
-    /** One kit's row on the rack card {@code t}, as {left, top, right, bottom}: the box the doll lifts it off by. */
-    static float[] kitBox(MechLabDollCanvas.SocketDropTarget t, SocketDef socket, int row) {
+    /** One rack part's box on the bay card {@code t}, as {left, top, right, bottom}: the box the doll lifts it off by. */
+    static float[] rackBox(MechLabDollCanvas.SocketDropTarget t, SocketDef socket, VehicleRack.Placement part) {
         HardpointBricks.Layout bricks = placed(t, socket);
-        float top = bricks.brickY(row);
-        return new float[] {bricks.left(), top, bricks.left() + bricks.width(), top + bricks.brickHeight()};
+        float left = bricks.brickX(part.column());
+        float top = bricks.brickY(part.row());
+        return new float[] {left, top, left + bricks.span(part.columns(), bricks.brickWidth()),
+                top + bricks.span(part.rows(), bricks.brickHeight())};
     }
 
     /** A red warning triangle with an exclamation mark, 18 px square at its top-left corner. */

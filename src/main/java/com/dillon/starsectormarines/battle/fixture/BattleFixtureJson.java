@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonPosture;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
+import com.dillon.starsectormarines.battle.vehicle.HullReservoir;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
@@ -819,6 +820,12 @@ public final class BattleFixtureJson {
                     if (vehicle.plating() != VehiclePlating.FACTORY) frozen.put("plating", vehicle.plating().name());
                     if (vehicle.engine() != VehicleEngine.STOCK) frozen.put("engine", vehicle.engine().name());
                     if (vehicle.gun() != null) frozen.put("gun", vehicle.gun().id);
+                    if (vehicle.flux() != null) {
+                        JSONObject flux = new JSONObject();
+                        flux.put("capacity", vehicle.flux().capacity());
+                        flux.put("dissipationPerSecond", vehicle.flux().dissipationPerSecond());
+                        frozen.put("flux", flux);
+                    }
                     vehicles.put(frozen);
                 }
                 encoded.put("vehicleDeployments", vehicles);
@@ -919,7 +926,10 @@ public final class BattleFixtureJson {
                         frozen.has("engine")
                                 ? enumValue(VehicleEngine.class, frozen.getString("engine"), "vehicle engine")
                                 : VehicleEngine.STOCK,
-                        frozen.has("gun") ? MechWeaponComponent.findById(frozen.getString("gun")) : null));
+                        frozen.has("gun") ? MechWeaponComponent.findById(frozen.getString("gun")) : null,
+                        frozen.has("flux") ? new HullReservoir.Frame(
+                                (float) frozen.getJSONObject("flux").getDouble("capacity"),
+                                (float) frozen.getJSONObject("flux").getDouble("dissipationPerSecond")) : null));
             }
             JSONObject carrier = encoded.optJSONObject("companyCarrier");
             powers.add(new CommandPowerCommitment(

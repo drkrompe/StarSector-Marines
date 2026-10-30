@@ -1,10 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.mech.MechFlux;
-import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
-
-import java.util.List;
 
 /**
  * A hull's one flux reservoir (`convoy-nouns.md`, hull flux): every mount on the hull draws its rounds' flux from it,
@@ -24,20 +21,31 @@ public final class HullReservoir {
 
     private HullReservoir() { }
 
-    /** A hull's flux frame at the drop: what its reservoir holds and sheds a second. */
-    public record Frame(float capacity, float dissipationPerSecond) { }
+    /**
+     * A hull's flux frame at the drop: what its reservoir holds and sheds a second. The campaign freezes it from the
+     * capacitor bank and vent arrays on the rack (`VehicleRack`); a hull the company does not own runs its stock bank.
+     */
+    public record Frame(float capacity, float dissipationPerSecond) {
+        public Frame {
+            if (!(capacity > 0f) || !Float.isFinite(capacity) || !(dissipationPerSecond >= 0f)
+                    || !Float.isFinite(dissipationPerSecond)) {
+                throw new IllegalArgumentException("Invalid hull flux frame");
+            }
+        }
+    }
+
+    /** The factory capacitor bank's frame, the mech stock frame's (`MechInternal.FACTORY_CAPACITOR_BANK`). */
+    public static final Frame FACTORY_BANK = new Frame(MechFlux.CAPACITY, MechFlux.DISSIPATION_PER_SECOND);
+    /** The military capacitor bank's frame (`MechInternal.MILITARY_CAPACITOR_BANK`): the laser tank's stock bank. */
+    public static final Frame MILITARY_BANK = new Frame(120f, 8f);
 
     /**
-     * The frame a hull of {@code type} with {@code kits} on its rack is set down with, or null for a hull whose gun
-     * builds no flux. Today it is the hull's own gun's bank, half again with a capacitor pack.
+     * The frame a hull of {@code type} is set down with in its stock fit: the military bank on the laser tank, whose
+     * lasers are flux hogs, the factory bank on every other armed hull; null for an unarmed hull, which needs none.
      */
-    public static Frame frame(VehicleType type, List<VehicleKit> kits) {
+    public static Frame stockFrame(VehicleType type) {
         if (type == null || !type.hasTurretWeapon()) return null;
-        StructureDef stock = type.turretStructure();
-        TurretMountDef.Flux flux = stock != null ? stock.mount.flux : null;
-        if (flux == null) return null;
-        float capacity = flux.control().capacity() * VehicleKit.Effect.of(kits).fluxCapacityFactor();
-        return new Frame(capacity, flux.control().dissipationPerSec());
+        return type == VehicleType.LASER_TANK ? MILITARY_BANK : FACTORY_BANK;
     }
 
     /** A fresh reservoir on {@code frame}, or null on the control path or for no frame. */

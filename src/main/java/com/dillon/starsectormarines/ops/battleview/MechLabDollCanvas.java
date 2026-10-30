@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.marine.CampaignMechSquad;
 import com.dillon.starsectormarines.marine.MechFrameBudget;
 import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
+import com.dillon.starsectormarines.marine.VehicleRack;
 import com.dillon.starsectormarines.render2d.BattleCamera;
 import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.Fonts;
@@ -109,7 +110,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
     private Function<SocketId, MechWeaponComponent> installedWeapons = socket -> null;
     private Supplier<List<MechInternal>> installedCompartment = List::of;
     private Supplier<VehicleType> selectedVehicle = () -> null;
-    private Supplier<List<VehicleKit>> installedKits = List::of;
+    private Supplier<List<VehicleRack.Placement>> installedRack = List::of;
+    private BooleanSupplier rackIncomplete = () -> false;
 
     public void previewWeaponDrag(MechWeaponComponent component, SocketId source,
                                   SocketId target, boolean valid) {
@@ -179,9 +181,14 @@ public final class MechLabDollCanvas implements CanvasProducer {
         selectedVehicle = source != null ? source : () -> null;
     }
 
-    /** The kits on the selected vehicle's rack, in fitted order. */
-    public void installedKits(Supplier<List<VehicleKit>> source) {
-        installedKits = source != null ? source : List::of;
+    /** What the selected vehicle's rack holds, its kits, bank and vent arrays at their packed places. */
+    public void installedRack(Supplier<List<VehicleRack.Placement>> source) {
+        installedRack = source != null ? source : List::of;
+    }
+
+    /** Whether the selected vehicle is armed and has no capacitor bank on its rack, so cannot drop. */
+    public void rackIncomplete(BooleanSupplier source) {
+        rackIncomplete = source != null ? source : () -> false;
     }
 
     private record DragPreview(MechWeaponComponent component, MechInternal internal, SocketId source,
@@ -292,7 +299,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
             drawSocketOverlays(context, MechFittingLayout.forVariant(selectedVariant),
                     selected, selectedSocket.get(), candidateWeapon.get(), width, height);
         } else if (vehicle != null && fittingOverlaysVisible.getAsBoolean()) {
-            drawVehicleSchematic(context, vehicle, installedKits.get(), width, height);
+            drawVehicleSchematic(context, vehicle, installedRack.get(), width, height);
         } else {
             lastSocketTargets = List.of();
             lastKitBoxes = List.of();
@@ -353,7 +360,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 continue;
             }
             MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, socket.id()),
-                    VehicleDoll.art(type, socket.id()), List.of(), false, false, seconds);
+                    VehicleDoll.art(type, socket.id()), List.of(), false, false, false, seconds);
         }
     }
 
@@ -723,9 +730,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     /**
      * A vehicle's doll where a mech's stands ({@link VehicleDoll}): the same schematic, every card sealed
-     * but the kit rack, whose kits each come off by their own X.
+     * but the kit rack's bays, whose kits, bank and vent arrays each come off by being dragged.
      */
-    private void drawVehicleSchematic(CanvasContext c, VehicleType type, List<VehicleKit> kits,
+    private void drawVehicleSchematic(CanvasContext c, VehicleType type, List<VehicleRack.Placement> rack,
                                       float canvasWidth, float canvasHeight) {
         float panelWidth = canvasWidth * SCHEMATIC_SHARE;
         drawSchematicPanel(c, panelWidth, canvasHeight);
@@ -733,6 +740,9 @@ public final class MechLabDollCanvas implements CanvasProducer {
         List<SocketDropTarget> targets = schematicTargets(sockets, panelWidth, canvasHeight);
         drawWires(c, targets, id -> VehicleDoll.tone(type, id));
         List<KitBox> kitBoxes = new ArrayList<>();
+        Map<MechInternal, float[]> partBoxes = new LinkedHashMap<>();
+        int rackRows = 0;
+        for (VehicleRack.Placement part : rack) rackRows += part.rows();
         for (SocketDropTarget target : targets) {
             SocketDef socket = socketById(sockets, target.id());
             if (socket.id() == SocketId.PLATING || socket.id() == SocketId.CORE) {
@@ -743,39 +753,42 @@ public final class MechLabDollCanvas implements CanvasProducer {
                 drawVehicleGun(c, target, socket, type);
                 continue;
             }
-            boolean rack = socket.id() == SocketId.AUXILIARY;
+            boolean bay = socket.id().compartment();
+            List<VehicleRack.Placement> here = new ArrayList<>();
+            if (bay) for (VehicleRack.Placement part : rack) if (part.grid() == socket.id()) here.add(part);
             MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, socket.id()),
-                    VehicleDoll.art(type, socket.id()),
-                    rack ? kits : List.of(),
-                    rack && selectedSocket.get() == SocketId.AUXILIARY, hoveredSocket == socket.id(),
+                    VehicleDoll.art(type, socket.id()), here, bay && rackIncomplete.getAsBoolean(),
+                    bay && selects(socket.id(), selectedSocket.get()), hoveredSocket == socket.id(),
                     elapsedSeconds.getAsDouble());
-            if (!rack) continue;
-            for (int row = 0; row < kits.size(); row++) {
-                kitBoxes.add(new KitBox(kits.get(row), MechSocketConsole.kitBox(target, socket, row)));
+            for (VehicleRack.Placement part : here) {
+                float[] box = MechSocketConsole.rackBox(target, socket, part);
+                if (part.part().kit() != null) kitBoxes.add(new KitBox(part.part().kit(), box));
+                else partBoxes.putIfAbsent(part.part().internal(), box);
             }
         }
         // Only the rack, the armor point, the engine core and the gun card answer the pointer: sealed cards take no
         // drops and no selection.
         List<SocketDropTarget> live = new ArrayList<>();
         for (SocketDropTarget target : targets) {
-            if (target.id() == SocketId.AUXILIARY || target.id() == SocketId.PLATING
+            if (target.id().compartment() || target.id() == SocketId.PLATING
                     || target.id() == SocketId.CORE || target.id() == SocketId.ARMS) live.add(target);
         }
         lastSocketTargets = List.copyOf(live);
         lastKitBoxes = List.copyOf(kitBoxes);
-        lastPartBoxes = Map.of();
+        lastPartBoxes = partBoxes;
         for (SocketDropTarget target : targets) {
             if (!target.contains(hover.x(), hover.y())) continue;
             SocketDef socket = socketById(sockets, target.id());
-            String title = VehicleDoll.caption(type, socket.id(), kits, installedInternals.apply(SocketId.PLATING),
+            String title = VehicleDoll.caption(type, socket.id(), rackRows, installedInternals.apply(SocketId.PLATING),
                     installedInternals.apply(SocketId.CORE), installedWeapons.apply(SocketId.ARMS));
-            if (socket.id() == SocketId.AUXILIARY) {
-                // On the rack, the kit under the pointer.
-                title = null;
-                for (int row = 0; row < kits.size(); row++) {
-                    float[] box = MechSocketConsole.kitBox(target, socket, row);
+            if (socket.id().compartment()) {
+                // On the rack, the part under the pointer, or the rack's fill between them.
+                for (VehicleRack.Placement part : rack) {
+                    if (part.grid() != socket.id()) continue;
+                    float[] box = MechSocketConsole.rackBox(target, socket, part);
                     if (hover.x() >= box[0] && hover.x() <= box[2] && hover.y() >= box[1] && hover.y() <= box[3]) {
-                        title = kits.get(row).displayName();
+                        title = part.part().kit() != null ? part.part().kit().displayName()
+                                : part.part().internal().displayName();
                     }
                 }
             }
@@ -817,7 +830,7 @@ public final class MechLabDollCanvas implements CanvasProducer {
         boolean selected = selects(SocketId.ARMS, selectedSocket.get());
         if (fitted == null && carried == null) {
             MechSocketConsole.drawVehicle(c, target, socket, VehicleDoll.tone(type, SocketId.ARMS),
-                    VehicleDoll.art(type, SocketId.ARMS), List.of(), selected, hoveredSocket == SocketId.ARMS,
+                    VehicleDoll.art(type, SocketId.ARMS), List.of(), false, selected, hoveredSocket == SocketId.ARMS,
                     elapsedSeconds.getAsDouble());
             return;
         }

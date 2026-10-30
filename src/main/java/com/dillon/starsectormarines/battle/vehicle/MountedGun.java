@@ -12,7 +12,7 @@ public record MountedGun(VehicleMount mount, GroundTurret turret) {
         return of(mount, VehicleKit.Effect.NONE);
     }
 
-    /** A fresh mount, its magazine full, its loader and flux bank as the hull's kits make them. */
+    /** A fresh mount, its magazine full, its loader as the hull's kits make it. */
     public static MountedGun of(VehicleMount mount, VehicleKit.Effect kits) {
         TurretMountDef gun = mount.structure().mount;
         return new MountedGun(mount, GroundTurret.fitted(gun, gun.ammoCapacity, kits, null));

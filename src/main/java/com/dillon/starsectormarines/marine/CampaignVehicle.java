@@ -16,11 +16,11 @@ import java.util.List;
 /**
  * Persistent identity of one player-owned vehicle standing on a mech-bay gantry.
  *
- * <p>It shares the gantry with mechs and nothing else: no chassis, sockets, flux or
- * weapon components. Its hull, turret and kinematics are its {@link VehicleType}'s and are
- * its type's; what is fitted to it, as to a mech, is the engine at its engine core and the plating at its armor
- * point (each a {@link MechInternal} of its role), the weapon in its gun card (a {@link MechWeaponComponent}) and
- * the {@link VehicleKit}s on its rack.
+ * <p>It shares the gantry with mechs and nothing else: no chassis or sockets. Its hull, turret and kinematics are
+ * its {@link VehicleType}'s; what is fitted to it, as to a mech, is the engine at its engine core and the plating at
+ * its armor point (each a {@link MechInternal} of its role), the weapon in its gun card (a
+ * {@link MechWeaponComponent}), and on its rack the {@link VehicleKit}s beside the capacitor bank and vent arrays
+ * that are its flux reservoir ({@link VehicleRack}). An armed hull is built with its stock bank.
  */
 public final class CampaignVehicle implements Serializable {
 
@@ -44,6 +44,8 @@ public final class CampaignVehicle implements Serializable {
      * stripped gun card reads as. Null in a save from before gun fitting.
      */
     private String gunId;
+    /** The capacitor bank and vent arrays on the rack, as internal ids in fitted order. */
+    private List<String> rackInternalIds = new ArrayList<>();
 
     public CampaignVehicle(String id, String displayName, VehicleType type) {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("Vehicle id is required");
@@ -54,6 +56,8 @@ public final class CampaignVehicle implements Serializable {
         this.id = id;
         this.displayName = displayName;
         this.type = type;
+        MechInternal bank = VehicleRack.stockBank(type);
+        if (bank != null) rackInternalIds.add(bank.id);
     }
 
     public String id() { return id; }
@@ -162,12 +166,59 @@ public final class CampaignVehicle implements Serializable {
         return List.copyOf(kits);
     }
 
-    /** Whether {@code kit} would go on the rack: a free slot, not already fitted, and suiting the hull. */
+    /** Whether {@code kit} would go on the rack: room for it, not already fitted, and suiting the hull. */
     public boolean canFit(VehicleKit kit) {
         if (kit == null) return false;
         List<VehicleKit> proposed = new ArrayList<>(kits());
         proposed.add(kit);
-        return VehicleKit.fits(type, proposed);
+        return VehicleRack.fits(type, proposed, rackInternals());
+    }
+
+    /** The capacitor bank and vent arrays on the rack, in fitted order. */
+    public List<MechInternal> rackInternals() {
+        List<MechInternal> parts = new ArrayList<>();
+        if (rackInternalIds != null) {
+            for (String id : rackInternalIds) {
+                MechInternal part = MechInternal.findById(id);
+                if (part != null) parts.add(part);
+            }
+        }
+        return List.copyOf(parts);
+    }
+
+    /**
+     * Whether {@code part} would go on the rack: a bank or vent array with room for it. A bank where one is fitted
+     * goes in its place, as on a mech.
+     */
+    public boolean canFitRack(MechInternal part) {
+        if (!VehicleRack.takes(type, part)) return false;
+        return VehicleRack.fits(type, kits(), withRackPart(part));
+    }
+
+    /** Puts {@code part} on the rack, a bank replacing the bank fitted; false when it would not go. */
+    boolean fitRack(MechInternal part) {
+        if (!canFitRack(part)) return false;
+        List<String> ids = new ArrayList<>();
+        for (MechInternal internal : withRackPart(part)) ids.add(internal.id);
+        rackInternalIds = ids;
+        return true;
+    }
+
+    /** Takes one {@code part} off the rack; false when it was not there. Without a bank the hull is incomplete. */
+    boolean removeRack(MechInternal part) {
+        return part != null && rackInternalIds != null && rackInternalIds.remove(part.id);
+    }
+
+    private List<MechInternal> withRackPart(MechInternal part) {
+        List<MechInternal> parts = new ArrayList<>(rackInternals());
+        if (part.role == MechInternal.Role.CAPACITOR_BANK) parts.removeIf(p -> p.role == MechInternal.Role.CAPACITOR_BANK);
+        parts.add(part);
+        return parts;
+    }
+
+    /** Whether the hull may drop: an armed hull needs a capacitor bank on its rack. */
+    public boolean complete() {
+        return VehicleRack.complete(type, rackInternals());
     }
 
     /** Puts {@code kit} on the rack; false when it would not go. */
@@ -198,7 +249,8 @@ public final class CampaignVehicle implements Serializable {
 
     /** The frozen value Mech Support carries; the campaign object stays in the bay. */
     public VehicleDeploymentSpec freezeForDeployment() {
-        return new VehicleDeploymentSpec(id, displayName, type, kits(), platingTier(), engineTier(), gun());
+        return new VehicleDeploymentSpec(id, displayName, type, kits(), platingTier(), engineTier(), gun(),
+                VehicleRack.frame(rackInternals()));
     }
 
     /**
@@ -207,6 +259,7 @@ public final class CampaignVehicle implements Serializable {
      */
     private Object readResolve() {
         if (kitIds == null) kitIds = new ArrayList<>();
+        if (rackInternalIds == null) rackInternalIds = new ArrayList<>();
         boolean applique = kitIds.remove(RETIRED_APPLIQUE_PLATE);
         boolean skirts = kitIds.remove(RETIRED_SPACED_SKIRTS);
         if (platingId == null) {
