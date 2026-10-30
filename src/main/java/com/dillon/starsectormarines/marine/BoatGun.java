@@ -93,16 +93,16 @@ public record BoatGun(
             "boat_burst_laser", "@boatGunBurstLaser", TurretCatalogRegistry.BOAT_BURST_LASER_STRUCTURE_ID, 2,
             credits(4450), "@boatGunBurstLaserEffect", "@boatGunBurstLaserProvenance", Family.ENERGY, false);
 
-    public static final BoatGun SRM_5 = new BoatGun(
-            "boat_srm_5", "@boatGunSrm5", TurretCatalogRegistry.BOAT_SRM_STRUCTURE_ID, 2,
-            credits(2550), "@boatGunSrm5Effect", "@boatGunSrm5Provenance", Family.MISSILE, true);
+    public static final BoatGun SRM_15 = new BoatGun(
+            "boat_srm_15", "@boatGunSrm15", TurretCatalogRegistry.BOAT_SRM_STRUCTURE_ID, 2,
+            credits(2550), "@boatGunSrm15Effect", "@boatGunSrm15Provenance", Family.MISSILE, true);
 
-    public static final BoatGun LRM_5 = new BoatGun(
-            "boat_lrm_5", "@boatGunLrm5", TurretCatalogRegistry.BOAT_LRM_STRUCTURE_ID, 3,
-            credits(4950), "@boatGunLrm5Effect", "@boatGunLrm5Provenance", Family.MISSILE, false);
+    public static final BoatGun LRM_10 = new BoatGun(
+            "boat_lrm_10", "@boatGunLrm10", TurretCatalogRegistry.BOAT_LRM_STRUCTURE_ID, 3,
+            credits(4950), "@boatGunLrm10Effect", "@boatGunLrm10Provenance", Family.MISSILE, false);
 
     private static final List<BoatGun> CATALOG = List.of(HEAVY_MG, ARBALEST, GRENADE_LAUNCHER, HEPHAESTUS,
-            PULSE_LASER, BURST_LASER, SRM_5, LRM_5);
+            PULSE_LASER, BURST_LASER, SRM_15, LRM_10);
 
     public BoatGun {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("Boat gun id is required");

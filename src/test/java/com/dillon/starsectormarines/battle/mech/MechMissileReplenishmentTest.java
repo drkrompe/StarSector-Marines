@@ -12,32 +12,52 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertSame;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class MechMissileReplenishmentTest {
 
     @Test
-    void standardComponentOwnsSrmAndLrmCadence() {
+    void standardComponentRechargesRacksAndNothingElse() {
         MissileReplenisherComponent standard = MissileReplenisherComponent.STANDARD;
 
-        assertEquals(12f, standard.replenishmentSeconds(WeaponRegistry.MECH_SRM_ID));
-        assertEquals(18f, standard.replenishmentSeconds(WeaponRegistry.MECH_LRM_ID));
+        assertTrue(Float.isFinite(standard.replenishmentSeconds(WeaponRegistry.MECH_SRM_ID)));
+        assertTrue(Float.isFinite(standard.replenishmentSeconds(WeaponRegistry.MECH_LRM_ID)));
+        assertEquals(standard.replenishmentSeconds(WeaponRegistry.MECH_SRM_ID),
+                standard.replenishmentSeconds(WeaponRegistry.MECH_SRM_3_QS_ID), "the QS rack is an SRM rack");
         assertEquals(Float.POSITIVE_INFINITY,
                 standard.replenishmentSeconds(WeaponRegistry.MECH_CHAINGUN_ID));
     }
 
     @Test
-    void replenishmentRepeatsWithoutALifetimeLimit() {
+    void rechargeRepeatsWithoutALifetimeLimit() {
         MechWeaponMount mount = new MechWeaponMount(
                 MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_5);
+        float recharge = MissileReplenisherComponent.STANDARD.replenishmentSeconds(mount.weaponId());
         mount.ammo = 0;
 
         for (int cycle = 0; cycle < 20; cycle++) {
-            mount.advanceReplenishment(12f, MissileReplenisherComponent.STANDARD);
-            assertEquals(1, mount.ammo, "cycle " + cycle + " should restore a trigger");
-            mount.consumeTrigger();
+            mount.advanceReplenishment(recharge, MissileReplenisherComponent.STANDARD);
+            assertEquals(mount.component.ammoCapacity, mount.ammo, "cycle " + cycle + " should recharge the rack");
+            mount.ammo = 0;
         }
+    }
 
-        assertEquals(0, mount.ammo);
+    @Test
+    void aRackRechargesWholeOnceItsLastSalvoIsARechargeBehindIt() {
+        MissileReplenisherComponent loader = MissileReplenisherComponent.STANDARD;
+        MechWeaponMount mount = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.LRM_15);
+        float recharge = loader.replenishmentSeconds(mount.weaponId());
+        mount.ammo = mount.component.ammoCapacity - 1;
+
+        mount.advanceReplenishment(recharge * .6f, loader);
+        assertEquals(mount.component.ammoCapacity - 1, mount.ammo);
+        mount.commitTrigger(0L, null);
+        mount.advanceReplenishment(recharge * .6f, loader);
+        assertEquals(mount.component.ammoCapacity - 2, mount.ammo, "a salvo restarts the recharge");
+        assertEquals(recharge * .4f, mount.rechargeRemaining(), 1e-3f);
+        mount.advanceReplenishment(recharge * .4f, loader);
+        assertEquals(mount.component.ammoCapacity, mount.ammo, "every spent salvo comes back at once");
+        assertEquals(0f, mount.rechargeRemaining());
     }
 
     @Test

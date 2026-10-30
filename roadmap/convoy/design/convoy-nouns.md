@@ -631,7 +631,7 @@ every engagement question. How much a gun builds is its character:
   reaches the crew's hold. Their flux is there to read, not to limit.
 - **The limit** on the racks and the lasers. A rack dumped on clicks or a hold runs
   into its flux before its magazine: the LRM rack's three groups fit and a fourth
-  does not, and the SRM rack's crew holds before its eight salvos are out. The lasers
+  does not, and the SRM rack's crew holds before its six salvos are out. The lasers
   are flux hogs (the laser tanks, below).
 The direct-control HUD shows every armed hull's reservoir on the mech's gauge. The haze rises only off vents a hull's art
 authors (`VehicleType.fluxVentAftCells`, the laser tanks' radiator fins), so the
@@ -1448,6 +1448,8 @@ carries its contact warhead on its detonation, so the shaped charge lands on the
 body it was aimed at and point defence that stops the rocket stops the charge.
 There is **no rack choice**: a vehicle is a fixed variant, so the anti-armor
 warhead is each hull's identity, and the fragmentation rack stays a mech fitting.
+A rack is named for the missiles its magazine holds, in salvos of five
+(`mechs-nouns.md`, Missile racks): the carrier's LRM-15 and the technical's SRM-30.
 
 The **LRM carrier** (`LRM_CARRIER`, Advanced, Medium lift) is the APC chassis
 with the troop bay given over to one mech LRM-15 pod on a turntable, which stands up on its
@@ -1486,7 +1488,7 @@ waits on its loader: the LRM wins the short fight against armor and the mortar t
 long one. Acceptance for its shelling is the `fire-support-apc` scene.
 
 The **SRM technical** (`SRM_TECHNICAL`, Common, Light lift) is a field rig: the
-pickup with a mech SRM-5 pod on its pintle ring and the technical's welded plate
+pickup with an SRM-30 rack (six salvos of five) on its pintle ring and the technical's welded plate
 left off to make the weight. Its rack reaches 18 cells, so it never drives at a
 tank: it is an **ambusher**, holding where it was set down, behind cover, and
 firing on the armor that comes into its reach. Cheap and fragile, a filler for a

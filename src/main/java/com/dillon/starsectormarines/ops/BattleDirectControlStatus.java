@@ -461,16 +461,20 @@ final class BattleDirectControlStatus {
                 weapons.add(rotaryWeapon(mount, mounts, flux, picks, aimDistance));
                 continue;
             }
+            // An empty rack reads its recharge, the loader's long wait, rather than its mechanical cycle.
+            float recharge = mount.component.ammoCapacity >= 0 && mount.ammo <= 0 ? mount.rechargeRemaining() : 0f;
+            boolean recharging = recharge > 0f;
             weapons.add(new WeaponStatus(mount.slot.ordinal() + 1, mount.slot.name(),
                     mount.component.displayName(), behavior(weapon, mount.component.projectilesPerTrigger,
                             Ordnance.of(mount.component.hardpointType)),
-                    HeavyWeapons.supportsPointFire(mount), mount.cycleRemaining, mount.component.cycleSeconds(),
+                    HeavyWeapons.supportsPointFire(mount), recharging ? recharge : mount.cycleRemaining,
+                    recharging ? mount.rechargeSeconds : mount.component.cycleSeconds(),
                     mount.burstRemaining, mount.burstTimer,
                     new Ammo(mount.ammo, mount.component.ammoCapacity, AmmoUnit.TRIGGER_PACKS,
                             mount.component.ammoCapacity < 0),
                     !flux.permits(mount.triggerFlux(), false), mount.component.cycleLabel(),
                     MechFireGroups.badge(mounts, picks, mount),
-                    HeavyWeapons.tooClose(mount, aimDistance), false, MechFireGroups.group(mounts, mount),
+                    HeavyWeapons.tooClose(mount, aimDistance), recharging, MechFireGroups.group(mounts, mount),
                     mount.holdSalvos * mount.component.projectilesPerTrigger));
         }
         weapons.sort(Comparator.comparingInt(WeaponStatus::number));

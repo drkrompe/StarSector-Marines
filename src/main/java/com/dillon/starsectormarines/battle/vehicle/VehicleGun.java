@@ -91,7 +91,7 @@ public final class VehicleGun {
 
     /**
      * {@code type}'s turret carrying {@code weapon}; the hull's own for a null weapon. The
-     * magazine is the weapon's pulls, and a weapon with no limit on a mech has none here either (flux alone limits
+     * magazine is the weapon's pulls in rounds (a rack's buffer), and a weapon with no limit on a mech has none here either (flux alone limits
      * it; a rotary gun's belt is its feed, {@code GroundTurret#rotary}). A round costs the weapon's flux, drawn on the
      * hull's reservoir.
      */
@@ -100,7 +100,8 @@ public final class VehicleGun {
         if (stock == null || weapon == null) return stock;
         TurretMountDef carriage = stock.mount;
         WeaponDef def = weapon.weaponDef();
-        int magazine = weapon.ammoCapacity < 0 ? 0 : weapon.ammoCapacity * Math.max(1, def.burstCount);
+        // A rack's magazine is its buffer, the number in its name: its salvos of its salvo's missiles.
+        int magazine = weapon.readyRounds();
         // A carriage that builds flux charges the fitted weapon's own cost a round, on the hull's reservoir.
         TurretMountDef.Flux flux = carriage.flux == null ? null : new TurretMountDef.Flux(perRound(weapon, def));
         // The weapon brings its own muzzle, at the tip of its drawing out from the ring, and its own effects: a

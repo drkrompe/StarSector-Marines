@@ -49,7 +49,7 @@ public final class BoatPodScene implements BehaviorScene {
     /** The Hermes under test: the yard's MG alone on hardpoint 1, twin lasers on 2, twin SRM pods on 3. */
     static FittedBoat podBoat() {
         String laser = BoatGun.PULSE_LASER.structureId();
-        String srm = BoatGun.SRM_5.structureId();
+        String srm = BoatGun.SRM_15.structureId();
         return new FittedBoat(ShuttleType.HERMES, Map.of(), "hermes-pod",
                 new String[]{null, laser, srm}, new String[]{null, laser, srm});
     }

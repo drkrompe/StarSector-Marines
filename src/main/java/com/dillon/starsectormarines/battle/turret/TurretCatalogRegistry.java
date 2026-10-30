@@ -51,9 +51,9 @@ public final class TurretCatalogRegistry {
     public static final String BOAT_PULSE_STRUCTURE_ID = "structure.boat-pulse";
     /** A boat's burst laser: the laser tank's emitter, small enough for a door ring; it tracks fliers. */
     public static final String BOAT_BURST_LASER_STRUCTURE_ID = "structure.boat-burst-laser";
-    /** A boat's SRM-5: three salvos a sortie, a hard opening strike on the run in. */
+    /** A boat's SRM-15: three salvos of five a sortie, a hard opening strike on the run in. */
     public static final String BOAT_SRM_STRUCTURE_ID = "structure.boat-srm";
-    /** A boat's LRM-5: two long salvos a sortie, fired from well out. */
+    /** A boat's LRM-10: two long salvos of five a sortie, fired from well out. */
     public static final String BOAT_LRM_STRUCTURE_ID = "structure.boat-lrm";
 
     public static final String TANK_CANNON_STRUCTURE_ID = "structure.tank-twin-cannon";
@@ -66,7 +66,7 @@ public final class TurretCatalogRegistry {
     public static final String VEHICLE_LRM_STRUCTURE_ID = "structure.vehicle-lrm";
     /** The mortar carrier's roof mortar: an indirect-fire tube on a vehicle turntable, a steady bomb every few seconds. */
     public static final String VEHICLE_MORTAR_STRUCTURE_ID = "structure.vehicle-mortar";
-    /** The SRM technical's pintle pod: the mech anti-armor SRM rack on a pickup's ring. */
+    /** The SRM technical's pintle pod, an SRM-30: the mech anti-armor SRM salvo on a pickup's ring, six salvos deep. */
     public static final String VEHICLE_SRM_STRUCTURE_ID = "structure.vehicle-srm";
 
     private static volatile TurretCatalogRegistry installed;

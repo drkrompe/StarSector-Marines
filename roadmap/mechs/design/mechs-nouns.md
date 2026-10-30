@@ -61,8 +61,8 @@ increasing an encounter's total armored threat.
   order: 1 restores the default fire groups, then 2 centreline arm, 3 left arm,
   4 right arm, 5 and 6 the shoulders.
 - A **missile replenisher** is an installed onboard subsystem, the machine's
-  **loader**. It owns how quickly finite SRM and LRM mounts regain trigger packs,
-  independently of their mechanical trigger cycle and ready-ammunition capacity,
+  **loader**. It owns how quickly an emptied SRM or LRM rack is recharged (Missile
+  racks), independently of its mechanical trigger cycle and ready-ammunition capacity,
   and how fast every rotary gun's hopper refills its belt. Replenishment repeats
   for the life of the mech. In the campaign it is the **loader** part in the
   auxiliary compartment; a deployment frozen without one carries `no_loader`,
@@ -172,7 +172,7 @@ increasing an encounter's total armored threat.
   the **drone skimmer** (`DRONE_SKIMMER`, Prestige, Medium lift), each with a drone bay, carry a Tri-Tachyon
   pattern provenance and are weighted up by Tri-Tachyon alone (`convoy-nouns.md`, the
   hover line). The **SRM technical** (`SRM_TECHNICAL`, Common, Light lift) is a field
-  rig too: the pickup carrying a mech SRM-5 anti-armor pod.
+  rig too: the pickup carrying an SRM-30 anti-armor rack, the mech SRM salvo six deep.
   A vehicle line climbs by **variants**, each its own pattern card and bill. Plate and speed are
   not variants: they are fitted, the plating and engine any hull takes (below), so a tougher or faster
   hull is a fit of the one it is, and a mission that fields one names a **stock fit**
@@ -956,6 +956,54 @@ finished pneumatic strokes. Only nearby, visible events reach the mix, with the
 closest events taking a bounded share of each phase's presentation budget.
 Both battlefield hosts consume the same per-foot gait.
 
+## Missile racks
+
+**The number in a missile weapon's name is the missiles it holds ready**, its
+buffer (owner, 2026-10-30). A bigger rack holds more of the same missiles and
+fires them as more salvos; it does not fire stronger ones. A mech rack's salvo is
+`projectilesPerTrigger` missiles leaving `burstSpacing` apart, its depth is
+`ammoCapacity` salvos, and the name is the product
+(`MechWeaponComponent.readyRounds`):
+
+| Rack | Salvo | Salvos | Recharge (standard loader) |
+|------|-------|--------|----------------------------|
+| SRM-5, SRM-5 (Frag) | 5 | 1 | 32 s |
+| SRM-15, SRM-15 (Frag) | 5 | 3 | 32 s |
+| LRM-5, LRM-5 (Frag) | 5 | 1 | 54 s |
+| LRM-15, LRM-15 (Frag) | 5 | 3 | 54 s |
+| SRM-3 (QS) | 3 | 1 | 32 s |
+
+- **A 5-rack fires its five as one salvo**, then waits out a long recharge
+  before it can fire again. **A 15-rack holds three such salvos** and fires them
+  in quick succession (`SalvoChain`, Flux): a click is a salvo, and a hold or
+  further clicks chain the next as soon as the last has gone.
+- **The loader recharges a rack whole** (`MechWeaponMount.advanceReplenishment`):
+  once its last salvo is the loader's recharge time behind it, every spent salvo
+  is back at once. Each salvo restarts the clock. The recharge is the loader's,
+  per family (SRM or LRM) and the same at both sizes, so a 15-rack sustains three
+  times a 5-rack's fire and holds three times its spike; the accelerated loader
+  recharges in three quarters of the time (`LoaderPace`). An empty rack shows its
+  recharge on the direct-control row and reticle where a loaded one shows its cycle.
+- Missiles are the same at every size of a family, so damage per missile is the
+  warhead's (Missile warheads) and a rack's weight is its count. A salvo costs
+  the same flux from either size and a chained salvo half of it (Flux).
+- **QS is the weaker line**: the SRM-3 (QS), one salvo of three loose rockets
+  with no contact charge, against the SRM-5's five shaped charges. It recharges
+  as an SRM rack does.
+- **A turret's magazine follows the same rule.** A vehicle or boat rack fires
+  salvos of five and is named for its magazine: the LRM carrier's LRM-15 (three
+  salvos), the SRM technical's SRM-30 (six), the boat SRM-15 (three a sortie) and
+  LRM-10 (two). A hull's loader still puts back one salvo at a time
+  (`convoy-nouns.md`, the loader); a boat's racks are not reloaded in battle. A
+  mech rack fitted to a gun card brings its buffer as the magazine (`VehicleGun`).
+- Infantry rockets launch one at a time and carry their reloads: the SRM-1 and
+  SRM-1 (QS) fire one rocket a trigger, and the SRM-3 (Pod) three.
+
+`-Dbattle.mech.missileBuffers=false` is the control: the mech racks before the
+rescale (SRM-5 two-missile packets six deep, SRM-15 four-missile packets six deep,
+LRM-5 two-missile packets four deep, the QS three salvos, each pack restored on
+its own at 12 s or 18 s). The turret magazines are data and have no control.
+
 ## Missile warheads
 
 Every SRM and LRM rack size comes with two warheads. A rack's size, footprint,
@@ -968,15 +1016,17 @@ Every missile part is named `<Family>-<N>` and its ids follow the name (owner,
 2026-10-30): the standard rack carries no moniker (`SRM-5`, `SRM_5`), the
 fragmentation rack carries `(Frag)` (`LRM-5 (Frag)`, `LRM_5_FRAG`) and the
 QuickSell budget rack `(QS)` (`SRM-3 (QS)`, `SRM_3_QS`, `weapon.mech-srm-3-qs`).
-The number is the missiles the weapon holds ready in its buffer (owner, 2026-10-30).
+The number is the missiles the weapon holds ready in its buffer (Missile racks).
 `(Pod)` is reserved for a deployable or carried pod, the infantry `SRM-3 (Pod)`
 (`special.srm-3-pod`); a mounted rack is never a pod. A weapon definition shared
 by every size of a family carries the family name alone: the mech racks fire
 `weapon.mech-srm` (SRM), `weapon.mech-srm-frag` (SRM (Frag)), `weapon.mech-lrm`
 (LRM) and `weapon.mech-lrm-frag` (LRM (Frag)), and the part names the size. A
-vehicle or boat turret is named for the rack it carries: the SRM technical's
-`weapon.vehicle-srm-5` (SRM-5), the LRM carrier's `weapon.vehicle-lrm-15`
-(LRM-15), and the boat guns `boat_srm_5` (SRM-5) and `boat_lrm_5` (LRM-5).
+vehicle or boat turret is named for its magazine, and its weapon definition with
+it: the SRM technical's `weapon.vehicle-srm-30` (SRM-30), the LRM carrier's
+`weapon.vehicle-lrm-15` (LRM-15), and the boat guns `boat_srm_15` (SRM-15,
+`weapon.boat-srm-15`) and `boat_lrm_10` (LRM-10, `weapon.boat-lrm-10`). An id a
+save names that no longer exists loads as nothing fitted.
 
 - An **anti-armor (AT) rack** fires a shaped charge. Most of its damage is a
   contact payload at high penetration, landing only on the body the rocket
@@ -1661,8 +1711,8 @@ its belt in one hold: a stock Hound, venting 6 a second against 15 at full rate,
 reaches its 100-flux cap about 140 rounds into a 200-round belt (owner,
 2026-10-23, after 0.75 let it dump the whole belt with almost no flux). A Bulwark
 holding both arm guns runs hot within seconds.
-SRM-5 loads every 1.8 seconds for a two-rocket packet
-costing 28 flux. Burst continuation must also finish before another trigger.
+An SRM or LRM salvo of five costs 40 flux from either size of rack (Missile racks).
+Burst continuation must also finish before another trigger.
 Projectile damage and spacing are unchanged. Larger and specialist components
 have explicit profiles; ordinary infantry/vehicle weapon cadence is unchanged.
 
@@ -1682,9 +1732,9 @@ wait between a rack's own groups made an LRM-15 no better than an LRM-5). The cy
 groups; what bounds a rack is its load, its flux and its loader. Only a press after the cycle has run
 out is a fresh trigger. A chained
 salvo reserves half its trigger's flux (owner, 2026-10-23): at the full share an LRM-15's fifteen
-would cost 120 and could never leave inside the stock 100, while at half they cost 80, and flux still
-bounds the deepest racks (an SRM-15's six salvos would cost 147). The replenisher restores the
-spent salvos one pack at a time, as ever. An autonomous mech chooses its count on a fresh trigger:
+would cost 120 and could never leave inside the stock 100, while at half they cost 80, and two
+15-racks dumped together still overrun it. The loader recharges the rack whole once its last salvo is a
+recharge behind it (Missile racks). An autonomous mech chooses its count on a fresh trigger:
 one salvo at a soft target, the whole load at a mech or at a target its own side's point defence
 covers, and half the load (rounded up) at other armor; a chained salvo goes only to the body its
 chain began on. A vehicle turret's missile launcher obeys the same clicks, hold and choice, except

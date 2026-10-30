@@ -186,7 +186,7 @@ class FittedBoatTest {
         assertTrue(FittedBoat.fluxPerRound(BoatGun.BURST_LASER.structureId())
                 > FittedBoat.fluxPerRound(BoatGun.HEAVY_MG.structureId()));
         assertTrue(FittedBoat.fluxPerRound(BoatGun.HEAVY_MG.structureId()) > 0f);
-        assertEquals(0f, FittedBoat.fluxPerRound(BoatGun.SRM_5.structureId()));
+        assertEquals(0f, FittedBoat.fluxPerRound(BoatGun.SRM_15.structureId()));
     }
     /** A hardpoint's second gun rides beside its first for an air-to-ground sortie, and is part of the boat. */
     @Test

@@ -54,7 +54,8 @@ class MechPointFireTest {
         assertEquals(NORTH.x(), salvo.onArrival.endpointX, 0.001f);
         assertEquals(NORTH.y(), salvo.onArrival.endpointY, 0.001f);
         assertEquals(arms.component.projectilesPerTrigger - 1, arms.burstRemaining);
-        assertEquals(1, srm.burstRemaining, "the installed small rack owns packet size");
+        assertEquals(srm.component.projectilesPerTrigger - 1, srm.burstRemaining,
+                "the installed small rack owns packet size");
         assertEquals(NORTH, arms.burstPointAim);
         assertEquals(0L, arms.burstTargetId);
     }
@@ -74,7 +75,7 @@ class MechPointFireTest {
         assertEquals(0, arms.burstRemaining);
         assertEquals(1f - BattleSimulation.TICK_DT, arms.cycleRemaining, 0.00001f);
         assertEquals(ammo - 1, srm.ammo);
-        assertEquals(1, srm.burstRemaining);
+        assertEquals(srm.component.projectilesPerTrigger - 1, srm.burstRemaining);
         assertEquals(0f, lrm.cycleRemaining);
         assertEquals(lrm.component.ammoCapacity, lrm.ammo);
         assertTrue(HeavyWeapons.supportsPointFire(lrm));
@@ -357,17 +358,18 @@ class MechPointFireTest {
         f.loadout.flux.commit(90f);
         f.fire(NORTH);
         assertEquals(0, f.roster.telemetry().roundsFired(f.shooter));
-        assertEquals(6, srm.ammo);
+        assertEquals(srm.component.ammoCapacity, srm.ammo);
         f.loadout.flux.advance(20f);
         arms.cycleRemaining = 2f;
         f.fire(NORTH);
         assertEquals(1, f.roster.telemetry().roundsFired(f.shooter), "ready SRM can fire beside cycling gun");
-        assertEquals(28f - f.loadout.flux.dissipationPerSecond() * BattleSimulation.TICK_DT,
+        float salvoFlux = srm.component.fluxPerTrigger();
+        assertEquals(salvoFlux - f.loadout.flux.dissipationPerSecond() * BattleSimulation.TICK_DT,
                 f.loadout.flux.value(), .001f);
-        assertEquals(5, srm.ammo);
-        for (int i = 0; i < 10; i++) f.weapons.tick(f.shooter, NORTH, false);
-        assertEquals(2, f.roster.telemetry().roundsFired(f.shooter));
-        assertEquals(28f - f.loadout.flux.dissipationPerSecond() * 11 * BattleSimulation.TICK_DT,
+        assertEquals(srm.component.ammoCapacity - 1, srm.ammo);
+        for (int i = 0; i < 30; i++) f.weapons.tick(f.shooter, NORTH, false);
+        assertEquals(srm.component.projectilesPerTrigger, f.roster.telemetry().roundsFired(f.shooter));
+        assertEquals(salvoFlux - f.loadout.flux.dissipationPerSecond() * 31 * BattleSimulation.TICK_DT,
                 f.loadout.flux.value(), .001f,
                 "continuation does not charge a second salvo's flux");
         f.loadout.clearQueuedFire();
@@ -441,7 +443,7 @@ class MechPointFireTest {
         Fixture f = new Fixture(MechWeaponComponent.PULSE_LASER, MechWeaponComponent.SRM_5, null);
         MechWeaponMount srm = f.loadout.mount(MechMountSlot.LEFT_SHOULDER);
         f.weapons.tick(f.shooter, NORTH, false, true, TriggerPicks.LINKED);
-        assertEquals(1, srm.burstRemaining);
+        assertEquals(srm.component.projectilesPerTrigger - 1, srm.burstRemaining);
         f.weapons.tick(f.shooter, NORTH, false, false, TriggerPicks.LINKED);
         for (int i = 0; i < 12; i++) f.weapons.tick(f.shooter, NORTH, false, false, TriggerPicks.LINKED);
         assertEquals(srm.component.projectilesPerTrigger, f.shots.getActiveShots().size());
@@ -543,15 +545,10 @@ class MechPointFireTest {
     }
 
     @Test
-    void eachSpentSalvoIsReplenishedOnItsOwnAndAHoldThenFiresWhatHasCome() {
+    void aHoldOnAPartLoadedRackFiresOnlyWhatItHolds() {
         Fixture f = new Fixture(null, null, MechWeaponComponent.LRM_15);
         MechWeaponMount lrm = f.loadout.mount(MechMountSlot.RIGHT_SHOULDER);
-        float cadence = f.loadout.missileReplenisher().replenishmentSeconds(lrm.weaponId());
-        lrm.ammo = 0;
-        lrm.advanceReplenishment(cadence, f.loadout.missileReplenisher());
-        assertEquals(1, lrm.ammo, "one salvo comes back per cadence, not the whole rack");
-        lrm.advanceReplenishment(cadence * 0.5f, f.loadout.missileReplenisher());
-        assertEquals(1, lrm.ammo);
+        lrm.ammo = 1;
         for (int i = 0; i < 240; i++) f.weapons.tick(f.shooter, NORTH, true, false, TriggerPicks.LINKED);
         assertEquals(lrm.component.projectilesPerTrigger, f.roster.telemetry().roundsFired(f.shooter),
                 "a hold on a part-loaded rack fires only the salvos it holds");

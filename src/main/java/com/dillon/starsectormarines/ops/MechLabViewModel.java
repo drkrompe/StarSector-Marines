@@ -1347,7 +1347,7 @@ public final class MechLabViewModel {
 
             String telemetry;
             if (weapon != null) {
-                telemetry = Strings.format("openingMechLabDmgRng", number(weapon.weaponDef().damage), number(weapon.weaponDef().range), (weapon.ammoCapacity > 0 ? Strings.format("openingMechLabAmmo", weapon.ammoCapacity) : ""));
+                telemetry = Strings.format("openingMechLabDmgRng", number(weapon.weaponDef().damage), number(weapon.weaponDef().range), (weapon.ammoCapacity > 0 ? Strings.format("openingMechLabAmmo", weapon.readyRounds()) : ""));
             } else if (internal != null) {
                 telemetry = internalTelemetry(mech.fit(), internal);
             } else if (compartment && !missing) {
@@ -1529,7 +1529,7 @@ public final class MechLabViewModel {
 
             // Telemetry
             WeaponDef def = component.weaponDef();
-            String telemetry = Strings.format("openingMechLabDmgRng", number(def.damage), number(def.range), (component.ammoCapacity > 0 ? Strings.format("openingMechLabAmmo", component.ammoCapacity) : Strings.get("openingMechLabAmmo2")));
+            String telemetry = Strings.format("openingMechLabDmgRng", number(def.damage), number(def.range), (component.ammoCapacity > 0 ? Strings.format("openingMechLabAmmo", component.readyRounds()) : Strings.get("openingMechLabAmmo2")));
 
             // Deltas
             String deltaText = "";
@@ -2980,8 +2980,9 @@ public final class MechLabViewModel {
         return finiteAmmo(mech.leftShoulder()) + finiteAmmo(mech.rightShoulder());
     }
 
+    /** The missiles a shoulder weapon holds ready, its rack's buffer; zero for one with no limit. */
     private static int finiteAmmo(MechWeaponComponent component) {
-        return component != null && component.ammoCapacity > 0 ? component.ammoCapacity : 0;
+        return component != null && component.ammoCapacity > 0 ? component.readyRounds() : 0;
     }
 
     private static float weaponRange(MechFrameBudget.Fit fit) {
