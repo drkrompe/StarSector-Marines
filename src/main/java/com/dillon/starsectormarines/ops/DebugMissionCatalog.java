@@ -222,7 +222,7 @@ public final class DebugMissionCatalog {
                     .marineArrivalPolicy(this == COLD_START || this == RELIEF ? MarineArrivalPolicy.SECURED_GROUND : MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                     .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
                     .requirements(squads + (this == WORKING_PASSAGE ? " squads / service pulse rifles / starting Ward armor / no Hound or officer bonuses"
-                            : this == COLD_ACCOUNT ? " squads in the kit reached by Blind Watch + " + ColdAccountCompany.BAY
+                            : this == COLD_ACCOUNT ? " squads carrying the kit unlocked by Blind Watch (rockets, point defence, anti-materiel rifles) + " + ColdAccountCompany.BAY
                             : " starter squads" + (hound ? " + the Hound (chaingun)" : "")) + "; preset boats supplied")
                     .battleSeed(chapter != null ? chapter.mission("unused", chapter.planetName, "").battleSeed
                             : ravBloom() ? RavBloomDebugChoice.seed(poolMap())

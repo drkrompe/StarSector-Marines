@@ -95,7 +95,7 @@ public enum CorvusChapter {
                 .sprawl(PrecinctPlan.Sprawl.REMOTE)
                 .flavor(Strings.format("corvusFlavor", OpeningBroker.NAME,
                         this == DUST_LEDGER ? Strings.join("waylineSentenceJoin", priorOutcome, briefing()) : briefing()))
-                .requirements(this == BLIND_WATCH
+                .requirements(recommendedMachines() > 0
                         ? Strings.format(textKey + "Requirements", squads, recommendedMachines())
                         : Strings.format("corvusRequirements", squads))
                 .requiredDrops(squads * 2).employerShuttles(0)

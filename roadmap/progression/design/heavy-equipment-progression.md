@@ -1148,21 +1148,11 @@ machine. The progression is that a company reaches Light drops through its own
 boats early, and Heavy only through a Valkyrie or a ship refit — the expensive,
 late step.
 
-**Lift per mission and the lift queue.** A light-cradled company boat flies
-two machine lifts a mission, a heavy-cradled one three, and the synthetic heavy
-carrier lifts the whole bay. The heavy cradle used to fly two as well, which made
-it a worse buy than the light one: it costs about 2.3 times the bill, and a
-Warden brings less armor (550 structure plus capacity) than a Hound (725), so
-the better cradle put less on the ground. Best bay per tier, structure plus
-armor capacity:
-
-| Tier | Machines | Armor on the ground |
-| --- | --- | --- |
-| Starter, light cradle | 2 | 1450 (two Hounds) |
-| Mid, heavy cradle | 3 | 3120 (three escort APCs); 2175 mechs only |
-| Late, Valkyrie | 4 | 9600 (four dozers); 5040 (four Bulwarks) |
-
-The late tier is capped by the four gantries, not by lift. Drops are free and
+**Lift per mission and the lift queue.** A carrier lands every machine in the
+bay whose weight class it lifts (owner): there is no per-boat count of drops.
+What a better cradle or boat buys is the weight class, so the tiers differ in
+what can come down, not how many. The bay's four gantries are the only cap on
+count. Drops are free and
 one machine each: what paces them is the ferry. Every drop waits on the lift queue
 (`air-nouns.md`, Lift) behind the opening squad loads and earlier drops, and flies
 only when a ferry craft whose rating admits it is free, so a machine ordered at the

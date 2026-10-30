@@ -479,7 +479,7 @@ class CorvusCombatEvidenceTest {
                 Files.writeString(output.resolve("summary.json"),reports.toString(2));
                 writeSummary(output, reports, boatCount);
                 assertTrue(houndLandedAt > 0, "Must actually deliver the recovered chassis");
-                // Every machine the lift admits is down; a bay larger than the boat's lifts keeps the rest aboard.
+                // Every machine the lift admits is down; one whose weight class no carrier lifts stays aboard.
                 assertFalse(((MechSupport) sim.getCommandPowerService().getPower(MechSupport.ID)).canStillField(sim));
             }
             // Independent force baselines: advance the offer even if the preceding playback lost.

@@ -10,7 +10,9 @@ Each Harpoon is its own source (owner, 2026-10-30: "individual missile launch so
 burning thrust sounds individually"). It leaves its tube with the launch take (a thunk, then the
 motor lighting), and its motor (the looped motor take) burns from ignition to its hit, flown by
 engines.py's machinery (synth_flyby): panned by its bearing off the lens, louder as it nears, with
-a Doppler shift from its closing speed. Only the salvos a shot draws are heard in it: S5 draws
+a Doppler shift from its closing speed. Where it meets her hull its warhead goes off with the game's
+own hit (owner, 2026-10-30: "missile hits against hull should have a corresponding explosion"):
+explosion_missile_01's blast under a heavy hull strike, read from the install. Only the salvos a shot draws are heard in it: S5 draws
 Lasher A's and the Phaeton's leaving, S6 those two arriving and the lead Lasher's.
 
 The times are the finished renders' (the 'missiles' rows their logs print: launch and arrival
@@ -38,6 +40,9 @@ OUT = HERE.parents[3] / "build" / "asharu-missiles"
 LAUNCH_TAKE, MOTOR_TAKE = "harpoon-launch-one_t01", "harpoon-motor_t01"
 EJECT_MPS, IGNITE_S, ACCEL, VMAX = 18.0, 0.35, 650.0, 950.0
 SIZE = 40.0              # heard as loud as a ship this long would be (engines.FULL_AT): a motor is fierce
+HIT_SIZE = 150.0         # a warhead going off on a hull carries further than its motor did
+HIT_CLANG = 0.6          # the hull strike under the blast
+GAME = Path(r"C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core\sounds\sfx_impacts")
 PEAK = 0.89
 # (shot, target, first launch frame, arrival frames), the frames on each shot's key time (S5 47 s,
 # S6 56 s) less a frame: from the logs of asharu-final-n1-s5-m5-d44024e85 and asharu-final-n1-s6-k3-735d44ffd
@@ -109,15 +114,44 @@ def motor(spec, launch, hit, target, start, end, seed):
     return SF.render(run), loudness(rel[seen]).max(), a - engines.PAD
 
 
-def launch_sound(spec, launch, hit, target, clip):
-    """Its launch take placed where it left the tube: (stereo, level)."""
-    rel = flight(spec, launch, hit, target, np.array([launch]))[0]
+def placed(rel, clip, size=SIZE):
+    """A mono clip panned by its bearing from the camera: (stereo, level)."""
     pan = np.clip(np.sin(np.arctan2(rel[0], rel[1])) * SF.HOUND['pan_width'], -1, 1)
     left, right = np.cos((pan + 1) * np.pi / 4), np.sin((pan + 1) * np.pi / 4)
-    return np.stack([clip * left, clip * right], axis=1), loudness(rel)
+    level = min(1.0, engines.FULL_AT * size / max(1.0, float(np.linalg.norm(rel)))) ** engines.LOUDNESS_POWER
+    return np.stack([clip * left, clip * right], axis=1), level
 
 
-def shot_stem(seg, clip):
+def launch_sound(spec, launch, hit, target, clip):
+    """Its launch take placed where it left the tube: (stereo, level)."""
+    return placed(flight(spec, launch, hit, target, np.array([launch]))[0], clip)
+
+
+def hit_sound(spec, launch, hit, target, clip):
+    """Its warhead going off on her hull, placed where it meets her: (stereo, level)."""
+    return placed(flight(spec, launch, hit, target, np.array([hit]))[0], clip, HIT_SIZE)
+
+
+def hit_clips():
+    """The game's own Harpoon hit, per tube: its HE blast (explosion_missile_01, pitched as
+    explosion_missile plays it) under a heavy hull strike (gun_hit_heavy_01 and _02 in turn)."""
+    def read(name, pitch=1.0):
+        raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(GAME / (name + ".ogg")), "-ac", "1", "-ar",
+                              str(round(SF.SR / pitch)), "-f", "f32le", "-"], check=True, capture_output=True).stdout
+        x = np.frombuffer(raw, np.float32).astype(np.float64)
+        return x / max(1e-9, np.abs(x).max())
+    blast = read('explosion_missile_01', 0.97)
+    out = []
+    for clang in (read('gun_hit_heavy_01'), read('gun_hit_heavy_02')):
+        n = max(len(blast), len(clang))
+        mix = np.zeros(n)
+        mix[:len(blast)] += blast
+        mix[:len(clang)] += HIT_CLANG * clang
+        out.append(mix / np.abs(mix).max())
+    return out
+
+
+def shot_stem(seg, clip, hits):
     spec = bb.SHOTS[seg['kf']]
     shot = seg['first']
     n = int(round((seg['end'] - seg['start']) * SF.SR))
@@ -135,6 +169,8 @@ def shot_stem(seg, clip):
         heard = motor(spec, launch, hit, target, seg['start'], seg['end'], 301 + k)
         if heard is not None:
             add(*heard)
+        if seg['start'] <= hit < seg['end']:      # every Harpoon the renders fly strikes her hull
+            add(*hit_sound(spec, launch, hit, target, hits[k % 2]), hit)
         print('%s  %-11s launch %6.2f  lit %6.2f  hit %6.2f' % (shot, target, launch, launch + IGNITE_S, hit))
     return mix
 
@@ -148,7 +184,8 @@ def main():
     out.mkdir(parents=True, exist_ok=True)
     clip = take(LAUNCH_TAKE)
     segs = [s for s in asharu_preview.segments(bb.KEYFRAMES) if s['first'] in FRAME0 and (not args.shot or s['first'] in args.shot)]
-    stems = {s['first']: shot_stem(s, clip) for s in segs}
+    hits = hit_clips()
+    stems = {s['first']: shot_stem(s, clip, hits) for s in segs}
     scale = PEAK / max(np.abs(v).max() for v in stems.values())
     for name, stem in stems.items():
         wav = out / (name + ".wav")

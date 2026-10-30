@@ -31,10 +31,10 @@ class LiftBudgetTest {
 
     @Test
     void spentLiftStaysSpentAndOnlyARefundGivesItBack() {
-        LiftBudget budget = LiftBudget.forMission(LIGHT_CRADLE, false, ShuttleType.VALKYRIE, 3);
+        LiftBudget budget = LiftBudget.forMission(LIGHT_CRADLE, false, ShuttleType.VALKYRIE, 4);
         LiftBudget.Carrier first = budget.allocate(LIGHT);
         budget.spend(first);
-        budget.spend(budget.allocate(LIGHT));
+        for (int i = 1; i < 4; i++) budget.spend(budget.allocate(LIGHT));
 
         assertEquals(0, budget.remaining());
         assertSame(LiftBudget.Refusal.LIFT_SPENT, budget.refusal(LIGHT));
@@ -55,11 +55,11 @@ class LiftBudgetTest {
     }
 
     @Test
-    void aHeavyCradleLiftsOneMoreMachineThanALightOne() {
+    void aCradledBoatLiftsTheWholeBayWhateverItsCradle() {
         FittedBoat heavyCradle = new FittedBoat(ShuttleType.BUFFALO, BoatFitting.STANDARD_PLATING,
                 BoatFitting.STANDARD_DRIVE, BoatFitting.HEAVY_CRADLE, "buffalo-2");
 
-        assertEquals(2, LiftBudget.forMission(LIGHT_CRADLE, false, ShuttleType.VALKYRIE, 4).remaining());
-        assertEquals(3, LiftBudget.forMission(heavyCradle, false, ShuttleType.VALKYRIE, 4).remaining());
+        assertEquals(4, LiftBudget.forMission(LIGHT_CRADLE, false, ShuttleType.VALKYRIE, 4).remaining());
+        assertEquals(4, LiftBudget.forMission(heavyCradle, false, ShuttleType.VALKYRIE, 4).remaining());
     }
 }
