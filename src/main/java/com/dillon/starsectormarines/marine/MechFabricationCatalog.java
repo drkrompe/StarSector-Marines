@@ -75,7 +75,6 @@ public final class MechFabricationCatalog {
             kit(VehicleKit.SPALL_LINER, "@gearFabricationStandardIssue"),
             kit(VehicleKit.READY_RACK, "@gearFabricationStandardIssue"),
             kit(VehicleKit.SENSOR_PAIR, "@gearFabricationMilitaryPattern"),
-            kit(VehicleKit.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"),
             kit(VehicleKit.ACTIVE_PROTECTION, "@gearFabricationMilitaryPattern"));
 
     /**

@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.i18n.Strings;
 
+import java.util.Map;
+
 /**
  * A non-weapon fitting that changes the frame: engine, plating, capacitor bank, vent array or
  * missile loader. Each internal replaces or adds one part and none is a multiplier on the
@@ -159,11 +161,22 @@ public enum MechInternal {
     /** A stock part: known by every company and fitted to every new or migrated frame. */
     public boolean stock() { return role.stock() == this; }
 
+    /**
+     * Every internal by id, an old id resolving to the part it became: the vehicle kits are internals now (one machine,
+     * one part catalog), so a save, fixture, pattern or ladder line naming a kit reads as its internal.
+     */
     public static MechInternal findById(String id) {
         if (id == null) return null;
         for (MechInternal internal : values()) {
             if (internal.id.equals(id)) return internal;
         }
-        return null;
+        return RETIRED_KITS.get(id);
     }
+
+    /**
+     * The retired vehicle kits' ids and the internal each became: migration input only. A kit id resolves through
+     * {@link #findById}; the bay folds kit stock and kit patterns into the internal's ({@code MechBay}).
+     */
+    public static final Map<String, MechInternal> RETIRED_KITS = Map.of(
+            "kit.accelerated-loader", ACCELERATED_LOADER);
 }

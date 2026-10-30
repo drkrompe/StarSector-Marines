@@ -81,6 +81,14 @@ public record MissileReplenisherComponent(
         return LoaderPace.ofTimeShare(srmReplenishmentSeconds / STANDARD.srmReplenishmentSeconds);
     }
 
+    /**
+     * Whether this loader puts a missile pack back at all: every loader does, and a machine with none ({@link #NONE})
+     * fights with the packs it launched with (mechs-nouns.md, the loader rule).
+     */
+    public boolean refillsPacks() {
+        return Float.isFinite(srmReplenishmentSeconds);
+    }
+
     /** Stable item catalog shared by campaign inventory and battle loadouts. */
     public static List<MissileReplenisherComponent> catalog() {
         return CATALOG;

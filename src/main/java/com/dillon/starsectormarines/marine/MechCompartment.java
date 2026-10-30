@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -58,6 +59,15 @@ public final class MechCompartment {
             case VENT_ARRAY -> Integer.MAX_VALUE;
             case ENGINE, PLATING -> 0;
         };
+    }
+
+    /**
+     * The loader {@code parts} carry, as the battle reads it (mechs-nouns.md, the loader): its replenisher, or
+     * {@link MissileReplenisherComponent#NONE} for a compartment without one. Empty means nothing, on every machine.
+     */
+    public static MissileReplenisherComponent loader(List<MechInternal> parts) {
+        for (MechInternal part : parts) if (part.role == MechInternal.Role.LOADER) return part.replenisher();
+        return MissileReplenisherComponent.NONE;
     }
 
     /** Whether {@code parts} obey the role limits and pack into {@code variant}'s compartment. */

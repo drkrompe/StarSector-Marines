@@ -791,8 +791,6 @@ def vehicles(f):
     f['kit-ready-rack'] = banded(150, 100, kit_ready_rack(), 'RDY')
     f['kit-spaced-skirts'] = banded(150, 100, kit_skirts(), 'SKT')
     f['kit-sensor-pair'] = banded(150, 100, kit_sensor_pair(), 'SNS')
-    # The hull's own systems uprated: a mech's accelerated feed, and a deeper bank of four cells.
-    f['kit-accelerated-loader'] = banded(150, 100, loader(True), 'ACL')
     # The Parapet's interceptor system, now a kit for the gun tanks.
     f['kit-active-protection'] = banded(150, 100, kit_active_protection(), 'APS')
 

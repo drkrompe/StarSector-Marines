@@ -135,13 +135,13 @@ final class VehicleDoll {
     }
 
     /**
-     * A kit's colour: the ready rack and the loader feed the gun as a mech's loader does, and active protection is a
+     * A kit's colour: the ready rack feeds the gun as a mech's loader does, and active protection is a
      * hull system, as the systems card's are. A bank or vent array on
      * the rack wears its own role's colour, as in a mech's compartment.
      */
     static Color tone(VehicleKit kit) {
         return switch (kit) {
-            case READY_RACK, ACCELERATED_LOADER, ACTIVE_PROTECTION -> HardpointBricks.UTILITY;
+            case READY_RACK, ACTIVE_PROTECTION -> HardpointBricks.UTILITY;
             default -> HardpointBricks.OMNI;
         };
     }

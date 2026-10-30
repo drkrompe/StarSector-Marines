@@ -153,7 +153,7 @@ public final class AirDeliveryContext {
     /** As above, for a frozen company vehicle whose loss writes back to its gantry. */
     public long deployVehicle(VehicleDeploymentSpec spec, float x, float y, float facingDeg) {
         VehicleMission mission = VehicleMission.deployed(x, y);
-        long id = roster.convoy().spawn(spec.type(), spec.kits(), spec.plating(), spec.engine(), spec.gun(), spec.flux(),
+        long id = roster.convoy().spawn(spec.type(), spec.kits(), spec.plating(), spec.engine(), spec.gun(), spec.compartment(),
                 faction, mission);
         roster.convoy().body(id).teleport(x, y, facingDeg);
         roster.convoy().tagCompanyVehicle(id, spec.campaignId());

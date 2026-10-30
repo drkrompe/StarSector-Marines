@@ -112,7 +112,6 @@
     {"item": "mech-pattern:kit:kit.spall-liner", "station": "relief"},
     {"item": "mech-pattern:kit:kit.ready-rack", "station": "relief"},
     {"item": "mech-pattern:kit:kit.sensor-pair", "station": "thunder-run"},
-    {"item": "mech-pattern:kit:kit.accelerated-loader", "station": "thunder-run"},
     {"item": "mech-pattern:kit:kit.active-protection", "station": "thunder-run"}
   ]
 }

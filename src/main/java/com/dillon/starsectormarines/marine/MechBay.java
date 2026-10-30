@@ -969,6 +969,21 @@ public final class MechBay implements Serializable {
         }
     }
 
+    /**
+     * The vehicle kits that became internals (one machine, one part catalog, {@link MechInternal#RETIRED_KITS}): spare
+     * kits join the internal's stock (an accelerated-loader kit and the internal add up) and a learned kit pattern is the
+     * internal's pattern. Fitted ones moved with their vehicle ({@link CampaignVehicle}).
+     */
+    private void retireKitsToInternals() {
+        for (Map.Entry<String, MechInternal> retired : MechInternal.RETIRED_KITS.entrySet()) {
+            Integer spares = ownedKits.remove(retired.getKey());
+            if (spares != null && spares > 0) ownedInternals.merge(retired.getValue().id, spares, Integer::sum);
+            if (knownPatternIds != null && knownPatternIds.remove(MechPattern.PREFIX + "kit:" + retired.getKey())) {
+                knownPatternIds.add(MechPattern.of(retired.getValue()).id());
+            }
+        }
+    }
+
     private void migrateRenamedWeapons() {
         Map<String, Integer> renamed = new HashMap<>();
         ownedWeapons.entrySet().removeIf(stock -> {
@@ -996,6 +1011,7 @@ public final class MechBay implements Serializable {
         if (ownedInternals == null) ownedInternals = new HashMap<>();
         if (ownedKits == null) ownedKits = new HashMap<>();
         retireArmorKits();
+        retireKitsToInternals();
         if (knownPatternIds == null) {
             knownPatternIds = starterPatternsOnly ? starterPatternIds() : allPatternIds();
         }

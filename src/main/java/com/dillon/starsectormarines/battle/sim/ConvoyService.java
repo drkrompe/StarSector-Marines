@@ -17,6 +17,7 @@ import com.dillon.starsectormarines.battle.vehicle.MountedGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearances;
 import com.dillon.starsectormarines.battle.drone.DroneRole;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
@@ -32,6 +33,8 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
 import com.dillon.starsectormarines.engine.ecs.EntityWorld;
+import com.dillon.starsectormarines.marine.MechInternal;
+import com.dillon.starsectormarines.marine.VehicleRack;
 
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
@@ -134,7 +137,7 @@ public final class ConvoyService implements BodyCarrier {
      */
     public long spawn(VehicleDeploymentSpec loadout, Faction faction, VehicleMission mission) {
         return spawn(loadout.type(), loadout.kits(), loadout.plating(), loadout.engine(), loadout.gun(),
-                loadout.flux(), faction, mission);
+                loadout.compartment(), faction, mission);
     }
 
     /** As above, set down with what the kits on its rack make of it ({@link VehicleKit}). */
@@ -161,17 +164,21 @@ public final class ConvoyService implements BodyCarrier {
      */
     public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
                       MechWeaponComponent weapon, Faction faction, VehicleMission mission) {
-        return spawn(type, kits, plating, engine, weapon, HullReservoir.stockFrame(type), faction, mission);
+        return spawn(type, kits, plating, engine, weapon, VehicleRack.stockFit(type), faction, mission);
     }
 
     /**
-     * As above, its flux reservoir on {@code flux}, the frame the drop froze from its rack ({@link HullReservoir});
-     * an armed hull given none runs its stock bank.
+     * As above, with {@code compartment} in its auxiliary compartment: the bank and vent arrays its flux reservoir is
+     * ({@link HullReservoir}; an armed hull with no bank runs its stock bank) and the loader that paces every magazine,
+     * hopper and missile pack it carries ({@link VehicleRack#loader}; with none, its missile packs never come back).
      */
     public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
-                      MechWeaponComponent weapon, HullReservoir.Frame flux, Faction faction, VehicleMission mission) {
+                      MechWeaponComponent weapon, List<MechInternal> compartment, Faction faction,
+                      VehicleMission mission) {
         if (weapon == null) weapon = type.ownGun();
+        HullReservoir.Frame flux = VehicleRack.frame(compartment);
         if (flux == null) flux = HullReservoir.stockFrame(type);
+        MissileReplenisherComponent loader = VehicleRack.loader(compartment);
         VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type);
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
@@ -185,7 +192,7 @@ public final class ConvoyService implements BodyCarrier {
         StructureDef fittedStructure = type.hasTurretWeapon() ? VehicleGun.fit(type, weapon) : null;
         TurretMountDef gun = fittedStructure != null ? fittedStructure.mount : null;
         GroundTurret turret = gun != null
-                ? GroundTurret.fitted(gun, Math.round(gun.ammoCapacity * fitted.ammoFactor()), fitted,
+                ? GroundTurret.fitted(gun, Math.round(gun.ammoCapacity * fitted.ammoFactor()), loader,
                         HullTurretSection.forHull(type, fitted)) : null;
         if (turret != null && weapon == null && type.hasModularTurret()) turret.removed = true;
         if (turret != null && weapon != null) {
@@ -193,12 +200,12 @@ public final class ConvoyService implements BodyCarrier {
             turret.weapon = weapon;
             // The hull's loader paces the hopper as it does every magazine; a ready rack deepens the belt.
             if (weapon.rotary() != null) {
-                turret.rotary = new RotaryFeed(weapon.rotary(), fitted.loaderFactor(), fitted.ammoFactor());
+                turret.rotary = new RotaryFeed(weapon.rotary(), loader.loaderFactor(), fitted.ammoFactor());
             }
         }
         HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null, fitted);
         if (turret != null) {
-            for (VehicleMount mount : type.secondaryMounts()) turret.secondaries.add(MountedGun.of(mount, fitted));
+            for (VehicleMount mount : type.secondaryMounts()) turret.secondaries.add(MountedGun.of(mount, loader));
             HullReservoir.install(turret, HullReservoir.create(flux));
         }
 

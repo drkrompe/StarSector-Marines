@@ -21,22 +21,18 @@ class VehicleKitsTest {
         assertEquals(3, VehicleKit.slots(VehicleType.HEAVY_APC), "a Medium hull three");
         assertEquals(4, VehicleKit.slots(VehicleType.BREAKTHROUGH_TANK), "a Heavy hull four");
 
-        assertTrue(VehicleKit.fits(VehicleType.FIRE_SUPPORT_APC, List.of(VehicleKit.READY_RACK, VehicleKit.SPALL_LINER)));
-        assertFalse(VehicleKit.fits(VehicleType.FIRE_SUPPORT_APC,
-                List.of(VehicleKit.READY_RACK, VehicleKit.SPALL_LINER, VehicleKit.ACCELERATED_LOADER)),
-                "the stock bank takes the third slot");
+        assertTrue(VehicleKit.fits(VehicleType.FIRE_SUPPORT_APC, List.of(VehicleKit.READY_RACK)));
+        assertFalse(VehicleKit.fits(VehicleType.FIRE_SUPPORT_APC, List.of(VehicleKit.READY_RACK, VehicleKit.SPALL_LINER)),
+                "the stock bank and loader take two of the three slots");
         assertTrue(VehicleKit.fits(VehicleType.SUPPLY_TRUCK, List.of(VehicleKit.SPALL_LINER, VehicleKit.SENSOR_PAIR)),
                 "an unarmed hull needs no bank");
         assertFalse(VehicleKit.fits(VehicleType.BREAKTHROUGH_TANK,
                 List.of(VehicleKit.SPALL_LINER, VehicleKit.SPALL_LINER)), "no kit twice");
         assertFalse(VehicleKit.READY_RACK.suits(VehicleType.SUPPLY_TRUCK), "no magazine to extend");
-        assertTrue(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.FIRE_SUPPORT_APC));
         for (VehicleType beltFed : List.of(VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL,
                 VehicleType.DOZER_BREACHER)) {
             assertTrue(VehicleKit.READY_RACK.suits(beltFed), "a belt-fed gun's belt deepens: " + beltFed);
-            assertTrue(VehicleKit.ACCELERATED_LOADER.suits(beltFed), "and its hopper feeds faster: " + beltFed);
         }
-        assertFalse(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.SUPPLY_TRUCK), "no gun to feed");
     }
 
     @Test
