@@ -37,6 +37,11 @@ public final class MechWeaponMount {
      * fires while its trigger is held and never uses the burst fields or the trigger-pack ammunition.
      */
     public final RotaryFeed rotary;
+    /**
+     * Rounds this mount has put in the air, wrapping past the int range. Presentation only: it numbers each round
+     * for its weapon's tracer cadence ({@code ShotEvent.roundIndex}) and the simulation never reads it.
+     */
+    private int roundsReleased;
 
     public MechWeaponMount(MechMountSlot slot, MechWeaponComponent component) {
         if (slot == null || component == null || !component.accepts(slot)) {
@@ -60,6 +65,13 @@ public final class MechWeaponMount {
     }
 
     private static final float ROTARY_FIRING_SECONDS = 0.2f;
+
+    /** Numbers the round leaving now: zero-based, counted over every round this mount has released. */
+    public int releaseRound() {
+        int index = roundsReleased;
+        roundsReleased = (roundsReleased + 1) & Integer.MAX_VALUE;
+        return index;
+    }
 
     public String weaponId() { return component.weaponId; }
 

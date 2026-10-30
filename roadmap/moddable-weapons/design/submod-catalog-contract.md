@@ -139,6 +139,14 @@ disables the tail. A tail without `render.projectileSprite` is rejected. This
 is presentation over the resolved flight and does not change round velocity,
 contact, or arrival time.
 
+Such a weapon may also mark periodic **tracer rounds**: a positive whole
+`render.tracerEvery` N with a hex `render.tracerRoundColor` draws every Nth round a
+mount releases (the mount's own count, never the random stream or the frame rate)
+with its shell tinted that color and a glowing streak of
+`render.tracerRoundTailCells` (default: the weapon's tail). The sibling keys without
+`tracerEvery`, or `tracerEvery` without a sprite and tail, are rejected. Tracer
+rounds are presentation only; rounds a path does not count are never tracers.
+
 A hitscan weapon (no `render.projectileSprite`) may optionally declare a
 `render.beam` object. `coreWidthPx` controls the bright tracer line;
 `glowColor` plus the wider `glowWidthPx` add its halo, and `pulseCycles` counts

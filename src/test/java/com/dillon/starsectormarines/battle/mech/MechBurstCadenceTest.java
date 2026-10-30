@@ -26,6 +26,16 @@ class MechBurstCadenceTest {
     }
 
     @Test
+    void eachMountNumbersItsOwnRounds() {
+        MechWeaponMount left = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.CHAINGUN_HF);
+        MechWeaponMount right = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.CHAINGUN_HF);
+        assertEquals(0, left.releaseRound());
+        assertEquals(1, left.releaseRound());
+        assertEquals(0, right.releaseRound(), "a second gun's count is its own");
+        assertEquals(2, left.releaseRound());
+    }
+
+    @Test
     void aClickFiresOnePulseAndQueuesTheRestASpacingApart() {
         MechWeaponMount mount = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.MEDIUM_BURST_LASER);
         mount.commitTrigger(7L, null);

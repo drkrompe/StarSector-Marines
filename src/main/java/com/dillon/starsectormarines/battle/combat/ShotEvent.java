@@ -44,6 +44,12 @@ public class ShotEvent {
      * than its weapon (a battery's long lob across the map); NaN for the weapon's.
      */
     public float arcHeightOverride = Float.NaN;
+    /**
+     * Zero-based count of this round among the rounds its mount has released, or {@code -1} for a shot fired by a
+     * path that does not count its rounds. Presentation only: it picks a weapon's tracer rounds
+     * ({@link WeaponDef.TracerRound}) and never feeds the simulation.
+     */
+    public int roundIndex = -1;
     /** Physical flight ending; a flameout does not create impact effects or audio. */
     public boolean flightResolved, flightImpact;
     /** Current physical flight guidance target, published for observed behavior evidence. */
@@ -284,5 +290,17 @@ public class ShotEvent {
     public ShotEvent withArcHeight(float cells) {
         this.arcHeightOverride = cells;
         return this;
+    }
+
+    /** Marks this round's place in its mount's count ({@link #roundIndex}) and returns it. */
+    public ShotEvent withRoundIndex(int index) {
+        this.roundIndex = index;
+        return this;
+    }
+
+    /** Whether this round is one of its weapon's tracer rounds: an indexed round its weapon's cadence marks. */
+    public boolean tracerRound() {
+        WeaponDef weapon = weaponDef();
+        return weapon != null && weapon.tracerRound() != null && weapon.tracerRound().marks(roundIndex);
     }
 }

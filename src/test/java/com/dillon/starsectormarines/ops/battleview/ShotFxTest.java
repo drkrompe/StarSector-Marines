@@ -16,8 +16,10 @@ import com.dillon.starsectormarines.ops.battleview.ShotFx.Bolt;
 import com.dillon.starsectormarines.ops.battleview.ShotFx.Sprite;
 import com.dillon.starsectormarines.ops.battleview.ShotFx.Tracer;
 import com.dillon.starsectormarines.render2d.ContrailStyle;
+import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
+import java.awt.Color;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -229,6 +231,39 @@ public class ShotFxTest {
             }
             assertFalse(fx.boostRamp(), "mech weapons don't boost-ramp: " + w);
             assertNull(fx.contrail(), "mech weapons carry no contrail ribbon: " + w);
+        }
+    }
+
+    @Test
+    public void onlyTheCadencesCountedRoundsDrawAsTracerRounds() throws Exception {
+        WeaponDef weapon = WeaponDef.parse(new JSONObject("""
+                {
+                  "id": "weapon.test-traced", "mount": "marine-primary",
+                  "catalog": {"displayName": "Test", "designationTiered": false,
+                              "role": "LINE", "description": "A test primary."},
+                  "sim": {"range": 10.0, "damage": 10.0, "accuracy": 0.5, "cooldown": 1.0, "penetration": 1.0},
+                  "render": {"heldSpriteFamily": "RIFLE", "tracerColor": "FFE8C0", "tracerTailCells": 1.1,
+                             "tracerEvery": 4, "tracerRoundColor": "FF4A2A", "tracerRoundTailCells": 1.5,
+                             "projectileSprite": "graphics/missiles/shell_small_yellow.png",
+                             "projectileVisualCells": 0.18},
+                  "fx": {"impact": [{"kind": "glow", "radius": 0.2, "lifetime": 0.1}]}
+                }
+                """));
+        Color hot = new Color(0xFF, 0x4A, 0x2A);
+        for (int index = -1; index < 8; index++) {
+            ShotFx fx = ShotFx.of(shot(null, weapon, null, null).withRoundIndex(index));
+            Sprite body = assertSprite(fx, "round " + index);
+            assertEquals(weapon.projectileSpritePath(), body.spritePath(), "a tracer round keeps its shell");
+            if (index == 3 || index == 7) {
+                assertEquals(hot, body.tint(), "tracer shell tint, round " + index);
+                assertEquals(hot, fx.tracerTail().color());
+                assertEquals(1.5f, fx.tracerTail().lengthCells(), 0f);
+                assertTrue(fx.tracerTail().glowWidthPx() > 0f, "a tracer round's streak glows");
+            } else {
+                assertNull(body.tint(), "plain round " + index);
+                assertTracerTail(fx, weapon, 1.1f, "plain round " + index);
+                assertEquals(0f, fx.tracerTail().glowWidthPx(), 0f);
+            }
         }
     }
 

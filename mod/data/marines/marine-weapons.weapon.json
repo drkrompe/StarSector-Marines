@@ -380,6 +380,9 @@
       "render": {
         "tracerColor": "FFE8C0",
         "tracerTailCells": 1.10,
+        "tracerEvery": 4,
+        "tracerRoundColor": "FF4A2A",
+        "tracerRoundTailCells": 1.50,
         "projectileSprite": "graphics/missiles/shell_small_yellow.png",
         "projectileVisualCells": 0.18
       },
