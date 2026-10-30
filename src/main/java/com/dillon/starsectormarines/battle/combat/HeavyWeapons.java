@@ -471,7 +471,7 @@ public class HeavyWeapons {
                             rocketContactId, rocketContactDamage,
                             rocketContactId != 0L ? contactPenetration : 0f,
                             /*authoredAftermath*/ false,
-                            areaExclusions)
+                            areaExclusions).withBlast(weapon.blast())
                     : null;
             // Rocket-class rounds own a Projectile so future point defense can
             // intercept the payload. Gun-launched HE remains a ballistic
@@ -539,7 +539,7 @@ public class HeavyWeapons {
                 contactTarget, contactTarget != 0L ? weapon.contactDamage : 0f,
                 contactTarget != 0L ? weapon.contactPenetration : 0f,
                 /*authoredAftermath*/ false,
-                contactTarget != 0L ? new long[] {contactTarget} : new long[0]);
+                contactTarget != 0L ? new long[] {contactTarget} : new long[0]).withBlast(weapon.blast());
         shots.queueProjectile(new Projectile(
                 fromX, fromY, ep.x(), ep.y(),
                 weapon.boostRamp, weapon.arcHeight,

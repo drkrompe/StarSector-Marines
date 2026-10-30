@@ -204,6 +204,7 @@ import com.dillon.starsectormarines.battle.setup.RelayNineSequence;
 import com.dillon.starsectormarines.battle.setup.ThunderRunSequence;
 import com.dillon.starsectormarines.battle.setup.WaylineGunship;
 import com.dillon.starsectormarines.battle.turret.GroundAntiAirSystem;
+import com.dillon.starsectormarines.battle.evacuation.BlastImpulseSystem;
 import com.dillon.starsectormarines.battle.evacuation.BruteChargeSystem;
 import com.dillon.starsectormarines.battle.evacuation.MatriarchActions;
 import com.dillon.starsectormarines.battle.evacuation.SwarmBombards;
@@ -861,6 +862,7 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     private final SwarmStrikeSystem swarmStrikes = new SwarmStrikeSystem();
     private final SwarmBombards swarmBombards = new SwarmBombards();
     private final BruteChargeSystem bruteCharges = new BruteChargeSystem();
+    private final BlastImpulseSystem blastImpulses = new BlastImpulseSystem();
     private final MatriarchActions matriarchActions = new MatriarchActions();
     private final SwarmCues swarmCues = new SwarmCues();
     private final AirToAirFire airToAir = new AirToAirFire();
@@ -1763,6 +1765,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         });
         effects.setWreckSink((x, y, radius) -> FireIgnition.wreck(this, x, y, radius));
         detonations.screen(shieldDomes::absorbs);
+        // An explosive round's blast shoves what stands in it, through the Brute charge's slide (mechs-nouns.md).
+        detonations.onBlast(det -> blastImpulses.land(det, this));
         // Subscribed here rather than with the other demolition handlers above
         // because a burning airframe needs the detonation pipeline, and that
         // is the line it comes into existence on.
@@ -4646,6 +4650,9 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
 
     /** Brute charges in progress and their record ({@code colony-breach-nouns.md}, Brute). */
     public BruteChargeSystem bruteCharges() { return bruteCharges; }
+
+    /** What explosive rounds' blasts have shoved this battle: evidence. */
+    public BlastImpulseSystem blastImpulses() { return blastImpulses; }
     /** What each Matriarch is doing with its scythes and crown; its behaviour writes it, its rig reads it. */
     public MatriarchActions matriarchActions() { return matriarchActions; }
 

@@ -77,6 +77,47 @@ public final class HullImpact {
                 j * nx / strikerMass, j * ny / strikerMass, j, hx + px, hy + py);
     }
 
+    /**
+     * A blast at {@code (bx, by)} pushing the hull with an impulse of {@code impulse} (mass x cells a second): it
+     * acts at the point of the footprint nearest the blast, away from the blast, so a burst off a hull's corner
+     * turns it as well as pushing it. A burst inside the footprint (a hit on the deck) pushes from where it landed
+     * toward the centre and does not turn it; one dead on the centre pushes along {@code (fallbackX, fallbackY)},
+     * a unit vector. There is no striker, so the striker's fields are zero.
+     */
+    public static Result blast(float hx, float hy, float facing, float halfLength, float halfWidth, float hullMass,
+                               float bx, float by, float impulse, float fallbackX, float fallbackY) {
+        if (!(impulse > 0f)) return Result.NONE;
+        double rad = Math.toRadians(facing);
+        float fx = (float) -Math.sin(rad), fy = (float) Math.cos(rad);
+        float rx = fy, ry = -fx;
+        float dx = bx - hx, dy = by - hy;
+        float lf = dx * fx + dy * fy, lr = dx * rx + dy * ry;
+        float cf = clamp(lf, halfLength), cr = clamp(lr, halfWidth);
+        float px = cf * fx + cr * rx, py = cf * fy + cr * ry;           // where it acts, from the centre of gravity
+        float nx, ny;
+        if (cf != lf || cr != lr) {                                     // outside: from the blast to the footprint
+            nx = px - dx;
+            ny = py - dy;
+        } else {                                                        // on the deck: toward the centre, no turn
+            nx = -dx;
+            ny = -dy;
+            px = 0f;
+            py = 0f;
+        }
+        float nl = (float) Math.hypot(nx, ny);
+        if (nl < 1e-5f) {
+            nx = fallbackX;
+            ny = fallbackY;
+        } else {
+            nx /= nl;
+            ny /= nl;
+        }
+        float inertia = hullMass * (4f * halfLength * halfLength + 4f * halfWidth * halfWidth) / 12f;
+        float torque = (px * ny - py * nx) * impulse;
+        return new Result(impulse * nx / hullMass, impulse * ny / hullMass, torque / inertia,
+                0f, 0f, impulse, hx + px, hy + py);
+    }
+
     /** How far {@code (px, py)} stands from the hull's footprint, cells; zero inside it. */
     public static float surfaceDistance(float hx, float hy, float facing, float halfLength, float halfWidth,
                                         float px, float py) {

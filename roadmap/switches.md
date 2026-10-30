@@ -29,6 +29,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 |--------|------|-------|-----------------------------|
 | `battle.ambient.fixtureLeanCells` | tuning | 2026-10-21 | Ambient crew pace tuning: fold into a constant once the look is accepted. |
 | `battle.ambient.jogPace` | tuning | 2026-10-21 | Ambient crew pace tuning: fold into a constant once the look is accepted. |
+| `battle.blastImpulse` | experiment | 2026-10-30 | Blast impulse (mechs-nouns.md): remove with the losing arm once armorMatchup and loadoutMatchup have been read against it. |
 | `battle.bodyPileCap` | experiment | 2026-10-22 | Remove once the renderEvidence body-pile map accepts the cap. |
 | `battle.colonyBreach.civilDefence` | experiment | 2026-10-21 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |
 | `battle.colonyBreach.cordonWorks` | experiment | 2026-10-28 | Colony Breach / Bloom sessions: remove once the owner accepts the evac cordon's works from `evac-cordon-look` (colony-breach-nouns.md, Evac cordon). |

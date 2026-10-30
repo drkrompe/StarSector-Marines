@@ -109,6 +109,8 @@ public final class DustLedgerCrossing {
      * @param pillboxes        the three manned pillboxes: compound gate, postern, pump house yard doors
      * @param feedJunction     where a squad stands to cut the guns' feed at the junction box
      * @param feedJunctionArea the junction's pad, outside the exclusion ring
+     * @param reinforcementCells where Sable's road reserve musters, on the crawler road at the map's east edge: two
+     *                         squads of six, then one cell for a Hound
      * @param technicalStands  where Sable's rocket truck may stand, its park in the east yard first; every one is
      *                         joined to the others by a lane a light hull clears, round the pump house's east side
      */
@@ -124,7 +126,7 @@ public final class DustLedgerCrossing {
                          Map<Approach, List<Cell>> approaches,
                          List<PointOfInterest> warehouses, List<PointOfInterest> shops, List<PointOfInterest> homes,
                          List<Nest> nests, List<Pillbox> pillboxes, Cell feedJunction, Area feedJunctionArea,
-                         List<Cell> technicalStands) {}
+                         List<Cell> technicalStands, List<Cell> reinforcementCells) {}
 
     /**
      * A gun nest: a light defence post (a sealed mount in a parapet ring, {@code DefensePostStamper}) on a paved pad.
@@ -200,6 +202,19 @@ public final class DustLedgerCrossing {
     static final List<Cell> TECHNICAL_STANDS = List.of(new Cell(206, 48), new Cell(205, 41), new Cell(196, 42),
             new Cell(190, 41), new Cell(203, 57), new Cell(202, 64), new Cell(209, 63));
 
+    /**
+     * Where Sable's road reserve musters: the crawler road's far end, where it leaves the map east of the compound's
+     * gate. Two squads of six in a block of three columns, then the Hound's cell on the road's centre line.
+     */
+    static final List<Cell> REINFORCEMENT_CELLS = reinforcementCells();
+
+    private static List<Cell> reinforcementCells() {
+        List<Cell> cells = new ArrayList<>();
+        for (int y : new int[] {81, 82, 83, 84}) for (int x : new int[] {232, 234, 236}) cells.add(new Cell(x, y));
+        cells.add(new Cell(230, 82));
+        return List.copyOf(cells);
+    }
+
     /** Sable's tap on the old terraforming power line: the junction box's work cell and its pad. */
     static final Cell FEED_JUNCTION = new Cell(122, 32);
     static final Area FEED_PAD = new Area(119, 30, 125, 35);
@@ -260,7 +275,7 @@ public final class DustLedgerCrossing {
                 l.gate(), l.postern(), l.southGate(), l.posts(), l.cantina(), l.wellHouse(), l.wellHouseArea(),
                 l.harrowYard(), l.crateDrop(), l.salvageTeam(), l.spotterPosts(), l.canalCrossings(),
                 l.ridgeOverwatch(), l.approaches(), l.warehouses(), l.shops(), l.homes(),
-                l.nests(), l.pillboxes(), l.feedJunction(), l.feedJunctionArea(), l.technicalStands());
+                l.nests(), l.pillboxes(), l.feedJunction(), l.feedJunctionArea(), l.technicalStands(), l.reinforcementCells());
     }
 
     /** What the stages learned while building, read back into the layout. */
@@ -904,7 +919,7 @@ public final class DustLedgerCrossing {
                         new Cell(s.eastHome.interiorAnchorX, s.eastHome.interiorAnchorY)),
                 List.of(WEST_CROSSING, SOUTH_CROSSING), overwatch(map), approachLines(),
                 List.copyOf(s.warehouses), List.copyOf(s.shops), List.copyOf(s.homes),
-                List.copyOf(s.nests), List.copyOf(s.pillboxes), FEED_JUNCTION, FEED_PAD, TECHNICAL_STANDS);
+                List.copyOf(s.nests), List.copyOf(s.pillboxes), FEED_JUNCTION, FEED_PAD, TECHNICAL_STANDS, REINFORCEMENT_CELLS);
     }
 
     /** Up to {@code count} walkable floor cells spread through a building, its interior anchor first. */
@@ -941,6 +956,7 @@ public final class DustLedgerCrossing {
                 l.brokerOffice(), l.skimmerBoarding(), l.gate(), l.postern(), l.southGate(), l.wellHouse(),
                 l.crateDrop()));
         required.addAll(l.salvageTeam());
+        required.addAll(l.reinforcementCells());
         for (List<Cell> cells : l.posts().values()) required.addAll(cells);
         required.addAll(l.spotterPosts());
         required.addAll(l.canalCrossings());

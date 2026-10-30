@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -127,6 +127,15 @@ increasing an encounter's total armored threat.
   turret ring by `VehicleGunArt`) are its component's, and its pulses are drawn as
   one lance (a grained `render.beam` whose life just outlasts a pulse's spacing)
   with its impact glow, under one held tone (`audio.loopSound`, `HeldFireLoops`).
+  Every laser's tone outlives its last pulse by a **tail** it authors
+  (`HeldLoopEnvelope`: `audio.loopTail`, `loopFadeOut`, `loopFadeIn`,
+  `loopPitchDrop`): full for at least 0.15 s, then a cosine fade with the pitch
+  sagging, like a coil or capacitor spinning down (owner, 2026-10-30). A pulse in
+  the tail carries the same tone back up with no new intro clip; past it, the next
+  pulse is a new lance. Burst and pulse lasers ring 0.35-0.55 s, the PD beams bleed
+  0.35-0.45 s, and the shoulder laser cannon's single 1 s lance is held at full for
+  its second and spins down over 0.45 s. A weapon with no tail keys keeps the plain
+  0.15 s hold; at most 16 weapon tones sound at once.
   The direct-control HUD names it `Beam · hold` with its flux a second and counts
   no load; its sheet reads DPS, PEN, RNG, flux a second and how long it holds alone
   on that frame. `-Dbattle.mech.pdBeam=false` is the control: both fire the pulsed
@@ -251,7 +260,7 @@ increasing an encounter's total armored threat.
   pattern; learning writes only to the mech bay and is consumed only when it
   teaches something new. Cards arrive through the same market, licence, patron and
   recovery channels and gates as loadout cards (`progression-nouns.md`): the store
-  sells a pattern after its Kit Ladder station, patrons and recovery by tier,
+  sells a pattern after its Kit Ladder station (`kit-ladder.md`), patrons and recovery by tier,
   as their own scarce stack: one market slot on large or military markets, an
   occasional patron award in place of a loadout card, at most one per high-risk
   salvage; faction issue weights the draw. Known or carried patterns are never
@@ -760,7 +769,10 @@ increasing an encounter's total armored threat.
   chassis outranks it.
 - An **attachment** is a battle-local relation from one player mech squad to one
   player infantry squad (its **anchor**): with a mech selected, a right-click on a
-  friendly infantry squad attaches it. Every player drop lands as a one-mech squad,
+  friendly infantry squad attaches it. A mission may script the same for its
+  defenders (a mech squad and an infantry squad of the Defender faction, requested
+  through `MechAttachmentService.requestAttach`; the Dust Ledger's road reserve);
+  the player's UI offers it only for the company. Every player drop lands as a one-mech squad,
   so it is in effect per mech; a legacy multi-mech squad attaches whole, and several
   mechs may follow one squad. Out of contact the follower simply walks with the
   squad: three cells behind its centre, filed three cells apart across its axis by
@@ -1148,6 +1160,58 @@ single-warhead rack every SRM and LRM was before the split (area damage at
 penetration 14 and 16), at any target. Readings are in
 `heavy-equipment-progression.md` (missile warheads); `MechVersusInfantryScene`
 is the infantry acceptance and `armorMatchup` the armor one.
+
+## Blast impulse
+
+**An explosive round's blast shoves what stands in it** (owner, 2026-10-30): a
+missile, a shell, a mortar round or a grenade pushes every body in its reach
+away from the burst, friend and foe alike, after its damage has landed. It is
+the Brute charge's machinery driven by a blast (`colony-breach-nouns.md`,
+Brute): the same slide, knockdown, hold, weight classes and hull exchange
+(`BlastImpulseSystem`, `BlastImpulseRules`).
+
+- **Per round, in data.** A weapon's `sim.blast` is `impulse` (tonne-cells a
+  second at the burst), `radius` (cells, its splash by default) and `falloff`:
+  the shove at `d` cells is `impulse * (1 - d / radius) ^ falloff`. A falloff of
+  two is a shaped charge, all of it at the point; one is a fragmentation
+  warhead's or a shell's even spread. A weapon without `sim.blast` pushes
+  nothing. Point defence that stops a rocket stops its shove too.
+- **A body on foot** weighs 0.8 t to a blast (braced on the ground), a power
+  suit 2 t. Below 0.3 cells a second a shove moves no one; up to 1 it is a step;
+  from 1 a stagger (a step and a quarter second's lost aim); and when what it
+  has taken, fading over half a second, reaches 3, it is **knocked down** for
+  the Brute trample's hold and slides as a thrown body does. So one missile
+  barely moves a man, a rack's salvo on one spot puts men down, and a power
+  suit mostly keeps its feet.
+- **A hull** takes the impulse at the point of its footprint nearest the burst
+  (`HullImpact.blast`): it slides and, struck off its centre, turns on its tires
+  or tracks (`HullSlide`), with a puff of wheel dust when the shove is felt. A
+  light hull is shoved a fraction of a cell by a salvo, a medium one barely
+  moves, and blasts together never slide a hull faster than 1.5 cells a second.
+  **A mech** slides against its feet at the Brute's mech weight, a trace at most.
+  **Heavy hulls, heavy mechs and emplacements stand.** A wall between the burst
+  and the body takes the shove, as it takes the splash; a slide stops against a
+  wall; a rider, a flier, a drone and the swarm are not pushed.
+
+| Family | Weapons | Impulse | Falloff |
+|--------|---------|---------|---------|
+| SRM, anti-armor | mech SRM racks, SRM-30, boat SRM-15 | 1.2 | 2 |
+| SRM (Frag) | mech SRM (Frag) racks | 1.0 | 1 |
+| SRM-3 (QS) | QS rack | 0.7 | 1 |
+| LRM, anti-armor | mech LRM racks, LRM-15, boat LRM-10 | 1.6 | 2 |
+| LRM (Frag) | mech LRM (Frag) racks | 1.3 | 1 |
+| Infantry rockets | SRM-1, SRM-1 (QS), SRM-3 (Pod) | 1.4, 0.9, 0.8 | 1.5 |
+| Locust turret and battery | per missile | 1.0 | 1.5 |
+| Demolition cannon | DC-5, DC-4 (QS) | 3.0, 2.0 | 1 |
+| Heavy cannon HE | HC-20, HC-10 | 1.2, 0.8 | 2 |
+| Gun HE | tank twin cannon, Hephaestus | 1.8, 1.5 | 1.5 |
+| Mortars | vehicle, heavy turret, field | 2.4, 2.6, 1.8 | 1 |
+| Grenades | frag grenade, turret grenade launcher | 0.8, 0.6 | 1 |
+
+The radius is each weapon's splash. Autocannon, chainguns, machine guns,
+lasers, flamers, incendiary grenades and the swarm's acid and spores carry no
+blast. `-Dbattle.blastImpulse=false` is the control: nothing is pushed.
+`BlastImpulseScene` (`sceneEvidence -Pscene=blast-impulse`) is the acceptance.
 
 ## Ground clearance and arrival
 

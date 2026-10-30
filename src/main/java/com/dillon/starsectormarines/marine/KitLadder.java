@@ -27,7 +27,9 @@ import static com.dillon.starsectormarines.marine.UnlockStation.WORKING_PASSAGE;
 /**
  * The Kit Ladder: the station after which the company store sells each loadout card and machine pattern
  * ({@code progression-nouns.md}, Kit Ladder). Authored by the owner on the Kit Ladder page; {@code tools/kits/build.py}
- * reads this table to seed that page, so keep every row in the {@code card(...)} / {@code pattern(...)} shape.
+ * reads this table to seed that page and {@code tools/kits/apply_ladder.py} writes accepted page edits back
+ * ({@code kit-ladder.md}), so keep every row in the {@code weapon(...)} / {@code sheet(...)} / {@code pattern(...)} shape,
+ * one per line, each block in campaign order.
  *
  * <p>The ladder gates only the store's channels (open market and licence). {@link UnlockStation#START} rows are what a
  * new company holds ({@link MechPattern#STARTER}, the armory's starter issue); {@link UnlockStation#NONE} rows are
