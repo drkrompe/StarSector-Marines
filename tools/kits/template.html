@@ -52,7 +52,7 @@ input,select{background:var(--surface);border:1px solid var(--line);border-radiu
 .studio{display:grid;grid-template-columns:340px minmax(0,1fr) 350px;gap:14px;align-items:start}
 .studio>*{min-width:0}.left{display:grid;gap:14px}
 .right{position:sticky;top:10px;max-height:calc(100vh - 20px);overflow:auto;display:grid;gap:10px}
-.tabs{display:flex;gap:6px;margin-bottom:8px}.tabs button.on{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(420px,1fr));gap:12px}.mcard{display:flex;gap:12px;border:1px solid var(--line);border-radius:8px;padding:10px;background:var(--surface);min-width:0}.mimg{flex:none;background:#0b0e0d;border-radius:6px;padding:4px;align-self:flex-start}.mimg img{display:block;max-height:340px;max-width:200px;width:auto;height:auto}.mtxt{min-width:0;display:grid;gap:6px;align-content:start}.mtxt table{border-collapse:collapse;font-size:11px}.mtxt td{padding:2px 6px 2px 0;vertical-align:top;color:var(--muted)}.mtxt td:first-child,.mtxt td:nth-child(3){color:var(--ink)}.mnote{margin:0;padding-left:16px;font-size:11px;color:var(--warn)}.tabs{display:flex;gap:6px;margin-bottom:8px}.tabs button.on{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
 .klist{display:grid;gap:4px;margin-bottom:10px;max-height:260px;overflow:auto}
 .kitem{display:grid;grid-template-columns:auto 1fr auto auto;gap:6px;align-items:center;padding:4px 6px;border:1px solid var(--line);border-radius:6px;cursor:pointer;background:var(--bg)}
 .kitem.sel{border-color:var(--accent);background:var(--accent-soft);font-weight:600}.kitem small{color:var(--muted);font-weight:400;display:block;font-size:11px}.kitem button{padding:0 5px;font-size:11px}
@@ -78,9 +78,10 @@ textarea#out{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--m
 </style></head><body><div class="wrap">
 <header><h1>Kit Ladder</h1>
 <p class="lead">Separate ladders: weapon cards (primaries and secondaries), Equipment cards (armour), and licence rows for mech and vehicle hulls, mech weapons and parts. Drag a card along the Alpha mission timeline to set when it goes on sale in the store. Only Relief has a free pick; every other unlock is a store sale. Select a card to edit it: drag inventory pieces onto individual marines and the preview card updates as it draws on the Barracks loadout page.</p></header>
-<div class="bar"><button class="primary" id="new-weapon">New weapon card</button><button class="primary" id="new-armor">New armor card</button>
+<div class="bar"><button id="v-ladder">Ladder</button><button id="v-machines">Machines</button><button class="primary" id="new-weapon">New weapon card</button><button class="primary" id="new-armor">New armor card</button>
 <span class="sp"></span><span class="status" id="status"></span><button id="export">Download kits.json</button><button id="copy">Copy JSON</button><button id="import">Import…</button><button id="reset">Reset to shipped cards</button><input type="file" id="file" accept=".json" hidden></div>
 <section id="ladderview"><h2>Unlock ladder · drag a card to the mission after which the store sells it · Open edits a card</h2><div class="tl" id="tl"></div><div class="itembar" id="itembar"></div></section>
+<section id="machineview" hidden><h2>Machines · every mech and vehicle doll as the Mech Lab draws it, stock fit</h2><div id="mfind"></div><div class="mgrid" id="mgrid"></div></section>
 <div id="cardview" hidden class="wrap" style="padding:0;gap:18px">
 <div class="bar"><button class="primary" id="back">← Back to ladder</button><b id="cvname" style="font:600 18px var(--display)"></b><span class="sp"></span><button id="dup">Duplicate</button><button id="del">Delete</button></div>
 <div class="studio">
@@ -100,7 +101,7 @@ textarea#out{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--m
 <textarea id="out" hidden></textarea>
 </div>
 <script>
-const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED_W=__KITS__,SEED_A=__ARMORKITS__,STATIONS=__STATIONS__,ARMORS=__ARMORS__,ITEMS=__ITEMS__,SYSTEMS=__SYSTEMS__,IMAGES=__IMAGES__;
+const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED_W=__KITS__,SEED_A=__ARMORKITS__,STATIONS=__STATIONS__,ARMORS=__ARMORS__,ITEMS=__ITEMS__,MACHINES=__MACHINES__,SYSTEMS=__SYSTEMS__,IMAGES=__IMAGES__;
 const MACH=[["hull","Mech & vehicle hulls"],["mweapon","Mech weapons"],["mpart","Mech & vehicle parts"]];
 const GRADES=["SURPLUS","SERVICE","MILSPEC","MASTERWORK"],RANK={COMMON:0,ADVANCED:1,PRESTIGE:2,RESTRICTED:3};
 const KEY="kit-ladder-v2",$=id=>document.getElementById(id);
@@ -258,9 +259,19 @@ function renderList(){const l=$("klist");l.innerHTML="";
   const [u,d]=r.querySelectorAll("button");u.onclick=e=>{e.stopPropagation();move(k,-1)};d.onclick=e=>{e.stopPropagation();move(k,1)};
   r.onclick=()=>{state.sel.id=k.id;render()};l.appendChild(r)})}
 function open(l,id){state.sel={l,id};view="card";render();window.scrollTo(0,0)}
+function renderMachines(){const g=$("mgrid");if(g.dataset.done)return;g.dataset.done="1";
+ if(!MACHINES.length){g.innerHTML='<p class="hint">No doll renders found. Run the machine-dolls snapshot suite and rebuild this page.</p>';return}
+ let small=0;for(const m of MACHINES)for(const s of m.sockets)if(s.columns<2||s.rows<1)small++;
+ $("mfind").innerHTML='<p class="hint">'+MACHINES.length+" machines. Cards under 2 columns x 1 row: <b>"+small+"</b>. The weight class under each name is the store licence class; a hull whose doll uses a different class says so.</p>";
+ for(const m of MACHINES){const c=document.createElement("article");c.className="mcard";
+  const wc=m.weightClass,vw=m.weight,mis=vw&&wc&&vw!==wc?'<span class="tb" style="--tc:var(--warn)">licence '+esc(wc)+", doll sized "+esc(vw)+"</span>":"";
+  c.innerHTML='<div class="mimg">'+(m.img?'<img src="'+m.img+'" alt="'+esc(m.name)+' doll">':"")+'</div><div class="mtxt"><b>'+esc(m.name)+"</b>"+(m.className?" <small>"+esc(m.className)+"</small>":"")+' <small>'+esc(m.kind)+" · "+esc(wc||vw||"")+"</small> "+mis+
+   '<table>'+m.sockets.map(s=>"<tr><td>"+esc(s.label||s.id)+"</td><td>"+esc((s.type||"").toLowerCase())+"</td><td><b>"+s.columns+"×"+s.rows+"</b></td><td>"+esc(s.caption||"")+(s.holds&&s.holds.length?" · holds "+s.holds.map(h=>esc(h.name)+" "+h.columns+"×"+h.rows).join(", "):"")+"</td></tr>").join("")+"</table>"+
+   (m.notes.length?'<ul class="mnote">'+m.notes.map(n=>"<li>"+esc(n)+"</li>").join("")+"</ul>":"")+"</div>";
+  g.appendChild(c)}}
 function back(){view="ladder";render();window.scrollTo(0,0)}
 function render(){const l=L(),k=kit();state.sel.id=k.id;
- $("ladderview").hidden=view!=="ladder";$("cardview").hidden=view!=="card";$("cvname").textContent=(l==="weapon"?"Weapon card · ":"Armor card · ")+k.name;
+ $("ladderview").hidden=view!=="ladder";$("machineview").hidden=view!=="machines";$("v-ladder").className=view==="ladder"?"on":"";$("v-machines").className=view==="machines"?"on":"";if(view==="machines")renderMachines();$("cardview").hidden=view!=="card";$("cvname").textContent=(l==="weapon"?"Weapon card · ":"Armor card · ")+k.name;
  $("tab-weapon").className=l==="weapon"?"on":"";$("tab-armor").className=l==="armor"?"on":"";
  $("legend").innerHTML=(l==="weapon"?["BALLISTIC","ENERGY","MISSILE","UTILITY"]:["ARMOR","SYSTEM"]).map(x=>'<span style="--t:var(--'+x+')">'+x.toLowerCase()+'</span>').join("");
  $("inv-w").hidden=l!=="weapon";$("inv-a").hidden=l!=="armor";
@@ -303,7 +314,7 @@ function uniqueId(base){let id=base,i=2;const all=[...state.weapon,...state.armo
 function makeNew(l){const members=Array.from({length:12},(_,i)=>l==="weapon"?{role:i%4===0?"Team Leader":"Rifleman",primary:"weapon.field-rifle",grade:"SURPLUS",special:null,belt:null}:{role:i%4===0?"Team Leader":"Rifleman",armor:"armor.field-fatigues"});
  const k={id:uniqueId(slug("new card",l)),name:"New Card",description:"",station:"none",grant:"sale",members};state[l].push(k);open(l,k.id);persist()}
 $("new-weapon").onclick=()=>makeNew("weapon");$("new-armor").onclick=()=>makeNew("armor");
-$("back").onclick=back;
+$("back").onclick=back;$("v-ladder").onclick=back;$("v-machines").onclick=()=>{view="machines";render();window.scrollTo(0,0)};
 $("dup").onclick=()=>{const l=L(),k=clone(kit());k.name+=" copy";k.id=uniqueId(slug(k.name,l));list().splice(list().indexOf(kit())+1,0,k);state.sel.id=k.id;changed()};
 $("del").onclick=()=>{if(list().length<2)return;list().splice(list().indexOf(kit()),1);state.sel.id=list()[0].id;changed()};
 $("reset").onclick=()=>{if(window.__confirmReset){state=seedState();window.__confirmReset=false;$("reset").textContent="Reset to shipped cards";changed()}else{window.__confirmReset=true;$("reset").textContent="Click again to replace all cards";setTimeout(()=>{window.__confirmReset=false;$("reset").textContent="Reset to shipped cards"},4000)}};

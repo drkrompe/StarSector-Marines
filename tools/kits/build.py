@@ -104,9 +104,44 @@ def image(path):
     return "data:image/png;base64," + base64.b64encode(buffer.getvalue()).decode()
 
 
+# What the machine-dolls render audit found, by machine; the page shows each beside its doll.
+DOLL_NOTES = {
+    "srm_technical": ["The turret reads SRM POD but the card is an omni 2x1 drawn with the light machine gun picture: VehicleGunCard.of sends any turret it does not recognise to SMALL."],
+    "hover_scout": ["The turret reads HOVER PULSE EMITTER but the card is an omni 2x1 drawn with the light machine gun picture, not an energy card."],
+    "heavy_apc": ["The turret reads HEAVY MG but the card carries the LMG picture."],
+    "up_armored_apc": ["The turret reads HEAVY MG but the card carries the LMG picture."],
+    "escort_apc": ["The turret reads HEAVY MG but the card carries the LMG picture.", "No bay card: capacity 0, unlike the troop carriers."],
+    "dozer_breacher": ["The turret reads HEAVY MG but the card carries the LMG picture."],
+    "militia_technical": ["The turret reads HEAVY MG but the card carries the LMG picture."],
+    "fire_support_apc": ["No bay card: capacity 0, unlike the troop carriers."],
+    "bulwark": ["Arm sockets are 2x2 and hold chainguns; the second auxiliary bay ships empty."],
+    "hound": ["One shoulder socket, on the left only."],
+    "warden": ["The 2x3 shoulders hold 2x2 LRM-5 Frags, leaving a spare row."],
+}
+
+
+def machine_dolls(folder):
+    manifest = folder / "manifest.json"
+    if not manifest.exists():
+        return []
+    out = []
+    for m in json.loads(manifest.read_text(encoding="utf-8")):
+        png = folder / (m["id"] + ".png")
+        m["img"] = "data:image/png;base64," + base64.b64encode(png.read_bytes()).decode() if png.exists() else None
+        m["notes"] = DOLL_NOTES.get(m["id"], [])
+        out.append(m)
+    return out
+
+
 def main():
-    argv = [a for a in sys.argv[1:] if a != "--artifact"]
-    artifact = "--artifact" in sys.argv
+    args = sys.argv[1:]
+    dolls_dir = ROOT / "build/snapshots/machine-dolls"
+    if "--dolls" in args:
+        i = args.index("--dolls")
+        dolls_dir = Path(args[i + 1])
+        del args[i:i + 2]
+    argv = [a for a in args if a != "--artifact"]
+    artifact = "--artifact" in args
     strings = flat(load(MOD / "data/strings/strings.json"))
     text = lambda key: strings.get(key.lstrip("@"), key) if key else ""
     templates = load(MOD / "data/marines/equipment-templates.template.json")
@@ -374,11 +409,12 @@ def main():
     for lst in items.values():
         lst.sort(key=lambda x: (x["name"]))
 
+    machines = machine_dolls(dolls_dir)
     stations = [{"id": s[0], "name": s[1], "group": s[2], "note": s[3]} for s in STATIONS]
     page = (Path(__file__).with_name("template.html")).read_text(encoding="utf-8")
     for key, value in (("__PRIMARIES__", primaries), ("__SPECIALS__", specials), ("__KITS__", kits),
                        ("__ARMORKITS__", armor_kits), ("__STATIONS__", stations), ("__ARMORS__", armors), ("__ITEMS__", items), ("__SYSTEMS__", list(systems.values())),
-                       ("__IMAGES__", images)):
+                       ("__IMAGES__", images), ("__MACHINES__", machines)):
         page = page.replace(key, json.dumps(value, ensure_ascii=False))
     if artifact:
         # The Artifact tool wraps the page in its own skeleton, so publish only the content.
