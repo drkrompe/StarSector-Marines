@@ -672,6 +672,90 @@
       "seconds": 6.0,
       "loop": true,
       "promptInfluence": 0.5
+    },
+    "round-mg": {
+      "chosen": null,
+      "takes": {
+        "round-mg_t01": {
+          "durationSeconds": 1.0,
+          "peakDb": 0.0,
+          "integratedLufs": -11.2,
+          "characterCost": "11"
+        },
+        "round-mg_t02": {
+          "durationSeconds": 1.0,
+          "peakDb": -0.0,
+          "integratedLufs": -16.0,
+          "characterCost": "11"
+        }
+      },
+      "prompt": "A single round from a ship-mounted light machine gun turret: a tight hard mechanical crack with a metallic bolt clack, one single shot only, a short sharp report with a quick tail, no music, no voices",
+      "seconds": 1.0,
+      "loop": false,
+      "promptInfluence": 0.6
+    },
+    "round-ac": {
+      "chosen": null,
+      "takes": {
+        "round-ac_t01": {
+          "durationSeconds": 1.0,
+          "peakDb": -10.0,
+          "integratedLufs": -28.0,
+          "characterCost": "11"
+        },
+        "round-ac_t02": {
+          "durationSeconds": 1.0,
+          "peakDb": -8.0,
+          "integratedLufs": -28.7,
+          "characterCost": "11"
+        }
+      },
+      "prompt": "A single round from a heavy autocannon turret: a deep punchy cannon thump with a hard bark and brief metallic ring, one single shot only, a short sharp report with a quick tail, no music, no voices",
+      "seconds": 1.0,
+      "loop": false,
+      "promptInfluence": 0.6
+    },
+    "round-heavy": {
+      "chosen": null,
+      "takes": {
+        "round-heavy_t01": {
+          "durationSeconds": 2.0,
+          "peakDb": 0.0,
+          "integratedLufs": -8.0,
+          "characterCost": "22"
+        },
+        "round-heavy_t02": {
+          "durationSeconds": 2.0,
+          "peakDb": 0.0,
+          "integratedLufs": -10.9,
+          "characterCost": "22"
+        }
+      },
+      "prompt": "A single shot from a huge battleship cannon: a massive concussive boom with a heavy low shockwave and rolling rumble, one single shot only, a short sharp report with a quick tail, no music, no voices",
+      "seconds": 2.0,
+      "loop": false,
+      "promptInfluence": 0.6
+    },
+    "round-energy": {
+      "chosen": null,
+      "takes": {
+        "round-energy_t01": {
+          "durationSeconds": 1.0,
+          "peakDb": 0.0,
+          "integratedLufs": -9.2,
+          "characterCost": "11"
+        },
+        "round-energy_t02": {
+          "durationSeconds": 1.0,
+          "peakDb": 0.0,
+          "integratedLufs": -7.9,
+          "characterCost": "11"
+        }
+      },
+      "prompt": "A single bolt from a sci-fi plasma blaster cannon: a fierce crackling electric zap with a hot buzzing discharge, one single shot only, a short sharp report with a quick tail, no music, no voices",
+      "seconds": 1.0,
+      "loop": false,
+      "promptInfluence": 0.6
     }
   }
 }
