@@ -329,27 +329,11 @@
       "durationSeconds": 5.84
     },
     {
-      "id": "wellhollow_burn_01",
-      "missionId": "story_wellhollow_the_burn",
-      "event": "briefing.01",
-      "textKey": "wellhollowBurn1",
-      "text": "Ain Tafrant is out. Every family. I wanted you to hear it from me.",
-      "priority": 10,
-      "expiresSeconds": 60,
-      "supersedes": [],
-      "speaker": "@wellhollowSpeakerWarden",
-      "portrait": "graphics/portraits/hollis-maro.png",
-      "voiceId": "UXrpoYalpW5MpGiFHq3z",
-      "voiced": true,
-      "synthesisText": "[warm, relieved] Ain Tafrant is out. Every family. I wanted you to hear it from me.",
-      "durationSeconds": 4.96
-    },
-    {
       "id": "wellhollow_burn_02",
       "missionId": "story_wellhollow_the_burn",
       "event": "briefing.02",
       "textKey": "wellhollowBurn2",
-      "text": "And the offensive?",
+      "text": "How's the offensive, Orens?",
       "priority": 10,
       "expiresSeconds": 60,
       "supersedes": [],
@@ -357,15 +341,15 @@
       "portrait": "graphics/portraits/castle.png",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0",
       "voiced": true,
-      "synthesisText": "[curious] And the offensive?",
-      "durationSeconds": 1.44
+      "synthesisText": "[curious] How's the offensive, Orens?",
+      "durationSeconds": 2.16
     },
     {
       "id": "wellhollow_burn_03",
       "missionId": "story_wellhollow_the_burn",
       "event": "briefing.03",
       "textKey": "wellhollowBurn3",
-      "text": "It's ours now. The bloom went east along the irrigation channels and seeded a second root in the thick country, mothers on it. Regional Command has sent us batteries and two more battalions, and your company is attached to my brigade.",
+      "text": "The bloom went east along the irrigation channels and seeded a second root in the thick country, mothers on it. Regional Command has sent us batteries and two more battalions, and your company is attached to my brigade.",
       "priority": 10,
       "expiresSeconds": 60,
       "supersedes": [],
@@ -373,8 +357,8 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[confident, briefing] It's ours now. The bloom went east along the irrigation channels and seeded a second root in the thick country, mothers on it. Regional Command has sent us batteries and two more battalions, and your company is attached to my brigade.",
-      "durationSeconds": 13.04
+      "synthesisText": "[confident, briefing] The bloom went east along the irrigation channels and seeded a second root in the thick country, mothers on it. Regional Command has sent us batteries and two more battalions, and your company is attached to my brigade.",
+      "durationSeconds": 11.76
     },
     {
       "id": "wellhollow_burn_04",
@@ -551,38 +535,6 @@
       "voiced": true,
       "synthesisText": "[confident, giving orders] The spearhead lane. My columns take ground and hold it. You go for the mothers. When the last one falls, the heart is down.",
       "durationSeconds": 7.52
-    },
-    {
-      "id": "wellhollow_front_06",
-      "missionId": "story_wellhollow_broad_front",
-      "event": "briefing.06",
-      "textKey": "wellhollowFront6",
-      "text": "And the bloom?",
-      "priority": 10,
-      "expiresSeconds": 60,
-      "supersedes": [],
-      "speaker": "@dialogueSpeakerCastle",
-      "portrait": "graphics/portraits/castle.png",
-      "voiceId": "cuwCdnt9CKAB9XrTA1j0",
-      "voiced": true,
-      "synthesisText": "[quiet] And the bloom?",
-      "durationSeconds": 1.28
-    },
-    {
-      "id": "wellhollow_front_07",
-      "missionId": "story_wellhollow_broad_front",
-      "event": "briefing.07",
-      "textKey": "wellhollowFront7",
-      "text": "It ends here. You collapse the mothers, my columns burn out what's left, and the aquifer goes quiet. I've planned this push for a month, Castle. It will work.",
-      "priority": 10,
-      "expiresSeconds": 60,
-      "supersedes": [],
-      "speaker": "@wellhollowSpeakerWarden",
-      "portrait": "graphics/portraits/hollis-maro.png",
-      "voiceId": "UXrpoYalpW5MpGiFHq3z",
-      "voiced": true,
-      "synthesisText": "[certain, steady] It ends here. You collapse the mothers, my columns burn out what's left, and the aquifer goes quiet. I've planned this push for a month, Castle. It will work.",
-      "durationSeconds": 10.64
     },
     {
       "id": "wellhollow_front_retry",
