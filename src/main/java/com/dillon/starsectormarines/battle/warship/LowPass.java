@@ -58,6 +58,9 @@ public final class LowPass {
     private float endedSeconds = -1f;
     private float progress;
     private boolean startSounded;
+    private float leadCells = LEAD_CELLS;
+    private float fireRadius = CORRIDOR_HALF_WIDTH_CELLS;
+    private boolean rocketRun;
 
     private LowPass(float ax, float ay, float bx, float by, float length, boolean running) {
         this.ax = ax;
@@ -166,6 +169,26 @@ public final class LowPass {
         return Math.hypot(px - qx, py - qy) <= CORRIDOR_HALF_WIDTH_CELLS;
     }
 
+    /**
+     * Makes this a strafing run: the firing circle is {@code radiusCells} across and centred {@code leadCells} ahead
+     * of the hull on the line, so the guns work the ground the hull is flying into rather than what it is over, and
+     * its fixed missile hardpoints rocket the lead point whenever anything hostile is in the circle
+     * ({@link #rocketRun}), the volley's own ripple walking the rockets across it. Call before the pass begins.
+     */
+    public LowPass strafe(float leadCells, float radiusCells) {
+        if (!(leadCells >= 0f) || !(radiusCells > 0f)) throw new IllegalArgumentException("a strafe needs a lead and a circle");
+        this.leadCells = leadCells;
+        this.fireRadius = radiusCells;
+        this.rocketRun = true;
+        return this;
+    }
+
+    /** The firing circle's radius, in cells. */
+    public float fireRadius() { return fireRadius; }
+
+    /** Whether the hull's fixed missile hardpoints rocket the lead point rather than pick a target ({@link #strafe}). */
+    public boolean rocketRun() { return rocketRun; }
+
     // ---- the state --------------------------------------------------------------------------------------
 
     public Phase phase() { return phase; }
@@ -232,9 +255,12 @@ public final class LowPass {
         return new float[]{ax + dirX * s, ay + dirY * s};
     }
 
-    /** The centre of the firing circle for a hull at {@code (px, py)}: ahead of it on the line, kept between A and B. */
+    /**
+     * The centre of the firing circle for a hull at {@code (px, py)}: {@link #LEAD_CELLS} ahead of it on the line (a
+     * strafe's own lead), kept between A and B.
+     */
     float[] fireCentre(float px, float py) {
-        float s = clamp(along(px, py) + LEAD_CELLS, 0f, length);
+        float s = clamp(along(px, py) + leadCells, 0f, length);
         return new float[]{ax + dirX * s, ay + dirY * s};
     }
 

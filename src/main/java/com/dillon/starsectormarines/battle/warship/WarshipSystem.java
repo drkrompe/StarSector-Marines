@@ -1034,7 +1034,7 @@ public final class WarshipSystem {
         }
         if (pass.onLine() && !ship.lowPassSilenced()) {
             float[] centre = pass.fireCentre(ship.x, ship.y);
-            ship.layPassFire(centre[0], centre[1]);
+            ship.layPassFire(centre[0], centre[1], pass.fireRadius());
         }
         float[] to = pass.steerPoint(ship.x, ship.y);
         float dx = to[0] - ship.x;
@@ -2256,6 +2256,22 @@ public final class WarshipSystem {
             }
             return seen > 0;
         }
+        if (rocketsTheLead(sim, ship, m, area)) {
+            // A strafing run's rocket pod fires straight off its own nose, as far ahead as the lead point; the volley's
+            // ripple walks its rockets over the ground there.
+            double nose = Math.toRadians(ship.facingDegrees + m.slot.angleDegrees() + 90f);
+            float fx = (float) Math.cos(nose);
+            float fy = (float) Math.sin(nose);
+            float ahead = Math.max(0f, (area.x() - mx) * fx + (area.y() - my) * fy);
+            float px = mx + fx * ahead;
+            float py = my + fy * ahead;
+            if (ahead <= 0f || !Warship.bears(m, ship.facingDegrees, mx, my, px, py)) return false;
+            m.aimX = px;
+            m.aimY = py;
+            m.aimVx = 0f;
+            m.aimVy = 0f;
+            return true;
+        }
         long[] dense = roster.denseArray();
         for (int i = 0, n = roster.liveCount(); i < n; i++) {
             long u = dense[i];
@@ -2294,6 +2310,38 @@ public final class WarshipSystem {
         }
         if (seen == 0 && area.saturate() && !m.weapon.beam()) return aimAtOpenGround(m, ship, area, mx, my, opportunity);
         return seen > 0;
+    }
+
+    /**
+     * Whether {@code m} is a fixed missile hardpoint on a strafing run ({@link LowPass#strafe}) whose circle holds
+     * something hostile, a man or a ground vehicle: it then rockets the lead point instead of picking a target.
+     */
+    private static boolean rocketsTheLead(BattleSimulation sim, Warship ship, Warship.Mount m, WarshipOrder.FireOnArea area) {
+        LowPass pass = ship.lowPass();
+        if (pass == null || !pass.rocketRun() || !pass.onLine() || !m.weapon.missile() || !m.slot.hardpoint()
+                || !ship.isLaid(area)) {
+            return false;
+        }
+        UnitRosterService roster = sim.getRoster();
+        World world = sim.world();
+        long[] dense = roster.denseArray();
+        for (int i = 0, n = roster.liveCount(); i < n; i++) {
+            long u = dense[i];
+            if (!roster.isRiding(u) && ship.faction.hostileTo(roster.identity().faction(u))
+                    && area.contains(world.x(u), world.y(u))) {
+                return true;
+            }
+        }
+        ConvoyService convoy = sim.convoy();
+        for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
+            long v = convoy.vehicleAt(i);
+            GroundBody body = convoy.body(v);
+            if (body != null && world.isAlive(v) && !convoy.isAirborne(v) && ship.faction.hostileTo(convoy.faction(v))
+                    && area.contains(body.x, body.y)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /** With nobody in a saturating area, the mount works over a random bearable point of the ground itself. */
