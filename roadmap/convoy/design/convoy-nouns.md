@@ -1508,8 +1508,10 @@ What keeps it from out-trading a cannon tank is **flux** (hull flux, above), whi
 every hull gun builds but a laser builds hardest. The burst laser is a
 flux hog, as it is in space: it fires far faster than it dissipates, so a section
 dies inside one charge-up, while a tank sees it fall silent and vent for seconds at a
-time long before the tank is dead. It is built with the military capacitor bank (2x2 on its rack, 120 flux at 8 a second)
-for that reason (`VehicleRack.stockBank`). The flux is visible, as a starship's is: a purple
+time long before the tank is dead. It is built with a bigger stock fit for that reason (owner, 2026-10-30;
+`VehicleRack.stockFit`): the double capacitor bank and two vent arrays, 120 flux at 9.5 a
+second, leaving one rack slot for a kit. The laser's flux cost is the mech part's
+(`BURST_LASER`), so the hull's fit, not the gun, is what sustains it. The flux is visible, as a starship's is: a purple
 haze thickens over the hull's radiator fins as it builds
 (`VehicleType.fluxVentAftCells`), and a venting hull blows a bright lavender plume
 off them. A mech's reservoir shows in the same look (`FluxHaze`, `mechs-nouns.md`).

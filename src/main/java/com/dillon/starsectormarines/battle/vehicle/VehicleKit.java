@@ -156,18 +156,22 @@ public enum VehicleKit {
         };
     }
 
-    /** The rows the hull's stock capacitor bank takes ({@link HullReservoir#stockFrame}): a military bank is 2x2. */
-    public static int stockBankSlots(VehicleType type) {
-        HullReservoir.Frame bank = HullReservoir.stockFrame(type);
-        return bank == null ? 0 : bank == HullReservoir.MILITARY_BANK ? 2 : 1;
+    /**
+     * The rows the hull's stock flux parts take ({@link HullReservoir#stockFrame}): its bank (a military bank is 2x2)
+     * and a row for each stock vent array; none on an unarmed hull.
+     */
+    public static int stockRackSlots(VehicleType type) {
+        HullReservoir.Frame bank = HullReservoir.stockBank(type);
+        if (bank == null) return 0;
+        return (bank == HullReservoir.MILITARY_BANK ? 2 : 1) + HullReservoir.stockVentArrays(type);
     }
 
     /**
-     * Whether {@code kits} fit {@code type}'s rack beside its stock bank, as a hull the company does not own is set
+     * Whether {@code kits} fit {@code type}'s rack beside its stock flux parts, as a hull the company does not own is set
      * down: within the slots left, no kit twice, each suiting the hull. A company rack packs by `VehicleRack`.
      */
     public static boolean fits(VehicleType type, List<VehicleKit> kits) {
-        if (kits.size() > slots(type) - stockBankSlots(type)) return false;
+        if (kits.size() > slots(type) - stockRackSlots(type)) return false;
         Set<VehicleKit> seen = EnumSet.noneOf(VehicleKit.class);
         for (VehicleKit kit : kits) {
             if (kit == null || !kit.suits(type) || !seen.add(kit)) return false;

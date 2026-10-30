@@ -20,7 +20,7 @@ import java.util.Set;
  *
  * <p>An armed hull's flux reservoir is its rack's bank and vent arrays ({@link #frame}): one with no bank is
  * incomplete and stays off the drop manifest, as a mech is ({@link #complete}). Every armed hull is built with a
- * bank ({@link #stockBank}); an unarmed hull needs none and takes none.</p>
+ * bank, and the laser tank with vent arrays too ({@link #stockFit}); an unarmed hull needs none and takes none.</p>
  */
 public final class VehicleRack {
 
@@ -100,12 +100,26 @@ public final class VehicleRack {
         return List.copyOf(placed);
     }
 
-    /** The bank an armed hull is built with: the military bank on the laser tank, the factory bank on the rest. */
+    /** The bank an armed hull is built with ({@link HullReservoir#stockBank}): the laser tank's own, the factory bank on the rest. */
     public static MechInternal stockBank(VehicleType type) {
-        HullReservoir.Frame stock = HullReservoir.stockFrame(type);
-        if (stock == null) return null;
-        return stock == HullReservoir.MILITARY_BANK
-                ? MechInternal.MILITARY_CAPACITOR_BANK : MechInternal.FACTORY_CAPACITOR_BANK;
+        HullReservoir.Frame bank = HullReservoir.stockBank(type);
+        if (bank == null) return null;
+        if (bank == HullReservoir.MILITARY_BANK) return MechInternal.MILITARY_CAPACITOR_BANK;
+        if (bank == HullReservoir.DOUBLE_BANK) return MechInternal.DOUBLE_CAPACITOR_BANK;
+        return MechInternal.FACTORY_CAPACITOR_BANK;
+    }
+
+    /**
+     * Every flux part an armed hull is built with, in packing order: its bank, then its stock vent arrays (the laser
+     * tank's fill its second bay). Its {@link #frame} is the hull's stock frame ({@link HullReservoir#stockFrame}).
+     */
+    public static List<MechInternal> stockFit(VehicleType type) {
+        MechInternal bank = stockBank(type);
+        if (bank == null) return List.of();
+        List<MechInternal> fit = new ArrayList<>();
+        fit.add(bank);
+        for (int i = 0; i < HullReservoir.stockVentArrays(type); i++) fit.add(MechInternal.AUXILIARY_VENT_ARRAY);
+        return List.copyOf(fit);
     }
 
     /** Whether the hull may drop: an unarmed hull always, an armed one only with a capacitor bank on its rack. */

@@ -56,8 +56,7 @@ public final class CampaignVehicle implements Serializable {
         this.id = id;
         this.displayName = displayName;
         this.type = type;
-        MechInternal bank = VehicleRack.stockBank(type);
-        if (bank != null) rackInternalIds.add(bank.id);
+        for (MechInternal part : VehicleRack.stockFit(type)) rackInternalIds.add(part.id);
     }
 
     public String id() { return id; }

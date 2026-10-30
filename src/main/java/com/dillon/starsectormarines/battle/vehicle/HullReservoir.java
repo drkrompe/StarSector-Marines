@@ -26,16 +26,41 @@ public final class HullReservoir {
 
     /** The factory capacitor bank's frame, the mech stock frame's (`MechInternal.FACTORY_CAPACITOR_BANK`). */
     public static final Frame FACTORY_BANK = new Frame(MechFlux.CAPACITY, MechFlux.DISSIPATION_PER_SECOND);
-    /** The military capacitor bank's frame (`MechInternal.MILITARY_CAPACITOR_BANK`): the laser tank's stock bank. */
+    /** The double capacitor bank's frame (`MechInternal.DOUBLE_CAPACITOR_BANK`): the military bank's reservoir in 2x1. */
+    public static final Frame DOUBLE_BANK = new Frame(120f, 7.5f);
+    /** The military capacitor bank's frame (`MechInternal.MILITARY_CAPACITOR_BANK`), 2x2 on a rack. */
     public static final Frame MILITARY_BANK = new Frame(120f, 8f);
 
+    /** What one auxiliary vent array adds to a hull's dissipation (`MechInternal.AUXILIARY_VENT_ARRAY`). */
+    public static final float VENT_ARRAY_DISSIPATION = 1f;
     /**
-     * The frame a hull of {@code type} is set down with in its stock fit: the military bank on the laser tank, whose
-     * lasers are flux hogs, the factory bank on every other armed hull; null for an unarmed hull, which needs none.
+     * The laser tank's stock bank and vent arrays: a bigger stock fit so it sustains its burst laser, whose flux
+     * cost is the mech part's and is not the hull's to change (owner, 2026-10-30).
+     */
+    static final Frame LASER_TANK_STOCK_BANK = DOUBLE_BANK;
+    static final int LASER_TANK_STOCK_VENT_ARRAYS = 2;
+
+    /** The bank {@code type} is built with: the laser tank's own, the factory bank on every other armed hull. */
+    public static Frame stockBank(VehicleType type) {
+        if (type == null || !type.hasTurretWeapon()) return null;
+        return type == VehicleType.LASER_TANK ? LASER_TANK_STOCK_BANK : FACTORY_BANK;
+    }
+
+    /** Vent arrays {@code type} is built with beside its bank: the laser tank's, none on any other hull. */
+    public static int stockVentArrays(VehicleType type) {
+        return type == VehicleType.LASER_TANK ? LASER_TANK_STOCK_VENT_ARRAYS : 0;
+    }
+
+    /**
+     * The frame a hull of {@code type} is set down with in its stock fit: its bank ({@link #stockBank}) and each
+     * stock vent array's dissipation on top; null for an unarmed hull, which needs none.
      */
     public static Frame stockFrame(VehicleType type) {
-        if (type == null || !type.hasTurretWeapon()) return null;
-        return type == VehicleType.LASER_TANK ? MILITARY_BANK : FACTORY_BANK;
+        Frame bank = stockBank(type);
+        if (bank == null) return null;
+        int vents = stockVentArrays(type);
+        if (vents == 0) return bank;
+        return new Frame(bank.capacity(), bank.dissipationPerSecond() + vents * VENT_ARRAY_DISSIPATION);
     }
 
     /** A fresh reservoir on {@code frame}, or null for no frame. */
