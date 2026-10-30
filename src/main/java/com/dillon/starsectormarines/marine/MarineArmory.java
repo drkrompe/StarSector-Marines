@@ -38,7 +38,10 @@ public final class MarineArmory implements Serializable {
     private Set<String> knownArmorPlanIds = new HashSet<>();
     /** Every loadout card this company holds, by {@link LoadoutCard#id()}; null in a save from before it. */
     private Set<String> knownLoadoutCardIds = new LinkedHashSet<>();
-    /** Victory milestones already paid, by {@link VictoryMilestones.Milestone#id()}: each pays once. */
+    /**
+     * Save input only: the retired victory milestones a save had paid. Cards come from the Kit Ladder's store and
+     * Relief's free pick now ({@link KitLadder}); what a milestone taught stays learned.
+     */
     private Set<String> paidVictoryMilestoneIds = new LinkedHashSet<>();
     /** Reusable fire-team designs; the legacy field name is retained for save compatibility. */
     private List<FireTeamTemplateCard> templateCards = new ArrayList<>();
@@ -345,22 +348,7 @@ public final class MarineArmory implements Serializable {
     public void recordVictory(boolean highRisk, Set<String> carriedCardIds) {
         victories++;
         if (highRisk) highRiskVictories++;
-        payVictoryMilestones();
         repairCollectionProgression(carriedCardIds);
-    }
-
-    public Set<String> paidVictoryMilestoneIds() {
-        return Collections.unmodifiableSet(paidVictoryMilestoneIds);
-    }
-
-    /** Each milestone the company has reached and not yet been paid grants its card, once. */
-    private void payVictoryMilestones() {
-        for (VictoryMilestones.Milestone milestone : VictoryMilestones.ladder()) {
-            if (victories < milestone.victories() || highRiskVictories < milestone.highRiskVictories()
-                    || paidVictoryMilestoneIds.contains(milestone.id())) continue;
-            learnLoadoutCard(milestone.card());
-            paidVictoryMilestoneIds.add(milestone.id());
-        }
     }
 
     /** Idempotent save-load and mission-resolution bridge for the collection safety net. */
@@ -447,7 +435,6 @@ public final class MarineArmory implements Serializable {
         victories = Math.max(0, victories);
         highRiskVictories = Math.max(0, highRiskVictories);
         if (cardLedgerMissing) migrateCardKnowledge();
-        payVictoryMilestones();
         // Profiles are saved intent owned by this armory, including legacy
         // profiles written before sheet knowledge had its own ledger.
         for (SquadProfile profile : squadProfiles) {

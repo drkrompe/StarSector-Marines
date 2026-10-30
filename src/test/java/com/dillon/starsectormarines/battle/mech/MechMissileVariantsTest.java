@@ -105,12 +105,6 @@ class MechMissileVariantsTest {
     }
 
     @Test
-    void aNewCompanyKnowsBothSrm5Warheads() {
-        assertTrue(MechPattern.STARTER.contains(MechPattern.of(MechWeaponComponent.SRM_5)));
-        assertTrue(MechPattern.STARTER.contains(MechPattern.of(MechWeaponComponent.SRM_5_FRAG)));
-    }
-
-    @Test
     void theWardenShipsFragmentationLrms() {
         assertEquals(MechWeaponComponent.LRM_5_FRAG, MechVariant.WARDEN.leftShoulder);
         assertEquals(MechWeaponComponent.LRM_5_FRAG, MechVariant.WARDEN.rightShoulder);

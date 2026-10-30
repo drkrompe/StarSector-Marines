@@ -18,9 +18,9 @@ import java.util.Set;
  * Deterministic weighted choice of mech pattern cards for one faction and channel, the
  * mech-bay counterpart of {@link LoadoutCardPicker}.
  *
- * <p>A pattern is on offer through a channel when the company's progress reaches its access
- * tier there ({@link EquipmentAcquisitionEligibility}), exactly as a loadout card's scarcest
- * template is gated. Every faction may offer every offerable pattern at a modest base weight;
+ * <p>A pattern is on offer through a channel when the company's progress opens it there
+ * ({@link EquipmentAcquisitionEligibility}): its Kit Ladder station on the store's channels, its
+ * access tier on patron and recovery, exactly as a loadout card is gated. Every faction may offer every offerable pattern at a modest base weight;
  * a faction weights up the hardware it actually issues to its own mechs
  * ({@link FactionMechLoadouts}) and the vehicle variant it is known for. A faction that offers no loadout cards through a channel
  * (an explicit no-player-equipment faction) offers no patterns there either.
@@ -100,7 +100,7 @@ public final class MechPatternPicker {
         List<Candidate> candidates = new ArrayList<>();
         for (MechPattern pattern : MechPattern.offerable()) {
             if (!kinds.contains(pattern.kind()) || unavailable.contains(pattern.id())
-                    || !EquipmentAcquisitionEligibility.allows(pattern.accessTier(), source, progress)) {
+                    || !EquipmentAcquisitionEligibility.allows(pattern, source, progress)) {
                 continue;
             }
             candidates.add(new Candidate(pattern.id(), weight(factionId, pattern)));

@@ -198,6 +198,10 @@ kit as the cards issue it (`LoadoutCardIssue.seats`). Writes `matchups.md`,
 - Controlled construction with a detached kit, not a campaign roster, and not
   balance acceptance.
 
+`python tools/kits/balance.py` runs `loadoutCardSheet`, `TtkReportTest`,
+`armorMatchup` and an open-ground `loadoutMatchup` in turn and gathers their
+tables into `build/reports/balance/kit-ladder-balance.md` (`kit-ladder.md`).
+
 ### `armorMatchup`
 
 Machines against machines, with `loadoutMatchup`'s conventions (`;` pairings,

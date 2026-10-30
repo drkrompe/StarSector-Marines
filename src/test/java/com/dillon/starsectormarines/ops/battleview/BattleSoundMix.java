@@ -13,6 +13,7 @@ import java.io.OutputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -34,8 +35,9 @@ import java.util.Set;
  *   <li>Pan is equal-power, hard over at the view's edge ({@link BattleReviewFrameRenderer#PLAY_ZOOM_CELLS} across).
  *       The engine's own distance roll-off is not modelled: a level is what the battle's rules gave it.</li>
  *   <li>A held loop (a line with {@code loop}, its slot) is logged on every tick it sounds: each unbroken run of ticks
- *       of one id and slot is one take wrapped round under the run, faded in and out over {@link #LOOP_FADE_SECONDS},
- *       at each tick's level and pan, rather than a start a tick.</li>
+ *       of one id and slot is one take wrapped round under the run, faded in and out over {@link #LOOP_FADE_SECONDS}
+ *       (or the run's own {@code fadeIn} and {@code fadeOut} seconds, as the screen passes the engine for a weapon
+ *       loop with an authored tail), at each tick's level, pitch and pan, rather than a start a tick.</li>
  *   <li>A music line (one with {@code music}) starts that track at the centre at its {@code sounds.json} volume, faded
  *       in over its {@code fadeIn} seconds; the next music line fades it out over that line's {@code fadeOut} seconds
  *       while the next track fades in. A line with {@code loop} true wraps the track round until then. An empty
@@ -128,15 +130,20 @@ public final class BattleSoundMix {
                 Take take = options.get(first.optInt("loop") % options.size());
                 float[] gainLeft = new float[to - from];
                 float[] gainRight = new float[to - from];
+                float[] pitches = new float[to - from];
                 for (int i = from; i < to; i++) {
                     float[] pans = pan(ticks.get(i), (float) ticks.get(i).optDouble("volume", 1.0) * take.volume(),
                             halfWidth);
                     gainLeft[i - from] = pans[0];
                     gainRight[i - from] = pans[1];
+                    pitches[i - from] = (float) ticks.get(i).optDouble("pitch", 1.0) * take.pitch();
                 }
                 int at = (int) Math.round(first.optInt("frame") * secondsPerTick * RATE);
-                hold(clip(id, take, decoded), (float) first.optDouble("pitch", 1.0) * take.pitch(), at,
-                        samplesPerTick, gainLeft, gainRight, fade, left, right);
+                JSONObject last = ticks.get(to - 1);
+                int fadeIn = first.has("fadeIn") ? (int) Math.round(first.optDouble("fadeIn") * RATE) : fade;
+                int fadeOut = last.has("fadeOut") ? (int) Math.round(last.optDouble("fadeOut") * RATE) : fade;
+                hold(clip(id, take, decoded), pitches, at, samplesPerTick, gainLeft, gainRight, fadeIn, fadeOut,
+                        left, right);
                 mixed++;
             }
         }
@@ -222,20 +229,36 @@ public final class BattleSoundMix {
      */
     static void hold(float[] clip, float pitch, int at, int samplesPerTick, float[] gainLeft, float[] gainRight,
                      int fade, float[] left, float[] right) {
-        if (clip.length == 0 || pitch <= 0f) return;
+        float[] pitches = new float[gainLeft.length];
+        Arrays.fill(pitches, pitch);
+        hold(clip, pitches, at, samplesPerTick, gainLeft, gainRight, fade, fade, left, right);
+    }
+
+    /**
+     * {@link #hold(float[], float, int, int, float[], float[], int, float[], float[])} with each tick at its own pitch
+     * (the take read on from where the last tick left it, so a pitch change does not jump), coming up over
+     * {@code fadeIn} samples and dying away over {@code fadeOut}, as the engine's {@code playLoop} fades do.
+     */
+    static void hold(float[] clip, float[] pitch, int at, int samplesPerTick, float[] gainLeft, float[] gainRight,
+                     int fadeIn, int fadeOut, float[] left, float[] right) {
+        if (clip.length == 0) return;
         int n = gainLeft.length * samplesPerTick;
+        double source = 0.0;
         for (int k = 0; k < n; k++) {
-            int i = at + k;
-            if (i < 0) continue;
-            if (i >= left.length) break;
-            double source = (k * (double) pitch) % clip.length;
-            int s = (int) source;
-            float frac = (float) (source - s);
-            float v = clip[s] + (clip[(s + 1) % clip.length] - clip[s]) * frac;
-            float env = fade <= 0 ? 1f : Math.min(1f, Math.min(k, n - 1 - k) / (float) fade);
             int tick = k / samplesPerTick;
-            left[i] += v * gainLeft[tick] * env;
-            right[i] += v * gainRight[tick] * env;
+            int i = at + k;
+            if (i >= left.length) break;
+            if (i >= 0 && pitch[tick] > 0f) {
+                int s = (int) source;
+                float frac = (float) (source - s);
+                float v = clip[s] + (clip[(s + 1) % clip.length] - clip[s]) * frac;
+                float env = 1f;
+                if (fadeIn > 0) env = Math.min(env, k / (float) fadeIn);
+                if (fadeOut > 0) env = Math.min(env, (n - 1 - k) / (float) fadeOut);
+                left[i] += v * gainLeft[tick] * env;
+                right[i] += v * gainRight[tick] * env;
+            }
+            source = (source + Math.max(0f, pitch[tick])) % clip.length;
         }
     }
 

@@ -70,8 +70,7 @@ class MechLabInductionTest {
         MechBay bay = new MechBay();
         bay.receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment()));
         MechWorkshop workshop = new MechWorkshop(bay, FabricationResources.NONE);
-        assertTrue(bay.canFabricate(MechWeaponComponent.CHAINGUN));
-        assertTrue(bay.canFabricate(MechWeaponComponent.SRM_5));
+        assertTrue(bay.canFabricate(MechWeaponComponent.SRM_5_FRAG));
         assertFalse(bay.canFabricate(MechWeaponComponent.LRM_5));
         assertEquals(MechWorkshop.Status.PATTERN_LOCKED, workshop.fitWeapon(WaylineHound.ID,
                 MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.LRM_5).status());

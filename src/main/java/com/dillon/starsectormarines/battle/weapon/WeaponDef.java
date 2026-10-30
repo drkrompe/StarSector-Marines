@@ -117,8 +117,13 @@ public final class WeaponDef {
         }
     }
 
+    /** The shove each round's blast gives what stands in it ({@code sim.blast}), or null for none. */
+    private BlastImpulse blast;
+
     /** Incendiary heat a blast of this weapon carries, 0 for an ordinary one. */
     public int incendiaryHeat() { return incendiaryHeat; }
+    /** The shove each round's blast gives what stands in it, or null for a round that pushes nothing. */
+    public BlastImpulse blast() { return blast; }
     /** The handheld primary's magazine, or {@code null} when the weapon cycles without one. */
     public MagazineDef magazine() { return magazine; }
     /**
@@ -217,6 +222,10 @@ public final class WeaponDef {
      * ({@code HeldFireLoops}). Null for a weapon heard one clip per shot.
      */
     public final String loopSoundId;
+    /** How {@link #loopSoundId} lives on after the last pulse: hold, fade and pitch sag ({@code audio.loopTail} etc.). */
+    private HeldLoopEnvelope loopEnvelope = HeldLoopEnvelope.DEFAULT;
+
+    public HeldLoopEnvelope loopEnvelope() { return loopEnvelope; }
 
     private WeaponDef(String id, MountClass mount, String displayName,
                       boolean designationTiered,
@@ -435,7 +444,12 @@ public final class WeaponDef {
             throw new JSONException("Weapon '" + def.id
                     + "' declares render.beam for a projectile-sprite weapon");
         }
+        def.loopEnvelope = HeldLoopEnvelope.parse(audio, id);
         def.incendiaryHeat = Math.max(0, sim.optInt("incendiaryHeat", 0));
+        def.blast = BlastImpulse.parse(sim.optJSONObject("blast"), def.aoeRadius, id);
+        if (def.blast != null && !(def.aoeRadius > 0f)) {
+            throw new JSONException("Weapon '" + id + "' declares sim.blast without a splash (aoeRadius)");
+        }
         def.tracksFliers = sim.optBoolean("tracksFliers", false);
         def.impactDecal = parseDecal(render, id);
         def.groundShadow = render != null && render.optBoolean("groundShadow", false);

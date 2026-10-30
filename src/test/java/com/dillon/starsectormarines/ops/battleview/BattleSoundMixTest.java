@@ -61,6 +61,21 @@ class BattleSoundMixTest {
     }
 
     @Test
+    void aHeldLoopReadsOnAtEachTicksPitchAndTakesItsOwnFades() {
+        float[] clip = {0f, 1f, 2f, 3f, 4f, 5f, 6f, 7f};
+        float[] left = new float[6];
+        // Two ticks of three samples: pitch 1 then 2, read on from where the first tick left off.
+        BattleSoundMix.hold(clip, new float[] {1f, 2f}, 0, 3, new float[] {1f, 1f}, new float[2], 0, 0,
+                left, new float[6]);
+        assertArrayEquals(new float[] {0f, 1f, 2f, 3f, 5f, 7f}, left, 1e-5f);
+        // In over two samples, out over none: the loop's own envelope already took it down.
+        float[] faded = new float[4];
+        BattleSoundMix.hold(new float[] {1f}, new float[] {1f, 1f}, 0, 2, new float[] {1f, 1f}, new float[2], 2, 0,
+                faded, new float[4]);
+        assertArrayEquals(new float[] {0f, 0.5f, 1f, 1f}, faded, 1e-5f);
+    }
+
+    @Test
     void anIdGivenAsAnObjectWithItsSoundsResolvesLikeAPlainList(@TempDir Path mod) throws Exception {
         Files.createDirectories(mod.resolve("data/config"));
         Files.writeString(mod.resolve("data/config/sounds.json"), """

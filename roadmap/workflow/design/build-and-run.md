@@ -81,6 +81,16 @@ the old sheet's relief. `UrbanTileset3AlphaTest` fails when they drift.
   only its own process tree. Use it only when a live acceptance pass is
   intentionally required.
 
+## Kit Ladder page
+
+`tools/kits/` builds the owner's Kit Ladder page from the game data and carries
+the owner's edits back: `export_state.py` (diff report and weapon notes from an
+ArtifactData export), `apply_ladder.py` (accepted stations into `KitLadder`),
+`check.py` (validation, about five seconds; `--self-test` for the tools
+themselves), `balance.py` (the cheap balance evidence in one markdown) and
+`refresh.py` (the local steps of a page refresh). When to run which, and the
+Artifact-tool steps between them: `kit-ladder.md`.
+
 ## Blender render queue
 
 Blender renders go through the render queue, not a session's own shell:

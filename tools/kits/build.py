@@ -21,7 +21,9 @@ SquadEquipmentDoctrines.java / ArmorSheetBundles.java, and embeds all of it in o
 Two ladders, never mixed: weapon cards (primaries and secondaries per marine) and Equipment cards
 (armour per marine). Each card draws the way a Barracks loadout card does (kit bricks coloured by
 what each piece throws or wears) and can be placed on the Alpha mission timeline to say after which
-mission it goes on sale. Exports a kits.json holding both ladders.
+mission it goes on sale. Every card's and machine pattern's seeded station is the game's own Kit Ladder
+(KitLadder.java, stations in UnlockStation.java; Relief's free pick from FirstRefit.java), so a rebuild shows
+what the game sells when. Exports a kits.json holding both ladders.
 """
 import base64
 import glob
@@ -31,60 +33,61 @@ import re
 import sys
 from pathlib import Path
 
-from PIL import Image
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import ladder  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = ladder.ROOT
 MOD = ROOT / "mod"
-JAVA = ROOT / "src/main/java/com/dillon/starsectormarines"
+JAVA = ladder.JAVA
 NOT_KIT_PRIMARY = {"weapon.drone-pulse", "weapon.drone-ion"}
 PRIMARY_ICON = {"RIFLE": "weapon-rifle", "DMR": "weapon-dmr", "LASER_GUN": "weapon-laser-gun", "SMG": "weapon-smg"}
 PRIMARY_LIE = 32
 ART_PX = 160
 
-# The Alpha mission timeline, in campaign order (campaign-overview.md). A card placed on a station
-# goes on sale once that mission settles; "start" is the company's opening issue, "none" is not sold.
+# The Alpha mission timeline, in campaign order: the page's names and notes for the game's Kit Ladder stations
+# (UnlockStation.java), which this list must match id for id. A card placed on a station goes on sale once that
+# mission settles; "start" is the company's opening issue, "none" is never sold in the store.
 STATIONS = [
-    ("none", "Not sold yet", "Unplaced", "Reachable only by ordinary shelves, licences, patrons and recovery for its tier."),
+    ("none", "Not sold", "Unplaced", "Never on a store shelf. Patrons and recovery may still hand it out by tier."),
     ("start", "Company start", "Start", "What a fresh company holds."),
     ("relief", "Relief", "Wayline opening", "First Wayline job: the one free pick (Steady Line or Forward Screen, with its armour sheet). The other path and Checkpoint Issue go on sale in the store."),
     ("counterattack", "Counterattack", "Wayline opening", "Recovered Hound and first refit."),
-    ("junction", "Open the Junction", "Broken Supply Route", "Defended junction. Trench-Clearing Issue is the reward."),
-    ("thunder-run", "Thunder Run", "Broken Supply Route", "Convoy escort. Convoy Escort Issue goes on sale at the employer's market."),
+    ("junction", "Open the Junction", "Broken Supply Route", "Defended junction."),
+    ("thunder-run", "Thunder Run", "Broken Supply Route", "Convoy escort, settled won or lost. Convoy Escort Issue is listed at the employer's market."),
     ("dust-ledger", "Dust Ledger", "Corvus Account", "Saltwell Cross; side objectives."),
-    ("blind-watch", "Blind Watch", "Corvus Account", "The Sounding on Warion; sable mortars and missiles."),
-    ("cold-account", "A Cold Account", "Corvus Account", "Garnir. Counter-Battery Issue goes on sale at Hegemony markets."),
+    ("blind-watch", "Blind Watch", "Corvus Account", "The Sounding on Warion; sable mortars and missiles. Counter-Battery Issue is listed at Hegemony markets."),
+    ("cold-account", "A Cold Account", "Corvus Account", "Garnir."),
     ("salvage-rights", "Salvage Rights", "A Working Ship", "Shepherd recovery, first contract."),
     ("cold-start", "Cold Start", "A Working Ship", "Shepherd recovery, second contract."),
-    ("working-passage", "Working Passage", "A Working Ship", "The Morrow flies. Builder's Guard goes on sale at Asharu, and the end-game equipment wall opens here, before the Bloom challenge."),
-    ("colony-breach", "Colony Breach", "Khettara Bloom", "Rav Bloom challenge, chapter 1 (replayable)."),
-    ("cordon-line", "Cordon Line", "Khettara Bloom", "Chapter 2."),
-    ("cordon-road", "Cordon Road", "Khettara Bloom", "Chapter 3."),
-    ("the-burn", "The Burn", "Khettara Bloom", "Chapter 4."),
-    ("broad-front", "Broad Front", "Khettara Bloom", "Chapter 5, the end-of-alpha challenge."),
-    ("wins-3", "3 victories", "Count-based", "Any three won operations (VictoryMilestones)."),
-    ("wins-4", "4 victories", "Count-based", "Any four won operations."),
-    ("wins-5-risk", "5 victories + 1 high-risk", "Count-based", "The first chase."),
-    ("wins-15", "15 victories", "Count-based", "Prestige recovery opens."),
+    ("working-passage", "Working Passage", "A Working Ship", "The Morrow flies. Builder's Guard is listed at Asharu, and the end-game equipment wall opens here, before the Bloom challenge."),
+    ("colony-breach", "Colony Breach", "Wellhollow Bloom", "Rav Bloom challenge, chapter 1 (replayable)."),
+    ("cordon-road", "Cordon Road", "Wellhollow Bloom", "Chapter 2."),
+    ("the-burn", "The Burn", "Wellhollow Bloom", "Chapter 3."),
+    ("broad-front", "Broad Front", "Wellhollow Bloom", "Chapter 4, the end-of-alpha challenge."),
     ("post-alpha-small-war", "A Small War (cut from alpha)", "Post-alpha", "Agreus cards parked here: the recovered Specter and Arbalest sections and the Boarding Jack."),
-    ("post-alpha-warrants", "Military warrants (post-alpha)", "Post-alpha", "Approved kit that needs a tradition's warrant; warrants arrive with A Small War."),
 ]
 
-# Where the shipped code already puts each card (ArcIssueListings, VictoryMilestones, the Agreus rewards).
-PLACED = {
-    "weapons:field-security": "start", "weapons:checkpoint": "relief", "wayline:steady-line": "relief",
-    "wayline:forward-screen": "relief", "weapons:trench-clearing": "junction", "weapons:convoy-escort": "thunder-run",
-    "weapons:counter-battery": "cold-account", "weapons:builders-guard": "working-passage",
-    "weapons:line-infantry": "wins-5-risk",
-    "armor:field-fatigues": "start", "armor:hegemony-auxiliary": "relief", "armor:league-mobile": "relief",
-    "armor:sindrian-security": "wins-3", "armor:corporate-specter-section": "post-alpha-small-war",
-    "armor:hegemony-arbalest-section": "post-alpha-small-war", "armor:boarding-jack-section": "post-alpha-small-war",
-    "armor:hegemony-auxiliary-section": "post-alpha-warrants", "armor:hegemony-shock": "post-alpha-warrants",
-}
-
-
-# The only free unlock after the opening: Relief's pick of one Wayline path, with its armour sheet.
-# The path not picked is sold in the store.
-FREE_PICK = {"wayline:steady-line", "wayline:forward-screen", "armor:hegemony-auxiliary", "armor:league-mobile"}
+def kit_ladder(ids):
+    """{page id: station id} for every KitLadder row (tools/kits/ladder.py parses them), and the set of free-pick
+    card ids (FirstRefit's paths and their sheets). A duplicate row is reported by check.py, not here."""
+    station_list = ladder.stations()
+    if [s[0] for s in STATIONS] != ["none"] + [sid for enum, sid in station_list if enum != "NONE"]:
+        raise SystemExit("kits/build.py: STATIONS must list UnlockStation's ids in its order, 'none' first; UnlockStation has %s"
+                         % [sid for _, sid in station_list])
+    paths, free = {}, set()
+    for enum, weapons, sheet in re.findall(r'^\s+(\w+)\("[^"]+", "(wayline:[^"]+)", SquadEquipmentDoctrines\.(\w+),',
+                                           (JAVA / "marine/FirstRefit.java").read_text(encoding="utf-8"), re.M):
+        paths[enum] = weapons
+        free.update({weapons, ids[sheet]})
+    if len(paths) != 2:
+        raise SystemExit("kits/build.py: FirstRefit.Path parsed %d paths, expected 2" % len(paths))
+    try:
+        rows = ladder.rows(doctrines=ids, paths=paths, station_list=station_list)
+    except ladder.LadderError as e:
+        raise SystemExit("kits/build.py: %s" % e)
+    if len(rows) < 90:
+        raise SystemExit("kits/build.py: KitLadder.java parsed only %d rows" % len(rows))
+    return {r["id"]: r["station"] for r in rows}, free
 
 
 def load(path):
@@ -107,7 +110,10 @@ def constants(java_file):
     return dict(re.findall(r'public static final String (\w+)\s*=\s*"([^"]+)"', java_file.read_text(encoding="utf-8")))
 
 
-def image(path):
+def image(path, art_on=True):
+    if not art_on:
+        return None
+    from PIL import Image
     art = Image.open(MOD / path).convert("RGBA")
     art.thumbnail((ART_PX, ART_PX))
     buffer = io.BytesIO()
@@ -133,6 +139,7 @@ PAD_BOX = {"vehicle": (1380, 240, 1790, 1010), "mech": (1065, 330, 1545, 900)}
 
 def pad_photo(folder, machine):
     """The machine as the Mech Lab shows it on its pad, cropped from the suite's full frame."""
+    from PIL import Image
     name = machine["id"] + "-full.png"
     # The suite writes the frames flat beside the manifest; a curated review set keeps them under full/.
     frame = next((f for f in (folder / "full" / name, folder / name) if f.exists()), None)
@@ -144,6 +151,12 @@ def pad_photo(folder, machine):
 
 
 def machine_dolls(folder):
+    if folder.suffix == ".json" and folder.is_file():
+        # The dolls a published page already carries (refresh.py from-page), when the suite has not been run here.
+        out = json.loads(folder.read_text(encoding="utf-8"))
+        for m in out:
+            m["notes"] = DOLL_NOTES.get(m["id"], [])
+        return out
     manifest = folder / "manifest.json"
     if not manifest.exists():
         return []
@@ -338,24 +351,11 @@ def weapon_cards(reel_index, clips_map, weapons, text, registry_ids):
     return {"cards": cards, "leftOut": index.get("leftOut", [])}
 
 
-def main():
-    args = sys.argv[1:]
-    dolls_dir = ROOT / "build/snapshots/machine-dolls"
-    if "--dolls" in args:
-        i = args.index("--dolls")
-        dolls_dir = Path(args[i + 1])
-        del args[i:i + 2]
-    reel_index = clips_map = None
-    if "--reel" in args:
-        i = args.index("--reel")
-        reel_index = args[i + 1]
-        del args[i:i + 2]
-    if "--clips" in args:
-        i = args.index("--clips")
-        clips_map = args[i + 1]
-        del args[i:i + 2]
-    argv = [a for a in args if a != "--artifact"]
-    artifact = "--artifact" in args
+def collect(dolls_dir=None, reel_index=None, clips_map=None, art=True, strict=True):
+    """Everything the page embeds, keyed by the template's placeholder names (KITS, ITEMS, WEAPONREEL, ...), plus
+    WEAPONS (every *.weapon.json weapon) and PARTS (every MechWeaponComponent), which are not embedded. ``art=False`` skips the raster art and machine dolls (fast, for
+    check.py). ``strict=False`` gives a card or pattern with no KitLadder row the station None instead of stopping,
+    so check.py can report it."""
     strings = flat(load(MOD / "data/strings/strings.json"))
     text = lambda key: strings.get(key.lstrip("@"), key) if key else ""
     templates = load(MOD / "data/marines/equipment-templates.template.json")
@@ -395,7 +395,7 @@ def main():
                 name = "weapon-dmr-masterwork"
             variants[grade] = "graphics/ui/armory/%s.png" % name
         for icon in variants.values():
-            images[icon] = image(icon)
+            images[icon] = image(icon, art)
         primaries.append({
             "id": w["id"], "name": text(w["catalog"]["displayName"]), "kind": kind_of(w["id"]),
             "lie": PRIMARY_LIE, "icons": variants, "note": text(w["catalog"].get("role")),
@@ -406,7 +406,7 @@ def main():
     specials = []
     for e in load(MOD / "data/marines/marine-special-equipment.equipment.json")["equipment"]:
         icon = e["presentation"]["armoryIcon"]
-        images[icon] = image(icon)
+        images[icon] = image(icon, art)
         wid = e["activation"].get("weaponId")
         specials.append({
             "id": e["id"], "name": text(e["catalog"]["displayName"]), "kind": kind_of(wid),
@@ -419,7 +419,7 @@ def main():
     effect_icon = {"breacher-assist": "graphics/ui/armory/system-breach-assist.png",
                    "field-aid": "graphics/ui/armory/system-field-aid.png"}
     for icon in effect_icon.values():
-        images[icon] = image(icon)
+        images[icon] = image(icon, art)
     systems = {}
 
     def add_system(sd):
@@ -440,7 +440,7 @@ def main():
     for a in armor_doc["armor"]:
         c, bt = a["catalog"], a["battle"]
         icon = c["iconPath"]
-        images[icon] = image(icon)
+        images[icon] = image(icon, art)
         system = a.get("integralSystem") or bt.get("integralSystem")
         sys_id = None
         if system:
@@ -538,9 +538,12 @@ def main():
     if len(armor_kits) < 20:
         raise SystemExit("armour plans parsed: %d" % len(armor_kits))
 
+    placed, free_pick = kit_ladder(ids)
     for kit in kits + armor_kits:
-        kit["station"] = PLACED.get(kit["id"], "none")
-        kit["grant"] = "free-pick" if kit["id"] in FREE_PICK else "sale"
+        if kit["id"] not in placed and strict:
+            raise SystemExit("kits/build.py: card %s has no KitLadder row" % kit["id"])
+        kit["station"] = placed.get(kit["id"])
+        kit["grant"] = "free-pick" if kit["id"] in free_pick else "sale"
 
     # Machine licences: one chip per pattern the store can teach, tiered by MechPattern's own tables.
     pattern_src = (JAVA / "marine/MechPattern.java").read_text(encoding="utf-8")
@@ -574,18 +577,20 @@ def main():
         return "data:image/svg+xml;base64," + base64.b64encode(data.encode("utf-8")).decode()
 
     weight = {"COMMON": "light", "ADVANCED": "medium", "PRESTIGE": "heavy"}
-    starters = {("CHASSIS", "HOUND"), ("WEAPON", "NOSE_CHAINGUN"), ("WEAPON", "SRM_5"), ("WEAPON", "SRM_5_FRAG")}
     items = {"hull": [], "mweapon": [], "mpart": []}
 
-    def item(ladder, kind, enum, name, sub, tier, seed_start=False, icon=None, tone="DOLL", fp=None):
-        items[ladder].append({"id": "%s:%s" % (kind.lower(), enum), "name": name, "sub": sub, "access": tier,
-                              "station": "start" if seed_start else "none", "icon": icon, "tone": tone, "fp": fp})
+    def item(group, kind, enum, name, sub, tier, icon=None, tone="DOLL", fp=None):
+        item_id = "%s:%s" % (kind.lower(), enum)
+        if item_id not in placed and strict:
+            raise SystemExit("kits/build.py: %s has no KitLadder row" % item_id)
+        items[group].append({"id": item_id, "name": name, "sub": sub, "access": tier,
+                             "station": placed.get(item_id), "icon": icon, "tone": tone, "fp": fp})
 
     variants = re.findall(r'^\s+(\w+)\("[a-z-]+", "(@[^"]+)"', (JAVA / "battle/mech/MechVariant.java").read_text(encoding="utf-8"), re.M)
     for enum, key in variants:
         tier = tiers.get(("CHASSIS", enum))
         if tier:
-            item("hull", "CHASSIS", enum, text(key), "mech · " + weight[tier], tier, ("CHASSIS", enum) in starters,
+            item("hull", "CHASSIS", enum, text(key), "mech · " + weight[tier], tier,
                  svg_uri("graphics/ui/dolls/mech-%s.svg" % enum.lower(), True))
     for enum in re.findall(r"^\s+(\w+)\(", (JAVA / "battle/vehicle/VehicleType.java").read_text(encoding="utf-8"), re.M):
         tier = tiers.get(("VEHICLE", enum))
@@ -612,45 +617,70 @@ def main():
             raise SystemExit("kits/build.py: HardwareArt.stem has no case for component %s" % enum)
         tier = tiers.get(("WEAPON", enum))
         if tier:
-            item("mweapon", "WEAPON", enum, text(key), (mount.lower() + " mount") if mount else "mech weapon", tier, ("WEAPON", enum) in starters,
+            item("mweapon", "WEAPON", enum, text(key), (mount.lower() + " mount") if mount else "mech weapon", tier,
                  svg_uri("graphics/ui/mech-hardware/%s.svg" % weapon_stem[enum]), hardpoints[enum][0], wfp[enum])
     internals = re.findall(r'^\s+(\w+)\("internal\.[^"]+", "(@[^"]+)", Role\.(\w+),\s*EquipmentAccessTier\.(\w+)',
                            (JAVA / "marine/MechInternal.java").read_text(encoding="utf-8"), re.M)
-    starter_internals = {"INDUSTRIAL_ENGINE", "FACTORY_PLATING", "FACTORY_CAPACITOR_BANK", "STANDARD_LOADER"}
     for enum, key, role, tier in internals:
         internal_tone = {"ENGINE": "ENGINE", "PLATING": "ARMOR", "CAPACITOR_BANK": "FLUX"}.get(role, "UTILITY")
-        item("mpart", "INTERNAL", enum, text(key), role.lower().replace("_", " "), tier, enum in starter_internals,
+        item("mpart", "INTERNAL", enum, text(key), role.lower().replace("_", " "), tier,
              svg_uri("graphics/ui/mech-hardware/%s.svg" % internal_stem[enum]), internal_tone, ifp.get(enum))
     for enum, key in re.findall(r'^\s+(\w+)\("kit\.[^"]+", "(@[^"]+)"', (JAVA / "battle/vehicle/VehicleKit.java").read_text(encoding="utf-8"), re.M):
         tier = tiers.get(("KIT", enum))
         if tier:
             kit_id = re.search(r'^\s+%s\("(kit\.[^"]+)"' % enum, (JAVA / "battle/vehicle/VehicleKit.java").read_text(encoding="utf-8"), re.M).group(1)
-            item("mpart", "KIT", enum, text(key), "vehicle kit", tier, False,
+            item("mpart", "KIT", enum, text(key), "vehicle kit", tier,
                  svg_uri("graphics/ui/mech-hardware/%s.svg" % kit_id.replace(".", "-")),
                  "FLUX" if enum == "CAPACITOR_PACK" else "UTILITY" if enum in ("READY_RACK", "ACCELERATED_LOADER") else "AUX", (2, 1))
     for lst in items.values():
         lst.sort(key=lambda x: (x["name"]))
 
-    machines = machine_dolls(dolls_dir)
+    machines = machine_dolls(Path(dolls_dir) if dolls_dir else ROOT / "build/snapshots/machine-dolls") if art else []
     weapon_tab = weapon_cards(reel_index, clips_map, weapons, text, ids) if reel_index else {"cards": [], "leftOut": []}
+    stations = [{"id": s[0], "name": s[1], "group": s[2], "note": s[3]} for s in STATIONS]
+    return {"PRIMARIES": primaries, "SPECIALS": specials, "KITS": kits, "ARMORKITS": armor_kits, "STATIONS": stations,
+            "ARMORS": armors, "ITEMS": items, "SYSTEMS": list(systems.values()), "IMAGES": images, "MACHINES": machines,
+            "WEAPONREEL": weapon_tab, "WEAPONS": weapons, "PARTS": mech_parts(text, ids)}
+
+
+def main():
+    args = sys.argv[1:]
+    dolls_dir = ROOT / "build/snapshots/machine-dolls"
+    if "--dolls" in args:
+        i = args.index("--dolls")
+        dolls_dir = Path(args[i + 1])
+        del args[i:i + 2]
+    reel_index = clips_map = None
+    if "--reel" in args:
+        i = args.index("--reel")
+        reel_index = args[i + 1]
+        del args[i:i + 2]
+    if "--clips" in args:
+        i = args.index("--clips")
+        clips_map = args[i + 1]
+        del args[i:i + 2]
+    argv = [a for a in args if a != "--artifact"]
+    artifact = "--artifact" in args
+    data = collect(dolls_dir, reel_index, clips_map)
+    weapon_tab = data["WEAPONREEL"]
     missing_clips = [c["id"] for c in weapon_tab["cards"] if not c["url"]]
     if clips_map and missing_clips:
         print("warning: no uploaded clip for %s" % ", ".join(missing_clips))
-    stations = [{"id": s[0], "name": s[1], "group": s[2], "note": s[3]} for s in STATIONS]
     page = (Path(__file__).with_name("template.html")).read_text(encoding="utf-8")
-    for key, value in (("__PRIMARIES__", primaries), ("__SPECIALS__", specials), ("__KITS__", kits),
-                       ("__ARMORKITS__", armor_kits), ("__STATIONS__", stations), ("__ARMORS__", armors), ("__ITEMS__", items), ("__SYSTEMS__", list(systems.values())),
-                       ("__IMAGES__", images), ("__MACHINES__", machines), ("__WEAPONREEL__", weapon_tab)):
-        page = page.replace(key, json.dumps(value, ensure_ascii=False))
+    for key in ("PRIMARIES", "SPECIALS", "KITS", "ARMORKITS", "STATIONS", "ARMORS", "ITEMS", "SYSTEMS", "IMAGES", "MACHINES", "WEAPONREEL"):
+        page = page.replace("__%s__" % key, json.dumps(data[key], ensure_ascii=False))
     if artifact:
         # The Artifact tool wraps the page in its own skeleton, so publish only the content.
         page = page[page.index("<title>"):].replace("</head><body>", "", 1).replace("</body></html>", "")
     out = Path(argv[0]) if argv else ROOT / "build/kits/kit-ladder.html"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(page, encoding="utf-8")
+    out.write_text(page, encoding="utf-8", newline="\n")
+    # What this build embeds, for check.py's "changed since publish" and the three-way ladder diff: refresh.py
+    # record-published copies it into tools/kits/review/published.json once this page is published.
+    Path(str(out) + ".manifest.json").write_text(json.dumps(ladder.manifest(data), indent=1, sort_keys=True), encoding="utf-8", newline="\n")
     print("wrote %s: %d primaries, %d secondaries, %d suits, %d weapon cards, %d equipment cards, machine licences %s, %d weapon clips, %.0f KB" % (
-        out, len(primaries), len(specials), len(armors), len(kits), len(armor_kits), {k: len(v) for k, v in items.items()},
-        len(weapon_tab["cards"]), out.stat().st_size / 1024))
+        out, len(data["PRIMARIES"]), len(data["SPECIALS"]), len(data["ARMORS"]), len(data["KITS"]), len(data["ARMORKITS"]),
+        {k: len(v) for k, v in data["ITEMS"].items()}, len(weapon_tab["cards"]), out.stat().st_size / 1024))
 
 
 if __name__ == "__main__":

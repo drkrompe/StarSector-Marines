@@ -267,7 +267,8 @@ public final class TurretFireSystem implements TurretFireSink {
                     weapon.aoeRadius, weapon.damage, weapon.penetration,
                     weapon.wallDamage, shooterFaction, aerialDelivery,
                     weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
-                    /*friendlyFireImmune*/ false, /*authoredAftermath*/ true).incendiary(heatOf(shooterId, weapon)));
+                    /*friendlyFireImmune*/ false, /*authoredAftermath*/ true).incendiary(heatOf(shooterId, weapon))
+                    .withBlast(weapon.blast()));
         }
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
         shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
@@ -482,7 +483,7 @@ public final class TurretFireSystem implements TurretFireSink {
                 /*friendlyFireImmune*/ false,
                 hasDirectPayload ? res.victimId() : 0L,
                 directDamage, hasDirectPayload ? weapon.contactPenetration : 0f,
-                /*authoredAftermath*/ true).incendiary(heatOf(shooterId, weapon)));
+                /*authoredAftermath*/ true).incendiary(heatOf(shooterId, weapon)).withBlast(weapon.blast()));
     }
 
     private void spawnProjectile(long shooterId, float fromX, float fromY, Faction shooterFaction,
@@ -556,7 +557,7 @@ public final class TurretFireSystem implements TurretFireSink {
                 contactTarget != 0L ? weapon.contactPenetration : 0f,
                 /*authoredAftermath*/ true,
                 contactTarget != 0L ? new long[] {contactTarget} : new long[0]);
-        onArrival.incendiary(heatOf(shooterId, weapon));
+        onArrival.incendiary(heatOf(shooterId, weapon)).withBlast(weapon.blast());
         if (weapon.projectileCellsPerSec() > 0f) {
             shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
                     weapon.boostRamp, weapon.arcHeight,

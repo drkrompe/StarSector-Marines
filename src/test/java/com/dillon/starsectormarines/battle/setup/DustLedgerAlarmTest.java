@@ -35,7 +35,8 @@ class DustLedgerAlarmTest {
     private static final Sites SITES = new Sites(Area.rect(0, 10, 3, 13), new Cell(1, 11), Area.rect(21, 5, 23, 7),
             new Cell(22, 6), new Cell(23, 5), new Cell(30, 12), Sites.ring(GROUNDS), GROUNDS, List.of(new Cell(10, 6)),
             Area.rect(6, 0, 8, 2), List.of(new Cell(7, 1), new Cell(8, 1)), Area.rect(10, 0, 12, 2),
-            Area.rect(10, 10, 12, 12), List.of(new Cell(30, 2), new Cell(31, 2)), new Cell(25, 6), Area.rect(5, 4, 6, 5));
+            Area.rect(10, 10, 12, 12), List.of(new Cell(30, 2), new Cell(31, 2)), new Cell(25, 6), Area.rect(5, 4, 6, 5),
+            List.of());
 
     @Test void aSightingInsideTheRingRaisesTheAlarmAndReleasesWhatTheQuietPhaseEarned() {
         BattleSimulation sim = arena();

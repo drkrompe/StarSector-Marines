@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-30 — the mech cannons take `<Family>-<N>` names (`mechs-nouns.md`, Weapon names) and the HC-10 replaces the linear cannon; readings taken before the rename keep the names they were taken under. Earlier 2026-10-26 — drops are free, one machine each, paced by the ferry's lift queue. Earlier 2026-10-24 — vehicles: variants and kits (a sealed doll, a rack of bolt-on kits); the earlier crossfire, facing and missile-carrier readings stand below.
+Updated: 2026-10-30 — the Kit Ladder paces pattern sales (each pattern on sale after its station's mission, tier sets the price); a new company knows the Hound, the light machine gun and the fragmentation SRM-5. Also 2026-10-30 — the mech cannons take `<Family>-<N>` names (`mechs-nouns.md`, Weapon names) and the HC-10 replaces the linear cannon; readings taken before the rename keep the names they were taken under. Earlier 2026-10-26 — drops are free, one machine each, paced by the ferry's lift queue. Earlier 2026-10-24 — vehicles: variants and kits (a sealed doll, a rack of bolt-on kits); the earlier crossfire, facing and missile-carrier readings stand below.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -38,8 +38,10 @@ old guns were taken under those names and stand as recorded.
    is larger or heavier, so the best of everything never fits on one frame.
 4. **Weight class is the ladder.** Hound is the light mech, Warden the medium,
    Bulwark the heavy (MechWarrior's classes). A company starts with the light
-   chassis and its two starter weapons only, and earns medium and heavy patterns
-   through Advanced and Prestige access. Vehicles follow the same classes.
+   chassis and its two starter weapons only (the light machine gun and the
+   fragmentation SRM-5). The store sells each further pattern after its Kit Ladder
+   station (`KitLadder`; `progression-nouns.md`, Kit Ladder; authored as in `kit-ladder.md`): the Warden after the
+   Junction, the Bulwark after Blind Watch. Vehicles follow the same classes.
 5. **A machine has to be lifted.** Every payload has a lift class, every carrier
    a lift rating. Heavier machines need better lift, and lift is itself an
    upgrade the company earns.
@@ -86,8 +88,11 @@ old guns were taken under those names and stand as recorded.
   the Marine Armory, a squad's issue, or vanilla hull/weapon/industry knowledge.
 - **One access ladder.** Pattern cards carry the existing access tiers (Common,
   Advanced, Prestige, Restricted) and arrive through the same sources (market,
-  licence, patron, recovery, story) under the same gates, warrants included. A
-  card's tier is the tier of what it teaches.
+  licence, patron, recovery, story) under the same gates as loadout cards: the
+  store's shelves after the pattern's Kit Ladder station, patrons and recovery by
+  tier. A card's tier is the tier of what it teaches, and sets its price.
+  A vehicle placed at *none* (the troop carrier, supply truck, scout car) is never
+  sold; encounters still field it.
 - **Tier costs room.** A higher-tier weapon or internal has a larger footprint or
   more mass than the one it replaces in the same role. That is what makes a light
   chassis's sockets and engine a real limit rather than a cosmetic one.
@@ -112,9 +117,11 @@ old guns were taken under those names and stand as recorded.
   machine beats a dear one only by being bought for it (an anti-armor fit against
   a stock tank) or by being used well (a flank), and a mechanic that narrows a gap
   cost or tier says should be wide is called out where it is measured.
-- **Starter content stays useful.** the Hound's nose chaingun and SRM-5 on a stock
-  Hound remain a fit worth taking into the first operations. The spare rack is
-  the fragmentation SRM-5, and a new company knows both SRM-5 warheads.
+- **Starter content stays useful.** A new company knows the light machine gun and
+  the fragmentation SRM-5, a fit for the first operations, which are fought against
+  men (the lab lesson hands it a spare fragmentation rack). The Wayline Hound it
+  recovers comes with a chaingun; the chaingun and anti-armor SRM-5 patterns go on
+  sale after Counterattack.
 
 ## Stock frame (shipped)
 

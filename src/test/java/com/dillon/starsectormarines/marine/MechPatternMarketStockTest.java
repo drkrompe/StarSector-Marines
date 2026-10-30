@@ -35,22 +35,6 @@ class MechPatternMarketStockTest {
     }
 
     @Test
-    void unlicensedShelfIsCommonAndLicenceOpensReputationTiers() {
-        Set<EquipmentAccessTier> unlicensed = new HashSet<>();
-        Set<EquipmentAccessTier> licensed = new HashSet<>();
-        for (long month = 0; month < 48; month++) {
-            for (String id : slot("hegemony", 6, false, month, false, Set.of())) {
-                unlicensed.add(MechPattern.parse(id).accessTier());
-            }
-            for (String id : slot("hegemony", 6, false, month, true, Set.of())) {
-                licensed.add(MechPattern.parse(id).accessTier());
-            }
-        }
-        assertEquals(Set.of(EquipmentAccessTier.COMMON), unlicensed);
-        assertFalse(Set.of(EquipmentAccessTier.COMMON).containsAll(licensed));
-    }
-
-    @Test
     void knownOrCarriedPatternsAreNotStocked() {
         Set<String> everything = new HashSet<>();
         for (MechPattern pattern : MechPattern.offerable()) everything.add(pattern.id());

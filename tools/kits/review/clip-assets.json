@@ -1,0 +1,202 @@
+{
+ "infantry-anti-materiel-rifle": {
+  "url": "/_blob/2e0dcbb61ad0ed25990990371d756bf5",
+  "sha1": null
+ },
+ "infantry-dmr": {
+  "url": "/_blob/9dbaadd8544f06c0aa4ac7a9fde16727",
+  "sha1": null
+ },
+ "infantry-field-mortar": {
+  "url": "/_blob/de358bbbf3b12440ca22abfc652972fe",
+  "sha1": null
+ },
+ "infantry-field-rifle": {
+  "url": "/_blob/a71cb2eb3bfaccdbc629fea4e57e76a3",
+  "sha1": null
+ },
+ "infantry-flamer": {
+  "url": "/_blob/8b2db3c16f66df68920cfe1e12720830",
+  "sha1": null
+ },
+ "infantry-frag-grenade": {
+  "url": "/_blob/75e0d5dcef2139c1994fc83f9eddf57b",
+  "sha1": null
+ },
+ "infantry-incendiary-grenade": {
+  "url": "/_blob/2b52153fc14e4399f3a78498e963df61",
+  "sha1": null
+ },
+ "infantry-pulse-rifle": {
+  "url": "/_blob/15833d675611f5e3d06508bfd6ada9f2",
+  "sha1": null
+ },
+ "infantry-smg": {
+  "url": "/_blob/1d966809232004cc63787fca16e2705c",
+  "sha1": null
+ },
+ "infantry-squad-automatic": {
+  "url": "/_blob/e51bd459fef7e90e8764bbb35f938426",
+  "sha1": null
+ },
+ "infantry-srm-1": {
+  "url": "/_blob/5169bcdc4faf022921a9b6d854cf024a",
+  "sha1": null
+ },
+ "infantry-srm-1-qs": {
+  "url": "/_blob/060796834e2325cb768fb26f8f423781",
+  "sha1": null
+ },
+ "infantry-srm-3-pod": {
+  "url": "/_blob/a039c29e28121d71e6fa034517e856eb",
+  "sha1": null
+ },
+ "mech-ac-6": {
+  "url": "/_blob/749aa53ade207a7fb7322afbf9b7af20",
+  "sha1": null
+ },
+ "mech-ac-6-qs": {
+  "url": "/_blob/18693c37be3f2b41e0682185e085d009",
+  "sha1": null
+ },
+ "mech-burst-laser": {
+  "url": "/_blob/3df2113711befe7222aa245266dfd87f",
+  "sha1": null
+ },
+ "mech-chaingun": {
+  "url": "/_blob/756e5dc4352cc040b07521eaf50e5d18",
+  "sha1": null
+ },
+ "mech-chaingun-hf": {
+  "url": "/_blob/400fe04d5a96077b85c7746ae1f67473",
+  "sha1": null
+ },
+ "mech-dc-4-qs": {
+  "url": "/_blob/e3205981fba0a3b153af62c45f3d3606",
+  "sha1": null
+ },
+ "mech-dc-5": {
+  "url": "/_blob/cff1e3a9c81c198d5c7c745059495164",
+  "sha1": null
+ },
+ "mech-hc-10": {
+  "url": "/_blob/741c74fcfc0c39c52d69d2ada3cbca28",
+  "sha1": null
+ },
+ "mech-hc-20": {
+  "url": "/_blob/710c7ed53ff07d9df38207964d90536f",
+  "sha1": null
+ },
+ "mech-heavy-pd-laser": {
+  "url": "/_blob/ff93c7fdd519949bb1da65eaf3a77479",
+  "sha1": null
+ },
+ "mech-light-burst-laser": {
+  "url": "/_blob/7d225ee16c211bfb5d72110e3144744e",
+  "sha1": null
+ },
+ "mech-light-machine-gun": {
+  "url": "/_blob/d45c280297696f7c1befc5201b545f48",
+  "sha1": null
+ },
+ "mech-light-pulse-laser": {
+  "url": "/_blob/ef6f8b56a84768d0a36fc2f1f692dcc1",
+  "sha1": null
+ },
+ "mech-lrm-15": {
+  "url": "/_blob/0aecee9cecd28ebca56ed41d18462593",
+  "sha1": null
+ },
+ "mech-lrm-15-frag": {
+  "url": "/_blob/2e6e1524c8dc6a3e34fae9e95668b819",
+  "sha1": null
+ },
+ "mech-lrm-5": {
+  "url": "/_blob/1a7e96aa1b7c47005848ca28bb26c884",
+  "sha1": null
+ },
+ "mech-lrm-5-frag": {
+  "url": "/_blob/b0eb85180254ca9092e1f3cbc2e7b94d",
+  "sha1": null
+ },
+ "mech-medium-burst-laser": {
+  "url": "/_blob/a174cfa166609368649835c6a669b6a4",
+  "sha1": null
+ },
+ "mech-pd-laser": {
+  "url": "/_blob/0b9fb9b214c67b2981aa7229611d7707",
+  "sha1": null
+ },
+ "mech-pulse-laser": {
+  "url": "/_blob/36ba3540bc946589af04445ff5a160c9",
+  "sha1": null
+ },
+ "mech-shoulder-laser-cannon": {
+  "url": "/_blob/5374e1e7be9ea7a394b262dd618b29c1",
+  "sha1": null
+ },
+ "mech-srm-15": {
+  "url": "/_blob/44f8004d906284a007750d9773b8266b",
+  "sha1": null
+ },
+ "mech-srm-15-frag": {
+  "url": "/_blob/0584d829883c4cf9d4088321481af527",
+  "sha1": null
+ },
+ "mech-srm-3-qs": {
+  "url": "/_blob/a77985df9c52ae0dc77a1cb3923a8ffb",
+  "sha1": null
+ },
+ "mech-srm-5": {
+  "url": "/_blob/fa1ae1d7242ba34271560207e6959621",
+  "sha1": null
+ },
+ "mech-srm-5-frag": {
+  "url": "/_blob/de28fffdf79e9d284d1266cc73830538",
+  "sha1": null
+ },
+ "mech-thermal-lance": {
+  "url": "/_blob/0ce911d64331be39a09856a752a20708",
+  "sha1": null
+ },
+ "vehicle-breakthrough-tank": {
+  "url": "/_blob/982bd1cbd08e4ba5f7bbefed1aabd7d9",
+  "sha1": null
+ },
+ "vehicle-breakthrough-tank-ac-6": {
+  "url": "/_blob/ecd36183b894da1c683fe2d334495a8f",
+  "sha1": null
+ },
+ "vehicle-breakthrough-tank-chaingun": {
+  "url": "/_blob/7223fc94539ac63ba56db9b735b4d0c3",
+  "sha1": null
+ },
+ "vehicle-fire-support-apc": {
+  "url": "/_blob/be8cb3d6c710c0c50a2f4b3f1f8675fe",
+  "sha1": null
+ },
+ "vehicle-heavy-apc": {
+  "url": "/_blob/958a8cdf997c70996df796f5bf40905a",
+  "sha1": null
+ },
+ "vehicle-hover-scout": {
+  "url": "/_blob/3d5b627914b5795ed9f091f6347f885f",
+  "sha1": null
+ },
+ "vehicle-laser-tank": {
+  "url": "/_blob/b1594e0aef6f75a3571ce676d9160df8",
+  "sha1": null
+ },
+ "vehicle-laser-tank-heavy-pd-laser": {
+  "url": "/_blob/073f7930a1ceb178b78f027d950718c6",
+  "sha1": null
+ },
+ "vehicle-lrm-carrier": {
+  "url": "/_blob/a01d19de9986a682e0e88ef25f4fa1a1",
+  "sha1": null
+ },
+ "vehicle-srm-technical": {
+  "url": "/_blob/5366f5ef4db27e172955e77bdd6607c5",
+  "sha1": null
+ }
+}

@@ -12,6 +12,8 @@ Updated: 2026-10-27 — every equipment item is shown by a short catalog code.
 
 Updated: 2026-10-27 — the shoulder pod is the SRM-3 (Pod) carried special, fired without lowering the primary; no suit carries it as an integral system.
 
+Updated: 2026-10-30 — the Kit Ladder paces the store: each card and machine pattern goes on sale after its station's mission; victory milestones retired.
+
 ## Purpose
 
 Progression is the cross-tier model for a mercenary company's growing combat
@@ -181,7 +183,7 @@ legibility.
   cards**: they collect them and pick one of each for every squad; there is no
   designer and no way to assemble a card from parts. The company's collection is the
   Armory's known-card ledger, and a squad may be given only cards in it. Markets,
-  licences, patrons, salvage, warrants and victory milestones all deal in loadout
+  licences, patrons, salvage and warrants all deal in loadout
   cards, never single equipment; learning a card records the equipment it names
   beneath it as content, never as a separate way in. A card's access tier is the scarcest tier it bundles;
   a faction offers it through a channel when the faction fields any bundled equipment
@@ -209,6 +211,14 @@ legibility.
   in each obligation period. A warrant that is kept is *active*; one whose
   loyalty was broken is *suspended*; one whose issuer turned hostile is
   *revoked*. An *honoured* period is one that ended with loyalty kept.
+- **Kit Ladder** — the owner-authored table (`KitLadder`) placing every loadout card
+  and machine pattern on one **unlock station**: a story mission in campaign order
+  (`UnlockStation`), after which the company store sells it. *Start* is what a new
+  company holds; *none* is never sold in the store. It paces the store's open-market
+  and licence shelves only; patrons and recovery keep their tier gates. Authored on
+  the Kit Ladder page, whose generator (`tools/kits/build.py`) seeds itself from the
+  table; the page, its export, apply and check tools and the owner's editing
+  workflow are `kit-ladder.md`.
 - **Market listing** — a named card a story beat has put on sale at one named
   market, or at every open market of one faction, until the company knows or
   carries it. Authored stock the company store shows at that market, not a fifth
@@ -541,13 +551,12 @@ Legacy recipe ids remain save-migration input, not live Fleet Armory authority.
 The print-stock economy they fed — owned counts, per-soldier allocation against
 those counts, and fabrication materials — has been deleted along with the
 retired fire-team refit APIs that were its only readers. Equipment is owned as
-cards, and fitting is free. **Victory milestones grant authored cards**, each paid
-once and recorded so a load never pays it again: the Sindrian Security sheet at
-three victories, Trench-Clearing Issue at four, and Line Infantry Issue at five
-with one of them high-risk (`VictoryMilestones`). Nothing is paid at two: the
-Wayline opening's cards are A Proper Issue's choice and Checkpoint Issue on sale. Story copy may call such a reward access to military
-equipment; what the company receives is the card. The ladder is deliberately
-modest: a reward, not twelve marines with a delete button. A deterministic **safety
+cards, and fitting is free. **Winning pays no card by count.** The only free card
+after the opening is Relief's pick of one Wayline path with its sheet; everything
+else the Kit Ladder places is bought in the store after its station (the victory
+milestones that once paid three cards were retired for it; a save keeps what they
+taught). Story copy may call a story reward access to military
+equipment; what the company receives is the card. A deterministic **safety
 net** keeps the collection at or above a floor of cards beyond the starter pair: one
 after two victories, three after five, six after fifteen, eight after thirty and
 nine after forty, topping up from an authored list of low-tier cards that leaves the
@@ -560,14 +569,15 @@ whole collection. A save from before the card ledger knows exactly the cards it
 could already field, once.
 
 Faction source pools author which cards may enter through market, license,
-patron, and recovery channels. Every card also authors an access tier. Open
-markets admit Common cards only, including the two introductory Milspec technologies,
-so unrestricted credits cannot buy Advanced
-or Prestige capability. Their faction-and-market-stable weighted selection
-rotates monthly and scales with market size. Favorable-or-better standing adds
-licensed offers; MRB reputation admits Advanced at 5 and Prestige at 20, using
-the same bands as patron contract access. Patron rewards apply those MRB bands
-as well. High-risk recovery instead uses operational history, admitting Advanced
+patron, and recovery channels. Every card also authors an access tier. **The
+store's shelves are paced by the Kit Ladder, not by tier**: an open-market or
+licensed shelf offers a card once the campaign has passed its station, whatever its
+tier, and never one placed at *none*. The tier still sets the price. A Restricted
+card additionally needs a warrant naming it, and only its tradition's licence shelf
+sells it. Selection is faction-and-market-stable, weighted, rotates monthly and
+scales with market size; Favorable-or-better standing adds the licensed shelf.
+Patron rewards admit Advanced at MRB 5 and Prestige at 20, the same bands as patron
+contract access. High-risk recovery instead uses operational history, admitting Advanced
 after 5 company victories and Prestige after 15, so field discovery does not
 require bureaucratic standing. Already-owned or carried cards are omitted.
 Each completed patron contract also issues one
@@ -589,7 +599,7 @@ player's collection. Undiscovered cards leave no placeholder, catalog total,
 identity, source, or per-card acquisition hint. The company's current generic
 licensed/patron and recovery ceilings, the facts producing those ceilings, and
 the next uncleared thresholds remain visible; those explain company capability,
-not undiscovered contents. Open-market Common-only status is stated beside them.
+not undiscovered contents. The store's shelves follow the Kit Ladder rather than these ceilings.
 A physical template-card tooltip repeats that acquired item's authored tier and
 the shared MRB/recovery requirements, reading threshold values from the same
 policy used by candidate filtering rather than maintaining presentation-only
@@ -684,8 +694,8 @@ warrant opens the cards it names, not their equipment: warranting the Hegemony
 Shock card does not open another card that happens to carry the same XIV suits. A
 Restricted card is offered only by a faction that fields its Restricted kit itself,
 so an independent licence that fields a card's scout suits does not thereby sell
-Hegemony military issue. The collection safety net and victory milestones never
-grant a Restricted card. Polity release never lists Restricted kit: a warrant
+Hegemony military issue. The collection safety net never
+grants a Restricted card. Polity release never lists Restricted kit: a warrant
 authorises the company, not whoever the company arms.
 
 A warrant may name many cards, and a later grant from the same tradition adds cards
@@ -802,12 +812,13 @@ the Wayline broker's market once Relief settles. It is bought beside *A Proper
 Issue*'s free choice, never offered as one of its paths. *Convoy Escort Issue*
 (rocket tubes and one Palisade pod) is listed at the route employer's market once
 Thunder Run opens the road. *Counter-Battery Issue* (two Arrestor packs and an
-anti-materiel rifle) is listed at every Hegemony open market once *A Cold Account*
-settles: Advanced kit, no warrant. *Builder's Guard* (satchel-charge sappers and
+anti-materiel rifle) is listed at every Hegemony open market once *Blind Watch* is
+won: Advanced kit, no warrant. *Builder's Guard* (satchel-charge sappers and
 Palisade pods) is listed at Asharu once the Morrow's Working Passage settles. Each
 listing comes from the arc's own once-only settlement and is laid only on a won
 beat; a settlement that cannot place it logs and moves on rather than unwinding a
-payment. The cards also circulate like any other, because a card's pool weight is
+payment. Each beat is also its card's Kit Ladder station, so the cards circulate like any
+other from then on, because a card's pool weight is
 its templates' weight: Counter-Battery Issue reaches a Hegemony licence through the
 Arrestor pack, the others reach independent markets and licences. The listing is
 the guaranteed route; the pools are the fallback.

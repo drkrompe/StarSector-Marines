@@ -1,0 +1,72 @@
+{
+ "infantry-flamer": {
+  "weaponId": "weapon.flamer",
+  "name": "FL-THRM",
+  "status": "",
+  "text": "",
+  "updatedAt": "2026-10-30T16:20:38.149Z"
+ },
+ "infantry-frag-grenade": {
+  "weaponId": "weapon.frag-grenade",
+  "name": "GRN-FRAG",
+  "status": "",
+  "text": "We should remove the \"timer circle\" effect from all grenades and smoke grenades.",
+  "updatedAt": "2026-10-30T16:21:17.573Z"
+ },
+ "infantry-smg": {
+  "weaponId": "weapon.smg",
+  "name": "GR-SMG",
+  "status": "",
+  "text": "GR-SMG fires strange - it seems to shoot more like an shotgun with \"spread\" than as a sub machine gun.",
+  "updatedAt": "2026-10-30T16:19:27.244Z"
+ },
+ "mech-ac-6": {
+  "weaponId": "weapon.mech-ac-6",
+  "name": "AC-6",
+  "status": "",
+  "text": "needs a meatier \"hit sound effect\" of an exploding round. all AC weapons should use that \"impact\" sound once we get it.",
+  "updatedAt": "2026-10-30T16:11:20.318Z"
+ },
+ "mech-burst-laser": {
+  "weaponId": "weapon.mech-burst-laser",
+  "name": "Heavy burst laser",
+  "status": "",
+  "text": "Should use the same sound effect as PD laser",
+  "updatedAt": "2026-10-30T16:13:20.487Z"
+ },
+ "mech-dc-5": {
+  "weaponId": "weapon.mech-dc-5",
+  "name": "DC-5",
+  "status": "",
+  "text": "",
+  "updatedAt": "2026-10-30T16:12:29.376Z"
+ },
+ "mech-light-burst-laser": {
+  "weaponId": "weapon.mech-light-burst-laser",
+  "name": "Light burst laser",
+  "status": "",
+  "text": "Should use the same sound effect as PD laser",
+  "updatedAt": "2026-10-30T16:13:13.444Z"
+ },
+ "mech-medium-burst-laser": {
+  "weaponId": "weapon.mech-medium-burst-laser",
+  "name": "Burst laser",
+  "status": "",
+  "text": "Should use the same sound effect as PD laser",
+  "updatedAt": "2026-10-30T16:13:26.439Z"
+ },
+ "vehicle-breakthrough-tank-chaingun": {
+  "weaponId": "weapon.mech-chaingun",
+  "name": "Chaingun on the breakthrough-tank",
+  "status": "",
+  "text": "Chaingun looks wrong here. We should set the \"barrel\" further back into the tank turret head, and also only have recoil on the firing barrel, not the entire tank turret head.",
+  "updatedAt": "2026-10-30T16:18:19.673Z"
+ },
+ "vehicle-hover-scout": {
+  "weaponId": "weapon.hover-pulse",
+  "name": "Hover Pulse Emitter on the hover-scout",
+  "status": "",
+  "text": "I think we're missing a visual for the turret's bullets on this vehicle",
+  "updatedAt": "2026-10-30T16:16:00.277Z"
+ }
+}
