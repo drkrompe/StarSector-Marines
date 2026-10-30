@@ -139,7 +139,7 @@ increasing an encounter's total armored threat.
   access ladder: Hound (light) Common, Warden (medium) Advanced, Bulwark (heavy)
   Prestige (the three are first stand-ins for a grid of mech lines, tech family by
   weight class: `mech-lines.md`); weapons and internals carry their own authored tier. Vehicle patterns carry an authored tier too —
-  heavy APC Common, escort APC and militia technical Advanced, breakthrough tank
+  the APC Common, militia technical Advanced, breakthrough tank
   Prestige — and no vehicle is a starter: a company earns its first hull. A vehicle
   card's weight class is the lift its hull asks for, not its tier, so the card says
   what the drop will need; the two usually agree, and where they do not (the
@@ -159,16 +159,19 @@ increasing an encounter's total armored threat.
   pattern provenance and are weighted up by Tri-Tachyon alone (`convoy-nouns.md`, the
   hover line). The **SRM technical** (`SRM_TECHNICAL`, Common, Light lift) is a field
   rig too: the pickup carrying a mech SRM-5 anti-armor pod.
-  A vehicle line climbs by **variants**, each its own pattern card and bill, never
-  by fitting the hull it has: the heavy APC's up-armored APC (twice the plate, slower,
-  Medium lift) and fire-support APC (a 120 mm mortar where the troop bay was, no seats, spotted indirect fire,
-  Medium lift) are Advanced, as is the LRM carrier (two LRM-15 anti-armor racks
+  A vehicle line climbs by **variants**, each its own pattern card and bill. Plate and speed are
+  not variants: they are fitted, the plating and engine any hull takes (below), so a tougher or faster
+  hull is a fit of the one it is, and a mission that fields one names a **stock fit**
+  (`VehicleStockFit`: the convoy escort is the APC in heavy plating on a military engine). Only a turret
+  that changes the gun card makes a variant. The APC is one chassis with two such: the
+  fire-support APC (a 120 mm mortar in a ballistic card where the troop bay was, no seats, spotted indirect fire,
+  Medium lift) is Advanced, as is the LRM carrier (an LRM-15 anti-armor rack in a missile card
   where the troop bay was, no seats, Medium lift, spotted indirect fire;
   `convoy-nouns.md`, the missile carriers); the breakthrough tank's variants (screened tank, laser tank,
   dozer breacher) are Prestige and Heavy lift. A variant earns its place by a trade —
   among fabricable hulls on the same lift with the same gun, none is at least as good
   at everything — and costs more than the hull it improves on. A faction weights up
-  the variant it is known for (Hegemony the up-armored APC and the LRM carrier, the Lion's Guard the
+  the variant it is known for (Hegemony the APC and the LRM carrier, the Lion's Guard the
   fire-support APC, the Luddic Path the dozer). Tri-Tachyon weights its own hover line,
   not anybody's tank.
   Every variant now has its own hull and turret art and is offered. The dozer
@@ -238,7 +241,7 @@ increasing an encounter's total armored threat.
   (`vehicle-card-sizes.md`), and takes the mech weapon parts that fit it by the mech's own rule: the lock's type, if
   any, and a footprint no larger than the card. The small class (the APCs, the dozer, the technicals and the hover
   scout) is one row and unlocked, an omni card that takes any one-row part: the light machine gun, light pulse laser
-  and light rocket pod authored for it (and the light burst laser), the Thermal Lance and the Pioneer Rocket Cradle. A cannon card takes the heavy
+  and light rocket pod authored for it (and the light burst laser), the Thermal Lance and the SRM-4 (QS) rocket pod (`PIONEER_ROCKET_CRADLE`). A cannon card takes the heavy
   cannon, a laser tank's card takes energy weapons. Footprint is the only cap on a weapon's power.
   The hull's own gun is no part: an empty gun card is that gun, drawn as the sealed cards draw it (a modular hull, the laser tank, has no own gun: its empty card is a bare turret ring, `vehicle-card-sizes.md`), so a weapon
   is only ever an addition from stores. A fitted weapon is the hull's turret with the weapon's ballistics in it
@@ -733,7 +736,7 @@ These signature fits belong to the exact campaign faction ids `hegemony`,
 The commercial floor is separate from those signatures. A Muster autogun is a
 cheap direct-fire arm gun, drawn as a nose gun on a centreline mount; a Quarry breaker is
 a finite, inaccurate centerline industrial cannon whose main virtue is structural
-damage; a Pioneer cradle fires four loose, straight-flight utility rockets from
+damage; an SRM-4 (QS), the QuickSell budget rocket pod (`PIONEER_ROCKET_CRADLE`), fires four loose, straight-flight utility rockets from
 a shoulder mount. These components are weaker because their original users
 optimized for cost, security, mining, or public works—not because Independent,
 pirate, or salvaged equipment is inherently low quality. They enter the weapon

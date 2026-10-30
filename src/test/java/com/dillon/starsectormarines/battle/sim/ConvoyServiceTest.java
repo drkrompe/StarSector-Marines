@@ -9,6 +9,7 @@ import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
@@ -69,6 +70,24 @@ public class ConvoyServiceTest {
 
         assertEquals(VehicleType.Stance.STANDOFF, convoy.engagementStance(stock));
         assertEquals(VehicleType.Stance.DUEL, convoy.engagementStance(fitted), "a laser does not fight from stand-off");
+    }
+
+    /** A stock fit is the bare hull with that fit's parts: the same numbers a company vehicle so fitted drops with. */
+    @Test
+    public void aStockFitSetsTheHullDownWithItsPlatingEngineAndKits() {
+        ConvoyService convoy = roster().convoy();
+        VehicleStockFit fit = VehicleStockFit.CONVOY_ESCORT;
+        long bare = convoy.spawn(fit.type, Faction.ALLY, mission());
+        long fitted = convoy.spawn(fit, Faction.ALLY, mission());
+        long same = convoy.spawn(fit.type, fit.kits, fit.plating, fit.engine, Faction.ALLY, mission());
+
+        assertSame(fit.type, convoy.vehicleType(fitted));
+        assertEquals(fit.engine.speedFactor(), convoy.body(fitted).speedFactor, 1e-6f);
+        assertEquals(1f, convoy.body(bare).speedFactor, 1e-6f);
+        assertTrue(convoy.armor(fitted) > convoy.armor(bare) && convoy.structure(fitted) > convoy.structure(bare));
+        assertEquals(convoy.armor(same), convoy.armor(fitted), 1e-4f);
+        assertEquals(convoy.structure(same), convoy.structure(fitted), 1e-4f);
+        assertEquals(convoy.turret(same).ammo, convoy.turret(fitted).ammo);
     }
 
     @Test

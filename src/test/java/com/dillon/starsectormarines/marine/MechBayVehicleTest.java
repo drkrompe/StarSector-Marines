@@ -75,10 +75,10 @@ class MechBayVehicleTest {
     @Test
     void theFrozenManifestCarriesIdentityNotTheCampaignObject() {
         MechBay bay = new MechBay();
-        CampaignVehicle apc = new CampaignVehicle("support_vehicle_07", "Mule", VehicleType.ESCORT_APC);
+        CampaignVehicle apc = new CampaignVehicle("support_vehicle_07", "Mule", VehicleType.LRM_CARRIER);
         assertTrue(bay.addVehicle(SQUAD, apc));
 
-        assertEquals(List.of(new VehicleDeploymentSpec("support_vehicle_07", "Mule", VehicleType.ESCORT_APC)),
+        assertEquals(List.of(new VehicleDeploymentSpec("support_vehicle_07", "Mule", VehicleType.LRM_CARRIER)),
                 bay.activeVehicleDeployment());
     }
 

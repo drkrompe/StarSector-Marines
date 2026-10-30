@@ -31,13 +31,13 @@ class HullActiveProtectionTest {
     void theScreenedTankCarriesItsMountWhereverItDrivesAndTheStockHullsCarryNone() {
         BattleSimulation sim = openArena(60, 20);
         long tank = sim.convoy().spawn(VehicleType.SCREENED_TANK, Faction.DEFENDER, VehicleMission.deployed(20.5f, 10.5f));
-        sim.convoy().spawn(VehicleType.ESCORT_APC, Faction.DEFENDER, VehicleMission.deployed(40.5f, 10.5f));
+        sim.convoy().spawn(VehicleType.HEAVY_APC, Faction.DEFENDER, VehicleMission.deployed(40.5f, 10.5f));
         sim.advance(BattleSimulation.TICK_DT);
 
         List<PointDefenseService.EmplacementView> live = sim.pointDefense().activeEmplacements();
         assertEquals(1, live.size(), "only the screened tank authors active protection");
         assertEquals(tank, live.get(0).entityId());
-        assertNull(VehicleType.ESCORT_APC.activeProtectionStructureId());
+        assertNull(VehicleType.HEAVY_APC.activeProtectionStructureId());
         assertNull(VehicleType.BREAKTHROUGH_TANK.activeProtectionStructureId(), "a stock tank buys none");
 
         GroundBody body = sim.convoy().body(tank);

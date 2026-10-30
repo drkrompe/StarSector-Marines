@@ -49,8 +49,8 @@ class ArmorMatchupEvidence {
      * lasts under fire. A hull that gains a turret joins the ladder on its own.
      */
     static final List<VehicleType> LADDER_VEHICLES = Stream.of(
-                    VehicleType.HEAVY_APC, VehicleType.UP_ARMORED_APC, VehicleType.FIRE_SUPPORT_APC,
-                    VehicleType.ESCORT_APC, VehicleType.BREAKTHROUGH_TANK,
+                    VehicleType.HEAVY_APC, VehicleType.FIRE_SUPPORT_APC,
+                    VehicleType.LRM_CARRIER, VehicleType.BREAKTHROUGH_TANK,
                     VehicleType.SCREENED_TANK, VehicleType.LASER_TANK,
                     VehicleType.DOZER_BREACHER, VehicleType.MILITIA_TECHNICAL, VehicleType.SCOUT_CAR,
                     VehicleType.LRM_CARRIER, VehicleType.SRM_TECHNICAL)

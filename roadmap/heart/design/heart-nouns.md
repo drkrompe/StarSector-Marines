@@ -295,7 +295,7 @@ bore. A column held short of its bore by the fight on its own lane's ground has
 **reached the front** and joins there (`cordon-nouns.md`, Allied column): a bore
 spawns its own defenders, so the 12 cells of its mouth are ground no column
 reaches except by winning. Its
-armour is an escort APC, two technicals, two breakthrough tanks and a Hound
+armour is a convoy-escort APC, two technicals, two breakthrough tanks and a Hound
 pair, with a fresh tank and technical coming up every two minutes once the
 barrage has ended. It follows the barrage on its own line across the front, armour stepping with
 its infantry. Its armour is the allied commander's (`allied-command.md`):
@@ -385,7 +385,7 @@ collapses a bore by fiat.
    start line, one at the foot of each lane, and go up their lanes together;
    the company's own lane is the country road. Each lane is the planetary
    militia in strength, as The Burn's battlegroups are: four teams a wave, a
-   wave a minute, an escort APC, a technical, a breakthrough tank and a Hound
+   wave a minute, a convoy-escort APC, a technical, a breakthrough tank and a Hound
    pair, and a fresh tank and technical every two minutes. With no barrage to
    wait for, the company holds its landing for its first two minutes, so it
    goes for its satellite with the lanes up beside it rather than alone. Its

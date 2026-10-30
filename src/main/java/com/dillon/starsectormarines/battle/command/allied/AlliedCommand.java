@@ -19,6 +19,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMoveOrderService;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
@@ -155,7 +156,16 @@ public final class AlliedCommand {
     /** Sets down a new allied hull at a cell, deployed and enlisted. */
     public long deploy(BattleSimulation sim, VehicleType type, int x, int y, float facingDegrees) {
         float cx = x + 0.5f, cy = y + 0.5f;
-        long hull = sim.convoy().spawn(type, Faction.ALLY, VehicleMission.deployed(cx, cy));
+        return enlisted(sim, sim.convoy().spawn(type, Faction.ALLY, VehicleMission.deployed(cx, cy)), cx, cy, facingDegrees);
+    }
+
+    /** As {@link #deploy(BattleSimulation, VehicleType, int, int, float)}, the hull fitted out as {@code fit} has it. */
+    public long deploy(BattleSimulation sim, VehicleStockFit fit, int x, int y, float facingDegrees) {
+        float cx = x + 0.5f, cy = y + 0.5f;
+        return enlisted(sim, sim.convoy().spawn(fit, Faction.ALLY, VehicleMission.deployed(cx, cy)), cx, cy, facingDegrees);
+    }
+
+    private long enlisted(BattleSimulation sim, long hull, float cx, float cy, float facingDegrees) {
         // Initial pose, before it has moved; later motion goes through the chassis controller.
         sim.convoy().body(hull).teleport(cx, cy, facingDegrees);
         enlist(sim, hull);

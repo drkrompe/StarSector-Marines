@@ -34,6 +34,7 @@ import com.dillon.starsectormarines.battle.power.MechDropService;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
@@ -464,8 +465,10 @@ public final class BloomHeartSetup {
                 .advancing(sign).armourBehind(BROAD_ARMOUR_BEHIND);
         for (int i = 0; i < across.length; i++) {
             int[] base = form.cellAt(BROAD_ARMOUR_DEPTH, across[i]);
-            int slot = 0;
-            for (VehicleType type : List.of(VehicleType.ESCORT_APC, VehicleType.MILITIA_TECHNICAL, VehicleType.BREAKTHROUGH_TANK)) {
+            int[] escort = offset(base, axis, 0);
+            lanes.addFittedHull(sim, i, VehicleStockFit.CONVOY_ESCORT, escort[0], escort[1], facing);
+            int slot = 1;
+            for (VehicleType type : List.of(VehicleType.MILITIA_TECHNICAL, VehicleType.BREAKTHROUGH_TANK)) {
                 int[] at = offset(base, axis, slot++);
                 lanes.addArmour(sim, i, type, at[0], at[1], facing);
             }
@@ -644,13 +647,15 @@ public final class BloomHeartSetup {
         int axis = form.advancesAlongY() ? 1 : 0;
         float facing = HeartLanes.advanceFacing(form.advancesAlongY(), screen.sign());
         for (int i = 0; i < across.length; i++) {
-            List<VehicleType> hulls = new ArrayList<>(List.of(VehicleType.ESCORT_APC, VehicleType.MILITIA_TECHNICAL));
+            List<VehicleType> hulls = new ArrayList<>(List.of(VehicleType.MILITIA_TECHNICAL));
             boolean inner = i == 1 || i == across.length - 2;
             if (inner || HEAVY_ARMOUR) hulls.add(VehicleType.BREAKTHROUGH_TANK);
             // The heavy front brings a second tank and a second technical to every battlegroup.
             if (HEAVY_ARMOUR) hulls.addAll(List.of(VehicleType.BREAKTHROUGH_TANK, VehicleType.MILITIA_TECHNICAL));
             int[] base = form.cellAt(ARMOUR_DEPTH, across[i]);
-            int slot = 0;
+            int[] escort = offset(base, axis, 0);
+            lanes.addFittedHull(sim, i, VehicleStockFit.CONVOY_ESCORT, escort[0], escort[1], facing);
+            int slot = 1;
             for (VehicleType type : hulls) {
                 int[] at = offset(base, axis, slot++);
                 lanes.addArmour(sim, i, type, at[0], at[1], facing);

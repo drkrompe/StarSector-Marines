@@ -328,14 +328,14 @@ class MechLabViewModelTest {
     void vehicleGantryShowsReadOnlyHullWithoutFittingControls() {
         MechBay bay = MechBay.legacyStarterFixture();
         CampaignVehicle vehicle = new CampaignVehicle(
-                "support_vehicle_01", "Mule 01", VehicleType.ESCORT_APC);
+                "support_vehicle_01", "Mule 01", VehicleType.HEAVY_APC);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, vehicle));
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay);
 
         MechLabViewModel.GantryRow row = viewModel.gantryRows().get().get(1);
         assertFalse(row.disabled());
         assertEquals("Mule 01", row.name());
-        assertTrue(row.detail().contains(CampaignVehicle.typeName(VehicleType.ESCORT_APC)));
+        assertTrue(row.detail().contains(CampaignVehicle.typeName(VehicleType.HEAVY_APC)));
         assertTrue(viewModel.gantryRows().get().get(2).disabled());
         assertEquals("2 / 4 assets", viewModel.squadRows().get().get(0).strength());
         assertTrue(viewModel.mechRows().get().stream()
@@ -344,9 +344,9 @@ class MechLabViewModelTest {
         row.select().run();
         assertEquals(1, viewModel.selectedGantryIndex());
         assertEquals("Mule 01", viewModel.selectedMechName().get());
-        assertTrue(viewModel.selectedMechIdentity().get().contains(CampaignVehicle.typeName(VehicleType.ESCORT_APC)));
+        assertTrue(viewModel.selectedMechIdentity().get().contains(CampaignVehicle.typeName(VehicleType.HEAVY_APC)));
         assertTrue(viewModel.selectedMechIdentity().get().contains("VEHICLE"));
-        assertEquals(VehicleType.ESCORT_APC.hasTurretWeapon(),
+        assertEquals(VehicleType.HEAVY_APC.hasTurretWeapon(),
                 viewModel.selectedMechDoctrine().get().startsWith("TURRET"));
         assertFalse(viewModel.activeGantryLabel().get().contains("VACANT"));
 
@@ -354,7 +354,7 @@ class MechLabViewModelTest {
         List<String> meters = viewModel.performanceMeters().get().stream()
                 .map(FittingMeter::label).toList();
         assertEquals(List.of("STRUCTURE", "ARMOR", "MOBILITY", "PASSENGERS"), meters);
-        assertEquals(VehicleType.ESCORT_APC.capacity + " SEATS",
+        assertEquals(VehicleType.HEAVY_APC.capacity + " SEATS",
                 viewModel.performanceMeters().get().get(3).value());
 
         assertNull(viewModel.selectedVariant());
@@ -460,20 +460,20 @@ class MechLabViewModelTest {
         assertTrue(viewModel.catalogRows().get().stream().anyMatch(row -> row.chassisPreview() != null));
 
         MechLabViewModel.CatalogRow apc = viewModel.catalogRows().get().stream()
-                .filter(row -> row.name().equals(CampaignVehicle.typeName(VehicleType.ESCORT_APC)))
+                .filter(row -> row.name().equals(CampaignVehicle.typeName(VehicleType.LRM_CARRIER)))
                 .findFirst().orElseThrow();
         assertEquals("VEHICLE", apc.badge());
         assertFalse(apc.actionDisabled());
         assertEquals(1, apc.materials().size());
         apc.select().run();
         assertEquals(0, bay.activeSquad().vehicles().size(), "selecting a pattern only previews it");
-        assertEquals(VehicleType.ESCORT_APC, viewModel.padPreview());
+        assertEquals(VehicleType.LRM_CARRIER, viewModel.padPreview());
         viewModel.buildAction().run();
 
         assertEquals(1, bay.activeSquad().vehicles().size());
         assertEquals(2, bay.activeSquad().occupied());
         CampaignVehicle built = bay.activeSquad().vehicles().get(0);
-        assertEquals(VehicleType.ESCORT_APC, built.type());
+        assertEquals(VehicleType.LRM_CARRIER, built.type());
         assertEquals(built.displayName(), viewModel.selectedMechName().get());
         assertEquals(1, viewModel.selectedGantryIndex());
         assertTrue(viewModel.feedbackText().get().contains("fabricated"));
@@ -490,18 +490,18 @@ class MechLabViewModelTest {
         viewModel.selectGantryAction(0).run();
 
         assertTrue(viewModel.catalogRows().get().stream()
-                .noneMatch(row -> row.name().equals(CampaignVehicle.typeName(VehicleType.ESCORT_APC))));
-        assertFalse(viewModel.fabricateVehicle(VehicleType.ESCORT_APC));
+                .noneMatch(row -> row.name().equals(CampaignVehicle.typeName(VehicleType.LRM_CARRIER))));
+        assertFalse(viewModel.fabricateVehicle(VehicleType.LRM_CARRIER));
         assertEquals("This fabrication pattern has not been acquired.",
                 viewModel.feedbackText().get());
         assertTrue(viewModel.feedbackClasses().get().contains("tone-danger"));
         assertEquals(0, bay.activeSquad().occupied());
         assertEquals(60_000, resources.credits);
 
-        assertTrue(bay.learnPattern(MechPattern.of(VehicleType.ESCORT_APC).id()));
+        assertTrue(bay.learnPattern(MechPattern.of(VehicleType.LRM_CARRIER).id()));
         viewModel.selectGantryAction(0).run();
         assertTrue(viewModel.catalogRows().get().stream()
-                .anyMatch(row -> row.name().equals(CampaignVehicle.typeName(VehicleType.ESCORT_APC))));
+                .anyMatch(row -> row.name().equals(CampaignVehicle.typeName(VehicleType.LRM_CARRIER))));
     }
 
     @Test

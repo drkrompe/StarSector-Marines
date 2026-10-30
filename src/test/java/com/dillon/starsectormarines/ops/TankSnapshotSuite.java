@@ -126,7 +126,7 @@ public final class TankSnapshotSuite implements SnapshotSuite {
                 if (body.x > 45) continue;
                 String name = switch (type) {
                     case BREAKTHROUGH_TANK -> "TANK / SINGLE CANNON";
-                    case ESCORT_APC -> "APC ESCORT";
+                    case HEAVY_APC -> "APC ESCORT";
                     case MILITIA_TECHNICAL -> "MILITIA TECHNICAL";
                     case CARGO_CARRIER -> "FREIGHT HAULER";
                     default -> type.name();

@@ -111,9 +111,8 @@ Correct it here when a pattern's lore says otherwise.
 
 | Vehicle | Family | Notes |
 |---|---|---|
-| Heavy APC, Up-armored APC, LRM carrier | Low-tech | Hegemony Ordnance Board hull |
+| APC, LRM carrier | Low-tech | Hegemony Ordnance Board hull |
 | Fire-support APC | Low-tech hull | Diktat allotment; a midline refit candidate |
-| Escort APC | Low-tech hull | League convoy grade; a midline refit candidate |
 | Breakthrough tank, Screened tank, Dozer breacher | Low-tech | "A shape older than anyone's records" |
 | Burst laser tank | High-tech refit of a low-tech hull | Tri-Tachyon emitter, livery and power plant |
 | Militia technical, SRM technical, Supply truck, Scout car | Low-tech | Field rigs on workshop pickups |

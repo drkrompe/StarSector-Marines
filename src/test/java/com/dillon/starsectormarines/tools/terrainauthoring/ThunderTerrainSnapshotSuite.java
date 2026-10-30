@@ -126,7 +126,7 @@ public final class ThunderTerrainSnapshotSuite implements SnapshotSuite {
                 throw new IllegalStateException("Infantry side route disconnected at y="+flank[1]);
         }
         System.out.println("[thunder-terrain] "+solid+" solid / "+openNatural+" open natural cells; connected outdoor ground and north/south infantry approaches.");
-        for(VehicleType type:List.of(VehicleType.CARGO_CARRIER,VehicleType.ESCORT_APC,VehicleType.BREAKTHROUGH_TANK)) {
+        for(VehicleType type:List.of(VehicleType.CARGO_CARRIER,VehicleType.HEAVY_APC,VehicleType.BREAKTHROUGH_TANK)) {
             int radius=VehicleClearance.radiusForWidth(type.visualWidthCells);
             int exit=grid.getWidth()-1-radius; // Last center position with the whole hull still on-map.
             var clearance=VehicleClearance.erode(grid,radius);

@@ -14,7 +14,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VehicleTrackMotionTest {
     @ParameterizedTest
-    @EnumSource(value = VehicleType.class, names = {"BREAKTHROUGH_TANK", "HEAVY_APC", "ESCORT_APC"})
+    @EnumSource(value = VehicleType.class, names = {"BREAKTHROUGH_TANK", "HEAVY_APC", "LRM_CARRIER"})
     void controllerCountsOnlyTravelAcceptedByTheWallSweep(VehicleType type) {
         var grid = new NavigationGrid(24, 14);
         for (int y = 0; y < 14; y++) for (int x = 0; x < 24; x++) grid.setWalkableFloor(x, y);

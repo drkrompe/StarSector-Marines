@@ -70,11 +70,9 @@ public record MechPattern(Kind kind, String definitionId) {
 
         // No starter vehicle: a company earns its first hull. The weight class follows the tier.
         VEHICLE_TIERS.put(VehicleType.HEAVY_APC, EquipmentAccessTier.COMMON);
-        VEHICLE_TIERS.put(VehicleType.ESCORT_APC, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.MILITIA_TECHNICAL, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.BREAKTHROUGH_TANK, EquipmentAccessTier.PRESTIGE);
         // The ladder above each line's first hull: each variant is its own card.
-        VEHICLE_TIERS.put(VehicleType.UP_ARMORED_APC, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.FIRE_SUPPORT_APC, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.DOZER_BREACHER, EquipmentAccessTier.PRESTIGE);
         VEHICLE_TIERS.put(VehicleType.SCREENED_TANK, EquipmentAccessTier.PRESTIGE);

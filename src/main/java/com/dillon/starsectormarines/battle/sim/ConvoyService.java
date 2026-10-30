@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vehicle.components.VehicleControlComponent;
 import com.dillon.starsectormarines.engine.ecs.ComponentType;
@@ -112,6 +113,14 @@ public final class ConvoyService implements BodyCarrier {
      */
     public long spawn(VehicleType type, Faction faction, VehicleMission mission) {
         return spawn(type, List.of(), faction, mission);
+    }
+
+    /**
+     * As above, an unowned hull set down as {@code fit} fits it out ({@link VehicleStockFit}): its plating, engine
+     * and kits, and its hull's own gun.
+     */
+    public long spawn(VehicleStockFit fit, Faction faction, VehicleMission mission) {
+        return spawn(fit.type, fit.kits, fit.plating, fit.engine, faction, mission);
     }
 
     /** As above, set down with what the kits on its rack make of it ({@link VehicleKit}). */

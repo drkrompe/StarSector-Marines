@@ -31,7 +31,7 @@ public record RunningGear(float halfGaugeCells, float rearCells, float frontCell
     static RunningGear of(VehicleType type) {
         return switch (type) {
             // Six wheels jutting past the hull; the rear axle at 602 px of 768.
-            case HEAVY_APC, UP_ARMORED_APC, FIRE_SUPPORT_APC, ESCORT_APC, LRM_CARRIER ->
+            case HEAVY_APC, FIRE_SUPPORT_APC, LRM_CARRIER ->
                     ofFrame(type, 768f, 162f, 218f, 187f);
             // Tracks the length of the hull, rows centred 180 px either side.
             case BREAKTHROUGH_TANK, SCREENED_TANK -> ofFrame(type, 768f, 180f, 316f, 300f);

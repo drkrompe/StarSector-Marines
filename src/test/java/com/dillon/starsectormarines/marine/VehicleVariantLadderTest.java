@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
+import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
@@ -20,13 +21,13 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** Each line's fixed variants: their cards, tiers, art gate and trade-offs. */
 class VehicleVariantLadderTest {
 
-    private static final List<VehicleType> VARIANTS = List.of(VehicleType.UP_ARMORED_APC,
+    private static final List<VehicleType> VARIANTS = List.of(VehicleType.LRM_CARRIER,
             VehicleType.FIRE_SUPPORT_APC, VehicleType.DOZER_BREACHER,
             VehicleType.SCREENED_TANK, VehicleType.LASER_TANK);
 
     @Test
     void eachVariantIsItsOwnVehiclePatternAtAnAuthoredTier() {
-        assertEquals(EquipmentAccessTier.ADVANCED, MechPattern.of(VehicleType.UP_ARMORED_APC).accessTier());
+        assertEquals(EquipmentAccessTier.ADVANCED, MechPattern.of(VehicleType.LRM_CARRIER).accessTier());
         assertEquals(EquipmentAccessTier.ADVANCED, MechPattern.of(VehicleType.FIRE_SUPPORT_APC).accessTier());
         assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.DOZER_BREACHER).accessTier());
         assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.SCREENED_TANK).accessTier());
@@ -41,7 +42,7 @@ class VehicleVariantLadderTest {
 
     @Test
     void liftClassFollowsTheHullAndMatchesTheWeightClass() {
-        assertEquals(LiftClass.MEDIUM, VehicleType.UP_ARMORED_APC.liftClass());
+        assertEquals(LiftClass.MEDIUM, VehicleType.LRM_CARRIER.liftClass());
         assertEquals(LiftClass.MEDIUM, VehicleType.FIRE_SUPPORT_APC.liftClass());
         assertEquals(LiftClass.HEAVY, VehicleType.DOZER_BREACHER.liftClass());
         assertEquals(LiftClass.HEAVY, VehicleType.SCREENED_TANK.liftClass());
@@ -61,9 +62,9 @@ class VehicleVariantLadderTest {
 
     @Test
     void aFactionWeightsUpItsOwnVariant() {
-        MechPattern upArmored = MechPattern.of(VehicleType.UP_ARMORED_APC);
-        assertEquals(MechPatternPicker.FACTION_ISSUE_WEIGHT, MechPatternPicker.weight("hegemony", upArmored));
-        assertEquals(MechPatternPicker.BASE_WEIGHT, MechPatternPicker.weight("independent", upArmored));
+        MechPattern carrier = MechPattern.of(VehicleType.LRM_CARRIER);
+        assertEquals(MechPatternPicker.FACTION_ISSUE_WEIGHT, MechPatternPicker.weight("hegemony", carrier));
+        assertEquals(MechPatternPicker.BASE_WEIGHT, MechPatternPicker.weight("independent", carrier));
         // Tri-Tachyon is known for its hover line, not for anybody's tank.
         assertEquals(MechPatternPicker.BASE_WEIGHT,
                 MechPatternPicker.weight("tritachyon", MechPattern.of(VehicleType.SCREENED_TANK)));
@@ -71,11 +72,6 @@ class VehicleVariantLadderTest {
 
     @Test
     void eachVariantTradesSomethingAwayForWhatItGains() {
-        VehicleType apc = VehicleType.HEAVY_APC;
-        VehicleType armored = VehicleType.UP_ARMORED_APC;
-        assertTrue(armored.maxArmor > apc.maxArmor && armored.maxSpeed < apc.maxSpeed);
-        assertEquals(apc.capacity, armored.capacity);
-
         VehicleType support = VehicleType.FIRE_SUPPORT_APC;
         assertEquals(0, support.capacity);
         assertEquals(TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID, support.turretStructureId);
@@ -89,6 +85,29 @@ class VehicleVariantLadderTest {
         assertEquals(tank.turretStructureId, screened.turretStructureId);
         assertTrue(screened.activeProtectionStructureId() != null && tank.activeProtectionStructureId() == null);
         assertTrue(screened.maxSpeed < tank.maxSpeed);
+    }
+
+    /**
+     * The APC is one chassis: its variants share its footprint, handling and durability and differ only in the turret
+     * their gun card takes and the troop bay that turret replaces. A tougher or faster APC is a fit, never a hull.
+     */
+    @Test
+    void theApcVariantsAreTheApcChassisWithATypedTurretInPlaceOfTheBay() {
+        VehicleType apc = VehicleType.HEAVY_APC;
+        assertTrue(apc.capacity > 0);
+        assertEquals(VehicleGunCard.SMALL, VehicleGunCard.of(apc));
+        for (VehicleType variant : List.of(VehicleType.FIRE_SUPPORT_APC, VehicleType.LRM_CARRIER)) {
+            assertTrue(variant.isApc(), variant.name());
+            assertEquals(0, variant.capacity, variant.name());
+            assertTrue(VehicleGunCard.of(variant).hardpoint != null && VehicleGunCard.of(variant).rows > 1, variant.name());
+            assertEquals(apc.maxStructure, variant.maxStructure, variant.name());
+            assertEquals(apc.maxArmor, variant.maxArmor, variant.name());
+            assertEquals(apc.armorRating, variant.armorRating, variant.name());
+            assertEquals(apc.maxSpeed, variant.maxSpeed, variant.name());
+            assertEquals(apc.accel, variant.accel, variant.name());
+            assertEquals(apc.visualLengthCells, variant.visualLengthCells, variant.name());
+            assertEquals(apc.visualWidthCells, variant.visualWidthCells, variant.name());
+        }
     }
 
     /** Among hulls on the same lift with the same gun, none is at least as good at everything. */

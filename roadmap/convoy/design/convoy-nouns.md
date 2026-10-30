@@ -310,6 +310,17 @@ without becoming a perceiver: it is a squadless observer beside the body
 (`HullSightings`; the light roles, below), out to a marine's sight, or to its mast's
 where it has one, so the perception components stay off every chassis.
 
+**The APC is one chassis.** `HEAVY_APC` is the troop carrier, six seats and a
+small omni gun card; the mortar carrier (`FIRE_SUPPORT_APC`) and the LRM carrier
+(`LRM_CARRIER`) are the same chassis with the troop bay given over to a typed gun
+card two rows tall (ballistic and missile), and share every footprint, handling and
+durability number with it. A tougher or faster APC is not a hull: it is the APC
+with plating and an engine at its armor point and engine core (`mechs-nouns.md`),
+fitted by a company or named as a **stock fit** a mission fields
+(`VehicleStockFit`). The convoy escort is the APC in heavy plating on a military
+engine with a spall liner and a ready rack (`VehicleStockFit.CONVOY_ESCORT`): 264
+structure behind 224 armor at rating 18, a fifth faster than the bare hull.
+
 `HEAVY_APC` durability is 220 structure behind 160 armor at rating 18. It uses
 the shared durability law: low-penetration rifles chip armor slowly, while
 marine rockets and mech LRMs defeat it in a few committed hits or one strong
@@ -318,8 +329,8 @@ or two faction-rostered infantry who eject into nearby free cells at 25% HP.
 The live mission becomes `WRECKED`, its turret and body stop, and stacked or
 late impacts cannot repeat wreck or passenger effects. The transition also
 queues one compact visual blast and short roof/rear-compartment burns that
-cool into smoke, with the last APC emitter expiring by 55 seconds. The escort's
-effects scale with its larger hull but stay smaller than the tank's. This is presentation only: no
+cool into smoke, with the last APC emitter expiring by 55 seconds. An APC's
+effects stay smaller than the tank's. This is presentation only: no
 secondary damage, navigation obstruction or smoke concealment is manufactured.
 
 **A tank's turret is a section of its hull, and its gun can be shot away**
@@ -839,8 +850,7 @@ The APC hull and twin roof MG are separate overhead silhouettes. The tapered
 nose and sloped glacis distinguish the front from the broad troop compartment
 and squared rear ramp, including when the gun faces elsewhere. The roof bearing
 is on the chassis centerline and the gun rotates about its own frame center;
-the retained source registration owns their measured placement. Heavy and
-escort APCs carry the same-sized MG even though their chassis sizes differ.
+the retained source registration owns their measured placement.
 The visible muzzles follow the shared heavy-MG ballistic hardpoints through
 independent hull and turret rotation (`art-source/vehicles/apc/`).
 
@@ -851,7 +861,7 @@ the texture motion, stopped or blocked hulls stay still, and teleport resets
 its phase. Steering and traction remain the ordinary vehicle motion model.
 Every APC variant retains separately registered wreck hull and MG art at their
 final bearings, with torn troop roofs, damaged tires and bent turret plates.
-The up-armored APC is the same hull drawn darker for its welded plate. The
+The
 fire-support APC and the LRM carrier keep the hull and carry their own turret
 frames at the hull's scale (`art-source/vehicles/mortar-carrier/`,
 `art-source/vehicles/missile-carriers/`). A wrecked turret is always a damage edit
@@ -1327,9 +1337,9 @@ bumps once as it hits, not again while it pushes. There is no automatic back-off
 for a wedged, manually driven hull (owner, 2026-10-25).
 
 An industrial freight hauler has no passenger or turret payload; its long chassis
-and slower handling distinguish cargo from the armed escort. Reinforced story
-escorts have their own durability profile rather than changing every ordinary
-reinforcement APC. Their fire uses the shared turret and damage model. Mission-owned
+and slower handling distinguish cargo from the armed escort. Story escorts are
+the APC in the convoy-escort stock fit rather than a hull of their own, so an
+ordinary reinforcement APC keeps the bare chassis. Their fire uses the shared turret and damage model. Mission-owned
 travel is dormant outside an explicit allied deployed route; player orders and
 ordinary arrive/deboard/depart missions retain their existing lifecycle.
 
@@ -1395,7 +1405,7 @@ body it was aimed at and point defence that stops the rocket stops the charge.
 There is **no rack choice**: a vehicle is a fixed variant, so the anti-armor
 warhead is each hull's identity, and the fragmentation rack stays a mech fitting.
 
-The **LRM carrier** (`LRM_CARRIER`, Advanced, Medium lift) is the heavy APC's hull
+The **LRM carrier** (`LRM_CARRIER`, Advanced, Medium lift) is the APC chassis
 with the troop bay given over to one mech LRM-15 pod on a turntable, which stands up on its
 tail hinge to fire
 (`art-source/vehicles/missile-carriers/`). Like the mech's rack it is **three groups of
@@ -1415,15 +1425,14 @@ Nothing is a belief or a memory, so a carrier holds fire on a tank that ducked o
 of everyone's view rather than shelling where it was. A spotted round is an
 observed round and flies at the weapon's ordinary accuracy. It fights from
 **stand-off**, and an indirect hull plans to a band position without needing its
-own line of sight there. It pays with no seats and less plate than the
-fire-support APC. Acceptance is the `missile-carriers` scene: a carrier behind a
+own line of sight there. It pays with no seats. Acceptance is the `missile-carriers` scene: a carrier behind a
 wall hits a tank a spotter pickup is looking at, holds fire at riflemen in its own
 sight, and holds fire entirely without the spotter. A carrier fitted with the
 **sensor drone pair** kit (`VehicleKit.SENSOR_PAIR`) needs no spotter: its two
 drones search the ground round it, and what they see counts as eyes on the
 target (`SideObservers`), so it fires over a wall with nobody else looking.
 
-The **fire-support APC** (`FIRE_SUPPORT_APC`, the mortar carrier) is the same hull
+The **fire-support APC** (`FIRE_SUPPORT_APC`, the mortar carrier) is the same chassis
 with a 120 mm mortar on an open roof turntable in place of the seats. It fires the
 same way as the LRM carrier: rounds that arc onto anything somebody on its side is
 looking at (`SideObservers`), from stand-off. Unlike the carrier it fires on men

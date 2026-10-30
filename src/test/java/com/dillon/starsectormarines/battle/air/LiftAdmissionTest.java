@@ -38,7 +38,7 @@ class LiftAdmissionTest {
         assertEquals(LiftClass.MEDIUM, MechVariant.WARDEN.liftClass());
         assertEquals(LiftClass.HEAVY, MechVariant.BULWARK.liftClass());
         assertEquals(LiftClass.LIGHT, VehicleType.HEAVY_APC.liftClass());
-        assertEquals(LiftClass.MEDIUM, VehicleType.ESCORT_APC.liftClass());
+        assertEquals(LiftClass.MEDIUM, VehicleType.FIRE_SUPPORT_APC.liftClass());
         assertEquals(LiftClass.MEDIUM, VehicleType.MILITIA_TECHNICAL.liftClass());
         assertEquals(LiftClass.HEAVY, VehicleType.BREAKTHROUGH_TANK.liftClass());
     }

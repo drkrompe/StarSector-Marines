@@ -149,8 +149,8 @@ The owner's standing concern: a lone Hound walks through a mission. Answers:
   standing it reaches the whole flat. It has a driven lane along the rover track
   between the three installations, checked with `VehicleRoutePlanner`, and falls
   to rockets, the Hound or a squad that reaches it.
-- **The patrol crawler (if the first runs are still easy).** An `UP_ARMORED_APC`
-  on the same track. Not before the first measurement (owner: don't over-tune).
+- **The patrol crawler (if the first runs are still easy).** An APC in heavy
+  plating on the same track. Not before the first measurement (owner: don't over-tune).
 - **The rocket truck.** The Dust Ledger's SRM technical behaviour on the uplink
   knoll: from the alarm it works the knoll's corners against company armor.
 

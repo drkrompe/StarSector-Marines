@@ -149,8 +149,8 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         }
     }
 
-    private static final List<VehicleType> STYLE_HULLS = List.of(VehicleType.ESCORT_APC, VehicleType.MILITIA_TECHNICAL,
-            VehicleType.BREAKTHROUGH_TANK, VehicleType.HOVER_SCOUT, VehicleType.UP_ARMORED_APC, VehicleType.LASER_TANK);
+    private static final List<VehicleType> STYLE_HULLS = List.of(VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL,
+            VehicleType.BREAKTHROUGH_TANK, VehicleType.HOVER_SCOUT, VehicleType.HEAVY_APC, VehicleType.LASER_TANK);
     private static final List<MechWeaponComponent> STYLE_GUNS = List.of(MechWeaponComponent.LIGHT_PULSE_LASER,
             MechWeaponComponent.LIGHT_BURST_LASER, MechWeaponComponent.SINGLE_HEAVY_CANNON,
             MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.LIGHT_MACHINE_GUN,
@@ -188,7 +188,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
     }
 
     private static final List<VehicleType> LEGACY_HULLS = List.of(VehicleType.LASER_TANK, VehicleType.LASER_TANK,
-            VehicleType.LASER_TANK, VehicleType.ESCORT_APC, VehicleType.HOVER_SCOUT, VehicleType.MILITIA_TECHNICAL);
+            VehicleType.LASER_TANK, VehicleType.HEAVY_APC, VehicleType.HOVER_SCOUT, VehicleType.MILITIA_TECHNICAL);
     private static final List<MechWeaponComponent> LEGACY_GUNS = List.of(MechWeaponComponent.PULSE_LASER,
             MechWeaponComponent.SHOULDER_LASER_CANNON, MechWeaponComponent.THERMAL_LANCE,
             MechWeaponComponent.THERMAL_LANCE, MechWeaponComponent.THERMAL_LANCE, MechWeaponComponent.THERMAL_LANCE);

@@ -3070,7 +3070,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
         }
         // An up-armoured APC with a spall liner: the seats bay card beside the turret and hull.
         if ("vehicle-apc".equals(materialHint)) {
-            CampaignVehicle apc = new CampaignVehicle("support_vehicle_04", "Bastion 04", VehicleType.UP_ARMORED_APC);
+            CampaignVehicle apc = new CampaignVehicle("support_vehicle_04", "Bastion 04", VehicleType.HEAVY_APC);
             bay.addVehicle(MechBay.STARTER_SQUAD_ID, apc);
             bay.learnPattern(MechPattern.of(VehicleKit.SPALL_LINER).id());
             bay.addKit(VehicleKit.SPALL_LINER.id, 1);

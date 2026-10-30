@@ -82,8 +82,6 @@ public final class HardTargetTimeToKillScene implements BehaviorScene {
     private static final List<Target> TARGETS = List.of(
             new Target("technical", Kind.VEHICLE, VehicleType.MILITIA_TECHNICAL, null, 0f, 0f),
             new Target("heavy-apc", Kind.VEHICLE, VehicleType.HEAVY_APC, null, 0f, 0f),
-            new Target("up-armored-apc", Kind.VEHICLE, VehicleType.UP_ARMORED_APC, null, 0f, 0f),
-            new Target("escort-apc", Kind.VEHICLE, VehicleType.ESCORT_APC, null, 0f, 0f),
             new Target("breakthrough-tank", Kind.VEHICLE, VehicleType.BREAKTHROUGH_TANK, null, 0f, 0f),
             new Target("turret-heavy-mg", Kind.TURRET, null, TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 0f, 0f),
             new Target("turret-vulcan", Kind.TURRET, null, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 0f, 0f),
