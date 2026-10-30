@@ -21,13 +21,15 @@ class VehicleKitsTest {
         assertEquals(2, VehicleKit.slots(VehicleType.HEAVY_APC), "a Medium hull two");
         assertEquals(3, VehicleKit.slots(VehicleType.BREAKTHROUGH_TANK), "a Heavy hull three");
 
-        assertTrue(VehicleKit.fits(VehicleType.HEAVY_APC, List.of(VehicleKit.READY_RACK, VehicleKit.SPALL_LINER)));
-        assertFalse(VehicleKit.fits(VehicleType.HEAVY_APC,
+        assertTrue(VehicleKit.fits(VehicleType.FIRE_SUPPORT_APC, List.of(VehicleKit.READY_RACK, VehicleKit.SPALL_LINER)));
+        assertFalse(VehicleKit.fits(VehicleType.FIRE_SUPPORT_APC,
                 List.of(VehicleKit.READY_RACK, VehicleKit.SPALL_LINER, VehicleKit.ACCELERATED_LOADER)), "no third slot");
         assertFalse(VehicleKit.fits(VehicleType.BREAKTHROUGH_TANK,
                 List.of(VehicleKit.SPALL_LINER, VehicleKit.SPALL_LINER)), "no kit twice");
         assertFalse(VehicleKit.READY_RACK.suits(VehicleType.SUPPLY_TRUCK), "no magazine to extend");
-        assertTrue(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.HEAVY_APC));
+        assertTrue(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.FIRE_SUPPORT_APC));
+        assertFalse(VehicleKit.READY_RACK.suits(VehicleType.HEAVY_APC), "a belt-fed light machine gun has no magazine");
+        assertFalse(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.HEAVY_APC), "nor a loader");
         assertFalse(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.SUPPLY_TRUCK), "no gun to feed");
         assertTrue(VehicleKit.CAPACITOR_PACK.suits(VehicleType.LASER_TANK));
         assertTrue(VehicleKit.CAPACITOR_PACK.suits(VehicleType.BREAKTHROUGH_TANK), "every hull gun builds flux");

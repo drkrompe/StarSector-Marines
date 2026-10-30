@@ -10,11 +10,11 @@ import java.util.List;
  */
 public enum VehicleStockFit {
     /**
-     * The convoy escort: the APC in heavy plating on a military engine, with a spall liner and a ready rack where
-     * the troop bay's seats would be filled, so it outruns the column it guards and keeps shooting.
+     * The convoy escort: the APC in heavy plating on a military engine, with a spall liner, so it outruns the column
+     * it guards and stands more fire than the troop carrier.
      */
     CONVOY_ESCORT(VehicleType.HEAVY_APC, VehiclePlating.HEAVY, VehicleEngine.MILITARY,
-            List.of(VehicleKit.SPALL_LINER, VehicleKit.READY_RACK));
+            List.of(VehicleKit.SPALL_LINER));
 
     public final VehicleType type;
     public final VehiclePlating plating;

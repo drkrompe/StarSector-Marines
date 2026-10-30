@@ -451,6 +451,15 @@ class GroundVehicleTurretSystemTest {
             body = roster.convoy().body(id);
             body.facingDegrees = 0f;
             turret = roster.convoy().turret(id);
+            if (gun == null) {
+                // The burst-fed carriage on its own, its weapon the structure's: a hull's own gun is a fitted mech
+                // weapon now (VehicleType#ownGun), and these fixtures ask about the burst and magazine law.
+                turret.structure = null;
+                turret.weapon = null;
+                turret.rotary = null;
+                turret.ammo = mount.mount.ammoCapacity;
+                turret.unlimited = false;
+            }
             turret.facingDeg = 0f;
             fire = new TurretFireSystem(new Random() {
                 @Override public float nextFloat() { return 0f; }

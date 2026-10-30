@@ -2783,6 +2783,7 @@ public final class MechLabViewModel {
     /** The turret's catalog name; a generic label when the catalog is not loaded. */
     private static String turretName(VehicleType type) {
         if (!type.hasTurretWeapon()) return null;
+        if (type.ownGun() != null) return type.ownGun().displayName();
         TurretCatalogRegistry registry = TurretCatalogRegistry.installed();
         StructureDef structure = registry != null ? registry.getStructure(type.turretStructureId) : null;
         return structure != null ? structure.displayName : Strings.get("openingMechLabVehicleTurretGeneric");

@@ -214,8 +214,8 @@ increasing an encounter's total armored threat.
   bay one the battle already flies, so it adds no behaviour of its own and no
   balance surface beyond its own effect:
   - **Spall liner** (Common): a fifth more structure.
-  - **Ready rack** (Common, armed hulls): half again the turret's magazine.
-  - **Accelerated loader** (Advanced, armed hulls): every mount's loader puts a
+  - **Ready rack** (Common, hulls whose own gun has a magazine): half again the turret's magazine.
+  - **Accelerated loader** (Advanced, hulls whose own gun has a loader): every mount's loader puts a
     pack back in three quarters of the stock time (`convoy-nouns.md`, the loader).
   - **Capacitor pack** (Advanced, armed hulls, whose every gun builds flux):
     half again the flux the gun holds before it overloads.
@@ -244,7 +244,8 @@ increasing an encounter's total armored threat.
   and light rocket pod authored for it (and the light burst laser), the Thermal Lance and the Pioneer Rocket Cradle. A cannon card takes the heavy
   cannon, a laser tank's card takes energy weapons. Footprint is the only cap on a weapon's power.
   The hull's own gun is no part: an empty gun card is that gun, drawn as the sealed cards draw it (a modular hull, the laser tank, has no own gun: its empty card is a bare turret ring, `vehicle-card-sizes.md`), so a weapon
-  is only ever an addition from stores. A fitted weapon is the hull's turret with the weapon's ballistics in it
+  is only ever an addition from stores. A machine-gun hull's own gun is the mech light machine gun itself
+  (`VehicleType.ownGun`), set down as if fitted, so there is one machine gun in the game. A fitted weapon is the hull's turret with the weapon's ballistics in it
   (`VehicleGun`): the carriage (traverse, loader, flux bank, hit shares) stays the hull's, the weapon
   fires with the range, damage and cadence it has on a mech, its pulls are the magazine (a weapon with no limit
   on a mech has none here: a mount authored with no capacity never runs dry, and only its flux limits it) and a
@@ -566,8 +567,8 @@ increasing an encounter's total armored threat.
   missile loader utility teal, each a brick piece like any weapon. Every machine's
   doll has its engine as the blue card in the centre, wired to the rest: a mech's
   engine core, a vehicle's engine core, a boat's drive. A part another machine
-  already has is drawn with that machine's icon (a vehicle's heavy MG is the boat
-  door gun, its cannon the mech's). Size reads from shape, not text: every
+  already has is drawn with that machine's icon (a machine-gun hull's gun is the
+  mech light machine gun, its cannon the mech's). Size reads from shape, not text: every
   grid cell is a chamfered brick narrower than it is tall, and a footprint is its
   bricks stacked, so a 2x3 rack is visibly a taller stack than a 2x2. There is one
   brick size in both fitting rooms (`FittingBricks`): the board, the stores

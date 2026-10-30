@@ -26,7 +26,8 @@ import java.util.List;
 public enum VehicleType {
 
     /**
-     * The APC: the one wheeled troop carrier chassis, six marines behind a roof-mounted heavy MG. Slower and
+     * The APC: the one wheeled troop carrier chassis, six marines behind a roof machine gun (the light
+     * machine gun every machine-gun hull carries, {@link #ownGun}). Slower and
      * heavier than the militia truck. The gun is what it defends itself with on the drive in and the drive out;
      * it does not buy the squad a parked fire-support platform on the drop point. A tougher or faster APC is this
      * hull with plating and an engine fitted, never a hull of its own ({@link VehicleStockFit}); only a turret
@@ -588,7 +589,18 @@ public enum VehicleType {
      * and fields the bare ring.
      */
     public MechWeaponComponent standardPart() {
-        return this == LASER_TANK ? MechWeaponComponent.BURST_LASER : null;
+        return this == LASER_TANK ? MechWeaponComponent.BURST_LASER : ownGun();
+    }
+
+    /**
+     * The mech weapon this hull's own turret is, for a hull whose stock gun is a shared mech part rather than a turret
+     * of its own: every machine-gun hull carries the light machine gun, so the game has one machine gun. Its turret
+     * structure stays the carriage the weapon sits in ({@link VehicleGun#fit}). Null for a modular hull, whose empty
+     * card is a bare ring, and for a hull whose own gun is its turret structure's weapon.
+     */
+    public MechWeaponComponent ownGun() {
+        return TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID.equals(turretStructureId) && turretFrame >= 0
+                ? MechWeaponComponent.LIGHT_MACHINE_GUN : null;
     }
 
     /**

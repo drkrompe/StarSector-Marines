@@ -68,7 +68,8 @@ final class VehicleDoll {
             case CORE -> engine != null ? engine.displayName()
                     : Strings.get(type.isHover() ? "vehicleDollHover" : type.isTank() ? "vehicleDollTracked"
                     : "vehicleDollWheeled");
-            case ARMS -> gun != null ? Strings.upper(gun.displayName()) : turretName(type);
+            case ARMS -> gun != null ? Strings.upper(gun.displayName())
+                    : type.ownGun() != null ? Strings.upper(type.ownGun().displayName()) : turretName(type);
             case LEFT_SHOULDER -> bay(type);
             case RIGHT_SHOULDER -> String.join(Strings.get("separatorDot"), systems(type));
             case AUXILIARY -> Strings.format("vehicleDollRackCaption", kits.size(), VehicleKit.slots(type));
@@ -93,12 +94,11 @@ final class VehicleDoll {
 
     /**
      * The drawing of the gun a hull's turret actually is. The card sizes the socket, and a small card is shared by
-     * several guns, so the heavy machine gun, the SRM pod and the hover pulse emitter each carry their own picture
-     * rather than the light machine gun's; any other turret reads from its card.
+     * several guns, so the SRM pod and the hover pulse emitter each carry their own picture rather than the light
+     * machine gun's; any other turret, the machine-gun hulls' light machine gun among them, reads from its card.
      */
     private static String gunArt(VehicleType type) {
         return switch (type.turretStructureId == null ? "" : type.turretStructureId) {
-            case TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID -> "boat-door-heavy-mg";
             case TurretCatalogRegistry.VEHICLE_SRM_STRUCTURE_ID -> "vehicle-srm-pod";
             case TurretCatalogRegistry.HOVER_PULSE_STRUCTURE_ID -> "light-pulse-laser";
             default -> gunArt(VehicleGunCard.of(type));
@@ -114,7 +114,7 @@ final class VehicleDoll {
                 "boat-hold-standard", "vehicle-bay-supply", "vehicle-bay-drones",
                 "vehicle-systems-blade", "vehicle-systems-aps", "vehicle-systems-mast", "vehicle-systems-secondary"));
         for (VehicleGunCard gun : VehicleGunCard.values()) if (!stems.contains(gunArt(gun))) stems.add(gunArt(gun));
-        stems.addAll(List.of("boat-door-heavy-mg", "vehicle-srm-pod", "light-pulse-laser"));
+        stems.addAll(List.of("vehicle-srm-pod", "light-pulse-laser"));
         return List.copyOf(stems);
     }
 

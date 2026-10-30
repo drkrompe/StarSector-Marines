@@ -146,6 +146,7 @@ public final class ConvoyService implements BodyCarrier {
      */
     public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
                       MechWeaponComponent weapon, Faction faction, VehicleMission mission) {
+        if (weapon == null) weapon = type.ownGun();
         VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type);
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();

@@ -318,7 +318,7 @@ durability number with it. A tougher or faster APC is not a hull: it is the APC
 with plating and an engine at its armor point and engine core (`mechs-nouns.md`),
 fitted by a company or named as a **stock fit** a mission fields
 (`VehicleStockFit`). The convoy escort is the APC in heavy plating on a military
-engine with a spall liner and a ready rack (`VehicleStockFit.CONVOY_ESCORT`): 264
+engine with a spall liner (`VehicleStockFit.CONVOY_ESCORT`): 264
 structure behind 224 armor at rating 18, a fifth faster than the bare hull.
 
 `HEAVY_APC` durability is 220 structure behind 160 armor at rating 18. It uses
@@ -839,12 +839,20 @@ suspension discard queued rounds and targets without resetting ammunition or
 cooldown. The actual posed hardpoint supplies the ground ballistic source, and
 the structural body-to-barrel check prevents launching beyond a wall.
 
-The APC hull and twin roof MG are separate overhead silhouettes. The tapered
+**There is one machine gun.** Every machine-gun hull (the APC, the militia
+technical, the dozer) carries the mech light machine gun as its own gun
+(`VehicleType.ownGun`): the rotary, held-trigger gun a mech wears, fed from its
+belt, in the hull's heavy-MG carriage (traverse, flux bank, hit shares) and
+drawn as a fitted weapon is, on the hull's mount ring. The heavy MG survives only
+as the emplacement and boat door gun. A belt-fed gun has no magazine or loader,
+so the ready rack and the accelerated loader do not suit these hulls.
+
+The APC hull and its roof gun are separate overhead silhouettes. The tapered
 nose and sloped glacis distinguish the front from the broad troop compartment
 and squared rear ramp, including when the gun faces elsewhere. The roof bearing
 is on the chassis centerline and the gun rotates about its own frame center;
 the retained source registration owns their measured placement.
-The visible muzzles follow the shared heavy-MG ballistic hardpoints through
+The visible muzzle follows the fitted weapon's own geometry through
 independent hull and turret rotation (`art-source/vehicles/apc/`).
 
 The six exposed tire tops use the same distance-driven tread presentation as
@@ -1219,8 +1227,8 @@ The tank's variants each draw from their own sheet with the same four
 registered slots. The dozer breacher is the breakthrough hull with a broad blade on
 push arms ahead of the glacis; its longer footprint frame draws the hull at the
 same on-screen size, so its tread bands are the tank's scaled about the frame
-center. In place of the cannon turret it carries the APC's twin roof MG at the APC's
-own registration, sitting on the empty turret ring. Both keep authored wreck
+center. In place of the cannon turret it carries the light machine gun every
+machine-gun hull carries, on its mount ring. Both keep authored wreck
 frames; the dozer's blade buckles and tears with its hull
 (`art-source/vehicles/tank-dozer/`). There is no long-gun tank: the heavy-gun
 variant was removed (owner, 2026-10-22) because its single long barrel read as
