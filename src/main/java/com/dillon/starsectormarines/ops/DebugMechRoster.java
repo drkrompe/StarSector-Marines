@@ -34,6 +34,14 @@ public final class DebugMechRoster {
         return new DebugMechRoster(List.of(MechVariant.HOUND), true);
     }
 
+    /** The recovered Hound with {@code mechs} and {@code vehicles} beside it in the bay. */
+    public static DebugMechRoster recoveredHoundWith(List<MechVariant> mechs, List<VehicleType> vehicles) {
+        List<MechVariant> variants = new ArrayList<>();
+        variants.add(MechVariant.HOUND);
+        variants.addAll(mechs);
+        return new DebugMechRoster(variants, vehicles, true);
+    }
+
     /**
      * The bay's drop, flown as the campaign would fly it (owner: a player cannot just get a
      * Valkyrie): the committed company boat that lifts the most of it, with heavy lift behind
@@ -41,8 +49,9 @@ public final class DebugMechRoster {
      */
     private MechSupport support(List<FittedBoat> boats, boolean heavyLift) {
         List<MechDeploymentSpec> mechs = new ArrayList<>();
-        if (recoveredHound) mechs.add(WaylineHound.deployment());
-        else for (MechVariant variant : variants) mechs.add(MechDeploymentSpec.standard(variant));
+        // A recovered Hound roster leads with the Wayline Hound; any other chassis is a standard fit.
+        for (int i = 0; i < variants.size(); i++)
+            mechs.add(recoveredHound && i == 0 ? WaylineHound.deployment() : MechDeploymentSpec.standard(variants.get(i)));
         List<VehicleDeploymentSpec> bay = new ArrayList<>();
         for (VehicleType type : vehicles) bay.add(VehicleDeploymentSpec.standard(type));
         return PowerCatalog.flownBy(MechSupport.configured(mechs, bay, null, heavyLift), boats, heavyLift);

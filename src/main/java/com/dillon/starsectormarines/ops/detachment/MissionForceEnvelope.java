@@ -13,6 +13,8 @@ import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
+import com.dillon.starsectormarines.ops.ColdAccountCompany;
+import com.dillon.starsectormarines.ops.CorvusChapter;
 import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
@@ -94,9 +96,12 @@ public final class MissionForceEnvelope {
         return mission != null ? recommendedSquads(mission.type, mission.tier) : 0;
     }
 
-    /** Mechs or vehicles recommended beside the squads: only end-game challenge work names any. */
+    /** Mechs or vehicles recommended beside the squads: end-game challenge work and A Cold Account name any. */
     public static int recommendedMachines(Mission mission) {
-        return WellhollowBloomCampaign.isBattle(mission) ? WellhollowBloomCampaign.RECOMMENDED_MACHINES : 0;
+        if (WellhollowBloomCampaign.isBattle(mission)) return WellhollowBloomCampaign.RECOMMENDED_MACHINES;
+        return CorvusWaylineCampaign.isBattle(mission)
+                && CorvusWaylineProgress.forMission(mission.id) == CorvusChapter.COLD_ACCOUNT
+                ? ColdAccountCompany.MACHINES : 0;
     }
 
     public static int recommendedSquads(MissionType type, OperationTier tier) {

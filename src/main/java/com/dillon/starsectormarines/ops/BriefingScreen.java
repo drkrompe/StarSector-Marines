@@ -2243,6 +2243,9 @@ public class BriefingScreen implements Screen {
         if (mission == null || !mission.source.isDebug()) return null;
         if (debugBay != null) return DebugMechRoster.ofSlots(java.util.Arrays.asList(debugBay));
         var scenario = DebugMissionCatalog.scenario(mission);
+        if (scenario == DebugMissionCatalog.Scenario.COLD_ACCOUNT && debugMechCount == ColdAccountCompany.MACHINES
+                && debugMechRoll == 0)
+            return ColdAccountCompany.bay();
         if (scenario != null && scenario.hound && debugMechCount == 1 && debugMechRoll == 0)
             return DebugMechRoster.recoveredHound();
         long seed = 31L * mission.id.hashCode() + debugMechRoll;

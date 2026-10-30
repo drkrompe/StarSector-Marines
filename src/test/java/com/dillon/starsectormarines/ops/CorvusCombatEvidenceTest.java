@@ -182,7 +182,8 @@ class CorvusCombatEvidenceTest {
                 writeFrame(renderer, sim, chapter, dir);
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
                     // An armor drop names its machine: the recovered Hound is the only one aboard.
-                    if (requestedAt < 0 && CorvusEvidenceCompany.callHound(sim)) requestedAt = sim.getSimTickIndex() + 1;
+                    if ((requestedAt < 0 || sim.getColdAccount() != null) && CorvusEvidenceCompany.callMachines(sim, chapter)
+                            && requestedAt < 0) requestedAt = sim.getSimTickIndex() + 1;
                     var beforePhase = sim.getColdAccount() == null ? null : sim.getColdAccount().phase();
                     int beforeShipShots = sim.getColdAccount() == null ? 0 : sim.getColdAccount().shotsFired();
                     var beforeNarration = narration.current();
@@ -295,10 +296,11 @@ class CorvusCombatEvidenceTest {
                         Float previousDurability = withdrawalDurability.put(id, durability);
                         if (firstCapitalShotAt >= 0 && previousDurability != null)
                             marineDurabilityLostAfterFirstSalvo += Math.max(0f, previousDurability - durability);
+                        // A Cold Account's bay drops other machines beside the Hound; the Hound is the one named.
                         if (sim.identity().type(id) == UnitType.HEAVY_MECH) {
+                            if (!WaylineHound.NAME.equals(sim.identity().name(id))) continue;
                             if (hound < 0) {
                                 hound = id; houndLandedAt = tick;
-                                assertEquals(WaylineHound.NAME, sim.identity().name(id));
                                 sim.getEntityWorld().addComponent(id, sim.getBattleComponents().TELEMETRY);
                             }
                             assertEquals(hound, id, "Exactly one owned Hound must land");

@@ -31,7 +31,8 @@ import java.util.stream.IntStream;
 /**
  * The company a Corvus chapter is played with outside the campaign: the evidence harness and the look suites stand it
  * up the same way. The chapter's squads in the named kit with field fatigues, each with an acting NCO and no officer
- * buffs; the recovered Hound in the bay; aeroshuttles; thirty supplies for the Hound's drop. Test support only.
+ * buffs; the recovered Hound in the bay, with the rest of {@link ColdAccountCompany}'s machines for A Cold Account;
+ * aeroshuttles; thirty supplies for the drop. Test support only.
  */
 final class CorvusEvidenceCompany {
 
@@ -41,7 +42,7 @@ final class CorvusEvidenceCompany {
     static final String SQUAD_WEAPONS_PROPERTY = "battle.corvus.squadWeapons";
     /** The Hound's left-shoulder pod, a {@link MechWeaponComponent} name; none by default, as recovered. */
     static final String HOUND_SHOULDER_PROPERTY = "battle.corvus.houndShoulder";
-    /** The armor-drop pick that names the recovered Hound, the one machine in the bay. */
+    /** The armor-drop pick that names the recovered Hound, the bay's first machine. */
     static final List<Integer> HOUND_PICK = List.of(0);
     /** Supplies the company brings for its command powers. */
     static final int SUPPLIES = 30;
@@ -109,6 +110,17 @@ final class CorvusEvidenceCompany {
         if (!roster.mechBay().receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID,
                 houndDeployment(kit.houndPod()))))
             throw new IllegalStateException("the Hound did not board");
+        if (chapter == CorvusChapter.COLD_ACCOUNT) {
+            // The rest of the company A Cold Account is balanced against, on the Hound's own lance.
+            String lance = roster.mechBay().squads().stream()
+                    .filter(squad -> squad.mechById(WaylineHound.ID) != null).findFirst().orElseThrow().id();
+            for (var variant : ColdAccountCompany.MECHS)
+                if (roster.mechBay().fabricateChassis(lance, variant) == null)
+                    throw new IllegalStateException("no gantry for the " + variant);
+            for (var type : ColdAccountCompany.VEHICLES)
+                if (roster.mechBay().fabricateVehicle(lance, type) == null)
+                    throw new IllegalStateException("no gantry for the " + type);
+        }
         // A company buys its later cards; the evidence company is simply handed the one it is issued.
         roster.armory().learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.WEAPON, kit.squadWeapons()));
         var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
@@ -136,11 +148,27 @@ final class CorvusEvidenceCompany {
      * tick it is requested; call it before each tick until then.
      */
     static boolean callHound(BattleSimulation sim) {
+        return callMachines(sim, HOUND_PICK);
+    }
+
+    /**
+     * As {@link #callHound}, for every machine {@code chapter}'s company brings: a drop names one machine, so each is
+     * called on its own pick as soon as lift allows it. Returns true on a tick any is requested; call it each tick.
+     */
+    static boolean callMachines(BattleSimulation sim, CorvusChapter chapter) {
+        if (chapter != CorvusChapter.COLD_ACCOUNT) return callHound(sim);
+        boolean requested = false;
+        for (int machine = 0; machine < ColdAccountCompany.MACHINES; machine++)
+            requested |= callMachines(sim, List.of(machine));
+        return requested;
+    }
+
+    private static boolean callMachines(BattleSimulation sim, List<Integer> picks) {
         var service = sim.getCommandPowerService();
         var support = service.getPower(MechSupport.ID);
         if (!service.canActivate(support)) return false;
-        for (var pad : sim.getMarineLandingPads()) if (support.canTarget(pad.centerX, pad.centerY, sim, HOUND_PICK)) {
-            service.requestActivation(MechSupport.ID, pad.centerX, pad.centerY, HOUND_PICK);
+        for (var pad : sim.getMarineLandingPads()) if (support.canTarget(pad.centerX, pad.centerY, sim, picks)) {
+            service.requestActivation(MechSupport.ID, pad.centerX, pad.centerY, picks);
             return true;
         }
         return false;
