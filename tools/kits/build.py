@@ -106,13 +106,7 @@ def image(path):
 
 # What the machine-dolls render audit found, by machine; the page shows each beside its doll.
 DOLL_NOTES = {
-    "srm_technical": ["The turret reads SRM POD but the card is an omni 2x1 drawn with the light machine gun picture: VehicleGunCard.of sends any turret it does not recognise to SMALL."],
-    "hover_scout": ["The turret reads HOVER PULSE EMITTER but the card is an omni 2x1 drawn with the light machine gun picture, not an energy card."],
-    "heavy_apc": ["The turret reads HEAVY MG but the card carries the LMG picture."],
-    "up_armored_apc": ["The turret reads HEAVY MG but the card carries the LMG picture."],
-    "escort_apc": ["The turret reads HEAVY MG but the card carries the LMG picture.", "No bay card: capacity 0, unlike the troop carriers."],
-    "dozer_breacher": ["The turret reads HEAVY MG but the card carries the LMG picture."],
-    "militia_technical": ["The turret reads HEAVY MG but the card carries the LMG picture."],
+    "escort_apc": ["No bay card: capacity 0, unlike the troop carriers."],
     "fire_support_apc": ["No bay card: capacity 0, unlike the troop carriers."],
     "bulwark": ["Arm sockets are 2x2 and hold chainguns; the second auxiliary bay ships empty."],
     "hound": ["One shoulder socket, on the left only."],
