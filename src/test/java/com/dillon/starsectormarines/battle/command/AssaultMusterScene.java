@@ -112,7 +112,7 @@ public final class AssaultMusterScene implements BehaviorScene {
     private static final List<String> ALL_LOOPS = List.of("control-trickle", "plan", "plan-with-lance",
             "breach-cannon", "breach-charges", "breach-charges-smoke", "plan-mortar", "plan-air", "plan-mortar-air", "combined-arms");
     private static final String CHARGE_KIT = "special.satchel-charge";
-    private static final String ROCKET_KIT = "special.rocket-launcher";
+    private static final String ROCKET_KIT = "special.srm-1";
     private static final String RADIO_KIT = "special.comms-radio";
     /** Ticks between the samples of whether the company's own sight lines are screened. */
     private static final int BLIND_SAMPLE_TICKS = 15;

@@ -98,7 +98,7 @@ public final class EquipmentMountSnapshotSuite implements SnapshotSuite {
         actor(g, ARMOR_IDS[2], 1180, 651, 130f, "aiming", phase,
                 55f * (float) Math.sin(phase * Math.PI * 2), 0f, null);
         actor(g, ARMOR_IDS[2], 1645, 651, 130f, "rocket-fire", phase, 0f, 0f,
-                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID));
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID));
         text(g, "Aegis / walking", 95, 786, 19);
         text(g, "Arbalest / primary firing", 560, 786, 19);
         text(g, "Specter / independent head look", 1025, 786, 19);

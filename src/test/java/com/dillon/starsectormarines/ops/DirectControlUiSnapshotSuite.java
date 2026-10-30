@@ -880,7 +880,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
                                                           float armor, float health) {
         var copy = ModStrings.fromDisk(modRoot);
         List<BattleMarineDollPlate.Kit> items = List.of(
-                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSpecialRocketLauncherDisplayName"), "1/3", false,
+                new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSpecialSrm1DisplayName"), "1/3", false,
                         "missile", 1, 3),
                 new BattleMarineDollPlate.Kit(copy.apply("gearCatalogSystemShieldLowTechDisplayName"),
                         copy.apply("battleMarineDollReady"), false, "shield", 1, 1, true),

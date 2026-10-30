@@ -71,7 +71,7 @@ class EquipmentLocalizationTest {
     void alreadyLoadedCatalogsAndRecipesResolveTheCurrentLanguageWithoutChangingStats() throws Exception {
         var weapon = WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID);
         var armor = MarineArmorCatalogRegistry.require("armor.foundry-breaker");
-        var special = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
+        var special = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID);
         var card = EquipmentTemplateCatalog.primary(weapon, EquipmentGrade.SERVICE);
         var recipe = MechFabricationCatalog.weapon(MechWeaponComponent.CHAINGUN);
         String name = card.displayName(), description = armor.description(), recipeName = recipe.displayName();

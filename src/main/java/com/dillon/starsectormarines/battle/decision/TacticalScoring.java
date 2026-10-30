@@ -1238,7 +1238,7 @@ public final class TacticalScoring {
      * <p>Iterates {@code shots.committedProjectiles()} for the inflight
      * half. Every HE rocket-class weapon in the codebase rides the Projectile
      * entity model (locust + grenade-launcher turrets, marine handheld rocket,
-     * mech SRM_POD + LRM_ARTILLERY) — each in-flight round is a real entity
+     * mech SRM + LRM racks) — each in-flight round is a real entity
      * owning its own {@link PendingDetonation} arrival payload. Sibling squads
      * + cross-class fires from the same faction (a same-faction mech and a
      * marine rocketeer both targeting one turret) are all counted here via

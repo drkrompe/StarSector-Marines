@@ -137,7 +137,7 @@ public final class SpecterLayerSnapshotSuite implements SnapshotSuite {
         WeaponDef primary = WeaponRegistry.require(weaponId);
         SpecialEquipmentDef special = amr
                 ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)
-                : rocket ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID) : null;
+                : rocket ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID) : null;
         LayeredUnitComposer.emit((sprite, cx, cy, width, height, angle, red, green, blue, alpha) -> {
             BufferedImage source = images.get(sprite.sourcePath);
             AffineTransform transform = new AffineTransform();
@@ -156,14 +156,14 @@ public final class SpecterLayerSnapshotSuite implements SnapshotSuite {
                 layer(armor.startsWith(SPECTER) ? armor + "foot.png" : ROOT + "marine-foot.png"),
                 null, layer(weapons + "rifle.png"), layer(weapons + "laser-gun.png"),
                 layer(weapons + "smg.png"), layer(weapons + "dmr.png"),
-                layer(weapons + "rocket-launcher.png"), layer(weapons + "anti-materiel-rifle.png"),
+                layer(weapons + "srm-1.png"), layer(weapons + "anti-materiel-rifle.png"),
                 layer(ROOT + "marine-muzzle-flash.png"), null, null,
                 armor.startsWith(SPECTER) ? layer(armor + "shoulder-left.png") : null,
                 armor.startsWith(SPECTER) ? layer(armor + "shoulder-right.png") : null);
         result.registerSpecialEquipment(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID,
                 layer(weapons + "anti-materiel-rifle.png"));
-        result.registerSpecialEquipment(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
-                layer(weapons + "rocket-launcher.png"));
+        result.registerSpecialEquipment(SpecialEquipmentRegistry.SRM_1_ID,
+                layer(weapons + "srm-1.png"));
         return result;
     }
 

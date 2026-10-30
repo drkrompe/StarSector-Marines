@@ -3451,15 +3451,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             workshop.fabricatePart(BoatGun.ARBALEST.id());
             workshop.fitGun(deck.boats().get(0).id(), hardpoint, BoatGun.ARBALEST.id());
             // Her other two turrets carry the other families, a missile pod and a laser.
-            workshop.fabricatePart(BoatGun.SRM_POD.id());
-            workshop.fitGun(deck.boats().get(0).id(), 1, BoatGun.SRM_POD.id());
+            workshop.fabricatePart(BoatGun.SRM_5.id());
+            workshop.fitGun(deck.boats().get(0).id(), 1, BoatGun.SRM_5.id());
             workshop.fabricatePart(BoatGun.PULSE_LASER.id());
             workshop.fitGun(deck.boats().get(0).id(), 2, BoatGun.PULSE_LASER.id());
         }
         if (departure == POD && deck.berths() > 0 && deck.boats().get(0) != null) {
             // A second gun beside each 2x1 gun already on: her SRM pod and her laser each become a pod of two.
-            workshop.fabricatePart(BoatGun.SRM_POD.id());
-            workshop.fitGun(deck.boats().get(0).id(), 1, BoatHardpoint.BOTTOM, BoatGun.SRM_POD.id());
+            workshop.fabricatePart(BoatGun.SRM_5.id());
+            workshop.fitGun(deck.boats().get(0).id(), 1, BoatHardpoint.BOTTOM, BoatGun.SRM_5.id());
             workshop.fabricatePart(BoatGun.PULSE_LASER.id());
             workshop.fitGun(deck.boats().get(0).id(), 2, BoatHardpoint.BOTTOM, BoatGun.PULSE_LASER.id());
         }

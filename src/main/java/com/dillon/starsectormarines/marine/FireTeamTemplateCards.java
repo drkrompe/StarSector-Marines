@@ -64,7 +64,7 @@ public final class FireTeamTemplateCards {
                         billet("Marksman", WeaponRegistry.DMR_ID, null,
                                 MarineArmorPattern.ARMY_GREEN),
                         billet("Anti-Armor", WeaponRegistry.PULSE_RIFLE_ID,
-                                SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
+                                SpecialEquipmentRegistry.SRM_1_ID,
                                 MarineArmorPattern.ARMY_GREEN)),
                 card(ANTI_MATERIEL_ID, "@fireTeamTemplateAntiMaterielName",
                         billet(BilletRoles.TEAM_LEADER, WeaponRegistry.PULSE_RIFLE_ID, null,

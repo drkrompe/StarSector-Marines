@@ -53,7 +53,7 @@ public final class InfantryLoadoutRolls {
             EquipmentGrade grade = playerEquipmentGrade(rng);
             SoldierProfile profile = playerProfile(rng);
             SpecialEquipmentDef secondary = i == rocketSlot
-                    ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)
+                    ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID)
                     : i == mortarSlot
                     ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FIELD_MORTAR_ID)
                     : i == radioSlot
@@ -104,7 +104,7 @@ public final class InfantryLoadoutRolls {
             {WeaponRegistry.PULSE_RIFLE_ID, SpecialEquipmentRegistry.FLAMER_ID, "armor.reliquary-heavy"},
             {WeaponRegistry.DMR_ID, SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, "armor.specter-heavy"},
             {WeaponRegistry.PULSE_RIFLE_ID, SpecialEquipmentRegistry.INCENDIARY_GRENADE_ID, "armor.lions-mantle"},
-            {WeaponRegistry.PULSE_RIFLE_ID, SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, "armor.reliquary-heavy"}};
+            {WeaponRegistry.PULSE_RIFLE_ID, SpecialEquipmentRegistry.SRM_1_ID, "armor.reliquary-heavy"}};
 
     /**
      * Builds a local/defender fireteam; elite high-risk regulars field one AMR carrier, and their smoke carrier has a

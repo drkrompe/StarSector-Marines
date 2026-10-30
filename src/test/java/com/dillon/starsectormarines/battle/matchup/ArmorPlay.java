@@ -682,7 +682,7 @@ public final class ArmorPlay {
         return shot.primaryWeaponDef;
     }
 
-    /** {@code weapon.mech-srm-pod} reads as {@code mech-srm-pod}. */
+    /** {@code weapon.mech-srm} reads as {@code mech-srm}. */
     static String weaponKey(String weaponId) {
         return weaponId.startsWith("weapon.") ? weaponId.substring("weapon.".length()) : weaponId;
     }

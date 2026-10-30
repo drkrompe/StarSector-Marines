@@ -139,9 +139,9 @@ public final class HeadlessArmoryPreviewRenderer {
 
     static List<PreviewCase> previewCases() {
         return List.of(
-                new PreviewCase("rocket-launcher", "Annihilator · Legionary line suit",
+                new PreviewCase("srm-1", "Annihilator · Legionary line suit",
                         new FireTeamBillet("Rocketeer", WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID),
-                                EquipmentGrade.MILSPEC, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                                EquipmentGrade.MILSPEC, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID),
                                 MarineArmorPattern.ARMY_GREEN)),
                 new PreviewCase("anti-materiel-rifle", "Breachlight · Janus scout suit",
                         new FireTeamBillet("Anti-armor", WeaponRegistry.require(WeaponRegistry.DMR_ID),
@@ -224,7 +224,7 @@ public final class HeadlessArmoryPreviewRenderer {
                     sprite(MODULAR_ROOT + "weapons/laser-gun.png"),
                     sprite(MODULAR_ROOT + "weapons/smg.png"),
                     sprite(MODULAR_ROOT + "weapons/dmr.png"),
-                    sprite(MODULAR_ROOT + "weapons/rocket-launcher.png"),
+                    sprite(MODULAR_ROOT + "weapons/srm-1.png"),
                     sprite(MODULAR_ROOT + "weapons/anti-materiel-rifle.png"),
                     sprite(FLASH),
                     sprite(MODULAR_ROOT + "weapons/grades/surplus/rifle.png"),

@@ -57,7 +57,7 @@ def main() -> None:
                 variant = replace(
                     variant,
                     arms="pulse-laser-arm.png",
-                    left_pod="srm-pod.png",
+                    left_pod="srm-rack.png",
                     right_pod="shoulder-laser-cannon.png",
                     loadout="2x PULSE LASER  /  SRM-15  /  SHOULDER LASER",
                 )

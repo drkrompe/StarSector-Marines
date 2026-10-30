@@ -49,9 +49,9 @@ class MatchupSideTest {
     @Test
     void anExperimentKitAndMixIssueExactlyWhatTheyList() {
         MarineLoadout[] seats = MatchupSide.parse(
-                "kit:field-rifle@surplus,rocket-launcher*2,frag-grenade*3+mix:cordon-shell*10,packframe*2").seats();
+                "kit:field-rifle@surplus,srm-1*2,frag-grenade*3+mix:cordon-shell*10,packframe*2").seats();
         assertEquals(12, seats.length);
-        assertEquals("special.rocket-launcher", seats[1].specialEquipmentId);
+        assertEquals("special.srm-1", seats[1].specialEquipmentId);
         assertEquals("special.frag-grenade", seats[4].specialEquipmentId);
         assertEquals(null, seats[5].specialEquipmentId);
         assertEquals("weapon.field-rifle", seats[11].primaryWeaponId);

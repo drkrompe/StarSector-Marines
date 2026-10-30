@@ -146,7 +146,7 @@ Ballistics, tracer origin, and muzzle presentation therefore describe the same
 shot. Mech accuracy retains the shared weapon calculation and receives no
 infantry training multiplier merely because its aim is a point.
 
-An infantry shoulder pod (the SRM-POD carried special) may declare its own physical hardpoint and forward
+An infantry shoulder pod (the SRM-3 (Pod) carried special) may declare its own physical hardpoint and forward
 muzzle reach. The pod's independent target supplies its firing bearing; its
 weapon still owns salvo count, accuracy, flight, and payload. The same muzzle
 feeds contact resolution, the traveling projectile, and the visual shot.

@@ -57,7 +57,7 @@ class PointDefenseEmplacementTest {
 
     private static final float EPS = 1e-3f;
     /** An LRM warhead is the canonical thing this exists to refuse. */
-    private static final String ORDNANCE_WEAPON_ID = "weapon.mech-lrm-artillery";
+    private static final String ORDNANCE_WEAPON_ID = "weapon.mech-lrm";
     /** A chaingun round travels the same map and must be untouched by point defence. */
     private static final String DIRECT_FIRE_WEAPON_ID = "weapon.mech-chaingun";
 

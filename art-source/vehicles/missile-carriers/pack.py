@@ -4,11 +4,11 @@
   mod/graphics/battle/vehicles/srm-technical.png 4 x 768x576: technical hull, SRM pod, technical wreck, wrecked pod
 
 LRM carrier: the heavy APC's live and wreck hulls (`army-apc.png`, slots 0 and 2) with a turntable plate painted on
-the roof where the twin MG stood, and ONE mech LRM pod (`mech-modular-topdown/lrm-pod.png`) alone in its turret
+the roof where the twin MG stood, and ONE mech LRM pod (`mech-modular-topdown/lrm-rack.png`) alone in its turret
 frame. The plate stays on the hull because the renderer foreshortens the turret frame as the pod stands up to fire
 (`VehicleType.turretRaiseFold`), and a flat turntable must not tilt with it.
 SRM technical: the militia technical's hulls verbatim (`militia-technical.png`, slots 0 and 2) with the mech SRM pod
-(`mech-modular-topdown/srm-pod.png`) on a pintle plate. The pods are the same launchers a mech carries, which is
+(`mech-modular-topdown/srm-rack.png`) on a pintle plate. The pods are the same launchers a mech carries, which is
 what the hulls fire.
 
 Turret frames are drawn at the hull's own pixel scale, so each `VehicleType` sets turretVisualCells to its hull's
@@ -33,8 +33,8 @@ GRAPHICS = ROOT / "mod" / "graphics"
 VEHICLES = GRAPHICS / "battle" / "vehicles"
 APC = VEHICLES / "army-apc.png"
 TECHNICAL = VEHICLES / "militia-technical.png"
-LRM_POD = GRAPHICS / "battle" / "mech-modular-topdown" / "lrm-pod.png"
-SRM_POD = GRAPHICS / "battle" / "mech-modular-topdown" / "srm-pod.png"
+LRM_POD = GRAPHICS / "battle" / "mech-modular-topdown" / "lrm-rack.png"
+SRM_POD = GRAPHICS / "battle" / "mech-modular-topdown" / "srm-rack.png"
 
 SLOT_W, SLOT_H = 768, 576
 LIVE, TURRET, WRECK, WRECK_TURRET = 0, 1, 2, 3

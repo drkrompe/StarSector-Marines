@@ -74,12 +74,12 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
 
     private static final List<Case> CASES = List.of(
             new Case("rifle", null, 0, 0, true, false),
-            new Case("rocket-walking", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 3, 1, true, false),
-            new Case("rocket-standing", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 3, 1, false, false),
-            new Case("rocket-fired", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 3, 1, false, true),
+            new Case("rocket-walking", SpecialEquipmentRegistry.SRM_1_ID, 3, 1, true, false),
+            new Case("rocket-standing", SpecialEquipmentRegistry.SRM_1_ID, 3, 1, false, false),
+            new Case("rocket-fired", SpecialEquipmentRegistry.SRM_1_ID, 3, 1, false, true),
             new Case("amr-walking", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, true, false),
             new Case("amr-standing", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, false, false),
-            new Case("rocket-empty", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 0, 1, true, false),
+            new Case("rocket-empty", SpecialEquipmentRegistry.SRM_1_ID, 0, 1, true, false),
             new Case("flamer-walking", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, true, false),
             FLAMER_STREAMING);
 
@@ -92,8 +92,8 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
             new Case("flamer-first-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, true, 2),
             new Case("flamer-first-later-close", SpecialEquipmentRegistry.FLAMER_ID, 8, 1, false, true, 4),
             // The launcher and the anti-materiel rifle carried in their walking clips, and held at the aim.
-            new Case("rocket-walking-close", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 3, 1, true, false),
-            new Case("rocket-held-close", SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 3, 1, false, false),
+            new Case("rocket-walking-close", SpecialEquipmentRegistry.SRM_1_ID, 3, 1, true, false),
+            new Case("rocket-held-close", SpecialEquipmentRegistry.SRM_1_ID, 3, 1, false, false),
             new Case("amr-walking-close", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, true, false),
             new Case("amr-held-close", SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, false, false));
 
@@ -116,7 +116,7 @@ public final class MarineLeftSpecialSnapshotSuite implements SnapshotSuite {
             }
             artifacts.add(flamerSweep(renderer, context.modRoot()));
             artifacts.add(walkCycle(renderer, context.modRoot(), new Case("rocket-walk",
-                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 3, 1, true, false),
+                    SpecialEquipmentRegistry.SRM_1_ID, 3, 1, true, false),
                     "rocket-walk-close-1920x1080-ui100.gif"));
             artifacts.add(walkCycle(renderer, context.modRoot(), new Case("amr-walk",
                     SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID, 4, 1, true, false),

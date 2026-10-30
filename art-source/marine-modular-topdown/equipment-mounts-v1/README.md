@@ -4,7 +4,7 @@ The retained guides specify two independent north-forward, overhead accessories.
 ImageGen supplies their finished pixels. `make_guides.py` draws intermediate
 geometry only. Exact ImageGen prompts are retained beside their guide files.
 
-Retain accepted raw outputs as `missile-pod-source.png` and
+Retain accepted raw outputs as `srm-3-pod-source.png` and
 `screen-emitter-source.png`. Inspect both source images before exporting.
 `export_assets.py` measures generated alpha, normalizes the actual opaque bounds
 with uniform scaling, and writes the new `variants/equipment/` sprites plus measured source

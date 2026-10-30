@@ -205,7 +205,7 @@ final class LayeredUnitComposer {
         LayeredWeaponFamily weaponFamily = drawPrimaryLayers
                 ? LayeredWeaponFamily.fromPrimary(primary) : null;
         LayeredSpriteCache weapon = drawPrimaryLayers
-                ? (rocket ? assets.rocketLauncher
+                ? (rocket ? assets.srm1
                         : amr
                                 ? assets.antiMaterielRifle
                                 : assets.weapon(weaponFamily, equipmentGrade))
@@ -326,7 +326,7 @@ final class LayeredUnitComposer {
 
         LayerTransform primaryTransform = layer(authoredPose, "primary");
         if (primaryTransform == null && rocket) {
-            primaryTransform = layer(authoredPose, "rocket-launcher");
+            primaryTransform = layer(authoredPose, "srm-1");
         }
         if (drawPrimaryLayers && !overShoulder) {
             if (primaryTransform != null) {

@@ -20,8 +20,8 @@ def commercial_fit(variant):
             variant,
             arms="muster-autogun.png",
             arm_layout="dual-narrow",
-            left_pod="srm-3-qs-pod.png",
-            right_pod="srm-3-qs-pod.png",
+            left_pod="srm-3-qs.png",
+            right_pod="srm-3-qs.png",
             loadout="2x MUSTER AUTOGUN  /  SRM-3 (QS)  /  SRM-3 (QS)",
         )
     if variant.name == "HOUND":
@@ -29,7 +29,7 @@ def commercial_fit(variant):
             variant,
             arms="muster-autogun.png",
             arm_layout="nose",
-            left_pod="srm-3-qs-pod.png",
+            left_pod="srm-3-qs.png",
             right_pod=None,
             loadout="NOSE MUSTER AUTOGUN  /  SRM-3 (QS)",
         )
@@ -37,8 +37,8 @@ def commercial_fit(variant):
         variant,
         arms="quarry-breaker-cannon.png",
         arm_layout="nose-heavy",
-        left_pod="srm-3-qs-pod.png",
-        right_pod="srm-3-qs-pod.png",
+        left_pod="srm-3-qs.png",
+        right_pod="srm-3-qs.png",
         loadout="QUARRY BREAKER  /  SRM-3 (QS)  /  SRM-3 (QS)",
     )
 

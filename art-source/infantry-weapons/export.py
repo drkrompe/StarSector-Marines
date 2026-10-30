@@ -8,7 +8,7 @@ stock's cut-out, the gap between wire struts -- a reskin tends to fill those), t
 at its recorded rectangle and downsampled to the shipped sprite's exact size, which is the pose
 layouts' contract.
 
-  infantry-weapons.raw.png         rifle, smg, dmr, anti-materiel-rifle, rocket-launcher
+  infantry-weapons.raw.png         rifle, smg, dmr, anti-materiel-rifle, srm-1
                                    (its first pulse rifle is superseded by the laser sheet)
   infantry-weapons-grades.raw.png  the surplus rifle and masterwork DMR, reskins of the same frames
   infantry-weapons-laser.raw.png   the pulse rifle's second geometry: copper coils, contained glow
@@ -41,7 +41,7 @@ SHEETS = [
         'smg': WEAPONS / 'smg.png',
         'dmr': WEAPONS / 'dmr.png',
         'anti-materiel-rifle': WEAPONS / 'anti-materiel-rifle.png',
-        'rocket-launcher': WEAPONS / 'rocket-launcher.png',
+        'srm-1': WEAPONS / 'srm-1.png',
     }),
     ('infantry-weapons-grades', 'infantry-weapons-grades-guide.png', {
         'rifle': WEAPONS / 'grades/surplus/rifle.png',
@@ -51,7 +51,7 @@ SHEETS = [
         'laser-gun': WEAPONS / 'laser-gun.png',
     }),
     ('infantry-weapons-packed', 'infantry-weapons-packed-guide.png', {
-        'rocket-launcher-packed': WEAPONS / 'rocket-launcher-packed.png',
+        'srm-1-packed': WEAPONS / 'srm-1-packed.png',
     }),
 ]
 
@@ -80,7 +80,7 @@ ICON_SHEETS = [
         'laser-gun': ICONS / 'weapon-laser-gun.png',
         'smg': ICONS / 'weapon-smg.png',
         'dmr': ICONS / 'weapon-dmr.png',
-        'rocket-launcher': ICONS / 'special-rocket-launcher.png',
+        'srm-1': ICONS / 'special-srm-1.png',
     }),
     ('infantry-weapon-icons-amr', 'infantry-weapon-icons-amr-guide.png', {
         'anti-materiel-rifle': ICONS / 'special-anti-materiel-rifle.png',

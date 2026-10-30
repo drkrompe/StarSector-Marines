@@ -47,7 +47,7 @@ class CommandFrameDemolitionTest {
         BattleSimulation sim = sim();
         int sappers = squadOf(sim, 3, null, SpecialEquipmentRegistry.SATCHEL_CHARGE_ID, null);
         int riflemen = squadOf(sim, 9, null, null);
-        int rockets = squadOf(sim, 15, SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
+        int rockets = squadOf(sim, 15, SpecialEquipmentRegistry.SRM_1_ID);
 
         CommandFrame frame = CommandFrame.freeze(sim, Faction.MARINE, CommandTopology.freeze(sim),
                 new CommandAssignmentSnapshot(Map.of()));

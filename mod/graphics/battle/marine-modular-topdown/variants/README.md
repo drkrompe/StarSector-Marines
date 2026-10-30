@@ -27,8 +27,8 @@ silhouette, `art-source/infantry-weapons/export.py` writes these at their contra
 all seen from straight overhead, muzzle at the top edge):
 
 - `weapons/rifle.png` — FR-1 field rifle: vented handguard, top optic, solid stock.
-- `weapons/rocket-launcher.png` — olive tube, flared ends, sight housing on the right.
-- `weapons/rocket-launcher-packed.png` — the same tube capped and strapped, the launcher's
+- `weapons/srm-1.png` — olive tube, flared ends, sight housing on the right.
+- `weapons/srm-1-packed.png` — the same tube capped and strapped, the launcher's
   `packedLayer`: slung across the back whenever it is not being fired.
 - `weapons/laser-gun.png` — pulse rifle: copper focusing coils between radiator plates, glow
   only at the lens and two indicators.

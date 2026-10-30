@@ -83,7 +83,7 @@ public final class MechLocationalDamageScene implements BehaviorScene {
     private static final int SWEEP_SEEDS = 8;
 
     private static final String RIFLE = "weapon.field-rifle";
-    private static final String ROCKETS = "special.rocket-launcher";
+    private static final String ROCKETS = "special.srm-1";
     /**
      * Crippled means slowed, never planted: the fastest step a crippled Hound takes is at most its crawl
      * ({@link Crippled#SPEED_SHARE} of the fastest it stepped on whole legs), with this much headroom for

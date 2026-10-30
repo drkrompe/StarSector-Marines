@@ -235,8 +235,8 @@ public class BoundingOverwatchTest {
         BattleSimulation sim = openSim();
         long marine = sim.spawn(new EntitySpec("rocketeer", Faction.MARINE,
                 UnitType.MARINE, 10, 15));
-        sim.world().attachSpecialEquipment(marine, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
-                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).startingAmmo());
+        sim.world().attachSpecialEquipment(marine, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID),
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).startingAmmo());
         sim.spawn(MapTurret.create("turret", Faction.DEFENDER,
                 TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 20, 15));
 
@@ -279,7 +279,7 @@ public class BoundingOverwatchTest {
 
         long rocketeer = sim.spawn(new EntitySpec("rocketeer", Faction.MARINE,
                 UnitType.MARINE, 10, 15));
-        var rocket = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
+        var rocket = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID);
         sim.world().attachSpecialEquipment(rocketeer, rocket, rocket.startingAmmo());
         assertTrue(InfantryUnitPrep.tryHardenedOpportunity(rocketeer, sim),
                 "direct-fire anti-hardened equipment is exactly what the gate lets through");

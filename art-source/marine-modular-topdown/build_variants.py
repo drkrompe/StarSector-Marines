@@ -145,7 +145,7 @@ def main() -> None:
         return Image.open(weapons_dir / path).convert("RGBA")
 
     rifle = weapon("rifle.png")
-    rocket = weapon("rocket-launcher.png")
+    rocket = weapon("srm-1.png")
     laser = weapon("laser-gun.png")
     smg = weapon("smg.png")
     dmr = weapon("dmr.png")

@@ -13,7 +13,7 @@ hand for a primary, the shoulder for the launcher.
                                      packedFrames for the packed sheet.
   infantry-weapons-grades-guide.png  the rifle and DMR frames only (surplus and masterwork reskins).
   infantry-weapons-laser-guide.png   the pulse rifle's second geometry, on the first sheet's layout.
-  infantry-weapons-packed-guide.png  the rocket launcher stowed on the back (special.rocket-launcher's
+  infantry-weapons-packed-guide.png  the rocket launcher stowed on the back (special.srm-1's
                                      packedLayer), its own one-frame sheet.
 
 The surplus rifle and masterwork DMR reuse the rifle and DMR frames; they are reskins of the same
@@ -36,10 +36,10 @@ FRAMES = [
     ('smg', (23, 78), (0.5, 0.7449)),
     ('dmr', (16, 123), (0.5, 0.7449)),
     ('anti-materiel-rifle', (79, 144), (0.5, 0.75)),
-    ('rocket-launcher', (64, 156), (0.5, 0.5385)),
+    ('srm-1', (64, 156), (0.5, 0.5385)),
 ]
 # The launcher stowed on the back: its own sheet, at the packed layer's carrier size.
-PACKED_FRAMES = [('rocket-launcher-packed', (45, 144), (0.5, 0.5))]
+PACKED_FRAMES = [('srm-1-packed', (45, 144), (0.5, 0.5))]
 
 # Guide greys: each distinct part a distinct tone, so the reskin can tell them apart.
 DARK = '#2b3034'      # barrel steel, grips, rails
@@ -209,7 +209,7 @@ def anti_materiel_rifle(p):
     p.bar(18, 139, 144, DARK, 1.5)                # recoil pad
 
 
-def rocket_launcher(p):
+def srm_1(p):
     """Shoulder rocket launcher: a straight tube with a flared muzzle and rear venturi, the sight and
     trigger housing on the right side, a shoulder pad at the pivot. Hazard bands at both ends."""
     p.bar(40, 0, 14, DARK, 4)                     # front flare
@@ -228,7 +228,7 @@ def rocket_launcher(p):
     p.bar(34, 147, 154, '#1a1d1f', 3)
 
 
-def rocket_launcher_packed(p):
+def srm_1_packed(p):
     """The launcher stowed across the wearer's back: the same tube with both ends capped, two webbing
     straps crossing it with buckles, the sight housing folded flat along the right side. Drawn at its
     own carrier size; the packed layer slings it diagonally over the body."""
@@ -246,8 +246,8 @@ def rocket_launcher_packed(p):
 
 DRAW = {
     'rifle': rifle, 'laser-gun': laser_gun, 'smg': smg, 'dmr': dmr,
-    'anti-materiel-rifle': anti_materiel_rifle, 'rocket-launcher': rocket_launcher,
-    'rocket-launcher-packed': rocket_launcher_packed,
+    'anti-materiel-rifle': anti_materiel_rifle, 'srm-1': srm_1,
+    'srm-1-packed': srm_1_packed,
 }
 
 

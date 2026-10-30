@@ -69,7 +69,7 @@ public final class PodBattleSnapshotSuite implements SnapshotSuite {
                 impacts.feed(sim);
                 int capturedTick = tick + 1;
                 String podWeapon = SpecialEquipmentRegistry.require(
-                        SpecialEquipmentRegistry.MISSILE_POD_ID).weaponId();
+                        SpecialEquipmentRegistry.SRM_3_POD_ID).weaponId();
                 if (firstDetailTick < 0) {
                     for (ShotEvent shot : sim.getShotsThisFrame()) {
                         if (shot.shooterFaction != Faction.MARINE || shot.shooterId == 0L

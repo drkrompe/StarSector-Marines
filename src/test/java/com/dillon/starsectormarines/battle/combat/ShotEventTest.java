@@ -37,7 +37,7 @@ class ShotEventTest {
     @Test
     void antiMaterielReportLocalizesTheShotWithoutRevealingAnUnseenCarrier() {
         ShotEvent amr = specialShot(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), 42L);
-        ShotEvent rocket = specialShot(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 42L);
+        ShotEvent rocket = specialShot(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), 42L);
 
         assertEquals(0L, amr.audibleSourceUnitId());
         assertEquals(42L, rocket.audibleSourceUnitId(),

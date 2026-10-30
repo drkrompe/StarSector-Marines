@@ -207,7 +207,7 @@
           "aptitude": "STEADY",
           "experienceXp": 100
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 9,
@@ -455,7 +455,7 @@
           "aptitude": "STEADY",
           "experienceXp": 100
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 70,
@@ -1261,7 +1261,7 @@
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -1385,7 +1385,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -1509,7 +1509,7 @@
           "aptitude": "EXCEPTIONAL",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -1540,7 +1540,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 50,
@@ -1881,7 +1881,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 85,
@@ -2997,7 +2997,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -3555,7 +3555,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 55,
@@ -3803,7 +3803,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 8,
@@ -4237,7 +4237,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 85,
@@ -4361,7 +4361,7 @@
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 85,
@@ -4485,7 +4485,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 85,
@@ -4516,7 +4516,7 @@
           "aptitude": "LIMITED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 85,
@@ -5043,7 +5043,7 @@
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 70,
@@ -5291,7 +5291,7 @@
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -5725,7 +5725,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -5849,7 +5849,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -5973,7 +5973,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -6004,7 +6004,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 50,
@@ -6717,7 +6717,7 @@
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 55,
@@ -6903,7 +6903,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -7151,7 +7151,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 8,
@@ -7461,7 +7461,7 @@
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 6,
@@ -8329,7 +8329,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -8453,7 +8453,7 @@
           "aptitude": "LIMITED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -8577,7 +8577,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -8608,7 +8608,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 50,
@@ -9817,7 +9817,7 @@
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -9941,7 +9941,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -10065,7 +10065,7 @@
           "aptitude": "GIFTED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -10096,7 +10096,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -10437,7 +10437,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -10995,7 +10995,7 @@
           "aptitude": "GIFTED",
           "experienceXp": 100
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 9,
@@ -11243,7 +11243,7 @@
           "aptitude": "GIFTED",
           "experienceXp": 100
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -11305,7 +11305,7 @@
           "aptitude": "LIMITED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -11429,7 +11429,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -11553,7 +11553,7 @@
           "aptitude": "LIMITED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -11584,7 +11584,7 @@
           "aptitude": "STEADY",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 50,
@@ -12483,7 +12483,7 @@
           "aptitude": "EXCEPTIONAL",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       },
       {
         "armorCapacity": 60,
@@ -12731,7 +12731,7 @@
           "aptitude": "LIMITED",
           "experienceXp": 800
         },
-        "specialEquipmentId": "special.rocket-launcher"
+        "specialEquipmentId": "special.srm-1"
       }
     ],
     "playerShuttleMissionsToSkip": 0

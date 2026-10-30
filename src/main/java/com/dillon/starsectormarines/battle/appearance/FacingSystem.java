@@ -328,15 +328,15 @@ public final class FacingSystem {
                 : LayeredAppearance.locomotionPhase(moving ? gaitPhase[row] : 0f);
 
         MechWeaponMount arms = activeArm(loadout);
-        MechWeaponMount srm = representativeMount(loadout, WeaponRegistry.MECH_SRM_POD_ID);
+        MechWeaponMount srm = representativeMount(loadout, WeaponRegistry.MECH_SRM_ID);
         if (srm == null) {
             srm = representativeMount(loadout, WeaponRegistry.MECH_SRM_3_QS_ID);
         }
-        MechWeaponMount lrm = representativeMount(loadout, WeaponRegistry.MECH_LRM_ARTILLERY_ID);
+        MechWeaponMount lrm = representativeMount(loadout, WeaponRegistry.MECH_LRM_ID);
         boolean chaingunActive = arms != null && arms.firing();
-        boolean srmActive = activeMount(loadout, WeaponRegistry.MECH_SRM_POD_ID) != null
+        boolean srmActive = activeMount(loadout, WeaponRegistry.MECH_SRM_ID) != null
                 || activeMount(loadout, WeaponRegistry.MECH_SRM_3_QS_ID) != null;
-        boolean lrmActive = activeMount(loadout, WeaponRegistry.MECH_LRM_ARTILLERY_ID) != null;
+        boolean lrmActive = activeMount(loadout, WeaponRegistry.MECH_LRM_ID) != null;
         chaingunPhase[row] = trackPhase(arms);
         srmPhase[row] = trackPhase(srm);
         lrmPhase[row] = trackPhase(lrm);
@@ -347,11 +347,11 @@ public final class FacingSystem {
         if (srmActive) authoredFlags |= LayeredMechAppearance.FLAG_SRM_ACTIVE;
         if (lrmActive) authoredFlags |= LayeredMechAppearance.FLAG_LRM_ACTIVE;
         if (anyArmFlash(loadout)) authoredFlags |= LayeredMechAppearance.FLAG_CHAINGUN_FLASH;
-        if (anyTrackFlash(loadout, WeaponRegistry.MECH_SRM_POD_ID)
+        if (anyTrackFlash(loadout, WeaponRegistry.MECH_SRM_ID)
                 || anyTrackFlash(loadout, WeaponRegistry.MECH_SRM_3_QS_ID)) {
             authoredFlags |= LayeredMechAppearance.FLAG_SRM_FLASH;
         }
-        if (anyTrackFlash(loadout, WeaponRegistry.MECH_LRM_ARTILLERY_ID)) {
+        if (anyTrackFlash(loadout, WeaponRegistry.MECH_LRM_ID)) {
             authoredFlags |= LayeredMechAppearance.FLAG_LRM_FLASH;
         }
         if (anyTrackFlash(loadout, WeaponRegistry.MECH_SHOULDER_LASER_ID)) {
@@ -386,8 +386,8 @@ public final class FacingSystem {
 
     /** An SRM or LRM family id stands for every warhead of that rack. */
     private static boolean sameRack(String mountWeaponId, String weaponId) {
-        if (WeaponRegistry.MECH_SRM_POD_ID.equals(weaponId)) return WeaponRegistry.isMechSrm(mountWeaponId);
-        if (WeaponRegistry.MECH_LRM_ARTILLERY_ID.equals(weaponId)) return WeaponRegistry.isMechLrm(mountWeaponId);
+        if (WeaponRegistry.MECH_SRM_ID.equals(weaponId)) return WeaponRegistry.isMechSrm(mountWeaponId);
+        if (WeaponRegistry.MECH_LRM_ID.equals(weaponId)) return WeaponRegistry.isMechLrm(mountWeaponId);
         return mountWeaponId.equals(weaponId);
     }
 

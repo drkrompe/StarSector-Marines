@@ -49,10 +49,10 @@ class ArmorReportTest {
     void weaponsAreRankedByDamageShareWithHitRate() {
         Map<String, ArmorPlay.WeaponStats> weapons = new LinkedHashMap<>();
         weapons.put("mech-chaingun", new ArmorPlay.WeaponStats(100, 25, 150f));
-        weapons.put("mech-srm-pod", new ArmorPlay.WeaponStats(20, 10, 350f));
-        weapons.put("mech-lrm-artillery", new ArmorPlay.WeaponStats(4, 0, 0f));
+        weapons.put("mech-srm", new ArmorPlay.WeaponStats(20, 10, 350f));
+        weapons.put("mech-lrm", new ArmorPlay.WeaponStats(4, 0, 0f));
         weapons.put("mech-heavy-cannon", new ArmorPlay.WeaponStats(2, 0, 0f));
-        assertEquals("mech-srm-pod 70% (h 50%), mech-chaingun 30% (h 25%), mech-lrm-artillery 0% (h 0%)",
+        assertEquals("mech-srm 70% (h 50%), mech-chaingun 30% (h 25%), mech-lrm 0% (h 0%)",
                 ArmorReport.weaponText(weapons));
         assertEquals("-", ArmorReport.weaponText(Map.of()));
     }

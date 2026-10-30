@@ -85,7 +85,7 @@ class EquipmentTemplateCatalogTest {
         assertEquals(EquipmentTemplateCost.ZERO, EquipmentTemplateCatalog.primary(
                 WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), EquipmentGrade.SERVICE).issueCost());
         assertEquals(EquipmentTemplateCost.ZERO,
-                EquipmentTemplateCatalog.special(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)).issueCost());
+                EquipmentTemplateCatalog.special(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID)).issueCost());
         assertEquals(EquipmentAccessTier.COMMON, EquipmentTemplateCatalog.primary(
                 WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE).accessTier());
         assertEquals(EquipmentAccessTier.PRESTIGE, EquipmentTemplateCatalog.primary(

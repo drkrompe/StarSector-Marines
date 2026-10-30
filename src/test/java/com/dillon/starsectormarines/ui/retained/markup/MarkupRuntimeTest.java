@@ -206,7 +206,7 @@ class MarkupRuntimeTest {
     @Test
     void imagesBindTheirSourceAndTreatNothingAsNothing() {
         Reactor values = new Reactor();
-        MutableSignal<String> icon = values.signal("graphics/ui/armory/system-missile-pod.png");
+        MutableSignal<String> icon = values.signal("graphics/ui/armory/special-srm-3-pod.png");
         MarkupLoader loader = loader("icon-view.mlx", """
                 <template props="icon">
                   <div id="root">
@@ -219,7 +219,7 @@ class MarkupRuntimeTest {
         try (MarkupInstance instance = loader.build(values, "icon-view", Map.of("icon", icon))) {
             UiElement badge = instance.requireElement("badge");
             assertEquals(UiTag.IMAGE, badge.tag());
-            assertEquals("graphics/ui/armory/system-missile-pod.png", badge.imageSource());
+            assertEquals("graphics/ui/armory/special-srm-3-pod.png", badge.imageSource());
             assertEquals(0, badge.childCount());
             assertNull(badge.text(), "an image is not a text node");
             assertNull(instance.requireElement("absent").imageSource());

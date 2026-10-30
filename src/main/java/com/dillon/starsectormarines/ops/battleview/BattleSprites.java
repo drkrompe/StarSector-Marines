@@ -1109,7 +1109,7 @@ public class BattleSprites {
                 MODULAR_ROOT + "weapons/grades/surplus/rifle.png");
         LayeredSpriteCache masterworkDmr = loadLayeredSprite(
                 MODULAR_ROOT + "weapons/grades/masterwork/dmr.png");
-        LayeredSpriteCache rocket = loadLayeredSprite(MODULAR_ROOT + "weapons/rocket-launcher.png");
+        LayeredSpriteCache rocket = loadLayeredSprite(MODULAR_ROOT + "weapons/srm-1.png");
         LayeredSpriteCache amr = loadLayeredSprite(MODULAR_ROOT + "weapons/anti-materiel-rifle.png");
         LayeredSpriteCache flash = loadLayeredSprite(
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
@@ -1130,7 +1130,7 @@ public class BattleSprites {
             for (SpecialEquipmentDef def : equipmentRegistry.all()) {
                 EquipmentLayerDef layer = def.presentation().carrierLayer();
                 if (layer == null) continue;
-                LayeredSpriteCache sprite = def.id().equals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)
+                LayeredSpriteCache sprite = def.id().equals(SpecialEquipmentRegistry.SRM_1_ID)
                         ? rocket : def.id().equals(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)
                                 ? amr : loadLayeredSprite(layer.spritePath());
                 if (sprite != null) specialEquipmentLayers.put(def.id(), sprite);
@@ -1324,8 +1324,8 @@ public class BattleSprites {
         LayeredSpriteCache arm = loadLayeredSprite(root + "chaingun-arm.png");
         LayeredSpriteCache linearCannon = loadLayeredSprite(root + "linear-cannon-variant.png");
         LayeredSpriteCache heavyCannon = loadLayeredSprite(root + "heavy-cannon.png");
-        LayeredSpriteCache srm = loadLayeredSprite(root + "srm-pod.png");
-        LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-pod.png");
+        LayeredSpriteCache srm = loadLayeredSprite(root + "srm-rack.png");
+        LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-rack.png");
         LayeredSpriteCache shoulderLaser = loadLayeredSprite(root + "shoulder-laser-cannon.png");
         LayeredSpriteCache pulseLaserArm = loadLayeredSprite(root + "pulse-laser-arm.png");
         LayeredSpriteCache bastionAutocannon = loadLayeredSprite(
@@ -1338,7 +1338,7 @@ public class BattleSprites {
         LayeredSpriteCache quarryBreakerCannon = loadLayeredSprite(
                 root + "quarry-breaker-cannon.png");
         LayeredSpriteCache srm3QsPod = loadLayeredSprite(
-                root + "srm-3-qs-pod.png");
+                root + "srm-3-qs.png");
         LayeredSpriteCache lightMachineGun = loadLayeredSprite(root + "light-machine-gun.png");
         LayeredSpriteCache lightPulseLaser = loadLayeredSprite(root + "light-pulse-laser.png");
         LayeredSpriteCache burstLaser = loadLayeredSprite(root + "burst-laser.png");
@@ -1401,8 +1401,8 @@ public class BattleSprites {
         LayeredSpriteCache arm = loadLayeredSprite(root + "chaingun-arm.png");
         LayeredSpriteCache linearCannon = loadLayeredSprite(root + "linear-cannon-variant.png");
         LayeredSpriteCache heavyCannon = loadLayeredSprite(root + "heavy-cannon.png");
-        LayeredSpriteCache srm = loadLayeredSprite(root + "srm-pod.png");
-        LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-pod.png");
+        LayeredSpriteCache srm = loadLayeredSprite(root + "srm-rack.png");
+        LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-rack.png");
         LayeredSpriteCache shoulderLaser = loadLayeredSprite(root + "shoulder-laser-cannon.png");
         LayeredSpriteCache pulseLaserArm = loadLayeredSprite(root + "pulse-laser-arm.png");
         LayeredSpriteCache bastionAutocannon = loadLayeredSprite(
@@ -1415,7 +1415,7 @@ public class BattleSprites {
         LayeredSpriteCache quarryBreakerCannon = loadLayeredSprite(
                 root + "quarry-breaker-cannon.png");
         LayeredSpriteCache srm3QsPod = loadLayeredSprite(
-                root + "srm-3-qs-pod.png");
+                root + "srm-3-qs.png");
         LayeredSpriteCache lightMachineGun = loadLayeredSprite(root + "light-machine-gun.png");
         LayeredSpriteCache lightPulseLaser = loadLayeredSprite(root + "light-pulse-laser.png");
         LayeredSpriteCache burstLaser = loadLayeredSprite(root + "burst-laser.png");

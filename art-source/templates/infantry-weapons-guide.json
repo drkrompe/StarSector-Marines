@@ -87,7 +87,7 @@
       ]
     },
     {
-      "name": "rocket-launcher",
+      "name": "srm-1",
       "size": [
         64,
         156
@@ -106,7 +106,7 @@
   ],
   "packedFrames": [
     {
-      "name": "rocket-launcher-packed",
+      "name": "srm-1-packed",
       "size": [
         45,
         144

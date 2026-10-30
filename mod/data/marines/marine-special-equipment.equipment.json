@@ -1,16 +1,16 @@
 {
   "equipment": [
     {
-      "id": "special.scrap-rocket",
+      "id": "special.srm-1-qs",
       "catalog": {
-        "displayName": "@gearCatalogSpecialScrapRocketDisplayName",
-        "subtitle": "@gearCatalogSpecialScrapRocketSubtitle",
+        "displayName": "@gearCatalogSpecialSrm1QsDisplayName",
+        "subtitle": "@gearCatalogSpecialSrm1QsSubtitle",
         "factionLogo": "graphics/factions/hegemony.png",
-        "description": "@gearCatalogSpecialScrapRocketDescription"
+        "description": "@gearCatalogSpecialSrm1QsDescription"
       },
       "activation": {
         "type": "direct-explosive",
-        "weaponId": "weapon.scrap-rocket"
+        "weaponId": "weapon.srm-1-qs"
       },
       "resource": {
         "mode": "ammunition",
@@ -20,11 +20,11 @@
         "policy": "hardened-direct-fire"
       },
       "presentation": {
-        "armoryIcon": "graphics/ui/armory/special-rocket-launcher.png",
+        "armoryIcon": "graphics/ui/armory/special-srm-1.png",
         "armoryIconLie": 32,
         "usePose": "shoulder-launcher",
         "carrierLayer": {
-          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
+          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/srm-1.png",
           "widthShoulders": 0.4267,
           "heightShoulders": 1.04,
           "pivot": [
@@ -52,7 +52,7 @@
           "replacePrimaryWhileUsing": true
         },
         "packedLayer": {
-          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher-packed.png",
+          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/srm-1-packed.png",
           "attachment": "body",
           "widthShoulders": 0.30,
           "heightShoulders": 0.96,
@@ -74,16 +74,16 @@
       }
     },
     {
-      "id": "special.rocket-launcher",
+      "id": "special.srm-1",
       "catalog": {
-        "displayName": "@gearCatalogSpecialRocketLauncherDisplayName",
-        "subtitle": "@gearCatalogSpecialRocketLauncherSubtitle",
+        "displayName": "@gearCatalogSpecialSrm1DisplayName",
+        "subtitle": "@gearCatalogSpecialSrm1Subtitle",
         "factionLogo": "graphics/factions/hegemony.png",
-        "description": "@gearCatalogSpecialRocketLauncherDescription"
+        "description": "@gearCatalogSpecialSrm1Description"
       },
       "activation": {
         "type": "direct-explosive",
-        "weaponId": "weapon.annihilator-launcher"
+        "weaponId": "weapon.srm-1"
       },
       "resource": {
         "mode": "ammunition",
@@ -93,11 +93,11 @@
         "policy": "hardened-direct-fire"
       },
       "presentation": {
-        "armoryIcon": "graphics/ui/armory/special-rocket-launcher.png",
+        "armoryIcon": "graphics/ui/armory/special-srm-1.png",
         "armoryIconLie": 32,
         "usePose": "shoulder-launcher",
         "carrierLayer": {
-          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png",
+          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/srm-1.png",
           "widthShoulders": 0.4267,
           "heightShoulders": 1.04,
           "pivot": [0.5, 0.5385],
@@ -116,7 +116,7 @@
           "replacePrimaryWhileUsing": true
         },
         "packedLayer": {
-          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher-packed.png",
+          "sprite": "graphics/battle/marine-modular-topdown/variants/weapons/srm-1-packed.png",
           "attachment": "body",
           "widthShoulders": 0.30,
           "heightShoulders": 0.96,
@@ -138,16 +138,16 @@
       }
     },
     {
-      "id": "special.missile-pod",
+      "id": "special.srm-3-pod",
       "catalog": {
-        "displayName": "@gearCatalogSpecialMissilePodDisplayName",
-        "subtitle": "@gearCatalogSpecialMissilePodSubtitle",
+        "displayName": "@gearCatalogSpecialSrm3PodDisplayName",
+        "subtitle": "@gearCatalogSpecialSrm3PodSubtitle",
         "factionLogo": "graphics/factions/tritachyon.png",
-        "description": "@gearCatalogSpecialMissilePodDescription"
+        "description": "@gearCatalogSpecialSrm3PodDescription"
       },
       "activation": {
         "type": "shoulder-pod",
-        "weaponId": "weapon.micro-missile",
+        "weaponId": "weapon.srm-3-pod",
         "minimumStandoffCells": 6.0,
         "squadSalvoIntervalSeconds": 1.5,
         "mount": { "rightCells": -0.1408164, "forwardCells": 0.0036625, "muzzleForwardCells": 0.114 }
@@ -160,10 +160,10 @@
         "policy": "sighted-standoff-contact"
       },
       "presentation": {
-        "armoryIcon": "graphics/ui/armory/system-missile-pod.png",
+        "armoryIcon": "graphics/ui/armory/special-srm-3-pod.png",
         "usePose": "shoulder-mount",
         "carrierLayer": {
-          "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png",
+          "sprite": "graphics/battle/marine-modular-topdown/variants/equipment/srm-3-pod.png",
           "attachment": "left-shoulder",
           "widthShoulders": 0.32,
           "heightShoulders": 0.48,
@@ -179,7 +179,7 @@
       "id": "special.anti-materiel-rifle",
       "catalog": {
         "displayName": "@gearCatalogSpecialAntiMaterielRifleDisplayName",
-        "subtitle": "@gearCatalogSpecialRocketLauncherSubtitle",
+        "subtitle": "@gearCatalogSpecialSrm1Subtitle",
         "factionLogo": "graphics/factions/tritachyon.png",
         "description": "@gearCatalogSpecialAntiMaterielRifleDescription"
       },

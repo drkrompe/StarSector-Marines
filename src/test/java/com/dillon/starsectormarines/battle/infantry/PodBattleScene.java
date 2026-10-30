@@ -38,7 +38,7 @@ import java.util.Set;
 
 /**
  * Ordinary catalog actors walking into a finite firefight; no balance claim. The Arbalest squad
- * carries the SRM-POD shoulder pod as its billet special.
+ * carries the SRM-3 (Pod) shoulder pod as its billet special.
  */
 public final class PodBattleScene implements BehaviorScene {
     public static final int WIDTH = 112;
@@ -102,7 +102,7 @@ public final class PodBattleScene implements BehaviorScene {
             MarineArmorCatalogDef pod = catalog.get(POD_ARMOR);
             MarineArmorCatalogDef regular = catalog.get(REGULAR_ARMOR);
             Map<String, List<Long>> groups = new LinkedHashMap<>();
-            SpecialEquipmentDef podItem = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.MISSILE_POD_ID);
+            SpecialEquipmentDef podItem = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_3_POD_ID);
             groups.put("pod", spawn(sim, "Arbalest", Faction.MARINE, pod, podItem, 18, 13, false));
             groups.put("regular", spawn(sim, "Legionary", Faction.MARINE, regular, null, 18, 25, false));
             groups.put("hound", List.of(scene.members("hound")[0]));
@@ -328,7 +328,7 @@ public final class PodBattleScene implements BehaviorScene {
 
     private static String caption(int tick) {
         return String.format(Locale.ROOT,
-                "%.1fs | Arbalest battlesuits with SRM-POD + Legionary marines + Hound | Real orders and combat | 1x simulation",
+                "%.1fs | Arbalest battlesuits with SRM-3 (Pod) + Legionary marines + Hound | Real orders and combat | 1x simulation",
                 tick / 30f);
     }
 }

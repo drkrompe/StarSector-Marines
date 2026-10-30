@@ -25,7 +25,7 @@ OUT = ROOT / 'art-source/templates'
 SCALE = 8
 GUTTER = 64
 UNITS = (100, 36)
-FRAMES = ['rifle', 'laser-gun', 'smg', 'dmr', 'rocket-launcher', 'anti-materiel-rifle']
+FRAMES = ['rifle', 'laser-gun', 'smg', 'dmr', 'srm-1', 'anti-materiel-rifle']
 
 DARK = '#2b3034'
 MID = '#5d666c'
@@ -152,7 +152,7 @@ def dmr(p):
         p.box(x, 7, x + 2.2, 18, PALE, 0.6)                           # rail braces
 
 
-def rocket_launcher(p):
+def srm_1(p):
     """Shoulder rocket launcher: olive tube with hazard bands, flared muzzle and rear venturi, sight
     housing on top, trigger grip and fore grip below, shoulder pad and folding front sight."""
     p.box(0, 4.5, 8, 27.5, DARK, 1.5)                                 # rear venturi
@@ -197,7 +197,7 @@ def anti_materiel_rifle(p):
 
 
 DRAW = {'rifle': rifle, 'laser-gun': laser_gun, 'smg': smg, 'dmr': dmr,
-        'rocket-launcher': rocket_launcher, 'anti-materiel-rifle': anti_materiel_rifle}
+        'srm-1': srm_1, 'anti-materiel-rifle': anti_materiel_rifle}
 
 
 def layout():

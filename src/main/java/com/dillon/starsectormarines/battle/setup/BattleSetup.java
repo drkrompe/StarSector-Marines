@@ -2754,7 +2754,7 @@ public final class BattleSetup {
                 var raider = makeOpeningMilitia("freight-road-raider-" + reserve.size(), Faction.DEFENDER,
                         cell[0], cell[1], rng).role(UnitRole.PATROL);
                 if (member < ThunderRunPacing.rocketCarriers(batch))
-                    raider.specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SCRAP_ROCKET_ID), 2);
+                    raider.specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_QS_ID), 2);
                 reserve.add(raider);
                 member++;
             }

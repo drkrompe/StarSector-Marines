@@ -5,7 +5,7 @@ Status: ACTIVE — canonical provenance and faction-fit reference for shipped Ma
 Written: 2026-08-26
 
 Updated: 2026-10-22 — added the naming guide (faction schemes and grade marks) and moved Luddic, Lion's Guard and pirate kit onto it.
-cannon, and SRM-3 (QS) rocket pod (the QuickSell budget SRM) as lower-performance mech components
+cannon, and SRM-3 (QS) rack (the QuickSell budget SRM) as lower-performance mech components
 whose circulation does not make them faction defaults.
 
 Read `faction-lore-nouns.md` for evidence tiers and the individual faction guides
@@ -80,7 +80,7 @@ Laws:
 
 | Stable id | Shipped identity and origin | Credible circulation | Deliberate limits |
 | --- | --- | --- | --- |
-| `special.rocket-launcher` | **RKT-1 Annihilator rocket launcher** — a Hegemony cut-down of an old Domain rocket cassette, copied throughout low-tech arsenals. | Hegemony, League, Church, Knights, Diktat, Independent contractors, and recovered outlaw stocks. | Tri-Tachyon may use compact precision alternatives; Path and pirate use should be scarce recovery rather than clean licensed supply. |
+| `special.srm-1` | **SRM-1** (Annihilator pattern rocket launcher) — a Hegemony cut-down of an old Domain rocket cassette, copied throughout low-tech arsenals. | Hegemony, League, Church, Knights, Diktat, Independent contractors, and recovered outlaw stocks. | Tri-Tachyon may use compact precision alternatives; Path and pirate use should be scarce recovery rather than clean licensed supply. |
 | `special.anti-materiel-rifle` | **AMR-1 Breachlight** — a Tri-Tachyon magnetic anti-materiel rifle. | Corporate security, selected Hegemony or Lion's Guard patron issue, expensive League or Independent recovery. | Church, Path, and pirate markets do not receive an equivalent precision AMR by default. |
 | `special.smoke-grenade` | **Wayfarer multispectral smoke** — a League interoperability answer to mismatched coalition optics. | League and Independent markets; corporate reconnaissance and specialist recovery elsewhere. | Smoke remains faction-neutral in simulation; availability does not grant a hidden optical advantage. |
 | `special.frag-grenade` | **FRG-1 Shattercap** — a compact Kazeron security grenade whose specification leaked widely. | League, Diktat, Independent, pirate, and Pather circulation. | It remains anti-personnel ordnance, not a faction-specific wall breacher or universal heavy weapon. |
@@ -100,7 +100,7 @@ channel among manufacture, trade, capture, and black-market resale.
 | --- | --- | --- | --- |
 | `weapon.mech-muster-autogun` | **CAG-6 Muster commercial autogun** — a mass-market convoy and settlement-security weapon assembled around commodity receivers and exposed feeds. | Independent commercial worlds, local militias, auxiliaries, contractors, and captured pirate or Pather stocks. | Shorter-ranged, less accurate, less penetrating, and far less saturating than military chainguns or autocannons. It is common-market hardware, not Independent faction issue. |
 | `weapon.mech-quarry-breaker` | **QBC-2 Quarry breaker cannon** — a mining and demolition projector pressed into battlefield service. | Industrial markets, remote extraction works, breaker yards, contractors, and outlaw conversions or recovery. | A crude short-range structural hit with poor accuracy, low armor penetration, slow cycling, and a tiny finite shell bin. Its wall damage does not make it a military Foundry Breaker equivalent. |
-| `weapon.mech-srm-3-qs` | **SRM-3 (QS) rocket pod** — the QuickSell line: a smaller, cheaper SRM for militia and security units, made by cutting the sealed SRM pod back until it could be stamped and welded in bulk (no boost motor, no armoured warhead fuse, no sealed housing, loose tubes on an open shoulder rail). Cheaper, smaller and worse is the QuickSell gimmick. | Militia and security units, frontier and industrial markets, contractors, and recovered outlaw use. | Three straight-fire rockets per trigger, three salvos, loose dispersion, and no military boost guidance or indirect-fire capability. It is weaker and more exposed than a sealed SRM pod. |
+| `weapon.mech-srm-3-qs` | **SRM-3 (QS)** — the QuickSell line: a smaller, cheaper SRM for militia and security units, made by cutting the sealed SRM rack back until it could be stamped and welded in bulk (no boost motor, no armoured warhead fuse, no sealed housing, loose tubes on an open shoulder rail). Cheaper, smaller and worse is the QuickSell gimmick. | Militia and security units, frontier and industrial markets, contractors, and recovered outlaw use. | Three straight-fire rockets per trigger, three salvos, loose dispersion, and no military boost guidance or indirect-fire capability. It is weaker and more exposed than a sealed SRM pod. |
 
 All three are valid future subsystem-inventory or market stock. None belongs in
 `FactionMechLoadouts` merely because a faction can plausibly buy, capture, or
@@ -187,7 +187,7 @@ the shield (`integral-system-slate.md`).
 **Payload delivery is not a role signature, and not a suit's either.** Faction
 lore carries micro-missile support across Hegemony, League, and Tri-Tachyon
 traditions alike. It was once the Aegis composite's integral system (and the
-Packframe's and the Arbalests'); it is now the **SRM-POD**, a Tri-Tachyon-pattern
+Packframe's and the Arbalests'); it is now the **SRM-3 (Pod)**, a Tri-Tachyon-pattern
 shoulder pod issued as a billet's carried special, so any section's weapons card
 can hand it to a rifleman who keeps shooting while it fires.
 

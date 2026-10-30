@@ -17,7 +17,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class CarriedSpecialsTest {
     private static final SpecialEquipmentDef FRAG = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.FRAG_GRENADE_ID);
     private static final SpecialEquipmentDef SMOKE = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID);
-    private static final SpecialEquipmentDef ROCKET = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
+    private static final SpecialEquipmentDef ROCKET = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID);
 
     private final UnitRosterService roster = new UnitRosterService(new UnitSpatialIndex(10, 10), null);
     private final World world = roster.world();

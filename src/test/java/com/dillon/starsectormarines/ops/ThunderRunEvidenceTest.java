@@ -279,7 +279,7 @@ class ThunderRunEvidenceTest {
                                 .put("x", body.x).put("y", body.y));
                     }
                     for (var shot : sim.getShotsThisFrame())
-                        if (shot.weaponDef() != null && "weapon.scrap-rocket".equals(shot.weaponDef().id)) openingRocketShots++;
+                        if (shot.weaponDef() != null && "weapon.srm-1-qs".equals(shot.weaponDef().id)) openingRocketShots++;
                     if (rearStart < 0 && sim.getStoryBeats().stream().anyMatch(e -> e.id().endsWith("road_batch_" + ThunderRunPacing.FIRST_REAR_BATCH))) {
                         rearStart = tick;
                         for (long gun : measuredGuns) rearGunRounds.put(gun, sim.telemetry().roundsFired(gun));

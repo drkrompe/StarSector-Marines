@@ -79,8 +79,8 @@
     { "equipmentId": "armor.corpsman", "accessTier": "prestige", "issueCost": {} }
   ],
   "specialEquipment": [
-    { "equipmentId": "special.rocket-launcher", "accessTier": "advanced", "issueCost": {} },
-    { "equipmentId": "special.missile-pod", "accessTier": "advanced", "issueCost": {} },
+    { "equipmentId": "special.srm-1", "accessTier": "advanced", "issueCost": {} },
+    { "equipmentId": "special.srm-3-pod", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "special.anti-materiel-rifle", "accessTier": "advanced", "issueCost": {} },
     { "equipmentId": "special.smoke-grenade", "accessTier": "common", "issueCost": {} },
     { "equipmentId": "special.satchel-charge", "accessTier": "common", "issueCost": {} },
@@ -103,7 +103,7 @@
     },
     {
       "kind": "special",
-      "equipmentId": "special.scrap-rocket",
+      "equipmentId": "special.srm-1-qs",
       "reason": "Workshop ammunition issued only to authored raider forces; no company acquisition is offered."
     },
     {

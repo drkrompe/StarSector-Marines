@@ -678,7 +678,7 @@ public class TacticalScoringTest {
         long rocketeer = unit(sim, Faction.MARINE, 5, 5);
         sim.combat().setPrimaryWeapon(rocketeer, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
         sim.world().setAttackRange(rocketeer, 40f);
-        sim.world().attachSpecialEquipment(rocketeer, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 3);
+        sim.world().attachSpecialEquipment(rocketeer, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), 3);
 
         long infantry = unit(sim, Faction.DEFENDER, 10, 5);
         long mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
@@ -729,7 +729,7 @@ public class TacticalScoringTest {
         long dryRocketeer = unit(sim, Faction.MARINE, 5, 5);
         sim.combat().setPrimaryWeapon(dryRocketeer, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
         sim.world().setAttackRange(dryRocketeer, 40f);
-        sim.world().attachSpecialEquipment(dryRocketeer, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 0);
+        sim.world().attachSpecialEquipment(dryRocketeer, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), 0);
 
         long infantry = unit(sim, Faction.DEFENDER, 10, 5);
         long mech = unit(sim, Faction.DEFENDER, UnitType.HEAVY_MECH, 20, 5);
@@ -844,8 +844,8 @@ public class TacticalScoringTest {
         long u = unit(sim, f, x, y);
         sim.combat().setPrimaryWeapon(u, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
         sim.world().setAttackRange(u, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID).range());
-        sim.world().attachSpecialEquipment(u, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
-                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).startingAmmo());
+        sim.world().attachSpecialEquipment(u, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID),
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).startingAmmo());
         return u;
     }
 
@@ -856,7 +856,7 @@ public class TacticalScoringTest {
         long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 25, 5);
         long infantry = unit(sim, Faction.DEFENDER, 25, 5);
 
-        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).range(),
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).range(),
                 sim.getTacticalScoring().effectiveAttackRange(rocketeer, turret, sim.world().attackRange(rocketeer)),
                 0.001f, "rocketeer-vs-turret must widen to rocket range");
         assertEquals(sim.world().attackRange(rocketeer),
@@ -906,7 +906,7 @@ public class TacticalScoringTest {
         float distFromTurret = (float) Math.sqrt(
                 (pick[0] - sim.world().cellX(turret)) * (pick[0] - sim.world().cellX(turret))
               + (pick[1] - sim.world().cellY(turret)) * (pick[1] - sim.world().cellY(turret)));
-        assertTrue(distFromTurret <= SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).range(),
+        assertTrue(distFromTurret <= SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).range(),
                 "picked cell must be inside rocket range, got dist " + distFromTurret);
         // Self at (5,5); turret at primary+8. The closest in-range cell to
         // self lies on the line between, which is well outside primary range
@@ -990,17 +990,17 @@ public class TacticalScoringTest {
         sim.squad().assignSquad(m2, squadId);
 
         long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 10, 5);
-        float oneRocket = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).damage();
+        float oneRocket = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).damage();
         assertTrue(oneRocket < sim.world().maxHp(turret) + sim.world().armor(turret),
                 "test invariant: Hephaestus needs >1 rocket — adjust if balance changed");
 
-        sim.world().setSecondaryActionTimer(m0, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aimDuration());
+        sim.world().setSecondaryActionTimer(m0, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).aimDuration());
         sim.world().setSecondaryAimTargetId(m0, turret);
 
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(m1, turret),
                 "second marine joins when one inbound rocket isn't enough");
 
-        sim.world().setSecondaryActionTimer(m1, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aimDuration());
+        sim.world().setSecondaryActionTimer(m1, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).aimDuration());
         sim.world().setSecondaryAimTargetId(m1, turret);
 
         assertFalse(sim.getTacticalScoring().shouldCommitRocket(m2, turret),
@@ -1020,7 +1020,7 @@ public class TacticalScoringTest {
         sim.squad().assignSquad(m1, squadId);
         long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 5);
 
-        sim.world().setSecondaryActionTimer(m0, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aimDuration());
+        sim.world().setSecondaryActionTimer(m0, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).aimDuration());
         sim.world().setSecondaryAimTargetId(m0, turret);
 
         assertFalse(sim.getTacticalScoring().shouldCommitRocket(m1, turret),
@@ -1037,15 +1037,15 @@ public class TacticalScoringTest {
         // turret. One rocket isn't enough for a Vulcan (test above), so two.
         // Marine rockets now live in activeProjectiles (matching locust); each
         // Projectile owns its arrival PendingDetonation directly.
-        float perRocket = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).damage();
+        float perRocket = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).damage();
         for (int i = 0; i < 2; i++) {
             float endX = sim.world().cellX(turret) + 0.5f;
             float endY = sim.world().cellY(turret) + 0.5f;
             PendingDetonation onArrival = new PendingDetonation(
                     CombatTelemetryService.NO_ATTACKER,
                     endX, endY, 0.5f,
-                    SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aoeRadius(),
-                    perRocket, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).penetration(),
+                    SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).aoeRadius(),
+                    perRocket, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).penetration(),
                     0, Faction.MARINE, false);
             sim.queueProjectile(new Projectile(
                     sim.world().cellX(rocketeer) + 0.5f, sim.world().cellY(rocketeer) + 0.5f, endX, endY,
@@ -1072,7 +1072,7 @@ public class TacticalScoringTest {
         PendingDetonation onArrival = new PendingDetonation(
                 CombatTelemetryService.NO_ATTACKER,
                 endX, endY, 0.5f,
-                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aoeRadius(),
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).aoeRadius(),
                 bigDamage, 1.0f, 0, Faction.DEFENDER, false);
         sim.queueProjectile(new Projectile(
                 10f, 10f, endX, endY,
@@ -1100,7 +1100,7 @@ public class TacticalScoringTest {
 
         long turret = turret(sim, Faction.DEFENDER, TurretCatalogRegistry.VULCAN_STRUCTURE_ID, 10, 5);
 
-        sim.world().setSecondaryActionTimer(mA, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aimDuration());
+        sim.world().setSecondaryActionTimer(mA, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).aimDuration());
         sim.world().setSecondaryAimTargetId(mA, turret);
 
         assertTrue(sim.getTacticalScoring().shouldCommitRocket(mB, turret),

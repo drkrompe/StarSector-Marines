@@ -58,7 +58,7 @@ public class UnitRosterServiceTest {
 
     /** A marine pre-seeded with a secondary weapon, so spawn gives it the optional SECONDARY_WEAPON component. */
     private static EntitySpec secondaryUnit(String label) {
-        return unit(label).specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).startingAmmo());
+        return unit(label).specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).startingAmmo());
     }
 
     private static UnitRosterService roster() {
@@ -690,8 +690,8 @@ public class UnitRosterServiceTest {
         long u = r.spawn(secondaryUnit("u"));
 
         assertTrue(w.hasSecondaryWeapon(u));
-        assertSame(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), w.specialEquipment(u));
-        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).startingAmmo(), w.secondaryAmmo(u));
+        assertSame(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), w.specialEquipment(u));
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).startingAmmo(), w.secondaryAmmo(u));
         // Mid-combat scalars start zeroed by the world's row append.
         assertEquals(0f, w.secondaryCooldownTimer(u), 1e-6f);
         assertEquals(0f, w.secondaryActionTimer(u), 1e-6f);

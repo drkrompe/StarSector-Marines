@@ -95,7 +95,7 @@ public final class HardTargetTimeToKillScene implements BehaviorScene {
 
     private static final List<Team> TEAMS = List.of(
             new Team("amr", "weapon.smg", "special.anti-materiel-rifle", 2, false),
-            new Team("rockets", "weapon.smg", "special.rocket-launcher", 2, false),
+            new Team("rockets", "weapon.smg", "special.srm-1", 2, false),
             new Team("dmr", "weapon.dmr", null, 6, false),
             new Team("heavy-cannon", null, null, 1, true));
 

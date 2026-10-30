@@ -70,7 +70,7 @@ class AmbientTaskServiceTest {
             long actor = simulation.spawn(new EntitySpec(
                     "support marine", Faction.MARINE, UnitType.MARINE, 2, 2));
             simulation.world().attachSpecialEquipment(
-                    actor, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 3);
+                    actor, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), 3);
             simulation.ambientTasks().assign(actor, oneStop(
                     AmbientActivity.PRACTICING_EQUIPMENT,
                     AmbientThreatPolicy.NONE, 0f));

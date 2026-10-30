@@ -192,7 +192,7 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
         WeaponDef primary = WeaponRegistry.require(weaponId);
         SpecialEquipmentDef special = amr
                 ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)
-                : rocket ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID) : null;
+                : rocket ? SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID) : null;
         LayeredUnitComposer.emit((sprite, cx, cy, width, height, angle, red, green, blue, alpha) -> {
             BufferedImage source = images.get(sprite.sourcePath);
             AffineTransform transform = new AffineTransform();
@@ -210,13 +210,13 @@ public final class BoardingJackLayerSnapshotSuite implements SnapshotSuite {
         LayeredUnitAssets result = new LayeredUnitAssets(layer(armor + "body.png"), layer(armor + "head.png"),
                 layer(armor + "foot.png"), null, layer(weapons + "rifle.png"), layer(weapons + "laser-gun.png"),
                 layer(weapons + "smg.png"), layer(weapons + "dmr.png"),
-                layer(weapons + "rocket-launcher.png"), layer(weapons + "anti-materiel-rifle.png"),
+                layer(weapons + "srm-1.png"), layer(weapons + "anti-materiel-rifle.png"),
                 layer(ROOT + "marine-muzzle-flash.png"), null, null,
                 layer(armor + "shoulder-left.png"), layer(armor + "shoulder-right.png"));
         result.registerSpecialEquipment(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID,
                 layer(weapons + "anti-materiel-rifle.png"));
-        result.registerSpecialEquipment(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
-                layer(weapons + "rocket-launcher.png"));
+        result.registerSpecialEquipment(SpecialEquipmentRegistry.SRM_1_ID,
+                layer(weapons + "srm-1.png"));
         IntegralSystemDef system = def.integralSystem();
         if (system != null && system.carrierLayer() != null) {
             result.registerIntegralSystem(system.id(), layer(system.carrierLayer().spritePath()));

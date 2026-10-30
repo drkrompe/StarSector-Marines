@@ -58,7 +58,7 @@ class LayeredMechComposerTest {
 
         assertEquals(List.of(
                         "foot.png", "foot.png", "chaingun-arm.png", "chaingun-arm.png",
-                        "chassis.png", "lrm-pod.png", "lrm-pod.png"),
+                        "chassis.png", "lrm-rack.png", "lrm-rack.png"),
                 layers.stream().map(layer -> fileName(layer.path())).toList());
         assertEquals(208f, layers.get(4).width(), 0.001f);
         assertEquals(31f, layers.get(2).width(), 0.001f,
@@ -82,7 +82,7 @@ class LayeredMechComposerTest {
         assertEquals(List.of("foot.png", "foot.png", "thigh-bone.png", "thigh-bone.png"),
                 layers.subList(0, 4),
                 "the static fallback also keeps both thighs below every upper layer");
-        assertEquals(1, layers.stream().filter("srm-pod.png"::equals).count());
+        assertEquals(1, layers.stream().filter("srm-rack.png"::equals).count());
     }
 
     @Test
@@ -127,7 +127,7 @@ class LayeredMechComposerTest {
 
         assertEquals(List.of(
                         "foot.png", "foot.png", "thigh-bone.png", "thigh-bone.png",
-                        "chaingun-arm.png", "chassis-hound.png", "srm-pod.png"),
+                        "chaingun-arm.png", "chassis-hound.png", "srm-rack.png"),
                 layers.stream().map(layer -> fileName(layer.path())).toList(),
                 "feet and thighs must be fully emitted before the upper assembly");
         assertEquals(350f, layers.get(0).x(), 0.001f);
@@ -276,7 +276,7 @@ class LayeredMechComposerTest {
         assertEquals(2, muster.stream().filter(layer ->
                 fileName(layer.path()).equals("muster-autogun.png")).count());
         assertEquals(1, muster.stream().filter(layer ->
-                fileName(layer.path()).equals("srm-3-qs-pod.png")).count());
+                fileName(layer.path()).equals("srm-3-qs.png")).count());
         assertEquals(2, muster.stream().filter(layer ->
                 fileName(layer.path()).equals("marine-muzzle-flash.png")).count());
 

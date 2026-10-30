@@ -104,7 +104,7 @@ public final class SquadEquipmentDoctrines {
                     team(
                             weapon("Assault Leader", WeaponRegistry.SMG_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                                    SpecialEquipmentRegistry.SRM_1_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Marksman", WeaponRegistry.DMR_ID))),
             weaponDoctrine(LINE_INFANTRY_WEAPONS, "@squadDoctrineLineInfantryWeaponsName",
@@ -152,10 +152,10 @@ public final class SquadEquipmentDoctrines {
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID),
                             // The pod fires from the shoulder, so the automatic keeps firing under it.
                             weapon("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID,
-                                    SpecialEquipmentRegistry.MISSILE_POD_ID),
+                                    SpecialEquipmentRegistry.SRM_3_POD_ID),
                             weapon("Marksman", WeaponRegistry.DMR_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)),
+                                    SpecialEquipmentRegistry.SRM_1_ID)),
                     team(
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID),
@@ -166,10 +166,10 @@ public final class SquadEquipmentDoctrines {
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID),
                             // The pod fires from the shoulder, so the automatic keeps firing under it.
                             weapon("Automatic Rifleman", WeaponRegistry.SQUAD_AUTOMATIC_ID,
-                                    SpecialEquipmentRegistry.MISSILE_POD_ID),
+                                    SpecialEquipmentRegistry.SRM_3_POD_ID),
                             weapon("Marksman", WeaponRegistry.DMR_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID))),
+                                    SpecialEquipmentRegistry.SRM_1_ID))),
             // The bottom rung of the assault ladder: no new rifles, just something to break an
             // emplacement with and enough grenades to finish the trench behind it.
             weaponDoctrine(TRENCH_CLEARING_WEAPONS, "@squadDoctrineTrenchClearingWeaponsName",
@@ -178,7 +178,7 @@ public final class SquadEquipmentDoctrines {
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.FRAG_GRENADE_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                                    SpecialEquipmentRegistry.SRM_1_ID),
                             weapon("Grenadier", WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.FRAG_GRENADE_ID),
                             weapon("Grenadier", WeaponRegistry.STARTER_PRIMARY_ID,
@@ -187,7 +187,7 @@ public final class SquadEquipmentDoctrines {
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.FRAG_GRENADE_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                                    SpecialEquipmentRegistry.SRM_1_ID),
                             weapon("Grenadier", WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.FRAG_GRENADE_ID),
                             weapon("Grenadier", WeaponRegistry.STARTER_PRIMARY_ID,
@@ -196,9 +196,9 @@ public final class SquadEquipmentDoctrines {
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.FRAG_GRENADE_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                                    SpecialEquipmentRegistry.SRM_1_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                                    SpecialEquipmentRegistry.SRM_1_ID),
                             weapon("Grenadier", WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.FRAG_GRENADE_ID))),
             // Wayline opening (Relief): holding a road, not taking one. No rockets on purpose.
@@ -231,20 +231,20 @@ public final class SquadEquipmentDoctrines {
                     team(
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                                    SpecialEquipmentRegistry.SRM_1_ID),
                             weapon("Point Defence", WeaponRegistry.STARTER_PRIMARY_ID,
                                     SpecialEquipmentRegistry.POINT_DEFENCE_EMPLACEMENT_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                                    SpecialEquipmentRegistry.SRM_1_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID)),
                     team(
                             weapon(BilletRoles.TEAM_LEADER, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon("Anti-Armor", WeaponRegistry.STARTER_PRIMARY_ID,
-                                    SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
+                                    SpecialEquipmentRegistry.SRM_1_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID),
                             weapon(BilletRoles.RIFLEMAN, WeaponRegistry.STARTER_PRIMARY_ID))),
             // Corvus Account (A Cold Account): Advanced kit and no Restricted kit, so no warrant.

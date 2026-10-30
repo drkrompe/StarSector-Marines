@@ -65,7 +65,7 @@ class MechVariantTest {
         assertFalse(bulwark.hasWeapon(WeaponRegistry.MECH_SHOULDER_LASER_ID));
 
         MechLoadoutComponent hound = MechVariant.HOUND.createLoadout(null);
-        assertFalse(hound.hasWeapon(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
+        assertFalse(hound.hasWeapon(WeaponRegistry.MECH_LRM_ID));
         assertSame(MechWeaponComponent.CHAINGUN,
                 hound.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.SRM_5,
@@ -74,7 +74,7 @@ class MechVariantTest {
         assertEquals(6, hound.mount(MechMountSlot.ARMS).component.projectilesPerTrigger);
 
         MechLoadoutComponent warden = MechVariant.WARDEN.createLoadout(null);
-        assertFalse(warden.hasWeapon(WeaponRegistry.MECH_SRM_POD_ID));
+        assertFalse(warden.hasWeapon(WeaponRegistry.MECH_SRM_ID));
         assertSame(MechWeaponComponent.SINGLE_HEAVY_CANNON,
                 warden.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.LRM_5_FRAG,
@@ -217,7 +217,7 @@ class MechVariantTest {
         // The factory SRM-5 is the anti-armor rack: it holds its pack at a man.
         assertEquals(0f, hound.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining, 0.001f);
         assertNull(hound.mount(MechMountSlot.RIGHT_SHOULDER));
-        assertFalse(hound.hasWeapon(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
+        assertFalse(hound.hasWeapon(WeaponRegistry.MECH_LRM_ID));
 
         MechLoadoutComponent warden = MechVariant.WARDEN.createLoadout(null);
         long wardenId = sim.spawn(new EntitySpec("warden", Faction.DEFENDER,
@@ -230,7 +230,7 @@ class MechVariantTest {
         assertEquals(0f, warden.mount(MechMountSlot.ARMS).cycleRemaining, 0.001f);
         assertTrue(warden.mount(MechMountSlot.LEFT_SHOULDER).cycleRemaining > 0f);
         assertTrue(warden.mount(MechMountSlot.RIGHT_SHOULDER).cycleRemaining > 0f);
-        assertFalse(warden.hasWeapon(WeaponRegistry.MECH_SRM_POD_ID));
+        assertFalse(warden.hasWeapon(WeaponRegistry.MECH_SRM_ID));
     }
 
     @Test

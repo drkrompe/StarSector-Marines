@@ -42,7 +42,7 @@ entries; their stats are first proposals awaiting the balance pass. The text bel
 for the rows that are not done.
 
 Only two mech weapons were one row before it, the Thermal Lance (38 damage, 14 penetration) and the SRM-3 (QS)
-rocket pod (`SRM_3_QS`); the one-row MG card takes none. A small omni slot would therefore take a Thermal Lance on a 480-structure
+rack (`SRM_3_QS`); the one-row MG card takes none. A small omni slot would therefore take a Thermal Lance on a 480-structure
 technical. The owner chose to author light weapons: one or two one-row parts per colour (a light MG, a light rocket
 pod, a light pulse laser), graded so a one-row part is clearly weaker per shot and per second than the two-row
 weapon of its colour, and the Thermal Lance and SRM-3 (QS) re-graded against them (re-footprinted or retuned so

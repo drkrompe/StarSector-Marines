@@ -10,7 +10,7 @@ Updated: 2026-10-24 — warrant obligations ask loyalty only; service and servic
 
 Updated: 2026-10-27 — every equipment item is shown by a short catalog code.
 
-Updated: 2026-10-27 — the shoulder pod is the SRM-POD carried special, fired without lowering the primary; no suit carries it as an integral system.
+Updated: 2026-10-27 — the shoulder pod is the SRM-3 (Pod) carried special, fired without lowering the primary; no suit carries it as an integral system.
 
 ## Purpose
 
@@ -922,7 +922,7 @@ system is readable before contact remains open: reading it at a distance makes a
 fight plannable, and discovering it when a rig comes through a door is more in
 keeping with how the rest of the equipment model treats recovery.
 
-The built-in identities are the rocket launchers, the SRM-POD shoulder pod, the
+The built-in identities are the rocket launchers, the SRM-3 (Pod) shoulder pod, the
 anti-materiel rifle, smoke grenades, mag-clamp satchel, fragmentation and
 incendiary grenades, the flamer, the comms radio, the interceptor pod, the
 interceptor pack, and the field mortar. Launchers and the rifle are direct-fire
@@ -973,7 +973,7 @@ during cooldown, does not replace the primary, and does not infer a shot from
 the duration of an active effect. The Specter frames' shield carries a small
 screen emitter. Those art choices do not grant capabilities.
 
-**Shoulder pod.** The SRM-POD (`special.missile-pod`) is a carried special in the
+**Shoulder pod.** The SRM-3 (Pod) (`special.srm-3-pod`) is a carried special in the
 SRM family, beside the SRM-1 rockets, and it is no longer any suit's integral
 system: the Packframe, both Arbalests and the Aegis composite are plain armour.
 Its `shoulder-pod` activation never runs through the hand's channel. The pod picks

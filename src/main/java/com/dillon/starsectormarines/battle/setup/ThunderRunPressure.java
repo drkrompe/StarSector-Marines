@@ -78,7 +78,7 @@ public final class ThunderRunPressure {
             var raider = BattleSetup.makeOpeningMilitia("thunder-run-pressure-" + sent + "-" + member, Faction.DEFENDER,
                     cell[0], cell[1], rng).role(UnitRole.PATROL);
             if (member < (phase >= 3 ? 2 : 1))
-                raider.specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SCRAP_ROCKET_ID), 2);
+                raider.specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_QS_ID), 2);
             sim.spawn(raider.squad(squad));
             member++;
         }
