@@ -57,6 +57,22 @@ class WolfStrikeTest {
     }
 
     @Test
+    void theGunshipFlewWithoutItsNoseLaserAndWithRocketPodsForItsSabots() {
+        InstalledVanillaData.install();
+        var weapons = WolfStrike.source().weapons();
+        assertFalse(weapons.containsKey(WolfStrike.NOSE_SLOT));
+        for (String slot : WolfStrike.ROCKET_SLOTS) assertEquals(WolfStrike.ROCKET_POD, weapons.get(slot));
+    }
+
+    @Test
+    void theRunIsAStrafeLeadingTheHull() {
+        BattleSimulation sim = sim();
+        Warship wolf = WolfStrike.fly(32.5f, 34.5f, 62.5f, 34.5f, sim);
+        assertTrue(wolf.lowPass().rocketRun());
+        assertEquals(WolfStrike.FIRE_RADIUS_CELLS, wolf.lowPass().fireRadius(), 1e-4f);
+    }
+
+    @Test
     void aLineTooShortOrTooLongIsRefusedAndNothingIsSpent() {
         BattleSimulation sim = sim();
         WolfStrike power = new WolfStrike();

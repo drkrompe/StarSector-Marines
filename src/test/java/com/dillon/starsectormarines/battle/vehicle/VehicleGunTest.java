@@ -66,7 +66,8 @@ class VehicleGunTest {
         assertEquals(stock.maxStructure, fitted.maxStructure);
         assertEquals(srm.ammoCapacity * Math.max(1, srm.weaponDef().burstCount), fitted.mount.ammoCapacity,
                 "a magazine of the weapon's pulls");
-        assertSame(stock.mount.flux.control(), fitted.mount.flux.control(), "the hull's own flux bank");
+        assertEquals(Math.max(0.1f, srm.fluxPerTrigger() / Math.max(1, srm.weaponDef().burstCount)),
+                fitted.mount.flux.perRound(), 1e-5f, "a round costs the weapon's own flux");
         assertSame(stock, VehicleGun.fit(VehicleType.LRM_CARRIER, null), "no weapon is the hull's own gun");
     }
 

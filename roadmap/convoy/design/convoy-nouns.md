@@ -609,9 +609,7 @@ mount that best defeats the target's armor is offered the reservoir first
 from the hull (`VehicleDeploymentSpec.flux`); a mount's data authors only what a
 round costs, and the frame is the bank and vent arrays on the hull's rack
 (`VehicleRack.frame`); an enemy hull runs its stock bank (`HullReservoir.stockFrame`). Flux is not the magazine, so a hull venting still reads as armed to
-every engagement question. `-Dbattle.vehicle.hullReservoir=false` is the control:
-each mount its own bank, overloading at capacity and venting to empty faster than
-it dissipates. How much a gun builds is its character:
+every engagement question. How much a gun builds is its character:
 - **Nominal** on the plain guns. The machine guns, the tank cannon, the mortar and
   the hover pulse emitter build a little each round and shed it faster than their
   cadence fills it, so a held trigger peaks around a tenth to a quarter of the
@@ -1477,7 +1475,7 @@ with the hull systems built for it (the screened tank's active protection).
 may author). A hostile craft in the air within the gun's reach, with a clear line
 up, takes the gun ahead of the ground pick, because it is overhead for seconds and
 the ground will still be there. A man close enough to be self-defence keeps the gun.
-It is the same gun on the same magazine, cadence and bank, so a craft it takes is
+It is the same gun on the same magazine, cadence and reservoir, so a craft it takes is
 ground it leaves. Its rounds into the air are rolled and landed the way an anti-air
 emplacement's flak is (`VehicleAirFire`, answered by the emplacements' own pass).
 Against a light craft the burst laser is deadlier than a flak position.
@@ -1491,9 +1489,10 @@ What keeps it from out-trading a cannon tank is **flux** (hull flux, above), whi
 every hull gun builds but a laser builds hardest. The burst laser is a
 flux hog, as it is in space: it fires far faster than it dissipates, so a section
 dies inside one charge-up, while a tank sees it fall silent and vent for seconds at a
-time long before the tank is dead. The flux is visible, as a starship's is: a purple
+time long before the tank is dead. It is built with the military capacitor bank (2x2 on its rack, 120 flux at 8 a second)
+for that reason (`VehicleRack.stockBank`). The flux is visible, as a starship's is: a purple
 haze thickens over the hull's radiator fins as it builds
-(`VehicleType.fluxVentAftCells`), and an overloaded gun vents a bright lavender plume
+(`VehicleType.fluxVentAftCells`), and a venting hull blows a bright lavender plume
 off them. A mech's reservoir shows in the same look (`FluxHaze`, `mechs-nouns.md`).
 
 The power plant takes the shell stowage's room and weight, so the hull is a little
@@ -1501,7 +1500,7 @@ faster than the breakthrough tank and carries a little less plate.
 
 It is Tri-Tachyon's tank, and it looks it (`art-source/vehicles/tank-laser/`): the
 breakthrough hull in the company's white livery, a sloped glacis under a crew window,
-and a capacitor pack of ten cells over the rear deck where the engine grilles were. Its
+and a bank of ten capacitor cells over the rear deck where the engine grilles were. Its
 turret is the space game's own PD laser, up-res'd from the vanilla sprite and set on a
 ship's turret mount in the deck, small for a tank turret, so a player recognises the
 weapon from fleet combat. The turret has a **firing frame** (`VehicleType.turretFiringFrame`,

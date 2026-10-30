@@ -150,17 +150,7 @@ public final class TurretMountDef {
         if (fluxJson != null) {
             float perRound = (float) fluxJson.getDouble("perRound");
             requirePositiveFinite(perRound, id, "flux.perRound");
-            JSONObject bank = fluxJson.getJSONObject("control");
-            float capacity = (float) bank.getDouble("capacity");
-            float dissipation = (float) bank.getDouble("dissipationPerSec");
-            float vent = (float) bank.getDouble("ventPerSec");
-            requirePositiveFinite(capacity, id, "flux.control.capacity");
-            requirePositiveFinite(vent, id, "flux.control.ventPerSec");
-            if (!(dissipation >= 0f) || !Float.isFinite(dissipation)) {
-                throw new JSONException("Turret mount '" + id
-                        + "' flux.control.dissipationPerSec must be finite and non-negative");
-            }
-            flux = new Flux(perRound, new ControlBank(capacity, dissipation, vent));
+            flux = new Flux(perRound);
         }
         float loaderSeconds = sim.has("loaderSeconds")
                 ? (float) sim.getDouble("loaderSeconds") : Float.POSITIVE_INFINITY;
@@ -250,22 +240,9 @@ public final class TurretMountDef {
 
     /**
      * What a round from this mount costs in flux ({@link TurretMountDef#flux}). The flux it draws on is the hull's
-     * reservoir, never the mount's (`convoy-nouns.md`, hull flux); {@link #control} is only the bank the mount had of
-     * its own before, which the per-mount control path ({@code -Dbattle.vehicle.hullReservoir=false}) still runs on.
+     * reservoir, never the mount's (`convoy-nouns.md`, hull flux).
      */
-    public record Flux(float perRound, ControlBank control) {
-        /** The same bank at another cost per round: a fitted weapon's flux in the carriage's bank. */
-        public Flux withPerRound(float perRound) {
-            return new Flux(perRound, control);
-        }
-    }
-
-    /**
-     * A mount's own flux bank on the per-mount control path: it overloads at {@code capacity} and vents to empty at
-     * {@code ventPerSec}. Temporary: it goes with {@code battle.vehicle.hullReservoir} once the hull reservoir is
-     * decided against it (`switches.md`).
-     */
-    public record ControlBank(float capacity, float dissipationPerSec, float ventPerSec) { }
+    public record Flux(float perRound) { }
 
     static String requireText(JSONObject json, String key) throws JSONException {
         String value = json.optString(key, null);

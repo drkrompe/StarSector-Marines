@@ -111,6 +111,16 @@ class LowPassTest {
     }
 
     @Test
+    void aStrafeLeadsFurtherWithItsOwnCircleAndRocketsTheLead() {
+        LowPass p = line(0, 0, 100, 100, 200, 100);
+        assertFalse(p.rocketRun());
+        p.strafe(16f, 10f);
+        assertEquals(156f, p.fireCentre(140, 100)[0], 1e-4f);
+        assertEquals(10f, p.fireRadius(), 1e-4f);
+        assertTrue(p.rocketRun());
+    }
+
+    @Test
     void runInHandsToThePassAtAAndThePassEndsAtB() {
         LowPass p = line(50, 160, 50, 100, 200, 100);
         p.advance(0.1f, 50, 160);

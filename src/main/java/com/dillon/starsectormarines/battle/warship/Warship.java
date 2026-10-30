@@ -1903,12 +1903,17 @@ public final class Warship {
 
     /** Keeps the pass's firing circle on {@code (cx, cy)}, for every battery the ship has. */
     void layPassFire(float cx, float cy) {
+        layPassFire(cx, cy, LowPass.CORRIDOR_HALF_WIDTH_CELLS);
+    }
+
+    /** As above, with a circle of {@code radius} cells (a strafe's). */
+    void layPassFire(float cx, float cy, float radius) {
         for (FireGroup g : FireGroup.values()) {
             if (!hasBattery(g)) continue;
             WarshipOrder.FireOnArea have = laid.get(g);
             if (have != null && Math.abs(have.x() - cx) < 0.5f && Math.abs(have.y() - cy) < 0.5f
-                    && have.radius() == LowPass.CORRIDOR_HALF_WIDTH_CELLS) continue;
-            layArea(g, new WarshipOrder.FireOnArea(cx, cy, LowPass.CORRIDOR_HALF_WIDTH_CELLS, false));
+                    && have.radius() == radius) continue;
+            layArea(g, new WarshipOrder.FireOnArea(cx, cy, radius, false));
         }
     }
 
