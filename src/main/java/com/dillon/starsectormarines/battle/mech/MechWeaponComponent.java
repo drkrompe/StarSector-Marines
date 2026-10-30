@@ -331,7 +331,22 @@ public enum MechWeaponComponent {
      * read rounds over cycle read what the gun delivers over an engagement.
      */
     public float cycleSeconds() {
-        return tuned("cycle", authoredCycleSeconds());
+        return triggerInterval(tuned("cycle", authoredCycleSeconds()), burstSeconds());
+    }
+
+    /**
+     * Seconds from a trigger's first round to its last: its {@link #projectilesPerTrigger} rounds at the weapon's
+     * burst spacing, so a burst laser's click is a short stutter of pulses (`mechs-nouns.md`, Burst lasers). Zero for
+     * a rotary gun, which has no trigger pull.
+     */
+    public float burstSeconds() {
+        if (rotary() != null) return 0f;
+        return Math.max(0, projectilesPerTrigger - 1) * Math.max(0f, weaponDef().burstSpacing);
+    }
+
+    /** A trigger cannot come round again before its own burst has left the gun ({@code MechWeaponMount#triggerReady}). */
+    static float triggerInterval(float cycleSeconds, float burstSeconds) {
+        return Math.max(cycleSeconds, burstSeconds);
     }
 
     private float authoredCycleSeconds() {

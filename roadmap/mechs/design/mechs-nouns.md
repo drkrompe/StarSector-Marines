@@ -97,6 +97,20 @@ increasing an encounter's total armored threat.
   the standard loader's; the machine's loader multiplies it (the loader rule
   above), so an accelerated loader feeds every rotary gun a third faster, the
   high-feed chaingun included, which stays the better gun by its own numbers.
+- A **burst laser** (light, medium and heavy: two, three and four pulses a
+  trigger) is not a rotary gun but fires like one in miniature: a click is a short
+  stutter of pulses, each its own beam, muzzle flash and fire tick from the drawn
+  muzzle, 0.10, 0.12 and 0.13 s apart, with each beam briefer than the gap so the
+  pulses read one by one (owner, 2026-10-30: it should feel almost like an
+  autocannon). A held trigger chains bursts at the weapon's cycle. The trigger
+  reserves the whole burst's flux on its first pulse, as any trigger does, so a burst
+  never stalls on the flux rules; the AI's torso and a vehicle's turret stay on the
+  target through the burst and the pilot's pulses follow the live cursor, as a rotary
+  gun's rounds do. A vehicle's recovery starts when the burst ends, so the weapon's
+  authored cooldown (which only a vehicle reads; a mech reads the component's
+  cycle) is shortened by the wider spacing to keep the vehicle's cadence. Against a
+  control at the old 0.06 s spacing, armorMatchup read the same win share and
+  time to kill within noise (2026-10-30).
 - A **campaign mech** is one persistent player-owned chassis plus its doctrine
   and installed components. It is the campaign authority that produces a
   frozen battle loadout; the live battle mech never reaches back into it.
