@@ -25,7 +25,7 @@ public enum CorvusChapter {
             SurfacePalette.ARID, EconomicFunction.COMMERCE),
     BLIND_WATCH("corvus_IIIb", "Warion", "corvusBlindWatch", MissionType.SABOTAGE, RiskLevel.LOW, 3, 30000,
             SurfacePalette.ROCK, EconomicFunction.MILITARY),
-    COLD_ACCOUNT("corvus_IIIa", "Garnir", "corvusColdAccount", MissionType.ASSAULT, RiskLevel.HIGH, 4, 42000,
+    COLD_ACCOUNT("corvus_IIIa", "Garnir", "corvusColdAccount", MissionType.ASSAULT, RiskLevel.HIGH, 5, 42000,
             SurfacePalette.FROZEN, EconomicFunction.HEAVY_INDUSTRY);
 
     public final String planetId, planetName;

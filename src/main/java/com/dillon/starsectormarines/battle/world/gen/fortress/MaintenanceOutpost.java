@@ -50,6 +50,12 @@ public final class MaintenanceOutpost {
         return layout(true).at(44, (height - 70) / 2, 0);
     }
 
+    /** Where the compound's point defence stands: by dispatch on the bay approach, the barracks court, inside the gate. */
+    public static List<int[]> pointDefenceAnchors(int height) {
+        var site = placement(height);
+        return List.of(site.cell(45, 50), site.cell(58, 20), site.cell(74, 40));
+    }
+
     /** The optional magazine changes capacity without moving the court, gates or vehicle lane. */
     public static CompoundLayout layout(boolean extraMagazine) {
         String[] rows = new String[70];
@@ -111,7 +117,8 @@ public final class MaintenanceOutpost {
                 new TacticalLinkStage(), new FinalizeStage(),
                 new DoorwayClearanceStage(),
                 new OutdoorLandscapeStage(marineX, marineY, gate[0], gate[1]),
-                MaintenanceOutpostLandscape::fields, new InteriorAnchorFitStage())).run(c);
+                MaintenanceOutpostLandscape::fields, new InteriorAnchorFitStage(),
+                OutpostApproach::arm)).run(c);
         TacticalMap held = c.get(BspKeys.TACTICAL_MAP);
         for (TacticalNode place : HeldPlaces.fromBuildingsNotIn(c.pois, held.all(), poi -> Faction.DEFENDER)) held.add(place);
         var result = new MapResult(c.grid, c.topology, marineX, marineY, gate[0], gate[1],

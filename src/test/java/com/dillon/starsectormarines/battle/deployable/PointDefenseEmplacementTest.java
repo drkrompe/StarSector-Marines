@@ -55,6 +55,22 @@ class PointDefenseEmplacementTest {
         }
     }
 
+    @Test
+    void fixedMountStandsAtSetupEngagesAndNeverTimesOut() {
+        try (BattleSimulation sim = openArena(40, 20)) {
+            long mount = sim.pointDefense().placeFixed(sim, Faction.DEFENDER, 10, 10, podSpec().structureId());
+            assertTrue(sim.resolveUnit(mount) != 0L, "the mount stands before any tick");
+            Projectile missile = new Projectile(13f, 10.5f, 10.5f, 10.5f,
+                    false, 0f, Faction.MARINE, false, 5f, null, ORDNANCE_WEAPON_ID, true);
+            sim.queueProjectile(missile);
+            sim.pointDefense().tick(BattleSimulation.TICK_DT, sim);
+            assertEquals(1, sim.pointDefense().recentEngagements().size());
+            // No lifetime: a fixed mount outlasts any carried pod's clock.
+            sim.pointDefense().tick(podSpec().lifetimeSeconds() + 1f, sim);
+            assertEquals(1, sim.pointDefense().activeEmplacements().size());
+        }
+    }
+
     private static final float EPS = 1e-3f;
     /** An LRM warhead is the canonical thing this exists to refuse. */
     private static final String ORDNANCE_WEAPON_ID = "weapon.mech-lrm";
