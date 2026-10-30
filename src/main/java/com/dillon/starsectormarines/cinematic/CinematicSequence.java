@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.cinematic.CinematicShot.Cue;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 /**
  * The shots that actually loaded, laid end to end on one clock. A shot with no video never reaches
@@ -22,6 +23,26 @@ public final class CinematicSequence {
         }
     }
 
+    /**
+     * When the film's captions are drawn, from {@code sequence.json}'s {@code captions}: {@code ALWAYS}
+     * (the default, as the Jangala arrival), or {@code TRANSLATED}, only when the active language is not
+     * English, for a film whose voices carry it in the base language.
+     */
+    public enum Captions {
+        ALWAYS, TRANSLATED;
+
+        public static Captions parse(String value) {
+            return "translated".equals(value) ? TRANSLATED : ALWAYS;
+        }
+
+        /** Whether captions draw in {@code language}; the root locale is the base copy, which is English. */
+        public boolean drawn(Locale language) {
+            if (this == ALWAYS) return true;
+            String code = language == null ? "" : language.getLanguage();
+            return !code.isEmpty() && !"en".equals(code);
+        }
+    }
+
     /** Seconds a ducked cue takes to go down before a voice and to come back up after it. */
     public static final double DUCK_EASE = 0.4;
 
@@ -31,9 +52,15 @@ public final class CinematicSequence {
     private final double[] offsets;
     private final double total;
     private final List<Scheduled> cues = new ArrayList<>();
+    private final Captions captions;
 
     public CinematicSequence(List<CinematicShot> shots) {
+        this(shots, Captions.ALWAYS);
+    }
+
+    public CinematicSequence(List<CinematicShot> shots, Captions captions) {
         this.shots = List.copyOf(shots);
+        this.captions = captions;
         offsets = new double[this.shots.size()];
         double at = 0;
         for (int i = 0; i < offsets.length; i++) {
@@ -54,6 +81,7 @@ public final class CinematicSequence {
     public CinematicShot shot(int index) { return shots.get(index); }
     public double offset(int index) { return offsets[index]; }
     public List<Scheduled> cues() { return cues; }
+    public Captions captions() { return captions; }
 
     /** A looped cue's volume at {@code now}: its fades, and its duck while anyone speaks. */
     public float volumeAt(Scheduled cue, double now) {
