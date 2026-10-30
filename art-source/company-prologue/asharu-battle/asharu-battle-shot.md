@@ -614,7 +614,7 @@ Rules:
 | S6d | 74.3-75.12 | WARDEN FIVE | Two on me — |
 | S6d | 76.9-78.83 | WARDEN FIVE | One down, they're coming through! |
 | S7 | 81.21-82.91 | WARDEN FIVE | They're heading for the Sobieski! |
-| S7 | 82-85.07 | CARAVEL | That mark three is hammering down on us! |
+| S7 | 82-84.27 | CARAVEL | Mark three is hammering us! |
 | S7 | 84.9-87.23 | SOBIESKI | Marines prepare to repel boarders! |
 | S8 | 88.4-92.6 | CARAVEL | Taking fire on the port pod! Morrow, keep pressure with the drones! |
 | S9 | 91.6-94.34 | MORROW | Borers are out — we're raking her sides. |

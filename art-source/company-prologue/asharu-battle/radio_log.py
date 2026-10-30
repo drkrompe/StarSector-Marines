@@ -92,7 +92,7 @@ TRAFFIC = [
     ('S6d', 'WARDEN FIVE', 74.3, 75.12, 'Two on me —', False),
     ('S6d', 'WARDEN FIVE', 76.9, 78.83, "One down, they're coming through!", False),
     ('S7', 'WARDEN FIVE', 81.21, 82.91, "They're heading for the Sobieski!", False),
-    ('S7', 'CARAVEL', 82.0, 85.07, 'That mark three is hammering down on us!', False),
+    ('S7', 'CARAVEL', 82.0, 84.27, 'Mark three is hammering us!', False),
     ('S7', 'SOBIESKI', 84.9, 87.23, 'Marines prepare to repel boarders!', False),
     ('S8', 'CARAVEL', 88.4, 92.6, 'Taking fire on the port pod! Morrow, keep pressure with the '
                                   'drones!', False),
