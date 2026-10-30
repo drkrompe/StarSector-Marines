@@ -23,10 +23,9 @@ public final class LayeredMechAssets {
     public final LayeredSpriteCache thermalLance;
     public final LayeredSpriteCache musterAutogun;
     public final LayeredSpriteCache quarryBreakerCannon;
-    public final LayeredSpriteCache pioneerRocketCradle;
+    public final LayeredSpriteCache srm3QsPod;
     public final LayeredSpriteCache lightMachineGun;
     public final LayeredSpriteCache lightPulseLaser;
-    public final LayeredSpriteCache lightRocketPod;
     public final LayeredSpriteCache burstLaser;
     public final LayeredSpriteCache pdLaser;
     public final LayeredSpriteCache heavyPdLaser;
@@ -49,10 +48,9 @@ public final class LayeredMechAssets {
                              LayeredSpriteCache thermalLance,
                              LayeredSpriteCache musterAutogun,
                              LayeredSpriteCache quarryBreakerCannon,
-                             LayeredSpriteCache pioneerRocketCradle,
+                             LayeredSpriteCache srm3QsPod,
                              LayeredSpriteCache lightMachineGun,
                              LayeredSpriteCache lightPulseLaser,
-                             LayeredSpriteCache lightRocketPod,
                              LayeredSpriteCache burstLaser,
                              LayeredSpriteCache pdLaser,
                              LayeredSpriteCache heavyPdLaser,
@@ -77,10 +75,9 @@ public final class LayeredMechAssets {
         this.thermalLance = thermalLance;
         this.musterAutogun = musterAutogun;
         this.quarryBreakerCannon = quarryBreakerCannon;
-        this.pioneerRocketCradle = pioneerRocketCradle;
+        this.srm3QsPod = srm3QsPod;
         this.lightMachineGun = lightMachineGun;
         this.lightPulseLaser = lightPulseLaser;
-        this.lightRocketPod = lightRocketPod;
         this.burstLaser = burstLaser;
         this.pdLaser = pdLaser;
         this.heavyPdLaser = heavyPdLaser;
@@ -98,8 +95,8 @@ public final class LayeredMechAssets {
         return Arrays.asList(chassis, socketedChassis, houndChassis, wardenChassis,
                 foot, thighBone, chaingunArm, linearCannon, heavyCannon, srmPod, lrmPod,
                 shoulderLaser, pulseLaserArm, bastionAutocannon, demolitionCannon,
-                thermalLance, musterAutogun, quarryBreakerCannon, pioneerRocketCradle,
-                lightMachineGun, lightPulseLaser, lightRocketPod, burstLaser, pdLaser, heavyPdLaser, mediumBurstLaser,
+                thermalLance, musterAutogun, quarryBreakerCannon, srm3QsPod,
+                lightMachineGun, lightPulseLaser, burstLaser, pdLaser, heavyPdLaser, mediumBurstLaser,
                 lightBurstLaser, muzzleFlash);
     }
 }

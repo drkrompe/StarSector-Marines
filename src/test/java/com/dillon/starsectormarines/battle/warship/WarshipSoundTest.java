@@ -168,4 +168,13 @@ class WarshipSoundTest {
         assertEquals(burningTicks, loopTicks, "a loop cue on every burning tick");
         assertEquals(0, cuesAfterOut, "no loop cue outside the burn");
     }
+
+    @Test
+    void aMissileWhoseProjectileNamesNoBlastLandsWithTheRocketBlast() {
+        InstalledVanillaData.install();
+        VanillaWeapon pod = VanillaWeapons.get("annihilator");
+        if (pod == null) return; // no install on this machine
+        assertNull(pod.impactSoundId(), "the Annihilator's rocket names no explosion sound");
+        assertEquals(WarshipSystem.MISSILE_IMPACT_SOUND, WarshipSystem.impactSound(pod));
+    }
 }

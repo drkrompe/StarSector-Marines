@@ -43,7 +43,7 @@ Every family repeats `chassis.png`, `chassis-hound.png`,
 `pulse-laser-arm.png`, `hegemony-bastion-autocannon.png`,
 `pather-demolition-cannon.png`, `lions-guard-thermal-lance.png`,
 `muster-autogun.png`, `quarry-breaker-cannon.png`, and
-`pioneer-rocket-cradle.png`. The builder applies each accepted base sprite's
+`srm-3-qs-pod.png`. The builder applies each accepted base sprite's
 exact alpha mask, so a skin cannot change silhouette,
 hardpoint authority, scale, or mechanics. Weapon paint is transferred only
 through thirteen reviewed casing masks; barrels, missiles, rack cavities, vents,

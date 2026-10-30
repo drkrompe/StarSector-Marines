@@ -730,10 +730,10 @@
       }
     },
     {
-      "id": "weapon.mech-pioneer-rocket",
+      "id": "weapon.mech-srm-3-qs",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechPioneerRocketDisplayName",
+        "displayName": "@gearCatalogWeaponMechSrm3QsDisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -743,7 +743,7 @@
         "accuracy": 0.42,
         "cooldown": 7.0,
         "penetration": 7.0,
-        "burstCount": 4,
+        "burstCount": 3,
         "burstSpacing": 0.18,
         "hitSpread": 0.9,
         "roundVelocity": 30.76923,
@@ -1096,53 +1096,6 @@
       "audio": { "fireSound": "pulse_laser_fire" }
     },
     {
-      "id": "weapon.mech-light-rocket-pod",
-      "mount": "mech-mount",
-      "catalog": {
-        "displayName": "@gearCatalogWeaponMechLightRocketPodDisplayName",
-        "designationTiered": false
-      },
-      "sim": {
-        "pointDefenseTarget": true,
-        "range": 17.0,
-        "damage": 12.0,
-        "accuracy": 0.42,
-        "cooldown": 6.0,
-        "penetration": 5.0,
-        "burstCount": 3,
-        "burstSpacing": 0.18,
-        "hitSpread": 0.9,
-        "roundVelocity": 30.76923,
-        "flightSec": 0.55,
-        "aoeRadius": 0.8,
-        "wallDamage": 8,
-        "wallDamageRadius": 0.8,
-        "interceptableProjectile": true,
-        "noiseMagnitude": 1.2
-      },
-      "render": {
-        "tracerColor": "FFB86A",
-        "projectileSprite": "graphics/missiles/missile_SRM.png",
-        "projectileVisualCells": 0.30
-      },
-      "fx": {
-        "trail": [
-          { "kind": "glow", "radius": 0.12, "lifetime": 0.18, "color": "FF9040" }
-        ],
-        "impact": [
-          { "kind": "glow", "radius": 0.40, "lifetime": 0.12, "color": "FFE080" },
-          { "kind": "fire", "radius": 0.30, "lifetime": 0.30 },
-          { "kind": "smoke", "radius": [0.32, 0.50], "lifetime": [0.75, 1.05],
-            "count": [2, 3], "jitter": 0.30 },
-          { "kind": "dust", "radius": 0.36, "lifetime": 0.26 }
-        ]
-      },
-      "audio": {
-        "fireSound": "pilum_lrm_fire",
-        "impactSound": "marines_explosion"
-      }
-    },
-    {
       "id": "weapon.mech-srm-pod",
       "mount": "mech-mount",
       "catalog": {
@@ -1183,7 +1136,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "annihilator_fire" }
+      "audio": { "fireSound": "annihilator_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.mech-srm-frag",
@@ -1225,7 +1178,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "annihilator_fire" }
+      "audio": { "fireSound": "annihilator_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.mech-srm-pod-legacy",
@@ -1267,7 +1220,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "annihilator_fire" }
+      "audio": { "fireSound": "annihilator_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.mech-lrm-artillery",
@@ -1314,7 +1267,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "pilum_lrm_fire" }
+      "audio": { "fireSound": "pilum_lrm_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.mech-lrm-frag",
@@ -1360,7 +1313,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "pilum_lrm_fire" }
+      "audio": { "fireSound": "pilum_lrm_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.mech-lrm-artillery-legacy",
@@ -1406,7 +1359,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "pilum_lrm_fire" }
+      "audio": { "fireSound": "pilum_lrm_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.mech-shoulder-laser",

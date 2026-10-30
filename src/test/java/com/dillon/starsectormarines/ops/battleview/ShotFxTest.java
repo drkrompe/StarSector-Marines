@@ -212,7 +212,7 @@ public class ShotFxTest {
             assertEquals(w.arcHeight, fx.arcHeight(), 0f, "arcHeight for " + w);
             boolean expectedTrail = WeaponRegistry.isMechSrm(w.id)
                     || WeaponRegistry.isMechLrm(w.id)
-                    || WeaponRegistry.MECH_PIONEER_ROCKET_ID.equals(w.id);
+                    || WeaponRegistry.MECH_SRM_3_QS_ID.equals(w.id);
             assertEquals(expectedTrail, !w.fx.layers(FxSlot.TRAIL).isEmpty(),
                     "authored trail for " + w);
             if (w.tracerTailCells() > 0f) {

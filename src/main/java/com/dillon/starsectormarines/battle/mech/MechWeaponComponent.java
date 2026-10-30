@@ -121,14 +121,10 @@ public enum MechWeaponComponent {
             MountFamily.SHOULDER, HardpointType.ENERGY, 2, 1,
             "weapon.mech-thermal-lance", 1, -1,
             LayeredMechAppearance.POD_THERMAL_LANCE),
-    PIONEER_ROCKET_CRADLE("component.mech-pioneer-rocket", "@gearMechWeaponComponentPIONEERROCKETCRADLE",
+    SRM_3_QS("component.mech-srm-3-qs", "@gearMechWeaponComponentSRM3QS",
             MountFamily.SHOULDER, HardpointType.MISSILE, 2, 1,
-            "weapon.mech-pioneer-rocket", 4, 3,
-            LayeredMechAppearance.POD_PIONEER_ROCKET),
-    LIGHT_ROCKET_POD("component.mech-light-rocket-pod", "@gearMechWeaponComponentLIGHTROCKETPOD",
-            MountFamily.SHOULDER, HardpointType.MISSILE, 2, 1,
-            WeaponRegistry.MECH_LIGHT_ROCKET_POD_ID, 3, 4,
-            LayeredMechAppearance.POD_LIGHT_ROCKET);
+            WeaponRegistry.MECH_SRM_3_QS_ID, 3, 3,
+            LayeredMechAppearance.POD_SRM_3_QS);
 
     /**
      * Whether the split into anti-armor and fragmentation racks is live.
@@ -310,10 +306,9 @@ public enum MechWeaponComponent {
             case PULSE_LASER -> 2.1f;
             case DEMOLITION_CANNON -> 5.8f;
             case QUARRY_BREAKER_CANNON -> 5.5f;
-            case SHOULDER_LASER_CANNON, PIONEER_ROCKET_CRADLE -> 7f;
+            case SHOULDER_LASER_CANNON, SRM_3_QS -> 7f;
             case THERMAL_LANCE -> 4.8f;
             case LIGHT_PULSE_LASER -> 1.8f;
-            case LIGHT_ROCKET_POD -> 6f;
             case BURST_LASER -> 1.8f;
             case PD_LASER -> 1.6f;
             case HEAVY_PD_LASER -> 1.8f;
@@ -375,9 +370,8 @@ public enum MechWeaponComponent {
 
             case SHOULDER_LASER_CANNON -> 35f;
             case THERMAL_LANCE -> 32f;
-            case PIONEER_ROCKET_CRADLE -> 24f;
+            case SRM_3_QS -> 24f;
             case LIGHT_PULSE_LASER -> 7f;
-            case LIGHT_ROCKET_POD -> 14f;
             // The burst laser is a flux hog, as on the tank; the PD laser runs cool.
             case BURST_LASER -> 38f;
             case PD_LASER -> 16f;

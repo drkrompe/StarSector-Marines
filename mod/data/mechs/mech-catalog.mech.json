@@ -107,25 +107,25 @@
     {
       "component": "component.mech-srm-5-frag",
       "factionLogo": "graphics/factions/neutral_traders.png",
-      "designation": "SRM-5-F",
+      "designation": "SRM-5 (Frag)",
       "description": "@gearCatalogComponentMechSrm5FragDescription"
     },
     {
       "component": "component.mech-srm-15-frag",
       "factionLogo": "graphics/factions/persean_league.png",
-      "designation": "SRM-15-F",
+      "designation": "SRM-15 (Frag)",
       "description": "@gearCatalogComponentMechSrm15FragDescription"
     },
     {
       "component": "component.mech-lrm-5-frag",
       "factionLogo": "graphics/factions/persean_league.png",
-      "designation": "LRM-5-F",
+      "designation": "LRM-5 (Frag)",
       "description": "@gearCatalogComponentMechLrm5FragDescription"
     },
     {
       "component": "component.mech-lrm-15-frag",
       "factionLogo": "graphics/factions/sindrian_diktat.png",
-      "designation": "LRM-15-F",
+      "designation": "LRM-15 (Frag)",
       "description": "@gearCatalogComponentMechLrm15FragDescription"
     },
     {
@@ -141,22 +141,16 @@
       "description": "@gearCatalogComponentMechThermalLanceDescription"
     },
     {
-      "component": "component.mech-pioneer-rocket",
+      "component": "component.mech-srm-3-qs",
       "factionLogo": "graphics/factions/neutral_traders.png",
-      "designation": "PRC-4",
-      "description": "@gearCatalogComponentMechPioneerRocketDescription"
+      "designation": "SRM-3 (QS)",
+      "description": "@gearCatalogComponentMechSrm3QsDescription"
     },
     {
       "component": "component.mech-light-mg",
       "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "LMG-1",
       "description": "@gearCatalogComponentMechLightMgDescription"
-    },
-    {
-      "component": "component.mech-light-rocket-pod",
-      "factionLogo": "graphics/factions/neutral_traders.png",
-      "designation": "LRP-2",
-      "description": "@gearCatalogComponentMechLightRocketPodDescription"
     },
     {
       "component": "component.mech-light-pulse-laser",

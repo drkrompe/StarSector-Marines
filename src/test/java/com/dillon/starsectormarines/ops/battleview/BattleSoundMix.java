@@ -295,27 +295,34 @@ public final class BattleSoundMix {
         for (Iterator<?> keys = group.keys(); keys.hasNext(); ) {
             String key = keys.next().toString();
             Object value = group.opt(key);
-            if (value instanceof JSONObject nested) {
+            if (value instanceof JSONObject nested && nested.optJSONArray("sounds") != null) {
+                // The game's other shape: {"sounds":[...]} with the id's settings beside it (a hit, a blast, the gate).
+                out.put(key, takesOf(nested.optJSONArray("sounds"), modRoot, core));
+            } else if (value instanceof JSONObject nested) {
                 collect(nested, modRoot, core, out);
             } else if (value instanceof JSONArray entries) {
-                List<Take> list = new ArrayList<>();
-                for (int i = 0; i < entries.length(); i++) {
-                    JSONObject entry = entries.optJSONObject(i);
-                    if (entry == null || !entry.has("file")) continue;
-                    String file = entry.optString("file");
-                    String source = entry.optString("source", "");
-                    // Music names its directory; packed music (a .bin) is left out.
-                    if (source.endsWith(".bin")) continue;
-                    Path path = modRoot.resolve(source).resolve(file);
-                    if (!Files.exists(path) && core != null && Files.exists(core.resolve(file))) {
-                        path = core.resolve(file);
-                    }
-                    list.add(new Take(path, (float) entry.optDouble("volume", 1.0),
-                            (float) entry.optDouble("pitch", 1.0)));
-                }
-                out.put(key, list);
+                out.put(key, takesOf(entries, modRoot, core));
             }
         }
+    }
+
+    private static List<Take> takesOf(JSONArray entries, Path modRoot, Path core) {
+        List<Take> list = new ArrayList<>();
+        for (int i = 0; i < entries.length(); i++) {
+            JSONObject entry = entries.optJSONObject(i);
+            if (entry == null || !entry.has("file")) continue;
+            String file = entry.optString("file");
+            String source = entry.optString("source", "");
+            // Music names its directory; packed music (a .bin) is left out.
+            if (source.endsWith(".bin")) continue;
+            Path path = modRoot.resolve(source).resolve(file);
+            if (!Files.exists(path) && core != null && Files.exists(core.resolve(file))) {
+                path = core.resolve(file);
+            }
+            list.add(new Take(path, (float) entry.optDouble("volume", 1.0),
+                    (float) entry.optDouble("pitch", 1.0)));
+        }
+        return list;
     }
 
     /** The game's {@code starsector-core}, as {@code createSnapshots} names the install; null when unknown. */

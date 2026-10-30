@@ -20,26 +20,26 @@ def commercial_fit(variant):
             variant,
             arms="muster-autogun.png",
             arm_layout="dual-narrow",
-            left_pod="pioneer-rocket-cradle.png",
-            right_pod="pioneer-rocket-cradle.png",
-            loadout="2x MUSTER AUTOGUN  /  PIONEER  /  PIONEER",
+            left_pod="srm-3-qs-pod.png",
+            right_pod="srm-3-qs-pod.png",
+            loadout="2x MUSTER AUTOGUN  /  SRM-3 (QS)  /  SRM-3 (QS)",
         )
     if variant.name == "HOUND":
         return replace(
             variant,
             arms="muster-autogun.png",
             arm_layout="nose",
-            left_pod="pioneer-rocket-cradle.png",
+            left_pod="srm-3-qs-pod.png",
             right_pod=None,
-            loadout="NOSE MUSTER AUTOGUN  /  PIONEER",
+            loadout="NOSE MUSTER AUTOGUN  /  SRM-3 (QS)",
         )
     return replace(
         variant,
         arms="quarry-breaker-cannon.png",
         arm_layout="nose-heavy",
-        left_pod="pioneer-rocket-cradle.png",
-        right_pod="pioneer-rocket-cradle.png",
-        loadout="QUARRY BREAKER  /  PIONEER  /  PIONEER",
+        left_pod="srm-3-qs-pod.png",
+        right_pod="srm-3-qs-pod.png",
+        loadout="QUARRY BREAKER  /  SRM-3 (QS)  /  SRM-3 (QS)",
     )
 
 
@@ -55,7 +55,7 @@ def main() -> None:
     draw.text((40, 70),
               "Commercial floor hardware shown in every livery — not faction default loadouts",
               font=font(17), fill=(148, 164, 169))
-    draw.text((40, 99), "Muster autogun  /  Quarry breaker  /  Pioneer rocket cradle",
+    draw.text((40, 99), "Muster autogun  /  Quarry breaker  /  SRM-3 (QS) rocket pod",
               font=font(16), fill=(225, 181, 81))
 
     column_left = 330

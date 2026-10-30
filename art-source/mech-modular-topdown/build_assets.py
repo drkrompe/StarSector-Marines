@@ -160,14 +160,12 @@ def main() -> None:
               "muster-autogun.png", (62, 128))
     normalize("weapon-concepts/quarry-breaker-cannon.png",
               "quarry-breaker-cannon.png", (72, 124))
-    normalize("weapon-concepts/pioneer-rocket-cradle.png",
-              "pioneer-rocket-cradle.png", (76, 112))
+    normalize("weapon-concepts/srm-3-qs-pod.png",
+              "srm-3-qs-pod.png", (76, 112))
     # The light weapons: one-row parts for the small gun card, drawn at 70 to 80 percent of the length of the
     # two-row weapon of their colour (vehicle-card-sizes.md).
     normalize("weapon-concepts/light-machine-gun.png",
               "light-machine-gun.png", (34, 88))
-    normalize("weapon-concepts/light-rocket-pod.png",
-              "light-rocket-pod.png", (29, 70))
     normalize("weapon-concepts/light-pulse-laser.png",
               "light-pulse-laser.png", (35, 84))
     # The laser ladder (vehicle-card-sizes.md): the PD family (red motif) and the burst family (clean white and blue),

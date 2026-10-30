@@ -979,6 +979,10 @@ public final class MechBay implements Serializable {
         }
         // Saves from before internals: every company knows the stock frame it is built on.
         knownPatternIds.addAll(starterPatternIds());
+        // A retired weapon (the light rocket pod, the pre-rename SRM-3 (QS) id) is dropped from stores and patterns;
+        // a mech still holding one falls back to its chassis's stock weapon (CampaignMech.resolve).
+        ownedWeapons.keySet().removeIf(id -> MechWeaponComponent.findById(id) == null);
+        knownPatternIds.removeIf(id -> id.startsWith(MechPattern.PREFIX + "weapon:") && MechPattern.parse(id) == null);
         squads.removeIf(squad -> squad == null);
         if (!foundingModelInitialized) seedLegacyStarterAssets();
         else ensureSupportSquad();

@@ -272,11 +272,11 @@ class LayeredMechComposerTest {
                 MechVariant.BULWARK.chassisAppearance, LayeredMechAppearance.ARMS_NONE,
                 LayeredMechAppearance.ARMS_MUSTER_AUTOGUN, LayeredMechAppearance.ARMS_MUSTER_AUTOGUN,
                 LayeredMechAppearance.POD_NONE,
-                LayeredMechAppearance.POD_PIONEER_ROCKET, 1f);
+                LayeredMechAppearance.POD_SRM_3_QS, 1f);
         assertEquals(2, muster.stream().filter(layer ->
                 fileName(layer.path()).equals("muster-autogun.png")).count());
         assertEquals(1, muster.stream().filter(layer ->
-                fileName(layer.path()).equals("pioneer-rocket-cradle.png")).count());
+                fileName(layer.path()).equals("srm-3-qs-pod.png")).count());
         assertEquals(2, muster.stream().filter(layer ->
                 fileName(layer.path()).equals("marine-muzzle-flash.png")).count());
 
@@ -287,7 +287,7 @@ class LayeredMechComposerTest {
                 LayeredMechAppearance.FLAG_SRM_FLASH,
                 MechVariant.HOUND.chassisAppearance,
                 LayeredMechAppearance.ARMS_QUARRY_BREAKER, LayeredMechAppearance.ARMS_NONE, LayeredMechAppearance.ARMS_NONE,
-                LayeredMechAppearance.POD_PIONEER_ROCKET,
+                LayeredMechAppearance.POD_SRM_3_QS,
                 LayeredMechAppearance.POD_NONE, 1f);
         assertEquals(1, quarry.stream().filter(layer ->
                 fileName(layer.path()).equals("quarry-breaker-cannon.png")).count());

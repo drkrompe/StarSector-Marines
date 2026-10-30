@@ -167,4 +167,13 @@ class MissilePathTest {
             assertEquals(u, MissilePath.unit(99L, i), 0f);
         }
     }
+
+    @Test
+    void aCarriedRocketLeavesWithTheHullsWayAndOutrunsTheSameRocketFromRest() {
+        MissilePath still = MissilePath.plan(ROCKET, 0f, 0f, 20f, 0f, 7L);
+        MissilePath carried = MissilePath.carried(ROCKET, 0f, 0f, 20f, 0f, 7L, 8f, 2f);
+        assertEquals(still.speed(0f) + 8f, carried.speed(0f), 1e-3);
+        assertTrue(carried.totalSeconds() < still.totalSeconds(), "it lands sooner");
+        assertEquals(20f, carried.landX(), 1e-3);
+    }
 }

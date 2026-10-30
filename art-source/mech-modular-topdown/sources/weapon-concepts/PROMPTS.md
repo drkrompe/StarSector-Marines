@@ -255,7 +255,11 @@ checker/background cleanup.
 The accepted first result became `quarry-breaker-cannon.png` after deterministic
 checker/background cleanup.
 
-## PRC-4 Pioneer utility rocket cradle
+## SRM-3 (QS) rocket pod
+
+Generated under its first name, the PRC-4 Pioneer utility rocket cradle, which the prompt below keeps. The part is
+now the QuickSell SRM-3 and fires three rockets a burst; the drawing still shows the four rockets it was generated
+with.
 
 > Create one isolated modular mech shoulder weapon concept for a 2D tactical
 > game: a PRC-4 “Pioneer” commercial utility rocket cradle converted from
@@ -286,13 +290,14 @@ retained that field, so the accepted isolation edit used this stronger handoff:
 
 `clean_imagegen_backgrounds.py` then converted only that uniform isolation
 plate to real alpha. The cleaned result is the retained geometry authority for
-`pioneer-rocket-cradle.png`.
+`srm-3-qs-pod.png`.
 
 # Light weapons (vehicle gun cards, small 1x2 class)
 
 Generated through `tools/codex_imagegen.py` on 2026-10-28 for the small omni gun card (`vehicle-card-sizes.md`): a
 light machine gun and a light pulse laser (arm guns) and a light rocket pod (shoulder). Two designs of each were
-generated and the owner took option A of all three; the unpicked B options were deleted. Each is a lighter, simpler
+generated and the owner took option A of all three; the unpicked B options were deleted. The light rocket pod was
+later retired in favour of the SRM-3 (QS), and its concept, material-ID pass and shipped sprites were deleted. Each is a lighter, simpler
 weapon than its shipped counterpart, drawn on the strict-zenith prompt block of `README.md` on a white isolation
 plate, then cleaned to real alpha with `clean_imagegen_backgrounds.py` (`light-machine-gun.png`,
 `light-rocket-pod.png`, `light-pulse-laser.png`). The full prompt, references and their roles of each accepted
