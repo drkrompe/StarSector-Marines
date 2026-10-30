@@ -1115,10 +1115,8 @@ public final class WarshipSystem {
      * carries the edge pressure ({@link WarshipEdgeHelm#steer}).
      */
     private static void moveHull(float dt, BattleSimulation sim, Warship ship, WarshipEdgeHelm edges) {
-        float beforeX = ship.x, beforeY = ship.y;
         if (ship.piloted()) {
             WarshipHelm.drive(ship, dt, sim.getGrid().getWidth(), sim.getGrid().getHeight());
-            enforceLowHoverClearance(sim, ship, beforeX, beforeY);
             return;
         }
         if (!ship.hasStation()) return;
@@ -1224,7 +1222,6 @@ public final class WarshipSystem {
             ship.x += stepX;
             ship.y += stepY;
         }
-        enforceLowHoverClearance(sim, ship, beforeX, beforeY);
     }
 
     /**
@@ -1238,29 +1235,6 @@ public final class WarshipSystem {
         }
         return ((ship.hullTarget() != null || WarshipTactics.overloadedInFight(ship)) && ship.duelHelm())
                 || WarshipEscort.liveLead(ship) != null || ship.departing();
-    }
-
-    /**
-     * Keeps a low-hovering hull's footprint off blocked ground. A step that would touch it slides along the obstacle on
-     * whichever axis is still clear, losing the blocked axis's speed, so the hull skirts a wall rather than sticking.
-     */
-    private static void enforceLowHoverClearance(BattleSimulation sim, Warship ship, float x, float y) {
-        if (!ship.lowHovering()) return;
-        float w = ship.lowHoverWidth(), h = ship.lowHoverHeight();
-        if (LowHoverClearance.sweptClear(sim.getGrid(), x, y, ship.x, ship.y, w, h)) return;
-        float nx = ship.x, ny = ship.y;
-        if (LowHoverClearance.sweptClear(sim.getGrid(), x, y, nx, y, w, h)) {
-            ship.y = y;
-            ship.velocityY = 0f;
-        } else if (LowHoverClearance.sweptClear(sim.getGrid(), x, y, x, ny, w, h)) {
-            ship.x = x;
-            ship.velocityX = 0f;
-        } else {
-            ship.x = x;
-            ship.y = y;
-            ship.velocityX = 0f;
-            ship.velocityY = 0f;
-        }
     }
 
     /**

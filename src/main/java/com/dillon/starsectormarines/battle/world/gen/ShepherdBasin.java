@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.nav.GridPathfinder;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.Paths;
-import com.dillon.starsectormarines.battle.warship.LowHoverClearance;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.stage.FinalizeStage;
@@ -60,7 +59,7 @@ public final class ShepherdBasin {
     /** Working Passage: the crews waiting on the lane ahead of Morrow. */
     public static final List<Place> PASSAGE_WATCHES = List.of(new Place("bend-watch", "Bend watch", 214, 123),
             new Place("narrows-watch", "Narrows watch", 258, 108), new Place("lift-watch", "Climb-out watch", 283, 80));
-    /** Full-size service lane; stops keep construction plots within normal builder reach. */
+    /** Morrow's mission stops; each keeps its construction plot within normal builder reach. */
     public static final float[][] HOVER_ROUTE = {{131,115}, {197,115}, {239,99}, {279,77}};
     /** The pump workshop stays above the lane; the first leg bends around its south face. */
     public static final float[][] HOVER_APPROACH = {{131,115}, {151,112}, {190,112}, {197,115}};
@@ -103,16 +102,6 @@ public final class ShepherdBasin {
             requireRoute(map, 279, 107);
             requireRoute(map, 151, 96);
             requireRoute(map, 188, 112);
-        }
-        if (visit == Visit.WORKING_PASSAGE) {
-            List<float[]> centers = new ArrayList<>(List.of(HOVER_APPROACH));
-            centers.add(HOVER_ROUTE[2]);
-            centers.add(HOVER_ROUTE[3]);
-            for (int i=1;i<centers.size();i++) {
-                float[] a=centers.get(i-1), b=centers.get(i);
-                if (!LowHoverClearance.sweptClear(map.grid,a[0],a[1],b[0],b[1],24,20))
-                    throw new IllegalStateException("Full-size Morrow service lane obstructed at leg " + i);
-            }
         }
         if (visit != Visit.WORKING_PASSAGE) map.topology.setNightLighting(nightLighting(map, visit));
         // The site was fought over before Vale's crew took it: every visit opens on the same scars.

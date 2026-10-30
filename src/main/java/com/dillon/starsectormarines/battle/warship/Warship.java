@@ -274,7 +274,10 @@ public final class Warship {
     private float lowHoverWidth;
     private float lowHoverHeight;
 
-    /** Keeps a recovering hull's full authored footprint clear of terrain until climb-out. */
+    /**
+     * A recovering hull's drawn footprint until climb-out: it sizes her body and keeps construction off ground under
+     * her. She flies over terrain like any hull; nothing blocks her movement.
+     */
     public void lowHoverFootprint(float width, float height) {
         if (!Float.isFinite(width) || !Float.isFinite(height) || width <= 0f || height <= 0f)
             throw new IllegalArgumentException("Low hover needs a finite positive footprint");

@@ -176,8 +176,8 @@ from casualties. No mandatory deaths or extra reward depend on these posts.
 Working Passage follows completed repairs and its first briefing's new road-work
 agreement. The concrete tactical gates below remain current mission rules,
 independent of that agreement's general construction terms. The same hull travels
-in a low hover at the Onslaught power's scale (`tender-ship.md`), clearing terrain
-along its actual movement; the player builds the same two guns anywhere seen and open.
+in a low hover at the Onslaught power's scale (`tender-ship.md`), flying over
+terrain like any hull; the player builds the same two guns anywhere seen and open.
 Living company presence and clear ground release its successive assembly positions.
 The pump bend and narrows each require a surviving constructed turret before the
 company advances; two distinct cooperative militia teams inherit the earlier holds.

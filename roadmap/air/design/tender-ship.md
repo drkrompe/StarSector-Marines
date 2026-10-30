@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-12
 
-Updated: 2026-10-30 — Morrow hovers at the Onslaught power's scale, builds a heavy MG or Locust battery anywhere seen and open, and takes a blocked move as far as she clears.
+Updated: 2026-10-30 — Morrow hovers at the Onslaught power's scale, builds a heavy MG or Locust battery anywhere seen and open, and flies over terrain like any hull.
 
 Updated: 2026-10-25 — an unpiloted tender builds flak first while the swarm has fliers about.
 
@@ -118,12 +118,11 @@ The mining laser's mount arc in its `.ship` slot (30 degrees) is not applied: th
 at the Onslaught power's presence (`SpawnInOnslaught.PRESENCE`), so beside the
 company's Onslaught she reads as the small hull she is, about eight cells long,
 rather than the 24 by 20-cell grounded body she was (owner, 2026-10-30). Her
-footprint is that hull's own length and beam, and her fixed attitude and swept
-footprint must clear terrain through mission travel, remote movement and direct
-control. A move order whose straight sweep is blocked is taken as far along the
-line as the footprint clears, and refused only when that buys less than a cell; a
-step that would touch blocked ground slides along the clear axis rather than
-stopping dead.
+footprint is that hull's own length and beam; it sizes her body and keeps
+construction off the ground under her, and nothing else. She flies: terrain never
+blocks her mission travel, remote moves or direct control, exactly as for every
+other overhead hull (owner, 2026-10-30). The earlier rule that her swept footprint
+had to clear terrain made most move orders fail and is retired.
 
 **A recovery host builds wherever the player has seen open ground** (owner,
 2026-10-30), on Cold Start and Working Passage alike: anywhere off the hull

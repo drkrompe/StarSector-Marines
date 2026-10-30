@@ -34,22 +34,17 @@ class ShipCommandServiceTest {
         assertEquals(Warship.RemoteOrder.NONE, ship.remoteOrder());
     }
 
-    @Test void lowHoverMoveIntoAnObstacleGoesAsFarAsItsFootprintClears() throws Exception {
+    @Test void lowHoverHullFliesOverBlockedGroundToTheOrderedPoint() throws Exception {
         Warship ship = PilotShipFixture.ship(10, 30);
         ship.lowHoverFootprint(4, 4);
         NavigationGrid grid = new NavigationGrid(60, 60);
         for (int y = 0; y < 60; y++) for (int x = 0; x < 60; x++) grid.setWalkableFloor(x, y);
-        grid.setWalkable(30, 30, false);
-        assertEquals(ShipCommandService.Notice.NONE,
-                ShipCommandService.placement(ship, null, Faction.MARINE, 50, 30, grid, (x, y) -> true));
+        for (int y = 0; y < 60; y++) grid.setWalkable(30, y, false);
         ShipCommandService service = new ShipCommandService();
         service.requestMove(ship, 50, 30);
         service.drain(List.of(ship), List.of(), Faction.MARINE, grid, (x, y) -> true);
         assertEquals(ShipCommandService.Notice.MOVING, service.notice(ship));
-        assertTrue(ship.stationX() > 20f && ship.stationX() <= 28f, "stops short of the obstacle: " + ship.stationX());
-        ship.x = 27.5f;
-        assertEquals(ShipCommandService.Notice.BLOCKED,
-                ShipCommandService.placement(ship, null, Faction.MARINE, 50, 30, grid, (x, y) -> true));
+        assertEquals(50f, ship.stationX());
     }
 
     @Test void hiddenAndUnregisteredRequestsDoNotMutateTravel() throws Exception {
