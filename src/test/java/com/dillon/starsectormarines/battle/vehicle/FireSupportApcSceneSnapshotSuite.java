@@ -182,9 +182,9 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
             VehicleType.MILITIA_TECHNICAL, VehicleType.SRM_TECHNICAL, VehicleType.HOVER_SCOUT,
             VehicleType.DOZER_BREACHER};
     private static final MechWeaponComponent[] LIGHT_GUNS = {MechWeaponComponent.LIGHT_MACHINE_GUN,
-            MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.LIGHT_ROCKET_POD,
+            MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.SRM_3_QS,
             MechWeaponComponent.LIGHT_MACHINE_GUN, MechWeaponComponent.LIGHT_PULSE_LASER,
-            MechWeaponComponent.LIGHT_ROCKET_POD};
+            MechWeaponComponent.SRM_3_QS};
 
     /** Six small hulls each carrying a light weapon in its small omni card, parked with turrets turned off axis. */
     private static LookReview.Shot lightWeapons() {

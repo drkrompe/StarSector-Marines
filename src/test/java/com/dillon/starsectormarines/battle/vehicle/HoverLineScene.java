@@ -470,7 +470,7 @@ public final class HoverLineScene implements BehaviorScene {
                 float spread = ((tick / 15) % 5 - 2) * .6f;
                 Projectile round = new Projectile(SKIMMER_X + 16f, SKIMMER_Y + 8f + spread, SKIMMER_X + spread,
                         SKIMMER_Y, false, 1.5f, Faction.DEFENDER, false, 1.6f, null,
-                        "weapon.mech-pioneer-rocket", true);
+                        "weapon.mech-srm-3-qs", true);
                 sim.queueProjectile(round);
                 rounds.add(round);
                 fired++;

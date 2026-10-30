@@ -54,8 +54,7 @@ public final class LayeredMechAppearance {
     public static final int POD_LARGE_LRM = 4;
     public static final int POD_SHOULDER_LASER = 5;
     public static final int POD_THERMAL_LANCE = 6;
-    public static final int POD_PIONEER_ROCKET = 7;
-    public static final int POD_LIGHT_ROCKET = 8;
+    public static final int POD_SRM_3_QS = 7;
     /** Compatibility names retained for authored tests and older call sites. */
     public static final int POD_SRM = POD_SMALL_SRM;
     public static final int POD_LRM = POD_LARGE_LRM;

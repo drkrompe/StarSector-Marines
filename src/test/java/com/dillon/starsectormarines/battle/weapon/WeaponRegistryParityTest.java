@@ -130,12 +130,6 @@ class WeaponRegistryParityTest {
                 "graphics/missiles/shell_hellbore.png", 0.34f, "hellbore_fire");
         assertEquals(50f, quarry.contactDamage, EPS);
         assertEquals(12f, quarry.contactPenetration, EPS);
-        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_PIONEER_ROCKET_ID),
-                20f, 18f, 0.42f, 7f, 7f,
-                4, 0.18f, 0.9f, 30.76923f, 0.65f, 0f,
-                0.9f, 12, 0.9f, true, false, false, 1f,
-                new Color(0xFF, 0xB8, 0x6A), ImpactKind.HE,
-                "graphics/missiles/missile_SRM.png", 0.34f, "pilum_lrm_fire");
         // The anti-armor racks: a contact warhead over a small splash (mechs-nouns.md, Missile warheads).
         assertMech(WeaponRegistry.require(WeaponRegistry.MECH_SRM_POD_ID),
                 18f, 10f, 0.55f, 5.5f, 6f,

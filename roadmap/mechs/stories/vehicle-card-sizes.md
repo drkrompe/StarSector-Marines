@@ -1,6 +1,6 @@
 # Story — A vehicle's gun card is sized and locked by its hull
 
-Status: IN PROGRESS (slices 1 to 3 shipped: the small omni card and the light weapons, the laser parts and the PD laser tank's retirement, then the laser ladder in its white orb-lens look; the Thermal Lance and Pioneer regrade and the balance pass remain)
+Status: IN PROGRESS (slices 1 to 3 shipped: the small omni card and the light weapons, the laser parts and the PD laser tank's retirement, then the laser ladder in its white orb-lens look; the Thermal Lance and SRM-3 (QS) regrade and the balance pass remain)
 
 Written: 2026-10-28
 
@@ -36,16 +36,16 @@ claim about the stock gun.
 ## The small weapons
 
 Slice 1 is shipped: the small omni card (`VehicleGunCard.SMALL`, the APCs, dozer, technicals and hover scout) and
-the three light weapons it is stocked with (`LIGHT_MACHINE_GUN`, `LIGHT_PULSE_LASER`, `LIGHT_ROCKET_POD`), each
-a one-row mech part with its own drawing, liveries, selector, geometry, weapon definition, catalogue and Store
+the light weapons it is stocked with (`LIGHT_MACHINE_GUN`, `LIGHT_PULSE_LASER`; the light rocket pod shipped with
+them and was retired for the SRM-3 (QS), owner 2026-10-30), each a one-row mech part with its own drawing, liveries, selector, geometry, weapon definition, catalogue and Store
 entries; their stats are first proposals awaiting the balance pass. The text below is the original problem, kept
 for the rows that are not done.
 
-Only two mech weapons were one row before it, the Thermal Lance (38 damage, 14 penetration) and the Pioneer Rocket
-Cradle; the one-row MG card takes none. A small omni slot would therefore take a Thermal Lance on a 480-structure
+Only two mech weapons were one row before it, the Thermal Lance (38 damage, 14 penetration) and the SRM-3 (QS)
+rocket pod (`SRM_3_QS`); the one-row MG card takes none. A small omni slot would therefore take a Thermal Lance on a 480-structure
 technical. The owner chose to author light weapons: one or two one-row parts per colour (a light MG, a light rocket
 pod, a light pulse laser), graded so a one-row part is clearly weaker per shot and per second than the two-row
-weapon of its colour, and the Thermal Lance and Pioneer Cradle re-graded against them (re-footprinted or retuned so
+weapon of its colour, and the Thermal Lance and SRM-3 (QS) re-graded against them (re-footprinted or retuned so
 they no longer out-punch a 2x2 gun from two cells). Footprint is the power cap; there is no second rating.
 
 ## The laser tanks' guns become parts

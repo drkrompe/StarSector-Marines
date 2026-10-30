@@ -335,10 +335,10 @@ def build():
     f['srm-15'] = banded(150, 300, missile_rack(150, 300, 7, 'srm'), 'SRM')
     f['lrm-5'] = banded(150, 200, missile_rack(150, 200, 4, 'lrm'), 'LRM')
     f['lrm-15'] = banded(150, 300, missile_rack(150, 300, 7, 'lrm'), 'LRM')
-    # Pioneer: one rocket riding its cradle rail, a 2x1 piece.
+    # SRM-3 (QS): the QuickSell pod, one rocket riding its open cradle rail, a 2x1 piece.
     b = missile(22, 40, 116, 26, 'rocket')
     b += rect(14, 64, 124, 8, D, rx=2) + rect(30, 74, 8, 16, D) + rect(112, 74, 8, 16, D)
-    f['pioneer-rocket'] = banded(150, 100, b, 'RKT')
+    f['srm-3-qs'] = banded(150, 100, b, 'RKT')
 
     pts = []
     for i in range(16):
@@ -398,12 +398,11 @@ def build():
     f['muster-autogun'] = banded(150, 200, upright2(autogun(56, 10, 190, 40)), 'AG')
     f['muster-autogun-nose'] = banded(150, 200, autogun(84, 8, 144, 34), 'AG')
 
-    # The light weapons, 2x1 pieces for the small gun card: a light machine gun on its drum, a two-rocket pod and
-    # a short pulse laser, side-on and pointing right as the other one-row pieces are.
+    # The light weapons, 2x1 pieces for the small gun card: a light machine gun on its drum and a short pulse laser,
+    # side-on and pointing right as the other one-row pieces are.
     f['light-machine-gun'] = banded(150, 100, autogun(38, 8, 142, 22, drum=True), 'LMG')
-    f['light-rocket-pod'] = banded(150, 100, missile_rack(150, 100, 2, 'rocket') + rect(14, 86, 124, 5, D, rx=2), 'LRP')
     f['light-pulse-laser'] = banded(150, 100, pulse_laser(46, 8, 142, 42), 'LPL')
-    # The SRM technical's roof pod: the light rocket pod's two-row rack, with short-range missiles.
+    # The SRM technical's roof pod: a two-row rack of short-range missiles on a base rail.
     f['vehicle-srm-pod'] = banded(150, 100, missile_rack(150, 100, 2, 'srm') + rect(14, 86, 124, 5, D, rx=2), 'SRM')
     f['burst-laser'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 66, rings=7)), 'HBL')
     f['heavy-pd-laser'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 60, rings=5)), 'HPD')

@@ -34,7 +34,7 @@ class VehicleGunTest {
         assertEquals(1, small.rows);
         assertTrue(small.accepts(MechWeaponComponent.LIGHT_MACHINE_GUN));
         assertTrue(small.accepts(MechWeaponComponent.LIGHT_PULSE_LASER));
-        assertTrue(small.accepts(MechWeaponComponent.LIGHT_ROCKET_POD));
+        assertTrue(small.accepts(MechWeaponComponent.SRM_3_QS));
         assertFalse(small.accepts(MechWeaponComponent.PULSE_LASER), "footprint is the only cap: two rows are too tall");
         assertFalse(small.accepts(null));
         assertFalse(VehicleGunCard.CANNON.accepts(MechWeaponComponent.LIGHT_PULSE_LASER), "a locked card keeps its lock");

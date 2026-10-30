@@ -1337,11 +1337,10 @@ public class BattleSprites {
         LayeredSpriteCache musterAutogun = loadLayeredSprite(root + "muster-autogun.png");
         LayeredSpriteCache quarryBreakerCannon = loadLayeredSprite(
                 root + "quarry-breaker-cannon.png");
-        LayeredSpriteCache pioneerRocketCradle = loadLayeredSprite(
-                root + "pioneer-rocket-cradle.png");
+        LayeredSpriteCache srm3QsPod = loadLayeredSprite(
+                root + "srm-3-qs-pod.png");
         LayeredSpriteCache lightMachineGun = loadLayeredSprite(root + "light-machine-gun.png");
         LayeredSpriteCache lightPulseLaser = loadLayeredSprite(root + "light-pulse-laser.png");
-        LayeredSpriteCache lightRocketPod = loadLayeredSprite(root + "light-rocket-pod.png");
         LayeredSpriteCache burstLaser = loadLayeredSprite(root + "burst-laser.png");
         LayeredSpriteCache pdLaser = loadLayeredSprite(root + "pd-laser.png");
         LayeredSpriteCache heavyPdLaser = loadLayeredSprite(root + "heavy-pd-laser.png");
@@ -1356,8 +1355,8 @@ public class BattleSprites {
                 || pulseLaserArm == null || bastionAutocannon == null
                 || demolitionCannon == null || thermalLance == null
                 || musterAutogun == null || quarryBreakerCannon == null
-                || pioneerRocketCradle == null || lightMachineGun == null
-                || lightPulseLaser == null || lightRocketPod == null || burstLaser == null
+                || srm3QsPod == null || lightMachineGun == null
+                || lightPulseLaser == null || burstLaser == null
                 || pdLaser == null || heavyPdLaser == null || mediumBurstLaser == null || lightBurstLaser == null
                 || flash == null) {
             LOG.warn("BattleSprites: modular mech layers incomplete; mechs fall back to plain markers");
@@ -1367,8 +1366,8 @@ public class BattleSprites {
                 houndChassis, wardenChassis, foot, thighBone, arm, linearCannon, heavyCannon,
                 srm, lrm, shoulderLaser, pulseLaserArm, bastionAutocannon,
                 demolitionCannon, thermalLance, musterAutogun,
-                quarryBreakerCannon, pioneerRocketCradle, lightMachineGun, lightPulseLaser,
-                lightRocketPod, burstLaser, pdLaser, heavyPdLaser,
+                quarryBreakerCannon, srm3QsPod, lightMachineGun, lightPulseLaser,
+                burstLaser, pdLaser, heavyPdLaser,
                 mediumBurstLaser, lightBurstLaser, flash);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
         for (TurretMountStyle style : TurretMountStyle.values()) {
@@ -1415,11 +1414,10 @@ public class BattleSprites {
         LayeredSpriteCache musterAutogun = loadLayeredSprite(root + "muster-autogun.png");
         LayeredSpriteCache quarryBreakerCannon = loadLayeredSprite(
                 root + "quarry-breaker-cannon.png");
-        LayeredSpriteCache pioneerRocketCradle = loadLayeredSprite(
-                root + "pioneer-rocket-cradle.png");
+        LayeredSpriteCache srm3QsPod = loadLayeredSprite(
+                root + "srm-3-qs-pod.png");
         LayeredSpriteCache lightMachineGun = loadLayeredSprite(root + "light-machine-gun.png");
         LayeredSpriteCache lightPulseLaser = loadLayeredSprite(root + "light-pulse-laser.png");
-        LayeredSpriteCache lightRocketPod = loadLayeredSprite(root + "light-rocket-pod.png");
         LayeredSpriteCache burstLaser = loadLayeredSprite(root + "burst-laser.png");
         LayeredSpriteCache pdLaser = loadLayeredSprite(root + "pd-laser.png");
         LayeredSpriteCache heavyPdLaser = loadLayeredSprite(root + "heavy-pd-laser.png");
@@ -1431,8 +1429,8 @@ public class BattleSprites {
                 || pulseLaserArm == null || bastionAutocannon == null
                 || demolitionCannon == null || thermalLance == null
                 || musterAutogun == null || quarryBreakerCannon == null
-                || pioneerRocketCradle == null || lightMachineGun == null
-                || lightPulseLaser == null || lightRocketPod == null || burstLaser == null
+                || srm3QsPod == null || lightMachineGun == null
+                || lightPulseLaser == null || burstLaser == null
                 || pdLaser == null || heavyPdLaser == null || mediumBurstLaser == null || lightBurstLaser == null) {
             LOG.warn("BattleSprites: modular mech livery " + livery
                     + " incomplete; actors using it keep the complete base set");
@@ -1443,8 +1441,8 @@ public class BattleSprites {
                 foot, thighBone, arm, linearCannon, heavyCannon,
                 srm, lrm, shoulderLaser, pulseLaserArm, bastionAutocannon,
                 demolitionCannon, thermalLance, musterAutogun,
-                quarryBreakerCannon, pioneerRocketCradle, lightMachineGun, lightPulseLaser,
-                lightRocketPod, burstLaser, pdLaser, heavyPdLaser,
+                quarryBreakerCannon, srm3QsPod, lightMachineGun, lightPulseLaser,
+                burstLaser, pdLaser, heavyPdLaser,
                 mediumBurstLaser, lightBurstLaser, flash));
     }
 

@@ -515,7 +515,7 @@ refit chaingun; refit heavy cannon, bastion and pulse arms.
 | Refit heavy cannon / bastion / pulse | 0.01 / 0.02 / 0.01 | 0.57 / 0.79 / 0.70 |
 | Refit Bulwark with two AT LRM-15 / bastion and two AT LRM-15 | 0.12 / 0.15 | 0.89 / 0.91 |
 | Hound, stock and refit | 0.00 | 0.00 / 0.01 |
-| Warden (Frag LRM-5s), stock and refit | 0.00 | 0.00 |
+| Warden (LRM-5 (Frag) racks), stock and refit | 0.00 | 0.00 |
 | Tank against tank, seconds from first hit | 45-47 | 52-55 |
 | Tank against a Bulwark, seconds from first hit | 32-39 | 52-62 |
 
@@ -1007,9 +1007,9 @@ whole section:
 
 | Loop | Variant | Single-warhead control |
 | --- | --- | --- |
-| Chaingun Bulwark, twin SRM-15 Frag, 12 men at 15 cells | 35.3 s | — |
+| Chaingun Bulwark, twin SRM-15 (Frag), 12 men at 15 cells | 35.3 s | — |
 | Chaingun Bulwark, twin SRM-15 AT, same | 40.8 s (racks hold) | 37.4 s |
-| Warden, twin LRM-5 Frag, 12 men at 30 cells | 13.6 s | — |
+| Warden, twin LRM-5 (Frag), 12 men at 30 cells | 13.6 s | — |
 | Warden, twin LRM-5 AT, same | never (racks hold, cannon out of reach) | 13.6 s |
 
 The Frag rack kills men at least as fast as the old rack did, and an AT rack holds
@@ -1033,13 +1033,13 @@ nearest-target choice):
 | Side | Variant | Control |
 | --- | --- | --- |
 | Stock Bulwark (AT SRM-15s) | 0.53 | 0.47 |
-| Stock Bulwark, Frag SRM-15s | 0.34 | 0.31 |
+| Stock Bulwark, SRM-15 (Frag) racks | 0.34 | 0.31 |
 | Refit Bulwark (AT) | 0.69 | 0.70 |
 | Refit Bulwark, Frag | 0.51 | 0.55 |
 | Hound (AT SRM-5) | 0.15 | 0.13 |
-| Hound, Frag SRM-5 | 0.09 | 0.09 |
+| Hound, SRM-5 (Frag) | 0.09 | 0.09 |
 | Warden, AT LRM-5s | 0.43 | 0.40 |
-| Warden, Frag LRM-5s (the factory fit) | 0.21 | 0.19 |
+| Warden, LRM-5 (Frag) racks (the factory fit) | 0.21 | 0.19 |
 
 A Frag row's control fires the same Frag rack; its difference is its opponents'
 racks and the target choice. AT racks hold or improve every mech's armor results,

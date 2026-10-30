@@ -260,7 +260,7 @@ class MechPointFireTest {
         assertTrue(arrivals.isEmpty());
         assertTrue(f.detonations.getPending().isEmpty());
 
-        Fixture open = new Fixture(null, MechWeaponComponent.PIONEER_ROCKET_CRADLE, null);
+        Fixture open = new Fixture(null, MechWeaponComponent.SRM_3_QS, null);
         open.fire(new PointFireAim(20.5f, 35.5f));
         Projectile burst = open.shots.getActiveProjectiles().get(0);
         assertNotNull(burst.onArrival, "a rocket thrown at open ground bursts there");
@@ -272,7 +272,7 @@ class MechPointFireTest {
 
     @Test
     void rocketAimedBeyondRangeStillFliesAndBurstsNoFurtherThanItsCeiling() {
-        Fixture f = new Fixture(null, MechWeaponComponent.PIONEER_ROCKET_CRADLE, null);
+        Fixture f = new Fixture(null, MechWeaponComponent.SRM_3_QS, null);
         float range = f.loadout.mount(MechMountSlot.LEFT_SHOULDER).weaponDef().range;
         f.fire(new PointFireAim(20.5f, 120.5f));
         Projectile rocket = f.shots.getActiveProjectiles().get(0);

@@ -317,8 +317,7 @@ final class LayeredMechComposer {
         return switch (selector) {
             case LayeredMechAppearance.POD_SHOULDER_LASER -> assets.shoulderLaser;
             case LayeredMechAppearance.POD_THERMAL_LANCE -> assets.thermalLance;
-            case LayeredMechAppearance.POD_PIONEER_ROCKET -> assets.pioneerRocketCradle;
-            case LayeredMechAppearance.POD_LIGHT_ROCKET -> assets.lightRocketPod;
+            case LayeredMechAppearance.POD_SRM_3_QS -> assets.srm3QsPod;
             case LayeredMechAppearance.POD_SMALL_SRM, LayeredMechAppearance.POD_LARGE_SRM -> assets.srmPod;
             case LayeredMechAppearance.POD_SMALL_LRM, LayeredMechAppearance.POD_LARGE_LRM -> assets.lrmPod;
             default -> null;
@@ -452,11 +451,8 @@ final class LayeredMechComposer {
         } else if (pod == LayeredMechAppearance.POD_THERMAL_LANCE) {
             emitFromRearPivot(out, assets.thermalLance, actorX, actorY, hullWidth, facingDeg,
                     localX, -0.30f, 1f, 0f, alpha);
-        } else if (pod == LayeredMechAppearance.POD_PIONEER_ROCKET) {
-            emitFromRearPivot(out, assets.pioneerRocketCradle, actorX, actorY, hullWidth,
-                    facingDeg, localX, -0.30f - srmKick, 1f, 0f, alpha);
-        } else if (pod == LayeredMechAppearance.POD_LIGHT_ROCKET) {
-            emitFromRearPivot(out, assets.lightRocketPod, actorX, actorY, hullWidth,
+        } else if (pod == LayeredMechAppearance.POD_SRM_3_QS) {
+            emitFromRearPivot(out, assets.srm3QsPod, actorX, actorY, hullWidth,
                     facingDeg, localX, -0.30f - srmKick, 1f, 0f, alpha);
         } else if (isSmallPod(pod)) {
             emitFromRearPivot(out, assets.srmPod, actorX, actorY, hullWidth, facingDeg,
@@ -480,8 +476,7 @@ final class LayeredMechComposer {
     private static boolean isSrmPod(int pod) {
         return pod == LayeredMechAppearance.POD_SMALL_SRM
                 || pod == LayeredMechAppearance.POD_LARGE_SRM
-                || pod == LayeredMechAppearance.POD_PIONEER_ROCKET
-                || pod == LayeredMechAppearance.POD_LIGHT_ROCKET;
+                || pod == LayeredMechAppearance.POD_SRM_3_QS;
     }
 
     private static boolean isLrmPod(int pod) {

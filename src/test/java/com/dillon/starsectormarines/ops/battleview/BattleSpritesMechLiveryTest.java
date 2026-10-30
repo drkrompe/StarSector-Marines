@@ -34,8 +34,8 @@ class BattleSpritesMechLiveryTest {
                 defender.lrmPod.sourcePath);
         assertEquals(factionPath("lions-guard", "lions-guard-thermal-lance.png"),
                 defender.thermalLance.sourcePath);
-        assertEquals(factionPath("lions-guard", "pioneer-rocket-cradle.png"),
-                defender.pioneerRocketCradle.sourcePath);
+        assertEquals(factionPath("lions-guard", "srm-3-qs-pod.png"),
+                defender.srm3QsPod.sourcePath);
         assertSame(sprites.layeredMechSprites().foot, marine.foot);
         assertSame(sprites.layeredMechSprites().muzzleFlash, defender.muzzleFlash);
     }

@@ -138,8 +138,7 @@ public final class MechHardpointGeometry {
     public static float podForward(int podAppearance) {
         if (podAppearance == LayeredMechAppearance.POD_SHOULDER_LASER
                 || podAppearance == LayeredMechAppearance.POD_THERMAL_LANCE) return 0.32f;
-        if (podAppearance == LayeredMechAppearance.POD_PIONEER_ROCKET) return 0.22f;
-        if (podAppearance == LayeredMechAppearance.POD_LIGHT_ROCKET) return 0.04f;
+        if (podAppearance == LayeredMechAppearance.POD_SRM_3_QS) return 0.22f;
         return isSmallPod(podAppearance) ? 0.12f : 0.16f;
     }
 
@@ -158,7 +157,7 @@ public final class MechHardpointGeometry {
             return Float.isNaN(arm) ? 0f : arm - ARM_PIVOT;
         }
         boolean pod = appearance >= LayeredMechAppearance.POD_SMALL_SRM
-                && appearance <= LayeredMechAppearance.POD_LIGHT_ROCKET;
+                && appearance <= LayeredMechAppearance.POD_SRM_3_QS;
         return pod ? podForward(appearance) - POD_PIVOT : 0f;
     }
 
@@ -179,7 +178,7 @@ public final class MechHardpointGeometry {
         }
         return switch (appearance) {
             case LayeredMechAppearance.POD_SMALL_SRM, LayeredMechAppearance.POD_LARGE_SRM,
-                 LayeredMechAppearance.POD_PIONEER_ROCKET, LayeredMechAppearance.POD_LIGHT_ROCKET -> 0.018f;
+                 LayeredMechAppearance.POD_SRM_3_QS -> 0.018f;
             case LayeredMechAppearance.POD_SMALL_LRM, LayeredMechAppearance.POD_LARGE_LRM -> 0.024f;
             default -> 0f;
         };

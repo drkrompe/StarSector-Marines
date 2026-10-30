@@ -39,10 +39,9 @@ public record MechPattern(Kind kind, String definitionId) {
 
         WEAPON_TIERS.put(MechWeaponComponent.SRM_5, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.MUSTER_AUTOGUN, EquipmentAccessTier.COMMON);
-        WEAPON_TIERS.put(MechWeaponComponent.PIONEER_ROCKET_CRADLE, EquipmentAccessTier.COMMON);
+        WEAPON_TIERS.put(MechWeaponComponent.SRM_3_QS, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.QUARRY_BREAKER_CANNON, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.LIGHT_MACHINE_GUN, EquipmentAccessTier.COMMON);
-        WEAPON_TIERS.put(MechWeaponComponent.LIGHT_ROCKET_POD, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.LIGHT_PULSE_LASER, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.PD_LASER, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.BURST_LASER, EquipmentAccessTier.PRESTIGE);

@@ -156,10 +156,9 @@ final class HardwareArt {
             case LRM_15, LRM_15_FRAG -> "lrm-15";
             case SHOULDER_LASER_CANNON -> "shoulder-laser";
             case THERMAL_LANCE -> "thermal-lance";
-            case PIONEER_ROCKET_CRADLE -> "pioneer-rocket";
+            case SRM_3_QS -> "srm-3-qs";
             case LIGHT_MACHINE_GUN -> "light-machine-gun";
             case LIGHT_PULSE_LASER -> "light-pulse-laser";
-            case LIGHT_ROCKET_POD -> "light-rocket-pod";
             case BURST_LASER -> "burst-laser";
             case PD_LASER -> "pd-laser";
             case HEAVY_PD_LASER -> "heavy-pd-laser";
