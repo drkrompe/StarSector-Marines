@@ -98,7 +98,17 @@ Completion of the Corvus arc and acknowledgement of its aftermath precede the of
 the supply-route outcome does not change eligibility. Hound survival is optional.
 The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, and
 **Working Passage**. Salvage Rights uses the company's selected marines and fitted
-boats, with two squads recommended and one ready marine, or a machine that drops, as its minimum.
+boats, with one ready marine, or a machine that drops, as its minimum. It is sized
+for the company that comes to it having won A Cold Account: five squads and four
+machines recommended, one of them heavy (`SalvageRightsCompany`). A rival crew
+holds the yard in strength (`SalvageRightsForce`): hired guns beside the scrappers
+in every building, ship guns in sandbag nests round the yard and cradle
+(`SalvageRightsGuns`, stamped on this visit only), point defence on the cradle,
+two technicals, a dozer, a salvaged Warden and two of Morrow's drones the
+occupiers woke. The south road's response brings a technical and a tank up
+behind its infantry. Vale's party musters at the apron's far edge until the
+receiving store falls, then inside the secured workshop, out of the occupied
+buildings' sight.
 Cooperative militia hold gains; a physical inspection party follows only after
 the company secures the cradle. The protected claim requires safe working time,
 living company cover and a surviving technician. A finite response comes along

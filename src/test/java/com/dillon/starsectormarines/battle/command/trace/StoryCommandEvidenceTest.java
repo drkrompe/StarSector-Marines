@@ -20,12 +20,14 @@ import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.DebugMissionCatalog;
 import com.dillon.starsectormarines.ops.DistrictEscortCampaign;
+import com.dillon.starsectormarines.ops.SalvageRightsCompany;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
+import com.dillon.starsectormarines.testsupport.SalvageRightsMuster;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -188,12 +190,20 @@ class StoryCommandEvidenceTest {
         public Object receipt(BattleSimulation sim) { return sim.getSmallWar().report(sim); }
     });
 
+    /** The company Salvage Rights is balanced against, in the debug preset's boats, calling its four machines down. */
     private static final Mission SALVAGE_RIGHTS = new Mission("salvage-rights", 18000, fixtures(
-            new Object[]{"14101", 14101, 24, ""}, new Object[]{"14102", 14102, 24, ""},
-            new Object[]{"15101", 15101, 24, ""}, new Object[]{"14101-36", 14101, 36, ""}), new Story() {
-        public BattleSimulation build(Fixture f) { return deploy(BattleSetup.createSalvageRights(f.seed(), lift(f), ARID), starter(f), f.personnel()); }
+            new Object[]{"14101", 14101, 60, ""}, new Object[]{"14102", 14102, 60, ""},
+            new Object[]{"15101", 15101, 60, ""}, new Object[]{"14101-48", 14101, 48, ""}), new Story() {
+        public BattleSimulation build(Fixture f) { return SalvageRightsMuster.build(f.seed(), f.personnel() / 12, true); }
         public Enum<?> phase(BattleSimulation sim) { return sim.getSalvageRights().progress().phase(); }
         public Object receipt(BattleSimulation sim) { return sim.getSalvageRights().report(sim); }
+        public void beforeAdvance(BattleSimulation sim, Fixture f, Map<String, Integer> done, JSONArray inputs) throws JSONException {
+            for (int pick = 0; pick < SalvageRightsCompany.MACHINES; pick++) {
+                if (done.containsKey("machine:" + pick)) continue;
+                if (SalvageRightsMuster.callMachine(sim, pick)) input(sim, done, inputs, "machine:" + pick, "machine " + pick + " called");
+                return;
+            }
+        }
     });
 
     private static final Mission COLD_START = new Mission("cold-start", 18000, fixtures(

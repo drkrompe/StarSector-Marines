@@ -2246,6 +2246,9 @@ public class BriefingScreen implements Screen {
         if (scenario == DebugMissionCatalog.Scenario.COLD_ACCOUNT && debugMechCount == ColdAccountCompany.MACHINES
                 && debugMechRoll == 0)
             return ColdAccountCompany.bay();
+        if (scenario == DebugMissionCatalog.Scenario.SALVAGE_RIGHTS && debugMechCount == SalvageRightsCompany.MACHINES
+                && debugMechRoll == 0)
+            return SalvageRightsCompany.bay();
         if (scenario != null && scenario.hound && debugMechCount == 1 && debugMechRoll == 0)
             return DebugMechRoster.recoveredHound();
         long seed = 31L * mission.id.hashCode() + debugMechRoll;

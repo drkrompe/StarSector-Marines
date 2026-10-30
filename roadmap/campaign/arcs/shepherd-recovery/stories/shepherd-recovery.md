@@ -357,9 +357,12 @@ the duration targets remain tuning goals until measured playback and live review
   one mortar team allowed to set up while outranged (an
   experiment, since removed; see `phased-assault.md`) wins 7 (about 13);
   both together win all 8 with about 18 alive. Decide which the mission should
-  expect before tuning the Longbows. Salvage Rights is marginal:
-  the inspection crew dies in one or both seeds depending on small layout
-  changes. Both are difficulty work, not story-radio faults. Story radio is
+  expect before tuning the Longbows. Salvage Rights was
+  scaled for the post-Cold Account company (five squads, four machines) and is
+  UNTUNED against a player: with its debug company the autopilot reaches the
+  cradle in every fixture and the inspection in one, killing 35 to 64 defenders,
+  and loses the company in every run. The inspection crew no longer dies on the
+  apron: it musters beyond the receiving store's reach. Both are difficulty work, not story-radio faults. Story radio is
   serial and was timed against the playbacks: instruction lines outrank Cold
   Start's checkpoint reports, so the build instruction is not held behind a
   falling picket.

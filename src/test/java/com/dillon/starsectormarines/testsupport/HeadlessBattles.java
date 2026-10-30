@@ -57,7 +57,8 @@ public final class HeadlessBattles {
     }
 
     /**
-     * A battle source: {@code fixture:<path>}, {@code thunder-run[:seed=N,...]}, {@code relief[:seed=N,surface=S]} or
+     * A battle source: {@code fixture:<path>}, {@code thunder-run[:seed=N,...]}, {@code relief[:seed=N,surface=S]},
+     * {@code salvage-rights[:seed=N,squads=N,machines]} or
      * {@code cordon[:variant=line|road,density=rural|town|urban,biome=VERDANT,seed=N]}.
      */
     public static BattleSimulation build(String source) throws Exception {
@@ -76,6 +77,7 @@ public final class HeadlessBattles {
             }
             case "fixture" -> fixture(new JSONObject(Files.readString(Path.of(rest))));
             case "cordon" -> cordon(options(rest));
+            case "salvage-rights" -> salvageRights(options(rest));
             default -> throw new IllegalArgumentException("unknown battle source: " + kind);
         };
     }
@@ -109,6 +111,12 @@ public final class HeadlessBattles {
         CordonPosture posture = CordonPosture.valueOf(options.optString("posture", "hold").toUpperCase(Locale.ROOT));
         return new CordonBattleFixture(seed, variant, biome, density, template.manifest(), posture, template.mechDrops())
                 .build();
+    }
+
+    /** Salvage Rights through its production factory, the debug briefing's company landing ({@link SalvageRightsMuster}). */
+    private static BattleSimulation salvageRights(JSONObject options) {
+        return SalvageRightsMuster.build(options.optLong("seed", 14101L), options.optInt("squads", 5),
+                options.optBoolean("machines", false));
     }
 
     /** The Relief ground start: twelve named starter recruits ashore at tick zero, the employer's shuttle flying. */

@@ -1590,7 +1590,7 @@ public final class BattleSetup {
         if(manifest==null || manifest.isEmpty() || manifest.size()>4)
             throw new IllegalArgumentException("Salvage Rights requires one to four company boats");
         MapResult map=ShepherdBasin.generate(seed,profile,ShepherdBasin.Visit.SALVAGE_RIGHTS);
-        BattleSimulation sim=buildMap(map,List.of(),List.of(),List.of(),seed).sim();
+        BattleSimulation sim=buildMap(map,List.of(),map.defensePosts,List.of(),seed).sim();
         sim.setSurface(surfaceOf(profile));
         sim.getBattleResources().disableCompoundProduction();
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER,Faction.MARINE));
@@ -1612,27 +1612,21 @@ public final class BattleSetup {
             mission.marineLoadout=mission.cycleLoadouts[0];
         }
         var receiving=map.pointsOfInterest.get(0);var workshop=map.pointsOfInterest.get(1);
-        for(var post:List.of(receiving,workshop)) {
-            var node=openingDefenseNode(post.interiorAnchorX,post.interiorAnchorY,Faction.DEFENDER,map.grid);
-            spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,post.interiorAnchorX,post.interiorAnchorY,4),
-                    Faction.DEFENDER,"scrapper-watch",node,rng);
-        }
-        var cradle=openingDefenseNode(ShepherdBasin.CRADLE_CUTTERS.x(),ShepherdBasin.CRADLE_CUTTERS.y(),Faction.DEFENDER,map.grid);
-        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,ShepherdBasin.CRADLE_CUTTERS.x(),ShepherdBasin.CRADLE_CUTTERS.y(),4),Faction.DEFENDER,"scrapper-cutters",cradle,rng);
-        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,ShepherdBasin.MILITIA.x(),ShepherdBasin.MILITIA.y(),8),Faction.ALLY,"basin-militia",null,rng);
+        SalvageRightsForce.garrison(sim,receiving,workshop,rng);
+        spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,ShepherdBasin.SALVAGE_MUSTER.x()-2,ShepherdBasin.SALVAGE_MUSTER.y(),8),Faction.ALLY,"basin-militia",null,rng);
         for(var squad:sim.getSquads())if(squad.faction==Faction.ALLY)
             if(!sim.handoffSquadCommand(squad.id,OpeningOperationCommand.issuer(Faction.ALLY),CommandAuthority.MISSION_COMMAND,
                     SalvageRightsCommand.issuer(Faction.ALLY),null,"Vale's militia waits for company gains"))
                 throw new IllegalStateException("Basin militia handoff failed");
         int engineers=sim.mintSquad(Faction.ALLY,UnitType.TECHNICIAN);
-        for(int[] cell:pickSpawnCluster(map.grid,ShepherdBasin.REPAIR_PARTY.x(),ShepherdBasin.REPAIR_PARTY.y(),2))
+        for(int[] cell:pickSpawnCluster(map.grid,ShepherdBasin.SALVAGE_MUSTER.x(),ShepherdBasin.SALVAGE_MUSTER.y(),2))
             sim.spawn(new EntitySpec("Cooperative inspection technician",Faction.ALLY,UnitType.TECHNICIAN,cell[0],cell[1]).squad(engineers).role(UnitRole.PATROL));
         sim.getSquad(engineers).originalSize=2;
         sim.claimSquadCommand(engineers,CommandAuthority.MISSION_COMMAND,SalvageRightsCommand.issuer(Faction.ALLY),"Repair party awaits a secured hull");
-        List<EntitySpec> reserve=new ArrayList<>();
-        for(int[] cell:pickSpawnCluster(map.grid,ShepherdBasin.SOUTH_HAUL_ROAD.x(),ShepherdBasin.SOUTH_HAUL_ROAD.y(),8))
-            reserve.add(makeOpeningMilitia("south-haul-scrapper-"+reserve.size(),Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
+        List<EntitySpec> reserve=SalvageRightsForce.roadReserve(map.grid,ShepherdBasin.SOUTH_HAUL_ROAD.x(),ShepherdBasin.SOUTH_HAUL_ROAD.y(),rng);
         sim.installSalvageRights(receiving,workshop,engineers,reserve);
+        sim.getSalvageRights().sendAlongRoad(SalvageRightsForce.roadMachines());
+        SalvageRightsForce.arm(sim);
         for(Faction faction:List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
             sim.setAutonomousCommander(faction,new SalvageRightsCommand(faction,receiving,workshop,engineers),
                     SalvageRightsCommand.disclosure(sim.getSalvageRights().progress()));

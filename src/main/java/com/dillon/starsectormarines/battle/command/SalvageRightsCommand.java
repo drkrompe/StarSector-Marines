@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.command;
 import com.dillon.starsectormarines.battle.story.SalvageRightsProgress;
 import com.dillon.starsectormarines.battle.story.SalvageRightsProgress.Phase;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import java.util.Comparator;
 import java.util.ArrayList;
@@ -60,8 +61,11 @@ public final class SalvageRightsCommand implements AutonomousMissionCommand<Salv
                 boolean workshopSecured=frame.phase.ordinal()>=Phase.CRADLE.ordinal();
                 if(isCrew && frame.phase.ordinal()>=Phase.INSPECTION.ordinal()){x=127;y=101;radius=2;}
                 else if(!isCrew && squad.squadId()%2==0 && frame.phase.ordinal()>=Phase.INSPECTION.ordinal()){x=123;y=95;radius=3;}
-                else if(workshopSecured){x=isCrew?82:78;y=isCrew?117:123+(squad.squadId()%2)*7;radius=2;}
-                else {x=isCrew?28:24;y=isCrew?78:84+(squad.squadId()%2)*9;radius=2;}
+                // The party waits out of the occupied buildings' sight: at the apron's far edge until the store falls,
+                // then inside the secured workshop.
+                else if(workshopSecured){x=isCrew?68:72;y=isCrew?124:120+(squad.squadId()%2)*8;radius=2;}
+                else {x=isCrew?ShepherdBasin.SALVAGE_MUSTER.x():ShepherdBasin.SALVAGE_MUSTER.x()-2;
+                    y=isCrew?ShepherdBasin.SALVAGE_MUSTER.y():ShepherdBasin.SALVAGE_MUSTER.y()-6+(squad.squadId()%2)*12;radius=2;}
             }
             ObjectiveAssignment next=advance ? ObjectiveAssignment.attackMove(squad.squadId(),x,y)
                     : ObjectiveAssignment.defendArea(squad.squadId(),x,y,radius);
