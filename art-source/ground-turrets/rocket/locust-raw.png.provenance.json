@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a18efc-1c79-7782-881b-815ea0d2cc7d",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a18efc-1c79-7782-881b-815ea0d2cc7d\\exec-6b203191-4941-4d4e-b1fd-33f58850bd2a.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\ground-turrets\\rocket\\locust-raw.png",
+    "sha256": "0fcc6b4ddf1113ebb7e5406d6f41bad840b501461353eef371605bbabe6fd75a",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\ground-turrets\\rocket\\locust-prompt.txt",
+  "promptSha256": "e43296450b5b5f6dac9fcc5da2e5c9853db1ee6c453e9c95dab9f9b203db12bc",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry authority and edit target: keep the design, silhouette and position exactly\nImage 2: Material, paint, wear and lighting reference only: the module family's olive-drab finish; not layout\n\nRepaint image 1 at high resolution. Image 1 is a tiny 64-pixel sprite from a science-fiction strategy video game, enlarged with hard pixels: a small turret module seen strictly from straight above, its front end pointing UP. Keep its design exactly: the same silhouette, proportions and parts, in the same position and size on the same canvas. Only replace the blocky pixels with crisp, detailed, painted sci-fi hardware. Read it as: a squat armoured box whose front (top) end is a honeycomb rack of open round tube mouths in rows, with a pale armoured cheek band across its middle, short pivot arms on the left and right sides, and a boxy rear housing with a hatch at the bottom. Repaint it so it belongs to the same game's family of ground turret modules: dull olive-drab cast and welded armour plate with welded seams, bolt heads and a little chipped paint, darker olive-grey for the tube rack and mechanisms, the tube mouths dark and sooty inside, plain steel only on worn edges. Image 2 is a sibling module from that family: copy its material, paint, wear, value range and lighting exactly, but not its layout. Restrained desaturated palette, no bright colour, no red, no yellow markings, no white body. Semi-realistic painted metal in the Starsector style, crisp edges, soft overhead light from the top left, coarse readable detail that survives being shrunk to about 40 pixels across. No smoke, no fire, no glow, no new parts. Exactly one object, strict 90-degree overhead orthographic, no perspective tilt. No scene, labels, text, background, checkerboard, ground shadow or border. True transparent background with genuine alpha outside the silhouette. Square canvas, same size and aspect as image 1.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\ground-turrets\\rocket\\locust-upres-guide.png",
+      "sha256": "6ecefea8425ea3f5cee74b9aa836685247d88e2e066db1bb318b58b27c285742",
+      "dimensions": [
+        1254,
+        1254
+      ],
+      "mode": "RGBA",
+      "role": "Geometry authority and edit target: keep the design, silhouette and position exactly"
+    },
+    {
+      "path": "mod\\graphics\\structures\\ground-turrets\\brutalist\\autogun-head.png",
+      "sha256": "efcb0166a363b851beafb50801b8532c7b48798d7b2869f717384da1daeb7684",
+      "dimensions": [
+        160,
+        160
+      ],
+      "mode": "RGBA",
+      "role": "Material, paint, wear and lighting reference only: the module family's olive-drab finish; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one repaint using Image 1’s geometry and Image 2’s olive-drab finish, with a transparent background."
+  ],
+  "usage": {
+    "input_tokens": 39899,
+    "cached_input_tokens": 32384,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 570,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 47.9
+}
