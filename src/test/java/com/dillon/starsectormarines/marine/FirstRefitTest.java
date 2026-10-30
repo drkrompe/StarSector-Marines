@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import org.junit.jupiter.api.Test;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.io.ByteArrayInputStream;
@@ -32,9 +33,10 @@ class FirstRefitTest {
         assertEquals(owned, roster.armory().ownedEquipmentTemplateIds().size());
         assertEquals(oldArmor, soldier.armorId());
         assertEquals(oldPrimary, soldier.primaryId());
-        assertFalse(roster.armory().ownsPrimaryTemplate(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.MILSPEC));
-        assertTrue(roster.armory().ownsPrimaryTemplate(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC));
-        assertTrue(roster.armory().ownsArmorTemplate(MarineArmorPattern.BLUE_SCOUT));
+        assertTrue(roster.armory().ownedEquipmentTemplateIds().containsAll(templates(FirstRefit.Path.FORWARD_SCREEN)));
+        for (String id : onlyIn(FirstRefit.Path.STEADY_LINE, FirstRefit.Path.FORWARD_SCREEN)) {
+            assertFalse(roster.armory().ownedEquipmentTemplateIds().contains(id), id);
+        }
         assertEquals(2, FirstRefit.Path.values().length);
     }
 
@@ -140,6 +142,21 @@ class FirstRefitTest {
         assertFalse(roster.firstRefit().claimed());
     }
 
+    /** Every equipment template a path's two cards carry. */
+    private static Set<String> templates(FirstRefit.Path path) {
+        Set<String> ids = new HashSet<>(new LoadoutCard(LoadoutCard.Kind.WEAPON, path.weapons).templateIds());
+        ids.addAll(new LoadoutCard(LoadoutCard.Kind.SHEET, path.armor).templateIds());
+        return ids;
+    }
+
+    /** What only {@code path} teaches: neither the other path nor a new company holds it. */
+    private static Set<String> onlyIn(FirstRefit.Path path, FirstRefit.Path other) {
+        Set<String> ids = templates(path);
+        ids.removeAll(templates(other));
+        ids.removeAll(new MarineArmory().ownedEquipmentTemplateIds());
+        return ids;
+    }
+
     @Test void previewsDoNotGrantTechnologyAndChoosingOneDoesNotGrantTheOther() {
         for (var path : FirstRefit.Path.values()) {
             MarineRoster roster = company();
@@ -151,12 +168,12 @@ class FirstRefitTest {
                 assertEquals(before, roster.armory().ownedEquipmentTemplateIds());
             }
             assertTrue(roster.firstRefit().claim(roster, path));
-            assertEquals(path == FirstRefit.Path.STEADY_LINE,
-                    roster.armory().ownsPrimaryTemplate(WeaponRegistry.SQUAD_AUTOMATIC_ID, EquipmentGrade.MILSPEC));
-            assertEquals(path == FirstRefit.Path.FORWARD_SCREEN,
-                    roster.armory().ownsPrimaryTemplate(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.MILSPEC));
-            assertEquals(path == FirstRefit.Path.FORWARD_SCREEN, roster.armory().ownsArmorTemplate(MarineArmorPattern.BLUE_SCOUT));
             var other = path == FirstRefit.Path.STEADY_LINE ? FirstRefit.Path.FORWARD_SCREEN : FirstRefit.Path.STEADY_LINE;
+            assertTrue(roster.armory().ownedEquipmentTemplateIds().containsAll(templates(path)), path.name());
+            assertFalse(onlyIn(other, path).isEmpty(), "the paths must differ");
+            for (String id : onlyIn(other, path)) {
+                assertFalse(roster.armory().ownedEquipmentTemplateIds().contains(id), path + " taught " + id);
+            }
             assertFalse(roster.firstRefit().claim(roster, other));
             assertEquals(SquadEquipmentResult.UNKNOWN_ARMOR_DOCTRINE,
                     roster.applySquadEquipment(squad, other.weapons, other.armor));

@@ -29,7 +29,10 @@ The two recorded debrief lines (`debrief.blind_watch.initiative`,
 
 **Sized for a company with armour (owner, 2026-10-30).** Blind Watch expects
 five squads and three machines (the Hound and two vehicles, one an LRM carrier),
-so `CorvusChapter.BLIND_WATCH` recommends five squads. Every machine Sable fields
+so `CorvusChapter.BLIND_WATCH` recommends five squads and three machines
+(`CorvusChapter.recommendedMachines`), and its briefing and requirements
+(`corvusBlindWatchRequirements`) warn that the post is dug in against armour,
+which the Dust Ledger's strongbox roster told the company. Every machine Sable fields
 is outranged by such a company's standoff hulls (heavy MG 24 cells, Hephaestus 32;
 the LRM carrier 40, the mortar APC 38), so the post defends in depth: forward
 pickets, a gate line with anti-armour guns, and indirect fire behind them.
