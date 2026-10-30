@@ -440,7 +440,7 @@
           { "kind": "dust", "radius": 0.22, "lifetime": 0.20 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
     },
     {
       "id": "weapon.mech-ac-6",
@@ -827,7 +827,7 @@
           { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
     },
     {
       "id": "weapon.mech-pd-laser",
@@ -1003,7 +1003,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
     },
     {
       "id": "weapon.mech-light-burst-laser",
@@ -1047,7 +1047,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
     },
     {
       "id": "weapon.mech-light-mg",
@@ -1189,7 +1189,7 @@
           { "kind": "dust", "radius": 0.18, "lifetime": 0.18 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
     },
     {
       "id": "weapon.mech-srm",
