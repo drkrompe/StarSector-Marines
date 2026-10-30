@@ -294,6 +294,11 @@ public final class DoodadService {
         }
     }
 
+    /** Takes away the passable nature-overlay cover on a cell whose scatter has been cleared, as paving it does. */
+    public void clearNatureCover(int x, int y) {
+        if (natureCoverOnCell != null && grid.inBounds(x, y)) natureCoverOnCell[grid.index(x, y)] = null;
+    }
+
     private void addDirectionalEdgeCover(int cellX, int cellY, int cover,
                                          float ballisticHalfHeight) {
         maxMergeGridFacing(cellX, cellY - 1, NavigationGrid.FACING_S,

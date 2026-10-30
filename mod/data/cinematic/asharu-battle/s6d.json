@@ -1,0 +1,62 @@
+{
+ "id": "s6d",
+ "video": "cinematic/asharu-battle/s6d.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 144,
+ "duration": 6.0,
+ "captions": [
+  {
+   "t_in": 0.3,
+   "t_out": 1.12,
+   "speaker": "warden_five",
+   "key": "asharuRadioS6d_1"
+  },
+  {
+   "t_in": 2.9,
+   "t_out": 4.83,
+   "speaker": "warden_five",
+   "key": "asharuRadioS6d_2"
+  }
+ ],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_engines_s6d",
+   "volume": 1.0
+  },
+  {
+   "t": 0.0,
+   "sound": "asharu_film_guns_s6d",
+   "volume": 1.0
+  },
+  {
+   "t": 0.3,
+   "sound": "asharu_film_d26",
+   "volume": 1.0
+  },
+  {
+   "t": 2.8,
+   "sound": "asharu_film_s6d_hound_kill",
+   "volume": 1.0
+  },
+  {
+   "t": 2.9,
+   "sound": "asharu_film_d27",
+   "volume": 1.0
+  },
+  {
+   "t": 3.1,
+   "sound": "asharu_film_s6d_hound_hit",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {
+  "warden_five": {
+   "label_key": "asharuRadioSpeakerWardenFive",
+   "color": "player",
+   "role_key": "asharuRadioRoleWardenFive"
+  }
+ }
+}

@@ -1,0 +1,18 @@
+{
+ "id": "s1",
+ "video": "cinematic/asharu-battle/s1.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 192,
+ "duration": 8.0,
+ "captions": [],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_engines_s1",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {}
+}

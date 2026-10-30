@@ -22,9 +22,10 @@ public record CinematicShot(String id, String video, int fps, int width, int hei
 
     /**
      * Colours are named, not numeric, so the player picks them from the game's own palette. The label
-     * is a {@code strings.json} key, resolved in the active language when it is drawn.
+     * is a {@code strings.json} key, resolved in the active language when it is drawn. {@code roleKey},
+     * optional (null when absent), names the hull's role, drawn after the label in a smaller, dimmer style.
      */
-    public record Speaker(String labelKey, String color) { }
+    public record Speaker(String labelKey, String roleKey, String color) { }
 
     /**
      * One voiced take: its window, its speaker id and the {@code strings.json} key of its words. The
@@ -58,7 +59,8 @@ public record CinematicShot(String id, String video, int fps, int width, int hei
         if (speakerJson != null)
             for (String key : keys(speakerJson)) {
                 JSONObject s = speakerJson.getJSONObject(key);
-                speakers.put(key, new Speaker(s.getString("label_key"), s.optString("color", "player")));
+                speakers.put(key, new Speaker(s.getString("label_key"),
+                        s.has("role_key") ? s.getString("role_key") : null, s.optString("color", "player")));
             }
         List<Caption> captions = new ArrayList<>();
         JSONArray captionJson = json.optJSONArray("captions");

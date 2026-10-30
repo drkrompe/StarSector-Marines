@@ -1,0 +1,28 @@
+{
+ "id": "s11",
+ "video": "cinematic/asharu-battle/s11.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 192,
+ "duration": 8.0,
+ "captions": [],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_engines_s11",
+   "volume": 1.0
+  },
+  {
+   "t": 0.2,
+   "sound": "asharu_film_s11_shuttle_reentry",
+   "volume": 1.0
+  },
+  {
+   "t": 6.4,
+   "sound": "asharu_film_s11_signal_breaks",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {}
+}

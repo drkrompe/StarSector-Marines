@@ -12,9 +12,8 @@ game gives its faction's ships (faction shipNamePrefix: ISS for an independent, 
 who flies unregistered), then the hull's game designation as a role word (ship_data.csv), never its
 hull name: ISS CARAVEL, Heavy Freighter; BARON, Light Cruiser (`caption`).
 
-Each line names the strings.json key the arrival player will caption it with
-(`asharuRadio<Shot>_<n>`). The keys are not in strings.json yet: the cinematic is not wired
-into the game. When it is, these ids are the keys."""
+Each line names the strings.json key the film player captions it with (`asharuRadio<Shot>_<n>`);
+film_export.py writes those strings, and each speaker's callsign and role, from here."""
 
 CALLSIGNS = {
     'colossus': 'CARAVEL', 'tarsus': 'SOBIESKI', 'mule': 'THYSVILLE', 'phaeton': 'BATORY',
@@ -125,7 +124,7 @@ OPENING = [ln[:5] for ln in LINES if ln[3] <= 10.0]
 # S11: the plasma takes the channel; these drop out, in this order, at these times (s)
 DROPS = {'CARAVEL': 124.9, 'MORROW': 125.3}
 
-# S13: back on the log after the trails, the survivors and the pirates on the channel; the log
-# ends on END OF RECORDING, not on a held frame
-CLOSING = [ln[:5] for ln in LINES if ln[2] >= 138.0]
+# S13: back on the log after the trails, the lines still on the channel as it opens (Warden Three's
+# starts under S12 and fades out over the cut); the log ends on END OF RECORDING, not on a held frame
+CLOSING = [ln[:5] for ln in LINES if ln[3] > 138.0]
 END_CARD_S = 149.6

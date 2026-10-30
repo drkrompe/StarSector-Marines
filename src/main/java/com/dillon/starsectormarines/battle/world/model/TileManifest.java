@@ -186,10 +186,20 @@ public final class TileManifest {
      * edge wears that edge's piece, and only the four cells diagonal to the body's corners wear inner corners.
      */
     public static Doodad emplacementTightParapet(int cellX, int cellY, int relX, int relY, int bodyHalf) {
+        String id = emplacementTightParapetId(relX, relY, bodyHalf);
+        TileRegistry registry = TileRegistry.installed();
+        if (id == null || registry == null) return null;
+        DoodadDef def = registry.doodad(id);
+        return def == null ? null : new Doodad(cellX, cellY, def);
+    }
+
+    /**
+     * The doodad id of the collar piece {@link #emplacementTightParapet(int, int, int, int, int)} lays for a ring cell,
+     * or {@code null} for a cell inside the body. Pure, so a layout can be planned without the catalog installed.
+     */
+    public static String emplacementTightParapetId(int relX, int relY, int bodyHalf) {
         relX = Math.abs(relX) > bodyHalf ? Integer.signum(relX) : 0;
         relY = Math.abs(relY) > bodyHalf ? Integer.signum(relY) : 0;
-        TileRegistry registry = TileRegistry.installed();
-        if (registry == null) return null;
         String shape;
         if (relX != 0 && relY != 0) {
             shape = "inner-" + (relY > 0 ? "s" : "n") + (relX < 0 ? "e" : "w");
@@ -200,8 +210,7 @@ public final class TileManifest {
         } else {
             return null;
         }
-        DoodadDef def = registry.doodad(EMPLACEMENT_PIECE_PREFIX + shape);
-        return def == null ? null : new Doodad(cellX, cellY, def);
+        return EMPLACEMENT_PIECE_PREFIX + shape;
     }
 
     /**

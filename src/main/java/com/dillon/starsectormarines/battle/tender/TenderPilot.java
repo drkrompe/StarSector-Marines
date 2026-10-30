@@ -89,25 +89,26 @@ public final class TenderPilot {
         return slot >= 0 && slot < OPTION_SLOTS && slot < all.size() ? all.get(slot) : null;
     }
 
-    /** Whether the cell under {@code (x, y)} is ground a site may be laid on, ignoring crowding and the line's length. */
+    /** Whether the cell under {@code (x, y)} is ground a one-cell site may be laid on, ignoring the line's length. */
     public static Placement placement(Tender tender, float x, float y, NavigationGrid grid,
+                                      BiPredicate<Integer, Integer> revealed) {
+        return placement(tender, null, x, y, grid, revealed);
+    }
+
+    /**
+     * Whether {@code option}'s site centred on the cell under {@code (x, y)} may be laid there, ignoring the line's
+     * length: every cell of a staged build's plot must be seen and open, so a cramped spot shows refused.
+     */
+    public static Placement placement(Tender tender, BuildOption option, float x, float y, NavigationGrid grid,
                                       BiPredicate<Integer, Integer> revealed) {
         int cx = (int) Math.floor(x);
         int cy = (int) Math.floor(y);
         if (!Float.isFinite(x) || !Float.isFinite(y) || !grid.inBounds(cx, cy)) return Placement.OFF_MAP;
-        if (!revealed.test(cx, cy)) return Placement.UNSEEN;
-        if (!grid.isWalkable(cx, cy)) return Placement.BLOCKED;
+        if (!Tender.everyCell(option, cx, cy, (px, py) -> grid.inBounds(px, py) && revealed.test(px, py))) {
+            return Placement.UNSEEN;
+        }
         // The same ground rules as Tender.lay, so a site the marker shows open is one the tender takes.
-        if (!tender.buildableSite(cx + 0.5f, cy + 0.5f) || tender.groundPlotReserved(cx + 0.5f, cy + 0.5f)) {
-            return Placement.BLOCKED;
-        }
-        for (ConstructionOrder other : tender.orders()) {
-            if (other.phase().terminal()) continue;
-            if (Math.hypot(other.siteX() - (cx + 0.5f), other.siteY() - (cy + 0.5f)) < Tender.SITE_SPACING) {
-                return Placement.BLOCKED;
-            }
-        }
-        return Placement.OPEN;
+        return tender.siteOpen(option, x, y, grid) ? Placement.OPEN : Placement.BLOCKED;
     }
 
     /**
@@ -142,7 +143,7 @@ public final class TenderPilot {
             pad.note(Notice.BLOCKED);
             return;
         }
-        Placement where = placement(tender, hands.aimX(), hands.aimY(), grid, revealed);
+        Placement where = placement(tender, option, hands.aimX(), hands.aimY(), grid, revealed);
         if (where == Placement.OFF_MAP) return;
         if (where == Placement.UNSEEN) {
             pad.note(Notice.UNSEEN);

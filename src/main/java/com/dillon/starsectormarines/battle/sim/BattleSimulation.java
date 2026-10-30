@@ -2384,6 +2384,12 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
         if (d.hasFogSurface()) fogOfWar.registerSolidProp(d.cellX, d.cellY, d.footprintCellsX, d.footprintCellsY);
     }
 
+    /** Clears a cell's ground scatter and the cover it gave, as a build's pad does mid-battle. */
+    public void clearNatureOverlay(int x, int y) {
+        topology.setNatureOverlayIndex(x, y, -1);
+        doodadService.clearNatureCover(x, y);
+    }
+
     /** Whether a structural blow on this cell lands on a sandbag, fence or crate barricade; see {@link DoodadService#barricadeAt}. */
     public boolean isBarricadeAt(int x, int y) {
         return doodadService.barricadeAt(x, y, topology);

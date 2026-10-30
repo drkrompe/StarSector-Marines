@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-12
 
-Updated: 2026-10-30 — Morrow hovers at the Onslaught power's scale, builds a heavy MG or Locust battery anywhere seen and open, and flies over terrain like any hull.
+Updated: 2026-10-30 — Morrow hovers at the Onslaught power's scale, builds a heavy MG, a staged Locust nest or a Locust fire base anywhere seen and open, and flies over terrain like any hull.
 
 Updated: 2026-10-25 — an unpiloted tender builds flak first while the swarm has fliers about.
 
@@ -38,6 +38,7 @@ Rejected: a role flag on the shuttle mission. The shuttle machinery is built aro
 - **Build option** — a deployable that already exists, its cost in charges (spent only when the tender is metered) and the time a full crew needs. Not a new kind of thing.
 - **Charge** — an optional cap on builds. It defaults to unlimited (building is free), so nothing is drawn; on a metered tender a laid order draws its option's charge and a cancelled or failed order returns it.
 - **Construction order / build site** — one option at one cell. Phases: queued, transit, working, then complete, cancelled or failed.
+- **Plot** — the square of ground a staged build lays before its structure (3x3 or 5x5), with a forward **facing** and its **stages** (pad, parapet, stores). A build without one stands on its single cell.
 - **Standoff** — the point a few cells short of the site where the tender hovers while its builders fly out, so the work is visible.
 - **Known hostile** — one the tender's side knows of: a contact its squads remember, at the cell it was last seen, or one inside the overhead sight of the hull or a drone it has out (20 cells).
 - **Stood down** — a site with a known hostile inside the threat radius, or one that is under fire: no work is done and the builders go home.
@@ -52,11 +53,28 @@ Candidates, in the order they cost least to add (each is a `BuildOption` plus, w
 | Candidate | Path it would use | Note |
 | --- | --- | --- |
 | Other catalog turrets (arbalest, flak, mortar) | the same structure path | built: number keys 1-4, vulcan first. Time and cost scale from the vulcan (12 s, 1 charge) by the structure's weight: arbalest 15 s / 2, dual flak 17 s / 2, heavy mortar 18 s / 3. Grenade launcher and hephaestus are further data-only candidates once a sixth slot or a selector exists |
-| Recovery guns (heavy MG, Locust) | the same structure path | built, for Morrow only (owner, 2026-10-30): a recovery host (grounded or low hover) offers exactly these two, `BuildOption.RECOVERY`, and a flying tender keeps the five above. Heavy MG 15 s / 2; Locust battery, indirect rocket artillery with a 30-cell minimum range, 20 s / 3 |
+| Recovery builds (heavy MG, Locust nest, Locust fire base) | the same structure path, the Locusts on a plot | built, for Morrow only (owner, 2026-10-30): a recovery host (grounded or low hover) offers exactly these three, `BuildOption.RECOVERY`, and a flying tender keeps the five above. Heavy MG 15 s / 2; the Locust (indirect rocket artillery with a 30-cell minimum range) as a 3x3 nest, 20 s / 3, or a 5x5 fire base, 34 s / 4 (Staged builds, below) |
 | Point-defence emplacement | `PointDefenseService.queuePlacement` | built: key 5, 8 s / 1 charge. The structure and spec are the carried Palisade pod's (45 s life, 8-round magazine, 44 structure plus armour), so the item stays the one authority; it is lighter than any turret and so quicker. Completion queues the placement with the tender's faction and no carrier. Number keys were extended to 1-5 rather than replacing a turret. The stance AI considers turret kinds only: the pod is quicker than every turret and would win ATTACK every time, and an unpiloted tender has no read on incoming ordnance |
 | Sensor, repair, supply | none yet | wait on the systems that would use them |
 
 An option never restates what the structure is. Durability, weapon, magazine and art come from the catalog.
+
+### Staged builds
+
+**A staged build is one construction order over a plot** (owner, 2026-10-30). A `BuildOption` may carry a `BuildPlot`: the cells it occupies about its centre and the share of the build time at which each stage is done. The order keeps its single progress, stand-down, builder stations and charge; as the progress passes a stage's share, `TenderSystem` lays that stage at once (`PlotWorks`), and the structure stands up at completion as for any option.
+
+| Stage | What appears | Made of |
+| --- | --- | --- |
+| Pad | The plot paved, its ground scatter and the scatter's cover cleared | The fort pad's concrete (`FortStage.pad`) |
+| Parapet | The short concrete rim, with any opening the layout leaves | The tight emplacement parapet pieces: walkable, wearable cover |
+| Stores | Sandbags beside the gun and ammunition stacks behind it (fire base only) | `doodad.sandbag-straight-*`, `doodad.industrial-crate-stack` |
+| Gun | The Locust on its collar | `structure.turret-locust` through `MapTurret.create` |
+
+The owner picked the layouts on the Morrow handling picks page: the **nest** is the Locust in the middle of a paved 3x3 with the rim all round (pad 4 s, rim 6 s, gun 10 s); the **fire base** is a paved 5x5 whose rim is open at the rear for the crew, the gun a cell forward of centre with sandbags either side and two ammunition stacks behind (pad 8 s, rim 10 s, stores 4 s, gun 12 s). Both are offered beside the heavy MG. The layouts considered and refused (the raised Locust Hardpoint as the 3x3, a corner gun, a centred hardpoint mount) remain renderable in `locust-fire-base-mock`.
+
+- **A finished stage stays.** A cancelled or failed order leaves the pad, rim and stores it completed: real cover the company can use. Only the unfinished stage and the gun are lost. A later stage steps round any prop already standing on a cell rather than stacking on it.
+- **Placement covers the whole plot.** Every cell must be seen, open, walkable ground, no doorway, off the hull, and the plot may share no cell with another live or kept site (`Tender.siteOpen`). The placement marker, the yard power's targeting cursor and the order read the same rule, and the marker outlines the plot, so a cramped spot shows refused before the click.
+- **Facing.** When the order sets out, its forward side turns to the nearest hostile the tender's side knows of, or straight away from the hull when it knows of none, on the nearer compass axis. The layout, its rim opening and its sandbags turn with it.
 
 ## How it builds
 

@@ -11,6 +11,10 @@ package com.dillon.starsectormarines.battle.tender;
  * <p>The phases run {@code QUEUED -> TRANSIT -> WORKING -> COMPLETE}. An order
  * can leave the line at any point as {@code CANCELLED} (somebody withdrew it) or
  * {@code FAILED} (the world stopped it), and both give the tender's charge back.
+ *
+ * <p>A staged build ({@link BuildOption#plot}) completes its plot's stages as the progress crosses each one's share;
+ * the system lays each on the ground as it falls {@linkplain #stageDue due}. A stage once laid stays laid whatever
+ * happens to the order after: only the gun waits for completion.
  */
 public final class ConstructionOrder {
 
@@ -41,6 +45,9 @@ public final class ConstructionOrder {
     private boolean contested;
     private boolean underFire;
     private String failure = "";
+    private int stagesLaid;
+    private int facingX;
+    private int facingY = 1;
 
     public ConstructionOrder(BuildOption option, float siteX, float siteY) {
         this.option = option;
@@ -92,6 +99,36 @@ public final class ConstructionOrder {
 
     void underFire(boolean underFire) {
         this.underFire = underFire;
+    }
+
+    /** The cardinal direction the plot's forward side faces, as {@code {x, y}}; north until the order sets out. */
+    public int[] facing() {
+        return new int[]{facingX, facingY};
+    }
+
+    void face(int[] facing) {
+        this.facingX = facing[0];
+        this.facingY = facing[1];
+    }
+
+    /** How many of the plot's stages are on the ground. */
+    public int stagesLaid() {
+        return stagesLaid;
+    }
+
+    /**
+     * The next plot stage whose share the work has passed and which is not yet laid, or {@code null}. The caller lays
+     * it and calls {@link #laid()}; asking again gives the one after, so a long tick that crosses two lays both.
+     */
+    public BuildPlot.Stage stageDue() {
+        BuildPlot plot = option.plot();
+        if (plot == null || stagesLaid >= plot.stages().size()) return null;
+        BuildPlot.Stage next = plot.stages().get(stagesLaid);
+        return fraction() >= plot.end(next) ? next : null;
+    }
+
+    void laid() {
+        stagesLaid++;
     }
 
     /** Why the order failed, or the empty string. */

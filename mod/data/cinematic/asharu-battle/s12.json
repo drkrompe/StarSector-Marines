@@ -1,0 +1,47 @@
+{
+ "id": "s12",
+ "video": "cinematic/asharu-battle/s12.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 288,
+ "duration": 12.0,
+ "captions": [
+  {
+   "t_in": 4.0,
+   "t_out": 11.11,
+   "speaker": "thysville",
+   "key": "asharuRadioS12_1"
+  },
+  {
+   "t_in": 11.4,
+   "t_out": 13.6,
+   "speaker": "warden_three",
+   "key": "asharuRadioS13_1"
+  }
+ ],
+ "cues": [
+  {
+   "t": 4.0,
+   "sound": "asharu_film_d46",
+   "volume": 1.0
+  },
+  {
+   "t": 11.4,
+   "sound": "asharu_film_d47",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {
+  "thysville": {
+   "label_key": "asharuRadioSpeakerThysville",
+   "color": "player",
+   "role_key": "asharuRadioRoleThysville"
+  },
+  "warden_three": {
+   "label_key": "asharuRadioSpeakerWardenThree",
+   "color": "player",
+   "role_key": "asharuRadioRoleWardenThree"
+  }
+ }
+}

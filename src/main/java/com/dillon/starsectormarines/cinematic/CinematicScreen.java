@@ -56,13 +56,13 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
 import static org.lwjgl.opengl.GL12.GL_CLAMP_TO_EDGE;
 
 /**
- * Plays the arrival full screen: decoded video on one streamed texture, with captions and the planet
- * lock drawn live in the game's fonts. The wall clock is the only master. Audio cues fire against it,
+ * Plays a film full screen: decoded video on one streamed texture, with captions and sensor
+ * locks drawn live in the game's fonts. The wall clock is the only master. Audio cues fire against it,
  * the frame shown is the newest decoded one at or before it, and a slow decode drops or holds pictures
  * rather than moving sound. Escape or a click skips. The receipt is the caller's.
  */
-public final class ArrivalCinematicScreen implements Screen {
-    private static final Logger LOG = Global.getLogger(ArrivalCinematicScreen.class);
+public final class CinematicScreen implements Screen {
+    private static final Logger LOG = Global.getLogger(CinematicScreen.class);
     private static final double FADE_IN = 0.5;
     private static final double FADE_OUT = 0.7;
     private static final double INPUT_GUARD = 0.25;
@@ -74,6 +74,7 @@ public final class ArrivalCinematicScreen implements Screen {
 
     private static final Color PLAYER = new Color(170, 222, 255);
     private static final Color HEGEMONY = new Color(245, 150, 30);
+    private static final Color PIRATE = new Color(235, 90, 70);
     private static final Color TEXT = new Color(238, 242, 246);
 
     private final CinematicSequence sequence;
@@ -81,6 +82,10 @@ public final class ArrivalCinematicScreen implements Screen {
     private final ShotDecoder[] decoders;
     /** Caption width in the caption font's own units: 960 source pixels at the 1.5x the text is drawn. */
     private static final double CAPTION_WIDTH = 640;
+    /** Source pixels one transmission takes in a stack of overlapping ones: its tag and two rows. */
+    private static final float STACKED_BLOCK = 132;
+    /** Whether this film's captions draw in the active language ({@link CinematicSequence.Captions}). */
+    private final boolean captionsDrawn;
     private final CaptionTrack[] captionTracks;
     private final LockTrack[][] lockTracks;
     private final List<SoundAPI> heard = new ArrayList<>();
@@ -107,12 +112,13 @@ public final class ArrivalCinematicScreen implements Screen {
         byte[] read(String modPath) throws IOException;
     }
 
-    public ArrivalCinematicScreen(CinematicSequence sequence, VideoReader videos) {
+    public CinematicScreen(CinematicSequence sequence, VideoReader videos) {
         this.sequence = sequence;
         this.videos = videos;
         decoders = new ShotDecoder[sequence.size()];
         captionTracks = new CaptionTrack[sequence.size()];
         lockTracks = new LockTrack[sequence.size()][];
+        captionsDrawn = sequence.captions().drawn(Strings.locale());
         for (int i = 0; i < sequence.size(); i++) {
             var s = sequence.shot(i);
             captionTracks[i] = new CaptionTrack(s.captions(), Strings::get, Fonts.INSIGNIA_LARGE::measureWidth, CAPTION_WIDTH);
@@ -134,12 +140,12 @@ public final class ArrivalCinematicScreen implements Screen {
             openShot(0, WINDOW);
             shot = 0;
             pump.attach(decoders[0]);
-            // The arrival's score is its own; the menu theme must not play under it.
+            // The film carries its own sound; the menu theme and the campaign music must not play under it.
             MenuTheme.shared().silence();
             Global.getSoundPlayer().setSuspendDefaultMusicPlayback(true);
             musicPaused = 1;
         } catch (RuntimeException e) {
-            LOG.warn("Arrival cannot start", e);
+            LOG.warn("Film cannot start", e);
             finish();
         }
     }
@@ -158,20 +164,20 @@ public final class ArrivalCinematicScreen implements Screen {
         if (!clockRunning) {
             ShotDecoder first = decoders[0];
             if (first.failure() != null) {
-                LOG.warn("Arrival video cannot be decoded", first.failure());
+                LOG.warn("Film video cannot be decoded", first.failure());
                 finish();
             } else if (first.frame(ShotDecoder.GOP - 1) != null || first.frameCount() < ShotDecoder.GOP && first.frame(first.frameCount() - 1) != null) {
                 clockRunning = true;
                 clockStart = now;
             } else if ((now - wallStart) / 1e9 > LOAD_TIMEOUT_SECONDS) {
-                LOG.warn("Arrival video did not buffer in time");
+                LOG.warn("Film video did not buffer in time");
                 finish();
             }
             return;
         }
         clock = (now - clockStart) / 1e9;
         if (clock >= sequence.duration() || pump.failed()) {
-            if (pump.failed()) LOG.warn("Arrival video failed mid-play", decoders[Math.max(0, shot)].failure());
+            if (pump.failed()) LOG.warn("Film video failed mid-play", decoders[Math.max(0, shot)].failure());
             finish();
             return;
         }
@@ -233,7 +239,7 @@ public final class ArrivalCinematicScreen implements Screen {
             if (playing != null) heard.add(playing);
             return playing;
         } catch (RuntimeException e) {
-            LOG.warn("Arrival cannot play " + sound, e);
+            LOG.warn("Film cannot play " + sound, e);
             return null;
         }
     }
@@ -357,27 +363,72 @@ public final class ArrivalCinematicScreen implements Screen {
     }
 
     private void drawCaptions(Layout l, double t) {
+        if (!captionsDrawn) return;
         var state = captionTracks[shot].at(t);
         if (state.empty()) return;
         float s = l.scale();
         float centre = l.sx(SRC_W / 2);
         float top = l.sy(SRC_H - 168);
+        if (state.overlapping()) {
+            drawTransmissions(l, state, centre, top);
+            return;
+        }
         // The field: a dark feathered band under the exchange, not a boxed panel.
         field(centre, top - 66 * s, 1020 * s, 140 * s, 36 * s, 0.42f * (float) state.fieldAlpha() * l.alpha());
-        if (state.tagSpeaker() != null) {
-            Speaker speaker = sequence.shot(shot).speakers().get(state.tagSpeaker());
-            String label = speaker == null ? state.tagSpeaker().toUpperCase(Strings.locale()) : Strings.get(speaker.labelKey());
-            Color color = speaker == null ? PLAYER : color(speaker.color());
-            BitmapFont font = Fonts.ORBITRON_12_BOLD;
-            float sc = 1.15f * s;
-            text(font, label, centre - font.measureWidth(label) * sc / 2f, top, sc, color, (float) state.tagAlpha() * l.alpha());
+        if (state.tagSpeaker() != null) drawTag(state.tagSpeaker(), centre, top, s, (float) state.tagAlpha() * l.alpha());
+        drawPages(state.pages(), centre, top, s, l.alpha());
+    }
+
+    /**
+     * Overlapping transmissions as stacked blocks, earliest on top, each with its own tag over its own
+     * pages. The latest block sits where a lone transmission would, and the field grows upward over
+     * the rest. Every block keeps room for two rows so the stack does not jump as pages turn.
+     */
+    private void drawTransmissions(Layout l, CaptionTrack.State state, float centre, float top) {
+        float s = l.scale();
+        float block = STACKED_BLOCK * s;
+        int count = state.transmissions().size();
+        float raised = (count - 1) * block;
+        field(centre, top - 66 * s + raised / 2f, 1020 * s, 140 * s + raised, 36 * s,
+                0.42f * (float) state.fieldAlpha() * l.alpha());
+        for (int i = 0; i < count; i++) {
+            CaptionTrack.Transmission tx = state.transmissions().get(i);
+            float blockTop = top + (count - 1 - i) * block;
+            drawTag(tx.speaker(), centre, blockTop, s, (float) tx.tagAlpha() * l.alpha());
+            drawPages(tx.pages(), centre, blockTop, s, l.alpha());
         }
+    }
+
+    /** The speaker's callsign, centred, and after it the hull's role in a smaller, dimmer face when it has one. */
+    private void drawTag(String id, float centre, float top, float s, float alpha) {
+        Speaker speaker = sequence.shot(shot).speakers().get(id);
+        String label = speaker == null ? id.toUpperCase(Strings.locale()) : Strings.get(speaker.labelKey());
+        Color color = speaker == null ? PLAYER : color(speaker.color());
+        BitmapFont font = Fonts.ORBITRON_12_BOLD;
+        float sc = 1.15f * s;
+        String role = speaker == null || speaker.roleKey() == null ? null : Strings.get(speaker.roleKey());
+        if (role == null || role.isBlank()) {
+            text(font, label, centre - font.measureWidth(label) * sc / 2f, top, sc, color, alpha);
+            return;
+        }
+        BitmapFont roleFont = Fonts.ORBITRON_10;
+        float roleScale = 1.1f * s;
+        float gap = 10 * s;
+        float labelW = font.measureWidth(label) * sc, roleW = roleFont.measureWidth(role) * roleScale;
+        float x = centre - (labelW + gap + roleW) / 2f;
+        text(font, label, x, top, sc, color, alpha);
+        // Bottom-aligned with the callsign: the smaller face drops by the difference in line height.
+        float drop = font.getLineHeight() * sc - roleFont.getLineHeight() * roleScale;
+        text(roleFont, role, x + labelW + gap, top - drop, roleScale, TEXT, 0.6f * alpha);
+    }
+
+    private static void drawPages(List<Page> pages, float centre, float top, float s, float alpha) {
         BitmapFont font = Fonts.INSIGNIA_LARGE;
         float sc = 1.5f * s;
-        for (Page page : state.pages()) {
+        for (Page page : pages) {
             float rowY = top - 30 * s;
             for (String row : page.rows()) {
-                text(font, row, centre - font.measureWidth(row) * sc / 2f, rowY, sc, TEXT, (float) page.alpha() * l.alpha());
+                text(font, row, centre - font.measureWidth(row) * sc / 2f, rowY, sc, TEXT, (float) page.alpha() * alpha);
                 rowY -= 44 * s;
             }
         }
@@ -447,7 +498,11 @@ public final class ArrivalCinematicScreen implements Screen {
     }
 
     private static Color color(String name) {
-        return "hegemony".equals(name) ? HEGEMONY : PLAYER;
+        return switch (name) {
+            case "hegemony" -> HEGEMONY;
+            case "pirate", "pirates" -> PIRATE;
+            default -> PLAYER;
+        };
     }
 
     /** A dark rectangle whose edges fade out over {@code feather}. */

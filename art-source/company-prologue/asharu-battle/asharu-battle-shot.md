@@ -569,8 +569,7 @@ Rules:
   CARAVEL, HSS JANGALA-2, UNREGISTERED for the pirates); its channel list keeps the bare callsigns
   heard on air. `radio_log.py` holds the
   cast, every timed line (`TRAFFIC`), and the strings.json key for each line
-  (`asharuRadio<Shot>_<n>`). Those keys are not in strings.json yet, because the cinematic is not
-  wired into the game.
+  (`asharuRadio<Shot>_<n>`), which `film_export.py` writes into strings.json.
 - **A cast of voices, credited by callsign.** Each voice is a person with a character: the
   Colossus's master is steady and tired, the escort lead is clipped, the rear Hound is young, and
   the pirate flag is unhurried. But nobody gets a personal name. The story keeps Morrow's
@@ -654,6 +653,18 @@ Mixer; and the music requests. The voice takes it plays are in `battle-audio/voi
 are rebuilt by their scripts, and the game's own sounds are read from the install. The music cues
 have no takes, so the locked mix has no score. `radio_log.TRAFFIC` and the table above are its
 playing lines.
+
+**In the game** the film plays once, when the player first docks at Asharu after A Cold Account
+(the Working Ship offer open, Salvage Rights not yet started), and can be skipped. It is packaged
+like the Jangala arrival (`second-wind-cinematic/runtime-contract.md`): `film_export.py` encodes
+the approved finals off Drive and the two terminal plates into `mod/cinematic/asharu-battle/`, and
+writes each shot's timeline, the sequence and the radio's strings. `battle-audio/film_audio.py`
+bakes the locked mix into one clip per line and cue (asset-pipeline `audio/asharu-battle/`), each
+with its level, fades, pan and, for the radio bus, the page's comms effect; the game's explosions
+and the shield overload are cues on the game's own files. The voices are English, so the player
+draws captions only when the game is in another language (owner, 2026-10-30). The terminal's words
+are drawn into the plates (`recording_plate.py --words`), so they are English and the S0 date is
+fixed; drawing them at run time, localised and dated from the save, is still to do.
 
 **Every ship's drive is placed by the camera.** `battle-audio/engines.py` gives each shot S1a to S11
 one engines stem: each ship flies her blockout path as the shot's camera sees it, with the Jangala

@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.battle.power;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.tender.BuildOption;
-import com.dillon.starsectormarines.battle.tender.ConstructionOrder;
 import com.dillon.starsectormarines.battle.tender.Tender;
 
 import java.util.ArrayList;
@@ -42,15 +41,15 @@ public final class YardConstruction extends CommandPower {
 
     @Override public boolean canTarget(int x, int y, BattleView battle) {
         if (!super.canTarget(x, y, battle) || !source.anchorAlive()) return false;
-        if (!battle.getGrid().isWalkable(x, y) || !battle.playerSeesCell(x, y)) return false;
         if (source.metered() && source.stock() < option.cost()) return false;
-        if (!source.buildableSite(x + 0.5f, y + 0.5f)) return false;
-        if (source.groundPlotReserved(x + 0.5f, y + 0.5f)) return false;
-        for (ConstructionOrder order : source.orders()) {
-            if (!order.phase().terminal() && Math.hypot(order.siteX() - x - 0.5f,
-                    order.siteY() - y - 0.5f) < Tender.SITE_SPACING) return false;
-        }
-        return true;
+        if (!Tender.everyCell(option, x, y, (px, py) -> battle.getGrid().inBounds(px, py)
+                && battle.playerSeesCell(px, py))) return false;
+        return source.siteOpen(option, x + 0.5f, y + 0.5f, battle.getGrid());
+    }
+
+    /** A staged build's plot, outlined under the cursor so a cramped spot shows before the click. */
+    @Override public int previewSquareCells() {
+        return option.plot() == null ? 0 : option.plot().span();
     }
 
     @Override public void resolve(int x, int y, CommandPowerService service, BattleControl battle) {

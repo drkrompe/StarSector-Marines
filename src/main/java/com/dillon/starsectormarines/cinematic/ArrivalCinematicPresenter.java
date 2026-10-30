@@ -20,6 +20,7 @@ public final class ArrivalCinematicPresenter implements EveryFrameScript {
     public static void install() {
         var sector = Global.getSector();
         if (sector == null) return;
+        CinematicFilm.clearShowing();
         sector.removeTransientScriptsOfClass(ArrivalCinematicPresenter.class);
         sector.addTransientScript(new ArrivalCinematicPresenter());
     }
@@ -32,7 +33,7 @@ public final class ArrivalCinematicPresenter implements EveryFrameScript {
         if (sector == null || Global.getCurrentState() != GameState.CAMPAIGN) return;
         var ui = sector.getCampaignUI();
         var dialog = ui == null ? null : ui.getCurrentInteractionDialog();
-        if (dialog == null || !ArrivalCinematic.due(dialog)) {
+        if (dialog == null || CinematicFilm.anyShowing() && !started || !ArrivalCinematic.due(dialog)) {
             seenFrames = 0;
             started = false;
             return;
@@ -40,7 +41,7 @@ public final class ArrivalCinematicPresenter implements EveryFrameScript {
         if (started || ++seenFrames < SETTLE_FRAMES) return;
         // A refused display leaves the arrival unplayed; the yard flow carries on as normal.
         started = true;
-        ArrivalCinematic.play(dialog, () -> DialogHandOff.next(dialog, () -> {
+        ArrivalCinematic.FILM.play(dialog, () -> DialogHandOff.next(dialog, () -> {
             // The arrival is Nessa's berth: the yard order follows it without a trip through the port menu.
             if (!CompanyYardCMD.openRequired(dialog, dialog.getPlugin().getMemoryMap())) showPort(dialog);
         }, () -> showPort(dialog)));

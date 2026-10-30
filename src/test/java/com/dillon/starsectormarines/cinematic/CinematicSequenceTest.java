@@ -4,9 +4,11 @@ import com.dillon.starsectormarines.cinematic.CinematicShot.Cue;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class CinematicSequenceTest {
@@ -57,6 +59,17 @@ class CinematicSequenceTest {
         assertEquals(0.5f * (1 - 0.75f * 0.5f), ducked.volumeAt(music, out + CinematicSequence.DUCK_EASE / 2), 1e-6f);
         assertEquals(0.5f, ducked.volumeAt(music, out + 1.0), 1e-6f);
         assertEquals(0.5f, ducked.volumeAt(bed, in + 1.0), 1e-6f);
+    }
+
+    @Test void translatedCaptionsDrawOnlyOutsideEnglish() {
+        var translated = CinematicSequence.Captions.parse("translated");
+        assertTrue(translated.drawn(Locale.GERMAN));
+        assertFalse(translated.drawn(Locale.ENGLISH));
+        assertFalse(translated.drawn(Locale.US));
+        assertFalse(translated.drawn(Locale.ROOT));     // the base copy is English
+        var always = CinematicSequence.Captions.parse("");
+        assertTrue(always.drawn(Locale.ENGLISH));
+        assertTrue(always.drawn(Locale.ROOT));
     }
 
     @Test void anEmptySequenceIsEmpty() {

@@ -20,6 +20,8 @@ public final class ShepherdRecoveryProgress implements Serializable {
     public int repairLosses() { return repairLosses; }
     public int payment() { return repaired ? 0 : claimSecured ? COLD_PAYMENT : PAYMENT; }
     public boolean departed() { return awardedMemberId != null; }
+    /** Whether Salvage Rights has never been launched: no attempt settled, none in flight, nothing later. */
+    public boolean untouched() { return attempt == 1 && activeId == null && !claimSecured && !repaired && !departed(); }
     public String awardedMemberId() { return awardedMemberId; }
     public int departureLosses() { return departureLosses; }
     public int departureFailures() { return departureFailures; }

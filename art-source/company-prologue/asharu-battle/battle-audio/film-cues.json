@@ -1,0 +1,441 @@
+{
+ "cues": [
+  {
+   "t": -21.0,
+   "sound": "asharu_film_plate_s0",
+   "volume": 1.0
+  },
+  {
+   "t": 1.8,
+   "sound": "asharu_film_d01",
+   "volume": 1.0
+  },
+  {
+   "t": 10,
+   "sound": "asharu_film_d03",
+   "volume": 1.0
+  },
+  {
+   "t": 10,
+   "sound": "asharu_film_engines_s1a",
+   "volume": 1.0
+  },
+  {
+   "t": 10,
+   "sound": "asharu_film_s1_convoy_drives",
+   "volume": 1.0
+  },
+  {
+   "t": 11,
+   "sound": "asharu_film_s1a_zoom_60",
+   "volume": 1.0
+  },
+  {
+   "t": 12.7,
+   "sound": "asharu_film_s1a_zoom_150",
+   "volume": 1.0
+  },
+  {
+   "t": 14.3,
+   "sound": "asharu_film_s1a_zoom_300",
+   "volume": 1.0
+  },
+  {
+   "t": 16,
+   "sound": "asharu_film_engines_s1",
+   "volume": 1.0
+  },
+  {
+   "t": 24,
+   "sound": "asharu_film_engines_s2",
+   "volume": 1.0
+  },
+  {
+   "t": 24.6,
+   "sound": "asharu_film_d06",
+   "volume": 1.0
+  },
+  {
+   "t": 30,
+   "sound": "asharu_film_engines_s3",
+   "volume": 1.0
+  },
+  {
+   "t": 37.6,
+   "sound": "asharu_film_d07",
+   "volume": 1.0
+  },
+  {
+   "t": 38,
+   "sound": "asharu_film_engines_s4",
+   "volume": 1.0
+  },
+  {
+   "t": 38.2,
+   "sound": "asharu_film_s4_pirate_drives_light",
+   "volume": 1.0
+  },
+  {
+   "t": 42,
+   "sound": "asharu_film_d08",
+   "volume": 1.0
+  },
+  {
+   "t": 44,
+   "sound": "asharu_film_engines_s5",
+   "volume": 1.0
+  },
+  {
+   "t": 44,
+   "sound": "asharu_film_harpoons_s5",
+   "volume": 1.0
+  },
+  {
+   "t": 44.9,
+   "sound": "asharu_film_d10",
+   "volume": 1.0
+  },
+  {
+   "t": 44.9,
+   "sound": "asharu_film_s5_full_burn",
+   "volume": 1.0
+  },
+  {
+   "t": 47,
+   "sound": "asharu_film_s5_missile_warning",
+   "volume": 1.0
+  },
+  {
+   "t": 48.38,
+   "sound": "asharu_film_d11",
+   "volume": 1.0
+  },
+  {
+   "t": 50,
+   "sound": "asharu_film_engines_s6",
+   "volume": 1.0
+  },
+  {
+   "t": 50,
+   "sound": "asharu_film_harpoons_s6",
+   "volume": 1.0
+  },
+  {
+   "t": 50.15,
+   "sound": "asharu_film_d13",
+   "volume": 1.0
+  },
+  {
+   "t": 50.4,
+   "sound": "asharu_film_s6_point_defence",
+   "volume": 1.0
+  },
+  {
+   "t": 51.0,
+   "sound": "asharu_film_s6_tanker_cooks_off",
+   "volume": 1.0
+  },
+  {
+   "t": 53.1,
+   "sound": "asharu_film_s6_two_hit",
+   "volume": 1.0
+  },
+  {
+   "t": 53.3,
+   "sound": "asharu_film_d14",
+   "volume": 1.0
+  },
+  {
+   "t": 53.8,
+   "sound": "asharu_film_d15",
+   "volume": 1.0
+  },
+  {
+   "t": 53.8,
+   "sound": "asharu_film_s6_batory_alarm",
+   "volume": 1.0
+  },
+  {
+   "t": 55.8,
+   "sound": "asharu_film_s6_lead_hit",
+   "volume": 1.0
+  },
+  {
+   "t": 56.99,
+   "sound": "asharu_film_d16",
+   "volume": 1.0
+  },
+  {
+   "t": 58,
+   "sound": "asharu_film_engines_s6b",
+   "volume": 1.0
+  },
+  {
+   "t": 58,
+   "sound": "asharu_film_guns_s6b",
+   "volume": 1.0
+  },
+  {
+   "t": 62,
+   "sound": "asharu_film_s6b_feeder_burst",
+   "volume": 1.0
+  },
+  {
+   "t": 62.8,
+   "sound": "asharu_film_s6b_hound_breaks_up",
+   "volume": 1.0
+  },
+  {
+   "t": 66,
+   "sound": "asharu_film_engines_s6c",
+   "volume": 1.0
+  },
+  {
+   "t": 66,
+   "sound": "asharu_film_guns_s6c",
+   "volume": 1.0
+  },
+  {
+   "t": 66.4,
+   "sound": "asharu_film_d22",
+   "volume": 1.0
+  },
+  {
+   "t": 68.7,
+   "sound": "asharu_film_s6c_blink",
+   "volume": 1.0
+  },
+  {
+   "t": 69.1,
+   "sound": "asharu_film_d23",
+   "volume": 1.0
+  },
+  {
+   "t": 69.8,
+   "sound": "asharu_film_d24",
+   "volume": 1.0
+  },
+  {
+   "t": 69.8,
+   "sound": "asharu_film_s6c_sobieski_bridge",
+   "volume": 1.0
+  },
+  {
+   "t": 70.0,
+   "sound": "asharu_film_s6c_sobieski_drives",
+   "volume": 1.0
+  },
+  {
+   "t": 72.6,
+   "sound": "asharu_film_d25",
+   "volume": 1.0
+  },
+  {
+   "t": 74,
+   "sound": "asharu_film_engines_s6d",
+   "volume": 1.0
+  },
+  {
+   "t": 74,
+   "sound": "asharu_film_guns_s6d",
+   "volume": 1.0
+  },
+  {
+   "t": 74.3,
+   "sound": "asharu_film_d26",
+   "volume": 1.0
+  },
+  {
+   "t": 76.8,
+   "sound": "asharu_film_s6d_hound_kill",
+   "volume": 1.0
+  },
+  {
+   "t": 76.9,
+   "sound": "asharu_film_d27",
+   "volume": 1.0
+  },
+  {
+   "t": 77.1,
+   "sound": "asharu_film_s6d_hound_hit",
+   "volume": 1.0
+  },
+  {
+   "t": 80,
+   "sound": "asharu_film_engines_s7",
+   "volume": 1.0
+  },
+  {
+   "t": 80,
+   "sound": "asharu_film_guns_s7",
+   "volume": 1.0
+  },
+  {
+   "t": 81.21,
+   "sound": "asharu_film_d29",
+   "volume": 1.0
+  },
+  {
+   "t": 82,
+   "sound": "asharu_film_d30",
+   "volume": 1.0
+  },
+  {
+   "t": 84.9,
+   "sound": "asharu_film_d31",
+   "volume": 1.0
+  },
+  {
+   "t": 85.6,
+   "sound": "asharu_film_s7_boats_clamp",
+   "volume": 1.0
+  },
+  {
+   "t": 87.6,
+   "sound": "asharu_film_s7_breach_inside",
+   "volume": 1.0
+  },
+  {
+   "t": 88,
+   "sound": "asharu_film_engines_s8_s9",
+   "volume": 1.0
+  },
+  {
+   "t": 88,
+   "sound": "asharu_film_guns_s8_s9",
+   "volume": 1.0
+  },
+  {
+   "t": 88.4,
+   "sound": "asharu_film_d32",
+   "volume": 1.0
+  },
+  {
+   "t": 88.4,
+   "sound": "asharu_film_s8_pod_raked",
+   "volume": 1.0
+  },
+  {
+   "t": 93.4,
+   "sound": "asharu_film_d34",
+   "volume": 1.0
+  },
+  {
+   "t": 93.4,
+   "sound": "asharu_film_s9_flares",
+   "volume": 1.0
+  },
+  {
+   "t": 95.5,
+   "sound": "asharu_film_s9_pod_explodes",
+   "volume": 1.0
+  },
+  {
+   "t": 95.8,
+   "sound": "asharu_film_s9_borer_lasers",
+   "volume": 1.0
+  },
+  {
+   "t": 96.47,
+   "sound": "asharu_film_d35",
+   "volume": 1.0
+  },
+  {
+   "t": 96.6,
+   "sound": "asharu_film_d36",
+   "volume": 1.0
+  },
+  {
+   "t": 99.3,
+   "sound": "asharu_film_s9_grapples",
+   "volume": 1.0
+  },
+  {
+   "t": 99.36,
+   "sound": "asharu_film_d37",
+   "volume": 1.0
+  },
+  {
+   "t": 102,
+   "sound": "asharu_film_engines_s9b",
+   "volume": 1.0
+  },
+  {
+   "t": 102,
+   "sound": "asharu_film_guns_s9b",
+   "volume": 1.0
+  },
+  {
+   "t": 104.3,
+   "sound": "asharu_film_s9b_shield_overload",
+   "volume": 1.0
+  },
+  {
+   "t": 104.3,
+   "sound": "asharu_film_s9b_shield_overload_2",
+   "volume": 1.0
+  },
+  {
+   "t": 104.6,
+   "sound": "asharu_film_s9b_shield_overload_3",
+   "volume": 1.0,
+   "until": 107.3,
+   "fade_out": 0.8
+  },
+  {
+   "t": 104.91,
+   "sound": "asharu_film_d39",
+   "volume": 1.0
+  },
+  {
+   "t": 107.6,
+   "sound": "asharu_film_s9b_lead_breaks",
+   "volume": 1.0
+  },
+  {
+   "t": 110,
+   "sound": "asharu_film_engines_s10",
+   "volume": 1.0
+  },
+  {
+   "t": 112.2,
+   "sound": "asharu_film_s10_colossus_groans",
+   "volume": 1.0
+  },
+  {
+   "t": 112.4,
+   "sound": "asharu_film_d42",
+   "volume": 1.0
+  },
+  {
+   "t": 118,
+   "sound": "asharu_film_engines_s11",
+   "volume": 1.0
+  },
+  {
+   "t": 118.2,
+   "sound": "asharu_film_s11_shuttle_reentry",
+   "volume": 1.0
+  },
+  {
+   "t": 124.4,
+   "sound": "asharu_film_s11_signal_breaks",
+   "volume": 1.0
+  },
+  {
+   "t": 130,
+   "sound": "asharu_film_d46",
+   "volume": 1.0
+  },
+  {
+   "t": 137.4,
+   "sound": "asharu_film_d47",
+   "volume": 1.0
+  },
+  {
+   "t": 138.0,
+   "sound": "asharu_film_plate_s13",
+   "volume": 1.0
+  }
+ ]
+}
