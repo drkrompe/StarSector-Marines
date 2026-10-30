@@ -414,14 +414,14 @@ increasing an encounter's total armored threat.
   landing ground and a row with an X in the Lift Queue panel (`ui-nouns.md`);
   cancelling it puts the machine back aboard and refunds its lift. Once a craft
   has taken it the drop is in the air and cannot be called back.
-- The **lift budget** is the mission's armor lift, carrier by carrier: a cradled
-  company boat flies two machine lifts at its rating on a light cradle and three
-  on a heavy one, and the synthetic heavy
-  carrier a hull, ship, employer or story arranges lifts the whole bay. Each
-  ordered machine spends one lift from the lowest-rated carrier that admits it
-  (`air-nouns.md`, Lift), so a Heavy machine spends Heavy lift. Spent lift stays
-  spent for the mission whether or not the carrier came home: better boats mean
-  more armor on the ground, not faster calls. An entry the budget cannot lift is
+- The **lift budget** is the mission's armor lift, carrier by carrier. Two
+  rules limit it and nothing else (owner): a carrier lifts only a machine its
+  rating admits (Light, Medium, Heavy), and no more machines land than the bay's
+  gantries hold. So the cradled company boat, and the synthetic heavy carrier
+  Conquest arranges, each lift the whole bay at their rating. Each ordered
+  machine spends one lift from the lowest-rated carrier that admits it
+  (`air-nouns.md`, Lift), so a Heavy machine spends Heavy lift and a machine
+  called once stays called. An entry the budget cannot lift is
   shown disabled with its reason (no lift of its class, lift spent, or no live
   ferry craft left that can carry it), and an order the budget refuses stays
   armed and spends nothing. The budget says how many machines may come down; the

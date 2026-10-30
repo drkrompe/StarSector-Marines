@@ -750,7 +750,7 @@
     "briefingLiftCompanyNoBoats": "None / no company shuttles aboard",
     "briefingLiftCompanyNoCradle": "None / {0,number,integer} x {1} carry no lift cradle; fit one on Shuttle Deck",
     "briefingLiftCompanyCradled": "{0} / {1,number,integer} cradled shuttle(s), not flying this drop",
-    "briefingLiftCompanyCarrier": "{0} / {1} flies {2,number,integer} machines",
+    "briefingLiftCompanyCarrier": "{0} / {1} carries the bay",
     "briefingLiftMissionHeavy": "{0} / {1} heavy carrier lifts the whole bay",
     "briefingLiftBerth": "Berth {0,number,integer}",
     "briefingLiftBerthEmpty": "Empty berth",

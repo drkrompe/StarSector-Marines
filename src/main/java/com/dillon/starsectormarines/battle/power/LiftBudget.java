@@ -14,14 +14,12 @@ import java.util.List;
 /**
  * How much armor the company can still put on the ground this mission, carrier by carrier.
  *
- * <p>Each carrier brings a number of machine lifts at its {@link LiftRating}: a cradled
- * company boat {@link #liftsPerCompanyBoat} (two on a light cradle, three on a heavy one),
- * the heavy lift a hull, ship or employer supplies enough for the whole bay. A machine
- * spends one lift from a carrier whose rating admits it ({@link LiftAdmission}), so a Heavy
- * machine spends Heavy lift and a budget with none refuses it. Spent lift stays spent for
- * the mission whether or not the craft came home: better boats mean more armor on the
- * ground, not faster drops. Only a drop cancelled while it still waits on the lift queue
- * gives its lift back.
+ * <p>Two things limit the armour that comes down, and nothing else (owner): the carrier must
+ * lift the machine's weight class ({@link LiftAdmission}: a Heavy machine needs Heavy lift),
+ * and no more machines land than the bay holds. Each carrier, the cradled company boat and
+ * any heavy lift a mission supplies, therefore brings a lift for every machine in the bay at
+ * its {@link LiftRating}. A machine spends one lift, so a machine called once stays called;
+ * a drop cancelled while it still waits on the lift queue gives its lift back.
  *
  * <p>The budget says how much may come down; the ferry craft on the lift queue say when.
  * Which craft flies a machine is the queue's business, not the budget's.
@@ -31,22 +29,6 @@ import java.util.List;
  * heavy machines.
  */
 public final class LiftBudget {
-
-    /** Machine lifts a light-cradled company boat flies per mission: a trip each. */
-    public static final int LIGHT_CRADLE_LIFTS = 2;
-
-    /**
-     * Machine lifts a heavy-cradled company boat flies per mission. One more than the light cradle: a Medium
-     * mech (Warden) carries less structure and armor than the Light one (Hound), so a better cradle that
-     * only changed the class would not put more armor on the ground, and the heavy cradle costs about twice
-     * the light one's bill.
-     */
-    public static final int MEDIUM_CRADLE_LIFTS = 3;
-
-    /** Machine lifts a cradled company boat of {@code rating} flies per mission. */
-    public static int liftsPerCompanyBoat(LiftRating rating) {
-        return rating == LiftRating.LIGHT ? LIGHT_CRADLE_LIFTS : MEDIUM_CRADLE_LIFTS;
-    }
 
     /** Why a machine cannot be ordered down. */
     public enum Refusal {
@@ -92,7 +74,8 @@ public final class LiftBudget {
                                         ShuttleType heavy, int manifestSize) {
         List<Carrier> carriers = new ArrayList<>(2);
         if (companyBoat != null && companyBoat.liftRating() != LiftRating.NONE) {
-            carriers.add(new Carrier(companyBoat, true, liftsPerCompanyBoat(companyBoat.liftRating())));
+            // Weight class and the bay's slots are the only limits: the boat lifts every machine it can carry.
+            carriers.add(new Carrier(companyBoat, true, Math.max(MechSupport.LANCE_SIZE, manifestSize)));
         }
         if (heavyLift && heavy != null) {
             carriers.add(new Carrier(heavy, false, Math.max(MechSupport.LANCE_SIZE, manifestSize)));

@@ -388,8 +388,7 @@ public final class BriefingLift {
         String rating = LiftReadout.ratingName(readout.companyBest());
         if (readout.companyCarrier() != null) {
             return Strings.format("briefingLiftCompanyCarrier", rating,
-                    LiftReadout.carrierName(readout.companyCarrier()),
-                    LiftBudget.liftsPerCompanyBoat(readout.companyCarrier().liftRating()));
+                    LiftReadout.carrierName(readout.companyCarrier()));
         }
         if (readout.cradled() == 0) {
             return Strings.format("briefingLiftCompanyNoCradle", readout.boats().size(),
