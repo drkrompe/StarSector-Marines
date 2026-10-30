@@ -602,7 +602,7 @@ Rules:
 | S5 | 50.15-54.1 | WARDEN FIVE | Missiles inbound! Twelve! Point defence, now! |
 | S6 | 53.3-54.45 | WARDEN TWO | Two's hit! |
 | S6 | 53.8-56.42 | BATORY | Batory, we're hit, we're venting, we're — |
-| S6 | 56.99-58.68 | WARDEN LEAD | Lead turning back. Cover the — |
+| S6 | 56.99-59.87 | WARDEN LEAD | Lead turning back. Wardens cover the retreat. |
 | S6b | 58-61.77 | WARDEN THREE | Three, rolling in. Four, take her left. |
 | S6b | 60.6-62.39 | WARDEN FOUR | No shield. Hit her! |
 | S6b | 61.92-62.97 | WARDEN THREE | Feeders on! |

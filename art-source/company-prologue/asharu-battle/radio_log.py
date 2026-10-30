@@ -78,7 +78,7 @@ TRAFFIC = [
     ('S5', 'WARDEN FIVE', 50.15, 54.1, 'Missiles inbound! Twelve! Point defence, now!', False),
     ('S6', 'WARDEN TWO', 53.3, 54.45, "Two's hit!", False),
     ('S6', 'BATORY', 53.8, 56.42, "Batory, we're hit, we're venting, we're —", False),
-    ('S6', 'WARDEN LEAD', 56.99, 58.68, 'Lead turning back. Cover the —', False),
+    ('S6', 'WARDEN LEAD', 56.99, 59.87, 'Lead turning back. Wardens cover the retreat.', False),
     ('S6b', 'WARDEN THREE', 58.0, 61.77, 'Three, rolling in. Four, take her left.', False),
     ('S6b', 'WARDEN FOUR', 60.6, 62.39, 'No shield. Hit her!', False),
     ('S6b', 'WARDEN THREE', 61.92, 62.97, 'Feeders on!', False),
