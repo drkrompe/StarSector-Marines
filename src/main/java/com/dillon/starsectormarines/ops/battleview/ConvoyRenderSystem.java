@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.MountedGun;
+import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
@@ -201,7 +202,9 @@ public final class ConvoyRenderSystem implements RenderSystem {
                         out.addSprite(RenderLayer.CONVOY, ring.sprite, ringX, ringY, ringPx, ringPx, 0f,
                                 ringShade, ringShade, ringShade, alphaMult);
                     }
-                    LayeredSpriteCache collar = sprites.vehicleTurretCollar();
+                    // Only the white ring has a collar of its own; an army head's housing is the plate that turns on it.
+                    LayeredSpriteCache collar = type.mountStyle() == TurretMountStyle.WHITE
+                            ? sprites.vehicleTurretCollar() : null;
                     if (collar != null) {
                         float collarPx = ringPx * COLLAR_SHARE_OF_RING;
                         out.addSprite(RenderLayer.CONVOY, collar.sprite, ringX, ringY, collarPx, collarPx,
@@ -252,7 +255,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     float gunY = ringY + (float) Math.cos(bearing) * centreAhead;
                     float mountPx = VehicleGun.mountCells(type) * cellPx;
                     LayeredSpriteCache mount = modular ? null : sprites.vehicleGunMount(type.mountStyle());
-                    if (modular) {
+                    if (modular && type.mountStyle() == TurretMountStyle.WHITE) {
                         // A laser stands in a round base on the collar, its muzzle just showing past the ring.
                         boolean light = turret.weapon.footprintRows < 2;
                         LayeredSpriteCache base = sprites.vehicleTurretBase(light);
@@ -267,7 +270,8 @@ public final class ConvoyRenderSystem implements RenderSystem {
                         out.addSprite(RenderLayer.CONVOY, mount.sprite, cam.cellToScreenX(body.x + mountWorldX),
                                 cam.cellToScreenY(body.y + mountWorldY), mountPx, mountPx, 0f, shade, shade, shade, alphaMult);
                     }
-                    // On a fixed hull the weapon is carried on an armoured plate that turns in the ring with it.
+                    // A light machine gun hull carries its weapon on a gunner's shield that turns in the ring with it, and an
+                    // army gun tank a weapon with no head of its own on the same plate ({@link VehicleGun#plateCells}).
                     float plateCells = VehicleGun.plateCells(type, turret.weapon);
                     LayeredSpriteCache plate = plateCells > 0f ? sprites.vehicleGunPlate() : null;
                     if (plate != null) {
@@ -291,7 +295,8 @@ public final class ConvoyRenderSystem implements RenderSystem {
                     VehicleGunArt.draw(out, gun, cam.cellToScreenX(gunX), cam.cellToScreenY(gunY),
                             length * cellPx, gunFacing, lengthScale, widthScale, shade, alphaMult);
                 }
-                if (locations != null && locations.turret() != null) {
+                if (locations != null && locations.turret() != null
+                        && wornPlateOnTurretFrame(modular, turret != null && turret.removed, gun != null)) {
                     VehicleScuffs.Mask mask = VehicleScuffs.turretMask(sprites, type, frames);
                     float wear = VehicleScuffs.wear(locations.turret().armor(), locations.turret().maxArmor());
                     if (mask != null && wear > 0f) {
@@ -308,6 +313,15 @@ public final class ConvoyRenderSystem implements RenderSystem {
         if (ctx.hostProfile.unitDecorationsVisible()) {
             sweepDurabilityBars(ids, convoy, cam, cellPx, alphaMult, out);
         }
+    }
+
+    /**
+     * Whether a worn turret's scuffs are drawn: only over a turret drawn from the sheet (a hull's own turret or a head),
+     * whose footprint the mask is cut from. A bare ring has no turret to mark, and a weapon drawn as its own drawing does
+     * not fill that footprint, so marks there would land on the gun and the bare deck.
+     */
+    static boolean wornPlateOnTurretFrame(boolean modular, boolean bareRing, boolean weaponDrawing) {
+        return !(modular && bareRing) && !weaponDrawing;
     }
 
     /**

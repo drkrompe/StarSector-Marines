@@ -185,18 +185,28 @@ public enum MechWeaponComponent {
         };
     }
 
-    /** The turret head a heavy hull draws for a weapon of this family in its gun card, instead of the weapon's own drawing. */
-    public enum TankHead { NONE, WHITE, RED }
+    /**
+     * The turret head a gun tank draws for a weapon of this family in its gun card, instead of the weapon's own drawing:
+     * the laser tank's white and red laser heads, and the Onager's heads, its turret housing with the family's gun.
+     */
+    public enum TankHead { NONE, WHITE, RED, HEAVY_CANNON, AUTOCANNON, ROTARY, RAIL }
 
     /**
-     * The laser tank's turret head this weapon wears when fitted to a hull that carries one ({@code VehicleType.headFrame}):
-     * the heavy (three-row) burst laser the white head the laser tank has always carried, the heavy PD laser the red head
-     * the PD laser tank carried. Every other weapon is drawn as its own drawing on the mount ring.
+     * The turret head this weapon wears when fitted to a hull that carries one ({@code VehicleType.headFrames}): the
+     * heavy (three-row) burst laser the white head the laser tank has always carried, the heavy PD laser the red head the
+     * PD laser tank carried, the heavy cannon the Onager's single-cannon turret; the autocannons and breaker cannons
+     * the Onager's autocannon head, the chainguns and the light machine gun its rotary head, the linear cannon its rail
+     * head. A weapon whose head its hull does not carry, and every other weapon, is drawn as its own drawing on the
+     * mount ring.
      */
     public TankHead tankHead() {
         return switch (this) {
             case BURST_LASER -> TankHead.WHITE;
             case HEAVY_PD_LASER -> TankHead.RED;
+            case SINGLE_HEAVY_CANNON -> TankHead.HEAVY_CANNON;
+            case BASTION_AUTOCANNON, MUSTER_AUTOGUN, DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> TankHead.AUTOCANNON;
+            case CHAINGUN, CHAINGUN_HF, LIGHT_MACHINE_GUN -> TankHead.ROTARY;
+            case LINEAR_CANNON -> TankHead.RAIL;
             default -> TankHead.NONE;
         };
     }

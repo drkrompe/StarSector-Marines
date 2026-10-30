@@ -73,7 +73,7 @@ public enum VehicleType {
      * where no arc fits ({@link NeutralPivot}). Its active protection, where it carries one, is a rack kit
      * ({@link VehicleKit#ACTIVE_PROTECTION}); the stock fit with it is the Parapet ({@link VehicleStockFit#PARAPET}).
      */
-    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
+    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 10, -90f,
             0, 4.3f, 3.8f, 2.2f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
@@ -536,10 +536,10 @@ public enum VehicleType {
 
     /**
      * Whether this hull's turret is a modular head on an exposed turret ring ({@code vehicle-card-sizes.md}): a hull
-     * with no part in its gun card has the bare ring and no gun. Only the laser tank so far; every other hull
-     * still carries the gun its sheet was drawn with.
+     * with no part in its gun card has the bare ring and no gun. The gun tanks: the laser tank and the Onager. Every
+     * other hull still carries the gun its sheet was drawn with.
      */
-    public boolean hasModularTurret() { return this == LASER_TANK; }
+    public boolean hasModularTurret() { return this == LASER_TANK || this == BREAKTHROUGH_TANK; }
 
     /** The finish of the turret mount ring this hull's gun stands on: the laser tank white, the hovers silver, the rest army green. */
     public TurretMountStyle mountStyle() {
@@ -552,11 +552,15 @@ public enum VehicleType {
 
     /**
      * The part a spawn that names none fits, for the scenes, missions and fixtures that field a hull as a stock unit: the
-     * laser tank's burst laser. Null for a hull that is not modular. A spawn that names its card as empty is not this one,
-     * and fields the bare ring.
+     * laser tank's heavy burst laser, the Onager's heavy cannon; a fixed hull's own gun. A spawn that names its card as
+     * empty is not this one, and fields the bare ring.
      */
     public MechWeaponComponent standardPart() {
-        return this == LASER_TANK ? MechWeaponComponent.BURST_LASER : ownGun();
+        return switch (this) {
+            case LASER_TANK -> MechWeaponComponent.BURST_LASER;
+            case BREAKTHROUGH_TANK -> MechWeaponComponent.SINGLE_HEAVY_CANNON;
+            default -> ownGun();
+        };
     }
 
     /**
@@ -571,25 +575,63 @@ public enum VehicleType {
     }
 
     /**
-     * Whether {@code weapon} fitted to this hull is drawn as the hull's own turret head rather than as its own drawing
-     * on the mount ring: the laser tank's white and red heads ({@link MechWeaponComponent#tankHead}).
+     * Where one turret head is on a hull's sheet: its live, wreck and firing frames (firing -1 for a head drawn the same
+     * whether or not it fires). A hull's heads are painted at one registration, so they share the turret's drawn size,
+     * pivot and muzzle.
      */
-    public boolean wearsHeadOf(MechWeaponComponent weapon) {
-        return this == LASER_TANK && weapon != null && weapon.tankHead() != MechWeaponComponent.TankHead.NONE;
+    public record HeadFrames(int live, int wreck, int firing) { }
+
+    private static final HeadFrames LASER_WHITE_HEAD = new HeadFrames(1, 3, 4);
+    private static final HeadFrames LASER_RED_HEAD = new HeadFrames(5, 6, 7);
+    /** The Onager's approved single-cannon turret, the heavy cannon's head (art-source/vehicles/tank). */
+    private static final HeadFrames ONAGER_HEAVY_CANNON_HEAD = new HeadFrames(1, 3, -1);
+    /** The Onager's housing with an autocannon, a rotary gun and a linear cannon (art-source/vehicles/tank/heads). */
+    private static final HeadFrames ONAGER_AUTOCANNON_HEAD = new HeadFrames(4, 5, -1);
+    private static final HeadFrames ONAGER_ROTARY_HEAD = new HeadFrames(6, 7, -1);
+    private static final HeadFrames ONAGER_RAIL_HEAD = new HeadFrames(8, 9, -1);
+
+    /**
+     * The frames of the turret head this hull's sheet paints for {@code head}, or null for a head the hull does not
+     * carry ({@link MechWeaponComponent#tankHead}): each hull declares its own heads. The laser tank carries the white
+     * and red laser heads; the Onager the heads on its angular turret housing.
+     */
+    public HeadFrames headFrames(MechWeaponComponent.TankHead head) {
+        if (head == null || head == MechWeaponComponent.TankHead.NONE) return null;
+        return switch (this) {
+            case LASER_TANK -> switch (head) {
+                case WHITE -> LASER_WHITE_HEAD;
+                case RED -> LASER_RED_HEAD;
+                default -> null;
+            };
+            case BREAKTHROUGH_TANK -> switch (head) {
+                case HEAVY_CANNON -> ONAGER_HEAVY_CANNON_HEAD;
+                case AUTOCANNON -> ONAGER_AUTOCANNON_HEAD;
+                case ROTARY -> ONAGER_ROTARY_HEAD;
+                case RAIL -> ONAGER_RAIL_HEAD;
+                default -> null;
+            };
+            default -> null;
+        };
     }
 
     /**
-     * The sheet frame a turret draws: {@code stockFrame} (live, wreck or firing) for the hull's own head, or the same
-     * state of the red head for a weapon that wears it. The red head's frames follow the white's on the laser tank's sheet.
+     * Whether {@code weapon} fitted to this hull is drawn as one of the hull's own turret heads ({@link #headFrames})
+     * rather than as its own drawing on the mount ring.
+     */
+    public boolean wearsHeadOf(MechWeaponComponent weapon) {
+        return weapon != null && headFrames(weapon.tankHead()) != null;
+    }
+
+    /**
+     * The sheet frame a turret draws: {@code stockFrame} (the live, wreck or firing frame) for a weapon that wears no
+     * head, or the same state of the head {@code weapon} wears. A head with no firing frame draws its live frame.
      */
     public int headFrame(MechWeaponComponent weapon, int stockFrame) {
-        if (!wearsHeadOf(weapon) || weapon.tankHead() != MechWeaponComponent.TankHead.RED) return stockFrame;
-        return switch (stockFrame) {
-            case 1 -> 5;
-            case 3 -> 6;
-            case 4 -> 7;
-            default -> stockFrame;
-        };
+        HeadFrames head = weapon == null ? null : headFrames(weapon.tankHead());
+        if (head == null) return stockFrame;
+        if (stockFrame == wreckTurretFrame()) return head.wreck();
+        if (stockFrame >= 0 && stockFrame == turretFiringFrame()) return head.firing() >= 0 ? head.firing() : head.live();
+        return head.live();
     }
 
     /**

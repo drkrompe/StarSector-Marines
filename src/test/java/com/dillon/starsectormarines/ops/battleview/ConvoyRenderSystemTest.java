@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops.battleview;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ConvoyRenderSystemTest {
@@ -23,5 +24,14 @@ class ConvoyRenderSystemTest {
         assertEquals(ConvoyRenderSystem.MIN_RAISED_ALONG, Math.cos(south) - Math.sin(south), 1e-5);
         assertTrue(ConvoyRenderSystem.readablePitch(0f) > south, "across the screen it may stand taller");
         assertTrue(ConvoyRenderSystem.readablePitch(1f) > Math.PI / 2, "firing north it never binds");
+    }
+
+    @Test
+    void wornTurretPlateIsMarkedOnlyOverATurretDrawnFromTheSheet() {
+        assertTrue(ConvoyRenderSystem.wornPlateOnTurretFrame(false, false, false), "a fixed hull's own turret");
+        assertTrue(ConvoyRenderSystem.wornPlateOnTurretFrame(true, false, false), "a modular hull's head");
+        assertFalse(ConvoyRenderSystem.wornPlateOnTurretFrame(true, true, false), "a bare ring has no turret to mark");
+        assertFalse(ConvoyRenderSystem.wornPlateOnTurretFrame(true, false, true), "nor a weapon drawn as itself");
+        assertFalse(ConvoyRenderSystem.wornPlateOnTurretFrame(false, false, true));
     }
 }

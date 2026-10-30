@@ -46,13 +46,17 @@ public final class VehicleGun {
 
     /**
      * The diameter of the armoured plate that turns with {@code weapon} on {@code type}'s mount ring, in cells: the
-     * turret a fixed hull's fitted weapon is carried on, so a small gun reads as a turret and not a gun lying on the
-     * ring. Zero where there is none: a modular hull, whose weapon stands in its own base on the collar, a weapon
-     * drawn as the hull's own head, and an empty card.
+     * gunner's shield the light-machine-gun hulls carry their gun on (the APC, the militia technical and the dozer,
+     * {@link VehicleType#ownGun}), and on a modular hull in army green (the Onager) the plate a weapon with no head of
+     * its own stands on, the fallback until its family has a head. Zero everywhere else: the white laser hull's
+     * weapons stand in their own bases on the collar, a weapon drawn as the hull's own head needs none, any other fixed
+     * hull's fitted weapon stands on the ring, and an empty card has nothing.
      */
     public static float plateCells(VehicleType type, MechWeaponComponent weapon) {
-        if (weapon == null || type.hasModularTurret() || lengthCells(type, weapon) <= 0f) return 0f;
-        return mountCells(type) * PLATE_SHARE_OF_MOUNT;
+        if (weapon == null || lengthCells(type, weapon) <= 0f) return 0f;
+        boolean machineGunHull = type.ownGun() != null;
+        boolean headlessOnArmyTurret = type.hasModularTurret() && type.mountStyle() != TurretMountStyle.WHITE;
+        return machineGunHull || headlessOnArmyTurret ? mountCells(type) * PLATE_SHARE_OF_MOUNT : 0f;
     }
 
     /** The diameter of the mount ring a fitted weapon stands on, in cells. */
