@@ -58,7 +58,12 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
      * so any weapon declaring the same path resolves the one loaded sprite (F3's
      * path-keyed cache). {@code visualCells} is the per-weapon long-axis size.
      */
-    public record Sprite(String spritePath, float visualCells) implements Body {}
+    public record Sprite(String spritePath, float visualCells, Color tint) implements Body {
+        /** An untinted sprite, drawn in its own colors. */
+        public Sprite(String spritePath, float visualCells) {
+            this(spritePath, visualCells, null);
+        }
+    }
 
     /**
      * Traveling tinted streak. The path selects a reusable silhouette while
@@ -80,8 +85,19 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
         }
     }
 
-    /** Short line following a projectile body; length is authored in world cells. */
-    public record TracerTail(Color color, float lengthCells) {}
+    /**
+     * Short line following a projectile body; length is authored in world cells. A positive {@code glowWidthPx}
+     * lays a wider, fainter line of the same color under it, so a tracer round's streak burns hotter than a plain
+     * round's.
+     */
+    public record TracerTail(Color color, float lengthCells, float glowWidthPx) {
+        public TracerTail(Color color, float lengthCells) {
+            this(color, lengthCells, 0f);
+        }
+    }
+
+    /** Glow under a tracer round's streak, in screen pixels: twice and a half the two-pixel core. */
+    static final float TRACER_ROUND_GLOW_PX = 5f;
 
     /** Faction-default hitscan tracer colors — what a null-color {@link Tracer} resolves to. */
     public static final Color MARINE_TRACER   = new Color(0xFF, 0xE0, 0x70);
@@ -103,11 +119,25 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
 
     /** The composition for a shot — never null; dispatches on the single non-null weapon source. */
     public static ShotFx of(ShotEvent s) {
-        if (s.turretStructureDef != null) return deriveTurret(s.turretStructureDef.mount.weapon);
-        if (s.specialEquipmentDef != null) return deriveSecondary(s.specialEquipmentDef);
-        if (s.primaryWeaponDef != null) return derivePrimary(s.primaryWeaponDef);
-        if (s.mechWeaponDef != null)   return deriveMech(s.mechWeaponDef);
-        return NO_SOURCE;
+        ShotFx fx;
+        if (s.turretStructureDef != null) fx = deriveTurret(s.turretStructureDef.mount.weapon);
+        else if (s.specialEquipmentDef != null) fx = deriveSecondary(s.specialEquipmentDef);
+        else if (s.primaryWeaponDef != null) fx = derivePrimary(s.primaryWeaponDef);
+        else if (s.mechWeaponDef != null) fx = deriveMech(s.mechWeaponDef);
+        else return NO_SOURCE;
+        return s.tracerRound() ? fx.asTracerRound(s.weaponDef().tracerRound()) : fx;
+    }
+
+    /**
+     * This composition as one of its weapon's tracer rounds: the shell tinted and its streak recolored, lengthened and
+     * given a glow. Flight, arc and every other effect are the plain round's. Only a sprite body with a tail is
+     * marked, which {@link WeaponDef} guarantees for any weapon that declares tracer rounds.
+     */
+    ShotFx asTracerRound(WeaponDef.TracerRound round) {
+        if (!(body instanceof Sprite sprite) || tracerTail == null) return this;
+        return new ShotFx(new Sprite(sprite.spritePath(), sprite.visualCells(), round.color()),
+                new TracerTail(round.color(), round.tailCells(), TRACER_ROUND_GLOW_PX),
+                arcHeight, boostRamp, contrail, softLaunch);
     }
 
     /** True when the body advances on the shot clock and its impact FX belongs at arrival. */

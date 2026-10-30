@@ -97,6 +97,10 @@ increasing an encounter's total armored threat.
   the standard loader's; the machine's loader multiplies it (the loader rule
   above), so an accelerated loader feeds every rotary gun a third faster, the
   high-feed chaingun included, which stays the better gun by its own numbers.
+  The high-feed chaingun is told apart by its **tracer rounds**: every fourth
+  round off a mount is drawn red-orange with a longer, glowing streak
+  (`render.tracerEvery`, `submod-catalog-contract.md`); the stock gun's rounds are
+  all plain (owner, 2026-10-30).
 - A **beam weapon** (the BL-1 and BL-2 beam lasers; owner, 2026-10-30) is the
   energy counterpart of a rotary gun: it fires while its trigger is held, a
   continuous lance from the drawn muzzle that tracks the cursor (a pilot's) or the

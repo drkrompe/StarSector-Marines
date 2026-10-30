@@ -175,6 +175,14 @@ public final class WeaponDef {
     private boolean groundShadow;
 
     public boolean groundShadow() { return groundShadow; }
+
+    /**
+     * The weapon's periodic tracer round ({@code render.tracerEvery} and its siblings), or null when every round
+     * looks alike. Presentation only: a tracer round carries the same payload, speed and hit as any other.
+     */
+    private TracerRound tracerRound;
+
+    public TracerRound tracerRound() { return tracerRound; }
     /** Whether an interceptable projectile accelerates through the shared boost-then-cruise motion curve. */
     public final boolean boostRamp;
     /** A two-stage missile's unpowered coast out of the tube before its motor lights, or {@code null}. */
@@ -453,6 +461,7 @@ public final class WeaponDef {
         def.tracksFliers = sim.optBoolean("tracksFliers", false);
         def.impactDecal = parseDecal(render, id);
         def.groundShadow = render != null && render.optBoolean("groundShadow", false);
+        def.tracerRound = parseTracerRound(render, def);
         def.magazine = MagazineDef.parse(sim.optJSONObject("magazine"), id);
         if (def.magazine != null && def.mount != MountClass.MARINE_PRIMARY) {
             throw new JSONException("Weapon '" + id + "' declares a magazine outside the marine-primary mount class");
@@ -518,6 +527,60 @@ public final class WeaponDef {
             return new BeamStyle(coreWidth, glowColor, glowWidth, pulseCycles, lifetimeSec, texture);
         } catch (IllegalArgumentException e) {
             throw new JSONException("Invalid beam style for weapon '" + weaponId + "': " + e.getMessage());
+        }
+    }
+
+    /**
+     * {@code render.tracerEvery} (a positive whole number) with {@code tracerRoundColor} (required hex) and
+     * {@code tracerRoundTailCells} (optional, defaulting to the weapon's tail). Only a projectile-sprite weapon with a
+     * tracer tail can mark its rounds, and the sibling keys mean nothing without {@code tracerEvery}.
+     */
+    private static TracerRound parseTracerRound(JSONObject render, WeaponDef def) throws JSONException {
+        if (render == null) return null;
+        boolean every = render.has("tracerEvery") && !render.isNull("tracerEvery");
+        if (!every) {
+            for (String key : new String[] {"tracerRoundColor", "tracerRoundTailCells"}) {
+                if (render.has(key)) {
+                    throw new JSONException("Weapon '" + def.id + "' declares render." + key + " without tracerEvery");
+                }
+            }
+            return null;
+        }
+        Object raw = render.get("tracerEvery");
+        if (!(raw instanceof Number n) || n.doubleValue() != Math.rint(n.doubleValue())
+                || n.doubleValue() < 1 || n.doubleValue() > Integer.MAX_VALUE) {
+            throw new JSONException("Weapon '" + def.id + "' render.tracerEvery must be a positive whole number, got '"
+                    + raw + "'");
+        }
+        if (def.projectileSpritePath == null || !(def.tracerTailCells > 0f)) {
+            throw new JSONException("Weapon '" + def.id
+                    + "' declares render.tracerEvery without a projectile sprite and a tracer tail");
+        }
+        if (emptyToNull(render.optString("tracerRoundColor", null)) == null) {
+            throw new JSONException("Weapon '" + def.id + "' declares render.tracerEvery without tracerRoundColor");
+        }
+        Color color = parseColor(render.getString("tracerRoundColor"), def.id, "tracerRoundColor");
+        float tail = (float) render.optDouble("tracerRoundTailCells", def.tracerTailCells);
+        if (!(tail > 0f) || !Float.isFinite(tail)) {
+            throw new JSONException("Weapon '" + def.id + "' render.tracerRoundTailCells must be finite and positive");
+        }
+        return new TracerRound(n.intValue(), color, tail);
+    }
+
+    /**
+     * A belt's marked rounds: every {@code every}th round a mount releases (the 4th, 8th, 12th... for 4) is drawn in
+     * {@code color} with a {@code tailCells} streak, so one gun's fire reads apart from a lookalike's. The count is
+     * the mount's own, carried on the shot ({@code ShotEvent.roundIndex}), so it never touches the random stream or
+     * the frame rate.
+     */
+    public record TracerRound(int every, Color color, float tailCells) {
+        public TracerRound {
+            if (every < 1) throw new IllegalArgumentException("every must be positive");
+        }
+
+        /** Whether the zero-based {@code roundIndex} is a tracer round; an uncounted round ({@code < 0}) never is. */
+        public boolean marks(int roundIndex) {
+            return roundIndex >= 0 && roundIndex % every == every - 1;
         }
     }
 
@@ -726,18 +789,22 @@ public final class WeaponDef {
 
     /** {@code "80FF80"} or {@code "#80FF80"} → opaque RGB. */
     private static Color parseColor(String hex, String weaponId) throws JSONException {
+        return parseColor(hex, weaponId, "tracerColor");
+    }
+
+    private static Color parseColor(String hex, String weaponId, String field) throws JSONException {
         String value = emptyToNull(hex);
         if (value == null) return Color.WHITE;
         String digits = value.startsWith("#") ? value.substring(1) : value;
         if (digits.length() != 6) {
-            throw new JSONException("Weapon '" + weaponId + "' tracerColor must be 6 hex digits, got '" + hex + "'");
+            throw new JSONException("Weapon '" + weaponId + "' " + field + " must be 6 hex digits, got '" + hex + "'");
         }
         try {
             return new Color(Integer.parseInt(digits.substring(0, 2), 16),
                     Integer.parseInt(digits.substring(2, 4), 16),
                     Integer.parseInt(digits.substring(4, 6), 16));
         } catch (NumberFormatException e) {
-            throw new JSONException("Weapon '" + weaponId + "' tracerColor is not hex: '" + hex + "'");
+            throw new JSONException("Weapon '" + weaponId + "' " + field + " is not hex: '" + hex + "'");
         }
     }
 

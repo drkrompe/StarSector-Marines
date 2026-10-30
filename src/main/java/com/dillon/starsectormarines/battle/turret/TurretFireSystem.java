@@ -17,6 +17,8 @@ import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.weapon.BeamWander;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 /**
@@ -122,6 +124,21 @@ public final class TurretFireSystem implements TurretFireSink {
 
     public void setRoundHeat(RoundHeat roundHeat) {
         this.roundHeat = roundHeat != null ? roundHeat : RoundHeat.NONE;
+    }
+
+    /**
+     * Rounds each shooter's gun has put in the air, kept only for a weapon with tracer rounds
+     * ({@link WeaponDef#tracerRound}). Presentation only: it numbers each round on its {@link ShotEvent} and the
+     * simulation never reads it. A turret or a vehicle carries one gun, so the shooter's count is its mount's.
+     */
+    private final Map<Long, Integer> roundsReleased = new HashMap<>();
+
+    /** Numbers the round leaving now (zero-based), or {@code -1} for a weapon that marks no tracer rounds. */
+    private int releaseRound(long shooterId, WeaponDef weapon) {
+        if (weapon.tracerRound() == null) return -1;
+        int index = roundsReleased.getOrDefault(shooterId, 0);
+        roundsReleased.put(shooterId, (index + 1) & Integer.MAX_VALUE);
+        return index;
     }
 
     /** The heat a shooter's round with this weapon carries: the weapon's own, else what the shooter has loaded. */
@@ -272,7 +289,7 @@ public final class TurretFireSystem implements TurretFireSink {
         }
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
         shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
-                lifetime, structure, null, null));
+                lifetime, structure, null, null).withRoundIndex(releaseRound(shooterId, weapon)));
         return true;
     }
 
@@ -463,7 +480,8 @@ public final class TurretFireSystem implements TurretFireSink {
                 res.endX(), res.endY(), res.endZ(),
                 res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
                 structure, null, null, null, /*moraleImpact*/ 1f,
-                res.victimId() != 0L, res.kind(), shooterId));
+                res.victimId() != 0L, res.kind(), shooterId)
+                .withRoundIndex(releaseRound(shooterId, weapon)));
     }
 
     private void queueGroundDetonation(long shooterId, Faction shooterFaction,

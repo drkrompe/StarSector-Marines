@@ -306,7 +306,7 @@ public class HeavyWeapons {
     public void fireMechWeapon(long shooter, long target, WeaponDef weapon, float accuracyMult) {
         World world = roster.world();
         fireMechWeaponAt(shooter, target, weapon, accuracyMult,
-                world.renderX(shooter), world.renderY(shooter), null);
+                world.renderX(shooter), world.renderY(shooter), null, null);
     }
 
     /** Fires from the installed mount's posed hardpoint rather than the chassis center. */
@@ -316,7 +316,7 @@ public class HeavyWeapons {
         int releaseIndex = MechHardpointGeometry.nextReleaseIndex(mount);
         MechHardpointGeometry.Point muzzle = muzzle(shooter, mount, releaseIndex);
         fireMechWeaponAt(shooter, target, mount.weaponDef(), accuracyMult,
-                muzzle.x(), muzzle.y(), wanderOf(mount));
+                muzzle.x(), muzzle.y(), wanderOf(mount), mount);
     }
 
     /** A crawling beam's aim path, which its pulses sample instead of fresh draws; null for any other mount. */
@@ -348,13 +348,14 @@ public class HeavyWeapons {
     }
 
     private void fireMechWeaponAt(long shooter, long target, WeaponDef weapon,
-                                  float accuracyMult, float fromX, float fromY, BeamWander wander) {
+                                  float accuracyMult, float fromX, float fromY, BeamWander wander,
+                                  MechWeaponMount mount) {
         roster.telemetry().recordRoundFired(shooter);
         World world = roster.world();
         if (world.hasMechLoadout(shooter)) accuracyMult *= sensorAccuracy(world.mechLoadout(shooter));
         if (run != null) accuracyMult *= run.accuracy(shooter);
         if (weapon.arcHeight <= 0f) {
-            fireDirectRound(shooter, target, weapon, accuracyMult, fromX, fromY, wander);
+            fireDirectRound(shooter, target, weapon, accuracyMult, fromX, fromY, wander, mount);
             return;
         }
 
@@ -363,7 +364,8 @@ public class HeavyWeapons {
 
     /** Modeled ground-level round for chaingun, cannon, and SRM tracks. */
     private void fireDirectRound(long shooter, long target, WeaponDef weapon,
-                                 float accuracyMult, float fromX, float fromY, BeamWander wander) {
+                                 float accuracyMult, float fromX, float fromY, BeamWander wander,
+                                 MechWeaponMount mount) {
         World world = roster.world();
         float effectiveAccuracy = weapon.accuracy * accuracyMult;
         Faction shooterFaction = roster.identity().faction(shooter);
@@ -381,7 +383,7 @@ public class HeavyWeapons {
         // And on where the round will burst: one that would reach a friend, or the chassis itself, is not fired.
         if (laneDiscipline && weapon.aoeRadius > 0f && res.impacts()
                 && resolver.friendInBlast(shooter, shooterFaction, res.endX(), res.endY(), weapon.aoeRadius)) return;
-        deliverDirectRound(shooter, weapon, res, fromX, fromY);
+        deliverDirectRound(shooter, weapon, res, fromX, fromY, mount);
     }
 
     /**
@@ -419,13 +421,16 @@ public class HeavyWeapons {
                 : resolver.resolvePoint(source, target.x(), target.y(), accuracy, spread,
                         weapon.roundVelocity, weapon.range, weapon.bodyPenetrations, wanderOf(mount), rng);
         roster.telemetry().recordRoundFired(shooter);
-        deliverDirectRound(shooter, weapon, resolution, muzzle.x(), muzzle.y());
+        deliverDirectRound(shooter, weapon, resolution, muzzle.x(), muzzle.y(), mount);
         return true;
     }
 
-    /** AI and point fire share contact, delayed payload, interception, and presentation. */
+    /**
+     * AI and point fire share contact, delayed payload, interception, and presentation. {@code mount}, when the round
+     * left an installed mount, numbers it for its weapon's tracer cadence; null leaves the round uncounted.
+     */
     private void deliverDirectRound(long shooter, WeaponDef weapon, BallisticResolver.Resolution res,
-                                    float fromX, float fromY) {
+                                    float fromX, float fromY, MechWeaponMount mount) {
         Faction shooterFaction = roster.identity().faction(shooter);
         float moraleImpact = roster.moraleImpact(shooter);
         float contactDamage = weapon.contactDamage > 0f
@@ -499,7 +504,8 @@ public class HeavyWeapons {
                 res.endX(), res.endY(), res.endZ(),
                 res.hitIntended(), shooterFaction, Math.max(res.flightTime(), 0.05f),
                 null, null, null, weapon, moraleImpact,
-                res.victimId() != 0L, res.kind(), shooter));
+                res.victimId() != 0L, res.kind(), shooter)
+                .withRoundIndex(mount != null ? mount.releaseRound() : -1));
     }
 
     /** Legacy indirect scatter/projectile procedure retained for LRM artillery. */

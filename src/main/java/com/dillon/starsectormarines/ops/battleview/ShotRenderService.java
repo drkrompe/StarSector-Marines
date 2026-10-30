@@ -33,6 +33,8 @@ public final class ShotRenderService implements RenderSystem {
     private static final float TRACER_WIDTH = 2f;
     /** Fraction of the flight clock over which a bolt fades from transparent to its full tint. */
     static final float BOLT_FADE_IN_FRACTION = 0.10f;
+    /** Opacity of the glow laid under a tracer round's streak, against its full-strength core. */
+    private static final float TRACER_GLOW_ALPHA = 0.4f;
 
     /** Pure cell-space result for the traveling-bolt sweep, exposed package-locally for headless kinematics tests. */
     record BoltPose(float headX, float headY, float headZ,
@@ -69,6 +71,14 @@ public final class ShotRenderService implements RenderSystem {
             TracerTailPose pose = tracerTailPose(s, fx, tracer);
             if (pose.visibleLength() <= 1e-6f || pose.fadeIn() <= 0f) continue;
             Color c = tracer.color() != null ? tracer.color() : Color.WHITE;
+            if (tracer.glowWidthPx() > 0f) {
+                out.addLine(RenderLayer.SHOTS,
+                        cam.cellToScreenX(pose.tailX()), cam.cellToScreenY(pose.tailY()),
+                        cam.cellToScreenX(pose.headX()), cam.cellToScreenY(pose.headY()),
+                        tracer.glowWidthPx(),
+                        c.getRed() / 255f, c.getGreen() / 255f, c.getBlue() / 255f,
+                        TRACER_GLOW_ALPHA * pose.fadeIn() * alphaMult);
+            }
             out.addLine(RenderLayer.SHOTS,
                     cam.cellToScreenX(pose.tailX()), cam.cellToScreenY(pose.tailY()),
                     cam.cellToScreenX(pose.headX()), cam.cellToScreenY(pose.headY()),
@@ -156,9 +166,11 @@ public final class ShotRenderService implements RenderSystem {
             SpriteFlight flight = spriteFlight(s, fx);
             float pxH = sprite.visualCells() * cellPx;
             float pxW = pxH * cache.aspect;
+            Color tint = sprite.tint() != null ? sprite.tint() : Color.WHITE;
             out.addSprite(RenderLayer.SHOTS, cache.sprite,
                     cam.cellToScreenX(flight.x()), cam.cellToScreenY(flight.y()),
-                    pxW, pxH, flight.bearing(), 1f, 1f, 1f, alphaMult);
+                    pxW, pxH, flight.bearing(),
+                    tint.getRed() / 255f, tint.getGreen() / 255f, tint.getBlue() / 255f, alphaMult);
         }
     }
 
