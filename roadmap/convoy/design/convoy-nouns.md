@@ -612,8 +612,9 @@ each mount its own bank, overloading at capacity and venting to empty faster tha
 it dissipates. How much a gun builds is its character:
 - **Nominal** on the plain guns. The machine guns, the tank cannon, the mortar and
   the hover pulse emitter build a little each round and shed it faster than their
-  cadence fills it, so a held trigger peaks around a tenth to a fifth of capacity and
-  never overloads. Their flux is there to read, not to limit.
+  cadence fills it, so a held trigger peaks around a tenth to a quarter of the
+  reservoir (the tank cannon, 14 a round, near a quarter of the factory bank) and never
+  reaches the crew's hold. Their flux is there to read, not to limit.
 - **The limit** on the racks and the lasers. A rack dumped on clicks or a hold runs
   into its flux before its magazine: the LRM rack's three groups fit and a fourth
   does not, and the SRM rack's crew holds before its eight salvos are out. The lasers
