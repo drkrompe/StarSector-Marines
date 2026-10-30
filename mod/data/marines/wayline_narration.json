@@ -4192,8 +4192,8 @@
       "missionId": "story_supply_route_thunder_run",
       "event": "debrief.jangala.road",
       "textKey": "debriefJangalaRoad",
-      "text": "The convoy is through, and the road to the star port is ours again. Every contract we were on the hook for ships this month. I spent the spring working out how to sell Wayline without anyone losing their truck. I don't have to anymore.",
-      "durationSeconds": 13.12,
+      "text": "The convoy is through, and the road to the star port is ours again. We can fulfill our shipping contracts again, Commander.",
+      "durationSeconds": 7.2,
       "priority": 10,
       "expiresSeconds": 30,
       "supersedes": [],
@@ -4201,7 +4201,7 @@
       "portrait": "graphics/portraits/mara-venn.png",
       "voiced": true,
       "terminal": false,
-      "synthesisText": "[relieved, warm, a little tired] The convoy is through, and the road to the star port is ours again. Every contract we were on the hook for ships this month. I spent the spring working out how to sell Wayline without anyone losing their truck. I don't have to anymore.",
+      "synthesisText": "[relieved, warm, a little tired] The convoy is through, and the road to the star port is ours again. We can fulfill our shipping contracts again, Commander.",
       "voiceId": "mJ5wtH88WGlTud22bihm"
     },
     {
@@ -4209,8 +4209,8 @@
       "missionId": "story_supply_route_thunder_run",
       "event": "debrief.jangala.manifests",
       "textKey": "debriefJangalaManifests",
-      "text": "One thing in my report I can't leave alone, Commander. Every ambush on that corridor sat on the loads worth taking and let the rest go by. Somebody knew what Wayline was carrying.",
-      "durationSeconds": 11.44,
+      "text": "One thing in my report I can't leave alone, Commander. Every ambush on that corridor sat on the loads worth taking and let the rest go by. Somebody knew what Wayline Industrial Cooperative was carrying.",
+      "durationSeconds": 12.56,
       "priority": 10,
       "expiresSeconds": 30,
       "supersedes": [],
@@ -4218,7 +4218,7 @@
       "portrait": "graphics/portraits/castle.png",
       "voiced": true,
       "terminal": false,
-      "synthesisText": "[measured, uneasy] One thing in my report I can't leave alone, Commander. Every ambush on that corridor sat on the loads worth taking and let the rest go by. Somebody knew what Wayline was carrying.",
+      "synthesisText": "[measured, uneasy] One thing in my report I can't leave alone, Commander. Every ambush on that corridor sat on the loads worth taking and let the rest go by. Somebody knew what Wayline Industrial Cooperative was carrying.",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0"
     },
     {
@@ -4226,8 +4226,8 @@
       "missionId": "story_supply_route_thunder_run",
       "event": "debrief.jangala.why",
       "textKey": "debriefJangalaWhy",
-      "text": "I've been over it all night: the lost sailings, the depot, the junction. Somebody knew our business better than we did, and I still can't tell you who, or why it was us.",
-      "durationSeconds": 11.6,
+      "text": "I've been over it all night: the lost sailings, the depot, the junction. Somebody knew our business better than we did, and I still can't tell you who. But I have a lead on someone off-world, on Asharu, who might.",
+      "durationSeconds": 14.0,
       "priority": 10,
       "expiresSeconds": 30,
       "supersedes": [],
@@ -4235,7 +4235,7 @@
       "portrait": "graphics/portraits/mara-venn.png",
       "voiced": true,
       "terminal": false,
-      "synthesisText": "[tired, puzzled] I've been over it all night: the lost sailings, the depot, the junction. Somebody knew our business better than we did, and I still can't tell you who, or why it was us.",
+      "synthesisText": "[tired, quietly determined] I've been over it all night: the lost sailings, the depot, the junction. Somebody knew our business better than we did, and I still can't tell you who. But I have a lead on someone off-world, on Asharu, who might.",
       "voiceId": "mJ5wtH88WGlTud22bihm"
     },
     {
@@ -4243,8 +4243,8 @@
       "missionId": "story_supply_route_thunder_run",
       "event": "debrief.jangala.next",
       "textKey": "debriefJangalaNext",
-      "text": "That closes our account on Jangala. Our schedules ended up with a broker on Asharu who trades in sailing times. Wayline runs freight there anyway. When the company's in order, we go in with the next drop.",
-      "durationSeconds": 11.68,
+      "text": "That closes our pressing work on Jangala. There's repeat contract work here if we want it, but we can move on to Asharu. When the company's in order, we go in with the next drop.",
+      "durationSeconds": 10.32,
       "priority": 10,
       "expiresSeconds": 30,
       "supersedes": [],
@@ -4252,7 +4252,7 @@
       "portrait": "graphics/portraits/castle.png",
       "voiced": true,
       "terminal": false,
-      "synthesisText": "[measured, decided] That closes our account on Jangala. Our schedules ended up with a broker on Asharu who trades in sailing times. Wayline runs freight there anyway. When the company's in order, we go in with the next drop.",
+      "synthesisText": "[measured, decided] That closes our pressing work on Jangala. There's repeat contract work here if we want it, but we can move on to Asharu. When the company's in order, we go in with the next drop.",
       "voiceId": "cuwCdnt9CKAB9XrTA1j0"
     },
     {
