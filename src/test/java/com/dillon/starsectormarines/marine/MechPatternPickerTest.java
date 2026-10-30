@@ -21,22 +21,12 @@ class MechPatternPickerTest {
             new EquipmentAcquisitionEligibility.Progress(15, 20);
 
     @Test
-    void marketOffersOnlyCommonPatternsWhateverTheProgress() {
-        for (String id : drawAll("independent", FactionEquipmentSource.MARKET, VETERAN)) {
-            assertEquals(EquipmentAccessTier.COMMON, MechPattern.parse(id).accessTier(), id);
-        }
-    }
-
-    @Test
-    void licenceAndPatronOpenTiersByReputation() {
-        for (FactionEquipmentSource source : List.of(
-                FactionEquipmentSource.LICENSE, FactionEquipmentSource.PATRON)) {
-            assertTrue(tiers(drawAll("hegemony", source, OPENING))
-                    .equals(EnumSet.of(EquipmentAccessTier.COMMON)), source.name());
-            assertTrue(tiers(drawAll("hegemony", source,
-                    new EquipmentAcquisitionEligibility.Progress(0, 20)))
-                    .contains(EquipmentAccessTier.PRESTIGE), source.name());
-        }
+    void patronOpensTiersByReputation() {
+        assertEquals(EnumSet.of(EquipmentAccessTier.COMMON),
+                tiers(drawAll("hegemony", FactionEquipmentSource.PATRON, OPENING)));
+        assertTrue(tiers(drawAll("hegemony", FactionEquipmentSource.PATRON,
+                new EquipmentAcquisitionEligibility.Progress(0, 20)))
+                .contains(EquipmentAccessTier.PRESTIGE));
     }
 
     @Test

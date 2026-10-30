@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -195,10 +195,11 @@ increasing an encounter's total armored threat.
   weapon component, internal or vehicle (`MechPattern`). Patterns gate fabrication; owned assemblies
   are separate, finite and losable, so losing every assembly keeps the pattern and
   a pattern never puts a free assembly in stores. A new company knows the Hound,
-  chaingun, SRM-5 and the three stock internals; a pre-pattern save that had
+  the light machine gun, the Frag SRM-5 and the four stock internals (the Kit Ladder's
+  start, `KitLadder`); a pre-pattern save that had
   an unrestricted workshop knows every chassis and weapon pattern but only the
   stock internals, which did not exist when it was written. Weight class is the
-  access ladder: Hound (light) Common, Warden (medium) Advanced, Bulwark (heavy)
+  access tier: Hound (light) Common, Warden (medium) Advanced, Bulwark (heavy)
   Prestige (the three are first stand-ins for a grid of mech lines, tech family by
   weight class: `mech-lines.md`); weapons and internals carry their own authored tier. Vehicle patterns carry an authored tier too —
   the APC Common, militia technical Advanced, breakthrough tank
@@ -249,7 +250,8 @@ increasing an encounter's total armored threat.
   (`VehicleType.presentationDeclared`). A **mech pattern card** is the cargo item that teaches one
   pattern; learning writes only to the mech bay and is consumed only when it
   teaches something new. Cards arrive through the same market, licence, patron and
-  recovery channels and access gates as loadout cards (`progression-nouns.md`),
+  recovery channels and gates as loadout cards (`progression-nouns.md`): the store
+  sells a pattern after its Kit Ladder station, patrons and recovery by tier,
   as their own scarce stack: one market slot on large or military markets, an
   occasional patron award in place of a loadout card, at most one per high-risk
   salvage; faction issue weights the draw. Known or carried patterns are never
@@ -1134,8 +1136,9 @@ The cannons follow the same rule (Weapon names).
   same footprint and so the same mass, and so the same bill.
   The navies (Hegemony, Tri-Tachyon) weight up the Advanced AT racks. Pirates,
   independents and the Luddic Path weight up the Frag racks. A new company knows
-  both SRM-5s, and Castle's recovered spare for the Hound is the Frag one, since
-  the first operations are fought against men.
+  the Frag SRM-5 (the AT one goes on sale after Counterattack), and Castle's
+  recovered spare for the Hound is the Frag one, since the first operations are
+  fought against men.
 - **Factory fits.** The Bulwark keeps twin AT SRM-15s behind its chainguns. The
   Hound keeps an AT SRM-5. The Warden ships LRM-5 (Frag) racks: its HC-20 is
   its answer to armor, and its racks are artillery against men.

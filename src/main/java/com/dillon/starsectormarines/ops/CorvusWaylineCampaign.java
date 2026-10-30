@@ -97,8 +97,10 @@ public final class CorvusWaylineCampaign {
     }
     static int settle(MissionOutcome outcome) {
         CorvusWaylineProgress p = current();
+        CorvusChapter settling = p != null ? p.chapter() : null;
         int paid = settle(p, outcome);
-        if (paid >= 0) ArcIssueListings.afterLive(ArcIssueListings.Beat.COLD_ACCOUNT, p.complete(), null);
+        if (paid >= 0) ArcIssueListings.afterLive(ArcIssueListings.Beat.BLIND_WATCH,
+                settling == CorvusChapter.BLIND_WATCH && outcome.victory, null);
         return paid;
     }
     static int settle(CorvusWaylineProgress p, MissionOutcome outcome) {

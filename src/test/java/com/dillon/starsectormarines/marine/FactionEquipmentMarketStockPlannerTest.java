@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import com.fs.starfarer.api.campaign.RepLevel;
 import org.junit.jupiter.api.Test;
 
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -68,34 +69,14 @@ class FactionEquipmentMarketStockPlannerTest {
     }
 
     @Test
-    void licenseStockUsesMrbAccessBandsBeforeWeightedSelection() {
-        FactionEquipmentMarketStockPlanner.StockPlan opening =
-                FactionEquipmentMarketStockPlanner.plan(
-                        "hegemony", "chicomoztoc", 6, 30L, true, Set.of(),
-                        new EquipmentAcquisitionEligibility.Progress(100, 0));
-        FactionEquipmentMarketStockPlanner.StockPlan advanced =
-                FactionEquipmentMarketStockPlanner.plan(
-                        "hegemony", "chicomoztoc", 6, 30L, true, Set.of(),
-                        new EquipmentAcquisitionEligibility.Progress(0, 5));
-
-        assertTrue(opening.licensedCardIds().stream().map(LoadoutCard::parse)
-                .allMatch(card -> card.accessTier() == EquipmentAccessTier.COMMON));
-        assertEquals(2, advanced.licensedCardIds().size());
-        assertTrue(advanced.licensedCardIds().stream()
-                .map(LoadoutCard::parse)
-                .allMatch(card -> card.accessTier() != EquipmentAccessTier.PRESTIGE));
-    }
-
-    @Test
-    void openMarketNeverLeaksAdvancedCardsAtHighCompanyStanding() {
+    void theStoreStocksOnlyCardsWhoseKitLadderStationIsPassedWhateverTheStanding() {
+        Set<UnlockStation> early = EnumSet.of(UnlockStation.START, UnlockStation.RELIEF);
         for (long month = 0; month < 100; month++) {
             FactionEquipmentMarketStockPlanner.StockPlan plan =
                     FactionEquipmentMarketStockPlanner.plan(
                             "independent", "access-audit", 8, month, true, Set.of(),
-                            new EquipmentAcquisitionEligibility.Progress(100, 100));
-            assertTrue(plan.marketCardIds().stream()
-                    .map(LoadoutCard::parse)
-                    .allMatch(card -> card.accessTier() == EquipmentAccessTier.COMMON));
+                            new EquipmentAcquisitionEligibility.Progress(100, 100, Set.of(), early));
+            for (String id : plan.allCardIds()) assertTrue(early.contains(KitLadder.station(id)), id);
         }
     }
 
