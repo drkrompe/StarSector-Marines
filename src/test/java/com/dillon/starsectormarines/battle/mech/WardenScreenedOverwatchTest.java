@@ -274,7 +274,7 @@ class WardenScreenedOverwatchTest {
         // a physically impossible passage, so give it a two-cell opening. The
         // east side is a corridor: an open room would offer an in-zone oblique
         // that keeps the threat in the torso envelope, which the escape prefers
-        // (OverwatchKillZone.KEEPS_ARC) over walking straight back.
+        // (OverwatchKillZone) over walking straight back.
         BattleSimulation sim = twoRoomSimulation(2, 2);
         assertTrue(ManualTerrainMotion.canStand(sim.getGrid(), 40.5f, 31f,
                 MechVariant.BULWARK.radius), "the actual chassis fits the doorway centerline");

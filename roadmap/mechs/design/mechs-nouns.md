@@ -552,9 +552,9 @@ increasing an encounter's total armored threat.
   point of torso armor counting 0.85. The back, where the reactor and its flux vents
   sit, is 0.75 of the rating at 0.6 plate, so a round from behind strips torso
   armor two thirds faster. A round from behind spends the torso's own **rear plate**
-  (`TORSO_REAR`, `MechSections.REAR_SHARE` of the torso armor, held on top of it so a
-  mech shot head-on lasts as long as it did) before the torso structure behind both;
-  `-Dbattle.mech.torsoRear=false` is the control. The arc governs the torso's own plate whether a hit
+  (`MechSections.REAR_SHARE` of the torso armor, held on top of it so a
+  mech shot head-on lasts as long as it did) before the torso structure behind both.
+  The arc governs the torso's own plate whether a hit
   lands on the torso or spills into it. Legs, arms and head meet the chassis rating
   from every side: a limb is hit on whatever face it shows, and a second set of
   arcs per section would buy little. Every chassis shares the one profile. A hit
@@ -563,12 +563,11 @@ increasing an encounter's total armored threat.
   target and its torso twists 145 degrees, so the mech it is shooting nearly
   always meets the front. The back is for the second machine, the one its torso
   is not following (`heavy-equipment-progression.md`, facing).
-  **Shares are tuned against the whole-body control.** Sections are allowed to
+  **Shares were tuned against the whole-body control** (since retired). Sections are allowed to
   move a mech's time to kill, not reinvent it. `sceneEvidence -Pscene=mech-time-to-kill`
   stands each stock chassis under one fire team (field rifles, pulse, DMR, two
-  AMRs, two rocket tubes, one heavy cannon) in the open and hull-down. Run it
-  again with `-Dbattle.mech.locationalDamage=false` for the control. Kill time
-  runs 0.70-1.15 of the control, mean 0.88; every death is a torso kill and
+  AMRs, two rocket tubes, one heavy cannon) in the open and hull-down. Kill time
+  ran 0.70-1.15 of the control, mean 0.88; every death is a torso kill and
   the durability order holds in every row. The ratio sits under 1 by structure:
   fire from one side never reaches the far shoulder, and the head and arms are
   often still standing when the torso dies. Raising the torso share costs mount
@@ -598,8 +597,7 @@ increasing an encounter's total armored threat.
   armed standing mech declines its attack goals as broken morale does, without
   touching the command's assignment. One lost mount
   needs no posture: doctrine and engagement range read only the surviving
-  mounts. `-Dbattle.mech.locationalDamage=false` is the whole-body
-  control. The battle keeps each owned mech's section record (pools, what was
+  mounts. The battle keeps each owned mech's section record (pools, what was
   destroyed, which weapon each lost mount carried); the frozen deployment
   carries the mech's campaign identity so the record finds its way home.
   Section loss shows on the chassis itself: a lost mount's weapon layer drops
@@ -922,8 +920,7 @@ hardware identities; any deployed chassis may receive any of these doctrines:
   torso's 145° twist loses the target while the hips follow the route, and a
   mech that cannot reach its perch never fires at all: a planted Warden under
   rifle fire fired 2.4 rounds before it died. Keeping the arc, it fires 10.6,
-  deals twice the damage and lasts 29 s instead of 18
-  (`-Dbattle.mech.overwatchKeepsArc=false` is the control). A screened perch,
+  deals twice the damage and lasts 29 s instead of 18. A screened perch,
   and a stand-off with the threat out of reach, are unchanged.
 - **Balanced** serves its assignment from the middle or outer portion of its
   installed direct-fire band. It accepts a close threat already upon it, then
@@ -942,8 +939,8 @@ longest one — a Brawler on a small edge, Balanced and Frontline Support on a
 clear one, Long-Range Support never — and nobody closes on a tie, with one
 exception: a band that brings a loaded **anti-armor rack** to bear closes when
 it trades merely as well as the longest band. Between equal machines that rack
-would otherwise never fire, and its warhead was fitted for exactly this target
-(`-Dbattle.mech.closeOnAntiArmorTie=false` is the control). A rack that has run
+would otherwise never fire, and its warhead was fitted for exactly this target.
+A rack that has run
 dry leaves the reading, so a mech with empty magazines walks back out. Failing
 both, it **duels** from the outer part of its longest band (about 72–92% of
 reach) rather than walking inside it for no reason: two equal machines meet
@@ -980,8 +977,7 @@ any band, for a hull as for a mech. Pressure
 leaves out penetration, flux and ammunition depth on purpose: they scale both
 sides of a trade alike far more often than they reverse it. A missile rack is the
 exception and is read by its warhead (Missile warheads).
-`-Dbattle.mech.duelRange=false` is the control; `MechDuelRangeScene` is the
-acceptance.
+`MechDuelRangeScene` is the acceptance.
 
 The role changes how a mech serves an assignment; it never supplies an
 assignment, hidden contact, or permission to leave mission-command bounds.
@@ -1230,7 +1226,6 @@ The cannons follow the same rule (Weapon names).
   soft target. A held target is kept unless another would take a quarter more.
   So a chaingun Bulwark with loaded AT racks turns to a tank behind an infantry
   screen, and turns back to the men while the racks replenish.
-  `-Dbattle.mech.damageAwareTargeting=false` restores nearest-target choice.
 - **Duel band.** The band reads a rack by its warhead against the target's
   plate: an AT rack at its contact payload, a Frag rack at its armor efficiency.
   This is the one place penetration enters the band (Family and doctrine, duel
@@ -1988,7 +1983,6 @@ anti-armor weapons, are no longer starved by the chaingun against a machine,
 while its fire at infantry is exactly what it was. An anti-armor rack (penetration 30) defeats any mech's plate outright, so a
 HC-20, which also does, keeps its slot ahead of it, an AC-6 yields to
 it, and a fragmentation rack (penetration 4) goes after every arm gun. Manual fire follows the player's groups, not this order.
-`-Dbattle.mech.armorFireOrder=false` is the control.
 
 Thresholds are fractions of capacity, quoted here at the stock 100. AI refuses a
 trigger that would exceed 90 flux. At 75 it holds further triggers until 40,

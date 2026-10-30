@@ -334,13 +334,6 @@ public enum MechWeaponComponent {
     }
 
     /**
-     * Flux-hungry enough that the cannon competes with its carrier's launchers for the reservoir
-     * (heavy-equipment-progression.md); {@code -Dbattle.mech.hc20Flux=26} is the control.
-     */
-    private static final float HC_20_FLUX = Float.parseFloat(
-            System.getProperty("battle.mech.hc20Flux", "34"));
-
-    /**
      * Whole-packet flux reservation: scheduled rounds cannot stall halfway through a salvo. A rotary gun
      * commits {@link #fluxPerRound} a round instead; this is that over {@link #projectilesPerTrigger} rounds.
      */
@@ -377,8 +370,9 @@ public enum MechWeaponComponent {
             // a 15-rack's three salvos cost 80 of the stock 100.
             case SRM_5, SRM_5_FRAG, SRM_15, SRM_15_FRAG, LRM_5, LRM_5_FRAG, LRM_15, LRM_15_FRAG -> 40f;
             case HC_10 -> 18f;
-
-            case HC_20 -> HC_20_FLUX;
+            // Flux-hungry enough that the cannon competes with its carrier's launchers for the reservoir
+            // (heavy-equipment-progression.md).
+            case HC_20 -> 34f;
             case DC_5, DC_4_QS -> 26f;
             // The Prestige arm pays in mass; at 38 it lost to both Advanced arms on the same frame.
             case PL_2_AP -> 13f;

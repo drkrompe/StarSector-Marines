@@ -24,13 +24,6 @@ import com.dillon.starsectormarines.battle.combat.DurabilityModel;
  */
 public final class MechSections {
 
-    /**
-     * Whether mechs are hit by section. {@code -Dbattle.mech.locationalDamage=false} is the
-     * control: a mech is one whole body again, as before sections existed.
-     */
-    public static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty("battle.mech.locationalDamage", "true"));
-
     /** What a lost head leaves of the chassis's weapon accuracy. */
     public static final float SENSOR_LOSS_ACCURACY = 0.6f;
     /** What a lost head leaves of the chassis's vision range. */
@@ -39,14 +32,7 @@ public final class MechSections {
     private static final int TORSO = MechSection.TORSO.ordinal();
 
     /**
-     * Whether the torso's armor splits into a front plate and a rear one ({@code TORSO_REAR}).
-     * {@code -Dbattle.mech.torsoRear=false} is the control: one torso plate on every arc.
-     */
-    public static final boolean TORSO_REAR =
-            Boolean.parseBoolean(System.getProperty("battle.mech.torsoRear", "true"));
-
-    /**
-     * The rear plate as a share of the torso's armor, held on top of it: thin, where the reactor and its cooling
+     * The torso's armor splits into a front plate and a rear one. The rear plate as a share of the torso's armor, held on top of it: thin, where the reactor and its cooling
      * sit. The front keeps the whole torso plate, so a mech shot head-on lasts as long as it did.
      */
     public static final float REAR_SHARE = .35f;
@@ -87,10 +73,8 @@ public final class MechSections {
             this.armor[i] = armor * share;
             this.maxArmor[i] = maxArmor * share;
         }
-        if (TORSO_REAR) {
-            rearArmor = this.armor[TORSO] * REAR_SHARE;
-            maxRearArmor = this.maxArmor[TORSO] * REAR_SHARE;
-        }
+        rearArmor = this.armor[TORSO] * REAR_SHARE;
+        maxRearArmor = this.maxArmor[TORSO] * REAR_SHARE;
     }
 
     public MechBodyPlan plan() {
@@ -144,7 +128,7 @@ public final class MechSections {
     /** The least of a section's structure a carried mech drops with. */
     public static final float CARRIED_STRUCTURE_FLOOR = 0.1f;
 
-    /** The torso's rear plate: what a hit from behind meets. Zero under the control. */
+    /** The torso's rear plate: what a hit from behind meets. */
     public float rearArmor() {
         return rearArmor;
     }
@@ -279,7 +263,7 @@ public final class MechSections {
                         DurabilityModel.Resolution scratch, Hit out) {
         int i = section.ordinal();
         float torsoBefore = structure[TORSO];
-        boolean rear = fromBehind && TORSO_REAR;
+        boolean rear = fromBehind;
         if (i == TORSO) {
             float plateBefore = rear ? rearArmor : armor[TORSO];
             DurabilityModel.resolvePlatedInto(damage, penetration, mitigationSoak,

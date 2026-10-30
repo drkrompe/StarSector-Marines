@@ -61,21 +61,6 @@ public final class MechDuelBand {
     /** Nothing is fought from closer than this, whatever the band. */
     static final float MIN_BAND = 4f;
 
-    public static final String CLOSE_ON_ANTI_ARMOR_TIE_PROPERTY = "battle.mech.closeOnAntiArmorTie";
-    /**
-     * Whether a band that brings an anti-armor rack to bear closes on a tie. Volatile and settable so a
-     * scene's control loop can flip it; {@code -Dbattle.mech.closeOnAntiArmorTie=false} is the control.
-     */
-    private static volatile boolean closeOnAntiArmorTie =
-            Boolean.parseBoolean(System.getProperty(CLOSE_ON_ANTI_ARMOR_TIE_PROPERTY, "true"));
-
-    public static boolean closesOnAntiArmorTie() {
-        return closeOnAntiArmorTie;
-    }
-
-    public static void setCloseOnAntiArmorTieForEvidence(boolean value) {
-        closeOnAntiArmorTie = value;
-    }
 
     private MechDuelBand() {}
 
@@ -192,7 +177,7 @@ public final class MechDuelBand {
         float longTrade = trade(own, threat, longSample);
         float threshold = longTrade * closeBias;
         // An anti-armor rack's band needs only to match the longest band's trade; never for a role that does not close.
-        float antiArmorThreshold = closeOnAntiArmorTie && !Float.isInfinite(closeBias) ? longTrade : threshold;
+        float antiArmorThreshold = !Float.isInfinite(closeBias) ? longTrade : threshold;
         float bestSample = -1f;
         float bestTrade = 0f;
         for (Weapon w : own) {

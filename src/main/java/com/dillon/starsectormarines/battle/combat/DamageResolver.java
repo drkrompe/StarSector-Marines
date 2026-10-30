@@ -212,7 +212,7 @@ public final class DamageResolver {
             mitigationSoak = screens.soakAgainst(targetId, tx, ty,
                     world.x(attackerId), world.y(attackerId));
         }
-        MechLoadoutComponent mech = MechSections.ENABLED && world.hasMechLoadout(targetId)
+        MechLoadoutComponent mech = world.hasMechLoadout(targetId)
                 ? world.mechLoadout(targetId) : null;
         float armorDamage;
         float structureDamage;

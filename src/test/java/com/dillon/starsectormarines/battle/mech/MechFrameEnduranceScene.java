@@ -44,8 +44,7 @@ import java.util.concurrent.Future;
  * production-fire-path reading rather than arithmetic.
  *
  * <p>Verdicts assert the instrument (the frame reached the battle, every play took fire); every
- * outcome is a metric. Run under {@code -Dbattle.mech.locationalDamage=false} for the whole-body
- * control. Plays run side by side ({@code -Dbattle.scene.frameEndurance.parallelism=N}, default half
+ * outcome is a metric. Plays run side by side ({@code -Dbattle.scene.frameEndurance.parallelism=N}, default half
  * the processors).
  */
 public final class MechFrameEnduranceScene implements BehaviorScene {
@@ -345,7 +344,6 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
         String loop = loopName(first.opposition) + "." + first.variant.id + "."
                 + (first.kind == FrameKind.STUDY ? new Study(first.variant, first.frame).label() : kindName(first.kind));
         Map<String, Number> m = new LinkedHashMap<>();
-        m.put("locationalDamageEnabled", MechSections.ENABLED ? 1 : 0);
         m.put("frame.armorCapacity", first.frame.armorCapacity());
         m.put("frame.moveSpeed", first.frame.moveSpeed());
         m.put("frame.fluxCapacity", first.frame.fluxCapacity());
@@ -391,7 +389,6 @@ public final class MechFrameEnduranceScene implements BehaviorScene {
     /** The durability order at each equal-tier comparison, as readings (1 holds, 0 does not). */
     private SceneReport order(Opposition opposition, List<Play> plays) {
         Map<String, Number> m = new LinkedHashMap<>();
-        m.put("locationalDamageEnabled", MechSections.ENABLED ? 1 : 0);
         for (FrameKind kind : MAIN_KINDS) {
             double b = meanEndurance(plays, opposition, MechVariant.BULWARK, kind);
             double h = meanEndurance(plays, opposition, MechVariant.HOUND, kind);

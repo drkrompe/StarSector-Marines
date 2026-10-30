@@ -18,8 +18,7 @@ import java.util.Map;
 /**
  * How long a mech lasts once it is under fire: for every mech that takes the field, the tick it
  * was first damaged, the ticks its sections went ({@code mechs-nouns.md}) and the tick
- * it died. Time-to-kill is death less first damage. A reading, never asserted: run the same
- * fixture with {@code -Dbattle.mech.locationalDamage=false} for the whole-body control.
+ * it died. Time-to-kill is death less first damage. A reading, never asserted.
  */
 public final class MechTimeToKillProbe {
 
@@ -83,15 +82,14 @@ public final class MechTimeToKillProbe {
             if (t.died >= 0 && t.firstDamaged >= 0) ttk.add(t.died - t.firstDamaged);
         }
         ttk.sort(Integer::compare);
-        return new JSONObject().put("locationalDamage", MechSections.ENABLED).put("mechs", mechs)
+        return new JSONObject().put("mechs", mechs)
                 .put("killed", ttk.size()).put("timeToKillTicks", new JSONArray(ttk))
                 .put("medianTimeToKillTicks", ttk.isEmpty() ? -1 : ttk.get(ttk.size() / 2));
     }
 
     public String describe() {
         StringBuilder out = new StringBuilder();
-        out.append(String.format(Locale.ROOT, "- mechs (locational damage %s): %d took the field%n",
-                MechSections.ENABLED ? "on" : "off (control)", tracks.size()));
+        out.append(String.format(Locale.ROOT, "- mechs: %d took the field%n", tracks.size()));
         for (Track t : tracks.values()) {
             out.append(String.format(Locale.ROOT, "  - %s %s: seen %d, first damaged %s, died %s, sections lost %s%n",
                     t.faction, t.variant, t.firstSeen, t.firstDamaged < 0 ? "never" : t.firstDamaged,

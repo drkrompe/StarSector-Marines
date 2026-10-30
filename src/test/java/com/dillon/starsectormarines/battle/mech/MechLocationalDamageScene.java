@@ -48,11 +48,6 @@ import java.util.Map;
  * question, not about the fight: a squad the chaingun has killed stops shooting, and the scene would
  * then record how long the Hound takes to win rather than how it comes apart. Nothing on the Hound's
  * side is touched.
- *
- * <p>The whole-body control cannot run in the same JVM — {@link MechSections#ENABLED} is read once
- * from {@code battle.mech.locationalDamage} — so the same scene played under
- * {@code -Dbattle.mech.locationalDamage=false} is the control: no section ever records, the
- * section verdicts fail by construction, and the readings that remain are its time-to-kill.
  */
 public final class MechLocationalDamageScene implements BehaviorScene {
 
@@ -326,7 +321,6 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         Map<String, Number> m = new LinkedHashMap<>();
         m.put("seed", t.seed);
         m.put("rocketSeats", t.rocketSeats);
-        m.put("locationalDamageEnabled", MechSections.ENABLED ? 1 : 0);
         m.put("firstHitTick", t.firstHitTick);
         m.put("podLostTick", t.podLostTick);
         m.put("armsLostTick", t.armsLostTick);
@@ -369,7 +363,6 @@ public final class MechLocationalDamageScene implements BehaviorScene {
         int fullStory = 0;
         int ticks = 0;
         Map<String, Number> m = new LinkedHashMap<>();
-        m.put("locationalDamageEnabled", MechSections.ENABLED ? 1 : 0);
         for (Trace t : sweep) {
             ticks += t.ticks;
             if (t.deathTick >= 0) deaths++;

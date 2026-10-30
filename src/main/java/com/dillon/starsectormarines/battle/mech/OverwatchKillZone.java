@@ -44,7 +44,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
  * {@code ai-nouns.md}.
  *
  * <p>A threat already inside weapon range with a clear line is kept inside the torso envelope
- * while the mech repositions ({@link #KEEPS_ARC}): an unscreened perch reached by walking
+ * while the mech repositions: the hips face the route and the torso twists at most perch reached by walking
  * straight away loses to one reached obliquely, and when every perch in reach turns the back the
  * mech takes a fighting-withdrawal step that opens distance obliquely and keeps firing. A
  * screened perch is unaffected.
@@ -81,16 +81,6 @@ public final class OverwatchKillZone implements Action {
     /** One emergency move attempts to buy this many cells of separation. */
     private static final float RUSH_ESCAPE_DISTANCE = 8f;
 
-    /**
-     * Whether a support mech already able to shoot its threat keeps that threat inside its torso
-     * envelope while it walks to a perch or opens distance. The hips face the route and the torso
-     * twists at most {@link com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance#MAX_TORSO_TWIST_DEGREES}
-     * off them, so a perch straight behind the mech puts the attacker in the rear blind wedge:
-     * targeting drops it and nothing fires for the whole walk (for ever, on a planted chassis).
-     * {@code -Dbattle.mech.overwatchKeepsArc=false} restores the straight-back choice.
-     */
-    static final boolean KEEPS_ARC = Boolean.parseBoolean(
-            System.getProperty("battle.mech.overwatchKeepsArc", "true"));
     /**
      * Widest angle between the walk and the threat that still leaves it in the torso envelope,
      * with 25 degrees of margin for a grid route's bends.
@@ -288,14 +278,12 @@ public final class OverwatchKillZone implements Action {
         float dy = memberY - sim.world().y(target);
         float length = (float) Math.sqrt(dx * dx + dy * dy);
         if (length < 1e-3f) return null;
-        if (KEEPS_ARC) {
-            // Straight back is the rear blind wedge: try the two obliques that keep the
-            // attacker inside the torso envelope first.
-            float off = 180f - ARC_KEEPING_WALK_DEGREES;
-            int[] cell = openingCell(member, squad, target, dx / length, dy / length, off, sim);
-            if (cell == null) cell = openingCell(member, squad, target, dx / length, dy / length, -off, sim);
-            if (cell != null) return cell;
-        }
+        // Straight back is the rear blind wedge: try the two obliques that keep the
+        // attacker inside the torso envelope first.
+        float off = 180f - ARC_KEEPING_WALK_DEGREES;
+        int[] cell = openingCell(member, squad, target, dx / length, dy / length, off, sim);
+        if (cell == null) cell = openingCell(member, squad, target, dx / length, dy / length, -off, sim);
+        if (cell != null) return cell;
         return openingCell(member, squad, target, dx / length, dy / length, 0f, sim);
     }
 
@@ -374,7 +362,7 @@ public final class OverwatchKillZone implements Action {
         // A threat the mech can already shoot stays in its torso envelope on the way out.
         float mechX = sim.world().x(member);
         float mechY = sim.world().y(member);
-        boolean keepArc = KEEPS_ARC && engagedFrom(mechX, mechY, tx + 0.5f, ty + 0.5f,
+        boolean keepArc = engagedFrom(mechX, mechY, tx + 0.5f, ty + 0.5f,
                 sim.world().attackRange(member), grid);
 
         OverwatchPosition bestScreened = null;

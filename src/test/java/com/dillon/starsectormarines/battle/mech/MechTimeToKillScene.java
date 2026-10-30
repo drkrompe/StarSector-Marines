@@ -34,7 +34,7 @@ import java.util.concurrent.Future;
 /**
  * Mech time-to-kill by chassis and weapon: <b>how long does each answer to a mech take, and what
  * does the mech lose on the way?</b> The calibration instrument for mech locational damage
- * ({@code mechs-nouns.md}, Section pools / Section loss) against the whole-body control, and for the
+ * ({@code mechs-nouns.md}, Section pools / Section loss), and for the
  * d4 promise that rifles, anti-materiel rifles, rockets and heavy cannon are each a practical answer
  * to intact mech armor.
  *
@@ -53,9 +53,7 @@ import java.util.concurrent.Future;
  * time to kill, and the share of all damage each section took. Plays run side by side on separate
  * simulations; two runs have produced identical readings.
  *
- * <p>The whole-body control cannot run in the same JVM ({@link MechSections#ENABLED} is read once),
- * so the scene played under {@code -Dbattle.mech.locationalDamage=false} is the control. Readings
- * only; the one verdict is the mechanic that must hold on every play: death only through the torso.
+ * <p>Readings only; the one verdict is the mechanic that must hold on every play: death only through the torso.
  *
  * <p>Switches (forwarded by {@code sceneEvidence}): {@code -Dbattle.scene.mechTtk.seeds=N} (default 4),
  * {@code .threads=N} (default half the processors), {@code .chassis=hound,bulwark},
@@ -96,7 +94,7 @@ public final class MechTimeToKillScene implements BehaviorScene {
     @Override
     public String label() {
         return "Mech time-to-kill: each chassis under each anti-mech answer, open and hull-down,"
-                + " readings against the whole-body control";
+                + " readings";
     }
 
     @Override
@@ -151,8 +149,8 @@ public final class MechTimeToKillScene implements BehaviorScene {
 
         List<SceneReport> reports = new ArrayList<>();
         StringBuilder table = new StringBuilder();
-        table.append(String.format(Locale.ROOT, "%nmech-time-to-kill  locationalDamage=%s  seeds=%d  (seconds: mean +- sd [min..max], n killed/plays)%n",
-                MechSections.ENABLED, seeds));
+        table.append(String.format(Locale.ROOT, "%nmech-time-to-kill  seeds=%d  (seconds: mean +- sd [min..max], n killed/plays)%n",
+                seeds));
         table.append(String.format(Locale.ROOT, "%-8s %-12s %-9s | %-30s | %-26s | %-22s | %-22s | %-22s | %-22s | %-7s | %s%n",
                 "chassis", "team", "ground", "TTK (from first round)", "armor break (1st struct)",
                 "all armor gone", "first mount lost", "arms lost", "crippled", "rounds", "damage share L/T/A/LS/RS/H"));
@@ -288,7 +286,6 @@ public final class MechTimeToKillScene implements BehaviorScene {
         SceneReport report(String sceneId) {
             List<Trace> list = sorted();
             Map<String, Number> m = new LinkedHashMap<>();
-            m.put("locationalDamageEnabled", MechSections.ENABLED ? 1 : 0);
             m.put("plays", list.size());
             int deaths = 0;
             int torsoKills = 0;
@@ -297,7 +294,7 @@ public final class MechTimeToKillScene implements BehaviorScene {
                 ticks += t.ticks;
                 if (t.deathTick >= 0) {
                     deaths++;
-                    if (!MechSections.ENABLED || t.torsoAtZeroOnDeath) torsoKills++;
+                    if (t.torsoAtZeroOnDeath) torsoKills++;
                 }
                 String k = "seed" + t.seed;
                 m.put(k + ".firstShot", t.firstShotTick);
@@ -396,7 +393,7 @@ public final class MechTimeToKillScene implements BehaviorScene {
         return new double[] {mean, Math.sqrt(var), min, max, values.size()};
     }
 
-    /** Share of all armor and structure taken off each section, summed over plays; null under the control. */
+    /** Share of all armor and structure taken off each section, summed over plays; null when nothing was taken. */
     private static float[] damageShare(List<Trace> list) {
         float[] sum = new float[MechSection.VALUES.length];
         float total = 0f;

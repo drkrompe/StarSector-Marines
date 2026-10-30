@@ -51,7 +51,6 @@ public final class MechSectionFxSystem {
     }
 
     public void tick(int simTick) {
-        if (!MechSections.ENABLED) return;
         for (ArchetypeTable table : world.matched(mechs)) {
             Object[] loadouts = table.objects(components.MECH_LOADOUT,
                     BattleComponents.MECH_LOADOUT_STATE).array();

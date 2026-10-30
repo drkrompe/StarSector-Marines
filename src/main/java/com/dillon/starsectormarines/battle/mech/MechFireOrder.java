@@ -13,19 +13,15 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
  *
  * <p>The order matters because the reservoir admits one packet at a time: a chaingun firing first after every
  * release takes flux that its SRM shoulders, the chassis's anti-armor weapons, never get back
- * (heavy-equipment-progression.md). Fire at infantry is untouched. {@code -Dbattle.mech.armorFireOrder=false} is
- * the control.
+ * (heavy-equipment-progression.md). Fire at infantry is untouched.
  */
 public final class MechFireOrder {
-
-    private static final boolean ENABLED =
-            Boolean.parseBoolean(System.getProperty("battle.mech.armorFireOrder", "true"));
 
     private MechFireOrder() {
     }
 
     /**
-     * The target's armor rating when it is a machine and the rule is on; zero otherwise, which keeps the slot order.
+     * The target's armor rating when it is a machine; zero otherwise, which keeps the slot order.
      */
     public static float machineArmorRating(long target, BattleView sim) {
         return machineArmorRating(sim.world(), target, sim.bodies().carrierOf(target) instanceof ConvoyService);
@@ -33,7 +29,7 @@ public final class MechFireOrder {
 
     /** As above, told whether the target is a ground vehicle; a mech is known by its loadout. */
     public static float machineArmorRating(World world, long target, boolean groundVehicle) {
-        if (!ENABLED || target == 0L || !world.hasArmor(target)) return 0f;
+        if (target == 0L || !world.hasArmor(target)) return 0f;
         boolean machine = world.hasMechLoadout(target) || groundVehicle;
         return machine ? Math.max(0f, world.armorRating(target)) : 0f;
     }

@@ -245,8 +245,8 @@ public final class DamageDollCanvas implements CanvasProducer {
                     set(i, slot == null || loadout.mounts()[slot.ordinal()] != null, true, 1f, 1f, false);
                 }
             }
-            // The back plate: its own armor in front of the torso's one structure pool. Under the control,
-            // or before the chassis has sections, it reads as the torso does.
+            // The back plate: its own armor in front of the torso's one structure pool. Before the chassis
+            // has sections, or with no torso plate to split, it reads as the torso does.
             int torso = DollLocation.TORSO.ordinal();
             float rear = sections != null && sections.maxRearArmor() > 0f
                     ? fraction(sections.rearArmor(), sections.maxRearArmor()) : armor[torso];

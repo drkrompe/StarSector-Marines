@@ -286,7 +286,6 @@ public final class MechHullDownScene implements BehaviorScene {
             m.put("houndStartY", startY);
             m.put("coveredShareOfAliveTicks", aliveTicks > 0 ? (float) coveredTicks / aliveTicks : -1f);
             m.put("maxDriftCells", maxDrift);
-            m.put("locationalDamageEnabled", MechSections.ENABLED ? 1 : 0);
             m.put("deaths", deaths);
             m.put("houndShots", shots);
             m.put("takenTotal", total());

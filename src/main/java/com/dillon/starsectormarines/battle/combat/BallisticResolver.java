@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.combat;
 
-import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.nav.SharedEdgeBarrier;
@@ -1207,7 +1206,7 @@ public final class BallisticResolver {
      */
     private BodyPlan bodyPlanOf(long unit) {
         World world = roster.world();
-        if (MechSections.ENABLED && world.hasMechLoadout(unit)) return world.mechLoadout(unit).variant.bodyPlan().bodyPlan();
+        if (world.hasMechLoadout(unit)) return world.mechLoadout(unit).variant.bodyPlan().bodyPlan();
         return roster.identity().type(unit).bodyPlan();
     }
 

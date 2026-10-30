@@ -51,16 +51,9 @@ import java.util.List;
  * taking fire it cannot return is not. Once the shooter is beyond reach of the
  * leash the sortie ends and the mech's doctrine walks it home. Exact-cell
  * moves, rushes, attack-moves and posts not yet reached stay strict.
- *
- * <p>{@code -Dbattle.mech.duelRange=false} is the control.
  */
 public final class MechDuelRange {
 
-    public static final String PROPERTY = "battle.mech.duelRange";
-
-    /** Volatile and settable so a scene's control loop can flip it between loops. */
-    private static volatile boolean enabled =
-            Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     /** Cells either side of the band a holding mech tolerates before it moves. */
     static final float HOLD_SLACK = 1f;
@@ -82,20 +75,12 @@ public final class MechDuelRange {
 
     private MechDuelRange() {}
 
-    public static boolean isEnabled() {
-        return enabled;
-    }
-
-    public static void setEnabledForEvidence(boolean value) {
-        enabled = value;
-    }
 
     /**
      * Executes the duel for this tick when the rule applies, and returns true
      * when it did; false hands the tick to the member's doctrine unchanged.
      */
     static boolean engage(long member, Squad squad, BattleControl sim) {
-        if (!enabled) return false;
         MechLoadoutComponent loadout = sim.world().mechLoadout(member);
         if (loadout == null) return false;
         MechRole role = loadout.effectiveRole();

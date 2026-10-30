@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.battle.matchup;
 
-import com.dillon.starsectormarines.battle.mech.MechDuelRange;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Tag;
@@ -278,8 +277,7 @@ class ArmorMatchupEvidence {
                 .append(determinism).append(".\n\n")
                 .append("Machines against machines. Attackers start at the west edge and are driven to 70% of their ")
                 .append("longest reach off the nearest enemy; inside reach it is production doctrine (attacking lances' ")
-                .append("order `").append(ArmorPlay.MECH_ORDER).append("`, mech duel range ")
-                .append(MechDuelRange.isEnabled() ? "on" : "off").append("), ")
+                .append("order `").append(ArmorPlay.MECH_ORDER).append("`, mech duel range on), ")
                 .append("defenders hold eighty cells east, set down facing the attackers")
                 .append(ArmorPlay.DEFENDER_FACING == 0f ? "" : " turned " + ArmorPlay.DEFENDER_FACING + "°")
                 .append(ArmorPlay.ATTACKER_SPREAD == 0f ? ""

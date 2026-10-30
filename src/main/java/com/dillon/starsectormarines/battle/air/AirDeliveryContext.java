@@ -228,7 +228,7 @@ public final class AirDeliveryContext {
      * doll and the writeback all start from the worn body.
      */
     public void carryMechWear(long unit, MechLoadoutComponent loadout, MechCarriedWear wear) {
-        if (wear == null || wear.isEmpty() || !MechSections.ENABLED) return;
+        if (wear == null || wear.isEmpty()) return;
         World world = roster.world();
         boolean hasArmor = world.hasArmor(unit);
         MechSections sections = loadout.sectionsFor(world.hp(unit), world.maxHp(unit),

@@ -174,8 +174,7 @@ is `generatedSpaceEvidence --tests '*MechFitSpaceEvidence'`.
 **What the frames buy, measured.** `sceneEvidence -Pscene=mech-frame-endurance`
 plants each chassis with its factory weapons in a stock, a best-buildable refit
 and the pre-cut frame under fixed fire (ten rifles with one AMR; a stock
-Bulwark), eight seeds, with `-Dbattle.mech.locationalDamage=false` as the
-whole-body control. Mean seconds survived, rifles / Bulwark:
+Bulwark), eight seeds. Mean seconds survived, rifles / Bulwark:
 
 | | Stock | Refit | Pre-cut |
 | --- | --- | --- | --- |
@@ -280,8 +279,8 @@ refit.
   bastion 34). Cycle time is unchanged.
 
 Readings (`armorMatchup`, explicit fits, open / hull-down / street, eight seeds,
-both roles; win share, and mean open-ground seconds from first hit). Controls
-are `-Dbattle.mech.hc20BuildMass=0 -Dbattle.mech.hc20Flux=26`.
+both roles; win share, and mean open-ground seconds from first hit). Before is
+the HC-20 at flux 26 with no build mass.
 
 | Fight | Before | After |
 | --- | --- | --- |
@@ -367,9 +366,8 @@ a heavy cannon fires before them. With the anti-armor warheads (penetration 30,
 Missile warheads below) a bastion now yields to them too, and a fragmentation
 rack fires after every arm gun. The table was read on the single-warhead SRM
 (penetration 14), when the bastion tied the racks; the Missile warheads readings
-are taken with this rule on. Readings, against
-`-Dbattle.mech.armorFireOrder=false` (the control reproduces the matrix below
-fight for fight):
+are taken with this rule on. Readings, against slot order (the control, since
+retired, reproduced the matrix below fight for fight):
 
 | Reading | Control | Rule |
 | --- | --- | --- |
@@ -1028,7 +1026,7 @@ Per rocket:
 | LRM AT | 95 / 30 | 15 / 6 / 1.0 | 40 |
 | LRM Frag | — | 50 / 4 / 2.8 | 15 |
 
-Control: `-Dbattle.mech.damageAwareTargeting=false` (nearest-target choice). The
+The control was nearest-target choice (since retired). The
 single-warhead control columns below were read before that rack was retired.
 
 Readings were taken on top of the bastion and pulse-laser flux changes above and
@@ -1108,8 +1106,8 @@ than 32 cells, which makes the SRM an LRM.
 The other gap was between equal machines. Two AT Bulwarks trade alike at every
 distance, so the band (which never closed on a tie) held them at 21-27 cells and
 their racks dealt 4% of the damage. **An anti-armor rack's band now closes on a
-tie** (`-Dbattle.mech.closeOnAntiArmorTie=false` is the control). Variant against
-control, open / hull-down / street:
+tie**. Variant against the control (no close on a tie, since retired), open /
+hull-down / street:
 
 | Matchup | Fight range | Mean TTK s | Timeouts | Rack share of damage |
 |---|---|---|---|---|
@@ -1124,7 +1122,7 @@ not a tie: a Hound still does not walk into a Bulwark's two racks, a Frag Bulwar
 does not close on an AT one, Long-Range Support never closes, and fights against
 tanks and APCs read identically. `mech-duel-range` now asks the equal Bulwarks to
 close to the racks' band without reaching contact (median 13.5 cells, nothing
-inside 10), and asks for the old duel band under the control. `mech-versus-infantry`
+inside 10). `mech-versus-infantry`
 passes in both arms.
 
 Still open from these readings:

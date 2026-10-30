@@ -30,8 +30,7 @@ import java.util.Map;
  * Two machines on open ground: <b>do mechs fight armor from a duel band, or walk together and slug it
  * out?</b> The acceptance for {@link MechDuelRange} ({@code mechs-nouns.md}, Family and doctrine).
  *
- * <p>Two pairings, each played with the rule on and again with it off
- * ({@code -Dbattle.mech.duelRange=false}, set per loop here):
+ * <p>Three pairings:
  * <ul>
  *   <li><b>LRM Warden against a chaingun Hound.</b> The Warden (Long-Range Support) carries an
  *       attack-move at the Hound's ground; the Hound (Brawler) holds an area defence of its own. The
@@ -41,16 +40,14 @@ import java.util.Map;
  *   <li><b>The same pair the other way round</b>: the Hound attack-moves at a Warden holding its
  *       ground, and should close to its SRM band. Readings, mostly: the attack-move walks it in anyway.</li>
  *   <li><b>Two stock Bulwarks</b> under Brawler doctrine, one attack-moving at the other: the doctrine
- *       that seeks contact, so the control shows what the rule takes away. (Frontline Support with nobody
- *       to pace holds where it lands and never meets the other; Balanced already holds at its medium
- *       band, rule or no rule.) Equal machines trade alike at every distance, but each carries anti-armor racks
- *       fitted for exactly this target, so they should close to the racks' band and still stop short of
- *       contact. Under {@code -Dbattle.mech.closeOnAntiArmorTie=false} they settle in the chaingun's duel band
- *       instead, and the verdict asks for that.</li>
+ *       that seeks contact. (Frontline Support with nobody to pace holds where it lands and never meets the
+ *       other; Balanced already holds at its medium band.) Equal machines trade alike at every distance, but
+ *       each carries anti-armor racks fitted for exactly this target, so they should close to the racks' band
+ *       and still stop short of contact.</li>
  * </ul>
  *
- * <p>Then vehicles, with no steering script at all. A Hound attack-moves at a deployed breakthrough tank (mech rule on
- * and off, vehicle engagement off so the pair asks about the mech alone). The player's tank is set down fifty cells
+ * <p>Then vehicles, with no steering script at all. A Hound attack-moves at a deployed breakthrough tank (vehicle
+ * engagement off so the pair asks about the mech alone). The player's tank is set down fifty cells
  * from a holding Hound with no order ({@link VehicleEngagement} on, and off as the control): it should drive to a
  * band outside the Hound's reach. And the player's tank is ordered once onto the Hound: an explicit move wins over
  * any band, so it goes there.
@@ -61,18 +58,18 @@ import java.util.Map;
 public final class MechDuelRangeScene implements BehaviorScene {
 
     static final String WARDEN_HOUND = "warden-hound";
-    static final String WARDEN_HOUND_CONTROL = "warden-hound-control";
+
     static final String HOUND_WARDEN = "hound-warden";
-    static final String HOUND_WARDEN_CONTROL = "hound-warden-control";
+
     static final String HOUND_TANK = "hound-tank";
-    static final String HOUND_TANK_CONTROL = "hound-tank-control";
+
     static final String TANK_HOUND = "tank-hound";
     static final String TANK_HOUND_CONTROL = "tank-hound-control";
     static final String TANK_ORDERED = "tank-ordered";
     /** Where an unordered tank is set down: inside its awareness of the Hound, outside its gun's reach. */
     private static final int TANK_UNORDERED_X = 50;
     static final String BULWARKS = "bulwarks";
-    static final String BULWARKS_CONTROL = "bulwarks-control";
+
     static final int FRAME_EVERY_TICKS = 15;
 
     private static final int WIDTH = 120;
@@ -99,8 +96,7 @@ public final class MechDuelRangeScene implements BehaviorScene {
     static final float TANK_GIVE_GROUND_CELLS = 1f;
     /** Cells the Hound must close on the Warden once it is being shelled. */
     static final float HOUND_CLOSES_CELLS = 4f;
-    /** Bulwarks in a duel band: the fight's median distance at least this, and contact rare. */
-    static final float DUEL_MEDIAN_MIN = 18f;
+
     /** Bulwarks closed to their racks: the fight's median distance at most this (the SRM reach and a cell). */
     static final float RACK_MEDIAN_MAX = SRM_REACH + 1f;
     static final float CONTACT_CELLS = 10f;
@@ -116,53 +112,39 @@ public final class MechDuelRangeScene implements BehaviorScene {
     @Override
     public String label() {
         return "Mech duel range: an LRM Warden stands off a chaingun Hound, the Hound closes,"
-                + " equal Bulwarks duel short of contact; each with the rule off as control";
+                + " equal Bulwarks close to their racks short of contact";
     }
 
     @Override public int frameDelayMillis() { return 60; }
 
     @Override
     public List<SceneReport> play(FrameSink frames) {
-        boolean before = MechDuelRange.isEnabled();
         boolean vehicleBefore = VehicleEngagement.isEnabled();
         try {
             Trace sh = playOnce(frames, WARDEN_HOUND, MechVariant.WARDEN, MechRole.LR_SUPPORT,
-                    MechVariant.HOUND, MechRole.ASSAULT, true);
-            Trace shc = playOnce(frames, WARDEN_HOUND_CONTROL, MechVariant.WARDEN, MechRole.LR_SUPPORT,
-                    MechVariant.HOUND, MechRole.ASSAULT, false);
+                    MechVariant.HOUND, MechRole.ASSAULT);
             Trace hs = playOnce(frames, HOUND_WARDEN, MechVariant.HOUND, MechRole.ASSAULT,
-                    MechVariant.WARDEN, MechRole.LR_SUPPORT, true);
-            Trace hsc = playOnce(frames, HOUND_WARDEN_CONTROL, MechVariant.HOUND, MechRole.ASSAULT,
-                    MechVariant.WARDEN, MechRole.LR_SUPPORT, false);
+                    MechVariant.WARDEN, MechRole.LR_SUPPORT);
             Trace bb = playOnce(frames, BULWARKS, MechVariant.BULWARK, MechRole.ASSAULT,
-                    MechVariant.BULWARK, MechRole.ASSAULT, true);
-            Trace bbc = playOnce(frames, BULWARKS_CONTROL, MechVariant.BULWARK, MechRole.ASSAULT,
-                    MechVariant.BULWARK, MechRole.ASSAULT, false);
-            Trace ht = playVehicle(frames, HOUND_TANK, VehicleCase.HOUND_ATTACKS, true, false);
-            Trace htc = playVehicle(frames, HOUND_TANK_CONTROL, VehicleCase.HOUND_ATTACKS, false, false);
-            Trace th = playVehicle(frames, TANK_HOUND, VehicleCase.TANK_UNORDERED, true, true);
-            Trace thc = playVehicle(frames, TANK_HOUND_CONTROL, VehicleCase.TANK_UNORDERED, true, false);
-            Trace to = playVehicle(frames, TANK_ORDERED, VehicleCase.TANK_ORDERED, true, true);
-            return List.of(reportWardenHound(sh, WARDEN_HOUND, true),
-                    reportWardenHound(shc, WARDEN_HOUND_CONTROL, false),
-                    reportHoundWarden(hs, HOUND_WARDEN, true),
-                    reportHoundWarden(hsc, HOUND_WARDEN_CONTROL, false),
-                    reportBulwarks(bb, BULWARKS, true),
-                    reportBulwarks(bbc, BULWARKS_CONTROL, false),
-                    reportHoundTank(ht, HOUND_TANK, true),
-                    reportHoundTank(htc, HOUND_TANK_CONTROL, false),
+                    MechVariant.BULWARK, MechRole.ASSAULT);
+            Trace ht = playVehicle(frames, HOUND_TANK, VehicleCase.HOUND_ATTACKS, false);
+            Trace th = playVehicle(frames, TANK_HOUND, VehicleCase.TANK_UNORDERED, true);
+            Trace thc = playVehicle(frames, TANK_HOUND_CONTROL, VehicleCase.TANK_UNORDERED, false);
+            Trace to = playVehicle(frames, TANK_ORDERED, VehicleCase.TANK_ORDERED, true);
+            return List.of(reportWardenHound(sh),
+                    reportHoundWarden(hs),
+                    reportBulwarks(bb),
+                    reportHoundTank(ht),
                     reportTankHound(th, TANK_HOUND, true),
                     reportTankHound(thc, TANK_HOUND_CONTROL, false),
                     reportTankOrdered(to));
         } finally {
-            MechDuelRange.setEnabledForEvidence(before);
             VehicleEngagement.setEnabledForEvidence(vehicleBefore);
         }
     }
 
     private Trace playOnce(FrameSink frames, String loopId, MechVariant attacker, MechRole attackerRole,
-                           MechVariant defender, MechRole defenderRole, boolean rule) {
-        MechDuelRange.setEnabledForEvidence(rule);
+                           MechVariant defender, MechRole defenderRole) {
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
         CellTopology topology = new CellTopology(WIDTH, HEIGHT);
         for (int y = 0; y < HEIGHT; y++) {
@@ -183,7 +165,7 @@ public final class MechDuelRangeScene implements BehaviorScene {
                 .assigned(id -> ObjectiveAssignment.defendArea(id, DEFENDER_X, MID_Y))
                 .done();
         SceneWorld world = builder.build();
-        Trace trace = new Trace(loopId, rule, world.members(ATTACKER)[0], world.members(DEFENDER)[0]);
+        Trace trace = new Trace(loopId, world.members(ATTACKER)[0], world.members(DEFENDER)[0]);
         SceneRun run = SceneRun.of(world).observe(trace).frames(frames, loopId, FRAME_EVERY_TICKS, trace::caption);
         try {
             while (run.tick() < WINDOW_TICKS && trace.deathTick < 0) run.step();
@@ -205,8 +187,7 @@ public final class MechDuelRangeScene implements BehaviorScene {
     }
 
     /** A breakthrough tank and a Hound with no steering script. */
-    private Trace playVehicle(FrameSink frames, String loopId, VehicleCase kind, boolean rule, boolean vehicleRule) {
-        MechDuelRange.setEnabledForEvidence(rule);
+    private Trace playVehicle(FrameSink frames, String loopId, VehicleCase kind, boolean vehicleRule) {
         VehicleEngagement.setEnabledForEvidence(vehicleRule);
         boolean tankOrdered = kind != VehicleCase.HOUND_ATTACKS;
         NavigationGrid grid = new NavigationGrid(WIDTH, HEIGHT);
@@ -238,8 +219,8 @@ public final class MechDuelRangeScene implements BehaviorScene {
         long hound = world.members(ATTACKER)[0];
         // The trace's attacker is whoever moves in: the ordered tank, or the attack-moving Hound.
         Trace trace = tankOrdered
-                ? new Trace(loopId, rule, tank, hound)
-                : new Trace(loopId, rule, hound, tank);
+                ? new Trace(loopId, tank, hound)
+                : new Trace(loopId, hound, tank);
         if (kind == VehicleCase.TANK_ORDERED) sim.getVehicleMoveOrderService().requestMove(tank, DEFENDER_X, MID_Y);
         SceneRun run = SceneRun.of(world).observe(trace).frames(frames, loopId, FRAME_EVERY_TICKS, trace::caption);
         try {
@@ -255,7 +236,6 @@ public final class MechDuelRangeScene implements BehaviorScene {
 
     private static final class Trace implements TickObserver {
         final String loopId;
-        final boolean rule;
         final long attacker;
         final long defender;
         int ticks;
@@ -288,9 +268,8 @@ public final class MechDuelRangeScene implements BehaviorScene {
         /** Cells the shooter moved straight away from the Hound while it was inside that distance. */
         float attackerGaveGround;
 
-        Trace(String loopId, boolean rule, long attacker, long defender) {
+        Trace(String loopId, long attacker, long defender) {
             this.loopId = loopId;
-            this.rule = rule;
             this.attacker = attacker;
             this.defender = defender;
         }
@@ -401,8 +380,8 @@ public final class MechDuelRangeScene implements BehaviorScene {
         }
 
         String caption(int tick) {
-            return String.format(Locale.ROOT, "%s  rule %s  t=%.1fs  range %.1f  shots %d/%d  integrity %.0f/%.0f",
-                    loopId, rule ? "on" : "off", tick / 30f, distance, attackerShots, defenderShots,
+            return String.format(Locale.ROOT, "%s  t=%.1fs  range %.1f  shots %d/%d  integrity %.0f/%.0f",
+                    loopId, tick / 30f, distance, attackerShots, defenderShots,
                     attackerHp, defenderHp);
         }
 
@@ -428,7 +407,7 @@ public final class MechDuelRangeScene implements BehaviorScene {
 
         Map<String, Number> metrics() {
             Map<String, Number> m = new LinkedHashMap<>();
-            m.put("ruleOn", rule ? 1 : 0);
+
             m.put("ticks", ticks);
             m.put("firstShotTick", firstShotTick);
             m.put("deathTick", deathTick);
@@ -456,51 +435,45 @@ public final class MechDuelRangeScene implements BehaviorScene {
 
     // ---- verdicts ----
 
-    private SceneReport reportWardenHound(Trace t, String loopId, boolean subject) {
+    private SceneReport reportWardenHound(Trace t) {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("fight-happened", t.firstShotTick >= 0,
                 "first round at tick " + t.firstShotTick));
-        if (subject) {
-            // The Hound sorties off its post at an out-reaching shooter, so how much of the fight stays beyond
-            // its reach is a reading of the chase; that the Warden opens distance when it comes on is the mechanic.
-            verdicts.add(t.givesGround("warden-gives-ground", "Warden"));
-            verdicts.add(Verdict.of("warden-fires", t.attackerShots > 0, t.attackerShots + " rounds"));
-            verdicts.add(Verdict.of("hound-closes", t.defenderClosed() >= HOUND_CLOSES_CELLS,
-                    String.format(Locale.ROOT, "the Hound came %.1f cells toward the Warden after the first"
-                            + " round (wanted %.0f)", t.defenderClosed(), HOUND_CLOSES_CELLS)));
-        }
-        return new SceneReport(id(), loopId, t.ticks, verdicts, t.metrics());
+        // The Hound sorties off its post at an out-reaching shooter, so how much of the fight stays beyond
+        // its reach is a reading of the chase; that the Warden opens distance when it comes on is the mechanic.
+        verdicts.add(t.givesGround("warden-gives-ground", "Warden"));
+        verdicts.add(Verdict.of("warden-fires", t.attackerShots > 0, t.attackerShots + " rounds"));
+        verdicts.add(Verdict.of("hound-closes", t.defenderClosed() >= HOUND_CLOSES_CELLS,
+                String.format(Locale.ROOT, "the Hound came %.1f cells toward the Warden after the first"
+                        + " round (wanted %.0f)", t.defenderClosed(), HOUND_CLOSES_CELLS)));
+        return new SceneReport(id(), WARDEN_HOUND, t.ticks, verdicts, t.metrics());
     }
 
-    private SceneReport reportHoundWarden(Trace t, String loopId, boolean subject) {
+    private SceneReport reportHoundWarden(Trace t) {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("fight-happened", t.firstShotTick >= 0,
                 "first round at tick " + t.firstShotTick));
-        if (subject) {
-            // The Warden gives ground inside its order's leash, so how deep the Hound gets is a reading;
-            // that it comes inside its own reach and fights is the mechanic.
-            verdicts.add(Verdict.of("hound-closes-and-fires",
-                    t.min() >= 0f && t.min() < HOUND_REACH && t.attackerShots > 0,
-                    String.format(Locale.ROOT, "closest %.1f cells (wanted inside its %.0f-cell reach; its SRM"
-                            + " band is %.0f), %d rounds", t.min(), HOUND_REACH, SRM_REACH, t.attackerShots)));
-        }
-        return new SceneReport(id(), loopId, t.ticks, verdicts, t.metrics());
+        // The Warden gives ground inside its order's leash, so how deep the Hound gets is a reading;
+        // that it comes inside its own reach and fights is the mechanic.
+        verdicts.add(Verdict.of("hound-closes-and-fires",
+                t.min() >= 0f && t.min() < HOUND_REACH && t.attackerShots > 0,
+                String.format(Locale.ROOT, "closest %.1f cells (wanted inside its %.0f-cell reach; its SRM"
+                        + " band is %.0f), %d rounds", t.min(), HOUND_REACH, SRM_REACH, t.attackerShots)));
+        return new SceneReport(id(), HOUND_WARDEN, t.ticks, verdicts, t.metrics());
     }
 
-    private SceneReport reportHoundTank(Trace t, String loopId, boolean subject) {
+    private SceneReport reportHoundTank(Trace t) {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("fight-happened", t.firstShotTick >= 0,
                 "first round at tick " + t.firstShotTick));
         // Vehicle engagement is off for this pair, so it asks about the mech rule alone: the tank holds.
         verdicts.add(Verdict.of("tank-held-for-isolation", t.defenderMaxDrift < 1f,
                 String.format(Locale.ROOT, "the tank moved %.1f cells (wanted under 1)", t.defenderMaxDrift)));
-        if (subject) {
-            verdicts.add(Verdict.of("hound-uses-a-band", t.shareBelow(CONTACT_CELLS) <= CONTACT_SHARE_MAX,
-                    String.format(Locale.ROOT, "%.0f%% of the fight inside %.0f cells (wanted at most %.0f%%);"
-                                    + " median %.1f, closest %.1f", t.shareBelow(CONTACT_CELLS) * 100f, CONTACT_CELLS,
-                            CONTACT_SHARE_MAX * 100f, t.median(), t.min())));
-        }
-        return new SceneReport(id(), loopId, t.ticks, verdicts, t.metrics());
+        verdicts.add(Verdict.of("hound-uses-a-band", t.shareBelow(CONTACT_CELLS) <= CONTACT_SHARE_MAX,
+                String.format(Locale.ROOT, "%.0f%% of the fight inside %.0f cells (wanted at most %.0f%%);"
+                                + " median %.1f, closest %.1f", t.shareBelow(CONTACT_CELLS) * 100f, CONTACT_CELLS,
+                        CONTACT_SHARE_MAX * 100f, t.median(), t.min())));
+        return new SceneReport(id(), HOUND_TANK, t.ticks, verdicts, t.metrics());
     }
 
     private SceneReport reportTankHound(Trace t, String loopId, boolean subject) {
@@ -531,29 +504,18 @@ public final class MechDuelRangeScene implements BehaviorScene {
         return new SceneReport(id(), TANK_ORDERED, t.ticks, verdicts, t.metrics());
     }
 
-    private SceneReport reportBulwarks(Trace t, String loopId, boolean subject) {
+    private SceneReport reportBulwarks(Trace t) {
         List<Verdict> verdicts = new ArrayList<>();
         verdicts.add(Verdict.of("fight-happened", t.firstShotTick >= 0,
                 "first round at tick " + t.firstShotTick));
-        if (subject && MechDuelBand.closesOnAntiArmorTie()) {
-            verdicts.add(Verdict.of("rack-band-not-contact",
-                    t.median() <= RACK_MEDIAN_MAX && t.shareBelow(CONTACT_CELLS) <= CONTACT_SHARE_MAX,
-                    String.format(Locale.ROOT, "median fight distance %.1f (wanted %.0f or less), %.0f%% of the"
-                                    + " fight inside %.0f cells (wanted at most %.0f%%), closest %.1f",
-                            t.median(), RACK_MEDIAN_MAX, t.shareBelow(CONTACT_CELLS) * 100f, CONTACT_CELLS,
-                            CONTACT_SHARE_MAX * 100f, t.min())));
-        } else if (subject) {
-            verdicts.add(Verdict.of("duel-band-not-contact",
-                    t.median() >= DUEL_MEDIAN_MIN && t.shareBelow(CONTACT_CELLS) <= CONTACT_SHARE_MAX,
-                    String.format(Locale.ROOT, "median fight distance %.1f (wanted %.0f+), %.0f%% of the fight"
-                                    + " inside %.0f cells (wanted at most %.0f%%), closest %.1f",
-                            t.median(), DUEL_MEDIAN_MIN, t.shareBelow(CONTACT_CELLS) * 100f, CONTACT_CELLS,
-                            CONTACT_SHARE_MAX * 100f, t.min())));
-        }
-        if (subject) {
-            verdicts.add(Verdict.of("both-fire", t.attackerShots > 0 && t.defenderShots > 0,
-                    t.attackerShots + " / " + t.defenderShots + " rounds"));
-        }
-        return new SceneReport(id(), loopId, t.ticks, verdicts, t.metrics());
+        verdicts.add(Verdict.of("rack-band-not-contact",
+                t.median() <= RACK_MEDIAN_MAX && t.shareBelow(CONTACT_CELLS) <= CONTACT_SHARE_MAX,
+                String.format(Locale.ROOT, "median fight distance %.1f (wanted %.0f or less), %.0f%% of the"
+                                + " fight inside %.0f cells (wanted at most %.0f%%), closest %.1f",
+                        t.median(), RACK_MEDIAN_MAX, t.shareBelow(CONTACT_CELLS) * 100f, CONTACT_CELLS,
+                        CONTACT_SHARE_MAX * 100f, t.min())));
+        verdicts.add(Verdict.of("both-fire", t.attackerShots > 0 && t.defenderShots > 0,
+                t.attackerShots + " / " + t.defenderShots + " rounds"));
+        return new SceneReport(id(), BULWARKS, t.ticks, verdicts, t.metrics());
     }
 }

@@ -27,7 +27,7 @@ public final class MechFrameBudget {
         return switch (variant) {
             case HOUND -> 20f;
             // Rated for its factory heavy cannon, so the build mass costs the Warden nothing.
-            case WARDEN -> 36f + HC_20_BUILD_MASS;
+            case WARDEN -> 36f + 3f;
             // Two single arm guns weigh what the old twin mount did plus one footprint row (4).
             case BULWARK -> 50f;
         };
@@ -74,16 +74,12 @@ public final class MechFrameBudget {
      */
     private static float buildMass(MechWeaponComponent component) {
         float authored = switch (component) {
-            case HC_20 -> HC_20_BUILD_MASS;
+            case HC_20 -> 3f;
             case AC_6 -> 1.5f;
             default -> 0f;
         };
         return component.tuned("buildMass", authored);
     }
-
-    /** {@code -Dbattle.mech.hc20BuildMass=0} is the control. */
-    private static final float HC_20_BUILD_MASS = Float.parseFloat(
-            System.getProperty("battle.mech.hc20BuildMass", "3"));
 
     public static float mass(MechInternal internal, MechVariant variant) {
         if (internal == null) return 0f;

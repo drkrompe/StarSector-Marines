@@ -131,14 +131,4 @@ class MechDuelBandTest {
         List<Weapon> lrSupport = List.of(CHAINGUN, AT_SRM, AT_LRM);
         assertEquals(Stance.DUEL, MechDuelBand.choose(lrSupport, lrSupport, MechRole.LR_SUPPORT).stance());
     }
-
-    @Test
-    void theControlKeepsEqualMachinesInTheDuelBand() {
-        MechDuelBand.setCloseOnAntiArmorTieForEvidence(false);
-        try {
-            assertEquals(Stance.DUEL, MechDuelBand.choose(AT_BULWARK, AT_BULWARK, MechRole.ARMORED_SUPPORT).stance());
-        } finally {
-            MechDuelBand.setCloseOnAntiArmorTieForEvidence(true);
-        }
-    }
 }

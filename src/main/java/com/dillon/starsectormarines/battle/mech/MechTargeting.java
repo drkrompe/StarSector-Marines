@@ -25,13 +25,6 @@ public final class MechTargeting {
      */
     public static final float CLOSE_THREAT_AGGRO_RANGE = 10f;
 
-    /**
-     * Whether a mech beyond close-threat range aims at the target its loaded mounts hurt most
-     * rather than the nearest ({@link MechTargetPressure}). {@code -Dbattle.mech.damageAwareTargeting=false}
-     * is the control.
-     */
-    static final boolean DAMAGE_AWARE = Boolean.parseBoolean(
-            System.getProperty("battle.mech.damageAwareTargeting", "true"));
 
     /** A held target is kept unless another would take this many times its pressure. */
     static final float RETARGET_MARGIN = 1.25f;
@@ -58,7 +51,8 @@ public final class MechTargeting {
         if (closeThreat != 0L) return closeThreat;
 
         float attackRange = sim.world().attackRange(mech);
-        if (DAMAGE_AWARE && sim.world().hasMechLoadout(mech)) {
+        // Beyond close-threat range, aim at the target the loaded mounts hurt most (MechTargetPressure).
+        if (sim.world().hasMechLoadout(mech)) {
             long chosen = hardestHit(mech, hipFacing, attackRange, current, squad, sim);
             if (chosen != 0L) return chosen;
         }
