@@ -155,7 +155,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 float drawCellY = body.y + mountWorldY - pivotWorldY;
 
                 LayeredSpriteCache gun = turret == null ? null
-                        : VehicleGunArt.sprite(sprites.layeredMechSprites(), type, turret.weapon);
+                        : VehicleGunArt.sprite(sprites, type, turret.weapon);
                 float recoilCells = gun != null ? VehicleGun.recoilCells(type, turret.weapon) : type.turretRecoilCells();
                 float recoil = 0f;
                 if (!wrecked && recoilCells > 0f) {

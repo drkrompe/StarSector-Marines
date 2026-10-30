@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.MechLivery;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -160,6 +161,8 @@ public class BattleSprites {
     private LayeredSpriteCache vehicleGunPlate;
     private LayeredSpriteCache vehicleKitActiveProtection;
     private LayeredSpriteCache vehicleKitActiveProtectionTurret;
+    private final EnumMap<MechWeaponComponent, LayeredSpriteCache> vehicleGunDrawings =
+            new EnumMap<>(MechWeaponComponent.class);
 
     // ---- vehicle sheets -----------------------------------------------------
 
@@ -308,6 +311,8 @@ public class BattleSprites {
     public LayeredSpriteCache vehicleKitActiveProtection() { return vehicleKitActiveProtection; }
     /** The same fit in the Onager's turret frame registration, turning with the turret housing. Null when not loaded. */
     public LayeredSpriteCache vehicleKitActiveProtectionTurret() { return vehicleKitActiveProtectionTurret; }
+    /** The drawing a hull carries {@code weapon} in instead of the mech's ({@link VehicleGunArt#vehicleDrawingPath}); null for none. */
+    public LayeredSpriteCache vehicleGunDrawing(MechWeaponComponent weapon) { return vehicleGunDrawings.get(weapon); }
     /** Pools under fallen layered bodies; empty when the art did not load. */
     public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
 
@@ -1376,6 +1381,11 @@ public class BattleSprites {
         vehicleGunPlate = loadLayeredSprite("graphics/battle/vehicles/gun-plate.png");
         vehicleKitActiveProtection = loadLayeredSprite("graphics/battle/vehicles/kit-active-protection.png");
         vehicleKitActiveProtectionTurret = loadLayeredSprite("graphics/battle/vehicles/kit-active-protection-turret.png");
+        for (MechWeaponComponent weapon : MechWeaponComponent.values()) {
+            String path = VehicleGunArt.vehicleDrawingPath(weapon);
+            LayeredSpriteCache drawing = path == null ? null : loadLayeredSprite(path);
+            if (drawing != null) vehicleGunDrawings.put(weapon, drawing);
+        }
         mechBase = new MechBase(socketedChassis, foot, thighBone, flash);
     }
 

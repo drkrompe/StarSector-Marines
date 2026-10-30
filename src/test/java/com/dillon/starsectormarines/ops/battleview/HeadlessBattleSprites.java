@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.drone.Drone;
 import com.dillon.starsectormarines.battle.vehicle.TurretMountStyle;
 import com.dillon.starsectormarines.render2d.texture.ModTextures;
 import com.dillon.starsectormarines.battle.air.Airframe;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
@@ -126,6 +127,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final LayeredSpriteCache gunPlate;
     private final LayeredSpriteCache kitActiveProtection;
     private final LayeredSpriteCache kitActiveProtectionTurret;
+    private final EnumMap<MechWeaponComponent, LayeredSpriteCache> gunDrawings = new EnumMap<>(MechWeaponComponent.class);
     private SpriteAPI decals;
     private SpriteSheetFrames decalFrames;
     private SpriteAPI warshipEngineFlame;
@@ -197,6 +199,11 @@ final class HeadlessBattleSprites extends BattleSprites {
         gunPlate = optionalLayer("graphics/battle/vehicles/gun-plate.png");
         kitActiveProtection = optionalLayer("graphics/battle/vehicles/kit-active-protection.png");
         kitActiveProtectionTurret = optionalLayer("graphics/battle/vehicles/kit-active-protection-turret.png");
+        for (MechWeaponComponent weapon : MechWeaponComponent.values()) {
+            String path = VehicleGunArt.vehicleDrawingPath(weapon);
+            LayeredSpriteCache drawing = path == null ? null : optionalLayer(path);
+            if (drawing != null) gunDrawings.put(weapon, drawing);
+        }
     }
 
     /**
@@ -358,6 +365,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public LayeredSpriteCache vehicleGunPlate() { return gunPlate; }
     @Override public LayeredSpriteCache vehicleKitActiveProtection() { return kitActiveProtection; }
     @Override public LayeredSpriteCache vehicleKitActiveProtectionTurret() { return kitActiveProtectionTurret; }
+    @Override public LayeredSpriteCache vehicleGunDrawing(MechWeaponComponent weapon) { return gunDrawings.get(weapon); }
     @Override public EnumMap<VehicleType, UnitSpriteCache> convoySprites() { return vehicles; }
     @Override public Map<Airframe, ShuttleSpriteCache> airframeSprites() { return airframes; }
     /** Off the resource roots: the base class reads through {@code Global.getSettings().openStream}, a stub here. */
