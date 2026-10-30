@@ -140,9 +140,25 @@ public final class MissilePath {
      */
     public static MissilePath plan(MissileFlightSpec spec, float fromX, float fromY, float toX, float toY, long seed,
                                    float speedScale) {
-        float vMax = WarshipScale.cells(spec.maxSpeedPx()) * speedScale;
-        float v0 = WarshipScale.cells(spec.launchSpeedPx()) * speedScale;
-        float acc = WarshipScale.cells(spec.accelerationPx()) * speedScale;
+        return plan(spec, fromX, fromY, toX, toY, seed, speedScale, 0f, 1f);
+    }
+
+    /**
+     * {@link #plan}, for a rocket loosed from a hull making {@code carrySpeed} cells a second along the rocket's line: it
+     * leaves with the hull's way on top of its own launch speed, its top speed is raised by the same, and its motor
+     * pushes {@code accelScale} times as hard, so a strafing hull's rockets run out ahead of it instead of being
+     * overflown.
+     */
+    public static MissilePath carried(MissileFlightSpec spec, float fromX, float fromY, float toX, float toY, long seed,
+                                      float carrySpeed, float accelScale) {
+        return plan(spec, fromX, fromY, toX, toY, seed, 1f, Math.max(0f, carrySpeed), accelScale);
+    }
+
+    private static MissilePath plan(MissileFlightSpec spec, float fromX, float fromY, float toX, float toY, long seed,
+                                    float speedScale, float carry, float accelScale) {
+        float vMax = WarshipScale.cells(spec.maxSpeedPx()) * speedScale + carry;
+        float v0 = WarshipScale.cells(spec.launchSpeedPx()) * speedScale + carry;
+        float acc = WarshipScale.cells(spec.accelerationPx()) * speedScale * accelScale;
         float dec = WarshipScale.cells(spec.decelerationPx()) * speedScale;
         float tau = dec > 0f ? Math.max(0.4f, Math.min(3f, vMax / dec)) : DEFAULT_COAST_TAU;
         float dx = toX - fromX;

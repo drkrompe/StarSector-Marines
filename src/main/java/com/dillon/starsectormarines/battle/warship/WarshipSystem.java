@@ -21,6 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
+import java.util.SplittableRandom;
 
 /**
  * Ticks the warships over the battle: each mount picks the nearest enemy it can
@@ -119,6 +120,16 @@ public final class WarshipSystem {
         if (last != null && clock - last < gap) return false;
         lastCueAt.put(key, clock);
         return true;
+    }
+
+    /** The game's generic missile blast, for a missile whose projectile names no explosion sound (the Annihilator's). */
+    static final String MISSILE_EXPLOSION_SOUND = "explosion_missile";
+
+    /** The sound a weapon's round lands with: its own, else the generic missile blast for a missile, else none. */
+    static String impactSound(VanillaWeapon w) {
+        String own = w.impactSoundId();
+        if (own != null) return own;
+        return w.missile() ? MISSILE_EXPLOSION_SOUND : null;
     }
 
     private void cue(WarshipSoundCue.Kind kind, String soundId, float x, float y) {
@@ -1728,7 +1739,7 @@ public final class WarshipSystem {
             if (beam != null) {
                 sim.detonateNow(beam);
                 if (!beam.wasAbsorbed() && cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
-                    cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
+                    cue(WarshipSoundCue.Kind.IMPACT, impactSound(shell.weapon), shell.toX, shell.toY);
                 }
                 if (!beam.wasAbsorbed() && beam.damage >= HEAVY_IMPACT_DAMAGE) {
                     sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells(), shell.weapon.explosionColor());
@@ -1762,7 +1773,7 @@ public final class WarshipSystem {
                     float bx = strikeX(shell.toX);
                     float by = strikeY(shell.toY);
                     if (cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
-                        cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), bx, by);
+                        cue(WarshipSoundCue.Kind.IMPACT, impactSound(shell.weapon), bx, by);
                     }
                     // A shield's hit is its own flare (WarshipHitFx); the fireball is for a round that met metal.
                     if (landing.damage >= HEAVY_IMPACT_DAMAGE && !strikeShieldOnly) {
@@ -1780,7 +1791,7 @@ public final class WarshipSystem {
                 sim.detonateNow(landing);
             }
             if (!landing.wasAbsorbed() && cueAllowed(shell.weapon, IMPACT_CUE_GAP_SECONDS)) {
-                cue(WarshipSoundCue.Kind.IMPACT, shell.weapon.impactSoundId(), shell.toX, shell.toY);
+                cue(WarshipSoundCue.Kind.IMPACT, impactSound(shell.weapon), shell.toX, shell.toY);
             }
             if (!landing.wasAbsorbed() && landing.damage >= HEAVY_IMPACT_DAMAGE) {
                 sim.spawnHeavyImpact(shell.toX, shell.toY, shell.blastCells(), shell.weapon.explosionColor());
@@ -1816,7 +1827,7 @@ public final class WarshipSystem {
                             float fallbackX, float fallbackY) {
         float bx = strikeX(fallbackX);
         float by = strikeY(fallbackY);
-        if (cueAllowed(weapon, IMPACT_CUE_GAP_SECONDS)) cue(WarshipSoundCue.Kind.IMPACT, weapon.impactSoundId(), bx, by);
+        if (cueAllowed(weapon, IMPACT_CUE_GAP_SECONDS)) cue(WarshipSoundCue.Kind.IMPACT, impactSound(weapon), bx, by);
         if (damage >= HEAVY_IMPACT_DAMAGE && !strikeShieldOnly) {
             sim.spawnHeavyImpact(bx, by, visualCells, weapon.explosionColor());
         }
@@ -1915,7 +1926,7 @@ public final class WarshipSystem {
                 float bx = strikeX(strike.aimX);
                 float by = strikeY(strike.aimY);
                 if (cueAllowed(strike.weapon, IMPACT_CUE_GAP_SECONDS)) {
-                    cue(WarshipSoundCue.Kind.IMPACT, strike.weapon.impactSoundId(), bx, by);
+                    cue(WarshipSoundCue.Kind.IMPACT, impactSound(strike.weapon), bx, by);
                 }
                 if (det.damage >= HEAVY_IMPACT_DAMAGE && !strikeShieldOnly) {
                     sim.spawnHeavyImpact(bx, by, strike.visualCells, strike.weapon.explosionColor());
@@ -1925,7 +1936,7 @@ public final class WarshipSystem {
                 sim.detonateNow(det);
             }
             if (!det.wasAbsorbed() && cueAllowed(strike.weapon, IMPACT_CUE_GAP_SECONDS)) {
-                cue(WarshipSoundCue.Kind.IMPACT, strike.weapon.impactSoundId(), strike.aimX, strike.aimY);
+                cue(WarshipSoundCue.Kind.IMPACT, impactSound(strike.weapon), strike.aimX, strike.aimY);
             }
             if (!det.wasAbsorbed() && det.damage >= HEAVY_IMPACT_DAMAGE) {
                 sim.spawnHeavyImpact(strike.aimX, strike.aimY, strike.visualCells, strike.weapon.explosionColor());
@@ -1996,7 +2007,7 @@ public final class WarshipSystem {
                 }
                 fire(sim, ship, m);
                 m.burstRemaining--;
-                m.burstTimer = burstDelay(ship, w);
+                m.burstTimer = strafeRocket(ship, m) ? STRAFE_ROCKET_INTERVAL_SECONDS : burstDelay(ship, w);
                 if (m.burstRemaining == 0) {
                     m.cooldown = Math.max(w.cooldownSeconds(), 0.05f);
                     m.aimed = false;
@@ -2032,7 +2043,8 @@ public final class WarshipSystem {
         if (!ship.fluxPool().canStart(cost)) return;
         ship.fluxPool().spend(cost);
         m.burstRemaining = w.burstSize();
-        m.burstTimer = 0f;
+        // A strafe's second rocket pod fires on the off-beat, so the pair alternate down the line.
+        m.burstTimer = strafeRocket(ship, m) && strafePodIndex(ship, m) % 2 == 1 ? STRAFE_ROCKET_INTERVAL_SECONDS * 0.5f : 0f;
     }
 
     /**
@@ -2257,17 +2269,11 @@ public final class WarshipSystem {
             return seen > 0;
         }
         if (rocketsTheLead(sim, ship, m, area)) {
-            // A strafing run's rocket pod fires straight off its own nose, as far ahead as the lead point; the volley's
-            // ripple walks its rockets over the ground there.
-            double nose = Math.toRadians(ship.facingDegrees + m.slot.angleDegrees() + 90f);
-            float fx = (float) Math.cos(nose);
-            float fy = (float) Math.sin(nose);
-            float ahead = Math.max(0f, (area.x() - mx) * fx + (area.y() - my) * fy);
-            float px = mx + fx * ahead;
-            float py = my + fy * ahead;
-            if (ahead <= 0f || !Warship.bears(m, ship.facingDegrees, mx, my, px, py)) return false;
-            m.aimX = px;
-            m.aimY = py;
+            // A strafing run's rocket pod fires straight off its own nose, as far ahead as the lead point.
+            float[] at = noseLineAt(ship, m, mx, my, area.x(), area.y());
+            if (at == null || !Warship.bears(m, ship.facingDegrees, mx, my, at[0], at[1])) return false;
+            m.aimX = at[0];
+            m.aimY = at[1];
             m.aimVx = 0f;
             m.aimVy = 0f;
             return true;
@@ -2310,6 +2316,67 @@ public final class WarshipSystem {
         }
         if (seen == 0 && area.saturate() && !m.weapon.beam()) return aimAtOpenGround(m, ship, area, mx, my, opportunity);
         return seen > 0;
+    }
+
+    /** Seconds between two rockets of one pod on a strafe: the burst spread down the run rather than loosed at once. */
+    static final float STRAFE_ROCKET_INTERVAL_SECONDS = 0.5f;
+    /** How far a strafe's rocket lands from its pod's aim point at most, in cells: a tight cluster. */
+    static final float STRAFE_ROCKET_SCATTER_CELLS = 1.5f;
+    /** How many times harder a strafe's rocket motor pushes than its spec's, for the snap of a gun-run salvo. */
+    static final float STRAFE_ROCKET_ACCEL_SCALE = 2f;
+
+    /** Whether {@code m} is a fixed missile hardpoint on a hull flying the line of a strafe ({@link LowPass#strafe}). */
+    static boolean strafeRocket(Warship ship, Warship.Mount m) {
+        LowPass pass = ship.lowPass();
+        return pass != null && pass.rocketRun() && pass.onLine() && m.weapon.missile() && m.slot.hardpoint();
+    }
+
+    /** Which of the hull's strafe rocket pods {@code m} is, counted in mount order, for the off-beat. */
+    private static int strafePodIndex(Warship ship, Warship.Mount m) {
+        int index = 0;
+        for (Warship.Mount other : ship.mounts()) {
+            if (other == m) return index;
+            if (other.weapon.missile() && other.slot.hardpoint()) index++;
+        }
+        return index;
+    }
+
+    /**
+     * The point straight off the mount's nose as far ahead as {@code (tx, ty)}: where a fixed pod's rocket goes when
+     * it is fired at that ground. Null when the ground is not ahead of it.
+     */
+    static float[] noseLineAt(Warship ship, Warship.Mount m, float mx, float my, float tx, float ty) {
+        double nose = Math.toRadians(ship.facingDegrees + m.slot.angleDegrees() + 90f);
+        float fx = (float) Math.cos(nose);
+        float fy = (float) Math.sin(nose);
+        float ahead = (tx - mx) * fx + (ty - my) * fy;
+        return ahead > 0f ? new float[]{mx + fx * ahead, my + fy * ahead} : null;
+    }
+
+    /**
+     * One rocket of a strafe: aimed afresh off the pod's nose at the run's lead point as it is now, so the stream walks
+     * down the line with the hull; landing within {@link #STRAFE_ROCKET_SCATTER_CELLS} of it; and loosed with the
+     * hull's way on, so it runs out ahead rather than being overflown ({@link MissilePath#carried}).
+     */
+    private void fireStrafeRocket(BattleSimulation sim, Warship ship, Warship.Mount m, VanillaWeapon w,
+                                  MissileFlightSpec flight, float mx, float my, float visual, float blast) {
+        float[] lead = ship.lowPass().fireCentre(ship.x, ship.y);
+        float[] at = noseLineAt(ship, m, mx, my, lead[0], lead[1]);
+        float ax = at != null ? at[0] : m.aimX;
+        float ay = at != null ? at[1] : m.aimY;
+        long seed = roundSeed(m.slot.id(), m.shotsFired, ship.faction, ax, ay);
+        SplittableRandom scatter = new SplittableRandom(seed);
+        double angle = scatter.nextDouble() * Math.PI * 2.0;
+        float r = STRAFE_ROCKET_SCATTER_CELLS * (float) Math.sqrt(scatter.nextDouble());
+        float lx = clampX(sim, ax + (float) Math.cos(angle) * r);
+        float ly = clampY(sim, ay + (float) Math.sin(angle) * r);
+        float dx = lx - mx;
+        float dy = ly - my;
+        float dist = (float) Math.hypot(dx, dy);
+        float carry = dist > 0f ? (ship.velocityX * dx + ship.velocityY * dy) / dist : 0f;
+        MissilePath path = MissilePath.carried(flight, mx, my, lx, ly, seed, carry, STRAFE_ROCKET_ACCEL_SCALE);
+        shells.add(new WarshipShell(w, ship.faction, ship, mx, my, path.landX(), path.landY(), path, visual,
+                w.damagePerShot(), penetration(w.damageType()), blast, null, null, flight.hitpoints(), null, 0f));
     }
 
     /**
@@ -2437,6 +2504,10 @@ public final class WarshipSystem {
         }
         if (flight.standoff() != null) {
             fireStandoff(ship, m, w, flight, flight.standoff(), mx, my, lx, ly, visual, blast);
+            return;
+        }
+        if (strafeRocket(ship, m)) {
+            fireStrafeRocket(sim, ship, m, w, flight, mx, my, visual, blast);
             return;
         }
         int burst = Math.max(1, w.burstSize());
