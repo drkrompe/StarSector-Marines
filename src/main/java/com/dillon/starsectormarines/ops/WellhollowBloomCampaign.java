@@ -28,6 +28,7 @@ import com.fs.starfarer.api.campaign.RepLevel;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.IntStream;
 
 /**
  * Campaign boundary for *The Khettara Bloom*, the authored Rav Bloom arc on Asharu
@@ -42,10 +43,18 @@ public final class WellhollowBloomCampaign {
     private static final String CASTLE = "@dialogueSpeakerCastle";
     private static final long SEED_BASE = 16100L;
     /**
-     * Each chapter's first briefing: seven turns, Orens's first, last and every other. Colony Breach has two more,
-     * Orens naming the staging post his reservists dug at the fields (owner, 2026-10-28).
+     * Each chapter's first-briefing lines by number: Orens speaks the odd ones, Castle the even. Colony Breach
+     * has nine (Orens naming the staging post, owner 2026-10-28); The Burn opens on Castle's question and Broad
+     * Front ends on the spearhead lane (owner cuts, 2026-10-30). A cut number stays out so every recording keeps its id.
      */
-    private static final int BRIEFING_LINES = 7, BREACH_BRIEFING_LINES = 9;
+    private static int[] briefingLines(Chapter chapter) {
+        return switch (chapter) {
+            case COLONY_BREACH -> IntStream.rangeClosed(1, 9).toArray();
+            case CORDON_ROAD -> IntStream.rangeClosed(1, 7).toArray();
+            case THE_BURN -> IntStream.rangeClosed(2, 7).toArray();
+            case BROAD_FRONT -> IntStream.rangeClosed(1, 5).toArray();
+        };
+    }
     /** The end-of-alpha challenge force (owner, 2026-10-27): a lieutenant colonel's company with its machines. */
     public static final int RECOMMENDED_SQUADS = 7, RECOMMENDED_MACHINES = 4;
 
@@ -149,9 +158,9 @@ public final class WellhollowBloomCampaign {
         };
         String sound = "wellhollow_" + stem.toLowerCase(Locale.ROOT) + "_";
         if (p.lastLost(chapter)) return List.of(warden("@wellhollow" + stem + "Retry", sound + "retry"));
-        int lines = chapter == Chapter.COLONY_BREACH ? BREACH_BRIEFING_LINES : BRIEFING_LINES;
-        List<MissionDialogue.Turn> turns = new ArrayList<>(lines);
-        for (int i = 1; i <= lines; i++) {
+        int[] lines = briefingLines(chapter);
+        List<MissionDialogue.Turn> turns = new ArrayList<>(lines.length);
+        for (int i : lines) {
             String text = "@wellhollow" + stem + i, id = sound + String.format(Locale.ROOT, "%02d", i);
             turns.add(i % 2 == 1 ? warden(text, id) : new MissionDialogue.Turn("castle", CASTLE, text, id));
         }

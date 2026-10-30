@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.campaign.WellhollowBloomProgress;
 import com.dillon.starsectormarines.battle.air.LiftRating;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
@@ -134,7 +135,7 @@ class DebugMissionCatalogTest {
         var mission = scenario.mission();
         assertEquals(WellhollowBloomCampaign.fixedSeed(scenario.wellhollow()), mission.battleSeed);
         assertEquals(mission.battleSeed, scenario.mission().battleSeed);
-        assertEquals("warden", mission.dialogue.get(0).speakerKey());
+        assertEquals(WellhollowBloomCampaign.briefing(new WellhollowBloomProgress(), scenario.wellhollow(), false), mission.dialogue);
         var preset = DebugMissionCatalog.preset(mission);
         assertEquals(WellhollowBloomCampaign.RECOMMENDED_SQUADS, preset.squads());
         assertEquals(WellhollowBloomCampaign.RECOMMENDED_MACHINES, preset.mechs());

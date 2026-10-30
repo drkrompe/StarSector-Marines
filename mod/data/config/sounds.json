@@ -1363,7 +1363,6 @@
 	"wellhollow_road_06": [{"file": "sounds/story/wellhollow/wellhollow_road_06.ogg", "pitch": 1, "volume": 1.0}],
 	"wellhollow_road_07": [{"file": "sounds/story/wellhollow/wellhollow_road_07.ogg", "pitch": 1, "volume": 1.0}],
 	"wellhollow_road_retry": [{"file": "sounds/story/wellhollow/wellhollow_road_retry.ogg", "pitch": 1, "volume": 1.0}],
-	"wellhollow_burn_01": [{"file": "sounds/story/wellhollow/wellhollow_burn_01.ogg", "pitch": 1, "volume": 1.0}],
 	"wellhollow_burn_02": [{"file": "sounds/story/wellhollow/wellhollow_burn_02.ogg", "pitch": 1, "volume": 1.0}],
 	"wellhollow_burn_03": [{"file": "sounds/story/wellhollow/wellhollow_burn_03.ogg", "pitch": 1, "volume": 1.0}],
 	"wellhollow_burn_04": [{"file": "sounds/story/wellhollow/wellhollow_burn_04.ogg", "pitch": 1, "volume": 1.0}],
@@ -1376,7 +1375,5 @@
 	"wellhollow_front_03": [{"file": "sounds/story/wellhollow/wellhollow_front_03.ogg", "pitch": 1, "volume": 1.0}],
 	"wellhollow_front_04": [{"file": "sounds/story/wellhollow/wellhollow_front_04.ogg", "pitch": 1, "volume": 1.0}],
 	"wellhollow_front_05": [{"file": "sounds/story/wellhollow/wellhollow_front_05.ogg", "pitch": 1, "volume": 1.0}],
-	"wellhollow_front_06": [{"file": "sounds/story/wellhollow/wellhollow_front_06.ogg", "pitch": 1, "volume": 1.0}],
-	"wellhollow_front_07": [{"file": "sounds/story/wellhollow/wellhollow_front_07.ogg", "pitch": 1, "volume": 1.0}],
 	"wellhollow_front_retry": [{"file": "sounds/story/wellhollow/wellhollow_front_retry.ogg", "pitch": 1, "volume": 1.0}],
 }

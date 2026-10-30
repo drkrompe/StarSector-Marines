@@ -1205,7 +1205,6 @@
     {"id": "wellhollow_road_06", "source": "wellhollow/speech/wellhollow_road_06.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
     {"id": "wellhollow_road_07", "source": "wellhollow/speech/wellhollow_road_07.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
     {"id": "wellhollow_road_retry", "source": "wellhollow/speech/wellhollow_road_retry.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
-    {"id": "wellhollow_burn_01", "source": "wellhollow/speech/wellhollow_burn_01.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
     {"id": "wellhollow_burn_02", "source": "wellhollow/speech/wellhollow_burn_02.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
     {"id": "wellhollow_burn_03", "source": "wellhollow/speech/wellhollow_burn_03.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
     {"id": "wellhollow_burn_04", "source": "wellhollow/speech/wellhollow_burn_04.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
@@ -1218,8 +1217,6 @@
     {"id": "wellhollow_front_03", "source": "wellhollow/speech/wellhollow_front_03.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
     {"id": "wellhollow_front_04", "source": "wellhollow/speech/wellhollow_front_04.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
     {"id": "wellhollow_front_05", "source": "wellhollow/speech/wellhollow_front_05.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
-    {"id": "wellhollow_front_06", "source": "wellhollow/speech/wellhollow_front_06.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
-    {"id": "wellhollow_front_07", "source": "wellhollow/speech/wellhollow_front_07.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"},
     {"id": "wellhollow_front_retry", "source": "wellhollow/speech/wellhollow_front_retry.mp3", "kind": "ui", "out": "story/wellhollow", "processing": "dialogue", "mix": "story_voice"}
   ]
 }
