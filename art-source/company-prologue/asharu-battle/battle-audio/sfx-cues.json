@@ -178,5 +178,41 @@
   "seconds": 2,
   "loop": false,
   "influence": 0.7
+ },
+ "harpoon-launch-one": {
+  "prompt": "One guided missile leaving its launch tube: a hard metallic thunk as it is kicked clear, then its small rocket motor lighting with a sharp crackling whoosh that streaks away, a single missile only, no music, no voices",
+  "seconds": 2,
+  "loop": false,
+  "influence": 0.6
+ },
+ "harpoon-motor": {
+  "prompt": "A small missile rocket motor burning steadily at full thrust: a fierce tearing hiss and crackling roar of burning solid rocket fuel, constant, no whistle, no music, no voices",
+  "seconds": 6,
+  "loop": true,
+  "influence": 0.5
+ },
+ "round-mg": {
+  "prompt": "A single round from a ship-mounted light machine gun turret: a tight hard mechanical crack with a metallic bolt clack, one single shot only, a short sharp report with a quick tail, no music, no voices",
+  "seconds": 1,
+  "loop": false,
+  "influence": 0.6
+ },
+ "round-ac": {
+  "prompt": "A single round from a heavy autocannon turret: a deep punchy cannon thump with a hard bark and brief metallic ring, one single shot only, a short sharp report with a quick tail, no music, no voices",
+  "seconds": 1,
+  "loop": false,
+  "influence": 0.6
+ },
+ "round-heavy": {
+  "prompt": "A single shot from a huge battleship cannon: a massive concussive boom with a heavy low shockwave and rolling rumble, one single shot only, a short sharp report with a quick tail, no music, no voices",
+  "seconds": 2,
+  "loop": false,
+  "influence": 0.6
+ },
+ "round-energy": {
+  "prompt": "A single bolt from a sci-fi plasma blaster cannon: a fierce crackling electric zap with a hot buzzing discharge, one single shot only, a short sharp report with a quick tail, no music, no voices",
+  "seconds": 1,
+  "loop": false,
+  "influence": 0.6
  }
 }

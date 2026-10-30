@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
+import com.dillon.starsectormarines.battle.mech.WaylineHound;
+import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.fixture.CommandPowerCommitment;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
@@ -46,6 +48,18 @@ public class DebugMechRosterTest {
         assertInstanceOf(OrbitalBarrage.class, powers.get(0));
         assertInstanceOf(MechSupport.class, powers.get(1));
         assertEquals(9, powers.get(1).availableCalls());
+    }
+
+    @Test
+    public void recoveredHoundLeadsABayOfOtherMachines() {
+        DebugMechRoster roster = DebugMechRoster.recoveredHoundWith(List.of(MechVariant.WARDEN),
+                List.of(VehicleType.LRM_CARRIER));
+        assertEquals(3, roster.count());
+        MechSupport support = assertInstanceOf(MechSupport.class,
+                roster.applyTo(List.of(), List.of(), true).get(0));
+        assertEquals(WaylineHound.deployment(), support.deployments().get(0));
+        assertEquals(MechVariant.WARDEN, support.deployments().get(1).variant());
+        assertEquals(3, support.availableCalls());
     }
 
     @Test

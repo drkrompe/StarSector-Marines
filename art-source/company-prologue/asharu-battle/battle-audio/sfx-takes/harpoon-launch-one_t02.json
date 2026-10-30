@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "22",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "One guided missile leaving its launch tube: a hard metallic thunk as it is kicked clear, then its small rocket motor lighting with a sharp crackling whoosh that streaks away, a single missile only, no music, no voices",
+    "duration_seconds": 2.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "f9c1c1c1b6004eee9e0931fef614490cd8eb0b1e97f298630ac4bd6f28505101",
+  "durationSeconds": 2.0,
+  "peakDb": 0.0,
+  "integratedLufs": -12.8
+}

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "11",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A single round from a heavy autocannon turret: a deep punchy cannon thump with a hard bark and brief metallic ring, one single shot only, a short sharp report with a quick tail, no music, no voices",
+    "duration_seconds": 1.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "a9f708d5edb6ecc2837a0239caa8916371b34c2bf8ef3572739625466378d924",
+  "durationSeconds": 1.0,
+  "peakDb": -8.0,
+  "integratedLufs": -28.7
+}

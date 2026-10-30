@@ -47,8 +47,11 @@ free replacement troops or chassis.
   routes to outdoor search waypoints did not prove access inside the base.
 - [ ] Tune A Cold Account against five squads and four machines: the authored
   force (`ColdAccountForce`) and its emplacements are in place but unplayed
-  against that company. The Corvus evidence still musters only the recovered
-  Hound, so it cannot judge the machines' side of the fight.
+  against that company. `ColdAccountCompany` is that company (five starter
+  squads, the recovered Hound, a Warden, an LRM carrier and a breakthrough
+  tank); the debug briefing lands it and the Corvus evidence musters it. The
+  evidence plays it autonomously, so its outcomes show the mission resolves,
+  not how hard it is for a player.
 - [x] Blind Watch uses its authored remote layout, a finite light garrison and
   Low risk. Both charge handoff and active-kit selection are repaired. With
   two boats it wins at 4,230 ticks (2:21), losing 12/36 infantry with the Hound

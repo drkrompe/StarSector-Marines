@@ -265,6 +265,7 @@ class SceneFx:
                                             if r.get('hit_frame') is not None and r.get('hit_l') is not None]
                             if recs:
                                 fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
+                                self.rounds_row(a, b, turret, weapon, recs)
                             continue
                 only = None
                 if self.span and self.cur is not None:     # this frame's rounds: in flight, or just landed
@@ -278,6 +279,7 @@ class SceneFx:
                                      f'over {len(aims)} rounds')
                 if recs:             # a degenerate gun fires nothing: the stand-in draws the shot
                     fired.append(f't{turret} {weapon} x{len(recs)}' + (' (feeder)' if feeder else ''))
+                    self.rounds_row(a, b, turret, weapon, recs)
         if not fired:
             # a planned gun that holds fire draws nothing; it never falls back to the blockout's
             # stand-in streaks, which are a still picture of a stream (owner, 2026-10-23, S7)
@@ -304,6 +306,11 @@ class SceneFx:
             self.strikes(b, landed if self.span else landed[-8:], hit_l, normal, he)
         self.rows.append(f'tracer {a} -> {b}: {", ".join(fired)}, {len(landed) + len(placed_hits)} landed')
         return True
+
+    def rounds_row(self, a, b, turret, weapon, recs):
+        """Every round the gun fires, by scene frame: battle-audio/guns.py reads it from the log so
+        each round is heard as it leaves the muzzle (owner, 2026-10-30)."""
+        self.rows.append(f'rounds {a} t{turret} {weapon} -> {b}: {sorted(int(r["frame"]) for r in recs)}')
 
     def tracking(self, a, b, muzzle_l, hit_l, speed):
         """A moving target for a: frame -> the point on b's hull (hit_l, b's frame) where a round fired
