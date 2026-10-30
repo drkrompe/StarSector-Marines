@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "11",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A single bolt from a sci-fi plasma blaster cannon: a fierce crackling electric zap with a hot buzzing discharge, one single shot only, a short sharp report with a quick tail, no music, no voices",
+    "duration_seconds": 1.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "d013e33f06e95355ea79a8d8b0e0895af3d8d9f2659c22f2771597413f6e36b4",
+  "durationSeconds": 1.0,
+  "peakDb": 0.0,
+  "integratedLufs": -9.2
+}

@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "22",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A single shot from a huge battleship cannon: a massive concussive boom with a heavy low shockwave and rolling rumble, one single shot only, a short sharp report with a quick tail, no music, no voices",
+    "duration_seconds": 2.0,
+    "prompt_influence": 0.6,
+    "loop": false
+  },
+  "audioSha256": "838067345952398b7499665cb02a9ec525762266384ad18efe1a01cbfefea1be",
+  "durationSeconds": 2.0,
+  "peakDb": 0.0,
+  "integratedLufs": -8.0
+}
