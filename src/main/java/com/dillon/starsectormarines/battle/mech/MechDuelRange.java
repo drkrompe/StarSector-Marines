@@ -333,16 +333,20 @@ public final class MechDuelRange {
      */
     static final float REFERENCE_ARMOR_RATING = 18f;
 
-    /** Installed weapons that can still fire, read against {@link #REFERENCE_ARMOR_RATING}. */
+    /** Installed weapons still in the fight, read against {@link #REFERENCE_ARMOR_RATING}. */
     public static List<Weapon> ownWeapons(MechLoadoutComponent loadout) {
         return ownWeapons(loadout, REFERENCE_ARMOR_RATING);
     }
 
-    /** Installed weapons that can still fire, read against plate of {@code targetRating}. */
+    /**
+     * Installed weapons still in the fight ({@link MechWeaponMount#inFight}), read against plate of
+     * {@code targetRating}. A rack between salvos counts: a five-round rack is empty for all but a moment of its
+     * recharge, and reading it out would walk a Long-Range Support mech into a brawler's reach after every volley.
+     */
     public static List<Weapon> ownWeapons(MechLoadoutComponent loadout, float targetRating) {
         List<Weapon> out = new ArrayList<>(3);
         for (MechWeaponMount mount : loadout.mounts()) {
-            if (mount != null && (mount.hasAmmo() || mount.burstRemaining > 0)) {
+            if (mount != null && mount.inFight()) {
                 out.add(Weapon.of(mount.weaponDef(), targetRating));
             }
         }
