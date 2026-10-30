@@ -789,7 +789,10 @@ increasing an encounter's total armored threat.
   friendly infantry squad attaches it. A mission may script the same for its
   defenders (a mech squad and an infantry squad of the Defender faction, requested
   through `MechAttachmentService.requestAttach`; the Dust Ledger's road reserve);
-  the player's UI offers it only for the company. Every player drop lands as a one-mech squad,
+  the player's UI offers it only for the company. A follower that falls six cells behind
+  its slot runs, on the same stamina as a run order, until it is within two
+  (`MechRunSystem`), so a chassis slower than its squad's walk does not trail it the whole
+  march. Every player drop lands as a one-mech squad,
   so it is in effect per mech; a legacy multi-mech squad attaches whole, and several
   mechs may follow one squad. Out of contact the follower simply walks with the
   squad: three cells behind its centre, filed three cells apart across its axis by

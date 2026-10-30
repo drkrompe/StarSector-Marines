@@ -1173,7 +1173,7 @@ public final class BattleSetup {
         PrecinctPlan precincts = precinctPlanFor(type, tier, risk, profile, scale, seed, sprawl);
         MapResult map = coldAccount
                 ? MaintenanceOutpost.generate(MaintenanceOutpost.WIDTH, MaintenanceOutpost.HEIGHT, seed, profile,
-                        precincts.objective().fortification())
+                        ColdAccountForce.FORTIFICATION)
                 : proceduralOperationMap(type, tier, risk, profile, scale, seed, sprawl, precincts);
         // A raided site is defender-held: the city's garrison nodes keep their buildings and every other
         // building is a place the player may order held once taken.
@@ -1190,7 +1190,11 @@ public final class BattleSetup {
                     RoadReservation.mask(map.roadGraph, map.grid.getWidth(), map.grid.getHeight()),
                     map.pointsOfInterest, map.doodads, defensePosts, rng);
         }
-        DefenderForcePlan defenders = defenderForcePlan(
+        // Cold Account's installation is authored whole: its force and every emplacement stand
+        // whatever lift the company brought, as Conquest's do.
+        DefenderForcePlan defenders = coldAccount
+                ? new DefenderForcePlan(ColdAccountForce.roster(risk), List.copyOf(defensePosts), FlybyRoster.EMPTY)
+                : defenderForcePlan(
                 type, tier, risk, enemyHasHeavyArmor, assignments, defensePosts,
                 marineFighterSupport, enemyFighterSupport, groundRoster, garrisonOf(profile));
         List<LandingPad> lzCells = LandingPadSelector.select(
@@ -1208,6 +1212,7 @@ public final class BattleSetup {
 
         if (coldAccount) {
             sim.installColdAccount(ColdAccountLayout.select(map, lzCells));
+            ColdAccountForce.installPointDefence(sim, MaintenanceOutpost.pointDefenceAnchors(map.grid.getHeight()));
         } else if (raidLayout != null) {
             int targetZone = sim.getZoneGraph().zoneIdAt(
                     raidLayout.targetCellX(), raidLayout.targetCellY());
