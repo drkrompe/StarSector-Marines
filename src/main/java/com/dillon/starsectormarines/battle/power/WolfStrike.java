@@ -8,8 +8,12 @@ import com.dillon.starsectormarines.battle.warship.LowPass;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipAtmosphere;
+import com.dillon.starsectormarines.battle.warship.WarshipVariants;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
+
+import java.util.LinkedHashMap;
+import java.util.Map;
 
 /**
  * A Wolf frigate's fly-by along a short line the player draws: it breaks out of the cloud deck behind the line's start
@@ -18,8 +22,10 @@ import org.apache.log4j.Logger;
  * the Onslaught's reduced one ({@link SpawnInOnslaught#PRESENCE}).
  *
  * <p>A committed Wolf of any mark is the <em>source</em> (it makes the card exist), but the ship flown is always the
- * stock Wolf (H) Assault, so the guns over the battle are the ones this power chooses, not whatever the member was
- * fitted with, and nothing is written back to the fleet.
+ * Wolf (H) Assault refitted as a gunship ({@link #source}), so the guns over the battle are the ones this power
+ * chooses, not whatever the member was fitted with, and nothing is written back to the fleet. The run is a strafe
+ * ({@link LowPass#strafe}): the guns work the ground {@link #LEAD_CELLS} ahead of the hull, and the rocket pods walk
+ * their ripples over that lead point while anything hostile is near it.
  */
 public final class WolfStrike extends CommandPower {
 
@@ -29,6 +35,17 @@ public final class WolfStrike extends CommandPower {
     /** The hull and stock variant every strike flies, whichever Wolf brought the card. */
     public static final String HULL_ID = "wolf_hegemony";
     public static final String VARIANT_ID = "wolf_hegemony_Assault";
+    /** The nose hardpoint, the Assault's pulse laser, left empty: the gunship fights with its turret and rockets. */
+    static final String NOSE_SLOT = "WS 004";
+    /** The two small missile hardpoints, which carry rocket pods in place of the Assault's sabots. */
+    static final String[] ROCKET_SLOTS = {"WS 005", "WS 006"};
+    /** The rocket pod: unguided high-explosive rockets fired in rippling bursts (a rocket rack). */
+    static final String ROCKET_POD = "annihilator";
+
+    /** How far ahead of the hull, along the line, the guns' circle is centred, in cells. */
+    public static final float LEAD_CELLS = 16f;
+    /** The guns' circle's radius, in cells: from about six cells ahead of the hull to twenty-six. */
+    public static final float FIRE_RADIUS_CELLS = 10f;
 
     /** The longest line the player draws, in cells: a short, sharp run. The shortest is {@link LowPass#MIN_LENGTH_CELLS}. */
     public static final float MAX_LINE_CELLS = 60f;
@@ -44,15 +61,18 @@ public final class WolfStrike extends CommandPower {
         super(ID, "@battlePowerWolfStrike", CP_COST, COOLDOWN_SECONDS, MAX_CHARGES, SUPPLY_COST, SLOT_WEIGHT);
     }
 
-    /** The one ship every strike fits: the stock Wolf (H) Assault. */
+    /** The one ship every strike fits: the Wolf (H) Assault, its nose laser out and rocket pods for its sabots. */
     public static ShipSupportSource source() {
-        return ShipSupportSource.stock(HULL_ID, VARIANT_ID, "Wolf (H)", false);
+        Map<String, String> weapons = new LinkedHashMap<>(WarshipVariants.weaponsBySlot(HULL_ID, VARIANT_ID));
+        weapons.remove(NOSE_SLOT);
+        for (String slot : ROCKET_SLOTS) weapons.put(slot, ROCKET_POD);
+        return new ShipSupportSource(HULL_ID, "Wolf (H)", false, weapons);
     }
 
     @Override public float lineMaxCells() { return MAX_LINE_CELLS; }
 
     /** The corridor the guns work, so the preview shows the ground either side of the line. */
-    @Override public float previewRadiusCells() { return LowPass.CORRIDOR_HALF_WIDTH_CELLS; }
+    @Override public float previewRadiusCells() { return FIRE_RADIUS_CELLS; }
 
     @Override
     public boolean canTarget(int cellX, int cellY, BattleView battle) {
@@ -101,6 +121,7 @@ public final class WolfStrike extends CommandPower {
             wolf.fluxScale(Warship.BRAWLER_FLUX_SCALE);
             wolf.limitFlux();
             LowPass pass = LowPass.plan(sx, sy, ax, ay, bx, by, w, h);
+            if (pass != null) pass.strafe(LEAD_CELLS, FIRE_RADIUS_CELLS);
             if (pass == null || !wolf.beginLowPass(pass)) {
                 LOG.warn("WolfStrike: no pass along " + ax + "," + ay + " -> " + bx + "," + by);
                 return null;
