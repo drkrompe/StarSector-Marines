@@ -556,7 +556,7 @@ class GroundVehicleTurretSystemTest {
 
     @Test
     void aFittedGunWithNoLimitOnAMechFiresWithoutSpendingAMagazine() {
-        Fixture f = new Fixture(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.LINEAR_CANNON);
+        Fixture f = new Fixture(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.HC_10);
         assertTrue(f.turret.unlimited);
         f.tick(f.north(), true);
         assertEquals(1, f.shots.getActiveShots().size());

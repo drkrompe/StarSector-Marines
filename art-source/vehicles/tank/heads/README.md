@@ -6,10 +6,9 @@ painted at the turret frame's registration, so heads share the drawn size, pivot
 
 | Sheet frames (`army-tank.png`) | Head | Parts |
 |---|---|---|
-| 1 live, 3 wreck | heavy cannon (`../`, the approved turret) | `SINGLE_HEAVY_CANNON` |
-| 4 live, 5 wreck | autocannon | `BASTION_AUTOCANNON`, `MUSTER_AUTOGUN`, `DEMOLITION_CANNON`, `QUARRY_BREAKER_CANNON` |
+| 1 live, 3 wreck | heavy cannon (`../`, the approved turret) | `HC_20`, `HC_10` |
+| 4 live, 5 wreck | autocannon | `AC_6`, `AC_6_QS`, `DC_5`, `DC_4_QS` |
 | 6 live, 7 wreck | rotary | `CHAINGUN`, `CHAINGUN_HF`, `LIGHT_MACHINE_GUN` |
-| 8 live, 9 wreck | rail | `LINEAR_CANNON` |
 
 ## Files
 
@@ -18,10 +17,8 @@ painted at the turret frame's registration, so heads share the drawn size, pivot
 - `<head>-prompt.txt`, `<head>-raw.png`, `<head>-raw.png.provenance.json`: the ImageGen edit of the target to each guide
   (`tools/codex_imagegen.py`, `codex-imagegen` skill). The autocannon brief names the tank turret; the rotary brief had to
   describe the turret as a vehicle roof module to pass the generator's filter.
-- The rail head is two parts: every edit asking for it was refused, so `rail_part.py guide` writes an enlarged block guide
-  of the gun alone (`rail-part-guide.png`) and a material crop of the housing (`rail-part-material.png`), the gun is
-  generated from them (`rail-part-prompt.txt`, `rail-part-raw.png`), and `rail_part.py compose` lays it into the approved
-  turret in place of the old barrel, under the housing's front plate, to make `rail-raw.png`.
+- The rail head the linear cannon wore (frames 8 and 9) was retired with the linear cannon; its successor, the HC-10,
+  is one large bore and wears the heavy cannon's head.
 - `pack.py` keeps the sheet's four base frames (written by `../pack.ps1`) and appends each head's live frame (its raw,
   registered to the approved housing by the scale and offset in `registration.json`, which it measures when absent or with
   `--measure`) and wreck frame (the approved wreck housing, its cannon cut away, with the head's gun charred and drooped).

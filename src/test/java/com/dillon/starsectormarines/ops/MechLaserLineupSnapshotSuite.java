@@ -74,9 +74,9 @@ public final class MechLaserLineupSnapshotSuite implements SnapshotSuite {
         List<Entry> legacy = List.of(
                 new Entry(MechVariant.BULWARK, BULWARK_ARMS, MechWeaponComponent.PULSE_LASER, MechWeaponComponent.SRM_5,
                         "PULSE LASER 2x2 (old art)"),
-                new Entry(MechVariant.WARDEN, NOSE, MechWeaponComponent.LINEAR_CANNON,
+                new Entry(MechVariant.WARDEN, NOSE, MechWeaponComponent.HC_10,
                         MechWeaponComponent.SHOULDER_LASER_CANNON, "SHOULDER LASER CANNON 3x2 (old art)"),
-                new Entry(MechVariant.WARDEN, NOSE, MechWeaponComponent.LINEAR_CANNON, MechWeaponComponent.THERMAL_LANCE,
+                new Entry(MechVariant.WARDEN, NOSE, MechWeaponComponent.HC_10, MechWeaponComponent.THERMAL_LANCE,
                         "THERMAL LANCE 1x2 (old art)"));
         artifacts.add(lineup(context, "legacy-lineup.png", "OLDER ENERGY PARTS | still the olive and red mech art",
                 legacy, 3, 5, 5, new float[] {15f, 6.4f, 16.5f}));

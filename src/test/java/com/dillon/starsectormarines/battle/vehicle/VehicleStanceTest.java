@@ -23,7 +23,7 @@ class VehicleStanceTest {
         StructureDef stock = VehicleType.BREAKTHROUGH_TANK.turretStructure();
         assertEquals(Stance.STANDOFF, VehicleStance.of(VehicleGun.fit(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.LRM_5).mount),
                 "an arcing launcher fights from beyond reach");
-        assertEquals(Stance.DUEL, VehicleStance.of(VehicleGun.fit(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.SINGLE_HEAVY_CANNON).mount));
+        assertEquals(Stance.DUEL, VehicleStance.of(VehicleGun.fit(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.HC_20).mount));
         assertEquals(MechWeaponComponent.SRM_5.antiArmorOnly() ? Stance.AMBUSH : Stance.DUEL,
                 VehicleStance.of(VehicleGun.fit(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.SRM_5).mount),
                 "a direct anti-armor rack waits for armor");

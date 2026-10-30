@@ -1322,21 +1322,21 @@ public class BattleSprites {
         LayeredSpriteCache foot = loadLayeredSprite(root + "foot.png");
         LayeredSpriteCache thighBone = loadLayeredSprite(root + "thigh-bone.png");
         LayeredSpriteCache arm = loadLayeredSprite(root + "chaingun-arm.png");
-        LayeredSpriteCache linearCannon = loadLayeredSprite(root + "linear-cannon-variant.png");
-        LayeredSpriteCache heavyCannon = loadLayeredSprite(root + "heavy-cannon.png");
+        LayeredSpriteCache hc10 = loadLayeredSprite(root + "hc-10.png");
+        LayeredSpriteCache hc20 = loadLayeredSprite(root + "hc-20.png");
         LayeredSpriteCache srm = loadLayeredSprite(root + "srm-pod.png");
         LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-pod.png");
         LayeredSpriteCache shoulderLaser = loadLayeredSprite(root + "shoulder-laser-cannon.png");
         LayeredSpriteCache pulseLaserArm = loadLayeredSprite(root + "pulse-laser-arm.png");
-        LayeredSpriteCache bastionAutocannon = loadLayeredSprite(
-                root + "hegemony-bastion-autocannon.png");
-        LayeredSpriteCache demolitionCannon = loadLayeredSprite(
-                root + "pather-demolition-cannon.png");
+        LayeredSpriteCache ac6 = loadLayeredSprite(
+                root + "ac-6.png");
+        LayeredSpriteCache dc5 = loadLayeredSprite(
+                root + "dc-5.png");
         LayeredSpriteCache thermalLance = loadLayeredSprite(
                 root + "lions-guard-thermal-lance.png");
-        LayeredSpriteCache musterAutogun = loadLayeredSprite(root + "muster-autogun.png");
-        LayeredSpriteCache quarryBreakerCannon = loadLayeredSprite(
-                root + "quarry-breaker-cannon.png");
+        LayeredSpriteCache ac6Qs = loadLayeredSprite(root + "ac-6-qs.png");
+        LayeredSpriteCache dc4Qs = loadLayeredSprite(
+                root + "dc-4-qs.png");
         LayeredSpriteCache srm3QsPod = loadLayeredSprite(
                 root + "srm-3-qs-pod.png");
         LayeredSpriteCache lightMachineGun = loadLayeredSprite(root + "light-machine-gun.png");
@@ -1350,11 +1350,11 @@ public class BattleSprites {
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
         if (chassis == null || socketedChassis == null || houndChassis == null
                 || wardenChassis == null || foot == null || thighBone == null || arm == null
-                || linearCannon == null || heavyCannon == null
+                || hc10 == null || hc20 == null
                 || srm == null || lrm == null || shoulderLaser == null
-                || pulseLaserArm == null || bastionAutocannon == null
-                || demolitionCannon == null || thermalLance == null
-                || musterAutogun == null || quarryBreakerCannon == null
+                || pulseLaserArm == null || ac6 == null
+                || dc5 == null || thermalLance == null
+                || ac6Qs == null || dc4Qs == null
                 || srm3QsPod == null || lightMachineGun == null
                 || lightPulseLaser == null || burstLaser == null
                 || pdLaser == null || heavyPdLaser == null || mediumBurstLaser == null || lightBurstLaser == null
@@ -1363,10 +1363,10 @@ public class BattleSprites {
             return;
         }
         layeredMechSprites = new LayeredMechAssets(chassis, socketedChassis,
-                houndChassis, wardenChassis, foot, thighBone, arm, linearCannon, heavyCannon,
-                srm, lrm, shoulderLaser, pulseLaserArm, bastionAutocannon,
-                demolitionCannon, thermalLance, musterAutogun,
-                quarryBreakerCannon, srm3QsPod, lightMachineGun, lightPulseLaser,
+                houndChassis, wardenChassis, foot, thighBone, arm, hc10, hc20,
+                srm, lrm, shoulderLaser, pulseLaserArm, ac6,
+                dc5, thermalLance, ac6Qs,
+                dc4Qs, srm3QsPod, lightMachineGun, lightPulseLaser,
                 burstLaser, pdLaser, heavyPdLaser,
                 mediumBurstLaser, lightBurstLaser, flash);
         layeredMechLiveries.put(MechLivery.BASE, layeredMechSprites);
@@ -1399,21 +1399,21 @@ public class BattleSprites {
         LayeredSpriteCache houndChassis = loadLayeredSprite(root + "chassis-hound.png");
         LayeredSpriteCache wardenChassis = loadLayeredSprite(root + "chassis-warden.png");
         LayeredSpriteCache arm = loadLayeredSprite(root + "chaingun-arm.png");
-        LayeredSpriteCache linearCannon = loadLayeredSprite(root + "linear-cannon-variant.png");
-        LayeredSpriteCache heavyCannon = loadLayeredSprite(root + "heavy-cannon.png");
+        LayeredSpriteCache hc10 = loadLayeredSprite(root + "hc-10.png");
+        LayeredSpriteCache hc20 = loadLayeredSprite(root + "hc-20.png");
         LayeredSpriteCache srm = loadLayeredSprite(root + "srm-pod.png");
         LayeredSpriteCache lrm = loadLayeredSprite(root + "lrm-pod.png");
         LayeredSpriteCache shoulderLaser = loadLayeredSprite(root + "shoulder-laser-cannon.png");
         LayeredSpriteCache pulseLaserArm = loadLayeredSprite(root + "pulse-laser-arm.png");
-        LayeredSpriteCache bastionAutocannon = loadLayeredSprite(
-                root + "hegemony-bastion-autocannon.png");
-        LayeredSpriteCache demolitionCannon = loadLayeredSprite(
-                root + "pather-demolition-cannon.png");
+        LayeredSpriteCache ac6 = loadLayeredSprite(
+                root + "ac-6.png");
+        LayeredSpriteCache dc5 = loadLayeredSprite(
+                root + "dc-5.png");
         LayeredSpriteCache thermalLance = loadLayeredSprite(
                 root + "lions-guard-thermal-lance.png");
-        LayeredSpriteCache musterAutogun = loadLayeredSprite(root + "muster-autogun.png");
-        LayeredSpriteCache quarryBreakerCannon = loadLayeredSprite(
-                root + "quarry-breaker-cannon.png");
+        LayeredSpriteCache ac6Qs = loadLayeredSprite(root + "ac-6-qs.png");
+        LayeredSpriteCache dc4Qs = loadLayeredSprite(
+                root + "dc-4-qs.png");
         LayeredSpriteCache srm3QsPod = loadLayeredSprite(
                 root + "srm-3-qs-pod.png");
         LayeredSpriteCache lightMachineGun = loadLayeredSprite(root + "light-machine-gun.png");
@@ -1424,11 +1424,11 @@ public class BattleSprites {
         LayeredSpriteCache mediumBurstLaser = loadLayeredSprite(root + "medium-burst-laser.png");
         LayeredSpriteCache lightBurstLaser = loadLayeredSprite(root + "light-burst-laser.png");
         if (chassis == null || houndChassis == null || wardenChassis == null
-                || arm == null || linearCannon == null || heavyCannon == null
+                || arm == null || hc10 == null || hc20 == null
                 || srm == null || lrm == null || shoulderLaser == null
-                || pulseLaserArm == null || bastionAutocannon == null
-                || demolitionCannon == null || thermalLance == null
-                || musterAutogun == null || quarryBreakerCannon == null
+                || pulseLaserArm == null || ac6 == null
+                || dc5 == null || thermalLance == null
+                || ac6Qs == null || dc4Qs == null
                 || srm3QsPod == null || lightMachineGun == null
                 || lightPulseLaser == null || burstLaser == null
                 || pdLaser == null || heavyPdLaser == null || mediumBurstLaser == null || lightBurstLaser == null) {
@@ -1438,10 +1438,10 @@ public class BattleSprites {
         }
         layeredMechLiveries.put(livery, new LayeredMechAssets(
                 chassis, socketedChassis, houndChassis, wardenChassis,
-                foot, thighBone, arm, linearCannon, heavyCannon,
-                srm, lrm, shoulderLaser, pulseLaserArm, bastionAutocannon,
-                demolitionCannon, thermalLance, musterAutogun,
-                quarryBreakerCannon, srm3QsPod, lightMachineGun, lightPulseLaser,
+                foot, thighBone, arm, hc10, hc20,
+                srm, lrm, shoulderLaser, pulseLaserArm, ac6,
+                dc5, thermalLance, ac6Qs,
+                dc4Qs, srm3QsPod, lightMachineGun, lightPulseLaser,
                 burstLaser, pdLaser, heavyPdLaser,
                 mediumBurstLaser, lightBurstLaser, flash));
     }

@@ -27,15 +27,15 @@ public final class LayeredMechAppearance {
      */
     public static final int ARMS_NONE = 0;
     public static final int ARMS_CHAINGUN = 1;
-    public static final int ARMS_LINEAR_CANNON = 2;
+    public static final int ARMS_HC_10 = 2;
     public static final int ARMS_NOSE_CHAINGUN = 3;
-    public static final int ARMS_HEAVY_CANNON = 4;
+    public static final int ARMS_HC_20 = 4;
     public static final int ARMS_PULSE_LASER = 5;
-    public static final int ARMS_BASTION_AUTOCANNON = 6;
-    public static final int ARMS_DEMOLITION_CANNON = 7;
-    public static final int ARMS_MUSTER_AUTOGUN = 8;
-    public static final int ARMS_NOSE_MUSTER_AUTOGUN = 9;
-    public static final int ARMS_QUARRY_BREAKER = 10;
+    public static final int ARMS_AC_6 = 6;
+    public static final int ARMS_DC_5 = 7;
+    public static final int ARMS_AC_6_QS = 8;
+    public static final int ARMS_NOSE_AC_6_QS = 9;
+    public static final int ARMS_DC_4_QS = 10;
     public static final int ARMS_LIGHT_MG = 11;
     public static final int ARMS_LIGHT_PULSE_LASER = 12;
     public static final int ARMS_BURST_LASER = 13;

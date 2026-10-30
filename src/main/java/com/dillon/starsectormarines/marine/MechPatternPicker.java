@@ -42,13 +42,13 @@ public final class MechPatternPicker {
                     MechPattern.of(VehicleType.DRONE_SKIMMER)),
             FactionMechLoadouts.HEGEMONY_ID, Set.of(
                     MechPattern.of(MechVariant.BULWARK),
-                    MechPattern.of(MechWeaponComponent.BASTION_AUTOCANNON),
+                    MechPattern.of(MechWeaponComponent.AC_6),
                     MechPattern.of(MechWeaponComponent.SRM_15),
                     MechPattern.of(MechWeaponComponent.LRM_15),
                     MechPattern.of(VehicleType.HEAVY_APC),
                     MechPattern.of(VehicleType.LRM_CARRIER)),
             FactionMechLoadouts.LUDDIC_PATH_ID, Set.of(
-                    MechPattern.of(MechWeaponComponent.DEMOLITION_CANNON),
+                    MechPattern.of(MechWeaponComponent.DC_5),
                     MechPattern.of(VehicleType.DOZER_BREACHER)),
             FactionMechLoadouts.LIONS_GUARD_ID, Set.of(
                     MechPattern.of(MechVariant.WARDEN),

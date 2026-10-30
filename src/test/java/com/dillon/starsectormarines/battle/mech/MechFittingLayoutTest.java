@@ -89,10 +89,10 @@ class MechFittingLayoutTest {
                 .socket(SocketId.ARMS);
 
         assertFalse(houndArms.accommodates(
-                MechWeaponComponent.SINGLE_HEAVY_CANNON.footprintColumns,
-                MechWeaponComponent.SINGLE_HEAVY_CANNON.footprintRows));
+                MechWeaponComponent.HC_20.footprintColumns,
+                MechWeaponComponent.HC_20.footprintRows));
         assertTrue(houndArms.accommodates(
-                MechWeaponComponent.DEMOLITION_CANNON.footprintColumns,
-                MechWeaponComponent.DEMOLITION_CANNON.footprintRows));
+                MechWeaponComponent.DC_5.footprintColumns,
+                MechWeaponComponent.DC_5.footprintRows));
     }
 }

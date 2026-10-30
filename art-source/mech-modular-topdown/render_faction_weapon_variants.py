@@ -64,14 +64,14 @@ def main() -> None:
             elif folder == "hegemony" and variant.name == "BULWARK":
                 variant = replace(
                     variant,
-                    arms="hegemony-bastion-autocannon.png",
+                    arms="ac-6.png",
                     arm_layout="dual-narrow",
                     loadout="2x BASTION AUTOCANNON  /  SRM-15  /  SRM-15",
                 )
             elif folder == "luddic-path" and variant.name == "HOUND":
                 variant = replace(
                     variant,
-                    arms="pather-demolition-cannon.png",
+                    arms="dc-5.png",
                     arm_layout="nose-heavy",
                     loadout="FOUNDRY BREAKER  /  SRM-5",
                 )

@@ -143,7 +143,7 @@ class RotaryFeedTest {
         for (MechMountSlot slot : new MechMountSlot[]{MechMountSlot.ARMS, MechMountSlot.LEFT_ARM}) {
             assertTrue(new MechWeaponMount(slot, betterGun).isRotary(), "rotary on " + slot);
         }
-        assertNull(MechWeaponComponent.LINEAR_CANNON.rotary(), "a cannon keeps its trigger pull");
+        assertNull(MechWeaponComponent.HC_10.rotary(), "a cannon keeps its trigger pull");
     }
 
     /** No spin-up: rest to full at once; 5 rounds a second off a belt of 10, refilled at 1 a second. */
@@ -190,7 +190,7 @@ class RotaryFeedTest {
     @Test
     void theLightMachineGunAndTheAutocannonsAreHeldTriggerGunsWithNoSpinUp() {
         for (MechWeaponComponent gun : new MechWeaponComponent[]{MechWeaponComponent.LIGHT_MACHINE_GUN,
-                MechWeaponComponent.BASTION_AUTOCANNON, MechWeaponComponent.MUSTER_AUTOGUN}) {
+                MechWeaponComponent.AC_6, MechWeaponComponent.AC_6_QS}) {
             assertNotNull(gun.rotary(), gun + " fires while held");
             assertTrue(gun.rotary().instant(), gun + " has no spin-up");
             assertEquals(gun.projectilesPerTrigger / gun.rotary().ratedRoundsPerSecond(), gun.cycleSeconds(), 1e-5f,

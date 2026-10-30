@@ -56,13 +56,14 @@ public final class MechHardpointGeometry {
         return switch (armsAppearance) {
             case LayeredMechAppearance.ARMS_CHAINGUN, LayeredMechAppearance.ARMS_PULSE_LASER,
                  LayeredMechAppearance.ARMS_NOSE_CHAINGUN -> 0.39f;
-            case LayeredMechAppearance.ARMS_LINEAR_CANNON -> 0.51f;
-            case LayeredMechAppearance.ARMS_BASTION_AUTOCANNON -> 0.49f;
-            case LayeredMechAppearance.ARMS_MUSTER_AUTOGUN,
-                 LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN -> 0.46f;
-            case LayeredMechAppearance.ARMS_HEAVY_CANNON -> 0.47f;
-            case LayeredMechAppearance.ARMS_DEMOLITION_CANNON,
-                 LayeredMechAppearance.ARMS_QUARRY_BREAKER -> 0.42f;
+            // The HC-10 is 116 px long: 0.56 hull widths from the rear pivot.
+            case LayeredMechAppearance.ARMS_HC_10 -> 0.41f;
+            case LayeredMechAppearance.ARMS_AC_6 -> 0.49f;
+            case LayeredMechAppearance.ARMS_AC_6_QS,
+                 LayeredMechAppearance.ARMS_NOSE_AC_6_QS -> 0.46f;
+            case LayeredMechAppearance.ARMS_HC_20 -> 0.47f;
+            case LayeredMechAppearance.ARMS_DC_5,
+                 LayeredMechAppearance.ARMS_DC_4_QS -> 0.42f;
             // The light weapons are 84 to 88 px long: about 0.41 hull widths from the rear pivot.
             case LayeredMechAppearance.ARMS_LIGHT_MG,
                  LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER,
@@ -101,14 +102,14 @@ public final class MechHardpointGeometry {
     private static float centrelineForward(int armsAppearance) {
         return switch (armsAppearance) {
             case LayeredMechAppearance.ARMS_NOSE_CHAINGUN, LayeredMechAppearance.ARMS_CHAINGUN,
-                 LayeredMechAppearance.ARMS_DEMOLITION_CANNON,
-                 LayeredMechAppearance.ARMS_QUARRY_BREAKER -> 0.52f;
-            case LayeredMechAppearance.ARMS_HEAVY_CANNON -> 0.57f;
-            case LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN,
-                 LayeredMechAppearance.ARMS_MUSTER_AUTOGUN -> 0.55f;
-            case LayeredMechAppearance.ARMS_LINEAR_CANNON -> 0.61f;
+                 LayeredMechAppearance.ARMS_DC_5,
+                 LayeredMechAppearance.ARMS_DC_4_QS -> 0.52f;
+            case LayeredMechAppearance.ARMS_HC_20 -> 0.57f;
+            case LayeredMechAppearance.ARMS_NOSE_AC_6_QS,
+                 LayeredMechAppearance.ARMS_AC_6_QS -> 0.55f;
+            case LayeredMechAppearance.ARMS_HC_10 -> 0.51f;
             case LayeredMechAppearance.ARMS_PULSE_LASER -> 0.49f;
-            case LayeredMechAppearance.ARMS_BASTION_AUTOCANNON -> 0.59f;
+            case LayeredMechAppearance.ARMS_AC_6 -> 0.59f;
             case LayeredMechAppearance.ARMS_LIGHT_MG -> 0.37f;
             case LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER, LayeredMechAppearance.ARMS_LIGHT_BURST_LASER,
                  LayeredMechAppearance.ARMS_BURST_LASER, LayeredMechAppearance.ARMS_HEAVY_PD_LASER,
@@ -170,8 +171,8 @@ public final class MechHardpointGeometry {
         if (weapon.mountFamily == MechWeaponComponent.MountFamily.ARMS) {
             return switch (appearance) {
                 case LayeredMechAppearance.ARMS_CHAINGUN, LayeredMechAppearance.ARMS_NOSE_CHAINGUN,
-                     LayeredMechAppearance.ARMS_PULSE_LASER, LayeredMechAppearance.ARMS_BASTION_AUTOCANNON,
-                     LayeredMechAppearance.ARMS_MUSTER_AUTOGUN, LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN,
+                     LayeredMechAppearance.ARMS_PULSE_LASER, LayeredMechAppearance.ARMS_AC_6,
+                     LayeredMechAppearance.ARMS_AC_6_QS, LayeredMechAppearance.ARMS_NOSE_AC_6_QS,
                      LayeredMechAppearance.ARMS_LIGHT_MG -> 0.025f;
                 default -> 0f;
             };

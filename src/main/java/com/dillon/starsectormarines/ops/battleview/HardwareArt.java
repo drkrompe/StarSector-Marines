@@ -75,7 +75,7 @@ final class HardwareArt {
     }
 
     /**
-     * Draws the icon of {@code component} fitted on {@code slot}: a chaingun or Muster autogun on the centreline mount
+     * Draws the icon of {@code component} fitted on {@code slot}: a chaingun or AC-6 (QS) on the centreline mount
      * wears its nose drawing ({@link MechWeaponComponent#appearanceSelector(MechMountSlot)}); a null slot is off a mech.
      */
     static boolean draw(CanvasContext c, MechWeaponComponent component, MechMountSlot slot,
@@ -137,19 +137,24 @@ final class HardwareArt {
     /** The drawing {@code component} wears on {@code slot}: its nose drawing on the centreline mount, if it has one. */
     static String stem(MechWeaponComponent component, MechMountSlot slot) {
         if (!component.noseDrawingOn(slot)) return stem(component);
-        return component == MechWeaponComponent.MUSTER_AUTOGUN ? "muster-autogun-nose" : "chaingun-nose";
+        return switch (component) {
+            case AC_6_QS -> "ac-6-qs-nose";
+            case CHAINGUN_HF -> "chaingun-hf-nose";
+            default -> "chaingun-nose";
+        };
     }
 
     private static String stem(MechWeaponComponent component) {
         return switch (component) {
-            case CHAINGUN, CHAINGUN_HF -> "chaingun";
-            case LINEAR_CANNON -> "linear-cannon";
-            case SINGLE_HEAVY_CANNON -> "heavy-cannon";
+            case CHAINGUN -> "chaingun";
+            case CHAINGUN_HF -> "chaingun-hf";
+            case HC_10 -> "hc-10";
+            case HC_20 -> "hc-20";
             case PULSE_LASER -> "pulse-laser";
-            case BASTION_AUTOCANNON -> "bastion-autocannon";
-            case DEMOLITION_CANNON -> "demolition-cannon";
-            case MUSTER_AUTOGUN -> "muster-autogun";
-            case QUARRY_BREAKER_CANNON -> "quarry-breaker";
+            case AC_6 -> "ac-6";
+            case DC_5 -> "dc-5";
+            case AC_6_QS -> "ac-6-qs";
+            case DC_4_QS -> "dc-4-qs";
             case SRM_5, SRM_5_FRAG -> "srm-5";
             case SRM_15, SRM_15_FRAG -> "srm-15";
             case LRM_5, LRM_5_FRAG -> "lrm-5";

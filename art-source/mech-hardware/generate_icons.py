@@ -122,6 +122,12 @@ GLYPHS = {
     'W': ['#...#', '#...#', '#...#', '#.#.#', '#.#.#', '##.##', '#...#'],
     'X': ['#...#', '#...#', '.#.#.', '..#..', '.#.#.', '#...#', '#...#'],
     'Y': ['#...#', '#...#', '.#.#.', '..#..', '..#..', '..#..', '..#..'],
+    '0': ['.###.', '#...#', '#..##', '#.#.#', '##..#', '#...#', '.###.'],
+    '1': ['..#..', '.##..', '..#..', '..#..', '..#..', '..#..', '.###.'],
+    '2': ['.###.', '#...#', '....#', '...#.', '..#..', '.#...', '#####'],
+    '4': ['...#.', '..##.', '.#.#.', '#..#.', '#####', '...#.', '...#.'],
+    '5': ['#####', '#....', '####.', '....#', '....#', '#...#', '.###.'],
+    '6': ['..##.', '.#...', '#....', '####.', '#...#', '#...#', '.###.'],
 }
 
 
@@ -291,22 +297,6 @@ def pulse_laser(y, x0, x1, s):
     return g
 
 
-def gauss(y, x0, x1, s):
-    """A linear (gauss) cannon: capacitor block, twin rails, coil rings, a slug between rails."""
-    g = rect(x0, y - s, 46, s * 2, D, rx=6)
-    for k in range(3):
-        g += rect(x0 + 8 + k * 11, y - s * .75, 5, s * 1.5, L, rx=1)
-    g += hbar(x0 + 50, x1, y - s * .55, s * .28)
-    g += hbar(x0 + 50, x1, y + s * .55, s * .28)
-    span = x1 - x0 - 70
-    for k in range(4):
-        cx = x0 + 62 + k * span / 4
-        g += rect(cx, y - s * .95, 9, s * 1.9, D, rx=2)
-        g += rect(cx + 2, y - s * .9, 3, s * 1.8, LS)
-    g += ell(x1 - 18, y, s * .3, s * .2, L)
-    return g
-
-
 def autogun(y, x0, x1, s, drum=False):
     """An autogun: receiver, perforated shroud, barrel tip, and a box magazine (or drum)."""
     g = rect(x0, y - s * .8, 52, s * 1.6, D, rx=5)
@@ -325,6 +315,38 @@ def autogun(y, x0, x1, s, drum=False):
         g += poly([(x0 + 14, y + s * .85), (x0 + 40, y + s * .85), (x0 + 46, y + s * 1.9), (x0 + 20, y + s * 1.9)], D)
         g += rect(x0 + 22, y + s * 1.0, 6, s * .75, LS)
     return g
+
+
+# The breaker cannons are drawn side-on on the 150x200 piece; stood upright they are stretched along the 200 x 150
+# side-on canvas ``upright2`` turns.
+DC_ART = 'translate(0 -25) scale(1.3 1)'
+
+
+def high_feed(gun, y, x0, x1, s):
+    """The high-feed chaingun: the chaingun with a second drive motor along its receiver's top and the fast feed's
+    lit link rails down the receiver's side."""
+    rx1 = x0 + (x1 - x0) * .3
+    h = s * 1.15
+    g = gun
+    g += rect(x0 + (rx1 - x0) * .58, y - h / 2 - s * .2, (rx1 - x0) * .38, s * .18, D, rx=2)
+    for k in range(3):
+        g += rect(x0 + s * .16 + k * (rx1 - x0 - s * .3) / 3, y - s * .1, (rx1 - x0 - s * .3) / 6, s * .5, L)
+    return g
+
+
+def hc10():
+    """The HC-10, side-on on the 200x150 canvas: the HC-20's breech and sleeved barrel cut short, one bore with a
+    slotted muzzle brake."""
+    b = block(8, 50, 62, 100 + 50, 10)
+    b += rect(16, 58, 38, 3, L) + rect(16, 104, 38, 32, MID)
+    b += hbar(64, 98, 68, 10, MID, rx=0) + hbar(64, 98, 132, 10, MID, rx=0)
+    b += block(64, 82, 106, 118, 3)
+    b += rect(80, 79, 5, 42, D)
+    b += hbar(108, 166, 100, 24, D, rx=0)
+    b += block(168, 78, 192, 122, 4)
+    b += rect(172, 86, 4, 28, L) + rect(181, 86, 4, 28, L)
+    b += hbar(66, 164, 90, 3, LS, rx=0)
+    return b
 
 
 def build():
@@ -362,12 +384,15 @@ def build():
     b += path('M 106 47 C 116 43 124 46 134 50 C 124 54 116 57 106 53 Z', L)
     f['thermal-lance'] = banded(150, 100, b, 'TL')
 
-    # Ballistic.
+    # Ballistic. Each gun's card is told apart by its drawing as well as its plate: the plate carries the family and size
+    # (AC6, HC10), a QuickSell build a Q (ACQ, DCQ), and the high-feed chaingun its own drive and feed.
     f['chaingun'] = banded(150, 200, upright2(gatling(75, 10, 190, 84, barrels=5)), 'CG')
     f['chaingun-nose'] = banded(150, 200, gatling(100, 6, 144, 62, barrels=5), 'CG')
-    f['linear-cannon'] = banded(150, 200, upright2(gauss(75, 10, 190, 46)), 'LC')
+    f['chaingun-hf'] = banded(150, 200, upright2(high_feed(gatling(75, 10, 190, 84, barrels=6), 75, 10, 190, 84)), 'CGHF')
+    f['chaingun-hf-nose'] = banded(150, 200, high_feed(gatling(100, 6, 144, 62, barrels=6), 100, 6, 144, 62), 'CGHF')
+    f['hc-10'] = banded(150, 200, upright2(hc10(), 'translate(0 -25)'), 'HC10')
 
-    # Heavy cannon: a tank gun. Breech block, recoil cylinders, a sleeved barrel, the tapered
+    # HC-20, the heavy cannon: a tank gun. Breech block, recoil cylinders, a sleeved barrel, the tapered
     # fume extractor partway along, and a baffled muzzle brake.
     b = block(8, 48, 74, 152, 12)
     b += rect(17, 57, 48, 3, L) + rect(17, 106, 48, 36, MID)
@@ -380,9 +405,9 @@ def build():
     b += block(194, 72, 216, 128, 4)
     b += rect(198, 80, 4, 40, L) + rect(207, 80, 4, 40, L)
     b += hbar(78, 190, 87, 3, LS, rx=0)
-    f['heavy-cannon'] = banded(150, 300, upright(b, 'scale(1.35 1) translate(0 -25)'), 'HC')
+    f['hc-20'] = banded(150, 300, upright(b, 'scale(1.35 1) translate(0 -25)'), 'HC20')
 
-    # Bastion: one autocannon on its receiver, belt-fed from the ammunition can beneath.
+    # AC-6, the Bastion: one long autocannon on its receiver, a muzzle brake, belt-fed from the ammunition can beneath.
     b = block(8, 40, 70, 110, 10)
     b += rect(16, 48, 46, 3, L) + rect(16, 84, 46, 20, MID)
     b += block(72, 62, 112, 88, 3)
@@ -393,10 +418,11 @@ def build():
     b += block(12, 120, 70, 146, 5, D)
     for k in range(2):
         b += rect(20, 126 + k * 10, 42, 3, LS)
-    f['bastion-autocannon'] = banded(150, 200, upright2(b), 'AC')
+    f['ac-6'] = banded(150, 200, upright2(b), 'AC6')
 
-    f['muster-autogun'] = banded(150, 200, upright2(autogun(56, 10, 190, 40)), 'AG')
-    f['muster-autogun-nose'] = banded(150, 200, autogun(84, 8, 144, 34), 'AG')
+    # AC-6 (QS), the Muster: a short commercial autogun, its barrel cut back to a perforated shroud and an open box tray.
+    f['ac-6-qs'] = banded(150, 200, upright2(autogun(56, 10, 150, 40)), 'ACQ')
+    f['ac-6-qs-nose'] = banded(150, 200, autogun(84, 8, 118, 34), 'ACQ')
 
     # The light weapons, 2x1 pieces for the small gun card: a light machine gun on its drum and a short pulse laser,
     # side-on and pointing right as the other one-row pieces are.
@@ -410,7 +436,7 @@ def build():
     f['light-burst-laser'] = banded(150, 100, pulse_laser(46, 8, 142, 38), 'LBL')
     f['pd-laser'] = banded(150, 200, upright2(pulse_laser(75, 10, 190, 56)), 'PDL')
 
-    # Demolition cannon: a short, very wide siege barrel. Breech block, recoil buffers, a
+    # DC-5, the demolition cannon: a short, very wide siege barrel. Breech block, recoil buffers, a
     # tapering barrel bound by heavy bands, and a flared muzzle collar.
     b = block(6, 60, 50, 140, 8)
     b += rect(12, 68, 32, 3, L) + rect(12, 104, 32, 28, MID)
@@ -421,9 +447,9 @@ def build():
     b += poly([(114, 66), (128, 60), (144, 60), (144, 140), (128, 140), (114, 134)], D)
     b += rect(138, 70, 3, 60, L)
     b += hbar(54, 110, 80, 2.5, LS, rx=0)
-    f['demolition-cannon'] = banded(150, 200, b, 'DC')
+    f['dc-5'] = banded(150, 200, upright2(b, DC_ART), 'DC5')
 
-    # Quarry breaker: hydraulic cylinder, piston rod and a chisel bit, pointing right.
+    # DC-4 (QS), the Quarry breaker: hydraulic cylinder, piston rod and a chisel bit, pointing right.
     b = rect(8, 64, 70, 72, D, rx=10)
     for k in range(3):
         b += rect(16 + k * 18, 72, 8, 56, L, rx=2)
@@ -431,7 +457,7 @@ def build():
     b += poly([(104, 78), (124, 82), (146, 100), (124, 118), (104, 122)], D)
     b += poly([(108, 84), (124, 87), (136, 98), (108, 96)], L)
     b += stroke('M 30 64 C 30 40 60 36 90 46', '#000000', .58, 8)
-    f['quarry-breaker'] = banded(150, 200, b, 'QB')
+    f['dc-4-qs'] = banded(150, 200, upright2(b, DC_ART), 'DCQ')
 
     internals(f)
     boats(f)

@@ -73,7 +73,7 @@ public enum VehicleType {
      * where no arc fits ({@link NeutralPivot}). Its active protection, where it carries one, is a rack kit
      * ({@link VehicleKit#ACTIVE_PROTECTION}); the stock fit with it is the Parapet ({@link VehicleStockFit#PARAPET}).
      */
-    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 10, -90f,
+    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 8, -90f,
             0, 4.3f, 3.8f, 2.2f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
@@ -558,7 +558,7 @@ public enum VehicleType {
     public MechWeaponComponent standardPart() {
         return switch (this) {
             case LASER_TANK -> MechWeaponComponent.BURST_LASER;
-            case BREAKTHROUGH_TANK -> MechWeaponComponent.SINGLE_HEAVY_CANNON;
+            case BREAKTHROUGH_TANK -> MechWeaponComponent.HC_20;
             default -> ownGun();
         };
     }
@@ -585,10 +585,9 @@ public enum VehicleType {
     private static final HeadFrames LASER_RED_HEAD = new HeadFrames(5, 6, 7);
     /** The Onager's approved single-cannon turret, the heavy cannon's head (art-source/vehicles/tank). */
     private static final HeadFrames ONAGER_HEAVY_CANNON_HEAD = new HeadFrames(1, 3, -1);
-    /** The Onager's housing with an autocannon, a rotary gun and a linear cannon (art-source/vehicles/tank/heads). */
+    /** The Onager's housing with an autocannon and a rotary gun (art-source/vehicles/tank/heads). */
     private static final HeadFrames ONAGER_AUTOCANNON_HEAD = new HeadFrames(4, 5, -1);
     private static final HeadFrames ONAGER_ROTARY_HEAD = new HeadFrames(6, 7, -1);
-    private static final HeadFrames ONAGER_RAIL_HEAD = new HeadFrames(8, 9, -1);
 
     /**
      * The frames of the turret head this hull's sheet paints for {@code head}, or null for a head the hull does not
@@ -607,7 +606,6 @@ public enum VehicleType {
                 case HEAVY_CANNON -> ONAGER_HEAVY_CANNON_HEAD;
                 case AUTOCANNON -> ONAGER_AUTOCANNON_HEAD;
                 case ROTARY -> ONAGER_ROTARY_HEAD;
-                case RAIL -> ONAGER_RAIL_HEAD;
                 default -> null;
             };
             default -> null;

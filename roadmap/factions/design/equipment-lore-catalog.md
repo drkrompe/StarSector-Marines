@@ -4,9 +4,10 @@ Status: ACTIVE — canonical provenance and faction-fit reference for shipped Ma
 
 Written: 2026-08-26
 
-Updated: 2026-10-22 — added the naming guide (faction schemes and grade marks) and moved Luddic, Lion's Guard and pirate kit onto it.
-cannon, and SRM-3 (QS) rocket pod (the QuickSell budget SRM) as lower-performance mech components
-whose circulation does not make them faction defaults.
+Updated: 2026-10-30 — the mech cannons take `<Family>-<N>` names: the Muster autogun is the AC-6 (QS), the Quarry
+breaker the DC-4 (QS), beside the SRM-3 (QS) rocket pod, all QuickSell budget builds, as lower-performance mech components
+whose circulation does not make them faction defaults. Earlier: added the naming guide (faction schemes and grade marks)
+and moved Luddic, Lion's Guard and pirate kit onto it.
 
 Read `faction-lore-nouns.md` for evidence tiers and the individual faction guides
 for institutional context. `progression-nouns.md` owns acquisition and issue;
@@ -98,8 +99,8 @@ channel among manufacture, trade, capture, and black-market resale.
 
 | Stable weapon id | Model and provenance | Plausible circulation | Limits and identity |
 | --- | --- | --- | --- |
-| `weapon.mech-muster-autogun` | **CAG-6 Muster commercial autogun** — a mass-market convoy and settlement-security weapon assembled around commodity receivers and exposed feeds. | Independent commercial worlds, local militias, auxiliaries, contractors, and captured pirate or Pather stocks. | Shorter-ranged, less accurate, less penetrating, and far less saturating than military chainguns or autocannons. It is common-market hardware, not Independent faction issue. |
-| `weapon.mech-quarry-breaker` | **QBC-2 Quarry breaker cannon** — a mining and demolition projector pressed into battlefield service. | Industrial markets, remote extraction works, breaker yards, contractors, and outlaw conversions or recovery. | A crude short-range structural hit with poor accuracy, low armor penetration, slow cycling, and a tiny finite shell bin. Its wall damage does not make it a military Foundry Breaker equivalent. |
+| `weapon.mech-ac-6-qs` | **AC-6 (QS)**, the Muster: QuickSell's autocannon for militia walkers that could not afford a Bastion (the AC-6), built round a commodity receiver and an open feed, the long barrel and hardened rounds dropped and the tolerances let go. Cheaper, smaller and worse is the QuickSell promise. | Independent commercial worlds, local militias, auxiliaries, contractors, and captured pirate or Pather stocks. | The AC-6's six-round burst and ten-round tray at a faster, softer, wilder cycle: shorter-ranged, less accurate and far less penetrating than the AC-6 or a military chaingun. It is common-market hardware, not Independent faction issue. |
+| `weapon.mech-dc-4-qs` | **DC-4 (QS)**, the Quarry breaker: QuickSell's demolition cannon for contractors who could not get a Foundry Breaker (the DC-5), a mining projector with the bore, shell and bin cut down to four rounds and no work spent on the sights. | Industrial markets, remote extraction works, breaker yards, contractors, and outlaw conversions or recovery. | A crude short-range structural hit with poor accuracy, low armor penetration, slow cycling, and a four-shell bin. Its wall damage does not make it a military DC-5 equivalent. |
 | `weapon.mech-srm-3-qs` | **SRM-3 (QS) rocket pod** — the QuickSell line: a smaller, cheaper SRM for militia and security units, made by cutting the sealed SRM pod back until it could be stamped and welded in bulk (no boost motor, no armoured warhead fuse, no sealed housing, loose tubes on an open shoulder rail). Cheaper, smaller and worse is the QuickSell gimmick. | Militia and security units, frontier and industrial markets, contractors, and recovered outlaw use. | Three straight-fire rockets per trigger, three salvos, loose dispersion, and no military boost guidance or indirect-fire capability. It is weaker and more exposed than a sealed SRM pod. |
 
 All three are valid future subsystem-inventory or market stock. None belongs in

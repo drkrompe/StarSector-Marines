@@ -157,7 +157,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
     private static final List<VehicleType> STYLE_HULLS = List.of(VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL,
             VehicleType.BREAKTHROUGH_TANK, VehicleType.HOVER_SCOUT, VehicleType.HEAVY_APC, VehicleType.LASER_TANK);
     private static final List<MechWeaponComponent> STYLE_GUNS = List.of(MechWeaponComponent.LIGHT_PULSE_LASER,
-            MechWeaponComponent.LIGHT_BURST_LASER, MechWeaponComponent.SINGLE_HEAVY_CANNON,
+            MechWeaponComponent.LIGHT_BURST_LASER, MechWeaponComponent.HC_20,
             MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.LIGHT_MACHINE_GUN,
             MechWeaponComponent.BURST_LASER);
     private static final List<String> STYLE_NAMES = List.of("GREEN (low): ESCORT APC", "GREEN: MILITIA TECHNICAL",

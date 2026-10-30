@@ -3033,8 +3033,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             }
             CampaignMech refitted = bay.mechById(mechId);
             for (MechMountSlot arm : refitted.variant().armMounts()) {
-                bay.addWeapon(MechWeaponComponent.MUSTER_AUTOGUN.id, 1);
-                bay.installWeapon(mechId, arm, MechWeaponComponent.MUSTER_AUTOGUN.id);
+                bay.addWeapon(MechWeaponComponent.AC_6_QS.id, 1);
+                bay.installWeapon(mechId, arm, MechWeaponComponent.AC_6_QS.id);
             }
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.CORE);
@@ -3077,14 +3077,14 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             bay.fitKit(apc.id(), VehicleKit.SPALL_LINER);
             viewModel.gantryRows().get().get(3).select().run();
         }
-        // A tank with a heavy cannon fitted in its gun card and a linear cannon spare, the gun card selected:
+        // A tank with an HC-20 fitted in its gun card and an HC-10 spare, the gun card selected:
         // the stores list the weapons the cannon card takes.
         if ("vehicle-gun".equals(materialHint)) {
             CampaignVehicle tank = new CampaignVehicle("support_vehicle_04", "Breaker 04", VehicleType.BREAKTHROUGH_TANK);
             bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank);
-            bay.addWeapon(MechWeaponComponent.SINGLE_HEAVY_CANNON.id, 1);
-            bay.addWeapon(MechWeaponComponent.LINEAR_CANNON.id, 1);
-            bay.fitGun(tank.id(), MechWeaponComponent.SINGLE_HEAVY_CANNON);
+            bay.addWeapon(MechWeaponComponent.HC_20.id, 1);
+            bay.addWeapon(MechWeaponComponent.HC_10.id, 1);
+            bay.fitGun(tank.id(), MechWeaponComponent.HC_20);
             viewModel.gantryRows().get().get(3).select().run();
             viewModel.selectSlot(SocketId.ARMS);
         }
@@ -3251,7 +3251,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                                 viewModel.selectedSocket(), viewModel.canDropCatalogWeapon(
                                         MechWeaponComponent.SRM_5, viewModel.selectedSocket()));
                     } else if (frame >= 28 && frame < 40) {
-                        fittingCanvas.previewWeaponDrag(MechWeaponComponent.SINGLE_HEAVY_CANNON,
+                        fittingCanvas.previewWeaponDrag(MechWeaponComponent.HC_20,
                                 null, viewModel.selectedSocket(), false);
                     } else fittingCanvas.clearWeaponDragPreview();
                     // A controlled carried-item pose; the well state above is a preview, not a campaign commit.
@@ -3259,7 +3259,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     if (frame >= 12 && frame < 40 && !fittingCanvas.carriedSnapped()) {
                         var box = instance.requireElement("mech-doll-canvas").box().contentBox();
                         MechWeaponComponent carried = frame < 28 ? MechWeaponComponent.SRM_5
-                                : MechWeaponComponent.SINGLE_HEAVY_CANNON;
+                                : MechWeaponComponent.HC_20;
                         ghost.show((c, x, y) -> MechHardware.drawCarried(c, carried, x, y),
                                 box.x() + box.width() * .82f, box.y() + box.height() * .25f);
                     } else ghost.clear();

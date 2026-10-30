@@ -109,7 +109,7 @@ class AShedBuildsItsOwnFactionsMachinesTest {
         MechLoadoutComponent built = finishOne(shed);
 
         assertEquals(MechVariant.HOUND, built.variant);
-        assertEquals(MechWeaponComponent.DEMOLITION_CANNON,
+        assertEquals(MechWeaponComponent.DC_5,
                 built.mount(MechMountSlot.ARMS).component,
                 "the Path's shed hung the catalogue's arms on its own machine");
         assertNotEquals(MechVariant.HOUND.createLoadout(MechVariant.HOUND.defaultRole)
@@ -136,7 +136,7 @@ class AShedBuildsItsOwnFactionsMachinesTest {
 
         assertEquals(Faction.MARINE, shed.sim.identity().faction(shed.lastMachine),
                 "the machine the marines built came out fighting for the defender");
-        assertEquals(MechWeaponComponent.DEMOLITION_CANNON,
+        assertEquals(MechWeaponComponent.DC_5,
                 built.mount(MechMountSlot.ARMS).component,
                 "a captured Path shed re-tooled itself for whoever walked in");
     }

@@ -1257,12 +1257,12 @@ concealment or navigation changes.
 modular heads). Its gun is the part in its cannon card, and the part decides the head the turret
 wears: one approved angular housing with the family's gun in its mantlet, painted on the tank's
 sheet at the turret's registration (`VehicleType.headFrames`, `MechWeaponComponent.tankHead`). The
-heavy cannon wears the approved single-cannon turret; the Bastion, Muster, Demolition and Quarry
-the autocannon head; the chainguns and the light machine gun the rotary head; the linear cannon
-the rail head. Each head has its own live and wreck frame, so a head turns, scuffs and burns as
+HC cannons (the HC-20 and the HC-10, each one large bore) wear the approved single-cannon turret;
+the AC-6, AC-6 (QS), DC-5 and DC-4 (QS) the autocannon head; the chainguns and the light machine
+gun the rotary head. Each head has its own live and wreck frame, so a head turns, scuffs and burns as
 the turret it is, and every shot leaves the one muzzle the heads share. With its card empty the
 Onager shows the bare army-green ring and has no gun; a spawn that names no part (a scene, a
-mission, `VehicleDeploymentSpec.standard`) fits the heavy cannon (`VehicleType.standardPart`).
+mission, `VehicleDeploymentSpec.standard`) fits the HC-20 (`VehicleType.standardPart`).
 A part with no head of its own would stand on the gun plate on the ring; every part the card
 takes today has a head. Art: `art-source/vehicles/tank/heads/`.
 

@@ -44,10 +44,10 @@ class ArmorSideTest {
 
     @Test
     void weaponsAndInternalsByPatternId() {
-        ArmorSide.Mech custom = mech("bulwark:arms=linear-cannon,rs=component.mech-shoulder-laser,"
+        ArmorSide.Mech custom = mech("bulwark:arms=hc-10,rs=component.mech-shoulder-laser,"
                 + "engine=uprated,capacitors=internal.capacitor-bank-double,vents=auxiliary,role=assault");
-        assertEquals(MechWeaponComponent.LINEAR_CANNON, custom.fit().leftArm());
-        assertEquals(MechWeaponComponent.LINEAR_CANNON, custom.fit().rightArm(), "arms= fits every arm");
+        assertEquals(MechWeaponComponent.HC_10, custom.fit().leftArm());
+        assertEquals(MechWeaponComponent.HC_10, custom.fit().rightArm(), "arms= fits every arm");
         assertEquals(MechWeaponComponent.SRM_15, custom.fit().leftShoulder());
         assertEquals(MechWeaponComponent.SHOULDER_LASER_CANNON, custom.fit().rightShoulder());
         assertEquals(MechInternal.UPRATED_ENGINE, custom.fit().engine());
@@ -59,16 +59,16 @@ class ArmorSideTest {
 
     @Test
     void oneArmIsFittedOnItsOwn() {
-        ArmorSide.Mech mixed = mech("bulwark:la=linear-cannon");
-        assertEquals(MechWeaponComponent.LINEAR_CANNON, mixed.fit().leftArm());
+        ArmorSide.Mech mixed = mech("bulwark:la=hc-10");
+        assertEquals(MechWeaponComponent.HC_10, mixed.fit().leftArm());
         assertEquals(MechVariant.BULWARK.rightArm, mixed.fit().rightArm());
         assertEquals(mixed, mech(mixed.label()));
     }
 
     @Test
     void refitAppliesAfterTheWeaponsWhereverItIsWritten() {
-        assertEquals(mech("bulwark:arms=linear-cannon,refit"), mech("bulwark:refit,arms=linear-cannon"));
-        assertEquals("bulwark:arms=linear-cannon,refit", mech("bulwark:refit,arms=linear-cannon").label());
+        assertEquals(mech("bulwark:arms=hc-10,refit"), mech("bulwark:refit,arms=hc-10"));
+        assertEquals("bulwark:arms=hc-10,refit", mech("bulwark:refit,arms=hc-10").label());
     }
 
     @Test
@@ -76,7 +76,7 @@ class ArmorSideTest {
         ArmorSide.Mech bare = mech("bulwark:rs=none");
         assertNull(bare.fit().rightShoulder());
         assertEquals("bulwark:rs=none", bare.label());
-        ArmorSide.Mech heavy = mech("hound:arms=demolition-cannon,engine=military,plating=heavy,capacitors=double");
+        ArmorSide.Mech heavy = mech("hound:arms=dc-5,engine=military,plating=heavy,capacitors=double");
         assertTrue(heavy.fit().overBudget());
         assertTrue(heavy.label().endsWith("!over-budget"));
     }

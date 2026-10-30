@@ -23,6 +23,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
@@ -967,6 +968,26 @@ public final class MechBay implements Serializable {
         }
     }
 
+    private void migrateRenamedWeapons() {
+        Map<String, Integer> renamed = new HashMap<>();
+        ownedWeapons.entrySet().removeIf(stock -> {
+            String current = MechWeaponComponent.findById(stock.getKey()).id;
+            if (current.equals(stock.getKey())) return false;
+            if (stock.getValue() != null) renamed.merge(current, stock.getValue(), Integer::sum);
+            return true;
+        });
+        renamed.forEach((id, count) -> ownedWeapons.merge(id, count, Integer::sum));
+        Set<String> patterns = new HashSet<>();
+        knownPatternIds.removeIf(id -> {
+            if (!id.startsWith(MechPattern.PREFIX + "weapon:")) return false;
+            String current = MechPattern.parse(id).id();
+            if (current.equals(id)) return false;
+            patterns.add(current);
+            return true;
+        });
+        knownPatternIds.addAll(patterns);
+    }
+
     private Object readResolve() {
         if (squads == null) squads = new ArrayList<>();
         if (ownedReplenishers == null) ownedReplenishers = new HashMap<>();
@@ -983,6 +1004,9 @@ public final class MechBay implements Serializable {
         // a mech still holding one falls back to its chassis's stock weapon (CampaignMech.resolve).
         ownedWeapons.keySet().removeIf(id -> MechWeaponComponent.findById(id) == null);
         knownPatternIds.removeIf(id -> id.startsWith(MechPattern.PREFIX + "weapon:") && MechPattern.parse(id) == null);
+        // A renamed weapon (the cannons before their <Family>-<N> names, the linear cannon now the HC-10) is carried
+        // over to its successor's id in stores and patterns; a mech's fitted id resolves the same way (findById).
+        migrateRenamedWeapons();
         squads.removeIf(squad -> squad == null);
         if (!foundingModelInitialized) seedLegacyStarterAssets();
         else ensureSupportSquad();

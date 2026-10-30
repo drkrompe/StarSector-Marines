@@ -670,9 +670,9 @@ class WardenScreenedOverwatchTest {
         float dx = cellX - THREAT_X;
         float dy = cellY - THREAT_Y;
         float distance = (float) Math.sqrt(dx * dx + dy * dy);
-        assertTrue(distance >= WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID).range
+        assertTrue(distance >= WeaponRegistry.require(WeaponRegistry.MECH_HC_20_ID).range
                 - OverwatchKillZone.DIRECT_FALLBACK_BAND_DEPTH);
-        assertTrue(distance <= WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID).range,
+        assertTrue(distance <= WeaponRegistry.require(WeaponRegistry.MECH_HC_20_ID).range,
                 "fallback perch must let the unlimited heavy cannon fire");
     }
 

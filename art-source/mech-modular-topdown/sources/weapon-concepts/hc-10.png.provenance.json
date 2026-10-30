@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a18d41-0180-7c92-8194-37bd26ca9074",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a18d41-0180-7c92-8194-37bd26ca9074\\exec-6def3ed3-a5dc-423e-bba6-f75af4328b71.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\mech-modular-topdown\\sources\\weapon-concepts\\hc-10-options\\hc-10-a.png",
+    "sha256": "23e21a835dec231e2c4e38d611d99d9e20135f1125d7ec705bec44478519b3b8",
+    "dimensions": [
+      1024,
+      1536
+    ],
+    "mode": "RGB"
+  },
+  "promptFile": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\b034663a-cd3b-484f-b55f-d86ead8b619f\\scratchpad\\cannon-options\\work\\hc10-brief.txt",
+  "promptSha256": "3ed6ea62d959867005ec84c6ed2860c984ffe1e48550150298cdd866f5733d37",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Image 1: silhouette, proportion and registration authority; keep outline, refine detail\nImage 2: Image 2: material language only; do not copy its wide body\n\nUse case: stylized-concept\nAsset type: production-source concept for one modular top-down tactical-game mech ARM weapon sprite.\nPrimary request: the HC-10, a light single-shot armour-piercing cannon: the smaller sibling of the heavy cannon in Image 2. One straight, thick single-bore gun barrel with a short slotted muzzle brake at its tip, a reinforced barrel collar, and a compact narrow breech/receiver block with twin short recoil buffers along its flanks and a small rear mounting tab. Same manufacturer and material language as Image 2, but clearly slimmer and shorter: it must fit on a mech's side arm beside the chassis, and also turn on a tank's turret ring, so the barrel runs exactly down the vertical centre line of the module.\nImage 1 is the silhouette, proportion and registration authority: keep its overall outline, width and length, with the barrel on the centre column; refine the detail inside it. Image 2 is material language only (olive-drab painted casing, dark gunmetal barrel, amber service lamps, fasteners, panel seams); do not copy its wide body.\nCritical perspective: strict 90-degree zenith orthographic top-down view. The camera looks straight down at the TOP surfaces of the weapon. The weapon fires horizontally toward the NORTH/TOP edge of the canvas, parallel to the battlefield plane. The muzzle faces AWAY from the camera, so no circular bore or aperture face is visible; at the extreme north tip show only a thin edge-on dark muzzle lip.\nStyle/medium: crisp high-resolution painted game sprite matching the existing modular mech weapon family: fine surface noise, panel seams, fasteners, restrained wear, upper-left baked object lighting, neutral olive-drab painted composite casing, dark gunmetal barrel and mechanisms, small amber service lamps.\nComposition/framing: exactly one isolated vertical module centred with generous padding on a flat featureless pure white isolation plate (no gradient, shadow, halo, floor, border or checkerboard). Bilaterally symmetrical so it mirrors to either arm.\nAvoid: multiple barrels, rotary cluster, rails or coils (it is not a gauss or linear gun), visible circular muzzle, upward-pointing barrel, perspective, isometric, side view, multiple objects, hands, mech body, vehicle, turret base, text, logo, watermark, cropping.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "C:\\Users\\Dillon\\AppData\\Local\\Temp\\claude\\C--Users-Dillon-IdeaProjects-starsectormarines\\b034663a-cd3b-484f-b55f-d86ead8b619f\\scratchpad\\cannon-options\\work\\hc10-guide.png",
+      "sha256": "c58add49e9054c0d596c54835bcc08dc671ddd6f120b3c47722a8fcc53e57959",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGB",
+      "role": "Image 1: silhouette, proportion and registration authority; keep outline, refine detail"
+    },
+    {
+      "path": "art-source\\mech-modular-topdown\\sources\\heavy-cannon.png",
+      "sha256": "5b4c5b330d064fed0b9e005b7a2a99ce4994947d6f7f90e13594cc45af27a59d",
+      "dimensions": [
+        1024,
+        1536
+      ],
+      "mode": "RGBA",
+      "role": "Image 2: material language only; do not copy its wide body"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one HC-10 concept using Image 1’s proportions and Image 2’s materials.\n"
+  ],
+  "usage": {
+    "input_tokens": 45333,
+    "cached_input_tokens": 35072,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 615,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 53.3
+}

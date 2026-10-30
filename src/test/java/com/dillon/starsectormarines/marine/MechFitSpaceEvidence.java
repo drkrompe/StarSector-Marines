@@ -195,9 +195,9 @@ class MechFitSpaceEvidence {
         hound.add(new MechWeaponComponent[]{MechWeaponComponent.CHAINGUN, MechWeaponComponent.SRM_5});
         hound.add(new MechWeaponComponent[]{MechWeaponComponent.CHAINGUN});
         hound.add(new MechWeaponComponent[]{MechWeaponComponent.SRM_5});
-        hound.add(new MechWeaponComponent[]{MechWeaponComponent.DEMOLITION_CANNON, MechWeaponComponent.SRM_5});
-        hound.add(new MechWeaponComponent[]{MechWeaponComponent.MUSTER_AUTOGUN, MechWeaponComponent.LRM_5});
-        hound.add(new MechWeaponComponent[]{MechWeaponComponent.QUARRY_BREAKER_CANNON, MechWeaponComponent.SRM_3_QS});
+        hound.add(new MechWeaponComponent[]{MechWeaponComponent.DC_5, MechWeaponComponent.SRM_5});
+        hound.add(new MechWeaponComponent[]{MechWeaponComponent.AC_6_QS, MechWeaponComponent.LRM_5});
+        hound.add(new MechWeaponComponent[]{MechWeaponComponent.DC_4_QS, MechWeaponComponent.SRM_3_QS});
         for (MechWeaponComponent[] set : hound) {
             for (float[] frame : new float[][]{{100f, 6f}, {100f, 7f}, {100f, 8f}, {120f, 7f}, {120f, 7.5f}, {120f, 8f}}) {
                 fluxRow(md, "HOUND", set, frame[0], frame[1]);

@@ -144,18 +144,18 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
                                          MechWeaponComponent component) {
         return switch (component) {
             case CHAINGUN, CHAINGUN_HF -> assets.chaingunArm;
-            case LINEAR_CANNON -> assets.linearCannon;
-            case SINGLE_HEAVY_CANNON -> assets.heavyCannon;
+            case HC_10 -> assets.hc10;
+            case HC_20 -> assets.hc20;
             // The rack art follows tube count, independently of missile range.
             case SRM_5, LRM_5, SRM_5_FRAG, LRM_5_FRAG -> assets.srmPod;
             case SRM_15, LRM_15, SRM_15_FRAG, LRM_15_FRAG -> assets.lrmPod;
             case SHOULDER_LASER_CANNON -> assets.shoulderLaser;
             case PULSE_LASER -> assets.pulseLaserArm;
-            case BASTION_AUTOCANNON -> assets.bastionAutocannon;
-            case DEMOLITION_CANNON -> assets.demolitionCannon;
+            case AC_6 -> assets.ac6;
+            case DC_5 -> assets.dc5;
             case THERMAL_LANCE -> assets.thermalLance;
-            case MUSTER_AUTOGUN -> assets.musterAutogun;
-            case QUARRY_BREAKER_CANNON -> assets.quarryBreakerCannon;
+            case AC_6_QS -> assets.ac6Qs;
+            case DC_4_QS -> assets.dc4Qs;
             case SRM_3_QS -> assets.srm3QsPod;
             case LIGHT_MACHINE_GUN -> assets.lightMachineGun;
             case LIGHT_PULSE_LASER -> assets.lightPulseLaser;

@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-27 — crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -49,12 +49,12 @@ increasing an encounter's total armored threat.
   `RIGHT_ARM`, the Bulwark's two arms, each with its own gun). Every arm gun is
   one gun: there is no paired or "dual" component, because a pair is two arm
   mounts, each fitted, damaged, lost and fired on its own. A gun whose art only
-  reads on the centreline (the heavy, demolition and quarry-breaker cannons, the
-  heavy lasers) fits only a centreline mount; the other arm guns fit any arm
+  reads on the centreline (the HC-20, the DC-5 and DC-4 (QS), the heavy lasers)
+  fits only a centreline mount; the other arm guns, the HC-10 among them, fit any arm
   mount. A weapon's **presentation** (its drawing, Mech Lab icon, muzzle and kick)
   is resolved from the mount it sits in, never by a second component
   (`MechWeaponComponent.appearanceSelector(MechMountSlot)`): the chaingun, the
-  high-feed chaingun and the Muster autogun are drawn as nose guns on a centreline
+  high-feed chaingun and the AC-6 (QS) are drawn as nose guns on a centreline
   mount and as arm guns on a side arm, in a vehicle's gun card or in stores; every
   other weapon draws the same wherever it sits. There is one chaingun, not a nose
   and an arm chaingun (owner, 2026-10-30). Direct-control number keys follow mount
@@ -76,9 +76,9 @@ increasing an encounter's total armored threat.
   with **no loader** loses only its missile packs, which the loader fabricates; a
   belt or a vehicle magazine keeps its gun's own rate, so giving up the loader for a
   bigger bank never strands a chaingun. A weapon with no authored refill (a mech's
-  demolition cannon or rocket pod) has nothing for a loader to multiply.
-- A **rotary gun** (the chainguns, the light machine gun, the Bastion autocannon
-  and the Muster autogun) has no trigger pull. It fires while its
+  DC cannon or rocket pod) has nothing for a loader to multiply.
+- A **rotary gun** (the chainguns, the light machine gun, and the two AC-6
+  autocannons, the AC-6 and the AC-6 (QS)) has no trigger pull. It fires while its
   trigger is held: its **spin** ramps from a first-turn rate to its full rate over
   the spin-up time, the barrels **coast** at speed for a moment after release, so a
   quick re-press fires at full rate, then spin down. A gun with **no spin-up**
@@ -410,7 +410,7 @@ increasing an encounter's total armored threat.
   weapon and internal (`MechFrameBudget`). Output is the chassis's rated output
   times the engine's factor; a weapon's mass is its footprint plus the weight of
   its access tier, plus a build weight for a weapon whose carriage is the cost
-  (the heavy cannon's breech and recoil mounting and the bastion autocannons'
+  (the HC-20's breech and recoil mounting and the AC-6's
   feed, so a Bulwark carrying either gives up a frame part;
   `heavy-equipment-progression.md`), plating's scales with the frame it covers, and an upgraded
   engine carries its own, since every CORE socket already takes the largest
@@ -765,17 +765,18 @@ SRM shoulders (Missile warheads). Tri-Tachyon issue replaces them with a rapid p
 each arm and the right omni shoulder with a long-cooldown direct laser cannon whose
 lance can pass through one body. Those are explicit faction hardware swaps;
 livery changes only the accepted casing paint of whichever components are
-installed. Hegemony Bulwarks put a Bastion autocannon on each
+installed. Hegemony Bulwarks put an AC-6 autocannon (the Bastion) on each
 arm: ten-round magazines of slow, heavy rounds trade saturation for range and
 armor penetration. Luddic Path Hounds replace the nose gun with a five-shell
-Foundry Breaker, an inaccurate demolition cannon whose contact payload, broad
+DC-5 (the Foundry Breaker), an inaccurate demolition cannon whose contact payload, broad
 blast, and structural damage make every shot consequential. Lion's Guard
 Wardens replace the right LRM rack with a short-ranged thermal lance whose
 directional contact burn and one-cell impact bloom reward aggressive support.
 These signature fits belong to the exact campaign faction ids `hegemony`,
 `luddic_path`, and `lions_guard`; the Diktat does not inherit Guard prototypes.
-The commercial floor is separate from those signatures. A Muster autogun is a
-cheap direct-fire arm gun, drawn as a nose gun on a centreline mount; a Quarry breaker is
+The commercial floor is separate from those signatures. An AC-6 (QS), the QuickSell
+budget AC-6 (the Muster), is a cheap direct-fire arm gun, drawn as a nose gun on a centreline
+mount; a DC-4 (QS), the QuickSell budget DC-5 (the Quarry breaker), is
 a finite, inaccurate centerline industrial cannon whose main virtue is structural
 damage; an SRM-3 (QS), the QuickSell budget rocket pod (`SRM_3_QS`), fires three loose, straight-flight utility rockets from
 a shoulder mount. These components are weaker because their original users
@@ -785,7 +786,7 @@ catalog and livery family without becoming faction defaults. The Mech Lab expose
 them as common-market fabrication patterns whose lower material bills preserve
 that commercial floor. No faction doctrine receives one implicitly.
 
-The Warden's heavy cannon also carries real structural damage (140 per shell over
+The Warden's HC-20 heavy cannon also carries real structural damage (140 per shell over
 a wide blast, untuned), so it opens a wall section from range over a number of
 shells: an assault plan treats it as a reliable distance breacher beside its
 anti-structure fire, and a squad ordered at a wall turns the torso onto the cell
@@ -956,6 +957,33 @@ finished pneumatic strokes. Only nearby, visible events reach the mix, with the
 closest events taking a bounded share of each phase's presentation budget.
 Both battlefield hosts consume the same per-foot gait.
 
+## Weapon names
+
+Every mech gun and rack is named `<Family>-<N>` and its ids follow the name (owner,
+2026-10-30): the enum constant, the component and weapon ids, the string keys and
+the sprite and icon files all carry it (`HC_10`, `component.mech-hc-10`,
+`weapon.mech-hc-10`, `hc-10.png`). `<N>` sizes the part within its family. A
+standard part carries no moniker; `(QS)` marks the QuickSell budget build of a
+family's part (cheaper, smaller and worse, a shortcut for militia manufacture),
+`(Frag)` the fragmentation warhead and `(Pod)` a deployable. A lore name (the
+Bastion, the Muster, the Foundry Breaker, the Quarry breaker) lives only in the
+part's description.
+
+| Family | Part | Footprint | What it is | Tier and issue |
+| --- | --- | --- | --- | --- |
+| HC, heavy cannon | HC-20 | 2x3 | One heavy shell, contact payload, real structural damage; centreline only | Advanced, Military pattern; the Warden's |
+| | HC-10 | 2x2 | One armour-piercing shell, reaching a little further than the HC-20 and hitting softer; fits a side arm | Advanced, Military pattern (the linear cannon's slot) |
+| AC, autocannon | AC-6 | 2x2 | Rotary, six-round bursts off a ten-round belt, heavy rounds | Advanced, Hegemony issue |
+| | AC-6 (QS) | 2x2 | The same burst and belt, faster, softer and wilder; drawn as a nose gun on a centreline mount | Common market |
+| DC, demolition cannon | DC-5 | 2x2 | Five shells, broad blast and wall damage; centreline only | Advanced, Path issue (the Hound's nose) |
+| | DC-4 (QS) | 2x2 | Four shells, shorter, weaker and less accurate; centreline only | Common market |
+
+The HC-10 took the linear cannon's place: the linear cannon is retired. A save
+holding a renamed or retired id carries it to its successor
+(`MechWeaponComponent.findById`, `MechBay.readResolve`). On the Onager both HC
+cannons wear the single-cannon head, the AC and DC cannons the autocannon head
+(`convoy-nouns.md`, the Onager's turret is modular).
+
 ## Missile warheads
 
 Every SRM and LRM rack size comes with two warheads. A rack's size, footprint,
@@ -968,6 +996,7 @@ Every missile part is named `<Family>-<N>` and its ids follow the name (owner,
 2026-10-30): the standard rack carries no moniker (`SRM-5`, `SRM_5`), the
 fragmentation rack carries `(Frag)` (`LRM-5 (Frag)`, `LRM_5_FRAG`) and the
 QuickSell budget rack `(QS)` (`SRM-3 (QS)`, `SRM_3_QS`, `weapon.mech-srm-3-qs`).
+The cannons follow the same rule (Weapon names).
 
 - An **anti-armor (AT) rack** fires a shaped charge. Most of its damage is a
   contact payload at high penetration, landing only on the body the rocket
@@ -1001,7 +1030,7 @@ QuickSell budget rack `(QS)` (`SRM-3 (QS)`, `SRM_3_QS`, `weapon.mech-srm-3-qs`).
   both SRM-5s, and Castle's recovered spare for the Hound is the Frag one, since
   the first operations are fought against men.
 - **Factory fits.** The Bulwark keeps twin AT SRM-15s behind its chainguns. The
-  Hound keeps an AT SRM-5. The Warden ships LRM-5 (Frag) racks: its heavy cannon is
+  Hound keeps an AT SRM-5. The Warden ships LRM-5 (Frag) racks: its HC-20 is
   its answer to armor, and its racks are artillery against men.
 
 `-Dbattle.mech.missileVariants=false` is the control: the AT ids fire the
@@ -1692,7 +1721,7 @@ slot order kept on ties (`MechFireOrder`). Against anything else the slot order
 stands: arm mounts, left shoulder, right shoulder. So a Bulwark's SRM shoulders, its
 anti-armor weapons, are no longer starved by the chaingun against a machine,
 while its fire at infantry is exactly what it was. An anti-armor rack (penetration 30) defeats any mech's plate outright, so a
-heavy cannon, which also does, keeps its slot ahead of it, a bastion yields to
+HC-20, which also does, keeps its slot ahead of it, an AC-6 yields to
 it, and a fragmentation rack (penetration 4) goes after every arm gun. Manual fire follows the player's groups, not this order.
 `-Dbattle.mech.armorFireOrder=false` is the control.
 

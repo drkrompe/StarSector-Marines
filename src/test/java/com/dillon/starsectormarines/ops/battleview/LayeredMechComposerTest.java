@@ -233,11 +233,11 @@ class LayeredMechComposerTest {
                 assets, 400f, 300f, 208f, 0f, 0f, 0f, 0f, 0f, 0f,
                 LayeredMechAppearance.FLAG_CHAINGUN_FLASH,
                 MechVariant.BULWARK.chassisAppearance, LayeredMechAppearance.ARMS_NONE,
-                LayeredMechAppearance.ARMS_BASTION_AUTOCANNON, LayeredMechAppearance.ARMS_BASTION_AUTOCANNON,
+                LayeredMechAppearance.ARMS_AC_6, LayeredMechAppearance.ARMS_AC_6,
                 LayeredMechAppearance.POD_LARGE_SRM,
                 LayeredMechAppearance.POD_LARGE_SRM, 1f);
         assertEquals(2, bastion.stream().filter(layer ->
-                fileName(layer.path()).equals("hegemony-bastion-autocannon.png")).count());
+                fileName(layer.path()).equals("ac-6.png")).count());
         assertEquals(2, bastion.stream().filter(layer ->
                 fileName(layer.path()).equals("marine-muzzle-flash.png")).count());
 
@@ -246,11 +246,11 @@ class LayeredMechComposerTest {
                         demolition.add(new Layer(sprite.sourcePath, x, y, width, height, angle)),
                 assets, 400f, 300f, 208f, 0f, 0f, 0f, 0f, 0f, 0f, 0,
                 MechVariant.HOUND.chassisAppearance,
-                LayeredMechAppearance.ARMS_DEMOLITION_CANNON, LayeredMechAppearance.ARMS_NONE, LayeredMechAppearance.ARMS_NONE,
+                LayeredMechAppearance.ARMS_DC_5, LayeredMechAppearance.ARMS_NONE, LayeredMechAppearance.ARMS_NONE,
                 LayeredMechAppearance.POD_SMALL_SRM,
                 LayeredMechAppearance.POD_NONE, 1f);
         assertEquals(1, demolition.stream().filter(layer ->
-                fileName(layer.path()).equals("pather-demolition-cannon.png")).count());
+                fileName(layer.path()).equals("dc-5.png")).count());
 
         List<Layer> thermal = emitFlashingMech(assets, MechVariant.WARDEN,
                 LayeredMechAppearance.FLAG_LASER_FLASH,
@@ -270,11 +270,11 @@ class LayeredMechComposerTest {
                 assets, 400f, 300f, 208f, 0f, 0f, 0f, 0f, 0f, 0f,
                 LayeredMechAppearance.FLAG_CHAINGUN_FLASH,
                 MechVariant.BULWARK.chassisAppearance, LayeredMechAppearance.ARMS_NONE,
-                LayeredMechAppearance.ARMS_MUSTER_AUTOGUN, LayeredMechAppearance.ARMS_MUSTER_AUTOGUN,
+                LayeredMechAppearance.ARMS_AC_6_QS, LayeredMechAppearance.ARMS_AC_6_QS,
                 LayeredMechAppearance.POD_NONE,
                 LayeredMechAppearance.POD_SRM_3_QS, 1f);
         assertEquals(2, muster.stream().filter(layer ->
-                fileName(layer.path()).equals("muster-autogun.png")).count());
+                fileName(layer.path()).equals("ac-6-qs.png")).count());
         assertEquals(1, muster.stream().filter(layer ->
                 fileName(layer.path()).equals("srm-3-qs-pod.png")).count());
         assertEquals(2, muster.stream().filter(layer ->
@@ -286,11 +286,11 @@ class LayeredMechComposerTest {
                 assets, 400f, 300f, 208f, 0f, 0f, 0f, 0f, 0f, 0f,
                 LayeredMechAppearance.FLAG_SRM_FLASH,
                 MechVariant.HOUND.chassisAppearance,
-                LayeredMechAppearance.ARMS_QUARRY_BREAKER, LayeredMechAppearance.ARMS_NONE, LayeredMechAppearance.ARMS_NONE,
+                LayeredMechAppearance.ARMS_DC_4_QS, LayeredMechAppearance.ARMS_NONE, LayeredMechAppearance.ARMS_NONE,
                 LayeredMechAppearance.POD_SRM_3_QS,
                 LayeredMechAppearance.POD_NONE, 1f);
         assertEquals(1, quarry.stream().filter(layer ->
-                fileName(layer.path()).equals("quarry-breaker-cannon.png")).count());
+                fileName(layer.path()).equals("dc-4-qs.png")).count());
         assertEquals(1, quarry.stream().filter(layer ->
                 fileName(layer.path()).equals("marine-muzzle-flash.png")).count());
     }

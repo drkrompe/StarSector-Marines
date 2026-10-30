@@ -17,7 +17,7 @@ class VehicleGunsTest {
 
     @Test
     void theGunCardTakesOnlyAWeaponOfItsTypeAndSize() {
-        assertTrue(CampaignVehicle.takesGun(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.SINGLE_HEAVY_CANNON));
+        assertTrue(CampaignVehicle.takesGun(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.HC_20));
         assertFalse(CampaignVehicle.takesGun(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.PULSE_LASER));
         assertFalse(CampaignVehicle.takesGun(VehicleType.SUPPLY_TRUCK, MechWeaponComponent.CHAINGUN), "no card, no gun");
 
@@ -32,32 +32,32 @@ class VehicleGunsTest {
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
 
-        assertFalse(bay.fitGun("v1", MechWeaponComponent.SINGLE_HEAVY_CANNON), "nothing in stores");
-        bay.addWeapon(MechWeaponComponent.SINGLE_HEAVY_CANNON.id, 1);
-        bay.addWeapon(MechWeaponComponent.LINEAR_CANNON.id, 1);
+        assertFalse(bay.fitGun("v1", MechWeaponComponent.HC_20), "nothing in stores");
+        bay.addWeapon(MechWeaponComponent.HC_20.id, 1);
+        bay.addWeapon(MechWeaponComponent.HC_10.id, 1);
         bay.addWeapon(MechWeaponComponent.PULSE_LASER.id, 1);
         assertFalse(bay.fitGun("v1", MechWeaponComponent.PULSE_LASER), "an energy weapon is not a ballistic one");
-        assertTrue(bay.fitGun("v1", MechWeaponComponent.SINGLE_HEAVY_CANNON));
-        assertEquals(0, bay.availableWeapon(MechWeaponComponent.SINGLE_HEAVY_CANNON.id));
-        assertSame(MechWeaponComponent.SINGLE_HEAVY_CANNON, tank.freezeForDeployment().gun(), "the drop carries the gun");
+        assertTrue(bay.fitGun("v1", MechWeaponComponent.HC_20));
+        assertEquals(0, bay.availableWeapon(MechWeaponComponent.HC_20.id));
+        assertSame(MechWeaponComponent.HC_20, tank.freezeForDeployment().gun(), "the drop carries the gun");
 
-        assertTrue(bay.fitGun("v1", MechWeaponComponent.LINEAR_CANNON));
-        assertEquals(1, bay.availableWeapon(MechWeaponComponent.SINGLE_HEAVY_CANNON.id), "the outgoing gun is a spare");
+        assertTrue(bay.fitGun("v1", MechWeaponComponent.HC_10));
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.HC_20.id), "the outgoing gun is a spare");
 
         assertTrue(bay.stripGun("v1"));
         assertNull(tank.gun());
         assertFalse(bay.stripGun("v1"), "the hull fires its own gun already");
-        assertEquals(1, bay.availableWeapon(MechWeaponComponent.LINEAR_CANNON.id));
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.HC_10.id));
 
-        assertTrue(bay.fitGun("v1", MechWeaponComponent.LINEAR_CANNON));
+        assertTrue(bay.fitGun("v1", MechWeaponComponent.HC_10));
         assertTrue(bay.scrapVehicle("v1"));
-        assertEquals(1, bay.availableWeapon(MechWeaponComponent.LINEAR_CANNON.id), "a scrap spares the gun");
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.HC_10.id), "a scrap spares the gun");
 
         CampaignVehicle lost = new CampaignVehicle("v2", "Lost", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, lost));
-        assertTrue(bay.fitGun("v2", MechWeaponComponent.SINGLE_HEAVY_CANNON));
+        assertTrue(bay.fitGun("v2", MechWeaponComponent.HC_20));
         assertEquals(1, bay.loseVehicles(List.of("v2")));
-        assertEquals(0, bay.ownedWeapon(MechWeaponComponent.SINGLE_HEAVY_CANNON.id), "a wrecked hull takes its gun with it");
+        assertEquals(0, bay.ownedWeapon(MechWeaponComponent.HC_20.id), "a wrecked hull takes its gun with it");
     }
 
     @Test
@@ -65,9 +65,9 @@ class VehicleGunsTest {
         MechBay bay = new MechBay();
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
-        bay.addWeapon(MechWeaponComponent.LINEAR_CANNON.id, 1);
-        assertTrue(bay.fitGun("v1", MechWeaponComponent.LINEAR_CANNON));
-        assertEquals(1, bay.installedWeapon(MechWeaponComponent.LINEAR_CANNON.id));
-        assertEquals(0, bay.availableWeapon(MechWeaponComponent.LINEAR_CANNON.id));
+        bay.addWeapon(MechWeaponComponent.HC_10.id, 1);
+        assertTrue(bay.fitGun("v1", MechWeaponComponent.HC_10));
+        assertEquals(1, bay.installedWeapon(MechWeaponComponent.HC_10.id));
+        assertEquals(0, bay.availableWeapon(MechWeaponComponent.HC_10.id));
     }
 }

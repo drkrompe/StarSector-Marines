@@ -39,16 +39,16 @@
       "description": "@gearCatalogComponentMechChaingunHfDescription"
     },
     {
-      "component": "component.mech-linear-cannon",
-      "factionLogo": "graphics/factions/tritachyon.png",
-      "designation": "MLC",
-      "description": "@gearCatalogComponentMechLinearCannonDescription"
+      "component": "component.mech-hc-10",
+      "factionLogo": "graphics/factions/hegemony.png",
+      "designation": "HC-10",
+      "description": "@gearCatalogComponentMechHc10Description"
     },
     {
-      "component": "component.mech-heavy-cannon",
+      "component": "component.mech-hc-20",
       "factionLogo": "graphics/factions/hegemony.png",
-      "designation": "MHC",
-      "description": "@gearCatalogComponentMechHeavyCannonDescription"
+      "designation": "HC-20",
+      "description": "@gearCatalogComponentMechHc20Description"
     },
     {
       "component": "component.mech-pulse-laser",
@@ -57,28 +57,28 @@
       "description": "@gearCatalogComponentMechPulseLaserDescription"
     },
     {
-      "component": "component.mech-bastion-autocannon",
+      "component": "component.mech-ac-6",
       "factionLogo": "graphics/factions/persean_league.png",
-      "designation": "BAC",
-      "description": "@gearCatalogComponentMechBastionAutocannonDescription"
+      "designation": "AC-6",
+      "description": "@gearCatalogComponentMechAc6Description"
     },
     {
-      "component": "component.mech-demolition-cannon",
+      "component": "component.mech-dc-5",
       "factionLogo": "graphics/factions/pirates.png",
-      "designation": "FBR",
-      "description": "@gearCatalogComponentMechDemolitionCannonDescription"
+      "designation": "DC-5",
+      "description": "@gearCatalogComponentMechDc5Description"
     },
     {
-      "component": "component.mech-muster-autogun",
+      "component": "component.mech-ac-6-qs",
       "factionLogo": "graphics/factions/neutral_traders.png",
-      "designation": "CAG-6",
-      "description": "@gearCatalogComponentMechMusterAutogunDescription"
+      "designation": "AC-6 (QS)",
+      "description": "@gearCatalogComponentMechAc6QsDescription"
     },
     {
-      "component": "component.mech-quarry-breaker",
+      "component": "component.mech-dc-4-qs",
       "factionLogo": "graphics/factions/neutral_traders.png",
-      "designation": "QBC-2",
-      "description": "@gearCatalogComponentMechQuarryBreakerDescription"
+      "designation": "DC-4 (QS)",
+      "description": "@gearCatalogComponentMechDc4QsDescription"
     },
     {
       "component": "component.mech-srm-5",

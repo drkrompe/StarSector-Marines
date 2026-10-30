@@ -33,12 +33,12 @@ public final class FactionMechLoadouts {
         }
         if (variant == MechVariant.BULWARK && isFaction(factionId, HEGEMONY_ID)) {
             return new MechLoadoutComponent(variant,
-                    MechWeaponComponent.BASTION_AUTOCANNON,
+                    MechWeaponComponent.AC_6,
                     variant.leftShoulder, variant.rightShoulder, deployedRole);
         }
         if (variant == MechVariant.HOUND && isFaction(factionId, LUDDIC_PATH_ID)) {
             return new MechLoadoutComponent(variant,
-                    MechWeaponComponent.DEMOLITION_CANNON,
+                    MechWeaponComponent.DC_5,
                     variant.leftShoulder, variant.rightShoulder, deployedRole);
         }
         if (variant == MechVariant.WARDEN && isFaction(factionId, LIONS_GUARD_ID)) {

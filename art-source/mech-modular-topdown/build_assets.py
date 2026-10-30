@@ -8,7 +8,7 @@ visible. Runtime dimensions use chassis width as their shared unit.
 from pathlib import Path
 from PIL import Image
 
-from derive_faction_weapons import build_faction_weapons
+from derive_faction_weapons import DC_4_QS_SQUEEZE, build_faction_weapons, squeeze
 
 
 # Raw art lives outside mod/, so the shipped folder never carries pre-pack
@@ -44,11 +44,12 @@ def content_crop(image: Image.Image, threshold: int = 24) -> Image.Image:
 
 def normalize(source: str, output: str, size: tuple[int, int],
               flip_top_bottom: bool = False,
-              alpha_from: str | None = None) -> Image.Image:
+              alpha_from: str | None = None,
+              squeeze_x: float = 1.0) -> Image.Image:
     raw = Image.open(SOURCES / source).convert("RGBA")
     if raw.getchannel("A").getextrema()[0] == 255:
         raise ValueError(f"{source} has no transparent background")
-    image = content_crop(raw)
+    image = squeeze(content_crop(raw), squeeze_x)
     if flip_top_bottom:
         image = image.transpose(Image.Transpose.FLIP_TOP_BOTTOM)
     image.thumbnail(size, Image.Resampling.LANCZOS)
@@ -141,8 +142,9 @@ def main() -> None:
     # Heavy hardpoints are sized deliberately against the 208px chassis width:
     # arms ~= 27%, SRM ~= 30%, LRM ~= 36%. Rear pivots remain buried.
     normalize("chaingun-arm-v2.png", "chaingun-arm.png", (62, 112))
-    normalize("linear-cannon-concept.png", "linear-cannon-variant.png", (58, 138))
-    normalize("heavy-cannon.png", "heavy-cannon.png", (64, 128))
+    normalize("hc-20.png", "hc-20.png", (64, 128))
+    # The HC-10: the heavy cannon's short, slim sibling, a 2x2 part that also fits a side arm.
+    normalize("weapon-concepts/hc-10.png", "hc-10.png", (40, 116))
     normalize("thigh-bone.png", "thigh-bone.png", (40, 112))
     normalize("srm-pod.png", "srm-pod.png", (62, 88))
     normalize("lrm-pod.png", "lrm-pod.png", (76, 96))
@@ -150,16 +152,17 @@ def main() -> None:
               "shoulder-laser-cannon.png", (76, 128))
     normalize("weapon-concepts/pulse-laser-arm.png",
               "pulse-laser-arm.png", (62, 112))
-    normalize("weapon-concepts/hegemony-bastion-autocannon.png",
-              "hegemony-bastion-autocannon.png", (64, 132))
-    normalize("weapon-concepts/pather-demolition-cannon.png",
-              "pather-demolition-cannon.png", (72, 124))
+    normalize("weapon-concepts/ac-6.png",
+              "ac-6.png", (64, 132))
+    normalize("weapon-concepts/dc-5.png",
+              "dc-5.png", (72, 124))
     normalize("weapon-concepts/lions-guard-thermal-lance.png",
               "lions-guard-thermal-lance.png", (76, 132))
-    normalize("weapon-concepts/muster-autogun.png",
-              "muster-autogun.png", (62, 128))
-    normalize("weapon-concepts/quarry-breaker-cannon.png",
-              "quarry-breaker-cannon.png", (72, 124))
+    normalize("weapon-concepts/ac-6-qs.png",
+              "ac-6-qs.png", (62, 128))
+    # The DC-4 (QS) drum is slimmed to the DC-5's proportions, so it reads as a cannon rather than a bucket.
+    normalize("weapon-concepts/dc-4-qs.png",
+              "dc-4-qs.png", (72, 124), squeeze_x=DC_4_QS_SQUEEZE)
     normalize("weapon-concepts/srm-3-qs-pod.png",
               "srm-3-qs-pod.png", (76, 112))
     # The light weapons: one-row parts for the small gun card, drawn at 70 to 80 percent of the length of the
