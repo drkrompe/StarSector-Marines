@@ -353,7 +353,7 @@
           { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
         ]
       },
-      "audio": { "fireSound": "burst_pd_fire" }
+      "audio": { "fireSound": "burst_pd_fire", "loopSound": "laser_loop" }
     },
     {
       "id": "weapon.hardpoint-pd-laser",
@@ -437,7 +437,7 @@
           { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
         ]
       },
-      "audio": { "fireSound": "burst_pd_fire" }
+      "audio": { "fireSound": "burst_pd_fire", "loopSound": "laser_loop" }
     },
     {
       "id": "weapon.turret-vulcan",
