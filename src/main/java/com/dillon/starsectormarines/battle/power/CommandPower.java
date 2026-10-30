@@ -161,6 +161,14 @@ public abstract class CommandPower {
     }
 
     /**
+     * The side, in cells, of a square footprint the targeting marker outlines centred on the cursor cell, as a build
+     * that lays a plot draws it. {@code 0} (the default) draws none.
+     */
+    public int previewSquareCells() {
+        return 0;
+    }
+
+    /**
      * What the power's card in the battle tray calls itself, given the charges left. Most powers
      * are their name; one backed by several named sources says which comes next.
      */

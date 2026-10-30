@@ -59,6 +59,13 @@ public final class TurretMountDef {
     public final float loaderSeconds;
 
     /**
+     * Whether a trigger pack of this mount is a group of missiles, which a loader fabricates ({@code sim.missilePack}):
+     * a hull with no loader in its compartment never puts one back, while a magazine of rounds keeps its own loader
+     * time (mechs-nouns.md, the loader rule). A fitted mech weapon is one when it is a missile-hardpoint part.
+     */
+    public final boolean missilePack;
+
+    /**
      * Whether a vehicle carrying this mount also puts its gun on hostile aircraft: fighters, gunships and
      * shuttles in the air within its reach, with a clear line up. The gun is the same gun, on the same magazine,
      * cadence and flux, so a craft it takes is ground it leaves. Read by the vehicle turret pass only; an
@@ -101,12 +108,13 @@ public final class TurretMountDef {
                            int ammoCapacity, float turnRateDegPerSec,
                            float visualCells, float muzzleOffsetCells,
                            float muzzleLateralOffsetCells, List<Muzzle> muzzles,
-                           boolean hardenedTargetsOnly, Flux flux, float loaderSeconds,
+                           boolean hardenedTargetsOnly, Flux flux, float loaderSeconds, boolean missilePack,
                            boolean engagesAir, float maxDepressionDeg,
                            String spritePath, String recoilSpritePath, Recoil recoil,
                            boolean ejectsCasings, float scorchCells) {
         this.id = id;
         this.loaderSeconds = loaderSeconds;
+        this.missilePack = missilePack;
         this.scorchCells = scorchCells;
         this.recoil = recoil;
         this.ejectsCasings = ejectsCasings;
@@ -221,20 +229,22 @@ public final class TurretMountDef {
         return new TurretMountDef(
                 id, weaponId, weapon, ammoCapacity, turnRate, visualCells, muzzleOffsetCells,
                 muzzleLateralOffsetCells, muzzles, json.optBoolean("hardenedTargetsOnly", false),
-                flux, loaderSeconds, json.optBoolean("engagesAir", false), maxDepressionDeg, sprite, recoilSprite, recoil,
+                flux, loaderSeconds, sim.optBoolean("missilePack", false), json.optBoolean("engagesAir", false), maxDepressionDeg, sprite, recoilSprite, recoil,
                 render != null && render.optBoolean("casings", false), scorch);
     }
 
     /**
      * This carriage carrying another gun: the same traverse, loader and body, with {@code weapon} in it, a
      * magazine of {@code ammoCapacity} pulls, the given flux and hardened-target rule, and the weapon's own single muzzle
-     * {@code muzzleOffsetCells} out from the mount with its own casing and scorch effects. A vehicle's fitted weapon is
-     * the stock mount with the weapon's own ballistics ({@code VehicleGun}).
+     * {@code muzzleOffsetCells} out from the mount with its own casing and scorch effects, its packs missiles when
+     * {@code missilePack}. A vehicle's fitted weapon is the stock mount with the weapon's own ballistics
+     * ({@code VehicleGun}).
      */
     public TurretMountDef withGun(WeaponDef weapon, int ammoCapacity, Flux flux, boolean hardenedTargetsOnly,
-                                  float muzzleOffsetCells, boolean ejectsCasings, float scorchCells) {
+                                  float muzzleOffsetCells, boolean ejectsCasings, float scorchCells,
+                                  boolean missilePack) {
         return new TurretMountDef(id, weapon.id, weapon, ammoCapacity, turnRateDegPerSec, visualCells,
-                muzzleOffsetCells, 0f, List.of(), hardenedTargetsOnly, flux, loaderSeconds,
+                muzzleOffsetCells, 0f, List.of(), hardenedTargetsOnly, flux, loaderSeconds, missilePack,
                 engagesAir, maxDepressionDeg, spritePath, recoilSpritePath, recoil, ejectsCasings, scorchCells);
     }
 

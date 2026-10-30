@@ -26,7 +26,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- * Mock-ups for the staged Locust build (`staged-locust-build.md`): the shapes a Locust site could take, made from the
+ * Mock-ups for the staged Locust build (`tender-ship.md`, Staged builds): the shapes a Locust site could take, made from the
  * pieces a fort's prepared positions already use (concrete paving, the tight emplacement parapet, sandbag runs, crate
  * stacks, the single-cell Locust and the raised Locust Hardpoint) on real arid ground, with a four-marine fire team
  * beside each for scale. Forward is north. One still per shot, 18 cells across, for the owner's picks; nothing here

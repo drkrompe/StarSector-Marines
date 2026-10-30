@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.battle.squad.CampaignSquadTag;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
@@ -66,6 +67,7 @@ import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.FieldPresencePolicy;
 import com.dillon.starsectormarines.ops.ConquestArrivalConfig;
 import com.dillon.starsectormarines.ops.MarineArrivalPolicy;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.junit.jupiter.api.Test;
 
@@ -564,6 +566,23 @@ class BattleFixtureJsonTest {
         BattleLaunchFixture legacy = (BattleLaunchFixture) BattleFixtureJson.fromJson(encoded);
         assertEquals(List.of(new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC)),
                 legacy.launch().commandPowers().get(0).vehicleDeployments());
+
+        // Frozen before the compartment: its flux frame and a retired loader kit; the hull's sealed loader was standard.
+        frozen.remove("compartment");
+        JSONObject flux = new JSONObject();
+        flux.put("capacity", 100f);
+        flux.put("dissipationPerSecond", 7f);
+        frozen.put("flux", flux);
+        frozen.put("kits", new JSONArray(List.of("kit.accelerated-loader")));
+        VehicleDeploymentSpec old = ((BattleLaunchFixture) BattleFixtureJson.fromJson(encoded))
+                .launch().commandPowers().get(0).vehicleDeployments().get(0);
+        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.AUXILIARY_VENT_ARRAY,
+                MechInternal.ACCELERATED_LOADER), old.compartment());
+        frozen.remove("kits");
+        frozen.remove("flux");
+        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.STANDARD_LOADER),
+                ((BattleLaunchFixture) BattleFixtureJson.fromJson(encoded))
+                        .launch().commandPowers().get(0).vehicleDeployments().get(0).compartment());
     }
 
     @Test

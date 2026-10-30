@@ -110,7 +110,8 @@ public final class VehicleGun {
         float muzzle = length > 0f ? (1f - RING_FROM_REAR) * length : carriage.muzzleOffsetCells;
         boolean ballistic = weapon.hardpointType == MechWeaponComponent.HardpointType.BALLISTIC;
         return stock.withMount(carriage.withGun(def, magazine, flux, weapon.antiArmorOnly(), muzzle,
-                ballistic && carriage.ejectsCasings, ballistic ? carriage.scorchCells : 0f));
+                ballistic && carriage.ejectsCasings, ballistic ? carriage.scorchCells : 0f,
+                weapon.hardpointType == MechWeaponComponent.HardpointType.MISSILE));
     }
 
     /** What one round of {@code weapon} adds to the gun's flux: a mech's whole-pack flux over the pack's rounds. */

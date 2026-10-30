@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
+Updated: 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -588,8 +588,12 @@ a gun lost in battle is lost for that battle only.
 
 **A hull's loader refills its magazine** (`GroundTurret.advanceLoader`), the
 way a mech's replenisher refills its racks (`mechs-nouns.md`, missile
-replenisher). Every armed hull carries a stock loader, sealed in its doll and
-staying the hull's own when a weapon is fitted to its gun card (`mechs-nouns.md`, vehicle gun card). Each mount authors how long its loader takes to put back one **pack**,
+replenisher). The loader is a part in the hull's auxiliary compartment, the mech's own
+standard or accelerated loader (`VehicleRack`), and every armed hull is built with the
+standard one; it stays when a weapon is fitted to the gun card. **Empty means nothing**, as on a
+mech: a hull with no loader never puts a **missile pack** back (`TurretMountDef.missilePack`: the
+LRM and SRM racks, and a missile part in the gun card), while a magazine of rounds keeps its
+mount's own loader time. Each mount authors how long the standard loader takes to put back one **pack**,
 the weapon's burst (`TurretMountDef.loaderSeconds`): a group of missiles, a
 volley of the twin cannon, a machine-gun burst, a single bomb. The loader runs
 firing or not, for the whole battle, and never past the magazine, so the
@@ -602,12 +606,12 @@ fight still thins a hull's fire: the LRM rack takes 18 s a group (the mech
 standard loader's), the SRM rack 12 s, the cannon 10 s a volley, the MG and the
 mortar 6 s, the hover scout's Twin PE-1 4 s. The lasers' are quicker than their flux
 lets them fire (1.2 s and 1.5 s), so a laser tank's limit is its flux, as a
-mech laser's is. Two kits make it an upgrade path, each competing for rack
+mech laser's is. Two parts make it an upgrade path, each competing for compartment
 room with the liner and the flux parts (`mechs-nouns.md`, vehicle kit): the **ready
-rack** deepens the magazine or a rotary gun's belt (a bigger spike) and the
-**accelerated loader** cuts every pack's time to three quarters and feeds a rotary
-gun's hopper four thirds as fast (a better sustained rate, by the one loader rule a
-mech's loader part follows, `mechs-nouns.md`, missile replenisher). A bigger bank or a
+rack** kit deepens the magazine or a rotary gun's belt (a bigger spike) and the
+**accelerated loader**, in place of the standard one, cuts every pack's time to three quarters and feeds a rotary
+gun's hopper four thirds as fast (a better sustained rate, by the one loader rule,
+`mechs-nouns.md`, missile replenisher). A bigger bank or a
 vent array on the rack is the flux upgrade (hull flux, below).
 
 **Every hull gun builds flux** (owner, 2026-10-26; `TurretMountDef.flux`), as a

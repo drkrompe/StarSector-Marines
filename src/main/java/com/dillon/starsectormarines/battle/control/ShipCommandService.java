@@ -106,7 +106,8 @@ public final class ShipCommandService {
             case DEFENCE -> { if (tender == null) return Notice.UNAVAILABLE; tender.defenceOut(!tender.defenceOut()); return Notice.DEFENCE; }
             case BUILD -> {
                 if (tender == null || request.option() == null || !tender.options().contains(request.option())) return Notice.UNAVAILABLE;
-                TenderPilot.Placement where = TenderPilot.placement(tender, request.x(), request.y(), grid, revealed);
+                TenderPilot.Placement where = TenderPilot.placement(tender, request.option(), request.x(), request.y(),
+                        grid, revealed);
                 if (where != TenderPilot.Placement.OPEN) return switch (where) {
                     case UNSEEN -> Notice.UNSEEN;
                     case OFF_MAP -> Notice.OFF_MAP;

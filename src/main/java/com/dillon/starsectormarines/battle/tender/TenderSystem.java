@@ -272,6 +272,7 @@ public final class TenderSystem {
         switch (o.phase()) {
             case QUEUED -> {
                 o.begin();
+                if (o.option().plot() != null) o.face(facing(t, o, sim));
                 if (t.grounded()) {
                     o.standoff(t.bayX(), t.bayY());
                     return;
@@ -348,6 +349,12 @@ public final class TenderSystem {
         if (!contested) deployBuilders(t, dt, sim);
         int crew = t.builderComplement();
         boolean done = o.work(dt, onSite, crew, contested);
+        // A staged build's ground goes down as the work passes each stage's share, and stays whatever follows.
+        for (BuildPlot.Stage stage = o.stageDue(); stage != null; stage = o.stageDue()) {
+            PlotWorks.lay(sim, o.option().plot(), stage, (int) Math.floor(o.siteX()), (int) Math.floor(o.siteY()),
+                    o.facing());
+            o.laid();
+        }
         if (!done) {
             for (Long id : t.builders) {
                 if (t.welding(id, o, world.x(id), world.y(id)) && BuilderStations.torchLit(id, tick)) {
@@ -359,7 +366,41 @@ public final class TenderSystem {
         }
         cues.complete(t.faction(), o.siteX(), o.siteY(), tick);
         String name = "tender-turret-" + nextSite++;
-        finish(o.option(), t.faction(), name, (int) Math.floor(o.siteX()), (int) Math.floor(o.siteY()), sim);
+        int[] gun = gunCell(o);
+        finish(o.option(), t.faction(), name, gun[0], gun[1], sim);
+    }
+
+    /** The cell the finished structure stands on: the site's own, or the plot's gun cell turned to its facing. */
+    static int[] gunCell(ConstructionOrder o) {
+        int cx = (int) Math.floor(o.siteX());
+        int cy = (int) Math.floor(o.siteY());
+        BuildPlot plot = o.option().plot();
+        if (plot == null) return new int[]{cx, cy};
+        int[] facing = o.facing();
+        return plot.gun(cx, cy, facing[0], facing[1]);
+    }
+
+    /**
+     * Which way a plot's forward side faces when its order sets out: toward the nearest hostile the tender's side
+     * knows of, or straight away from the tender when it knows of none.
+     */
+    private static int[] facing(Tender t, ConstructionOrder o, BattleSimulation sim) {
+        float[] known = TenderThreat.known(sim, t);
+        float bestX = 0f, bestY = 0f, best = Float.MAX_VALUE;
+        for (int i = 0; i + 1 < known.length; i += 2) {
+            float dx = known[i] - o.siteX(), dy = known[i + 1] - o.siteY();
+            float d = dx * dx + dy * dy;
+            if (d < best) {
+                best = d;
+                bestX = dx;
+                bestY = dy;
+            }
+        }
+        if (best == Float.MAX_VALUE) {
+            bestX = o.siteX() - t.ship().x;
+            bestY = o.siteY() - t.ship().y;
+        }
+        return BuildPlot.facing(bestX, bestY);
     }
 
     /**

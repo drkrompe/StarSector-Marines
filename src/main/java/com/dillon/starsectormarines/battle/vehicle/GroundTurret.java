@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.vehicle;
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
 import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
@@ -169,14 +170,16 @@ public final class GroundTurret {
     }
 
     /**
-     * A full gun on {@code mount}, its loader as the hull's kits make it, with {@code rounds} in a
-     * magazine of that size.
+     * A full gun on {@code mount}, paced by the hull's {@code loader} (the loader rule, {@link LoaderPace}), with
+     * {@code rounds} in a magazine of that size. A missile pack never comes back without a loader; any other
+     * magazine keeps its mount's own loader time.
      */
-    public static GroundTurret fitted(TurretMountDef mount, int rounds, VehicleKit.Effect kits,
+    public static GroundTurret fitted(TurretMountDef mount, int rounds, MissileReplenisherComponent loader,
                                       HullTurretSection section) {
         GroundTurret turret = new GroundTurret(rounds, section);
         turret.unlimited = mount.ammoCapacity == 0;
-        turret.loaderSeconds = LoaderPace.secondsPerPack(mount.loaderSeconds, kits.loaderFactor());
+        turret.loaderSeconds = mount.missilePack && !loader.refillsPacks() ? Float.POSITIVE_INFINITY
+                : LoaderPace.secondsPerPack(mount.loaderSeconds, loader.loaderFactor());
         return turret;
     }
 

@@ -21,8 +21,10 @@ import java.util.List;
  * @param structureId  turret-catalog structure the finished site becomes
  * @param buildSeconds seconds a full crew of builders needs; fewer builders take longer
  * @param cost         build charges drawn from a metered tender's stock when the site is laid (unmetered tenders ignore it)
+ * @param plot         the ground laid in stages before the structure, or {@code null} for a structure on one bare cell
  */
-public record BuildOption(String id, String label, Kind kind, String structureId, float buildSeconds, int cost) {
+public record BuildOption(String id, String label, Kind kind, String structureId, float buildSeconds, int cost,
+                          BuildPlot plot) {
 
     /** What a finished site becomes. The construction order is identical; only completion differs. */
     public enum Kind {
@@ -35,6 +37,17 @@ public record BuildOption(String id, String label, Kind kind, String structureId
     public BuildOption {
         if (!(buildSeconds > 0f)) throw new IllegalArgumentException("a build takes time");
         if (cost < 0) throw new IllegalArgumentException("a build cannot refund the tender");
+        if (plot != null && kind != Kind.TURRET) throw new IllegalArgumentException("only a turret stands on a plot");
+    }
+
+    /** A structure on one bare cell. */
+    public BuildOption(String id, String label, Kind kind, String structureId, float buildSeconds, int cost) {
+        this(id, label, kind, structureId, buildSeconds, cost, null);
+    }
+
+    /** How far the site reaches from its centre: 0 for one cell, the plot's reach for a staged build. */
+    public int reach() {
+        return plot == null ? 0 : plot.reach();
     }
 
     /** The catalog structure of the carried Palisade pod. */
@@ -68,18 +81,25 @@ public record BuildOption(String id, String label, Kind kind, String structureId
             "point-defence-pod", "Interceptor pod", Kind.POINT_DEFENCE, POD_STRUCTURE_ID, 8f, 1);
 
     /**
-     * The recovery tender's two guns, catalog turrets through the same structure path, timed and costed from the
-     * vulcan by weight as above: a heavy machine gun (structure plus armour 180, force 10) and a Locust battery,
-     * indirect rocket artillery that cannot fire inside its minimum range (220, force 18).
+     * The recovery tender's guns, catalog turrets through the same structure path, timed and costed from the vulcan by
+     * weight as above: a heavy machine gun (structure plus armour 180, force 10) and the Locust, indirect rocket
+     * artillery that cannot fire inside its minimum range (220, force 18). The Locust is a staged build: a quick 3x3
+     * nest, or a slower 5x5 fire base whose rim, sandbags and stacks are cover for the company (owner picks,
+     * 2026-10-30, `tender-ship.md`, Staged builds).
      */
     public static final BuildOption HEAVY_MG_TURRET = new BuildOption(
             "heavy-mg-turret", "Heavy MG turret", Kind.TURRET, TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 15f, 2);
 
     public static final BuildOption LOCUST_TURRET = new BuildOption(
-            "locust-turret", "Locust artillery", Kind.TURRET, TurretCatalogRegistry.LOCUST_STRUCTURE_ID, 20f, 3);
+            "locust-turret", "Locust nest", Kind.TURRET, TurretCatalogRegistry.LOCUST_STRUCTURE_ID, 20f, 3,
+            BuildPlot.NEST);
+
+    public static final BuildOption LOCUST_FIRE_BASE = new BuildOption(
+            "locust-fire-base", "Locust fire base", Kind.TURRET, TurretCatalogRegistry.LOCUST_STRUCTURE_ID, 34f, 4,
+            BuildPlot.FIRE_BASE);
 
     /** What Morrow builds on her recovery missions, grounded or in low hover. */
-    public static final List<BuildOption> RECOVERY = List.of(HEAVY_MG_TURRET, LOCUST_TURRET);
+    public static final List<BuildOption> RECOVERY = List.of(HEAVY_MG_TURRET, LOCUST_TURRET, LOCUST_FIRE_BASE);
 
     /** Every option a tender offers, in the order a player selects them (number keys 1-5). */
     public static final List<BuildOption> ALL = List.of(

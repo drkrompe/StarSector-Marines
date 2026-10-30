@@ -5,6 +5,8 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.weapon.LoaderPace;
 import com.dillon.starsectormarines.battle.weapon.RotaryFeedDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.MechInternal;
+import com.dillon.starsectormarines.marine.VehicleRack;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -72,9 +74,10 @@ class LoaderPaceTest {
     }
 
     @Test
-    void aVehiclesKitsPaceTheHopperAndDeepenTheBelt() {
-        VehicleKit.Effect kits = VehicleKit.Effect.of(List.of(VehicleKit.ACCELERATED_LOADER, VehicleKit.READY_RACK));
-        RotaryFeed feed = new RotaryFeed(GUN, kits.loaderFactor(), kits.ammoFactor());
+    void aVehiclesLoaderPacesTheHopperAndItsReadyRackDeepensTheBelt() {
+        VehicleKit.Effect kits = VehicleKit.Effect.of(List.of(VehicleKit.READY_RACK));
+        MissileReplenisherComponent loader = VehicleRack.loader(List.of(MechInternal.ACCELERATED_LOADER));
+        RotaryFeed feed = new RotaryFeed(GUN, loader.loaderFactor(), kits.ammoFactor());
         assertEquals(150, feed.beltRounds(), "half again the rounds aboard");
         assertEquals(150, feed.def().belt());
         assertEquals(4f * LoaderPace.ACCELERATED, feed.def().refillPerSecond(), 1e-4f);

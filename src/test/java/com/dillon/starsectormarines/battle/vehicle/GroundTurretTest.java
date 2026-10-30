@@ -1,10 +1,11 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.mech.MechFlux;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import org.junit.jupiter.api.Test;
 
-import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -40,13 +41,23 @@ class GroundTurretTest {
     }
 
     @Test
-    void kitsSetTheLoader() {
+    void theHullsLoaderPacesEveryPackAndWithoutOneOnlyMissilePacksStop() {
         TurretMountDef lrm = VehicleType.LRM_CARRIER.turretStructure().mount;
-        GroundTurret stock = GroundTurret.fitted(lrm, lrm.ammoCapacity, VehicleKit.Effect.NONE, null);
+        assertTrue(lrm.missilePack);
+        GroundTurret stock = GroundTurret.fitted(lrm, lrm.ammoCapacity, MissileReplenisherComponent.STANDARD, null);
         assertEquals(lrm.loaderSeconds, stock.loaderSeconds);
-        GroundTurret fitted = GroundTurret.fitted(lrm, lrm.ammoCapacity,
-                VehicleKit.Effect.of(List.of(VehicleKit.ACCELERATED_LOADER)), null);
+        GroundTurret fitted = GroundTurret.fitted(lrm, lrm.ammoCapacity, MissileReplenisherComponent.ACCELERATED_FEED,
+                null);
         assertEquals(lrm.loaderSeconds * .75f, fitted.loaderSeconds, 1e-5f);
+        GroundTurret none = GroundTurret.fitted(lrm, lrm.ammoCapacity, MissileReplenisherComponent.NONE, null);
+        assertEquals(Float.POSITIVE_INFINITY, none.loaderSeconds, "no loader, no missile pack back");
+
+        TurretMountDef cannon = VehicleType.BREAKTHROUGH_TANK.turretStructure().mount;
+        assertFalse(cannon.missilePack);
+        GroundTurret magazine = GroundTurret.fitted(cannon, cannon.ammoCapacity, MissileReplenisherComponent.NONE, null);
+        assertEquals(cannon.loaderSeconds, magazine.loaderSeconds, "a magazine of rounds keeps its own loader time");
+        assertTrue(VehicleGun.fit(VehicleType.LRM_CARRIER, MechWeaponComponent.LRM_5).mount.missilePack,
+                "a fitted missile part's packs are missiles");
     }
 
     @Test

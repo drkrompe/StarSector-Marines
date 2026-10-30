@@ -144,6 +144,21 @@ class TenderTest {
     }
 
     @Test
+    void aPlotIsRefusedWhenAnyOfItsCellsIsClosedUnseenUnderTheHullOrInAnotherPlot() throws Exception {
+        Tender hover = Tender.lowHover(Faction.MARINE, 20f, 20f, 2f);
+        BuildOption base = BuildOption.LOCUST_FIRE_BASE;
+        assertNull(hover.lay(base, 40.5f, 42.5f, grid), "a blocked cell two rows down");
+        float edge = 20f + hover.ship().lowHoverWidth() / 2f;
+        assertNull(hover.lay(base, edge + 1.5f, 20.5f, grid), "its near edge under the hull");
+        assertEquals(TenderPilot.Placement.UNSEEN, TenderPilot.placement(hover, base, 40.5f, 50.5f, grid,
+                (x, y) -> !(x == 42 && y == 52)), "one corner not yet seen");
+        assertNotNull(hover.lay(base, 40.5f, 43.5f, grid));
+        assertNull(hover.lay(BuildOption.HEAVY_MG_TURRET, 42.5f, 45.5f, grid), "a turret inside the base");
+        assertNull(hover.lay(BuildOption.LOCUST_TURRET, 43.5f, 43.5f, grid), "a nest sharing the base's edge");
+        assertNotNull(hover.lay(BuildOption.LOCUST_TURRET, 44.5f, 43.5f, grid), "a nest beside it");
+    }
+
+    @Test
     void theComplementIsTheHullsBuiltInWingSplitBetweenBuildAndDefence() {
         assertEquals(6, Tender.complement());
         assertEquals(3, tender.builderComplement());

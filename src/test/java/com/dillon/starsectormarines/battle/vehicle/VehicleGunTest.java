@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import org.junit.jupiter.api.Test;
 
@@ -86,7 +87,7 @@ class VehicleGunTest {
                 VehicleGun.fit(tank, MechWeaponComponent.DC_5).mount.ammoCapacity);
 
         GroundTurret open = GroundTurret.fitted(VehicleGun.fit(tank, MechWeaponComponent.HC_10).mount, 0,
-                VehicleKit.Effect.NONE, null);
+                MissileReplenisherComponent.STANDARD, null);
         open.spend();
         assertTrue(open.loaded());
         assertEquals(0, open.ammo);
