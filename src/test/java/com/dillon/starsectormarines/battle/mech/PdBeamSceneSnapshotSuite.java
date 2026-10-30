@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.scene.BehaviorSceneSnapshotSuite;
+import com.dillon.starsectormarines.battle.scene.LookGround;
 import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
@@ -22,6 +23,9 @@ import java.util.function.Function;
  * ({@code pd-beam-arm}), on a Warden's chin, the centreline nose mount ({@code pd-beam-nose}), and on a vehicle's
  * turret ring, a laser tank with the PD laser and an APC with the light PD laser ({@code pd-beam-turret}). Each fires
  * at a stationary militia picket fourteen cells east; the close view frames the shooter and the beam's whole length.
+ * {@code pd-beam-crawl} records a Warden's chin beam on a stock Hound held in place fourteen cells off, a frame every
+ * tick, so consecutive frames of its recording show the lance crawling over the hull ({@code BeamWander}). Run again
+ * under {@code -Dbattle.mech.pdBeamWander=false} for the jumping control.
  */
 public final class PdBeamSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
 
@@ -35,11 +39,53 @@ public final class PdBeamSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
 
     @Override protected boolean showImpactEffects() { return true; }
 
+    /** {@code -Dsnapshot.pdBeam.shots=crawl} (comma-separated name suffixes) records only those look shots. */
     @Override protected List<LookReview.Shot> lookShots() {
-        return List.of(
+        List<LookReview.Shot> all = List.of(
                 mechShot("pd-beam-arm", MechVariant.BULWARK, MechWeaponComponent.PD_LASER),
                 mechShot("pd-beam-nose", MechVariant.WARDEN, MechWeaponComponent.PD_LASER),
-                turretShot());
+                turretShot(),
+                crawlShot());
+        String only = System.getProperty("snapshot.pdBeam.shots", "");
+        if (only.isBlank()) return all;
+        List<String> names = List.of(only.split(","));
+        return all.stream().filter(s -> names.stream().anyMatch(n -> s.name().equals("pd-beam-" + n.trim())))
+                .toList();
+    }
+
+    private static final int CRAWL_TICKS = 450;
+
+    /** A Warden's chin PD laser on a stock Hound held in place, every tick recorded. */
+    private static LookReview.Shot crawlShot() {
+        Function<LookReview.Placement, BattleSimulation> stage = placement -> {
+            SceneBuilder builder = placement.holdouts(placement.builder());
+            float[] near = placement.openNear(PICKET_X, 11.5f);
+            int tx = (int) near[0];
+            int ty = (int) near[1];
+            builder.squad("hound").faction(Faction.DEFENDER).size(1)
+                    .at(tx - placement.site().x0(), ty - placement.site().y0())
+                    .mech(new MechDeploymentSpec(MechVariant.HOUND, MechRole.BALANCED,
+                            MissileReplenisherComponent.STANDARD))
+                    .stationary()
+                    .assigned(id -> ObjectiveAssignment.defendArea(id, tx, ty)).done();
+            float[] at = placement.openNear(SHOOTER_X, 11.5f);
+            int holdX = (int) at[0];
+            int holdY = (int) at[1];
+            builder.squad("mech").faction(Faction.MARINE).size(1)
+                    .at(holdX - placement.site().x0(), holdY - placement.site().y0())
+                    .mech(new MechDeploymentSpec(MechVariant.WARDEN, MechRole.BALANCED,
+                            MissileReplenisherComponent.STANDARD, MechWeaponComponent.PD_LASER, null, null))
+                    .stationary()
+                    .assigned(id -> ObjectiveAssignment.defendArea(id, holdX, holdY)).done();
+            SceneWorld world = builder.build();
+            placement.subject("mech", world.members("mech")[0]);
+            placement.subject("hound", world.members("hound")[0]);
+            return world.sim();
+        };
+        Function<LookReview.Placement, List<LookReview.View>> views = placement -> List.of(
+                LookReview.View.follow("close", placement, 18f, "mech", "hound"));
+        return new LookReview.Shot("pd-beam-crawl", LookGround.verdant(), 44, 22, stage, views, CRAWL_TICKS, 1, 0,
+                null);
     }
 
     /** One mech with {@code gun} on its arm mounts and nothing on its shoulders, holding against the picket. */

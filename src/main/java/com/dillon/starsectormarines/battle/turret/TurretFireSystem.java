@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.weapon.BeamWander;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import java.util.Random;
@@ -177,6 +178,15 @@ public final class TurretFireSystem implements TurretFireSink {
     public boolean fire(long shooterId, float fromX, float fromY, Faction shooterFaction,
                      StructureDef structure, long target, boolean aerialShooter, boolean hasLos,
                      float mountFacingDegrees, int releaseIndex) {
+        return fire(shooterId, fromX, fromY, shooterFaction, structure, target, aerialShooter, hasLos,
+                mountFacingDegrees, releaseIndex, null);
+    }
+
+    /** As above; a crawling beam's pulse ({@code wander} non-null) reads its aim off the beam's path. */
+    @Override
+    public boolean fire(long shooterId, float fromX, float fromY, Faction shooterFaction,
+                     StructureDef structure, long target, boolean aerialShooter, boolean hasLos,
+                     float mountFacingDegrees, int releaseIndex, BeamWander wander) {
         WeaponDef weapon = structure.mount.weapon;
         int tcx = world.cellX(target);
         int tcy = world.cellY(target);
@@ -199,7 +209,7 @@ public final class TurretFireSystem implements TurretFireSink {
         }
         if (!aerialShooter && weapon.hitscanBeam() && Float.isFinite(mountFacingDegrees)) {
             return fireBeam(shooterId, fromX, fromY, shooterFaction, structure, target, facing,
-                    effectiveAccuracy);
+                    effectiveAccuracy, wander);
         }
         if (!aerialShooter && weapon.arcHeight <= 0f && weapon.projectileCellsPerSec() <= 0f) {
             return fireGroundDirect(shooterId, fromX, fromY, shooterFaction,
@@ -257,7 +267,8 @@ public final class TurretFireSystem implements TurretFireSink {
                     weapon.aoeRadius, weapon.damage, weapon.penetration,
                     weapon.wallDamage, shooterFaction, aerialDelivery,
                     weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ true,
-                    /*friendlyFireImmune*/ false, /*authoredAftermath*/ true).incendiary(heatOf(shooterId, weapon)));
+                    /*friendlyFireImmune*/ false, /*authoredAftermath*/ true).incendiary(heatOf(shooterId, weapon))
+                    .withBlast(weapon.blast()));
         }
         float lifetime = weapon.flightSec > 0f ? weapon.flightSec : SHOT_LIFETIME;
         shots.postShot(new ShotEvent(shooterId, fromX, fromY, toX, toY, hit, shooterFaction,
@@ -275,6 +286,15 @@ public final class TurretFireSystem implements TurretFireSink {
     public boolean firePoint(long shooterId, float fromX, float fromY, Faction shooterFaction,
                               StructureDef structure, PointFireAim aim,
                               float mountFacingDegrees, int releaseIndex) {
+        return firePoint(shooterId, fromX, fromY, shooterFaction, structure, aim, mountFacingDegrees, releaseIndex,
+                null);
+    }
+
+    /** As above; a crawling beam's pulse ({@code wander} non-null) reads its aim off the beam's path. */
+    @Override
+    public boolean firePoint(long shooterId, float fromX, float fromY, Faction shooterFaction,
+                              StructureDef structure, PointFireAim aim,
+                              float mountFacingDegrees, int releaseIndex, BeamWander wander) {
         WeaponDef weapon = structure.mount.weapon;
         if (aim == null || !aim.validFrom(fromX, fromY)
                 || !Float.isFinite(mountFacingDegrees)
@@ -308,7 +328,7 @@ public final class TurretFireSystem implements TurretFireSink {
             return true;
         }
         BallisticResolver.Resolution res = resolver.resolvePoint(source, aim.x(), aim.y(),
-                accuracy, weapon.hitSpread, weapon.directRoundVelocity(), weapon.range, rng);
+                accuracy, weapon.hitSpread, weapon.directRoundVelocity(), weapon.range, 0, wander, rng);
         telemetry.recordRoundFired(shooterId);
         deliverGroundDirect(shooterId, muzzle.x(), muzzle.y(), shooterFaction, structure, res);
         return true;
@@ -381,7 +401,8 @@ public final class TurretFireSystem implements TurretFireSink {
      * as the turret tracks, and anything the sweep crosses is struck on the way; once on target, every pulse lands.
      */
     private boolean fireBeam(long shooterId, float fromX, float fromY, Faction shooterFaction,
-                             StructureDef structure, long target, float facingDeg, float effectiveAccuracy) {
+                             StructureDef structure, long target, float facingDeg, float effectiveAccuracy,
+                             BeamWander wander) {
         WeaponDef weapon = structure.mount.weapon;
         float tx = world.x(target);
         float ty = world.y(target);
@@ -400,7 +421,7 @@ public final class TurretFireSystem implements TurretFireSink {
         BallisticResolver.Source source = new BallisticResolver.Source(shooterId, fromX, fromY,
                 structure.muzzleHeightCells(), shooterFaction);
         BallisticResolver.Resolution res = resolver.resolveGroundBurst(source, aimX, aimY, effectiveAccuracy,
-                effectiveSpread, weapon.directRoundVelocity(), weapon.range, 0, rng);
+                effectiveSpread, weapon.directRoundVelocity(), weapon.range, 0, wander, rng);
         float holdChance = friendlyFireHold.chance(shooterId);
         if (holdChance > 0f && holdsRound(res.friendlyHit(), holdChance, rng)) return false;
         telemetry.recordRoundFired(shooterId);
@@ -462,7 +483,7 @@ public final class TurretFireSystem implements TurretFireSink {
                 /*friendlyFireImmune*/ false,
                 hasDirectPayload ? res.victimId() : 0L,
                 directDamage, hasDirectPayload ? weapon.contactPenetration : 0f,
-                /*authoredAftermath*/ true).incendiary(heatOf(shooterId, weapon)));
+                /*authoredAftermath*/ true).incendiary(heatOf(shooterId, weapon)).withBlast(weapon.blast()));
     }
 
     private void spawnProjectile(long shooterId, float fromX, float fromY, Faction shooterFaction,
@@ -536,7 +557,7 @@ public final class TurretFireSystem implements TurretFireSink {
                 contactTarget != 0L ? weapon.contactPenetration : 0f,
                 /*authoredAftermath*/ true,
                 contactTarget != 0L ? new long[] {contactTarget} : new long[0]);
-        onArrival.incendiary(heatOf(shooterId, weapon));
+        onArrival.incendiary(heatOf(shooterId, weapon)).withBlast(weapon.blast());
         if (weapon.projectileCellsPerSec() > 0f) {
             shots.queueProjectile(new Projectile(fromX, fromY, toX, toY,
                     weapon.boostRamp, weapon.arcHeight,

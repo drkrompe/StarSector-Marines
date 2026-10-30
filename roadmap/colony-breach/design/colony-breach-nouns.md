@@ -1339,7 +1339,9 @@ not read in a soft shadow at play zoom.
   on while one struck in the side stops short, tracks hold harder than wheels
   along the hull, and the spin is scrubbed by the same sideways grip. Nothing a
   charge strikes is moved in one step: a thrown or trampled body and a
-  rebounding Brute also slide to rest over the next ticks.
+  rebounding Brute also slide to rest over the next ticks. An explosive
+  round's blast drives the same slide, knockdown and hull exchange
+  (`mechs-nouns.md`, Blast impulse).
 
   Knocked down, stalled, staggered and stunned are one short **can't act**
   state (`StaggerService`): no move, no fire, for a fixed time, never a

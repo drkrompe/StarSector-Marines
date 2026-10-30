@@ -35,6 +35,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 1.8, "falloff": 1.5 },
         "range": 36.0,
         "damage": 60.0,
         "accuracy": 0.65,
@@ -182,6 +183,7 @@
       "id": "weapon.vehicle-lrm-15", "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponVehicleLrm15DisplayName", "designationTiered": false },
       "sim": {
+        "blast": { "impulse": 1.6, "falloff": 2.0 },
         "pointDefenseTarget": true, "range": 40.0, "damage": 15.0, "accuracy": 0.55, "cooldown": 9.0, "penetration": 6.0,
         "contact": { "damage": 95.0, "penetration": 30.0 },
         "burstCount": 5, "burstSpacing": 0.11, "hitSpread": 1.5, "roundVelocity": 28.571428, "flightSec": 1.40,
@@ -207,6 +209,7 @@
       "id": "weapon.boat-lrm-10", "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponBoatLrm10DisplayName", "designationTiered": false },
       "sim": {
+        "blast": { "impulse": 1.6, "falloff": 2.0 },
         "pointDefenseTarget": true, "range": 40.0, "damage": 15.0, "accuracy": 0.55, "cooldown": 9.0, "penetration": 6.0,
         "contact": { "damage": 95.0, "penetration": 30.0 },
         "burstCount": 5, "burstSpacing": 0.11, "hitSpread": 1.5, "roundVelocity": 28.571428, "flightSec": 1.40,
@@ -232,6 +235,7 @@
       "id": "weapon.vehicle-mortar", "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponTurretHeavyMortarDisplayName", "designationTiered": false },
       "sim": {
+        "blast": { "impulse": 2.4, "falloff": 1.0 },
         "range": 38.0, "minRange": 8.0, "damage": 64.0, "accuracy": 0.6, "cooldown": 2.6, "penetration": 18.0,
         "hitSpread": 2.5, "roundVelocity": 26.0, "flightSec": 1.5, "arcHeight": 6.0,
         "aoeRadius": 1.4, "wallDamage": 32, "wallDamageRadius": 1.4,
@@ -262,6 +266,7 @@
       "id": "weapon.vehicle-srm-30", "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponVehicleSrm30DisplayName", "designationTiered": false },
       "sim": {
+        "blast": { "impulse": 1.2, "falloff": 2.0 },
         "pointDefenseTarget": true, "range": 18.0, "damage": 10.0, "accuracy": 0.55, "cooldown": 5.5, "penetration": 6.0,
         "contact": { "damage": 66.0, "penetration": 30.0 },
         "burstCount": 5, "burstSpacing": 0.10, "roundVelocity": 32.727272, "flightSec": 0.55,
@@ -286,6 +291,7 @@
       "id": "weapon.boat-srm-15", "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponBoatSrm15DisplayName", "designationTiered": false },
       "sim": {
+        "blast": { "impulse": 1.2, "falloff": 2.0 },
         "pointDefenseTarget": true, "range": 18.0, "damage": 10.0, "accuracy": 0.55, "cooldown": 5.5, "penetration": 6.0,
         "contact": { "damage": 66.0, "penetration": 30.0 },
         "burstCount": 5, "burstSpacing": 0.10, "roundVelocity": 32.727272, "flightSec": 0.55,
@@ -353,7 +359,7 @@
           { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
         ]
       },
-      "audio": { "fireSound": "burst_pd_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "burst_pd_fire", "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.12 }
     },
     {
       "id": "weapon.hardpoint-pd-laser",
@@ -381,7 +387,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "loopSound": "laser_loop" }
+      "audio": { "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
       "id": "weapon.post-pd-laser",
@@ -409,7 +415,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "loopSound": "laser_loop" }
+      "audio": { "loopSound": "laser_loop", "loopTail": 0.35, "loopFadeOut": 0.2, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
       "id": "weapon.post-burst-laser",
@@ -437,7 +443,7 @@
           { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
         ]
       },
-      "audio": { "fireSound": "burst_pd_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "burst_pd_fire", "loopSound": "laser_loop", "loopTail": 0.45, "loopFadeOut": 0.3, "loopFadeIn": 0.05, "loopPitchDrop": 0.12 }
     },
     {
       "id": "weapon.turret-vulcan",
@@ -496,6 +502,7 @@
       "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponTurretHeavyMortarDisplayName", "designationTiered": false },
       "sim": {
+        "blast": { "impulse": 2.6, "falloff": 1.0 },
         "range": 36.0, "damage": 81.0, "accuracy": 0.55, "cooldown": 2.5, "penetration": 10.0,
         "hitSpread": 0.18, "aoeRadius": 1.35, "wallDamage": 24, "wallDamageRadius": 1.15,
         "flightSec": 0.6
@@ -532,6 +539,7 @@
       "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponFieldMortarDisplayName", "designationTiered": false },
       "sim": {
+        "blast": { "impulse": 1.8, "falloff": 1.0 },
         "_comment": "Tuned 2026-10-15 with loadoutMatchup. At first pass (64 dmg / 1.9 aoe / 1.7 spread / 14 rounds) one tube decided every trench and building fight it could reach. Now a round that lands kills armored men in a burst of 1.4 cells, but the wide hitSpread scatters it several cells at range, so it punishes men bunched on an approach far more than it picks off a dispersed line, and six rounds give an attack a costly chance rather than a sure thing. It does not open an emplacement on its own. Range outreaches a wall nest (24 cells) and a rifle (22); the minimum range is the tube's dead zone, so a team rushed inside it must pack up or fight with the rifles it carries.",
         "range": 52.0, "minRange": 14.0, "damage": 48, "accuracy": 0.62, "cooldown": 4.0, "penetration": 16.0,
         "hitSpread": 5, "roundVelocity": 34.0, "aoeRadius": 1.4, "wallDamage": 40, "wallDamageRadius": 1.6,
@@ -597,6 +605,7 @@
       "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponTurretHephaestusDisplayName", "designationTiered": false },
       "sim": {
+        "blast": { "impulse": 1.5, "falloff": 1.5 },
         "range": 32.0, "damage": 45.0, "accuracy": 0.65, "cooldown": 4.5, "penetration": 4.0,
         "contact": { "damage": 117.0, "penetration": 24.0 },
         "hitSpread": 0.14, "aoeRadius": 1.6, "wallDamage": 30, "wallDamageRadius": 1.25,
@@ -633,6 +642,7 @@
       "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponTurretGrenadeLauncherDisplayName", "designationTiered": false },
       "sim": {
+        "blast": { "impulse": 0.6, "falloff": 1.0 },
         "range": 28.0, "damage": 36.0, "accuracy": 0.55, "cooldown": 4.0, "penetration": 6.0,
         "burstCount": 4, "burstSpacing": 0.18, "hitSpread": 0.6, "roundVelocity": 45.0,
         "minRange": 5.0, "aoeRadius": 1.5, "wallDamage": 30, "wallDamageRadius": 1.5,
@@ -668,6 +678,7 @@
       "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponTurretLocustDisplayName", "designationTiered": false },
       "sim": {
+        "blast": { "impulse": 1.0, "falloff": 1.5 },
         "range": 100.0, "damage": 45.0, "accuracy": 0.25, "cooldown": 10.0, "penetration": 14.0,
         "burstCount": 8, "burstSpacing": 0.08, "hitSpread": 8.0, "roundVelocity": 70.0,
         "minRange": 30.0, "aoeRadius": 1.4, "wallDamage": 20, "wallDamageRadius": 1.4,
@@ -708,6 +719,7 @@
       "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponTurretLocustDisplayName", "designationTiered": false },
       "sim": {
+        "blast": { "impulse": 1.0, "falloff": 1.5 },
         "range": 100.0, "damage": 45.0, "accuracy": 0.25, "cooldown": 10.0, "penetration": 14.0,
         "burstCount": 8, "burstSpacing": 0.08, "hitSpread": 8.0, "roundVelocity": 70.0,
         "minRange": 30.0, "aoeRadius": 1.4, "wallDamage": 20, "wallDamageRadius": 1.4,

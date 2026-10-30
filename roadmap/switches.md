@@ -29,6 +29,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 |--------|------|-------|-----------------------------|
 | `battle.ambient.fixtureLeanCells` | tuning | 2026-10-21 | Ambient crew pace tuning: fold into a constant once the look is accepted. |
 | `battle.ambient.jogPace` | tuning | 2026-10-21 | Ambient crew pace tuning: fold into a constant once the look is accepted. |
+| `battle.blastImpulse` | experiment | 2026-10-30 | Blast impulse (mechs-nouns.md): remove with the losing arm once armorMatchup and loadoutMatchup have been read against it. |
 | `battle.bodyPileCap` | experiment | 2026-10-22 | Remove once the renderEvidence body-pile map accepts the cap. |
 | `battle.colonyBreach.civilDefence` | experiment | 2026-10-21 | Colony Breach / Bloom sessions: remove each once its colony-breach reading is accepted (colony-breach-nouns.md). |
 | `battle.colonyBreach.cordonWorks` | experiment | 2026-10-28 | Colony Breach / Bloom sessions: remove once the owner accepts the evac cordon's works from `evac-cordon-look` (colony-breach-nouns.md, Evac cordon). |
@@ -121,6 +122,7 @@ A name holding a `<placeholder>` is composed in code from a prefix.
 | `battle.mech.missileVariants` | experiment | 2026-10-18 | Mech doctrine/armour pass (mechs-nouns.md, heavy-equipment-progression.md): remove each once armorMatchup has been read against it. Numeric ones fold into constants. |
 | `battle.mech.overwatchKeepsArc` | experiment | 2026-10-18 | Mech doctrine/armour pass (mechs-nouns.md, heavy-equipment-progression.md): remove each once armorMatchup has been read against it. Numeric ones fold into constants. |
 | `battle.mech.pdBeam` | experiment | 2026-10-30 | PD beams (mechs-nouns.md, Beam weapons): false restores the light PD laser's and the PD laser's pulsed bursts (`weapon.mech-*-burst`). Remove it with the control path and the burst weapon entries once the owner has accepted the beam in play. |
+| `battle.mech.pdBeamWander` | experiment | 2026-10-30 | PD beam crawl (mechs-nouns.md, Beam weapons; `BeamWander`): false gives every pulse of a held beam its own fresh aim offset, the jumping lance. Remove it with the per-pulse path once the owner has accepted the crawl in play. |
 | `battle.mech.torsoRear` | experiment | 2026-10-20 | Mech doctrine/armour pass (mechs-nouns.md, heavy-equipment-progression.md): remove each once armorMatchup has been read against it. Numeric ones fold into constants. |
 | `battle.mission.counterattack` | experiment | 2026-10-21 | Mission reactive defence and flow (garrisonables.md): remove each once commanderEvidence on the story missions accepts it. Its composed .triggered/.dutyShare/.dutyPressure knobs go with it. |
 | `battle.mission.flow` | experiment | 2026-10-21 | Mission reactive defence and flow (garrisonables.md): remove each once commanderEvidence on the story missions accepts it. Its composed .triggered/.dutyShare/.dutyPressure knobs go with it. |

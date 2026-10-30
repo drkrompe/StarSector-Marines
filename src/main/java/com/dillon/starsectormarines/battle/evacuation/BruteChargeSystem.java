@@ -302,6 +302,29 @@ public final class BruteChargeSystem {
         }
     }
 
+    /**
+     * Serial: adds {@code (dvx, dvy)} cells a second to {@code body}'s slide, starting one if it was standing, and
+     * holds the result to {@code maxSpeed}: a blast's shove ({@link BlastImpulseSystem}). Several shoves in quick
+     * succession add up, as the rounds of a salvo do; the slide decelerates at {@code decel} and stops against a
+     * wall as a thrown body's does.
+     */
+    void shove(long body, float dvx, float dvy, float decel, float maxSpeed, BattleSimulation sim) {
+        Slide s = slides.get(body);
+        float vx = dvx + (s == null ? 0f : s.vx), vy = dvy + (s == null ? 0f : s.vy);
+        float speed = (float) Math.hypot(vx, vy);
+        if (speed > maxSpeed) {
+            vx *= maxSpeed / speed;
+            vy *= maxSpeed / speed;
+        }
+        if (s != null && s.decel == decel) {
+            s.vx = vx;
+            s.vy = vy;
+        } else {
+            slides.put(body, new Slide(vx, vy, decel));
+        }
+        sim.clearPath(body);
+    }
+
     /** Whether {@code body} is still sliding from a hit. */
     public boolean sliding(long body) { return slides.containsKey(body); }
 

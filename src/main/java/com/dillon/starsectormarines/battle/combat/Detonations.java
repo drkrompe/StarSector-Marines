@@ -115,6 +115,14 @@ public class Detonations {
         this.directImpactSink = directImpactSink;
     }
 
+    /** Lands a blast's shove on what stands in it, after its damage; null where nothing is pushed. */
+    private Consumer<PendingDetonation> blastSink;
+
+    /** Sets what lands the shove of a detonation that carries one ({@link PendingDetonation#blast}). */
+    public void onBlast(Consumer<PendingDetonation> sink) {
+        this.blastSink = sink;
+    }
+
     /** Sets who is told of each detonation as it goes off; the splash itself is unchanged. */
     public void observe(Consumer<PendingDetonation> landed) {
         this.observer = landed;
@@ -308,6 +316,8 @@ public class Detonations {
             }
         }
         if (crashStruck == null) damageStructures(det);
+        // The shove comes after the damage, so a body the blast killed is not pushed.
+        if (crashStruck == null && det.blast() != null && blastSink != null) blastSink.accept(det);
     }
 
     private void damageStructures(PendingDetonation det) {

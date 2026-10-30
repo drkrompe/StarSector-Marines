@@ -33,11 +33,12 @@ import re
 import sys
 from pathlib import Path
 
-from PIL import Image
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import ladder  # noqa: E402
 
-ROOT = Path(__file__).resolve().parents[2]
+ROOT = ladder.ROOT
 MOD = ROOT / "mod"
-JAVA = ROOT / "src/main/java/com/dillon/starsectormarines"
+JAVA = ladder.JAVA
 NOT_KIT_PRIMARY = {"weapon.drone-pulse", "weapon.drone-ion"}
 PRIMARY_ICON = {"RIFLE": "weapon-rifle", "DMR": "weapon-dmr", "LASER_GUN": "weapon-laser-gun", "SMG": "weapon-smg"}
 PRIMARY_LIE = 32
@@ -66,18 +67,13 @@ STATIONS = [
     ("post-alpha-small-war", "A Small War (cut from alpha)", "Post-alpha", "Agreus cards parked here: the recovered Specter and Arbalest sections and the Boarding Jack."),
 ]
 
-# The game's Kit Ladder (KitLadder.java) seeds every placement on the page; Java class -> page item kind.
-PATTERN_KIND = {"MechVariant": "chassis", "MechWeaponComponent": "weapon", "MechInternal": "internal",
-                "VehicleType": "vehicle", "VehicleKit": "kit"}
-
-
 def kit_ladder(ids):
-    """{page id: station id} for every KitLadder row, and the set of free-pick card ids (FirstRefit's paths)."""
-    station_ids = dict(re.findall(r'^    ([A-Z_0-9]+)\("([a-z0-9-]+)"\)',
-                                  (JAVA / "marine/UnlockStation.java").read_text(encoding="utf-8"), re.M))
-    if "NONE" not in station_ids or [s[0] for s in STATIONS] != ["none"] + [v for k, v in station_ids.items() if k != "NONE"]:
+    """{page id: station id} for every KitLadder row (tools/kits/ladder.py parses them), and the set of free-pick
+    card ids (FirstRefit's paths and their sheets). A duplicate row is reported by check.py, not here."""
+    station_list = ladder.stations()
+    if [s[0] for s in STATIONS] != ["none"] + [sid for enum, sid in station_list if enum != "NONE"]:
         raise SystemExit("kits/build.py: STATIONS must list UnlockStation's ids in its order, 'none' first; UnlockStation has %s"
-                         % list(station_ids.values()))
+                         % [sid for _, sid in station_list])
     paths, free = {}, set()
     for enum, weapons, sheet in re.findall(r'^\s+(\w+)\("[^"]+", "(wayline:[^"]+)", SquadEquipmentDoctrines\.(\w+),',
                                            (JAVA / "marine/FirstRefit.java").read_text(encoding="utf-8"), re.M):
@@ -85,18 +81,13 @@ def kit_ladder(ids):
         free.update({weapons, ids[sheet]})
     if len(paths) != 2:
         raise SystemExit("kits/build.py: FirstRefit.Path parsed %d paths, expected 2" % len(paths))
-    src = (JAVA / "marine/KitLadder.java").read_text(encoding="utf-8")
-    placed = {}
-    for kind, const, path, station in re.findall(
-            r'^\s+(weapon|sheet)\((?:SquadEquipmentDoctrines\.(\w+)|FirstRefit\.Path\.(\w+)\.weapons),\s*(\w+)\);', src, re.M):
-        placed[ids[const] if const else paths[path]] = station_ids[station]
-    for cls, enum, station in re.findall(r'^\s+pattern\((\w+)\.(\w+),\s*(\w+)\);', src, re.M):
-        placed["%s:%s" % (PATTERN_KIND[cls], enum)] = station_ids[station]
-    rows = len(re.findall(r'^\s+(?:weapon|sheet|pattern)\((?:\w+\.)', src, re.M))
-    if rows != len(placed) or rows < 90:
-        raise SystemExit("kits/build.py: KitLadder.java has %d rows but %d parsed; keep each row in the weapon/sheet/pattern(<constant>, <STATION>); shape"
-                         % (rows, len(placed)))
-    return placed, free
+    try:
+        rows = ladder.rows(doctrines=ids, paths=paths, station_list=station_list)
+    except ladder.LadderError as e:
+        raise SystemExit("kits/build.py: %s" % e)
+    if len(rows) < 90:
+        raise SystemExit("kits/build.py: KitLadder.java parsed only %d rows" % len(rows))
+    return {r["id"]: r["station"] for r in rows}, free
 
 
 def load(path):
@@ -119,7 +110,10 @@ def constants(java_file):
     return dict(re.findall(r'public static final String (\w+)\s*=\s*"([^"]+)"', java_file.read_text(encoding="utf-8")))
 
 
-def image(path):
+def image(path, art_on=True):
+    if not art_on:
+        return None
+    from PIL import Image
     art = Image.open(MOD / path).convert("RGBA")
     art.thumbnail((ART_PX, ART_PX))
     buffer = io.BytesIO()
@@ -145,6 +139,7 @@ PAD_BOX = {"vehicle": (1380, 240, 1790, 1010), "mech": (1065, 330, 1545, 900)}
 
 def pad_photo(folder, machine):
     """The machine as the Mech Lab shows it on its pad, cropped from the suite's full frame."""
+    from PIL import Image
     name = machine["id"] + "-full.png"
     # The suite writes the frames flat beside the manifest; a curated review set keeps them under full/.
     frame = next((f for f in (folder / "full" / name, folder / name) if f.exists()), None)
@@ -156,6 +151,12 @@ def pad_photo(folder, machine):
 
 
 def machine_dolls(folder):
+    if folder.suffix == ".json" and folder.is_file():
+        # The dolls a published page already carries (refresh.py from-page), when the suite has not been run here.
+        out = json.loads(folder.read_text(encoding="utf-8"))
+        for m in out:
+            m["notes"] = DOLL_NOTES.get(m["id"], [])
+        return out
     manifest = folder / "manifest.json"
     if not manifest.exists():
         return []
@@ -350,24 +351,11 @@ def weapon_cards(reel_index, clips_map, weapons, text, registry_ids):
     return {"cards": cards, "leftOut": index.get("leftOut", [])}
 
 
-def main():
-    args = sys.argv[1:]
-    dolls_dir = ROOT / "build/snapshots/machine-dolls"
-    if "--dolls" in args:
-        i = args.index("--dolls")
-        dolls_dir = Path(args[i + 1])
-        del args[i:i + 2]
-    reel_index = clips_map = None
-    if "--reel" in args:
-        i = args.index("--reel")
-        reel_index = args[i + 1]
-        del args[i:i + 2]
-    if "--clips" in args:
-        i = args.index("--clips")
-        clips_map = args[i + 1]
-        del args[i:i + 2]
-    argv = [a for a in args if a != "--artifact"]
-    artifact = "--artifact" in args
+def collect(dolls_dir=None, reel_index=None, clips_map=None, art=True, strict=True):
+    """Everything the page embeds, keyed by the template's placeholder names (KITS, ITEMS, WEAPONREEL, ...), plus
+    WEAPONS (every *.weapon.json weapon) and PARTS (every MechWeaponComponent), which are not embedded. ``art=False`` skips the raster art and machine dolls (fast, for
+    check.py). ``strict=False`` gives a card or pattern with no KitLadder row the station None instead of stopping,
+    so check.py can report it."""
     strings = flat(load(MOD / "data/strings/strings.json"))
     text = lambda key: strings.get(key.lstrip("@"), key) if key else ""
     templates = load(MOD / "data/marines/equipment-templates.template.json")
@@ -407,7 +395,7 @@ def main():
                 name = "weapon-dmr-masterwork"
             variants[grade] = "graphics/ui/armory/%s.png" % name
         for icon in variants.values():
-            images[icon] = image(icon)
+            images[icon] = image(icon, art)
         primaries.append({
             "id": w["id"], "name": text(w["catalog"]["displayName"]), "kind": kind_of(w["id"]),
             "lie": PRIMARY_LIE, "icons": variants, "note": text(w["catalog"].get("role")),
@@ -418,7 +406,7 @@ def main():
     specials = []
     for e in load(MOD / "data/marines/marine-special-equipment.equipment.json")["equipment"]:
         icon = e["presentation"]["armoryIcon"]
-        images[icon] = image(icon)
+        images[icon] = image(icon, art)
         wid = e["activation"].get("weaponId")
         specials.append({
             "id": e["id"], "name": text(e["catalog"]["displayName"]), "kind": kind_of(wid),
@@ -431,7 +419,7 @@ def main():
     effect_icon = {"breacher-assist": "graphics/ui/armory/system-breach-assist.png",
                    "field-aid": "graphics/ui/armory/system-field-aid.png"}
     for icon in effect_icon.values():
-        images[icon] = image(icon)
+        images[icon] = image(icon, art)
     systems = {}
 
     def add_system(sd):
@@ -452,7 +440,7 @@ def main():
     for a in armor_doc["armor"]:
         c, bt = a["catalog"], a["battle"]
         icon = c["iconPath"]
-        images[icon] = image(icon)
+        images[icon] = image(icon, art)
         system = a.get("integralSystem") or bt.get("integralSystem")
         sys_id = None
         if system:
@@ -552,9 +540,9 @@ def main():
 
     placed, free_pick = kit_ladder(ids)
     for kit in kits + armor_kits:
-        if kit["id"] not in placed:
+        if kit["id"] not in placed and strict:
             raise SystemExit("kits/build.py: card %s has no KitLadder row" % kit["id"])
-        kit["station"] = placed[kit["id"]]
+        kit["station"] = placed.get(kit["id"])
         kit["grant"] = "free-pick" if kit["id"] in free_pick else "sale"
 
     # Machine licences: one chip per pattern the store can teach, tiered by MechPattern's own tables.
@@ -591,12 +579,12 @@ def main():
     weight = {"COMMON": "light", "ADVANCED": "medium", "PRESTIGE": "heavy"}
     items = {"hull": [], "mweapon": [], "mpart": []}
 
-    def item(ladder, kind, enum, name, sub, tier, icon=None, tone="DOLL", fp=None):
+    def item(group, kind, enum, name, sub, tier, icon=None, tone="DOLL", fp=None):
         item_id = "%s:%s" % (kind.lower(), enum)
-        if item_id not in placed:
+        if item_id not in placed and strict:
             raise SystemExit("kits/build.py: %s has no KitLadder row" % item_id)
-        items[ladder].append({"id": item_id, "name": name, "sub": sub, "access": tier,
-                              "station": placed[item_id], "icon": icon, "tone": tone, "fp": fp})
+        items[group].append({"id": item_id, "name": name, "sub": sub, "access": tier,
+                             "station": placed.get(item_id), "icon": icon, "tone": tone, "fp": fp})
 
     variants = re.findall(r'^\s+(\w+)\("[a-z-]+", "(@[^"]+)"', (JAVA / "battle/mech/MechVariant.java").read_text(encoding="utf-8"), re.M)
     for enum, key in variants:
@@ -647,26 +635,52 @@ def main():
     for lst in items.values():
         lst.sort(key=lambda x: (x["name"]))
 
-    machines = machine_dolls(dolls_dir)
+    machines = machine_dolls(Path(dolls_dir) if dolls_dir else ROOT / "build/snapshots/machine-dolls") if art else []
     weapon_tab = weapon_cards(reel_index, clips_map, weapons, text, ids) if reel_index else {"cards": [], "leftOut": []}
+    stations = [{"id": s[0], "name": s[1], "group": s[2], "note": s[3]} for s in STATIONS]
+    return {"PRIMARIES": primaries, "SPECIALS": specials, "KITS": kits, "ARMORKITS": armor_kits, "STATIONS": stations,
+            "ARMORS": armors, "ITEMS": items, "SYSTEMS": list(systems.values()), "IMAGES": images, "MACHINES": machines,
+            "WEAPONREEL": weapon_tab, "WEAPONS": weapons, "PARTS": mech_parts(text, ids)}
+
+
+def main():
+    args = sys.argv[1:]
+    dolls_dir = ROOT / "build/snapshots/machine-dolls"
+    if "--dolls" in args:
+        i = args.index("--dolls")
+        dolls_dir = Path(args[i + 1])
+        del args[i:i + 2]
+    reel_index = clips_map = None
+    if "--reel" in args:
+        i = args.index("--reel")
+        reel_index = args[i + 1]
+        del args[i:i + 2]
+    if "--clips" in args:
+        i = args.index("--clips")
+        clips_map = args[i + 1]
+        del args[i:i + 2]
+    argv = [a for a in args if a != "--artifact"]
+    artifact = "--artifact" in args
+    data = collect(dolls_dir, reel_index, clips_map)
+    weapon_tab = data["WEAPONREEL"]
     missing_clips = [c["id"] for c in weapon_tab["cards"] if not c["url"]]
     if clips_map and missing_clips:
         print("warning: no uploaded clip for %s" % ", ".join(missing_clips))
-    stations = [{"id": s[0], "name": s[1], "group": s[2], "note": s[3]} for s in STATIONS]
     page = (Path(__file__).with_name("template.html")).read_text(encoding="utf-8")
-    for key, value in (("__PRIMARIES__", primaries), ("__SPECIALS__", specials), ("__KITS__", kits),
-                       ("__ARMORKITS__", armor_kits), ("__STATIONS__", stations), ("__ARMORS__", armors), ("__ITEMS__", items), ("__SYSTEMS__", list(systems.values())),
-                       ("__IMAGES__", images), ("__MACHINES__", machines), ("__WEAPONREEL__", weapon_tab)):
-        page = page.replace(key, json.dumps(value, ensure_ascii=False))
+    for key in ("PRIMARIES", "SPECIALS", "KITS", "ARMORKITS", "STATIONS", "ARMORS", "ITEMS", "SYSTEMS", "IMAGES", "MACHINES", "WEAPONREEL"):
+        page = page.replace("__%s__" % key, json.dumps(data[key], ensure_ascii=False))
     if artifact:
         # The Artifact tool wraps the page in its own skeleton, so publish only the content.
         page = page[page.index("<title>"):].replace("</head><body>", "", 1).replace("</body></html>", "")
     out = Path(argv[0]) if argv else ROOT / "build/kits/kit-ladder.html"
     out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(page, encoding="utf-8")
+    out.write_text(page, encoding="utf-8", newline="\n")
+    # What this build embeds, for check.py's "changed since publish" and the three-way ladder diff: refresh.py
+    # record-published copies it into tools/kits/review/published.json once this page is published.
+    Path(str(out) + ".manifest.json").write_text(json.dumps(ladder.manifest(data), indent=1, sort_keys=True), encoding="utf-8", newline="\n")
     print("wrote %s: %d primaries, %d secondaries, %d suits, %d weapon cards, %d equipment cards, machine licences %s, %d weapon clips, %.0f KB" % (
-        out, len(primaries), len(specials), len(armors), len(kits), len(armor_kits), {k: len(v) for k, v in items.items()},
-        len(weapon_tab["cards"]), out.stat().st_size / 1024))
+        out, len(data["PRIMARIES"]), len(data["SPECIALS"]), len(data["ARMORS"]), len(data["KITS"]), len(data["ARMORKITS"]),
+        {k: len(v) for k, v in data["ITEMS"].items()}, len(weapon_tab["cards"]), out.stat().st_size / 1024))
 
 
 if __name__ == "__main__":

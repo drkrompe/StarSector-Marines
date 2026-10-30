@@ -42,9 +42,17 @@ reads as paused and names the planet Wayline cannot find in Corvus.
 | Blind Watch | Warion: plant charges at three interception installations | 30,000 credits | Implemented; player-controlled balance acceptance remains |
 | A Cold Account | Garnir: secure pirate evidence, withdraw and permit physical bombardment | 42,000 credits | Implemented intervention; player-controlled balance acceptance remains |
 
-Recommendations rise from two to three to four full squads. Difficulty also
+Recommendations rise from two to three to five full squads. Difficulty also
 changes through objective distribution and opposition quality. An owned Hound
 can support the company; the story supplies no replacement personnel or chassis.
+
+A Cold Account expects the company at full strength: five squads and four
+machines, one an LRM carrier that strips exposed squads from beyond rifle range.
+Its Sable installation is authored whole and does not shrink for a smaller
+company: 28 regulars, 40 militia, a Hound and a Warden. The compound's guns
+cover both gates, a locust battery reaches the ground the carrier stands off
+from, each road picket has a heavy nest and six men, and fixed point-defence
+mounts cover dispatch, the barracks court and the gate against arcing rounds.
 
 Bombardment obeys actual company clearance, real structural damage and survivor
 pickup. Evidence, withdrawal, fire clearance and completed extraction are

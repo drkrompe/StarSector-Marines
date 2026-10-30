@@ -40,7 +40,7 @@ old guns were taken under those names and stand as recorded.
    Bulwark the heavy (MechWarrior's classes). A company starts with the light
    chassis and its two starter weapons only (the light machine gun and the
    fragmentation SRM-5). The store sells each further pattern after its Kit Ladder
-   station (`KitLadder`; `progression-nouns.md`, Kit Ladder): the Warden after the
+   station (`KitLadder`; `progression-nouns.md`, Kit Ladder; authored as in `kit-ladder.md`): the Warden after the
    Junction, the Bulwark after Blind Watch. Vehicles follow the same classes.
 5. **A machine has to be lifted.** Every payload has a lift class, every carrier
    a lift rating. Heavier machines need better lift, and lift is itself an

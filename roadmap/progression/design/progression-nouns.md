@@ -217,7 +217,8 @@ legibility.
   company holds; *none* is never sold in the store. It paces the store's open-market
   and licence shelves only; patrons and recovery keep their tier gates. Authored on
   the Kit Ladder page, whose generator (`tools/kits/build.py`) seeds itself from the
-  table.
+  table; the page, its export, apply and check tools and the owner's editing
+  workflow are `kit-ladder.md`.
 - **Market listing** — a named card a story beat has put on sale at one named
   market, or at every open market of one faction, until the company knows or
   carries it. Authored stock the company store shows at that market, not a fifth
