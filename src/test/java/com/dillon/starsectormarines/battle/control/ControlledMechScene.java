@@ -56,7 +56,8 @@ public final class ControlledMechScene implements BehaviorScene {
             var assignment = squad.assignedObjective;
             if (!wall) sim.getMechDoctrineService().requestLanceOrder(mech, MechLanceOrder.FREE_REIGN);
             if (wall) for (int y = 0; y < 36; y++) sim.getGrid().blockSharedEdge(7, y, Direction.E);
-            MechWeaponMount arms = sim.world().mechLoadout(mech).mount(MechMountSlot.ARMS);
+            // The Bulwark carries a chaingun on each arm and nothing on the centreline mount.
+            MechWeaponMount arms = sim.world().mechLoadout(mech).mount(MechMountSlot.LEFT_ARM);
             arms.cycleRemaining = 1f;
             boolean entered = sim.directControl().enter(mech);
             float startX = sim.world().x(mech), startY = sim.world().y(mech);
