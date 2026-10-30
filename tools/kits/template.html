@@ -3,12 +3,12 @@
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
 <style>
-:root{--bg:#f3f1f6;--surface:#fff;--ink:#221d2b;--muted:#6c6478;--line:#ddd7e5;--accent:#7a4fa8;--accent-soft:#ece3f6;--warn:#a85a00;
+:root{--bg:#f3f1f6;--surface:#fff;--ink:#221d2b;--muted:#6c6478;--line:#ddd7e5;--accent:#7a4fa8;--accent-soft:#ece3f6;--warn:#a85a00;--ok:#2f7f4f;
  --BALLISTIC:#e2c248;--ENERGY:#e06a3c;--MISSILE:#6cc45e;--UTILITY:#4cb4a6;--EMPTY:#a4a8a0;--ARMOR:#a4a8a0;--SYSTEM:#a07edc;--ENGINE:#5e96d2;--FLUX:#a07edc;--AUX:#8aa4b8;--DOLL:#2b3330;
  --t-COMMON:#6c6478;--t-ADVANCED:#2f7fb5;--t-PRESTIGE:#b0802a;--t-RESTRICTED:#b03a3a;
  --display:"Chakra Petch","Segoe UI",system-ui,sans-serif;--body:"IBM Plex Sans","Segoe UI",system-ui,sans-serif;--mono:"IBM Plex Mono",ui-monospace,Consolas,monospace}
-@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17141c;--surface:#211d28;--ink:#ece8f2;--muted:#a79fb4;--line:#3a3346;--accent:#b996e0;--accent-soft:#33284a;--warn:#e0a050;--t-COMMON:#a79fb4;--t-ADVANCED:#6bb4e8;--t-PRESTIGE:#e0b860;--t-RESTRICTED:#e87878;color-scheme:dark}}
-:root[data-theme="dark"]{--bg:#17141c;--surface:#211d28;--ink:#ece8f2;--muted:#a79fb4;--line:#3a3346;--accent:#b996e0;--accent-soft:#33284a;--warn:#e0a050;--t-COMMON:#a79fb4;--t-ADVANCED:#6bb4e8;--t-PRESTIGE:#e0b860;--t-RESTRICTED:#e87878;color-scheme:dark}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#17141c;--surface:#211d28;--ink:#ece8f2;--muted:#a79fb4;--line:#3a3346;--accent:#b996e0;--accent-soft:#33284a;--warn:#e0a050;--ok:#74c890;--t-COMMON:#a79fb4;--t-ADVANCED:#6bb4e8;--t-PRESTIGE:#e0b860;--t-RESTRICTED:#e87878;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#17141c;--surface:#211d28;--ink:#ece8f2;--muted:#a79fb4;--line:#3a3346;--accent:#b996e0;--accent-soft:#33284a;--warn:#e0a050;--ok:#74c890;--t-COMMON:#a79fb4;--t-ADVANCED:#6bb4e8;--t-PRESTIGE:#e0b860;--t-RESTRICTED:#e87878;color-scheme:dark}
 [hidden]{display:none!important}
 body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.45 var(--body)}
 .wrap{max-width:1560px;margin:0 auto;padding-block:20px 60px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:grid;gap:18px}
@@ -74,14 +74,40 @@ textarea.desc{min-height:58px;font:13px var(--body);margin-top:6px;width:100%;bo
 .slotlab{font:600 9px var(--mono);color:var(--muted);text-transform:uppercase}
 .hint{font-size:12px;color:var(--muted)}
 textarea#out{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--mono);background:var(--surface);border:1px solid var(--line);border-radius:6px}
+/* weapons */
+.bar button.on{background:var(--accent-soft);border-color:var(--accent);font-weight:600}
+.flag{display:inline-block;min-width:16px;margin-left:5px;padding:0 5px;border-radius:9px;font:700 11px/16px var(--mono);background:var(--warn);color:var(--surface);text-align:center}
+.wtools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:10px}.wtools input[type=search]{flex:1 1 220px;max-width:360px}
+.wtools .filters{margin:0}.wsum{font:12px var(--mono);color:var(--muted)}
+.wcat{display:grid;gap:10px;margin-top:16px}.wcat>h3{font:600 16px var(--display);margin:0;display:flex;gap:10px;align-items:baseline}.wcat>h3 small{font:400 12px var(--mono);color:var(--muted)}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,430px),1fr));gap:12px}
+.wcard{border:1px solid var(--line);border-left:4px solid var(--st,var(--line));border-radius:8px;background:var(--surface);display:grid;align-content:start;min-width:0;overflow:hidden;scroll-margin-top:12px}
+.wcard:target{outline:2px solid var(--accent);outline-offset:2px}
+.wcard[data-status="ok"]{--st:var(--ok)}.wcard[data-status="change"]{--st:var(--warn)}.wcard[data-status="rework"]{--st:var(--t-RESTRICTED)}
+.wvid{aspect-ratio:16/9;max-width:100%;background:#0b0e0d;display:grid;place-items:center}.wvid video{width:100%;height:100%;display:block}.wvid p{color:#a4a8a0;font:12px var(--mono);margin:0;padding:12px;text-align:center}
+.wbody{padding:10px 12px 12px;display:grid;gap:8px;min-width:0}
+.whead{display:flex;flex-wrap:wrap;gap:4px 10px;align-items:baseline}.whead h4{margin:0;font:600 16px/1.2 var(--display)}.whead a{font:11px var(--mono);color:var(--muted);text-decoration:none}.whead a:hover{color:var(--accent)}
+.wmeta{font-size:12px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px}.wmeta code{font:11px var(--mono);color:var(--ink)}.wmeta b{color:var(--ink);font-weight:600}
+.wstats{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:1px;margin:0;background:var(--line);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+.wstats div{background:var(--bg);padding:4px 7px;display:grid;min-width:0}.wstats dt{font:600 9px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}.wstats dd{margin:0;font:500 12px var(--mono);font-variant-numeric:tabular-nums;overflow-wrap:anywhere}.wstats dd.na{color:var(--muted)}
+.wsnd{display:flex;flex-wrap:wrap;gap:4px}.wsnd span{font:11px var(--mono);border:1px solid var(--line);border-radius:4px;padding:1px 6px;background:var(--bg)}.wsnd b{font-weight:600;color:var(--muted);margin-right:4px;text-transform:uppercase;font-size:9px;letter-spacing:.06em}
+.wnote{display:grid;gap:5px}.wnote .row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.wnote label{font:600 10px var(--mono);text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.wnote textarea{width:100%;box-sizing:border-box;min-height:64px;resize:vertical;font:13px/1.4 var(--body);background:var(--surface);border:1px solid var(--line);border-radius:6px;padding:6px 8px}
+.wnote textarea[readonly]{background:var(--bg)}
+.wnote textarea:focus,.wnote select:focus,.wtools input:focus{outline:2px solid var(--accent);outline-offset:1px}
+.wsaved{font:11px var(--mono);color:var(--muted);margin-left:auto}.wsaved.err{color:var(--t-RESTRICTED)}
+.wwarn{margin:0;font-size:11px;color:var(--warn)}.wbanner{padding:8px 10px;border:1px solid var(--warn);border-radius:6px;font-size:12px;background:var(--bg);margin-bottom:6px}
 @media (max-width:1100px){.studio{grid-template-columns:minmax(0,1fr)}.right{position:static;max-height:none;order:-1}}
 </style></head><body><div class="wrap">
 <header><h1>Kit Ladder</h1>
 <p class="lead">Separate ladders: weapon cards (primaries and secondaries), Equipment cards (armour), and licence rows for mech and vehicle hulls, mech weapons and parts. Drag a card along the Alpha mission timeline to set when it goes on sale in the store. Only Relief has a free pick; every other unlock is a store sale. Select a card to edit it: drag inventory pieces onto individual marines and the preview card updates as it draws on the Barracks loadout page.</p></header>
-<div class="bar"><button id="v-ladder">Ladder</button><button id="v-machines">Machines</button><button class="primary" id="new-weapon">New weapon card</button><button class="primary" id="new-armor">New armor card</button>
+<div class="bar"><button id="v-ladder">Ladder</button><button id="v-machines">Machines</button><button id="v-weapons">Weapons<span class="flag" id="wflag" hidden></span></button><button class="primary" id="new-weapon">New weapon card</button><button class="primary" id="new-armor">New armor card</button>
 <span class="sp"></span><span class="status" id="status"></span><button id="export">Download kits.json</button><button id="copy">Copy JSON</button><button id="import">Import…</button><button id="reset">Reset to shipped cards</button><input type="file" id="file" accept=".json" hidden></div>
 <section id="ladderview"><h2>Unlock ladder · drag a card to the mission after which the store sells it · Open edits a card</h2><div class="tl" id="tl"></div><div class="itembar" id="itembar"></div></section>
 <section id="machineview" hidden><h2>Machines · every mech and vehicle doll as the Mech Lab draws it, stock fit</h2><div id="mfind"></div><div class="mgrid" id="mgrid"></div></section>
+<section id="weaponview" hidden><h2>Weapons · every weapon in the weapon reel: its stats, its clip and your notes</h2>
+<div class="wtools"><input type="search" id="wq" placeholder="Search name, id, sound, shooter" aria-label="Search weapons"><div class="filters" id="wcats"></div><div class="filters" id="wstat"></div><span class="wsum" id="wsum"></span></div>
+<div class="wbanner" id="wbanner" hidden></div><div id="wlist"></div></section>
 <div id="cardview" hidden class="wrap" style="padding:0;gap:18px">
 <div class="bar"><button class="primary" id="back">← Back to ladder</button><b id="cvname" style="font:600 18px var(--display)"></b><span class="sp"></span><button id="dup">Duplicate</button><button id="del">Delete</button></div>
 <div class="studio">
@@ -101,7 +127,7 @@ textarea#out{width:100%;box-sizing:border-box;min-height:120px;font:12px var(--m
 <textarea id="out" hidden></textarea>
 </div>
 <script>
-const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED_W=__KITS__,SEED_A=__ARMORKITS__,STATIONS=__STATIONS__,ARMORS=__ARMORS__,ITEMS=__ITEMS__,MACHINES=__MACHINES__,SYSTEMS=__SYSTEMS__,IMAGES=__IMAGES__;
+const PRIMARIES=__PRIMARIES__,SPECIALS=__SPECIALS__,SEED_W=__KITS__,SEED_A=__ARMORKITS__,STATIONS=__STATIONS__,ARMORS=__ARMORS__,ITEMS=__ITEMS__,MACHINES=__MACHINES__,REEL=__WEAPONREEL__,SYSTEMS=__SYSTEMS__,IMAGES=__IMAGES__;
 const MACH=[["hull","Mech & vehicle hulls"],["mweapon","Mech weapons"],["mpart","Mech & vehicle parts"]];
 const GRADES=["SURPLUS","SERVICE","MILSPEC","MASTERWORK"],RANK={COMMON:0,ADVANCED:1,PRESTIGE:2,RESTRICTED:3};
 const KEY="kit-ladder-v2",$=id=>document.getElementById(id);
@@ -271,7 +297,7 @@ function renderMachines(){const g=$("mgrid");if(g.dataset.done)return;g.dataset.
   g.appendChild(c)}}
 function back(){view="ladder";render();window.scrollTo(0,0)}
 function render(){const l=L(),k=kit();state.sel.id=k.id;
- $("ladderview").hidden=view!=="ladder";$("machineview").hidden=view!=="machines";$("v-ladder").className=view==="ladder"?"on":"";$("v-machines").className=view==="machines"?"on":"";if(view==="machines")renderMachines();$("cardview").hidden=view!=="card";$("cvname").textContent=(l==="weapon"?"Weapon card · ":"Armor card · ")+k.name;
+ $("ladderview").hidden=view!=="ladder";$("machineview").hidden=view!=="machines";$("v-ladder").className=view==="ladder"?"on":"";$("v-machines").className=view==="machines"?"on":"";if(view==="machines")renderMachines();$("weaponview").hidden=view!=="weapons";$("v-weapons").className=view==="weapons"?"on":"";if(view==="weapons")renderWeapons();$("cardview").hidden=view!=="card";$("cvname").textContent=(l==="weapon"?"Weapon card · ":"Armor card · ")+k.name;
  $("tab-weapon").className=l==="weapon"?"on":"";$("tab-armor").className=l==="armor"?"on":"";
  $("legend").innerHTML=(l==="weapon"?["BALLISTIC","ENERGY","MISSILE","UTILITY"]:["ARMOR","SYSTEM"]).map(x=>'<span style="--t:var(--'+x+')">'+x.toLowerCase()+'</span>').join("");
  $("inv-w").hidden=l!=="weapon";$("inv-a").hidden=l!=="armor";
@@ -314,7 +340,7 @@ function uniqueId(base){let id=base,i=2;const all=[...state.weapon,...state.armo
 function makeNew(l){const members=Array.from({length:12},(_,i)=>l==="weapon"?{role:i%4===0?"Team Leader":"Rifleman",primary:"weapon.field-rifle",grade:"SURPLUS",special:null,belt:null}:{role:i%4===0?"Team Leader":"Rifleman",armor:"armor.field-fatigues"});
  const k={id:uniqueId(slug("new card",l)),name:"New Card",description:"",station:"none",grant:"sale",members};state[l].push(k);open(l,k.id);persist()}
 $("new-weapon").onclick=()=>makeNew("weapon");$("new-armor").onclick=()=>makeNew("armor");
-$("back").onclick=back;$("v-ladder").onclick=back;$("v-machines").onclick=()=>{view="machines";render();window.scrollTo(0,0)};
+$("back").onclick=back;$("v-ladder").onclick=back;$("v-machines").onclick=()=>{view="machines";render();window.scrollTo(0,0)};$("v-weapons").onclick=()=>{view="weapons";render();window.scrollTo(0,0)};
 $("dup").onclick=()=>{const l=L(),k=clone(kit());k.name+=" copy";k.id=uniqueId(slug(k.name,l));list().splice(list().indexOf(kit())+1,0,k);state.sel.id=k.id;changed()};
 $("del").onclick=()=>{if(list().length<2)return;list().splice(list().indexOf(kit()),1);state.sel.id=list()[0].id;changed()};
 $("reset").onclick=()=>{if(window.__confirmReset){state=seedState();window.__confirmReset=false;$("reset").textContent="Reset to shipped cards";changed()}else{window.__confirmReset=true;$("reset").textContent="Click again to replace all cards";setTimeout(()=>{window.__confirmReset=false;$("reset").textContent="Reset to shipped cards"},4000)}};
@@ -328,9 +354,87 @@ $("import").onclick=()=>$("file").click();
 $("file").onchange=async e=>{try{const j=JSON.parse(await e.target.files[0].text());const g=a=>a.map(k=>({id:k.id,name:k.name,description:k.description,station:k.unlocksAfter||"none",grant:k.grant||"sale",members:k.members}));
  if(!j.weaponCards||!j.equipmentCards)throw 0;const place=seedPlace();for(const [l] of MACH)for(const it of (j.machineLicences&&j.machineLicences[l])||[])if(it.id in place)place[it.id]=it.unlocksAfter||"none";
  state={weapon:g(j.weaponCards),armor:g(j.equipmentCards),place,sel:{l:"weapon",id:j.weaponCards[0].id}};changed()}catch{say("Not a kits.json from this page")}e.target.value=""};
+/* Weapons tab: one card per weapon-reel clip. Notes live in the shared db: collection weapon-notes, one doc per clip id. */
+const WCATS=[["mech","Mech weapons"],["vehicle","Vehicle guns"],["infantry","Infantry weapons"]];
+const WSTATUS=[["","Not reviewed"],["ok","OK"],["change","Change needed"],["rework","Rework"]];
+const notes={},saved={},queue={},wq={cat:"all",status:"all",text:""};let notesDb=null,notesMode="pending";
+const stOf=id=>(notes[id]&&notes[id].status)||"";
+function updateFlags(){const by=s=>REEL.cards.filter(c=>stOf(c.id)===s).length,n=by("change")+by("rework"),f=$("wflag");
+ f.hidden=!n;f.textContent=n;f.title=n+" weapon"+(n>1?"s":"")+" flagged for a change or rework";
+ if(!$("wlist").dataset.done)return;
+ const withNotes=REEL.cards.filter(c=>notes[c.id]&&notes[c.id].text).length;
+ $("wsum").textContent=REEL.cards.length+" weapons · "+withNotes+" with notes · "+by("ok")+" ok · "+by("change")+" change · "+by("rework")+" rework";
+ const count={all:null,open:by(""),flagged:n,ok:by("ok")};
+ for(const b of $("wstat").children)b.textContent=b.dataset.label+(count[b.dataset.s]==null?"":" ("+count[b.dataset.s]+")")}
+function wfilter(){const t=wq.text.trim().toLowerCase();let shown=0;
+ for(const c of REEL.cards){const el=$("w-"+c.id);if(!el)continue;const st=stOf(c.id);
+  const ok=(wq.cat==="all"||c.cat===wq.cat)&&(wq.status==="all"||(wq.status==="flagged"?st==="change"||st==="rework":wq.status==="open"?!st:st===wq.status))&&(!t||el.dataset.find.includes(t));
+  el.hidden=!ok;if(ok)shown++}
+ for(const s of document.querySelectorAll(".wcat[data-cat]"))s.hidden=![...s.querySelectorAll(".wcard")].some(e=>!e.hidden);
+ for(const b of $("wcats").children)b.className=b.dataset.c===wq.cat?"on":"";for(const b of $("wstat").children)b.className=b.dataset.s===wq.status?"on":"";
+ updateFlags();if(!shown)$("wsum").textContent="No weapon matches. Clear the search or pick All."}
+function wstats(c){return '<dl class="wstats">'+c.rows.map(r=>'<div'+(r[2]?' title="'+esc(r[2])+'"':"")+"><dt>"+esc(r[0])+'</dt><dd'+(r[1]==="n/a"?' class="na"':"")+">"+esc(r[1])+"</dd></div>").join("")+"</dl>"}
+function wcard(c){const el=document.createElement("article");el.className="wcard";el.id="w-"+c.id;el.dataset.status="";
+ el.dataset.find=[c.name,c.id,c.weaponId,c.catalog,c.part,c.mode,c.shooter,c.fire,c.impact,c.loop,c.role].filter(Boolean).join(" ").toLowerCase();
+ const vid=c.url?'<video controls preload="none" playsinline'+(c.poster?' poster="'+c.poster+'"':"")+' src="'+esc(c.url)+'" aria-label="'+esc(c.name)+' clip"></video>'
+  :"<p>"+(c.poster?'<img src="'+c.poster+'" alt="" style="display:block;margin:0 auto 6px;max-width:100%">':"")+"No clip uploaded for "+esc(c.id)+"</p>";
+ const snd=[["fire",c.fire],["impact",c.impact],["loop",c.loop]].map(([k,v])=>"<span><b>"+k+"</b>"+esc(v||"none")+"</span>").join("");
+ el.innerHTML='<div class="wvid">'+vid+'</div><div class="wbody"><div class="whead"><h4>'+esc(c.name)+'</h4><a href="#w-'+esc(c.id)+'" title="Link to this weapon">#w-'+esc(c.id)+"</a></div>"+
+  '<div class="wmeta"><code>'+esc(c.weaponId)+"</code>"+(c.catalog&&c.catalog!==c.name?"<span>catalog: "+esc(c.catalog)+"</span>":"")+(c.part&&c.part!==c.name?"<span>part: "+esc(c.part)+"</span>":"")+(c.role?"<span>"+esc(c.role.toLowerCase())+" role</span>":"")+"</div>"+
+  '<div class="wmeta"><b>'+esc(c.mode)+"</b><span>fired by "+esc(c.shooter)+"</span><span>"+c.rounds+" rounds in the clip</span>"+(c.tags.length?"<span>"+esc(c.tags.join(" · "))+"</span>":"")+"</div>"+
+  wstats(c)+c.notes.map(n=>'<p class="wwarn">'+esc(n)+"</p>").join("")+'<div class="wsnd" aria-label="Sounds">'+snd+"</div>"+
+  '<div class="wnote"><div class="row"><label for="ws-'+c.id+'">Status</label><select id="ws-'+c.id+'">'+WSTATUS.map(([v,l])=>'<option value="'+v+'">'+l+"</option>").join("")+'</select><span class="wsaved" id="wk-'+c.id+'" aria-live="polite"></span></div>'+
+  '<label for="wn-'+c.id+'">Notes</label><textarea id="wn-'+c.id+'" placeholder="Sound, feel, what to change"></textarea></div></div>';
+ const ta=el.querySelector("textarea"),sel=el.querySelector("select");let timer=null;
+ ta.addEventListener("input",()=>{clearTimeout(timer);ta.dataset.dirty="1";wsay(c.id,"editing…");timer=setTimeout(()=>saveNote(c),800)});
+ ta.addEventListener("blur",()=>{clearTimeout(timer);saveNote(c)});
+ sel.addEventListener("change",()=>{el.dataset.status=sel.value;saveNote(c)});
+ return el}
+function wsay(id,t,err){const k=$("wk-"+id);if(k){k.textContent=t;k.className="wsaved"+(err?" err":"")}}
+/* One write at a time per doc, and only when the text or status differs from what was last saved. */
+function saveNote(c){if(!notesDb||notesMode!=="edit")return;
+ queue[c.id]=(queue[c.id]||Promise.resolve()).then(async()=>{const ta=$("wn-"+c.id),sel=$("ws-"+c.id);
+  const body={text:ta.value,status:sel.value},last=saved[c.id]||{text:"",status:""};
+  if(body.text===last.text&&body.status===last.status){delete ta.dataset.dirty;wsay(c.id,last.updatedAt?"saved":"");return}
+  const now=new Date().toISOString();wsay(c.id,"saving…");
+  try{await notesDb.doc("weapon-notes/"+c.id).set({text:body.text,status:body.status,weaponId:c.weaponId,name:c.name,updatedAt:now});
+   saved[c.id]={...body,updatedAt:now};notes[c.id]={...body,updatedAt:now};if(ta.value===body.text)delete ta.dataset.dirty;wsay(c.id,"saved");wfilter()}
+  catch(e){if(e&&e.code==="invalid_argument"){notesMode="view";notesUi()}wsay(c.id,e&&e.code==="invalid_argument"?"not saved: notes are view-only for you":"not saved: edit again to retry",true)}})}
+function applyNote(id){const n=notes[id]||{text:"",status:""},ta=$("wn-"+id),sel=$("ws-"+id),el=$("w-"+id);if(!ta)return;
+ if(document.activeElement!==ta&&!ta.dataset.dirty)ta.value=n.text||"";if(document.activeElement!==sel)sel.value=n.status||"";el.dataset.status=sel.value;
+ const k=$("wk-"+id);if(k&&!k.classList.contains("err")&&!ta.dataset.dirty)wsay(id,n.updatedAt?"saved "+new Date(n.updatedAt).toLocaleDateString():"")}
+function notesUi(){if(!$("wlist").dataset.done){updateFlags();return}const ro=notesMode!=="edit",b=$("wbanner");
+ for(const c of REEL.cards){const ta=$("wn-"+c.id),sel=$("ws-"+c.id);if(!ta)continue;ta.readOnly=ro;sel.disabled=ro;
+  ta.placeholder=notesMode==="pending"?"Loading notes…":ro?"No notes yet":"Sound, feel, what to change"}
+ b.hidden=notesMode==="edit"||notesMode==="pending";
+ b.textContent=notesMode==="none"?"Notes are kept in this page's shared store, which is not reachable in this view. Open the published page while signed in to write them; the boxes are read-only here so nothing typed is lost.":"You can read these notes but not change them.";
+ for(const c of REEL.cards)applyNote(c.id);wfilter()}
+function renderWeapons(){const g=$("wlist");if(g.dataset.done)return;g.dataset.done="1";
+ if(!REEL.cards.length){g.innerHTML='<p class="hint">This build has no weapon reel. Rebuild with --reel (see tools/kits/build.py).</p>';return}
+ $("wcats").innerHTML=[["all","All"],...WCATS].map(([c,l])=>'<button data-c="'+c+'">'+(c==="all"?"All":l.split(" ")[0]+" ("+REEL.cards.filter(x=>x.cat===c).length+")")+"</button>").join("");
+ $("wstat").innerHTML=[["all","Any status"],["open","Not reviewed"],["flagged","Flagged"],["ok","OK"]].map(([s,l])=>'<button data-s="'+s+'" data-label="'+l+'">'+l+"</button>").join("");
+ for(const b of $("wcats").children)b.onclick=()=>{wq.cat=b.dataset.c;wfilter()};
+ for(const b of $("wstat").children)b.onclick=()=>{wq.status=b.dataset.s;wfilter()};
+ $("wq").oninput=e=>{wq.text=e.target.value;wfilter()};
+ for(const [cat,label] of WCATS){const cs=REEL.cards.filter(c=>c.cat===cat);if(!cs.length)continue;
+  const s=document.createElement("section");s.className="wcat";s.dataset.cat=cat;s.id="weapons-"+cat;
+  s.innerHTML="<h3>"+label+"<small>"+cs.length+" clips</small></h3>";const gr=document.createElement("div");gr.className="wgrid";
+  for(const c of cs)gr.appendChild(wcard(c));s.appendChild(gr);g.appendChild(s)}
+ if(REEL.leftOut.length)g.insertAdjacentHTML("beforeend",'<section class="wcat"><h3>Not in the reel</h3><ul class="hint" style="margin:0;padding-left:18px">'+REEL.leftOut.map(x=>"<li>"+esc(x)+"</li>").join("")+"</ul></section>");
+ notesUi()}
+async function notesStart(db){notesDb=db;if(!db){notesMode="none";notesUi();return}
+ let canWrite=null;try{const u=await (window.claude?.use?.("user")??null);if(u&&u.can)canWrite=await u.can("data.write")}catch{}
+ notesMode=canWrite===false?"view":"edit";notesUi();
+ db.collection("weapon-notes").onSnapshot(snap=>{const seen=new Set();
+  for(const d of snap.docs){const v=d.data()||{};seen.add(d.id);notes[d.id]={text:String(v.text||""),status:String(v.status||""),updatedAt:v.updatedAt||null};
+   if(!queue[d.id]||!saved[d.id]||saved[d.id].updatedAt<=notes[d.id].updatedAt)saved[d.id]={...notes[d.id]}}
+  for(const id of Object.keys(notes))if(!seen.has(id)){delete notes[id];delete saved[id]}
+  notesUi()},()=>{notesMode="view";notesUi()})}
 async function start(){await Promise.all(Object.entries(IMAGES).map(([k,v])=>new Promise(r=>{const i=new Image();i.onload=()=>{sizes[k]=[i.naturalWidth,i.naturalHeight];r()};i.onerror=r;i.src=v})));
- state=load();render();
+ state=load();const h=location.hash.slice(1);if(h==="weapons"||h.startsWith("w-")||h.startsWith("weapons-"))view="weapons";else if(h==="machines")view="machines";render();
+ if(view==="weapons"&&h!=="weapons"){const t=document.getElementById(h);if(t)t.scrollIntoView()}
  try{db=await (window.claude?.use?.("db")??null)}catch{}
+ notesStart(db);
  if(db){try{const d=await db.doc("kits/state").get();const j=d&&d.exists&&d.data();if(j&&j.json){const s=JSON.parse(j.json);if(s.weapon&&s.armor&&s.sel){state=migrate(s);render()}}}catch{}}
  say(db?"Saves to this page":"Saved in this browser (export to keep)")}
 start();

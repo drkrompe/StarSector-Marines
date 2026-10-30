@@ -1,7 +1,18 @@
 """Build the kit ladder page: a self-contained HTML tool for authoring squad cards and when they unlock.
 
-    python tools/kits/build.py [--artifact] [out.html]    (default build/kits/kit-ladder.html;
-    --artifact drops the html/head/body wrapper for publishing through the Artifact tool)
+    python tools/kits/build.py [--artifact] [--dolls <dir>] [--reel <index.json> [--clips <assets.json>]] [out.html]
+    (default build/kits/kit-ladder.html; --artifact drops the html/head/body wrapper for publishing through the
+    Artifact tool)
+
+The Weapons tab (--reel) has one card per clip of the weapon reel: its stats from the weapon catalog and
+MechWeaponComponent, its sounds, its clip and a notes box saved to the artifact's db (collection
+weapon-notes, one doc per clip id). Re-run after weapon changes:
+  1. render the weapon reel (its index.json sits beside weapon-reel-<category>.mp4);
+  2. python tools/kits/cut_weapon_clips.py <reel>/index.json <clips dir>   (clips and posters, outside the repo);
+  3. upload <clips dir>/*.mp4 to the artifact's asset store (Artifact tool, asset: true) and write
+     <clips dir>/assets.json as {"<clip id>": "<asset url exactly as returned>"};
+  4. build with --reel <reel>/index.json --clips <clips dir>/assets.json and republish with the db, user,
+     downloads and assets capabilities.
 
 Reads the shipped marine weapon, special-equipment and armour catalogs, the equipment access tiers,
 the strings, the armoury icons and the built-in weapon and armour doctrines in
@@ -146,12 +157,202 @@ def machine_dolls(folder):
     return out
 
 
+def java_switch(body):
+    """{CONSTANT: value token} from 'case A, B -> 1.5f;' and 'case A -> { return 1.5f; }' lines."""
+    out = {}
+    for names, token in re.findall(r"case ([A-Z_0-9, ]+) -> (?:\{\s*return\s+)?([\w.]+?)f?;", body):
+        for n in names.split(","):
+            out.setdefault(n.strip(), token)
+    return out
+
+
+def method_body(source, signature):
+    if signature not in source:
+        raise SystemExit("kits/build.py: %r not found in MechWeaponComponent.java; the file was reshaped" % signature)
+    body = source[source.index(signature):]
+    return body[:body.index("\n    }\n")]
+
+
+def mech_parts(text, registry_ids):
+    """Every MechWeaponComponent with the figures the Weapons tab shows: footprint, mount, rack and the authored
+    cycle and flux, read the way the shipped switches resolve with the default (non-control) levers."""
+    src = (JAVA / "battle/mech/MechWeaponComponent.java").read_text(encoding="utf-8")
+    enum_body = src[src.index("public enum MechWeaponComponent {"):src.index("public static boolean missileVariants()")]
+    # The lever-chosen ids: Variants.srm()/lrm() and PdBeam.lightPd()/pd() with their levers on (the shipped default).
+    levers = {"Variants.srm()": "MECH_SRM_ID", "Variants.lrm()": "MECH_LRM_ID",
+              "PdBeam.lightPd()": "MECH_LIGHT_PULSE_LASER_ID", "PdBeam.pd()": "MECH_PD_LASER_ID"}
+    flux_consts = {name: float(value) for name, value in re.findall(
+        r'static final float (\w+) = Float\.parseFloat\(\s*System\.getProperty\("[^"]+",\s*"([\d.]+)"\)\)', src)}
+
+    def resolved(table):
+        out = {}
+        for name, token in table.items():
+            try:
+                out[name] = float(token)
+            except ValueError:
+                if token not in flux_consts:
+                    raise SystemExit("kits/build.py: MechWeaponComponent value %r for %s is not a number or a known constant" % (token, name))
+                out[name] = flux_consts[token]
+        return out
+
+    def two_part(signature):
+        # The 'if (Buffers.ON)' block's cases win over the plain switch, as they do in the game with the lever on.
+        body = method_body(src, signature)
+        head, _, tail = body.partition("return switch (this)")
+        table = java_switch(head)
+        for k, v in java_switch(tail).items():
+            table.setdefault(k, v)
+        return resolved(table)
+
+    cycle = two_part("private float authoredCycleSeconds()")
+    flux = two_part("private float authoredFlux()")
+    parts = []
+    for m in re.finditer(r'(?ms)^    ([A-Z_0-9]+)\((.*?LayeredMechAppearance\.\w+)\)[,;]\s*$', enum_body):
+        args = [a.strip() for a in re.sub(r"//[^\n]*", "", m.group(2)).split(",")]
+        if len(args) != 10 or not args[0].startswith('"component.'):
+            raise SystemExit("kits/build.py: MechWeaponComponent.%s has %d constructor arguments, expected 10" % (m.group(1), len(args)))
+        token = args[6]
+        if token.startswith('"'):
+            weapon_id = token.strip('"')
+        else:
+            const = levers.get(token, token.split(".")[-1])
+            if const not in registry_ids:
+                raise SystemExit("kits/build.py: MechWeaponComponent.%s weapon %r does not resolve" % (m.group(1), token))
+            weapon_id = registry_ids[const]
+        enum = m.group(1)
+        if enum not in cycle or enum not in flux:
+            raise SystemExit("kits/build.py: MechWeaponComponent.%s has no authored cycle or flux case" % enum)
+        parts.append({"enum": enum, "name": text(args[1].strip('"')), "mount": args[2].split(".")[-1],
+                      "hardpoint": args[3].split(".")[-1], "fp": [int(args[4]), int(args[5])], "weaponId": weapon_id,
+                      "perTrigger": int(args[7]), "salvos": int(args[8]), "cycle": cycle[enum], "flux": flux[enum]})
+    if len(parts) < 20:
+        raise SystemExit("kits/build.py: parsed only %d MechWeaponComponent constants" % len(parts))
+    return parts
+
+
+def fmt(x, unit=""):
+    if x is None:
+        return None
+    return ("%g" % round(x, 2)) + unit
+
+
+def weapon_cards(reel_index, clips_map, weapons, text, registry_ids):
+    """One card per clip in the weapon reel index: the clip's asset url and poster, its fire mode and sounds, and
+    the stats of the weapon (and, for a mech or vehicle gun, of the MechWeaponComponent part) it fires."""
+    index = json.loads(Path(reel_index).read_text(encoding="utf-8"))
+    urls, poster_dir = {}, Path(reel_index).parent
+    if clips_map:
+        urls = json.loads(Path(clips_map).read_text(encoding="utf-8"))
+        poster_dir = Path(clips_map).parent
+    parts = mech_parts(text, registry_ids)
+    cards = []
+    for reel in index["reels"]:
+        for clip in reel["clips"]:
+            wid = clip["weaponId"]
+            w = weapons.get(wid)
+            if w is None:
+                raise SystemExit("kits/build.py: reel clip %s fires %s, which no *.weapon.json defines" % (clip["shot"], wid))
+            sim = w["sim"]
+            label = clip["name"].split(" on the ")[0]
+            matches = [p for p in parts if p["weaponId"] == wid]
+            if len(matches) > 1:
+                matches = [p for p in matches if p["name"] == label]
+            part = matches[0] if len(matches) == 1 else None
+            if w["mount"] == "mech-mount" and part is None:
+                raise SystemExit("kits/build.py: reel clip %s (%s) matches %d MechWeaponComponent parts" % (clip["shot"], wid, len(matches)))
+            rotary, beam, mag = sim.get("rotary"), sim.get("beam"), sim.get("magazine")
+            per_shot = sim.get("projectilesPerShot", 1)
+            burst = sim.get("burstCount", 1)
+            rows, notes = [], []
+
+            def row(label_, value, hint=None):
+                rows.append([label_, value if value not in (None, "") else "n/a", hint])
+
+            rng = fmt(sim.get("range"), " cells")
+            if sim.get("minRange"):
+                rng += " (min %g)" % sim["minRange"]
+            row("Range", rng)
+            dmg = fmt(sim.get("damage"))
+            if per_shot > 1:
+                dmg += " × %d" % per_shot
+            row("Damage", dmg)
+            row("Penetration", fmt(sim.get("penetration")))
+            if sim.get("contact"):
+                row("Contact warhead", "%g dmg · %g pen" % (sim["contact"]["damage"], sim["contact"]["penetration"]),
+                    "vs hardened targets")
+            row("Accuracy", fmt(sim.get("accuracy")))
+            if rotary:
+                spin = "spin-up %gs · " % rotary["spinUp"] if rotary.get("spinUp") else ""
+                row("Fire rate", "%s%g rds/s" % (spin, rotary["fullRate"]), "held trigger")
+                row("Belt", "%d rds · refill %g/s" % (rotary["belt"], rotary["refill"]))
+                row("Flux", "%g per round" % rotary["fluxPerRound"])
+                dps = sim["damage"] * rotary["fullRate"]
+            elif beam:
+                row("Fire rate", "beam · %g pulses/s" % beam["pulseRate"], "held trigger")
+                row("Flux", "%g per second" % beam["fluxPerSecond"])
+                dps = sim["damage"] * beam["pulseRate"]
+            elif part:
+                rounds = part["perTrigger"]
+                spacing = sim.get("burstSpacing", 0)
+                row("Per trigger", "%d rd%s%s" % (rounds, "s" if rounds > 1 else "", " · %gs apart" % spacing if rounds > 1 and spacing else ""))
+                row("Cycle", fmt(part["cycle"], " s"), part["hardpoint"].lower() + " part")
+                row("Flux", "%g per trigger" % part["flux"])
+                dps = sim["damage"] * rounds / max(part["cycle"], (rounds - 1) * spacing)
+            else:
+                spacing = sim.get("burstSpacing", 0)
+                if burst > 1:
+                    row("Burst", "%d · %gs apart" % (burst, spacing))
+                row("Cooldown", fmt(sim.get("cooldown"), " s"))
+                cyc = sim["cooldown"] + max(0, burst - 1) * spacing
+                dps = sim["damage"] * per_shot * burst / cyc if cyc > 0 else None
+            row("≈ DPS", fmt(dps), "damage over its cycle; ignores accuracy, reload and flux")
+            if part and part["salvos"] > 0:
+                row("Rack", "%d rds (%d × %d)" % (part["salvos"] * part["perTrigger"], part["salvos"], part["perTrigger"]))
+            if mag:
+                row("Magazine", " / ".join(str(s) for s in mag["size"]) + " · reload %gs" % mag["reload"],
+                    "surplus / service / milspec / masterwork · " + mag["trigger"])
+            if sim.get("aoeRadius"):
+                row("Blast radius", fmt(sim["aoeRadius"], " cells"))
+            if sim.get("wallDamage"):
+                row("Wall damage", "%g%s" % (sim["wallDamage"], " · r %g" % sim["wallDamageRadius"] if sim.get("wallDamageRadius") else ""))
+            if sim.get("incendiaryHeat"):
+                row("Incendiary heat", fmt(sim["incendiaryHeat"]))
+            if part:
+                row("Size", "%d×%d" % tuple(part["fp"]), "columns × rows")
+                row("Mount", "%s · %s" % (part["mount"].lower(), part["hardpoint"].lower()))
+            else:
+                row("Mount", w["mount"].replace("-", " "))
+                if clip["category"] == "vehicle":
+                    notes.append("A vehicle turret gun with no mech part: no footprint, part cycle or flux.")
+            tags = [t for t, on in (("indirect", sim.get("indirectFire")), ("tracks fliers", sim.get("tracksFliers")),
+                                    ("interceptable", sim.get("interceptableProjectile")), ("boost ramp", sim.get("boostRamp"))) if on]
+            poster = poster_dir / (clip["shot"] + ".jpg")
+            cards.append({
+                "id": clip["shot"], "cat": clip["category"], "name": clip["name"], "weaponId": wid,
+                "catalog": text(w["catalog"]["displayName"]), "part": part and part["name"], "mode": clip["mode"],
+                "shooter": clip["shooter"], "rounds": clip["rounds"], "role": clip.get("role") or "",
+                "fire": clip.get("fireSound"), "impact": clip.get("impactSound"), "loop": clip.get("loopSound"),
+                "rows": rows, "tags": tags, "notes": notes, "url": urls.get(clip["shot"]),
+                "poster": "data:image/jpeg;base64," + base64.b64encode(poster.read_bytes()).decode() if poster.exists() else None,
+            })
+    return {"cards": cards, "leftOut": index.get("leftOut", [])}
+
+
 def main():
     args = sys.argv[1:]
     dolls_dir = ROOT / "build/snapshots/machine-dolls"
     if "--dolls" in args:
         i = args.index("--dolls")
         dolls_dir = Path(args[i + 1])
+        del args[i:i + 2]
+    reel_index = clips_map = None
+    if "--reel" in args:
+        i = args.index("--reel")
+        reel_index = args[i + 1]
+        del args[i:i + 2]
+    if "--clips" in args:
+        i = args.index("--clips")
+        clips_map = args[i + 1]
         del args[i:i + 2]
     argv = [a for a in args if a != "--artifact"]
     artifact = "--artifact" in args
@@ -431,11 +632,15 @@ def main():
         lst.sort(key=lambda x: (x["name"]))
 
     machines = machine_dolls(dolls_dir)
+    weapon_tab = weapon_cards(reel_index, clips_map, weapons, text, ids) if reel_index else {"cards": [], "leftOut": []}
+    missing_clips = [c["id"] for c in weapon_tab["cards"] if not c["url"]]
+    if clips_map and missing_clips:
+        print("warning: no uploaded clip for %s" % ", ".join(missing_clips))
     stations = [{"id": s[0], "name": s[1], "group": s[2], "note": s[3]} for s in STATIONS]
     page = (Path(__file__).with_name("template.html")).read_text(encoding="utf-8")
     for key, value in (("__PRIMARIES__", primaries), ("__SPECIALS__", specials), ("__KITS__", kits),
                        ("__ARMORKITS__", armor_kits), ("__STATIONS__", stations), ("__ARMORS__", armors), ("__ITEMS__", items), ("__SYSTEMS__", list(systems.values())),
-                       ("__IMAGES__", images), ("__MACHINES__", machines)):
+                       ("__IMAGES__", images), ("__MACHINES__", machines), ("__WEAPONREEL__", weapon_tab)):
         page = page.replace(key, json.dumps(value, ensure_ascii=False))
     if artifact:
         # The Artifact tool wraps the page in its own skeleton, so publish only the content.
@@ -443,8 +648,9 @@ def main():
     out = Path(argv[0]) if argv else ROOT / "build/kits/kit-ladder.html"
     out.parent.mkdir(parents=True, exist_ok=True)
     out.write_text(page, encoding="utf-8")
-    print("wrote %s: %d primaries, %d secondaries, %d suits, %d weapon cards, %d equipment cards, machine licences %s, %.0f KB" % (
-        out, len(primaries), len(specials), len(armors), len(kits), len(armor_kits), {k: len(v) for k, v in items.items()}, out.stat().st_size / 1024))
+    print("wrote %s: %d primaries, %d secondaries, %d suits, %d weapon cards, %d equipment cards, machine licences %s, %d weapon clips, %.0f KB" % (
+        out, len(primaries), len(specials), len(armors), len(kits), len(armor_kits), {k: len(v) for k, v in items.items()},
+        len(weapon_tab["cards"]), out.stat().st_size / 1024))
 
 
 if __name__ == "__main__":
