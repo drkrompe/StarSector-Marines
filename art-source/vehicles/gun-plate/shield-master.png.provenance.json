@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a18d03-2f5d-7273-aaa4-618543fbbf5b",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a18d03-2f5d-7273-aaa4-618543fbbf5b\\exec-05860910-8a24-44ca-8b97-fa9ba6e555ef.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\gun-plate\\shield-master.png",
+    "sha256": "76653bec4876d29b5b33757c6dec1ce4ce5d7441989c738724255a5d88883234",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\gun-plate\\shield.prompt.txt",
+  "promptSha256": "dc86102ba42cc7c758b0dd3de0a9fb344c68a6cb7e764c058e12ecc1f78c1db8",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: reskin exactly, never move\nImage 2: Material/style only; not layout\n\nAsset type: production-source master for a top-down game sprite: a ROTATING ROOF PLATE, the round armoured turntable on the roof of an olive-drab army utility vehicle. Equipment mounted on it is a separate layer drawn later; draw only the plate.\n\nImage 1 is the exact geometry and layout authority: reskin it, never move, resize or add to its shapes. Keep the circle's size and centre, the curved raised guard band across the front (top) with its squared ends, the dark notch through that band at the top centre, the plain flat rail down the middle, the small rectangular storage box on the left, the round hatch on the lower right and the bolt ring round the rim. The flat middle rail must stay plain, flat and low-detail: something will cover it.\n\nImage 2 is material and style reference only, never layout: dull olive-drab painted armour plate with lighter worn edges, dark steel trim, rivets and bolts, fine surface noise, panel seams, small paint chips and grime, crisp painted game-sprite finish, lighting from the upper left.\n\nPrimary request: the curved guard band reads as a thick raised curved steel plate standing up from the deck (bevelled top edge catching the light, a crisp shadow line on its inner face); the deck is a flat round steel turntable in olive drab; the storage box is a small olive steel can with a latch; the hatch is a small round bolted lid. Centred.\n\nStrict 90-degree zenith orthographic top-down view. True transparent background including the corners outside the circle; no ground, shadow slab, cast shadow, halo, border, text or labels. Square canvas, the plate filling about 92 percent of it.\n\nAvoid: anything mounted on the plate, people, white or cyan paint, glowing lights, perspective, side view, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\gun-plate\\guide-shield.png",
+      "sha256": "6bae250f261fde63ad027693095b8a6b11381cc8d29a3729bdaee8a0015b4ef3",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: reskin exactly, never move"
+    },
+    {
+      "path": "art-source\\vehicles\\apc\\material-reference.png",
+      "sha256": "2aee39d3a55bae154bca4dbf92d61b672a7137ee66e55ecc29e5e522e4c5ec93",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll generate one image using the first reference’s exact layout and the second reference’s olive-drab materials."
+  ],
+  "usage": {
+    "input_tokens": 42002,
+    "cached_input_tokens": 33280,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 479,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 55.5
+}

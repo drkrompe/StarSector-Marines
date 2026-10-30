@@ -34,7 +34,8 @@ decoded once, at its tick, volume and pitch (pitch resampled, so speed moves wit
 across the view, the takes of an id played in turn, the whole scaled down if it would clip. The mix is
 deterministic; the engine's distance roll-off is not modelled. The battle music is the screen's own music director run on the same battle, its tracks mixed at the centre with their crossfades and each change of music state printed (`battle-radio-nouns.md`, Battle music). A shot played faster than real time (`LookReview.Shot.atSpeed`) plays its frames at that rate and its soundtrack with it: every start lands at its battle time over the speed, and each sound keeps its own length and pitch. The flag makes `createSnapshots` run
 `:asset-pipeline:processAudio` first, since the mix reads the generated Oggs in `mod/sounds`. Scenes with look shots: `fire-support-apc`
-(`apc-shelling`), `mech-duel-range` (`mech-duel`), `field-mortar` (`mortar-section`), `tank-undergrowth` (`young-wood`, `dead-wood`); the LRM carrier's look is its
+(`apc-shelling`), `mech-duel-range` (`mech-duel`), `field-mortar` (`mortar-section`), `tank-undergrowth` (`young-wood`, `dead-wood`), and `apc` (`lmg-turrets`: the APC, technical and dozer at four
+headings with their light machine gun sweeping, honouring `-Dsnapshot.lookOnly`); the LRM carrier's look is its
 own suite, `lrm-carrier-look`.
 
 A suite can be **opt-in**: `all` leaves it out and only `-Psnapshot=<id>` runs it

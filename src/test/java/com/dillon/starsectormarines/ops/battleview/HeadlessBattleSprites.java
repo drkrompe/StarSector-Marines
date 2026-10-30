@@ -123,6 +123,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     private final LayeredSpriteCache turretCollar;
     private final LayeredSpriteCache turretBase;
     private final LayeredSpriteCache turretBaseLight;
+    private final LayeredSpriteCache gunPlate;
     private SpriteAPI decals;
     private SpriteSheetFrames decalFrames;
     private SpriteAPI warshipEngineFlame;
@@ -191,6 +192,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         turretCollar = optionalLayer("graphics/battle/vehicles/turret-collar.png");
         turretBase = optionalLayer("graphics/battle/vehicles/turret-base-medium.png");
         turretBaseLight = optionalLayer("graphics/battle/vehicles/turret-base-light.png");
+        gunPlate = optionalLayer("graphics/battle/vehicles/gun-plate.png");
     }
 
     /**
@@ -349,6 +351,7 @@ final class HeadlessBattleSprites extends BattleSprites {
     @Override public LayeredSpriteCache vehicleGunMount(TurretMountStyle style) { return gunMounts.get(style); }
     @Override public LayeredSpriteCache vehicleTurretCollar() { return turretCollar; }
     @Override public LayeredSpriteCache vehicleTurretBase(boolean light) { return light ? turretBaseLight : turretBase; }
+    @Override public LayeredSpriteCache vehicleGunPlate() { return gunPlate; }
     @Override public EnumMap<VehicleType, UnitSpriteCache> convoySprites() { return vehicles; }
     @Override public Map<Airframe, ShuttleSpriteCache> airframeSprites() { return airframes; }
     /** Off the resource roots: the base class reads through {@code Global.getSettings().openStream}, a stub here. */

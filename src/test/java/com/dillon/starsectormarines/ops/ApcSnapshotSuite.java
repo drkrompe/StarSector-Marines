@@ -2,13 +2,17 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.scene.LookReview;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
@@ -40,6 +44,9 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
 
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.projectRoot());
+        List<SnapshotArtifact> looks = new ArrayList<>(LookReview.record(context.modRoot(), machineGunTurrets()));
+        // The same switch a behaviour scene reads: only the owner's look frames, none of the registration evidence.
+        if (Boolean.getBoolean("snapshot.lookOnly")) return List.copyOf(looks);
         BattleSimulation matrix = scene();
         ReviewAnnotations.Builder labels = ReviewAnnotations.builder();
         VehicleType[] types = {VehicleType.HEAVY_APC, VehicleType.FIRE_SUPPORT_APC};
@@ -54,7 +61,7 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
         }
         BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
                 context.modRoot(), 1920, 1080, 32, 20, 28);
-        List<SnapshotArtifact> artifacts = new ArrayList<>();
+        List<SnapshotArtifact> artifacts = new ArrayList<>(looks);
         artifacts.add(new SnapshotArtifact("headings.png", renderer.render(matrix,
                 "APC silhouette review | four hull headings, independent turret bearings | 1920 x 1080, UI 100%",
                 labels.build())));
@@ -114,6 +121,53 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
                             "THUNDER RUN / APCs beside tank, technical and freight / starting poses / UI 100%")));
             VehicleLifecycleSnapshots.collect(context, artifacts, sim, escort, "APC", 10);
         }
+    }
+
+    /** The hulls whose own gun is the light machine gun, a row each, in the order the look shot stands them. */
+    private static final VehicleType[] MACHINE_GUN_HULLS = {VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL,
+            VehicleType.DOZER_BREACHER};
+    private static final String[] MACHINE_GUN_NAMES = {"apc", "technical", "dozer"};
+
+    /**
+     * The APC, the militia technical and the dozer with their light machine gun, a row each at the four hull headings,
+     * every turret sweeping a full turn off its hull's axis over the recording: the gun on its mount at play zoom, a row
+     * at a time, and close on one hull of each.
+     */
+    private static LookReview.Shot machineGunTurrets() {
+        return LookReview.Shot.of("lmg-turrets", 30, 22, placement -> {
+            BattleSimulation sim = placement.holdouts(placement.builder()).build().sim();
+            List<long[]> hulls = new ArrayList<>();
+            for (int row = 0; row < MACHINE_GUN_HULLS.length; row++) {
+                for (int column = 0; column < 4; column++) {
+                    float[] at = placement.openNear(6f + 6f * column, 5f + 6f * row);
+                    float heading = 90f * column;
+                    long hull = sim.convoy().spawn(MACHINE_GUN_HULLS[row], List.of(), VehiclePlating.FACTORY,
+                            VehicleEngine.STOCK, MechWeaponComponent.LIGHT_MACHINE_GUN, Faction.MARINE,
+                            VehicleMission.deployed(at[0], at[1]));
+                    sim.convoy().body(hull).teleport(at[0], at[1], heading);
+                    hulls.add(new long[] {hull, (long) heading});
+                    placement.subject(MACHINE_GUN_NAMES[row] + column, hull);
+                }
+            }
+            int[] tick = {0};
+            placement.beforeTick(s -> {
+                // Turned 60 degrees off the hull to start, then a full turn over the recording.
+                float sweep = 60f + 1.5f * tick[0]++;
+                for (long[] hull : hulls) s.convoy().turret(hull[0]).facingDeg = hull[1] + sweep;
+            });
+            return sim;
+        }, placement -> {
+            List<LookReview.View> views = new ArrayList<>();
+            List<String> all = new ArrayList<>();
+            for (String name : MACHINE_GUN_NAMES) for (int column = 0; column < 4; column++) all.add(name + column);
+            views.add(LookReview.View.followAtPlay(placement, all.toArray(new String[0])));
+            for (String name : MACHINE_GUN_NAMES) {
+                views.add(LookReview.View.follow(name + "-row", placement, 26f,
+                        name + "0", name + "1", name + "2", name + "3"));
+                views.add(LookReview.View.follow(name + "-close", placement, 7f, name + "1"));
+            }
+            return views;
+        }, 240).withStills(0, 10, 20, 30);
     }
 
     private static BattleSimulation scene() {

@@ -1,0 +1,11 @@
+Asset type: production-source master for a top-down game sprite: a ROTATING ROOF PLATE, the round armoured turntable on the roof of an olive-drab army utility vehicle. Equipment mounted on it is a separate layer drawn later; draw only the plate.
+
+Image 1 is the exact geometry and layout authority: reskin it, never move, resize or add to its shapes. Keep the circle's size and centre, the curved raised guard band across the front (top) with its squared ends, the dark notch through that band at the top centre, the plain flat rail down the middle, the small rectangular storage box on the left, the round hatch on the lower right and the bolt ring round the rim. The flat middle rail must stay plain, flat and low-detail: something will cover it.
+
+Image 2 is material and style reference only, never layout: dull olive-drab painted armour plate with lighter worn edges, dark steel trim, rivets and bolts, fine surface noise, panel seams, small paint chips and grime, crisp painted game-sprite finish, lighting from the upper left.
+
+Primary request: the curved guard band reads as a thick raised curved steel plate standing up from the deck (bevelled top edge catching the light, a crisp shadow line on its inner face); the deck is a flat round steel turntable in olive drab; the storage box is a small olive steel can with a latch; the hatch is a small round bolted lid. Centred.
+
+Strict 90-degree zenith orthographic top-down view. True transparent background including the corners outside the circle; no ground, shadow slab, cast shadow, halo, border, text or labels. Square canvas, the plate filling about 92 percent of it.
+
+Avoid: anything mounted on the plate, people, white or cyan paint, glowing lights, perspective, side view, text.

@@ -245,6 +245,15 @@ public final class ConvoyRenderSystem implements RenderSystem {
                         out.addSprite(RenderLayer.CONVOY, mount.sprite, cam.cellToScreenX(body.x + mountWorldX),
                                 cam.cellToScreenY(body.y + mountWorldY), mountPx, mountPx, 0f, shade, shade, shade, alphaMult);
                     }
+                    // On a fixed hull the weapon is carried on an armoured plate that turns in the ring with it.
+                    float plateCells = VehicleGun.plateCells(type, turret.weapon);
+                    LayeredSpriteCache plate = plateCells > 0f ? sprites.vehicleGunPlate() : null;
+                    if (plate != null) {
+                        float platePx = plateCells * cellPx;
+                        out.addSprite(RenderLayer.CONVOY, plate.sprite, cam.cellToScreenX(body.x + mountWorldX),
+                                cam.cellToScreenY(body.y + mountWorldY), platePx, platePx, turretStateFacing + wreckSkewDeg,
+                                shade, shade, shade, alphaMult);
+                    }
                     float gunFacing = turretStateFacing + wreckSkewDeg;
                     float lengthScale = 1f;
                     float widthScale = 1f;
