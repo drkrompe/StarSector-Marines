@@ -37,7 +37,7 @@ public enum VehicleGunCard {
             case TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID -> CANNON;
             case TurretCatalogRegistry.HEAVY_MORTAR_STRUCTURE_ID,
                     TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID -> MORTAR;
-            case TurretCatalogRegistry.TANK_BURST_LASER_STRUCTURE_ID -> LASER;
+            case TurretCatalogRegistry.TANK_PL_3_STRUCTURE_ID -> LASER;
             case TurretCatalogRegistry.VEHICLE_LRM_STRUCTURE_ID -> LRM;
             default -> SMALL;
         };

@@ -52,15 +52,15 @@ class BoatWorkshopTest {
         assertEquals(BoatWorkshop.Status.NOTHING_TO_STRIP, workshop.stripGun(boat.id(), 1).status());
 
         workshop.fabricatePart(BoatGun.SRM_15.id());
-        workshop.fabricatePart(BoatGun.PULSE_LASER.id());
+        workshop.fabricatePart(BoatGun.TWIN_PE_1.id());
         assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 1, BoatGun.SRM_15.id()).status());
-        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 2, BoatGun.PULSE_LASER.id()).status());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 2, BoatGun.TWIN_PE_1.id()).status());
 
         assertEquals(BoatWorkshop.Status.STRIPPED, workshop.stripGun(boat.id(), 1).status());
         assertNull(boat.gunOn(1), "a stripped turret goes back bare");
         assertEquals(1, deck.spares(BoatGun.SRM_15.id()));
         assertEquals(BoatWorkshop.Status.FITTED, workshop.moveGun(boat.id(), 2, 1).status());
-        assertSame(BoatGun.PULSE_LASER, boat.gunOn(1));
+        assertSame(BoatGun.TWIN_PE_1, boat.gunOn(1));
         assertNull(boat.gunOn(2), "a gun moved off a bare slot leaves it bare");
         assertEquals(BoatWorkshop.Status.UNKNOWN_HARDPOINT, workshop.stripGun(boat.id(), 3).status());
     }
@@ -440,31 +440,31 @@ class BoatWorkshopTest {
         BoatWorkshop workshop = new BoatWorkshop(deck, TestPurse.rich());
         CampaignBoat boat = deck.flightReady().get(0);
         assertNull(boat.gunsAt(0)[BoatHardpoint.BOTTOM], "a boat from before pods has an open bottom position");
-        for (BoatGun gun : List.of(BoatGun.PULSE_LASER, BoatGun.PULSE_LASER, BoatGun.HEAVY_MG, BoatGun.ARBALEST)) {
+        for (BoatGun gun : List.of(BoatGun.TWIN_PE_1, BoatGun.TWIN_PE_1, BoatGun.HEAVY_MG, BoatGun.ARBALEST)) {
             workshop.fabricatePart(gun.id());
         }
 
         assertEquals(BoatWorkshop.Status.FITTED,
-                workshop.fitGun(boat.id(), 1, BoatHardpoint.TOP, BoatGun.PULSE_LASER.id()).status());
+                workshop.fitGun(boat.id(), 1, BoatHardpoint.TOP, BoatGun.TWIN_PE_1.id()).status());
         assertEquals(BoatWorkshop.Status.FITTED,
-                workshop.fitGun(boat.id(), 1, BoatHardpoint.BOTTOM, BoatGun.PULSE_LASER.id()).status());
-        assertEquals(List.of(BoatGun.PULSE_LASER, BoatGun.PULSE_LASER), boat.gunsOn(1));
+                workshop.fitGun(boat.id(), 1, BoatHardpoint.BOTTOM, BoatGun.TWIN_PE_1.id()).status());
+        assertEquals(List.of(BoatGun.TWIN_PE_1, BoatGun.TWIN_PE_1), boat.gunsOn(1));
         assertEquals(BoatWorkshop.Status.FITTED,
                 workshop.fitGun(boat.id(), 0, BoatHardpoint.BOTTOM, BoatGun.HEAVY_MG.id()).status());
 
         FittedBoat flown = boat.freezeForDeployment();
-        assertEquals(BoatGun.PULSE_LASER.structureId(), flown.guns().get(1));
-        assertEquals(BoatGun.PULSE_LASER.structureId(), flown.pods().get(1), "both lasers fly, from one pod");
+        assertEquals(BoatGun.TWIN_PE_1.structureId(), flown.guns().get(1));
+        assertEquals(BoatGun.TWIN_PE_1.structureId(), flown.pods().get(1), "both lasers fly, from one pod");
         assertEquals(BoatGun.HEAVY_MG.structureId(), flown.pods().get(0));
         assertNull(flown.pods().get(2));
 
         assertEquals(BoatWorkshop.Status.STRIPPED, workshop.stripGun(boat.id(), 1, BoatHardpoint.TOP).status());
         assertNull(boat.gunsAt(1)[BoatHardpoint.TOP]);
-        assertSame(BoatGun.PULSE_LASER, boat.gunsAt(1)[BoatHardpoint.BOTTOM], "the other position keeps its gun");
-        assertEquals(1, deck.spares(BoatGun.PULSE_LASER.id()));
+        assertSame(BoatGun.TWIN_PE_1, boat.gunsAt(1)[BoatHardpoint.BOTTOM], "the other position keeps its gun");
+        assertEquals(1, deck.spares(BoatGun.TWIN_PE_1.id()));
         assertEquals(BoatWorkshop.Status.FITTED,
                 workshop.moveGun(boat.id(), 1, BoatHardpoint.BOTTOM, 1, BoatHardpoint.TOP).status());
-        assertSame(BoatGun.PULSE_LASER, boat.gunOn(1), "a gun moves between its own hardpoint's positions");
+        assertSame(BoatGun.TWIN_PE_1, boat.gunOn(1), "a gun moves between its own hardpoint's positions");
         assertNull(boat.gunsAt(1)[BoatHardpoint.BOTTOM]);
 
         assertEquals(BoatWorkshop.Status.FITTED,

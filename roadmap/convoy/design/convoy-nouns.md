@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
+Updated: 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -600,7 +600,7 @@ own magazine. A hull on a fabrication bay's stocks stands empty with its loader
 held off, and rolls out full. The cadences are slow beside the guns, so a long
 fight still thins a hull's fire: the LRM rack takes 18 s a group (the mech
 standard loader's), the SRM rack 12 s, the cannon 10 s a volley, the MG and the
-mortar 6 s, the hover pulse emitter 4 s. The lasers' are quicker than their flux
+mortar 6 s, the hover scout's Twin PE-1 4 s. The lasers' are quicker than their flux
 lets them fire (1.2 s and 1.5 s), so a laser tank's limit is its flux, as a
 mech laser's is. Two kits make it an upgrade path, each competing for rack
 room with the liner and the flux parts (`mechs-nouns.md`, vehicle kit): the **ready
@@ -625,7 +625,7 @@ round costs, and the frame is the bank and vent arrays on the hull's rack
 (`VehicleRack.frame`); an enemy hull runs its stock bank (`HullReservoir.stockFrame`). Flux is not the magazine, so a hull venting still reads as armed to
 every engagement question. How much a gun builds is its character:
 - **Nominal** on the plain guns. The machine guns, the tank cannon, the mortar and
-  the hover pulse emitter build a little each round and shed it faster than their
+  the hover scout's Twin PE-1 build a little each round and shed it faster than their
   cadence fills it, so a held trigger peaks around a tenth to a quarter of the
   reservoir (the tank cannon, 14 a round, near a quarter of the factory bank) and never
   reaches the crew's hold. Their flux is there to read, not to limit.
@@ -1556,13 +1556,13 @@ what the PD laser tank was: a steady lance, fourteen pulses at a time, that runs
 PL-3, in the white head, trades harder. The lighter parts are drawn short, as turrets, each in a round base on the ring's collar with its muzzle just past the ring.
 Everything above about reach, the air and carrying no blast holds for
 both. The laser tank has no default turret head (owner, 2026-10-29): with no part fitted it shows its bare machinery turret ring and has no gun, and a spawn that names no part (a scene, a mission) fits the PL-3 (`VehicleType.standardPart`).
-A hull-borne PL-3 (this turret, a shuttle's door gun) carries the part's name; the emplacement lasers, the Laser
-Hardpoint, the drone Halo laser and the hover scout's twin pulse emitter are their own guns and keep their names
-(`mechs-nouns.md`, Weapon names).
+A hull-borne PL-3 (this turret, a shuttle's door gun) carries the part's name, as the ground emplacements and the
+hardpoint do (PL-3, PL-3 (Sweep)); the Halo drone's gun is the Halo PD Laser because it shoots down missiles, and the
+hover scout's twin emitter is the Twin PE-1, a bolt gun rather than a laser (`mechs-nouns.md`, Weapon names).
 
 **A laser's lance is drawn as the space game draws a beam.** A turret weapon with no
 projectile art that authors a beam (`WeaponDef.hitscanBeam`) is a hitscan beam, as a
-mech's is. An energy turret weapon with neither (the hover scout's pulse emitter) fires a
+mech's is. An energy turret weapon with neither (the hover scout's Twin PE-1) fires a
 travelling pulse bolt in its tracer colour, as a marine's pulse rifle does (`ShotFx`). **A beam leaves along its turret, not toward its target.** Each pulse is
 aimed down the turret's facing at the target's distance, pulled short by how far the
 turret is still off, and traced as any round is, so it strikes the first body or wall
@@ -1656,7 +1656,7 @@ are part of the hull's armament. Each role is drawn as its own ducted-fan Tri-Ta
 drone (`DroneLook`; `art-source/drones/tt-drones/`).
 
 The **hover scout** (`HOVER_SCOUT`, Light lift) carries a sensor mast on the spotter pickup's
-terms (`HullSightings`). It also carries a light twin pulse emitter of the drone-pulse family,
+terms (`HullSightings`). It also carries a Twin PE-1, two pulse emitters of the Wisp drone's PE-1 family,
 so it can screen, and a sensor pair. The stripped pickup stays the fastest hull in the
 bay.
 

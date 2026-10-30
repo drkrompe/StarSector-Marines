@@ -155,14 +155,15 @@ style puts it up (`DefensePost.withStyle`, from the planned structure, so restyl
 plan). There are two kinds, both the space game's own turrets up-res'd in Tri-Tachyon white,
 graphite and cyan (`art-source/ground-turrets/laser/`):
 
-- **Beam over time:** the PD laser (`structure.turret-pd-laser`, the laser tank's turret) for the
-  vulcan, heavy MG and dual flak, and an anti-air version for the flak position. Its red beam
-  plays ten pulses a burst and engages fliers.
-- **Burst:** the Burst PD Laser (`structure.turret-burst-laser`, twin emitters) for the Arbalest,
+- **Sweep:** the PL-3 (Sweep) Emplacement (`structure.turret-pl-3-sweep`, the laser tank's red head) for
+  the vulcan, heavy MG and dual flak, and an anti-air version for the flak position
+  (`structure.turret-pl-3-sweep-aa`). Its red lance plays ten light pulses a burst and engages fliers; it
+  shoots no missiles down, so it is not PD (`mechs-nouns.md`, Weapon names).
+- **Burst:** the PL-3 Emplacement (`structure.turret-pl-3`, twin emitters) for the Arbalest,
   Hephaestus and grenade launcher: four quick blue pulses.
-- **Hardpoint:** the laser tank's own red PD laser turret at hardpoint size
-  (`structure.hardpoint-laser`) for the cannon hardpoint, behind its flux shield. Its weapon is the
-  tank's beam made less accurate and slower to cycle (`weapon.hardpoint-pd-laser`), and it is fed
+- **Hardpoint:** the PL-3 (Sweep) Hardpoint, the laser tank's red head at hardpoint size
+  (`structure.hardpoint-pl-3-sweep`) for the cannon hardpoint, behind its flux shield. Its weapon is the
+  sweep made less accurate and slower to cycle (`weapon.hardpoint-pl-3-sweep`), and it is fed
   from the shield's own capacitors (`gunDraw` on the shield): every pulse charges them, shield up or
   down, so firing spends the shield's headroom, and past 80% the gun holds fire until they bleed
   to 50%. It fires in spells and rests, and a hardpoint under fire and firing back breaks sooner.

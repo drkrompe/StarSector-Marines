@@ -105,7 +105,7 @@ public final class BoatHardware {
      */
     static Piece piece(BoatDoll.Kind kind, String itemId) {
         Color tone = kind == BoatDoll.Kind.HARDPOINT ? gunTone(itemId) : tone(kind);
-        String id = itemId == null ? "" : itemId;
+        String id = itemId == null ? "" : BoatGun.currentId(itemId);
         BoatGun gun = kind == BoatDoll.Kind.HARDPOINT ? BoatGun.findById(id) : null;
         int gunRows = gun != null && gun.half() ? 1 : 2;
         return switch (id) {
@@ -113,8 +113,8 @@ public final class BoatHardware {
             case "door_grenade_launcher" -> new Piece("boat-door-grenade", 2, gunRows, tone);
             case "door_arbalest" -> new Piece("boat-door-arbalest", 2, gunRows, tone);
             case "door_hephaestus" -> new Piece("boat-door-hephaestus", 2, gunRows, tone);
-            case "boat_pulse_laser" -> new Piece("pl-2-ap", 2, gunRows, tone);
-            case "boat_burst_laser" -> new Piece("ll-3", 2, gunRows, tone);
+            case "boat_twin_pe_1" -> new Piece("pl-2-ap", 2, gunRows, tone);
+            case "boat_pl_3" -> new Piece("ll-3", 2, gunRows, tone);
             case "boat_srm_15" -> new Piece("srm-5", 2, gunRows, tone);
             case "boat_lrm_10" -> new Piece("lrm-5", 2, gunRows, tone);
             case "standard_plating" -> new Piece("boat-plating-standard", 2, 1, tone);

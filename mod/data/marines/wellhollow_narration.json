@@ -2,7 +2,7 @@
   "speaker": "Khettara Bloom cast",
   "modelId": "eleven_v4",
   "voiceSettings": {},
-  "direction": "The Khettara Bloom briefings (wellhollow-bloom-arc.md). COLONEL ORENS is the APDF district field commander (Brock, owner's cast 2026-10-30): stressed, plain, competent and confident in command. CASTLE is the company operations voice shared with every arc. Treatment: dialogue, in the room. Synthesis text is one direction tag plus the current string; tools/generate_wellhollow_audio.py refuses a take whose string has changed until the tag line is refreshed.",
+  "direction": "The Khettara Bloom briefings (wellhollow-bloom-arc.md). COLONEL ORENS is the APDF district field commander (Brock, owner's cast 2026-10-30): plain, competent and confident in command; never tired, stressed or urgent (owner, 2026-10-30). CASTLE is the company operations voice shared with every arc. Treatment: dialogue, in the room. Synthesis text is one direction tag plus the current string; tools/generate_wellhollow_audio.py refuses a take whose string has changed until the tag line is refreshed.",
   "voices": {
     "Orens": "UXrpoYalpW5MpGiFHq3z",
     "Castle": "cuwCdnt9CKAB9XrTA1j0"
@@ -21,8 +21,8 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[brisk, stretched thin] You're Castle? Colonel Orens, Khettara district. I have one regular battalion, the reservists from every town in the basin, and three merc outfits I hired this morning. You're the fourth.",
-      "durationSeconds": 10.48
+      "synthesisText": "You're Castle? Colonel Orens, Khettara district. I have one regular battalion, the reservists from every town in the basin, and three merc outfits I hired this morning. You're the fourth.",
+      "durationSeconds": 11.04
     },
     {
       "id": "wellhollow_breach_02",
@@ -85,8 +85,8 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[urgent, decisive] Tazrout, the farm town on the basin floor. Most of it is holed up round the civil-defence compound. My battalion is holding the water works and the port, the other outfits have the airfields, and nobody has Tazrout. Bring the VIPs out of the shelter on your shuttles.",
-      "durationSeconds": 14.32
+      "synthesisText": "Tazrout, the farm town on the basin floor. Most of it is holed up round the civil-defence compound. My battalion is holding the water works and the port, the other outfits have the airfields, and nobody has Tazrout. Bring the VIPs out of the shelter on your shuttles.",
+      "durationSeconds": 16.32
     },
     {
       "id": "wellhollow_breach_06",
@@ -117,8 +117,8 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[firm] There's a deep one under Tazrout. If you can put it down, put it down.",
-      "durationSeconds": 4.48
+      "synthesisText": "There's a deep one under Tazrout. If you can put it down, put it down.",
+      "durationSeconds": 4.64
     },
     {
       "id": "wellhollow_breach_08",
@@ -141,7 +141,7 @@
       "missionId": "story_wellhollow_colony_breach",
       "event": "briefing.09",
       "textKey": "wellhollowBreach9",
-      "text": "The fields south of town. My reservists have dug a ring there round a lift: trench, wire, an aid station, ammunition. That's your staging post. They hold the ring. You're the muscle that goes into Tazrout and brings the shelter back through the gate.",
+      "text": "The fields south of town. My reservists have dug a ring there round a lift: trench, wire, an aid station, ammunition. That's your staging post. They hold the ring. You're the muscle that goes into Tazrout and brings the VIPs back through the gate.",
       "priority": 10,
       "expiresSeconds": 60,
       "supersedes": [],
@@ -149,8 +149,8 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[decisive, giving orders] The fields south of town. My reservists have dug a ring there round a lift: trench, wire, an aid station, ammunition. That's your staging post. They hold the ring. You're the muscle that goes into Tazrout and brings the shelter back through the gate.",
-      "durationSeconds": 14.0
+      "synthesisText": "[decisive, giving orders] The fields south of town. My reservists have dug a ring there round a lift: trench, wire, an aid station, ammunition. That's your staging post. They hold the ring. You're the muscle that goes into Tazrout and brings the VIPs back through the gate.",
+      "durationSeconds": 14.48
     },
     {
       "id": "wellhollow_breach_retry",
@@ -165,8 +165,8 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[urgent, steady] Other small settlements across the surface have activating bores. Same contract, Castle. Get the people out.",
-      "durationSeconds": 6.16
+      "synthesisText": "[steady] Other small settlements across the surface have activating bores. Same contract, Castle. Get the people out.",
+      "durationSeconds": 6.8
     },
     {
       "id": "wellhollow_replay",
@@ -197,7 +197,7 @@
       "portrait": "graphics/portraits/hollis-maro.png",
       "voiceId": "UXrpoYalpW5MpGiFHq3z",
       "voiced": true,
-      "synthesisText": "[tired, quietly satisfied] We have a line now. Redoubts across the rim roads, reservists in the trenches, the farms walked out behind it. For the first time this month my staff knows where everybody is.",
+      "synthesisText": "[quietly satisfied] We have a line now. Redoubts across the rim roads, reservists in the trenches, the farms walked out behind it. For the first time this month my staff knows where everybody is.",
       "durationSeconds": 11.28
     },
     {

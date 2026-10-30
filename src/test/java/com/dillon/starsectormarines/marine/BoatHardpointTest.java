@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 /** A hardpoint takes one 2x2 gun, or two 2x1 guns top and bottom, and says what a refit takes off. */
 class BoatHardpointTest {
 
-    private static final BoatGun LASER = BoatGun.PULSE_LASER;
+    private static final BoatGun LASER = BoatGun.TWIN_PE_1;
     private static final BoatGun MG = BoatGun.HEAVY_MG;
     private static final BoatGun ARBALEST = BoatGun.ARBALEST;
 

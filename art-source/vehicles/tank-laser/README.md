@@ -46,7 +46,7 @@ python art-source/vehicles/tank-laser/pack.py
 
 ImageGen sometimes returns an edit at a different size (the red/white skin 1.32x, the wreck turret
 about 1.3x), so `pack.py` fits each turret source to `pd-upres-raw.png` by its alpha bounding box.
-The muzzle is the lens front, 0.62 cells forward on the axis (`mount.tank-burst-laser`).
+The muzzle is the lens front, 0.62 cells forward on the axis (`mount.tank-pl-3`).
 
 ## Two variants (2026-10-23)
 
