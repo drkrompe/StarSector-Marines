@@ -232,7 +232,25 @@ public final class CommandPowerTargetingPanel implements HudPanel {
         BattlefieldMarkerPresentation.TargetMarker marker =
                 BattlefieldMarkerPresentation.target(power.displayName, valid,
                         power.previewRadiusCells(), cover);
+        if (power.previewSquareCells() > 0) {
+            paintPlot(camera, marker, cellX + 0.5f, cellY + 0.5f, power.previewSquareCells(), alphaMult);
+        }
         paintTargetingMarker(camera, marker, centerX, centerY, alphaMult);
+    }
+
+    /** Outlines the {@code side}-cell square a build would lay, centred on the cell at {@code (x, y)}, in the marker's tone. */
+    static void paintPlot(BattleCamera camera, BattlefieldMarkerPresentation.TargetMarker marker,
+                          float x, float y, int side, float alphaMult) {
+        float half = side / 2f;
+        float left = camera.cellToScreenX(x - half), right = camera.cellToScreenX(x + half);
+        float top = camera.cellToScreenY(y - half), bottom = camera.cellToScreenY(y + half);
+        float extent = Math.abs(right - left);
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        HudDraw.borderRect(Math.min(left, right), Math.min(top, bottom), extent, extent, marker.tone(), alphaMult);
+        glPopAttrib();
     }
 
     /**

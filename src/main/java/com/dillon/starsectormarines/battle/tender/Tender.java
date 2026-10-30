@@ -16,6 +16,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.function.BiPredicate;
 
 /**
  * A drone tender: the vanilla Shepherd's hull as a mobile construction ship.
@@ -477,15 +478,55 @@ public final class Tender implements DroneAnchor {
 
     /** Completed grounded structures keep their plot reserved for the mission. */
     public boolean groundPlotReserved(float x, float y) {
+        return groundPlotReserved(x, y, 0);
+    }
+
+    private boolean groundPlotReserved(float x, float y, int reach) {
         if (!grounded && !lowHover) return false;
         for (ConstructionOrder order : orders) {
-            if (order.phase() == ConstructionOrder.Phase.COMPLETE
-                    && Math.hypot(order.siteX() - x, order.siteY() - y) < SITE_SPACING) return true;
+            if (order.phase() == ConstructionOrder.Phase.COMPLETE && crowds(order, x, y, reach)) return true;
         }
         for (ConstructionOrder order : completedSites) {
-            if (Math.hypot(order.siteX() - x, order.siteY() - y) < SITE_SPACING) return true;
+            if (crowds(order, x, y, reach)) return true;
         }
         return false;
+    }
+
+    /** Whether a site centred on {@code (x, y)} reaching {@code reach} cells is too close to {@code other}'s. */
+    private static boolean crowds(ConstructionOrder other, float x, float y, int reach) {
+        if (Math.hypot(other.siteX() - x, other.siteY() - y) < SITE_SPACING) return true;
+        // Two plots may not share a cell: their centres must be farther apart than their reaches together.
+        float apart = Math.max(Math.abs(other.siteX() - x), Math.abs(other.siteY() - y));
+        return apart < other.option().reach() + reach + 0.5f;
+    }
+
+    /**
+     * Whether {@code option} may be laid centred on the cell under {@code (x, y)}: every cell of its plot (the one cell
+     * for a plain turret) is open, walkable ground off the hull, and the plot crowds no live or kept site. Whether the
+     * player has seen the ground is the caller's rule ({@link #everyCell}).
+     */
+    public boolean siteOpen(BuildOption option, float x, float y, NavigationGrid grid) {
+        int cx = (int) Math.floor(x);
+        int cy = (int) Math.floor(y);
+        int reach = option == null ? 0 : option.reach();
+        boolean open = everyCell(option, cx, cy, (px, py) -> grid.inBounds(px, py) && grid.isWalkable(px, py)
+                && (reach == 0 || !grid.isDoorway(px, py)) && buildableSite(px + 0.5f, py + 0.5f));
+        if (!open || groundPlotReserved(cx + 0.5f, cy + 0.5f, reach)) return false;
+        for (ConstructionOrder other : orders) {
+            if (!other.phase().terminal() && crowds(other, cx + 0.5f, cy + 0.5f, reach)) return false;
+        }
+        return true;
+    }
+
+    /** Whether {@code test} holds for every cell of {@code option}'s site centred on {@code (cx, cy)}. */
+    public static boolean everyCell(BuildOption option, int cx, int cy, BiPredicate<Integer, Integer> test) {
+        int reach = option == null ? 0 : option.reach();
+        for (int dx = -reach; dx <= reach; dx++) {
+            for (int dy = -reach; dy <= reach; dy++) {
+                if (!test.test(cx + dx, cy + dy)) return false;
+            }
+        }
+        return true;
     }
 
     /** The order being worked, or {@code null} when the line is empty. */
@@ -502,13 +543,7 @@ public final class Tender implements DroneAnchor {
         if (!anchorAlive() || ship.departing() || option == null || (metered() && option.cost() > stock)) return null;
         int cx = (int) Math.floor(x);
         int cy = (int) Math.floor(y);
-        if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) return null;
-        if (!buildableSite(cx + 0.5f, cy + 0.5f)) return null;
-        if (groundPlotReserved(cx + 0.5f, cy + 0.5f)) return null;
-        for (ConstructionOrder other : orders) {
-            if (other.phase().terminal()) continue;
-            if (Math.hypot(other.siteX() - (cx + 0.5f), other.siteY() - (cy + 0.5f)) < SITE_SPACING) return null;
-        }
+        if (!siteOpen(option, x, y, grid)) return null;
         if (metered()) stock -= option.cost();
         ConstructionOrder order = new ConstructionOrder(option, cx + 0.5f, cy + 0.5f);
         orders.add(order);

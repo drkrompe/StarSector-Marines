@@ -78,7 +78,7 @@ public final class ShipOrderTargetingPanel implements HudPanel {
                 sim.getGrid(), sim.getFogOfWar()::isCellRevealed);
         if (place != Notice.NONE || option == null) return place;
         if (tender == null) return Notice.UNAVAILABLE;
-        if (TenderPilot.placement(tender, x, y, sim.getGrid(), sim.getFogOfWar()::isCellRevealed)
+        if (TenderPilot.placement(tender, option, x, y, sim.getGrid(), sim.getFogOfWar()::isCellRevealed)
                 != TenderPilot.Placement.OPEN) return Notice.BLOCKED;
         if (TenderPilot.liveSites(tender) >= TenderPilot.MAX_SITES) return Notice.FULL;
         return tender.metered() && tender.stock() < option.cost() ? Notice.NO_CHARGES : Notice.NONE;
@@ -106,6 +106,9 @@ public final class ShipOrderTargetingPanel implements HudPanel {
         if (!ctx.getSim().getGrid().inBounds((int) x, (int) y)) return;
         String label = option == null ? Strings.get("battleShipMove") : option.label();
         var marker = BattlefieldMarkerPresentation.target(label, preview(x, y) == Notice.NONE, 1f);
+        if (option != null && option.plot() != null) {
+            CommandPowerTargetingPanel.paintPlot(camera, marker, x, y, option.plot().span(), alphaMult);
+        }
         CommandPowerTargetingPanel.paintTargetingMarker(camera, marker,
                 camera.cellToScreenX(x), camera.cellToScreenY(y), alphaMult);
     }

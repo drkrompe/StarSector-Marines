@@ -153,8 +153,9 @@ Returning briefings describe the remaining work. An opening recording that order
 an already completed delivery is withheld; the written briefing remains available.
 
 Restored power enables mission-provided construction command cards backed by
-Morrow's grounded drone bay: a heavy MG turret and a Locust battery. The captain
-chooses any open plot already seen, off the hull; ordinary finite, vulnerable
+Morrow's grounded drone bay: a heavy MG turret, a Locust nest and a Locust fire base
+(`tender-ship.md`, Staged builds). The captain chooses any open plot already seen, off
+the hull; ordinary finite, vulnerable
 builder drones fly out to it, work and return. Known hostile contacts and actual
 damage interrupt construction under the standing tender rules. Grounded
 construction retains the large static hull and its collision and grants neither
