@@ -75,7 +75,7 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
             markMuzzle(sweep, escort, marks);
             frames.add(renderer.render(sweep,
                     "APC turret registration | posed bearing " + angle
-                            + " degrees | crosses mark both ballistic muzzles | camera zoom only, UI 100%",
+                            + " degrees | crosses mark the fitted gun's muzzles | camera zoom only, UI 100%",
                     marks.build()));
         }
         artifacts.add(new SnapshotArtifact("muzzle-registration.png", frames.get(0)));
@@ -140,7 +140,7 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
         float y = body.y + (float) (type.turretMountX * Math.sin(radians) + type.turretMountY * Math.cos(radians));
         for (int release = 0; release < 2; release++) {
             TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(x, y,
-                    sim.convoy().turret(id).facingDeg, type.turretStructure().mount, release);
+                    sim.convoy().turret(id).facingDeg, sim.convoy().turretStructure(id).mount, release);
             // Thin crossed lines keep the tip visible; large arrowheads obscure it.
             // Annotation points address cell centers, while muzzles are world coordinates.
             float markX = muzzle.x() - .5f, markY = muzzle.y() - .5f;

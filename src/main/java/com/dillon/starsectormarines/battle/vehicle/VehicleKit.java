@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.drone.DroneRole;
+import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.i18n.Strings;
 
 import java.util.EnumSet;
@@ -70,17 +71,22 @@ public enum VehicleKit {
     }
 
     /**
-     * Whether the hull has what this kit works on: a magazine for the ready rack or the loader, flux for the
-     * capacitors.
+     * Whether the hull has what this kit works on: a magazine for the ready rack or the loader (a belt-fed rotary gun
+     * has none), flux for the capacitors.
      */
     public boolean suits(VehicleType type) {
         if (type == null) return false;
         return switch (this) {
-            case READY_RACK, ACCELERATED_LOADER -> type.hasTurretWeapon();
+            case READY_RACK, ACCELERATED_LOADER -> type.hasTurretWeapon() && ownGun(type).mount.ammoCapacity > 0;
             case CAPACITOR_PACK -> type.hasTurretWeapon() && type.turretStructure().mount.flux != null;
             case SENSOR_PAIR -> type.droneBay().isEmpty();
             case SPALL_LINER -> true;
         };
+    }
+
+    /** The hull's own gun as it is set down: its turret, or the mech weapon its turret carries ({@link VehicleType#ownGun}). */
+    private static StructureDef ownGun(VehicleType type) {
+        return VehicleGun.fit(type, type.ownGun());
     }
 
     /** Kit slots on a hull: one for a Light hull, two for a Medium, three for a Heavy. */
