@@ -596,7 +596,7 @@ Rules:
 | S1 | 16-21.43 | WARDEN TWO | Ha more picket "ping" to drive me crazy. Guess they keep us honest. |
 | S2 | 24.6-30.17 | MORROW | Caravel, Morrow. Standing off your starboard quarter. Long ride even to the jump point. |
 | S4 | 37.6-41.85 | WARDEN FIVE | Scanners picking up new contacts behind us. No identification. |
-| S4 | 42-44.21 | WARDEN LEAD | Say again? |
+| S4 | 42-42.84 | WARDEN LEAD | Say again? |
 | S5 | 44.9-49.53 | WARDEN LEAD | Wardens, come about! Caravel, full burn for the nearest picket, now! |
 | S5 | 48.38-50.1 | WARDEN FIVE | Launch, launch! |
 | S5 | 50.15-54.1 | WARDEN FIVE | Missiles inbound! Twelve! Point defence, now! |

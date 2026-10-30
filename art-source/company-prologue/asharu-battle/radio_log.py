@@ -71,7 +71,7 @@ TRAFFIC = [
                                   'the jump point.', False),
     ('S4', 'WARDEN FIVE', 37.6, 41.85, 'Scanners picking up new contacts behind us. No '
                                        'identification.', False),
-    ('S4', 'WARDEN LEAD', 42.0, 44.21, 'Say again?', False),
+    ('S4', 'WARDEN LEAD', 42.0, 42.84, 'Say again?', False),
     ('S5', 'WARDEN LEAD', 44.9, 49.53, 'Wardens, come about! Caravel, full burn for the nearest picket, '
                                       'now!', False),
     ('S5', 'WARDEN FIVE', 48.38, 50.1, 'Launch, launch!', False),
