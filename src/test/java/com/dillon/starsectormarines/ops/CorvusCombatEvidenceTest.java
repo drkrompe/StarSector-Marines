@@ -146,6 +146,7 @@ class CorvusCombatEvidenceTest {
                         approachGuards.add(id);
                 }
                 int approachFirstShotAt = -1, approachShots = 0, approachDeathsAtEvidence = -1;
+                int machinesCalled = 0;
                 int requestedAt = -1, houndLandedAt = -1, firstLandedAt = -1, allLandedAt = -1, firstShotAt = -1;
                 long hound = -1;
                 int houndShots = 0, houndKills = 0;
@@ -181,8 +182,11 @@ class CorvusCombatEvidenceTest {
                 var mechs = new MechTimeToKillProbe();
                 writeFrame(renderer, sim, chapter, dir);
                 while (!sim.isComplete() && sim.getSimTickIndex() < maxTicks) {
-                    // An armor drop names its machine: the recovered Hound is the only one aboard.
-                    if (requestedAt < 0 && CorvusEvidenceCompany.callHound(sim)) requestedAt = sim.getSimTickIndex() + 1;
+                    // An armor drop names one machine per order: the recovered Hound first, then the kit's vehicles.
+                    if (machinesCalled < kit.machines() && CorvusEvidenceCompany.callMachine(sim, machinesCalled)) {
+                        if (requestedAt < 0) requestedAt = sim.getSimTickIndex() + 1;
+                        machinesCalled++;
+                    }
                     var beforePhase = sim.getColdAccount() == null ? null : sim.getColdAccount().phase();
                     int beforeShipShots = sim.getColdAccount() == null ? 0 : sim.getColdAccount().shotsFired();
                     var beforeNarration = narration.current();

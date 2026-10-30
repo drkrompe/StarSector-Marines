@@ -4,9 +4,12 @@ import com.dillon.starsectormarines.battle.decision.TacticalMap;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.turret.DefensePost;
+import com.dillon.starsectormarines.battle.turret.DefensePostKind;
+import com.dillon.starsectormarines.battle.turret.EmplacementStyle;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.bsp.BspKeys;
+import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostShape;
 import com.dillon.starsectormarines.battle.world.gen.bsp.DefensePostStamper;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.BuildingStamp;
 import com.dillon.starsectormarines.battle.world.gen.bsp.fill.NatureZoneFiller;
@@ -78,8 +81,14 @@ public final class BlindWatchSounding {
         Installation(String id) { this.id = id; }
     }
 
-    /** Sable's posts by duty. */
-    public enum PostRole { RIM, MAST, HAB, DISH_FIELD, UPLINK, MOTOR_POOL, WATCH_BOSS }
+    /**
+     * Sable's posts by duty: the post's own, then the works on its approaches, the forward pickets first, then the
+     * gate's line and the rille's post, then the battery's crew.
+     */
+    public enum PostRole {
+        RIM, MAST, HAB, DISH_FIELD, UPLINK, MOTOR_POOL, WATCH_BOSS,
+        BOULDER_PICKET, TRACK_CHECKPOINT, CROSSING_PICKET, GATE, RILLE, BATTERY
+    }
 
     /**
      * A charge site: where a squad sets the charge, and the ground the installation stands on.
@@ -118,9 +127,10 @@ public final class BlindWatchSounding {
      * @param drugCrates      the chem module's crates on pallets beside the pad
      * @param cargoCrawler    the half-loaded cargo crawler parked on the lander pad
      * @param landerCrew      where the lander crew stands, beside the crawler
-     * @param posts           Sable's posts by duty, about two dozen in all
-     * @param nests           the two rim guns beside the mast
+     * @param posts           Sable's posts by duty: the post's two dozen and the works' crews, 53 in all
+     * @param nests           the rim guns beside the mast: two machine guns and a cannon over the ramp's head
      * @param pillboxes       the two bermed pillboxes: the hab's airlock, the foot of the uplink ramp
+     * @param works           the defences on the approaches and in depth, in {@link #WORKS} order
      * @param mortarStart     where the post's mortar carrier starts, in the motor pool
      * @param mortarLane      the carrier's stops: out of the motor pool past the chem module onto the lander pad, up
      *                        the rover track below the rim and back, down the hab street to the dish field's gate,
@@ -139,7 +149,7 @@ public final class BlindWatchSounding {
                          List<Cell> riggersWalkOut, Area landerPad, Area podRacks, Cell podHold,
                          PointOfInterest chemModule, Cell chemist, Area drugCrates, Cell cargoCrawler,
                          List<Cell> landerCrew, Map<PostRole, List<Cell>> posts, List<Nest> nests, List<Pillbox> pillboxes,
-                         Cell mortarStart, List<Cell> mortarLane, List<Cell> technicalStands,
+                         List<Work> works, Cell mortarStart, List<Cell> mortarLane, List<Cell> technicalStands,
                          List<Cell> rilleCrossings, List<Cell> boulderCover, Map<Approach, List<Cell>> approaches) {}
 
     /**
@@ -161,6 +171,18 @@ public final class BlindWatchSounding {
      * @param posts    the posts inside it, each a slit cell, already counted in {@link Layout#posts()}
      */
     public record Pillbox(PointOfInterest building, Cell covers, PostRole role, List<Cell> posts) {}
+
+    /**
+     * A defence post on an approach or in depth: a stamped post whose guns the mission spawns on Sable's side.
+     *
+     * @param role the duty that crews it, or {@code null} for an unmanned hardpoint
+     * @param post the stamped post, its turret spec ready for {@code BattleSetup.buildMap}
+     */
+    public record Work(PostRole role, DefensePost post) {
+        public Cell anchor() { return new Cell(post.anchorX, post.anchorY); }
+        /** The Locust battery: it fires over everything in its band, so the mission powers it only while the mast spots. */
+        public boolean battery() { return post.tier == DefensePostKind.ARTILLERY; }
+    }
 
     /** The landing ground: three berths in a column behind the ridge, one landing area. */
     static final Area LANDING = new Area(3, 36, 31, 80);
@@ -244,14 +266,40 @@ public final class BlindWatchSounding {
     static final Cell WEST_CROSSING = new Cell(61, 20), MIDDLE_CROSSING = new Cell(103, 20);
 
     /**
-     * The rim guns, both beside the mast: one west of it over the rim's west ramp and the boulder approach, one east
-     * of it over the crater floor. Neither has a line over the flat or the rover track; the flat is the mortar's,
-     * firing on what the mast sees. Machine guns, since what comes up the boulders is infantry.
+     * The rim guns, all beside the mast: one west of it over the rim's west ramp and the boulder approach, one east
+     * of it over the crater floor, and a cannon behind them over the ramp's head for what climbs it in armour. None
+     * has a line over the flat or the rover track; the flat is the mortar's and the battery's, firing on what the
+     * mast sees. Machine guns where what comes up is infantry.
      */
-    static final List<Cell> NEST_CELLS = List.of(new Cell(127, 90), new Cell(143, 93));
-    private static final List<Direction> NEST_FACING = List.of(Direction.W, Direction.S);
+    static final List<Cell> NEST_CELLS = List.of(new Cell(127, 90), new Cell(143, 93), new Cell(139, 96));
+    private static final List<Direction> NEST_FACING = List.of(Direction.W, Direction.S, Direction.W);
     private static final List<String> NEST_GUNS = List.of(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
-            TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID);
+            TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID);
+
+    /**
+     * The defences on the approaches, for a company landing with armour: each approach meets a forward picket some
+     * forty cells out (in the boulder field, a checkpoint by the rover track with a cannon hardpoint across it, the
+     * rille's south bank), then the post's gate (a cannon line south of the track, a sandbagged post on the rille
+     * bank, a cannon hardpoint at the dish field's south gate), and in depth the Locust battery south of the motor
+     * pool, whose band (30 to 100 cells) covers the flat and none of the landing ground.
+     */
+    private record WorkPlan(PostRole role, DefensePostKind tier, DefensePostShape shape, Cell anchor,
+                            EmplacementStyle style) {}
+    private static final List<WorkPlan> WORKS = List.of(
+            new WorkPlan(PostRole.BOULDER_PICKET, DefensePostKind.LIGHT, null, new Cell(93, 91), EmplacementStyle.EARTHWORK),
+            new WorkPlan(PostRole.TRACK_CHECKPOINT, DefensePostKind.MEDIUM, null, new Cell(105, 61),
+                    EmplacementStyle.EARTHWORK),
+            new WorkPlan(null, DefensePostKind.LARGE, DefensePostShape.HARDPOINT, new Cell(113, 53),
+                    EmplacementStyle.BRUTALIST),
+            new WorkPlan(PostRole.CROSSING_PICKET, DefensePostKind.LIGHT, null, new Cell(100, 4), EmplacementStyle.EARTHWORK),
+            new WorkPlan(PostRole.GATE, DefensePostKind.LARGE, DefensePostShape.LINE_H, new Cell(128, 51),
+                    EmplacementStyle.BRUTALIST),
+            new WorkPlan(PostRole.RILLE, DefensePostKind.MEDIUM, null, new Cell(122, 4), EmplacementStyle.EARTHWORK),
+            new WorkPlan(null, DefensePostKind.LARGE, DefensePostShape.HARDPOINT, new Cell(160, 12),
+                    EmplacementStyle.BRUTALIST),
+            new WorkPlan(PostRole.BATTERY, DefensePostKind.ARTILLERY, null, new Cell(176, 30), EmplacementStyle.BRUTALIST));
+    /** Cells round a work's anchor kept clear of boulders, so its crew's posts and its field of fire stay open. */
+    private static final int WORK_CLEARANCE = 5;
     /** Cells of pad round a nest's mount, kept clear of dressing so its field of fire stays open. */
     private static final int NEST_PAD = 2;
 
@@ -268,7 +316,7 @@ public final class BlindWatchSounding {
 
     /** The rocket truck's stands on the knoll top, its park first. */
     static final List<Cell> TECHNICAL_STANDS = List.of(new Cell(187, 25), new Cell(195, 21), new Cell(189, 29),
-            new Cell(198, 29), new Cell(199, 24));
+            new Cell(198, 29), new Cell(199, 24), new Cell(138, 46), new Cell(136, 64));
 
     /** Cells either side of an approach's line its route may use. */
     static final int APPROACH_CORRIDOR = 6;
@@ -302,7 +350,8 @@ public final class BlindWatchSounding {
                 l.knollRamp(), l.dishField(), l.controlHut(), l.console(), l.habCluster(), l.bunks(),
                 l.signalsModule(), l.signalsTechs(), l.riggersModule(), l.riggers(), l.riggersWalkOut(),
                 l.landerPad(), l.podRacks(), l.podHold(), l.chemModule(), l.chemist(), l.drugCrates(),
-                l.cargoCrawler(), l.landerCrew(), l.posts(), l.nests(), l.pillboxes(), l.mortarStart(), l.mortarLane(),
+                l.cargoCrawler(), l.landerCrew(), l.posts(), l.nests(), l.pillboxes(), l.works(), l.mortarStart(),
+                l.mortarLane(),
                 l.technicalStands(), l.rilleCrossings(), l.boulderCover(), l.approaches());
     }
 
@@ -312,6 +361,7 @@ public final class BlindWatchSounding {
         final List<PointOfInterest> bunks = new ArrayList<>();
         final List<Nest> nests = new ArrayList<>();
         final List<Pillbox> pillboxes = new ArrayList<>();
+        final List<Work> works = new ArrayList<>();
         final List<Cell> boulderCover = new ArrayList<>();
     }
 
@@ -676,6 +726,22 @@ public final class BlindWatchSounding {
             c.defensePosts.add(post);
             s.nests.add(new Nest(at, NEST_FACING.get(i), post));
         }
+        for (WorkPlan plan : WORKS) {
+            Cell at = plan.anchor();
+            if (!DefensePostStamper.authoredFits(c.grid, c.topology, plan.tier(), plan.shape(), at.x(), at.y()))
+                throw new IllegalStateException("Sounding work does not fit: " + plan.tier() + " at " + at);
+            DefensePost post = DefensePostStamper.stampAuthored(c.grid, c.topology, c.doodads, plan.tier(), plan.shape(),
+                    at.x(), at.y(), plan.style());
+            c.defensePosts.add(post);
+            s.works.add(new Work(plan.role(), post));
+        }
+    }
+
+    private static boolean nearWork(int x, int y) {
+        for (WorkPlan plan : WORKS)
+            if (Math.abs(x - plan.anchor().x()) <= WORK_CLEARANCE && Math.abs(y - plan.anchor().y()) <= WORK_CLEARANCE)
+                return true;
+        return false;
     }
 
     /**
@@ -745,6 +811,7 @@ public final class BlindWatchSounding {
             // A cell of walkable gap round every formation, so two never weld into a wall.
             if (closed[y * WIDTH + x]) return false;
             if (!p.blocks(x, y)) continue;
+            if (nearWork(x, y)) return false;
             if (!natural(c, x, y)) return false;
             // A null between two lines' cells ends one line; no leg runs across it.
             for (int i = 1; i < keepOpen.size(); i++)
@@ -896,6 +963,14 @@ public final class BlindWatchSounding {
         posts.put(PostRole.UPLINK, List.copyOf(uplink));
         posts.put(PostRole.MOTOR_POOL, List.of(new Cell(189, 42), new Cell(196, 42)));
         posts.put(PostRole.WATCH_BOSS, List.of(new Cell(s.signals.interiorAnchorX, s.signals.interiorAnchorY)));
+        posts.put(PostRole.BOULDER_PICKET, List.of(new Cell(95, 91), new Cell(95, 93), new Cell(91, 93), new Cell(91, 89)));
+        posts.put(PostRole.TRACK_CHECKPOINT, List.of(new Cell(102, 59), new Cell(104, 58), new Cell(106, 58),
+                new Cell(108, 59), new Cell(108, 62), new Cell(102, 63)));
+        posts.put(PostRole.CROSSING_PICKET, List.of(new Cell(102, 6), new Cell(98, 6), new Cell(102, 2), new Cell(98, 2)));
+        posts.put(PostRole.GATE, List.of(new Cell(124, 49), new Cell(126, 48), new Cell(130, 48), new Cell(132, 51),
+                new Cell(124, 53), new Cell(127, 54), new Cell(130, 54), new Cell(133, 53)));
+        posts.put(PostRole.RILLE, List.of(new Cell(124, 6), new Cell(120, 6), new Cell(124, 2), new Cell(120, 2)));
+        posts.put(PostRole.BATTERY, List.of(new Cell(174, 27), new Cell(178, 27), new Cell(180, 30)));
         Map<Installation, ChargeSite> sites = new EnumMap<>(Installation.class);
         sites.put(Installation.MAST, new ChargeSite(Installation.MAST.id, MAST_PLANT, MAST_PAD));
         sites.put(Installation.UPLINK, new ChargeSite(Installation.UPLINK.id, UPLINK_PLANT, UPLINK_PAD));
@@ -905,7 +980,8 @@ public final class BlindWatchSounding {
                 KNOLL_FOOT, DISH_FIELD, s.controlHut, console(), HAB, List.copyOf(s.bunks), s.signals,
                 interiorCells(map, s.signals, 5), s.riggers, interiorCells(map, s.riggers, 4), riggersWalkOut(s.riggers),
                 LANDER_PAD, POD_RACKS, POD_HOLD, s.chem, chemist(), DRUG_CRATES, CARGO_CRAWLER,
-                List.of(new Cell(192, 59), new Cell(197, 64)), posts, List.copyOf(s.nests), List.copyOf(s.pillboxes), MORTAR_START, mortarLane(),
+                List.of(new Cell(192, 59), new Cell(197, 64)), posts, List.copyOf(s.nests), List.copyOf(s.pillboxes),
+                List.copyOf(s.works), MORTAR_START, mortarLane(),
                 TECHNICAL_STANDS, List.of(WEST_CROSSING, MIDDLE_CROSSING), cover(map), approachLines());
     }
 

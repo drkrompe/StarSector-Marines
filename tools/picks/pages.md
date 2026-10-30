@@ -21,3 +21,4 @@ One picks page per top-level parent session (see `owner-review.md`). A parent ad
 | Vehicle shared parts (engines, typed gun card, stance, turret art) | https://claude.ai/artifact/Rjh22zrwHUGwK4PAyZuFPp |
 | Side-objective interaction (world prompts and rail row buttons for the Dust Ledger's side objectives) | https://claude.ai/artifact/8jujynWvfs7s8c6pMD4zc8 |
 | Kit ladder (weapon and armour kit authoring, drag-and-drop onto marines; kit state in the page db) | https://claude.ai/artifact/LuCPJvBHLeTQG1CpXHRRbC |
+| Blind Watch pressure (defence in depth for five squads and three machines) | https://claude.ai/artifact/NvsHAc9WqvxjER2QAHnKqM |
