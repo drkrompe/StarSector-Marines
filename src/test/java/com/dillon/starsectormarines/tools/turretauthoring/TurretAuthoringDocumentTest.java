@@ -53,7 +53,7 @@ class TurretAuthoringDocumentTest {
     void crossCatalogEditsValidateSaveAndReloadTogether() throws Exception {
         copyCatalogs(temporary);
         String preservedCatalogLine = Files.readAllLines(temporary.resolve(TurretAuthoringDocument.WEAPON_PATH))
-                .stream().filter(line -> line.contains("\"designation\": \"VUL\""))
+                .stream().filter(line -> line.contains("@gearCatalogWeaponTurretVulcanDisplayName"))
                 .findFirst().orElseThrow();
         TurretAuthoringDocument document = TurretAuthoringDocument.load(temporary);
         // No catalog-count pin: this test is about a cross-catalog edit
