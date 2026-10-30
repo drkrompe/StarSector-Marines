@@ -1,13 +1,16 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.ArmorIssueResolver;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
+import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
+import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCost;
+import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.FirstRefit.Path;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.EquipmentTestFixtures;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
+import com.dillon.starsectormarines.ops.spec.IntegralSystemCopy;
 import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
@@ -59,12 +62,17 @@ class FirstRefitModelTest {
         roster.markStoryComplete(OpeningOperationKind.RELIEF.missionId);
         var model = new FirstRefitModel(new Reactor(), roster, EquipmentIssueResources.UNLIMITED, id -> { });
         model.selectSquad(squad.id()); model.selectPath(Path.STEADY_LINE);
-        assertEquals(SpecSheets.weapon(WeaponRegistry.require(WeaponRegistry.SQUAD_AUTOMATIC_ID), EquipmentGrade.MILSPEC), model.sheet(true, 0));
+        var steady = FirstRefit.weapons(Path.STEADY_LINE).get(0);
+        assertEquals(SpecSheets.weapon(steady.primaryDef(), steady.grade()), model.sheet(true, 0));
         model.selectPath(Path.FORWARD_SCREEN);
         var current = roster.soldierById(roster.manningMemberIds(squad).get(0));
         assertEquals(SpecSheets.weapon(current.primaryDef(), current.primaryGrade()), model.sheet(false, 0));
-        assertEquals(SpecSheets.weapon(WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID), EquipmentGrade.MILSPEC), model.sheet(true, 0));
-        assertNotNull(model.sheet(true, 3), "The proposed scout suit exposes its integral system");
+        var forward = FirstRefit.weapons(Path.FORWARD_SCREEN).get(0);
+        assertEquals(SpecSheets.weapon(forward.primaryDef(), forward.grade()), model.sheet(true, 0));
+        String proposedSuit = ArmorIssueResolver.issueSheet(
+                SquadEquipmentDoctrines.armorPlanById(Path.FORWARD_SCREEN.armor)).issueId(0);
+        assertEquals(IntegralSystemCopy.carried(MarineArmorCatalogRegistry.require(proposedSuit)), model.sheet(true, 3) != null,
+                "The proposed suit exposes its integral system exactly when it carries one");
         assertFalse(roster.firstRefit().complete());
         EquipmentTestFixtures.issueLauncher(roster.soldierById(roster.manningMemberIds(squad).get(11)));
         model.selectBillet(11);

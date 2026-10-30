@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.BilletRoles;
 import com.dillon.starsectormarines.marine.EquipmentIssueResources;
@@ -8,6 +9,7 @@ import com.dillon.starsectormarines.marine.FirstRefit.Path;
 import com.dillon.starsectormarines.marine.FirstRefit;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.SquadWeaponDoctrine;
+import com.dillon.starsectormarines.marine.SquadWeaponIssue;
 import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadEquipmentBillet;
@@ -76,8 +78,17 @@ final class FirstRefitModel {
     }
 
     void selectPath(Path value) {
-        path = value; selectedBillet = value == Path.STEADY_LINE ? 3 : 0;
+        path = value; selectedBillet = value != null ? signatureSeat(value) : 0;
         feedback = ""; refresh();
+    }
+
+    /** The first seat the path arms with something other than the starter rifle: what the offer is about. */
+    private static int signatureSeat(Path path) {
+        List<SquadWeaponIssue> seats = FirstRefit.weapons(path);
+        for (int i = 0; i < seats.size(); i++) {
+            if (!WeaponRegistry.STARTER_PRIMARY_ID.equals(seats.get(i).primaryId())) return i;
+        }
+        return 0;
     }
     void selectBillet(int index) {
         if (index < 0 || index >= MarineSquad.CAPACITY) return;

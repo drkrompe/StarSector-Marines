@@ -25,18 +25,18 @@
       "description": "@openingRefitPathDescriptionSTEADY_LINE",
       "grant": "free-pick",
       "members": [
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
-        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "MILSPEC"},
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
-        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "MILSPEC"},
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
-        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "MILSPEC"}
+        {"role": "Team Leader", "primary": "weapon.squad-automatic", "grade": "SURPLUS", "special": "special.frag-grenade"},
+        {"role": "Automatic Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.squad-automatic", "grade": "SURPLUS", "special": "special.frag-grenade"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"}
       ]
     },
     {
@@ -45,16 +45,16 @@
       "description": "@openingRefitPathDescriptionFORWARD_SCREEN",
       "grant": "free-pick",
       "members": [
-        {"role": "Pulse Rifleman", "primary": "weapon.pulse-rifle", "grade": "MILSPEC"},
-        {"role": "Pulse Rifleman", "primary": "weapon.pulse-rifle", "grade": "MILSPEC"},
+        {"role": "Team Leader", "primary": "weapon.pulse-rifle", "grade": "SURPLUS", "special": "special.srm-1-qs"},
+        {"role": "Rifleman", "primary": "weapon.smg", "grade": "SURPLUS"},
         {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
         {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
-        {"role": "Pulse Rifleman", "primary": "weapon.pulse-rifle", "grade": "MILSPEC"},
-        {"role": "Pulse Rifleman", "primary": "weapon.pulse-rifle", "grade": "MILSPEC"},
+        {"role": "Team Leader", "primary": "weapon.pulse-rifle", "grade": "SURPLUS", "special": "special.smoke-grenade"},
+        {"role": "Rifleman", "primary": "weapon.pulse-rifle", "grade": "SURPLUS"},
         {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
         {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
-        {"role": "Pulse Rifleman", "primary": "weapon.pulse-rifle", "grade": "MILSPEC"},
-        {"role": "Pulse Rifleman", "primary": "weapon.pulse-rifle", "grade": "MILSPEC"},
+        {"role": "Team Leader", "primary": "weapon.pulse-rifle", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.smg", "grade": "SURPLUS"},
         {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
         {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"}
       ]
@@ -84,16 +84,16 @@
       "description": "@squadDoctrineLineInfantryWeaponsDescription",
       "members": [
         {"role": "Team Leader", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
-        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.comms-radio"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE", "special": "special.frag-grenade", "belt": "special.frag-grenade"},
         {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"},
         {"role": "Team Leader", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
-        {"role": "Grenadier", "primary": "weapon.pulse-rifle", "grade": "SERVICE", "special": "special.smoke-grenade", "belt": "special.frag-grenade"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.smoke-grenade"},
+        {"role": "Grenadier", "primary": "weapon.pulse-rifle", "grade": "SERVICE", "special": "special.flamer", "belt": "special.frag-grenade"},
         {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"},
         {"role": "Team Leader", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
-        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE"},
-        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.smoke-grenade", "belt": "special.frag-grenade"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE", "special": "special.smoke-grenade"},
+        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.flamer", "belt": "special.frag-grenade"},
         {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"}
       ]
     },
@@ -121,15 +121,15 @@
       "name": "@squadDoctrineFireSupportWeaponsName",
       "description": "@squadDoctrineFireSupportWeaponsDescription",
       "members": [
-        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.smg", "grade": "MILSPEC"},
         {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE", "special": "special.srm-3-pod"},
         {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"},
         {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
-        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
-        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.point-defence-pack"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE", "special": "special.srm-3-pod"},
         {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"},
         {"role": "Heavy Marksman", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.anti-materiel-rifle"},
-        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.smg", "grade": "MILSPEC", "special": "special.point-defence-pack"},
         {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE", "special": "special.srm-3-pod"},
         {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"},
         {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"}
@@ -140,18 +140,18 @@
       "name": "@squadDoctrineTrenchClearingWeaponsName",
       "description": "@squadDoctrineTrenchClearingWeaponsDescription",
       "members": [
-        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
+        {"role": "Team Leader", "primary": "weapon.smg", "grade": "MILSPEC", "special": "special.frag-grenade"},
         {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
-        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
-        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
-        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
+        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Grenadier", "primary": "weapon.dmr", "grade": "SURPLUS"},
+        {"role": "Team Leader", "primary": "weapon.smg", "grade": "MILSPEC", "special": "special.smoke-grenade"},
         {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
-        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
-        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
-        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
+        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.smg", "grade": "SERVICE", "special": "special.smoke-grenade"},
         {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
         {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
-        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"}
+        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE"}
       ]
     },
     {
@@ -183,7 +183,7 @@
         {"role": "Point Defence", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.point-defence-emplacement"},
         {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
         {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
-        {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
+        {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.anti-materiel-rifle"},
         {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
         {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
         {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
@@ -203,11 +203,11 @@
         {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
         {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
         {"role": "Heavy Marksman", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.anti-materiel-rifle"},
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.field-mortar"},
         {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
         {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
         {"role": "Interceptor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.point-defence-pack"},
-        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.field-mortar"},
         {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"}
       ]
     },
@@ -255,7 +255,7 @@
       "grant": "free-pick",
       "tradition": "HEGEMONY",
       "mix": "LINE_HOLD",
-      "suits": ["armor.militia", "armor.orderly"]
+      "suits": ["armor.lashplate-harness", "armor.field-fatigues", "armor.cordon-shell"]
     },
     {
       "id": "armor:league-mobile",
@@ -264,7 +264,7 @@
       "grant": "free-pick",
       "tradition": "PERSEAN",
       "mix": "RECONNAISSANCE",
-      "suits": ["armor.scout", "armor.orderly", "armor.packframe"]
+      "suits": ["armor.cordon-shell", "armor.field-fatigues", "armor.militia"]
     },
     {
       "id": "armor:church-wardens",
@@ -288,7 +288,7 @@
       "description": "@squadDoctrineReconArmorDescription",
       "tradition": "TRITACHYON",
       "mix": "RECONNAISSANCE",
-      "suits": ["armor.scout", "armor.cordon-shell", "armor.packframe", "armor.riot-shell"]
+      "suits": ["armor.aegis-composite", "armor.scout", "armor.packframe", "armor.riot-shell"]
     },
     {
       "id": "armor:fleet-combat",

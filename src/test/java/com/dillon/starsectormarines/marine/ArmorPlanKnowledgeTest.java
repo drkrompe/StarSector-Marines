@@ -55,8 +55,9 @@ class ArmorPlanKnowledgeTest {
 
     @Test void owningEverySuitOfASheetIsNotTheSheetOnlyItsCardIs() {
         MarineArmory armory = new MarineArmory();
-        armory.unlockArmor("armor.militia");
-        armory.unlockArmor("armor.orderly");
+        for (String suit : ArmorSheetBundles.patternsFor(SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR)) {
+            armory.unlockArmor(suit);
+        }
         assertFalse(armory.knowsArmorPlan(SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR));
         EquipmentTestFixtures.learnSheet(armory, SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR);
         assertEquals(Set.of(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR,
@@ -86,8 +87,9 @@ class ArmorPlanKnowledgeTest {
         MarineArmory armory = new MarineArmory();
         LoadoutCard assault = new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.ASSAULT_WEAPONS);
         for (String template : assault.templateIds()) armory.acquireEquipmentTemplate(template);
-        armory.unlockArmor("armor.militia");
-        armory.unlockArmor("armor.orderly");
+        for (String suit : ArmorSheetBundles.patternsFor(SquadEquipmentDoctrines.HEGEMONY_AUXILIARY_ARMOR)) {
+            armory.unlockArmor(suit);
+        }
         var ledger = MarineArmory.class.getDeclaredField("knownLoadoutCardIds");
         ledger.setAccessible(true);
         ledger.set(armory, null);
