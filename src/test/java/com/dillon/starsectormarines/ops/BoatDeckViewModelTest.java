@@ -558,7 +558,7 @@ class BoatDeckViewModelTest {
                 new Reactor(), boats, new TestPurse(60_000), "Second Wind");
         model.selectBoatAction(0).run();
         model.selectDollSlot(BoatDoll.HARDPOINT_KEY + 1);
-        String laser = BoatGun.PULSE_LASER.id();
+        String laser = BoatGun.TWIN_PE_1.id();
         String top = BoatDoll.positionKey(1, BoatHardpoint.TOP);
         String bottom = BoatDoll.positionKey(1, BoatHardpoint.BOTTOM);
 

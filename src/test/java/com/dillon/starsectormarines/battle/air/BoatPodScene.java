@@ -29,7 +29,7 @@ import java.util.Map;
  * A company Hermes with two guns on one hardpoint: does the pod fly as one turret and fire both?
  *
  * <p>One loop, {@code pods}: the Hermes on station over a garrison as a gunship, her yard's heavy MG on her
- * first hardpoint, two pulse lasers sharing her second and two SRM pods sharing her third. The owner's pick
+ * first hardpoint, two Twin PE-1 emitters sharing her second and two SRM pods sharing her third. The owner's pick
  * (2026-10-27) is that a 2x2 hardpoint takes two 2x1 guns as a pod with a left and a right barrel. So each pod
  * should be two mounts on its hardpoint's one slot and one arc, both guns of each should fire on their own
  * cadence, and the pod should be laid on one line rather than its barrels pointing apart.
@@ -48,7 +48,7 @@ public final class BoatPodScene implements BehaviorScene {
 
     /** The Hermes under test: the yard's MG alone on hardpoint 1, twin lasers on 2, twin SRM pods on 3. */
     static FittedBoat podBoat() {
-        String laser = BoatGun.PULSE_LASER.structureId();
+        String laser = BoatGun.TWIN_PE_1.structureId();
         String srm = BoatGun.SRM_15.structureId();
         return new FittedBoat(ShuttleType.HERMES, Map.of(), "hermes-pod",
                 new String[]{null, laser, srm}, new String[]{null, laser, srm});
@@ -57,7 +57,7 @@ public final class BoatPodScene implements BehaviorScene {
     @Override public String id() { return "boat-pod"; }
 
     @Override public String label() {
-        return "Boat pod: a Hermes with two pulse lasers on one hardpoint and two SRM pods on another flies each pair "
+        return "Boat pod: a Hermes with two Twin PE-1 emitters on one hardpoint and two SRM pods on another flies each pair "
                 + "as one turret on its hardpoint's arc and fires both guns of each";
     }
 
