@@ -42,7 +42,6 @@ public final class MechPatternCredits {
         vehicle(VehicleType.HEAVY_APC, hegemony, HEGEMONY);
         vehicle(VehicleType.LRM_CARRIER, hegemony, HEGEMONY);
         vehicle(VehicleType.BREAKTHROUGH_TANK, hegemony, HEGEMONY);
-        vehicle(VehicleType.SCREENED_TANK, hegemony, HEGEMONY);
         vehicle(VehicleType.FIRE_SUPPORT_APC, FactionMechLoadouts.LIONS_GUARD_ID, LIONS_GUARD);
         vehicle(VehicleType.DOZER_BREACHER, FactionMechLoadouts.LUDDIC_PATH_ID, PATH);
         vehicle(VehicleType.HOVER_SCOUT, FactionMechLoadouts.TRI_TACHYON_ID, TRI_TACHYON);

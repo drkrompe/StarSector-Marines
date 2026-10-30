@@ -173,7 +173,7 @@ def octagon(x0, y0, x1, y1, c):
 # matching edge of both views; the end plate is FRONT in one view and REAR in the
 # other.
 
-def tank(name, turret_w=24, turret_top=50, heavy=False, screened=False, dozer=False):
+def tank(name, turret_w=24, turret_top=50, heavy=False, dozer=False):
     d = Doll(name)
     for cx, rear in views():
         vl, vr = sides(rear)
@@ -185,7 +185,7 @@ def tank(name, turret_w=24, turret_top=50, heavy=False, screened=False, dozer=Fa
             d.panel("TURRET", [(-tw + 8, top), (tw - 8, top), (tw, top + 12), (tw, 76), (-tw, 76),
                                (-tw, top + 12)], cx)
         d.panel("HULL", [(-28, 76), (28, 76), (28, 92), (-28, 92)], cx)
-        out = 56 if screened else 50
+        out = 50
         d.pair(vl, vr, [(-out + 4, 80), (-28, 76), (-28, 92), (-out, 92)], cx)
         if dozer and not rear:
             d.pair("DRIVE", "DRIVE", octagon(-50, 92, -34, 120, 3), cx)
@@ -506,7 +506,6 @@ def mudskipper():
 def main():
     written = [
         tank("tank"),
-        tank("tank-screened", screened=True),
         tank("tank-dozer", turret_w=16, turret_top=58, dozer=True),
         apc("apc"),
         apc("lrm-carrier", launcher=True),

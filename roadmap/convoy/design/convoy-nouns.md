@@ -310,6 +310,20 @@ without becoming a perceiver: it is a squadless observer beside the body
 (`HullSightings`; the light roles, below), out to a marine's sight, or to its mast's
 where it has one, so the perception components stay off every chassis.
 
+**A vehicle instance is a hull and a loadout** (owner, 2026-10-30). A `VehicleType` is a bare,
+generic chassis: its footprint, drive, plate, gun card size and bay. Everything that makes one
+machine differ from another of the same hull is equipment: the engine in its engine core, the
+plating at its armor point, the part in its gun card, the bank and vent arrays and kits on its
+rack. An instance is the hull with one such loadout (`VehicleDeploymentSpec`), and every hull in
+a battle is set down from one through the same path (`ConvoyService.spawn(VehicleDeploymentSpec, …)`).
+The player designs instances in the Mech Lab, fitting parts to a hull the company owns. An
+encounter chooses its instances to hit the difficulty it wants: a deliberately weak one (stock
+engine, factory plating, an empty rack, a light part or none) as readily as a strong one, any
+loadout the parts allow, not only a named fit. A named instance a mission or evidence reuses is a
+**stock fit** (`VehicleStockFit`, below: the convoy escort, the Parapet); it is a loadout with a
+name, never hull data, so a new named variant of a hull is a new fit, not a new `VehicleType`.
+Only a chassis that differs in its card, bay or body is a hull of its own.
+
 **The APC is one chassis.** `HEAVY_APC` is the troop carrier, six seats and a
 small omni gun card; the mortar carrier (`FIRE_SUPPORT_APC`) and the LRM carrier
 (`LRM_CARRIER`) are the same chassis with the troop bay given over to a typed gun
@@ -367,7 +381,7 @@ rating and plate are worth on a given hit depends on its arc (below).
   and only until the loader has put a pack back (the loader, below). The hull
   still threatens what it can see, and its threat reach stays its own.
 - **The section is authored per hull** (`VehicleType.turretHitShare` /
-  `turretPoolShare`). Today only the gun tanks (breakthrough, screened and both lasers) author one: a fifth of the
+  `turretPoolShare`). Today only the gun tanks (the Onager and the laser tank) author one: a fifth of the
   hits, and a quarter of the pools (`heavy-equipment-progression.md`, a tank
   that loses its gun). A hull with no section is one body and its gun
   cannot be lost. That covers the APCs, the technical, the dozer's MG and the
@@ -461,7 +475,7 @@ round. It applies to whichever plate the hit meets (above).
   alike: an aimed round, an arcing shell, a missile, a blast. A ballistic or
   arcing round's ground track runs from its shooter, and a top-attack round is
   not read as a roof hit: the anti-armor LRM already defeats a stock tank by
-  design, and the screened tank's active protection is that threat's answer. A
+  design, and the active-protection kit is that threat's answer. A
   blast is read from its firer, not from where it burst. A hit with no origin
   (unattributed or scripted damage, a shooter already gone) meets the hull's
   nominal plate on no arc, and no arc draws on the random stream.
@@ -624,9 +638,11 @@ The direct-control HUD shows every armed hull's reservoir on the mech's gauge. T
 authors (`VehicleType.fluxVentAftCells`, the laser tanks' radiator fins), so the
 plain hulls show no haze. Emplacements sharing a hull's mount never read its flux.
 
-**The screened tank carries active protection** (`VehicleType.activeProtectionStructureId`).
-It is a point-defence mount on the hull: the carried-mount law of
-`PointDefenseService`, with the hull as the carrier. It is bounded the same way:
+**Active protection is a rack kit** (`VehicleKit.ACTIVE_PROTECTION`; owner, 2026-10-30: one
+tank, modular heads). The Parapet, once a hull of its own, is the Onager with this kit on its rack
+(`VehicleStockFit.PARAPET`). A gun tank whose rack carries it gets a point-defence mount on the hull
+(`ConvoyService.activeProtectionStructureId`, the `structure.tank-aps` mount): the carried-mount
+law of `PointDefenseService`, with the hull as the carrier. It is bounded the same way:
 it engages a round only while the round is inside its reach, at most once per
 cycle, from a finite magazine that is not refilled, and each engagement is a
 roll. What it takes is narrower than an emplacement's: **only an arcing,
@@ -634,9 +650,12 @@ top-attack round coming down within three cells of the hull.** A flat rocket
 such as an SRM is left to the plate, and so is a round falling on somebody
 else, so the system shields its own hull and never the infantry around it.
 Guns, cannon and lasers fire rounds that point defence cannot engage at all.
-Only the screened tank carries one: a rung of the tank line, the breakthrough
-tank with this system, never a fitting on a stock tank
-(`heavy-equipment-progression.md`, the AT LRM against a tank). The mount lasts the battle, ends with the hull, and is mounted
+The launchers and their power cost the hull six hundredths of its speed and acceleration
+(`VehicleKit.speedFactor`). Only the armed gun tanks (the Onager, the laser tank) take it
+(`heavy-equipment-progression.md`, the AT LRM against a tank); a stock tank carries none. Its
+launcher boxes stand on the hull's rear flanks and a sensor panel on each cheek, drawn over the live
+hull whatever head the turret wears (`kit-active-protection.png`, `art-source/vehicles/kit-active-protection`).
+The mount lasts the battle, ends with the hull, and is mounted
 once: a spent magazine is not refilled. `-Dbattle.vehicle.activeProtection=false`
 is the control.
 
@@ -1470,7 +1489,7 @@ a ship's burst laser where the twin cannons were. In orbit that emitter is point
 defence, because it barely marks a warship's plate; on the ground almost nothing it
 meets is plate like that. It is a rung of the tank line, not a point-defence system:
 it does not engage rounds in flight. Hostile rocket and shell interception stays
-with the hull systems built for it (the screened tank's active protection).
+with the hull systems built for it (the active-protection kit).
 
 **It does reach the air** (`TurretMountDef.engagesAir`, a mount law any vehicle gun
 may author). A hostile craft in the air within the gun's reach, with a clear line

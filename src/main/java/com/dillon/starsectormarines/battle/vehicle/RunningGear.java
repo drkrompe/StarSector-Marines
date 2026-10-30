@@ -34,7 +34,7 @@ public record RunningGear(float halfGaugeCells, float rearCells, float frontCell
             case HEAVY_APC, FIRE_SUPPORT_APC, LRM_CARRIER ->
                     ofFrame(type, 768f, 162f, 218f, 187f);
             // Tracks the length of the hull, rows centred 180 px either side.
-            case BREAKTHROUGH_TANK, SCREENED_TANK -> ofFrame(type, 768f, 180f, 316f, 300f);
+            case BREAKTHROUGH_TANK -> ofFrame(type, 768f, 180f, 316f, 300f);
             case LASER_TANK -> ofFrame(type, 768f, 182f, 316f, 300f);
             // The tank's tracks drawn smaller on the dozer's longer frame, ending behind the blade.
             case DOZER_BREACHER -> ofFrame(type, 768f, 168f, 296f, 300f);

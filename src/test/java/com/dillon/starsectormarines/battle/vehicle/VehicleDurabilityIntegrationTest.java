@@ -45,7 +45,7 @@ class VehicleDurabilityIntegrationTest {
             float rearOffset = switch (type) {
                 case HEAVY_APC, FIRE_SUPPORT_APC, LRM_CARRIER ->
                         .55f * type.drawnLengthCells / 2.4f;
-                case BREAKTHROUGH_TANK, SCREENED_TANK, LASER_TANK, DOZER_BREACHER -> 1.1f;
+                case BREAKTHROUGH_TANK, LASER_TANK, DOZER_BREACHER -> 1.1f;
                 case MILITIA_TECHNICAL, SUPPLY_TRUCK, SCOUT_CAR, SRM_TECHNICAL -> .9875f;
                 case CARGO_CARRIER -> .75f;
                 case HOVER_SCOUT, DRONE_SKIMMER -> EffectsService.hoverFanAftCells(type.drawnLengthCells);

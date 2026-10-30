@@ -26,7 +26,7 @@ class BicycleBodyReverseTest {
     /** A Bulwark walks at 1.05 cells/s; a tank that backs up faster than that kites it forever. */
     @Test
     void bothTanksBackUpSlowerThanABulwarkWalks() {
-        for (VehicleType type : new VehicleType[] {VehicleType.BREAKTHROUGH_TANK, VehicleType.SCREENED_TANK}) {
+        for (VehicleType type : new VehicleType[] {VehicleType.BREAKTHROUGH_TANK, VehicleType.LASER_TANK}) {
             float reverse = settledReverse((BicycleBody) type.createBody());
             assertTrue(reverse < 1.05f, type + " reverses at " + reverse);
         }

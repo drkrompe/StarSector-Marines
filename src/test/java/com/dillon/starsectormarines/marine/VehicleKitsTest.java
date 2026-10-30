@@ -49,6 +49,21 @@ class VehicleKitsTest {
     }
 
     @Test
+    void activeProtectionSuitsOnlyAnArmedGunTankAndGivesItsHullThePointDefenceMount() {
+        assertTrue(VehicleKit.ACTIVE_PROTECTION.suits(VehicleType.BREAKTHROUGH_TANK));
+        assertTrue(VehicleKit.ACTIVE_PROTECTION.suits(VehicleType.LASER_TANK));
+        for (VehicleType other : List.of(VehicleType.DOZER_BREACHER, VehicleType.HEAVY_APC, VehicleType.LRM_CARRIER,
+                VehicleType.MILITIA_TECHNICAL, VehicleType.SUPPLY_TRUCK, VehicleType.HOVER_SCOUT)) {
+            assertFalse(VehicleKit.ACTIVE_PROTECTION.suits(other), "not a gun tank: " + other);
+        }
+        assertEquals("structure.tank-aps", VehicleKit.activeProtectionStructureId(
+                List.of(VehicleKit.SPALL_LINER, VehicleKit.ACTIVE_PROTECTION)));
+        assertEquals(null, VehicleKit.activeProtectionStructureId(List.of(VehicleKit.SPALL_LINER)));
+        assertTrue(VehicleKit.speedFactor(List.of(VehicleKit.ACTIVE_PROTECTION)) < 1f, "the launchers cost speed");
+        assertEquals(1f, VehicleKit.speedFactor(List.of(VehicleKit.SPALL_LINER)), 0f);
+    }
+
+    @Test
     void kitsChangeOnlyTheNumbersTheHullIsSetDownWith() {
         VehicleKit.Effect effect = VehicleKit.Effect.of(List.of(VehicleKit.SPALL_LINER, VehicleKit.READY_RACK));
         assertEquals(1f, effect.armorFactor(), 1e-6f, "armor is the armor point's, not the rack's");

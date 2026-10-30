@@ -113,7 +113,7 @@ final class VehicleDoll {
         List<String> stems = new ArrayList<>(List.of(
                 "engine-industrial", "engine-uprated", "engine-military",
                 "boat-hold-standard", "vehicle-bay-supply", "vehicle-bay-drones",
-                "vehicle-systems-blade", "vehicle-systems-aps", "vehicle-systems-mast", "vehicle-systems-secondary"));
+                "vehicle-systems-blade", "vehicle-systems-mast", "vehicle-systems-secondary"));
         for (VehicleGunCard gun : VehicleGunCard.values()) if (!stems.contains(gunArt(gun))) stems.add(gunArt(gun));
         stems.addAll(List.of("vehicle-srm-pod", "light-pulse-laser"));
         return List.copyOf(stems);
@@ -135,12 +135,13 @@ final class VehicleDoll {
     }
 
     /**
-     * A kit's colour: the ready rack and the loader feed the gun as a mech's loader does. A bank or vent array on
+     * A kit's colour: the ready rack and the loader feed the gun as a mech's loader does, and active protection is a
+     * hull system, as the systems card's are. A bank or vent array on
      * the rack wears its own role's colour, as in a mech's compartment.
      */
     static Color tone(VehicleKit kit) {
         return switch (kit) {
-            case READY_RACK, ACCELERATED_LOADER -> HardpointBricks.UTILITY;
+            case READY_RACK, ACCELERATED_LOADER, ACTIVE_PROTECTION -> HardpointBricks.UTILITY;
             default -> HardpointBricks.OMNI;
         };
     }
@@ -160,7 +161,6 @@ final class VehicleDoll {
             case LEFT_SHOULDER -> type.capacity > 0 ? "boat-hold-standard"
                     : type.supplyStock() > 0 ? "vehicle-bay-supply" : "vehicle-bay-drones";
             case RIGHT_SHOULDER -> type.hasBlade() ? "vehicle-systems-blade"
-                    : type.activeProtectionStructureId() != null ? "vehicle-systems-aps"
                     : type.sightCells() > 0f ? "vehicle-systems-mast" : "vehicle-systems-secondary";
             default -> null;
         };
@@ -177,7 +177,6 @@ final class VehicleDoll {
     private static List<String> systems(VehicleType type) {
         List<String> systems = new ArrayList<>();
         if (!type.secondaryMounts().isEmpty()) systems.add(Strings.get("vehicleDollSecondary"));
-        if (type.activeProtectionStructureId() != null) systems.add(Strings.get("vehicleDollActiveProtection"));
         if (type.sightCells() > 0f) systems.add(Strings.get("vehicleDollSightMast"));
         if (type.hasBlade()) systems.add(Strings.get("vehicleDollBlade"));
         return systems;

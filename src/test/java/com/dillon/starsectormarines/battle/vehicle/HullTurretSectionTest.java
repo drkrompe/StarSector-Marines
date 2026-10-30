@@ -100,7 +100,7 @@ class HullTurretSectionTest {
     void onlyTheGunTanksAuthorASection() {
         if (!HullTurretSection.ENABLED) return;
         assertNotNull(HullTurretSection.forHull(VehicleType.BREAKTHROUGH_TANK));
-        assertNotNull(HullTurretSection.forHull(VehicleType.SCREENED_TANK));
+        assertNotNull(HullTurretSection.forHull(VehicleType.LASER_TANK));
         assertNull(HullTurretSection.forHull(VehicleType.HEAVY_APC));
         assertNull(HullTurretSection.forHull(VehicleType.SCOUT_CAR));
     }

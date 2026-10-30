@@ -158,6 +158,8 @@ public class BattleSprites {
     private LayeredSpriteCache vehicleTurretBase;
     private LayeredSpriteCache vehicleTurretBaseLight;
     private LayeredSpriteCache vehicleGunPlate;
+    private LayeredSpriteCache vehicleKitActiveProtection;
+    private LayeredSpriteCache vehicleKitActiveProtectionTurret;
 
     // ---- vehicle sheets -----------------------------------------------------
 
@@ -298,6 +300,14 @@ public class BattleSprites {
      * ({@link com.dillon.starsectormarines.battle.vehicle.VehicleGun#plateCells}). Null when the art did not load.
      */
     public LayeredSpriteCache vehicleGunPlate() { return vehicleGunPlate; }
+    /**
+     * The active-protection kit's launchers and sensor panels, drawn over a gun tank's live hull in its frame's
+     * registration ({@link com.dillon.starsectormarines.battle.vehicle.VehicleKit#ACTIVE_PROTECTION}). Null when the
+     * art did not load.
+     */
+    public LayeredSpriteCache vehicleKitActiveProtection() { return vehicleKitActiveProtection; }
+    /** The same fit in the Onager's turret frame registration, turning with the turret housing. Null when not loaded. */
+    public LayeredSpriteCache vehicleKitActiveProtectionTurret() { return vehicleKitActiveProtectionTurret; }
     /** Pools under fallen layered bodies; empty when the art did not load. */
     public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
 
@@ -1364,6 +1374,8 @@ public class BattleSprites {
         vehicleTurretBase = loadLayeredSprite("graphics/battle/vehicles/turret-base-medium.png");
         vehicleTurretBaseLight = loadLayeredSprite("graphics/battle/vehicles/turret-base-light.png");
         vehicleGunPlate = loadLayeredSprite("graphics/battle/vehicles/gun-plate.png");
+        vehicleKitActiveProtection = loadLayeredSprite("graphics/battle/vehicles/kit-active-protection.png");
+        vehicleKitActiveProtectionTurret = loadLayeredSprite("graphics/battle/vehicles/kit-active-protection-turret.png");
         mechBase = new MechBase(socketedChassis, foot, thighBone, flash);
     }
 

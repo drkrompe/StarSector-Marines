@@ -1,4 +1,10 @@
-# Screened tank variant
+# Screened tank variant (retired hull; the active-protection kit's source)
+
+The Parapet is no longer a hull: active protection is a rack kit (`VehicleKit.ACTIVE_PROTECTION`) and the Parapet is
+the Onager with it (`VehicleStockFit.PARAPET`). Its sheet no longer ships. These ImageGen sources stay as the kit's
+art source: `pack.py` now writes only the live turret frame to
+`art-source/vehicles/kit-active-protection/screened-turret-frame.png`, and that folder's `build.py` lifts the
+launchers and sensor panels off it. What follows is the original record.
 
 The breakthrough tank (`art-source/vehicles/tank/`) carrying active protection: a
 compact interceptor launcher box on each rear turret flank (2x3 tube mouths,

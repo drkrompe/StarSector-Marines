@@ -4,6 +4,8 @@ import com.dillon.starsectormarines.battle.air.LiftClass;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.turret.TurretCatalogRegistry;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGunCard;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import org.junit.jupiter.api.Test;
 
@@ -23,14 +25,15 @@ class VehicleVariantLadderTest {
 
     private static final List<VehicleType> VARIANTS = List.of(VehicleType.LRM_CARRIER,
             VehicleType.FIRE_SUPPORT_APC, VehicleType.DOZER_BREACHER,
-            VehicleType.SCREENED_TANK, VehicleType.LASER_TANK);
+            VehicleType.LASER_TANK);
 
     @Test
     void eachVariantIsItsOwnVehiclePatternAtAnAuthoredTier() {
         assertEquals(EquipmentAccessTier.ADVANCED, MechPattern.of(VehicleType.LRM_CARRIER).accessTier());
         assertEquals(EquipmentAccessTier.ADVANCED, MechPattern.of(VehicleType.FIRE_SUPPORT_APC).accessTier());
         assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.DOZER_BREACHER).accessTier());
-        assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleType.SCREENED_TANK).accessTier());
+        assertEquals(EquipmentAccessTier.PRESTIGE, MechPattern.of(VehicleKit.ACTIVE_PROTECTION).accessTier(),
+                "the Parapet's interceptor system is a Prestige kit, as the hull was");
         for (VehicleType type : VARIANTS) {
             MechPattern pattern = MechPattern.of(type);
             assertEquals(MechPattern.Kind.VEHICLE, pattern.kind());
@@ -45,7 +48,6 @@ class VehicleVariantLadderTest {
         assertEquals(LiftClass.MEDIUM, VehicleType.LRM_CARRIER.liftClass());
         assertEquals(LiftClass.MEDIUM, VehicleType.FIRE_SUPPORT_APC.liftClass());
         assertEquals(LiftClass.HEAVY, VehicleType.DOZER_BREACHER.liftClass());
-        assertEquals(LiftClass.HEAVY, VehicleType.SCREENED_TANK.liftClass());
         for (VehicleType type : VARIANTS) {
             assertEquals(type.liftClass().name(), MechPattern.weightClass(type).name(), type.name());
         }
@@ -67,7 +69,7 @@ class VehicleVariantLadderTest {
         assertEquals(MechPatternPicker.BASE_WEIGHT, MechPatternPicker.weight("independent", carrier));
         // Tri-Tachyon is known for its hover line, not for anybody's tank.
         assertEquals(MechPatternPicker.BASE_WEIGHT,
-                MechPatternPicker.weight("tritachyon", MechPattern.of(VehicleType.SCREENED_TANK)));
+                MechPatternPicker.weight("tritachyon", MechPattern.of(VehicleType.BREAKTHROUGH_TANK)));
     }
 
     @Test
@@ -81,10 +83,10 @@ class VehicleVariantLadderTest {
         VehicleType dozer = VehicleType.DOZER_BREACHER;
         assertTrue(dozer.maxArmor > tank.maxArmor && dozer.maxSpeed < tank.maxSpeed);
         assertEquals(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, dozer.turretStructureId);
-        VehicleType screened = VehicleType.SCREENED_TANK;
-        assertEquals(tank.turretStructureId, screened.turretStructureId);
-        assertTrue(screened.activeProtectionStructureId() != null && tank.activeProtectionStructureId() == null);
-        assertTrue(screened.maxSpeed < tank.maxSpeed);
+        VehicleStockFit parapet = VehicleStockFit.PARAPET;
+        assertEquals(tank, parapet.type, "the Parapet is the Onager with active protection on its rack");
+        assertTrue(VehicleKit.activeProtectionStructureId(parapet.kits) != null);
+        assertTrue(VehicleKit.speedFactor(parapet.kits) < 1f);
     }
 
     /**
@@ -161,8 +163,7 @@ class VehicleVariantLadderTest {
 
     private static boolean dominates(VehicleType a, VehicleType b) {
         return a.maxStructure >= b.maxStructure && a.maxArmor >= b.maxArmor
-                && a.armorRating >= b.armorRating && a.maxSpeed >= b.maxSpeed && a.capacity >= b.capacity
-                && (b.activeProtectionStructureId() == null || a.activeProtectionStructureId() != null);
+                && a.armorRating >= b.armorRating && a.maxSpeed >= b.maxSpeed && a.capacity >= b.capacity;
     }
 }
 

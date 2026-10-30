@@ -365,7 +365,9 @@ public final class ArmorPlay {
                         int[] cell = cell(scenario, side, attacking, slot + i);
                         float x = cell[0] + 0.5f;
                         float y = cell[1] + 0.5f;
-                        long id = convoy.spawn(vehicle.type(), faction, VehicleMission.deployed(x, y));
+                        long id = vehicle.fit() != null
+                                ? convoy.spawn(vehicle.fit(), faction, VehicleMission.deployed(x, y))
+                                : convoy.spawn(vehicle.type(), faction, VehicleMission.deployed(x, y));
                         // Facing the enemy (0° is +Y): the arcs a hull is hit on start from where it points.
                         int[] anchor = scenario.slot(false, 0);
                         float facing = attacking

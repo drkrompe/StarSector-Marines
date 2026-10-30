@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
 import com.dillon.starsectormarines.battle.vehicle.VehicleStance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMount;
@@ -85,6 +86,9 @@ public final class ConvoyService implements BodyCarrier {
     /** The drones a hull's kits add to its bay, by entity id; only hulls that carry such a kit are here. */
     private final Map<Long, List<DroneRole>> kitBays = new LinkedHashMap<>();
 
+    /** The kits on each hull's rack as it was set down, by entity id; only hulls that carry a kit are here. */
+    private final Map<Long, List<VehicleKit>> racks = new LinkedHashMap<>();
+
     /** Setup-time hook run once for every hull set down, so the battle can enrol it as a fog contributor. */
     private LongConsumer spawnSink;
 
@@ -116,11 +120,21 @@ public final class ConvoyService implements BodyCarrier {
     }
 
     /**
-     * As above, an unowned hull set down as {@code fit} fits it out ({@link VehicleStockFit}): its plating, engine
-     * and kits, and its hull's own gun.
+     * As above, an unowned hull set down as {@code fit} fits it out ({@link VehicleStockFit}): a named loadout, set
+     * down through {@link #spawn(VehicleDeploymentSpec, Faction, VehicleMission)} as any other is.
      */
     public long spawn(VehicleStockFit fit, Faction faction, VehicleMission mission) {
-        return spawn(fit.type, fit.kits, fit.plating, fit.engine, faction, mission);
+        return spawn(fit.spec(), faction, mission);
+    }
+
+    /**
+     * As above, an instance of a hull in any loadout ({@code convoy-nouns.md}, a vehicle instance is a hull and a
+     * loadout): its engine, plating, kits, gun card part and flux frame, deliberately weak or strong as an encounter
+     * sets it. The spec's campaign identity is not read; a company vehicle drops through its own delivery.
+     */
+    public long spawn(VehicleDeploymentSpec loadout, Faction faction, VehicleMission mission) {
+        return spawn(loadout.type(), loadout.kits(), loadout.plating(), loadout.engine(), loadout.gun(),
+                loadout.flux(), faction, mission);
     }
 
     /** As above, set down with what the kits on its rack make of it ({@link VehicleKit}). */
@@ -164,7 +178,7 @@ public final class ConvoyService implements BodyCarrier {
 
         // Build the kinematics + (optional) turret the mission is agnostic of.
         GroundBody body = type.createBody();
-        body.speedFactor = engine.speedFactor();
+        body.speedFactor = engine.speedFactor() * VehicleKit.speedFactor(kits);
         float spawnX = mission.inboundX[0], spawnY = mission.inboundY[0];
         float nextX = mission.inboundX[1], nextY = mission.inboundY[1];
         body.teleport(spawnX, spawnY, AirBody.facingToward(nextX - spawnX, nextY - spawnY));
@@ -226,6 +240,7 @@ public final class ConvoyService implements BodyCarrier {
         List<DroneRole> kitBay = new ArrayList<>();
         for (VehicleKit kit : kits) kitBay.addAll(kit.droneBay());
         if (!kitBay.isEmpty()) kitBays.put(id, List.copyOf(kitBay));
+        if (!kits.isEmpty()) racks.put(id, List.copyOf(kits));
         roster.bodies().admit(id);
         // A chassis that spawns already on the map is a body somebody could be
         // looking at this tick; one still off-map joins at the next rebuild.
@@ -263,6 +278,20 @@ public final class ConvoyService implements BodyCarrier {
         roster.entityWorld().destroy(id);
         entityIds.remove(id);
         kitBays.remove(id);
+        racks.remove(id);
+    }
+
+    /** The kits on this hull's rack as it was set down; empty for a hull that carries none. */
+    public List<VehicleKit> kits(long id) {
+        return racks.getOrDefault(id, List.of());
+    }
+
+    /**
+     * The turret-catalog structure of this hull's active protection, from its rack ({@link VehicleKit#ACTIVE_PROTECTION}),
+     * or null for a hull that carries none.
+     */
+    public String activeProtectionStructureId(long id) {
+        return VehicleKit.activeProtectionStructureId(kits(id));
     }
 
     /** The drones this hull launches, in launch order: its type's bay, then what its kits add. */

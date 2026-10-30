@@ -51,9 +51,9 @@ class ArmorMatchupEvidence {
     static final List<VehicleType> LADDER_VEHICLES = Stream.of(
                     VehicleType.HEAVY_APC, VehicleType.FIRE_SUPPORT_APC,
                     VehicleType.LRM_CARRIER, VehicleType.BREAKTHROUGH_TANK,
-                    VehicleType.SCREENED_TANK, VehicleType.LASER_TANK,
+                    VehicleType.LASER_TANK,
                     VehicleType.DOZER_BREACHER, VehicleType.MILITIA_TECHNICAL, VehicleType.SCOUT_CAR,
-                    VehicleType.LRM_CARRIER, VehicleType.SRM_TECHNICAL)
+                    VehicleType.SRM_TECHNICAL)
             .filter(VehicleType::hasTurretWeapon)
             .toList();
 

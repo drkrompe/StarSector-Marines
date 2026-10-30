@@ -99,7 +99,7 @@ Read `mechs-nouns.md` (chassis, sockets, Mech Lab, flux), `convoy-nouns.md`
   payload heavier than every available carrier's rating is not offered, and the
   briefing says why.
 - **Balance is not parity** (owner, 2026-10-19). A more expensive or higher-tier
-  machine should wreck a cheaper one: a Bulwark or a screened tank crushes a Hound
+  machine should wreck a cheaper one: a Bulwark or a Parapet (an Onager with active protection) crushes a Hound
   or a stock tank. Read an `armorMatchup` row against the two machines' bills and
   tiers, not against an even split. A near-even row between unequal machines is
   the finding to flag, and a balance pass never retunes toward parity. A cheap
@@ -530,7 +530,7 @@ identity yet are owned elsewhere, and are reported here rather than tuned:
   their contact warhead (penetration 30) meets plate it defeats at full damage.
   That is the missiles' anti-armor role, but stronger than "the tank wins in the
   open" allows. The rack-side levers were measured and none of them fixes it;
-  the screened tank's top-attack active protection answers it (*The AT LRM against a tank*, below).
+  the active-protection kit's top-attack interception answers it (*The AT LRM against a tank*, below).
 - **The energy and autocannon arms win in the open** (bastion 0.72, pulse 0.56
   there). Their reach (34, 32) and penetration (14, 9) now meet a plate they
   bite, and the breakthrough tank stands off only when it out-reaches its target
@@ -637,11 +637,14 @@ being a tank-only gap.
   two to four times as far as the tank rows. Reach is erratic, and at 32 the
   bastion fit beats the breakthrough tank 1.00. The tank rows are
   overdetermined: halving the racks still wins.
-- **The answer is a rung, not a stock buff** (owner, 2026-10-19). A cheap tank
+- **The answer is something a company buys, not a stock buff** (owner, 2026-10-19). A cheap tank
   losing to a dedicated anti-armor fit is by design; the counter is something a
-  company buys. The **screened tank** is the breakthrough tank with active
-  protection (`convoy-nouns.md`, the screened tank carries active protection), a
-  Prestige sidegrade on the tank line at Heavy lift. Its bill is the breakthrough
+  company buys. It was first a rung, the **screened tank** (the Parapet): the breakthrough tank with active
+  protection, a Prestige sidegrade on the tank line at Heavy lift. Since 2026-10-30 (owner: one tank, modular
+  heads) the system is a Prestige rack kit (`VehicleKit.ACTIVE_PROTECTION`, `convoy-nouns.md`, active protection
+  is a rack kit) and the Parapet is the Onager with it (`VehicleStockFit.PARAPET`); the system, its tuning and
+  its cost in speed are unchanged, and `armorMatchup` reads the stock fit within a few seconds of the old hull's
+  times with the same wins. The record below is of the hull as it was. Its bill is the breakthrough
   tank's plus machinery and rare metals for the launchers and their sensor
   (125 supplies, 115 machinery, 240 metals, 44 rare metals), and the launcher
   boxes cost it a little speed (2.9 against 3.1). Its system has reach 8, a
@@ -666,9 +669,8 @@ being a tank-only gap.
   street rows do not move, because its SRMs fly flat. The bastion fit stays high
   on its arms (bastion alone 0.79): that is the reach-34 arm's case above, not
   the rack's. Against other tanks the screened tank duels as the breakthrough
-  tank does. Its sheet is the breakthrough hull with an ImageGen turret carrying the
-  fit where it can be seen: a launcher box on each rear flank, a sensor panel
-  on each cheek (`art-source/vehicles/tank-screened`).
+  tank does. The kit's launcher boxes stand on the hull's rear flanks and a sensor panel on each
+  cheek, lifted off the retired hull's ImageGen turret (`art-source/vehicles/kit-active-protection`).
 - **Why top-attack only.** The first prototype took any interceptable round
   near the hull, and it taxed the SRM Bulwarks harder than the LRM fit. At the
   same 30-round setting the stock Bulwark fell 0.23 to 0.08 (street 0.50 to
@@ -1144,7 +1146,8 @@ weapon and plating parts, owner, 2026-10-28; `mechs-nouns.md`). What a company m
 **kit** (owner, 2026-10-24; `mechs-nouns.md`, vehicle kit): a few bolt-on parts in
 a fixed rack, each a number changed at the drop and nothing else, so a kit is
 a small top-up to the hull rather than a second build. A change that needs a
-system of its own (active protection, a blade, a mortar) stays a variant.
+behaviour of its own (a blade, a mortar) stays a variant; active protection, a mount the battle already
+arms for any hull that names one, is the one kit that brings a system.
 The split gives the player a real choice instead:
 
 - **A mech is flexible and demanding.** Sockets, flux, an engine budget, a build
@@ -1163,7 +1166,7 @@ one. Lines and their first variants:
 | --- | --- |
 | Technical (field rig) | Militia technical — Advanced filler for a small lift budget; SRM technical — Common rocket rig, an ambusher of armor (Light lift) |
 | APC | APC (troop carrier; plate and speed are fitted, not a rung) → fire-support APC (a mortar instead of seats, spotted indirect fire on anything, steady) or LRM carrier (an LRM-15 anti-armor rack instead of seats, spotted indirect fire) |
-| Tank | Breakthrough tank → a screened tank (active protection against top-attack rounds), a laser tank (a ship's burst laser: infantry and drones, not plate), or a dozer-blade breaching sidegrade |
+| Tank | Breakthrough tank (the Onager; with the active-protection kit, the Parapet) → a laser tank (a ship's burst laser: infantry and drones, not plate), or a dozer-blade breaching sidegrade |
 | Supply (field rig) | Supply pickup — a carried resupply cache, served while halted (Light lift) |
 | Spotter (field rig) | Spotter pickup — a sight mast that reports to fog and commander (Light lift) |
 | Hover (Tri-Tachyon) | Hover scout (sight and a light emitter, Light lift) → drone skimmer (tethered drones, no gun, Medium lift) |

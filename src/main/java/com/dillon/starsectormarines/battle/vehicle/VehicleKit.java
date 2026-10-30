@@ -37,7 +37,21 @@ public enum VehicleKit {
      * only.
      */
     ACCELERATED_LOADER("kit.accelerated-loader", "@vehicleKitAcceleratedLoader", 1f, 1f, 1f, 0f,
-            LoaderPace.ACCELERATED);
+            LoaderPace.ACCELERATED),
+    /**
+     * Active protection: interceptor launchers on the hull's rear flanks fed by a sensor panel on each cheek, a
+     * point-defence mount carried by the hull that takes the arcing, top-attack rounds coming down on it
+     * ({@link #activeProtectionStructureId}). It is the tank line's answer to a missile mech, and costs a little
+     * speed for the launchers and their power ({@link #speedFactor}). The gun tanks only.
+     */
+    ACTIVE_PROTECTION("kit.active-protection", "@vehicleKitActiveProtection", 1f, 1f, 1f, 0f);
+
+    /** {@code false} is the control: the active-protection kit mounts nothing. */
+    public static final String ACTIVE_PROTECTION_PROPERTY = "battle.vehicle.activeProtection";
+
+    /** The active-protection kit's turret-catalog structure, or null under the control. */
+    private static final String ACTIVE_PROTECTION_STRUCTURE =
+            Boolean.parseBoolean(System.getProperty(ACTIVE_PROTECTION_PROPERTY, "true")) ? "structure.tank-aps" : null;
 
     public final String id;
     private final String label;
@@ -72,8 +86,40 @@ public enum VehicleKit {
     }
 
     /**
+     * The turret-catalog structure of the hull-borne point-defence mount this kit gives its hull, or null for a kit
+     * that gives none. The mount ({@code PointDefenseService#mountHull}) engages hostile arcing, top-attack rounds
+     * coming down on the hull, inside its reach, at its rate, from a finite magazine; flat rockets, gun rounds and
+     * rounds falling on anybody else are left alone. {@code -Dbattle.vehicle.activeProtection=false} is the control.
+     */
+    public String activeProtectionStructureId() {
+        return this == ACTIVE_PROTECTION ? ACTIVE_PROTECTION_STRUCTURE : null;
+    }
+
+    /** What the kit multiplies the hull's top speed and acceleration by: the launchers' weight and power. */
+    public float speedFactor() {
+        return this == ACTIVE_PROTECTION ? ACTIVE_PROTECTION_SPEED : 1f;
+    }
+
+    /** The retired Parapet's 2.9 cells a second against the Onager's 3.1. */
+    private static final float ACTIVE_PROTECTION_SPEED = .94f;
+
+    /** The first active-protection structure among {@code kits}, or null for a rack that carries none. */
+    public static String activeProtectionStructureId(List<VehicleKit> kits) {
+        for (VehicleKit kit : kits) if (kit.activeProtectionStructureId() != null) return kit.activeProtectionStructureId();
+        return null;
+    }
+
+    /** What a rack of kits multiplies the hull's top speed and acceleration by. */
+    public static float speedFactor(List<VehicleKit> kits) {
+        float factor = 1f;
+        for (VehicleKit kit : kits) factor *= kit.speedFactor();
+        return factor;
+    }
+
+    /**
      * Whether the hull has what this kit works on: a fed gun for the ready rack or the loader (a magazine, or a rotary
-     * gun's belt and hopper), no bay of its own for the sensor drones.
+     * gun's belt and hopper), no bay of its own for the sensor drones, an armed gun tank (the Onager and the laser
+     * tank, not the dozer) for active protection, whose launchers stand on its rear flanks.
      */
     public boolean suits(VehicleType type) {
         if (type == null) return false;
@@ -81,6 +127,8 @@ public enum VehicleKit {
             case READY_RACK, ACCELERATED_LOADER -> type.hasTurretWeapon() && fed(type);
             case SENSOR_PAIR -> type.droneBay().isEmpty();
             case SPALL_LINER -> true;
+            case ACTIVE_PROTECTION -> type.isTank() && type.weight() == VehicleType.Weight.HEAVY
+                    && type.hasTurretWeapon();
         };
     }
 

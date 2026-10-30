@@ -1,4 +1,8 @@
-"""Pack the screened tank sheet: mod/graphics/battle/vehicles/army-tank-screened.png.
+"""Pack the retired Parapet's live turret frame into the active-protection kit's source:
+art-source/vehicles/kit-active-protection/screened-turret-frame.png (the kit's build.py lifts the fit off it).
+
+The Parapet was a hull of its own until active protection became a rack kit (owner, 2026-10-30); its sheet
+(army-tank-screened.png) no longer ships, and only its live turret frame is still used.
 
 Four 768x768 frames: live hull, live turret, wreck hull, wreck turret, all facing LEFT.
 Hull frames are copied verbatim from the breakthrough sheet: the screened tank is that hull.
@@ -14,7 +18,7 @@ from pathlib import Path
 from PIL import Image
 
 HERE = Path(__file__).resolve().parent
-OUT = HERE.parents[2] / "mod" / "graphics" / "battle" / "vehicles" / "army-tank-screened.png"
+OUT = HERE.parent / "kit-active-protection" / "screened-turret-frame.png"
 
 
 def register(img, scale, center, frame):
@@ -45,7 +49,7 @@ def main():
             tile = register(src, f["scale"], f["sourceCenter"], frame)
             assert f["targetCenter"] == [i * frame + frame // 2, h // 2]
         sheet.paste(tile, (i * frame, 0))
-    sheet.save(OUT)
+    sheet.crop((frame, 0, 2 * frame, h)).save(OUT)
     print(f"wrote {OUT}")
 
 

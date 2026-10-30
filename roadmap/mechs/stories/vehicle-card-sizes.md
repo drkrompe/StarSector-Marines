@@ -25,7 +25,7 @@ A card is a size class, as many rows as it is wide, by two columns, and a lock, 
 | Small | 1x2 | omni | APC, dozer, militia technical, SRM technical, hover scout |
 | Medium | 2x2 | yellow (ballistic) | fire-support (mortar) APC |
 | Medium | 2x2 | green (missile) | LRM carrier |
-| Large | 3x2 | yellow (ballistic) | breakthrough tank, screened tank |
+| Large | 3x2 | yellow (ballistic) | breakthrough tank (Onager) |
 | Large | 3x2 | red (energy) | laser tank |
 
 The medium and large cards are the ones the stock guns already imply, so those hulls do not change; the small
@@ -90,8 +90,8 @@ selector, geometry, weapon definition and Store entry. The burst laser is restat
 1.6-second cycle at 16 flux, running cool, with the held-lance loop sound); both are first proposals for the balance
 pass. The PD laser tank is gone as a hull: `PD_LASER_TANK`, its turret structure and weapon, its sheet, strings,
 fabrication, tier and credits entries are deleted, and a laser tank with the PD laser fitted is what it was. The hull's
-own gun, with no part fitted, is still the burst laser turret; emplacement and drone PD lasers and the screened tank's
-active protection are untouched.
+own gun, with no part fitted, is still the burst laser turret; emplacement and drone PD lasers and the tank's
+active protection (now a rack kit) are untouched.
 
 ## Every new part is a mech weapon too
 

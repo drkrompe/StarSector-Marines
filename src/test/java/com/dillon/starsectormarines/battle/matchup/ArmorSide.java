@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.MechFitSpace;
 import com.dillon.starsectormarines.marine.MechFrameBudget;
@@ -117,17 +119,26 @@ public record ArmorSide(List<Unit> units) {
         }
     }
 
-    /** {@code count} hulls of one vehicle variant. */
-    public record Vehicle(int count, VehicleType type) implements Unit {
+    /** {@code count} hulls of one vehicle variant, or of a stock fit of one ({@code parapet}). */
+    public record Vehicle(int count, VehicleType type, VehicleStockFit fit) implements Unit {
 
         public Vehicle {
             Objects.requireNonNull(type, "type");
             if (count < 1) throw new IllegalArgumentException("count must be at least 1");
         }
 
+        public Vehicle(int count, VehicleType type) {
+            this(count, type, null);
+        }
+
+        /** The kits on each hull's rack: its stock fit's, or none. */
+        public List<VehicleKit> kits() {
+            return fit == null ? List.of() : fit.kits;
+        }
+
         @Override
         public String label() {
-            return vehicleId(type);
+            return fit != null ? kebab(fit.name()) : vehicleId(type);
         }
     }
 
@@ -162,7 +173,10 @@ public record ArmorSide(List<Unit> units) {
             text = counted.group(2);
         }
         String lower = text.toLowerCase(Locale.ROOT);
-        if (lower.startsWith("vehicle:")) return new Vehicle(count, vehicle(lower.substring("vehicle:".length())));
+        if (lower.startsWith("vehicle:")) lower = lower.substring("vehicle:".length());
+        for (VehicleStockFit fit : VehicleStockFit.values()) {
+            if (kebab(fit.name()).equals(lower)) return new Vehicle(count, fit.type, fit);
+        }
         if (lower.startsWith("mech:")) lower = lower.substring("mech:".length());
         int colon = lower.indexOf(':');
         String head = colon < 0 ? lower : lower.substring(0, colon);

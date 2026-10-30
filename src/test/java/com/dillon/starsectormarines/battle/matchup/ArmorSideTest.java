@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.mech.MechFrame;
 import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.MechFitSpace;
 import com.dillon.starsectormarines.marine.MechInternal;
@@ -87,6 +88,10 @@ class ArmorSideTest {
         assertEquals(VehicleType.MILITIA_TECHNICAL, vehicle("technical"));
         assertEquals(VehicleType.SCOUT_CAR, vehicle("vehicle:scout"));
         assertEquals(VehicleType.HEAVY_APC, vehicle("heavy-apc"));
+        ArmorSide.Vehicle parapet = assertInstanceOf(ArmorSide.Vehicle.class, ArmorSide.parseUnit("parapet"));
+        assertEquals(VehicleType.BREAKTHROUGH_TANK, parapet.type());
+        assertEquals(VehicleStockFit.PARAPET.kits, parapet.kits());
+        assertEquals("parapet", parapet.label());
     }
 
     @Test

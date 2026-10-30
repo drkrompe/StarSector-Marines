@@ -76,7 +76,8 @@ public final class MechFabricationCatalog {
             kit(VehicleKit.SPALL_LINER, "@gearFabricationStandardIssue"),
             kit(VehicleKit.READY_RACK, "@gearFabricationStandardIssue"),
             kit(VehicleKit.SENSOR_PAIR, "@gearFabricationMilitaryPattern"),
-            kit(VehicleKit.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"));
+            kit(VehicleKit.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"),
+            kit(VehicleKit.ACTIVE_PROTECTION, "@gearFabricationMilitaryPattern"));
 
     /**
      * Prices sit beside the chassis of the same weight class: a hull is cheaper than a walker, and brings at least as much structure plus armor per credit as the class's mech (see
@@ -90,9 +91,6 @@ public final class MechFabricationCatalog {
             // Variants cost more than the hull they improve on.
             vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 16810),
             vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 42540),
-            // The screened tank is the breakthrough tank plus its interceptor system: launchers and their sensor
-            // are machinery and transplutonics, not plate.
-            vehicle(VehicleType.SCREENED_TANK, "@gearFabricationHeavyVehicleStandardFit", 45790),
             // The laser tank trades the shells for an emitter and the plant that feeds it: transplutonics, not plate.
             vehicle(VehicleType.LASER_TANK, "@gearFabricationHeavyVehicleStandardFit", 45000),
             // The PD laser tank keeps the hull's plate and feeds a plainer emitter from three cells and a radar.

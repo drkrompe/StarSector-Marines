@@ -9,11 +9,15 @@ import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.MountedGun;
 import com.dillon.starsectormarines.battle.vehicle.HullLocations;
 import com.dillon.starsectormarines.battle.vehicle.VehicleGun;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.tiles.SpriteSheetFrames;
 import com.dillon.starsectormarines.render2d.BattleCamera;
+
+import java.util.EnumSet;
+import java.util.Set;
 
 /**
  * Emits the {@link RenderLayer#CONVOY} layer — ground convoy vehicles (supply
@@ -100,6 +104,15 @@ public final class ConvoyRenderSystem implements RenderSystem {
             if (type.hasAnimatedTreads() && !wrecked) VehicleTreadRender.collect(type, cache, body, cam, alphaMult, out);
             HullLocations locations = wrecked ? null : convoy.locations(id);
             if (locations != null) collectHullScuffs(type, cache, f, locations, id, body, chassisFacingDeg, cam, alphaMult, out);
+            boolean activeProtection = !wrecked && convoy.kits(id).contains(VehicleKit.ACTIVE_PROTECTION);
+            if (activeProtection && !APS_ON_TURRET.contains(type)) {
+                // The kit's launchers and sensor panels are bolted to the hull, drawn in its live frame's registration.
+                LayeredSpriteCache aps = sprites.vehicleKitActiveProtection();
+                if (aps != null) {
+                    out.addSprite(RenderLayer.CONVOY, aps.sprite, cx, cy, drawLong, drawShort, chassisFacingDeg,
+                            tint[0], tint[1], tint[2], alphaMult);
+                }
+            }
             if (!wrecked && type.fluxVentAftCells() > 0f) {
                 collectFluxHaze(ctx, type, convoy.turret(id), body, cam, cellPx, alphaMult, out);
             }
@@ -215,6 +228,15 @@ public final class ConvoyRenderSystem implements RenderSystem {
                             cam.cellToScreenX(drawCellX), cam.cellToScreenY(drawCellY),
                             tDrawLong, tDrawShort, drawFacingDeg,
                             1f, 1f, 1f, alphaMult);
+                    if (activeProtection && APS_ON_TURRET.contains(type)) {
+                        // The launchers ride the turret housing's rear flanks and the panels its cheeks.
+                        LayeredSpriteCache aps = sprites.vehicleKitActiveProtectionTurret();
+                        if (aps != null) {
+                            out.addSprite(RenderLayer.CONVOY, aps.sprite, cam.cellToScreenX(drawCellX),
+                                    cam.cellToScreenY(drawCellY), tDrawLong, tDrawShort, drawFacingDeg,
+                                    1f, 1f, 1f, alphaMult);
+                        }
+                    }
                 } else {
                     // The fitted weapon is the turret: its own drawing, turning on the mount ring, with the
                     // weapon's own recoil and raise, at the length it fires from ({@link VehicleGun}). A wreck keeps
@@ -287,6 +309,12 @@ public final class ConvoyRenderSystem implements RenderSystem {
             sweepDurabilityBars(ids, convoy, cam, cellPx, alphaMult, out);
         }
     }
+
+    /**
+     * The hulls whose turret is the Onager's angular housing, on which the active-protection kit rides with the turret
+     * where the Parapet wore it; any other hull wears the kit on its deck.
+     */
+    private static final Set<VehicleType> APS_ON_TURRET = EnumSet.of(VehicleType.BREAKTHROUGH_TANK);
 
     /** How wide the turning collar is drawn against the turret ring it rides in. */
     private static final float COLLAR_SHARE_OF_RING = .86f;

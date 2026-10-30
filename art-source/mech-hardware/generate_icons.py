@@ -660,17 +660,17 @@ def systems_blade():
     return s
 
 
-def systems_aps():
-    """An active protection suite: a radar panel over a bank of countermeasure tubes."""
-    s = block(18, 14, 132, 64, 6)
-    for x in range(28, 124, 10):
-        s += rect(x, 22, 5, 34, LS)
-    s += rect(68, 66, 14, 14, MID)
-    for row in range(3):
+def kit_active_protection():
+    """Active protection on the rack: a radar panel beside a launcher box of six countermeasure tubes."""
+    s = block(8, 14, 58, 86, 5)
+    for y in range(22, 80, 9):
+        s += rect(14, y, 38, 4, LS)
+    s += block(66, 14, 142, 86, 5, MID)
+    for row in range(2):
         for col in range(3):
-            cx, cy = 38 + col * 37, 102 + row * 32
-            s += ell(cx, cy, 14, 13, D)
-            s += ell(cx, cy, 6, 5, L)
+            cx, cy = 82 + col * 22, 35 + row * 30
+            s += ell(cx, cy, 9, 9, D)
+            s += ell(cx, cy, 3.6, 3.6, L)
     return s
 
 
@@ -758,7 +758,6 @@ def vehicles(f):
     f['vehicle-bay-supply'] = banded(150, 200, bay_supply(), 'SUP')
     f['vehicle-bay-drones'] = banded(150, 200, bay_drones(), 'DRN')
     f['vehicle-systems-blade'] = banded(150, 200, systems_blade(), 'BLD')
-    f['vehicle-systems-aps'] = banded(150, 200, systems_aps(), 'APS')
     f['vehicle-systems-mast'] = banded(150, 200, systems_mast(), 'OPT')
     f['vehicle-systems-secondary'] = banded(150, 200, upright2(autogun(75, 10, 190, 34)), 'AUX')
     f['kit-applique-plate'] = banded(150, 100, kit_plate(), 'APP')
@@ -768,6 +767,8 @@ def vehicles(f):
     f['kit-sensor-pair'] = banded(150, 100, kit_sensor_pair(), 'SNS')
     # The hull's own systems uprated: a mech's accelerated feed, and a deeper bank of four cells.
     f['kit-accelerated-loader'] = banded(150, 100, loader(True), 'ACL')
+    # The Parapet's interceptor system, now a kit for the gun tanks.
+    f['kit-active-protection'] = banded(150, 100, kit_active_protection(), 'APS')
 
 
 def fabricator_icon():

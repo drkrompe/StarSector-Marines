@@ -9,6 +9,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -39,16 +41,19 @@ import java.util.Set;
 
 /**
  * The breakthrough hull and its variants side by side, live and wrecked, then the same
- * line in a short gun-range fight. Art review: the screened tank's interceptor fit, the laser
+ * line in a short gun-range fight. Art review: the Parapet's interceptor kit, the laser
  * tank's ship-mounted emitter and the dozer must read as different tanks at game scale, and their
  * guns must leave from the drawn muzzle.
  */
 public final class TankVariantsSnapshotSuite implements SnapshotSuite {
     private static final List<VehicleType> LINE = List.of(
-            VehicleType.BREAKTHROUGH_TANK, VehicleType.SCREENED_TANK, VehicleType.LASER_TANK,
+            VehicleType.BREAKTHROUGH_TANK, VehicleType.BREAKTHROUGH_TANK, VehicleType.LASER_TANK,
             VehicleType.DOZER_BREACHER);
+    /** The rack each hull of the line is set down with: the Parapet is the Onager with active protection. */
+    private static final List<List<VehicleKit>> LINE_KITS = List.of(List.of(), VehicleStockFit.PARAPET.kits,
+            List.of(), List.of());
     private static final List<String> NAMES = List.of(
-            "BREAKTHROUGH TANK", "SCREENED TANK", "BURST LASER TANK", "DOZER BREACHER");
+            "ONAGER", "PARAPET (ONAGER + ACTIVE PROTECTION)", "BURST LASER TANK", "DOZER BREACHER");
 
     @Override public String id() { return "tank-variants"; }
     @Override public String label() { return "Tank variants side by side, wrecks and a battle frame"; }
@@ -74,8 +79,8 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             List<Long> wrecks = new ArrayList<>();
             for (int i = 0; i < LINE.size(); i++) {
                 float x = 10 + i * 11;
-                live.add(spawn(sim, LINE.get(i), Faction.MARINE, x, 26, 90, 90));
-                wrecks.add(spawn(sim, LINE.get(i), Faction.MARINE, x, 13, 90, 90));
+                live.add(spawn(sim, LINE.get(i), LINE_KITS.get(i), Faction.MARINE, x, 26, 90, 90));
+                wrecks.add(spawn(sim, LINE.get(i), LINE_KITS.get(i), Faction.MARINE, x, 13, 90, 90));
                 labels.label(x, 21.5f, NAMES.get(i), ReviewStyle.NOTE);
                 labels.label(x, 8.5f, NAMES.get(i) + " / WRECK", ReviewStyle.NOTE);
             }
@@ -94,7 +99,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
                     context.modRoot(), 1920, 1080, 32.5f, 19.5f, 52);
             artifacts.add(new SnapshotArtifact("lineup.png", renderer.render(sim,
-                    "Tank variants | breakthrough, screened, burst laser, dozer / live and wrecked / crosses mark the ballistic muzzle"
+                    "Tank variants | Onager, Parapet (Onager + active protection kit), burst laser, dozer / live and wrecked / crosses mark the ballistic muzzle"
                             + " | 1920 x 1080, UI 100%", labels.build())));
             artifacts.add(new SnapshotArtifact("lineup-battle-scale.png", renderer.refocus(32, 19.5f, 60).render(sim,
                     "Tank variants | battle-scale camera, 60 cells across | 1920 x 1080, UI 100%", labels.build())));
@@ -298,10 +303,10 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             }
             List<Long> line = new ArrayList<>();
             List<float[]> posts = new ArrayList<>();
-            for (VehicleType type : LINE) {
+            for (int i = 0; i < LINE.size(); i++) {
                 float[] at = openSpot(sim, lead.x - fx * 4, lead.y - fy * 4, taken);
                 posts.add(at);
-                line.add(spawn(sim, type, Faction.MARINE, at[0], at[1], heading, heading));
+                line.add(spawn(sim, LINE.get(i), LINE_KITS.get(i), Faction.MARINE, at[0], at[1], heading, heading));
             }
             float cx = 0, cy = 0;
             for (float[] at : posts) { cx += at[0] / posts.size(); cy += at[1] / posts.size(); }
@@ -337,7 +342,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                 }
                 BufferedImage frame = renderer.render(sim,
                         "Tank variants in battle | THUNDER RUN staging apron, seed 9301 | breakthrough, "
-                                + " screened, burst laser, PD laser, dozer against unarmed hulls | autonomous fire | 1920 x 1080, UI 100%",
+                                + " Parapet, burst laser, dozer against unarmed hulls | autonomous fire | 1920 x 1080, UI 100%",
                         labels.build(), impacts);
                 frames.add(frame);
                 int inFlight = sim.getActiveShots().size();
@@ -400,6 +405,15 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
     private static long spawn(BattleSimulation sim, VehicleType type, Faction faction,
                               float x, float y, float hull, float turret) {
         long id = sim.convoy().spawn(type, faction, VehicleMission.deployed(x, y));
+        sim.convoy().body(id).teleport(x, y, hull);
+        if (type.hasTurretWeapon()) sim.convoy().turret(id).facingDeg = turret;
+        return id;
+    }
+
+    /** As above, with {@code kits} on its rack and its own gun. */
+    private static long spawn(BattleSimulation sim, VehicleType type, List<VehicleKit> kits, Faction faction,
+                              float x, float y, float hull, float turret) {
+        long id = sim.convoy().spawn(type, kits, faction, VehicleMission.deployed(x, y));
         sim.convoy().body(id).teleport(x, y, hull);
         if (type.hasTurretWeapon()) sim.convoy().turret(id).facingDeg = turret;
         return id;

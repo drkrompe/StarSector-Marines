@@ -2716,15 +2716,14 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
      * via {@code TurretStateService}) where there's no companion holder unit to thread.
      */
     /**
-     * Gives every hull on the map that authors active protection its mount ({@link VehicleType#activeProtectionStructureId}),
+     * Gives every hull on the map whose rack carries active protection its mount ({@link ConvoyService#activeProtectionStructureId}),
      * once per hull; {@link PointDefenseService#mountHull} ignores a hull it has already armed.
      */
     private void mountHullProtection() {
         ConvoyService convoy = convoy();
         for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
             long id = convoy.vehicleAt(i);
-            VehicleType type = convoy.vehicleType(id);
-            String structureId = type != null ? type.activeProtectionStructureId() : null;
+            String structureId = convoy.activeProtectionStructureId(id);
             if (structureId == null || !convoy.isTargetable(id) || convoy.structure(id) <= 0f) continue;
             pointDefense.mountHull(id, convoy.faction(id), structureId, convoy.body(id));
         }

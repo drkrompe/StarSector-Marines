@@ -6,7 +6,9 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
+import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -20,7 +22,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The screened tank's active protection: a mount the hull carries, which engages top-attack rounds coming down on it. */
+/** The active-protection kit: a mount its hull carries, which engages top-attack rounds coming down on it. */
 class HullActiveProtectionTest {
 
     private static final String MISSILE_ID = "weapon.mech-lrm-artillery";
@@ -28,17 +30,16 @@ class HullActiveProtectionTest {
     private static final String FLAT_ROCKET_ID = "weapon.mech-srm-pod";
 
     @Test
-    void theScreenedTankCarriesItsMountWhereverItDrivesAndTheStockHullsCarryNone() {
+    void aKittedTankCarriesItsMountWhereverItDrivesAndAHullWithoutTheKitCarriesNone() {
         BattleSimulation sim = openArena(60, 20);
-        long tank = sim.convoy().spawn(VehicleType.SCREENED_TANK, Faction.DEFENDER, VehicleMission.deployed(20.5f, 10.5f));
-        sim.convoy().spawn(VehicleType.HEAVY_APC, Faction.DEFENDER, VehicleMission.deployed(40.5f, 10.5f));
+        long tank = sim.convoy().spawn(VehicleStockFit.PARAPET, Faction.DEFENDER, VehicleMission.deployed(20.5f, 10.5f));
+        sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, Faction.DEFENDER, VehicleMission.deployed(40.5f, 10.5f));
         sim.advance(BattleSimulation.TICK_DT);
 
         List<PointDefenseService.EmplacementView> live = sim.pointDefense().activeEmplacements();
-        assertEquals(1, live.size(), "only the screened tank authors active protection");
+        assertEquals(1, live.size(), "only the tank with the kit on its rack carries active protection");
         assertEquals(tank, live.get(0).entityId());
-        assertNull(VehicleType.HEAVY_APC.activeProtectionStructureId());
-        assertNull(VehicleType.BREAKTHROUGH_TANK.activeProtectionStructureId(), "a stock tank buys none");
+        assertNull(VehicleKit.activeProtectionStructureId(List.of(VehicleKit.SPALL_LINER)));
 
         GroundBody body = sim.convoy().body(tank);
         body.teleport(30.5f, 12.5f, 0f);
@@ -62,7 +63,7 @@ class HullActiveProtectionTest {
     @Test
     void itEngagesAHostileMissileInsideItsRadiusAndLeavesAGunRoundAlone() {
         BattleSimulation sim = openArena(60, 20);
-        long tank = sim.convoy().spawn(VehicleType.SCREENED_TANK, Faction.DEFENDER, VehicleMission.deployed(20.5f, 10.5f));
+        long tank = sim.convoy().spawn(VehicleStockFit.PARAPET, Faction.DEFENDER, VehicleMission.deployed(20.5f, 10.5f));
         sim.advance(BattleSimulation.TICK_DT);
 
         queueRound(sim, GUN_ID, 21.5f, 10.5f, 20.5f, 10.5f);
@@ -79,7 +80,7 @@ class HullActiveProtectionTest {
     @Test
     void aSpentMountIsNotRearmed() {
         BattleSimulation sim = openArena(60, 20);
-        long tank = sim.convoy().spawn(VehicleType.SCREENED_TANK, Faction.DEFENDER, VehicleMission.deployed(20.5f, 10.5f));
+        long tank = sim.convoy().spawn(VehicleStockFit.PARAPET, Faction.DEFENDER, VehicleMission.deployed(20.5f, 10.5f));
         sim.advance(BattleSimulation.TICK_DT);
         WeaponDef gun = WeaponRegistry.require("weapon.tank-aps");
         int magazine = sim.pointDefense().activeEmplacements().get(0).engagementsRemaining();

@@ -176,13 +176,16 @@ increasing an encounter's total armored threat.
   A vehicle line climbs by **variants**, each its own pattern card and bill. Plate and speed are
   not variants: they are fitted, the plating and engine any hull takes (below), so a tougher or faster
   hull is a fit of the one it is, and a mission that fields one names a **stock fit**
-  (`VehicleStockFit`: the convoy escort is the APC in heavy plating on a military engine). Only a turret
+  (`VehicleStockFit`: the convoy escort is the APC in heavy plating on a military engine), a named instance
+  of the hull (`convoy-nouns.md`, a vehicle instance is a hull and a loadout: encounters set any loadout for
+  their difficulty, the player designs instances in the Mech Lab). Only a turret
   that changes the gun card makes a variant. The APC is one chassis with two such: the
   fire-support APC (a 120 mm mortar in a ballistic card where the troop bay was, no seats, spotted indirect fire,
   Medium lift) is Advanced, as is the LRM carrier (an LRM-15 anti-armor rack in a missile card
   where the troop bay was, no seats, Medium lift, spotted indirect fire;
-  `convoy-nouns.md`, the missile carriers); the breakthrough tank's variants (screened tank, laser tank,
-  dozer breacher) are Prestige and Heavy lift. A variant earns its place by a trade —
+  `convoy-nouns.md`, the missile carriers); the breakthrough tank's variants (laser tank,
+  dozer breacher) are Prestige and Heavy lift; the Parapet, once a variant, is the Onager with the
+  active-protection kit (`VehicleStockFit.PARAPET`, owner 2026-10-30: one tank, modular heads). A variant earns its place by a trade —
   among fabricable hulls on the same lift with the same gun, none is at least as good
   at everything — and costs more than the hull it improves on. A faction weights up
   the variant it is known for (Hegemony the APC and the LRM carrier, the Lion's Guard the
@@ -245,8 +248,14 @@ increasing an encounter's total armored threat.
   - **Sensor drone pair** (Advanced, hulls with no bay of their own): two sensor
     drones that fly ahead of the bow, so an indirect-fire hull fed by them fires
     over cover with no spotter (`convoy-nouns.md`, the missile carriers).
+  - **Active protection** (Prestige, the armed gun tanks: the Onager and the laser tank, not the
+    dozer): interceptor launchers on the hull's rear flanks fed by a sensor panel on each cheek, a
+    hull-borne point-defence mount that takes the arcing, top-attack rounds coming down on the hull
+    (`convoy-nouns.md`, active protection), for six hundredths of the hull's speed. It is the one kit
+    that brings a system: the mount the battle already arms for any hull whose rack names it
+    (`VehicleKit.activeProtectionStructureId`), drawn as overlay art on the live hull.
   A new kit joins by taking a slot and a spawn-time effect; anything that needs a
-  behaviour or a system of its own (active protection, a blade, a mortar) stays a
+  behaviour of its own (a blade, a mortar) stays a
   **variant** (`heavy-equipment-progression.md`, Vehicles: variants and kits).
   A bought hull comes with its bank and an empty kit row; a hull saved before the
   rack held banks loads with none and stays off the drop until one is fitted.

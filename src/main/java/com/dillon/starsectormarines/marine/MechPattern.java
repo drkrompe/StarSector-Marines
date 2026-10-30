@@ -75,7 +75,6 @@ public record MechPattern(Kind kind, String definitionId) {
         // The ladder above each line's first hull: each variant is its own card.
         VEHICLE_TIERS.put(VehicleType.FIRE_SUPPORT_APC, EquipmentAccessTier.ADVANCED);
         VEHICLE_TIERS.put(VehicleType.DOZER_BREACHER, EquipmentAccessTier.PRESTIGE);
-        VEHICLE_TIERS.put(VehicleType.SCREENED_TANK, EquipmentAccessTier.PRESTIGE);
         VEHICLE_TIERS.put(VehicleType.LASER_TANK, EquipmentAccessTier.PRESTIGE);
         // The light roles: lines of their own, one hull each.
         VEHICLE_TIERS.put(VehicleType.SUPPLY_TRUCK, EquipmentAccessTier.COMMON);
@@ -93,6 +92,8 @@ public record MechPattern(Kind kind, String definitionId) {
         KIT_TIERS.put(VehicleKit.SENSOR_PAIR, EquipmentAccessTier.ADVANCED);
         // The upgrade on a hull's own systems, a faster feed, as the mech part it echoes.
         KIT_TIERS.put(VehicleKit.ACCELERATED_LOADER, EquipmentAccessTier.ADVANCED);
+        // The interceptor system the Parapet was built around: a Prestige pattern, as that hull was.
+        KIT_TIERS.put(VehicleKit.ACTIVE_PROTECTION, EquipmentAccessTier.PRESTIGE);
     }
 
     /**

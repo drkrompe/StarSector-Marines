@@ -29658,18 +29658,6 @@
     }
    }
   },
-  "graphics/battle/vehicles/army-tank-screened.png": {
-   "sliced": false,
-   "sources": {
-    "snapshot:tank-variants": {
-     "displayWidth": 8545.9,
-     "displayHeight": 2136.5,
-     "domain": "world",
-     "mapWidth": 64,
-     "mapHeight": 40
-    }
-   }
-  },
   "graphics/battle/vehicles/army-tank.png": {
    "sliced": false,
    "sources": {
