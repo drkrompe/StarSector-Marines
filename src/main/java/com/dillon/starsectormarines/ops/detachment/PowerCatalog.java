@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
 import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
+import com.dillon.starsectormarines.battle.power.WolfStrike;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
 import com.dillon.starsectormarines.ops.Mission;
@@ -64,6 +65,8 @@ public final class PowerCatalog {
     private static final String ADVANCED_GROUND_SUPPORT_MOD = "advanced_ground_support";
     private static final String ONSLAUGHT_HULL = "onslaught";
     private static final String INVICTUS_HULL = "invictus";
+    /** The Wolf's base hull: the Wolf (H) and Wolf (D) skins report it too. */
+    private static final String WOLF_HULL = "wolf";
 
     private PowerCatalog() {}
 
@@ -441,6 +444,7 @@ public final class PowerCatalog {
         if (ONSLAUGHT_HULL.equals(baseId) || INVICTUS_HULL.equals(baseId)) {
             ids.add(OrbitalBarrage.ID);
         }
+        if (WOLF_HULL.equals(baseId)) ids.add(WolfStrike.ID);
         return new ArrayList<>(ids);
     }
 
@@ -455,6 +459,7 @@ public final class PowerCatalog {
         if (OrbitalBarrage.ID.equals(id)) return new OrbitalBarrage();
         if (CloseAirSupport.ID.equals(id)) return new CloseAirSupport();
         if (SpawnInOnslaught.ID.equals(id)) return new SpawnInOnslaught();
+        if (WolfStrike.ID.equals(id)) return new WolfStrike();
         return null;
     }
 }
