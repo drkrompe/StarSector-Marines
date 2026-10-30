@@ -612,7 +612,7 @@ Rules:
 | S6c | 69.8-76.09 | SOBIESKI | Taking fire aft! Flux at ninety, can't hold shield and guns — drives! We've lost drives! |
 | S6c | 72.6-75.17 | THYSVILLE | She's through the gap! She's in the column! |
 | S6d | 74.3-75.04 | WARDEN FIVE | Two on me — |
-| S6d | 76.9-79 | WARDEN FIVE | One down - two passed through. |
+| S6d | 76.9-79.32 | WARDEN FIVE | One down - two passed through. |
 | S7 | 81.21-83 | WARDEN FIVE | They're heading for the Sobieski! |
 | S7 | 82-85.07 | CARAVEL | That mark three is hammering down on us! |
 | S7 | 84.9-87.23 | SOBIESKI | Marines prepare to repel boarders! |
@@ -691,7 +691,8 @@ not turned down against S8-S9.
 `explosion_ship` (`sounds/sfx_impacts/explosion_01`, `_02`, `_04`; `_04` for the tanker and
 Warden Lead's magazine) and the hits that set off a secondary take `explosion_from_damage`
 (`explosion_secondary_01` to `_03`). They are read from the game install, never copied into the
-repository; the ElevenLabs takes stay on their cues as alternatives.
+repository; the ElevenLabs takes stay on their cues as alternatives. The Falcon (P)'s shield overload
+is the game's too: the heavy shield hit that breaks it, `shield_burnout` and the `emp_loop` arcs.
 
 ## On-screen place and time
 

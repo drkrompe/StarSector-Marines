@@ -90,7 +90,7 @@ TRAFFIC = [
                                      "We've lost drives!", False),
     ('S6c', 'THYSVILLE', 72.6, 75.17, "She's through the gap! She's in the column!", False),
     ('S6d', 'WARDEN FIVE', 74.3, 75.04, 'Two on me —', False),
-    ('S6d', 'WARDEN FIVE', 76.9, 79.0, 'One down - two passed through.', False),
+    ('S6d', 'WARDEN FIVE', 76.9, 79.32, 'One down - two passed through.', False),
     ('S7', 'WARDEN FIVE', 81.21, 83.0, "They're heading for the Sobieski!", False),
     ('S7', 'CARAVEL', 82.0, 85.07, 'That mark three is hammering down on us!', False),
     ('S7', 'SOBIESKI', 84.9, 87.23, 'Marines prepare to repel boarders!', False),

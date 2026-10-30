@@ -162,13 +162,13 @@
   "influence": 0.5
  },
  "s10-colossus-groans": {
-  "prompt": "An enormous ship's hull groaning and buckling under stress: deep slow metal creaks and shudders, no music, no voices",
+  "prompt": "A colossal starship's spine buckling and giving way: deep tortured metal groans, sharp shrieking stress fractures and plating tearing loose, slow and heavy, no music, no voices",
   "seconds": 6,
   "loop": true,
   "influence": 0.5
  },
  "s11-entry-plasma": {
-  "prompt": "A spacecraft entering the atmosphere: a roaring rushing wall of superheated plasma, buffeting and rising in intensity, no music, no voices",
+  "prompt": "A ship's violent atmospheric reentry heard from inside the hull: a deep roaring wall of plasma, the hull rattling and buffeting harder and harder, no music, no voices",
   "seconds": 7,
   "loop": true,
   "influence": 0.5

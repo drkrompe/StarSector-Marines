@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.trace;
 
+import com.dillon.starsectormarines.battle.power.YardConstruction;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.control.ShipCommandService;
@@ -206,6 +207,9 @@ class StoryCommandEvidenceTest {
         }
     });
 
+    /** Cold Start's scripted road gun: the recovery tender's machine gun. */
+    private static final String YARD_MG = YardConstruction.ID_PREFIX + BuildOption.HEAVY_MG_TURRET.id();
+
     private static final Mission COLD_START = new Mission("cold-start", 18000, fixtures(
             new Object[]{"14101", 14101, 24, ""}, new Object[]{"14102", 14102, 24, ""},
             new Object[]{"15101", 15101, 24, ""}, new Object[]{"14101-36", 14101, 36, ""}), new Story() {
@@ -215,8 +219,8 @@ class StoryCommandEvidenceTest {
         public void beforeAdvance(BattleSimulation sim, Fixture f, Map<String, Integer> done, JSONArray inputs) throws JSONException {
             var powers = sim.getCommandPowerService();
             if (!done.containsKey("build") && "CONSTRUCTION".equals(phase(sim).name())
-                    && powers.canActivate(powers.getPower("yard-construction"))) {
-                powers.requestActivation("yard-construction", sim.getColdStart().buildX(), sim.getColdStart().buildY());
+                    && powers.canActivate(powers.getPower(YARD_MG))) {
+                powers.requestActivation(YARD_MG, sim.getColdStart().buildX(), sim.getColdStart().buildY());
                 input(sim, done, inputs, "build", "yard construction");
             }
         }
@@ -246,7 +250,7 @@ class StoryCommandEvidenceTest {
     private static final int RELAY_TICKS = 150;
 
     /**
-     * Orders a Vulcan on the plot as a player on the ship bar would: again every {@value #RELAY_TICKS} ticks until the
+     * Orders a heavy MG on the plot as a player on the ship bar would: again every {@value #RELAY_TICKS} ticks until the
      * ship command service reports it laid, then never again under {@code key}.
      */
     private static void lay(BattleSimulation sim, Tender tender, int x, int y, String key, Map<String, Integer> done,
@@ -258,7 +262,7 @@ class StoryCommandEvidenceTest {
         }
         Integer last = done.get(key);
         if (last != null && sim.getSimTickIndex() - last < RELAY_TICKS) return;
-        sim.shipCommands().requestBuild(tender, BuildOption.VULCAN_TURRET, x, y);
+        sim.shipCommands().requestBuild(tender, BuildOption.HEAVY_MG_TURRET, x, y);
         input(sim, done, inputs, key, "road gun ordered (" + key + ")");
     }
 

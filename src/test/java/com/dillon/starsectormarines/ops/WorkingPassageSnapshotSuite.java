@@ -136,7 +136,7 @@ public final class WorkingPassageSnapshotSuite implements SnapshotSuite {
                 if(f.build&&(phase==WorkingPassageProgress.Phase.BEND_BUILD||phase==WorkingPassageProgress.Phase.NARROWS_BUILD)&&!requested.contains(phase)
                         &&sequence.tender().groundSiteReachable(sequence.buildX()+.5f,sequence.buildY()+.5f,sim.getGrid())) {
                     requested.add(phase);
-                    sim.shipCommands().requestBuild(sequence.tender(),BuildOption.VULCAN_TURRET,sequence.buildX(),sequence.buildY());
+                    sim.shipCommands().requestBuild(sequence.tender(),BuildOption.HEAVY_MG_TURRET,sequence.buildX(),sequence.buildY());
                     report.append("  player ship-bar construction request ").append(phase).append(" tick=").append(sim.getSimTickIndex())
                             .append(" hull=").append(sequence.tender().anchorX()).append(',').append(sequence.tender().anchorY())
                             .append(" plotWalkable=").append(sim.getGrid().isWalkable(sequence.buildX(),sequence.buildY())).append('\n');

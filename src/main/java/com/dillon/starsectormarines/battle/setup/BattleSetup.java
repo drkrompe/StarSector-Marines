@@ -30,6 +30,7 @@ import com.dillon.starsectormarines.battle.command.WorkingPassageCommand;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolService;
 import com.dillon.starsectormarines.battle.power.MechDropService;
+import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
 import com.dillon.starsectormarines.battle.power.YardConstruction;
 
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
@@ -2547,10 +2548,10 @@ public final class BattleSetup {
                 reserve.add(makeOpeningMilitia("passage-road-"+batch+"-"+reserve.size(),Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
         }
         Tender tender;
-        try { tender=Tender.lowHover(Faction.MARINE,131,115,24,20); }
+        try { tender=Tender.lowHover(Faction.MARINE,131,115,SpawnInOnslaught.PRESENCE); }
         catch(Exception ex) { throw new IllegalStateException("Unable to launch Morrow",ex); }
         sim.tenders().add(sim,tender);
-        sim.getCommandPowerService().register(new YardConstruction(tender));
+        for(YardConstruction yard:YardConstruction.forEachOption(tender))sim.getCommandPowerService().register(yard);
         sim.installWorkingPassage(tender,militia,reserve);
         for(Faction faction:List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
             sim.setAutonomousCommander(faction,new WorkingPassageCommand(faction),WorkingPassageCommand.disclosure(sim.getWorkingPassage()));

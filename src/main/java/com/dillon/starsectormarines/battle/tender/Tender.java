@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.warship.VanillaData;
 import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipScale;
 import com.dillon.starsectormarines.battle.warship.WarshipSlot;
 import com.fs.starfarer.api.fleet.FleetMemberAPI;
 
@@ -95,10 +96,14 @@ public final class Tender implements DroneAnchor {
 
     public boolean grounded() { return grounded; }
 
-    /** Live recovering hull: ordinary tender durability and drones, with a full low-hover footprint. */
-    public static Tender lowHover(Faction faction, float x, float y, float width, float height) throws Exception {
-        Tender tender = fit(faction, x, y, -90f);
+    /**
+     * Live recovering hull: ordinary tender durability and drones, its body fitted at {@code presence} and its
+     * low-hover footprint the hull's own length and beam at that presence.
+     */
+    public static Tender lowHover(Faction faction, float x, float y, float presence) throws Exception {
+        Tender tender = fit(TenderLoadout.stock(), faction, x, y, -90f, presence);
         tender.lowHover = true;
+        float width = tender.ship.lengthCells, height = tender.ship.widthCells;
         tender.groundDisplay = new GroundDisplay(x, y, width, height);
         tender.ship.lowHoverFootprint(width, height);
         return tender;
@@ -122,7 +127,24 @@ public final class Tender implements DroneAnchor {
         if (grounded) groundHostAlive = false;
     }
 
-    /** Grounded construction uses a straight, clear sortie corridor from the exterior bay. */
+    /** What this tender builds: a recovery host's own guns, or every option a flying tender offers. */
+    public List<BuildOption> options() {
+        return grounded || lowHover ? BuildOption.RECOVERY : BuildOption.ALL;
+    }
+
+    /**
+     * Whether a recovery host may take a site at {@code (x, y)}: anywhere off the hull itself, since its builders fly
+     * out to the work. Open ground and what the player has seen are the callers' rules; a flying tender takes any site.
+     */
+    public boolean buildableSite(float x, float y) {
+        if (lowHover) return !ship.departing() && !(Math.abs(x - ship.x) < ship.lowHoverWidth() / 2f
+                && Math.abs(y - ship.y) < ship.lowHoverHeight() / 2f);
+        if (grounded && groundDisplay != null) return !(Math.abs(x - groundDisplay.centerX()) < groundDisplay.width() / 2f
+                && Math.abs(y - groundDisplay.centerY()) < groundDisplay.height() / 2f);
+        return true;
+    }
+
+    /** Whether the bay has a straight, clear sortie corridor to the site within builder reach: a mission's handover test. */
     public boolean groundSiteReachable(float x, float y, NavigationGrid grid) {
         if (lowHover) return !ship.departing() && Math.hypot(x - ship.x, y - ship.y) <= TenderSystem.PILOT_REACH_CELLS
                 && !(Math.abs(x - ship.x) < ship.lowHoverWidth() / 2f
@@ -207,7 +229,12 @@ public final class Tender implements DroneAnchor {
 
     private static Tender fit(TenderLoadout loadout, Faction faction, float x, float y, float facingDegrees)
             throws Exception {
-        Warship ship = Warship.fit(loadout, faction, x, y, facingDegrees);
+        return fit(loadout, faction, x, y, facingDegrees, WarshipScale.HULL_PRESENCE);
+    }
+
+    private static Tender fit(TenderLoadout loadout, Faction faction, float x, float y, float facingDegrees,
+                              float presence) throws Exception {
+        Warship ship = Warship.fit(loadout, faction, x, y, facingDegrees, presence);
         // The shield runs on the hull's own flux at the hull table's own figures; with no
         // guns, the only thing that ever puts flux on it is a hit the shield absorbs.
         ship.limitFlux();
@@ -476,7 +503,7 @@ public final class Tender implements DroneAnchor {
         int cx = (int) Math.floor(x);
         int cy = (int) Math.floor(y);
         if (!grid.inBounds(cx, cy) || !grid.isWalkable(cx, cy)) return null;
-        if (!groundSiteReachable(cx + 0.5f, cy + 0.5f, grid)) return null;
+        if (!buildableSite(cx + 0.5f, cy + 0.5f)) return null;
         if (groundPlotReserved(cx + 0.5f, cy + 0.5f)) return null;
         for (ConstructionOrder other : orders) {
             if (other.phase().terminal()) continue;

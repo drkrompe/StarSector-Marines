@@ -48,13 +48,15 @@ class TenderTest {
         BattleControl view = (BattleControl) Proxy.newProxyInstance(BattleControl.class.getClassLoader(),
                 new Class<?>[]{BattleControl.class}, (proxy, method, args) -> {
                     if (method.getName().equals("getGrid")) return grid;
+                    if (method.getName().equals("playerSeesCell")) return true;
                     throw new UnsupportedOperationException(method.getName());
                 });
-        YardConstruction power = new YardConstruction(yard);
+        yard.groundDisplay(new Tender.GroundDisplay(20f, 20f, 8f, 8f));
+        YardConstruction power = new YardConstruction(yard, BuildOption.LOCUST_TURRET);
         assertFalse(power.canTarget(20, 20, view));
         assertTrue(power.canTarget(32, 20, view));
         power.resolve(32, 20, new CommandPowerService(), view);
-        assertEquals(BuildOption.VULCAN_TURRET, yard.current().option());
+        assertEquals(BuildOption.LOCUST_TURRET, yard.current().option());
         assertFalse(power.canTarget(32, 20, view));
         assertEquals(3, yard.builderReserve());
         assertEquals(0f, power.cpCost);
@@ -87,7 +89,7 @@ class TenderTest {
 
     @Test
     void lowHoverBuildReturnsMissionTravelAfterCompletionOrCancellation() throws Exception {
-        Tender hover = Tender.lowHover(Faction.MARINE, 20f, 20f, 8f, 8f);
+        Tender hover = Tender.lowHover(Faction.MARINE, 20f, 20f, 2f);
         for (boolean cancel : new boolean[]{false, true}) {
             ConstructionOrder order = hover.lay(BuildOption.VULCAN_TURRET, cancel ? 30.5f : 28.5f,
                     cancel ? 29.5f : 20.5f, grid);
@@ -109,21 +111,36 @@ class TenderTest {
     }
 
     @Test
-    void groundedConstructionUsesExteriorBayAndRefusesHullCrossingsAndDistantSites() throws Exception {
+    void groundedConstructionTakesAnyOpenSiteOffTheHull() throws Exception {
         Tender yard = Tender.grounded(Faction.MARINE, 20f, 20f, 25.5f, 20.5f, -90f);
+        yard.groundDisplay(new Tender.GroundDisplay(20f, 20f, 8f, 8f));
         assertEquals(25.5f, yard.bayX());
         assertEquals(20.5f, yard.bayY());
         assertFalse(yard.defenceOut());
-        assertNotNull(yard.lay(BuildOption.VULCAN_TURRET, 32.5f, 20.5f, grid));
-        assertNull(yard.lay(BuildOption.VULCAN_TURRET, 20.5f, 20.5f, grid));
-        assertNull(yard.lay(BuildOption.VULCAN_TURRET, 45.5f, 20.5f, grid));
+        assertEquals(BuildOption.RECOVERY, yard.options());
+        assertNotNull(yard.lay(BuildOption.HEAVY_MG_TURRET, 32.5f, 20.5f, grid));
+        assertNull(yard.lay(BuildOption.HEAVY_MG_TURRET, 20.5f, 20.5f, grid), "not under the hull");
+        assertNotNull(yard.lay(BuildOption.HEAVY_MG_TURRET, 55.5f, 50.5f, grid), "far from the bay");
         grid.setTag(29, 20, CellTag.WALKABLE, false);
-        assertNull(yard.lay(BuildOption.VULCAN_TURRET, 35.5f, 20.5f, grid));
+        assertNotNull(yard.lay(BuildOption.HEAVY_MG_TURRET, 35.5f, 20.5f, grid), "across an obstacle");
+        assertNull(yard.lay(BuildOption.HEAVY_MG_TURRET, 40.5f, 40.5f, grid), "on blocked ground");
         yard.takeHelm();
         assertFalse(yard.piloted());
         yard.loseGroundHost();
         assertFalse(yard.anchorAlive());
         assertNull(yard.lay(BuildOption.VULCAN_TURRET, 32.5f, 24.5f, grid));
+    }
+
+    @Test
+    void lowHoverHullIsSizedAtItsPresenceAndBuildsAnywhereOffIt() throws Exception {
+        Tender hover = Tender.lowHover(Faction.MARINE, 20f, 20f, 2f);
+        Warship ship = hover.ship();
+        assertEquals(2f, ship.presence());
+        assertEquals(ship.lengthCells, ship.lowHoverWidth());
+        assertEquals(ship.widthCells, ship.lowHoverHeight());
+        assertTrue(ship.lengthCells < tender.ship().lengthCells, "smaller than a standard-presence hull");
+        assertNull(hover.lay(BuildOption.LOCUST_TURRET, 20.5f, 20.5f, grid), "not under the hull");
+        assertNotNull(hover.lay(BuildOption.LOCUST_TURRET, 55.5f, 55.5f, grid), "beyond the old builder reach");
     }
 
     @Test
