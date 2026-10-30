@@ -13,7 +13,8 @@ public final class BattleShotAudio {
 
     public static final float WORLD_UNITS_PER_CELL = 30f;
     private static final String FALLBACK_RIFLE = "marines_smallarms_rifle";
-    private static final float PITCH_JITTER = 0.10f;
+    /** How far a fire clip's pitch is rolled either side of 1; an offline soundtrack rolls the same spread. */
+    static final float PITCH_JITTER = 0.10f;
 
     private BattleShotAudio() { }
 
@@ -65,9 +66,9 @@ public final class BattleShotAudio {
     /**
      * Arms a loop weapon's held voice and says whether this shot's own clip
      * should play: always for a one-clip weapon, only on a lance's first pulse
-     * for a looped one.
+     * for a looped one. Package-private so an offline soundtrack ({@code BattleSoundLog}) decides as the screen does.
      */
-    private static boolean startsSound(ShotEvent shot, Cue cue, HeldFireLoops loops) {
+    static boolean startsSound(ShotEvent shot, Cue cue, HeldFireLoops loops) {
         WeaponDef weapon = shot.weaponDef();
         String loopId = weapon != null ? weapon.loopSoundId : null;
         if (loopId != null

@@ -14,6 +14,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -29,7 +31,11 @@ import java.util.Random;
  * them, from {@link ShotImpactAudio#resolve}, at fire for a line tracer and on arrival for a round that travels, as
  * the screen plays them; the warships' cues (their guns, their rounds landing, the deck's boom and a low pass's roar)
  * as {@link WarshipAudio#play} plays them, at its pitch for each kind, a tick after the advance that raised them. The listener is the view's centre, as it is the screen's in a battle. A skitterer's work loop
- * and a Bombard haze's hiss are logged on every tick they are held, with the slot as {@code loop}; held beam loops are not logged.
+ * and a Bombard haze's hiss are logged on every tick they are held, with the slot as {@code loop}; so is a weapon's
+ * held loop ({@code audio.loopSound}), decided by the screen's own {@link HeldFireLoops} and
+ * {@link BattleShotAudio#startsSound}: its fire clip once as a lance starts, then its loop while pulses keep coming.
+ * Fire and impact clips get the screen's pitch roll (within {@link BattleShotAudio#PITCH_JITTER} of 1), drawn from a
+ * seeded stream so the same battle mixes the same.
  * The battle music is the screen's {@link BattleMusicDirector}, run on the same facts: each cue is a line with
  * {@code music} (the sound id, or empty for silence), its fades, the state and the reason, and each change of state
  * is printed. A look shot's director never hears a track end, so a track that runs out before the next cue leaves
@@ -38,6 +44,9 @@ import java.util.Random;
  * {@link LookReview#record} attaches one to every look shot under {@code -Dsnapshot.lookSound=true} and mixes it into
  * the MP4 ({@link BattleSoundMix}); a recording that drives its own battle opens one and calls {@link #tick} itself,
  * adding the screen's ambient bed with {@link #held} and {@link #start}.
+ *
+ * <p>{@code -Dsnapshot.lookSound.weaponsOnly=true} logs only weapon fire, held weapon loops and impacts: no music,
+ * barks, creatures, bores or warships. For a study of how the guns themselves sound ({@code weapon-reel}).
  */
 public final class BattleSoundLog {
 
@@ -45,6 +54,8 @@ public final class BattleSoundLog {
     private static final String EXPLOSIVE_FALLBACK = "marines_explosion";
     /** The rate a track is decoded at to learn its length: coarse, since only the sample count is read. */
     private static final int SECONDS_PROBE_RATE = 1000;
+    /** {@code true} keeps only the guns: fire, held weapon loops and impacts. */
+    public static final String WEAPONS_ONLY_PROPERTY = "snapshot.lookSound.weaponsOnly";
 
     private final Path file;
     // Seeded, so the same battle logs the same pitches and mixes to the same soundtrack.
@@ -55,6 +66,12 @@ public final class BattleSoundLog {
     private final BoreAudio.Mix bores = new BoreAudio.Mix();
     private final MarineBarks.Mix barks = new MarineBarks.Mix();
     private final BattleMusicDirector music = BattleMusicDirector.shipped(new Random(0L));
+    private final HeldFireLoops weaponLoops = new HeldFireLoops();
+    /** Each held weapon voice's slot in the log, so its unbroken run mixes as one take. */
+    private final Map<HeldFireLoops.Voice, Integer> loopSlots = new IdentityHashMap<>();
+    private int nextLoopSlot;
+    private final Random pitchRoll = new Random(0L);
+    private final boolean weaponsOnly = Boolean.getBoolean(WEAPONS_ONLY_PROPERTY);
     private final StringBuilder pending = new StringBuilder();
     private Map<String, List<BattleSoundMix.Take>> takes;
     private final Map<String, Double> trackSeconds = new HashMap<>();
@@ -112,6 +129,33 @@ public final class BattleSoundLog {
         BattleMusicDirector.Facts facts = BattleMusicFacts.of(sim);
         double now = frame * (double) BattleSimulation.TICK_DT;
         if (playing != null && now >= playingEnds) playing = null;
+        if (!weaponsOnly) ambient(lines, sim, at, facts);
+        weaponLoops.advance(BattleSimulation.TICK_DT);
+        loopSlots.keySet().retainAll(new HashSet<>(weaponLoops.held()));
+        for (ShotEvent shot : sim.getShotsThisFrame()) {
+            BattleShotAudio.Cue cue = BattleShotAudio.cue(shot);
+            if (BattleShotAudio.startsSound(shot, cue, weaponLoops)) {
+                line(lines, cue.soundId(), shot.fromX, shot.fromY, roll(), cue.volume(), at);
+            }
+            if (!ShotFx.of(shot).travels()) impact(lines, shot, at);
+        }
+        for (HeldFireLoops.Voice voice : weaponLoops.held()) {
+            int slot = loopSlots.computeIfAbsent(voice, ignored -> nextLoopSlot++);
+            loop(lines, voice.loopSoundId(), voice.x(), voice.y(), 1f, voice.volume(), slot, at);
+        }
+        for (ShotEvent shot : sim.getShotsExpiredThisFrame()) {
+            if (ShotFx.of(shot).travels()) impact(lines, shot, at);
+        }
+        frame++;
+        try {
+            Files.writeString(file, lines, StandardOpenOption.APPEND);
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
+    }
+
+    /** Everything but the guns: the music, the creatures, the bores, the barks and the warships. */
+    private void ambient(StringBuilder lines, BattleSimulation sim, float[] at, BattleMusicDirector.Facts facts) {
         music(lines, frame == 0 ? music.start(facts)
                 : music.update(BattleSimulation.TICK_DT, BattleSimulation.TICK_DT, facts, playing));
         for (SwarmAudio.Play p : swarm.hear(sim, at[0], at[1])) {
@@ -134,25 +178,16 @@ public final class BattleSoundLog {
             if (cue.kind() == WarshipSoundCue.Kind.BEAM_BURNING) continue;
             line(lines, cue.soundId(), cue.x(), cue.y(), WarshipAudio.basePitch(cue.kind()), cue.volume(), at);
         }
-        for (ShotEvent shot : sim.getShotsThisFrame()) {
-            BattleShotAudio.Cue cue = BattleShotAudio.cue(shot);
-            if (cue.soundId() != null) line(lines, cue.soundId(), shot.fromX, shot.fromY, 1f, cue.volume(), at);
-            if (!ShotFx.of(shot).travels()) impact(lines, shot, at);
-        }
-        for (ShotEvent shot : sim.getShotsExpiredThisFrame()) {
-            if (ShotFx.of(shot).travels()) impact(lines, shot, at);
-        }
-        frame++;
-        try {
-            Files.writeString(file, lines, StandardOpenOption.APPEND);
-        } catch (IOException e) {
-            throw new UncheckedIOException(e);
-        }
+    }
+
+    /** The screen's pitch roll for a fire or impact clip, from this log's seeded stream. */
+    private float roll() {
+        return 1f + (pitchRoll.nextFloat() * 2f - 1f) * BattleShotAudio.PITCH_JITTER;
     }
 
     private void impact(StringBuilder out, ShotEvent shot, float[] at) {
         ShotImpactAudio.Cue cue = ShotImpactAudio.resolve(shot, EXPLOSIVE_FALLBACK);
-        if (cue != null) line(out, cue.soundId(), shot.toX, shot.toY, 1f, cue.volume(), at);
+        if (cue != null) line(out, cue.soundId(), shot.toX, shot.toY, roll(), cue.volume(), at);
     }
 
     private void music(StringBuilder out, BattleMusicDirector.Cue cue) {
