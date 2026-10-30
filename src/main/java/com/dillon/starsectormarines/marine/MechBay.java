@@ -211,13 +211,15 @@ public final class MechBay implements Serializable {
     }
 
     /**
-     * Acquisition seam for a vehicle: it takes a vacant gantry, and the bank and vent arrays on its rack become the
-     * company's, as a mech's internals come with it.
+     * Acquisition seam for a vehicle: it takes a vacant gantry, and its engine, plating and the internals in its
+     * compartment become the company's, as a mech's internals come with it.
      */
     public boolean addVehicle(String squadId, CampaignVehicle vehicle) {
         CampaignMechSquad squad = squadById(squadId);
         if (squad == null || vehicle == null || vehicleById(vehicle.id()) != null
                 || mechById(vehicle.id()) != null || !squad.add(vehicle)) return false;
+        if (vehicle.engine() != null) addInternal(vehicle.engine().id, 1);
+        if (vehicle.plating() != null) addInternal(vehicle.plating().id, 1);
         for (MechInternal part : vehicle.rackInternals()) addInternal(part.id, 1);
         return true;
     }
@@ -280,12 +282,10 @@ public final class MechBay implements Serializable {
         return vehicle;
     }
 
-    /** Puts a stored vehicle back on a vacant gantry and owns its kits, plating, engine and rack internals again. */
+    /** Puts a stored vehicle back on a vacant gantry and owns its kits, gun and internals again ({@link #addVehicle}). */
     boolean berthVehicle(String squadId, CampaignVehicle vehicle) {
         if (!canAddMech(squadId) || !addVehicle(squadId, vehicle)) return false;
         for (VehicleKit kit : vehicle.kits()) addKit(kit.id, 1);
-        if (vehicle.plating() != null) addInternal(vehicle.plating().id, 1);
-        if (vehicle.engine() != null) addInternal(vehicle.engine().id, 1);
         if (vehicle.gun() != null) addWeapon(vehicle.gun().id, 1);
         return true;
     }
@@ -650,7 +650,7 @@ public final class MechBay implements Serializable {
         return vehicle != null && vehicle.stripGun();
     }
 
-    /** Whether {@code engine} would go at the vehicle's engine core: an engine above the hull's own drive. */
+    /** Whether {@code engine} would go at the vehicle's engine core: any engine. */
     public boolean canFitEngine(String vehicleId, MechInternal engine) {
         return vehicleById(vehicleId) != null && CampaignVehicle.takesEngine(engine);
     }
@@ -667,13 +667,13 @@ public final class MechBay implements Serializable {
         return vehicle.fitEngine(engine);
     }
 
-    /** Takes the engine off a vehicle's engine core back to stores; the hull runs its own drive again. */
+    /** Takes the engine off a vehicle's engine core back to stores; the hull is incomplete until another is fitted. */
     public boolean stripEngine(String vehicleId) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
         return vehicle != null && vehicle.stripEngine();
     }
 
-    /** Whether {@code plating} would go at the vehicle's armor point: a plating tier above the hull's own plate. */
+    /** Whether {@code plating} would go at the vehicle's armor point: any plating, in place of the plate it wears. */
     public boolean canFitPlating(String vehicleId, MechInternal plating) {
         return vehicleById(vehicleId) != null && CampaignVehicle.takesPlating(plating);
     }
@@ -690,7 +690,7 @@ public final class MechBay implements Serializable {
         return vehicle.fitPlating(plating);
     }
 
-    /** Takes the plating off a vehicle's armor point back to stores; the hull wears its own plate again. */
+    /** Plating is only ever replaced, as on a mech: it never comes off a vehicle's armor point. */
     public boolean stripPlating(String vehicleId) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
         return vehicle != null && vehicle.stripPlating();

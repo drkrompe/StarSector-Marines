@@ -1031,7 +1031,7 @@ class MechLabViewModelTest {
     }
 
     @Test
-    void aVehicleTakesPlatingAtItsArmorPointByDropAndGivesItBack() {
+    void aVehicleTakesPlatingAtItsArmorPointByDropAndOnlyEverReplacesIt() {
         MechBay bay = MechBay.legacyStarterFixture();
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
@@ -1048,9 +1048,9 @@ class MechLabViewModelTest {
 
         assertTrue(viewModel.dropCatalogInternal(MechInternal.HEAVY_PLATING, SocketId.PLATING));
         assertEquals(1, bay.availableInternal(MechInternal.COMPOSITE_PLATING.id), "the outgoing plate is a spare");
-        assertTrue(viewModel.removeInstalledInternal(SocketId.PLATING));
-        assertNull(tank.plating());
-        assertEquals(1, bay.availableInternal(MechInternal.HEAVY_PLATING.id));
+        assertFalse(viewModel.liftable(MechInternal.HEAVY_PLATING), "plating is only ever replaced, as on a mech");
+        assertFalse(viewModel.removeInstalledInternal(SocketId.PLATING));
+        assertEquals(MechInternal.HEAVY_PLATING, tank.plating());
     }
 
     @Test

@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — the loader is one part on every machine: the vehicle's accelerated-loader kit is the mech's accelerated loader (an old kit id reads as it), and a vehicle's compartment carries its loader as a part, so an armed hull is built with the standard loader and one without it never puts a missile pack back (the loader). Also 2026-10-30 — every laser a player meets takes the laser names: the ground emplacements and hardpoint are PL-3 and PL-3 (Sweep), the Wisp and hover-scout bolt guns are PE pulse emitters (not lasers), and PD is kept for guns that shoot down missiles (Weapon names). Also 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Sweep)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-30 — an empty socket means nothing on every machine and a part works by one rule: a vehicle is built with the industrial engine and factory plating as fitted parts, an empty engine core leaves it incomplete as a mech's does, its plating is only ever replaced, and engine and plating move a hull along its own speed and armor bands by the mech's fractions (composite plating on a hull is now ×1.2, was ×1.25; the military engine's −0.5 dissipation now costs a hull's reservoir too). Also 2026-10-30 — the loader is one part on every machine: the vehicle's accelerated-loader kit is the mech's accelerated loader (an old kit id reads as it), and a vehicle's compartment carries its loader as a part, so an armed hull is built with the standard loader and one without it never puts a missile pack back (the loader). Also 2026-10-30 — every laser a player meets takes the laser names: the ground emplacements and hardpoint are PL-3 and PL-3 (Sweep), the Wisp and hover-scout bolt guns are PE pulse emitters (not lasers), and PD is kept for guns that shoot down missiles (Weapon names). Also 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Sweep)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -288,8 +288,7 @@ increasing an encounter's total armored threat.
   or a **company vehicle** (`CampaignVehicle`): an id, a callsign and a
   `VehicleType`, plus the **kits** fitted to it. The gantry is the only thing the
   two share. A vehicle has no chassis, engine budget or weapon components (its flux is one hull reservoir on the mech's rule, `convoy-nouns.md`, hull flux):
-  its gun and bay are its type's and never come off; its engine and plate are the hull's own until the
-  company fits the mech's (below). Mechs and vehicles count against
+  its gun and bay are its type's and never come off; its engine and plating are the mech's parts, fitted (below). Mechs and vehicles count against
   the same four gantries and the same restored berths, are bought for credits
   against a learned pattern, and a save from before vehicles
   keeps every gantry a mech.
@@ -340,13 +339,18 @@ increasing an encounter's total armored threat.
   arrays come off last-fitted first into stores, so nothing owned is lost.
 - A vehicle's **engine core** (`SocketId.CORE`) takes the same engine parts a mech runs
   (`MechInternal`, engine role), as the armor point takes plating (owner, 2026-10-28: a vehicle is a
-  mech for parts). The hull's own drive is no part: an empty engine core is that drive, drawn as the
-  factory engine, so only the **uprated** and **military** engines are fitted. A vehicle has no
-  output budget or mass, so only an engine's speed maps: an uprated engine gives a tenth
-  more top speed and acceleration, a military engine a fifth more, on the hull's own band, so a
-  heavy hull stays slower than a light one (`VehicleEngine`). The drop carries the tier, so the
-  battle sees a factor, never a part; a drive shot out still cripples the hull to the same share of
-  whatever its speed is. Engines are ordinary inventory exactly as plating is.
+  mech for parts). **An empty socket means nothing on every machine** (owner, 2026-10-30): every hull
+  is built with the industrial engine fitted, and an empty engine core is no engine, so the hull is
+  incomplete and stays off the drop, as a mech is. An engine works by the mech's rule: its speed
+  fraction along the chassis's speed band, which on a hull runs from its own top speed and
+  acceleration to a fifth more (`VehicleType.REFIT_SPEED_FACTOR`), so the uprated engine (half the
+  band) gives a tenth more and the military engine (all of it) a fifth more, and a heavy hull stays
+  slower than a light one; the military engine also runs hotter, half a flux a second off the hull
+  reservoir's dissipation as off a mech's (`VehicleEngine`). A vehicle has no output budget or mass
+  (a chassis capability it lacks). The drop carries the tier, so the battle sees a factor, never a
+  part; a drive shot out still cripples the hull to the same share of whatever its speed is. A hull
+  saved when its empty core was its own drive carries the industrial engine. Engines are ordinary
+  inventory exactly as plating is.
 - A vehicle's **gun card** (`SocketId.ARMS`, `VehicleGunCard`) is a typed weapon socket, as a mech's arm
   socket is (owner, 2026-10-28: a vehicle is a mech for parts, and not any weapon fits any gun card). It is two
   columns wide and as tall as its hull's size class, and locked to a hardpoint type where the hull is a specialist
@@ -386,12 +390,17 @@ increasing an encounter's total armored threat.
   weapon, and is not built (`shuttle-omni-mounts.md`).
 - A vehicle's **armor point** (`SocketId.PLATING`) is the one place armor is fitted,
   as on a mech and a boat, and it takes the same three plating parts a mech wears
-  (`MechInternal`, plating role). The hull's own plate is no part: an empty armor
-  point is that plate, so only **composite** (a quarter more armor capacity on every
-  plate) and **heavy** plating (two fifths more, and +2 armor rating on a tracked
-  hull, which is what skirts were) are fitted. They are ordinary inventory: learned
-  as patterns, built into stores, dragged onto the armor point and off it again, the
-  plate they replace returning to stores, lost with the hull and spared by a scrap.
+  (`MechInternal`, plating role). Every hull is built in **factory plating**, and plating
+  is only ever replaced, as a mech's is: it covers the hull and never comes off. Plating
+  works by the mech's rule, its armor fraction along the chassis's armor band, which on a
+  hull runs from its own plate to two fifths more (`VehicleType.REFIT_ARMOR_FACTOR`):
+  **composite** (half the band, a fifth more armor capacity on every plate; it was a
+  quarter before the rule was one) and **heavy** plating (all of it, two fifths more,
+  and +2 armor rating on a tracked hull, which is what skirts were: a capability of the
+  running gear, not a label). They are ordinary inventory: learned
+  as patterns, built into stores, dragged onto the armor point in place of the plate
+  there, which returns to stores, lost with the hull and spared by a scrap. A hull saved
+  when its empty armor point was its own plate wears factory plating.
   The drop carries the tier (`VehiclePlating`), so the battle sees a factor, never a
   part. The armor point stands under the rest of the doll, wired to nothing, and the
   kit rack no longer holds armor (the appliqué plate and spaced skirts were retired

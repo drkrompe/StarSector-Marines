@@ -799,8 +799,8 @@ public final class MechLabDollCanvas implements CanvasProducer {
 
     /**
      * One of a vehicle's live part cards besides the rack, the armor point and the engine core, drawn as a
-     * mech's card is: with the part fitted at it, or the hull's own under it (its plate; the factory engine), and
-     * lit as a fit or a refusal while a part is carried over it.
+     * mech's card is: with the part fitted at it, or empty (an engine core with no engine), and lit as a fit or a
+     * refusal while a part is carried over it.
      */
     private void drawVehiclePart(CanvasContext c, SocketDropTarget target, SocketDef socket) {
         SocketId id = socket.id();
@@ -811,8 +811,6 @@ public final class MechLabDollCanvas implements CanvasProducer {
         MechInternal shown = snapped && hasInternal && dragPreview.source() == null && draggingHere
                 ? dragPreview.internal() : fitted;
         boolean preview = shown != null && shown != fitted;
-        // The hull's own engine and plate are drawn as the mech's factory ones, so the card reads as fitted.
-        if (shown == null) shown = id == SocketId.CORE ? MechInternal.INDUSTRIAL_ENGINE : MechInternal.FACTORY_PLATING;
         MechSocketConsole.draw(c, target, socket, null, null, shown, preview, null, null, assets.get(),
                 selects(id, selectedSocket.get()), hoveredSocket == id,
                 draggingHere && hasInternal && snapped, draggingHere && hasInternal && !snapped, draggingHere,

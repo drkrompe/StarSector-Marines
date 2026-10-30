@@ -308,8 +308,13 @@ public final class MechFrameBudget {
             return new MechFrame(armorCapacity(), moveSpeed(), fluxCapacity(), dissipationPerSecond());
         }
 
-        private static float band(float stock, float refit, float fraction) {
-            return fraction <= 0f ? stock : stock + (refit - stock) * Math.min(1f, fraction);
-        }
+    }
+
+    /**
+     * A chassis band: {@code fraction} of the way from its {@code stock} value to its {@code refit} ceiling. The one rule
+     * an engine's speed and a plating's armor follow on every machine, a mech's chassis or a vehicle's hull.
+     */
+    public static float band(float stock, float refit, float fraction) {
+        return fraction <= 0f ? stock : stock + (refit - stock) * Math.min(1f, fraction);
     }
 }

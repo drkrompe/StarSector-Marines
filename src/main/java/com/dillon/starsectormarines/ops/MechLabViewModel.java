@@ -1180,7 +1180,7 @@ public final class MechLabViewModel {
                             : Strings.get("openingMechLabVacant2"),
                     mech != null && heldBack(mech) ? readinessText(mech)
                             : mech != null ? Strings.join("separatorDot", mech.variant().displayName(), roleLabel(mech.role()))
-                            : vehicle != null && !vehicle.complete() ? Strings.get("openingMechLabVehicleNoBank")
+                            : vehicle != null && !vehicle.complete() ? vehicleIncomplete(vehicle)
                             : vehicle != null ? vehicleIdentity(vehicle.type())
                             : Strings.get("openingMechLabPressOnPadToFabricate"),
                     mech != null ? readinessClasses(mech, "label overview-detail")
@@ -1381,7 +1381,7 @@ public final class MechLabViewModel {
             return selectedSlot.get() == SocketId.PLATING ? Strings.get("openingMechLabVehiclePlatingCopy")
                     : selectedSlot.get() == SocketId.CORE ? Strings.get("openingMechLabVehicleEngineCopy")
                     : selectedSlot.get() == SocketId.ARMS ? Strings.get("openingMechLabVehicleGunCopy")
-                    : !vehicle.complete() ? Strings.get("openingMechLabVehicleNoBank")
+                    : !vehicle.complete() ? vehicleIncomplete(vehicle)
                     : vehicleSummary(vehicle.type(), effect(vehicle));
         }
         CampaignMech mech = selectedMech();
@@ -1885,7 +1885,7 @@ public final class MechLabViewModel {
         return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
     }
 
-    /** Takes the engine off the selected vehicle's engine core; the hull runs its own drive again. */
+    /** Takes the engine off the selected vehicle's engine core; the hull is incomplete until another is fitted. */
     public boolean stripVehicleEngine() {
         CampaignVehicle vehicle = selectedVehicle();
         if (vehicle == null) return false;
@@ -1942,7 +1942,7 @@ public final class MechLabViewModel {
         return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
     }
 
-    /** Takes the plate off the selected vehicle's armor point; the hull wears its own plate again. */
+    /** Plating is only ever replaced: the workshop refuses to take a vehicle's plate off, as a mech's. */
     public boolean stripVehiclePlating() {
         CampaignVehicle vehicle = selectedVehicle();
         if (vehicle == null) return false;
@@ -1954,9 +1954,9 @@ public final class MechLabViewModel {
         return result.status() == MechWorkshop.Status.STRIPPED;
     }
 
-    /** Whether a part on the doll can be lifted off it: a mech's plate is only ever replaced, a vehicle's comes off. */
+    /** Whether a part on the doll can be lifted off it: plating is only ever replaced, on a mech or a vehicle. */
     public boolean liftable(MechInternal internal) {
-        return internal != null && (!internal.role.replaceOnly() || selectedVehicle() != null);
+        return internal != null && !internal.role.replaceOnly();
     }
 
     /** The selected vehicle's rack at its packed places; empty for a mech or nothing. */
@@ -2258,11 +2258,20 @@ public final class MechLabViewModel {
 
     /** The required internals a mech is missing, named for its readiness line. */
     private static String missingNames(CampaignMech mech) {
+        return missingNames(mech.missingInternals());
+    }
+
+    private static String missingNames(List<MechInternal.Role> missing) {
         List<String> names = new ArrayList<>();
-        for (MechInternal.Role role : mech.missingInternals()) {
+        for (MechInternal.Role role : missing) {
             names.add(Strings.get(role == MechInternal.Role.ENGINE ? "mechLabMissingEngine" : "mechLabMissingCapacitors"));
         }
         return String.join(Strings.get("separatorDot"), names);
+    }
+
+    /** Why a vehicle stays off the drop, as a mech's readiness says it: the parts it lacks. */
+    private static String vehicleIncomplete(CampaignVehicle vehicle) {
+        return Strings.format("mechLabReadinessIncomplete", missingNames(vehicle.missingInternals()));
     }
 
     /** Days rounded up to the tenth, so a clock never reads 0.0 while it still holds a mech. */

@@ -15,15 +15,37 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class VehicleEnginesTest {
 
     @Test
-    void theEngineCoreTakesOnlyEnginesAboveTheHullsOwn() {
-        assertFalse(CampaignVehicle.takesEngine(MechInternal.INDUSTRIAL_ENGINE), "the hull's own drive is no part");
+    void theEngineCoreTakesEveryEngineAndEveryHullIsBuiltWithTheIndustrialOne() {
+        assertTrue(CampaignVehicle.takesEngine(MechInternal.INDUSTRIAL_ENGINE), "the industrial engine is a part");
         assertTrue(CampaignVehicle.takesEngine(MechInternal.UPRATED_ENGINE));
         assertTrue(CampaignVehicle.takesEngine(MechInternal.MILITARY_ENGINE));
         assertFalse(CampaignVehicle.takesEngine(MechInternal.HEAVY_PLATING));
 
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
+        assertEquals(MechInternal.INDUSTRIAL_ENGINE, tank.engine());
         assertEquals(VehicleEngine.STOCK, tank.engineTier());
         assertEquals(VehicleEngine.STOCK, tank.freezeForDeployment().engine());
+    }
+
+    @Test
+    void anEngineMovesTheHullAlongItsSpeedBandByTheMechsRuleAndTheMilitaryOneRunsHotter() {
+        assertEquals(1f, VehicleEngine.STOCK.speedFactor(), 1e-6f);
+        assertEquals(1.1f, VehicleEngine.UPRATED.speedFactor(), 1e-6f, "half the band");
+        assertEquals(VehicleType.REFIT_SPEED_FACTOR, VehicleEngine.MILITARY.speedFactor(), 1e-6f, "the whole band");
+        assertEquals(MechInternal.MILITARY_ENGINE.dissipation, VehicleEngine.MILITARY.dissipation(), 1e-6f);
+        assertEquals(0f, VehicleEngine.UPRATED.dissipation(), 1e-6f);
+    }
+
+    @Test
+    void anEmptyEngineCoreIsNoEngineAndKeepsTheHullOffTheDrop() {
+        MechBay bay = new MechBay();
+        CampaignVehicle apc = new CampaignVehicle("v1", "Mule", VehicleType.HEAVY_APC);
+        assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, apc));
+        assertTrue(apc.complete());
+        assertTrue(bay.stripEngine("v1"));
+        assertFalse(apc.complete());
+        assertEquals(List.of(MechInternal.Role.ENGINE), apc.missingInternals());
+        assertEquals(1, bay.availableInternal(MechInternal.INDUSTRIAL_ENGINE.id), "the engine is a spare in stores");
     }
 
     @Test
@@ -45,7 +67,7 @@ class VehicleEnginesTest {
 
         assertTrue(bay.stripEngine("v1"));
         assertNull(tank.engine());
-        assertFalse(bay.stripEngine("v1"), "the hull runs its own drive already");
+        assertFalse(bay.stripEngine("v1"), "the core is empty already");
         assertEquals(1, bay.availableInternal(MechInternal.MILITARY_ENGINE.id));
 
         assertTrue(bay.fitEngine("v1", MechInternal.MILITARY_ENGINE));

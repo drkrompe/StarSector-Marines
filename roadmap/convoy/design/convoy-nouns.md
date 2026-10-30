@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
+Updated: 2026-10-30 — a hull's engine and plating are fitted parts working by the mech's rule along the hull's bands; the convoy escort's military engine costs its reservoir half a flux a second of dissipation (`mechs-nouns.md`, engine core). Also 2026-10-30 — a hull's loader is a part in its compartment, the mech's own: an armed hull is built with the standard loader, and one without it never puts a missile pack back (the loader). Also 2026-10-30 — the hover scout's gun is the Twin PE-1 pulse emitter, a bolt gun and not a laser, and the shuttle's door emitter with it (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -333,7 +333,8 @@ with plating and an engine at its armor point and engine core (`mechs-nouns.md`)
 fitted by a company or named as a **stock fit** a mission fields
 (`VehicleStockFit`). The convoy escort is the APC in heavy plating on a military
 engine with a spall liner (`VehicleStockFit.CONVOY_ESCORT`): 264
-structure behind 224 armor at rating 18, a fifth faster than the bare hull.
+structure behind 224 armor at rating 18, a fifth faster than the bare hull, its reservoir
+shedding 5.5 flux a second against the factory bank's 6 for the hotter engine.
 
 `HEAVY_APC` durability is 220 structure behind 160 armor at rating 18. It uses
 the shared durability law: low-penetration rifles chip armor slowly, while

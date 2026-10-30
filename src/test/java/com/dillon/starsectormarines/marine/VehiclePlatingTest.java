@@ -21,10 +21,12 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class VehiclePlatingTest {
 
     @Test
-    void platingMultipliesTheArmorAndOnlyAHeavyPlateSkirtsATrackedHull() {
+    void platingMovesTheArmorAlongTheHullsBandByTheMechsRuleAndOnlyAHeavyPlateSkirtsATrackedHull() {
         VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
         VehicleKit.Effect composite = VehicleKit.Effect.of(List.of(), VehiclePlating.COMPOSITE, tank);
-        assertEquals(1.25f, composite.armorFactor(), 1e-6f);
+        assertEquals(1f + MechInternal.COMPOSITE_PLATING.armorFraction * (VehicleType.REFIT_ARMOR_FACTOR - 1f),
+                composite.armorFactor(), 1e-6f, "half the band");
+        assertEquals(1.2f, composite.armorFactor(), 1e-6f);
         assertEquals(0f, composite.armorRatingBonus(), 1e-6f);
 
         VehicleKit.Effect heavy = VehicleKit.Effect.of(List.of(), VehiclePlating.HEAVY, tank);
@@ -37,13 +39,14 @@ class VehiclePlatingTest {
     }
 
     @Test
-    void theArmorPointTakesOnlyPlatingAboveTheHullsOwn() {
-        assertFalse(CampaignVehicle.takesPlating(MechInternal.FACTORY_PLATING), "the hull's own plate is no part");
+    void theArmorPointTakesEveryPlatingAndEveryHullIsBuiltInFactoryPlating() {
+        assertTrue(CampaignVehicle.takesPlating(MechInternal.FACTORY_PLATING), "factory plating is a part");
         assertTrue(CampaignVehicle.takesPlating(MechInternal.COMPOSITE_PLATING));
         assertTrue(CampaignVehicle.takesPlating(MechInternal.HEAVY_PLATING));
         assertFalse(CampaignVehicle.takesPlating(MechInternal.UPRATED_ENGINE));
 
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
+        assertEquals(MechInternal.FACTORY_PLATING, tank.plating());
         assertEquals(VehiclePlating.FACTORY, tank.platingTier());
         assertEquals(VehiclePlating.FACTORY, tank.freezeForDeployment().plating());
     }
@@ -64,12 +67,9 @@ class VehiclePlatingTest {
         assertTrue(bay.fitPlating("v1", MechInternal.HEAVY_PLATING));
         assertEquals(1, bay.availableInternal(MechInternal.COMPOSITE_PLATING.id), "the outgoing plate is a spare");
 
-        assertTrue(bay.stripPlating("v1"));
-        assertNull(tank.plating());
-        assertFalse(bay.stripPlating("v1"), "the hull wears its own plate already");
-        assertEquals(1, bay.availableInternal(MechInternal.HEAVY_PLATING.id));
+        assertFalse(bay.stripPlating("v1"), "plating is only ever replaced, as on a mech");
+        assertEquals(MechInternal.HEAVY_PLATING, tank.plating());
 
-        assertTrue(bay.fitPlating("v1", MechInternal.HEAVY_PLATING));
         assertTrue(bay.scrapVehicle("v1"));
         assertEquals(1, bay.availableInternal(MechInternal.HEAVY_PLATING.id), "a scrap spares the plate");
 

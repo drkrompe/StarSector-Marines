@@ -178,6 +178,10 @@ public final class ConvoyService implements BodyCarrier {
         if (weapon == null) weapon = type.ownGun();
         HullReservoir.Frame flux = VehicleRack.frame(compartment);
         if (flux == null) flux = HullReservoir.stockFrame(type);
+        // The engine runs on the reservoir as a mech's does: the military engine's penalty comes off its dissipation.
+        if (flux != null && engine.dissipation() != 0f) {
+            flux = new HullReservoir.Frame(flux.capacity(), Math.max(0f, flux.dissipationPerSecond() + engine.dissipation()));
+        }
         MissileReplenisherComponent loader = VehicleRack.loader(compartment);
         VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type);
         BattleComponents c = roster.components();

@@ -30,13 +30,13 @@ public final class CampaignVehicle implements Serializable {
     /** Kit ids on the rack, in fitted order; null in a save from before kits (an empty rack). */
     private List<String> kitIds = new ArrayList<>();
     /**
-     * The plating part at its armor point; null is the hull's own plate, which is no inventory part
-     * and is what a stripped armor point reads as.
+     * The plating part at its armor point: every hull is built with factory plating, which is only ever replaced, as a
+     * mech's is. Null only in a save from before it was a part (the hull's own plate, read as factory plating).
      */
     private String platingId;
     /**
-     * The engine part at its engine core; null is the hull's own drive, which is no inventory part and is what a
-     * stripped engine core reads as. Null in a save from before engines.
+     * The engine part at its engine core: every hull is built with the industrial engine. Null is an empty engine core,
+     * which means no engine, as on a mech: the hull is incomplete and stays off the drop.
      */
     private String engineId;
     /**
@@ -52,8 +52,11 @@ public final class CampaignVehicle implements Serializable {
      */
     private int fitVersion;
 
-    /** The current fitting rules: the loader is a part in the compartment (empty means nothing). */
-    static final int FIT_VERSION = 1;
+    /**
+     * The current fitting rules: the loader is a part in the compartment (1), and the engine and plating are parts at
+     * their points (2); an empty socket means nothing.
+     */
+    static final int FIT_VERSION = 2;
 
     public CampaignVehicle(String id, String displayName, VehicleType type) {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("Vehicle id is required");
@@ -65,6 +68,8 @@ public final class CampaignVehicle implements Serializable {
         this.displayName = displayName;
         this.type = type;
         this.fitVersion = FIT_VERSION;
+        this.engineId = MechInternal.INDUSTRIAL_ENGINE.id;
+        this.platingId = MechInternal.FACTORY_PLATING.id;
         for (MechInternal part : VehicleRack.stockFit(type)) rackInternalIds.add(part.id);
     }
 
@@ -72,21 +77,21 @@ public final class CampaignVehicle implements Serializable {
     public String displayName() { return displayName; }
     public VehicleType type() { return type; }
 
-    /** The plating part fitted at the armor point; null when the hull wears its own plate. */
+    /** The plating part fitted at the armor point. */
     public MechInternal plating() {
         MechInternal plating = MechInternal.findById(platingId);
-        return plating != null && plating.role == MechInternal.Role.PLATING && !plating.stock() ? plating : null;
+        return plating != null && plating.role == MechInternal.Role.PLATING ? plating : null;
     }
 
-    /** The engine part fitted at the engine core; null when the hull runs its own drive. */
+    /** The engine part fitted at the engine core; null for an empty core, which leaves the hull incomplete. */
     public MechInternal engine() {
         MechInternal engine = MechInternal.findById(engineId);
-        return engine != null && engine.role == MechInternal.Role.ENGINE && !engine.stock() ? engine : null;
+        return engine != null && engine.role == MechInternal.Role.ENGINE ? engine : null;
     }
 
-    /** Whether {@code engine} goes at the engine core: an engine above the industrial one, which is the hull's own. */
+    /** Whether {@code engine} goes at the engine core: any engine a mech runs. */
     public static boolean takesEngine(MechInternal engine) {
-        return engine != null && engine.role == MechInternal.Role.ENGINE && !engine.stock();
+        return engine != null && engine.role == MechInternal.Role.ENGINE;
     }
 
     /** Fits {@code engine} at the engine core, replacing what was there; false for a part that does not go. */
@@ -96,7 +101,7 @@ public final class CampaignVehicle implements Serializable {
         return true;
     }
 
-    /** Takes the engine off the engine core, back to the hull's own drive; false when none was fitted. */
+    /** Takes the engine off the engine core, leaving it empty and the hull incomplete; false when none was fitted. */
     boolean stripEngine() {
         boolean fitted = engine() != null;
         engineId = null;
@@ -131,14 +136,12 @@ public final class CampaignVehicle implements Serializable {
 
     /** What the engine at the engine core makes of the hull at the drop. */
     public VehicleEngine engineTier() {
-        MechInternal engine = engine();
-        if (engine == null) return VehicleEngine.STOCK;
-        return engine == MechInternal.MILITARY_ENGINE ? VehicleEngine.MILITARY : VehicleEngine.UPRATED;
+        return VehicleEngine.of(engine());
     }
 
-    /** Whether {@code plating} goes at the armor point: a plating tier above the hull's own plate. */
+    /** Whether {@code plating} goes at the armor point: any plating a mech wears. */
     public static boolean takesPlating(MechInternal plating) {
-        return plating != null && plating.role == MechInternal.Role.PLATING && !plating.stock();
+        return plating != null && plating.role == MechInternal.Role.PLATING;
     }
 
     /** Fits {@code plating} at the armor point, replacing what was there; false for a part that does not go. */
@@ -148,18 +151,14 @@ public final class CampaignVehicle implements Serializable {
         return true;
     }
 
-    /** Takes the plating off the armor point, back to the hull's own plate; false when none was fitted. */
+    /** Plating covers the hull and is only ever replaced, as a mech's is: it never comes off. */
     boolean stripPlating() {
-        boolean fitted = plating() != null;
-        platingId = null;
-        return fitted;
+        return false;
     }
 
     /** What the plating at the armor point makes of the hull at the drop. */
     public VehiclePlating platingTier() {
-        MechInternal plating = plating();
-        if (plating == null) return VehiclePlating.FACTORY;
-        return plating == MechInternal.HEAVY_PLATING ? VehiclePlating.HEAVY : VehiclePlating.COMPOSITE;
+        return VehiclePlating.of(plating());
     }
 
     /** The kits on the rack, in fitted order. */
@@ -224,9 +223,17 @@ public final class CampaignVehicle implements Serializable {
         return parts;
     }
 
-    /** Whether the hull may drop: an armed hull needs a capacitor bank on its rack. */
+    /** Whether the hull may drop: an engine in its core and, on an armed hull, a capacitor bank on its rack. */
     public boolean complete() {
-        return VehicleRack.complete(type, rackInternals());
+        return missingInternals().isEmpty();
+    }
+
+    /** What the hull lacks to drop, as on a mech: its engine, and on an armed hull its capacitor bank. */
+    public List<MechInternal.Role> missingInternals() {
+        List<MechInternal.Role> missing = new ArrayList<>();
+        if (engine() == null) missing.add(MechInternal.Role.ENGINE);
+        if (!VehicleRack.complete(type, rackInternals())) missing.add(MechInternal.Role.CAPACITOR_BANK);
+        return List.copyOf(missing);
     }
 
     /** Puts {@code kit} on the rack; false when it would not go. */
@@ -270,13 +277,24 @@ public final class CampaignVehicle implements Serializable {
         if (rackInternalIds == null) rackInternalIds = new ArrayList<>();
         boolean applique = kitIds.remove(RETIRED_APPLIQUE_PLATE);
         boolean skirts = kitIds.remove(RETIRED_SPACED_SKIRTS);
-        if (platingId == null) {
+        if (plating() == null || plating().stock()) {
             if (skirts) platingId = MechInternal.HEAVY_PLATING.id;
             else if (applique) platingId = MechInternal.COMPOSITE_PLATING.id;
         }
         retireKitsToInternals();
-        if (fitVersion < FIT_VERSION) fitTheSealedLoader();
+        if (fitVersion < 1) fitTheSealedLoader();
+        if (fitVersion < 2) fitTheHullsOwnEngineAndPlate();
+        fitVersion = FIT_VERSION;
         return this;
+    }
+
+    /**
+     * A save from before the engine and plating were parts read an empty engine core as the hull's own drive and an
+     * empty armor point as its own plate: those are the industrial engine and factory plating, now fitted.
+     */
+    private void fitTheHullsOwnEngineAndPlate() {
+        if (engine() == null) engineId = MechInternal.INDUSTRIAL_ENGINE.id;
+        if (plating() == null) platingId = MechInternal.FACTORY_PLATING.id;
     }
 
     /** A kit that became an internal moves from the rack's kit list to its compartment, as that internal. */
@@ -299,7 +317,6 @@ public final class CampaignVehicle implements Serializable {
      * owned is lost and the hull keeps the loader it always had.
      */
     private void fitTheSealedLoader() {
-        fitVersion = FIT_VERSION;
         if (!type.hasTurretWeapon()) return;
         if (rackInternals().stream().anyMatch(p -> p.role == MechInternal.Role.LOADER)) return;
         rackInternalIds.add(MechInternal.STANDARD_LOADER.id);

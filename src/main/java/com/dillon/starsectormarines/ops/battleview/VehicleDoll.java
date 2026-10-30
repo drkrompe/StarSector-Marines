@@ -60,15 +60,13 @@ final class VehicleDoll {
 
     /**
      * What a card holds, as its caption; the rack's caption is its fill, {@code rackRows} of its slots taken. The
-     * engine core and the armor point are live: they name the part fitted, or the hull's own. The gun card names the
-     * weapon fitted, or the hull's turret.
+     * engine core and the armor point are live: they name the part fitted, or that the core is empty. The gun card
+     * names the weapon fitted, or the hull's turret.
      */
     static String caption(VehicleType type, SocketId card, int rackRows, MechInternal plating,
                           MechInternal engine, MechWeaponComponent gun) {
         return switch (card) {
-            case CORE -> engine != null ? engine.displayName()
-                    : Strings.get(type.isHover() ? "vehicleDollHover" : type.isTank() ? "vehicleDollTracked"
-                    : "vehicleDollWheeled");
+            case CORE -> engine != null ? engine.displayName() : Strings.get("vehicleDollNoEngine");
             case ARMS -> gun != null ? Strings.upper(gun.displayName())
                     : type.ownGun() != null ? Strings.upper(type.ownGun().displayName()) : turretName(type);
             case LEFT_SHOULDER -> bay(type);

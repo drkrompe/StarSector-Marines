@@ -341,6 +341,19 @@ public enum VehicleType {
     /** {@code false} is the control: a hull's plate is the same on every arc. */
     public static final String ARMOR_ARCS_PROPERTY = "battle.vehicle.armorArcs";
 
+    /**
+     * Every hull's speed band, as a mech chassis has one (`MechFrameBudget`): from its own top speed and acceleration
+     * to this multiple of them, an engine putting it {@code speedFraction} of the way along (the uprated engine half
+     * way, ×1.10; the military engine all of it, ×1.20). One rule for every machine; only the band is the chassis's.
+     */
+    public static final float REFIT_SPEED_FACTOR = 1.2f;
+
+    /**
+     * Every hull's armor band: from its own plate to this multiple of it, plating putting it {@code armorFraction} of
+     * the way along (composite half way, ×1.20; heavy all of it, ×1.40), the mech's plating rule on the hull's plate.
+     */
+    public static final float REFIT_ARMOR_FACTOR = 1.4f;
+
     private static final boolean ARMOR_ARCS =
             Boolean.parseBoolean(System.getProperty(ARMOR_ARCS_PROPERTY, "true"));
 
