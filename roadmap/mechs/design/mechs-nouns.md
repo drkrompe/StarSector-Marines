@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Sweep)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-30 — every laser a player meets takes the laser names: the ground emplacements and hardpoint are PL-3 and PL-3 (Sweep), the Wisp and hover-scout bolt guns are PE pulse emitters (not lasers), and PD is kept for guns that shoot down missiles (Weapon names). Also 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Sweep)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -1106,10 +1106,38 @@ None of them is called a PD laser: none shoots down a missile.
 The Thermal Lance is not a laser and keeps its name: its lore, drawing and sound
 make it a thermal projector (Lion's Brand, a fuel-cell heat lance whose impact
 burns, fired with a plasma cannon's report), so it stands outside the laser
-families as the chainguns stand outside the cannons. The hull-borne PL-3 (the
-laser tank's turret, the shuttle's door gun) carries the part's name; the
-emplacement lasers, the Laser Hardpoint, the drone Halo laser and the hover scout's
-twin pulse emitter are their own guns and keep their names (`convoy-nouns.md`).
+families as the chainguns stand outside the cannons.
+
+**Every laser a player meets takes the same names** (owner, 2026-10-30: one
+language to reason about). A laser on a hull, a post or a hardpoint carries the
+part's name for the way it fires, with its own stats for its mount; a fixed gun
+has no footprint, so its number is the part whose head and fire it carries:
+
+| Gun | Fires | Name |
+| --- | --- | --- |
+| The laser tank's white turret, the shuttle's door laser | Four pulses a burst, tracks fliers | PL-3 Pulse Laser Turret, Shuttle PL-3 (boat gun PL-3 pulse laser) |
+| The laser emplacement and its anti-air position (`structure.turret-pl-3-sweep`, `-aa`) | Ten light pulses a burst on the laser tank's red head; shoots men and fliers | PL-3 (Sweep) Emplacement, PL-3 (Sweep) Anti-air Position |
+| The twin-emitter emplacement (`structure.turret-pl-3`) | Four hard pulses from two emitters | PL-3 Emplacement |
+| The cannon hardpoint's laser (`structure.hardpoint-pl-3-sweep`) | Ten light pulses on the red head at hardpoint size, behind the flux shield | PL-3 (Sweep) Hardpoint |
+
+No ground laser holds a beam: the emplacements and the hardpoint fire spaced
+pulses that draw as a beam, so they are PL, never BL.
+
+**PE, a pulse emitter, is not a laser.** It throws bright energy bolts that fly
+to the target where a laser's light lands the instant it fires, so it never
+takes a laser's name. The Tri-Tachyon Wisp drone's gun is the **PE-1** (two
+bolts a burst); the hover scout's turret and the boat door gun are the **Twin
+PE-1**, two of the same emitters on one ring (four bolts), a 2x1 gun on a boat's
+hardpoint.
+
+**PD means it shoots down missiles**, and nothing else carries it: the Halo
+drone's **Halo PD Laser** (`weapon.drone-pd-laser`), the interceptor posts and
+packs, and a hull's active protection engage rounds in flight
+(`PointDefenseService`). A gun that only shoots fliers is anti-air, not PD.
+
+A placed or mounted id the names replaced resolves to its successor
+(`TurretCatalogRegistry.currentId`), and a save's boat gun id likewise
+(`BoatGun.currentId`, `BoatDeck.readResolve`).
 
 A save holding a renamed or retired id carries it to its successor
 (`MechWeaponComponent.findById`, `MechBay.readResolve`). On the Onager both HC

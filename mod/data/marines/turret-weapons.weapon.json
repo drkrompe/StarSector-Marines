@@ -333,9 +333,9 @@
       "audio": { "fireSound": "pulse_laser_fire" }
     },
     {
-      "id": "weapon.tank-burst-laser",
+      "id": "weapon.tank-pl-3",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponTankBurstLaserDisplayName", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponTankPl3DisplayName", "designationTiered": false },
       "sim": {
         "tracksFliers": true,
         "range": 30.0, "damage": 16.0, "accuracy": 0.85, "cooldown": 0.55, "penetration": 3.0,
@@ -362,9 +362,9 @@
       "audio": { "fireSound": "burst_pd_fire", "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.12 }
     },
     {
-      "id": "weapon.hardpoint-pd-laser",
+      "id": "weapon.hardpoint-pl-3-sweep",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponHardpointPdLaserDisplayName", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponHardpointPl3SweepDisplayName", "designationTiered": false },
       "sim": {
         "tracksFliers": true,
         "range": 26.0, "damage": 7.0, "accuracy": 0.7, "cooldown": 1.5, "penetration": 2.0,
@@ -390,9 +390,9 @@
       "audio": { "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
-      "id": "weapon.post-pd-laser",
+      "id": "weapon.post-pl-3-sweep",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponPostPdLaserDisplayName", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponPostPl3SweepDisplayName", "designationTiered": false },
       "sim": {
         "tracksFliers": true,
         "range": 24.0, "damage": 5.0, "accuracy": 0.95, "cooldown": 0.5, "penetration": 3.0,
@@ -418,9 +418,9 @@
       "audio": { "loopSound": "laser_loop", "loopTail": 0.35, "loopFadeOut": 0.2, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
-      "id": "weapon.post-burst-laser",
+      "id": "weapon.post-pl-3",
       "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponPostBurstLaserDisplayName", "designationTiered": false },
+      "catalog": { "displayName": "@gearCatalogWeaponPostPl3DisplayName", "designationTiered": false },
       "sim": {
         "range": 30.0, "damage": 15.0, "accuracy": 0.85, "cooldown": 1.6, "penetration": 7.0,
         "burstCount": 4, "burstSpacing": 0.06, "hitSpread": 0.2,

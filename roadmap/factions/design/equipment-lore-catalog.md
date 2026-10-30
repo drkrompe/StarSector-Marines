@@ -4,7 +4,7 @@ Status: ACTIVE — canonical provenance and faction-fit reference for shipped Ma
 
 Written: 2026-08-26
 
-Updated: 2026-10-30 — the mech lasers take family names by how they fire (BL beam, PL pulse, LL lance; `mechs-nouns.md`,
+Updated: 2026-10-30 — the Wisp drone gun is the PE-1 pulse emitter, a bolt gun rather than a laser (`mechs-nouns.md`, Weapon names). Also 2026-10-30 — the mech lasers take family names by how they fire (BL beam, PL pulse, LL lance; `mechs-nouns.md`,
 Weapon names); their lore names live in the descriptions, and the Lion's Guard Thermal Lance stays a thermal projector,
 not a laser. Also 2026-10-30 — the mech cannons take `<Family>-<N>` names: the Muster autogun is the AC-6 (QS), the Quarry
 breaker the DC-4 (QS), beside the SRM-3 (QS) rack, all QuickSell budget builds, as lower-performance mech components
@@ -77,7 +77,7 @@ Laws:
 | `weapon.smg` | **GR-SMG Rattler submachine gun** — a black-market family of cheap pistol-calibre slug automatics rebuilt for boarding work, not one factory pattern. | Pirate shops, Pather cells, deniable contractors, and frontier black markets. | Formal militaries may recover or procure Rattlers for a specific breach, but should not treat the improvised family as universal standard issue. |
 | `weapon.squad-automatic` | **SA Stalwart squad automatic** — a Hegemony-standardized Domain support-rifle package. | Hegemony formations; copied League and Diktat arsenals; Knight and Independent heavy-weapon teams. | It is not a characteristic Pather or pirate market product, though captured examples remain possible. |
 | `weapon.dmr` | **RG Longbow rail carbine** — a Kazeron-led League interoperability project. | League coalition issue; licensed, purchased, or captured Hegemony, Tri-Tachyon, Church, Knight, Diktat, Independent, and outlaw examples. | Its availability need not imply political alignment with the League. Pathers and pirates should encounter it as scarce recovery, not a mirrored marksman industry. |
-| `weapon.drone-pulse` | **DPLS Wisp drone pulse laser** — a Tri-Tachyon facility-security emitter reused across autonomous platforms. | Corporate drones and compatible autonomous security platforms. Remnant use of comparable energy weapons does not imply human compatibility or a transferable template. | It is not a marine collectible and must not acquire a handheld clone merely to fill a faction grid. |
+| `weapon.drone-pulse` | **PE-1 Pulse Emitter**, the Wisp — a Tri-Tachyon facility-security emitter reused across autonomous platforms; it throws energy bolts, not a laser's light, so it takes the PE name (`mechs-nouns.md`, Weapon names). The hover scout's twin turret is two of them (Twin PE-1). | Corporate drones and compatible autonomous security platforms. Remnant use of comparable energy weapons does not imply human compatibility or a transferable template. | It is not a marine collectible and must not acquire a handheld clone merely to fill a faction grid. |
 
 ## Special equipment
 
@@ -113,7 +113,8 @@ The energy components are military and corporate patterns, not this commercial f
 how they fire (`mechs-nouns.md`, Weapon names); a lore name stays in the description. The LL-3 is the Lance
 Cannon, Tri-Tachyon's emitter for facilities that cannot be resupplied; the PL-2 (AP) is the walker-scale member
 of the AR-PULSE security family; the BL and PL lasers are the frigate's point-defence emitters and the laser
-tank's gun taken onto walkers. The **Thermal Lance** (`weapon.mech-thermal-lance`) is Lion's Brand, a Sindrian
+tank's gun taken onto walkers, and the ground emplacements and hardpoint lasers carry the same PL-3 and
+PL-3 (Sweep) names. Only a gun that shoots down missiles is called PD (the Halo PD Laser). The **Thermal Lance** (`weapon.mech-thermal-lance`) is Lion's Brand, a Sindrian
 prestige thermal projector fed from fuel cells, issued to Lion's Guard formations by allotment: a heat lance
 whose impact burns, not a laser, so it keeps its own name outside the laser families.
 

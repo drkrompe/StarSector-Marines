@@ -47,21 +47,45 @@ public final class TurretCatalogRegistry {
     /** The fort anti-air aspect's close-in towers at the control room door: guided four-round salvos. */
     public static final String AA_SWARMER_STRUCTURE_ID = "structure.aa-swarmer";
     public static final String HEAVY_MG_STRUCTURE_ID = "structure.turret-heavy-mg";
-    /** A boat's twin pulse laser: the hover scout's emitter on a door ring. Fires on flux, no magazine. */
+    /**
+     * A boat's Twin PE-1: the hover scout's twin pulse emitter on a door ring, throwing energy bolts rather than a
+     * laser's light. Fires on flux, no magazine.
+     */
     public static final String BOAT_PULSE_STRUCTURE_ID = "structure.boat-pulse";
     /** A boat's PL-3 pulse laser: the laser tank's emitter, small enough for a door ring; it tracks fliers. */
-    public static final String BOAT_BURST_LASER_STRUCTURE_ID = "structure.boat-burst-laser";
+    public static final String BOAT_PL_3_STRUCTURE_ID = "structure.boat-pl-3";
     /** A boat's SRM-15: three salvos of five a sortie, a hard opening strike on the run in. */
     public static final String BOAT_SRM_STRUCTURE_ID = "structure.boat-srm";
     /** A boat's LRM-10: two long salvos of five a sortie, fired from well out. */
     public static final String BOAT_LRM_STRUCTURE_ID = "structure.boat-lrm";
 
     public static final String TANK_CANNON_STRUCTURE_ID = "structure.tank-twin-cannon";
-    /** The laser tank's PL-3 pulse laser: a starship's point-defence emitter turned on the ground. */
-    public static final String TANK_BURST_LASER_STRUCTURE_ID = "structure.tank-burst-laser";
-    /** The PD laser tank's emitter: the plain PD laser, a steady lance where the burst laser fires in bursts. */
-    /** The hover scout's twin pulse emitter, a vehicle mount of the Wisp drone-emitter family. */
+    /** The laser tank's PL-3 pulse laser: a starship's burst laser turned on the ground. */
+    public static final String TANK_PL_3_STRUCTURE_ID = "structure.tank-pl-3";
+    /** The hover scout's Twin PE-1, two pulse emitters of the Wisp drone family throwing energy bolts. */
     public static final String HOVER_PULSE_STRUCTURE_ID = "structure.hover-pulse";
+
+    /**
+     * Mount and structure ids the laser names replaced ({@code mechs-nouns.md}, Weapon names), old to new, so
+     * anything still holding an old id resolves to its successor.
+     */
+    private static final Map<String, String> RENAMED = Map.ofEntries(
+            Map.entry("structure.turret-pd-laser", "structure.turret-pl-3-sweep"),
+            Map.entry("structure.turret-pd-laser-aa", "structure.turret-pl-3-sweep-aa"),
+            Map.entry("structure.turret-burst-laser", "structure.turret-pl-3"),
+            Map.entry("structure.hardpoint-laser", "structure.hardpoint-pl-3-sweep"),
+            Map.entry("structure.tank-burst-laser", "structure.tank-pl-3"),
+            Map.entry("structure.boat-burst-laser", "structure.boat-pl-3"),
+            Map.entry("mount.turret-pd-laser", "mount.turret-pl-3-sweep"),
+            Map.entry("mount.turret-burst-laser", "mount.turret-pl-3"),
+            Map.entry("mount.hardpoint-laser", "mount.hardpoint-pl-3-sweep"),
+            Map.entry("mount.tank-burst-laser", "mount.tank-pl-3"),
+            Map.entry("mount.boat-burst-laser", "mount.boat-pl-3"));
+
+    /** The current id for {@code id}: its successor when a rename retired it, otherwise itself. */
+    public static String currentId(String id) {
+        return id == null ? null : RENAMED.getOrDefault(id, id);
+    }
     /** The LRM carrier's twin rail launcher: the mech anti-armor LRM rack on a vehicle turntable. */
     public static final String VEHICLE_LRM_STRUCTURE_ID = "structure.vehicle-lrm";
     /** The mortar carrier's roof mortar: an indirect-fire tube on a vehicle turntable, a steady bomb every few seconds. */
@@ -135,7 +159,7 @@ public final class TurretCatalogRegistry {
 
     public static TurretMountDef requireMount(String id) {
         TurretCatalogRegistry registry = requireInstalled(id);
-        TurretMountDef def = registry.mountsById.get(id);
+        TurretMountDef def = registry.mountsById.get(currentId(id));
         if (def == null) {
             throw new IllegalStateException("Unknown turret mount id '" + id
                     + "'. Known ids: " + registry.mountsById.keySet());
@@ -145,7 +169,7 @@ public final class TurretCatalogRegistry {
 
     public static StructureDef requireStructure(String id) {
         TurretCatalogRegistry registry = requireInstalled(id);
-        StructureDef def = registry.structuresById.get(id);
+        StructureDef def = registry.structuresById.get(currentId(id));
         if (def == null) {
             throw new IllegalStateException("Unknown structure id '" + id
                     + "'. Known ids: " + registry.structuresById.keySet());
@@ -161,9 +185,9 @@ public final class TurretCatalogRegistry {
         return registry;
     }
 
-    public TurretMountDef getMount(String id) { return mountsById.get(id); }
+    public TurretMountDef getMount(String id) { return mountsById.get(currentId(id)); }
 
-    public StructureDef getStructure(String id) { return structuresById.get(id); }
+    public StructureDef getStructure(String id) { return structuresById.get(currentId(id)); }
 
     public Collection<TurretMountDef> mounts() { return mountsById.values(); }
 

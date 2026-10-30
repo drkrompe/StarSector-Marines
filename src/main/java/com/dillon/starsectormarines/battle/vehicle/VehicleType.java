@@ -101,7 +101,7 @@ public enum VehicleType {
     LASER_TANK("graphics/battle/vehicles/army-tank-laser.png", 0, 8, -90f,
             0, 4.3f, 3.85f, 2.25f, 3.3f, 1.05f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 1.6f, -90f,
-            TurretCatalogRegistry.TANK_BURST_LASER_STRUCTURE_ID, 750f, 500f, 18f, 1.4f, 1.1f) {
+            TurretCatalogRegistry.TANK_PL_3_STRUCTURE_ID, 750f, 500f, 18f, 1.4f, 1.1f) {
         @Override public GroundBody createBody() {
             return new BicycleBody(2.6f, 32f, 95f, accel, brakingAccel, maxSpeed, TANK_REVERSE_FRACTION);
         }

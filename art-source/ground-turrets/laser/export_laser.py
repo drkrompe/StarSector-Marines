@@ -1,12 +1,13 @@
 """Cut the high-tech posts' laser heads into mod/graphics/structures/ground-turrets/laser/ (`ground-turret-tiers.md`).
 
-Each head is a painted, up-res'd vanilla laser turret (upres_guide.py; the PD laser is the laser tank's Tri-Tachyon
-skin), turned nose up and scaled about its pivot, the sprite's centre as in the game, so the head turns on its
-mount. A laser has no recoil, so there is no barrel layer; the contact shadow is baked in as for every head.
+Each head is a painted, up-res'd vanilla laser turret (upres_guide.py; the PL-3 (Sweep) head is the laser tank's
+Tri-Tachyon skin), turned nose up and scaled about its pivot, the sprite's centre as in the game, so the head turns on
+its mount. A laser has no recoil, so there is no barrel layer; the contact shadow is baked in as for every head. The
+heads are named for the laser they carry (`mechs-nouns.md`, Weapon names).
 
-  pd-laser-head.png     160x160 (visualCells 1.25): the beam laser, from art-source/vehicles/tank-laser/pd-skin-tt-raw.png
-  burst-laser-head.png  160x160 (visualCells 1.25): the burst laser, from burstpd-raw.png
-  heavy-laser-head.png  384x384 (visualCells 3.0):  the hardpoint's laser, the laser tank's own red PD laser
+  pl-3-sweep-head.png   160x160 (visualCells 1.25): the PL-3 (Sweep) emplacement, from art-source/vehicles/tank-laser/pd-skin-tt-raw.png
+  pl-3-head.png         160x160 (visualCells 1.25): the PL-3 emplacement's twin emitters, from burstpd-raw.png
+  heavy-laser-head.png  384x384 (visualCells 3.0):  the hardpoint's PL-3 (Sweep), the laser tank's own red head
                         (art-source/vehicles/tank-laser/pd-skin-red-raw.png) at hardpoint size
 
 Prints each head's muzzle (the emitter tip on the axis), in cells forward of the pivot, for the mounts.
@@ -27,8 +28,8 @@ OUT = ROOT / "mod" / "graphics" / "structures" / "ground-turrets" / "laser"
 PPC = 128
 # name: (source, turns to put the nose up, sprite px, body length in cells, contact-shadow radius as a share)
 HEADS = {
-    "pd-laser": (ROOT / "art-source" / "vehicles" / "tank-laser" / "pd-skin-tt-raw.png", -90, 160, 0.78, 0.24),
-    "burst-laser": (HERE / "burstpd-raw.png", 0, 160, 0.86, 0.26),
+    "pl-3-sweep": (ROOT / "art-source" / "vehicles" / "tank-laser" / "pd-skin-tt-raw.png", -90, 160, 0.78, 0.24),
+    "pl-3": (HERE / "burstpd-raw.png", 0, 160, 0.86, 0.26),
     "heavy-laser": (ROOT / "art-source" / "vehicles" / "tank-laser" / "pd-skin-red-raw.png", -90, 384, 1.44, 0.18),
 }
 

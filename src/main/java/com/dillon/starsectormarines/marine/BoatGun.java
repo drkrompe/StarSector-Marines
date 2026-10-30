@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.i18n.Strings;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 /**
  * A gun a yard can put on one of a ship's boat's hardpoints: a ballistic door
@@ -85,13 +86,14 @@ public record BoatGun(
             "door_hephaestus", "@boatGunHephaestus", TurretCatalogRegistry.HEPHAESTUS_STRUCTURE_ID, 3,
             credits(5400), "@boatGunHephaestusEffect", "@boatGunHephaestusProvenance", Family.BALLISTIC, false);
 
-    public static final BoatGun PULSE_LASER = new BoatGun(
-            "boat_pulse_laser", "@boatGunPulseLaser", TurretCatalogRegistry.BOAT_PULSE_STRUCTURE_ID, 1,
-            credits(2050), "@boatGunPulseLaserEffect", "@boatGunPulseLaserProvenance", Family.ENERGY, true);
+    /** The hover scout's twin pulse emitter: energy bolts, not a laser ({@code mechs-nouns.md}, Weapon names). */
+    public static final BoatGun TWIN_PE_1 = new BoatGun(
+            "boat_twin_pe_1", "@boatGunTwinPe1", TurretCatalogRegistry.BOAT_PULSE_STRUCTURE_ID, 1,
+            credits(2050), "@boatGunTwinPe1Effect", "@boatGunTwinPe1Provenance", Family.ENERGY, true);
 
-    public static final BoatGun BURST_LASER = new BoatGun(
-            "boat_burst_laser", "@boatGunBurstLaser", TurretCatalogRegistry.BOAT_BURST_LASER_STRUCTURE_ID, 2,
-            credits(4450), "@boatGunBurstLaserEffect", "@boatGunBurstLaserProvenance", Family.ENERGY, false);
+    public static final BoatGun PL_3 = new BoatGun(
+            "boat_pl_3", "@boatGunPl3", TurretCatalogRegistry.BOAT_PL_3_STRUCTURE_ID, 2,
+            credits(4450), "@boatGunPl3Effect", "@boatGunPl3Provenance", Family.ENERGY, false);
 
     public static final BoatGun SRM_15 = new BoatGun(
             "boat_srm_15", "@boatGunSrm15", TurretCatalogRegistry.BOAT_SRM_STRUCTURE_ID, 2,
@@ -102,7 +104,17 @@ public record BoatGun(
             credits(4950), "@boatGunLrm10Effect", "@boatGunLrm10Provenance", Family.MISSILE, false);
 
     private static final List<BoatGun> CATALOG = List.of(HEAVY_MG, ARBALEST, GRENADE_LAUNCHER, HEPHAESTUS,
-            PULSE_LASER, BURST_LASER, SRM_15, LRM_10);
+            TWIN_PE_1, PL_3, SRM_15, LRM_10);
+
+    /** Gun ids a save may hold from before the laser names, old to new. */
+    private static final Map<String, String> RENAMED = Map.of(
+            "boat_pulse_laser", "boat_twin_pe_1",
+            "boat_burst_laser", "boat_pl_3");
+
+    /** The current id for a persisted gun id: its successor when a rename retired it, otherwise itself. */
+    public static String currentId(String id) {
+        return id == null ? null : RENAMED.getOrDefault(id, id);
+    }
 
     public BoatGun {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("Boat gun id is required");
@@ -151,8 +163,9 @@ public record BoatGun(
     /** Returns null for an unknown persisted gun id. */
     public static BoatGun findById(String id) {
         if (id == null) return null;
+        String current = currentId(id);
         for (BoatGun gun : CATALOG) {
-            if (gun.id.equals(id)) return gun;
+            if (gun.id.equals(current)) return gun;
         }
         return null;
     }

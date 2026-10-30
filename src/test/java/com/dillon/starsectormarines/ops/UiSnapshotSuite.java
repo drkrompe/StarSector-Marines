@@ -2691,7 +2691,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 new SnapshotArtifact("boat-deck-hover-part-wide.png",
                         renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 true, false, NO_DEPARTURE, 0, BoatDoll.positionKey(0, BoatHardpoint.TOP))),
-                // Two 2x1 guns on one hardpoint: a twin SRM pod on her second, twin pulse lasers on her third.
+                // Two 2x1 guns on one hardpoint: a twin SRM pod on her second, two Twin PE-1 emitters on her third.
                 new SnapshotArtifact("boat-deck-pod-wide.png",
                         renderBoatDeck(context, boatRenderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT,
                                 true, false, POD, 2)));
@@ -3453,15 +3453,15 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             // Her other two turrets carry the other families, a missile pod and a laser.
             workshop.fabricatePart(BoatGun.SRM_15.id());
             workshop.fitGun(deck.boats().get(0).id(), 1, BoatGun.SRM_15.id());
-            workshop.fabricatePart(BoatGun.PULSE_LASER.id());
-            workshop.fitGun(deck.boats().get(0).id(), 2, BoatGun.PULSE_LASER.id());
+            workshop.fabricatePart(BoatGun.TWIN_PE_1.id());
+            workshop.fitGun(deck.boats().get(0).id(), 2, BoatGun.TWIN_PE_1.id());
         }
         if (departure == POD && deck.berths() > 0 && deck.boats().get(0) != null) {
             // A second gun beside each 2x1 gun already on: her SRM pod and her laser each become a pod of two.
             workshop.fabricatePart(BoatGun.SRM_15.id());
             workshop.fitGun(deck.boats().get(0).id(), 1, BoatHardpoint.BOTTOM, BoatGun.SRM_15.id());
-            workshop.fabricatePart(BoatGun.PULSE_LASER.id());
-            workshop.fitGun(deck.boats().get(0).id(), 2, BoatHardpoint.BOTTOM, BoatGun.PULSE_LASER.id());
+            workshop.fabricatePart(BoatGun.TWIN_PE_1.id());
+            workshop.fitGun(deck.boats().get(0).id(), 2, BoatHardpoint.BOTTOM, BoatGun.TWIN_PE_1.id());
         }
         if (departure == STRIPPED && deck.berths() > 0 && deck.boats().get(0) != null) {
             // Her drive, plating and gun dragged off into stores: the drive's socket warns and she is off the lift;

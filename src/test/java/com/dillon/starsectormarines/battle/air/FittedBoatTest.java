@@ -183,7 +183,7 @@ class FittedBoatTest {
 
     @Test
     void everyRoundButAMissilesChargesThePool() {
-        assertTrue(FittedBoat.fluxPerRound(BoatGun.BURST_LASER.structureId())
+        assertTrue(FittedBoat.fluxPerRound(BoatGun.PL_3.structureId())
                 > FittedBoat.fluxPerRound(BoatGun.HEAVY_MG.structureId()));
         assertTrue(FittedBoat.fluxPerRound(BoatGun.HEAVY_MG.structureId()) > 0f);
         assertEquals(0f, FittedBoat.fluxPerRound(BoatGun.SRM_15.structureId()));
@@ -191,7 +191,7 @@ class FittedBoatTest {
     /** A hardpoint's second gun rides beside its first for an air-to-ground sortie, and is part of the boat. */
     @Test
     void aPodsSecondGunIsKitForTheGroundSortieOnly() {
-        String laser = BoatGun.PULSE_LASER.structureId();
+        String laser = BoatGun.TWIN_PE_1.structureId();
         FittedBoat pod = new FittedBoat(ShuttleType.HERMES, Map.of(), "boat_01",
                 new String[]{laser, null, null}, new String[]{laser, "", null});
 

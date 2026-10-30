@@ -394,7 +394,15 @@ public final class BoatDeck implements Serializable {
     private Object readResolve() {
         if (berths == null) berths = new ArrayList<>();
         if (spares == null) spares = new HashMap<>();
+        Map<String, Integer> rekeyed = new HashMap<>();
+        spares.forEach((id, count) -> rekeyed.merge(BoatGun.currentId(id), count, Integer::sum));
+        spares = rekeyed;
         if (learnedParts == null) learnedParts = ownedParts();
+        else {
+            Set<String> learned = new HashSet<>();
+            for (String id : learnedParts) learned.add(BoatGun.currentId(id));
+            learnedParts = learned;
+        }
         nextTailNumber = Math.max(nextTailNumber, berths.size() + 1);
         return this;
     }
