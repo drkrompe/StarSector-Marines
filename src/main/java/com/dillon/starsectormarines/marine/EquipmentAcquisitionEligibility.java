@@ -18,14 +18,32 @@ public final class EquipmentAcquisitionEligibility {
      * Whether {@code source} may offer {@code card}. A Restricted card answers to a military
      * warrant instead of to reputation or victories: only a warrant naming the card opens it,
      * and then only through licence and patron, the channels a tradition issues through.
-     * Any other card is on offer when the channel reaches its scarcest tier.
+     * Through the store's channels a card is on offer once the company has passed its Kit Ladder
+     * station ({@link KitLadder}); through patron and recovery, when the channel reaches its
+     * scarcest tier.
      */
     public static boolean allows(LoadoutCard card, FactionEquipmentSource source, Progress progress) {
         if (card == null || source == null || progress == null || !card.defined()) return false;
+        if (storeChannel(source) && !KitLadder.forSale(card.id(), progress.stations())) return false;
         if (card.accessTier() == EquipmentAccessTier.RESTRICTED) {
             return warrantChannel(source) && progress.warrants(card.id());
         }
-        return allows(card.accessTier(), source, progress);
+        return storeChannel(source) || allows(card.accessTier(), source, progress);
+    }
+
+    /**
+     * Whether {@code source} may offer a mech pattern: through the store's channels once the company has passed its
+     * Kit Ladder station, through patron and recovery when the channel reaches the pattern's tier.
+     */
+    public static boolean allows(MechPattern pattern, FactionEquipmentSource source, Progress progress) {
+        if (pattern == null || source == null || progress == null) return false;
+        if (storeChannel(source)) return KitLadder.forSale(pattern.id(), progress.stations());
+        return allows(pattern.accessTier(), source, progress);
+    }
+
+    /** The company store's channels, the ones the Kit Ladder paces: open market and licence. */
+    public static boolean storeChannel(FactionEquipmentSource source) {
+        return source == FactionEquipmentSource.MARKET || source == FactionEquipmentSource.LICENSE;
     }
 
     /**
@@ -94,11 +112,14 @@ public final class EquipmentAcquisitionEligibility {
         if (Global.getSector() == null) return Progress.OPENING;
         MarineRosterScript rosterScript = MarineRosterScript.getInstance();
         CampaignStateScript campaignScript = CampaignStateScript.getInstance();
-        int victories = rosterScript != null ? rosterScript.roster().armory().victories() : 0;
+        MarineRoster roster = rosterScript != null ? rosterScript.roster() : null;
+        int victories = roster != null ? roster.armory().victories() : 0;
         int mrbRep = campaignScript != null ? campaignScript.state().playerMrbRep : 0;
         Set<String> warranted = campaignScript != null
                 ? MilitaryWarrants.warrantedCardIds(campaignScript.state()) : Set.of();
-        return new Progress(victories, mrbRep, warranted);
+        Set<UnlockStation> stations = UnlockStation.reached(roster != null ? roster::hasCompletedStory : null,
+                campaignScript != null ? campaignScript.state() : null);
+        return new Progress(victories, mrbRep, warranted, stations);
     }
 
     private static EquipmentAccessTier reputationTier(int mrbRep) {
@@ -125,16 +146,27 @@ public final class EquipmentAcquisitionEligibility {
      * What the company has done, as acquisition reads it.
      *
      * @param warrantedCardIds Restricted loadout cards some held military warrant opens
+     * @param stations Kit Ladder stations the campaign has passed ({@link UnlockStation#reached})
      */
-    public record Progress(int victories, int mrbRep, Set<String> warrantedCardIds) {
-        public static final Progress OPENING = new Progress(0, 0);
+    public record Progress(int victories, int mrbRep, Set<String> warrantedCardIds, Set<UnlockStation> stations) {
+        /** A new company: no victories, no standing, only the ladder's start. */
+        public static final Progress OPENING = new Progress(0, 0, Set.of(), Set.of(UnlockStation.START));
 
         public Progress {
             victories = Math.max(0, victories);
             warrantedCardIds = warrantedCardIds != null ? Set.copyOf(warrantedCardIds) : Set.of();
+            stations = stations != null ? Set.copyOf(stations) : Set.of(UnlockStation.START);
         }
 
-        /** A company holding no military warrant. */
+        /**
+         * A company past the whole Kit Ladder, for callers that read only victories, standing and warrants (patron
+         * rewards, catalog validation, detached fixtures).
+         */
+        public Progress(int victories, int mrbRep, Set<String> warrantedCardIds) {
+            this(victories, mrbRep, warrantedCardIds, UnlockStation.all());
+        }
+
+        /** A company past the whole Kit Ladder holding no military warrant. */
         public Progress(int victories, int mrbRep) {
             this(victories, mrbRep, Set.of());
         }

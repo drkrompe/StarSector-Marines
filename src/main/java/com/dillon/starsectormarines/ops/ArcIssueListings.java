@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.ops;
 import com.dillon.starsectormarines.campaign.CampaignClock;
 import com.dillon.starsectormarines.campaign.CampaignState;
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
+import com.dillon.starsectormarines.marine.KitLadder;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.MarketListings;
 import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
@@ -14,7 +15,8 @@ import org.apache.log4j.Logger;
 /**
  * The arc issue cards: each early arc beat that teaches a way of fighting stocks the weapon
  * card that names it, at the market where it happened ({@code progression-nouns.md}, Kit and
- * armory; {@code campaign-kit-arc.md}).
+ * armory; {@code campaign-kit-arc.md}). Each beat is its card's Kit Ladder station
+ * ({@link KitLadder}): the listing is the guaranteed shelf, the ladder's rotation the fallback.
  *
  * <p>Each settlement calls {@link #afterLive} once its own receipt has closed. Listing is
  * idempotent per card and scope, so a settlement that reports the same earned beat again
@@ -31,9 +33,9 @@ public final class ArcIssueListings {
         /** Broken Supply Route: Thunder Run settled and the road opened. */
         THUNDER_RUN(SquadEquipmentDoctrines.CONVOY_ESCORT_WEAPONS, MarketListings.Scope.MARKET,
                 "arcIssueListedThunderRun"),
-        /** Corvus Account: A Cold Account settled beside Kord. A nod, not a licence. */
-        COLD_ACCOUNT(SquadEquipmentDoctrines.COUNTER_BATTERY_WEAPONS, MarketListings.Scope.FACTION,
-                "arcIssueListedColdAccount"),
+        /** Corvus Account: Blind Watch won, the Sable crew's mortars and missiles silenced. A nod, not a licence. */
+        BLIND_WATCH(SquadEquipmentDoctrines.COUNTER_BATTERY_WEAPONS, MarketListings.Scope.FACTION,
+                "arcIssueListedBlindWatch"),
         /** Shepherd recovery: Working Passage settled and the Morrow flew. */
         WORKING_PASSAGE(SquadEquipmentDoctrines.BUILDERS_GUARD_WEAPONS, MarketListings.Scope.MARKET,
                 "arcIssueListedWorkingPassage");
@@ -54,7 +56,7 @@ public final class ArcIssueListings {
     }
 
     /** Counter-Battery Issue is Hegemony issue: it stands at every Hegemony open market. */
-    static final String COLD_ACCOUNT_FACTION = "hegemony";
+    static final String COUNTER_BATTERY_FACTION = "hegemony";
 
     private ArcIssueListings() {}
 
@@ -66,7 +68,7 @@ public final class ArcIssueListings {
      */
     public static boolean after(CampaignState state, Beat beat, boolean earned, String scopeId, int day) {
         if (!earned || state == null || beat == null) return false;
-        String scope = beat.scope == MarketListings.Scope.FACTION ? COLD_ACCOUNT_FACTION : scopeId;
+        String scope = beat.scope == MarketListings.Scope.FACTION ? COUNTER_BATTERY_FACTION : scopeId;
         if (scope == null || scope.isBlank()) return false;
         return MarketListings.list(state, beat.cardId(), beat.scope, scope, beat.reasonKey, day);
     }

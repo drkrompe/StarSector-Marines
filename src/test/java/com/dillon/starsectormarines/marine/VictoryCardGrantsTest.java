@@ -2,43 +2,14 @@ package com.dillon.starsectormarines.marine;
 
 import org.junit.jupiter.api.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-/** Victory milestones and the collection safety net grant whole cards, never single equipment. */
+/** Winning grants cards only through the collection safety net, and only whole cards, never single equipment. */
 class VictoryCardGrantsTest {
-
-    @Test void eachMilestonePaysItsCardAtItsRung() {
-        MarineArmory armory = new MarineArmory();
-        armory.recordVictory(false);
-        armory.recordVictory(false);
-        assertTrue(armory.paidVictoryMilestoneIds().isEmpty());
-        assertFalse(armory.knowsWeaponCard(SquadEquipmentDoctrines.CHECKPOINT_WEAPONS),
-                "Checkpoint Issue is bought at the Relief market, never won");
-        armory.recordVictory(false);
-        assertTrue(armory.knowsArmorPlan(SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR));
-        for (int win = 0; win < 2; win++) armory.recordVictory(false);
-        assertFalse(armory.knowsWeaponCard(SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS),
-                "the chase rung also wants a high-risk victory");
-        armory.recordVictory(true);
-        assertTrue(armory.knowsWeaponCard(SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS));
-        assertEquals(VictoryMilestones.ladder().size(), armory.paidVictoryMilestoneIds().size());
-    }
-
-    @Test void aPaidMilestoneStaysPaidAcrossALoad() throws Exception {
-        MarineArmory armory = new MarineArmory();
-        for (int win = 0; win < 3; win++) armory.recordVictory(false);
-        MarineArmory loaded = roundTrip(armory);
-        assertEquals(armory.paidVictoryMilestoneIds(), loaded.paidVictoryMilestoneIds());
-        assertEquals(armory.knownLoadoutCardIds(), loaded.knownLoadoutCardIds());
-    }
 
     @Test void winningGrantsNothingButWholeCards() {
         MarineArmory armory = new MarineArmory();
@@ -81,13 +52,5 @@ class VictoryCardGrantsTest {
             previous = target;
         }
         assertTrue(previous < LoadoutCards.all().size());
-    }
-
-    private static MarineArmory roundTrip(MarineArmory armory) throws Exception {
-        var bytes = new ByteArrayOutputStream();
-        try (var out = new ObjectOutputStream(bytes)) { out.writeObject(armory); }
-        try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
-            return (MarineArmory) in.readObject();
-        }
     }
 }
