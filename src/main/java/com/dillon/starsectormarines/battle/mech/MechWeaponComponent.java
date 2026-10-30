@@ -68,7 +68,7 @@ public enum MechWeaponComponent {
     // The BL-1: a held beam (mechs-nouns.md, Beam weapons), as is the BL-2 below.
     BL_1("component.mech-bl-1", "@gearMechWeaponComponentBL1",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 1,
-            PdBeam.lightPd(), 4, -1,
+            WeaponRegistry.MECH_BL_1_ID, 4, -1,
             LayeredMechAppearance.ARMS_BL_1),
 
     // The laser ladder (vehicle-card-sizes.md): the red-banded lasers (BL-1, BL-2 and PL-3 (Sweep)) and the pulse lasers
@@ -88,7 +88,7 @@ public enum MechWeaponComponent {
             LayeredMechAppearance.ARMS_PL_3),
     BL_2("component.mech-bl-2", "@gearMechWeaponComponentBL2",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 2,
-            PdBeam.pd(), 10, -1,
+            WeaponRegistry.MECH_BL_2_ID, 10, -1,
             LayeredMechAppearance.ARMS_BL_2),
     PL_3_SWEEP("component.mech-pl-3-sweep", "@gearMechWeaponComponentPL3SWEEP",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 3,
@@ -97,16 +97,16 @@ public enum MechWeaponComponent {
 
     // The anti-armor racks: a contact warhead fired only at hardened targets (mechs-nouns.md, Missile warheads).
     SRM_5("component.mech-srm-5", "@gearMechWeaponComponentSRM5", MountFamily.SHOULDER,
-            HardpointType.MISSILE, 2, 2, Variants.srm(),
+            HardpointType.MISSILE, 2, 2, WeaponRegistry.MECH_SRM_ID,
             5, 1, LayeredMechAppearance.POD_SMALL_SRM),
     SRM_15("component.mech-srm-15", "@gearMechWeaponComponentSRM15", MountFamily.SHOULDER,
-            HardpointType.MISSILE, 2, 3, Variants.srm(),
+            HardpointType.MISSILE, 2, 3, WeaponRegistry.MECH_SRM_ID,
             5, 3, LayeredMechAppearance.POD_LARGE_SRM),
     LRM_5("component.mech-lrm-5", "@gearMechWeaponComponentLRM5", MountFamily.SHOULDER,
-            HardpointType.MISSILE, 2, 2, Variants.lrm(),
+            HardpointType.MISSILE, 2, 2, WeaponRegistry.MECH_LRM_ID,
             5, 1, LayeredMechAppearance.POD_SMALL_LRM),
     LRM_15("component.mech-lrm-15", "@gearMechWeaponComponentLRM15", MountFamily.SHOULDER,
-            HardpointType.MISSILE, 2, 3, Variants.lrm(),
+            HardpointType.MISSILE, 2, 3, WeaponRegistry.MECH_LRM_ID,
             5, 3, LayeredMechAppearance.POD_LARGE_LRM),
     // The fragmentation racks: the same rack sizes with an area warhead at low penetration.
     SRM_5_FRAG("component.mech-srm-5-frag", "@gearMechWeaponComponentSRM5FRAG", MountFamily.SHOULDER,
@@ -135,68 +135,6 @@ public enum MechWeaponComponent {
             LayeredMechAppearance.POD_SRM_3_QS);
 
     /**
-     * Whether the split into anti-armor and fragmentation racks is live.
-     * {@code -Dbattle.mech.missileVariants=false} is the control: the anti-armor ids fire the
-     * single warhead every rack had before the split, at any target.
-     */
-    public static boolean missileVariants() { return Variants.ON; }
-
-    /** Read in the constructors, before the enum's own statics exist. */
-    private static final class Variants {
-        static final boolean ON = Boolean.parseBoolean(
-                System.getProperty("battle.mech.missileVariants", "true"));
-
-        static String srm() { return ON ? WeaponRegistry.MECH_SRM_ID : WeaponRegistry.MECH_SRM_LEGACY_ID; }
-
-        static String lrm() { return ON ? WeaponRegistry.MECH_LRM_ID : WeaponRegistry.MECH_LRM_LEGACY_ID; }
-    }
-
-    /**
-     * Whether the BL-1 and the BL-2 are held beams (`mechs-nouns.md`, Beam weapons): fire while the
-     * trigger is held, a lance that tracks the aim, flux a second the only limit. {@code -Dbattle.mech.pdBeam=false} is
-     * the control: both fire the pulsed bursts they had before, a pull at a time. Temporary A/B lever: remove it with the
-     * control path and the {@code -burst} weapon entries once the owner has accepted the beam in play.
-     */
-    public static boolean pdBeam() { return PdBeam.ON; }
-
-    /** Read in the constructors, before the enum's own statics exist. */
-    private static final class PdBeam {
-        static final boolean ON = Boolean.parseBoolean(System.getProperty("battle.mech.pdBeam", "true"));
-
-        static String lightPd() {
-            return ON ? WeaponRegistry.MECH_BL_1_ID : WeaponRegistry.MECH_BL_1_BURST_ID;
-        }
-
-        static String pd() { return ON ? WeaponRegistry.MECH_BL_2_ID : WeaponRegistry.MECH_BL_2_BURST_ID; }
-    }
-
-    /**
-     * Whether a rack's name counts its buffer: salvos of five (three for the SRM-3 (QS)), the 5-racks holding one
-     * and the 15-racks three, recharged a whole rack at a time by the loader (`mechs-nouns.md`, Missile racks).
-     * {@code -Dbattle.mech.missileBuffers=false} is the control: the racks before the rescale, two- and
-     * four-missile packets six and four deep, each pack restored on its own. Temporary A/B lever: remove it with
-     * the control path once the rescale's armorMatchup reading has been accepted.
-     */
-    public static boolean missileBuffers() { return Buffers.ON; }
-
-    /** Read in the constructors, before the enum's own statics exist. */
-    private static final class Buffers {
-        static final boolean ON = Boolean.parseBoolean(System.getProperty("battle.mech.missileBuffers", "true"));
-
-        /** The control's {projectiles per trigger, salvos} for a rack whose numbers the rescale changed. */
-        static int[] control(String id) {
-            if (ON) return null;
-            return switch (id) {
-                case "component.mech-srm-5", "component.mech-srm-5-frag" -> new int[]{2, 6};
-                case "component.mech-srm-15", "component.mech-srm-15-frag" -> new int[]{4, 6};
-                case "component.mech-lrm-5", "component.mech-lrm-5-frag" -> new int[]{2, 4};
-                case "component.mech-srm-3-qs" -> new int[]{3, 3};
-                default -> null;
-            };
-        }
-    }
-
-    /**
      * A missile rack holding more than one salvo: a held trigger chains its salvos (`mechs-nouns.md`,
      * {@link com.dillon.starsectormarines.battle.combat.SalvoChain}).
      */
@@ -206,7 +144,7 @@ public enum MechWeaponComponent {
 
     /** An anti-armor rack: it holds fire at anything that is not a hardened target. */
     public boolean antiArmorOnly() {
-        return Variants.ON && switch (this) {
+        return switch (this) {
             case SRM_5, SRM_15, LRM_5, LRM_15 -> true;
             default -> false;
         };
@@ -316,9 +254,8 @@ public enum MechWeaponComponent {
         this.footprintRows = footprintRows;
         this.slotCost = footprintColumns * footprintRows;
         this.weaponId = weaponId;
-        int[] control = Buffers.control(id);
-        this.projectilesPerTrigger = control != null ? control[0] : projectilesPerTrigger;
-        this.ammoCapacity = control != null ? control[1] : ammoCapacity;
+        this.projectilesPerTrigger = projectilesPerTrigger;
+        this.ammoCapacity = ammoCapacity;
         this.appearanceSelector = appearanceSelector;
     }
 
@@ -375,21 +312,12 @@ public enum MechWeaponComponent {
 
     private float authoredCycleSeconds() {
         if (rotary() != null) return projectilesPerTrigger / rotary().ratedRoundsPerSecond();
-        if (Buffers.ON) {
+        return switch (this) {
+            // Unused: a rotary gun's cycle, and a beam's, is read from its feed above.
+            case CHAINGUN, CHAINGUN_HF, AC_6, AC_6_QS, LIGHT_MACHINE_GUN, BL_1, BL_2 -> 0f;
             // A rack's salvos are the same five missiles at every size, so a family cycles alike; a single-salvo
             // rack's real wait is its recharge, which the loader owns.
-            switch (this) {
-                case SRM_5, SRM_5_FRAG, SRM_15, SRM_15_FRAG -> { return 3.5f; }
-                case LRM_5, LRM_15, LRM_5_FRAG, LRM_15_FRAG -> { return 9f; }
-                default -> { }
-            }
-        }
-        return switch (this) {
-            // Unused: a rotary gun's cycle is read from its feed above (a beam's too, the BL lasers' below being the
-            // pdBeam control's).
-            case CHAINGUN, CHAINGUN_HF, AC_6, AC_6_QS, LIGHT_MACHINE_GUN -> 0f;
-            case SRM_5, SRM_5_FRAG -> 1.8f;
-            case SRM_15, SRM_15_FRAG -> 2.6f;
+            case SRM_5, SRM_5_FRAG, SRM_15, SRM_15_FRAG -> 3.5f;
             case LRM_5, LRM_15, LRM_5_FRAG, LRM_15_FRAG -> 9f;
             case HC_10 -> 2.8f;
             case HC_20 -> 2.5f;
@@ -398,9 +326,7 @@ public enum MechWeaponComponent {
             case DC_4_QS -> 5.5f;
             case LL_3, SRM_3_QS -> 7f;
             case THERMAL_LANCE -> 4.8f;
-            case BL_1 -> 1.8f;
             case PL_3 -> 1.8f;
-            case BL_2 -> 1.6f;
             case PL_3_SWEEP -> 1.8f;
             case PL_2 -> 1.6f;
             case PL_1 -> 1.4f;
@@ -444,24 +370,12 @@ public enum MechWeaponComponent {
     private static final Map<String, Float> TUNING = new ConcurrentHashMap<>();
 
     private float authoredFlux() {
-        if (Buffers.ON) {
+        return switch (this) {
+            // Unused: a rotary gun's flux is authored per round on its weapon (fluxPerRound), a beam's a second.
+            case CHAINGUN, CHAINGUN_HF, AC_6, AC_6_QS, LIGHT_MACHINE_GUN, BL_1, BL_2 -> 0f;
             // One salvo of five costs the same from either size of rack; a chained salvo pays half (SalvoChain), so
             // a 15-rack's three salvos cost 80 of the stock 100.
-            switch (this) {
-                case SRM_5, SRM_5_FRAG, SRM_15, SRM_15_FRAG, LRM_5, LRM_5_FRAG, LRM_15, LRM_15_FRAG -> {
-                    return 40f;
-                }
-                default -> { }
-            }
-        }
-        return switch (this) {
-            // Unused: a rotary gun's flux is authored per round on its weapon (fluxPerRound), a beam's a second (the PD
-            // lasers' below are the pdBeam control's).
-            case CHAINGUN, CHAINGUN_HF, AC_6, AC_6_QS, LIGHT_MACHINE_GUN -> 0f;
-            case SRM_5, SRM_5_FRAG -> 28f;
-            case SRM_15, SRM_15_FRAG -> 42f;
-            case LRM_5, LRM_5_FRAG -> 22f;
-            case LRM_15, LRM_15_FRAG -> 40f;
+            case SRM_5, SRM_5_FRAG, SRM_15, SRM_15_FRAG, LRM_5, LRM_5_FRAG, LRM_15, LRM_15_FRAG -> 40f;
             case HC_10 -> 18f;
 
             case HC_20 -> HC_20_FLUX;
@@ -472,10 +386,8 @@ public enum MechWeaponComponent {
             case LL_3 -> 35f;
             case THERMAL_LANCE -> 32f;
             case SRM_3_QS -> 24f;
-            case BL_1 -> 7f;
-            // The PL-3 is a flux hog, as on the tank; the BL-2 runs cool.
+            // The PL-3 is a flux hog, as on the tank.
             case PL_3 -> 38f;
-            case BL_2 -> 16f;
             case PL_3_SWEEP -> 28f;
             case PL_2 -> 26f;
             case PL_1 -> 14f;

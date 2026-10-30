@@ -95,8 +95,7 @@ public final class MechWeaponMount {
      * ammunition, not lifetime reload count. A rack recharges whole: once the loader's time has run from its last
      * salvo ({@link #commitTrigger} restarts it), every spent salvo is back at once, so an LRM-5 waits out its
      * recharge before it can fire again and an LRM-15 fires its three salvos and then recharges
-     * (`mechs-nouns.md`, Missile racks). Under the control ({@link MechWeaponComponent#missileBuffers}) each pack
-     * comes back on its own, one cadence apiece.
+     * (`mechs-nouns.md`, Missile racks).
      */
     public void advanceReplenishment(float dt,
                                      MissileReplenisherComponent replenisher) {
@@ -108,7 +107,7 @@ public final class MechWeaponMount {
         }
         replenishmentProgressSeconds += Math.max(0f, dt);
         while (replenishmentProgressSeconds >= cadence && !full()) {
-            ammo = MechWeaponComponent.missileBuffers() ? component.ammoCapacity : ammo + 1;
+            ammo = component.ammoCapacity;
             replenishmentProgressSeconds -= cadence;
         }
         if (full()) replenishmentProgressSeconds = 0f;
@@ -184,7 +183,7 @@ public final class MechWeaponMount {
         if (chainedTrigger() && chainSalvos != Integer.MAX_VALUE) chainSalvos--;
         consumeTrigger();
         // The rack's recharge runs from its last salvo.
-        if (MechWeaponComponent.missileBuffers()) replenishmentProgressSeconds = 0f;
+        replenishmentProgressSeconds = 0f;
         chainGapRemaining = component.projectilesPerTrigger * weaponDef().burstSpacing;
         cycleRemaining = component.cycleSeconds();
         burstRemaining = Math.max(0, component.projectilesPerTrigger - 1);

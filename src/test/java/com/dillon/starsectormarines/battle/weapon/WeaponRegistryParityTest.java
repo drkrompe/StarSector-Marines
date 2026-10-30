@@ -141,19 +141,6 @@ class WeaponRegistryParityTest {
                 "graphics/missiles/missile_LRM.png", 0.65f, "pilum_lrm_fire");
         assertEquals(95f, WeaponRegistry.require(WeaponRegistry.MECH_LRM_ID).contactDamage, EPS);
         assertEquals(30f, WeaponRegistry.require(WeaponRegistry.MECH_LRM_ID).contactPenetration, EPS);
-        // The single-warhead racks they replaced, kept for the missileVariants=false control.
-        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_SRM_LEGACY_ID),
-                18f, 49.5f, 0.55f, 5.5f, 14f,
-                4, 0.10f, 0f, 32.727272f, 0.55f, 0f,
-                1.3f, 25, 1.3f, true, false, 1f,
-                new Color(0xFF, 0xC0, 0x80), ImpactKind.HE,
-                "graphics/missiles/missile_SRM.png", 0.40f, "annihilator_fire");
-        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_LRM_LEGACY_ID),
-                40f, 81f, 0.55f, 9f, 16f,
-                5, 0.11f, 1.5f, 28.571428f, 1.40f, 5f,
-                2f, 40, 2f, true, true, 0.55f,
-                new Color(0xC8, 0xD8, 0xFF), ImpactKind.HE,
-                "graphics/missiles/missile_LRM.png", 0.65f, "pilum_lrm_fire");
 
         WeaponDef laser = WeaponRegistry.require(WeaponRegistry.MECH_LL_3_ID);
         assertMech(laser,

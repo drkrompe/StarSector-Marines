@@ -26,8 +26,7 @@ public record MissileReplenisherComponent(
     public static final MissileReplenisherComponent STANDARD =
             new MissileReplenisherComponent(
                     "standard_replenisher", "@gearReplenisherStandard",
-                    MechWeaponComponent.missileBuffers() ? 32f : 12f,
-                    MechWeaponComponent.missileBuffers() ? 54f : 18f);
+                    32f, 54f);
     /** A pack in three quarters of the standard loader's time ({@link LoaderPace#ACCELERATED_TIME_SHARE}). */
     public static final MissileReplenisherComponent ACCELERATED_FEED =
             new MissileReplenisherComponent(
@@ -62,12 +61,10 @@ public record MissileReplenisherComponent(
 
     /**
      * Seconds required to recharge a rack of {@code weapon}: the whole rack at once, from its last salvo
-     * ({@link MechWeaponComponent#missileBuffers}); one trigger pack under the control. The SRM-3 (QS) recharges as an
-     * SRM rack does.
+     * ({@link MechWeaponMount#advanceReplenishment}). The SRM-3 (QS) recharges as an SRM rack does.
      */
     public float replenishmentSeconds(String weaponId) {
-        if (WeaponRegistry.isMechSrm(weaponId)) return srmReplenishmentSeconds;
-        if (MechWeaponComponent.missileBuffers() && WeaponRegistry.MECH_SRM_3_QS_ID.equals(weaponId)) {
+        if (WeaponRegistry.isMechSrm(weaponId) || WeaponRegistry.MECH_SRM_3_QS_ID.equals(weaponId)) {
             return srmReplenishmentSeconds;
         }
         if (WeaponRegistry.isMechLrm(weaponId)) return lrmReplenishmentSeconds;

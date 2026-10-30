@@ -23,8 +23,7 @@ import java.util.List;
  * The blast impulse loops, from the same run that produced their verdicts, and two look shots on real ground: an
  * SRM-15 (Frag) salvo on a marine squad and then an SRM-15's anti-armor salvo on the scout car beside it; and a heavy
  * mortar round on the squad and then a DC-5 shell between the squad and the car. The rounds come in from off the
- * west edge, so what is seen is the blasts and what they shove. Under {@code -Dbattle.blastImpulse=false} the same
- * rounds land and nothing moves.
+ * west edge, so what is seen is the blasts and what they shove.
  */
 public final class BlastImpulseSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
 

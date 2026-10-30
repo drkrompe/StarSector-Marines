@@ -52,7 +52,7 @@ public final class BlastImpulseSystem {
     /** Serial: lands {@code det}'s shove on what stands in its reach. */
     public void land(PendingDetonation det, BattleSimulation sim) {
         BlastImpulse blast = det.blast();
-        if (blast == null || !BlastImpulseRules.ENABLED) return;
+        if (blast == null) return;
         UnitRosterService roster = sim.getRoster();
         NavigationGrid grid = sim.getGrid();
         float bx = det.endpointX, by = det.endpointY;

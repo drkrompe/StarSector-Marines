@@ -180,12 +180,9 @@ def method_body(source, signature):
 
 def mech_parts(text, registry_ids):
     """Every MechWeaponComponent with the figures the Weapons tab shows: footprint, mount, rack and the authored
-    cycle and flux, read the way the shipped switches resolve with the default (non-control) levers."""
+    cycle and flux."""
     src = (JAVA / "battle/mech/MechWeaponComponent.java").read_text(encoding="utf-8")
-    enum_body = src[src.index("public enum MechWeaponComponent {"):src.index("public static boolean missileVariants()")]
-    # The lever-chosen ids: Variants.srm()/lrm() and PdBeam.lightPd()/pd() with their levers on (the shipped default).
-    levers = {"Variants.srm()": "MECH_SRM_ID", "Variants.lrm()": "MECH_LRM_ID",
-              "PdBeam.lightPd()": "MECH_BL_1_ID", "PdBeam.pd()": "MECH_BL_2_ID"}
+    enum_body = src[src.index("public enum MechWeaponComponent {"):src.index("public boolean chainsSalvos()")]
     flux_consts = {name: float(value) for name, value in re.findall(
         r'static final float (\w+) = Float\.parseFloat\(\s*System\.getProperty\("[^"]+",\s*"([\d.]+)"\)\)', src)}
 
@@ -200,17 +197,11 @@ def mech_parts(text, registry_ids):
                 out[name] = flux_consts[token]
         return out
 
-    def two_part(signature):
-        # The 'if (Buffers.ON)' block's cases win over the plain switch, as they do in the game with the lever on.
-        body = method_body(src, signature)
-        head, _, tail = body.partition("return switch (this)")
-        table = java_switch(head)
-        for k, v in java_switch(tail).items():
-            table.setdefault(k, v)
-        return resolved(table)
+    def authored(signature):
+        return resolved(java_switch(method_body(src, signature)))
 
-    cycle = two_part("private float authoredCycleSeconds()")
-    flux = two_part("private float authoredFlux()")
+    cycle = authored("private float authoredCycleSeconds()")
+    flux = authored("private float authoredFlux()")
     parts = []
     for m in re.finditer(r'(?ms)^    ([A-Z_0-9]+)\((.*?LayeredMechAppearance\.\w+)\)[,;]\s*$', enum_body):
         args = [a.strip() for a in re.sub(r"//[^\n]*", "", m.group(2)).split(",")]
@@ -220,7 +211,7 @@ def mech_parts(text, registry_ids):
         if token.startswith('"'):
             weapon_id = token.strip('"')
         else:
-            const = levers.get(token, token.split(".")[-1])
+            const = token.split(".")[-1]
             if const not in registry_ids:
                 raise SystemExit("kits/build.py: MechWeaponComponent.%s weapon %r does not resolve" % (m.group(1), token))
             weapon_id = registry_ids[const]

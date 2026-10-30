@@ -55,12 +55,6 @@ public final class WeaponRegistry {
     /** Fragmentation racks: area damage at low penetration ({@code mechs-nouns.md}, Missile warheads). */
     public static final String MECH_SRM_FRAG_ID = "weapon.mech-srm-frag";
     public static final String MECH_LRM_FRAG_ID = "weapon.mech-lrm-frag";
-    /**
-     * The single-warhead racks every SRM and LRM was before the anti-armor and fragmentation
-     * split: the control arm of {@code -Dbattle.mech.missileVariants=false}.
-     */
-    public static final String MECH_SRM_LEGACY_ID = "weapon.mech-srm-legacy";
-    public static final String MECH_LRM_LEGACY_ID = "weapon.mech-lrm-legacy";
     public static final String MECH_LL_3_ID = "weapon.mech-ll-3";
     public static final String MECH_PL_2_AP_ID = "weapon.mech-pl-2-ap";
     public static final String MECH_AC_6_ID = "weapon.mech-ac-6";
@@ -75,9 +69,6 @@ public final class WeaponRegistry {
     /** The laser tanks' guns as parts, restated on a mech's cadence ({@code vehicle-card-sizes.md}). */
     public static final String MECH_PL_3_ID = "weapon.mech-pl-3";
     public static final String MECH_BL_2_ID = "weapon.mech-bl-2";
-    /** The {@code battle.mech.pdBeam} control's pulsed BL lasers ({@code MechWeaponComponent.pdBeam}). */
-    public static final String MECH_BL_2_BURST_ID = "weapon.mech-bl-2-burst";
-    public static final String MECH_BL_1_BURST_ID = "weapon.mech-bl-1-burst";
     public static final String MECH_PL_3_SWEEP_ID = "weapon.mech-pl-3-sweep";
     public static final String MECH_PL_2_ID = "weapon.mech-pl-2";
     public static final String MECH_PL_1_ID = "weapon.mech-pl-1";
@@ -93,14 +84,12 @@ public final class WeaponRegistry {
 
     /** Whether a weapon id is a short-range missile rack of any warhead. */
     public static boolean isMechSrm(String weaponId) {
-        return MECH_SRM_ID.equals(weaponId) || MECH_SRM_FRAG_ID.equals(weaponId)
-                || MECH_SRM_LEGACY_ID.equals(weaponId);
+        return MECH_SRM_ID.equals(weaponId) || MECH_SRM_FRAG_ID.equals(weaponId);
     }
 
     /** Whether a weapon id is a long-range missile rack of any warhead. */
     public static boolean isMechLrm(String weaponId) {
-        return MECH_LRM_ID.equals(weaponId) || MECH_LRM_FRAG_ID.equals(weaponId)
-                || MECH_LRM_LEGACY_ID.equals(weaponId);
+        return MECH_LRM_ID.equals(weaponId) || MECH_LRM_FRAG_ID.equals(weaponId);
     }
 
     private static volatile WeaponRegistry installed;
