@@ -370,7 +370,7 @@ def main():
             kit_id = re.search(r'^\s+%s\("(kit\.[^"]+)"' % enum, (JAVA / "battle/vehicle/VehicleKit.java").read_text(encoding="utf-8"), re.M).group(1)
             item("mpart", "KIT", enum, text(key), "vehicle kit", tier, False,
                  svg_uri("graphics/ui/mech-hardware/%s.svg" % kit_id.replace(".", "-")),
-                 "FLUX" if enum == "CAPACITOR_PACK" else "UTILITY" if enum in ("READY_RACK", "ACCELERATED_LOADER") else "AUX", (1, 1))
+                 "FLUX" if enum == "CAPACITOR_PACK" else "UTILITY" if enum in ("READY_RACK", "ACCELERATED_LOADER") else "AUX", (2, 1))
     for lst in items.values():
         lst.sort(key=lambda x: (x["name"]))
 
