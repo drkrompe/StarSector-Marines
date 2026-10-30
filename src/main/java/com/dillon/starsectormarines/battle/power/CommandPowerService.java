@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.power;
 
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
+import com.dillon.starsectormarines.battle.warship.Warship;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -77,6 +78,8 @@ public final class CommandPowerService {
     private final Map<String, Float> cooldowns = new LinkedHashMap<>();
     /** Remaining per-battle activations for limited powers; absent = unlimited. */
     private final Map<String, Integer> charges = new LinkedHashMap<>();
+    /** The hull each power has over the battle now, by power id; a power with one aloft is not called again until it is gone. */
+    private final Map<String, Warship> aloft = new LinkedHashMap<>();
 
     private final List<PendingActivation> pending = new ArrayList<>();
     /** Queued armor drops the UI asked to cancel, by lift-queue job id. */
@@ -105,6 +108,7 @@ public final class CommandPowerService {
         powers.clear();
         cooldowns.clear();
         charges.clear();
+        aloft.clear();
         if (resolved != null) {
             for (CommandPower power : resolved) {
                 register(power);
@@ -154,8 +158,34 @@ public final class CommandPowerService {
         return power != null
                 && getCooldownRemaining(power.id) <= 0f
                 && getChargesRemaining(power.id) != 0
+                && !aloft.containsKey(power.id)
                 && commandPoints >= power.cpCost
                 && resources.availableSupplies() >= power.supplyCost;
+    }
+
+    /** Records {@code ship} as the hull {@code powerId} has over the battle: the power waits for it to be gone. */
+    public void aloft(String powerId, Warship ship) {
+        if (ship != null) aloft.put(powerId, ship);
+    }
+
+    /** The hull {@code powerId} has over the battle, or {@code null}. */
+    public Warship aloftFor(String powerId) {
+        return aloft.get(powerId);
+    }
+
+    /** The power's hull is gone, home or lost; it may be called again once its cooldown and charges allow. */
+    public void landed(String powerId) {
+        aloft.remove(powerId);
+    }
+
+    /** Adds {@code seconds} to what the power's cooldown has left: a hull brought home hurt is a while in repair. */
+    public void lengthenCooldown(String powerId, float seconds) {
+        if (seconds > 0f) cooldowns.put(powerId, getCooldownRemaining(powerId) + seconds);
+    }
+
+    /** Takes the power's remaining calls away for the rest of the battle: the hull it called is lost. */
+    public void retire(String powerId) {
+        charges.put(powerId, 0);
     }
 
     /** Telegraphs for orbital fire missions awaiting impact. */

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.warship.AirFireOrder;
 import com.dillon.starsectormarines.battle.warship.LowPass;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.warship.Warship;
@@ -26,6 +27,11 @@ import java.util.Map;
  * chooses, not whatever the member was fitted with, and nothing is written back to the fleet. The run is a strafe
  * ({@link LowPass#strafe}): the guns work the ground {@link #LEAD_CELLS} ahead of the hull, and the rocket pods walk
  * their ripples over that lead point while anything hostile is near it.
+ *
+ * <p>It flies on the allied side: it sees for the company as any allied hull does, and nobody but the power commands
+ * it. Its point defence takes any enemy fighter or Rav flier in reach ({@link AirFireOrder#ALL}). It flies low, so the
+ * ground's anti-air reaches it ({@link Warship#flyLow}); one Wolf is over the battle at a time, one brought home hurt
+ * spends {@link #repairSeconds} on top of its cooldown, and one shot down takes the power away for the battle.
  */
 public final class WolfStrike extends CommandPower {
 
@@ -56,6 +62,11 @@ public final class WolfStrike extends CommandPower {
     private static final int MAX_CHARGES = 2;
     private static final int SUPPLY_COST = 2;
     private static final int SLOT_WEIGHT = 2;
+    /** Draft tuning: the repair a Wolf brought home with its whole hull gone would need, and the least any hurt one needs. */
+    static final float REPAIR_SECONDS_PER_HULL = 360f;
+    static final float REPAIR_MIN_SECONDS = 30f;
+    /** A share of hull lost below this is a scratch, not a repair. */
+    static final float SCRATCH_SHARE = 0.01f;
 
     public WolfStrike() {
         super(ID, "@battlePowerWolfStrike", CP_COST, COOLDOWN_SECONDS, MAX_CHARGES, SUPPLY_COST, SLOT_WEIGHT);
@@ -91,12 +102,34 @@ public final class WolfStrike extends CommandPower {
     @Override
     public void resolve(int cellX, int cellY, CommandPowerService service, BattleControl battle) {
         float half = MAX_LINE_CELLS * 0.5f;
-        fly(cellX + 0.5f - half, cellY + 0.5f, cellX + 0.5f + half, cellY + 0.5f, battle);
+        service.aloft(ID, fly(cellX + 0.5f - half, cellY + 0.5f, cellX + 0.5f + half, cellY + 0.5f, battle));
     }
 
     @Override
     public void resolveLine(int ax, int ay, int bx, int by, CommandPowerService service, BattleControl battle) {
-        fly(ax + 0.5f, ay + 0.5f, bx + 0.5f, by + 0.5f, battle);
+        service.aloft(ID, fly(ax + 0.5f, ay + 0.5f, bx + 0.5f, by + 0.5f, battle));
+    }
+
+    /** Watches the Wolf over the battle: lost, the power is retired; home hurt, it waits out a repair. */
+    @Override
+    public void tick(CommandPowerService service, BattleControl battle) {
+        Warship wolf = service.aloftFor(ID);
+        if (wolf == null) return;
+        if (wolf.destroyed()) {
+            service.landed(ID);
+            service.retire(ID);
+            LOG.info("WolfStrike: the Wolf was shot down; the power is gone for this battle");
+        } else if (wolf.departed()) {
+            service.landed(ID);
+            service.lengthenCooldown(ID, repairSeconds(wolf.hullFraction()));
+        }
+    }
+
+    /** The seconds a Wolf brought home with {@code hullFraction} of its hull left adds to the cooldown. */
+    static float repairSeconds(float hullFraction) {
+        float lost = 1f - Math.max(0f, Math.min(1f, hullFraction));
+        if (lost < SCRATCH_SHARE) return 0f;
+        return Math.max(REPAIR_MIN_SECONDS, REPAIR_SECONDS_PER_HULL * lost);
     }
 
     /** Fits the Wolf behind A on the line's heading, sends it down the line, and has it climb out at B. */
@@ -109,17 +142,19 @@ public final class WolfStrike extends CommandPower {
             float len = (float) Math.hypot(dx, dy);
             if (len < 1e-3f) return null;
             float heading = AirBody.facingToward(dx, dy);
-            Warship probe = Warship.fit(source(), Faction.MARINE, 0f, 0f, heading, SpawnInOnslaught.PRESENCE);
+            Warship probe = Warship.fit(source(), Faction.ALLY, 0f, 0f, heading, SpawnInOnslaught.PRESENCE);
             // It comes down through the deck while running in, so its guns go live about as it reaches A.
             float runUp = runUpCells(probe.maxSpeed, probe.acceleration);
             float sx = clamp(ax - dx / len * runUp, 0f, w);
             float sy = clamp(ay - dy / len * runUp, 0f, h);
-            Warship wolf = Warship.fit(source(), Faction.MARINE, sx, sy, heading, SpawnInOnslaught.PRESENCE);
+            Warship wolf = Warship.fit(source(), Faction.ALLY, sx, sy, heading, SpawnInOnslaught.PRESENCE);
             wolf.calledFrom(source());
             wolf.arriveFromAboveOnHeading(heading);
             wolf.useDoctrine();
             wolf.fluxScale(Warship.BRAWLER_FLUX_SCALE);
             wolf.limitFlux();
+            wolf.airFire(AirFireOrder.ALL);
+            wolf.flyLow();
             LowPass pass = LowPass.plan(sx, sy, ax, ay, bx, by, w, h);
             if (pass != null) pass.strafe(LEAD_CELLS, FIRE_RADIUS_CELLS);
             if (pass == null || !wolf.beginLowPass(pass)) {

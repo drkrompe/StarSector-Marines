@@ -125,6 +125,13 @@ public abstract class CommandPower {
     }
 
     /**
+     * Once a tick, before the tick's activations are committed: a power that leaves something over the battle (a hull
+     * it called, {@link CommandPowerService#aloft}) watches it here. Nothing by default.
+     */
+    public void tick(CommandPowerService service, BattleControl battle) {
+    }
+
+    /**
      * Calls this power still holds when it paces itself rather than spending charges
      * (Mech Support: machines still aboard), or {@code -1} for the service's own charge
      * count. {@code 0} reads as spent everywhere a charge count does.

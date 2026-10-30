@@ -17,8 +17,12 @@ import com.dillon.starsectormarines.battle.weapon.AirMissileSpec;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.VehicleAirFire;
+import com.dillon.starsectormarines.battle.warship.Warship;
+import com.dillon.starsectormarines.battle.warship.WarshipPointDefence;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /** Serial aimed flak and physical guided missiles against hostile airborne craft. */
 public final class GroundAntiAirSystem {
@@ -31,6 +35,14 @@ public final class GroundAntiAirSystem {
         }
     }
     private static final long[] NO_AIRCRAFT = new long[0];
+    /** One round on its way to a low-flying hull, landed through the warships' own hit rules. */
+    private record HullRound(long shooter, Faction side, Warship target, float fromX, float fromY,
+                             float damage, float penetration, int arrival) {}
+    private final List<HullRound> hullRounds = new ArrayList<>();
+    /** The hull each mount's salvo was loosed at, by mount id: the rest of the salvo follows the first round to it. */
+    private final Map<Long, Warship> hullSalvos = new HashMap<>();
+    /** How high a low-flying hull's rounds are drawn bursting, in cells: about a strafing gunship's height. */
+    private static final float LOW_HULL_HEIGHT_CELLS = 4f;
     private final List<Missile> missiles = new ArrayList<>();
     private static final class Missile {
         final long shooter;
@@ -69,6 +81,14 @@ public final class GroundAntiAirSystem {
             if (round.burstRadius > 0f) airburst(sim, round);
             it.remove();
         }
+        for (var it = hullRounds.iterator(); it.hasNext();) {
+            HullRound round = it.next();
+            if (sim.getSimTickIndex() < round.arrival) continue;
+            sim.warships().groundAaHit(round.side, round.fromX, round.fromY, round.target, round.damage,
+                    round.penetration);
+            sim.telemetry().recordRoundHit(round.shooter);
+            it.remove();
+        }
         for (int i = 0; i < sim.liveUnitCount(); i++) {
             long id = sim.liveUnitAt(i);
             if (!sim.world().isAlive(id) || !sim.turretState().isTurret(id)) continue;
@@ -94,6 +114,14 @@ public final class GroundAntiAirSystem {
         state.setRecoilTimer(id, state.recoilTimer(id) + dt);
         float cooldown = Math.max(0f, sim.world().cooldownTimer(id) - dt);
         sim.world().setCooldownTimer(id, cooldown);
+        Warship salvo = hullSalvos.get(id);
+        if (salvo != null) {
+            if (state.burstRemaining(id) > 0 && salvo.inGroundAaReach()) {
+                fireAtHull(sim, id, structure, salvo, dt, cooldown);
+                return;
+            }
+            hullSalvos.remove(id);
+        }
         long target = 0L;
         float nearest = weapon.range * weapon.range;
         for (long candidate : aircraft) {
@@ -115,6 +143,12 @@ public final class GroundAntiAirSystem {
             long flier = nearestFlier(sim, id, weapon, fort);
             if (flier != 0L) {
                 fireAtFlier(sim, id, structure, flier, dt, cooldown);
+                return;
+            }
+            Warship hull = nearestLowHull(sim, id, weapon, fort);
+            if (hull != null) {
+                hullSalvos.put(id, hull);
+                fireAtHull(sim, id, structure, hull, dt, cooldown);
                 return;
             }
         }
@@ -264,6 +298,76 @@ public final class GroundAntiAirSystem {
                 0f, hit, null, id));
     }
 
+    /**
+     * The nearest hostile hull flying low enough for the mount to reach ({@link Warship#inGroundAaReach}), or
+     * {@code null}. Aircraft and fliers come first: this is asked only of a mount with neither to shoot at.
+     */
+    private static Warship nearestLowHull(BattleSimulation sim, long id, WeaponDef weapon, Fort fort) {
+        Faction side = sim.identity().faction(id);
+        float x = sim.world().x(id), y = sim.world().y(id);
+        Warship best = null;
+        float nearest = weapon.range * weapon.range;
+        float min = weapon.minRange * weapon.minRange;
+        for (Warship ship : sim.warships().ships()) {
+            if (!ship.inGroundAaReach() || !side.hostileTo(ship.faction)) continue;
+            float dx = ship.centerX() - x, dy = ship.centerY() - y;
+            float d = dx * dx + dy * dy;
+            if (d > nearest || d < min) continue;
+            if (!airLineClear(sim, fort, id, (int) ship.centerX(), (int) ship.centerY())) continue;
+            best = ship;
+            nearest = d;
+        }
+        return best;
+    }
+
+    /**
+     * Engages a low-flying hull as {@link #fireAtFlier} engages a flier: the same cooldown, burst and slew, the round's
+     * flight solved against the hull's own velocity, and a guided round resolved as a timed one, which the hull's point
+     * defence may stop ({@code WarshipPointDefence.groundMissileStopChance}). The hit lands through
+     * the warships' rules ({@code WarshipSystem.groundAaHit}), so the hull's shield and plate answer it.
+     */
+    private void fireAtHull(BattleSimulation sim, long id, StructureDef structure, Warship hull, float dt,
+                            float cooldown) {
+        var state = sim.turretState();
+        WeaponDef weapon = structure.mount.weapon;
+        sim.world().setTargetId(id, 0L);
+        float ox = sim.world().x(id), oy = sim.world().y(id);
+        float hx = hull.centerX(), hy = hull.centerY();
+        float distance = (float) Math.hypot(hx - ox, hy - oy);
+        float speed = weapon.airMissile != null ? weapon.airMissile.cruiseSpeed() : weapon.roundVelocity;
+        float flight = weapon.flightSec > 0f ? weapon.flightSec : speed > 0f ? distance / speed : FLIGHT_SECONDS;
+        flight = Math.max(BattleSimulation.TICK_DT, flight);
+        float aimX = hx + hull.velocityX() * flight;
+        float aimY = hy + hull.velocityY() * flight;
+        float bearing = TurretAim.bearingTo(ox, oy, aimX, aimY);
+        float facing = TurretAim.slewToward(state.facingDegrees(id), bearing, structure.mount.turnRateDegPerSec * dt);
+        state.setFacingDegrees(id, facing);
+        boolean burst = state.burstRemaining(id) > 0;
+        state.setBurstTimer(id, Math.max(0f, state.burstTimer(id) - dt));
+        if (burst ? state.burstTimer(id) > 0f : cooldown > 0f) return;
+        if (!burst && Math.abs(TurretAim.shortestAngleDelta(facing, bearing)) > TurretAim.FIRE_ARC_DEG) return;
+        int release = burst ? weapon.burstCount - state.burstRemaining(id) : 0;
+        state.setBurstRemaining(id, burst ? state.burstRemaining(id) - 1 : weapon.burstCount - 1);
+        state.setBurstTimer(id, weapon.burstSpacing);
+        if (!burst) sim.world().setCooldownTimer(id, weapon.cooldown);
+        state.setRecoilTimer(id, 0f);
+        var muzzle = TurretMountGeometry.muzzle(ox, oy, facing, structure.mount, release);
+        boolean hit = sim.random().nextFloat() < weapon.accuracy;
+        // A guided round is the hull's point defence's to stop; it goes wide when it does.
+        if (hit && weapon.airMissile != null && weapon.airMissile.guided()
+                && sim.random().nextFloat() < WarshipPointDefence.groundMissileStopChance(hull)) hit = false;
+        float x = aimX, y = aimY;
+        if (!hit) { x += 2f; y += 1f; }
+        Faction side = sim.identity().faction(id);
+        sim.telemetry().recordRoundFired(id);
+        if (hit) {
+            hullRounds.add(new HullRound(id, side, hull, muzzle.x(), muzzle.y(), weapon.damage, weapon.penetration,
+                    sim.getSimTickIndex() + Math.max(1, Math.round(flight / BattleSimulation.TICK_DT))));
+        }
+        sim.postShot(new ShotEvent(muzzle.x(), muzzle.y(), 0f, x, y, LOW_HULL_HEIGHT_CELLS, hit,
+                side, flight, structure, null, null, null, 0f, hit, null, id));
+    }
+
     /** A hit on a flier bursts among the fliers round it, each taking {@link HarrierRules#BURST_SHARE} of it. */
     private static void airburst(BattleSimulation sim, Round round) {
         float r2 = round.burstRadius * round.burstRadius;
@@ -340,8 +444,11 @@ public final class GroundAntiAirSystem {
      * mount, and anything standing outside a fort's works, blocks as ordinary structure.
      */
     private static boolean airLineClear(BattleSimulation sim, Fort fort, long mount, long craft) {
+        return airLineClear(sim, fort, mount, (int) sim.world().x(craft), (int) sim.world().y(craft));
+    }
+
+    private static boolean airLineClear(BattleSimulation sim, Fort fort, long mount, int toX, int toY) {
         int fromX = sim.world().cellX(mount), fromY = sim.world().cellY(mount);
-        int toX = (int) sim.world().x(craft), toY = (int) sim.world().y(craft);
         FortFrame frame = fort == null ? null : fort.frame();
         if (frame == null) {
             return TurretAim.summitAirFireLineClear(sim.getGrid(), sim.getTopology(), fromX, fromY, toX, toY, 4f);
