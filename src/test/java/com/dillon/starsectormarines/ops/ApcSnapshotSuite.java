@@ -45,6 +45,7 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
     @Override public List<SnapshotArtifact> render(SnapshotContext context) throws Exception {
         DiskRegistries.installMapGeneration(context.projectRoot());
         List<SnapshotArtifact> looks = new ArrayList<>(LookReview.record(context.modRoot(), machineGunTurrets()));
+        looks.addAll(LookReview.record(context.modRoot(), machineGunWrecks()));
         // The same switch a behaviour scene reads: only the owner's look frames, none of the registration evidence.
         if (Boolean.getBoolean("snapshot.lookOnly")) return List.copyOf(looks);
         BattleSimulation matrix = scene();
@@ -168,6 +169,34 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
             }
             return views;
         }, 240).withStills(0, 10, 20, 30);
+    }
+
+    /**
+     * The same three hulls wrecked, each gun left at its own bearing off the hull: the charred, knocked-askew gun on
+     * its plate, at play zoom and close on each.
+     */
+    private static LookReview.Shot machineGunWrecks() {
+        return LookReview.Shot.of("lmg-wrecks", 26, 12, placement -> {
+            BattleSimulation sim = placement.holdouts(placement.builder()).build().sim();
+            float[] bearings = {35f, 150f, 250f};
+            for (int i = 0; i < MACHINE_GUN_HULLS.length; i++) {
+                float[] at = placement.openNear(5f + 8f * i, 6f);
+                float heading = 90f * i;
+                long hull = sim.convoy().spawn(MACHINE_GUN_HULLS[i], List.of(), VehiclePlating.FACTORY,
+                        VehicleEngine.STOCK, MechWeaponComponent.LIGHT_MACHINE_GUN, Faction.MARINE,
+                        VehicleMission.deployed(at[0], at[1]));
+                sim.convoy().body(hull).teleport(at[0], at[1], heading);
+                sim.convoy().turret(hull).facingDeg = heading + bearings[i];
+                sim.applyDamage(hull, 10000, 10000);
+                placement.subject(MACHINE_GUN_NAMES[i], hull);
+            }
+            return sim;
+        }, placement -> {
+            List<LookReview.View> views = new ArrayList<>();
+            views.add(LookReview.View.followAtPlay(placement, MACHINE_GUN_NAMES));
+            for (String name : MACHINE_GUN_NAMES) views.add(LookReview.View.follow(name + "-close", placement, 7f, name));
+            return views;
+        }, 60).withStills(0, 8);
     }
 
     private static BattleSimulation scene() {

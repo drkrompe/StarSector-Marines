@@ -276,6 +276,9 @@ increasing an encounter's total armored threat.
   round costs its flux in the hull's own reservoir. Kits keep reading the hull's
   own gun, so any kit that suits a hull suits whatever it carries. The weapon is the turret: it is drawn as
   its own mech drawing on a turret mount ring (`VehicleGunArt`, a `gun-mount-<finish>.png` by hull class, `TurretMountStyle`), in place of the hull's turret,
+  or by a roof drawing of its own where it has one (`VehicleGunArt.vehicleDrawingPath`: the light machine gun on a pintle,
+  `pintle-lmg.png`, art in `art-source/vehicles/pintle-lmg/`), cut with its barrel on the sprite's centre column so it
+  turns on the ring's centre and its muzzle is where its shots leave, a side drum hanging off that axis,
   on a fixed hull standing on an armoured gun plate that turns in the ring with it (`gun-plate.png`,
   `VehicleGun.plateCells`, art in `art-source/vehicles/gun-plate/`), so even the light machine gun reads as a turret,
   at the scale where a mech's hull width is 1.5 of the hull's visual width, so a wider hull carries a bigger gun;

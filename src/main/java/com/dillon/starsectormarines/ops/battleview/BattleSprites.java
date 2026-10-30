@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.appearance.MechLivery;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.appearance.UnitLayerLayouts;
 import com.dillon.starsectormarines.battle.drone.DroneHub;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -158,6 +159,8 @@ public class BattleSprites {
     private LayeredSpriteCache vehicleTurretBase;
     private LayeredSpriteCache vehicleTurretBaseLight;
     private LayeredSpriteCache vehicleGunPlate;
+    private final EnumMap<MechWeaponComponent, LayeredSpriteCache> vehicleGunDrawings =
+            new EnumMap<>(MechWeaponComponent.class);
 
     // ---- vehicle sheets -----------------------------------------------------
 
@@ -298,6 +301,8 @@ public class BattleSprites {
      * ({@link com.dillon.starsectormarines.battle.vehicle.VehicleGun#plateCells}). Null when the art did not load.
      */
     public LayeredSpriteCache vehicleGunPlate() { return vehicleGunPlate; }
+    /** The drawing a hull carries {@code weapon} in instead of the mech's ({@link VehicleGunArt#vehicleDrawingPath}); null for none. */
+    public LayeredSpriteCache vehicleGunDrawing(MechWeaponComponent weapon) { return vehicleGunDrawings.get(weapon); }
     /** Pools under fallen layered bodies; empty when the art did not load. */
     public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
 
@@ -1364,6 +1369,11 @@ public class BattleSprites {
         vehicleTurretBase = loadLayeredSprite("graphics/battle/vehicles/turret-base-medium.png");
         vehicleTurretBaseLight = loadLayeredSprite("graphics/battle/vehicles/turret-base-light.png");
         vehicleGunPlate = loadLayeredSprite("graphics/battle/vehicles/gun-plate.png");
+        for (MechWeaponComponent weapon : MechWeaponComponent.values()) {
+            String path = VehicleGunArt.vehicleDrawingPath(weapon);
+            LayeredSpriteCache drawing = path == null ? null : loadLayeredSprite(path);
+            if (drawing != null) vehicleGunDrawings.put(weapon, drawing);
+        }
         mechBase = new MechBase(socketedChassis, foot, thighBone, flash);
     }
 
