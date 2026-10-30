@@ -65,57 +65,39 @@ TRAFFIC = [
     ('S1', 'CARAVEL', 1.8, 7.92, 'All escorts, Caravel. Window opens in forty. Enjoy the view before deep '
                                  'space.', False),
     ('S1a', 'WARDEN LEAD', 10.0, 12.66, 'Nothing but void and the odd picket from here.', False),
-    ('S1', 'WARDEN TWO', 16.0, 21.43, 'Ha more picket "ping" to drive me crazy. Guess they keep us '
-                                      'honest.', False),
     ('S2', 'MORROW', 24.6, 30.17, 'Caravel, Morrow. Standing off your starboard quarter. Long ride even to '
                                   'the jump point.', False),
-    ('S4', 'WARDEN FIVE', 37.6, 41.85, 'Scanners picking up new contacts behind us. No '
-                                       'identification.', False),
+    ('S4', 'WARDEN FIVE', 37.6, 41.85, 'Scanners picking up new contacts behind us. No identification.', False),
     ('S4', 'WARDEN LEAD', 42.0, 43.14, 'Confirm last?', False),
     ('S5', 'WARDEN LEAD', 44.9, 49.53, 'Wardens, come about! Caravel, full burn for the nearest picket, '
-                                      'now!', False),
+                                       'now!', False),
     ('S5', 'WARDEN FIVE', 48.38, 50.1, 'Launch, launch!', False),
     ('S5', 'WARDEN FIVE', 50.15, 54.1, 'Missiles inbound! Twelve! Point defence, now!', False),
     ('S6', 'WARDEN TWO', 53.3, 54.45, "Two's hit!", False),
     ('S6', 'BATORY', 53.8, 56.42, "Batory, we're hit, we're venting, we're —", False),
     ('S6', 'WARDEN LEAD', 56.99, 59.87, 'Lead turning back. Wardens cover the retreat.', False),
-    ('S6b', 'WARDEN THREE', 58.0, 61.77, 'Three, rolling in. Four, take her left.', False),
-    ('S6b', 'WARDEN FOUR', 60.6, 62.39, 'No shield. Hit her!', False),
-    ('S6b', 'WARDEN THREE', 61.92, 62.97, 'Feeders on!', False),
-    ('S6b', 'WARDEN THREE', 63.12, 65.18, "She's breaking up! One down!", False),
     ('S6c', 'THYSVILLE', 66.4, 69.16, 'Wolf coming in! Another on the far side!', False),
-    ('S6c', 'WARDEN FOUR', 69.1, 74.09, "Shields up, she blinked — where — there, she's right on "
-                                        'them!', False),
-    ('S6c', 'SOBIESKI', 69.8, 76.09, "Taking fire aft! Flux at ninety, can't hold shield and guns — drives! "
-                                     "We've lost drives!", False),
+    ('S6c', 'WARDEN FOUR', 69.1, 74.09, "Shields up, she blinked — where — there, she's right on them!", False),
+    ('S6c', 'SOBIESKI', 69.8, 76.09, "Taking fire aft! Flux at ninety, can't hold shield and guns — "
+                                     "drives! We've lost drives!", False),
     ('S6c', 'THYSVILLE', 72.6, 75.17, "She's through the gap! She's in the column!", False),
     ('S6d', 'WARDEN FIVE', 74.3, 75.12, 'Two on me —', False),
     ('S6d', 'WARDEN FIVE', 76.9, 78.83, "One down, they're coming through!", False),
     ('S7', 'WARDEN FIVE', 81.21, 82.91, "They're heading for the Sobieski!", False),
     ('S7', 'CARAVEL', 82.0, 84.27, 'Mark three is hammering us!', False),
     ('S7', 'SOBIESKI', 84.9, 87.23, 'Marines prepare to repel boarders!', False),
-    ('S8', 'CARAVEL', 88.4, 92.6, 'Taking fire on the port pod! Morrow, keep pressure with the '
-                                  'drones!', False),
-    ('S9', 'MORROW', 91.6, 94.34, "Borers are out — we're raking her sides.", False),
+    ('S8', 'CARAVEL', 88.4, 92.6, 'Taking fire on the port pod! Morrow, keep pressure with the drones!', False),
     ('S9', 'CARAVEL', 93.4, 96.08, "Hits on the port pod! Drive's failing —", False),
     ('S9', 'CARAVEL', 96.47, 99.21, "Pod's gone! Turrets on that freighter!", False),
     ('S9', 'MORROW', 96.6, 99.01, "Destroyer's venting — she's breaking off!", False),
     ('S9', 'CARAVEL', 99.36, 102.56, "We're losing hull here - Where's the warden escort!", False),
-    ('S9b', 'WARDEN LEAD', 104.91, 107.6, "Her shield's down! Keep on her, make them back off — I'm "
-                                          '—', False),
-    ('S10', 'SOBIESKI', 110.4, 113.69, 'Boarding parties nearing the bridge. Vent the passages -', False),
+    ('S9b', 'WARDEN LEAD', 104.91, 107.6, "Her shield's down! Keep on her, make them back off — I'm —", False),
     ('S10', 'CARAVEL', 112.4, 117.27, "We're losing thrust, we're in the well, we're going down. Morrow, "
                                       'break off.', False),
-    ('S10', 'MORROW', 116.4, 118.05, 'Staying with you.', False),
-    ('S11', 'CARAVEL', 118.2, 124.8, "Hull temperature's climbing — helm, hold forty degrees angle of "
-                                     "attack, belly to the burn! Don't let her nose —", False),
-    ('S11', 'MORROW', 125.0, 127.54, 'Come again Caravel losing your signal in the —', False),
     ('S12', 'THYSVILLE', 130.0, 137.11, 'All ships this is Thysville. Regroup on me, we need to tighten '
                                         "formation. Helm what's the pirates heading?", False),
-    ('S13', 'WARDEN THREE', 139.0, 145.14, "This is Three. We're scattered, ships going down. Do we go back "
-                                           'for Caravel? Morrow?', False),
-    ('S13', 'THYSVILLE', 146.0, 151.6, "Negative, we don't have the numbers. We form up and continue burn "
-                                       'for the nearest picket.', False),
+    ('S13', 'WARDEN THREE', 137.4, 139.6, "This is Three. We're scattered, ships going down. Do we go back "
+                                          'for Caravel? Morrow?', False),
 ]
 
 
