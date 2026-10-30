@@ -251,7 +251,7 @@ increasing an encounter's total armored threat.
   pattern; learning writes only to the mech bay and is consumed only when it
   teaches something new. Cards arrive through the same market, licence, patron and
   recovery channels and gates as loadout cards (`progression-nouns.md`): the store
-  sells a pattern after its Kit Ladder station, patrons and recovery by tier,
+  sells a pattern after its Kit Ladder station (`kit-ladder.md`), patrons and recovery by tier,
   as their own scarce stack: one market slot on large or military markets, an
   occasional patron award in place of a loadout card, at most one per high-risk
   salvage; faction issue weights the draw. Known or carried patterns are never
