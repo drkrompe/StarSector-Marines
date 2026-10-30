@@ -90,21 +90,20 @@ TRAFFIC = [
                                      "We've lost drives!", False),
     ('S6c', 'THYSVILLE', 72.6, 75.17, "She's through the gap! She's in the column!", False),
     ('S6d', 'WARDEN FIVE', 74.3, 75.04, 'Two on me —', False),
-    ('S6d', 'WARDEN FIVE', 76.9, 78.36, 'Got one! Got —', False),
-    ('S7', 'WARDEN FIVE', 81.21, 84.44, "Shuttles going past me! They're heading for the Sobieski!", False),
-    ('S7', 'CARAVEL', 82.0, 85.32, "That big freighter's armed! She's coming down on us!", False),
-    ('S7', 'SOBIESKI', 84.9, 90.11, 'Boarding craft! Security, marines topside, repel boarders! Boarders '
-                                    '—', False),
+    ('S6d', 'WARDEN FIVE', 76.9, 79.0, 'One down - two passed through.', False),
+    ('S7', 'WARDEN FIVE', 81.21, 83.0, "They're heading for the Sobieski!", False),
+    ('S7', 'CARAVEL', 82.0, 85.07, 'That mark three is hammering down on us!', False),
+    ('S7', 'SOBIESKI', 84.9, 87.23, 'Marines prepare to repel boarders!', False),
     ('S8', 'CARAVEL', 88.4, 92.6, 'Taking fire on the port pod! Morrow, keep pressure with the '
                                   'drones!', False),
-    ('S9', 'MORROW', 91.6, 93.59, 'Under you. Borers are out —', False),
+    ('S9', 'MORROW', 91.6, 94.34, "Borers are out — we're raking her sides.", False),
     ('S9', 'CARAVEL', 93.4, 96.08, "Hits on the port pod! Drive's failing —", False),
     ('S9', 'CARAVEL', 96.47, 99.21, "Pod's gone! Turrets on that freighter!", False),
     ('S9', 'MORROW', 96.6, 99.01, "Destroyer's venting — she's breaking off!", False),
-    ('S9', 'CARAVEL', 99.36, 102.34, "She's putting out grapples. Keep the turrets on her!", False),
+    ('S9', 'CARAVEL', 99.36, 102.56, "We're losing hull here - Where's the warden escort!", False),
     ('S9b', 'WARDEN LEAD', 104.91, 107.6, "Her shield's down! Keep on her, make them back off — I'm "
                                           '—', False),
-    ('S10', 'SOBIESKI', 110.4, 113.35, "They're in the hold — Caravel, they've got us —", False),
+    ('S10', 'SOBIESKI', 110.4, 113.69, 'Boarding parties nearing the bridge. Vent the passages -', False),
     ('S10', 'CARAVEL', 112.4, 117.27, "We're losing thrust, we're in the well, we're going down. Morrow, "
                                       'break off.', False),
     ('S10', 'MORROW', 116.4, 118.05, 'Staying with you.', False),
