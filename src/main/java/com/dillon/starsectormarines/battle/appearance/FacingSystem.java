@@ -354,7 +354,7 @@ public final class FacingSystem {
         if (anyTrackFlash(loadout, WeaponRegistry.MECH_LRM_ID)) {
             authoredFlags |= LayeredMechAppearance.FLAG_LRM_FLASH;
         }
-        if (anyTrackFlash(loadout, WeaponRegistry.MECH_SHOULDER_LASER_ID)) {
+        if (anyTrackFlash(loadout, WeaponRegistry.MECH_LL_3_ID)) {
             authoredFlags |= LayeredMechAppearance.FLAG_LASER_FLASH;
         }
         if (anyTrackFlash(loadout, WeaponRegistry.MECH_THERMAL_LANCE_ID)) {

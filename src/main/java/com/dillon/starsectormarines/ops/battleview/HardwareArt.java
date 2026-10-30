@@ -150,7 +150,7 @@ final class HardwareArt {
             case CHAINGUN_HF -> "chaingun-hf";
             case HC_10 -> "hc-10";
             case HC_20 -> "hc-20";
-            case PULSE_LASER -> "pulse-laser";
+            case PL_2_AP -> "pl-2-ap";
             case AC_6 -> "ac-6";
             case DC_5 -> "dc-5";
             case AC_6_QS -> "ac-6-qs";
@@ -159,16 +159,16 @@ final class HardwareArt {
             case SRM_15, SRM_15_FRAG -> "srm-15";
             case LRM_5, LRM_5_FRAG -> "lrm-5";
             case LRM_15, LRM_15_FRAG -> "lrm-15";
-            case SHOULDER_LASER_CANNON -> "shoulder-laser";
+            case LL_3 -> "ll-3";
             case THERMAL_LANCE -> "thermal-lance";
             case SRM_3_QS -> "srm-3-qs";
             case LIGHT_MACHINE_GUN -> "light-machine-gun";
-            case LIGHT_PULSE_LASER -> "light-pulse-laser";
-            case BURST_LASER -> "burst-laser";
-            case PD_LASER -> "pd-laser";
-            case HEAVY_PD_LASER -> "heavy-pd-laser";
-            case MEDIUM_BURST_LASER -> "medium-burst-laser";
-            case LIGHT_BURST_LASER -> "light-burst-laser";
+            case BL_1 -> "bl-1";
+            case PL_3 -> "pl-3";
+            case BL_2 -> "bl-2";
+            case PL_3_SWEEP -> "pl-3-sweep";
+            case PL_2 -> "pl-2";
+            case PL_1 -> "pl-1";
         };
     }
 }

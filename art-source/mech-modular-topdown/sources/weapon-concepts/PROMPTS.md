@@ -1,7 +1,7 @@
 # Shoulder laser cannon ImageGen concept
 
 Generated with the built-in ImageGen tool on 2026-08-31. The retained
-`shoulder-laser-cannon.png` is an art-first prototype for a direct-fire energy
+`ll-3.png` is an art-first prototype for a direct-fire energy
 weapon that occupies a shoulder missile-pod position. The retained concept is
 the geometry authority for the registered runtime shoulder laser cannon.
 
@@ -102,10 +102,10 @@ layer.
 # Rapid pulse-laser arm ImageGen concept
 
 Generated with the built-in ImageGen tool on 2026-08-31. The retained
-`pulse-laser-arm.png` is a compact direct replacement for the modular chaingun
+`pl-2-ap.png` is a compact direct replacement for the modular chaingun
 arm. Image 1 (`chaingun-arm-v2.png`) supplied only the buried rear-mount
 footprint, registration, and sprite density. Image 2
-(`weapon-concepts/shoulder-laser-cannon.png`) supplied only the strict-zenith,
+(`weapon-concepts/ll-3.png`) supplied only the strict-zenith,
 in-plane optical language and material treatment.
 
 > Use case: stylized-concept
@@ -300,7 +300,7 @@ generated and the owner took option A of all three; the unpicked B options were 
 later retired in favour of the SRM-3 (QS), and its concept, material-ID pass and shipped sprites were deleted. Each is a lighter, simpler
 weapon than its shipped counterpart, drawn on the strict-zenith prompt block of `README.md` on a white isolation
 plate, then cleaned to real alpha with `clean_imagegen_backgrounds.py` (`light-machine-gun.png`,
-`light-rocket-pod.png`, `light-pulse-laser.png`). The full prompt, references and their roles of each accepted
+`light-rocket-pod.png`, `bl-1.png`). The full prompt, references and their roles of each accepted
 generation are in the `.provenance.json` beside it. The first rocket-pod request was refused by the image tool's
 safety check and reissued with "launch tubes" and "utility launcher" wording. The laser's lamps are red-orange on
 purpose, to match the red energy colour of the fitting boards, where the shipped pulse laser's are cyan.
@@ -316,8 +316,8 @@ pass); the other two registered within three pixels as returned.
 Generated through `tools/codex_imagegen.py` on 2026-10-28 for `vehicle-card-sizes.md` slice 2: the burst laser
 (a large three-row arm gun) and the PD laser (a medium two-row arm gun: one barrel in a ribbed cooling jacket). Two
 designs of each went to the owner's picks page and the owner took B of the burst laser (a broad central barrel
-between two spars, stepped olive housings with lamp banks and a vent grille over the breech; `burst-laser.png`,
-registered at 50x136) and A of the PD laser (`pd-laser.png`, 40x116); the unpicked options were deleted. Each
+between two spars, stepped olive housings with lamp banks and a vent grille over the breech; `pl-3.png`,
+registered at 50x136) and A of the PD laser (`bl-2.png`, 40x116); the unpicked options were deleted. Each
 accepted concept was cleaned to alpha with `clean_imagegen_backgrounds.py`, classified by an ImageGen
 material-ID pass (`weapon-material-id/`) in the neutral "colour-classification pass over a piece of mechanical
 equipment" wording that clears the safety filter, and registered in `build_assets.py` and
@@ -337,8 +337,8 @@ white-electronics language only, and the earlier olive burst laser for footprint
 it is drawn as a round glass dome from above (unlike the older weapons, whose muzzles face away from the camera). The
 full prompt and references of each generation are in the `.provenance.json` beside it.
 
-The owner picked burst A and PD B (2026-10-29). Each pick is the 3x2 part (`burst-laser.png`, `heavy-pd-laser.png`); the
-four smaller parts (`medium-burst-laser.png`, `light-burst-laser.png`, `pd-laser.png`, `light-pulse-laser.png`) are
+The owner picked burst A and PD B (2026-10-29). Each pick is the 3x2 part (`pl-3.png`, `pl-3-sweep.png`); the
+four smaller parts (`pl-2.png`, `pl-1.png`, `bl-2.png`, `bl-1.png`) are
 ImageGen edits of the pick asking for the same weapon miniaturized to about 80 and 60 percent of its length, with the
 pick as the design authority. All six are cleaned to alpha with `clean_imagegen_backgrounds.py` and have no material-ID
 pass: the family has one white finish for every faction, so `derive_faction_weapons.py` copies the base sprite

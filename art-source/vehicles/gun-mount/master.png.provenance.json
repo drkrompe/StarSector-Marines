@@ -31,7 +31,7 @@
       "role": "Material, palette and lighting style only; not layout, not a weapon to draw"
     },
     {
-      "path": "mod\\graphics\\battle\\mech-modular-topdown\\shoulder-laser-cannon.png",
+      "path": "mod\\graphics\\battle\\mech-modular-topdown\\ll-3.png",
       "sha256": "88c677ef5ccd078f06adfc3f243c1ee59846b30913f88d7701c73c9bdfcbba65",
       "dimensions": [
         76,

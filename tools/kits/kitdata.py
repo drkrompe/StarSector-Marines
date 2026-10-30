@@ -42,6 +42,39 @@ ARC_BEATS = {
 # Special ids a saved page state may still carry from before the game renamed them: old id -> current id.
 RETIRED_SPECIALS = {"special.rocket-launcher": "special.srm-1", "special.scrap-rocket": "special.srm-1-qs",
                     "special.missile-pod": "special.srm-3-pod"}
+# Page ids and weapon-reel clip ids a saved page state, a published page or its weapon notes may still carry from before
+# the game renamed the lasers to BL, PL and LL (mechs-nouns.md, Weapon names): old id -> current id. ladder.load_state,
+# ladder.load_base and export_state.load_notes read them as their successors, so a rename is never an orphan.
+RETIRED_PAGE_IDS = {
+    "weapon:LIGHT_PULSE_LASER": "weapon:BL_1", "weapon:PD_LASER": "weapon:BL_2",
+    "weapon:LIGHT_BURST_LASER": "weapon:PL_1", "weapon:MEDIUM_BURST_LASER": "weapon:PL_2",
+    "weapon:BURST_LASER": "weapon:PL_3", "weapon:PULSE_LASER": "weapon:PL_2_AP",
+    "weapon:HEAVY_PD_LASER": "weapon:PL_3_SWEEP", "weapon:SHOULDER_LASER_CANNON": "weapon:LL_3",
+}
+RETIRED_CLIPS = {
+    "mech-light-pulse-laser": "mech-bl-1", "mech-pd-laser": "mech-bl-2", "mech-light-burst-laser": "mech-pl-1",
+    "mech-medium-burst-laser": "mech-pl-2", "mech-burst-laser": "mech-pl-3", "mech-pulse-laser": "mech-pl-2-ap",
+    "mech-heavy-pd-laser": "mech-pl-3-sweep", "mech-shoulder-laser-cannon": "mech-ll-3",
+    "vehicle-laser-tank-heavy-pd-laser": "vehicle-laser-tank-pl-3-sweep",
+}
+# Weapon ids the same rename retired, for a note or clip that still names one.
+RETIRED_WEAPONS = {
+    "weapon.mech-light-pulse-laser": "weapon.mech-bl-1", "weapon.mech-pd-laser": "weapon.mech-bl-2",
+    "weapon.mech-light-burst-laser": "weapon.mech-pl-1", "weapon.mech-medium-burst-laser": "weapon.mech-pl-2",
+    "weapon.mech-burst-laser": "weapon.mech-pl-3", "weapon.mech-pulse-laser": "weapon.mech-pl-2-ap",
+    "weapon.mech-heavy-pd-laser": "weapon.mech-pl-3-sweep", "weapon.mech-shoulder-laser": "weapon.mech-ll-3",
+}
+
+
+def current_key(key):
+    """A page id, "clip:<clip id>" key or bare clip id read as its current id (RETIRED_PAGE_IDS, RETIRED_CLIPS)."""
+    if key in RETIRED_PAGE_IDS:
+        return RETIRED_PAGE_IDS[key]
+    if key.startswith("clip:") and key[5:] in RETIRED_CLIPS:
+        return "clip:" + RETIRED_CLIPS[key[5:]]
+    return RETIRED_CLIPS.get(key, key)
+
+
 GRADES = ("SURPLUS", "SERVICE", "MILSPEC", "MASTERWORK")
 SQUAD = 12
 WEAPON_KEYS = ("role", "primary", "grade", "special", "belt")

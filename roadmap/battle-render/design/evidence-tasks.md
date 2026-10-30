@@ -211,7 +211,7 @@ replayed twice). Writes `armor-matchups.md`, `armor-matchups.csv` and
 
 - A side is `unit(+unit)*`; a unit is `[Nx]` then a mech (`hound`,
   `bulwark:refit`,
-  `bulwark:arms=hc-10,rs=shoulder-laser,engine=uprated,vents=auxiliary,role=assault`,
+  `bulwark:arms=hc-10,rs=ll-3,engine=uprated,vents=auxiliary,role=assault`,
   pattern ids with or without their `component.mech-` / `internal.` prefix,
   where `arms` fits every arm mount, `la`/`ra` one Bulwark arm, `none` empties a
   mount, `refit` fills the best buildable internals, and an over-budget fit runs

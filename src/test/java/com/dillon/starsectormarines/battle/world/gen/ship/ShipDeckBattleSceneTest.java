@@ -155,16 +155,16 @@ final class ShipDeckBattleSceneTest {
             scene.syncGantries(List.of(
                     new MechDeploymentSpec(MechVariant.BULWARK, MechRole.ARMORED_SUPPORT,
                             MissileReplenisherComponent.ACCELERATED_FEED,
-                            MechWeaponComponent.PULSE_LASER,
+                            MechWeaponComponent.PL_2_AP,
                             MechWeaponComponent.SRM_15,
-                            MechWeaponComponent.SHOULDER_LASER_CANNON),
+                            MechWeaponComponent.LL_3),
                     MechDeploymentSpec.standard(MechVariant.HOUND)));
 
             for (MechMountSlot arm : MechVariant.BULWARK.armMounts()) {
-                assertEquals(MechWeaponComponent.PULSE_LASER,
+                assertEquals(MechWeaponComponent.PL_2_AP,
                         scene.simulation().world().mechLoadout(machines[0]).mount(arm).component);
             }
-            assertEquals(MechWeaponComponent.SHOULDER_LASER_CANNON,
+            assertEquals(MechWeaponComponent.LL_3,
                     scene.simulation().world().mechLoadout(machines[0])
                             .mount(MechMountSlot.RIGHT_SHOULDER).component);
             assertEquals(2, scene.simulation().liveUnitCount());

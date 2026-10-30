@@ -396,10 +396,10 @@
       "audio": { "fireSound": "chaingun_fire" }
     },
     {
-      "id": "weapon.mech-pulse-laser",
+      "id": "weapon.mech-pl-2-ap",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechPulseLaserDisplayName",
+        "displayName": "@gearCatalogWeaponMechPl2ApDisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -790,10 +790,10 @@
       }
     },
     {
-      "id": "weapon.mech-burst-laser",
+      "id": "weapon.mech-pl-3",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechBurstLaserDisplayName",
+        "displayName": "@gearCatalogWeaponMechPl3DisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -835,10 +835,10 @@
       "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.55, "loopFadeOut": 0.4, "loopFadeIn": 0.05, "loopPitchDrop": 0.15 }
     },
     {
-      "id": "weapon.mech-pd-laser",
+      "id": "weapon.mech-bl-2",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechPdLaserDisplayName",
+        "displayName": "@gearCatalogWeaponMechBl2DisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -879,10 +879,10 @@
       "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
-      "id": "weapon.mech-pd-laser-burst",
+      "id": "weapon.mech-bl-2-burst",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechPdLaserDisplayName",
+        "displayName": "@gearCatalogWeaponMechBl2DisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -923,10 +923,10 @@
       "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
-      "id": "weapon.mech-heavy-pd-laser",
+      "id": "weapon.mech-pl-3-sweep",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechHeavyPdLaserDisplayName",
+        "displayName": "@gearCatalogWeaponMechPl3SweepDisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -967,10 +967,10 @@
       "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.45, "loopFadeOut": 0.3, "loopFadeIn": 0.05, "loopPitchDrop": 0.1 }
     },
     {
-      "id": "weapon.mech-medium-burst-laser",
+      "id": "weapon.mech-pl-2",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechMediumBurstLaserDisplayName",
+        "displayName": "@gearCatalogWeaponMechPl2DisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -1011,10 +1011,10 @@
       "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.45, "loopFadeOut": 0.3, "loopFadeIn": 0.05, "loopPitchDrop": 0.12 }
     },
     {
-      "id": "weapon.mech-light-burst-laser",
+      "id": "weapon.mech-pl-1",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechLightBurstLaserDisplayName",
+        "displayName": "@gearCatalogWeaponMechPl1DisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -1106,10 +1106,10 @@
       "audio": { "fireSound": "chaingun_fire" }
     },
     {
-      "id": "weapon.mech-light-pulse-laser",
+      "id": "weapon.mech-bl-1",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechLightPulseLaserDisplayName",
+        "displayName": "@gearCatalogWeaponMechBl1DisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -1150,10 +1150,10 @@
       "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.35, "loopFadeOut": 0.2, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
-      "id": "weapon.mech-light-pulse-laser-burst",
+      "id": "weapon.mech-bl-1-burst",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechLightPulseLaserDisplayName",
+        "displayName": "@gearCatalogWeaponMechBl1DisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -1469,10 +1469,10 @@
       "audio": { "fireSound": "pilum_lrm_fire", "impactSound": "marines_explosion" }
     },
     {
-      "id": "weapon.mech-shoulder-laser",
+      "id": "weapon.mech-ll-3",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechShoulderLaserDisplayName",
+        "displayName": "@gearCatalogWeaponMechLl3DisplayName",
         "designationTiered": false
       },
       "sim": {

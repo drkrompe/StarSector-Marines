@@ -56,9 +56,9 @@ def main() -> None:
             if folder == "tri-tachyon" and variant.name == "BULWARK":
                 variant = replace(
                     variant,
-                    arms="pulse-laser-arm.png",
+                    arms="pl-2-ap.png",
                     left_pod="srm-rack.png",
-                    right_pod="shoulder-laser-cannon.png",
+                    right_pod="ll-3.png",
                     loadout="2x PULSE LASER  /  SRM-15  /  SHOULDER LASER",
                 )
             elif folder == "hegemony" and variant.name == "BULWARK":

@@ -54,7 +54,7 @@ public final class MechHardpointGeometry {
     /** Muzzle forward of a gun out on an arm; its barrel's rear pivot sits at -0.15. */
     private static float sideArmForward(int armsAppearance) {
         return switch (armsAppearance) {
-            case LayeredMechAppearance.ARMS_CHAINGUN, LayeredMechAppearance.ARMS_PULSE_LASER,
+            case LayeredMechAppearance.ARMS_CHAINGUN, LayeredMechAppearance.ARMS_PL_2_AP,
                  LayeredMechAppearance.ARMS_NOSE_CHAINGUN -> 0.39f;
             // The HC-10 is 116 px long: 0.56 hull widths from the rear pivot.
             case LayeredMechAppearance.ARMS_HC_10 -> 0.41f;
@@ -66,13 +66,13 @@ public final class MechHardpointGeometry {
                  LayeredMechAppearance.ARMS_DC_4_QS -> 0.42f;
             // The light weapons are 84 to 88 px long: about 0.41 hull widths from the rear pivot.
             case LayeredMechAppearance.ARMS_LIGHT_MG,
-                 LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER,
-                 LayeredMechAppearance.ARMS_LIGHT_BURST_LASER -> 0.27f;
+                 LayeredMechAppearance.ARMS_BL_1,
+                 LayeredMechAppearance.ARMS_PL_1 -> 0.27f;
             // The laser ladder: 136 px long (0.65 hull widths) for the heavy two, 112 px (0.54) for the medium two.
-            case LayeredMechAppearance.ARMS_BURST_LASER,
-                 LayeredMechAppearance.ARMS_HEAVY_PD_LASER -> 0.50f;
-            case LayeredMechAppearance.ARMS_PD_LASER,
-                 LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER -> 0.41f;
+            case LayeredMechAppearance.ARMS_PL_3,
+                 LayeredMechAppearance.ARMS_PL_3_SWEEP -> 0.50f;
+            case LayeredMechAppearance.ARMS_BL_2,
+                 LayeredMechAppearance.ARMS_PL_2 -> 0.41f;
             default -> Float.NaN;
         };
     }
@@ -90,10 +90,10 @@ public final class MechHardpointGeometry {
      */
     public static float centrelineDrawingShift(int armsAppearance) {
         return switch (armsAppearance) {
-            case LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER,
-                 LayeredMechAppearance.ARMS_LIGHT_BURST_LASER -> CENTRELINE_LASER_TIP - 0.37f;
-            case LayeredMechAppearance.ARMS_PD_LASER,
-                 LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER -> CENTRELINE_LASER_TIP - 0.51f;
+            case LayeredMechAppearance.ARMS_BL_1,
+                 LayeredMechAppearance.ARMS_PL_1 -> CENTRELINE_LASER_TIP - 0.37f;
+            case LayeredMechAppearance.ARMS_BL_2,
+                 LayeredMechAppearance.ARMS_PL_2 -> CENTRELINE_LASER_TIP - 0.51f;
             default -> 0f;
         };
     }
@@ -108,12 +108,12 @@ public final class MechHardpointGeometry {
             case LayeredMechAppearance.ARMS_NOSE_AC_6_QS,
                  LayeredMechAppearance.ARMS_AC_6_QS -> 0.55f;
             case LayeredMechAppearance.ARMS_HC_10 -> 0.51f;
-            case LayeredMechAppearance.ARMS_PULSE_LASER -> 0.49f;
+            case LayeredMechAppearance.ARMS_PL_2_AP -> 0.49f;
             case LayeredMechAppearance.ARMS_AC_6 -> 0.59f;
             case LayeredMechAppearance.ARMS_LIGHT_MG -> 0.37f;
-            case LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER, LayeredMechAppearance.ARMS_LIGHT_BURST_LASER,
-                 LayeredMechAppearance.ARMS_BURST_LASER, LayeredMechAppearance.ARMS_HEAVY_PD_LASER,
-                 LayeredMechAppearance.ARMS_PD_LASER, LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER ->
+            case LayeredMechAppearance.ARMS_BL_1, LayeredMechAppearance.ARMS_PL_1,
+                 LayeredMechAppearance.ARMS_PL_3, LayeredMechAppearance.ARMS_PL_3_SWEEP,
+                 LayeredMechAppearance.ARMS_BL_2, LayeredMechAppearance.ARMS_PL_2 ->
                     CENTRELINE_LASER_TIP;
             default -> Float.NaN;
         };
@@ -137,7 +137,7 @@ public final class MechHardpointGeometry {
     }
 
     public static float podForward(int podAppearance) {
-        if (podAppearance == LayeredMechAppearance.POD_SHOULDER_LASER
+        if (podAppearance == LayeredMechAppearance.POD_LL_3
                 || podAppearance == LayeredMechAppearance.POD_THERMAL_LANCE) return 0.32f;
         if (podAppearance == LayeredMechAppearance.POD_SRM_3_QS) return 0.22f;
         return isSmallPod(podAppearance) ? 0.12f : 0.16f;
@@ -171,7 +171,7 @@ public final class MechHardpointGeometry {
         if (weapon.mountFamily == MechWeaponComponent.MountFamily.ARMS) {
             return switch (appearance) {
                 case LayeredMechAppearance.ARMS_CHAINGUN, LayeredMechAppearance.ARMS_NOSE_CHAINGUN,
-                     LayeredMechAppearance.ARMS_PULSE_LASER, LayeredMechAppearance.ARMS_AC_6,
+                     LayeredMechAppearance.ARMS_PL_2_AP, LayeredMechAppearance.ARMS_AC_6,
                      LayeredMechAppearance.ARMS_AC_6_QS, LayeredMechAppearance.ARMS_NOSE_AC_6_QS,
                      LayeredMechAppearance.ARMS_LIGHT_MG -> 0.025f;
                 default -> 0f;

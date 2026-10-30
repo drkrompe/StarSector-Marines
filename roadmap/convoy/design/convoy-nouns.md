@@ -4,7 +4,7 @@ Status: ACTIVE — ground delivery, deployed vehicle orders, and direct control 
 
 Written: 2026-08-23
 
-Updated: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
+Updated: 2026-10-30 — the laser tank is the pulse-laser tank and its guns take the laser family names (PL-3, PL-3 (Sweep); `mechs-nouns.md`, Weapon names). Earlier: 2026-10-27 — a lost drive cripples a hull to a crawl instead of stranding it. Earlier: every hull gun builds flux (hull flux), most at a nominal rate; the haze rises only off authored vents.
 
 ## Purpose and boundary
 
@@ -1501,8 +1501,8 @@ and fires once it is inside its reach.
 
 ### The laser tanks
 
-The **burst laser tank** (`LASER_TANK`, Prestige, Heavy lift) is the breakthrough hull with
-a ship's burst laser where the twin cannons were. In orbit that emitter is point
+The **pulse-laser tank** (`LASER_TANK`, Prestige, Heavy lift) is the breakthrough hull with
+a ship's burst laser where the twin cannons were, the PL-3 pulse laser on the ground (`mechs-nouns.md`, Weapon names). In orbit that emitter is point
 defence, because it barely marks a warship's plate; on the ground almost nothing it
 meets is plate like that. It is a rung of the tank line, not a point-defence system:
 it does not engage rounds in flight. Hostile rocket and shell interception stays
@@ -1515,7 +1515,7 @@ the ground will still be there. A man close enough to be self-defence keeps the 
 It is the same gun on the same magazine, cadence and reservoir, so a craft it takes is
 ground it leaves. Its rounds into the air are rolled and landed the way an anti-air
 emplacement's flak is (`VehicleAirFire`, answered by the emplacements' own pass).
-Against a light craft the burst laser is deadlier than a flak position.
+Against a light craft the PL-3 is deadlier than a flak position.
 
 It answers a target in a short, accurate burst and turns quickly, so it clears
 infantry and drones far faster than a cannon tank. Its rounds carry **no blast and
@@ -1523,13 +1523,13 @@ no wall damage**, so it cannot open a building or answer an assault's wall
 directive, and its low penetration leaves it chipping at armor.
 
 What keeps it from out-trading a cannon tank is **flux** (hull flux, above), which
-every hull gun builds but a laser builds hardest. The burst laser is a
+every hull gun builds but a laser builds hardest. The PL-3 is a
 flux hog, as it is in space: it fires far faster than it dissipates, so a section
 dies inside one charge-up, while a tank sees it fall silent and vent for seconds at a
 time long before the tank is dead. It is built with a bigger stock fit for that reason (owner, 2026-10-30;
 `VehicleRack.stockFit`): the double capacitor bank and two vent arrays, 120 flux at 9.5 a
 second, leaving one rack slot for a kit. The laser's flux cost is the mech part's
-(`BURST_LASER`), so the hull's fit, not the gun, is what sustains it. The flux is visible, as a starship's is: a purple
+(`PL_3`), so the hull's fit, not the gun, is what sustains it. The flux is visible, as a starship's is: a purple
 haze thickens over the hull's radiator fins as it builds
 (`VehicleType.fluxVentAftCells`), and a venting hull blows a bright lavender plume
 off them. A mech's reservoir shows in the same look (`FluxHaze`, `mechs-nouns.md`).
@@ -1545,17 +1545,20 @@ ship's turret mount in the deck, small for a tank turret, so a player recognises
 weapon from fleet combat. The turret has a **firing frame** (`VehicleType.turretFiringFrame`,
 a law any sheet may author): while the gun is engaged, with a target on the ground or in
 the air or a burst under way, its dome's shutter stands open on the lens; idle, it closes.
-Its lance is the burst PD laser's blue.
+Its lance is the PL-3's blue.
 
 The PD laser tank is retired (owner, 2026-10-28): its gun is a part. The plain PD laser every frigate
-carries is the PD family of laser parts, and the laser tank's own gun is the burst family, each in three sizes
-(`MechWeaponComponent`: `LIGHT_PULSE_LASER`, `PD_LASER`, `HEAVY_PD_LASER`; `LIGHT_BURST_LASER`, `MEDIUM_BURST_LASER`,
-`BURST_LASER`), fitted to the laser tank's red three-row gun card like any mech weapon (`vehicle-card-sizes.md`,
-`mechs-nouns.md`). A laser tank with the heavy PD laser fitted wears the red turret head the PD laser tank carried, and is
-what the PD laser tank was: a steady lance, fourteen pulses at a time, that runs cool and trades longer where the heavy
-burst laser, in the white head, trades harder. The lighter parts are drawn short, as turrets, each in a round base on the ring's collar with its muzzle just past the ring.
+carries is the red-banded laser parts, and the laser tank's own gun is the pulse lasers
+(`MechWeaponComponent`: the BL-1 and BL-2 beams and the PL-3 (Sweep), `BL_1`, `BL_2`, `PL_3_SWEEP`; the PL-1, PL-2
+and PL-3, `PL_1`, `PL_2`, `PL_3`), fitted to the laser tank's red three-row gun card like any mech weapon (`vehicle-card-sizes.md`,
+`mechs-nouns.md`). A laser tank with the PL-3 (Sweep) fitted wears the red turret head the PD laser tank carried, and is
+what the PD laser tank was: a steady lance, fourteen pulses at a time, that runs cool and trades longer where the
+PL-3, in the white head, trades harder. The lighter parts are drawn short, as turrets, each in a round base on the ring's collar with its muzzle just past the ring.
 Everything above about reach, the air and carrying no blast holds for
-both. The laser tank has no default turret head (owner, 2026-10-29): with no part fitted it shows its bare machinery turret ring and has no gun, and a spawn that names no part (a scene, a mission) fits the heavy burst laser (`VehicleType.standardPart`).
+both. The laser tank has no default turret head (owner, 2026-10-29): with no part fitted it shows its bare machinery turret ring and has no gun, and a spawn that names no part (a scene, a mission) fits the PL-3 (`VehicleType.standardPart`).
+A hull-borne PL-3 (this turret, a shuttle's door gun) carries the part's name; the emplacement lasers, the Laser
+Hardpoint, the drone Halo laser and the hover scout's twin pulse emitter are their own guns and keep their names
+(`mechs-nouns.md`, Weapon names).
 
 **A laser's lance is drawn as the space game draws a beam.** A turret weapon with no
 projectile art that authors a beam (`WeaponDef.hitscanBeam`) is a hitscan beam, as a
@@ -1570,17 +1573,17 @@ drags across onto it, striking whatever it crosses. A beam may author a **textur
 ROUGH beam texture: knots of energy ride down a continuous lance from the muzzle, and
 the lance swells and fades with the power delivered to it. The knots run on one
 presentation clock, so a stream of short overlapping pulses reads as one lance being
-fed: the PD laser's held red throbs, the burst laser's blue comes in bursts.
+fed: the BL-2's held red throbs, the PL-3's blue comes in bursts.
 It is heard the same way: a weapon that authors `audio.loopSound` holds the loop while pulses keep
 arriving, after its fire clip (if it names one) once as the lance starts, and lets it spin down over
-its authored tail (`mechs-nouns.md`, beam weapon). The PD laser holds the tactical laser's
+its authored tail (`mechs-nouns.md`, beam weapon). The BL-2 holds the tactical laser's
 `laser_loop` with no intro, since a lance every second and a quarter would repeat the wind-up; the
-burst laser opens each burst with `burst_pd_fire` under the same loop.
+PL-3 opens each burst with `burst_pd_fire` under the same loop.
 
 Acceptance is the `tank-versus-infantry` scene (each laser fires at men, and none of
 its rounds carries blast or wall damage) and the `tank-versus-air` scene (each laser
 fires into the air at a hostile gunship, the cannon tank never does, and with men in
-reach as well the burst laser still fires at the ground).
+reach as well the PL-3 still fires at the ground).
 
 ### The hover line: hover scout and drone skimmer
 

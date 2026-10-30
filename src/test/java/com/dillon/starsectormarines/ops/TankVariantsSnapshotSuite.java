@@ -53,7 +53,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
     private static final List<List<VehicleKit>> LINE_KITS = List.of(List.of(), VehicleStockFit.PARAPET.kits,
             List.of(), List.of());
     private static final List<String> NAMES = List.of(
-            "ONAGER", "PARAPET (ONAGER + ACTIVE PROTECTION)", "BURST LASER TANK", "DOZER BREACHER");
+            "ONAGER", "PARAPET (ONAGER + ACTIVE PROTECTION)", "PULSE-LASER TANK", "DOZER BREACHER");
 
     @Override public String id() { return "tank-variants"; }
     @Override public String label() { return "Tank variants side by side, wrecks and a battle frame"; }
@@ -108,13 +108,13 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
 
     /** The laser tank with nothing in its gun card, then each laser of the ladder installed as its turret, as the game draws it. */
     private static final List<MechWeaponComponent> LASER_LINE = Arrays.asList(null,
-            MechWeaponComponent.BURST_LASER, MechWeaponComponent.HEAVY_PD_LASER, null,
-            MechWeaponComponent.MEDIUM_BURST_LASER, MechWeaponComponent.PD_LASER,
-            MechWeaponComponent.LIGHT_BURST_LASER, MechWeaponComponent.LIGHT_PULSE_LASER);
+            MechWeaponComponent.PL_3, MechWeaponComponent.PL_3_SWEEP, null,
+            MechWeaponComponent.PL_2, MechWeaponComponent.BL_2,
+            MechWeaponComponent.PL_1, MechWeaponComponent.BL_1);
     private static final List<String> LASER_NAMES = List.of(
-            "NO PART: the bare ring, no turret", "HEAVY BURST LASER 3x2: white head",
-            "HEAVY PD LASER 3x2: red head", "",
-            "BURST LASER 2x2", "PD LASER 2x2", "LIGHT BURST LASER 1x2", "LIGHT PD LASER 1x2");
+            "NO PART: the bare ring, no turret", "PL-3 3x2: white head",
+            "PL-3 (SWEEP) 3x2: red head", "",
+            "PL-2 2x2", "BL-2 2x2", "PL-1 1x2", "BL-1 1x2");
 
     /** Two rows of laser tanks, the first row the three heads and the second the four lighter parts, guns posed forward. */
     private static void laserLineup(SnapshotContext context, List<SnapshotArtifact> artifacts) throws Exception {
@@ -156,10 +156,10 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
 
     private static final List<VehicleType> STYLE_HULLS = List.of(VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL,
             VehicleType.BREAKTHROUGH_TANK, VehicleType.HOVER_SCOUT, VehicleType.HEAVY_APC, VehicleType.LASER_TANK);
-    private static final List<MechWeaponComponent> STYLE_GUNS = List.of(MechWeaponComponent.LIGHT_PULSE_LASER,
-            MechWeaponComponent.LIGHT_BURST_LASER, MechWeaponComponent.HC_20,
-            MechWeaponComponent.LIGHT_PULSE_LASER, MechWeaponComponent.LIGHT_MACHINE_GUN,
-            MechWeaponComponent.BURST_LASER);
+    private static final List<MechWeaponComponent> STYLE_GUNS = List.of(MechWeaponComponent.BL_1,
+            MechWeaponComponent.PL_1, MechWeaponComponent.HC_20,
+            MechWeaponComponent.BL_1, MechWeaponComponent.LIGHT_MACHINE_GUN,
+            MechWeaponComponent.PL_3);
     private static final List<String> STYLE_NAMES = List.of("GREEN (low): ESCORT APC", "GREEN: MILITIA TECHNICAL",
             "GREEN: BREAKTHROUGH TANK", "SILVER (mid): HOVER SCOUT", "GREEN: UP-ARMORED APC", "WHITE (top): LASER TANK");
 
@@ -194,11 +194,11 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
 
     private static final List<VehicleType> LEGACY_HULLS = List.of(VehicleType.LASER_TANK, VehicleType.LASER_TANK,
             VehicleType.LASER_TANK, VehicleType.HEAVY_APC, VehicleType.HOVER_SCOUT, VehicleType.MILITIA_TECHNICAL);
-    private static final List<MechWeaponComponent> LEGACY_GUNS = List.of(MechWeaponComponent.PULSE_LASER,
-            MechWeaponComponent.SHOULDER_LASER_CANNON, MechWeaponComponent.THERMAL_LANCE,
+    private static final List<MechWeaponComponent> LEGACY_GUNS = List.of(MechWeaponComponent.PL_2_AP,
+            MechWeaponComponent.LL_3, MechWeaponComponent.THERMAL_LANCE,
             MechWeaponComponent.THERMAL_LANCE, MechWeaponComponent.THERMAL_LANCE, MechWeaponComponent.THERMAL_LANCE);
-    private static final List<String> LEGACY_NAMES = List.of("LASER TANK: PULSE LASER 2x2",
-            "LASER TANK: SHOULDER LASER CANNON 3x2", "LASER TANK: THERMAL LANCE 1x2", "ESCORT APC: THERMAL LANCE",
+    private static final List<String> LEGACY_NAMES = List.of("LASER TANK: PL-2 (AP) 2x2",
+            "LASER TANK: LL-3 3x2", "LASER TANK: THERMAL LANCE 1x2", "ESCORT APC: THERMAL LANCE",
             "HOVER SCOUT: THERMAL LANCE", "MILITIA TECHNICAL: THERMAL LANCE");
 
     /** The older energy parts, still in the olive and red mech art, on the laser tank and the small hulls. */
@@ -225,7 +225,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
             BattleReviewFrameRenderer renderer = new BattleReviewFrameRenderer(
                     context.modRoot(), 1920, 1080, 19f, 12.2f, 27f);
             artifacts.add(new SnapshotArtifact("legacy-energy.png", renderer.render(sim,
-                    "Older energy parts | pulse laser, shoulder laser cannon and Thermal Lance, still the olive and red art"
+                    "Older energy parts | PL-2 (AP), LL-3 and Thermal Lance, still the olive and red art"
                             + " | 1920 x 1080, UI 100%", labels.build())));
         }
     }
@@ -239,7 +239,7 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
         try (BattleSimulation sim = scene(40, 32)) {
             sim.setMissionCompletionEnabled(false);
             long burst = spawn(sim, VehicleType.LASER_TANK, Faction.MARINE, 14, 10, 90, 90);
-            long pd = spawnFitted(sim, VehicleType.LASER_TANK, MechWeaponComponent.HEAVY_PD_LASER, 26, 10, 90, 90);
+            long pd = spawnFitted(sim, VehicleType.LASER_TANK, MechWeaponComponent.PL_3_SWEEP, 26, 10, 90, 90);
             for (int i = 0; i < 3; i++) {
                 spawn(sim, VehicleType.CARGO_CARRIER, Faction.DEFENDER, 12 + i * 8, 21, 270, 270);
             }
@@ -259,10 +259,10 @@ public final class TankVariantsSnapshotSuite implements SnapshotSuite {
                 ReviewAnnotations.Builder labels = ReviewAnnotations.builder();
                 var a = sim.convoy().body(burst);
                 var b = sim.convoy().body(pd);
-                labels.label(a.x, a.y - 3.2f, "BURST LASER TANK", ReviewStyle.NOTE);
-                labels.label(b.x, b.y - 3.2f, "LASER TANK / PD LASER", ReviewStyle.NOTE);
+                labels.label(a.x, a.y - 3.2f, "PULSE-LASER TANK", ReviewStyle.NOTE);
+                labels.label(b.x, b.y - 3.2f, "LASER TANK / BL-2", ReviewStyle.NOTE);
                 BufferedImage frame = renderer.render(sim,
-                        "Laser lances | burst PD laser (blue, bursts) beside PD laser (red, held, throbbing)"
+                        "Laser lances | PL-3 (blue, bursts) beside BL-2 (red, held, throbbing)"
                                 + " | flux haze on the rear vents, venting when overloaded | 1920 x 1080, UI 100%", labels.build(), impacts);
                 frames.add(frame);
                 int beams = sim.getActiveShots().size();

@@ -110,9 +110,9 @@ class MechBayTest {
     void activeSquadFreezesValuesAndPersistsInstalledInventory() throws Exception {
         MechBay bay = MechBay.legacyStarterFixture();
         assertTrue(bay.installInternal(MechBay.STARTER_MECH_ID, MechInternal.ACCELERATED_LOADER));
-        bay.addWeapon(MechWeaponComponent.PULSE_LASER.id, 1);
+        bay.addWeapon(MechWeaponComponent.PL_2_AP.id, 1);
         assertTrue(bay.installWeapon(MechBay.STARTER_MECH_ID, MechMountSlot.LEFT_ARM,
-                MechWeaponComponent.PULSE_LASER.id));
+                MechWeaponComponent.PL_2_AP.id));
 
         MechBay restored = roundTrip(bay);
         List<MechDeploymentSpec> deployment = restored.activeDeployment();
@@ -122,26 +122,26 @@ class MechBayTest {
         assertEquals(MechRole.ARMORED_SUPPORT, deployment.get(0).role());
         assertEquals(MissileReplenisherComponent.ACCELERATED_FEED,
                 deployment.get(0).missileReplenisher());
-        assertEquals(MechWeaponComponent.PULSE_LASER, deployment.get(0).leftArm());
+        assertEquals(MechWeaponComponent.PL_2_AP, deployment.get(0).leftArm());
         assertEquals(0, restored.availableInternal(MechInternal.ACCELERATED_LOADER.id));
         assertEquals(1, restored.availableInternal(MechInternal.STANDARD_LOADER.id));
         assertEquals(1, restored.availableWeapon(MechWeaponComponent.CHAINGUN.id));
-        assertEquals(0, restored.availableWeapon(MechWeaponComponent.PULSE_LASER.id));
+        assertEquals(0, restored.availableWeapon(MechWeaponComponent.PL_2_AP.id));
     }
 
     @Test
     void weaponRefitReturnsTheOutgoingAssemblyAndFreezesTheReplacement() {
         MechBay bay = MechBay.legacyStarterFixture();
-        bay.addWeapon(MechWeaponComponent.PULSE_LASER.id, 1);
+        bay.addWeapon(MechWeaponComponent.PL_2_AP.id, 1);
 
         assertTrue(bay.installWeapon(MechBay.STARTER_MECH_ID, MechMountSlot.LEFT_ARM,
-                MechWeaponComponent.PULSE_LASER.id));
+                MechWeaponComponent.PL_2_AP.id));
 
         CampaignMech mech = bay.mechById(MechBay.STARTER_MECH_ID);
-        assertEquals(MechWeaponComponent.PULSE_LASER, mech.leftArm());
+        assertEquals(MechWeaponComponent.PL_2_AP, mech.leftArm());
         assertEquals(1, bay.availableWeapon(MechWeaponComponent.CHAINGUN.id));
-        assertEquals(0, bay.availableWeapon(MechWeaponComponent.PULSE_LASER.id));
-        assertEquals(MechWeaponComponent.PULSE_LASER,
+        assertEquals(0, bay.availableWeapon(MechWeaponComponent.PL_2_AP.id));
+        assertEquals(MechWeaponComponent.PL_2_AP,
                 bay.activeDeployment().get(0).leftArm());
     }
 

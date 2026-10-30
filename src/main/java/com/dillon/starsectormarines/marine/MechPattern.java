@@ -42,12 +42,12 @@ public record MechPattern(Kind kind, String definitionId) {
         WEAPON_TIERS.put(MechWeaponComponent.SRM_3_QS, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.DC_4_QS, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.LIGHT_MACHINE_GUN, EquipmentAccessTier.COMMON);
-        WEAPON_TIERS.put(MechWeaponComponent.LIGHT_PULSE_LASER, EquipmentAccessTier.ADVANCED);
-        WEAPON_TIERS.put(MechWeaponComponent.PD_LASER, EquipmentAccessTier.ADVANCED);
-        WEAPON_TIERS.put(MechWeaponComponent.BURST_LASER, EquipmentAccessTier.PRESTIGE);
-        WEAPON_TIERS.put(MechWeaponComponent.HEAVY_PD_LASER, EquipmentAccessTier.PRESTIGE);
-        WEAPON_TIERS.put(MechWeaponComponent.MEDIUM_BURST_LASER, EquipmentAccessTier.ADVANCED);
-        WEAPON_TIERS.put(MechWeaponComponent.LIGHT_BURST_LASER, EquipmentAccessTier.ADVANCED);
+        WEAPON_TIERS.put(MechWeaponComponent.BL_1, EquipmentAccessTier.ADVANCED);
+        WEAPON_TIERS.put(MechWeaponComponent.BL_2, EquipmentAccessTier.ADVANCED);
+        WEAPON_TIERS.put(MechWeaponComponent.PL_3, EquipmentAccessTier.PRESTIGE);
+        WEAPON_TIERS.put(MechWeaponComponent.PL_3_SWEEP, EquipmentAccessTier.PRESTIGE);
+        WEAPON_TIERS.put(MechWeaponComponent.PL_2, EquipmentAccessTier.ADVANCED);
+        WEAPON_TIERS.put(MechWeaponComponent.PL_1, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.CHAINGUN, EquipmentAccessTier.COMMON);
         // The better chaingun: spin-up, refill and damage are what a better rotary gun buys.
         WEAPON_TIERS.put(MechWeaponComponent.CHAINGUN_HF, EquipmentAccessTier.ADVANCED);
@@ -63,8 +63,8 @@ public record MechPattern(Kind kind, String definitionId) {
         WEAPON_TIERS.put(MechWeaponComponent.HC_20, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.DC_5, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.AC_6, EquipmentAccessTier.ADVANCED);
-        WEAPON_TIERS.put(MechWeaponComponent.PULSE_LASER, EquipmentAccessTier.PRESTIGE);
-        WEAPON_TIERS.put(MechWeaponComponent.SHOULDER_LASER_CANNON, EquipmentAccessTier.PRESTIGE);
+        WEAPON_TIERS.put(MechWeaponComponent.PL_2_AP, EquipmentAccessTier.PRESTIGE);
+        WEAPON_TIERS.put(MechWeaponComponent.LL_3, EquipmentAccessTier.PRESTIGE);
         WEAPON_TIERS.put(MechWeaponComponent.THERMAL_LANCE, EquipmentAccessTier.PRESTIGE);
 
         // No starter vehicle: a company earns its first hull. The weight class follows the tier.

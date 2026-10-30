@@ -400,7 +400,7 @@ fights played in both roles; overall is the mean over the eleven fits the cannon
 section used. The controls are `-Dbattle.mech.buildMass.bastion-autocannons=0
 -Dbattle.mech.flux.bastion-autocannons=24 -Dbattle.mech.flux.dual-pulse-lasers=38`
 (ids of the twin guns these readings were taken with; the single guns that
-replaced them are `ac-6` and `pulse-laser`, at half each).
+replaced them are `ac-6` and `pl-2-ap`, at half each).
 The control run reproduces the before column fight for fight. Any arm's flux,
 cycle or build mass takes the same
 `-Dbattle.mech.<flux|cycle|buildMass>.<id without component.mech->` switch.

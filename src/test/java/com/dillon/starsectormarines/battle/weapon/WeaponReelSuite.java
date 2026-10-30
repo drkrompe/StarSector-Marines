@@ -371,7 +371,7 @@ public final class WeaponReelSuite implements SnapshotSuite {
                 vehicle(out, VehicleType.BREAKTHROUGH_TANK, gun, "breakthrough-tank-" + kebab(gun.name()));
             }
         }
-        vehicle(out, VehicleType.LASER_TANK, MechWeaponComponent.HEAVY_PD_LASER, "laser-tank-heavy-pd-laser");
+        vehicle(out, VehicleType.LASER_TANK, MechWeaponComponent.PL_3_SWEEP, "laser-tank-pl-3-sweep");
     }
 
     private static void vehicle(List<Entry> out, VehicleType type, MechWeaponComponent gun, String key) {

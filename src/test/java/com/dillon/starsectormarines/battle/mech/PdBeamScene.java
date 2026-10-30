@@ -24,18 +24,18 @@ import java.util.Locale;
 import java.util.Map;
 
 /**
- * The PD lasers' held beams against men (`mechs-nouns.md`, Beam weapons): <b>does an autonomous beam fire at a
+ * The BL beam lasers' held beams against men (`mechs-nouns.md`, Beam weapons): <b>does an autonomous beam fire at a
  * rifle section, and does it leave its reservoir headroom rather than ride it to its own hold?</b>
  *
  * <p>One planted Bulwark with the same gun on both arms and nothing on its shoulders, a twelve-strong rifle section
- * fifteen cells east of it, four seeds a loop: the light PD laser, the PD laser, and the chaingun and AC-6 as the
+ * fifteen cells east of it, four seeds a loop: the BL-1, the BL-2, and the chaingun and AC-6 as the
  * guns they are read against. Run again under {@code -Dbattle.mech.pdBeam=false} for the pulsed-burst control.
  *
  * <p>Verdicts are mechanics only: a beam fires at men, and an autonomous beam's reservoir never passes its stop
  * share by more than the pulses both arms may lay in the tick they cross it. Who wins, how many die, how fast, and
  * how hot the frame ran are readings.
  *
- * <p>The {@code pd-laser-crawl} loop reads the crawl ({@link BeamWander}): a Warden's chin PD laser on an unarmed
+ * <p>The {@code bl-crawl} loop reads the crawl ({@link BeamWander}): a Warden's chin BL-2 on an unarmed
  * Hound standing fourteen cells off, four seeds. Its readings are how far the lance moves between consecutive pulses
  * (the beam line's offset from the target's centre, and the impact point between consecutive hits), the hit rate, and
  * how much the hit rate swings from second to second; {@code -Dbattle.mech.pdBeamWander=false} is the jumping control.
@@ -69,8 +69,8 @@ public final class PdBeamScene implements BehaviorScene {
     @Override
     public List<SceneReport> play(FrameSink frames) {
         List<SceneReport> reports = new ArrayList<>();
-        reports.add(arm(frames, "light-pd-laser", MechWeaponComponent.LIGHT_PULSE_LASER));
-        reports.add(arm(frames, "pd-laser", MechWeaponComponent.PD_LASER));
+        reports.add(arm(frames, "bl-1", MechWeaponComponent.BL_1));
+        reports.add(arm(frames, "bl-2", MechWeaponComponent.BL_2));
         reports.add(arm(frames, "chaingun", MechWeaponComponent.CHAINGUN));
         reports.add(arm(frames, "ac-6", MechWeaponComponent.AC_6));
         reports.add(crawl(frames));
@@ -88,7 +88,7 @@ public final class PdBeamScene implements BehaviorScene {
             SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false).seed(seed);
             builder.squad(MECH).faction(Faction.MARINE).size(1).at(MECH_X + 2, MECH_Y)
                     .mech(new MechDeploymentSpec(MechVariant.WARDEN, MechVariant.WARDEN.defaultRole,
-                            MissileReplenisherComponent.STANDARD, MechWeaponComponent.PD_LASER, null, null))
+                            MissileReplenisherComponent.STANDARD, MechWeaponComponent.BL_2, null, null))
                     .stationary()
                     .assigned(id -> ObjectiveAssignment.defendArea(id, MECH_X, MECH_Y))
                     .done();
@@ -102,7 +102,7 @@ public final class PdBeamScene implements BehaviorScene {
             BattleSimulation sim = world.sim();
             Crawl crawl = new Crawl(world.members(MECH)[0], world.members("target")[0]);
             SceneRun run = SceneRun.of(world).observe(crawl)
-                    .frames(seed == 1 ? frames : FrameSink.NONE, "pd-laser-crawl", FRAME_EVERY_TICKS, crawl::caption);
+                    .frames(seed == 1 ? frames : FrameSink.NONE, "bl-crawl", FRAME_EVERY_TICKS, crawl::caption);
             try {
                 while (run.tick() < CRAWL_WINDOW_TICKS && crawl.killTick < 0) run.step();
             } finally {
@@ -158,7 +158,7 @@ public final class PdBeamScene implements BehaviorScene {
         m.put("hitRateWindowSd", (float) sd);
         m.put("kills", kills);
         m.put("meanSecondsToKill", kills > 0 ? (float) (killSeconds / kills) : -1f);
-        return new SceneReport(id(), "pd-laser-crawl", 0, verdicts, m);
+        return new SceneReport(id(), "bl-crawl", 0, verdicts, m);
     }
 
     /**

@@ -42,8 +42,8 @@ public final class PdBeamSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
     /** {@code -Dsnapshot.pdBeam.shots=crawl} (comma-separated name suffixes) records only those look shots. */
     @Override protected List<LookReview.Shot> lookShots() {
         List<LookReview.Shot> all = List.of(
-                mechShot("pd-beam-arm", MechVariant.BULWARK, MechWeaponComponent.PD_LASER),
-                mechShot("pd-beam-nose", MechVariant.WARDEN, MechWeaponComponent.PD_LASER),
+                mechShot("pd-beam-arm", MechVariant.BULWARK, MechWeaponComponent.BL_2),
+                mechShot("pd-beam-nose", MechVariant.WARDEN, MechWeaponComponent.BL_2),
                 turretShot(),
                 crawlShot());
         String only = System.getProperty("snapshot.pdBeam.shots", "");
@@ -74,7 +74,7 @@ public final class PdBeamSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
             builder.squad("mech").faction(Faction.MARINE).size(1)
                     .at(holdX - placement.site().x0(), holdY - placement.site().y0())
                     .mech(new MechDeploymentSpec(MechVariant.WARDEN, MechRole.BALANCED,
-                            MissileReplenisherComponent.STANDARD, MechWeaponComponent.PD_LASER, null, null))
+                            MissileReplenisherComponent.STANDARD, MechWeaponComponent.BL_2, null, null))
                     .stationary()
                     .assigned(id -> ObjectiveAssignment.defendArea(id, holdX, holdY)).done();
             SceneWorld world = builder.build();
@@ -113,7 +113,7 @@ public final class PdBeamSceneSnapshotSuite extends BehaviorSceneSnapshotSuite {
             SceneWorld world = picket(placement).build();
             BattleSimulation sim = world.sim();
             VehicleType[] types = {VehicleType.LASER_TANK, VehicleType.HEAVY_APC};
-            MechWeaponComponent[] guns = {MechWeaponComponent.PD_LASER, MechWeaponComponent.LIGHT_PULSE_LASER};
+            MechWeaponComponent[] guns = {MechWeaponComponent.BL_2, MechWeaponComponent.BL_1};
             for (int i = 0; i < types.length; i++) {
                 float[] at = placement.openNear(SHOOTER_X, 8.5f + 6f * i);
                 long hull = sim.convoy().spawn(types[i], List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,

@@ -61,8 +61,8 @@ public final class WeaponRegistry {
      */
     public static final String MECH_SRM_LEGACY_ID = "weapon.mech-srm-legacy";
     public static final String MECH_LRM_LEGACY_ID = "weapon.mech-lrm-legacy";
-    public static final String MECH_SHOULDER_LASER_ID = "weapon.mech-shoulder-laser";
-    public static final String MECH_PULSE_LASER_ID = "weapon.mech-pulse-laser";
+    public static final String MECH_LL_3_ID = "weapon.mech-ll-3";
+    public static final String MECH_PL_2_AP_ID = "weapon.mech-pl-2-ap";
     public static final String MECH_AC_6_ID = "weapon.mech-ac-6";
     public static final String MECH_DC_5_ID = "weapon.mech-dc-5";
     public static final String MECH_THERMAL_LANCE_ID = "weapon.mech-thermal-lance";
@@ -71,16 +71,16 @@ public final class WeaponRegistry {
     public static final String MECH_SRM_3_QS_ID = "weapon.mech-srm-3-qs";
     /** The one-row light weapons that stock a small vehicle gun card ({@code vehicle-card-sizes.md}). */
     public static final String MECH_LIGHT_MG_ID = "weapon.mech-light-mg";
-    public static final String MECH_LIGHT_PULSE_LASER_ID = "weapon.mech-light-pulse-laser";
+    public static final String MECH_BL_1_ID = "weapon.mech-bl-1";
     /** The laser tanks' guns as parts, restated on a mech's cadence ({@code vehicle-card-sizes.md}). */
-    public static final String MECH_BURST_LASER_ID = "weapon.mech-burst-laser";
-    public static final String MECH_PD_LASER_ID = "weapon.mech-pd-laser";
-    /** The {@code battle.mech.pdBeam} control's pulsed PD lasers ({@code MechWeaponComponent.pdBeam}). */
-    public static final String MECH_PD_LASER_BURST_ID = "weapon.mech-pd-laser-burst";
-    public static final String MECH_LIGHT_PULSE_LASER_BURST_ID = "weapon.mech-light-pulse-laser-burst";
-    public static final String MECH_HEAVY_PD_LASER_ID = "weapon.mech-heavy-pd-laser";
-    public static final String MECH_MEDIUM_BURST_LASER_ID = "weapon.mech-medium-burst-laser";
-    public static final String MECH_LIGHT_BURST_LASER_ID = "weapon.mech-light-burst-laser";
+    public static final String MECH_PL_3_ID = "weapon.mech-pl-3";
+    public static final String MECH_BL_2_ID = "weapon.mech-bl-2";
+    /** The {@code battle.mech.pdBeam} control's pulsed BL lasers ({@code MechWeaponComponent.pdBeam}). */
+    public static final String MECH_BL_2_BURST_ID = "weapon.mech-bl-2-burst";
+    public static final String MECH_BL_1_BURST_ID = "weapon.mech-bl-1-burst";
+    public static final String MECH_PL_3_SWEEP_ID = "weapon.mech-pl-3-sweep";
+    public static final String MECH_PL_2_ID = "weapon.mech-pl-2";
+    public static final String MECH_PL_1_ID = "weapon.mech-pl-1";
 
     /**
      * Core resources retained for standalone tools and compatibility tests.

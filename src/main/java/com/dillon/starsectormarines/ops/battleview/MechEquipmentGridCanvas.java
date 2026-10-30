@@ -149,8 +149,8 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
             // The rack art follows tube count, independently of missile range.
             case SRM_5, LRM_5, SRM_5_FRAG, LRM_5_FRAG -> assets.srmPod;
             case SRM_15, LRM_15, SRM_15_FRAG, LRM_15_FRAG -> assets.lrmPod;
-            case SHOULDER_LASER_CANNON -> assets.shoulderLaser;
-            case PULSE_LASER -> assets.pulseLaserArm;
+            case LL_3 -> assets.ll3;
+            case PL_2_AP -> assets.pl2Ap;
             case AC_6 -> assets.ac6;
             case DC_5 -> assets.dc5;
             case THERMAL_LANCE -> assets.thermalLance;
@@ -158,12 +158,12 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
             case DC_4_QS -> assets.dc4Qs;
             case SRM_3_QS -> assets.srm3QsPod;
             case LIGHT_MACHINE_GUN -> assets.lightMachineGun;
-            case LIGHT_PULSE_LASER -> assets.lightPulseLaser;
-            case BURST_LASER -> assets.burstLaser;
-            case PD_LASER -> assets.pdLaser;
-            case HEAVY_PD_LASER -> assets.heavyPdLaser;
-            case MEDIUM_BURST_LASER -> assets.mediumBurstLaser;
-            case LIGHT_BURST_LASER -> assets.lightBurstLaser;
+            case BL_1 -> assets.bl1;
+            case PL_3 -> assets.pl3;
+            case BL_2 -> assets.bl2;
+            case PL_3_SWEEP -> assets.pl3Sweep;
+            case PL_2 -> assets.pl2;
+            case PL_1 -> assets.pl1;
         };
     }
 

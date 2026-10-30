@@ -287,7 +287,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         MechWeaponMount[] mounts = {
                 mount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.LRM_15, 2, 0),
                 mount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.SRM_5, 4, 1),
-                mount(MechMountSlot.LEFT_ARM, MechWeaponComponent.PULSE_LASER, -1, 2),
+                mount(MechMountSlot.LEFT_ARM, MechWeaponComponent.PL_2_AP, -1, 2),
                 mount(MechMountSlot.RIGHT_ARM, MechWeaponComponent.CHAINGUN, -1, 0)};
         var base = BattleDirectControlHudTest.preview(BattleDirectControlStatus.Carrier.MECH, false);
         return new BattleDirectControlStatus.Snapshot(base.entityId(), "Bulwark Lead",

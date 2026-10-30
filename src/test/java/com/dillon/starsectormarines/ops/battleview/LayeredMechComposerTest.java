@@ -175,12 +175,12 @@ class LayeredMechComposerTest {
                 0f, 0f, 0f, 0f, 0f, 0f,
                 LayeredMechAppearance.FLAG_CHAINGUN_FLASH,
                 variant.chassisAppearance, LayeredMechAppearance.ARMS_NONE,
-                LayeredMechAppearance.ARMS_PULSE_LASER, LayeredMechAppearance.ARMS_PULSE_LASER,
+                LayeredMechAppearance.ARMS_PL_2_AP, LayeredMechAppearance.ARMS_PL_2_AP,
                 variant.leftShoulder.appearanceSelector,
                 variant.rightShoulder.appearanceSelector, 1f);
 
         List<Layer> pulseArms = layers.stream()
-                .filter(layer -> fileName(layer.path()).equals("pulse-laser-arm.png"))
+                .filter(layer -> fileName(layer.path()).equals("pl-2-ap.png"))
                 .toList();
         List<Layer> flashes = layers.stream()
                 .filter(layer -> fileName(layer.path()).equals("marine-muzzle-flash.png"))
@@ -214,7 +214,7 @@ class LayeredMechComposerTest {
         LayeredMechAssets assets = MechLabDollCanvas.headlessAssets();
         List<Layer> layers = emitFlashingMech(assets, MechVariant.BULWARK,
                 LayeredMechAppearance.FLAG_LASER_FLASH,
-                LayeredMechAppearance.POD_SHOULDER_LASER);
+                LayeredMechAppearance.POD_LL_3);
 
         List<Layer> flashes = layers.stream()
                 .filter(layer -> fileName(layer.path()).equals("marine-muzzle-flash.png"))

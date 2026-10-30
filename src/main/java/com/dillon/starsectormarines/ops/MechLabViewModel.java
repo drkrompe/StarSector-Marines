@@ -3230,7 +3230,7 @@ public final class MechLabViewModel {
         ALL(null, null, null),
         BALLISTIC("openingMechLabBallistic", "graphics/ui/mech-hardware/chaingun.svg", "#e2c248"),
         MISSILE("openingMechLabMissile", "graphics/ui/mech-hardware/srm-5.svg", "#6cc45e"),
-        ENERGY("openingMechLabEnergy", "graphics/ui/mech-hardware/pulse-laser.svg", "#e06a3c"),
+        ENERGY("openingMechLabEnergy", "graphics/ui/mech-hardware/pl-2-ap.svg", "#e06a3c"),
         ENGINE("openingMechLabFilterEngine", "graphics/ui/mech-hardware/engine-industrial.svg", "#5e96d2"),
         CAPACITORS("openingMechLabFilterCapacitors", "graphics/ui/mech-hardware/capacitor-factory.svg", "#a07edc"),
         UTILITY("openingMechLabFilterUtility", "graphics/ui/mech-hardware/loader-standard.svg", "#4cb4a6"),

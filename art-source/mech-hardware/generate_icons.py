@@ -125,6 +125,7 @@ GLYPHS = {
     '0': ['.###.', '#...#', '#..##', '#.#.#', '##..#', '#...#', '.###.'],
     '1': ['..#..', '.##..', '..#..', '..#..', '..#..', '..#..', '.###.'],
     '2': ['.###.', '#...#', '....#', '...#.', '..#..', '.#...', '#####'],
+    '3': ['####.', '....#', '....#', '.###.', '....#', '....#', '####.'],
     '4': ['...#.', '..##.', '.#.#.', '#..#.', '#####', '...#.', '...#.'],
     '5': ['#####', '#....', '####.', '....#', '....#', '#...#', '.###.'],
     '6': ['..##.', '.#...', '#....', '####.', '#...#', '#...#', '.###.'],
@@ -371,10 +372,10 @@ def build():
     f['frag-mark'] = svg(100, 100, poly(pts, 'fill="#000000" fill-opacity="0.7"')
                          + poly(inner, 'fill="#ffffff" fill-opacity="0.75"'))
 
-    # Energy.
-    f['shoulder-laser'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 54, rings=5)), 'LAS')
+    # Energy: the plates carry the laser's family and size (BL beam, PL pulse, LL lance; PL2A the (AP), PL3S the (Sweep)).
+    f['ll-3'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 54, rings=5)), 'LL3')
     # Arm guns are one barrel each in a 2x2 piece; a two-armed chassis carries one per arm.
-    f['pulse-laser'] = banded(150, 200, upright2(pulse_laser(75, 10, 190, 80)), 'PLS')
+    f['pl-2-ap'] = banded(150, 200, upright2(pulse_laser(75, 10, 190, 80)), 'PL2A')
 
     # Thermal lance, a 2x1 piece: fuel tank, feed pipe, nozzle, and the flame it throws.
     b = rect(8, 26, 38, 48, D, rx=12) + rect(14, 32, 26, 8, L, rx=3)
@@ -427,14 +428,14 @@ def build():
     # The light weapons, 2x1 pieces for the small gun card: a light machine gun on its drum and a short pulse laser,
     # side-on and pointing right as the other one-row pieces are.
     f['light-machine-gun'] = banded(150, 100, autogun(38, 8, 142, 22, drum=True), 'LMG')
-    f['light-pulse-laser'] = banded(150, 100, pulse_laser(46, 8, 142, 42), 'LPL')
+    f['bl-1'] = banded(150, 100, pulse_laser(46, 8, 142, 42), 'BL1')
     # The SRM technical's roof pod: a two-row rack of short-range missiles on a base rail.
     f['vehicle-srm-5'] = banded(150, 100, missile_rack(150, 100, 2, 'srm') + rect(14, 86, 124, 5, D, rx=2), 'SRM')
-    f['burst-laser'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 66, rings=7)), 'HBL')
-    f['heavy-pd-laser'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 60, rings=5)), 'HPD')
-    f['medium-burst-laser'] = banded(150, 200, upright2(laser_cannon(75, 10, 190, 56, rings=4)), 'BST')
-    f['light-burst-laser'] = banded(150, 100, pulse_laser(46, 8, 142, 38), 'LBL')
-    f['pd-laser'] = banded(150, 200, upright2(pulse_laser(75, 10, 190, 56)), 'PDL')
+    f['pl-3'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 66, rings=7)), 'PL3')
+    f['pl-3-sweep'] = banded(150, 300, upright(laser_cannon(75, 10, 290, 60, rings=5)), 'PL3S')
+    f['pl-2'] = banded(150, 200, upright2(laser_cannon(75, 10, 190, 56, rings=4)), 'PL2')
+    f['pl-1'] = banded(150, 100, pulse_laser(46, 8, 142, 38), 'PL1')
+    f['bl-2'] = banded(150, 200, upright2(pulse_laser(75, 10, 190, 56)), 'BL2')
 
     # DC-5, the demolition cannon: a short, very wide siege barrel. Breech block, recoil buffers, a
     # tapering barrel bound by heavy bands, and a flared muzzle collar.

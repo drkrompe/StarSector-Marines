@@ -34,7 +34,7 @@ public final class HullReservoir {
     /** What one auxiliary vent array adds to a hull's dissipation (`MechInternal.AUXILIARY_VENT_ARRAY`). */
     public static final float VENT_ARRAY_DISSIPATION = 1f;
     /**
-     * The laser tank's stock bank and vent arrays: a bigger stock fit so it sustains its burst laser, whose flux
+     * The laser tank's stock bank and vent arrays: a bigger stock fit so it sustains its PL-3, whose flux
      * cost is the mech part's and is not the hull's to change (owner, 2026-10-30).
      */
     static final Frame LASER_TANK_STOCK_BANK = DOUBLE_BANK;

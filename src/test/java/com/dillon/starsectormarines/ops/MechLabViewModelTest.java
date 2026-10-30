@@ -89,16 +89,16 @@ class MechLabViewModelTest {
 
         // Nothing in stores yet: a pattern alone cannot be dragged, its row fabricates first.
         assertFalse(viewModel.canDropCatalogWeapon(
-                MechWeaponComponent.PULSE_LASER, SocketId.LEFT_ARM));
+                MechWeaponComponent.PL_2_AP, SocketId.LEFT_ARM));
         viewModel.selectSlot(SocketId.LEFT_ARM);
         viewModel.catalogRows().get().stream()
-                .filter(row -> row.weaponPreview() == MechWeaponComponent.PULSE_LASER)
+                .filter(row -> row.weaponPreview() == MechWeaponComponent.PL_2_AP)
                 .findFirst().orElseThrow().action().run();
         assertTrue(viewModel.canDropCatalogWeapon(
-                MechWeaponComponent.PULSE_LASER, SocketId.LEFT_ARM));
+                MechWeaponComponent.PL_2_AP, SocketId.LEFT_ARM));
         assertTrue(viewModel.dropCatalogWeapon(
-                MechWeaponComponent.PULSE_LASER, SocketId.LEFT_ARM));
-        assertEquals(MechWeaponComponent.PULSE_LASER,
+                MechWeaponComponent.PL_2_AP, SocketId.LEFT_ARM));
+        assertEquals(MechWeaponComponent.PL_2_AP,
                 viewModel.installedWeapon(SocketId.LEFT_ARM));
 
         assertTrue(viewModel.removeInstalledWeapon(SocketId.RIGHT_SHOULDER));
@@ -164,9 +164,9 @@ class MechLabViewModelTest {
         assertTrue(viewModel.selectedSlotRule().get().contains("OMNI SOCKET"));
         assertTrue(viewModel.catalogRows().get().size() > 1);
         assertTrue(viewModel.catalogRows().get().stream()
-                .anyMatch(row -> row.name().equals("Pulse laser")));
+                .anyMatch(row -> row.name().equals(MechWeaponComponent.PL_2_AP.displayName())));
         assertTrue(viewModel.catalogRows().get().stream()
-                .filter(row -> row.name().equals("Pulse laser"))
+                .filter(row -> row.name().equals(MechWeaponComponent.PL_2_AP.displayName()))
                 .findFirst().orElseThrow().actionDisabled());
         assertEquals(originalReplenisher, mech.missileReplenisherId());
         assertTrue(viewModel.feedbackText().get().contains("fabricable"));
@@ -263,7 +263,7 @@ class MechLabViewModelTest {
                 .findFirst().orElseThrow().select().run();
 
         MechLabViewModel.CatalogRow pulse = viewModel.catalogRows().get().stream()
-                .filter(row -> row.name().equals("Pulse laser"))
+                .filter(row -> row.name().equals(MechWeaponComponent.PL_2_AP.displayName()))
                 .findFirst().orElseThrow();
         assertFalse(pulse.actionDisabled());
         assertEquals(1, pulse.materials().size());
@@ -275,9 +275,9 @@ class MechLabViewModelTest {
         pulse.action().run();
         assertEquals(String.format("%,d", 60_000 - cost.required()), stockLabel(viewModel, "credits"));
         // Fabrication fills stores; fitting is the drag.
-        assertEquals(1, bay.availableWeapon(MechWeaponComponent.PULSE_LASER.id));
-        assertTrue(viewModel.dropCatalogWeapon(MechWeaponComponent.PULSE_LASER, SocketId.LEFT_ARM));
-        assertEquals(MechWeaponComponent.PULSE_LASER,
+        assertEquals(1, bay.availableWeapon(MechWeaponComponent.PL_2_AP.id));
+        assertTrue(viewModel.dropCatalogWeapon(MechWeaponComponent.PL_2_AP, SocketId.LEFT_ARM));
+        assertEquals(MechWeaponComponent.PL_2_AP,
                 bay.mechById(MechBay.STARTER_MECH_ID).leftArm());
 
         viewModel.nextGantryAction().run();
@@ -432,7 +432,8 @@ class MechLabViewModelTest {
     }
 
     private static MechLabViewModel.CatalogRow pulse(MechLabViewModel viewModel) {
-        return viewModel.catalogRows().get().stream().filter(row -> row.name().equals("Pulse laser"))
+        return viewModel.catalogRows().get().stream()
+                .filter(row -> row.name().equals(MechWeaponComponent.PL_2_AP.displayName()))
                 .findFirst().orElseThrow();
     }
 
@@ -661,7 +662,7 @@ class MechLabViewModelTest {
             MechLabSpecSheets.bindCatalogRows(binder, instance, viewModel.catalogRows().get());
             MechLabSpecSheets.bindActions(binder, instance, viewModel);
             document.layout(1920, 1080);
-            UiElement fab = instance.requireElement("mech-catalog:" + MechWeaponComponent.PULSE_LASER.id + ":action");
+            UiElement fab = instance.requireElement("mech-catalog:" + MechWeaponComponent.PL_2_AP.id + ":action");
             // Scroll the stores to the card, as a player would; how far down it sits follows the brick size.
             UiElement list = instance.requireElement("mech-catalog-list");
             float overflow = fab.box().contentBox().y() + fab.box().contentBox().height()
@@ -679,10 +680,10 @@ class MechLabViewModelTest {
             document.pointerUp(centerX(fab), centerY(fab));
             instance.flush();
             assertEquals(1, commits.get());
-            assertEquals(1, bay.availableWeapon(MechWeaponComponent.PULSE_LASER.id));
-            assertNotEquals(MechWeaponComponent.PULSE_LASER, viewModel.installedWeapon(SocketId.LEFT_ARM),
+            assertEquals(1, bay.availableWeapon(MechWeaponComponent.PL_2_AP.id));
+            assertNotEquals(MechWeaponComponent.PL_2_AP, viewModel.installedWeapon(SocketId.LEFT_ARM),
                     "fabrication must not fit the part");
-            assertTrue(instance.requireElement("mech-catalog:" + MechWeaponComponent.PULSE_LASER.id + ":action")
+            assertTrue(instance.requireElement("mech-catalog:" + MechWeaponComponent.PL_2_AP.id + ":action")
                     .hasClass("hidden"), "a spare in stores takes the build offer away");
         }
     }

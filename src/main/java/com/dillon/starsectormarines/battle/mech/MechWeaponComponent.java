@@ -37,9 +37,12 @@ public enum MechWeaponComponent {
     HC_20("component.mech-hc-20", "@gearMechWeaponComponentHC20", MountFamily.ARMS,
             HardpointType.BALLISTIC, 2, 3, "weapon.mech-hc-20",
             1, -1, LayeredMechAppearance.ARMS_HC_20),
-    PULSE_LASER("component.mech-pulse-laser", "@gearMechWeaponComponentPULSELASER",
-            MountFamily.ARMS, HardpointType.ENERGY, 2, 2, "weapon.mech-pulse-laser",
-            4, -1, LayeredMechAppearance.ARMS_PULSE_LASER),
+    // The lasers are named <Family>-<N> by how they fire (mechs-nouns.md, Weapon names): BL beam lasers (held), PL pulse
+    // lasers (a burst a trigger), LL lance lasers (one lance a trigger); N is the footprint's rows. A PL moniker marks a
+    // pulse laser built for one job: (AP) fewer, harder pulses that pierce plate, (Sweep) a long stream of light pulses.
+    PL_2_AP("component.mech-pl-2-ap", "@gearMechWeaponComponentPL2AP",
+            MountFamily.ARMS, HardpointType.ENERGY, 2, 2, "weapon.mech-pl-2-ap",
+            4, -1, LayeredMechAppearance.ARMS_PL_2_AP),
     AC_6("component.mech-ac-6",
             "@gearMechWeaponComponentAC6", MountFamily.ARMS,
             HardpointType.BALLISTIC, 2, 2, "weapon.mech-ac-6", 3, -1,
@@ -62,36 +65,35 @@ public enum MechWeaponComponent {
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 1,
             WeaponRegistry.MECH_LIGHT_MG_ID, 5, -1,
             LayeredMechAppearance.ARMS_LIGHT_MG),
-    // The light PD laser: a held beam (mechs-nouns.md, Beam weapons), as is the PD laser below.
-    LIGHT_PULSE_LASER("component.mech-light-pulse-laser", "@gearMechWeaponComponentLIGHTPULSELASER",
+    // The BL-1: a held beam (mechs-nouns.md, Beam weapons), as is the BL-2 below.
+    BL_1("component.mech-bl-1", "@gearMechWeaponComponentBL1",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 1,
             PdBeam.lightPd(), 4, -1,
-            LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER),
+            LayeredMechAppearance.ARMS_BL_1),
 
-    // The laser ladder (vehicle-card-sizes.md): a PD family (steady lances, a slight red motif) and a burst family (short
-    // heavy volleys that vent, clean white and blue), each in three sizes. Named by their size in the family: the light
-    // PD laser is LIGHT_PULSE_LASER above, the heavy burst laser BURST_LASER here. The light and middle PD lasers are held
-    // beams; the heavy PD laser keeps its long lance a pull at a time.
-    LIGHT_BURST_LASER("component.mech-light-burst-laser", "@gearMechWeaponComponentLIGHTBURSTLASER",
+    // The laser ladder (vehicle-card-sizes.md): the red-banded lasers (BL-1, BL-2 and PL-3 (Sweep)) and the pulse lasers
+    // (short heavy volleys that vent, clean white and blue: PL-1, PL-2, PL-3). The BL-1 and BL-2 are held beams; the
+    // PL-3 (Sweep) keeps its long stream of pulses a pull at a time.
+    PL_1("component.mech-pl-1", "@gearMechWeaponComponentPL1",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 1,
-            WeaponRegistry.MECH_LIGHT_BURST_LASER_ID, 2, -1,
-            LayeredMechAppearance.ARMS_LIGHT_BURST_LASER),
-    MEDIUM_BURST_LASER("component.mech-medium-burst-laser", "@gearMechWeaponComponentMEDIUMBURSTLASER",
+            WeaponRegistry.MECH_PL_1_ID, 2, -1,
+            LayeredMechAppearance.ARMS_PL_1),
+    PL_2("component.mech-pl-2", "@gearMechWeaponComponentPL2",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 2,
-            WeaponRegistry.MECH_MEDIUM_BURST_LASER_ID, 3, -1,
-            LayeredMechAppearance.ARMS_MEDIUM_BURST_LASER),
-    BURST_LASER("component.mech-burst-laser", "@gearMechWeaponComponentBURSTLASER",
+            WeaponRegistry.MECH_PL_2_ID, 3, -1,
+            LayeredMechAppearance.ARMS_PL_2),
+    PL_3("component.mech-pl-3", "@gearMechWeaponComponentPL3",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 3,
-            WeaponRegistry.MECH_BURST_LASER_ID, 4, -1,
-            LayeredMechAppearance.ARMS_BURST_LASER),
-    PD_LASER("component.mech-pd-laser", "@gearMechWeaponComponentPDLASER",
+            WeaponRegistry.MECH_PL_3_ID, 4, -1,
+            LayeredMechAppearance.ARMS_PL_3),
+    BL_2("component.mech-bl-2", "@gearMechWeaponComponentBL2",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 2,
             PdBeam.pd(), 10, -1,
-            LayeredMechAppearance.ARMS_PD_LASER),
-    HEAVY_PD_LASER("component.mech-heavy-pd-laser", "@gearMechWeaponComponentHEAVYPDLASER",
+            LayeredMechAppearance.ARMS_BL_2),
+    PL_3_SWEEP("component.mech-pl-3-sweep", "@gearMechWeaponComponentPL3SWEEP",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 3,
-            WeaponRegistry.MECH_HEAVY_PD_LASER_ID, 14, -1,
-            LayeredMechAppearance.ARMS_HEAVY_PD_LASER),
+            WeaponRegistry.MECH_PL_3_SWEEP_ID, 14, -1,
+            LayeredMechAppearance.ARMS_PL_3_SWEEP),
 
     // The anti-armor racks: a contact warhead fired only at hardened targets (mechs-nouns.md, Missile warheads).
     SRM_5("component.mech-srm-5", "@gearMechWeaponComponentSRM5", MountFamily.SHOULDER,
@@ -119,10 +121,10 @@ public enum MechWeaponComponent {
     LRM_15_FRAG("component.mech-lrm-15-frag", "@gearMechWeaponComponentLRM15FRAG", MountFamily.SHOULDER,
             HardpointType.MISSILE, 2, 3, WeaponRegistry.MECH_LRM_FRAG_ID,
             5, 3, LayeredMechAppearance.POD_LARGE_LRM),
-    SHOULDER_LASER_CANNON("component.mech-shoulder-laser", "@gearMechWeaponComponentSHOULDERLASERCANNON",
+    LL_3("component.mech-ll-3", "@gearMechWeaponComponentLL3",
             MountFamily.SHOULDER, HardpointType.ENERGY, 2, 3,
-            "weapon.mech-shoulder-laser", 1, -1,
-            LayeredMechAppearance.POD_SHOULDER_LASER),
+            "weapon.mech-ll-3", 1, -1,
+            LayeredMechAppearance.POD_LL_3),
     THERMAL_LANCE("component.mech-thermal-lance", "@gearMechWeaponComponentTHERMALLANCE",
             MountFamily.SHOULDER, HardpointType.ENERGY, 2, 1,
             "weapon.mech-thermal-lance", 1, -1,
@@ -150,7 +152,7 @@ public enum MechWeaponComponent {
     }
 
     /**
-     * Whether the light PD laser and the PD laser are held beams (`mechs-nouns.md`, Beam weapons): fire while the
+     * Whether the BL-1 and the BL-2 are held beams (`mechs-nouns.md`, Beam weapons): fire while the
      * trigger is held, a lance that tracks the aim, flux a second the only limit. {@code -Dbattle.mech.pdBeam=false} is
      * the control: both fire the pulsed bursts they had before, a pull at a time. Temporary A/B lever: remove it with the
      * control path and the {@code -burst} weapon entries once the owner has accepted the beam in play.
@@ -162,10 +164,10 @@ public enum MechWeaponComponent {
         static final boolean ON = Boolean.parseBoolean(System.getProperty("battle.mech.pdBeam", "true"));
 
         static String lightPd() {
-            return ON ? WeaponRegistry.MECH_LIGHT_PULSE_LASER_ID : WeaponRegistry.MECH_LIGHT_PULSE_LASER_BURST_ID;
+            return ON ? WeaponRegistry.MECH_BL_1_ID : WeaponRegistry.MECH_BL_1_BURST_ID;
         }
 
-        static String pd() { return ON ? WeaponRegistry.MECH_PD_LASER_ID : WeaponRegistry.MECH_PD_LASER_BURST_ID; }
+        static String pd() { return ON ? WeaponRegistry.MECH_BL_2_ID : WeaponRegistry.MECH_BL_2_BURST_ID; }
     }
 
     /**
@@ -225,13 +227,13 @@ public enum MechWeaponComponent {
 
     /**
      * A gun whose art is one barrel on the chassis's centreline (the HC-20, the DC breaching
-     * cannons, the heavy lasers): it fits the centreline arms mount only, never a side arm. Every
+     * cannons, the three-row PL lasers): it fits the centreline arms mount only, never a side arm. Every
      * other arm gun fits either; the chainguns and the AC-6 (QS) change their drawing with the
      * mount instead ({@link #appearanceSelector(MechMountSlot)}).
      */
     public boolean centrelineOnly() {
         return switch (this) {
-            case HC_20, DC_5, DC_4_QS, BURST_LASER, HEAVY_PD_LASER -> true;
+            case HC_20, DC_5, DC_4_QS, PL_3, PL_3_SWEEP -> true;
             default -> false;
         };
     }
@@ -244,16 +246,16 @@ public enum MechWeaponComponent {
 
     /**
      * The turret head this weapon wears when fitted to a hull that carries one ({@code VehicleType.headFrames}): the
-     * heavy (three-row) burst laser the white head the laser tank has always carried, the heavy PD laser the red head the
-     * PD laser tank carried, the HC cannons (the HC-20 and the HC-10, both one large bore) the Onager's single-cannon
+     * PL-3 the white head the laser tank has always carried, the PL-3 (Sweep) the red head the retired PD laser tank
+     * carried, the HC cannons (the HC-20 and the HC-10, both one large bore) the Onager's single-cannon
      * turret; the AC autocannons and DC demolition cannons the Onager's autocannon head, the chainguns and the light
      * machine gun its rotary head. A weapon whose head its hull does not carry, and every other weapon, is drawn as its own drawing on the
      * mount ring.
      */
     public TankHead tankHead() {
         return switch (this) {
-            case BURST_LASER -> TankHead.WHITE;
-            case HEAVY_PD_LASER -> TankHead.RED;
+            case PL_3 -> TankHead.WHITE;
+            case PL_3_SWEEP -> TankHead.RED;
             case HC_10, HC_20 -> TankHead.HEAVY_CANNON;
             case AC_6, AC_6_QS, DC_5, DC_4_QS -> TankHead.AUTOCANNON;
             case CHAINGUN, CHAINGUN_HF, LIGHT_MACHINE_GUN -> TankHead.ROTARY;
@@ -342,7 +344,7 @@ public enum MechWeaponComponent {
 
     /**
      * The held-trigger feed of a gun that fires while held: a rotary gun's barrels and belt (the chainguns, the light
-     * machine gun and the autocannons) or a beam's emitter (the light PD laser and the PD laser,
+     * machine gun and the autocannons) or a beam's emitter (the BL-1 and the BL-2,
      * {@link RotaryFeedDef#beam()}); null for a gun fired a pull at a time.
      */
     public RotaryFeedDef rotary() { return weaponDef().rotary(); }
@@ -358,7 +360,7 @@ public enum MechWeaponComponent {
 
     /**
      * Seconds from a trigger's first round to its last: its {@link #projectilesPerTrigger} rounds at the weapon's
-     * burst spacing, so a burst laser's click is a short stutter of pulses (`mechs-nouns.md`, Burst lasers). Zero for
+     * burst spacing, so a pulse laser's click is a short stutter of pulses (`mechs-nouns.md`, Pulse lasers). Zero for
      * a rotary gun, which has no trigger pull.
      */
     public float burstSeconds() {
@@ -383,7 +385,7 @@ public enum MechWeaponComponent {
             }
         }
         return switch (this) {
-            // Unused: a rotary gun's cycle is read from its feed above (a beam's too, the PD lasers' below being the
+            // Unused: a rotary gun's cycle is read from its feed above (a beam's too, the BL lasers' below being the
             // pdBeam control's).
             case CHAINGUN, CHAINGUN_HF, AC_6, AC_6_QS, LIGHT_MACHINE_GUN -> 0f;
             case SRM_5, SRM_5_FRAG -> 1.8f;
@@ -391,17 +393,17 @@ public enum MechWeaponComponent {
             case LRM_5, LRM_15, LRM_5_FRAG, LRM_15_FRAG -> 9f;
             case HC_10 -> 2.8f;
             case HC_20 -> 2.5f;
-            case PULSE_LASER -> 2.1f;
+            case PL_2_AP -> 2.1f;
             case DC_5 -> 5.8f;
             case DC_4_QS -> 5.5f;
-            case SHOULDER_LASER_CANNON, SRM_3_QS -> 7f;
+            case LL_3, SRM_3_QS -> 7f;
             case THERMAL_LANCE -> 4.8f;
-            case LIGHT_PULSE_LASER -> 1.8f;
-            case BURST_LASER -> 1.8f;
-            case PD_LASER -> 1.6f;
-            case HEAVY_PD_LASER -> 1.8f;
-            case MEDIUM_BURST_LASER -> 1.6f;
-            case LIGHT_BURST_LASER -> 1.4f;
+            case BL_1 -> 1.8f;
+            case PL_3 -> 1.8f;
+            case BL_2 -> 1.6f;
+            case PL_3_SWEEP -> 1.8f;
+            case PL_2 -> 1.6f;
+            case PL_1 -> 1.4f;
         };
     }
 
@@ -465,18 +467,18 @@ public enum MechWeaponComponent {
             case HC_20 -> HC_20_FLUX;
             case DC_5, DC_4_QS -> 26f;
             // The Prestige arm pays in mass; at 38 it lost to both Advanced arms on the same frame.
-            case PULSE_LASER -> 13f;
+            case PL_2_AP -> 13f;
 
-            case SHOULDER_LASER_CANNON -> 35f;
+            case LL_3 -> 35f;
             case THERMAL_LANCE -> 32f;
             case SRM_3_QS -> 24f;
-            case LIGHT_PULSE_LASER -> 7f;
-            // The burst laser is a flux hog, as on the tank; the PD laser runs cool.
-            case BURST_LASER -> 38f;
-            case PD_LASER -> 16f;
-            case HEAVY_PD_LASER -> 28f;
-            case MEDIUM_BURST_LASER -> 26f;
-            case LIGHT_BURST_LASER -> 14f;
+            case BL_1 -> 7f;
+            // The PL-3 is a flux hog, as on the tank; the BL-2 runs cool.
+            case PL_3 -> 38f;
+            case BL_2 -> 16f;
+            case PL_3_SWEEP -> 28f;
+            case PL_2 -> 26f;
+            case PL_1 -> 14f;
         };
     }
 
@@ -492,15 +494,24 @@ public enum MechWeaponComponent {
 
     /**
      * The ids a save may still hold for a part that was renamed, mapped to the part that succeeds it: the cannons before
-     * they took {@code <Family>-<N>} names, and the linear cannon, whose slot the HC-10 took.
+     * they took {@code <Family>-<N>} names, the linear cannon, whose slot the HC-10 took, and the lasers before they took
+     * BL, PL and LL names.
      */
-    private static final Map<String, String> RETIRED_IDS = Map.of(
-            "component.mech-muster-autogun", "component.mech-ac-6-qs",
-            "component.mech-bastion-autocannon", "component.mech-ac-6",
-            "component.mech-linear-cannon", "component.mech-hc-10",
-            "component.mech-heavy-cannon", "component.mech-hc-20",
-            "component.mech-demolition-cannon", "component.mech-dc-5",
-            "component.mech-quarry-breaker", "component.mech-dc-4-qs");
+    private static final Map<String, String> RETIRED_IDS = Map.ofEntries(
+            Map.entry("component.mech-muster-autogun", "component.mech-ac-6-qs"),
+            Map.entry("component.mech-bastion-autocannon", "component.mech-ac-6"),
+            Map.entry("component.mech-linear-cannon", "component.mech-hc-10"),
+            Map.entry("component.mech-heavy-cannon", "component.mech-hc-20"),
+            Map.entry("component.mech-demolition-cannon", "component.mech-dc-5"),
+            Map.entry("component.mech-quarry-breaker", "component.mech-dc-4-qs"),
+            Map.entry("component.mech-light-pulse-laser", "component.mech-bl-1"),
+            Map.entry("component.mech-pd-laser", "component.mech-bl-2"),
+            Map.entry("component.mech-light-burst-laser", "component.mech-pl-1"),
+            Map.entry("component.mech-medium-burst-laser", "component.mech-pl-2"),
+            Map.entry("component.mech-burst-laser", "component.mech-pl-3"),
+            Map.entry("component.mech-pulse-laser", "component.mech-pl-2-ap"),
+            Map.entry("component.mech-heavy-pd-laser", "component.mech-pl-3-sweep"),
+            Map.entry("component.mech-shoulder-laser", "component.mech-ll-3"));
 
     /** The part {@code id} names, a retired id resolving to its successor ({@link #RETIRED_IDS}); null for any other. */
     public static MechWeaponComponent findById(String id) {

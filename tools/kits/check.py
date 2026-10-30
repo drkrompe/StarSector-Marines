@@ -228,7 +228,7 @@ def check(page=None, reel=None):
     else:
         rep.info.append("Weapons tab not checked: no reel (pass --reel <index.json>) and no published clips.")
     if NOTES.exists():
-        notes = json.loads(NOTES.read_text(encoding="utf-8"))
+        notes = {kitdata.current_key(k): v for k, v in json.loads(NOTES.read_text(encoding="utf-8")).items()}
         for cid, n in sorted(notes.items()):
             if clips and cid not in clips:
                 rep.warn("orphan-note", cid, "a note for a clip the page no longer has: %s" % (n.get("text") or "(empty)")[:80])

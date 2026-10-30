@@ -25,6 +25,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import kitdata  # noqa: E402
 import ladder  # noqa: E402
 
 OUT = ladder.ROOT / "build/kits/export"
@@ -32,10 +33,16 @@ NOTES = ladder.REVIEW / "weapon-notes.json"
 
 
 def load_notes(folder):
+    """{clip id: note}; a note filed under a clip id or weapon id the game has since renamed (kitdata.RETIRED_CLIPS,
+    kitdata.RETIRED_WEAPONS) is read as its successor's, the newer note winning when both exist."""
     notes = {}
     for f in sorted((Path(folder) / "weapon-notes").glob("*.json")):
         doc = json.loads(f.read_text(encoding="utf-8"))
-        notes[f.stem] = {k: doc.get(k) or "" for k in ("weaponId", "name", "status", "text", "updatedAt")}
+        note = {k: doc.get(k) or "" for k in ("weaponId", "name", "status", "text", "updatedAt")}
+        note["weaponId"] = kitdata.RETIRED_WEAPONS.get(note["weaponId"], note["weaponId"])
+        clip = kitdata.RETIRED_CLIPS.get(f.stem, f.stem)
+        if clip not in notes or note["updatedAt"] > notes[clip]["updatedAt"]:
+            notes[clip] = note
     return notes
 
 

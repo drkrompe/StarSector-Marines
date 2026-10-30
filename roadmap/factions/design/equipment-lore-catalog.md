@@ -4,7 +4,9 @@ Status: ACTIVE — canonical provenance and faction-fit reference for shipped Ma
 
 Written: 2026-08-26
 
-Updated: 2026-10-30 — the mech cannons take `<Family>-<N>` names: the Muster autogun is the AC-6 (QS), the Quarry
+Updated: 2026-10-30 — the mech lasers take family names by how they fire (BL beam, PL pulse, LL lance; `mechs-nouns.md`,
+Weapon names); their lore names live in the descriptions, and the Lion's Guard Thermal Lance stays a thermal projector,
+not a laser. Also 2026-10-30 — the mech cannons take `<Family>-<N>` names: the Muster autogun is the AC-6 (QS), the Quarry
 breaker the DC-4 (QS), beside the SRM-3 (QS) rack, all QuickSell budget builds, as lower-performance mech components
 whose circulation does not make them faction defaults. Earlier: added the naming guide (faction schemes and grade marks)
 and moved Luddic, Lion's Guard and pirate kit onto it.
@@ -106,6 +108,14 @@ channel among manufacture, trade, capture, and black-market resale.
 All three are valid future subsystem-inventory or market stock. None belongs in
 `FactionMechLoadouts` merely because a faction can plausibly buy, capture, or
 maintain one; an authored doctrine must choose that weaker fit explicitly.
+
+The energy components are military and corporate patterns, not this commercial floor, and are named by
+how they fire (`mechs-nouns.md`, Weapon names); a lore name stays in the description. The LL-3 is the Lance
+Cannon, Tri-Tachyon's emitter for facilities that cannot be resupplied; the PL-2 (AP) is the walker-scale member
+of the AR-PULSE security family; the BL and PL lasers are the frigate's point-defence emitters and the laser
+tank's gun taken onto walkers. The **Thermal Lance** (`weapon.mech-thermal-lance`) is Lion's Brand, a Sindrian
+prestige thermal projector fed from fuel cells, issued to Lion's Guard formations by allotment: a heat lance
+whose impact burns, not a laser, so it keeps its own name outside the laser families.
 
 ## Armor patterns
 
