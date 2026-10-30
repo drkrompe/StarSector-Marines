@@ -1,16 +1,17 @@
 package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.i18n.Strings;
+import com.dillon.starsectormarines.battle.weapon.LoaderPace;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 
 import java.util.List;
 
 /**
- * Installed onboard subsystem that controls how quickly finite missile mounts
- * fabricate and load replacement trigger packs. The component is independent
- * of chassis and weapon hardware. In the campaign it is a loader part in the
+ * Installed onboard subsystem, the mech's loader: how quickly finite missile mounts fabricate and load replacement
+ * trigger packs, and how fast every rotary gun's hopper refills its belt ({@link #loaderFactor}, {@link LoaderPace}).
+ * The component is independent of chassis and weapon hardware. In the campaign it is a loader part in the
  * auxiliary compartment ({@code MechInternal.STANDARD_LOADER} and its kin);
- * a mech frozen without one carries {@link #NONE}, whose cadence never completes.
+ * a mech frozen without one carries {@link #NONE}, whose missile cadence never completes.
  */
 public record MissileReplenisherComponent(
         String id,
@@ -24,12 +25,14 @@ public record MissileReplenisherComponent(
             new MissileReplenisherComponent(
                     "standard_replenisher", "@gearReplenisherStandard",
                     12f, 18f);
+    /** A pack in three quarters of the standard loader's time ({@link LoaderPace#ACCELERATED_TIME_SHARE}). */
     public static final MissileReplenisherComponent ACCELERATED_FEED =
             new MissileReplenisherComponent(
                     "accelerated_feed", "@gearReplenisherAccelerated",
-                    9f, 13.5f);
+                    STANDARD.srmReplenishmentSeconds * LoaderPace.ACCELERATED_TIME_SHARE,
+                    STANDARD.lrmReplenishmentSeconds * LoaderPace.ACCELERATED_TIME_SHARE);
 
-    /** No loader fitted: racks keep what they launched with. */
+    /** No loader fitted: racks keep what they launched with; belts keep their gun's own hopper. */
     public static final MissileReplenisherComponent NONE =
             new MissileReplenisherComponent(
                     "no_loader", "@gearReplenisherNone",
@@ -59,6 +62,16 @@ public record MissileReplenisherComponent(
         if (WeaponRegistry.isMechSrm(weaponId)) return srmReplenishmentSeconds;
         if (WeaponRegistry.isMechLrm(weaponId)) return lrmReplenishmentSeconds;
         return Float.POSITIVE_INFINITY;
+    }
+
+    /**
+     * What this loader multiplies a belt-fed gun's hopper by ({@link LoaderPace}): the standard loader is the gun's own
+     * rate, a faster loader is faster by as much as it is on missile packs. With no loader a hopper keeps the gun's own
+     * rate, since the hopper is the gun's; only the missile packs, which the loader fabricates, stop.
+     */
+    public float loaderFactor() {
+        if (!Float.isFinite(srmReplenishmentSeconds)) return LoaderPace.STANDARD;
+        return LoaderPace.ofTimeShare(srmReplenishmentSeconds / STANDARD.srmReplenishmentSeconds);
     }
 
     /** Stable item catalog shared by campaign inventory and battle loadouts. */

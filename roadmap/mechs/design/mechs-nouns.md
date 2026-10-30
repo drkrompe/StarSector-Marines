@@ -60,12 +60,23 @@ increasing an encounter's total armored threat.
   and an arm chaingun (owner, 2026-10-30). Direct-control number keys follow mount
   order: 1 restores the default fire groups, then 2 centreline arm, 3 left arm,
   4 right arm, 5 and 6 the shoulders.
-- A **missile replenisher** is an installed onboard subsystem. It owns how
-  quickly finite SRM and LRM mounts regain trigger packs, independently of
-  their mechanical trigger cycle and ready-ammunition capacity. Replenishment repeats
+- A **missile replenisher** is an installed onboard subsystem, the machine's
+  **loader**. It owns how quickly finite SRM and LRM mounts regain trigger packs,
+  independently of their mechanical trigger cycle and ready-ammunition capacity,
+  and how fast every rotary gun's hopper refills its belt. Replenishment repeats
   for the life of the mech. In the campaign it is the **loader** part in the
   auxiliary compartment; a deployment frozen without one carries `no_loader`,
-  whose cadence never completes.
+  whose missile cadence never completes.
+- **The loader paces every fed weapon by one rule** (`LoaderPace`, owner,
+  2026-10-30): a weapon's authored refill (a rotary gun's hopper, a vehicle
+  mount's `loaderSeconds`, the standard SRM and LRM cadences) is the **standard
+  loader's** rate, ×1; the **accelerated loader** puts a pack back in three
+  quarters of that time, ×4/3, on missile packs, magazines and hoppers alike, a
+  mech's loader part and a vehicle's accelerated-loader kit the same. A machine
+  with **no loader** loses only its missile packs, which the loader fabricates; a
+  belt or a vehicle magazine keeps its gun's own rate, so giving up the loader for a
+  bigger bank never strands a chaingun. A weapon with no authored refill (a mech's
+  demolition cannon or rocket pod) has nothing for a loader to multiply.
 - A **rotary gun** (the chainguns, the light machine gun, the Bastion autocannon
   and the Muster autogun) has no trigger pull. It fires while its
   trigger is held: its **spin** ramps from a first-turn rate to its full rate over
@@ -78,11 +89,14 @@ increasing an encounter's total armored threat.
   2026-10-30). Its rounds come off a **belt**
   (a few hundred for a chaingun), which a **hopper** refills at a fixed rate every tick for the
   life of the mech, firing or not: the chaingun's counterpart of the replenisher's
-  cadence, owned by the gun. Ammunition is unlimited over a fight; a long hold
+  cadence. Ammunition is unlimited over a fight; a long hold
   empties the belt, and then the gun fires only as fast as the hopper. Spin-up,
   refill and the round's damage are what make a better chaingun, so the feed is
   authored on the weapon (`sim.rotary`), not on the chassis, and the better gun
-  is a better component (the Advanced high-feed chaingun).
+  is a better component (the Advanced high-feed chaingun). The authored refill is
+  the standard loader's; the machine's loader multiplies it (the loader rule
+  above), so an accelerated loader feeds every rotary gun a third faster, the
+  high-feed chaingun included, which stays the better gun by its own numbers.
 - A **campaign mech** is one persistent player-owned chassis plus its doctrine
   and installed components. It is the campaign authority that produces a
   frozen battle loadout; the live battle mech never reaches back into it.
@@ -214,9 +228,12 @@ increasing an encounter's total armored threat.
   bay one the battle already flies, so it adds no behaviour of its own and no
   balance surface beyond its own effect:
   - **Spall liner** (Common): a fifth more structure.
-  - **Ready rack** (Common, hulls whose own gun has a magazine): half again the turret's magazine.
-  - **Accelerated loader** (Advanced, hulls whose own gun has a loader): every mount's loader puts a
-    pack back in three quarters of the stock time (`convoy-nouns.md`, the loader).
+  - **Ready rack** (Common, hulls whose own gun is fed: a magazine or a rotary gun's belt): half again
+    the turret's magazine, or half again a rotary gun's belt.
+  - **Accelerated loader** (Advanced, the same hulls): every gun on the hull refills a third faster
+    by the loader rule, a pack back in three quarters of the stock time and a rotary gun's hopper ×4/3
+    (`convoy-nouns.md`, the loader). It is how a belt-fed light machine gun hull closes on the old
+    heavy MG, by an item rather than by the gun's base numbers.
   - **Capacitor pack** (Advanced, armed hulls, whose every gun builds flux):
     half again the flux the gun holds before it overloads.
   - **Sensor drone pair** (Advanced, hulls with no bay of their own): two sensor
@@ -324,7 +341,7 @@ increasing an encounter's total armored threat.
   an **engine** in the CORE socket, **plating**, which covers the whole frame but is
   fitted at its own PLATING socket, the armor point, and the parts that share the
   auxiliary compartment: **capacitor banks**,
-  **vent arrays** and **missile loaders**. The **stock frame** is the industrial
+  **vent arrays** and **loaders**. The **stock frame** is the industrial
   engine, factory plating, and a factory capacitor bank and standard loader in the
   compartment; an existing mech with no recorded internals resolves to it. Each
   internal replaces or adds one part; none multiplies the chassis.
@@ -352,9 +369,11 @@ increasing an encounter's total armored threat.
   joins by taking a role and a footprint, never a socket of its own.
 - The **loader** is the missile replenisher, an ordinary inventory part: built from
   its pattern, held in stores, dragged in and out of the compartment, lost with the
-  chassis and spared by a scrap like any internal. The standard loader is a stock
-  part every company knows; the accelerated loader is Advanced and heavier. A mech
-  with no loader fights with the racks it launched with and never refills them;
+  chassis and spared by a scrap like any internal. It resupplies every fed weapon on
+  the frame (the loader rule above): the standard loader is a stock part every
+  company knows; the accelerated loader is Advanced and heavier, and refills racks
+  and belts a third faster. A mech with no loader fights with the racks it launched
+  with and never refills them, while its rotary guns keep their own hoppers;
   that is a choice, not a gap, so it does not hold the mech back.
 - **What is required to drop**: an engine in CORE and a capacitor bank in the
   compartment. A mech missing either is `INCOMPLETE`. A bare frame's compartment is
@@ -1346,7 +1365,8 @@ support sortie, subject only to practical runtime resources.
   loader owns refill cadence. Upgrade content changes the subsystem rather
   than encoding reload speed in a chassis, role, or weapon definition.
 - A rotary gun's belt and hopper belong to the gun: a better feed is a better gun,
-  never a chassis or role value. One rule advances spin and belt for the pilot and
+  never a chassis or role value. The machine's loader multiplies the hopper as it
+  does every refill (`LoaderPace`), and no other part of the chassis touches it. One rule advances spin and belt for the pilot and
   the AI. An autonomous gunner leases the trigger while a target is exposed, keeps
   the barrels turning while engaged without a shot, and keeps a reserve: below a
   fifth of the belt it stops asking for rounds until the hopper has put a third

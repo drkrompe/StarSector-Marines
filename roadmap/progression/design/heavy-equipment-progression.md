@@ -136,7 +136,7 @@ budget). The ladder, tuned on headless readings (below):
 | Plating (frame) | Factory | Composite: half the armor band, 1 plating unit | Heavy: full band, 2.5 units |
 | Capacitor bank (compartment) | Factory: 100 flux, 6/s, 2x1 | Double: 120, 7.5/s, 2x1, mass 3 | Military: 120, 8/s, 2x2, mass 5 |
 | Vent array (compartment, stacks) | none | Auxiliary: +1/s, 2x1, mass 2 | — |
-| Loader (compartment) | Standard: SRM 12 s, LRM 18 s, 2x1 | Accelerated: 9 s / 13.5 s, 2x1, mass 1 | — |
+| Loader (compartment) | Standard: SRM 12 s, LRM 18 s, rotary hoppers at the gun's own rate, 2x1 | Accelerated: 9 s / 13.5 s, rotary hoppers ×4/3, 2x1, mass 1 | — |
 
 Rated output is Hound 20, Warden 39, Bulwark 50 (stock weapons weigh 16, 39 and
 44; the Bulwark rose from 46 when its twin arm gun became a single gun on

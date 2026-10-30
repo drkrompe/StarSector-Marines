@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
+import com.dillon.starsectormarines.battle.weapon.LoaderPace;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -182,7 +183,7 @@ public final class GroundTurret {
                                       HullTurretSection section) {
         GroundTurret turret = new GroundTurret(rounds, section);
         turret.unlimited = mount.ammoCapacity == 0;
-        turret.loaderSeconds = mount.loaderSeconds * kits.loaderFactor();
+        turret.loaderSeconds = LoaderPace.secondsPerPack(mount.loaderSeconds, kits.loaderFactor());
         turret.fluxCapacityFactor = kits.fluxCapacityFactor();
         return turret;
     }

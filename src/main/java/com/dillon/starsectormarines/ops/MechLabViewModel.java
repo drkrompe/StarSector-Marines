@@ -2061,7 +2061,8 @@ public final class MechLabViewModel {
                     number(internal.dissipation));
             case LOADER -> Strings.format("openingMechLabSrmSLrmS",
                     number(internal.replenisher().srmReplenishmentSeconds()),
-                    number(internal.replenisher().lrmReplenishmentSeconds()));
+                    number(internal.replenisher().lrmReplenishmentSeconds()),
+                    number(internal.replenisher().loaderFactor()));
         };
     }
 

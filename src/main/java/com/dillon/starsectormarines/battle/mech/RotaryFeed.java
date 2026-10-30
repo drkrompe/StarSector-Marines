@@ -1,11 +1,13 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.weapon.LoaderPace;
 import com.dillon.starsectormarines.battle.weapon.RotaryFeedDef;
 
 /**
  * The live spin and belt of one rotary mount. One rule serves the pilot and the AI: a held trigger spins
  * the barrels up and releases rounds at the rate the spin has reached, a released one lets them coast and
- * then spin down, and the hopper refills the belt every tick for the life of the mech, firing or not.
+ * then spin down, and the hopper refills the belt every tick for the life of the mech, firing or not, at the
+ * weapon's own rate times the machine's loader ({@link LoaderPace}).
  *
  * <p>The AI does not hold a button: it takes a short {@linkplain #demand lease} on the trigger each time
  * its doctrine wants the gun firing, and {@linkplain #hold holds the spin} while it is engaged without a
@@ -25,7 +27,10 @@ public final class RotaryFeed {
     /** How long one autonomous demand keeps the trigger down: a few ticks, renewed every decision. */
     public static final float AI_LEASE_SECONDS = 0.25f;
 
-    private final RotaryFeedDef def;
+    /** The weapon's own feed, at the standard loader. */
+    private final RotaryFeedDef authored;
+    /** The feed as this machine carries it: its loader's hopper rate and its ready rack's belt. */
+    private RotaryFeedDef def;
     private float spin;
     private float coast;
     private float belt;
@@ -36,12 +41,33 @@ public final class RotaryFeed {
     private boolean reserveHeld;
     private float sinceRound = Float.POSITIVE_INFINITY;
 
+    /** The weapon's feed at the standard loader, its belt full. */
     public RotaryFeed(RotaryFeedDef def) {
-        if (def == null) throw new IllegalArgumentException("Rotary feed needs its definition");
-        this.def = def;
-        this.belt = def.belt();
+        this(def, LoaderPace.STANDARD, 1f);
     }
 
+    /**
+     * The weapon's feed on a machine whose loader refills at {@code loaderFactor} ({@link LoaderPace}) and whose ready
+     * rack holds {@code beltFactor} times the belt, its belt full.
+     */
+    public RotaryFeed(RotaryFeedDef def, float loaderFactor, float beltFactor) {
+        if (def == null) throw new IllegalArgumentException("Rotary feed needs its definition");
+        this.authored = def;
+        this.def = def.fitted(loaderFactor, beltFactor);
+        this.belt = this.def.belt();
+    }
+
+    /**
+     * Re-paces the hopper for the machine's loader ({@link LoaderPace}), as when a mech's loader part is installed;
+     * the belt keeps its size and the rounds on it.
+     */
+    public void fitLoader(float loaderFactor) {
+        def = new RotaryFeedDef(def.spinUpSeconds(), def.coastSeconds(), def.spinDownSeconds(), def.firstTurnRate(),
+                def.fullRate(), def.belt(), LoaderPace.refillPerSecond(authored.refillPerSecond(), loaderFactor),
+                def.fluxPerRound());
+    }
+
+    /** The feed as this machine carries it: the hopper at its loader's rate, the belt its ready rack's size. */
     public RotaryFeedDef def() { return def; }
 
     /** 0 at rest, 1 at full speed. */
