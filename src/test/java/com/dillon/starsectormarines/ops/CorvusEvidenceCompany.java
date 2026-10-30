@@ -85,8 +85,13 @@ final class CorvusEvidenceCompany {
          */
         Kit forChapter(CorvusChapter chapter) {
             if (chapter != CorvusChapter.COLD_ACCOUNT || !vehicles.isEmpty() || !mechs.isEmpty()) return this;
-            return new Kit(squadWeapons, houndPod, ColdAccountCompany.VEHICLES, ColdAccountCompany.MECHS);
+            // A run that named no weapon card plays the company's own cards ({@link #COMPANY_CARDS}).
+            return new Kit(squadWeapons.equals(RECOVERED.squadWeapons()) ? COMPANY_CARDS : squadWeapons, houndPod,
+                    ColdAccountCompany.VEHICLES, ColdAccountCompany.MECHS);
         }
+
+        /** Stands for {@link ColdAccountCompany}'s per-squad cards in place of one card for every squad. */
+        static final String COMPANY_CARDS = "cold-account-company";
 
         /** The kit the system properties name, {@link #RECOVERED} where they name nothing. */
         static Kit fromSystemProperties() {
@@ -151,10 +156,11 @@ final class CorvusEvidenceCompany {
             if (!roster.mechBay().addVehicle(lance, new CampaignVehicle("evidence_vehicle_" + i, type.name(), type)))
                 throw new IllegalStateException(type + " did not board");
         }
-        // A company buys its later cards; the evidence company is simply handed the one it is issued.
-        roster.armory().learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.WEAPON, kit.squadWeapons()));
+        // A company buys its later cards; the evidence company is simply handed the ones it is issued.
         var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
-        for (String squad : selected) {
+        if (Kit.COMPANY_CARDS.equals(kit.squadWeapons())) ColdAccountCompany.issue(roster);
+        else roster.armory().learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.WEAPON, kit.squadWeapons()));
+        if (!Kit.COMPANY_CARDS.equals(kit.squadWeapons())) for (String squad : selected) {
             var result = roster.applySquadEquipment(squad, kit.squadWeapons(), SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
             if (result != SquadEquipmentResult.APPLIED)
                 throw new IllegalStateException(kit.squadWeapons() + " not issued to " + squad + ": " + result);

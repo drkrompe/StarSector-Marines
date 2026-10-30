@@ -1336,7 +1336,8 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
                 + (smallWar == null ? 0 : smallWar.pendingMembers())
                 + (termsOfProtection == null ? 0 : termsOfProtection.pendingMembers())
                 + (districtEscort == null ? 0 : districtEscort.pendingMembers())
-                + (dustLedger == null ? 0 : dustLedger.pendingMembers(Faction.DEFENDER));
+                + (dustLedger == null ? 0 : dustLedger.pendingMembers(Faction.DEFENDER))
+                + (coldAccount == null || coldAccount.machines() == null ? 0 : coldAccount.machines().pendingMembers());
     }
 
     /** Stateless slow-tick driver that polls the reinforcement triggers, drains the request queue, and dispatches each through the priority-ordered means (resource-gated). */

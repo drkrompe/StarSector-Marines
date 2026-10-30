@@ -221,7 +221,9 @@ public final class DebugMissionCatalog {
                     .requiredDrops(squads * 2).employerShuttles(0)
                     .marineArrivalPolicy(this == COLD_START || this == RELIEF ? MarineArrivalPolicy.SECURED_GROUND : MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                     .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
-                    .requirements(squads + (this == WORKING_PASSAGE ? " squads / service pulse rifles / starting Ward armor / no Hound or officer bonuses" : " starter squads" + (this == COLD_ACCOUNT ? " + " + ColdAccountCompany.BAY : hound ? " + the Hound (chaingun)" : "")) + "; preset boats supplied")
+                    .requirements(squads + (this == WORKING_PASSAGE ? " squads / service pulse rifles / starting Ward armor / no Hound or officer bonuses"
+                            : this == COLD_ACCOUNT ? " squads in the kit reached by Blind Watch + " + ColdAccountCompany.BAY
+                            : " starter squads" + (hound ? " + the Hound (chaingun)" : "")) + "; preset boats supplied")
                     .battleSeed(chapter != null ? chapter.mission("unused", chapter.planetName, "").battleSeed
                             : ravBloom() ? RavBloomDebugChoice.seed(poolMap())
                             : 8101L + (this == DEPOT_CLEARANCE ? COUNTERATTACK.ordinal() : ordinal()) * 101).build();
@@ -323,6 +325,10 @@ public final class DebugMissionCatalog {
     /** Detached expected issue for one authored debug operation; campaign equipment is untouched. */
     public static MarineRoster expectedCompany(Mission mission, int squads) {
         MarineRoster roster = starterCompany(squads);
+        if (scenario(mission) == Scenario.COLD_ACCOUNT) {
+            ColdAccountCompany.issue(roster);
+            return roster;
+        }
         if (scenario(mission) != Scenario.WORKING_PASSAGE) return roster;
         roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.primaryId(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE));
         var issue = new SquadWeaponIssue("Rifleman", WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE, null);

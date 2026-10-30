@@ -65,7 +65,7 @@ class DebugMissionCatalogTest {
                 WeaponRegistry.PULSE_RIFLE_ID.equals(s.primaryId()) && s.primaryGrade() == EquipmentGrade.SERVICE));
         assertEquals("04", DebugMissionCatalog.Scenario.WORKING_PASSAGE.sequence());
     }
-    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"WORKING_PASSAGE", "WELLHOLLOW_BREACH", "WELLHOLLOW_ROAD", "WELLHOLLOW_BURN", "WELLHOLLOW_FRONT"}, mode = EnumSource.Mode.EXCLUDE)
+    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"WORKING_PASSAGE", "COLD_ACCOUNT", "WELLHOLLOW_BREACH", "WELLHOLLOW_ROAD", "WELLHOLLOW_BURN", "WELLHOLLOW_FRONT"}, mode = EnumSource.Mode.EXCLUDE)
     void otherAuthoredCompaniesKeepTheirStarterIssue(DebugMissionCatalog.Scenario scenario) {
         var context = new MarineOpsContext(null);
         context.resetDebugPreset(scenario.mission());
@@ -78,6 +78,14 @@ class DebugMissionCatalogTest {
         assertEquals(starter.lineReadySoldiers().stream().map(s -> s.armorId()).toList(),
                 company.lineReadySoldiers().stream().map(s -> s.armorId()).toList());
         assertFalse(DebugMissionCatalog.preset(scenario.mission()).serviceRifles());
+    }
+    @Test void coldAccountLandsItsOwnCompany() {
+        var context = new MarineOpsContext(null);
+        context.resetDebugPreset(DebugMissionCatalog.Scenario.COLD_ACCOUNT.mission());
+        var squads = context.getDebugCompanyRoster().squads().stream().filter(squad -> !squad.reserve()).toList();
+        assertEquals(ColdAccountCompany.WEAPON_CARDS, squads.stream().map(squad -> squad.weaponDoctrineId()).toList());
+        assertEquals(ColdAccountCompany.MACHINES,
+                DebugMissionCatalog.preset(DebugMissionCatalog.Scenario.COLD_ACCOUNT.mission()).mechs());
     }
     @Test void catalogHasUniqueDetachedIdentitiesAndEveryOperationTier() {
         var missions = DebugMissionCatalog.missions(null);

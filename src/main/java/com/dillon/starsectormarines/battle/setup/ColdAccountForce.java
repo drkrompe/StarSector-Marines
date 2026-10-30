@@ -17,7 +17,8 @@ import java.util.Map;
  * <p>Sized against the company the chapter expects: five squads and four machines, one of them an
  * LRM carrier that strips an exposed squad from beyond rifle range. The force does not shrink for a
  * smaller company (Conquest's rule), so the fight keeps targets and guns enough to contest the road
- * and the compound. UNTUNED: the counts were chosen for that expected company and have not been
+ * and the compound. Its machines stand down in the vehicle shed and come out once the company is
+ * inside the walls. UNTUNED: the counts were chosen for that expected company and have not been
  * played against it; settle them with a player-controlled pass.
  */
 final class ColdAccountForce {
@@ -25,6 +26,7 @@ final class ColdAccountForce {
 
     static final int REGULARS = 28;
     static final int MILITIA = 40;
+    /** The machines in the vehicle shed, held until the company is inside ({@link ColdAccountMachineReserve}). */
     static final List<MechVariant> MACHINES = List.of(MechVariant.HOUND, MechVariant.WARDEN);
     static final int PATROL = 7;
 
@@ -41,7 +43,8 @@ final class ColdAccountForce {
     static final String POINT_DEFENCE = "structure.post-point-defence";
 
     static DefenderRoster roster(RiskLevel risk) {
-        return DefenderRoster.explicit(REGULARS, MILITIA, MACHINES, PATROL, risk);
+        // The machines are not garrisoned at setup: they wait in the shed as a reserve.
+        return DefenderRoster.explicit(REGULARS, MILITIA, List.of(), PATROL, risk);
     }
 
     /** Stands a defender point-defence mount on the nearest open outdoor cell to each anchor. */

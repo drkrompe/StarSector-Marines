@@ -400,7 +400,7 @@ class CorvusCombatEvidenceTest {
                 var report = new JSONObject().put("chapter", chapter.title()).put("seed",mission.battleSeed)
                         .put("companyBoats",boatCount).put("captainBonuses",false)
                         .put("weapons",chapterKit.squadWeapons()).put("houndShoulder",chapterKit.houndPod() == null ? "" : kit.houndPod().name())
-                        .put("armor",SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR)
+                        .put("armor",CorvusEvidenceCompany.Kit.COMPANY_CARDS.equals(chapterKit.squadWeapons()) ? ColdAccountCompany.ARMOR_SHEET : SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR)
                         .put("result", sim.isComplete() ? String.valueOf(sim.getWinner()) : "TIMEOUT")
                         .put("ticks",sim.getSimTickIndex()).put("namedSeats",deployment.size()).put("landed",landed.size())
                         .put("infantryDeaths",fallen.size()).put("enemyDeaths",enemyFallen.size()).put("initialDefenders",initialDefenders)
@@ -479,7 +479,8 @@ class CorvusCombatEvidenceTest {
                 Files.writeString(output.resolve("summary.json"),reports.toString(2));
                 writeSummary(output, reports, boatCount);
                 assertTrue(houndLandedAt > 0, "Must actually deliver the recovered chassis");
-                assertEquals(0, sim.getCommandPowerService().getChargesRemaining(MechSupport.ID));
+                // Every machine the lift admits is down; a bay larger than the boat's lifts keeps the rest aboard.
+                assertFalse(((MechSupport) sim.getCommandPowerService().getPower(MechSupport.ID)).canStillField(sim));
             }
             // Independent force baselines: advance the offer even if the preceding playback lost.
             assertTrue(progress.begin(mission.id, chapter.planetName));

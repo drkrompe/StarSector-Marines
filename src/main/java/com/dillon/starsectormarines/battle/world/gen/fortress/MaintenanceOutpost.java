@@ -50,6 +50,18 @@ public final class MaintenanceOutpost {
         return layout(true).at(44, (height - 70) / 2, 0);
     }
 
+    /** The compound inside its wall, {@code {left, top, right, bottom}} inclusive. */
+    public static int[] footprint(int height) {
+        var site = placement(height);
+        int[] from = site.cell(0, 0), to = site.cell(79, 69);
+        return new int[]{Math.min(from[0], to[0]), Math.min(from[1], to[1]), Math.max(from[0], to[0]), Math.max(from[1], to[1])};
+    }
+
+    /** The vehicle shed's floor, where the outpost's machines stand down. */
+    public static int[] machineBay(int height) {
+        return placement(height).cell(24, 53);
+    }
+
     /** Where the compound's point defence stands: by dispatch on the bay approach, the barracks court, inside the gate. */
     public static List<int[]> pointDefenceAnchors(int height) {
         var site = placement(height);

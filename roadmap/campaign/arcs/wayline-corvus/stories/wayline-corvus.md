@@ -47,9 +47,11 @@ free replacement troops or chassis.
   routes to outdoor search waypoints did not prove access inside the base.
 - [ ] Tune A Cold Account against five squads and four machines: the authored
   force (`ColdAccountForce`) and its emplacements are in place but unplayed
-  against that company. `ColdAccountCompany` is that company (five starter
-  squads, the recovered Hound, a Warden, an LRM carrier and a breakthrough
-  tank); the debug briefing lands it and the Corvus evidence musters it. The
+  against that company. `ColdAccountCompany` is that company: five squads
+  on the weapon cards the Kit Ladder sells by Blind Watch (Trench Clearing,
+  Convoy Escort, Counter-Battery, Steady Line, Forward Screen) in Fleet Combat
+  armour, with the recovered Hound, a Warden, an LRM carrier and a mortar APC
+  (the company's fitted Hermes lifts Medium at most, so no tank); the debug briefing lands it and the Corvus evidence musters it. The
   evidence plays it autonomously, so its outcomes show the mission resolves,
   not how hard it is for a player.
 - [x] Blind Watch uses its authored remote layout, a finite light garrison and

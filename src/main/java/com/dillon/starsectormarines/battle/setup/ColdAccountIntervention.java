@@ -32,6 +32,7 @@ public final class ColdAccountIntervention implements Objective {
     private int patrolTick = -1, departedTick = -1;
     private int remainingWalls, outsideWithdrawal;
     private final int installationRight;
+    private ColdAccountMachineReserve machines;
     private boolean pendingArrivals;
     private boolean companyRecovered;
     private final StructuralDemolitionPlan demolition;
@@ -58,6 +59,13 @@ public final class ColdAccountIntervention implements Objective {
     }
     public int installationRight() { return installationRight; }
     public ColdAccountLayout layout() { return layout; }
+    /** Sable's machines in the vehicle shed, or {@code null} when the outpost holds none. */
+    public ColdAccountMachineReserve machines() { return machines; }
+    /** Puts the outpost's machines in their shed; once, at setup. */
+    public void holdMachines(ColdAccountMachineReserve reserve) {
+        if (machines != null) throw new IllegalStateException("the shed is stocked once");
+        machines = reserve;
+    }
     public Phase phase() { return phase; }
     public int evidenceTick() { return evidenceTick; }
     public int warningTick() { return clearance.warningTick(); }
@@ -80,6 +88,7 @@ public final class ColdAccountIntervention implements Objective {
     /** Called before the weapons update so a hold order cancels even queued burst rounds. */
     public void advance(BattleSimulation sim) {
         if (isComplete() || isFailed()) return;
+        if (machines != null) machines.advance(sim);
         if (!evidence.targetSecured()) {
             boolean landed = false, nearDispatch = false;
             for (int i = 0; i < sim.liveUnitCount(); i++) {

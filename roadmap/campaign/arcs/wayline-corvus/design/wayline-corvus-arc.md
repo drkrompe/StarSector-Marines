@@ -49,7 +49,8 @@ can support the company; the story supplies no replacement personnel or chassis.
 A Cold Account expects the company at full strength: five squads and four
 machines, one an LRM carrier that strips exposed squads from beyond rifle range.
 Its Sable installation is authored whole and does not shrink for a smaller
-company: 28 regulars, 40 militia, a Hound and a Warden. The compound's guns
+company: 28 regulars, 40 militia, and a Hound and a Warden that stand down in
+the vehicle shed until the company is inside the walls. The compound's guns
 cover both gates, a locust battery reaches the ground the carrier stands off
 from, each road picket has a heavy nest and six men, and fixed point-defence
 mounts cover dispatch, the barracks court and the gate against arcing rounds.

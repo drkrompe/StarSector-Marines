@@ -1213,6 +1213,9 @@ public final class BattleSetup {
         if (coldAccount) {
             sim.installColdAccount(ColdAccountLayout.select(map, lzCells));
             ColdAccountForce.installPointDefence(sim, MaintenanceOutpost.pointDefenceAnchors(map.grid.getHeight()));
+            sim.getColdAccount().holdMachines(new ColdAccountMachineReserve(ColdAccountForce.MACHINES,
+                    MaintenanceOutpost.footprint(map.grid.getHeight()), MaintenanceOutpost.machineBay(map.grid.getHeight()),
+                    groundRoster.primaryFactionId()));
         } else if (raidLayout != null) {
             int targetZone = sim.getZoneGraph().zoneIdAt(
                     raidLayout.targetCellX(), raidLayout.targetCellY());
