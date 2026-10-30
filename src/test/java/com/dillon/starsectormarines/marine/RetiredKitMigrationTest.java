@@ -38,6 +38,18 @@ class RetiredKitMigrationTest {
     }
 
     @Test
+    void aHullSavedWithItsOwnDriveAndPlateWearsTheIndustrialEngineAndFactoryPlating() throws Exception {
+        CampaignVehicle apc = new CampaignVehicle("v", "Old", VehicleType.HEAVY_APC);
+        set(apc, "engineId", null);
+        set(apc, "platingId", null);
+        set(apc, "fitVersion", 1);
+        resolve(apc);
+        assertSame(MechInternal.INDUSTRIAL_ENGINE, apc.engine());
+        assertSame(MechInternal.FACTORY_PLATING, apc.plating());
+        assertTrue(apc.complete());
+    }
+
+    @Test
     void anAcceleratedLoaderKitBecomesTheHullsLoader() throws Exception {
         CampaignVehicle tank = saved(VehicleType.BREAKTHROUGH_TANK, List.of("kit.accelerated-loader", "kit.spall-liner"),
                 List.of(MechInternal.FACTORY_CAPACITOR_BANK.id));
