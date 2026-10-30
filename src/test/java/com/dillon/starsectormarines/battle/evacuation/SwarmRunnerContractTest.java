@@ -55,8 +55,6 @@ class SwarmRunnerContractTest {
         assertEquals(3, hitsToKill(UnitType.SWARM_RUNNER, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID)));
         assertEquals(7, hitsToKill(UnitType.SWARM_RUNNER, WeaponRegistry.require(WeaponRegistry.SMG_ID)));
         assertEquals(2, hitsToKill(UnitType.SWARM_RUNNER, WeaponRegistry.require(WeaponRegistry.DMR_ID)));
-        assertEquals(6, WeaponRegistry.require(WeaponRegistry.SMG_ID).projectilesPerShot(),
-                "a full close-range cloud can drop an alien but a runner needs spillover");
     }
 
     private static int hitsToKill(UnitType target, WeaponDef weapon) {

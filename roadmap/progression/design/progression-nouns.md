@@ -298,8 +298,10 @@ to the player's own.
 The shipped primary catalog now covers five player-facing decisions. GR-RFL
 is the rugged chemical-slug baseline, AR-PULSE is the flexible pulse burst,
 and RL-DMR is the deliberate gauss/rail marksman weapon. GR-SMG is a
-close-range flechette shredder: one trigger releases several independently
-resolved projectiles with low penetration, steep falloff, and wide spread. Its
+close-range flechette submachine gun: one trigger begins a short, fast
+temporal burst of single rounds with low penetration, steep falloff, moderate
+spread, and light per-round recoil that blooms over a held burst and recovers
+between them. It reads as an automatic, never as a shotgun cloud. Its
 legacy `SMG` enum name and `weapon.smg` id remain only for save compatibility.
 MG-SUPP is the squad automatic slugthrower: one trigger begins a long
 temporal burst that participates in the existing covering-fire and bounding

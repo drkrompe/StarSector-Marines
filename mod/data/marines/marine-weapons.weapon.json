@@ -100,17 +100,17 @@
         "accuracy": 0.68,
         "cooldown": 0.40,
         "penetration": 1.0,
-        "burstCount": 1,
-        "burstSpacing": 0.0,
-        "projectilesPerShot": 6,
+        "burstCount": 6,
+        "burstSpacing": 0.06,
+        "projectilesPerShot": 1,
         "accuracyFalloff": 0.75,
-        "hitSpread": 1.7,
+        "hitSpread": 1.0,
         "roundVelocity": 45.0,
         "magazine": {
-          "size": [6, 8, 10, 12],
+          "size": [36, 48, 60, 72],
           "reload": 3.2,
           "trigger": "auto",
-          "recoil": 0.15,
+          "recoil": 0.0225,
           "recoilMax": 0.4,
           "recoilRecovery": 0.25
         }

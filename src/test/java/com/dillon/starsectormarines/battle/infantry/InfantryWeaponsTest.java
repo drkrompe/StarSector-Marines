@@ -105,17 +105,6 @@ class InfantryWeaponsTest {
         assertFalse(impacts.get(0).friendly);
     }
 
-    @Test
-    void shredderReleasesOneSimultaneousSixProjectileCloud() {
-        Fixture f = fixture(ExperienceTier.REGULAR, false, WeaponRegistry.require(WeaponRegistry.SMG_ID));
-
-        f.weapons.fireShot(f.shooter, f.target, FireStance.STANCED,
-                new ConstantRandom(0.5f));
-
-        assertEquals(6, f.shots.getActiveShots().size());
-        assertEquals(6, f.sim.telemetry().roundsFired(f.shooter));
-    }
-
 
     private static Fixture fixture(ExperienceTier experience, boolean friendlyInLane) {
         return fixture(experience, friendlyInLane, WeaponRegistry.require(WeaponRegistry.PULSE_RIFLE_ID));
@@ -172,19 +161,6 @@ class InfantryWeaponsTest {
         public float nextFloat() {
             if (values.isEmpty()) throw new IllegalStateException("QueueRandom exhausted");
             return values.remove();
-        }
-    }
-
-    private static final class ConstantRandom extends Random {
-        private final float value;
-
-        ConstantRandom(float value) {
-            this.value = value;
-        }
-
-        @Override
-        public float nextFloat() {
-            return value;
         }
     }
 }
