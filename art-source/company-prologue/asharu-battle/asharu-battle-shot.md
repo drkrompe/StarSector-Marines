@@ -671,7 +671,8 @@ one ship carries a pan from where she sits in frame at its time.
 **Every Harpoon is heard on its own** (owner, 2026-10-30). `battle-audio/missiles.py` gives S5 and
 S6 a Harpoons stem: each missile the shot draws leaves its tube with the `harpoon-launch-one` take
 (a thunk, then the motor lighting), and its own motor (the looped `harpoon-motor` take) burns from
-ignition to its hit, placed by the camera as the engines are. The launch and hit times are the
+ignition to its hit, placed by the camera as the engines are, and where it meets the hull its
+warhead goes off with the game's own hit (\xplosion_missile_01\ under \gun_hit_heavy_01\/\_02\). The launch and hit times are the
 finished renders' salvo rows, one tube every 3 frames, lit 0.35 s after the eject. The missile
 warning runs from the first ignition (47.0 s) to under Warden Five's "Missiles inbound!".
 
@@ -682,7 +683,9 @@ does, and renders one frame) into `gun-rounds.json`, and `guns.py` gives each sh
 guns stem. A round plays its weapon's own fire sound from the game (its `.wpn` fireSoundTwo, at
 the game's pitch and volume; `--source generated` plays the family takes `round-mg`, `round-ac`,
 `round-heavy` and `round-energy` instead) on the frame it leaves the muzzle, panned and dulled by where its ship is from the
-camera; it is never delayed by its range, so the sound stays on the flash.
+camera; it is never delayed by its range, so the sound stays on the flash. A gun carries (a machine
+gun is heard as far as a 120 m ship), and a soft limiter holds the dense duels, so a far shot is
+not turned down against S8-S9.
 
 **Ships blow up with the game's own sounds** (owner, 2026-10-30). The kills take vanilla
 `explosion_ship` (`sounds/sfx_impacts/explosion_01`, `_02`, `_04`; `_04` for the tanker and

@@ -36,9 +36,14 @@ SF = engines.SF
 ROUNDS = HERE / "gun-rounds.json"
 OUT = HERE.parents[3] / "build" / "asharu-guns"
 PEAK = 0.89
-# family: (take, seconds of it each round plays, heard as loud as a ship this long would be)
-FAMILY = {'mg': ('round-mg_t01', .35, 25.0), 'ac': ('round-ac_t01', .6, 45.0),
-          'heavy': ('round-heavy_t01', 2.0, 90.0), 'energy': ('round-energy_t01', .5, 40.0)}
+# A round at full loudness and its sound's full volume peaks here; the summed rounds of a dense duel
+# are held under PEAK by a soft limiter (owner, 2026-10-30, S6b: tracers firing with no sound until
+# the hits, when one constant scaled every shot against S8-S9's hundreds of overlapping rounds).
+ROUND_GAIN = 0.6
+# family: (take, seconds of it each round plays, heard as loud as a ship this long would be). A gun
+# carries: S6b's Lasher at 530 m and the merchant Wolf at 950 m are heard, not felt.
+FAMILY = {'mg': ('round-mg_t01', .35, 120.0), 'ac': ('round-ac_t01', .6, 180.0),
+          'heavy': ('round-heavy_t01', 2.0, 300.0), 'energy': ('round-energy_t01', .5, 160.0)}
 WEAPONS = {'lightmg': 'mg', 'lightdualmg': 'mg', 'vulcan': 'mg', 'chaingun': 'mg', 'lightneedler': 'mg',
            'lightac': 'ac', 'heavyac': 'ac', 'mark9': 'ac', 'lightag': 'ac', 'hellbore': 'heavy',
            'ioncannon': 'energy', 'heavyblaster': 'energy'}       # scene_fx.SceneFx.FAMILY's grouping
@@ -149,13 +154,13 @@ def main():
             and (not args.shot or s['first'] in args.shot or s['id'].split()[0] in args.shot)]
     stems = {s['id'].split()[0]: shot_stem(s, rounds[s['kf']], clips) for s in segs}
     stems = {k: v for k, v in stems.items() if np.abs(v).max() > 0}
-    scale = PEAK / max(np.abs(v).max() for v in stems.values())
     for name, stem in stems.items():
         wav = out / (name + ".wav")
-        SF.write(stem * scale, wav)
+        stem = PEAK * np.tanh(ROUND_GAIN * stem / PEAK)
+        SF.write(stem, wav)
         subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", str(wav), "-b:a", "160k", str(wav.with_suffix(".mp3"))],
                        check=True)
-        print("%-6s peak %5.1f dB  %s" % (name, 20 * np.log10(max(1e-9, np.abs(stem * scale).max())), wav))
+        print("%-6s peak %5.1f dB  %s" % (name, 20 * np.log10(max(1e-9, np.abs(stem).max())), wav))
 
 
 if __name__ == "__main__":
