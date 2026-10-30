@@ -8,6 +8,7 @@ import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.CompanyManagementGuide;
 import com.dillon.starsectormarines.campaign.start.CompanyProloguePresenter;
 import com.dillon.starsectormarines.cinematic.ArrivalCinematicPresenter;
+import com.dillon.starsectormarines.cinematic.AsharuBattleCinematicPresenter;
 import com.dillon.starsectormarines.battle.audio.CompanyOfficer;
 import com.dillon.starsectormarines.battle.audio.OperationRadio;
 import com.dillon.starsectormarines.battle.infantry.SquadMedicine;
@@ -207,6 +208,7 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         ensurePlayerEventPresenter();
         CompanyProloguePresenter.install();
         ArrivalCinematicPresenter.install();
+        AsharuBattleCinematicPresenter.install();
         ensureCompanyViewAbility();
         ensureCivilianRescueIntel();
         ensureRavBloomIntel();

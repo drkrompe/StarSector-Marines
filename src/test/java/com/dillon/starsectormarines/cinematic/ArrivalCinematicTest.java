@@ -9,6 +9,7 @@ import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class ArrivalCinematicTest {
@@ -22,17 +23,40 @@ class ArrivalCinematicTest {
 
     @Test void shotsWithoutAVideoOrATimelineAreLeftOut() throws Exception {
         Map<String, JSONObject> files = new HashMap<>();
-        files.put(ArrivalCinematic.DATA + "sequence.json", new JSONObject("{\"shots\":[\"c1\",\"c2\",\"c3\"]}"));
-        files.put(ArrivalCinematic.DATA + "c1.json", new JSONObject(SHOT.formatted("c1", "c1")));
-        files.put(ArrivalCinematic.DATA + "c3.json", new JSONObject(SHOT.formatted("c3", "c3")));   // c2 has no timeline
+        files.put(ArrivalCinematic.FILM.data() + "sequence.json", new JSONObject("{\"shots\":[\"c1\",\"c2\",\"c3\"]}"));
+        files.put(ArrivalCinematic.FILM.data() + "c1.json", new JSONObject(SHOT.formatted("c1", "c1")));
+        files.put(ArrivalCinematic.FILM.data() + "c3.json", new JSONObject(SHOT.formatted("c3", "c3")));   // c2 has no timeline
         // c3 has a timeline but its video is not on disk.
-        var sequence = ArrivalCinematic.load(path -> path.contains("c1"), path -> {
+        var sequence = ArrivalCinematic.FILM.load(path -> path.contains("c1"), path -> {
             var json = files.get(path);
             if (json == null) throw new IllegalStateException("no " + path);
             return json;
         });
         assertEquals(1, sequence.size());
         assertEquals("c1", sequence.shot(0).id());
+        assertEquals(CinematicSequence.Captions.ALWAYS, sequence.captions());
+    }
+
+    @Test void aFilmReadsItsOwnFolderAndItsCaptionOption() throws Exception {
+        var film = new CinematicFilm("other-film", "receipt");
+        Map<String, JSONObject> files = Map.of(
+                "data/cinematic/other-film/sequence.json", new JSONObject("{\"shots\":[\"c1\"],\"captions\":\"translated\"}"),
+                "data/cinematic/other-film/c1.json", new JSONObject(SHOT.formatted("c1", "c1")));
+        var sequence = film.load(path -> true, path -> {
+            var json = files.get(path);
+            if (json == null) throw new IllegalStateException("no " + path);
+            return json;
+        });
+        assertEquals(1, sequence.size());
+        assertEquals(CinematicSequence.Captions.TRANSLATED, sequence.captions());
+    }
+
+    @Test void aSpeakersRoleIsOptional() throws Exception {
+        var shot = CinematicShot.parse(new JSONObject("""
+                {"id":"s","video":"v.mp4","frames":1,"duration":1,
+                 "speakers":{"caravel":{"label_key":"L","role_key":"R","color":"player"},"raider":{"label_key":"P"}}}"""));
+        assertEquals("R", shot.speakers().get("caravel").roleKey());
+        assertNull(shot.speakers().get("raider").roleKey());
     }
 
     @Test void aTimelineParsesCaptionsLocksAndCuesAndIgnoresUnknownOverlays() throws Exception {

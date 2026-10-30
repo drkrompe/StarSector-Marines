@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -53,5 +54,32 @@ class CaptionTrackTest {
 
     @Test void speakerChangesSwitchTheTag() {
         assertEquals("castle", track.at(7.0).tagSpeaker());
+    }
+
+    @Test void oneSpeakerAtATimeIsOneTransmission() {
+        assertEquals(1, track.at(3.8).transmissions().size());
+        assertFalse(track.at(4.5).overlapping());
+        assertEquals("castle", track.at(7.0).transmissions().get(0).speaker());
+    }
+
+    @Test void overlappingTransmissionsEachKeepTheirOwnTagAndTextEarliestFirst() {
+        // Caravel 1-6 in two back-to-back takes, Raider keys up over it 2-4, Warden over both 3-5.
+        var busy = new CaptionTrack(List.of(
+                new Caption(1.0, 3.5, "caravel", "c1"), new Caption(3.5, 6.0, "caravel", "c2"),
+                new Caption(2.0, 4.0, "raider", "r1"), new Caption(3.0, 5.0, "warden", "w1")),
+                key -> key, String::length, 100);
+        var three = busy.at(3.2);
+        assertTrue(three.overlapping());
+        assertEquals(List.of("caravel", "raider", "warden"),
+                three.transmissions().stream().map(CaptionTrack.Transmission::speaker).toList());
+        assertEquals("c1", three.transmissions().get(0).pages().get(0).text());
+        assertEquals("r1", three.transmissions().get(1).pages().get(0).text());
+        assertEquals("w1", three.transmissions().get(2).pages().get(0).text());
+        // Caravel's second take continues its transmission across the others: its tag holds.
+        var later = busy.at(4.5);
+        assertEquals(2, later.transmissions().size());
+        assertEquals("c2", later.transmissions().get(0).pages().get(0).text());
+        assertEquals(1.0, later.transmissions().get(0).tagAlpha(), 1e-9);
+        assertEquals(1, busy.at(5.5).transmissions().size());
     }
 }
