@@ -663,6 +663,13 @@ the Legion's weight), from 65 m a medium drive, smaller ships a small one, drone
 scales every stem, so a near pass stays louder than a far one across the cut. A spot effect tied to
 one ship carries a pan from where she sits in frame at its time.
 
+**Every Harpoon is heard on its own** (owner, 2026-10-30). `battle-audio/missiles.py` gives S5 and
+S6 a Harpoons stem: each missile the shot draws leaves its tube with the `harpoon-launch-one` take
+(a thunk, then the motor lighting), and its own motor (the looped `harpoon-motor` take) burns from
+ignition to its hit, placed by the camera as the engines are. The launch and hit times are the
+finished renders' salvo rows, one tube every 3 frames, lit 0.35 s after the eject. The missile
+warning runs from the first ignition (47.0 s) to under Warden Five's "Missiles inbound!".
+
 ## On-screen place and time
 
 The recording screen (S0) states where and when, before anything is seen:

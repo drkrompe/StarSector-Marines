@@ -24,10 +24,10 @@ import java.util.Set;
  */
 public final class BlindWatchSites {
     /**
-     * Hands on watch at a quiet post: half the two dozen, the rest asleep in the bunk modules. A stood-to post doubles it
+     * Hands on watch at a quiet post: half its 53 posts, the rest asleep in the bunk modules. A stood-to post doubles it
      * ({@code BlindWatchProgress.sentries}) and so mans every post. UNTUNED first pass.
      */
-    public static final int USUAL_WATCH = 12;
+    public static final int USUAL_WATCH = 27;
 
     private BlindWatchSites() {}
 

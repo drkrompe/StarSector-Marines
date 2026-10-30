@@ -42,6 +42,12 @@ class BlindWatchSequenceTest {
         assertEquals(20, BlindWatchSequence.mortarLegEnd(loop, 20), "home: nothing farther");
     }
 
+    @Test void aHullJoinsTheTrackAtItsNearestCell() {
+        List<Cell> track = List.of(new Cell(0, 0), new Cell(5, 0), new Cell(10, 0), new Cell(10, 5));
+        assertEquals(2, BlindWatchSequence.nearestOnTrack(track, 9.8f, 1.2f));
+        assertEquals(3, BlindWatchSequence.nearestOnTrack(track, 10.5f, 5f));
+    }
+
     private static final int W = 100, H = 20;
     /** A short warning, so the bar fills in a few dozen ticks. */
     private static final float WARNING = 1f;

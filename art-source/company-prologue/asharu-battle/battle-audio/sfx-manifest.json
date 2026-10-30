@@ -630,6 +630,48 @@
       "seconds": 2.0,
       "loop": false,
       "promptInfluence": 0.7
+    },
+    "harpoon-launch-one": {
+      "chosen": null,
+      "takes": {
+        "harpoon-launch-one_t01": {
+          "durationSeconds": 2.0,
+          "peakDb": 0.0,
+          "integratedLufs": -11.9,
+          "characterCost": "22"
+        },
+        "harpoon-launch-one_t02": {
+          "durationSeconds": 2.0,
+          "peakDb": 0.0,
+          "integratedLufs": -12.8,
+          "characterCost": "22"
+        }
+      },
+      "prompt": "One guided missile leaving its launch tube: a hard metallic thunk as it is kicked clear, then its small rocket motor lighting with a sharp crackling whoosh that streaks away, a single missile only, no music, no voices",
+      "seconds": 2.0,
+      "loop": false,
+      "promptInfluence": 0.6
+    },
+    "harpoon-motor": {
+      "chosen": null,
+      "takes": {
+        "harpoon-motor_t01": {
+          "durationSeconds": 6.0,
+          "peakDb": 0.0,
+          "integratedLufs": -4.3,
+          "characterCost": "66"
+        },
+        "harpoon-motor_t02": {
+          "durationSeconds": 6.0,
+          "peakDb": 0.0,
+          "integratedLufs": -5.6,
+          "characterCost": "66"
+        }
+      },
+      "prompt": "A small missile rocket motor burning steadily at full thrust: a fierce tearing hiss and crackling roar of burning solid rocket fuel, constant, no whistle, no music, no voices",
+      "seconds": 6.0,
+      "loop": true,
+      "promptInfluence": 0.5
     }
   }
 }
