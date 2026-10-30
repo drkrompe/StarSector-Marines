@@ -178,7 +178,7 @@ public final class FireSupportApcSceneSnapshotSuite extends BehaviorSceneSnapsho
             MechWeaponComponent.LINEAR_CANNON, MechWeaponComponent.SHOULDER_LASER_CANNON, MechWeaponComponent.SRM_5,
             MechWeaponComponent.LRM_5, MechWeaponComponent.CHAINGUN};
 
-    private static final VehicleType[] LIGHT_TYPES = {VehicleType.UP_ARMORED_APC, VehicleType.ESCORT_APC,
+    private static final VehicleType[] LIGHT_TYPES = {VehicleType.HEAVY_APC, VehicleType.HEAVY_APC,
             VehicleType.MILITIA_TECHNICAL, VehicleType.SRM_TECHNICAL, VehicleType.HOVER_SCOUT,
             VehicleType.DOZER_BREACHER};
     private static final MechWeaponComponent[] LIGHT_GUNS = {MechWeaponComponent.LIGHT_MACHINE_GUN,

@@ -42,7 +42,7 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
         DiskRegistries.installMapGeneration(context.projectRoot());
         BattleSimulation matrix = scene();
         ReviewAnnotations.Builder labels = ReviewAnnotations.builder();
-        VehicleType[] types = {VehicleType.HEAVY_APC, VehicleType.ESCORT_APC};
+        VehicleType[] types = {VehicleType.HEAVY_APC, VehicleType.FIRE_SUPPORT_APC};
         for (int row = 0; row < types.length; row++) {
             float y = row == 0 ? 23 : 17;
             for (int column = 0; column < 4; column++) {
@@ -106,7 +106,7 @@ public final class ApcSnapshotSuite implements SnapshotSuite {
             for (long id : sim.getConvoyVehicleIds()) {
                 var type = sim.convoy().vehicleType(id);
                 if (type.hasTurretWeapon()) sim.convoy().turret(id).facingDeg = sim.convoy().body(id).facingDegrees;
-                if (type == VehicleType.ESCORT_APC && escort == 0) escort = id;
+                if (type == VehicleType.HEAVY_APC && escort == 0) escort = id;
             }
             if (escort == 0) throw new IllegalStateException("Thunder Run has no APC escort");
             artifacts.add(new SnapshotArtifact("campaign-comparison.png",

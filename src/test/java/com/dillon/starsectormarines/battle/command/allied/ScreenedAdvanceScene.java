@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.allied;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.infantry.MarineLoadout;
@@ -140,7 +141,7 @@ public final class ScreenedAdvanceScene implements BehaviorScene {
             }
             armour.hull(allied.deploy(sim, VehicleType.BREAKTHROUGH_TANK, armourX, AXIS_Y - 7, 0f));
             armour.hull(allied.deploy(sim, VehicleType.BREAKTHROUGH_TANK, armourX, AXIS_Y + 7, 0f));
-            armour.hull(allied.deploy(sim, VehicleType.ESCORT_APC, armourX - 2, AXIS_Y, 0f));
+            armour.hull(allied.deploy(sim, VehicleStockFit.CONVOY_ESCORT, armourX - 2, AXIS_Y, 0f));
             if (!armourLeads) armour.mech(hound(sim, armourX - 6, AXIS_Y + 14));
             boolean picketUp = false;
             for (int i = 0; !flank && i < RUNNERS; i++) {

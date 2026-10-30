@@ -59,12 +59,13 @@ class MechPatternTest {
     void vehicleWeightClassesFollowTheirAccessBandAndNoneIsAStarter() {
         assertEquals(MechPattern.WeightClass.LIGHT, parse("mech-pattern:vehicle:heavy_apc").weightClass());
         assertEquals(EquipmentAccessTier.COMMON, parse("mech-pattern:vehicle:heavy_apc").accessTier());
-        assertEquals(MechPattern.WeightClass.MEDIUM, parse("mech-pattern:vehicle:escort_apc").weightClass());
+        assertEquals(MechPattern.WeightClass.MEDIUM, parse("mech-pattern:vehicle:lrm_carrier").weightClass());
         assertEquals(MechPattern.WeightClass.MEDIUM, parse("mech-pattern:vehicle:militia_technical").weightClass());
-        assertEquals(EquipmentAccessTier.ADVANCED, parse("mech-pattern:vehicle:escort_apc").accessTier());
+        assertEquals(EquipmentAccessTier.ADVANCED, parse("mech-pattern:vehicle:lrm_carrier").accessTier());
         assertEquals(MechPattern.WeightClass.HEAVY, parse("mech-pattern:vehicle:breakthrough_tank").weightClass());
         assertEquals(EquipmentAccessTier.PRESTIGE, parse("mech-pattern:vehicle:breakthrough_tank").accessTier());
         assertNull(MechPattern.parse("mech-pattern:vehicle:cargo_carrier"));
+        assertNull(MechPattern.parse("mech-pattern:vehicle:escort_apc"), "a fit of the APC is no hull of its own");
         for (MechPattern pattern : MechPattern.all()) {
             if (pattern.kind() == MechPattern.Kind.VEHICLE && pattern.presentationDeclared()) {
                 assertTrue(MechPattern.offerable().contains(pattern), pattern.id());

@@ -406,7 +406,7 @@ Evidence: the `boat-pod` scene.
 
 **Lift.** Every machine a drop carries has a **lift class** — Light, Medium or
 Heavy, its weight class seen from the air (Hound and the heavy APC Light;
-Warden, the escort APC and the militia technical Medium; Bulwark and the
+Warden, the APC gun carriers and the militia technical Medium; Bulwark and the
 breakthrough tank Heavy). It is not the machine's inertia, which manual driving
 reads separately. Every airframe has a **lift rating**, the heaviest class it
 takes: a Valkyrie lifts Heavy as built, the Hermes Light (a Hound or a light

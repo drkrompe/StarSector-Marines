@@ -22,7 +22,7 @@ A card is a size class, as many rows as it is wide, by two columns, and a lock, 
 
 | Class | Card | Lock | Hulls |
 | --- | --- | --- | --- |
-| Small | 1x2 | omni | heavy APC, escort APC, up-armored APC, dozer, militia technical, SRM technical, hover scout |
+| Small | 1x2 | omni | APC, dozer, militia technical, SRM technical, hover scout |
 | Medium | 2x2 | yellow (ballistic) | fire-support (mortar) APC |
 | Medium | 2x2 | green (missile) | LRM carrier |
 | Large | 3x2 | yellow (ballistic) | breakthrough tank, screened tank |

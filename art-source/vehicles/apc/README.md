@@ -25,7 +25,7 @@ The packed runtime asset is `mod/graphics/battle/vehicles/army-apc.png`.
 Both hull and gun point left and use a -90 degree facing offset. The hull's
 roof bearing is at (335.333, 288) within its frame; the body reference is
 (384, 288). At the existing hull sizes this gives a forward mount offset of
-0.15208333 cells for HEAVY_APC and 0.20277778 cells for ESCORT_APC, with zero
+0.15208333 cells for the APC chassis (HEAVY_APC and the gun carriers built on it), with zero
 lateral offset. The gun bearing is at its frame center (384, 288), so neither
 variant needs a compensating turret pivot offset. Both production and headless
 loaders retain these full frames instead of trimming their transparent margins.

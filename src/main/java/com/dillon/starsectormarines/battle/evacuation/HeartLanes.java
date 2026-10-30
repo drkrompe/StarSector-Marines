@@ -32,6 +32,7 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.TurnAwareCorridor;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 
 import java.util.ArrayList;
@@ -1355,7 +1356,7 @@ public final class HeartLanes {
             int before = lane.section.size();
             float facing = advanceFacing(lane.ground.advancesAlongY(), advanceSign);
             for (VehicleType type : new VehicleType[]{VehicleType.LRM_CARRIER, VehicleType.FIRE_SUPPORT_APC}) {
-                long hull = placeHull(sim, type, from[0], from[1], facing);
+                long hull = placeHull(sim, type, null, from[0], from[1], facing);
                 if (hull != 0L) lane.section.add(hull);
             }
             if (lane.section.size() == before) return null;
@@ -1584,14 +1585,25 @@ public final class HeartLanes {
             lane.mechs.add(mech);
             return true;
         }
-        long hull = placeHull(sim, type, x, y, facing);
+        long hull = placeHull(sim, type, null, x, y, facing);
         if (hull == 0L) return false;
         lane.hulls.add(hull);
         return true;
     }
 
-    /** Sets a hull of {@code type} down near ({@code x}, {@code y}) clear of the other machines; 0 where none fits. */
-    private long placeHull(BattleSimulation sim, VehicleType type, int x, int y, float facing) {
+    /** As {@link #addArmour(BattleSimulation, int, VehicleType, int, int, float)}, a hull fitted out as {@code fit} has it. */
+    public boolean addFittedHull(BattleSimulation sim, int index, VehicleStockFit fit, int x, int y, float facing) {
+        long hull = placeHull(sim, fit.type, fit, x, y, facing);
+        if (hull == 0L) return false;
+        lanes.get(index).hulls.add(hull);
+        return true;
+    }
+
+    /**
+     * Sets a hull of {@code type} down near ({@code x}, {@code y}) clear of the other machines, fitted out as {@code fit}
+     * has it where one is given; 0 where none fits.
+     */
+    private long placeHull(BattleSimulation sim, VehicleType type, VehicleStockFit fit, int x, int y, float facing) {
         VehicleClearance clearance = clearance(sim, type);
         // Ground it can set out from whichever way its route leaves; only where there is none near, ground it fits.
         int[] cell = null;
@@ -1604,7 +1616,8 @@ public final class HeartLanes {
                         cell = new int[]{x + dx, y + dy};
         if (cell == null) return 0L;
         placed.add(new float[]{cell[0] + .5f, cell[1] + .5f});
-        return allied.deploy(sim, type, cell[0], cell[1], facing);
+        return fit != null ? allied.deploy(sim, fit, cell[0], cell[1], facing)
+                : allied.deploy(sim, type, cell[0], cell[1], facing);
     }
 
     /** Moves a lane's armour up to its aim when the aim has moved: each machine to its own cell across the lane. */

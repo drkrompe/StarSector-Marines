@@ -1102,7 +1102,7 @@ Still open from these readings:
 | Class | Payloads | Carriers |
 | --- | --- | --- |
 | Light | Hound, heavy APC | Bus-class boats (Buffalo, Tarsus, Mule, Nebula) with a lift cradle |
-| Medium | Warden, escort APC, militia technical | Bus-class boats with a heavy cradle; Valkyrie |
+| Medium | Warden, mortar and LRM carriers, militia technical | Bus-class boats with a heavy cradle; Valkyrie |
 | Heavy | Bulwark, breakthrough tank | Valkyrie; a committed ship with Ground Support |
 
 A lift fitting is a third boat fitting slot beside plating and drive. It trades
@@ -1162,7 +1162,7 @@ one. Lines and their first variants:
 | Line | Variants (light → heavy, or sidegrade) |
 | --- | --- |
 | Technical (field rig) | Militia technical — Advanced filler for a small lift budget; SRM technical — Common rocket rig, an ambusher of armor (Light lift) |
-| APC | Heavy APC (troop carrier) → up-armored APC (more armor, slower) → fire-support APC (a mortar instead of seats, spotted indirect fire on anything, steady) or LRM carrier (an LRM-15 anti-armor rack instead of seats, spotted indirect fire) |
+| APC | APC (troop carrier; plate and speed are fitted, not a rung) → fire-support APC (a mortar instead of seats, spotted indirect fire on anything, steady) or LRM carrier (an LRM-15 anti-armor rack instead of seats, spotted indirect fire) |
 | Tank | Breakthrough tank → a screened tank (active protection against top-attack rounds), a laser tank (a ship's burst laser: infantry and drones, not plate), or a dozer-blade breaching sidegrade |
 | Supply (field rig) | Supply pickup — a carried resupply cache, served while halted (Light lift) |
 | Spotter (field rig) | Spotter pickup — a sight mast that reports to fog and commander (Light lift) |

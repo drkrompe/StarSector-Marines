@@ -26,74 +26,46 @@ import java.util.List;
 public enum VehicleType {
 
     /**
-     * Armored personnel carrier — four marines, roof-mounted heavy MG.
-     * Slower and heavier than the militia truck. The gun is what it defends
-     * itself with on the drive in and the drive out; it does not buy the
-     * squad a parked fire-support platform on the drop point.
-     * Bearing registration comes from art-source/vehicles/apc; both APC hulls
-     * carry the same 1.42-cell gun frame to match the shared ballistic muzzles.
+     * The APC: the one wheeled troop carrier chassis, six marines behind a roof-mounted heavy MG. Slower and
+     * heavier than the militia truck. The gun is what it defends itself with on the drive in and the drive out;
+     * it does not buy the squad a parked fire-support platform on the drop point. A tougher or faster APC is this
+     * hull with plating and an engine fitted, never a hull of its own ({@link VehicleStockFit}); only a turret
+     * that changes the gun card is a variant of the chassis ({@link #FIRE_SUPPORT_APC}, {@link #LRM_CARRIER}),
+     * which shares every number here but the turret and the troop bay.
+     * Bearing registration comes from art-source/vehicles/apc: a 1.42-cell gun frame to match the ballistic muzzles.
      */
     HEAVY_APC(
             "graphics/battle/vehicles/army-apc.png", /*spriteFrame*/ 0, /*frameCount*/ 4,
             /*spriteFacingOffsetDeg*/ -90f,
-            /*capacity*/ 6, /*drawnLengthCells*/ 2.4f, /*visualLengthCells*/ 2.25f, /*visualWidthCells*/ .9f,
-            /*maxSpeed*/ 2.8f, /*accel*/ 1.8f, /*brakingAccel*/ 3.5f,
-            /*deboardInterval*/ 0.8f, /*lookAheadCells*/ 2.2f,
-            /*turretFrame*/ 1, /*turretMountX*/ 0f, /*turretMountY*/ 0.15208333f,
+            /*capacity*/ 6, Apc.DRAWN_LENGTH, Apc.VISUAL_LENGTH, Apc.VISUAL_WIDTH,
+            Apc.MAX_SPEED, Apc.ACCEL, Apc.BRAKING,
+            Apc.DEBOARD_INTERVAL, Apc.LOOK_AHEAD,
+            /*turretFrame*/ 1, /*turretMountX*/ 0f, Apc.TURRET_MOUNT_Y,
             /*turretPivotX*/ 0f, /*turretPivotY*/ 0f, /*turretVisualCells*/ 1.42f, /*turretSpriteFacingOffsetDeg*/ -90f,
             /*turretStructureId*/ TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
-            /*maxStructure*/ 220f, /*maxArmor*/ 160f, /*armorRating*/ 18f,
-            /*incomingAccuracyMult*/ 1.25f, /*hitHalfHeight*/ 0.75f) {
+            Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
         @Override
-        public GroundBody createBody() {
-            return new BicycleBody(
-                    /*wheelbaseCells*/ 1.6f,
-                    /*maxSteeringDeg*/ 22f, /*steeringSlewDegPerSec*/ 150f,
-                    accel, brakingAccel, maxSpeed);
-        }
+        public GroundBody createBody() { return Apc.body(this); }
     },
     /**
-     * The heavy APC with welded appliqué plate: the same four seats and roof gun behind
-     * twice the armour, paid for in speed and in lift — it needs a Medium cradle where the
-     * troop carrier rides a Light one. Same hull art; the fresh plate reads as a darker hull.
-     */
-    UP_ARMORED_APC("graphics/battle/vehicles/army-apc.png", 0, 4, -90f,
-            4, 2.5f, 2.35f, .95f, 2.3f, 1.4f, 3.2f, .9f, 2.3f,
-            1, 0f, .15208333f, 0f, 0f, 1.42f, -90f,
-            TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 300f, 320f, 24f, 1.3f, .78f) {
-        @Override public GroundBody createBody() {
-            return new BicycleBody(1.65f, 22f, 140f, accel, brakingAccel, maxSpeed);
-        }
-        @Override public float[] hullTint() { return UP_ARMORED_TINT; }
-    },
-    /**
-     * The mortar carrier: the heavy APC's hull with the troop bay given over to a 120 mm mortar on a roof turntable.
-     * It is the LRM carrier's steadier, weaker sibling. Like the carrier it fights from beyond its target's reach
-     * ({@link Stance#STANDOFF}) and drops its rounds over cover onto anything somebody else on its side is looking at
-     * ({@link SideObservers}); unlike the carrier it fires on men as readily as on machines. One bomb every few seconds
-     * from a deep rack hits far softer than the LRM's ten-missile salvo, but it keeps falling after the launcher has
-     * emptied its magazine, so the mortar wins a long fight the LRM wins a short one. It cannot carry a squad and is no
-     * tougher than the carrier it replaces. Its sheet is the APC's hulls with an ImageGen turret at the hull's scale:
+     * The mortar carrier: the APC chassis with the troop bay given over to a 120 mm mortar on a roof turntable, a
+     * ballistic gun card two rows tall. It is the LRM carrier's steadier, weaker sibling. Like the carrier it fights
+     * from beyond its target's reach ({@link Stance#STANDOFF}) and drops its rounds over cover onto anything somebody
+     * else on its side is looking at ({@link SideObservers}); unlike the carrier it fires on men as readily as on
+     * machines. One bomb every few seconds from a deep rack hits far softer than the LRM's ten-missile salvo, but it
+     * keeps falling after the launcher has emptied its magazine, so the mortar wins a long fight the LRM wins a short
+     * one. It cannot carry a squad. Its sheet is the APC's hulls with an ImageGen turret at the hull's scale:
      * an open turntable, its tube raised with the bore toward the eye, ready bombs racked round the rear
      * (art-source/vehicles/mortar-carrier).
      */
     FIRE_SUPPORT_APC("graphics/battle/vehicles/mortar-carrier.png", 0, 4, -90f,
-            0, 2.4f, 2.25f, .9f, 2.6f, 1.6f, 3.5f, .8f, 2.2f,
-            1, 0f, .15208333f, 0f, 0f, 2.4f, -90f,
-            TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID, 220f, 160f, 18f, 1.25f, .75f) {
-        @Override public GroundBody createBody() {
-            return new BicycleBody(1.6f, 22f, 150f, accel, brakingAccel, maxSpeed);
-        }
+            0, Apc.DRAWN_LENGTH, Apc.VISUAL_LENGTH, Apc.VISUAL_WIDTH, Apc.MAX_SPEED, Apc.ACCEL, Apc.BRAKING,
+            Apc.DEBOARD_INTERVAL, Apc.LOOK_AHEAD,
+            1, 0f, Apc.TURRET_MOUNT_Y, 0f, 0f, 2.4f, -90f,
+            TurretCatalogRegistry.VEHICLE_MORTAR_STRUCTURE_ID,
+            Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
+        @Override public GroundBody createBody() { return Apc.body(this); }
         @Override public Stance engagementStance() { return Stance.STANDOFF; }
-    },
-    /** Reinforced local convoy escort. Ordinary reinforcement APCs keep their lighter profile. */
-    ESCORT_APC("graphics/battle/vehicles/army-apc.png", 0, 4, -90f,
-            0, 3.2f, 3.0f, 1.2f, 3.4f, 1.8f, 3.5f, .8f, 2.8f,
-            1, 0f, .20277778f, 0f, 0f, 1.42f, -90f,
-            TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID, 620f, 420f, 24f, 1.25f, .9f) {
-        @Override public GroundBody createBody() {
-            return new BicycleBody(2.2f, 26f, 150f, accel, brakingAccel, maxSpeed);
-        }
     },
     /** Heavy convoy spearhead. Turns on conservative rolling arcs, and on the spot where no arc fits ({@link NeutralPivot}). */
     BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 4, -90f,
@@ -252,20 +224,20 @@ public enum VehicleType {
         }
     },
     /**
-     * The heavy APC's hull with the troop bay given over to a launcher: one mech LRM-15 pod on a turntable where the
-     * twin MG stood, which stands up on it to fire. It is the long arm against armor, where the mortar carrier
-     * ({@link #FIRE_SUPPORT_APC}) is the steady one against anything: its rounds arc over cover onto a machine somebody
-     * else on its side is looking at ({@link SideObservers}), it holds fire at anything soft, and it fights from
-     * beyond its target's reach ({@link Stance#STANDOFF}). It pays with no seats and thinner plate than the carrier it replaces. Its sheet is
+     * The APC chassis with the troop bay given over to a launcher, a missile gun card two rows tall: one mech LRM-15
+     * pod on a turntable where the twin MG stood, which stands up on it to fire. It is the long arm against armor,
+     * where the mortar carrier ({@link #FIRE_SUPPORT_APC}) is the steady one against anything: its rounds arc over
+     * cover onto a machine somebody else on its side is looking at ({@link SideObservers}), it holds fire at anything
+     * soft, and it fights from beyond its target's reach ({@link Stance#STANDOFF}). It carries no squad. Its sheet is
      * the APC's hulls with the mech LRM pod drawn at the hull's scale (art-source/vehicles/missile-carriers).
      */
     LRM_CARRIER("graphics/battle/vehicles/lrm-carrier.png", 0, 4, -90f,
-            0, 2.4f, 2.25f, .9f, 2.6f, 1.6f, 3.5f, .8f, 2.2f,
-            1, 0f, .15208333f, 0f, 0f, 2.4f, -90f,
-            TurretCatalogRegistry.VEHICLE_LRM_STRUCTURE_ID, 200f, 100f, 14f, 1.25f, .75f) {
-        @Override public GroundBody createBody() {
-            return new BicycleBody(1.6f, 22f, 150f, accel, brakingAccel, maxSpeed);
-        }
+            0, Apc.DRAWN_LENGTH, Apc.VISUAL_LENGTH, Apc.VISUAL_WIDTH, Apc.MAX_SPEED, Apc.ACCEL, Apc.BRAKING,
+            Apc.DEBOARD_INTERVAL, Apc.LOOK_AHEAD,
+            1, 0f, Apc.TURRET_MOUNT_Y, 0f, 0f, 2.4f, -90f,
+            TurretCatalogRegistry.VEHICLE_LRM_STRUCTURE_ID,
+            Apc.STRUCTURE, Apc.ARMOR, Apc.ARMOR_RATING, Apc.INCOMING_ACCURACY, Apc.HIT_HALF_HEIGHT) {
+        @Override public GroundBody createBody() { return Apc.body(this); }
         @Override public Stance engagementStance() { return Stance.STANDOFF; }
         // The pod is 0.72 cells long and stays centred on the turntable however it is raised.
         @Override public float turretRaiseFold() { return .78f; }
@@ -430,7 +402,6 @@ public enum VehicleType {
                     ? "structure.tank-aps" : null;
 
     private static final float[] NO_TINT = {1f, 1f, 1f};
-    private static final float[] UP_ARMORED_TINT = {.78f, .80f, .76f};
 
     /**
      * The tank hulls' reverse speed as a fraction of forward top speed. A tracked hull backs up
@@ -457,9 +428,27 @@ public enum VehicleType {
     static final float TANK_REVERSE_FRACTION =
             Float.parseFloat(System.getProperty("battle.vehicle.tankReverseFraction", ".3"));
 
+    /** The APC chassis: the troop carrier and the two typed-turret variants built on it. */
     public boolean isApc() {
-        return this == HEAVY_APC || this == ESCORT_APC || this == UP_ARMORED_APC || this == FIRE_SUPPORT_APC
-                || this == LRM_CARRIER;
+        return this == HEAVY_APC || this == FIRE_SUPPORT_APC || this == LRM_CARRIER;
+    }
+
+    /**
+     * The APC chassis's numbers, shared by every hull built on it: footprint, handling, durability. Its variants
+     * differ only in the turret and the troop bay.
+     */
+    private static final class Apc {
+        static final float DRAWN_LENGTH = 2.4f, VISUAL_LENGTH = 2.25f, VISUAL_WIDTH = .9f;
+        static final float MAX_SPEED = 2.8f, ACCEL = 1.8f, BRAKING = 3.5f;
+        static final float DEBOARD_INTERVAL = .8f, LOOK_AHEAD = 2.2f;
+        static final float TURRET_MOUNT_Y = .15208333f;
+        static final float STRUCTURE = 220f, ARMOR = 160f, ARMOR_RATING = 18f;
+        static final float INCOMING_ACCURACY = 1.25f, HIT_HALF_HEIGHT = .75f;
+
+        static GroundBody body(VehicleType type) {
+            return new BicycleBody(/*wheelbaseCells*/ 1.6f, /*maxSteeringDeg*/ 22f, /*steeringSlewDegPerSec*/ 150f,
+                    type.accel, type.brakingAccel, type.maxSpeed);
+        }
     }
 
     /**
@@ -783,8 +772,7 @@ public enum VehicleType {
     public LiftClass liftClass() {
         return switch (this) {
             case HEAVY_APC, SUPPLY_TRUCK, SCOUT_CAR, HOVER_SCOUT, SRM_TECHNICAL -> LiftClass.LIGHT;
-            case ESCORT_APC, MILITIA_TECHNICAL, UP_ARMORED_APC, FIRE_SUPPORT_APC, DRONE_SKIMMER,
-                 LRM_CARRIER -> LiftClass.MEDIUM;
+            case MILITIA_TECHNICAL, FIRE_SUPPORT_APC, DRONE_SKIMMER, LRM_CARRIER -> LiftClass.MEDIUM;
             case BREAKTHROUGH_TANK, SCREENED_TANK, LASER_TANK, DOZER_BREACHER -> LiftClass.HEAVY;
             case CARGO_CARRIER -> null;
         };

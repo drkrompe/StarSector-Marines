@@ -87,10 +87,8 @@ public final class MechFabricationCatalog {
     private static final List<Recipe> VEHICLES = List.of(
             vehicle(VehicleType.HEAVY_APC, "@gearFabricationLightVehicleStandardFit", 11220),
             vehicle(VehicleType.MILITIA_TECHNICAL, "@gearFabricationFieldRig", 14050),
-            vehicle(VehicleType.ESCORT_APC, "@gearFabricationMediumVehicleStandardFit", 23800),
             vehicle(VehicleType.BREAKTHROUGH_TANK, "@gearFabricationHeavyVehicleStandardFit", 39050),
             // Variants cost more than the hull they improve on.
-            vehicle(VehicleType.UP_ARMORED_APC, "@gearFabricationMediumVehicleStandardFit", 16960),
             vehicle(VehicleType.FIRE_SUPPORT_APC, "@gearFabricationMediumVehicleStandardFit", 16810),
             vehicle(VehicleType.DOZER_BREACHER, "@gearFabricationHeavyVehicleStandardFit", 42540),
             // The screened tank is the breakthrough tank plus its interceptor system: launchers and their sensor
@@ -105,7 +103,7 @@ public final class MechFabricationCatalog {
             vehicle(VehicleType.SCOUT_CAR, "@gearFabricationFieldRig", 11760),
             // The rocket pickup is a stripped pickup plus a pod.
             vehicle(VehicleType.SRM_TECHNICAL, "@gearFabricationFieldRig", 11250),
-            // The missile carrier is the heavy APC's hull plus two LRM-15 racks.
+            // The missile carrier is the APC chassis plus its LRM rack.
             vehicle(VehicleType.LRM_CARRIER, "@gearFabricationMediumVehicleStandardFit", 22400),
             // Tri-Tachyon's hover line is a corporate pattern, not a rig: lift fans, sensor clusters and drone
             // control are transplutonics, and the composite skirt is light on plate.

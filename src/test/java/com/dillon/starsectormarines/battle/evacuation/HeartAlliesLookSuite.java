@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.evacuation;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
@@ -49,7 +50,7 @@ public final class HeartAlliesLookSuite implements SnapshotSuite {
             int[] a = cell(p, 14f, 16f), b = cell(p, 14f, 24f), c = cell(p, 10f, 20f), goal = cell(p, 36f, 20f);
             p.subject("allies", command.deploy(sim, VehicleType.BREAKTHROUGH_TANK, a[0], a[1], 0f));
             long tank = command.deploy(sim, VehicleType.BREAKTHROUGH_TANK, b[0], b[1], 0f);
-            long apc = command.deploy(sim, VehicleType.ESCORT_APC, c[0], c[1], 0f);
+            long apc = command.deploy(sim, VehicleStockFit.CONVOY_ESCORT, c[0], c[1], 0f);
             command.station(sim, p.subjects().get("allies"), goal[0], goal[1] - 4);
             command.station(sim, tank, goal[0], goal[1] + 4);
             command.station(sim, apc, goal[0] - 8, goal[1]);

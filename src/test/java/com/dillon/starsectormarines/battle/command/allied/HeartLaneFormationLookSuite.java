@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.command.allied;
 
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
 import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
@@ -70,7 +71,7 @@ public final class HeartLaneFormationLookSuite implements SnapshotSuite {
             long lead = allied.deploy(sim, VehicleType.BREAKTHROUGH_TANK, armourX, y0 + AXIS - 7, 0f);
             armour.hull(lead);
             armour.hull(allied.deploy(sim, VehicleType.BREAKTHROUGH_TANK, armourX, y0 + AXIS + 7, 0f));
-            armour.hull(allied.deploy(sim, VehicleType.ESCORT_APC, armourX - 2, y0 + AXIS, 0f));
+            armour.hull(allied.deploy(sim, VehicleStockFit.CONVOY_ESCORT, armourX - 2, y0 + AXIS, 0f));
             placement.subject("armour", lead);
             placement.subject("militia", sim.getSquad(infantry.squads.get(1)).leaderId);
             for (int i = 0; i < 14; i++) {

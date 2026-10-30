@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleLeg;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
+import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.unit.UnitRole;
@@ -73,8 +74,8 @@ public final class ThunderRunSequence {
             throw new IllegalArgumentException("A finite freight attempt and the complete road-raider timetable are required");
         this.attempt = attempt; this.previouslyDelivered = previouslyDelivered;
         this.reserve = List.copyOf(reserve); this.log = log;
-        escorts.add(spawn(sim, VehicleType.ESCORT_APC, 27, 70));
-        escorts.add(spawn(sim, VehicleType.ESCORT_APC, 27, 80));
+        escorts.add(place(sim, sim.convoy().spawn(VehicleStockFit.CONVOY_ESCORT, Faction.ALLY, VehicleMission.deployed(27, 70)), 27, 70));
+        escorts.add(place(sim, sim.convoy().spawn(VehicleStockFit.CONVOY_ESCORT, Faction.ALLY, VehicleMission.deployed(27, 80)), 27, 80));
         heavyLead = spawn(sim, VehicleType.BREAKTHROUGH_TANK, 35, 75);
         technical = spawn(sim, VehicleType.MILITIA_TECHNICAL, 34, 83);
         // This earlier load is outside the newly contracted three-load manifest.
@@ -88,7 +89,9 @@ public final class ThunderRunSequence {
         for (long id : cargo.values()) driver.register(id, ThunderRunColumnDriver.Role.CARGO, 75);
     }
     private long spawn(BattleSimulation sim, VehicleType type, float x, float y) {
-        long id = sim.convoy().spawn(type, Faction.ALLY, VehicleMission.deployed(x, y));
+        return place(sim, sim.convoy().spawn(type, Faction.ALLY, VehicleMission.deployed(x, y)), x, y);
+    }
+    private static long place(BattleSimulation sim, long id, float x, float y) {
         // Initial map pose, before tick zero; all later motion goes through the chassis controller.
         sim.convoy().body(id).teleport(x, y, -90f);
         return id;
