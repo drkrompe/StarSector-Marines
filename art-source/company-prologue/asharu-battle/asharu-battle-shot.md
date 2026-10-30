@@ -675,6 +675,21 @@ ignition to its hit, placed by the camera as the engines are. The launch and hit
 finished renders' salvo rows, one tube every 3 frames, lit 0.35 s after the eject. The missile
 warning runs from the first ignition (47.0 s) to under Warden Five's "Missiles inbound!".
 
+**Every round a turret fires is heard on its own** (owner, 2026-10-30). The finished kit logs a
+"rounds" row per gun (`scene_fx`), the frame of every round it fires; `battle-audio/guns.py collect`
+reads them from the asharu-rounds-* queue jobs (each builds a shot's kit at its opening, as a final
+does, and renders one frame) into `gun-rounds.json`, and `guns.py` gives each shot with gunfire a
+guns stem. A round plays its weapon's own fire sound from the game (its `.wpn` fireSoundTwo, at
+the game's pitch and volume; `--source generated` plays the family takes `round-mg`, `round-ac`,
+`round-heavy` and `round-energy` instead) on the frame it leaves the muzzle, panned and dulled by where its ship is from the
+camera; it is never delayed by its range, so the sound stays on the flash.
+
+**Ships blow up with the game's own sounds** (owner, 2026-10-30). The kills take vanilla
+`explosion_ship` (`sounds/sfx_impacts/explosion_01`, `_02`, `_04`; `_04` for the tanker and
+Warden Lead's magazine) and the hits that set off a secondary take `explosion_from_damage`
+(`explosion_secondary_01` to `_03`). They are read from the game install, never copied into the
+repository; the ElevenLabs takes stay on their cues as alternatives.
+
 ## On-screen place and time
 
 The recording screen (S0) states where and when, before anything is seen:
