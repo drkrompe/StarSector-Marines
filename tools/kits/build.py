@@ -114,6 +114,20 @@ DOLL_NOTES = {
 }
 
 
+# Where the machine stands on its pad in the suite's 1920x1080 Mech Lab frame: the vehicle bay's pad and the mech bay's.
+PAD_BOX = {"vehicle": (1380, 240, 1790, 1010), "mech": (1065, 330, 1545, 900)}
+
+
+def pad_photo(folder, machine):
+    """The machine as the Mech Lab shows it on its pad, cropped from the suite's full frame."""
+    frame = folder / "full" / (machine["id"] + "-full.png")
+    if not frame.exists():
+        return None
+    buffer = io.BytesIO()
+    Image.open(frame).convert("RGB").crop(PAD_BOX[machine["kind"]]).save(buffer, "JPEG", quality=85)
+    return "data:image/jpeg;base64," + base64.b64encode(buffer.getvalue()).decode()
+
+
 def machine_dolls(folder):
     manifest = folder / "manifest.json"
     if not manifest.exists():
@@ -122,6 +136,7 @@ def machine_dolls(folder):
     for m in json.loads(manifest.read_text(encoding="utf-8")):
         png = folder / (m["id"] + ".png")
         m["img"] = "data:image/png;base64," + base64.b64encode(png.read_bytes()).decode() if png.exists() else None
+        m["photo"] = pad_photo(folder, m)
         m["notes"] = DOLL_NOTES.get(m["id"], [])
         out.append(m)
     return out
