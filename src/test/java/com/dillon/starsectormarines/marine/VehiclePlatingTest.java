@@ -103,7 +103,9 @@ class VehiclePlatingTest {
         patterns.setAccessible(true);
         @SuppressWarnings("unchecked")
         java.util.Set<String> known = (java.util.Set<String>) patterns.get(bay);
-        known.add("kit:kit.applique-plate");
+        // As a real save stores it: learnPattern keeps the full pattern id.
+        known.add(MechPattern.PREFIX + "kit:kit.applique-plate");
+        known.add(MechPattern.PREFIX + "kit:kit.spaced-skirts");
 
         Method resolve = MechBay.class.getDeclaredMethod("readResolve");
         resolve.setAccessible(true);
@@ -115,6 +117,9 @@ class VehiclePlatingTest {
         assertEquals(1, bay.ownedKit(VehicleKit.SPALL_LINER.id), "the rest of the kits stay");
         assertTrue(bay.knowsPattern(MechPattern.of(MechInternal.COMPOSITE_PLATING).id()),
                 "a company that knew the kit knows its plating");
+        assertTrue(bay.knowsPattern(MechPattern.of(MechInternal.HEAVY_PLATING).id()));
+        assertFalse(bay.knownPatternIds().contains(MechPattern.PREFIX + "kit:kit.applique-plate"),
+                "the retired pattern id is gone");
     }
 
     private static CampaignVehicle vehicleWithKitIds(List<String> ids) throws Exception {

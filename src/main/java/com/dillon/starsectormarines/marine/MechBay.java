@@ -960,10 +960,11 @@ public final class MechBay implements Serializable {
         if (applique != null && applique > 0) ownedInternals.merge(MechInternal.COMPOSITE_PLATING.id, applique, Integer::sum);
         if (skirts != null && skirts > 0) ownedInternals.merge(MechInternal.HEAVY_PLATING.id, skirts, Integer::sum);
         if (knownPatternIds == null) return;
-        if (knownPatternIds.remove("kit:" + CampaignVehicle.RETIRED_APPLIQUE_PLATE)) {
+        // A learned pattern is stored by its full id (learnPattern accepts only what MechPattern.parse reads).
+        if (knownPatternIds.remove(MechPattern.PREFIX + "kit:" + CampaignVehicle.RETIRED_APPLIQUE_PLATE)) {
             knownPatternIds.add(MechPattern.of(MechInternal.COMPOSITE_PLATING).id());
         }
-        if (knownPatternIds.remove("kit:" + CampaignVehicle.RETIRED_SPACED_SKIRTS)) {
+        if (knownPatternIds.remove(MechPattern.PREFIX + "kit:" + CampaignVehicle.RETIRED_SPACED_SKIRTS)) {
             knownPatternIds.add(MechPattern.of(MechInternal.HEAVY_PLATING).id());
         }
     }
