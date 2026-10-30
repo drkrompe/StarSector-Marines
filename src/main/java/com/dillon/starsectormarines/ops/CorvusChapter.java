@@ -47,6 +47,18 @@ public enum CorvusChapter {
     public String briefing() { return Strings.get(textKey + "Briefing"); }
     public String debrief() { return Strings.get(textKey + "Debrief"); }
 
+    /**
+     * Mechs or vehicles recommended beside the squads: Blind Watch's post is dug in against a company with armour
+     * ({@code blind-watch-sounding.md}), and A Cold Account names its company's machines.
+     */
+    public int recommendedMachines() {
+        return switch (this) {
+            case DUST_LEDGER -> 0;
+            case BLIND_WATCH -> 3;
+            case COLD_ACCOUNT -> ColdAccountCompany.MACHINES;
+        };
+    }
+
     /** A remote compound's scale, with the actual world's surface captured at launch. */
     public TargetProfile profile(SurfacePalette ground) {
         // Scale three describes this small inhabited compound, not a new vanilla
@@ -83,7 +95,9 @@ public enum CorvusChapter {
                 .sprawl(PrecinctPlan.Sprawl.REMOTE)
                 .flavor(Strings.format("corvusFlavor", OpeningBroker.NAME,
                         this == DUST_LEDGER ? Strings.join("waylineSentenceJoin", priorOutcome, briefing()) : briefing()))
-                .requirements(Strings.format("corvusRequirements", squads))
+                .requirements(this == BLIND_WATCH
+                        ? Strings.format(textKey + "Requirements", squads, recommendedMachines())
+                        : Strings.format("corvusRequirements", squads))
                 .requiredDrops(squads * 2).employerShuttles(0)
                 .marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                 .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
