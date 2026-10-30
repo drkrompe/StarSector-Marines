@@ -353,7 +353,7 @@
           { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
         ]
       },
-      "audio": { "fireSound": "burst_pd_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "burst_pd_fire", "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.12 }
     },
     {
       "id": "weapon.hardpoint-pd-laser",
@@ -381,7 +381,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "loopSound": "laser_loop" }
+      "audio": { "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
       "id": "weapon.post-pd-laser",
@@ -409,7 +409,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "loopSound": "laser_loop" }
+      "audio": { "loopSound": "laser_loop", "loopTail": 0.35, "loopFadeOut": 0.2, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
       "id": "weapon.post-burst-laser",
@@ -437,7 +437,7 @@
           { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
         ]
       },
-      "audio": { "fireSound": "burst_pd_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "burst_pd_fire", "loopSound": "laser_loop", "loopTail": 0.45, "loopFadeOut": 0.3, "loopFadeIn": 0.05, "loopPitchDrop": 0.12 }
     },
     {
       "id": "weapon.turret-vulcan",

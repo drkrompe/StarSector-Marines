@@ -22,7 +22,8 @@ public final class BattleShotAudio {
      * Plays ordinary positional battle fire at each simulation muzzle. A
      * weapon with an authored loop is heard through {@code loops} instead: its
      * fire clip once as a lance starts, then its loop at the muzzle each
-     * rendered frame until its pulses stop. {@code dt} is real seconds.
+     * rendered frame while its pulses come and through its authored tail,
+     * at the voice's level and pitch. {@code dt} is real seconds.
      */
     public static void playPositional(List<ShotEvent> shots, HeldFireLoops loops, float dt) {
         Vector2f zeroVelocity = new Vector2f(0f, 0f);
@@ -36,10 +37,18 @@ public final class BattleShotAudio {
             Global.getSoundPlayer().playSound(
                     cue.soundId(), pitch(), cue.volume(), location, zeroVelocity);
         }
-        for (HeldFireLoops.Voice voice : loops.held()) {
-            Global.getSoundPlayer().playLoop(voice.loopSoundId(), voice, 1f, voice.volume(),
-                    new Vector2f(voice.x() * WORLD_UNITS_PER_CELL, voice.y() * WORLD_UNITS_PER_CELL),
-                    zeroVelocity);
+        List<HeldFireLoops.Voice> held = loops.held();
+        for (int i = 0; i < held.size(); i++) {
+            HeldFireLoops.Voice voice = held.get(i);
+            Vector2f at = new Vector2f(voice.x() * WORLD_UNITS_PER_CELL, voice.y() * WORLD_UNITS_PER_CELL);
+            if (voice.authored()) {
+                // Its envelope fades and sags it; the engine only brings it up and de-clicks the release.
+                Global.getSoundPlayer().playLoop(voice.loopSoundId(), voice, voice.pitch(), voice.volume(),
+                        at, zeroVelocity, voice.fadeIn(), voice.fadeOut());
+            } else {
+                Global.getSoundPlayer().playLoop(voice.loopSoundId(), voice, voice.pitch(), voice.volume(),
+                        at, zeroVelocity);
+            }
         }
     }
 
@@ -71,8 +80,8 @@ public final class BattleShotAudio {
     static boolean startsSound(ShotEvent shot, Cue cue, HeldFireLoops loops) {
         WeaponDef weapon = shot.weaponDef();
         String loopId = weapon != null ? weapon.loopSoundId : null;
-        if (loopId != null
-                && !loops.arm(shot.shooterId, loopId, cue.volume(), shot.fromX, shot.fromY)) {
+        if (loopId != null && !loops.arm(shot.shooterId, loopId, weapon.loopEnvelope(), cue.volume(),
+                shot.fromX, shot.fromY)) {
             return false;
         }
         return cue.soundId() != null;

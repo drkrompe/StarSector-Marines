@@ -1,16 +1,17 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.campaign.CampaignState;
-import com.dillon.starsectormarines.campaign.CorvusWaylineProgress;
 import com.dillon.starsectormarines.marine.EquipmentAccessTier;
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentSource;
 import com.dillon.starsectormarines.marine.FirstRefit;
+import com.dillon.starsectormarines.marine.KitLadder;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.LoadoutCardPicker;
 import com.dillon.starsectormarines.marine.LoadoutCards;
 import com.dillon.starsectormarines.marine.MarketListings;
+import com.dillon.starsectormarines.marine.UnlockStation;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
@@ -40,7 +41,7 @@ class ArcIssueListingsTest {
             assertEquals(beat.cardId(), listing.cardId());
             assertEquals(beat.scope, listing.scope());
             assertEquals(beat.reasonKey, listing.reasonKey());
-            assertEquals(beat == ArcIssueListings.Beat.COLD_ACCOUNT ? "hegemony" : "jangala", listing.scopeId());
+            assertEquals(beat == ArcIssueListings.Beat.BLIND_WATCH ? "hegemony" : "jangala", listing.scopeId());
         }
     }
 
@@ -53,15 +54,10 @@ class ArcIssueListingsTest {
     }
 
     @Test
-    void theColdAccountIsEarnedOnlyByTheLastCorvusChapter() {
-        CorvusWaylineProgress progress = new CorvusWaylineProgress();
-        for (CorvusChapter chapter : CorvusChapter.values()) {
-            assertFalse(progress.complete(), chapter.name());
-            String id = progress.missionId();
-            assertTrue(progress.begin(id, "Site"));
-            assertTrue(progress.settle(id, "Site", true, chapter.payment) >= 0);
+    void eachBeatIsItsCardsKitLadderStation() {
+        for (ArcIssueListings.Beat beat : ArcIssueListings.Beat.values()) {
+            assertEquals(UnlockStation.valueOf(beat.name()), KitLadder.station(beat.cardId()), beat.name());
         }
-        assertTrue(progress.complete());
     }
 
     @Test
@@ -87,6 +83,6 @@ class ArcIssueListingsTest {
     void counterBatteryIssueAlsoCirculatesUnderAHegemonyLicence() {
         List<String> picked = LoadoutCardPicker.pick("hegemony", FactionEquipmentSource.LICENSE, 500, 7L,
                 Set.of(), new EquipmentAcquisitionEligibility.Progress(99, 100));
-        assertTrue(picked.contains(ArcIssueListings.Beat.COLD_ACCOUNT.cardId()));
+        assertTrue(picked.contains(ArcIssueListings.Beat.BLIND_WATCH.cardId()));
     }
 }

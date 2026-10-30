@@ -21,7 +21,9 @@ SquadEquipmentDoctrines.java / ArmorSheetBundles.java, and embeds all of it in o
 Two ladders, never mixed: weapon cards (primaries and secondaries per marine) and Equipment cards
 (armour per marine). Each card draws the way a Barracks loadout card does (kit bricks coloured by
 what each piece throws or wears) and can be placed on the Alpha mission timeline to say after which
-mission it goes on sale. Exports a kits.json holding both ladders.
+mission it goes on sale. Every card's and machine pattern's seeded station is the game's own Kit Ladder
+(KitLadder.java, stations in UnlockStation.java; Relief's free pick from FirstRefit.java), so a rebuild shows
+what the game sells when. Exports a kits.json holding both ladders.
 """
 import base64
 import glob
@@ -41,50 +43,60 @@ PRIMARY_ICON = {"RIFLE": "weapon-rifle", "DMR": "weapon-dmr", "LASER_GUN": "weap
 PRIMARY_LIE = 32
 ART_PX = 160
 
-# The Alpha mission timeline, in campaign order (campaign-overview.md). A card placed on a station
-# goes on sale once that mission settles; "start" is the company's opening issue, "none" is not sold.
+# The Alpha mission timeline, in campaign order: the page's names and notes for the game's Kit Ladder stations
+# (UnlockStation.java), which this list must match id for id. A card placed on a station goes on sale once that
+# mission settles; "start" is the company's opening issue, "none" is never sold in the store.
 STATIONS = [
-    ("none", "Not sold yet", "Unplaced", "Reachable only by ordinary shelves, licences, patrons and recovery for its tier."),
+    ("none", "Not sold", "Unplaced", "Never on a store shelf. Patrons and recovery may still hand it out by tier."),
     ("start", "Company start", "Start", "What a fresh company holds."),
     ("relief", "Relief", "Wayline opening", "First Wayline job: the one free pick (Steady Line or Forward Screen, with its armour sheet). The other path and Checkpoint Issue go on sale in the store."),
     ("counterattack", "Counterattack", "Wayline opening", "Recovered Hound and first refit."),
-    ("junction", "Open the Junction", "Broken Supply Route", "Defended junction. Trench-Clearing Issue is the reward."),
-    ("thunder-run", "Thunder Run", "Broken Supply Route", "Convoy escort. Convoy Escort Issue goes on sale at the employer's market."),
+    ("junction", "Open the Junction", "Broken Supply Route", "Defended junction."),
+    ("thunder-run", "Thunder Run", "Broken Supply Route", "Convoy escort, settled won or lost. Convoy Escort Issue is listed at the employer's market."),
     ("dust-ledger", "Dust Ledger", "Corvus Account", "Saltwell Cross; side objectives."),
-    ("blind-watch", "Blind Watch", "Corvus Account", "The Sounding on Warion; sable mortars and missiles."),
-    ("cold-account", "A Cold Account", "Corvus Account", "Garnir. Counter-Battery Issue goes on sale at Hegemony markets."),
+    ("blind-watch", "Blind Watch", "Corvus Account", "The Sounding on Warion; sable mortars and missiles. Counter-Battery Issue is listed at Hegemony markets."),
+    ("cold-account", "A Cold Account", "Corvus Account", "Garnir."),
     ("salvage-rights", "Salvage Rights", "A Working Ship", "Shepherd recovery, first contract."),
     ("cold-start", "Cold Start", "A Working Ship", "Shepherd recovery, second contract."),
-    ("working-passage", "Working Passage", "A Working Ship", "The Morrow flies. Builder's Guard goes on sale at Asharu, and the end-game equipment wall opens here, before the Bloom challenge."),
-    ("colony-breach", "Colony Breach", "Khettara Bloom", "Rav Bloom challenge, chapter 1 (replayable)."),
-    ("cordon-line", "Cordon Line", "Khettara Bloom", "Chapter 2."),
-    ("cordon-road", "Cordon Road", "Khettara Bloom", "Chapter 3."),
-    ("the-burn", "The Burn", "Khettara Bloom", "Chapter 4."),
-    ("broad-front", "Broad Front", "Khettara Bloom", "Chapter 5, the end-of-alpha challenge."),
-    ("wins-3", "3 victories", "Count-based", "Any three won operations (VictoryMilestones)."),
-    ("wins-4", "4 victories", "Count-based", "Any four won operations."),
-    ("wins-5-risk", "5 victories + 1 high-risk", "Count-based", "The first chase."),
-    ("wins-15", "15 victories", "Count-based", "Prestige recovery opens."),
+    ("working-passage", "Working Passage", "A Working Ship", "The Morrow flies. Builder's Guard is listed at Asharu, and the end-game equipment wall opens here, before the Bloom challenge."),
+    ("colony-breach", "Colony Breach", "Wellhollow Bloom", "Rav Bloom challenge, chapter 1 (replayable)."),
+    ("cordon-road", "Cordon Road", "Wellhollow Bloom", "Chapter 2."),
+    ("the-burn", "The Burn", "Wellhollow Bloom", "Chapter 3."),
+    ("broad-front", "Broad Front", "Wellhollow Bloom", "Chapter 4, the end-of-alpha challenge."),
     ("post-alpha-small-war", "A Small War (cut from alpha)", "Post-alpha", "Agreus cards parked here: the recovered Specter and Arbalest sections and the Boarding Jack."),
-    ("post-alpha-warrants", "Military warrants (post-alpha)", "Post-alpha", "Approved kit that needs a tradition's warrant; warrants arrive with A Small War."),
 ]
 
-# Where the shipped code already puts each card (ArcIssueListings, VictoryMilestones, the Agreus rewards).
-PLACED = {
-    "weapons:field-security": "start", "weapons:checkpoint": "relief", "wayline:steady-line": "relief",
-    "wayline:forward-screen": "relief", "weapons:trench-clearing": "junction", "weapons:convoy-escort": "thunder-run",
-    "weapons:counter-battery": "cold-account", "weapons:builders-guard": "working-passage",
-    "weapons:line-infantry": "wins-5-risk",
-    "armor:field-fatigues": "start", "armor:hegemony-auxiliary": "relief", "armor:league-mobile": "relief",
-    "armor:sindrian-security": "wins-3", "armor:corporate-specter-section": "post-alpha-small-war",
-    "armor:hegemony-arbalest-section": "post-alpha-small-war", "armor:boarding-jack-section": "post-alpha-small-war",
-    "armor:hegemony-auxiliary-section": "post-alpha-warrants", "armor:hegemony-shock": "post-alpha-warrants",
-}
+# The game's Kit Ladder (KitLadder.java) seeds every placement on the page; Java class -> page item kind.
+PATTERN_KIND = {"MechVariant": "chassis", "MechWeaponComponent": "weapon", "MechInternal": "internal",
+                "VehicleType": "vehicle", "VehicleKit": "kit"}
 
 
-# The only free unlock after the opening: Relief's pick of one Wayline path, with its armour sheet.
-# The path not picked is sold in the store.
-FREE_PICK = {"wayline:steady-line", "wayline:forward-screen", "armor:hegemony-auxiliary", "armor:league-mobile"}
+def kit_ladder(ids):
+    """{page id: station id} for every KitLadder row, and the set of free-pick card ids (FirstRefit's paths)."""
+    station_ids = dict(re.findall(r'^    ([A-Z_0-9]+)\("([a-z0-9-]+)"\)',
+                                  (JAVA / "marine/UnlockStation.java").read_text(encoding="utf-8"), re.M))
+    if "NONE" not in station_ids or [s[0] for s in STATIONS] != ["none"] + [v for k, v in station_ids.items() if k != "NONE"]:
+        raise SystemExit("kits/build.py: STATIONS must list UnlockStation's ids in its order, 'none' first; UnlockStation has %s"
+                         % list(station_ids.values()))
+    paths, free = {}, set()
+    for enum, weapons, sheet in re.findall(r'^\s+(\w+)\("[^"]+", "(wayline:[^"]+)", SquadEquipmentDoctrines\.(\w+),',
+                                           (JAVA / "marine/FirstRefit.java").read_text(encoding="utf-8"), re.M):
+        paths[enum] = weapons
+        free.update({weapons, ids[sheet]})
+    if len(paths) != 2:
+        raise SystemExit("kits/build.py: FirstRefit.Path parsed %d paths, expected 2" % len(paths))
+    src = (JAVA / "marine/KitLadder.java").read_text(encoding="utf-8")
+    placed = {}
+    for kind, const, path, station in re.findall(
+            r'^\s+(weapon|sheet)\((?:SquadEquipmentDoctrines\.(\w+)|FirstRefit\.Path\.(\w+)\.weapons),\s*(\w+)\);', src, re.M):
+        placed[ids[const] if const else paths[path]] = station_ids[station]
+    for cls, enum, station in re.findall(r'^\s+pattern\((\w+)\.(\w+),\s*(\w+)\);', src, re.M):
+        placed["%s:%s" % (PATTERN_KIND[cls], enum)] = station_ids[station]
+    rows = len(re.findall(r'^\s+(?:weapon|sheet|pattern)\((?:\w+\.)', src, re.M))
+    if rows != len(placed) or rows < 90:
+        raise SystemExit("kits/build.py: KitLadder.java has %d rows but %d parsed; keep each row in the weapon/sheet/pattern(<constant>, <STATION>); shape"
+                         % (rows, len(placed)))
+    return placed, free
 
 
 def load(path):
@@ -538,9 +550,12 @@ def main():
     if len(armor_kits) < 20:
         raise SystemExit("armour plans parsed: %d" % len(armor_kits))
 
+    placed, free_pick = kit_ladder(ids)
     for kit in kits + armor_kits:
-        kit["station"] = PLACED.get(kit["id"], "none")
-        kit["grant"] = "free-pick" if kit["id"] in FREE_PICK else "sale"
+        if kit["id"] not in placed:
+            raise SystemExit("kits/build.py: card %s has no KitLadder row" % kit["id"])
+        kit["station"] = placed[kit["id"]]
+        kit["grant"] = "free-pick" if kit["id"] in free_pick else "sale"
 
     # Machine licences: one chip per pattern the store can teach, tiered by MechPattern's own tables.
     pattern_src = (JAVA / "marine/MechPattern.java").read_text(encoding="utf-8")
@@ -574,18 +589,20 @@ def main():
         return "data:image/svg+xml;base64," + base64.b64encode(data.encode("utf-8")).decode()
 
     weight = {"COMMON": "light", "ADVANCED": "medium", "PRESTIGE": "heavy"}
-    starters = {("CHASSIS", "HOUND"), ("WEAPON", "NOSE_CHAINGUN"), ("WEAPON", "SRM_5"), ("WEAPON", "SRM_5_FRAG")}
     items = {"hull": [], "mweapon": [], "mpart": []}
 
-    def item(ladder, kind, enum, name, sub, tier, seed_start=False, icon=None, tone="DOLL", fp=None):
-        items[ladder].append({"id": "%s:%s" % (kind.lower(), enum), "name": name, "sub": sub, "access": tier,
-                              "station": "start" if seed_start else "none", "icon": icon, "tone": tone, "fp": fp})
+    def item(ladder, kind, enum, name, sub, tier, icon=None, tone="DOLL", fp=None):
+        item_id = "%s:%s" % (kind.lower(), enum)
+        if item_id not in placed:
+            raise SystemExit("kits/build.py: %s has no KitLadder row" % item_id)
+        items[ladder].append({"id": item_id, "name": name, "sub": sub, "access": tier,
+                              "station": placed[item_id], "icon": icon, "tone": tone, "fp": fp})
 
     variants = re.findall(r'^\s+(\w+)\("[a-z-]+", "(@[^"]+)"', (JAVA / "battle/mech/MechVariant.java").read_text(encoding="utf-8"), re.M)
     for enum, key in variants:
         tier = tiers.get(("CHASSIS", enum))
         if tier:
-            item("hull", "CHASSIS", enum, text(key), "mech · " + weight[tier], tier, ("CHASSIS", enum) in starters,
+            item("hull", "CHASSIS", enum, text(key), "mech · " + weight[tier], tier,
                  svg_uri("graphics/ui/dolls/mech-%s.svg" % enum.lower(), True))
     for enum in re.findall(r"^\s+(\w+)\(", (JAVA / "battle/vehicle/VehicleType.java").read_text(encoding="utf-8"), re.M):
         tier = tiers.get(("VEHICLE", enum))
@@ -612,20 +629,19 @@ def main():
             raise SystemExit("kits/build.py: HardwareArt.stem has no case for component %s" % enum)
         tier = tiers.get(("WEAPON", enum))
         if tier:
-            item("mweapon", "WEAPON", enum, text(key), (mount.lower() + " mount") if mount else "mech weapon", tier, ("WEAPON", enum) in starters,
+            item("mweapon", "WEAPON", enum, text(key), (mount.lower() + " mount") if mount else "mech weapon", tier,
                  svg_uri("graphics/ui/mech-hardware/%s.svg" % weapon_stem[enum]), hardpoints[enum][0], wfp[enum])
     internals = re.findall(r'^\s+(\w+)\("internal\.[^"]+", "(@[^"]+)", Role\.(\w+),\s*EquipmentAccessTier\.(\w+)',
                            (JAVA / "marine/MechInternal.java").read_text(encoding="utf-8"), re.M)
-    starter_internals = {"INDUSTRIAL_ENGINE", "FACTORY_PLATING", "FACTORY_CAPACITOR_BANK", "STANDARD_LOADER"}
     for enum, key, role, tier in internals:
         internal_tone = {"ENGINE": "ENGINE", "PLATING": "ARMOR", "CAPACITOR_BANK": "FLUX"}.get(role, "UTILITY")
-        item("mpart", "INTERNAL", enum, text(key), role.lower().replace("_", " "), tier, enum in starter_internals,
+        item("mpart", "INTERNAL", enum, text(key), role.lower().replace("_", " "), tier,
              svg_uri("graphics/ui/mech-hardware/%s.svg" % internal_stem[enum]), internal_tone, ifp.get(enum))
     for enum, key in re.findall(r'^\s+(\w+)\("kit\.[^"]+", "(@[^"]+)"', (JAVA / "battle/vehicle/VehicleKit.java").read_text(encoding="utf-8"), re.M):
         tier = tiers.get(("KIT", enum))
         if tier:
             kit_id = re.search(r'^\s+%s\("(kit\.[^"]+)"' % enum, (JAVA / "battle/vehicle/VehicleKit.java").read_text(encoding="utf-8"), re.M).group(1)
-            item("mpart", "KIT", enum, text(key), "vehicle kit", tier, False,
+            item("mpart", "KIT", enum, text(key), "vehicle kit", tier,
                  svg_uri("graphics/ui/mech-hardware/%s.svg" % kit_id.replace(".", "-")),
                  "FLUX" if enum == "CAPACITOR_PACK" else "UTILITY" if enum in ("READY_RACK", "ACCELERATED_LOADER") else "AUX", (2, 1))
     for lst in items.values():
