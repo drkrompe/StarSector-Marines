@@ -68,7 +68,7 @@ public final class DebugMissionCatalog {
         ROUTE_SECURITY("Repeatable work", "Route Security", "A fresh relay security contract.", 2, true),
         VETERANS_JOB("Independent stories", "The Veteran's Job", "Raid the broker's cache and extract.", 3, false),
         SILENT_COLONY("Campaign events", "Silent Colony", "Investigate the archive and recover the stranded survivors.", 2, false),
-        SALVAGE_RIGHTS("A Working Ship", "Salvage Rights", "Night recovery: secure the camp, hand the workshop to militia and cover Morrow's inspection.", 2, false),
+        SALVAGE_RIGHTS("A Working Ship", "Salvage Rights", "Night recovery: secure the camp, hand the workshop to militia and cover Morrow's inspection.", SalvageRightsCompany.SQUADS, false),
         COLD_START("A Working Ship", "Cold Start", "Escort repair cargo, restore yard power and build Morrow's first road gun.", 2, false),
         WORKING_PASSAGE("A Working Ship", "Working Passage", "Escort Morrow through the basin with service pulse rifles and starting Ward armor; build road defenses and secure physical climb-out.", 2, false),
         WATER_UNDER_SEAL("Agreus", "Water Under Seal", "Escort the technicians and repair loads to the Agreus water works and hold it.", 3, false),
@@ -223,6 +223,7 @@ public final class DebugMissionCatalog {
                     .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
                     .requirements(squads + (this == WORKING_PASSAGE ? " squads / service pulse rifles / starting Ward armor / no Hound or officer bonuses"
                             : this == COLD_ACCOUNT ? " squads carrying the kit unlocked by Blind Watch (rockets, point defence, anti-materiel rifles) + " + ColdAccountCompany.BAY
+                            : this == SALVAGE_RIGHTS ? " squads carrying the kit unlocked by A Cold Account (rockets, point defence, anti-materiel rifles) + " + SalvageRightsCompany.BAY
                             : " starter squads" + (hound ? " + the Hound (chaingun)" : "")) + "; preset boats supplied")
                     .battleSeed(chapter != null ? chapter.mission("unused", chapter.planetName, "").battleSeed
                             : ravBloom() ? RavBloomDebugChoice.seed(poolMap())
@@ -292,7 +293,8 @@ public final class DebugMissionCatalog {
         if (story != null && story.wellhollow() != null) return new Preset(DebugCompanyStage.VETERAN_COMPANY, story.squads,
                 WellhollowBloomCampaign.RECOMMENDED_MACHINES, CAMPAIGN_LIFT, CAMPAIGN_LIFT_BOATS, false, false);
         if (story != null) return new Preset(DebugCompanyStage.FIRST_CONTRACT, story.squads,
-                story == Scenario.COLD_ACCOUNT ? ColdAccountCompany.MACHINES : story.hound ? 1 : 0,
+                story == Scenario.COLD_ACCOUNT ? ColdAccountCompany.MACHINES
+                        : story == Scenario.SALVAGE_RIGHTS ? SalvageRightsCompany.MACHINES : story.hound ? 1 : 0,
                 CAMPAIGN_LIFT, CAMPAIGN_LIFT_BOATS, true, story == Scenario.WORKING_PASSAGE);
         DebugCompanyStage stage = switch (m.tier) {
             case FIRST_CONTRACT -> DebugCompanyStage.FIRST_CONTRACT;
@@ -327,6 +329,10 @@ public final class DebugMissionCatalog {
         MarineRoster roster = starterCompany(squads);
         if (scenario(mission) == Scenario.COLD_ACCOUNT) {
             ColdAccountCompany.issue(roster);
+            return roster;
+        }
+        if (scenario(mission) == Scenario.SALVAGE_RIGHTS) {
+            SalvageRightsCompany.issue(roster);
             return roster;
         }
         if (scenario(mission) != Scenario.WORKING_PASSAGE) return roster;

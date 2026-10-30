@@ -19,11 +19,18 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 final class RoadTechnical {
     static final VehicleType TYPE = VehicleType.MILITIA_TECHNICAL;
 
+    private final VehicleType type;
     private final int entryX, entryY, parkX, parkY;
     private long id;
 
     /** The hull's first cell at the south road mouth and the cell it parks on, both clear for its footprint. */
     RoadTechnical(int entryX, int entryY, int parkX, int parkY) {
+        this(TYPE, entryX, entryY, parkX, parkY);
+    }
+
+    /** A hull of {@code type} sent the same way: Salvage Rights' road reserve brings a tank up behind its technical. */
+    RoadTechnical(VehicleType type, int entryX, int entryY, int parkX, int parkY) {
+        this.type = type;
         this.entryX = entryX;
         this.entryY = entryY;
         this.parkX = parkX;
@@ -37,7 +44,7 @@ final class RoadTechnical {
 
     /** The cells it drives from the road mouth to its park, as x0, y0, x1, y1, ...; empty when there is no way. */
     int[] route(BattleSimulation sim) {
-        VehicleClearance lane = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(TYPE.visualWidthCells));
+        VehicleClearance lane = VehicleClearance.erode(sim.getGrid(), VehicleClearance.radiusForWidth(type.visualWidthCells));
         return GridPathfinder.findPathOnDemand(sim.getGrid(), entryX, entryY, parkX, parkY, index -> 1f, lane::isPassableAt);
     }
 
@@ -45,7 +52,7 @@ final class RoadTechnical {
     void enter(BattleSimulation sim) {
         if (id != 0L) throw new IllegalStateException("the technical enters once");
         int[] path = route(sim);
-        id = sim.convoy().spawn(TYPE, Faction.DEFENDER, VehicleMission.deployed(entryX + .5f, entryY + .5f));
+        id = sim.convoy().spawn(type, Faction.DEFENDER, VehicleMission.deployed(entryX + .5f, entryY + .5f));
         float facing = path.length >= 4 ? AirBody.facingToward(path[2] - path[0], path[3] - path[1]) : 0f;
         sim.convoy().body(id).teleport(entryX + .5f, entryY + .5f, facing);
         if (path.length < 4) return;

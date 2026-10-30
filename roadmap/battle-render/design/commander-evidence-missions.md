@@ -281,6 +281,12 @@ the company the mission's snapshot suite issues into two six-seat Aeroshuttles
 (the Agreus company from the debug catalog's expected roster, the A Working
 Ship company from its starter roster; ashore where the mission starts it on the
 ground) and plays it with no input until it ends or its tick budget runs out.
+Salvage Rights instead lands the company it is balanced against
+(`SalvageRightsMuster`): five squads (four at 48 seats) of the debug catalog's
+expected roster in the debug preset's max-fitted Hermes, its four machines
+called down one at a time as each drop is ready, each call listed in
+`playerInputs`. `battleProbe -Pbattle=salvage-rights[:seed=N,squads=N,machines]`
+stands the same battle up.
 The exception is a mission that waits on the player's ship bar: Water Under
 Seal and Terms of Protection call Ship on Station once the plot is seen and
 order the road gun, Cold Start requests yard construction, Working Passage

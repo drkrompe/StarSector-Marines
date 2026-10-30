@@ -32,15 +32,22 @@ public final class SalvageRightsSequence implements Objective {
     private final PointOfInterest receiving,workshop;
     private final int engineers;
     private final List<EntitySpec> reserve;
+    private List<RoadTechnical> roadMachines=List.of();
     private final StoryBeatLog log;
     private final List<Integer> roadSquads=new ArrayList<>();
     private final Set<Integer> handedOff=new HashSet<>();
     private boolean released;
+    /** {@code reserve} is the south road's infantry, four to a squad in order; each squad takes its first member's type. */
     public SalvageRightsSequence(PointOfInterest receiving,PointOfInterest workshop,int engineers,List<EntitySpec> reserve,StoryBeatLog log) {
         this.receiving=receiving;this.workshop=workshop;this.engineers=engineers;this.reserve=List.copyOf(reserve);this.log=log;
     }
+    /** Hulls that drive up the haul road behind the infantry when it enters. Setup only. */
+    void sendAlongRoad(List<RoadTechnical> machines){
+        if(released)throw new IllegalStateException("The road reserve has already entered");
+        roadMachines=List.copyOf(machines);
+    }
     public SalvageRightsProgress progress(){return progress;}
-    public int pendingMembers(){return released?0:reserve.size();}
+    public int pendingMembers(){return released?0:reserve.size()+roadMachines.size();}
     public int targetX(){return progress.phase()==Phase.RECEIVING?receiving.interiorAnchorX:progress.phase()==Phase.WORKSHOP?workshop.interiorAnchorX:127;}
     public int targetY(){return progress.phase()==Phase.RECEIVING?receiving.interiorAnchorY:progress.phase()==Phase.WORKSHOP?workshop.interiorAnchorY:101;}
     public PointOfInterest targetBuilding(){return progress.phase()==Phase.RECEIVING?receiving:progress.phase()==Phase.WORKSHOP?workshop:null;}
@@ -51,7 +58,7 @@ public final class SalvageRightsSequence implements Objective {
         for(int i=0;i<sim.liveUnitCount();i++){
             long id=sim.liveUnitAt(i);float x=sim.world().x(id),y=sim.world().y(id);
             Faction faction=sim.identity().faction(id);
-            if(sim.squad().squadId(id)==engineers && faction==Faction.ALLY && Math.hypot(x-127,y-101)<5)crewAtHull=true;
+            if(faction==Faction.ALLY && sim.squad().squadId(id)==engineers && Math.hypot(x-127,y-101)<5)crewAtHull=true;
             if(!sim.identity().type(id).combatant)continue;
             boolean at;
             PointOfInterest building=progress.phase()==Phase.RECEIVING?receiving:progress.phase()==Phase.WORKSHOP?workshop:null;
@@ -89,12 +96,13 @@ public final class SalvageRightsSequence implements Objective {
         if(!released && !progress.terminal() && progress.phase().ordinal()>=Phase.CRADLE.ordinal()) {
             released=true;
             for(int start=0;start<reserve.size();start+=4){
-                int squad=sim.mintSquad(Faction.DEFENDER,UnitType.MILITIA);
+                int squad=sim.mintSquad(Faction.DEFENDER,reserve.get(start).type);
                 for(int i=start;i<Math.min(start+4,reserve.size());i++)sim.spawn(reserve.get(i).squad(squad));
                 sim.getSquad(squad).originalSize=Math.min(4,reserve.size()-start);
                 sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad,194,45),CommandAuthority.SCRIPTED,ROAD,"Scrappers enter along the south haul road");
                 roadSquads.add(squad);
             }
+            for(RoadTechnical machine:roadMachines)machine.enter(sim);
             log.emitOnce(sim.getSimTickIndex(),"shepherd.salvage.reserve_entered",StoryBeatLog.Audience.OBSERVER_ONLY);
             releasedAtTick=sim.getSimTickIndex();
         }

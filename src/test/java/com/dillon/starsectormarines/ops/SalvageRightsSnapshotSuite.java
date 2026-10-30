@@ -41,6 +41,7 @@ import com.dillon.starsectormarines.battle.setup.SalvageRightsSequence;
 import com.dillon.starsectormarines.battle.story.ColdStartProgress;
 import com.dillon.starsectormarines.battle.story.WorkingPassageProgress;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
+import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import java.util.Map;
 import java.nio.file.Files;
 import java.util.List;
@@ -57,6 +58,8 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
     public String label(){return "Salvage Rights: company lift, workshop handoff and contested inspection";}
     public List<SnapshotArtifact> render(SnapshotContext context)throws Exception{
         DiskRegistries.installMapGeneration(context.projectRoot());
+        // The occupiers' hired guns roll from the ground rosters.
+        TileRegistryTestInstaller.install(context.projectRoot());
         HeadlessSvgAssets.install(context.modRoot());
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         var frames=new ArrayList<SnapshotArtifact>();
@@ -87,6 +90,7 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
                 var renderer=new BattleReviewFrameRenderer(context.modRoot(),1920,1080,101,104,170).withImpactEffects();
                 var stage=sim.getSalvageRights().progress().phase();
                 frames.add(new SnapshotArtifact(key+"-approach.png",renderer.render(sim,"SALVAGE RIGHTS / NIGHT APPROACH / "+key)));
+                if ("approach".equals(System.getProperty("battle.salvageRights.fixture"))) return frames;
                 var landed=new HashSet<String>();var squadIds=new HashMap<String,Set<Integer>>();
                 int maxTicks=absent?3600:18000;
                 while(!sim.isComplete()&&sim.getSimTickIndex()<maxTicks){

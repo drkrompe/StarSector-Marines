@@ -92,6 +92,10 @@ public final class ShepherdRecoveryCampaign {
     }
     public static boolean owns(String id){return ShepherdRecoveryProgress.owns(id);}
     public static boolean isBattle(Mission mission){return mission!=null&&mission.source==MissionSource.STORY&&owns(mission.id);}
+    /** Salvage Rights, the first visit: a battle whose id is neither Cold Start's nor Working Passage's. */
+    public static boolean isSalvageRights(Mission mission){
+        return isBattle(mission)&&!ShepherdRecoveryProgress.coldStart(mission.id)&&!ShepherdRecoveryProgress.workingPassage(mission.id);
+    }
     public static OpeningBroker.Destination destination(){
         if(current()==null||Global.getSector()==null)return null;
         var corvus=Global.getSector().getStarSystem("Corvus");
@@ -122,7 +126,8 @@ public final class ShepherdRecoveryCampaign {
                 + Strings.get("shepherdPassageTerms") + Strings.get("shepherdForceRequirement")
                 + Strings.get("shepherdPassageDeployment");
         if (!progress.claimSecured()) return Strings.get("shepherdSalvageTerms")
-                + Strings.get("shepherdForceRequirement") + Strings.get("shepherdInspectionDeployment");
+                + Strings.format("shepherdSalvageForceRequirement", SalvageRightsCompany.SQUADS, SalvageRightsCompany.MACHINES)
+                + Strings.get("shepherdInspectionDeployment");
         return Strings.get(progress.cargoDelivered() ? "shepherdColdStatusDelivered" : "shepherdColdStatusUndelivered")
                 + Strings.get(progress.shorePower() ? "shepherdColdStatusPowered" : "shepherdColdStatusUnpowered")
                 + (progress.repairLosses() > 0 ? Strings.format("shepherdColdReplacementParty", progress.repairLosses()) : "")

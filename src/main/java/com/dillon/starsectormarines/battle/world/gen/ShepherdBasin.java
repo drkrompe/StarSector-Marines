@@ -47,6 +47,8 @@ public final class ShepherdBasin {
     /** Where Vale's militia and repair party stand at the start of every visit. */
     public static final Place MILITIA = new Place("militia", "Vale's militia", 25, 80);
     public static final Place REPAIR_PARTY = new Place("repair-party", "Repair technicians", 28, 78);
+    /** Salvage Rights: where Vale's party musters, beyond the occupied receiving store's reach, until the store falls. */
+    public static final Place SALVAGE_MUSTER = new Place("salvage-muster", "Recovery party muster", 14, 104);
     /** The two roads Harlan's crews arrive by. Map-edge entries, not destinations. */
     public static final Place SOUTH_HAUL_ROAD = new Place("south-haul-road", "South haul road", 194, 2);
     public static final Place QUARRY_ROAD = new Place("quarry-road", "Quarry road", 301, 145);
@@ -80,9 +82,10 @@ public final class ShepherdBasin {
                 context -> { if (visit == Visit.WORKING_PASSAGE) hoverLane(context); }, new FinalizeStage(),
                 visit == Visit.COLD_START
                         ? new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,176,38,279,107,151,96,188,112,73,162,123,164,174,166,243,176,199,160)
-                        : new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,73,162,123,164,174,166,243,176,199,160))).run(c);
+                        : new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,73,162,123,164,174,166,243,176,199,160),
+                context -> { if (visit == Visit.SALVAGE_RIGHTS) SalvageRightsGuns.arm(context); })).run(c);
         MapResult map = new MapResult(c.grid, c.topology, LANDING.x(), LANDING.y(), 290, 77,
-                c.pois, c.doodads, new TacticalMap(HeldPlaces.fromBuildings(c.pois, poi -> Faction.DEFENDER)), c.get(BspKeys.BUILDINGS), List.of(),
+                c.pois, c.doodads, new TacticalMap(HeldPlaces.fromBuildings(c.pois, poi -> Faction.DEFENDER)), c.get(BspKeys.BUILDINGS), List.copyOf(c.defensePosts),
                 AuthoredRoadGraph.graph(RoadCatalog.plan(RoadCatalog.SHEPHERD_BASIN), ""), c.landingPads);
         for (LandingPad pad : map.landingPads) {
             if (!pad.isClear(map.grid, map.topology)) throw new IllegalStateException("Basin berth obstructed");

@@ -65,7 +65,7 @@ class DebugMissionCatalogTest {
                 WeaponRegistry.PULSE_RIFLE_ID.equals(s.primaryId()) && s.primaryGrade() == EquipmentGrade.SERVICE));
         assertEquals("04", DebugMissionCatalog.Scenario.WORKING_PASSAGE.sequence());
     }
-    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"WORKING_PASSAGE", "COLD_ACCOUNT", "WELLHOLLOW_BREACH", "WELLHOLLOW_ROAD", "WELLHOLLOW_BURN", "WELLHOLLOW_FRONT"}, mode = EnumSource.Mode.EXCLUDE)
+    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"WORKING_PASSAGE", "COLD_ACCOUNT", "SALVAGE_RIGHTS", "WELLHOLLOW_BREACH", "WELLHOLLOW_ROAD", "WELLHOLLOW_BURN", "WELLHOLLOW_FRONT"}, mode = EnumSource.Mode.EXCLUDE)
     void otherAuthoredCompaniesKeepTheirStarterIssue(DebugMissionCatalog.Scenario scenario) {
         var context = new MarineOpsContext(null);
         context.resetDebugPreset(scenario.mission());
@@ -86,6 +86,15 @@ class DebugMissionCatalogTest {
         assertEquals(ColdAccountCompany.WEAPON_CARDS, squads.stream().map(squad -> squad.weaponDoctrineId()).toList());
         assertEquals(ColdAccountCompany.MACHINES,
                 DebugMissionCatalog.preset(DebugMissionCatalog.Scenario.COLD_ACCOUNT.mission()).mechs());
+    }
+    @Test void salvageRightsLandsItsOwnCompany() {
+        var context = new MarineOpsContext(null);
+        context.resetDebugPreset(DebugMissionCatalog.Scenario.SALVAGE_RIGHTS.mission());
+        var squads = context.getDebugCompanyRoster().squads().stream().filter(squad -> !squad.reserve()).toList();
+        assertEquals(SalvageRightsCompany.SQUADS, squads.size());
+        assertEquals(ColdAccountCompany.WEAPON_CARDS, squads.stream().map(squad -> squad.weaponDoctrineId()).toList());
+        assertEquals(SalvageRightsCompany.MACHINES,
+                DebugMissionCatalog.preset(DebugMissionCatalog.Scenario.SALVAGE_RIGHTS.mission()).mechs());
     }
     @Test void catalogHasUniqueDetachedIdentitiesAndEveryOperationTier() {
         var missions = DebugMissionCatalog.missions(null);
