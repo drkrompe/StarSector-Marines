@@ -71,8 +71,12 @@ public record ArmorSide(List<Unit> units) {
             return isFactoryFrame(fit) ? MechFrame.stock(fit.variant()) : fit.frame();
         }
 
+        /** The fit's loader as the battle runs it: the fitted part's cadence, or none without one. */
         public MechDeploymentSpec deployment() {
-            return new MechDeploymentSpec(fit.variant(), role, MissileReplenisherComponent.STANDARD,
+            MechInternal loader = fit.internal(MechInternal.Role.LOADER);
+            MissileReplenisherComponent replenisher = loader != null ? loader.replenisher()
+                    : MissileReplenisherComponent.NONE;
+            return new MechDeploymentSpec(fit.variant(), role, replenisher,
                     fit.arms(), fit.leftArm(), fit.rightArm(), fit.leftShoulder(), fit.rightShoulder(),
                     null, frame(), null);
         }
