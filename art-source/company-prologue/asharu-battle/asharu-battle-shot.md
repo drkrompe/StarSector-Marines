@@ -612,7 +612,7 @@ Rules:
 | S6c | 69.8-76.09 | SOBIESKI | Taking fire aft! Flux at ninety, can't hold shield and guns — drives! We've lost drives! |
 | S6c | 72.6-75.17 | THYSVILLE | She's through the gap! She's in the column! |
 | S6d | 74.3-75.04 | WARDEN FIVE | Two on me — |
-| S6d | 76.9-79 | WARDEN FIVE | One down - two passed through. |
+| S6d | 76.9-80.45 | WARDEN FIVE | One down - two passed through. |
 | S7 | 81.21-83 | WARDEN FIVE | They're heading for the Sobieski! |
 | S7 | 82-85.07 | CARAVEL | That mark three is hammering down on us! |
 | S7 | 84.9-87.23 | SOBIESKI | Marines prepare to repel boarders! |
