@@ -679,7 +679,7 @@ public final class DirectControlUiSnapshotSuite implements SnapshotSuite {
         List<BattleDirectControlStatus.WeaponStatus> weapons = new ArrayList<>();
         for (var mount : hound.mounts()) {
             if (mount == null) continue;
-            String name = mount.component == MechWeaponComponent.NOSE_CHAINGUN ? "Nose chaingun" : mount.weaponId();
+            String name = mount.component == MechWeaponComponent.CHAINGUN ? "Chaingun" : mount.weaponId();
             weapons.add(new BattleDirectControlStatus.WeaponStatus(weapons.size() + 1, mount.slot.name(), name,
                     new BattleDirectControlStatus.Behavior(BattleDirectControlStatus.FireKind.BURST,
                             mount.component.projectilesPerTrigger, .1f, 1),

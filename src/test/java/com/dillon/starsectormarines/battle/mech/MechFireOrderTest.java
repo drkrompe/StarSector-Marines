@@ -59,7 +59,7 @@ class MechFireOrderTest {
 
     @Test
     void anEmptyMountSortsLast() {
-        MechWeaponMount[] hound = mounts(MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.SRM_5, null);
+        MechWeaponMount[] hound = mounts(MechWeaponComponent.CHAINGUN, MechWeaponComponent.SRM_5, null);
         assertArrayEquals(new int[]{1, 0, 2}, MechFireOrder.order(hound, BULWARK));
     }
 }

@@ -13,9 +13,13 @@ import java.util.Set;
  * <p>Spin-up time, refill rate and the weapon's damage are what make a better chaingun, so all three are
  * authored per weapon rather than per chassis.
  *
- * @param spinUpSeconds rest to full speed with the trigger held
+ * <p>A gun with no spin-up (the light machine gun, the autocannons) authors {@code spinUp} 0 and its first-turn
+ * rate equal to its full rate: it fires at full rate the instant the trigger is held, and only its belt and hopper
+ * limit a hold.
+ *
+ * @param spinUpSeconds rest to full speed with the trigger held; 0 for a gun that is at speed on the press
  * @param coastSeconds how long the barrels hold full speed after the trigger is let go
- * @param spinDownSeconds full speed to rest once the coast is over
+ * @param spinDownSeconds full speed to rest once the coast is over; 0 for a gun at rest the moment the coast ends
  * @param firstTurnRate rounds a second as the barrels start to turn
  * @param fullRate rounds a second at full speed
  * @param belt rounds the belt holds
@@ -36,11 +40,16 @@ public record RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinD
             "fullRate", "belt", "refill", "fluxPerRound");
 
     public RotaryFeedDef {
-        if (!(spinUpSeconds > 0f) || coastSeconds < 0f || !(spinDownSeconds > 0f)
+        if (!(spinUpSeconds >= 0f) || coastSeconds < 0f || !(spinDownSeconds >= 0f)
                 || !(firstTurnRate > 0f) || fullRate < firstTurnRate || belt < 1
                 || !(refillPerSecond > 0f) || fluxPerRound < 0f) {
             throw new IllegalArgumentException("Invalid rotary feed");
         }
+    }
+
+    /** Whether the gun fires at full rate the instant its trigger is held. */
+    public boolean instant() {
+        return spinUpSeconds == 0f;
     }
 
     /** Rounds a second at {@code spin} (0 at rest, 1 at full speed). */

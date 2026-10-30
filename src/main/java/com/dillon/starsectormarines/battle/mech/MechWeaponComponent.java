@@ -18,20 +18,15 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public enum MechWeaponComponent {
 
-    // One gun per arm: a two-armed chassis carries a pair as two of these, one on each arm mount.
+    // One gun per arm: a two-armed chassis carries a pair as two of these, one on each arm mount. On the
+    // centreline mount the same gun is drawn as the nose chaingun (appearanceSelector(MechMountSlot)).
     CHAINGUN("component.mech-chaingun", "@gearMechWeaponComponentCHAINGUN", MountFamily.ARMS,
             HardpointType.BALLISTIC, 2, 2, "weapon.mech-chaingun",
             6, -1, LayeredMechAppearance.ARMS_CHAINGUN),
-    NOSE_CHAINGUN("component.mech-nose-chaingun", "@gearMechWeaponComponentNOSECHAINGUN", MountFamily.ARMS,
-            HardpointType.BALLISTIC, 2, 2, "weapon.mech-chaingun",
-            6, -1, LayeredMechAppearance.ARMS_NOSE_CHAINGUN),
     // The better chaingun: the same gun on a faster drive and a bigger feed (mechs-nouns.md, Rotary guns).
     CHAINGUN_HF("component.mech-chaingun-hf", "@gearMechWeaponComponentCHAINGUNHF", MountFamily.ARMS,
             HardpointType.BALLISTIC, 2, 2, WeaponRegistry.MECH_CHAINGUN_HF_ID,
             6, -1, LayeredMechAppearance.ARMS_CHAINGUN),
-    NOSE_CHAINGUN_HF("component.mech-nose-chaingun-hf", "@gearMechWeaponComponentNOSECHAINGUNHF", MountFamily.ARMS,
-            HardpointType.BALLISTIC, 2, 2, WeaponRegistry.MECH_CHAINGUN_HF_ID,
-            6, -1, LayeredMechAppearance.ARMS_NOSE_CHAINGUN),
     LINEAR_CANNON("component.mech-linear-cannon", "@gearMechWeaponComponentLINEARCANNON",
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2, "weapon.mech-linear-cannon",
             1, -1, LayeredMechAppearance.ARMS_LINEAR_CANNON),
@@ -53,10 +48,7 @@ public enum MechWeaponComponent {
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2,
             "weapon.mech-muster-autogun", 3, -1,
             LayeredMechAppearance.ARMS_MUSTER_AUTOGUN),
-    NOSE_MUSTER_AUTOGUN("component.mech-nose-muster-autogun", "@gearMechWeaponComponentNOSEMUSTERAUTOGUN",
-            MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2,
-            "weapon.mech-muster-autogun", 3, -1,
-            LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN),
+
     QUARRY_BREAKER_CANNON("component.mech-quarry-breaker", "@gearMechWeaponComponentQUARRYBREAKERCANNON",
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2,
             "weapon.mech-quarry-breaker", 1, 4,
@@ -185,14 +177,14 @@ public enum MechWeaponComponent {
     public enum MountFamily { ARMS, SHOULDER }
 
     /**
-     * A gun whose art is one barrel on the chassis's centreline (the Hound's nose guns, the heavy
-     * cannon, the breaching cannons): it fits the centreline arms mount only, never a side arm.
-     * Every other arm gun fits either.
+     * A gun whose art is one barrel on the chassis's centreline (the heavy cannon, the breaching
+     * cannons, the heavy lasers): it fits the centreline arms mount only, never a side arm. Every
+     * other arm gun fits either; the chainguns and the Muster autogun change their drawing with the
+     * mount instead ({@link #appearanceSelector(MechMountSlot)}).
      */
     public boolean centrelineOnly() {
         return switch (this) {
-            case NOSE_CHAINGUN, NOSE_CHAINGUN_HF, NOSE_MUSTER_AUTOGUN, SINGLE_HEAVY_CANNON,
-                 DEMOLITION_CANNON, QUARRY_BREAKER_CANNON, BURST_LASER, HEAVY_PD_LASER -> true;
+            case SINGLE_HEAVY_CANNON, DEMOLITION_CANNON, QUARRY_BREAKER_CANNON, BURST_LASER, HEAVY_PD_LASER -> true;
             default -> false;
         };
     }
@@ -260,7 +252,30 @@ public enum MechWeaponComponent {
         this.appearanceSelector = appearanceSelector;
     }
 
-    /** The rotary feed of a held-trigger gun (the chainguns), or null for a gun fired a pull at a time. */
+    /**
+     * The selector the layered compositor draws this weapon with on {@code slot}. A chaingun or Muster autogun on the
+     * centreline mount is drawn as the nose gun under the chassis's nose; on a side arm, a vehicle's turret
+     * ({@code slot} null) or in stores it is drawn as the arm gun ({@link #appearanceSelector}). Every other weapon draws
+     * the same on any mount.
+     */
+    public int appearanceSelector(MechMountSlot slot) {
+        if (slot != MechMountSlot.ARMS) return appearanceSelector;
+        return switch (this) {
+            case CHAINGUN, CHAINGUN_HF -> LayeredMechAppearance.ARMS_NOSE_CHAINGUN;
+            case MUSTER_AUTOGUN -> LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN;
+            default -> appearanceSelector;
+        };
+    }
+
+    /** Whether this weapon wears its nose drawing on {@code slot} ({@link #appearanceSelector(MechMountSlot)}). */
+    public boolean noseDrawingOn(MechMountSlot slot) {
+        return appearanceSelector(slot) != appearanceSelector;
+    }
+
+    /**
+     * The rotary feed of a held-trigger gun (the chainguns, the light machine gun and the autocannons), or null for a
+     * gun fired a pull at a time.
+     */
     public RotaryFeedDef rotary() { return weaponDef().rotary(); }
 
     /**
@@ -273,22 +288,20 @@ public enum MechWeaponComponent {
     }
 
     private float authoredCycleSeconds() {
+        if (rotary() != null) return projectilesPerTrigger / rotary().ratedRoundsPerSecond();
         return switch (this) {
-            case CHAINGUN, NOSE_CHAINGUN, CHAINGUN_HF, NOSE_CHAINGUN_HF ->
-                    projectilesPerTrigger / rotary().ratedRoundsPerSecond();
+            // Unused: a rotary gun's cycle is read from its feed above.
+            case CHAINGUN, CHAINGUN_HF, BASTION_AUTOCANNON, MUSTER_AUTOGUN, LIGHT_MACHINE_GUN -> 0f;
             case SRM_5, SRM_5_FRAG -> 1.8f;
             case SRM_15, SRM_15_FRAG -> 2.6f;
             case LRM_5, LRM_15, LRM_5_FRAG, LRM_15_FRAG -> 9f;
             case LINEAR_CANNON -> 2.8f;
             case SINGLE_HEAVY_CANNON -> 2.5f;
             case PULSE_LASER -> 2.1f;
-            case BASTION_AUTOCANNON -> 2.6f;
             case DEMOLITION_CANNON -> 5.8f;
-            case MUSTER_AUTOGUN, NOSE_MUSTER_AUTOGUN -> 2.4f;
             case QUARRY_BREAKER_CANNON -> 5.5f;
             case SHOULDER_LASER_CANNON, PIONEER_ROCKET_CRADLE -> 7f;
             case THERMAL_LANCE -> 4.8f;
-            case LIGHT_MACHINE_GUN -> 1.9f;
             case LIGHT_PULSE_LASER -> 1.8f;
             case LIGHT_ROCKET_POD -> 6f;
             case BURST_LASER -> 1.8f;
@@ -338,24 +351,21 @@ public enum MechWeaponComponent {
     private float authoredFlux() {
         return switch (this) {
             // Unused: a rotary gun's flux is authored per round on its weapon (fluxPerRound).
-            case CHAINGUN, NOSE_CHAINGUN, CHAINGUN_HF, NOSE_CHAINGUN_HF -> 0f;
+            case CHAINGUN, CHAINGUN_HF, BASTION_AUTOCANNON, MUSTER_AUTOGUN, LIGHT_MACHINE_GUN -> 0f;
             case SRM_5, SRM_5_FRAG -> 28f;
             case SRM_15, SRM_15_FRAG -> 42f;
             case LRM_5, LRM_5_FRAG -> 22f;
             case LRM_15, LRM_15_FRAG -> 40f;
             case LINEAR_CANNON -> 12f;
-            // Flux-hungry enough that the bastion's range costs its carrier reservoir, as the heavy cannon's does.
-            case BASTION_AUTOCANNON -> 14f;
+
             case SINGLE_HEAVY_CANNON -> HEAVY_CANNON_FLUX;
             case DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> 26f;
             // The Prestige arm pays in mass; at 38 it lost to both Advanced arms on the same frame.
             case PULSE_LASER -> 13f;
-            case MUSTER_AUTOGUN -> 11f;
-            case NOSE_MUSTER_AUTOGUN -> 14f;
+
             case SHOULDER_LASER_CANNON -> 35f;
             case THERMAL_LANCE -> 32f;
             case PIONEER_ROCKET_CRADLE -> 24f;
-            case LIGHT_MACHINE_GUN -> 6f;
             case LIGHT_PULSE_LASER -> 7f;
             case LIGHT_ROCKET_POD -> 14f;
             // The burst laser is a flux hog, as on the tank; the PD laser runs cool.

@@ -463,7 +463,17 @@
         "flightSec": 0.19,
         "aoeRadius": 0.45,
         "wallDamage": 6,
-        "noiseMagnitude": 1.25
+        "noiseMagnitude": 1.25,
+        "rotary": {
+          "spinUp": 0.0,
+          "coast": 0.0,
+          "spinDown": 0.0,
+          "firstTurnRate": 3.0,
+          "fullRate": 3.0,
+          "belt": 10,
+          "refill": 1.15,
+          "fluxPerRound": 4.7
+        }
       },
       "render": {
         "tracerColor": "FFD08A",
@@ -637,7 +647,17 @@
         "flightSec": 0.108333,
         "aoeRadius": 0.35,
         "wallDamage": 2,
-        "noiseMagnitude": 0.9
+        "noiseMagnitude": 0.9,
+        "rotary": {
+          "spinUp": 0.0,
+          "coast": 0.0,
+          "spinDown": 0.0,
+          "firstTurnRate": 4.0,
+          "fullRate": 4.0,
+          "belt": 10,
+          "refill": 1.25,
+          "fluxPerRound": 3.7
+        }
       },
       "render": {
         "tracerColor": "FFD69A",
@@ -987,7 +1007,7 @@
       "sim": {
         "tracksFliers": true,
         "range": 22.0,
-        "damage": 6.0,
+        "damage": 4.0,
         "accuracy": 0.5,
         "cooldown": 1.9,
         "penetration": 3.0,
@@ -998,7 +1018,17 @@
         "flightSec": 0.09,
         "aoeRadius": 0.3,
         "wallDamage": 1,
-        "noiseMagnitude": 0.9
+        "noiseMagnitude": 0.9,
+        "rotary": {
+          "spinUp": 0.0,
+          "coast": 0.0,
+          "spinDown": 0.0,
+          "firstTurnRate": 10.0,
+          "fullRate": 10.0,
+          "belt": 24,
+          "refill": 3.9,
+          "fluxPerRound": 0.7
+        }
       },
       "render": {
         "tracerColor": "FFD69A",

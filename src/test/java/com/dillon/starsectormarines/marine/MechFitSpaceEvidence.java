@@ -192,11 +192,11 @@ class MechFitSpaceEvidence {
                 .append("| Chassis | Weapons | Flux/s demand | Reservoir | Dissipation | First gate s | Duty | Triggers/min per mount |\n")
                 .append("| --- | --- | --- | --- | --- | --- | --- | --- |\n");
         List<MechWeaponComponent[]> hound = new ArrayList<>();
-        hound.add(new MechWeaponComponent[]{MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.SRM_5});
-        hound.add(new MechWeaponComponent[]{MechWeaponComponent.NOSE_CHAINGUN});
+        hound.add(new MechWeaponComponent[]{MechWeaponComponent.CHAINGUN, MechWeaponComponent.SRM_5});
+        hound.add(new MechWeaponComponent[]{MechWeaponComponent.CHAINGUN});
         hound.add(new MechWeaponComponent[]{MechWeaponComponent.SRM_5});
         hound.add(new MechWeaponComponent[]{MechWeaponComponent.DEMOLITION_CANNON, MechWeaponComponent.SRM_5});
-        hound.add(new MechWeaponComponent[]{MechWeaponComponent.NOSE_MUSTER_AUTOGUN, MechWeaponComponent.LRM_5});
+        hound.add(new MechWeaponComponent[]{MechWeaponComponent.MUSTER_AUTOGUN, MechWeaponComponent.LRM_5});
         hound.add(new MechWeaponComponent[]{MechWeaponComponent.QUARRY_BREAKER_CANNON, MechWeaponComponent.PIONEER_ROCKET_CRADLE});
         for (MechWeaponComponent[] set : hound) {
             for (float[] frame : new float[][]{{100f, 6f}, {100f, 7f}, {100f, 8f}, {120f, 7f}, {120f, 7.5f}, {120f, 8f}}) {

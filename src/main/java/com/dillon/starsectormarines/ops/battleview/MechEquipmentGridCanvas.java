@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
@@ -98,7 +99,7 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         if (filled) {
             HardpointBricks.drawFilled(context, layout, 0, 0, layout.columns(), layout.rows(), tone);
         }
-        drawEquipment(context, component, layout);
+        drawEquipment(context, component, definition != null ? MechLabDollCanvas.mountFor(definition.id()) : null, layout);
     }
 
     record GridMetrics(int columns, int rows, float cellWidth, float cellHeight) {}
@@ -118,11 +119,11 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
         return new GridMetrics(gridColumns, gridRows, cellWidth, cellHeight);
     }
 
-    private void drawEquipment(CanvasContext context, MechWeaponComponent component,
+    private void drawEquipment(CanvasContext context, MechWeaponComponent component, MechMountSlot slot,
                                HardpointBricks.Layout layout) {
         float areaWidth = layout.width();
         float areaHeight = layout.height();
-        if (component != null && HardwareArt.draw(context, component, layout.left(), layout.top(),
+        if (component != null && HardwareArt.draw(context, component, slot, layout.left(), layout.top(),
                 areaWidth, areaHeight, 255)) {
             return;
         }
@@ -142,7 +143,7 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
     static LayeredSpriteCache spriteFor(LayeredMechAssets assets,
                                          MechWeaponComponent component) {
         return switch (component) {
-            case CHAINGUN, NOSE_CHAINGUN, CHAINGUN_HF, NOSE_CHAINGUN_HF -> assets.chaingunArm;
+            case CHAINGUN, CHAINGUN_HF -> assets.chaingunArm;
             case LINEAR_CANNON -> assets.linearCannon;
             case SINGLE_HEAVY_CANNON -> assets.heavyCannon;
             // The rack art follows tube count, independently of missile range.
@@ -153,7 +154,7 @@ public final class MechEquipmentGridCanvas implements CanvasProducer {
             case BASTION_AUTOCANNON -> assets.bastionAutocannon;
             case DEMOLITION_CANNON -> assets.demolitionCannon;
             case THERMAL_LANCE -> assets.thermalLance;
-            case MUSTER_AUTOGUN, NOSE_MUSTER_AUTOGUN -> assets.musterAutogun;
+            case MUSTER_AUTOGUN -> assets.musterAutogun;
             case QUARRY_BREAKER_CANNON -> assets.quarryBreakerCannon;
             case PIONEER_ROCKET_CRADLE -> assets.pioneerRocketCradle;
             case LIGHT_MACHINE_GUN -> assets.lightMachineGun;

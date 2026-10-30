@@ -147,7 +147,7 @@ final class MechSocketConsole {
                             bricks.span(part.rows(), bricks.brickHeight()), part == previewPart ? PREVIEW_ALPHA : 255);
                 }
             }
-            if (shown != null && !HardwareArt.draw(c, shown,
+            if (shown != null && !HardwareArt.draw(c, shown, MechLabDollCanvas.mountFor(socket.id()),
                     bricks.brickX(shownBlock[0]), bricks.brickY(shownBlock[1]),
                     bricks.span(shownBlock[2], bricks.brickWidth()), bricks.span(shownBlock[3], bricks.brickHeight()),
                     preview != null ? PREVIEW_ALPHA : 255) && assets != null) {

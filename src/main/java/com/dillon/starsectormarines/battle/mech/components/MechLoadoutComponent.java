@@ -377,7 +377,7 @@ public final class MechLoadoutComponent {
 
     public int appearanceSelector(MechMountSlot slot) {
         MechWeaponMount mount = mount(slot);
-        if (mount != null) return mount.component.appearanceSelector;
+        if (mount != null) return mount.component.appearanceSelector(slot);
         return slot.isArm() ? LayeredMechAppearance.ARMS_NONE : LayeredMechAppearance.POD_NONE;
     }
 

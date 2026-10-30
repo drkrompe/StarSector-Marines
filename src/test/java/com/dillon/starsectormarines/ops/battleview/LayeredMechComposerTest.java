@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.ops.battleview;
 
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
 import com.dillon.starsectormarines.battle.mech.MechHardpointGeometry;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import org.junit.jupiter.api.Test;
@@ -315,7 +316,7 @@ class LayeredMechComposerTest {
     }
 
     private static int centre(MechVariant variant) {
-        return variant.arms != null ? variant.arms.appearanceSelector : LayeredMechAppearance.ARMS_NONE;
+        return variant.arms != null ? variant.arms.appearanceSelector(MechMountSlot.ARMS) : LayeredMechAppearance.ARMS_NONE;
     }
 
     private static int left(MechVariant variant) {

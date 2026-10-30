@@ -23,16 +23,13 @@ public final class MechFabricationCatalog {
 
     private static final List<Recipe> WEAPONS = List.of(
             weapon(MechWeaponComponent.CHAINGUN, "@gearFabricationStandardIssue"),
-            weapon(MechWeaponComponent.NOSE_CHAINGUN, "@gearFabricationStandardIssue"),
             weapon(MechWeaponComponent.CHAINGUN_HF, "@gearFabricationMilitaryPattern"),
-            weapon(MechWeaponComponent.NOSE_CHAINGUN_HF, "@gearFabricationMilitaryPattern"),
             weapon(MechWeaponComponent.LINEAR_CANNON, "@gearFabricationMilitaryPattern"),
             weapon(MechWeaponComponent.SINGLE_HEAVY_CANNON, "@gearFabricationMilitaryPattern"),
             weapon(MechWeaponComponent.PULSE_LASER, "@gearFabricationTriTachyonPattern"),
             weapon(MechWeaponComponent.BASTION_AUTOCANNON, "@gearFabricationHegemonyPattern"),
             weapon(MechWeaponComponent.DEMOLITION_CANNON, "@gearFabricationPatherConversion"),
             weapon(MechWeaponComponent.MUSTER_AUTOGUN, "@gearFabricationCommonMarket"),
-            weapon(MechWeaponComponent.NOSE_MUSTER_AUTOGUN, "@gearFabricationCommonMarket"),
             weapon(MechWeaponComponent.QUARRY_BREAKER_CANNON, "@gearFabricationCommonMarket"),
             weapon(MechWeaponComponent.SRM_5, "@gearFabricationStandardIssue"),
             weapon(MechWeaponComponent.SRM_15, "@gearFabricationStandardIssue"),

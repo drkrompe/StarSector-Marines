@@ -37,9 +37,7 @@ public record MechPattern(Kind kind, String definitionId) {
         CHASSIS_TIERS.put(MechVariant.WARDEN, EquipmentAccessTier.ADVANCED);
         CHASSIS_TIERS.put(MechVariant.BULWARK, EquipmentAccessTier.PRESTIGE);
 
-        WEAPON_TIERS.put(MechWeaponComponent.NOSE_CHAINGUN, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.SRM_5, EquipmentAccessTier.COMMON);
-        WEAPON_TIERS.put(MechWeaponComponent.NOSE_MUSTER_AUTOGUN, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.MUSTER_AUTOGUN, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.PIONEER_ROCKET_CRADLE, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.QUARRY_BREAKER_CANNON, EquipmentAccessTier.COMMON);
@@ -54,7 +52,6 @@ public record MechPattern(Kind kind, String definitionId) {
         WEAPON_TIERS.put(MechWeaponComponent.CHAINGUN, EquipmentAccessTier.COMMON);
         // The better chaingun: spin-up, refill and damage are what a better rotary gun buys.
         WEAPON_TIERS.put(MechWeaponComponent.CHAINGUN_HF, EquipmentAccessTier.ADVANCED);
-        WEAPON_TIERS.put(MechWeaponComponent.NOSE_CHAINGUN_HF, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.LRM_5, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.SRM_15, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.LRM_15, EquipmentAccessTier.ADVANCED);
@@ -102,13 +99,13 @@ public record MechPattern(Kind kind, String definitionId) {
     }
 
     /**
-     * What a new company knows: the Hound, the weapons the Hound teaches (the nose chaingun and
+     * What a new company knows: the Hound, the weapons the Hound teaches (the chaingun, its nose gun, and
      * both SRM-5 warheads, so the first rack can answer men and the first armor alike), and the
      * stock frame's internals every chassis is built with.
      */
     public static final List<MechPattern> STARTER = List.of(
             of(MechVariant.HOUND),
-            of(MechWeaponComponent.NOSE_CHAINGUN),
+            of(MechWeaponComponent.CHAINGUN),
             of(MechWeaponComponent.SRM_5),
             of(MechWeaponComponent.SRM_5_FRAG),
             of(MechInternal.INDUSTRIAL_ENGINE),

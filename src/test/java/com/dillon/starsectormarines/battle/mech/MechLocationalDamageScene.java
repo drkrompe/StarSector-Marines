@@ -245,7 +245,7 @@ public final class MechLocationalDamageScene implements BehaviorScene {
                     if (firstCrippledShotTick < 0) firstCrippledShotTick = tick;
                 }
                 if (shot.mechWeaponDef != null
-                        && (fromLostMount(shot, MechWeaponComponent.NOSE_CHAINGUN, armsLostTick, tick)
+                        && (fromLostMount(shot, MechWeaponComponent.CHAINGUN, armsLostTick, tick)
                         || fromLostMount(shot, MechWeaponComponent.SRM_5, podLostTick, tick))) {
                     shotsFromLostMounts++;
                 }

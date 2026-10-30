@@ -236,7 +236,8 @@ final class BattleDirectControlStatus {
             }
             if (tooClose) return WeaponState.TOO_CLOSE;
             if (behavior.kind() == FireKind.ROTARY) {
-                return cycleFraction() > 0f ? WeaponState.SPINNING : WeaponState.LOADED;
+                // A gun with no spin-up is never spinning: it is at speed on the press.
+                return cycleDurationSeconds > 0f && cycleFraction() > 0f ? WeaponState.SPINNING : WeaponState.LOADED;
             }
             return cooldownSeconds > 0f ? WeaponState.CYCLING : WeaponState.LOADED;
         }

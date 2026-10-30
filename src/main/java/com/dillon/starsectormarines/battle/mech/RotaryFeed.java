@@ -104,11 +104,12 @@ public final class RotaryFeed {
             if (aiAsking) coast = Math.max(coast, def.coastSeconds());
             float coasting = Math.min(coast, step);
             coast -= coasting;
-            spin = Math.max(0f, spin - (step - coasting) / def.spinDownSeconds());
+            float spinning = step - coasting;
+            if (spinning > 0f) spin = def.spinDownSeconds() > 0f ? Math.max(0f, spin - spinning / def.spinDownSeconds()) : 0f;
             return 0;
         }
         // The first round leaves on the press; the barrels are turning, if only just.
-        spin = Math.min(1f, spin + step / def.spinUpSeconds());
+        spin = def.instant() ? 1f : Math.min(1f, spin + step / def.spinUpSeconds());
         coast = def.coastSeconds();
         if (demandedLastTick) pending += def.rate(spin) * step;
         else pending = Math.max(pending, 1f);

@@ -136,7 +136,7 @@ class BattleDirectControlStatusTest {
 
     @Test
     void mechCardsNameTheButtonThatFiresThemAndTheListTheyAreOn() {
-        var arms = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.NOSE_CHAINGUN);
+        var arms = new MechWeaponMount(MechMountSlot.ARMS, MechWeaponComponent.CHAINGUN);
         var pod = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_5);
         var lrm = new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.LRM_5);
         var mounts = new MechWeaponMount[MechMountSlot.values().length];

@@ -73,7 +73,7 @@ class EquipmentLocalizationTest {
         var armor = MarineArmorCatalogRegistry.require("armor.foundry-breaker");
         var special = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
         var card = EquipmentTemplateCatalog.primary(weapon, EquipmentGrade.SERVICE);
-        var recipe = MechFabricationCatalog.weapon(MechWeaponComponent.NOSE_CHAINGUN);
+        var recipe = MechFabricationCatalog.weapon(MechWeaponComponent.CHAINGUN);
         String name = card.displayName(), description = armor.description(), recipeName = recipe.displayName();
         var before = SpecSheets.weapon(weapon, EquipmentGrade.SERVICE);
         try (var strings = new HeadlessStrings(Path.of("mod"), text -> "Translated " + text)) {

@@ -9,7 +9,7 @@ public final class WaylineHound {
 
     public static MechDeploymentSpec deployment() {
         return new MechDeploymentSpec(MechVariant.HOUND, MechRole.ASSAULT,
-                MissileReplenisherComponent.STANDARD, MechWeaponComponent.NOSE_CHAINGUN,
+                MissileReplenisherComponent.STANDARD, MechWeaponComponent.CHAINGUN,
                 null, null, NAME);
     }
 }

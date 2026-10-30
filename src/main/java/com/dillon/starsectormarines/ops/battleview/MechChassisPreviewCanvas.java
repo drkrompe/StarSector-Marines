@@ -57,7 +57,7 @@ public final class MechChassisPreviewCanvas implements CanvasProducer {
 
     private static int look(CampaignMech mech, MechMountSlot slot) {
         MechWeaponComponent component = mech.weaponAt(slot);
-        return component != null ? component.appearanceSelector : 0;
+        return component != null ? component.appearanceSelector(slot) : 0;
     }
 
     @Override

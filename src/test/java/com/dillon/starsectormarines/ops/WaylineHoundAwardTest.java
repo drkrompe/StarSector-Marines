@@ -30,12 +30,12 @@ class WaylineHoundAwardTest {
             assertTrue(CompanyShipRestoration.mechBayRestored(roster));
             assertTrue(roster.hasCompletedStory(outcome.missionId));
             assertEquals(WaylineHound.deployment(), owned(roster.mechBay().mechById(WaylineHound.ID).freezeForDeployment()));
-            assertEquals(1, roster.mechBay().ownedWeapon(MechWeaponComponent.NOSE_CHAINGUN.id));
+            assertEquals(1, roster.mechBay().ownedWeapon(MechWeaponComponent.CHAINGUN.id));
             roster = roundTrip(roster);
             assertTrue(CompanyShipRestoration.mechBayRestored(roster));
             MissionResolver.recordStoryCompletion(roster, outcome);
             assertEquals(1, roster.mechBay().activeDeployment().size());
-            assertEquals(1, roster.mechBay().ownedWeapon(MechWeaponComponent.NOSE_CHAINGUN.id));
+            assertEquals(1, roster.mechBay().ownedWeapon(MechWeaponComponent.CHAINGUN.id));
             assertEquals(WaylineHound.deployment(), owned(roster.mechBay().activeDeployment().get(0)));
         }
     }
@@ -75,11 +75,12 @@ class WaylineHoundAwardTest {
     @Test void legacyStarterIsNeverReplacedAndRepeatedReceiptCannotDuplicateParts() {
         MechBay bay = MechBay.legacyStarterFixture();
         CampaignMech starter = bay.mechById(MechBay.STARTER_MECH_ID);
+        int chainguns = bay.ownedWeapon(MechWeaponComponent.CHAINGUN.id);
         assertTrue(bay.receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment())));
         assertFalse(bay.receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment())));
         assertSame(starter, bay.mechById(MechBay.STARTER_MECH_ID));
         assertEquals(2, bay.activeDeployment().size());
-        assertEquals(1, bay.ownedWeapon(MechWeaponComponent.NOSE_CHAINGUN.id));
+        assertEquals(chainguns + 1, bay.ownedWeapon(MechWeaponComponent.CHAINGUN.id), "one Hound, one chaingun");
     }
 
     private static MissionOutcome outcome(boolean victory, MissionSource source, String id,

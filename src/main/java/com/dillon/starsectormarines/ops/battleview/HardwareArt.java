@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.marine.MechInternal;
@@ -21,6 +22,8 @@ import java.util.Map;
 final class HardwareArt {
     private static final String ROOT = "graphics/ui/mech-hardware/";
     private static final Map<MechWeaponComponent, SvgAsset> ART = new EnumMap<>(MechWeaponComponent.class);
+    /** The nose drawing of a weapon that wears one on the centreline mount. */
+    private static final Map<MechWeaponComponent, SvgAsset> NOSE_ART = new EnumMap<>(MechWeaponComponent.class);
     private static final Map<MechInternal, SvgAsset> INTERNALS = new EnumMap<>(MechInternal.class);
     private static final Map<String, SvgAsset> VEHICLE = new HashMap<>();
     private static final Map<VehicleKit, SvgAsset> KITS = new EnumMap<>(VehicleKit.class);
@@ -35,6 +38,9 @@ final class HardwareArt {
         // Every weapon has a drawing; a missing or malformed one is an authoring error, not a fallback.
         for (MechWeaponComponent component : MechWeaponComponent.values()) {
             ART.put(component, SvgAsset.load(ROOT + stem(component) + ".svg"));
+            if (component.noseDrawingOn(MechMountSlot.ARMS)) {
+                NOSE_ART.put(component, SvgAsset.load(ROOT + stem(component, MechMountSlot.ARMS) + ".svg"));
+            }
         }
         for (MechInternal internal : MechInternal.values()) {
             INTERNALS.put(internal, SvgAsset.load(ROOT + stem(internal) + ".svg"));
@@ -62,11 +68,20 @@ final class HardwareArt {
         return kit.id.replace('.', '-');
     }
 
-    /** Draws the icon inside the box; false only for an empty box. */
+    /** Draws the icon inside the box as the weapon looks off a mech (stores, a vehicle's card); false only for an empty box. */
     static boolean draw(CanvasContext c, MechWeaponComponent component,
                         float x, float y, float width, float height, int alpha) {
+        return draw(c, component, null, x, y, width, height, alpha);
+    }
+
+    /**
+     * Draws the icon of {@code component} fitted on {@code slot}: a chaingun or Muster autogun on the centreline mount
+     * wears its nose drawing ({@link MechWeaponComponent#appearanceSelector(MechMountSlot)}); a null slot is off a mech.
+     */
+    static boolean draw(CanvasContext c, MechWeaponComponent component, MechMountSlot slot,
+                        float x, float y, float width, float height, int alpha) {
         preload();
-        SvgAsset art = ART.get(component);
+        SvgAsset art = component != null && component.noseDrawingOn(slot) ? NOSE_ART.get(component) : ART.get(component);
         if (art == null || width <= 0f || height <= 0f) return false;
         float insetX = width * .06f, insetY = height * .06f;
         Color tint = new Color(255, 255, 255, alpha);
@@ -119,17 +134,21 @@ final class HardwareArt {
         };
     }
 
+    /** The drawing {@code component} wears on {@code slot}: its nose drawing on the centreline mount, if it has one. */
+    static String stem(MechWeaponComponent component, MechMountSlot slot) {
+        if (!component.noseDrawingOn(slot)) return stem(component);
+        return component == MechWeaponComponent.MUSTER_AUTOGUN ? "muster-autogun-nose" : "chaingun-nose";
+    }
+
     private static String stem(MechWeaponComponent component) {
         return switch (component) {
             case CHAINGUN, CHAINGUN_HF -> "chaingun";
-            case NOSE_CHAINGUN, NOSE_CHAINGUN_HF -> "chaingun-nose";
             case LINEAR_CANNON -> "linear-cannon";
             case SINGLE_HEAVY_CANNON -> "heavy-cannon";
             case PULSE_LASER -> "pulse-laser";
             case BASTION_AUTOCANNON -> "bastion-autocannon";
             case DEMOLITION_CANNON -> "demolition-cannon";
             case MUSTER_AUTOGUN -> "muster-autogun";
-            case NOSE_MUSTER_AUTOGUN -> "muster-autogun-nose";
             case QUARRY_BREAKER_CANNON -> "quarry-breaker";
             case SRM_5, SRM_5_FRAG -> "srm-5";
             case SRM_15, SRM_15_FRAG -> "srm-15";

@@ -33,22 +33,10 @@
       "description": "@gearCatalogComponentMechChaingunDescription"
     },
     {
-      "component": "component.mech-nose-chaingun",
-      "factionLogo": "graphics/factions/neutral_traders.png",
-      "designation": "MCG-N",
-      "description": "@gearCatalogComponentMechNoseChaingunDescription"
-    },
-    {
       "component": "component.mech-chaingun-hf",
       "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "MCG-H",
       "description": "@gearCatalogComponentMechChaingunHfDescription"
-    },
-    {
-      "component": "component.mech-nose-chaingun-hf",
-      "factionLogo": "graphics/factions/neutral_traders.png",
-      "designation": "MCG-HN",
-      "description": "@gearCatalogComponentMechNoseChaingunHfDescription"
     },
     {
       "component": "component.mech-linear-cannon",
@@ -85,12 +73,6 @@
       "factionLogo": "graphics/factions/neutral_traders.png",
       "designation": "CAG-6",
       "description": "@gearCatalogComponentMechMusterAutogunDescription"
-    },
-    {
-      "component": "component.mech-nose-muster-autogun",
-      "factionLogo": "graphics/factions/neutral_traders.png",
-      "designation": "CAG-6N",
-      "description": "@gearCatalogComponentMechNoseMusterAutogunDescription"
     },
     {
       "component": "component.mech-quarry-breaker",

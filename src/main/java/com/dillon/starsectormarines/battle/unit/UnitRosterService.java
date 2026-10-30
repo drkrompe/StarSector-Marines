@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.mech.MechGaitState;
 import com.dillon.starsectormarines.battle.mech.MechSpawnPlacement;
 import com.dillon.starsectormarines.battle.nav.ManualTerrainMotion;
 import com.dillon.starsectormarines.battle.mech.MechLocomotion;
+import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.appearance.LayeredMechAppearance;
@@ -771,11 +772,11 @@ public final class UnitRosterService {
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
                     BattleComponents.MECH_LAYERED_CHASSIS, variant.chassisAppearance);
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
-                    BattleComponents.MECH_LAYERED_ARMS, armsSelector(variant.arms));
+                    BattleComponents.MECH_LAYERED_ARMS, armsSelector(variant.arms, MechMountSlot.ARMS));
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
-                    BattleComponents.MECH_LAYERED_LEFT_ARM, armsSelector(variant.leftArm));
+                    BattleComponents.MECH_LAYERED_LEFT_ARM, armsSelector(variant.leftArm, MechMountSlot.LEFT_ARM));
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
-                    BattleComponents.MECH_LAYERED_RIGHT_ARM, armsSelector(variant.rightArm));
+                    BattleComponents.MECH_LAYERED_RIGHT_ARM, armsSelector(variant.rightArm, MechMountSlot.RIGHT_ARM));
             entityWorld.setInt(id, components.MECH_LAYERED_ANIMATION,
                     BattleComponents.MECH_LAYERED_LEFT_SHOULDER,
                     variant.leftShoulder != null ? variant.leftShoulder.appearanceSelector : 0);
@@ -1485,7 +1486,7 @@ public final class UnitRosterService {
         return "m" + deboardedMarineCount++;
     }
 
-    private static int armsSelector(MechWeaponComponent component) {
-        return component != null ? component.appearanceSelector : LayeredMechAppearance.ARMS_NONE;
+    private static int armsSelector(MechWeaponComponent component, MechMountSlot slot) {
+        return component != null ? component.appearanceSelector(slot) : LayeredMechAppearance.ARMS_NONE;
     }
 }

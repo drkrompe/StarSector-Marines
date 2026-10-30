@@ -93,7 +93,7 @@ class WaylineHoundEvidenceTest {
             sim.directControl().exit();
             tick(recovery, sim, 2);
             assertFalse(sim.directControl().active());
-            assertEquals(MechWeaponComponent.NOSE_CHAINGUN, sim.world().mechLoadout(mech).mount(MechMountSlot.ARMS).component);
+            assertEquals(MechWeaponComponent.CHAINGUN, sim.world().mechLoadout(mech).mount(MechMountSlot.ARMS).component);
             assertNull(sim.world().mechLoadout(mech).mount(MechMountSlot.LEFT_SHOULDER));
             assertNull(sim.world().mechLoadout(mech).mount(MechMountSlot.RIGHT_SHOULDER));
             sim.applyExternalDamage(mech, 100000f, 10000f);
@@ -198,7 +198,7 @@ class WaylineHoundEvidenceTest {
                 assertNotEquals(0, mech, mission.name + ": heavy transport must actually unload");
                 assertEquals(WaylineHound.NAME, sim.identity().name(mech));
                 assertEquals(MechVariant.HOUND, sim.identity().mechVariant(mech));
-                assertEquals(MechWeaponComponent.NOSE_CHAINGUN, sim.world().mechLoadout(mech).mount(MechMountSlot.ARMS).component);
+                assertEquals(MechWeaponComponent.CHAINGUN, sim.world().mechLoadout(mech).mount(MechMountSlot.ARMS).component);
             assertNull(sim.world().mechLoadout(mech).mount(MechMountSlot.LEFT_SHOULDER));
                 assertNull(sim.world().mechLoadout(mech).mount(MechMountSlot.RIGHT_SHOULDER));
                 var directive = sim.getSquadCommandDirective(sim.squad().squadId(mech));

@@ -21,7 +21,7 @@ public enum MechVariant {
     HOUND("hound", "@gearMechVariantHOUND", 350f, 375f, 14f, 1.55f, 0.42f, 50f,
             1.35f, 1.20f, 0.50f, 0.67f, 0.8f,
             LayeredMechAppearance.CHASSIS_HOUND,
-            MechWeaponComponent.NOSE_CHAINGUN, null, null,
+            MechWeaponComponent.CHAINGUN, null, null,
             MechWeaponComponent.SRM_5,
             null,
             MechRole.ASSAULT),

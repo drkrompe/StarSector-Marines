@@ -30,7 +30,7 @@ public final class MechHardpointGeometry {
     public static LocalPoint localMuzzle(MechLoadoutComponent loadout,
                                          MechWeaponMount mount, int releaseIndex) {
         if (mount.slot.isArm()) {
-            return armsMuzzle(mount.component.appearanceSelector, mount.slot);
+            return armsMuzzle(mount.component.appearanceSelector(mount.slot), mount.slot);
         }
         int left = appearance(loadout.mount(MechMountSlot.LEFT_SHOULDER));
         int right = appearance(loadout.mount(MechMountSlot.RIGHT_SHOULDER));

@@ -113,7 +113,7 @@ class MechBayBattleDamageTest {
         assertNull(bay.mechById(mech.id()));
         assertEquals(List.of(spare), bay.activeSquad().mechs());
         assertEquals(1, bay.activeSquad().occupied());
-        assertEquals(0, bay.ownedWeapon(MechWeaponComponent.CHAINGUN.id));
+        assertEquals(1, bay.ownedWeapon(MechWeaponComponent.CHAINGUN.id), "the Bulwark's two go; the Hound's stays");
         assertEquals(1, bay.ownedWeapon(MechWeaponComponent.SRM_15.id), "the loose spare stays");
         assertEquals(engines - 1, bay.ownedInternal(MechInternal.INDUSTRIAL_ENGINE.id));
     }

@@ -49,9 +49,15 @@ increasing an encounter's total armored threat.
   `RIGHT_ARM`, the Bulwark's two arms, each with its own gun). Every arm gun is
   one gun: there is no paired or "dual" component, because a pair is two arm
   mounts, each fitted, damaged, lost and fired on its own. A gun whose art only
-  reads on the centreline (the nose chaingun and nose autogun, the heavy,
-  demolition and quarry-breaker cannons) fits only a centreline mount; the
-  other arm guns fit any arm mount. Direct-control number keys follow mount
+  reads on the centreline (the heavy, demolition and quarry-breaker cannons, the
+  heavy lasers) fits only a centreline mount; the other arm guns fit any arm
+  mount. A weapon's **presentation** (its drawing, Mech Lab icon, muzzle and kick)
+  is resolved from the mount it sits in, never by a second component
+  (`MechWeaponComponent.appearanceSelector(MechMountSlot)`): the chaingun, the
+  high-feed chaingun and the Muster autogun are drawn as nose guns on a centreline
+  mount and as arm guns on a side arm, in a vehicle's gun card or in stores; every
+  other weapon draws the same wherever it sits. There is one chaingun, not a nose
+  and an arm chaingun (owner, 2026-10-30). Direct-control number keys follow mount
   order: 1 restores the default fire groups, then 2 centreline arm, 3 left arm,
   4 right arm, 5 and 6 the shoulders.
 - A **missile replenisher** is an installed onboard subsystem. It owns how
@@ -60,17 +66,23 @@ increasing an encounter's total armored threat.
   for the life of the mech. In the campaign it is the **loader** part in the
   auxiliary compartment; a deployment frozen without one carries `no_loader`,
   whose cadence never completes.
-- A **rotary gun** (the chainguns) has no trigger pull. It fires while its
+- A **rotary gun** (the chainguns, the light machine gun, the Bastion autocannon
+  and the Muster autogun) has no trigger pull. It fires while its
   trigger is held: its **spin** ramps from a first-turn rate to its full rate over
   the spin-up time, the barrels **coast** at speed for a moment after release, so a
-  quick re-press fires at full rate, then spin down. Its rounds come off a **belt**
-  of a few hundred, which a **hopper** refills at a fixed rate every tick for the
+  quick re-press fires at full rate, then spin down. A gun with **no spin-up**
+  (`spinUp` 0, its first-turn rate its full rate) fires at full rate from the press:
+  the light machine gun (24 rounds at 10 a second) and the autocannons (ten-round
+  magazines at 3 and 4 a second, the thunk-thunk-thunk of a cannon feed), whose
+  bursts end where their small belts do and are then paced by the loader (owner,
+  2026-10-30). Its rounds come off a **belt**
+  (a few hundred for a chaingun), which a **hopper** refills at a fixed rate every tick for the
   life of the mech, firing or not: the chaingun's counterpart of the replenisher's
   cadence, owned by the gun. Ammunition is unlimited over a fight; a long hold
   empties the belt, and then the gun fires only as fast as the hopper. Spin-up,
   refill and the round's damage are what make a better chaingun, so the feed is
   authored on the weapon (`sim.rotary`), not on the chassis, and the better gun
-  is a better component (the Advanced high-feed chaingun and its nose fit).
+  is a better component (the Advanced high-feed chaingun).
 - A **campaign mech** is one persistent player-owned chassis plus its doctrine
   and installed components. It is the campaign authority that produces a
   frozen battle loadout; the live battle mech never reaches back into it.
@@ -121,7 +133,7 @@ increasing an encounter's total armored threat.
   weapon component, internal or vehicle (`MechPattern`). Patterns gate fabrication; owned assemblies
   are separate, finite and losable, so losing every assembly keeps the pattern and
   a pattern never puts a free assembly in stores. A new company knows the Hound,
-  nose chaingun, SRM-5 and the three stock internals; a pre-pattern save that had
+  chaingun, SRM-5 and the three stock internals; a pre-pattern save that had
   an unrestricted workshop knows every chassis and weapon pattern but only the
   stock internals, which did not exist when it was written. Weight class is the
   access ladder: Hound (light) Common, Warden (medium) Advanced, Bulwark (heavy)
@@ -710,7 +722,7 @@ each arm and the right omni shoulder with a long-cooldown direct laser cannon wh
 lance can pass through one body. Those are explicit faction hardware swaps;
 livery changes only the accepted casing paint of whichever components are
 installed. Hegemony Bulwarks put a Bastion autocannon on each
-arm: slower six-round service bursts trade saturation for range and
+arm: ten-round magazines of slow, heavy rounds trade saturation for range and
 armor penetration. Luddic Path Hounds replace the nose gun with a five-shell
 Foundry Breaker, an inaccurate demolition cannon whose contact payload, broad
 blast, and structural damage make every shot consequential. Lion's Guard
@@ -719,7 +731,7 @@ directional contact burn and one-cell impact bloom reward aggressive support.
 These signature fits belong to the exact campaign faction ids `hegemony`,
 `luddic_path`, and `lions_guard`; the Diktat does not inherit Guard prototypes.
 The commercial floor is separate from those signatures. A Muster autogun is a
-cheap direct-fire arm available as paired or nose packaging; a Quarry breaker is
+cheap direct-fire arm gun, drawn as a nose gun on a centreline mount; a Quarry breaker is
 a finite, inaccurate centerline industrial cannon whose main virtue is structural
 damage; a Pioneer cradle fires four loose, straight-flight utility rockets from
 a shoulder mount. These components are weaker because their original users
@@ -1167,7 +1179,7 @@ starter Bulwark they already owned. Fleet or employer sourcing
 still determines whether Mech Support is available in an operation; ownership
 determines the payload, not the entitlement to call it.
 The Wayline depot chapter introduces a recovered Hound named the Hound, fitted
-with a nose chaingun and empty missile mounts. It is a normal owned chassis
+with a chaingun on its nose mount and empty missile mounts. It is a normal owned chassis
 after victory, including when Wayline must recover and repair its wreck.
 On Second Wind, this recovery also makes the reserved Mech Lab accessible and
 restores its first berth. The other three gantries require separate paid repairs
@@ -1188,7 +1200,7 @@ stores and refitted into the Hound's single authored shoulder mount. Progress
 and dismissal survive saves; presentation cannot grant another rack. An older
 save that already owns the Hound receives the lesson package once on load.
 
-New campaigns fabricate only the basic nose chaingun, SRM-5 and Hound pattern.
+New campaigns fabricate only the basic chaingun, SRM-5 and Hound pattern.
 These are the existing baseline weapons, without a new quality modifier. Other
 owned weapons remain refittable, but ownership does not confer their fabrication
 pattern. The workshop checks permission before spending credits, including drag
@@ -1334,7 +1346,9 @@ support sortie, subject only to practical runtime resources.
   the AI. An autonomous gunner leases the trigger while a target is exposed, keeps
   the barrels turning while engaged without a shot, and keeps a reserve: below a
   fifth of the belt it stops asking for rounds until the hopper has put a third
-  back, so it eases off rather than running dry. A pilot may empty the belt. A
+  back, so it eases off rather than running dry. On a ten-round magazine that
+  reserve is two rounds, and once down to it the gunner fires at the loader's pace,
+  a round or two each time the hopper restores a third. A pilot may empty the belt. A
   round a gate refuses uses its slot, so a blocked gun never dumps a backlog.
 - Owned subsystem quantity includes installed copies. A failed refit changes
   neither inventory accounting nor the target mech's installed loadout.

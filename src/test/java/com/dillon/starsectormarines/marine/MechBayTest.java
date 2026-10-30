@@ -132,10 +132,10 @@ class MechBayTest {
         assertFalse(bay.installWeapon(hound.id(), MechMountSlot.ARMS,
                 MechWeaponComponent.SINGLE_HEAVY_CANNON.id));
         assertTrue(bay.canInstallWeapon(hound.id(), MechMountSlot.ARMS,
-                MechWeaponComponent.NOSE_CHAINGUN.id));
+                MechWeaponComponent.CHAINGUN.id));
         assertFalse(bay.canInstallWeapon(hound.id(), MechMountSlot.RIGHT_SHOULDER,
                 MechWeaponComponent.SRM_5.id));
-        assertEquals(MechWeaponComponent.NOSE_CHAINGUN, hound.arms());
+        assertEquals(MechWeaponComponent.CHAINGUN, hound.arms());
     }
 
     @Test

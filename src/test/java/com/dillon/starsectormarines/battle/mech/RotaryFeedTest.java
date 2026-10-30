@@ -128,22 +128,73 @@ class RotaryFeedTest {
 
     @Test
     void theBetterChaingunIsBetterOnEveryUpgradeAxisAndOtherwiseTheSameGun() {
-        for (MechWeaponComponent[] tier : new MechWeaponComponent[][]{
-                {MechWeaponComponent.CHAINGUN, MechWeaponComponent.CHAINGUN_HF},
-                {MechWeaponComponent.NOSE_CHAINGUN, MechWeaponComponent.NOSE_CHAINGUN_HF}}) {
-            RotaryFeedDef stock = tier[0].rotary();
-            RotaryFeedDef better = tier[1].rotary();
-            assertNotNull(stock, tier[0] + " fires while held");
-            assertNotNull(better, tier[1] + " fires while held");
-            assertTrue(better.spinUpSeconds() < stock.spinUpSeconds(), "spins up faster");
-            assertTrue(better.refillPerSecond() > stock.refillPerSecond(), "refills faster");
-            assertTrue(tier[1].weaponDef().damage > tier[0].weaponDef().damage, "hits harder");
-            assertEquals(tier[0].mountFamily, tier[1].mountFamily);
-            assertEquals(tier[0].centrelineOnly(), tier[1].centrelineOnly());
-            assertEquals(tier[0].slotCost, tier[1].slotCost);
-            assertTrue(new MechWeaponMount(tier[0].centrelineOnly() ? MechMountSlot.ARMS : MechMountSlot.LEFT_ARM,
-                    tier[1]).isRotary());
+        MechWeaponComponent stockGun = MechWeaponComponent.CHAINGUN;
+        MechWeaponComponent betterGun = MechWeaponComponent.CHAINGUN_HF;
+        RotaryFeedDef stock = stockGun.rotary();
+        RotaryFeedDef better = betterGun.rotary();
+        assertNotNull(stock, stockGun + " fires while held");
+        assertNotNull(better, betterGun + " fires while held");
+        assertTrue(better.spinUpSeconds() < stock.spinUpSeconds(), "spins up faster");
+        assertTrue(better.refillPerSecond() > stock.refillPerSecond(), "refills faster");
+        assertTrue(betterGun.weaponDef().damage > stockGun.weaponDef().damage, "hits harder");
+        assertEquals(stockGun.mountFamily, betterGun.mountFamily);
+        assertEquals(stockGun.centrelineOnly(), betterGun.centrelineOnly());
+        assertEquals(stockGun.slotCost, betterGun.slotCost);
+        for (MechMountSlot slot : new MechMountSlot[]{MechMountSlot.ARMS, MechMountSlot.LEFT_ARM}) {
+            assertTrue(new MechWeaponMount(slot, betterGun).isRotary(), "rotary on " + slot);
         }
-        assertNull(MechWeaponComponent.MUSTER_AUTOGUN.rotary(), "other burst guns keep their trigger pull");
+        assertNull(MechWeaponComponent.LINEAR_CANNON.rotary(), "a cannon keeps its trigger pull");
+    }
+
+    /** No spin-up: rest to full at once; 5 rounds a second off a belt of 10, refilled at 1 a second. */
+    private static final RotaryFeedDef INSTANT = new RotaryFeedDef(0f, 0f, 0f, 5f, 5f, 10, 1f, 0.5f);
+
+    @Test
+    void aGunWithNoSpinUpFiresAtItsFullRateFromThePressAndIsAtRestWhenLetGo() {
+        assertTrue(INSTANT.instant());
+        assertFalse(GUN.instant());
+        RotaryFeed feed = new RotaryFeed(INSTANT);
+        assertEquals(1, feed.advance(DT, true), "the first round leaves on the press");
+        feed.spend();
+        assertEquals(1f, feed.spin(), "at speed on the press");
+        assertEquals(5f, feed.rate(), 1e-5f);
+        assertEquals(5, run(feed, true, 1f), 1, "a second held is the full rate");
+        run(feed, false, DT);
+        assertEquals(0f, feed.spin(), "let go, nothing to coast or spin down");
+        assertThrows(IllegalArgumentException.class, () -> new RotaryFeedDef(-1f, 0f, 0f, 5f, 5f, 10, 1f, 0.5f));
+    }
+
+    @Test
+    void aShortMagazineEmptiesInABurstAndThenTheLoaderSetsThePace() {
+        RotaryFeed feed = new RotaryFeed(INSTANT);
+        int burst = run(feed, true, 2.5f);
+        assertTrue(burst >= 10 && burst <= 13, "the magazine and what the loader adds over the burst: " + burst);
+        assertEquals(5, run(feed, true, 5f), 1, "held dry, one round a second: the loader's rate");
+    }
+
+    @Test
+    void anAutonomousGunnerOnAShortMagazineKeepsFiringAtTheLoadersPace() {
+        RotaryFeed feed = new RotaryFeed(INSTANT);
+        int fired = 0;
+        for (int i = 0; i < 200; i++) {
+            feed.demand(7L);
+            int rounds = feed.advance(DT, false);
+            for (int r = 0; r < rounds; r++) feed.spend();
+            fired += rounds;
+        }
+        // Twenty seconds: the magazine down to its reserve, then the loader's twenty rounds less the reserve it holds back.
+        assertTrue(fired >= 24 && fired <= 30, "never stalls on its reserve: " + fired);
+        assertTrue(feed.beltRounds() >= 1, "and never empties the magazine");
+    }
+
+    @Test
+    void theLightMachineGunAndTheAutocannonsAreHeldTriggerGunsWithNoSpinUp() {
+        for (MechWeaponComponent gun : new MechWeaponComponent[]{MechWeaponComponent.LIGHT_MACHINE_GUN,
+                MechWeaponComponent.BASTION_AUTOCANNON, MechWeaponComponent.MUSTER_AUTOGUN}) {
+            assertNotNull(gun.rotary(), gun + " fires while held");
+            assertTrue(gun.rotary().instant(), gun + " has no spin-up");
+            assertEquals(gun.projectilesPerTrigger / gun.rotary().ratedRoundsPerSecond(), gun.cycleSeconds(), 1e-5f,
+                    "its cycle is read from its feed");
+        }
     }
 }

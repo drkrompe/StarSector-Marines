@@ -66,7 +66,7 @@ class MechVariantTest {
 
         MechLoadoutComponent hound = MechVariant.HOUND.createLoadout(null);
         assertFalse(hound.hasWeapon(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
-        assertSame(MechWeaponComponent.NOSE_CHAINGUN,
+        assertSame(MechWeaponComponent.CHAINGUN,
                 hound.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.SRM_5,
                 hound.mount(MechMountSlot.LEFT_SHOULDER).component);
