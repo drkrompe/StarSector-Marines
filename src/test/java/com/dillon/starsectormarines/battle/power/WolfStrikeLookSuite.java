@@ -28,17 +28,17 @@ import java.util.Map;
 /**
  * Wolf Strike in the look preset (`command-powers-nouns.md`, Wolf Strike): two fly-bys along a 60-cell line over an
  * enemy column on open ground, two breakthrough tanks, two militia technicals, a heavy APC and two rifle squads strung
- * along it, with a flak position beside the line, a missile tower off it and, before the second run, a Rav flier pack
- * over it. The first run flies west to east; once it has climbed out a second comes back east to west. Play zoom over
- * the whole line, and a camera following the Wolf. Logs the column's state every second, so the damage rate reads as
- * numbers beside the picture.
+ * along it, with a flak position beside the line, a missile tower off it and, before the second run, two more towers
+ * and a Rav flier pack over it, so the first run comes home hurt and the second is shot down. The first run flies west
+ * to east; once it has climbed out a second comes back east to west. Play zoom over the whole line, and a camera
+ * following the Wolf. Logs the column's state every second, so the damage rate reads as numbers beside the picture.
  */
 public class WolfStrikeLookSuite implements SnapshotSuite {
 
     private static final int W = 90, H = 50;
     private static final float LINE_Y = 25f, LINE_WEST = 15f, LINE_EAST = 75f;
     private static final int FIRST_RUN_TICK = 15, SECOND_RUN_TICK = 30 * 16;
-    private static final int SECONDS = 32, EVERY_TICKS = 2;
+    private static final int SECONDS = 37, EVERY_TICKS = 2;
     /** A Rav flier pack let loose over the line two seconds before the second run, for the Wolf's point defence. */
     private static final int PACK_TICK = SECOND_RUN_TICK - 60, PACK_SIZE = 8;
 
@@ -76,6 +76,8 @@ public class WolfStrikeLookSuite implements SnapshotSuite {
             int[] flak = cell(placement, 45f, 31f), tower = cell(placement, 62f, 16f);
             sim.spawn(MapTurret.create("flak", Faction.DEFENDER, "structure.turret-anti-air-flak", flak[0], flak[1]));
             sim.spawn(MapTurret.create("tower", Faction.DEFENDER, "structure.aa-locust", tower[0], tower[1]));
+            // Two more towers come up before the second run, so it flies into more than it can take.
+            int[] towerWest = cell(placement, 30f, 34f), towerNorth = cell(placement, 40f, 16f);
             List<Long> infantry = new ArrayList<>();
             for (long id : world.members("militia-west")) infantry.add(id);
             for (long id : world.members("militia-east")) infantry.add(id);
@@ -84,6 +86,12 @@ public class WolfStrikeLookSuite implements SnapshotSuite {
             placement.beforeTick(s -> {
                 long tick = s.getSimTickIndex();
                 Warship wolf = null;
+                if (tick == PACK_TICK) {
+                    s.spawn(MapTurret.create("tower-west", Faction.DEFENDER, "structure.aa-locust",
+                            towerWest[0], towerWest[1]));
+                    s.spawn(MapTurret.create("tower-north", Faction.DEFENDER, "structure.aa-locust",
+                            towerNorth[0], towerNorth[1]));
+                }
                 if (tick == PACK_TICK) s.swarmFliers().release(s, HarrierLook.DEFAULT, wx + (ex - wx) * 0.6f, ly, PACK_SIZE, 0L);
                 if (tick == FIRST_RUN_TICK) wolf = WolfStrike.fly(wx, ly, ex, ly, s);
                 if (tick == SECOND_RUN_TICK) wolf = WolfStrike.fly(ex, ly - 1f, wx, ly - 1f, s);

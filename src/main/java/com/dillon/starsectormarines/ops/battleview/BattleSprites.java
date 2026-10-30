@@ -45,6 +45,8 @@ import org.apache.log4j.Logger;
 import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Set;
 import java.util.LinkedHashMap;
@@ -754,6 +756,11 @@ public class BattleSprites {
         }
         pathSprites.put(path, cache);
         return cache;
+    }
+
+    /** Every image {@link #spriteByPath} has loaded so far; null where one would not read. */
+    public Collection<ShuttleSpriteCache> pathSprites() {
+        return Collections.unmodifiableCollection(pathSprites.values());
     }
 
     /** Best effort for one airframe: a hull whose sprite will not read is left out. */

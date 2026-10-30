@@ -607,6 +607,18 @@ public class BattleRenderer {
     private final GrowthGate terrainGate = new GrowthGate();
     /** Tracks the convoy sheet count; a vehicle line the texture set did not plan loads on first draw. */
     private final GrowthGate convoyGate = new GrowthGate();
+    /** Tracks the images loaded by path; a warship's hull loads on its first draw. */
+    private final GrowthGate pathSpriteGate = new GrowthGate();
+
+    /**
+     * A batch for every image loaded by path since attach ({@link BattleSprites#spriteByPath}): a warship's hull is
+     * one, and once it is holed it is drawn as strips of its own sprite ({@code WarshipHullDamageRenderer}), so those
+     * quads draw rather than drop in the drain and the hull does not vanish under its turrets.
+     */
+    private void registerLatePathBatches() {
+        if (!pathSpriteGate.changed(sprites.pathSprites().size())) return;
+        registerHullBatches(sprites.pathSprites());
+    }
 
     /**
      * A batch for every catalog sheet loaded since attach — one a host loads on first ask
@@ -1412,6 +1424,7 @@ public class BattleRenderer {
         collectWorld(rc, layers, census);
         registerLateTerrainBatches();
         registerLateConvoyBatches();
+        registerLatePathBatches();
         boolean parallax = (rc.hostProfile.surfaceReliefEnabled() || GroundParallaxPipeline.deckWaterVisible(rc))
                 && DevConfig.SURFACE_RELIEF_PARALLAX
                 && layers.contains(RenderLayer.GROUND);

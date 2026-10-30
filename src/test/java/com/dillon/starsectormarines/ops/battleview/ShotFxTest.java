@@ -86,6 +86,13 @@ public class ShotFxTest {
                 assertFalse(fx.travels(), "a beam impacts at fire time: " + structure.id);
                 continue;
             }
+            if (weapon.energy && weapon.projectileSpritePath == null) {
+                // An energy turret with no projectile art and no beam fires a visible pulse bolt in its own colour.
+                assertInstanceOf(Bolt.class, fx.body(), "energy turret bolts: " + structure.id);
+                assertSame(weapon.tracerColor, ((Bolt) fx.body()).color(), "bolt colour for " + structure.id);
+                assertTrue(fx.travels(), "an energy bolt travels: " + structure.id);
+                continue;
+            }
             Sprite body = assertSprite(fx, "turret " + structure.id);
             assertEquals(weapon.projectileSpritePath, body.spritePath(), "sprite path for " + structure.id);
             assertEquals(weapon.projectileVisualCells, body.visualCells(), 0f, "visualCells for " + structure.id);

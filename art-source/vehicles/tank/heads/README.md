@@ -9,6 +9,14 @@ painted at the turret frame's registration, so heads share the drawn size, pivot
 | 1 live, 3 wreck | heavy cannon (`../`, the approved turret) | `HC_20`, `HC_10` |
 | 4 live, 5 wreck | autocannon | `AC_6`, `AC_6_QS`, `DC_5`, `DC_4_QS` |
 | 6 live, 7 wreck | rotary | `CHAINGUN`, `CHAINGUN_HF`, `LIGHT_MACHINE_GUN` |
+| 8, a 256-row strip each | every head's gun, in the order above | |
+
+A live frame is the housing alone; the head's gun is its strip of frame 8, drawn under the housing so firing kicks
+the gun and never the housing (`VehicleType.GunLayer`). A strip stands for the head frame's middle third, forward of
+the cut (pack.py's `CUT_X`). Each gun is seated back into the housing until its muzzle is the shared one
+(`guide.py`'s `MUZZLE_X`): the rotary by 46 px, the autocannon by 10, the heavy cannon not at all. The wreck frames are
+whole heads built from the seated guns. `art-source/vehicles/kit-active-protection/build.py` reads frame 1, which is
+now the housing alone; its registration is unchanged.
 
 ## Files
 

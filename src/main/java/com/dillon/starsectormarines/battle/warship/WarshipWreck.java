@@ -48,7 +48,7 @@ public final class WarshipWreck {
     private float burstY;
     /** The body factor the hull was drawn at when it burst. */
     private final float burstBody;
-    /** True landed scale against this hull's flight size ({@link LandedScale#berthFactor()}). */
+    /** True landed scale against this hull's flight size ({@link LandedScale#berthFactor()}), at most its flight size. */
     private final float groundBody;
 
     WarshipWreck(Warship ship, long key) {
@@ -57,7 +57,9 @@ public final class WarshipWreck {
         this.burstX = ship.x;
         this.burstY = ship.y;
         this.burstBody = ship.bodyScale();
-        this.groundBody = LandedScale.berthFactor(ship.presence());
+        // A hull drawn below the standard presence (a gunship at the Onslaught's reduced body) keeps that body on the
+        // ground: a wreck comes down to its landed size, never grows past the size it flew at.
+        this.groundBody = Math.min(1f, LandedScale.berthFactor(ship.presence()));
         this.vx = ship.velocityX;
         this.vy = ship.velocityY;
         long seed = WarshipAirRules.roundSeed(ship.hullId, ship.serial(), key, ship.faction.ordinal());

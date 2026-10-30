@@ -1260,7 +1260,10 @@ sheet at the turret's registration (`VehicleType.headFrames`, `MechWeaponCompone
 HC cannons (the HC-20 and the HC-10, each one large bore) wear the approved single-cannon turret;
 the AC-6, AC-6 (QS), DC-5 and DC-4 (QS) the autocannon head; the chainguns and the light machine
 gun the rotary head. Each head has its own live and wreck frame, so a head turns, scuffs and burns as
-the turret it is, and every shot leaves the one muzzle the heads share. With its card empty the
+the turret it is, and every shot leaves the one muzzle the heads share. **A head's gun is a layer of its
+own under the housing, and firing kicks the gun alone** (owner, 2026-10-30; `VehicleType.GunLayer`): the
+housing never moves with a shot, and each gun is seated back into the housing face until its muzzle is the
+shared one, so no head shows more barrel than the heavy cannon's. With its card empty the
 Onager shows the bare army-green ring and has no gun; a spawn that names no part (a scene, a
 mission, `VehicleDeploymentSpec.standard`) fits the HC-20 (`VehicleType.standardPart`).
 A part with no head of its own would stand on the gun plate on the ring; every part the card
@@ -1556,7 +1559,8 @@ both. The laser tank has no default turret head (owner, 2026-10-29): with no par
 
 **A laser's lance is drawn as the space game draws a beam.** A turret weapon with no
 projectile art that authors a beam (`WeaponDef.hitscanBeam`) is a hitscan beam, as a
-mech's is. **A beam leaves along its turret, not toward its target.** Each pulse is
+mech's is. An energy turret weapon with neither (the hover scout's pulse emitter) fires a
+travelling pulse bolt in its tracer colour, as a marine's pulse rifle does (`ShotFx`). **A beam leaves along its turret, not toward its target.** Each pulse is
 aimed down the turret's facing at the target's distance, pulled short by how far the
 turret is still off, and traced as any round is, so it strikes the first body or wall
 on its way and otherwise scorches the ground. The turret tracks its target through a
