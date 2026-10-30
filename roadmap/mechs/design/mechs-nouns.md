@@ -127,6 +127,15 @@ increasing an encounter's total armored threat.
   turret ring by `VehicleGunArt`) are its component's, and its pulses are drawn as
   one lance (a grained `render.beam` whose life just outlasts a pulse's spacing)
   with its impact glow, under one held tone (`audio.loopSound`, `HeldFireLoops`).
+  Every laser's tone outlives its last pulse by a **tail** it authors
+  (`HeldLoopEnvelope`: `audio.loopTail`, `loopFadeOut`, `loopFadeIn`,
+  `loopPitchDrop`): full for at least 0.15 s, then a cosine fade with the pitch
+  sagging, like a coil or capacitor spinning down (owner, 2026-10-30). A pulse in
+  the tail carries the same tone back up with no new intro clip; past it, the next
+  pulse is a new lance. Burst and pulse lasers ring 0.35-0.55 s, the PD beams bleed
+  0.35-0.45 s, and the shoulder laser cannon's single 1 s lance is held at full for
+  its second and spins down over 0.45 s. A weapon with no tail keys keeps the plain
+  0.15 s hold; at most 16 weapon tones sound at once.
   The direct-control HUD names it `Beam · hold` with its flux a second and counts
   no load; its sheet reads DPS, PEN, RNG, flux a second and how long it holds alone
   on that frame. `-Dbattle.mech.pdBeam=false` is the control: both fire the pulsed
