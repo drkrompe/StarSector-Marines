@@ -62,6 +62,18 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
             // The chassis' forward (+Y) runs along the nose: left on the sheet, up when turned.
             float turretX = noseUp ? centerX + type.turretMountX * cellPx : centerX - type.turretMountY * cellPx;
             float turretY = noseUp ? centerY - type.turretMountY * cellPx : centerY - type.turretMountX * cellPx;
+            VehicleType.GunLayer gun = type.gunLayer(null);
+            if (gun != null) {
+                // A head's gun is its own layer under the housing ({@link VehicleType.GunLayer}), ahead of its centre.
+                float ahead = turretWidth * gun.centreAheadShare();
+                float strip = VehicleType.GunLayer.STRIP_SHARE;
+                context.sprite(type.spritePath, null, noseUp ? turretX : turretX - ahead,
+                        noseUp ? turretY - ahead : turretY, turretWidth * gun.cutShare(),
+                        turretWidth * aspect * strip, angle, new Color(1f, 1f, 1f, alpha),
+                        new CanvasSpriteRegion((float) gun.frame() / type.frameCount,
+                                Math.min(gun.strip() * strip, 1f - strip),
+                                gun.cutShare() / type.frameCount, strip), CanvasBlend.NORMAL);
+            }
             context.sprite(type.spritePath, null, turretX, turretY, turretWidth, turretWidth * aspect, angle,
                     new Color(1f, 1f, 1f, alpha), CanvasSpriteRegion.frame(type.frameCount, 1, type.turretFrame),
                     CanvasBlend.NORMAL);

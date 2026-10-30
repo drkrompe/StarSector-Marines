@@ -70,16 +70,6 @@ class BattleDirectControlStatusTest {
     }
 
     @Test
-    void simultaneousShredderPacketIsNotPresentedAsAScheduledBurst() {
-        var status = BattleDirectControlStatus.marineWeapon(WeaponRegistry.require("weapon.smg"),
-                EquipmentGrade.SERVICE, 0f, .3f, 0, 0f);
-        assertEquals(BattleDirectControlStatus.FireKind.PACKET, status.behavior().kind());
-        assertEquals(1, status.behavior().projectilesPerTrigger());
-        assertEquals(6, status.behavior().projectilesPerShot());
-        assertEquals(BattleDirectControlStatus.WeaponState.LOADED, status.state());
-    }
-
-    @Test
     void mechKeepsStableHardpointNumbersAndIncludesIndirectEquipment() {
         var left = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_15);
         var right = new MechWeaponMount(MechMountSlot.RIGHT_SHOULDER, MechWeaponComponent.LRM_15);

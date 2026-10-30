@@ -382,7 +382,6 @@ public class BattleRenderer {
                 new PointDefenseRenderSystem(),
                 new ShieldDomeRenderSystem(),
                 new TenderSiteRenderSystem(),
-                new FragGrenadeRenderSystem(),
                 // With the other threat marks: spines breaking out, and the spores a colony lifts.
                 colonyThreat.over(),
                 new SmokeRenderSystem(sprites),

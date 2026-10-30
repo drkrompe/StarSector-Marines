@@ -4,11 +4,13 @@ import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -147,6 +149,23 @@ class VehicleGunTest {
         assertFalse(VehicleType.LASER_TANK.wearsHeadOf(MechWeaponComponent.HC_20), "each hull its own heads");
         assertEquals(MechWeaponComponent.HC_20,
                 VehicleDeploymentSpec.standard(onager).gun(), "a mission's standard Onager is not a bare ring");
+    }
+
+    @Test
+    void eachOnagerHeadDrawsItsGunAsItsOwnLayerAndTheLaserHeadsDrawWhole() {
+        VehicleType onager = VehicleType.BREAKTHROUGH_TANK;
+        Set<Integer> strips = new HashSet<>();
+        for (MechWeaponComponent gun : List.of(MechWeaponComponent.HC_20, MechWeaponComponent.AC_6,
+                MechWeaponComponent.CHAINGUN)) {
+            VehicleType.GunLayer layer = onager.gunLayer(gun);
+            assertNotNull(layer, gun + " kicks its gun, not its housing");
+            assertTrue(layer.frame() < onager.frameCount, "the gun layer is on the sheet");
+            assertTrue(layer.cutShare() > 0f && layer.cutShare() < .5f, "the gun stands ahead of the head's centre");
+            strips.add(layer.strip());
+        }
+        assertEquals(3, strips.size(), "each head its own gun");
+        assertEquals(onager.gunLayer(MechWeaponComponent.HC_20), onager.gunLayer(null), "the stock head's gun");
+        assertNull(VehicleType.LASER_TANK.gunLayer(MechWeaponComponent.HEAVY_PD_LASER), "a laser head draws whole");
     }
 
     @Test
