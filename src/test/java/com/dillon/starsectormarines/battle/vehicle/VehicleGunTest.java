@@ -189,7 +189,7 @@ class VehicleGunTest {
             assertTrue(plate > 0f && plate < VehicleGun.mountCells(hull), "inside the ring's race: " + hull);
         }
         assertEquals(0f, VehicleGun.plateCells(VehicleType.HEAVY_APC, null), "an empty card has no plate");
-        assertEquals(0f, VehicleGun.plateCells(VehicleType.SRM_TECHNICAL, MechWeaponComponent.LIGHT_ROCKET_POD),
+        assertEquals(0f, VehicleGun.plateCells(VehicleType.SRM_TECHNICAL, MechWeaponComponent.SRM_3_QS),
                 "not on the rocket pickup");
         assertEquals(0f, VehicleGun.plateCells(VehicleType.FIRE_SUPPORT_APC, MechWeaponComponent.BASTION_AUTOCANNON),
                 "nor under a fixed hull's other cannons");
