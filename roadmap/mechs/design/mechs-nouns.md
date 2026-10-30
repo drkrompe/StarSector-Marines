@@ -758,7 +758,10 @@ increasing an encounter's total armored threat.
   chassis outranks it.
 - An **attachment** is a battle-local relation from one player mech squad to one
   player infantry squad (its **anchor**): with a mech selected, a right-click on a
-  friendly infantry squad attaches it. Every player drop lands as a one-mech squad,
+  friendly infantry squad attaches it. A mission may script the same for its
+  defenders (a mech squad and an infantry squad of the Defender faction, requested
+  through `MechAttachmentService.requestAttach`; the Dust Ledger's road reserve);
+  the player's UI offers it only for the company. Every player drop lands as a one-mech squad,
   so it is in effect per mech; a legacy multi-mech squad attaches whole, and several
   mechs may follow one squad. Out of contact the follower simply walks with the
   squad: three cells behind its centre, filed three cells apart across its axis by

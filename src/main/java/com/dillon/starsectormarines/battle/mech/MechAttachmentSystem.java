@@ -73,7 +73,7 @@ public final class MechAttachmentSystem {
                 continue;
             }
             Squad mechSquad = validMechSquad(request.mechSquadId(), sim);
-            Squad anchor = validAnchor(request.anchorSquadId(), sim);
+            Squad anchor = mechSquad == null ? null : validAnchor(request.anchorSquadId(), mechSquad.faction, sim);
             if (mechSquad == null || anchor == null || withdrawing(mechSquad)) continue;
             if (service.anchorOf(mechSquad.id) == anchor.id) continue;
             attach(mechSquad, anchor, sim);
@@ -126,7 +126,7 @@ public final class MechAttachmentSystem {
     String overReason(int mechSquadId, int anchorSquadId, BattleSimulation sim) {
         Squad mechSquad = validMechSquad(mechSquadId, sim);
         if (mechSquad == null) return "mech squad gone";
-        Squad anchor = validAnchor(anchorSquadId, sim);
+        Squad anchor = validAnchor(anchorSquadId, mechSquad.faction, sim);
         if (anchor == null) return "anchor gone";
         if (withdrawing(mechSquad)) return "withdrawing";
         if (withdrawing(anchor)) return "anchor withdrawing";
@@ -357,15 +357,25 @@ public final class MechAttachmentSystem {
     /** A live player mech squad that may follow: not a rescue payload. */
     static Squad validMechSquad(int squadId, BattleView sim) {
         Squad squad = sim.getSquad(squadId);
-        return squad != null && squad.faction == Faction.MARINE && squad.isMechSquad()
+        return squad != null && attaches(squad.faction) && squad.isMechSquad()
                 && !squad.rescuePickupMech && squad.aliveMembers > 0 ? squad : null;
     }
 
     /** A live player infantry squad a mech may follow. */
     public static Squad validAnchor(int squadId, BattleView sim) {
+        return validAnchor(squadId, Faction.MARINE, sim);
+    }
+
+    /** A live infantry squad of {@code faction} a mech of that faction may follow. */
+    static Squad validAnchor(int squadId, Faction faction, BattleView sim) {
         Squad squad = sim.getSquad(squadId);
-        return squad != null && squad.faction == Faction.MARINE && !squad.isMechSquad()
+        return squad != null && squad.faction == faction && attaches(faction) && !squad.isMechSquad()
                 && !squad.isDroneSquad() && squad.aliveMembers > 0 ? squad : null;
+    }
+
+    /** The player's mechs follow the player's infantry; a mission may script the same for its defenders. */
+    private static boolean attaches(Faction faction) {
+        return faction == Faction.MARINE || faction == Faction.DEFENDER;
     }
 
     private static boolean withdrawing(Squad squad) {

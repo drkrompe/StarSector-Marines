@@ -214,7 +214,18 @@ generated yet.
 
 **Garrison.** One finite Sable crew of about 18 at Low quality: gate and
 wall sentries, roof watch, clerks' guards in the pump house, crawler crew, and
-the cantina drinkers. No reinforcements, vehicles or aircraft.
+the cantina drinkers. The one reinforcement is the road reserve below; no
+aircraft.
+
+**Road reserve** (owner, 2026-10-30). The first company unit to step into the
+exclusion ring, sighted or not, starts a short clock (25 seconds, untuned). When
+it runs out two squads of six Sable militia and a Hound muster at the crawler
+road's far end, east of the compound's gate, with a field line from Castle. The
+Hound carries a light machine gun and no rocket pod, and is attached to the second
+squad, so the two stay together; the first squad goes to hold the ledger room, the
+second and its Hound the ground round the pump house. The reserve comes once,
+whether or not the alarm has sounded, and counts as pending defenders until it
+arrives (`DustLedgerReinforcements`; `Layout.reinforcementCells`).
 
 ## Work pieces
 
