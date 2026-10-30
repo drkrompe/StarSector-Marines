@@ -45,40 +45,16 @@ class DebugMissionCatalogTest {
         assertEquals(LiftRating.HEAVY, DebugMissionCatalog.maxFitted(ShuttleType.HERMES).liftRating());
     }
 
-    @Test void workingPassageExpectedCompanyUsesServiceRiflesWithStartingArmorAndNoHound() {
-        var mission = DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission();
-        var context = new MarineOpsContext(null);
-        context.resetDebugPreset(mission);
-        var company = context.getDebugCompanyRoster();
+    @Test void agreusCompanyUsesServiceRiflesWithStartingArmor() {
+        var company = DebugMissionCatalog.agreusCompany(2);
         var starter = DebugMissionCatalog.starterCompany(2);
         assertEquals(24, company.lineReadySoldiers().size());
         assertTrue(company.lineReadySoldiers().stream().allMatch(s ->
                 WeaponRegistry.PULSE_RIFLE_ID.equals(s.primaryId()) && s.primaryGrade() == EquipmentGrade.SERVICE));
         assertEquals(starter.lineReadySoldiers().stream().map(s -> s.armorId()).toList(),
                 company.lineReadySoldiers().stream().map(s -> s.armorId()).toList());
-        assertEquals(0, DebugMissionCatalog.preset(mission).mechs());
-        assertTrue(DebugMissionCatalog.preset(mission).summary().contains("service pulse rifles"));
-        assertTrue(mission.requirements.contains("no Hound or officer bonuses"));
-        context.setDebugSquadCount(3);
-        assertEquals(36, context.getDebugCompanyRoster().lineReadySoldiers().size());
-        assertTrue(context.getDebugCompanyRoster().lineReadySoldiers().stream().allMatch(s ->
-                WeaponRegistry.PULSE_RIFLE_ID.equals(s.primaryId()) && s.primaryGrade() == EquipmentGrade.SERVICE));
-        assertEquals("04", DebugMissionCatalog.Scenario.WORKING_PASSAGE.sequence());
     }
-    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"WORKING_PASSAGE", "COLD_ACCOUNT", "SALVAGE_RIGHTS", "WELLHOLLOW_BREACH", "WELLHOLLOW_ROAD", "WELLHOLLOW_BURN", "WELLHOLLOW_FRONT"}, mode = EnumSource.Mode.EXCLUDE)
-    void otherAuthoredCompaniesKeepTheirStarterIssue(DebugMissionCatalog.Scenario scenario) {
-        var context = new MarineOpsContext(null);
-        context.resetDebugPreset(scenario.mission());
-        var company = context.getDebugCompanyRoster();
-        var starter = DebugMissionCatalog.starterCompany(scenario.squads);
-        assertEquals(starter.lineReadySoldiers().stream().map(s -> s.primaryId()).toList(),
-                company.lineReadySoldiers().stream().map(s -> s.primaryId()).toList());
-        assertEquals(starter.lineReadySoldiers().stream().map(s -> s.primaryGrade()).toList(),
-                company.lineReadySoldiers().stream().map(s -> s.primaryGrade()).toList());
-        assertEquals(starter.lineReadySoldiers().stream().map(s -> s.armorId()).toList(),
-                company.lineReadySoldiers().stream().map(s -> s.armorId()).toList());
-        assertFalse(DebugMissionCatalog.preset(scenario.mission()).serviceRifles());
-    }
+
     @Test void coldAccountLandsItsOwnCompany() {
         var context = new MarineOpsContext(null);
         context.resetDebugPreset(DebugMissionCatalog.Scenario.COLD_ACCOUNT.mission());
@@ -87,14 +63,17 @@ class DebugMissionCatalogTest {
         assertEquals(ColdAccountCompany.MACHINES,
                 DebugMissionCatalog.preset(DebugMissionCatalog.Scenario.COLD_ACCOUNT.mission()).mechs());
     }
-    @Test void salvageRightsLandsItsOwnCompany() {
+    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"SALVAGE_RIGHTS", "COLD_START", "WORKING_PASSAGE"})
+    void aWorkingShipChapterLandsItsVisitsCompany(DebugMissionCatalog.Scenario scenario) {
         var context = new MarineOpsContext(null);
-        context.resetDebugPreset(DebugMissionCatalog.Scenario.SALVAGE_RIGHTS.mission());
+        context.resetDebugPreset(scenario.mission());
         var squads = context.getDebugCompanyRoster().squads().stream().filter(squad -> !squad.reserve()).toList();
-        assertEquals(SalvageRightsCompany.SQUADS, squads.size());
-        assertEquals(ColdAccountCompany.WEAPON_CARDS, squads.stream().map(squad -> squad.weaponDoctrineId()).toList());
-        assertEquals(SalvageRightsCompany.MACHINES,
-                DebugMissionCatalog.preset(DebugMissionCatalog.Scenario.SALVAGE_RIGHTS.mission()).mechs());
+        assertEquals(WorkingShipCompany.SQUADS, squads.size());
+        assertEquals(WorkingShipCompany.weaponCards(scenario.basinVisit()),
+                squads.stream().map(squad -> squad.weaponDoctrineId()).toList());
+        for (int i = 0; i < squads.size(); i++)
+            assertEquals(WorkingShipCompany.armorSheet(scenario.basinVisit(), i), squads.get(i).armorDoctrineId());
+        assertEquals(WorkingShipCompany.MACHINES, DebugMissionCatalog.preset(scenario.mission()).mechs());
     }
     @Test void catalogHasUniqueDetachedIdentitiesAndEveryOperationTier() {
         var missions = DebugMissionCatalog.missions(null);

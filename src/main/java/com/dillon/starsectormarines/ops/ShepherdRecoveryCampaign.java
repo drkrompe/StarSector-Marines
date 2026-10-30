@@ -92,10 +92,6 @@ public final class ShepherdRecoveryCampaign {
     }
     public static boolean owns(String id){return ShepherdRecoveryProgress.owns(id);}
     public static boolean isBattle(Mission mission){return mission!=null&&mission.source==MissionSource.STORY&&owns(mission.id);}
-    /** Salvage Rights, the first visit: a battle whose id is neither Cold Start's nor Working Passage's. */
-    public static boolean isSalvageRights(Mission mission){
-        return isBattle(mission)&&!ShepherdRecoveryProgress.coldStart(mission.id)&&!ShepherdRecoveryProgress.workingPassage(mission.id);
-    }
     public static OpeningBroker.Destination destination(){
         if(current()==null||Global.getSector()==null)return null;
         var corvus=Global.getSector().getStarSystem("Corvus");
@@ -123,15 +119,17 @@ public final class ShepherdRecoveryCampaign {
     }
     private static String requirements(ShepherdRecoveryProgress progress) {
         if (progress.repaired()) return Strings.format("shepherdPassageStatus", progress.departureLosses())
-                + Strings.get("shepherdPassageTerms") + Strings.get("shepherdForceRequirement")
+                + Strings.get("shepherdPassageTerms")
+                + Strings.format("shepherdPassageForceRequirement", WorkingShipCompany.SQUADS, WorkingShipCompany.MACHINES)
                 + Strings.get("shepherdPassageDeployment");
         if (!progress.claimSecured()) return Strings.get("shepherdSalvageTerms")
-                + Strings.format("shepherdSalvageForceRequirement", SalvageRightsCompany.SQUADS, SalvageRightsCompany.MACHINES)
+                + Strings.format("shepherdSalvageForceRequirement", WorkingShipCompany.SQUADS, WorkingShipCompany.MACHINES)
                 + Strings.get("shepherdInspectionDeployment");
         return Strings.get(progress.cargoDelivered() ? "shepherdColdStatusDelivered" : "shepherdColdStatusUndelivered")
                 + Strings.get(progress.shorePower() ? "shepherdColdStatusPowered" : "shepherdColdStatusUnpowered")
                 + (progress.repairLosses() > 0 ? Strings.format("shepherdColdReplacementParty", progress.repairLosses()) : "")
-                + Strings.get("shepherdColdTerms") + Strings.get("shepherdForceRequirement")
+                + Strings.get("shepherdColdTerms")
+                + Strings.format("shepherdColdForceRequirement", WorkingShipCompany.SQUADS, WorkingShipCompany.MACHINES)
                 + Strings.get("shepherdColdDeployment");
     }
     private static List<MissionDialogue.Turn> briefingTurns(ShepherdRecoveryProgress progress) {

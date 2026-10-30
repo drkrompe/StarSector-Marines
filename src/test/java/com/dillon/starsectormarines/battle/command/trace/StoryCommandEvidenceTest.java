@@ -19,16 +19,17 @@ import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.campaign.AgreusYardAgreement;
 import com.dillon.starsectormarines.marine.MarineRoster;
+import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.ops.DebugMissionCatalog;
 import com.dillon.starsectormarines.ops.DistrictEscortCampaign;
-import com.dillon.starsectormarines.ops.SalvageRightsCompany;
+import com.dillon.starsectormarines.ops.WorkingShipCompany;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.testsupport.HeadlessSvgAssets;
 import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
 import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
-import com.dillon.starsectormarines.testsupport.SalvageRightsMuster;
+import com.dillon.starsectormarines.testsupport.WorkingShipMuster;
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -195,28 +196,35 @@ class StoryCommandEvidenceTest {
     private static final Mission SALVAGE_RIGHTS = new Mission("salvage-rights", 18000, fixtures(
             new Object[]{"14101", 14101, 60, ""}, new Object[]{"14102", 14102, 60, ""},
             new Object[]{"15101", 15101, 60, ""}, new Object[]{"14101-48", 14101, 48, ""}), new Story() {
-        public BattleSimulation build(Fixture f) { return SalvageRightsMuster.build(f.seed(), f.personnel() / 12, true); }
+        public BattleSimulation build(Fixture f) { return WorkingShipMuster.build(ShepherdBasin.Visit.SALVAGE_RIGHTS, f.seed(), f.personnel() / 12, true); }
         public Enum<?> phase(BattleSimulation sim) { return sim.getSalvageRights().progress().phase(); }
         public Object receipt(BattleSimulation sim) { return sim.getSalvageRights().report(sim); }
         public void beforeAdvance(BattleSimulation sim, Fixture f, Map<String, Integer> done, JSONArray inputs) throws JSONException {
-            for (int pick = 0; pick < SalvageRightsCompany.MACHINES; pick++) {
-                if (done.containsKey("machine:" + pick)) continue;
-                if (SalvageRightsMuster.callMachine(sim, pick)) input(sim, done, inputs, "machine:" + pick, "machine " + pick + " called");
-                return;
-            }
+            callMachines(sim, done, inputs);
         }
     });
+
+    /** Calls the A Working Ship company's machines down one at a time, each as soon as the drop is ready. */
+    private static void callMachines(BattleSimulation sim, Map<String, Integer> done, JSONArray inputs) throws JSONException {
+        for (int pick = 0; pick < WorkingShipCompany.MACHINES; pick++) {
+            if (done.containsKey("machine:" + pick)) continue;
+            if (WorkingShipMuster.callMachine(sim, pick)) input(sim, done, inputs, "machine:" + pick, "machine " + pick + " called");
+            return;
+        }
+    }
 
     /** Cold Start's scripted road gun: the recovery tender's machine gun. */
     private static final String YARD_MG = YardConstruction.ID_PREFIX + BuildOption.HEAVY_MG_TURRET.id();
 
+    /** The company Cold Start is balanced against, ashore on the apron, calling its four machines down. */
     private static final Mission COLD_START = new Mission("cold-start", 18000, fixtures(
-            new Object[]{"14101", 14101, 24, ""}, new Object[]{"14102", 14102, 24, ""},
-            new Object[]{"15101", 15101, 24, ""}, new Object[]{"14101-36", 14101, 36, ""}), new Story() {
-        public BattleSimulation build(Fixture f) { return deploy(BattleSetup.createColdStart(f.seed(), lift(f), ARID, false, false), starter(f), f.personnel()); }
+            new Object[]{"14101", 14101, 60, ""}, new Object[]{"14102", 14102, 60, ""},
+            new Object[]{"15101", 15101, 60, ""}, new Object[]{"14101-48", 14101, 48, ""}), new Story() {
+        public BattleSimulation build(Fixture f) { return WorkingShipMuster.build(ShepherdBasin.Visit.COLD_START, f.seed(), f.personnel() / 12, true); }
         public Enum<?> phase(BattleSimulation sim) { return sim.getColdStart().progress().phase(); }
         public Object receipt(BattleSimulation sim) { return sim.getColdStart().report(sim); }
         public void beforeAdvance(BattleSimulation sim, Fixture f, Map<String, Integer> done, JSONArray inputs) throws JSONException {
+            callMachines(sim, done, inputs);
             var powers = sim.getCommandPowerService();
             if (!done.containsKey("build") && "CONSTRUCTION".equals(phase(sim).name())
                     && powers.canActivate(powers.getPower(YARD_MG))) {
@@ -226,13 +234,15 @@ class StoryCommandEvidenceTest {
         }
     });
 
+    /** The company Working Passage is balanced against, in the debug preset's boats, calling its four machines down. */
     private static final Mission WORKING_PASSAGE = new Mission("working-passage", 27000, fixtures(
-            new Object[]{"14101", 14101, 24, ""}, new Object[]{"15101", 15101, 24, ""},
-            new Object[]{"15102", 15102, 24, ""}, new Object[]{"15101-36", 15101, 36, ""}), new Story() {
-        public BattleSimulation build(Fixture f) { return deploy(BattleSetup.createWorkingPassage(f.seed(), lift(f), ARID), starter(f), f.personnel()); }
+            new Object[]{"14101", 14101, 60, ""}, new Object[]{"15101", 15101, 60, ""},
+            new Object[]{"15102", 15102, 60, ""}, new Object[]{"15101-48", 15101, 48, ""}), new Story() {
+        public BattleSimulation build(Fixture f) { return WorkingShipMuster.build(ShepherdBasin.Visit.WORKING_PASSAGE, f.seed(), f.personnel() / 12, true); }
         public Enum<?> phase(BattleSimulation sim) { return sim.getWorkingPassage().progress().phase(); }
         public Object receipt(BattleSimulation sim) { return sim.getWorkingPassage().report(sim); }
         public void beforeAdvance(BattleSimulation sim, Fixture f, Map<String, Integer> done, JSONArray inputs) throws JSONException {
+            callMachines(sim, done, inputs);
             var sequence = sim.getWorkingPassage();
             var phase = sequence.progress().phase();
             if ((phase == WorkingPassageProgress.Phase.BEND_BUILD || phase == WorkingPassageProgress.Phase.NARROWS_BUILD)
@@ -282,11 +292,9 @@ class StoryCommandEvidenceTest {
 
     /** The Agreus company as the Agreus snapshot suites issue it. */
     private static MarineRoster expected(Fixture f) {
-        return DebugMissionCatalog.expectedCompany(DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission(), f.personnel() / 12);
+        return DebugMissionCatalog.agreusCompany(f.personnel() / 12);
     }
 
-    /** The starter company the A Working Ship suites issue. */
-    private static MarineRoster starter(Fixture f) { return DebugMissionCatalog.starterCompany(f.personnel() / 12); }
 
     /** Puts the named company into the mission's own lift, or ashore where the mission starts the company on the ground. */
     private static BattleSimulation deploy(BattleSimulation sim, MarineRoster roster, int personnel) {

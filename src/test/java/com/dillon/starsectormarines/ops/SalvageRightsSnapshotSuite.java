@@ -42,6 +42,10 @@ import com.dillon.starsectormarines.battle.story.ColdStartProgress;
 import com.dillon.starsectormarines.battle.story.WorkingPassageProgress;
 import com.dillon.starsectormarines.ops.loot.LootManifest;
 import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
+import com.dillon.starsectormarines.testsupport.InstalledHullSpecs;
+import com.dillon.starsectormarines.testsupport.InstalledVanillaData;
+import com.dillon.starsectormarines.testsupport.WorkingShipMuster;
+import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import java.util.Map;
 import java.nio.file.Files;
 import java.util.List;
@@ -63,6 +67,17 @@ public final class SalvageRightsSnapshotSuite implements SnapshotSuite {
         HeadlessSvgAssets.install(context.modRoot());
         HeadlessArmoryPreviewRenderer.installCatalogs(context.modRoot());
         var frames=new ArrayList<SnapshotArtifact>();
+        if ("overview".equals(System.getProperty("battle.salvageRights.fixture"))) {
+            // The whole basin at tick zero on each visit, with the company each visit's debug briefing lands.
+            InstalledHullSpecs.install();
+            InstalledVanillaData.install();
+            var overview=new BattleReviewFrameRenderer(context.modRoot(),1920,1080,152,90,304);
+            for (var visit:ShepherdBasin.Visit.values())
+                try (var sim=WorkingShipMuster.build(visit,14101,5,false)) {
+                    frames.add(new SnapshotArtifact("overview-"+visit.name().toLowerCase()+".png",overview.render(sim,"BASIN / "+visit)));
+                }
+            return frames;
+        }
         addInterfaceFrames(context, frames);
         if ("interface".equals(System.getProperty("battle.salvageRights.fixture"))) return frames;
         var report=new StringBuilder("Salvage Rights production factory, named campaign overlay. 1920x1080 / 100%. No player orders, no Hound.\n");

@@ -68,8 +68,8 @@ class ShepherdRecoveryCampaignTest {
 
     @Test void recoveryKeepsExactFerrySeatsAndDoesNotGiftSupport() {
         var mission = ShepherdRecoveryCampaign.offer(new ShepherdRecoveryProgress(), "Asharu");
-        assertEquals(SalvageRightsCompany.SQUADS, MissionForceEnvelope.recommendedSquads(mission));
-        assertEquals(SalvageRightsCompany.MACHINES, MissionForceEnvelope.recommendedMachines(mission));
+        assertEquals(WorkingShipCompany.SQUADS, MissionForceEnvelope.recommendedSquads(mission));
+        assertEquals(WorkingShipCompany.MACHINES, MissionForceEnvelope.recommendedMachines(mission));
         assertEquals(MissionForceEnvelope.MINIMUM_READY_PERSONNEL, MissionForceEnvelope.minimumPersonnel(mission, 100));
         var boat = FittedBoat.standard(ShuttleType.HERMES);
         for (int people : List.of(8, 24, 53)) {
@@ -98,7 +98,7 @@ class ShepherdRecoveryCampaignTest {
         assertTrue(PowerCatalog.resolve(List.of(),mission,List.of()).isEmpty());
         var debug=DebugMissionCatalog.Scenario.COLD_START.mission();
         var preset=DebugMissionCatalog.preset(debug);
-        assertEquals(2,preset.squads());assertEquals(2,preset.boats());assertEquals(0,preset.mechs());
+        assertEquals(WorkingShipCompany.SQUADS,preset.squads());assertEquals(2,preset.boats());assertEquals(WorkingShipCompany.MACHINES,preset.mechs());
         assertEquals("03",DebugMissionCatalog.Scenario.COLD_START.sequence());
         assertEquals("Asharu",DebugMissionCatalog.Scenario.COLD_START.location());
     }
@@ -151,13 +151,13 @@ class ShepherdRecoveryCampaignTest {
         var mission=ShepherdRecoveryCampaign.offer(p,"Asharu");
         assertEquals("Working Passage",mission.name);assertEquals(0,mission.payout);
         assertEquals(StoryScene.WORKING_PASSAGE,StoryScene.forMission(mission));
-        assertEquals(2,MissionForceEnvelope.recommendedSquads(mission));
+        assertEquals(WorkingShipCompany.SQUADS,MissionForceEnvelope.recommendedSquads(mission));
         var boat=FittedBoat.standard(ShuttleType.HERMES);
         var manifest=DetachmentResolver.buildShuttleManifestForPersonnel(mission,List.of(boat),24);
         assertEquals(24,manifest.stream().mapToInt(m->m.embarkedPersonnel).sum());
         assertTrue(manifest.stream().allMatch(m->m.airframe==boat));
         assertTrue(PowerCatalog.resolve(List.of(),mission,List.of()).isEmpty());
-        assertEquals(2,DebugMissionCatalog.preset(DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission()).squads());
+        assertEquals(WorkingShipCompany.SQUADS,DebugMissionCatalog.preset(DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission()).squads());
         assertEquals("story_shepherd_working_passage",WaylineNarration.storyMissionId(mission));
         assertEquals("story_shepherd_working_passage",WaylineNarration.storyMissionId(DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission()));
     }

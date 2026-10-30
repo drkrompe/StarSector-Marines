@@ -133,7 +133,7 @@ public final class TermsOfProtectionSnapshotSuite implements SnapshotSuite {
         assertEquals(fixture.route() == AgreusYardAgreement.HOUSE_CUSTODY, AgreusArcCampaign.custodyRoute(mission));
         assertTrue(campaign.begin(mission.id, "agreus", "Agreus"));
         assertEquals(fixture.route(), campaign.activeAgreement());
-        var roster = DebugMissionCatalog.expectedCompany(DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission(), 3);
+        var roster = DebugMissionCatalog.agreusCompany(3);
         LoadoutCardLearning.learn(roster.armory(), AgreusArcProgress.SPECTER_CARD);
         LoadoutCardLearning.learn(roster.armory(), AgreusArcProgress.ARBALEST_CARD);
         for (var squad : roster.squads()) if (!squad.reserve())

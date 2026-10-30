@@ -13,6 +13,7 @@ import com.dillon.starsectormarines.battle.power.CommandPowerResources;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.marine.MarineRoster;
@@ -58,7 +59,7 @@ public final class HeadlessBattles {
 
     /**
      * A battle source: {@code fixture:<path>}, {@code thunder-run[:seed=N,...]}, {@code relief[:seed=N,surface=S]},
-     * {@code salvage-rights[:seed=N,squads=N,machines]} or
+     * {@code salvage-rights|cold-start|working-passage[:seed=N,squads=N,machines]} or
      * {@code cordon[:variant=line|road,density=rural|town|urban,biome=VERDANT,seed=N]}.
      */
     public static BattleSimulation build(String source) throws Exception {
@@ -77,7 +78,9 @@ public final class HeadlessBattles {
             }
             case "fixture" -> fixture(new JSONObject(Files.readString(Path.of(rest))));
             case "cordon" -> cordon(options(rest));
-            case "salvage-rights" -> salvageRights(options(rest));
+            case "salvage-rights" -> basin(ShepherdBasin.Visit.SALVAGE_RIGHTS, options(rest));
+            case "cold-start" -> basin(ShepherdBasin.Visit.COLD_START, options(rest));
+            case "working-passage" -> basin(ShepherdBasin.Visit.WORKING_PASSAGE, options(rest));
             default -> throw new IllegalArgumentException("unknown battle source: " + kind);
         };
     }
@@ -113,9 +116,12 @@ public final class HeadlessBattles {
                 .build();
     }
 
-    /** Salvage Rights through its production factory, the debug briefing's company landing ({@link SalvageRightsMuster}). */
-    private static BattleSimulation salvageRights(JSONObject options) {
-        return SalvageRightsMuster.build(options.optLong("seed", 14101L), options.optInt("squads", 5),
+    /** An A Working Ship visit through its production factory, the debug briefing's company landing ({@link WorkingShipMuster}). */
+    private static BattleSimulation basin(ShepherdBasin.Visit visit, JSONObject options) throws Exception {
+        // Morrow's hull, as a builder bay or a hovering tender, reads the vanilla hull specs.
+        InstalledHullSpecs.install();
+        InstalledVanillaData.install();
+        return WorkingShipMuster.build(visit, options.optLong("seed", 14101L), options.optInt("squads", 5),
                 options.optBoolean("machines", false));
     }
 

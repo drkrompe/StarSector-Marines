@@ -107,7 +107,7 @@ public final class WaterUnderSealSnapshotSuite implements SnapshotSuite {
     private Observation play(SnapshotContext context, Fixture fixture, AgreusArcProgress campaign, List<SnapshotArtifact> frames, StringBuilder report) throws Exception {
         var mission = AgreusArcCampaign.offer(campaign, "Agreus");
         assertTrue(campaign.begin(mission.id, "agreus"));
-        var roster = DebugMissionCatalog.expectedCompany(DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission(), 2);
+        var roster = DebugMissionCatalog.agreusCompany(2);
         report.append("  regular issue=").append(roster.soldiers().stream().collect(Collectors.groupingBy(
                 soldier -> soldier.primaryId() + "/" + soldier.primaryGrade() + "/" + soldier.armorId(), Collectors.counting()))).append('\n');
         var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());

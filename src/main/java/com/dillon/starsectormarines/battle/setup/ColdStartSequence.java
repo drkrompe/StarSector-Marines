@@ -18,13 +18,13 @@ import com.dillon.starsectormarines.battle.story.StoryBeatLog;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleState;
 import com.dillon.starsectormarines.battle.world.model.Doodad;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 
 /** Physical repair convoy, safe technician work and the grounded Shepherd's first construction sortie. */
@@ -36,6 +36,7 @@ public final class ColdStartSequence implements Objective {
     private final int engineers;
     private final long carrier;
     private final List<EntitySpec> reserve;
+    private Map<Integer, List<RoadTechnical>> teamMachines = Map.of();
     private final StoryBeatLog log;
     private final List<Integer> roadSquads = new ArrayList<>();
     private final List<Integer> roadBatches = new ArrayList<>();
@@ -64,7 +65,17 @@ public final class ColdStartSequence implements Objective {
         pickets.add(new ColdStartPicket(key, squadId, outerX, outerY, innerX, innerY, members));
     }
     public List<ColdStartPicket.Report> pickets() { return pickets.stream().map(ColdStartPicket::report).toList(); }
-    public int pendingMembers() { return progress.terminal() ? 0 : reserve.size() - released * 6; }
+    public int pendingMembers() {
+        if (progress.terminal()) return 0;
+        int machines = 0;
+        for (var team : teamMachines.entrySet()) if (team.getKey() >= released) machines += team.getValue().size();
+        return reserve.size() - released * 6 + machines;
+    }
+    /** Hulls that drive in behind a road team when it enters, keyed by release order; a denied team's never come. Setup only. */
+    void sendWithTeams(Map<Integer, List<RoadTechnical>> machines) {
+        if (initialized || released > 0) throw new IllegalStateException("Road machines are set before the teams move");
+        teamMachines = Map.copyOf(machines);
+    }
     /** Off-map entrants refused by an actual sustained friendly boundary screen; these are not casualties. */
     public int deniedRoadMembers() { return deniedRoadTeams.size() * 6; }
     public long repairCarrierId() { return carrier; }
@@ -224,8 +235,9 @@ public final class ColdStartSequence implements Objective {
         if (visible) return;
         int batch = released++;
         if (batch == 0) emit(sim, "approach");
-        int squad = sim.mintSquad(Faction.DEFENDER, UnitType.MILITIA);
+        int squad = sim.mintSquad(Faction.DEFENDER, reserve.get(batch * 6).type);
         for (int i = batch * 6; i < batch * 6 + 6; i++) sim.spawn(reserve.get(i).squad(squad));
+        for (RoadTechnical machine : teamMachines.getOrDefault(batch, List.of())) machine.enter(sim);
         sim.getSquad(squad).originalSize = 6;
         int[] ingress = roadMouth(batch);
         int x = ingress[0], y = ingress[1];

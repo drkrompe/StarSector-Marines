@@ -100,10 +100,11 @@ The three chapter maps revisit one basin: **Salvage Rights**, **Cold Start**, an
 **Working Passage**. Salvage Rights uses the company's selected marines and fitted
 boats, with one ready marine, or a machine that drops, as its minimum. It is sized
 for the company that comes to it having won A Cold Account: five squads and four
-machines recommended, one of them heavy (`SalvageRightsCompany`). A rival crew
+machines recommended, one of them heavy (`WorkingShipCompany`, which sizes all three
+visits and issues the kit unlocked by each). A rival crew
 holds the yard in strength (`SalvageRightsForce`): hired guns beside the scrappers
 in every building, ship guns in sandbag nests round the yard and cradle
-(`SalvageRightsGuns`, stamped on this visit only), point defence on the cradle,
+(`BasinGunNests`, which arms each visit's own nests), point defence on the cradle,
 two technicals, a dozer, a salvaged Warden and two of Morrow's drones the
 occupiers woke. The south road's response brings a technical and a tank up
 behind its infantry. Vale's party musters at the apron's far edge until the
@@ -166,7 +167,10 @@ are hired day hands, not cooperative members: Vale's cheaper replacement for the
 company, whose contract she means to end with this job. Their failure under the
 second assault is what turns Morrow's bay into a defense.
 Four committed six-person raider teams assault through those
-roads. The first actual casualty or a post breach orders surviving pickets to
+roads, each stiffened with hired guns and bringing hulls up behind it: technicals,
+a fire-support carrier and finally a tank (`ColdStartForce`). Until shore power is
+restored the crew still holds the pump with its two gun nests; once it is, the
+pump starts cleared. The first actual casualty or a post breach orders surviving pickets to
 withdraw toward distinct inner holds; a broken post never implies that its people
 were all killed. Survivor hold reports require physical arrival. The company can
 support a forward detachment or deny an exposed entry, while the constructed
@@ -181,7 +185,9 @@ terrain like any hull; the player builds the same two guns anywhere seen and ope
 Living company presence and clear ground release its successive assembly positions.
 The pump bend and narrows each require a surviving constructed turret before the
 company advances; two distinct cooperative militia teams inherit the earlier holds.
-Finite scrapper teams approach along the named haul and quarry roads. Player orders
+Finite scrapper teams approach along the named haul and quarry roads, hired guns
+leading each and a hull behind it, the last a tank; hired guns and scrappers hold
+each watch, and gun nests cover the eastern approach (`WorkingPassageForce`). Player orders
 retain authority over the company and Morrow's helm; completed or cancelled build
 work returns her to mission travel unless another remote order owns it.
 

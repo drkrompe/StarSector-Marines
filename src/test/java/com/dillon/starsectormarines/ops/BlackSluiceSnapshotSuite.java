@@ -127,7 +127,7 @@ public final class BlackSluiceSnapshotSuite implements SnapshotSuite {
         var mission = AgreusArcCampaign.offer(campaign, "Agreus");
         assertEquals("A Small War", mission.name);
         assertTrue(campaign.begin(mission.id, "agreus", "Agreus"));
-        var roster = DebugMissionCatalog.expectedCompany(DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission(), 3);
+        var roster = DebugMissionCatalog.agreusCompany(3);
         var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
         var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, 36);
         var boats = List.of(boat("sluice-boat-one"), boat("sluice-boat-two"));

@@ -82,7 +82,7 @@ public final class ShepherdBasin {
                 visit == Visit.COLD_START
                         ? new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,176,38,279,107,151,96,188,112,73,162,123,164,174,166,243,176,199,160)
                         : new OutdoorLandscapeStage(24,80,82,119,127,102,171,117,209,123,252,110,280,77,194,2,301,145,73,162,123,164,174,166,243,176,199,160),
-                context -> { if (visit == Visit.SALVAGE_RIGHTS) SalvageRightsGuns.arm(context); })).run(c);
+                context -> BasinGunNests.arm(context, visit))).run(c);
         MapResult map = new MapResult(c.grid, c.topology, LANDING.x(), LANDING.y(), 290, 77,
                 c.pois, c.doodads, new TacticalMap(HeldPlaces.fromBuildings(c.pois, poi -> Faction.DEFENDER)), c.get(BspKeys.BUILDINGS), List.copyOf(c.defensePosts),
                 AuthoredRoadGraph.graph(RoadCatalog.plan(RoadCatalog.SHEPHERD_BASIN), ""), c.landingPads);

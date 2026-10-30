@@ -14,7 +14,7 @@ import com.dillon.starsectormarines.ops.OperationTier;
 import com.dillon.starsectormarines.ops.RiskLevel;
 import com.dillon.starsectormarines.ops.SupplyRouteCampaign;
 import com.dillon.starsectormarines.ops.CorvusWaylineCampaign;
-import com.dillon.starsectormarines.ops.SalvageRightsCompany;
+import com.dillon.starsectormarines.ops.WorkingShipCompany;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.dillon.starsectormarines.ops.AgreusArcCampaign;
 import com.dillon.starsectormarines.ops.DistrictEscortCampaign;
@@ -87,7 +87,7 @@ public final class MissionForceEnvelope {
      * jump required by its three simultaneous lanes and sustained ferry battle.
      */
     public static int recommendedSquads(Mission mission) {
-        if (ShepherdRecoveryCampaign.isSalvageRights(mission)) return SalvageRightsCompany.SQUADS;
+        if (ShepherdRecoveryCampaign.isBattle(mission)) return WorkingShipCompany.SQUADS;
         if (ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission)
                 || DistrictEscortCampaign.isBattle(mission)) return 2;
         if (WellhollowBloomCampaign.isBattle(mission)) return WellhollowBloomCampaign.RECOMMENDED_SQUADS;
@@ -99,7 +99,7 @@ public final class MissionForceEnvelope {
     /** Mechs or vehicles recommended beside the squads: end-game challenge work and the Corvus chapters name any. */
     public static int recommendedMachines(Mission mission) {
         if (WellhollowBloomCampaign.isBattle(mission)) return WellhollowBloomCampaign.RECOMMENDED_MACHINES;
-        if (ShepherdRecoveryCampaign.isSalvageRights(mission)) return SalvageRightsCompany.MACHINES;
+        if (ShepherdRecoveryCampaign.isBattle(mission)) return WorkingShipCompany.MACHINES;
         return CorvusWaylineCampaign.isBattle(mission)
                 ? CorvusWaylineProgress.forMission(mission.id).recommendedMachines() : 0;
     }

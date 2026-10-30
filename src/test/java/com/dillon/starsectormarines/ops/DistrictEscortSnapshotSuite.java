@@ -85,7 +85,7 @@ public final class DistrictEscortSnapshotSuite implements SnapshotSuite {
         long seed = fixture.startsWith("custody-") || fixture.startsWith("compact-") ? Long.parseLong(fixture.substring(dash + 1)) : mission.battleSeed;
         boolean absent = fixture.equals("absent"), cargoLoss = fixture.equals("cargo-loss"),
                 partyLoss = fixture.equals("party-loss"), retreat = fixture.equals("retreat");
-        var roster = DebugMissionCatalog.expectedCompany(DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission(), 2);
+        var roster = DebugMissionCatalog.agreusCompany(2);
         var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
         var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, 24);
         var boats = List.of(boat("escort-boat-one"), boat("escort-boat-two"));

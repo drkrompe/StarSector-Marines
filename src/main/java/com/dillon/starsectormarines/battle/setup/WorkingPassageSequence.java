@@ -14,12 +14,12 @@ import com.dillon.starsectormarines.battle.story.WorkingPassageProgress.Phase;
 import com.dillon.starsectormarines.battle.tender.Tender;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
-import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Locale;
 import java.util.Set;
 
@@ -30,6 +30,7 @@ public final class WorkingPassageSequence implements Objective {
     private final WorkingPassageProgress progress=new WorkingPassageProgress();
     private final Tender tender;
     private final List<EntitySpec> reserve;
+    private Map<Integer,List<RoadTechnical>> teamMachines=Map.of();
     private final List<Integer> militia;
     private final StoryBeatLog log;
     private final List<Integer> roadSquads=new ArrayList<>();
@@ -58,7 +59,17 @@ public final class WorkingPassageSequence implements Objective {
     public WorkingPassageProgress progress(){return progress;}
     public Tender tender(){return tender;}
     public List<Integer> militiaSquadIds(){return militia;}
-    public int pendingMembers(){return progress.terminal()?0:reserve.size()-releasedMembers();}
+    public int pendingMembers(){
+        if(progress.terminal())return 0;
+        int machines=0;
+        for(var team:teamMachines.entrySet())if(team.getKey()>=released)machines+=team.getValue().size();
+        return reserve.size()-releasedMembers()+machines;
+    }
+    /** Hulls that drive in behind a road team when it commits, keyed by release order. Setup only. */
+    void sendWithTeams(Map<Integer,List<RoadTechnical>> machines){
+        if(released>0)throw new IllegalStateException("Road machines are set before the teams move");
+        teamMachines=Map.copyOf(machines);
+    }
     private int releasedMembers(){return switch(released){case 0->0;case 1->4;case 2->10;case 3->14;default->20;};}
     public Set<Long> turretEntityIds(){return Set.copyOf(turretIds);}
     public int releasedTeams(){return released;}
@@ -134,8 +145,9 @@ public final class WorkingPassageSequence implements Objective {
     private void release(BattleSimulation sim){
         releasedAtTick[released]=sim.getSimTickIndex();
         int batch=released++,from=switch(batch){case 0->0;case 1->4;case 2->10;default->14;},size=batch==0||batch==2?4:6;
-        int squad=sim.mintSquad(Faction.DEFENDER,UnitType.MILITIA);
+        int squad=sim.mintSquad(Faction.DEFENDER,reserve.get(from).type);
         for(int i=from;i<from+size;i++)sim.spawn(reserve.get(i).squad(squad));
+        for(RoadTechnical machine:teamMachines.getOrDefault(batch,List.of()))machine.enter(sim);
         sim.getSquad(squad).originalSize=size;
         int x=batch==1?279:194,y=batch==1?133:45;
         sim.assignSquadCommand(ObjectiveAssignment.attackMove(squad,x,y),CommandAuthority.SCRIPTED,ROAD,"Scrappers commit from the named haul approach");

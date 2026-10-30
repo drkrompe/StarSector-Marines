@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.setup.BattleSetup;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
+import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
 import com.dillon.starsectormarines.campaign.ShepherdRecoveryProgress;
@@ -18,7 +19,7 @@ import com.dillon.starsectormarines.marine.CampaignMech;
 import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.ops.DebugMissionCatalog;
-import com.dillon.starsectormarines.ops.SalvageRightsCompany;
+import com.dillon.starsectormarines.ops.WorkingShipCompany;
 import com.dillon.starsectormarines.ops.ShepherdRecoveryCampaign;
 import com.dillon.starsectormarines.ops.detachment.CampaignMarineDeployment;
 import com.dillon.starsectormarines.ops.detachment.DetachmentResolver;
@@ -30,28 +31,38 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
- * Salvage Rights with the company the debug briefing lands ({@link SalvageRightsCompany}): its squads in the debug
- * preset's boats and, when asked, its bay behind Mech Support for {@link #callMachine} to call down. Shared by
- * {@code battleProbe}'s {@code salvage-rights} source and the story command evidence.
+ * An A Working Ship visit with the company its debug briefing lands: its squads in the debug preset's boats (ashore
+ * where the visit starts the company on the ground) and, when asked, its bay behind Mech Support for
+ * {@link #callMachine} to call down. Shared by {@code battleProbe}'s basin sources, the story command evidence and
+ * the basin overview frames.
  */
-public final class SalvageRightsMuster {
-    private SalvageRightsMuster() {}
+public final class WorkingShipMuster {
+    private WorkingShipMuster() {}
 
     /** Supplies the company brings; enough for every machine. */
     static final int SUPPLIES = 30;
 
-    /** The battle at {@code seed} with {@code squads} of the company landing, and its bay when {@code machines}. */
-    public static BattleSimulation build(long seed, int squads, boolean machines) {
-        var mission = ShepherdRecoveryCampaign.offer(new ShepherdRecoveryProgress(), "Asharu");
-        MarineRoster roster = DebugMissionCatalog.expectedCompany(DebugMissionCatalog.Scenario.SALVAGE_RIGHTS.mission(), squads);
+    /** {@code visit}'s battle at {@code seed} with {@code squads} of the company, and its bay when {@code machines}. */
+    public static BattleSimulation build(ShepherdBasin.Visit visit, long seed, int squads, boolean machines) {
+        var scenario = switch (visit) {
+            case SALVAGE_RIGHTS -> DebugMissionCatalog.Scenario.SALVAGE_RIGHTS;
+            case COLD_START -> DebugMissionCatalog.Scenario.COLD_START;
+            case WORKING_PASSAGE -> DebugMissionCatalog.Scenario.WORKING_PASSAGE;
+        };
+        var mission = ShepherdRecoveryCampaign.offer(progress(visit), "Asharu");
+        MarineRoster roster = DebugMissionCatalog.expectedCompany(scenario.mission(), squads);
         if (machines) board(roster);
         var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
         var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, squads * 12);
-        var preset = DebugMissionCatalog.preset(DebugMissionCatalog.Scenario.SALVAGE_RIGHTS.mission());
+        var preset = DebugMissionCatalog.preset(scenario.mission());
         var fitted = Collections.nCopies(preset.boats(), DebugMissionCatalog.maxFitted(preset.boat()));
         var manifest = DetachmentResolver.buildShuttleManifestForPersonnel(mission, fitted, deployment.size());
-        BattleSimulation sim = BattleSetup.createSalvageRights(seed, manifest,
-                new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.ARID, SettlementLink.ROAD));
+        var profile = new TargetProfile(0, 0, 0, 0, "pirates", Set.of(), SurfacePalette.ARID, SettlementLink.ROAD);
+        BattleSimulation sim = switch (visit) {
+            case SALVAGE_RIGHTS -> BattleSetup.createSalvageRights(seed, manifest, profile);
+            case COLD_START -> BattleSetup.createColdStart(seed, manifest, profile, false, false);
+            case WORKING_PASSAGE -> BattleSetup.createWorkingPassage(seed, manifest, profile);
+        };
         deployment.applyToAuthoredPlayerLift(sim);
         List<CommandPower> powers = machines ? PowerCatalog.resolve(List.of(), mission, roster.mechBay().activeDeployment(),
                 roster.mechBay().activeVehicleDeployment(), fitted) : List.of();
@@ -60,16 +71,31 @@ public final class SalvageRightsMuster {
         return sim;
     }
 
+    /** Campaign progress standing at {@code visit}: the claim secured for Cold Start, the hull repaired for the passage. */
+    private static ShepherdRecoveryProgress progress(ShepherdBasin.Visit visit) {
+        var progress = new ShepherdRecoveryProgress();
+        if (visit == ShepherdBasin.Visit.SALVAGE_RIGHTS) return progress;
+        String salvage = progress.missionId();
+        if (!progress.begin(salvage, "Asharu") || progress.settle(salvage, "Asharu", true, ShepherdRecoveryProgress.PAYMENT, 0, true) < 0)
+            throw new IllegalStateException("Salvage Rights did not settle");
+        if (visit == ShepherdBasin.Visit.COLD_START) return progress;
+        String cold = progress.missionId();
+        if (!progress.begin(cold, "Asharu")
+                || progress.settleColdStart(cold, "Asharu", true, ShepherdRecoveryProgress.COLD_PAYMENT, 0, true, true, true, true) < 0)
+            throw new IllegalStateException("Cold Start did not settle");
+        return progress;
+    }
+
     /** The recovered Hound, then the company's other machines, into the active lance. */
     private static void board(MarineRoster roster) {
         if (!roster.mechBay().receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment())))
             throw new IllegalStateException("the Hound did not board");
         String lance = roster.mechBay().activeSquad().id();
-        for (MechVariant variant : SalvageRightsCompany.MECHS)
+        for (MechVariant variant : WorkingShipCompany.MECHS)
             if (roster.mechBay().fabricateChassis(lance, variant) == null)
                 throw new IllegalStateException(variant + " did not board");
-        for (int i = 0; i < SalvageRightsCompany.VEHICLES.size(); i++) {
-            VehicleType type = SalvageRightsCompany.VEHICLES.get(i);
+        for (int i = 0; i < WorkingShipCompany.VEHICLES.size(); i++) {
+            VehicleType type = WorkingShipCompany.VEHICLES.get(i);
             if (!roster.mechBay().addVehicle(lance, new CampaignVehicle("salvage_vehicle_" + i, type.name(), type)))
                 throw new IllegalStateException(type + " did not board");
         }

@@ -2432,7 +2432,8 @@ public final class BattleSetup {
         MapResult map=ShepherdBasin.generate(seed,profile,ShepherdBasin.Visit.COLD_START);
         if (shorePower && map.topology.nightLighting() != null)
             map.topology.setNightLighting(map.topology.nightLighting().withPower("yard"));
-        BattleSimulation sim=buildMap(map,List.of(),List.of(),List.of(),seed).sim();
+        // The pump nests are the crew's only while the pump is: a restored circuit means an earlier attempt took them.
+        BattleSimulation sim=buildMap(map,List.of(),shorePower?List.of():map.defensePosts,List.of(),seed).sim();
         sim.setSurface(surfaceOf(profile));
         sim.getBattleResources().disableCompoundProduction();
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER,Faction.MARINE));
@@ -2458,9 +2459,7 @@ public final class BattleSetup {
             mission.state=ShuttleState.GONE;
         }
         // The earlier workshop gain persists. Scrappers now occupy the pump work site.
-        var pump=openingDefenseNode(171,117,Faction.DEFENDER,map.grid);
-        if (!shorePower)
-            spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,171,117,8),Faction.DEFENDER,"pump-scrapper-watch",pump,rng);
+        ColdStartForce.garrison(sim,shorePower,rng);
         spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,ShepherdBasin.MILITIA.x(),ShepherdBasin.MILITIA.y(),8),Faction.ALLY,"basin-militia",null,rng);
         for(var squad:sim.getSquads())if(squad.faction==Faction.ALLY)
             if(!sim.handoffSquadCommand(squad.id,OpeningOperationCommand.issuer(Faction.ALLY),CommandAuthority.MISSION_COMMAND,
@@ -2471,18 +2470,14 @@ public final class BattleSetup {
             sim.spawn(new EntitySpec("Cooperative repair technician",Faction.ALLY,UnitType.TECHNICIAN,cell[0],cell[1]).squad(engineers).role(UnitRole.PATROL));
         sim.getSquad(engineers).originalSize=2;
         sim.claimSquadCommand(engineers,CommandAuthority.MISSION_COMMAND,ColdStartCommand.issuer(Faction.ALLY),"Replacement party joins repair mobilization");
-        List<EntitySpec> reserve=new ArrayList<>();
-        for(int batch=0;batch<4;batch++) {
-            ShepherdBasin.Place road=batch==2?ShepherdBasin.QUARRY_ROAD:ShepherdBasin.SOUTH_HAUL_ROAD;
-            for(int[] cell:pickSpawnCluster(map.grid,road.x(),road.y(),6))
-                reserve.add(makeOpeningMilitia("repair-road-"+batch+"-"+reserve.size(),Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
-        }
+        List<EntitySpec> reserve=ColdStartForce.roadTeams(map.grid,rng);
         long carrier=0L;
         if(!cargoDelivered) {
             carrier=sim.convoy().spawn(VehicleType.CARGO_CARRIER,Faction.ALLY,VehicleMission.deployed(8,68));
             sim.convoy().body(carrier).teleport(8,68,-90f);
         }
         sim.installColdStart(engineers,carrier,reserve,cargoDelivered,shorePower);
+        sim.getColdStart().sendWithTeams(ColdStartForce.teamMachines());
         // These exposed listening posts have their own duties, separate from the yard holders.
         String[] postNames={"south_haul","quarry"};
         ShepherdBasin.Place[] picketPlaces={ShepherdBasin.SOUTH_PICKET,ShepherdBasin.QUARRY_PICKET};
@@ -2509,7 +2504,7 @@ public final class BattleSetup {
         if(manifest==null || manifest.isEmpty() || manifest.size()>4)
             throw new IllegalArgumentException("Working Passage requires one to four company boats");
         MapResult map=ShepherdBasin.generate(seed,profile,ShepherdBasin.Visit.WORKING_PASSAGE);
-        BattleSimulation sim=buildMap(map,List.of(),List.of(),List.of(),seed).sim();
+        BattleSimulation sim=buildMap(map,List.of(),map.defensePosts,List.of(),seed).sim();
         sim.setSurface(surfaceOf(profile));
         sim.getBattleResources().disableCompoundProduction();
         sim.addObjective(new EliminateFactionObjective(Faction.DEFENDER,Faction.MARINE));
@@ -2530,10 +2525,7 @@ public final class BattleSetup {
                 mission.cycleLoadouts[cycle]=InfantryLoadoutRolls.playerSquad(assignment.seatsForCycle(cycle),rng);
             mission.marineLoadout=mission.cycleLoadouts[0];
         }
-        for(ShepherdBasin.Place guard:ShepherdBasin.PASSAGE_WATCHES) {
-            var post=openingDefenseNode(guard.x(),guard.y(),Faction.DEFENDER,map.grid);
-            spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,guard.x(),guard.y(),4),Faction.DEFENDER,"passage-scrapper-watch",post,rng);
-        }
+        WorkingPassageForce.garrison(sim,rng);
         spawnOpeningMilitiaSquads(sim,pickSpawnCluster(map.grid,ShepherdBasin.MILITIA.x(),ShepherdBasin.MILITIA.y(),8),Faction.ALLY,"basin-militia",null,rng);
         for(var squad:sim.getSquads())if(squad.faction==Faction.ALLY)
             if(!sim.handoffSquadCommand(squad.id,OpeningOperationCommand.issuer(Faction.ALLY),CommandAuthority.MISSION_COMMAND,
@@ -2541,18 +2533,14 @@ public final class BattleSetup {
                 throw new IllegalStateException("Basin militia handoff failed");
         List<Integer> militia=new ArrayList<>();
         for(var squad:sim.getSquads())if(squad.faction==Faction.ALLY)militia.add(squad.id);
-        List<EntitySpec> reserve=new ArrayList<>();
-        for(int batch=0;batch<4;batch++) {
-            ShepherdBasin.Place road=batch==1?ShepherdBasin.QUARRY_ROAD:ShepherdBasin.SOUTH_HAUL_ROAD;int size=batch==0||batch==2?4:6;
-            for(int[] cell:pickSpawnCluster(map.grid,road.x(),road.y(),size))
-                reserve.add(makeOpeningMilitia("passage-road-"+batch+"-"+reserve.size(),Faction.DEFENDER,cell[0],cell[1],rng).role(UnitRole.PATROL));
-        }
+        List<EntitySpec> reserve=WorkingPassageForce.roadTeams(map.grid,rng);
         Tender tender;
         try { tender=Tender.lowHover(Faction.MARINE,131,115,SpawnInOnslaught.PRESENCE); }
         catch(Exception ex) { throw new IllegalStateException("Unable to launch Morrow",ex); }
         sim.tenders().add(sim,tender);
         for(YardConstruction yard:YardConstruction.forEachOption(tender))sim.getCommandPowerService().register(yard);
         sim.installWorkingPassage(tender,militia,reserve);
+        sim.getWorkingPassage().sendWithTeams(WorkingPassageForce.teamMachines());
         for(Faction faction:List.of(Faction.MARINE,Faction.ALLY,Faction.DEFENDER))
             sim.setAutonomousCommander(faction,new WorkingPassageCommand(faction),WorkingPassageCommand.disclosure(sim.getWorkingPassage()));
         sim.setPlayerSupportCommandClaim(SquadCommandClaim.mission(WorkingPassageCommand.issuer(Faction.MARINE),"Company support joins recovery"));

@@ -70,7 +70,7 @@ public final class LimitedWarrantSnapshotSuite implements SnapshotSuite {
         assertTrue(campaign.begin(mission.id, "agreus", "Agreus"));
         long seed = fixture.startsWith("ordinary-") ? Long.parseLong(fixture.substring(9)) : 15302;
         boolean absent = fixture.equals("absent"), cargoLoss = fixture.equals("cargo-loss"), techLoss = fixture.equals("technician-loss"), retreat = fixture.equals("retreat-records");
-        var roster = DebugMissionCatalog.expectedCompany(DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission(), 2);
+        var roster = DebugMissionCatalog.agreusCompany(2);
         var selected = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
         var deployment = CampaignMarineDeployment.freezeSelection(roster, selected, 24);
         var boats = List.of(boat("warrant-boat-one"), boat("warrant-boat-two"));

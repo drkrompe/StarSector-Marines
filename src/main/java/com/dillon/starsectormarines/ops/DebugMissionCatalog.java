@@ -26,6 +26,7 @@ import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.campaign.WellhollowBloomProgress;
 import com.dillon.starsectormarines.campaign.WellhollowBloomProgress.Chapter;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
+import com.dillon.starsectormarines.battle.world.gen.ShepherdBasin;
 import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -68,9 +69,9 @@ public final class DebugMissionCatalog {
         ROUTE_SECURITY("Repeatable work", "Route Security", "A fresh relay security contract.", 2, true),
         VETERANS_JOB("Independent stories", "The Veteran's Job", "Raid the broker's cache and extract.", 3, false),
         SILENT_COLONY("Campaign events", "Silent Colony", "Investigate the archive and recover the stranded survivors.", 2, false),
-        SALVAGE_RIGHTS("A Working Ship", "Salvage Rights", "Night recovery: secure the camp, hand the workshop to militia and cover Morrow's inspection.", SalvageRightsCompany.SQUADS, false),
-        COLD_START("A Working Ship", "Cold Start", "Escort repair cargo, restore yard power and build Morrow's first road gun.", 2, false),
-        WORKING_PASSAGE("A Working Ship", "Working Passage", "Escort Morrow through the basin with service pulse rifles and starting Ward armor; build road defenses and secure physical climb-out.", 2, false),
+        SALVAGE_RIGHTS("A Working Ship", "Salvage Rights", "Night recovery: secure the camp, hand the workshop to militia and cover Morrow's inspection.", WorkingShipCompany.SQUADS, false),
+        COLD_START("A Working Ship", "Cold Start", "Escort repair cargo, restore yard power and build Morrow's first road gun.", WorkingShipCompany.SQUADS, false),
+        WORKING_PASSAGE("A Working Ship", "Working Passage", "Escort Morrow through the basin; build road defenses and secure physical climb-out.", WorkingShipCompany.SQUADS, false),
         WATER_UNDER_SEAL("Agreus", "Water Under Seal", "Escort the technicians and repair loads to the Agreus water works and hold it.", 3, false),
         LIMITED_WARRANT("Agreus", "Limited Warrant", "Raid the calibration works under the warrant's limits.", 3, false),
         YARD_OWNERS("Agreus", "Yard Owners", "Take the yard from the pirates who hold it and secure its tooling.", 3, false),
@@ -91,6 +92,15 @@ public final class DebugMissionCatalog {
         public final boolean hound;
         Scenario(String group, String title, String description, int squads, boolean hound) {
             this.group = group; this.title = title; this.description = description; this.squads = squads; this.hound = hound;
+        }
+        /** The basin visit an A Working Ship chapter plays; null for every other scenario. */
+        public ShepherdBasin.Visit basinVisit() {
+            return switch (this) {
+                case SALVAGE_RIGHTS -> ShepherdBasin.Visit.SALVAGE_RIGHTS;
+                case COLD_START -> ShepherdBasin.Visit.COLD_START;
+                case WORKING_PASSAGE -> ShepherdBasin.Visit.WORKING_PASSAGE;
+                default -> null;
+            };
         }
         CorvusChapter corvus() {
             return switch (this) {
@@ -221,9 +231,10 @@ public final class DebugMissionCatalog {
                     .requiredDrops(squads * 2).employerShuttles(0)
                     .marineArrivalPolicy(this == COLD_START || this == RELIEF ? MarineArrivalPolicy.SECURED_GROUND : MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                     .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED)
-                    .requirements(squads + (this == WORKING_PASSAGE ? " squads / service pulse rifles / starting Ward armor / no Hound or officer bonuses"
-                            : this == COLD_ACCOUNT ? " squads carrying the kit unlocked by Blind Watch (rockets, point defence, anti-materiel rifles) + " + ColdAccountCompany.BAY
-                            : this == SALVAGE_RIGHTS ? " squads carrying the kit unlocked by A Cold Account (rockets, point defence, anti-materiel rifles) + " + SalvageRightsCompany.BAY
+                    .requirements(squads + (this == COLD_ACCOUNT ? " squads carrying the kit unlocked by Blind Watch (rockets, point defence, anti-materiel rifles) + " + ColdAccountCompany.BAY
+                            : this == SALVAGE_RIGHTS ? " squads carrying the kit unlocked by A Cold Account (rockets, point defence, anti-materiel rifles) + " + WorkingShipCompany.BAY
+                            : this == COLD_START ? " squads carrying the kit unlocked by Salvage Rights (adds Fire-Support) + " + WorkingShipCompany.BAY
+                            : this == WORKING_PASSAGE ? " squads carrying the kit unlocked by Cold Start (one squad in Foundry-Breaker rigs) + " + WorkingShipCompany.BAY
                             : " starter squads" + (hound ? " + the Hound (chaingun)" : "")) + "; preset boats supplied")
                     .battleSeed(chapter != null ? chapter.mission("unused", chapter.planetName, "").battleSeed
                             : ravBloom() ? RavBloomDebugChoice.seed(poolMap())
@@ -294,8 +305,8 @@ public final class DebugMissionCatalog {
                 WellhollowBloomCampaign.RECOMMENDED_MACHINES, CAMPAIGN_LIFT, CAMPAIGN_LIFT_BOATS, false, false);
         if (story != null) return new Preset(DebugCompanyStage.FIRST_CONTRACT, story.squads,
                 story == Scenario.COLD_ACCOUNT ? ColdAccountCompany.MACHINES
-                        : story == Scenario.SALVAGE_RIGHTS ? SalvageRightsCompany.MACHINES : story.hound ? 1 : 0,
-                CAMPAIGN_LIFT, CAMPAIGN_LIFT_BOATS, true, story == Scenario.WORKING_PASSAGE);
+                        : story.basinVisit() != null ? WorkingShipCompany.MACHINES : story.hound ? 1 : 0,
+                CAMPAIGN_LIFT, CAMPAIGN_LIFT_BOATS, true, false);
         DebugCompanyStage stage = switch (m.tier) {
             case FIRST_CONTRACT -> DebugCompanyStage.FIRST_CONTRACT;
             case ESTABLISHED -> DebugCompanyStage.ESTABLISHED;
@@ -331,11 +342,16 @@ public final class DebugMissionCatalog {
             ColdAccountCompany.issue(roster);
             return roster;
         }
-        if (scenario(mission) == Scenario.SALVAGE_RIGHTS) {
-            SalvageRightsCompany.issue(roster);
-            return roster;
-        }
-        if (scenario(mission) != Scenario.WORKING_PASSAGE) return roster;
+        Scenario scenario = scenario(mission);
+        if (scenario != null && scenario.basinVisit() != null) WorkingShipCompany.issue(roster, scenario.basinVisit());
+        return roster;
+    }
+    /**
+     * The company the Agreus missions' suites and evidence stand up: starter squads re-armed with service pulse rifles
+     * in starting Ward armour, no Hound and no officer bonuses. It once stood in as Working Passage's debug company.
+     */
+    public static MarineRoster agreusCompany(int squads) {
+        MarineRoster roster = starterCompany(squads);
         roster.armory().acquireEquipmentTemplate(EquipmentTemplateCatalog.primaryId(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE));
         var issue = new SquadWeaponIssue("Rifleman", WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SERVICE, null);
         var doctrine = roster.armory().ensureWeaponDoctrine("debug:weapons:working-passage",

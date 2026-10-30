@@ -362,7 +362,11 @@ the duration targets remain tuning goals until measured playback and live review
   UNTUNED against a player: with its debug company the autopilot reaches the
   cradle in every fixture and the inspection in one, killing 35 to 64 defenders,
   and loses the company in every run. The inspection crew no longer dies on the
-  apron: it musters beyond the receiving store's reach. Both are difficulty work, not story-radio faults. Story radio is
+  apron: it musters beyond the receiving store's reach. Cold Start and Working
+  Passage were scaled for the same company and are UNTUNED against a player too,
+  but easier on autopilot: Cold Start wins all four fixtures (about 9,300 ticks,
+  8 to 21 marines lost), Working Passage all four (about 19,000 ticks, 17 to 34
+  lost). Both are difficulty work, not story-radio faults. Story radio is
   serial and was timed against the playbacks: instruction lines outrank Cold
   Start's checkpoint reports, so the build instruction is not held behind a
   falling picket.
@@ -384,7 +388,7 @@ the duration targets remain tuning goals until measured playback and live review
   character voices. Live names, delivery and mix intelligibility remain acceptance
   work, as do the finite construction drones' positional machinery cues and
   accelerated-time listening.
-- Design for a rebuilding company: two squads as the initial test force, allied
+- Design for a rebuilding company: five squads and four machines, one heavy, as the test force, allied
   holders and engineers; Hound optional. Use the real launch roster and fitted
   boats. A weakened company can postpone and replenish. Do not assume every
   Garnir survivor, boat or mech survived.

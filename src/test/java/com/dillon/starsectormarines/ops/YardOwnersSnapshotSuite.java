@@ -83,7 +83,7 @@ public final class YardOwnersSnapshotSuite implements SnapshotSuite {
         long seed = fixture.startsWith("ordinary-") ? Long.parseLong(fixture.substring(9)) : 15303;
         boolean absent = fixture.equals("absent"), toolingLoss = fixture.equals("tooling-loss"), techLoss = fixture.equals("technician-loss"), retreat = fixture.equals("retreat-dispatch");
         var roster = fixture.equals("mixed") ? earnedRoster
-                : DebugMissionCatalog.expectedCompany(DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission(), 3);
+                : DebugMissionCatalog.agreusCompany(3);
         assertNotNull(roster,"The mixed comparison must follow the actual earned reward and personnel writeback");
         if (fixture.equals("specter") || fixture.equals("mixed")) {
             LoadoutCardLearning.learn(roster.armory(),AgreusArcProgress.SPECTER_CARD);

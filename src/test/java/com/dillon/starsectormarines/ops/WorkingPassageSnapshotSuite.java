@@ -100,7 +100,7 @@ public final class WorkingPassageSnapshotSuite implements SnapshotSuite {
     }
     private WorkingPassageProgress.Report play(SnapshotContext context,Fixture f,ShepherdRecoveryProgress campaign,List<SnapshotArtifact> frames,StringBuilder report) throws Exception {
         var mission=ShepherdRecoveryCampaign.offer(campaign,"Asharu");
-        var roster=f.refitted?DebugMissionCatalog.expectedCompany(DebugMissionCatalog.Scenario.WORKING_PASSAGE.mission(),2)
+        var roster=f.refitted?DebugMissionCatalog.agreusCompany(2)
                 :DebugMissionCatalog.starterCompany(2);
         var selected=roster.squads().stream().filter(s->!s.reserve()).map(s->s.id()).collect(Collectors.toSet());
         var deployment=CampaignMarineDeployment.freezeSelection(roster,selected,24);
