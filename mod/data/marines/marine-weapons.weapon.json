@@ -1136,7 +1136,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "annihilator_fire" }
+      "audio": { "fireSound": "annihilator_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.mech-srm-frag",
@@ -1178,7 +1178,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "annihilator_fire" }
+      "audio": { "fireSound": "annihilator_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.mech-srm-pod-legacy",
@@ -1220,7 +1220,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "annihilator_fire" }
+      "audio": { "fireSound": "annihilator_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.mech-lrm-artillery",
@@ -1267,7 +1267,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "pilum_lrm_fire" }
+      "audio": { "fireSound": "pilum_lrm_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.mech-lrm-frag",
@@ -1313,7 +1313,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "pilum_lrm_fire" }
+      "audio": { "fireSound": "pilum_lrm_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.mech-lrm-artillery-legacy",
@@ -1359,7 +1359,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "pilum_lrm_fire" }
+      "audio": { "fireSound": "pilum_lrm_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.mech-shoulder-laser",

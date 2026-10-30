@@ -255,7 +255,7 @@
           { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
         ]
       },
-      "audio": { "fireSound": "annihilator_fire" }
+      "audio": { "fireSound": "annihilator_fire", "impactSound": "marines_explosion" }
     },
     {
       "id": "weapon.hover-pulse",

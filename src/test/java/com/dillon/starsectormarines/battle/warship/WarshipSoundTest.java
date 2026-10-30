@@ -170,11 +170,11 @@ class WarshipSoundTest {
     }
 
     @Test
-    void aMissileWhoseProjectileNamesNoBlastLandsWithTheGenericMissileExplosion() {
+    void aMissileWhoseProjectileNamesNoBlastLandsWithTheRocketBlast() {
         InstalledVanillaData.install();
         VanillaWeapon pod = VanillaWeapons.get("annihilator");
         if (pod == null) return; // no install on this machine
         assertNull(pod.impactSoundId(), "the Annihilator's rocket names no explosion sound");
-        assertEquals(WarshipSystem.MISSILE_EXPLOSION_SOUND, WarshipSystem.impactSound(pod));
+        assertEquals(WarshipSystem.MISSILE_IMPACT_SOUND, WarshipSystem.impactSound(pod));
     }
 }

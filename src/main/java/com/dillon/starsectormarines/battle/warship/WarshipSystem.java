@@ -122,14 +122,18 @@ public final class WarshipSystem {
         return true;
     }
 
-    /** The game's generic missile blast, for a missile whose projectile names no explosion sound (the Annihilator's). */
-    static final String MISSILE_EXPLOSION_SOUND = "explosion_missile";
+    /**
+     * What a missile whose projectile names no explosion sound (the Annihilator's) lands with: the company's own rocket
+     * blast, the one every LRM and SRM on the ground declares, so a rocket sounds like a rocket whoever fired it. The
+     * game's {@code explosion_missile} is a missile shot down, not one that hit.
+     */
+    static final String MISSILE_IMPACT_SOUND = "marines_explosion";
 
-    /** The sound a weapon's round lands with: its own, else the generic missile blast for a missile, else none. */
+    /** The sound a weapon's round lands with: its own, else the rocket blast for a missile, else none. */
     static String impactSound(VanillaWeapon w) {
         String own = w.impactSoundId();
         if (own != null) return own;
-        return w.missile() ? MISSILE_EXPLOSION_SOUND : null;
+        return w.missile() ? MISSILE_IMPACT_SOUND : null;
     }
 
     private void cue(WarshipSoundCue.Kind kind, String soundId, float x, float y) {
