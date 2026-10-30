@@ -652,8 +652,8 @@ Guns, cannon and lasers fire rounds that point defence cannot engage at all.
 The launchers and their power cost the hull six hundredths of its speed and acceleration
 (`VehicleKit.speedFactor`). Only the armed gun tanks (the Onager, the laser tank) take it
 (`heavy-equipment-progression.md`, the AT LRM against a tank); a stock tank carries none. Its
-launcher boxes stand on the hull's rear flanks and a sensor panel on each cheek, drawn over the live
-hull whatever head the turret wears (`kit-active-protection.png`, `art-source/vehicles/kit-active-protection`).
+launcher boxes and sensor panels are drawn over the live laser tank's hull, and on the Onager over its
+turret housing, turning with whatever head it wears (`kit-active-protection.png`, `art-source/vehicles/kit-active-protection`).
 The mount lasts the battle, ends with the hull, and is mounted
 once: a spent magazine is not refilled. `-Dbattle.vehicle.activeProtection=false`
 is the control.
@@ -1252,6 +1252,19 @@ fire and a longer rear-engine fire; both cool into finite smoke and leave the
 permanent wreck. The tank-specific emitters expire by 90 seconds. These effects
 use the shared presentation drains and cause no secondary damage, cover,
 concealment or navigation changes.
+
+**The Onager's turret is modular** (`VehicleType.hasModularTurret`; owner, 2026-10-30: one tank,
+modular heads). Its gun is the part in its cannon card, and the part decides the head the turret
+wears: one approved angular housing with the family's gun in its mantlet, painted on the tank's
+sheet at the turret's registration (`VehicleType.headFrames`, `MechWeaponComponent.tankHead`). The
+heavy cannon wears the approved single-cannon turret; the Bastion, Muster, Demolition and Quarry
+the autocannon head; the chainguns and the light machine gun the rotary head; the linear cannon
+the rail head. Each head has its own live and wreck frame, so a head turns, scuffs and burns as
+the turret it is, and every shot leaves the one muzzle the heads share. With its card empty the
+Onager shows the bare army-green ring and has no gun; a spawn that names no part (a scene, a
+mission, `VehicleDeploymentSpec.standard`) fits the heavy cannon (`VehicleType.standardPart`).
+A part with no head of its own would stand on the gun plate on the ring; every part the card
+takes today has a head. Art: `art-source/vehicles/tank/heads/`.
 
 The tank's variants each draw from their own sheet with the same four
 registered slots. The dozer breacher is the breakthrough hull with a broad blade on

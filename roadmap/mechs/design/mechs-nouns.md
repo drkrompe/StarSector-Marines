@@ -276,7 +276,7 @@ increasing an encounter's total armored threat.
   scout) is one row and unlocked, an omni card that takes any one-row part: the light machine gun, light pulse laser
   and light rocket pod authored for it (and the light burst laser), the Thermal Lance and the SRM-4 (QS) rocket pod (`PIONEER_ROCKET_CRADLE`). A cannon card takes the heavy
   cannon, a laser tank's card takes energy weapons. Footprint is the only cap on a weapon's power.
-  The hull's own gun is no part: an empty gun card is that gun, drawn as the sealed cards draw it (a modular hull, the laser tank, has no own gun: its empty card is a bare turret ring, `vehicle-card-sizes.md`), so a weapon
+  The hull's own gun is no part: an empty gun card is that gun, drawn as the sealed cards draw it (a modular hull, the laser tank or the Onager, has no own gun: its empty card is a bare turret ring, `vehicle-card-sizes.md`), so a weapon
   is only ever an addition from stores. A machine-gun hull's own gun is the mech light machine gun itself
   (`VehicleType.ownGun`), set down as if fitted, so there is one machine gun in the game. A fitted weapon is the hull's turret with the weapon's ballistics in it
   (`VehicleGun`): the carriage (traverse, loader, hit shares) and the hull's flux reservoir stay the hull's, the weapon
@@ -288,7 +288,7 @@ increasing an encounter's total armored threat.
   or by a roof drawing of its own where it has one (`VehicleGunArt.vehicleDrawingPath`: the light machine gun on a pintle,
   `pintle-lmg.png`, art in `art-source/vehicles/pintle-lmg/`), cut with its barrel on the sprite's centre column so it
   turns on the ring's centre and its muzzle is where its shots leave, a side drum hanging off that axis,
-  on a fixed hull standing on an armoured gun plate that turns in the ring with it (`gun-plate.png`,
+  on a light-machine-gun hull (the APCs, the militia technical, the dozer) standing on an armoured gun plate that turns in the ring with it (`gun-plate.png`,
   `VehicleGun.plateCells`, art in `art-source/vehicles/gun-plate/`), so even the light machine gun reads as a turret,
   at the scale where a mech's hull width is 1.5 of the hull's visual width, so a wider hull carries a bigger gun;
   and the weapon owns its effects, which come from the same mech geometry the mech renderer reads

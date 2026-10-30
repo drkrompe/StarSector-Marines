@@ -505,6 +505,8 @@ class GroundVehicleTurretSystemTest {
                 turret.rotary = null;
                 turret.ammo = mount.mount.ammoCapacity;
                 turret.unlimited = false;
+                // A modular hull's empty card is a bare ring; the fixture arms its carriage instead.
+                turret.removed = false;
             }
             turret.facingDeg = 0f;
             fire = new TurretFireSystem(new Random() {
@@ -524,6 +526,7 @@ class GroundVehicleTurretSystemTest {
             roster.convoy().body(other).teleport(x, y, 180f);
             // Its own gun stays silent: these fixtures ask about the launcher, and the bare fixture has no scorer.
             roster.convoy().turret(other).ammo = 0;
+            roster.convoy().turret(other).unlimited = false;
             roster.convoy().turret(other).loaderSeconds = Float.POSITIVE_INFINITY;
             return other;
         }

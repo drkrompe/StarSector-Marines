@@ -1,0 +1,147 @@
+"""Pack the Onager's turret heads onto its sheet: mod/graphics/battle/vehicles/army-tank.png.
+
+Run after ../pack.ps1, which writes the sheet's first four 768x768 frames (live hull, live turret, wreck hull, wreck
+turret); the live and wreck turret are the heavy cannon's head. This keeps those four frames and appends, per head in
+HEADS order, a live and a wreck frame, all facing LEFT at the turret frame's registration (7.789194 cells):
+
+  frame 4, 5: autocannon live, wreck     frame 6, 7: rotary live, wreck     frame 8, 9: rail live, wreck
+
+Live frame: the head's ImageGen edit (<head>-raw.png, turret-only, in turret-master.png's coordinates) registered to
+the approved turret. ImageGen returns the housing a little scaled and shifted, so the scale and offset that best
+overlay the raw's housing alpha (everything aft of the cut, where the gun does not reach) on turret-target.png's are
+searched and recorded in registration.json, and the raw is resampled so its housing lands on the approved turret's.
+
+Wreck frame: the heavy cannon's wreck turret (frame 3) with its bent cannon cut away and the head's own gun laid in
+its place, charred and knocked a few degrees down, as the wreck master's cannon is. No generation: the housing's
+damage is the approved wreck's.
+
+Run from anywhere: python art-source/vehicles/tank/heads/pack.py   (python ... pack.py --measure re-searches)
+"""
+import json
+import sys
+from pathlib import Path
+
+import numpy as np
+from PIL import Image, ImageDraw
+
+HERE = Path(__file__).resolve().parent
+SHEET = HERE.parents[3] / "mod" / "graphics" / "battle" / "vehicles" / "army-tank.png"
+REGISTRATION = HERE / "registration.json"
+FRAME = 768
+HEADS = ["autocannon", "rotary", "rail"]
+BEARING = (1498, 454)       # the turret's bearing in turret-master.png
+MASTER_SCALE = 0.7          # turret-master.png px to frame px (../registration.json)
+CUT_X = 1362                # aft of this the housing; forward of it the gun (guide.py's CUT)
+GUN_BAND = (408, 502)       # the gun's band across the turret, master y
+ALPHA_FLOOR = 8
+WRECK_SHADE = 0.42
+WRECK_DROOP_DEG = -4.0
+
+
+def frame_x(master_x):
+    return FRAME / 2 + MASTER_SCALE * (master_x - BEARING[0])
+
+
+def frame_y(master_y):
+    return FRAME / 2 + MASTER_SCALE * (master_y - BEARING[1])
+
+
+def measure(raw):
+    """The scale and offset (about the bearing) that best lay the approved housing over the raw's."""
+    target = Image.open(HERE / "turret-target.png").convert("RGBA")
+    tgt = np.asarray(target.getchannel("A")) > 128
+    raw_mask = np.asarray(raw.getchannel("A")) > 128
+    # Sample points: the master's housing aft of the cut, with a margin, every 3 px.
+    x0, y0, x1, y1 = Image.fromarray(tgt.astype(np.uint8) * 255).getbbox()
+    ys, xs = np.mgrid[max(0, y0 - 30):min(tgt.shape[0], y1 + 30):3, CUT_X:min(tgt.shape[1], x1 + 30):3]
+    expected = tgt[ys, xs]
+
+    def iou(s, dx, dy):
+        # Master point -> raw pixel under this guess; the raw's housing alpha there, against the master's.
+        rx = np.rint(BEARING[0] + dx + s * (xs - BEARING[0])).astype(int)
+        ry = np.rint(BEARING[1] + dy + s * (ys - BEARING[1])).astype(int)
+        ok = (rx >= 0) & (rx < raw_mask.shape[1]) & (ry >= 0) & (ry < raw_mask.shape[0])
+        seen = np.zeros_like(expected)
+        seen[ok] = raw_mask[ry[ok], rx[ok]]
+        union = (seen | expected).sum()
+        return (seen & expected).sum() / union if union else 0.0
+
+    # Coarse, then fine about the coarse best.
+    best = max((iou(s, dx, dy), s, dx, dy) for s in np.arange(0.90, 1.201, 0.02)
+               for dx in range(-24, 25, 6) for dy in range(-24, 25, 6))
+    _, s0, dx0, dy0 = best
+    best = max((iou(s, dx, dy), s, dx, dy) for s in np.arange(s0 - 0.02, s0 + 0.0201, 0.0025)
+               for dx in range(dx0 - 6, dx0 + 7) for dy in range(dy0 - 6, dy0 + 7))
+    return {"scale": round(float(best[1]), 4), "offset": [int(best[2]), int(best[3])],
+            "housingIoU": round(float(best[0]), 4)}
+
+
+def register(img, scale, center):
+    half = FRAME / 2 / scale
+    pad = int(half) + 8
+    padded = Image.new("RGBA", (img.width + 2 * pad, img.height + 2 * pad), (0, 0, 0, 0))
+    padded.paste(img, (pad, pad))
+    cx, cy = center[0] + pad, center[1] + pad
+    box = (cx - half, cy - half, cx + half, cy + half)
+    return padded.convert("RGBa").resize((FRAME, FRAME), Image.LANCZOS, box=box).convert("RGBA")
+
+
+def live(raw, reg):
+    floor = raw.getchannel("A").point(lambda v: 0 if v <= ALPHA_FLOOR else v)
+    raw = raw.copy()
+    raw.putalpha(floor)
+    s = reg["scale"]
+    centre = (BEARING[0] + reg["offset"][0], BEARING[1] + reg["offset"][1])
+    return register(raw, MASTER_SCALE / s, centre)
+
+
+def gun_region_mask():
+    mask = Image.new("L", (FRAME, FRAME), 0)
+    ImageDraw.Draw(mask).rectangle((0, frame_y(GUN_BAND[0]), frame_x(CUT_X), frame_y(GUN_BAND[1])), fill=255)
+    return mask
+
+
+def wreck(stock_wreck, head_live):
+    """The approved wreck housing, its cannon cut away, with the head's own gun charred and drooped in its place."""
+    region = gun_region_mask()
+    out = stock_wreck.copy()
+    out.putalpha(Image.fromarray(np.minimum(np.asarray(out.getchannel("A")),
+                                            255 - np.asarray(region)).astype(np.uint8)))
+    gun = head_live.copy()
+    gun.putalpha(Image.fromarray(np.minimum(np.asarray(gun.getchannel("A")), np.asarray(region)).astype(np.uint8)))
+    rgb = np.asarray(gun.convert("RGB")).astype(np.float32)
+    grey = rgb.mean(axis=2, keepdims=True)
+    charred = (0.6 * rgb + 0.4 * grey) * WRECK_SHADE
+    burnt = Image.fromarray(np.clip(charred, 0, 255).astype(np.uint8), "RGB")
+    burnt.putalpha(gun.getchannel("A"))
+    pivot = (frame_x(CUT_X), FRAME / 2)
+    burnt = burnt.rotate(WRECK_DROOP_DEG, resample=Image.BICUBIC, center=pivot)
+    out.alpha_composite(burnt)
+    return out
+
+
+def main():
+    remeasure = "--measure" in sys.argv
+    regs = json.loads(REGISTRATION.read_text()) if REGISTRATION.exists() else {}
+    sheet = Image.open(SHEET).convert("RGBA")
+    if sheet.height != FRAME or sheet.width < 4 * FRAME:
+        raise SystemExit("run ../pack.ps1 first: the sheet needs its four base frames")
+    base = [sheet.crop((i * FRAME, 0, (i + 1) * FRAME, FRAME)) for i in range(4)]
+    frames = list(base)
+    for head in HEADS:
+        raw = Image.open(HERE / f"{head}-raw.png").convert("RGBA")
+        if head not in regs or remeasure:
+            regs[head] = measure(raw)
+            print(head, regs[head])
+        head_live = live(raw, regs[head])
+        frames += [head_live, wreck(base[3], head_live)]
+    REGISTRATION.write_text(json.dumps(regs, indent=2) + "\n")
+    out = Image.new("RGBA", (FRAME * len(frames), FRAME), (0, 0, 0, 0))
+    for i, f in enumerate(frames):
+        out.paste(f, (i * FRAME, 0))
+    out.save(SHEET)
+    print(f"wrote {SHEET}: {len(frames)} frames")
+
+
+if __name__ == "__main__":
+    main()

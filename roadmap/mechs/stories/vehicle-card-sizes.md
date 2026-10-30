@@ -63,7 +63,7 @@ the red head's frames on the laser tank's sheet, fired from the head's lens). Th
 
 **A turret is modular, and a turret is not an arm** (owner, 2026-10-29). There is no default turret head for a hull
 that takes parts: the laser tank's gun card is the only thing that gives it a turret. A modular hull (`VehicleType.hasModularTurret`,
-the laser tank so far; every other hull still carries the gun its sheet was drawn with) always shows an exposed
+the laser tank and the Onager; every other hull still carries the gun its sheet was drawn with) always shows an exposed
 machinery ring (`gun-mount.png`) with a collar that turns inside it (`turret-collar.png`), so the player sees the
 head driven. A hull with no part fitted has the ring bare and no gun (`GroundTurret.removed`, which reads as a shot-away
 gun); content that fields a laser tank by name gets `VehicleType.standardPart` (the heavy burst laser) instead.
@@ -79,7 +79,9 @@ saved one with an empty card loads the same way. Art:
 hulls (APCs, technicals, trucks, tanks, carriers) an olive-drab bolted ring (`gun-mount-green.png`), the silver hover hulls
 (hover scout, drone skimmer) a brushed-silver ring with cyan edge lights (`gun-mount-silver.png`), and the futuristic
 laser tank the white one (`gun-mount-white.png`), which alone has the turning collar and the laser bases. A hull that
-becomes a modular turret later brings its own collar and bases in its finish; the `tank-variants` suite's `mount-styles`
+becomes a modular turret later brings its own collar and bases in its finish, or heads of its own: the Onager, in army
+green, has no collar, and each ballistic family wears a head painted on its sheet (`convoy-nouns.md`, the Onager's
+turret is modular); the `tank-variants` suite's `mount-styles`
 frame shows one hull of each.
 
 Slice 2 shipped the laser tanks' guns as parts (since redrawn and extended to the ladder above): the burst laser (an energy arm gun of two columns by three rows, centreline only
@@ -108,8 +110,8 @@ own burst-laser and PD-laser turret heads stay as the 3x2 laser's look on a hull
 
 ## Not decided
 
-- Which other hulls become modular turrets (mortar carrier, breakthrough, screened): each needs its own ring and bare
-  state; today only the laser tank is, and other fitted parts stand on the machinery ring.
+- Which other hulls become modular turrets (the mortar carrier): each needs its own ring and bare state; today the
+  laser tank and the Onager are, and other fitted parts stand on the machinery ring.
 - Whether the white lasers should take faction colour on a trim line; they have one finish for every faction.
 - A campaign vehicle saved as a `PD_LASER_TANK` no longer loads: the constant is deleted, with no migration.
 - The footprints and stats of the light weapons, which belong to a balance pass against `armorMatchup` and

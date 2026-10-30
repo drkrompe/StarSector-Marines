@@ -54,8 +54,12 @@ public record VehicleDeploymentSpec(String campaignId, String callsign, VehicleT
     }
 
 
-    /** An unowned vehicle of {@code type}: debug grants and missions without a bay. */
+    /**
+     * An unowned vehicle of {@code type}: debug grants and missions without a bay, with the part a spawn that names none
+     * fits ({@link VehicleType#standardPart}), so a modular hull is not set down as a bare ring.
+     */
     public static VehicleDeploymentSpec standard(VehicleType type) {
-        return new VehicleDeploymentSpec(null, null, type);
+        return new VehicleDeploymentSpec(null, null, type, List.of(), VehiclePlating.FACTORY, VehicleEngine.STOCK,
+                type.standardPart());
     }
 }

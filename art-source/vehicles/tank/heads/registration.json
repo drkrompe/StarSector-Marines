@@ -1,0 +1,26 @@
+{
+  "autocannon": {
+    "scale": 1.0075,
+    "offset": [
+      1,
+      0
+    ],
+    "housingIoU": 0.9959
+  },
+  "rotary": {
+    "scale": 1.0075,
+    "offset": [
+      0,
+      0
+    ],
+    "housingIoU": 0.995
+  },
+  "rail": {
+    "scale": 1.0025,
+    "offset": [
+      0,
+      0
+    ],
+    "housingIoU": 0.9969
+  }
+}
