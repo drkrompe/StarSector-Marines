@@ -89,8 +89,6 @@ public record MechPattern(Kind kind, String definitionId) {
         KIT_TIERS.put(VehicleKit.SPALL_LINER, EquipmentAccessTier.COMMON);
         KIT_TIERS.put(VehicleKit.READY_RACK, EquipmentAccessTier.COMMON);
         KIT_TIERS.put(VehicleKit.SENSOR_PAIR, EquipmentAccessTier.ADVANCED);
-        // The upgrade on a hull's own systems, a faster feed, as the mech part it echoes.
-        KIT_TIERS.put(VehicleKit.ACCELERATED_LOADER, EquipmentAccessTier.ADVANCED);
         // The interceptor system the Parapet was built around: a Prestige pattern, as that hull was.
         KIT_TIERS.put(VehicleKit.ACTIVE_PROTECTION, EquipmentAccessTier.PRESTIGE);
     }
@@ -232,7 +230,11 @@ public record MechPattern(Kind kind, String definitionId) {
             return type != null && VEHICLE_TIERS.containsKey(type) ? of(type) : null;
         }
         if (rest.startsWith("kit:")) {
-            VehicleKit kit = VehicleKit.findById(rest.substring("kit:".length()));
+            String kitId = rest.substring("kit:".length());
+            // A kit that became an internal (one machine, one part catalog) reads as that internal's pattern.
+            MechInternal retired = MechInternal.RETIRED_KITS.get(kitId);
+            if (retired != null) return of(retired);
+            VehicleKit kit = VehicleKit.findById(kitId);
             return kit != null && KIT_TIERS.containsKey(kit) ? of(kit) : null;
         }
         if (rest.startsWith("internal:")) {

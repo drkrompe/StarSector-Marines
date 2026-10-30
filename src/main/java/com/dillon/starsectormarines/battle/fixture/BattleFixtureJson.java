@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.cordon.CordonPosture;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.command.HivePosture;
 import com.dillon.starsectormarines.battle.squad.HullWelfare;
-import com.dillon.starsectormarines.battle.vehicle.HullReservoir;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
@@ -17,6 +16,8 @@ import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
+import com.dillon.starsectormarines.marine.MechInternal;
+import com.dillon.starsectormarines.marine.VehicleRack;
 
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 
@@ -820,12 +821,9 @@ public final class BattleFixtureJson {
                     if (vehicle.plating() != VehiclePlating.FACTORY) frozen.put("plating", vehicle.plating().name());
                     if (vehicle.engine() != VehicleEngine.STOCK) frozen.put("engine", vehicle.engine().name());
                     if (vehicle.gun() != null) frozen.put("gun", vehicle.gun().id);
-                    if (vehicle.flux() != null) {
-                        JSONObject flux = new JSONObject();
-                        flux.put("capacity", vehicle.flux().capacity());
-                        flux.put("dissipationPerSecond", vehicle.flux().dissipationPerSecond());
-                        frozen.put("flux", flux);
-                    }
+                    JSONArray compartment = new JSONArray();
+                    for (MechInternal part : vehicle.compartment()) compartment.put(part.id);
+                    frozen.put("compartment", compartment);
                     vehicles.put(frozen);
                 }
                 encoded.put("vehicleDeployments", vehicles);
@@ -909,17 +907,35 @@ public final class BattleFixtureJson {
             JSONArray encodedVehicles = encoded.optJSONArray("vehicleDeployments");
             for (int j = 0; encodedVehicles != null && j < encodedVehicles.length(); j++) {
                 JSONObject frozen = encodedVehicles.getJSONObject(j);
+                VehicleType vehicleType = enumValue(VehicleType.class, frozen.getString("type"), "vehicle type");
                 List<VehicleKit> kits = new ArrayList<>();
+                List<MechInternal> retiredKits = new ArrayList<>();
                 JSONArray encodedKits = frozen.optJSONArray("kits");
                 for (int k = 0; encodedKits != null && k < encodedKits.length(); k++) {
-                    VehicleKit kit = VehicleKit.findById(encodedKits.getString(k));
-                    if (kit == null) throw new IllegalArgumentException("Unknown vehicle kit: " + encodedKits.getString(k));
-                    kits.add(kit);
+                    String kitId = encodedKits.getString(k);
+                    VehicleKit kit = VehicleKit.findById(kitId);
+                    MechInternal retired = MechInternal.RETIRED_KITS.get(kitId);
+                    if (kit != null) kits.add(kit);
+                    else if (retired != null) retiredKits.add(retired);
+                    else throw new IllegalArgumentException("Unknown vehicle kit: " + kitId);
+                }
+                List<MechInternal> compartment = new ArrayList<>();
+                JSONArray encodedCompartment = frozen.optJSONArray("compartment");
+                if (encodedCompartment != null) {
+                    for (int k = 0; k < encodedCompartment.length(); k++) {
+                        MechInternal part = MechInternal.findById(encodedCompartment.getString(k));
+                        if (part == null) {
+                            throw new IllegalArgumentException("Unknown internal: " + encodedCompartment.getString(k));
+                        }
+                        compartment.add(part);
+                    }
+                } else {
+                    compartment.addAll(legacyCompartment(vehicleType, frozen.optJSONObject("flux"), retiredKits));
                 }
                 vehicles.add(new VehicleDeploymentSpec(
                         frozen.isNull("campaignId") ? null : frozen.optString("campaignId", null),
                         frozen.isNull("callsign") ? null : frozen.optString("callsign", null),
-                        enumValue(VehicleType.class, frozen.getString("type"), "vehicle type"), kits,
+                        vehicleType, kits,
                         frozen.has("plating")
                                 ? enumValue(VehiclePlating.class, frozen.getString("plating"), "vehicle plating")
                                 : VehiclePlating.FACTORY,
@@ -927,9 +943,7 @@ public final class BattleFixtureJson {
                                 ? enumValue(VehicleEngine.class, frozen.getString("engine"), "vehicle engine")
                                 : VehicleEngine.STOCK,
                         frozen.has("gun") ? MechWeaponComponent.findById(frozen.getString("gun")) : null,
-                        frozen.has("flux") ? new HullReservoir.Frame(
-                                (float) frozen.getJSONObject("flux").getDouble("capacity"),
-                                (float) frozen.getJSONObject("flux").getDouble("dissipationPerSecond")) : null));
+                        compartment));
             }
             JSONObject carrier = encoded.optJSONObject("companyCarrier");
             powers.add(new CommandPowerCommitment(
@@ -1460,5 +1474,39 @@ public final class BattleFixtureJson {
         JSONArray keys = root.optJSONArray("objectives");
         if (keys != null) for (int i = 0; i < keys.length(); i++) out.add(keys.getString(i));
         return out;
+    }
+    /**
+     * A fixture frozen before vehicles carried their compartment named only its flux frame, and its hull had a sealed
+     * stock loader: the bank (and vent arrays) that frame reads as, then that loader, or the loader a retired kit became.
+     */
+    private static List<MechInternal> legacyCompartment(VehicleType type, JSONObject flux, List<MechInternal> retiredKits)
+            throws Exception {
+        if (flux == null && retiredKits.isEmpty()) return VehicleRack.stockFit(type);
+        List<MechInternal> parts = new ArrayList<>();
+        if (flux != null) {
+            float capacity = (float) flux.getDouble("capacity");
+            float dissipation = (float) flux.getDouble("dissipationPerSecond");
+            // The bank of that capacity with the most base dissipation the frame has room for; vent arrays make the rest.
+            MechInternal bank = MechInternal.FACTORY_CAPACITOR_BANK;
+            float best = -1f;
+            for (MechInternal candidate : MechInternal.values()) {
+                if (candidate.role != MechInternal.Role.CAPACITOR_BANK || candidate.fluxCapacity != capacity) continue;
+                if (candidate.dissipation <= dissipation + 1e-3f && candidate.dissipation > best) {
+                    bank = candidate;
+                    best = candidate.dissipation;
+                }
+            }
+            parts.add(bank);
+            int vents = Math.round((dissipation - bank.dissipation) / MechInternal.AUXILIARY_VENT_ARRAY.dissipation);
+            for (int i = 0; i < vents; i++) parts.add(MechInternal.AUXILIARY_VENT_ARRAY);
+        } else {
+            for (MechInternal part : VehicleRack.stockFit(type)) {
+                if (part.role != MechInternal.Role.LOADER) parts.add(part);
+            }
+        }
+        MechInternal loader = MechInternal.STANDARD_LOADER;
+        for (MechInternal part : retiredKits) if (part.role == MechInternal.Role.LOADER) loader = part;
+        if (!parts.isEmpty() || type.hasTurretWeapon()) parts.add(loader);
+        return parts;
     }
 }

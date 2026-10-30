@@ -44,8 +44,16 @@ public final class CampaignVehicle implements Serializable {
      * stripped gun card reads as. Null in a save from before gun fitting.
      */
     private String gunId;
-    /** The capacitor bank and vent arrays on the rack, as internal ids in fitted order. */
+    /** The internals in the auxiliary compartment (bank, vent arrays, loader), as ids in fitted order. */
     private List<String> rackInternalIds = new ArrayList<>();
+    /**
+     * Which fitting rules the saved compartment was written under: 0 in a save from before its loader was a part, when
+     * every armed hull had a sealed stock loader; {@link #FIT_VERSION} for a hull built since.
+     */
+    private int fitVersion;
+
+    /** The current fitting rules: the loader is a part in the compartment (empty means nothing). */
+    static final int FIT_VERSION = 1;
 
     public CampaignVehicle(String id, String displayName, VehicleType type) {
         if (id == null || id.isBlank()) throw new IllegalArgumentException("Vehicle id is required");
@@ -56,6 +64,7 @@ public final class CampaignVehicle implements Serializable {
         this.id = id;
         this.displayName = displayName;
         this.type = type;
+        this.fitVersion = FIT_VERSION;
         for (MechInternal part : VehicleRack.stockFit(type)) rackInternalIds.add(part.id);
     }
 
@@ -173,7 +182,7 @@ public final class CampaignVehicle implements Serializable {
         return VehicleRack.fits(type, proposed, rackInternals());
     }
 
-    /** The capacitor bank and vent arrays on the rack, in fitted order. */
+    /** The internals in the auxiliary compartment, in fitted order. */
     public List<MechInternal> rackInternals() {
         List<MechInternal> parts = new ArrayList<>();
         if (rackInternalIds != null) {
@@ -186,8 +195,8 @@ public final class CampaignVehicle implements Serializable {
     }
 
     /**
-     * Whether {@code part} would go on the rack: a bank or vent array with room for it. A bank where one is fitted
-     * goes in its place, as on a mech.
+     * Whether {@code part} would go on the rack: a bank, vent array or loader with room for it. A bank or loader where
+     * one is fitted goes in its place, as on a mech.
      */
     public boolean canFitRack(MechInternal part) {
         if (!VehicleRack.takes(type, part)) return false;
@@ -210,7 +219,7 @@ public final class CampaignVehicle implements Serializable {
 
     private List<MechInternal> withRackPart(MechInternal part) {
         List<MechInternal> parts = new ArrayList<>(rackInternals());
-        if (part.role == MechInternal.Role.CAPACITOR_BANK) parts.removeIf(p -> p.role == MechInternal.Role.CAPACITOR_BANK);
+        if (MechCompartment.limit(part.role) == 1) parts.removeIf(p -> p.role == part.role);
         parts.add(part);
         return parts;
     }
@@ -249,7 +258,7 @@ public final class CampaignVehicle implements Serializable {
     /** The frozen value Mech Support carries; the campaign object stays in the bay. */
     public VehicleDeploymentSpec freezeForDeployment() {
         return new VehicleDeploymentSpec(id, displayName, type, kits(), platingTier(), engineTier(), gun(),
-                VehicleRack.frame(rackInternals()));
+                rackInternals());
     }
 
     /**
@@ -265,7 +274,44 @@ public final class CampaignVehicle implements Serializable {
             if (skirts) platingId = MechInternal.HEAVY_PLATING.id;
             else if (applique) platingId = MechInternal.COMPOSITE_PLATING.id;
         }
+        retireKitsToInternals();
+        if (fitVersion < FIT_VERSION) fitTheSealedLoader();
         return this;
+    }
+
+    /** A kit that became an internal moves from the rack's kit list to its compartment, as that internal. */
+    private void retireKitsToInternals() {
+        for (String kitId : List.copyOf(kitIds)) {
+            MechInternal internal = MechInternal.RETIRED_KITS.get(kitId);
+            if (internal == null) continue;
+            kitIds.remove(kitId);
+            List<MechInternal> parts = rackInternals();
+            if (parts.stream().noneMatch(p -> p.role == internal.role && MechCompartment.limit(p.role) == 1)) {
+                rackInternalIds.add(internal.id);
+            }
+        }
+    }
+
+    /**
+     * A save from before the loader was a part: an armed hull had a sealed stock loader, so it now carries the standard
+     * loader in its compartment unless a retired accelerated-loader kit already put one there. Where that no longer packs,
+     * kits come off last-fitted first, then vent arrays, as spares in stores (the bay owns what it held), so nothing
+     * owned is lost and the hull keeps the loader it always had.
+     */
+    private void fitTheSealedLoader() {
+        fitVersion = FIT_VERSION;
+        if (!type.hasTurretWeapon()) return;
+        if (rackInternals().stream().anyMatch(p -> p.role == MechInternal.Role.LOADER)) return;
+        rackInternalIds.add(MechInternal.STANDARD_LOADER.id);
+        while (!VehicleRack.fits(type, kits(), rackInternals())) {
+            if (!kitIds.isEmpty()) {
+                kitIds.remove(kitIds.size() - 1);
+                continue;
+            }
+            int vent = rackInternalIds.lastIndexOf(MechInternal.AUXILIARY_VENT_ARRAY.id);
+            if (vent < 0) break;
+            rackInternalIds.remove(vent);
+        }
     }
 
     /** The retired armor kits' ids: migration input only ({@link #readResolve}, {@link MechBay}). */

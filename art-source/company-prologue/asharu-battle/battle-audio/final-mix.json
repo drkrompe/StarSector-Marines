@@ -1,0 +1,2462 @@
+{
+ "approved": "2026-10-30",
+ "source": "The Battle Cut page (claude.ai/artifact/3DjywdeC8PALEqCqrGvhWA, version 79) as the owner set it: \"How I have this configured right now is how I want the final to be.\"",
+ "cast": {
+  "CARAVEL": "lh03wW2cCRf05ksqPizq",
+  "SOBIESKI": "rhrTtcf6LsELC9peEFwi",
+  "THYSVILLE": "pFZP5JQG7iQjIQuC4Bku",
+  "BATORY": "cjVigY5qzO86Huf0OWal",
+  "WARDEN LEAD": "HuAfwy9ycsANuERZQHLU",
+  "WARDEN TWO": "EXAVITQu4vr4xnSDxMaL",
+  "WARDEN THREE": "UXrpoYalpW5MpGiFHq3z",
+  "WARDEN FOUR": "YHcCpa6SBWnKDaCPZJQR",
+  "WARDEN FIVE": "fGdXUaoUKa9laV1tzoOT",
+  "MORROW": "YHOEWmZLDoCD6QyvyJKr"
+ },
+ "mixer": {
+  "drive": 2.2,
+  "duck": -8,
+  "hi": 3100,
+  "lo": 330,
+  "music": 0,
+  "noise": -60,
+  "plates": 0,
+  "sfx": 0,
+  "squelch": -40,
+  "voice": 0
+ },
+ "lines": {
+  "d01": {
+   "dur": 6.118,
+   "mode": "move",
+   "note": "Your line, trimmed to read in time.",
+   "placeholder": false,
+   "shot": "S1",
+   "speaker": "CARAVEL",
+   "t0": 1.8,
+   "t1": 7.92,
+   "text": "All escorts, Caravel. Window opens in forty. Enjoy the view before deep space.",
+   "voice": "voice-takes/d01.mp3"
+  },
+  "d02": {
+   "dur": 2.802,
+   "mode": "move",
+   "note": "Keeps 'close up the column' landing on the S0 to S1a cut at 10 s.",
+   "off": true,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S1",
+   "speaker": "WARDEN LEAD",
+   "t0": 6.9,
+   "t1": 9.7,
+   "take": 2,
+   "text": "Lead copies. Wardens, close up the column.",
+   "voice": "voices/d02-t2.mp3"
+  },
+  "d03": {
+   "dur": 2.662,
+   "mode": "move",
+   "note": "The rest of your Lead line, moved after the cut.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S1a",
+   "speaker": "WARDEN LEAD",
+   "t0": 10,
+   "t1": 12.66,
+   "take": 2,
+   "text": "Nothing but void and the odd picket from here.",
+   "voice": "voice-takes/d03-t2.mp3"
+  },
+  "d04": {
+   "dur": 5.428,
+   "mode": "move",
+   "note": "Your line.",
+   "placeholder": true,
+   "retake": false,
+   "shot": "S1",
+   "speaker": "WARDEN TWO",
+   "t0": 16,
+   "t1": 21.43,
+   "take": 2,
+   "takeNote": "Trying \"humor here\". Players would be used to pickets sending pings out when their fleet passes by.",
+   "text": "Ha more picket \"ping\" to drive me crazy. Guess they keep us honest. ",
+   "voice": "voices/d04-t2.mp3"
+  },
+  "d05": {
+   "note": "Your line.",
+   "off": true,
+   "placeholder": true,
+   "shot": "S1",
+   "speaker": "ALBERTVILLE",
+   "t0": 20.2,
+   "t1": 21.6,
+   "text": "Albertville, aye."
+  },
+  "d06": {
+   "dur": 5.569,
+   "mode": "move",
+   "note": "Your line, given the rest of S2 to read.",
+   "placeholder": false,
+   "shot": "S2",
+   "speaker": "MORROW",
+   "t0": 24.6,
+   "t1": 30.17,
+   "text": "Caravel, Morrow. Standing off your starboard quarter. Long ride even to the jump point.",
+   "voice": "voice-takes/d06.mp3"
+  },
+  "d07": {
+   "dur": 4.253,
+   "mode": "move",
+   "note": "Cut to fit S4 once voiced: the full line ran 8 s in a 6 s shot.",
+   "off": false,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S4",
+   "speaker": "WARDEN FIVE",
+   "t0": 37.6,
+   "t1": 41.85,
+   "take": 4,
+   "takeNote": "Try \"worried\"",
+   "text": "Scanners picking up new contacts behind us. No identification.",
+   "voice": "voice-takes/d07-t4.mp3"
+  },
+  "d08": {
+   "dur": 1.143,
+   "mode": "move",
+   "note": "Take 5: \"Confirm last?\" (he heard Five; he doubts it). Alternative: take 4 voices/d08-t4.mp3 (0.84 s) \"Say again?\", confused. Older: take 3 (2.21 s, slow), take 2 (0.58 s, quick).",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S4",
+   "speaker": "WARDEN LEAD",
+   "t0": 42,
+   "t1": 43.14,
+   "take": 5,
+   "takeNote": "Needs to be heard slower, more confused.",
+   "text": "Confirm last?",
+   "voice": "voice-takes/d08-t5.mp3"
+  },
+  "d09": {
+   "dur": 4.09,
+   "mode": "move",
+   "note": "Cut off: Lead talks over her.",
+   "off": true,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S4",
+   "speaker": "WARDEN FIVE",
+   "t0": 44.36,
+   "t1": 48.45,
+   "take": 2,
+   "text": "Eleven. Climbing. I don't think they're scavengers —",
+   "voice": "voices/d09-t2.mp3"
+  },
+  "d10": {
+   "dur": 4.631,
+   "mode": "move",
+   "note": "Overlaps Five.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S5",
+   "speaker": "WARDEN LEAD",
+   "t0": 44.9,
+   "t1": 49.53,
+   "take": 2,
+   "text": "Wardens, come about! Caravel, full burn for the nearest picket, now!",
+   "voice": "voice-takes/d10-t2.mp3"
+  },
+  "d11": {
+   "dur": 1.718,
+   "mode": "move",
+   "note": "First Harpoon salvo launches at 46.6 s; the tail sees it.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S5",
+   "speaker": "WARDEN FIVE",
+   "t0": 48.38,
+   "t1": 50.1,
+   "take": 2,
+   "text": "Launch, launch!",
+   "voice": "voice-takes/d11-t2.mp3"
+  },
+  "d12": {
+   "dur": 3.572,
+   "mode": "move",
+   "note": "Your line, interrupted by the warning as you wrote.",
+   "off": true,
+   "placeholder": false,
+   "shot": "S5",
+   "speaker": "CARAVEL",
+   "t0": 47.8,
+   "t1": 51.37,
+   "text": "Spinning up to burn. Escorts, form up on the hau —",
+   "voice": "voices/d12.mp3"
+  },
+  "d13": {
+   "dur": 3.95,
+   "mode": "move",
+   "note": "Third salvo launches at 49.4 s: 3 salvos of 4.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S5",
+   "speaker": "WARDEN FIVE",
+   "t0": 50.15,
+   "t1": 54.1,
+   "take": 2,
+   "text": "Missiles inbound! Twelve! Point defence, now!",
+   "voice": "voice-takes/d13-t2.mp3"
+  },
+  "d14": {
+   "dur": 1.15,
+   "mode": "move",
+   "note": "Lasher A is hit at 53.2 s, 0.8 s before the Phaeton. Crippled, not lost.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S6",
+   "speaker": "WARDEN TWO",
+   "t0": 53.3,
+   "t1": 54.45,
+   "take": 2,
+   "takeNote": "We should just drop the \"I'm burning\" we can likely do this without needing to spend credits by simply cutting it shorter.",
+   "text": "Two's hit!",
+   "voice": "voice-takes/d14-t2.mp3"
+  },
+  "d15": {
+   "dur": 2.619,
+   "mode": "move",
+   "note": "Your line, moved onto her hit at 53.7 s; she cooks off from 54.0 s.",
+   "placeholder": false,
+   "shot": "S6",
+   "speaker": "BATORY",
+   "t0": 53.8,
+   "t1": 56.42,
+   "take": 2,
+   "text": "Batory, we're hit, we're venting, we're —",
+   "voice": "voice-takes/d15.mp3"
+  },
+  "d16": {
+   "dur": 2.881,
+   "mode": "move",
+   "note": "Your line, cut off by her own hit at 55.8 s.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S6",
+   "speaker": "WARDEN LEAD",
+   "t0": 56.99,
+   "t1": 59.87,
+   "take": 3,
+   "text": "Lead turning back. Wardens cover the retreat.",
+   "voice": "voice-takes/d16-t3.mp3"
+  },
+  "d17": {
+   "dur": 1.91,
+   "mode": "move",
+   "note": "She smokes from here to S9b.",
+   "off": true,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S6",
+   "speaker": "WARDEN LEAD",
+   "t0": 56.76,
+   "t1": 58.67,
+   "take": 2,
+   "text": "Lead's hit. Still flying.",
+   "voice": "voices/d17-t2.mp3"
+  },
+  "d18": {
+   "dur": 3.775,
+   "mode": "move",
+   "note": "Your line.",
+   "off": true,
+   "placeholder": false,
+   "shot": "S6b",
+   "speaker": "WARDEN THREE",
+   "t0": 58,
+   "t1": 61.77,
+   "text": "Three, rolling in. Four, take her left.",
+   "voice": "voices/d18.mp3"
+  },
+  "d19": {
+   "dur": 1.79,
+   "mode": "move",
+   "note": "First rounds land at 61.6 s.",
+   "off": true,
+   "placeholder": false,
+   "shot": "S6b",
+   "speaker": "WARDEN FOUR",
+   "t0": 60.6,
+   "t1": 62.39,
+   "text": "No shield. Hit her!",
+   "voice": "voices/d19.mp3"
+  },
+  "d20": {
+   "dur": 1.05,
+   "mode": "move",
+   "note": "Moved before the kill: they stop firing at 62.0 s.",
+   "off": true,
+   "placeholder": false,
+   "shot": "S6b",
+   "speaker": "WARDEN THREE",
+   "t0": 61.92,
+   "t1": 62.97,
+   "text": "Feeders on!",
+   "voice": "voices/d20.mp3"
+  },
+  "d21": {
+   "dur": 2.056,
+   "mode": "move",
+   "note": "The Hound breaks up at 62.83 s.",
+   "off": true,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S6b",
+   "speaker": "WARDEN THREE",
+   "t0": 63.12,
+   "t1": 65.18,
+   "take": 2,
+   "takeNote": "more excitement - comes off neutral - I added exclamation which might fix it.",
+   "text": "She's breaking up! One down!",
+   "voice": "voices/d21-t2.mp3"
+  },
+  "d22": {
+   "dur": 2.758,
+   "mode": "move",
+   "note": "Only one Wolf runs the gap; the other holds the far side.",
+   "placeholder": false,
+   "shot": "S6c",
+   "speaker": "THYSVILLE",
+   "t0": 66.4,
+   "t1": 69.16,
+   "take": 3,
+   "text": "Wolf coming in! Another on the far side!",
+   "voice": "voice-takes/d22.mp3"
+  },
+  "d23": {
+   "dur": 4.987,
+   "mode": "move",
+   "note": "Your line; the blink is at 69.0 s. Four is chasing her.",
+   "placeholder": false,
+   "shot": "S6c",
+   "speaker": "WARDEN FOUR",
+   "t0": 69.1,
+   "t1": 74.09,
+   "take": 3,
+   "text": "Shields up, she blinked — where — there, she's right on them!",
+   "voice": "voice-takes/d23.mp3"
+  },
+  "d24": {
+   "dur": 6.29,
+   "mode": "move",
+   "note": "Her drive breach burns at 69.96 s and thrust dies at 72.3 s, so 'drives are gone' belongs here, not S7.",
+   "placeholder": false,
+   "shot": "S6c",
+   "speaker": "SOBIESKI",
+   "t0": 69.8,
+   "t1": 76.09,
+   "text": "Taking fire aft! Flux at ninety, can't hold shield and guns — drives! We've lost drives!",
+   "voice": "voice-takes/d24.mp3"
+  },
+  "d25": {
+   "dur": 2.566,
+   "mode": "move",
+   "note": "Your 'in the column', on her crossing at 72.5 s.",
+   "placeholder": false,
+   "shot": "S6c",
+   "speaker": "THYSVILLE",
+   "t0": 72.6,
+   "t1": 75.17,
+   "text": "She's through the gap! She's in the column!",
+   "voice": "voice-takes/d25.mp3"
+  },
+  "d26": {
+   "dur": 0.816,
+   "mode": "move",
+   "note": "Your line, split around the kill.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S6d",
+   "speaker": "WARDEN FIVE",
+   "t0": 74.3,
+   "t1": 75.12,
+   "take": 2,
+   "text": "Two on me —",
+   "voice": "voice-takes/d26-t2.mp3"
+  },
+  "d27": {
+   "dur": 1.929,
+   "mode": "move",
+   "note": "Hound (P) A cooks off at 76.83 s; Five is hit at 76.9 s. New voice. Take 8: your text, more panic. Take 7 voices/d27-t7.mp3 (2.42 s) is the new voice reading \"One down... Two passed through!\".",
+   "off": false,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S6d",
+   "speaker": "WARDEN FIVE",
+   "t0": 76.9,
+   "t1": 78.83,
+   "take": 8,
+   "takeNote": "More panic in voice",
+   "text": "One down, they're coming through!",
+   "voice": "voice-takes/d27-t8.mp3"
+  },
+  "d28": {
+   "dur": 2.875,
+   "mode": "move",
+   "note": "Drives hit at 77.25 s. 'Flares out' dropped: none drawn here.",
+   "off": true,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S6d",
+   "speaker": "WARDEN FIVE",
+   "t0": 78.51,
+   "t1": 81.39,
+   "take": 2,
+   "text": "Drives hit! Falling back on the column.",
+   "voice": "voices/d28-t2.mp3"
+  },
+  "d29": {
+   "dur": 1.703,
+   "mode": "move",
+   "note": "Only Five sees the shuttles go by, 6 s before they brake onto the Tarsus.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S7",
+   "speaker": "WARDEN FIVE",
+   "t0": 81.21,
+   "t1": 82.91,
+   "take": 3,
+   "text": "They're heading for the Sobieski!",
+   "voice": "voice-takes/d29-t3.mp3"
+  },
+  "d30": {
+   "dur": 2.274,
+   "fadeOut": 0.2,
+   "mode": "move",
+   "note": "The Mk.III dives on the Colossus from 80 s; Caravel can see her.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S7",
+   "speaker": "CARAVEL",
+   "t0": 82,
+   "t1": 84.27,
+   "take": 3,
+   "text": "Mark three is hammering us!",
+   "voice": "voice-takes/d30-t3.mp3"
+  },
+  "d31": {
+   "dur": 2.33,
+   "mode": "move",
+   "note": "Your line as the Tarsus's. Boats drop from 84.8 s; the first sets down at 88.0 s.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S7",
+   "speaker": "SOBIESKI",
+   "t0": 84.9,
+   "t1": 87.23,
+   "take": 2,
+   "text": "Marines prepare to repel boarders!",
+   "voice": "voice-takes/d31-t2.mp3"
+  },
+  "d32": {
+   "dur": 4.202,
+   "mode": "move",
+   "note": "The pod isn't gone until 95.5 s, and Morrow is already under her from 80 s.",
+   "placeholder": false,
+   "shot": "S8",
+   "speaker": "CARAVEL",
+   "t0": 88.4,
+   "t1": 92.6,
+   "text": "Taking fire on the port pod! Morrow, keep pressure with the drones!",
+   "voice": "voice-takes/d32.mp3"
+  },
+  "d33": {
+   "dur": 2.738,
+   "mode": "move",
+   "note": "Your line.",
+   "off": true,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S9",
+   "speaker": "MORROW",
+   "t0": 91.6,
+   "t1": 94.34,
+   "take": 2,
+   "text": "Borers are out — we're raking her sides.",
+   "voice": "voices/d33-t2.mp3"
+  },
+  "d34": {
+   "dur": 2.676,
+   "mode": "move",
+   "note": "The Mk.III's guns walk onto the port pod; it blows at 95.5 s (no Harpoons here now). Take 2 is voices/d34-t2.mp3.",
+   "placeholder": false,
+   "shot": "S9",
+   "speaker": "CARAVEL",
+   "t0": 93.4,
+   "t1": 96.08,
+   "take": 1,
+   "text": "Hits on the port pod! Drive's failing —",
+   "voice": "voice-takes/d34-t1.mp3"
+  },
+  "d35": {
+   "dur": 2.743,
+   "mode": "move",
+   "note": "Your 'port pod's gone', moved onto the blast at 95.5 s.",
+   "placeholder": false,
+   "shot": "S9",
+   "speaker": "CARAVEL",
+   "t0": 96.47,
+   "t1": 99.21,
+   "text": "Pod's gone! Turrets on that freighter!",
+   "voice": "voice-takes/d35.mp3"
+  },
+  "d36": {
+   "dur": 2.41,
+   "mode": "move",
+   "note": "A Borer rakes the Manticore; she vents at 96.5 s and runs.",
+   "placeholder": false,
+   "shot": "S9",
+   "speaker": "MORROW",
+   "t0": 96.6,
+   "t1": 99.01,
+   "text": "Destroyer's venting — she's breaking off!",
+   "voice": "voice-takes/d36.mp3"
+  },
+  "d37": {
+   "dur": 3.202,
+   "mode": "move",
+   "note": "The Mk.III holds with grapples out; turrets score her at 99.5 s.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S9",
+   "speaker": "CARAVEL",
+   "t0": 99.36,
+   "t1": 102.56,
+   "take": 2,
+   "takeNote": "panic",
+   "text": "We're losing hull here - Where's the warden escort!",
+   "voice": "voice-takes/d37-t2.mp3"
+  },
+  "d38": {
+   "dur": 2.933,
+   "mode": "move",
+   "note": "Your line.",
+   "off": true,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S9b",
+   "speaker": "WARDEN LEAD",
+   "t0": 101.4,
+   "t1": 104.33,
+   "take": 2,
+   "text": "Lead. One more pass. On their flagship.",
+   "voice": "voices/d38-t2.mp3"
+  },
+  "d39": {
+   "dur": 3.861,
+   "mode": "cut",
+   "note": "Your line, on the overload at 104.6 s, cut off when she breaks up at 107.6 s.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S9b",
+   "speaker": "WARDEN LEAD",
+   "t0": 104.91,
+   "t1": 107.6,
+   "take": 2,
+   "text": "Her shield's down! Keep on her, make them back off — I'm —",
+   "voice": "voice-takes/d39-t2.mp3"
+  },
+  "d40": {
+   "dur": 2.539,
+   "mode": "move",
+   "note": "Nobody else sees that fight; they only hear her drop off the channel.",
+   "off": true,
+   "placeholder": false,
+   "shot": "S9b",
+   "speaker": "WARDEN THREE",
+   "t0": 108,
+   "t1": 110.54,
+   "text": "Lead? ... Lead, respond.",
+   "voice": "voices/d40.mp3"
+  },
+  "d41": {
+   "dur": 3.289,
+   "mode": "move",
+   "note": "The Tarsus's last call: she is clamped from 110 s.",
+   "off": true,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S10",
+   "speaker": "SOBIESKI",
+   "t0": 110.4,
+   "t1": 113.69,
+   "take": 2,
+   "text": "Bordering parties nearing the bridge. Vent the passages -",
+   "voice": "voices/d41-t2.mp3"
+  },
+  "d42": {
+   "dur": 4.873,
+   "mode": "move",
+   "note": "Your line; 'falling into orbit' is now 'going down' (she's losing her orbit).",
+   "placeholder": false,
+   "shot": "S10",
+   "speaker": "CARAVEL",
+   "t0": 112.4,
+   "t1": 117.27,
+   "text": "We're losing thrust, we're in the well, we're going down. Morrow, break off.",
+   "voice": "voice-takes/d42.mp3"
+  },
+  "d43": {
+   "dur": 1.646,
+   "mode": "move",
+   "note": "Your line.",
+   "off": true,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S10",
+   "speaker": "MORROW",
+   "t0": 116.4,
+   "t1": 118.05,
+   "take": 2,
+   "takeNote": "More stress",
+   "text": "Staying with you.",
+   "voice": "voices/d43-t2.mp3"
+  },
+  "d44": {
+   "dur": 6.602,
+   "mode": "move",
+   "note": "Your placeholder, run to her channel dropping at 124.9 s.",
+   "placeholder": true,
+   "retake": false,
+   "shot": "S11",
+   "speaker": "CARAVEL",
+   "t0": 118.2,
+   "t1": 124.8,
+   "take": 2,
+   "takeNote": "More stress - also I need help with this line. I'm trying to indicate that the Caravel captain is trying to maintain a pitch that doesn't burn up the hull (belly) but also doesn't go face on gaining too much speed.",
+   "text": "Hull temperature's climbing — helm, hold forty degrees angle of attack, belly to the burn! Don't let her nose —",
+   "voice": "voices/d44-t2.mp3"
+  },
+  "d45": {
+   "dur": 2.54,
+   "mode": "move",
+   "note": "Your placeholder, run to her channel dropping at 125.3 s.",
+   "placeholder": true,
+   "shot": "S11",
+   "speaker": "MORROW",
+   "t0": 125,
+   "t1": 127.54,
+   "take": 2,
+   "text": "Come again Caravel losing your signal in the —",
+   "voice": "voices/d45-t2.mp3"
+  },
+  "d46": {
+   "dur": 7.111,
+   "mode": "move",
+   "note": "Your line. The log ends at 149.6 s, so S13 is tight.",
+   "placeholder": false,
+   "retake": false,
+   "shot": "S12",
+   "speaker": "THYSVILLE",
+   "t0": 130,
+   "t1": 137.11,
+   "take": 3,
+   "text": "All ships this is Thysville. Regroup on me, we need to tighten formation. Helm what's the pirates heading?",
+   "voice": "voice-takes/d46-t3.mp3"
+  },
+  "d47": {
+   "dur": 6.14,
+   "fadeOut": 1.5,
+   "mode": "move",
+   "note": "Carries over the cut into S13 and fades out (owner, 2026-10-30): starts as Thysville's S12 line ends, cut off 1.6 s into S13. Was 139-145.14.",
+   "off": false,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S13",
+   "speaker": "WARDEN THREE",
+   "t0": 137.4,
+   "t1": 139.6,
+   "take": 2,
+   "text": "This is Three. We're scattered, ships going down. Do we go back for Caravel? Morrow?",
+   "voice": "voice-takes/d47-t2.mp3"
+  },
+  "d48": {
+   "dur": 2.515,
+   "mode": "move",
+   "note": "Fills your <insert relevant ship>: the Tarsus is their prize.",
+   "off": true,
+   "placeholder": false,
+   "shot": "S12",
+   "speaker": "WARDEN FOUR",
+   "t0": 135,
+   "t1": 137.51,
+   "take": 2,
+   "text": "Raiders are all over the Sobieski.",
+   "voice": "voices/d48.mp3"
+  },
+  "d49": {
+   "dur": 5.596,
+   "mode": "move",
+   "note": "Off (owner, 2026-10-30): the fleet's radio fades out as S13 opens, cutting their conversation off. Turn it back on to hear it.",
+   "off": true,
+   "placeholder": false,
+   "retake": false,
+   "shot": "S13",
+   "speaker": "THYSVILLE",
+   "t0": 146,
+   "t1": 151.6,
+   "take": 2,
+   "text": "Negative, we don't have the numbers. We form up and continue burn for the nearest picket.",
+   "voice": "voices/d49-t2.mp3"
+  }
+ },
+ "cues": {
+  "engines-s1": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S1",
+   "t0": 16,
+   "t1": 0,
+   "take": "sfx/engines-s1-t01.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/engines-s1-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s10": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S10",
+   "t0": 110,
+   "t1": 0,
+   "take": "sfx/engines-s10-t01.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/engines-s10-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s11": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S11",
+   "t0": 118,
+   "t1": 0,
+   "take": "sfx/engines-s11-t01.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/engines-s11-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s1a": {
+   "bus": "full",
+   "dur": 6,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 6,
+   "shot": "S1a",
+   "t0": 10,
+   "t1": 0,
+   "take": "sfx/engines-s1a-t01.mp3",
+   "takes": [
+    {
+     "dur": 6,
+     "file": "sfx/engines-s1a-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s2": {
+   "bus": "full",
+   "dur": 6,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 6,
+   "shot": "S2",
+   "t0": 24,
+   "t1": 0,
+   "take": "sfx/engines-s2-t01.mp3",
+   "takes": [
+    {
+     "dur": 6,
+     "file": "sfx/engines-s2-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s3": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S3",
+   "t0": 30,
+   "t1": 0,
+   "take": "sfx/engines-s3-t01.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/engines-s3-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s4": {
+   "bus": "full",
+   "dur": 6,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 6,
+   "shot": "S4",
+   "t0": 38,
+   "t1": 0,
+   "take": "sfx/engines-s4-t01.mp3",
+   "takes": [
+    {
+     "dur": 6,
+     "file": "sfx/engines-s4-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s5": {
+   "bus": "full",
+   "dur": 6,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 6,
+   "shot": "S5",
+   "t0": 44,
+   "t1": 0,
+   "take": "sfx/engines-s5-t01.mp3",
+   "takes": [
+    {
+     "dur": 6,
+     "file": "sfx/engines-s5-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s6": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S6",
+   "t0": 50,
+   "t1": 0,
+   "take": "sfx/engines-s6-t01.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/engines-s6-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s6b": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S6b",
+   "t0": 58,
+   "t1": 0,
+   "take": "sfx/engines-s6b-t01.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/engines-s6b-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s6c": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S6c",
+   "t0": 66,
+   "t1": 0,
+   "take": "sfx/engines-s6c-t01.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/engines-s6c-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s6d": {
+   "bus": "full",
+   "dur": 6,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 6,
+   "shot": "S6d",
+   "t0": 74,
+   "t1": 0,
+   "take": "sfx/engines-s6d-t01.mp3",
+   "takes": [
+    {
+     "dur": 6,
+     "file": "sfx/engines-s6d-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s7": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S7",
+   "t0": 80,
+   "t1": 0,
+   "take": "sfx/engines-s7-t01.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/engines-s7-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s8-s9": {
+   "bus": "full",
+   "dur": 14,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 14,
+   "shot": "S8-S9",
+   "t0": 88,
+   "t1": 0,
+   "take": "sfx/engines-s8-s9-t01.mp3",
+   "takes": [
+    {
+     "dur": 14,
+     "file": "sfx/engines-s8-s9-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "engines-s9b": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Engines: every ship's drive, placed by the camera",
+   "level": 0,
+   "note": "Generated from the blockout's ship paths, not ElevenLabs.",
+   "pan": 0,
+   "prompt": "Each ship's rocket drive heard from this shot's camera: panned by her bearing, louder as she nears, sized by hull (engines.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S9b",
+   "t0": 102,
+   "t1": 0,
+   "take": "sfx/engines-s9b-t01.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/engines-s9b-t01.mp3",
+     "label": "positional synth"
+    }
+   ]
+  },
+  "guns-s6b": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Guns: every round each turret fires, placed by the camera",
+   "level": -3,
+   "note": "Round times from the finished kit (asharu-rounds jobs). Levels as the camera places them; a soft limiter holds the dense duels.",
+   "pan": 0,
+   "prompt": "Each round on the frame it leaves the muzzle, its weapon's sound, panned by its ship's bearing and duller with distance (guns.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S6b",
+   "t0": 58,
+   "t1": 0,
+   "take": "sfx/guns-s6b-t06.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/guns-s6b-t06.mp3",
+     "label": "with gun_hit_solid strikes on the hull"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/guns-s6b-t05.mp3",
+     "label": "machine guns on the light mass driver"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/guns-s6b-t03.mp3",
+     "label": "the game's fire sounds"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/guns-s6b-t04.mp3",
+     "label": "ElevenLabs takes"
+    }
+   ]
+  },
+  "guns-s6c": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Guns: every round each turret fires, placed by the camera",
+   "level": -3,
+   "note": "Round times from the finished kit (asharu-rounds jobs). Levels as the camera places them; a soft limiter holds the dense duels.",
+   "pan": 0,
+   "prompt": "Each round on the frame it leaves the muzzle, its weapon's sound, panned by its ship's bearing and duller with distance (guns.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S6c",
+   "t0": 66,
+   "t1": 0,
+   "take": "sfx/guns-s6c-t06.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/guns-s6c-t06.mp3",
+     "label": "with gun_hit_solid strikes on the hull"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/guns-s6c-t05.mp3",
+     "label": "machine guns on the light mass driver"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/guns-s6c-t03.mp3",
+     "label": "the game's fire sounds"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/guns-s6c-t04.mp3",
+     "label": "ElevenLabs takes"
+    }
+   ]
+  },
+  "guns-s6d": {
+   "bus": "full",
+   "dur": 6,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Guns: every round each turret fires, placed by the camera",
+   "level": -3,
+   "note": "Round times from the finished kit (asharu-rounds jobs). Levels as the camera places them; a soft limiter holds the dense duels.",
+   "pan": 0,
+   "prompt": "Each round on the frame it leaves the muzzle, its weapon's sound, panned by its ship's bearing and duller with distance (guns.py)",
+   "request": false,
+   "seconds": 6,
+   "shot": "S6d",
+   "t0": 74,
+   "t1": 0,
+   "take": "sfx/guns-s6d-t06.mp3",
+   "takes": [
+    {
+     "dur": 6,
+     "file": "sfx/guns-s6d-t06.mp3",
+     "label": "with gun_hit_solid strikes on the hull"
+    },
+    {
+     "dur": 6,
+     "file": "sfx/guns-s6d-t05.mp3",
+     "label": "machine guns on the light mass driver"
+    },
+    {
+     "dur": 6,
+     "file": "sfx/guns-s6d-t03.mp3",
+     "label": "the game's fire sounds"
+    },
+    {
+     "dur": 6,
+     "file": "sfx/guns-s6d-t04.mp3",
+     "label": "ElevenLabs takes"
+    }
+   ]
+  },
+  "guns-s7": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Guns: every round each turret fires, placed by the camera",
+   "level": -3,
+   "note": "Round times from the finished kit (asharu-rounds jobs). Levels as the camera places them; a soft limiter holds the dense duels.",
+   "pan": 0,
+   "prompt": "Each round on the frame it leaves the muzzle, its weapon's sound, panned by its ship's bearing and duller with distance (guns.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S7",
+   "t0": 80,
+   "t1": 0,
+   "take": "sfx/guns-s7-t06.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/guns-s7-t06.mp3",
+     "label": "with gun_hit_solid strikes on the hull"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/guns-s7-t05.mp3",
+     "label": "machine guns on the light mass driver"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/guns-s7-t03.mp3",
+     "label": "the game's fire sounds"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/guns-s7-t04.mp3",
+     "label": "ElevenLabs takes"
+    }
+   ]
+  },
+  "guns-s8-s9": {
+   "bus": "full",
+   "dur": 14,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Guns: every round each turret fires, placed by the camera",
+   "level": -3,
+   "note": "Round times from the finished kit (asharu-rounds jobs). Levels as the camera places them; a soft limiter holds the dense duels.",
+   "pan": 0,
+   "prompt": "Each round on the frame it leaves the muzzle, its weapon's sound, panned by its ship's bearing and duller with distance (guns.py)",
+   "request": false,
+   "seconds": 14,
+   "shot": "S8-S9",
+   "t0": 88,
+   "t1": 0,
+   "take": "sfx/guns-s8-s9-t06.mp3",
+   "takes": [
+    {
+     "dur": 14,
+     "file": "sfx/guns-s8-s9-t06.mp3",
+     "label": "with gun_hit_solid strikes on the hull"
+    },
+    {
+     "dur": 14,
+     "file": "sfx/guns-s8-s9-t05.mp3",
+     "label": "machine guns on the light mass driver"
+    },
+    {
+     "dur": 14,
+     "file": "sfx/guns-s8-s9-t03.mp3",
+     "label": "the game's fire sounds"
+    },
+    {
+     "dur": 14,
+     "file": "sfx/guns-s8-s9-t04.mp3",
+     "label": "ElevenLabs takes"
+    }
+   ]
+  },
+  "guns-s9b": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Guns: every round each turret fires, placed by the camera",
+   "level": -3,
+   "note": "Round times from the finished kit (asharu-rounds jobs). Levels as the camera places them; a soft limiter holds the dense duels.",
+   "pan": 0,
+   "prompt": "Each round on the frame it leaves the muzzle, its weapon's sound, panned by its ship's bearing and duller with distance (guns.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S9b",
+   "t0": 102,
+   "t1": 0,
+   "take": "sfx/guns-s9b-t06.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/guns-s9b-t06.mp3",
+     "label": "with gun_hit_solid strikes on the hull"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/guns-s9b-t05.mp3",
+     "label": "machine guns on the light mass driver"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/guns-s9b-t03.mp3",
+     "label": "the game's fire sounds"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/guns-s9b-t04.mp3",
+     "label": "ElevenLabs takes"
+    }
+   ]
+  },
+  "harpoons-s5": {
+   "bus": "full",
+   "dur": 6,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Harpoons: every missile's launch and motor, placed by the camera",
+   "level": -3,
+   "note": "Eight Harpoons, launched 46.67-48.33 s and lit 0.35 s later, from the S5 final's log. Replaces the one salvo take.",
+   "pan": 0,
+   "prompt": "Each Harpoon leaving the Manticore's tubes (one launch take each), then its own motor burning to its hit, panned by its bearing and louder as it nears (missiles.py)",
+   "request": false,
+   "seconds": 6,
+   "shot": "S5",
+   "t0": 44,
+   "t1": 0,
+   "take": "sfx/harpoons-s5-t03.mp3",
+   "takes": [
+    {
+     "dur": 6,
+     "file": "sfx/harpoons-s5-t03.mp3",
+     "label": "asteroid-collision strikes under the blasts"
+    },
+    {
+     "dur": 6,
+     "file": "sfx/harpoons-s5-t02.mp3",
+     "label": "with the game's hits on her hull"
+    },
+    {
+     "dur": 6,
+     "file": "sfx/harpoons-s5-t01.mp3",
+     "label": "launches and motors only"
+    }
+   ]
+  },
+  "harpoons-s6": {
+   "bus": "full",
+   "dur": 8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Harpoons: every missile's motor, placed by the camera",
+   "level": -3,
+   "note": "S5's eight arriving (52.9-54.0 s) and the lead Lasher's four (55.7-56.0 s), from the S6 final's log.",
+   "pan": 0,
+   "prompt": "Each Harpoon's own motor burning in until its hit, panned by its bearing and louder as it nears (missiles.py)",
+   "request": false,
+   "seconds": 8,
+   "shot": "S6",
+   "t0": 50,
+   "t1": 0,
+   "take": "sfx/harpoons-s6-t03.mp3",
+   "takes": [
+    {
+     "dur": 8,
+     "file": "sfx/harpoons-s6-t03.mp3",
+     "label": "asteroid-collision strikes under the blasts"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/harpoons-s6-t02.mp3",
+     "label": "with the game's hits on her hull"
+    },
+    {
+     "dur": 8,
+     "file": "sfx/harpoons-s6-t01.mp3",
+     "label": "launches and motors only"
+    }
+   ]
+  },
+  "s1-convoy-drives": {
+   "bus": "full",
+   "dur": 12,
+   "fadeIn": 1.5,
+   "fadeOut": 2,
+   "kind": "bed",
+   "label": "The convoy's drives, far off",
+   "level": -20,
+   "note": "S1 to S2: the column cruising before the ambush.",
+   "prompt": "A slow convoy of huge freighters heard from far away in space: a deep steady low rumble of big drives burning rocket fuel: bass and crackling combustion like a shuttle launch, never compressed air, hum or chimes, constant and distant, no music, no voices",
+   "request": false,
+   "seconds": 12,
+   "t0": 10,
+   "t1": 30,
+   "take": "sfx/s1-convoy-drives-t01.mp3",
+   "takes": [
+    {
+     "dur": 12,
+     "file": "sfx/s1-convoy-drives-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 12,
+     "file": "sfx/s1-convoy-drives-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s10-colossus-groans": {
+   "bus": "full",
+   "dur": 6,
+   "fadeIn": 0.8,
+   "fadeOut": 1,
+   "kind": "bed",
+   "label": "The Colossus's back starts to go",
+   "level": -10,
+   "note": "S10: losing her orbit, plating shed off the spine.",
+   "prompt": "A colossal starship's spine buckling and giving way: deep tortured metal groans, sharp shrieking stress fractures and plating tearing loose, slow and heavy, no music, no voices",
+   "request": false,
+   "seconds": 6,
+   "t0": 112.2,
+   "t1": 117.3,
+   "take": "sfx/s10-colossus-groans-t03.mp3",
+   "takes": [
+    {
+     "dur": 6,
+     "file": "sfx/s10-colossus-groans-t03.mp3",
+     "label": "take 3 (new prompt)"
+    },
+    {
+     "dur": 6,
+     "file": "sfx/s10-colossus-groans-t04.mp3",
+     "label": "take 4 (new prompt)"
+    },
+    {
+     "dur": 6,
+     "file": "sfx/s10-colossus-groans-t05.mp3",
+     "label": "take 5 (new prompt)"
+    },
+    {
+     "dur": 6,
+     "file": "sfx/s10-colossus-groans-t06.mp3",
+     "label": "take 6 (new prompt)"
+    },
+    {
+     "dur": 6,
+     "file": "sfx/s10-colossus-groans-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 6,
+     "file": "sfx/s10-colossus-groans-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s11-entry-plasma": {
+   "bus": "full",
+   "dur": 7,
+   "fadeIn": 1.5,
+   "fadeOut": 0.1,
+   "kind": "bed",
+   "label": "Atmospheric entry",
+   "level": -6,
+   "note": "S11: up to the picture's break into static.",
+   "off": true,
+   "prompt": "A ship's violent atmospheric reentry heard from inside the hull: a deep roaring wall of plasma, the hull rattling and buffeting harder and harder, no music, no voices",
+   "request": false,
+   "seconds": 7,
+   "t0": 118.2,
+   "t1": 124.5,
+   "take": "sfx/s11-entry-plasma-t03.mp3",
+   "takes": [
+    {
+     "dur": 7,
+     "file": "sfx/s11-entry-plasma-t03.mp3",
+     "label": "take 3 (new prompt)"
+    },
+    {
+     "dur": 7,
+     "file": "sfx/s11-entry-plasma-t04.mp3",
+     "label": "take 4 (new prompt)"
+    },
+    {
+     "dur": 7,
+     "file": "sfx/s11-entry-plasma-t05.mp3",
+     "label": "take 5 (new prompt)"
+    },
+    {
+     "dur": 7,
+     "file": "sfx/s11-entry-plasma-t06.mp3",
+     "label": "take 6 (new prompt)"
+    },
+    {
+     "dur": 7,
+     "file": "sfx/s11-entry-plasma-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 7,
+     "file": "sfx/s11-entry-plasma-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s11-shuttle-reentry": {
+   "bus": "full",
+   "dur": 19.8,
+   "fadeIn": 1,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Shuttle reentry, S11 through S12",
+   "level": -6,
+   "note": "Owner's clip held to the S13 cut (reentry.py): as made through S11, then muffled by S12's lens, dullest as the camera pulls back from 135 s; stops at 138 s.",
+   "pan": 0,
+   "prompt": "A space shuttle's violent reentry",
+   "request": false,
+   "seconds": 19.8,
+   "shot": "S11",
+   "t0": 118.2,
+   "t1": 0,
+   "take": "sfx/s11-shuttle-reentry-t02.mp3",
+   "takes": [
+    {
+     "dur": 19.8,
+     "file": "sfx/s11-shuttle-reentry-t02.mp3",
+     "label": "held through S12, muffled by the lens"
+    },
+    {
+     "dur": 14.48,
+     "file": "sfx/s11-shuttle-reentry-t01.mp3",
+     "label": "owner's clip as made"
+    }
+   ]
+  },
+  "s11-signal-breaks": {
+   "bus": "radio",
+   "dur": 2,
+   "fadeIn": 0,
+   "fadeOut": 0.2,
+   "kind": "spot",
+   "label": "The channel breaks up",
+   "level": -8,
+   "note": "S11: the plasma takes the channel; Caravel and Morrow drop out.",
+   "prompt": "A radio signal breaking up: a harsh burst of loud static and digital crackle cutting out, no music, no voices",
+   "request": false,
+   "seconds": 2,
+   "t0": 124.4,
+   "t1": 0,
+   "take": "sfx/s11-signal-breaks-t01.mp3",
+   "takes": [
+    {
+     "dur": 2,
+     "file": "sfx/s11-signal-breaks-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 2,
+     "file": "sfx/s11-signal-breaks-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s1a-zoom-150": {
+   "bus": "full",
+   "dur": 0.8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Optic zoom: 60 to 150 mm",
+   "level": -11.5,
+   "note": "Owner's clip (UIMvmt-zoom_camera, ElevenLabs), on the second of S1a's three lens steps.",
+   "pan": 0,
+   "prompt": "The satellite optic's zoom motor as it steps in",
+   "request": false,
+   "seconds": 0.8,
+   "shot": "S1a",
+   "t0": 12.7,
+   "t1": 0,
+   "take": "sfx/s1a-camera-zoom-t01.mp3",
+   "takes": [
+    {
+     "dur": 0.8,
+     "file": "sfx/s1a-camera-zoom-t01.mp3",
+     "label": "owner's clip"
+    }
+   ]
+  },
+  "s1a-zoom-300": {
+   "bus": "full",
+   "dur": 0.8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Optic zoom: 150 to 300 mm",
+   "level": -10,
+   "note": "Owner's clip (UIMvmt-zoom_camera, ElevenLabs), on the last of S1a's three lens steps.",
+   "pan": 0,
+   "prompt": "The satellite optic's zoom motor as it steps in",
+   "request": false,
+   "seconds": 0.8,
+   "shot": "S1a",
+   "t0": 14.3,
+   "t1": 0,
+   "take": "sfx/s1a-camera-zoom-t01.mp3",
+   "takes": [
+    {
+     "dur": 0.8,
+     "file": "sfx/s1a-camera-zoom-t01.mp3",
+     "label": "owner's clip"
+    }
+   ]
+  },
+  "s1a-zoom-60": {
+   "bus": "full",
+   "dur": 0.8,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Optic zoom: 24 to 60 mm",
+   "level": -12,
+   "note": "Owner's clip (UIMvmt-zoom_camera, ElevenLabs), on the first of S1a's three lens steps.",
+   "pan": 0,
+   "prompt": "The satellite optic's zoom motor as it steps in",
+   "request": false,
+   "seconds": 0.8,
+   "shot": "S1a",
+   "t0": 11,
+   "t1": 0,
+   "take": "sfx/s1a-camera-zoom-t01.mp3",
+   "takes": [
+    {
+     "dur": 0.8,
+     "file": "sfx/s1a-camera-zoom-t01.mp3",
+     "label": "owner's clip"
+    }
+   ]
+  },
+  "s4-pirate-drives-light": {
+   "bus": "full",
+   "dur": 5,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Eleven drives light off the platform",
+   "level": -8,
+   "note": "S4: the pack lights and climbs at the column.",
+   "prompt": "Several rocket drives igniting one after another in the distance, each a deep thump and crackling roar building into a combined rumble, burning rocket fuel: bass and crackling combustion like a shuttle launch, never compressed air, hum or chimes, no music, no voices",
+   "request": false,
+   "seconds": 5,
+   "t0": 38.2,
+   "t1": 0,
+   "take": "sfx/s4-pirate-drives-light-t01.mp3",
+   "takes": [
+    {
+     "dur": 5,
+     "file": "sfx/s4-pirate-drives-light-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 5,
+     "file": "sfx/s4-pirate-drives-light-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s5-full-burn": {
+   "bus": "full",
+   "dur": 5,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "The Colossus throttles up to full burn",
+   "level": -6,
+   "note": "S5: Warden Lead's 'full burn for the nearest picket'.",
+   "prompt": "A gigantic freighter's main drives throttling up to full burn: a deep swelling roar of combustion, the hull shuddering, burning rocket fuel: bass and crackling combustion like a shuttle launch, never compressed air, hum or chimes, no music, no voices",
+   "request": false,
+   "seconds": 5,
+   "t0": 44.9,
+   "t1": 0,
+   "take": "sfx/s5-full-burn-t01.mp3",
+   "takes": [
+    {
+     "dur": 5,
+     "file": "sfx/s5-full-burn-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 5,
+     "file": "sfx/s5-full-burn-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s5-missile-warning": {
+   "bus": "radio",
+   "dur": 3,
+   "fadeIn": 0,
+   "fadeOut": 0.3,
+   "kind": "bed",
+   "label": "Missile warning, behind Warden Five",
+   "level": -10,
+   "note": "From the first Harpoon's ignition (47.0 s, the Manticore's launch) to under 'Missiles inbound! Twelve!': heard through her open mic.",
+   "prompt": "An urgent military cockpit missile warning alarm: fast repeating high electronic beeps, harsh and insistent, no music, no voices",
+   "request": false,
+   "seconds": 3,
+   "t0": 47,
+   "t1": 53.8,
+   "take": "sfx/s5-missile-warning-t01.mp3",
+   "takes": [
+    {
+     "dur": 3,
+     "file": "sfx/s5-missile-warning-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 3,
+     "file": "sfx/s5-missile-warning-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6-batory-alarm": {
+   "bus": "radio",
+   "dur": 3,
+   "fadeIn": 0.1,
+   "fadeOut": 0.3,
+   "kind": "bed",
+   "label": "Alarms and venting, behind Batory",
+   "level": -12,
+   "note": "Under 'we're venting, we're —': heard through Batory's open mic.",
+   "prompt": "Inside a burning ship: a damage alarm klaxon wailing over loud hissing venting gas and creaking metal, no music, no voices",
+   "request": false,
+   "seconds": 3,
+   "t0": 53.8,
+   "t1": 56.4,
+   "take": "sfx/s6-batory-alarm-t01.mp3",
+   "takes": [
+    {
+     "dur": 3,
+     "file": "sfx/s6-batory-alarm-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 3,
+     "file": "sfx/s6-batory-alarm-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6-lead-hit": {
+   "bus": "full",
+   "dur": 2.731,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Two Harpoons hole Warden Lead's bow",
+   "level": -3,
+   "note": "S6: the hits that turn the Lead back.",
+   "prompt": "Two missiles hitting a warship one right after the other: two heavy explosions, metal tearing, gas venting with a roar, no music, no voices",
+   "request": false,
+   "seconds": 2.731,
+   "t0": 55.8,
+   "t1": 0,
+   "take": "sfx/game-explosion_secondary_01.mp3",
+   "takes": [
+    {
+     "dur": 2.731,
+     "file": "sfx/game-explosion_secondary_01.mp3",
+     "label": "the game's explosion_from_damage (explosion_secondary_01)"
+    },
+    {
+     "dur": 2.48,
+     "file": "sfx/s6-lead-hit-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 2.48,
+     "file": "sfx/s6-lead-hit-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6-point-defence": {
+   "bus": "full",
+   "dur": 4,
+   "fadeIn": 0.2,
+   "fadeOut": 0.5,
+   "kind": "bed",
+   "label": "Point defence opens up",
+   "level": -9,
+   "note": "S6: the convoy's PD trying for the Harpoons.",
+   "prompt": "Rapid point-defence machine guns firing long bursts: fast mechanical chattering gunfire from several turrets at once, no music, no voices",
+   "request": false,
+   "seconds": 4,
+   "t0": 50.4,
+   "t1": 54,
+   "take": "sfx/s6-point-defence-t01.mp3",
+   "takes": [
+    {
+     "dur": 4,
+     "file": "sfx/s6-point-defence-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 4,
+     "file": "sfx/s6-point-defence-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6-tanker-cooks-off": {
+   "bus": "full",
+   "dur": 5.174,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Batory is struck and cooks off",
+   "level": -1,
+   "note": "S6: the tanker, and the convoy's first loss.",
+   "prompt": "A huge fuel tanker exploding: a deep booming blast that cooks off into a chain of secondary explosions, with a long rolling rumble fading out, no music, no voices",
+   "request": false,
+   "seconds": 5.174,
+   "t0": 51,
+   "t1": 0,
+   "take": "sfx/game-explosion_04.mp3",
+   "takes": [
+    {
+     "dur": 5.174,
+     "file": "sfx/game-explosion_04.mp3",
+     "label": "the game's explosion_ship (explosion_04)"
+    },
+    {
+     "dur": 6,
+     "file": "sfx/s6-tanker-cooks-off-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 6,
+     "file": "sfx/s6-tanker-cooks-off-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6-two-hit": {
+   "bus": "full",
+   "dur": 3.131,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "A Harpoon opens Warden Two's flank",
+   "level": -4,
+   "note": "S6: 'Two's hit!'.",
+   "prompt": "A missile slamming into a warship's armoured hull: a sharp heavy explosion with a metallic crunch and a short sizzle of fire, no music, no voices",
+   "request": false,
+   "seconds": 3.131,
+   "t0": 53.1,
+   "t1": 0,
+   "take": "sfx/game-explosion_secondary_02.mp3",
+   "takes": [
+    {
+     "dur": 3.131,
+     "file": "sfx/game-explosion_secondary_02.mp3",
+     "label": "the game's explosion_from_damage (explosion_secondary_02)"
+    },
+    {
+     "dur": 2.48,
+     "file": "sfx/s6-two-hit-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 2.48,
+     "file": "sfx/s6-two-hit-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6b-autocannons": {
+   "bus": "full",
+   "dur": 4,
+   "fadeIn": 0.2,
+   "fadeOut": 0.3,
+   "kind": "bed",
+   "label": "Warden Three and the Wolf open fire",
+   "level": -8,
+   "note": "Off (2026-10-30): guns-s6b plays every round the turrets fire. Turn back on to layer it.",
+   "off": true,
+   "prompt": "Heavy autocannons firing steady rhythmic bursts: deep punchy mechanical cannon shots with shell casings rattling, no music, no voices",
+   "request": false,
+   "seconds": 4,
+   "t0": 59.5,
+   "t1": 62.6,
+   "take": "sfx/s6b-autocannons-t01.mp3",
+   "takes": [
+    {
+     "dur": 4,
+     "file": "sfx/s6b-autocannons-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 4,
+     "file": "sfx/s6b-autocannons-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6b-feeder-burst": {
+   "bus": "full",
+   "dur": 2,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Ammo Feeder burst",
+   "level": -5,
+   "note": "S6b: 'Feeders on!'.",
+   "prompt": "A cannon spinning up into an extremely rapid burst of fire, a ripping mechanical roar of shots, no music, no voices",
+   "request": false,
+   "seconds": 2,
+   "t0": 62,
+   "t1": 0,
+   "take": "sfx/s6b-feeder-burst-t01.mp3",
+   "takes": [
+    {
+     "dur": 2,
+     "file": "sfx/s6b-feeder-burst-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 2,
+     "file": "sfx/s6b-feeder-burst-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6b-hound-breaks-up": {
+   "bus": "full",
+   "dur": 4.414,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "The Hound (P) breaks up",
+   "level": -3,
+   "note": "S6b: 'She's breaking up! One down!'.",
+   "prompt": "A small warship breaking apart: a sharp explosion with metal shrieking and tearing and debris scattering, no music, no voices",
+   "request": false,
+   "seconds": 4.414,
+   "t0": 62.8,
+   "t1": 0,
+   "take": "sfx/game-explosion_02.mp3",
+   "takes": [
+    {
+     "dur": 4.414,
+     "file": "sfx/game-explosion_02.mp3",
+     "label": "the game's explosion_ship (explosion_02)"
+    },
+    {
+     "dur": 3,
+     "file": "sfx/s6b-hound-breaks-up-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 3,
+     "file": "sfx/s6b-hound-breaks-up-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6c-blink": {
+   "bus": "full",
+   "dur": 1.48,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Wolf (P) B blinks into the gap",
+   "level": -7,
+   "note": "S6c: the Displacer, 'she blinked'.",
+   "prompt": "A short science fiction phase jump: a sharp electric crack and a deep pressure pop with a quick rising whine, no music, no voices",
+   "request": false,
+   "seconds": 1.5,
+   "t0": 68.7,
+   "t1": 0,
+   "take": "sfx/s6c-blink-t01.mp3",
+   "takes": [
+    {
+     "dur": 1.48,
+     "file": "sfx/s6c-blink-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 1.48,
+     "file": "sfx/s6c-blink-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6c-sobieski-bridge": {
+   "bus": "radio",
+   "dur": 4,
+   "fadeIn": 0.1,
+   "fadeOut": 0.4,
+   "kind": "bed",
+   "label": "Damage alarms, behind Sobieski",
+   "level": -12,
+   "note": "Under Sobieski's 'Taking fire aft!': heard through her open mic.",
+   "prompt": "Inside a ship under fire: rounds hammering the hull, a damage alarm, and creaking stressed metal, no music, no voices",
+   "request": false,
+   "seconds": 4,
+   "t0": 69.8,
+   "t1": 76.1,
+   "take": "sfx/s6c-sobieski-bridge-t01.mp3",
+   "takes": [
+    {
+     "dur": 4,
+     "file": "sfx/s6c-sobieski-bridge-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 4,
+     "file": "sfx/s6c-sobieski-bridge-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6c-sobieski-drives": {
+   "bus": "full",
+   "dur": 2.65,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Sobieski's drives are shot out",
+   "level": -3,
+   "note": "S6c: 'drives! We've lost drives!'.",
+   "pan": -0.49,
+   "prompt": "A ship's engines blowing apart: a heavy explosion followed by the engine roar sputtering and dying into crackling fire, no music, no voices",
+   "request": false,
+   "seconds": 2.65,
+   "t0": 70,
+   "t1": 0,
+   "take": "sfx/game-explosion_secondary_03.mp3",
+   "takes": [
+    {
+     "dur": 2.65,
+     "file": "sfx/game-explosion_secondary_03.mp3",
+     "label": "the game's explosion_from_damage (explosion_secondary_03)"
+    },
+    {
+     "dur": 3,
+     "file": "sfx/s6c-sobieski-drives-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 3,
+     "file": "sfx/s6c-sobieski-drives-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6d-hound-hit": {
+   "bus": "full",
+   "dur": 2.731,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Warden Five loses her drives",
+   "level": -5,
+   "note": "S6d: the second Hound (P)'s burst from below.",
+   "pan": -0.35,
+   "prompt": "A burst of cannon rounds smashing into a ship's belly: rapid heavy impacts and a sputtering engine cutting out, no music, no voices",
+   "request": false,
+   "seconds": 2.731,
+   "t0": 77.1,
+   "t1": 0,
+   "take": "sfx/game-explosion_secondary_01.mp3",
+   "takes": [
+    {
+     "dur": 2.731,
+     "file": "sfx/game-explosion_secondary_01.mp3",
+     "label": "the game's explosion_from_damage (explosion_secondary_01)"
+    },
+    {
+     "dur": 2,
+     "file": "sfx/s6d-hound-hit-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 2,
+     "file": "sfx/s6d-hound-hit-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s6d-hound-kill": {
+   "bus": "full",
+   "dur": 5.114,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "The convoy Hound kills a Hound (P)",
+   "level": -3,
+   "note": "S6d: 'Got one!'.",
+   "prompt": "A close-range explosion of a small warship: a sharp violent blast and burst of debris pinging off a hull, no music, no voices",
+   "request": false,
+   "seconds": 5.114,
+   "t0": 76.8,
+   "t1": 0,
+   "take": "sfx/game-explosion_01.mp3",
+   "takes": [
+    {
+     "dur": 5.114,
+     "file": "sfx/game-explosion_01.mp3",
+     "label": "the game's explosion_ship (explosion_01)"
+    },
+    {
+     "dur": 3,
+     "file": "sfx/s6d-hound-kill-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 3,
+     "file": "sfx/s6d-hound-kill-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s7-boats-clamp": {
+   "bus": "full",
+   "dur": 2.48,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Boarding boats clamp onto Sobieski",
+   "level": -6,
+   "note": "S7: the boats set down on her deck.",
+   "pan": 0.21,
+   "prompt": "Heavy magnetic docking clamps slamming onto a ship's hull: deep metallic thuds and a grinding lock, no music, no voices",
+   "request": false,
+   "seconds": 2.5,
+   "t0": 85.6,
+   "t1": 0,
+   "take": "sfx/s7-boats-clamp-t01.mp3",
+   "takes": [
+    {
+     "dur": 2.48,
+     "file": "sfx/s7-boats-clamp-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 2.48,
+     "file": "sfx/s7-boats-clamp-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s7-breach-inside": {
+   "bus": "radio",
+   "dur": 3,
+   "fadeIn": 0.1,
+   "fadeOut": 0.3,
+   "kind": "bed",
+   "label": "The breach, behind Sobieski",
+   "level": -10,
+   "note": "Under 'repel boarders! Boarders —': heard through her open mic.",
+   "prompt": "Muffled breaching charge blasts and gunfire inside a ship's corridors, shouting impossible to make out",
+   "request": false,
+   "seconds": 3,
+   "t0": 87.6,
+   "t1": 90.1,
+   "take": "sfx/s7-breach-inside-t01.mp3",
+   "takes": [
+    {
+     "dur": 3,
+     "file": "sfx/s7-breach-inside-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 3,
+     "file": "sfx/s7-breach-inside-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s8-pod-raked": {
+   "bus": "full",
+   "dur": 3,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "The Mk.III's guns rake the port pod",
+   "level": -6,
+   "note": "S8: 'Taking fire on the port pod!'.",
+   "prompt": "Heavy cannon rounds raking along a huge ship's hull: rapid hard metallic impacts walking along the plating, no music, no voices",
+   "request": false,
+   "seconds": 3,
+   "t0": 88.4,
+   "t1": 0,
+   "take": "sfx/s8-pod-raked-t01.mp3",
+   "takes": [
+    {
+     "dur": 3,
+     "file": "sfx/s8-pod-raked-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 3,
+     "file": "sfx/s8-pod-raked-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s9-borer-lasers": {
+   "bus": "full",
+   "dur": 4,
+   "fadeIn": 0.3,
+   "fadeOut": 0.4,
+   "kind": "bed",
+   "label": "The Borers' mining lasers",
+   "level": -10,
+   "note": "S9: the Borers cut seams in the Wolf (P) and the Manticore (P).",
+   "prompt": "An industrial mining laser beam cutting metal: a steady harsh electric hum with sizzling and crackling, no music, no voices",
+   "request": false,
+   "seconds": 4,
+   "t0": 95.8,
+   "t1": 99.5,
+   "take": "sfx/s9-borer-lasers-t01.mp3",
+   "takes": [
+    {
+     "dur": 4,
+     "file": "sfx/s9-borer-lasers-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 4,
+     "file": "sfx/s9-borer-lasers-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s9-flares": {
+   "bus": "full",
+   "dur": 2.48,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Flares, flares",
+   "level": -7,
+   "note": "S9.",
+   "prompt": "Decoy flares launching in a rapid series: popping thumps and fizzing hissing burns, no music, no voices",
+   "request": false,
+   "seconds": 2.5,
+   "t0": 93.4,
+   "t1": 0,
+   "take": "sfx/s9-flares-t01.mp3",
+   "takes": [
+    {
+     "dur": 2.48,
+     "file": "sfx/s9-flares-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 2.48,
+     "file": "sfx/s9-flares-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s9-grapples": {
+   "bus": "full",
+   "dur": 2.48,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "The Mk.III swings her grapples",
+   "level": -7,
+   "note": "S9: 'She's putting out grapples'.",
+   "prompt": "Huge mechanical grapple arms swinging out: heavy hydraulic hissing and deep metal clanks, no music, no voices",
+   "request": false,
+   "seconds": 2.5,
+   "t0": 99.3,
+   "t1": 0,
+   "take": "sfx/s9-grapples-t01.mp3",
+   "takes": [
+    {
+     "dur": 2.48,
+     "file": "sfx/s9-grapples-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 2.48,
+     "file": "sfx/s9-grapples-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s9-pod-explodes": {
+   "bus": "full",
+   "dur": 5.114,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "The port tug pod is shot out",
+   "level": -1,
+   "note": "S9: 'Pod's gone!'.",
+   "prompt": "A massive explosion tearing a section off a giant ship: a deep thunderous blast, metal ripping apart, a long burning rumble, no music, no voices",
+   "request": false,
+   "seconds": 5.114,
+   "t0": 95.5,
+   "t1": 0,
+   "take": "sfx/game-explosion_01.mp3",
+   "takes": [
+    {
+     "dur": 5.114,
+     "file": "sfx/game-explosion_01.mp3",
+     "label": "the game's explosion_ship (explosion_01)"
+    },
+    {
+     "dur": 5,
+     "file": "sfx/s9-pod-explodes-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 5,
+     "file": "sfx/s9-pod-explodes-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s9b-lead-breaks": {
+   "bus": "full",
+   "dur": 5.174,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "Warden Lead's magazine goes",
+   "level": -1,
+   "note": "S9b: 'I'm —'.",
+   "prompt": "A warship's ammunition magazine exploding: a huge deep blast with a chain of rapid secondary pops and a long rumbling tail, no music, no voices",
+   "request": false,
+   "seconds": 5.174,
+   "t0": 107.6,
+   "t1": 0,
+   "take": "sfx/game-explosion_04.mp3",
+   "takes": [
+    {
+     "dur": 5.174,
+     "file": "sfx/game-explosion_04.mp3",
+     "label": "the game's explosion_ship (explosion_04)"
+    },
+    {
+     "dur": 5,
+     "file": "sfx/s9b-lead-breaks-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 5,
+     "file": "sfx/s9b-lead-breaks-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  },
+  "s9b-shield-overload": {
+   "bus": "full",
+   "dur": 3,
+   "fadeIn": 0,
+   "fadeOut": 0,
+   "kind": "spot",
+   "label": "The Falcon (P)'s shield overloads",
+   "level": -5,
+   "note": "S9b: 'Her shield's down!'.",
+   "prompt": "An energy shield overloading: a rising electric whine that snaps into a loud crackling discharge, no music, no voices",
+   "request": false,
+   "seconds": 3,
+   "t0": 104.3,
+   "t1": 0,
+   "take": "sfx/game-shield-overload.mp3",
+   "takes": [
+    {
+     "dur": 3,
+     "file": "sfx/game-shield-overload.mp3",
+     "label": "the game's overload: shield hit, shield_burnout, emp_loop"
+    },
+    {
+     "dur": 2,
+     "file": "sfx/s9b-shield-overload-t01.mp3",
+     "label": "take 1"
+    },
+    {
+     "dur": 2,
+     "file": "sfx/s9b-shield-overload-t02.mp3",
+     "label": "take 2"
+    }
+   ]
+  }
+ },
+ "music": {
+  "m1-the-trap": {
+   "bus": "full",
+   "dur": 0,
+   "fadeIn": 2,
+   "fadeOut": 1,
+   "kind": "score",
+   "label": "The trap",
+   "level": 0,
+   "note": "S3 to S4. S3's channel is quiet: the picture shows what the recording could not hear.",
+   "prompt": "Low pulsing dread under the S3 and S4 trap: a sparse dark synth pulse and distant low strings, barely there, rising slightly as the pack lights at 38 s; no melody, no percussion until the end",
+   "request": false,
+   "seconds": 14,
+   "t0": 30,
+   "t1": 44,
+   "take": "",
+   "takes": []
+  },
+  "m2-the-brawl": {
+   "bus": "full",
+   "dur": 0,
+   "fadeIn": 0.5,
+   "fadeOut": 3,
+   "kind": "score",
+   "label": "The brawl",
+   "level": -2,
+   "note": "S5 to S10. Sits under the voices (the duck in the Mixer).",
+   "prompt": "Driving tense battle score for a space brawl, about 74 seconds: low taiko and industrial percussion with urgent low strings, holding back under the radio chatter, swelling at the tanker's explosion (7 s in) and the pod (51 s in), thinning to a held low note by the end; no vocals, no heroic brass",
+   "request": false,
+   "seconds": 74,
+   "t0": 44,
+   "t1": 118,
+   "take": "",
+   "takes": []
+  },
+  "m3-the-fall": {
+   "bus": "full",
+   "dur": 0,
+   "fadeIn": 1,
+   "fadeOut": 1,
+   "kind": "score",
+   "label": "The fall",
+   "level": -4,
+   "note": "S11, cut off where the picture breaks into static. S12 stays silent (owner, 2026-10-22: an image no recording made), unless you want the score there.",
+   "prompt": "A slow elegiac swell of low strings rising under a ship's fiery atmospheric entry, cut off abruptly at the end; no percussion",
+   "request": false,
+   "seconds": 7,
+   "t0": 118,
+   "t1": 124.5,
+   "take": "",
+   "takes": []
+  }
+ }
+}

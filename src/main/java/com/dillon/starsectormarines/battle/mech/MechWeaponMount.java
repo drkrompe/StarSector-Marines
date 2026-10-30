@@ -81,6 +81,16 @@ public final class MechWeaponMount {
         return component.ammoCapacity < 0 || ammo > 0;
     }
 
+    /**
+     * Whether this mount is still in the fight: rounds in it, a burst in flight, or an empty rack its loader is
+     * recharging. Every salvo spends a rack's buffer and the loader brings it back whole
+     * ({@link #advanceReplenishment}), so an empty rack with a loader is between salvos, not out; only a magazine
+     * nothing refills (no loader fitted, or a weapon the loader does not feed) is spent for the battle.
+     */
+    public boolean inFight() {
+        return hasAmmo() || burstRemaining > 0 || Float.isFinite(rechargeSeconds);
+    }
+
     public boolean needsSupply() {
         return component.ammoCapacity >= 0 && ammo < component.ammoCapacity;
     }

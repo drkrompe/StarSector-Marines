@@ -1740,8 +1740,8 @@ public final class MechLabViewModel {
     }
 
     /**
-     * The capacitor banks and vent arrays a vehicle's rack can take, the mech's own parts (a vehicle is a mech for
-     * parts): every one with a spare or a known pattern, dragged onto the rack as onto a mech's compartment.
+     * The capacitor banks, vent arrays and loaders a vehicle's rack can take, the mech's own parts (a vehicle is a mech
+     * for parts): every one with a spare or a known pattern, dragged onto the rack as onto a mech's compartment.
      */
     private List<CatalogRow> rackPartCatalog(CampaignVehicle vehicle) {
         List<CatalogRow> rows = new ArrayList<>();
@@ -1752,7 +1752,7 @@ public final class MechLabViewModel {
             boolean locked = !bay.canFabricate(part);
             if (locked && free == 0) continue;
             boolean bank = part.role == MechInternal.Role.CAPACITOR_BANK;
-            boolean installed = bank && vehicle.rackInternals().contains(part);
+            boolean installed = MechCompartment.limit(part.role) == 1 && vehicle.rackInternals().contains(part);
             boolean inCargo = free > 0;
             boolean affordable = resources.canBuy(resources.quote(recipe.cost()));
             boolean offerFab = !locked && !inCargo;
@@ -1764,6 +1764,8 @@ public final class MechLabViewModel {
                     : shortHint();
             String effect = bank
                     ? Strings.format("vehicleRackBankEffect", number(part.fluxCapacity), number(part.dissipation))
+                    : part.role == MechInternal.Role.LOADER
+                    ? Strings.format("vehicleRackLoaderEffect", number(part.replenisher().loaderFactor()))
                     : Strings.format("vehicleRackVentEffect", number(part.dissipation));
 
             String base = "mech-catalog:" + part.id;

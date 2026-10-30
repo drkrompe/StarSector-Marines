@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.HullReservoir;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -14,7 +15,7 @@ import java.util.Set;
 
 /**
  * The rules of a vehicle's kit rack (mechs-nouns.md, vehicle kit): a vehicle is a mech for parts, so the rack holds
- * the mech's own capacitor banks and vent arrays at their mech footprints beside the vehicle's kits, a slot (a
+ * the mech's own capacitor banks, vent arrays and loaders at their mech footprints beside the vehicle's kits, a slot (a
  * two-column row) a kit, and packs them by the mech compartment's rule ({@link MechCompartment}). The rack is one
  * 2x2 bay on a Light hull, one 2x3 bay on a Medium and two 2x2 bays on a Heavy.
  *
@@ -59,25 +60,34 @@ public final class VehicleRack {
         return new SocketDef(id, SocketType.AUXILIARY, 2, rows, 0f, 0f, 0f, 1f, 1f, 1f, false, "@vehicleDollKitRack");
     }
 
-    /** Whether the rack takes {@code internal} at all: a capacitor bank or a vent array, on an armed hull. */
+    /**
+     * Whether the rack takes {@code internal} at all: a loader on any hull, a capacitor bank or a vent array on an armed
+     * hull (an unarmed hull has no reservoir to feed).
+     */
     public static boolean takes(VehicleType type, MechInternal internal) {
-        return type != null && type.hasTurretWeapon() && internal != null
-                && (internal.role == MechInternal.Role.CAPACITOR_BANK || internal.role == MechInternal.Role.VENT_ARRAY);
+        if (type == null || internal == null) return false;
+        return switch (internal.role) {
+            case LOADER -> true;
+            case CAPACITOR_BANK, VENT_ARRAY -> type.hasTurretWeapon();
+            case ENGINE, PLATING -> false;
+        };
     }
 
     /**
      * Whether {@code kits} and {@code internals} together fit {@code type}'s rack: each kit suiting the hull and none
-     * twice, each internal one the rack takes, at most one bank, and all of it packing into the bays.
+     * twice, each internal one the rack takes within the compartment's role limits (one bank, one loader), and all of
+     * it packing into the bays.
      */
     public static boolean fits(VehicleType type, List<VehicleKit> kits, List<MechInternal> internals) {
         Set<VehicleKit> seen = EnumSet.noneOf(VehicleKit.class);
         for (VehicleKit kit : kits) if (kit == null || !kit.suits(type) || !seen.add(kit)) return false;
-        int banks = 0;
-        for (MechInternal internal : internals) {
-            if (!takes(type, internal)) return false;
-            if (internal.role == MechInternal.Role.CAPACITOR_BANK) banks++;
+        for (MechInternal internal : internals) if (!takes(type, internal)) return false;
+        for (MechInternal.Role role : MechInternal.Role.values()) {
+            int count = 0;
+            for (MechInternal internal : internals) if (internal.role == role) count++;
+            if (count > MechCompartment.limit(role)) return false;
         }
-        return banks <= MechCompartment.limit(MechInternal.Role.CAPACITOR_BANK) && pack(type, kits, internals) != null;
+        return pack(type, kits, internals) != null;
     }
 
     /** Where each part sits, the internals first and then the kits, or null when they do not all fit. */
@@ -110,8 +120,11 @@ public final class VehicleRack {
     }
 
     /**
-     * Every flux part an armed hull is built with, in packing order: its bank, then its stock vent arrays (the laser
-     * tank's fill its second bay). Its {@link #frame} is the hull's stock frame ({@link HullReservoir#stockFrame}).
+     * Every compartment part an armed hull is built with, in packing order: its bank, its stock vent arrays (the laser
+     * tank's), then the standard loader, as a mech's stock frame carries one (an empty compartment means nothing on any
+     * machine, so a hull with no loader never puts a missile pack back). A Light hull is full with bank and loader, as a
+     * Hound is. Its {@link #frame} is the hull's stock frame ({@link HullReservoir#stockFrame}); an unarmed hull is
+     * built with nothing in it.
      */
     public static List<MechInternal> stockFit(VehicleType type) {
         MechInternal bank = stockBank(type);
@@ -119,7 +132,13 @@ public final class VehicleRack {
         List<MechInternal> fit = new ArrayList<>();
         fit.add(bank);
         for (int i = 0; i < HullReservoir.stockVentArrays(type); i++) fit.add(MechInternal.AUXILIARY_VENT_ARRAY);
+        fit.add(MechInternal.STANDARD_LOADER);
         return List.copyOf(fit);
+    }
+
+    /** The loader the rack's parts give the hull at the drop ({@link MechCompartment#loader}). */
+    public static MissileReplenisherComponent loader(List<MechInternal> internals) {
+        return MechCompartment.loader(internals);
     }
 
     /** Whether the hull may drop: an unarmed hull always, an armed one only with a capacitor bank on its rack. */

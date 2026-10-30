@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — every laser a player meets takes the laser names: the ground emplacements and hardpoint are PL-3 and PL-3 (Sweep), the Wisp and hover-scout bolt guns are PE pulse emitters (not lasers), and PD is kept for guns that shoot down missiles (Weapon names). Also 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Sweep)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-30 — the loader is one part on every machine: the vehicle's accelerated-loader kit is the mech's accelerated loader (an old kit id reads as it), and a vehicle's compartment carries its loader as a part, so an armed hull is built with the standard loader and one without it never puts a missile pack back (the loader). Also 2026-10-30 — every laser a player meets takes the laser names: the ground emplacements and hardpoint are PL-3 and PL-3 (Sweep), the Wisp and hover-scout bolt guns are PE pulse emitters (not lasers), and PD is kept for guns that shoot down missiles (Weapon names). Also 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Sweep)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -71,8 +71,8 @@ increasing an encounter's total armored threat.
   2026-10-30): a weapon's authored refill (a rotary gun's hopper, a vehicle
   mount's `loaderSeconds`, the standard SRM and LRM cadences) is the **standard
   loader's** rate, ×1; the **accelerated loader** puts a pack back in three
-  quarters of that time, ×4/3, on missile packs, magazines and hoppers alike, a
-  mech's loader part and a vehicle's accelerated-loader kit the same. A machine
+  quarters of that time, ×4/3, on missile packs, magazines and hoppers alike, the
+  one loader part on a mech or a vehicle. A machine
   with **no loader** loses only its missile packs, which the loader fabricates; a
   belt or a vehicle magazine keeps its gun's own rate, so giving up the loader for a
   bigger bank never strands a chaingun. A weapon with no authored refill (a mech's
@@ -303,12 +303,14 @@ increasing an encounter's total armored threat.
   compartment-packed as a mech's compartment is (`VehicleRack`, owner 2026-10-30): a Light hull has
   one 2x2 bay (2 slots), a Medium one 2x3 bay (3), a Heavy two 2x2 bays (4)
   (`VehicleType.weight`). A slot is a two-column row; a kit takes one. The rack also takes the mech's
-  own **capacitor banks** and **vent arrays** at their mech footprints (factory and double bank
-  2x1, military bank 2x2, vent array 2x1), at most one bank: the bank and every vent array are
-  the hull's flux reservoir at the drop (`VehicleRack.frame`, `convoy-nouns.md`, hull flux). An
+  own **capacitor banks**, **vent arrays** and **loaders** at their mech footprints (factory and double bank
+  2x1, military bank 2x2, vent array and loaders 2x1), at most one bank and one loader: the bank and every vent
+  array are the hull's flux reservoir at the drop (`VehicleRack.frame`, `convoy-nouns.md`, hull flux), and the
+  loader paces its guns (the loader, below). An
   **armed** hull with no bank is **incomplete** and stays off the drop manifest, as a mech is;
   every armed hull is built with a bank (the laser tank the double bank and two vent arrays, the rest the factory
-  bank), and fitting another bank returns the old one to stores. An unarmed hull takes none. A
+  bank) and the standard loader, so a Light hull is full with the two, as a Hound is; fitting another bank or
+  loader returns the old one to stores. An unarmed hull takes no bank and is built with no loader. A
   vehicle carries at most one of each kit, and a kit may need something of the hull
   (a magazine to extend, a gun to feed). Kits are inventory parts exactly as internals are:
   learned as patterns, bought for their price into stores, dragged onto the rack and
@@ -319,10 +321,6 @@ increasing an encounter's total armored threat.
   - **Spall liner** (Common): a fifth more structure.
   - **Ready rack** (Common, hulls whose own gun is fed: a magazine or a rotary gun's belt): half again
     the turret's magazine, or half again a rotary gun's belt.
-  - **Accelerated loader** (Advanced, the same hulls): every gun on the hull refills a third faster
-    by the loader rule, a pack back in three quarters of the stock time and a rotary gun's hopper ×4/3
-    (`convoy-nouns.md`, the loader). It is how a belt-fed light machine gun hull closes on the old
-    heavy MG, by an item rather than by the gun's base numbers.
   - **Sensor drone pair** (Advanced, hulls with no bay of their own): two sensor
     drones that fly ahead of the bow, so an indirect-fire hull fed by them fires
     over cover with no spotter (`convoy-nouns.md`, the missile carriers).
@@ -335,8 +333,11 @@ increasing an encounter's total armored threat.
   A new kit joins by taking a slot and a spawn-time effect; anything that needs a
   behaviour of its own (a blade, a mortar) stays a
   **variant** (`heavy-equipment-progression.md`, Vehicles: variants and kits).
-  A bought hull comes with its bank and an empty kit row; a hull saved before the
-  rack held banks loads with none and stays off the drop until one is fitted.
+  A bought hull comes with its bank and standard loader and an empty kit row; a hull saved before the
+  rack held banks loads with none and stays off the drop until one is fitted. A hull saved while its
+  loader was sealed in it carries the standard loader in its compartment (an accelerated-loader kit
+  on its rack becomes its loader instead); where that no longer packs, its kits and then its vent
+  arrays come off last-fitted first into stores, so nothing owned is lost.
 - A vehicle's **engine core** (`SocketId.CORE`) takes the same engine parts a mech runs
   (`MechInternal`, engine role), as the armor point takes plating (owner, 2026-10-28: a vehicle is a
   mech for parts). The hull's own drive is no part: an empty engine core is that drive, drawn as the
@@ -473,7 +474,12 @@ increasing an encounter's total armored threat.
   company knows; the accelerated loader is Advanced and heavier, and refills racks
   and belts a third faster. A mech with no loader fights with the racks it launched
   with and never refills them, while its rotary guns keep their own hoppers;
-  that is a choice, not a gap, so it does not hold the mech back.
+  that is a choice, not a gap, so it does not hold the mech back. **Empty means
+  nothing on every machine**: a vehicle's loader is the same part in its compartment
+  (`VehicleRack`), an armed hull is built with the standard one, and a hull without
+  one never puts a missile pack back while its magazines of rounds keep their mount's
+  own loader time. The vehicle's accelerated-loader kit was this part; an old kit id,
+  spare or learned pattern reads as it (`MechInternal.RETIRED_KITS`).
 - **What is required to drop**: an engine in CORE and a capacitor bank in the
   compartment. A mech missing either is `INCOMPLETE`. A bare frame's compartment is
   empty, so it brings no loader either.
@@ -940,8 +946,12 @@ clear one, Long-Range Support never — and nobody closes on a tie, with one
 exception: a band that brings a loaded **anti-armor rack** to bear closes when
 it trades merely as well as the longest band. Between equal machines that rack
 would otherwise never fire, and its warhead was fitted for exactly this target.
-A rack that has run
-dry leaves the reading, so a mech with empty magazines walks back out. Failing
+A rack between
+salvos stays in the reading: every salvo empties a rack's buffer and the loader
+recharges it whole, so reading it out would walk a Long-Range Support mech into
+a brawler's reach after every volley. A magazine nothing refills (no loader
+fitted) leaves the reading once it is dry, so a mech with spent magazines walks
+back out (`MechWeaponMount.inFight`). Failing
 both, it **duels** from the outer part of its longest band (about 72–92% of
 reach) rather than walking inside it for no reason: two equal machines meet
 there, not at contact. In band with a clear shot it holds and fires, stepping

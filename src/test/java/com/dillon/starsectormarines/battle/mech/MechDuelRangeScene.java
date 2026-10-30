@@ -15,7 +15,9 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.vehicle.VehicleEngagement;
+import com.dillon.starsectormarines.battle.vehicle.VehicleEngine;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
+import com.dillon.starsectormarines.battle.vehicle.VehiclePlating;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
@@ -47,8 +49,8 @@ import java.util.Map;
  * </ul>
  *
  * <p>Then vehicles, with no steering script at all. A Hound attack-moves at a deployed breakthrough tank (vehicle
- * engagement off so the pair asks about the mech alone). The player's tank is set down fifty cells
- * from a holding Hound with no order ({@link VehicleEngagement} on, and off as the control): it should drive to a
+ * engagement off so the pair asks about the mech alone). The player's tank, carrying a gun that out-reaches the
+ * Hound's chaingun, is set down forty-four cells from a holding Hound with no order ({@link VehicleEngagement} on, and off as the control): it should drive to a
  * band outside the Hound's reach. And the player's tank is ordered once onto the Hound: an explicit move wins over
  * any band, so it goes there.
  *
@@ -66,8 +68,16 @@ public final class MechDuelRangeScene implements BehaviorScene {
     static final String TANK_HOUND = "tank-hound";
     static final String TANK_HOUND_CONTROL = "tank-hound-control";
     static final String TANK_ORDERED = "tank-ordered";
-    /** Where an unordered tank is set down: inside its awareness of the Hound, outside its gun's reach. */
-    private static final int TANK_UNORDERED_X = 50;
+    /**
+     * The unordered tank's gun: one that out-reaches the Hound's chaingun, so the stand-off is the question. The
+     * Onager's stock HC-20 (26 cells) no longer does; the twin cannon it carried when this pair was written (36) did.
+     */
+    private static final MechWeaponComponent OUT_REACHING_GUN = MechWeaponComponent.AC_6;
+    /**
+     * Where an unordered tank is set down: forty-four cells off the Hound, inside its awareness (one and a half times
+     * the AC-6's 34-cell reach) and outside the gun's reach.
+     */
+    private static final int TANK_UNORDERED_X = 56;
     static final String BULWARKS = "bulwarks";
 
     static final int FRAME_EVERY_TICKS = 15;
@@ -180,7 +190,7 @@ public final class MechDuelRangeScene implements BehaviorScene {
     private enum VehicleCase {
         /** The Hound (Brawler) attack-moves at a defending tank that is simply deployed. */
         HOUND_ATTACKS,
-        /** The player's tank is set down fifty cells from a Hound holding its ground, and given no order. */
+        /** The player's tank is set down from a Hound holding its ground ({@link #TANK_UNORDERED_X}), and given no order. */
         TANK_UNORDERED,
         /** The player's tank is given one move order at tick zero onto the holding Hound's cell. */
         TANK_ORDERED
@@ -213,8 +223,12 @@ public final class MechDuelRangeScene implements BehaviorScene {
         BattleSimulation sim = world.sim();
         int tankX = kind == VehicleCase.HOUND_ATTACKS ? DEFENDER_X
                 : kind == VehicleCase.TANK_UNORDERED ? TANK_UNORDERED_X : ATTACKER_X;
-        long tank = sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, tankOrdered ? Faction.MARINE : Faction.DEFENDER,
-                VehicleMission.deployed(tankX + 0.5f, MID_Y + 0.5f));
+        Faction tankSide = tankOrdered ? Faction.MARINE : Faction.DEFENDER;
+        VehicleMission deployed = VehicleMission.deployed(tankX + 0.5f, MID_Y + 0.5f);
+        long tank = kind == VehicleCase.TANK_UNORDERED
+                ? sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, List.of(), VehiclePlating.FACTORY,
+                        VehicleEngine.STOCK, OUT_REACHING_GUN, tankSide, deployed)
+                : sim.convoy().spawn(VehicleType.BREAKTHROUGH_TANK, tankSide, deployed);
         sim.convoy().body(tank).teleport(tankX + 0.5f, MID_Y + 0.5f, tankOrdered ? 0f : 180f);
         long hound = world.members(ATTACKER)[0];
         // The trace's attacker is whoever moves in: the ordered tank, or the attack-moving Hound.
