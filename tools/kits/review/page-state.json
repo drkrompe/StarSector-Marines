@@ -1,0 +1,2660 @@
+{
+ "at": "2026-10-30T17:19:36.245Z",
+ "state": {
+  "armor": [
+   {
+    "description": "Whatever the station had, organised the way a band organises itself. (Independent tradition, irregular mix)",
+    "grant": "sale",
+    "id": "armor:field-fatigues",
+    "members": [
+     {
+      "armor": "armor.lashplate-harness",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Watchman's Kit",
+    "station": "start"
+   },
+   {
+    "description": "Security contracts, run as a line section because that is the drill they were taught. (Sindrian Diktat tradition, line hold mix)",
+    "grant": "sale",
+    "id": "armor:sindrian-security",
+    "members": [
+     {
+      "armor": "armor.vigil",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.orderly",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.vigil",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.orderly",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.vigil",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.orderly",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Diktat State Security Issue",
+    "station": "none"
+   },
+   {
+    "description": "Auxiliary sections keep the Hegemony's shape on a fraction of its issue. (Hegemony tradition, line hold mix)",
+    "grant": "free-pick",
+    "id": "armor:hegemony-auxiliary",
+    "members": [
+     {
+      "armor": "armor.lashplate-harness",
+      "role": "Team Leader",
+      "system": "system.shield-lt"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lashplate-harness",
+      "role": "Team Leader",
+      "system": "system.shield-lt"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lashplate-harness",
+      "role": "Team Leader",
+      "system": "system.shield-lt"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Rifleman",
+      "system": "system.parish-aid"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Hegemony Auxiliary Schedule",
+    "station": "relief"
+   },
+   {
+    "description": "A coalition screen that expects to move and to be seen doing it. (Persean tradition, reconnaissance mix)",
+    "grant": "free-pick",
+    "id": "armor:league-mobile",
+    "members": [
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.militia",
+      "role": "Rifleman",
+      "system": "system.parish-aid"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.militia",
+      "role": "Rifleman",
+      "system": "system.parish-aid"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.militia",
+      "role": "Rifleman",
+      "system": "system.parish-aid"
+     },
+     {
+      "armor": "armor.field-fatigues",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "League Mobile Guard Standard",
+    "station": "relief"
+   },
+   {
+    "description": "Parish wardens hold a place; they do not go out looking for one. (Luddic Church tradition, line hold mix)",
+    "grant": "sale",
+    "id": "armor:church-wardens",
+    "members": [
+     {
+      "armor": "armor.orderly",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lashplate-harness",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.orderly",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.lashplate-harness",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.orderly",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lashplate-harness",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.orderly",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.cordon-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lashplate-harness",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Church Parish Warden Kit",
+    "station": "none"
+   },
+   {
+    "description": "A raiding band: everybody fights, two carry the heavy thing, nobody scouts for long. (Pirates tradition, irregular mix)",
+    "grant": "sale",
+    "id": "armor:outlaw-raiders",
+    "members": [
+     {
+      "armor": "armor.outlaw",
+      "role": "Team Leader",
+      "system": "system.shield-lt"
+     },
+     {
+      "armor": "armor.lashplate-harness",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.outlaw",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lashplate-harness",
+      "role": "Team Leader",
+      "system": "system.shield-lt"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.outlaw",
+      "role": "Rifleman",
+      "system": "system.parish-aid"
+     },
+     {
+      "armor": "armor.lashplate-harness",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Team Leader",
+      "system": "system.shield-lt"
+     },
+     {
+      "armor": "armor.outlaw",
+      "role": "Rifleman",
+      "system": "system.parish-aid"
+     },
+     {
+      "armor": "armor.lashplate-harness",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Blackforge Raider Lot",
+    "station": "junction"
+   },
+   {
+    "description": "Corporate operators, weighted toward the half of the section that is paid to see. (Tritachyon tradition, reconnaissance mix)",
+    "grant": "sale",
+    "id": "armor:recon",
+    "members": [
+     {
+      "armor": "armor.aegis-composite",
+      "role": "Team Leader",
+      "system": "system.shield-mt"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.riot-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.aegis-composite",
+      "role": "Team Leader",
+      "system": "system.shield-mt"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.riot-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.aegis-composite",
+      "role": "Team Leader",
+      "system": "system.shield-mt"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.riot-shell",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Tri-Tachyon Recon Package",
+    "station": "thunder-run"
+   },
+   {
+    "description": "The standard section, and what every other composition is measured against. (Hegemony tradition, balanced mix)",
+    "grant": "sale",
+    "id": "armor:fleet-combat",
+    "members": [
+     {
+      "armor": "armor.arbalest-recovered",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.redoubt",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.pathfinder",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.corpsman",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.arbalest-recovered",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.line",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.redoubt",
+      "role": "Rifleman",
+      "system": "system.shield-lt"
+     },
+     {
+      "armor": "armor.pathfinder",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.corpsman",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.riot-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.line",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.redoubt",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Hegemony Line Schedule",
+    "station": "blind-watch"
+   },
+   {
+    "description": "Interchangeable by design, so a member world can replace any billet in it. (Persean tradition, balanced mix)",
+    "grant": "sale",
+    "id": "armor:league-line",
+    "members": [
+     {
+      "armor": "armor.combat",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.outrider",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.riot-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.combat",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.outrider",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.riot-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.combat",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.outrider",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.riot-shell",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "League Coalition Line Standard",
+    "station": "none"
+   },
+   {
+    "description": "A response section: quick, well-sighted, and unwilling to stand and trade. (Tritachyon tradition, balanced mix)",
+    "grant": "sale",
+    "id": "armor:corporate-line",
+    "members": [
+     {
+      "armor": "armor.aegis-composite",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.combat",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.riot-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.aegis-composite",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.combat",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.riot-shell",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.aegis-composite",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.combat",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.riot-shell",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Tri-Tachyon Response Package",
+    "station": "none"
+   },
+   {
+    "description": "Commissary-approved kit, and a section that intends to still be there afterwards. (Luddic Church tradition, line hold mix)",
+    "grant": "sale",
+    "id": "armor:church-line",
+    "members": [
+     {
+      "armor": "armor.palatine",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.orderly",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.palatine",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.orderly",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.palatine",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.orderly",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.palatine",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.orderly",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Church Commissary Line Kit",
+    "station": "none"
+   },
+   {
+    "description": "A conspicuous advance, which is most of the point of it. (Sindrian Diktat tradition, balanced mix)",
+    "grant": "sale",
+    "id": "armor:sindrian-line",
+    "members": [
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.vigil",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.vigil",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.furnace-line",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.vigil",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman",
+      "system": "system.parish-aid"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman",
+      "system": "system.parish-aid"
+     }
+    ],
+    "name": "Diktat Regular Line Issue",
+    "station": "blind-watch"
+   },
+   {
+    "description": "Veterans of a trade that rewards volume and speed over anything else. (Pirates tradition, balanced mix)",
+    "grant": "sale",
+    "id": "armor:outlaw-line",
+    "members": [
+     {
+      "armor": "armor.reaver",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.outlaw",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.reaver",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.outlaw",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.reaver",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.outlaw",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Blackforge Veteran Lot",
+    "station": "none"
+   },
+   {
+    "description": "Militia plate and two cargo frames: cheap, square-shouldered and in the field this week. (Independent tradition, balanced mix)",
+    "grant": "sale",
+    "id": "armor:freeport-assault",
+    "members": [
+     {
+      "armor": "armor.militia",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.militia",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.militia",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.militia",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.militia",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.militia",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Freeport Militia Assault Kit",
+    "station": "none"
+   },
+   {
+    "description": "Four recovered power suits, two ARM-TACH-3-PWR (QS) breachers and two ARM-HEG-3-PWR (QS) support gunners, among a scout and seven riflemen in militia armor. The whole section comes with the card; the suits are a third of the squad. (Independent tradition, balanced mix)",
+    "grant": "sale",
+    "id": "armor:salvage-assisted",
+    "members": [
+     {
+      "armor": "armor.scout",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.militia",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.specter-recovered",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.militia",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.militia",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.arbalest-recovered",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.militia",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.specter-recovered",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.arbalest-recovered",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Salvage-assisted Section",
+    "station": "none"
+   },
+   {
+    "description": "Two ARM-TACH-3-PWR (QS) powered breachers in the assault seats, a scout, two support gunners in ARM-TACH-3-SUPP and seven riflemen in combat armor. A first, light taste of powered armor: ten of twelve marines stay in ordinary kit. (Tritachyon tradition, balanced mix)",
+    "grant": "sale",
+    "id": "armor:corporate-specter-section",
+    "members": [
+     {
+      "armor": "armor.scout",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.combat",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.aegis-composite",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.combat",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.aegis-composite",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.specter-recovered",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.combat",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.aegis-composite",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.specter-recovered",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Tri-Tachyon Specter Section",
+    "station": "post-alpha-small-war"
+   },
+   {
+    "description": "Two rebuilt ARM-PIR-3-PWR frames in the assault seats, a scout, two support gunners in packframes and seven raiders in outlaw plate. Ten of twelve marines stay in ordinary kit; the frames go through the hatch first. (Pirates tradition, balanced mix)",
+    "grant": "sale",
+    "id": "armor:boarding-jack-section",
+    "members": [
+     {
+      "armor": "armor.scout",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.outlaw",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.outlaw",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.boarding-jack",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.outlaw",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.packframe",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.boarding-jack",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.scout",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Boarding Jack Section",
+    "station": "post-alpha-small-war"
+   },
+   {
+    "description": "Two ARM-HEG-3-PWR (QS) powered support suits, with an ARM-HEG-3-RCN scout and ten riflemen in ARM-HEG-3-LN. The rest of the section stays in ordinary Hegemony kit. (Hegemony tradition, balanced mix)",
+    "grant": "sale",
+    "id": "armor:hegemony-arbalest-section",
+    "members": [
+     {
+      "armor": "armor.pathfinder",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.line",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.pathfinder",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.arbalest-recovered",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.line",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.pathfinder",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.line",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.pathfinder",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.line",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.pathfinder",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.line",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.arbalest-recovered",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Hegemony Arbalest Section",
+    "station": "post-alpha-small-war"
+   },
+   {
+    "description": "Two ARM-HEG-4-PWR (MSL) powered support suits, with an ARM-HEG-3-RCN scout and riflemen in ARM-HEG-3-LN. Issued only under a Hegemony military warrant. (Hegemony tradition, balanced mix)",
+    "grant": "sale",
+    "id": "armor:hegemony-auxiliary-section",
+    "members": [
+     {
+      "armor": "armor.arbalest",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.line",
+      "role": "Rifleman",
+      "system": "system.corpsman-kit"
+     },
+     {
+      "armor": "armor.pathfinder",
+      "role": "Rifleman",
+      "system": "system.shield-lt"
+     },
+     {
+      "armor": "armor.arbalest",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.arbalest",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.pathfinder",
+      "role": "Rifleman",
+      "system": "system.shield-lt"
+     },
+     {
+      "armor": "armor.line",
+      "role": "Rifleman",
+      "system": "system.corpsman-kit"
+     },
+     {
+      "armor": "armor.pathfinder",
+      "role": "Rifleman",
+      "system": "system.shield-lt"
+     },
+     {
+      "armor": "armor.arbalest",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.pathfinder",
+      "role": "Rifleman",
+      "system": "system.shield-lt"
+     },
+     {
+      "armor": "armor.line",
+      "role": "Rifleman",
+      "system": "system.corpsman-kit"
+     },
+     {
+      "armor": "armor.pathfinder",
+      "role": "Rifleman",
+      "system": "system.shield-lt"
+     }
+    ],
+    "name": "Hegemony Auxiliary Section",
+    "station": "cold-account"
+   },
+   {
+    "description": "A deliberate breach: two teams through the door and one making the hole bigger. (Hegemony tradition, breach mix)",
+    "grant": "sale",
+    "id": "armor:hegemony-shock",
+    "members": [
+     {
+      "armor": "armor.heavy",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.arbalest",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.arbalest",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.heavy",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.arbalest",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.arbalest",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.heavy",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.arbalest",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.arbalest",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Hegemony XIV Shock Schedule",
+    "station": "working-passage"
+   },
+   {
+    "description": "The same breach, bought from a company that sells prediction rather than plate. (Tritachyon tradition, breach mix)",
+    "grant": "sale",
+    "id": "armor:corporate-heavy",
+    "members": [
+     {
+      "armor": "armor.specter-heavy",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.specter-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.specter-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.specter-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.specter-heavy",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.specter-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.specter-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.specter-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.specter-heavy",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.specter-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.specter-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.specter-heavy",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Tri-Tachyon Specter Package",
+    "station": "working-passage"
+   },
+   {
+    "description": "Coalition breach formations, built so the marine beside you need not be from your navy. (Persean tradition, breach mix)",
+    "grant": "sale",
+    "id": "armor:league-heavy",
+    "members": [
+     {
+      "armor": "armor.bulwark-heavy",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.bulwark-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.bulwark-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.bulwark-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.bulwark-heavy",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.bulwark-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.bulwark-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.bulwark-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.bulwark-heavy",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.bulwark-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.bulwark-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.bulwark-heavy",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "League Bulwark Breach Standard",
+    "station": "working-passage"
+   },
+   {
+    "description": "A Knight crosses the room in front of somebody else, and the section is arranged around that. (Knights Of Ludd tradition, breach mix)",
+    "grant": "sale",
+    "id": "armor:knights-heavy",
+    "members": [
+     {
+      "armor": "armor.reliquary-heavy",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.reliquary-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.reliquary-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.reliquary-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.reliquary-heavy",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.reliquary-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.reliquary-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.reliquary-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.reliquary-heavy",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.reliquary-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.reliquary-heavy",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.reliquary-heavy",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Knights' Armoury Heavy Issue",
+    "station": "working-passage"
+   },
+   {
+    "description": "Prestige issue: allotted by political favour, and fielded where the regime wants it seen. (Lions Guard tradition, breach mix)",
+    "grant": "sale",
+    "id": "armor:lions-guard-heavy",
+    "members": [
+     {
+      "armor": "armor.lions-mantle",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.lions-mantle",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lions-mantle",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lions-mantle",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lions-mantle",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.lions-mantle",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lions-mantle",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lions-mantle",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lions-mantle",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.lions-mantle",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lions-mantle",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.lions-mantle",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Lion's Guard Mantle Issue",
+    "station": "working-passage"
+   },
+   {
+    "description": "Industrial rigs pointed at a door by people with no formal doctrine at all. (Pirates tradition, breach mix)",
+    "grant": "sale",
+    "id": "armor:outlaw-heavy",
+    "members": [
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Team Leader"
+     },
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Rifleman"
+     },
+     {
+      "armor": "armor.foundry-breaker",
+      "role": "Rifleman"
+     }
+    ],
+    "name": "Foundry-Breaker Rig Lot",
+    "station": "cold-start"
+   }
+  ],
+  "place": {
+   "chassis:BULWARK": "blind-watch",
+   "chassis:HOUND": "start",
+   "chassis:WARDEN": "junction",
+   "internal:ACCELERATED_LOADER": "counterattack",
+   "internal:AUXILIARY_VENT_ARRAY": "counterattack",
+   "internal:COMPOSITE_PLATING": "counterattack",
+   "internal:DOUBLE_CAPACITOR_BANK": "counterattack",
+   "internal:FACTORY_CAPACITOR_BANK": "start",
+   "internal:FACTORY_PLATING": "start",
+   "internal:HEAVY_PLATING": "junction",
+   "internal:INDUSTRIAL_ENGINE": "start",
+   "internal:MILITARY_CAPACITOR_BANK": "junction",
+   "internal:MILITARY_ENGINE": "junction",
+   "internal:STANDARD_LOADER": "start",
+   "internal:UPRATED_ENGINE": "counterattack",
+   "kit:ACCELERATED_LOADER": "thunder-run",
+   "kit:ACTIVE_PROTECTION": "thunder-run",
+   "kit:CAPACITOR_PACK": "none",
+   "kit:READY_RACK": "relief",
+   "kit:SENSOR_PAIR": "thunder-run",
+   "kit:SPALL_LINER": "relief",
+   "vehicle:BREAKTHROUGH_TANK": "thunder-run",
+   "vehicle:DOZER_BREACHER": "dust-ledger",
+   "vehicle:DRONE_SKIMMER": "thunder-run",
+   "vehicle:ESCORT_APC": "counterattack",
+   "vehicle:FIRE_SUPPORT_APC": "junction",
+   "vehicle:HEAVY_APC": "none",
+   "vehicle:HOVER_SCOUT": "dust-ledger",
+   "vehicle:LASER_TANK": "blind-watch",
+   "vehicle:LRM_CARRIER": "thunder-run",
+   "vehicle:MILITIA_TECHNICAL": "counterattack",
+   "vehicle:SCOUT_CAR": "none",
+   "vehicle:SCREENED_TANK": "thunder-run",
+   "vehicle:SRM_TECHNICAL": "junction",
+   "vehicle:SUPPLY_TRUCK": "none",
+   "vehicle:UP_ARMORED_APC": "none",
+   "weapon:AC_6": "thunder-run",
+   "weapon:AC_6_QS": "counterattack",
+   "weapon:BASTION_AUTOCANNON": "none",
+   "weapon:BL_1": "counterattack",
+   "weapon:BL_2": "junction",
+   "weapon:CHAINGUN": "counterattack",
+   "weapon:CHAINGUN_HF": "junction",
+   "weapon:DC_4_QS": "counterattack",
+   "weapon:DC_5": "thunder-run",
+   "weapon:DEMOLITION_CANNON": "thunder-run",
+   "weapon:HC_10": "thunder-run",
+   "weapon:HC_20": "thunder-run",
+   "weapon:LIGHT_MACHINE_GUN": "start",
+   "weapon:LIGHT_ROCKET_POD": "start",
+   "weapon:LINEAR_CANNON": "counterattack",
+   "weapon:LL_3": "thunder-run",
+   "weapon:LRM_15": "junction",
+   "weapon:LRM_15_FRAG": "junction",
+   "weapon:LRM_5": "counterattack",
+   "weapon:LRM_5_FRAG": "counterattack",
+   "weapon:MUSTER_AUTOGUN": "relief",
+   "weapon:NOSE_CHAINGUN": "start",
+   "weapon:NOSE_CHAINGUN_HF": "junction",
+   "weapon:NOSE_MUSTER_AUTOGUN": "relief",
+   "weapon:PIONEER_ROCKET_CRADLE": "start",
+   "weapon:PL_1": "counterattack",
+   "weapon:PL_2": "junction",
+   "weapon:PL_2_AP": "thunder-run",
+   "weapon:PL_3": "thunder-run",
+   "weapon:PL_3_SWEEP": "thunder-run",
+   "weapon:QUARRY_BREAKER_CANNON": "none",
+   "weapon:SINGLE_HEAVY_CANNON": "none",
+   "weapon:SRM_15": "junction",
+   "weapon:SRM_15_FRAG": "junction",
+   "weapon:SRM_3_QS": "counterattack",
+   "weapon:SRM_5": "counterattack",
+   "weapon:SRM_5_FRAG": "start",
+   "weapon:THERMAL_LANCE": "thunder-run"
+  },
+  "sel": {
+   "id": "weapons:convoy-escort",
+   "l": "weapon"
+  },
+  "selItem": {
+   "id": "vehicle:HOVER_SCOUT",
+   "l": "hull"
+  },
+  "weapon": [
+   {
+    "description": "Twelve basic field rifles. Specialist weapons must be learned before fitting.",
+    "grant": "sale",
+    "id": "weapons:field-security",
+    "members": [
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.squad-automatic",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Security Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Security Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Security Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Security Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Security Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Security Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Security Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Security Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Security Rifleman",
+      "special": null
+     }
+    ],
+    "name": "Dockside Issue",
+    "station": "start"
+   },
+   {
+    "description": "Three Milspec automatics anchor nine riflemen (seeded by hand; built in code).",
+    "grant": "free-pick",
+    "id": "wayline:steady-line",
+    "members": [
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.squad-automatic",
+      "role": "Team Leader",
+      "special": "special.frag-grenade"
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Automatic Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.squad-automatic",
+      "role": "Team Leader",
+      "special": "special.frag-grenade"
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.squad-automatic",
+      "role": "Automatic Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.squad-automatic",
+      "role": "Automatic Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     }
+    ],
+    "name": "Steady Line",
+    "station": "relief"
+   },
+   {
+    "description": "Six Milspec pulse rifles on the leaders and second seats (seeded by hand; built in code).",
+    "grant": "free-pick",
+    "id": "wayline:forward-screen",
+    "members": [
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.pulse-rifle",
+      "role": "Team Leader",
+      "special": "special.srm-1-qs"
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.smg",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.pulse-rifle",
+      "role": "Team Leader",
+      "special": "special.smoke-grenade"
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.pulse-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.pulse-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.smg",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     }
+    ],
+    "name": "Forward Screen",
+    "station": "relief"
+   },
+   {
+    "description": "Recovered and improvised close-assault weapons built around breach tools.",
+    "grant": "sale",
+    "id": "weapons:luddic-path-assault",
+    "members": [
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.smg",
+      "role": "Assault Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.smg",
+      "role": "Breacher",
+      "special": "special.satchel-charge"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Assault Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.smg",
+      "role": "Grenadier",
+      "special": "special.smoke-grenade"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.smg",
+      "role": "Assault Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Anti-Armor",
+      "special": "special.srm-1"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.dmr",
+      "role": "Marksman",
+      "special": null
+     }
+    ],
+    "name": "Path Cell Assault Cache",
+    "station": "none"
+   },
+   {
+    "description": "Mixed coalition issue with standardized leaders, support fire, and smoke cover.",
+    "grant": "sale",
+    "id": "weapons:line-infantry",
+    "members": [
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.pulse-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": "special.comms-radio"
+     },
+     {
+      "belt": "special.frag-grenade",
+      "grade": "SERVICE",
+      "primary": "weapon.squad-automatic",
+      "role": "Automatic Rifleman",
+      "special": "special.frag-grenade"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.dmr",
+      "role": "Marksman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.pulse-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": "special.smoke-grenade"
+     },
+     {
+      "belt": "special.frag-grenade",
+      "grade": "SERVICE",
+      "primary": "weapon.pulse-rifle",
+      "role": "Grenadier",
+      "special": "special.flamer"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.dmr",
+      "role": "Marksman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.pulse-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.squad-automatic",
+      "role": "Automatic Rifleman",
+      "special": "special.smoke-grenade"
+     },
+     {
+      "belt": "special.frag-grenade",
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Grenadier",
+      "special": "special.flamer"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.dmr",
+      "role": "Marksman",
+      "special": null
+     }
+    ],
+    "name": "League Line Fire-Team Standard",
+    "station": "working-passage"
+   },
+   {
+    "description": "High-tech line weapons and unmarked breaching carbines for a short, decisive entry.",
+    "grant": "sale",
+    "id": "weapons:assault",
+    "members": [
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.pulse-rifle",
+      "role": "Assault Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.smg",
+      "role": "Breacher",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.pulse-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.pulse-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.pulse-rifle",
+      "role": "Assault Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.smg",
+      "role": "Grenadier",
+      "special": "special.frag-grenade"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.pulse-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.pulse-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.pulse-rifle",
+      "role": "Assault Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.smg",
+      "role": "Breacher",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.pulse-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.dmr",
+      "role": "Marksman",
+      "special": null
+     }
+    ],
+    "name": "Blacksite Breach Package",
+    "station": "none"
+   },
+   {
+    "description": "Rugged automatics and rail marksmen backed by scarce heavy armory issue.",
+    "grant": "sale",
+    "id": "weapons:fire-support",
+    "members": [
+     {
+      "belt": null,
+      "grade": "MILSPEC",
+      "primary": "weapon.smg",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.squad-automatic",
+      "role": "Automatic Rifleman",
+      "special": "special.srm-3-pod"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.dmr",
+      "role": "Marksman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Anti-Armor",
+      "special": "special.srm-1"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": "special.point-defence-pack"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.squad-automatic",
+      "role": "Automatic Rifleman",
+      "special": "special.srm-3-pod"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.dmr",
+      "role": "Marksman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Heavy Marksman",
+      "special": "special.anti-materiel-rifle"
+     },
+     {
+      "belt": null,
+      "grade": "MILSPEC",
+      "primary": "weapon.smg",
+      "role": "Team Leader",
+      "special": "special.point-defence-pack"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.squad-automatic",
+      "role": "Automatic Rifleman",
+      "special": "special.srm-3-pod"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.dmr",
+      "role": "Marksman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Anti-Armor",
+      "special": "special.srm-1"
+     }
+    ],
+    "name": "Hegemony Fire Support Schedule",
+    "station": "salvage-rights"
+   },
+   {
+    "description": "Service rifles, four rocket tubes for the guns and grenades for the trench behind them.",
+    "grant": "sale",
+    "id": "weapons:trench-clearing",
+    "members": [
+     {
+      "belt": null,
+      "grade": "MILSPEC",
+      "primary": "weapon.smg",
+      "role": "Team Leader",
+      "special": "special.frag-grenade"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Anti-Armor",
+      "special": "special.srm-1"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Grenadier",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SURPLUS",
+      "primary": "weapon.dmr",
+      "role": "Grenadier",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "MILSPEC",
+      "primary": "weapon.smg",
+      "role": "Team Leader",
+      "special": "special.smoke-grenade"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Anti-Armor",
+      "special": "special.srm-1"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Grenadier",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Grenadier",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.smg",
+      "role": "Team Leader",
+      "special": "special.smoke-grenade"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Anti-Armor",
+      "special": "special.srm-1"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Anti-Armor",
+      "special": "special.srm-1"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Grenadier",
+      "special": null
+     }
+    ],
+    "name": "Trench-Clearing Issue",
+    "station": "counterattack"
+   },
+   {
+    "description": "Service rifles that dig in and hold: three sappers with satchel charges to clear the post and smoke to cover them while they work.",
+    "grant": "sale",
+    "id": "weapons:checkpoint",
+    "members": [
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": "special.smoke-grenade"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Sapper",
+      "special": "special.satchel-charge"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": "special.smoke-grenade"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Sapper",
+      "special": "special.satchel-charge"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": "special.smoke-grenade"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Sapper",
+      "special": "special.satchel-charge"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     }
+    ],
+    "name": "Checkpoint Issue",
+    "station": "relief"
+   },
+   {
+    "description": "A screen that keeps rockets off the trucks: a rocket tube in every team and one DEP-PD-GUN to stand over the column.",
+    "grant": "sale",
+    "id": "weapons:convoy-escort",
+    "members": [
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Anti-Armor",
+      "special": "special.srm-1"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Point Defence",
+      "special": "special.point-defence-emplacement"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Anti-Armor",
+      "special": "special.anti-materiel-rifle"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Anti-Armor",
+      "special": "special.srm-1"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     }
+    ],
+    "name": "Convoy Escort Issue",
+    "station": "thunder-run"
+   },
+   {
+    "description": "Hegemony issue for living under mortar fire: two MBL-PD-MLS packs to stop the rounds and an anti-materiel rifle for the tube.",
+    "grant": "sale",
+    "id": "weapons:counter-battery",
+    "members": [
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Interceptor",
+      "special": "special.point-defence-pack"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Heavy Marksman",
+      "special": "special.anti-materiel-rifle"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": "special.field-mortar"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Interceptor",
+      "special": "special.point-defence-pack"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": "special.field-mortar"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     }
+    ],
+    "name": "Counter-Battery Issue",
+    "station": "blind-watch"
+   },
+   {
+    "description": "Holding a construction site out of the Shepherd yard stores: three sappers with satchel charges and two DEP-PD-GUNs over the plots.",
+    "grant": "sale",
+    "id": "weapons:builders-guard",
+    "members": [
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Sapper",
+      "special": "special.satchel-charge"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Point Defence",
+      "special": "special.point-defence-emplacement"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Sapper",
+      "special": "special.satchel-charge"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Point Defence",
+      "special": "special.point-defence-emplacement"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Team Leader",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Sapper",
+      "special": "special.satchel-charge"
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     },
+     {
+      "belt": null,
+      "grade": "SERVICE",
+      "primary": "weapon.field-rifle",
+      "role": "Rifleman",
+      "special": null
+     }
+    ],
+    "name": "Builder's Guard",
+    "station": "working-passage"
+   }
+  ]
+ }
+}

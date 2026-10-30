@@ -5,6 +5,7 @@ these (uploading clips, publishing the page) are an agent's, and the runbook nam
     python tools/kits/refresh.py dolls                   render the machine dolls (Gradle): build/snapshots/machine-dolls/
     python tools/kits/refresh.py clips                   cut clips and posters into build/kits/clips/ and list the
                                                          clips to upload (new, or changed since their recorded upload)
+    python tools/kits/refresh.py pending                 list the clips to upload again, without cutting
     python tools/kits/refresh.py record-assets <json>    merge {"<clip id>": "<asset url>"} from the uploads into
                                                          tools/kits/review/clip-assets.json
     python tools/kits/refresh.py from-page <page.html>   no render: take the clip list, posters, asset urls and the
@@ -12,7 +13,11 @@ these (uploading clips, publishing the page) are an agent's, and the runbook nam
     python tools/kits/refresh.py build                   build/kits/kit-ladder.html (artifact form) and its manifest,
                                                          stats and seeds fresh from the repo
     python tools/kits/refresh.py record-published        after a successful publish: copy the build's manifest to
-                                                         tools/kits/review/published.json (commit it)
+                                                         tools/kits/review/published.json (commit it), keeping the
+                                                         artifact url recorded there (artifactUrl)
+
+The artifact's url lives in tools/kits/review/published.json (artifactUrl; `bootstrap.py url` prints it, `bootstrap.py
+record-url` sets it). A new artifact (another account) starts from tools/kits/bootstrap.py.
 
 Clip ids are the weapon reel's shot names (<category>-<key>), so a re-render keeps them and the notes keyed by them
 survive. tools/kits/review/clip-assets.json holds, per clip id, the uploaded asset url and the sha1 of the mp4 that
@@ -86,6 +91,19 @@ def cmd_clips(_):
         raise SystemExit("no %s: run 'refresh.py reel' first" % index)
     subprocess.run([sys.executable, str(ROOT / "tools/kits/cut_weapon_clips.py"), str(index), str(CLIPS)], check=True)
     shutil.copyfile(index, CLIPS / "index.json")
+    list_pending()
+
+
+def cmd_pending(_):
+    list_pending()
+
+
+def list_pending():
+    """Write build/kits/clips/upload.json (the cut clips with no recorded upload of their current mp4) and print the
+    upload batches, without cutting anything."""
+    index = CLIPS / "index.json"
+    if not index.exists():
+        raise SystemExit("no %s: run 'refresh.py clips' first" % index)
     assets = load_assets()
     shots = [c["shot"] for r in json.loads(index.read_text(encoding="utf-8"))["reels"] for c in r["clips"]]
     pending = [s for s in shots if assets.get(s, {}).get("sha1") != sha1(CLIPS / (s + ".mp4"))]
@@ -151,11 +169,22 @@ def cmd_record_published(_):
     if not manifest.exists():
         raise SystemExit("no %s: run 'refresh.py build' and publish it first" % manifest)
     ladder.REVIEW.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(manifest, ladder.PUBLISHED)
-    print("recorded %s as the published page's manifest" % ladder.PUBLISHED)
+    url = artifact_url()
+    data = json.loads(manifest.read_text(encoding="utf-8"))
+    if url:
+        data["artifactUrl"] = url
+    ladder.PUBLISHED.write_text(json.dumps(data, indent=1, sort_keys=True), encoding="utf-8", newline="\n")
+    print("recorded %s as the published page's manifest (artifact %s)" % (ladder.PUBLISHED, url or "not recorded"))
 
 
-COMMANDS = {"reel": cmd_reel, "dolls": cmd_dolls, "clips": cmd_clips, "record-assets": cmd_record_assets,
+def artifact_url():
+    """The Kit Ladder artifact's url, recorded in tools/kits/review/published.json (bootstrap.py record-url), or None."""
+    if ladder.PUBLISHED.exists():
+        return json.loads(ladder.PUBLISHED.read_text(encoding="utf-8")).get("artifactUrl")
+    return None
+
+
+COMMANDS = {"reel": cmd_reel, "dolls": cmd_dolls, "clips": cmd_clips, "pending": cmd_pending, "record-assets": cmd_record_assets,
             "from-page": cmd_from_page, "build": cmd_build, "record-published": cmd_record_published}
 
 

@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-30
 
-Updated: 2026-10-30 — tactic sheets can be seated suit by suit, and the start cards are the new company's baseline.
+Updated: 2026-10-30 — the page's state is tracked on disk and the page can be stood up on another account (`bootstrap.py`, the `kit-ladder` skill).
 
 The Kit Ladder is defined in `progression-nouns.md` (Kit Ladder): the owner-authored
 table placing every loadout card and machine pattern on an unlock station. This doc
@@ -25,7 +25,8 @@ repeatable tools that move edits, notes and checks between the page and the repo
   sheet's suits are dealt to seats by role (`ArmorIssueResolver`), which Wayline paths exist
   (`FirstRefit.Path`, named in saves), and each pattern's tier (`MechPattern`).
 - **The page is an editor over it, never a second source.** The Kit Ladder
-  artifact (`https://claude.ai/artifact/LuCPJvBHLeTQG1CpXHRRbC`) is built by
+  artifact (its url is `artifactUrl` in `tools/kits/review/published.json`;
+  `python tools/kits/bootstrap.py url` prints it) is built by
   `tools/kits/build.py`, which seeds every placement and card from the data files. The owner's
   edits are saved in the artifact's database: doc `kits/state` (field `json`: the
   weapon and armour cards with their stations, grants and seats, and the `place`
@@ -34,10 +35,12 @@ repeatable tools that move edits, notes and checks between the page and the repo
 - **Nothing writes the repo behind the owner's back.** Page edits reach the game
   only through an export, a diff report and an apply on the owner's go-ahead.
 - **Tracked review state** lives in `tools/kits/review/`, never in living docs:
-  `weapon-notes.json` (the owner's notes per clip, exported), `clip-assets.json`
-  (each clip's uploaded asset url and the hash of the mp4 uploaded) and
-  `published.json` (the manifest of the page last published: per-item
-  fingerprints and seeded stations). Accepted check exceptions live in
+  `weapon-notes.json` (the owner's notes per clip, exported), `page-state.json`
+  (the page's whole working state as last exported, so the database is never
+  its only copy), `clip-assets.json` (each clip's uploaded asset url and the
+  hash of the mp4 uploaded) and `published.json` (the artifact's url and the
+  manifest of the page last published: per-item fingerprints and seeded
+  stations). Accepted check exceptions live in
   `tools/kits/check-allow.json`, each with a reason.
 
 ## The owner's workflow
@@ -174,12 +177,15 @@ either way run `check.py`.
 
 | Command | What it does | When |
 |---------|--------------|------|
-| `python tools/kits/export_state.py <dir> [--page <html>]` | Reads the ArtifactData export, writes `tools/kits/review/weapon-notes.json` and the diff report `build/kits/export/ladder-diff.md` | "notes in", "ladder updated" |
+| `python tools/kits/export_state.py <dir> [--page <html>]` | Reads the ArtifactData export, writes `tools/kits/review/weapon-notes.json`, `tools/kits/review/page-state.json` and the diff report `build/kits/export/ladder-diff.md` | "notes in", "ladder updated", before switching accounts |
 | `python tools/kits/apply_ladder.py <dir> [--check] [--only ids] [--cards ids]` | Writes accepted moves and adds into `kit-ladder.json`, and with `--cards` (ids, or `all`) accepted seats and suits into `loadout-cards.json`, deterministically; `--check` only reports | After the owner approves a diff |
 | `python tools/kits/check.py [--page <html>] [--reel <index.json>]` | Validates the data as the game loads it, plus prerequisites, tiers, staleness and the Weapons tab; exit 1 on errors | After any ladder, card, pattern or weapon change; before a publish |
 | `python tools/kits/check.py --self-test` | The tools' own logic on small inputs | After editing `tools/kits/` |
 | `python tools/kits/balance.py [--tasks ...]` | Runs the cheap balance evidence and gathers it into `build/reports/balance/kit-ladder-balance.md` | Before and after a balance pass |
 | `python tools/kits/refresh.py <step>` | The local steps of a page refresh (runbook below) | After game data changes the page shows |
+| `python tools/kits/bootstrap.py <step>` | The local steps of standing the page up on a new artifact, and the db seed (below) | New account, lost artifact |
+
+The `kit-ladder` project skill is the working summary of all of this for a session.
 
 ### Export
 
@@ -253,6 +259,43 @@ reel's shot names, so notes keyed by them survive every refresh.
 
 The page's database is untouched by a refresh: on load the page keeps the owner's
 saved state and reseeds only items it has never placed or stations it does not know.
+
+When a rename changes clip ids, the database's `weapon-notes` docs stay under the
+old ids (the tools read them through `kitdata.RETIRED_CLIPS`). At the next refresh,
+move them in one `ArtifactData batch`: `set` each note under its new id and
+`delete` the old doc, pinned to the version read.
+
+## Moving to another account
+
+An artifact, its asset store and its database belong to one Claude account; a new
+account starts a new artifact. Everything needed to rebuild it is on disk once the
+working state is exported.
+
+**Before switching**, on the old account: export (above) and run
+`export_state.py <dir>`, then commit `tools/kits/review/` (`page-state.json`,
+`weapon-notes.json`). After that the old link is stale: it keeps working for the
+old account only, and its asset urls in `clip-assets.json` mean nothing to a new
+artifact.
+
+**On the new account**, from a clean checkout:
+
+1. `python tools/kits/bootstrap.py render`: machine dolls, the weapon reel and the
+   cut clips and posters under `build/` (Gradle and ffmpeg, minutes).
+2. `python tools/kits/bootstrap.py first-build`, then `check.py`: a posters-only
+   page, because assets can be uploaded only once a published version declares
+   `assets`.
+3. Artifact tool: publish `build/kits/kit-ladder.html` as a new artifact, declaring
+   `capabilities: {"db": {}, "user": {}, "downloads": true, "assets": {}}`.
+4. `python tools/kits/bootstrap.py record-url <new url>`: writes `artifactUrl` into
+   `published.json` and, the url having changed, empties `clip-assets.json`; then
+   `python tools/kits/refresh.py pending` lists the upload batches.
+5. Upload, record and republish as in the refresh runbook, steps 2 to 5
+   (`record-published` keeps the url).
+6. `python tools/kits/bootstrap.py seed`: `build/kits/seed/batch-NN.json`, each at
+   most 50 `set` writes (`kits/state` as `{at, json}`, one `weapon-notes` doc per
+   clip id); apply each with `ArtifactData batch`, `writes` being the file's list.
+7. Replace the old url where a doc lists it (`tools/picks/pages.md`), and commit
+   `tools/kits/review/` with it.
 
 ## Open questions
 
