@@ -54,6 +54,10 @@ import static org.lwjgl.opengl.GL11.glVertex2f;
  * state it had ({@link PlacementPause}). LMB places the drop and closes the picker;
  * Shift+LMB places it and keeps the picker open on the next machine; RMB or Escape closes it.
  * An invalid target or an unliftable pick keeps it armed and spends nothing.
+ *
+ * <p>A line power ({@link CommandPower#lineMaxCells()} above zero) is drawn: LMB down anchors the line's start on a
+ * valid cell, and releasing past the shortest line commits it from there to the cursor, cut to the power's length; a
+ * click that does not drag far enough leaves the start anchored, and a second click commits the line.
  */
 public final class CommandPowerTargetingPanel implements HudPanel {
 
@@ -68,6 +72,8 @@ public final class CommandPowerTargetingPanel implements HudPanel {
     private Integer pick;
     private int mouseX;
     private int mouseY;
+    /** A line power's anchored start cell, or {@code null} before the first press. */
+    private int[] lineStart;
 
     public CommandPowerTargetingPanel(BattleUiContext ctx) {
         this(ctx, null);
@@ -156,6 +162,7 @@ public final class CommandPowerTargetingPanel implements HudPanel {
     private void disarm() {
         targetingPowerId = null;
         pick = null;
+        lineStart = null;
         pause.release();
     }
 
@@ -205,6 +212,16 @@ public final class CommandPowerTargetingPanel implements HudPanel {
         int cellY = (int) Math.floor(camera.screenToCellY(mouseY));
         if (!inBounds(camera, cellX, cellY)) return;
 
+        if (power.lineMaxCells() > 0f && lineStart != null) {
+            int[] end = lineEnd(lineStart[0], lineStart[1], cellX, cellY, power.lineMaxCells());
+            boolean valid = power.canTargetLine(lineStart[0], lineStart[1], end[0], end[1], sim);
+            BattlefieldMarkerPresentation.TargetMarker marker =
+                    BattlefieldMarkerPresentation.target(power.displayName, valid, 0f, null);
+            paintLine(camera, marker, lineStart, end, power.previewRadiusCells(), alphaMult);
+            paintTargetingMarker(camera, marker, camera.cellToScreenX(end[0] + 0.5f),
+                    camera.cellToScreenY(end[1] + 0.5f), alphaMult);
+            return;
+        }
         float centerX = camera.cellToScreenX(cellX + 0.5f);
         float centerY = camera.cellToScreenY(cellY + 0.5f);
         boolean valid = power.canTarget(cellX, cellY, sim, selection());
@@ -216,6 +233,59 @@ public final class CommandPowerTargetingPanel implements HudPanel {
                 BattlefieldMarkerPresentation.target(power.displayName, valid,
                         power.previewRadiusCells(), cover);
         paintTargetingMarker(camera, marker, centerX, centerY, alphaMult);
+    }
+
+    /**
+     * The end of a drawn line: the cursor cell, pulled back along the line to {@code maxCells} from the start when it
+     * lies further out.
+     */
+    static int[] lineEnd(int ax, int ay, int cursorX, int cursorY, float maxCells) {
+        float dx = cursorX - ax;
+        float dy = cursorY - ay;
+        float len = (float) Math.hypot(dx, dy);
+        if (len <= maxCells || len < 1e-3f) return new int[]{cursorX, cursorY};
+        float k = maxCells / len;
+        return new int[]{ax + (int) (dx * k), ay + (int) (dy * k)};
+    }
+
+    /** The drawn line from its start to its end, with the corridor either side of it shaded. */
+    private static void paintLine(BattleCamera camera, BattlefieldMarkerPresentation.TargetMarker marker,
+                                  int[] start, int[] end, float halfWidthCells, float alphaMult) {
+        Color color = marker.tone();
+        float r = color.getRed() / 255f;
+        float g = color.getGreen() / 255f;
+        float b = color.getBlue() / 255f;
+        float x0 = camera.cellToScreenX(start[0] + 0.5f);
+        float y0 = camera.cellToScreenY(start[1] + 0.5f);
+        float x1 = camera.cellToScreenX(end[0] + 0.5f);
+        float y1 = camera.cellToScreenY(end[1] + 0.5f);
+        float dx = x1 - x0;
+        float dy = y1 - y0;
+        float len = (float) Math.hypot(dx, dy);
+        glPushAttrib(GL_ALL_ATTRIB_BITS);
+        glDisable(GL_TEXTURE_2D);
+        glEnable(GL_BLEND);
+        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+        if (len > 1e-3f) {
+            float half = halfWidthCells * camera.cellPxSize();
+            float nx = -dy / len * half;
+            float ny = dx / len * half;
+            glColor4f(r, g, b, 0.10f * alphaMult);
+            glBegin(GL_QUADS);
+            glVertex2f(x0 + nx, y0 + ny);
+            glVertex2f(x1 + nx, y1 + ny);
+            glVertex2f(x1 - nx, y1 - ny);
+            glVertex2f(x0 - nx, y0 - ny);
+            glEnd();
+        }
+        glColor4f(r, g, b, 0.92f * alphaMult);
+        glLineWidth(2.25f);
+        glBegin(GL_LINES);
+        glVertex2f(x0, y0);
+        glVertex2f(x1, y1);
+        glEnd();
+        glPopAttrib();
+        paintCenterDiamond(x0, y0, r, g, b, alphaMult);
     }
 
     /**
@@ -378,6 +448,11 @@ public final class CommandPowerTargetingPanel implements HudPanel {
                 event.consume();
                 continue;
             }
+            CommandPower linePower = service.getPower(targetingPowerId);
+            if (linePower != null && linePower.lineMaxCells() > 0f) {
+                handleLine(event, linePower, sim, camera, service);
+                continue;
+            }
             if (!event.isLMBDownEvent()
                     || !camera.containsScreen(event.getX(), event.getY())) continue;
 
@@ -399,6 +474,28 @@ public final class CommandPowerTargetingPanel implements HudPanel {
             // Invalid targets deliberately remain armed, but still claim the click.
             event.consume();
         }
+    }
+
+    /** A line power's press and release: the press anchors the start, a long enough release or a second press commits. */
+    private void handleLine(InputEventAPI event, CommandPower power, BattleSimulation sim, BattleCamera camera,
+                            CommandPowerService service) {
+        boolean down = event.isLMBDownEvent();
+        if (!down && !(event.isLMBUpEvent() && lineStart != null)) return;
+        if (!camera.containsScreen(event.getX(), event.getY())) return;
+        int cellX = (int) Math.floor(camera.screenToCellX(event.getX()));
+        int cellY = (int) Math.floor(camera.screenToCellY(event.getY()));
+        if (!inBounds(camera, cellX, cellY)) return;
+        event.consume();
+        if (lineStart == null) {
+            if (power.canTarget(cellX, cellY, sim)) lineStart = new int[]{cellX, cellY};
+            return;
+        }
+        int[] end = lineEnd(lineStart[0], lineStart[1], cellX, cellY, power.lineMaxCells());
+        if (power.canTargetLine(lineStart[0], lineStart[1], end[0], end[1], sim)) {
+            service.requestLineActivation(targetingPowerId, lineStart[0], lineStart[1], end[0], end[1]);
+            disarm();
+        }
+        // Too short on release: the start stays anchored for a second click.
     }
 
     private static boolean inBounds(BattleCamera camera, int cellX, int cellY) {

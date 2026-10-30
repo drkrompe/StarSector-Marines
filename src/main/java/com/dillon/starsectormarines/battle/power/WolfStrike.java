@@ -1,21 +1,21 @@
 package com.dillon.starsectormarines.battle.power;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.sim.BattleControl;
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.warship.LowPass;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.warship.WarshipAtmosphere;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
-import java.util.Random;
-
 /**
- * Calls a Wolf frigate over the targeted ground for a short strike: it drops through the cloud deck in reach of the
- * cell and holds there, its turrets work whatever they find on their own, and ten to thirty seconds after the descent
- * it departs. The same call path as {@link ShipOnStation}, at the Onslaught's reduced body
- * ({@link SpawnInOnslaught#PRESENCE}).
+ * A Wolf frigate's fly-by along a short line the player draws: it breaks out of the cloud deck behind the line's start
+ * on the line's heading, flies a {@link LowPass} down it with its turrets working whatever is in the corridor, and at
+ * the line's end climbs straight back up through the deck. No station is kept and nothing is left behind. The body is
+ * the Onslaught's reduced one ({@link SpawnInOnslaught#PRESENCE}).
  *
  * <p>A committed Wolf of any mark is the <em>source</em> (it makes the card exist), but the ship flown is always the
  * stock Wolf (H) Assault, so the guns over the battle are the ones this power chooses, not whatever the member was
@@ -30,11 +30,10 @@ public final class WolfStrike extends CommandPower {
     public static final String HULL_ID = "wolf_hegemony";
     public static final String VARIANT_ID = "wolf_hegemony_Assault";
 
-    /** Time with its guns live, from the end of the descent; drawn evenly between the two. */
-    public static final float MIN_STATION_SECONDS = 10f;
-    public static final float MAX_STATION_SECONDS = 30f;
+    /** The longest line the player draws, in cells: a short, sharp run. The shortest is {@link LowPass#MIN_LENGTH_CELLS}. */
+    public static final float MAX_LINE_CELLS = 60f;
 
-    /** Draft tuning: a light hull's short visit, available twice. */
+    /** Draft tuning: a light hull's quick run, available twice. */
     private static final float CP_COST = 3f;
     private static final float COOLDOWN_SECONDS = 20f;
     private static final int MAX_CHARGES = 2;
@@ -50,29 +49,83 @@ public final class WolfStrike extends CommandPower {
         return ShipSupportSource.stock(HULL_ID, VARIANT_ID, "Wolf (H)", false);
     }
 
-    /** One strike's time on station, drawn from the battle's stream. */
-    public static float stationSeconds(Random random) {
-        return MIN_STATION_SECONDS + random.nextFloat() * (MAX_STATION_SECONDS - MIN_STATION_SECONDS);
-    }
+    @Override public float lineMaxCells() { return MAX_LINE_CELLS; }
 
-    @Override public float previewRadiusCells() { return ShipOnStation.AREA_RADIUS_CELLS; }
+    /** The corridor the guns work, so the preview shows the ground either side of the line. */
+    @Override public float previewRadiusCells() { return LowPass.CORRIDOR_HALF_WIDTH_CELLS; }
 
     @Override
     public boolean canTarget(int cellX, int cellY, BattleView battle) {
         return super.canTarget(cellX, cellY, battle) && battle.playerSeesCell(cellX, cellY);
     }
 
+    /** A line from seen ground, long enough for a pass and no longer than a short run. */
+    @Override
+    public boolean canTargetLine(int ax, int ay, int bx, int by, BattleView battle) {
+        if (!super.canTargetLine(ax, ay, bx, by, battle)) return false;
+        double length = Math.hypot(bx - ax, by - ay);
+        return length >= LowPass.MIN_LENGTH_CELLS && length <= MAX_LINE_CELLS + 1f;
+    }
+
+    /** Aimed at one cell (a caller with no line): a run of the longest line centred on it, across the map's ship axis. */
     @Override
     public void resolve(int cellX, int cellY, CommandPowerService service, BattleControl battle) {
+        float half = MAX_LINE_CELLS * 0.5f;
+        fly(cellX + 0.5f - half, cellY + 0.5f, cellX + 0.5f + half, cellY + 0.5f, battle);
+    }
+
+    @Override
+    public void resolveLine(int ax, int ay, int bx, int by, CommandPowerService service, BattleControl battle) {
+        fly(ax + 0.5f, ay + 0.5f, bx + 0.5f, by + 0.5f, battle);
+    }
+
+    /** Fits the Wolf behind A on the line's heading, sends it down the line, and has it climb out at B. */
+    public static Warship fly(float ax, float ay, float bx, float by, BattleControl battle) {
+        int w = battle.getGrid().getWidth();
+        int h = battle.getGrid().getHeight();
         try {
-            Warship wolf = ShipOnStation.call(source(), Faction.MARINE, cellX + 0.5f, cellY + 0.5f,
-                    SpawnInOnslaught.PRESENCE, battle);
-            // It holds where it drops, already in reach of the cell, rather than gliding in to it; it is on station
-            // from the start, so the stay is counted through the descent, when it fires nothing.
-            wolf.stationTo(wolf.x, wolf.y);
-            wolf.stayFor(WarshipAtmosphere.DESCENT_SECONDS + stationSeconds(battle.random()));
+            float dx = bx - ax;
+            float dy = by - ay;
+            float len = (float) Math.hypot(dx, dy);
+            if (len < 1e-3f) return null;
+            float heading = AirBody.facingToward(dx, dy);
+            Warship probe = Warship.fit(source(), Faction.MARINE, 0f, 0f, heading, SpawnInOnslaught.PRESENCE);
+            // It comes down through the deck while running in, so its guns go live about as it reaches A.
+            float runUp = runUpCells(probe.maxSpeed, probe.acceleration);
+            float sx = clamp(ax - dx / len * runUp, 0f, w);
+            float sy = clamp(ay - dy / len * runUp, 0f, h);
+            Warship wolf = Warship.fit(source(), Faction.MARINE, sx, sy, heading, SpawnInOnslaught.PRESENCE);
+            wolf.calledFrom(source());
+            wolf.arriveFromAboveOnHeading(heading);
+            wolf.useDoctrine();
+            wolf.fluxScale(Warship.BRAWLER_FLUX_SCALE);
+            wolf.limitFlux();
+            LowPass pass = LowPass.plan(sx, sy, ax, ay, bx, by, w, h);
+            if (pass == null || !wolf.beginLowPass(pass)) {
+                LOG.warn("WolfStrike: no pass along " + ax + "," + ay + " -> " + bx + "," + by);
+                return null;
+            }
+            wolf.climbAfterPass();
+            battle.addWarship(wolf);
+            return wolf;
         } catch (Exception e) {
             LOG.warn("WolfStrike: the Wolf (H) could not be fitted", e);
+            return null;
         }
+    }
+
+    /** Cells a hull flies from rest at the pass speed over the descent: how far behind A it breaks out of the deck. */
+    static float runUpCells(float maxSpeed, float acceleration) {
+        float v = LowPass.passSpeed(maxSpeed);
+        float a = LowPass.passAcceleration(acceleration);
+        float t = WarshipAtmosphere.DESCENT_SECONDS;
+        if (!(v > 0f) || !(a > 0f)) return 0f;
+        float rampSeconds = v / a;
+        if (t <= rampSeconds) return 0.5f * a * t * t;
+        return v * v / (2f * a) + v * (t - rampSeconds);
+    }
+
+    private static float clamp(float v, float lo, float hi) {
+        return Math.max(lo, Math.min(hi, v));
     }
 }

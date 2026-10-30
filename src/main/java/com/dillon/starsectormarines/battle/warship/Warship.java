@@ -1924,6 +1924,21 @@ public final class Warship {
         headingChosen = false;
     }
 
+    private boolean climbAfterPass;
+
+    /**
+     * Makes the next low pass this ship's last act over the battle: when it reaches the end of the line it climbs
+     * straight back up through the cloud deck ({@link #climbThroughDeck}) instead of returning to a station. A fly-by.
+     */
+    public void climbAfterPass() {
+        climbAfterPass = true;
+    }
+
+    /** Whether the ship leaves through the deck once its pass is flown. */
+    public boolean climbsAfterPass() {
+        return climbAfterPass;
+    }
+
     /** Drops the pass once it has nothing left to show. */
     void clearLowPass() {
         lowPass = null;
