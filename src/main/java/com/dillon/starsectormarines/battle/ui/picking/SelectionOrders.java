@@ -228,6 +228,8 @@ public final class SelectionOrders {
             case INFANTRY -> sim.getSquadMoveOrderService().requestMove(recipient.squadId(), x, y);
             case MECH -> sim.getMechMoveOrderService().requestMove(recipient.id(), x, y, facingDegrees);
             case VEHICLE -> {
+                // A direct order to a vehicle ends its attachment, as one to a mech does.
+                sim.getVehicleAttachmentService().requestDetach(recipient.id());
                 VehicleMoveOrderService vehicles = sim.getVehicleMoveOrderService();
                 if (vehicles != null) vehicles.requestMove(recipient.id(), x, y, facingDegrees);
             }

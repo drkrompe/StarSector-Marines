@@ -16,6 +16,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.HashSet;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -56,7 +57,7 @@ class ArcIssueListingsTest {
     @Test
     void eachBeatIsItsCardsKitLadderStation() {
         for (ArcIssueListings.Beat beat : ArcIssueListings.Beat.values()) {
-            assertEquals(UnlockStation.valueOf(beat.name()), KitLadder.station(beat.cardId()), beat.name());
+            assertEquals(UnlockStation.byId(beat.name().toLowerCase(Locale.ROOT).replace('_', '-')), KitLadder.station(beat.cardId()), beat.name());
         }
     }
 

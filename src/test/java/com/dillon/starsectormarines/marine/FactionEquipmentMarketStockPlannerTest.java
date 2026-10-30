@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.marine;
 import com.fs.starfarer.api.campaign.RepLevel;
 import org.junit.jupiter.api.Test;
 
-import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -70,7 +69,7 @@ class FactionEquipmentMarketStockPlannerTest {
 
     @Test
     void theStoreStocksOnlyCardsWhoseKitLadderStationIsPassedWhateverTheStanding() {
-        Set<UnlockStation> early = EnumSet.of(UnlockStation.START, UnlockStation.RELIEF);
+        Set<UnlockStation> early = Set.of(UnlockStation.START, UnlockStation.byId("relief"));
         for (long month = 0; month < 100; month++) {
             FactionEquipmentMarketStockPlanner.StockPlan plan =
                     FactionEquipmentMarketStockPlanner.plan(

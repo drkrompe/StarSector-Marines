@@ -300,6 +300,9 @@ public final class ConquestCommand implements ConquestFrontCommand,
     private final AssaultMuster muster = new AssaultMuster();
     /** The cell the force came ashore at, remembered once known. Own-force knowledge. */
     private int[] dropZone;
+    /** Conquest calls its own lances down and commits them to its companies. */
+    @Override public boolean commandsMachines() { return true; }
+
     /** Ticks a company waits for a lance it has called to come down and join it. UNTUNED. */
     static final int LANCE_ARRIVAL_ALLOWANCE_TICKS = 1800;
     /** The fort whose company wants a lance called, set by the pure plan and acted on in {@link #afterCommit}. */

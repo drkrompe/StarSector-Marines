@@ -19,7 +19,7 @@ public record LoadoutCard(Kind kind, String definitionId) {
 
     public enum Kind { WEAPON, SHEET }
 
-    private static final String PREFIX = "loadout-card:";
+    static final String PREFIX = "loadout-card:";
 
     public LoadoutCard {
         if (kind == null || definitionId == null || definitionId.isBlank()) {

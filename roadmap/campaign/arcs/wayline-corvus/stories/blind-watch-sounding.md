@@ -314,9 +314,11 @@ worst-approach and a prepared-approach run, the full-mission preview video.
   - Stood-to, Hound only: defeat at tick 5,496, 60 of 60 marines lost, 33 of 71 Sable down, no charge blown. Most
     marines fell to the gate's elite crew and the reaction squad as the autonomous company pushed down the track.
   - Quiet post, Hound only: defeat at tick 5,194, 16 of 71 Sable down.
-  - Stood-to with an LRM carrier and a mortar APC beside the Hound (`-Dbattle.corvus.machines`): the autonomous
-    company never moves its vehicles off the landing ground, and with vehicles in the lance the Hound stays with
-    them, so the run measures nothing about armour. The autopilot is not the player; tune in play, not on these.
+  - Stood-to with an LRM carrier and a mortar APC beside the Hound (`-Dbattle.corvus.machines`), each machine on its
+    own pad and attached to a squad by mission command: defeat at tick 7,682, 28 of 71 Sable down, the Hound 8 kills;
+    the hulls trail their squads across the flat and never close on the post before the infantry is spent. The Hound
+    alone, attached: defeat at tick 7,371, 35 of 71 down, the Hound 18 kills. The autopilot is not the player; tune
+    in play, not on these.
 - [ ] Live play on Warion in a campaign.
 
 ## Open questions
