@@ -106,11 +106,13 @@ def image(path):
 
 # What the machine-dolls render audit found, by machine; the page shows each beside its doll.
 DOLL_NOTES = {
-    "escort_apc": ["No bay card: capacity 0, unlike the troop carriers."],
-    "fire_support_apc": ["No bay card: capacity 0, unlike the troop carriers."],
-    "bulwark": ["Arm sockets are 2x2 and hold chainguns; the second auxiliary bay ships empty."],
+    "bulwark": ["Arm sockets are 2x2 and hold two Chainguns; the right auxiliary bay ships empty."],
     "hound": ["One shoulder socket, on the left only."],
     "warden": ["The 2x3 shoulders hold 2x2 LRM-5 (Frag) racks, leaving a spare row."],
+    "heavy_apc": ["The one APC chassis: the convoy escort is this hull in heavy plating with a spall liner, not a doll of its own."],
+    "fire_support_apc": ["No bay card: capacity 0, unlike the troop carrier on the same chassis."],
+    "breakthrough_tank": ["Two kit racks share four slots; the stock fit fills only the first, with its capacitor bank."],
+    "laser_tank": ["The stock flux parts (double bank, two vent arrays) fill three of the four rack slots across both racks."],
 }
 
 
@@ -120,8 +122,10 @@ PAD_BOX = {"vehicle": (1380, 240, 1790, 1010), "mech": (1065, 330, 1545, 900)}
 
 def pad_photo(folder, machine):
     """The machine as the Mech Lab shows it on its pad, cropped from the suite's full frame."""
-    frame = folder / "full" / (machine["id"] + "-full.png")
-    if not frame.exists():
+    name = machine["id"] + "-full.png"
+    # The suite writes the frames flat beside the manifest; a curated review set keeps them under full/.
+    frame = next((f for f in (folder / "full" / name, folder / name) if f.exists()), None)
+    if frame is None:
         return None
     buffer = io.BytesIO()
     Image.open(frame).convert("RGB").crop(PAD_BOX[machine["kind"]]).save(buffer, "JPEG", quality=85)
@@ -346,12 +350,16 @@ def main():
     doll_src = (JAVA / "ops/battleview/DamageDollCanvas.java").read_text(encoding="utf-8")
 
     def stems(source, anchor):
+        if anchor not in source:
+            raise SystemExit("kits/build.py: anchor %r not found in the Java source; the file was reshaped" % anchor)
         body = source[source.index(anchor):]
         body = body[:body.index("};")]
         out = {}
         for names, stem in re.findall(r'case ([A-Z_0-9, ]+) -> "([a-z0-9-]+)";', body):
             for n in names.split(","):
                 out[n.strip()] = stem
+        if not out:
+            raise SystemExit("kits/build.py: no 'case X -> \"<stem>\";' lines found after %r; the switch was reshaped" % anchor)
         return out
 
     weapon_stem = stems(hw_src, "private static String stem(MechWeaponComponent component)")
@@ -363,13 +371,6 @@ def main():
         if light:
             data = data.replace("currentColor", "#dbe5df")
         return "data:image/svg+xml;base64," + base64.b64encode(data.encode("utf-8")).decode()
-
-    def weapon_tone(stem):
-        if any(k in stem for k in ("laser", "lance")):
-            return "ENERGY"
-        if any(k in stem for k in ("srm", "lrm", "rocket")):
-            return "MISSILE"
-        return "BALLISTIC"
 
     weight = {"COMMON": "light", "ADVANCED": "medium", "PRESTIGE": "heavy"}
     starters = {("CHASSIS", "HOUND"), ("WEAPON", "NOSE_CHAINGUN"), ("WEAPON", "SRM_5"), ("WEAPON", "SRM_5_FRAG")}
@@ -392,15 +393,26 @@ def main():
                  icon=svg_uri("graphics/ui/dolls/%s.svg" % vehicle_doll[enum], True) if enum in vehicle_doll else None)
     comps = re.findall(r'^\s+(\w+)\("component\.[^"]+",\s*"(@[^"]+)"(?:,\s*MountFamily\.(\w+))?',
                        (JAVA / "battle/mech/MechWeaponComponent.java").read_text(encoding="utf-8"), re.M)
-    wfp = {m[0]: (int(m[1]), int(m[2])) for m in re.findall(r'^\s+(\w+)\("component\.[^"]+".*?HardpointType\.\w+,\s*(\d+),\s*(\d+)',
-        (JAVA / "battle/mech/MechWeaponComponent.java").read_text(encoding="utf-8"), re.M | re.S)}
+    weapon_src = (JAVA / "battle/mech/MechWeaponComponent.java").read_text(encoding="utf-8")
+    # Hardpoint type and grid footprint, read from each component's constructor: ... HardpointType.X, <columns>, <rows>
+    hardpoints = {m[0]: (m[1], (int(m[2]), int(m[3]))) for m in re.findall(
+        r'^\s+(\w+)\("component\.[^"]+".*?HardpointType\.(\w+),\s*(\d+),\s*(\d+)', weapon_src, re.M | re.S)}
+    if not hardpoints or len(hardpoints) != len(comps):
+        raise SystemExit("kits/build.py: MechWeaponComponent constructor shape 'HardpointType.X, <cols>, <rows>' matched %d of %d components"
+                         % (len(hardpoints), len(comps)))
+    unknown = {t for t, _ in hardpoints.values()} - {"BALLISTIC", "ENERGY", "MISSILE"}
+    if unknown:
+        raise SystemExit("kits/build.py: unmapped HardpointType values %s" % sorted(unknown))
+    wfp = {k: v[1] for k, v in hardpoints.items()}
     ifp = {m[0]: (int(m[1]), int(m[2])) for m in re.findall(r'^\s+(\w+)\("internal\.[^"]+".*?EquipmentAccessTier\.\w+,\s*(\d+),\s*(\d+)',
         (JAVA / "marine/MechInternal.java").read_text(encoding="utf-8"), re.M | re.S)}
     for enum, key, mount in comps:
+        if enum not in weapon_stem:
+            raise SystemExit("kits/build.py: HardwareArt.stem has no case for component %s" % enum)
         tier = tiers.get(("WEAPON", enum))
         if tier:
             item("mweapon", "WEAPON", enum, text(key), (mount.lower() + " mount") if mount else "mech weapon", tier, ("WEAPON", enum) in starters,
-                 svg_uri("graphics/ui/mech-hardware/%s.svg" % weapon_stem[enum]), weapon_tone(weapon_stem[enum]), wfp.get(enum))
+                 svg_uri("graphics/ui/mech-hardware/%s.svg" % weapon_stem[enum]), hardpoints[enum][0], wfp[enum])
     internals = re.findall(r'^\s+(\w+)\("internal\.[^"]+", "(@[^"]+)", Role\.(\w+),\s*EquipmentAccessTier\.(\w+)',
                            (JAVA / "marine/MechInternal.java").read_text(encoding="utf-8"), re.M)
     starter_internals = {"INDUSTRIAL_ENGINE", "FACTORY_PLATING", "FACTORY_CAPACITOR_BANK", "STANDARD_LOADER"}
