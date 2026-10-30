@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.combat;
 
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.weapon.BlastImpulse;
 
 
 /**
@@ -221,6 +222,18 @@ public final class PendingDetonation {
 
     /** Incendiary heat, 0 for an ordinary blast. */
     public int heat() { return heat; }
+
+    /** The shove this blast gives what stands in it ({@link com.dillon.starsectormarines.battle.weapon.WeaponDef#blast}); null for none. */
+    private BlastImpulse blast;
+
+    /** Gives this blast its round's shove (null for none) and returns it, so a factory can mark it inline. */
+    public PendingDetonation withBlast(BlastImpulse blast) {
+        this.blast = blast;
+        return this;
+    }
+
+    /** The shove this blast gives, or null. */
+    public BlastImpulse blast() { return blast; }
 
     /** Marks this as ship-grade ordnance and returns it, so a factory can mark it inline. */
     public PendingDetonation asShipGrade() {

@@ -6480,6 +6480,22 @@
       "terminal": false
     },
     {
+      "id": "marines_castle_dust_ledger_reserve_arrives",
+      "missionId": "story_corvus_dust_ledger",
+      "event": "corvus.dust_ledger.reserve_arrives",
+      "textKey": "corvusDustLedgerFieldReserveArrives",
+      "text": "Sable's reserve is on the crawler road: two squads and a Hound with a light gun, running for the pump house. They'll sit on the ledger room. Expect them inside the yard.",
+      "synthesisText": "Sable's reserve is on the crawler road: two squads and a Hound with a light gun, running for the pump house. They'll sit on the ledger room. Expect them inside the yard.",
+      "durationSeconds": 11.2,
+      "priority": 40,
+      "expiresSeconds": 60,
+      "supersedes": [],
+      "speaker": "CASTLE / COMPANY COMMAND",
+      "portrait": "graphics/portraits/castle.png",
+      "voiced": false,
+      "terminal": false
+    },
+    {
       "id": "marines_sabine_dust_ledger_spotters",
       "missionId": "story_corvus_dust_ledger",
       "event": "corvus.dust_ledger.spotters",

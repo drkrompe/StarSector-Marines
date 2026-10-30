@@ -177,18 +177,22 @@ public final class DustLedgerSequence implements Objective {
      * @param salvageTeamCells walkable cells on the crawler road, one per salvage team member
      * @param eastGate         the compound's east gate, where the salvage team advances
      * @param feedJunction     the power tap's junction box and the ground a squad works it from, outside the ring
+     * @param reinforcementCells walkable cells at the crawler road's far end, where Sable's reserve musters: two
+     *                         squads' worth first, then the Hound's
      */
     public record Sites(Area apron, Cell crate, Area ledgerRoom, Cell burnBarrel, Cell brokerOffice, Cell skimmerPad,
                         Area exclusionRing, Area compoundYard, List<Cell> spotterPosts, Area cantina,
                         List<Cell> drinkerCells, Area wellHouse, Area harrowYard, List<Cell> salvageTeamCells,
-                        Cell eastGate, Area feedJunction) {
+                        Cell eastGate, Area feedJunction, List<Cell> reinforcementCells) {
         public Sites {
             for (Object site : new Object[]{apron, crate, ledgerRoom, burnBarrel, brokerOffice, skimmerPad, exclusionRing,
-                    compoundYard, spotterPosts, cantina, drinkerCells, wellHouse, harrowYard, salvageTeamCells, eastGate, feedJunction})
+                    compoundYard, spotterPosts, cantina, drinkerCells, wellHouse, harrowYard, salvageTeamCells, eastGate, feedJunction,
+                    reinforcementCells})
                 if (site == null) throw new IllegalArgumentException("every Dust Ledger site is required");
             spotterPosts = List.copyOf(spotterPosts);
             drinkerCells = List.copyOf(drinkerCells);
             salvageTeamCells = List.copyOf(salvageTeamCells);
+            reinforcementCells = List.copyOf(reinforcementCells);
             if (!exclusionRing.contains(brokerOffice.x(), brokerOffice.y()) || !exclusionRing.contains(burnBarrel.x(), burnBarrel.y()))
                 throw new IllegalArgumentException("the broker's office and the burn barrel lie inside the exclusion ring");
             for (Area outside : List.of(apron, wellHouse, harrowYard, feedJunction))
@@ -246,6 +250,7 @@ public final class DustLedgerSequence implements Objective {
     private final List<Cell> nestCells = new ArrayList<>();
     private final List<Integer> pillboxSquads = new ArrayList<>();
     private DustLedgerTechnical technical;
+    private DustLedgerReinforcements reinforcements;
 
     public DustLedgerSequence(Sites sites, RaidObjective raid, List<EntitySpec> drinkers, List<EntitySpec> salvageTeam,
                               StoryBeatLog log) {
@@ -332,6 +337,19 @@ public final class DustLedgerSequence implements Objective {
         technical = new DustLedgerTechnical(sim, id, stands);
     }
 
+    /**
+     * Sable's road reserve, recorded at setup: two squads of infantry ({@link DustLedgerReinforcements#SQUAD_SIZE}
+     * each, unplaced) who muster with a Hound at {@link Sites#reinforcementCells} a short while after a company unit
+     * steps into the exclusion ring.
+     */
+    public void roadReserve(List<List<EntitySpec>> squads) {
+        if (reinforcements != null) throw new IllegalStateException("record the road reserve once");
+        reinforcements = new DustLedgerReinforcements(squads, sites.reinforcementCells(), sites.ledgerRoom().centre());
+    }
+
+    /** The road reserve, or null when the mission fields none. */
+    DustLedgerReinforcements reinforcements() { return reinforcements; }
+
     /** The truck's hull id, or 0 when the mission fields none. */
     public long technical() { return technical == null ? 0L : technical.id(); }
 
@@ -353,8 +371,9 @@ public final class DustLedgerSequence implements Objective {
     public boolean feedCut() { return feed.done(); }
     /** Reserve members not yet on the field, for the setup's pending-arrivals count. */
     public int pendingMembers(Faction faction) {
-        if (alarmApplied) return 0;
-        if (faction == Faction.DEFENDER) return drinkersJoin() ? drinkers.size() : 0;
+        int road = faction == Faction.DEFENDER && reinforcements != null ? reinforcements.pendingMembers() : 0;
+        if (alarmApplied) return road;
+        if (faction == Faction.DEFENDER) return road + (drinkersJoin() ? drinkers.size() : 0);
         return faction == Faction.ALLY && salvageTeamJoins() ? salvageTeam.size() : 0;
     }
 
@@ -399,6 +418,9 @@ public final class DustLedgerSequence implements Objective {
         walkBroker(sim);
         updateSpotters(sim);
         if (technical != null && !progress.quiet()) technical.tick(sim);
+        if (reinforcements != null
+                && reinforcements.advance(sim, !reinforcements.called() && DustLedgerReinforcements.companyIn(sim, sites.exclusionRing())))
+            beat(sim, "reserve_arrives");
     }
 
     private void onAlarm(BattleSimulation sim) {

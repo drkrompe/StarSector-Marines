@@ -216,7 +216,7 @@ public final class MissilePodSystem {
                             weapon.aoeRadius, weapon.damage(), weapon.penetration(),
                             weapon.wallDamage, shooterFaction, /*aerialDelivery*/ false,
                             weapon.wallDamageRadius, /*spawnDustOnWallBreak*/ false,
-                            /*friendlyFireImmune*/ false)
+                            /*friendlyFireImmune*/ false).withBlast(weapon.blast())
                     : null;
             shots.queueProjectile(new Projectile(fromX, fromY, res.endX(), res.endY(),
                     /*hasBoostRamp*/ true, /*arcHeight*/ 0f, shooterFaction,

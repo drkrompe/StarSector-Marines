@@ -471,6 +471,7 @@ public class InfantryWeapons {
                         sec.wallDamage(), shooterFaction, /*aerialDelivery*/ false,
                         sec.wallDamageRadius(), /*spawnDustOnWallBreak*/ true,
                         /*friendlyFireImmune*/ false).incendiary(sec.weaponDef().incendiaryHeat())
+                        .withBlast(sec.weaponDef().blast())
                 : null;
         // hasBoostRamp=true: marine rocket is a launched missile with a
         // booster, matches locust's accelerate-from-rest visual curve.
@@ -538,7 +539,8 @@ public class InfantryWeapons {
                 grenade.damage(), grenade.penetration(), grenade.wallDamage(),
                 faction, /*aerialDelivery*/ false, grenade.wallDamageRadius(),
                 /*spawnDustOnWallBreak*/ false, /*friendlyFireImmune*/ false)
-                .incendiary(grenade.weaponDef().incendiaryHeat());
+                .incendiary(grenade.weaponDef().incendiaryHeat())
+                .withBlast(grenade.weaponDef().blast());
         shots.queueProjectile(new Projectile(fromX, fromY, targetX, targetY,
                 /*hasBoostRamp*/ false, grenade.arcHeight(), faction,
                 /*aerialDelivery*/ false, flightTime, payload, grenade.weaponDef().id,

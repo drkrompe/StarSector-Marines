@@ -1784,6 +1784,16 @@ public final class BattleSetup {
                 layout.shops()::contains);
         DustLedgerSequence ledger = sim.installDustLedger(DustLedgerSites.from(layout), raid, drinkers, salvageTeam);
         ledger.defences(sim, nests, pillboxSquads);
+        // The road reserve: two plain-militia squads who come with a Hound when the company steps into the ring.
+        List<List<EntitySpec>> reserve = new ArrayList<>();
+        for (int squad = 0; squad < DustLedgerReinforcements.SQUADS; squad++) {
+            List<EntitySpec> members = new ArrayList<>();
+            for (int i = 0; i < DustLedgerReinforcements.SQUAD_SIZE; i++)
+                members.add(makeDefender("sable-wake-reserve-" + squad + "-" + i, UnitType.MILITIA, 0, 0,
+                        risk, roster, GroundRosterProfile.ForceTier.BULK, rng, null).role(UnitRole.PATROL));
+            reserve.add(members);
+        }
+        ledger.roadReserve(reserve);
         spawnDustLedgerTechnical(sim, ledger, layout.technicalStands());
         sim.setAutonomousCommander(Faction.MARINE, new RaidCommand(), RaidCommandDisclosure.INSTANCE);
         sim.setAutonomousCommander(Faction.DEFENDER, new RaidDefenderCommand(mobile),

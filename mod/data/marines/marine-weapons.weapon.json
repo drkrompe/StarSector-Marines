@@ -440,7 +440,7 @@
           { "kind": "dust", "radius": 0.22, "lifetime": 0.20 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.5, "loopFadeOut": 0.35, "loopFadeIn": 0.05, "loopPitchDrop": 0.12 }
     },
     {
       "id": "weapon.mech-ac-6",
@@ -502,6 +502,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 0.8, "falloff": 2.0 },
         "range": 30.0,
         "damage": 32.0,
         "accuracy": 0.74,
@@ -545,6 +546,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 1.2, "falloff": 2.0 },
         "range": 26.0,
         "damage": 45.0,
         "accuracy": 0.76,
@@ -588,6 +590,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 3.0, "falloff": 1.0 },
         "range": 20.0,
         "damage": 62.0,
         "accuracy": 0.50,
@@ -694,6 +697,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 2.0, "falloff": 1.0 },
         "range": 17.0,
         "damage": 34.0,
         "accuracy": 0.42,
@@ -745,6 +749,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 0.7, "falloff": 1.0 },
         "pointDefenseTarget": true,
         "range": 20.0,
         "damage": 18.0,
@@ -827,7 +832,7 @@
           { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.55, "loopFadeOut": 0.4, "loopFadeIn": 0.05, "loopPitchDrop": 0.15 }
     },
     {
       "id": "weapon.mech-pd-laser",
@@ -871,7 +876,7 @@
           { "kind": "dust", "radius": 0.12, "lifetime": 0.12 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
       "id": "weapon.mech-pd-laser-burst",
@@ -915,7 +920,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
       "id": "weapon.mech-heavy-pd-laser",
@@ -959,7 +964,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.45, "loopFadeOut": 0.3, "loopFadeIn": 0.05, "loopPitchDrop": 0.1 }
     },
     {
       "id": "weapon.mech-medium-burst-laser",
@@ -1003,7 +1008,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.45, "loopFadeOut": 0.3, "loopFadeIn": 0.05, "loopPitchDrop": 0.12 }
     },
     {
       "id": "weapon.mech-light-burst-laser",
@@ -1047,7 +1052,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.4, "loopFadeOut": 0.25, "loopFadeIn": 0.05, "loopPitchDrop": 0.1 }
     },
     {
       "id": "weapon.mech-light-mg",
@@ -1142,7 +1147,7 @@
           { "kind": "dust", "radius": 0.1, "lifetime": 0.12 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.35, "loopFadeOut": 0.2, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
       "id": "weapon.mech-light-pulse-laser-burst",
@@ -1189,7 +1194,7 @@
           { "kind": "dust", "radius": 0.18, "lifetime": 0.18 }
         ]
       },
-      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop", "loopTail": 0.35, "loopFadeOut": 0.2, "loopFadeIn": 0.05, "loopPitchDrop": 0.08 }
     },
     {
       "id": "weapon.mech-srm",
@@ -1199,6 +1204,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 1.2, "falloff": 2.0 },
         "pointDefenseTarget": true,
         "range": 18.0,
         "damage": 10.0,
@@ -1242,6 +1248,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 1.0, "falloff": 1.0 },
         "pointDefenseTarget": true,
         "range": 18.0,
         "damage": 32.0,
@@ -1284,6 +1291,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 1.1, "falloff": 1.5 },
         "pointDefenseTarget": true,
         "range": 18.0,
         "damage": 49.5,
@@ -1326,6 +1334,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 1.6, "falloff": 2.0 },
         "pointDefenseTarget": true,
         "range": 40.0,
         "damage": 15.0,
@@ -1373,6 +1382,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 1.3, "falloff": 1.0 },
         "pointDefenseTarget": true,
         "range": 40.0,
         "damage": 50.0,
@@ -1419,6 +1429,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 1.5, "falloff": 1.5 },
         "pointDefenseTarget": true,
         "range": 40.0,
         "damage": 81.0,
@@ -1509,7 +1520,12 @@
       },
       "audio": {
         "fireSound": "pulse_laser_fire",
-        "impactSound": "marines_explosion"
+        "impactSound": "marines_explosion",
+        "loopSound": "laser_loop",
+        "loopTail": 1.45,
+        "loopFadeOut": 0.45,
+        "loopFadeIn": 0.05,
+        "loopPitchDrop": 0.18
       }
     },
     {
@@ -1578,6 +1594,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 0.9, "falloff": 1.5 },
         "interceptableProjectile": true,
         "pointDefenseTarget": true,
         "range": 22.0,
@@ -1647,6 +1664,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 1.4, "falloff": 1.5 },
         "interceptableProjectile": true,
         "pointDefenseTarget": true,
         "range": 32.0,
@@ -1687,6 +1705,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 0.8, "falloff": 1.0 },
         "range": 8.5,
         "damage": 32.0,
         "accuracy": 0.72,
@@ -1762,6 +1781,7 @@
         "designationTiered": false
       },
       "sim": {
+        "blast": { "impulse": 0.8, "falloff": 1.5 },
         "pointDefenseTarget": true,
         "range": 20.0,
         "damage": 46.0,
