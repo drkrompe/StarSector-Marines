@@ -71,6 +71,18 @@ class VehicleRackTest {
         assertEquals(MechInternal.FACTORY_CAPACITOR_BANK.dissipation, HullReservoir.FACTORY_BANK.dissipationPerSecond(), 1e-6f);
         assertEquals(MechInternal.MILITARY_CAPACITOR_BANK.fluxCapacity, HullReservoir.MILITARY_BANK.capacity(), 1e-6f);
         assertEquals(MechInternal.MILITARY_CAPACITOR_BANK.dissipation, HullReservoir.MILITARY_BANK.dissipationPerSecond(), 1e-6f);
+        assertEquals(MechInternal.DOUBLE_CAPACITOR_BANK.fluxCapacity, HullReservoir.DOUBLE_BANK.capacity(), 1e-6f);
+        assertEquals(MechInternal.DOUBLE_CAPACITOR_BANK.dissipation, HullReservoir.DOUBLE_BANK.dissipationPerSecond(), 1e-6f);
+        assertEquals(MechInternal.AUXILIARY_VENT_ARRAY.dissipation, HullReservoir.VENT_ARRAY_DISSIPATION, 1e-6f);
+    }
+
+    @Test
+    void everyArmedHullsStockFitPacksAndIsItsStockFrame() {
+        for (VehicleType type : VehicleType.values()) {
+            List<MechInternal> fit = VehicleRack.stockFit(type);
+            assertNotNull(VehicleRack.pack(type, List.of(), fit), type + "'s stock fit packs");
+            assertEquals(HullReservoir.stockFrame(type), VehicleRack.frame(fit), type + "'s stock frame");
+        }
     }
 
     @Test
@@ -81,7 +93,6 @@ class VehicleRackTest {
         assertTrue(VehicleRack.complete(truck, List.of()));
         assertNull(VehicleRack.stockBank(truck));
         assertFalse(VehicleRack.takes(truck, MechInternal.FACTORY_CAPACITOR_BANK));
-        assertEquals(MechInternal.MILITARY_CAPACITOR_BANK, VehicleRack.stockBank(VehicleType.LASER_TANK));
     }
 
     @Test

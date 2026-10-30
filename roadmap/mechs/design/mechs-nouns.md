@@ -226,7 +226,7 @@ increasing an encounter's total armored threat.
   2x1, military bank 2x2, vent array 2x1), at most one bank: the bank and every vent array are
   the hull's flux reservoir at the drop (`VehicleRack.frame`, `convoy-nouns.md`, hull flux). An
   **armed** hull with no bank is **incomplete** and stays off the drop manifest, as a mech is;
-  every armed hull is built with a bank (the laser tank the military bank, the rest the factory
+  every armed hull is built with a bank (the laser tank the double bank and two vent arrays, the rest the factory
   bank), and fitting another bank returns the old one to stores. An unarmed hull takes none. A
   vehicle carries at most one of each kit, and a kit may need something of the hull
   (a magazine to extend, a gun to feed). Kits are inventory parts exactly as internals are:
