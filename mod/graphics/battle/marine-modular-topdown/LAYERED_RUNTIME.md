@@ -73,7 +73,7 @@ with any body at runtime. Unit type supplies only a default:
 - `MILITIA`: improvised militia carrier and helmet.
 - Pulse rifle loadouts use the laser-gun layer; SMG and DMR loadouts use their
   own compact and precision layers; generic combatants use the rifle layer; an
-  active weapon-like special aim uses either the rocket-launcher or AMR layer.
+  active weapon-like special aim uses either the srm-1 or AMR layer.
 
 Specter has its own torso, independent left/right shoulder shells, helmet, and
 boot textures. The shoulders retain the torso's 150x95 canvas, with separate

@@ -528,7 +528,7 @@ class ConquestTrialEvidenceTest {
                 boolean keep = every > 0 && ordinal % every == every - 1;
                 if (!keep) {
                     for (int i = 0; i < cycle.length; i++) {
-                        if (SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID.equals(cycle[i].specialEquipmentId)) cycle[i] = cycle[i].withSpecial(null, 0);
+                        if (SpecialEquipmentRegistry.SRM_1_ID.equals(cycle[i].specialEquipmentId)) cycle[i] = cycle[i].withSpecial(null, 0);
                     }
                 }
                 ordinal++;

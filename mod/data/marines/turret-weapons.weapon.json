@@ -179,8 +179,8 @@
       }
     },
     {
-      "id": "weapon.vehicle-lrm", "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponVehicleLrmDisplayName", "designationTiered": false },
+      "id": "weapon.vehicle-lrm-15", "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponVehicleLrm15DisplayName", "designationTiered": false },
       "sim": {
         "pointDefenseTarget": true, "range": 40.0, "damage": 15.0, "accuracy": 0.55, "cooldown": 9.0, "penetration": 6.0,
         "contact": { "damage": 95.0, "penetration": 30.0 },
@@ -234,8 +234,8 @@
       "audio": { "fireSound": "heavy_mortar_fire", "impactSound": "marines_explosion" }
     },
     {
-      "id": "weapon.vehicle-srm", "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponVehicleSrmDisplayName", "designationTiered": false },
+      "id": "weapon.vehicle-srm-5", "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponVehicleSrm5DisplayName", "designationTiered": false },
       "sim": {
         "pointDefenseTarget": true, "range": 18.0, "damage": 10.0, "accuracy": 0.55, "cooldown": 5.5, "penetration": 6.0,
         "contact": { "damage": 66.0, "penetration": 30.0 },

@@ -98,8 +98,8 @@ def preview(name: str, moving: bool, firing: bool,
     foot = Image.open(ROOT / "foot.png").convert("RGBA")
     arm = Image.open(ROOT / arm_name).convert("RGBA")
     arm = arm.resize((max(1, arm.width // 2), arm.height), Image.Resampling.LANCZOS)
-    srm = Image.open(ROOT / "srm-pod.png").convert("RGBA")
-    lrm = Image.open(ROOT / "lrm-pod.png").convert("RGBA")
+    srm = Image.open(ROOT / "srm-rack.png").convert("RGBA")
+    lrm = Image.open(ROOT / "lrm-rack.png").convert("RGBA")
 
     # Feet and arm roots are deliberately under the hull. Movement reveals no
     # more than the toe; firing pulls both narrow barrels back a few pixels.
@@ -146,8 +146,8 @@ def main() -> None:
     # The HC-10: the heavy cannon's short, slim sibling, a 2x2 part that also fits a side arm.
     normalize("weapon-concepts/hc-10.png", "hc-10.png", (40, 116))
     normalize("thigh-bone.png", "thigh-bone.png", (40, 112))
-    normalize("srm-pod.png", "srm-pod.png", (62, 88))
-    normalize("lrm-pod.png", "lrm-pod.png", (76, 96))
+    normalize("srm-rack.png", "srm-rack.png", (62, 88))
+    normalize("lrm-rack.png", "lrm-rack.png", (76, 96))
     normalize("weapon-concepts/shoulder-laser-cannon.png",
               "shoulder-laser-cannon.png", (76, 128))
     normalize("weapon-concepts/pulse-laser-arm.png",
@@ -163,8 +163,8 @@ def main() -> None:
     # The DC-4 (QS) drum is slimmed to the DC-5's proportions, so it reads as a cannon rather than a bucket.
     normalize("weapon-concepts/dc-4-qs.png",
               "dc-4-qs.png", (72, 124), squeeze_x=DC_4_QS_SQUEEZE)
-    normalize("weapon-concepts/srm-3-qs-pod.png",
-              "srm-3-qs-pod.png", (76, 112))
+    normalize("weapon-concepts/srm-3-qs.png",
+              "srm-3-qs.png", (76, 112))
     # The light weapons: one-row parts for the small gun card, drawn at 70 to 80 percent of the length of the
     # two-row weapon of their colour (vehicle-card-sizes.md).
     normalize("weapon-concepts/light-machine-gun.png",

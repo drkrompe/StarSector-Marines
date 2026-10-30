@@ -164,7 +164,7 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
 
     private SnapshotArtifact record(BattleReviewFrameRenderer renderer) throws Exception {
         BattleSimulation sim = openArena();
-        WeaponDef lrm = WeaponRegistry.require("weapon.mech-lrm-artillery");
+        WeaponDef lrm = WeaponRegistry.require("weapon.mech-lrm");
         SpecialEquipmentDef pod = SpecialEquipmentRegistry.require(
                 SpecialEquipmentRegistry.POINT_DEFENCE_EMPLACEMENT_ID);
 
@@ -210,7 +210,7 @@ public final class PointDefenceSceneSnapshotSuite implements SnapshotSuite {
                                               BattleReviewFrameRenderer launchView,
                                               ReviewImpactFx impacts) throws Exception {
         BattleSimulation sim = openArena();
-        WeaponDef lrm = WeaponRegistry.require("weapon.mech-lrm-artillery");
+        WeaponDef lrm = WeaponRegistry.require("weapon.mech-lrm");
         SpecialEquipmentDef pack = SpecialEquipmentRegistry.require(
                 SpecialEquipmentRegistry.POINT_DEFENCE_PACK_ID);
 

@@ -86,7 +86,7 @@ class SapperKitIssueTest {
                 if (SpecialEquipmentRegistry.SATCHEL_CHARGE_ID.equals(seat.specialEquipmentId)) charges++;
                 if (SpecialEquipmentRegistry.SMOKE_GRENADE_ID.equals(seat.specialEquipmentId)) smokes++;
             }
-            assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, cycle[5].specialEquipmentId, "the launcher keeps the last seat");
+            assertEquals(SpecialEquipmentRegistry.SRM_1_ID, cycle[5].specialEquipmentId, "the launcher keeps the last seat");
         }
         assertEquals(2, charges);
         assertEquals(3, smokes);

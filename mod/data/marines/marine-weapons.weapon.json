@@ -1104,10 +1104,10 @@
       "audio": { "fireSound": "pulse_laser_fire" }
     },
     {
-      "id": "weapon.mech-srm-pod",
+      "id": "weapon.mech-srm",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechSrmPodDisplayName",
+        "displayName": "@gearCatalogWeaponMechSrmDisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -1189,10 +1189,10 @@
       "audio": { "fireSound": "annihilator_fire", "impactSound": "marines_explosion" }
     },
     {
-      "id": "weapon.mech-srm-pod-legacy",
+      "id": "weapon.mech-srm-legacy",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechSrmPodDisplayName",
+        "displayName": "@gearCatalogWeaponMechSrmDisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -1231,10 +1231,10 @@
       "audio": { "fireSound": "annihilator_fire", "impactSound": "marines_explosion" }
     },
     {
-      "id": "weapon.mech-lrm-artillery",
+      "id": "weapon.mech-lrm",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechLrmArtilleryDisplayName",
+        "displayName": "@gearCatalogWeaponMechLrmDisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -1324,10 +1324,10 @@
       "audio": { "fireSound": "pilum_lrm_fire", "impactSound": "marines_explosion" }
     },
     {
-      "id": "weapon.mech-lrm-artillery-legacy",
+      "id": "weapon.mech-lrm-legacy",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechLrmArtilleryDisplayName",
+        "displayName": "@gearCatalogWeaponMechLrmDisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -1483,10 +1483,10 @@
       }
     },
     {
-      "id": "weapon.scrap-rocket",
+      "id": "weapon.srm-1-qs",
       "mount": "marine-secondary",
       "catalog": {
-        "displayName": "@gearCatalogWeaponScrapRocketDisplayName",
+        "displayName": "@gearCatalogWeaponSrm1QsDisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -1552,10 +1552,10 @@
       }
     },
     {
-      "id": "weapon.annihilator-launcher",
+      "id": "weapon.srm-1",
       "mount": "marine-secondary",
       "catalog": {
-        "displayName": "@gearCatalogWeaponAnnihilatorLauncherDisplayName",
+        "displayName": "@gearCatalogWeaponSrm1DisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -1667,10 +1667,10 @@
       }
     },
     {
-      "id": "weapon.micro-missile",
+      "id": "weapon.srm-3-pod",
       "mount": "marine-secondary",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMicroMissileDisplayName",
+        "displayName": "@gearCatalogWeaponSrm3PodDisplayName",
         "designationTiered": false
       },
       "sim": {

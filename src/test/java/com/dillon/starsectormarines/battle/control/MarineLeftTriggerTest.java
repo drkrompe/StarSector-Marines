@@ -19,8 +19,8 @@ class MarineLeftTriggerTest {
         assertEquals(List.of(), MarineLeftTrigger.specials(null));
         assertEquals(List.of(), MarineLeftTrigger.specials(
                 SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID)));
-        for (String id : List.of(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
-                SpecialEquipmentRegistry.SCRAP_ROCKET_ID, SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)) {
+        for (String id : List.of(SpecialEquipmentRegistry.SRM_1_ID,
+                SpecialEquipmentRegistry.SRM_1_QS_ID, SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)) {
             var special = SpecialEquipmentRegistry.require(id);
             assertEquals(List.of(special), MarineLeftTrigger.specials(special), id);
         }

@@ -47,20 +47,20 @@ class WeaponFxRuntimeTest {
 
     @Test
     void everyCarrierFamilyResolvesItsRegistryComposition() {
-        WeaponDef srm = WeaponRegistry.require(WeaponRegistry.MECH_SRM_POD_ID);
+        WeaponDef srm = WeaponRegistry.require(WeaponRegistry.MECH_SRM_ID);
         StructureDef arbalest = TurretCatalogRegistry.requireStructure(
                 TurretCatalogRegistry.ARBALEST_STRUCTURE_ID);
         ShotEvent primary = new ShotEvent(1f, 2f, 3f, 4f, true,
                 Faction.MARINE, 0.1f, null, WeaponRegistry.require(WeaponRegistry.DMR_ID), null);
         ShotEvent special = new ShotEvent(1f, 2f, 3f, 4f, true,
-                Faction.MARINE, 0.1f, null, null, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID));
+                Faction.MARINE, 0.1f, null, null, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID));
         ShotEvent mech = new ShotEvent(1f, 2f, 3f, 4f, true,
                 Faction.MARINE, 0.1f, null, null, null, srm);
         ShotEvent turret = new ShotEvent(1f, 2f, 3f, 4f, true,
                 Faction.DEFENDER, 0.1f, arbalest);
 
         assertSame(WeaponRegistry.require(WeaponRegistry.DMR_ID).fx, WeaponFxRuntime.definition(primary));
-        assertSame(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).weaponDef().fx,
+        assertSame(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).weaponDef().fx,
                 WeaponFxRuntime.definition(special));
         assertSame(srm.fx, WeaponFxRuntime.definition(mech));
         assertSame(arbalest.mount.weapon.fx, WeaponFxRuntime.definition(turret));

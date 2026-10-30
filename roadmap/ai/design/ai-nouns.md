@@ -1363,7 +1363,7 @@ interval. This clock survives ordinary replans and carrier loss, belongs only
 to that battle squad, and leaves primary fire and movement available. A pod
 outside any squad keeps only its own ammunition and cooldown.
 
-The pod is a carried special (`special.missile-pod`, SRM-POD) whose moment,
+The pod is a carried special (`special.srm-3-pod`, SRM-3 (Pod)) whose moment,
 `sighted-standoff-contact`, is offered by its own sweep rather than through the
 hand's aim-then-fire channel: the carrier never lowers the primary to fire it,
 and the hand's opportunity scans never spend it.

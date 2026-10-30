@@ -27,7 +27,7 @@ class AirArmamentPodTest {
                 + "{\"type\":\"BALLISTIC\",\"mount\":\"TURRET\",\"angle\":0,\"arc\":360,\"locations\":[-4,0]}]}");
         TurretSlotResolver.useHullSpecs(hullId -> spec);
         String laser = BoatGun.PULSE_LASER.structureId();
-        String srm = BoatGun.SRM_POD.structureId();
+        String srm = BoatGun.SRM_5.structureId();
 
         MountedTurret[] mounts = AirArmament.mounts(new String[]{laser, null}, new String[]{laser, srm},
                 HULL, 0f, true);

@@ -49,7 +49,7 @@ class GroundLightServiceTest {
     @Test
     void cannonHeCarriesTheLargestImpactLight() {
         GroundLightService lights = new GroundLightService();
-        lights.spawnImpact(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).weaponDef().fx, 10f, 10f);
+        lights.spawnImpact(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).weaponDef().fx, 10f, 10f);
         lights.selectNearest(camera());
         GroundLightService.Light ordinaryHe = lights.selected(0);
 

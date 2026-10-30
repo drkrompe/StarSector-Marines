@@ -141,9 +141,9 @@ public enum MechWeaponComponent {
         static final boolean ON = Boolean.parseBoolean(
                 System.getProperty("battle.mech.missileVariants", "true"));
 
-        static String srm() { return ON ? WeaponRegistry.MECH_SRM_POD_ID : WeaponRegistry.MECH_SRM_LEGACY_ID; }
+        static String srm() { return ON ? WeaponRegistry.MECH_SRM_ID : WeaponRegistry.MECH_SRM_LEGACY_ID; }
 
-        static String lrm() { return ON ? WeaponRegistry.MECH_LRM_ARTILLERY_ID : WeaponRegistry.MECH_LRM_LEGACY_ID; }
+        static String lrm() { return ON ? WeaponRegistry.MECH_LRM_ID : WeaponRegistry.MECH_LRM_LEGACY_ID; }
     }
 
     /**

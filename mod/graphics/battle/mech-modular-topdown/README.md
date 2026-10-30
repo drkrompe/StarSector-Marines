@@ -7,7 +7,7 @@ art; there is no live sheet.
 Every normalized chassis uses the same 208-pixel canvas as its sizing unit.
 `foot.png` is derived from the accepted Bulwark hull's bottom armor tab
 (neither generated leg is used). `chaingun-arm.png`,
-`srm-pod.png`, `lrm-pod.png`, `hc-20.png`, and `thigh-bone.png` each
+`srm-rack.png`, `lrm-rack.png`, `hc-20.png`, and `thigh-bone.png` each
 represent one reusable part. The shoulder
 weapons use classic walking-tank / Patriot-style rectangular canister boxes:
 only recessed missile caps are visible near the forward lip. The renderer
@@ -40,11 +40,11 @@ Tri-Tachyon, Persean League, Luddic Church, Knights of Ludd, Luddic Path,
 Sindrian Diktat, Lion's Guard, pirates, and the Independent/mercenary fallback.
 Every family repeats `chassis.png`, `chassis-hound.png`,
 `chassis-warden.png`, `chaingun-arm.png`, `hc-10.png`,
-`hc-20.png`, `srm-pod.png`, `lrm-pod.png`, `shoulder-laser-cannon.png`,
+`hc-20.png`, `srm-rack.png`, `lrm-rack.png`, `shoulder-laser-cannon.png`,
 `pulse-laser-arm.png`, `ac-6.png`,
 `dc-5.png`, `lions-guard-thermal-lance.png`,
 `ac-6-qs.png`, `dc-4-qs.png`, and
-`srm-3-qs-pod.png`. The builder applies each accepted base sprite's
+`srm-3-qs.png`. The builder applies each accepted base sprite's
 exact alpha mask, so a skin cannot change silhouette,
 hardpoint authority, scale, or mechanics. Weapon paint is transferred only
 through thirteen reviewed casing masks; barrels, missiles, rack cavities, vents,

@@ -259,7 +259,7 @@ public final class ThunderRunSequence {
                 var raider = BattleSetup.makeOpeningMilitia("freight-checkpoint-reinforcement-" + post[1] + "-" + member,
                         Faction.DEFENDER, cell[0], cell[1], rng).role(UnitRole.PATROL);
                 if (member == 0)
-                    raider.specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SCRAP_ROCKET_ID), 2);
+                    raider.specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_QS_ID), 2);
                 sim.spawn(raider.squad(squad));
                 member++;
             }

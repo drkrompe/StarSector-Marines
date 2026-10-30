@@ -491,7 +491,7 @@ final class HeadlessBattleSprites extends BattleSprites {
         LayeredSpriteCache laser = layer(INFANTRY_ROOT + "weapons/laser-gun.png");
         LayeredSpriteCache smg = layer(INFANTRY_ROOT + "weapons/smg.png");
         LayeredSpriteCache dmr = layer(INFANTRY_ROOT + "weapons/dmr.png");
-        LayeredSpriteCache rocket = layer(INFANTRY_ROOT + "weapons/rocket-launcher.png");
+        LayeredSpriteCache rocket = layer(INFANTRY_ROOT + "weapons/srm-1.png");
         LayeredSpriteCache amr = layer(INFANTRY_ROOT + "weapons/anti-materiel-rifle.png");
         LayeredSpriteCache flash = layer(
                 "graphics/battle/marine-modular-topdown/marine-muzzle-flash.png");
@@ -695,8 +695,8 @@ final class HeadlessBattleSprites extends BattleSprites {
                 layer(MECH_ROOT + "foot.png"), layer(MECH_ROOT + "thigh-bone.png"),
                 layer(MECH_ROOT + "chaingun-arm.png"),
                 layer(MECH_ROOT + "hc-10.png"),
-                layer(MECH_ROOT + "hc-20.png"), layer(MECH_ROOT + "srm-pod.png"),
-                layer(MECH_ROOT + "lrm-pod.png"),
+                layer(MECH_ROOT + "hc-20.png"), layer(MECH_ROOT + "srm-rack.png"),
+                layer(MECH_ROOT + "lrm-rack.png"),
                 layer(MECH_ROOT + "shoulder-laser-cannon.png"),
                 layer(MECH_ROOT + "pulse-laser-arm.png"),
                 layer(MECH_ROOT + "ac-6.png"),
@@ -704,7 +704,7 @@ final class HeadlessBattleSprites extends BattleSprites {
                   layer(MECH_ROOT + "lions-guard-thermal-lance.png"),
                   layer(MECH_ROOT + "ac-6-qs.png"),
                   layer(MECH_ROOT + "dc-4-qs.png"),
-                  layer(MECH_ROOT + "srm-3-qs-pod.png"),
+                  layer(MECH_ROOT + "srm-3-qs.png"),
                   layer(MECH_ROOT + "light-machine-gun.png"),
                   layer(MECH_ROOT + "light-pulse-laser.png"),
                   layer(MECH_ROOT + "burst-laser.png"),

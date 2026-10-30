@@ -86,7 +86,7 @@ public final class MechTimeToKillScene implements BehaviorScene {
             new Team("pulse", "weapon.pulse-rifle", null, 6, false),
             new Team("dmr", "weapon.dmr", null, 6, false),
             new Team("amr", "weapon.smg", "special.anti-materiel-rifle", 2, false),
-            new Team("rockets", "weapon.smg", "special.rocket-launcher", 2, false),
+            new Team("rockets", "weapon.smg", "special.srm-1", 2, false),
             new Team("heavy-cannon", null, null, 1, true));
 
     private static final List<String> GROUNDS = List.of("open", "hull-down");

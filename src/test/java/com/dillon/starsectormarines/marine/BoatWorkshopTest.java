@@ -51,14 +51,14 @@ class BoatWorkshopTest {
         assertNull(boat.gunOn(2));
         assertEquals(BoatWorkshop.Status.NOTHING_TO_STRIP, workshop.stripGun(boat.id(), 1).status());
 
-        workshop.fabricatePart(BoatGun.SRM_POD.id());
+        workshop.fabricatePart(BoatGun.SRM_5.id());
         workshop.fabricatePart(BoatGun.PULSE_LASER.id());
-        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 1, BoatGun.SRM_POD.id()).status());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 1, BoatGun.SRM_5.id()).status());
         assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 2, BoatGun.PULSE_LASER.id()).status());
 
         assertEquals(BoatWorkshop.Status.STRIPPED, workshop.stripGun(boat.id(), 1).status());
         assertNull(boat.gunOn(1), "a stripped turret goes back bare");
-        assertEquals(1, deck.spares(BoatGun.SRM_POD.id()));
+        assertEquals(1, deck.spares(BoatGun.SRM_5.id()));
         assertEquals(BoatWorkshop.Status.FITTED, workshop.moveGun(boat.id(), 2, 1).status());
         assertSame(BoatGun.PULSE_LASER, boat.gunOn(1));
         assertNull(boat.gunOn(2), "a gun moved off a bare slot leaves it bare");
@@ -400,7 +400,7 @@ class BoatWorkshopTest {
         CampaignBoat boat = deck.flightReady().get(0);
         String part = BoatFitting.TUNED_DRIVE.id();
         workshop.fabricatePart(part);
-        workshop.fabricatePart(BoatGun.SRM_POD.id());
+        workshop.fabricatePart(BoatGun.SRM_5.id());
         deck.settleRecovery("battle", Map.of(boat.id(), 1f), List.of(), 0f);
         BoatWorkshop.RepairQuote reviewed = workshop.repairQuote(boat.id(), 0f);
         deck.lose(List.of(deck.flightReady().get(0).id()));
@@ -419,7 +419,7 @@ class BoatWorkshopTest {
 
         assertEquals(BoatWorkshop.Status.FITTED, workshop.fit(boat.id(), part).status());
         assertEquals(BoatWorkshop.Status.STRIPPED, workshop.strip(boat.id(), BoatFittingSlot.DRIVE).status());
-        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 1, BoatGun.SRM_POD.id()).status());
+        assertEquals(BoatWorkshop.Status.FITTED, workshop.fitGun(boat.id(), 1, BoatGun.SRM_5.id()).status());
         assertEquals(BoatWorkshop.Status.FITTED, workshop.moveGun(boat.id(), 1, 2).status());
         assertEquals(BoatWorkshop.Status.RECYCLED, workshop.recycle(part).status());
         assertEquals(before + purse.refunded, purse.credits);

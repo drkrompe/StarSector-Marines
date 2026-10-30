@@ -290,7 +290,7 @@ retained that field, so the accepted isolation edit used this stronger handoff:
 
 `clean_imagegen_backgrounds.py` then converted only that uniform isolation
 plate to real alpha. The cleaned result is the retained geometry authority for
-`srm-3-qs-pod.png`.
+`srm-3-qs.png`.
 
 # Light weapons (vehicle gun cards, small 1x2 class)
 

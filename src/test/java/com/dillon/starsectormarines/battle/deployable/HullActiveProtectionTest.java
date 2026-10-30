@@ -25,9 +25,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** The active-protection kit: a mount its hull carries, which engages top-attack rounds coming down on it. */
 class HullActiveProtectionTest {
 
-    private static final String MISSILE_ID = "weapon.mech-lrm-artillery";
+    private static final String MISSILE_ID = "weapon.mech-lrm";
     private static final String GUN_ID = "weapon.mech-chaingun";
-    private static final String FLAT_ROCKET_ID = "weapon.mech-srm-pod";
+    private static final String FLAT_ROCKET_ID = "weapon.mech-srm";
 
     @Test
     void aKittedTankCarriesItsMountWhereverItDrivesAndAHullWithoutTheKitCarriesNone() {

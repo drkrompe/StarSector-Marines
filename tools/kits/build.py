@@ -110,7 +110,7 @@ DOLL_NOTES = {
     "fire_support_apc": ["No bay card: capacity 0, unlike the troop carriers."],
     "bulwark": ["Arm sockets are 2x2 and hold chainguns; the second auxiliary bay ships empty."],
     "hound": ["One shoulder socket, on the left only."],
-    "warden": ["The 2x3 shoulders hold 2x2 LRM-5 Frags, leaving a spare row."],
+    "warden": ["The 2x3 shoulders hold 2x2 LRM-5 (Frag) racks, leaving a spare row."],
 }
 
 

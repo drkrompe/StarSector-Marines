@@ -35,7 +35,7 @@ class BattleSpritesUnitSheetLoadingTest {
         assertNull(regular.shoulderLeft);
         assertNull(regular.shoulderRight);
         assertSame(regular.rifle, specter.rifle);
-        assertSame(regular.rocketLauncher, specter.rocketLauncher);
+        assertSame(regular.srm1, specter.srm1);
         LayeredUnitAssets arbalest = sprites.layeredUnitSprites().get(LayeredArmorFamily.ARBALEST_HEAVY);
         String olive = "graphics/battle/marine-modular-topdown/variants/armor/specter-heavy/paints/olive/";
         assertEquals(olive + "body.png", arbalest.body.sourcePath);

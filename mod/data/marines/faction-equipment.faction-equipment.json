@@ -37,8 +37,8 @@
         { "templateId": "equipment-template:armor.furnace-line", "sources": { "license": 4, "recovery": 3 } },
         { "templateId": "equipment-template:armor.reaver", "sources": { "recovery": 6 } },
         { "templateId": "equipment-template:armor.foundry-breaker", "sources": { "recovery": 5 } },
-        { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 7, "recovery": 4 } },
-        { "templateId": "equipment-template:special.missile-pod", "sources": { "license": 5, "recovery": 4 } },
+        { "templateId": "equipment-template:special.srm-1", "sources": { "license": 7, "recovery": 4 } },
+        { "templateId": "equipment-template:special.srm-3-pod", "sources": { "license": 5, "recovery": 4 } },
         { "templateId": "equipment-template:special.anti-materiel-rifle", "sources": { "license": 5, "patron": 4, "recovery": 3 } },
         { "templateId": "equipment-template:special.smoke-grenade", "sources": { "market": 8, "license": 4 } },
         { "templateId": "equipment-template:special.satchel-charge", "sources": { "market": 5, "recovery": 5 } },
@@ -70,8 +70,8 @@
         { "templateId": "equipment-template:armor.cordon-shell", "sources": { "market": 7 } },
         { "templateId": "equipment-template:armor.line", "sources": { "license": 12 } },
         { "templateId": "equipment-template:armor.heavy", "sources": { "license": 4, "patron": 8 } },
-        { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 10 } },
-        { "templateId": "equipment-template:special.missile-pod", "sources": { "license": 7, "patron": 4 } },
+        { "templateId": "equipment-template:special.srm-1", "sources": { "license": 10 } },
+        { "templateId": "equipment-template:special.srm-3-pod", "sources": { "license": 7, "patron": 4 } },
         { "templateId": "equipment-template:special.anti-materiel-rifle", "sources": { "patron": 8, "recovery": 3 } },
         { "templateId": "equipment-template:special.field-mortar", "sources": { "license": 8, "patron": 3 } },
         { "templateId": "equipment-template:special.comms-radio", "sources": { "license": 6, "patron": 3 }, "_comment": "PLACEHOLDER source weights: untuned." },
@@ -92,7 +92,7 @@
         { "templateId": "equipment-template:armor.scout", "sources": { "market": 9, "license": 6 } },
         { "templateId": "equipment-template:armor.combat", "sources": { "license": 9 } },
         { "templateId": "equipment-template:armor.aegis-composite", "sources": { "license": 12 } },
-        { "templateId": "equipment-template:special.missile-pod", "sources": { "license": 10, "patron": 4 } },
+        { "templateId": "equipment-template:special.srm-3-pod", "sources": { "license": 10, "patron": 4 } },
         { "templateId": "equipment-template:armor.specter-heavy", "sources": { "license": 4, "patron": 9 } },
         { "templateId": "equipment-template:armor.specter-recovered", "sources": { "license": 8, "recovery": 6 } },
         { "templateId": "equipment-template:special.smoke-grenade", "sources": { "market": 8 } },
@@ -114,8 +114,8 @@
         { "templateId": "equipment-template:armor.bulwark-heavy", "sources": { "license": 4, "patron": 8 } },
         { "templateId": "equipment-template:special.smoke-grenade", "sources": { "market": 9 } },
         { "templateId": "equipment-template:special.frag-grenade", "sources": { "market": 8 } },
-        { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 7 } },
-        { "templateId": "equipment-template:special.missile-pod", "sources": { "license": 5 } },
+        { "templateId": "equipment-template:special.srm-1", "sources": { "license": 7 } },
+        { "templateId": "equipment-template:special.srm-3-pod", "sources": { "license": 5 } },
         { "templateId": "equipment-template:armor.outrider", "sources": {"patron": 6, "recovery": 3} },
         { "templateId": "equipment-template:armor.riot-shell", "sources": {"market": 8} }
       ]
@@ -132,8 +132,8 @@
         { "templateId": "equipment-template:armor.line", "sources": { "license": 9 } },
         { "templateId": "equipment-template:armor.palatine", "sources": { "license": 10, "patron": 5 } },
         { "templateId": "equipment-template:special.satchel-charge", "sources": { "market": 7, "recovery": 5 } },
-        { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 6 } },
-        { "templateId": "equipment-template:special.missile-pod", "sources": { "license": 4 } },
+        { "templateId": "equipment-template:special.srm-1", "sources": { "license": 6 } },
+        { "templateId": "equipment-template:special.srm-3-pod", "sources": { "license": 4 } },
         { "templateId": "equipment-template:armor.orderly", "sources": {"market": 14, "recovery": 5} }
       ]
     },
@@ -146,8 +146,8 @@
         { "templateId": "equipment-template:armor.line", "sources": { "license": 8 } },
         { "templateId": "equipment-template:armor.palatine", "sources": { "license": 9 } },
         { "templateId": "equipment-template:armor.reliquary-heavy", "sources": { "license": 4, "patron": 11 } },
-        { "templateId": "equipment-template:special.rocket-launcher", "sources": { "patron": 8 } },
-        { "templateId": "equipment-template:special.missile-pod", "sources": { "patron": 6 } },
+        { "templateId": "equipment-template:special.srm-1", "sources": { "patron": 8 } },
+        { "templateId": "equipment-template:special.srm-3-pod", "sources": { "patron": 6 } },
         { "templateId": "equipment-template:special.satchel-charge", "sources": { "recovery": 6 } },
         { "templateId": "equipment-template:special.point-defence-emplacement", "sources": { "patron": 4, "recovery": 3 } },
         { "templateId": "equipment-template:special.point-defence-pack", "sources": { "patron": 4, "recovery": 3 } }
@@ -178,8 +178,8 @@
         { "templateId": "equipment-template:armor.cordon-shell", "sources": { "market": 9 } },
         { "templateId": "equipment-template:armor.line", "sources": { "license": 10 } },
         { "templateId": "equipment-template:armor.furnace-line", "sources": { "license": 11 } },
-        { "templateId": "equipment-template:special.rocket-launcher", "sources": { "license": 9 } },
-        { "templateId": "equipment-template:special.missile-pod", "sources": { "license": 7 } },
+        { "templateId": "equipment-template:special.srm-1", "sources": { "license": 9 } },
+        { "templateId": "equipment-template:special.srm-3-pod", "sources": { "license": 7 } },
         { "templateId": "equipment-template:special.frag-grenade", "sources": { "market": 7 } },
         { "templateId": "equipment-template:armor.redoubt", "sources": {"patron": 4, "recovery": 3} },
         { "templateId": "equipment-template:armor.vigil", "sources": {"license": 9, "recovery": 4} }
@@ -194,8 +194,8 @@
         { "templateId": "equipment-template:armor.line", "sources": { "license": 8 } },
         { "templateId": "equipment-template:armor.furnace-line", "sources": { "license": 9 } },
         { "templateId": "equipment-template:armor.lions-mantle", "sources": { "license": 4, "patron": 14 } },
-        { "templateId": "equipment-template:special.rocket-launcher", "sources": { "patron": 9 } },
-        { "templateId": "equipment-template:special.missile-pod", "sources": { "patron": 7 } },
+        { "templateId": "equipment-template:special.srm-1", "sources": { "patron": 9 } },
+        { "templateId": "equipment-template:special.srm-3-pod", "sources": { "patron": 7 } },
         { "templateId": "equipment-template:special.anti-materiel-rifle", "sources": { "patron": 7 } }
       ]
     },
@@ -215,7 +215,7 @@
         { "templateId": "equipment-template:special.satchel-charge", "sources": { "market": 8, "recovery": 7 } },
         { "templateId": "equipment-template:special.frag-grenade", "sources": { "market": 10 } },
         { "templateId": "equipment-template:armor.packframe", "sources": {"market": 9, "recovery": 6} },
-        { "templateId": "equipment-template:special.missile-pod", "sources": { "recovery": 5 } },
+        { "templateId": "equipment-template:special.srm-3-pod", "sources": { "recovery": 5 } },
         { "templateId": "equipment-template:armor.riot-shell", "sources": {"market": 7, "recovery": 5} }
       ]
     },

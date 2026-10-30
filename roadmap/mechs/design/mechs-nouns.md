@@ -274,7 +274,7 @@ increasing an encounter's total armored threat.
   (`vehicle-card-sizes.md`), and takes the mech weapon parts that fit it by the mech's own rule: the lock's type, if
   any, and a footprint no larger than the card. The small class (the APCs, the dozer, the technicals and the hover
   scout) is one row and unlocked, an omni card that takes any one-row part: the light machine gun and light pulse
-  laser authored for it (and the light burst laser), the Thermal Lance and the SRM-3 (QS) rocket pod (`SRM_3_QS`). A cannon card takes the heavy
+  laser authored for it (and the light burst laser), the Thermal Lance and the SRM-3 (QS) rack (`SRM_3_QS`). A cannon card takes the heavy
   cannon, a laser tank's card takes energy weapons. Footprint is the only cap on a weapon's power.
   The hull's own gun is no part: an empty gun card is that gun, drawn as the sealed cards draw it (a modular hull, the laser tank or the Onager, has no own gun: its empty card is a bare turret ring, `vehicle-card-sizes.md`), so a weapon
   is only ever an addition from stores. A machine-gun hull's own gun is the mech light machine gun itself
@@ -778,7 +778,7 @@ The commercial floor is separate from those signatures. An AC-6 (QS), the QuickS
 budget AC-6 (the Muster), is a cheap direct-fire arm gun, drawn as a nose gun on a centreline
 mount; a DC-4 (QS), the QuickSell budget DC-5 (the Quarry breaker), is
 a finite, inaccurate centerline industrial cannon whose main virtue is structural
-damage; an SRM-3 (QS), the QuickSell budget rocket pod (`SRM_3_QS`), fires three loose, straight-flight utility rockets from
+damage; an SRM-3 (QS), the QuickSell budget rack (`SRM_3_QS`), fires three loose, straight-flight utility rockets from
 a shoulder mount. These components are weaker because their original users
 optimized for cost, security, mining, or public works—not because Independent,
 pirate, or salvaged equipment is inherently low quality. They enter the weapon
@@ -996,6 +996,15 @@ Every missile part is named `<Family>-<N>` and its ids follow the name (owner,
 2026-10-30): the standard rack carries no moniker (`SRM-5`, `SRM_5`), the
 fragmentation rack carries `(Frag)` (`LRM-5 (Frag)`, `LRM_5_FRAG`) and the
 QuickSell budget rack `(QS)` (`SRM-3 (QS)`, `SRM_3_QS`, `weapon.mech-srm-3-qs`).
+The number is the missiles the weapon holds ready in its buffer (owner, 2026-10-30).
+`(Pod)` is reserved for a deployable or carried pod, the infantry `SRM-3 (Pod)`
+(`special.srm-3-pod`); a mounted rack is never a pod. A weapon definition shared
+by every size of a family carries the family name alone: the mech racks fire
+`weapon.mech-srm` (SRM), `weapon.mech-srm-frag` (SRM (Frag)), `weapon.mech-lrm`
+(LRM) and `weapon.mech-lrm-frag` (LRM (Frag)), and the part names the size. A
+vehicle or boat turret is named for the rack it carries: the SRM technical's
+`weapon.vehicle-srm-5` (SRM-5), the LRM carrier's `weapon.vehicle-lrm-15`
+(LRM-15), and the boat guns `boat_srm_5` (SRM-5) and `boat_lrm_5` (LRM-5).
 The cannons follow the same rule (Weapon names).
 
 - An **anti-armor (AT) rack** fires a shaped charge. Most of its damage is a

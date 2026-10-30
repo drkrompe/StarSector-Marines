@@ -251,7 +251,7 @@ vocabulary would already retire them:
 A fourth is adopted: **support** — the marine carrying the heavy or indirect
 weapon, and whatever else the squad needs carried for it.
 The micro-missile pod once sat on a *line* suit as an integral system, which is
-what having nowhere to put it looks like; it is now the SRM-POD carried special
+what having nowhere to put it looks like; it is now the SRM-3 (Pod) carried special
 (`progression-nouns.md`, Shoulder pod), issued to whichever billet the weapons
 card names, and the support suits are plain armour.
 

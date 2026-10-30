@@ -46,7 +46,7 @@ public class InfantryUnitPrepTest {
 
     private static long rocketeer(BattleSimulation sim, Faction f, int x, int y) {
         long u = sim.spawn(new EntitySpec("u" + sim.liveUnitCount(), f, UnitType.MARINE, x, y)
-                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).startingAmmo()));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).startingAmmo()));
         // Primary weapon ref only — .primaryWeapon() would derive the weapon's
         // damage/accuracy/range/cooldown; this test keeps the UnitType.MARINE
         // defaults and sets attackRange separately below, so set the ref by id.
@@ -77,7 +77,7 @@ public class InfantryUnitPrepTest {
 
         boolean started = InfantryUnitPrep.tryOpportunityRocket(marine, sim);
         assertTrue(started, "marine in rocket range with LOS should start aim");
-        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aimDuration(),
+        assertEquals(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).aimDuration(),
                 sim.world().secondaryActionTimer(marine), 0.001f);
         assertEquals(turret, sim.world().secondaryAimTargetId(marine));
     }
@@ -203,7 +203,7 @@ public class InfantryUnitPrepTest {
 
     @Test
     void specialOpportunityUsesHostilityForArmoredVehicles() {
-        for (String equipment : List.of(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
+        for (String equipment : List.of(SpecialEquipmentRegistry.SRM_1_ID,
                 SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)) {
             for (Faction shooterSide : List.of(Faction.MARINE, Faction.ALLY, Faction.DEFENDER)) {
                 for (Faction targetSide : Faction.values()) {
@@ -244,7 +244,7 @@ public class InfantryUnitPrepTest {
 
     @Test
     void preexistingSpecialAimFiresOnlyAtHostileArmor() {
-        for (String equipment : List.of(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
+        for (String equipment : List.of(SpecialEquipmentRegistry.SRM_1_ID,
                 SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID)) {
             for (Faction targetSide : List.of(Faction.ALLY, Faction.CIVILIAN, Faction.DEFENDER)) {
                 try (BattleSimulation sim = openArena(50, 20)) {

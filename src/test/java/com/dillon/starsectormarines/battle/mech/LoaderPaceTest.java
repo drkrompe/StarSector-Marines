@@ -39,13 +39,13 @@ class LoaderPaceTest {
 
     @Test
     void missilePacksKeepTheirCadenceAndOnlyThePacksStopWithoutALoader() {
-        assertEquals(12f, MissileReplenisherComponent.STANDARD.replenishmentSeconds(WeaponRegistry.MECH_SRM_POD_ID));
-        assertEquals(18f, MissileReplenisherComponent.STANDARD.replenishmentSeconds(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
-        assertEquals(9f, MissileReplenisherComponent.ACCELERATED_FEED.replenishmentSeconds(WeaponRegistry.MECH_SRM_POD_ID));
+        assertEquals(12f, MissileReplenisherComponent.STANDARD.replenishmentSeconds(WeaponRegistry.MECH_SRM_ID));
+        assertEquals(18f, MissileReplenisherComponent.STANDARD.replenishmentSeconds(WeaponRegistry.MECH_LRM_ID));
+        assertEquals(9f, MissileReplenisherComponent.ACCELERATED_FEED.replenishmentSeconds(WeaponRegistry.MECH_SRM_ID));
         assertEquals(13.5f,
-                MissileReplenisherComponent.ACCELERATED_FEED.replenishmentSeconds(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
+                MissileReplenisherComponent.ACCELERATED_FEED.replenishmentSeconds(WeaponRegistry.MECH_LRM_ID));
         assertEquals(Float.POSITIVE_INFINITY,
-                MissileReplenisherComponent.NONE.replenishmentSeconds(WeaponRegistry.MECH_SRM_POD_ID));
+                MissileReplenisherComponent.NONE.replenishmentSeconds(WeaponRegistry.MECH_SRM_ID));
 
         assertEquals(LoaderPace.STANDARD, MissileReplenisherComponent.STANDARD.loaderFactor(), 1e-6f);
         assertEquals(LoaderPace.ACCELERATED, MissileReplenisherComponent.ACCELERATED_FEED.loaderFactor(), 1e-5f);

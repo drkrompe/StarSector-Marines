@@ -173,7 +173,7 @@ kit as the cards issue it (`LoadoutCardIssue.seats`). Writes `matchups.md`,
   starter is the control row, because the ground favours one side.
 - `-Pattacker=` / `-Pdefender=` (`weapons:x+armor:y`) replace the ladder;
   several sides separated by `;` fight every pairing. Uncarded experiments:
-  `kit:field-rifle@surplus,rocket-launcher*2,frag-grenade*6` and
+  `kit:field-rifle@surplus,srm-1*2,frag-grenade*6` and
   `mix:cordon-shell*10,packframe*2` (the `weapon.`, `special.` and `armor.`
   prefixes may be left off).
 - `-PfireMission=true` gives the attackers a fire mission on the defenders'

@@ -232,7 +232,7 @@ public final class GroundTurretLookSnapshotSuite implements SnapshotSuite {
             float[] front = placement.openNear(28f, 11f);
             builder.squad("front").faction(Faction.MARINE).size(6)
                     .at((int) front[0] - placement.site().x0(), (int) front[1] - placement.site().y0())
-                    .primary("weapon.field-rifle").special("special.rocket-launcher", 2, 6)
+                    .primary("weapon.field-rifle").special("special.srm-1", 2, 6)
                     .health(4000f).stationary().done();
             float[] flank = placement.openNear(12f, 2f);
             builder.squad("flank").faction(Faction.MARINE).size(1)

@@ -188,7 +188,7 @@ class PolityRosterDerivationTest {
     void theSameInputsAlwaysDeriveTheSameProfile() {
         List<EquipmentTemplateCard> released = List.of(
                 EquipmentTemplateCatalog.armor("armor.combat"),
-                EquipmentTemplateCatalog.special("special.rocket-launcher"));
+                EquipmentTemplateCatalog.special("special.srm-1"));
 
         List<EquipmentTemplateCard> shuffled = new ArrayList<>(released);
         Collections.reverse(shuffled);

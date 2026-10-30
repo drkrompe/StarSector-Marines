@@ -25,7 +25,7 @@ public final class LayeredUnitAssets {
     public final LayeredSpriteCache laserGun;
     public final LayeredSpriteCache smg;
     public final LayeredSpriteCache dmr;
-    public final LayeredSpriteCache rocketLauncher;
+    public final LayeredSpriteCache srm1;
     public final LayeredSpriteCache antiMaterielRifle;
     public final LayeredSpriteCache muzzleFlash;
     private final EnumMap<LayeredWeaponFamily, EnumMap<EquipmentGrade, LayeredSpriteCache>>
@@ -43,13 +43,13 @@ public final class LayeredUnitAssets {
                              LayeredSpriteCache laserGun,
                              LayeredSpriteCache smg,
                              LayeredSpriteCache dmr,
-                             LayeredSpriteCache rocketLauncher,
+                             LayeredSpriteCache srm1,
                              LayeredSpriteCache antiMaterielRifle,
                              LayeredSpriteCache muzzleFlash,
                              LayeredSpriteCache surplusRifle,
                              LayeredSpriteCache masterworkDmr) {
         this(body, head, foot, foreClaw, rifle, laserGun, smg, dmr,
-                rocketLauncher, antiMaterielRifle, muzzleFlash, surplusRifle,
+                srm1, antiMaterielRifle, muzzleFlash, surplusRifle,
                 masterworkDmr, null, null);
     }
 
@@ -57,7 +57,7 @@ public final class LayeredUnitAssets {
                              LayeredSpriteCache foot, LayeredSpriteCache foreClaw,
                              LayeredSpriteCache rifle, LayeredSpriteCache laserGun,
                              LayeredSpriteCache smg, LayeredSpriteCache dmr,
-                             LayeredSpriteCache rocketLauncher,
+                             LayeredSpriteCache srm1,
                              LayeredSpriteCache antiMaterielRifle,
                              LayeredSpriteCache muzzleFlash,
                              LayeredSpriteCache surplusRifle,
@@ -74,7 +74,7 @@ public final class LayeredUnitAssets {
         this.laserGun = laserGun;
         this.smg = smg;
         this.dmr = dmr;
-        this.rocketLauncher = rocketLauncher;
+        this.srm1 = srm1;
         this.antiMaterielRifle = antiMaterielRifle;
         this.muzzleFlash = muzzleFlash;
         registerGrade(LayeredWeaponFamily.RIFLE, EquipmentGrade.SURPLUS, surplusRifle);
@@ -172,7 +172,7 @@ public final class LayeredUnitAssets {
     public List<LayeredSpriteCache> layers() {
         List<LayeredSpriteCache> all = new ArrayList<>(List.of());
         Collections.addAll(all, body, head, foot, foreClaw, shoulderLeft, shoulderRight, rifle, laserGun, smg, dmr,
-                rocketLauncher, antiMaterielRifle, muzzleFlash);
+                srm1, antiMaterielRifle, muzzleFlash);
         for (EnumMap<EquipmentGrade, LayeredSpriteCache> variants : gradeWeapons.values()) {
             all.addAll(variants.values());
         }

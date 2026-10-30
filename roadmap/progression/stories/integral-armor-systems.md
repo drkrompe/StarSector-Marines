@@ -7,7 +7,7 @@ power-suit protection is a separate armor-pattern choice under
 Status: IN PROGRESS — systems and running presentation are established;
 hostile capability readability and special-item coordination remain open.
 Written: 2026-08-27
-Updated: 2026-10-27 — the shoulder pod left the integral slate to become the SRM-POD carried special; the Aegis, Packframe and Arbalests are plain armour. Earlier 2026-10-13 — squad pod usage rotates among ready carriers with authored spacing between salvos.
+Updated: 2026-10-27 — the shoulder pod left the integral slate to become the SRM-3 (Pod) carried special; the Aegis, Packframe and Arbalests are plain armour. Earlier 2026-10-13 — squad pod usage rotates among ready carriers with authored spacing between salvos.
 
 Read `progression-nouns.md`, `combat-durability-nouns.md`, `mechs-nouns.md`, and
 `equipment-lore-catalog.md` before implementing. Coordinates with
@@ -30,7 +30,7 @@ pattern-level durability choice.
 
 The setting also supplies distinct capability choices. Faction lore carries
 micro-missile support across Hegemony, League, and Tri-Tachyon traditions; that
-capability is now the SRM-POD carried special rather than a suit system
+capability is now the SRM-3 (Pod) carried special rather than a suit system
 (`progression-nouns.md`, Shoulder pod).
 
 ## Goal
@@ -77,7 +77,7 @@ Two, chosen because they exercise opposite halves of the model:
   directional resistance with an explicit duration — not a second damage path,
   and not extra capacity wearing a costume.
 - **Shoulder micro-missile pod** — shipped on the Aegis, then moved off the
-  slate: it is the SRM-POD carried special (`special.missile-pod`), issued by a
+  slate: it is the SRM-3 (Pod) carried special (`special.srm-3-pod`), issued by a
   weapons card rather than worn by four suits.
 
 ## Visible equipment
@@ -87,7 +87,7 @@ screen emitter on the shoulder, a separate transparent sprite attached to the
 actual shoulder joint; monolithic armor falls back to torso registration. It
 neither changes the handheld weapon nor occupies the carried special slot, and
 remains fitted after a power is spent. The shoulder pod that pass also drew is
-now the SRM-POD special's own carrier layer, with its physical hardpoint, squad
+now the SRM-3 (Pod) special's own carrier layer, with its physical hardpoint, squad
 cadence and launch pulse (`progression-nouns.md`, Shoulder pod).
 
 Further equipment should have a recognizable physical vocabulary when it has

@@ -22,7 +22,7 @@ class ArmoryLoadoutPreviewCanvasTest {
     @Test
     void specialPreviewStateUsesTheBattlefieldPoseVocabulary() {
         assertEquals(LayeredAppearance.POSE_ROCKET_AIM,
-                ArmoryLoadoutPreviewComposer.poseForDef(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), USING));
+                ArmoryLoadoutPreviewComposer.poseForDef(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), USING));
         assertEquals(LayeredAppearance.POSE_AMR_AIM,
                 ArmoryLoadoutPreviewComposer.poseForDef(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID), USING));
         assertEquals(LayeredAppearance.POSE_SMOKE_THROW,

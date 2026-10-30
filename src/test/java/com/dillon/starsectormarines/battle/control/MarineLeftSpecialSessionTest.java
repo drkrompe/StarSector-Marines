@@ -52,17 +52,17 @@ class MarineLeftSpecialSessionTest {
 
     @Test
     void qCyclesFromThePrimaryToTheLauncherAndBack() {
-        long marine = spawn(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 3);
+        long marine = spawn(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), 3);
         assertTrue(session.enter(marine));
         assertNull(session.leftSpecial());
         int key = session.selectionKey();
         assertTrue(session.cycle(FireTrigger.LEFT));
-        assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, session.leftSpecial().id());
+        assertEquals(SpecialEquipmentRegistry.SRM_1_ID, session.leftSpecial().id());
         assertTrue(session.selectionKey() != key, "a pick change releases held fire");
         assertTrue(session.cycle(FireTrigger.LEFT));
         assertNull(session.leftSpecial());
         assertTrue(session.selectWeapon(1), "key 2 jumps to the special");
-        assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, session.leftSpecial().id());
+        assertEquals(SpecialEquipmentRegistry.SRM_1_ID, session.leftSpecial().id());
     }
 
     @Test
@@ -76,7 +76,7 @@ class MarineLeftSpecialSessionTest {
 
     @Test
     void thePickedSpecialWindsUpThenFiresOneRoundAtTheCursorAndThePrimaryHolds() {
-        SpecialEquipmentDef launcher = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
+        SpecialEquipmentDef launcher = SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID);
         long marine = spawn(launcher, 3);
         assertTrue(session.enter(marine));
         assertTrue(session.cycle(FireTrigger.LEFT));
@@ -111,7 +111,7 @@ class MarineLeftSpecialSessionTest {
 
     @Test
     void handbackResetsThePickToThePrimary() {
-        long marine = spawn(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 3);
+        long marine = spawn(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), 3);
         assertTrue(session.enter(marine));
         assertTrue(session.cycle(FireTrigger.LEFT));
         session.exit();

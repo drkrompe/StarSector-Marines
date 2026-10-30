@@ -15566,7 +15566,7 @@
     }
    }
   },
-  "graphics/battle/marine-modular-topdown/variants/equipment/missile-pod.png": {
+  "graphics/battle/marine-modular-topdown/variants/equipment/srm-3-pod.png": {
    "sliced": false,
    "sources": {
     "snapshot:pod-battle": {
@@ -17542,7 +17542,7 @@
     }
    }
   },
-  "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher-packed.png": {
+  "graphics/battle/marine-modular-topdown/variants/weapons/srm-1-packed.png": {
    "sliced": false,
    "sources": {
     "commander-colony-breach": {
@@ -17771,7 +17771,7 @@
     }
    }
   },
-  "graphics/battle/marine-modular-topdown/variants/weapons/rocket-launcher.png": {
+  "graphics/battle/marine-modular-topdown/variants/weapons/srm-1.png": {
    "sliced": false,
    "sources": {
     "commander-conquest": {
@@ -19394,7 +19394,7 @@
     }
    }
   },
-  "graphics/battle/mech-modular-topdown/lrm-pod.png": {
+  "graphics/battle/mech-modular-topdown/lrm-rack.png": {
    "sliced": false,
    "sources": {
     "commander-colony-breach": {
@@ -19504,7 +19504,7 @@
     }
    }
   },
-  "graphics/battle/mech-modular-topdown/srm-pod.png": {
+  "graphics/battle/mech-modular-topdown/srm-rack.png": {
    "sliced": false,
    "sources": {
     "commander-conquest": {
@@ -65012,7 +65012,7 @@
     }
    }
   },
-  "graphics/ui/armory/special-rocket-launcher.png": {
+  "graphics/ui/armory/special-srm-1.png": {
    "sliced": false,
    "sources": {
     "snapshot:barracks-command": {
@@ -65088,7 +65088,7 @@
     }
    }
   },
-  "graphics/ui/armory/system-missile-pod.png": {
+  "graphics/ui/armory/special-srm-3-pod.png": {
    "sliced": false,
    "sources": {
     "snapshot:barracks-command": {

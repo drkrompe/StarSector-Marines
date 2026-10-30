@@ -8,7 +8,7 @@ import java.util.List;
 public final class EquipmentTestFixtures {
     private EquipmentTestFixtures() {}
     public static void issueLauncher(MarineSoldier soldier) {
-        soldier.setSpecialEquipment(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
+        soldier.setSpecialEquipment(SpecialEquipmentRegistry.SRM_1_ID);
     }
     public static void learnServiceKit(MarineArmory armory) {
         for (String id : List.of(WeaponRegistry.STARTER_PRIMARY_ID, WeaponRegistry.PULSE_RIFLE_ID, WeaponRegistry.SMG_ID,
@@ -16,7 +16,7 @@ public final class EquipmentTestFixtures {
             armory.unlockPrimary(id, EquipmentGrade.SERVICE);
         }
         armory.unlockPrimary(WeaponRegistry.PULSE_RIFLE_ID, EquipmentGrade.SURPLUS);
-        for (String id : List.of(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
+        for (String id : List.of(SpecialEquipmentRegistry.SRM_1_ID,
                 SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID,
                 SpecialEquipmentRegistry.SMOKE_GRENADE_ID, SpecialEquipmentRegistry.FRAG_GRENADE_ID,
                 SpecialEquipmentRegistry.SATCHEL_CHARGE_ID)) {

@@ -214,13 +214,13 @@ public class LayeredFacingSystemTest {
     public void rocketSwitchesAboveShoulderOnlyAfterMidpointFire() {
         BattleSimulation sim = arena();
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5)
-                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 3));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), 3));
         long enemy = sim.spawn(new EntitySpec("e", Faction.DEFENDER, UnitType.HEAVY_MECH, 8, 5));
         sim.world().setTargetId(marine, enemy);
         sim.world().setSecondaryAimTargetId(marine, enemy);
         FacingSystem system = new FacingSystem(sim.getEntityWorld(), sim.getBattleComponents(), sim.getRoster());
 
-        sim.world().setSecondaryActionTimer(marine, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aimDuration() * 0.75f);
+        sim.world().setSecondaryActionTimer(marine, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).aimDuration() * 0.75f);
         sim.world().setSecondaryFired(marine, false);
         system.tick();
         assertEquals(LayeredAppearance.POSE_ROCKET_AIM,
@@ -228,7 +228,7 @@ public class LayeredFacingSystemTest {
         assertFalse((i(sim, marine, BattleComponents.LAYERED_FLAGS)
                 & LayeredAppearance.FLAG_WEAPON_OVER_SHOULDER) != 0);
 
-        sim.world().setSecondaryActionTimer(marine, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).aimDuration() * 0.49f);
+        sim.world().setSecondaryActionTimer(marine, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).aimDuration() * 0.49f);
         sim.world().setSecondaryFired(marine, true);
         system.tick();
         assertEquals(LayeredAppearance.POSE_ROCKET_FIRE,
@@ -244,7 +244,7 @@ public class LayeredFacingSystemTest {
         BattleSimulation sim = arena();
         BattleComponents c = sim.getBattleComponents();
         long marine = sim.spawn(new EntitySpec("m", Faction.MARINE, UnitType.MARINE, 5, 5)
-                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 3));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), 3));
         FacingSystem system = new FacingSystem(sim.getEntityWorld(), c, sim.getRoster());
         HeldSpecialPose ready = new HeldSpecialPose(1f, Float.POSITIVE_INFINITY);
         int blendTicks = Math.round(FacingSystem.CARRY_BLEND_SECONDS / BattleSimulation.TICK_DT);

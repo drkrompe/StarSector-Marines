@@ -67,18 +67,18 @@ class DirectFireUnificationTest {
         BattleSimulation sim = arena(true);
         long shooter = sim.spawn(new EntitySpec("rocketeer", Faction.MARINE,
                 UnitType.MARINE, 2, ROW)
-                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 1));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), 1));
 
         sim.fireSecondary(shooter, target(sim));
 
         ShotEvent shot = onlyShot(sim);
-        assertSame(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), shot.specialEquipmentDef);
+        assertSame(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), shot.specialEquipmentDef);
         assertEquals(BallisticResolver.StopKind.WALL, shot.stopKind);
         assertEquals(WALL_X, shot.toX, EPS);
         assertEquals(1, sim.getActiveProjectiles().size());
         Projectile projectile = sim.getActiveProjectiles().get(0);
         assertEquals(WALL_X, projectile.onArrival.endpointX, EPS);
-        assertTrue(projectile.totalFlightTime < SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID).flightSec(),
+        assertTrue(projectile.totalFlightTime < SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID).flightSec(),
                 "a nearer wall arrives sooner than the old fixed maximum-range timing");
     }
 
@@ -107,7 +107,7 @@ class DirectFireUnificationTest {
         BattleSimulation sim = arena(false);
         long shooter = sim.spawn(new EntitySpec("rocketeer", Faction.MARINE,
                 UnitType.MARINE, 2, ROW)
-                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID), 1));
+                .specialEquipment(SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID), 1));
         long evasive = sim.spawn(new EntitySpec("evasive", Faction.DEFENDER,
                 UnitType.MARINE, 10, ROW).armor(0f, 0f, 1f, 0f));
 
@@ -140,7 +140,7 @@ class DirectFireUnificationTest {
         BattleSimulation srmSim = arena(true);
         long srmMech = srmSim.spawn(new EntitySpec("mech", Faction.MARINE,
                 UnitType.HEAVY_MECH, 2, ROW));
-        WeaponDef srmDef = WeaponRegistry.require(WeaponRegistry.MECH_SRM_POD_ID);
+        WeaponDef srmDef = WeaponRegistry.require(WeaponRegistry.MECH_SRM_ID);
         srmSim.fireMechWeapon(srmMech, target(srmSim), srmDef);
         ShotEvent srm = onlyShot(srmSim);
         assertSame(srmDef, srm.mechWeaponDef);
@@ -151,7 +151,7 @@ class DirectFireUnificationTest {
         BattleSimulation lrmSim = arena(true);
         long lrmMech = lrmSim.spawn(new EntitySpec("mech", Faction.MARINE,
                 UnitType.HEAVY_MECH, 2, ROW));
-        WeaponDef lrmDef = WeaponRegistry.require(WeaponRegistry.MECH_LRM_ARTILLERY_ID);
+        WeaponDef lrmDef = WeaponRegistry.require(WeaponRegistry.MECH_LRM_ID);
         lrmSim.fireMechWeapon(lrmMech, target(lrmSim), lrmDef);
         ShotEvent lrm = onlyShot(lrmSim);
         assertSame(lrmDef, lrm.mechWeaponDef);

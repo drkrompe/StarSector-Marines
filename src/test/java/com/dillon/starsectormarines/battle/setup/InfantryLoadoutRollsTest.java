@@ -56,7 +56,7 @@ public class InfantryLoadoutRollsTest {
                 assertTrue(marine.soldierProfile.experienceXp() >= ExperienceTier.VETERAN.minimumXp);
                 assertNotNull(marine.specialEquipmentId);
             }
-            assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, squad[size - 1].specialEquipmentId);
+            assertEquals(SpecialEquipmentRegistry.SRM_1_ID, squad[size - 1].specialEquipmentId);
         }
     }
 
@@ -120,7 +120,7 @@ public class InfantryLoadoutRollsTest {
         MarineLoadout[] both = InfantryLoadoutRolls.playerSquad(6, new Random(7), true, true);
         assertEquals(SpecialEquipmentRegistry.FIELD_MORTAR_ID, both[0].specialDef().id());
         assertEquals(SpecialEquipmentRegistry.COMMS_RADIO_ID, both[4].specialDef().id());
-        assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, both[5].specialDef().id());
+        assertEquals(SpecialEquipmentRegistry.SRM_1_ID, both[5].specialDef().id());
         for (int i = 1; i < 4; i++) assertNull(both[i].specialDef());
 
         MarineLoadout[] plain = InfantryLoadoutRolls.playerSquad(6, new Random(7));
@@ -143,7 +143,7 @@ public class InfantryLoadoutRollsTest {
         assertNull(lone[0].specialDef(), "a lone marine cannot work a tube");
         MarineLoadout[] pair = InfantryLoadoutRolls.playerSquad(2, new Random(3), true, true);
         assertEquals(SpecialEquipmentRegistry.FIELD_MORTAR_ID, pair[0].specialDef().id());
-        assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, pair[1].specialDef().id(), "no radio takes the launcher's seat");
+        assertEquals(SpecialEquipmentRegistry.SRM_1_ID, pair[1].specialDef().id(), "no radio takes the launcher's seat");
     }
 
     @Test

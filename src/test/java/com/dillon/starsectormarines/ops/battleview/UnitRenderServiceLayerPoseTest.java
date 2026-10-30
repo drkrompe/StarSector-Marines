@@ -22,8 +22,8 @@ class UnitRenderServiceLayerPoseTest {
         UnitLayerLayouts layouts = UnitLayerLayouts.parse(new JSONObject(Files.readString(
                 Path.of("mod/data/appearance/unit-layer-layouts.appearance.json"))));
 
-        assertSpecial(layouts, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID),
-                LayeredAppearance.POSE_ROCKET_AIM, "rocket-launcher");
+        assertSpecial(layouts, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID),
+                LayeredAppearance.POSE_ROCKET_AIM, "srm-1");
         assertSpecial(layouts, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ANTI_MATERIEL_RIFLE_ID),
                 LayeredAppearance.POSE_AMR_FIRE, "special");
         assertSpecial(layouts, SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SMOKE_GRENADE_ID),

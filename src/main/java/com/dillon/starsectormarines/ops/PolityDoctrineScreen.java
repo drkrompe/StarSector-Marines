@@ -454,7 +454,7 @@ public final class PolityDoctrineScreen extends MissionFlowMlxScreen {
         MarineArmory armory = new MarineArmory();
         armory.acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId("armor.combat"));
         armory.acquireEquipmentTemplate(EquipmentTemplateCatalog.armorId("armor.aegis-composite"));
-        armory.acquireEquipmentTemplate(EquipmentTemplateCatalog.specialId("special.rocket-launcher"));
+        armory.acquireEquipmentTemplate(EquipmentTemplateCatalog.specialId("special.srm-1"));
         return props(copy, state, armory,
                 MarketProductionSignals.of(true, false, false, false).quality(),
                 previewMarket(), campaign -> { }, NOTHING, NOTHING);

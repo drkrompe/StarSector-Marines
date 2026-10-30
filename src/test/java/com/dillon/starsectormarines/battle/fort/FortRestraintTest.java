@@ -207,7 +207,7 @@ class FortRestraintTest {
         BattleSimulation sim = arena();
         assertTrue(DemolitionKit.carried(sim.world(), carrying(sim, SpecialEquipmentRegistry.SATCHEL_CHARGE_ID, 3)));
         assertFalse(DemolitionKit.carried(sim.world(), carrying(sim, null, 4)), "a rifleman carries nothing to plant");
-        assertFalse(DemolitionKit.carried(sim.world(), carrying(sim, SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID, 5)),
+        assertFalse(DemolitionKit.carried(sim.world(), carrying(sim, SpecialEquipmentRegistry.SRM_1_ID, 5)),
                 "a rocket is not a demolition charge");
     }
 

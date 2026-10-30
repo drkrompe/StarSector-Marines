@@ -136,7 +136,7 @@ class SpecSheetsTest {
     @Test
     void aSpecialSheetQuotesTheGunBehindItAtTheValuesItActuallyFiresAt() {
         SpecialEquipmentDef rocket =
-                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
+                SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_1_ID);
         SpecSheet sheet = SpecSheets.special(rocket);
 
         assertEquals(rocket.displayName(), sheet.title());

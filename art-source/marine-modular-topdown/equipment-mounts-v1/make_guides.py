@@ -5,7 +5,7 @@ from PIL import Image, ImageDraw
 
 HERE = Path(__file__).resolve().parent
 GEOMETRY = {
-    "missile-pod": {"guide_canvas": [1024, 1024], "guide_bounds": [332, 227, 692, 797],
+    "srm-3-pod": {"guide_canvas": [1024, 1024], "guide_bounds": [332, 227, 692, 797],
                     "export_canvas": [128, 192], "content_size": [96, 152],
                     "runtime_content_size_sw": [.24, .38], "forward": "north", "mount": "left-pauldron"},
     "screen-emitter": {"guide_canvas": [1024, 1024], "guide_bounds": [332, 272, 692, 752],
@@ -21,7 +21,7 @@ def main():
         draw.polygon([(x0+35,y0),(x1-35,y0),(x1,y0+35),(x1,y1-35),
                       (x1-35,y1),(x0+35,y1),(x0,y1-35),(x0,y0+35)],
                      fill=(74,84,99,255), outline=(165,177,191,255), width=10)
-        if name == "missile-pod":
+        if name == "srm-3-pod":
             for cx in (400, 512, 624):
                 draw.rounded_rectangle((cx-37,y0+30,cx+37,y1-85), radius=20,
                                        fill=(39,46,57,255), outline=(127,141,157,255), width=7)

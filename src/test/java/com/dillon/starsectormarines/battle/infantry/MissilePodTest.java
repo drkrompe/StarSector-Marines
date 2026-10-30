@@ -19,7 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
- * The shoulder pod as a carried special ({@code special.missile-pod}), driven through a real
+ * The shoulder pod as a carried special ({@code special.srm-3-pod}), driven through a real
  * {@link BattleSimulation} because a delivered payload has to travel. Distances are derived from
  * the loaded item's authored standoff, never hard-coded balance numbers.
  */
@@ -35,7 +35,7 @@ class MissilePodTest {
     private static final float SURVIVES_THE_WHOLE_RACK = 1_000_000f;
 
     private static SpecialEquipmentDef pod() {
-        return SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.MISSILE_POD_ID);
+        return SpecialEquipmentRegistry.require(SpecialEquipmentRegistry.SRM_3_POD_ID);
     }
 
     /** Cells past the authored standoff: a contact the pod's moment has arrived for. */

@@ -17,12 +17,12 @@ import java.util.Map;
 
 /** Runtime catalog of stable, data-authored special-equipment identities. */
 public final class SpecialEquipmentRegistry {
-    public static final String SCRAP_ROCKET_ID = "special.scrap-rocket";
+    public static final String SRM_1_QS_ID = "special.srm-1-qs";
 
     private static final Logger LOG = Global.getLogger(SpecialEquipmentRegistry.class);
 
-    public static final String ROCKET_LAUNCHER_ID = "special.rocket-launcher";
-    public static final String MISSILE_POD_ID = "special.missile-pod";
+    public static final String SRM_1_ID = "special.srm-1";
+    public static final String SRM_3_POD_ID = "special.srm-3-pod";
     public static final String ANTI_MATERIEL_RIFLE_ID = "special.anti-materiel-rifle";
     public static final String SMOKE_GRENADE_ID = "special.smoke-grenade";
     public static final String SATCHEL_CHARGE_ID = "special.satchel-charge";
@@ -147,7 +147,7 @@ public final class SpecialEquipmentRegistry {
         if (savedValue == null || savedValue.isBlank()) return null;
         if (savedValue.startsWith("special.")) return savedValue;
         return switch (savedValue) {
-            case "ROCKET_LAUNCHER" -> ROCKET_LAUNCHER_ID;
+            case "ROCKET_LAUNCHER" -> SRM_1_ID;
             case "ANTI_MATERIEL_RIFLE" -> ANTI_MATERIEL_RIFLE_ID;
             case "SMOKE_GRENADE" -> SMOKE_GRENADE_ID;
             case "SATCHEL_CHARGE" -> SATCHEL_CHARGE_ID;

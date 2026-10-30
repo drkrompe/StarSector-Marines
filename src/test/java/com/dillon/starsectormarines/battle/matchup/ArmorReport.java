@@ -91,7 +91,7 @@ final class ArmorReport {
 
     /**
      * The weapons that did the most damage, each with its share of the side's damage and its hit rate:
-     * {@code srm-pod 61% (h 48%), mech-chaingun 39% (h 22%)}. A weapon that fired and never hit still appears.
+     * {@code mech-srm 61% (h 48%), mech-chaingun 39% (h 22%)}. A weapon that fired and never hit still appears.
      */
     static String weaponText(Map<String, ArmorPlay.WeaponStats> weapons) {
         float total = 0f;

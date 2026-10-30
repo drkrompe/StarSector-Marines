@@ -30,11 +30,11 @@ class BattleSpritesMechLiveryTest {
                 marine.dc4Qs.sourcePath);
         assertEquals(factionPath("lions-guard", "chassis-warden.png"),
                 defender.wardenChassis.sourcePath);
-        assertEquals(factionPath("lions-guard", "lrm-pod.png"),
+        assertEquals(factionPath("lions-guard", "lrm-rack.png"),
                 defender.lrmPod.sourcePath);
         assertEquals(factionPath("lions-guard", "lions-guard-thermal-lance.png"),
                 defender.thermalLance.sourcePath);
-        assertEquals(factionPath("lions-guard", "srm-3-qs-pod.png"),
+        assertEquals(factionPath("lions-guard", "srm-3-qs.png"),
                 defender.srm3QsPod.sourcePath);
         assertSame(sprites.layeredMechSprites().foot, marine.foot);
         assertSame(sprites.layeredMechSprites().muzzleFlash, defender.muzzleFlash);
@@ -42,7 +42,7 @@ class BattleSpritesMechLiveryTest {
 
     @Test
     void oneMissingPaintedLayerFallsBackToTheWholeBaseFamily() {
-        String missing = factionPath("lions-guard", "lrm-pod.png");
+        String missing = factionPath("lions-guard", "lrm-rack.png");
         BattleSprites sprites = headlessSprites(missing);
         sprites.configureMechLiveries("tritachyon", "lions_guard");
         sprites.ensureLayeredMechSprites();

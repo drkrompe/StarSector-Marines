@@ -19,8 +19,8 @@ class MechMissileReplenishmentTest {
     void standardComponentOwnsSrmAndLrmCadence() {
         MissileReplenisherComponent standard = MissileReplenisherComponent.STANDARD;
 
-        assertEquals(12f, standard.replenishmentSeconds(WeaponRegistry.MECH_SRM_POD_ID));
-        assertEquals(18f, standard.replenishmentSeconds(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
+        assertEquals(12f, standard.replenishmentSeconds(WeaponRegistry.MECH_SRM_ID));
+        assertEquals(18f, standard.replenishmentSeconds(WeaponRegistry.MECH_LRM_ID));
         assertEquals(Float.POSITIVE_INFINITY,
                 standard.replenishmentSeconds(WeaponRegistry.MECH_CHAINGUN_ID));
     }

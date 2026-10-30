@@ -19,7 +19,7 @@ import java.util.Locale;
  * authors it as a card:
  * <ul>
  *   <li>{@code kit:<primary>@<grade>,<special>*<n>,...} — every seat carries the primary at the grade, and the first
- *       seats carry the listed specials in order ({@code kit:field-rifle@service,frag-grenade*4,rocket-launcher*2}).
+ *       seats carry the listed specials in order ({@code kit:field-rifle@service,frag-grenade*4,srm-1*2}).
  *       The {@code weapon.} and {@code special.} prefixes may be left off.</li>
  *   <li>{@code mix:<pattern>*<n>,...} — a sheet of armor patterns adding up to twelve seats
  *       ({@code mix:militia*10,packframe*2}). The {@code armor.} prefix may be left off.</li>

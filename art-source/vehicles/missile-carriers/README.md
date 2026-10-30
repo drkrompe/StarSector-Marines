@@ -5,7 +5,7 @@ live hull, live turret, wreck hull, wreck turret). The hulls are the heavy APC's
 
 ## LRM carrier: one pod that stands up to fire
 
-The carrier carries ONE mech LRM pod (`mech-modular-topdown/lrm-pod.png`, the LRM-15's rack) alone in its turret
+The carrier carries ONE mech LRM pod (`mech-modular-topdown/lrm-rack.png`, the LRM-15's rack) alone in its turret
 frame, centred on the frame centre, which is the turntable pivot, and 0.72 cells nose to tail. The turntable plate
 is painted on the hull frames at the APC's roof bearing (335, 288) instead of under the pod, because the pod frame
 is foreshortened when it raises and a flat turntable must not tilt with it.

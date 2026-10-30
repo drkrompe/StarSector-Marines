@@ -31,9 +31,9 @@ class InfantryEquipmentPersistenceMigrationTest {
 
         assertEquals(WeaponRegistry.PULSE_RIFLE_ID, soldier.primaryId());
         assertEquals(WeaponRegistry.PULSE_RIFLE_ID, soldier.primaryDef().id);
-        assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
+        assertEquals(SpecialEquipmentRegistry.SRM_1_ID,
                 soldier.specialEquipmentId());
-        assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
+        assertEquals(SpecialEquipmentRegistry.SRM_1_ID,
                 soldier.specialEquipmentDef().id());
     }
 
@@ -63,7 +63,7 @@ class InfantryEquipmentPersistenceMigrationTest {
         resolve(billet);
 
         assertEquals(WeaponRegistry.DMR_ID, billet.primaryId());
-        assertEquals(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID,
+        assertEquals(SpecialEquipmentRegistry.SRM_1_ID,
                 billet.specialEquipmentId());
     }
 
@@ -79,7 +79,7 @@ class InfantryEquipmentPersistenceMigrationTest {
         assertTrue(armory.unlockedRecipes().contains(MarineArmory.primaryKey(
                 WeaponRegistry.DMR_ID, EquipmentGrade.MASTERWORK)));
         assertTrue(armory.unlockedRecipes().contains(MarineArmory.secondaryKey(
-                SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID)));
+                SpecialEquipmentRegistry.SRM_1_ID)));
     }
 
     private static void set(Object target, String fieldName, Object value) throws Exception {

@@ -79,7 +79,7 @@ class SquadAudioBeliefTest {
         fixture.sim.postShot(new ShotEvent(fixture.shooter,
                 9.5f, 5.5f, 12.5f, 5.5f, false, Faction.DEFENDER, 0.1f,
                 null, null, null,
-                WeaponRegistry.require(WeaponRegistry.MECH_LRM_ARTILLERY_ID), 1f));
+                WeaponRegistry.require(WeaponRegistry.MECH_LRM_ID), 1f));
         fixture.sim.advance(BattleSimulation.TICK_DT);
 
         assertTrue(fixture.squad.believedContacts().isEmpty());

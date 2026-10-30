@@ -103,7 +103,7 @@ class SpecialEquipmentRegistryTest {
         satchel.getJSONObject("ai").put("policy", "hardened-direct-fire");
         assertThrows(JSONException.class, () -> SpecialEquipmentDef.parse(satchel));
 
-        JSONObject rocket = builtInEntry(SpecialEquipmentRegistry.ROCKET_LAUNCHER_ID);
+        JSONObject rocket = builtInEntry(SpecialEquipmentRegistry.SRM_1_ID);
         rocket.getJSONObject("resource").put("startingAmmo", 0);
         assertThrows(JSONException.class, () -> SpecialEquipmentDef.parse(rocket));
 
@@ -113,10 +113,10 @@ class SpecialEquipmentRegistryTest {
         assertThrows(JSONException.class, () -> SpecialEquipmentDef.parse(smoke));
 
         // A shoulder pod authors its squad spacing, and may never take the primary's place.
-        JSONObject unspaced = builtInEntry(SpecialEquipmentRegistry.MISSILE_POD_ID);
+        JSONObject unspaced = builtInEntry(SpecialEquipmentRegistry.SRM_3_POD_ID);
         unspaced.getJSONObject("activation").remove("squadSalvoIntervalSeconds");
         assertThrows(JSONException.class, () -> SpecialEquipmentDef.parse(unspaced));
-        JSONObject replacing = builtInEntry(SpecialEquipmentRegistry.MISSILE_POD_ID);
+        JSONObject replacing = builtInEntry(SpecialEquipmentRegistry.SRM_3_POD_ID);
         replacing.getJSONObject("presentation").getJSONObject("carrierLayer")
                 .put("replacePrimaryWhileUsing", true);
         assertThrows(JSONException.class, () -> SpecialEquipmentDef.parse(replacing));

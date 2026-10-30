@@ -102,10 +102,10 @@ class PointFireBoundaryTest {
         combat.setPrimaryWeapon(shooter, null);
         requestAndTick();
         combat.setPrimaryWeapon(shooter,
-                WeaponRegistry.require(WeaponRegistry.MECH_LRM_ARTILLERY_ID));
+                WeaponRegistry.require(WeaponRegistry.MECH_LRM_ID));
         requestAndTick();
         combat.setPrimaryWeapon(shooter,
-                WeaponRegistry.require(WeaponRegistry.MECH_SRM_POD_ID));
+                WeaponRegistry.require(WeaponRegistry.MECH_SRM_ID));
         requestAndTick();
         combat.setPrimaryWeapon(shooter,
                 WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID));

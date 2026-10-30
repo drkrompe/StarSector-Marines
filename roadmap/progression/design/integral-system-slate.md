@@ -4,7 +4,7 @@ Status: ACTIVE — direction for which patterns build a suit capability and what
 it should be. Every capability named here is authored and running.
 
 Written: 2026-08-28
-Updated: 2026-10-27 — the breach family is three shared shield tiers; the firing brace and the sensor sweeps were cut for the first release; the missile pod left the slate to become the SRM-POD carried special.
+Updated: 2026-10-27 — the breach family is three shared shield tiers; the firing brace and the sensor sweeps were cut for the first release; the missile pod left the slate to become the SRM-3 (Pod) carried special.
 
 Read `progression-nouns.md` for the standing rules an integral system must obey,
 `equipment-lore-catalog.md` for each pattern's provenance and deliberate limits,
@@ -113,7 +113,7 @@ Two are shipped:
 | `armor.corpsman` | Hegemony | **Corpsman kit** (MED-KIT-Trauma) | The same act performed by somebody taught how and carrying more to do it with. A bigger, faster-refilling pool, quicker hands, and worth starting on a marine merely hurt rather than nearly finished. |
 
 The shoulder micro-missile pod was once a system here, on the Aegis composite,
-the Packframe and both Arbalests. It is now a carried special, the SRM-POD
+the Packframe and both Arbalests. It is now a carried special, the SRM-3 (Pod)
 (`progression-nouns.md`, Shoulder pod): a pod that fires while the wearer keeps
 the rifle up is a billet's ordnance choice rather than something only four suits
 could offer, and those suits are plain armour. The slate therefore holds the
