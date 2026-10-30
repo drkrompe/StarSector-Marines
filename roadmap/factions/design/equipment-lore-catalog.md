@@ -5,7 +5,7 @@ Status: ACTIVE — canonical provenance and faction-fit reference for shipped Ma
 Written: 2026-08-26
 
 Updated: 2026-10-22 — added the naming guide (faction schemes and grade marks) and moved Luddic, Lion's Guard and pirate kit onto it.
-cannon, and Pioneer utility rocket cradle as lower-performance mech components
+cannon, and SRM-4 (QS) rocket pod (the Pioneer utility rocket cradle) as lower-performance mech components
 whose circulation does not make them faction defaults.
 
 Read `faction-lore-nouns.md` for evidence tiers and the individual faction guides
@@ -100,7 +100,7 @@ channel among manufacture, trade, capture, and black-market resale.
 | --- | --- | --- | --- |
 | `weapon.mech-muster-autogun` | **CAG-6 Muster commercial autogun** — a mass-market convoy and settlement-security weapon assembled around commodity receivers and exposed feeds. | Independent commercial worlds, local militias, auxiliaries, contractors, and captured pirate or Pather stocks. | Shorter-ranged, less accurate, less penetrating, and far less saturating than military chainguns or autocannons. It is common-market hardware, not Independent faction issue. |
 | `weapon.mech-quarry-breaker` | **QBC-2 Quarry breaker cannon** — a mining and demolition projector pressed into battlefield service. | Industrial markets, remote extraction works, breaker yards, contractors, and outlaw conversions or recovery. | A crude short-range structural hit with poor accuracy, low armor penetration, slow cycling, and a tiny finite shell bin. Its wall damage does not make it a military Foundry Breaker equivalent. |
-| `weapon.mech-pioneer-rocket` | **PRC-4 Pioneer utility rocket cradle** — an open rail for seismic charges and obstacle-clearing rockets adapted to shoulder hardpoints. | Industrial and frontier markets, public works, remote survey crews, contractors, and recovered outlaw use. | Four straight-fire rockets per trigger, finite salvos, loose dispersion, and no military boost guidance or indirect-fire capability. It is weaker and more exposed than a sealed SRM pod. |
+| `weapon.mech-pioneer-rocket` | **SRM-4 (QS) rocket pod** (the PRC-4 Pioneer utility rocket cradle) — an open rail for seismic charges and obstacle-clearing rockets adapted to shoulder hardpoints and sold under the QuickSell label: the cheaper line, cheaper because it is worse. | Industrial and frontier markets, public works, remote survey crews, contractors, and recovered outlaw use. | Four straight-fire rockets per trigger, finite salvos, loose dispersion, and no military boost guidance or indirect-fire capability. It is weaker and more exposed than a sealed SRM pod. |
 
 All three are valid future subsystem-inventory or market stock. None belongs in
 `FactionMechLoadouts` merely because a faction can plausibly buy, capture, or
