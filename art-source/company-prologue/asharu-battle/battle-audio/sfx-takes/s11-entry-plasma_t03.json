@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "77",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A ship's violent atmospheric reentry heard from inside the hull: a deep roaring wall of plasma, the hull rattling and buffeting harder and harder, no music, no voices",
+    "duration_seconds": 7.0,
+    "prompt_influence": 0.5,
+    "loop": true
+  },
+  "audioSha256": "792d75f696deffc0a1150f24fce30d877d4743e419797b9e2532733a9abe69b0",
+  "durationSeconds": 7.0,
+  "peakDb": -0.5,
+  "integratedLufs": -13.2
+}

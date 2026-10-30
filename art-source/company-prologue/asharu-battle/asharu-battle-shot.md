@@ -691,7 +691,8 @@ not turned down against S8-S9.
 `explosion_ship` (`sounds/sfx_impacts/explosion_01`, `_02`, `_04`; `_04` for the tanker and
 Warden Lead's magazine) and the hits that set off a secondary take `explosion_from_damage`
 (`explosion_secondary_01` to `_03`). They are read from the game install, never copied into the
-repository; the ElevenLabs takes stay on their cues as alternatives.
+repository; the ElevenLabs takes stay on their cues as alternatives. The Falcon (P)'s shield overload
+is the game's too: the heavy shield hit that breaks it, `shield_burnout` and the `emp_loop` arcs.
 
 ## On-screen place and time
 

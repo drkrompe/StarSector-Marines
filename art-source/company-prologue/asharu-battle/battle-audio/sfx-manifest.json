@@ -582,9 +582,33 @@
           "peakDb": -4.8,
           "integratedLufs": -20.5,
           "characterCost": "66"
+        },
+        "s10-colossus-groans_t03": {
+          "durationSeconds": 6.0,
+          "peakDb": -3.0,
+          "integratedLufs": -14.9,
+          "characterCost": "66"
+        },
+        "s10-colossus-groans_t04": {
+          "durationSeconds": 6.0,
+          "peakDb": -4.5,
+          "integratedLufs": -16.7,
+          "characterCost": "66"
+        },
+        "s10-colossus-groans_t05": {
+          "durationSeconds": 6.0,
+          "peakDb": -6.5,
+          "integratedLufs": -19.7,
+          "characterCost": "66"
+        },
+        "s10-colossus-groans_t06": {
+          "durationSeconds": 6.0,
+          "peakDb": -7.4,
+          "integratedLufs": -19.4,
+          "characterCost": "66"
         }
       },
-      "prompt": "An enormous ship's hull groaning and buckling under stress: deep slow metal creaks and shudders, no music, no voices",
+      "prompt": "A colossal starship's spine buckling and giving way: deep tortured metal groans, sharp shrieking stress fractures and plating tearing loose, slow and heavy, no music, no voices",
       "seconds": 6.0,
       "loop": true,
       "promptInfluence": 0.5
@@ -603,9 +627,33 @@
           "peakDb": -1.0,
           "integratedLufs": -12.4,
           "characterCost": "77"
+        },
+        "s11-entry-plasma_t03": {
+          "durationSeconds": 7.0,
+          "peakDb": -0.5,
+          "integratedLufs": -13.2,
+          "characterCost": "77"
+        },
+        "s11-entry-plasma_t04": {
+          "durationSeconds": 7.0,
+          "peakDb": -0.3,
+          "integratedLufs": -10.4,
+          "characterCost": "77"
+        },
+        "s11-entry-plasma_t05": {
+          "durationSeconds": 7.0,
+          "peakDb": -0.2,
+          "integratedLufs": -10.3,
+          "characterCost": "77"
+        },
+        "s11-entry-plasma_t06": {
+          "durationSeconds": 7.0,
+          "peakDb": -0.7,
+          "integratedLufs": -13.9,
+          "characterCost": "77"
         }
       },
-      "prompt": "A spacecraft entering the atmosphere: a roaring rushing wall of superheated plasma, buffeting and rising in intensity, no music, no voices",
+      "prompt": "A ship's violent atmospheric reentry heard from inside the hull: a deep roaring wall of plasma, the hull rattling and buffeting harder and harder, no music, no voices",
       "seconds": 7.0,
       "loop": true,
       "promptInfluence": 0.5
