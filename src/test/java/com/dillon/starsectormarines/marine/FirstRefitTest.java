@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
-import java.util.EnumSet;
 import org.junit.jupiter.api.Test;
 import java.util.Map;
 import java.util.Set;
@@ -15,8 +14,9 @@ import static org.junit.jupiter.api.Assertions.*;
 
 class FirstRefitTest {
     /** Relief settled: the path not picked is on the Kit Ladder's shelf. */
-    private static final EquipmentAcquisitionEligibility.Progress AFTER_RELIEF = new EquipmentAcquisitionEligibility.Progress(
-            0, 0, Set.of(), EnumSet.of(UnlockStation.START, UnlockStation.RELIEF));
+    private static EquipmentAcquisitionEligibility.Progress afterRelief() {
+        return new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(), Set.of(UnlockStation.START, UnlockStation.byId("relief")));
+    }
 
     @Test void reliefRewardIsExplicitAndIdempotentAndNeverIssuesKit() {
         MarineRoster roster = company();
@@ -174,7 +174,7 @@ class FirstRefitTest {
             boolean offered = false;
             for (int month = 0; month < 120; month++) {
                 var market = FactionEquipmentMarketStockPlanner.plan("independent", "technology-test", 6, month,
-                        false, LoadoutCardInventory.knownCardIds(roster.armory()), AFTER_RELIEF);
+                        false, LoadoutCardInventory.knownCardIds(roster.armory()), afterRelief());
                 offered |= market.marketCardIds().contains(card);
             }
             assertTrue(offered, "The alternative must reach ordinary markets without a license");

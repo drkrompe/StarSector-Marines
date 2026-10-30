@@ -7,6 +7,8 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.marine.KitLadderCatalog;
+import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
 import com.dillon.starsectormarines.marine.MarineArmory;
 import com.dillon.starsectormarines.marine.SquadLoadoutPresentationRegistry;
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.stream.Collectors;
 
 /**
  * Auto-registered JUnit extension that installs the disk-loaded catalogs before
@@ -76,6 +79,7 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
             armor.validateCompleteness();
             MarineArmorCatalogRegistry.install(armor);
         }
+        installKitLadder(mod);
         if (EquipmentTemplateCatalog.installed() == null) {
             EquipmentTemplateCatalog templates = new EquipmentTemplateCatalog();
             templates.ingest(new JSONObject(Files.readString(mod.resolve("data/marines/equipment-templates.template.json"))));
@@ -111,5 +115,25 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
             rosters.validateCompleteness();
             GroundRosterRegistry.install(rosters);
         }
+    }
+
+    /** The Kit Ladder and built-in loadout cards, validated as the game validates them (strings read off disk). */
+    public static void installKitLadder(Path mod) throws Exception {
+        if (KitLadderCatalog.installed() != null) return;
+        KitLadderCatalog.Known registries = KitLadderCatalog.Known.installed();
+        JSONObject strings = new JSONObject(Files.readString(mod.resolve("data/strings/strings.json")).lines()
+                .filter(line -> !line.stripLeading().startsWith("#")).collect(Collectors.joining("\n")))
+                .getJSONObject(Strings.NS);
+        KitLadderCatalog.Known known = new KitLadderCatalog.Known() {
+            @Override public boolean primary(String id) { return registries.primary(id); }
+            @Override public boolean special(String id) { return registries.special(id); }
+            @Override public boolean thrown(String id) { return registries.thrown(id); }
+            @Override public boolean armor(String id) { return registries.armor(id); }
+            @Override public boolean pattern(String id) { return registries.pattern(id); }
+            @Override public boolean string(String key) { return strings.has(key); }
+        };
+        KitLadderCatalog.install(KitLadderCatalog.parse(
+                new JSONObject(Files.readString(mod.resolve(KitLadderCatalog.LADDER_PATH))),
+                new JSONObject(Files.readString(mod.resolve(KitLadderCatalog.CARDS_PATH))), known));
     }
 }

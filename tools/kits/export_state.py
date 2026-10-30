@@ -11,12 +11,13 @@ which leaves <export dir>/kits/state.json and <export dir>/weapon-notes/<clip id
 Writes, never touching game data:
   tools/kits/review/weapon-notes.json   the owner's notes and statuses per weapon clip, normalized and tracked
                                         (review input, not game data; skipped with --no-notes or with no notes)
-  build/kits/export/ladder-state.json   the page state, normalized (untracked: the repo's rows are canonical)
+  build/kits/export/ladder-state.json   the page state, normalized (untracked: the repo's data is canonical)
   build/kits/export/ladder-diff.md      the diff report, also printed: adds, moves, conflicts, orphans, unknown
   build/kits/export/ladder-diff.json    stations, card content edits (ladder.diff documents each kind)
 The diff is three-way when the published page's manifest is known (--page <html from an Artifact read>, else
 tools/kits/review/published.json): it then tells an owner edit (move) from a game change the page has not seen
-(game-moved). apply_ladder.py reads the same export dir and writes only the move and add rows.
+(game-moved). apply_ladder.py reads the same export dir and writes the move and add rows (and, with --cards,
+the accepted card contents).
 """
 import argparse
 import json
@@ -58,7 +59,7 @@ def report(folder, page=None):
     counts = {}
     for e in entries:
         counts[e["kind"]] = counts.get(e["kind"], 0) + 1
-    md = ["# Kit Ladder: page state against KitLadder.java", "",
+    md = ["# Kit Ladder: page state against the game data", "",
           "Page state saved %s. Base: %s." % (state.get("_savedAt") or "unknown",
                                               "the given page" if page else "tools/kits/review/published.json" if base else
                                               "none (two-way: every disagreement reads as a move)"),
@@ -67,9 +68,9 @@ def report(folder, page=None):
     edits = [e for e in entries if e["kind"] == "content" and e.get("detail")]
     if edits:
         md += ["## Card content edits on the page", "",
-               "Seats are read game -> page; a card the game changed after publish (content-stale) is left out. apply_ladder.py does not write these: a card's contents live in "
-               "SquadEquipmentDoctrines (weapon seats), ArmorSheetBundles (a sheet's suits) and FirstRefit (the "
-               "Wayline paths), authored by hand on the owner's go-ahead.", ""]
+               "Seats are read game -> page; a card the game changed after publish (content-stale) is left out. A card's "
+               "contents live in mod/data/marines/loadout-cards.json (a weapon card's seats, a tactic sheet's suits); "
+               "on the owner's go-ahead apply_ladder.py --cards <ids> writes the accepted ones.", ""]
         for e in edits:
             md += ["### %s (`%s`)" % (names.get(e["id"], ""), e["id"]), ""] + ["- " + d for d in e["detail"]] + [""]
     return state, game, entries, "\n".join(md)

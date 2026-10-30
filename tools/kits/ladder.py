@@ -1,35 +1,26 @@
-"""The Kit Ladder's repo side, shared by the kit tools (kit-ladder.md): read KitLadder.java's rows, compare a saved page
-state with them, patch them, and fingerprint the data a page build embeds.
+"""The Kit Ladder's repo side, shared by the kit tools (kit-ladder.md): read the ladder's placements from
+mod/data/marines/kit-ladder.json (through kitdata.py), compare a saved page state with them, patch them, and
+fingerprint the data a page build embeds.
 
 Pure Python over the repository's files; no network, no Gradle. The game data is canonical: the Kit Ladder page
 (tools/kits/build.py) is an editor seeded from it, and nothing here writes a game file except apply_ladder.py.
 """
+import copy
 import hashlib
 import json
 import re
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parents[2]
-JAVA = ROOT / "src/main/java/com/dillon/starsectormarines"
-KIT_LADDER = JAVA / "marine/KitLadder.java"
-UNLOCK_STATION = JAVA / "marine/UnlockStation.java"
-FIRST_REFIT = JAVA / "marine/FirstRefit.java"
+import kitdata
+
+ROOT = kitdata.ROOT
+JAVA = kitdata.JAVA
 REVIEW = Path(__file__).resolve().parent / "review"
 PUBLISHED = REVIEW / "published.json"
 
-# KitLadder's pattern(...) overloads: Java class -> page item kind.
-PATTERN_KIND = {"MechVariant": "chassis", "MechWeaponComponent": "weapon", "MechInternal": "internal",
-                "VehicleType": "vehicle", "VehicleKit": "kit"}
-KIND_CLASS = {v: k for k, v in PATTERN_KIND.items()}
-STATIC_IMPORT = "import static com.dillon.starsectormarines.marine.UnlockStation.%s;"
-
-CARD_ROW = re.compile(r'^(\s+)(weapon|sheet)\((?:SquadEquipmentDoctrines\.(\w+)|FirstRefit\.Path\.(\w+)\.weapons),\s*(\w+)\);\s*$')
-PATTERN_ROW = re.compile(r'^(\s+)pattern\((\w+)\.(\w+),\s*(\w+)\);\s*$')
-ANY_ROW = re.compile(r'^\s+(?:weapon|sheet|pattern)\(')
-
 
 class LadderError(Exception):
-    """The Java was reshaped past what these tools parse; fix the file or the parser, never guess."""
+    """The data was reshaped past what these tools read; fix the file or the reader, never guess."""
 
 
 def read(path):
@@ -40,54 +31,32 @@ def constants(text):
     return dict(re.findall(r'public static final String (\w+)\s*=\s*"([^"]+)"', text))
 
 
-def stations(text=None):
-    """[(ENUM, page id)] in campaign order, NONE last as UnlockStation declares it."""
-    found = re.findall(r'^    ([A-Z_0-9]+)\("([a-z0-9-]+)"\)', text if text is not None else read(UNLOCK_STATION), re.M)
-    if not found or found[-1][0] != "NONE":
-        raise LadderError("UnlockStation: expected its constants in 'NAME(\"id\")' form, NONE last; parsed %s" % found)
-    return found
+def stations(doc=None):
+    """[(NAME, station id)] in campaign order with ("NONE", "none") last, from kit-ladder.json's stations."""
+    doc = doc if doc is not None else kitdata.load_ladder()
+    ids = [s.get("id") for s in doc.get("stations") or []]
+    if not ids or ids[0] != "start":
+        raise LadderError("kit-ladder.json: expected its stations in campaign order, 'start' first; read %s" % ids)
+    return [(sid.upper().replace("-", "_"), sid) for sid in ids] + [("NONE", "none")]
 
 
-def first_refit_paths(text=None):
-    """{Path enum: weapons card id} for FirstRefit's two Wayline paths."""
-    return dict(re.findall(r'^\s+(\w+)\("[^"]+", "(wayline:[^"]+)"', text if text is not None else read(FIRST_REFIT), re.M))
-
-
-def rows(text=None, doctrines=None, paths=None, station_list=None):
-    """Every KitLadder row in file order: {line, kind, ref, id, station (page id), enum (station constant)}.
-
-    ``doctrines`` maps SquadEquipmentDoctrines constant names to card ids; ``paths`` is first_refit_paths()."""
-    text = text if text is not None else read(KIT_LADDER)
-    if doctrines is None:
-        doctrines = constants(read(JAVA / "marine/SquadEquipmentDoctrines.java"))
-    paths = paths if paths is not None else first_refit_paths()
-    by_enum = dict(station_list if station_list is not None else stations())
+def rows(doc=None, enums=None, station_list=None):
+    """Every placement in file order: {line (index), kind (weapon, sheet or pattern), item (the game id), id (the page
+    id), station}. A placement naming no item the page knows, or an undeclared station, is a LadderError."""
+    doc = doc if doc is not None else kitdata.load_ladder()
+    enums = enums if enums is not None else kitdata.pattern_ids()
+    known = {sid for _, sid in (station_list if station_list is not None else stations(doc))}
     out = []
-    for n, line in enumerate(text.splitlines()):
-        if not ANY_ROW.match(line):
-            continue
-        card, pattern = CARD_ROW.match(line), PATTERN_ROW.match(line)
-        if card:
-            _, kind, const, path, enum = card.groups()
-            if const:
-                if const not in doctrines:
-                    raise LadderError("KitLadder.java:%d names SquadEquipmentDoctrines.%s, which is not a constant there" % (n + 1, const))
-                ref, item = "SquadEquipmentDoctrines." + const, doctrines[const]
-            else:
-                if path not in paths:
-                    raise LadderError("KitLadder.java:%d names FirstRefit.Path.%s, which FirstRefit does not declare" % (n + 1, path))
-                ref, item = "FirstRefit.Path.%s.weapons" % path, paths[path]
-        elif pattern:
-            _, cls, const, enum = pattern.groups()
-            if cls not in PATTERN_KIND:
-                raise LadderError("KitLadder.java:%d: pattern(%s...) is not one of %s" % (n + 1, cls, sorted(PATTERN_KIND)))
-            kind, ref, item = "pattern", "%s.%s" % (cls, const), "%s:%s" % (PATTERN_KIND[cls], const)
-        else:
-            raise LadderError("KitLadder.java:%d is a row in no parsed shape; keep weapon/sheet/pattern(<constant>, <STATION>);\n  %s"
-                              % (n + 1, line.strip()))
-        if enum not in by_enum:
-            raise LadderError("KitLadder.java:%d places %s on %s, which is not an UnlockStation" % (n + 1, item, enum))
-        out.append({"line": n, "kind": kind, "ref": ref, "id": item, "station": by_enum[enum], "enum": enum})
+    for n, p in enumerate(doc.get("placements") or []):
+        item, station = p.get("item"), p.get("station")
+        page = kitdata.page_id(item or "", enums)
+        if page is None:
+            raise LadderError("kit-ladder.json: placements[%d] names %r, which is no card or machine pattern id" % (n, item))
+        if station not in known:
+            raise LadderError("kit-ladder.json: placements[%d] places %s on %r, which is not a declared station" % (n, item, station))
+        kind = ("weapon" if item.startswith(kitdata.CARD_PREFIX + "weapon:") else
+                "sheet" if item.startswith(kitdata.CARD_PREFIX + "sheet:") else "pattern")
+        out.append({"line": n, "kind": kind, "item": item, "id": page, "station": station})
     return out
 
 
@@ -96,7 +65,21 @@ def rows(text=None, doctrines=None, paths=None, station_list=None):
 
 def load_state(path):
     """The page state from an ArtifactData out_dir file (kits/state.json: {"json": "<state>", "at": ...}),
-    or a bare state object, or a kits.json the page's Download button wrote."""
+    or a bare state object, or a kits.json the page's Download button wrote. Special ids the game has since renamed
+    (kitdata.RETIRED_SPECIALS) are read as their current ids."""
+    return translate_retired(_load_state(path))
+
+
+def translate_retired(state):
+    for k in state.get("weapon") or []:
+        for m in k.get("members") or []:
+            for f in ("special", "belt"):
+                if m.get(f) in kitdata.RETIRED_SPECIALS:
+                    m[f] = kitdata.RETIRED_SPECIALS[m[f]]
+    return state
+
+
+def _load_state(path):
     doc = json.loads(read(path))
     if isinstance(doc.get("json"), str):
         state = json.loads(doc["json"])
@@ -125,7 +108,7 @@ def page_stations(state):
 
 def seat_changes(lst, page, game, pieces=None):
     """Readable differences between a card's seats on the page and in the game. A weapon card is compared seat by seat
-    (SquadEquipmentDoctrines lists twelve seats); a tactic sheet by its set of suits only, since the game seats a
+    (loadout-cards.json lists twelve seats); a tactic sheet by its set of suits only, since the game seats a
     sheet's suits by role and the page's seating is just an even spread. Pieces the game does not have are flagged."""
     unknown = lambda x: " (not a game item)" if pieces is not None and x and x not in pieces else ""
     out = []
@@ -150,15 +133,15 @@ def diff(state, game_rows, cards, items, station_ids, base=None, pieces=None):
     """What a saved page state says against the game's rows. One entry per finding, sorted by kind then id:
 
     move            page and game disagree on a live item's station (with a base: only the page changed). apply writes it.
-    add             the page places a real item KitLadder has no row for. apply writes it.
+    add             the page places a real item kit-ladder.json does not place. apply writes it.
     game-moved      with a base: only the game changed since the page was published; the page is stale (republish).
     conflict        with a base: page and game both moved, differently. The owner decides; apply skips it.
     content         a card's name, description or seats differ from the game's, and the owner changed them on the page
-                    (or there is no base to tell). Author it in Java by hand.
+                    (or there is no base to tell). apply_ladder.py --cards writes it.
     content-stale   with a base: the card differs only because the game changed it after the page was published.
-    unknown-station the page names a station UnlockStation lacks (the page itself reads it as none). apply skips it.
+    unknown-station the page names a station kit-ladder.json lacks (the page reads it as none). apply skips it.
     orphan          a page key that is no game item (renamed or deleted). apply skips it.
-    new-card        a card the page made that the game does not have. Author it in Java by hand.
+    new-card        a card the page made that the game does not have. Author it in loadout-cards.json.
     grant           the page's free-pick flag disagrees with FirstRefit. FirstRefit owns it.
     unseen          a game row the page state has never placed (the page seeds it from the game on load).
 
@@ -222,10 +205,10 @@ DIFF_NOTE = {
     "add": "apply adds a row",
     "conflict": "both moved since publish: owner decides",
     "game-moved": "game changed after publish: republish the page",
-    "unknown-station": "page station is not an UnlockStation: skipped",
+    "unknown-station": "page station is not a declared station: skipped",
     "orphan": "not a game item: skipped",
-    "new-card": "page-made card: author it in Java by hand",
-    "content": "owner edited the card: author in Java by hand",
+    "new-card": "page-made card: author it in loadout-cards.json by hand",
+    "content": "owner edited the card: apply_ladder.py --cards writes it",
     "content-stale": "game changed the card after publish: republish",
     "grant": "free pick is FirstRefit's: change it by hand",
     "unseen": "page never placed it: seeded from the game",
@@ -236,7 +219,7 @@ def diff_table(entries, names=None):
     """A markdown table of diff entries."""
     names = names or {}
     if not entries:
-        return "No differences: the page state matches KitLadder.java.\n"
+        return "No differences: the page state matches the game data.\n"
     lines = ["| Kind | Item | Name | Page | Game | Published | What happens |", "|---|---|---|---|---|---|---|"]
     for e in entries:
         what = DIFF_NOTE[e["kind"]]
@@ -250,56 +233,47 @@ def diff_table(entries, names=None):
 
 
 # ---------------------------------------------------------------------------------------------------------------
-# Writing KitLadder.java.
+# Writing the data.
 
-def row_text(indent, kind, ref, enum):
-    if kind == "pattern":
-        return "%spattern(%s, %s);" % (indent, ref, enum)
-    return "%s%s(%s, %s);" % (indent, kind, ref, enum)
-
-
-def patch(text, changes, adds, station_list, doctrines, paths):
-    """KitLadder.java with ``changes`` {item id: station id} applied to existing rows and ``adds`` {item id: (kind, ref,
-    station id)} inserted, each block of rows kept in campaign order (stable), and the UnlockStation static imports
-    regenerated from the stations in use. Deterministic: patching the result with the same input changes nothing."""
-    enum_of = {sid: enum for enum, sid in station_list}
-    rank = {enum: i for i, (enum, _) in enumerate(station_list)}
-    lines = text.split("\n")
-    current = rows(text, doctrines, paths, station_list)
-    by_id = {r["id"]: r for r in current}
+def patch(doc, changes, adds):
+    """kit-ladder.json's document with ``changes`` {game id: station id} applied to existing placements and ``adds``
+    {game id: station id} appended. Placement order is kitdata.ordered's (each kind's block in campaign order, a stable
+    sort), so serialising the result is deterministic and patching it again with the same input changes nothing."""
+    out = copy.deepcopy(doc)
+    by_item = {p["item"]: p for p in out["placements"]}
     for item, station in changes.items():
-        r = by_id[item]
-        indent = re.match(r"^(\s*)", lines[r["line"]]).group(1)
-        lines[r["line"]] = row_text(indent, r["kind"], r["ref"], enum_of[station])
-    # Adds go after the last row of the same kind and class, so they land in their own block.
-    for item, (kind, ref, station) in sorted(adds.items()):
-        group = (kind, ref.split(".")[0])
-        same = [r for r in rows("\n".join(lines), doctrines, paths, station_list) if (r["kind"], r["ref"].split(".")[0]) == group]
-        if not same:
-            raise LadderError("no %s(%s...) block in KitLadder.java to add %s to; add the first row by hand" % (kind, group[1], item))
-        at = same[-1]["line"]
-        indent = re.match(r"^(\s*)", lines[at]).group(1)
-        lines.insert(at + 1, row_text(indent, kind, ref, enum_of[station]))
-    # Stable-sort each contiguous block of rows by station.
-    i = 0
-    while i < len(lines):
-        if ANY_ROW.match(lines[i]):
-            j = i
-            while j < len(lines) and ANY_ROW.match(lines[j]):
-                j += 1
-            block = lines[i:j]
-            enum = lambda line: re.search(r",\s*(\w+)\);\s*$", line).group(1)
-            lines[i:j] = sorted(block, key=lambda line: rank[enum(line)])
-            i = j
+        if item not in by_item:
+            raise LadderError("kit-ladder.json has no placement for %s to move" % item)
+        by_item[item]["station"] = station
+    for item, station in sorted(adds.items()):
+        if item in by_item:
+            raise LadderError("kit-ladder.json already places %s" % item)
+        out["placements"].append({"item": item, "station": station})
+    out["placements"] = kitdata.ordered(out["placements"], [s["id"] for s in out["stations"]])
+    return out
+
+
+def patch_cards(cards_doc, edits):
+    """loadout-cards.json's document with ``edits`` {card id: page card} written in: a weapon card takes the page's twelve
+    seats; a tactic sheet takes the page's set of suits (in the order the page first names them). Names, descriptions,
+    grants and seat classes are never written: they are string keys, FirstRefit's, or a role plan the page cannot edit."""
+    out = copy.deepcopy(cards_doc)
+    by_id = {c["id"]: ("weapon", c) for c in out["weaponCards"]}
+    by_id.update({c["id"]: ("armor", c) for c in out["tacticSheets"]})
+    for cid, page in edits.items():
+        if cid not in by_id:
+            raise LadderError("loadout-cards.json has no card %s to edit" % cid)
+        lst, card = by_id[cid]
+        members = page.get("members") or []
+        if lst == "weapon":
+            card["members"] = [{k: m[k] for k in kitdata.WEAPON_KEYS if m.get(k) is not None} for m in members]
         else:
-            i += 1
-    body = "\n".join(lines)
-    used = sorted({r["enum"] for r in rows(body, doctrines, paths, station_list)})
-    imports = [n for n, line in enumerate(lines) if line.startswith(STATIC_IMPORT.split("%s")[0])]
-    if not imports:
-        raise LadderError("KitLadder.java has no UnlockStation static imports to regenerate")
-    lines[imports[0]:imports[-1] + 1] = [STATIC_IMPORT % e for e in used]
-    return "\n".join(lines)
+            suits = []
+            for m in members:
+                if m.get("armor") and m["armor"] not in suits:
+                    suits.append(m["armor"])
+            card["suits"] = suits
+    return out
 
 
 # ---------------------------------------------------------------------------------------------------------------
@@ -368,18 +342,23 @@ def page_data(html):
 
 
 def game(reel_index=None):
-    """The repo's side of a diff: {data (build.collect, no art, not strict), rows (KitLadder rows), stations [(ENUM, id)],
-    rowStations {id: station}, cards {id: card}, items {every real item id}, names {id: name}}."""
+    """The repo's side of a diff: {data (build.collect, no art, not strict), rows (placements), stations [(NAME, id)],
+    rowStations {page id: station}, cards {page id: card}, items {every real page id}, names {id: name}, enums,
+    gameIds {page id: game id}, ladder (kit-ladder.json), pieces}."""
     import build  # build imports this module; import lazily
     data = build.collect(reel_index=reel_index, art=False, strict=False)
-    station_list = stations()
-    doctrines = constants(read(JAVA / "marine/SquadEquipmentDoctrines.java"))
-    the_rows = rows(doctrines=doctrines, station_list=station_list)
+    doc = kitdata.load_ladder()
+    station_list = stations(doc)
+    enums = kitdata.pattern_ids()
+    the_rows = rows(doc, enums, station_list)
     cards = {k["id"]: k for k in data["KITS"] + data["ARMORKITS"]}
     patterns = {it["id"]: it for lst in data["ITEMS"].values() for it in lst}
     names = {i: v["name"] for i, v in list(cards.items()) + list(patterns.items())}
+    sheet_ids = {k["id"] for k in data["ARMORKITS"]}
+    game_ids = {i: kitdata.game_id(i, enums, sheet_ids) for i in list(cards) + list(patterns)}
     return {"data": data, "rows": the_rows, "stations": station_list, "rowStations": {r["id"]: r["station"] for r in the_rows},
-            "cards": cards, "patterns": patterns, "items": set(cards) | set(patterns), "names": names, "doctrines": doctrines,
+            "cards": cards, "patterns": patterns, "items": set(cards) | set(patterns), "names": names, "enums": enums,
+            "gameIds": game_ids, "ladder": doc,
             "pieces": {p["id"] for key in ("PRIMARIES", "SPECIALS", "ARMORS") for p in data[key]}}
 
 

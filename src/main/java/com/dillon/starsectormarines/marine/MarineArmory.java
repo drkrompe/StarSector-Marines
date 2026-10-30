@@ -382,6 +382,23 @@ public final class MarineArmory implements Serializable {
         templateCards = ordered;
     }
 
+    /**
+     * A save holds its own copy of each Wayline path's weapon card, written when the path was offered. The card's
+     * seats are authored data, so a saved copy is re-dressed from the current card on load, keeping its saved name
+     * and description; squads holding it are re-dressed from it by the roster's own refresh.
+     */
+    private void refreshWaylineCards() {
+        for (int i = 0; i < customWeaponDoctrines.size(); i++) {
+            SquadWeaponDoctrine saved = customWeaponDoctrines.get(i);
+            for (FirstRefit.Path path : FirstRefit.Path.values()) {
+                if (path.weapons.equals(saved.id())) {
+                    customWeaponDoctrines.set(i, new SquadWeaponDoctrine(saved.id(), saved.savedDisplayName(),
+                            saved.savedDescription(), FirstRefit.weapons(path)));
+                }
+            }
+        }
+    }
+
     private SquadWeaponDoctrine createWeaponDoctrine(
             String id, String displayName, List<SquadWeaponIssue> issues) {
         if (weaponDoctrineById(id) != null) {
@@ -424,6 +441,7 @@ public final class MarineArmory implements Serializable {
         if (customWeaponDoctrines == null) customWeaponDoctrines = new ArrayList<>();
         customWeaponDoctrines.removeIf(doctrine -> doctrine == null
                 || SquadEquipmentDoctrines.weaponById(doctrine.id()) != null);
+        refreshWaylineCards();
         migrateLegacyPrimaryKeys();
         migrateLegacySecondaryKeys();
         migrateLegacyTemplateOwnership();

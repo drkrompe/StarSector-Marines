@@ -55,6 +55,7 @@ import com.dillon.starsectormarines.ops.spec.SpecSheets;
 import com.dillon.starsectormarines.ui.spec.SpecSheetLayer;
 import com.dillon.starsectormarines.marine.LoadoutCardInventory;
 import com.dillon.starsectormarines.marine.MarineCaptain;
+import com.dillon.starsectormarines.marine.KitLadderCatalog;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
 import com.dillon.starsectormarines.marine.FactionEquipmentCatalog;
@@ -154,6 +155,10 @@ public class StarsectorMarinesModPlugin extends BaseModPlugin {
         // Player-facing armor class and descriptive copy are data-authored separately
         // from the save-compatible armor enum and its battle-facing values.
         MarineArmorCatalogRegistry.loadContributions(marineCatalogs.armor());
+        // The Kit Ladder and the built-in loadout cards: stations, placements, weapon seats and sheet
+        // suits are data, validated against the weapon, special and armour registries above. Before the
+        // templates and faction pools, whose validation already reads the cards and the ladder's stations.
+        KitLadderCatalog.loadBuiltins();
         // Collectible card identity and issue cost are also additive data. Cards
         // validate their referenced equipment only after all three equipment
         // registries are installed.

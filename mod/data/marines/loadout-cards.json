@@ -1,0 +1,449 @@
+{
+  "weaponCards": [
+    {
+      "id": "weapons:field-security",
+      "name": "@squadDoctrineFieldSecurityWeaponsName",
+      "description": "@squadDoctrineFieldSecurityWeaponsDescription",
+      "members": [
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Security Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Security Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Security Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Security Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Security Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Security Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Security Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Security Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Security Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"}
+      ]
+    },
+    {
+      "id": "wayline:steady-line",
+      "name": "@openingRefitPathSTEADY_LINE",
+      "description": "@openingRefitPathDescriptionSTEADY_LINE",
+      "grant": "free-pick",
+      "members": [
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "MILSPEC"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "MILSPEC"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "MILSPEC"}
+      ]
+    },
+    {
+      "id": "wayline:forward-screen",
+      "name": "@openingRefitPathFORWARD_SCREEN",
+      "description": "@openingRefitPathDescriptionFORWARD_SCREEN",
+      "grant": "free-pick",
+      "members": [
+        {"role": "Pulse Rifleman", "primary": "weapon.pulse-rifle", "grade": "MILSPEC"},
+        {"role": "Pulse Rifleman", "primary": "weapon.pulse-rifle", "grade": "MILSPEC"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Pulse Rifleman", "primary": "weapon.pulse-rifle", "grade": "MILSPEC"},
+        {"role": "Pulse Rifleman", "primary": "weapon.pulse-rifle", "grade": "MILSPEC"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Pulse Rifleman", "primary": "weapon.pulse-rifle", "grade": "MILSPEC"},
+        {"role": "Pulse Rifleman", "primary": "weapon.pulse-rifle", "grade": "MILSPEC"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"}
+      ]
+    },
+    {
+      "id": "weapons:luddic-path-assault",
+      "name": "@squadDoctrineLuddicPathAssaultWeaponsName",
+      "description": "@squadDoctrineLuddicPathAssaultWeaponsDescription",
+      "members": [
+        {"role": "Assault Leader", "primary": "weapon.smg", "grade": "SERVICE"},
+        {"role": "Breacher", "primary": "weapon.smg", "grade": "SERVICE", "special": "special.satchel-charge"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Assault Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Grenadier", "primary": "weapon.smg", "grade": "SERVICE", "special": "special.smoke-grenade"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Assault Leader", "primary": "weapon.smg", "grade": "SERVICE"},
+        {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"}
+      ]
+    },
+    {
+      "id": "weapons:line-infantry",
+      "name": "@squadDoctrineLineInfantryWeaponsName",
+      "description": "@squadDoctrineLineInfantryWeaponsDescription",
+      "members": [
+        {"role": "Team Leader", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE"},
+        {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Grenadier", "primary": "weapon.pulse-rifle", "grade": "SERVICE", "special": "special.smoke-grenade", "belt": "special.frag-grenade"},
+        {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE"},
+        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.smoke-grenade", "belt": "special.frag-grenade"},
+        {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"}
+      ]
+    },
+    {
+      "id": "weapons:assault",
+      "name": "@squadDoctrineAssaultWeaponsName",
+      "description": "@squadDoctrineAssaultWeaponsDescription",
+      "members": [
+        {"role": "Assault Leader", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
+        {"role": "Breacher", "primary": "weapon.smg", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
+        {"role": "Assault Leader", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
+        {"role": "Grenadier", "primary": "weapon.smg", "grade": "SERVICE", "special": "special.frag-grenade"},
+        {"role": "Rifleman", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
+        {"role": "Assault Leader", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
+        {"role": "Breacher", "primary": "weapon.smg", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.pulse-rifle", "grade": "SERVICE"},
+        {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"}
+      ]
+    },
+    {
+      "id": "weapons:fire-support",
+      "name": "@squadDoctrineFireSupportWeaponsName",
+      "description": "@squadDoctrineFireSupportWeaponsDescription",
+      "members": [
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE", "special": "special.srm-3-pod"},
+        {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"},
+        {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE"},
+        {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"},
+        {"role": "Heavy Marksman", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.anti-materiel-rifle"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Automatic Rifleman", "primary": "weapon.squad-automatic", "grade": "SERVICE", "special": "special.srm-3-pod"},
+        {"role": "Marksman", "primary": "weapon.dmr", "grade": "SERVICE"},
+        {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"}
+      ]
+    },
+    {
+      "id": "weapons:trench-clearing",
+      "name": "@squadDoctrineTrenchClearingWeaponsName",
+      "description": "@squadDoctrineTrenchClearingWeaponsDescription",
+      "members": [
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
+        {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
+        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
+        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
+        {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
+        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
+        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"},
+        {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
+        {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
+        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.frag-grenade"}
+      ]
+    },
+    {
+      "id": "weapons:checkpoint",
+      "name": "@squadDoctrineCheckpointWeaponsName",
+      "description": "@squadDoctrineCheckpointWeaponsDescription",
+      "members": [
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.smoke-grenade"},
+        {"role": "Sapper", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.satchel-charge"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.smoke-grenade"},
+        {"role": "Sapper", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.satchel-charge"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.smoke-grenade"},
+        {"role": "Sapper", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.satchel-charge"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"}
+      ]
+    },
+    {
+      "id": "weapons:convoy-escort",
+      "name": "@squadDoctrineConvoyEscortWeaponsName",
+      "description": "@squadDoctrineConvoyEscortWeaponsDescription",
+      "members": [
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
+        {"role": "Point Defence", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.point-defence-emplacement"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Anti-Armor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.srm-1"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"}
+      ]
+    },
+    {
+      "id": "weapons:counter-battery",
+      "name": "@squadDoctrineCounterBatteryWeaponsName",
+      "description": "@squadDoctrineCounterBatteryWeaponsDescription",
+      "members": [
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Interceptor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.point-defence-pack"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Heavy Marksman", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.anti-materiel-rifle"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Interceptor", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.point-defence-pack"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"}
+      ]
+    },
+    {
+      "id": "weapons:builders-guard",
+      "name": "@squadDoctrineBuildersGuardWeaponsName",
+      "description": "@squadDoctrineBuildersGuardWeaponsDescription",
+      "members": [
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Sapper", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.satchel-charge"},
+        {"role": "Point Defence", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.point-defence-emplacement"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Sapper", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.satchel-charge"},
+        {"role": "Point Defence", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.point-defence-emplacement"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Sapper", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.satchel-charge"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"},
+        {"role": "Rifleman", "primary": "weapon.field-rifle", "grade": "SERVICE"}
+      ]
+    }
+  ],
+  "tacticSheets": [
+    {
+      "id": "armor:field-fatigues",
+      "name": "@squadDoctrineFieldFatiguesArmorName",
+      "description": "@squadDoctrineFieldFatiguesArmorDescription",
+      "tradition": "INDEPENDENT",
+      "mix": "IRREGULAR",
+      "suits": ["armor.field-fatigues", "armor.cordon-shell"]
+    },
+    {
+      "id": "armor:sindrian-security",
+      "name": "@squadDoctrineSindrianSecurityArmorName",
+      "description": "@squadDoctrineSindrianSecurityArmorDescription",
+      "tradition": "SINDRIAN_DIKTAT",
+      "mix": "LINE_HOLD",
+      "suits": ["armor.vigil", "armor.cordon-shell", "armor.orderly", "armor.scout"]
+    },
+    {
+      "id": "armor:hegemony-auxiliary",
+      "name": "@squadDoctrineHegemonyAuxiliaryArmorName",
+      "description": "@squadDoctrineHegemonyAuxiliaryArmorDescription",
+      "grant": "free-pick",
+      "tradition": "HEGEMONY",
+      "mix": "LINE_HOLD",
+      "suits": ["armor.militia", "armor.orderly"]
+    },
+    {
+      "id": "armor:league-mobile",
+      "name": "@squadDoctrineLeagueMobileArmorName",
+      "description": "@squadDoctrineLeagueMobileArmorDescription",
+      "grant": "free-pick",
+      "tradition": "PERSEAN",
+      "mix": "RECONNAISSANCE",
+      "suits": ["armor.scout", "armor.orderly", "armor.packframe"]
+    },
+    {
+      "id": "armor:church-wardens",
+      "name": "@squadDoctrineChurchWardenArmorName",
+      "description": "@squadDoctrineChurchWardenArmorDescription",
+      "tradition": "LUDDIC_CHURCH",
+      "mix": "LINE_HOLD",
+      "suits": ["armor.orderly", "armor.cordon-shell", "armor.lashplate-harness"]
+    },
+    {
+      "id": "armor:outlaw-raiders",
+      "name": "@squadDoctrineOutlawRaiderArmorName",
+      "description": "@squadDoctrineOutlawRaiderArmorDescription",
+      "tradition": "PIRATES",
+      "mix": "IRREGULAR",
+      "suits": ["armor.outlaw", "armor.lashplate-harness", "armor.packframe"]
+    },
+    {
+      "id": "armor:recon",
+      "name": "@squadDoctrineReconArmorName",
+      "description": "@squadDoctrineReconArmorDescription",
+      "tradition": "TRITACHYON",
+      "mix": "RECONNAISSANCE",
+      "suits": ["armor.scout", "armor.cordon-shell", "armor.packframe", "armor.riot-shell"]
+    },
+    {
+      "id": "armor:fleet-combat",
+      "name": "@squadDoctrineFleetCombatArmorName",
+      "description": "@squadDoctrineFleetCombatArmorDescription",
+      "tradition": "HEGEMONY",
+      "mix": "BALANCED",
+      "suits": ["armor.line", "armor.redoubt", "armor.pathfinder", "armor.corpsman", "armor.riot-shell"]
+    },
+    {
+      "id": "armor:league-line",
+      "name": "@squadDoctrineLeagueLineArmorName",
+      "description": "@squadDoctrineLeagueLineArmorDescription",
+      "tradition": "PERSEAN",
+      "mix": "BALANCED",
+      "suits": ["armor.combat", "armor.outrider", "armor.packframe", "armor.riot-shell"]
+    },
+    {
+      "id": "armor:corporate-line",
+      "name": "@squadDoctrineCorporateLineArmorName",
+      "description": "@squadDoctrineCorporateLineArmorDescription",
+      "tradition": "TRITACHYON",
+      "mix": "BALANCED",
+      "suits": ["armor.aegis-composite", "armor.scout", "armor.combat", "armor.riot-shell"]
+    },
+    {
+      "id": "armor:church-line",
+      "name": "@squadDoctrineChurchLineArmorName",
+      "description": "@squadDoctrineChurchLineArmorDescription",
+      "tradition": "LUDDIC_CHURCH",
+      "mix": "LINE_HOLD",
+      "suits": ["armor.palatine", "armor.orderly", "armor.scout"]
+    },
+    {
+      "id": "armor:sindrian-line",
+      "name": "@squadDoctrineSindrianLineArmorName",
+      "description": "@squadDoctrineSindrianLineArmorDescription",
+      "tradition": "SINDRIAN_DIKTAT",
+      "mix": "BALANCED",
+      "suits": ["armor.furnace-line", "armor.vigil", "armor.scout", "armor.packframe"]
+    },
+    {
+      "id": "armor:outlaw-line",
+      "name": "@squadDoctrineOutlawLineArmorName",
+      "description": "@squadDoctrineOutlawLineArmorDescription",
+      "tradition": "PIRATES",
+      "mix": "BALANCED",
+      "suits": ["armor.reaver", "armor.outlaw", "armor.packframe", "armor.scout"]
+    },
+    {
+      "id": "armor:freeport-assault",
+      "name": "@squadDoctrineFreeportAssaultArmorName",
+      "description": "@squadDoctrineFreeportAssaultArmorDescription",
+      "tradition": "INDEPENDENT",
+      "mix": "BALANCED",
+      "suits": ["armor.militia", "armor.packframe"]
+    },
+    {
+      "id": "armor:salvage-assisted",
+      "name": "@loadoutSalvageAssistedName",
+      "description": "@loadoutSalvageAssistedDescription",
+      "tradition": "INDEPENDENT",
+      "mix": "BALANCED",
+      "seatClasses": ["STANDARD", "STANDARD", "STANDARD", "POWER_SUIT", "STANDARD", "STANDARD", "STANDARD", "POWER_SUIT", "STANDARD", "STANDARD", "POWER_SUIT", "POWER_SUIT"],
+      "suits": ["armor.specter-recovered", "armor.arbalest-recovered", "armor.scout", "armor.militia"]
+    },
+    {
+      "id": "armor:corporate-specter-section",
+      "name": "@loadoutCorporateSpecterSectionName",
+      "description": "@loadoutCorporateSpecterSectionDescription",
+      "tradition": "TRITACHYON",
+      "mix": "BALANCED",
+      "seatClasses": ["STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "POWER_SUIT", "STANDARD", "STANDARD", "POWER_SUIT", "STANDARD"],
+      "suits": ["armor.specter-recovered", "armor.scout", "armor.combat", "armor.aegis-composite"]
+    },
+    {
+      "id": "armor:boarding-jack-section",
+      "name": "@loadoutBoardingJackSectionName",
+      "description": "@loadoutBoardingJackSectionDescription",
+      "tradition": "PIRATES",
+      "mix": "BALANCED",
+      "seatClasses": ["STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "POWER_SUIT", "STANDARD", "STANDARD", "POWER_SUIT", "STANDARD"],
+      "suits": ["armor.boarding-jack", "armor.scout", "armor.outlaw", "armor.packframe"]
+    },
+    {
+      "id": "armor:hegemony-arbalest-section",
+      "name": "@loadoutHegemonyArbalestSectionName",
+      "description": "@loadoutHegemonyArbalestSectionDescription",
+      "tradition": "HEGEMONY",
+      "mix": "BALANCED",
+      "seatClasses": ["STANDARD", "STANDARD", "STANDARD", "POWER_SUIT", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "POWER_SUIT"],
+      "suits": ["armor.arbalest-recovered", "armor.pathfinder", "armor.line"]
+    },
+    {
+      "id": "armor:hegemony-auxiliary-section",
+      "name": "@loadoutHegemonyAuxiliarySectionName",
+      "description": "@loadoutHegemonyAuxiliarySectionDescription",
+      "tradition": "HEGEMONY",
+      "mix": "BALANCED",
+      "seatClasses": ["STANDARD", "STANDARD", "STANDARD", "POWER_SUIT", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "POWER_SUIT"],
+      "suits": ["armor.arbalest", "armor.pathfinder", "armor.line"]
+    },
+    {
+      "id": "armor:hegemony-shock",
+      "name": "@squadDoctrineHegemonyShockArmorName",
+      "description": "@squadDoctrineHegemonyShockArmorDescription",
+      "tradition": "HEGEMONY",
+      "mix": "BREACH",
+      "armorClass": "POWER_SUIT",
+      "suits": ["armor.heavy", "armor.arbalest"]
+    },
+    {
+      "id": "armor:corporate-heavy",
+      "name": "@squadDoctrineCorporateHeavyArmorName",
+      "description": "@squadDoctrineCorporateHeavyArmorDescription",
+      "tradition": "TRITACHYON",
+      "mix": "BREACH",
+      "armorClass": "POWER_SUIT",
+      "suits": ["armor.specter-heavy"]
+    },
+    {
+      "id": "armor:league-heavy",
+      "name": "@squadDoctrineLeagueHeavyArmorName",
+      "description": "@squadDoctrineLeagueHeavyArmorDescription",
+      "tradition": "PERSEAN",
+      "mix": "BREACH",
+      "armorClass": "POWER_SUIT",
+      "suits": ["armor.bulwark-heavy"]
+    },
+    {
+      "id": "armor:knights-heavy",
+      "name": "@squadDoctrineKnightsHeavyArmorName",
+      "description": "@squadDoctrineKnightsHeavyArmorDescription",
+      "tradition": "KNIGHTS_OF_LUDD",
+      "mix": "BREACH",
+      "armorClass": "POWER_SUIT",
+      "suits": ["armor.reliquary-heavy"]
+    },
+    {
+      "id": "armor:lions-guard-heavy",
+      "name": "@squadDoctrineLionsGuardHeavyArmorName",
+      "description": "@squadDoctrineLionsGuardHeavyArmorDescription",
+      "tradition": "LIONS_GUARD",
+      "mix": "BREACH",
+      "armorClass": "POWER_SUIT",
+      "suits": ["armor.lions-mantle"]
+    },
+    {
+      "id": "armor:outlaw-heavy",
+      "name": "@squadDoctrineOutlawHeavyArmorName",
+      "description": "@squadDoctrineOutlawHeavyArmorDescription",
+      "tradition": "PIRATES",
+      "mix": "BREACH",
+      "armorClass": "POWER_SUIT",
+      "suits": ["armor.foundry-breaker"]
+    }
+  ]
+}

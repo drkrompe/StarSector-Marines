@@ -144,6 +144,11 @@ public final class Strings {
         }
     }
 
+    /** Whether the copy holds {@code key}: {@link #get} answers anything but the key itself. */
+    public static boolean has(String key) {
+        return key != null && !key.isBlank() && !key.equals(get(key));
+    }
+
     /** What the game's lookup answers for a key its copy does not hold. */
     static String missingPlaceholder(String key) {
         return "Missing string: [" + key + "]";

@@ -85,7 +85,8 @@ the old sheet's relief. `UrbanTileset3AlphaTest` fails when they drift.
 
 `tools/kits/` builds the owner's Kit Ladder page from the game data and carries
 the owner's edits back: `export_state.py` (diff report and weapon notes from an
-ArtifactData export), `apply_ladder.py` (accepted stations into `KitLadder`),
+ArtifactData export), `apply_ladder.py` (accepted stations and card contents into the
+Kit Ladder's data files),
 `check.py` (validation, about five seconds; `--self-test` for the tools
 themselves), `balance.py` (the cheap balance evidence in one markdown) and
 `refresh.py` (the local steps of a page refresh). When to run which, and the

@@ -1,8 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
-import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import com.dillon.starsectormarines.ops.OpeningOperationKind;
 import java.io.Serializable;
 import java.util.ArrayList;
@@ -70,16 +68,11 @@ public final class FirstRefit implements Serializable {
         }
     }
 
+    /** The path's twelve seats, as its free-pick weapon card in {@code data/marines/loadout-cards.json} authors them. */
     public static List<SquadWeaponIssue> weapons(Path path) {
-        List<SquadWeaponIssue> issues = new ArrayList<>();
-        for (int i = 0; i < MarineSquad.CAPACITY; i++) {
-            boolean upgraded = path == Path.STEADY_LINE ? i % 4 == 3 : i % 4 < 2;
-            String primary = !upgraded ? WeaponRegistry.STARTER_PRIMARY_ID
-                    : path == Path.STEADY_LINE ? WeaponRegistry.SQUAD_AUTOMATIC_ID : WeaponRegistry.PULSE_RIFLE_ID;
-            issues.add(new SquadWeaponIssue(upgraded ? path == Path.STEADY_LINE ? "Automatic Rifleman" : "Pulse Rifleman" : BilletRoles.RIFLEMAN,
-                    primary, upgraded ? EquipmentGrade.MILSPEC : EquipmentGrade.SURPLUS, null));
-        }
-        return List.copyOf(issues);
+        SquadWeaponDoctrine card = KitLadderCatalog.require().weaponCard(path.weapons);
+        if (card == null) throw new IllegalStateException("No weapon card " + path.weapons + " for Wayline path " + path);
+        return card.issues();
     }
 
     /** Non-mutating offer preview: includes only this path's potential transfer. */

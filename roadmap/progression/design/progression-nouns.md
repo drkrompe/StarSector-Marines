@@ -12,6 +12,8 @@ Updated: 2026-10-27 — every equipment item is shown by a short catalog code.
 
 Updated: 2026-10-27 — the shoulder pod is the SRM-3 (Pod) carried special, fired without lowering the primary; no suit carries it as an integral system.
 
+Updated: 2026-10-30 — the Kit Ladder and the built-in cards are data files.
+
 Updated: 2026-10-30 — the Kit Ladder paces the store: each card and machine pattern goes on sale after its station's mission; victory milestones retired.
 
 ## Purpose
@@ -211,13 +213,17 @@ legibility.
   in each obligation period. A warrant that is kept is *active*; one whose
   loyalty was broken is *suspended*; one whose issuer turned hostile is
   *revoked*. An *honoured* period is one that ended with loyalty kept.
-- **Kit Ladder** — the owner-authored table (`KitLadder`) placing every loadout card
-  and machine pattern on one **unlock station**: a story mission in campaign order
-  (`UnlockStation`), after which the company store sells it. *Start* is what a new
-  company holds; *none* is never sold in the store. It paces the store's open-market
-  and licence shelves only; patrons and recovery keep their tier gates. Authored on
-  the Kit Ladder page, whose generator (`tools/kits/build.py`) seeds itself from the
-  table; the page, its export, apply and check tools and the owner's editing
+- **Kit Ladder** — the owner-authored data (`kit-ladder.json`, read through
+  `KitLadder`) placing every loadout card and machine pattern on one **unlock
+  station**: a story mission in campaign order (`UnlockStation`), declared in the
+  same file with its **reach condition** (one of a closed set of types the code
+  owns: always, a story mission, an arc beat), after which the company store sells
+  it. *Start* is what a new company holds; *none* is never sold in the store. It
+  paces the store's open-market and licence shelves only; patrons and recovery keep
+  their tier gates. The built-in loadout cards it places (weapon cards' seats,
+  tactic sheets' suits) are data too (`loadout-cards.json`). Authored on the Kit
+  Ladder page, whose generator (`tools/kits/build.py`) seeds itself from the data;
+  the schema, the page, its export, apply and check tools and the owner's editing
   workflow are `kit-ladder.md`.
 - **Market listing** — a named card a story beat has put on sale at one named
   market, or at every open market of one faction, until the company knows or

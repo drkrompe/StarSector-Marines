@@ -60,8 +60,8 @@ broader equipment and fabrication economy. Start with `campaign-nouns.md`,
 domains share — four currencies, the stages that fall out of them, the growth
 rule, and the boundary with the player's own colonies — is
 `meta-progression.md`. What the store sells when is the owner's Kit Ladder,
-edited on its page and carried into the game by the export, apply and check
-tools in `kit-ladder.md`.
+data files (stations, placements and the built-in cards) edited on its page and
+carried into the game by the export, apply and check tools in `kit-ladder.md`.
 
 `power-suit-infantry.md` develops a durable infantry class between regular
 marines and mechs, preserving named squads and deliberate regular-equipment
