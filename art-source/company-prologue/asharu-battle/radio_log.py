@@ -78,7 +78,7 @@ TRAFFIC = [
     ('S5', 'WARDEN FIVE', 50.15, 54.1, 'Missiles inbound! Twelve! Point defence, now!', False),
     ('S6', 'WARDEN TWO', 53.3, 54.45, "Two's hit!", False),
     ('S6', 'BATORY', 53.8, 56.42, "Batory, we're hit, we're venting, we're —", False),
-    ('S6', 'WARDEN LEAD', 56.99, 58.68, 'Lead turning back. Cover the —', False),
+    ('S6', 'WARDEN LEAD', 56.99, 59.87, 'Lead turning back. Wardens cover the retreat.', False),
     ('S6b', 'WARDEN THREE', 58.0, 61.77, 'Three, rolling in. Four, take her left.', False),
     ('S6b', 'WARDEN FOUR', 60.6, 62.39, 'No shield. Hit her!', False),
     ('S6b', 'WARDEN THREE', 61.92, 62.97, 'Feeders on!', False),
@@ -92,7 +92,7 @@ TRAFFIC = [
     ('S6d', 'WARDEN FIVE', 74.3, 75.12, 'Two on me —', False),
     ('S6d', 'WARDEN FIVE', 76.9, 78.83, "One down, they're coming through!", False),
     ('S7', 'WARDEN FIVE', 81.21, 82.91, "They're heading for the Sobieski!", False),
-    ('S7', 'CARAVEL', 82.0, 85.07, 'That mark three is hammering down on us!', False),
+    ('S7', 'CARAVEL', 82.0, 84.27, 'Mark three is hammering us!', False),
     ('S7', 'SOBIESKI', 84.9, 87.23, 'Marines prepare to repel boarders!', False),
     ('S8', 'CARAVEL', 88.4, 92.6, 'Taking fire on the port pod! Morrow, keep pressure with the '
                                   'drones!', False),

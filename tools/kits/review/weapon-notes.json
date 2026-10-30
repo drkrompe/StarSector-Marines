@@ -36,21 +36,21 @@
  },
  "mech-pl-1": {
   "weaponId": "weapon.mech-pl-1",
-  "name": "Light burst laser",
+  "name": "PL-1",
   "status": "",
   "text": "Should use the same sound effect as PD laser",
   "updatedAt": "2026-10-30T16:13:13.444Z"
  },
  "mech-pl-2": {
   "weaponId": "weapon.mech-pl-2",
-  "name": "Burst laser",
+  "name": "PL-2",
   "status": "",
   "text": "Should use the same sound effect as PD laser",
   "updatedAt": "2026-10-30T16:13:26.439Z"
  },
  "mech-pl-3": {
   "weaponId": "weapon.mech-pl-3",
-  "name": "Heavy burst laser",
+  "name": "PL-3",
   "status": "",
   "text": "Should use the same sound effect as PD laser",
   "updatedAt": "2026-10-30T16:13:20.487Z"
@@ -64,7 +64,7 @@
  },
  "vehicle-hover-scout": {
   "weaponId": "weapon.hover-pulse",
-  "name": "Hover Pulse Emitter on the hover-scout",
+  "name": "Twin PE-1 Pulse Emitter on the hover-scout",
   "status": "",
   "text": "I think we're missing a visual for the turret's bullets on this vehicle",
   "updatedAt": "2026-10-30T16:16:00.277Z"
