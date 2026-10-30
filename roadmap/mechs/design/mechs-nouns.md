@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -825,6 +825,21 @@ increasing an encounter's total armored threat.
   Area — ends it, as does the anchor's loss or withdrawal, the mech's withdrawal, or
   direct control; orders given to the anchor move the anchor and the follower keeps
   its slot.
+- A **vehicle attachment** is the same relation for a player vehicle
+  (`VehicleAttachmentService`): the hull drives to a point behind its squad's
+  centre along the squad's last axis, ten cells back for a standoff hull, which
+  fights over the squad from there, four for any other, each further follower of
+  the squad filed three cells to alternate sides. It is ordered again when that
+  point drifts four cells, at most every half second. A direct order to the
+  vehicle ends it, as does the anchor's loss. Untuned.
+- **Under mission command** (a headless or evidence battle, where the commander
+  and not the player runs the company) the company's landed machines are attached
+  for it (`CompanyMachineAttachment`): mission command sends squads, never
+  machines, so each mech squad and vehicle that follows no one is attached to a
+  squad the commander is sending somewhere, the one with the fewest followers
+  first, and moved off a squad that is held back while others go. A commander
+  that directs its own machines (Conquest's lances,
+  `CommandStrategy.commandsMachines`) keeps them.
 - A **Defend Area order** is a persistent, battle-local tactical assignment for
   one whole battle lance. Its clicked center resolves to reachable ground and
   owns a circular twenty-cell-radius zone. Every live lance member positions

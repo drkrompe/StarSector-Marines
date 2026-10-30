@@ -164,15 +164,19 @@ final class CorvusEvidenceCompany {
     }
 
     /**
-     * Calls the machine at manifest index {@code pick} down on the first landing pad the drop can reach, once the drop
-     * is ready: one machine per order, the Hound first. Returns true on the tick it is requested.
+     * Calls the machine at manifest index {@code pick} down once the drop is ready: one machine per order, the Hound
+     * first, each on its own landing pad where the drop can reach one (the pick's pad first, then the next), so
+     * machines do not land on one another. Returns true on the tick it is requested.
      */
     static boolean callMachine(BattleSimulation sim, int pick) {
         var service = sim.getCommandPowerService();
         var support = service.getPower(MechSupport.ID);
         if (!service.canActivate(support)) return false;
         List<Integer> selection = List.of(pick);
-        for (var pad : sim.getMarineLandingPads()) if (support.canTarget(pad.centerX, pad.centerY, sim, selection)) {
+        var pads = sim.getMarineLandingPads();
+        for (int i = 0; i < pads.size(); i++) {
+            var pad = pads.get((pick + i) % pads.size());
+            if (!support.canTarget(pad.centerX, pad.centerY, sim, selection)) continue;
             service.requestActivation(MechSupport.ID, pad.centerX, pad.centerY, selection);
             return true;
         }

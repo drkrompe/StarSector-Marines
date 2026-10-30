@@ -176,7 +176,9 @@ bonuses are assumed. Default observation is 18000 ticks with two Aeroshuttles.
 output folder; `-Dbattle.corvus.chapter=BLIND_WATCH` selects one chapter.
 `-Dbattle.corvus.machines=LRM_CARRIER,FIRE_SUPPORT_APC` puts those vehicles on
 the lance's gantries beside the Hound; the run calls each down after it, one
-machine per order.
+machine per order, each on its own landing pad. Mission command attaches every
+landed machine to a squad (`mechs-nouns.md`, attachment); the progress line
+prints the company's hulls.
 Reports retain exact launch fixtures, losses, delivery times, mech output,
 command traces, minute frames and unit/route diagnostics. Corvus also accepts
 `-PsnapshotEveryTicks=15` for denser action replay frames with weapons, impacts

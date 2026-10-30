@@ -378,7 +378,8 @@ class CorvusCombatEvidenceTest {
                         Files.writeString(dir.resolve(String.format(Locale.ROOT,"units-%05d.json",tick)), units(sim).toString(2));
                         System.out.println("[corvus] " + chapter.title() + " tick=" + tick + " landed=" + landed.size()
                                 + " fallen=" + fallen.size() + " defenders=" + count(sim,Faction.DEFENDER)
-                                + (sim.getColdAccount() == null ? "" : " " + sim.getColdAccount().displayName()));
+                                + (sim.getColdAccount() == null ? "" : " " + sim.getColdAccount().displayName())
+                                + companyHulls(sim));
                     }
                 }
                 if (!sim.isComplete()) sim.recordCommandTraceTimeout(maxTicks);
@@ -495,6 +496,19 @@ class CorvusCombatEvidenceTest {
             result.put(row);
         }
         return result;
+    }
+
+    /** The company's vehicles, each type at its cell, or gone: where the machines the drop landed are. */
+    private static String companyHulls(BattleSimulation sim) {
+        StringBuilder hulls = new StringBuilder();
+        for (int v = 0, n = sim.convoy().vehicleCount(); v < n; v++) {
+            long hull = sim.convoy().vehicleAt(v);
+            if (sim.convoy().faction(hull) != Faction.MARINE) continue;
+            var body = sim.convoy().body(hull);
+            hulls.append(hulls.length() == 0 ? " hulls=" : ",").append(sim.convoy().vehicleType(hull))
+                    .append(sim.convoy().isPresent(hull) ? "@" + (int) body.x + ":" + (int) body.y : "(gone)");
+        }
+        return hulls.toString();
     }
 
     private static void writeSummary(Path output, JSONArray reports, int boats) throws Exception {
