@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.battle.scene.SceneBuilder;
 import com.dillon.starsectormarines.battle.scene.SceneRegistries;
 import com.dillon.starsectormarines.battle.scene.SceneWorld;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPack;
+import com.dillon.starsectormarines.battle.turret.MapTurret;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
@@ -25,9 +28,10 @@ import java.util.Map;
 /**
  * Wolf Strike in the look preset (`command-powers-nouns.md`, Wolf Strike): two fly-bys along a 60-cell line over an
  * enemy column on open ground, two breakthrough tanks, two militia technicals, a heavy APC and two rifle squads strung
- * along it. The first run flies west to east; once it has climbed out a second comes back east to west. Play zoom
- * over the whole line, and a camera following the Wolf. Logs the column's state every second, so the damage rate
- * reads as numbers beside the picture.
+ * along it, with a flak position beside the line, a missile tower off it and, before the second run, a Rav flier pack
+ * over it. The first run flies west to east; once it has climbed out a second comes back east to west. Play zoom over
+ * the whole line, and a camera following the Wolf. Logs the column's state every second, so the damage rate reads as
+ * numbers beside the picture.
  */
 public class WolfStrikeLookSuite implements SnapshotSuite {
 
@@ -35,6 +39,8 @@ public class WolfStrikeLookSuite implements SnapshotSuite {
     private static final float LINE_Y = 25f, LINE_WEST = 15f, LINE_EAST = 75f;
     private static final int FIRST_RUN_TICK = 15, SECOND_RUN_TICK = 30 * 16;
     private static final int SECONDS = 32, EVERY_TICKS = 2;
+    /** A Rav flier pack let loose over the line two seconds before the second run, for the Wolf's point defence. */
+    private static final int PACK_TICK = SECOND_RUN_TICK - 60, PACK_SIZE = 8;
 
     @Override public String id() { return "wolf-strike-look"; }
 
@@ -66,6 +72,10 @@ public class WolfStrikeLookSuite implements SnapshotSuite {
             column.put("technical-1", vehicle(sim, placement, VehicleType.MILITIA_TECHNICAL, 42f, 29f));
             column.put("technical-2", vehicle(sim, placement, VehicleType.MILITIA_TECHNICAL, 67f, 21f));
             column.put("heavy-apc", vehicle(sim, placement, VehicleType.HEAVY_APC, 48f, 20f));
+            // The column's anti-air: a flak position beside the line and a missile tower further off it.
+            int[] flak = cell(placement, 45f, 31f), tower = cell(placement, 62f, 16f);
+            sim.spawn(MapTurret.create("flak", Faction.DEFENDER, "structure.turret-anti-air-flak", flak[0], flak[1]));
+            sim.spawn(MapTurret.create("tower", Faction.DEFENDER, "structure.aa-locust", tower[0], tower[1]));
             List<Long> infantry = new ArrayList<>();
             for (long id : world.members("militia-west")) infantry.add(id);
             for (long id : world.members("militia-east")) infantry.add(id);
@@ -74,6 +84,7 @@ public class WolfStrikeLookSuite implements SnapshotSuite {
             placement.beforeTick(s -> {
                 long tick = s.getSimTickIndex();
                 Warship wolf = null;
+                if (tick == PACK_TICK) s.swarmFliers().release(s, HarrierLook.DEFAULT, wx + (ex - wx) * 0.6f, ly, PACK_SIZE, 0L);
                 if (tick == FIRST_RUN_TICK) wolf = WolfStrike.fly(wx, ly, ex, ly, s);
                 if (tick == SECOND_RUN_TICK) wolf = WolfStrike.fly(ex, ly - 1f, wx, ly - 1f, s);
                 if ((tick == FIRST_RUN_TICK || tick == SECOND_RUN_TICK) && wolf == null) {
@@ -83,7 +94,7 @@ public class WolfStrikeLookSuite implements SnapshotSuite {
                     flying[0] = wolf;
                     System.out.printf("    [wolf-strike] t=%.1fs run from %.0f,%.0f%n", tick / 30f, wolf.x, wolf.y);
                 }
-                if (tick % 30 == 0) log(s, tick, column, infantry);
+                if (tick % 30 == 0) log(s, tick, column, infantry, flying[0]);
             });
             return sim;
         }, placement -> List.of(
@@ -107,8 +118,9 @@ public class WolfStrikeLookSuite implements SnapshotSuite {
         return sim.convoy().spawn(type, Faction.DEFENDER, VehicleMission.deployed(at[0], at[1]));
     }
 
-    /** Each vehicle's hull share and how many riflemen still stand, once a second. */
-    private static void log(BattleSimulation sim, long tick, Map<String, Long> column, List<Long> infantry) {
+    /** Each vehicle's hull share, how many riflemen still stand and the Wolf's own hull, once a second. */
+    private static void log(BattleSimulation sim, long tick, Map<String, Long> column, List<Long> infantry,
+                            Warship wolf) {
         StringBuilder line = new StringBuilder(String.format("    [wolf-strike] t=%4.1fs", tick / 30f));
         for (Map.Entry<String, Long> e : column.entrySet()) {
             long id = e.getValue();
@@ -118,6 +130,13 @@ public class WolfStrikeLookSuite implements SnapshotSuite {
         int standing = 0;
         for (long id : infantry) if (sim.world().isAlive(id)) standing++;
         line.append("  riflemen ").append(standing).append('/').append(infantry.size());
+        int fliers = 0;
+        for (HarrierPack pack : sim.swarmFliers().packs()) fliers += pack.members.size();
+        if (fliers > 0) line.append("  fliers ").append(fliers);
+        if (wolf != null) {
+            line.append(String.format("  wolf %3.0f%%%s", wolf.hullFraction() * 100f,
+                    wolf.destroyed() ? " down" : wolf.inGroundAaReach() ? " low" : ""));
+        }
         System.out.println(line);
     }
 

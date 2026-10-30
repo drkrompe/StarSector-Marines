@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.warship.AirFireOrder;
 import com.dillon.starsectormarines.battle.warship.LowPass;
 import com.dillon.starsectormarines.battle.warship.Warship;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
@@ -86,5 +87,59 @@ class WolfStrikeTest {
         // 2 cells/s at the pass, reached after a second at 2 cells/s/s: 1 cell of ramp, then 5 s at 2.
         float runUp = WolfStrike.runUpCells(2f / LowPass.SPEED_FACTOR, 2f / LowPass.HANDLING_FACTOR);
         assertEquals(11f, runUp, 1e-3f);
+    }
+
+    @Test
+    void theWolfFliesForTheAlliesWithItsPointDefenceOnTheAirAndOnlyOneIsOverTheBattle() {
+        BattleSimulation sim = sim();
+        CommandPowerService service = sim.getCommandPowerService();
+        CommandPowerSystem system = new CommandPowerSystem(service, sim);
+        service.requestLineActivation(WolfStrike.ID, 32, 34, 62, 34);
+        system.tick(BattleSimulation.TICK_DT);
+        Warship wolf = sim.warships().ships().get(0);
+        assertEquals(Faction.ALLY, wolf.faction);
+        assertEquals(AirFireOrder.ALL, wolf.airFire());
+        assertEquals(wolf, service.aloftFor(WolfStrike.ID));
+
+        service.tickCooldowns(1000f);
+        assertFalse(service.canActivate(service.getPower(WolfStrike.ID)), "the first is still over the battle");
+        service.requestLineActivation(WolfStrike.ID, 32, 40, 62, 40);
+        system.tick(BattleSimulation.TICK_DT);
+        assertEquals(1, sim.warships().ships().size());
+    }
+
+    @Test
+    void aWolfShotDownTakesThePowerAwayForTheBattle() {
+        BattleSimulation sim = sim();
+        CommandPowerService service = sim.getCommandPowerService();
+        CommandPowerSystem system = new CommandPowerSystem(service, sim);
+        service.requestLineActivation(WolfStrike.ID, 32, 34, 62, 34);
+        system.tick(BattleSimulation.TICK_DT);
+        Warship wolf = service.aloftFor(WolfStrike.ID);
+        while (!wolf.destroyed()) wolf.takeDamage(1e6f, 1e3f);
+
+        system.tick(BattleSimulation.TICK_DT);
+        assertNull(service.aloftFor(WolfStrike.ID));
+        assertEquals(0, service.getChargesRemaining(WolfStrike.ID));
+        assertFalse(service.canActivate(service.getPower(WolfStrike.ID)));
+    }
+
+    @Test
+    void aWolfBroughtHomeHurtWaitsOutARepairInProportionToTheHullLost() {
+        assertEquals(0f, WolfStrike.repairSeconds(1f), 1e-6f);
+        assertEquals(0f, WolfStrike.repairSeconds(1f - WolfStrike.SCRATCH_SHARE * 0.5f), 1e-6f, "a scratch");
+        assertEquals(WolfStrike.REPAIR_MIN_SECONDS, WolfStrike.repairSeconds(1f - WolfStrike.SCRATCH_SHARE * 2f), 1e-6f);
+        assertEquals(WolfStrike.REPAIR_SECONDS_PER_HULL * 0.5f, WolfStrike.repairSeconds(0.5f), 1e-3f);
+    }
+
+    @Test
+    void aCooldownLengthensFromWhatItHasLeft() {
+        CommandPowerService service = new CommandPowerService();
+        service.register(new WolfStrike());
+        service.lengthenCooldown(WolfStrike.ID, 40f);
+        assertEquals(40f, service.getCooldownRemaining(WolfStrike.ID), 1e-6f);
+        service.tickCooldowns(10f);
+        service.lengthenCooldown(WolfStrike.ID, 5f);
+        assertEquals(35f, service.getCooldownRemaining(WolfStrike.ID), 1e-6f);
     }
 }

@@ -28,6 +28,7 @@ public final class CommandPowerSystem {
     public void tick(float dt) {
         for (CommandPower power : service.getAvailablePowers()) {
             if (power instanceof ArmorDropPower drop) drop.prepare(battle);
+            power.tick(service, battle);
         }
         // A cancel is judged before this tick's orders, against the queue as it stands.
         for (long jobId : service.drainCancels()) {

@@ -1002,6 +1002,26 @@ public final class WarshipSystem {
         return path.totalSeconds();
     }
 
+    /**
+     * A ground anti-air round, fired by {@code side} from {@code (fromX, fromY)}, landing on a hull that flies within
+     * its reach ({@link Warship#inGroundAaReach}): it meets the shield or the plate on that side as any round from the
+     * ground does, at the ground's penetration scale, and a round of no penetration as fragmentation. A hull already
+     * gone, or one the battle no longer flies, takes nothing.
+     */
+    public void groundAaHit(Faction side, float fromX, float fromY, Warship target, float damage, float penetration) {
+        if (target.destroyed() || !ships.contains(target)) return;
+        // A round with no penetration of its own is an anti-fighter missile's fragmentation: it meets the plate at the
+        // base game's quarter and bites as a round of no named damage type does.
+        boolean fragmentation = penetration <= 0f;
+        float dealt = fragmentation ? damage * armourMultiplier("FRAGMENTATION") : damage;
+        float bite = fragmentation ? PENETRATION_OTHER : penetration;
+        strikeHulls(detonation(side, target.centerX(), target.centerY(), dealt, bite, GROUND_AA_BLAST_CELLS),
+                fromX, fromY);
+    }
+
+    /** A ground anti-air round's reach on the hull it is aimed at: enough to find the hull, too little to find another. */
+    private static final float GROUND_AA_BLAST_CELLS = 0.5f;
+
     private static int hostilesWithin(BattleSimulation sim, Warship ship, WarshipOrder.FireOnArea area) {
         UnitRosterService roster = sim.getRoster();
         World world = sim.world();
