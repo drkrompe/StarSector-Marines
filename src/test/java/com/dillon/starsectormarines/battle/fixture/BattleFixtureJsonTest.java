@@ -251,8 +251,8 @@ class BattleFixtureJsonTest {
                         new ShuttleAssignment(
                                 FittedBoat.standard(ShuttleType.AEROSHUTTLE), 1, 6),
                         new ShuttleAssignment(new FittedBoat(ShuttleType.HERMES, unshielded, "boat_01",
-                                new String[]{FittedBoat.BARE, null, BoatGun.SRM_5.structureId()},
-                                new String[]{null, null, BoatGun.SRM_5.structureId()}), 1, 4)),
+                                new String[]{FittedBoat.BARE, null, BoatGun.SRM_15.structureId()},
+                                new String[]{null, null, BoatGun.SRM_15.structureId()}), 1, 4)),
                 false,
                 RiskLevel.LOW,
                 12,
@@ -278,9 +278,9 @@ class BattleFixtureJsonTest {
                 manifest.get(2).airframe);
         assertNull(((FittedBoat) manifest.get(2).airframe).boatId(),
                 "a fitted frame nobody owns names no boat and must not invent one");
-        assertEquals(Arrays.asList(null, null, BoatGun.SRM_5.structureId()),
+        assertEquals(Arrays.asList(null, null, BoatGun.SRM_15.structureId()),
                 ((FittedBoat) manifest.get(3).airframe).guns(), "a bare hardpoint reads back bare");
-        assertEquals(Arrays.asList(null, null, BoatGun.SRM_5.structureId()),
+        assertEquals(Arrays.asList(null, null, BoatGun.SRM_15.structureId()),
                 ((FittedBoat) manifest.get(3).airframe).pods(), "a twin missile pod reads back as two guns");
         assertNull(((FittedBoat) manifest.get(3).airframe).shieldSpec(), "a boat without an emitter reads back unshielded");
     }

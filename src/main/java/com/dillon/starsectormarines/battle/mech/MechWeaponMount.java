@@ -17,8 +17,10 @@ public final class MechWeaponMount {
     public long burstTargetId;
     /** Accepted manual trigger point; marks cursor-driven continuation instead of an AI target. */
     public PointFireAim burstPointAim;
-    /** Accumulated onboard replenishment work toward the next trigger pack. */
+    /** Accumulated loader work toward the rack's recharge (the next trigger pack, under the control). */
     public float replenishmentProgressSeconds;
+    /** The recharge time the loader last ran this mount at; NaN before it has run or for a mount it never refills. */
+    public float rechargeSeconds = Float.NaN;
     /**
      * Further salvos this rack's trigger has committed to without waiting out its cycle ({@link SalvoChain}):
      * the rest of an autonomous carrier's chosen count, or unbounded while a pilot holds the button.
@@ -77,26 +79,36 @@ public final class MechWeaponMount {
     }
 
     /**
-     * Advances unlimited onboard replenishment at the installed subsystem's
-     * cadence. Capacity limits ready ammunition, not lifetime reload count.
+     * Advances unlimited onboard replenishment at the installed subsystem's cadence. Capacity limits ready
+     * ammunition, not lifetime reload count. A rack recharges whole: once the loader's time has run from its last
+     * salvo ({@link #commitTrigger} restarts it), every spent salvo is back at once, so an LRM-5 waits out its
+     * recharge before it can fire again and an LRM-15 fires its three salvos and then recharges
+     * (`mechs-nouns.md`, Missile racks). Under the control ({@link MechWeaponComponent#missileBuffers}) each pack
+     * comes back on its own, one cadence apiece.
      */
     public void advanceReplenishment(float dt,
                                      MissileReplenisherComponent replenisher) {
-        if (full()) {
-            replenishmentProgressSeconds = 0f;
-            return;
-        }
         float cadence = replenisher.replenishmentSeconds(weaponId());
-        if (!Float.isFinite(cadence)) {
+        rechargeSeconds = Float.isFinite(cadence) ? cadence : Float.NaN;
+        if (full() || !Float.isFinite(cadence)) {
             replenishmentProgressSeconds = 0f;
             return;
         }
         replenishmentProgressSeconds += Math.max(0f, dt);
         while (replenishmentProgressSeconds >= cadence && !full()) {
-            ammo++;
+            ammo = MechWeaponComponent.missileBuffers() ? component.ammoCapacity : ammo + 1;
             replenishmentProgressSeconds -= cadence;
         }
         if (full()) replenishmentProgressSeconds = 0f;
+    }
+
+    /**
+     * Seconds until the loader has this rack full again, or zero for a full rack, a mount the loader does not refill
+     * and a mount it has not yet run on.
+     */
+    public float rechargeRemaining() {
+        if (full() || !Float.isFinite(rechargeSeconds)) return 0f;
+        return Math.max(0f, rechargeSeconds - replenishmentProgressSeconds);
     }
 
     public boolean resupplyOne() {
@@ -159,6 +171,8 @@ public final class MechWeaponMount {
     public void commitTrigger(long target, PointFireAim point) {
         if (chainedTrigger() && chainSalvos != Integer.MAX_VALUE) chainSalvos--;
         consumeTrigger();
+        // The rack's recharge runs from its last salvo.
+        if (MechWeaponComponent.missileBuffers()) replenishmentProgressSeconds = 0f;
         chainGapRemaining = component.projectilesPerTrigger * weaponDef().burstSpacing;
         cycleRemaining = component.cycleSeconds();
         burstRemaining = Math.max(0, component.projectilesPerTrigger - 1);

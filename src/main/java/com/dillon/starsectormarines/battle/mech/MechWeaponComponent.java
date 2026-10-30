@@ -12,9 +12,10 @@ import java.util.concurrent.ConcurrentHashMap;
 /**
  * Immutable hardware installed in one mech hardpoint. The underlying
  * weapon catalog owns projectile behavior; this component owns the rack
- * size, ammunition bin and visual shell. A displayed LRM/SRM number is a
- * MechWarrior-style weight/readability class, while {@link #projectilesPerTrigger}
- * is the smaller representative packet the ground sim actually emits.
+ * size, ammunition bin and visual shell. The number in a missile rack's name is
+ * its buffer, the missiles it holds ready (`mechs-nouns.md`, Missile racks):
+ * {@link #projectilesPerTrigger} missiles a salvo times {@link #ammoCapacity}
+ * salvos, so an LRM-5 is one salvo of five and an LRM-15 three.
  */
 public enum MechWeaponComponent {
 
@@ -93,26 +94,26 @@ public enum MechWeaponComponent {
     // The anti-armor racks: a contact warhead fired only at hardened targets (mechs-nouns.md, Missile warheads).
     SRM_5("component.mech-srm-5", "@gearMechWeaponComponentSRM5", MountFamily.SHOULDER,
             HardpointType.MISSILE, 2, 2, Variants.srm(),
-            2, 6, LayeredMechAppearance.POD_SMALL_SRM),
+            5, 1, LayeredMechAppearance.POD_SMALL_SRM),
     SRM_15("component.mech-srm-15", "@gearMechWeaponComponentSRM15", MountFamily.SHOULDER,
             HardpointType.MISSILE, 2, 3, Variants.srm(),
-            4, 6, LayeredMechAppearance.POD_LARGE_SRM),
+            5, 3, LayeredMechAppearance.POD_LARGE_SRM),
     LRM_5("component.mech-lrm-5", "@gearMechWeaponComponentLRM5", MountFamily.SHOULDER,
             HardpointType.MISSILE, 2, 2, Variants.lrm(),
-            2, 4, LayeredMechAppearance.POD_SMALL_LRM),
+            5, 1, LayeredMechAppearance.POD_SMALL_LRM),
     LRM_15("component.mech-lrm-15", "@gearMechWeaponComponentLRM15", MountFamily.SHOULDER,
             HardpointType.MISSILE, 2, 3, Variants.lrm(),
             5, 3, LayeredMechAppearance.POD_LARGE_LRM),
     // The fragmentation racks: the same rack sizes with an area warhead at low penetration.
     SRM_5_FRAG("component.mech-srm-5-frag", "@gearMechWeaponComponentSRM5FRAG", MountFamily.SHOULDER,
             HardpointType.MISSILE, 2, 2, WeaponRegistry.MECH_SRM_FRAG_ID,
-            2, 6, LayeredMechAppearance.POD_SMALL_SRM),
+            5, 1, LayeredMechAppearance.POD_SMALL_SRM),
     SRM_15_FRAG("component.mech-srm-15-frag", "@gearMechWeaponComponentSRM15FRAG", MountFamily.SHOULDER,
             HardpointType.MISSILE, 2, 3, WeaponRegistry.MECH_SRM_FRAG_ID,
-            4, 6, LayeredMechAppearance.POD_LARGE_SRM),
+            5, 3, LayeredMechAppearance.POD_LARGE_SRM),
     LRM_5_FRAG("component.mech-lrm-5-frag", "@gearMechWeaponComponentLRM5FRAG", MountFamily.SHOULDER,
             HardpointType.MISSILE, 2, 2, WeaponRegistry.MECH_LRM_FRAG_ID,
-            2, 4, LayeredMechAppearance.POD_SMALL_LRM),
+            5, 1, LayeredMechAppearance.POD_SMALL_LRM),
     LRM_15_FRAG("component.mech-lrm-15-frag", "@gearMechWeaponComponentLRM15FRAG", MountFamily.SHOULDER,
             HardpointType.MISSILE, 2, 3, WeaponRegistry.MECH_LRM_FRAG_ID,
             5, 3, LayeredMechAppearance.POD_LARGE_LRM),
@@ -126,7 +127,7 @@ public enum MechWeaponComponent {
             LayeredMechAppearance.POD_THERMAL_LANCE),
     SRM_3_QS("component.mech-srm-3-qs", "@gearMechWeaponComponentSRM3QS",
             MountFamily.SHOULDER, HardpointType.MISSILE, 2, 1,
-            WeaponRegistry.MECH_SRM_3_QS_ID, 3, 3,
+            WeaponRegistry.MECH_SRM_3_QS_ID, 3, 1,
             LayeredMechAppearance.POD_SRM_3_QS);
 
     /**
@@ -144,6 +145,32 @@ public enum MechWeaponComponent {
         static String srm() { return ON ? WeaponRegistry.MECH_SRM_ID : WeaponRegistry.MECH_SRM_LEGACY_ID; }
 
         static String lrm() { return ON ? WeaponRegistry.MECH_LRM_ID : WeaponRegistry.MECH_LRM_LEGACY_ID; }
+    }
+
+    /**
+     * Whether a rack's name counts its buffer: salvos of five (three for the SRM-3 (QS)), the 5-racks holding one
+     * and the 15-racks three, recharged a whole rack at a time by the loader (`mechs-nouns.md`, Missile racks).
+     * {@code -Dbattle.mech.missileBuffers=false} is the control: the racks before the rescale, two- and
+     * four-missile packets six and four deep, each pack restored on its own. Temporary A/B lever: remove it with
+     * the control path once the rescale's armorMatchup reading has been accepted.
+     */
+    public static boolean missileBuffers() { return Buffers.ON; }
+
+    /** Read in the constructors, before the enum's own statics exist. */
+    private static final class Buffers {
+        static final boolean ON = Boolean.parseBoolean(System.getProperty("battle.mech.missileBuffers", "true"));
+
+        /** The control's {projectiles per trigger, salvos} for a rack whose numbers the rescale changed. */
+        static int[] control(String id) {
+            if (ON) return null;
+            return switch (id) {
+                case "component.mech-srm-5", "component.mech-srm-5-frag" -> new int[]{2, 6};
+                case "component.mech-srm-15", "component.mech-srm-15-frag" -> new int[]{4, 6};
+                case "component.mech-lrm-5", "component.mech-lrm-5-frag" -> new int[]{2, 4};
+                case "component.mech-srm-3-qs" -> new int[]{3, 3};
+                default -> null;
+            };
+        }
     }
 
     /**
@@ -227,12 +254,23 @@ public enum MechWeaponComponent {
     /** Stable catalog id for the installed gun or launcher. */
     public final String weaponId;
     /**
-     * Representative projectiles emitted per trigger, not literal launcher tubes. A rotary gun has no
-     * trigger pull; for it this is only the unit its rated cycle is quoted in.
+     * Projectiles emitted per trigger: a missile rack's salvo. A rotary gun has no trigger pull; for it this is
+     * only the unit its rated cycle is quoted in.
      */
     public final int projectilesPerTrigger;
-    /** Trigger pulls available at full supply; negative means unlimited. */
+    /**
+     * Trigger pulls available at full supply, a missile rack's salvos; negative means unlimited. A rack's
+     * buffer, the number in its name, is this times {@link #projectilesPerTrigger} ({@link #readyRounds}).
+     */
     public final int ammoCapacity;
+
+    /**
+     * The rounds a full mount holds ready: a missile rack's buffer, the number in its name. Zero for a weapon with
+     * no limit.
+     */
+    public int readyRounds() {
+        return ammoCapacity < 0 ? 0 : ammoCapacity * projectilesPerTrigger;
+    }
     /** Arms or shoulder selector consumed by the layered compositor. */
     public final int appearanceSelector;
 
@@ -255,8 +293,9 @@ public enum MechWeaponComponent {
         this.footprintRows = footprintRows;
         this.slotCost = footprintColumns * footprintRows;
         this.weaponId = weaponId;
-        this.projectilesPerTrigger = projectilesPerTrigger;
-        this.ammoCapacity = ammoCapacity;
+        int[] control = Buffers.control(id);
+        this.projectilesPerTrigger = control != null ? control[0] : projectilesPerTrigger;
+        this.ammoCapacity = control != null ? control[1] : ammoCapacity;
         this.appearanceSelector = appearanceSelector;
     }
 
@@ -297,6 +336,15 @@ public enum MechWeaponComponent {
 
     private float authoredCycleSeconds() {
         if (rotary() != null) return projectilesPerTrigger / rotary().ratedRoundsPerSecond();
+        if (Buffers.ON) {
+            // A rack's salvos are the same five missiles at every size, so a family cycles alike; a single-salvo
+            // rack's real wait is its recharge, which the loader owns.
+            switch (this) {
+                case SRM_5, SRM_5_FRAG, SRM_15, SRM_15_FRAG -> { return 3.5f; }
+                case LRM_5, LRM_15, LRM_5_FRAG, LRM_15_FRAG -> { return 9f; }
+                default -> { }
+            }
+        }
         return switch (this) {
             // Unused: a rotary gun's cycle is read from its feed above.
             case CHAINGUN, CHAINGUN_HF, AC_6, AC_6_QS, LIGHT_MACHINE_GUN -> 0f;
@@ -356,6 +404,16 @@ public enum MechWeaponComponent {
     private static final Map<String, Float> TUNING = new ConcurrentHashMap<>();
 
     private float authoredFlux() {
+        if (Buffers.ON) {
+            // One salvo of five costs the same from either size of rack; a chained salvo pays half (SalvoChain), so
+            // a 15-rack's three salvos cost 80 of the stock 100.
+            switch (this) {
+                case SRM_5, SRM_5_FRAG, SRM_15, SRM_15_FRAG, LRM_5, LRM_5_FRAG, LRM_15, LRM_15_FRAG -> {
+                    return 40f;
+                }
+                default -> { }
+            }
+        }
         return switch (this) {
             // Unused: a rotary gun's flux is authored per round on its weapon (fluxPerRound).
             case CHAINGUN, CHAINGUN_HF, AC_6, AC_6_QS, LIGHT_MACHINE_GUN -> 0f;

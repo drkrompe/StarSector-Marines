@@ -81,7 +81,11 @@ public final class DirectControlLoad {
     static Load mech(MechWeaponMount mount) {
         if (mount.isRotary()) return new Load(1f, mount.rotary.beltRounds(), mount.rotary.def().belt(), false);
         int capacity = mount.component.ammoCapacity;
-        return new Load(Load.clock(mount.cycleRemaining, mount.component.cycleSeconds()),
+        float recharge = capacity >= 0 && mount.ammo <= 0 ? mount.rechargeRemaining() : 0f;
+        // An empty rack's clock is its recharge.
+        float clock = recharge > 0f ? Load.clock(recharge, mount.rechargeSeconds)
+                : Load.clock(mount.cycleRemaining, mount.component.cycleSeconds());
+        return new Load(clock,
                 capacity < 0 ? 0 : mount.ammo, Math.max(0, capacity), false);
     }
 

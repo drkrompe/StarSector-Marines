@@ -204,6 +204,31 @@
       "audio": { "fireSound": "pilum_lrm_fire", "impactSound": "marines_explosion" }
     },
     {
+      "id": "weapon.boat-lrm-10", "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponBoatLrm10DisplayName", "designationTiered": false },
+      "sim": {
+        "pointDefenseTarget": true, "range": 40.0, "damage": 15.0, "accuracy": 0.55, "cooldown": 9.0, "penetration": 6.0,
+        "contact": { "damage": 95.0, "penetration": 30.0 },
+        "burstCount": 5, "burstSpacing": 0.11, "hitSpread": 1.5, "roundVelocity": 28.571428, "flightSec": 1.40,
+        "arcHeight": 5.0, "aoeRadius": 1.0, "wallDamage": 40, "wallDamageRadius": 2.0,
+        "interceptableProjectile": true, "boostRamp": true, "indirectFire": true, "noLosAccuracyMult": 0.55
+      },
+      "render": { "tracerColor": "C8D8FF", "projectileSprite": "graphics/missiles/missile_LRM.png", "projectileVisualCells": 0.65, "contrail": "missile-smoke" },
+      "fx": {
+        "launch": [ { "kind": "smoke", "radius": [0.24, 0.34], "lifetime": [0.7, 1.0], "count": 3, "offsetForward": [-0.3, -0.1], "offsetLateral": [-0.14, 0.14], "velocityForward": [-1.8, -1.2], "velocityLateral": [-0.35, 0.35] } ],
+        "muzzle": [ { "kind": "glow", "radius": 0.48, "lifetime": 0.1, "color": "FF9040" }, { "kind": "fire", "radius": 0.26, "lifetime": 0.2 } ],
+        "trail": [ { "kind": "glow", "radius": 0.18, "lifetime": 0.25, "color": "FF9040" } ],
+        "impact": [
+          { "kind": "glow", "radius": 0.70, "lifetime": 0.16, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.55, "lifetime": 0.45 },
+          { "kind": "smoke", "radius": [0.55, 0.80], "lifetime": [1.10, 1.50], "count": [2, 3], "jitter": 0.45 },
+          { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
+        ],
+        "aftermath": [ { "kind": "smoke", "radius": [0.4, 0.7], "lifetime": [0.9, 1.4], "jitter": 0.5, "delay": [0.1, 0.2], "emissionDuration": 1.0, "emissionInterval": [0.3, 0.45] } ]
+      },
+      "audio": { "fireSound": "pilum_lrm_fire", "impactSound": "marines_explosion" }
+    },
+    {
       "id": "weapon.vehicle-mortar", "mount": "turret-mount",
       "catalog": { "displayName": "@gearCatalogWeaponTurretHeavyMortarDisplayName", "designationTiered": false },
       "sim": {
@@ -234,12 +259,36 @@
       "audio": { "fireSound": "heavy_mortar_fire", "impactSound": "marines_explosion" }
     },
     {
-      "id": "weapon.vehicle-srm-5", "mount": "turret-mount",
-      "catalog": { "displayName": "@gearCatalogWeaponVehicleSrm5DisplayName", "designationTiered": false },
+      "id": "weapon.vehicle-srm-30", "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponVehicleSrm30DisplayName", "designationTiered": false },
       "sim": {
         "pointDefenseTarget": true, "range": 18.0, "damage": 10.0, "accuracy": 0.55, "cooldown": 5.5, "penetration": 6.0,
         "contact": { "damage": 66.0, "penetration": 30.0 },
-        "burstCount": 4, "burstSpacing": 0.10, "roundVelocity": 32.727272, "flightSec": 0.55,
+        "burstCount": 5, "burstSpacing": 0.10, "roundVelocity": 32.727272, "flightSec": 0.55,
+        "aoeRadius": 0.6, "wallDamage": 25, "wallDamageRadius": 1.3,
+        "interceptableProjectile": true, "boostRamp": true
+      },
+      "render": { "tracerColor": "FFC080", "projectileSprite": "graphics/missiles/missile_SRM.png", "projectileVisualCells": 0.40 },
+      "fx": {
+        "launch": [ { "kind": "smoke", "radius": [0.24, 0.34], "lifetime": [0.7, 1.0], "count": 3, "offsetForward": [-0.3, -0.1], "offsetLateral": [-0.14, 0.14], "velocityForward": [-1.8, -1.2], "velocityLateral": [-0.35, 0.35] } ],
+        "muzzle": [ { "kind": "glow", "radius": 0.48, "lifetime": 0.1, "color": "FF9040" }, { "kind": "fire", "radius": 0.26, "lifetime": 0.2 } ],
+        "trail": [ { "kind": "glow", "radius": 0.18, "lifetime": 0.25, "color": "FF9040" } ],
+        "impact": [
+          { "kind": "glow", "radius": 0.70, "lifetime": 0.16, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.55, "lifetime": 0.45 },
+          { "kind": "smoke", "radius": [0.55, 0.80], "lifetime": [1.10, 1.50], "count": [2, 3], "jitter": 0.45 },
+          { "kind": "dust", "radius": 0.55, "lifetime": 0.32 }
+        ]
+      },
+      "audio": { "fireSound": "annihilator_fire", "impactSound": "marines_explosion" }
+    },
+    {
+      "id": "weapon.boat-srm-15", "mount": "turret-mount",
+      "catalog": { "displayName": "@gearCatalogWeaponBoatSrm15DisplayName", "designationTiered": false },
+      "sim": {
+        "pointDefenseTarget": true, "range": 18.0, "damage": 10.0, "accuracy": 0.55, "cooldown": 5.5, "penetration": 6.0,
+        "contact": { "damage": 66.0, "penetration": 30.0 },
+        "burstCount": 5, "burstSpacing": 0.10, "roundVelocity": 32.727272, "flightSec": 0.55,
         "aoeRadius": 0.6, "wallDamage": 25, "wallDamageRadius": 1.3,
         "interceptableProjectile": true, "boostRamp": true
       },

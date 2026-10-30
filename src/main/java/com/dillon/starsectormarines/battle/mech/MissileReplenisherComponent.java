@@ -7,8 +7,10 @@ import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
 import java.util.List;
 
 /**
- * Installed onboard subsystem, the mech's loader: how quickly finite missile mounts fabricate and load replacement
- * trigger packs, and how fast every rotary gun's hopper refills its belt ({@link #loaderFactor}, {@link LoaderPace}).
+ * Installed onboard subsystem, the mech's loader: how quickly finite missile mounts are recharged, and how fast every
+ * rotary gun's hopper refills its belt ({@link #loaderFactor}, {@link LoaderPace}). A rack's recharge is one time for
+ * the whole rack ({@link MechWeaponMount#advanceReplenishment}): an SRM rack, five-salvo or fifteen, is full again
+ * {@link #srmReplenishmentSeconds} after its last salvo, an LRM rack {@link #lrmReplenishmentSeconds} after.
  * The component is independent of chassis and weapon hardware. In the campaign it is a loader part in the
  * auxiliary compartment ({@code MechInternal.STANDARD_LOADER} and its kin);
  * a mech frozen without one carries {@link #NONE}, whose missile cadence never completes.
@@ -24,7 +26,8 @@ public record MissileReplenisherComponent(
     public static final MissileReplenisherComponent STANDARD =
             new MissileReplenisherComponent(
                     "standard_replenisher", "@gearReplenisherStandard",
-                    12f, 18f);
+                    MechWeaponComponent.missileBuffers() ? 32f : 12f,
+                    MechWeaponComponent.missileBuffers() ? 54f : 18f);
     /** A pack in three quarters of the standard loader's time ({@link LoaderPace#ACCELERATED_TIME_SHARE}). */
     public static final MissileReplenisherComponent ACCELERATED_FEED =
             new MissileReplenisherComponent(
@@ -57,9 +60,16 @@ public record MissileReplenisherComponent(
         }
     }
 
-    /** Seconds required to restore one trigger pack for {@code weapon}. */
+    /**
+     * Seconds required to recharge a rack of {@code weapon}: the whole rack at once, from its last salvo
+     * ({@link MechWeaponComponent#missileBuffers}); one trigger pack under the control. The SRM-3 (QS) recharges as an
+     * SRM rack does.
+     */
     public float replenishmentSeconds(String weaponId) {
         if (WeaponRegistry.isMechSrm(weaponId)) return srmReplenishmentSeconds;
+        if (MechWeaponComponent.missileBuffers() && WeaponRegistry.MECH_SRM_3_QS_ID.equals(weaponId)) {
+            return srmReplenishmentSeconds;
+        }
         if (WeaponRegistry.isMechLrm(weaponId)) return lrmReplenishmentSeconds;
         return Float.POSITIVE_INFINITY;
     }

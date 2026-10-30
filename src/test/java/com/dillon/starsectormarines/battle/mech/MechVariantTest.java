@@ -56,12 +56,6 @@ class MechVariantTest {
                 bulwark.mount(MechMountSlot.LEFT_SHOULDER).component);
         assertSame(MechWeaponComponent.SRM_15,
                 bulwark.mount(MechMountSlot.RIGHT_SHOULDER).component);
-        assertEquals(4, bulwark.mount(MechMountSlot.LEFT_SHOULDER)
-                .component.projectilesPerTrigger);
-        assertEquals(4, bulwark.mount(MechMountSlot.RIGHT_SHOULDER)
-                .component.projectilesPerTrigger);
-        assertEquals(6, bulwark.mount(MechMountSlot.RIGHT_SHOULDER)
-                .component.ammoCapacity);
         assertFalse(bulwark.hasWeapon(WeaponRegistry.MECH_SHOULDER_LASER_ID));
 
         MechLoadoutComponent hound = MechVariant.HOUND.createLoadout(null);

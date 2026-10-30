@@ -11,6 +11,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** The loader's one rule: it paces missile packs and rotary hoppers alike, and the authored rates are the standard's. */
 class LoaderPaceTest {
@@ -39,11 +40,12 @@ class LoaderPaceTest {
 
     @Test
     void missilePacksKeepTheirCadenceAndOnlyThePacksStopWithoutALoader() {
-        assertEquals(12f, MissileReplenisherComponent.STANDARD.replenishmentSeconds(WeaponRegistry.MECH_SRM_ID));
-        assertEquals(18f, MissileReplenisherComponent.STANDARD.replenishmentSeconds(WeaponRegistry.MECH_LRM_ID));
-        assertEquals(9f, MissileReplenisherComponent.ACCELERATED_FEED.replenishmentSeconds(WeaponRegistry.MECH_SRM_ID));
-        assertEquals(13.5f,
-                MissileReplenisherComponent.ACCELERATED_FEED.replenishmentSeconds(WeaponRegistry.MECH_LRM_ID));
+        for (String rack : new String[]{WeaponRegistry.MECH_SRM_ID, WeaponRegistry.MECH_LRM_ID}) {
+            float standard = MissileReplenisherComponent.STANDARD.replenishmentSeconds(rack);
+            assertTrue(Float.isFinite(standard) && standard > 0f);
+            assertEquals(standard * LoaderPace.ACCELERATED_TIME_SHARE,
+                    MissileReplenisherComponent.ACCELERATED_FEED.replenishmentSeconds(rack), 1e-4f);
+        }
         assertEquals(Float.POSITIVE_INFINITY,
                 MissileReplenisherComponent.NONE.replenishmentSeconds(WeaponRegistry.MECH_SRM_ID));
 

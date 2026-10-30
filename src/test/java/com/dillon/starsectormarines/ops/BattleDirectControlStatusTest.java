@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MechWeaponMount;
+import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.GroundTurret;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -89,11 +90,27 @@ class BattleDirectControlStatusTest {
         assertEquals("LEFT_SHOULDER", weapons.get(0).slotKey());
         assertTrue(weapons.get(0).directEligible());
         assertEquals(2, weapons.get(0).ammo().remaining());
-        assertEquals(6, weapons.get(0).ammo().capacity());
+        assertEquals(left.component.ammoCapacity, weapons.get(0).ammo().capacity());
         assertEquals(BattleDirectControlStatus.AmmoUnit.TRIGGER_PACKS, weapons.get(0).ammo().unit());
-        assertEquals(4, weapons.get(0).behavior().projectilesPerTrigger());
+        assertEquals(left.component.projectilesPerTrigger, weapons.get(0).behavior().projectilesPerTrigger());
         assertTrue(weapons.get(1).directEligible(), "an LRM rack drops on the cursor point");
         assertEquals(BattleDirectControlStatus.FireKind.INDIRECT, weapons.get(1).behavior().kind());
+    }
+
+    @Test
+    void anEmptyRackReadsItsRechargeAndAPartLoadedOneItsCycle() {
+        var rack = new MechWeaponMount(MechMountSlot.LEFT_SHOULDER, MechWeaponComponent.SRM_15);
+        var loader = MissileReplenisherComponent.STANDARD;
+        rack.ammo = 0;
+        rack.advanceReplenishment(1f, loader);
+        var empty = BattleDirectControlStatus.mechWeapons(new MechWeaponMount[]{rack}).get(0);
+        assertEquals(BattleDirectControlStatus.WeaponState.RELOADING, empty.state());
+        assertEquals(rack.rechargeSeconds - 1f, empty.cooldownSeconds(), 1e-4f);
+        assertEquals(rack.rechargeSeconds, empty.cycleDurationSeconds(), 1e-4f);
+
+        rack.ammo = 1;
+        var partLoaded = BattleDirectControlStatus.mechWeapons(new MechWeaponMount[]{rack}).get(0);
+        assertEquals(BattleDirectControlStatus.WeaponState.LOADED, partLoaded.state());
     }
 
     @Test

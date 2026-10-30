@@ -115,8 +115,8 @@ public final class BoatHardware {
             case "door_hephaestus" -> new Piece("boat-door-hephaestus", 2, gunRows, tone);
             case "boat_pulse_laser" -> new Piece("pulse-laser", 2, gunRows, tone);
             case "boat_burst_laser" -> new Piece("shoulder-laser", 2, gunRows, tone);
-            case "boat_srm_5" -> new Piece("srm-5", 2, gunRows, tone);
-            case "boat_lrm_5" -> new Piece("lrm-5", 2, gunRows, tone);
+            case "boat_srm_15" -> new Piece("srm-5", 2, gunRows, tone);
+            case "boat_lrm_10" -> new Piece("lrm-5", 2, gunRows, tone);
             case "standard_plating" -> new Piece("boat-plating-standard", 2, 1, tone);
             case "reinforced_plating" -> new Piece("boat-plating-reinforced", 2, 2, tone);
             case "armoured_plating" -> new Piece("boat-plating-armoured", 2, 2, tone);

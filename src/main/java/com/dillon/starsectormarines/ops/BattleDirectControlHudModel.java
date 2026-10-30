@@ -441,8 +441,10 @@ public final class BattleDirectControlHudModel {
         MagazineGauge gauge;
         if (ammo.unit() == BattleDirectControlStatus.AmmoUnit.TRIGGER_PACKS) {
             int perPack = Math.max(1, behavior.projectilesPerTrigger());
+            // An empty rack shows its recharge filling, as a magazine shows its reload.
             gauge = MagazineGauge.of(behavior.ordnance(), behavior.projectilesPerShot(), perPack,
-                    ammo.capacity() * perPack, ammo.remaining() * perPack, 0f, 0f);
+                    ammo.capacity() * perPack, ammo.remaining() * perPack,
+                    weapon.reloading() ? weapon.cooldownSeconds() : 0f, weapon.cycleDurationSeconds());
         } else {
             gauge = MagazineGauge.of(behavior.ordnance(), behavior.projectilesPerShot(),
                     behavior.projectilesPerTrigger(), ammo.capacity(), ammo.remaining(),
