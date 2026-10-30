@@ -45,6 +45,11 @@ public record VehicleDeploymentSpec(String campaignId, String callsign, VehicleT
         this(campaignId, callsign, type, List.of());
     }
 
+    /** The flux frame the hull is set down with, from its hull and rack; null for a hull that builds no flux. */
+    public HullReservoir.Frame flux() {
+        return HullReservoir.frame(type, kits);
+    }
+
     /** An unowned vehicle of {@code type}: debug grants and missions without a bay. */
     public static VehicleDeploymentSpec standard(VehicleType type) {
         return new VehicleDeploymentSpec(null, null, type);

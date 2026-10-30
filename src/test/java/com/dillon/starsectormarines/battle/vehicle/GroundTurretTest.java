@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import org.junit.jupiter.api.Test;
 
@@ -7,6 +8,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** A hull gun's loader and flux bank, on a bare turret. */
@@ -42,16 +44,33 @@ class GroundTurretTest {
         TurretMountDef lrm = VehicleType.LRM_CARRIER.turretStructure().mount;
         GroundTurret stock = GroundTurret.fitted(lrm, lrm.ammoCapacity, VehicleKit.Effect.NONE, null);
         assertEquals(lrm.loaderSeconds, stock.loaderSeconds);
-        assertEquals(lrm.flux.capacity(), stock.fluxCapacity(lrm));
+        assertEquals(lrm.flux.control().capacity(), stock.fluxCapacity(lrm));
 
         VehicleKit.Effect kits = VehicleKit.Effect.of(List.of(VehicleKit.ACCELERATED_LOADER, VehicleKit.CAPACITOR_PACK));
         GroundTurret fitted = GroundTurret.fitted(lrm, lrm.ammoCapacity, kits, null);
         assertEquals(lrm.loaderSeconds * .75f, fitted.loaderSeconds, 1e-5f);
-        assertEquals(lrm.flux.capacity() * 1.5f, fitted.fluxCapacity(lrm), 1e-4f);
+        assertEquals(lrm.flux.control().capacity() * 1.5f, fitted.fluxCapacity(lrm), 1e-4f);
 
         int stockRounds = roundsToOverload(stock, lrm);
         int fittedRounds = roundsToOverload(fitted, lrm);
         assertTrue(fittedRounds > stockRounds, "a capacitor pack holds more rounds before it overloads");
+    }
+
+    @Test
+    void theHullReservoirIsTheHullsFrameAndEveryReaderReadsIt() {
+        HullReservoir.Frame stock = HullReservoir.frame(VehicleType.LRM_CARRIER, List.of());
+        HullReservoir.Frame packed = HullReservoir.frame(VehicleType.LRM_CARRIER, List.of(VehicleKit.CAPACITOR_PACK));
+        assertEquals(stock.capacity() * 1.5f, packed.capacity(), 1e-4f);
+        assertEquals(stock.dissipationPerSecond(), packed.dissipationPerSecond());
+        assertNull(HullReservoir.frame(VehicleType.SUPPLY_TRUCK, List.of()), "no gun, no reservoir");
+
+        TurretMountDef lrm = VehicleType.LRM_CARRIER.turretStructure().mount;
+        GroundTurret turret = new GroundTurret(lrm.ammoCapacity);
+        turret.reservoir = new MechFlux(140f, 7f);
+        turret.reservoir.commit(20f);
+        assertEquals(140f, turret.fluxCapacity(lrm));
+        assertEquals(20f, turret.fluxValue());
+        assertFalse(turret.fluxVenting());
     }
 
     @Test

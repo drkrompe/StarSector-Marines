@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.mech;
 
 import com.dillon.starsectormarines.battle.sim.BattleView;
 import com.dillon.starsectormarines.battle.sim.ConvoyService;
+import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 /**
@@ -27,10 +28,14 @@ public final class MechFireOrder {
      * The target's armor rating when it is a machine and the rule is on; zero otherwise, which keeps the slot order.
      */
     public static float machineArmorRating(long target, BattleView sim) {
-        if (!ENABLED || target == 0L || !sim.world().hasArmor(target)) return 0f;
-        boolean machine = sim.world().hasMechLoadout(target)
-                || sim.bodies().carrierOf(target) instanceof ConvoyService;
-        return machine ? Math.max(0f, sim.world().armorRating(target)) : 0f;
+        return machineArmorRating(sim.world(), target, sim.bodies().carrierOf(target) instanceof ConvoyService);
+    }
+
+    /** As above, told whether the target is a ground vehicle; a mech is known by its loadout. */
+    public static float machineArmorRating(World world, long target, boolean groundVehicle) {
+        if (!ENABLED || target == 0L || !world.hasArmor(target)) return 0f;
+        boolean machine = world.hasMechLoadout(target) || groundVehicle;
+        return machine ? Math.max(0f, world.armorRating(target)) : 0f;
     }
 
     /**
@@ -38,12 +43,22 @@ public final class MechFireOrder {
      * mount sorts last. Stable, so equally effective mounts keep their slot order.
      */
     public static int[] order(MechWeaponMount[] mounts, float armorRating) {
-        int[] order = new int[mounts.length];
-        float[] key = new float[mounts.length];
-        for (int i = 0; i < mounts.length; i++) {
+        WeaponDef[] weapons = new WeaponDef[mounts.length];
+        for (int i = 0; i < mounts.length; i++) weapons[i] = mounts[i] == null ? null : mounts[i].component.weaponDef();
+        return order(weapons, armorRating);
+    }
+
+    /**
+     * As above for weapons alone: a vehicle's mounts, the main gun first, sharing the hull's reservoir. A null weapon (a
+     * gun shot away) sorts last.
+     */
+    public static int[] order(WeaponDef[] weapons, float armorRating) {
+        int[] order = new int[weapons.length];
+        float[] key = new float[weapons.length];
+        for (int i = 0; i < weapons.length; i++) {
             order[i] = i;
             key[i] = armorRating <= 0f ? 0f
-                    : mounts[i] == null ? -1f : efficiency(mounts[i].component, armorRating);
+                    : weapons[i] == null ? -1f : efficiency(weapons[i], armorRating);
         }
         for (int i = 1; i < order.length; i++) {
             int index = order[i];
@@ -59,7 +74,10 @@ public final class MechFireOrder {
 
     /** How much of a round's damage strips this armor: the better of the weapon's payloads, clamped at full. */
     static float efficiency(MechWeaponComponent component, float armorRating) {
-        WeaponDef weapon = component.weaponDef();
+        return efficiency(component.weaponDef(), armorRating);
+    }
+
+    static float efficiency(WeaponDef weapon, float armorRating) {
         float penetration = Math.max(weapon.penetration, weapon.contactPenetration);
         return Math.min(1f, penetration / armorRating);
     }

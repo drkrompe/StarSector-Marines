@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.combat.PointFireAim;
+import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.RotaryFeed;
 import com.dillon.starsectormarines.battle.turret.StructureDef;
@@ -82,12 +83,28 @@ public final class GroundTurret {
     public float loaderSeconds = Float.POSITIVE_INFINITY;
     /** Loader work toward the next pack, in seconds. */
     public float loaderProgress;
-    /** The gun's flux ({@code TurretMountDef#flux}); zero and unread for a mount without flux. */
+    /**
+     * The hull's one flux reservoir ({@link HullReservoir}), the same instance on the main gun and every secondary
+     * mount, so every round any of them fires draws on it; null on the per-mount control path and for a gun built
+     * outside a hull. While it is set, {@link #flux} and {@link #overloaded} stay unused.
+     */
+    public MechFlux reservoir;
+    /** The gun's own flux on the per-mount control path ({@code TurretMountDef#flux}); zero and unread otherwise. */
     public float flux;
     /** The gun's flux capacity as a share of its mount's: more with a capacitor pack. */
     public float fluxCapacityFactor = 1f;
-    /** Whether the gun overloaded and is venting: its trigger is held until its flux is gone. */
+    /** Whether the gun overloaded and is venting: its trigger is held until its flux is gone. Per-mount path only. */
     public boolean overloaded;
+
+    /** The flux the gun reads against: the hull's reservoir, or its own bank on the per-mount path. */
+    public float fluxValue() {
+        return reservoir != null ? reservoir.value() : flux;
+    }
+
+    /** Whether the gun's flux holds its trigger: the reservoir venting, or the gun overloaded on the per-mount path. */
+    public boolean fluxVenting() {
+        return reservoir != null ? reservoir.venting() : overloaded;
+    }
     /** Rounds left in the current burst (excluding the trigger-pull round). */
     public int burstRemaining;
     /** Sim-seconds until the next burst round fires. */
@@ -170,9 +187,13 @@ public final class GroundTurret {
         return turret;
     }
 
-    /** The flux this gun overloads at: its mount's capacity, scaled by a capacitor pack. */
+    /**
+     * The flux this gun reads against: the hull reservoir's capacity, or on the per-mount path its mount's own,
+     * scaled by a capacitor pack. Zero for a mount that builds no flux.
+     */
     public float fluxCapacity(TurretMountDef mount) {
-        return mount.flux == null ? 0f : mount.flux.capacity() * fluxCapacityFactor;
+        if (mount.flux == null) return 0f;
+        return reservoir != null ? reservoir.capacity() : mount.flux.control().capacity() * fluxCapacityFactor;
     }
 
     /**

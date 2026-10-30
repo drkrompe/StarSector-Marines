@@ -317,7 +317,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
 
     /**
      * The gun's flux made visible ({@link FluxHaze}): a purple haze over the hull's vents that thickens as flux builds
-     * ({@code TurretMountDef#flux}), and a bright lavender plume while an overloaded gun vents.
+     * ({@code TurretMountDef#flux}), and a bright lavender plume while it vents.
      */
     private void collectFluxHaze(RenderContext ctx, VehicleType type, GroundTurret turret, GroundBody body,
                                  BattleCamera cam, float cellPx, float alphaMult, DrawList out) {
@@ -325,15 +325,15 @@ public final class ConvoyRenderSystem implements RenderSystem {
         StructureDef structure = turret.structureFor(type);
         // Every hull gun builds flux; only a hull whose art authors vents shows it rising off them.
         if (structure == null || structure.mount.flux == null || type.fluxVentAftCells() <= 0f) return;
-        float level = Math.min(1f, turret.flux / turret.fluxCapacity(structure.mount));
-        if (FluxHaze.strength(level, turret.overloaded) <= 0f) return;
+        float level = Math.min(1f, turret.fluxValue() / turret.fluxCapacity(structure.mount));
+        if (FluxHaze.strength(level, turret.fluxVenting()) <= 0f) return;
         sprites.ensureEngineFxSprites();
         // Hull-local +Y is the nose (the turret mount's own transform); aft is -Y.
         float rad = (float) Math.toRadians(body.facingDegrees);
         float ventX = body.x + (float) Math.sin(rad) * type.fluxVentAftCells();
         float ventY = body.y - (float) Math.cos(rad) * type.fluxVentAftCells();
         FluxHaze.collect(out, RenderLayer.CONVOY, sprites.engineGlowSprite(), cam, cellPx, ventX, ventY,
-                body.facingDegrees, type.fluxVentHalfSpanCells(), 1f, level, turret.overloaded,
+                body.facingDegrees, type.fluxVentHalfSpanCells(), 1f, level, turret.fluxVenting(),
                 ctx.sim.getSimTickIndex() * BattleSimulation.TICK_DT, alphaMult);
     }
 

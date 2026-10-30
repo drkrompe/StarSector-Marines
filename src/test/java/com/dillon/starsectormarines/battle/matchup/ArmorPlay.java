@@ -428,6 +428,9 @@ public final class ArmorPlay {
                 if (b.vehicle) {
                     GroundTurret turret = sim.convoy().turret(b.id);
                     b.mountsLost = turret != null && turret.destroyed() ? 1 : 0;
+                    if (turret != null && (turret.reservoir != null
+                            ? turret.reservoir.aiDissipating() || turret.reservoir.venting()
+                            : turret.overloaded)) b.fluxLimitedTicks++;
                     int[] intercepts = sim.pointDefense().hullInterceptions(b.id);
                     b.roundsEngaged = intercepts[0];
                     b.roundsStopped = intercepts[1];

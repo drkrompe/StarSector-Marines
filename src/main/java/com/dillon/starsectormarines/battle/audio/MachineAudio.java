@@ -183,7 +183,7 @@ public final class MachineAudio {
             if (turret == null || body == null) continue;
             live.add(turret);
             boolean heard = !over && audible(convoy.faction(id), body.x, body.y, fog, lx, ly);
-            vent(turret, turret.overloaded && !turret.destroyed(), heard, body.x, body.y, loops, cues);
+            vent(turret, turret.fluxVenting() && !turret.destroyed(), heard, body.x, body.y, loops, cues);
         }
     }
 

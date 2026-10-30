@@ -43,12 +43,11 @@ public final class TurretMountDef {
     public final boolean hardenedTargetsOnly;
 
     /**
-     * The mount's flux, as a starship's energy weapon builds it, or null for a mount whose cadence is its cooldown
-     * alone. Every mount a hull carries authors it (`convoy-nouns.md`, hull flux), most at a nominal rate its
-     * cadence never fills; an emplacement never reads it. Every round fired adds {@link Flux#perRound}; flux dissipates at {@link Flux#dissipationPerSec}; a gun
-     * whose flux reaches {@link Flux#capacity} overloads, breaks off its burst and holds its trigger while it vents
-     * at {@link Flux#ventPerSec}, until it is empty. Flux sets what the gun can sustain, not what it carries: an
-     * overloaded gun leaves the magazine untouched, so the hull still reads as armed while it vents.
+     * What a round from the mount costs in flux, or null for a mount whose cadence is its cooldown alone. Every mount
+     * a hull carries authors it (`convoy-nouns.md`, hull flux); an emplacement never reads it. The cost is drawn on
+     * the hull's one reservoir, which every mount of the hull shares under the mech's admission rule
+     * ({@code HullReservoir}). Flux sets what the gun can sustain, not what it carries: a gun held by flux leaves the
+     * magazine untouched, so the hull still reads as armed while it vents.
      */
     public final Flux flux;
 
@@ -149,17 +148,19 @@ public final class TurretMountDef {
         Flux flux = null;
         JSONObject fluxJson = sim.optJSONObject("flux");
         if (fluxJson != null) {
-            float capacity = (float) fluxJson.getDouble("capacity");
             float perRound = (float) fluxJson.getDouble("perRound");
-            float dissipation = (float) fluxJson.getDouble("dissipationPerSec");
-            float vent = (float) fluxJson.getDouble("ventPerSec");
-            requirePositiveFinite(capacity, id, "flux.capacity");
             requirePositiveFinite(perRound, id, "flux.perRound");
-            requirePositiveFinite(vent, id, "flux.ventPerSec");
+            JSONObject bank = fluxJson.getJSONObject("control");
+            float capacity = (float) bank.getDouble("capacity");
+            float dissipation = (float) bank.getDouble("dissipationPerSec");
+            float vent = (float) bank.getDouble("ventPerSec");
+            requirePositiveFinite(capacity, id, "flux.control.capacity");
+            requirePositiveFinite(vent, id, "flux.control.ventPerSec");
             if (!(dissipation >= 0f) || !Float.isFinite(dissipation)) {
-                throw new JSONException("Turret mount '" + id + "' flux.dissipationPerSec must be finite and non-negative");
+                throw new JSONException("Turret mount '" + id
+                        + "' flux.control.dissipationPerSec must be finite and non-negative");
             }
-            flux = new Flux(capacity, perRound, dissipation, vent);
+            flux = new Flux(perRound, new ControlBank(capacity, dissipation, vent));
         }
         float loaderSeconds = sim.has("loaderSeconds")
                 ? (float) sim.getDouble("loaderSeconds") : Float.POSITIVE_INFINITY;
@@ -247,8 +248,24 @@ public final class TurretMountDef {
                 engagesAir, maxDepressionDeg, spritePath, recoilSpritePath, recoil, ejectsCasings, scorchCells);
     }
 
-    /** A mount's flux frame ({@link TurretMountDef#flux}). */
-    public record Flux(float capacity, float perRound, float dissipationPerSec, float ventPerSec) { }
+    /**
+     * What a round from this mount costs in flux ({@link TurretMountDef#flux}). The flux it draws on is the hull's
+     * reservoir, never the mount's (`convoy-nouns.md`, hull flux); {@link #control} is only the bank the mount had of
+     * its own before, which the per-mount control path ({@code -Dbattle.vehicle.hullReservoir=false}) still runs on.
+     */
+    public record Flux(float perRound, ControlBank control) {
+        /** The same bank at another cost per round: a fitted weapon's flux in the carriage's bank. */
+        public Flux withPerRound(float perRound) {
+            return new Flux(perRound, control);
+        }
+    }
+
+    /**
+     * A mount's own flux bank on the per-mount control path: it overloads at {@code capacity} and vents to empty at
+     * {@code ventPerSec}. Temporary: it goes with {@code battle.vehicle.hullReservoir} once the hull reservoir is
+     * decided against it (`switches.md`).
+     */
+    public record ControlBank(float capacity, float dissipationPerSec, float ventPerSec) { }
 
     static String requireText(JSONObject json, String key) throws JSONException {
         String value = json.optString(key, null);

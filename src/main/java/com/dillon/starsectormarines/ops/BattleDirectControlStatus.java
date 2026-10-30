@@ -536,13 +536,17 @@ final class BattleDirectControlStatus {
     }
 
     /**
-     * The driven hull's main gun's flux, on the mech's gauge, or null for a gun that builds none: a launcher or a
-     * laser the driver fires as fast as its flux allows needs to see it.
+     * The driven hull's flux, on the mech's gauge, or null for a hull that builds none: its reservoir, which every
+     * mount draws on, or on the per-mount control path its main gun's own bank.
      */
     static MechFluxStatus vehicleFlux(BattleSimulation sim, long id) {
         GroundTurret turret = sim.convoy().turret(id);
         VehicleType type = sim.convoy().vehicleType(id);
-        if (turret == null || type == null || turret.structureFor(type) == null || turret.destroyed()) return null;
+        if (turret == null || type == null) return null;
+        if (turret.reservoir != null) {
+            return new MechFluxStatus(turret.reservoir.value(), turret.reservoir.venting(), turret.reservoir.capacity());
+        }
+        if (turret.structureFor(type) == null || turret.destroyed()) return null;
         TurretMountDef mount = turret.structureFor(type).mount;
         if (mount.flux == null) return null;
         return new MechFluxStatus(turret.flux, turret.overloaded, turret.fluxCapacity(mount));
@@ -577,14 +581,14 @@ final class BattleDirectControlStatus {
                             Ordnance.of(weapon)),
                     ManualPointFire.supportsPointFire(weapon), (1f - feed.spin()) * spinUp, spinUp, 0, 0f,
                     new Ammo(feed.beltRounds(), feed.def().belt(), AmmoUnit.ROUNDS, false),
-                    turret.overloaded, "", trigger, ManualPointFire.tooClose(weapon, aimDistance), false, group,
+                    turret.fluxVenting(), "", trigger, ManualPointFire.tooClose(weapon, aimDistance), false, group,
                     turret.holdRounds);
         }
         return new WeaponStatus(number, slotKey, weapon.displayName(), behavior(weapon, weapon.burstCount),
                 ManualPointFire.supportsPointFire(weapon),
                 turret.cooldownTimer, weapon.cooldown, turret.burstRemaining, turret.burstTimer,
                 new Ammo(turret.ammo, turret.capacity, AmmoUnit.ROUNDS, mount.ammoCapacity == 0),
-                turret.overloaded, "", trigger, ManualPointFire.tooClose(weapon, aimDistance), false, group, turret.holdRounds);
+                turret.fluxVenting(), "", trigger, ManualPointFire.tooClose(weapon, aimDistance), false, group, turret.holdRounds);
     }
 
     private static Behavior behavior(WeaponDef weapon, int releasesPerTrigger) {

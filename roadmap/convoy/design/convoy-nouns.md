@@ -585,22 +585,29 @@ every pack's time to three quarters (a better sustained rate), and the
 rounds between vents).
 
 **Every hull gun builds flux** (owner, 2026-10-26; `TurretMountDef.flux`), as a
-starship's weapons do: every round adds flux, flux dissipates at a steady rate,
-and a gun whose flux reaches capacity **overloads**, breaks off its burst and holds
-its trigger while it vents, faster than it dissipates, until it is empty. Flux is
-not the magazine, so a hull venting still reads as armed to every engagement
-question. Flux is the gun's own, one bank a mount, secondaries included; a hull
-has no chassis reservoir as a mech does. How much a gun builds is its character:
+starship's weapons do, and a hull holds it in **one reservoir** as a mech does
+(owner, 2026-10-30; `HullReservoir`): every mount, secondaries included, draws on
+it, and it runs the mech's own rule (`mechs-nouns.md`, flux reservoir). A trigger
+commits its whole burst's flux on its first round (a rotary gun round by round), a
+crew refuses a trigger that would pass 90% of capacity and, once past 75%, holds
+until 40%; a driver may spend the rest, and at 95% the hull vents until 55% at its
+own dissipation, with no faster vent. Where a hull carries more than one gun, the
+mount that best defeats the target's armor is offered the reservoir first
+(`MechFireOrder`). The reservoir's capacity and dissipation are frozen at the drop
+from the hull (`VehicleDeploymentSpec.flux`); a mount's data authors only what a
+round costs. Flux is not the magazine, so a hull venting still reads as armed to
+every engagement question. `-Dbattle.vehicle.hullReservoir=false` is the control:
+each mount its own bank, overloading at capacity and venting to empty faster than
+it dissipates. How much a gun builds is its character:
 - **Nominal** on the plain guns. The machine guns, the tank cannon, the mortar and
   the hover pulse emitter build a little each round and shed it faster than their
   cadence fills it, so a held trigger peaks around a tenth to a fifth of capacity and
   never overloads. Their flux is there to read, not to limit.
 - **The limit** on the racks and the lasers. A rack dumped on clicks or a hold runs
   into its flux before its magazine: the LRM rack's three groups fit and a fourth
-  does not, and the SRM rack overloads before its eight salvos are out. The lasers
+  does not, and the SRM rack's crew holds before its eight salvos are out. The lasers
   are flux hogs (the laser tanks, below).
-The direct-control HUD shows every armed hull's main gun's flux on the mech's
-gauge, against its kitted capacity. The haze rises only off vents a hull's art
+The direct-control HUD shows every armed hull's reservoir on the mech's gauge. The haze rises only off vents a hull's art
 authors (`VehicleType.fluxVentAftCells`, the laser tanks' radiator fins), so the
 plain hulls show no haze. Emplacements sharing a hull's mount never read its flux.
 

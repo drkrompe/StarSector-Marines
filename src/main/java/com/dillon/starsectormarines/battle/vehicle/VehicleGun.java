@@ -84,8 +84,7 @@ public final class VehicleGun {
         WeaponDef def = weapon.weaponDef();
         int magazine = weapon.ammoCapacity < 0 ? 0 : weapon.ammoCapacity * Math.max(1, def.burstCount);
         TurretMountDef.Flux bank = carriage.flux;
-        TurretMountDef.Flux flux = bank == null ? null : new TurretMountDef.Flux(bank.capacity(),
-                perRound(weapon, def), bank.dissipationPerSec(), bank.ventPerSec());
+        TurretMountDef.Flux flux = bank == null ? null : bank.withPerRound(perRound(weapon, def));
         // The weapon brings its own muzzle, at the tip of its drawing out from the ring, and its own effects: a
         // ballistic weapon on a ballistic carriage keeps the carriage's casings and scorch, any other has none.
         float length = lengthCells(type, weapon);

@@ -41,6 +41,21 @@ public final class MechFlux {
                 && (!autonomous || (!aiDissipating && flux + cost <= scaled(90f))) && flux + cost <= capacity;
     }
 
+    /**
+     * Seconds of dissipation until {@link #permits} would admit {@code cost}: zero when it does now, and infinite when
+     * it never can (the cost is past what the reservoir admits, or nothing dissipates). Nothing else committing in the
+     * meantime is assumed, so a caller still asks {@link #permits} before it fires.
+     */
+    public float secondsUntilPermits(float cost, boolean autonomous) {
+        if (permits(cost, autonomous)) return 0f;
+        float level = capacity - cost;
+        if (autonomous) level = Math.min(level, scaled(90f) - cost);
+        if (venting) level = Math.min(level, scaled(55f));
+        if (autonomous && aiDissipating) level = Math.min(level, scaled(40f));
+        if (level < 0f || !(dissipation > 0f)) return Float.POSITIVE_INFINITY;
+        return Math.max(0f, flux - level) / dissipation;
+    }
+
     /** Reserve only after the first round actually fires; cancelled packets do not refund flux. */
     public void commit(float cost) {
         if (!permits(cost, false)) throw new IllegalStateException("Mech trigger exceeds flux headroom");

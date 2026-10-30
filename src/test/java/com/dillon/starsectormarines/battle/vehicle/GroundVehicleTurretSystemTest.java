@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.combat.ShotService;
 import com.dillon.starsectormarines.battle.combat.TriggerPicks;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.mech.MechFlux;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.turret.TurretMountDef;
@@ -39,37 +40,102 @@ class GroundVehicleTurretSystemTest {
     private static final float DT = BattleSimulation.TICK_DT;
 
     @Test
-    void fluxOverloadsAtCapacityHoldsTheTriggerWhileVentingAndLeavesTheMagazine() {
+    void controlPathFluxOverloadsAtCapacityHoldsTheTriggerWhileVentingAndLeavesTheMagazine() {
         TurretMountDef laser = VehicleType.LASER_TANK.turretStructure().mount;
         TurretMountDef.Flux flux = laser.flux;
+        TurretMountDef.ControlBank bank = flux.control();
         GroundTurret turret = new GroundTurret(laser.ammoCapacity);
         int rounds = 0;
         while (!turret.overloaded) {
-            assertTrue(GroundVehicleTurretSystem.ready(turret, laser));
+            assertTrue(GroundVehicleTurretSystem.ready(turret, laser, 0f, true));
             GroundVehicleTurretSystem.addFlux(turret, laser);
             rounds++;
         }
-        assertEquals((int) Math.ceil(flux.capacity() / flux.perRound()), rounds);
-        assertFalse(GroundVehicleTurretSystem.ready(turret, laser));
-        assertEquals(flux.capacity() / flux.ventPerSec(), GroundVehicleTurretSystem.fluxWait(turret, laser), 1e-4f);
+        assertEquals((int) Math.ceil(bank.capacity() / flux.perRound()), rounds);
+        assertFalse(GroundVehicleTurretSystem.ready(turret, laser, 0f, false));
+        assertEquals(bank.capacity() / bank.ventPerSec(), GroundVehicleTurretSystem.fluxWait(turret, laser), 1e-4f);
         assertEquals(laser.ammoCapacity, turret.ammo, "an overloaded gun leaves the hull armed");
-        GroundVehicleTurretSystem.dissipate(turret, laser, flux.capacity() / flux.ventPerSec() * 0.5f);
-        assertFalse(GroundVehicleTurretSystem.ready(turret, laser), "a venting gun holds until it is empty");
-        GroundVehicleTurretSystem.dissipate(turret, laser, flux.capacity() / flux.ventPerSec());
-        assertTrue(GroundVehicleTurretSystem.ready(turret, laser));
+        GroundVehicleTurretSystem.dissipate(turret, laser, bank.capacity() / bank.ventPerSec() * 0.5f);
+        assertFalse(GroundVehicleTurretSystem.ready(turret, laser, 0f, false), "a venting gun holds until it is empty");
+        GroundVehicleTurretSystem.dissipate(turret, laser, bank.capacity() / bank.ventPerSec());
+        assertTrue(GroundVehicleTurretSystem.ready(turret, laser, 0f, false));
         assertEquals(0f, turret.flux);
 
         GroundVehicleTurretSystem.addFlux(turret, laser);
         GroundVehicleTurretSystem.dissipate(turret, laser, 1f);
-        assertEquals(Math.max(0f, flux.perRound() - flux.dissipationPerSec()), turret.flux, 1e-5f,
+        assertEquals(Math.max(0f, flux.perRound() - bank.dissipationPerSec()), turret.flux, 1e-5f,
                 "below capacity flux bleeds at the dissipation rate");
 
         // An emplacement's mount: hull guns all build flux, so only a mount no hull carries is without it.
         TurretMountDef magazine = TurretCatalogRegistry.requireStructure(TurretCatalogRegistry.VULCAN_STRUCTURE_ID).mount;
         GroundTurret gun = new GroundTurret(magazine.ammoCapacity);
         GroundVehicleTurretSystem.addFlux(gun, magazine);
-        assertTrue(GroundVehicleTurretSystem.ready(gun, magazine), "a mount without flux is never held");
+        assertTrue(GroundVehicleTurretSystem.ready(gun, magazine, 0f, false), "a mount without flux is never held");
         assertEquals(0f, GroundVehicleTurretSystem.fluxWait(gun, magazine));
+    }
+
+    @Test
+    void aCrewOnTheHullReservoirStopsShortOfNinetyAndHoldsFromSeventyFiveUntilForty() {
+        TurretMountDef cannon = TurretCatalogRegistry.requireStructure(TurretCatalogRegistry.VEHICLE_LRM_STRUCTURE_ID).mount;
+        GroundTurret turret = new GroundTurret(cannon.ammoCapacity);
+        HullReservoir.install(turret, new MechFlux(100f, 5f));
+        float cost = GroundVehicleTurretSystem.triggerCost(turret, cannon);
+        assertEquals(cannon.flux.perRound() * cannon.weapon.burstCount, cost, 1e-5f, "a trigger pays for its burst");
+        turret.ammo = 2;
+        assertEquals(cannon.flux.perRound() * 2, GroundVehicleTurretSystem.triggerCost(turret, cannon), 1e-5f,
+                "a short magazine fires, and pays for, a short burst");
+
+        // Packets of 30 go in at 0, 30 and 60; a fourth would pass 90, and 90 is past 75 anyway.
+        float packet = 30f;
+        int triggers = 0;
+        while (GroundVehicleTurretSystem.ready(turret, cannon, packet, true)) {
+            GroundVehicleTurretSystem.commitTrigger(turret, cannon, packet);
+            triggers++;
+        }
+        assertEquals(3, triggers);
+        assertEquals(90f, turret.reservoir.value(), 1e-4f);
+        GroundVehicleTurretSystem.addFlux(turret, cannon);
+        assertEquals(90f, turret.reservoir.value(), 1e-4f, "a burst's later rounds were paid for by its trigger");
+
+        float wait = turret.reservoir.secondsUntilPermits(packet, true);
+        assertEquals((90f - 40f) / 5f, wait, 1e-3f, "a crew past 75 holds until 40");
+        turret.reservoir.advance(wait - .1f);
+        assertFalse(GroundVehicleTurretSystem.ready(turret, cannon, packet, true));
+        assertTrue(GroundVehicleTurretSystem.ready(turret, cannon, packet, false), "a driver may spend the headroom");
+        turret.reservoir.advance(.2f);
+        assertTrue(GroundVehicleTurretSystem.ready(turret, cannon, packet, true));
+        assertEquals(2, turret.ammo, "flux never touches the magazine");
+    }
+
+    @Test
+    void aDriverVentsAtNinetyFiveUntilFiftyFiveAtTheHullsOwnDissipation() {
+        TurretMountDef laser = VehicleType.LASER_TANK.turretStructure().mount;
+        GroundTurret turret = new GroundTurret(laser.ammoCapacity);
+        HullReservoir.install(turret, new MechFlux(100f, 5f));
+        float round = GroundVehicleTurretSystem.roundCost(laser);
+        while (!turret.reservoir.venting()) {
+            assertTrue(GroundVehicleTurretSystem.ready(turret, laser, round, false));
+            GroundVehicleTurretSystem.commitTrigger(turret, laser, round);
+        }
+        assertTrue(turret.fluxVenting());
+        assertFalse(GroundVehicleTurretSystem.ready(turret, laser, round, false));
+        float level = turret.reservoir.value();
+        turret.reservoir.advance((level - 55f) / 5f - .05f);
+        assertFalse(GroundVehicleTurretSystem.ready(turret, laser, round, false), "no fast vent: base dissipation");
+        turret.reservoir.advance(.1f);
+        assertTrue(GroundVehicleTurretSystem.ready(turret, laser, round, false));
+    }
+
+    @Test
+    void everyMountOfAHullDrawsOnTheOneReservoir() {
+        GroundTurret main = new GroundTurret(10);
+        main.secondaries.add(MountedGun.of(new VehicleMount(TurretCatalogRegistry.HEAVY_MG_STRUCTURE_ID,
+                .3f, -.3f, false)));
+        HullReservoir.install(main, new MechFlux(100f, 6f));
+        GroundTurret coax = main.secondaries.get(0).turret();
+        assertSame(main.reservoir, coax.reservoir);
+        GroundVehicleTurretSystem.commitTrigger(coax, main.secondaries.get(0).mount().structure().mount, 30f);
+        assertEquals(30f, main.fluxValue(), 1e-5f, "the coax's trigger is the main gun's flux too");
     }
 
     @Test
@@ -374,7 +440,7 @@ class GroundVehicleTurretSystemTest {
         assertTrue(ticks * DT < f.weapon.cooldown, "every click lands inside the first group's cooldown");
         assertEquals(groups * f.weapon.burstCount, f.shots.getActiveShots().size(), "each click is the next group");
         assertEquals(0, f.turret.ammo);
-        assertFalse(f.turret.overloaded, "the whole load fits inside the gun's flux");
+        assertFalse(f.turret.fluxVenting(), "the whole load fits inside the hull's flux");
 
         for (int i = 0; i < (int) Math.ceil(f.turret.loaderSeconds / DT) + 1; i++) f.tick(f.north(), false);
         assertEquals(f.weapon.burstCount, f.turret.ammo, "the loader brings one group back per cadence");
@@ -488,7 +554,7 @@ class GroundVehicleTurretSystemTest {
         for (int i = 0; i < 60; i++) f.tick(f.north(), true);
         assertTrue(f.turret.rotary.spin() > .3f, "held, the barrels come up to speed");
         assertTrue(f.turret.rotary.beltRounds() < belt - 5, "rounds come off the belt, not a magazine");
-        assertTrue(f.turret.flux > 0f, "each round commits its own flux to the hull's bank");
+        assertTrue(f.turret.fluxValue() > 0f, "each round commits its own flux to the hull's reservoir");
         assertEquals(0, f.turret.burstRemaining, "no burst is queued: the feed sets the pace");
         assertEquals(0f, f.turret.cooldownTimer, "a rotary gun has no cooldown");
 
@@ -510,6 +576,7 @@ class GroundVehicleTurretSystemTest {
     void aSecondMountFiresFromTheRightButtonOnItsOwnMagazineAndHoldsOtherwise() {
         Fixture f = new Fixture();
         f.turret.secondaries.add(MountedGun.of(new VehicleMount(f.mount.id, .3f, -.3f, false)));
+        HullReservoir.install(f.turret, f.turret.reservoir);
         GroundTurret coax = f.turret.secondaries.get(0).turret();
         int coaxRounds = coax.ammo;
         f.system.tick(DT, f.id, f.north(), true, false, TriggerPicks.LINKED);

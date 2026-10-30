@@ -66,6 +66,23 @@ class MechFluxTest {
         assertFalse(flux.permits(141f, false), "ceiling is capacity");
     }
 
+    @Test void theWaitForAdmissionIsTheDissipationToTheBindingThreshold() {
+        MechFlux flux = new MechFlux(100f, 5f);
+        assertEquals(0f, flux.secondsUntilPermits(30f, true));
+        flux.commit(60f);
+        assertEquals((60f - 50f) / 5f, flux.secondsUntilPermits(50f, false), 1e-4f, "down to capacity less the cost");
+        assertEquals((60f - 40f) / 5f, flux.secondsUntilPermits(50f, true), 1e-4f, "a crew stops short of 90");
+        flux.commit(20f);
+        assertEquals((80f - 40f) / 5f, flux.secondsUntilPermits(10f, true), 1e-4f, "latched past 75: until 40");
+        assertEquals(0f, flux.secondsUntilPermits(10f, false));
+        flux.commit(16f);
+        assertEquals((96f - 55f) / 5f, flux.secondsUntilPermits(1f, false), 1e-4f, "venting: until 55");
+        assertEquals(Float.POSITIVE_INFINITY, flux.secondsUntilPermits(95f, true), "past what a crew may ever admit");
+        float wait = flux.secondsUntilPermits(30f, true);
+        flux.advance(wait + 1e-3f);
+        assertTrue(flux.permits(30f, true));
+    }
+
     @Test void stockCapacityKeepsStockThresholds() {
         MechFlux flux = new MechFlux();
         assertEquals(MechFlux.CAPACITY, flux.capacity());

@@ -189,7 +189,7 @@ increasing an encounter's total armored threat.
 - A **gantry** is one of the support squad's four bay spaces, and it holds a mech
   or a **company vehicle** (`CampaignVehicle`): an id, a callsign and a
   `VehicleType`, plus the **kits** fitted to it. The gantry is the only thing the
-  two share. A vehicle has no chassis, flux, engine budget or weapon components:
+  two share. A vehicle has no chassis, engine budget or weapon components (its flux is one hull reservoir on the mech's rule, `convoy-nouns.md`, hull flux):
   its gun and bay are its type's and never come off; its engine and plate are the hull's own until the
   company fits the mech's (below). Mechs and vehicles count against
   the same four gantries and the same restored berths, are bought for credits
@@ -227,7 +227,7 @@ increasing an encounter's total armored threat.
   (`MechInternal`, engine role), as the armor point takes plating (owner, 2026-10-28: a vehicle is a
   mech for parts). The hull's own drive is no part: an empty engine core is that drive, drawn as the
   factory engine, so only the **uprated** and **military** engines are fitted. A vehicle has no
-  output budget, mass or flux reservoir, so only an engine's speed maps: an uprated engine gives a tenth
+  output budget or mass, so only an engine's speed maps: an uprated engine gives a tenth
   more top speed and acceleration, a military engine a fifth more, on the hull's own band, so a
   heavy hull stays slower than a light one (`VehicleEngine`). The drop carries the tier, so the
   battle sees a factor, never a part; a drive shot out still cripples the hull to the same share of
@@ -242,11 +242,11 @@ increasing an encounter's total armored threat.
   cannon, a laser tank's card takes energy weapons. Footprint is the only cap on a weapon's power.
   The hull's own gun is no part: an empty gun card is that gun, drawn as the sealed cards draw it (a modular hull, the laser tank, has no own gun: its empty card is a bare turret ring, `vehicle-card-sizes.md`), so a weapon
   is only ever an addition from stores. A fitted weapon is the hull's turret with the weapon's ballistics in it
-  (`VehicleGun`): the carriage (traverse, loader, flux bank, hit shares) stays the hull's, the weapon
+  (`VehicleGun`): the carriage (traverse, loader, hit shares) and the hull's flux reservoir stay the hull's, the weapon
   fires with the range, damage and cadence it has on a mech, its pulls are the magazine (a weapon with no limit
   on a mech has none here: a mount authored with no capacity never runs dry, and only its flux limits it) and a
-  round costs its flux in the hull's own bank. Kits keep reading the hull's
-  stock flux bank, so any kit that suits a hull suits whatever it carries. The weapon is the turret: it is drawn as
+  round costs its flux in the hull's own reservoir. Kits keep reading the hull's
+  own gun, so any kit that suits a hull suits whatever it carries. The weapon is the turret: it is drawn as
   its own mech drawing on a turret mount ring (`VehicleGunArt`, a `gun-mount-<finish>.png` by hull class, `TurretMountStyle`), in place of the hull's turret,
   at the scale where a mech's hull width is 1.5 of the hull's visual width, so a wider hull carries a bigger gun;
   and the weapon owns its effects, which come from the same mech geometry the mech renderer reads
