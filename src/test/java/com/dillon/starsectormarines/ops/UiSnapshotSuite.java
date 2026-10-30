@@ -2874,6 +2874,31 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             int width, int height, float uiScale, boolean pickerOpen,
             boolean selectHound, boolean selectVacant, boolean specSheet,
             List<BufferedImage> motionFrames, String materialHint, boolean weldingEvidence) throws Exception {
+        return renderMechLab(context, renderer, width, height, uiScale, pickerOpen, selectHound, selectVacant,
+                specSheet, motionFrames, materialHint, weldingEvidence, null);
+    }
+
+    /** What the lab drew a machine's doll from, handed out after the last frame: the fit and the doll's canvas. */
+    interface DollProbe {
+        void probe(MechLabViewModel viewModel, CanvasMetrics doll);
+    }
+
+    /**
+     * One machine alone on the first pad, as it ships, its doll drawn at 1920x1080 / 100%:
+     * {@code machine-mech.<MechVariant>} or {@code machine-vehicle.<VehicleType>}.
+     */
+    static BufferedImage renderMachineDoll(SnapshotContext context, HeadlessUiRenderer renderer,
+                                           String machineHint, DollProbe probe) throws Exception {
+        return renderMechLab(context, renderer, FULL_SCREEN_WIDTH, FULL_SCREEN_HEIGHT, 1f, false, false, false,
+                false, null, machineHint, false, probe);
+    }
+
+    private static BufferedImage renderMechLab(
+            SnapshotContext context, HeadlessUiRenderer renderer,
+            int width, int height, float uiScale, boolean pickerOpen,
+            boolean selectHound, boolean selectVacant, boolean specSheet,
+            List<BufferedImage> motionFrames, String materialHint, boolean weldingEvidence,
+            DollProbe dollProbe) throws Exception {
         double[] seconds = {0};
         Reactor reactor = new Reactor();
         MechBay bay = MechBay.legacyStarterFixture();
@@ -2894,6 +2919,21 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     .rename("Ironclad of the Persean Expeditionary Vanguard 1")) {
                 throw new IllegalStateException("Maximum-length callsign fixture was rejected");
             }
+        }
+        // One machine as it ships, alone in the bay, for its doll.
+        String machineName = null;
+        if (materialHint != null && materialHint.startsWith("machine-mech.")) {
+            MechVariant variant = MechVariant.valueOf(materialHint.substring("machine-mech.".length()));
+            bay = new MechBay();
+            machineName = variant.displayName();
+            bay.addMech(MechBay.STARTER_SQUAD_ID, new CampaignMech("doll_mech", machineName, variant,
+                    variant.defaultRole, MissileReplenisherComponent.STANDARD.id()));
+        }
+        if (materialHint != null && materialHint.startsWith("machine-vehicle.")) {
+            VehicleType type = VehicleType.valueOf(materialHint.substring("machine-vehicle.".length()));
+            bay = new MechBay();
+            machineName = CampaignVehicle.className(type) + " 01";
+            bay.addVehicle(MechBay.STARTER_SQUAD_ID, new CampaignVehicle("doll_vehicle", machineName, type));
         }
         if (materialHint != null && materialHint.startsWith("lesson-")) {
             bay = new MechBay();
@@ -2934,6 +2974,12 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             }
         }
         if ("lesson-5".equals(materialHint)) viewModel.dismissLabPrompt();
+        if (machineName != null) {
+            String name = machineName;
+            viewModel.gantryRows().get().stream().filter(row -> name.equals(row.name()))
+                    .findFirst().orElseThrow(() -> new IllegalStateException("No pad holds " + name))
+                    .select().run();
+        }
         if (selectHound) {
             viewModel.mechRows().get().stream()
                     .filter(row -> row.name().startsWith("Hound"))
@@ -3174,7 +3220,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                     && !materialHint.startsWith("internal-") && !materialHint.startsWith("chassis-")
                     && !materialHint.startsWith("refit-") && !materialHint.startsWith("preview-")
                     && !materialHint.startsWith("vehicle-") && !materialHint.startsWith("hover-")
-                    && !materialHint.startsWith("drag-") && !materialHint.startsWith("reserve-")) {
+                    && !materialHint.startsWith("drag-") && !materialHint.startsWith("reserve-")
+                    && !materialHint.startsWith("machine-")) {
                 SpecSheetBinder binder = new SpecSheetBinder(
                         document, SpecSheetLayer.install(document));
                 List<MechLabViewModel.CatalogRow> rows = viewModel.catalogRows().get();
@@ -3256,7 +3303,11 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             }
             renderRelative(renderer, document, width, height, uiScale);
             guide.update();
-            return renderRelative(renderer, document, width, height, uiScale);
+            BufferedImage last = renderRelative(renderer, document, width, height, uiScale);
+            if (dollProbe != null) {
+                dollProbe.probe(viewModel, document.canvasMetrics(instance.requireElement("mech-doll-canvas"), 1f));
+            }
+            return last;
         }
     }
 
