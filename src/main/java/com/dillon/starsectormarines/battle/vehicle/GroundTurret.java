@@ -86,23 +86,18 @@ public final class GroundTurret {
     public float loaderProgress;
     /**
      * The hull's one flux reservoir ({@link HullReservoir}), the same instance on the main gun and every secondary
-     * mount, so every round any of them fires draws on it; null on the per-mount control path and for a gun built
-     * outside a hull. While it is set, {@link #flux} and {@link #overloaded} stay unused.
+     * mount, so every round any of them fires draws on it; null for a gun built outside a hull, which builds none.
      */
     public MechFlux reservoir;
-    /** The gun's own flux on the per-mount control path ({@code TurretMountDef#flux}); zero and unread otherwise. */
-    public float flux;
-    /** Whether the gun overloaded and is venting: its trigger is held until its flux is gone. Per-mount path only. */
-    public boolean overloaded;
 
-    /** The flux the gun reads against: the hull's reservoir, or its own bank on the per-mount path. */
+    /** The flux the gun reads against: the hull's reservoir's, zero without one. */
     public float fluxValue() {
-        return reservoir != null ? reservoir.value() : flux;
+        return reservoir != null ? reservoir.value() : 0f;
     }
 
-    /** Whether the gun's flux holds its trigger: the reservoir venting, or the gun overloaded on the per-mount path. */
+    /** Whether the hull is venting its reservoir, which holds every trigger on it. */
     public boolean fluxVenting() {
-        return reservoir != null ? reservoir.venting() : overloaded;
+        return reservoir != null && reservoir.venting();
     }
     /** Rounds left in the current burst (excluding the trigger-pull round). */
     public int burstRemaining;
@@ -185,13 +180,9 @@ public final class GroundTurret {
         return turret;
     }
 
-    /**
-     * The flux this gun reads against: the hull reservoir's capacity, or on the per-mount path its mount's own.
-     * Zero for a mount that builds no flux.
-     */
+    /** The flux this gun reads against: the hull reservoir's capacity; zero for a mount that builds none or no reservoir. */
     public float fluxCapacity(TurretMountDef mount) {
-        if (mount.flux == null) return 0f;
-        return reservoir != null ? reservoir.capacity() : mount.flux.control().capacity();
+        return mount.flux == null || reservoir == null ? 0f : reservoir.capacity();
     }
 
     /**

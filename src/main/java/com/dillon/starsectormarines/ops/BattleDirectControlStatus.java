@@ -536,20 +536,13 @@ final class BattleDirectControlStatus {
     }
 
     /**
-     * The driven hull's flux, on the mech's gauge, or null for a hull that builds none: its reservoir, which every
-     * mount draws on, or on the per-mount control path its main gun's own bank.
+     * The driven hull's flux, on the mech's gauge: its reservoir, which every mount draws on; null for a hull with
+     * none.
      */
     static MechFluxStatus vehicleFlux(BattleSimulation sim, long id) {
         GroundTurret turret = sim.convoy().turret(id);
-        VehicleType type = sim.convoy().vehicleType(id);
-        if (turret == null || type == null) return null;
-        if (turret.reservoir != null) {
-            return new MechFluxStatus(turret.reservoir.value(), turret.reservoir.venting(), turret.reservoir.capacity());
-        }
-        if (turret.structureFor(type) == null || turret.destroyed()) return null;
-        TurretMountDef mount = turret.structureFor(type).mount;
-        if (mount.flux == null) return null;
-        return new MechFluxStatus(turret.flux, turret.overloaded, turret.fluxCapacity(mount));
+        if (turret == null || turret.reservoir == null) return null;
+        return new MechFluxStatus(turret.reservoir.value(), turret.reservoir.venting(), turret.reservoir.capacity());
     }
 
     /** The cursor's distance from the turret ring, or NaN without a finite aim. */

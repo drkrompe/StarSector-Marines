@@ -164,10 +164,8 @@ public final class GroundVehicleTurretSystem {
         TurretMountGeometry.Point mount = mountPoint(type, body);
         float mountX = mount.x();
         float mountY = mount.y();
-        dissipate(turret, structure.mount, dt);
         reload(turret, structure.mount, dt);
         if (turret.chainGap > 0f) turret.chainGap -= dt;
-        if (turret.overloaded && turret.burstRemaining > 0) turret.clearQueuedFire();
         if (id == controlledId) {
             tickManual(id, turret, body, structure, mountX, mountY, dt, point,
                     FireGroups.contains(held, VehicleFireGroups.MAIN));
@@ -198,10 +196,8 @@ public final class GroundVehicleTurretSystem {
         GroundTurret turret = gun.turret();
         StructureDef structure = gun.mount().structure();
         TurretMountGeometry.Point at = mountPoint(body, gun.mount().mountX(), gun.mount().mountY());
-        dissipate(turret, structure.mount, dt);
         reload(turret, structure.mount, dt);
         if (turret.chainGap > 0f) turret.chainGap -= dt;
-        if (turret.overloaded && turret.burstRemaining > 0) turret.clearQueuedFire();
         if (controlled && !gun.mount().crewed()) {
             tickManual(id, turret, body, structure, at.x(), at.y(), dt, point,
                     FireGroups.contains(held, i + 1));
@@ -349,7 +345,6 @@ public final class GroundVehicleTurretSystem {
                     && firePoint(id, turret, body, structure, mountX, mountY, aim, release)) {
                 turret.spend();
                 if (holding) turret.holdRounds++;
-                addFlux(turret, structure.mount);
                 finishBurstRound(turret, weapon);
             }
             return;
@@ -428,8 +423,7 @@ public final class GroundVehicleTurretSystem {
                 if (fireSink.fire(id, mountX, mountY, convoy.faction(id), structure,
                         burstTarget, false, true, turret.facingDeg, release)) {
                     turret.spend();
-                    addFlux(turret, structure.mount);
-                    finishBurstRound(turret, weapon);
+                        finishBurstRound(turret, weapon);
                 } else {
                     // The crew held a round that would have hit their own side: the rest of the burst stays in
                     // the gun, and the next pull is the aim loop's.
@@ -580,7 +574,6 @@ public final class GroundVehicleTurretSystem {
         TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(mountX, mountY, turret.facingDeg, mount, release);
         airFire.fire(id, side, structure, craft, muzzle.x(), muzzle.y());
         turret.spend();
-        addFlux(turret, structure.mount);
         finishBurstRound(turret, mount.weapon);
         if (turret.burstRemaining == 0) turret.burstAir = false;
     }
@@ -768,19 +761,6 @@ public final class GroundVehicleTurretSystem {
     }
 
     /**
-     * Dissipates a gun's own bank on the per-mount control path, at the vent rate while it is overloaded; an
-     * overloaded gun is back in action once it is empty. Nothing for a mount without flux, nor for a gun on the hull
-     * reservoir, which dissipates once a hull ({@link #tick}).
-     */
-    static void dissipate(GroundTurret turret, TurretMountDef mount, float dt) {
-        TurretMountDef.Flux flux = mount.flux;
-        if (flux == null || turret.reservoir != null) return;
-        float rate = turret.overloaded ? flux.control().ventPerSec() : flux.control().dissipationPerSec();
-        turret.flux = Math.max(0f, turret.flux - rate * dt);
-        if (turret.overloaded && turret.flux <= 0f) turret.overloaded = false;
-    }
-
-    /**
      * The flux one trigger of the gun commits: a round's cost for each round of the burst it would fire, as a mech
      * commits a whole packet on its first round. A rotary gun pays round by round ({@link #roundCost}).
      */
@@ -797,50 +777,25 @@ public final class GroundVehicleTurretSystem {
     }
 
     /**
-     * Whether the gun may pull a trigger costing {@code cost}: on the hull reservoir, when the mech's rule admits it
-     * (a crew holds back further than a driver, {@link MechFlux#permits}); on the per-mount path, unless it
-     * overloaded and is venting.
+     * Whether the gun may pull a trigger costing {@code cost}: when the hull reservoir's mech rule admits it (a crew
+     * holds back further than a driver, {@link MechFlux#permits}). A mount that builds no flux, or a gun stood up
+     * outside a hull with no reservoir, always may.
      */
     static boolean ready(GroundTurret turret, TurretMountDef mount, float cost, boolean autonomous) {
-        if (mount.flux == null) return true;
-        return turret.reservoir != null ? turret.reservoir.permits(cost, autonomous) : !turret.overloaded;
+        return mount.flux == null || turret.reservoir == null || turret.reservoir.permits(cost, autonomous);
     }
 
     /** Seconds until a crew may pull the gun's trigger for its flux; zero when it may now or can never. */
     static float fluxWait(GroundTurret turret, TurretMountDef mount) {
-        if (mount.flux == null) return 0f;
-        if (turret.reservoir != null) {
-            float cost = turret.rotary != null ? roundCost(mount) : triggerCost(turret, mount);
-            float wait = turret.reservoir.secondsUntilPermits(cost, true);
-            return Float.isFinite(wait) ? wait : 0f;
-        }
-        return turret.overloaded ? turret.flux / mount.flux.control().ventPerSec() : 0f;
+        if (mount.flux == null || turret.reservoir == null) return 0f;
+        float cost = turret.rotary != null ? roundCost(mount) : triggerCost(turret, mount);
+        float wait = turret.reservoir.secondsUntilPermits(cost, true);
+        return Float.isFinite(wait) ? wait : 0f;
     }
 
-    /**
-     * Commits a trigger that has fired its first round: {@code cost} on the hull reservoir, or that round's flux in the
-     * gun's own bank on the per-mount path, where each later round of the burst adds its own ({@link #addFlux}).
-     */
+    /** Commits a trigger that has fired its first round: {@code cost} on the hull reservoir, the whole burst's flux. */
     static void commitTrigger(GroundTurret turret, TurretMountDef mount, float cost) {
-        if (mount.flux == null) return;
-        if (turret.reservoir != null) {
-            turret.reservoir.commit(cost);
-        } else {
-            addFlux(turret, mount);
-        }
-    }
-
-    /**
-     * A burst's later round on the per-mount path: its flux in the gun's own bank. A round that fills the gun
-     * overloads it: its trigger is held until it has vented, and the rest of its burst is broken off on the next tick,
-     * before another round. Nothing on the hull reservoir, where the trigger paid for the burst.
-     */
-    static void addFlux(GroundTurret turret, TurretMountDef mount) {
-        TurretMountDef.Flux flux = mount.flux;
-        if (flux == null || turret.reservoir != null) return;
-        float capacity = turret.fluxCapacity(mount);
-        turret.flux = Math.min(capacity, turret.flux + flux.perRound());
-        if (turret.flux >= capacity) turret.overloaded = true;
+        if (mount.flux != null && turret.reservoir != null) turret.reservoir.commit(cost);
     }
 
     /** One tick of the hull's loader on this gun: a pack is the weapon's burst ({@link GroundTurret#advanceLoader}). */
