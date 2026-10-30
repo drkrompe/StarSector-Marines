@@ -309,8 +309,12 @@ class SceneFx:
 
     def rounds_row(self, a, b, turret, weapon, recs):
         """Every round the gun fires, by scene frame: battle-audio/guns.py reads it from the log so
-        each round is heard as it leaves the muzzle (owner, 2026-10-30)."""
-        self.rows.append(f'rounds {a} t{turret} {weapon} -> {b}: {sorted(int(r["frame"]) for r in recs)}')
+        each round is heard as it leaves the muzzle (owner, 2026-10-30), and the frame each one meets her
+        hull, None for a round that walks off her, so it is heard striking metal."""
+        recs = sorted(recs, key=lambda r: int(r['frame']))
+        self.rows.append(f'rounds {a} t{turret} {weapon} -> {b}: {[int(r["frame"]) for r in recs]}')
+        self.rows.append(f'round hits {a} t{turret} {weapon} -> {b}: '
+                         f'{[None if r.get("hit_frame") is None else int(r["hit_frame"]) for r in recs]}')
 
     def tracking(self, a, b, muzzle_l, hit_l, speed):
         """A moving target for a: frame -> the point on b's hull (hit_l, b's frame) where a round fired

@@ -595,11 +595,11 @@ Rules:
 | S1a | 10-12.94 | WARDEN LEAD | Nothing but void and the odd picket from here. |
 | S1 | 16-21.43 | WARDEN TWO | Ha more picket "ping" to drive me crazy. Guess they keep us honest. |
 | S2 | 24.6-30.17 | MORROW | Caravel, Morrow. Standing off your starboard quarter. Long ride even to the jump point. |
-| S4 | 37.6-41.65 | WARDEN FIVE | Scanners picking up new contacts behind us. No identification. |
+| S4 | 37.6-41.85 | WARDEN FIVE | Scanners picking up new contacts behind us. No identification. |
 | S4 | 42-42.67 | WARDEN LEAD | Say again? |
 | S5 | 44.9-49.7 | WARDEN LEAD | Wardens, come about! Caravel, full burn for the nearest picket, now! |
-| S5 | 48.38-50 | WARDEN FIVE | Launch, launch! |
-| S5 | 50.15-53.81 | WARDEN FIVE | Missiles inbound! Twelve! Point defence, now! |
+| S5 | 48.38-50.1 | WARDEN FIVE | Launch, launch! |
+| S5 | 50.15-54.1 | WARDEN FIVE | Missiles inbound! Twelve! Point defence, now! |
 | S6 | 53.3-54.45 | WARDEN TWO | Two's hit! |
 | S6 | 53.8-56.42 | BATORY | Batory, we're hit, we're venting, we're — |
 | S6 | 56.99-59 | WARDEN LEAD | Lead turning back. Cover the — |
@@ -611,9 +611,9 @@ Rules:
 | S6c | 69.1-74.09 | WARDEN FOUR | Shields up, she blinked — where — there, she's right on them! |
 | S6c | 69.8-76.09 | SOBIESKI | Taking fire aft! Flux at ninety, can't hold shield and guns — drives! We've lost drives! |
 | S6c | 72.6-75.17 | THYSVILLE | She's through the gap! She's in the column! |
-| S6d | 74.3-75.04 | WARDEN FIVE | Two on me — |
-| S6d | 76.9-79.32 | WARDEN FIVE | One down - two passed through. |
-| S7 | 81.21-83 | WARDEN FIVE | They're heading for the Sobieski! |
+| S6d | 74.3-75.12 | WARDEN FIVE | Two on me — |
+| S6d | 76.9-78.83 | WARDEN FIVE | One down, they're coming through! |
+| S7 | 81.21-82.91 | WARDEN FIVE | They're heading for the Sobieski! |
 | S7 | 82-85.07 | CARAVEL | That mark three is hammering down on us! |
 | S7 | 84.9-87.23 | SOBIESKI | Marines prepare to repel boarders! |
 | S8 | 88.4-92.6 | CARAVEL | Taking fire on the port pod! Morrow, keep pressure with the drones! |
@@ -672,7 +672,8 @@ one ship carries a pan from where she sits in frame at its time.
 S6 a Harpoons stem: each missile the shot draws leaves its tube with the `harpoon-launch-one` take
 (a thunk, then the motor lighting), and its own motor (the looped `harpoon-motor` take) burns from
 ignition to its hit, placed by the camera as the engines are, and where it meets the hull its
-warhead goes off with the game's own hit (`explosion_missile_01` under `gun_hit_heavy_01`/`_02`).
+warhead goes off with the game's own hit: `explosion_missile_01` over an asteroid collision
+(`collision_asteroid_vs_asteroid_01` to `_03` in turn; owner, 2026-10-30).
 The launch and hit times are the finished renders' salvo rows, one tube every 3 frames, lit 0.35 s after the eject. The missile
 warning runs from the first ignition (47.0 s) to under Warden Five's "Missiles inbound!".
 
@@ -681,11 +682,15 @@ warning runs from the first ignition (47.0 s) to under Warden Five's "Missiles i
 reads them from the asharu-rounds-* queue jobs (each builds a shot's kit at its opening, as a final
 does, and renders one frame) into `gun-rounds.json`, and `guns.py` gives each shot with gunfire a
 guns stem. A round plays its weapon's own fire sound from the game (its `.wpn` fireSoundTwo, at
-the game's pitch and volume; `--source generated` plays the family takes `round-mg`, `round-ac`,
+the game's pitch and volume; the machine guns fire the light mass driver's `_01` and `_02` in
+turn, owner, 2026-10-30; `--source generated` plays the family takes `round-mg`, `round-ac`,
 `round-heavy` and `round-energy` instead) on the frame it leaves the muzzle, panned and dulled by where its ship is from the
 camera; it is never delayed by its range, so the sound stays on the flash. A gun carries (a machine
 gun is heard as far as a 120 m ship), and a soft limiter holds the dense duels, so a far shot is
-not turned down against S8-S9.
+not turned down against S8-S9. A round that meets her hull (the kit's "round hits" row, beside
+its "rounds" row) strikes it with the game's `hit_hull_solid` (`gun_hit_solid_01` to `_03` in
+turn; owner, 2026-10-30), placed where she is on its hit frame; one that walks off her is heard
+only leaving.
 
 **Ships blow up with the game's own sounds** (owner, 2026-10-30). The kills take vanilla
 `explosion_ship` (`sounds/sfx_impacts/explosion_01`, `_02`, `_04`; `_04` for the tanker and

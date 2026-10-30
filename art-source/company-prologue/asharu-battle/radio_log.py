@@ -69,13 +69,13 @@ TRAFFIC = [
                                       'honest.', False),
     ('S2', 'MORROW', 24.6, 30.17, 'Caravel, Morrow. Standing off your starboard quarter. Long ride even to '
                                   'the jump point.', False),
-    ('S4', 'WARDEN FIVE', 37.6, 41.65, 'Scanners picking up new contacts behind us. No '
+    ('S4', 'WARDEN FIVE', 37.6, 41.85, 'Scanners picking up new contacts behind us. No '
                                        'identification.', False),
     ('S4', 'WARDEN LEAD', 42.0, 42.67, 'Say again?', False),
     ('S5', 'WARDEN LEAD', 44.9, 49.7, 'Wardens, come about! Caravel, full burn for the nearest picket, '
                                       'now!', False),
-    ('S5', 'WARDEN FIVE', 48.38, 50.0, 'Launch, launch!', False),
-    ('S5', 'WARDEN FIVE', 50.15, 53.81, 'Missiles inbound! Twelve! Point defence, now!', False),
+    ('S5', 'WARDEN FIVE', 48.38, 50.1, 'Launch, launch!', False),
+    ('S5', 'WARDEN FIVE', 50.15, 54.1, 'Missiles inbound! Twelve! Point defence, now!', False),
     ('S6', 'WARDEN TWO', 53.3, 54.45, "Two's hit!", False),
     ('S6', 'BATORY', 53.8, 56.42, "Batory, we're hit, we're venting, we're —", False),
     ('S6', 'WARDEN LEAD', 56.99, 59.0, 'Lead turning back. Cover the —', False),
@@ -89,9 +89,9 @@ TRAFFIC = [
     ('S6c', 'SOBIESKI', 69.8, 76.09, "Taking fire aft! Flux at ninety, can't hold shield and guns — drives! "
                                      "We've lost drives!", False),
     ('S6c', 'THYSVILLE', 72.6, 75.17, "She's through the gap! She's in the column!", False),
-    ('S6d', 'WARDEN FIVE', 74.3, 75.04, 'Two on me —', False),
-    ('S6d', 'WARDEN FIVE', 76.9, 79.32, 'One down - two passed through.', False),
-    ('S7', 'WARDEN FIVE', 81.21, 83.0, "They're heading for the Sobieski!", False),
+    ('S6d', 'WARDEN FIVE', 74.3, 75.12, 'Two on me —', False),
+    ('S6d', 'WARDEN FIVE', 76.9, 78.83, "One down, they're coming through!", False),
+    ('S7', 'WARDEN FIVE', 81.21, 82.91, "They're heading for the Sobieski!", False),
     ('S7', 'CARAVEL', 82.0, 85.07, 'That mark three is hammering down on us!', False),
     ('S7', 'SOBIESKI', 84.9, 87.23, 'Marines prepare to repel boarders!', False),
     ('S8', 'CARAVEL', 88.4, 92.6, 'Taking fire on the port pod! Morrow, keep pressure with the '

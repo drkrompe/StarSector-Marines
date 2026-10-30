@@ -12,7 +12,8 @@ motor lighting), and its motor (the looped motor take) burns from ignition to it
 engines.py's machinery (synth_flyby): panned by its bearing off the lens, louder as it nears, with
 a Doppler shift from its closing speed. Where it meets her hull its warhead goes off with the game's
 own hit (owner, 2026-10-30: "missile hits against hull should have a corresponding explosion"):
-explosion_missile_01's blast under a heavy hull strike, read from the install. Only the salvos a shot draws are heard in it: S5 draws
+explosion_missile_01's blast over the strike itself, read from the install: one of
+collision_asteroid_vs_asteroid_01 to _03 per tube (owner, 2026-10-30). Only the salvos a shot draws are heard in it: S5 draws
 Lasher A's and the Phaeton's leaving, S6 those two arriving and the lead Lasher's.
 
 The times are the finished renders' (the 'missiles' rows their logs print: launch and arrival
@@ -41,7 +42,7 @@ LAUNCH_TAKE, MOTOR_TAKE = "harpoon-launch-one_t01", "harpoon-motor_t01"
 EJECT_MPS, IGNITE_S, ACCEL, VMAX = 18.0, 0.35, 650.0, 950.0
 SIZE = 40.0              # heard as loud as a ship this long would be (engines.FULL_AT): a motor is fierce
 HIT_SIZE = 150.0         # a warhead going off on a hull carries further than its motor did
-HIT_CLANG = 0.6          # the hull strike under the blast
+HIT_CLANG = 0.6          # the strike under the blast
 GAME = Path(r"C:\Program Files (x86)\Fractal Softworks\Starsector\starsector-core\sounds\sfx_impacts")
 PEAK = 0.89
 # (shot, target, first launch frame, arrival frames), the frames on each shot's key time (S5 47 s,
@@ -134,7 +135,7 @@ def hit_sound(spec, launch, hit, target, clip):
 
 def hit_clips():
     """The game's own Harpoon hit, per tube: its HE blast (explosion_missile_01, pitched as
-    explosion_missile plays it) under a heavy hull strike (gun_hit_heavy_01 and _02 in turn)."""
+    explosion_missile plays it) over the strike (collision_asteroid_vs_asteroid_01 to _03 in turn)."""
     def read(name, pitch=1.0):
         raw = subprocess.run(["ffmpeg", "-v", "error", "-i", str(GAME / (name + ".ogg")), "-ac", "1", "-ar",
                               str(round(SF.SR / pitch)), "-f", "f32le", "-"], check=True, capture_output=True).stdout
@@ -142,7 +143,7 @@ def hit_clips():
         return x / max(1e-9, np.abs(x).max())
     blast = read('explosion_missile_01', 0.97)
     out = []
-    for clang in (read('gun_hit_heavy_01'), read('gun_hit_heavy_02')):
+    for clang in (read('collision_asteroid_vs_asteroid_%02d' % i) for i in (1, 2, 3)):
         n = max(len(blast), len(clang))
         mix = np.zeros(n)
         mix[:len(blast)] += blast
@@ -170,7 +171,7 @@ def shot_stem(seg, clip, hits):
         if heard is not None:
             add(*heard)
         if seg['start'] <= hit < seg['end']:      # every Harpoon the renders fly strikes her hull
-            add(*hit_sound(spec, launch, hit, target, hits[k % 2]), hit)
+            add(*hit_sound(spec, launch, hit, target, hits[k % len(hits)]), hit)
         print('%s  %-11s launch %6.2f  lit %6.2f  hit %6.2f' % (shot, target, launch, launch + IGNITE_S, hit))
     return mix
 
