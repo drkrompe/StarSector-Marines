@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-30
 
+Updated: 2026-10-30 — the ladder and the built-in cards are data files; the tools read and write JSON.
+
 The Kit Ladder is defined in `progression-nouns.md` (Kit Ladder): the owner-authored
 table placing every loadout card and machine pattern on an unlock station. This doc
 is the process around it: what is canonical, the owner's editing page, and the
@@ -12,14 +14,19 @@ repeatable tools that move edits, notes and checks between the page and the repo
 
 ## What is canonical
 
-- **The game data is the single source of truth.** `KitLadder` holds one row per
-  card and pattern; `UnlockStation` holds the stations in campaign order;
-  `FirstRefit` owns Relief's free pick; `SquadEquipmentDoctrines`,
-  `ArmorSheetBundles` and `MechPattern` own what each card holds and each
-  pattern's tier.
+- **The data files are the single source of truth.** `mod/data/marines/kit-ladder.json`
+  holds the stations in campaign order, each with its reach condition, and one
+  placement per card and machine pattern; `mod/data/marines/loadout-cards.json`
+  holds every built-in weapon card (twelve seats) and tactic sheet (role plan and
+  suits). `KitLadderCatalog` loads and validates both at application load;
+  `KitLadder`, `UnlockStation`, `SquadEquipmentDoctrines`, `ArmorSheetBundles` and
+  `FirstRefit` are thin readers over it. Code still owns what is algorithmic: the
+  closed set of reach condition types (`UnlockStation.Reach`), how a sheet's suits
+  are dealt to seats by role (`ArmorIssueResolver`), which Wayline paths exist
+  (`FirstRefit.Path`, named in saves), and each pattern's tier (`MechPattern`).
 - **The page is an editor over it, never a second source.** The Kit Ladder
   artifact (`https://claude.ai/artifact/LuCPJvBHLeTQG1CpXHRRbC`) is built by
-  `tools/kits/build.py`, which seeds every placement from `KitLadder`. The owner's
+  `tools/kits/build.py`, which seeds every placement and card from the data files. The owner's
   edits are saved in the artifact's database: doc `kits/state` (field `json`: the
   weapon and armour cards with their stations, grants and seats, and the `place`
   map of machine licences) and collection `weapon-notes` (one doc per weapon clip:
@@ -41,19 +48,111 @@ repeatable tools that move edits, notes and checks between the page and the repo
 3. Claude exports (below) and reports the diff and the notes. Moves and adds are
    listed for approval; card content edits, free-pick changes, page-made cards,
    orphans and conflicts are listed as decisions.
-4. On the owner's go-ahead, Claude applies the accepted stations, authors any
-   accepted content edits by hand, runs the checks and the touched tests, and
-   integrates.
+4. On the owner's go-ahead, Claude applies the accepted stations and card
+   contents (`apply_ladder.py`, `--cards` for contents), runs the checks and the
+   touched tests, and integrates.
 5. Claude refreshes the page so it seeds from the new game data, and records the
    publish.
+
+## Data
+
+Both files are strict JSON (no comments), written by `tools/kits/kitdata.py` one
+placement or seat per line with LF endings, so an edit is a one-line diff and a
+rewrite of unchanged data changes nothing. Edit them by hand or through the tools;
+either way run `check.py`.
+
+`kit-ladder.json`:
+
+```json
+{
+  "stations": [
+    {"id": "start", "reach": {"type": "always"}},
+    {"id": "relief", "reach": {"type": "storyMission", "mission": "story_opening_relief"}},
+    {"id": "junction", "reach": {"type": "arcBeat", "arc": "broken-supply-route", "beat": "junction-won"}}
+  ],
+  "placements": [
+    {"item": "loadout-card:weapon:weapons:checkpoint", "station": "relief"},
+    {"item": "mech-pattern:chassis:warden", "station": "junction"}
+  ]
+}
+```
+
+- **Stations** are in campaign order, `start` first and reached `always`. `none`
+  is implicit (never sold) and never declared. A reach is one of three types:
+  `always`; `storyMission` with `mission` (a story mission id the roster
+  completes); `arcBeat` with `arc` and `beat`, read from that arc's save-owned
+  ledger: `broken-supply-route` (`junction-won`, `closed`), `corvus-account`
+  (`dust-ledger`, `blind-watch`, `cold-account`), `shepherd-recovery`
+  (`claim-secured`, `repaired`, `departed`), `wellhollow-bloom` (`colony-breach`,
+  `cordon-road`, `the-burn`, `broad-front`), `agreus` (`small-war-settled`). A
+  new arc or beat is a Java change to `UnlockStation.Reach`; a new station on an
+  existing beat is data only.
+- **Placements** use the game's store ids (`LoadoutCard.id`, `MechPattern.id`), on
+  a declared station or `none`; each item once. They are kept in blocks (weapon
+  cards, sheets, chassis, mech weapons, internals, vehicles, kits), each in
+  campaign order. An item with no placement is not sold; an id a save carries
+  that the data no longer has reads as `none`.
+
+`loadout-cards.json`:
+
+```json
+{
+  "weaponCards": [
+    {
+      "id": "weapons:checkpoint",
+      "name": "@squadDoctrineCheckpointWeaponsName",
+      "description": "@squadDoctrineCheckpointWeaponsDescription",
+      "members": [
+        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.smoke-grenade"},
+        {"role": "Grenadier", "primary": "weapon.field-rifle", "grade": "SERVICE", "special": "special.flamer", "belt": "special.frag-grenade"}
+      ]
+    }
+  ],
+  "tacticSheets": [
+    {
+      "id": "armor:recon",
+      "name": "@squadDoctrineReconArmorName",
+      "description": "@squadDoctrineReconArmorDescription",
+      "tradition": "TRITACHYON",
+      "mix": "RECONNAISSANCE",
+      "suits": ["armor.scout", "armor.packframe"]
+    }
+  ]
+}
+```
+
+- A **weapon card** has exactly twelve seats in billet order: `role` (an English
+  role literal, translated by `BilletRoles`), `primary` (a marine primary weapon
+  id), `grade` (`SURPLUS`, `SERVICE`, `MILSPEC`, `MASTERWORK`), optional
+  `special` (a special-equipment id) and `belt` (a thrown special). Array order is
+  the presentation order.
+- A **tactic sheet** has `tradition` (`ArmorTradition`), `mix` (`BALANCED`,
+  `BREACH`, `RECONNAISSANCE`, `LINE_HOLD`, `IRREGULAR`), either `armorClass`
+  (`POWER_SUIT` for an all-suit sheet; `STANDARD` is the default) or
+  `seatClasses` (twelve, for a mixed section), and `suits`: the armour ids the
+  card teaches and issues. The resolver deals the suits to seats by role, class
+  and tier, so a suit no seat can take is taught but never worn.
+- `name` and `description` are string keys (`@key`) in `strings.json`.
+  `"grant": "free-pick"` marks Relief's free pick, which must be exactly the
+  `FirstRefit.Path` cards; every other card is `sale` (the default, omitted).
+- **Validation** (`KitLadderCatalog.parse`, mirrored by `kitdata.validate` in
+  `check.py`) refuses the whole load with every problem listed, each naming its
+  file and entry: an unknown station, reach type, arc or beat; an item, primary,
+  special, belt item or suit the game lacks; an item placed twice; a card with no
+  placement; a squad not of twelve; a sheet with no suits; a missing string key; a
+  free pick that is not a Wayline path's.
+- **Saves.** Cards are referenced by id, so an edited card applies on load. A
+  save's own copy of a Wayline weapon card is re-dressed from the data on load
+  (`MarineArmory.refreshWaylineCards`), and squads are re-dressed from their cards
+  by the roster's refresh.
 
 ## Tools
 
 | Command | What it does | When |
 |---------|--------------|------|
 | `python tools/kits/export_state.py <dir> [--page <html>]` | Reads the ArtifactData export, writes `tools/kits/review/weapon-notes.json` and the diff report `build/kits/export/ladder-diff.md` | "notes in", "ladder updated" |
-| `python tools/kits/apply_ladder.py <dir> [--check] [--only ids]` | Writes accepted moves and adds into `KitLadder`, deterministically; `--check` only reports | After the owner approves a diff |
-| `python tools/kits/check.py [--page <html>] [--reel <index.json>]` | Validates rows, items, prerequisites, tiers, staleness and the Weapons tab; exit 1 on errors | After any ladder, card, pattern or weapon change; before a publish |
+| `python tools/kits/apply_ladder.py <dir> [--check] [--only ids] [--cards ids]` | Writes accepted moves and adds into `kit-ladder.json`, and with `--cards` (ids, or `all`) accepted seats and suits into `loadout-cards.json`, deterministically; `--check` only reports | After the owner approves a diff |
+| `python tools/kits/check.py [--page <html>] [--reel <index.json>]` | Validates the data as the game loads it, plus prerequisites, tiers, staleness and the Weapons tab; exit 1 on errors | After any ladder, card, pattern or weapon change; before a publish |
 | `python tools/kits/check.py --self-test` | The tools' own logic on small inputs | After editing `tools/kits/` |
 | `python tools/kits/balance.py [--tasks ...]` | Runs the cheap balance evidence and gathers it into `build/reports/balance/kit-ladder-balance.md` | Before and after a balance pass |
 | `python tools/kits/refresh.py <step>` | The local steps of a page refresh (runbook below) | After game data changes the page shows |
@@ -75,22 +174,26 @@ saved, else `tools/kits/review/published.json`): a station the owner moved reads
 `move`, one the game moved since publish reads `game-moved` (republish, do not
 apply), both moving reads `conflict`. Card seats compare seat by seat for weapon
 cards and as a set of suits for tactic sheets (the game seats a sheet's suits by
-role), and a seat naming a piece the game lacks is flagged. Commit the notes file
-with the work it prompted.
+role), and a seat naming a piece the game lacks is flagged. Special ids the game
+has since renamed (`kitdata.RETIRED_SPECIALS`: the rocket launcher, scrap rocket
+and missile pod) are read as their current ids. Commit the notes file with the work
+it prompted.
 
 ### Apply
 
-`apply_ladder.py` rewrites only `move` and `add` rows (`--take-conflicts` for an
-approved conflict), keeps each block of rows in campaign order with a stable
-sort, and regenerates the `UnlockStation` static imports; a second run changes
-nothing. It never writes card contents, grants, page-made cards or orphans. Then
-run `check.py` and the tests covering `KitLadder` and the store.
+`apply_ladder.py` rewrites only `move` and `add` placements (`--take-conflicts`
+for an approved conflict) and, with `--cards`, the named `content` cards: a weapon
+card takes the page's twelve seats, a sheet the page's set of suits (the page's
+seating of a sheet is only an even spread). It never writes names, descriptions,
+grants, seat classes, page-made cards or orphans, refuses a write that would not
+load, and a second run changes nothing. Then run `check.py` and the tests covering
+the ladder and the store (`KitLadderTest`, `KitLadderCatalogTest`).
 
 ### Checks
 
-Errors: a malformed row, an unknown station, an item placed twice, a row naming
-no real item, a real item with no row, the page's station list out of step with
-`UnlockStation`, a free pick off Relief, a clip firing a weapon no catalog defines.
+Errors: everything the game refuses at load (Data, Validation), a real item with
+no placement, the page's station list out of step with `kit-ladder.json`, a free
+pick off Relief, a clip firing a weapon no catalog defines.
 Warnings, each acceptable in `check-allow.json` as `"<code> <id>": "<reason>"`:
 `carrier` (a vehicle kit before any vehicle hull, a mech part before any
 chassis), `restricted` (a Restricted card on a station still needs a warrant),
@@ -139,5 +242,7 @@ saved state and reseeds only items it has never placed or stations it does not k
   `FactionEquipmentCatalog.validateReachability` still uses the old tier rules
   (`gap`).
 - A submod's cards have no row, so they read as never sold.
-- Card seat edits made on the page wait for hand authoring; the page has no way to
-  mark one accepted or declined.
+- The page has no way to mark a card edit accepted or declined; the owner says so
+  in chat and `apply_ladder.py --cards` takes the accepted ids.
+- The page's station names and notes live in `build.py`, not in the data; they are
+  page copy, not game text.

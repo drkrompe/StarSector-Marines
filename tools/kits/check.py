@@ -1,4 +1,5 @@
-"""Check the Kit Ladder: the game's rows, the items they place, and the page built from them.
+"""Check the Kit Ladder: the game's data (kit-ladder.json, loadout-cards.json), the items it places, and the page
+built from it.
 
     python tools/kits/check.py [--page <page.html>] [--reel <weapon-reel/index.json>] [--md <out.md>]
     python tools/kits/check.py --self-test
@@ -6,9 +7,10 @@
 Pure Python over the repository's files (and, when given, a page HTML an Artifact read saved); about a second.
 Exits 1 on an error, 0 otherwise; warnings feed the owner's decisions (kit-ladder.md, Checks).
 
-Errors: a row in no parsed shape, a station UnlockStation lacks, an item placed twice, a row naming no real item, a
-real item with no row, a build.py station list out of step with UnlockStation, a Wayline free pick off Relief, a
-reel clip firing a weapon no *.weapon.json defines.
+Errors: anything the game refuses when it loads the data (kitdata.validate: an unknown station, reach condition,
+item, weapon, special, belt item or suit, an item placed twice, a card with no placement, a squad not of twelve, a
+sheet with no suits, a missing string key), a real item with no placement, a build.py station list out of step with
+kit-ladder.json, a Wayline free pick off Relief, a reel clip firing a weapon no *.weapon.json defines.
 
 Warnings (codes, so tools/kits/check-allow.json can accept one with a reason as "<code> <id>"):
   carrier      a vehicle kit sold before any vehicle hull, or a mech part before any chassis
@@ -30,15 +32,17 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import kitdata  # noqa: E402
 import ladder  # noqa: E402
+import build  # noqa: E402
 
 ALLOW = Path(__file__).resolve().parent / "check-allow.json"
 NOTES = ladder.REVIEW / "weapon-notes.json"
 RANK = {"COMMON": 0, "ADVANCED": 1, "PRESTIGE": 2, "RESTRICTED": 3}
 NOT_KIT_PRIMARY = {"weapon.drone-pulse", "weapon.drone-ion"}
 # Files that only declare or place an item; a reference anywhere else is a route worth naming.
-DECLARING = {"KitLadder.java", "SquadEquipmentDoctrines.java", "ArmorSheetBundles.java", "MechPattern.java", "MechVariant.java",
-             "MechWeaponComponent.java", "MechInternal.java", "VehicleType.java", "VehicleKit.java", "FirstRefit.java"}
+DECLARING = {"SquadEquipmentDoctrines.java", "MechPattern.java", "MechVariant.java", "MechWeaponComponent.java",
+             "MechInternal.java", "VehicleType.java", "VehicleKit.java", "FirstRefit.java"}
 
 
 class Report:
@@ -79,6 +83,24 @@ def card_tier(card, kind, primaries, specials, armors):
     return [t for t, v in RANK.items() if v == r][0]
 
 
+def known_ids(data, game):
+    """The ids the data may name, as the game's registries hold them (kitdata.validate's ``known``)."""
+    weapons = data["WEAPONS"]
+    specials = {}
+    for e in build_specials():
+        specials[e["id"]] = e
+    thrown = {i for i, e in specials.items() if e["activation"]["type"] == "utility-smoke"
+              or (e["activation"]["type"] == "arc-explosive" and (weapons.get(e["activation"].get("weaponId")) or {}).get("sim", {}).get("indirectFire"))}
+    strings = build.flat(build.load(build.MOD / "data/strings/strings.json"))
+    return {"primaries": {w for w, d in weapons.items() if d["mount"] == "marine-primary"}, "specials": set(specials),
+            "thrown": thrown, "armor": {a["id"] for a in data["ARMORS"]}, "patterns": {game["gameIds"][i] for i in game["patterns"]},
+            "strings": set(strings)}
+
+
+def build_specials():
+    return build.load(build.MOD / "data/marines/marine-special-equipment.equipment.json")["equipment"]
+
+
 def java_sources():
     return {f: f.read_text(encoding="utf-8") for f in ladder.JAVA.rglob("*.java")}
 
@@ -97,18 +119,12 @@ def check(page=None, reel=None):
     rank["none"] = len(stations) + 1
     names = game["names"]
 
-    # Rows: one per item, each a real item; every real item placed.
-    seen = {}
-    for r in game["rows"]:
-        if r["id"] in seen:
-            rep.error("KitLadder.java:%d places %s again (first at line %d); the game refuses this at load" % (r["line"] + 1, r["id"], seen[r["id"]] + 1))
-        seen.setdefault(r["id"], r["line"])
-        if r["id"] not in game["items"]:
-            rep.error("KitLadder.java:%d: %s (%s) is not a card or a pattern the store can sell (no armour bundle, or no tier in MechPattern)"
-                      % (r["line"] + 1, r["ref"], r["id"]))
+    # The data loads: every rule the game enforces at load, then every real item placed.
+    for e in kitdata.validate(game["ladder"], kitdata.load_cards(), known_ids(data, game)):
+        rep.error(e)
     for item in sorted(game["items"]):
         if item not in game["rowStations"]:
-            rep.error("%s (%s) has no KitLadder row: the page cannot seed it and the store never sells it" % (item, names.get(item)))
+            rep.error("%s (%s) has no placement in kit-ladder.json: the page cannot seed it and the store never sells it" % (item, names.get(item)))
     for k in data["KITS"] + data["ARMORKITS"]:
         if k.get("grant") == "free-pick" and k.get("station") != "relief":
             rep.error("%s is a Wayline free pick (FirstRefit) placed on %s; free picks exist only at relief" % (k["id"], k.get("station")))
@@ -148,12 +164,17 @@ def check(page=None, reel=None):
 
     # Never sold: say where else the code names it, so the owner can tell a story route from a dead end.
     sources = None
+    doctrines = ladder.constants(ladder.read(ladder.JAVA / "marine/SquadEquipmentDoctrines.java"))
     for item in sorted(i for i, st in game["rowStations"].items() if st == "none"):
         if sources is None:
             sources = java_sources()
         row = next(r for r in game["rows"] if r["id"] == item)
-        const = row["ref"].split(".")[-1] if not row["ref"].endswith(".weapons") else row["ref"].split(".")[2]
-        value = item.split(":", 1)[1] if row["kind"] == "pattern" else item
+        if row["kind"] == "pattern":
+            const = item.split(":", 1)[1]
+            value = row["item"].split(":", 2)[2]
+        else:
+            const = next((c for c, v in doctrines.items() if v == item), item)
+            value = item
         refs = sorted({f.stem for f, text in sources.items() if f.name not in DECLARING
                        and (re.search(r"\b%s\b" % re.escape(const), text) or '"%s"' % value in text)})
         where = ("named in " + ", ".join(refs[:6]) + (" and %d more" % (len(refs) - 6) if len(refs) > 6 else "")) if refs else "no reference outside its declaration"
@@ -213,35 +234,29 @@ def check(page=None, reel=None):
                 rep.warn("orphan-note", cid, "a note for a clip the page no longer has: %s" % (n.get("text") or "(empty)")[:80])
         open_notes = [cid for cid, n in notes.items() if n.get("text") and n.get("status") not in ("ok", "done")]
         rep.info.append("%d weapon notes, %d open (text and no ok status): %s" % (len(notes), len(open_notes), ", ".join(sorted(open_notes))))
-    rep.info.append("Mod-added cards: a submod's cards have no KitLadder row and so read as none (never sold in the store).")
+    rep.info.append("Mod-added cards: a submod's cards have no placement and so read as none (never sold in the store).")
     return rep
 
 
 # ---------------------------------------------------------------------------------------------------------------
 
-SAMPLE = """package x;
+SAMPLE_LADDER = {
+    "stations": [{"id": "start", "reach": {"type": "always"}}, {"id": "relief", "reach": {"type": "storyMission", "mission": "m"}},
+                 {"id": "junction", "reach": {"type": "arcBeat", "arc": "broken-supply-route", "beat": "junction-won"}}],
+    "placements": [{"item": "loadout-card:weapon:weapons:a", "station": "start"},
+                   {"item": "loadout-card:weapon:wayline:steady", "station": "start"},
+                   {"item": "loadout-card:weapon:weapons:b", "station": "none"},
+                   {"item": "loadout-card:sheet:armor:d", "station": "start"},
+                   {"item": "mech-pattern:kit:kit.liner", "station": "start"}]}
+SAMPLE_ENUMS = {"kit": {"LINER": "kit.liner"}, "chassis": {}, "weapon": {}, "internal": {}, "vehicle": {}}
 
-import static com.dillon.starsectormarines.marine.UnlockStation.NONE;
-import static com.dillon.starsectormarines.marine.UnlockStation.START;
 
-public final class KitLadder {
-    static {
-        // Weapon loadout cards.
-        weapon(SquadEquipmentDoctrines.A_WEAPONS, START);
-        weapon(FirstRefit.Path.STEADY.weapons, START);
-        weapon(SquadEquipmentDoctrines.B_WEAPONS, NONE);
-
-        // Tactic sheets.
-        sheet(SquadEquipmentDoctrines.D_ARMOR, START);
-
-        // Vehicle kits.
-        pattern(VehicleKit.LINER, START);
-    }
-}
-"""
-SAMPLE_STATIONS = [("START", "start"), ("RELIEF", "relief"), ("JUNCTION", "junction"), ("NONE", "none")]
-SAMPLE_DOCTRINES = {"A_WEAPONS": "weapons:a", "B_WEAPONS": "weapons:b", "C_ARMOR": "armor:c", "D_ARMOR": "armor:d"}
-SAMPLE_PATHS = {"STEADY": "wayline:steady"}
+def sample_cards():
+    seat = {"role": "R", "primary": "p", "grade": "SURPLUS"}
+    weapon = lambda cid: {"id": cid, "name": "@k", "description": "@k", "members": [dict(seat) for _ in range(12)]}
+    return {"weaponCards": [weapon("weapons:a"), weapon("wayline:steady"), weapon("weapons:b"), weapon("weapons:c")],
+            "tacticSheets": [{"id": "armor:d", "name": "@k", "description": "@k", "tradition": "T", "mix": "M", "suits": ["s1"]},
+                             {"id": "armor:c", "name": "@k", "description": "@k", "tradition": "T", "mix": "M", "suits": ["s1"]}]}
 
 
 def self_test():
@@ -252,33 +267,61 @@ def self_test():
         if not cond:
             failures.append(name)
 
-    rows = ladder.rows(SAMPLE, SAMPLE_DOCTRINES, SAMPLE_PATHS, SAMPLE_STATIONS)
-    expect("rows parse every shape", [r["id"] for r in rows] == ["weapons:a", "wayline:steady", "weapons:b", "armor:d", "kit:LINER"])
+    stations = ladder.stations(SAMPLE_LADDER)
+    rows = ladder.rows(SAMPLE_LADDER, SAMPLE_ENUMS, stations)
+    expect("rows read page ids", [r["id"] for r in rows] == ["weapons:a", "wayline:steady", "weapons:b", "armor:d", "kit:LINER"])
     expect("rows read stations", [r["station"] for r in rows] == ["start", "start", "none", "start", "start"])
+    bad = json.loads(json.dumps(SAMPLE_LADDER))
+    bad["placements"][2]["station"] = "later"
     try:
-        ladder.rows(SAMPLE.replace("NONE);", "LATER);"), SAMPLE_DOCTRINES, SAMPLE_PATHS, SAMPLE_STATIONS)
+        ladder.rows(bad, SAMPLE_ENUMS, stations)
         expect("unknown station refused", False)
     except ladder.LadderError:
         pass
-    try:
-        ladder.rows(SAMPLE.replace("pattern(VehicleKit.LINER, START);", "pattern(VehicleKit.LINER, START, 2);"),
-                    SAMPLE_DOCTRINES, SAMPLE_PATHS, SAMPLE_STATIONS)
-        expect("reshaped row refused", False)
-    except ladder.LadderError:
-        pass
 
-    args = (SAMPLE_STATIONS, SAMPLE_DOCTRINES, SAMPLE_PATHS)
-    once = ladder.patch(SAMPLE, {"weapons:a": "junction", "weapons:b": "relief"}, {"armor:c": ("sheet", "SquadEquipmentDoctrines.C_ARMOR", "relief")}, *args)
-    twice = ladder.patch(once, {"weapons:a": "junction", "weapons:b": "relief"}, {}, *args)
-    after = {r["id"]: r["station"] for r in ladder.rows(once, *args[1:], SAMPLE_STATIONS)}
+    once = ladder.patch(SAMPLE_LADDER, {"loadout-card:weapon:weapons:a": "junction", "loadout-card:weapon:weapons:b": "relief"},
+                        {"loadout-card:sheet:armor:c": "relief"})
+    twice = ladder.patch(once, {"loadout-card:weapon:weapons:a": "junction", "loadout-card:weapon:weapons:b": "relief"}, {})
+    after = {r["id"]: r["station"] for r in ladder.rows(once, SAMPLE_ENUMS, stations)}
     expect("patch moves rows", after["weapons:a"] == "junction" and after["weapons:b"] == "relief")
     expect("patch adds rows", after.get("armor:c") == "relief")
-    expect("patch is idempotent", once == twice)
+    expect("patch is idempotent", kitdata.dump_ladder(once) == kitdata.dump_ladder(twice))
     expect("patch keeps blocks in campaign order",
-           [r["id"] for r in ladder.rows(once, *args[1:], SAMPLE_STATIONS)] == ["wayline:steady", "weapons:b", "weapons:a", "armor:d", "armor:c", "kit:LINER"])
-    expect("patch regenerates imports", "UnlockStation.JUNCTION;" in once and "UnlockStation.RELIEF;" in once
-           and "UnlockStation.NONE;" not in once and once.index("JUNCTION;") < once.index("RELIEF;"))
-    expect("patch with nothing changes nothing", ladder.patch(SAMPLE, {}, {}, *args) == SAMPLE)
+           [r["id"] for r in ladder.rows(once, SAMPLE_ENUMS, stations)] == ["wayline:steady", "weapons:b", "weapons:a", "armor:d", "armor:c", "kit:LINER"])
+    expect("patch with nothing changes nothing", kitdata.dump_ladder(ladder.patch(SAMPLE_LADDER, {}, {})) == kitdata.dump_ladder(SAMPLE_LADDER))
+    expect("dump is LF, one placement a line", "\r" not in kitdata.dump_ladder(once)
+           and kitdata.dump_ladder(once).count("\n") == len(once["stations"]) + len(once["placements"]) + 6)
+    cards = sample_cards()
+    expect("cards dump round-trips", kitdata.dump_cards(json.loads(kitdata.dump_cards(cards))) == kitdata.dump_cards(cards))
+    expect("page and game ids translate", kitdata.page_id("mech-pattern:kit:kit.liner", SAMPLE_ENUMS) == "kit:LINER"
+           and kitdata.game_id("kit:LINER", SAMPLE_ENUMS) == "mech-pattern:kit:kit.liner"
+           and kitdata.game_id("armor:d", SAMPLE_ENUMS) == "loadout-card:sheet:armor:d"
+           and kitdata.game_id("wayline:steady", SAMPLE_ENUMS) == "loadout-card:weapon:wayline:steady")
+
+    full = ladder.patch(SAMPLE_LADDER, {}, {"loadout-card:weapon:weapons:c": "none", "loadout-card:sheet:armor:c": "none"})
+    known = {"primaries": {"p"}, "specials": {"sp"}, "thrown": set(), "armor": {"s1"}, "strings": {"k"}}
+    expect("valid data validates", kitdata.validate(full, cards, known) == [])
+    broken = sample_cards()
+    broken["weaponCards"][0]["members"].pop()
+    broken["weaponCards"][2]["members"][0]["special"] = "nothing"
+    broken["weaponCards"][3]["members"][0]["belt"] = "sp"
+    broken["tacticSheets"][0]["suits"] = []
+    broken["tacticSheets"][1]["name"] = "@missing"
+    dup = ladder.patch(SAMPLE_LADDER, {}, {})
+    dup["placements"].append({"item": "loadout-card:weapon:weapons:a", "station": "relief"})
+    dup["stations"][2]["reach"] = {"type": "moon"}
+    errs = "\n".join(kitdata.validate(dup, broken, known))
+    for needle in ("has 11 seats", "special 'nothing'", "belt 'sp' is not a thrown", "has no suits", "@missing is not in strings",
+                   "placed twice", "reach type 'moon'", "card loadout-card:weapon:weapons:c has no placement"):
+        expect("validate finds: " + needle, needle in errs)
+    page = {"weapon": [{"id": "weapons:a", "members": [{"role": "R", "primary": "p", "grade": "SURPLUS", "special": "special.rocket-launcher", "belt": None}] * 12}],
+            "armor": [{"id": "armor:d", "members": [{"armor": "s2"}, {"armor": "s1"}, {"armor": "s2"}]}]}
+    ladder.translate_retired(page)
+    expect("retired specials translate", page["weapon"][0]["members"][0]["special"] == "special.srm-1")
+    edited = ladder.patch_cards(cards, {"weapons:a": page["weapon"][0], "armor:d": page["armor"][0]})
+    expect("patch_cards writes seats", edited["weaponCards"][0]["members"][0] == {"role": "R", "primary": "p", "grade": "SURPLUS", "special": "special.srm-1"})
+    expect("patch_cards writes a sheet's suit set", edited["tacticSheets"][0]["suits"] == ["s2", "s1"])
+    expect("patch_cards leaves names alone", edited["weaponCards"][0]["name"] == "@k")
 
     ids = {"start", "relief", "junction", "none"}
     game_rows = {"a": "start", "b": "relief", "c": "relief", "d": "start", "e": "none"}

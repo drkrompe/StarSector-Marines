@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.marine.IntegralSystemDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
+import com.dillon.starsectormarines.testsupport.TileRegistryTestInstaller;
 import com.dillon.starsectormarines.marine.FireTeamBillet;
 import com.dillon.starsectormarines.marine.MarineArmorPattern;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
@@ -115,6 +116,7 @@ public final class HeadlessArmoryPreviewRenderer {
             armor.validateCompleteness();
             MarineArmorCatalogRegistry.install(armor);
         }
+        TileRegistryTestInstaller.installKitLadder(modRoot);
         if (EquipmentTemplateCatalog.installed() == null) {
             EquipmentTemplateCatalog templates = new EquipmentTemplateCatalog();
             templates.ingest(new JSONObject(Files.readString(modRoot.resolve(

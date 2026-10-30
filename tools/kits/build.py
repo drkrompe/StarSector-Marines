@@ -15,15 +15,15 @@ weapon-notes, one doc per clip id). Re-run after weapon changes:
      downloads and assets capabilities.
 
 Reads the shipped marine weapon, special-equipment and armour catalogs, the equipment access tiers,
-the strings, the armoury icons and the built-in weapon and armour doctrines in
-SquadEquipmentDoctrines.java / ArmorSheetBundles.java, and embeds all of it in one file.
+the strings, the armoury icons and the loadout cards (mod/data/marines/loadout-cards.json: weapon cards and
+tactic sheets), and embeds all of it in one file.
 
 Two ladders, never mixed: weapon cards (primaries and secondaries per marine) and Equipment cards
 (armour per marine). Each card draws the way a Barracks loadout card does (kit bricks coloured by
 what each piece throws or wears) and can be placed on the Alpha mission timeline to say after which
 mission it goes on sale. Every card's and machine pattern's seeded station is the game's own Kit Ladder
-(KitLadder.java, stations in UnlockStation.java; Relief's free pick from FirstRefit.java), so a rebuild shows
-what the game sells when. Exports a kits.json holding both ladders.
+(mod/data/marines/kit-ladder.json; Relief's free pick is the cards' "grant"), so a rebuild shows what the game
+sells when. Exports a kits.json holding both ladders.
 """
 import base64
 import glob
@@ -34,6 +34,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import kitdata  # noqa: E402
 import ladder  # noqa: E402
 
 ROOT = ladder.ROOT
@@ -45,7 +46,7 @@ PRIMARY_LIE = 32
 ART_PX = 160
 
 # The Alpha mission timeline, in campaign order: the page's names and notes for the game's Kit Ladder stations
-# (UnlockStation.java), which this list must match id for id. A card placed on a station goes on sale once that
+# (kit-ladder.json's stations), which this list must match id for id. A card placed on a station goes on sale once that
 # mission settles; "start" is the company's opening issue, "none" is never sold in the store.
 STATIONS = [
     ("none", "Not sold", "Unplaced", "Never on a store shelf. Patrons and recovery may still hand it out by tier."),
@@ -67,27 +68,18 @@ STATIONS = [
     ("post-alpha-small-war", "A Small War (cut from alpha)", "Post-alpha", "Agreus cards parked here: the recovered Specter and Arbalest sections and the Boarding Jack."),
 ]
 
-def kit_ladder(ids):
-    """{page id: station id} for every KitLadder row (tools/kits/ladder.py parses them), and the set of free-pick
-    card ids (FirstRefit's paths and their sheets). A duplicate row is reported by check.py, not here."""
+def kit_ladder():
+    """{page id: station id} for every placement in kit-ladder.json (tools/kits/ladder.py reads them). A duplicate
+    placement is reported by check.py, not here."""
     station_list = ladder.stations()
     if [s[0] for s in STATIONS] != ["none"] + [sid for enum, sid in station_list if enum != "NONE"]:
-        raise SystemExit("kits/build.py: STATIONS must list UnlockStation's ids in its order, 'none' first; UnlockStation has %s"
+        raise SystemExit("kits/build.py: STATIONS must list kit-ladder.json's station ids in its order, 'none' first; the data has %s"
                          % [sid for _, sid in station_list])
-    paths, free = {}, set()
-    for enum, weapons, sheet in re.findall(r'^\s+(\w+)\("[^"]+", "(wayline:[^"]+)", SquadEquipmentDoctrines\.(\w+),',
-                                           (JAVA / "marine/FirstRefit.java").read_text(encoding="utf-8"), re.M):
-        paths[enum] = weapons
-        free.update({weapons, ids[sheet]})
-    if len(paths) != 2:
-        raise SystemExit("kits/build.py: FirstRefit.Path parsed %d paths, expected 2" % len(paths))
     try:
-        rows = ladder.rows(doctrines=ids, paths=paths, station_list=station_list)
+        rows = ladder.rows(station_list=station_list)
     except ladder.LadderError as e:
         raise SystemExit("kits/build.py: %s" % e)
-    if len(rows) < 90:
-        raise SystemExit("kits/build.py: KitLadder.java parsed only %d rows" % len(rows))
-    return {r["id"]: r["station"] for r in rows}, free
+    return {r["id"]: r["station"] for r in rows}
 
 
 def load(path):
@@ -354,7 +346,7 @@ def weapon_cards(reel_index, clips_map, weapons, text, registry_ids):
 def collect(dolls_dir=None, reel_index=None, clips_map=None, art=True, strict=True):
     """Everything the page embeds, keyed by the template's placeholder names (KITS, ITEMS, WEAPONREEL, ...), plus
     WEAPONS (every *.weapon.json weapon) and PARTS (every MechWeaponComponent), which are not embedded. ``art=False`` skips the raster art and machine dolls (fast, for
-    check.py). ``strict=False`` gives a card or pattern with no KitLadder row the station None instead of stopping,
+    check.py). ``strict=False`` gives a card or pattern with no placement the station None instead of stopping,
     so check.py can report it."""
     strings = flat(load(MOD / "data/strings/strings.json"))
     text = lambda key: strings.get(key.lstrip("@"), key) if key else ""
@@ -456,76 +448,30 @@ def collect(dolls_dir=None, reel_index=None, clips_map=None, art=True, strict=Tr
             "stats": "tier %d · %s · armour %g / rating %g" % (c["tier"], c["role"], bt.get("armorCapacity", 0), bt.get("armorRating", 0)),
         })
     armor_by_id = {a["id"]: a for a in armors}
+    registry = constants(JAVA / "battle/weapon/WeaponRegistry.java")
 
-    ids = {}
-    for name in ("battle/weapon/WeaponRegistry.java", "marine/SpecialEquipmentRegistry.java", "marine/SquadEquipmentDoctrines.java"):
-        ids.update(constants(JAVA / name))
-    ids.update(constants(JAVA / "marine/BilletRoles.java"))
-    src = (JAVA / "marine/SquadEquipmentDoctrines.java").read_text(encoding="utf-8")
-
-    def val(token):
-        return token.strip('"') if token.startswith('"') else ids[token.split(".")[-1]]
-
+    # Loadout cards: the weapon cards' twelve seats and the tactic sheets' suits, from loadout-cards.json.
+    cards = kitdata.load_cards()
     kits = []
-    weapon_list = src[src.index("List<SquadWeaponDoctrine> WEAPONS"):src.index("ARMOR_PLANS =")]
-    for block in re.split(r"(?=weaponDoctrine\()", weapon_list)[1:]:
-        head = re.match(r'weaponDoctrine\((\w+),\s*"([^"]+)",\s*"([^"]+)"', block)
-        members = []
-        for call in re.finditer(r"\b(starterWeapon|weapon)\(([^()]*)\)", block):
-            parts = [p.strip() for p in call.group(2).split(",")]
-            members.append({
-                "role": val(parts[0]), "primary": val(parts[1]),
-                "grade": "SURPLUS" if call.group(1) == "starterWeapon" else "SERVICE",
-                "special": val(parts[2]) if len(parts) > 2 else None,
-                "belt": val(parts[3]) if len(parts) > 3 else None,
-            })
+    for card in cards["weaponCards"]:
+        members = [{"role": m["role"], "primary": m["primary"], "grade": m["grade"], "special": m.get("special"),
+                    "belt": m.get("belt")} for m in card["members"]]
         if len(members) != 12:
-            raise SystemExit("kit %s parsed %d members" % (head.group(1), len(members)))
-        kits.append({"id": ids[head.group(1)], "name": text(head.group(2)), "description": text(head.group(3)),
-                     "members": members})
+            raise SystemExit("kit %s has %d members" % (card["id"], len(members)))
+        kits.append({"id": card["id"], "name": text(card["name"]), "description": text(card["description"]),
+                     "members": members, "grant": card.get("grant") or "sale"})
 
-    def seats(primary, grade="SERVICE", automatic=None):
-        out = []
-        for i in range(12):
-            leader = i % 4 == 0
-            gun = automatic if automatic and i % 4 == 1 else primary
-            out.append({"role": "Team Leader" if leader else ("Automatic Rifleman" if gun != primary else "Rifleman"),
-                        "primary": gun, "grade": "MILSPEC" if gun != primary else grade, "special": None, "belt": None})
-        return out
-
-    # First Refit's two Wayline paths are built in code (FirstRefit.weapons), so they are seeded by hand.
-    steady = seats("weapon.field-rifle", "SURPLUS", automatic="weapon.squad-automatic")
-    forward = seats("weapon.field-rifle", "SURPLUS")
-    for i in (0, 1, 4, 5, 8, 9):
-        forward[i].update(primary="weapon.pulse-rifle", grade="MILSPEC")
-    kits.insert(1, {"id": "wayline:steady-line", "name": text("@openingRefitPathSTEADY_LINE"),
-                    "description": "Three Milspec automatics anchor nine riflemen (seeded by hand; built in code).", "members": steady})
-    kits.insert(2, {"id": "wayline:forward-screen", "name": text("@openingRefitPathFORWARD_SCREEN"),
-                    "description": "Six Milspec pulse rifles on the leaders and second seats (seeded by hand; built in code).", "members": forward})
-
-    # Armour cards. ArmorSheetBundles lists each sheet's suits; the doctrines list says how many seats
-    # are power suits. The game picks a seat's suit by role, so the seeded seating here is an even spread.
-    bundles = {}
-    bundle_src = (JAVA / "marine/ArmorSheetBundles.java").read_text(encoding="utf-8")
-    for row in re.finditer(r"\{\s*SquadEquipmentDoctrines\.(\w+),((?:\s*\"armor\.[a-z-]+\",?)+)\s*\}", bundle_src):
-        bundles[ids[row.group(1)]] = re.findall(r'"(armor\.[a-z-]+)"', row.group(2))
-    plan_src = src[src.index("ARMOR_PLANS ="):src.index("private SquadEquipmentDoctrines()")]
+    # Armour cards: each sheet's suits, and its seat classes saying how many seats are power suits. The game picks a
+    # seat's suit by role, so the seeded seating here is an even spread.
     armor_kits = []
-    for m in re.finditer(r'(?:new SquadArmorPlan|powerSuitPlan|plan)\((\w+),\s*"([^"]+)",\s*"([^"]+)",\s*ArmorTradition\.(\w+),\s*SquadRoleMix\.(\w+)(.*?)\)[,;]\s*(?=\n\s*(?:plan|powerSuitPlan|new SquadArmorPlan|private|$)|\Z)', plan_src, re.S):
-        sheet, name, desc, tradition, mix, rest = m.groups()
-        sheet_id = ids[sheet]
-        patterns = bundles.get(sheet_id, [])
-        if not patterns:
-            continue
-        classes = re.findall(r"ArmorClass\.(STANDARD|POWER_SUIT)", rest)
-        if m.group(0).startswith("powerSuitPlan"):
+    for sheet in cards["tacticSheets"]:
+        patterns = sheet["suits"]
+        if sheet.get("armorClass") == "POWER_SUIT":
             classes = ["POWER_SUIT"] * 12
-        elif len(classes) >= 13:
-            classes = classes[1:13]
         else:
-            classes = ["STANDARD"] * 12
-        standard = [p for p in patterns if not armor_by_id[p]["powered"]] or patterns
-        power = [p for p in patterns if armor_by_id[p]["powered"]] or patterns
+            classes = sheet.get("seatClasses") or ["STANDARD"] * 12
+        standard = [s for s in patterns if s in armor_by_id and not armor_by_id[s]["powered"]] or patterns
+        power = [s for s in patterns if s in armor_by_id and armor_by_id[s]["powered"]] or patterns
         members, si, pi = [], 0, 0
         for i, cls in enumerate(classes):
             if cls == "POWER_SUIT":
@@ -533,17 +479,20 @@ def collect(dolls_dir=None, reel_index=None, clips_map=None, art=True, strict=Tr
             else:
                 suit, si = standard[si % len(standard)], si + 1
             members.append({"role": "Team Leader" if i % 4 == 0 else "Rifleman", "armor": suit})
-        armor_kits.append({"id": sheet_id, "name": text(name), "description": text(desc) + " (" + tradition.replace("_", " ").title()
-                           + " tradition, " + mix.replace("_", " ").lower() + " mix)", "members": members})
+        armor_kits.append({"id": sheet["id"], "name": text(sheet["name"]), "description": text(sheet["description"])
+                           + " (" + sheet["tradition"].replace("_", " ").title() + " tradition, "
+                           + sheet["mix"].replace("_", " ").lower() + " mix)", "members": members,
+                           "grant": sheet.get("grant") or "sale"})
     if len(armor_kits) < 20:
-        raise SystemExit("armour plans parsed: %d" % len(armor_kits))
+        raise SystemExit("armour sheets read: %d" % len(armor_kits))
 
-    placed, free_pick = kit_ladder(ids)
+    placed = kit_ladder()
     for kit in kits + armor_kits:
         if kit["id"] not in placed and strict:
-            raise SystemExit("kits/build.py: card %s has no KitLadder row" % kit["id"])
+            raise SystemExit("kits/build.py: card %s has no placement in kit-ladder.json" % kit["id"])
         kit["station"] = placed.get(kit["id"])
-        kit["grant"] = "free-pick" if kit["id"] in free_pick else "sale"
+        grant = kit.pop("grant")
+        kit["grant"] = grant
 
     # Machine licences: one chip per pattern the store can teach, tiered by MechPattern's own tables.
     pattern_src = (JAVA / "marine/MechPattern.java").read_text(encoding="utf-8")
@@ -582,7 +531,7 @@ def collect(dolls_dir=None, reel_index=None, clips_map=None, art=True, strict=Tr
     def item(group, kind, enum, name, sub, tier, icon=None, tone="DOLL", fp=None):
         item_id = "%s:%s" % (kind.lower(), enum)
         if item_id not in placed and strict:
-            raise SystemExit("kits/build.py: %s has no KitLadder row" % item_id)
+            raise SystemExit("kits/build.py: %s has no placement in kit-ladder.json" % item_id)
         items[group].append({"id": item_id, "name": name, "sub": sub, "access": tier,
                              "station": placed.get(item_id), "icon": icon, "tone": tone, "fp": fp})
 
@@ -636,11 +585,11 @@ def collect(dolls_dir=None, reel_index=None, clips_map=None, art=True, strict=Tr
         lst.sort(key=lambda x: (x["name"]))
 
     machines = machine_dolls(Path(dolls_dir) if dolls_dir else ROOT / "build/snapshots/machine-dolls") if art else []
-    weapon_tab = weapon_cards(reel_index, clips_map, weapons, text, ids) if reel_index else {"cards": [], "leftOut": []}
+    weapon_tab = weapon_cards(reel_index, clips_map, weapons, text, registry) if reel_index else {"cards": [], "leftOut": []}
     stations = [{"id": s[0], "name": s[1], "group": s[2], "note": s[3]} for s in STATIONS]
     return {"PRIMARIES": primaries, "SPECIALS": specials, "KITS": kits, "ARMORKITS": armor_kits, "STATIONS": stations,
             "ARMORS": armors, "ITEMS": items, "SYSTEMS": list(systems.values()), "IMAGES": images, "MACHINES": machines,
-            "WEAPONREEL": weapon_tab, "WEAPONS": weapons, "PARTS": mech_parts(text, ids)}
+            "WEAPONREEL": weapon_tab, "WEAPONS": weapons, "PARTS": mech_parts(text, registry)}
 
 
 def main():
