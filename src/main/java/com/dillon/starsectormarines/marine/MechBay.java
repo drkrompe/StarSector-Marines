@@ -209,11 +209,16 @@ public final class MechBay implements Serializable {
         return null;
     }
 
-    /** Acquisition seam for a vehicle; it takes a vacant gantry and nothing else. */
+    /**
+     * Acquisition seam for a vehicle: it takes a vacant gantry, and the bank and vent arrays on its rack become the
+     * company's, as a mech's internals come with it.
+     */
     public boolean addVehicle(String squadId, CampaignVehicle vehicle) {
         CampaignMechSquad squad = squadById(squadId);
-        return squad != null && vehicle != null && vehicleById(vehicle.id()) == null
-                && mechById(vehicle.id()) == null && squad.add(vehicle);
+        if (squad == null || vehicle == null || vehicleById(vehicle.id()) != null
+                || mechById(vehicle.id()) != null || !squad.add(vehicle)) return false;
+        for (MechInternal part : vehicle.rackInternals()) addInternal(part.id, 1);
+        return true;
     }
 
     /** Builds one vehicle onto a vacant gantry in the selected lance. */
@@ -245,6 +250,7 @@ public final class MechBay implements Serializable {
             if (vehicle.plating() != null) strike(ownedInternals, vehicle.plating().id);
             if (vehicle.engine() != null) strike(ownedInternals, vehicle.engine().id);
             if (vehicle.gun() != null) strike(ownedWeapons, vehicle.gun().id);
+            for (MechInternal part : vehicle.rackInternals()) strike(ownedInternals, part.id);
             lost++;
         }
         return lost;
@@ -268,11 +274,12 @@ public final class MechBay implements Serializable {
             if (vehicle.plating() != null) strike(ownedInternals, vehicle.plating().id);
             if (vehicle.engine() != null) strike(ownedInternals, vehicle.engine().id);
             if (vehicle.gun() != null) strike(ownedWeapons, vehicle.gun().id);
+            for (MechInternal part : vehicle.rackInternals()) strike(ownedInternals, part.id);
         }
         return vehicle;
     }
 
-    /** Puts a stored vehicle back on a vacant gantry and owns its kits, plating and engine again. */
+    /** Puts a stored vehicle back on a vacant gantry and owns its kits, plating, engine and rack internals again. */
     boolean berthVehicle(String squadId, CampaignVehicle vehicle) {
         if (!canAddMech(squadId) || !addVehicle(squadId, vehicle)) return false;
         for (VehicleKit kit : vehicle.kits()) addKit(kit.id, 1);
@@ -511,6 +518,7 @@ public final class MechBay implements Serializable {
             }
             for (CampaignVehicle vehicle : squad.vehicles()) {
                 if (vehicle.plating() == internal || vehicle.engine() == internal) installed++;
+                for (MechInternal part : vehicle.rackInternals()) if (part == internal) installed++;
             }
         }
         return installed;
@@ -594,6 +602,26 @@ public final class MechBay implements Serializable {
     public boolean stripKit(String vehicleId, VehicleKit kit) {
         CampaignVehicle vehicle = vehicleById(vehicleId);
         return vehicle != null && vehicle.remove(kit);
+    }
+
+    /**
+     * Whether a spare {@code part} would go on a vehicle's rack: a capacitor bank (in place of the one fitted) or a
+     * vent array, with room for it.
+     */
+    public boolean canFitRackPart(String vehicleId, MechInternal part) {
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        return vehicle != null && part != null && availableInternal(part.id) > 0 && vehicle.canFitRack(part);
+    }
+
+    /** Puts a spare bank or vent array on a vehicle's rack; a bank it replaces returns to stores. */
+    public boolean fitRackPart(String vehicleId, MechInternal part) {
+        return canFitRackPart(vehicleId, part) && vehicleById(vehicleId).fitRack(part);
+    }
+
+    /** Takes one bank or vent array off a vehicle's rack back to stores; without a bank it stays off the drop. */
+    public boolean stripRackPart(String vehicleId, MechInternal part) {
+        CampaignVehicle vehicle = vehicleById(vehicleId);
+        return vehicle != null && vehicle.removeRack(part);
     }
 
     /** Whether {@code gun} would go in the vehicle's gun card: an armed hull, and a weapon of the card's type and size. */
@@ -851,13 +879,16 @@ public final class MechBay implements Serializable {
     public record HeldBack(CampaignMech mech, CampaignMech.Readiness reason) {
     }
 
-    /** Frozen vehicles on the active squad's gantries, in gantry order. */
+    /**
+     * Frozen vehicles on the active squad's gantries, in gantry order; an armed hull with no capacitor bank stays in
+     * its gantry, as an incomplete mech does.
+     */
     public List<VehicleDeploymentSpec> activeVehicleDeployment() {
         CampaignMechSquad squad = activeSquad();
         if (squad == null) return List.of();
         List<VehicleDeploymentSpec> deployment = new ArrayList<>();
         for (CampaignVehicle vehicle : squad.vehicles()) {
-            deployment.add(vehicle.freezeForDeployment());
+            if (vehicle.complete()) deployment.add(vehicle.freezeForDeployment());
         }
         return Collections.unmodifiableList(deployment);
     }

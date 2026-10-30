@@ -588,14 +588,13 @@ fight still thins a hull's fire: the LRM rack takes 18 s a group (the mech
 standard loader's), the SRM rack 12 s, the cannon 10 s a volley, the MG and the
 mortar 6 s, the hover pulse emitter 4 s. The lasers' are quicker than their flux
 lets them fire (1.2 s and 1.5 s), so a laser tank's limit is its flux, as a
-mech laser's is. Three kits make it an upgrade path, each competing for a rack
-slot with the plate and the liner (`mechs-nouns.md`, vehicle kit): the **ready
-rack** deepens the magazine or a rotary gun's belt (a bigger spike), the
+mech laser's is. Two kits make it an upgrade path, each competing for rack
+room with the liner and the flux parts (`mechs-nouns.md`, vehicle kit): the **ready
+rack** deepens the magazine or a rotary gun's belt (a bigger spike) and the
 **accelerated loader** cuts every pack's time to three quarters and feeds a rotary
 gun's hopper four thirds as fast (a better sustained rate, by the one loader rule a
-mech's loader part follows, `mechs-nouns.md`, missile replenisher), and the
-**capacitor pack** holds half again the flux before the gun overloads (more
-rounds between vents).
+mech's loader part follows, `mechs-nouns.md`, missile replenisher). A bigger bank or a
+vent array on the rack is the flux upgrade (hull flux, below).
 
 **Every hull gun builds flux** (owner, 2026-10-26; `TurretMountDef.flux`), as a
 starship's weapons do, and a hull holds it in **one reservoir** as a mech does
@@ -608,7 +607,8 @@ own dissipation, with no faster vent. Where a hull carries more than one gun, th
 mount that best defeats the target's armor is offered the reservoir first
 (`MechFireOrder`). The reservoir's capacity and dissipation are frozen at the drop
 from the hull (`VehicleDeploymentSpec.flux`); a mount's data authors only what a
-round costs. Flux is not the magazine, so a hull venting still reads as armed to
+round costs, and the frame is the bank and vent arrays on the hull's rack
+(`VehicleRack.frame`); an enemy hull runs its stock bank (`HullReservoir.stockFrame`). Flux is not the magazine, so a hull venting still reads as armed to
 every engagement question. `-Dbattle.vehicle.hullReservoir=false` is the control:
 each mount its own bank, overloading at capacity and venting to empty faster than
 it dissipates. How much a gun builds is its character:
@@ -1427,7 +1427,7 @@ held button, fires the next loaded group as soon as the last has gone (`SalvoCha
 three clicks are the whole rack. Its cooldown is no wait between its own groups. What
 bounds it is its **flux** (hull flux, above): the three groups fit
 inside it, and a fourth from a ready rack overloads the launcher and holds it while it
-vents, unless a capacitor pack makes room. Its loader brings a group back every 18 s. It is the APC line's long arm against
+vents, unless a bigger bank makes room. Its loader brings a group back every 18 s. It is the APC line's long arm against
 armor, where the fire-support APC is its steadier arm against anything. Its rounds
 arc, and it fires **on a spotter's call** at a machine it cannot see itself:
 somebody else on its side must be looking at the target right now

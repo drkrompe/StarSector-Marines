@@ -171,6 +171,31 @@ public final class MechWorkshop {
     }
 
     /**
+     * Puts a capacitor bank or vent array on a vehicle's rack from stores, as on a mech's compartment: a bank goes in
+     * place of the one fitted, which goes back to stores.
+     */
+    public Result fitRackPart(String vehicleId, MechInternal part) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null || part == null) return Result.of(Status.INVALID);
+        if (part.role == MechInternal.Role.CAPACITOR_BANK && vehicle.rackInternals().contains(part)) {
+            return Result.of(Status.ALREADY_INSTALLED);
+        }
+        if (!vehicle.canFitRack(part)) return Result.of(Status.INCOMPATIBLE);
+        if (bay.availableInternal(part.id) <= 0) return Result.of(Status.INSUFFICIENT_MATERIALS);
+        return bay.fitRackPart(vehicleId, part) ? new Result(Status.INSTALLED_FROM_STORES, null, vehicle)
+                : Result.of(Status.INVALID);
+    }
+
+    /** Takes one bank or vent array off a vehicle's rack back to stores; without a bank it cannot drop. */
+    public Result stripRackPart(String vehicleId, MechInternal part) {
+        CampaignVehicle vehicle = bay.vehicleById(vehicleId);
+        if (vehicle == null || part == null) return Result.of(Status.INVALID);
+        if (!vehicle.rackInternals().contains(part)) return Result.of(Status.ALREADY_STRIPPED);
+        return bay.stripRackPart(vehicleId, part) ? new Result(Status.STRIPPED, null, vehicle)
+                : Result.of(Status.INVALID);
+    }
+
+    /**
      * Puts a plating part at a vehicle's armor point from stores, as a kit is fitted: building one is its own
      * step. The plate it replaces goes back to stores.
      */

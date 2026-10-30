@@ -92,8 +92,6 @@ public final class GroundTurret {
     public MechFlux reservoir;
     /** The gun's own flux on the per-mount control path ({@code TurretMountDef#flux}); zero and unread otherwise. */
     public float flux;
-    /** The gun's flux capacity as a share of its mount's: more with a capacitor pack. */
-    public float fluxCapacityFactor = 1f;
     /** Whether the gun overloaded and is venting: its trigger is held until its flux is gone. Per-mount path only. */
     public boolean overloaded;
 
@@ -176,7 +174,7 @@ public final class GroundTurret {
     }
 
     /**
-     * A full gun on {@code mount}, its loader and flux bank as the hull's kits make them, with {@code rounds} in a
+     * A full gun on {@code mount}, its loader as the hull's kits make it, with {@code rounds} in a
      * magazine of that size.
      */
     public static GroundTurret fitted(TurretMountDef mount, int rounds, VehicleKit.Effect kits,
@@ -184,17 +182,16 @@ public final class GroundTurret {
         GroundTurret turret = new GroundTurret(rounds, section);
         turret.unlimited = mount.ammoCapacity == 0;
         turret.loaderSeconds = LoaderPace.secondsPerPack(mount.loaderSeconds, kits.loaderFactor());
-        turret.fluxCapacityFactor = kits.fluxCapacityFactor();
         return turret;
     }
 
     /**
-     * The flux this gun reads against: the hull reservoir's capacity, or on the per-mount path its mount's own,
-     * scaled by a capacitor pack. Zero for a mount that builds no flux.
+     * The flux this gun reads against: the hull reservoir's capacity, or on the per-mount path its mount's own.
+     * Zero for a mount that builds no flux.
      */
     public float fluxCapacity(TurretMountDef mount) {
         if (mount.flux == null) return 0f;
-        return reservoir != null ? reservoir.capacity() : mount.flux.control().capacity() * fluxCapacityFactor;
+        return reservoir != null ? reservoir.capacity() : mount.flux.control().capacity();
     }
 
     /**

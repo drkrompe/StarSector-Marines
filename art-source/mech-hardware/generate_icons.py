@@ -768,7 +768,6 @@ def vehicles(f):
     f['kit-sensor-pair'] = banded(150, 100, kit_sensor_pair(), 'SNS')
     # The hull's own systems uprated: a mech's accelerated feed, and a deeper bank of four cells.
     f['kit-accelerated-loader'] = banded(150, 100, loader(True), 'ACL')
-    f['kit-capacitor-pack'] = banded(150, 100, hbar(10, 140, 12, 4, MID, rx=0) + cells(14, 136, 20, 64, 4, gap=4), 'CAP')
 
 
 def fabricator_icon():

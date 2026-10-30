@@ -3039,17 +3039,17 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             viewModel.gantryRows().get().get(0).select().run();
             viewModel.selectSlot(SocketId.CORE);
         }
-        // A tank on the fourth pad with two kits bolted on and a third spare in stores: the sealed doll
-        // and the kit rack, with the stores listing the kits.
+        // A tank on the fourth pad, its factory bank, a vent array and a kit on its rack and a second kit spare in
+        // stores: the sealed doll and the two rack bays, with the stores listing the kits and the flux parts.
         if ("vehicle-kits".equals(materialHint) || "vehicle-kits-recycle".equals(materialHint)) {
             CampaignVehicle tank = new CampaignVehicle("support_vehicle_04", "Breaker 04", VehicleType.BREAKTHROUGH_TANK);
             bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank);
             for (VehicleKit kit : VehicleKit.values()) bay.learnPattern(MechPattern.of(kit).id());
             bay.addKit(VehicleKit.SPALL_LINER.id, 1);
-            bay.addKit(VehicleKit.CAPACITOR_PACK.id, 1);
             bay.addKit(VehicleKit.READY_RACK.id, 1);
             bay.fitKit(tank.id(), VehicleKit.SPALL_LINER);
-            bay.fitKit(tank.id(), VehicleKit.CAPACITOR_PACK);
+            bay.addInternal(MechInternal.AUXILIARY_VENT_ARRAY.id, 1);
+            bay.fitRackPart(tank.id(), MechInternal.AUXILIARY_VENT_ARRAY);
             bay.addInternal(MechInternal.COMPOSITE_PLATING.id, 1);
             bay.fitPlating(tank.id(), MechInternal.COMPOSITE_PLATING);
             viewModel.gantryRows().get().get(3).select().run();
@@ -3172,7 +3172,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             fittingCanvas.installedWeapons(viewModel::installedWeapon);
             fittingCanvas.installedCompartment(viewModel::installedCompartment);
             fittingCanvas.selectedVehicle(viewModel::selectedVehicleType);
-            fittingCanvas.installedKits(viewModel::installedKits);
+            fittingCanvas.installedRack(viewModel::installedRack);
+            fittingCanvas.rackIncomplete(viewModel::rackIncomplete);
             document.canvases().set(instance.requireElement("mech-doll-canvas"), fittingCanvas);
             for (MechLabViewModel.SquadRow squad : viewModel.squadRows().get()) {
                 for (MechLabViewModel.LanceSlot slot : squad.slots()) {
