@@ -5,7 +5,9 @@ import com.dillon.starsectormarines.battle.combat.Interceptable;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.sim.ConvoyService;
 import com.dillon.starsectormarines.battle.sim.World;
+import com.dillon.starsectormarines.battle.vehicle.GroundBody;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
 
@@ -1059,7 +1061,10 @@ public final class WarshipSystem {
         if (pass.onLine() && pass.takeStartSound()) {
             atmosphereCue(WarshipSoundCue.Kind.LOW_PASS_REPORT, LOW_PASS_REPORT_SOUND, ship);
         }
-        if (!pass.active()) ship.finishLowPass();
+        if (!pass.active()) {
+            ship.finishLowPass();
+            if (ship.climbsAfterPass()) ship.climbThroughDeck(width, height);
+        }
         return true;
     }
 
@@ -2269,6 +2274,22 @@ public final class WarshipSystem {
                 boolean mover = sim.movement().has(u);
                 m.aimVx = mover ? sim.movement().velX(u) : 0f;
                 m.aimVy = mover ? sim.movement().velY(u) : 0f;
+            }
+        }
+        // Ground vehicles are hulls of their own, outside the unit roster; a gun works them as it works a man.
+        ConvoyService convoy = sim.convoy();
+        for (int i = 0, n = convoy.vehicleCount(); i < n; i++) {
+            long v = convoy.vehicleAt(i);
+            if (!world.isAlive(v) || convoy.isAirborne(v) || !ship.faction.hostileTo(convoy.faction(v))) continue;
+            GroundBody body = convoy.body(v);
+            if (body == null || !area.contains(body.x, body.y) || !Warship.bears(m, ship.facingDegrees, mx, my, body.x, body.y)
+                    || Math.hypot(body.x - mx, body.y - my) > opportunity) continue;
+            seen++;
+            if (random.nextInt(seen) == 0) {
+                m.aimX = body.x;
+                m.aimY = body.y;
+                m.aimVx = convoy.velocityX(v);
+                m.aimVy = convoy.velocityY(v);
             }
         }
         if (seen == 0 && area.saturate() && !m.weapon.beam()) return aimAtOpenGround(m, ship, area, mx, my, opportunity);

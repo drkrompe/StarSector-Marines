@@ -244,7 +244,7 @@ back sooner by hand.
 **Fire.** A circle of 14 cells radius (the corridor's half-width) is laid on every battery the ship has,
 centred on the line 8 cells ahead of the hull and sliding down it, so the guns work whatever is in the
 corridor and nothing outside it. It is the pilot's laid-area machinery, so it is a hand order: no posture
-range or friendly check refuses it, every mount still picks hostile units in the circle that it can
+range or friendly check refuses it, every mount still picks hostile units and ground vehicles in the circle that it can
 bear on from the pass's heading (along the line, so a broadside answers what lies abeam), and flux,
 ordnance, arcs, spread and friendly fire stay the ship's. It does not saturate: it fires on units, not on
 empty ground. Whatever a pilot had laid before is given back when the pass ends; the ship's director,

@@ -106,6 +106,25 @@ public abstract class CommandPower {
     }
 
     /**
+     * The longest line, in cells, the player draws for this power, or {@code 0} (the default) for a power aimed at
+     * one cell. A line power is aimed by pressing at its start and dragging to its end (or clicking each); the UI
+     * cuts the drawn line to this length and commits it through {@link #canTargetLine} and {@link #resolveLine}.
+     */
+    public float lineMaxCells() {
+        return 0f;
+    }
+
+    /** As {@link #canTarget(int, int, BattleView)}, for a line from {@code (ax, ay)} to {@code (bx, by)}. */
+    public boolean canTargetLine(int ax, int ay, int bx, int by, BattleView battle) {
+        return canTarget(ax, ay, battle) && battle.getGrid().inBounds(bx, by);
+    }
+
+    /** As {@link #resolve(int, int, CommandPowerService, BattleControl)}, for a committed line. */
+    public void resolveLine(int ax, int ay, int bx, int by, CommandPowerService service, BattleControl battle) {
+        resolve(ax, ay, service, battle);
+    }
+
+    /**
      * Calls this power still holds when it paces itself rather than spending charges
      * (Mech Support: machines still aboard), or {@code -1} for the service's own charge
      * count. {@code 0} reads as spent everywhere a charge count does.

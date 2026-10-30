@@ -38,12 +38,28 @@ public final class CommandPowerService {
         final int cellY;
         /** The player's pick for a power with a picker; {@code null} for its default. */
         final List<Integer> selection;
+        /** Whether this is a drawn line from the cell to {@link #endX}, {@link #endY}. */
+        final boolean line;
+        final int endX;
+        final int endY;
 
         PendingActivation(String powerId, int cellX, int cellY, List<Integer> selection) {
+            this(powerId, cellX, cellY, selection, false, cellX, cellY);
+        }
+
+        private PendingActivation(String powerId, int cellX, int cellY, List<Integer> selection,
+                                  boolean line, int endX, int endY) {
             this.powerId = powerId;
             this.cellX = cellX;
             this.cellY = cellY;
             this.selection = selection == null ? null : List.copyOf(selection);
+            this.line = line;
+            this.endX = endX;
+            this.endY = endY;
+        }
+
+        static PendingActivation line(String powerId, int ax, int ay, int bx, int by) {
+            return new PendingActivation(powerId, ax, ay, null, true, bx, by);
         }
     }
 
@@ -164,6 +180,11 @@ public final class CommandPowerService {
      */
     public void requestActivation(String powerId, int cellX, int cellY, List<Integer> selection) {
         pending.add(new PendingActivation(powerId, cellX, cellY, selection));
+    }
+
+    /** Queue a line power's activation along the drawn line from {@code (ax, ay)} to {@code (bx, by)}. */
+    public void requestLineActivation(String powerId, int ax, int ay, int bx, int by) {
+        pending.add(PendingActivation.line(powerId, ax, ay, bx, by));
     }
 
     /**
