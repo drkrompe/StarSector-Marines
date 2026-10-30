@@ -605,6 +605,15 @@
 		{"file":"sounds/sfx_impacts/explosion_missile_02.ogg","pitch":1,"volume":1.0},
 	],
 
+	# Shared autocannon round detonation: every AC weapon (AC-6, AC-6 (QS), the
+	# Arbalest) names this one id, so a purpose-made clip replaces it here once.
+	# Placeholder: the vanilla missile detonation (1.25 s, mono) at a lower level,
+	# since a burst lands six of these.
+	"marines_ac_impact":[
+		{"file":"sounds/sfx_impacts/explosion_missile_01.ogg","pitch":1,"volume":0.8},
+		{"file":"sounds/sfx_impacts/explosion_missile_02.ogg","pitch":1,"volume":0.8},
+	],
+
 #collapseclose
 
 #collapseopen AIR ORDNANCE SFX
