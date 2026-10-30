@@ -174,6 +174,29 @@ public final class WarshipPointDefence {
         return SHOT_ACCURACY * reachFactor * lead * spread;
     }
 
+    /** The share of guided ground anti-air rounds one working point-defence mount stops, and the most any hull stops. */
+    static final float GROUND_MISSILE_STOP_PER_MOUNT = 0.35f;
+    static final float GROUND_MISSILE_STOP_MAX = 0.8f;
+
+    /**
+     * The chance the hull's point defence stops one guided round fired at it by the ground's anti-air. Such a round is
+     * resolved as a timed round rather than flown as ordnance the mounts could track, so the defence is a share: each
+     * working point-defence mount stops {@link #GROUND_MISSILE_STOP_PER_MOUNT} of them, up to
+     * {@link #GROUND_MISSILE_STOP_MAX}, while the flux allows a defence at all.
+     */
+    public static float groundMissileStopChance(Warship ship) {
+        if (ship.overloaded() || !ship.fluxPool().canDefend()) return 0f;
+        int working = 0;
+        for (Warship.Mount m : ship.mounts()) {
+            if (!m.knockedOut() && WarshipAirRules.classify(m) == WarshipAirRules.WeaponClass.POINT_DEFENCE) working++;
+        }
+        return groundMissileStopChance(working);
+    }
+
+    static float groundMissileStopChance(int workingPointDefenceMounts) {
+        return Math.min(GROUND_MISSILE_STOP_MAX, Math.max(0, workingPointDefenceMounts) * GROUND_MISSILE_STOP_PER_MOUNT);
+    }
+
     /**
      * What one engagement costs the ship's flux: a projectile weapon's whole
      * burst at its per-shot cost, a beam its per-second cost over the shortest

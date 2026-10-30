@@ -1944,6 +1944,31 @@ public final class Warship {
         return climbAfterPass;
     }
 
+    private boolean flownLow;
+
+    /**
+     * Makes this hull fly low over the battle, under the ceiling of the ground's anti-air: once it is out of the deck
+     * and until it begins to leave, the emplacements that shoot at aircraft shoot at it too ({@link #inGroundAaReach}).
+     * A gunship on a strafe flies this way; a ship holding its station above the battle does not.
+     */
+    public void flyLow() {
+        flownLow = true;
+    }
+
+    /** Whether the ground's anti-air can reach this hull now: it flies low, is out of the deck and has not begun to leave. */
+    public boolean inGroundAaReach() {
+        return flownLow && !destroyed() && !descending() && !departing && !departed;
+    }
+
+    /** The hull's velocity in cells a second, for a gun that leads it. */
+    public float velocityX() {
+        return velocityX;
+    }
+
+    public float velocityY() {
+        return velocityY;
+    }
+
     /** Drops the pass once it has nothing left to show. */
     void clearLowPass() {
         lowPass = null;

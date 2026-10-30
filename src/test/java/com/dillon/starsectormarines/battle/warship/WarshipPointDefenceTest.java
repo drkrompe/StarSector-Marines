@@ -60,4 +60,13 @@ class WarshipPointDefenceTest {
         assertEquals(1f - (float) Math.pow(1f - p, 3), three, 1e-5);
         assertTrue(three > one && three < 1f);
     }
+
+    @Test
+    void eachWorkingMountStopsAShareOfTheGroundsMissilesUpToACap() {
+        assertEquals(0f, WarshipPointDefence.groundMissileStopChance(0), 1e-6f);
+        float one = WarshipPointDefence.groundMissileStopChance(1);
+        float two = WarshipPointDefence.groundMissileStopChance(2);
+        assertEquals(2f * one, two, 1e-6f);
+        assertEquals(WarshipPointDefence.GROUND_MISSILE_STOP_MAX, WarshipPointDefence.groundMissileStopChance(20), 1e-6f);
+    }
 }

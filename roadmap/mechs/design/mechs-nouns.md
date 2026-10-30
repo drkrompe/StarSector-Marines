@@ -97,6 +97,54 @@ increasing an encounter's total armored threat.
   the standard loader's; the machine's loader multiplies it (the loader rule
   above), so an accelerated loader feeds every rotary gun a third faster, the
   high-feed chaingun included, which stays the better gun by its own numbers.
+- A **beam weapon** (the light PD laser and the PD laser; owner, 2026-10-30) is the
+  energy counterpart of a rotary gun: it fires while its trigger is held, a
+  continuous lance from the drawn muzzle that tracks the cursor (a pilot's) or the
+  leased target (the AI's), and stops on release. It is the same held-trigger feed
+  with no barrels and no belt (`sim.beam`, `RotaryFeedDef.beam`): the emitter lays
+  **pulses** down the lance at a fixed rate (15 a second), each a hitscan hit at the
+  weapon's high accuracy and tight spread and each committing its share of the
+  beam's **flux a second** to the one reservoir, a mech's or a vehicle's hull bank.
+  Nothing counts down: flux is the only limit, so the reservoir's own gates stop a
+  held beam as a dry belt stops a chaingun (a pilot's beam vents at 95 and waits
+  to 55; it holds no reserve of its own). There is no loader or ready-rack effect.
+  An **autonomous beam fires in measured lances**: it stops asking for pulses once
+  the reservoir holds half its capacity and asks again at three tenths
+  (`RotaryFeedDef.BEAM_AI_STOP_SHARE`), so it never rides the reservoir to the AI's
+  hold at 75 and a missile salvo's 40 still fits under the AI's 90. Its rated rate,
+  the figure estimates and sheets read, is what the stock frame can pay for over a
+  thirty-second engagement from cool (half the reservoir plus thirty seconds of
+  dissipation). The light PD laser is weak against plate (penetration 2: under a
+  quarter of a Hound's 14, an armor efficiency of about 0.23 against it and 0.15
+  against the dozer's 38, full against militia and most infantry plate); the PD
+  laser bites harder (penetration 5, about 0.42 against a Hound, 0.35 against a
+  Bulwark or tank) for more flux a second. Both keep their point-defence role: they
+  track fliers (`tracksFliers`), so drones and light craft overhead are engaged by
+  the same lease, measured the same way; neither intercepts missiles, which stays
+  the hull-borne point-defence mount's job. The heavy PD laser keeps its long lance
+  a pull at a time. A beam is presented as any arm gun: its drawing, muzzle
+  (`MechHardpointGeometry`) and mount rules (side arm, centreline nose, vehicle
+  turret ring by `VehicleGunArt`) are its component's, and its pulses are drawn as
+  one lance (a grained `render.beam` whose life just outlasts a pulse's spacing)
+  with its impact glow, under one held tone (`audio.loopSound`, `HeldFireLoops`).
+  The direct-control HUD names it `Beam · hold` with its flux a second and counts
+  no load; its sheet reads DPS, PEN, RNG, flux a second and how long it holds alone
+  on that frame. `-Dbattle.mech.pdBeam=false` is the control: both fire the pulsed
+  bursts they had before.
+- A **burst laser** (light, medium and heavy: two, three and four pulses a
+  trigger) is not a rotary gun but fires like one in miniature: a click is a short
+  stutter of pulses, each its own beam, muzzle flash and fire tick from the drawn
+  muzzle, 0.10, 0.12 and 0.13 s apart, with each beam briefer than the gap so the
+  pulses read one by one (owner, 2026-10-30: it should feel almost like an
+  autocannon). A held trigger chains bursts at the weapon's cycle. The trigger
+  reserves the whole burst's flux on its first pulse, as any trigger does, so a burst
+  never stalls on the flux rules; the AI's torso and a vehicle's turret stay on the
+  target through the burst and the pilot's pulses follow the live cursor, as a rotary
+  gun's rounds do. A vehicle's recovery starts when the burst ends, so the weapon's
+  authored cooldown (which only a vehicle reads; a mech reads the component's
+  cycle) is shortened by the wider spacing to keep the vehicle's cadence. Against a
+  control at the old 0.06 s spacing, armorMatchup read the same win share and
+  time to kill within noise (2026-10-30).
 - A **campaign mech** is one persistent player-owned chassis plus its doctrine
   and installed components. It is the campaign authority that produces a
   frozen battle loadout; the live battle mech never reaches back into it.
@@ -1740,6 +1788,9 @@ its belt in one hold: a stock Hound, venting 6 a second against 15 at full rate,
 reaches its 100-flux cap about 140 rounds into a 200-round belt (owner,
 2026-10-23, after 0.75 let it dump the whole belt with almost no flux). A Bulwark
 holding both arm guns runs hot within seconds.
+A beam commits its flux pulse by pulse too, authored as flux a second (9 for the
+light PD laser, 15 for the PD laser): held alone from cool, a stock Hound frame
+reaches its vent in about 30 and 10 seconds.
 An SRM or LRM salvo of five costs 40 flux from either size of rack (Missile racks).
 Burst continuation must also finish before another trigger.
 Projectile damage and spacing are unchanged. Larger and specialist components

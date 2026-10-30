@@ -62,14 +62,16 @@ public enum MechWeaponComponent {
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 1,
             WeaponRegistry.MECH_LIGHT_MG_ID, 5, -1,
             LayeredMechAppearance.ARMS_LIGHT_MG),
+    // The light PD laser: a held beam (mechs-nouns.md, Beam weapons), as is the PD laser below.
     LIGHT_PULSE_LASER("component.mech-light-pulse-laser", "@gearMechWeaponComponentLIGHTPULSELASER",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 1,
-            WeaponRegistry.MECH_LIGHT_PULSE_LASER_ID, 4, -1,
+            PdBeam.lightPd(), 4, -1,
             LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER),
 
-    // The laser ladder (vehicle-card-sizes.md): a PD family (steady lances that run cool, a slight red motif) and a burst
-    // family (short heavy volleys that vent, clean white and blue), each in three sizes. Named by their size in the
-    // family: the light PD laser is LIGHT_PULSE_LASER above, the heavy burst laser BURST_LASER here.
+    // The laser ladder (vehicle-card-sizes.md): a PD family (steady lances, a slight red motif) and a burst family (short
+    // heavy volleys that vent, clean white and blue), each in three sizes. Named by their size in the family: the light
+    // PD laser is LIGHT_PULSE_LASER above, the heavy burst laser BURST_LASER here. The light and middle PD lasers are held
+    // beams; the heavy PD laser keeps its long lance a pull at a time.
     LIGHT_BURST_LASER("component.mech-light-burst-laser", "@gearMechWeaponComponentLIGHTBURSTLASER",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 1,
             WeaponRegistry.MECH_LIGHT_BURST_LASER_ID, 2, -1,
@@ -84,7 +86,7 @@ public enum MechWeaponComponent {
             LayeredMechAppearance.ARMS_BURST_LASER),
     PD_LASER("component.mech-pd-laser", "@gearMechWeaponComponentPDLASER",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 2,
-            WeaponRegistry.MECH_PD_LASER_ID, 10, -1,
+            PdBeam.pd(), 10, -1,
             LayeredMechAppearance.ARMS_PD_LASER),
     HEAVY_PD_LASER("component.mech-heavy-pd-laser", "@gearMechWeaponComponentHEAVYPDLASER",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 3,
@@ -145,6 +147,25 @@ public enum MechWeaponComponent {
         static String srm() { return ON ? WeaponRegistry.MECH_SRM_ID : WeaponRegistry.MECH_SRM_LEGACY_ID; }
 
         static String lrm() { return ON ? WeaponRegistry.MECH_LRM_ID : WeaponRegistry.MECH_LRM_LEGACY_ID; }
+    }
+
+    /**
+     * Whether the light PD laser and the PD laser are held beams (`mechs-nouns.md`, Beam weapons): fire while the
+     * trigger is held, a lance that tracks the aim, flux a second the only limit. {@code -Dbattle.mech.pdBeam=false} is
+     * the control: both fire the pulsed bursts they had before, a pull at a time. Temporary A/B lever: remove it with the
+     * control path and the {@code -burst} weapon entries once the owner has accepted the beam in play.
+     */
+    public static boolean pdBeam() { return PdBeam.ON; }
+
+    /** Read in the constructors, before the enum's own statics exist. */
+    private static final class PdBeam {
+        static final boolean ON = Boolean.parseBoolean(System.getProperty("battle.mech.pdBeam", "true"));
+
+        static String lightPd() {
+            return ON ? WeaponRegistry.MECH_LIGHT_PULSE_LASER_ID : WeaponRegistry.MECH_LIGHT_PULSE_LASER_BURST_ID;
+        }
+
+        static String pd() { return ON ? WeaponRegistry.MECH_PD_LASER_ID : WeaponRegistry.MECH_PD_LASER_BURST_ID; }
     }
 
     /**
@@ -320,8 +341,9 @@ public enum MechWeaponComponent {
     }
 
     /**
-     * The rotary feed of a held-trigger gun (the chainguns, the light machine gun and the autocannons), or null for a
-     * gun fired a pull at a time.
+     * The held-trigger feed of a gun that fires while held: a rotary gun's barrels and belt (the chainguns, the light
+     * machine gun and the autocannons) or a beam's emitter (the light PD laser and the PD laser,
+     * {@link RotaryFeedDef#beam()}); null for a gun fired a pull at a time.
      */
     public RotaryFeedDef rotary() { return weaponDef().rotary(); }
 
@@ -331,7 +353,22 @@ public enum MechWeaponComponent {
      * read rounds over cycle read what the gun delivers over an engagement.
      */
     public float cycleSeconds() {
-        return tuned("cycle", authoredCycleSeconds());
+        return triggerInterval(tuned("cycle", authoredCycleSeconds()), burstSeconds());
+    }
+
+    /**
+     * Seconds from a trigger's first round to its last: its {@link #projectilesPerTrigger} rounds at the weapon's
+     * burst spacing, so a burst laser's click is a short stutter of pulses (`mechs-nouns.md`, Burst lasers). Zero for
+     * a rotary gun, which has no trigger pull.
+     */
+    public float burstSeconds() {
+        if (rotary() != null) return 0f;
+        return Math.max(0, projectilesPerTrigger - 1) * Math.max(0f, weaponDef().burstSpacing);
+    }
+
+    /** A trigger cannot come round again before its own burst has left the gun ({@code MechWeaponMount#triggerReady}). */
+    static float triggerInterval(float cycleSeconds, float burstSeconds) {
+        return Math.max(cycleSeconds, burstSeconds);
     }
 
     private float authoredCycleSeconds() {
@@ -346,7 +383,8 @@ public enum MechWeaponComponent {
             }
         }
         return switch (this) {
-            // Unused: a rotary gun's cycle is read from its feed above.
+            // Unused: a rotary gun's cycle is read from its feed above (a beam's too, the PD lasers' below being the
+            // pdBeam control's).
             case CHAINGUN, CHAINGUN_HF, AC_6, AC_6_QS, LIGHT_MACHINE_GUN -> 0f;
             case SRM_5, SRM_5_FRAG -> 1.8f;
             case SRM_15, SRM_15_FRAG -> 2.6f;
@@ -415,7 +453,8 @@ public enum MechWeaponComponent {
             }
         }
         return switch (this) {
-            // Unused: a rotary gun's flux is authored per round on its weapon (fluxPerRound).
+            // Unused: a rotary gun's flux is authored per round on its weapon (fluxPerRound), a beam's a second (the PD
+            // lasers' below are the pdBeam control's).
             case CHAINGUN, CHAINGUN_HF, AC_6, AC_6_QS, LIGHT_MACHINE_GUN -> 0f;
             case SRM_5, SRM_5_FRAG -> 28f;
             case SRM_15, SRM_15_FRAG -> 42f;

@@ -287,6 +287,8 @@ public final class GroundVehicleTurretSystem {
                                float mountX, float mountY, float dt) {
         TurretMountDef mount = structure.mount;
         RotaryFeed feed = turret.rotary;
+        // A beam's autonomous reserve is the hull reservoir's share, not a belt (RotaryFeed.observeFlux).
+        if (turret.reservoir != null) feed.observeFlux(turret.reservoir.value() / turret.reservoir.capacity());
         int rounds = feed.advance(dt, false);
         for (int r = 0; r < rounds; r++) {
             long target = feed.leaseTarget();

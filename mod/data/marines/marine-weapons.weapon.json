@@ -796,10 +796,10 @@
         "range": 30.0,
         "damage": 16.0,
         "accuracy": 0.85,
-        "cooldown": 1.8,
+        "cooldown": 1.59,
         "penetration": 3.0,
         "burstCount": 4,
-        "burstSpacing": 0.06,
+        "burstSpacing": 0.13,
         "hitSpread": 0.2,
         "roundVelocity": 320.0,
         "flightSec": 0.05,
@@ -812,15 +812,15 @@
           "glowColor": "4A6BFF",
           "glowWidthPx": 12.0,
           "pulseCycles": 1.0,
-          "lifetimeSec": 0.10
+          "lifetimeSec": 0.07
         },
         "projectileSprite": null,
         "projectileVisualCells": 0.0
       },
       "fx": {
         "muzzle": [
-          { "kind": "glow", "radius": 0.6, "lifetime": 0.07, "color": "7A8CFF" },
-          { "kind": "ring", "radius": 0.28, "lifetime": 0.09, "color": "DCE2FF" }
+          { "kind": "glow", "radius": 0.6, "lifetime": 0.06, "color": "7A8CFF" },
+          { "kind": "ring", "radius": 0.28, "lifetime": 0.07, "color": "DCE2FF" }
         ],
         "impact": [
           { "kind": "glow", "radius": 0.4, "lifetime": 0.12, "color": "6A7EFF" },
@@ -831,6 +831,50 @@
     },
     {
       "id": "weapon.mech-pd-laser",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponMechPdLaserDisplayName",
+        "designationTiered": false
+      },
+      "sim": {
+        "tracksFliers": true,
+        "range": 26.0,
+        "damage": 3.2,
+        "accuracy": 0.95,
+        "cooldown": 1.6,
+        "penetration": 5.0,
+        "hitSpread": 0.12,
+        "roundVelocity": 320.0,
+        "flightSec": 0.05,
+        "wallDamage": 1,
+        "noiseMagnitude": 0.4,
+        "beam": { "pulseRate": 15.0, "fluxPerSecond": 15.0 }
+      },
+      "render": {
+        "tracerColor": "FFF4F2",
+        "beam": {
+          "coreWidthPx": 2.2,
+          "glowColor": "E01A12",
+          "glowWidthPx": 11.0,
+          "lifetimeSec": 0.085,
+          "texture": { "texelCells": 0.45, "scrollCellsPerSec": 5.0, "roughness": 0.9, "throbHz": 6.0 }
+        },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.12, "color": "FF6464" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.36, "lifetime": 0.14, "color": "FF5A4A" },
+          { "kind": "dust", "radius": 0.12, "lifetime": 0.12 }
+        ]
+      },
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+    },
+    {
+      "id": "weapon.mech-pd-laser-burst",
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechPdLaserDisplayName",
@@ -929,10 +973,10 @@
         "range": 28.0,
         "damage": 15.0,
         "accuracy": 0.85,
-        "cooldown": 1.6,
+        "cooldown": 1.48,
         "penetration": 3.0,
         "burstCount": 3,
-        "burstSpacing": 0.06,
+        "burstSpacing": 0.12,
         "hitSpread": 0.2,
         "roundVelocity": 320.0,
         "flightSec": 0.05,
@@ -945,14 +989,14 @@
           "glowColor": "4A6BFF",
           "glowWidthPx": 11.0,
           "pulseCycles": 1.0,
-          "lifetimeSec": 0.10
+          "lifetimeSec": 0.065
         },
         "projectileSprite": null,
         "projectileVisualCells": 0.0
       },
       "fx": {
         "muzzle": [
-          { "kind": "glow", "radius": 0.5, "lifetime": 0.09, "color": "7A8CFF" }
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.06, "color": "7A8CFF" }
         ],
         "impact": [
           { "kind": "glow", "radius": 0.36, "lifetime": 0.12, "color": "6A7EFF" },
@@ -973,10 +1017,10 @@
         "range": 26.0,
         "damage": 14.0,
         "accuracy": 0.85,
-        "cooldown": 1.4,
+        "cooldown": 1.36,
         "penetration": 3.0,
         "burstCount": 2,
-        "burstSpacing": 0.06,
+        "burstSpacing": 0.10,
         "hitSpread": 0.2,
         "roundVelocity": 320.0,
         "flightSec": 0.05,
@@ -989,14 +1033,14 @@
           "glowColor": "4A6BFF",
           "glowWidthPx": 9.0,
           "pulseCycles": 1.0,
-          "lifetimeSec": 0.10
+          "lifetimeSec": 0.06
         },
         "projectileSprite": null,
         "projectileVisualCells": 0.0
       },
       "fx": {
         "muzzle": [
-          { "kind": "glow", "radius": 0.5, "lifetime": 0.09, "color": "7A8CFF" }
+          { "kind": "glow", "radius": 0.5, "lifetime": 0.06, "color": "7A8CFF" }
         ],
         "impact": [
           { "kind": "glow", "radius": 0.36, "lifetime": 0.12, "color": "6A7EFF" },
@@ -1058,6 +1102,50 @@
     },
     {
       "id": "weapon.mech-light-pulse-laser",
+      "mount": "mech-mount",
+      "catalog": {
+        "displayName": "@gearCatalogWeaponMechLightPulseLaserDisplayName",
+        "designationTiered": false
+      },
+      "sim": {
+        "tracksFliers": true,
+        "range": 24.0,
+        "damage": 1.8,
+        "accuracy": 0.95,
+        "cooldown": 1.8,
+        "penetration": 2.0,
+        "hitSpread": 0.15,
+        "roundVelocity": 320.0,
+        "flightSec": 0.05,
+        "wallDamage": 1,
+        "noiseMagnitude": 0.4,
+        "beam": { "pulseRate": 15.0, "fluxPerSecond": 9.0 }
+      },
+      "render": {
+        "tracerColor": "FFF4F2",
+        "beam": {
+          "coreWidthPx": 1.5,
+          "glowColor": "E01A12",
+          "glowWidthPx": 6.5,
+          "lifetimeSec": 0.085,
+          "texture": { "texelCells": 0.4, "scrollCellsPerSec": 6.0, "roughness": 0.8, "throbHz": 7.0 }
+        },
+        "projectileSprite": null,
+        "projectileVisualCells": 0.0
+      },
+      "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.36, "lifetime": 0.1, "color": "FF6464" }
+        ],
+        "impact": [
+          { "kind": "glow", "radius": 0.28, "lifetime": 0.12, "color": "FF5A4A" },
+          { "kind": "dust", "radius": 0.1, "lifetime": 0.12 }
+        ]
+      },
+      "audio": { "fireSound": "pulse_laser_fire", "loopSound": "laser_loop" }
+    },
+    {
+      "id": "weapon.mech-light-pulse-laser-burst",
       "mount": "mech-mount",
       "catalog": {
         "displayName": "@gearCatalogWeaponMechLightPulseLaserDisplayName",

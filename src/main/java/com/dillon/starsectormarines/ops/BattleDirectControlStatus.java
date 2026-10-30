@@ -47,7 +47,7 @@ final class BattleDirectControlStatus {
     enum Carrier { NONE, MARINE, MECH, VEHICLE, WARSHIP, TENDER }
     /** {@code ROTARY} fires while held, off a belt, at the rate its spin has reached. */
     /** {@code STREAM}: a flamer, which sends a charge each time it can for as long as the button is held. */
-    enum FireKind { SINGLE, BURST, PACKET, INDIRECT, ROTARY, STREAM }
+    enum FireKind { SINGLE, BURST, PACKET, INDIRECT, ROTARY, STREAM, BEAM }
     /** {@code SPINNING}: a rotary gun's barrels turning, its cycle fields carrying the spin. */
     enum WeaponState { BURST, RELOADING, CYCLING, LOADED, EMPTY, TOO_CLOSE, SPINNING }
     /** {@code FUEL} is a flamer's tank, counted in the charges a held button spends one at a time. */
@@ -155,10 +155,15 @@ final class BattleDirectControlStatus {
     /**
      * Scheduled releases and simultaneous packets are separate authored dimensions. {@code trigger} is a
      * magazine-fed primary's trigger mode, {@code null} for a weapon that only cycles. {@code ordnance}
-     * is what it throws, which decides how its load is drawn.
+     * is what it throws, which decides how its load is drawn. {@code fluxPerSecond} is what a held beam costs while it
+     * fires, zero for anything else.
      */
     record Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds,
-                    int projectilesPerShot, MagazineDef.Trigger trigger, Ordnance ordnance) {
+                    int projectilesPerShot, MagazineDef.Trigger trigger, Ordnance ordnance, float fluxPerSecond) {
+        Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds,
+                 int projectilesPerShot, MagazineDef.Trigger trigger, Ordnance ordnance) {
+            this(kind, projectilesPerTrigger, burstSpacingSeconds, projectilesPerShot, trigger, ordnance, 0f);
+        }
         Behavior(FireKind kind, int projectilesPerTrigger, float burstSpacingSeconds,
                  int projectilesPerShot, MagazineDef.Trigger trigger) {
             this(kind, projectilesPerTrigger, burstSpacingSeconds, projectilesPerShot, trigger, Ordnance.BALLISTIC);
@@ -492,6 +497,16 @@ final class BattleDirectControlStatus {
                                              TriggerPicks picks, float aimDistance) {
         RotaryFeed feed = mount.rotary;
         WeaponDef weapon = mount.weaponDef();
+        if (feed.beam()) {
+            // A beam counts nothing: it fires while held, and the flux it costs a second is all that stops it.
+            return new WeaponStatus(mount.slot.ordinal() + 1, mount.slot.name(), mount.component.displayName(),
+                    beamBehavior(feed, Ordnance.of(mount.component.hardpointType)),
+                    HeavyWeapons.supportsPointFire(mount), 0f, 0f, 0, 0f,
+                    new Ammo(0, 0, AmmoUnit.UNTRACKED, false),
+                    !flux.permits(mount.component.fluxPerRound(), false), mount.component.cycleLabel(),
+                    MechFireGroups.badge(mounts, picks, mount),
+                    HeavyWeapons.tooClose(mount, aimDistance), false, MechFireGroups.group(mounts, mount));
+        }
         float spinUp = feed.def().spinUpSeconds();
         return new WeaponStatus(mount.slot.ordinal() + 1, mount.slot.name(), mount.component.displayName(),
                 new Behavior(FireKind.ROTARY, BELT_BLOCK_ROUNDS, 0f, weapon.projectilesPerShot, null,
@@ -505,6 +520,11 @@ final class BattleDirectControlStatus {
 
     static WeaponStatus vehicleWeapon(GroundTurret turret, TurretMountDef mount) {
         return vehicleWeapon(turret, mount, Float.NaN);
+    }
+
+    /** A held beam: no pull, no load; its cost a second at its full pulse rate. */
+    static Behavior beamBehavior(RotaryFeed feed, Ordnance ordnance) {
+        return new Behavior(FireKind.BEAM, 1, 0f, 1, null, ordnance, feed.def().fluxPerSecond());
     }
 
     /**
@@ -569,6 +589,15 @@ final class BattleDirectControlStatus {
     static WeaponStatus vehicleWeapon(GroundTurret turret, TurretMountDef mount, float aimDistance, int number,
                                       String slotKey, String trigger, String group) {
         WeaponDef weapon = mount.weapon;
+        if (turret.rotary != null && turret.rotary.beam()) {
+            // A beam reads as it does on a mech: nothing to count, its flux a second.
+            return new WeaponStatus(number, slotKey, weapon.displayName(),
+                    beamBehavior(turret.rotary, Ordnance.of(weapon)),
+                    ManualPointFire.supportsPointFire(weapon), 0f, 0f, 0, 0f,
+                    new Ammo(0, 0, AmmoUnit.UNTRACKED, false),
+                    turret.fluxVenting(), "", trigger, ManualPointFire.tooClose(weapon, aimDistance), false, group,
+                    0);
+        }
         if (turret.rotary != null) {
             // A rotary gun reads as it does on a mech: its belt as rounds and its spin as the cycle.
             RotaryFeed feed = turret.rotary;

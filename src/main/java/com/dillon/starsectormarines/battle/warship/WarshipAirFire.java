@@ -6,6 +6,9 @@ import com.dillon.starsectormarines.battle.air.Airframe;
 import com.dillon.starsectormarines.battle.air.HullStrike;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierFlight;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierPack;
+import com.dillon.starsectormarines.battle.evacuation.flier.HarrierRules;
 import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.CombatTelemetryService;
@@ -246,6 +249,18 @@ public final class WarshipAirFire {
                     mission.strikeSortie, drop, Math.max(0f, world.hp(id)) + Math.max(0f, world.armor(id)), mission);
             crafts.add(craft);
             byId.put(id, craft);
+        }
+        // The Rav's fliers are the swarm's own bodies, not aircraft, but the guns see them as fighters: small, quick
+        // and armed. They fly no mission, so nothing ranks them as aimed at a lead, and wear no armour.
+        for (HarrierPack pack : sim.swarmFliers().packs()) {
+            for (HarrierFlight f : pack.members) {
+                if (!world.isAlive(f.id)) continue;
+                Craft craft = new Craft(f.id, Faction.DEFENDER, f.body.x, f.body.y, f.body.vx, f.body.vy,
+                        HarrierRules.RADIUS, AirTargetClass.FIGHTER, true, false,
+                        Math.max(0f, world.hp(f.id)), null);
+                crafts.add(craft);
+                byId.put(f.id, craft);
+            }
         }
     }
 

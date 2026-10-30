@@ -197,4 +197,55 @@ class RotaryFeedTest {
                     "its cycle is read from its feed");
         }
     }
+
+    /** Ten pulses a second for five flux a second. */
+    private static final RotaryFeedDef BEAM = RotaryFeedDef.beam(10f, 5f);
+
+    @Test
+    void aBeamFiresWhileHeldAtItsFullRateWithNothingToRunDryAndStopsOnRelease() {
+        RotaryFeed feed = new RotaryFeed(BEAM);
+        assertEquals(1, feed.advance(DT, true), "the first pulse leaves on the press");
+        feed.spend();
+        assertEquals(99, run(feed, true, 9.9f), 1, "ten seconds held is a hundred pulses: no belt empties");
+        assertTrue(feed.beltRounds() > 1000, "and it never reads as running dry");
+        assertEquals(0, feed.advance(DT, false), "release stops it at once");
+        assertEquals(0.5f, BEAM.fluxPerRound(), 1e-6f, "its flux a second is shared out over its pulses");
+        assertEquals(5f, BEAM.fluxPerSecond(), 1e-5f);
+    }
+
+    @Test
+    void anAutonomousBeamRestsAboveItsFluxShareUntilTheReservoirHasCooledButAPilotsDoesNot() {
+        RotaryFeed feed = new RotaryFeed(BEAM);
+        feed.demand(7L);
+        feed.observeFlux(RotaryFeedDef.BEAM_AI_STOP_SHARE);
+        assertEquals(0, feed.advance(DT, false), "at its stop share the gunner holds the beam");
+        feed.demand(7L);
+        feed.observeFlux((RotaryFeedDef.BEAM_AI_STOP_SHARE + RotaryFeedDef.BEAM_AI_RESUME_SHARE) / 2f);
+        assertEquals(0, feed.advance(DT, false), "and keeps holding while the reservoir is between the shares");
+        feed.demand(7L);
+        feed.observeFlux(RotaryFeedDef.BEAM_AI_RESUME_SHARE);
+        assertEquals(1, feed.advance(DT, false), "and lays it again once it has cooled to the resume share");
+
+        RotaryFeed piloted = new RotaryFeed(BEAM);
+        piloted.observeFlux(0.9f);
+        assertEquals(1, piloted.advance(DT, true), "a pilot's beam answers only to the reservoir's own gates");
+    }
+
+    @Test
+    void aBeamHasNothingForALoaderOrAReadyRackToMultiply() {
+        assertSame(BEAM, BEAM.fitted(4f / 3f, 1.5f));
+        RotaryFeed feed = new RotaryFeed(BEAM, 4f / 3f, 1.5f);
+        feed.fitLoader(0.5f);
+        assertSame(BEAM, feed.def());
+    }
+
+    @Test
+    void aBeamsRatedRateIsWhatTheStockFrameCanPayForOverAnEngagement() {
+        RotaryFeedDef hungry = RotaryFeedDef.beam(15f, 15f);
+        float flux = RotaryFeedDef.BEAM_AI_STOP_SHARE * 100f + 6f * RotaryFeedDef.RATED_ENGAGEMENT_SECONDS;
+        assertEquals(flux / hungry.fluxPerRound() / RotaryFeedDef.RATED_ENGAGEMENT_SECONDS,
+                hungry.ratedRoundsPerSecond(), 1e-4f, "flux-bound below its full rate");
+        assertEquals(2f, RotaryFeedDef.beam(2f, 1f).ratedRoundsPerSecond(), 1e-6f,
+                "a beam the frame can always pay for is rated at its full rate");
+    }
 }
