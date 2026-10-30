@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Earlier: the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -1145,6 +1145,58 @@ single-warhead rack every SRM and LRM was before the split (area damage at
 penetration 14 and 16), at any target. Readings are in
 `heavy-equipment-progression.md` (missile warheads); `MechVersusInfantryScene`
 is the infantry acceptance and `armorMatchup` the armor one.
+
+## Blast impulse
+
+**An explosive round's blast shoves what stands in it** (owner, 2026-10-30): a
+missile, a shell, a mortar round or a grenade pushes every body in its reach
+away from the burst, friend and foe alike, after its damage has landed. It is
+the Brute charge's machinery driven by a blast (`colony-breach-nouns.md`,
+Brute): the same slide, knockdown, hold, weight classes and hull exchange
+(`BlastImpulseSystem`, `BlastImpulseRules`).
+
+- **Per round, in data.** A weapon's `sim.blast` is `impulse` (tonne-cells a
+  second at the burst), `radius` (cells, its splash by default) and `falloff`:
+  the shove at `d` cells is `impulse * (1 - d / radius) ^ falloff`. A falloff of
+  two is a shaped charge, all of it at the point; one is a fragmentation
+  warhead's or a shell's even spread. A weapon without `sim.blast` pushes
+  nothing. Point defence that stops a rocket stops its shove too.
+- **A body on foot** weighs 0.8 t to a blast (braced on the ground), a power
+  suit 2 t. Below 0.3 cells a second a shove moves no one; up to 1 it is a step;
+  from 1 a stagger (a step and a quarter second's lost aim); and when what it
+  has taken, fading over half a second, reaches 3, it is **knocked down** for
+  the Brute trample's hold and slides as a thrown body does. So one missile
+  barely moves a man, a rack's salvo on one spot puts men down, and a power
+  suit mostly keeps its feet.
+- **A hull** takes the impulse at the point of its footprint nearest the burst
+  (`HullImpact.blast`): it slides and, struck off its centre, turns on its tires
+  or tracks (`HullSlide`), with a puff of wheel dust when the shove is felt. A
+  light hull is shoved a fraction of a cell by a salvo, a medium one barely
+  moves, and blasts together never slide a hull faster than 1.5 cells a second.
+  **A mech** slides against its feet at the Brute's mech weight, a trace at most.
+  **Heavy hulls, heavy mechs and emplacements stand.** A wall between the burst
+  and the body takes the shove, as it takes the splash; a slide stops against a
+  wall; a rider, a flier, a drone and the swarm are not pushed.
+
+| Family | Weapons | Impulse | Falloff |
+|--------|---------|---------|---------|
+| SRM, anti-armor | mech SRM racks, SRM-30, boat SRM-15 | 1.2 | 2 |
+| SRM (Frag) | mech SRM (Frag) racks | 1.0 | 1 |
+| SRM-3 (QS) | QS rack | 0.7 | 1 |
+| LRM, anti-armor | mech LRM racks, LRM-15, boat LRM-10 | 1.6 | 2 |
+| LRM (Frag) | mech LRM (Frag) racks | 1.3 | 1 |
+| Infantry rockets | SRM-1, SRM-1 (QS), SRM-3 (Pod) | 1.4, 0.9, 0.8 | 1.5 |
+| Locust turret and battery | per missile | 1.0 | 1.5 |
+| Demolition cannon | DC-5, DC-4 (QS) | 3.0, 2.0 | 1 |
+| Heavy cannon HE | HC-20, HC-10 | 1.2, 0.8 | 2 |
+| Gun HE | tank twin cannon, Hephaestus | 1.8, 1.5 | 1.5 |
+| Mortars | vehicle, heavy turret, field | 2.4, 2.6, 1.8 | 1 |
+| Grenades | frag grenade, turret grenade launcher | 0.8, 0.6 | 1 |
+
+The radius is each weapon's splash. Autocannon, chainguns, machine guns,
+lasers, flamers, incendiary grenades and the swarm's acid and spores carry no
+blast. `-Dbattle.blastImpulse=false` is the control: nothing is pushed.
+`BlastImpulseScene` (`sceneEvidence -Pscene=blast-impulse`) is the acceptance.
 
 ## Ground clearance and arrival
 
