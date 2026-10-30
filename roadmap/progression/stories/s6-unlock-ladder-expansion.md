@@ -233,9 +233,9 @@ depend on a specific faction relationship or random drop.
 Every card now explicitly authors a Common, Advanced, or Prestige access tier.
 The shared faction picker applies it before weighting candidates, so market,
 license, patron, and recovery cannot drift into four definitions of advanced.
-Open markets are Common-only. Licensed stock still requires Favorable faction
-standing and uses the existing MRB 5/20 bands; patron rewards use the same MRB
-bands. High-risk recovery is independent of MRB and opens Advanced after 5
+The store's open-market and licensed shelves are paced by the Kit Ladder
+(`progression-nouns.md`), not by tier; licensed stock still requires Favorable
+faction standing. Patron rewards use the MRB 5/20 bands. High-risk recovery is independent of MRB and opens Advanced after 5
 company victories and Prestige after 15. Starter cards and the deterministic
 breadth safety net remain direct Armory protection outside faction eligibility.
 

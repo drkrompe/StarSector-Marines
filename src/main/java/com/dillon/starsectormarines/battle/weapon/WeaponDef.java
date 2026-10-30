@@ -222,6 +222,10 @@ public final class WeaponDef {
      * ({@code HeldFireLoops}). Null for a weapon heard one clip per shot.
      */
     public final String loopSoundId;
+    /** How {@link #loopSoundId} lives on after the last pulse: hold, fade and pitch sag ({@code audio.loopTail} etc.). */
+    private HeldLoopEnvelope loopEnvelope = HeldLoopEnvelope.DEFAULT;
+
+    public HeldLoopEnvelope loopEnvelope() { return loopEnvelope; }
 
     private WeaponDef(String id, MountClass mount, String displayName,
                       boolean designationTiered,
@@ -440,6 +444,7 @@ public final class WeaponDef {
             throw new JSONException("Weapon '" + def.id
                     + "' declares render.beam for a projectile-sprite weapon");
         }
+        def.loopEnvelope = HeldLoopEnvelope.parse(audio, id);
         def.incendiaryHeat = Math.max(0, sim.optInt("incendiaryHeat", 0));
         def.blast = BlastImpulse.parse(sim.optJSONObject("blast"), def.aoeRadius, id);
         if (def.blast != null && !(def.aoeRadius > 0f)) {

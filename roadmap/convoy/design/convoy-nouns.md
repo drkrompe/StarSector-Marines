@@ -1572,9 +1572,10 @@ the lance swells and fades with the power delivered to it. The knots run on one
 presentation clock, so a stream of short overlapping pulses reads as one lance being
 fed: the PD laser's held red throbs, the burst laser's blue comes in bursts.
 It is heard the same way: a weapon that authors `audio.loopSound` holds the loop while pulses keep
-arriving, after its fire clip (if it names one) once as the lance starts. The PD laser holds the
-tactical laser's `laser_loop` with no intro, since a lance every second and a quarter would repeat the
-wind-up; the burst laser is heard one `burst_pd_fire` per shot.
+arriving, after its fire clip (if it names one) once as the lance starts, and lets it spin down over
+its authored tail (`mechs-nouns.md`, beam weapon). The PD laser holds the tactical laser's
+`laser_loop` with no intro, since a lance every second and a quarter would repeat the wind-up; the
+burst laser opens each burst with `burst_pd_fire` under the same loop.
 
 Acceptance is the `tank-versus-infantry` scene (each laser fires at men, and none of
 its rounds carries blast or wall damage) and the `tank-versus-air` scene (each laser

@@ -228,11 +228,12 @@ the Marine Armory. It never enters vanilla ship-production knowledge.
 Access tier is explicit card data, not inferred from weapon grade, armor role,
 faction, issue price, or collectible presentation. This lets a provider author
 a rare low-tech curiosity or widely circulated advanced tool without changing
-Java. Every faction consumer applies the same tier vocabulary: unrestricted
-open markets admit only `common`; licensed and patron offers admit `advanced`
-at MRB 5 and `prestige` at MRB 20; high-risk recovery admits those bands after
-5 and 15 company victories respectively. Relationship standing remains an
-additional requirement for licensed market stock. Starter issue and the
+Java. Patron offers admit `advanced` at MRB 5 and `prestige` at MRB 20, and
+high-risk recovery admits those bands after 5 and 15 company victories. The
+company store's open-market and licensed shelves are paced by the Kit Ladder
+instead (`progression-nouns.md`), so a provider card sells there only once it has
+a station; relationship standing remains an additional requirement for licensed
+stock. Starter issue and the
 collection-breadth safety net are direct Armory grants and do not consult a
 faction channel.
 

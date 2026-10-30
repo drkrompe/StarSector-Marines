@@ -151,7 +151,7 @@ class MilitaryWarrantsTest {
     }
 
     @Test
-    void theSafetyNetAndVictoryMilestonesNeverGrantARestrictedCard() {
+    void theSafetyNetNeverGrantsARestrictedCard() {
         MarineArmory armory = new MarineArmory();
         for (int win = 0; win < 60; win++) armory.recordVictory(true);
 

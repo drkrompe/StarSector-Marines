@@ -33,7 +33,9 @@ import java.util.Random;
  * as {@link WarshipAudio#play} plays them, at its pitch for each kind, a tick after the advance that raised them. The listener is the view's centre, as it is the screen's in a battle. A skitterer's work loop
  * and a Bombard haze's hiss are logged on every tick they are held, with the slot as {@code loop}; so is a weapon's
  * held loop ({@code audio.loopSound}), decided by the screen's own {@link HeldFireLoops} and
- * {@link BattleShotAudio#startsSound}: its fire clip once as a lance starts, then its loop while pulses keep coming.
+ * {@link BattleShotAudio#startsSound}: its fire clip once as a lance starts, then its loop while pulses keep coming
+ * and through its tail, each tick at the voice's level and pitch; a weapon that authors its tail
+ * ({@code HeldLoopEnvelope}) also logs the engine {@code fadeIn} and {@code fadeOut} the screen passes.
  * Fire and impact clips get the screen's pitch roll (within {@link BattleShotAudio#PITCH_JITTER} of 1), drawn from a
  * seeded stream so the same battle mixes the same.
  * The battle music is the screen's {@link BattleMusicDirector}, run on the same facts: each cue is a line with
@@ -141,7 +143,10 @@ public final class BattleSoundLog {
         }
         for (HeldFireLoops.Voice voice : weaponLoops.held()) {
             int slot = loopSlots.computeIfAbsent(voice, ignored -> nextLoopSlot++);
-            loop(lines, voice.loopSoundId(), voice.x(), voice.y(), 1f, voice.volume(), slot, at);
+            // An authored tail carries the engine fades the screen passes; its envelope already shapes the level.
+            String fades = voice.authored() ? String.format(Locale.ROOT, ", \"fadeIn\": %.3f, \"fadeOut\": %.3f",
+                    voice.fadeIn(), voice.fadeOut()) : "";
+            loop(lines, voice.loopSoundId(), voice.x(), voice.y(), voice.pitch(), voice.volume(), slot, at, fades);
         }
         for (ShotEvent shot : sim.getShotsExpiredThisFrame()) {
             if (ShotFx.of(shot).travels()) impact(lines, shot, at);
@@ -230,10 +235,15 @@ public final class BattleSoundLog {
 
     /** A placed loop held this tick: one line a tick while it sounds, its slot in {@code loop}. */
     private void loop(StringBuilder out, String id, float x, float y, float pitch, float volume, int slot, float[] at) {
+        loop(out, id, x, y, pitch, volume, slot, at, "");
+    }
+
+    private void loop(StringBuilder out, String id, float x, float y, float pitch, float volume, int slot, float[] at,
+                      String extra) {
         out.append(String.format(Locale.ROOT,
                 "{\"frame\": %d, \"id\": \"%s\", \"x\": %.2f, \"y\": %.2f, \"pitch\": %.4f, \"volume\": %.3f,"
-                        + " \"listenerX\": %.2f, \"listenerY\": %.2f, \"loop\": %d}%n",
-                frame, id, x, y, pitch, volume, at[0], at[1], slot));
+                        + " \"listenerX\": %.2f, \"listenerY\": %.2f, \"loop\": %d%s}%n",
+                frame, id, x, y, pitch, volume, at[0], at[1], slot, extra));
     }
 
     private void line(StringBuilder out, String id, float x, float y, float pitch, float volume, float[] at) {

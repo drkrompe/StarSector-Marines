@@ -96,14 +96,13 @@ public record MechPattern(Kind kind, String definitionId) {
     }
 
     /**
-     * What a new company knows: the Hound, the weapons the Hound teaches (the chaingun, its nose gun, and
-     * both SRM-5 warheads, so the first rack can answer men and the first armor alike), and the
-     * stock frame's internals every chassis is built with.
+     * What a new company knows, the Kit Ladder's start ({@link KitLadder}): the Hound, a light machine gun and the
+     * fragmentation SRM-5 to arm it against the men the first operations are fought against, and the stock frame's
+     * internals every chassis is built with. The chaingun and the anti-armor SRM-5 go on sale after Counterattack.
      */
     public static final List<MechPattern> STARTER = List.of(
             of(MechVariant.HOUND),
-            of(MechWeaponComponent.CHAINGUN),
-            of(MechWeaponComponent.SRM_5),
+            of(MechWeaponComponent.LIGHT_MACHINE_GUN),
             of(MechWeaponComponent.SRM_5_FRAG),
             of(MechInternal.INDUSTRIAL_ENGINE),
             of(MechInternal.FACTORY_PLATING),
