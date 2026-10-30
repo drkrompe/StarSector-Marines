@@ -361,7 +361,7 @@ class MechLabViewModelTest {
         assertEquals(1, viewModel.gantryDeployments().size());
         assertTrue(viewModel.slotRows().get().isEmpty());
         assertTrue(viewModel.slotRackClasses().get().contains("hidden"));
-        assertTrue(viewModel.catalogRows().get().isEmpty());
+        assertTrue(onlyRackParts(viewModel.catalogRows().get()), "no kit is known, so the rack lists only its flux parts");
         assertTrue(viewModel.categoryFilterPills().get().isEmpty());
         assertNull(viewModel.installedWeapon(SocketId.LEFT_ARM));
         assertNull(viewModel.socketDefinition(SocketId.LEFT_ARM));
@@ -479,7 +479,13 @@ class MechLabViewModelTest {
         assertTrue(viewModel.feedbackText().get().contains("fabricated"));
         assertTrue(resources.credits < 60_000);
         assertEquals(1, changes.get());
-        assertTrue(viewModel.catalogRows().get().isEmpty());
+        assertTrue(onlyRackParts(viewModel.catalogRows().get()), "no kit is known, so the rack lists only its flux parts");
+    }
+
+    private static boolean onlyRackParts(List<MechLabViewModel.CatalogRow> rows) {
+        return rows.stream().allMatch(row -> Arrays.stream(MechInternal.values())
+                .anyMatch(part -> part.displayName().equals(row.name())
+                        && (part.role == MechInternal.Role.CAPACITOR_BANK || part.role == MechInternal.Role.VENT_ARRAY)));
     }
 
     @Test

@@ -204,8 +204,16 @@ increasing an encounter's total armored threat.
   as a mech's, with the drive in the middle, the turret ahead, the secondary
   mounts and the bay (seats, supply stock or drones) either side and the kit rack
   behind, every card but the rack, the engine core, the gun card and the armor point
-  **sealed** with its factory part drawn in it, readable and never draggable. The rack holds one kit per slot:
-  a Light hull has one slot, a Medium two, a Heavy three (`VehicleType.weight`). A
+  **sealed** with its factory part drawn in it, readable and never draggable. The rack is
+  compartment-packed as a mech's compartment is (`VehicleRack`, owner 2026-10-30): a Light hull has
+  one 2x2 bay (2 slots), a Medium one 2x3 bay (3), a Heavy two 2x2 bays (4)
+  (`VehicleType.weight`). A slot is a two-column row; a kit takes one. The rack also takes the mech's
+  own **capacitor banks** and **vent arrays** at their mech footprints (factory and double bank
+  2x1, military bank 2x2, vent array 2x1), at most one bank: the bank and every vent array are
+  the hull's flux reservoir at the drop (`VehicleRack.frame`, `convoy-nouns.md`, hull flux). An
+  **armed** hull with no bank is **incomplete** and stays off the drop manifest, as a mech is;
+  every armed hull is built with a bank (the laser tank the military bank, the rest the factory
+  bank), and fitting another bank returns the old one to stores. An unarmed hull takes none. A
   vehicle carries at most one of each kit, and a kit may need something of the hull
   (a magazine to extend, a gun to feed). Kits are inventory parts exactly as internals are:
   learned as patterns, bought for their price into stores, dragged onto the rack and
@@ -217,15 +225,14 @@ increasing an encounter's total armored threat.
   - **Ready rack** (Common, hulls whose own gun has a magazine): half again the turret's magazine.
   - **Accelerated loader** (Advanced, hulls whose own gun has a loader): every mount's loader puts a
     pack back in three quarters of the stock time (`convoy-nouns.md`, the loader).
-  - **Capacitor pack** (Advanced, armed hulls, whose every gun builds flux):
-    half again the flux the gun holds before it overloads.
   - **Sensor drone pair** (Advanced, hulls with no bay of their own): two sensor
     drones that fly ahead of the bow, so an indirect-fire hull fed by them fires
     over cover with no spotter (`convoy-nouns.md`, the missile carriers).
   A new kit joins by taking a slot and a spawn-time effect; anything that needs a
   behaviour or a system of its own (active protection, a blade, a mortar) stays a
   **variant** (`heavy-equipment-progression.md`, Vehicles: variants and kits).
-  A vehicle saved before kits has an empty rack; a bought hull comes with one.
+  A bought hull comes with its bank and an empty kit row; a hull saved before the
+  rack held banks loads with none and stays off the drop until one is fitted.
 - A vehicle's **engine core** (`SocketId.CORE`) takes the same engine parts a mech runs
   (`MechInternal`, engine role), as the armor point takes plating (owner, 2026-10-28: a vehicle is a
   mech for parts). The hull's own drive is no part: an empty engine core is that drive, drawn as the

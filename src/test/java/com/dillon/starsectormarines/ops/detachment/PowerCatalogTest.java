@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
+import com.dillon.starsectormarines.battle.power.WolfStrike;
 import com.dillon.starsectormarines.battle.vehicle.VehicleDeploymentSpec;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.ops.Mission;
@@ -42,6 +43,12 @@ class PowerCatalogTest {
         }
     }
 
+
+    @Test
+    void everyWolfGrantsWolfStrikeAndNoOtherHullDoes() {
+        assertEquals(List.of(WolfStrike.ID), PowerCatalog.contributedPowerIds("wolf", Set.of()));
+        assertEquals(List.of(), PowerCatalog.contributedPowerIds("hound", Set.of()));
+    }
 
     @Test
     void valkyrieGrantsMechSupportForTheWholeBay() {

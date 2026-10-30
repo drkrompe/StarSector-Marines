@@ -40,29 +40,21 @@ class GroundTurretTest {
     }
 
     @Test
-    void kitsSetTheLoaderAndTheFluxTheGunOverloadsAt() {
+    void kitsSetTheLoader() {
         TurretMountDef lrm = VehicleType.LRM_CARRIER.turretStructure().mount;
         GroundTurret stock = GroundTurret.fitted(lrm, lrm.ammoCapacity, VehicleKit.Effect.NONE, null);
         assertEquals(lrm.loaderSeconds, stock.loaderSeconds);
-        assertEquals(lrm.flux.control().capacity(), stock.fluxCapacity(lrm));
-
-        VehicleKit.Effect kits = VehicleKit.Effect.of(List.of(VehicleKit.ACCELERATED_LOADER, VehicleKit.CAPACITOR_PACK));
-        GroundTurret fitted = GroundTurret.fitted(lrm, lrm.ammoCapacity, kits, null);
+        GroundTurret fitted = GroundTurret.fitted(lrm, lrm.ammoCapacity,
+                VehicleKit.Effect.of(List.of(VehicleKit.ACCELERATED_LOADER)), null);
         assertEquals(lrm.loaderSeconds * .75f, fitted.loaderSeconds, 1e-5f);
-        assertEquals(lrm.flux.control().capacity() * 1.5f, fitted.fluxCapacity(lrm), 1e-4f);
-
-        int stockRounds = roundsToOverload(stock, lrm);
-        int fittedRounds = roundsToOverload(fitted, lrm);
-        assertTrue(fittedRounds > stockRounds, "a capacitor pack holds more rounds before it overloads");
     }
 
     @Test
-    void theHullReservoirIsTheHullsFrameAndEveryReaderReadsIt() {
-        HullReservoir.Frame stock = HullReservoir.frame(VehicleType.LRM_CARRIER, List.of());
-        HullReservoir.Frame packed = HullReservoir.frame(VehicleType.LRM_CARRIER, List.of(VehicleKit.CAPACITOR_PACK));
-        assertEquals(stock.capacity() * 1.5f, packed.capacity(), 1e-4f);
-        assertEquals(stock.dissipationPerSecond(), packed.dissipationPerSecond());
-        assertNull(HullReservoir.frame(VehicleType.SUPPLY_TRUCK, List.of()), "no gun, no reservoir");
+    void anArmedHullOwnedByNobodyRunsItsStockBankAndEveryReaderReadsTheReservoir() {
+        assertEquals(HullReservoir.FACTORY_BANK, HullReservoir.stockFrame(VehicleType.LRM_CARRIER));
+        assertEquals(HullReservoir.MILITARY_BANK, HullReservoir.stockFrame(VehicleType.LASER_TANK),
+                "the laser tank's lasers are flux hogs");
+        assertNull(HullReservoir.stockFrame(VehicleType.SUPPLY_TRUCK), "no gun, no reservoir");
 
         TurretMountDef lrm = VehicleType.LRM_CARRIER.turretStructure().mount;
         GroundTurret turret = new GroundTurret(lrm.ammoCapacity);
@@ -72,7 +64,6 @@ class GroundTurretTest {
         assertEquals(20f, turret.fluxValue());
         assertFalse(turret.fluxVenting());
     }
-
     @Test
     void everyGunAHullCarriesBuildsFlux() {
         for (VehicleType type : VehicleType.values()) {
@@ -84,13 +75,4 @@ class GroundTurretTest {
         }
     }
 
-    private static int roundsToOverload(GroundTurret turret, TurretMountDef mount) {
-        int rounds = 0;
-        while (!turret.overloaded) {
-            assertFalse(rounds > 1000);
-            GroundVehicleTurretSystem.addFlux(turret, mount);
-            rounds++;
-        }
-        return rounds;
-    }
 }

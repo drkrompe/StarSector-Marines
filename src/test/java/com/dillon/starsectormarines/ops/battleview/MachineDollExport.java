@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechMountSlot;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.MechInternal;
 
@@ -24,9 +23,9 @@ public final class MachineDollExport {
     }
 
     /** {@link VehicleDoll#caption}. */
-    public static String vehicleCaption(VehicleType type, SocketId card, List<VehicleKit> kits, MechInternal plating,
+    public static String vehicleCaption(VehicleType type, SocketId card, int rackRows, MechInternal plating,
                                         MechInternal engine, MechWeaponComponent gun) {
-        return VehicleDoll.caption(type, card, kits, plating, engine, gun);
+        return VehicleDoll.caption(type, card, rackRows, plating, engine, gun);
     }
 
     /** {@link MechLabDollCanvas#mountFor}: the weapon mount a mech socket holds, null for an internal one. */

@@ -76,8 +76,7 @@ public final class MechFabricationCatalog {
             kit(VehicleKit.SPALL_LINER, "@gearFabricationStandardIssue"),
             kit(VehicleKit.READY_RACK, "@gearFabricationStandardIssue"),
             kit(VehicleKit.SENSOR_PAIR, "@gearFabricationMilitaryPattern"),
-            kit(VehicleKit.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"),
-            kit(VehicleKit.CAPACITOR_PACK, "@gearFabricationMilitaryPattern"));
+            kit(VehicleKit.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"));
 
     /**
      * Prices sit beside the chassis of the same weight class: a hull is cheaper than a walker, and brings at least as much structure plus armor per credit as the class's mech (see

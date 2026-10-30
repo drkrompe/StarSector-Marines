@@ -10,6 +10,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.CampaignVehicle;
 import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
+import com.dillon.starsectormarines.marine.VehicleRack;
 import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.ops.battleview.HeadlessArmoryPreviewRenderer;
 import com.dillon.starsectormarines.ops.battleview.HeadlessBattleSceneRenderer;
@@ -155,15 +156,23 @@ public final class MachineDollSnapshotSuite implements SnapshotSuite {
     }
 
     private static JSONObject vehicleSocket(MechLabViewModel viewModel, VehicleType type, SocketDef socket) throws Exception {
-        List<VehicleKit> kits = viewModel.installedKits();
+        List<VehicleRack.Placement> rack = viewModel.installedRack();
+        int rackRows = 0;
+        for (VehicleRack.Placement part : rack) rackRows += part.rows();
         JSONObject row = socketRow(socket);
-        row.put("caption", MachineDollExport.vehicleCaption(type, socket.id(), kits,
+        row.put("caption", MachineDollExport.vehicleCaption(type, socket.id(), rackRows,
                 viewModel.installedInternal(SocketId.PLATING), viewModel.installedInternal(SocketId.CORE),
                 viewModel.installedWeapon(SocketId.ARMS)));
-        if (socket.id() == SocketId.AUXILIARY) {
+        if (socket.id().compartment()) {
             row.put("kitSlots", VehicleKit.slots(type));
             JSONArray holds = new JSONArray();
-            for (VehicleKit kit : kits) holds.put(part(kit.id, kit.displayName(), 1, 1));
+            for (VehicleRack.Placement part : rack) {
+                if (part.grid() != socket.id()) continue;
+                VehicleKit kit = part.part().kit();
+                MechInternal internal = part.part().internal();
+                holds.put(kit != null ? part(kit.id, kit.displayName(), part.columns(), part.rows())
+                        : part(internal.id, internal.displayName(), part.columns(), part.rows()));
+            }
             row.put("holds", holds);
         }
         return row;
