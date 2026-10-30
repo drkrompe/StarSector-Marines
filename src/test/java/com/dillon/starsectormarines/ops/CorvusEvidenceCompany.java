@@ -6,6 +6,7 @@ import com.dillon.starsectormarines.battle.fixture.BattleLaunchOverlay;
 import com.dillon.starsectormarines.battle.fixture.FiniteCommandPowerResources;
 import com.dillon.starsectormarines.battle.flyby.FlybyRoster;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.power.CommandPower;
@@ -57,8 +58,9 @@ final class CorvusEvidenceCompany {
      * @param squadWeapons the weapon card every squad is issued
      * @param houndPod     the Hound's left-shoulder pod, or {@code null} for none
      * @param vehicles     the vehicles on the lance's gantries beside the Hound, called down after it
+     * @param mechs        standard-fit mechs on the lance's gantries, called down after the Hound and before the vehicles
      */
-    record Kit(String squadWeapons, MechWeaponComponent houndPod, List<VehicleType> vehicles) {
+    record Kit(String squadWeapons, MechWeaponComponent houndPod, List<VehicleType> vehicles, List<MechVariant> mechs) {
         /** The first contract's kit: Field Security rifles and the Hound as recovered. */
         static final Kit RECOVERED = new Kit(SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS, null, List.of());
         /** What a prepared company brings to the Corvus account: the Convoy Escort Issue and the Hound's SRMs. */
@@ -67,10 +69,24 @@ final class CorvusEvidenceCompany {
 
         Kit {
             vehicles = List.copyOf(vehicles);
+            mechs = List.copyOf(mechs);
         }
 
-        /** Machines aboard: the Hound and every vehicle. */
-        int machines() { return 1 + vehicles.size(); }
+        Kit(String squadWeapons, MechWeaponComponent houndPod, List<VehicleType> vehicles) {
+            this(squadWeapons, houndPod, vehicles, List.of());
+        }
+
+        /** Machines aboard: the Hound, its mechs and every vehicle. */
+        int machines() { return 1 + mechs.size() + vehicles.size(); }
+
+        /**
+         * This kit as {@code chapter} is played: A Cold Account brings {@link ColdAccountCompany}'s bay unless the
+         * properties named machines of their own.
+         */
+        Kit forChapter(CorvusChapter chapter) {
+            if (chapter != CorvusChapter.COLD_ACCOUNT || !vehicles.isEmpty() || !mechs.isEmpty()) return this;
+            return new Kit(squadWeapons, houndPod, ColdAccountCompany.VEHICLES, ColdAccountCompany.MECHS);
+        }
 
         /** The kit the system properties name, {@link #RECOVERED} where they name nothing. */
         static Kit fromSystemProperties() {
@@ -127,6 +143,9 @@ final class CorvusEvidenceCompany {
                 houndDeployment(kit.houndPod()))))
             throw new IllegalStateException("the Hound did not board");
         String lance = roster.mechBay().activeSquad().id();
+        for (MechVariant variant : kit.mechs())
+            if (roster.mechBay().fabricateChassis(lance, variant) == null)
+                throw new IllegalStateException(variant + " did not board");
         for (int i = 0; i < kit.vehicles().size(); i++) {
             VehicleType type = kit.vehicles().get(i);
             if (!roster.mechBay().addVehicle(lance, new CampaignVehicle("evidence_vehicle_" + i, type.name(), type)))
