@@ -177,7 +177,10 @@ public final class ConvoyService implements BodyCarrier {
         if (turret != null && weapon != null) {
             turret.structure = fittedStructure;
             turret.weapon = weapon;
-            if (weapon.rotary() != null) turret.rotary = new RotaryFeed(weapon.rotary());
+            // The hull's loader paces the hopper as it does every magazine; a ready rack deepens the belt.
+            if (weapon.rotary() != null) {
+                turret.rotary = new RotaryFeed(weapon.rotary(), fitted.loaderFactor(), fitted.ammoFactor());
+            }
         }
         HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null, fitted);
         if (turret != null) {

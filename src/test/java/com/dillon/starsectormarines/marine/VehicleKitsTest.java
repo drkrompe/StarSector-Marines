@@ -31,10 +31,12 @@ class VehicleKitsTest {
                 List.of(VehicleKit.SPALL_LINER, VehicleKit.SPALL_LINER)), "no kit twice");
         assertFalse(VehicleKit.READY_RACK.suits(VehicleType.SUPPLY_TRUCK), "no magazine to extend");
         assertTrue(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.FIRE_SUPPORT_APC));
-        assertFalse(VehicleKit.READY_RACK.suits(VehicleType.HEAVY_APC), "a belt-fed light machine gun has no magazine");
-        assertFalse(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.HEAVY_APC), "nor a loader");
+        for (VehicleType beltFed : List.of(VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL,
+                VehicleType.DOZER_BREACHER)) {
+            assertTrue(VehicleKit.READY_RACK.suits(beltFed), "a belt-fed gun's belt deepens: " + beltFed);
+            assertTrue(VehicleKit.ACCELERATED_LOADER.suits(beltFed), "and its hopper feeds faster: " + beltFed);
+        }
         assertFalse(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.SUPPLY_TRUCK), "no gun to feed");
-
     }
 
     @Test

@@ -590,8 +590,10 @@ mortar 6 s, the hover pulse emitter 4 s. The lasers' are quicker than their flux
 lets them fire (1.2 s and 1.5 s), so a laser tank's limit is its flux, as a
 mech laser's is. Two kits make it an upgrade path, each competing for rack
 room with the liner and the flux parts (`mechs-nouns.md`, vehicle kit): the **ready
-rack** deepens the magazine (a bigger spike) and the **accelerated loader** cuts
-every pack's time to three quarters (a better sustained rate). A bigger bank or a
+rack** deepens the magazine or a rotary gun's belt (a bigger spike) and the
+**accelerated loader** cuts every pack's time to three quarters and feeds a rotary
+gun's hopper four thirds as fast (a better sustained rate, by the one loader rule a
+mech's loader part follows, `mechs-nouns.md`, missile replenisher). A bigger bank or a
 vent array on the rack is the flux upgrade (hull flux, below).
 
 **Every hull gun builds flux** (owner, 2026-10-26; `TurretMountDef.flux`), as a
@@ -852,8 +854,11 @@ technical, the dozer) carries the mech light machine gun as its own gun
 (`VehicleType.ownGun`): the rotary, held-trigger gun a mech wears, fed from its
 belt, in the hull's heavy-MG carriage (traverse, flux bank, hit shares) and
 drawn as a fitted weapon is, on the hull's mount ring. The heavy MG survives only
-as the emplacement and boat door gun. A belt-fed gun has no magazine or loader,
-so the ready rack and the accelerated loader do not suit these hulls.
+as the emplacement and boat door gun. A belt-fed gun has no magazine, but its belt
+and hopper are fed: the ready rack lengthens the belt by half and the accelerated
+loader feeds the hopper a third faster, the item-based way these hulls close on the
+old heavy MG, whose base numbers the light machine gun does not take (owner,
+2026-10-30).
 
 The APC hull and its roof gun are separate overhead silhouettes. The tapered
 nose and sloped glacis distinguish the front from the broad troop compartment

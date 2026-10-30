@@ -157,6 +157,7 @@ public class BattleSprites {
     private LayeredSpriteCache vehicleTurretCollar;
     private LayeredSpriteCache vehicleTurretBase;
     private LayeredSpriteCache vehicleTurretBaseLight;
+    private LayeredSpriteCache vehicleGunPlate;
 
     // ---- vehicle sheets -----------------------------------------------------
 
@@ -292,6 +293,11 @@ public class BattleSprites {
     public LayeredSpriteCache vehicleTurretCollar() { return vehicleTurretCollar; }
     /** The round base a laser stands in on a modular turret: two rows or more, one row. Null when the art did not load. */
     public LayeredSpriteCache vehicleTurretBase(boolean light) { return light ? vehicleTurretBaseLight : vehicleTurretBase; }
+    /**
+     * The armoured plate that turns with a fitted weapon on a fixed hull's mount ring, gun slot to the top
+     * ({@link com.dillon.starsectormarines.battle.vehicle.VehicleGun#plateCells}). Null when the art did not load.
+     */
+    public LayeredSpriteCache vehicleGunPlate() { return vehicleGunPlate; }
     /** Pools under fallen layered bodies; empty when the art did not load. */
     public List<LayeredSpriteCache> bloodPools() { return bloodPools; }
 
@@ -1357,6 +1363,7 @@ public class BattleSprites {
         vehicleTurretCollar = loadLayeredSprite("graphics/battle/vehicles/turret-collar.png");
         vehicleTurretBase = loadLayeredSprite("graphics/battle/vehicles/turret-base-medium.png");
         vehicleTurretBaseLight = loadLayeredSprite("graphics/battle/vehicles/turret-base-light.png");
+        vehicleGunPlate = loadLayeredSprite("graphics/battle/vehicles/gun-plate.png");
         mechBase = new MechBase(socketedChassis, foot, thighBone, flash);
     }
 
