@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops.battleview;
 
+import com.dillon.starsectormarines.battle.warship.WarshipSoundCue;
 import com.dillon.starsectormarines.battle.audio.BattleMusicDirector;
 import com.dillon.starsectormarines.battle.audio.BattleMusicFacts;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
@@ -26,7 +27,8 @@ import java.util.Random;
  * from {@link MarineBarks.Mix#hear}, the same rules and
  * levels the game plays them at; the fire from {@link BattleShotAudio#cue}; impacts, a flak round's air-burst among
  * them, from {@link ShotImpactAudio#resolve}, at fire for a line tracer and on arrival for a round that travels, as
- * the screen plays them. The listener is the view's centre, as it is the screen's in a battle. A skitterer's work loop
+ * the screen plays them; the warships' cues (their guns, their rounds landing, the deck's boom and a low pass's roar)
+ * as {@link WarshipAudio#play} plays them, at its pitch for each kind, a tick after the advance that raised them. The listener is the view's centre, as it is the screen's in a battle. A skitterer's work loop
  * and a Bombard haze's hiss are logged on every tick they are held, with the slot as {@code loop}; held beam loops are not logged.
  * The battle music is the screen's {@link BattleMusicDirector}, run on the same facts: each cue is a line with
  * {@code music} (the sound id, or empty for silence), its fades, the state and the reason, and each change of state
@@ -128,6 +130,10 @@ public final class BattleSoundLog {
             line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
         for (MarineBarks.Play p : barks.hear(sim))
             line(lines, p.soundId(), p.x(), p.y(), p.pitch(), p.volume(), at);
+        for (WarshipSoundCue cue : sim.warships().cuesThisFrame()) {
+            if (cue.kind() == WarshipSoundCue.Kind.BEAM_BURNING) continue;
+            line(lines, cue.soundId(), cue.x(), cue.y(), WarshipAudio.basePitch(cue.kind()), cue.volume(), at);
+        }
         for (ShotEvent shot : sim.getShotsThisFrame()) {
             BattleShotAudio.Cue cue = BattleShotAudio.cue(shot);
             if (cue.soundId() != null) line(lines, cue.soundId(), shot.fromX, shot.fromY, 1f, cue.volume(), at);

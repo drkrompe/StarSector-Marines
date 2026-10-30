@@ -1,10 +1,16 @@
 package com.dillon.starsectormarines.ops.battleview;
 
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Map;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 class BattleSoundMixTest {
@@ -52,5 +58,17 @@ class BattleSoundMixTest {
         float[] faded = new float[6];
         BattleSoundMix.hold(new float[] {1f}, 1f, 0, 2, new float[] {1f, 1f, 1f}, new float[3], 2, faded, new float[6]);
         assertArrayEquals(new float[] {0f, 0.5f, 1f, 1f, 0.5f, 0f}, faded);
+    }
+
+    @Test
+    void anIdGivenAsAnObjectWithItsSoundsResolvesLikeAPlainList(@TempDir Path mod) throws Exception {
+        Files.createDirectories(mod.resolve("data/config"));
+        Files.writeString(mod.resolve("data/config/sounds.json"), """
+                {"plain_fire":[{"file":"sounds/a.ogg"}],
+                 "missile_blast":{"sounds":[{"file":"sounds/b.ogg","volume":0.5},{"file":"sounds/c.ogg"}]}}""");
+        Map<String, List<BattleSoundMix.Take>> takes = BattleSoundMix.takes(mod);
+        assertEquals(1, takes.get("plain_fire").size());
+        assertEquals(2, takes.get("missile_blast").size());
+        assertEquals(0.5f, takes.get("missile_blast").get(0).volume(), 1e-6f);
     }
 }
