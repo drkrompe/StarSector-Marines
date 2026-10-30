@@ -353,12 +353,12 @@ public final class ConvoyRenderSystem implements RenderSystem {
     }
 
     /**
-     * The gun's flux made visible ({@link FluxHaze}): a purple haze over the hull's vents that thickens as flux builds
-     * ({@code TurretMountDef#flux}), and a bright lavender plume while it vents.
+     * The hull's flux made visible ({@link FluxHaze}): a purple haze over the hull's vents that thickens as its
+     * reservoir fills ({@code GroundTurret#reservoir}), and a bright lavender plume while it vents.
      */
     private void collectFluxHaze(RenderContext ctx, VehicleType type, GroundTurret turret, GroundBody body,
                                  BattleCamera cam, float cellPx, float alphaMult, DrawList out) {
-        if (turret == null) return;
+        if (turret == null || turret.reservoir == null) return;
         StructureDef structure = turret.structureFor(type);
         // Every hull gun builds flux; only a hull whose art authors vents shows it rising off them.
         if (structure == null || structure.mount.flux == null || type.fluxVentAftCells() <= 0f) return;

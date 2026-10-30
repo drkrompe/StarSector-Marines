@@ -1903,12 +1903,17 @@ public final class Warship {
 
     /** Keeps the pass's firing circle on {@code (cx, cy)}, for every battery the ship has. */
     void layPassFire(float cx, float cy) {
+        layPassFire(cx, cy, LowPass.CORRIDOR_HALF_WIDTH_CELLS);
+    }
+
+    /** As above, with a circle of {@code radius} cells (a strafe's). */
+    void layPassFire(float cx, float cy, float radius) {
         for (FireGroup g : FireGroup.values()) {
             if (!hasBattery(g)) continue;
             WarshipOrder.FireOnArea have = laid.get(g);
             if (have != null && Math.abs(have.x() - cx) < 0.5f && Math.abs(have.y() - cy) < 0.5f
-                    && have.radius() == LowPass.CORRIDOR_HALF_WIDTH_CELLS) continue;
-            layArea(g, new WarshipOrder.FireOnArea(cx, cy, LowPass.CORRIDOR_HALF_WIDTH_CELLS, false));
+                    && have.radius() == radius) continue;
+            layArea(g, new WarshipOrder.FireOnArea(cx, cy, radius, false));
         }
     }
 
@@ -1922,6 +1927,21 @@ public final class Warship {
         for (Map.Entry<FireGroup, WarshipOrder.FireOnArea> e : laidBeforePass.entrySet()) layArea(e.getKey(), e.getValue());
         laidBeforePass.clear();
         headingChosen = false;
+    }
+
+    private boolean climbAfterPass;
+
+    /**
+     * Makes the next low pass this ship's last act over the battle: when it reaches the end of the line it climbs
+     * straight back up through the cloud deck ({@link #climbThroughDeck}) instead of returning to a station. A fly-by.
+     */
+    public void climbAfterPass() {
+        climbAfterPass = true;
+    }
+
+    /** Whether the ship leaves through the deck once its pass is flown. */
+    public boolean climbsAfterPass() {
+        return climbAfterPass;
     }
 
     /** Drops the pass once it has nothing left to show. */

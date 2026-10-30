@@ -1152,9 +1152,9 @@ The split gives the player a real choice instead:
 
 - **A mech is flexible and demanding.** Sockets, flux, an engine budget, a build
   to plan and parts to lose.
-- **A vehicle is cheap, sturdy and good at one job.** No chassis reservoir (each gun
-  builds its own flux, nominal on the plain guns), no sockets, no
-  build beyond a kit or two. It costs less material and lift for the armor it brings, and it does
+- **A vehicle is cheap, sturdy and good at one job.** One reservoir on the mech's rule,
+  framed by the bank on its rack (nominal on the plain guns), no sockets, no
+  build beyond a few rack parts. It costs less material and lift for the armor it brings, and it does
   things no mech does: an APC carries marines.
 
 Progression on a vehicle line is learning a better **variant**, each its own
@@ -1218,8 +1218,8 @@ those rows read nothing. Not tuned: the duel numbers are readings.
 defence because it barely marks proper plate; at ground scale almost nothing is
 proper plate. The tank's identity is the split between the two, and it is held by
 cadence rather than by a damage type: a four-pulse burst at penetration 3 every
-0.55 s, each pulse adding flux the gun dissipates far slower than it builds, so it
-overloads and vents for seconds at a time in a long fight (`convoy-nouns.md`, The
+0.55 s, each pulse adding flux the hull dissipates far slower than it builds, so its
+crew holds and the hull vents for seconds at a time in a long fight (`convoy-nouns.md`, The
 laser tanks). A section dies inside one charge-up; a tank does not.
 Readings against the breakthrough tank's twin cannon (`tank-versus-infantry`, four
 seeds, one planted tank and a twelve-strong section eighteen cells off; `armorMatchup`,

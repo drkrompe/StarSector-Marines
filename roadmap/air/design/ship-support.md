@@ -244,12 +244,12 @@ back sooner by hand.
 **Fire.** A circle of 14 cells radius (the corridor's half-width) is laid on every battery the ship has,
 centred on the line 8 cells ahead of the hull and sliding down it, so the guns work whatever is in the
 corridor and nothing outside it. It is the pilot's laid-area machinery, so it is a hand order: no posture
-range or friendly check refuses it, every mount still picks hostile units in the circle that it can
+range or friendly check refuses it, every mount still picks hostile units and ground vehicles in the circle that it can
 bear on from the pass's heading (along the line, so a broadside answers what lies abeam), and flux,
 ordnance, arcs, spread and friendly fire stay the ship's. It does not saturate: it fires on units, not on
 empty ground. Whatever a pilot had laid before is given back when the pass ends; the ship's director,
 doctrine and hold-fire policy are untouched and resume. The pilot's hold-fire key (1) silences the pass's
-guns for the rest of the run and leaves it flying.
+guns for the rest of the run and leaves it flying. A pass may be a **strafe** (`LowPass.strafe`, Wolf Strike's): its circle has its own lead and radius, and the hull's fixed missile hardpoints fire straight off their noses as far ahead as the lead point whenever anything hostile is in the circle, the rocket rack's ripple walking the volley over it.
 
 **Cost.** Every second flown, the run-in included, is charged 2 seconds of station time
 (`LowPass.STATION_COST_FACTOR`), and station time is otherwise counted only while stationary, so a pass is

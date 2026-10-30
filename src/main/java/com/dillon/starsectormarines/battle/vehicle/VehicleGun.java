@@ -88,8 +88,8 @@ public final class VehicleGun {
     /**
      * {@code type}'s turret carrying {@code weapon}; the hull's own for a null weapon. The
      * magazine is the weapon's pulls, and a weapon with no limit on a mech has none here either (flux alone limits
-     * it; a rotary gun's belt is its feed, {@code GroundTurret#rotary}). A round costs the weapon's flux, in the
-     * hull's own bank.
+     * it; a rotary gun's belt is its feed, {@code GroundTurret#rotary}). A round costs the weapon's flux, drawn on the
+     * hull's reservoir.
      */
     public static StructureDef fit(VehicleType type, MechWeaponComponent weapon) {
         StructureDef stock = type.turretStructure();
@@ -97,8 +97,8 @@ public final class VehicleGun {
         TurretMountDef carriage = stock.mount;
         WeaponDef def = weapon.weaponDef();
         int magazine = weapon.ammoCapacity < 0 ? 0 : weapon.ammoCapacity * Math.max(1, def.burstCount);
-        TurretMountDef.Flux bank = carriage.flux;
-        TurretMountDef.Flux flux = bank == null ? null : bank.withPerRound(perRound(weapon, def));
+        // A carriage that builds flux charges the fitted weapon's own cost a round, on the hull's reservoir.
+        TurretMountDef.Flux flux = carriage.flux == null ? null : new TurretMountDef.Flux(perRound(weapon, def));
         // The weapon brings its own muzzle, at the tip of its drawing out from the ring, and its own effects: a
         // ballistic weapon on a ballistic carriage keeps the carriage's casings and scorch, any other has none.
         float length = lengthCells(type, weapon);

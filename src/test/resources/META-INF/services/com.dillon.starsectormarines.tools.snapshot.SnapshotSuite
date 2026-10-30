@@ -377,3 +377,4 @@ com.dillon.starsectormarines.ops.WellhollowArtSnapshotSuite
 com.dillon.starsectormarines.ops.StoreSnapshotSuite
 com.dillon.starsectormarines.ops.SideObjectivePromptSuite
 com.dillon.starsectormarines.ops.MechLaserLineupSnapshotSuite
+com.dillon.starsectormarines.battle.power.WolfStrikeLookSuite

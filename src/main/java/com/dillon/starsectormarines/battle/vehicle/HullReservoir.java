@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
 import com.dillon.starsectormarines.battle.mech.MechFlux;
-import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 
 /**
  * A hull's one flux reservoir (`convoy-nouns.md`, hull flux): every mount on the hull draws its rounds' flux from it,
@@ -9,15 +8,6 @@ import com.dillon.starsectormarines.battle.turret.TurretMountDef;
  * frozen at the drop from the hull and its rack.
  */
 public final class HullReservoir {
-
-    /**
-     * {@code -Dbattle.vehicle.hullReservoir=false} restores the per-mount control path: each mount its own bank
-     * ({@link TurretMountDef.ControlBank}), overloading at full and venting to empty. Temporary: remove it with that
-     * path, the control banks in the mount data and {@link GroundTurret#overloaded}, once the vehicle flux rework's
-     * armorMatchup and convoy evidence has been read against it (`switches.md`).
-     */
-    static final String PROPERTY = "battle.vehicle.hullReservoir";
-    static final boolean ENABLED = Boolean.parseBoolean(System.getProperty(PROPERTY, "true"));
 
     private HullReservoir() { }
 
@@ -48,9 +38,9 @@ public final class HullReservoir {
         return type == VehicleType.LASER_TANK ? MILITARY_BANK : FACTORY_BANK;
     }
 
-    /** A fresh reservoir on {@code frame}, or null on the control path or for no frame. */
+    /** A fresh reservoir on {@code frame}, or null for no frame. */
     public static MechFlux create(Frame frame) {
-        return ENABLED && frame != null ? new MechFlux(frame.capacity(), frame.dissipationPerSecond()) : null;
+        return frame != null ? new MechFlux(frame.capacity(), frame.dissipationPerSecond()) : null;
     }
 
     /** Puts one reservoir on the hull's main gun and every secondary mount, so they all draw on it. */
