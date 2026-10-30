@@ -1,0 +1,114 @@
+{
+ "id": "s6",
+ "video": "cinematic/asharu-battle/s6.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 192,
+ "duration": 8.0,
+ "captions": [
+  {
+   "t_in": 0.15,
+   "t_out": 4.1,
+   "speaker": "warden_five",
+   "key": "asharuRadioS5_3"
+  },
+  {
+   "t_in": 3.3,
+   "t_out": 4.45,
+   "speaker": "warden_two",
+   "key": "asharuRadioS6_1"
+  },
+  {
+   "t_in": 3.8,
+   "t_out": 6.42,
+   "speaker": "batory",
+   "key": "asharuRadioS6_2"
+  },
+  {
+   "t_in": 6.99,
+   "t_out": 9.87,
+   "speaker": "warden_lead",
+   "key": "asharuRadioS6_3"
+  }
+ ],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_engines_s6",
+   "volume": 1.0
+  },
+  {
+   "t": 0.0,
+   "sound": "asharu_film_harpoons_s6",
+   "volume": 1.0
+  },
+  {
+   "t": 0.15,
+   "sound": "asharu_film_d13",
+   "volume": 1.0
+  },
+  {
+   "t": 0.4,
+   "sound": "asharu_film_s6_point_defence",
+   "volume": 1.0
+  },
+  {
+   "t": 1.0,
+   "sound": "asharu_film_s6_tanker_cooks_off",
+   "volume": 1.0
+  },
+  {
+   "t": 3.1,
+   "sound": "asharu_film_s6_two_hit",
+   "volume": 1.0
+  },
+  {
+   "t": 3.3,
+   "sound": "asharu_film_d14",
+   "volume": 1.0
+  },
+  {
+   "t": 3.8,
+   "sound": "asharu_film_d15",
+   "volume": 1.0
+  },
+  {
+   "t": 3.8,
+   "sound": "asharu_film_s6_batory_alarm",
+   "volume": 1.0
+  },
+  {
+   "t": 5.8,
+   "sound": "asharu_film_s6_lead_hit",
+   "volume": 1.0
+  },
+  {
+   "t": 6.99,
+   "sound": "asharu_film_d16",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {
+  "warden_five": {
+   "label_key": "asharuRadioSpeakerWardenFive",
+   "color": "player",
+   "role_key": "asharuRadioRoleWardenFive"
+  },
+  "warden_two": {
+   "label_key": "asharuRadioSpeakerWardenTwo",
+   "color": "player",
+   "role_key": "asharuRadioRoleWardenTwo"
+  },
+  "batory": {
+   "label_key": "asharuRadioSpeakerBatory",
+   "color": "player",
+   "role_key": "asharuRadioRoleBatory"
+  },
+  "warden_lead": {
+   "label_key": "asharuRadioSpeakerWardenLead",
+   "color": "player",
+   "role_key": "asharuRadioRoleWardenLead"
+  }
+ }
+}

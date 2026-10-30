@@ -1,0 +1,56 @@
+{
+ "id": "s1a",
+ "video": "cinematic/asharu-battle/s1a.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 144,
+ "duration": 6.0,
+ "captions": [
+  {
+   "t_in": 0.0,
+   "t_out": 2.66,
+   "speaker": "warden_lead",
+   "key": "asharuRadioS1a_1"
+  }
+ ],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_d03",
+   "volume": 1.0
+  },
+  {
+   "t": 0.0,
+   "sound": "asharu_film_engines_s1a",
+   "volume": 1.0
+  },
+  {
+   "t": 0.0,
+   "sound": "asharu_film_s1_convoy_drives",
+   "volume": 1.0
+  },
+  {
+   "t": 1.0,
+   "sound": "asharu_film_s1a_zoom_60",
+   "volume": 1.0
+  },
+  {
+   "t": 2.7,
+   "sound": "asharu_film_s1a_zoom_150",
+   "volume": 1.0
+  },
+  {
+   "t": 4.3,
+   "sound": "asharu_film_s1a_zoom_300",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {
+  "warden_lead": {
+   "label_key": "asharuRadioSpeakerWardenLead",
+   "color": "player",
+   "role_key": "asharuRadioRoleWardenLead"
+  }
+ }
+}

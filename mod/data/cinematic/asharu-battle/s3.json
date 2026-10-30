@@ -1,0 +1,36 @@
+{
+ "id": "s3",
+ "video": "cinematic/asharu-battle/s3.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 192,
+ "duration": 8.0,
+ "captions": [
+  {
+   "t_in": 7.6,
+   "t_out": 11.85,
+   "speaker": "warden_five",
+   "key": "asharuRadioS4_1"
+  }
+ ],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_engines_s3",
+   "volume": 1.0
+  },
+  {
+   "t": 7.6,
+   "sound": "asharu_film_d07",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {
+  "warden_five": {
+   "label_key": "asharuRadioSpeakerWardenFive",
+   "color": "player",
+   "role_key": "asharuRadioRoleWardenFive"
+  }
+ }
+}

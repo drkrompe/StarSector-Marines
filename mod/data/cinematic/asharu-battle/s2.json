@@ -1,0 +1,36 @@
+{
+ "id": "s2",
+ "video": "cinematic/asharu-battle/s2.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 144,
+ "duration": 6.0,
+ "captions": [
+  {
+   "t_in": 0.6,
+   "t_out": 6.17,
+   "speaker": "morrow",
+   "key": "asharuRadioS2_1"
+  }
+ ],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_engines_s2",
+   "volume": 1.0
+  },
+  {
+   "t": 0.6,
+   "sound": "asharu_film_d06",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {
+  "morrow": {
+   "label_key": "asharuRadioSpeakerMorrow",
+   "color": "player",
+   "role_key": "asharuRadioRoleMorrow"
+  }
+ }
+}

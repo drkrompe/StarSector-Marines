@@ -1,0 +1,33 @@
+{
+ "id": "s6b",
+ "video": "cinematic/asharu-battle/s6b.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 192,
+ "duration": 8.0,
+ "captions": [],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_engines_s6b",
+   "volume": 1.0
+  },
+  {
+   "t": 0.0,
+   "sound": "asharu_film_guns_s6b",
+   "volume": 1.0
+  },
+  {
+   "t": 4.0,
+   "sound": "asharu_film_s6b_feeder_burst",
+   "volume": 1.0
+  },
+  {
+   "t": 4.8,
+   "sound": "asharu_film_s6b_hound_breaks_up",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {}
+}
