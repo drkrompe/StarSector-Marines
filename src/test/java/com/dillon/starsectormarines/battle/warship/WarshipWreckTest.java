@@ -75,4 +75,13 @@ class WarshipWreckTest {
         assertEquals(a.struckY(), b.struckY(), 0f);
         assertTrue(a.ship.facingDegrees == b.ship.facingDegrees);
     }
+
+    @Test
+    void aHullDrawnBelowTheStandardPresenceLiesNoLargerThanItFlew() throws Exception {
+        Warship small = Warship.fit(new StockVariantLoadout("hound", "hound_Standard"), Faction.DEFENDER, 50f, 50f, 0f,
+                WarshipScale.HULL_PRESENCE / 3f);
+        WarshipWreck wreck = new WarshipWreck(small, -4L);
+        runUntilChange(wreck, WarshipWreck.Step.FALLING);
+        assertTrue(wreck.bodyScale() <= 1f, "lies at " + wreck.bodyScale());
+    }
 }

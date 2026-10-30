@@ -35,6 +35,8 @@ import java.io.IOException;
 import java.lang.reflect.Proxy;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Collections;
+import java.util.Collection;
 import java.util.ArrayList;
 import java.util.EnumMap;
 import java.util.IdentityHashMap;
@@ -319,6 +321,10 @@ final class HeadlessBattleSprites extends BattleSprites {
         }
         byPath.put(path, cache);
         return cache;
+    }
+
+    @Override public Collection<ShuttleSpriteCache> pathSprites() {
+        return Collections.unmodifiableCollection(byPath.values());
     }
 
     @Override public SpriteAPI tileSheet() { return tile; }

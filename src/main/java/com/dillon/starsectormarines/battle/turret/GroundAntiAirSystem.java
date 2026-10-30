@@ -120,6 +120,8 @@ public final class GroundAntiAirSystem {
                 fireAtHull(sim, id, structure, salvo, dt, cooldown);
                 return;
             }
+            // The hull is down or gone: what is left of the salvo is held, not loosed at the sky.
+            state.setBurstRemaining(id, 0);
             hullSalvos.remove(id);
         }
         long target = 0L;

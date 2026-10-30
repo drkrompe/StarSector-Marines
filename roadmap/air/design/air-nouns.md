@@ -2246,7 +2246,9 @@ A falling hull is coming down to the ground, so it eases back to its true landed
 size as it falls (the lift run read backwards, `LandedScale.fallFactor`) and strikes,
 skids and lies at that size: its crush is half its landed length, its skid half its
 beam, with no aircraft cap, because a hull is drawn at its true size on the ground
-and an airframe is not. The fall is a pure function of the hull's own state, so it
+and an airframe is not. A hull drawn below the standard presence (Wolf Strike's gunship at the
+Onslaught's reduced body) never grows on the way down: its landed size is at most the size it flew at.
+The fall is a pure function of the hull's own state, so it
 lands the same way every play (`WarshipWreck`). The hit comes from the detonation pipeline itself, so any source
 that already lands a detonation is a counter without a ship-specific shortcut.
 
