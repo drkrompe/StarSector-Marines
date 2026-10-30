@@ -120,6 +120,22 @@ through `Strings.get` in the language active when the arrival plays:
    `--check` validates without encoding. A shot with no video is skipped at runtime.
 5. Redeploy (`deployMod`) and dock at Jangala on a fresh Cerberus start.
 
+## More than one film
+
+The player plays any film by its id (`CinematicFilm`): `mod/data/cinematic/<id>/sequence.json`
+(`{"id", "shots": [...]}`), a timeline per shot beside it, and each shot's `video` under
+`mod/cinematic/<id>/`. Each film keeps its own save receipt, taken when it starts; only one film is
+on screen at a time. Two ship: the Jangala arrival (`sm_jangala_arrival_played`) and the Asharu
+wreckfall recording (`sm_asharu_battle_played`, packaged by
+`asharu-battle/film_export.py`; `asharu-battle-shot.md`, Sound, "In the game").
+
+- `sequence.json` may say `"captions": "translated"`: the film's captions draw only when the game
+  is not in English (the Asharu film, whose voices are English). Absent, they always draw.
+- A speaker may add `role_key`, a small dimmer word after its callsign (ISS CARAVEL, Heavy
+  Freighter). Colours: `player`, `hegemony`, `pirate`.
+- Transmissions may overlap: each one on the air gets its own tag and pages, stacked earliest on
+  top, and a lone speaker draws exactly as before.
+
 ## Rules for shot authors
 
 - Keep to the art direction: image-first plates, parallax and scale, and motion chosen

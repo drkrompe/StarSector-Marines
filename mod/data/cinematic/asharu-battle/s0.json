@@ -1,0 +1,36 @@
+{
+ "id": "s0",
+ "video": "cinematic/asharu-battle/s0.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 744,
+ "duration": 31.0,
+ "captions": [
+  {
+   "t_in": 22.8,
+   "t_out": 28.92,
+   "speaker": "caravel",
+   "key": "asharuRadioS1_1"
+  }
+ ],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_plate_s0",
+   "volume": 1.0
+  },
+  {
+   "t": 22.8,
+   "sound": "asharu_film_d01",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {
+  "caravel": {
+   "label_key": "asharuRadioSpeakerCaravel",
+   "color": "player",
+   "role_key": "asharuRadioRoleCaravel"
+  }
+ }
+}

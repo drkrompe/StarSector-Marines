@@ -1,0 +1,41 @@
+{
+ "id": "s4",
+ "video": "cinematic/asharu-battle/s4.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 144,
+ "duration": 6.0,
+ "captions": [
+  {
+   "t_in": 4.0,
+   "t_out": 5.14,
+   "speaker": "warden_lead",
+   "key": "asharuRadioS4_2"
+  }
+ ],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_engines_s4",
+   "volume": 1.0
+  },
+  {
+   "t": 0.2,
+   "sound": "asharu_film_s4_pirate_drives_light",
+   "volume": 1.0
+  },
+  {
+   "t": 4.0,
+   "sound": "asharu_film_d08",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {
+  "warden_lead": {
+   "label_key": "asharuRadioSpeakerWardenLead",
+   "color": "player",
+   "role_key": "asharuRadioRoleWardenLead"
+  }
+ }
+}

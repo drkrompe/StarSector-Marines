@@ -1,0 +1,99 @@
+{
+ "id": "s6c",
+ "video": "cinematic/asharu-battle/s6c.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 192,
+ "duration": 8.0,
+ "captions": [
+  {
+   "t_in": 0.4,
+   "t_out": 3.16,
+   "speaker": "thysville",
+   "key": "asharuRadioS6c_1"
+  },
+  {
+   "t_in": 3.1,
+   "t_out": 8.09,
+   "speaker": "warden_four",
+   "key": "asharuRadioS6c_2"
+  },
+  {
+   "t_in": 3.8,
+   "t_out": 10.09,
+   "speaker": "sobieski",
+   "key": "asharuRadioS6c_3"
+  },
+  {
+   "t_in": 6.6,
+   "t_out": 9.17,
+   "speaker": "thysville",
+   "key": "asharuRadioS6c_4"
+  }
+ ],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_engines_s6c",
+   "volume": 1.0
+  },
+  {
+   "t": 0.0,
+   "sound": "asharu_film_guns_s6c",
+   "volume": 1.0
+  },
+  {
+   "t": 0.4,
+   "sound": "asharu_film_d22",
+   "volume": 1.0
+  },
+  {
+   "t": 2.7,
+   "sound": "asharu_film_s6c_blink",
+   "volume": 1.0
+  },
+  {
+   "t": 3.1,
+   "sound": "asharu_film_d23",
+   "volume": 1.0
+  },
+  {
+   "t": 3.8,
+   "sound": "asharu_film_d24",
+   "volume": 1.0
+  },
+  {
+   "t": 3.8,
+   "sound": "asharu_film_s6c_sobieski_bridge",
+   "volume": 1.0
+  },
+  {
+   "t": 4.0,
+   "sound": "asharu_film_s6c_sobieski_drives",
+   "volume": 1.0
+  },
+  {
+   "t": 6.6,
+   "sound": "asharu_film_d25",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {
+  "thysville": {
+   "label_key": "asharuRadioSpeakerThysville",
+   "color": "player",
+   "role_key": "asharuRadioRoleThysville"
+  },
+  "warden_four": {
+   "label_key": "asharuRadioSpeakerWardenFour",
+   "color": "player",
+   "role_key": "asharuRadioRoleWardenFour"
+  },
+  "sobieski": {
+   "label_key": "asharuRadioSpeakerSobieski",
+   "color": "player",
+   "role_key": "asharuRadioRoleSobieski"
+  }
+ }
+}

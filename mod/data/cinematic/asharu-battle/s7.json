@@ -1,0 +1,83 @@
+{
+ "id": "s7",
+ "video": "cinematic/asharu-battle/s7.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 192,
+ "duration": 8.0,
+ "captions": [
+  {
+   "t_in": 1.21,
+   "t_out": 2.91,
+   "speaker": "warden_five",
+   "key": "asharuRadioS7_1"
+  },
+  {
+   "t_in": 2.0,
+   "t_out": 4.27,
+   "speaker": "caravel",
+   "key": "asharuRadioS7_2"
+  },
+  {
+   "t_in": 4.9,
+   "t_out": 7.23,
+   "speaker": "sobieski",
+   "key": "asharuRadioS7_3"
+  }
+ ],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_engines_s7",
+   "volume": 1.0
+  },
+  {
+   "t": 0.0,
+   "sound": "asharu_film_guns_s7",
+   "volume": 1.0
+  },
+  {
+   "t": 1.21,
+   "sound": "asharu_film_d29",
+   "volume": 1.0
+  },
+  {
+   "t": 2.0,
+   "sound": "asharu_film_d30",
+   "volume": 1.0
+  },
+  {
+   "t": 4.9,
+   "sound": "asharu_film_d31",
+   "volume": 1.0
+  },
+  {
+   "t": 5.6,
+   "sound": "asharu_film_s7_boats_clamp",
+   "volume": 1.0
+  },
+  {
+   "t": 7.6,
+   "sound": "asharu_film_s7_breach_inside",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {
+  "warden_five": {
+   "label_key": "asharuRadioSpeakerWardenFive",
+   "color": "player",
+   "role_key": "asharuRadioRoleWardenFive"
+  },
+  "caravel": {
+   "label_key": "asharuRadioSpeakerCaravel",
+   "color": "player",
+   "role_key": "asharuRadioRoleCaravel"
+  },
+  "sobieski": {
+   "label_key": "asharuRadioSpeakerSobieski",
+   "color": "player",
+   "role_key": "asharuRadioRoleSobieski"
+  }
+ }
+}

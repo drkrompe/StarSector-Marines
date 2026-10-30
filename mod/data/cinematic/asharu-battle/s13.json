@@ -1,0 +1,18 @@
+{
+ "id": "s13",
+ "video": "cinematic/asharu-battle/s13.mp4",
+ "fps": 24,
+ "width": 1920,
+ "height": 1080,
+ "frames": 588,
+ "duration": 24.5,
+ "captions": [],
+ "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_plate_s13",
+   "volume": 1.0
+  }
+ ],
+ "speakers": {}
+}

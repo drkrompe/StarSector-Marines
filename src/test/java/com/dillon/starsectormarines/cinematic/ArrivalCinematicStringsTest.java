@@ -19,7 +19,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The shipped timelines hold keys and no English: every key resolves in strings.json, and a voiced
- * line's string is the catalog's text, so the captions and the recorded lines cannot drift apart.
+ * line's string is the catalog's text, so the captions and the recorded lines cannot drift apart. The
+ * key, speaker and sound rules hold for every film under data/cinematic; the catalog rules are the
+ * arrival's.
  */
 class ArrivalCinematicStringsTest {
     private static final Path MOD = Path.of("mod");
@@ -36,8 +38,21 @@ class ArrivalCinematicStringsTest {
     }
 
     private static List<CinematicShot> timelines() throws Exception {
+        return timelines("jangala-arrival");
+    }
+
+    /** Every film's shots. */
+    private static List<CinematicShot> allTimelines() throws Exception {
         List<CinematicShot> shots = new ArrayList<>();
-        try (Stream<Path> files = Files.list(MOD.resolve("data/cinematic/jangala-arrival"))) {
+        try (Stream<Path> films = Files.list(MOD.resolve("data/cinematic"))) {
+            for (Path film : films.filter(Files::isDirectory).toList()) shots.addAll(timelines(film.getFileName().toString()));
+        }
+        return shots;
+    }
+
+    private static List<CinematicShot> timelines(String film) throws Exception {
+        List<CinematicShot> shots = new ArrayList<>();
+        try (Stream<Path> files = Files.list(MOD.resolve("data/cinematic").resolve(film))) {
             for (Path file : files.filter(p -> p.toString().endsWith(".json"))
                     .filter(p -> !p.getFileName().toString().equals("sequence.json")).toList())
                 shots.add(CinematicShot.parse(new JSONObject(Files.readString(file))));
@@ -56,12 +71,15 @@ class ArrivalCinematicStringsTest {
 
     @Test void everyKeyAShotNamesResolvesInStringsJson() throws Exception {
         Map<String, String> strings = strings();
-        List<CinematicShot> shots = timelines();
+        List<CinematicShot> shots = allTimelines();
         assertFalse(shots.isEmpty());
         for (CinematicShot shot : shots) {
             List<String> keys = new ArrayList<>();
             shot.captions().forEach(c -> keys.add(c.key()));
-            shot.speakers().values().forEach(s -> keys.add(s.labelKey()));
+            shot.speakers().values().forEach(s -> {
+                keys.add(s.labelKey());
+                if (s.roleKey() != null) keys.add(s.roleKey());
+            });
             shot.locks().forEach(l -> {
                 keys.add(l.titleKey());
                 l.detail().forEach(d -> keys.add(d.key()));
@@ -105,8 +123,14 @@ class ArrivalCinematicStringsTest {
         for (String key : captioned) assertTrue(keys.contains(key), key + " is captioned but is no catalog line");
     }
 
+    @Test void everyCueNamesARegisteredSound() throws Exception {
+        String sounds = Files.readString(MOD.resolve("data/config/sounds.json"));
+        for (CinematicShot shot : allTimelines())
+            shot.cues().forEach(c -> assertTrue(sounds.contains("\"" + c.sound() + "\":"), shot.id() + " cues unregistered " + c.sound()));
+    }
+
     @Test void everyCaptionIsSpokenBySomeoneTheShotDeclares() throws Exception {
-        for (CinematicShot shot : timelines())
+        for (CinematicShot shot : allTimelines())
             shot.captions().forEach(c -> assertTrue(shot.speakers().containsKey(c.speaker()), shot.id() + " " + c.key()));
     }
 }
