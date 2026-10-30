@@ -21,6 +21,7 @@ import com.dillon.starsectormarines.battle.turret.TurretMountDef;
 import com.dillon.starsectormarines.battle.turret.TurretMountGeometry;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
+import com.dillon.starsectormarines.battle.weapon.BeamWander;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import java.util.function.LongPredicate;
@@ -272,7 +273,7 @@ public final class GroundVehicleTurretSystem {
         int rounds = feed.advance(dt, trigger && aimed);
         for (int r = 0; r < rounds; r++) {
             if (!ready(turret, mount, roundCost(mount), false)
-                    || !firePoint(id, turret, body, structure, mountX, mountY, cursor, 0)) break;
+                    || !firePoint(id, turret, body, structure, mountX, mountY, cursor, 0, feed.wander())) break;
             feed.spend();
             commitTrigger(turret, mount, roundCost(mount));
         }
@@ -303,7 +304,7 @@ public final class GroundVehicleTurretSystem {
             if (air) {
                 airFire.fire(id, convoy.faction(id), structure, target, muzzle.x(), muzzle.y());
             } else if (!fireSink.fire(id, mountX, mountY, convoy.faction(id), structure, target, false, true,
-                    turret.facingDeg, 0)) {
+                    turret.facingDeg, 0, feed.wander())) {
                 break;
             }
             feed.spend();
@@ -368,6 +369,12 @@ public final class GroundVehicleTurretSystem {
 
     private boolean firePoint(long id, GroundTurret turret, GroundBody body, StructureDef structure,
                               float mountX, float mountY, PointFireAim aim, int release) {
+        return firePoint(id, turret, body, structure, mountX, mountY, aim, release, null);
+    }
+
+    /** As above; a crawling beam's pulse ({@code wander} non-null) reads its aim off the beam's path. */
+    private boolean firePoint(long id, GroundTurret turret, GroundBody body, StructureDef structure,
+                              float mountX, float mountY, PointFireAim aim, int release, BeamWander wander) {
         if (aim == null || !aim.validFrom(mountX, mountY)
                 || !aligned(turret.facingDeg, mountX, mountY, aim)) return false;
         TurretMountGeometry.Point muzzle = TurretMountGeometry.muzzle(
@@ -376,7 +383,7 @@ public final class GroundVehicleTurretSystem {
                 || !aligned(turret.facingDeg, muzzle.x(), muzzle.y(), aim)
                 || !barrelClear(body, muzzle)) return false;
         return fireSink.firePoint(id, mountX, mountY, convoy.faction(id), structure,
-                aim, turret.facingDeg, release);
+                aim, turret.facingDeg, release, wander);
     }
 
     private static boolean aligned(float facing, float x, float y, PointFireAim aim) {

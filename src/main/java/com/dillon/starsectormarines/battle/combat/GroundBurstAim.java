@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.weapon.BeamWander;
+
 import java.util.Random;
 
 /**
@@ -33,8 +35,21 @@ final class GroundBurstAim {
 
     /** A uniform sample of the error disk around the aim point. */
     static Offset sample(float accuracy, float effectiveSpread, float weaponRange, float distance, Random rng) {
-        float radius = (float) Math.sqrt(rng.nextFloat())
-                * errorRadius(accuracy, effectiveSpread, weaponRange, distance);
+        return sample(accuracy, effectiveSpread, weaponRange, distance, null, rng);
+    }
+
+    /**
+     * As above; a crawling beam ({@code wander} non-null) takes its point of the disk from its path, uniform over a
+     * hold, so its pulses crawl around the aim point rather than each landing anywhere in the disk.
+     */
+    static Offset sample(float accuracy, float effectiveSpread, float weaponRange, float distance,
+                         BeamWander wander, Random rng) {
+        float error = errorRadius(accuracy, effectiveSpread, weaponRange, distance);
+        if (wander != null) {
+            BeamWander.Sample path = wander.sample(rng);
+            return new Offset(path.diskX() * error, path.diskY() * error);
+        }
+        float radius = (float) Math.sqrt(rng.nextFloat()) * error;
         float angle = rng.nextFloat() * (float) (Math.PI * 2.0);
         return new Offset(radius * (float) Math.cos(angle), radius * (float) Math.sin(angle));
     }

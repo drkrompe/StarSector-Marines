@@ -14,6 +14,7 @@ import com.dillon.starsectormarines.battle.scene.Verdict;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitType;
+import com.dillon.starsectormarines.battle.weapon.BeamWander;
 import com.dillon.starsectormarines.battle.weapon.RotaryFeedDef;
 
 import java.util.ArrayList;
@@ -33,6 +34,11 @@ import java.util.Map;
  * <p>Verdicts are mechanics only: a beam fires at men, and an autonomous beam's reservoir never passes its stop
  * share by more than the pulses both arms may lay in the tick they cross it. Who wins, how many die, how fast, and
  * how hot the frame ran are readings.
+ *
+ * <p>The {@code pd-laser-crawl} loop reads the crawl ({@link BeamWander}): a Warden's chin PD laser on an unarmed
+ * Hound standing fourteen cells off, four seeds. Its readings are how far the lance moves between consecutive pulses
+ * (the beam line's offset from the target's centre, and the impact point between consecutive hits), the hit rate, and
+ * how much the hit rate swings from second to second; {@code -Dbattle.mech.pdBeamWander=false} is the jumping control.
  */
 public final class PdBeamScene implements BehaviorScene {
 
@@ -67,7 +73,173 @@ public final class PdBeamScene implements BehaviorScene {
         reports.add(arm(frames, "pd-laser", MechWeaponComponent.PD_LASER));
         reports.add(arm(frames, "chaingun", MechWeaponComponent.CHAINGUN));
         reports.add(arm(frames, "ac-6", MechWeaponComponent.AC_6));
+        reports.add(crawl(frames));
         return reports;
+    }
+
+    private static final int CRAWL_WINDOW_TICKS = 900;
+    private static final int CRAWL_TARGET_X = MECH_X + 14;
+    /** Pulses further apart than this many ticks belong to different lances. */
+    private static final int SAME_LANCE_TICKS = 3;
+
+    private SceneReport crawl(FrameSink frames) {
+        List<Crawl> plays = new ArrayList<>();
+        for (long seed = 1; seed <= SEEDS; seed++) {
+            SceneBuilder builder = SceneBuilder.openGround(WIDTH, HEIGHT).missionCompletion(false).seed(seed);
+            builder.squad(MECH).faction(Faction.MARINE).size(1).at(MECH_X + 2, MECH_Y)
+                    .mech(new MechDeploymentSpec(MechVariant.WARDEN, MechVariant.WARDEN.defaultRole,
+                            MissileReplenisherComponent.STANDARD, MechWeaponComponent.PD_LASER, null, null))
+                    .stationary()
+                    .assigned(id -> ObjectiveAssignment.defendArea(id, MECH_X, MECH_Y))
+                    .done();
+            builder.squad("target").faction(Faction.DEFENDER).size(1).at(CRAWL_TARGET_X + 2, MECH_Y)
+                    .mech(new MechDeploymentSpec(MechVariant.HOUND, MechVariant.HOUND.defaultRole,
+                            MissileReplenisherComponent.STANDARD, null, null, null))
+                    .stationary()
+                    .assigned(id -> ObjectiveAssignment.defendArea(id, CRAWL_TARGET_X, MECH_Y))
+                    .done();
+            SceneWorld world = builder.build();
+            BattleSimulation sim = world.sim();
+            Crawl crawl = new Crawl(world.members(MECH)[0], world.members("target")[0]);
+            SceneRun run = SceneRun.of(world).observe(crawl)
+                    .frames(seed == 1 ? frames : FrameSink.NONE, "pd-laser-crawl", FRAME_EVERY_TICKS, crawl::caption);
+            try {
+                while (run.tick() < CRAWL_WINDOW_TICKS && crawl.killTick < 0) run.step();
+            } finally {
+                sim.close();
+            }
+            plays.add(crawl);
+        }
+        int pulses = 0;
+        int hits = 0;
+        int aimSteps = 0;
+        double aimStepSum = 0;
+        double aimStepMax = 0;
+        int impactSteps = 0;
+        double impactStepSum = 0;
+        double impactStepMax = 0;
+        List<Double> windowRates = new ArrayList<>();
+        int kills = 0;
+        double killSeconds = 0;
+        for (Crawl p : plays) {
+            pulses += p.pulses;
+            hits += p.hits;
+            aimSteps += p.aimSteps;
+            aimStepSum += p.aimStepSum;
+            aimStepMax = Math.max(aimStepMax, p.aimStepMax);
+            impactSteps += p.impactSteps;
+            impactStepSum += p.impactStepSum;
+            impactStepMax = Math.max(impactStepMax, p.impactStepMax);
+            windowRates.addAll(p.windowRates);
+            if (p.killTick >= 0) {
+                kills++;
+                killSeconds += p.killTick / 30.0;
+            }
+        }
+        double meanRate = 0;
+        for (double r : windowRates) meanRate += r;
+        meanRate = windowRates.isEmpty() ? 0 : meanRate / windowRates.size();
+        double var = 0;
+        for (double r : windowRates) var += (r - meanRate) * (r - meanRate);
+        double sd = windowRates.size() > 1 ? Math.sqrt(var / (windowRates.size() - 1)) : 0;
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("chin-beam-fires-at-the-machine", pulses > 0, pulses + " pulses over " + plays.size()
+                + " plays"));
+        Map<String, Number> m = new LinkedHashMap<>();
+        m.put("plays", plays.size());
+        m.put("wander", BeamWander.ON ? 1 : 0);
+        m.put("pulses", pulses);
+        m.put("hitRate", pulses > 0 ? hits / (float) pulses : 0f);
+        m.put("meanAimStepCells", aimSteps > 0 ? (float) (aimStepSum / aimSteps) : 0f);
+        m.put("maxAimStepCells", (float) aimStepMax);
+        m.put("meanImpactStepCells", impactSteps > 0 ? (float) (impactStepSum / impactSteps) : 0f);
+        m.put("maxImpactStepCells", (float) impactStepMax);
+        m.put("hitRateWindows", windowRates.size());
+        m.put("hitRateWindowSd", (float) sd);
+        m.put("kills", kills);
+        m.put("meanSecondsToKill", kills > 0 ? (float) (killSeconds / kills) : -1f);
+        return new SceneReport(id(), "pd-laser-crawl", 0, verdicts, m);
+    }
+
+    /**
+     * One crawl play: every pulse of the Warden's chin beam, read as the beam line's signed offset from the target's
+     * centre and, for hits, the impact point relative to that centre.
+     */
+    private static final class Crawl implements TickObserver {
+        final long mech;
+        final long target;
+        int killTick = -1;
+        int pulses;
+        int hits;
+        int aimSteps;
+        double aimStepSum;
+        double aimStepMax;
+        int impactSteps;
+        double impactStepSum;
+        double impactStepMax;
+        final List<Double> windowRates = new ArrayList<>();
+        private int lastTick = Integer.MIN_VALUE;
+        private float lastOffset;
+        private boolean lastHit;
+        private float lastImpactX;
+        private float lastImpactY;
+        private int windowStart = -1;
+        private int windowPulses;
+        private int windowHits;
+
+        Crawl(long mech, long target) {
+            this.mech = mech;
+            this.target = target;
+        }
+
+        @Override
+        public void observe(BattleSimulation sim, int tick) {
+            if (killTick < 0 && !sim.getRoster().isAliveById(target)) killTick = tick;
+            if (killTick >= 0) return;
+            float cx = sim.world().renderX(target);
+            float cy = sim.world().renderY(target);
+            for (ShotEvent shot : sim.getShotsThisFrame()) {
+                if (shot.shooterId != mech || shot.weaponDef() == null) continue;
+                float dx = shot.toX - shot.fromX;
+                float dy = shot.toY - shot.fromY;
+                float len = (float) Math.hypot(dx, dy);
+                if (len < 1e-4f) continue;
+                float offset = (dx * (cy - shot.fromY) - dy * (cx - shot.fromX)) / len;
+                float ix = shot.toX - cx;
+                float iy = shot.toY - cy;
+                pulses++;
+                if (shot.hit) hits++;
+                if (tick - lastTick <= SAME_LANCE_TICKS) {
+                    double step = Math.abs(offset - lastOffset);
+                    aimSteps++;
+                    aimStepSum += step;
+                    aimStepMax = Math.max(aimStepMax, step);
+                    if (shot.hit && lastHit) {
+                        double move = Math.hypot(ix - lastImpactX, iy - lastImpactY);
+                        impactSteps++;
+                        impactStepSum += move;
+                        impactStepMax = Math.max(impactStepMax, move);
+                    }
+                }
+                if (windowStart < 0 || tick - windowStart >= 30) {
+                    if (windowPulses >= 10) windowRates.add(windowHits / (double) windowPulses);
+                    windowStart = tick;
+                    windowPulses = 0;
+                    windowHits = 0;
+                }
+                windowPulses++;
+                if (shot.hit) windowHits++;
+                lastTick = tick;
+                lastOffset = offset;
+                lastHit = shot.hit;
+                lastImpactX = ix;
+                lastImpactY = iy;
+            }
+        }
+
+        String caption(int tick) {
+            return String.format(Locale.ROOT, "pd beam crawl  t=%.1fs  pulses %d  hits %d", tick / 30f, pulses, hits);
+        }
     }
 
     private SceneReport arm(FrameSink frames, String loopId, MechWeaponComponent gun) {

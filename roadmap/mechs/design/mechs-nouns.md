@@ -105,6 +105,23 @@ increasing an encounter's total armored threat.
   **pulses** down the lance at a fixed rate (15 a second), each a hitscan hit at the
   weapon's high accuracy and tight spread and each committing its share of the
   beam's **flux a second** to the one reservoir, a mech's or a vehicle's hull bank.
+  The lance **crawls** rather than jumps (owner, 2026-10-30): its aim offset is one
+  continuous **wander** path per mount (`BeamWander`, `sim.beam.wanderPeriod` and
+  `wanderAmplitude`: 0.8 s for the light PD laser, 1.0 s for the PD laser, amplitude
+  1), smooth noise between knots a period of beam time apart, and every pulse reads
+  the path where it stands instead of drawing a fresh offset. Over a hold the path
+  spends exactly the per-pulse budget (its share is uniform, so the same hit chance,
+  error disk and mean miss); only the order changes, so a hit or a miss now comes in
+  runs and the lance slides off a hull's edge and back instead of teleporting. An
+  autonomous pulse at a body crawls through the same hit box about its centre while
+  on target, the height still uniform, and leaving the target it slides past the
+  silhouette's edge in a few pulses before running wide; a pilot's pulse and a
+  turret's lance crawl through the same error disk around the cursor or the
+  facing's aim point. The path advances one pulse spacing per pulse fired, so a released trigger
+  freezes it and the next press resumes where the last lance left off; it is seeded
+  once from the battle's stream and hashed thereafter. Arm, nose and turret share
+  it; air fire and the heavy PD laser do not crawl. `-Dbattle.mech.pdBeamWander=false`
+  is the control: each pulse aims afresh.
   Nothing counts down: flux is the only limit, so the reservoir's own gates stop a
   held beam as a dry belt stops a chaingun (a pilot's beam vents at 95 and waits
   to 55; it holds no reserve of its own). There is no loader or ready-rack effect.

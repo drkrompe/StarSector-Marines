@@ -848,7 +848,7 @@
         "flightSec": 0.05,
         "wallDamage": 1,
         "noiseMagnitude": 0.4,
-        "beam": { "pulseRate": 15.0, "fluxPerSecond": 15.0 }
+        "beam": { "pulseRate": 15.0, "fluxPerSecond": 15.0, "wanderPeriod": 1.0, "wanderAmplitude": 1.0 }
       },
       "render": {
         "tracerColor": "FFF4F2",
@@ -1119,7 +1119,7 @@
         "flightSec": 0.05,
         "wallDamage": 1,
         "noiseMagnitude": 0.4,
-        "beam": { "pulseRate": 15.0, "fluxPerSecond": 9.0 }
+        "beam": { "pulseRate": 15.0, "fluxPerSecond": 9.0, "wanderPeriod": 0.8, "wanderAmplitude": 1.0 }
       },
       "render": {
         "tracerColor": "FFF4F2",

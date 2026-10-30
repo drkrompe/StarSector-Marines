@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.combat;
 
+import com.dillon.starsectormarines.battle.weapon.BeamWander;
+
 import java.util.Random;
 
 /**
@@ -26,6 +28,15 @@ final class PointAim {
 
     static Sample sample(float accuracy, float effectiveSpread, float maximumTargetingRange,
                          PointAimDispersion dispersion, Random rng) {
+        return sample(accuracy, effectiveSpread, maximumTargetingRange, dispersion, null, rng);
+    }
+
+    /**
+     * As above; a crawling beam ({@code wander} non-null) reads its path's share and bearing where a round draws
+     * {@code u} and its angle, so its pulses fill the same disk over a hold but neighbours land side by side.
+     */
+    static Sample sample(float accuracy, float effectiveSpread, float maximumTargetingRange,
+                         PointAimDispersion dispersion, BeamWander wander, Random rng) {
         if (!Float.isFinite(accuracy) || !Float.isFinite(effectiveSpread)
                 || !(maximumTargetingRange > 0f) || !Float.isFinite(maximumTargetingRange)) {
             throw new IllegalArgumentException("Point aim parameters must be finite with positive range");
@@ -34,12 +45,23 @@ final class PointAim {
         float errorRadius = BASE_ERROR_CELLS + Math.max(0f, effectiveSpread)
                 + dispersion.accuracyErrorCells * (1f - clampedAccuracy);
         float slope = errorRadius / maximumTargetingRange;
+        float u;
+        float cos;
+        float sin;
+        if (wander != null) {
+            BeamWander.Sample path = wander.sample(rng);
+            u = path.share();
+            cos = path.cos();
+            sin = path.sin();
+        } else {
+            u = rng.nextFloat();
+            float angle = rng.nextFloat() * (float) (Math.PI * 2.0);
+            cos = (float) Math.cos(angle);
+            sin = (float) Math.sin(angle);
+        }
         // sqrt(u) fills the disk evenly; u * u puts half the rounds inside its
         // inner quarter of radius while still reaching the rim.
-        float u = rng.nextFloat();
         float radius = (dispersion.centreWeighted ? u * u : (float) Math.sqrt(u)) * slope;
-        float angle = rng.nextFloat() * (float) (Math.PI * 2.0);
-        return new Sample(radius * (float) Math.cos(angle),
-                radius * (float) Math.sin(angle));
+        return new Sample(radius * cos, radius * sin);
     }
 }

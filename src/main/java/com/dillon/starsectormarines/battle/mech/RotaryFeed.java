@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.mech;
 
+import com.dillon.starsectormarines.battle.weapon.BeamWander;
 import com.dillon.starsectormarines.battle.weapon.LoaderPace;
 import com.dillon.starsectormarines.battle.weapon.RotaryFeedDef;
 
@@ -22,7 +23,8 @@ import com.dillon.starsectormarines.battle.weapon.RotaryFeedDef;
  * autonomous reserve is the reservoir's rather than a belt's. The owner reports the reservoir's share each tick
  * ({@link #observeFlux}); above {@link RotaryFeedDef#BEAM_AI_STOP_SHARE} the AI stops asking for pulses until it is
  * back to {@link RotaryFeedDef#BEAM_AI_RESUME_SHARE}. A pilot's beam stops only on release or on the reservoir's
- * own vent.
+ * own vent. A beam authored with a crawl carries its {@link BeamWander}: every pulse that fires moves it on by one
+ * pulse spacing ({@link #spend}), so the pulses of a hold, and of the next hold, sample one continuous aim path.
  */
 public final class RotaryFeed {
 
@@ -46,6 +48,8 @@ public final class RotaryFeed {
     private long leaseTarget;
     private boolean reserveHeld;
     private float sinceRound = Float.POSITIVE_INFINITY;
+    /** A crawling beam's aim path; null for a rotary gun or a beam whose pulses aim afresh. */
+    private final BeamWander wander;
 
     /** The weapon's feed at the standard loader, its belt full. */
     public RotaryFeed(RotaryFeedDef def) {
@@ -61,6 +65,7 @@ public final class RotaryFeed {
         this.authored = def;
         this.def = def.fitted(loaderFactor, beltFactor);
         this.belt = this.def.belt();
+        this.wander = def.newWander();
     }
 
     /**
@@ -87,6 +92,9 @@ public final class RotaryFeed {
 
     /** Whether this is a beam's emitter rather than a rotary gun's barrels. */
     public boolean beam() { return def.beam(); }
+
+    /** The beam's aim path its pulses sample; null when each pulse aims afresh. */
+    public BeamWander wander() { return wander; }
 
     /**
      * A beam's autonomous reserve: the reservoir now holds {@code share} of its capacity. Above the stop share the AI
@@ -170,6 +178,7 @@ public final class RotaryFeed {
     /** One requested round actually left the barrel. */
     public void spend() {
         if (!def.beam()) belt = Math.max(0f, belt - 1f);
+        if (wander != null) wander.advance(1f / def.fullRate());
         sinceRound = 0f;
         updateReserve();
     }
