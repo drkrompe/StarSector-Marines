@@ -158,16 +158,16 @@ public final class ConvoyRenderSystem implements RenderSystem {
                 LayeredSpriteCache gun = turret == null ? null
                         : VehicleGunArt.sprite(sprites, type, turret.weapon);
                 float recoilCells = gun != null ? VehicleGun.recoilCells(type, turret.weapon) : type.turretRecoilCells();
+                // Firing kicks the gun alone: a fitted weapon's drawing or a head's gun layer, never the housing.
                 float recoil = 0f;
                 if (!wrecked && recoilCells > 0f) {
                     for (var shot : ctx.sim.getActiveShots()) if (shot.shooterId == id) {
                         float age = shot.lifetimeMax - shot.lifetime;
                         recoil = Math.max(recoil, recoilCells * Math.max(0f, 1f - age / .22f));
                     }
-                    float bearing = (float) Math.toRadians(turretStateFacing);
-                    drawCellX += (float) Math.sin(bearing) * recoil;
-                    drawCellY -= (float) Math.cos(bearing) * recoil;
                 }
+                VehicleType.GunLayer gunLayer = wrecked || gun != null ? null
+                        : type.gunLayer(turret == null ? null : turret.weapon);
                 float drawFacingDeg = turretFacingDeg;
                 boolean raised = !wrecked && turret != null && turret.raises(type) && turret.elevation > 0f;
                 // Standing up to fire, pitched to the angle its rounds leave at. The battle is drawn with
@@ -225,6 +225,19 @@ public final class ConvoyRenderSystem implements RenderSystem {
                                 + type.turretSpriteFacingOffsetDeg;
                         tDrawLong *= (float) Math.hypot(pitchAxisX, pitchAxisY);
                         tDrawShort *= 1f + RAISE_WIDEN * (1f - pitchCos);
+                    }
+                    if (gunLayer != null && !raised && gunLayer.frame() < frames.frames.length) {
+                        // The gun under the housing, kicked back along its bearing; what slides aft goes under the face.
+                        SpriteSheetFrames.Frame gf = frames.frames[gunLayer.frame()];
+                        int stripH = Math.round(gf.h * VehicleType.GunLayer.STRIP_SHARE);
+                        int stripW = Math.round(gf.w * gunLayer.cutShare());
+                        float[] at = gunLayerCentre(drawCellX, drawCellY, turretStateFacing,
+                                type.turretVisualCells * gunLayer.centreAheadShare(), recoil);
+                        out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
+                                gf.x, gf.y + stripH * gunLayer.strip(), stripW, stripH,
+                                cam.cellToScreenX(at[0]), cam.cellToScreenY(at[1]),
+                                tDrawLong * stripW / gf.w, tDrawShort * stripH / gf.h,
+                                drawFacingDeg, 1f, 1f, 1f, alphaMult);
                     }
                     out.addSheetQuad(RenderLayer.CONVOY, cache.sheet,
                             tf.x, tf.y, tf.w, tf.h,
@@ -313,6 +326,17 @@ public final class ConvoyRenderSystem implements RenderSystem {
         if (ctx.hostProfile.unitDecorationsVisible()) {
             sweepDurabilityBars(ids, convoy, cam, cellPx, alphaMult, out);
         }
+    }
+
+    /**
+     * Where a head's gun layer is centred, in cells: {@code aheadCells} along the turret's bearing from the head's centre
+     * ({@code headX}, {@code headY}), less the gun's {@code recoilCells} kick. The housing stays at the head's centre
+     * whatever the kick.
+     */
+    static float[] gunLayerCentre(float headX, float headY, float bearingDeg, float aheadCells, float recoilCells) {
+        float bearing = (float) Math.toRadians(bearingDeg);
+        float along = aheadCells - recoilCells;
+        return new float[] {headX - (float) Math.sin(bearing) * along, headY + (float) Math.cos(bearing) * along};
     }
 
     /**

@@ -27,6 +27,21 @@ class ConvoyRenderSystemTest {
     }
 
     @Test
+    void firingKicksAHeadsGunBackAlongItsBearingWhileTheHousingStays() {
+        // Bearing 0 faces +Y: the gun stands 2 cells ahead of the head's centre at rest.
+        float[] rest = ConvoyRenderSystem.gunLayerCentre(10f, 20f, 0f, 2f, 0f);
+        assertEquals(10f, rest[0], 1e-5);
+        assertEquals(22f, rest[1], 1e-5);
+        float[] kicked = ConvoyRenderSystem.gunLayerCentre(10f, 20f, 0f, 2f, .18f);
+        assertEquals(10f, kicked[0], 1e-5);
+        assertEquals(21.82f, kicked[1], 1e-5, "the gun comes back by its kick");
+        // Facing +X (bearing -90), the kick runs back along -X.
+        float[] east = ConvoyRenderSystem.gunLayerCentre(0f, 0f, -90f, 2f, .5f);
+        assertEquals(1.5f, east[0], 1e-5);
+        assertEquals(0f, east[1], 1e-5);
+    }
+
+    @Test
     void wornTurretPlateIsMarkedOnlyOverATurretDrawnFromTheSheet() {
         assertTrue(ConvoyRenderSystem.wornPlateOnTurretFrame(false, false, false), "a fixed hull's own turret");
         assertTrue(ConvoyRenderSystem.wornPlateOnTurretFrame(true, false, false), "a modular hull's head");

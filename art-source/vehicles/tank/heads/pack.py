@@ -2,9 +2,19 @@
 
 Run after ../pack.ps1, which writes the sheet's first four 768x768 frames (live hull, live turret, wreck hull, wreck
 turret); the live and wreck turret are the heavy cannon's head. This keeps those four frames and appends, per head in
-HEADS order, a live and a wreck frame, all facing LEFT at the turret frame's registration (7.789194 cells):
+HEADS order, a live and a wreck frame, all facing LEFT at the turret frame's registration (7.789194 cells), then the
+guns:
 
   frame 4, 5: autocannon live, wreck     frame 6, 7: rotary live, wreck
+  frame 8: every head's gun, a 256-row strip each (heavy cannon, autocannon, rotary)
+
+A live head is drawn as two layers, so firing kicks the gun alone and never the housing: its live frame is the
+housing with the gun cut away (forward of the cut: the gun's band, and anything off the approved housing such as a
+chute or a hose), and its gun is a strip of frame 8 that stands for the head frame's middle third, forward of the cut,
+drawn under the housing. Each gun is seated back into the housing until its muzzle is the shared carriage's
+(guide.py's MUZZLE_X), so a long gun shows no more barrel than the heavy cannon and shots leave from the drawn muzzle;
+what it pushes aft of the cut is under the housing and is dropped. Re-running on a split sheet rebuilds the heavy
+cannon's whole head from its housing and strip first. The wreck frames are whole heads, built from the seated gun.
 
 Live frame: the head's ImageGen edit (<head>-raw.png, turret-only, in turret-master.png's coordinates) registered to
 the approved turret. ImageGen returns the housing a little scaled and shifted, so the scale and offset that best
@@ -22,7 +32,7 @@ import sys
 from pathlib import Path
 
 import numpy as np
-from PIL import Image, ImageDraw
+from PIL import Image, ImageDraw, ImageFilter
 
 HERE = Path(__file__).resolve().parent
 SHEET = HERE.parents[3] / "mod" / "graphics" / "battle" / "vehicles" / "army-tank.png"
@@ -36,6 +46,10 @@ GUN_BAND = (408, 502)       # the gun's band across the turret, master y
 ALPHA_FLOOR = 8
 WRECK_SHADE = 0.42
 WRECK_DROOP_DEG = -4.0
+GUN_FRAME = 8               # the frame holding every head's gun, a strip each
+STRIP = 256                 # a gun strip's height: a third of a frame
+STRIP_TOP = 256             # the head frame rows a gun strip covers start here (the middle third)
+SHARED_MUZZLE_X = FRAME / 2 + MASTER_SCALE * (1182 - BEARING[0])   # the carriage's muzzle (guide.py's MUZZLE_X)
 
 
 def frame_x(master_x):
@@ -120,6 +134,52 @@ def wreck(stock_wreck, head_live):
     return out
 
 
+def cut_px():
+    return int(round(frame_x(CUT_X)))
+
+
+def band_mask():
+    """The gun's band forward of the cut, as a boolean frame array: the cannon and its mantlet stubs."""
+    return np.asarray(gun_region_mask()) > 0
+
+
+def gun_mask(head_live, housing_alpha):
+    """Which pixels of a whole head are its gun: forward of the cut, in the gun's band or off the approved housing
+    (a chute or a hose the gun carries beside a cheek), and inside the strip a gun layer keeps."""
+    alpha = np.asarray(head_live.getchannel("A"))
+    housing = Image.fromarray((housing_alpha > ALPHA_FLOOR).astype(np.uint8) * 255).filter(ImageFilter.MaxFilter(7))
+    off_housing = (alpha > ALPHA_FLOOR) & (np.asarray(housing) == 0)
+    mask = band_mask() | off_housing
+    mask[:, cut_px():] = False
+    mask[:STRIP_TOP, :] = False
+    mask[STRIP_TOP + STRIP:, :] = False
+    return mask
+
+
+def split(head_live, housing_alpha):
+    """A whole head as its housing (the gun cut away) and its gun, the gun seated back into the housing so its muzzle
+    is the shared carriage's (SHARED_MUZZLE_X), and kept only forward of the cut: aft of it the housing covers it."""
+    mask = gun_mask(head_live, housing_alpha)
+    rgba = np.asarray(head_live).copy()
+    housing = rgba.copy()
+    housing[mask, 3] = 0
+    gun = rgba.copy()
+    gun[~mask, 3] = 0
+    cols = np.where((gun[:, :, 3] > 64).any(axis=0))[0]
+    seat = max(0, int(round(SHARED_MUZZLE_X - cols.min()))) if len(cols) else 0
+    seated = np.zeros_like(gun)
+    seated[:, seat:] = gun[:, :FRAME - seat]
+    seated[:, cut_px():, 3] = 0
+    return Image.fromarray(housing, "RGBA"), Image.fromarray(seated, "RGBA"), seat
+
+
+def whole(housing, gun):
+    """The head as it stands: its gun under its housing."""
+    out = gun.copy()
+    out.alpha_composite(housing)
+    return out
+
+
 def main():
     remeasure = "--measure" in sys.argv
     regs = json.loads(REGISTRATION.read_text()) if REGISTRATION.exists() else {}
@@ -127,20 +187,37 @@ def main():
     if sheet.height != FRAME or sheet.width < 4 * FRAME:
         raise SystemExit("run ../pack.ps1 first: the sheet needs its four base frames")
     base = [sheet.crop((i * FRAME, 0, (i + 1) * FRAME, FRAME)) for i in range(4)]
-    frames = list(base)
+    if sheet.width >= FRAME * GUN_FRAME + FRAME:
+        # Already split: the heavy cannon's whole head is its housing over its gun strip (seated by nothing).
+        strip = sheet.crop((GUN_FRAME * FRAME, 0, GUN_FRAME * FRAME + FRAME, STRIP))
+        gun = Image.new("RGBA", (FRAME, FRAME), (0, 0, 0, 0))
+        gun.paste(strip, (0, STRIP_TOP))
+        base[1] = whole(base[1], gun)
+    # The approved housing: the heavy cannon's head with its cannon and mantlet stubs cut away.
+    housing_alpha = np.asarray(base[1].getchannel("A")).copy()
+    housing_alpha[band_mask()] = 0
+    heavy_housing, heavy_gun, heavy_seat = split(base[1], housing_alpha)
+    frames = [base[0], heavy_housing, base[2], base[3]]
+    guns = [heavy_gun]
+    seats = {"heavy-cannon": heavy_seat}
     for head in HEADS:
         raw = Image.open(HERE / f"{head}-raw.png").convert("RGBA")
         if head not in regs or remeasure:
             regs[head] = measure(raw)
             print(head, regs[head])
-        head_live = live(raw, regs[head])
-        frames += [head_live, wreck(base[3], head_live)]
+        head_housing, head_gun, seats[head] = split(live(raw, regs[head]), housing_alpha)
+        frames += [head_housing, wreck(base[3], whole(head_housing, head_gun))]
+        guns.append(head_gun)
     REGISTRATION.write_text(json.dumps(regs, indent=2) + "\n")
+    strips = Image.new("RGBA", (FRAME, FRAME), (0, 0, 0, 0))
+    for i, gun in enumerate(guns):
+        strips.paste(gun.crop((0, STRIP_TOP, FRAME, STRIP_TOP + STRIP)), (0, i * STRIP))
+    frames.append(strips)
     out = Image.new("RGBA", (FRAME * len(frames), FRAME), (0, 0, 0, 0))
     for i, f in enumerate(frames):
         out.paste(f, (i * FRAME, 0))
     out.save(SHEET)
-    print(f"wrote {SHEET}: {len(frames)} frames")
+    print(f"wrote {SHEET}: {len(frames)} frames; guns seated back by {seats} px")
 
 
 if __name__ == "__main__":

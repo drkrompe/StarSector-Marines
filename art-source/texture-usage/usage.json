@@ -29662,82 +29662,82 @@
    "sliced": false,
    "sources": {
     "commander-heart": {
-     "displayWidth": 4785.6,
+     "displayWidth": 5383.8,
      "displayHeight": 1495.5,
      "domain": "world",
      "mapWidth": 400,
      "mapHeight": 240
     },
     "commander-thunder-run": {
-     "displayWidth": 7477.6,
+     "displayWidth": 8412.3,
      "displayHeight": 2336.8,
      "domain": "world",
      "mapWidth": 320,
      "mapHeight": 144
     },
     "snapshot:apc": {
-     "displayWidth": 7477.6,
+     "displayWidth": 8412.3,
      "displayHeight": 2336.8,
      "domain": "world",
      "mapWidth": 320,
      "mapHeight": 144
     },
     "snapshot:brute-charge": {
-     "displayWidth": 17091.8,
+     "displayWidth": 19228.3,
      "displayHeight": 5341.2,
      "domain": "world",
      "mapWidth": 40,
      "mapHeight": 20
     },
     "snapshot:fire-burn": {
-     "displayWidth": 4785.6,
+     "displayWidth": 5383.8,
      "displayHeight": 1495.5,
      "domain": "world",
      "mapWidth": 400,
      "mapHeight": 240
     },
     "snapshot:freight-vehicles": {
-     "displayWidth": 7477.6,
+     "displayWidth": 8412.3,
      "displayHeight": 2336.8,
      "domain": "world",
      "mapWidth": 320,
      "mapHeight": 144
     },
     "snapshot:mech-duel-range": {
-     "displayWidth": 16824.6,
+     "displayWidth": 18927.7,
      "displayHeight": 5257.8,
      "domain": "world",
      "mapWidth": 120,
      "mapHeight": 41
     },
     "snapshot:missile-carriers": {
-     "displayWidth": 17091.8,
+     "displayWidth": 19228.3,
      "displayHeight": 5341.2,
      "domain": "world",
      "mapWidth": 104,
      "mapHeight": 60
     },
     "snapshot:tank": {
-     "displayWidth": 17091.8,
+     "displayWidth": 19228.3,
      "displayHeight": 5341.2,
      "domain": "world",
      "mapWidth": 64,
      "mapHeight": 40
     },
     "snapshot:tank-variants": {
-     "displayWidth": 17091.8,
+     "displayWidth": 19228.3,
      "displayHeight": 5341.2,
      "domain": "world",
      "mapWidth": 64,
      "mapHeight": 40
     },
     "snapshot:ui": {
-     "displayWidth": 13378.4,
+     "displayWidth": 15050.7,
      "displayHeight": 3438.0,
      "domain": "ui"
     },
     "test": {
-     "displayWidth": 4785.6,
+     "displayWidth": 5383.8,
      "displayHeight": 1495.5,
      "domain": "world",
      "mapWidth": 400,

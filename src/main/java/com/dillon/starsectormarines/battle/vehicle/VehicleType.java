@@ -73,7 +73,7 @@ public enum VehicleType {
      * where no arc fits ({@link NeutralPivot}). Its active protection, where it carries one, is a rack kit
      * ({@link VehicleKit#ACTIVE_PROTECTION}); the stock fit with it is the Parapet ({@link VehicleStockFit#PARAPET}).
      */
-    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 8, -90f,
+    BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 9, -90f,
             0, 4.3f, 3.8f, 2.2f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,
             1, 0f, 0f, 0f, 0f, 7.789194f, -90f,
             TurretCatalogRegistry.TANK_CANNON_STRUCTURE_ID, 750f, 550f, 18f, 1.4f, 1.1f) {
@@ -579,15 +579,49 @@ public enum VehicleType {
      * whether or not it fires). A hull's heads are painted at one registration, so they share the turret's drawn size,
      * pivot and muzzle.
      */
-    public record HeadFrames(int live, int wreck, int firing) { }
+    public record HeadFrames(int live, int wreck, int firing, GunLayer gun) {
+        public HeadFrames(int live, int wreck, int firing) { this(live, wreck, firing, null); }
+    }
+
+    /**
+     * A live head's gun, drawn as a layer of its own under the housing so that firing kicks the gun alone and never the
+     * housing (art-source/vehicles/tank/heads): the live frame is the housing with the gun cut away, and the gun is
+     * strip {@code strip} of frame {@code frame}, one of three equal horizontal strips. A strip stands for the head
+     * frame's middle third, from the frame's leading (muzzle) edge back to {@code cutShare} of its width, where the
+     * housing's face covers the gun's seat.
+     */
+    public record GunLayer(int frame, int strip, float cutShare) {
+        /** The share of a frame's height a gun strip spans: a third. */
+        public static final float STRIP_SHARE = 1f / 3f;
+
+        /** How far ahead of the head frame's centre the strip's centre stands, as a share of the frame's width. */
+        public float centreAheadShare() { return .5f - cutShare / 2f; }
+    }
+
+    /** Where the Onager's housing face cuts its guns off, as a share of the head frame's width (pack.py's cut). */
+    private static final float ONAGER_GUN_CUT_SHARE = 289f / 768f;
+    private static final int ONAGER_GUN_FRAME = 8;
 
     private static final HeadFrames LASER_WHITE_HEAD = new HeadFrames(1, 3, 4);
     private static final HeadFrames LASER_RED_HEAD = new HeadFrames(5, 6, 7);
     /** The Onager's approved single-cannon turret, the heavy cannon's head (art-source/vehicles/tank). */
-    private static final HeadFrames ONAGER_HEAVY_CANNON_HEAD = new HeadFrames(1, 3, -1);
+    private static final HeadFrames ONAGER_HEAVY_CANNON_HEAD = new HeadFrames(1, 3, -1,
+            new GunLayer(ONAGER_GUN_FRAME, 0, ONAGER_GUN_CUT_SHARE));
     /** The Onager's housing with an autocannon and a rotary gun (art-source/vehicles/tank/heads). */
-    private static final HeadFrames ONAGER_AUTOCANNON_HEAD = new HeadFrames(4, 5, -1);
-    private static final HeadFrames ONAGER_ROTARY_HEAD = new HeadFrames(6, 7, -1);
+    private static final HeadFrames ONAGER_AUTOCANNON_HEAD = new HeadFrames(4, 5, -1,
+            new GunLayer(ONAGER_GUN_FRAME, 1, ONAGER_GUN_CUT_SHARE));
+    private static final HeadFrames ONAGER_ROTARY_HEAD = new HeadFrames(6, 7, -1,
+            new GunLayer(ONAGER_GUN_FRAME, 2, ONAGER_GUN_CUT_SHARE));
+
+    /**
+     * The gun layer a live turret draws under its housing ({@link GunLayer}): that of the head {@code weapon} wears,
+     * or for a null weapon the head of the hull's standard part; null for a turret drawn whole.
+     */
+    public GunLayer gunLayer(MechWeaponComponent weapon) {
+        MechWeaponComponent fitted = weapon != null ? weapon : standardPart();
+        HeadFrames head = fitted == null ? null : headFrames(fitted.tankHead());
+        return head == null ? null : head.gun();
+    }
 
     /**
      * The frames of the turret head this hull's sheet paints for {@code head}, or null for a head the hull does not

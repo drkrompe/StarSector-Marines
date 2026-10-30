@@ -174,7 +174,7 @@ public final class WeaponReelSuite implements SnapshotSuite {
             int[] seen = {-1, 0};
             LookReview.Shot shot = new LookReview.Shot(entry.shot(), GROUND, W, H,
                     placement -> stage(entry, placement, preRoll, seen),
-                    placement -> List.of(view(entry, placement)), entry.clipTicks(), 1, 0, null);
+                    placement -> views(entry, placement), entry.clipTicks(), 1, 0, null);
             List<SnapshotArtifact> recorded = LookReview.record(context.modRoot(), shot);
             out.addAll(recorded);
             JSONObject clip = new JSONObject();
@@ -267,6 +267,20 @@ public final class WeaponReelSuite implements SnapshotSuite {
         float[] target = placement.openNear(shooter[0] - placement.site().x0() + entry.distance(), H / 2f);
         return entry.stager().stage(placement, shooter[0], shooter[1], target[0], target[1]);
     }
+
+    /**
+     * The reel's view, and with {@code -Dsnapshot.weaponReel.close=true} a second, {@link #CLOSE_CELLS} across on the
+     * shooter ({@code look/<shot>-close.mp4}), to judge how a gun itself fires; the reel cutter reads only the first.
+     */
+    private static List<LookReview.View> views(Entry entry, LookReview.Placement placement) {
+        LookReview.View reel = view(entry, placement);
+        if (!Boolean.getBoolean("snapshot.weaponReel.close")) return List.of(reel);
+        float[] shooter = placement.openNear(W / 2f - entry.distance() / 2f, H / 2f);
+        return List.of(reel, LookReview.View.close("close", shooter[0], shooter[1], CLOSE_CELLS));
+    }
+
+    /** How many cells the close view spans across. */
+    static final float CLOSE_CELLS = 12f;
 
     /** A fixed camera on the middle of shooter and target, wide enough for both and the ground round them. */
     private static LookReview.View view(Entry entry, LookReview.Placement placement) {

@@ -121,10 +121,13 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
             case MISSILE_SMOKE -> ContrailStyle.MISSILE_SMOKE;
             case INTERCEPTOR_WISP -> ContrailStyle.INTERCEPTOR_WISP;
         };
-        // A turret weapon with no projectile art and an authored beam is a hitscan beam, as on a mech; with no
-        // beam either it travels unseen (the colony's spines, heard only where they break out).
+        // A turret weapon with no projectile art and an authored beam is a hitscan beam, as on a mech; an energy
+        // weapon with neither fires the pulse bolt in its tracer colour, as a marine's pulse rifle does; anything
+        // else with no art travels unseen (the colony's spines, heard only where they break out).
         Body body = weapon.hitscanBeam()
                 ? new Tracer(weapon.tracerColor, weapon.beamStyle)
+                : firesTurretBolt(weapon) ? new Bolt(PULSE_BOLT_SPRITE_PATH, weapon.tracerColor,
+                        TURRET_BOLT_LENGTH_CELLS, TURRET_BOLT_WIDTH_CELLS)
                 : new Sprite(weapon.projectileSpritePath, weapon.projectileVisualCells);
         return new ShotFx(
                 body,
@@ -160,12 +163,23 @@ public record ShotFx(Body body, TracerTail tracerTail, float arcHeight, boolean 
         return new Bolt(PULSE_BOLT_SPRITE_PATH, weapon.tracerColor, 1.0f, 0.22f);
     }
 
+    /** An energy turret's pulse bolt: a vehicle emitter's, a little longer and heavier than a rifle's. */
+    static final float TURRET_BOLT_LENGTH_CELLS = 1.3f;
+    static final float TURRET_BOLT_WIDTH_CELLS = 0.28f;
+
+    /** Whether a turret weapon's rounds are drawn as a traveling bolt: an energy weapon with no projectile art or beam. */
+    static boolean firesTurretBolt(WeaponDef weapon) {
+        return weapon.energy && weapon.projectileSpritePath == null && !weapon.hitscanBeam();
+    }
+
     /** Distinct traveling-bolt textures for cache loading; derived from effects, not carriers. */
     static Set<String> boltSpritePaths() {
         Set<String> paths = new HashSet<>();
         for (WeaponDef weapon : WeaponRegistry.installed().all()) {
-            if (weapon.mount != MountClass.MARINE_PRIMARY) continue;
-            ShotFx fx = derivePrimary(weapon);
+            ShotFx fx;
+            if (weapon.mount == MountClass.MARINE_PRIMARY) fx = derivePrimary(weapon);
+            else if (weapon.mount == MountClass.TURRET_MOUNT) fx = deriveTurret(weapon);
+            else continue;
             if (fx.body() instanceof Bolt bolt) paths.add(bolt.spritePath());
         }
         return Set.copyOf(paths);
