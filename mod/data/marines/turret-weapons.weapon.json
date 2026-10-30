@@ -489,7 +489,7 @@
           { "kind": "smoke", "radius": 0.35, "lifetime": 0.70 }
         ]
       },
-      "audio": { "fireSound": "autocannon_fire" }
+      "audio": { "fireSound": "autocannon_fire", "impactSound": "marines_ac_impact" }
     },
     {
       "id": "weapon.turret-heavy-mortar",

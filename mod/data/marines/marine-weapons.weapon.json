@@ -492,7 +492,7 @@
           { "kind": "smoke", "radius": 0.40, "lifetime": 0.82 }
         ]
       },
-      "audio": { "fireSound": "light_autocannon_fire" }
+      "audio": { "fireSound": "light_autocannon_fire", "impactSound": "marines_ac_impact" }
     },
     {
       "id": "weapon.mech-hc-10",
@@ -684,7 +684,7 @@
           { "kind": "smoke", "radius": 0.28, "lifetime": 0.58 }
         ]
       },
-      "audio": { "fireSound": "light_autocannon_fire" }
+      "audio": { "fireSound": "light_autocannon_fire", "impactSound": "marines_ac_impact" }
     },
     {
       "id": "weapon.mech-dc-4-qs",
@@ -827,7 +827,7 @@
           { "kind": "dust", "radius": 0.2, "lifetime": 0.18 }
         ]
       },
-      "audio": { "fireSound": "burst_pd_fire" }
+      "audio": { "fireSound": "pulse_laser_fire" }
     },
     {
       "id": "weapon.mech-pd-laser",
@@ -1003,7 +1003,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "fireSound": "burst_pd_fire" }
+      "audio": { "fireSound": "pulse_laser_fire" }
     },
     {
       "id": "weapon.mech-light-burst-laser",
@@ -1047,7 +1047,7 @@
           { "kind": "dust", "radius": 0.16, "lifetime": 0.16 }
         ]
       },
-      "audio": { "fireSound": "burst_pd_fire" }
+      "audio": { "fireSound": "pulse_laser_fire" }
     },
     {
       "id": "weapon.mech-light-mg",
