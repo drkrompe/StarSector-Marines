@@ -178,5 +178,17 @@
   "seconds": 2,
   "loop": false,
   "influence": 0.7
+ },
+ "harpoon-launch-one": {
+  "prompt": "One guided missile leaving its launch tube: a hard metallic thunk as it is kicked clear, then its small rocket motor lighting with a sharp crackling whoosh that streaks away, a single missile only, no music, no voices",
+  "seconds": 2,
+  "loop": false,
+  "influence": 0.6
+ },
+ "harpoon-motor": {
+  "prompt": "A small missile rocket motor burning steadily at full thrust: a fierce tearing hiss and crackling roar of burning solid rocket fuel, constant, no whistle, no music, no voices",
+  "seconds": 6,
+  "loop": true,
+  "influence": 0.5
  }
 }

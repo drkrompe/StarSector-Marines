@@ -1,0 +1,15 @@
+{
+  "requestId": null,
+  "characterCost": "66",
+  "modelId": "eleven_text_to_sound_v2",
+  "request": {
+    "text": "A small missile rocket motor burning steadily at full thrust: a fierce tearing hiss and crackling roar of burning solid rocket fuel, constant, no whistle, no music, no voices",
+    "duration_seconds": 6.0,
+    "prompt_influence": 0.5,
+    "loop": true
+  },
+  "audioSha256": "7ed86ca550bc3f30f46357e9405a3a194d727174d8e178124a929f97e7d1e1e2",
+  "durationSeconds": 6.0,
+  "peakDb": 0.0,
+  "integratedLufs": -4.3
+}
