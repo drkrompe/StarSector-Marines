@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.tender.BuildOption;
+import com.dillon.starsectormarines.battle.power.YardConstruction;
 import com.dillon.starsectormarines.battle.air.FittedBoat;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.air.ShuttleState;
@@ -285,8 +287,8 @@ public final class ColdStartSnapshotSuite implements SnapshotSuite {
                     }
                 }
                 if (fixture.build && !requested && phase.name().equals("CONSTRUCTION")
-                        && sim.getCommandPowerService().canActivate(sim.getCommandPowerService().getPower("yard-construction"))) {
-                    sim.getCommandPowerService().requestActivation("yard-construction", sequence.buildX(), sequence.buildY());
+                        && sim.getCommandPowerService().canActivate(sim.getCommandPowerService().getPower(YardConstruction.ID_PREFIX + BuildOption.HEAVY_MG_TURRET.id()))) {
+                    sim.getCommandPowerService().requestActivation(YardConstruction.ID_PREFIX + BuildOption.HEAVY_MG_TURRET.id(), sequence.buildX(), sequence.buildY());
                     requested = true;
                     report.append("  explicit player construction request tick=").append(sim.getSimTickIndex()).append('\n');
                 }

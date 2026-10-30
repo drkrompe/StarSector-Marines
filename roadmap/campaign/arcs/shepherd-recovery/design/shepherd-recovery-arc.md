@@ -55,7 +55,7 @@ The company can replenish before accepting; the opportunity has no hidden expiry
 |---|---|---|---|
 | Salvage Rights | Secure store, workshop and cradle; protect the physical inspection party | 18,000 credits; Basin's yard claim and protected inspection | Implemented; live acceptance remains |
 | Cold Start | Escort repair cargo, restore shore power and cover grounded drone construction and repairs | 22,000 credits; completed repairs | Implemented; live acceptance remains |
-| Working Passage | Advance full-size hovering Morrow through constructed holds, protect drive work and complete physical departure | Actual named Shepherd Morrow, crewed from the company's own fleet; no crew or departure cash fee | Implemented; live handover and later support acceptance remain |
+| Working Passage | Advance hovering Morrow through constructed holds, protect drive work and complete physical departure | Actual named Shepherd Morrow, crewed from the company's own fleet; no crew or departure cash fee | Implemented; live handover and later support acceptance remain |
 
 Cold Start uses the current selected company already assembled ashore, rather
 than another insertion flight or a frozen earlier roster. Delivered repair cargo

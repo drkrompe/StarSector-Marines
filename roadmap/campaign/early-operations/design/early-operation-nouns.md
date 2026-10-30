@@ -141,12 +141,13 @@ completed field work without claiming repair victory or paying the chapter fee.
 Returning briefings describe the remaining work. An opening recording that orders
 an already completed delivery is withheld; the written briefing remains available.
 
-Restored power enables a mission-provided construction command card backed by
-Morrow's grounded drone bay. The captain chooses a clear exterior plot; ordinary
-finite, vulnerable builder drones fly out, work and return. Known hostile contacts
-and actual damage interrupt construction under the standing tender rules. Grounded
-construction retains the large static hull and its collision, has a fixed working
-reach and grants neither flight nor a fleet member. Completing a real road gun
+Restored power enables mission-provided construction command cards backed by
+Morrow's grounded drone bay: a heavy MG turret and a Locust battery. The captain
+chooses any open plot already seen, off the hull; ordinary finite, vulnerable
+builder drones fly out to it, work and return. Known hostile contacts and actual
+damage interrupt construction under the standing tender rules. Grounded
+construction retains the large static hull and its collision and grants neither
+flight nor a fleet member. Completing a real road gun
 allows the repair task to proceed; the gun fires and takes damage ordinarily.
 
 Two three-person outer pickets screen Cold Start's south haul and quarry
@@ -165,8 +166,8 @@ from casualties. No mandatory deaths or extra reward depend on these posts.
 Working Passage follows completed repairs and its first briefing's new road-work
 agreement. The concrete tactical gates below remain current mission rules,
 independent of that agreement's general construction terms. The same hull travels
-in a low hover
-with its full 24 by 20-cell body, clearing terrain along its actual movement.
+in a low hover at the Onslaught power's scale (`tender-ship.md`), clearing terrain
+along its actual movement; the player builds the same two guns anywhere seen and open.
 Living company presence and clear ground release its successive assembly positions.
 The pump bend and narrows each require a surviving constructed turret before the
 company advances; two distinct cooperative militia teams inherit the earlier holds.

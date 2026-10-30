@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.battle.power.YardConstruction;
 import com.dillon.starsectormarines.battle.control.ShipCommandService;
 import com.dillon.starsectormarines.battle.fixture.BattleFixture;
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
@@ -244,13 +245,11 @@ public final class ShipCommandUiSnapshotSuite implements SnapshotSuite {
                     plates.clickHero(plates.state.ships().get(0).id());
                     plates.update(controller.state());
                     require(plates.actions.requireElement("ship-action-move").disabled(), "A grounded hull cannot move");
-                    var buildActions = plates.state.actions().stream().filter(a -> a.id().contains("vulcan")).toList();
-                    require(buildActions.size() == 1, "Grounded mission exposes its single authored construction option");
-                    require(plates.state.actions().stream().filter(a -> a.id().startsWith("build-")).count() == 1,
-                            "Mobile tender kit does not bypass the mission construction owner");
+                    var buildActions = plates.state.actions().stream().filter(a -> a.id().startsWith("build-")).toList();
+                    require(buildActions.size() == BuildOption.RECOVERY.size(), "Grounded mission exposes each recovery build");
                     if (buildActions.get(0).enabled()) {
                         plates.clickAction(buildActions.get(0).id());
-                        require("yard-construction".equals(power.get()), "Grounded build uses the command power gate");
+                        require(power.get() != null && power.get().startsWith(YardConstruction.ID_PREFIX), "Grounded build uses the command power gate");
                     }
                 }
                 frames.add(new SnapshotArtifact(powered ? "09-grounded-powered-1920x1080-ui100.png"

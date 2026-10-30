@@ -57,9 +57,21 @@ public final class ShipCommandService {
         if (eligible != Notice.NONE) return eligible;
         int cx = (int) Math.floor(x), cy = (int) Math.floor(y);
         if (!Float.isFinite(x) || !Float.isFinite(y) || !grid.inBounds(cx, cy)) return Notice.OFF_MAP;
-        if (ship.lowHovering() && !LowHoverClearance.sweptClear(grid, ship.x, ship.y, x, y,
-                ship.lowHoverWidth(), ship.lowHoverHeight())) return Notice.BLOCKED;
-        return revealed.test(cx, cy) ? Notice.NONE : Notice.UNSEEN;
+        if (!revealed.test(cx, cy)) return Notice.UNSEEN;
+        float[] reach = destination(ship, x, y, grid);
+        return Math.hypot(reach[0] - ship.x, reach[1] - ship.y) < MIN_LOW_HOVER_MOVE ? Notice.BLOCKED : Notice.NONE;
+    }
+
+    /** The least travel a low-hover move order must buy, in cells, to be accepted. */
+    static final float MIN_LOW_HOVER_MOVE = 1f;
+
+    /**
+     * Where a move order to {@code (x, y)} takes the ship: there, or for a low-hovering hull whose footprint cannot
+     * sweep the whole way, as far along the line as it clears.
+     */
+    public static float[] destination(Warship ship, float x, float y, NavigationGrid grid) {
+        if (!ship.lowHovering()) return new float[]{x, y};
+        return LowHoverClearance.farthestClear(grid, ship.x, ship.y, x, y, ship.lowHoverWidth(), ship.lowHoverHeight());
     }
 
     public void drain(List<Warship> ships, List<Tender> tenders, Faction player, NavigationGrid grid,
@@ -96,7 +108,8 @@ public final class ShipCommandService {
                 Notice destination = placement(ship, tender, player, request.x(), request.y(), grid, revealed);
                 if (destination != Notice.NONE) return destination;
                 if (tender != null) tender.cancelAll();
-                ship.remoteOrder(Warship.RemoteOrder.MOVE, request.x(), request.y());
+                float[] to = destination(ship, request.x(), request.y(), grid);
+                ship.remoteOrder(Warship.RemoteOrder.MOVE, to[0], to[1]);
                 return Notice.MOVING;
             }
             case HOLD -> {
@@ -108,7 +121,7 @@ public final class ShipCommandService {
             case CANCEL -> { if (tender == null) return Notice.UNAVAILABLE; tender.cancelAll(); return Notice.CANCELLED; }
             case DEFENCE -> { if (tender == null) return Notice.UNAVAILABLE; tender.defenceOut(!tender.defenceOut()); return Notice.DEFENCE; }
             case BUILD -> {
-                if (tender == null || request.option() == null || !BuildOption.ALL.contains(request.option())) return Notice.UNAVAILABLE;
+                if (tender == null || request.option() == null || !tender.options().contains(request.option())) return Notice.UNAVAILABLE;
                 TenderPilot.Placement where = TenderPilot.placement(tender, request.x(), request.y(), grid, revealed);
                 if (where != TenderPilot.Placement.OPEN) return switch (where) {
                     case UNSEEN -> Notice.UNSEEN;
