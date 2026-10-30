@@ -9,8 +9,9 @@ captainDiscoveryLater,DialogOptionSelected,$option == starsectorMarinesCaptainLa
 captainDiscoveryDone,DialogOptionSelected,$option == starsectorMarinesCaptainDone,CaptainDiscoveryCMD done,,,Closes the retained salvage interaction after resolution
 marineOpsStorySite,PopulateOptions,"$market.isPlanetConditionMarketOnly
 MarineOpsCMD storySite",MarineOpsCMD gate,,30:marineOpsOpen:Marine operations,Current Wayline story site on an unpopulated world
-smCerberusChoice,AddNewGameChoices,,"SetTooltip smCerberusStart ""You and the rest of the undesirables were abandoned by corporate on a mining rig. You've jury-rigged a mothballed wreck to fly you and your people out. No licence, no patron, four hundred and seventy-three credits. Build a mercenary company from nothing.""",,"6:smCerberusStart:Commander of the Second Wind (Marines story start)",
-smCerberusSelected,NewGameOptionSelected,$option == smCerberusStart,NGCAddShip sm_second_wind_start,"The operator's last ore carrier left with the administrators, the payroll, and the medical stores. No ships returned for you and the remaining families and crew. Before supplies ran out you managed to furnish enough spare parts to bring an old abandoned Cerberus online. With a chance of survival restored, the ship was named the Second Wind, and people prepared to depart for a new life after nearly a decade in the belt. Somewhere between the locks and the jump point, they started calling you Commander. You have 473 credits, a down payment Castle will not let anyone touch, twelve unpaid security personnel, and a port berth waiting on Jangala. This start replaces the Galatia tutorial with the Second Wind prologue and Marines Mod company campaign start.","0:smCerberusNormal:Normal
+smCerberusChoice,AddNewGameChoices,,CerberusStartTextCMD tooltip,,"6:smCerberusStart:Commander of the Second Wind (Marines story start)",
+smCerberusSelected,NewGameOptionSelected,$option == smCerberusStart,"NGCAddShip sm_second_wind_start
+CerberusStartTextCMD story",,"0:smCerberusNormal:Normal
 1:smCerberusEasy:Easy",
 smCerberusNormal,NewGameOptionSelected,$option == smCerberusNormal,"NGCSetDifficulty normal
 $ngcSkipTutorial = true
