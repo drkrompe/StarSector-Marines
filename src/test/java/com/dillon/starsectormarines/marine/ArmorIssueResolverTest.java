@@ -192,6 +192,29 @@ class ArmorIssueResolverTest {
                 List.of(ArmorClass.STANDARD)));
     }
 
+    /**
+     * A seated sheet is the owner's arrangement: each billet wears the suit it names, even a
+     * cheaper one beside a better suit of its role, and only a billet whose suit is missing from
+     * stock is dealt by role.
+     */
+    @Test
+    void aSeatedPlanIssuesEachSeatItsOwnSuitAndDealsOnlyAMissingOne() {
+        withCatalog(List.of(
+                pattern("t.best-line", ArmorRole.LINE, 4, 20f, 12f),
+                pattern("t.surplus-line", ArmorRole.LINE, 1, 3f, 2f)), () -> {
+            List<String> seats = new ArrayList<>();
+            for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+                seats.add(billet == 0 ? "t.surplus-line" : billet == 1 ? "t.gone" : "t.best-line");
+            }
+            SquadArmorPlan seated = new SquadArmorPlan("plan.seated", "Seated", "", ArmorTradition.HEGEMONY,
+                    SquadRoleMix.LINE_HOLD, ArmorClass.STANDARD, null, seats);
+            List<String> issued = ArmorIssueResolver.resolveUnrestricted(seated).issueIds();
+            assertEquals("t.surplus-line", issued.get(0), "the seat's own suit, not the role's best");
+            assertEquals("t.best-line", issued.get(1), "a suit not in stock falls back to the role's best");
+            assertEquals("t.best-line", issued.get(2));
+        });
+    }
+
     private static List<String> wornBy(ArmorRole role, SquadRoleMix mix,
                                        SquadArmorDoctrine issued) {
         List<String> worn = new ArrayList<>();

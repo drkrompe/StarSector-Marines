@@ -50,7 +50,7 @@ class ArmorPlanKnowledgeTest {
         MarineRoster loaded = roundTrip(new MarineRoster());
         assertEquals(List.of(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR),
                 knownSheets(loaded.armory()));
-        assertEquals(3, loaded.armory().ownedEquipmentTemplateIds().size());
+        assertEquals(EquipmentTestFixtures.baselineTemplateIds(), loaded.armory().ownedEquipmentTemplateIds());
     }
 
     @Test void owningEverySuitOfASheetIsNotTheSheetOnlyItsCardIs() {

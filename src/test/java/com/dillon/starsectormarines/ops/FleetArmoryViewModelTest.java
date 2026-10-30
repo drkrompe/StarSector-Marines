@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.marine.MarineArmorCatalogDef;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.EquipmentTestFixtures;
+import com.dillon.starsectormarines.marine.MarineSoldier;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.SquadArmorDoctrine;
@@ -100,7 +101,6 @@ class FleetArmoryViewModelTest {
         FleetArmoryViewModel model = new FleetArmoryViewModel(new Reactor(), roster);
         assertEquals(List.of("Dockside Issue"), model.weaponDoctrineTiles().get().stream().map(FleetArmoryViewModel.DoctrineTile::name).toList());
         assertEquals(List.of("Watchman's Kit"), model.armorDoctrineTiles().get().stream().map(FleetArmoryViewModel.DoctrineTile::name).toList());
-        assertEquals("12 LINE", model.weaponDoctrineTiles().get().get(0).composition());
         var members = roster.manningMemberIds(roster.squadById(model.selectedSquadId()));
         List<String> before = members.stream().map(id -> roster.soldierById(id).armorDef().id()).toList();
         EquipmentTestFixtures.learnServiceKit(roster.armory());
@@ -132,6 +132,7 @@ class FleetArmoryViewModelTest {
         FleetArmoryViewModel model = new FleetArmoryViewModel(new Reactor(), roster);
         model.showArmorPickerAction().run();
         assertEquals("1 known", model.loadoutBrowserSummary().get());
+        List<String> worn = roster.soldiers().stream().map(MarineSoldier::armorId).toList();
 
         EquipmentTestFixtures.learnSheet(roster.armory(), SquadEquipmentDoctrines.RECON_ARMOR);
         model.refresh();
@@ -141,8 +142,7 @@ class FleetArmoryViewModelTest {
                 "armor-doctrine:" + SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR,
                 "armor-doctrine:" + SquadEquipmentDoctrines.RECON_ARMOR)));
         assertEquals("2 known", model.loadoutBrowserSummary().get());
-        assertTrue(roster.soldiers().stream().allMatch(
-                person -> "armor.cordon-shell".equals(person.armorId())),
+        assertEquals(worn, roster.soldiers().stream().map(MarineSoldier::armorId).toList(),
                 "learning a sheet or specification must not issue new kit");
     }
 

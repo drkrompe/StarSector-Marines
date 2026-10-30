@@ -12,18 +12,17 @@ import java.util.Arrays;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** A matchup side is a card pairing resolved into twelve seats. */
 class MatchupSideTest {
 
     @Test
-    void starterIssuesTwelveArmoredSeats() {
+    void starterIssuesTwelveDressedSeats() {
         MarineLoadout[] seats = MatchupSide.STARTER.seats();
         assertEquals(12, seats.length);
         for (MarineLoadout seat : seats) {
             assertNotNull(seat.primaryWeaponId);
-            assertTrue(seat.armorCapacity > 0f && seat.armorRating > 0f);
+            assertNotNull(seat.armorClass);
         }
     }
 

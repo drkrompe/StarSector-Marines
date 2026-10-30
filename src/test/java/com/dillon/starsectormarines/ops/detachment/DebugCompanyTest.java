@@ -211,6 +211,8 @@ class DebugCompanyTest {
                         plan.id() + " billet " + billet + ": a hardened company is issued tier "
                                 + richTier + " where a starter company gets tier " + poorTier);
             }
+            // A seated sheet is the owner's arrangement, the same squad for every company that can issue it.
+            if (plan.seatSuitAt(0) != null) continue;
             assertNotEquals(poor.issueIds(), rich.issueIds(),
                     plan.id() + " issues identical kit at both ends of the ladder,"
                             + " so access is doing nothing");

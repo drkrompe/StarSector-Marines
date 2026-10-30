@@ -34,6 +34,10 @@ public final class ArmorIssueResolver {
     /**
      * Issues {@code plan} from the patterns {@code available} accepts.
      *
+     * <p>A seated plan ({@link SquadArmorPlan#seatSuitAt}) issues each billet the suit it names
+     * whenever that suit is available: the owner's seating is the squad. Only a billet whose
+     * suit is not available is dealt by the rules below.
+     *
      * <p>For each billet: the best available pattern of that billet's role,
      * preferring the plan's own tradition; failing that, the best available of
      * that role from anyone. A role nobody available fills falls back to line
@@ -74,6 +78,11 @@ public final class ArmorIssueResolver {
         Map<Billet, Integer> dealt = new HashMap<>();
         List<String> issued = new ArrayList<>(MarineSquad.CAPACITY);
         for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+            MarineArmorCatalogDef seated = seated(plan, billet, stock);
+            if (seated != null) {
+                issued.add(seated.id());
+                continue;
+            }
             Billet requirement = new Billet(plan.armorClassAt(billet), plan.roleAt(billet));
             List<MarineArmorCatalogDef> band = bands.computeIfAbsent(requirement, key -> {
                 List<MarineArmorCatalogDef> classStock = matching(stock,
@@ -102,6 +111,16 @@ public final class ArmorIssueResolver {
     public static SquadArmorDoctrine issueSheet(SquadArmorPlan plan) {
         List<String> bundle = ArmorSheetBundles.patternsFor(plan.id());
         return resolve(plan, pattern -> bundle.contains(pattern.id()));
+    }
+
+    /** The suit a seated plan names for this billet, when it is in stock; null to deal the billet by role. */
+    private static MarineArmorCatalogDef seated(SquadArmorPlan plan, int billet, List<MarineArmorCatalogDef> stock) {
+        String suit = plan.seatSuitAt(billet);
+        if (suit == null) return null;
+        for (MarineArmorCatalogDef pattern : stock) {
+            if (pattern.id().equals(suit)) return pattern;
+        }
+        return null;
     }
 
     /** Convenience for "everything the catalog has", used by previews and tests. */

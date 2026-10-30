@@ -315,12 +315,21 @@ def self_test():
                    "placed twice", "reach type 'moon'", "card loadout-card:weapon:weapons:c has no placement"):
         expect("validate finds: " + needle, needle in errs)
     page = {"weapon": [{"id": "weapons:a", "members": [{"role": "R", "primary": "p", "grade": "SURPLUS", "special": "special.rocket-launcher", "belt": None}] * 12}],
-            "armor": [{"id": "armor:d", "members": [{"armor": "s2"}, {"armor": "s1"}, {"armor": "s2"}]}]}
+            "armor": [{"id": "armor:d", "members": [{"armor": "s2" if i % 3 == 0 else "s1"} for i in range(12)]}]}
     ladder.translate_retired(page)
     expect("retired specials translate", page["weapon"][0]["members"][0]["special"] == "special.srm-1")
     edited = ladder.patch_cards(cards, {"weapons:a": page["weapon"][0], "armor:d": page["armor"][0]})
     expect("patch_cards writes seats", edited["weaponCards"][0]["members"][0] == {"role": "R", "primary": "p", "grade": "SURPLUS", "special": "special.srm-1"})
-    expect("patch_cards writes a sheet's suit set", edited["tacticSheets"][0]["suits"] == ["s2", "s1"])
+    expect("patch_cards seats a sheet", edited["tacticSheets"][0].get("seats") == ["s2", "s1", "s1"] * 4
+           and "suits" not in edited["tacticSheets"][0] and kitdata.sheet_suits(edited["tacticSheets"][0]) == ["s2", "s1"])
+    seated = ladder.patch_cards(cards, {"armor:d": page["armor"][0]})
+    expect("a seated sheet validates", kitdata.validate(full, seated, dict(known, armor={"s1", "s2"})) == [])
+    seated_bad = json.loads(json.dumps(seated))
+    seated_bad["tacticSheets"][0]["seats"].pop()
+    seated_bad["tacticSheets"][0]["suits"] = ["s1"]
+    errs2 = " | ".join(kitdata.validate(full, seated_bad, dict(known, armor={"s1", "s2"})))
+    expect("validate finds a short seated sheet", "seats has 11 suits" in errs2 and "give seats or suits" in errs2)
+    expect("seated cards dump round-trips", kitdata.dump_cards(json.loads(kitdata.dump_cards(edited))) == kitdata.dump_cards(edited))
     expect("patch_cards leaves names alone", edited["weaponCards"][0]["name"] == "@k")
 
     ids = {"start", "relief", "junction", "none"}
@@ -346,8 +355,8 @@ def self_test():
     stale_base = {"stations": {}, "fingerprints": {"a": ladder.card_fingerprint(edited)}}
     e2 = [e for e in ladder.diff(state2, game_rows, {"a": card}, items, ids, stale_base) if e["id"] == "a"]
     expect("diff: content the game changed is stale", e2 and e2[0]["kind"] == "content-stale")
-    expect("seat changes: armour compares suit sets",
-           ladder.seat_changes("armor", [{"armor": "s1"}, {"armor": "s2"}], [{"armor": "s2"}, {"armor": "s1"}]) == [])
+    expect("seat changes: armour compares seat by seat",
+           ladder.seat_changes("armor", [{"armor": "s1"}, {"armor": "s2"}], [{"armor": "s2"}, {"armor": "s2"}]) == ["seat 1: armor s2 -> s1"])
 
     data = {"PRIMARIES": [], "SPECIALS": [], "KITS": [dict(card, station="start")], "ARMORKITS": [], "STATIONS": [],
             "ARMORS": [], "ITEMS": {"hull": [{"id": "vehicle:X", "name": "X", "station": "none", "access": "COMMON"}]},

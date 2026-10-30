@@ -21,6 +21,11 @@ import java.util.List;
  * could only express it by adopting a different doctrine — which is how a fully
  * equipped force ended up organised as twelve identical breachers. A plan says
  * the composition once and survives the company getting richer.
+ *
+ * <p>A built-in tactic sheet whose card the owner seated suit by suit carries {@code seatSuits}: the
+ * twelve patterns in billet order, as the Kit Ladder page shows them ({@code kit-ladder.md}, Data).
+ * The resolver issues each seat its own suit while it is available, and a seat's class and job are
+ * its suit's. A plan without them is dealt by role, class and tier as above.
  */
 public record SquadArmorPlan(
         String id,
@@ -29,7 +34,14 @@ public record SquadArmorPlan(
         ArmorTradition tradition,
         SquadRoleMix mix,
         ArmorClass armorClass,
-        List<ArmorClass> billetClasses) implements Serializable {
+        List<ArmorClass> billetClasses,
+        List<String> seatSuits) implements Serializable {
+
+    public SquadArmorPlan(String id, String displayName, String description,
+            ArmorTradition tradition, SquadRoleMix mix, ArmorClass armorClass,
+            List<ArmorClass> billetClasses) {
+        this(id, displayName, description, tradition, mix, armorClass, billetClasses, null);
+    }
 
     public SquadArmorPlan(String id, String displayName, String description,
             ArmorTradition tradition, SquadRoleMix mix, ArmorClass armorClass) {
@@ -49,6 +61,12 @@ public record SquadArmorPlan(
                 throw new IllegalArgumentException("An armor plan needs twelve billet classes");
             }
             billetClasses = List.copyOf(billetClasses);
+        }
+        if (seatSuits != null) {
+            if (seatSuits.size() != MarineSquad.CAPACITY) {
+                throw new IllegalArgumentException("An armor plan's seat suits name twelve patterns");
+            }
+            seatSuits = List.copyOf(seatSuits);
         }
         if (id == null || id.isBlank()) {
             throw new IllegalArgumentException("Armour plan id is required");
@@ -79,8 +97,16 @@ public record SquadArmorPlan(
                 : armorClassAt(0).displayName();
     }
 
-    /** The job billet {@code index} does. */
+    /** The suit seated at billet {@code index}, or null for a plan dealt by role. */
+    public String seatSuitAt(int index) {
+        return seatSuits == null ? null : seatSuits.get(index);
+    }
+
+    /** The job billet {@code index} does: its seated suit's role, else the role mix's. */
     public ArmorRole roleAt(int index) {
-        return mix.roleAt(index);
+        String suit = seatSuitAt(index);
+        MarineArmorCatalogRegistry catalog = suit != null ? MarineArmorCatalogRegistry.installed() : null;
+        MarineArmorCatalogDef pattern = catalog != null ? catalog.get(suit) : null;
+        return pattern != null ? pattern.role() : mix.roleAt(index);
     }
 }

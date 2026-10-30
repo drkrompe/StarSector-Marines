@@ -2,7 +2,8 @@
 
     mod/data/marines/kit-ladder.json      the stations in campaign order, each with its reach condition, and one
                                           placement per card or machine pattern: {"item": <game id>, "station": <id>}
-    mod/data/marines/loadout-cards.json   the weapon cards (twelve seats each) and tactic sheets (their suits)
+    mod/data/marines/loadout-cards.json   the weapon cards (twelve seats each) and tactic sheets (their twelve seated
+                                          suits, or a set of suits the game deals by role)
 
 Item ids are the game's own store ids (LoadoutCard.id, MechPattern.id). The Kit Ladder page keys the same items by its
 older page ids (a card's definition id, "chassis:HOUND" and so on); page_id/game_id translate between the two.
@@ -147,6 +148,17 @@ def _seat(member, keys):
     return {k: member[k] for k in keys if member.get(k) is not None}
 
 
+def sheet_suits(sheet):
+    """The suits a tactic sheet teaches: its seats' distinct suits in seat order, else its ``suits``."""
+    if sheet.get("seats") is not None:
+        out = []
+        for s in sheet["seats"]:
+            if s not in out:
+                out.append(s)
+        return out
+    return list(sheet.get("suits") or [])
+
+
 def _card(card, head, keys, list_key):
     lines = ["    {"]
     fields = [(k, card[k]) for k in head if card.get(k) is not None]
@@ -157,6 +169,8 @@ def _card(card, head, keys, list_key):
         ms = card.get("members") or []
         lines += ["        %s%s" % (_line(_seat(m, keys)), "," if i < len(ms) - 1 else "") for i, m in enumerate(ms)]
         lines.append("      ]")
+    elif card.get("seats") is not None:
+        lines.append('      "seats": %s' % _line(card["seats"]))
     else:
         lines.append('      "suits": %s' % _line(card.get("suits") or []))
     lines.append("    }")
@@ -273,6 +287,20 @@ def validate(ladder_doc, cards_doc, known=None):
                         errs.append("%s: special %r is not a special-equipment id" % (seat, m["special"]))
                     if m.get("belt") and "thrown" in known and m["belt"] not in known["thrown"]:
                         errs.append("%s: belt %r is not a thrown special" % (seat, m["belt"]))
+            elif card.get("seats") is not None:
+                seats = card["seats"]
+                if len(seats) != SQUAD:
+                    errs.append("%s: seats has %d suits; a squad has %d" % (where, len(seats), SQUAD))
+                for derived in ("suits", "armorClass", "seatClasses"):
+                    if derived in card:
+                        errs.append("%s: give seats or %s, not both (a seated sheet's %s come from its seats)"
+                                    % (where, derived, derived))
+                for n, s in enumerate(seats):
+                    if "armor" in known and s not in known["armor"]:
+                        errs.append("%s seat %d: suit %r is not an armour id" % (where, n + 1, s))
+                for key in ("tradition", "mix"):
+                    if not card.get(key):
+                        errs.append("%s: needs a %s" % (where, key))
             else:
                 suits = card.get("suits") or []
                 if not suits:

@@ -2,7 +2,9 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.battle.infantry.EquipmentGrade;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Set;
 
 /** Acquired service equipment for tests of editing and fitting an established company. */
 public final class EquipmentTestFixtures {
@@ -34,6 +36,16 @@ public final class EquipmentTestFixtures {
             LoadoutCard card = new LoadoutCard(LoadoutCard.Kind.WEAPON, doctrine.id());
             if (armory.ownedEquipmentTemplateIds().containsAll(card.templateIds())) armory.learnLoadoutCard(card);
         }
+    }
+
+    /**
+     * What a new company holds, read from the data: the equipment of every card the Kit Ladder places on its start
+     * station (the founding weapon card and tactic sheet among them).
+     */
+    public static Set<String> baselineTemplateIds() {
+        Set<String> ids = new LinkedHashSet<>();
+        for (LoadoutCard card : MarineArmory.startCards()) ids.addAll(card.templateIds());
+        return ids;
     }
 
     /** Learns a tactic sheet the way the game does: by holding its card. */

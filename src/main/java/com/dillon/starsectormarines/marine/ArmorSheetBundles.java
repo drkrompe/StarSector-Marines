@@ -13,7 +13,8 @@ import java.util.List;
  * <p>The suits are data: each tactic sheet's {@code suits} in {@code data/marines/loadout-cards.json}
  * ({@link KitLadderCatalog}).
  *
- * <p>Each sheet has to cover every job its role mix asks for. Where it does not, the
+ * <p>A seated sheet names each billet's suit, so it covers its jobs by construction. An
+ * unseated sheet has to cover every job its role mix asks for. Where it does not, the
  * resolver falls back to line kit from the same bundle, so a one-suit sheet is a squad in
  * twelve identical suits. The early mixed sections hold a few recovered power suits among
  * ordinary kit on purpose: they are the transition into powered armor.

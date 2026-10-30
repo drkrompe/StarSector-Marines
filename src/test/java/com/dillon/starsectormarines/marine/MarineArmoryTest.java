@@ -29,7 +29,11 @@ class MarineArmoryTest {
         roster.renameSquad(squad.id(), "Rooks");
         List<MarineSoldier> people = roster.recruitToSquad(squad.id(), MarineSquad.CAPACITY);
         String weapons = SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS;
-        String regularPlan = SquadEquipmentDoctrines.FLEET_COMBAT_ARMOR;
+        String regularPlan = SquadEquipmentDoctrines.armorPlans().stream()
+                .filter(plan -> !plan.isMixedClass() && plan.armorClass() == ArmorClass.STANDARD
+                        && roster.armory().knowsArmorPlan(plan.id())
+                        && !plan.id().equals(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR))
+                .findFirst().orElseThrow().id();
         assertEquals(SquadEquipmentResult.APPLIED,
                 roster.applySquadEquipment(squad.id(), weapons, regularPlan));
         List<String> ids = List.copyOf(squad.memberIds());
@@ -138,16 +142,11 @@ class MarineArmoryTest {
     void newCompanyKeepsOnlyBaselineTechnologyAcrossLoadAndFirstVictory() throws Exception {
         MarineRoster roster = new MarineRoster();
         roster.ensureActiveSoldiers(24);
-        Set<String> baseline = Set.of(
-                EquipmentTemplateCatalog.primaryId(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SURPLUS),
-                EquipmentTemplateCatalog.armorId(MarineArmorPattern.ARMORLESS),
-                EquipmentTemplateCatalog.armorId("armor.cordon-shell"));
+        Set<String> baseline = EquipmentTestFixtures.baselineTemplateIds();
         assertEquals(baseline, roster.armory().ownedEquipmentTemplateIds());
         for (MarineSoldier soldier : roster.soldiers()) {
-            assertEquals(WeaponRegistry.STARTER_PRIMARY_ID, soldier.primaryId());
-            assertEquals("armor.cordon-shell", soldier.armorId());
-            assertEquals(EquipmentGrade.SURPLUS, soldier.primaryGrade());
-            assertNull(soldier.specialEquipmentId());
+            assertTrue(baseline.contains(EquipmentTemplateCatalog.primaryId(soldier.primaryId(), soldier.primaryGrade())));
+            assertTrue(baseline.contains(EquipmentTemplateCatalog.armorId(soldier.armorId())));
         }
         MarineArmory loaded = roundTrip(roster).armory();
         loaded.repairCollectionProgression(Set.of());
@@ -167,11 +166,13 @@ class MarineArmoryTest {
         MarineRoster loaded = roundTrip(roster);
         var deployment = CampaignMarineDeployment.freezeSelection(loaded, Set.of(squad.id()), 12);
         assertEquals(12, deployment.size());
-        for (var seat : deployment.commitments()) {
+        SquadArmorDoctrine starter = loaded.armory().armorDoctrineById(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
+        for (int billet = 0; billet < deployment.size(); billet++) {
+            var seat = deployment.commitments().get(billet);
+            MarineArmorCatalogDef suit = MarineArmorCatalogRegistry.require(starter.issueId(billet));
             assertEquals(EquipmentGrade.SURPLUS, seat.equipmentGrade());
-            assertEquals(3f, seat.armorCapacity());
-            assertEquals(2f, seat.armorRating());
-            assertNull(seat.integralSystem());
+            assertEquals(suit.armorCapacity(), seat.armorCapacity());
+            assertEquals(suit.armorRating(), seat.armorRating());
         }
 
         roster.armory().unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SERVICE);
@@ -196,8 +197,12 @@ class MarineArmoryTest {
         roster.ensureActiveSoldiers(1);
 
         MarineSoldier recruit = roster.activeSoldiers().get(0);
-        assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), recruit.primaryDef());
-        assertEquals(EquipmentGrade.SURPLUS, recruit.primaryGrade());
+        MarineSquad squad = roster.squads().stream().filter(s -> s.memberIds().contains(recruit.id()))
+                .findFirst().orElseThrow();
+        SquadWeaponIssue seat = SquadEquipmentDoctrines.weaponById(SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS)
+                .issue(squad.memberIds().indexOf(recruit.id()));
+        assertEquals(WeaponRegistry.require(seat.primaryId()), recruit.primaryDef(), "the founding card dresses the seat");
+        assertEquals(seat.grade(), recruit.primaryGrade());
     }
 
     @Test

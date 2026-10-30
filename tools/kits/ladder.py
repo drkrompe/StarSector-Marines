@@ -107,14 +107,17 @@ def page_stations(state):
 
 
 def seat_changes(lst, page, game, pieces=None):
-    """Readable differences between a card's seats on the page and in the game. A weapon card is compared seat by seat
-    (loadout-cards.json lists twelve seats); a tactic sheet by its set of suits only, since the game seats a
-    sheet's suits by role and the page's seating is just an even spread. Pieces the game does not have are flagged."""
+    """Readable differences between a card's seats on the page and in the game, seat by seat. A weapon card's seats are
+    loadout-cards.json's twelve; a tactic sheet's are its seated suits, or for a sheet the game still deals by role the
+    even spread build.py seeds, so seating such a sheet differently on the page reads as a change. Pieces the game does
+    not have are flagged."""
     unknown = lambda x: " (not a game item)" if pieces is not None and x and x not in pieces else ""
     out = []
     if lst == "armor":
-        p, g = {m.get("armor") for m in page if m.get("armor")}, {m.get("armor") for m in game if m.get("armor")}
-        out += ["+ %s%s" % (x, unknown(x)) for x in sorted(p - g)] + ["- %s" % x for x in sorted(g - p)]
+        for i in range(max(len(page), len(game))):
+            a, b = (page[i] if i < len(page) else {}).get("armor"), (game[i] if i < len(game) else {}).get("armor")
+            if a != b:
+                out.append("seat %d: armor %s -> %s%s" % (i + 1, b, a, unknown(a)))
         return out
     for i in range(max(len(page), len(game))):
         a, b = (page[i] if i < len(page) else {}), (game[i] if i < len(game) else {})
@@ -255,8 +258,9 @@ def patch(doc, changes, adds):
 
 def patch_cards(cards_doc, edits):
     """loadout-cards.json's document with ``edits`` {card id: page card} written in: a weapon card takes the page's twelve
-    seats; a tactic sheet takes the page's set of suits (in the order the page first names them). Names, descriptions,
-    grants and seat classes are never written: they are string keys, FirstRefit's, or a role plan the page cannot edit."""
+    seats; a tactic sheet takes the page's twelve suits as its ``seats`` (the game then issues each seat its own suit,
+    so its suit set, armour class and seat classes follow from them). Names, descriptions and grants are never written:
+    they are string keys or FirstRefit's."""
     out = copy.deepcopy(cards_doc)
     by_id = {c["id"]: ("weapon", c) for c in out["weaponCards"]}
     by_id.update({c["id"]: ("armor", c) for c in out["tacticSheets"]})
@@ -268,11 +272,12 @@ def patch_cards(cards_doc, edits):
         if lst == "weapon":
             card["members"] = [{k: m[k] for k in kitdata.WEAPON_KEYS if m.get(k) is not None} for m in members]
         else:
-            suits = []
-            for m in members:
-                if m.get("armor") and m["armor"] not in suits:
-                    suits.append(m["armor"])
-            card["suits"] = suits
+            seats = [m.get("armor") for m in members]
+            if len(seats) != kitdata.SQUAD or not all(seats):
+                raise LadderError("%s: the page seats %d suits; a sheet seats %d" % (cid, len([s for s in seats if s]), kitdata.SQUAD))
+            for derived in ("suits", "armorClass", "seatClasses"):
+                card.pop(derived, None)
+            card["seats"] = seats
     return out
 
 

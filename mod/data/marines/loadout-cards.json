@@ -5,7 +5,7 @@
       "name": "@squadDoctrineFieldSecurityWeaponsName",
       "description": "@squadDoctrineFieldSecurityWeaponsDescription",
       "members": [
-        {"role": "Team Leader", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
+        {"role": "Team Leader", "primary": "weapon.squad-automatic", "grade": "SURPLUS"},
         {"role": "Security Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
         {"role": "Security Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
         {"role": "Security Rifleman", "primary": "weapon.field-rifle", "grade": "SURPLUS"},
@@ -238,7 +238,7 @@
       "description": "@squadDoctrineFieldFatiguesArmorDescription",
       "tradition": "INDEPENDENT",
       "mix": "IRREGULAR",
-      "suits": ["armor.field-fatigues", "armor.cordon-shell"]
+      "seats": ["armor.lashplate-harness", "armor.field-fatigues", "armor.field-fatigues", "armor.field-fatigues", "armor.cordon-shell", "armor.field-fatigues", "armor.field-fatigues", "armor.field-fatigues", "armor.cordon-shell", "armor.field-fatigues", "armor.field-fatigues", "armor.field-fatigues"]
     },
     {
       "id": "armor:sindrian-security",
@@ -255,7 +255,7 @@
       "grant": "free-pick",
       "tradition": "HEGEMONY",
       "mix": "LINE_HOLD",
-      "suits": ["armor.lashplate-harness", "armor.field-fatigues", "armor.cordon-shell"]
+      "seats": ["armor.lashplate-harness", "armor.field-fatigues", "armor.cordon-shell", "armor.field-fatigues", "armor.lashplate-harness", "armor.field-fatigues", "armor.cordon-shell", "armor.field-fatigues", "armor.lashplate-harness", "armor.field-fatigues", "armor.cordon-shell", "armor.field-fatigues"]
     },
     {
       "id": "armor:league-mobile",
@@ -264,7 +264,7 @@
       "grant": "free-pick",
       "tradition": "PERSEAN",
       "mix": "RECONNAISSANCE",
-      "suits": ["armor.cordon-shell", "armor.field-fatigues", "armor.militia"]
+      "seats": ["armor.cordon-shell", "armor.field-fatigues", "armor.militia", "armor.field-fatigues", "armor.cordon-shell", "armor.field-fatigues", "armor.militia", "armor.field-fatigues", "armor.cordon-shell", "armor.field-fatigues", "armor.militia", "armor.field-fatigues"]
     },
     {
       "id": "armor:church-wardens",
@@ -288,7 +288,7 @@
       "description": "@squadDoctrineReconArmorDescription",
       "tradition": "TRITACHYON",
       "mix": "RECONNAISSANCE",
-      "suits": ["armor.aegis-composite", "armor.scout", "armor.packframe", "armor.riot-shell"]
+      "seats": ["armor.aegis-composite", "armor.scout", "armor.packframe", "armor.riot-shell", "armor.aegis-composite", "armor.scout", "armor.packframe", "armor.riot-shell", "armor.aegis-composite", "armor.scout", "armor.packframe", "armor.riot-shell"]
     },
     {
       "id": "armor:fleet-combat",
@@ -296,7 +296,7 @@
       "description": "@squadDoctrineFleetCombatArmorDescription",
       "tradition": "HEGEMONY",
       "mix": "BALANCED",
-      "suits": ["armor.line", "armor.redoubt", "armor.pathfinder", "armor.corpsman", "armor.riot-shell"]
+      "seats": ["armor.arbalest-recovered", "armor.redoubt", "armor.pathfinder", "armor.corpsman", "armor.arbalest-recovered", "armor.line", "armor.redoubt", "armor.pathfinder", "armor.corpsman", "armor.riot-shell", "armor.line", "armor.redoubt"]
     },
     {
       "id": "armor:league-line",
@@ -328,7 +328,7 @@
       "description": "@squadDoctrineSindrianLineArmorDescription",
       "tradition": "SINDRIAN_DIKTAT",
       "mix": "BALANCED",
-      "suits": ["armor.furnace-line", "armor.vigil", "armor.scout", "armor.packframe"]
+      "seats": ["armor.foundry-breaker", "armor.vigil", "armor.scout", "armor.packframe", "armor.foundry-breaker", "armor.vigil", "armor.scout", "armor.packframe", "armor.furnace-line", "armor.vigil", "armor.scout", "armor.packframe"]
     },
     {
       "id": "armor:outlaw-line",
@@ -388,8 +388,7 @@
       "description": "@loadoutHegemonyAuxiliarySectionDescription",
       "tradition": "HEGEMONY",
       "mix": "BALANCED",
-      "seatClasses": ["STANDARD", "STANDARD", "STANDARD", "POWER_SUIT", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "STANDARD", "POWER_SUIT"],
-      "suits": ["armor.arbalest", "armor.pathfinder", "armor.line"]
+      "seats": ["armor.arbalest", "armor.line", "armor.pathfinder", "armor.arbalest", "armor.arbalest", "armor.pathfinder", "armor.line", "armor.pathfinder", "armor.arbalest", "armor.pathfinder", "armor.line", "armor.pathfinder"]
     },
     {
       "id": "armor:hegemony-shock",

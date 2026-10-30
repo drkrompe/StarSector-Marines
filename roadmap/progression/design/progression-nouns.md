@@ -218,10 +218,11 @@ legibility.
   station**: a story mission in campaign order (`UnlockStation`), declared in the
   same file with its **reach condition** (one of a closed set of types the code
   owns: always, a story mission, an arc beat), after which the company store sells
-  it. *Start* is what a new company holds; *none* is never sold in the store. It
+  it. *Start* is what a new company holds: its cards and the equipment they name are
+the new company's baseline; *none* is never sold in the store. It
   paces the store's open-market and licence shelves only; patrons and recovery keep
   their tier gates. The built-in loadout cards it places (weapon cards' seats,
-  tactic sheets' suits) are data too (`loadout-cards.json`). Authored on the Kit
+  tactic sheets' seated or role-dealt suits) are data too (`loadout-cards.json`). Authored on the Kit
   Ladder page, whose generator (`tools/kits/build.py`) seeds itself from the data;
   the schema, the page, its export, apply and check tools and the owner's editing
   workflow are `kit-ladder.md`.
@@ -483,7 +484,9 @@ paths; no learned technology is revoked. `company-view-nouns.md` owns the lesson
 
 The armory has three deliberately separate layers. The **collection** is the set
 of loadout cards the company holds. A **weapon card** is a developer-authored
-twelve-billet issue; a **tactic sheet** is the armour half — it names roles and a
+twelve-billet issue; a **tactic sheet** is the armour half. A seated sheet names
+the suit each of its twelve billets wears, as the owner arranged it on the Kit Ladder
+page, and standard and powered seats may mix in it; an unseated one names roles and a
 tradition, and the card's own patterns fill them, best for each job
 (`role-and-access.md`). The exact kit on a marine is the materialized result.
 
@@ -507,7 +510,8 @@ only the Shock, with real weapons, opens a line held by regulars. `loadoutMatchu
 `trench-vulcans` scenario is the instrument that places a card on this ladder.
 
 **Knowing a tactic sheet is separate from being able to fill its billets.** A
-new company knows only Watchman's Kit. What a company learns is a card: the
+new company knows only the cards the Kit Ladder places on *start* (Dockside Issue and
+Watchman's Kit), and holds exactly the equipment they name. What a company learns is a card: the
 knowledge and licence to build and outfit one twelve-person section. There is no
 learning a suit. Outfitting all twelve in powered armour is beyond an ordinary
 contractor without a licence for it, so a suit reaches the company only as the
@@ -615,8 +619,9 @@ The lowest protection band is deliberately plural rather than one universal
 "unarmored" result. Domain-pattern fatigues preserve mobility and sealing with no
 armor reserve; expired Cordon security shells provide a little rated plate; and
 Lashplate breaker harnesses supply crude mass with poor resistance and handling.
-New companies start with fatigues and Cordon shells; Ward is a protection upgrade
-and Lashplate remains a collectible alternative. Cordon starts personnel in the
+New companies start with what Watchman's Kit seats: fatigues, Cordon shells on two
+team leaders and a Lashplate harness on the first; Ward is a protection upgrade.
+Cordon starts personnel in the
 existing Green experience band and carries no integral armor system. These are generic circulation categories for early companies and
 low-end defenders, not faction-equivalent powered suits.
 

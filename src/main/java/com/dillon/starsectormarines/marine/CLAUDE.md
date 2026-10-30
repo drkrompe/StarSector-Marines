@@ -81,15 +81,18 @@ any card an old save's designer made, which keeps issuing. **There is no custom
 armour catalog either.** An armour doctrine id always names a `SquadArmorPlan`, and
 `armorDoctrineById` resolves it through `ArmorIssueResolver.issueSheet`: every sheet
 issues exactly the patterns its card carries (`ArmorSheetBundles`), never whatever else
-the armoury happens to own, so a card is the same squad for every company. Roles and
-tradition still decide which bundled pattern fills which billet. Legacy per-team template ids remain save input only:
+the armoury happens to own, so a card is the same squad for every company. A seated
+sheet issues each billet the suit it names; for an unseated one, roles and tradition
+decide which bundled pattern fills which billet. Legacy per-team template ids remain save input only:
 `MarineRoster.readResolve` composes complete legacy weapon intent into a
 deterministic custom definition without changing kits, assigns the starter tactic
 sheet rather than preserving the card's twelve concrete patterns, and the first
 successful squad issue clears those ids. The current per-soldier kit remains the materialized
 state consumed by deployment and battle.
 
-New companies know only the surplus GR-RFL, field fatigues, and Cordon security shell.
+New companies know only the cards the Kit Ladder places on `start` (Dockside Issue and
+Watchman's Kit) and the equipment they name (`MarineArmory.startCards`): the baseline is
+data, so tests read it from there rather than naming its pieces.
 Founding and ordinary recruits use this baseline; there is no seeded special weapon.
 Other built-in definitions remain library intent and require learned technology.
 Save repair restores only this baseline and preserves every previously learned spec.

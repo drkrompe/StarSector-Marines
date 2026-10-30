@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 
 import com.dillon.starsectormarines.battle.world.gen.GenMappingRegistry;
 import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
+import com.dillon.starsectormarines.marine.ArmorClass;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.marine.MarineArmorCatalogRegistry;
 import com.dillon.starsectormarines.marine.EquipmentTemplateCatalog;
@@ -129,6 +130,7 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
             @Override public boolean special(String id) { return registries.special(id); }
             @Override public boolean thrown(String id) { return registries.thrown(id); }
             @Override public boolean armor(String id) { return registries.armor(id); }
+            @Override public ArmorClass armorClass(String id) { return registries.armorClass(id); }
             @Override public boolean pattern(String id) { return registries.pattern(id); }
             @Override public boolean string(String key) { return strings.has(key); }
         };

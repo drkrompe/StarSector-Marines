@@ -19,6 +19,7 @@ class KitLadderCatalogTest {
     private static final String RIFLE = "weapon.field-rifle";
     private static final String SMOKE = "special.smoke-grenade";
     private static final String SUIT = "armor.field-fatigues";
+    private static final String POWER = "armor.arbalest-recovered";
     private static final String KEY = "squadDoctrineFieldSecurityWeaponsName";
 
     /** Only the handful of ids these documents name exist. */
@@ -26,7 +27,10 @@ class KitLadderCatalogTest {
         @Override public boolean primary(String id) { return RIFLE.equals(id); }
         @Override public boolean special(String id) { return SMOKE.equals(id); }
         @Override public boolean thrown(String id) { return SMOKE.equals(id); }
-        @Override public boolean armor(String id) { return SUIT.equals(id); }
+        @Override public boolean armor(String id) { return SUIT.equals(id) || POWER.equals(id); }
+        @Override public ArmorClass armorClass(String id) {
+            return SUIT.equals(id) ? ArmorClass.STANDARD : POWER.equals(id) ? ArmorClass.POWER_SUIT : null;
+        }
         @Override public boolean pattern(String id) { return "mech-pattern:chassis:hound".equals(id); }
         @Override public boolean string(String key) { return KEY.equals(key); }
     };
@@ -114,6 +118,36 @@ class KitLadderCatalogTest {
         assertTrue(message.contains("tacticSheets[0] (armor:b): has no suits"), message);
         assertTrue(message.contains("tacticSheets[0] (armor:b): name key @noSuchKey is not in strings.json"), message);
         assertTrue(message.contains("stations[2] (junction): reach type 'moonPhase'"), message);
+    }
+
+    @Test
+    void aSeatedSheetTakesItsSuitsAndClassesFromItsSeats() throws Exception {
+        JSONObject cards = cards();
+        JSONArray seats = new JSONArray();
+        for (int i = 0; i < MarineSquad.CAPACITY; i++) seats.put(i == 0 ? POWER : SUIT);
+        cards.getJSONArray("tacticSheets").getJSONObject(0).remove("suits");
+        cards.getJSONArray("tacticSheets").getJSONObject(0).put("seats", seats);
+        KitLadderCatalog catalog = parse(ladder(), cards);
+        SquadArmorPlan plan = catalog.sheet("armor:b");
+        assertEquals(List.of(POWER, SUIT), catalog.suits("armor:b"));
+        assertEquals(POWER, plan.seatSuitAt(0));
+        assertEquals(ArmorClass.POWER_SUIT, plan.armorClassAt(0));
+        assertEquals(ArmorClass.STANDARD, plan.armorClassAt(1));
+        assertTrue(plan.isMixedClass());
+    }
+
+    @Test
+    void refusesASeatedSheetThatAlsoNamesSuitsOrIsShort() throws Exception {
+        JSONObject cards = cards();
+        JSONObject sheet = cards.getJSONArray("tacticSheets").getJSONObject(0);
+        sheet.put("seats", new JSONArray().put(SUIT));
+        assertTrue(refusal(ladder(), cards).contains("tacticSheets[0] (armor:b): seats has 1 suits; a squad has 12"));
+        JSONArray seats = new JSONArray();
+        for (int i = 0; i < MarineSquad.CAPACITY; i++) seats.put(i == 3 ? "armor.nothing" : SUIT);
+        sheet.put("seats", seats);
+        String message = refusal(ladder(), cards);
+        assertTrue(message.contains("give seats or suits, not both"), message);
+        assertTrue(message.contains("tacticSheets[0] (armor:b) seat 4: suit 'armor.nothing' is not an armour id"), message);
     }
 
     @Test

@@ -356,12 +356,27 @@ public final class MarineArmory implements Serializable {
         EquipmentCollectionCurve.repair(this, victories, carriedCardIds);
     }
 
+    /**
+     * The baseline a new company holds, and a save is repaired to: the two cards every squad is founded on, every
+     * other card the Kit Ladder places on {@link UnlockStation#START}, and the equipment those cards name. The
+     * baseline is whatever the start cards carry, so editing them on the Kit Ladder page changes it.
+     */
     private void seedStarterIssue() {
-        unlockPrimary(WeaponRegistry.STARTER_PRIMARY_ID, EquipmentGrade.SURPLUS);
         unlockArmor(MarineArmorPattern.ARMORLESS);
-        unlockArmor("armor.cordon-shell");
         learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.FIELD_SECURITY_WEAPONS));
         learnLoadoutCard(new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR));
+        for (LoadoutCard card : startCards()) learnLoadoutCard(card);
+    }
+
+    /** Every defined loadout card the Kit Ladder places on {@link UnlockStation#START}, in authored order. */
+    public static List<LoadoutCard> startCards() {
+        List<LoadoutCard> cards = new ArrayList<>();
+        for (Map.Entry<String, UnlockStation> placement : KitLadder.stations().entrySet()) {
+            if (!UnlockStation.START.equals(placement.getValue())) continue;
+            LoadoutCard card = LoadoutCard.parse(placement.getKey());
+            if (card != null) cards.add(card);
+        }
+        return cards;
     }
 
     private void seedStarterCards() {

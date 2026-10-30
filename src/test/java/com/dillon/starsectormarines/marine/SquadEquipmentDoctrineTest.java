@@ -17,6 +17,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
@@ -203,31 +204,13 @@ class SquadEquipmentDoctrineTest {
                 SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
 
         assertTrue(preview.canApply());
-        for (int team = 0; team < MarineSquad.TEAMS_PER_SQUAD; team++) {
-            int leader = team * MarineSquad.TEAM_SIZE;
-            assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID), preview.billet(leader).primaryDef());
-            // Armour is issued per billet ROLE now, from what the roster owns,
-            // so the pattern is not fixed by the plan. A starter company owns no
-            // recon or support kit at all, which is the resolver's documented
-            // fallback rather than a defect: you cannot field a scout until you
-            // buy a scout suit, and a marine in the wrong suit beats a marine in
-            // none.
-            SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlanById(
-                    SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
-            for (int local = 0; local < MarineSquad.TEAM_SIZE; local++) {
-                int billet = leader + local;
-                ArmorRole wanted = plan.roleAt(billet);
-                ArmorRole worn = MarineArmorCatalogRegistry.require(
-                        preview.billet(billet).armorId()).role();
-                boolean carriesWanted = ArmorSheetBundles.patternsFor(plan.id()).stream()
-                        .anyMatch(id -> MarineArmorCatalogRegistry.require(id).role() == wanted);
-                assertEquals(carriesWanted ? wanted : ArmorRole.LINE, worn,
-                        "billet " + billet + " wanted a " + wanted.key);
-            }
-            for (int local = 1; local < MarineSquad.TEAM_SIZE; local++) {
-                assertEquals(WeaponRegistry.require(WeaponRegistry.STARTER_PRIMARY_ID),
-                        preview.billet(leader + local).primaryDef());
-            }
+        // Entry level is what a new company holds: the start cards' equipment, read from the data.
+        Set<String> baseline = EquipmentTestFixtures.baselineTemplateIds();
+        for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
+            SquadEquipmentBillet seat = preview.billet(billet);
+            assertTrue(baseline.contains(EquipmentTemplateCatalog.primaryId(seat.primaryDef().id, seat.grade())),
+                    "billet " + billet + " primary");
+            assertTrue(baseline.contains(EquipmentTemplateCatalog.armorId(seat.armorId())), "billet " + billet + " armour");
         }
     }
 
@@ -290,7 +273,10 @@ class SquadEquipmentDoctrineTest {
                 SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR);
         SquadEquipmentPreview combatArmor = roster.previewSquadEquipment(
                 squad.id(), SquadEquipmentDoctrines.LUDDIC_PATH_ASSAULT_WEAPONS,
-                SquadEquipmentDoctrines.FLEET_COMBAT_ARMOR);
+                SquadEquipmentDoctrines.armorPlans().stream().map(SquadArmorPlan::id)
+                        .filter(id -> roster.armory().knowsArmorPlan(id)
+                                && !id.equals(SquadEquipmentDoctrines.FIELD_FATIGUES_ARMOR))
+                        .findFirst().orElseThrow());
 
         for (int billet = 0; billet < MarineSquad.CAPACITY; billet++) {
             assertEquals(fatigues.billet(billet).primaryDef(), combatArmor.billet(billet).primaryDef());

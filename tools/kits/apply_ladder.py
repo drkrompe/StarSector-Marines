@@ -7,8 +7,8 @@
 export_state.py reports and writes:
   move     an existing placement's station            -> rewritten in kit-ladder.json
   add      a real item the ladder does not place       -> a placement is added to its kind's block
-  content  (only with --cards) a card the owner edited -> its weapon seats, or its tactic sheet's suits, are written
-           into loadout-cards.json; names, descriptions, grants and seat classes are never written
+  content  (only with --cards) a card the owner edited -> its weapon seats, or its tactic sheet's twelve suits (as the
+           sheet's "seats"), are written into loadout-cards.json; names, descriptions and grants are never written
 Placements stay in their kind's block in campaign order (a stable sort, so an unmoved row never moves), one per line,
 LF endings: running it again on the same state changes nothing (kitdata.py).
 

@@ -461,24 +461,30 @@ def collect(dolls_dir=None, reel_index=None, clips_map=None, art=True, strict=Tr
         kits.append({"id": card["id"], "name": text(card["name"]), "description": text(card["description"]),
                      "members": members, "grant": card.get("grant") or "sale"})
 
-    # Armour cards: each sheet's suits, and its seat classes saying how many seats are power suits. The game picks a
-    # seat's suit by role, so the seeded seating here is an even spread.
+    # Armour cards: a seated sheet's twelve suits exactly as the game issues them; otherwise the sheet's suits and its
+    # seat classes saying how many seats are power suits, which the game deals by role, so that seeding is an even
+    # spread (and seating it on the page and applying it makes the sheet seated).
     armor_kits = []
     for sheet in cards["tacticSheets"]:
-        patterns = sheet["suits"]
-        if sheet.get("armorClass") == "POWER_SUIT":
+        patterns = kitdata.sheet_suits(sheet)
+        if sheet.get("seats") is not None:
+            classes = None
+        elif sheet.get("armorClass") == "POWER_SUIT":
             classes = ["POWER_SUIT"] * 12
         else:
             classes = sheet.get("seatClasses") or ["STANDARD"] * 12
         standard = [s for s in patterns if s in armor_by_id and not armor_by_id[s]["powered"]] or patterns
         power = [s for s in patterns if s in armor_by_id and armor_by_id[s]["powered"]] or patterns
         members, si, pi = [], 0, 0
-        for i, cls in enumerate(classes):
+        for i, cls in enumerate(classes or ()):
             if cls == "POWER_SUIT":
                 suit, pi = power[pi % len(power)], pi + 1
             else:
                 suit, si = standard[si % len(standard)], si + 1
             members.append({"role": "Team Leader" if i % 4 == 0 else "Rifleman", "armor": suit})
+        if classes is None:
+            members = [{"role": "Team Leader" if i % 4 == 0 else "Rifleman", "armor": suit}
+                       for i, suit in enumerate(sheet["seats"])]
         armor_kits.append({"id": sheet["id"], "name": text(sheet["name"]), "description": text(sheet["description"])
                            + " (" + sheet["tradition"].replace("_", " ").title() + " tradition, "
                            + sheet["mix"].replace("_", " ").lower() + " mix)", "members": members,

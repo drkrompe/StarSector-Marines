@@ -344,8 +344,9 @@ fallback without choosing an operation commander in advance.
 **A Proper Issue** is Castle's optional first squad-refit lesson after the story
 victory in Hold Until Relieved. The debrief opens the equipment lesson directly and HQ points to Barracks; its
 opening conversation and gallery resume action keep the offer discoverable.
-A new company knows only the surplus Rook, field fatigues, and Cordon security shell.
-Other weapon families, specialist suits, and special equipment must be learned.
+A new company knows only what its start cards (Dockside Issue, Watchman's Kit) name:
+today surplus Rooks and a surplus squad automatic, field fatigues, Cordon security shells
+and a Lashplate harness. Other weapon families, specialist suits, and special equipment must be learned.
 Existing saves keep every previously acquired spec.
 
 Wayline offers one free technology transfer: Steady Line permanently teaches
@@ -473,10 +474,11 @@ card and the sheet it opens elsewhere are one design. Each card
 paints its twelve seats as three fire teams of two by two, each seat's weapon or
 suit with its special or integral system on the opposite corner: the picture the
 Barracks hover paints, so a card reads the same on both screens. A new company's
-only weapon choice is **Dockside Issue**, twelve surplus Rooks; its only tactic
-sheet is **Watchman's Kit**, twelve Cordon security shells over field fatigues.
-Starting specifications remain Rook, field
-fatigues, and Cordon; no specialist weapon or suit is granted. A tactic sheet must
+only weapon choice is **Dockside Issue**, surplus Rooks with a surplus squad
+automatic on the first team leader; its only tactic sheet is **Watchman's Kit**,
+field fatigues with Cordon security shells on two team leaders and a Lashplate
+harness on the first. Starting specifications are exactly what those two cards name
+(`kit-ladder.md`); no specialist suit or special is granted. A tactic sheet must
 first be learned through its associated equipment acquisition or story transfer,
 then be resolvable from owned patterns. Merely being able to substitute Cordon or
 Janus into its billets does not unlock another faction's sheet. Among learned
@@ -551,7 +553,7 @@ favor resistant legacy armor at a mobility cost, Sindrian patterns carry deep vi
 plate reserves, and outlaw rigs pair crude material volume with poor resistance.
 Those differences live on concrete armor-pattern stats and twelve-billet issue, never
 on a hidden faction modifier or set bonus.
-Starting armories collect only surplus Rook, field fatigues, and Cordon security shell.
+Starting armories collect only what the start cards name.
 Save repair retains previously learned specifications and assigned formations but
 does not seed specialist gear or the unlearned faction-sheet library. The Machine
 Shop fits learned equipment freely.

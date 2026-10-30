@@ -117,7 +117,9 @@ class LoadoutEffectivenessTest {
      */
     @Test
     void theSamePlanRatesHigherWhenTheCompanyCanFillItBetter() {
-        SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlans().get(0);
+        // A plan dealt by role: a seated sheet wears its own suits whatever the company holds.
+        SquadArmorPlan plan = SquadEquipmentDoctrines.armorPlans().stream()
+                .filter(candidate -> candidate.seatSuitAt(0) == null).findFirst().orElseThrow();
         SquadArmorDoctrine rich = ArmorIssueResolver.resolveUnrestricted(plan);
         SquadArmorDoctrine poor = ArmorIssueResolver.resolve(plan,
                 pattern -> pattern.tier() <= 1);

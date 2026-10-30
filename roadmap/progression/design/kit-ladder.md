@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-30
 
-Updated: 2026-10-30 — the ladder and the built-in cards are data files; the tools read and write JSON.
+Updated: 2026-10-30 — tactic sheets can be seated suit by suit, and the start cards are the new company's baseline.
 
 The Kit Ladder is defined in `progression-nouns.md` (Kit Ladder): the owner-authored
 table placing every loadout card and machine pattern on an unlock station. This doc
@@ -17,12 +17,12 @@ repeatable tools that move edits, notes and checks between the page and the repo
 - **The data files are the single source of truth.** `mod/data/marines/kit-ladder.json`
   holds the stations in campaign order, each with its reach condition, and one
   placement per card and machine pattern; `mod/data/marines/loadout-cards.json`
-  holds every built-in weapon card (twelve seats) and tactic sheet (role plan and
-  suits). `KitLadderCatalog` loads and validates both at application load;
+  holds every built-in weapon card (twelve seats) and tactic sheet (twelve seated
+  suits, or a role plan and its suits). `KitLadderCatalog` loads and validates both at application load;
   `KitLadder`, `UnlockStation`, `SquadEquipmentDoctrines`, `ArmorSheetBundles` and
   `FirstRefit` are thin readers over it. Code still owns what is algorithmic: the
-  closed set of reach condition types (`UnlockStation.Reach`), how a sheet's suits
-  are dealt to seats by role (`ArmorIssueResolver`), which Wayline paths exist
+  closed set of reach condition types (`UnlockStation.Reach`), how an unseated
+  sheet's suits are dealt to seats by role (`ArmorIssueResolver`), which Wayline paths exist
   (`FirstRefit.Path`, named in saves), and each pattern's tier (`MechPattern`).
 - **The page is an editor over it, never a second source.** The Kit Ladder
   artifact (`https://claude.ai/artifact/LuCPJvBHLeTQG1CpXHRRbC`) is built by
@@ -115,7 +115,15 @@ either way run `check.py`.
       "description": "@squadDoctrineReconArmorDescription",
       "tradition": "TRITACHYON",
       "mix": "RECONNAISSANCE",
-      "suits": ["armor.scout", "armor.packframe"]
+      "seats": ["armor.aegis-composite", "armor.scout", "armor.packframe", "armor.riot-shell", "..."]
+    },
+    {
+      "id": "armor:outlaw-line",
+      "name": "@squadDoctrineOutlawLineArmorName",
+      "description": "@squadDoctrineOutlawLineArmorDescription",
+      "tradition": "PIRATES",
+      "mix": "BALANCED",
+      "suits": ["armor.reaver", "armor.outlaw", "armor.packframe", "armor.scout"]
     }
   ]
 }
@@ -127,11 +135,26 @@ either way run `check.py`.
   `special` (a special-equipment id) and `belt` (a thrown special). Array order is
   the presentation order.
 - A **tactic sheet** has `tradition` (`ArmorTradition`), `mix` (`BALANCED`,
-  `BREACH`, `RECONNAISSANCE`, `LINE_HOLD`, `IRREGULAR`), either `armorClass`
-  (`POWER_SUIT` for an all-suit sheet; `STANDARD` is the default) or
-  `seatClasses` (twelve, for a mixed section), and `suits`: the armour ids the
-  card teaches and issues. The resolver deals the suits to seats by role, class
-  and tier, so a suit no seat can take is taught but never worn.
+  `BREACH`, `RECONNAISSANCE`, `LINE_HOLD`, `IRREGULAR`) and its suits, one of two ways:
+  - **Seated**: `seats`, twelve armour ids in billet order, exactly what the game
+    issues each seat (`SquadArmorPlan.seatSuitAt`). The card teaches the distinct
+    suits in seat order; each seat's protection class and job are its suit's, so a
+    standard sheet may seat power suits beside standard ones (the sheet is then a
+    mixed section). `suits`, `armorClass` and `seatClasses` are derived and refused
+    beside `seats`. A sheet the owner seats on the page and has applied is seated.
+  - **Dealt by role**: `suits`, the armour ids the card teaches, with either
+    `armorClass` (`POWER_SUIT` for an all-suit sheet; `STANDARD` is the default) or
+    `seatClasses` (twelve, for a mixed section). The resolver deals the suits to
+    seats by the mix's roles, class and tier, so a suit no seat can take is taught
+    but never worn, and the page's seeded seating of such a sheet is only an even
+    spread, not what the game issues.
+- A card's **access tier** is the scarcest piece it carries, so seating a Prestige
+  suit raises the whole card to Prestige (patron and recovery gates and polity
+  release read it; the store's station does not).
+- The cards placed on `start` are the **new company's baseline**: a new company
+  holds them and exactly the equipment they name (`MarineArmory.startCards`), and
+  save repair restores the same. Editing a start card on the page edits the
+  baseline; tests read it from the data.
 - `name` and `description` are string keys (`@key`) in `strings.json`.
   `"grant": "free-pick"` marks Relief's free pick, which must be exactly the
   `FirstRefit.Path` cards; every other card is `sale` (the default, omitted).
@@ -139,8 +162,9 @@ either way run `check.py`.
   `check.py`) refuses the whole load with every problem listed, each naming its
   file and entry: an unknown station, reach type, arc or beat; an item, primary,
   special, belt item or suit the game lacks; an item placed twice; a card with no
-  placement; a squad not of twelve; a sheet with no suits; a missing string key; a
-  free pick that is not a Wayline path's.
+  placement; a squad or seated sheet not of twelve; a sheet with no suits, or with
+  `seats` beside a derived field; a missing string key; a free pick that is not a
+  Wayline path's.
 - **Saves.** Cards are referenced by id, so an edited card applies on load. A
   save's own copy of a Wayline weapon card is re-dressed from the data on load
   (`MarineArmory.refreshWaylineCards`), and squads are re-dressed from their cards
@@ -172,9 +196,11 @@ Then `python tools/kits/export_state.py <dir>`. The diff is three-way when the
 published page's manifest is known (`--page` with the file an `Artifact read`
 saved, else `tools/kits/review/published.json`): a station the owner moved reads
 `move`, one the game moved since publish reads `game-moved` (republish, do not
-apply), both moving reads `conflict`. Card seats compare seat by seat for weapon
-cards and as a set of suits for tactic sheets (the game seats a sheet's suits by
-role), and a seat naming a piece the game lacks is flagged. Special ids the game
+apply), both moving reads `conflict`. Card seats compare seat by seat, for tactic
+sheets against the seated suits (or, for a sheet still dealt by role, the even
+spread the page was seeded with, so reseating one on the page reads as an edit), and
+a seat naming a piece the game lacks is flagged. A seat's internal system override
+on the page is not compared: a system belongs to its suit pattern in the game. Special ids the game
 has since renamed (`kitdata.RETIRED_SPECIALS`: the rocket launcher, scrap rocket
 and missile pod) are read as their current ids. Commit the notes file with the work
 it prompted.
@@ -183,9 +209,9 @@ it prompted.
 
 `apply_ladder.py` rewrites only `move` and `add` placements (`--take-conflicts`
 for an approved conflict) and, with `--cards`, the named `content` cards: a weapon
-card takes the page's twelve seats, a sheet the page's set of suits (the page's
-seating of a sheet is only an even spread). It never writes names, descriptions,
-grants, seat classes, page-made cards or orphans, refuses a write that would not
+card takes the page's twelve seats, a sheet the page's twelve suits as its `seats`
+(dropping its `suits`, `armorClass` and `seatClasses`). It never writes names,
+descriptions, grants, system overrides, page-made cards or orphans, refuses a write that would not
 load, and a second run changes nothing. Then run `check.py` and the tests covering
 the ladder and the store (`KitLadderTest`, `KitLadderCatalogTest`).
 

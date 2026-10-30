@@ -131,6 +131,8 @@ public final class KitLadderCatalog {
         boolean thrown(String id);
         /** An armour catalog id. */
         boolean armor(String id);
+        /** An armour catalog id's protection class; null for an id naming no armour. */
+        ArmorClass armorClass(String id);
         /** A machine pattern id the store can sell ({@link MechPattern#parse}). */
         boolean pattern(String id);
         /** A key in the mod's strings. */
@@ -154,6 +156,11 @@ public final class KitLadderCatalog {
                 @Override public boolean armor(String id) {
                     MarineArmorCatalogRegistry armor = MarineArmorCatalogRegistry.installed();
                     return armor != null && id != null && armor.get(id) != null;
+                }
+                @Override public ArmorClass armorClass(String id) {
+                    MarineArmorCatalogRegistry armor = MarineArmorCatalogRegistry.installed();
+                    MarineArmorCatalogDef def = armor != null && id != null ? armor.get(id) : null;
+                    return def != null ? def.armorClass() : null;
                 }
                 @Override public boolean pattern(String id) {
                     return MechPattern.parse(id) != null;
@@ -458,6 +465,9 @@ public final class KitLadderCatalog {
                 }
             }
         }
+        if (sheet.has("seats")) {
+            return parseSeatedSheet(sheet, id, name, description, tradition, mix, ok, where, known, problems, suits);
+        }
         JSONArray list = sheet.optJSONArray("suits");
         List<String> bundle = new ArrayList<>();
         if (list == null || list.length() == 0) {
@@ -480,6 +490,50 @@ public final class KitLadderCatalog {
         if (!ok) return null;
         suits.put(id, bundle);
         return new SquadArmorPlan(id, name, description, tradition, mix, armorClass, seatClasses);
+    }
+
+    /**
+     * A sheet seated suit by suit: {@code seats} names the twelve patterns in billet order. The card teaches the
+     * distinct suits in the order first seated, and each seat's protection class is its suit's, so standard and
+     * power-suit seats mix freely; {@code suits}, {@code armorClass} and {@code seatClasses} are derived and refused.
+     */
+    private static SquadArmorPlan parseSeatedSheet(JSONObject sheet, String id, String name, String description,
+                                                   ArmorTradition tradition, SquadRoleMix mix, boolean ok,
+                                                   String where, Known known, Problems problems,
+                                                   Map<String, List<String>> suits) {
+        for (String derived : List.of("suits", "armorClass", "seatClasses")) {
+            if (sheet.has(derived)) {
+                problems.add(where + ": give seats or " + derived + ", not both (a seated sheet's " + derived
+                        + " come from its seats)");
+                ok = false;
+            }
+        }
+        JSONArray seats = sheet.optJSONArray("seats");
+        if (seats == null || seats.length() != MarineSquad.CAPACITY) {
+            problems.add(where + ": seats has " + (seats != null ? seats.length() : 0) + " suits; a squad has "
+                    + MarineSquad.CAPACITY);
+            return null;
+        }
+        List<String> seated = new ArrayList<>();
+        List<ArmorClass> classes = new ArrayList<>();
+        List<String> bundle = new ArrayList<>();
+        for (int i = 0; i < seats.length(); i++) {
+            String suit = seats.optString(i, null);
+            ArmorClass armorClass = known.armor(suit) ? known.armorClass(suit) : null;
+            if (armorClass == null) {
+                problems.add(where + " seat " + (i + 1) + ": suit '" + suit + "' is not an armour id");
+                ok = false;
+                continue;
+            }
+            seated.add(suit);
+            classes.add(armorClass);
+            if (!bundle.contains(suit)) bundle.add(suit);
+        }
+        if (!ok) return null;
+        boolean mixed = classes.stream().distinct().count() > 1;
+        ArmorClass armorClass = mixed ? ArmorClass.STANDARD : classes.get(0);
+        suits.put(id, bundle);
+        return new SquadArmorPlan(id, name, description, tradition, mix, armorClass, mixed ? classes : null, seated);
     }
 
     /** Relief's free pick must be exactly the Wayline paths' cards ({@link FirstRefit.Path}), which saves name. */
