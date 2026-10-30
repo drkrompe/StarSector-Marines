@@ -1,0 +1,11 @@
+Asset type: production-source master for a top-down tactical-game sprite: a ROTATING GUN PLATE, the low round armoured cupola a roof-mounted machine gun turns on, on an army APC. The gun itself is a separate layer drawn on top later; do not draw any gun.
+
+Image 1 is the exact geometry and layout authority: reskin it, never move, resize or add to its shapes. Keep the circle's size and centre, the darker bevelled outer ring with its bolt ring, the raised round armoured top inside it, the squared mantlet block at the front (top) with the dark gun slot through its centre, the two dark vision blocks on the front shoulders, the plain flat rail down the middle and the round hatch on the lower right. The flat middle rail must stay plain, flat and low-detail: a gun will cover it.
+
+Image 2 is material and style reference only, never layout: dull olive-drab painted armour plate with lighter worn edges, dark steel trim, rivets and bolts, fine surface noise, panel seams, small paint chips and grime, crisp painted game-sprite finish, lighting from the upper left.
+
+Primary request: a low, heavy cast-armour cupola: the outer ring a sloped bevel in darker steel, the top a slightly domed olive armour plate, the mantlet a thick squared armour block, the vision blocks dark glass in steel frames, the hatch a small round bolted lid. Centred.
+
+Strict 90-degree zenith orthographic top-down view. True transparent background including the corners outside the circle; no ground, shadow slab, cast shadow, halo, border, text or labels. Square canvas, the plate filling about 92 percent of it.
+
+Avoid: any gun, barrel, weapon, ammunition belt, people, white or cyan paint, glowing lights, perspective, side view, text.

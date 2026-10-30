@@ -581,6 +581,11 @@ public final class BattleProbe {
                 JSONObject t = new JSONObject().put("facing", round(turret.facingDeg)).put("ammo", turret.ammo)
                         .put("destroyed", turret.destroyed()).put("cooldown", round(turret.cooldownTimer));
                 if (turret.targetId != 0) t.put("target", brief(turret.targetId));
+                if (turret.reservoir != null) {
+                    t.put("flux", new JSONObject().put("value", round(turret.reservoir.value()))
+                            .put("capacity", round(turret.reservoir.capacity()))
+                            .put("venting", turret.reservoir.venting()));
+                }
                 vehicle.put("turret", t);
             }
             put(vehicle, "range", () -> round(convoy.weaponRange(id)));

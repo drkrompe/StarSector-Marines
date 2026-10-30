@@ -11,7 +11,8 @@ import java.util.Set;
  * belt that a hopper refills at a fixed rate for the whole fight (mechs-nouns.md, Rotary guns).
  *
  * <p>Spin-up time, refill rate and the weapon's damage are what make a better chaingun, so all three are
- * authored per weapon rather than per chassis.
+ * authored per weapon rather than per chassis. The authored refill is the standard loader's; the machine's loader
+ * multiplies it ({@link #fitted}, {@link LoaderPace}).
  *
  * <p>A gun with no spin-up (the light machine gun, the autocannons) authors {@code spinUp} 0 and its first-turn
  * rate equal to its full rate: it fires at full rate the instant the trigger is held, and only its belt and hopper
@@ -45,6 +46,17 @@ public record RotaryFeedDef(float spinUpSeconds, float coastSeconds, float spinD
                 || !(refillPerSecond > 0f) || fluxPerRound < 0f) {
             throw new IllegalArgumentException("Invalid rotary feed");
         }
+    }
+
+    /**
+     * This feed on a machine whose loader refills at {@code loaderFactor} ({@link LoaderPace}) and whose ready rack
+     * holds {@code beltFactor} times the belt; {@code this} for the standard loader and the authored belt.
+     */
+    public RotaryFeedDef fitted(float loaderFactor, float beltFactor) {
+        if (loaderFactor == LoaderPace.STANDARD && beltFactor == 1f) return this;
+        return new RotaryFeedDef(spinUpSeconds, coastSeconds, spinDownSeconds, firstTurnRate, fullRate,
+                Math.max(1, Math.round(belt * beltFactor)), LoaderPace.refillPerSecond(refillPerSecond, loaderFactor),
+                fluxPerRound);
     }
 
     /** Whether the gun fires at full rate the instant its trigger is held. */

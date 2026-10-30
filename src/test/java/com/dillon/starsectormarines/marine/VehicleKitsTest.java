@@ -16,24 +16,27 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class VehicleKitsTest {
 
     @Test
-    void aRackHoldsOneKitPerSlotOneOfEachAndOnlyWhatSuitsTheHull() {
-        assertEquals(1, VehicleKit.slots(VehicleType.SUPPLY_TRUCK), "a Light hull has one slot");
-        assertEquals(2, VehicleKit.slots(VehicleType.HEAVY_APC), "a Medium hull two");
-        assertEquals(3, VehicleKit.slots(VehicleType.BREAKTHROUGH_TANK), "a Heavy hull three");
+    void aRackHoldsOneKitPerSlotBesideItsStockBankOneOfEachAndOnlyWhatSuitsTheHull() {
+        assertEquals(2, VehicleKit.slots(VehicleType.SUPPLY_TRUCK), "a Light hull has two slots");
+        assertEquals(3, VehicleKit.slots(VehicleType.HEAVY_APC), "a Medium hull three");
+        assertEquals(4, VehicleKit.slots(VehicleType.BREAKTHROUGH_TANK), "a Heavy hull four");
 
         assertTrue(VehicleKit.fits(VehicleType.FIRE_SUPPORT_APC, List.of(VehicleKit.READY_RACK, VehicleKit.SPALL_LINER)));
         assertFalse(VehicleKit.fits(VehicleType.FIRE_SUPPORT_APC,
-                List.of(VehicleKit.READY_RACK, VehicleKit.SPALL_LINER, VehicleKit.ACCELERATED_LOADER)), "no third slot");
+                List.of(VehicleKit.READY_RACK, VehicleKit.SPALL_LINER, VehicleKit.ACCELERATED_LOADER)),
+                "the stock bank takes the third slot");
+        assertTrue(VehicleKit.fits(VehicleType.SUPPLY_TRUCK, List.of(VehicleKit.SPALL_LINER, VehicleKit.SENSOR_PAIR)),
+                "an unarmed hull needs no bank");
         assertFalse(VehicleKit.fits(VehicleType.BREAKTHROUGH_TANK,
                 List.of(VehicleKit.SPALL_LINER, VehicleKit.SPALL_LINER)), "no kit twice");
         assertFalse(VehicleKit.READY_RACK.suits(VehicleType.SUPPLY_TRUCK), "no magazine to extend");
         assertTrue(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.FIRE_SUPPORT_APC));
-        assertFalse(VehicleKit.READY_RACK.suits(VehicleType.HEAVY_APC), "a belt-fed light machine gun has no magazine");
-        assertFalse(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.HEAVY_APC), "nor a loader");
+        for (VehicleType beltFed : List.of(VehicleType.HEAVY_APC, VehicleType.MILITIA_TECHNICAL,
+                VehicleType.DOZER_BREACHER)) {
+            assertTrue(VehicleKit.READY_RACK.suits(beltFed), "a belt-fed gun's belt deepens: " + beltFed);
+            assertTrue(VehicleKit.ACCELERATED_LOADER.suits(beltFed), "and its hopper feeds faster: " + beltFed);
+        }
         assertFalse(VehicleKit.ACCELERATED_LOADER.suits(VehicleType.SUPPLY_TRUCK), "no gun to feed");
-        assertTrue(VehicleKit.CAPACITOR_PACK.suits(VehicleType.LASER_TANK));
-        assertTrue(VehicleKit.CAPACITOR_PACK.suits(VehicleType.BREAKTHROUGH_TANK), "every hull gun builds flux");
-        assertFalse(VehicleKit.CAPACITOR_PACK.suits(VehicleType.SUPPLY_TRUCK), "no gun, no flux");
     }
 
     @Test

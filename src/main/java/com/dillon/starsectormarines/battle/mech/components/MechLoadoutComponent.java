@@ -287,7 +287,9 @@ public final class MechLoadoutComponent {
         if (!variant.hasMount(slot)) {
             throw new IllegalArgumentException(variant + " has no " + slot + " mount");
         }
-        mounts[slot.ordinal()] = new MechWeaponMount(slot, component);
+        MechWeaponMount mount = new MechWeaponMount(slot, component);
+        if (mount.rotary != null) mount.rotary.fitLoader(missileReplenisher.loaderFactor());
+        mounts[slot.ordinal()] = mount;
     }
 
     public MechWeaponMount mount(MechMountSlot slot) {
@@ -426,12 +428,18 @@ public final class MechLoadoutComponent {
         return missileReplenisher;
     }
 
-    /** Replacement seam for future mech subsystem upgrade items. */
+    /**
+     * Installs the mech's loader: it paces the missile racks' packs and every rotary gun's hopper alike
+     * ({@link MissileReplenisherComponent#loaderFactor}).
+     */
     public void installMissileReplenisher(MissileReplenisherComponent replenisher) {
         if (replenisher == null) {
             throw new IllegalArgumentException("Missile replenisher is required");
         }
         missileReplenisher = replenisher;
+        for (MechWeaponMount mount : mounts) {
+            if (mount != null && mount.rotary != null) mount.rotary.fitLoader(replenisher.loaderFactor());
+        }
     }
 
     public boolean hasWeapon(String weaponId) {

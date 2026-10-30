@@ -77,16 +77,37 @@ public final class MechCompartment {
 
     /** Where each part sits, in the order given, or null when they do not all fit. */
     public static List<Placement> pack(List<SocketDef> grids, List<MechInternal> parts) {
-        if (parts.isEmpty()) return List.of();
+        int[] columns = new int[parts.size()], rows = new int[parts.size()];
+        for (int i = 0; i < parts.size(); i++) {
+            columns[i] = parts.get(i).footprintColumns;
+            rows[i] = parts.get(i).footprintRows;
+        }
+        int[][] at = packFootprints(grids, columns, rows);
+        if (at == null) return null;
+        List<Placement> placed = new ArrayList<>();
+        for (int i = 0; i < parts.size(); i++) {
+            placed.add(new Placement(parts.get(i), grids.get(at[i][0]).id(), at[i][1], at[i][2], columns[i], rows[i]));
+        }
+        return List.copyOf(placed);
+    }
+
+    /**
+     * The packing rule on bare footprints, {@code columns[i]} by {@code rows[i]}: the largest first, each into the
+     * first grid and the first place in reading order that takes it, backtracking when the rest will not go. Each
+     * index's place as {grid index, column, row}, or null when they do not all fit. A vehicle's kit rack packs by it
+     * too ({@link VehicleRack}).
+     */
+    static int[][] packFootprints(List<SocketDef> grids, int[] columns, int[] rows) {
+        int count = columns.length;
+        if (count == 0) return new int[0][];
         if (grids.isEmpty()) return null;
         List<Integer> order = new ArrayList<>();
-        for (int i = 0; i < parts.size(); i++) order.add(i);
-        order.sort(Comparator.comparingInt((Integer i) -> -area(parts.get(i))).thenComparingInt(i -> i));
+        for (int i = 0; i < count; i++) order.add(i);
+        order.sort(Comparator.comparingInt((Integer i) -> -columns[i] * rows[i]).thenComparingInt(i -> i));
         boolean[][][] taken = new boolean[grids.size()][][];
         for (int g = 0; g < grids.size(); g++) taken[g] = new boolean[grids.get(g).gridRows()][grids.get(g).gridColumns()];
-        Placement[] placed = new Placement[parts.size()];
-        if (!place(grids, parts, order, 0, taken, placed)) return null;
-        return List.of(placed);
+        int[][] placed = new int[count][];
+        return place(columns, rows, order, 0, taken, placed) ? placed : null;
     }
 
     /** The placements that landed in {@code grid}. */
@@ -96,20 +117,19 @@ public final class MechCompartment {
         return out;
     }
 
-    private static boolean place(List<SocketDef> grids, List<MechInternal> parts, List<Integer> order, int next,
-                                 boolean[][][] taken, Placement[] placed) {
+    private static boolean place(int[] columns, int[] rows, List<Integer> order, int next,
+                                 boolean[][][] taken, int[][] placed) {
         if (next == order.size()) return true;
         int index = order.get(next);
-        MechInternal part = parts.get(index);
-        int width = part.footprintColumns, height = part.footprintRows;
-        for (int g = 0; g < grids.size(); g++) {
+        int width = columns[index], height = rows[index];
+        for (int g = 0; g < taken.length; g++) {
             boolean[][] grid = taken[g];
             for (int row = 0; row < grid.length; row++) {
                 for (int column = 0; column < grid[0].length; column++) {
                     if (!free(grid, column, row, width, height)) continue;
                     mark(grid, column, row, width, height, true);
-                    placed[index] = new Placement(part, grids.get(g).id(), column, row, width, height);
-                    if (place(grids, parts, order, next + 1, taken, placed)) return true;
+                    placed[index] = new int[] {g, column, row};
+                    if (place(columns, rows, order, next + 1, taken, placed)) return true;
                     mark(grid, column, row, width, height, false);
                 }
             }
@@ -130,9 +150,5 @@ public final class MechCompartment {
         for (int r = row; r < row + height; r++) {
             for (int c = column; c < column + width; c++) taken[r][c] = value;
         }
-    }
-
-    private static int area(MechInternal part) {
-        return part.footprintColumns * part.footprintRows;
     }
 }

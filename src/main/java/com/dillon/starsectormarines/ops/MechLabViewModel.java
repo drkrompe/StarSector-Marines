@@ -36,6 +36,7 @@ import com.dillon.starsectormarines.marine.FabricationCost;
 import com.dillon.starsectormarines.marine.FabricationResources;
 import com.dillon.starsectormarines.marine.MechDamage;
 import com.dillon.starsectormarines.marine.MechWorkshop;
+import com.dillon.starsectormarines.marine.VehicleRack;
 import com.dillon.starsectormarines.marine.ReserveHangar;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.ops.fitting.FittedBadge;
@@ -885,6 +886,7 @@ public final class MechLabViewModel {
         if (vehicle != null) {
             if (internal == null || !inStores(internal)) return false;
             if (target == SocketId.PLATING) return vehicle.plating() != internal && bay.canFitPlating(vehicle.id(), internal);
+            if (target != null && target.compartment()) return bay.canFitRackPart(vehicle.id(), internal);
             return target == SocketId.CORE && vehicle.engine() != internal && bay.canFitEngine(vehicle.id(), internal);
         }
         CampaignMech mech = selectedMech();
@@ -899,6 +901,7 @@ public final class MechLabViewModel {
         if (!canDropCatalogInternal(internal, target)) return false;
         selectedSlot.set(target);
         if (selectedVehicle() == null) return fitInternal(internal);
+        if (target.compartment()) return fitVehicleRackPart(internal);
         return target == SocketId.CORE ? fitVehicleEngine(internal) : fitVehiclePlating(internal);
     }
 
@@ -991,6 +994,7 @@ public final class MechLabViewModel {
      * Taking out the capacitor bank leaves the mech {@link CampaignMech.Readiness#INCOMPLETE}.
      */
     public boolean removeCompartmentPart(MechInternal part) {
+        if (selectedVehicle() != null) return stripVehicleRackPart(part);
         CampaignMech mech = selectedMech();
         if (mech == null || part == null) return false;
         selectedSlot.set(SocketId.AUXILIARY);
@@ -1168,6 +1172,7 @@ public final class MechLabViewModel {
             int gantry = index;
             rows.add(new GantryRow(base, base + ":station", base + ":name",
                     base + ":detail", mech != null && mech.readiness(day.get()) == CampaignMech.Readiness.INCOMPLETE
+                            || vehicle != null && !vehicle.complete()
                             ? "overview-gantry occupied held-back"
                             : occupied ? "overview-gantry occupied" : "overview-gantry vacant",
                     String.format(Strings.locale(), Strings.get("openingMechLabGantryD"), padLetter(index)),
@@ -1175,9 +1180,11 @@ public final class MechLabViewModel {
                             : Strings.get("openingMechLabVacant2"),
                     mech != null && heldBack(mech) ? readinessText(mech)
                             : mech != null ? Strings.join("separatorDot", mech.variant().displayName(), roleLabel(mech.role()))
+                            : vehicle != null && !vehicle.complete() ? Strings.get("openingMechLabVehicleNoBank")
                             : vehicle != null ? vehicleIdentity(vehicle.type())
                             : Strings.get("openingMechLabPressOnPadToFabricate"),
                     mech != null ? readinessClasses(mech, "label overview-detail")
+                            : vehicle != null && !vehicle.complete() ? "label tone-danger overview-detail"
                             : "label tone-muted overview-detail",
                     !occupied, () -> selectGantry(gantry)));
         }
@@ -1374,6 +1381,7 @@ public final class MechLabViewModel {
             return selectedSlot.get() == SocketId.PLATING ? Strings.get("openingMechLabVehiclePlatingCopy")
                     : selectedSlot.get() == SocketId.CORE ? Strings.get("openingMechLabVehicleEngineCopy")
                     : selectedSlot.get() == SocketId.ARMS ? Strings.get("openingMechLabVehicleGunCopy")
+                    : !vehicle.complete() ? Strings.get("openingMechLabVehicleNoBank")
                     : vehicleSummary(vehicle.type(), effect(vehicle));
         }
         CampaignMech mech = selectedMech();
@@ -1401,7 +1409,7 @@ public final class MechLabViewModel {
             return selectedSlot.get() == SocketId.PLATING ? Strings.get("openingMechLabVehiclePlatingRule")
                     : selectedSlot.get() == SocketId.CORE ? Strings.get("openingMechLabVehicleEngineRule")
                     : selectedSlot.get() == SocketId.ARMS ? gunRule(vehicle.type())
-                    : Strings.format("openingMechLabVehicleKitRule", vehicle.kits().size(), VehicleKit.slots(vehicle.type()));
+                    : Strings.format("openingMechLabVehicleKitRule", rackRows(vehicle), VehicleRack.slots(vehicle.type()));
         }
         if (selectedMech() != null && browsingStores.get()) return Strings.get("openingMechLabAllPartsRule");
         SocketDef definition = selectedSocketDefinition();
@@ -1421,7 +1429,11 @@ public final class MechLabViewModel {
                 case PLATING -> platingCatalog(selectedVehicle());
                 case CORE -> engineCatalog(selectedVehicle());
                 case ARMS -> gunCatalog(selectedVehicle());
-                default -> kitCatalog(selectedVehicle());
+                default -> {
+                    List<CatalogRow> rack = new ArrayList<>(rackPartCatalog(selectedVehicle()));
+                    rack.addAll(kitCatalog(selectedVehicle()));
+                    yield List.copyOf(rack);
+                }
             };
         }
         if (mech != null && browsingStores.get()) return allPartsCatalog(mech);
@@ -1727,6 +1739,57 @@ public final class MechLabViewModel {
         return List.copyOf(rows);
     }
 
+    /**
+     * The capacitor banks and vent arrays a vehicle's rack can take, the mech's own parts (a vehicle is a mech for
+     * parts): every one with a spare or a known pattern, dragged onto the rack as onto a mech's compartment.
+     */
+    private List<CatalogRow> rackPartCatalog(CampaignVehicle vehicle) {
+        List<CatalogRow> rows = new ArrayList<>();
+        for (MechFabricationCatalog.Recipe recipe : MechFabricationCatalog.internals()) {
+            MechInternal part = recipe.internal();
+            if (!VehicleRack.takes(vehicle.type(), part)) continue;
+            int free = bay.availableInternal(part.id);
+            boolean locked = !bay.canFabricate(part);
+            if (locked && free == 0) continue;
+            boolean bank = part.role == MechInternal.Role.CAPACITOR_BANK;
+            boolean installed = bank && vehicle.rackInternals().contains(part);
+            boolean inCargo = free > 0;
+            boolean affordable = resources.canBuy(resources.quote(recipe.cost()));
+            boolean offerFab = !locked && !inCargo;
+            String actionLabel = offerFab ? Strings.get("openingMechLabFab") : "";
+            String actionHint = installed ? Strings.get("openingMechLabRackPartOnHull")
+                    : inCargo && !vehicle.canFitRack(part) ? Strings.get("openingMechLabKitRackFull")
+                    : inCargo ? Strings.get("openingMechLabRackPartSpareHint")
+                    : affordable ? Strings.get("openingMechLabFabHint")
+                    : shortHint();
+            String effect = bank
+                    ? Strings.format("vehicleRackBankEffect", number(part.fluxCapacity), number(part.dissipation))
+                    : Strings.format("vehicleRackVentEffect", number(part.dissipation));
+
+            String base = "mech-catalog:" + part.id;
+            FabricationCost back = inCargo ? workshop.internalRecovery(part) : null;
+            List<Row> materials = offerFab ? materialRows(base, resources.quote(recipe.cost())) : recoveryRows(base, back);
+            rows.add(catalogRow(base, "catalog-preview", null, null, part, null,
+                    offerFab ? "catalog-row requires-fabrication" : "catalog-row", part.displayName(),
+                    FittedBadge.label(installed), FittedBadge.classes(installed),
+                    Strings.format("openingMechLabOwnFree", recipe.provenance(), spareCount(free)),
+                    effect, "", "catalog-delta hidden",
+                    Strings.format("openingMechLabRackPartDetail", part.footprintColumns, part.footprintRows),
+                    actionLabel, actionHint,
+                    !offerFab || !affordable, materials, offerFab ? "material-costs" : recoveryClasses(back),
+                    () -> fabricateInternal(part), null,
+                    recycleButton(base, back, () -> workshop.recycleInternal(part), part.displayName())));
+        }
+        return List.copyOf(rows);
+    }
+
+    /** Slots the vehicle's rack has taken: a row a kit, and a bank or vent array its footprint's rows. */
+    private static int rackRows(CampaignVehicle vehicle) {
+        int rows = vehicle.kits().size();
+        for (MechInternal part : vehicle.rackInternals()) rows += part.footprintRows;
+        return rows;
+    }
+
     /** What a vehicle is set down with: its plating and the kits on its rack. */
     private static VehicleKit.Effect effect(CampaignVehicle vehicle) {
         return VehicleKit.Effect.of(vehicle.kits(), vehicle.platingTier(), vehicle.type());
@@ -1892,6 +1955,43 @@ public final class MechLabViewModel {
     /** Whether a part on the doll can be lifted off it: a mech's plate is only ever replaced, a vehicle's comes off. */
     public boolean liftable(MechInternal internal) {
         return internal != null && (!internal.role.replaceOnly() || selectedVehicle() != null);
+    }
+
+    /** The selected vehicle's rack at its packed places; empty for a mech or nothing. */
+    public List<VehicleRack.Placement> installedRack() {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle == null) return List.of();
+        List<VehicleRack.Placement> placed = VehicleRack.pack(vehicle.type(), vehicle.kits(), vehicle.rackInternals());
+        return placed != null ? placed : List.of();
+    }
+
+    /** Whether the selected vehicle is armed with no capacitor bank on its rack, so stays off the drop. */
+    public boolean rackIncomplete() {
+        CampaignVehicle vehicle = selectedVehicle();
+        return vehicle != null && !vehicle.complete();
+    }
+
+    /** Puts a spare capacitor bank or vent array on the selected vehicle's rack; a bank replaced returns to stores. */
+    public boolean fitVehicleRackPart(MechInternal part) {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle == null || part == null) return false;
+        MechWorkshop.Result result = workshop.fitRackPart(vehicle.id(), part);
+        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabRackPartFitted", part.displayName())
+                : Strings.get("openingMechLabRackPartBlocked"));
+        clearHoverInternal();
+        finishWeaponCommand(result);
+        return result.status() == MechWorkshop.Status.INSTALLED_FROM_STORES;
+    }
+
+    /** Takes a bank or vent array off the selected vehicle's rack back to stores. */
+    public boolean stripVehicleRackPart(MechInternal part) {
+        CampaignVehicle vehicle = selectedVehicle();
+        if (vehicle == null || part == null) return false;
+        MechWorkshop.Result result = workshop.stripRackPart(vehicle.id(), part);
+        feedbackText.set(result.succeeded() ? Strings.format("openingMechLabRackPartStripped", part.displayName())
+                : Strings.get("openingMechLabRackPartBlocked"));
+        finishWeaponCommand(result);
+        return result.status() == MechWorkshop.Status.STRIPPED;
     }
 
     /** The kits on the selected vehicle's rack, in fitted order; empty for a mech or nothing. */
@@ -2061,7 +2161,8 @@ public final class MechLabViewModel {
                     number(internal.dissipation));
             case LOADER -> Strings.format("openingMechLabSrmSLrmS",
                     number(internal.replenisher().srmReplenishmentSeconds()),
-                    number(internal.replenisher().lrmReplenishmentSeconds()));
+                    number(internal.replenisher().lrmReplenishmentSeconds()),
+                    number(internal.replenisher().loaderFactor()));
         };
     }
 

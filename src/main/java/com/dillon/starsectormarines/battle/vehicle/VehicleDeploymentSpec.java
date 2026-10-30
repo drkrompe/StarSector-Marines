@@ -6,21 +6,29 @@ import java.util.List;
 
 /**
  * One company vehicle frozen for a battle: the campaign identity a loss writes back to,
- * the callsign, the hull, the engine it runs, the weapon in its gun card, the plating it wears and the kits on its
- * rack. No campaign object crosses into the
+ * the callsign, the hull, the engine it runs, the weapon in its gun card, the plating it wears, the kits on its
+ * rack and the flux frame its rack's capacitor bank and vent arrays make ({@code flux}; null for a hull with no gun).
+ * No campaign object crosses into the
  * simulation.
  *
  * <p>{@code campaignId} is null for a debug or mission-supplied vehicle the company does
  * not own; such a vehicle has nothing to write back.
  */
 public record VehicleDeploymentSpec(String campaignId, String callsign, VehicleType type, List<VehicleKit> kits,
-                                    VehiclePlating plating, VehicleEngine engine, MechWeaponComponent gun) {
+                                    VehiclePlating plating, VehicleEngine engine, MechWeaponComponent gun,
+                                    HullReservoir.Frame flux) {
 
     public VehicleDeploymentSpec {
         if (type == null) throw new IllegalArgumentException("Vehicle type is required");
         kits = kits == null ? List.of() : List.copyOf(kits);
         plating = plating == null ? VehiclePlating.FACTORY : plating;
         engine = engine == null ? VehicleEngine.STOCK : engine;
+    }
+
+    /** A vehicle in its hull's stock flux frame ({@link HullReservoir#stockFrame}). */
+    public VehicleDeploymentSpec(String campaignId, String callsign, VehicleType type, List<VehicleKit> kits,
+                                 VehiclePlating plating, VehicleEngine engine, MechWeaponComponent gun) {
+        this(campaignId, callsign, type, kits, plating, engine, gun, HullReservoir.stockFrame(type));
     }
 
     /** A vehicle with its hull's own gun; {@code gun} is otherwise null. */
@@ -45,10 +53,6 @@ public record VehicleDeploymentSpec(String campaignId, String callsign, VehicleT
         this(campaignId, callsign, type, List.of());
     }
 
-    /** The flux frame the hull is set down with, from its hull and rack; null for a hull that builds no flux. */
-    public HullReservoir.Frame flux() {
-        return HullReservoir.frame(type, kits);
-    }
 
     /** An unowned vehicle of {@code type}: debug grants and missions without a bay. */
     public static VehicleDeploymentSpec standard(VehicleType type) {

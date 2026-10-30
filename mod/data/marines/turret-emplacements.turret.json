@@ -36,7 +36,7 @@
       "render": { "visualCells": 3.0, "muzzleOffsetCells": 0.52, "muzzles": [[-0.1, 0.52], [0.1, 0.52]] } },
     { "id": "mount.hover-pulse", "weapon": "weapon.hover-pulse",
       "sim": { "ammoCapacity": 160, "turnRateDegPerSec": 170.0, "loaderSeconds": 4.0,
-        "flux": { "perRound": 2.5, "control": { "capacity": 100.0, "dissipationPerSec": 8.0, "ventPerSec": 25.0 } } },
+        "flux": { "perRound": 3.0, "control": { "capacity": 100.0, "dissipationPerSec": 8.0, "ventPerSec": 25.0 } } },
       "render": { "visualCells": 2.625, "muzzleOffsetCells": 0.574, "muzzleLateralOffsetCells": 0.077 } },
     { "id": "mount.tank-burst-laser", "weapon": "weapon.tank-burst-laser",
       "engagesAir": true,
@@ -45,7 +45,7 @@
       "render": { "visualCells": 1.6, "muzzleOffsetCells": 0.62, "muzzleLateralOffsetCells": 0.0 } },
     { "id": "mount.tank-twin-cannon", "weapon": "weapon.tank-twin-cannon",
       "sim": { "ammoCapacity": 48, "turnRateDegPerSec": 55.0, "loaderSeconds": 10.0,
-        "flux": { "perRound": 12.0, "control": { "capacity": 100.0, "dissipationPerSec": 6.0, "ventPerSec": 25.0 } } },
+        "flux": { "perRound": 14.0, "control": { "capacity": 100.0, "dissipationPerSec": 6.0, "ventPerSec": 25.0 } } },
       "render": { "visualCells": 4.5, "muzzleOffsetCells": 2.2434501, "muzzleLateralOffsetCells": 0.0 } },
     {
       "id": "mount.turret-vulcan", "weapon": "weapon.turret-vulcan",

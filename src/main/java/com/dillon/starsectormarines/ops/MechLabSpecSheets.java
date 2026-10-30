@@ -125,6 +125,9 @@ final class MechLabSpecSheets {
                         Strings.format("openingMechLabSpecSheetsS", internal.replenisher().srmReplenishmentSeconds())));
                 stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsLrmCycle"),
                         Strings.format("openingMechLabSpecSheetsS", internal.replenisher().lrmReplenishmentSeconds())));
+                // The same loader feeds every rotary gun's belt (LoaderPace).
+                stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsGunFeed"),
+                        Strings.format("openingMechLabSpecSheetsFeedFactor", number(internal.replenisher().loaderFactor()))));
             }
         }
         if (internal.role.compartment()) stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecFootprint"),

@@ -147,7 +147,17 @@ public final class ConvoyService implements BodyCarrier {
      */
     public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
                       MechWeaponComponent weapon, Faction faction, VehicleMission mission) {
+        return spawn(type, kits, plating, engine, weapon, HullReservoir.stockFrame(type), faction, mission);
+    }
+
+    /**
+     * As above, its flux reservoir on {@code flux}, the frame the drop froze from its rack ({@link HullReservoir});
+     * an armed hull given none runs its stock bank.
+     */
+    public long spawn(VehicleType type, List<VehicleKit> kits, VehiclePlating plating, VehicleEngine engine,
+                      MechWeaponComponent weapon, HullReservoir.Frame flux, Faction faction, VehicleMission mission) {
         if (weapon == null) weapon = type.ownGun();
+        if (flux == null) flux = HullReservoir.stockFrame(type);
         VehicleKit.Effect fitted = VehicleKit.Effect.of(kits, plating, type);
         BattleComponents c = roster.components();
         EntityWorld world = roster.entityWorld();
@@ -167,12 +177,15 @@ public final class ConvoyService implements BodyCarrier {
         if (turret != null && weapon != null) {
             turret.structure = fittedStructure;
             turret.weapon = weapon;
-            if (weapon.rotary() != null) turret.rotary = new RotaryFeed(weapon.rotary());
+            // The hull's loader paces the hopper as it does every magazine; a ready rack deepens the belt.
+            if (weapon.rotary() != null) {
+                turret.rotary = new RotaryFeed(weapon.rotary(), fitted.loaderFactor(), fitted.ammoFactor());
+            }
         }
         HullLocations locations = HullLocations.of(type, turret != null ? turret.section : null, fitted);
         if (turret != null) {
             for (VehicleMount mount : type.secondaryMounts()) turret.secondaries.add(MountedGun.of(mount, fitted));
-            HullReservoir.install(turret, HullReservoir.create(HullReservoir.frame(type, kits)));
+            HullReservoir.install(turret, HullReservoir.create(flux));
         }
 
         // VEHICLE_MISSION (mission bag) + VEHICLE_CONTROL (motion-control bag) are universal;

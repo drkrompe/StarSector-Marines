@@ -1,0 +1,55 @@
+{
+  "generator": "Codex CLI built-in image_gen",
+  "codexVersion": "codex-cli 0.159.0",
+  "model": "codex default",
+  "effort": "codex default",
+  "thread": "01a18d00-e8e1-7312-9279-716651915bdd",
+  "source": "C:\\Users\\Dillon\\.codex\\generated_images\\01a18d00-e8e1-7312-9279-716651915bdd\\exec-0a238a9b-c237-4034-9a7b-c87e5639de19.png",
+  "otherImagesInThread": [],
+  "output": {
+    "path": "art-source\\vehicles\\gun-plate\\cupola-master.png",
+    "sha256": "eea92de3fa1cd104223ebd74ff8563b440ccc87f6b801f76a79369e8f6628cfc",
+    "dimensions": [
+      1254,
+      1254
+    ],
+    "mode": "RGBA"
+  },
+  "promptFile": "art-source\\vehicles\\gun-plate\\cupola.prompt.txt",
+  "promptSha256": "ee7aae59ddfaf4e2c5f1e1792dc7c663d7010d4bfa957c19427cd3697c8c5b27",
+  "promptAsSent": "Use the image_gen tool to generate exactly one image, then stop. Do not write files, run commands or edit anything.\n\nAttached reference images, in order:\nImage 1: Geometry/layout authority: reskin exactly, never move\nImage 2: Material/style only; not layout\n\nAsset type: production-source master for a top-down tactical-game sprite: a ROTATING GUN PLATE, the low round armoured cupola a roof-mounted machine gun turns on, on an army APC. The gun itself is a separate layer drawn on top later; do not draw any gun.\n\nImage 1 is the exact geometry and layout authority: reskin it, never move, resize or add to its shapes. Keep the circle's size and centre, the darker bevelled outer ring with its bolt ring, the raised round armoured top inside it, the squared mantlet block at the front (top) with the dark gun slot through its centre, the two dark vision blocks on the front shoulders, the plain flat rail down the middle and the round hatch on the lower right. The flat middle rail must stay plain, flat and low-detail: a gun will cover it.\n\nImage 2 is material and style reference only, never layout: dull olive-drab painted armour plate with lighter worn edges, dark steel trim, rivets and bolts, fine surface noise, panel seams, small paint chips and grime, crisp painted game-sprite finish, lighting from the upper left.\n\nPrimary request: a low, heavy cast-armour cupola: the outer ring a sloped bevel in darker steel, the top a slightly domed olive armour plate, the mantlet a thick squared armour block, the vision blocks dark glass in steel frames, the hatch a small round bolted lid. Centred.\n\nStrict 90-degree zenith orthographic top-down view. True transparent background including the corners outside the circle; no ground, shadow slab, cast shadow, halo, border, text or labels. Square canvas, the plate filling about 92 percent of it.\n\nAvoid: any gun, barrel, weapon, ammunition belt, people, white or cyan paint, glowing lights, perspective, side view, text.\n",
+  "adopted": false,
+  "references": [
+    {
+      "path": "art-source\\vehicles\\gun-plate\\guide-cupola.png",
+      "sha256": "6853ad6b946984a043ef49dc06fea50abe3b95437ee19720d8afad681303f325",
+      "dimensions": [
+        1024,
+        1024
+      ],
+      "mode": "RGBA",
+      "role": "Geometry/layout authority: reskin exactly, never move"
+    },
+    {
+      "path": "art-source\\vehicles\\apc\\material-reference.png",
+      "sha256": "2aee39d3a55bae154bca4dbf92d61b672a7137ee66e55ecc29e5e522e4c5ec93",
+      "dimensions": [
+        2048,
+        768
+      ],
+      "mode": "RGBA",
+      "role": "Material/style only; not layout"
+    }
+  ],
+  "agentMessages": [
+    "I’ll use image_gen to reskin the cupola, preserving Image 1’s layout and applying Image 2’s materials."
+  ],
+  "usage": {
+    "input_tokens": 43953,
+    "cached_input_tokens": 34304,
+    "cache_write_input_tokens": 0,
+    "output_tokens": 618,
+    "reasoning_output_tokens": 0
+  },
+  "elapsedSeconds": 86.5
+}
