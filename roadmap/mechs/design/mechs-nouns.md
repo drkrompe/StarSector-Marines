@@ -946,8 +946,12 @@ clear one, Long-Range Support never — and nobody closes on a tie, with one
 exception: a band that brings a loaded **anti-armor rack** to bear closes when
 it trades merely as well as the longest band. Between equal machines that rack
 would otherwise never fire, and its warhead was fitted for exactly this target.
-A rack that has run
-dry leaves the reading, so a mech with empty magazines walks back out. Failing
+A rack between
+salvos stays in the reading: every salvo empties a rack's buffer and the loader
+recharges it whole, so reading it out would walk a Long-Range Support mech into
+a brawler's reach after every volley. A magazine nothing refills (no loader
+fitted) leaves the reading once it is dry, so a mech with spent magazines walks
+back out (`MechWeaponMount.inFight`). Failing
 both, it **duels** from the outer part of its longest band (about 72–92% of
 reach) rather than walking inside it for no reason: two equal machines meet
 there, not at contact. In band with a clear shot it holds and fires, stepping
