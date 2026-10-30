@@ -19321,7 +19321,7 @@
     }
    }
   },
-  "graphics/battle/mech-modular-topdown/heavy-cannon.png": {
+  "graphics/battle/mech-modular-topdown/hc-20.png": {
    "sliced": false,
    "sources": {
     "commander-extraction": {
@@ -19375,7 +19375,7 @@
     }
    }
   },
-  "graphics/battle/mech-modular-topdown/hegemony-bastion-autocannon.png": {
+  "graphics/battle/mech-modular-topdown/ac-6.png": {
    "sliced": false,
    "sources": {
     "commander-conquest": {
@@ -29662,82 +29662,82 @@
    "sliced": false,
    "sources": {
     "commander-heart": {
-     "displayWidth": 5982.0,
+     "displayWidth": 4785.6,
      "displayHeight": 1495.5,
      "domain": "world",
      "mapWidth": 400,
      "mapHeight": 240
     },
     "commander-thunder-run": {
-     "displayWidth": 9347.0,
+     "displayWidth": 7477.6,
      "displayHeight": 2336.8,
      "domain": "world",
      "mapWidth": 320,
      "mapHeight": 144
     },
     "snapshot:apc": {
-     "displayWidth": 9347.0,
+     "displayWidth": 7477.6,
      "displayHeight": 2336.8,
      "domain": "world",
      "mapWidth": 320,
      "mapHeight": 144
     },
     "snapshot:brute-charge": {
-     "displayWidth": 21364.8,
+     "displayWidth": 17091.8,
      "displayHeight": 5341.2,
      "domain": "world",
      "mapWidth": 40,
      "mapHeight": 20
     },
     "snapshot:fire-burn": {
-     "displayWidth": 5982.0,
+     "displayWidth": 4785.6,
      "displayHeight": 1495.5,
      "domain": "world",
      "mapWidth": 400,
      "mapHeight": 240
     },
     "snapshot:freight-vehicles": {
-     "displayWidth": 9347.0,
+     "displayWidth": 7477.6,
      "displayHeight": 2336.8,
      "domain": "world",
      "mapWidth": 320,
      "mapHeight": 144
     },
     "snapshot:mech-duel-range": {
-     "displayWidth": 21030.8,
+     "displayWidth": 16824.6,
      "displayHeight": 5257.8,
      "domain": "world",
      "mapWidth": 120,
      "mapHeight": 41
     },
     "snapshot:missile-carriers": {
-     "displayWidth": 21364.8,
+     "displayWidth": 17091.8,
      "displayHeight": 5341.2,
      "domain": "world",
      "mapWidth": 104,
      "mapHeight": 60
     },
     "snapshot:tank": {
-     "displayWidth": 21364.8,
+     "displayWidth": 17091.8,
      "displayHeight": 5341.2,
      "domain": "world",
      "mapWidth": 64,
      "mapHeight": 40
     },
     "snapshot:tank-variants": {
-     "displayWidth": 21364.8,
+     "displayWidth": 17091.8,
      "displayHeight": 5341.2,
      "domain": "world",
      "mapWidth": 64,
      "mapHeight": 40
     },
     "snapshot:ui": {
-     "displayWidth": 16723.0,
+     "displayWidth": 13378.4,
      "displayHeight": 3438.0,
      "domain": "ui"
     },
     "test": {
-     "displayWidth": 5982.0,
+     "displayWidth": 4785.6,
      "displayHeight": 1495.5,
      "domain": "world",
      "mapWidth": 400,

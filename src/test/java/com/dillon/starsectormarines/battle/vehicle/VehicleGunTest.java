@@ -20,7 +20,7 @@ class VehicleGunTest {
     void aCardTakesOnlyAWeaponOfItsOwnTypeNoLargerThanItself() {
         VehicleGunCard cannon = VehicleGunCard.of(VehicleType.BREAKTHROUGH_TANK);
         assertSame(VehicleGunCard.CANNON, cannon);
-        assertTrue(cannon.accepts(MechWeaponComponent.SINGLE_HEAVY_CANNON));
+        assertTrue(cannon.accepts(MechWeaponComponent.HC_20));
         assertTrue(cannon.accepts(MechWeaponComponent.CHAINGUN), "a smaller gun of the type fits a larger card");
         assertFalse(cannon.accepts(MechWeaponComponent.PULSE_LASER), "an energy weapon is not a ballistic one");
         assertFalse(cannon.accepts(MechWeaponComponent.LRM_5));
@@ -49,7 +49,7 @@ class VehicleGunTest {
         assertSame(VehicleGunCard.LASER, laser);
         assertTrue(laser.accepts(MechWeaponComponent.BURST_LASER), "the burst laser fills the three-row red card");
         assertTrue(laser.accepts(MechWeaponComponent.PD_LASER));
-        assertFalse(laser.accepts(MechWeaponComponent.SINGLE_HEAVY_CANNON), "a ballistic gun is not an energy one");
+        assertFalse(laser.accepts(MechWeaponComponent.HC_20), "a ballistic gun is not an energy one");
         assertFalse(VehicleGunCard.SMALL.accepts(MechWeaponComponent.BURST_LASER), "a three-row part does not fit a small card");
     }
 
@@ -77,13 +77,13 @@ class VehicleGunTest {
     @Test
     void aWeaponWithNoLimitOnAMechHasNoMagazineHereAndAFiniteOneKeepsItsPulls() {
         VehicleType tank = VehicleType.BREAKTHROUGH_TANK;
-        assertEquals(0, VehicleGun.fit(tank, MechWeaponComponent.LINEAR_CANNON).mount.ammoCapacity);
+        assertEquals(0, VehicleGun.fit(tank, MechWeaponComponent.HC_10).mount.ammoCapacity);
         assertEquals(0, VehicleGun.fit(tank, MechWeaponComponent.CHAINGUN).mount.ammoCapacity,
                 "a rotary gun's belt is its feed");
-        assertEquals(MechWeaponComponent.DEMOLITION_CANNON.ammoCapacity,
-                VehicleGun.fit(tank, MechWeaponComponent.DEMOLITION_CANNON).mount.ammoCapacity);
+        assertEquals(MechWeaponComponent.DC_5.ammoCapacity,
+                VehicleGun.fit(tank, MechWeaponComponent.DC_5).mount.ammoCapacity);
 
-        GroundTurret open = GroundTurret.fitted(VehicleGun.fit(tank, MechWeaponComponent.LINEAR_CANNON).mount, 0,
+        GroundTurret open = GroundTurret.fitted(VehicleGun.fit(tank, MechWeaponComponent.HC_10).mount, 0,
                 VehicleKit.Effect.NONE, null);
         open.spend();
         assertTrue(open.loaded());
@@ -97,8 +97,8 @@ class VehicleGunTest {
     @Test
     void aFittedWeaponBringsItsOwnMuzzleAndEffects() {
         VehicleType tank = VehicleType.FIRE_SUPPORT_APC;
-        StructureDef cannon = VehicleGun.fit(tank, MechWeaponComponent.SINGLE_HEAVY_CANNON);
-        assertEquals((1f - VehicleGun.RING_FROM_REAR) * VehicleGun.lengthCells(tank, MechWeaponComponent.SINGLE_HEAVY_CANNON),
+        StructureDef cannon = VehicleGun.fit(tank, MechWeaponComponent.HC_20);
+        assertEquals((1f - VehicleGun.RING_FROM_REAR) * VehicleGun.lengthCells(tank, MechWeaponComponent.HC_20),
                 cannon.mount.muzzleOffsetCells, 1e-5f, "the muzzle is the tip of the weapon's drawing");
         assertEquals(0, cannon.mount.muzzles.size(), "one barrel, not the hull's stock muzzle points");
         assertEquals(tank.turretStructure().mount.ejectsCasings, cannon.mount.ejectsCasings);
@@ -134,44 +134,44 @@ class VehicleGunTest {
     void theOnagerIsModularAndWearsItsSingleCannonTurretAsTheHeavyCannonsHead() {
         VehicleType onager = VehicleType.BREAKTHROUGH_TANK;
         assertTrue(onager.hasModularTurret(), "an empty card is a bare ring");
-        assertEquals(MechWeaponComponent.SINGLE_HEAVY_CANNON, onager.standardPart(), "a stock Onager fields the heavy cannon");
-        assertTrue(onager.wearsHeadOf(MechWeaponComponent.SINGLE_HEAVY_CANNON));
-        assertEquals(onager.turretFrame, onager.headFrame(MechWeaponComponent.SINGLE_HEAVY_CANNON, onager.turretFrame),
+        assertEquals(MechWeaponComponent.HC_20, onager.standardPart(), "a stock Onager fields the heavy cannon");
+        assertTrue(onager.wearsHeadOf(MechWeaponComponent.HC_20));
+        assertEquals(onager.turretFrame, onager.headFrame(MechWeaponComponent.HC_20, onager.turretFrame),
                 "the heavy cannon's head is the approved turret");
         assertEquals(onager.wreckTurretFrame(),
-                onager.headFrame(MechWeaponComponent.SINGLE_HEAVY_CANNON, onager.wreckTurretFrame()));
-        assertEquals(0f, VehicleGun.lengthCells(onager, MechWeaponComponent.SINGLE_HEAVY_CANNON), 0f);
+                onager.headFrame(MechWeaponComponent.HC_20, onager.wreckTurretFrame()));
+        assertEquals(0f, VehicleGun.lengthCells(onager, MechWeaponComponent.HC_20), 0f);
         assertEquals(onager.turretStructure().mount.muzzleOffsetCells,
-                VehicleGun.fit(onager, MechWeaponComponent.SINGLE_HEAVY_CANNON).mount.muzzleOffsetCells, 0f,
+                VehicleGun.fit(onager, MechWeaponComponent.HC_20).mount.muzzleOffsetCells, 0f,
                 "it fires from the head's muzzle");
-        assertFalse(VehicleType.LASER_TANK.wearsHeadOf(MechWeaponComponent.SINGLE_HEAVY_CANNON), "each hull its own heads");
-        assertEquals(MechWeaponComponent.SINGLE_HEAVY_CANNON,
+        assertFalse(VehicleType.LASER_TANK.wearsHeadOf(MechWeaponComponent.HC_20), "each hull its own heads");
+        assertEquals(MechWeaponComponent.HC_20,
                 VehicleDeploymentSpec.standard(onager).gun(), "a mission's standard Onager is not a bare ring");
     }
 
     @Test
     void eachBallisticFamilyWearsItsOwnOnagerHeadAndOnlyOnTheOnager() {
         VehicleType onager = VehicleType.BREAKTHROUGH_TANK;
-        int autocannon = onager.headFrame(MechWeaponComponent.BASTION_AUTOCANNON, onager.turretFrame);
+        int autocannon = onager.headFrame(MechWeaponComponent.AC_6, onager.turretFrame);
         int rotary = onager.headFrame(MechWeaponComponent.CHAINGUN, onager.turretFrame);
-        int rail = onager.headFrame(MechWeaponComponent.LINEAR_CANNON, onager.turretFrame);
-        assertEquals(4, Set.of(onager.turretFrame, autocannon, rotary, rail).size(), "four distinct heads");
-        for (MechWeaponComponent family : List.of(MechWeaponComponent.MUSTER_AUTOGUN, MechWeaponComponent.DEMOLITION_CANNON,
-                MechWeaponComponent.QUARRY_BREAKER_CANNON)) {
+        assertEquals(3, Set.of(onager.turretFrame, autocannon, rotary).size(), "three distinct heads");
+        assertEquals(onager.turretFrame, onager.headFrame(MechWeaponComponent.HC_10, onager.turretFrame),
+                "the HC-10 shares the heavy cannon's head");
+        for (MechWeaponComponent family : List.of(MechWeaponComponent.AC_6_QS, MechWeaponComponent.DC_5,
+                MechWeaponComponent.DC_4_QS)) {
             assertEquals(autocannon, onager.headFrame(family, onager.turretFrame), family + " shares the autocannon head");
         }
         for (MechWeaponComponent family : List.of(MechWeaponComponent.CHAINGUN_HF, MechWeaponComponent.LIGHT_MACHINE_GUN)) {
             assertEquals(rotary, onager.headFrame(family, onager.turretFrame), family + " shares the rotary head");
         }
         int[] wrecks = {
-                onager.headFrame(MechWeaponComponent.BASTION_AUTOCANNON, onager.wreckTurretFrame()),
-                onager.headFrame(MechWeaponComponent.CHAINGUN, onager.wreckTurretFrame()),
-                onager.headFrame(MechWeaponComponent.LINEAR_CANNON, onager.wreckTurretFrame())};
+                onager.headFrame(MechWeaponComponent.AC_6, onager.wreckTurretFrame()),
+                onager.headFrame(MechWeaponComponent.CHAINGUN, onager.wreckTurretFrame())};
         for (int wreck : wrecks) {
-            assertTrue(wreck > 0 && wreck < onager.frameCount && wreck != autocannon && wreck != rotary && wreck != rail,
+            assertTrue(wreck > 0 && wreck < onager.frameCount && wreck != autocannon && wreck != rotary,
                     "a head's wreck is its own frame on the sheet");
         }
-        assertEquals(0f, VehicleGun.lengthCells(onager, MechWeaponComponent.LINEAR_CANNON), 0f, "a head draws no gun of its own");
+        assertEquals(0f, VehicleGun.lengthCells(onager, MechWeaponComponent.HC_10), 0f, "a head draws no gun of its own");
         assertEquals(0f, VehicleGun.plateCells(onager, MechWeaponComponent.CHAINGUN), 0f, "nor stands on the gun plate");
         assertFalse(VehicleType.HEAVY_APC.wearsHeadOf(MechWeaponComponent.LIGHT_MACHINE_GUN),
                 "a hull that declares no rotary head draws its machine gun as itself");
@@ -191,11 +191,11 @@ class VehicleGunTest {
         assertEquals(0f, VehicleGun.plateCells(VehicleType.HEAVY_APC, null), "an empty card has no plate");
         assertEquals(0f, VehicleGun.plateCells(VehicleType.SRM_TECHNICAL, MechWeaponComponent.SRM_3_QS),
                 "not on the rocket pickup");
-        assertEquals(0f, VehicleGun.plateCells(VehicleType.FIRE_SUPPORT_APC, MechWeaponComponent.BASTION_AUTOCANNON),
+        assertEquals(0f, VehicleGun.plateCells(VehicleType.FIRE_SUPPORT_APC, MechWeaponComponent.AC_6),
                 "nor under a fixed hull's other cannons");
         assertEquals(0f, VehicleGun.plateCells(VehicleType.LASER_TANK, MechWeaponComponent.LIGHT_PULSE_LASER),
                 "a white hull's weapon stands in its own base");
-        assertEquals(0f, VehicleGun.plateCells(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.SINGLE_HEAVY_CANNON),
+        assertEquals(0f, VehicleGun.plateCells(VehicleType.BREAKTHROUGH_TANK, MechWeaponComponent.HC_20),
                 "a head needs no plate");
     }
 }

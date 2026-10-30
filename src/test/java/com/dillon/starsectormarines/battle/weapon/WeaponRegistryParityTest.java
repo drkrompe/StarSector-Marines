@@ -82,30 +82,24 @@ class WeaponRegistryParityTest {
         assertEquals(2f, pulseLaser.beamStyle().coreWidthPx(), EPS);
         assertEquals(7f, pulseLaser.beamStyle().glowWidthPx(), EPS);
         assertEquals(0.12f, pulseLaser.beamStyle().lifetimeSec(), EPS);
-        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_BASTION_AUTOCANNON_ID),
+        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_AC_6_ID),
                 34f, 20f, 0.67f, 2.6f, 14f,
                 6, 0.14f, 0.45f, 180f, 0.19f, 0f,
                 0.45f, 6, 0f, false, false, 1f,
                 new Color(0xFF, 0xD0, 0x8A), ImpactKind.KINETIC,
                 "graphics/missiles/shell_small_yellow.png", 0.22f,
                 "light_autocannon_fire");
-        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_LINEAR_CANNON_ID),
-                32f, 27f, 0.68f, 2.8f, 8f,
-                2, 0.12f, 0.35f, 160f, 0.20f, 0f,
-                0.35f, 4, 0f, false, false, 1f,
-                new Color(0xB8, 0xE8, 0xFF), ImpactKind.KINETIC,
-                "graphics/missiles/shell_large_blue.png", 0.20f, "needler_fire");
-        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID),
+        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_HC_20_ID),
                 26f, 45f, 0.76f, 2.5f, 18f,
                 1, 0f, 0.12f, 86.666664f, 0.30f, 0f,
                 1f, 140, 1.1f, false, false, 1f,
                 new Color(0xFF, 0xD0, 0x88), ImpactKind.CANNON_HE,
                 "graphics/missiles/shell_hellbore.png", 0.34f, "hellbore_fire");
-        WeaponDef heavyCannon = WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID);
+        WeaponDef heavyCannon = WeaponRegistry.require(WeaponRegistry.MECH_HC_20_ID);
         assertEquals(100f, heavyCannon.contactDamage, EPS);
         assertEquals(18f, heavyCannon.contactPenetration, EPS);
         WeaponDef demolition = WeaponRegistry.require(
-                WeaponRegistry.MECH_DEMOLITION_CANNON_ID);
+                WeaponRegistry.MECH_DC_5_ID);
         assertMech(demolition,
                 20f, 62f, 0.50f, 5.8f, 16f,
                 1, 0f, 1.20f, 62.5f, 0.32f, 0f,
@@ -114,14 +108,14 @@ class WeaponRegistryParityTest {
                 "graphics/missiles/shell_hellbore.png", 0.40f, "hellbore_fire");
         assertEquals(88f, demolition.contactDamage, EPS);
         assertEquals(26f, demolition.contactPenetration, EPS);
-        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_MUSTER_AUTOGUN_ID),
+        assertMech(WeaponRegistry.require(WeaponRegistry.MECH_AC_6_QS_ID),
                 26f, 9f, 0.48f, 2.4f, 4f,
                 6, 0.12f, 1.35f, 240f, 0.108333f, 0f,
                 0.35f, 2, 0f, false, false, 1f,
                 new Color(0xFF, 0xD6, 0x9A), ImpactKind.KINETIC,
                 "graphics/missiles/shell_small_yellow.png", 0.16f,
                 "light_autocannon_fire");
-        WeaponDef quarry = WeaponRegistry.require(WeaponRegistry.MECH_QUARRY_BREAKER_ID);
+        WeaponDef quarry = WeaponRegistry.require(WeaponRegistry.MECH_DC_4_QS_ID);
         assertMech(quarry,
                 17f, 34f, 0.42f, 5.5f, 8f,
                 1, 0f, 1.35f, 53.125f, 0.32f, 0f,

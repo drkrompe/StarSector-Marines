@@ -28,32 +28,35 @@ public enum MechWeaponComponent {
     CHAINGUN_HF("component.mech-chaingun-hf", "@gearMechWeaponComponentCHAINGUNHF", MountFamily.ARMS,
             HardpointType.BALLISTIC, 2, 2, WeaponRegistry.MECH_CHAINGUN_HF_ID,
             6, -1, LayeredMechAppearance.ARMS_CHAINGUN),
-    LINEAR_CANNON("component.mech-linear-cannon", "@gearMechWeaponComponentLINEARCANNON",
-            MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2, "weapon.mech-linear-cannon",
-            1, -1, LayeredMechAppearance.ARMS_LINEAR_CANNON),
-    SINGLE_HEAVY_CANNON("component.mech-heavy-cannon", "@gearMechWeaponComponentSINGLEHEAVYCANNON", MountFamily.ARMS,
-            HardpointType.BALLISTIC, 2, 3, "weapon.mech-heavy-cannon",
-            1, -1, LayeredMechAppearance.ARMS_HEAVY_CANNON),
+    // The cannon families are named <Family>-<N>, like the racks (mechs-nouns.md, Weapon names): HC heavy cannons,
+    // AC autocannons, DC demolition cannons; (QS) is the QuickSell budget build of a family's gun.
+    // The HC-10: a short single-shot armour-piercing cannon that fits a side arm as well as the centreline.
+    HC_10("component.mech-hc-10", "@gearMechWeaponComponentHC10",
+            MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2, "weapon.mech-hc-10",
+            1, -1, LayeredMechAppearance.ARMS_HC_10),
+    HC_20("component.mech-hc-20", "@gearMechWeaponComponentHC20", MountFamily.ARMS,
+            HardpointType.BALLISTIC, 2, 3, "weapon.mech-hc-20",
+            1, -1, LayeredMechAppearance.ARMS_HC_20),
     PULSE_LASER("component.mech-pulse-laser", "@gearMechWeaponComponentPULSELASER",
             MountFamily.ARMS, HardpointType.ENERGY, 2, 2, "weapon.mech-pulse-laser",
             4, -1, LayeredMechAppearance.ARMS_PULSE_LASER),
-    BASTION_AUTOCANNON("component.mech-bastion-autocannon",
-            "@gearMechWeaponComponentBASTIONAUTOCANNON", MountFamily.ARMS,
-            HardpointType.BALLISTIC, 2, 2, "weapon.mech-bastion-autocannon", 3, -1,
-            LayeredMechAppearance.ARMS_BASTION_AUTOCANNON),
-    DEMOLITION_CANNON("component.mech-demolition-cannon", "@gearMechWeaponComponentDEMOLITIONCANNON",
+    AC_6("component.mech-ac-6",
+            "@gearMechWeaponComponentAC6", MountFamily.ARMS,
+            HardpointType.BALLISTIC, 2, 2, "weapon.mech-ac-6", 3, -1,
+            LayeredMechAppearance.ARMS_AC_6),
+    DC_5("component.mech-dc-5", "@gearMechWeaponComponentDC5",
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2,
-            "weapon.mech-demolition-cannon", 1, 5,
-            LayeredMechAppearance.ARMS_DEMOLITION_CANNON),
-    MUSTER_AUTOGUN("component.mech-muster-autogun", "@gearMechWeaponComponentMUSTERAUTOGUN",
+            "weapon.mech-dc-5", 1, 5,
+            LayeredMechAppearance.ARMS_DC_5),
+    AC_6_QS("component.mech-ac-6-qs", "@gearMechWeaponComponentAC6QS",
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2,
-            "weapon.mech-muster-autogun", 3, -1,
-            LayeredMechAppearance.ARMS_MUSTER_AUTOGUN),
+            "weapon.mech-ac-6-qs", 3, -1,
+            LayeredMechAppearance.ARMS_AC_6_QS),
 
-    QUARRY_BREAKER_CANNON("component.mech-quarry-breaker", "@gearMechWeaponComponentQUARRYBREAKERCANNON",
+    DC_4_QS("component.mech-dc-4-qs", "@gearMechWeaponComponentDC4QS",
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 2,
-            "weapon.mech-quarry-breaker", 1, 4,
-            LayeredMechAppearance.ARMS_QUARRY_BREAKER),
+            "weapon.mech-dc-4-qs", 1, 4,
+            LayeredMechAppearance.ARMS_DC_4_QS),
     // The light weapons: one-row parts that stock a small vehicle gun card (vehicle-card-sizes.md).
     LIGHT_MACHINE_GUN("component.mech-light-mg", "@gearMechWeaponComponentLIGHTMACHINEGUN",
             MountFamily.ARMS, HardpointType.BALLISTIC, 2, 1,
@@ -200,14 +203,14 @@ public enum MechWeaponComponent {
     public enum MountFamily { ARMS, SHOULDER }
 
     /**
-     * A gun whose art is one barrel on the chassis's centreline (the heavy cannon, the breaching
+     * A gun whose art is one barrel on the chassis's centreline (the HC-20, the DC breaching
      * cannons, the heavy lasers): it fits the centreline arms mount only, never a side arm. Every
-     * other arm gun fits either; the chainguns and the Muster autogun change their drawing with the
+     * other arm gun fits either; the chainguns and the AC-6 (QS) change their drawing with the
      * mount instead ({@link #appearanceSelector(MechMountSlot)}).
      */
     public boolean centrelineOnly() {
         return switch (this) {
-            case SINGLE_HEAVY_CANNON, DEMOLITION_CANNON, QUARRY_BREAKER_CANNON, BURST_LASER, HEAVY_PD_LASER -> true;
+            case HC_20, DC_5, DC_4_QS, BURST_LASER, HEAVY_PD_LASER -> true;
             default -> false;
         };
     }
@@ -216,24 +219,23 @@ public enum MechWeaponComponent {
      * The turret head a gun tank draws for a weapon of this family in its gun card, instead of the weapon's own drawing:
      * the laser tank's white and red laser heads, and the Onager's heads, its turret housing with the family's gun.
      */
-    public enum TankHead { NONE, WHITE, RED, HEAVY_CANNON, AUTOCANNON, ROTARY, RAIL }
+    public enum TankHead { NONE, WHITE, RED, HEAVY_CANNON, AUTOCANNON, ROTARY }
 
     /**
      * The turret head this weapon wears when fitted to a hull that carries one ({@code VehicleType.headFrames}): the
      * heavy (three-row) burst laser the white head the laser tank has always carried, the heavy PD laser the red head the
-     * PD laser tank carried, the heavy cannon the Onager's single-cannon turret; the autocannons and breaker cannons
-     * the Onager's autocannon head, the chainguns and the light machine gun its rotary head, the linear cannon its rail
-     * head. A weapon whose head its hull does not carry, and every other weapon, is drawn as its own drawing on the
+     * PD laser tank carried, the HC cannons (the HC-20 and the HC-10, both one large bore) the Onager's single-cannon
+     * turret; the AC autocannons and DC demolition cannons the Onager's autocannon head, the chainguns and the light
+     * machine gun its rotary head. A weapon whose head its hull does not carry, and every other weapon, is drawn as its own drawing on the
      * mount ring.
      */
     public TankHead tankHead() {
         return switch (this) {
             case BURST_LASER -> TankHead.WHITE;
             case HEAVY_PD_LASER -> TankHead.RED;
-            case SINGLE_HEAVY_CANNON -> TankHead.HEAVY_CANNON;
-            case BASTION_AUTOCANNON, MUSTER_AUTOGUN, DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> TankHead.AUTOCANNON;
+            case HC_10, HC_20 -> TankHead.HEAVY_CANNON;
+            case AC_6, AC_6_QS, DC_5, DC_4_QS -> TankHead.AUTOCANNON;
             case CHAINGUN, CHAINGUN_HF, LIGHT_MACHINE_GUN -> TankHead.ROTARY;
-            case LINEAR_CANNON -> TankHead.RAIL;
             default -> TankHead.NONE;
         };
     }
@@ -298,7 +300,7 @@ public enum MechWeaponComponent {
     }
 
     /**
-     * The selector the layered compositor draws this weapon with on {@code slot}. A chaingun or Muster autogun on the
+     * The selector the layered compositor draws this weapon with on {@code slot}. A chaingun or AC-6 (QS) on the
      * centreline mount is drawn as the nose gun under the chassis's nose; on a side arm, a vehicle's turret
      * ({@code slot} null) or in stores it is drawn as the arm gun ({@link #appearanceSelector}). Every other weapon draws
      * the same on any mount.
@@ -307,7 +309,7 @@ public enum MechWeaponComponent {
         if (slot != MechMountSlot.ARMS) return appearanceSelector;
         return switch (this) {
             case CHAINGUN, CHAINGUN_HF -> LayeredMechAppearance.ARMS_NOSE_CHAINGUN;
-            case MUSTER_AUTOGUN -> LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN;
+            case AC_6_QS -> LayeredMechAppearance.ARMS_NOSE_AC_6_QS;
             default -> appearanceSelector;
         };
     }
@@ -345,15 +347,15 @@ public enum MechWeaponComponent {
         }
         return switch (this) {
             // Unused: a rotary gun's cycle is read from its feed above.
-            case CHAINGUN, CHAINGUN_HF, BASTION_AUTOCANNON, MUSTER_AUTOGUN, LIGHT_MACHINE_GUN -> 0f;
+            case CHAINGUN, CHAINGUN_HF, AC_6, AC_6_QS, LIGHT_MACHINE_GUN -> 0f;
             case SRM_5, SRM_5_FRAG -> 1.8f;
             case SRM_15, SRM_15_FRAG -> 2.6f;
             case LRM_5, LRM_15, LRM_5_FRAG, LRM_15_FRAG -> 9f;
-            case LINEAR_CANNON -> 2.8f;
-            case SINGLE_HEAVY_CANNON -> 2.5f;
+            case HC_10 -> 2.8f;
+            case HC_20 -> 2.5f;
             case PULSE_LASER -> 2.1f;
-            case DEMOLITION_CANNON -> 5.8f;
-            case QUARRY_BREAKER_CANNON -> 5.5f;
+            case DC_5 -> 5.8f;
+            case DC_4_QS -> 5.5f;
             case SHOULDER_LASER_CANNON, SRM_3_QS -> 7f;
             case THERMAL_LANCE -> 4.8f;
             case LIGHT_PULSE_LASER -> 1.8f;
@@ -367,10 +369,10 @@ public enum MechWeaponComponent {
 
     /**
      * Flux-hungry enough that the cannon competes with its carrier's launchers for the reservoir
-     * (heavy-equipment-progression.md); {@code -Dbattle.mech.heavyCannonFlux=26} is the control.
+     * (heavy-equipment-progression.md); {@code -Dbattle.mech.hc20Flux=26} is the control.
      */
-    private static final float HEAVY_CANNON_FLUX = Float.parseFloat(
-            System.getProperty("battle.mech.heavyCannonFlux", "34"));
+    private static final float HC_20_FLUX = Float.parseFloat(
+            System.getProperty("battle.mech.hc20Flux", "34"));
 
     /**
      * Whole-packet flux reservation: scheduled rounds cannot stall halfway through a salvo. A rotary gun
@@ -389,7 +391,7 @@ public enum MechWeaponComponent {
     /**
      * A balance control: {@code -Dbattle.mech.<axis>.<short id>=<value>} replaces one authored value, where the
      * short id is the component id without {@code component.mech-} (for example
-     * {@code -Dbattle.mech.flux.bastion-autocannon=12}). Read once per component and axis.
+     * {@code -Dbattle.mech.flux.ac-6=12}). Read once per component and axis.
      */
     public float tuned(String axis, float authored) {
         float override = TUNING.computeIfAbsent(axis + "." + id.substring(id.indexOf("mech-") + 5), key -> {
@@ -414,15 +416,15 @@ public enum MechWeaponComponent {
         }
         return switch (this) {
             // Unused: a rotary gun's flux is authored per round on its weapon (fluxPerRound).
-            case CHAINGUN, CHAINGUN_HF, BASTION_AUTOCANNON, MUSTER_AUTOGUN, LIGHT_MACHINE_GUN -> 0f;
+            case CHAINGUN, CHAINGUN_HF, AC_6, AC_6_QS, LIGHT_MACHINE_GUN -> 0f;
             case SRM_5, SRM_5_FRAG -> 28f;
             case SRM_15, SRM_15_FRAG -> 42f;
             case LRM_5, LRM_5_FRAG -> 22f;
             case LRM_15, LRM_15_FRAG -> 40f;
-            case LINEAR_CANNON -> 12f;
+            case HC_10 -> 18f;
 
-            case SINGLE_HEAVY_CANNON -> HEAVY_CANNON_FLUX;
-            case DEMOLITION_CANNON, QUARRY_BREAKER_CANNON -> 26f;
+            case HC_20 -> HC_20_FLUX;
+            case DC_5, DC_4_QS -> 26f;
             // The Prestige arm pays in mass; at 38 it lost to both Advanced arms on the same frame.
             case PULSE_LASER -> 13f;
 
@@ -449,10 +451,24 @@ public enum MechWeaponComponent {
 
     public WeaponDef weaponDef() { return WeaponRegistry.require(weaponId); }
 
+    /**
+     * The ids a save may still hold for a part that was renamed, mapped to the part that succeeds it: the cannons before
+     * they took {@code <Family>-<N>} names, and the linear cannon, whose slot the HC-10 took.
+     */
+    private static final Map<String, String> RETIRED_IDS = Map.of(
+            "component.mech-muster-autogun", "component.mech-ac-6-qs",
+            "component.mech-bastion-autocannon", "component.mech-ac-6",
+            "component.mech-linear-cannon", "component.mech-hc-10",
+            "component.mech-heavy-cannon", "component.mech-hc-20",
+            "component.mech-demolition-cannon", "component.mech-dc-5",
+            "component.mech-quarry-breaker", "component.mech-dc-4-qs");
+
+    /** The part {@code id} names, a retired id resolving to its successor ({@link #RETIRED_IDS}); null for any other. */
     public static MechWeaponComponent findById(String id) {
         if (id == null) return null;
+        String current = RETIRED_IDS.getOrDefault(id, id);
         for (MechWeaponComponent component : values()) {
-            if (component.id.equals(id)) return component;
+            if (component.id.equals(current)) return component;
         }
         return null;
     }

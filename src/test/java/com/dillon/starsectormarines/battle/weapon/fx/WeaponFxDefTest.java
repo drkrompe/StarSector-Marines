@@ -109,7 +109,7 @@ class WeaponFxDefTest {
                 FxLayerKind.GLOW, FxLayerKind.DUST, FxLayerKind.SMOKE);
         assertKinds(registry.get("weapon.frag-grenade").fx,
                 FxLayerKind.GLOW, FxLayerKind.FIRE, FxLayerKind.SMOKE, FxLayerKind.DUST);
-        assertKinds(registry.get("weapon.mech-heavy-cannon").fx,
+        assertKinds(registry.get("weapon.mech-hc-20").fx,
                 FxLayerKind.GLOW, FxLayerKind.EXPLOSION, FxLayerKind.RING,
                 FxLayerKind.FIRE, FxLayerKind.SMOKE, FxLayerKind.DUST);
         assertKinds(registry.get("weapon.mech-shoulder-laser").fx,

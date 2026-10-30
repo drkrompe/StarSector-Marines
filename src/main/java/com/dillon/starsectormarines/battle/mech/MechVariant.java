@@ -29,7 +29,7 @@ public enum MechVariant {
     WARDEN("warden", "@gearMechVariantWARDEN", 250f, 300f, 10f, 1.32f, 0.45f, 55f,
             1.35f, 1.20f, 0.48f, 0.65f, 1.2f,
             LayeredMechAppearance.CHASSIS_WARDEN,
-            MechWeaponComponent.SINGLE_HEAVY_CANNON, null, null,
+            MechWeaponComponent.HC_20, null, null,
             // Artillery against men; the heavy cannon is the Warden's answer to armor.
             MechWeaponComponent.LRM_5_FRAG,
             MechWeaponComponent.LRM_5_FRAG,

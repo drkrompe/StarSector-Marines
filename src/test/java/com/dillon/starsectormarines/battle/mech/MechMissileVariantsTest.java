@@ -87,10 +87,10 @@ class MechMissileVariantsTest {
 
     @Test
     void anIndirectRackDoesNotScoreInsideTheArmsReach() {
-        List<MechWeaponComponent> warden = List.of(MechWeaponComponent.SINGLE_HEAVY_CANNON,
+        List<MechWeaponComponent> warden = List.of(MechWeaponComponent.HC_20,
                 MechWeaponComponent.LRM_5_FRAG);
-        float inside = MechWeaponComponent.SINGLE_HEAVY_CANNON.weaponDef().range - 2f;
-        assertEquals(MechTargetPressure.pressure(List.of(MechWeaponComponent.SINGLE_HEAVY_CANNON), inside, MAN, false),
+        float inside = MechWeaponComponent.HC_20.weaponDef().range - 2f;
+        assertEquals(MechTargetPressure.pressure(List.of(MechWeaponComponent.HC_20), inside, MAN, false),
                 MechTargetPressure.pressure(warden, inside, MAN, false));
     }
 

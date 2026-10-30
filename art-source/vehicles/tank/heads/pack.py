@@ -4,7 +4,7 @@ Run after ../pack.ps1, which writes the sheet's first four 768x768 frames (live 
 turret); the live and wreck turret are the heavy cannon's head. This keeps those four frames and appends, per head in
 HEADS order, a live and a wreck frame, all facing LEFT at the turret frame's registration (7.789194 cells):
 
-  frame 4, 5: autocannon live, wreck     frame 6, 7: rotary live, wreck     frame 8, 9: rail live, wreck
+  frame 4, 5: autocannon live, wreck     frame 6, 7: rotary live, wreck
 
 Live frame: the head's ImageGen edit (<head>-raw.png, turret-only, in turret-master.png's coordinates) registered to
 the approved turret. ImageGen returns the housing a little scaled and shifted, so the scale and offset that best
@@ -28,7 +28,7 @@ HERE = Path(__file__).resolve().parent
 SHEET = HERE.parents[3] / "mod" / "graphics" / "battle" / "vehicles" / "army-tank.png"
 REGISTRATION = HERE / "registration.json"
 FRAME = 768
-HEADS = ["autocannon", "rotary", "rail"]
+HEADS = ["autocannon", "rotary"]
 BEARING = (1498, 454)       # the turret's bearing in turret-master.png
 MASTER_SCALE = 0.7          # turret-master.png px to frame px (../registration.json)
 CUT_X = 1362                # aft of this the housing; forward of it the gun (guide.py's CUT)

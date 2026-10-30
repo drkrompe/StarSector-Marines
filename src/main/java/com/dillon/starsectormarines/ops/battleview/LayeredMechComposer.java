@@ -275,8 +275,8 @@ final class LayeredMechComposer {
         out.section(armSection(slot));
         float recoil = armRecoils(gun) ? kick : 0f;
         if (slot.isSideArm()) {
-            // The arm guns were authored as narrow barrels; only the linear cannon's rails stay full width.
-            float widthScale = gun == LayeredMechAppearance.ARMS_LINEAR_CANNON
+            // The arm guns were authored as narrow barrels; the HC-10 and the light and laser parts are drawn slim already.
+            float widthScale = gun == LayeredMechAppearance.ARMS_HC_10
                     || gun == LayeredMechAppearance.ARMS_LIGHT_MG
                     || gun == LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER
                     || gun == LayeredMechAppearance.ARMS_BURST_LASER
@@ -291,8 +291,8 @@ final class LayeredMechComposer {
         } else {
             float pivot = gun == LayeredMechAppearance.ARMS_NOSE_CHAINGUN
                     || gun == LayeredMechAppearance.ARMS_CHAINGUN
-                    || gun == LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN
-                    || gun == LayeredMechAppearance.ARMS_MUSTER_AUTOGUN ? -0.02f : -0.05f;
+                    || gun == LayeredMechAppearance.ARMS_NOSE_AC_6_QS
+                    || gun == LayeredMechAppearance.ARMS_AC_6_QS ? -0.02f : -0.05f;
             emitFromRearPivot(out, sprite, actorX, actorY, hullWidth, facingDeg,
                     0f, pivot + MechHardpointGeometry.centrelineDrawingShift(gun) + recoil, 1f, 0f, alpha);
         }
@@ -328,14 +328,14 @@ final class LayeredMechComposer {
         return switch (gun) {
             case LayeredMechAppearance.ARMS_CHAINGUN,
                  LayeredMechAppearance.ARMS_NOSE_CHAINGUN -> assets.chaingunArm;
-            case LayeredMechAppearance.ARMS_LINEAR_CANNON -> assets.linearCannon;
-            case LayeredMechAppearance.ARMS_HEAVY_CANNON -> assets.heavyCannon;
+            case LayeredMechAppearance.ARMS_HC_10 -> assets.hc10;
+            case LayeredMechAppearance.ARMS_HC_20 -> assets.hc20;
             case LayeredMechAppearance.ARMS_PULSE_LASER -> assets.pulseLaserArm;
-            case LayeredMechAppearance.ARMS_BASTION_AUTOCANNON -> assets.bastionAutocannon;
-            case LayeredMechAppearance.ARMS_DEMOLITION_CANNON -> assets.demolitionCannon;
-            case LayeredMechAppearance.ARMS_MUSTER_AUTOGUN,
-                 LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN -> assets.musterAutogun;
-            case LayeredMechAppearance.ARMS_QUARRY_BREAKER -> assets.quarryBreakerCannon;
+            case LayeredMechAppearance.ARMS_AC_6 -> assets.ac6;
+            case LayeredMechAppearance.ARMS_DC_5 -> assets.dc5;
+            case LayeredMechAppearance.ARMS_AC_6_QS,
+                 LayeredMechAppearance.ARMS_NOSE_AC_6_QS -> assets.ac6Qs;
+            case LayeredMechAppearance.ARMS_DC_4_QS -> assets.dc4Qs;
             case LayeredMechAppearance.ARMS_LIGHT_MG -> assets.lightMachineGun;
             case LayeredMechAppearance.ARMS_LIGHT_PULSE_LASER -> assets.lightPulseLaser;
             case LayeredMechAppearance.ARMS_BURST_LASER -> assets.burstLaser;
@@ -350,9 +350,9 @@ final class LayeredMechComposer {
     /** The rapid-fire guns kick back with the chaingun phase; the cannons stay planted. */
     private static boolean armRecoils(int gun) {
         return switch (gun) {
-            case LayeredMechAppearance.ARMS_LINEAR_CANNON, LayeredMechAppearance.ARMS_HEAVY_CANNON,
-                 LayeredMechAppearance.ARMS_DEMOLITION_CANNON,
-                 LayeredMechAppearance.ARMS_QUARRY_BREAKER -> false;
+            case LayeredMechAppearance.ARMS_HC_10, LayeredMechAppearance.ARMS_HC_20,
+                 LayeredMechAppearance.ARMS_DC_5,
+                 LayeredMechAppearance.ARMS_DC_4_QS -> false;
             default -> true;
         };
     }
@@ -377,7 +377,7 @@ final class LayeredMechComposer {
                                      float actorX, float actorY, float hullWidth,
                                      float facingDeg, float kick, float alpha) {
         if (armSprite(assets, gun) == null) return;
-        float recoil = gun == LayeredMechAppearance.ARMS_HEAVY_CANNON ? 0f : kick;
+        float recoil = gun == LayeredMechAppearance.ARMS_HC_20 ? 0f : kick;
         MechHardpointGeometry.LocalPoint muzzle = MechHardpointGeometry.armsMuzzle(gun, slot);
         emitCentered(out, assets.muzzleFlash, actorX, actorY, hullWidth, facingDeg,
                 muzzle.xHullWidths(), muzzle.yHullWidths() - recoil, 0f, alpha);

@@ -443,10 +443,10 @@
       "audio": { "fireSound": "pulse_laser_fire" }
     },
     {
-      "id": "weapon.mech-bastion-autocannon",
+      "id": "weapon.mech-ac-6",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechBastionAutocannonDisplayName",
+        "displayName": "@gearCatalogWeaponMechAc6DisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -495,45 +495,53 @@
       "audio": { "fireSound": "light_autocannon_fire" }
     },
     {
-      "id": "weapon.mech-linear-cannon",
+      "id": "weapon.mech-hc-10",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechLinearCannonDisplayName",
+        "displayName": "@gearCatalogWeaponMechHc10DisplayName",
         "designationTiered": false
       },
       "sim": {
-        "range": 32.0,
-        "damage": 27.0,
-        "accuracy": 0.68,
+        "range": 30.0,
+        "damage": 32.0,
+        "accuracy": 0.74,
         "cooldown": 2.8,
-        "penetration": 8.0,
-        "burstCount": 2,
-        "burstSpacing": 0.12,
-        "hitSpread": 0.35,
-        "roundVelocity": 160.0,
-        "flightSec": 0.20,
-        "aoeRadius": 0.35,
-        "wallDamage": 4
+        "penetration": 15.0,
+        "contact": { "damage": 72.0, "penetration": 15.0 },
+        "hitSpread": 0.18,
+        "roundVelocity": 100.0,
+        "flightSec": 0.28,
+        "aoeRadius": 0.7,
+        "wallDamage": 60,
+        "wallDamageRadius": 0.9,
+        "noiseMagnitude": 1.4
       },
       "render": {
-        "tracerColor": "B8E8FF",
-        "projectileSprite": "graphics/missiles/shell_large_blue.png",
-        "projectileVisualCells": 0.20
+        "tracerColor": "FFD088",
+        "projectileSprite": "graphics/missiles/shell_hellbore.png",
+        "projectileVisualCells": 0.26
       },
       "fx": {
+        "muzzle": [
+          { "kind": "glow", "radius": 0.66, "lifetime": 0.10, "color": "FFE080" },
+          { "kind": "fire", "radius": 0.32, "lifetime": 0.22 },
+          { "kind": "smoke", "radius": [0.24, 0.34], "lifetime": [0.55, 0.80], "count": 2, "jitter": 0.14 }
+        ],
         "impact": [
-          { "kind": "glow", "radius": 0.42, "lifetime": 0.14, "color": "FFC860" },
-          { "kind": "dust", "radius": 0.32, "lifetime": 0.28 },
-          { "kind": "smoke", "radius": 0.35, "lifetime": 0.70 }
+          { "kind": "glow", "radius": 0.80, "lifetime": 0.16, "color": "FFE080" },
+          { "kind": "explosion", "radius": 0.54, "lifetime": 0.36 },
+          { "kind": "ring", "radius": 0.36, "lifetime": 0.28 },
+          { "kind": "smoke", "radius": [0.48, 0.76], "lifetime": [1.0, 1.4], "count": [3, 4], "jitter": 0.55 },
+          { "kind": "dust", "radius": 0.68, "lifetime": 0.40 }
         ]
       },
-      "audio": { "fireSound": "needler_fire" }
+      "audio": { "fireSound": "hellbore_fire" }
     },
     {
-      "id": "weapon.mech-heavy-cannon",
+      "id": "weapon.mech-hc-20",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechHeavyCannonDisplayName",
+        "displayName": "@gearCatalogWeaponMechHc20DisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -573,10 +581,10 @@
       "audio": { "fireSound": "hellbore_fire" }
     },
     {
-      "id": "weapon.mech-demolition-cannon",
+      "id": "weapon.mech-dc-5",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechDemolitionCannonDisplayName",
+        "displayName": "@gearCatalogWeaponMechDc5DisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -627,10 +635,10 @@
       }
     },
     {
-      "id": "weapon.mech-muster-autogun",
+      "id": "weapon.mech-ac-6-qs",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechMusterAutogunDisplayName",
+        "displayName": "@gearCatalogWeaponMechAc6QsDisplayName",
         "designationTiered": false
       },
       "sim": {
@@ -679,10 +687,10 @@
       "audio": { "fireSound": "light_autocannon_fire" }
     },
     {
-      "id": "weapon.mech-quarry-breaker",
+      "id": "weapon.mech-dc-4-qs",
       "mount": "mech-mount",
       "catalog": {
-        "displayName": "@gearCatalogWeaponMechQuarryBreakerDisplayName",
+        "displayName": "@gearCatalogWeaponMechDc4QsDisplayName",
         "designationTiered": false
       },
       "sim": {

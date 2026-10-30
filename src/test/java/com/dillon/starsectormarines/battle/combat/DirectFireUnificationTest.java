@@ -161,7 +161,7 @@ class DirectFireUnificationTest {
 
     @Test
     void gunLaunchedHeavyHeUsesVisibleBallisticRoundsAndTimedSplash() {
-        WeaponDef heavyCannon = WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID);
+        WeaponDef heavyCannon = WeaponRegistry.require(WeaponRegistry.MECH_HC_20_ID);
         BattleSimulation mechSim = arena(true);
         long mech = mechSim.spawn(new EntitySpec("warden", Faction.MARINE,
                 UnitType.HEAVY_MECH, 2, ROW));

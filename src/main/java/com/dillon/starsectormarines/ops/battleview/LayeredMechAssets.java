@@ -12,17 +12,17 @@ public final class LayeredMechAssets {
     public final LayeredSpriteCache foot;
     public final LayeredSpriteCache thighBone;
     public final LayeredSpriteCache chaingunArm;
-    public final LayeredSpriteCache linearCannon;
-    public final LayeredSpriteCache heavyCannon;
+    public final LayeredSpriteCache hc10;
+    public final LayeredSpriteCache hc20;
     public final LayeredSpriteCache srmPod;
     public final LayeredSpriteCache lrmPod;
     public final LayeredSpriteCache shoulderLaser;
     public final LayeredSpriteCache pulseLaserArm;
-    public final LayeredSpriteCache bastionAutocannon;
-    public final LayeredSpriteCache demolitionCannon;
+    public final LayeredSpriteCache ac6;
+    public final LayeredSpriteCache dc5;
     public final LayeredSpriteCache thermalLance;
-    public final LayeredSpriteCache musterAutogun;
-    public final LayeredSpriteCache quarryBreakerCannon;
+    public final LayeredSpriteCache ac6Qs;
+    public final LayeredSpriteCache dc4Qs;
     public final LayeredSpriteCache srm3QsPod;
     public final LayeredSpriteCache lightMachineGun;
     public final LayeredSpriteCache lightPulseLaser;
@@ -38,16 +38,16 @@ public final class LayeredMechAssets {
                              LayeredSpriteCache wardenChassis,
                              LayeredSpriteCache foot, LayeredSpriteCache thighBone,
                              LayeredSpriteCache chaingunArm,
-                             LayeredSpriteCache linearCannon, LayeredSpriteCache heavyCannon,
+                             LayeredSpriteCache hc10, LayeredSpriteCache hc20,
                              LayeredSpriteCache srmPod,
                              LayeredSpriteCache lrmPod,
                              LayeredSpriteCache shoulderLaser,
                              LayeredSpriteCache pulseLaserArm,
-                             LayeredSpriteCache bastionAutocannon,
-                             LayeredSpriteCache demolitionCannon,
+                             LayeredSpriteCache ac6,
+                             LayeredSpriteCache dc5,
                              LayeredSpriteCache thermalLance,
-                             LayeredSpriteCache musterAutogun,
-                             LayeredSpriteCache quarryBreakerCannon,
+                             LayeredSpriteCache ac6Qs,
+                             LayeredSpriteCache dc4Qs,
                              LayeredSpriteCache srm3QsPod,
                              LayeredSpriteCache lightMachineGun,
                              LayeredSpriteCache lightPulseLaser,
@@ -64,17 +64,17 @@ public final class LayeredMechAssets {
         this.foot = foot;
         this.thighBone = thighBone;
         this.chaingunArm = chaingunArm;
-        this.linearCannon = linearCannon;
-        this.heavyCannon = heavyCannon;
+        this.hc10 = hc10;
+        this.hc20 = hc20;
         this.srmPod = srmPod;
         this.lrmPod = lrmPod;
         this.shoulderLaser = shoulderLaser;
         this.pulseLaserArm = pulseLaserArm;
-        this.bastionAutocannon = bastionAutocannon;
-        this.demolitionCannon = demolitionCannon;
+        this.ac6 = ac6;
+        this.dc5 = dc5;
         this.thermalLance = thermalLance;
-        this.musterAutogun = musterAutogun;
-        this.quarryBreakerCannon = quarryBreakerCannon;
+        this.ac6Qs = ac6Qs;
+        this.dc4Qs = dc4Qs;
         this.srm3QsPod = srm3QsPod;
         this.lightMachineGun = lightMachineGun;
         this.lightPulseLaser = lightPulseLaser;
@@ -93,9 +93,9 @@ public final class LayeredMechAssets {
      */
     public List<LayeredSpriteCache> layers() {
         return Arrays.asList(chassis, socketedChassis, houndChassis, wardenChassis,
-                foot, thighBone, chaingunArm, linearCannon, heavyCannon, srmPod, lrmPod,
-                shoulderLaser, pulseLaserArm, bastionAutocannon, demolitionCannon,
-                thermalLance, musterAutogun, quarryBreakerCannon, srm3QsPod,
+                foot, thighBone, chaingunArm, hc10, hc20, srmPod, lrmPod,
+                shoulderLaser, pulseLaserArm, ac6, dc5,
+                thermalLance, ac6Qs, dc4Qs, srm3QsPod,
                 lightMachineGun, lightPulseLaser, burstLaser, pdLaser, heavyPdLaser, mediumBurstLaser,
                 lightBurstLaser, muzzleFlash);
     }

@@ -18,7 +18,7 @@ def commercial_fit(variant):
     if variant.name == "BULWARK":
         return replace(
             variant,
-            arms="muster-autogun.png",
+            arms="ac-6-qs.png",
             arm_layout="dual-narrow",
             left_pod="srm-3-qs.png",
             right_pod="srm-3-qs.png",
@@ -27,7 +27,7 @@ def commercial_fit(variant):
     if variant.name == "HOUND":
         return replace(
             variant,
-            arms="muster-autogun.png",
+            arms="ac-6-qs.png",
             arm_layout="nose",
             left_pod="srm-3-qs.png",
             right_pod=None,
@@ -35,7 +35,7 @@ def commercial_fit(variant):
         )
     return replace(
         variant,
-        arms="quarry-breaker-cannon.png",
+        arms="dc-4-qs.png",
         arm_layout="nose-heavy",
         left_pod="srm-3-qs.png",
         right_pod="srm-3-qs.png",

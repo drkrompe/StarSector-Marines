@@ -45,9 +45,9 @@ final class MechScuffSink implements LayeredMechComposer.Sink {
             prepare(sprites, torso, true);
         }
         for (LayeredSpriteCache part : new LayeredSpriteCache[] {assets.foot, assets.chaingunArm,
-                assets.linearCannon, assets.heavyCannon, assets.srmPod, assets.lrmPod, assets.shoulderLaser,
-                assets.pulseLaserArm, assets.bastionAutocannon, assets.demolitionCannon, assets.thermalLance,
-                assets.musterAutogun, assets.quarryBreakerCannon, assets.srm3QsPod,
+                assets.hc10, assets.hc20, assets.srmPod, assets.lrmPod, assets.shoulderLaser,
+                assets.pulseLaserArm, assets.ac6, assets.dc5, assets.thermalLance,
+                assets.ac6Qs, assets.dc4Qs, assets.srm3QsPod,
                 assets.lightMachineGun, assets.lightPulseLaser,
                 assets.burstLaser, assets.pdLaser, assets.heavyPdLaser, assets.mediumBurstLaser,
                 assets.lightBurstLaser}) {

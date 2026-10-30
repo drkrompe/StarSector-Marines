@@ -65,7 +65,7 @@ VARIANTS = (
         "WARDEN",
         "MOBILE LONG-RANGE SUPPORT",
         "chassis-warden.png",
-        "heavy-cannon.png",
+        "hc-20.png",
         "nose-heavy",
         "srm-rack.png",
         "srm-rack.png",

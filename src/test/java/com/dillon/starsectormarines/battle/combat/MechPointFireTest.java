@@ -116,7 +116,7 @@ class MechPointFireTest {
 
     @Test
     void invalidAndRearPointsSpendNoResourcesDespiteStaleAimCache() {
-        Fixture f = new Fixture(MechWeaponComponent.SINGLE_HEAVY_CANNON, null, null);
+        Fixture f = new Fixture(MechWeaponComponent.HC_20, null, null);
         MechWeaponMount arms = f.loadout.mount(MechMountSlot.ARMS);
         f.loadout.torsoOnTarget = true;
         for (PointFireAim aim : List.of(new PointFireAim(Float.NaN, 0f),
@@ -285,7 +285,7 @@ class MechPointFireTest {
 
     @Test
     void gunRoundsKeepTheBearingOnlyContractAtOpenGround() {
-        Fixture f = new Fixture(MechWeaponComponent.SINGLE_HEAVY_CANNON, null, null);
+        Fixture f = new Fixture(MechWeaponComponent.HC_20, null, null);
         f.fire(new PointFireAim(20.5f, 35.5f));
         assertEquals(BallisticResolver.StopKind.OVERSHOOT, f.shots.getActiveShots().get(0).stopKind);
         assertTrue(f.detonations.getPending().isEmpty());
@@ -315,7 +315,7 @@ class MechPointFireTest {
 
     @Test
     void barrelCannotCrossWallForManualAiTriggerOrContinuationButCoverDoesNotBlockIt() {
-        Fixture f = new Fixture(MechWeaponComponent.SINGLE_HEAVY_CANNON, null, null);
+        Fixture f = new Fixture(MechWeaponComponent.HC_20, null, null);
         MechWeaponMount mount = f.loadout.mount(MechMountSlot.ARMS);
         f.roster.world().setPos(f.shooter, 20.5f, 20.35f);
         for (int x = 0; x < 128; x++) f.grid.setWalkable(x, 21, false);

@@ -38,9 +38,9 @@ public record MechPattern(Kind kind, String definitionId) {
         CHASSIS_TIERS.put(MechVariant.BULWARK, EquipmentAccessTier.PRESTIGE);
 
         WEAPON_TIERS.put(MechWeaponComponent.SRM_5, EquipmentAccessTier.COMMON);
-        WEAPON_TIERS.put(MechWeaponComponent.MUSTER_AUTOGUN, EquipmentAccessTier.COMMON);
+        WEAPON_TIERS.put(MechWeaponComponent.AC_6_QS, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.SRM_3_QS, EquipmentAccessTier.COMMON);
-        WEAPON_TIERS.put(MechWeaponComponent.QUARRY_BREAKER_CANNON, EquipmentAccessTier.COMMON);
+        WEAPON_TIERS.put(MechWeaponComponent.DC_4_QS, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.LIGHT_MACHINE_GUN, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.LIGHT_PULSE_LASER, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.PD_LASER, EquipmentAccessTier.ADVANCED);
@@ -59,10 +59,10 @@ public record MechPattern(Kind kind, String definitionId) {
         WEAPON_TIERS.put(MechWeaponComponent.LRM_5_FRAG, EquipmentAccessTier.COMMON);
         WEAPON_TIERS.put(MechWeaponComponent.SRM_15_FRAG, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.LRM_15_FRAG, EquipmentAccessTier.ADVANCED);
-        WEAPON_TIERS.put(MechWeaponComponent.LINEAR_CANNON, EquipmentAccessTier.ADVANCED);
-        WEAPON_TIERS.put(MechWeaponComponent.SINGLE_HEAVY_CANNON, EquipmentAccessTier.ADVANCED);
-        WEAPON_TIERS.put(MechWeaponComponent.DEMOLITION_CANNON, EquipmentAccessTier.ADVANCED);
-        WEAPON_TIERS.put(MechWeaponComponent.BASTION_AUTOCANNON, EquipmentAccessTier.ADVANCED);
+        WEAPON_TIERS.put(MechWeaponComponent.HC_10, EquipmentAccessTier.ADVANCED);
+        WEAPON_TIERS.put(MechWeaponComponent.HC_20, EquipmentAccessTier.ADVANCED);
+        WEAPON_TIERS.put(MechWeaponComponent.DC_5, EquipmentAccessTier.ADVANCED);
+        WEAPON_TIERS.put(MechWeaponComponent.AC_6, EquipmentAccessTier.ADVANCED);
         WEAPON_TIERS.put(MechWeaponComponent.PULSE_LASER, EquipmentAccessTier.PRESTIGE);
         WEAPON_TIERS.put(MechWeaponComponent.SHOULDER_LASER_CANNON, EquipmentAccessTier.PRESTIGE);
         WEAPON_TIERS.put(MechWeaponComponent.THERMAL_LANCE, EquipmentAccessTier.PRESTIGE);

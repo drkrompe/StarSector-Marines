@@ -54,7 +54,7 @@ class GroundLightServiceTest {
         GroundLightService.Light ordinaryHe = lights.selected(0);
 
         lights.clear();
-        lights.spawnImpact(WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID).fx,
+        lights.spawnImpact(WeaponRegistry.require(WeaponRegistry.MECH_HC_20_ID).fx,
                 10f, 10f);
         lights.selectNearest(camera());
         GroundLightService.Light cannonHe = lights.selected(0);

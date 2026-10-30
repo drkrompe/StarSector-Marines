@@ -7,7 +7,7 @@ art; there is no live sheet.
 Every normalized chassis uses the same 208-pixel canvas as its sizing unit.
 `foot.png` is derived from the accepted Bulwark hull's bottom armor tab
 (neither generated leg is used). `chaingun-arm.png`,
-`srm-rack.png`, `lrm-rack.png`, `heavy-cannon.png`, and `thigh-bone.png` each
+`srm-rack.png`, `lrm-rack.png`, `hc-20.png`, and `thigh-bone.png` each
 represent one reusable part. The shoulder
 weapons use classic walking-tank / Patriot-style rectangular canister boxes:
 only recessed missile caps are visible near the forward lip. The renderer
@@ -30,19 +30,20 @@ waist toward its live foot position, ending just inside the pad. Warden uses
 the generated broad wedge, likewise flipped,
 with paired LRM-5 racks and a centerline heavy anti-armor cannon. Their retained
 full-resolution ImageGen sources live in `sources/`, including
-`sources/heavy-cannon.png`. `chassis-socketed-variant.png` and
-`linear-cannon-variant.png` remain available for authored custom loads. The
+`sources/hc-20.png`. `chassis-socketed-variant.png` remains available for authored custom loads.
+Cannon sprites are named for their parts (`<Family>-<N>`, mechs-nouns.md): `hc-20.png` and `hc-10.png` the HC cannons,
+`ac-6.png` and `ac-6-qs.png` the autocannons, `dc-5.png` and `dc-4-qs.png` the demolition cannons. The
 retained generated linkage source is `sources/thigh-bone.png`.
 
 `factions/<family>/` contains appearance-only chassis skins for Hegemony,
 Tri-Tachyon, Persean League, Luddic Church, Knights of Ludd, Luddic Path,
 Sindrian Diktat, Lion's Guard, pirates, and the Independent/mercenary fallback.
 Every family repeats `chassis.png`, `chassis-hound.png`,
-`chassis-warden.png`, `chaingun-arm.png`, `linear-cannon-variant.png`,
-`heavy-cannon.png`, `srm-rack.png`, `lrm-rack.png`, `shoulder-laser-cannon.png`,
-`pulse-laser-arm.png`, `hegemony-bastion-autocannon.png`,
-`pather-demolition-cannon.png`, `lions-guard-thermal-lance.png`,
-`muster-autogun.png`, `quarry-breaker-cannon.png`, and
+`chassis-warden.png`, `chaingun-arm.png`, `hc-10.png`,
+`hc-20.png`, `srm-rack.png`, `lrm-rack.png`, `shoulder-laser-cannon.png`,
+`pulse-laser-arm.png`, `ac-6.png`,
+`dc-5.png`, `lions-guard-thermal-lance.png`,
+`ac-6-qs.png`, `dc-4-qs.png`, and
 `srm-3-qs.png`. The builder applies each accepted base sprite's
 exact alpha mask, so a skin cannot change silhouette,
 hardpoint authority, scale, or mechanics. Weapon paint is transferred only

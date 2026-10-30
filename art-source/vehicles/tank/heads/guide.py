@@ -64,19 +64,7 @@ def rotary(d):
     d.rectangle((1330, 488, 1362, 504), fill=MID)                # ammunition chute
 
 
-def rail(d):
-    """A linear cannon: two flat rails held apart by insulator bands, fed by a capacitor block on the mantlet."""
-    d.rectangle((1316, 420, 1370, 488), fill=DARK)               # capacitor block
-    for y in (428, 446, 464):
-        d.rectangle((1322, y, 1364, y + 10), fill=MID)
-    d.rectangle((MUZZLE_X, 437, 1318, 447), fill=LIGHT)          # upper rail
-    d.rectangle((MUZZLE_X, 461, 1318, 471), fill=LIGHT)          # lower rail
-    d.rectangle((MUZZLE_X + 4, 447, 1318, 461), fill=(40, 46, 52, 255))  # bore channel
-    for x in range(1196, 1316, 22):
-        d.rectangle((x, 431, x + 7, 477), fill=MID)              # insulator bands
-
-
-HEADS = {"autocannon": autocannon, "rotary": rotary, "rail": rail}
+HEADS = {"autocannon": autocannon, "rotary": rotary}
 
 
 def main():

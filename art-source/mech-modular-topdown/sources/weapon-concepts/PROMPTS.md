@@ -155,7 +155,7 @@ perspective, and hardpoint-scale references.
 > generous transparent padding; no shadow, floor, background, text, or border.
 
 The output required no geometry revision. The checker was converted to real
-alpha before registration as `hegemony-bastion-autocannon.png`.
+alpha before registration as `ac-6.png`.
 
 ## Luddic Path Foundry Breaker
 
@@ -175,7 +175,7 @@ alpha before registration as `hegemony-bastion-autocannon.png`.
 > fantasy ornament, hands, or chassis; transparent padded cutout with no shadow,
 > floor, background, text, or border.
 
-The accepted first generation became `pather-demolition-cannon.png` after
+The accepted first generation became `dc-5.png` after
 checker cleanup.
 
 ## Lion's Guard thermal lance
@@ -230,7 +230,7 @@ strict zenith silhouette.
 > checkerboard. Avoid rotary barrels, advanced optics, heroic military ornament,
 > a barrel pointed toward the camera, perspective, isometric, or side view.
 
-The accepted first result became `muster-autogun.png` after deterministic
+The accepted first result became `ac-6-qs.png` after deterministic
 checker/background cleanup.
 
 ## QBC-2 Quarry breaker cannon
@@ -252,7 +252,7 @@ checker/background cleanup.
 > object with transparent padding; no chassis, crew, ground, shadow, text,
 > emblem, border, checkerboard, perspective, isometric, or visible face-up bore.
 
-The accepted first result became `quarry-breaker-cannon.png` after deterministic
+The accepted first result became `dc-4-qs.png` after deterministic
 checker/background cleanup.
 
 ## SRM-3 (QS) rocket pod
@@ -344,3 +344,19 @@ pick as the design authority. All six are cleaned to alpha with `clean_imagegen_
 pass: the family has one white finish for every faction, so `derive_faction_weapons.py` copies the base sprite
 (`livery=False`) into each faction folder. They are registered at their true proportions: 54x136, 50x136 (heavy), 40x112
 (medium) and 26x84, 35x84 (light).
+
+# HC-10 cannon
+
+Generated through `tools/codex_imagegen.py` on 2026-10-30 (`hc-10.png.provenance.json` holds the prompt as sent). The
+HC-10 replaced the linear cannon: the heavy cannon's short, slim sibling, one large bore that fits a side arm and turns on
+a tank's turret ring, so its barrel runs down the sprite's centre column. Image 1 was a geometry guide cut from
+`../hc-20.png` (its barrel's middle band removed, the whole narrowed to 70% of its width, rendered grey on white);
+Image 2 was `../hc-20.png` as material language only. The generation kept the guide's outline and refined it in the
+family's olive casing; its white plate was removed with `clean_imagegen_backgrounds.py`. The paint mask
+(`../weapon-material-id/hc-10.png`) is keyed from the cleaned source, not generated.
+
+# DC-4 (QS) slimming
+
+The Quarry breaker's drum drew 69 px wide at its fitted length, against the DC-5's 50, and read as a bucket on the
+Hound's nose. `build_assets.py` and `derive_faction_weapons.py` narrow the cropped source to `DC_4_QS_SQUEEZE` (0.75) of
+its width before fitting, so the shipped `dc-4-qs.png` is about 52 px wide; the source itself is unchanged.

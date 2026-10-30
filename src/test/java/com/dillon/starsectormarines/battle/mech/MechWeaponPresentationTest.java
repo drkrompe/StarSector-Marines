@@ -19,10 +19,10 @@ class MechWeaponPresentationTest {
             assertTrue(gun.noseDrawingOn(MechMountSlot.ARMS));
             assertFalse(gun.noseDrawingOn(null));
         }
-        assertEquals(LayeredMechAppearance.ARMS_NOSE_MUSTER_AUTOGUN,
-                MechWeaponComponent.MUSTER_AUTOGUN.appearanceSelector(MechMountSlot.ARMS));
-        assertEquals(LayeredMechAppearance.ARMS_MUSTER_AUTOGUN,
-                MechWeaponComponent.MUSTER_AUTOGUN.appearanceSelector(MechMountSlot.LEFT_ARM));
+        assertEquals(LayeredMechAppearance.ARMS_NOSE_AC_6_QS,
+                MechWeaponComponent.AC_6_QS.appearanceSelector(MechMountSlot.ARMS));
+        assertEquals(LayeredMechAppearance.ARMS_AC_6_QS,
+                MechWeaponComponent.AC_6_QS.appearanceSelector(MechMountSlot.LEFT_ARM));
     }
 
     @Test
@@ -30,7 +30,7 @@ class MechWeaponPresentationTest {
         for (MechMountSlot slot : new MechMountSlot[]{MechMountSlot.ARMS, MechMountSlot.LEFT_ARM, null}) {
             assertEquals(MechWeaponComponent.LIGHT_MACHINE_GUN.appearanceSelector,
                     MechWeaponComponent.LIGHT_MACHINE_GUN.appearanceSelector(slot));
-            assertFalse(MechWeaponComponent.BASTION_AUTOCANNON.noseDrawingOn(slot));
+            assertFalse(MechWeaponComponent.AC_6.noseDrawingOn(slot));
         }
         assertEquals(MechWeaponComponent.SRM_5.appearanceSelector,
                 MechWeaponComponent.SRM_5.appearanceSelector(MechMountSlot.LEFT_SHOULDER));
@@ -39,7 +39,7 @@ class MechWeaponPresentationTest {
     @Test
     void theOneChaingunFitsTheCentrelineAndEitherArm() {
         for (MechWeaponComponent gun : new MechWeaponComponent[]{MechWeaponComponent.CHAINGUN,
-                MechWeaponComponent.CHAINGUN_HF, MechWeaponComponent.MUSTER_AUTOGUN}) {
+                MechWeaponComponent.CHAINGUN_HF, MechWeaponComponent.AC_6_QS}) {
             assertTrue(gun.accepts(MechMountSlot.ARMS), gun + " on the centreline");
             assertTrue(gun.accepts(MechMountSlot.LEFT_ARM), gun + " on an arm");
             assertTrue(gun.accepts(MechMountSlot.RIGHT_ARM));

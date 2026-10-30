@@ -28,14 +28,14 @@ public final class TankHeadsSnapshotSuite implements SnapshotSuite {
     /** Every ballistic part the Onager's card takes, in the close views' groups; null is the empty card. */
     static final List<Row> ROWS = List.of(
             new Row("empty", null, false),
-            new Row("heavy-cannon", MechWeaponComponent.SINGLE_HEAVY_CANNON, false),
-            new Row("heavy-cannon-aps", MechWeaponComponent.SINGLE_HEAVY_CANNON, true),
-            new Row("bastion", MechWeaponComponent.BASTION_AUTOCANNON, false),
-            new Row("muster", MechWeaponComponent.MUSTER_AUTOGUN, false),
-            new Row("demolition", MechWeaponComponent.DEMOLITION_CANNON, false),
-            new Row("quarry", MechWeaponComponent.QUARRY_BREAKER_CANNON, false),
-            new Row("bastion-aps", MechWeaponComponent.BASTION_AUTOCANNON, true),
-            new Row("linear", MechWeaponComponent.LINEAR_CANNON, false),
+            new Row("hc-20", MechWeaponComponent.HC_20, false),
+            new Row("hc-20-aps", MechWeaponComponent.HC_20, true),
+            new Row("ac-6", MechWeaponComponent.AC_6, false),
+            new Row("ac-6-qs", MechWeaponComponent.AC_6_QS, false),
+            new Row("dc-5", MechWeaponComponent.DC_5, false),
+            new Row("dc-4-qs", MechWeaponComponent.DC_4_QS, false),
+            new Row("ac-6-aps", MechWeaponComponent.AC_6, true),
+            new Row("hc-10", MechWeaponComponent.HC_10, false),
             new Row("chaingun", MechWeaponComponent.CHAINGUN, false),
             new Row("chaingun-hf", MechWeaponComponent.CHAINGUN_HF, false),
             new Row("lmg", MechWeaponComponent.LIGHT_MACHINE_GUN, false));
@@ -45,11 +45,11 @@ public final class TankHeadsSnapshotSuite implements SnapshotSuite {
 
     /** The close views: rows shown together, by head family. */
     private static final List<List<String>> GROUPS = List.of(
-            List.of("empty", "heavy-cannon", "heavy-cannon-aps"),
-            List.of("bastion", "muster", "demolition"),
-            List.of("quarry", "bastion-aps", "linear"),
+            List.of("empty", "hc-20", "hc-10"),
+            List.of("ac-6", "ac-6-qs", "dc-5"),
+            List.of("dc-4-qs", "ac-6-aps", "hc-20-aps"),
             List.of("chaingun", "chaingun-hf", "lmg"));
-    private static final List<String> GROUP_NAMES = List.of("cannon", "autocannon", "breaker-aps-rail", "rotary");
+    private static final List<String> GROUP_NAMES = List.of("cannon", "autocannon", "breaker-aps", "rotary");
 
     private static final float COLUMN = 8f;
     private static final float ROW = 7.5f;
@@ -102,12 +102,12 @@ public final class TankHeadsSnapshotSuite implements SnapshotSuite {
     static LookReview.Shot wear() {
         record Tank(String key, MechWeaponComponent gun, float armorShare, boolean wrecked) { }
         List<Tank> tanks = Arrays.asList(
-                new Tank("hc-fresh", MechWeaponComponent.SINGLE_HEAVY_CANNON, 1f, false),
-                new Tank("hc-worn", MechWeaponComponent.SINGLE_HEAVY_CANNON, .2f, false),
-                new Tank("bastion-worn", MechWeaponComponent.BASTION_AUTOCANNON, .2f, false),
+                new Tank("hc-fresh", MechWeaponComponent.HC_20, 1f, false),
+                new Tank("hc-worn", MechWeaponComponent.HC_20, .2f, false),
+                new Tank("bastion-worn", MechWeaponComponent.AC_6, .2f, false),
                 new Tank("bare-worn", null, .2f, false),
-                new Tank("hc-wreck", MechWeaponComponent.SINGLE_HEAVY_CANNON, 1f, true),
-                new Tank("bastion-wreck", MechWeaponComponent.BASTION_AUTOCANNON, 1f, true));
+                new Tank("hc-wreck", MechWeaponComponent.HC_20, 1f, true),
+                new Tank("bastion-wreck", MechWeaponComponent.AC_6, 1f, true));
         return new LookReview.Shot("onager-wear", LookGround.verdant(), 30, 16, placement -> {
             BattleSimulation sim = placement.holdouts(placement.builder()).build().sim();
             List<Consumer<BattleSimulation>> holds = new ArrayList<>();

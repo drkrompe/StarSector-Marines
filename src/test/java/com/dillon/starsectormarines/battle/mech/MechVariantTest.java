@@ -69,13 +69,13 @@ class MechVariantTest {
 
         MechLoadoutComponent warden = MechVariant.WARDEN.createLoadout(null);
         assertFalse(warden.hasWeapon(WeaponRegistry.MECH_SRM_ID));
-        assertSame(MechWeaponComponent.SINGLE_HEAVY_CANNON,
+        assertSame(MechWeaponComponent.HC_20,
                 warden.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.LRM_5_FRAG,
                 warden.mount(MechMountSlot.LEFT_SHOULDER).component);
         assertSame(MechWeaponComponent.LRM_5_FRAG,
                 warden.mount(MechMountSlot.RIGHT_SHOULDER).component);
-        var heavyCannon = WeaponRegistry.require(WeaponRegistry.MECH_HEAVY_CANNON_ID);
+        var heavyCannon = WeaponRegistry.require(WeaponRegistry.MECH_HC_20_ID);
         assertEquals(45f, heavyCannon.damage, 0.001f);
         assertEquals(18f, heavyCannon.penetration, 0.001f);
         assertEquals(26f, heavyCannon.range, 0.001f);
@@ -87,9 +87,9 @@ class MechVariantTest {
                 heavyCannon.projectileSpritePath);
 
         MechLoadoutComponent custom = new MechLoadoutComponent(MechVariant.HOUND,
-                MechWeaponComponent.LINEAR_CANNON,
+                MechWeaponComponent.HC_10,
                 MechWeaponComponent.LRM_5, null, MechRole.LR_SUPPORT);
-        assertSame(MechWeaponComponent.LINEAR_CANNON,
+        assertSame(MechWeaponComponent.HC_10,
                 custom.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.LRM_5,
                 custom.mount(MechMountSlot.LEFT_SHOULDER).component);
@@ -116,8 +116,8 @@ class MechVariantTest {
         assertSame(MechWeaponComponent.SRM_15,
                 independent.mount(MechMountSlot.RIGHT_SHOULDER).component);
         assertFalse(independent.hasWeapon(WeaponRegistry.MECH_SHOULDER_LASER_ID));
-        assertFalse(independent.hasWeapon(WeaponRegistry.MECH_MUSTER_AUTOGUN_ID));
-        assertFalse(independent.hasWeapon(WeaponRegistry.MECH_QUARRY_BREAKER_ID));
+        assertFalse(independent.hasWeapon(WeaponRegistry.MECH_AC_6_QS_ID));
+        assertFalse(independent.hasWeapon(WeaponRegistry.MECH_DC_4_QS_ID));
         assertFalse(independent.hasWeapon(WeaponRegistry.MECH_SRM_3_QS_ID));
         assertFalse(independent.hasWeapon(WeaponRegistry.MECH_PULSE_LASER_ID));
 
@@ -137,22 +137,22 @@ class MechVariantTest {
     void factionDoctrineFieldsTheThreeAcceptedSignatureWeapons() {
         MechLoadoutComponent hegemony = FactionMechLoadouts.create(
                 MechVariant.BULWARK, null, "hegemony");
-        assertSame(MechWeaponComponent.BASTION_AUTOCANNON,
+        assertSame(MechWeaponComponent.AC_6,
                 hegemony.mount(MechMountSlot.RIGHT_ARM).component);
-        assertTrue(hegemony.hasWeapon(WeaponRegistry.MECH_BASTION_AUTOCANNON_ID));
+        assertTrue(hegemony.hasWeapon(WeaponRegistry.MECH_AC_6_ID));
         assertSame(MechWeaponComponent.SRM_15,
                 hegemony.mount(MechMountSlot.RIGHT_SHOULDER).component);
 
         MechLoadoutComponent path = FactionMechLoadouts.create(
                 MechVariant.HOUND, null, "LUDDIC_PATH");
-        assertSame(MechWeaponComponent.DEMOLITION_CANNON,
+        assertSame(MechWeaponComponent.DC_5,
                 path.mount(MechMountSlot.ARMS).component);
         assertEquals(5, path.mount(MechMountSlot.ARMS).ammo);
-        assertTrue(path.hasWeapon(WeaponRegistry.MECH_DEMOLITION_CANNON_ID));
+        assertTrue(path.hasWeapon(WeaponRegistry.MECH_DC_5_ID));
 
         MechLoadoutComponent guard = FactionMechLoadouts.create(
                 MechVariant.WARDEN, null, " lions_guard ");
-        assertSame(MechWeaponComponent.SINGLE_HEAVY_CANNON,
+        assertSame(MechWeaponComponent.HC_20,
                 guard.mount(MechMountSlot.ARMS).component);
         assertSame(MechWeaponComponent.LRM_5_FRAG,
                 guard.mount(MechMountSlot.LEFT_SHOULDER).component);

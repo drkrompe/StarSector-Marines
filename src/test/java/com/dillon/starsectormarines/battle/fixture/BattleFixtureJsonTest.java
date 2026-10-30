@@ -544,7 +544,7 @@ class BattleFixtureJsonTest {
     void aFittedVehicleRoundTripsItsKitsPlatingEngineAndGunAndAnAbsentFittingIsStock() throws Exception {
         VehicleDeploymentSpec fitted = new VehicleDeploymentSpec("v-1", "Mule", VehicleType.HEAVY_APC,
                 List.of(VehicleKit.SPALL_LINER), VehiclePlating.HEAVY, VehicleEngine.MILITARY,
-                MechWeaponComponent.LINEAR_CANNON);
+                MechWeaponComponent.HC_10);
         BattleLaunchFixture fixture = new BattleLaunchFixture(
                 canonicalFixture(), new BattleLaunchOverlay(
                         0, List.of(), List.of(), List.of(),

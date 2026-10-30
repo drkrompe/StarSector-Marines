@@ -825,8 +825,8 @@
               { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
               { "id": "left-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": 102.8, "pivot": [0.5, 1.0], "z": 20 },
               { "id": "right-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": -102.8, "pivot": [0.5, 1.0], "z": 21 },
-              { "id": "left-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 24 },
-              { "id": "right-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
+              { "id": "left-hc-10", "sprite": "graphics/battle/mech-modular-topdown/hc-10.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 24 },
+              { "id": "right-hc-10", "sprite": "graphics/battle/mech-modular-topdown/hc-10.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
               { "id": "left-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-rack.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 26 },
               { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-rack.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 27 },
               { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-warden.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 30 }
@@ -838,8 +838,8 @@
               { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.22, -0.05], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
               { "id": "left-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.408], "angleDegrees": 133.7, "pivot": [0.5, 1.0], "z": 20 },
               { "id": "right-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": -102.8, "pivot": [0.5, 1.0], "z": 21 },
-              { "id": "left-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 24 },
-              { "id": "right-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
+              { "id": "left-hc-10", "sprite": "graphics/battle/mech-modular-topdown/hc-10.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 24 },
+              { "id": "right-hc-10", "sprite": "graphics/battle/mech-modular-topdown/hc-10.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
               { "id": "left-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-rack.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 1.0], "z": 26 },
               { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-rack.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 1.0], "z": 27 },
               { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-warden.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": -1.0, "pivot": [0.5, 0.5], "z": 30 }
@@ -849,8 +849,8 @@
               { "id": "right-foot", "sprite": "graphics/battle/mech-modular-topdown/foot.png", "offset": [0.22, -0.21], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 0.5], "z": 11 },
               { "id": "left-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.265], "angleDegrees": 102.8, "pivot": [0.5, 1.0], "z": 20 },
               { "id": "right-thigh", "sprite": "graphics/battle/mech-modular-topdown/thigh-bone.png", "offset": [0.0, 0.0], "scale": [1.0, 0.408], "angleDegrees": -133.7, "pivot": [0.5, 1.0], "z": 21 },
-              { "id": "left-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 24 },
-              { "id": "right-linear-cannon", "sprite": "graphics/battle/mech-modular-topdown/linear-cannon-variant.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
+              { "id": "left-hc-10", "sprite": "graphics/battle/mech-modular-topdown/hc-10.png", "offset": [-0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 24 },
+              { "id": "right-hc-10", "sprite": "graphics/battle/mech-modular-topdown/hc-10.png", "offset": [0.37, -0.15], "scale": [1.0, 1.0], "angleDegrees": 0.0, "pivot": [0.5, 1.0], "z": 25 },
               { "id": "left-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-rack.png", "offset": [-0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 1.0], "z": 26 },
               { "id": "right-lrm", "sprite": "graphics/battle/mech-modular-topdown/lrm-rack.png", "offset": [0.40, -0.30], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 1.0], "z": 27 },
               { "id": "chassis", "sprite": "graphics/battle/mech-modular-topdown/chassis-warden.png", "offset": [0.0, 0.0], "scale": [1.0, 1.0], "angleDegrees": 1.0, "pivot": [0.5, 0.5], "z": 30 }

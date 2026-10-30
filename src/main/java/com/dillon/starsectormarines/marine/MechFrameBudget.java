@@ -27,7 +27,7 @@ public final class MechFrameBudget {
         return switch (variant) {
             case HOUND -> 20f;
             // Rated for its factory heavy cannon, so the build mass costs the Warden nothing.
-            case WARDEN -> 36f + HEAVY_CANNON_BUILD_MASS;
+            case WARDEN -> 36f + HC_20_BUILD_MASS;
             // Two single arm guns weigh what the old twin mount did plus one footprint row (4).
             case BULWARK -> 50f;
         };
@@ -68,22 +68,22 @@ public final class MechFrameBudget {
     }
 
     /**
-     * Mass a weapon carries beyond its footprint and tier: the heavy cannon's breech and recoil mounting and the
-     * bastion autocannons' feed are why a Bulwark carrying either gives up a frame part
+     * Mass a weapon carries beyond its footprint and tier: the HC-20's breech and recoil mounting and the
+     * AC-6 autocannons' feed are why a Bulwark carrying either gives up a frame part
      * (heavy-equipment-progression.md). {@code -Dbattle.mech.buildMass.<short id>=0} is the control.
      */
     private static float buildMass(MechWeaponComponent component) {
         float authored = switch (component) {
-            case SINGLE_HEAVY_CANNON -> HEAVY_CANNON_BUILD_MASS;
-            case BASTION_AUTOCANNON -> 1.5f;
+            case HC_20 -> HC_20_BUILD_MASS;
+            case AC_6 -> 1.5f;
             default -> 0f;
         };
         return component.tuned("buildMass", authored);
     }
 
-    /** {@code -Dbattle.mech.heavyCannonBuildMass=0} is the control. */
-    private static final float HEAVY_CANNON_BUILD_MASS = Float.parseFloat(
-            System.getProperty("battle.mech.heavyCannonBuildMass", "3"));
+    /** {@code -Dbattle.mech.hc20BuildMass=0} is the control. */
+    private static final float HC_20_BUILD_MASS = Float.parseFloat(
+            System.getProperty("battle.mech.hc20BuildMass", "3"));
 
     public static float mass(MechInternal internal, MechVariant variant) {
         if (internal == null) return 0f;

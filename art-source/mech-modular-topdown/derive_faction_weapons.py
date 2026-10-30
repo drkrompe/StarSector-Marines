@@ -41,32 +41,44 @@ class Weapon:
     size: tuple[int, int]
     # False: one finish for every faction (the laser ladder's white parts), so no paint mask.
     livery: bool = True
+    # Width kept of the cropped source before fitting (the DC-4 (QS) drum slimmed to the DC-5's proportions).
+    squeeze_x: float = 1.0
+
+
+# The DC-4 (QS) source is 69 px wide at its fitted length; the DC-5 is 50. 0.75 brings it to about 52.
+DC_4_QS_SQUEEZE = 0.75
+
+
+def squeeze(image: Image.Image, factor: float) -> Image.Image:
+    """The image narrowed to ``factor`` of its width, its length kept."""
+    if factor == 1.0:
+        return image
+    return image.resize((max(1, round(image.width * factor)), image.height), Image.Resampling.LANCZOS)
 
 
 WEAPONS = (
     Weapon("chaingun-arm-v2.png", "chaingun-arm.png", "chaingun-arm.png", (62, 112)),
-    Weapon("linear-cannon-concept.png", "linear-cannon-variant.png",
-           "linear-cannon-variant.png", (58, 138)),
-    Weapon("heavy-cannon.png", "heavy-cannon.png", "heavy-cannon.png", (64, 128)),
+    Weapon("hc-20.png", "hc-20.png", "hc-20.png", (64, 128)),
+    Weapon("weapon-concepts/hc-10.png", "hc-10.png", "hc-10.png", (40, 116)),
     Weapon("srm-rack.png", "srm-rack.png", "srm-rack.png", (62, 88)),
     Weapon("lrm-rack.png", "lrm-rack.png", "lrm-rack.png", (76, 96)),
     Weapon("weapon-concepts/shoulder-laser-cannon.png", "shoulder-laser-cannon.png",
            "shoulder-laser-cannon.png", (76, 128)),
     Weapon("weapon-concepts/pulse-laser-arm.png", "pulse-laser-arm.png",
            "pulse-laser-arm.png", (62, 112)),
-    Weapon("weapon-concepts/hegemony-bastion-autocannon.png",
-           "hegemony-bastion-autocannon.png",
-           "hegemony-bastion-autocannon.png", (64, 132)),
-    Weapon("weapon-concepts/pather-demolition-cannon.png",
-           "pather-demolition-cannon.png",
-           "pather-demolition-cannon.png", (72, 124)),
+    Weapon("weapon-concepts/ac-6.png",
+           "ac-6.png",
+           "ac-6.png", (64, 132)),
+    Weapon("weapon-concepts/dc-5.png",
+           "dc-5.png",
+           "dc-5.png", (72, 124)),
     Weapon("weapon-concepts/lions-guard-thermal-lance.png",
            "lions-guard-thermal-lance.png",
            "lions-guard-thermal-lance.png", (76, 132)),
-    Weapon("weapon-concepts/muster-autogun.png", "muster-autogun.png",
-           "muster-autogun.png", (62, 128)),
-    Weapon("weapon-concepts/quarry-breaker-cannon.png", "quarry-breaker-cannon.png",
-           "quarry-breaker-cannon.png", (72, 124)),
+    Weapon("weapon-concepts/ac-6-qs.png", "ac-6-qs.png",
+           "ac-6-qs.png", (62, 128)),
+    Weapon("weapon-concepts/dc-4-qs.png", "dc-4-qs.png",
+           "dc-4-qs.png", (72, 124), squeeze_x=DC_4_QS_SQUEEZE),
     Weapon("weapon-concepts/srm-3-qs.png", "srm-3-qs.png",
            "srm-3-qs.png", (76, 112)),
     Weapon("weapon-concepts/light-machine-gun.png", "light-machine-gun.png",
@@ -155,7 +167,7 @@ def normalized_mask(weapon: Weapon) -> Image.Image:
     if material.size != source.size:
         material = material.resize(source.size, Image.Resampling.LANCZOS)
     bbox = content_bbox(source)
-    visible = source.crop(bbox)
+    visible = squeeze(source.crop(bbox), weapon.squeeze_x)
     visible.thumbnail(weapon.size, Image.Resampling.LANCZOS)
     mask = magenta_mask(material).crop(bbox).resize(visible.size, Image.Resampling.LANCZOS)
     canvas = Image.new("L", weapon.size)

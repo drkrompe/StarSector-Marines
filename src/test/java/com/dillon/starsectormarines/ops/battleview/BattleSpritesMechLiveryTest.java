@@ -18,16 +18,16 @@ class BattleSpritesMechLiveryTest {
         LayeredMechAssets defender = sprites.layeredMechSprites(Faction.DEFENDER);
         assertEquals(factionPath("tri-tachyon", "chassis-hound.png"),
                 marine.houndChassis.sourcePath);
-        assertEquals(factionPath("tri-tachyon", "linear-cannon-variant.png"),
-                marine.linearCannon.sourcePath);
+        assertEquals(factionPath("tri-tachyon", "hc-10.png"),
+                marine.hc10.sourcePath);
         assertEquals(factionPath("tri-tachyon", "pulse-laser-arm.png"),
                 marine.pulseLaserArm.sourcePath);
-        assertEquals(factionPath("tri-tachyon", "pather-demolition-cannon.png"),
-                marine.demolitionCannon.sourcePath);
-        assertEquals(factionPath("tri-tachyon", "muster-autogun.png"),
-                marine.musterAutogun.sourcePath);
-        assertEquals(factionPath("tri-tachyon", "quarry-breaker-cannon.png"),
-                marine.quarryBreakerCannon.sourcePath);
+        assertEquals(factionPath("tri-tachyon", "dc-5.png"),
+                marine.dc5.sourcePath);
+        assertEquals(factionPath("tri-tachyon", "ac-6-qs.png"),
+                marine.ac6Qs.sourcePath);
+        assertEquals(factionPath("tri-tachyon", "dc-4-qs.png"),
+                marine.dc4Qs.sourcePath);
         assertEquals(factionPath("lions-guard", "chassis-warden.png"),
                 defender.wardenChassis.sourcePath);
         assertEquals(factionPath("lions-guard", "lrm-rack.png"),

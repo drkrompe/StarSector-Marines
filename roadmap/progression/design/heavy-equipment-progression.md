@@ -5,7 +5,7 @@ vehicles in the mech bay, heavy lift and the drop choice have shipped; vehicle
 variants are planned direction.
 
 Written: 2026-10-16
-Updated: 2026-10-26 — drops are free, one machine each, paced by the ferry's lift queue. Earlier 2026-10-24 — vehicles: variants and kits (a sealed doll, a rack of bolt-on kits); the earlier crossfire, facing and missile-carrier readings stand below.
+Updated: 2026-10-30 — the mech cannons take `<Family>-<N>` names (`mechs-nouns.md`, Weapon names) and the HC-10 replaces the linear cannon; readings taken before the rename keep the names they were taken under. Earlier 2026-10-26 — drops are free, one machine each, paced by the ferry's lift queue. Earlier 2026-10-24 — vehicles: variants and kits (a sealed doll, a rack of bolt-on kits); the earlier crossfire, facing and missile-carrier readings stand below.
 
 This is the campaign upgrade path for the company's machines: its mechs, the
 vehicles it may drop, and the boats that have to lift both. Marines progress by
@@ -16,6 +16,12 @@ and never fits a marine.
 
 Read `mechs-nouns.md` (chassis, sockets, Mech Lab, flux), `convoy-nouns.md`
 (vehicles) and `air-nouns.md` (boats and fittings) before changing a story below.
+
+**Names in older readings.** The cannons were renamed on 2026-10-30: the heavy cannon is the
+HC-20, the Bastion autocannon the AC-6, the Muster autogun the AC-6 (QS), the demolition
+cannon (Foundry Breaker) the DC-5 and the Quarry breaker the DC-4 (QS). The linear cannon
+is retired; the HC-10 took its Advanced Military Pattern slot. Readings below that name the
+old guns were taken under those names and stand as recorded.
 
 ## The shape of the ladder
 
@@ -268,7 +274,7 @@ refit.
 
 Readings (`armorMatchup`, explicit fits, open / hull-down / street, eight seeds,
 both roles; win share, and mean open-ground seconds from first hit). Controls
-are `-Dbattle.mech.heavyCannonBuildMass=0 -Dbattle.mech.heavyCannonFlux=26`.
+are `-Dbattle.mech.hc20BuildMass=0 -Dbattle.mech.hc20Flux=26`.
 
 | Fight | Before | After |
 | --- | --- | --- |
@@ -387,7 +393,7 @@ fights played in both roles; overall is the mean over the eleven fits the cannon
 section used. The controls are `-Dbattle.mech.buildMass.bastion-autocannons=0
 -Dbattle.mech.flux.bastion-autocannons=24 -Dbattle.mech.flux.dual-pulse-lasers=38`
 (ids of the twin guns these readings were taken with; the single guns that
-replaced them are `bastion-autocannon` and `pulse-laser`, at half each).
+replaced them are `ac-6` and `pulse-laser`, at half each).
 The control run reproduces the before column fight for fight. Any arm's flux,
 cycle or build mass takes the same
 `-Dbattle.mech.<flux|cycle|buildMass>.<id without component.mech->` switch.
@@ -411,7 +417,8 @@ Mission evidence has not been re-read for that.
 
 Still open:
 
-- **The linear cannon is the weakest Advanced arm** (refit 0.34 overall before
+- **The linear cannon was the weakest Advanced arm**, and is retired: the HC-10 took its
+  slot (2026-10-30; its readings are in Cannon names). Its record (refit 0.34 overall before
   this change, 0.32 after; it beats only the stock chaingun frame and the
   Wardens clearly). Its trouble is not carriage. Its penetration of 8 against the
   Bulwark's 18 halves every round. And the duel band its SRM-15s pull it into
@@ -425,6 +432,26 @@ Still open:
 Direction, not yet a story: missile racks are the mech's anti-armor weapons, and
 each likely wants an anti-armor and a fragmentation variant, so a rack fitted
 for infantry work stops competing with the arm built for it.
+
+## Cannon names
+
+The HC-10 (2026-10-30) replaced the linear cannon in its Advanced Military Pattern slot: one
+armour-piercing shell (range 30, damage 32, penetration 15, contact 72 at 15, wall 60, cycle 2.8 s,
+flux 18), a 2x2 part that fits a side arm. Its place is between the AC-6 and the HC-20. The QS parts
+stay below their standard part. `armorMatchup`, four seeds a row, against a refit Bulwark and a stock
+Onager; figures are the defender's integrity left, mean over open ground, hull-down and street (lower
+is the better gun; the determinism control replayed clean):
+
+| Carrier | HC-20 | HC-10 | AC-6 | AC-6 (QS) | DC-5 | DC-4 (QS) |
+| --- | --- | --- | --- | --- | --- | --- |
+| Warden (nose) | 48% | 58% | 67% | 91% | | |
+| Hound (nose) | | 50% | 59% | 85% | 71% | 78% |
+
+The HC-10 was first authored at damage 30, contact 60 at penetration 14, and read level with the AC-6
+(Warden 67%, Hound 57%); the figures above are after the raise. A Bulwark with an HC-10 on each arm
+left a refit Bulwark 9% and an Onager 31%, against 39% and 28% for twin AC-6s: the twin HC-10 is the
+strongest arm pair against mechs and wants watching, as the linear cannon's slot never did. Bulwark
+rows are dominated by its AT SRM-15s, so its arm readings are noisy at four seeds.
 
 ## A tank against the heavy mech
 

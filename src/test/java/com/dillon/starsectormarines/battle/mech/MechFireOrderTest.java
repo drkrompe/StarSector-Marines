@@ -33,14 +33,14 @@ class MechFireOrderTest {
 
     @Test
     void anArmGunThatDefeatsTheArmorKeepsItsPlace() {
-        MechWeaponMount[] cannon = mounts(MechWeaponComponent.SINGLE_HEAVY_CANNON,
+        MechWeaponMount[] cannon = mounts(MechWeaponComponent.HC_20,
                 MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15);
         assertArrayEquals(new int[]{0, 1, 2}, MechFireOrder.order(cannon, BULWARK));
     }
 
     @Test
     void anAntiArmorWarheadOutranksTheBastionAndAFragmentationRackGoesLast() {
-        MechWeaponMount[] bastion = mounts(MechWeaponComponent.BASTION_AUTOCANNON,
+        MechWeaponMount[] bastion = mounts(MechWeaponComponent.AC_6,
                 MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15_FRAG);
         assertArrayEquals(new int[]{1, 0, 2}, MechFireOrder.order(bastion, BULWARK));
     }
@@ -48,7 +48,7 @@ class MechFireOrderTest {
     @Test
     void equallyEffectiveMountsKeepTheirSlotOrder() {
         // The heavy cannon and an anti-armor rack both defeat a Bulwark's plate outright.
-        MechWeaponMount[] cannon = mounts(MechWeaponComponent.SINGLE_HEAVY_CANNON,
+        MechWeaponMount[] cannon = mounts(MechWeaponComponent.HC_20,
                 MechWeaponComponent.SRM_15, MechWeaponComponent.SRM_15);
         assertArrayEquals(new int[]{0, 1, 2}, MechFireOrder.order(cannon, BULWARK));
         // Against thin armor every round defeats it, so the order is the slot order again.

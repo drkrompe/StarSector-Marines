@@ -48,8 +48,8 @@ public final class WeaponRegistry {
     public static final String MECH_CHAINGUN_ID = "weapon.mech-chaingun";
     /** The better chaingun: faster spin-up and refill, heavier rounds ({@code mechs-nouns.md}, Rotary guns). */
     public static final String MECH_CHAINGUN_HF_ID = "weapon.mech-chaingun-hf";
-    public static final String MECH_LINEAR_CANNON_ID = "weapon.mech-linear-cannon";
-    public static final String MECH_HEAVY_CANNON_ID = "weapon.mech-heavy-cannon";
+    public static final String MECH_HC_10_ID = "weapon.mech-hc-10";
+    public static final String MECH_HC_20_ID = "weapon.mech-hc-20";
     public static final String MECH_SRM_ID = "weapon.mech-srm";
     public static final String MECH_LRM_ID = "weapon.mech-lrm";
     /** Fragmentation racks: area damage at low penetration ({@code mechs-nouns.md}, Missile warheads). */
@@ -63,11 +63,11 @@ public final class WeaponRegistry {
     public static final String MECH_LRM_LEGACY_ID = "weapon.mech-lrm-legacy";
     public static final String MECH_SHOULDER_LASER_ID = "weapon.mech-shoulder-laser";
     public static final String MECH_PULSE_LASER_ID = "weapon.mech-pulse-laser";
-    public static final String MECH_BASTION_AUTOCANNON_ID = "weapon.mech-bastion-autocannon";
-    public static final String MECH_DEMOLITION_CANNON_ID = "weapon.mech-demolition-cannon";
+    public static final String MECH_AC_6_ID = "weapon.mech-ac-6";
+    public static final String MECH_DC_5_ID = "weapon.mech-dc-5";
     public static final String MECH_THERMAL_LANCE_ID = "weapon.mech-thermal-lance";
-    public static final String MECH_MUSTER_AUTOGUN_ID = "weapon.mech-muster-autogun";
-    public static final String MECH_QUARRY_BREAKER_ID = "weapon.mech-quarry-breaker";
+    public static final String MECH_AC_6_QS_ID = "weapon.mech-ac-6-qs";
+    public static final String MECH_DC_4_QS_ID = "weapon.mech-dc-4-qs";
     public static final String MECH_SRM_3_QS_ID = "weapon.mech-srm-3-qs";
     /** The one-row light weapons that stock a small vehicle gun card ({@code vehicle-card-sizes.md}). */
     public static final String MECH_LIGHT_MG_ID = "weapon.mech-light-mg";

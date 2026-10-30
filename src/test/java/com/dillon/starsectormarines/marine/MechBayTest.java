@@ -15,6 +15,8 @@ import java.io.ObjectOutputStream;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -45,6 +47,31 @@ class MechBayTest {
         assertEquals(1, restored.activeDeployment().size());
         assertEquals(MechVariant.BULWARK, restored.activeDeployment().get(0).variant());
         assertEquals(1, restored.availableInternal(MechInternal.ACCELERATED_LOADER.id));
+    }
+
+    @Test
+    void aSavedRenamedCannonCarriesOverToItsSuccessor() throws Exception {
+        MechBay bay = new MechBay();
+        Field weapons = MechBay.class.getDeclaredField("ownedWeapons");
+        weapons.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Map<String, Integer> owned = (Map<String, Integer>) weapons.get(bay);
+        owned.put("component.mech-linear-cannon", 2);
+        owned.put("component.mech-muster-autogun", 1);
+        owned.put(MechWeaponComponent.AC_6_QS.id, 1);
+        Field patterns = MechBay.class.getDeclaredField("knownPatternIds");
+        patterns.setAccessible(true);
+        @SuppressWarnings("unchecked")
+        Set<String> known = (Set<String>) patterns.get(bay);
+        known.add(MechPattern.PREFIX + "weapon:component.mech-quarry-breaker");
+
+        MechBay restored = roundTrip(bay);
+
+        assertEquals(MechWeaponComponent.HC_10, MechWeaponComponent.findById("component.mech-linear-cannon"));
+        assertEquals(2, restored.ownedWeapon(MechWeaponComponent.HC_10.id));
+        assertEquals(2, restored.ownedWeapon(MechWeaponComponent.AC_6_QS.id), "merged with stock under the new id");
+        assertTrue(restored.knowsPattern(MechPattern.of(MechWeaponComponent.DC_4_QS).id()));
+        assertFalse(restored.knowsPattern(MechPattern.PREFIX + "weapon:component.mech-quarry-breaker"));
     }
 
     @Test
@@ -125,12 +152,12 @@ class MechBayTest {
                 "support_mech_02", "Hound 02", MechVariant.HOUND,
                 MechRole.ASSAULT, MissileReplenisherComponent.STANDARD.id());
         assertTrue(bay.addMech(MechBay.STARTER_SQUAD_ID, hound));
-        bay.addWeapon(MechWeaponComponent.SINGLE_HEAVY_CANNON.id, 1);
+        bay.addWeapon(MechWeaponComponent.HC_20.id, 1);
 
         assertFalse(bay.canInstallWeapon(hound.id(), MechMountSlot.ARMS,
-                MechWeaponComponent.SINGLE_HEAVY_CANNON.id));
+                MechWeaponComponent.HC_20.id));
         assertFalse(bay.installWeapon(hound.id(), MechMountSlot.ARMS,
-                MechWeaponComponent.SINGLE_HEAVY_CANNON.id));
+                MechWeaponComponent.HC_20.id));
         assertTrue(bay.canInstallWeapon(hound.id(), MechMountSlot.ARMS,
                 MechWeaponComponent.CHAINGUN.id));
         assertFalse(bay.canInstallWeapon(hound.id(), MechMountSlot.RIGHT_SHOULDER,

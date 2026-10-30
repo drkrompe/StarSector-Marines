@@ -124,7 +124,7 @@ class MechLabViewModelTest {
         assertFalse(viewModel.canMoveInstalledWeapon(
                 SocketId.LEFT_ARM, SocketId.LEFT_SHOULDER));
         assertFalse(viewModel.canDropCatalogWeapon(
-                MechWeaponComponent.SINGLE_HEAVY_CANNON, SocketId.LEFT_SHOULDER));
+                MechWeaponComponent.HC_20, SocketId.LEFT_SHOULDER));
     }
 
     @Test
@@ -978,7 +978,7 @@ class MechLabViewModelTest {
     @Test
     void overBudgetRowsAreRefusedWithBothSidesOfTheBudget() {
         MechFrameBudget.Fit heavy = new MechFrameBudget.Fit(MechVariant.HOUND,
-                MechWeaponComponent.SINGLE_HEAVY_CANNON, MechWeaponComponent.LRM_15,
+                MechWeaponComponent.HC_20, MechWeaponComponent.LRM_15,
                 MechWeaponComponent.LRM_15, MechInternal.INDUSTRIAL_ENGINE,
                 MechInternal.HEAVY_PLATING,
                 List.of(MechInternal.MILITARY_CAPACITOR_BANK, MechInternal.AUXILIARY_VENT_ARRAY));
