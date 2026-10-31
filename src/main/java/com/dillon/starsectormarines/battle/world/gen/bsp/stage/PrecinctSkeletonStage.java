@@ -11,6 +11,7 @@ import com.dillon.starsectormarines.battle.world.gen.layout.SitePurpose;
 import com.dillon.starsectormarines.battle.world.gen.bsp.TrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.precinct.FieldOfFire;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
+import com.dillon.starsectormarines.battle.world.gen.precinct.Landscape;
 import com.dillon.starsectormarines.battle.world.gen.precinct.LaneResistance;
 import com.dillon.starsectormarines.battle.world.gen.precinct.Precinct;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctAllowance;
@@ -153,6 +154,14 @@ public final class PrecinctSkeletonStage implements GenStage {
      * reaches it, so a town that was one network through its country is one
      * network still, and the weld is asked again only to make sure of it.
      */
+    /** Whether the cell is on one of {@code tracks} or within {@code band} cells of one. */
+    static boolean nearTrack(List<Landscape.Track> tracks, int band, int x, int y) {
+        for (Landscape.Track t : tracks) {
+            if (x >= t.x0() - band && x <= t.x1() + band && y >= t.y0() - band && y <= t.y1() + band) return true;
+        }
+        return false;
+    }
+
     private static RuralLayout survey(PrecinctPlan plan, GrownTrunkPlan.Grown grown, GenContext ctx,
                                       boolean[][] weldBlocked) {
         FieldOfFire field = FieldOfFire.of(plan);
@@ -169,6 +178,11 @@ public final class PrecinctSkeletonStage implements GenStage {
         for (Site site : plan.layout().planSites()) {
             if (site.purpose() == SitePurpose.GROUND) rural = rural.without(site.x0(), site.y0(), site.x1(), site.y1());
         }
+        // A lane's track is cut across the fields after they are surveyed: a farm keeps off it, and off the column
+        // band a layout keeps beside it, so no yard or building straddles a lane's way.
+        List<Landscape.Track> tracks = plan.landscape().tracks();
+        int band = plan.layout().ways().columnBand();
+        if (!tracks.isEmpty()) rural = rural.farmsKeepingOff((x, y) -> nearTrack(tracks, band, x, y));
         for (int x = 0; x < ctx.width; x++) {
             for (int y = 0; y < ctx.height; y++) {
                 if (!rural.inCountry(x, y)) continue;

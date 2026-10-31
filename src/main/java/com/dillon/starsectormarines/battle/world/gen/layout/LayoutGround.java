@@ -138,6 +138,28 @@ public final class LayoutGround {
     }
 
     /**
+     * Whether a way anyone uses runs over the cell: {@link #isWay}, less the road the network keeps along the map's
+     * own edge ({@link #EDGE}), which is its border and not drawn as a road, and less a reservation growth left in
+     * the surveyed country, which the country's own roads replaced.
+     */
+    public boolean isUsedWay(int x, int y) {
+        if (x < 0 || y < 0 || x >= ctx.width || y >= ctx.height) return false;
+        boolean edge = x < EDGE || y < EDGE || x >= ctx.width - EDGE || y >= ctx.height - EDGE;
+        RuralLayout rural = rural();
+        boolean country = rural != null && rural.inCountry(x, y);
+        if (!edge && !country) return isWay(x, y);
+        if (rural != null && rural.roadAt(x, y) != null) return true;
+        // In the surveyed country the country's own roads replaced growth's streets; a reservation growth left there
+        // is drawn as nothing, so only a painted road or a road the network holds counts.
+        if (!edge && ((roadCells != null && roadCells[x][y]) || roadOwner != null && claim != null
+                && roadOwner[x][y] != GrownTrunkPlan.UNOWNED && claim[x][y] == GrownTrunkPlan.UNOWNED)) return true;
+        PrecinctPlan plan = plan();
+        if (plan == null) return false;
+        for (Landscape.Track track : plan.landscape().tracks()) if (track.contains(x, y)) return true;
+        return false;
+    }
+
+    /**
      * Whether columns move on the cell: a road (not the map's own edge), a country or farm road of the surveyed
      * farmland, or a landscape track (a lane's). A farm track between plots is a way but not a column's.
      */

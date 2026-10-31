@@ -163,8 +163,11 @@ optional (reported, and the map stands).
   leaves at least one way through.
 - **Nothing built on a way.** No structure but paving (a square) stands on a
   way: a road, the farmland's roads and tracks, or a landscape's lane track.
-  The laid layout reports every structure or works cell on a way, by piece
-  (`LaidLayout.onWays`), so a pool check can read it.
+  The laid layout reports every structure or works cell on a way, by piece,
+  and every cell of the farmland's own farms (`farmland-farmstead-N`) on one
+  (`LaidLayout.onWays`), so a pool check can read it. The reading counts ways
+  as drawn (`LayoutGround.isUsedWay`): not the network's border along the map's
+  edge, nor a reservation growth left in the surveyed country.
 - **The ways' keeping** (`MissionLayout.Ways`). A layout may keep a **column
   band**: so many cells either side of every column's way (a road other than
   the map's own edge, a country or farm road of the farmland, a lane track;

@@ -15,6 +15,7 @@ import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
 import com.dillon.starsectormarines.battle.world.gen.precinct.KnollGround;
 import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctPlan;
 import com.dillon.starsectormarines.battle.world.gen.road.RoadSurface;
+import com.dillon.starsectormarines.battle.world.gen.rural.RuralLayout;
 import com.dillon.starsectormarines.battle.world.gen.taxonomy.TacticalRegionMap;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 import com.dillon.starsectormarines.battle.world.tiles.DoodadDef;
@@ -232,15 +233,30 @@ public final class MissionLayoutStage implements GenStage {
             if (piece.kind() == Laid.Kind.STRUCTURE && !LayoutStructures.PAVING_REASON.equals(piece.reason())) {
                 int[] a = piece.cells().get(0), b = piece.cells().get(piece.cells().size() - 1);
                 for (int x = a[0]; x <= b[0]; x++) {
-                    for (int y = a[1]; y <= b[1]; y++) if (ground.isWay(x, y)) on.add(new int[]{x, y});
+                    for (int y = a[1]; y <= b[1]; y++) if (ground.isUsedWay(x, y)) on.add(new int[]{x, y});
                 }
             } else if (piece.kind() == Laid.Kind.LINE) {
-                for (int[] c : piece.cells()) if (ground.isWay(c[0], c[1])) on.add(c);
+                for (int[] c : piece.cells()) if (ground.isUsedWay(c[0], c[1])) on.add(c);
             }
             if (!on.isEmpty()) out.put(piece.name(), on);
         }
+        // The farmland's own farms, yard and buildings, read the same way: nothing stands on a way.
+        RuralLayout rural = ground.rural();
+        if (rural != null) {
+            for (int i = 0; i < rural.farmsteads().size(); i++) {
+                RuralLayout.Farmstead f = rural.farmsteads().get(i);
+                List<int[]> on = new ArrayList<>();
+                for (int x = f.yardX0(); x <= f.yardX1(); x++) {
+                    for (int y = f.yardY0(); y <= f.yardY1(); y++) if (ground.isUsedWay(x, y)) on.add(new int[]{x, y});
+                }
+                if (!on.isEmpty()) out.put(FARMLAND_FARMSTEAD + (i + 1), on);
+            }
+        }
         return out;
     }
+
+    /** How the reading names the farmland's own farms: this plus their number. */
+    static final String FARMLAND_FARMSTEAD = "farmland-farmstead-";
 
     /** The plan's knolls as the places' growth read them, or worked out again where nothing bound them. */
     private static List<KnollGround.Resolved> knolls(GenContext ctx, PrecinctPlan plan) {

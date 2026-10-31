@@ -89,9 +89,24 @@ public final class StoryMapPoolSnapshotSuite implements SnapshotSuite {
                 out.add(new SnapshotArtifact(name.replace(".png", "-" + piece.name() + ".png"),
                         close.render(sim, head + " | " + piece.name(), ReviewAnnotations.builder().build())));
             }
+            for (String spot : CLOSE_AT.isBlank() ? new String[0] : CLOSE_AT.split(";")) {
+                String[] xy = spot.trim().split(",");
+                float x = Float.parseFloat(xy[0].trim()), y = Float.parseFloat(xy[1].trim());
+                BattleReviewFrameRenderer close = new BattleReviewFrameRenderer(context.modRoot(), FRAME_W, FRAME_H,
+                        x, y, AIRBASE_CELLS_ACROSS);
+                String at = "at-" + Math.round(x) + "-" + Math.round(y);
+                out.add(new SnapshotArtifact(name.replace(".png", "-" + at + ".png"),
+                        close.render(sim, head + " | " + at, ReviewAnnotations.builder().build())));
+            }
         }
         return out;
     }
+
+    /**
+     * {@code -Dsnapshot.storyMapPools.closeAt=x,y;x,y}: with the airbase frames, a close frame of the same width on
+     * each cell named, for a spot a review is about.
+     */
+    private static final String CLOSE_AT = System.getProperty("snapshot.storyMapPools.closeAt", "");
 
     private static BufferedImage frame(BattleReviewFrameRenderer whole, StoryMap map, SurfacePalette biome,
                                        StoryMapPool.Entry entry, String head) throws Exception {

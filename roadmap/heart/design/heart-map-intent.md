@@ -186,9 +186,10 @@ vetted on:
   company's road, the farm road), which no airbase, hamlet or access track
   enters and the posts and dumps keep out of where they can; nothing but
   paving is built on any way, and the cordon's works break at the farm and
-  lane tracks as at a road (`mission-layout.md`, Laws). The pool check fails
-  a heart map with anything built on a way in its start-side third
-  (`story-map-pools.md`).
+  lane tracks as at a road (`mission-layout.md`, Laws). The farmland's own
+  farms step aside off the lanes' tracks and their band (`mapgen-nouns.md`,
+  Rural country). The pool check fails a heart map with anything built on a
+  way in its start-side third, those farms included (`story-map-pools.md`).
 
 ## The beats' set pieces
 

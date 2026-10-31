@@ -4,7 +4,7 @@ Status: ACTIVE — the recipe/context/stage model is shipped; bounded content ex
 
 Written: 2026-08-23
 
-Updated: 2026-10-25 — districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
+Updated: 2026-10-31 — a farm steps aside off a lane's track and the column band beside it. Earlier, 2026-10-25: districts: the industrial zone's works street, the factory row laid along the zone's own street between boom gates.
 
 Earlier 2026-10-25 — set pieces: the shallow factory row, workshops and lane with machinery in the far wall, where the full row will not stand.
 
@@ -1946,7 +1946,13 @@ never draw) in a trodden-dirt yard cut from the corner of the plot farthest
 from the landing that fits it, set back from the road it opens onto with their
 doors facing it, and well past the field of fire. They are the one structural
 thing out here, and so ordinary buildings to everything that reads one. A farm
-stands only on a worked plot.
+stands only on a worked plot, and its yard never straddles a way: a lane's
+track cut across the fields after the survey (`Landscape.Track`), and the
+column band a mission's layout keeps beside it (`mission-layout.md`, the ways'
+keeping), are ground a farm keeps off. A farm a track would cross steps aside
+along its plot's frontage to the nearest clear place, keeping its depth and
+the road its doors face, and is not built where its plot has none
+(`RuralLayout.farmsKeepingOff`).
 
 **The town farms its other sides too** (`TownFields`). Open, flat ground round
 the town grows food whichever side of it lies, so fields are laid on natural

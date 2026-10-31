@@ -146,8 +146,8 @@ cannot disagree:
   jamming a carrier or a truck in play.
 - **Heart**: the bores seat (`HeartBores.plan`), and nothing the layout laid
   stands on a way in the start-side third (`LaidLayout.onWays`, cells of
-  structures and works on a road, farm track or lane track, read off at depth
-  0.34, where the creep has not reached).
+  structures and works, and of the farmland's own farms, on a road, farm track
+  or lane track, read off at depth 0.34, where the creep has not reached).
 
 Every Heart and Cordon row's detail carries that reading, `on roads N
 start-side [piece cells], M deeper [...]`; deeper cells, and every Cordon
