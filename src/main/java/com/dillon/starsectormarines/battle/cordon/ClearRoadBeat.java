@@ -456,4 +456,14 @@ final class ClearRoadBeat extends CordonBeat {
         GroundBody body = sim.convoy().body(dozer);
         return new int[]{(int) body.x, (int) body.y, 2};
     }
+
+    /** The dozer while it is on the field, else the wreck. */
+    @Override
+    int[] place(BattleSimulation sim) {
+        if (CordonBeats.alive(sim, dozer)) {
+            GroundBody body = sim.convoy().body(dozer);
+            return new int[]{(int) body.x, (int) body.y};
+        }
+        return wreck.isEmpty() ? null : wreck.get(wreck.size() / 2);
+    }
 }

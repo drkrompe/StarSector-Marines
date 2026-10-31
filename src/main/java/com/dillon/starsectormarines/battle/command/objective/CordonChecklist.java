@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.command.objective;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Item;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Marker;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.State;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime;
+import com.dillon.starsectormarines.battle.cordon.CordonBeats;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys.Hold;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys.Phase;
@@ -46,7 +48,30 @@ public final class CordonChecklist {
         }
         items.add(line(cordon.variant(), cordon.outcome(), cordon.endBeat(), posts, cordon.fallen(),
                 cordon.timetable().allowedFallen(), tick, ticks(cordon.timetable().windowSeconds())));
+        // The rolled beats follow in the Optional section, in roll order.
+        if (cordon.beats() != null) for (CordonBeats.Reading beat : cordon.beats().readings(sim)) items.add(beat(beat));
         return items;
+    }
+
+    /**
+     * A rolled beat's Optional row: its briefing line, what it pays, and a beacon where it is while it runs. A beat
+     * asking for Marines says so; one that lapsed is struck with the failed, as a side objective's is.
+     */
+    static Item beat(CordonBeats.Reading beat) {
+        State state = switch (beat.status()) {
+            case ACTIVE -> State.ACTIVE;
+            case SUCCEEDED -> State.COMPLETE;
+            case FAILED, LAPSED -> State.FAILED;
+        };
+        String phase = beat.status() == ObjectiveRuntime.Status.ACTIVE
+                ? Strings.get(beat.calling() ? "cordonHudBeatCalling" : "cordonHudBeatWaiting")
+                : Strings.named("cordonHudBeat", beat.status().name());
+        String id = "cordon-beat-" + beat.key();
+        List<Marker> markers = state == State.ACTIVE && beat.x() >= 0
+                ? List.of(new Marker(id + "-site", beat.title(), beat.x(), beat.y(), phase, state)) : List.of();
+        String pays = beat.credits() > 0 ? Strings.format("sideObjectivePays", beat.credits()) : "";
+        return new Item(id, beat.title(), state, phase, beat.briefing(), pays.isEmpty() ? beat.briefing() : pays,
+                pays, -1, "", markers, markers.isEmpty() ? "" : markers.get(0).id(), true);
     }
 
     static Item convoys(CordonSequence.Outcome outcome, List<Reading> readings, int needed, int peopleOut,

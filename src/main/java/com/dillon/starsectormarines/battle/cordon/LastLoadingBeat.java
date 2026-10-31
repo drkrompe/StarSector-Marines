@@ -49,4 +49,13 @@ final class LastLoadingBeat extends CordonBeat {
         int[] gate = corridor.get(corridor.size() - 1);
         return new int[]{gate[0], gate[1], 3};
     }
+
+    /** The town gate the last convoy loads at. */
+    @Override
+    int[] place(BattleSimulation sim) {
+        CordonConvoys convoys = beats.sequence().convoys();
+        if (convoys == null || convoys.corridor().isEmpty()) return null;
+        int[] gate = convoys.corridor().get(convoys.corridor().size() - 1);
+        return new int[]{gate[0], gate[1]};
+    }
 }

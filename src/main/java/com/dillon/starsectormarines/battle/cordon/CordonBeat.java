@@ -60,6 +60,15 @@ abstract class CordonBeat implements ObjectiveRuntime {
     /** Where the beat wants the company now, {x, y, squads}, or {@code null}. Asked only while active. */
     int[] call(BattleSimulation sim) { return null; }
 
+    /**
+     * Where the beat is on the map for the player's picture, {x, y}, or {@code null} when it has no place of its own
+     * yet ({@link CordonBeats#readings} then falls back to its set piece). Where it calls the company, by default.
+     */
+    int[] place(BattleSimulation sim) {
+        int[] call = call(sim);
+        return call == null ? null : new int[]{call[0], call[1]};
+    }
+
     final boolean active() { return status == Status.ACTIVE; }
 
     final Status status() { return status; }

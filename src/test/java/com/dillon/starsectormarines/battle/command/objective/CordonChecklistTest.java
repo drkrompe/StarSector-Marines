@@ -3,12 +3,14 @@ package com.dillon.starsectormarines.battle.command.objective;
 import com.dillon.starsectormarines.battle.command.objective.CordonChecklist.Post;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Item;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.State;
+import com.dillon.starsectormarines.battle.cordon.CordonBeats;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys.Hold;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys.Phase;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys.Reading;
 import com.dillon.starsectormarines.battle.cordon.CordonRedoubt;
 import com.dillon.starsectormarines.battle.cordon.CordonSequence.Outcome;
 import com.dillon.starsectormarines.battle.cordon.CordonVariant;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime.Status;
 import java.util.List;
 import org.junit.jupiter.api.Test;
 
@@ -64,5 +66,20 @@ class CordonChecklistTest {
         assertEquals(State.ACTIVE, row.state());
         assertEquals(State.FAILED, CordonChecklist.line(CordonVariant.ROAD, Outcome.BROKEN, "gap_closed",
                 List.of(new Post(2, CordonRedoubt.State.FALLEN, 40, 100, true)), 2, 1, 600, 27000).state());
+    }
+
+    @Test void aRunningBeatIsAnOptionalRowBeaconedWhereItIs() {
+        Item row = CordonChecklist.beat(new CordonBeats.Reading("last_loading", "The last loading", "Hold the town.",
+                Status.ACTIVE, 3_000, true, 50, 20));
+        assertTrue(row.optional());
+        assertEquals("cordon-beat-last_loading-site", row.focusMarkerId());
+        assertEquals(50, row.focus().x());
+    }
+
+    @Test void aLapsedBeatIsStruckAndLosesItsBeacon() {
+        Item row = CordonChecklist.beat(new CordonBeats.Reading("gap_falls", "The gap falls", "Hold the gap.",
+                Status.LAPSED, 3_500, false, -1, -1));
+        assertEquals(State.FAILED, row.state());
+        assertTrue(row.markers().isEmpty());
     }
 }

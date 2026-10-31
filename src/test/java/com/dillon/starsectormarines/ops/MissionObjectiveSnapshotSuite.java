@@ -113,6 +113,7 @@ public final class MissionObjectiveSnapshotSuite implements SnapshotSuite {
             capture(context, artifacts, "cordon-road-initial", sim, false);
             var road = MissionObjectiveProjection.capture(sim).objectives();
             assertEquals("cordon-gap", road.get(0).focusMarkerId(), "before the first convoy the company is sent to the gap");
+            assertFalse(MissionObjectiveProjection.capture(sim).optional().isEmpty(), "the rolled beats are on the rail");
             for (int tick = 0; tick < 2700 && !sim.isComplete(); tick++) sim.advance(BattleSimulation.TICK_DT);
             capture(context, artifacts, "cordon-road-convoy", sim, false);
         }
