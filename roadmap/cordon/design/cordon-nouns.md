@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — the townspeople are trapped in the town's staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner, which also tasks its own sorties. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces (tenement, posts in buildings, cleared lot) and its supply roads along the streets
+Updated: 2026-10-31 — the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -457,17 +457,54 @@ battle there. A group is **out** when its last member leaves the map, **caught**
 when the swarm first kills one of them. The standard timetable sends six
 groups of six, two minutes apart, from the two rear villages in turn.
 
-**Cut-off town (the Road).** The colony's own town in the front, beyond the
-line, where the people Colony Breach left behind are still holding out in its
-civil-defence compound with what is left of the militia (two teams, seated
-inside the gate). Its people are the Road's score. The **townspeople** are trapped
-civilians huddled in the town's staging area, the open ground inside the gate (with none found, in the compound
-behind the militia, fourteen cells past the gate). They never walk off or flee
-on their own: one jostled off its place walks back to it. While a convoy loads they walk out to its trucks and **board** one at a time,
-each boarding taking one off the field and putting one more aboard that truck.
-They are prey: one the swarm kills before boarding is a townsperson lost, as
-one aboard a destroyed truck is. Any the compound has no room to stand up stay
-a count and board from it at the same pace.
+**Cut-off town (the Road).** Ain Tafrant: the colony's own town in the front,
+beyond the line, where the people Colony Breach left behind are **trapped** in
+its civil-defence compound. Its people are the Road's score, and holding them
+is the Road's first objective (*Hold Ain Tafrant*; owner, 2026-10-31). They
+wait in the **staging area** (`CordonStagingArea`): the open ground inside the
+gate the convoys load at (the gate nearest the corridor's end), every open cell
+inside the wall reached from the one nearest that gate, within six cells of
+it. The trucks load there, and nothing is seated on it or beside it.
+
+The **townspeople** are trapped civilians huddled in the staging area (with
+none found, in the compound behind the militia, fourteen cells past the gate).
+They never walk off or flee on their own: one jostled off its place walks back
+to it. While a convoy loads they walk out to its trucks and **board** one at a
+time, each boarding taking one off the field and putting one more aboard that
+truck. They are prey: one the swarm kills before boarding is a townsperson
+lost, as one aboard a destroyed truck is. Any the compound has no room to
+stand up stay a count and board from it at the same pace.
+
+The compound is held as a redoubt is (`CordonTownGarrison`): its wall dressed
+as the colony's compound's (`CivilDefenceCompound.dress`: a gun tower with a
+heavy machine gun beside each gate, slits along the runs, floodlights), and its
+**defenders** at the posts behind the slits, the side facing the front first,
+then the yard, never on the staging area or beside it, nor within three cells
+of where the trucks pull up: what is left of the town militia (two teams of
+four, the ones beat R4 rides out) and the town guard (three more), interleaved
+so each team holds the whole front wall, allied, under garrison authority,
+never in the player's command pool. A wall the dressing cannot read is still
+manned, its teams in the yard; a compound with no wall found at all has its
+staging area round the road's end and its teams past it. Twenty rifles and two
+guns hold the opening and the first convoy's loading; nobody reinforces the
+town, so the tides bleed it, and the company has to come up and hold the
+staging area as it goes (owner's call on its strength).
+
+**Town states.** The staging area is **held** while no swarm body is in it,
+**pressed** while one is and a defender or a Marine stands in it or within four
+cells of it (they hold it from round it), and **overrun** once the swarm has
+stood in it with nobody holding it for ten seconds (untuned); overrun is
+final, and it **abandons** the town (`town_abandoned`): every townsperson still
+trapped dies, no more convoys set out and a convoy on the road turns home. An
+overrun staging area is also how the company **pulls out**: nobody but the
+company and the defenders can hold it, so a company that leaves the town to
+the swarm has abandoned it (owner's question: whether an explicit pull-out
+order is wanted as well). The town is also finished when nobody is left in it
+(`town_empty`). Apart
+from that the town **calls** over the radio as a redoubt does, once a swarm
+body is inside its wall or half its defenders are down (*Town calling*,
+`cordon-allied-command.md`): the company is wanted at the staging area before
+it is pressed.
 
 **Corridor.** The relief road from the rear edge through the line to the
 cut-off town's compound: the way the convoys drive (*The map*). Nothing is
@@ -735,24 +772,44 @@ map whole.
 
 ### The Road
 
+The win is people (owner, 2026-10-31). The company **holds Ain Tafrant** (the
+staging area inside the town's gate, where its trapped people wait) while the
+convoys **bring the people out**; once the town is finished, empty or
+abandoned, it **falls back behind the line** to end the mission. The town holds
+more people than three trips carry and at most five; the briefing's number is
+half of them, rounded up (owner's call). The line and the gap are the allies';
+a gap that closes stops the convoys, which costs people, not the battle.
+
 1. **Landfall.** The company comes down in the rear fields, near the
-   corridor's entry. The gap is open; the town is holding.
+   corridor's entry. The gap is open; the town's defenders hold it alone.
 2. **Clear ahead.** The first convoy enters on the timetable and drives the
    corridor. The company walks ahead of it through the gap and pickets the
    bores that bear on the road.
 3. **Ambush.** A surge reaches the road while a convoy is on it: the convoy
    halts and the company has to clear it on. A convoy whose road is not cleared
    is eaten where it stands.
-4. **The town.** A convoy at the compound's gate waits while the townspeople
-   walk out and board it one by one, then turns for home full. The town's own militia hold the
-   compound while it waits.
+4. **The town.** A convoy at the compound's gate waits while its share of the
+   trapped townspeople board from the staging area, then turns for home. The
+   town's militia and guard hold the compound from its wall; when the swarm
+   gets inside, or half of them are down, the town calls, and as they bleed
+   the company has to come up and hold the staging area itself.
 5. **The tide.** As in the Line, at set minutes every bore surges at once; on
    the Road the tide falls on the gap and the town. The two redoubts either
-   side of the gap call; if both fall the gap is closed.
-6. **The end.** Won when enough convoys are back out with their people (the
-   briefing's number) and the gap is still held. Lost when too many convoys
-   are lost to reach that number, when the gap closes, or when the company is
-   wiped out.
+   side of the gap call; if both fall the gap is closed (`gap_closed`, told,
+   not an end: the convoys stop at it).
+6. **The town is finished.** Everyone is out or dead (`town_empty`), or its
+   staging area is overrun and the town abandoned (`town_abandoned`, the rest
+   die). The fall-back starts (`fall_back`).
+7. **The end.** The company falls back behind the redoubt line, every Marine
+   on the ground four rows or more behind its mean row, to a rally point a
+   reserve's depth behind where the corridor crosses it (`company_withdrawn`).
+   Once it is behind the line and no convoy is still on the road, the Road ends:
+   won (`cordon_held`) when at least the briefing's number of townspeople came
+   out, else lost (`people_short`). A wiped company loses first
+   (`company_lost`). No window ends the Road; a hard cap of thirty minutes
+   reads the same verdict wherever the battle stands, so it cannot run for
+   ever. Redoubts that fall, a closed gap and lost convoys decide nothing by
+   themselves.
 
 ### The swarm without a rescue
 
@@ -788,16 +845,24 @@ above.
 ### The player's picture
 
 The shared mission picture (`CordonChecklist`) gives the HUD rail, the map's
-beacons and the briefing survey the same rows. On the Road the first is the
-relief convoys: beaconed at the gap, the town's gate and each convoy on the
-road, tallied as convoys out against the briefing's number, and saying which
-convoy is held and why (no escort near its trucks past the gap, or the swarm
-on the road ahead). The second is the gap (on the Line, the line): the gap's
-redoubts and any redoubt calling, the redoubts lost against those allowed, and
-the window's time left. Each row's focus is where the company is wanted now:
-a held convoy, then one on the road, the gate while one loads, and the gap
-while the next is still to come; a calling redoubt before a quiet gap
-redoubt. Tides are never foreseen on it, as on the radio. The rolled beats
+beacons and the briefing survey the same rows. On the Road the rows follow
+its phases. The first is **Hold Ain Tafrant**: beaconed at the staging area
+(its cells the beacon's footprint), saying how it stands (held, pressed,
+overrun) or that the town is calling, tallying the townspeople still trapped,
+a loading convoy's boarding (aboard of seats) and the defenders standing, and
+asking for squads while the swarm is in it or the town calls; complete once the
+town is empty, failed once it is abandoned. The second is **Bring the people
+out**: beaconed at the gap, the town's gate and each convoy on the road,
+tallied as townspeople out of the town's people against the briefing's
+number, and saying which convoy is held and why (no escort near its trucks
+past the gap, or the swarm on the road ahead); its focus is a held convoy,
+then one on the road, the gate while one loads, and the gap while the next is
+still to come; complete once enough are out, failed once too few are left
+alive. Once the town is finished the third, **Fall back behind the line**, is
+beaconed at the rally point until the company is behind the line. The Road
+has no row for the line. On the Line the row is the
+line: any redoubt calling, the first its focus, the redoubts lost against those
+allowed, and the window's time left. Tides are never foreseen on it, as on the radio. The rolled beats
 follow in the Optional section, in roll order: each beaconed where it is
 while it runs (where it calls the company, else its own place: the gate, the
 gap, the wreck or dozer, the bore's site, else its set piece), saying when it
@@ -860,10 +925,17 @@ with the same keys.
 | `convoy_loaded_N` | the Road | OBSERVER_ONLY | Convoy N's people are aboard; it turns for home |
 | `convoy_out_N` | the Road | PLAYER | Convoy N leaves the map with its people |
 | `convoy_lost_N` | the Road | PLAYER | Convoy N's last truck is destroyed |
-| `gap_closed` | the Road | PLAYER | Both redoubts beside the gap have fallen |
-| `convoys_lost` | the Road | PLAYER | Too many convoys are lost for enough to come out |
-| `convoys_short` | the Road | PLAYER | The window closed with too few convoys out |
-| `line_broken` | both | PLAYER | More redoubts have fallen than the briefing allows |
+| `town_contact` | the Road | PLAYER | First swarm body within twenty cells of the town's wall |
+| `town_calling` | the Road | PLAYER | The town first calls for help (swarm inside its wall, or half its defenders down) |
+| `staging_pressed` | the Road | PLAYER | The swarm is first in the staging area |
+| `staging_overrun` | the Road | PLAYER | The swarm has held the staging area with nobody holding it for ten seconds |
+| `town_empty` | the Road | PLAYER | Nobody is left trapped in the town: the town is finished |
+| `town_abandoned` | the Road | PLAYER | The staging area is overrun: the town is abandoned and everyone still in it dies |
+| `fall_back` | the Road | PLAYER | The town is finished: the company falls back behind the line |
+| `company_withdrawn` | the Road | PLAYER | After the town is finished, every company Marine on the ground is behind the line |
+| `people_short` | the Road | PLAYER | The Road is lost: it ended with fewer townspeople out than the briefing's number |
+| `gap_closed` | the Road | PLAYER | Both redoubts beside the gap have fallen (told; not an end on the Road) |
+| `line_broken` | the Line | PLAYER | More redoubts have fallen than the briefing allows |
 | `company_lost` | both | PLAYER | The company is wiped out (no Marine on the ground or still to come down); read before every other end rule |
 | `cordon_held` | both | PLAYER | The battle is won |
 | `objective_<key>_started` | both | PLAYER | A rolled optional objective starts (at setup) |

@@ -358,7 +358,7 @@ public final class CordonGarrisons {
     }
 
     /** The open cell inside the bounds nearest {@code (x, y)}. */
-    private static int[] nearestOpen(NavigationGrid grid, int x, int y, int left, int top, int right, int bottom) {
+    static int[] nearestOpen(NavigationGrid grid, int x, int y, int left, int top, int right, int bottom) {
         int[] best = null;
         int bestDistance = Integer.MAX_VALUE;
         for (int cy = top; cy <= bottom; cy++) {

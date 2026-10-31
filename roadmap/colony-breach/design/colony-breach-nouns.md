@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
-Updated: 2026-10-31 — skitterers share out the haul: a third of a brood at once, their own dead only from near, a body they fled from left a while.
+Updated: 2026-10-31 — holdouts are light (gate gun and one corner gun) or heavy (gate gun and two); the shelter's compound mounts a gun in each corner tower, a Locust held until a bore grows, and a yard and a hall team inside. Earlier: skitterers share out the haul: a third of a brood at once, their own dead only from near, a body they fled from left a while.
 
 Updated: 2026-10-28 — the evac cordon is the defence force's staging post: its line dug in before landfall, a field HQ, aid station and supply dump with the company's cache inside the ring. Earlier: the evac cordon's line stands in its trench, four teams facing the town and one on the rear. Earlier: a pooled colony's patch may place its lift, bores and holdouts (Asharu's are the owner's). Earlier: the swarm strikes a standing vehicle from its side and claws one that bars its only way; its flow fields go round one where they can. Earlier: the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
@@ -303,8 +303,9 @@ map's short side, past which the seed decides), clear of the landing pads and
 with a walk to the lift. Each fireteam holds its building's held place under
 garrison authority, so it mans the building's windows and doors the way any
 held building is manned; a holdout with works adds a second team on its
-firing step (see *Redoubt*). The compound's guns stand beside its gates,
-and a holdout with works has its heavy gun just inside its gate; of the posts
+firing step (see *Redoubt*). The compound's guns stand beside its gates and in
+its corner towers, with a held Locust in its yard, and a holdout with works has
+its heavy gun just inside its gate and more in its corners; of the posts
 without, two keep a working
 heavy-machine-gun emplacement outside the door. Two posts have a parked militia
 technical. Placed hardware stands on open ground away from the cohort's walk to
@@ -489,7 +490,14 @@ drawn in to the kerb with no yard at all. The works are:
 - the **firing step**, one course of sandbag just inside the barricade all the
   way round, which is a fighting-position run;
 - one **gate**, on the side toward the lift, the way relief comes in and the
-  people walk out, with the post's heavy gun just inside it beside the lane.
+  people walk out, with the post's heavy gun just inside it beside the lane;
+- **corner guns** (owner, 2026-10-31): a heavy machine gun in a corner of the
+  firing step, in place of its bag, behind the barricade's corner. A **light**
+  holdout has one, in the corner diagonal from its gate, so with its gate gun
+  it has two guns. A **heavy** holdout has two, that corner and the far side's
+  other one, so three guns. The holdout nearest a planned bore is the heavy one
+  (`ColonyRedoubts.heavyHoldout`); the rest are light. A corner with no open
+  ground has no gun, and a holdout without works has none.
 
 The works are the ordinary pieces with their ordinary rules: fence, crates and
 sandbag are destructible cover props, so a charge, a shell, a dozer or a Brute
@@ -633,13 +641,26 @@ militia make the rest of it when the battle is set up:
 - a **gun tower** beside each gate: a heavy machine gun on the line of the
   wall behind slits, a step further along the wall where a building stands
   against it. A compound with one way in mounts its second gun on that gate's
-  other flank, so it always has two. Those guns are its whole armament: no
-  layers, no bunkers, no flak. Its heavy machine guns track fliers, so they
-  answer Harriers and meet the flier law (*Laws*);
+  other flank, so it always has two. No layers, no bunkers, no flak. Its heavy
+  machine guns track fliers, so they answer Harriers and meet the flier law
+  (*Laws*);
+- a heavy machine gun in each **corner tower** (owner, 2026-10-31): the gun on
+  the wall's corner, the tower round it slit so it sees out along both faces.
+  Only the shelter's compound arms its corners; a Cordon field redoubt dressed
+  the same way keeps them solid;
+- the **held Locust** (owner, 2026-10-31), rocket artillery on the open yard
+  cell nearest the yard's middle with room round it. It holds fire until a
+  bore first grows a tier: by then the colony outside is going and the guns
+  open on the approaches (`ColonyBreachSequence.holdBatteryUntilBoresGrow`).
+  Its minimum range keeps it off the compound itself;
 - **firing slits** along the wall's straight runs;
 - a militia **wall team** standing behind the slits, holding the yard. Nothing
   is piled against the wall: the wall is the cover, so the compound has no
   sandbag step, which is what tells it apart from a holdout's works;
+- two **interior teams** (owner, 2026-10-31, so the compound holds longer): a
+  **yard team** holding the compound's ground round the Locust, and a **hall
+  team** holding the shelter hall and manning its windows. They stay when the
+  wall team falls back;
 - **floodlights** on tripods inside the corners and the gates, facing out.
 
 The ground the wall and its yard cover is the main redoubt's ground. The wall

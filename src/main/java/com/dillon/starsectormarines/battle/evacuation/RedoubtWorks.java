@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.battle.world.tiles.TileRegistry;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -84,10 +85,17 @@ final class RedoubtWorks {
      * @param gateX     the outside cell of the gate's first lane
      * @param gateY     the outside cell of the gate's first lane
      * @param leaks     ring cells left open other than the gate: ground no piece could be set on
+     * @param corners   the corner gun pits' cells, in the step's corners, furthest from the gate first
      */
     record Plan(int left, int top, int right, int bottom,
                 List<Piece> barricade, List<Bag> step, int gateX, int gateY,
-                int gunX, int gunY, int leaks) {
+                int gunX, int gunY, int leaks, List<int[]> corners) {
+
+        /** Works with no corner guns: a cordon's or a staging post's, which are laid and never manned as a redoubt. */
+        Plan(int left, int top, int right, int bottom, List<Piece> barricade, List<Bag> step, int gateX, int gateY,
+             int gunX, int gunY, int leaks) {
+            this(left, top, right, bottom, barricade, step, gateX, gateY, gunX, gunY, leaks, List.of());
+        }
 
         boolean contains(int x, int y) {
             return x >= left && x <= right && y >= top && y <= bottom;
@@ -201,11 +209,13 @@ final class RedoubtWorks {
     /**
      * Plans the works round one building, gate toward {@code (towardX, towardY)}.
      *
-     * @param doorX the building's door, which must still reach the open ground through the gate
+     * @param doorX      the building's door, which must still reach the open ground through the gate
+     * @param cornerGuns gun pits wanted in the step's corners, furthest from the gate first; fewer stand where a
+     *                   corner has no open ground
      * @return the plan, or {@code null} when no gate can be cut or the door would be shut in
      */
     static Plan plan(BattleSimulation sim, PointOfInterest place, int doorX, int doorY,
-                     int towardX, int towardY, int margin, Keep keep, long seed) {
+                     int towardX, int towardY, int margin, Keep keep, long seed, int cornerGuns) {
         TileRegistry registry = TileRegistry.installed();
         if (registry == null || registry.doodad("doodad.industrial-fence-straight-h") == null
                 || registry.doodad("doodad.fort-sandbag-n") == null) return null;
@@ -225,7 +235,7 @@ final class RedoubtWorks {
         for (int[] side : sides) {
             int[] gate = cutGate(sim, dressed, keep, l, t, r, b, side, doorX, doorY);
             if (gate == null) continue;
-            Plan plan = build(sim, registry, dressed, keep, road, l, t, r, b, side, gate, seed);
+            Plan plan = build(sim, registry, dressed, keep, road, l, t, r, b, side, gate, seed, cornerGuns);
             if (plan != null && reaches(grid, plan, doorX, doorY)) return plan;
         }
         return null;
@@ -261,7 +271,7 @@ final class RedoubtWorks {
     }
 
     private static Plan build(BattleSimulation sim, TileRegistry registry, Set<Long> dressed, Keep keep, Roadway road,
-                              int l, int t, int r, int b, int[] side, int[] gate, long seed) {
+                              int l, int t, int r, int b, int[] side, int[] gate, long seed, int cornerGuns) {
         boolean vertical = side[0] != 0;
         Set<Long> gateLane = new HashSet<>();
         for (int k = 0; k < GATE_WIDTH; k++) {
@@ -325,6 +335,18 @@ final class RedoubtWorks {
             }
         }
 
+        // Corner gun pits: a gun in the step's corner, behind the barricade's, in place of its bag.
+        List<int[]> corners = new ArrayList<>();
+        for (int[] c : cornersFromGate(sl, st, sr, sb, gate[0], gate[1])) {
+            if (corners.size() >= cornerGuns) break;
+            long k = key(c[0], c[1]);
+            if (gateLane.contains(k)) continue;
+            boolean bagged = step.removeIf(bag -> bag.x() == c[0] && bag.y() == c[1]);
+            if (!bagged && (taken.contains(k) || !open(sim, dressed, keep, c[0], c[1]))) continue;
+            taken.add(k);
+            corners.add(c);
+        }
+
         // The gun stands just inside the gate, beside the lane, behind the step.
         int gunX = -1, gunY = -1;
         for (int along : new int[]{-1, GATE_WIDTH}) {
@@ -335,7 +357,19 @@ final class RedoubtWorks {
             gunY = y;
             break;
         }
-        return new Plan(l, t, r, b, barricade, step, gate[0], gate[1], gunX, gunY, leaks);
+        return new Plan(l, t, r, b, barricade, step, gate[0], gate[1], gunX, gunY, leaks, List.copyOf(corners));
+    }
+
+    /**
+     * The four corners of the step's ring ({@code l..r} by {@code t..b}), the one diagonal from the gate first, then
+     * the other corner on the far side: a light holdout's one corner gun covers the side its gate gun cannot see, a
+     * heavy one's second covers the far flank.
+     */
+    static List<int[]> cornersFromGate(int l, int t, int r, int b, int gateX, int gateY) {
+        List<int[]> corners = new ArrayList<>(List.of(new int[]{l, t}, new int[]{r, t}, new int[]{l, b}, new int[]{r, b}));
+        corners.sort(Comparator.comparingInt((int[] c) -> -(Math.abs(c[0] - gateX) + Math.abs(c[1] - gateY)))
+                .thenComparingInt(c -> c[1]).thenComparingInt(c -> c[0]));
+        return corners;
     }
 
     /**
@@ -387,6 +421,7 @@ final class RedoubtWorks {
             for (int y = p.y(); y < p.y() + p.height(); y++)
                 for (int x = p.x(); x < p.x() + p.width(); x++) blocked.add(key(x, y));
         if (plan.gunX() >= 0) blocked.add(key(plan.gunX(), plan.gunY()));
+        for (int[] c : plan.corners()) blocked.add(key(c[0], c[1]));
         if (!grid.inBounds(doorX, doorY) || !grid.isWalkable(doorX, doorY)) return false;
         ArrayDeque<int[]> queue = new ArrayDeque<>();
         Set<Long> seen = new HashSet<>();
