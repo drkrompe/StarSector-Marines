@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -480,10 +480,24 @@ groups of six, two minutes apart, from the two rear villages in turn.
 beyond the line, where the people Colony Breach left behind are **trapped** in
 its civil-defence compound. Its people are the Road's score, and holding them
 is the Road's first objective (*Hold Ain Tafrant*; owner, 2026-10-31). They
-wait in the **staging area** (`CordonStagingArea`): the open ground inside the
-gate the convoys load at (the gate nearest the corridor's end), every open cell
-inside the wall reached from the one nearest that gate, within six cells of
-it. The trucks load there, and nothing is seated on it or beside it.
+wait in the **staging area** (`CordonStagingArea`): the open ground beside the
+truck yard, every open cell inside the wall reached from the one nearest where
+a truck stops to load (off the yard), within six cells of it. Nothing is seated
+on it or beside it.
+
+**Truck yard.** The compound's gate furthest toward the rear (the corridor's
+gate) is widened to nine cells (`Fortification.GateYard`; a gate over ten is no
+gate to the wall reading, which dresses no tower beside it), and inside it the
+map lays a **truck yard** (`CordonGateYard`, read as `CordonSequence.yard()`):
+paved ground thirteen cells along the wall by nine in from it, with seven cells
+of open ground beside it on the hand with more room, where the staging area
+stands. Laid before the compound packs, so its buildings stand round it; opt-in
+on the Road's compound brief alone. A convoy's trucks drive in on the gate's
+axis, run to the yard's far side, swing across and come back toward the gate to
+their **stop** beside the staging area, so they stand to load facing out, the
+second truck drawn up behind round the yard; loaded, they drive forward out of
+the gate (the corridor is carried on into the yard, `CordonGateYard.extend`).
+No defender stands in the yard. Untuned: the yard's size and the gate's width.
 
 The **townspeople** are trapped civilians huddled in the staging area (with
 none found, in the compound behind the militia, fourteen cells past the gate).
@@ -498,8 +512,8 @@ The compound is held as a redoubt is (`CordonTownGarrison`): its wall dressed
 as the colony's compound's (`CivilDefenceCompound.dress`: a gun tower with a
 heavy machine gun beside each gate, slits along the runs, floodlights), and its
 **defenders** at the posts behind the slits, the side facing the front first,
-then the yard, never on the staging area or beside it, nor within three cells
-of where the trucks pull up: what is left of the town militia (two teams of
+then the open ground, never in the truck yard, on the staging area or beside
+it, nor within three cells of where the corridor meets the town: what is left of the town militia (two teams of
 four, the ones beat R4 rides out) and the town guard (three more), interleaved
 so each team holds the whole front wall, allied, under garrison authority,
 never in the player's command pool. A wall the dressing cannot read is still
@@ -539,9 +553,9 @@ civilian, is **out** from that moment, and walks in to wait at the camp's rear
 for the rest of the battle. Its emptied trucks pull back down the road behind
 the camp and wait there; the next convoy called sets out in them (a new truck
 comes on only when none waits), so pick-ups and drop-offs are one road from the
-camp to the gate and back. A townsperson the swarm kills in the camp is taken
-off the count out and counted lost (owner's question whether the camp can be
-reached at all). R2's passengers walk to the camp and are out when they reach
+camp to the gate and back. A townsperson the swarm kills in the camp stays
+**out** and is not lost: once they reach the drop-off the company's job is done
+(owner, 2026-10-31). R2's passengers walk to the camp and are out when they reach
 it.
 
 **Corridor.** The relief road from the rear edge through the line to the

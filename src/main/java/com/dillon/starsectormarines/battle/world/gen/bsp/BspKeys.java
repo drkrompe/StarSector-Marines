@@ -123,6 +123,12 @@ public final class BspKeys {
     public static final GenKey<LaidLayout> MISSION_LAYOUT_LAID = GenKey.of("missionLayoutLaid");
 
     /**
+     * The gate yards the precinct ward laid inside walled places ({@code Fortification.GateYard}), as
+     * {@link Laid.Kind#YARD} pieces: the layout stage reports them with what it laid, so they reach the map's result.
+     */
+    public static final GenKey<List<Laid>> GATE_YARDS = GenKey.of("gateYards");
+
+    /**
      * The layout's roads as the skeleton stage carved them into the network ({@code mission-layout.md}); the layout
      * stage reports them with everything else it laid.
      */

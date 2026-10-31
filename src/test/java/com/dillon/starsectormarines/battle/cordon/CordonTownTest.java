@@ -1,6 +1,10 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.cordon.CordonTown.State;
+import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
+import com.dillon.starsectormarines.battle.world.gen.precinct.GateYardLayout;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -8,6 +12,8 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /** Ain Tafrant's staging area ({@code cordon-nouns.md}, Cut-off town), and where its defenders are seated. */
@@ -73,5 +79,35 @@ class CordonTownTest {
         assertEquals(28, seats.get(7)[1]);
         assertEquals(28, seats.get(8)[1]);
         assertEquals(11, seats.get(9)[1]);
+    }
+
+    @Test
+    void theTruckYardIsReadOffTheMapAndKeptClearOfDefendersAndOfTheStagingArea() {
+        // A yard on the rear wall at row 28, its gate at (10, 28), running in to row 20 over x 6..14.
+        List<int[]> cells = new ArrayList<>();
+        for (int y = 20; y <= 27; y++) for (int x = 6; x <= 14; x++) cells.add(new int[]{x, y});
+        List<int[]> beside = new ArrayList<>();
+        for (int y = 20; y <= 27; y++) for (int x = 15; x <= 18; x++) beside.add(new int[]{x, y});
+        Laid piece = new Laid(GateYardLayout.pieceName(CivilDefenceCompound.PLACE), Laid.Kind.YARD, Laid.Status.LAID,
+                "", false, cells, List.of(new int[]{10, 28}, new int[]{10, 27}, new int[]{10, 24}, new int[]{13, 24}),
+                beside);
+        CordonGateYard yard = CordonGateYard.of(new LaidLayout(List.of(piece)));
+        assertNotNull(yard);
+        assertNull(CordonGateYard.of(LaidLayout.EMPTY));
+        assertEquals(0, yard.inwardX());
+        assertEquals(-1, yard.inwardY(), "in from the rear gate");
+        assertTrue(yard.contains(yard.stopX(), yard.stopY()));
+        assertEquals(4 * 8, yard.beside().size());
+        // The staging area beside it, from where a truck stops: never on the yard.
+        CordonStagingArea staging = CordonStagingArea.of((x, y) -> !yard.contains(x, y), 1, 11, 19, 27,
+                yard.stopX(), yard.stopY());
+        for (int[] c : staging.cells()) assertFalse(yard.contains(c[0], c[1]), "beside the yard, not on it");
+        List<int[]> wall = new ArrayList<>();
+        for (int x = 1; x <= 19; x += 2) wall.add(new int[]{x, 27});
+        List<int[]> open = new ArrayList<>();
+        for (int y = 11; y <= 27; y++) for (int x = 1; x <= 19; x++) open.add(new int[]{x, y});
+        List<int[]> seats = CordonTownGarrison.seats(wall, open, staging, new int[]{10, 31}, yard, 11, 10, 20);
+        assertEquals(20, seats.size());
+        for (int[] s : seats) assertFalse(yard.contains(s[0], s[1]), "nobody stands where the trucks turn");
     }
 }
