@@ -99,6 +99,19 @@ reads as a front thrown up in a hurry. Each is picked per redoubt from the seed
 | Set pieces | Farmstead, posts in sandbag rings, eruption site in open ground | As rural | A tenement, posts in the biggest buildings, a cleared lot |
 | Base | A fenced yard on the main road | A fenced yard on the main road, or the town's goods yard | One of the fenced yard and shed, a warehouse depot or a car-park depot, the depots with open-air mech gantries |
 
+### The cut-off town's warren
+
+On a town world the Road's compound stands in its town, not in open bloom
+(owner, 2026-10-31: non-clear lines of sight are what make the ravs hard, and
+the player has to choose which alleys to cover). `CordonTownWarren` packs
+authored town buildings east of the compound (about sixty cells) and in front
+of it (about fifty), with alleys of two or three cells that all connect, so
+the swarm reaches the walls from the front and the east only through
+chokepoints. A six-cell ring round the wall stays open for the gates and
+posterns; nothing stands on road, held ground or the redoubts' line, and the
+town bores still find their sites in the warren's wider gaps. Open country
+and a city keep the ground they grew.
+
 ## The beats' set pieces
 
 Every beat the owner picked (all twelve) declares its set piece. The layout
