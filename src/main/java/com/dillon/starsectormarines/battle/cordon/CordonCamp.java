@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.evacuation.ColonyMilitia;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
@@ -130,9 +132,26 @@ public final class CordonCamp {
 
     private final Plan plan;
     private int nextHome;
+    /** The camp's guard teams: the two seated at setup, then the replacements that joined them. */
+    private final List<Integer> teams = new ArrayList<>();
 
     private CordonCamp(Plan plan) {
         this.plan = plan;
+    }
+
+    /** The camp's guard teams, the replacements that joined them included. */
+    public List<Integer> teams() { return List.copyOf(teams); }
+
+    /**
+     * Replacement squads join the camp's guard ({@code cordon-nouns.md}, Replacements): its teams now, holding the
+     * camp's square under garrison authority.
+     */
+    void join(BattleSimulation sim, List<Integer> squads) {
+        for (int squad : squads) {
+            teams.add(squad);
+            sim.assignSquadCommand(ObjectiveAssignment.defendArea(squad, centreX(), centreY(), HALF),
+                    CommandAuthority.GARRISON, CordonGarrisons.ISSUER, "hold the camp");
+        }
     }
 
     /** The corridor cell the trucks stop at in the camp. */
@@ -417,15 +436,17 @@ public final class CordonCamp {
             if (!grid.isWalkable(c[0], c[1]) || topology.isFixture(c[0], c[1])) continue;
             ColonyMilitia.seatEmplacement(sim, c, "Camp gun " + (++gun), CORNER_GUN);
         }
-        seat(sim, plan.guards(), "Camp guard", risk, rng);
-        seat(sim, plan.rearGuards(), "Camp rear guard", risk, rng);
-        return new CordonCamp(plan);
+        CordonCamp camp = new CordonCamp(plan);
+        seat(sim, camp, plan.guards(), "Camp guard", risk, rng);
+        seat(sim, camp, plan.rearGuards(), "Camp rear guard", risk, rng);
+        return camp;
     }
 
-    private static void seat(BattleSimulation sim, List<int[]> cells, String name, RiskLevel risk, Random rng) {
+    private static void seat(BattleSimulation sim, CordonCamp camp, List<int[]> cells, String name, RiskLevel risk,
+                             Random rng) {
         List<int[]> open = new ArrayList<>();
         for (int[] c : cells) if (sim.getGrid().isWalkable(c[0], c[1])) open.add(c);
-        if (!open.isEmpty()) ColonyMilitia.seatTeam(sim, open, name, risk, rng);
+        if (!open.isEmpty()) camp.teams.add(ColonyMilitia.seatTeam(sim, open, name, risk, rng));
     }
 
     private static boolean standable(NavigationGrid grid, CellTopology topology, Prop p) {

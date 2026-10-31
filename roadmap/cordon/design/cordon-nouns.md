@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — the air base is an ordinary laid airbase (*Air base*): its bays, three fighters and two bombers, are the wing, rebuilt by the field's crew, and a map with no lot or strip flies the wing in over the rear edge; sandbag lines across the posterns' street mouths with a clear field of fire, room from buildings and off the convoys' ground (*Town sandbags*); the Road's truck yard one-way, in at its gate and out at a second gate further along the wall (*One-way yard*); the pull-out zone is the north-east quarter of the base's goods yard, held ten seconds without a break to finish; the town's far-side bore opens mid-mission; the pull-out: once enough are out the player is told the company has done enough and pulls it out by ordering a squad to the pull-out zone at the logistics base, which it must hold behind the line to finish (*The pull-out*); two surge bores by the town; on the Road, the town compound's posterns east and front, with guards inside its other ways in; the line replaces a redoubt's lost teams from the base by need (*Replacements*); bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; the trucks a fixed fleet of two convoys of three that cycle, a lost truck replaced once, waiting trucks in a parking line at the camp, and the yard and the road's narrows reserved one way at a time (*Fleet*, *Convoy traffic*); the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — walk-on replacements re-garrison the safe camp's guard as well as the redoubts, from one shared pool, never the town outside the wire (*Replacements*); the base's shed capped at six machines out and none idle at its door, every finished machine sent straight out, the ammunition trucks' stock counting those on the road (*Logistics base*); the pick-up fleet one convoy of three trucks with a fixed escort of three, nothing else joining its line (*Fleet*, *Escort*); the air base is an ordinary laid airbase (*Air base*): its bays, three fighters and two bombers, are the wing, rebuilt by the field's crew, and a map with no lot or strip flies the wing in over the rear edge; sandbag lines across the posterns' street mouths with a clear field of fire, room from buildings and off the convoys' ground (*Town sandbags*); the Road's truck yard one-way, in at its gate and out at a second gate further along the wall (*One-way yard*); the pull-out zone is the north-east quarter of the base's goods yard, held ten seconds without a break to finish; the town's far-side bore opens mid-mission; the pull-out: once enough are out the player is told the company has done enough and pulls it out by ordering a squad to the pull-out zone at the logistics base, which it must hold behind the line to finish (*The pull-out*); two surge bores by the town; on the Road, the town compound's posterns east and front, with guards inside its other ways in; the line replaces a redoubt's lost teams from the base by need (*Replacements*); bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; the trucks a fixed fleet of two convoys of three that cycle, a lost truck replaced once, waiting trucks in a parking line at the camp, and the yard and the road's narrows reserved one way at a time (*Fleet*, *Convoy traffic*); the trapped spread over the compound's rooms, the town guard inside with them, and the compound held as a whole; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -430,7 +430,9 @@ compound layer, which put a defender's compound marker on the allies' depot
 and would have sent the swarm's side its technicians' replacements; the
 Cordon takes it off. Its shed's berths build what the density's
 allied table lists (`cordon-allied-forces.md`), one machine at a time and round
-again, at the pace its allied technicians weld them: cars, technicals and
+again up to its **production caps** (six machines from the base standing, no
+finished one left waiting at the door; a loss lets it build again; Production
+caps there), at the pace its allied technicians weld them: cars, technicals and
 carriers in open country, technicals and carriers with every third machine a
 Hound in a town, Hounds alone in a city. The machine on the stocks is a real
 hull or mech frame whose structure is how far built it is, gun empty until it
@@ -506,23 +508,34 @@ one redoubt set down side by side, not on one spot.
 **Replacements (the Road)** (`CordonLineCommand`, `CordonAlliedRules.replacement`;
 owner, 2026-10-31). Infantry the line asks the base for by need, on top of the
 timetable's columns: the timetable feeds the line before each tide, and
-replacements make good what a redoubt has lost, through the long Road after the
-last column (the timetable's columns stop at minute ten; the Road runs to
-twenty-five and more). A redoubt whose garrison is a whole team's worth of men
-short of what it was manned with at setup (four of twelve), counting squads
+replacements make good what the defenses behind the line have lost, through the
+long Road after the last column (the timetable's columns stop at minute ten; the
+Road runs to twenty-five and more). The posts re-garrisoned are the redoubts and
+the safe camp's guard (*Camp*: two teams of four as seated, eight men); never the
+town compound outside the wire (owner: not the settlement outside the wire), and
+never a picket, which falls back once half its team is down, before it is ever a
+team short, leaving its post given up (`CordonAlliedRules.regarrisoned`). A post
+whose garrison is a whole team's worth of men short of what it was manned with at
+setup (four of a redoubt's twelve, four of the camp's eight), counting squads
 already on their way to it, asks for that many squads, at most two a call; the
-line makes one call at a time, to the redoubt most teams short (a calling one
-breaking a tie), at most one every forty-five seconds, with at most two
-replacement squads on their way at once. They come out of a small **pool** at
+line makes one call at a time, to the post most teams short (a calling redoubt
+breaking a tie, then a redoubt before the camp), at most one every forty-five
+seconds for any post, with at most two replacement squads on their way at once
+across every post. They come out of a small **pool** at
 the base: two squads, one more every three minutes, never more than two. A
 request with the pool empty, or with the swarm on the base's apron, is refused
 and asked again ten seconds later, as the producer's are. Each squad is one
 allied team walking in off the rear edge where the timetable's columns do (the
 entry nearest the muster yard) to the muster yard, where a carrier takes it to
 the redoubt that called for it (with no carrier forward, a city's, it walks to
-the redoubt itself) and it joins the garrison. A fallen or given-up redoubt is
-never refilled: it asks for nothing, and a replacement bound for one that falls
-on the way goes to the redoubt that needs it most. While replacements are on
+the redoubt itself) and it joins the garrison. A squad for the camp comes on at
+the entry nearest the camp and walks straight there, since the camp stands beside
+the base, and joins its guard, holding the camp's square. A fallen or given-up
+post is never refilled (the camp has fallen once none of its guard stands): it
+asks for nothing, and a walking replacement bound for one that falls on the way
+goes to the post most teams short still standing, else the redoubt that needs it
+most (one carried up keeps the muster's own rule, to the redoubt that needs it
+most). While replacements are on
 their way to a redoubt it has *Help coming*. The pool is small on purpose, so
 the allies hold the ordinary pressure and still sag in the tides and fall to the
 final surge. The Line keeps its timetable alone until the owner says otherwise
@@ -766,15 +779,20 @@ escorts waits at the line. A convoy is **lost** when all its trucks are
 destroyed; its passengers die with their truck.
 
 **Fleet.** The trucks are a fixed **fleet** that cycles (`CordonFleet`; owner,
-2026-10-31: "convoys of like 3-4 trucks that cycle"): two convoys of three
-trucks, six seats each, six trucks on the whole map, ever. The same trucks drive
+2026-10-31: "convoys of like 3-4 trucks that cycle"; "3 trucks for pickup and a
+handful on this line for escort"): one convoy of three trucks, six seats each,
+three trucks on the whole map, ever (two staggered convoys put six in the camp's
+parking line and on the road, which read as a queue). The same trucks drive
 trip after trip; a truck comes on only while the fleet is short of its size, at
 the start and 45 s after one is destroyed (its replacement appears in the
 parking line and joins the next trip), so a lost truck is made good once and
-the fleet never grows. A **trip** is a convoy's round trip; trips are **called
+the fleet never grows. Nothing else joins the convoy's line: the parking line has
+a place for each of the fleet's trucks and no more, the road's tight stretches
+are reserved for convoys alone, and the base's carriers, ammunition trucks and
+new machines never queue for the yard or the camp. A **trip** is a convoy's round trip; trips are **called
 while people are trapped**: the first at minute one, each after it once the one
 before has passed the gap toward the town and three trucks wait at the camp or
-may come on, so long as the town has more people than the seats already on
+may come on (with one convoy, once its trucks are home), so long as the town has more people than the seats already on
 their way, and never more than **five** in all. Forty-eight are trapped, so
 getting everyone out takes three trips of eighteen, the other two there for
 seats lost to a truck or a short loading.
@@ -796,7 +814,7 @@ or loading turns for home with whoever is aboard (`CordonConvoys.abandonTown`).
 
 **Escort.** The allied armour escorts the convoys, and the company is the
 backstop (*The allies hold, the company decides*). From the moment a convoy
-sets out, hulls leave their sectors and drive with it, one either side of the
+sets out, a fixed escort of three hulls (`CordonConvoys.ESCORT`) leave their sectors and drive with it, one either side of the
 road a little ahead of its lead truck and a third further on, never on the
 road itself, where a parked car is in the trucks' way. Escorts come only out
 of the **surplus**: the nearest hulls whose sector stands above its floor, at
@@ -1189,6 +1207,13 @@ from 1, refugee groups and convoys in departure order from 1, and bores in
 and the evidence; change them here first. Bores' own beats (grew, collapsed,
 surge, fed, harvest, impale) are Colony Breach's, published under this prefix
 with the same keys.
+
+The Road's battle radio (`WaylineNarration`, catalog `cordon_road_narration.json`)
+answers a chosen few PLAYER beats with a line from Orens, Castle, the convoy
+lead or the town guard; an event ending `_N` answers every index of a numbered
+beat that has no line of its own, one recording is not queued again within
+`StoryNarrationQueue.REPEAT_SECONDS`, and a string still marked `[UNWRITTEN` is
+never presented. A line is subtitle-only until its take is recorded.
 
 | Beat | Variant | Audience | When |
 | --- | --- | --- | --- |

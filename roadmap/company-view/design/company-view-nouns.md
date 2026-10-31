@@ -704,7 +704,9 @@ same size it lifts with. A socket, the selected-mount card and the spot it names
 the boat are one selection.
 
 **Fitting is drag-only, and parts are kept as the Mech Lab keeps them.** The stores
-list every part the boat can take, narrowed by a filter strip of her socket kinds
+list every part the boat can take that she wears, the company has learned or holds a
+spare of (an unlearned part with none in stores is absent, as in the Mech Lab; the
+company store sells its pattern), narrowed by a filter strip of her socket kinds
 (selecting a socket sets it); a card carries its tier, spare count, effect and
 footprint. A card with no spare is greyed with its price and a BUY that buys one
 into stores; away from a civilized port BUY refuses and the card says why. A spare is dragged onto a doll socket, which lights green where it fits
@@ -904,8 +906,9 @@ mech weapons of its own type and size, so a weapon license teaches a hull the we
 accordion: one section is open at a time, showing its slots, and opening another collapses it.
 The page opens on the first section with stock. Each row counts what the shelf holds there;
 choosing a section shows all of it, choosing a slot narrows it, and an empty category says so. Boat parts are the Boat Deck's learnable technology: the standard fitting of every slot
-and the yard's gun on every hardpoint (`BoatParts.starterIds`) are known to every company and
-never sold; every other fitting and gun is a pattern (`BoatDeck.knowsPart`) that the
+and the yard's gun on every hardpoint (`BoatParts.starterIds`), with the medium and heavy lift
+(the heavy cradle and heavy lift frame, `BoatParts.COMPANY_ISSUE`, owner 2026-10-31, for v0.1), are
+known to every company and never sold; every other fitting and gun is a pattern (`BoatDeck.knowsPart`) that the
 workshop will not build until it is bought here, and the Boat Deck's card says so
 (`NOT_LEARNED`). Parts already in stores or on a boat in a save from before learning are
 counted as learned, so nothing owned is ever locked away. A part's access tier follows the
@@ -959,7 +962,7 @@ same two presses. `BoatWorkshop.scrap` checks the purse first, strips every fitt
 gun to stores through the ordinary strip, credits the hull, and leaves the berth
 vacant; a shop that cannot recycle still breaks her up, for her parts alone. A mech's
 hull is its chassis quote less the frame's plating and any factory-locked gun, which
-stay as spares; a vehicle is bought whole without kits, so its whole quote is hull.
+stay as spares; a vehicle is bought as a bare hull, so its whole quote is hull and its fitted parts go to stores.
 At the full rate, building a machine and breaking it up again is exactly free and
 never a profit.
 

@@ -38,6 +38,6 @@ public final class DollSchematicCanvas implements CanvasProducer {
         float height = context.metrics().surfaceHeight();
         // A pattern for sale is not a mech that cannot deploy: its empty sockets carry no warning.
         if (variant != null) MechLabDollCanvas.drawBareChassis(context, variant, width, height, null, 0d, false);
-        else MechLabDollCanvas.drawBareVehicle(context, vehicle, width, height, 0d);
+        else MechLabDollCanvas.drawBareVehicle(context, vehicle, width, height, 0d, false);
     }
 }

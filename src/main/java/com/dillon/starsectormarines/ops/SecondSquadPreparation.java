@@ -29,7 +29,7 @@ final class SecondSquadPreparation {
         long formations = roster.squads().stream().filter(s -> !s.reserve() && !s.stationed()).count();
         int ready = roster.lineReadySoldiers().size();
         String requirements = LessonCopy.text(SupplyRouteCampaign.isBattle(mission) || CorvusWaylineCampaign.isBattle(mission) || ShepherdRecoveryCampaign.isBattle(mission) || AgreusArcCampaign.isBattle(mission) || DistrictEscortCampaign.isBattle(mission)
-                ? "lessonSecondMinimum" : "lessonSecondCheck");
+                ? "lessonSecondAdvisory" : "lessonSecondCheck");
         String advice = LessonCopy.text(full >= 2 ? "lessonSecondFull"
                 : formations >= 2 ? "lessonSecondExisting" : "lessonSecondFound");
         StringBuilder costs = new StringBuilder(CompanyResources.creditBill(

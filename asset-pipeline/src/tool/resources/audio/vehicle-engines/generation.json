@@ -1,6 +1,6 @@
 {
   "documentation": "https://elevenlabs.io/docs/api-reference/text-to-sound-effects/convert",
-  "note": "Engine loops for ground vehicles, played by MachineAudio with pitch and volume following speed. Each is recorded at one steady mid throttle; the game bends it toward idle and full. The owner kept both tracked takes (diesel for most tanks, turbine for the laser tanks) and the A take of wheeled and hover (2026-10-23).",
+  "note": "Engine loops for ground vehicles, played by MachineAudio with pitch and volume following speed. Each is recorded at one steady mid throttle; the game bends it toward idle and full. The owner kept tracked A (diesel for most tanks) and the A take of wheeled and hover (2026-10-23). The laser tank's turbine voice moved from tracked B to its own turbine batch; the owner picked turbine B (2026-10-31) and moved the hover hulls onto it too, so hover A no longer ships. Turbine C and D came back almost entirely sub-bass (under 100 Hz) from two prompts each.",
   "settings": {
     "model_id": "eleven_text_to_sound_v2",
     "duration_seconds": 6,
@@ -27,6 +27,26 @@
       "id": "marines_engine_hover_a",
       "kind": "hover",
       "prompt": "Seamless loop of a hovercraft's large lift fans at steady operation, heard from outside. A powerful low whooshing air roar with a smooth rotating fan pulse and a soft electric motor hum underneath. Constant and even with no spin up or down. No water splashing, no voices, no music, no ambience."
+    },
+    {
+      "id": "marines_engine_turbine_a",
+      "kind": "turbine",
+      "prompt": "Seamless loop of a main battle tank's gas turbine engine idling high and steady, heard from outside close by. The signature piercing turbine whistle, a clean high-pitched jet whine over a soft deep rushing roar of intake air and hot exhaust. Constant and even with no spool up or down. No track clanking, no gunfire, no voices, no music, no ambience."
+    },
+    {
+      "id": "marines_engine_turbine_b",
+      "kind": "turbine",
+      "prompt": "Seamless loop of a heavy armored vehicle's large gas turbine at steady power, heard from outside. A thick powerful jet-engine roar and low rumble with a clear singing compressor whine layered on top, smooth with no combustion knock. Constant and even with no spool up or down. No track clanking, no gunfire, no voices, no music, no ambience."
+    },
+    {
+      "id": "marines_engine_turbine_c",
+      "kind": "turbine",
+      "prompt": "Seamless loop of an advanced high-tech armored vehicle's turbine-electric drive at steady power, heard from outside. A bright clean turbine whine and a crisp electric generator hum in the foreground, airy exhaust hiss, only a modest low end. Clear and present, not a bass rumble. Constant and even with no spool up or down. No track clanking, no gunfire, no voices, no music, no ambience."
+    },
+    {
+      "id": "marines_engine_turbine_d",
+      "kind": "turbine",
+      "prompt": "Seamless loop of a turboshaft engine in an armored hull at steady power, heard from outside. A loud howling air intake rush and a shimmering mid-high compressor whine up front, with a lighter turbine drone underneath. Clear and present, not a bass rumble. Constant and even with no spool up or down. No track clanking, no gunfire, no voices, no music, no ambience."
     }
   ]
 }

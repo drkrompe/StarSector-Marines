@@ -229,7 +229,7 @@ deployment still requires a currently owned, operational Shepherd and the select
 Ship on Station support card, with its ordinary supply cost and ship settlement.
 
 **Water Under Seal** opens the arc at North Weir. Two full regular squads are
-recommended; deployment requires two selected squads with four ready people each.
+recommended; any deployable selected squad may launch.
 Their fitted boats carry their actual named personnel through repeated trips.
 Dormer supplies eight constables, two technicians and one physical repair load.
 The company escorts the load, clears two enclosed switching rooms, protects the
@@ -826,8 +826,9 @@ no invented survivor count and claims neither an intact Hound nor a completed
 patrol. It reads the settled outcome, cannot delay or repeat settlement, and
 does not play on defeat or unrelated recurring jobs.
 
-All three support exact selected named personnel with at least two squads of
-four ready marines each and up to four fitted boats making repeated trips.
+All three support exact selected named personnel, from one deployable squad up
+(the recommended force is advice, not a launch gate), and up to four fitted
+boats making repeated trips.
 All selected squads may be active, including on Sabotage. Wayline supplies
 heavy transport for the company's active owned mech lance, with no free
 chassis, employer infantry, fighter cover or additional strategic powers.

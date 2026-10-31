@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
@@ -22,7 +23,7 @@ class CordonArmourGroundTest {
             grid.setWalkable(4, i, false);
             grid.setWalkable(12, i, false);
         }
-        boolean[] main = CordonArmour.mainGround(grid, 1);
+        boolean[] main = VehicleClearance.mainGround(grid, 1);
         assertFalse(main[8 * 40 + 8], "the pen's middle fits a hull but is not the map's ground");
         assertTrue(main[8 * 40 + 20]);
         int[] cell = CordonArmour.nearest(grid, main, 8, 8, 24);

@@ -115,6 +115,8 @@ public final class FabricationSystem {
      * conquest map is mostly soldiers.
      */
     private void weld(float dt, BattleSimulation sim, FabricationService works) {
+        // A line held at its cap builds nothing until it is let run again.
+        if (works.held()) return;
         AmbientTaskService tasks = sim.ambientTasks();
         for (long actor : tasks.assigned()) {
             if (tasks.jobInHand(actor) == null) continue;

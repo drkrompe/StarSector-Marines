@@ -61,6 +61,44 @@ class CordonReplacementRulesTest {
         assertNull(CordonAlliedRules.replacement(List.of(g(1, 12, 0)), TEAM, 2, 0, 2, false), "nobody short");
     }
 
+    private static Garrison camp(int standing, int coming) {
+        return new Garrison(CordonAlliedRules.CAMP, true, false, 8, standing, coming);
+    }
+
+    @Test
+    void theDefensesBehindTheLineAreRegarrisonedNeverTheTownOutsideTheWire() {
+        assertTrue(CordonAlliedRules.regarrisoned(CordonAlliedRules.Defense.REDOUBT));
+        assertTrue(CordonAlliedRules.regarrisoned(CordonAlliedRules.Defense.CAMP));
+        assertFalse(CordonAlliedRules.regarrisoned(CordonAlliedRules.Defense.TOWN));
+        assertFalse(CordonAlliedRules.regarrisoned(CordonAlliedRules.Defense.OUTER_PICKET));
+        assertFalse(CordonAlliedRules.regarrisoned(CordonAlliedRules.Defense.PICKET_LINE), "it falls back before it is a team short");
+    }
+
+    @Test
+    void aFallenCampIsNeverRefilled() {
+        Garrison fallen = new Garrison(CordonAlliedRules.CAMP, false, false, 8, 0, 0);
+        assertEquals(0, CordonAlliedRules.teamsShort(fallen, TEAM));
+        assertNull(CordonAlliedRules.replacement(List.of(fallen), TEAM, 2, 0, 2, false));
+    }
+
+    @Test
+    void theCampAndTheRedoubtsShareOneLinesCaps() {
+        List<Garrison> both = List.of(g(1, 8, 0), camp(0, 0));
+        assertNull(CordonAlliedRules.replacement(both, TEAM, 2, 2, 2, false), "two on the way anywhere fill the line");
+        assertNull(CordonAlliedRules.replacement(both, TEAM, 2, 0, 2, true), "one cooldown for every post");
+        assertArrayEquals(new int[]{CordonAlliedRules.CAMP, 1}, CordonAlliedRules.replacement(both, TEAM, 2, 1, 2, false));
+    }
+
+    @Test
+    void theMostShortPostIsServedFirstARedoubtBeforeTheCampOnATie() {
+        assertArrayEquals(new int[]{CordonAlliedRules.CAMP, 2},
+                CordonAlliedRules.replacement(List.of(g(1, 8, 0), camp(0, 0)), TEAM, 2, 0, 2, false));
+        assertArrayEquals(new int[]{1, 1},
+                CordonAlliedRules.replacement(List.of(g(1, 8, 0), camp(4, 0)), TEAM, 2, 0, 2, false));
+        assertArrayEquals(new int[]{1, 1},
+                CordonAlliedRules.replacement(List.of(g(1, 8, 0), camp(0, 1)), TEAM, 2, 0, 2, false), "the camp's coming squad counts");
+    }
+
     @Test
     void onlyTheRoadReplacesLosses() {
         assertTrue(CordonAlliedRules.replacesLosses(CordonVariant.ROAD));

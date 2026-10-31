@@ -76,6 +76,17 @@ public final class CampaignVehicle implements Serializable {
         for (MechInternal part : VehicleRack.stockFit(type)) rackInternalIds.add(part.id);
     }
 
+    /**
+     * A hull as the lab sells it, as a chassis is a bare frame ({@link CampaignMech#frame}): its own gun and factory
+     * plating, an empty engine core and an empty compartment, so it stands incomplete until fitted.
+     */
+    public static CampaignVehicle hull(String id, String displayName, VehicleType type) {
+        CampaignVehicle vehicle = new CampaignVehicle(id, displayName, type);
+        vehicle.engineId = null;
+        vehicle.rackInternalIds.clear();
+        return vehicle;
+    }
+
     public String id() { return id; }
     public String displayName() { return displayName; }
     public VehicleType type() { return type; }

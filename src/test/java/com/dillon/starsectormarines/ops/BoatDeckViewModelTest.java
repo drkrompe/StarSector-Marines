@@ -62,6 +62,22 @@ class BoatDeckViewModelTest {
         assertEquals(BoatFitting.STANDARD_LIFT.displayName(), dollSlot(model, BoatDoll.slotKey(BoatFittingSlot.LIFT)).fitted());
     }
 
+    /** A part the company has not learned and holds none of is absent from stores; the company store sells it. */
+    @Test
+    void anUnlearnedPartWithNoSpareIsNotListed() {
+        BoatDeck boats = new BoatDeck();
+        boats.reconcile("freighter", ShuttleType.BUFFALO, 1);
+        BoatDeckViewModel model = new BoatDeckViewModel(
+                new Reactor(), boats, new TestPurse(60_000), "Buffalo");
+        model.selectBoatAction(0).run();
+        model.selectSlotAction(BoatFittingSlot.LIFT).run();
+
+        assertFalse(boats.knowsPart(BoatFitting.LIFT_CRADLE.id()));
+        assertTrue(model.catalogRows().get().stream().noneMatch(row -> BoatFitting.LIFT_CRADLE.id().equals(row.itemId())));
+        assertTrue(model.catalogRows().get().stream().anyMatch(row -> BoatFitting.STANDARD_LIFT.id().equals(row.itemId())),
+                "what she wears is listed");
+    }
+
     @Test
     void aGunDraggedOntoAHardpointArmsTheDoll() {
         BoatDeckViewModel model = new BoatDeckViewModel(

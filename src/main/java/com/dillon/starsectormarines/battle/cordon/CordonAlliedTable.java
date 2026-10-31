@@ -58,20 +58,39 @@ public record CordonAlliedTable(List<VehicleType> openingArmour, boolean opening
     static final Reserve RESERVE = new Reserve(VehicleType.MILITIA_TECHNICAL, 1, 240, 2, 120, 400, 0.3f);
 
     /**
-     * The base's pool of replacement squads, called by need when a redoubt's garrison has lost a team's worth of men
-     * ({@code cordon-nouns.md}, Replacements): small and slow to refill, so the line still sags in a tide and falls to
-     * one it cannot hold.
+     * The base's pool of replacement squads, called by need when a post behind the line (a redoubt's garrison, the
+     * safe camp's guard) has lost a team's worth of men ({@code cordon-nouns.md}, Replacements): one pool and one set
+     * of caps shared by every post, small and slow to refill, so the line still sags in a tide and falls to one it
+     * cannot hold, and the allies never flood the map.
      *
      * @param squads          squads in the pool at the start, and the most it holds
      * @param restockSeconds  seconds between one squad and the next coming into the pool
-     * @param perCall         the most squads one call sends to one redoubt
-     * @param inFlight        the most replacement squads on their way to the line at once
-     * @param cooldownSeconds seconds after a call before the line calls again, for any redoubt
+     * @param perCall         the most squads one call sends to one post
+     * @param inFlight        the most replacement squads on their way to any post at once
+     * @param cooldownSeconds seconds after a call before the line calls again, for any post
      */
     public record Replacements(int squads, int restockSeconds, int perCall, int inFlight, int cooldownSeconds) { }
 
     /** UNTUNED: two squads in the pool, one more every three minutes, two at a time, a call at most every 45 seconds. */
     static final Replacements REPLACEMENTS = new Replacements(2, 180, 2, 2, 45);
+
+    /**
+     * The base shed's production caps ({@code cordon-allied-forces.md}, Production caps): the shed builds only while
+     * the machines the base has put out and that still stand are fewer than {@code alive}, and while fewer than
+     * {@code idle} finished machines wait at the base to get out of its door. A loss lets it build again up to the cap;
+     * a finished machine is sent out at once, so nothing the shed builds stands idle at the base.
+     *
+     * @param alive the most machines from the base standing at once: the shed's, the reserve's armour pairs and the
+     *              opening carrier
+     * @param idle  the most finished machines waiting at the base before the shed stops
+     */
+    public record Production(int alive, int idle) { }
+
+    /**
+     * UNTUNED: six machines out from the base at once (with the four opening hulls, ten: a floor of one a sector, a
+     * convoy's escort of three and a spare), and one finished machine waiting at the door at most.
+     */
+    static final Production PRODUCTION = new Production(6, 1);
 
     /** Where a carrier sets down at a redoubt. */
     public enum CarrierDrop {

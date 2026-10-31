@@ -13,16 +13,24 @@ import java.util.Set;
  *
  * <p>A part is <em>starter</em> when a new boat is built with it: the standard fitting of every
  * slot and the yard's own gun on every hardpoint of every pattern. Those are known to every
- * company and never sold, because a boat the yard builds must always be buildable. Everything
- * else is learned ({@link BoatDeck#learnPart}) before the workshop will build another.
+ * company and never sold, because a boat the yard builds must always be buildable. The medium and
+ * heavy lift fittings are starter issue too ({@link #COMPANY_ISSUE}). Everything else is learned
+ * ({@link BoatDeck#learnPart}) before the workshop will build another.
  */
 public final class BoatParts {
 
     private BoatParts() {}
 
-    /** Every part a new boat of any pattern is built with. */
+    /**
+     * Parts every company knows from the start though no new boat is built with them: the medium and heavy lift, so a
+     * company can carry its heavier machines without waiting on a licence (owner, 2026-10-31, for v0.1).
+     */
+    static final List<BoatFitting> COMPANY_ISSUE = List.of(BoatFitting.HEAVY_CRADLE, BoatFitting.HEAVY_LIFT_FRAME);
+
+    /** Every part a new boat of any pattern is built with, and the company issue. */
     public static Set<String> starterIds() {
         Set<String> ids = new LinkedHashSet<>();
+        for (BoatFitting fitting : COMPANY_ISSUE) ids.add(fitting.id());
         for (BoatFitting fitting : BoatFitting.catalog()) {
             if (fitting.standard()) ids.add(fitting.id());
         }

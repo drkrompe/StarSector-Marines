@@ -16,7 +16,6 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.fortress.InstallationWalls;
 import com.dillon.starsectormarines.battle.world.model.CellTopology;
 
-import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -72,7 +71,6 @@ public final class CordonArmour {
     public static final int MISSION_OUT = 22;
     /** How far from its middle a yard mortar's fire mission reaches. */
     public static final int MISSION_RADIUS = 18;
-
 
     private final AlliedCommand command;
     private final int frontward;
@@ -248,10 +246,10 @@ public final class CordonArmour {
         return nearest(sim.getGrid(), mainGround(sim, type), x, y, SET_DOWN_REACH);
     }
 
-    /** The map's main body of ground a hull of this type's footprint fits on ({@link #mainGround(NavigationGrid, int)}). */
+    /** The map's main body of ground a hull of this type's footprint fits on ({@link VehicleClearance#mainGround(NavigationGrid, int)}). */
     boolean[] mainGround(BattleSimulation sim, VehicleType type) {
         int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);
-        return mainGround.computeIfAbsent(radius, r -> mainGround(sim.getGrid(), r));
+        return mainGround.computeIfAbsent(radius, r -> VehicleClearance.mainGround(sim.getGrid(), r));
     }
 
     /** The nearest cell to {@code (x, y)} in {@code ground}, out to {@code reach}, or {@code null}. */
@@ -267,45 +265,6 @@ public final class CordonArmour {
             }
         }
         return null;
-    }
-
-    /**
-     * The largest connected body of ground a footprint of {@code radius} fits on, stepping as the
-     * route planner steps (no closed edge crossed, no corner cut). Found once a battle per radius, at
-     * setup: walls breached later only add ground, so a cell in it stays in it.
-     */
-    static boolean[] mainGround(NavigationGrid grid, int radius) {
-        VehicleClearance mask = VehicleClearance.erode(grid, radius);
-        int w = grid.getWidth(), h = grid.getHeight();
-        int[] label = new int[w * h];
-        int bestLabel = 0, bestSize = 0, next = 0;
-        ArrayDeque<Integer> open = new ArrayDeque<>();
-        for (int start = 0; start < w * h; start++) {
-            if (label[start] != 0 || !mask.isPassable(start % w, start / w)) continue;
-            int id = ++next, size = 0;
-            label[start] = id;
-            open.add(start);
-            while (!open.isEmpty()) {
-                int i = open.poll(), x = i % w, y = i / w;
-                size++;
-                for (int dy = -1; dy <= 1; dy++) {
-                    for (int dx = -1; dx <= 1; dx++) {
-                        int nx = x + dx, ny = y + dy;
-                        if ((dx | dy) == 0 || !mask.isPassable(nx, ny) || label[ny * w + nx] != 0
-                                || !grid.canTraverseCellStep(x, y, nx, ny)) continue;
-                        label[ny * w + nx] = id;
-                        open.add(ny * w + nx);
-                    }
-                }
-            }
-            if (size > bestSize) {
-                bestSize = size;
-                bestLabel = id;
-            }
-        }
-        boolean[] main = new boolean[w * h];
-        for (int i = 0; i < w * h; i++) main[i] = bestLabel != 0 && label[i] == bestLabel;
-        return main;
     }
 
     /**
@@ -1026,7 +985,7 @@ public final class CordonArmour {
         if (type == null) return flank(r, rank);
         int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);
         boolean[] street = streetGround.computeIfAbsent(radius, k -> {
-            boolean[] main = mainGround.computeIfAbsent(k, m -> mainGround(sim.getGrid(), m));
+            boolean[] main = mainGround.computeIfAbsent(k, m -> VehicleClearance.mainGround(sim.getGrid(), m));
             return streets(sim.getTopology(), main, sim.getGrid().getWidth(), sim.getGrid().getHeight());
         });
         int w = sim.getGrid().getWidth(), h = sim.getGrid().getHeight();

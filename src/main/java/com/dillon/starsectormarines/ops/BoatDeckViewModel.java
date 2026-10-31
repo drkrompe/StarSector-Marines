@@ -755,7 +755,8 @@ public final class BoatDeckViewModel {
      *
      * <p>Parts are kept as the lab keeps them: a card counts the spares in stores, and one with
      * none shows its bill and a BUY that builds one. The stock parts are counted like any
-     * other. Whether a particular socket takes a part is the drop's to say
+     * other; a part she is not wearing that the company has not learned and holds none of is
+     * left out ({@link #stocked}). Whether a particular socket takes a part is the drop's to say
      * ({@link #canDropOnSocket}), not the card's.
      */
     private List<CatalogRow> buildStores() {
@@ -769,7 +770,7 @@ public final class BoatDeckViewModel {
             if (kind == BoatDoll.Kind.HARDPOINT) {
                 for (BoatGun gun : BoatGun.catalog()) {
                     List<Integer> mounts = mountsCarrying(boat, gun);
-                    if (mounts.isEmpty() && !gun.supports(boat.pattern())) continue;
+                    if (mounts.isEmpty() && (!gun.supports(boat.pattern()) || !stocked(gun.id()))) continue;
                     rows.add(gunCard(boat, gun, mounts));
                 }
                 continue;
@@ -777,11 +778,19 @@ public final class BoatDeckViewModel {
             BoatFittingSlot slot = fittingSlot(kind);
             for (BoatFitting fitting : BoatFitting.catalog(slot)) {
                 boolean installed = fitting == boat.fittingIn(slot);
-                if (!installed && !fitting.supports(boat.pattern())) continue;
+                if (!installed && (!fitting.supports(boat.pattern()) || !stocked(fitting.id()))) continue;
                 rows.add(fittingCard(boat, fitting, installed));
             }
         }
         return List.copyOf(rows);
+    }
+
+    /**
+     * Whether stores lists a part she is not wearing: one the company has learned or holds a spare of. An unlearned
+     * part with none in stores is absent, as in the Mech Lab; the company store sells its pattern.
+     */
+    private boolean stocked(String partId) {
+        return deck.knowsPart(partId) || deck.spares(partId) > 0;
     }
 
     private CatalogRow gunCard(CampaignBoat boat, BoatGun gun, List<Integer> mounts) {

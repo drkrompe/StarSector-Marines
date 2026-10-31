@@ -8,7 +8,7 @@ package com.dillon.starsectormarines;
  * here. The exception is the alpha's cheats: the debug missions, their
  * briefing pickers and the battle's debug panel with Win also open to a
  * player who turns on the mission board's Debug key
- * ({@link com.dillon.starsectormarines.ops.Cheats}), which a dev build starts on.
+ * ({@link com.dillon.starsectormarines.ops.Cheats}), which starts off in every build.
  *
  * <p>Kept as {@code public static final} booleans so the JIT can dead-code the
  * disabled branches at runtime — no perf cost when off.

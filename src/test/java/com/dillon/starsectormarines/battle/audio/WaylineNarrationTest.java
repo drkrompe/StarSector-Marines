@@ -280,4 +280,22 @@ class WaylineNarrationTest {
             else assertNotNull(catalog.find(chapter, event.id()), event.id());
         }
     }
+
+    @Test void aNumberedBeatFallsBackToItsCatchAllOnlyWhenItHasNoLineOfItsOwn() {
+        var first = new WaylineNarration.Line("first", "chapter", "cordon.tide_1", "First", 2, 1, 10, List.of());
+        var rest = new WaylineNarration.Line("rest", "chapter", "cordon.tide_N", "Rest", 2, 1, 10, List.of());
+        var catalog = new WaylineNarration(List.of(first, rest));
+        assertSame(first, catalog.find("chapter", "cordon.tide_1"));
+        assertSame(rest, catalog.find("chapter", "cordon.tide_2"));
+        assertSame(rest, catalog.find("chapter", "cordon.tide_12"));
+        assertNull(catalog.find("other", "cordon.tide_2"));
+        assertNull(catalog.find("chapter", "cordon.tide"));
+        assertNull(catalog.find("chapter", "cordon.final_surge"));
+    }
+
+    @Test void theCordonRoadCatalogParses() throws Exception {
+        var catalog = WaylineNarration.parse(new JSONObject(
+                Files.readString(Path.of("mod/data/marines/cordon_road_narration.json"))));
+        assertFalse(catalog.lines().isEmpty());
+    }
 }

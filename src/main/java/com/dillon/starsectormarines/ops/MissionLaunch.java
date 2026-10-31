@@ -593,16 +593,14 @@ public final class MissionLaunch {
                 if (AgreusArcCampaign.requiresConstructionTender(m))
                     AgreusConstructionSupport.requireLive(det.powers, liveResources.availableSupplies());
             }
-            if ((CorvusWaylineCampaign.isBattle(m) || shepherd || agreus || escort)
-                    && !SupplyRouteCampaign.forceReady(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
-                throw new IllegalStateException("Select at least two squads with four ready marines each.");
+            if (CorvusWaylineCampaign.isBattle(m)
+                    && !SupplyRouteCampaign.forceDeployable(personnel == null ? null : personnel.roster(), ctx.getSelectedMarineSquadIds()))
+                throw new IllegalStateException("Select at least one deployable squad.");
             BrokenSupplyRouteProgress route = supplyRoute ? SupplyRouteCampaign.requireCurrent(m) : null;
             if (supplyRoute || shepherd || agreus || escort) {
                 var roster = personnel == null ? null : personnel.roster();
-                if (supplyRoute && !SupplyRouteCampaign.forceDeployable(roster, ctx.getSelectedMarineSquadIds()))
+                if (!SupplyRouteCampaign.forceDeployable(roster, ctx.getSelectedMarineSquadIds()))
                     throw new IllegalStateException("Select at least one deployable squad.");
-                if (!supplyRoute && !SupplyRouteCampaign.forceReady(roster, ctx.getSelectedMarineSquadIds()))
-                    throw new IllegalStateException("Select at least two squads with four ready marines each.");
                 if (!sim.companyStartsOnGround()) deployment.applyToAuthoredPlayerLift(sim);
             }
             var debugScenario = DebugMissionCatalog.scenario(m);

@@ -571,13 +571,12 @@ STANDARD armor and unrelated equipment retain their own access and purposes.
 Target an authored **Established** operation profile throughout, with opposition
 quality and objective duties increasing within it. Dormer's minor house rank does
 not imply every chapter is a generated Tier-1 patron job. State authored tier,
-recommendation and hard launch minimum separately on each offer.
+and recommendation separately on each offer.
 
-Initial acceptance floor: two selected squads with at least four ready named
-marines each, an eligible fitted insertion manifest and, in the chapters that
-build (all but Chapter 5), actual tender support.
-Recommendations above assume full twelve-person squads; the minimum is not a
-claim that eight people reliably win. All selected squads may enter through
+Acceptance floor: at least one deployable selected squad (the recommendation is
+advice, never a launch gate), an eligible fitted insertion manifest and, in the
+chapters that build (all but Chapter 5), actual tender support.
+Recommendations above assume full twelve-person squads. All selected squads may enter through
 ordinary repeated trips; Raid-shaped Chapter 2 explicitly has unrestricted
 presence rather than inheriting the generic covert two-squad limit. More player
 lift never expands the enemy pool to match it.

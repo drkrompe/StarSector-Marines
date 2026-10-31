@@ -18,8 +18,8 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
     private static final Color PAD = new Color(0x0D, 0x20, 0x2C);
     /** A sheet whose size cannot be read draws its frames at the APC sheets' proportion. */
     private static final float DEFAULT_FRAME_ASPECT = 0.75f;
-    /** The canvas turn that brings the sheet's left-pointing nose to the top of the screen. */
-    private static final float NOSE_UP_DEGREES = 90f;
+    /** The canvas turn that brings the sheet's left-pointing nose down the screen, as a parked hull faces down its berth. */
+    private static final float ON_PAD_DEGREES = 90f;
 
     private final VehicleType type;
     /** Resolved on the first draw, from whichever host is drawing; NaN until then. */
@@ -44,14 +44,14 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
     }
 
     /**
-     * Draws the hull and turret at a canvas point. The sheet's nose points left; {@code noseUp}
-     * turns the whole vehicle a quarter so it stands on a pad the way the mechs do.
+     * Draws the hull and turret at a canvas point. The sheet's nose points left; {@code onPad}
+     * turns the whole vehicle a quarter so it faces down its pad as the parked hull does.
      */
-    void drawAt(CanvasContext context, float centerX, float centerY, float cellPx, boolean noseUp, float alpha) {
+    void drawAt(CanvasContext context, float centerX, float centerY, float cellPx, boolean onPad, float alpha) {
         float hullWidth = type.drawnLengthCells * cellPx;
         float aspect = frameAspect(context);
         float hullHeight = hullWidth * aspect;
-        float angle = noseUp ? NOSE_UP_DEGREES : 0f;
+        float angle = onPad ? ON_PAD_DEGREES : 0f;
         float[] tint = type.hullTint();
         Color hullColor = tint == null ? new Color(1f, 1f, 1f, alpha)
                 : new Color(clamp(tint[0]), clamp(tint[1]), clamp(tint[2]), alpha);
@@ -59,16 +59,17 @@ public final class VehiclePreviewCanvas implements CanvasProducer {
                 CanvasSpriteRegion.frame(type.frameCount, 1, type.spriteFrame), CanvasBlend.NORMAL);
         if (type.turretFrame >= 0) {
             float turretWidth = type.turretVisualCells * cellPx;
-            // The chassis' forward (+Y) runs along the nose: left on the sheet, up when turned.
-            float turretX = noseUp ? centerX + type.turretMountX * cellPx : centerX - type.turretMountY * cellPx;
-            float turretY = noseUp ? centerY - type.turretMountY * cellPx : centerY - type.turretMountX * cellPx;
+            // The chassis' forward (+Y) runs along the nose and its right (+X) a quarter clockwise of it:
+            // forward left and right up on the sheet; forward down and right to the left when turned.
+            float turretX = onPad ? centerX - type.turretMountX * cellPx : centerX - type.turretMountY * cellPx;
+            float turretY = onPad ? centerY + type.turretMountY * cellPx : centerY - type.turretMountX * cellPx;
             VehicleType.GunLayer gun = type.gunLayer(null);
             if (gun != null) {
                 // A head's gun is its own layer under the housing ({@link VehicleType.GunLayer}), ahead of its centre.
                 float ahead = turretWidth * gun.centreAheadShare();
                 float strip = VehicleType.GunLayer.STRIP_SHARE;
-                context.sprite(type.spritePath, null, noseUp ? turretX : turretX - ahead,
-                        noseUp ? turretY - ahead : turretY, turretWidth * gun.cutShare(),
+                context.sprite(type.spritePath, null, onPad ? turretX : turretX - ahead,
+                        onPad ? turretY + ahead : turretY, turretWidth * gun.cutShare(),
                         turretWidth * aspect * strip, angle, new Color(1f, 1f, 1f, alpha),
                         new CanvasSpriteRegion((float) gun.frame() / type.frameCount,
                                 Math.min(gun.strip() * strip, 1f - strip),

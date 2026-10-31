@@ -449,7 +449,7 @@ public final class MissionSelectScreen implements Screen {
 
     private static List<DetailRow> detailRows(Mission mission) {
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.smallWar(mission.id)) return List.of(
-                detailRow("force",Strings.get("missionSelectCompany"),Strings.get("missionSelect3FullSquadsRecommendedMinimum2With4")),
+                detailRow("force",Strings.get("missionSelectCompany"),Strings.get("missionSelect3FullSquadsRecommendedFittedShuttles")),
                 detailRow("support",Strings.get("missionSelectSmallWarSupport"),Strings.get("missionSelectSmallWarSupportDetail")),
                 detailRow("claim",Strings.get("missionSelectBlackSluice"),Strings.get("missionSelectSmallWarClaim")),
                 detailRow("terms",Strings.get("missionSelectPreservation"),Strings.get("missionSelectSmallWarPreservation")),
@@ -469,7 +469,7 @@ public final class MissionSelectScreen implements Screen {
                 detailRow("terms", Strings.get("missionSelectRecurringTerms"), Strings.get("missionSelectDistrictEscortTerms")),
                 detailRow("payout", Strings.get("missionSelectVictoryFee"), Strings.get("missionSelectDistrictEscortPayout")));
         if (AgreusArcCampaign.isBattle(mission) && AgreusArcProgress.yardOwners(mission.id)) return List.of(
-                detailRow("force",Strings.get("missionSelectCompany"),Strings.get("missionSelect3FullSquadsRecommendedMinimum2With4")),
+                detailRow("force",Strings.get("missionSelectCompany"),Strings.get("missionSelect3FullSquadsRecommendedFittedShuttles")),
                 detailRow("support",Strings.get("missionSelectInspectionParty"),Strings.get("missionSelectOwnedTender8Constables2TechniciansOptionalOwned")),
                 detailRow("claim",Strings.get("missionSelectLatchkey"),Strings.get("missionSelectHoldDispatchToolingHallAndOperatorEntranceTogether")),
                 detailRow("terms",Strings.get("missionSelectPreservation"),Strings.get("missionSelectMarkedToolingMustSurviveNoBombardmentOrFighter")),
@@ -504,7 +504,7 @@ public final class MissionSelectScreen implements Screen {
                 detailRow("opposition", Strings.get("missionSelectSableWakeCrew"), Strings.get("missionSelectOpposition" + mission.risk.name())),
                 detailRow("payout", Strings.get("missionSelectPaymentOnVictory"), Strings.format("missionSelectCredits", NumberFormat.getIntegerInstance().format(mission.payout))));
         if (SupplyRouteCampaign.owns(mission.id)) return List.of(
-                detailRow("force", Strings.get("missionSelectCompanyCommitment"), Strings.get("missionSelect2SquadsRecommendedAtLeast4Ready")),
+                detailRow("force", Strings.get("missionSelectCompanyCommitment"), Strings.get("missionSelect2SquadsRecommendedOnly")),
                 detailRow("lift", Strings.get("missionSelectCompanyLift"), Strings.get("missionSelect14FittedBoatsTripsFollowThe")),
                 detailRow("opposition", Strings.get("missionSelectOpposition"), Strings.get("missionSelectLocalRaidersNoFighterOrMechSupport")),
                 detailRow("payout", Strings.get("missionSelectPaymentOnVictory"), SupplyRouteCampaign.freight(mission) ? Strings.get("missionSelect60004000PerDeliveredCarrier")

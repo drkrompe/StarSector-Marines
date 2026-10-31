@@ -6,7 +6,6 @@ import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.MarineRoster;
-import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -103,20 +102,13 @@ public final class SupplyRouteCampaign {
                 .mapPosition(0.5f, 0.5f).battleSeed((long) p.planetId().hashCode() * 31 + kind * 1000L + p.job()).build();
     }
     /**
-     * The supply route's own launch check: at least one deployable squad, every selected one deployable. Two full
-     * squads are recommended, never required; a smaller force is the player's choice (owner, 2026-10-27).
+     * Every story arc's launch check: at least one deployable squad, every selected one deployable. An arc's
+     * recommended force is advice, never required; a smaller force is the player's choice (owner, 2026-10-27, and
+     * for the later arcs 2026-10-31).
      */
     public static boolean forceDeployable(MarineRoster roster, Set<String> selected) {
         return roster != null && selected != null && !selected.isEmpty() && selected.stream().allMatch(id -> roster.squadById(id) != null
                 && !roster.squadById(id).reserve() && !roster.squadById(id).stationed());
-    }
-    /** The recommended force, and the gate the later arcs still apply: two selected squads of four ready marines. */
-    public static boolean forceReady(MarineRoster roster, Set<String> selected) {
-        return forceDeployable(roster, selected)
-                && roster.squads().stream()
-                .filter(squad -> !squad.reserve() && selected.contains(squad.id()))
-                .filter(squad -> roster.squadMembers(squad).stream()
-                        .filter(soldier -> soldier.status() == MarineSoldierStatus.ACTIVE).count() >= 4).count() >= 2;
     }
     /** The quiet beat after a story victory; recurring work and defeated attempts keep their factual reports. */
     static String recoveryDebrief(MissionOutcome outcome) {

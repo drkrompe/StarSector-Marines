@@ -66,4 +66,26 @@ class StoryNarrationQueueTest {
         queue.advance(0, List.of(event(1, "start")), false);
         assertNull(queue.poll());
     }
+
+    @Test
+    void aCatchAllLineIsNotRepeatedWithinItsCooldown() {
+        Line calling = new Line("calling", "chapter", "redoubt_calling_N", "Subtitle", 4, 10, 30, List.of());
+        StoryNarrationQueue queue = new StoryNarrationQueue(new WaylineNarration(List.of(calling)), "chapter");
+        queue.advance(0, List.of(event(1, "redoubt_calling_1"), event(2, "redoubt_calling_2")), false);
+        assertEquals(calling, queue.poll());
+        assertNull(queue.poll(), "the second call in the same breath is dropped, not queued");
+        queue.advance(StoryNarrationQueue.REPEAT_SECONDS - 1, List.of(event(3, "redoubt_calling_3")), false);
+        assertNull(queue.poll());
+        queue.advance(1, List.of(event(4, "redoubt_calling_1")), false);
+        assertEquals(calling, queue.poll());
+    }
+
+    @Test
+    void anUnwrittenLineIsNeverPresented() {
+        Line unwritten = new Line("draft", "chapter", "landfall", StoryNarrationQueue.UNWRITTEN + " Orens: welcome]",
+                4, 10, 30, List.of());
+        StoryNarrationQueue queue = new StoryNarrationQueue(new WaylineNarration(List.of(unwritten)), "chapter");
+        queue.advance(0, List.of(event(1, "landfall")), false);
+        assertNull(queue.poll());
+    }
 }
