@@ -304,10 +304,7 @@ artifact.
   no longer stranded there (`carrier`).
 - Restricted sheets still need a warrant, so "the equipment wall opens at Working
   Passage" is not yet true for them (`restricted`).
-- The Outlaw Heavy sheet never sells in practice; the Boarding Jack is
-  story-reserved.
-- A station opens a sale, but market pools and rotation still decide what a shelf
-  shows on a given visit.
+- The Boarding Jack is story-reserved.
 - `EquipmentCollectionCurve` grants free cards regardless of stations, and
   `FactionEquipmentCatalog.validateReachability` still uses the old tier rules
   (`gap`).

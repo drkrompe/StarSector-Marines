@@ -1,7 +1,9 @@
 package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.marine.BoatParts;
+import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
 import com.dillon.starsectormarines.marine.EquipmentStore;
+import com.dillon.starsectormarines.marine.UnlockStation;
 import com.dillon.starsectormarines.marine.StoreSlot;
 import com.dillon.starsectormarines.testsupport.DiskRegistries;
 import com.dillon.starsectormarines.marine.FabricationCost;
@@ -57,15 +59,34 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
                     new SnapshotArtifact("store-boats-category.png",
                             frame(context, false, "SECTION:BOATS", false, null)),
                     new SnapshotArtifact("store-armor-slot.png",
-                            frame(context, false, "SLOT:ARMOR_LOADOUT", false, null)));
+                            frame(context, false, "SLOT:ARMOR_LOADOUT", false, null)),
+                    // The real shelf of a campaign that has won the Broken Supply Route junction.
+                    new SnapshotArtifact("store-junction-mechs.png",
+                            frame(context, junctionShelf(), "SECTION:MECHS", false)),
+                    new SnapshotArtifact("store-junction-weapons.png",
+                            frame(context, junctionShelf(), "SLOT:MECH_WEAPON", false)),
+                    new SnapshotArtifact("store-junction-marine.png",
+                            frame(context, junctionShelf(), "SECTION:MARINE", false)));
         }
+    }
+
+    /** Jangala's shelf for a new company whose campaign has passed every Kit Ladder station up to the junction. */
+    private static List<EquipmentStore.Offer> junctionShelf() {
+        UnlockStation junction = UnlockStation.byId("junction");
+        Set<UnlockStation> reached = new HashSet<>();
+        for (UnlockStation station : UnlockStation.all()) {
+            if (station.compareTo(junction) <= 0) reached.add(station);
+        }
+        MarineArmory armory = new MarineArmory();
+        return EquipmentStore.shelf(new EquipmentStore.Place("independent", "jangala", 4, 0.3f, false), 0L,
+                Set.copyOf(armory.knownLoadoutCardIds()), Set.copyOf(new MechBay().knownPatternIds()),
+                Set.copyOf(BoatParts.starterIds()), new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(), reached),
+                List.of());
     }
 
     private static BufferedImage frame(SnapshotContext context, boolean afterPurchase, String filter,
                                        boolean vehicleChassis, String extraCard)
             throws Exception {
-        Reactor reactor = new Reactor();
-        MarineArmory armory = new MarineArmory();
         List<LoadoutCard> cards = LoadoutCards.all();
         List<EquipmentStore.Offer> shelf = new ArrayList<>();
         for (int i = 0; i < 3; i++) {
@@ -99,6 +120,18 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
                 break;
             }
         }
+        return frame(context, shelf, filter, afterPurchase, extraCard);
+    }
+
+    private static BufferedImage frame(SnapshotContext context, List<EquipmentStore.Offer> shelf, String filter,
+                                       boolean afterPurchase) throws Exception {
+        return frame(context, shelf, filter, afterPurchase, null);
+    }
+
+    private static BufferedImage frame(SnapshotContext context, List<EquipmentStore.Offer> shelf, String filter,
+                                       boolean afterPurchase, String extraCard) throws Exception {
+        Reactor reactor = new Reactor();
+        MarineArmory armory = new MarineArmory();
         long[] credits = {afterPurchase ? 20_000 : 9_000};
         FabricationResources purse = new FabricationResources() {
             @Override public long credits() { return credits[0]; }

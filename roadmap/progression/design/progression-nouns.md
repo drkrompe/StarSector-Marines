@@ -579,15 +579,17 @@ revokes a card, never learns a carried card implicitly, and stops well short of 
 whole collection. A save from before the card ledger knows exactly the cards it
 could already field, once.
 
-Faction source pools author which cards may enter through market, license,
-patron, and recovery channels. Every card also authors an access tier. **The
-store's shelves are paced by the Kit Ladder, not by tier**: an open-market or
-licensed shelf offers a card once the campaign has passed its station, whatever its
-tier, and never one placed at *none*. The tier still sets the price. A Restricted
-card additionally needs a warrant naming it, and only its tradition's licence shelf
-sells it. Selection is faction-and-market-stable, weighted, rotates monthly and
-scales with market size; Favorable-or-better standing adds the licensed shelf.
-Patron rewards admit Advanced at MRB 5 and Prestige at 20, the same bands as patron
+Faction source pools author which cards may enter through patron and recovery
+channels. Every card also authors an access tier. **The company store is paced by
+the Kit Ladder alone**: every loadout card and machine pattern whose station the
+campaign has passed, and which the company does not already know or carry, is on
+sale at every store, whatever its tier, the market's size or owner, or the month.
+There is no rotation, slot count or faction-pool filter, and nothing placed at
+*none* is ever sold. The tier only sets the price (tier times the market's
+tariff). A Restricted card additionally needs a warrant naming it, and stands only
+on the licence shelf (Favorable-or-better standing) of a faction whose pool fields
+its Restricted kit, its tradition's. Boat parts are not on the ladder and keep a
+small monthly rotation by access tier. Patron rewards admit Advanced at MRB 5 and Prestige at 20, the same bands as patron
 contract access. High-risk recovery instead uses operational history, admitting Advanced
 after 5 company victories and Prestige after 15, so field discovery does not
 require bureaucratic standing. Already-owned or carried cards are omitted.
@@ -803,13 +805,11 @@ when the HQ was simplified, and that readout has no home yet. A Restricted card'
 tooltip and spec sheet name the tradition that issues it, in place of the
 reputation and victory thresholds the other tiers show.
 
-**Market listings are how a story stocks a shelf.** A card dropped into a market's
-cargo would not survive, because every open-market restock clears the cards and
-refills from the pools. So a story beat records a listing instead, and each restock
-puts listed cards on a shelf of their own before it draws the rotation. Listings
-are additional slots that never displace a rotating card, and a listed card is left
-out of the rotating draw. A listing bypasses the reputation and victory thresholds,
-because the story is the permission. It never bypasses the Restricted tier: listing
+**Market listings are how a story stocks a shelf.** A story beat records a listing
+rather than dropping a card into a market's cargo, and the store shows listed cards
+on a shelf of their own, first, before what the Kit Ladder opens; a listed card is
+never offered a second time. A listing bypasses the Kit Ladder station, because the
+story is the permission. It never bypasses the Restricted tier: listing
 a Restricted card needs a military warrant naming it, and a shelf never shows a
 Restricted card the company is not warranted for. A listing is withdrawn while the company knows
 or carries the card and returns if it stops doing so; nothing else expires it.
@@ -829,11 +829,9 @@ won: Advanced kit, no warrant. *Builder's Guard* (satchel-charge sappers and
 Palisade pods) is listed at Asharu once the Morrow's Working Passage settles. Each
 listing comes from the arc's own once-only settlement and is laid only on a won
 beat; a settlement that cannot place it logs and moves on rather than unwinding a
-payment. Each beat is also its card's Kit Ladder station, so the cards circulate like any
-other from then on, because a card's pool weight is
-its templates' weight: Counter-Battery Issue reaches a Hegemony licence through the
-Arrestor pack, the others reach independent markets and licences. The listing is
-the guaranteed route; the pools are the fallback.
+payment. Each beat is also its card's Kit Ladder station, so from then on every
+store sells the card as it sells anything else the ladder has opened; the listing
+only names the event at the market where it happened.
 **A card's identity is not about the company.** Its name and lore describe the kit
 as the wider sector knows it, typically an old licensed pattern or a schedule that
 is simply scarce, not a thank-you, a souvenir, or a record of the player's own

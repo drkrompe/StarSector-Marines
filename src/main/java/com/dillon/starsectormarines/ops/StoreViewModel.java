@@ -36,7 +36,8 @@ import java.util.function.Supplier;
  * would do. The rules (what is for sale, what it costs, what a purchase does) belong to
  * {@link EquipmentStore}; this class only presents them.
  *
- * <p>The shelf is read once when the page opens. Buying a card removes it from what the company
+ * <p>The shelf is read once when the page opens, in {@link EquipmentStore#shelfOrder} by display
+ * name; it can be long, so the offer list scrolls. Buying a card removes it from what the company
  * lacks, and a shelf recomputed after that would quietly fill the slot with something else under
  * the player's cursor; instead an item bought here stays on the shelf, marked acquired, until the
  * page is opened again.
@@ -149,7 +150,9 @@ final class StoreViewModel {
 
     /** Reads the shelf afresh; called when the page opens. */
     void refresh() {
-        shelf = shelfSource.get();
+        List<EquipmentStore.Offer> read = new ArrayList<>(shelfSource.get());
+        read.sort(EquipmentStore.shelfOrder(StoreViewModel::name));
+        shelf = List.copyOf(read);
         acquired.clear();
         verdictText.set("");
         // Open the first section that has something on the shelf, so the page never opens empty.

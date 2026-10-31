@@ -3,13 +3,15 @@ package com.dillon.starsectormarines.marine;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
 /**
- * Deterministic weighted choice of loadout cards for one faction and channel.
+ * Deterministic weighted choice of loadout cards for one faction and channel: patron rewards and recovery. The
+ * company store does not draw through it; the Kit Ladder alone stocks the store ({@link StoreStock}).
  *
  * <p>A faction's authored pool still lists the equipment it fields; a card is on offer
  * through a channel when the faction fields part of what it bundles there, at the
@@ -34,7 +36,7 @@ public final class LoadoutCardPicker {
         for (LoadoutCard card : LoadoutCards.all()) {
             if (unavailable.contains(card.id())
                     || !EquipmentAcquisitionEligibility.allows(card, source, progress)
-                    || !fieldsEveryRestricted(card, fielded)) {
+                    || !fieldsEveryRestricted(card, fielded.keySet())) {
                 continue;
             }
             int weight = 0;
@@ -66,14 +68,23 @@ public final class LoadoutCardPicker {
      * independent licence that happens to field the card's scout suits does not thereby
      * sell Hegemony military issue.
      */
-    private static boolean fieldsEveryRestricted(LoadoutCard card, Map<String, Integer> fielded) {
+    private static boolean fieldsEveryRestricted(LoadoutCard card, Set<String> fielded) {
         for (String templateId : card.templateIds()) {
             if (EquipmentTemplateCatalog.require(templateId).accessTier() == EquipmentAccessTier.RESTRICTED
-                    && !fielded.containsKey(templateId)) {
+                    && !fielded.contains(templateId)) {
                 return false;
             }
         }
         return true;
+    }
+
+    /** As above, for {@code factionId}'s pool through {@code source}: the store's licence shelf asks it too. */
+    static boolean fieldsEveryRestricted(LoadoutCard card, String factionId, FactionEquipmentSource source) {
+        Set<String> fielded = new HashSet<>();
+        for (FactionEquipmentOffer offer : FactionEquipmentCatalog.offers(factionId, source)) {
+            fielded.add(offer.templateId());
+        }
+        return fieldsEveryRestricted(card, fielded);
     }
 
     private record Candidate(String id, int weight) {}

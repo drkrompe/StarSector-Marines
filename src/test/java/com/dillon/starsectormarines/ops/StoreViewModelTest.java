@@ -26,12 +26,13 @@ class StoreViewModelTest {
     void aPurchaseStaysOnTheShelfMarkedAcquiredAndIsLearned() {
         MarineArmory armory = new MarineArmory();
         long[] credits = {20_000};
-        var first = LoadoutCards.all().get(0).id();
-        var second = LoadoutCards.all().get(1).id();
-        List<EquipmentStore.Offer> shelf = List.of(offer(first), offer(second));
+        List<EquipmentStore.Offer> shelf = List.of(offer(LoadoutCards.all().get(0).id()),
+                offer(LoadoutCards.all().get(1).id()));
         StoreViewModel model = new StoreViewModel(new Reactor(), () -> shelf, () -> new EquipmentStore.Holdings(armory, new MechBay(), null), purse(credits), () -> "Jangala");
 
         assertEquals(2, model.rows().get().size());
+        String first = model.rows().get().get(0).offer().id();
+        String second = model.rows().get().get(1).offer().id();
         assertFalse(model.rows().get().get(0).classes().contains("acquired"));
 
         assertEquals(EquipmentStore.Sale.SOLD, model.buySelected());
@@ -81,6 +82,24 @@ class StoreViewModelTest {
         model.selectFilter("SECTION:BOATS");
         assertEquals(1, model.rows().get().size());
         assertEquals(EquipmentStore.Sale.SOLD, model.buySelected());
+    }
+
+    @Test
+    void theShelfReadsListedFirstThenBySlot() {
+        String weapon = LoadoutCards.all().stream().filter(c -> c.kind() == LoadoutCard.Kind.WEAPON)
+                .findFirst().orElseThrow().id();
+        String sheet = LoadoutCards.all().stream().filter(c -> c.kind() == LoadoutCard.Kind.SHEET)
+                .findFirst().orElseThrow().id();
+        String listed = LoadoutCards.all().stream().filter(c -> c.kind() == LoadoutCard.Kind.SHEET)
+                .skip(1).findFirst().orElseThrow().id();
+        List<EquipmentStore.Offer> shelf = List.of(offer(sheet), offer(weapon),
+                new EquipmentStore.Offer(EquipmentStore.Kind.LOADOUT, listed, EquipmentStore.Shelf.LISTED, 6500));
+        StoreViewModel model = new StoreViewModel(new Reactor(), () -> shelf,
+                () -> new EquipmentStore.Holdings(new MarineArmory(), new MechBay(), null), purse(new long[] {0}),
+                () -> "Jangala");
+
+        assertEquals(List.of(listed, weapon, sheet),
+                model.rows().get().stream().map(row -> row.offer().id()).toList());
     }
 
     @Test

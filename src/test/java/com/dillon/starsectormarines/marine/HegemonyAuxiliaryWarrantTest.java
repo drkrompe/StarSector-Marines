@@ -78,20 +78,22 @@ class HegemonyAuxiliaryWarrantTest {
     void underStageOneOnlyTheHegemonyLicenceAndPatronOfferTheAuxiliarySection() {
         EquipmentAcquisitionEligibility.Progress warranted = new EquipmentAcquisitionEligibility.Progress(
                 99, 100, Set.of(HegemonyAuxiliaryWarrant.STAGE_ONE));
-        List<String> licence = pick("hegemony", FactionEquipmentSource.LICENSE, warranted);
+        List<String> licence = StoreStock.cards("hegemony", true, Set.of(), warranted).licensedCardIds();
         assertTrue(licence.contains(AUXILIARY_SECTION));
         assertFalse(licence.contains(XIV_SHEET), "the XIV waits for stage two");
+        assertTrue(pick("hegemony", FactionEquipmentSource.PATRON, warranted).contains(AUXILIARY_SECTION));
 
-        assertFalse(pick("hegemony", FactionEquipmentSource.MARKET, warranted).contains(AUXILIARY_SECTION));
+        assertFalse(StoreStock.cards("hegemony", false, Set.of(), warranted).allCardIds().contains(AUXILIARY_SECTION));
         assertFalse(pick("hegemony", FactionEquipmentSource.RECOVERY, warranted).contains(AUXILIARY_SECTION));
         for (String other : List.of("independent", "tritachyon", "persean", "pirates")) {
-            for (FactionEquipmentSource source : FactionEquipmentSource.values()) {
+            assertFalse(StoreStock.cards(other, true, Set.of(), warranted).allCardIds().contains(AUXILIARY_SECTION),
+                    other + " store");
+            for (FactionEquipmentSource source : List.of(FactionEquipmentSource.PATRON, FactionEquipmentSource.RECOVERY)) {
                 assertFalse(pick(other, source, warranted).contains(AUXILIARY_SECTION), other + " " + source);
             }
         }
-        assertFalse(pick("hegemony", FactionEquipmentSource.LICENSE,
-                new EquipmentAcquisitionEligibility.Progress(99, 100)).contains(AUXILIARY_SECTION),
-                "no warrant, no approved suit");
+        assertFalse(StoreStock.cards("hegemony", true, Set.of(), new EquipmentAcquisitionEligibility.Progress(99, 100))
+                .allCardIds().contains(AUXILIARY_SECTION), "no warrant, no approved suit");
     }
 
     @Test
