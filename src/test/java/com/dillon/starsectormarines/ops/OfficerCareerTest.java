@@ -12,6 +12,7 @@ import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSquad;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
 import com.dillon.starsectormarines.marine.OfficerCommandProfile;
+import com.dillon.starsectormarines.marine.OfficerCareer;
 import com.dillon.starsectormarines.marine.OfficerSpecialty;
 import com.dillon.starsectormarines.marine.Rank;
 import com.dillon.starsectormarines.marine.Status;
@@ -23,6 +24,7 @@ import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -38,7 +40,10 @@ class OfficerCareerTest {
         officer.setRank(Rank.CAPTAIN);
         assertTrue(officer.train(OfficerSpecialty.TACTICAL_COVER));
         officer.setRank(Rank.MAJOR);
-        assertFalse(officer.train(OfficerSpecialty.TACTICAL_COVER));
+        assertTrue(officer.train(OfficerSpecialty.TACTICAL_COVER));
+        officer.setRank(Rank.LT_COLONEL);
+        assertFalse(officer.train(OfficerSpecialty.TACTICAL_COVER), "three ranks is the cap");
+        assertFalse(officer.train(OfficerSpecialty.RECOVERY_PLANNING), "a retired specialty is not offered");
         assertTrue(officer.career().record("attempt-one", true, 500));
         var bytes = new ByteArrayOutputStream();
         try (var out = new ObjectOutputStream(bytes)) { out.writeObject(officer); }
@@ -46,12 +51,33 @@ class OfficerCareerTest {
         try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
             copy = (MarineCaptain) in.readObject();
         }
-        assertEquals(2, copy.career().level(OfficerSpecialty.TACTICAL_COVER));
+        assertEquals(3, copy.career().level(OfficerSpecialty.TACTICAL_COVER));
         assertEquals(1, copy.career().availablePoints(copy.rank()));
         assertFalse(copy.career().record("attempt-one", true, 500));
         assertEquals(500, copy.career().earnedXp());
         copy.setStatus(Status.KIA);
-        assertFalse(copy.train(OfficerSpecialty.RECOVERY_PLANNING));
+        assertFalse(copy.train(OfficerSpecialty.FIELD_MEDICINE));
+    }
+
+    @Test void aRetiredSpecialtysPointsAreRefundedOnLoad() throws Exception {
+        var officer = new MarineCaptain("Vale", null, Rank.CAPTAIN, 0f);
+        assertTrue(officer.train(OfficerSpecialty.TACTICAL_COVER));
+        // An older save trained a specialty that is no longer offered.
+        Field training = OfficerCareer.class.getDeclaredField("training");
+        training.setAccessible(true);
+        @SuppressWarnings("unchecked") var trained = (List<OfficerSpecialty>) training.get(officer.career());
+        trained.add(OfficerSpecialty.SALVAGE_STEWARDSHIP);
+        assertEquals(0, officer.career().availablePoints(officer.rank()));
+        var bytes = new ByteArrayOutputStream();
+        try (var out = new ObjectOutputStream(bytes)) { out.writeObject(officer); }
+        MarineCaptain copy;
+        try (var in = new ObjectInputStream(new ByteArrayInputStream(bytes.toByteArray()))) {
+            copy = (MarineCaptain) in.readObject();
+        }
+        assertEquals(0, copy.career().level(OfficerSpecialty.SALVAGE_STEWARDSHIP));
+        assertEquals(1, copy.career().level(OfficerSpecialty.TACTICAL_COVER));
+        assertEquals(1, copy.career().availablePoints(copy.rank()), "the retired point comes back");
+        assertEquals(List.of(OfficerSpecialty.TACTICAL_COVER, OfficerSpecialty.FIELD_MEDICINE), OfficerSpecialty.offered());
     }
 
     @Test void oldHighRankOfficerGetsChoicesWithoutInventedServiceHistory() {
@@ -136,23 +162,6 @@ class OfficerCareerTest {
         }
     }
 
-    @Test void recoveredWoundedKeepBilletsAndOtherOfficersDoNotReceiveTheBonus() {
-        var roster = roster(); var lead = captain(roster, "Lead");
-        lead.train(OfficerSpecialty.RECOVERY_PLANNING);
-        var squads = line(roster);
-        String first = squads.get(0).memberIds().get(0), other = squads.get(1).memberIds().get(0);
-        var snapshot = OfficerCommandProfile.capture(lead);
-        lead.setRank(Rank.CAPTAIN); lead.train(OfficerSpecialty.RECOVERY_PLANNING);
-        roster.applySoldierOutcome(Map.of(first, MarineSoldierStatus.WIA, other, MarineSoldierStatus.WIA), 10f, 20f);
-        var result = new OfficerMissionResult(snapshot, Set.of(first), 100, Status.ACTIVE, 0f, null);
-        var outcome = MissionOutcome.builder().officers("recovery", List.of(result)).build();
-        MissionResolver.applyRecoverySpecialties(roster, outcome, 10f, 20f);
-        assertEquals(27f, roster.soldierById(first).unavailableUntilDay(), .0001f);
-        assertEquals(30f, roster.soldierById(other).unavailableUntilDay());
-        assertTrue(squads.get(0).memberIds().contains(first));
-        assertEquals(MarineSoldierStatus.WIA, roster.soldierById(first).status());
-    }
-
     @Test void unavailableHomeOfficerDoesNotGrantCover() {
         var roster = roster(); var lead = captain(roster, "Lead");
         lead.train(OfficerSpecialty.TACTICAL_COVER);
@@ -163,16 +172,13 @@ class OfficerCareerTest {
                 deployment.seat(0).armorIncomingAccuracyMult);
     }
 
-    @Test void salvageUsesStrongestParticipantAndResultsListsEveryOfficer() {
+    @Test void resultsListEveryOfficer() {
         var roster = roster(); var first = captain(roster, "First"); var second = captain(roster, "Second");
-        first.train(OfficerSpecialty.SALVAGE_STEWARDSHIP);
+        first.train(OfficerSpecialty.TACTICAL_COVER);
         second.setRank(Rank.CAPTAIN);
-        second.train(OfficerSpecialty.SALVAGE_STEWARDSHIP); second.train(OfficerSpecialty.SALVAGE_STEWARDSHIP);
+        second.train(OfficerSpecialty.FIELD_MEDICINE); second.train(OfficerSpecialty.FIELD_MEDICINE);
         var results = List.of(new OfficerMissionResult(OfficerCommandProfile.capture(first), Set.of("a"), 100, Status.ACTIVE, 0, null),
                 new OfficerMissionResult(OfficerCommandProfile.capture(second), Set.of("b"), 100, Status.ACTIVE, 0, null));
-        assertEquals(20, OfficerMissionResult.salvageBonus(results, true, 2));
-        assertEquals(0, OfficerMissionResult.salvageBonus(results, false, 2));
-        assertEquals(0, OfficerMissionResult.salvageBonus(results, true, 0));
         var outcome = MissionOutcome.builder().officers("results", results).build();
         var rows = ResultsScreen.resultRows(outcome, null, key -> key);
         assertEquals(2, rows.stream().filter(row -> row.id().startsWith("result-officer-")).count());

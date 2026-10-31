@@ -72,7 +72,7 @@ class CompanyPreparationTest {
         BoatDeck deck = roster.boatDeck();
         deck.reconcile("first", ShuttleType.HERMES, 2);
         CampaignBoat boat = deck.fabricate(0);
-        roster.officerInduction().introduce(sabine); sabine.train(OfficerSpecialty.RECOVERY_PLANNING);
+        roster.officerInduction().introduce(sabine); sabine.train(OfficerSpecialty.TACTICAL_COVER);
         MarineSquad squad = roster.createSquad(); roster.recruitToSquad(squad.id(), 11);
         roster.assignCaptainToSquad(sabine.id(), squad.id());
         assertEquals(Step.FORMATION, roster.officerInduction().step(roster));

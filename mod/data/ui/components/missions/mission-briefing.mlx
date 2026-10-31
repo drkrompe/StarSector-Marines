@@ -383,6 +383,10 @@
                 <img id="{spec.rank2ImageId}" class="kit-specialty-node-image" src="{spec.rank2Icon}" />
                 <div id="{spec.rank2TextId}" class="label kit-specialty-effect">{spec.rank2Effect}</div>
               </button>
+              <button id="{spec.rank3Id}" class="kit-specialty-node" disabled="{spec.rank3Disabled}" onclick="{spec.rank3}">
+                <img id="{spec.rank3ImageId}" class="kit-specialty-node-image" src="{spec.rank3Icon}" />
+                <div id="{spec.rank3TextId}" class="label kit-specialty-effect">{spec.rank3Effect}</div>
+              </button>
             </div>
           </div>
         </div>

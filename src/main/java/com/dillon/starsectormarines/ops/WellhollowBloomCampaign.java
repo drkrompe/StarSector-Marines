@@ -49,6 +49,12 @@ public final class WellhollowBloomCampaign {
      */
     static final long COLONY_BREACH_SEED = 38L;
     /**
+     * Ain Tafrant's own map: chapter 2, its retries, its replays and the debug player all play this one seed, the
+     * town pool's ARID seed 7, so the convoys' route from the town to the safe camp is one laid-out road rather than a
+     * different map each attempt (owner, 2026-10-31; built on the recommended pick, the picks page asks which seed).
+     */
+    static final long AIN_TAFRANT_SEED = 7L;
+    /**
      * Each chapter's first-briefing lines by number: Orens speaks the odd ones, Castle the even. Colony Breach
      * has nine (Orens naming the staging post, owner 2026-10-28); The Burn opens on Castle's question and Broad
      * Front ends on the spearhead lane (owner cuts, 2026-10-30). A cut number stays out so every recording keeps its id.
@@ -191,10 +197,11 @@ public final class WellhollowBloomCampaign {
 
     /**
      * A vetted ARID map for this attempt, cycling the chapter's pool so a replay is the same place on a
-     * different day. Colony Breach always plays {@link #COLONY_BREACH_SEED}.
+     * different day. Colony Breach always plays {@link #COLONY_BREACH_SEED}, Ain Tafrant {@link #AIN_TAFRANT_SEED}.
      */
     static long seed(Chapter chapter, int attempt) {
         if (chapter == Chapter.COLONY_BREACH) return COLONY_BREACH_SEED;
+        if (chapter == Chapter.CORDON_ROAD) return AIN_TAFRANT_SEED;
         long roll = SEED_BASE + 7919L * chapter.ordinal() + attempt;
         if (!StoryMapPools.installed()) return roll;
         List<StoryMapPool.Entry> entries = StoryMapPools.pool(storyMap(chapter)).entries(SurfacePalette.ARID);
@@ -233,9 +240,10 @@ public final class WellhollowBloomCampaign {
                     SwarmDefenseRoster.countFor(RiskLevel.HIGH), BloomHeartSetup.world(SurfacePalette.ARID), false, HivePosture.DEFAULT);
         };
     }
-    /** The first vetted ARID map of the chapter's pool, or Colony Breach's own seed: the one map the debug player always plays. */
+    /** The first vetted ARID map of the chapter's pool, or a chapter's own seed: the one map the debug player always plays. */
     static long fixedSeed(Chapter chapter) {
         if (chapter == Chapter.COLONY_BREACH) return COLONY_BREACH_SEED;
+        if (chapter == Chapter.CORDON_ROAD) return AIN_TAFRANT_SEED;
         long fallback = SEED_BASE + 7919L * chapter.ordinal();
         if (!StoryMapPools.installed()) return fallback;
         List<StoryMapPool.Entry> entries = StoryMapPools.pool(storyMap(chapter)).entries(SurfacePalette.ARID);

@@ -22,7 +22,7 @@ class OfficerPromotionPaceTest {
         int xp = 0;
         List<Rank> ranks = new ArrayList<>();
         for (int fee : OPENING_FEES) {
-            var officer = new OfficerCommandProfile("lt", "Lt", rank, xp, Status.ACTIVE, false, 0, 0, 0);
+            var officer = new OfficerCommandProfile("lt", "Lt", rank, xp, Status.ACTIVE, false, 0, 0);
             xp += OfficerMissionResult.compute(List.of(), officer, Set.of(), Set.of(), true, fee,
                     "m" + fee, 1f, 24, casualties).get(0).xpGained();
             while (!rank.isTerminal() && xp >= rank.xpToNext()) { xp -= rank.xpToNext(); rank = rank.promote(); }

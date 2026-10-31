@@ -54,7 +54,7 @@ final class DebugCommander {
     MarineCaptain captain() {
         if (!fielded) return null;
         MarineCaptain captain = new MarineCaptain("Debug Commander", PORTRAIT, RANK, 0f);
-        for (OfficerSpecialty specialty : OfficerSpecialty.values()) {
+        for (OfficerSpecialty specialty : OfficerSpecialty.offered()) {
             for (int i = 0; i < level(specialty); i++) captain.train(specialty);
         }
         return captain;
@@ -64,10 +64,10 @@ final class DebugCommander {
     String summary() {
         if (!fielded) return "OFF  ·  every squad under its acting NCO";
         StringBuilder trained = new StringBuilder();
-        for (OfficerSpecialty specialty : OfficerSpecialty.values()) {
+        for (OfficerSpecialty specialty : OfficerSpecialty.offered()) {
             int level = level(specialty);
             if (level == 0) continue;
-            trained.append(trained.isEmpty() ? "" : " · ").append(specialty.label()).append(level == 1 ? " I" : " II");
+            trained.append(trained.isEmpty() ? "" : " · ").append(specialty.label()).append(' ').append(OfficerSpecialty.numeral(level));
         }
         return RANK.displayName() + "  ·  " + spent() + " / " + points() + " points"
                 + (trained.isEmpty() ? "  ·  untrained" : "  ·  " + trained);

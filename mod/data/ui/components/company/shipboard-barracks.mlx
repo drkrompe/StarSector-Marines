@@ -65,7 +65,6 @@
         </div>
         <div id="officer-dossier-scroll" class="officer-scroll">
           <div id="officer-biography" class="label wrap officer-copy">{command.officerBiography}</div>
-          <div id="officer-squads" class="label wrap officer-copy">{command.officerSquads}</div>
           <div id="officer-scope" class="label muted wrap officer-copy">{i18n.openingUiShipboardBarracksSpecialtiesFollowTheSquadsThisOfficerLeads}</div>
           <div id="officer-training" class="label heading warm wrap officer-copy">{command.officerTraining}</div>
           <div id="officer-specialty-list" class="specialty-tree console-readout">
@@ -88,6 +87,10 @@
             <img id="{specialty.linkId}" class="specialty-link" src="{specialty.link}" />
             <button id="{specialty.node2Id}" class="specialty-node" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" disabled="{specialty.node2Disabled}" onclick="{specialty.node2Train}">
               <img id="{specialty.node2ImageId}" class="specialty-node-image" src="{specialty.node2Icon}" />
+            </button>
+            <img id="{specialty.link2Id}" class="specialty-link" src="{specialty.link2}" />
+            <button id="{specialty.node3Id}" class="specialty-node" style="background-color: transparent; background-image: none; border-width: 0px; opacity: 1;" disabled="{specialty.node3Disabled}" onclick="{specialty.node3Train}">
+              <img id="{specialty.node3ImageId}" class="specialty-node-image" src="{specialty.node3Icon}" />
             </button>
           </div>
           </div>
@@ -359,11 +362,11 @@
   .officer-list { flex-direction: column; height: auto; gap: 12px; }
   .officer-history-note { height: 40px; }
   .officer-copy { height: auto; }
-  .specialty-tree { flex-direction: column; align-items: center; height: 380px; padding: 10px 10px 4px 10px; gap: 0px; border-width: 1px; }
+  .specialty-tree { flex-direction: column; align-items: center; height: 482px; padding: 10px 10px 4px 10px; gap: 0px; border-width: 1px; }
   .specialty-root { width: 56px; height: 56px; }
   .specialty-trunk { width: 2px; height: 16px; background-color: #dec58a; }
-  .specialty-branches { flex-direction: row; width: 100%; height: 298px; gap: 0px; }
-  .specialty-path { flex-direction: column; align-items: center; width: 0px; flex-grow: 1; height: 298px; gap: 4px; }
+  .specialty-branches { flex-direction: row; width: 100%; height: 396px; gap: 0px; }
+  .specialty-path { flex-direction: column; align-items: center; width: 0px; flex-grow: 1; height: 396px; gap: 4px; }
   .specialty-bar { flex-direction: row; width: 100%; height: 2px; gap: 0px; }
   .specialty-bar-half { width: 0px; flex-grow: 1; height: 2px; }
   .specialty-drop { width: 2px; height: 16px; }

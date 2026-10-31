@@ -2016,7 +2016,7 @@ public final class UiSnapshotSuite implements SnapshotSuite {
             if (state.startsWith("dossier")) {
                 if (state.equals("dossier-trained")) {
                     captain.train(OfficerSpecialty.TACTICAL_COVER);
-                    captain.train(OfficerSpecialty.RECOVERY_PLANNING);
+                    captain.train(OfficerSpecialty.FIELD_MEDICINE);
                     captain.commendations().add("Day 98: Wayline / victory / +700 XP / ACTIVE.");
                     captain.career().record("snapshot-attempt", true, 700);
                     captain.addXp(700);
@@ -2145,8 +2145,8 @@ public final class UiSnapshotSuite implements SnapshotSuite {
                 document.advance(0f);
                 guide.update();
                 capture.accept("03-scroll-choice");
-                click.accept("officer-specialty-SALVAGE_STEWARDSHIP-rank-1");
-                if (sabine.career().level(OfficerSpecialty.SALVAGE_STEWARDSHIP) != 1) {
+                click.accept("officer-specialty-FIELD_MEDICINE-rank-1");
+                if (sabine.career().level(OfficerSpecialty.FIELD_MEDICINE) != 1) {
                     throw new IllegalStateException("Click-through specialty choice did not train Morgan at scale " + scale);
                 }
                 capture.accept("04-formation");

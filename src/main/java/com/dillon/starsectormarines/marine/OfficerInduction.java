@@ -1,7 +1,6 @@
 package com.dillon.starsectormarines.marine;
 
 import java.io.Serializable;
-import java.util.Arrays;
 
 /** New-company introduction. Null on a roster means a grandfathered company. */
 public final class OfficerInduction implements Serializable {
@@ -39,7 +38,7 @@ public final class OfficerInduction implements Serializable {
         if (companyPreparation && roster.companyShipId() == null) return Step.SHIP;
         MarineCaptain officer = officer(roster);
         if (!introduced || officer == null) return Step.INTRODUCTION;
-        if (Arrays.stream(OfficerSpecialty.values()).noneMatch(s -> officer.career().level(s) > 0))
+        if (OfficerSpecialty.offered().stream().noneMatch(s -> officer.career().level(s) > 0))
             return Step.SPECIALTY;
         var squads = roster.squads().stream()
                 .filter(s -> !s.reserve() && !s.stationed()

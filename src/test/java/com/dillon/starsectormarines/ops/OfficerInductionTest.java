@@ -30,7 +30,7 @@ class OfficerInductionTest {
         return roster.officerInduction();
     }
 
-    @ParameterizedTest @EnumSource(OfficerSpecialty.class)
+    @ParameterizedTest @EnumSource(value = OfficerSpecialty.class, names = {"TACTICAL_COVER", "FIELD_MEDICINE"})
     void everySpecialtyAdvancesOnlyAfterTrainingAndAssignment(OfficerSpecialty specialty) throws Exception {
         OfficerInduction induction = begin();
         assertEquals(Step.INTRODUCTION, induction.step(roster));
@@ -82,7 +82,7 @@ class OfficerInductionTest {
     @Test void reopeningPreservesChoicesAndKeepsTheFoundingOfficer() {
         OfficerInduction induction = begin();
         induction.introduce(sabine);
-        sabine.train(OfficerSpecialty.RECOVERY_PLANNING);
+        sabine.train(OfficerSpecialty.TACTICAL_COVER);
         roster.beginOfficerInduction(sabine);
         assertSame(induction, roster.officerInduction());
         assertEquals(Step.FORMATION, induction.step(roster));

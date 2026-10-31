@@ -184,7 +184,7 @@ class BarracksCommandModelTest {
                 click(document, instance, "command:" + officer.id());
                 assertEquals("officer-dossier panel console-section", value(model, "dossierClasses"));
                 assertTrue(instance.requireElement("officer-traits").box().borderBox().y()
-                        >= instance.requireElement("officer-specialty-SALVAGE_STEWARDSHIP").box().borderBox().bottom(),
+                        >= instance.requireElement("officer-specialty-FIELD_MEDICINE-rank-3").box().borderBox().bottom(),
                         "Service record must follow all specialty cards without overlapping");
                 var trainingBox = instance.requireElement("officer-specialty-TACTICAL_COVER-rank-1").box().borderBox();
                 assertEquals("officer-specialty-TACTICAL_COVER-rank-1", document.elementAt(trainingBox.x() + trainingBox.width() / 2f,

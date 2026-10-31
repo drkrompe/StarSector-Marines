@@ -175,7 +175,7 @@ class BattleFixtureJsonTest {
     @Test void launchRoundTripPreservesOfficerSpecialtiesWelfareAndAlreadyModifiedArmor() throws Exception {
         var roster = new MarineRoster(); roster.bootstrapInitialComplement(12);
         var officer = new MarineCaptain("Vale", null, Rank.CAPTAIN, 0f); roster.add(officer);
-        officer.train(OfficerSpecialty.TACTICAL_COVER); officer.train(OfficerSpecialty.RECOVERY_PLANNING);
+        officer.train(OfficerSpecialty.TACTICAL_COVER); officer.train(OfficerSpecialty.FIELD_MEDICINE);
         var ids = roster.squads().stream().filter(s -> !s.reserve()).map(s -> s.id()).collect(Collectors.toSet());
         var deployment = CampaignMarineDeployment.freezeSelection(roster, ids, 12, officer, 1.25f);
         var fixture = new BattleLaunchFixture(canonicalFixture(), new BattleLaunchOverlay(0,

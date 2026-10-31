@@ -179,7 +179,6 @@ class PowerSuitCampaignEvidenceTest {
             assertTrue(damage > 0, "The loop must include an actual durability change");
             roster.applySoldierOutcome(MissionResolver.resolvePersonnelOutcomes(outcome), 10f, 12f,
                     outcome.soldierTelemetry, outcome.victory);
-            MissionResolver.applyRecoverySpecialties(roster, outcome, 10f, 12f);
             OfficerMissionResult.apply(roster, outcome, 10);
             for (String id : named) assertEquals(1, roster.soldierById(id).career().missionsDeployed());
             JSONObject settled = personnel(roster, named);

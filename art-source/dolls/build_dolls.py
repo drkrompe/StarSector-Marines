@@ -502,14 +502,15 @@ def dagger():
 def hermes_doll():
     """The company's first shuttle: a round cockpit, a narrow body between two round pods, two engines astern."""
     d = Doll("air-hermes", width=AIR_W)
-    d.panel("HULL", [(-11, 15), (11, 15), (18, 22), (18, 33), (-18, 33), (-18, 22)], AIR_X)
-    d.panel("HULL", [(-20, 35), (20, 35), (22, 65), (-22, 65)], AIR_X)
-    d.panel("HULL", [(-22, 67), (22, 67), (22, 94), (-22, 94)], AIR_X)
+    # Neighbouring panels share their edges on the skeleton, so only the doll's gap parts them.
+    d.panel("HULL", [(-11, 15), (11, 15), (18, 22), (18, 34), (-18, 34), (-18, 22)], AIR_X)
+    d.panel("HULL", [(-20, 34), (20, 34), (22, 66), (-22, 66)], AIR_X)
+    d.panel("HULL", [(-22, 66), (22, 66), (22, 95), (-22, 95)], AIR_X)
     # The stern: a short keel between two engines, each a block with its nozzle behind it.
-    d.panel("HULL", [(-18, 96), (18, 96), (18, 132), (11, 140), (-11, 140), (-18, 132)], AIR_X)
-    d.pair("HULL", "HULL", octagon(-45, 50, -25, 84, 6), AIR_X)
-    d.pair("HULL", "HULL", [(-38, 98), (-21, 98), (-21, 136), (-40, 136), (-42, 104)], AIR_X)
-    d.pair("HULL", "HULL", [(-37, 139), (-23, 139), (-19, 156), (-41, 156)], AIR_X)
+    d.panel("HULL", [(-18, 95), (18, 95), (18, 132), (11, 140), (-11, 140), (-18, 132)], AIR_X)
+    d.pair("HULL", "HULL", octagon(-44, 50, -22, 84, 6), AIR_X)
+    d.pair("HULL", "HULL", [(-38, 95), (-18, 95), (-18, 136), (-40, 136), (-42, 101)], AIR_X)
+    d.pair("HULL", "HULL", [(-37, 136), (-21, 136), (-18, 154), (-40, 154)], AIR_X)
     d.detail("HULL", [((-39, 112), (-23, 112)), ((-39, 124), (-23, 124)),
                       ((23, 112), (39, 112)), ((23, 124), (39, 124))], AIR_X)
     return d
@@ -522,7 +523,7 @@ def hermes():
     return name
 
 
-def store_icon(doll, name, colour, inset_more=1.7, stroke=4):
+def store_icon(doll, name, colour, inset_more=0.4, stroke=4):
     """A Store section icon from a plan doll: its panels turned nose-right, in the section's colour."""
     panels = [inset(points, inset_more) for points in doll.parts["HULL"]]
     turned = [[(-y, x) for x, y in points] for points in panels]

@@ -1408,19 +1408,18 @@ The page carries no effect copy: hovering a rank opens its sheet with what it
 does, whether it can be trained and what it costs, and clicking a rank that is
 ready trains it. Only the next rank of a path, with a point to spend, is ready. Castle's officer-only induction shows five SVG milestones; full preparation
 shows its four company milestones; neither progression display uses a stretched add button.
-Each of four specialties has two ranks:
+Only specialties that change a fight are offered (owner, 2026-10-31). Each of
+the two has three ranks:
 
-- Tactical Cover: incoming accuracy multiplied by 0.95/0.90 for marines in this
-  officer's actual deployed command. This composes with issued armor; it does
-  not change equipment ownership or the displayed equipment definition.
-- Recovery Planning: WIA duration multiplied by 0.85/0.70 for those same named
-  marines. Wounded remain wounded and retain their billets until recovery.
-- Salvage Stewardship: +10/+20 recovery percentage points on victory. Salvage
-  is one company pool, so only the strongest participating specialist applies;
-  it adds to existing salvage-expert/fleet-hardware modifiers.
+- Tactical Cover: incoming accuracy multiplied by 0.95/0.90/0.85 for marines in
+  this officer's actual deployed command. This composes with issued armor; it
+  does not change equipment ownership or the displayed equipment definition.
 - Field Medicine: one designated medic in each of this officer's squads, who
   treats squadmates in battle from a few slowly recovering supplies
   (`progression-nouns.md` owns the treatment).
+
+Recovery Planning and Salvage Stewardship are retired: they stay in the save
+format so older saves load, and their points come back to spend on load.
 
 Unavailable officers and independent NCO groups provide no new field specialty
 effects. Moral outlook and recruitment traits remain separate. The dossier

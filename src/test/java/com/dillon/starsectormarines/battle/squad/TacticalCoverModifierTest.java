@@ -30,7 +30,7 @@ class TacticalCoverModifierTest {
         long a = sim.spawn(new EntitySpec("a", Faction.MARINE, UnitType.MARINE, 2, 2).squad(covered));
         long b = sim.spawn(new EntitySpec("b", Faction.MARINE, UnitType.MARINE, 4, 2).squad(plain));
         OfficerCommandProfile officer = new OfficerCommandProfile("o1", "Vance", Rank.values()[0], 0,
-                Status.values()[0], false, 2, 0, 0);
+                Status.values()[0], false, 2, 0);
         sim.getSquad(covered).commandGroupIdentity = new CommandGroupIdentity("g1", "o1", "Vance", true, officer);
 
         float armour = sim.getRoster().world().incomingAccuracyMult(b);
