@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED — catalog sweep complete on the Alpha route; translation review and live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-31 — Simplified Chinese translation mod started (opening dialogue); overlay parity guard
+Updated: 2026-10-31 — Simplified Chinese translation mod: opening dialogue and mission board slices; overlay parity guard
 
 Read `company-view-nouns.md`. `Strings` and the marineOps namespace in
 strings.json are the translation authority; translation mods override keys.
@@ -75,7 +75,9 @@ Simplified Chinese (`zh_CN`, owner's first language) has these slices:
   (`openingCompanyPrologue*`, `openingCompanyYard*`,
   `openingCompanyPreparation*`, `openingOfficerInduction*`,
   `openingCerberusCompany*`, `openingYard*Dialogue/NextStep`, `lessonFirstLift*`).
-- [ ] Mission board: `missionSelect*`, contract board, `wayline*` offers.
+- [x] Mission board: every key `MissionSelectScreen` and `mission-select.mlx`
+  read, plus the `missionSelect*` offers, the replay toggle and `agreusArcReferral`.
+  The debug catalogue rows stay English.
 - [ ] Briefing and muster: `briefingUi*`, `briefingVm*`, `waylineBriefing*`,
   stationing.
 - [ ] Results, debrief and salvage: `resultsScreen*`, `debrief*`, loot.

@@ -321,6 +321,7 @@ com.dillon.starsectormarines.battle.cordon.CordonStrikeLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonClearRoadLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGateLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonAlleyLookSuite
+com.dillon.starsectormarines.battle.cordon.CordonConvoyRunLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonSchoolBreachLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonGapLookSuite
 com.dillon.starsectormarines.battle.cordon.CordonAirBaseLookSuite
