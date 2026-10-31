@@ -27,7 +27,7 @@ import java.util.Set;
 
 /**
  * The Burn's battery (`heart-nouns.md`, Battery): each Locust dug into a gun
- * pit on the start line, a ring of sandbag round it with a gap at the back for
+ * pit at the bases behind the start line, a ring of sandbag round it with a gap at the back for
  * the crew, and a fireteam of the company's gunners on the bags facing the
  * heart. The crews are not the company: they hold their pits under the
  * battery's own garrison order and never join the push, so the guns are what
@@ -53,25 +53,32 @@ final class BurnBattery {
     record Bag(int x, int y, String doodad) { }
 
     /**
-     * Digs one gun in at each share across the start line, crews its pit and
+     * Digs one gun in as near each of {@code wants} as open ground allows, every pit clear of the landing pads and of
+     * the {@code keepOff} rectangles ({@code {x0, y0, x1, y1}}, an airbase lot's fence and verge), crews it and
      * returns the guns' ids.
      */
-    static List<Long> dig(BattleSimulation sim, Form form, List<LandingPad> pads, String structureId,
-                          float depth, float[] across, long seed) {
+    static List<Long> dig(BattleSimulation sim, Form form, List<LandingPad> pads, List<int[]> keepOff,
+                          String structureId, List<int[]> wants, long seed) {
         Random rng = new Random(seed);
         TileRegistry registry = TileRegistry.installed();
         List<Long> guns = new ArrayList<>();
-        for (int i = 0; i < across.length; i++) {
-            int[] want = form.cellAt(depth, across[i]);
-            int[] ahead = form.cellAt(depth + 0.1f, across[i]);
-            int fx = Integer.signum(ahead[0] - want[0]), fy = Integer.signum(ahead[1] - want[1]);
+        // Every gun faces the heart: the form's advance.
+        int[] near = form.cellAt(0f, 0.5f), far = form.cellAt(1f, 0.5f);
+        int fx = Integer.signum(far[0] - near[0]), fy = Integer.signum(far[1] - near[1]);
+        List<LandingPad> clearOf = new ArrayList<>(pads);
+        for (int[] r : keepOff) {
+            clearOf.add(new LandingPad((r[0] + r[2]) / 2, (r[1] + r[3]) / 2, (r[2] - r[0] + 1) / 2, (r[3] - r[1] + 1) / 2,
+                    LandingPad.Approach.NORTH, LandingPad.Purpose.FALLBACK));
+        }
+        for (int i = 0; i < wants.size(); i++) {
+            int[] want = wants.get(i);
             Set<Long> dressed = dressedCells(sim);
-            int[] cell = site(sim, pads, dressed, want[0], want[1], PIT_RADIUS);
-            if (cell == null) cell = site(sim, pads, dressed, want[0], want[1], 0);
+            int[] cell = site(sim, clearOf, dressed, want[0], want[1], PIT_RADIUS);
+            if (cell == null) cell = site(sim, clearOf, dressed, want[0], want[1], 0);
             if (cell == null) continue;
             int number = i + 1;
             guns.add(sim.spawn(MapTurret.create("burn-battery-" + number, Faction.MARINE, structureId, cell[0], cell[1])));
-            List<Bag> ring = registry == null ? List.of() : ring(sim, pads, dressed, registry, cell[0], cell[1], fx, fy);
+            List<Bag> ring = registry == null ? List.of() : ring(sim, clearOf, dressed, registry, cell[0], cell[1], fx, fy);
             lay(sim, registry, ring);
             crew(sim, ring, cell[0], cell[1], fx, fy, "Battery " + number, rng);
         }

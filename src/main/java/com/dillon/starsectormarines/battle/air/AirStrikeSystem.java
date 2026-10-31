@@ -122,6 +122,11 @@ public final class AirStrikeSystem {
         if (nextStrikeIn > 0f) return;
 
         AirfieldService field = sim.getAirfieldService();
+        // Another side's field is not this side's to fly: an allied wing's sheds are its own pool's.
+        if (field.owner() != side) {
+            nextStrikeIn = LAUNCH_INTERVAL_SEC;
+            return;
+        }
         Runway strip = field.runway();
         // A strike rolls, so a field with no strip flies none however many
         // aircraft are in its sheds.

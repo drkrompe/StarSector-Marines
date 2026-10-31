@@ -2,6 +2,7 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.airsupport.AlliedAirWing;
 import com.dillon.starsectormarines.battle.airsupport.ForwardObservers;
+import com.dillon.starsectormarines.battle.airsupport.HardstandAirBase;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOrigin;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
@@ -16,6 +17,7 @@ import com.dillon.starsectormarines.battle.command.SquadCommandClaim;
 import com.dillon.starsectormarines.battle.command.objective.BatteryObjective;
 import com.dillon.starsectormarines.battle.command.objective.EliminateFactionObjective;
 import com.dillon.starsectormarines.battle.command.objective.HeartObjective;
+import com.dillon.starsectormarines.battle.evacuation.HeartBoreGrowth;
 import com.dillon.starsectormarines.battle.evacuation.HeartBores;
 import com.dillon.starsectormarines.battle.evacuation.HeartLanes;
 import com.dillon.starsectormarines.battle.evacuation.HeartObjectives;
@@ -36,7 +38,11 @@ import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.Runway;
+import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.Basin;
@@ -345,7 +351,7 @@ public final class BloomHeartSetup {
             // Dry country and a steady wind toward the heart: the burn runs before it.
             sim.fireField().setTinder(true);
             sim.fireField().setWind(1f, 0f, BURN_WIND);
-            List<Long> guns = burnBattery(sim, form, pads, built.battleSeed());
+            List<Long> guns = burnBattery(sim, form, pads, built.map().layout, built.battleSeed());
             barrage = new WalkingBarrage(burnBarrage(), form::cellAt, Faction.MARINE, built.battleSeed() ^ BARRAGE_SALT)
                     .battery(BURN_BATTERY_STRUCTURE, guns);
             sim.addObjective(new BatteryObjective(guns));
@@ -396,16 +402,24 @@ public final class BloomHeartSetup {
                     .map(g -> ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth())).toList());
         }
         boolean front = barrage != null && burnFront();
+        HardstandAirBase airBase = null;
         if (front) {
             lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
-            // The military's airbase on station behind the start line: its wing launches over the battery, called
-            // through the observer each battlegroup carries (`heart-nouns.md`, Forward observer).
-            int[] airbase = form.cellAt(BURN_AIRBASE_DEPTH, 0.5f);
-            AlliedAirWing.install(sim, airbase[0], airbase[1], lanes.grounds().stream()
+            // The military's airbase on station behind the start line: its wing flies off the lot, called through
+            // the observer each battlegroup carries (`heart-nouns.md`, Airbase and Forward observer).
+            Laid lot = built.map().layout.find(HeartLayout.AIRBASE);
+            int[] home = lot != null && lot.isLaid() ? middleOf(lot) : form.cellAt(0f, 0.5f);
+            AlliedAirWing.install(sim, home[0], home[1], lanes.grounds().stream()
                     .map(g -> ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth())).toList());
+            if (lot != null && lot.isLaid()) airBase = baseWing(sim, built.map(), lot);
         }
         sim.installHeart(form, barrage, lanes, built.map().layout);
         sim.getHeart().guns(heartGuns);
+        if (airBase != null) sim.getHeart().airBase(airBase);
+        if (form == Form.THE_BURN) {
+            Precinct start = built.plan().landingPlace();
+            sim.getHeart().growBores(new HeartBoreGrowth(form, new int[]{start.seedX(), start.seedY()}, built.battleSeed()));
+        }
         // Flak at the base, so the flier law can be met: the old bloom's spires and broods fly only under it.
         HeartObjectives.airDefence(sim, built.map().layout, heartGuns, battery);
         // The beats this battle runs: drawn from what its map laid, the same draw the briefing shows.
@@ -690,24 +704,87 @@ public final class BloomHeartSetup {
     private static final long LANES_SALT = 0x4C41_4E45_5348_5254L;
 
     static final float BURN_WIND = 0.5f;
-    /** Where The Burn's airbase lies: the start edge itself, behind the battery, so the wing comes in over the guns. */
-    static final float BURN_AIRBASE_DEPTH = 0f;
+
+    /** The middle of a laid lot reported by its two corners. */
+    static int[] middleOf(Laid lot) {
+        return middleOf(lot.cells());
+    }
+
+    /** The allied wing on the airbase lot: its strip, its sheds, and its apron berths, each inside the lot's fence. */
+    static HardstandAirBase baseWing(BattleSimulation sim, MapResult map, Laid lot) {
+        int[] lo = lot.cells().get(0), hi = lot.cells().get(1);
+        Runway strip = null;
+        for (Runway r : map.runways) if (inside(lo, hi, Math.round(r.centreX()), Math.round(r.centreY()))) strip = r;
+        List<Gantry> sheds = new ArrayList<>();
+        for (Gantry g : map.shelters) if (inside(lo, hi, g.centerX, g.centerY)) sheds.add(g);
+        List<LandingPad> berths = new ArrayList<>();
+        for (LandingPad p : map.landingPads) {
+            if (p.purpose == LandingPad.Purpose.ALLIED_AIRFIELD && inside(lo, hi, p.centerX, p.centerY)) berths.add(p);
+        }
+        return AlliedAirWing.baseOnLot(sim, strip, sheds, berths);
+    }
+
+    private static boolean inside(int[] lo, int[] hi, int x, int y) {
+        return x >= lo[0] && x <= hi[0] && y >= lo[1] && y <= hi[1];
+    }
     /** The Burn's guns: Locust rocket-artillery batteries dug in on the start line, firing a heavier round than a post's Locust. */
     static final String BURN_BATTERY_STRUCTURE = "structure.battery-locust";
-    /** Where the guns stand: this far into the farmland, at these shares across it. */
+    /** Where a gun stands when its base was not laid: this far into the farmland, at its share across it. */
     static final float BURN_BATTERY_DEPTH = 0.02f;
     static final float[] BURN_BATTERY_ACROSS = {0.12f, 0.36f, 0.64f, 0.88f};
+    /** Cells ahead of an ammunition dump's middle, toward the heart, its gun is dug in. */
+    static final int GUN_BY_DUMP = 9;
+    /** Cells behind the airbase's back fence its gun line stands, past the lot's clearance. */
+    static final int GUN_BEHIND_AIRBASE = 5;
 
     /**
-     * Digs The Burn's battery in on the start line, one gun at each share
-     * across, each in a sandbagged pit clear of the landing pads with a crew of
-     * the company's gunners holding it ({@link BurnBattery}), and returns the
-     * guns' ids. The guns fire the barrage and defend themselves, and the swarm
-     * can kill them: a battery with none left is overrun, and the battle lost.
+     * Digs The Burn's battery in at the bases behind the start line (owner, 2026-10-31): a gun beside each of the
+     * logistics base's ammunition dumps, by its rounds, and two in a line behind the airbase's back fence, each in a
+     * sandbagged pit clear of the landing pads and the airbase with a crew of the company's gunners holding it
+     * ({@link BurnBattery}), and returns the guns' ids. A base the map did not lay leaves its guns on the start line at
+     * their old shares. The guns fire the barrage and defend themselves, and the swarm can kill them: a battery with
+     * none left is overrun, and the battle lost.
      */
-    static List<Long> burnBattery(BattleSimulation sim, Form form, List<LandingPad> pads, long seed) {
-        return BurnBattery.dig(sim, form, pads, BURN_BATTERY_STRUCTURE, BURN_BATTERY_DEPTH, BURN_BATTERY_ACROSS,
-                seed ^ BATTERY_SALT);
+    static List<Long> burnBattery(BattleSimulation sim, Form form, List<LandingPad> pads, LaidLayout layout, long seed) {
+        int axis = form.advancesAlongY() ? 1 : 0;
+        int sign = Integer.signum(form.cellAt(1f, 0.5f)[axis] - form.cellAt(0f, 0.5f)[axis]);
+        List<int[]> wants = new ArrayList<>();
+        List<int[]> keepOff = new ArrayList<>();
+        Laid airbase = layout == null ? null : layout.find(HeartLayout.AIRBASE);
+        for (int i = 0; i < 2; i++) {
+            Laid dump = layout == null ? null : layout.find(HeartLayout.AMMO_DUMP + (i + 1));
+            int[] at = dump == null || !dump.isLaid() ? null : middleOf(dump.cells());
+            if (at != null) at[axis] += sign * GUN_BY_DUMP;
+            wants.add(at != null ? at : form.cellAt(BURN_BATTERY_DEPTH, BURN_BATTERY_ACROSS[1 + i]));
+        }
+        if (airbase != null && airbase.isLaid()) {
+            int[] lo = airbase.cells().get(0), hi = airbase.cells().get(1);
+            int clear = AirbaseLot.Size.STATION.clearance();
+            keepOff.add(new int[]{lo[0] - clear, lo[1] - clear, hi[0] + clear, hi[1] + clear});
+            int back = (sign > 0 ? hi[axis] + clear : lo[axis] - clear) + sign * GUN_BEHIND_AIRBASE;
+            int acrossLo = lo[1 - axis], acrossHi = hi[1 - axis];
+            for (int q : new int[]{1, 3}) {
+                int across = acrossLo + (acrossHi - acrossLo) * q / 4;
+                wants.add(axis == 0 ? new int[]{back, across} : new int[]{across, back});
+            }
+        } else {
+            wants.add(form.cellAt(BURN_BATTERY_DEPTH, BURN_BATTERY_ACROSS[0]));
+            wants.add(form.cellAt(BURN_BATTERY_DEPTH, BURN_BATTERY_ACROSS[3]));
+        }
+        return BurnBattery.dig(sim, form, pads, keepOff, BURN_BATTERY_STRUCTURE, wants, seed ^ BATTERY_SALT);
+    }
+
+    /** The middle of the cells a piece was reported by, or null with none. */
+    static int[] middleOf(List<int[]> cells) {
+        if (cells.isEmpty()) return null;
+        int x0 = Integer.MAX_VALUE, y0 = Integer.MAX_VALUE, x1 = Integer.MIN_VALUE, y1 = Integer.MIN_VALUE;
+        for (int[] c : cells) {
+            x0 = Math.min(x0, c[0]);
+            y0 = Math.min(y0, c[1]);
+            x1 = Math.max(x1, c[0]);
+            y1 = Math.max(y1, c[1]);
+        }
+        return new int[]{(x0 + x1) / 2, (y0 + y1) / 2};
     }
 
     private static final long BATTERY_SALT = 0x4755_4E50_4954_5321L;
