@@ -854,7 +854,7 @@ added. The recovered Specter and Arbalest sections and the Boarding Jack Section
 are sold in the company store once *A Small War* settles, the Kit Ladder station
 they share; no Agreus chapter hands one over, and a save keeps any already carried
 or learned. Salvage-assisted Section (eight regular, two powered assault and two
-powered support billets) is placed at *none*. Explicit fitting preserves the named
+powered support billets) is placed at *none* and is never sold: *A Small War* is cut from alpha. Explicit fitting preserves the named
 squad and ordinary lift seats. Neither A Cold Account completion nor the grounded
 Shepherd's repair learns any of them.
 The pirate Boarding Jack is the third recovered-rung assault suit, worn by two
