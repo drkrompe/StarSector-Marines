@@ -5,12 +5,8 @@ import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
 import com.dillon.starsectormarines.campaign.FreightRunProgress;
 import com.dillon.starsectormarines.i18n.Strings;
-import com.dillon.starsectormarines.marine.LoadoutCard;
-import com.dillon.starsectormarines.marine.LoadoutCardInventory;
-import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
 import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineSoldierStatus;
-import com.dillon.starsectormarines.marine.SquadEquipmentDoctrines;
 import com.dillon.starsectormarines.ops.mission.story.StoryEligibilityContext;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.PlanetAPI;
@@ -18,13 +14,9 @@ import com.fs.starfarer.api.campaign.econ.MarketAPI;
 
 import java.util.List;
 import java.util.Set;
-import java.util.function.Consumer;
 
 /** Campaign boundary for the authored route; projection never advances a chapter or starts an attempt. */
 public final class SupplyRouteCampaign {
-    /** The Junction's reward card: Trench-Clearing Issue, for opening a defended position. */
-    static final String JUNCTION_CARD =
-            new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.TRENCH_CLEARING_WEAPONS).id();
     private SupplyRouteCampaign() { }
 
     public static BrokenSupplyRouteProgress current() {
@@ -149,9 +141,7 @@ public final class SupplyRouteCampaign {
     }
     static int settle(MissionOutcome outcome) {
         BrokenSupplyRouteProgress p = current();
-        var cargo = Global.getSector().getPlayerFleet().getCargo();
-        int paid = settle(p, outcome, LoadoutCardInventory.playerUnavailableCardIds(),
-                card -> cargo.addSpecial(LoadoutCardItemPlugin.itemData(card), 1));
+        int paid = settle(p, outcome);
         if (paid >= 0) {
             OpeningBroker.Destination site = destination();
             ArcIssueListings.afterLive(ArcIssueListings.Beat.THUNDER_RUN, p.successful(),
@@ -159,22 +149,6 @@ public final class SupplyRouteCampaign {
         }
         return paid;
     }
-    /**
-     * Settles {@code outcome} and, when it is the won Junction, hands over Trench-Clearing Issue
-     * from Wayline's militia stores ({@code progression-nouns.md}, Kit and armory). The Junction
-     * is won once, so the card comes once; a company that knows or carries it gets none.
-     */
-    static int settle(BrokenSupplyRouteProgress p, MissionOutcome outcome, Set<String> unavailable,
-                      Consumer<String> award) {
-        boolean junction = p != null && p.readable() && p.operation() == BrokenSupplyRouteProgress.JUNCTION;
-        int paid = settle(p, outcome);
-        if (paid >= 0 && junction && p.junctionWon() && unavailable != null
-                && !unavailable.contains(JUNCTION_CARD)) {
-            award.accept(JUNCTION_CARD);
-        }
-        return paid;
-    }
-
     static int settle(BrokenSupplyRouteProgress p, MissionOutcome outcome) {
         if (p == null || !p.readable() || outcome == null || outcome.missionSource != (p.job() > 0 ? MissionSource.RECURRING : MissionSource.STORY)
                 || !p.planetName().equals(outcome.targetPlanetName)

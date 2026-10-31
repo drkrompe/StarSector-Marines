@@ -15,6 +15,7 @@ Updated: 2026-10-27 — the shoulder pod is the SRM-3 (Pod) carried special, fir
 Updated: 2026-10-30 — the Kit Ladder and the built-in cards are data files.
 
 Updated: 2026-10-30 — the Kit Ladder paces the store: each card and machine pattern goes on sale after its station's mission; victory milestones retired.
+Updated: 2026-10-31 — the Junction no longer hands over Trench-Clearing Issue; the store sells it.
 
 ## Purpose
 
@@ -839,12 +840,9 @@ is simply scarce, not a thank-you, a souvenir, or a record of the player's own
 battles. An arc unlocking a listing is a market event (a depot clears its shelves,
 a licence reaches the stalls) rather than a gift, and kit may appear that nobody on
 either side of a fight has worn.
-*Trench-Clearing Issue* (service rifles, rocket tubes and grenades) is the one arc
-card handed over rather than stocked: a won *Open the Junction*, the first assault
-on a dug-in position, puts one card in fleet cargo from Wayline's militia stores,
-named in the terms before the battle and in the debrief after it. The Junction is
-won once, so the card comes once, and a company that already knows or carries it
-gets none. It is a card to learn; nobody's fitting changes.
+No story battle hands a card into cargo: *Trench-Clearing Issue* (service rifles,
+rocket tubes and grenades), once the Junction's reward, is bought in the store after
+its Kit Ladder station like any other card. A save keeps a card already carried.
 It lets add-ons keep faction identity while ensuring that a newly collectible
 family, grade, suit, or special item cannot be stranded by an omitted or
 permanently ineligible source.

@@ -4,11 +4,12 @@ Status: ACTIVE — the hard Restricted tier, standing military warrants and the 
 arc issue cards have shipped (`progression-nouns.md`, Kit and armory).
 The Hegemony auxiliary warrant has shipped, waiting on *A Small War*'s Chapter 5
 to send its offer, and so have warrant obligations.
-Trench-Clearing Issue is the Junction reward. The across-the-line rosters remain a
-proposal.
+Trench-Clearing Issue is sold in the store after its Kit Ladder station rather than
+handed over at the Junction. The across-the-line rosters remain a proposal.
 
 Written: 2026-10-15
 Updated: 2026-10-15 — the arc issue cards shipped, stocked by market listings.
+Updated: 2026-10-31 — the Junction reward retired; Trench-Clearing Issue is sold in the store.
 
 Read `campaign-overview.md` for the route, `meta-progression.md` for the stages and
 the growth rule, `role-and-access.md` for how a card fills a squad, and
@@ -90,7 +91,7 @@ What each arc should hand the player, see across the line, and hold back.
 | Arc | Shows the player (enemy or ally) | Fun in the player's hands | Held back |
 | --- | --- | --- | --- |
 | **Wayline opening** — Relief, Counterattack | Militia holding a checkpoint behind revetments | Watchman's Kit; A Proper Issue's choice (Steady Line or Forward Screen). **Checkpoint Issue**: service rifles, three satchel-charge sappers, smoke, on sale at the broker's market once Relief settles, beside the free choice rather than as a third path. It teaches holding a road by clearing what overlooks it | Everything above Common |
-| **Broken Supply Route** — Junction, Thunder Run | Raiders with rocket tubes against the convoy | **Trench-Clearing Issue** as the Junction reward (opening a defended junction is exactly its job); **Convoy Escort Issue**: rockets plus one Palisade pod, on sale at the employer's market once Thunder Run settles | Powered anything |
+| **Broken Supply Route** — Junction, Thunder Run | Raiders with rocket tubes against the convoy | **Trench-Clearing Issue**, on sale in the store after its Kit Ladder station (opening a defended junction is exactly its job); **Convoy Escort Issue**: rockets plus one Palisade pod, on sale at the employer's market once Thunder Run settles | Powered anything |
 | **The Corvus Account** — Dust Ledger, Blind Watch, Cold Account | Sable mortars and missiles at Blind Watch; at Garnir, Resolute's guns rather than Hegemony infantry: Kord lands no one | **Counter-Battery Issue** (Hegemony): service rifles, two Arrestor packs, one anti-materiel rifle. On sale at Hegemony markets once Cold Account settles, an old counter-mortar table back on the shelves | XIV Shock, the military Arbalest: the company has now seen what it cannot have |
 | **A Working Ship** — Salvage Rights, Cold Start, Working Passage | Builders working under fire | **Builder's Guard**: revetments and Palisade pods from Tamsin Vale's yard stores, on sale at Asharu once Working Passage settles, for holding a construction site | — |
 | **A Small War** — Agreus | Greyhook's crude boarding rigs and mortar fire on the commissioning work | Recovered Specter and Recovered Arbalest (as shipped), the Salvage-assisted Section, and the planned Boarding Jack. Counter-Battery Issue pairs naturally with the mixed section | Approved sections. The arc's planned procurement lead becomes the **first warrant** |
@@ -126,8 +127,8 @@ Even after Agreus, most of the catalog stays ahead of the company:
    `progression-nouns.md` (Kit and armory).
 4. **New cards and their story stocking**: shipped; see `progression-nouns.md`
    (Kit and armory, arc issue cards) and the ladder readings below.
-5. **Trench-Clearing Issue as the Junction reward**: shipped; see
-   `progression-nouns.md` (Kit and armory, arc issue cards).
+5. **Trench-Clearing Issue as the Junction reward**: retired; the card is bought in
+   the store after its Kit Ladder station (`progression-nouns.md`, Kit and armory).
 6. **Approved kit across the line**: settled as not required. Garnir stays as
    shipped, with no Hegemony infantry on the ground. The auxiliary warrant and
    Counter-Battery Issue cite the company's evidence and the Navy's report rather

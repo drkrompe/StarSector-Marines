@@ -11,7 +11,6 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.nio.file.Path;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 import static org.junit.jupiter.api.Assertions.*;
@@ -68,40 +67,6 @@ class SupplyRouteCampaignTest {
         }
         var valid=MissionOutcome.builder().missionId(id).missionSource(MissionSource.STORY).targetPlanetName("Jangala").victory(true).payoutEarned(12000).build();
         assertEquals(12000,SupplyRouteCampaign.settle(p,valid));assertEquals(-1,SupplyRouteCampaign.settle(p,valid));
-    }
-    @Test void theWonJunctionHandsOverTrenchClearingIssueOnce() {
-        var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
-        List<String> awarded = new ArrayList<>();
-        String lost = p.missionId(); p.begin(lost);
-        assertEquals(0, SupplyRouteCampaign.settle(p, outcome(lost, false, 0), Set.of(), awarded::add));
-        assertTrue(awarded.isEmpty(), "a lost Junction awards nothing");
-
-        String won = p.missionId(); p.begin(won);
-        var victory = outcome(won, true, 12000);
-        assertEquals(12000, SupplyRouteCampaign.settle(p, victory, Set.of(), awarded::add));
-        assertEquals(List.of(SupplyRouteCampaign.JUNCTION_CARD), awarded);
-        assertTrue(SupplyRouteCampaign.JUNCTION_CARD.endsWith("weapons:trench-clearing"));
-        assertEquals(-1, SupplyRouteCampaign.settle(p, victory, Set.of(), awarded::add));
-        assertEquals(1, awarded.size(), "a replayed result awards nothing");
-
-        String convoy = p.missionId(); p.begin(convoy);
-        var cargo = new FreightRunProgress.Outcome(p.freight().previewAttempt(), List.of(0, 1, 2), List.of(), true);
-        SupplyRouteCampaign.settle(p, MissionOutcome.builder().missionId(convoy).missionSource(MissionSource.STORY)
-                .targetPlanetName("Jangala").victory(true).payoutEarned(18000).freightOutcome(cargo).build(),
-                Set.of(), awarded::add);
-        assertEquals(1, awarded.size(), "Thunder Run awards no Junction card");
-    }
-    @Test void aCompanyThatAlreadyHasTheCardGetsNoSecond() {
-        var p = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
-        List<String> awarded = new ArrayList<>();
-        String id = p.missionId(); p.begin(id);
-        assertEquals(12000, SupplyRouteCampaign.settle(p, outcome(id, true, 12000),
-                Set.of(SupplyRouteCampaign.JUNCTION_CARD), awarded::add));
-        assertTrue(awarded.isEmpty());
-    }
-    private static MissionOutcome outcome(String id, boolean victory, int paid) {
-        return MissionOutcome.builder().missionId(id).missionSource(MissionSource.STORY)
-                .targetPlanetName("Jangala").victory(victory).payoutEarned(paid).build();
     }
     @Test void actualSelectedPersonnelAndOwnedAirframesDetermineLift() {
         var p=new BrokenSupplyRouteProgress("jangala","Jangala","Corvus");var mission=SupplyRouteCampaign.offers(p).get(0);
