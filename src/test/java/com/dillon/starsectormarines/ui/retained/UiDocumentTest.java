@@ -145,6 +145,26 @@ class UiDocumentTest {
     }
 
     @Test
+    void secondPressOfADoubleClickClicksThenDoubleClicks() {
+        StringBuilder order = new StringBuilder();
+        UiElement button = new UiElement("button")
+                .onClick(() -> order.append("click "))
+                .onDoubleClick(() -> order.append("double "));
+        UiDocument document = new UiDocument(new UiElement("root").layout(UiLayout.STACK).child(button));
+        document.layout(100f, 100f);
+
+        document.pointerDown(50f, 50f, PointerButton.PRIMARY, false);
+        document.pointerUp(50f, 50f);
+        assertEquals("click ", order.toString());
+        document.pointerDown(50f, 50f, PointerButton.PRIMARY, true);
+        document.pointerUp(50f, 50f);
+        assertEquals("click click double ", order.toString());
+        document.pointerDown(50f, 50f, PointerButton.PRIMARY, false);
+        document.pointerUp(50f, 50f);
+        assertEquals("click click double click ", order.toString(), "the double click does not outlive its press");
+    }
+
+    @Test
     void releasingAwayFromArmedElementCancelsClick() {
         AtomicInteger clicks = new AtomicInteger();
         UiElement button = new UiElement("button")

@@ -3,7 +3,7 @@
        fire-team seats as the spec sheet a card shows on hover elsewhere, from the
        spec sheet's own stylesheet (SpecSheetLayer), so the two cannot drift apart.
        Its field note is not printed: hovering the card shows it (DoctrineTile.loreSheet). -->
-  <button id="{tile.id}" class="{tile.cardClasses}" onclick="{tile.select}" style="{tile.cardStyle}">
+  <button id="{tile.id}" class="{tile.cardClasses}" onclick="{tile.select}" ondblclick="{tile.equip}" style="{tile.cardStyle}">
     <div id="{tile.headerId}" class="spec-sheet-heading">
       <img id="{tile.factionLogoId}" class="{tile.crestClasses}" src="{tile.factionLogo}" />
       <div id="{tile.headingCopyId}" class="spec-sheet-heading-copy">

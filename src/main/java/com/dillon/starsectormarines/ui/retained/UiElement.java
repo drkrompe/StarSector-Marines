@@ -67,6 +67,7 @@ public final class UiElement {
     private String text;
     private Color textColor;
     private Runnable onClick;
+    private Runnable onDoubleClick;
     private String sound;
     private Consumer<String> onInput;
     private Consumer<UiPointerEvent> onPointerMove;
@@ -708,6 +709,16 @@ public final class UiElement {
 
     void click() {
         if (clickable()) onClick.run();
+    }
+
+    /** What a second press in quick succession does, after the click it also is; null for nothing more. */
+    public UiElement onDoubleClick(Runnable onDoubleClick) {
+        this.onDoubleClick = onDoubleClick;
+        return this;
+    }
+
+    void doubleClick() {
+        if (onDoubleClick != null && !disabled) onDoubleClick.run();
     }
 
     public UiElement onPointerMove(Consumer<UiPointerEvent> handler) {

@@ -102,6 +102,10 @@ final class MarkupBuilder {
                     // data is replaced, and must then run the new row's handler, not the first one.
                     reactor.bind(() -> target.onClick(handler(attribute, frame)));
                 }
+                case "ondblclick" -> {
+                    requireTag(tag, UiTag.BUTTON, attribute, frame);
+                    reactor.bind(() -> target.onDoubleClick(handler(attribute, frame)));
+                }
                 case "sound" -> {
                     requireTag(tag, UiTag.BUTTON, attribute, frame);
                     target.sound(valueOnce(attribute, frame));
@@ -192,7 +196,7 @@ final class MarkupBuilder {
 
     private Runnable handler(MarkupAttribute attribute, Frame frame) {
         if (!attribute.isExpression()) {
-            throw error(frame, attribute, "onclick takes a {handler} prop; inline script is not supported.");
+            throw error(frame, attribute, "onclick and ondblclick take a {handler} prop; inline script is not supported.");
         }
         Object value = attribute.expression().evaluate(frame.scope(), frame.fileName());
         if (value instanceof Runnable) return (Runnable) value;

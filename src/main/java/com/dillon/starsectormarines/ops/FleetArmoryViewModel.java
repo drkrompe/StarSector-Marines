@@ -1701,6 +1701,8 @@ public final class FleetArmoryViewModel {
                 // The issued card's box stays lit rather than greyed out; ticking it again does nothing.
                 case "issue" -> issue != null && !issued ? issue : NO_ISSUE;
                 case "issueDisabled" -> issueDisabled && !issued;
+                // Double-clicking the card issues it, whenever its Issue box could.
+                case "equip" -> issue != null && !issued && !issueDisabled ? issue : NO_ISSUE;
                 // A check box, one ticked a kind: the issued card's is ticked, every other is empty.
                 case "issueButtonClasses" -> issue == null ? "doctrine-issue-button-hidden"
                         : issued ? "doctrine-issue-button issued"

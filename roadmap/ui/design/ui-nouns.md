@@ -932,6 +932,9 @@ Focus acquired by keyboard is visibly distinguished from focus acquired by point
 The MLX `input` subset binds `value`, `oninput`, and `maxlength`; it supports
 printable characters, Backspace, Tab, Enter-to-blur, and Escape-to-blur without file
 access, reflection, a native widget, or a second text-state authority.
+A `button` binds `onclick` and may bind `ondblclick`: the press the host reports as
+the second of a double click (`InputEventAPI.isDoubleClick`) is a click first, then
+the double click. A loadout card's double click issues it, as its Issue box does.
 
 Pointer capture is explicit rather than an automatic consequence of pressing.
 While held, pointer movement, hover, and release retarget to the captured element;
