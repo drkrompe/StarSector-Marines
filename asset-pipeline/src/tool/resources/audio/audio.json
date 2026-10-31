@@ -484,7 +484,7 @@
     { "id": "marines_ambient_subway_train",     "source": "ambient-machinery/subwayTrain_B-line.wav", "kind": "positional", "out": "battle/ambient" },
     { "id": "marines_ambient_wind_up_long_1",   "source": "ambient-machinery/wind_up_long_1.wav",     "kind": "positional", "out": "battle/ambient" },
     { "id": "marines_engine_tracked_a", "source": "vehicle-engines/marines_engine_tracked_a.mp3", "kind": "positional", "out": "battle/engines" },
-    { "id": "marines_engine_tracked_b", "source": "vehicle-engines/marines_engine_tracked_b.mp3", "kind": "positional", "out": "battle/engines" },
+    { "id": "marines_engine_turbine_a", "source": "vehicle-engines/marines_engine_turbine_a.mp3", "kind": "positional", "out": "battle/engines" },
     { "id": "marines_engine_wheeled_a", "source": "vehicle-engines/marines_engine_wheeled_a.mp3", "kind": "positional", "out": "battle/engines" },
     { "id": "marines_engine_hover_a", "source": "vehicle-engines/marines_engine_hover_a.mp3", "kind": "positional", "out": "battle/engines" },
 

@@ -551,10 +551,10 @@
 	#
 	# Ground vehicle engines (MachineAudio): one id per hull class, pointing at the picked take.
 	# Takes are vehicle-engines/*.mp3 from ElevenLabs; volume evens each take to the same level (about 0.09 RMS).
-	# The turbine is the high-tech laser tanks' tracked voice; the other tracked hulls run the diesel.
+	# The turbine (its own take, a turbine whistle) is the high-tech laser tanks' voice; the other tracked hulls run the diesel.
 	"marines_engine_tracked":[ {"file":"sounds/battle/engines/marines_engine_tracked_a.ogg","pitch":1,"volume":0.31} ],
 	"marines_engine_wheeled":[ {"file":"sounds/battle/engines/marines_engine_wheeled_a.ogg","pitch":1,"volume":0.6} ],
-	"marines_engine_turbine":[ {"file":"sounds/battle/engines/marines_engine_tracked_b.ogg","pitch":1,"volume":0.74} ],
+	"marines_engine_turbine":[ {"file":"sounds/battle/engines/marines_engine_turbine_a.ogg","pitch":1,"volume":0.45} ],
 	"marines_engine_hover":[ {"file":"sounds/battle/engines/marines_engine_hover_a.ogg","pitch":1,"volume":0.53} ],
 	# Ids follow marines_engine_<tier>_<size>; EngineVoice.forSpec maps a hull's engine style +
 	# hullSize to one of these. Dweller has no fighter-size clip (clamped to frigate in EngineVoice).
