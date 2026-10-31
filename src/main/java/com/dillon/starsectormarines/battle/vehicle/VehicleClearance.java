@@ -3,6 +3,8 @@ package com.dillon.starsectormarines.battle.vehicle;
 import com.dillon.starsectormarines.battle.nav.Direction;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 
+import java.util.ArrayDeque;
+
 /**
  * A vehicle-walkable mask: the {@link NavigationGrid}'s walkable set eroded by a
  * footprint radius, so a cell counts as passable only when a vehicle of that
@@ -162,6 +164,45 @@ public final class VehicleClearance {
             }
         }
         return true;
+    }
+
+    /**
+     * The largest connected body of ground a footprint of {@code radius} fits on, stepping as the
+     * route planner steps (no closed edge crossed, no corner cut). Found once a battle per radius, at
+     * setup: walls breached later only add ground, so a cell in it stays in it.
+     */
+    public static boolean[] mainGround(NavigationGrid grid, int radius) {
+        VehicleClearance mask = erode(grid, radius);
+        int w = grid.getWidth(), h = grid.getHeight();
+        int[] label = new int[w * h];
+        int bestLabel = 0, bestSize = 0, next = 0;
+        ArrayDeque<Integer> open = new ArrayDeque<>();
+        for (int start = 0; start < w * h; start++) {
+            if (label[start] != 0 || !mask.isPassable(start % w, start / w)) continue;
+            int id = ++next, size = 0;
+            label[start] = id;
+            open.add(start);
+            while (!open.isEmpty()) {
+                int i = open.poll(), x = i % w, y = i / w;
+                size++;
+                for (int dy = -1; dy <= 1; dy++) {
+                    for (int dx = -1; dx <= 1; dx++) {
+                        int nx = x + dx, ny = y + dy;
+                        if ((dx | dy) == 0 || !mask.isPassable(nx, ny) || label[ny * w + nx] != 0
+                                || !grid.canTraverseCellStep(x, y, nx, ny)) continue;
+                        label[ny * w + nx] = id;
+                        open.add(ny * w + nx);
+                    }
+                }
+            }
+            if (size > bestSize) {
+                bestSize = size;
+                bestLabel = id;
+            }
+        }
+        boolean[] main = new boolean[w * h];
+        for (int i = 0; i < w * h; i++) main[i] = bestLabel != 0 && label[i] == bestLabel;
+        return main;
     }
 
     public int getWidth()  { return width; }

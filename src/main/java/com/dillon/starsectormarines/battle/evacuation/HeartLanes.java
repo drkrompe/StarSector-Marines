@@ -1872,12 +1872,17 @@ public final class HeartLanes {
      */
     private long placeHull(BattleSimulation sim, VehicleType type, VehicleStockFit fit, int x, int y, float facing) {
         VehicleClearance clearance = clearance(sim, type);
-        // Ground it can set out from whichever way its route leaves; only where there is none near, ground it fits.
+        // Ground it can set out from whichever way its route leaves, on the map's main body of ground: a slot among
+        // buildings can pass both tests and still be a pocket no route leaves, and a hull set down there never moves.
+        // Only where there is none near, ground it fits.
+        boolean[] main = mainGround(sim, clearance.radiusCells());
+        int width = sim.getGrid().getWidth();
         int[] cell = null;
         for (int pass = 0; cell == null && pass < 2; pass++)
-            for (int r = 0; cell == null && r <= 10; r++)
+            for (int r = 0; cell == null && r <= (pass == 0 ? 20 : 10); r++)
                 for (int dy = -r; cell == null && dy <= r; dy++) for (int dx = -r; cell == null && dx <= r; dx++)
                     if (Math.max(Math.abs(dx), Math.abs(dy)) == r && clearance.isPassable(x + dx, y + dy)
+                            && (pass == 1 || main[(y + dy) * width + x + dx])
                             && clearOfArmour(x + dx + .5f, y + dy + .5f)
                             && (pass == 1 || TurnAwareCorridor.canSetOutFrom(x + dx + .5f, y + dy + .5f, type, sim.getGrid())))
                         cell = new int[]{x + dx, y + dy};
@@ -1971,6 +1976,8 @@ public final class HeartLanes {
     }
 
     private final Map<Integer, VehicleClearance> clearances = new HashMap<>();
+    /** The main body of ground per clearance radius ({@link VehicleClearance#mainGround}), found once a battle. */
+    private final Map<Integer, boolean[]> mainGrounds = new HashMap<>();
     /** Drives and fights the lanes' hulls (`allied-command.md`). */
     private final AlliedCommand allied = new AlliedCommand(ISSUER);
     private HeartLane companySector;
@@ -1980,6 +1987,10 @@ public final class HeartLanes {
     private VehicleClearance clearance(BattleSimulation sim, VehicleType type) {
         int radius = VehicleClearance.radiusForWidth(type.visualWidthCells);
         return clearances.computeIfAbsent(radius, r -> VehicleClearance.erode(sim.getGrid(), r));
+    }
+
+    private boolean[] mainGround(BattleSimulation sim, int radius) {
+        return mainGrounds.computeIfAbsent(radius, r -> VehicleClearance.mainGround(sim.getGrid(), r));
     }
 
     private static List<KnownBore> known(BattleSimulation sim) {
