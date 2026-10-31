@@ -59,12 +59,10 @@ class KitLadderTest {
         UnlockStation relief = UnlockStation.byId("relief");
         Set<UnlockStation> early = Set.of(UnlockStation.START, relief);
         var progress = new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(), early);
-        for (FactionEquipmentSource source : List.of(FactionEquipmentSource.MARKET, FactionEquipmentSource.LICENSE)) {
-            List<String> drawn = MechPatternPicker.pick("independent", source, 500, 3L, Set.of(), progress);
-            assertFalse(drawn.isEmpty(), source.name());
-            for (String id : drawn) assertEquals(relief, KitLadder.station(id), id);
-        }
-        List<String> late = MechPatternPicker.pick("independent", FactionEquipmentSource.MARKET, 500, 3L, Set.of(),
+        List<String> drawn = StoreStock.patterns(Set.of(), progress);
+        assertFalse(drawn.isEmpty());
+        for (String id : drawn) assertEquals(relief, KitLadder.station(id), id);
+        List<String> late = StoreStock.patterns(Set.of(),
                 new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(), UnlockStation.all()));
         for (String id : late) assertNotEquals(UnlockStation.NONE, KitLadder.station(id), id);
         String neverSold = KitLadder.stations().entrySet().stream()

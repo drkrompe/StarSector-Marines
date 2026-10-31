@@ -8,22 +8,23 @@ import com.fs.starfarer.api.campaign.RepLevel;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.econ.SubmarketAPI;
-import com.fs.starfarer.api.impl.campaign.ids.Industries;
 import com.fs.starfarer.api.impl.campaign.ids.Submarkets;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.function.Function;
 
 /**
  * The company's store: the technology a civilized market teaches for credits.
  *
  * <p>Loadout cards and mech patterns used to sit as special cargo on the market's open submarket,
  * where the player had to find them among the goods, buy them and right-click them. The store sells
- * the same things without the detour: what is on the shelf is chosen by exactly the policy the open
- * market used ({@link FactionEquipmentMarketStockPlanner}: size, standing, the company's victories
- * and reputation, warrants and story listings), a purchase pays from the company's purse and
+ * the same things without the detour: the Kit Ladder alone decides what is on the shelf
+ * ({@link StoreStock}: every card and pattern whose station the campaign has passed, at every store,
+ * with warrants and story listings), a purchase pays from the company's purse and
  * teaches the {@link MarineArmory} or the {@link MechBay} directly, and nothing is left to carry.
  *
  * <p>This class is the rule; the Store page is its presentation. Cards that arrive some other way
@@ -73,9 +74,11 @@ public final class EquipmentStore {
     /** What the company already holds: where a purchase is learned, and how it is known to be known. */
     public record Holdings(MarineArmory armory, MechBay bay, BoatDeck deck) {}
 
-    /** The market's side of the shelf plan; everything the policy reads about a place. */
-    public record Place(String factionId, String marketId, int size, boolean military,
-                        float tariff, boolean licensed) {}
+    /**
+     * The market's side of the shelf; everything the policy reads about a place. Its size and id only seed and size
+     * the boat part rotation; its faction and licence decide where Restricted cards stand.
+     */
+    public record Place(String factionId, String marketId, int size, float tariff, boolean licensed) {}
 
     private EquipmentStore() {}
 
@@ -123,32 +126,45 @@ public final class EquipmentStore {
     }
 
     /**
-     * The shelf of one market for one monthly {@code rotation}: listed cards first, then the open
-     * market's rotating cards, then the licensed ones, then the mech pattern slot. Deterministic for
-     * the month, so reopening the page shows the same shelf.
+     * The shelf of one market ({@link StoreStock}): every loadout card and machine pattern the Kit Ladder has opened
+     * and the company lacks, the market's listed cards among them, and the boat parts of this month's
+     * {@code rotation}. In {@link #shelfOrder} with the ids standing in for names; the page sorts by display name.
      */
     public static List<Offer> shelf(Place place, long rotation,
                                     Set<String> unavailableCardIds, Set<String> unavailablePatternIds,
                                     Set<String> unavailablePartIds,
                                     EquipmentAcquisitionEligibility.Progress progress,
                                     List<String> listedCardIds) {
-        FactionEquipmentMarketStockPlanner.StockPlan plan = FactionEquipmentMarketStockPlanner.plan(
-                place.factionId(), place.marketId(), place.size(), rotation, place.licensed(),
+        StoreStock.StockPlan plan = StoreStock.cards(place.factionId(), place.licensed(),
                 unavailableCardIds, progress, listedCardIds);
         List<Offer> offers = new ArrayList<>();
         for (String id : plan.listedCardIds()) offers.add(offer(Kind.LOADOUT, id, Shelf.LISTED, place.tariff()));
         for (String id : plan.marketCardIds()) offers.add(offer(Kind.LOADOUT, id, Shelf.MARKET, place.tariff()));
         for (String id : plan.licensedCardIds()) offers.add(offer(Kind.LOADOUT, id, Shelf.LICENSE, place.tariff()));
-        for (String id : FactionEquipmentMarketStockPlanner.mechPattern(place.factionId(), place.marketId(),
-                place.size(), place.military(), rotation, place.licensed(), unavailablePatternIds, progress)) {
+        for (String id : StoreStock.patterns(unavailablePatternIds, progress)) {
             offers.add(offer(Kind.MECH_PATTERN, id, Shelf.MARKET, place.tariff()));
         }
         Shelf partShelf = place.licensed() ? Shelf.LICENSE : Shelf.MARKET;
-        for (String id : FactionEquipmentMarketStockPlanner.boatParts(place.factionId(), place.marketId(),
+        for (String id : StoreStock.boatParts(place.factionId(), place.marketId(),
                 place.size(), rotation, place.licensed(), unavailablePartIds, progress)) {
             offers.add(offer(Kind.BOAT_PART, id, partShelf, place.tariff()));
         }
+        offers.sort(shelfOrder(Offer::id));
         return List.copyOf(offers);
+    }
+
+    /**
+     * The order a shelf is read in: listed cards first, then by store slot (the category the page browses), then by
+     * Kit Ladder station, then by {@code name}.
+     */
+    public static Comparator<Offer> shelfOrder(Function<Offer, String> name) {
+        return Comparator.comparingInt((Offer offer) -> offer.shelf() == Shelf.LISTED ? 0 : 1)
+                .thenComparingInt(offer -> {
+                    StoreSlot slot = offer.slot();
+                    return slot == null ? Integer.MAX_VALUE : slot.ordinal();
+                })
+                .thenComparing(offer -> KitLadder.station(offer.id()))
+                .thenComparing(name, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
     }
 
     /** Whether the company already has what the offer teaches. */
@@ -241,9 +257,7 @@ public final class EquipmentStore {
             }
         }
         SubmarketAPI open = market.getSubmarket(Submarkets.SUBMARKET_OPEN);
-        boolean military = market.hasIndustry(Industries.MILITARYBASE)
-                || market.hasIndustry(Industries.HIGHCOMMAND);
-        Place place = new Place(market.getFactionId(), market.getId(), market.getSize(), military,
+        Place place = new Place(market.getFactionId(), market.getId(), market.getSize(),
                 open != null ? open.getTariff() : 0f, hasLicenseAccess(relationship));
         return shelf(place, rotation, unavailableCards, unavailablePatterns, unavailableParts,
                 EquipmentAcquisitionEligibility.currentProgress(), listed);

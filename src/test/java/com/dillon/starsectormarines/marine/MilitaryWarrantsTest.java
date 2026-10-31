@@ -138,16 +138,22 @@ class MilitaryWarrantsTest {
         EquipmentAcquisitionEligibility.Progress warranted =
                 new EquipmentAcquisitionEligibility.Progress(1000, 1000, Set.of(XIV_SHEET));
 
-        assertFalse(offers("hegemony", FactionEquipmentSource.LICENSE, EVERYTHING),
+        assertFalse(storeOffers("hegemony", EVERYTHING),
                 "without the warrant the Hegemony itself does not sell it");
-        assertTrue(offers("hegemony", FactionEquipmentSource.LICENSE, warranted));
+        assertTrue(storeOffers("hegemony", warranted));
         assertTrue(offers("hegemony", FactionEquipmentSource.PATRON, warranted));
         assertFalse(offers("hegemony", FactionEquipmentSource.RECOVERY, warranted));
         for (String faction : List.of("independent", "sindrian_diktat", "lions_guard", "knights_of_ludd", "pirates")) {
-            for (FactionEquipmentSource source : FactionEquipmentSource.values()) {
+            assertFalse(storeOffers(faction, warranted), faction + " store");
+            for (FactionEquipmentSource source : List.of(FactionEquipmentSource.PATRON, FactionEquipmentSource.RECOVERY)) {
                 assertFalse(offers(faction, source, warranted), faction + " " + source);
             }
         }
+    }
+
+    /** On the store's licence shelf, standing granted. */
+    private static boolean storeOffers(String factionId, EquipmentAcquisitionEligibility.Progress progress) {
+        return StoreStock.cards(factionId, true, Set.of(), progress).allCardIds().contains(XIV_SHEET);
     }
 
     @Test

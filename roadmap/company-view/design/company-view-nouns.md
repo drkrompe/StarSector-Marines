@@ -880,9 +880,12 @@ while the fleet is docked at a civilized market it can trade with (`CivilizedPor
 the same gate the workshops' `atMarket` reads) and shows absent otherwise. Opened with no
 planet behind it, from the campaign map, it is closed.
 
-The shelf is `EquipmentStore.shelf`: listed cards, the open market's monthly rotation,
-the licensed rotation and the one mech pattern slot, chosen by the same planner and
-eligibility rules the open market used. A purchase pays from the company purse a price set
+The shelf is `EquipmentStore.shelf` (`StoreStock`): the market's listed cards first, then
+every loadout card and machine pattern whose Kit Ladder station the campaign has passed and
+the company lacks, the same at every store (`progression-nouns.md`, the store is paced by the
+Kit Ladder alone), then the boat parts of the month. It is read in category order, then
+Kit Ladder station, then name (`EquipmentStore.shelfOrder`), and the offer list scrolls, so a
+long shelf is browsed rather than truncated. A purchase pays from the company purse a price set
 by the item's access tier (Common one base price of 5,000; Advanced twice, Prestige four
 times, Restricted six times) plus the market's open-market tariff, and teaches the Armory or the Mech Bay
 directly; nothing is carried and nothing is charged for a card already known. Cards
