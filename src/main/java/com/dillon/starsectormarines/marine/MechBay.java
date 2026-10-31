@@ -66,6 +66,8 @@ public final class MechBay implements Serializable {
     private Set<String> knownPatternIds = starterPatternIds();
     private int labLesson;
     private boolean labLessonPaused;
+    /** Save input only: the remove-and-refit step it tracked is retired. */
+    @SuppressWarnings("unused")
     private boolean lessonRackRemoved;
 
     public boolean canFabricate(MechWeaponComponent component) {
@@ -137,18 +139,16 @@ public final class MechBay implements Serializable {
         labLessonPaused = false;
     }
 
+    /** Opening the Hound's gantry moves to fitting; a rack already on her shoulder ends the lesson. */
     public void advanceLabLesson() {
         if (labLesson == 1) { labLesson = 2; observeLabFit(); }
-        else if (labLesson == 4) labLesson = 5;
     }
 
     private void observeLabFit() {
         CampaignMech mech = mechById(WaylineHound.ID);
         if (mech == null) return;
         for (MechMountSlot mount : List.of(MechMountSlot.LEFT_SHOULDER, MechMountSlot.RIGHT_SHOULDER)) {
-            if (!isLessonRack(mech.weaponAt(mount))) continue;
-            if (labLesson == 2) { labLesson = 3; return; }
-            if (labLesson == 3 && lessonRackRemoved) labLesson = 4;
+            if (isLessonRack(mech.weaponAt(mount)) && labLesson == 2) { labLesson = 5; return; }
         }
     }
 
@@ -789,8 +789,6 @@ public final class MechBay implements Serializable {
                 mech.variant()).socket(socketId);
         if (socket == null || socket.factoryLocked()) return false;
         if (mech.weaponAt(slot) == null) return false;
-        if (labLesson == 3 && WaylineHound.ID.equals(mechId)
-                && isLessonRack(mech.weaponAt(slot))) lessonRackRemoved = true;
         mech.installWeapon(slot, null);
         return true;
     }
@@ -1000,6 +998,8 @@ public final class MechBay implements Serializable {
             if (installed > 0) ownedInternals.merge(internal.id, installed, Math::max);
         }
         if (labLesson == 0 && mechById(WaylineHound.ID) != null) beginLabLesson();
+        // The lesson ends at the first fit; a save inside the retired refit or ready steps has already fitted.
+        if (labLesson == 3 || labLesson == 4) labLesson = 5;
         nextFabricatedSerial = Math.max(1, nextFabricatedSerial);
         nextVehicleSerial = Math.max(1, nextVehicleSerial);
         return this;
