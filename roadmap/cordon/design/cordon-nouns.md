@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — the town compound's wide rear gate and truck yard, the convoys turning in it and loading beside the staging area; a townsperson killed at the camp stays out; a truck lost on the road is made good with another trip; a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -541,19 +541,28 @@ it is pressed.
 
 **Camp (the Road).** The safe point behind the line where the convoys bring
 the townspeople: a small allied encampment on the corridor where the convoys
-set out from and come back to (where it passes the logistics base, or near the
-rear edge), a square of open ground twenty-five cells across with the road
-running through it, a sandbag ring on its edge broken where the road crosses
-it, crate stacks in its corners, an aid station, a field HQ and a supply dump
-on its rear half either side of the road, and four allied guards on its side
-toward the front (`CordonCamp`, found at setup clear of the landing field, the base's
-berths and door and the air base). A convoy home stops on the road through
+set out from and come back to, seventy corridor cells behind where the corridor
+crosses the line (or beside the logistics base where that is nearer the gap):
+a buffer the swarm crosses only once it is through the line, well behind the
+company's fall-back ground, and a short safe leg for the drive (owner,
+2026-10-31; untuned). It is a square twenty-five cells across with the road running through
+it, cleared at setup of its trees and loose props: a sandbag ring on its edge,
+whole round with its corner pieces and broken only where the road crosses it;
+the line's heavy machine gun on each inner corner (the redoubts' corner gun);
+an aid station, a field HQ and a supply dump on its rear half either side of
+the road; and two allied teams of six, one along its side toward the front and
+one along its rear (`CordonCamp`, found at setup clear of the landing field,
+the base's berths and door and the air base). It holds against the swarm's
+ordinary pressure, which the line stops short of it, and can fall to a tide
+that breaks through (owner, 2026-10-31: "it would be fun if the enemy could
+break through"; untuned). A convoy home stops on the road through
 it and lets its people down one every two seconds: each steps off as a
 civilian, is **out** from that moment, and walks in to wait at the camp's rear
 for the rest of the battle. Its emptied trucks pull back down the road behind
 the camp and wait there; the next convoy called sets out in them (a new truck
 comes on only when none waits), so pick-ups and drop-offs are one road from the
-camp to the gate and back. A townsperson the swarm kills in the camp stays
+camp to the gate and back. The people waiting in the camp are civilians the
+swarm can reach and kill. A townsperson the swarm kills in the camp stays
 **out** and is not lost: once they reach the drop-off the company's job is done
 (owner, 2026-10-31). R2's passengers walk to the camp and are out when they reach
 it.
@@ -1120,7 +1129,10 @@ The owner's answers to the flow cards (2026-10-22):
   own surges and new bores erupting in front of the line (*Eruption*).
 - **How the Road's convoys run:** three convoys on a timetable, each one out
   and back (since 2026-10-31, the owner: the win is people, so up to five are
-  called while people are trapped).
+  called while people are trapped). A truck destroyed on the road is made good:
+  each two lost (or part of two) adds a trip past the five, which sets out from
+  the camp no sooner than forty-five seconds after the loss (untuned), so lost
+  trucks never count against the cap.
 
 ## Boundaries
 

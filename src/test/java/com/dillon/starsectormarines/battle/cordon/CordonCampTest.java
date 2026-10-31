@@ -23,20 +23,45 @@ class CordonCampTest {
     @Test
     void theCampStandsOnTheEntryWithItsRoadKeptClear() {
         List<int[]> road = road();
-        CordonCamp.Plan plan = CordonCamp.plan(road, 20, 150, 1, 60, 200, (x, y) -> true, List.of());
+        CordonCamp.Plan plan = CordonCamp.plan(road, 20, 100, 1, 60, 200, (x, y) -> true, List.of());
         assertNotNull(plan);
-        assertEquals(20, plan.dropIndex());
+        assertEquals(100 - CordonCamp.BEHIND_GAP, plan.dropIndex(), "a buffer behind the line, off the rear edge");
         for (CordonCamp.Bag bag : plan.bags()) {
             assertTrue(Math.abs(bag.x() - 30) > CordonCamp.ROAD_KEEP, "no bag on the road through the camp");
         }
         for (int[] c : plan.waiting()) assertTrue(Math.abs(c[0] - 30) > CordonCamp.ROAD_KEEP + 1, "nobody waits on the road");
-        assertFalse(plan.guards().isEmpty());
-        for (int[] g : plan.guards()) assertEquals(20 + CordonCamp.HALF - 1, g[1], "the guards stand on the front side");
+        assertEquals(CordonCamp.GUARDS, plan.guards().size());
+        for (int[] g : plan.guards()) assertEquals(plan.cy() + CordonCamp.HALF - 1, g[1], "a team stands on the front side");
+        assertEquals(CordonCamp.GUARDS, plan.rearGuards().size());
+        for (int[] g : plan.rearGuards()) assertEquals(plan.cy() - CordonCamp.HALF + 1, g[1], "a team stands on the rear");
+    }
+
+    @Test
+    void theRingIsWholeButForTheRoadWithItsCornersAndAGunInEachCorner() {
+        CordonCamp.Plan plan = CordonCamp.plan(road(), 20, 100, 1, 60, 200, (x, y) -> true, List.of());
+        assertNotNull(plan);
+        int side = 2 * CordonCamp.HALF + 1, road = 2 * (2 * CordonCamp.ROAD_KEEP + 1);
+        assertEquals(4 * (side - 1) - road, plan.bags().size(), "every ring cell off the road carries a bag");
+        long corners = plan.bags().stream().filter(b -> b.art().startsWith("corner-")).count();
+        assertEquals(4, corners);
+        assertEquals(4, plan.guns().size());
+        for (int[] g : plan.guns()) {
+            assertEquals(CordonCamp.HALF - 1, Math.abs(g[0] - 30));
+            assertEquals(CordonCamp.HALF - 1, Math.abs(g[1] - plan.cy()));
+        }
+    }
+
+    @Test
+    void aCornerBagIsNamedForItsCorner() {
+        assertEquals("corner-ne", CordonCamp.bagArt(12, 12));
+        assertEquals("corner-sw", CordonCamp.bagArt(-12, -12));
+        assertEquals("n", CordonCamp.bagArt(3, 12));
+        assertEquals("w", CordonCamp.bagArt(-12, 4));
     }
 
     @Test
     void theStationsStandOffTheRoadAndNobodyWaitsOnThem() {
-        CordonCamp.Plan plan = CordonCamp.plan(road(), 20, 150, 1, 60, 200, (x, y) -> true, List.of());
+        CordonCamp.Plan plan = CordonCamp.plan(road(), 20, 100, 1, 60, 200, (x, y) -> true, List.of());
         assertNotNull(plan);
         assertFalse(plan.props().isEmpty());
         for (CordonCamp.Prop p : plan.props()) {
@@ -50,14 +75,21 @@ class CordonCampTest {
     @Test
     void theCampKeepsOffTheBaseAndThePads() {
         List<int[]> road = road();
-        CordonCamp.Plan plan = CordonCamp.plan(road, 20, 150, 1, 60, 200, (x, y) -> true, List.of(new int[]{30, 20}));
+        CordonCamp.Plan plan = CordonCamp.plan(road, 20, 150, 1, 60, 200, (x, y) -> true, List.of(new int[]{30, 80}));
         assertNotNull(plan);
-        assertTrue(Math.abs(plan.cy() - 20) > CordonCamp.HALF + CordonCamp.KEEP_OFF);
+        assertTrue(Math.abs(plan.cy() - 80) > CordonCamp.HALF + CordonCamp.KEEP_OFF);
     }
 
     @Test
     void noCampWhereTheGroundIsShut() {
-        assertNull(CordonCamp.plan(road(), 20, 150, 1, 60, 200, (x, y) -> false, List.of()));
+        assertNull(CordonCamp.plan(road(), 20, 100, 1, 60, 200, (x, y) -> false, List.of()));
+    }
+
+    @Test
+    void theCampIsWantedABufferBehindTheLineOrAtTheBaseWhereThatIsNearer() {
+        assertEquals(300 - CordonCamp.BEHIND_GAP, CordonCamp.wanted(6, 300));
+        assertEquals(250, CordonCamp.wanted(250, 300));
+        assertEquals(1, CordonCamp.wanted(0, 20));
     }
 
     @Test
