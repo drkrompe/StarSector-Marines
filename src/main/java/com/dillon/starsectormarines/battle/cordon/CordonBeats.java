@@ -2,6 +2,9 @@ package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.command.allied.AlliedCommand;
 import com.dillon.starsectormarines.battle.objective.optional.ObjectiveBoard;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveResult;
+import com.dillon.starsectormarines.battle.objective.optional.ObjectiveRuntime;
+import com.dillon.starsectormarines.battle.objective.optional.OptionalObjective;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.vehicle.VehicleClearance;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
@@ -121,6 +124,38 @@ public final class CordonBeats {
      */
     boolean covered(long hull) {
         return escorted(hull) || escortOf(hull) != 0L;
+    }
+
+    /**
+     * One rolled beat as the player's picture reads it: its key, title and briefing line, its status, what it pays,
+     * whether it is asking for Marines now, and where it is ({@code x} and {@code y} are -1 where it has no place).
+     */
+    public record Reading(String key, String title, String briefing, ObjectiveRuntime.Status status, int credits,
+                          boolean calling, int x, int y) { }
+
+    /** Every rolled beat, in roll order, as the player's picture reads it; read-only, empty before the board starts. */
+    public List<Reading> readings(BattleSimulation sim) {
+        List<Reading> out = new ArrayList<>();
+        if (board == null) return out;
+        List<ObjectiveResult> results = board.results();
+        List<OptionalObjective> pool = CordonObjectives.pool(variant, null);
+        // The runtimes register as the board starts them, in roll order, so the two lists pair one to one.
+        for (int i = 0; i < results.size() && i < running.size(); i++) {
+            ObjectiveResult result = results.get(i);
+            CordonBeat beat = running.get(i);
+            OptionalObjective objective = null;
+            for (OptionalObjective o : pool) if (o.key().equals(result.key())) objective = o;
+            boolean active = beat.active();
+            int[] at = active ? beat.place(sim) : null;
+            if (active && at == null && objective != null)
+                for (String need : objective.needs()) {
+                    for (String piece : OptionalObjective.alternatives(need)) if (at == null) at = centre(piece);
+                }
+            out.add(new Reading(result.key(), result.title(), objective == null ? "" : objective.briefing(),
+                    result.status(), result.reward().credits(), active && beat.call(sim) != null,
+                    at == null ? -1 : at[0], at == null ? -1 : at[1]));
+        }
+        return out;
     }
 
     /** Each running beat's status and what it is doing, one line each, for evidence. */

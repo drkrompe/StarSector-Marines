@@ -66,4 +66,13 @@ final class MilitiaBeat extends CordonBeat {
         }
         return rule(alive, atGap);
     }
+
+    /** The gap the militia ride out to. */
+    @Override
+    int[] place(BattleSimulation sim) {
+        CordonConvoys convoys = beats.sequence().convoys();
+        if (convoys == null || convoys.corridor().isEmpty()) return null;
+        int[] crossing = convoys.corridor().get(Math.min(convoys.gapIndex(), convoys.corridor().size() - 1));
+        return new int[]{crossing[0], crossing[1]};
+    }
 }

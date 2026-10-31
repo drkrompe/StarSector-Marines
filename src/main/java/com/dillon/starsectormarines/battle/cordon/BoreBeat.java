@@ -142,4 +142,10 @@ final class BoreBeat extends CordonBeat {
     int[] call(BattleSimulation sim) {
         return site == null ? null : new int[]{site[0], site[1], 3};
     }
+
+    /** The bore's site once chosen; before that, the set piece it opens on. */
+    @Override
+    int[] place(BattleSimulation sim) {
+        return site == null ? null : new int[]{site[0], site[1]};
+    }
 }

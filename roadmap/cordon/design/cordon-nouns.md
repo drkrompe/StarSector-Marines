@@ -752,8 +752,12 @@ redoubts and any redoubt calling, the redoubts lost against those allowed, and
 the window's time left. Each row's focus is where the company is wanted now:
 a held convoy, then one on the road, the gate while one loads, and the gap
 while the next is still to come; a calling redoubt before a quiet gap
-redoubt. Tides are never foreseen on it, as on the radio. The optional beats
-are not on the rail yet; they are briefed only.
+redoubt. Tides are never foreseen on it, as on the radio. The rolled beats
+follow in the Optional section, in roll order: each beaconed where it is
+while it runs (where it calls the company, else its own place: the gate, the
+gap, the wreck or dozer, the bore's site, else its set piece), saying when it
+wants Marines now, and struck once failed or lapsed. A beat with no place yet
+(a truck that has not gone down) is listed without a beacon.
 
 ### Evidence
 

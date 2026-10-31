@@ -63,4 +63,10 @@ final class GapFallsBeat extends CordonBeat {
         int[] at = beats.centre(CordonSetPieces.GAP_POSITIONS);
         return at == null ? null : new int[]{at[0], at[1], 3};
     }
+
+    /** The gap positions, whether or not a gap redoubt has fallen yet. */
+    @Override
+    int[] place(BattleSimulation sim) {
+        return beats.centre(CordonSetPieces.GAP_POSITIONS);
+    }
 }
