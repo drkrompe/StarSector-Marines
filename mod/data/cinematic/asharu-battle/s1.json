@@ -6,13 +6,31 @@
  "height": 1080,
  "frames": 192,
  "duration": 8.0,
- "captions": [],
+ "captions": [
+  {
+   "t_in": 0.0,
+   "t_out": 5.43,
+   "speaker": "warden_two",
+   "key": "asharuRadioS1_2"
+  }
+ ],
  "cues": [
+  {
+   "t": 0.0,
+   "sound": "asharu_film_d04",
+   "volume": 1.0
+  },
   {
    "t": 0.0,
    "sound": "asharu_film_engines_s1",
    "volume": 1.0
   }
  ],
- "speakers": {}
+ "speakers": {
+  "warden_two": {
+   "label_key": "asharuRadioSpeakerWardenTwo",
+   "color": "player",
+   "role_key": "asharuRadioRoleWardenTwo"
+  }
+ }
 }

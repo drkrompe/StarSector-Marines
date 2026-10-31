@@ -75,6 +75,25 @@ public final class CordonReviewAnnotations {
                     "REDOUBT " + r.number() + " · " + stateWord(r.state()) + gap + lineWords(sim, cordon, r),
                     redoubtStyle(r.state()));
         }
+        CordonTown town = cordon.town();
+        if (town != null) {
+            int standing = 0;
+            for (int squad : town.teams()) standing += sim.squadMemberCount(squad);
+            marks.box(town.left(), town.top(), town.right(), town.bottom(), "AIN TAFRANT · " + standing + "/"
+                    + town.garrison() + " defenders" + (town.calling(standing) ? " · calling" : ""),
+                    town.holds() ? ReviewStyle.KEEP : ReviewStyle.NOTE);
+            int l = Integer.MAX_VALUE, t = Integer.MAX_VALUE, r = Integer.MIN_VALUE, b = Integer.MIN_VALUE;
+            for (int[] c : town.staging().cells()) {
+                l = Math.min(l, c[0]);
+                t = Math.min(t, c[1]);
+                r = Math.max(r, c[0]);
+                b = Math.max(b, c[1]);
+            }
+            if (!town.staging().isEmpty()) {
+                marks.box(l, t, r, b, "STAGING AREA · " + town.state().name().toLowerCase(Locale.ROOT),
+                        ReviewStyle.ROUTE);
+            }
+        }
         CordonLogistics base = cordon.logistics();
         if (base != null) {
             marks.box(base.doorX() - 2, base.doorY() - 2, base.doorX() + 2, base.doorY() + 2, "machine door", ReviewStyle.ROUTE);

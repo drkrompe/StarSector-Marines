@@ -107,13 +107,14 @@ public final class MissionObjectiveSnapshotSuite implements SnapshotSuite {
             record.holdTimer = 2f;
             capture(context, artifacts, "junction-control-progress-fixture", sim, false);
         }
-        // Ain Tafrant: the gap and the town's gate at landing, then a convoy on the road ninety seconds in.
+        // Ain Tafrant: the town's staging area and the convoys at landing, then a convoy on the road ninety seconds in.
         try (var sim = new CordonBattleFixture(WellhollowBloomCampaign.fixedSeed(WellhollowBloomProgress.Chapter.CORDON_ROAD),
                 CordonVariant.ROAD, SurfacePalette.ARID, CordonPlan.Density.TOWN,
                 List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 4, 6))).build()) {
             capture(context, artifacts, "cordon-road-initial", sim, false);
             var road = MissionObjectiveProjection.capture(sim).objectives();
-            assertEquals("cordon-gap", road.get(0).focusMarkerId(), "before the first convoy the company is sent to the gap");
+            assertEquals("cordon-staging", road.get(0).focusMarkerId(), "Hold Ain Tafrant beacons the staging area");
+            assertEquals("cordon-gap", road.get(1).focusMarkerId(), "before the first convoy the company is sent to the gap");
             assertFalse(MissionObjectiveProjection.capture(sim).optional().isEmpty(), "the rolled beats are on the rail");
             for (int tick = 0; tick < 2700 && !sim.isComplete(); tick++) sim.advance(BattleSimulation.TICK_DT);
             capture(context, artifacts, "cordon-road-convoy", sim, false);

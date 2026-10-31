@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.power.MechSupport;
 import com.dillon.starsectormarines.battle.power.OrbitalBarrage;
 import com.dillon.starsectormarines.battle.power.CloseAirSupport;
 import com.dillon.starsectormarines.battle.power.ShipOnStation;
+import com.dillon.starsectormarines.battle.power.SpawnInOnslaught;
 import com.dillon.starsectormarines.battle.power.WolfStrike;
 import com.dillon.starsectormarines.battle.weapon.WeaponDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
@@ -104,6 +105,7 @@ public final class SpecSheets {
             case CloseAirSupport.ID -> Strings.get("gearPowerEffectCloseAirSupport");
             case ShipOnStation.ID -> Strings.get("gearPowerEffectShipOnStation");
             case WolfStrike.ID -> Strings.get("gearPowerEffectWolfStrike");
+            case SpawnInOnslaught.ID -> Strings.get("gearPowerEffectSpawnInOnslaught");
             default -> Strings.get("gearPowerEffectDefault");
         };
         return new SpecSheet(power.displayName, Strings.get("gearCommandPower"), commandPowerIcon(power), "command",
