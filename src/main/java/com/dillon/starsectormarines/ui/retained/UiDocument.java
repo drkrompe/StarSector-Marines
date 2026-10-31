@@ -30,6 +30,8 @@ public final class UiDocument {
     private Rect viewport = Rect.EMPTY;
     private List<UiElement> hovered = List.of();
     private UiElement pressed;
+    /** Whether the press now held is the second of a double click (the host's own timing says so). */
+    private boolean pressedTwice;
     private UiElement pointerCapture;
     private UiElement focused;
     private UiElement spaceArmed;
@@ -254,6 +256,11 @@ public final class UiDocument {
     }
 
     public boolean pointerDown(float x, float y, PointerButton button) {
+        return pointerDown(x, y, button, false);
+    }
+
+    /** As {@link #pointerDown(float, float, PointerButton)}; {@code doubleClick} marks a press the host counts as the second. */
+    public boolean pointerDown(float x, float y, PointerButton button, boolean doubleClick) {
         validateInteractionReferences();
         rememberPointer(x, y);
         UiElement target = pointerCapture != null ? pointerCapture : elementAt(x, y);
@@ -265,6 +272,7 @@ public final class UiDocument {
         requestFocus(nearestFocusable(target), false);
         if (pressed != null) pressed.armed(false);
         pressed = nearestClickable(target);
+        pressedTwice = doubleClick;
         if (pressed == null) {
             if (nearestDisabledButton(target) != null) UiSounds.installed().disabledPressed();
             return target != null || activeRegions() != null;
@@ -286,6 +294,8 @@ public final class UiDocument {
         UiElement wasPressed = pressed;
         if (button == PointerButton.PRIMARY) {
             pressed = null;
+            boolean twice = pressedTwice;
+            pressedTwice = false;
             if (wasPressed != null) {
                 wasPressed.armed(false);
                 UiElement releasedOver = nearestClickable(target);
@@ -294,6 +304,8 @@ public final class UiDocument {
                 if ((event == null || !event.defaultPrevented())
                         && (releasedOver == wasPressed || capturedClick)) {
                     activate(wasPressed);
+                    // The second press of a double click is a click first, then the double click.
+                    if (twice) wasPressed.doubleClick();
                 }
             }
             pointerCapture = null;

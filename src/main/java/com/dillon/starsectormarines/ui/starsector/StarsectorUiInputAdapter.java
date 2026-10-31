@@ -47,7 +47,7 @@ public final class StarsectorUiInputAdapter {
                 }
             } else if (event.isLMBDownEvent()) {
                 if (document.pointerDown(documentX(event), documentY(event),
-                        PointerButton.PRIMARY)) event.consume();
+                        PointerButton.PRIMARY, event.isDoubleClick())) event.consume();
             } else if (event.isLMBUpEvent()) {
                 if (document.pointerUp(documentX(event), documentY(event),
                         PointerButton.PRIMARY)) event.consume();
