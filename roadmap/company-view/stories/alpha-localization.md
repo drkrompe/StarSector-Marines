@@ -86,13 +86,23 @@ Simplified Chinese (`zh_CN`, owner's first language) has these slices:
 - [ ] Company rooms' own labels: Barracks, Armory, Shuttle Deck, Mech Lab,
   ship transfer and refit (the bulk of the `opening*` keys).
 
+Fonts: the translation mod replaces each retained-UI face in `Fonts` at its
+vanilla path (`graphics/fonts/<face>.fnt`). `GenerateCjkFontsTask`
+(`gradlew :asset-pipeline:generateCjkFonts`, recipe `zh_CN.json` in the
+asset pipeline's tool resources) keeps the vanilla face's Latin glyphs, line
+metrics, kerning and page 0, which still names the game's own PNG, and adds
+Noto Sans SC (SIL OFL 1.1, licence shipped beside the fonts) pages at the
+vanilla atlas size for GB2312 level 1, CJK punctuation, full-width forms and
+every character the translation's strings use. The generated faces and pages
+are ignored and regenerated, never tracked; `BitmapFont` reads multi-page
+manifests. Headless, `-Dsnapshot.translation=zh_CN` renders the translation
+mod's copy and fonts in `opening-localization`, linted as `[zh_CN]` screens.
+
 Blocking a live zh_CN pass:
 
-- **Font.** The retained UI draws the vanilla Orbitron and Insignia bitmap
-  faces, which have no CJK glyphs; a missing glyph measures 0 px and draws
-  nothing. Chinese needs replacement `.fnt` faces at the same paths (what
-  Starsector's Chinese packs ship). Until then the layout lint of Chinese copy
-  is vacuous, so translated layout is checked only by the +50% expanded copy.
+- **Fonts in game.** The faces have not been seen in a running game: whether
+  vanilla's own text renderer, which reads the same replaced files, takes
+  20-55 pages per face, and how the mod is packaged with its generated fonts.
 - The planet-menu option "Marine operations" and other `rules.csv` text are
   outside the catalog and stay English.
 
