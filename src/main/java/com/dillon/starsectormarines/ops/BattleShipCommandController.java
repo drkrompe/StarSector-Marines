@@ -126,8 +126,12 @@ final class BattleShipCommandController {
                 for (BuildOption option : tender.options()) {
                     CommandPower power = sim.getCommandPowerService().getPower(YardConstruction.ID_PREFIX + option.id());
                     if (!(power instanceof YardConstruction yard) || yard.source() != tender) continue;
+                    // On supply, the button names the build's cost against what the host holds.
+                    String status = tender.metered()
+                            ? Strings.format("yardConstructionStatus", option.cost(), tender.stock(), tender.supplyCap())
+                            : text("Build");
                     actions.add(action(ship, "build-" + option.id(), buildLabel(option),
-                            buildIcon(option), text("GroundBuildHint"), text("Build"),
+                            buildIcon(option), text("GroundBuildHint"), status,
                             sim.getCommandPowerService().canActivate(power), power.id.equals(powerTarget.get()),
                             () -> powerToggle.accept(power.id)));
                 }
@@ -136,8 +140,11 @@ final class BattleShipCommandController {
                     boolean ready = mobile && TenderPilot.liveSites(tender) < TenderPilot.MAX_SITES
                             && (!tender.metered() || tender.stock() >= option.cost());
                     String detail = Strings.format("battleShipBuildHint", option.label(), Math.round(option.buildSeconds()));
+                    String status = tender.metered()
+                            ? Strings.format("yardConstructionStatus", option.cost(), tender.stock(), tender.supplyCap())
+                            : Math.round(option.buildSeconds()) + "s";
                     actions.add(action(ship, "build-" + option.id(), buildLabel(option), buildIcon(option), detail,
-                            Math.round(option.buildSeconds()) + "s", ready,
+                            status, ready,
                             targeting.ship() == ship && targeting.option() == option, () -> arm(ship, option)));
                 }
                 actions.add(action(ship, "cancel", text("Cancel"), "graphics/ui/company/condition-repair.svg",

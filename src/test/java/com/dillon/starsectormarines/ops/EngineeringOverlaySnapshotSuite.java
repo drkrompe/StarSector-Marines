@@ -175,17 +175,17 @@ public final class EngineeringOverlaySnapshotSuite implements SnapshotSuite {
             require(card.opacity() > 0f, "The systems tree opened without its detail card");
             require(markup.requireElement("survey-needs").opacity() > 0f, "The next Power tier did not list what it needs");
             frames.add(new SnapshotArtifact("04-systems-power.png", renderer.render(document, 1920, 1080)));
-            click(document, markup.requireElement("systems-flux-header"));
+            click(document, markup.requireElement("systems-sick-bay-header"));
             markup.flush(); overlay.update(0f, ship, canvas);
-            require(model.row().get().get("reason").equals(ShipRefits.refusal(RefitOrder.FLUX_RESTORED, REFIT, true, true, true, true, 20000, CARGO, goods::commodityName)),
-                    "A locked combat tier did not name what it waits on");
-            frames.add(new SnapshotArtifact("04-systems-flux-locked.png", renderer.render(document, 1920, 1080)));
-            click(document, markup.requireElement("systems-hull-header"));
+            require(model.row().get().get("reason").equals(ShipRefits.refusal(RefitOrder.SICK_BAY_OPEN, REFIT, true, true, true, true, 20000, CARGO, goods::commodityName)),
+                    "A locked facility tier did not name what it waits on");
+            frames.add(new SnapshotArtifact("04-systems-sick-bay-locked.png", renderer.render(document, 1920, 1080)));
+            click(document, markup.requireElement("systems-reserve-hangar-header"));
             markup.flush(); overlay.update(0f, ship, canvas);
             click(document, markup.requireElement("ship-condition-action"));
             markup.flush(); overlay.update(0f, ship, canvas);
             require(payments[0] == 1, "Reviewing a refit tier spent credits");
-            frames.add(new SnapshotArtifact("04-systems-hull-review.png", renderer.render(document, 1920, 1080)));
+            frames.add(new SnapshotArtifact("04-systems-reserve-hangar-review.png", renderer.render(document, 1920, 1080)));
             frames.addAll(reveal(document, markup, model, overlay, renderer, ship, canvas));
             click(document, markup.requireElement("systems-back"));
             markup.flush(); overlay.update(0f, ship, canvas);

@@ -29,11 +29,13 @@ import java.util.function.BiPredicate;
  * {@link ConstructionOrder}s. {@link TenderSystem} runs it.
  *
  * <p>The complement is the hull's own: the Shepherd's built-in {@code borer_wing}
- * names how many drones the bay holds. Every drone lost stays lost for the rest
- * of the battle. Building is free for now: the stock of build charges is an
- * optional cap that defaults to unlimited ({@link #UNLIMITED}), kept so a cost
- * can be added later by changing {@link #DEFAULT_STOCK} (or a mission's
- * {@link #stock(int)}) and nothing else.
+ * names how many drones the bay holds. A drone lost is rebuilt in the bay over
+ * time ({@link #REBUILD_SECONDS}). A flying tender builds free: its stock of
+ * build charges defaults to unlimited ({@link #UNLIMITED}). A recovery host
+ * (grounded or low hover) builds on <em>supply</em> instead: a stock that starts
+ * at {@link #RECOVERY_SUPPLY_START}, gains a point every {@link #SUPPLY_SECONDS}
+ * up to {@link #RECOVERY_SUPPLY_CAP}, and pays each option's {@code cost}
+ * ({@link #supply}).
  *
  * <p>It is a weak ship, pressed into the role: the hull's own hit points, armour
  * and omni shield from the hull table, on the hull's own flux, with no weapons
@@ -55,6 +57,15 @@ public final class Tender implements DroneAnchor {
      * to bite.
      */
     public static final int DEFAULT_STOCK = UNLIMITED;
+
+    /**
+     * A recovery host's supply (owner, 2026-10-31): it starts with enough for a fire base, gains a point every
+     * {@link #SUPPLY_SECONDS} and banks no more than {@link #RECOVERY_SUPPLY_CAP}, so it builds at a steady pace and
+     * cannot hoard a mission's worth.
+     */
+    public static final int RECOVERY_SUPPLY_START = 4;
+    public static final int RECOVERY_SUPPLY_CAP = 8;
+    public static final float SUPPLY_SECONDS = 20f;
 
     /**
      * Seconds the bay takes to rebuild one lost drone (owner, 2026-10-31): losses come back over time, one at a time,
@@ -99,6 +110,7 @@ public final class Tender implements DroneAnchor {
         tender.groundBayY = bayY;
         tender.groundMouthDegrees = mouthDegrees;
         tender.defenceOut(false);
+        tender.supply(RECOVERY_SUPPLY_START, RECOVERY_SUPPLY_CAP, SUPPLY_SECONDS);
         return tender;
     }
 
@@ -114,6 +126,7 @@ public final class Tender implements DroneAnchor {
         float width = tender.ship.lengthCells, height = tender.ship.widthCells;
         tender.groundDisplay = new GroundDisplay(x, y, width, height);
         tender.ship.lowHoverFootprint(width, height);
+        tender.supply(RECOVERY_SUPPLY_START, RECOVERY_SUPPLY_CAP, SUPPLY_SECONDS);
         return tender;
     }
 
@@ -186,6 +199,10 @@ public final class Tender implements DroneAnchor {
     final List<Long> builders = new ArrayList<>();
     final List<Long> defenders = new ArrayList<>();
     private int stock = DEFAULT_STOCK;
+    /** The most supply income banks, or {@link #UNLIMITED} when the stock earns nothing. */
+    private int supplyCap = UNLIMITED;
+    private float supplySeconds;
+    private float supplyClock;
     private int builderReserve;
     private int defenceReserve;
     private boolean defenceOut = true;
@@ -375,6 +392,42 @@ public final class Tender implements DroneAnchor {
     /** Sets a finite stock, for a mission that sends a metered tender; {@link #UNLIMITED} lifts the cap. */
     public void stock(int charges) {
         this.stock = charges == UNLIMITED ? UNLIMITED : Math.max(0, charges);
+    }
+
+    /**
+     * Meters building on supply: the stock starts at {@code start} and gains a point every {@code secondsPerPoint}
+     * while it is below {@code cap}. A refund may lift it past the cap; income then waits until spending brings it
+     * back under.
+     */
+    public void supply(int start, int cap, float secondsPerPoint) {
+        stock(start);
+        this.supplyCap = Math.max(0, cap);
+        this.supplySeconds = secondsPerPoint;
+        this.supplyClock = 0f;
+    }
+
+    /** The most supply income banks, or {@link #UNLIMITED} when the stock earns nothing. */
+    public int supplyCap() {
+        return supplyCap;
+    }
+
+    /** How far toward its next point the supply is, 0 to 1; 0 at the cap or when the stock earns nothing. */
+    public float supplyProgress() {
+        return supplySeconds <= 0f || stock >= supplyCap ? 0f : supplyClock / supplySeconds;
+    }
+
+    /** Earns {@code dt} seconds of supply; called once a tick. */
+    void earn(float dt) {
+        if (supplySeconds <= 0f || !metered() || stock >= supplyCap) {
+            supplyClock = 0f;
+            return;
+        }
+        supplyClock += dt;
+        while (supplyClock >= supplySeconds && stock < supplyCap) {
+            supplyClock -= supplySeconds;
+            stock++;
+        }
+        if (stock >= supplyCap) supplyClock = 0f;
     }
 
     public int builderComplement() {
@@ -679,7 +732,8 @@ public final class Tender implements DroneAnchor {
                 "TENDER %s  %s  hull %d%%  shield %s  %s  builders %d/%d  defence %d/%d%s  lost %d  built %d  %s",
                 ship.faction == Faction.MARINE ? "[friendly]" : "[hostile]", ship.stance(),
                 Math.round(ship.hullFraction() * 100f), ship.shieldState(),
-                metered() ? "charges " + stock : "builds free",
+                metered() ? (supplyCap == UNLIMITED ? "charges " + stock : "supply " + stock + "/" + supplyCap)
+                        : "builds free",
                 builders.size() + builderReserve, builderComplement,
                 defenders.size() + defenceReserve, defenceComplement, defenceOut ? "" : " (recalled)",
                 dronesLost(), built, work);

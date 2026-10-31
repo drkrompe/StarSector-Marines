@@ -25,13 +25,6 @@ public record OfficerMissionResult(OfficerCommandProfile officer, Set<String> so
     public static List<OfficerMissionResult> compute(List<MarineSeatCommitment> seats,
             OfficerCommandProfile commander, Set<String> survivors, Set<String> fallen,
             boolean victory, int payout, String missionId, float day, int engaged, int lost) {
-        return compute(seats, commander, survivors, fallen, victory, payout, missionId, day, engaged, lost, 1f);
-    }
-
-    /** As above, with {@code xpMult} the company home's wardroom ({@code ShipCondition.officerXpMult}). */
-    public static List<OfficerMissionResult> compute(List<MarineSeatCommitment> seats,
-            OfficerCommandProfile commander, Set<String> survivors, Set<String> fallen,
-            boolean victory, int payout, String missionId, float day, int engaged, int lost, float xpMult) {
         Map<String, OfficerCommandProfile> officers = new LinkedHashMap<>();
         Map<String, Set<String>> members = new LinkedHashMap<>();
         if (commander != null) officers.put(commander.id(), commander);
@@ -53,7 +46,6 @@ public record OfficerMissionResult(OfficerCommandProfile officer, Set<String> so
             // together promote a lieutenant, Junction and Thunder Run a captain (owner, 2026-10-27).
             int xp = strength == 0 ? 0 : victory ? payout / (casualties <= 2 ? 10 : 15) : 500;
             if (officer.naturalLeader()) xp = (int) (xp * 1.5f);
-            xp = Math.round(xp * xpMult);
             Rank rank = officer.rank();
             int progress = officer.xp() + xp;
             while (!rank.isTerminal() && progress >= rank.xpToNext()) {

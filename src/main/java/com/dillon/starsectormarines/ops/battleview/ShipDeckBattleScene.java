@@ -5,7 +5,6 @@ import com.dillon.starsectormarines.battle.turret.TurretRole;
 import com.dillon.starsectormarines.battle.world.gen.ship.CoreDressing;
 import com.dillon.starsectormarines.battle.world.gen.ship.ShipCore;
 import com.dillon.starsectormarines.battle.world.model.PropPower;
-import com.dillon.starsectormarines.battle.world.gen.ship.FacilityDressing;
 import com.dillon.starsectormarines.battle.ambient.AmbientActivity;
 import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
@@ -207,10 +206,6 @@ public final class ShipDeckBattleScene implements AutoCloseable {
     /** The founding hull's Deficit dressing, planned the first time anything is left unrestored. */
     private ShipDeckDressing dressing;
     private CoreDressing coreDressing = CoreDressing.RESTORED;
-    /** The facility pieces fitted into existing rooms, planned the first time any tier is shown. */
-    private ShipFacilityDressing facilities;
-    private FacilityDressing facilityDressing = FacilityDressing.NONE;
-    private List<Doodad> facilityPieces = List.of();
     /** A dressing change still playing out, or null. */
     private DressingWave wave;
     /**
@@ -340,7 +335,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
      * The catalog sheets her deck places, so a host can load those and not the whole catalog
      * ({@code battle-textures.md}): the blocks of the floor kinds she has and of every surface,
      * with their damage, rubble, window and door variants, the surface roles' blocks, and the
-     * sheets of every doodad on her, her lamps and cables, and the facility pieces shown. A sheet
+     * sheets of every doodad on her, and her lamps and cables. A sheet
      * this misses — a dressing piece first planned later — loads on its first draw.
      */
     public Set<String> terrainSheets() {
@@ -361,7 +356,6 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         }
         addDoodads(deck.doodads, sheets);
         addDoodads(simulation.getDoodads(), sheets);
-        addDoodads(facilityPieces, sheets);
         if (lighting != null) {
             addDoodads(lighting.cables, sheets);
             for (ShipDeckLighting.Fixture fixture : lighting.fixtures) {
@@ -486,28 +480,6 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         if (seconds > 0f && Float.isFinite(seconds))
             wave = new DressingWave(coreDressing, next, simulatedSeconds, seconds, before, deck.topology, rooms, seed);
         coreDressing = next;
-    }
-
-    /**
-     * Show the facility tiers bought for the rooms that carry them: the
-     * provisions store's grow racks, the mess's wardroom and briefing ends and
-     * the hold's racking. Presentation only, as {@link #dress(CoreDressing)} is:
-     * every tier's pieces are planned once from the deck and its seed, and a
-     * tier only chooses how many are drawn.
-     */
-    public void dress(FacilityDressing state) {
-        FacilityDressing next = state == null ? FacilityDressing.NONE : state;
-        if (next.equals(facilityDressing)) return;
-        if (!next.none() && facilities == null)
-            facilities = ShipFacilityDressing.of(deck.topology, simulation.getGrid(), rooms,
-                    simulation.getDoodads(), fixtureTasks, seed);
-        facilityPieces = facilities == null ? List.of() : facilities.doodads(next);
-        facilityDressing = next;
-    }
-
-    /** Which facility tiers this deck currently shows. */
-    public FacilityDressing facilityDressing() {
-        return facilityDressing;
     }
 
     /** Whether a dressing wave is still playing on this deck's clock. */
@@ -1456,7 +1428,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
                 viewport.width(), viewport.height());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, liveWave(), facilityPieces,
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, liveWave(),
                 roomDoors());
         return new BattleSceneFrame(context, layers);
     }
@@ -1473,7 +1445,7 @@ public final class ShipDeckBattleScene implements AutoCloseable {
         camera.centerOn(view.centerCellX(), view.centerCellY());
         RenderContext context = new RenderContext(simulation, camera, null,
                 alphaMult, 0f, false, highlights, selection,
-                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, liveWave(), facilityPieces,
+                BattleRenderHostProfile.DECK_SCENE, simulatedSeconds, lighting, dressing, coreDressing, liveWave(),
                 roomDoors());
         return new BattleSceneFrame(context, layers);
     }

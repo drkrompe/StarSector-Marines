@@ -130,6 +130,7 @@ public final class TenderSystem {
                 continue;
             }
             t.rebuild(dt);
+            t.earn(dt);
             tickDefence(t, dt, sim);
             t.pointDefence().tick(dt, sim, t);
             TenderDirector.direct(t, sim, dt);
