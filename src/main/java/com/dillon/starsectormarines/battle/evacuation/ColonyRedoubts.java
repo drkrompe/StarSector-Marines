@@ -57,6 +57,10 @@ public final class ColonyRedoubts {
      * garrison.
      */
     public static final int BREACH_CLEARANCE = 56;
+    /** Gun pits in a light holdout's corners: with the gun at its gate, two guns. */
+    public static final int LIGHT_CORNER_GUNS = 1;
+    /** Gun pits in a heavy holdout's corners: with the gun at its gate, three guns. */
+    public static final int HEAVY_CORNER_GUNS = 2;
     /** Aprons laid at a holdout: the door toward the lift, and one more if the building has it. */
     static final int APRONS = 2;
     private static final long SEED_SALT = 0x524544554F425453L;
@@ -67,10 +71,29 @@ public final class ColonyRedoubts {
 
     /**
      * A holdout as set up: its redoubt number, its works (or {@code null} when
-     * only aprons were laid), the gun at its gate (or {@code 0}) and the team
-     * on its firing step (or {@code -1}).
+     * only aprons were laid), the gun at its gate (or {@code 0}), the team
+     * on its firing step (or {@code -1}) and the guns in its corners.
      */
-    record Holdout(int number, RedoubtWorks.Plan works, long gun, int lineSquadId) { }
+    record Holdout(int number, RedoubtWorks.Plan works, long gun, int lineSquadId, List<Long> cornerGuns) { }
+
+    /**
+     * Which of the holdouts ({@code centres}, in redoubt order) is the heavy one: the one nearest a bore the breach
+     * plans, the one the first wave comes at soonest. {@code -1} with no holdout; the first with no bores.
+     */
+    static int heavyHoldout(List<int[]> centres, List<ColonyEruptionPlan.Site> bores) {
+        int heavy = centres.isEmpty() ? -1 : 0;
+        long nearest = Long.MAX_VALUE;
+        for (int i = 0; i < centres.size(); i++) {
+            for (ColonyEruptionPlan.Site site : bores) {
+                long dx = site.x() - centres.get(i)[0], dy = site.y() - centres.get(i)[1];
+                if (dx * dx + dy * dy < nearest) {
+                    nearest = dx * dx + dy * dy;
+                    heavy = i;
+                }
+            }
+        }
+        return heavy;
+    }
 
     /**
      * Whether a holdout throws up works round its block.
@@ -143,17 +166,18 @@ public final class ColonyRedoubts {
 
     /**
      * Makes a held building a holdout: its people inside, the works round its
-     * block with a team on the firing step and a gun at the gate (or, where no
-     * works fit, its doors sandbagged), and the holdout registered with the
-     * evacuation.
+     * block with a team on the firing step, a gun at the gate and guns in its
+     * corners (or, where no works fit, its doors sandbagged), and the holdout
+     * registered with the evacuation.
      *
-     * @param cells the building's open interior cells the garrison did not take
-     * @param keep  ground the works may not stand on
+     * @param cells      the building's open interior cells the garrison did not take
+     * @param keep       ground the works may not stand on
+     * @param cornerGuns gun pits in the works' corners: {@link #LIGHT_CORNER_GUNS} or {@link #HEAVY_CORNER_GUNS}
      * @return the holdout, or {@code null} when it cannot be seated
      */
     static Holdout fortify(BattleSimulation sim, PointOfInterest place, TacticalNode node, List<int[]> cells,
                            int garrisonSquadId, CivilianEvacuationPlacement placement, RedoubtWorks.Keep keep,
-                           int index, RiskLevel risk, Random militiaRng, long seed) {
+                           int index, RiskLevel risk, Random militiaRng, long seed, int cornerGuns) {
         Random rng = new Random(seed ^ SEED_SALT);
         int count = MIN_COHORT + rng.nextInt(MAX_COHORT - MIN_COHORT + 1);
         if (cells.size() < count) return null;
@@ -167,13 +191,13 @@ public final class ColonyRedoubts {
         }
         RedoubtWorks.Plan works = worksEnabled()
                 ? RedoubtWorks.plan(sim, place, place.anchorCellX, place.anchorCellY,
-                        placement.liftX, placement.liftY, RedoubtWorks.HOLDOUT_MARGIN, keep, seed)
+                        placement.liftX, placement.liftY, RedoubtWorks.HOLDOUT_MARGIN, keep, seed, cornerGuns)
                 : null;
         if (works == null) {
             layAprons(sim, node, place, placement);
             int plain = sim.addCivilianHoldout(place.anchorCellX, place.anchorCellY,
                     place.left, place.top, place.right, place.bottom, garrisonSquadId, members);
-            return plain < 0 ? null : new Holdout(plain, null, 0L, -1);
+            return plain < 0 ? null : new Holdout(plain, null, 0L, -1, List.of());
         }
         RedoubtWorks.lay(sim, works);
         // A redoubt is the place relief is sent to: its barricade stands up to the swarm as works, a roadblock's does not.
@@ -181,6 +205,10 @@ public final class ColonyRedoubts {
         long gun = works.gunX() >= 0
                 ? ColonyMilitia.seatEmplacement(sim, new int[]{works.gunX(), works.gunY()}, "redoubt-gun-" + number)
                 : 0L;
+        List<Long> corners = new ArrayList<>();
+        for (int[] c : works.corners()) {
+            corners.add(ColonyMilitia.seatEmplacement(sim, c, "redoubt-corner-gun-" + number + "-" + (corners.size() + 1)));
+        }
         int line = seatLine(sim, works.step(), works.gateX(), works.gateY(),
                 works.left(), works.top(), works.right(), works.bottom(),
                 "Redoubt Line " + (index + 1), "man the redoubt's firing step", risk, militiaRng);
@@ -189,7 +217,7 @@ public final class ColonyRedoubts {
                 works.left(), works.top(), works.right(), works.bottom(), garrisonSquadId, members);
         if (registered < 0) return null;
         if (line >= 0) sim.setCivilianHoldoutLine(registered, line, node);
-        return new Holdout(registered, works, gun, line);
+        return new Holdout(registered, works, gun, line, List.copyOf(corners));
     }
 
     /**

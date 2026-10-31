@@ -25,10 +25,13 @@ import com.dillon.starsectormarines.battle.world.gen.pool.MapPatch;
 import com.dillon.starsectormarines.battle.world.model.PointOfInterest;
 import com.dillon.starsectormarines.ops.RiskLevel;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Random;
+import java.util.Set;
 
 /**
  * The colony's own defenders: the people who survived the first night and are
@@ -59,6 +62,13 @@ public final class ColonyMilitia {
     public static final int TECHNICALS = 2;
     /** The emplacement a colony post still has. */
     public static final String EMPLACEMENT_STRUCTURE = "structure.turret-heavy-mg";
+    /** Militia teams holding the compound's inside: one in the muster yard, one in the shelter hall. */
+    public static final int INTERIOR_TEAMS = 2;
+    /**
+     * The compound's last-ditch gun: rocket artillery in the muster yard that holds fire until a bore has grown
+     * ({@link ColonyBreachSequence#holdBatteryUntilBoresGrow}).
+     */
+    public static final String BATTERY_STRUCTURE = TurretCatalogRegistry.LOCUST_STRUCTURE_ID;
     /** Command issuer the posts are claimed under. */
     public static final String ISSUER = "colony-militia";
     private static final int PATROL_RADIUS = 4;
@@ -72,9 +82,12 @@ public final class ColonyMilitia {
     private static final int ROUTE_CLEARANCE = 6;
     private static final long SEED_SALT = 0x4D494C4954494131L;
 
-    /** What went in. The shelter guard is always there; the rest only on the colony map. */
+    /**
+     * What went in. The shelter guard is always there; the rest only on the colony map. {@code battery} is the
+     * compound's held Locust, or {@code 0} without one.
+     */
     public record Installed(RescueShelterGarrison shelterGuard, List<Integer> postSquads,
-                            List<Long> emplacements, List<Long> technicals, List<Integer> holdouts) {
+                            List<Long> emplacements, List<Long> technicals, List<Integer> holdouts, long battery) {
         public Installed {
             postSquads = List.copyOf(postSquads);
             holdouts = List.copyOf(holdouts);
@@ -104,14 +117,14 @@ public final class ColonyMilitia {
                                     List<MapPatch.Cell> authored) {
         RescueShelterGarrison shelter = RescueShelterGarrison.install(sim, map, placement, risk, seed);
         if (shelter == null) return null;
-        if (!colony || !enabled()) return new Installed(shelter, List.of(), List.of(), List.of(), List.of());
+        if (!colony || !enabled()) return new Installed(shelter, List.of(), List.of(), List.of(), List.of(), 0L);
 
         Random rng = new Random(seed ^ SEED_SALT);
         List<Long> emplacements = new ArrayList<>();
         List<Integer> squads = new ArrayList<>();
         // Ground the colony's works stand on (left, top, right, bottom): nothing else is set down there.
         List<int[]> claimed = new ArrayList<>();
-        raiseCompound(sim, map, placement, pads, risk, rng, emplacements, squads, claimed);
+        long battery = raiseCompound(sim, map, placement, pads, risk, rng, emplacements, squads, claimed);
         int[] compound = claimed.isEmpty() ? null : claimed.get(0).clone();
         boolean redoubts = ColonyRedoubts.enabled();
         int wanted = redoubts ? ColonyRedoubts.holdoutsFor(seed) : OUTLYING_POSTS;
@@ -124,6 +137,9 @@ public final class ColonyMilitia {
         RedoubtWorks.Keep keep = (x, y) -> !walk[sim.getGrid().index(x, y)]
                 && !sim.isInsideRescueOpeningProtectedZone(x, y) && !onPad(pads, x, y, 2)
                 && !insideWorks(claimed, x, y, 3);
+        List<int[]> centres = new ArrayList<>();
+        for (Post post : posts) centres.add(new int[]{post.place.centerX(), post.place.centerY()});
+        int heavy = ColonyRedoubts.heavyHoldout(centres, bores);
         for (int i = 0; i < posts.size(); i++) {
             Post post = posts.get(i);
             // A holdout's people knock loopholes through every wall before its garrison takes its cells.
@@ -133,11 +149,13 @@ public final class ColonyMilitia {
             squads.add(squadId);
             if (!redoubts) continue;
             ColonyRedoubts.Holdout holdout = ColonyRedoubts.fortify(sim, post.place, post.node,
-                    post.cells.subList(POST_SIZE, post.cells.size()), squadId, placement, keep, i, risk, rng, seed + i);
+                    post.cells.subList(POST_SIZE, post.cells.size()), squadId, placement, keep, i, risk, rng, seed + i,
+                    i == heavy ? ColonyRedoubts.HEAVY_CORNER_GUNS : ColonyRedoubts.LIGHT_CORNER_GUNS);
             if (holdout == null) return null;
             holdouts.add(holdout.number());
             if (holdout.lineSquadId() >= 0) squads.add(holdout.lineSquadId());
             if (holdout.gun() != 0L) emplacements.add(holdout.gun());
+            emplacements.addAll(holdout.cornerGuns());
             if (holdout.works() != null) {
                 RedoubtWorks.Plan w = holdout.works();
                 claimed.add(new int[]{w.left(), w.top(), w.right(), w.bottom()});
@@ -183,7 +201,7 @@ public final class ColonyMilitia {
             sim.convoy().body(id).teleport(x, y, -90f);
             technicals.add(id);
         }
-        return new Installed(shelter, squads, emplacements, technicals, holdouts);
+        return new Installed(shelter, squads, emplacements, technicals, holdouts, battery);
     }
 
     /**
@@ -457,31 +475,132 @@ public final class ColonyMilitia {
 
     /**
      * Mans the civil-defence compound round the shelter, the main redoubt: the
-     * generated wall dressed with its towers, gate guns, slits and floodlights,
-     * and a wall team at the slits that falls back into the shelter
-     * once the wall is breached. A shelter in no compound stands bare.
+     * generated wall dressed with its towers, gate guns, corner guns, slits and
+     * floodlights; a wall team at the slits that falls back into the shelter
+     * once the wall is breached; a team in the muster yard and one in the
+     * shelter hall; and the held Locust in the yard, whose id is returned
+     * ({@code 0} without one). A shelter in no compound stands bare.
      */
-    private static void raiseCompound(BattleSimulation sim, MapResult map, CivilianEvacuationPlacement placement,
+    private static long raiseCompound(BattleSimulation sim, MapResult map, CivilianEvacuationPlacement placement,
                                       List<LandingPad> pads, RiskLevel risk, Random rng, List<Long> emplacements,
                                       List<Integer> squads, List<int[]> claimed) {
-        if (!CivilDefenceCompound.enabled()) return;
+        if (!CivilDefenceCompound.enabled()) return 0L;
         PointOfInterest shelter = RescueShelterGarrison.selectedShelter(map.pointsOfInterest, placement);
-        if (shelter == null) return;
+        if (shelter == null) return 0L;
         CivilDefenceCompound.Plan compound = CivilDefenceCompound.plan(sim, shelter, placement);
-        if (compound == null) return;
+        if (compound == null) return 0L;
         CivilDefenceCompound.lay(sim, compound);
         for (int[] gun : compound.guns()) {
             emplacements.add(seatEmplacement(sim, gun, "compound-gun-" + (emplacements.size() + 1)));
+        }
+        for (int[] gun : compound.corners()) {
+            emplacements.add(seatEmplacement(sim, gun, "compound-corner-gun-" + (emplacements.size() + 1)));
         }
         claimed.add(new int[]{compound.left(), compound.top(), compound.right(), compound.bottom()});
         sim.setCivilianRedoubtGround(1, compound.left(), compound.top(), compound.right(), compound.bottom());
         int wall = ColonyRedoubts.seatLine(sim, compound.posts(), compound.gateX(), compound.gateY(),
                 compound.left(), compound.top(), compound.right(), compound.bottom(),
                 "Compound Wall", "man the compound wall", risk, rng);
-        if (wall < 0) return;
-        squads.add(wall);
         TacticalNode node = heldPlace(map, shelter);
-        if (node != null) sim.setCivilianHoldoutLine(1, wall, node);
+        if (wall >= 0) {
+            squads.add(wall);
+            if (node != null) sim.setCivilianHoldoutLine(1, wall, node);
+        }
+        return holdInside(sim, compound, placement, node, risk, rng, squads);
+    }
+
+    /**
+     * The compound's inside: the Locust on the open yard cell nearest the yard's middle with room round it, held
+     * silent, then a team on the yard round it holding the compound's ground and a team holding the shelter hall, on
+     * the yard cells nearest the gun. Returns the gun, or {@code 0} when the yard has no room for it.
+     */
+    private static long holdInside(BattleSimulation sim, CivilDefenceCompound.Plan compound,
+                                   CivilianEvacuationPlacement placement, TacticalNode hall, RiskLevel risk,
+                                   Random rng, List<Integer> squads) {
+        List<int[]> yard = yardCells(sim, compound, placement);
+        if (yard.isEmpty()) return 0L;
+        long sx = 0, sy = 0;
+        Set<Long> ground = new HashSet<>();
+        for (int[] c : yard) {
+            sx += c[0];
+            sy += c[1];
+            ground.add(cellKey(c[0], c[1]));
+        }
+        int mx = (int) (sx / yard.size()), my = (int) (sy / yard.size());
+        yard.sort(Comparator.comparingInt((int[] c) -> Math.abs(c[0] - mx) + Math.abs(c[1] - my))
+                .thenComparingInt(c -> sim.getGrid().index(c[0], c[1])));
+        int[] gun = null;
+        for (int[] c : yard) {
+            boolean room = true;
+            for (int dy = -1; dy <= 1 && room; dy++)
+                for (int dx = -1; dx <= 1 && room; dx++) room = ground.contains(cellKey(c[0] + dx, c[1] + dy));
+            if (room) {
+                gun = c;
+                break;
+            }
+        }
+        if (gun == null) return 0L;
+        long battery = seatEmplacement(sim, gun, "compound-locust", BATTERY_STRUCTURE);
+        sim.turretState().cutPower(battery);
+        int gx = gun[0], gy = gun[1];
+        List<int[]> cells = new ArrayList<>();
+        for (int[] c : yard) if (Math.max(Math.abs(c[0] - gx), Math.abs(c[1] - gy)) > 1) cells.add(c);
+        cells.sort(Comparator.comparingInt((int[] c) -> Math.abs(c[0] - gx) + Math.abs(c[1] - gy))
+                .thenComparingInt(c -> sim.getGrid().index(c[0], c[1])));
+        int centreX = (compound.left() + compound.right()) / 2, centreY = (compound.top() + compound.bottom()) / 2;
+        int radius = Math.max(compound.right() - compound.left(), compound.bottom() - compound.top()) / 2 + 2;
+        for (int team = 0; team < INTERIOR_TEAMS && cells.size() >= POST_SIZE * (team + 1); team++) {
+            boolean holdsHall = team == 1 && hall != null;
+            int squadId = seatTeam(sim, cells.subList(POST_SIZE * team, POST_SIZE * (team + 1)),
+                    holdsHall ? "Compound Hall" : "Compound Yard", risk, rng);
+            if (holdsHall) {
+                Squad squad = sim.getSquad(squadId);
+                squad.assignedNode = hall;
+                squad.patrolRadius = PATROL_RADIUS;
+                sim.assignSquadCommand(ObjectiveAssignment.holdNode(squadId, hall),
+                        CommandAuthority.GARRISON, ISSUER, "hold the shelter hall");
+            } else {
+                sim.assignSquadCommand(ObjectiveAssignment.defendArea(squadId, centreX, centreY, radius),
+                        CommandAuthority.GARRISON, ISSUER, "hold the compound yard");
+            }
+            squads.add(squadId);
+        }
+        return battery;
+    }
+
+    /**
+     * The compound's open yard: what the shelter's doorstep reaches without leaving the compound's ground, outside
+     * every building and clear of the dressing and the wall team's posts.
+     */
+    private static List<int[]> yardCells(BattleSimulation sim, CivilDefenceCompound.Plan compound,
+                                         CivilianEvacuationPlacement placement) {
+        NavigationGrid grid = sim.getGrid();
+        Set<Long> posts = new HashSet<>();
+        for (RedoubtWorks.Bag post : compound.posts()) posts.add(cellKey(post.x(), post.y()));
+        Set<Long> seen = new HashSet<>();
+        ArrayDeque<int[]> queue = new ArrayDeque<>();
+        List<int[]> yard = new ArrayList<>();
+        queue.add(new int[]{placement.shelterApproachX, placement.shelterApproachY});
+        seen.add(cellKey(placement.shelterApproachX, placement.shelterApproachY));
+        while (!queue.isEmpty()) {
+            int[] c = queue.poll();
+            long k = cellKey(c[0], c[1]);
+            if (sim.getTopology().getBuildingId(c[0], c[1]) == 0 && !grid.isDoorway(c[0], c[1])
+                    && !compound.cells().containsKey(k) && !posts.contains(k)) yard.add(c);
+            for (int[] d : new int[][]{{1, 0}, {-1, 0}, {0, 1}, {0, -1}}) {
+                int nx = c[0] + d[0], ny = c[1] + d[1];
+                if (nx <= compound.left() || nx >= compound.right() || ny <= compound.top() || ny >= compound.bottom())
+                    continue;
+                if (!grid.isWalkable(nx, ny) || sim.getTopology().getBuildingId(nx, ny) != 0
+                        || !seen.add(cellKey(nx, ny))) continue;
+                queue.add(new int[]{nx, ny});
+            }
+        }
+        return yard;
+    }
+
+    private static long cellKey(int x, int y) {
+        return ((long) x << 32) | (y & 0xFFFFFFFFL);
     }
 
     /** Cells within {@code clearance} of the shelter-to-lift path. */

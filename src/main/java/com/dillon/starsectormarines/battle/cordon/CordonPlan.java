@@ -1,12 +1,15 @@
 package com.dillon.starsectormarines.battle.cordon;
 
 import com.dillon.starsectormarines.battle.evacuation.CivilDefenceCompound;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
 import com.dillon.starsectormarines.battle.world.gen.bsp.GrownTrunkPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.ElevationPlan;
 import com.dillon.starsectormarines.battle.world.gen.elevation.RidgePlanner;
 import com.dillon.starsectormarines.battle.world.gen.elevation.TerracePlanner;
 import com.dillon.starsectormarines.battle.world.gen.fortress.FortressProgram;
+import com.dillon.starsectormarines.battle.world.gen.layout.Airfield;
 import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
 import com.dillon.starsectormarines.battle.world.gen.layout.Endpoint;
 import com.dillon.starsectormarines.battle.world.gen.layout.LayoutGround;
@@ -89,6 +92,16 @@ public final class CordonPlan {
     static final float BASE_X1 = 0.62f;
     static final float BASE_NEAR = 0.04f;
     static final float BASE_FAR = 0.26f;
+    /**
+     * The allies' air base's name ({@code cordon-nouns.md}, Air base): a field lot of its own in a corner of the rear,
+     * on the side away from the front's installation, its strip along the edge toward the front.
+     */
+    public static final String AIR_BASE_PLACE = "air-base";
+    /**
+     * Cells from the rear edge, and from the near side edge, to the air base's reservation: a rear corner, behind the
+     * hamlets' ground and far across from the relief corridor, which leaves the rear edge behind the logistics base.
+     */
+    static final int AIR_BASE_REAR = 4, AIR_BASE_SIDE = 6;
     /** A fence, not a redoubt's wall: the base is not meant to be fought from. */
     private static final int BASE_GATES = 2;
     private static final int BASE_FENCE_HP = 60;
@@ -202,7 +215,7 @@ public final class CordonPlan {
                     new Fortification(CivilDefenceCompound.GATES, CivilDefenceCompound.WALL_HP).laidSquare()));
         }
         PrecinctPlan plan = PrecinctPlan.laidOut(places, south ? MapPlacement.SOUTH : MapPlacement.NORTH,
-                LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density, variant));
+                LandingKind.OPEN_FIELD, width, height, rng).withLayout(layout(south, density, variant, width, height, installationEast));
         if (!density.ridge) return plan;
         List<int[]> seeds = new ArrayList<>();
         for (Precinct r : redoubts(plan)) seeds.add(new int[]{r.seedX(), r.seedY(), r.seedX(), r.seedY()});
@@ -213,6 +226,21 @@ public final class CordonPlan {
         Landscape landscape = density == Density.RURAL ? plan.landscape().withHeld(held)
                 : plan.landscape().withUnploughed(held);
         return plan.withLandscape(landscape.withKept(crestGround(seeds)));
+    }
+
+    /**
+     * The allies' air base ({@code cordon-nouns.md}, Air base): an allied {@link AirbaseLot.Size#FIELD} lot (a strip,
+     * three berths, two sheds: room for the wing's four airframes, where a station's sixty cells would crowd the rear
+     * hamlets), held from before the places grow, in the rear corner on the side away from the front's installation,
+     * its strip along the edge toward the front.
+     */
+    static Airfield airBase(boolean rearSouth, boolean installationEast, int width, int height) {
+        AirbaseLot.Facing facing = rearSouth ? AirbaseLot.Facing.NORTH : AirbaseLot.Facing.SOUTH;
+        AirbaseLot.Size size = AirbaseLot.Size.FIELD;
+        int spanX = AirbaseLot.reservedSpanX(size, facing), spanY = AirbaseLot.reservedSpanY(size, facing);
+        int x0 = installationEast ? AIR_BASE_SIDE : width - AIR_BASE_SIDE - spanX;
+        int y0 = rearSouth ? AIR_BASE_REAR : height - AIR_BASE_REAR - spanY;
+        return new Airfield(AIR_BASE_PLACE, x0, y0, facing, size, LandingPad.Purpose.ALLIED_AIRFIELD, false);
     }
 
     /**
@@ -374,10 +402,13 @@ public final class CordonPlan {
      * front, a switch line behind the middle, and the open ground a bore may
      * erupt on behind the line.
      */
-    static MissionLayout layout(boolean south, Density density, CordonVariant variant) {
+    static MissionLayout layout(boolean south, Density density, CordonVariant variant, int width, int height,
+                                boolean installationEast) {
         int[] front = {0, south ? 1 : -1};
         Side toward = south ? Side.NORTH : Side.SOUTH;
         List<Piece> pieces = new ArrayList<>();
+        // The allies' air base, held before anything grows.
+        pieces.add(airBase(south, installationEast, width, height));
         List<Piece> supply = new ArrayList<>();
         for (int n = 1; n <= REDOUBTS; n++) {
             supply.add(new Road(SUPPLY_ROAD + n, Endpoint.gate(BASE_PLACE, toward),

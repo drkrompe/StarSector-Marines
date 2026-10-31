@@ -9,6 +9,7 @@ import org.junit.jupiter.api.Test;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 /**
  * The dressing of a walled place finds its gates and stands a gun tower by them
@@ -50,6 +51,24 @@ class CivilDefenceCompoundTest {
 
         assertNotNull(plan, "a gap closed by buildings' walls was read as a hole in the wall");
         assertEquals(2, plan.guns().size(), "two gates, " + plan.guns().size() + " gun towers");
+    }
+
+    @Test
+    void anArmedCompoundMountsAGunInEachCornerTowerAndAnUnarmedOneNone() {
+        BattleSimulation sim = walled();
+        open(sim, 14, T, 16, T);
+
+        CivilDefenceCompound.Plan armed = CivilDefenceCompound.plan(sim, 15, 15, 15, 12, 15, 0, 20, true);
+        CivilDefenceCompound.Plan plain = CivilDefenceCompound.plan(sim, 15, 15, 15, 12, 15, 0, 20);
+
+        assertNotNull(armed, "a closed wall with a gate was not read as one");
+        assertEquals(4, armed.corners().size(), "an armed compound mounted " + armed.corners().size() + " corner guns");
+        for (int[] gun : armed.corners()) {
+            assertTrue((gun[0] == L || gun[0] == R) && (gun[1] == T || gun[1] == B),
+                    "a corner gun stood at " + gun[0] + "," + gun[1] + ", off the wall's corners");
+            assertEquals(CivilDefenceCompound.Kind.GUN, armed.cells().get(CivilDefenceCompound.key(gun[0], gun[1])));
+        }
+        assertEquals(0, plain.corners().size(), "an unarmed wall's corner towers mounted guns");
     }
 
     @Test

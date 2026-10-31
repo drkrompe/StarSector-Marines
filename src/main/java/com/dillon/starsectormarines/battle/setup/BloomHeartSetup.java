@@ -2,7 +2,7 @@ package com.dillon.starsectormarines.battle.setup;
 
 import com.dillon.starsectormarines.battle.airsupport.AlliedAirWing;
 import com.dillon.starsectormarines.battle.airsupport.ForwardObservers;
-import com.dillon.starsectormarines.battle.airsupport.HardstandAirBase;
+import com.dillon.starsectormarines.battle.airsupport.FieldAirBase;
 import com.dillon.starsectormarines.battle.world.gen.overgrown.HeartOrigin;
 import com.dillon.starsectormarines.battle.world.gen.damage.DamagePlan;
 import com.dillon.starsectormarines.battle.vehicle.VehicleRoutePlanner;
@@ -39,9 +39,7 @@ import com.dillon.starsectormarines.battle.mech.MechDropDeclaration;
 import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
-import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
-import com.dillon.starsectormarines.battle.world.gen.Runway;
 import com.dillon.starsectormarines.battle.world.gen.layout.LaidLayout;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.SettlementLink;
@@ -403,7 +401,7 @@ public final class BloomHeartSetup {
                     .map(g -> ForwardObservers.band(Faction.ALLY, g.advancesAlongY(), g.across(), g.halfWidth())).toList());
         }
         boolean front = barrage != null && burnFront();
-        HardstandAirBase airBase = null;
+        FieldAirBase airBase = null;
         if (front) {
             lanes = burnFront(sim, form, burnScreen(form, barrage.plan()), built.battleSeed());
             // The military's airbase on station behind the start line: its wing flies off the lot, called through
@@ -712,22 +710,10 @@ public final class BloomHeartSetup {
     }
 
     /** The allied wing on the airbase lot: its strip, its sheds, and its apron berths, each inside the lot's fence. */
-    static HardstandAirBase baseWing(BattleSimulation sim, MapResult map, Laid lot) {
-        int[] lo = lot.cells().get(0), hi = lot.cells().get(1);
-        Runway strip = null;
-        for (Runway r : map.runways) if (inside(lo, hi, Math.round(r.centreX()), Math.round(r.centreY()))) strip = r;
-        List<Gantry> sheds = new ArrayList<>();
-        for (Gantry g : map.shelters) if (inside(lo, hi, g.centerX, g.centerY)) sheds.add(g);
-        List<LandingPad> berths = new ArrayList<>();
-        for (LandingPad p : map.landingPads) {
-            if (p.purpose == LandingPad.Purpose.ALLIED_AIRFIELD && inside(lo, hi, p.centerX, p.centerY)) berths.add(p);
-        }
-        return AlliedAirWing.baseOnLot(sim, strip, sheds, berths);
+    static FieldAirBase baseWing(BattleSimulation sim, MapResult map, Laid lot) {
+        return AlliedAirWing.baseOnLot(sim, map, lot);
     }
 
-    private static boolean inside(int[] lo, int[] hi, int x, int y) {
-        return x >= lo[0] && x <= hi[0] && y >= lo[1] && y <= hi[1];
-    }
     /** The Burn's guns: Locust rocket-artillery batteries dug in on the start line, firing a heavier round than a post's Locust. */
     static final String BURN_BATTERY_STRUCTURE = "structure.battery-locust";
     /** Where a gun stands when its base was not laid: this far into the farmland, at its share across it. */
