@@ -4,7 +4,7 @@ Status: DRAFT. Direction for the Cordon's controlled maps (step 2). Built: the l
 
 Written: 2026-10-23
 
-Updated: 2026-10-25 — a city's set pieces: the tenement, the posts in buildings, the cleared lot, the supply streets.
+Updated: 2026-10-31 — the allies' air base, a field lot held in a rear corner. Earlier, 2026-10-25: a city's set pieces: the tenement, the posts in buildings, the cleared lot, the supply streets.
 
 `cordon-nouns.md` is the model. Today the Cordon's map is generated country
 with four redoubts and a base dropped into fixed bands. Nothing on it says
@@ -61,6 +61,16 @@ A line drawn across country by someone who has had weeks to choose:
 - **Supply roads.** A road from the logistics base to the rear gate of each
   redoubt (beat L2). The base stands on the main road behind the middle, as it
   does now.
+- **The air base.** The allies' airbase lot (`mapgen-nouns.md`, airbase lot),
+  a field: a strip, three berths and two sheds, room for the wing's four
+  airframes, where a station's sixty cells would crowd the rear hamlets. It is
+  an `Airfield` piece held from before the places grow, so nothing grows onto
+  it, in the rear corner on the side away from the front's installation, four
+  cells in from the rear edge and six from the side, clear across the rear
+  from the relief corridor and the landing field. Its strip lies along the edge
+  toward the front. It is allied (`LandingPad.Purpose.ALLIED_AIRFIELD`): no
+  compound for the swarm to take, and no pad the company lands on
+  (`cordon-nouns.md`, Air base).
 - **Observation.** A sandbagged post forward of the line on each side's high
   point; in a city, the biggest building in front of each flank redoubt.
 

@@ -18,6 +18,9 @@ import com.dillon.starsectormarines.battle.cordon.CordonArmour;
 import com.dillon.starsectormarines.battle.cordon.CordonLineCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonLogistics;
 import com.dillon.starsectormarines.battle.cordon.CordonAirBase;
+import com.dillon.starsectormarines.battle.air.AirfieldService;
+import com.dillon.starsectormarines.battle.air.AirfieldWork;
+import com.dillon.starsectormarines.battle.world.gen.FixtureTask;
 import com.dillon.starsectormarines.battle.ambient.RoomSite;
 import com.dillon.starsectormarines.battle.ambient.WorksCrewService;
 import com.dillon.starsectormarines.battle.fabrication.FabricationService;
@@ -306,6 +309,7 @@ public final class CordonSetup {
                                          boolean mixed, SurfacePalette biome) {
         MapResult built = CordonConstructions.build(map, plan, density, battleSeed, mixed, biome.inlandGround());
         // The line's gaps closed with picket nests once the redoubts' guns stand where they will be manned.
+        // The allies' airbase lot is laid as a garrison field; it is no compound for the swarm to hold.
         return CordonGapNests.lay(built, plan, density, battleSeed);
     }
 
@@ -495,7 +499,25 @@ public final class CordonSetup {
             keepOff.addAll(logistics.slots());
             keepOff.add(new int[]{logistics.doorX(), logistics.doorY()});
         }
-        return CordonAirBase.lay(sim, anchorX, anchorY, frontward, cordon.corridor(), roads, keepOff);
+        CordonAirBase air = CordonAirBase.base(sim, cordon.map(), anchorX, anchorY, frontward, cordon.corridor(), roads,
+                keepOff);
+        if (air != null && air.ground() == CordonAirBase.Ground.LOT) air.field().crewed(airCrew(sim, cordon.map()));
+        return air;
+    }
+
+    /** Technicians the allies post on the air base's apron, out of its sheds. UNTUNED. */
+    static final int AIR_CREW = 4;
+
+    /** Posts the allies' ground crew on the air base's apron, out of the lot's sheds; whether anyone was posted. */
+    private static boolean airCrew(BattleSimulation sim, MapResult map) {
+        AirfieldService airfield = sim.getAirfieldService();
+        List<FixtureTask> apron = AirfieldWork.onTheApron(airfield, map.grid);
+        if (apron.isEmpty()) return false;
+        airfield.installApronWork(apron);
+        if (sim.getWorksCrews() == null) sim.setWorksCrews(new WorksCrewService(TraversalAxis.SOUTH_TO_NORTH));
+        List<RoomSite> rooms = RoomSite.findAll(map.topology, map.grid.getWidth(), map.grid.getHeight());
+        return !StructureWatch.man(sim, Faction.ALLY, rooms, apron, AirfieldWork.occupied(airfield),
+                EnumSet.of(RoomPurpose.HANGAR), AIR_CREW, sim.getWorksCrews()).isEmpty();
     }
 
     private static final long BASE_SALT = 0x4C4F474953544943L;
@@ -542,6 +564,7 @@ public final class CordonSetup {
         Random rng = new Random(cordon.battleSeed());
         List<Doodad> vehicles = BattleSetup.stampVehicles(map, rng, corridorClear(map, cordon.corridor()));
         int shuttles = manifest == null || manifest.isEmpty() ? 4 : manifest.size();
+        // The company never comes down on the allies' air base.
         List<LandingPad> pads = LandingPadSelector.select(map, shuttles, BattleSetup.LZ_MIN_SEPARATION);
         BattleSimulation sim = BattleSetup.buildMap(map, vehicles, Collections.emptyList(),
                 Collections.emptyList(), cordon.battleSeed()).sim();
