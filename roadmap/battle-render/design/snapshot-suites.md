@@ -82,7 +82,7 @@ workbench's Snapshots tab share one catalog.
   `HeadlessStrings.translation` merges `translations/<locale>/` strings over the English catalog, reads its
   `settings.json`, and resolves its files, fonts included, ahead of `mod/` and the game; the lint labels its screens
   `[<locale>]`. A suite's own English or expanded overlay sets the translation aside while open, so
-  `opening-localization` renders `english/`, `expanded/` and a `<locale>/` set. A CJK translation needs its fonts
+  `opening-localization` and `equipment-localization` render `english/`, `expanded/` and a `<locale>/` set. A CJK translation needs its fonts
   baked first (`gradlew :asset-pipeline:generateCjkFonts`).
 - A suite artifact is a PNG, an animated GIF for a suite whose evidence is a played battle, or an MP4 the suite
   has encoded to a scratch file under `build/tmp` (`SnapshotArtifact.video`). The runner writes or moves each into
