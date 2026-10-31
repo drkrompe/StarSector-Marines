@@ -43,12 +43,13 @@ import java.util.Locale;
  * the gap, and the people stepping down.
  *
  * <p>{@code -Dsnapshot.convoyRun.seed} (default 7, Ain Tafrant's pinned seed, {@code WellhollowBloomCampaign}),
- * {@code .driveSeconds} (20). Opt-in: it plays a whole battle up to the first relief run and the run itself.
+ * {@code .driveSeconds} (20), {@code .trip} (1: the trip recorded; a later one is driven by trucks back from an
+ * earlier trip). Opt-in: it plays a whole battle up to the first relief run and the run itself.
  */
 public final class CordonConvoyRunLookSuite implements SnapshotSuite {
 
     /** The latest tick a convoy is waited for. */
-    static final int BY = 24_000;
+    static final int BY = 36_000;
     /** Cells from the yard's gate the lead truck opens the shot at. */
     static final float APPROACH = 34f;
     /** Corridor cells short of the camp's drop point the drive gives way to the drop-off. */
@@ -107,7 +108,8 @@ public final class CordonConvoyRunLookSuite implements SnapshotSuite {
             BattleReviewFrameRenderer renderer = BattleReviewFrameRenderer.look(modRoot, WIDTH, HEIGHT,
                     pickupHold[0], pickupHold[1], pickupHold[2]);
             List<BufferedImage> stills = new ArrayList<>();
-            int skipped = -1;
+            // The trip to record: the first by default; a later one shows the fleet's trucks cycling.
+            int skipped = Integer.getInteger("snapshot.convoyRun.trip", 1) - 1;
             while (true) {
                 // Fast-forward, drawing nothing, until a convoy's lead truck nears the yard.
                 int number = 0;

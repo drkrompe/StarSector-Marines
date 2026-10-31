@@ -114,14 +114,7 @@ class CordonCampTest {
         assertTrue(CordonConvoys.stopsAtCamp(51, 50, false));
         assertFalse(CordonConvoys.stopsAtCamp(60, 50, false));
         assertTrue(CordonConvoys.stopsAtCamp(60, 50, true));
-        assertFalse(CordonConvoys.stopsAtCamp(50 + CordonConvoys.GATE_QUEUE + 1, 50, true));
-    }
-
-    @Test
-    void aWaitingTruckStopsAtItsPlaceOrBehindAnother() {
-        assertTrue(CordonConvoys.parks(10, 12, false));
-        assertFalse(CordonConvoys.parks(20, 12, false));
-        assertTrue(CordonConvoys.parks(20, 12, true));
+        assertFalse(CordonConvoys.stopsAtCamp(50 + CordonConvoys.CAMP_QUEUE + 1, 50, true));
     }
 
     /**
@@ -168,7 +161,6 @@ class CordonCampTest {
         int[] drop = route.get(plan.dropIndex());
         assertEquals(BASE[0] - CordonCamp.APRON + CordonCamp.APRON / 2 - 1, drop[0], "the trucks stop in the apron's middle");
         assertEquals(plan.cy(), drop[1]);
-        assertTrue(plan.dropIndex() > CordonConvoys.PARK_BACK, "with room behind for the waiting trucks");
         for (CordonCamp.Bag bag : plan.bags()) {
             assertFalse(bag.y() == plan.cy() && bag.x() > plan.cx(), "the ring is open where the road leaves it");
         }
