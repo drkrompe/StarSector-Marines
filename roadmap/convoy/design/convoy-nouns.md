@@ -313,8 +313,8 @@ where it has one, so the perception components stay off every chassis.
 **A vehicle instance is a hull and a loadout** (owner, 2026-10-30). A `VehicleType` is a bare,
 generic chassis: its footprint, drive, plate, gun card size and bay. Everything that makes one
 machine differ from another of the same hull is equipment: the engine in its engine core, the
-plating at its armor point, the part in its gun card, the bank and vent arrays and kits on its
-rack. An instance is the hull with one such loadout (`VehicleDeploymentSpec`), and every hull in
+plating at its armor point, the part in its gun card, the parts in its auxiliary
+compartment. An instance is the hull with one such loadout (`VehicleDeploymentSpec`), and every hull in
 a battle is set down from one through the same path (`ConvoyService.spawn(VehicleDeploymentSpec, …)`).
 The player designs instances in the Mech Lab, fitting parts to a hull the company owns. An
 encounter chooses its instances to hit the difficulty it wants: a deliberately weak one (stock
@@ -332,7 +332,7 @@ durability number with it. A tougher or faster APC is not a hull: it is the APC
 with plating and an engine at its armor point and engine core (`mechs-nouns.md`),
 fitted by a company or named as a **stock fit** a mission fields
 (`VehicleStockFit`). The convoy escort is the APC in heavy plating on a military
-engine with a spall liner (`VehicleStockFit.CONVOY_ESCORT`): 264
+engine with a spall liner in its compartment (`VehicleStockFit.CONVOY_ESCORT`): 264
 structure behind 224 armor at rating 18, a fifth faster than the bare hull, its reservoir
 shedding 5.5 flux a second against the factory bank's 6 for the hotter engine.
 
@@ -642,9 +642,10 @@ The direct-control HUD shows every armed hull's reservoir on the mech's gauge. T
 authors (`VehicleType.fluxVentAftCells`, the laser tanks' radiator fins), so the
 plain hulls show no haze. Emplacements sharing a hull's mount never read its flux.
 
-**Active protection is a rack kit** (`VehicleKit.ACTIVE_PROTECTION`; owner, 2026-10-30: one
-tank, modular heads). The Parapet, once a hull of its own, is the Onager with this kit on its rack
-(`VehicleStockFit.PARAPET`). A gun tank whose rack carries it gets a point-defence mount on the hull
+**Active protection is a compartment part** (`MechInternal.ACTIVE_PROTECTION`, once a rack kit; owner,
+2026-10-30: one tank, modular heads, and one machine, one part catalog). The Parapet, once a hull of its own, is
+the Onager with it in its compartment (`VehicleStockFit.PARAPET`). A gun tank whose compartment carries it gets a
+point-defence mount on the hull
 (`ConvoyService.activeProtectionStructureId`, the `structure.tank-aps` mount): the carried-mount
 law of `PointDefenseService`, with the hull as the carrier. It is bounded the same way:
 it engages a round only while the round is inside its reach, at most once per
@@ -655,7 +656,8 @@ such as an SRM is left to the plate, and so is a round falling on somebody
 else, so the system shields its own hull and never the infantry around it.
 Guns, cannon and lasers fire rounds that point defence cannot engage at all.
 The launchers and their power cost the hull six hundredths of its speed and acceleration
-(`VehicleKit.speedFactor`). Only the armed gun tanks (the Onager, the laser tank) take it
+(`MachineSystems.speedFactor`). Among hulls only the armed gun tanks (the Onager, the laser tank) take it; a mech
+takes it too, the same mount riding the mech (`mechs-nouns.md`, one machine, one part catalog)
 (`heavy-equipment-progression.md`, the AT LRM against a tank); a stock tank carries none. Its
 launcher boxes and sensor panels are drawn over the live laser tank's hull, and on the Onager over its
 turret housing, turning with whatever head it wears (`kit-active-protection.png`, `art-source/vehicles/kit-active-protection`).
@@ -1482,7 +1484,7 @@ observed round and flies at the weapon's ordinary accuracy. It fights from
 own line of sight there. It pays with no seats. Acceptance is the `missile-carriers` scene: a carrier behind a
 wall hits a tank a spotter pickup is looking at, holds fire at riflemen in its own
 sight, and holds fire entirely without the spotter. A carrier fitted with the
-**sensor drone pair** kit (`VehicleKit.SENSOR_PAIR`) needs no spotter: its two
+**sensor drone pair** (`MechInternal.SENSOR_PAIR`, a compartment part) needs no spotter: its two
 drones search the ground round it, and what they see counts as eyes on the
 target (`SideObservers`), so it fires over a wall with nobody else looking.
 

@@ -83,8 +83,8 @@ final class HardpointBricks {
         return switch (role) {
             case ENGINE -> ENGINE;
             case CAPACITOR_BANK -> FLUX;
-            case VENT_ARRAY, LOADER -> UTILITY;
-            case PLATING -> OMNI;
+            case VENT_ARRAY, LOADER, READY_RACK, ACTIVE_PROTECTION -> UTILITY;
+            case PLATING, LINER, DRONE_BAY -> OMNI;
         };
     }
 

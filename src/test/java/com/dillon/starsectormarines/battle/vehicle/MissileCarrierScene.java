@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.vehicle;
 
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.battle.combat.ShotEvent;
 import com.dillon.starsectormarines.battle.drone.DroneWing;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
@@ -30,7 +31,7 @@ import java.util.Set;
  * Both racks are {@code hardenedTargetsOnly}, so each loop also stands Defender infantry in the launcher's own sight
  * and reach, and the launcher must never spend a warhead on them.
  *
- * <p>Four loops. {@code lrm-sensor-kit} is the no-spotter world again with a {@link VehicleKit#SENSOR_PAIR} on the
+ * <p>Four loops. {@code lrm-sensor-kit} is the no-spotter world again with a {@link MechInternal#SENSOR_PAIR} on the
  * carrier's rack: nobody else on the side looks at the tank, and the carrier's own sensor drones, flown past the wall,
  * are the eyes. {@code lrm-spotted}: the carrier behind a solid wall, the tank about 38 cells beyond it, a scout car
  * off the wall's south end with the tank in its sight and outside the tank's 36-cell reach. {@code lrm-no-spotter}:
@@ -116,7 +117,7 @@ public final class MissileCarrierScene implements BehaviorScene {
     public List<SceneReport> play(FrameSink frames) {
         Trace spotted = runLrm(LRM_SPOTTED, true, List.of(), frames);
         Trace blind = runLrm(LRM_NO_SPOTTER, false, List.of(), frames);
-        Trace droned = runLrm(LRM_SENSOR_KIT, false, List.of(VehicleKit.SENSOR_PAIR), frames);
+        Trace droned = runLrm(LRM_SENSOR_KIT, false, List.of(MechInternal.SENSOR_PAIR), frames);
         Trace ambush = runSrm(frames);
         List<SceneReport> reports = new ArrayList<>();
         reports.add(reportSpotted(spotted));
@@ -137,7 +138,7 @@ public final class MissileCarrierScene implements BehaviorScene {
                 .unit("marine-holdout", Faction.MARINE, UnitType.MARINE, width - 6, 5);
     }
 
-    private Trace runLrm(String loop, boolean scout, List<VehicleKit> kits, FrameSink frames) {
+    private Trace runLrm(String loop, boolean scout, List<MechInternal> kits, FrameSink frames) {
         SceneBuilder builder = SceneBuilder.openGround(LRM_WIDTH, LRM_HEIGHT)
                 .missionCompletion(false)
                 .wall(LRM_WALL_X, LRM_WALL_Y0, LRM_WALL_X, LRM_WALL_Y1)
@@ -147,7 +148,7 @@ public final class MissileCarrierScene implements BehaviorScene {
         SceneWorld world = builder.build();
         BattleSimulation sim = world.sim();
 
-        long carrier = sim.convoy().spawn(VehicleType.LRM_CARRIER, kits, Faction.MARINE,
+        long carrier = sim.convoy().spawnFitted(VehicleType.LRM_CARRIER, kits, Faction.MARINE,
                 VehicleMission.deployed(CARRIER_X, CARRIER_Y));
         // The sensor pair holds station beyond the bow, so a carrier with one faces the wall (east, -90 degrees).
         sim.convoy().body(carrier).teleport(CARRIER_X, CARRIER_Y, kits.isEmpty() ? 0f : -90f);

@@ -71,7 +71,7 @@ public enum VehicleType {
     /**
      * The Onager, the army's tank and the convoy's heavy spearhead. Turns on conservative rolling arcs, and on the spot
      * where no arc fits ({@link NeutralPivot}). Its active protection, where it carries one, is a rack kit
-     * ({@link VehicleKit#ACTIVE_PROTECTION}); the stock fit with it is the Parapet ({@link VehicleStockFit#PARAPET}).
+     * ({@code MechInternal.ACTIVE_PROTECTION}); the stock fit with it is the Parapet ({@link VehicleStockFit#PARAPET}).
      */
     BREAKTHROUGH_TANK("graphics/battle/vehicles/army-tank.png", 0, 9, -90f,
             0, 4.3f, 3.8f, 2.2f, 3.1f, 1.0f, 3.0f, .8f, 3.0f,

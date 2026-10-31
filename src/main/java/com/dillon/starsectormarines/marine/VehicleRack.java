@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.marine;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketDef;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketType;
+import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.battle.vehicle.HullReservoir;
 import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
@@ -61,16 +62,17 @@ public final class VehicleRack {
     }
 
     /**
-     * Whether the rack takes {@code internal} at all: a loader on any hull, a capacitor bank or a vent array on an armed
-     * hull (an unarmed hull has no reservoir to feed).
+     * Whether the rack takes {@code internal} at all on {@code type} with its own gun: a compartment part whose
+     * requirements the hull meets ({@link MechInternal#unmet}), as on any machine.
      */
     public static boolean takes(VehicleType type, MechInternal internal) {
-        if (type == null || internal == null) return false;
-        return switch (internal.role) {
-            case LOADER -> true;
-            case CAPACITOR_BANK, VENT_ARRAY -> type.hasTurretWeapon();
-            case ENGINE, PLATING -> false;
-        };
+        return takes(type, null, internal);
+    }
+
+    /** As above, on a hull carrying {@code gun} in its gun card ({@link MachineCapabilities#of(VehicleType, MechWeaponComponent)}). */
+    public static boolean takes(VehicleType type, MechWeaponComponent gun, MechInternal internal) {
+        return type != null && internal != null && internal.role.compartment()
+                && internal.unmet(MachineCapabilities.of(type, gun)) == null;
     }
 
     /**
@@ -79,9 +81,15 @@ public final class VehicleRack {
      * it packing into the bays.
      */
     public static boolean fits(VehicleType type, List<VehicleKit> kits, List<MechInternal> internals) {
+        return fits(type, null, kits, internals);
+    }
+
+    /** As above, on a hull carrying {@code gun} in its gun card. */
+    public static boolean fits(VehicleType type, MechWeaponComponent gun, List<VehicleKit> kits,
+                               List<MechInternal> internals) {
         Set<VehicleKit> seen = EnumSet.noneOf(VehicleKit.class);
         for (VehicleKit kit : kits) if (kit == null || !kit.suits(type) || !seen.add(kit)) return false;
-        for (MechInternal internal : internals) if (!takes(type, internal)) return false;
+        for (MechInternal internal : internals) if (!takes(type, gun, internal)) return false;
         for (MechInternal.Role role : MechInternal.Role.values()) {
             int count = 0;
             for (MechInternal internal : internals) if (internal.role == role) count++;

@@ -39,6 +39,7 @@ import com.dillon.starsectormarines.battle.infantry.SoldierProfile;
 import com.dillon.starsectormarines.battle.appearance.LayeredArmorFamily;
 import com.dillon.starsectormarines.battle.warship.ShipSupportSource;
 import com.dillon.starsectormarines.battle.mech.MechDeploymentSpec;
+import com.dillon.starsectormarines.battle.mech.MachineSystems;
 import com.dillon.starsectormarines.battle.mech.MechFrame;
 import com.dillon.starsectormarines.battle.mech.MechRefit;
 import com.dillon.starsectormarines.battle.airsupport.AirPoolAllowance;
@@ -781,6 +782,11 @@ public final class BattleFixtureJson {
                 frame.put("moveSpeed", deployment.frame().moveSpeed());
                 frame.put("fluxCapacity", deployment.frame().fluxCapacity());
                 frame.put("dissipationPerSecond", deployment.frame().dissipationPerSecond());
+                // What the compartment's liner and ready rack make of the mech; absent for a compartment of neither.
+                if (!deployment.frame().systems().equals(MachineSystems.NONE)) {
+                    frame.put("structureFactor", deployment.frame().systems().structureFactor());
+                    frame.put("ammoFactor", deployment.frame().systems().ammoFactor());
+                }
                 mech.put("frame", frame);
                 if (!deployment.refit().neutral()) {
                     JSONObject refit = new JSONObject();
@@ -867,7 +873,9 @@ public final class BattleFixtureJson {
                             (float) encodedFrame.getDouble("armorCapacity"),
                             (float) encodedFrame.getDouble("moveSpeed"),
                             (float) encodedFrame.getDouble("fluxCapacity"),
-                            (float) encodedFrame.getDouble("dissipationPerSecond"));
+                            (float) encodedFrame.getDouble("dissipationPerSecond"),
+                            new MachineSystems((float) encodedFrame.optDouble("structureFactor", 1d),
+                                    (float) encodedFrame.optDouble("ammoFactor", 1d)));
                 }
                 MechRefit refit = MechRefit.NEUTRAL;
                 JSONObject encodedRefit = mech.optJSONObject("refit");

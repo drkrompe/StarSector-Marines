@@ -4,7 +4,7 @@ Status: ACTIVE — distinct chassis, persistent support loadouts, and production
 
 Written: 2026-08-23
 
-Updated: 2026-10-30 — an empty socket means nothing on every machine and a part works by one rule: a vehicle is built with the industrial engine and factory plating as fitted parts, an empty engine core leaves it incomplete as a mech's does, its plating is only ever replaced, and engine and plating move a hull along its own speed and armor bands by the mech's fractions (composite plating on a hull is now ×1.2, was ×1.25; the military engine's −0.5 dissipation now costs a hull's reservoir too). Also 2026-10-30 — the loader is one part on every machine: the vehicle's accelerated-loader kit is the mech's accelerated loader (an old kit id reads as it), and a vehicle's compartment carries its loader as a part, so an armed hull is built with the standard loader and one without it never puts a missile pack back (the loader). Also 2026-10-30 — every laser a player meets takes the laser names: the ground emplacements and hardpoint are PL-3 and PL-3 (Sweep), the Wisp and hover-scout bolt guns are PE pulse emitters (not lasers), and PD is kept for guns that shoot down missiles (Weapon names). Also 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Sweep)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
+Updated: 2026-10-30 — an empty socket means nothing on every machine and a part works by one rule: a vehicle is built with the industrial engine and factory plating as fitted parts, an empty engine core leaves it incomplete as a mech's does, its plating is only ever replaced, and engine and plating move a hull along its own speed and armor bands by the mech's fractions (composite plating on a hull is now ×1.2, was ×1.25; the military engine's −0.5 dissipation now costs a hull's reservoir too). Also 2026-10-30 — the loader is one part on every machine: the vehicle's accelerated-loader kit is the mech's accelerated loader (an old kit id reads as it), and a vehicle's compartment carries its loader as a part, so an armed hull is built with the standard loader and one without it never puts a missile pack back (the loader). Also 2026-10-30 — every laser a player meets takes the laser names: the ground emplacements and hardpoint are PL-3 and PL-3 (Sweep), the Wisp and hover-scout bolt guns are PE pulse emitters (not lasers), and PD is kept for guns that shoot down missiles (Weapon names). Also 2026-10-30 — the lasers take names by how they fire: BL beam lasers (BL-1, BL-2), PL pulse lasers (PL-1, PL-2, PL-3, PL-2 (AP), PL-3 (Sweep)) and the LL-3 lance laser; the number is the size (Weapon names). Also 2026-10-30 — a player vehicle can be attached to a squad as a mech is, and under mission command the company's landed machines are attached to its squads (attachment). Also 2026-10-30 — an explosive round's blast shoves what stands in it, per round in data (Blast impulse). Also 2026-10-30 — the Kit Ladder paces pattern sales; a new company knows the Hound, the light machine gun, the Frag SRM-5 and the stock internals. Also 2026-10-30 — the cannons take `<Family>-<N>` names (HC-20, HC-10, AC-6, AC-6 (QS), DC-5, DC-4 (QS)); the HC-10 replaces the linear cannon. Also 2026-10-30 � a crippled mech's route owns its hips as on whole legs, so a disarmed one crawls out of contact instead of standing turned to the fight (Section loss). Earlier: crippled legs slow a mech to a crawl instead of planting it: it walks, fights and takes orders as before, and a disarmed one withdraws whatever its legs. Earlier: a move to a mech ends its lance's Defend Area, and a Defend Area ends its chassis' moves; an attached mech's line post is within its squad's line, attached mechs spaced evenly among the marines, and in contact it steps ahead or behind by doctrine (attachment); an armor drop orders one machine at a time, free of CP and cooldown, flown by the shared lift queue; a queued drop cancels back aboard with its lift refunded; a player mech squad can be attached to a player infantry squad, walks with it out of contact and stands by its doctrine relative to it in contact; the squad is never slowed for it.
 
 ## Purpose
 
@@ -286,57 +286,60 @@ increasing an encounter's total armored threat.
   offered, and unlearned items with no stock are absent from the Mech Lab catalog.
 - A **gantry** is one of the support squad's four bay spaces, and it holds a mech
   or a **company vehicle** (`CampaignVehicle`): an id, a callsign and a
-  `VehicleType`, plus the **kits** fitted to it. The gantry is the only thing the
+  `VehicleType`, plus the parts fitted to it. The gantry is the only thing the
   two share. A vehicle has no chassis, engine budget or weapon components (its flux is one hull reservoir on the mech's rule, `convoy-nouns.md`, hull flux):
   its gun and bay are its type's and never come off; its engine and plating are the mech's parts, fitted (below). Mechs and vehicles count against
   the same four gantries and the same restored berths, are bought for credits
   against a learned pattern, and a save from before vehicles
   keeps every gantry a mech.
-- A **vehicle kit** (`VehicleKit`) is the one thing a company fits to a vehicle:
-  a bolt-on part from stores, in a **kit rack** of fixed slots. A vehicle is
-  locked down otherwise, and its doll in the Mech Lab says so: the same schematic
-  as a mech's, with the drive in the middle, the turret ahead, the secondary
-  mounts and the bay (seats, supply stock or drones) either side and the kit rack
-  behind, every card but the rack, the engine core, the gun card and the armor point
-  **sealed** with its factory part drawn in it, readable and never draggable. The rack is
-  compartment-packed as a mech's compartment is (`VehicleRack`, owner 2026-10-30): a Light hull has
-  one 2x2 bay (2 slots), a Medium one 2x3 bay (3), a Heavy two 2x2 bays (4)
-  (`VehicleType.weight`). A slot is a two-column row; a kit takes one. The rack also takes the mech's
-  own **capacitor banks**, **vent arrays** and **loaders** at their mech footprints (factory and double bank
-  2x1, military bank 2x2, vent array and loaders 2x1), at most one bank and one loader: the bank and every vent
-  array are the hull's flux reservoir at the drop (`VehicleRack.frame`, `convoy-nouns.md`, hull flux), and the
-  loader paces its guns (the loader, below). An
-  **armed** hull with no bank is **incomplete** and stays off the drop manifest, as a mech is;
-  every armed hull is built with a bank (the laser tank the double bank and two vent arrays, the rest the factory
-  bank) and the standard loader, so a Light hull is full with the two, as a Hound is; fitting another bank or
-  loader returns the old one to stores. An unarmed hull takes no bank and is built with no loader. A
-  vehicle carries at most one of each kit, and a kit may need something of the hull
-  (a magazine to extend, a gun to feed). Kits are inventory parts exactly as internals are:
-  learned as patterns, bought for their price into stores, dragged onto the rack and
-  off it again, lost with the hull and spared by a scrap. A kit changes the
-  vehicle's numbers when it is frozen for a drop, or gives a hull with no drone
-  bay one the battle already flies, so it adds no behaviour of its own and no
-  balance surface beyond its own effect:
-  - **Spall liner** (Common): a fifth more structure.
-  - **Ready rack** (Common, hulls whose own gun is fed: a magazine or a rotary gun's belt): half again
-    the turret's magazine, or half again a rotary gun's belt.
-  - **Sensor drone pair** (Advanced, hulls with no bay of their own): two sensor
-    drones that fly ahead of the bow, so an indirect-fire hull fed by them fires
-    over cover with no spotter (`convoy-nouns.md`, the missile carriers).
-  - **Active protection** (Prestige, the armed gun tanks: the Onager and the laser tank, not the
-    dozer): interceptor launchers on the hull's rear flanks fed by a sensor panel on each cheek, a
-    hull-borne point-defence mount that takes the arcing, top-attack rounds coming down on the hull
-    (`convoy-nouns.md`, active protection), for six hundredths of the hull's speed. It is the one kit
-    that brings a system: the mount the battle already arms for any hull whose rack names it
-    (`VehicleKit.activeProtectionStructureId`), drawn as overlay art on the live hull.
-  A new kit joins by taking a slot and a spawn-time effect; anything that needs a
-  behaviour of its own (a blade, a mortar) stays a
-  **variant** (`heavy-equipment-progression.md`, Vehicles: variants and kits).
-  A bought hull comes with its bank and standard loader and an empty kit row; a hull saved before the
-  rack held banks loads with none and stays off the drop until one is fitted. A hull saved while its
-  loader was sealed in it carries the standard loader in its compartment (an accelerated-loader kit
-  on its rack becomes its loader instead); where that no longer packs, its kits and then its vent
-  arrays come off last-fitted first into stores, so nothing owned is lost.
+- A vehicle's **auxiliary compartment** (`VehicleRack`, once the kit rack) is where a company fits it as it fits
+  a mech's compartment. A vehicle is locked down otherwise, and its doll in the Mech Lab says so: the same
+  schematic as a mech's, with the drive in the middle, the turret ahead, the secondary mounts and the bay
+  (seats, supply stock or drones) either side and the compartment behind, every card but the compartment,
+  the engine core, the gun card and the armor point **sealed** with its factory part drawn in it, readable
+  and never draggable. The compartment packs as a mech's does (owner 2026-10-30): a Light hull has one 2x2
+  bay, a Medium one 2x3 bay, a Heavy two 2x2 bays (`VehicleType.weight`), and it takes the one part catalog's
+  compartment parts at their mech footprints (factory and double bank 2x1, military bank 2x2, every other
+  part 2x1), at most one of each role but vent arrays: the bank and every vent array are the hull's flux
+  reservoir at the drop (`VehicleRack.frame`, `convoy-nouns.md`, hull flux), and the loader paces its guns
+  (the loader, below). An **armed** hull with no bank is **incomplete** and stays off the drop manifest, as a
+  mech is; every armed hull is built with a bank (the laser tank the double bank and two vent arrays, the rest
+  the factory bank) and the standard loader, so a Light hull is full with the two, as a Hound is; fitting
+  another bank or loader returns the old one to stores. An unarmed hull takes no bank and is built with no
+  loader. Every part is an inventory part: learned as a pattern, bought for its price into stores, dragged
+  onto the compartment and off it again, lost with the hull and spared by a scrap. Anything that needs a
+  behaviour of its own (a blade, a mortar) stays a **variant** (`heavy-equipment-progression.md`, Vehicles:
+  variants and kits). A hull saved before the compartment held banks loads with none and stays off the drop
+  until one is fitted. A hull saved while its loader was sealed in it carries the standard loader in its
+  compartment (an accelerated-loader kit becomes its loader instead); where that no longer packs, its other
+  compartment parts come off last-fitted first into stores, so nothing owned is lost.
+- **One machine, one part catalog** (owner, 2026-10-30). A mech and a vehicle are one kind of machine with one
+  part catalog (`MechInternal`): every non-weapon fitting is an internal, and whether a part goes on a machine
+  is its own **requirements** against what the chassis offers (`MechInternal.unmet`, `MachineCapabilities`),
+  never whether it is a mech or a vehicle: a capacitor bank or vent array needs a gun (an unarmed machine has
+  no reservoir), a ready rack a fed weapon (a finite rack or magazine, or a rotary gun's belt; a beam has
+  none), a sensor pair a **drone host** with no bay of its own, active protection a gun and a **point-defence
+  host** (flanks to stand its launchers on). A mech chassis's hosting is its own data
+  (`MechVariant.hostsDrones`, `MechVariant.hostsPointDefence`; every chassis hosts both); a hull hosts a wing
+  unless it flies a bay of its own, and the armed heavy gun tanks host point defence. What the auxiliary
+  compartment's parts make of the machine at the drop beyond its frame and loader is one record,
+  `MachineSystems`, read by a mech's frame and a vehicle's spawn alike, and the systems that fly drones and
+  arm point defence host a mech (`MachineHosts`) exactly as they host a hull:
+  - **Spall liner** (Common, any machine; once the vehicle's kit `kit.spall-liner`): a fifth more structure,
+    the mech's sections dividing the larger whole as a hull's locations do.
+  - **Ready rack** (Common, a machine with a fed weapon; once `kit.ready-rack`): half again the packs in every
+    finite missile rack and magazine and half again every rotary gun's belt, all full at the drop
+    (`MechWeaponMount.fitReadyRack`).
+  - **Sensor drone pair** (Advanced, a drone host; once `kit.sensor-pair`): two sensor drones that fly ahead of
+    the machine, so an indirect-fire machine fed by them fires over cover with no spotter (`convoy-nouns.md`,
+    the missile carriers). On a mech the wing follows its body as a hull's does (`DroneBaySystem`).
+  - **Active protection** (Prestige, mass 2, an armed point-defence host; once `kit.active-protection`):
+    interceptor launchers fed by sensor panels, a point-defence mount riding the machine that takes the
+    arcing, top-attack rounds coming down on it (`convoy-nouns.md`, active protection;
+    `PointDefenseService.mountHull`, `mountMachine`), for six hundredths of its speed; drawn as overlay art on
+    the live hull or mech.
+  A save's retired kit ids, spares and learned kit patterns read as these internals
+  (`MechInternal.RETIRED_KITS`).
 - A vehicle's **engine core** (`SocketId.CORE`) takes the same engine parts a mech runs
   (`MechInternal`, engine role), as the armor point takes plating (owner, 2026-10-28: a vehicle is a
   mech for parts). **An empty socket means nothing on every machine** (owner, 2026-10-30): every hull
@@ -599,7 +602,9 @@ increasing an encounter's total armored threat.
 - **Section loss** is a capability before it is the machine. Legs at zero
   **cripple** the mech: it walks on at a crawl (`Crippled.SPEED_SHARE` of its
   speed), autonomous or manual, and still pivots its hips onto its target, turns
-  its torso and fires. Crippled is slowed, never stranded (owner). A mount at zero
+  its torso and fires. Its route owns its hips while it walks, as on whole legs,
+  so it limps away from a fight as readily as into one. Crippled is slowed, never
+  stranded (owner). A mount at zero
   **destroys its weapon**: the mount becomes absent for the rest of the battle.
   The head at zero **loses the sensors**: vision halves and weapon accuracy
   drops. The torso at zero is the only death; legs are never a kill. Damage above

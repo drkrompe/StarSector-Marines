@@ -7,7 +7,6 @@ import com.dillon.starsectormarines.battle.mech.MechRole;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechWeaponComponent;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.marine.MechFitSpace;
@@ -131,9 +130,9 @@ public record ArmorSide(List<Unit> units) {
             this(count, type, null);
         }
 
-        /** The kits on each hull's rack: its stock fit's, or none. */
-        public List<VehicleKit> kits() {
-            return fit == null ? List.of() : fit.kits;
+        /** Each hull's compartment: its stock fit's, or none named. */
+        public List<MechInternal> compartment() {
+            return fit == null ? List.of() : fit.compartment;
         }
 
         @Override
@@ -227,9 +226,17 @@ public record ArmorSide(List<Unit> units) {
                         internal(variant, MechInternal.Role.VENT_ARRAY, value));
                 case "loader" -> fit = fit.withInternal(MechInternal.Role.LOADER,
                         internal(variant, MechInternal.Role.LOADER, value));
+                case "liner" -> fit = fit.withInternal(MechInternal.Role.LINER,
+                        internal(variant, MechInternal.Role.LINER, value));
+                case "ready-rack" -> fit = fit.withInternal(MechInternal.Role.READY_RACK,
+                        internal(variant, MechInternal.Role.READY_RACK, value));
+                case "drones" -> fit = fit.withInternal(MechInternal.Role.DRONE_BAY,
+                        internal(variant, MechInternal.Role.DRONE_BAY, value));
+                case "aps" -> fit = fit.withInternal(MechInternal.Role.ACTIVE_PROTECTION,
+                        internal(variant, MechInternal.Role.ACTIVE_PROTECTION, value));
                 case "role" -> role = role(value);
-                default -> throw new IllegalArgumentException("Unknown mech fit key '" + key
-                        + "'; known: arms, la, ra, ls, rs, engine, plating, capacitors, vents, loader, role");
+                default -> throw new IllegalArgumentException("Unknown mech fit key '" + key + "'; known: arms, la, ra,"
+                        + " ls, rs, engine, plating, capacitors, vents, loader, liner, ready-rack, drones, aps, role");
             }
         }
         if (refit) fit = bestRefit(fit);
@@ -268,8 +275,8 @@ public record ArmorSide(List<Unit> units) {
 
     private static MechInternal internal(MechVariant variant, MechInternal.Role role, String value) {
         if (value.equals("none") || value.equals("-")) {
-            if (role != MechInternal.Role.VENT_ARRAY && role != MechInternal.Role.LOADER) {
-                throw new IllegalArgumentException("Only vents and the loader may be left out; use the factory part");
+            if (role != MechInternal.Role.LOADER && role.stock() != null) {
+                throw new IllegalArgumentException("Only optional parts may be left out; use the factory part");
             }
             return null;
         }
@@ -345,6 +352,10 @@ public record ArmorSide(List<Unit> units) {
             case CAPACITOR_BANK -> "capacitors";
             case VENT_ARRAY -> "vents";
             case LOADER -> "loader";
+            case LINER -> "liner";
+            case READY_RACK -> "ready-rack";
+            case DRONE_BAY -> "drones";
+            case ACTIVE_PROTECTION -> "aps";
         };
     }
 

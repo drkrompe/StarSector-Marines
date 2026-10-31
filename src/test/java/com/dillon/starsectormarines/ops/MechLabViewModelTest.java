@@ -13,7 +13,6 @@ import com.dillon.starsectormarines.battle.mech.MechSections;
 import com.dillon.starsectormarines.battle.mech.WaylineHound;
 import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
 import com.dillon.starsectormarines.campaign.refit.RefitBand;
 import com.dillon.starsectormarines.campaign.refit.RefitTrack;
@@ -1010,24 +1009,22 @@ class MechLabViewModelTest {
     }
 
     @Test
-    void aVehicleListsKitsForItsRackAndFitsAndStripsThem() {
+    void aVehicleListsTheCompartmentPartsItsHullMeetsAndNotTheRest() {
         MechBay bay = MechBay.legacyStarterFixture();
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
-        bay.addKit(VehicleKit.SPALL_LINER.id, 1);
+        bay.addInternal(MechInternal.SENSOR_PAIR.id, 1);
+        bay.addInternal(MechInternal.ACTIVE_PROTECTION.id, 1);
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
         viewModel.gantryRows().get().get(1).select().run();
         assertEquals(VehicleType.BREAKTHROUGH_TANK, viewModel.selectedVehicleType());
 
-        MechLabViewModel.CatalogRow liner = viewModel.catalogRows().get().stream()
-                .filter(row -> row.name().equals(VehicleKit.SPALL_LINER.displayName()))
-                .findFirst().orElseThrow();
-        assertFalse(liner.actionDisabled(), liner.actionHint());
-        liner.action().run();
-        assertEquals(List.of(VehicleKit.SPALL_LINER), viewModel.installedKits());
-        assertTrue(viewModel.removeKit(VehicleKit.SPALL_LINER));
-        assertTrue(tank.kits().isEmpty());
-        assertEquals(1, bay.availableKit(VehicleKit.SPALL_LINER.id), "the kit is a spare again");
+        List<String> names = viewModel.catalogRows().get().stream().map(MechLabViewModel.CatalogRow::name).toList();
+        assertTrue(names.contains(MechInternal.SENSOR_PAIR.displayName()), names.toString());
+        assertTrue(names.contains(MechInternal.ACTIVE_PROTECTION.displayName()), "a gun tank's flanks take it");
+        assertTrue(bay.fitRackPart(tank.id(), MechInternal.SENSOR_PAIR));
+        assertTrue(tank.rackInternals().contains(MechInternal.SENSOR_PAIR));
+        assertEquals(0, bay.availableInternal(MechInternal.SENSOR_PAIR.id), "the part is on the hull, not spare");
     }
 
     @Test

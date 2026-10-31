@@ -109,6 +109,23 @@ public final class PointDefenseService {
                 Float.POSITIVE_INFINITY, 0f, 0f, true);
         LiveEmplacement pod = new LiveEmplacement(nextId++, hullId, hullId, faction, structure, spec, body.x, body.y);
         pod.hull = body;
+        pod.protectsCarrier = true;
+        active.add(pod);
+    }
+
+    /**
+     * As {@link #mountHull}, on a mech whose compartment carries active protection (mechs-nouns.md, one machine, one
+     * part catalog): the same mount, engaging only the arcing rounds coming down on the mech, read off the mech's own
+     * position, until its magazine is spent or the mech is gone. Mounted once. Serial only.
+     */
+    public synchronized void mountMachine(long machineId, Faction faction, String structureId) {
+        if (hullMounts.containsKey(machineId)) return;
+        hullMounts.put(machineId, new int[2]);
+        StructureDef structure = DeployedEmplacement.requireBounded(structureId);
+        DeployableEmplacementSpec spec = new DeployableEmplacementSpec(structureId, 0f,
+                Float.POSITIVE_INFINITY, 0f, 0f, true);
+        LiveEmplacement pod = new LiveEmplacement(nextId++, machineId, machineId, faction, structure, spec, 0f, 0f);
+        pod.protectsCarrier = true;
         active.add(pod);
     }
 
@@ -190,7 +207,7 @@ public final class PointDefenseService {
             pod.engagementTimer = pod.engagementInterval;
             sim.telemetry().recordOrdnanceEngaged(pod.carrierId);
             if (stopped) sim.telemetry().recordOrdnanceIntercepted(pod.carrierId);
-            if (pod.hull != null) {
+            if (pod.protectsCarrier) {
                 int[] counts = hullMounts.get(pod.entityId);
                 counts[0]++;
                 if (stopped) counts[1]++;
@@ -324,7 +341,7 @@ public final class PointDefenseService {
         for (int i = 0, n = inFlight.size(); i < n; i++) {
             Projectile p = inFlight.get(i);
             if (!p.pointDefenseTarget || p.intercepted) continue;
-            if (pod.hull != null && !comingDownOn(p, podX, podY)) continue;
+            if (pod.protectsCarrier && !comingDownOn(p, podX, podY)) continue;
             if (!pod.faction.hostileTo(p.shooterFaction)) continue;
             float dx = p.currentX() - podX;
             float dy = p.currentY() - podY;
@@ -546,6 +563,11 @@ public final class PointDefenseService {
         final boolean carried;
         /** A hull's own mount: its position is this body's, and {@link #entityId} is the hull. */
         GroundBody hull;
+        /**
+         * A machine's own active protection, a hull's or a mech's: it takes only rounds coming down on the machine,
+         * and {@link #entityId} is the machine, whose position a mech's mount reads off the world.
+         */
+        boolean protectsCarrier;
         final float interceptRadius;
         final float engagementInterval;
         /** The mount weapon's authored accuracy against a moving warhead. */

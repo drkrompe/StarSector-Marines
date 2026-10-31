@@ -307,7 +307,7 @@ public class BattleSprites {
     public LayeredSpriteCache vehicleGunPlate() { return vehicleGunPlate; }
     /**
      * The active-protection kit's launchers and sensor panels, drawn over a gun tank's live hull in its frame's
-     * registration ({@link com.dillon.starsectormarines.battle.vehicle.VehicleKit#ACTIVE_PROTECTION}). Null when the
+     * registration ({@link com.dillon.starsectormarines.marine.MechInternal#ACTIVE_PROTECTION}). Null when the
      * art did not load.
      */
     public LayeredSpriteCache vehicleKitActiveProtection() { return vehicleKitActiveProtection; }

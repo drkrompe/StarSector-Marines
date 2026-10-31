@@ -18,13 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class VehicleRackTest {
 
-    private static List<VehicleKit> suiting(VehicleType type, int count) {
-        List<VehicleKit> kits = new ArrayList<>();
-        for (VehicleKit kit : VehicleKit.values()) if (kits.size() < count && kit.suits(type)) kits.add(kit);
-        assertEquals(count, kits.size(), "test needs " + count + " kits suiting " + type);
-        return kits;
-    }
-
     private static VehicleType unarmed() {
         for (VehicleType type : VehicleType.values()) if (!type.hasTurretWeapon()) return type;
         throw new AssertionError("no unarmed hull");
@@ -33,13 +26,14 @@ class VehicleRackTest {
     @Test
     void aHeavyRackIsTwoBaysAndAFullOneSpillsIntoTheSecond() {
         VehicleType heavy = VehicleType.BREAKTHROUGH_TANK;
-        List<VehicleKit> kits = suiting(heavy, 3);
-        List<VehicleRack.Placement> placed = VehicleRack.pack(heavy, kits, List.of(MechInternal.FACTORY_CAPACITOR_BANK));
+        List<VehicleRack.Placement> placed = VehicleRack.pack(heavy, List.of(), List.of(MechInternal.FACTORY_CAPACITOR_BANK,
+                MechInternal.SPALL_LINER, MechInternal.SENSOR_PAIR, MechInternal.ACTIVE_PROTECTION));
         assertNotNull(placed);
         assertEquals(SocketId.AUXILIARY, placed.get(0).grid());
         assertTrue(placed.stream().anyMatch(p -> p.grid() == SocketId.AUXILIARY_2));
-        assertFalse(VehicleRack.fits(heavy, suiting(heavy, 3),
-                List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.AUXILIARY_VENT_ARRAY)));
+        assertFalse(VehicleRack.fits(heavy, List.of(), List.of(MechInternal.FACTORY_CAPACITOR_BANK,
+                MechInternal.AUXILIARY_VENT_ARRAY, MechInternal.SPALL_LINER, MechInternal.SENSOR_PAIR,
+                MechInternal.ACTIVE_PROTECTION)));
     }
 
     @Test
@@ -51,9 +45,9 @@ class VehicleRackTest {
         assertEquals(SocketId.AUXILIARY, bank.grid());
         assertEquals(2, bank.columns());
         assertEquals(2, bank.rows());
-        // It cannot go on a Light hull's single 2x2 bay beside a kit.
-        assertFalse(VehicleRack.fits(VehicleType.MILITIA_TECHNICAL, suiting(VehicleType.MILITIA_TECHNICAL, 1),
-                List.of(MechInternal.MILITARY_CAPACITOR_BANK)));
+        // It cannot go on a Light hull's single 2x2 bay beside another part.
+        assertFalse(VehicleRack.fits(VehicleType.MILITIA_TECHNICAL, List.of(),
+                List.of(MechInternal.MILITARY_CAPACITOR_BANK, MechInternal.SPALL_LINER)));
     }
 
     @Test

@@ -1,12 +1,17 @@
 package com.dillon.starsectormarines.battle.deployable;
 
+import com.dillon.starsectormarines.marine.MechCompartment;
+import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.battle.combat.PendingDetonation;
 import com.dillon.starsectormarines.battle.combat.Projectile;
 import com.dillon.starsectormarines.battle.nav.NavigationGrid;
+import com.dillon.starsectormarines.battle.mech.MechRole;
+import com.dillon.starsectormarines.battle.mech.MechVariant;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
+import com.dillon.starsectormarines.battle.unit.EntitySpec;
+import com.dillon.starsectormarines.battle.unit.UnitType;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.vehicle.GroundBody;
-import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleMission;
 import com.dillon.starsectormarines.battle.vehicle.VehicleStockFit;
 import com.dillon.starsectormarines.battle.vehicle.VehicleType;
@@ -39,7 +44,7 @@ class HullActiveProtectionTest {
         List<PointDefenseService.EmplacementView> live = sim.pointDefense().activeEmplacements();
         assertEquals(1, live.size(), "only the tank with the kit on its rack carries active protection");
         assertEquals(tank, live.get(0).entityId());
-        assertNull(VehicleKit.activeProtectionStructureId(List.of(VehicleKit.SPALL_LINER)));
+        assertNull(MechCompartment.systems(List.of(MechInternal.SENSOR_PAIR)).activeProtectionStructureId());
 
         GroundBody body = sim.convoy().body(tank);
         body.teleport(30.5f, 12.5f, 0f);
@@ -94,6 +99,25 @@ class HullActiveProtectionTest {
         sim.advance(BattleSimulation.TICK_DT);
         assertTrue(sim.pointDefense().activeEmplacements().isEmpty(), "and is not given a fresh magazine");
         assertFalse(sim.convoy().structure(tank) <= 0f, "running dry does not hurt the hull");
+    }
+
+    @Test
+    void aMechWhoseCompartmentCarriesActiveProtectionAndASensorPairIsHostedAsAHullIs() {
+        BattleSimulation sim = openArena(60, 20);
+        MechVariant variant = MechVariant.WARDEN;
+        long mech = sim.spawn(variant.applyTo(new EntitySpec("mech", Faction.MARINE, UnitType.HEAVY_MECH, 20, 10)));
+        sim.world().attachMechLoadout(mech, variant.createLoadout(MechRole.BALANCED));
+        sim.getRoster().machineHosts().register(mech,
+                MechCompartment.systems(List.of(MechInternal.ACTIVE_PROTECTION, MechInternal.SENSOR_PAIR)));
+        long plain = sim.spawn(variant.applyTo(new EntitySpec("plain", Faction.MARINE, UnitType.HEAVY_MECH, 40, 10)));
+        sim.world().attachMechLoadout(plain, variant.createLoadout(MechRole.BALANCED));
+        sim.advance(BattleSimulation.TICK_DT);
+
+        List<PointDefenseService.EmplacementView> live = sim.pointDefense().activeEmplacements();
+        assertEquals(1, live.size(), "only the mech with active protection in its compartment carries the mount");
+        assertEquals(mech, live.get(0).entityId());
+        assertTrue(sim.droneBays().wing(mech) != null, "its sensor pair flies off the mech as off a hull");
+        assertNull(sim.droneBays().wing(plain));
     }
 
     private static BattleSimulation openArena(int width, int height) {

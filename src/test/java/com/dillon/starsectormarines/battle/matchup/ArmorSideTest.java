@@ -90,7 +90,7 @@ class ArmorSideTest {
         assertEquals(VehicleType.HEAVY_APC, vehicle("heavy-apc"));
         ArmorSide.Vehicle parapet = assertInstanceOf(ArmorSide.Vehicle.class, ArmorSide.parseUnit("parapet"));
         assertEquals(VehicleType.BREAKTHROUGH_TANK, parapet.type());
-        assertEquals(VehicleStockFit.PARAPET.kits, parapet.kits());
+        assertEquals(VehicleStockFit.PARAPET.compartment, parapet.compartment());
         assertEquals("parapet", parapet.label());
     }
 

@@ -105,7 +105,7 @@ public final class ConvoyRenderSystem implements RenderSystem {
             if (type.hasAnimatedTreads() && !wrecked) VehicleTreadRender.collect(type, cache, body, cam, alphaMult, out);
             HullLocations locations = wrecked ? null : convoy.locations(id);
             if (locations != null) collectHullScuffs(type, cache, f, locations, id, body, chassisFacingDeg, cam, alphaMult, out);
-            boolean activeProtection = !wrecked && convoy.kits(id).contains(VehicleKit.ACTIVE_PROTECTION);
+            boolean activeProtection = !wrecked && convoy.carriesActiveProtection(id);
             if (activeProtection && !APS_ON_TURRET.contains(type)) {
                 // The kit's launchers and sensor panels are bolted to the hull, drawn in its live frame's registration.
                 LayeredSpriteCache aps = sprites.vehicleKitActiveProtection();

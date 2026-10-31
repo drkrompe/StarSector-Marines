@@ -22,6 +22,9 @@ class RetiredKitMigrationTest {
     @Test
     void aKitIdResolvesToItsInternalAndItsPatternToTheInternalsPattern() {
         assertSame(MechInternal.ACCELERATED_LOADER, MechInternal.findById("kit.accelerated-loader"));
+        assertSame(MechInternal.SPALL_LINER, MechInternal.findById("kit.spall-liner"));
+        assertSame(MechInternal.READY_RACK, MechInternal.findById("kit.ready-rack"));
+        assertEquals(MechPattern.of(MechInternal.READY_RACK), MechPattern.parse(MechPattern.PREFIX + "kit:kit.ready-rack"));
         assertEquals(MechPattern.of(MechInternal.ACCELERATED_LOADER),
                 MechPattern.parse(MechPattern.PREFIX + "kit:kit.accelerated-loader"));
     }
@@ -51,10 +54,13 @@ class RetiredKitMigrationTest {
 
     @Test
     void anAcceleratedLoaderKitBecomesTheHullsLoader() throws Exception {
-        CampaignVehicle tank = saved(VehicleType.BREAKTHROUGH_TANK, List.of("kit.accelerated-loader", "kit.spall-liner"),
+        CampaignVehicle tank = saved(VehicleType.BREAKTHROUGH_TANK,
+                List.of("kit.accelerated-loader", "kit.spall-liner", "kit.sensor-pair"),
                 List.of(MechInternal.FACTORY_CAPACITOR_BANK.id));
-        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.ACCELERATED_LOADER), tank.rackInternals());
-        assertEquals(1, tank.kits().size(), "the other kit stays on the rack");
+        assertEquals(List.of(MechInternal.FACTORY_CAPACITOR_BANK, MechInternal.ACCELERATED_LOADER,
+                MechInternal.SPALL_LINER, MechInternal.SENSOR_PAIR), tank.rackInternals(),
+                "every kit is the internal it became");
+        assertTrue(tank.kits().isEmpty());
     }
 
     @Test
@@ -70,6 +76,7 @@ class RetiredKitMigrationTest {
         MechBay bay = new MechBay();
         Map<String, Integer> kits = new HashMap<>();
         kits.put("kit.accelerated-loader", 2);
+        kits.put("kit.spall-liner", 1);
         set(bay, "ownedKits", kits);
         @SuppressWarnings("unchecked")
         Set<String> known = (Set<String>) get(bay, "knownPatternIds");
@@ -82,6 +89,7 @@ class RetiredKitMigrationTest {
 
         assertEquals(before + 2, bay.ownedInternal(MechInternal.ACCELERATED_LOADER.id));
         assertEquals(0, bay.ownedKit("kit.accelerated-loader"));
+        assertEquals(1, bay.ownedInternal(MechInternal.SPALL_LINER.id), "a spare liner kit is a spare liner");
         assertTrue(bay.knowsPattern(MechPattern.of(MechInternal.ACCELERATED_LOADER).id()));
         assertFalse(bay.knownPatternIds().contains(MechPattern.PREFIX + "kit:kit.accelerated-loader"));
     }
