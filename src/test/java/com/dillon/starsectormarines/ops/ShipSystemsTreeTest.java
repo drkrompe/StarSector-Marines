@@ -35,7 +35,7 @@ class ShipSystemsTreeTest {
         assertEquals(Node.AVAILABLE, ShipSystemsTree.node(start, RefitTrack.STRUCTURE, RefitBand.RESTORED));
         assertEquals(Node.LOCKED, ShipSystemsTree.node(start, RefitTrack.LIFE_SUPPORT, RefitBand.RESTORED), "waits on Power");
         assertEquals(Node.LOCKED, ShipSystemsTree.node(start, RefitTrack.POWER, RefitBand.IMPROVED_I), "previous tier first");
-        assertEquals(Node.ABSENT, ShipSystemsTree.node(start, RefitTrack.BRIG, RefitBand.IMPROVED_I));
+        assertEquals(Node.ABSENT, ShipSystemsTree.node(start, RefitTrack.RESERVE_HANGAR, RefitBand.IMPROVED_II));
 
         var powered = start.with(RefitTrack.POWER, RefitBand.RESTORED);
         assertEquals(Node.OWNED, ShipSystemsTree.node(powered, RefitTrack.POWER, RefitBand.RESTORED));

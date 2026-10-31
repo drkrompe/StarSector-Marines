@@ -396,8 +396,7 @@ public final class MissionResolver {
         List<OfficerMissionResult> officers = OfficerMissionResult.compute(sim.committedMarines(),
                 sim.operationOfficer() != null ? sim.operationOfficer() : OfficerCommandProfile.capture(captain),
                 survivingSoldierIds, fallenSoldierIds, victory, payoutEarned, mission.id,
-                currentDayInt(), marinesEngaged, marinesLost,
-                mission.source.isDebug() ? 1f : ShipRefits.aboard().officerXpMult());
+                currentDayInt(), marinesEngaged, marinesLost);
         for (OfficerMissionResult officer : officers) {
             if (captain == null || !captain.id().equals(officer.officer().id())) continue;
             priorStatus = officer.officer().status(); newStatus = officer.status();

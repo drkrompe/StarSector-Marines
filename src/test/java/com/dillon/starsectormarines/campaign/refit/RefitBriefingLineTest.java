@@ -24,9 +24,6 @@ class RefitBriefingLineTest {
             assertTrue(trained.contains("Target machinery") && trained.contains("3% better"), trained);
             assertTrue(trained.contains("Gym open") && trained.contains("2% faster"), trained);
             assertTrue(trained.contains("Trauma ward") && trained.contains("Two in five"), trained);
-            assertFalse(fixed.contains("Wardroom"), fixed);
-            String college = RefitText.briefingLine(ShipCondition.battered().with(RefitTrack.WARDROOM, RefitBand.IMPROVED_I));
-            assertTrue(college.contains("Staff college") && college.contains("15%"), college);
         }
     }
 }

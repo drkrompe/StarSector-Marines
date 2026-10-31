@@ -23,7 +23,6 @@ import com.dillon.starsectormarines.battle.fixture.ExtractionBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.SabotageBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.RaidBattleFixture;
 import com.dillon.starsectormarines.battle.setup.BattleSetup;
-import com.dillon.starsectormarines.battle.setup.GroundRosterRegistry;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.world.gen.SettlementZoning;
 import com.dillon.starsectormarines.battle.world.gen.TargetProfile;
@@ -433,7 +432,7 @@ public final class MissionLaunch {
 
     /**
      * The world the battle is fought over, as this mission faces it. The one place it is resolved: launch builds the
-     * battle from it and the briefing's holo-tank reads the garrison off it, so the two cannot disagree.
+     * battle from it.
      *
      * <p>Campaign → battle bridge: the target world's planetary defenses / market read, distilled once at the
      * boundary so generation can reflect which world the battle is over. NEUTRAL for story ops with no market.
@@ -464,31 +463,6 @@ public final class MissionLaunch {
                 .withDeclaredMechDrops(MissionDefencePolicy.declareMechDrops(m))
                 .withDeclaredAirPool(MissionDefencePolicy.declareAirPool(m))
                 .withDeclaredSupportKit(MissionDefencePolicy.declareSupportKit(m));
-    }
-
-    /**
-     * The garrison the briefing's holo-tank shows, from the same profile and heavy-armour read launch uses, or null
-     * where the defenders are not derived from the mission's tier and risk: a debug mission, or a scripted battle
-     * that brings its own force.
-     */
-    static GarrisonIntel garrisonIntel(MarineOpsContext ctx, Mission m) {
-        if (!derivesDefenders(m)) return null;
-        TargetProfile profile = targetProfile(ctx, m);
-        return GarrisonIntel.estimate(m, profile, enemyHasHeavyArmor(ctx, m),
-                GroundRosterRegistry.resolve(profile.factionId()));
-    }
-
-    /**
-     * Whether {@link #captureScenario} builds this mission's defenders from its type, tier and risk through
-     * {@code DefenderRoster.forMission}: the mission-type branch at its end, which every scripted battle ahead of it
-     * in that chain skips. Keep the two in step.
-     */
-    static boolean derivesDefenders(Mission m) {
-        return !m.source.isDebug()
-                && !AgreusArcCampaign.isBattle(m) && !DistrictEscortCampaign.isBattle(m)
-                && !ShepherdRecoveryCampaign.isBattle(m) && !CorvusWaylineCampaign.isBattle(m)
-                && !SupplyRouteCampaign.isBattle(m) && OpeningOperationKind.fromMission(m) == null
-                && !isSilentColonyBattle(m) && !isCivilianRescueBattle(m) && !WellhollowBloomCampaign.isBattle(m);
     }
 
     /**

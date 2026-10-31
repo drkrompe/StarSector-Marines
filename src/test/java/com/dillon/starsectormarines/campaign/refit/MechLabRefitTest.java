@@ -48,11 +48,6 @@ class MechLabRefitTest {
         for (RefitTrack track : MECH_TRACKS) assertEquals(RefitBand.IMPROVED_II, RefitOrder.ceiling(track), track.name());
     }
 
-    @Test void theVehicleBayOffersNothingUntilVehiclesDeploy() {
-        assertEquals(RefitBand.DEFICIT, RefitOrder.ceiling(RefitTrack.VEHICLE_BAY));
-        assertNull(ShipCondition.battered().next(RefitTrack.VEHICLE_BAY));
-    }
-
     @Test void theSheetLineNamesOnlyWhatIsImproved() throws Exception {
         try (var strings = new HeadlessStrings(Path.of("mod"), text -> text)) {
             assertEquals("", RefitText.mechLine(ShipCondition.battered()));
@@ -63,7 +58,6 @@ class MechLabRefitTest {
             assertFalse(line.contains("vents") || line.contains("traverse"), line);
             assertTrue(RefitText.briefingLine(improved).contains(line), "the briefing carries the same line");
             for (RefitTrack track : MECH_TRACKS) assertFalse(RefitText.lore(track).isBlank(), track.name());
-            assertFalse(RefitText.lore(RefitTrack.VEHICLE_BAY).isBlank());
         }
     }
 }

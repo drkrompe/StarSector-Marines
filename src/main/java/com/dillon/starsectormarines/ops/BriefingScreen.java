@@ -678,20 +678,7 @@ public class BriefingScreen implements Screen {
         ShipCondition home = mission.source.isDebug() ? ShipCondition.NONE : ShipRefits.aboard();
         String ship = RefitText.briefingLine(home);
         if (ship != null) rows.add(BriefingViewModel.info("ship-condition", Strings.get("openingRefitBriefingLabel"), ship, ""));
-        GarrisonIntel garrison = home.garrisonIntel() ? garrisonIntel(mission) : null;
-        if (garrison != null) rows.add(BriefingViewModel.info("garrison-intel",
-                Strings.get("briefingGarrisonIntelLabel"), garrison.line(), ""));
         return List.copyOf(rows);
-    }
-
-    /** The holo-tank's read, or null where the mission's defenders are its own or the world cannot be read. */
-    private GarrisonIntel garrisonIntel(Mission mission) {
-        try {
-            return MissionLaunch.garrisonIntel(ctx, launchMission(mission));
-        } catch (RuntimeException failure) {
-            LOG.warn("Briefing garrison intel could not be read", failure);
-            return null;
-        }
     }
 
     private List<BriefingViewModel.ChoiceRow> retainedCaptainRows(Mission mission) {

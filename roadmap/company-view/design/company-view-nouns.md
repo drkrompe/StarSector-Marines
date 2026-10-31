@@ -1770,28 +1770,17 @@ is the workshop chain) gate the other tracks' tiers. A locked tier names what it
 waits on in Castle's terms ("no power for it yet"). The distribution order is Power's
 Restored tier and the mess order is the mess's; their prices and receipts stand.
 Degraded scrubbers add a day to every wound's recovery until life support is
-restored. The combat tracks (hull, flux, sensors, drive) are the hull's own
-figures, applied through the conversion hull mod, so the refit screen shows them
-and every fight she is in uses them. They start below a stock Cerberus and stay a
-liability until the cores behind them are paid for; flux waits on the reactor
-overhaul. The deck carries one icon chip per core in its top-left corner, ringed
+restored. Only tracks that make the company stronger (its marines, mechs,
+vehicles or boats) are offered (owner, 2026-10-31): her own fleet figures stand
+at a stock Cerberus's, and no track sells hull, flux, sensors, drive, supplies or
+cargo. The deck carries one icon chip per core in its top-left corner, ringed
 in the colour of that core's band; a chip opens the **systems tree** over the
 deck. The tree opens as a modal over the live ship, which stays visible
 around and faintly behind it. The tree flows downward from the hull: the five cores hang from her, and
-every other track hangs from the core it leans on most (drive, flux and the
-Mech Lab's coolant plant from Power; mess, gym, sick bay and lounge from Life
-support; hull, brig and range from Structure; sensors and mech calibration from
-Compute; the mech armor shop, mech field repair and the vehicle bay from
-Fabrication). Hydroponics hangs from Life support, the
-holds from Structure, and the wardroom and briefing room from Compute: facilities
-fitted into rooms she already has (the provisions store, the mess, the holds), so
-buying one opens no compartment. Hydroponics and the holds act through the hull
-mod (her supplies per month, her cargo); the wardroom scales officers' mission XP
-when a mission resolves and is named on the briefing once it pays. The briefing
-room's holo-tank shows the briefing the garrison the operation faces. It reads the
-same target profile launch builds the battle from, so its headcount is the battle's;
-its mechs are given as *up to*, because the landing caps them. The plot table below it is the tank's mount and has
-no battle passive yet. Each track is a column of tier nodes,
+every other track hangs from the core it leans on most (the Mech Lab's coolant
+plant from Power; mess, gym, sick bay and lounge from Life support; range and
+reserve hangar from Structure; mech calibration from Compute; the mech armor
+shop and mech field repair from Fabrication). Each track is a column of tier nodes,
 owned, available (nothing but the price in the way) or locked. Most tiers need
 two or three cores, so beside each unbought node sit small icons of the cores it
 waits on, gold once met and red until then; requirements are marked this way
@@ -1801,7 +1790,7 @@ what the next tier needs, its bill, its lock reason and the reviewed order. The
 workshop's stages appear under Fabrication but are still ordered from the
 workshop card. Authorizing a tier plays it out on the deck rather than
 in the card: the tree steps aside, the camera flies to the room the work is in
-(the whole ship for the combat tracks), a curtain falls while the yard works,
+(the whole ship for a track with no room of its own), a curtain falls while the yard works,
 and it lifts on the changed room with the tier's name and effect before the
 camera flies back and the tree returns. The order is paid under the curtain,
 not at the click, so a deck that is laid out again for a newly opened
@@ -1815,17 +1804,16 @@ folded in at the conversion prices (Price). The strongest tiers also take an AI
 core from fleet cargo as a hard requirement, shown as an icon row with Short by;
 colony items never go into the ship. Other hulls are neutral on every track.
 
-Five reserved compartments (range, gym, sick bay, lounge, brig) open by their
-facility track's Restored order. A sealed one is neutral, so opening one is
+Five reserved compartments are on her plan; four (range, gym, sick bay, lounge)
+open by their facility track's Restored order, and the brig has no track and
+stays sealed. A sealed one is neutral, so opening one is
 already a gain, and other hulls read as sealed. The range opens trials aboard
 and then sharpens company infantry's primary fire; the gym makes them faster
 and, at its top tier, steadier under fire. With the mess's morale recovery these
 freeze onto every squad at launch as one hull-welfare record and reach the fight
 as one named unit modifier. The sick bay brings a share of the would-be dead home
 wounded when a battle is settled. The lounge raises the aptitude cargo
-replacements arrive with. The brig opens its cells; interrogation waits on a
-battle that takes prisoners, since no defender is ever captured and the outcome
-records none. The briefing's Ship row names each room that changes the
+replacements arrive with. The briefing's Ship row names each room that changes the
 operation.
 
 The **Mech Lab tracks** reach the company's own mechs. Nothing there starts
