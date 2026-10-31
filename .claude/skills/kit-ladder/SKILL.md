@@ -1,6 +1,6 @@
 ---
 name: kit-ladder
-description: Work the Kit Ladder - the owner's artifact page for placing loadout cards and machine patterns on unlock stations, editing card seats and noting weapon clips - and the repo tools behind it (tools/kits/). Use when the owner says "notes in" or "ladder updated", when kit-ladder.json or loadout-cards.json changes, when the page needs a refresh or republish, when weapon clips or clip ids change, or when the page must move to a new artifact or Claude account.
+description: Work the Kit Ladder - the owner's artifact page for placing loadout cards, machine patterns and shuttle (boat) parts on unlock stations, editing card seats and noting weapon clips - and the repo tools behind it (tools/kits/). Use when the owner says "notes in" or "ladder updated", when kit-ladder.json or loadout-cards.json changes, when the page needs a refresh or republish, when weapon clips or clip ids change, or when the page must move to a new artifact or Claude account.
 ---
 
 # Kit Ladder
@@ -12,7 +12,9 @@ summary.
 ## Principles
 
 - **The data files are canonical**: `mod/data/marines/kit-ladder.json` (stations,
-  placements) and `mod/data/marines/loadout-cards.json` (weapon cards, tactic
+  placements: `loadout-card:`, `mech-pattern:` and `boat-part:` ids; every
+  machine pattern and sellable shuttle part must be placed, a card may sit on
+  `none`) and `mod/data/marines/loadout-cards.json` (weapon cards, tactic
   sheets). The page is built from them by `tools/kits/build.py`.
 - **Nothing writes the repo behind the owner's back.** Page edits reach the game
   only through export -> diff report -> apply on the owner's explicit go-ahead.

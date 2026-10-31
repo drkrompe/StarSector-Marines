@@ -12,7 +12,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class EquipmentStoreTest {
 
     private static final EquipmentAcquisitionEligibility.Progress FULL_ACCESS =
-            new EquipmentAcquisitionEligibility.Progress(15, 20);
+            new EquipmentAcquisitionEligibility.Progress(15);
 
     @Test
     void priceScalesWithTheAccessTierAndTheMarketTariff() {
@@ -32,10 +32,11 @@ class EquipmentStoreTest {
 
     @Test
     void shelfIsListedFirstThenBySlotAndEveryOfferIsPricedAtTheTariff() {
-        EquipmentStore.Place place = new EquipmentStore.Place("hegemony", "chicomoztoc", 7, 0.3f, true);
-        String listedId = LoadoutCards.all().get(0).id();
+        EquipmentStore.Place place = new EquipmentStore.Place(0.3f);
+        String listedId = LoadoutCards.all().stream().map(LoadoutCard::id)
+                .filter(id -> !KitLadder.station(id).equals(UnlockStation.NONE)).findFirst().orElseThrow();
 
-        List<EquipmentStore.Offer> shelf = EquipmentStore.shelf(place, 30L, Set.of(), Set.of(), Set.of(),
+        List<EquipmentStore.Offer> shelf = EquipmentStore.shelf(place, Set.of(), Set.of(), Set.of(),
                 FULL_ACCESS, List.of(listedId));
 
         assertEquals(listedId, shelf.get(0).id());
@@ -44,7 +45,7 @@ class EquipmentStoreTest {
         assertTrue(shelf.stream().anyMatch(o -> o.shelf() == EquipmentStore.Shelf.MARKET));
         assertTrue(shelf.stream().anyMatch(o -> o.kind() == EquipmentStore.Kind.MECH_PATTERN));
         assertTrue(shelf.stream().anyMatch(o -> o.kind() == EquipmentStore.Kind.BOAT_PART),
-                "a sizeable market carries boat parts");
+                "the ladder's boat parts are on the shelf");
         assertTrue(shelf.stream().allMatch(o -> o.slot() != null), "every offer is filed in a store slot");
         for (int i = 2; i < shelf.size(); i++) {
             assertTrue(shelf.get(i - 1).slot().ordinal() <= shelf.get(i).slot().ordinal(), "sorted by slot");
@@ -56,18 +57,19 @@ class EquipmentStoreTest {
                     : MechPattern.parse(o.id()).accessTier();
             assertEquals(EquipmentStore.price(tier, 0.3f), o.price(), o.id());
         }
-        assertEquals(shelf, EquipmentStore.shelf(place, 30L, Set.of(), Set.of(), Set.of(), FULL_ACCESS,
-                List.of(listedId)), "the shelf is stable within a month");
+        assertEquals(shelf, EquipmentStore.shelf(place, Set.of(), Set.of(), Set.of(), FULL_ACCESS,
+                List.of(listedId)), "the shelf is stable");
     }
 
     @Test
-    void aSmallUnlicensedMarketStillCarriesEveryPatternTheLadderOpens() {
-        EquipmentStore.Place place = new EquipmentStore.Place("independent", "jangala", 3, 0.3f, false);
+    void everyShelfCarriesEveryPatternAndBoatPartTheLadderOpens() {
+        EquipmentStore.Place place = new EquipmentStore.Place(0.3f);
 
-        List<EquipmentStore.Offer> shelf = EquipmentStore.shelf(place, 12L, Set.of(), Set.of(), Set.of(),
+        List<EquipmentStore.Offer> shelf = EquipmentStore.shelf(place, Set.of(), Set.of(), Set.of(),
                 FULL_ACCESS, List.of());
 
-        assertTrue(shelf.stream().noneMatch(o -> o.shelf() == EquipmentStore.Shelf.LICENSE));
+        assertEquals(Set.copyOf(StoreStock.boatParts(Set.of(), FULL_ACCESS)), Set.copyOf(shelf.stream()
+                .filter(o -> o.kind() == EquipmentStore.Kind.BOAT_PART).map(EquipmentStore.Offer::id).toList()));
         assertEquals(Set.copyOf(StoreStock.patterns(Set.of(), FULL_ACCESS)), Set.copyOf(shelf.stream()
                 .filter(o -> o.kind() == EquipmentStore.Kind.MECH_PATTERN).map(EquipmentStore.Offer::id).toList()));
     }

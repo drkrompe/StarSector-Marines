@@ -2,9 +2,6 @@ package com.dillon.starsectormarines.marine;
 
 import com.dillon.starsectormarines.campaign.CampaignStateScript;
 import com.fs.starfarer.api.Global;
-import com.fs.starfarer.api.campaign.CampaignClockAPI;
-import com.fs.starfarer.api.campaign.FactionAPI;
-import com.fs.starfarer.api.campaign.RepLevel;
 import com.fs.starfarer.api.campaign.SectorAPI;
 import com.fs.starfarer.api.campaign.econ.MarketAPI;
 import com.fs.starfarer.api.campaign.econ.SubmarketAPI;
@@ -23,9 +20,9 @@ import java.util.function.Function;
  * <p>Loadout cards and mech patterns used to sit as special cargo on the market's open submarket,
  * where the player had to find them among the goods, buy them and right-click them. The store sells
  * the same things without the detour: the Kit Ladder alone decides what is on the shelf
- * ({@link StoreStock}: every card and pattern whose station the campaign has passed, at every store,
+ * ({@link StoreStock}: every card, pattern and boat part whose station the campaign has passed, at every store,
  * with warrants and story listings), a purchase pays from the company's purse and
- * teaches the {@link MarineArmory} or the {@link MechBay} directly, and nothing is left to carry.
+ * teaches the {@link MarineArmory}, the {@link MechBay} or the {@link BoatDeck} directly, and nothing is left to carry.
  *
  * <p>This class is the rule; the Store page is its presentation. Cards that arrive some other way
  * (patron rewards, salvage, story rewards) are still cargo and are still learned by right-click.
@@ -40,15 +37,15 @@ public final class EquipmentStore {
      */
     public static final int BASE_PRICE = 2000;
 
-    /** The standing with a market's faction at which its licensed shelf opens. */
-    public static final RepLevel MIN_LICENSE_RELATIONSHIP = RepLevel.FAVORABLE;
-
     public enum Kind { LOADOUT, MECH_PATTERN, BOAT_PART }
 
-    /** Which shelf of the market an offer stands on; it is the reason shown for the offer. */
-    public enum Shelf { LISTED, MARKET, LICENSE }
+    /**
+     * Which shelf of the market an offer stands on; it is the reason shown for the offer. A story listing stands
+     * first; everything the ladder opens stands on the market shelf, at every store alike (no faction locks).
+     */
+    public enum Shelf { LISTED, MARKET }
 
-    /** One thing for sale. {@code id} is a loadout card id or a mech pattern id, by {@code kind}. */
+    /** One thing for sale. {@code id} is a loadout card id, a mech pattern id or a boat part id, by {@code kind}. */
     public record Offer(Kind kind, String id, Shelf shelf, long price) {
         public Offer {
             if (kind == null || id == null || shelf == null) {
@@ -60,6 +57,11 @@ public final class EquipmentStore {
         /** Where the store files it; null for an item this build no longer defines. */
         public StoreSlot slot() {
             return StoreSlot.of(kind, id);
+        }
+
+        /** Its Kit Ladder id: the card or pattern id, or a boat part's {@link BoatParts#ladderId}. */
+        public String ladderId() {
+            return kind == Kind.BOAT_PART ? BoatParts.ladderId(id) : id;
         }
     }
 
@@ -76,16 +78,12 @@ public final class EquipmentStore {
     public record Holdings(MarineArmory armory, MechBay bay, BoatDeck deck) {}
 
     /**
-     * The market's side of the shelf; everything the policy reads about a place. Its size and id only seed and size
-     * the boat part rotation; its faction and licence decide where Restricted cards stand.
+     * The market's side of the shelf; everything the policy reads about a place: its tariff, which sets the price.
+     * The market's owner and the company's standing with it decide nothing.
      */
-    public record Place(String factionId, String marketId, int size, float tariff, boolean licensed) {}
+    public record Place(float tariff) {}
 
     private EquipmentStore() {}
-
-    public static boolean hasLicenseAccess(RepLevel relationship) {
-        return relationship != null && relationship.isAtWorst(MIN_LICENSE_RELATIONSHIP);
-    }
 
     /**
      * How many base prices a card of {@code tier} costs: the scarcer the kit, the more the port asks
@@ -127,28 +125,24 @@ public final class EquipmentStore {
     }
 
     /**
-     * The shelf of one market ({@link StoreStock}): every loadout card and machine pattern the Kit Ladder has opened
-     * and the company lacks, the market's listed cards among them, and the boat parts of this month's
-     * {@code rotation}. In {@link #shelfOrder} with the ids standing in for names; the page sorts by display name.
+     * The shelf of one market ({@link StoreStock}): every loadout card, machine pattern and boat part the Kit Ladder
+     * has opened and the company lacks, the market's listed cards among them. In {@link #shelfOrder} with the ids
+     * standing in for names; the page sorts by display name.
      */
-    public static List<Offer> shelf(Place place, long rotation,
+    public static List<Offer> shelf(Place place,
                                     Set<String> unavailableCardIds, Set<String> unavailablePatternIds,
                                     Set<String> unavailablePartIds,
                                     EquipmentAcquisitionEligibility.Progress progress,
                                     List<String> listedCardIds) {
-        StoreStock.StockPlan plan = StoreStock.cards(place.factionId(), place.licensed(),
-                unavailableCardIds, progress, listedCardIds);
+        StoreStock.StockPlan plan = StoreStock.cards(unavailableCardIds, progress, listedCardIds);
         List<Offer> offers = new ArrayList<>();
         for (String id : plan.listedCardIds()) offers.add(offer(Kind.LOADOUT, id, Shelf.LISTED, place.tariff()));
         for (String id : plan.marketCardIds()) offers.add(offer(Kind.LOADOUT, id, Shelf.MARKET, place.tariff()));
-        for (String id : plan.licensedCardIds()) offers.add(offer(Kind.LOADOUT, id, Shelf.LICENSE, place.tariff()));
         for (String id : StoreStock.patterns(unavailablePatternIds, progress)) {
             offers.add(offer(Kind.MECH_PATTERN, id, Shelf.MARKET, place.tariff()));
         }
-        Shelf partShelf = place.licensed() ? Shelf.LICENSE : Shelf.MARKET;
-        for (String id : StoreStock.boatParts(place.factionId(), place.marketId(),
-                place.size(), rotation, place.licensed(), unavailablePartIds, progress)) {
-            offers.add(offer(Kind.BOAT_PART, id, partShelf, place.tariff()));
+        for (String id : StoreStock.boatParts(unavailablePartIds, progress)) {
+            offers.add(offer(Kind.BOAT_PART, id, Shelf.MARKET, place.tariff()));
         }
         offers.sort(shelfOrder(Offer::id));
         return List.copyOf(offers);
@@ -164,7 +158,7 @@ public final class EquipmentStore {
                     StoreSlot slot = offer.slot();
                     return slot == null ? Integer.MAX_VALUE : slot.ordinal();
                 })
-                .thenComparing(offer -> KitLadder.station(offer.id()))
+                .thenComparing(offer -> KitLadder.station(offer.ladderId()))
                 .thenComparing(name, Comparator.nullsLast(String.CASE_INSENSITIVE_ORDER));
     }
 
@@ -234,11 +228,6 @@ public final class EquipmentStore {
     public static List<Offer> shelfAt(MarketAPI market) {
         SectorAPI sector = Global.getSector();
         if (sector == null || market == null) return List.of();
-        CampaignClockAPI clock = sector.getClock();
-        long rotation = clock != null ? (long) clock.getCycle() * 12L + clock.getMonth() : 0L;
-        FactionAPI playerFaction = sector.getPlayerFaction();
-        RepLevel relationship = playerFaction != null
-                ? playerFaction.getRelationshipLevel(market.getFactionId()) : null;
 
         Set<String> unavailableCards = LoadoutCardInventory.playerUnavailableCardIds();
         if (unavailableCards == null) {
@@ -263,9 +252,8 @@ public final class EquipmentStore {
             }
         }
         SubmarketAPI open = market.getSubmarket(Submarkets.SUBMARKET_OPEN);
-        Place place = new Place(market.getFactionId(), market.getId(), market.getSize(),
-                open != null ? open.getTariff() : 0f, hasLicenseAccess(relationship));
-        return shelf(place, rotation, unavailableCards, unavailablePatterns, unavailableParts,
+        Place place = new Place(open != null ? open.getTariff() : 0f);
+        return shelf(place, unavailableCards, unavailablePatterns, unavailableParts,
                 EquipmentAcquisitionEligibility.currentProgress(), listed);
     }
 }

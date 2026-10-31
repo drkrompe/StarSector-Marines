@@ -33,6 +33,8 @@ class KitLadderCatalogTest {
             return SUIT.equals(id) ? ArmorClass.STANDARD : POWER.equals(id) ? ArmorClass.POWER_SUIT : null;
         }
         @Override public boolean pattern(String id) { return "mech-pattern:chassis:hound".equals(id); }
+        @Override public boolean boatPart(String partId) { return "tuned_drive".equals(partId); }
+        @Override public Set<String> machines() { return Set.of("mech-pattern:chassis:hound", "boat-part:tuned_drive"); }
         @Override public boolean string(String key) { return KEY.equals(key); }
     };
 
@@ -45,7 +47,8 @@ class KitLadderCatalogTest {
                  "placements": [
                   {"item": "loadout-card:weapon:weapons:a", "station": "relief"},
                   {"item": "loadout-card:sheet:armor:b", "station": "none"},
-                  {"item": "mech-pattern:chassis:hound", "station": "junction"}]}""");
+                  {"item": "mech-pattern:chassis:hound", "station": "junction"},
+                  {"item": "boat-part:tuned_drive", "station": "relief"}]}""");
     }
 
     private static JSONObject cards() throws Exception {
@@ -76,6 +79,7 @@ class KitLadderCatalogTest {
         assertEquals(UnlockStation.START, catalog.stations().get(0));
         assertEquals("relief", catalog.placements().get("loadout-card:weapon:weapons:a").id);
         assertEquals(UnlockStation.NONE, catalog.placements().get("loadout-card:sheet:armor:b"));
+        assertEquals("relief", catalog.placements().get("boat-part:tuned_drive").id);
         assertEquals(SMOKE, catalog.weaponCard("weapons:a").issue(0).specialEquipmentId());
         assertEquals(List.of(SUIT), catalog.suits("armor:b"));
 
@@ -114,9 +118,9 @@ class KitLadderCatalogTest {
         JSONObject seat = cards.getJSONArray("weaponCards").getJSONObject(0).getJSONArray("members").getJSONObject(1);
         seat.put("special", "special.nothing").put("primary", "weapon.nothing");
         String message = refusal(ladder, cards);
-        assertTrue(message.contains("kit-ladder.json: placements[3] (loadout-card:weapon:weapons:a): placed twice"), message);
-        assertTrue(message.contains("placements[4] (mech-pattern:chassis:nothing): names no machine pattern"), message);
-        assertTrue(message.contains("placements[5] (mech-pattern:chassis:hound): station 'later'"), message);
+        assertTrue(message.contains("kit-ladder.json: placements[4] (loadout-card:weapon:weapons:a): placed twice"), message);
+        assertTrue(message.contains("placements[5] (mech-pattern:chassis:nothing): names no machine pattern"), message);
+        assertTrue(message.contains("placements[6] (mech-pattern:chassis:hound): station 'later'"), message);
         assertTrue(message.contains("loadout-cards.json: weaponCards[0] (weapons:a) seat 2: special 'special.nothing'"), message);
         assertTrue(message.contains("seat 2: primary 'weapon.nothing'"), message);
     }
@@ -164,6 +168,20 @@ class KitLadderCatalogTest {
         String message = refusal(ladder(), cards);
         assertTrue(message.contains("give seats or suits, not both"), message);
         assertTrue(message.contains("tacticSheets[0] (armor:b) seat 4: suit 'armor.nothing' is not an armour id"), message);
+    }
+
+    @Test
+    void refusesAnUnplacedMachineAndABoatPartTheStoreCannotSellButLetsACardSitAtNone() throws Exception {
+        JSONObject ladder = ladder();
+        JSONArray rows = ladder.getJSONArray("placements");
+        rows.remove(3);
+        rows.remove(2);
+        rows.put(new JSONObject().put("item", "boat-part:standard_drive").put("station", "start"));
+        String message = refusal(ladder, cards());
+        assertTrue(message.contains("machine mech-pattern:chassis:hound has no placement"), message);
+        assertTrue(message.contains("machine boat-part:tuned_drive has no placement"), message);
+        assertTrue(message.contains("(boat-part:standard_drive): names no boat part the store can sell"), message);
+        assertFalse(message.contains("armor:b"), "a card on 'none' is placed");
     }
 
     @Test

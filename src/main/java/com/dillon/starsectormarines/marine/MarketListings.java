@@ -4,7 +4,6 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Market listings: a named loadout card a story beat has put on sale at one named market,
@@ -53,8 +52,7 @@ public final class MarketListings {
      *
      * @param reasonKey strings key naming the event that stocked it, shown on the card
      * @return true when this call created the listing; false when it already existed
-     * @throws IllegalArgumentException when the card is unknown, or is Restricted and no
-     *         held military warrant names it
+     * @throws IllegalArgumentException when the card is unknown
      */
     public static boolean list(CampaignState state, String cardId, Scope scope, String scopeId,
                                String reasonKey, int day) {
@@ -64,11 +62,6 @@ public final class MarketListings {
         }
         LoadoutCard card = LoadoutCard.parse(cardId);
         if (card == null) throw new IllegalArgumentException("Unknown loadout card: " + cardId);
-        if (card.accessTier() == EquipmentAccessTier.RESTRICTED
-                && !MilitaryWarrants.warrantedCardIds(state).contains(card.id())) {
-            throw new IllegalArgumentException("Listing Restricted card " + cardId
-                    + " without a military warrant naming it");
-        }
         return state.recordMarketListing(card.id(), scope.code, scopeId, reasonKey, day) >= 0;
     }
 

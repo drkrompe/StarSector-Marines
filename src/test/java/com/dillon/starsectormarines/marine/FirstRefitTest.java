@@ -16,7 +16,7 @@ import static org.junit.jupiter.api.Assertions.*;
 class FirstRefitTest {
     /** Relief settled: the path not picked is on the Kit Ladder's shelf. */
     private static EquipmentAcquisitionEligibility.Progress afterRelief() {
-        return new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(), Set.of(UnlockStation.START, UnlockStation.byId("relief")));
+        return new EquipmentAcquisitionEligibility.Progress(0, Set.of(UnlockStation.START, UnlockStation.byId("relief")));
     }
 
     @Test void reliefRewardIsExplicitAndIdempotentAndNeverIssuesKit() {
@@ -188,9 +188,8 @@ class FirstRefitTest {
             var other = choice == FirstRefit.Path.STEADY_LINE ? FirstRefit.Path.FORWARD_SCREEN : FirstRefit.Path.STEADY_LINE;
             String weapon = other == FirstRefit.Path.STEADY_LINE ? WeaponRegistry.SQUAD_AUTOMATIC_ID : WeaponRegistry.PULSE_RIFLE_ID;
             String card = new LoadoutCard(LoadoutCard.Kind.WEAPON, other.weapons).id();
-            var market = StoreStock.cards("independent", false,
-                    LoadoutCardInventory.knownCardIds(roster.armory()), afterRelief());
-            assertTrue(market.marketCardIds().contains(card), "The alternative must reach ordinary markets without a license");
+            var market = StoreStock.cards(LoadoutCardInventory.knownCardIds(roster.armory()), afterRelief());
+            assertTrue(market.marketCardIds().contains(card), "The alternative must reach every store");
             assertEquals(LoadoutCardLearning.Result.LEARNED, LoadoutCardLearning.learn(roster.armory(), card));
             assertEquals(LoadoutCardLearning.Result.LEARNED, LoadoutCardLearning.learn(roster.armory(),
                     new LoadoutCard(LoadoutCard.Kind.SHEET, other.armor).id()));

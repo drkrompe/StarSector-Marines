@@ -19,7 +19,7 @@ class EquipmentAcquisitionEligibilityTest {
 
     @Test
     void openMarketsNeverSellAdvancedCapability() {
-        EquipmentAcquisitionEligibility.Progress veteran = progress(100, 100);
+        EquipmentAcquisitionEligibility.Progress veteran = progress(100);
 
         assertTrue(allows(common, FactionEquipmentSource.MARKET, veteran));
         assertFalse(allows(advanced, FactionEquipmentSource.MARKET, veteran));
@@ -27,48 +27,26 @@ class EquipmentAcquisitionEligibilityTest {
     }
 
     @Test
-    void licensesAndPatronRewardsFollowExistingMrbBands() {
+    void licencesAndPatronRewardsAskNoReputationOfAnyTier() {
         for (FactionEquipmentSource source : new FactionEquipmentSource[]{
                 FactionEquipmentSource.LICENSE, FactionEquipmentSource.PATRON}) {
-            assertTrue(allows(common, source, progress(0, 0)));
-            assertFalse(allows(advanced, source, progress(100, 4)));
-            assertTrue(allows(advanced, source, progress(0, 5)));
-            assertFalse(allows(prestige, source, progress(100, 19)));
-            assertTrue(allows(prestige, source, progress(0, 20)));
+            assertTrue(allows(common, source, progress(0)));
+            assertTrue(allows(advanced, source, progress(0)));
+            assertTrue(allows(prestige, source, progress(0)));
         }
     }
 
     @Test
-    void recoveryUsesOperationalHistoryInsteadOfMrbStanding() {
-        assertFalse(allows(advanced, FactionEquipmentSource.RECOVERY,
-                progress(4, 100)));
-        assertTrue(allows(advanced, FactionEquipmentSource.RECOVERY,
-                progress(5, -100)));
-        assertFalse(allows(prestige, FactionEquipmentSource.RECOVERY,
-                progress(14, 100)));
-        assertTrue(allows(prestige, FactionEquipmentSource.RECOVERY,
-                progress(15, -100)));
+    void recoveryUsesOperationalHistory() {
+        assertFalse(allows(advanced, FactionEquipmentSource.RECOVERY, progress(4)));
+        assertTrue(allows(advanced, FactionEquipmentSource.RECOVERY, progress(5)));
+        assertFalse(allows(prestige, FactionEquipmentSource.RECOVERY, progress(14)));
+        assertTrue(allows(prestige, FactionEquipmentSource.RECOVERY, progress(15)));
+        assertEquals(15, EquipmentAcquisitionEligibility.requiredRecoveryVictories(EquipmentAccessTier.PRESTIGE));
     }
 
-    @Test
-    void presentationThresholdsComeFromTheSamePolicyAsFiltering() {
-        assertEquals(5, EquipmentAcquisitionEligibility.requiredMrb(
-                EquipmentAccessTier.ADVANCED));
-        assertEquals(20, EquipmentAcquisitionEligibility.requiredMrb(
-                EquipmentAccessTier.PRESTIGE));
-        assertEquals(5, EquipmentAcquisitionEligibility.requiredRecoveryVictories(
-                EquipmentAccessTier.ADVANCED));
-        assertEquals(15, EquipmentAcquisitionEligibility.requiredRecoveryVictories(
-                EquipmentAccessTier.PRESTIGE));
-        assertEquals(EquipmentAccessTier.ADVANCED,
-                EquipmentAcquisitionEligibility.licensedTier(progress(0, 5)));
-        assertEquals(EquipmentAccessTier.PRESTIGE,
-                EquipmentAcquisitionEligibility.recoveryTier(progress(15, -100)));
-    }
-
-    private static EquipmentAcquisitionEligibility.Progress progress(
-            int victories, int mrbRep) {
-        return new EquipmentAcquisitionEligibility.Progress(victories, mrbRep);
+    private static EquipmentAcquisitionEligibility.Progress progress(int victories) {
+        return new EquipmentAcquisitionEligibility.Progress(victories);
     }
 
     private static boolean allows(EquipmentTemplateCard card,

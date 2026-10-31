@@ -7,16 +7,17 @@ import com.dillon.starsectormarines.campaign.ContractType;
 import com.dillon.starsectormarines.campaign.PatronEngagementOutcome;
 import com.dillon.starsectormarines.i18n.Strings;
 import com.dillon.starsectormarines.marine.EquipmentAcquisitionEligibility;
-import com.dillon.starsectormarines.marine.MilitaryWarrants;
 import com.dillon.starsectormarines.marine.FactionEquipmentSource;
 import com.dillon.starsectormarines.marine.LoadoutCard;
 import com.dillon.starsectormarines.marine.LoadoutCardInventory;
 import com.dillon.starsectormarines.marine.LoadoutCardItemPlugin;
 import com.dillon.starsectormarines.marine.LoadoutCardPicker;
+import com.dillon.starsectormarines.marine.MarineRoster;
 import com.dillon.starsectormarines.marine.MarineRosterScript;
 import com.dillon.starsectormarines.marine.MechPattern;
 import com.dillon.starsectormarines.marine.MechPatternInventory;
 import com.dillon.starsectormarines.marine.MechPatternPicker;
+import com.dillon.starsectormarines.marine.UnlockStation;
 import com.fs.starfarer.api.Global;
 import com.fs.starfarer.api.campaign.CampaignFleetAPI;
 import com.fs.starfarer.api.campaign.CargoAPI;
@@ -32,6 +33,9 @@ import java.util.Set;
  * loadout card, and on one contract in {@link #MECH_PATTERN_ODDS} a mech pattern card instead.
  * A weapon pattern is awarded only to a company whose bay holds a mech; a chassis pattern may
  * go to any company. When no pattern qualifies the contract pays its loadout card as before.
+ *
+ * <p>A patron pays only what the company store would sell: an item whose Kit Ladder station the campaign has passed
+ * ({@link EquipmentAcquisitionEligibility}), never one on {@code none} or unplaced. Reputation (MRB) admits nothing.
  */
 public final class PatronEquipmentRewardSystem implements CampaignSystem {
 
@@ -39,6 +43,8 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
         /** Null means cargo is temporarily unavailable and processing must retry. */
         Set<String> unavailableTemplateIds();
         int victories();
+        /** The Kit Ladder stations the campaign has passed ({@link UnlockStation#reached}). */
+        Set<UnlockStation> stations(CampaignState state);
         boolean grant(String templateId);
         void announce(String patronName, LoadoutCard card);
 
@@ -99,13 +105,14 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
         Set<String> patterns = access.unavailablePatternIds();
         Set<String> workingPatterns = patterns != null ? new HashSet<>(patterns) : null;
         boolean fieldsMechs = access.fieldsMechs();
+        Set<UnlockStation> stations = access.stations(state);
         int cursor = Math.max(0, Math.min(
                 state.patronEquipmentRewardCursor, state.patronEngagementCount));
         state.patronEquipmentRewardCursor = cursor;
         int granted = 0;
         while (cursor < state.patronEngagementCount) {
             Reward reward = rewardFor(state, cursor, workingUnavailable,
-                    workingPatterns, fieldsMechs, access.victories());
+                    workingPatterns, fieldsMechs, access.victories(), stations);
             if (reward != null && !(reward.pattern()
                     ? access.grantPattern(reward.id()) : access.grant(reward.id()))) {
                 break;
@@ -137,7 +144,8 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
 
     private static Reward rewardFor(CampaignState state, int row,
                                     Set<String> unavailable, Set<String> unavailablePatterns,
-                                    boolean fieldsMechs, int victories) {
+                                    boolean fieldsMechs, int victories,
+                                    Set<UnlockStation> stations) {
         ContractType contractType = safeContractType(
                 state.patronEngagementContractType[row]);
         if (state.patronEngagementId[row] <= 0L
@@ -156,9 +164,7 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
                 state.patronEngagementSourceContractId[row],
                 state.patronEngagementHouseId[row]);
         EquipmentAcquisitionEligibility.Progress progress =
-                new EquipmentAcquisitionEligibility.Progress(
-                        victories, state.playerMrbRep,
-                        MilitaryWarrants.warrantedCardIds(state));
+                new EquipmentAcquisitionEligibility.Progress(victories, stations);
         if (unavailablePatterns != null && paysMechPattern(seed)) {
             List<String> pattern = MechPatternPicker.pick(factionId,
                     FactionEquipmentSource.PATRON, 1, seed, unavailablePatterns, progress,
@@ -219,6 +225,13 @@ public final class PatronEquipmentRewardSystem implements CampaignSystem {
         public int victories() {
             MarineRosterScript script = MarineRosterScript.getInstance();
             return script != null ? script.roster().armory().victories() : 0;
+        }
+
+        @Override
+        public Set<UnlockStation> stations(CampaignState state) {
+            MarineRosterScript script = MarineRosterScript.getInstance();
+            MarineRoster roster = script != null ? script.roster() : null;
+            return UnlockStation.reached(roster != null ? roster::hasCompletedStory : null, state);
         }
 
         @Override

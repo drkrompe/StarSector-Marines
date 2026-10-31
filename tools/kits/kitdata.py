@@ -1,12 +1,15 @@
 """The Kit Ladder's data files, read and written the one way every kit tool and the game agree on (kit-ladder.md, Data).
 
     mod/data/marines/kit-ladder.json      the stations in campaign order, each with its reach condition, and one
-                                          placement per card or machine pattern: {"item": <game id>, "station": <id>}
+                                          placement per card, machine pattern or shuttle (boat) part:
+                                          {"item": <game id>, "station": <id>}
     mod/data/marines/loadout-cards.json   the weapon cards (twelve seats each) and tactic sheets (their twelve seated
                                           suits, or a set of suits the game deals by role)
 
-Item ids are the game's own store ids (LoadoutCard.id, MechPattern.id). The Kit Ladder page keys the same items by its
-older page ids (a card's definition id, "chassis:HOUND" and so on); page_id/game_id translate between the two.
+Item ids are the game's own store ids (LoadoutCard.id, MechPattern.id, and "boat-part:<part id>" for a BoatFitting or
+BoatGun the store can sell). The Kit Ladder page keys the same items by its older page ids (a card's definition id,
+"chassis:HOUND", "boat:<part id>" and so on); page_id/game_id translate between the two. Every machine item (every
+machine pattern and every sellable shuttle part) must be placed; a loadout card may sit on "none".
 
 write_ladder and write_cards are deterministic: one placement or seat per line, placements kept in their kind's block
 and in campaign order (a stable sort, so an unmoved row never moves), LF endings and a trailing newline. Writing what
@@ -23,9 +26,16 @@ CARDS_JSON = ROOT / "mod/data/marines/loadout-cards.json"
 
 CARD_PREFIX = "loadout-card:"
 PATTERN_PREFIX = "mech-pattern:"
+BOAT_PREFIX = "boat-part:"
+BOAT_PAGE = "boat:"
 # Placement blocks, in file order: a game-id prefix each.
 BLOCKS = [CARD_PREFIX + "weapon:", CARD_PREFIX + "sheet:", PATTERN_PREFIX + "chassis:", PATTERN_PREFIX + "weapon:",
-          PATTERN_PREFIX + "internal:", PATTERN_PREFIX + "vehicle:"]
+          PATTERN_PREFIX + "internal:", PATTERN_PREFIX + "vehicle:", BOAT_PREFIX]
+# The guns a new boat leaves the yard with (BoatGun.standardFor: the A2G sortie kits ShuttleType.kitFor names for the
+# hardpoint counts the shuttle patterns have). Known to every company and never sold, like the tier-1 fittings and
+# BoatParts.COMPANY_ISSUE. A constant rather than parsed, because each kit depends on a hull's hardpoint count; keep it
+# in step with BoatParts.starterIds (KitLadderCatalog refuses a placement naming a starter part, so a drift shows).
+STANDARD_BOAT_GUNS = {"door_heavy_mg", "door_arbalest", "door_grenade_launcher"}
 # The page's pattern kinds and the Java enum each names.
 PATTERN_ENUMS = {"chassis": "battle/mech/MechVariant.java", "weapon": "battle/mech/MechWeaponComponent.java",
                  "internal": "marine/MechInternal.java", "vehicle": "battle/vehicle/VehicleType.java"}
@@ -118,8 +128,56 @@ def pattern_ids(java=JAVA):
     return out
 
 
+def boat_parts(java=JAVA):
+    """{part id: {const, nameKey, tier, slot (a fitting's BoatFittingSlot, else None), family (a gun's, else None),
+    starter}} for every BoatFitting and BoatGun constant, in declaration order."""
+    fit_src = read(java / "marine/BoatFitting.java")
+    gun_src = read(java / "marine/BoatGun.java")
+    out = {}
+    for const, pid, key, slot, tier in re.findall(
+            r'public static final BoatFitting (\w+) = new BoatFitting\(\s*"([a-z0-9_]+)",\s*"(@[^"]+)",'
+            r'\s*BoatFittingSlot\.(\w+),\s*(\d+)', fit_src):
+        out[pid] = {"const": const, "nameKey": key, "tier": int(tier), "slot": slot, "family": None,
+                    "starter": int(tier) == 1}
+    if not out:
+        raise DataError("BoatFitting.java: no 'new BoatFitting(\"id\", \"@key\", BoatFittingSlot.X, tier' constants")
+    issue = re.search(r"COMPANY_ISSUE\s*=\s*List\.of\(([^)]*)\)", read(java / "marine/BoatParts.java"))
+    if not issue:
+        raise DataError("BoatParts.java: no 'COMPANY_ISSUE = List.of(...)' line")
+    by_const = {v["const"]: pid for pid, v in out.items()}
+    for const in re.findall(r"BoatFitting\.(\w+)", issue.group(1)):
+        if const not in by_const:
+            raise DataError("BoatParts.java: COMPANY_ISSUE names %s, which BoatFitting.java does not declare" % const)
+        out[by_const[const]]["starter"] = True
+    guns = re.findall(r'public static final BoatGun (\w+) = new BoatGun\(\s*"([a-z0-9_]+)",\s*"(@[^"]+)",\s*[\w.]+,'
+                      r'\s*(\d+),[^;]*?Family\.(\w+)', gun_src)
+    if not guns:
+        raise DataError("BoatGun.java: no 'new BoatGun(\"id\", \"@key\", <structure>, tier, ... Family.X' constants")
+    for const, pid, key, tier, family in guns:
+        out[pid] = {"const": const, "nameKey": key, "tier": int(tier), "slot": None, "family": family,
+                    "starter": pid in STANDARD_BOAT_GUNS}
+    missing = STANDARD_BOAT_GUNS - {g[1] for g in guns}
+    if missing:
+        raise DataError("kitdata.STANDARD_BOAT_GUNS names %s, which BoatGun.java does not declare" % sorted(missing))
+    return out
+
+
+def offerable_boat_parts(parts=None):
+    """The part ids the store may sell (BoatParts.offerable): every part but the starter set, in declaration order."""
+    parts = parts if parts is not None else boat_parts()
+    return [pid for pid, p in parts.items() if not p["starter"]]
+
+
+def boat_access(tier):
+    """BoatParts.accessTier: tier 2 or below is Common, 3 Advanced, 4 Prestige."""
+    return "COMMON" if tier <= 2 else "ADVANCED" if tier == 3 else "PRESTIGE"
+
+
 def page_id(game, enums):
     """The page's id for a game item id, or None for an id in no known shape."""
+    if game.startswith(BOAT_PREFIX):
+        part = game[len(BOAT_PREFIX):]
+        return BOAT_PAGE + part if part else None
     if game.startswith(CARD_PREFIX + "weapon:"):
         return game[len(CARD_PREFIX + "weapon:"):]
     if game.startswith(CARD_PREFIX + "sheet:"):
@@ -134,6 +192,8 @@ def page_id(game, enums):
 
 def game_id(page, enums, sheet_ids=()):
     """The game's id for a page id; None for a page id naming nothing the game has."""
+    if page.startswith(BOAT_PAGE):
+        return BOAT_PREFIX + page[len(BOAT_PAGE):]
     kind, _, rest = page.partition(":")
     if kind in enums:
         def_id = enums[kind].get(rest)
@@ -243,7 +303,9 @@ def write_cards(doc, path=CARDS_JSON):
 
 def validate(ladder_doc, cards_doc, known=None):
     """Error strings, each naming the file and the entry. ``known`` (optional) holds the real ids the data may name:
-    {"primaries", "specials", "thrown", "armor", "patterns", "strings", "missions"} (sets); a missing key skips that check."""
+    {"primaries", "specials", "thrown", "armor", "patterns", "boatParts" (sellable part ids, no prefix), "machines" (every
+    machine game id that must be placed: patterns and sellable boat parts), "strings", "missions"} (sets); a missing key
+    skips that check."""
     known = known or {}
     errs = []
     L, C = "kit-ladder.json", "loadout-cards.json"
@@ -369,9 +431,15 @@ def validate(ladder_doc, cards_doc, known=None):
         elif item and item.startswith(PATTERN_PREFIX):
             if "patterns" in known and item not in known["patterns"]:
                 errs.append("%s: names no machine pattern the store can sell" % where)
+        elif item and item.startswith(BOAT_PREFIX):
+            if "boatParts" in known and item[len(BOAT_PREFIX):] not in known["boatParts"]:
+                errs.append("%s: names no boat part the store can sell" % where)
         else:
-            errs.append("%s: is neither a loadout-card: nor a mech-pattern: id" % where)
+            errs.append("%s: is not a %s, %s or %s id" % (where, CARD_PREFIX, PATTERN_PREFIX, BOAT_PREFIX))
     for card in sorted(cards):
         if card not in seen:
             errs.append("%s: card %s has no placement (place it, or on 'none')" % (L, card))
+    for machine in sorted(known.get("machines") or ()):
+        if machine not in seen:
+            errs.append("%s: machine %s has no placement (place it, or on 'none')" % (L, machine))
     return errs

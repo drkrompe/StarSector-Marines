@@ -18,8 +18,7 @@ import java.util.function.Function;
 
 /**
  * Grants each tradition's standing military warrant once the company has earned it:
- * the Prestige reputation band and close standing with that faction
- * ({@link MilitaryWarrants#standingWarrantDue}). This is the route that keeps every
+ * close standing with that faction ({@link MilitaryWarrants#standingWarrantDue}). This is the route that keeps every
  * Restricted template reachable, so the open routes could close without stranding
  * anything; authored warrants arrive earlier through their own story beats.
  *
@@ -46,7 +45,7 @@ public final class StandingWarrantSystem implements CampaignSystem {
 
     @Override
     public EnumSet<CampaignTable> reads() {
-        return EnumSet.of(CampaignTable.PLAYER_REP, CampaignTable.MILITARY_WARRANTS);
+        return EnumSet.of(CampaignTable.MILITARY_WARRANTS);
     }
 
     @Override
@@ -57,7 +56,7 @@ public final class StandingWarrantSystem implements CampaignSystem {
     @Override
     public void tick(CampaignState state, int day) {
         for (ArmorTradition issuer : MilitaryWarrants.issuers()) {
-            if (!MilitaryWarrants.standingWarrantDue(state.playerMrbRep, relationship.apply(issuer.key))) {
+            if (!MilitaryWarrants.standingWarrantDue(relationship.apply(issuer.key))) {
                 continue;
             }
             List<String> opened = MilitaryWarrants.grantStanding(state, issuer, day);

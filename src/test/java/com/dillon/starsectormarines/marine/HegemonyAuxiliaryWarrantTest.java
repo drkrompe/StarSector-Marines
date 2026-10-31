@@ -70,30 +70,7 @@ class HegemonyAuxiliaryWarrantTest {
         assertFalse(HegemonyAuxiliaryWarrant.honouredPeriod(state, 110));
         assertFalse(HegemonyAuxiliaryWarrant.offer(state, 30));
         assertTrue(MilitaryWarrants.warrantedCardIds(state).isEmpty());
-        assertTrue(MilitaryWarrants.standingWarrantDue(EquipmentAcquisitionEligibility.requiredMrb(
-                EquipmentAccessTier.PRESTIGE), RepLevel.COOPERATIVE), "the standing route stays open");
-    }
-
-    @Test
-    void underStageOneOnlyTheHegemonyLicenceAndPatronOfferTheAuxiliarySection() {
-        EquipmentAcquisitionEligibility.Progress warranted = new EquipmentAcquisitionEligibility.Progress(
-                99, 100, Set.of(HegemonyAuxiliaryWarrant.STAGE_ONE));
-        List<String> licence = StoreStock.cards("hegemony", true, Set.of(), warranted).licensedCardIds();
-        assertTrue(licence.contains(AUXILIARY_SECTION));
-        assertFalse(licence.contains(XIV_SHEET), "the XIV waits for stage two");
-        assertTrue(pick("hegemony", FactionEquipmentSource.PATRON, warranted).contains(AUXILIARY_SECTION));
-
-        assertFalse(StoreStock.cards("hegemony", false, Set.of(), warranted).allCardIds().contains(AUXILIARY_SECTION));
-        assertFalse(pick("hegemony", FactionEquipmentSource.RECOVERY, warranted).contains(AUXILIARY_SECTION));
-        for (String other : List.of("independent", "tritachyon", "persean", "pirates")) {
-            assertFalse(StoreStock.cards(other, true, Set.of(), warranted).allCardIds().contains(AUXILIARY_SECTION),
-                    other + " store");
-            for (FactionEquipmentSource source : List.of(FactionEquipmentSource.PATRON, FactionEquipmentSource.RECOVERY)) {
-                assertFalse(pick(other, source, warranted).contains(AUXILIARY_SECTION), other + " " + source);
-            }
-        }
-        assertFalse(StoreStock.cards("hegemony", true, Set.of(), new EquipmentAcquisitionEligibility.Progress(99, 100))
-                .allCardIds().contains(AUXILIARY_SECTION), "no warrant, no approved suit");
+        assertTrue(MilitaryWarrants.standingWarrantDue(RepLevel.COOPERATIVE), "the standing route stays open");
     }
 
     @Test

@@ -4,6 +4,7 @@ import com.dillon.starsectormarines.campaign.CampaignState;
 import com.fs.starfarer.api.campaign.RepLevel;
 import org.junit.jupiter.api.Test;
 
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
@@ -14,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** A military warrant names Restricted cards; nothing else opens them. */
+/** A military warrant names Restricted cards; it no longer gates acquiring them, the Kit Ladder does. */
 class MilitaryWarrantsTest {
 
     private static final String XIV_SHEET = new LoadoutCard(LoadoutCard.Kind.SHEET,
@@ -26,9 +27,6 @@ class MilitaryWarrantsTest {
     private static final String LEAGUE_LINE = new LoadoutCard(LoadoutCard.Kind.SHEET,
             SquadEquipmentDoctrines.LEAGUE_LINE_ARMOR).id();
 
-    private static final EquipmentAcquisitionEligibility.Progress EVERYTHING =
-            new EquipmentAcquisitionEligibility.Progress(1000, 1000);
-
     @Test
     void aCardIsIssuedByTheTraditionThatBuildsItsRestrictedKit() {
         assertEquals(ArmorTradition.HEGEMONY, MilitaryWarrants.issuerOf(LoadoutCard.parse(XIV_SHEET)));
@@ -37,35 +35,26 @@ class MilitaryWarrantsTest {
     }
 
     @Test
-    void maximumProgressRefusesARestrictedCardOnEverySourceWithoutAWarrant() {
+    void aRestrictedCardIsSoldAtItsStationWithoutAWarrant() {
         LoadoutCard xiv = LoadoutCard.parse(XIV_SHEET);
-        for (FactionEquipmentSource source : FactionEquipmentSource.values()) {
-            assertFalse(EquipmentAcquisitionEligibility.allows(xiv, source, EVERYTHING), source.name());
-        }
+        UnlockStation station = KitLadder.station(XIV_SHEET);
+        Set<UnlockStation> before = new HashSet<>();
+        for (UnlockStation reached : UnlockStation.all()) if (reached.compareTo(station) < 0) before.add(reached);
+        EquipmentAcquisitionEligibility.Progress early = new EquipmentAcquisitionEligibility.Progress(0, before);
+        EquipmentAcquisitionEligibility.Progress late = new EquipmentAcquisitionEligibility.Progress(0);
+        assertFalse(StoreStock.cards(Set.of(), early).allCardIds().contains(XIV_SHEET), "not before its station");
+        assertTrue(StoreStock.cards(Set.of(), late).marketCardIds().contains(XIV_SHEET),
+                "no warrant, standing or faction asked: the station is the gate");
+        assertTrue(EquipmentAcquisitionEligibility.allows(xiv, FactionEquipmentSource.PATRON, late));
         assertFalse(EquipmentAcquisitionEligibility.allows(EquipmentAccessTier.RESTRICTED,
-                FactionEquipmentSource.PATRON, EVERYTHING), "a tier alone can never answer for a warrant");
+                FactionEquipmentSource.PATRON, late), "a single Restricted template still comes only inside a card");
     }
 
     @Test
-    void aWarrantOpensOnlyLicenceAndPatronAndOnlyForTheCardsItNames() {
-        EquipmentAcquisitionEligibility.Progress warranted =
-                new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(XIV_SHEET));
-        LoadoutCard xiv = LoadoutCard.parse(XIV_SHEET);
-
-        assertTrue(EquipmentAcquisitionEligibility.allows(xiv, FactionEquipmentSource.LICENSE, warranted));
-        assertTrue(EquipmentAcquisitionEligibility.allows(xiv, FactionEquipmentSource.PATRON, warranted));
-        assertFalse(EquipmentAcquisitionEligibility.allows(xiv, FactionEquipmentSource.MARKET, warranted));
-        assertFalse(EquipmentAcquisitionEligibility.allows(xiv, FactionEquipmentSource.RECOVERY, warranted));
-        assertFalse(EquipmentAcquisitionEligibility.allows(LoadoutCard.parse(AUXILIARY_SECTION),
-                FactionEquipmentSource.LICENSE, warranted), "a warrant opens the cards it names, not their kit");
-    }
-
-    @Test
-    void theStandingWarrantNeedsBothThePrestigeBandAndCloseStanding() {
-        assertTrue(MilitaryWarrants.standingWarrantDue(20, RepLevel.COOPERATIVE));
-        assertFalse(MilitaryWarrants.standingWarrantDue(19, RepLevel.COOPERATIVE));
-        assertFalse(MilitaryWarrants.standingWarrantDue(20, RepLevel.FRIENDLY));
-        assertFalse(MilitaryWarrants.standingWarrantDue(1000, null));
+    void theStandingWarrantNeedsOnlyCloseStanding() {
+        assertTrue(MilitaryWarrants.standingWarrantDue(RepLevel.COOPERATIVE));
+        assertFalse(MilitaryWarrants.standingWarrantDue(RepLevel.FRIENDLY));
+        assertFalse(MilitaryWarrants.standingWarrantDue(null));
     }
 
     @Test
@@ -134,29 +123,6 @@ class MilitaryWarrantsTest {
     }
 
     @Test
-    void onlyTheIssuerOffersAWarrantedCardAndOnlyWithTheWarrant() {
-        EquipmentAcquisitionEligibility.Progress warranted =
-                new EquipmentAcquisitionEligibility.Progress(1000, 1000, Set.of(XIV_SHEET));
-
-        assertFalse(storeOffers("hegemony", EVERYTHING),
-                "without the warrant the Hegemony itself does not sell it");
-        assertTrue(storeOffers("hegemony", warranted));
-        assertTrue(offers("hegemony", FactionEquipmentSource.PATRON, warranted));
-        assertFalse(offers("hegemony", FactionEquipmentSource.RECOVERY, warranted));
-        for (String faction : List.of("independent", "sindrian_diktat", "lions_guard", "knights_of_ludd", "pirates")) {
-            assertFalse(storeOffers(faction, warranted), faction + " store");
-            for (FactionEquipmentSource source : List.of(FactionEquipmentSource.PATRON, FactionEquipmentSource.RECOVERY)) {
-                assertFalse(offers(faction, source, warranted), faction + " " + source);
-            }
-        }
-    }
-
-    /** On the store's licence shelf, standing granted. */
-    private static boolean storeOffers(String factionId, EquipmentAcquisitionEligibility.Progress progress) {
-        return StoreStock.cards(factionId, true, Set.of(), progress).allCardIds().contains(XIV_SHEET);
-    }
-
-    @Test
     void theSafetyNetNeverGrantsARestrictedCard() {
         MarineArmory armory = new MarineArmory();
         for (int win = 0; win < 60; win++) armory.recordVictory(true);
@@ -166,10 +132,5 @@ class MilitaryWarrantsTest {
             if (card == null || !card.defined()) continue;
             assertNotEquals(EquipmentAccessTier.RESTRICTED, card.accessTier(), id);
         }
-    }
-
-    private static boolean offers(String factionId, FactionEquipmentSource source,
-                                  EquipmentAcquisitionEligibility.Progress progress) {
-        return LoadoutCardPicker.pick(factionId, source, 100, 7L, Set.of(), progress).contains(XIV_SHEET);
     }
 }

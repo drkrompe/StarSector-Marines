@@ -15,16 +15,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 /** A story beat keeps a named card on a named shelf until the company has it. */
 class MarketListingsTest {
 
-    /** Advanced kit: a listing shows it to a company no threshold would admit. */
+    /** Advanced kit, placed at Counterattack: a listing shows it to a company that has not reached it. */
     private static final String TRENCH = "loadout-card:weapon:weapons:trench-clearing";
-    private static final String XIV_SHEET = "loadout-card:sheet:armor:hegemony-shock";
 
     @Test
     void aListingHasAShelfOfItsOwnAndIsNeverOfferedTwice() {
         StoreStock.StockPlan with = plan(List.of(TRENCH), Set.of());
 
         assertEquals(List.of(TRENCH), with.listedCardIds(),
-                "the story is the permission: a fresh company sees Advanced issue it was promised");
+                "the story is the permission: a fresh company sees the issue it was promised");
         assertFalse(with.marketCardIds().contains(TRENCH), "never offered a second time");
         assertEquals(TRENCH, with.allCardIds().get(0));
     }
@@ -50,20 +49,11 @@ class MarketListingsTest {
     }
 
     @Test
-    void aListingIsNeverABackDoorAroundAMilitaryWarrant() {
-        CampaignState state = new CampaignState();
-        assertThrows(IllegalArgumentException.class, () -> MarketListings.list(state, XIV_SHEET,
-                MarketListings.Scope.FACTION, "hegemony", "reason", 0));
-
-        MilitaryWarrants.grant(state, ArmorTradition.HEGEMONY, List.of(XIV_SHEET),
-                MilitaryWarrants.Reason.STORY, 0);
-        assertTrue(MarketListings.list(state, XIV_SHEET, MarketListings.Scope.FACTION, "hegemony", "reason", 0));
-        assertTrue(StoreStock.cards("hegemony", false, Set.of(),
-                new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(XIV_SHEET)),
-                List.of(XIV_SHEET)).listedCardIds().contains(XIV_SHEET));
-        assertTrue(StoreStock.cards("hegemony", false, Set.of(),
-                EquipmentAcquisitionEligibility.Progress.OPENING, List.of(XIV_SHEET)).listedCardIds().isEmpty(),
-                "a shelf never shows Restricted kit the company is not warranted for");
+    void aListingNeverShowsACardTheLadderLeavesOnNone() {
+        String none = "loadout-card:weapon:weapons:assault";
+        assertEquals(UnlockStation.NONE, KitLadder.station(none));
+        assertTrue(StoreStock.cards(Set.of(), new EquipmentAcquisitionEligibility.Progress(0), List.of(none))
+                .allCardIds().stream().noneMatch(none::equals));
     }
 
     @Test
@@ -83,8 +73,7 @@ class MarketListingsTest {
     }
 
     private static StoreStock.StockPlan plan(List<String> listed, Set<String> unavailable) {
-        return StoreStock.cards("independent", false, unavailable, EquipmentAcquisitionEligibility.Progress.OPENING,
-                listed);
+        return StoreStock.cards(unavailable, EquipmentAcquisitionEligibility.Progress.OPENING, listed);
     }
 
     private static void readResolve(CampaignState state) throws Exception {

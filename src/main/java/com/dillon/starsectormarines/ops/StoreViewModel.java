@@ -490,7 +490,6 @@ final class StoreViewModel {
         return Strings.get(switch (shelf) {
             case LISTED -> "storeShelfListed";
             case MARKET -> "storeShelfMarket";
-            case LICENSE -> "storeShelfLicense";
         });
     }
 

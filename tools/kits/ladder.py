@@ -41,7 +41,7 @@ def stations(doc=None):
 
 
 def rows(doc=None, enums=None, station_list=None):
-    """Every placement in file order: {line (index), kind (weapon, sheet or pattern), item (the game id), id (the page
+    """Every placement in file order: {line (index), kind (weapon, sheet, pattern or boat), item (the game id), id (the page
     id), station}. A placement naming no item the page knows, or an undeclared station, is a LadderError."""
     doc = doc if doc is not None else kitdata.load_ladder()
     enums = enums if enums is not None else kitdata.pattern_ids()
@@ -51,11 +51,12 @@ def rows(doc=None, enums=None, station_list=None):
         item, station = p.get("item"), p.get("station")
         page = kitdata.page_id(item or "", enums)
         if page is None:
-            raise LadderError("kit-ladder.json: placements[%d] names %r, which is no card or machine pattern id" % (n, item))
+            raise LadderError("kit-ladder.json: placements[%d] names %r, which is no card, machine pattern or boat part id" % (n, item))
         if station not in known:
             raise LadderError("kit-ladder.json: placements[%d] places %s on %r, which is not a declared station" % (n, item, station))
         kind = ("weapon" if item.startswith(kitdata.CARD_PREFIX + "weapon:") else
-                "sheet" if item.startswith(kitdata.CARD_PREFIX + "sheet:") else "pattern")
+                "sheet" if item.startswith(kitdata.CARD_PREFIX + "sheet:") else
+                "boat" if item.startswith(kitdata.BOAT_PREFIX) else "pattern")
         out.append({"line": n, "kind": kind, "item": item, "id": page, "station": station})
     return out
 

@@ -15,11 +15,20 @@ import java.util.Set;
  * slot and the yard's own gun on every hardpoint of every pattern. Those are known to every
  * company and never sold, because a boat the yard builds must always be buildable. The medium and
  * heavy lift fittings are starter issue too ({@link #COMPANY_ISSUE}). Everything else is learned
- * ({@link BoatDeck#learnPart}) before the workshop will build another.
+ * ({@link BoatDeck#learnPart}) before the workshop will build another. Every other part is on the Kit Ladder
+ * ({@link KitLadder}) under its {@link #ladderId}, and the company store sells it once the campaign passes its station.
  */
 public final class BoatParts {
 
+    /** The prefix of a boat part's Kit Ladder id ({@code kit-ladder.json}): {@code boat-part:<part id>}. */
+    public static final String PREFIX = "boat-part:";
+
     private BoatParts() {}
+
+    /** The Kit Ladder id of a part: {@link #PREFIX} and its fitting or gun id; null for null. */
+    public static String ladderId(String partId) {
+        return partId == null ? null : PREFIX + partId;
+    }
 
     /**
      * Parts every company knows from the start though no new boat is built with them: the medium and heavy lift, so a
@@ -66,7 +75,7 @@ public final class BoatParts {
     }
 
     /**
-     * How scarce a part is, as every other channel's gate reads it: the yard's second tier is
+     * How scarce a part is, which sets its store price ({@link EquipmentStore#price}): the yard's second tier is
      * ordinary kit, the third is advanced, a fourth is prestige. Null for an unknown part.
      */
     public static EquipmentAccessTier accessTier(String partId) {

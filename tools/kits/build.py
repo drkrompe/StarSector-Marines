@@ -21,7 +21,7 @@ tactic sheets), and embeds all of it in one file.
 Two ladders, never mixed: weapon cards (primaries and secondaries per marine) and Equipment cards
 (armour per marine). Each card draws the way a Barracks loadout card does (kit bricks coloured by
 what each piece throws or wears) and can be placed on the Alpha mission timeline to say after which
-mission it goes on sale. Every card's and machine pattern's seeded station is the game's own Kit Ladder
+mission it goes on sale. Every card's, machine pattern's and shuttle part's seeded station is the game's own Kit Ladder
 (mod/data/marines/kit-ladder.json; Relief's free pick is the cards' "grant"), so a rebuild shows what the game
 sells when. Exports a kits.json holding both ladders.
 """
@@ -571,6 +571,15 @@ def collect(dolls_dir=None, reel_index=None, clips_map=None, art=True, strict=Tr
         internal_tone = {"ENGINE": "ENGINE", "PLATING": "ARMOR", "CAPACITOR_BANK": "FLUX"}.get(role, "UTILITY")
         item("mpart", "INTERNAL", enum, text(key), role.lower().replace("_", " "), tier,
              svg_uri("graphics/ui/mech-hardware/%s.svg" % internal_stem[enum]), internal_tone, ifp.get(enum))
+    # Shuttle parts: every BoatFitting and BoatGun the store can sell (BoatParts.offerable); the starter set is never sold.
+    items["boat"] = []
+    slot_tone = {"PLATING": "ARMOR", "DRIVE": "ENGINE", "LIFT": "UTILITY", "CABIN": "AUX", "EMITTER": "SYSTEM", "POWER": "FLUX"}
+    parts = kitdata.boat_parts()
+    for part_id in kitdata.offerable_boat_parts(parts):
+        p = parts[part_id]
+        what = (p["slot"].lower() + " fitting") if p["slot"] else (p["family"].lower() + " gun")
+        item("boat", "BOAT", part_id, text(p["nameKey"]), "shuttle %s · tier %d" % (what, p["tier"]),
+             kitdata.boat_access(p["tier"]), tone=slot_tone.get(p["slot"], p["family"] or "DOLL"))
     for lst in items.values():
         lst.sort(key=lambda x: (x["name"]))
 

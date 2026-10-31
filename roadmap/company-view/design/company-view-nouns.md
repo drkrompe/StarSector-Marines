@@ -8,6 +8,8 @@ Updated: 2026-10-27 — the shoulder pod is the SRM-3 (Pod) special, a missile-g
 
 Updated: 2026-10-22 — a squad's kit is its two cards; Barracks cards lead with them, and filling vacancies is a wrench on the card or beside the select toggle.
 
+Updated: 2026-10-31 — boat parts are on the Kit Ladder: every part whose station is passed is on sale at every store, no monthly rotation.
+
 ## Purpose
 
 Company view makes the player's force legible as an organization wherever a
@@ -876,21 +878,21 @@ faster on the deck.
 
 **The Store** is a navigation tab beside HQ, Barracks, Mech Lab, Boats and Engineering,
 reached from every company room. It is where the company buys technology: the loadout
-cards and mech patterns that used to sit as cargo on a market's open submarket. It is a
+cards, mech patterns and boat parts; the cards and patterns used to sit as cargo on a market's open submarket. It is a
 counter at a port, not a compartment, so no hull can lack it: the tab is open exactly
 while the fleet is docked at a civilized market it can trade with (`CivilizedPort.docked`,
 the same gate the workshops' `atMarket` reads) and shows absent otherwise. Opened with no
 planet behind it, from the campaign map, it is closed.
 
 The shelf is `EquipmentStore.shelf` (`StoreStock`): the market's listed cards first, then
-every loadout card and machine pattern whose Kit Ladder station the campaign has passed and
-the company lacks, the same at every store (`progression-nouns.md`, the store is paced by the
-Kit Ladder alone), then the boat parts of the month. It is read in category order, then
+every loadout card, machine pattern and boat part whose Kit Ladder station the campaign has passed
+and the company lacks, the same at every store whatever its owner or the company's standing there
+(`progression-nouns.md`, the store is paced by the Kit Ladder alone). It is read in category order, then
 Kit Ladder station, then name (`EquipmentStore.shelfOrder`), and the offer list scrolls, so a
 long shelf is browsed rather than truncated. A purchase pays from the company purse a price set
 by the item's access tier (Common one base price of 5,000; Advanced twice, Prestige four
-times, Restricted six times) plus the market's open-market tariff, and teaches the Armory or the Mech Bay
-directly; nothing is carried and nothing is charged for a card already known. Cards
+times, Restricted six times) plus the market's open-market tariff, and teaches the Armory, the Mech Bay
+or the Boat Deck directly; nothing is carried and nothing is charged for a card already known. Cards
 that arrive by patron, salvage or story are still cargo, learned by right-click. An item
 bought during a visit stays on the shelf, marked acquired, until the page is next
 opened; reopening it recomputes the shelf without what the company now knows.
@@ -911,9 +913,10 @@ and the yard's gun on every hardpoint (`BoatParts.starterIds`), with the medium 
 known to every company and never sold; every other fitting and gun is a pattern (`BoatDeck.knowsPart`) that the
 workshop will not build until it is bought here, and the Boat Deck's card says so
 (`NOT_LEARNED`). Parts already in stores or on a boat in a save from before learning are
-counted as learned, so nothing owned is ever locked away. A part's access tier follows the
-yard's tier: second is Common, third Advanced, fourth Prestige. The shelf carries one boat
-part at a market of size 3 or 4 and two from size 5.
+counted as learned, so nothing owned is ever locked away. Every other part is on the Kit Ladder
+(`boat-part:<id>`) and is on sale at every store once its station is passed, like a card or a
+pattern; its access tier follows the yard's tier (second is Common, third Advanced, fourth
+Prestige) and sets only its price.
 
 ## Company resource bills
 

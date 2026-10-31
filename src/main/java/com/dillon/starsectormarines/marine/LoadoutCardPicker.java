@@ -3,7 +3,6 @@ package com.dillon.starsectormarines.marine;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -15,9 +14,8 @@ import java.util.Set;
  *
  * <p>A faction's authored pool still lists the equipment it fields; a card is on offer
  * through a channel when the faction fields part of what it bundles there, at the
- * heaviest weight of those entries, and the company's progress reaches the scarcest
- * bundled tier. A Restricted card instead needs a military warrant naming it, and its
- * Restricted kit must be fielded by this faction itself.
+ * heaviest weight of those entries, and the campaign has passed the card's Kit Ladder station
+ * ({@link EquipmentAcquisitionEligibility}). A Restricted card is drawn like any other.
  */
 public final class LoadoutCardPicker {
 
@@ -35,8 +33,7 @@ public final class LoadoutCardPicker {
         List<Candidate> candidates = new ArrayList<>();
         for (LoadoutCard card : LoadoutCards.all()) {
             if (unavailable.contains(card.id())
-                    || !EquipmentAcquisitionEligibility.allows(card, source, progress)
-                    || !fieldsEveryRestricted(card, fielded.keySet())) {
+                    || !EquipmentAcquisitionEligibility.allows(card, source, progress)) {
                 continue;
             }
             int weight = 0;
@@ -60,31 +57,6 @@ public final class LoadoutCardPicker {
             }
         }
         return List.copyOf(selected);
-    }
-
-    /**
-     * Warranted equipment is issued only by the tradition that builds it, so a faction
-     * offers a card carrying Restricted kit only when it fields that kit itself: an
-     * independent licence that happens to field the card's scout suits does not thereby
-     * sell Hegemony military issue.
-     */
-    private static boolean fieldsEveryRestricted(LoadoutCard card, Set<String> fielded) {
-        for (String templateId : card.templateIds()) {
-            if (EquipmentTemplateCatalog.require(templateId).accessTier() == EquipmentAccessTier.RESTRICTED
-                    && !fielded.contains(templateId)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-    /** As above, for {@code factionId}'s pool through {@code source}: the store's licence shelf asks it too. */
-    static boolean fieldsEveryRestricted(LoadoutCard card, String factionId, FactionEquipmentSource source) {
-        Set<String> fielded = new HashSet<>();
-        for (FactionEquipmentOffer offer : FactionEquipmentCatalog.offers(factionId, source)) {
-            fielded.add(offer.templateId());
-        }
-        return fieldsEveryRestricted(card, fielded);
     }
 
     private record Candidate(String id, int weight) {}

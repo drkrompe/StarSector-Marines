@@ -112,6 +112,20 @@
     {"item": "mech-pattern:internal:internal.spall-liner", "station": "relief"},
     {"item": "mech-pattern:internal:internal.ready-rack", "station": "relief"},
     {"item": "mech-pattern:internal:internal.sensor-pair", "station": "thunder-run"},
-    {"item": "mech-pattern:internal:internal.active-protection", "station": "thunder-run"}
+    {"item": "mech-pattern:internal:internal.active-protection", "station": "thunder-run"},
+    {"item": "boat-part:reinforced_plating", "station": "start"},
+    {"item": "boat-part:tuned_drive", "station": "start"},
+    {"item": "boat-part:lift_cradle", "station": "start"},
+    {"item": "boat-part:wide_emitter", "station": "start"},
+    {"item": "boat-part:capacitor_bank", "station": "start"},
+    {"item": "boat-part:boat_twin_pe_1", "station": "start"},
+    {"item": "boat-part:boat_pl_3", "station": "start"},
+    {"item": "boat-part:boat_srm_15", "station": "start"},
+    {"item": "boat-part:armoured_plating", "station": "junction"},
+    {"item": "boat-part:uprated_drive", "station": "junction"},
+    {"item": "boat-part:assault_emitter", "station": "junction"},
+    {"item": "boat-part:military_capacitors", "station": "junction"},
+    {"item": "boat-part:door_hephaestus", "station": "junction"},
+    {"item": "boat-part:boat_lrm_10", "station": "junction"}
   ]
 }

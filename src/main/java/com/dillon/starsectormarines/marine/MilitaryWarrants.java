@@ -16,14 +16,15 @@ import java.util.Map;
 import java.util.Set;
 
 /**
- * Military warrants: the only way a Restricted loadout card becomes acquirable
- * ({@code progression-nouns.md}).
+ * Military warrants ({@code progression-nouns.md}): a named, persistent authorisation from one
+ * faction over the Restricted <b>cards</b> it lists.
  *
- * <p>A military warrant is a named, persistent authorisation from one faction that opens
- * the Restricted <b>cards</b> it lists. It names cards, never a weapon, a suit or any other
- * single piece of equipment: the card is what is restricted, and access to it is granted
- * or withheld whole. Holding a warrant teaches nothing. It lets that faction's own licence
- * and patron channels offer the cards, and no other channel or faction. It is not the
+ * <p>A warrant no longer gates acquisition: a Restricted card is sold in the company store, like
+ * any other, once the campaign passes its Kit Ladder station ({@link EquipmentAcquisitionEligibility}).
+ * What a warrant still does is hold the company to its obligations: a suspended or revoked
+ * warrant withholds new fitting of the cards it names ({@link #withheldCardIds}). It names cards,
+ * never a weapon, a suit or any other single piece of equipment. Holding a warrant teaches
+ * nothing. It is not the
  * <em>civil-security procurement warrant</em> of the Agreus contracts, which is a contract
  * term and opens no access tier.
  *
@@ -35,14 +36,14 @@ import java.util.Set;
 public final class MilitaryWarrants {
 
     /**
-     * The relationship a tradition requires, at the Prestige reputation band, before it
-     * grants its standing warrant: well above the Favorable a licence asks for.
+     * The relationship a tradition requires before it grants its standing warrant: well above
+     * the Favorable a licence asks for.
      */
     public static final RepLevel STANDING_RELATIONSHIP = RepLevel.COOPERATIVE;
 
     /** Why a warrant was granted. Stored as {@link #code}. */
     public enum Reason {
-        /** The tradition's own rule: Prestige band and close standing. */
+        /** The tradition's own rule: close standing with it. */
         STANDING((byte) 0),
         /** An authored story beat. */
         STORY((byte) 1);
@@ -115,12 +116,11 @@ public final class MilitaryWarrants {
     }
 
     /**
-     * Whether a tradition grants its standing warrant: the company at the Prestige
-     * reputation band, and a relationship at {@link #STANDING_RELATIONSHIP} or better.
+     * Whether a tradition grants its standing warrant: a relationship at {@link #STANDING_RELATIONSHIP} or better.
+     * Reputation (MRB) plays no part.
      */
-    public static boolean standingWarrantDue(int mrbRep, RepLevel relationship) {
-        return mrbRep >= EquipmentAcquisitionEligibility.requiredMrb(EquipmentAccessTier.PRESTIGE)
-                && relationship != null && relationship.isAtWorst(STANDING_RELATIONSHIP);
+    public static boolean standingWarrantDue(RepLevel relationship) {
+        return relationship != null && relationship.isAtWorst(STANDING_RELATIONSHIP);
     }
 
     /** Grants {@code issuer}'s standing warrant, opening every Restricted card it issues. */

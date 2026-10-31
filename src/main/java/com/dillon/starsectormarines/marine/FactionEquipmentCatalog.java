@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.marine;
 
-import com.dillon.starsectormarines.campaign.ContractEligibility;
 import com.dillon.starsectormarines.catalog.CatalogSource;
 import com.dillon.starsectormarines.catalog.MarineCatalogManifest.CatalogFile;
 import com.fs.starfarer.api.Global;
@@ -102,8 +101,7 @@ public final class FactionEquipmentCatalog {
         Set<String> reachable = new HashSet<>(starterTemplateIds);
         EquipmentAcquisitionEligibility.Progress maximumProgress =
                 new EquipmentAcquisitionEligibility.Progress(
-                        EquipmentAcquisitionEligibility.PRESTIGE_RECOVERY_VICTORIES,
-                        ContractEligibility.TIER_3_MRB_REQUIRED);
+                        EquipmentAcquisitionEligibility.PRESTIGE_RECOVERY_VICTORIES);
         for (MutablePool pool : pools.values()) {
             for (MutableOffer offer : pool.offers.values()) {
                 if (EquipmentTemplateCatalog.installed().storySource(offer.template.id()) != null)

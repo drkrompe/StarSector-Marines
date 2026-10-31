@@ -22,6 +22,7 @@ import org.junit.jupiter.api.extension.ExtensionContext;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 /**
@@ -132,6 +133,8 @@ public final class TileRegistryTestInstaller implements BeforeAllCallback {
             @Override public boolean armor(String id) { return registries.armor(id); }
             @Override public ArmorClass armorClass(String id) { return registries.armorClass(id); }
             @Override public boolean pattern(String id) { return registries.pattern(id); }
+            @Override public boolean boatPart(String partId) { return registries.boatPart(partId); }
+            @Override public Set<String> machines() { return registries.machines(); }
             @Override public boolean string(String key) { return strings.has(key); }
         };
         KitLadderCatalog.install(KitLadderCatalog.parse(

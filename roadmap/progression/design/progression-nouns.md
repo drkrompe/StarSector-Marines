@@ -10,6 +10,8 @@ Updated: 2026-10-24 — warrant obligations ask loyalty only; service and servic
 
 Updated: 2026-10-27 — every equipment item is shown by a short catalog code.
 
+Updated: 2026-10-31 — the Kit Ladder is the only equipment gate: boat parts join it, every machine must be placed, and MRB, standing, warrants and faction pools gate nothing.
+
 Updated: 2026-10-27 — the shoulder pod is the SRM-3 (Pod) carried special, fired without lowering the primary; no suit carries it as an integral system.
 
 Updated: 2026-10-30 — the Kit Ladder and the built-in cards are data files.
@@ -200,14 +202,16 @@ legibility.
   must implement the reward; it does not certify a playable mission or a completed
   reward path, and never grants technology by itself.
 - **Equipment access tier** — a card's authored Common, Advanced, Prestige or
-  Restricted campaign band. It is independent of grade, armor role, provenance and loadout collectible rarity; acquisition channels interpret the
-  first three through shared company-history and reputation gates. Restricted is
-  not a fourth threshold: no reputation or victory count reaches it.
+  Restricted campaign band. It is independent of grade, armor role, provenance and loadout collectible rarity. It sets a
+  store price and, for high-risk recovery only, the victories asked; it gates nothing
+  else. Restricted labels approved military issue and is priced dearest; a Restricted
+  card is otherwise acquired like any other.
 - **Military warrant** — a named, persistent authorisation from one tradition
-  that makes the Restricted **loadout cards** it lists acquirable through that
-  tradition's own licence and patron channels, and through nothing else. It names
-  cards, never a weapon, a suit or any other single piece of equipment, and it
-  teaches nothing by itself. Always written in full: the Agreus contracts'
+  over the Restricted **loadout cards** it lists. It no longer gates acquiring
+  them (the Kit Ladder does); what it still does is bind the company to its
+  obligations, and a suspended or revoked warrant withholds new fitting of its
+  cards. It names cards, never a weapon, a suit or any other single piece of
+  equipment, and it teaches nothing by itself. Always written in full: the Agreus contracts'
   *civil-security procurement warrant* is a contract term that opens no access
   tier, and neither noun stands for the other.
 - **Warrant obligations** — what a held military warrant costs to keep: loyalty
@@ -215,18 +219,23 @@ legibility.
   loyalty was broken is *suspended*; one whose issuer turned hostile is
   *revoked*. An *honoured* period is one that ended with loyalty kept.
 - **Kit Ladder** — the owner-authored data (`kit-ladder.json`, read through
-  `KitLadder`) placing every loadout card and machine pattern on one **unlock
-  station**: a story mission in campaign order (`UnlockStation`), declared in the
+  `KitLadder`) placing loadout cards, machine patterns and boat parts on **unlock
+  stations**: a story mission in campaign order (`UnlockStation`), declared in the
   same file with its **reach condition** (one of a closed set of types the code
   owns: always, a story mission, an arc beat), after which the company store sells
-  it. *Start* is what a new company holds: its cards and the equipment they name are
-the new company's baseline; *none* is never sold in the store. It
-  paces the store's open-market and licence shelves only; patrons and recovery keep
-  their tier gates. The built-in loadout cards it places (weapon cards' seats,
-  tactic sheets' seated or role-dealt suits) are data too (`loadout-cards.json`). Authored on the Kit
-  Ladder page, whose generator (`tools/kits/build.py`) seeds itself from the data;
-  the schema, the page, its export, apply and check tools and the owner's editing
-  workflow are `kit-ladder.md`.
+  it. **It is the only equipment gate**: every channel that hands out a card,
+  pattern or part (store, patron reward, recovery) waits on its station, and no
+  channel ever hands out what is placed at *none* or not placed. Every machine
+  pattern and every sellable boat part must be placed (*none* counts); a loadout
+  card may be left out on purpose. *Start* is what a new company holds for cards
+  and patterns: their cards and the equipment they name are the new company's
+  baseline. A boat part at *start* is on sale from the founding, because the boat
+  starter set (`BoatParts.starterIds`) is never placed. The built-in loadout cards
+  it places (weapon cards' seats, tactic sheets' seated or role-dealt suits) are
+  data too (`loadout-cards.json`). Authored on the Kit Ladder page, whose generator
+  (`tools/kits/build.py`) seeds itself from the data; the schema, the page, its
+  export, apply and check tools and the owner's editing workflow are
+  `kit-ladder.md`.
 - **Market listing** — a named card a story beat has put on sale at one named
   market, or at every open market of one faction, until the company knows or
   carries it. Authored stock the company store shows at that market, not a fifth
@@ -582,18 +591,17 @@ could already field, once.
 
 Faction source pools author which cards may enter through patron and recovery
 channels. Every card also authors an access tier. **The company store is paced by
-the Kit Ladder alone**: every loadout card and machine pattern whose station the
-campaign has passed, and which the company does not already know or carry, is on
-sale at every store, whatever its tier, the market's size or owner, or the month.
-There is no rotation, slot count or faction-pool filter, and nothing placed at
-*none* is ever sold. The tier only sets the price (tier times the market's
-tariff). A Restricted card additionally needs a warrant naming it, and stands only
-on the licence shelf (Favorable-or-better standing) of a faction whose pool fields
-its Restricted kit, its tradition's. Boat parts are not on the ladder and keep a
-small monthly rotation by access tier. Patron rewards admit Advanced at MRB 5 and Prestige at 20, the same bands as patron
-contract access. High-risk recovery instead uses operational history, admitting Advanced
-after 5 company victories and Prestige after 15, so field discovery does not
-require bureaucratic standing. Already-owned or carried cards are omitted.
+the Kit Ladder alone**: every loadout card, machine pattern and boat part whose
+station the campaign has passed, and which the company does not already know or
+carry, is on sale at every store, whatever its tier, the market's size or owner,
+the company's standing there, any warrant, or the month. There is no rotation,
+slot count, licence shelf or faction-pool filter, and nothing placed at *none* is
+ever sold. The tier only sets the price (tier times the market's tariff); a
+Restricted card is sold like any other. Patron rewards and high-risk recovery hand
+out only what the store would sell, an item whose station the campaign has passed;
+reputation (MRB) admits nothing. Recovery alone keeps a second gate, operational
+history: Advanced after 5 company victories, Prestige and Restricted after 15.
+Already-owned or carried cards are omitted.
 Each completed patron contract also issues one
 weighted card from that patron faction's pool through the immutable engagement
 ledger. Delivery is exactly once, excludes learned or already-carried cards, and
@@ -610,14 +618,11 @@ while source channels still decide most collection identity and pace.
 The Fleet Armory landing view is the player-facing summary of this policy. It
 shows only acquired card counts, including only access tiers represented in the
 player's collection. Undiscovered cards leave no placeholder, catalog total,
-identity, source, or per-card acquisition hint. The company's current generic
-licensed/patron and recovery ceilings, the facts producing those ceilings, and
-the next uncleared thresholds remain visible; those explain company capability,
-not undiscovered contents. The store's shelves follow the Kit Ladder rather than these ceilings.
-A physical template-card tooltip repeats that acquired item's authored tier and
-the shared MRB/recovery requirements, reading threshold values from the same
-policy used by candidate filtering rather than maintaining presentation-only
-numbers.
+identity, source, or per-card acquisition hint. The store's shelves follow the Kit
+Ladder. A physical template-card tooltip repeats that acquired item's authored tier,
+that the store, patrons and recovery wait on its card's station, and the recovery
+victories, reading the threshold from the same policy used by candidate filtering
+rather than maintaining presentation-only numbers.
 
 The lowest protection band is deliberately plural rather than one universal
 "unarmored" result. Domain-pattern fatigues preserve mobility and sealing with no
@@ -685,10 +690,9 @@ pattern, and the ordinary card list omits it, so neither a story award nor any
 other channel can hand out a suit that would deploy wearing nobody's art (or,
 worse, another suit's). Explicit development learning still reaches it. An Advanced
 or Prestige card authored only for the Common-only open market is therefore
-still stranded. A Restricted template's owner is a warrant rule instead: it must
-be offered by its issuing tradition's own pool, through licence or patron only.
-Any other entry, whether another faction's pool, the open market or recovery, is an
-unwarranted route and fails the audit just as a stranded card does.
+still stranded. A Restricted template must still be listed only by its issuing
+tradition's own pool, through licence or patron, and the audit still refuses any
+other entry; that is pool data hygiene only, since pools no longer gate the store.
 
 **Restricted equipment is approved military issue.** The six approved tier-4 power
 suits are Restricted: the Hegemony XIV battlesuit and military Arbalest, and the
@@ -700,18 +704,13 @@ Specter and Arbalest stay Advanced. The **issuer** of a Restricted template is t
 tradition its armour catalog entry already declares; it is never authored a
 second time.
 
-**A card that carries Restricted equipment is a Restricted card**, and it is the
-card that a warrant names and a channel refuses. Its issuer is the tradition that
-builds that equipment. No channel offers Restricted equipment on its own, and no
-channel offers a Restricted card unless the company holds a military warrant naming
-that card; even then only the issuer's licence and patron channels offer it. A
-warrant opens the cards it names, not their equipment: warranting the Hegemony
-Shock card does not open another card that happens to carry the same XIV suits. A
-Restricted card is offered only by a faction that fields its Restricted kit itself,
-so an independent licence that fields a card's scout suits does not thereby sell
-Hegemony military issue. The collection safety net never
-grants a Restricted card. Polity release never lists Restricted kit: a warrant
-authorises the company, not whoever the company arms.
+**A card that carries Restricted equipment is a Restricted card.** Its issuer is
+the tradition that builds that equipment. No channel offers Restricted equipment on
+its own, only inside a card. A Restricted card is acquired exactly like any other
+(owner, 2026-10-31): once its Kit Ladder station is passed it is sold at every
+store, with no warrant, standing or faction pool asked; the tier is its label and
+its price. The collection safety net never grants a Restricted card. Polity release
+never lists Restricted kit.
 
 A warrant may name many cards, and a later grant from the same tradition adds cards
 to it rather than rewriting it. Tiers of a tradition's cards opened by deepening
@@ -726,15 +725,15 @@ Restricted card's issuer is its warrant's tradition, any other card's is the
 tradition that fields it, and a card no tradition claims is a free-port
 outfitter's. The issuer and a serial are printed on the card's stamp; the
 Restricted seal and banner (`ui-nouns.md`) are how the player sees that a card
-answers to a warrant.
+is approved military issue.
 
-A tradition grants its **standing warrant** once the company is at the Prestige
-reputation band and its relationship with that faction is Cooperative, well above
-the Favorable a licence needs. The standing warrant opens every Restricted
-card the tradition issues that no earlier warrant already opened. This is the
-route that keeps every approved suit reachable, so the open routes could close
-without stranding anything. Authored warrants arrive earlier through story beats,
-and a later standing grant completes them without rewriting them.
+A tradition grants its **standing warrant** once the company's relationship with
+that faction is Cooperative; reputation (MRB) plays no part. The standing warrant
+names every Restricted card the tradition issues that no earlier warrant already
+named. Since warrants no longer gate acquisition, a warrant today brings only its
+obligations; whether warrants should be retired is an open question for the
+progression rework (`v0.2.md`). Authored warrants arrive earlier through story
+beats, and a later standing grant completes them without rewriting them.
 
 The **Hegemony auxiliary warrant** is the first authored one. After *A Small War*
 settles, its procurement introduction reaches a Hegemony procurement office, which
@@ -745,15 +744,15 @@ rule's bar. It is correspondence answered at Company HQ, never a shop or a grant
 arrival. The terms state what the warrant opens, the obligations it carries, and what
 it does not grant: no other tradition's Restricted kit, no release to the company's
 polity, no Hegemony command authority and no immunity from Hegemony law. Acceptance
-opens the Hegemony Auxiliary Section card (stage one), the recovered Arbalest section
-in approved suits, offered by the Hegemony licence and patron channels and by no one
-else. The Hegemony Shock card, in XIV pattern (stage two), follows the warrant's
-first honoured obligation period. Declining is a
-real answer: the terms are never offered again and every other route, the standing
-warrant included, stays open. Every step is once-only, so a replayed answer or a
-repeated honoured period grants nothing further. Lion's Guard and Knights kit is therefore not "never". It
-is "only for a company that has become one of theirs", which most companies will
-not.
+names the Hegemony Auxiliary Section card (stage one), the recovered Arbalest section
+in approved suits; the Hegemony Shock card, in XIV pattern (stage two), follows the
+warrant's first honoured obligation period. Since warrants no longer gate
+acquisition, both cards are sold at their Kit Ladder stations whether or not the
+company enrols, and the terms' copy (`auxiliaryWarrantGrants`,
+`auxiliaryWarrantAcceptedCopy`) that still promises them through the Hegemony
+licence channel is owed a rewrite. Declining is a real answer: the terms are never
+offered again and the standing warrant stays open. Every step is once-only, so a
+replayed answer or a repeated honoured period grants nothing further.
 
 **A warrant is a relationship, so it keeps costing something.** Without that it
 would be the last unlock rather than the story of a mercenary company becoming
@@ -777,8 +776,8 @@ Hegemony auxiliary warrant's first honoured period is what opens its stage two. 
 contract taken against the issuer, or the relationship slipping below the floor,
 **suspends** the warrant at once.
 
-A suspended warrant's cards are not warranted: they cannot be acquired again, and
-no squad can be **newly given** one. A squad already holding the card keeps it, and
+A suspended warrant's cards are not warranted: no squad can be **newly given**
+one. A squad already holding the card keeps it, and
 its replacements are dressed from it as from any card, because a squad's kit is
 always what its cards issue. Nothing learned is revoked and no squad's card is taken
 away; the warrant caps how many squads field its cards, which is where a powered
@@ -792,27 +791,22 @@ the same tradition replaces the revoked one.
 
 The fitting check lives in the one place a sheet's billets are resolved for a
 squad (`MarineRoster.previewSquadEquipment`), not in the screens, so every route to
-fitting asks it, and a refused issue says which warrant withholds it. A
-card opened by a held warrant counts only while that warrant is active.
+fitting asks it, and a refused issue says which warrant withholds it.
 
-The gate refuses new acquisition and revokes nothing. A save that learned a
-Restricted card through the old open routes keeps it and fits it freely: no warrant
-names it, so no obligation can withhold it. That is the compatibility promise, not
-a loophole to close later. Held warrants are not currently listed on
+The gate refuses new fitting and revokes nothing. A Restricted card no warrant
+names fits freely, so no obligation can withhold it. Held warrants are not currently listed on
 any company page. The Company HQ's client-standing panel named each warrant's
 issuer, the cards it opens, how it was earned and its standing under its
 obligations (next service deadline, what restores it, revocation); it was removed
 when the HQ was simplified, and that readout has no home yet. A Restricted card's own
-tooltip and spec sheet name the tradition that issues it, in place of the
-reputation and victory thresholds the other tiers show.
+tooltip and spec sheet name the tradition that issues it.
 
 **Market listings are how a story stocks a shelf.** A story beat records a listing
 rather than dropping a card into a market's cargo, and the store shows listed cards
 on a shelf of their own, first, before what the Kit Ladder opens; a listed card is
 never offered a second time. A listing bypasses the Kit Ladder station, because the
-story is the permission. It never bypasses the Restricted tier: listing
-a Restricted card needs a military warrant naming it, and a shelf never shows a
-Restricted card the company is not warranted for. A listing is withdrawn while the company knows
+story is the permission, but a card placed at *none* or not placed is never listed.
+A listing is withdrawn while the company knows
 or carries the card and returns if it stops doing so; nothing else expires it.
 The store reads its shelf when the page opens, so a new listing is on the shelf at once
 and the shelf's row names the event that stocked it. Settlement code owns

@@ -9,8 +9,9 @@ import java.util.Set;
  * The collection safety net: a company that keeps winning but misses the ordinary
  * card sources is topped up to a floor of collected cards, in an authored order.
  *
- * <p>It counts and grants whole cards, never single equipment, and never a
- * Restricted card: those come only by warrant. Cards held in cargo count toward
+ * <p>It counts and grants whole cards, never single equipment, never a Restricted
+ * card, and never one the Kit Ladder leaves at {@code none} or does not place
+ * ({@link KitLadder}): no channel hands those out. Cards held in cargo count toward
  * the floor without being learned.
  */
 final class EquipmentCollectionCurve {
@@ -20,7 +21,10 @@ final class EquipmentCollectionCurve {
     static final int THIRTY_VICTORY_TARGET = 8;
     static final int FORTY_VICTORY_TARGET = 9;
 
-    /** Low-tier cards, in the order the net hands them out; the Wayline refit sheets stay a choice. */
+    /**
+     * Low-tier cards, in the order the net hands them out; the Wayline refit sheets stay a choice. Those the Kit Ladder
+     * leaves at {@code none} are skipped.
+     */
     static final List<LoadoutCard> FALLBACK_ORDER = List.of(
             new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.CONVOY_ESCORT_WEAPONS),
             new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.OUTLAW_RAIDER_ARMOR),
@@ -33,7 +37,11 @@ final class EquipmentCollectionCurve {
             new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.CHECKPOINT_WEAPONS),
             new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.SINDRIAN_SECURITY_ARMOR),
             new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.TRENCH_CLEARING_WEAPONS),
-            new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS));
+            new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.LINE_INFANTRY_WEAPONS),
+            // Placed cards behind the ones the Kit Ladder leaves at none, so the floor still holds (2026-10-31).
+            new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.RECON_ARMOR),
+            new LoadoutCard(LoadoutCard.Kind.WEAPON, SquadEquipmentDoctrines.FIRE_SUPPORT_WEAPONS),
+            new LoadoutCard(LoadoutCard.Kind.SHEET, SquadEquipmentDoctrines.FLEET_COMBAT_ARMOR));
 
     private EquipmentCollectionCurve() {}
 
@@ -70,7 +78,8 @@ final class EquipmentCollectionCurve {
         for (LoadoutCard card : FALLBACK_ORDER) {
             if (collected.size() >= target) break;
             if (collected.contains(card.id()) || !card.defined()
-                    || card.accessTier() == EquipmentAccessTier.RESTRICTED) continue;
+                    || card.accessTier() == EquipmentAccessTier.RESTRICTED
+                    || KitLadder.station(card.id()).equals(UnlockStation.NONE)) continue;
             armory.learnLoadoutCard(card);
             collected.add(card.id());
             granted.add(card);

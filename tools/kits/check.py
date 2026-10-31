@@ -8,14 +8,14 @@ Pure Python over the repository's files (and, when given, a page HTML an Artifac
 Exits 1 on an error, 0 otherwise; warnings feed the owner's decisions (kit-ladder.md, Checks).
 
 Errors: anything the game refuses when it loads the data (kitdata.validate: an unknown station, reach condition,
-item, weapon, special, belt item or suit, an item placed twice, a card with no placement, a squad not of twelve, a
+item, weapon, special, belt item or suit, an item placed twice, a card or machine (pattern or sellable shuttle part)
+with no placement, a boat-part placement naming a starter or unknown part, a squad not of twelve, a
 sheet with no suits, a missing string key), a real item with no placement, a build.py station list out of step with
 kit-ladder.json, a Wayline free pick off Relief, a reel clip firing a weapon no *.weapon.json defines.
 
 Warnings (codes, so tools/kits/check-allow.json can accept one with a reason as "<code> <id>"):
   carrier      a machine part sold before any machine (a mech chassis or vehicle hull) can carry it, or a mech weapon
                before any chassis
-  restricted   a Restricted card placed on a station: the store still needs a warrant naming it
   start-tier   a start item above Common
   not-sold     an item on "none" with no story or encounter route found in code (hint: where it is referenced)
   stale        an item whose name, stats or contents changed since the page was published, or whose station the
@@ -94,7 +94,9 @@ def known_ids(data, game):
               or (e["activation"]["type"] == "arc-explosive" and (weapons.get(e["activation"].get("weaponId")) or {}).get("sim", {}).get("indirectFire"))}
     strings = build.flat(build.load(build.MOD / "data/strings/strings.json"))
     return {"primaries": {w for w, d in weapons.items() if d["mount"] == "marine-primary"}, "specials": set(specials),
-            "thrown": thrown, "armor": {a["id"] for a in data["ARMORS"]}, "patterns": {game["gameIds"][i] for i in game["patterns"]},
+            "thrown": thrown, "armor": {a["id"] for a in data["ARMORS"]},
+            "patterns": {game["gameIds"][i] for i in game["patterns"] if not i.startswith(kitdata.BOAT_PAGE)},
+            "boatParts": set(kitdata.offerable_boat_parts()), "machines": {game["gameIds"][i] for i in game["patterns"]},
             "strings": set(strings)}
 
 
@@ -124,7 +126,8 @@ def check(page=None, reel=None):
     for e in kitdata.validate(game["ladder"], kitdata.load_cards(), known_ids(data, game)):
         rep.error(e)
     for item in sorted(game["items"]):
-        if item not in game["rowStations"]:
+        # A machine with no placement is kitdata.validate's error already (the game refuses the load the same way).
+        if item not in game["rowStations"] and item not in game["patterns"]:
             rep.error("%s (%s) has no placement in kit-ladder.json: the page cannot seed it and the store never sells it" % (item, names.get(item)))
     for k in data["KITS"] + data["ARMORKITS"]:
         if k.get("grant") == "free-pick" and k.get("station") != "relief":
@@ -159,9 +162,6 @@ def check(page=None, reel=None):
             tiers[it["id"]] = it["access"]
     for item, tier in sorted(tiers.items()):
         st = game["rowStations"].get(item)
-        if tier == "RESTRICTED" and st not in (None, "none"):
-            rep.warn("restricted", item, "%s is Restricted and placed on %s: the store sells it there only to a company holding a warrant naming it"
-                     % (names.get(item), st))
         if st == "start" and RANK.get(tier, 0) > 0:
             rep.warn("start-tier", item, "%s is %s but a new company holds it" % (names.get(item), tier.title()))
 
@@ -175,13 +175,15 @@ def check(page=None, reel=None):
         if row["kind"] == "pattern":
             const = item.split(":", 1)[1]
             value = row["item"].split(":", 2)[2]
+        elif row["kind"] == "boat":
+            const = value = item[len(kitdata.BOAT_PAGE):]
         else:
             const = next((c for c, v in doctrines.items() if v == item), item)
             value = item
         refs = sorted({f.stem for f, text in sources.items() if f.name not in DECLARING
                        and (re.search(r"\b%s\b" % re.escape(const), text) or '"%s"' % value in text)})
         where = ("named in " + ", ".join(refs[:6]) + (" and %d more" % (len(refs) - 6) if len(refs) > 6 else "")) if refs else "no reference outside its declaration"
-        rep.warn("not-sold", item, "%s (%s) is never sold: patrons and recovery by tier only; %s. Mark it story/encounter-only in check-allow.json, or place it"
+        rep.warn("not-sold", item, "%s (%s) is never sold, and patrons and recovery never hand it out either (they wait on its station too); %s. Mark it story/encounter-only in check-allow.json, or place it"
                  % (names.get(item), tiers.get(item, "?").title(), where))
 
     # Known gaps that clear themselves once the code consults the ladder.
@@ -317,6 +319,31 @@ def self_test():
     for needle in ("has 11 seats", "special 'nothing'", "belt 'sp' is not a thrown", "has no suits", "@missing is not in strings",
                    "placed twice", "reach type 'moon'", "card loadout-card:weapon:weapons:c has no placement"):
         expect("validate finds: " + needle, needle in errs)
+    # Shuttle parts: a block of their own, translated ids, sellable parts only, and every machine placed.
+    boats = ladder.patch(full, {}, {"boat-part:tuned_drive": "relief", "boat-part:wide_emitter": "none"})
+    brows = ladder.rows(boats, SAMPLE_ENUMS, stations)
+    expect("boat rows read as boat, after the patterns",
+           [(r["kind"], r["id"]) for r in brows][-2:] == [("boat", "boat:tuned_drive"), ("boat", "boat:wide_emitter")])
+    expect("boat ids translate", kitdata.page_id("boat-part:tuned_drive", SAMPLE_ENUMS) == "boat:tuned_drive"
+           and kitdata.game_id("boat:tuned_drive", SAMPLE_ENUMS) == "boat-part:tuned_drive")
+    machines = {"mech-pattern:internal:internal.liner", "boat-part:tuned_drive", "boat-part:wide_emitter"}
+    bknown = dict(known, boatParts={"tuned_drive", "wide_emitter", "boat_lrm_10"}, machines=machines)
+    expect("placed machines validate ('none' counts as placed)", kitdata.validate(boats, cards, bknown) == [])
+    bad_boats = ladder.patch(boats, {}, {"boat-part:standard_drive": "start"})
+    berrs = "\n".join(kitdata.validate(bad_boats, cards, dict(bknown, machines=machines | {"boat-part:boat_lrm_10",
+                                                                                          "mech-pattern:vehicle:x"})))
+    for needle in ("(boat-part:standard_drive): names no boat part the store can sell",
+                   "machine boat-part:boat_lrm_10 has no placement", "machine mech-pattern:vehicle:x has no placement"):
+        expect("validate finds: " + needle, needle in berrs)
+    stray = json.loads(json.dumps(boats))
+    stray["placements"].append({"item": "shuttle:x", "station": "start"})
+    expect("validate names the three prefixes", "is not a loadout-card:, mech-pattern: or boat-part: id"
+           in "\n".join(kitdata.validate(stray, cards, bknown)))
+    parts = kitdata.boat_parts()
+    expect("the starter parts are never sellable", not {"standard_drive", "heavy_cradle", "heavy_lift_frame", "door_heavy_mg"}
+           & set(kitdata.offerable_boat_parts(parts)) and "boat_lrm_10" in kitdata.offerable_boat_parts(parts))
+    expect("boat tiers map to access", [kitdata.boat_access(t) for t in (1, 2, 3, 4)] == ["COMMON", "COMMON", "ADVANCED", "PRESTIGE"])
+
     page = {"weapon": [{"id": "weapons:a", "members": [{"role": "R", "primary": "p", "grade": "SURPLUS", "special": "special.rocket-launcher", "belt": None}] * 12}],
             "armor": [{"id": "armor:d", "members": [{"armor": "s2" if i % 3 == 0 else "s1"} for i in range(12)]}]}
     ladder.translate_retired(page)

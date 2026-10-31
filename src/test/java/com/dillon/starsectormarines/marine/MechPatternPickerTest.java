@@ -18,14 +18,14 @@ class MechPatternPickerTest {
     private static final EquipmentAcquisitionEligibility.Progress OPENING =
             EquipmentAcquisitionEligibility.Progress.OPENING;
     private static final EquipmentAcquisitionEligibility.Progress VETERAN =
-            new EquipmentAcquisitionEligibility.Progress(15, 20);
+            new EquipmentAcquisitionEligibility.Progress(15);
 
     @Test
-    void patronOpensTiersByReputation() {
-        assertEquals(EnumSet.of(EquipmentAccessTier.COMMON),
-                tiers(drawAll("hegemony", FactionEquipmentSource.PATRON, OPENING)));
+    void patronAsksOnlyTheStationOfAnyTier() {
+        assertTrue(drawAll("hegemony", FactionEquipmentSource.PATRON, OPENING).isEmpty(),
+                "a new company's ladder opens no pattern it does not already hold");
         assertTrue(tiers(drawAll("hegemony", FactionEquipmentSource.PATRON,
-                new EquipmentAcquisitionEligibility.Progress(0, 20)))
+                new EquipmentAcquisitionEligibility.Progress(0)))
                 .contains(EquipmentAccessTier.PRESTIGE));
     }
 
@@ -33,10 +33,10 @@ class MechPatternPickerTest {
     void recoveryOpensTiersByVictories() {
         assertEquals(EnumSet.of(EquipmentAccessTier.COMMON),
                 tiers(drawAll("hegemony", FactionEquipmentSource.RECOVERY,
-                        new EquipmentAcquisitionEligibility.Progress(4, 20))));
+                        new EquipmentAcquisitionEligibility.Progress(4))));
         Set<EquipmentAccessTier> advanced = tiers(drawAll("hegemony",
                 FactionEquipmentSource.RECOVERY,
-                new EquipmentAcquisitionEligibility.Progress(5, 0)));
+                new EquipmentAcquisitionEligibility.Progress(5)));
         assertTrue(advanced.contains(EquipmentAccessTier.ADVANCED));
         assertFalse(advanced.contains(EquipmentAccessTier.PRESTIGE));
         assertTrue(tiers(drawAll("hegemony", FactionEquipmentSource.RECOVERY, VETERAN))
@@ -47,7 +47,9 @@ class MechPatternPickerTest {
     void knownOrCarriedPatternsAndStartersAreNeverOffered() {
         Set<String> drawn = new HashSet<>(drawAll("tritachyon", FactionEquipmentSource.PATRON, VETERAN));
         for (MechPattern starter : MechPattern.STARTER) assertFalse(drawn.contains(starter.id()));
-        assertEquals(MechPattern.offerable().size(), drawn.size());
+        long sold = MechPattern.offerable().stream()
+                .filter(pattern -> !KitLadder.station(pattern.id()).equals(UnlockStation.NONE)).count();
+        assertEquals(sold, drawn.size(), "every pattern the ladder places, none of those on 'none'");
 
         Set<String> held = Set.of(MechPattern.of(MechVariant.BULWARK).id(),
                 MechPattern.of(MechWeaponComponent.PL_2_AP).id());

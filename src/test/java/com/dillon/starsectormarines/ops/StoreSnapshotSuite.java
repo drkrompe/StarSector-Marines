@@ -91,9 +91,9 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
             if (station.compareTo(junction) <= 0) reached.add(station);
         }
         MarineArmory armory = new MarineArmory();
-        return EquipmentStore.shelf(new EquipmentStore.Place("independent", "jangala", 4, 0.3f, false), 0L,
+        return EquipmentStore.shelf(new EquipmentStore.Place(0.3f),
                 Set.copyOf(armory.knownLoadoutCardIds()), Set.copyOf(new MechBay().knownPatternIds()),
-                Set.copyOf(BoatParts.starterIds()), new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(), reached),
+                Set.copyOf(BoatParts.starterIds()), new EquipmentAcquisitionEligibility.Progress(0, reached),
                 List.of());
     }
 
@@ -107,7 +107,7 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
                     i == 0 ? EquipmentStore.Shelf.LISTED : EquipmentStore.Shelf.MARKET, 6500));
         }
         shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.LOADOUT, cards.get(3).id(),
-                EquipmentStore.Shelf.LICENSE, 6500));
+                EquipmentStore.Shelf.MARKET, 6500));
         if (extraCard != null) {
             shelf.add(new EquipmentStore.Offer(EquipmentStore.Kind.LOADOUT, extraCard, EquipmentStore.Shelf.MARKET, 6500));
         }

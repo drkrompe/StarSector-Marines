@@ -17,7 +17,6 @@ class StandingWarrantSystemTest {
     @Test
     void eachTraditionGrantsItsOwnWarrantOnItsOwnStanding() {
         CampaignState state = new CampaignState();
-        state.playerMrbRep = 20;
         Map<String, RepLevel> standing = Map.of(
                 "hegemony", RepLevel.COOPERATIVE,
                 "tritachyon", RepLevel.FRIENDLY);
@@ -31,12 +30,12 @@ class StandingWarrantSystemTest {
     }
 
     @Test
-    void closeStandingAloneIsNotEnough() {
+    void reputationPlaysNoPart() {
         CampaignState state = new CampaignState();
-        state.playerMrbRep = 19;
+        state.playerMrbRep = 0;
 
         new StandingWarrantSystem(id -> RepLevel.COOPERATIVE).tick(state, 3);
 
-        assertEquals(0, state.militaryWarrantCount);
+        assertTrue(MilitaryWarrants.holds(state, ArmorTradition.HEGEMONY), "close standing alone grants it");
     }
 }

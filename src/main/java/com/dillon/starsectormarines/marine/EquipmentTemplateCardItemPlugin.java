@@ -82,7 +82,6 @@ public final class EquipmentTemplateCardItemPlugin extends BaseSpecialItemPlugin
         } else {
             tooltip.addPara(MessageFormat.format(
                     Strings.get("equipmentTemplateAccessGatedRouteFmt"),
-                    EquipmentAcquisitionEligibility.requiredMrb(template.accessTier()),
                     EquipmentAcquisitionEligibility.requiredRecoveryVictories(
                             template.accessTier())), pad);
         }

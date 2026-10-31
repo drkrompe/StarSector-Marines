@@ -6,8 +6,10 @@ Written: 2026-10-30
 
 Updated: 2026-10-30 — the page's state is tracked on disk and the page can be stood up on another account (`bootstrap.py`, the `kit-ladder` skill).
 
+Updated: 2026-10-31 — boat parts are a third item kind (`boat-part:<id>`); every machine must be placed; the ladder is the only gate, so the `restricted` warning is retired.
+
 The Kit Ladder is defined in `progression-nouns.md` (Kit Ladder): the owner-authored
-table placing every loadout card and machine pattern on an unlock station. This doc
+table placing loadout cards, machine patterns and boat parts on unlock stations. This doc
 is the process around it: what is canonical, the owner's editing page, and the
 repeatable tools that move edits, notes and checks between the page and the repo.
 `heavy-equipment-progression.md` and `mechs-nouns.md` own what the patterns are.
@@ -16,14 +18,15 @@ repeatable tools that move edits, notes and checks between the page and the repo
 
 - **The data files are the single source of truth.** `mod/data/marines/kit-ladder.json`
   holds the stations in campaign order, each with its reach condition, and one
-  placement per card and machine pattern; `mod/data/marines/loadout-cards.json`
+  placement per card, machine pattern and boat part; `mod/data/marines/loadout-cards.json`
   holds every built-in weapon card (twelve seats) and tactic sheet (twelve seated
   suits, or a role plan and its suits). `KitLadderCatalog` loads and validates both at application load;
   `KitLadder`, `UnlockStation`, `SquadEquipmentDoctrines`, `ArmorSheetBundles` and
   `FirstRefit` are thin readers over it. Code still owns what is algorithmic: the
   closed set of reach condition types (`UnlockStation.Reach`), how an unseated
   sheet's suits are dealt to seats by role (`ArmorIssueResolver`), which Wayline paths exist
-  (`FirstRefit.Path`, named in saves), and each pattern's tier (`MechPattern`).
+  (`FirstRefit.Path`, named in saves), each pattern's tier (`MechPattern`), and each
+  boat part, its tier and the boat starter set (`BoatFitting`, `BoatGun`, `BoatParts`).
 - **The page is an editor over it, never a second source.** The Kit Ladder
   artifact (its url is `artifactUrl` in `tools/kits/review/published.json`;
   `python tools/kits/bootstrap.py url` prints it) is built by
@@ -31,7 +34,10 @@ repeatable tools that move edits, notes and checks between the page and the repo
   edits are saved in the artifact's database: doc `kits/state` (field `json`: the
   weapon and armour cards with their stations, grants and seats, and the `place`
   map of machine licences) and collection `weapon-notes` (one doc per weapon clip:
-  note text and status).
+  note text and status). Boat parts are a licence row of their own ("Shuttle
+  parts"), keyed on the page as `boat:<id>` (`kitdata.page_id` and `game_id`
+  translate); the tools read the parts from `BoatFitting` and `BoatGun`, and
+  `kitdata.STANDARD_BOAT_GUNS` must stay in step with `BoatParts.starterIds`.
 - **Nothing writes the repo behind the owner's back.** Page edits reach the game
   only through an export, a diff report and an apply on the owner's go-ahead.
 - **Tracked review state** lives in `tools/kits/review/`, never in living docs:
@@ -90,11 +96,20 @@ either way run `check.py`.
   `cordon-road`, `the-burn`, `broad-front`), `agreus` (`small-war-settled`). A
   new arc or beat is a Java change to `UnlockStation.Reach`; a new station on an
   existing beat is data only.
-- **Placements** use the game's store ids (`LoadoutCard.id`, `MechPattern.id`), on
-  a declared station or `none`; each item once. They are kept in blocks (weapon
-  cards, sheets, chassis, mech weapons, internals, vehicles, kits), each in
-  campaign order. An item with no placement is not sold; an id a save carries
-  that the data no longer has reads as `none`.
+- **Placements** use the game's ids (`LoadoutCard.id`, `MechPattern.id`, and
+  `BoatParts.ladderId`: `boat-part:<BoatFitting or BoatGun id>`), on a declared
+  station or `none`; each item once. They are kept in blocks (weapon cards, sheets,
+  chassis, mech weapons, internals, vehicles, boat parts), each in campaign order.
+  The ladder is the only gate: the store, patron rewards and recovery all wait on an
+  item's station, and nothing at `none` or unplaced is handed out by any of them.
+  **Every machine must be placed**: each `MechPattern.all()` id and each
+  `BoatParts.offerable()` part (an explicit `none` counts as placed); a loadout card
+  may be left out on purpose and is then never sold. Only sellable boat parts may be
+  placed: the starter set (`BoatParts.starterIds`: each slot's standard fitting, the
+  yard's own guns, and the company-issue heavy cradle and heavy lift frame) is known
+  to every company and never placed. A boat part at `start` is on sale from the
+  founding, unlike a card or pattern at `start`, which a new company already holds.
+  An id a save carries that the data no longer has reads as `none`.
 
 `loadout-cards.json`:
 
@@ -164,8 +179,8 @@ either way run `check.py`.
 - **Validation** (`KitLadderCatalog.parse`, mirrored by `kitdata.validate` in
   `check.py`) refuses the whole load with every problem listed, each naming its
   file and entry: an unknown station, reach type, arc or beat; an item, primary,
-  special, belt item or suit the game lacks; an item placed twice; a card with no
-  placement; a squad or seated sheet not of twelve; a sheet with no suits, or with
+  special, belt item or suit the game lacks; a boat part the store cannot sell; an
+  item placed twice; a card or machine with no placement; a squad or seated sheet not of twelve; a sheet with no suits, or with
   `seats` beside a derived field; a missing string key; a free pick that is not a
   Wayline path's.
 - **Saves.** Cards are referenced by id, so an edited card applies on load. A
@@ -228,8 +243,7 @@ no placement, the page's station list out of step with `kit-ladder.json`, a free
 pick off Relief, a clip firing a weapon no catalog defines.
 Warnings, each acceptable in `check-allow.json` as `"<code> <id>": "<reason>"`:
 `carrier` (a machine part before any mech chassis or vehicle hull can carry it, a
-mech weapon before any chassis), `restricted` (a Restricted card on a station still needs a warrant),
-`start-tier`, `not-sold` (a `none` item, with where else the code names it),
+mech weapon before any chassis), `start-tier`, `not-sold` (a `none` item, with where else the code names it),
 `stale` (changed since publish), `no-clip`, `no-upload`, `orphan-note`, and `gap`
 (the known code gaps below, which clear themselves once fixed).
 
@@ -302,12 +316,10 @@ artifact.
 - The spall liner and ready rack (internals since one machine, one part catalog) go on
   sale at Relief, before any vehicle hull is sold; a mech can fit them now, so they are
   no longer stranded there (`carrier`).
-- Restricted sheets still need a warrant, so "the equipment wall opens at Working
-  Passage" is not yet true for them (`restricted`).
 - The Boarding Jack is story-reserved.
-- `EquipmentCollectionCurve` grants free cards regardless of stations, and
-  `FactionEquipmentCatalog.validateReachability` still uses the old tier rules
-  (`gap`).
+- `EquipmentCollectionCurve` skips cards at `none` but still grants placed cards
+  ahead of their station, and `FactionEquipmentCatalog.validateReachability` still
+  uses the old tier rules (`gap`).
 - A submod's cards have no row, so they read as never sold.
 - The page has no way to mark a card edit accepted or declined; the owner says so
   in chat and `apply_ladder.py --cards` takes the accepted ids.

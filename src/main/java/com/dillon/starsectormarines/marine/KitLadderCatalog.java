@@ -24,13 +24,15 @@ import java.util.TreeSet;
 /**
  * The Kit Ladder and the built-in loadout cards, as authored data ({@code kit-ladder.md}, Data):
  * {@value #LADDER_PATH} holds the stations in campaign order (each with its {@link UnlockStation.Reach}) and one
- * placement per card or machine pattern; {@value #CARDS_PATH} holds the weapon cards (twelve seats each) and the
+ * placement per card, machine pattern or boat part; {@value #CARDS_PATH} holds the weapon cards (twelve seats each) and the
  * tactic sheets (their role plan and suits). The owner edits both through the Kit Ladder page and
  * {@code tools/kits/}; {@link KitLadder}, {@link UnlockStation}, {@link SquadEquipmentDoctrines},
  * {@link ArmorSheetBundles} and {@link FirstRefit} read them from here.
  *
  * <p>Loading is strict: every problem in either file is collected and the load fails with all of them, each naming
- * its file and entry, because a card that silently lost a seat or a station would ship a different game.
+ * its file and entry, because a card that silently lost a seat or a station would ship a different game. Every card
+ * and every machine item ({@link Known#machines}: each machine pattern and each boat part the store can sell) must be
+ * placed, {@code none} included; only a card may be left on {@code none} on purpose, a machine left out is an error.
  */
 public final class KitLadderCatalog {
 
@@ -135,6 +137,13 @@ public final class KitLadderCatalog {
         ArmorClass armorClass(String id);
         /** A machine pattern id the store can sell ({@link MechPattern#parse}). */
         boolean pattern(String id);
+        /** A boat part id the store can sell ({@link BoatParts#offerable}), without its {@link BoatParts#PREFIX}. */
+        boolean boatPart(String partId);
+        /**
+         * Every machine item the ladder must place, by its ladder id: each {@link MechPattern#all} id and each
+         * {@link BoatParts#offerable} part's {@link BoatParts#ladderId}.
+         */
+        Set<String> machines();
         /** A key in the mod's strings. */
         boolean string(String key);
 
@@ -164,6 +173,15 @@ public final class KitLadderCatalog {
                 }
                 @Override public boolean pattern(String id) {
                     return MechPattern.parse(id) != null;
+                }
+                @Override public boolean boatPart(String partId) {
+                    return BoatParts.offerable().contains(partId);
+                }
+                @Override public Set<String> machines() {
+                    Set<String> ids = new LinkedHashSet<>();
+                    for (MechPattern pattern : MechPattern.all()) ids.add(pattern.id());
+                    for (String part : BoatParts.offerable()) ids.add(BoatParts.ladderId(part));
+                    return ids;
                 }
                 @Override public boolean string(String key) {
                     return Strings.has(key);
@@ -261,8 +279,13 @@ public final class KitLadderCatalog {
                 if (!cardIds.contains(item)) problems.add(where + ": names no card in " + CARDS_FILE);
             } else if (item.startsWith(MechPattern.PREFIX)) {
                 if (!known.pattern(item)) problems.add(where + ": names no machine pattern the store can sell");
+            } else if (item.startsWith(BoatParts.PREFIX)) {
+                if (!known.boatPart(item.substring(BoatParts.PREFIX.length()))) {
+                    problems.add(where + ": names no boat part the store can sell");
+                }
             } else {
-                problems.add(where + ": is neither a " + LoadoutCard.PREFIX + " nor a " + MechPattern.PREFIX + " id");
+                problems.add(where + ": is not a " + LoadoutCard.PREFIX + ", " + MechPattern.PREFIX + " or "
+                        + BoatParts.PREFIX + " id");
                 continue;
             }
             if (placements.putIfAbsent(item, station) != null) problems.add(where + ": placed twice");
@@ -270,6 +293,11 @@ public final class KitLadderCatalog {
         for (String card : cardIds) {
             if (!placements.containsKey(card)) {
                 problems.add(LADDER_FILE + ": card " + card + " has no placement (place it, or on 'none')");
+            }
+        }
+        for (String machine : known.machines()) {
+            if (!placements.containsKey(machine)) {
+                problems.add(LADDER_FILE + ": machine " + machine + " has no placement (place it, or on 'none')");
             }
         }
         problems.throwIfAny();
@@ -623,7 +651,7 @@ public final class KitLadderCatalog {
         return id != null ? stationById.get(id) : null;
     }
 
-    /** Every placement, card and pattern ids alike, in file order. */
+    /** Every placement, card, pattern and boat part ids alike, in file order. */
     public Map<String, UnlockStation> placements() {
         return placements;
     }

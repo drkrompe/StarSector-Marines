@@ -50,7 +50,7 @@ class MechPatternRecoveryCatalogTest {
     private static List<LootCandidate> candidates(LootRollRequest request, Set<String> unavailable,
                                                   int victories) {
         return MechPatternRecoveryCatalog.candidates(request, unavailable, 5_000, 1f, "card.png",
-                new EquipmentAcquisitionEligibility.Progress(victories, 0));
+                new EquipmentAcquisitionEligibility.Progress(victories));
     }
 
     private static LootRollRequest request(RiskLevel risk) {

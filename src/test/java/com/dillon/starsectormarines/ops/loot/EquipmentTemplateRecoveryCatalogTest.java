@@ -87,7 +87,7 @@ class EquipmentTemplateRecoveryCatalogTest {
                                                    int victories) {
         return EquipmentTemplateRecoveryCatalog.candidates(
                 request, unavailable, 5_000, 1f, "template.png",
-                new EquipmentAcquisitionEligibility.Progress(victories, 20));
+                new EquipmentAcquisitionEligibility.Progress(victories));
     }
 
     private static LootRollRequest request(String factionId, RiskLevel risk) {

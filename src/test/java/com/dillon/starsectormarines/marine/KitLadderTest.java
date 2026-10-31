@@ -22,13 +22,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 class KitLadderTest {
 
     @Test
-    void everyCardAndPatternHasOneStationAndEveryRowNamesOne() {
+    void everyCardPatternAndSellableBoatPartHasOneStationAndEveryRowNamesOne() {
         Set<String> items = new HashSet<>();
         for (LoadoutCard card : LoadoutCards.all()) items.add(card.id());
         for (MechPattern pattern : MechPattern.all()) items.add(pattern.id());
+        for (String part : BoatParts.offerable()) items.add(BoatParts.ladderId(part));
         for (String id : items) assertTrue(KitLadder.stations().containsKey(id), id + " has no Kit Ladder station");
         for (String id : KitLadder.stations().keySet()) {
-            assertTrue(LoadoutCard.parse(id) != null || MechPattern.parse(id) != null, id + " names nothing");
+            boolean boatPart = id.startsWith(BoatParts.PREFIX)
+                    && BoatParts.offerable().contains(id.substring(BoatParts.PREFIX.length()));
+            assertTrue(LoadoutCard.parse(id) != null || MechPattern.parse(id) != null || boatPart, id + " names nothing");
         }
     }
 
@@ -36,7 +39,10 @@ class KitLadderTest {
     void theStartIsWhatANewCompanyKnows() {
         Set<String> start = new HashSet<>();
         for (Map.Entry<String, UnlockStation> row : KitLadder.stations().entrySet()) {
-            if (row.getValue().equals(UnlockStation.START)) start.add(row.getKey());
+            // A boat part at the start is on sale from the founding; the boat starter set is never placed.
+            if (row.getValue().equals(UnlockStation.START) && !row.getKey().startsWith(BoatParts.PREFIX)) {
+                start.add(row.getKey());
+            }
         }
         Set<String> known = new HashSet<>(new MechBay().knownPatternIds());
         known.addAll(new MarineArmory().knownLoadoutCardIds());
@@ -55,22 +61,24 @@ class KitLadderTest {
     }
 
     @Test
-    void theStoreSellsAPatternOnlyOnceItsStationIsPassedAndNeverOneAtNone() {
+    void noChannelHandsOutAPatternBeforeItsStationOrOneAtNone() {
         UnlockStation relief = UnlockStation.byId("relief");
         Set<UnlockStation> early = Set.of(UnlockStation.START, relief);
-        var progress = new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(), early);
+        var progress = new EquipmentAcquisitionEligibility.Progress(0, early);
         List<String> drawn = StoreStock.patterns(Set.of(), progress);
         assertFalse(drawn.isEmpty());
         for (String id : drawn) assertEquals(relief, KitLadder.station(id), id);
         List<String> late = StoreStock.patterns(Set.of(),
-                new EquipmentAcquisitionEligibility.Progress(0, 0, Set.of(), UnlockStation.all()));
+                new EquipmentAcquisitionEligibility.Progress(0, UnlockStation.all()));
         for (String id : late) assertNotEquals(UnlockStation.NONE, KitLadder.station(id), id);
         String neverSold = KitLadder.stations().entrySet().stream()
                 .filter(row -> row.getValue().equals(UnlockStation.NONE) && MechPattern.parse(row.getKey()) != null)
                 .map(Map.Entry::getKey).findFirst().orElseThrow();
-        assertTrue(MechPatternPicker.pick("independent", FactionEquipmentSource.RECOVERY, 500, 3L, Set.of(),
-                new EquipmentAcquisitionEligibility.Progress(99, 99)).contains(neverSold),
-                "recovery is not the store: it still reaches what the ladder never sells");
+        for (FactionEquipmentSource source : FactionEquipmentSource.values()) {
+            assertFalse(MechPatternPicker.pick("independent", source, 500, 3L, Set.of(),
+                    new EquipmentAcquisitionEligibility.Progress(99)).contains(neverSold),
+                    source + " never hands out what the ladder never sells");
+        }
         assertEquals(UnlockStation.NONE, KitLadder.station("loadout-card:weapon:weapons:retired"),
                 "an id an old save still carries reads as never sold");
     }
