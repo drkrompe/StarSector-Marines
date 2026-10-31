@@ -2,7 +2,7 @@
 
 Status: IMPLEMENTED — catalog sweep complete on the Alpha route; translation review and live acceptance open
 Written: 2026-10-12
-Updated: 2026-10-31 — Simplified Chinese translation mod: opening dialogue, mission board, briefing, muster, results and debrief; overlay parity guard
+Updated: 2026-10-31 — Simplified Chinese translation mod: opening, board, briefing, muster, results, debrief and battle UI; overlay parity guard
 
 Read `company-view-nouns.md`. `Strings` and the marineOps namespace in
 strings.json are the translation authority; translation mods override keys.
@@ -88,8 +88,12 @@ Simplified Chinese (`zh_CN`, owner's first language) has these slices:
   `DebriefRewardPrompt` read, with their markup, including each arc's debrief
   transcript. Not yet linted: `mission-flow-localization` fails at the salvage
   picker before the results pages render.
-- [ ] Battle UI: `battleDirect*`, `battleComms*`, `battleWs*`, objective
-  names and markers, the Relief and Dust Ledger HUDs.
+- [x] Battle UI: every `battle*` key and every key the battle overlays,
+  markers, comms, direct control, warship and tender panels, dolls and deck
+  plans read (`ops/Battle*`, `ops/battleview`, `battle/ui`, the battle
+  markup). Expanded-copy lint: seven clipped spots in the HUD overlay panel.
+- [ ] Mission objective picture: `objective*` names, steps, measures and
+  blockers (about 340 keys), and the Relief and Dust Ledger HUDs.
 - [ ] Company rooms' own labels: Barracks, Armory, Shuttle Deck, Mech Lab,
   ship transfer and refit (the bulk of the `opening*` keys).
 
