@@ -95,6 +95,62 @@ public final class GateYardLayout {
         return new Laid(apron, yard, staging, new int[]{wx, wy}, entry, turn, stop);
     }
 
+    /**
+     * A postern ({@link GateYard#posterns}).
+     *
+     * @param apron its cells from the wall's line out across the glacis
+     * @param way   the ground just inside it kept clear of buildings
+     * @param gate  its middle cell on the wall's line
+     */
+    public record Postern(List<int[]> apron, List<int[]> way, int[] gate) {
+        public Postern {
+            apron = List.copyOf(apron);
+            way = List.copyOf(way);
+        }
+    }
+
+    /**
+     * The postern of place {@code who} in the middle of its wall's straight run on side {@code side}: the cells of
+     * its own ground furthest out that way, the middle one along the side. {@code null} when the place has no ground
+     * on that side with its own ground behind it.
+     */
+    public static Postern postern(int[][] claim, int[][] own, int who, int width, int height, Side side,
+                                  int gateWidth, int depth) {
+        int nx = side.dx, ny = side.dy;
+        int lx = Math.abs(ny), ly = Math.abs(nx);
+        long far = Long.MIN_VALUE;
+        List<int[]> face = new ArrayList<>();
+        for (int x = 0; x < width; x++) {
+            for (int y = 0; y < height; y++) {
+                if (!in(own, who, x, y, width, height) || in(own, who, x + nx, y + ny, width, height)) continue;
+                long reach = (long) x * nx + (long) y * ny;
+                if (reach > far) {
+                    far = reach;
+                    face.clear();
+                }
+                if (reach == far) face.add(new int[]{x, y});
+            }
+        }
+        if (face.isEmpty()) return null;
+        face.sort((a, b) -> Integer.compare(a[0] * lx + a[1] * ly, b[0] * lx + b[1] * ly));
+        int[] at = face.get(face.size() / 2);
+        List<int[]> apron = new ArrayList<>();
+        List<int[]> way = new ArrayList<>();
+        for (int t = -(gateWidth - 1) / 2; t <= gateWidth / 2; t++) {
+            for (int k = 0; k <= Fortification.GLACIS + 1; k++) {
+                int x = at[0] + nx * k + lx * t, y = at[1] + ny * k + ly * t;
+                if (!in(claim, who, x, y, width, height)) break;
+                apron.add(new int[]{x, y});
+            }
+            for (int k = 1; k <= depth; k++) {
+                int x = at[0] - nx * k + lx * t, y = at[1] - ny * k + ly * t;
+                if (interior(own, who, x, y, width, height)) way.add(new int[]{x, y});
+            }
+        }
+        if (way.isEmpty()) return null;
+        return new Postern(apron, way, at);
+    }
+
     /** The staging ground between lateral offsets {@code from..to} of the gate, as deep as the yard. */
     private static List<int[]> staging(int[][] own, int who, int width, int height, GateYard spec, Side facing,
                                        int wx, int wy, int from, int to) {

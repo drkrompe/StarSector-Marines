@@ -1,10 +1,12 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -120,5 +122,82 @@ class CordonCampTest {
         assertTrue(CordonConvoys.parks(10, 12, false));
         assertFalse(CordonConvoys.parks(20, 12, false));
         assertTrue(CordonConvoys.parks(20, 12, true));
+    }
+
+    /**
+     * A 140 by 120 open map: the corridor up x 20 from the rear edge to y 80, east along it to x 120 and up to the
+     * front, the line at y 100; a base's buildings at x 70..90, y 40..60.
+     */
+    private static final int[] BASE = {70, 40, 90, 60};
+
+    private static List<int[]> bent() {
+        List<int[]> road = new ArrayList<>();
+        for (int y = 1; y <= 80; y++) road.add(new int[]{20, y});
+        for (int x = 21; x <= 120; x++) road.add(new int[]{x, 80});
+        for (int y = 81; y < 118; y++) road.add(new int[]{120, y});
+        return road;
+    }
+
+    private static NavigationGrid open(int w, int h) {
+        NavigationGrid grid = new NavigationGrid(w, h);
+        for (int y = 0; y < h; y++) for (int x = 0; x < w; x++) grid.setWalkable(x, y, true);
+        return grid;
+    }
+
+    private static int gap(List<int[]> road) {
+        for (int i = 0; i < road.size(); i++) if (road.get(i)[1] >= 100) return i;
+        return road.size() - 1;
+    }
+
+    @Test
+    void besideTheBaseTheCampStandsWestOfItAcrossAnApronWithItsOwnRoadOntoTheCorridor() {
+        List<int[]> road = bent();
+        CordonCamp.Beside beside = CordonCamp.beside(open(140, 120), (x, y) -> false, road, gap(road), 1, BASE,
+                (x, y) -> true, List.of());
+        assertNotNull(beside);
+        CordonCamp.Plan plan = beside.plan();
+        assertEquals(BASE[0] - CordonCamp.APRON - 1, plan.cx() + CordonCamp.HALF, "an apron between camp and base");
+        assertEquals((BASE[1] + BASE[3]) / 2, plan.cy(), "level with the base");
+        List<int[]> route = beside.corridor();
+        assertArrayEquals(new int[]{plan.cx(), plan.cy()}, route.get(0), "the road sets out from the camp's middle");
+        assertArrayEquals(road.get(road.size() - 1), route.get(route.size() - 1), "and runs on to the town");
+        for (int i = 1; i < route.size(); i++) {
+            int[] a = route.get(i - 1), b = route.get(i);
+            assertEquals(1, Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]), "a drivable way, cell by cell");
+        }
+        int[] drop = route.get(plan.dropIndex());
+        assertEquals(BASE[0] - CordonCamp.APRON + CordonCamp.APRON / 2 - 1, drop[0], "the trucks stop in the apron's middle");
+        assertEquals(plan.cy(), drop[1]);
+        assertTrue(plan.dropIndex() > CordonConvoys.PARK_BACK, "with room behind for the waiting trucks");
+        for (CordonCamp.Bag bag : plan.bags()) {
+            assertFalse(bag.y() == plan.cy() && bag.x() > plan.cx(), "the ring is open where the road leaves it");
+        }
+        assertEquals(4, plan.bags().stream().filter(b -> b.art().startsWith("corner-")).count());
+    }
+
+    @Test
+    void aBaseWithNoRoomWestTakesTheCampOnItsEast() {
+        List<int[]> road = bent();
+        List<int[]> keepOff = List.of(new int[]{40, 50});
+        CordonCamp.Beside beside = CordonCamp.beside(open(140, 120), (x, y) -> false, road, gap(road), 1, BASE,
+                (x, y) -> x > 60, keepOff);
+        assertNotNull(beside);
+        assertEquals(BASE[2] + CordonCamp.APRON + 1, beside.plan().cx() - CordonCamp.HALF);
+    }
+
+    @Test
+    void noBaseOrNoWayMeansNoCampBesideIt() {
+        List<int[]> road = bent();
+        assertNull(CordonCamp.beside(open(140, 120), (x, y) -> false, road, gap(road), 1, null, (x, y) -> true,
+                List.of()));
+        assertNull(CordonCamp.beside(new NavigationGrid(140, 120), (x, y) -> false, road, gap(road), 1, BASE,
+                (x, y) -> true, List.of()), "nothing drivable, no way to the corridor");
+    }
+
+    @Test
+    void theBasesFootprintIsTheBoundsOfItsBuildings() {
+        assertArrayEquals(new int[]{95, 102, 110, 104},
+                CordonCamp.footprint((x, y) -> x >= 95 && x <= 110 && y >= 102 && y <= 104, 100, 100));
+        assertNull(CordonCamp.footprint((x, y) -> x > 200, 100, 100), "buildings beyond its reach are not its own");
     }
 }

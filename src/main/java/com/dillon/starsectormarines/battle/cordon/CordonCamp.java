@@ -11,8 +11,10 @@ import com.dillon.starsectormarines.ops.RiskLevel;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Random;
 import java.util.Set;
 
@@ -26,9 +28,12 @@ import java.util.Set;
  * loose props, the road through it kept clear: a sandbag ring on its edge, whole round with its corner pieces and broken
  * only where the road crosses it; the line's heavy machine gun on each inner corner (the redoubts' corner gun); an
  * aid station, a field HQ and a supply dump on its rear half either side of the road; and two allied teams, one along
- * its side toward the front and one along its rear. It is found at setup round where the convoys would set out
- * ({@link #plan}, pure), on the nearest corridor cell whose square is mostly ground it can clear and stands clear of the
- * landing field, the logistics base's apron and the air base.
+ * its side toward the front and one along its rear. It stands beside the logistics base, on its west side first,
+ * with an {@link #APRON} of open ground between them where vehicles are set down, built and drive out, and its own
+ * road out of its middle across the apron to the corridor ({@link #beside}); where the base has no room beside it or
+ * no way to the corridor, on the corridor {@link #BEHIND_GAP} cells behind the line ({@link #plan}, pure). Either way
+ * its square is mostly ground it can clear and stands clear of the landing field, the base's berths and muster and
+ * the air base.
  *
  * <p>It is meant to hold against the swarm's ordinary pressure, which the line stops well short of it, and to fall
  * to a tide that breaks through: four guns and twelve rifles behind bags, no wall (UNTUNED: {@link #GUARDS} and the
@@ -60,6 +65,20 @@ public final class CordonCamp {
     static final String CORNER_GUN = ColonyMilitia.EMPLACEMENT_STRUCTURE;
     /** Cells the camp's square keeps from the map's edge. */
     static final int EDGE = 4;
+    /**
+     * Cells of ground between the camp's square and the logistics base's buildings: the apron trucks are set down on,
+     * vehicles are built out onto and drive away across (owner, 2026-10-31: to the left of the logistics base, with a
+     * gap for vehicles to be created at). UNTUNED.
+     */
+    static final int APRON = 10;
+    /** Cells from the base's seed its buildings are looked for, to take its footprint. */
+    static final int BASE_REACH = 26;
+    /** Cells the camp's middle may slide along the base's side from level with the base's middle. */
+    static final int BESIDE_SLIDE = 24;
+    /** Squares beside the base whose way to the corridor is searched before giving up on the base. */
+    static final int BESIDE_TRIES = 6;
+    /** Corridor cells short of the gap the camp's road may join the corridor, at the nearest. */
+    static final int JOIN_SHORT = 10;
 
     /** A prop of a station: its art and its cell offset and footprint from the station's anchor. */
     record Piece(String doodad, int dx, int dy, int width, int height) { }
@@ -88,7 +107,7 @@ public final class CordonCamp {
             new Piece("doodad.industrial-drum-cluster", 1, 1, 1, 1),
             new Piece("doodad.industrial-crate-stack", 2, 1, 1, 1));
 
-    /** Whether a cell is open ground the camp may stand on. */
+    /** A test on a cell: open ground the camp may stand on, road under a truck, a building. */
     public interface Open {
         boolean at(int x, int y);
     }
@@ -100,11 +119,14 @@ public final class CordonCamp {
     public record Bag(int x, int y, String art) { }
 
     /**
-     * Where the camp stands: the corridor cell the trucks stop at (its middle), its open cells, the ring's bags, where
+     * Where the camp stands: the corridor cell the trucks stop at (its middle, or its apron beside the base), its open cells, the ring's bags, where
      * the people wait (nearest the middle first), the crate stacks' cells and the guards' cells.
      */
     public record Plan(int dropIndex, int cx, int cy, List<int[]> cells, List<Bag> bags, List<int[]> waiting,
                 List<int[]> guns, List<int[]> guards, List<int[]> rearGuards, List<Prop> props) { }
+
+    /** A camp beside the base: its plan, and the convoys' corridor from its middle (its road, then the corridor's). */
+    public record Beside(Plan plan, List<int[]> corridor) { }
 
     private final Plan plan;
     private int nextHome;
@@ -164,6 +186,87 @@ public final class CordonCamp {
             return lay(index, c[0], c[1], front, corridor, cells);
         }
         return null;
+    }
+
+    /**
+     * The logistics base's footprint {x0, y0, x1, y1}: the bounds of the buildings within {@link #BASE_REACH} of its
+     * seed, or {@code null} where there are none.
+     */
+    public static int[] footprint(Open building, int seedX, int seedY) {
+        int[] b = {Integer.MAX_VALUE, Integer.MAX_VALUE, Integer.MIN_VALUE, Integer.MIN_VALUE};
+        for (int y = seedY - BASE_REACH; y <= seedY + BASE_REACH; y++) {
+            for (int x = seedX - BASE_REACH; x <= seedX + BASE_REACH; x++) {
+                if (!building.at(x, y)) continue;
+                b[0] = Math.min(b[0], x);
+                b[1] = Math.min(b[1], y);
+                b[2] = Math.max(b[2], x);
+                b[3] = Math.max(b[3], y);
+            }
+        }
+        return b[2] < b[0] ? null : b;
+    }
+
+    /**
+     * Finds the camp beside the logistics base {@code base} (its {@link #footprint}): on its west side first, then
+     * its east, an {@link #APRON} clear of its buildings, level with its middle or the nearest to that within
+     * {@link #BESIDE_SLIDE} (the rear way first on a tie), on the map, {@link #KEEP_OFF} from every point in
+     * {@code keepOff}, at least {@link #MIN_OPEN} ground it can clear, with open ground from its middle to its side
+     * facing the base. Its road runs from its middle straight out to the apron's middle, where the trucks stop, then
+     * the cheapest way a truck can drive ({@link CordonCorridor#search}) to the corridor at least {@link #JOIN_SHORT}
+     * short of the gap, and on along the corridor to the town. {@code null} where no square has room and a way.
+     *
+     * @param road  road under a truck, which the way keeps to where it can
+     * @param front +1 or -1, the front's way in y
+     */
+    public static Beside beside(NavigationGrid grid, Open road, List<int[]> corridor, int gapIndex, int front,
+                                int[] base, Open open, List<int[]> keepOff) {
+        if (base == null || corridor.isEmpty()) return null;
+        Map<Long, Integer> joins = new HashMap<>();
+        for (int i = 1; i <= Math.min(corridor.size() - 1, gapIndex - JOIN_SHORT); i++) {
+            joins.putIfAbsent(key(corridor.get(i)[0], corridor.get(i)[1]), i);
+        }
+        if (joins.isEmpty()) return null;
+        int width = grid.getWidth(), height = grid.getHeight(), midY = (base[1] + base[3]) / 2, tries = 0;
+        List<Integer> slide = new ArrayList<>();
+        for (int d = -BESIDE_SLIDE; d <= BESIDE_SLIDE; d++) slide.add(d);
+        slide.sort(Comparator.<Integer>comparingInt(Math::abs).thenComparingInt(d -> d * front));
+        for (int side : new int[]{-1, 1}) {
+            int cx = side < 0 ? base[0] - APRON - 1 - HALF : base[2] + APRON + 1 + HALF, out = -side;
+            for (int d : slide) {
+                int cy = midY + d;
+                if (cx - HALF < EDGE || cy - HALF < EDGE || cx + HALF >= width - EDGE || cy + HALF >= height - EDGE) {
+                    continue;
+                }
+                if (crowded(cx, cy, keepOff)) continue;
+                List<int[]> cells = new ArrayList<>();
+                for (int y = cy - HALF; y <= cy + HALF; y++)
+                    for (int x = cx - HALF; x <= cx + HALF; x++) if (open.at(x, y)) cells.add(new int[]{x, y});
+                int across = 2 * HALF + 1;
+                if (cells.size() < MIN_OPEN * across * across) continue;
+                // Straight out of the middle to the apron's middle, where the trucks stop, clear of the ring either side.
+                int laneEnd = HALF + APRON / 2;
+                boolean lane = true;
+                for (int k = 0; k <= HALF && lane; k++) lane = open.at(cx + out * k, cy);
+                for (int k = HALF + 1; k <= laneEnd && lane; k++) lane = CordonCorridor.drivable(grid, cx + out * k, cy);
+                if (!lane) continue;
+                if (tries++ >= BESIDE_TRIES) return null;
+                List<int[]> way = CordonCorridor.search(grid, road::at,
+                        List.of(new int[]{cx + out * (laneEnd + 1), cy}), (x, y) -> joins.containsKey(key(x, y)));
+                if (way == null) continue;
+                int[] join = way.get(way.size() - 1);
+                List<int[]> route = new ArrayList<>();
+                for (int k = 0; k <= laneEnd; k++) route.add(new int[]{cx + out * k, cy});
+                route.addAll(way);
+                route.addAll(corridor.subList(joins.get(key(join[0], join[1])) + 1, corridor.size()));
+                return new Beside(lay(laneEnd, cx, cy, front, route, cells), List.copyOf(route));
+            }
+        }
+        return null;
+    }
+
+    /** Road under a truck on {@code topology}, for {@link #beside}. */
+    public static Open road(CellTopology topology) {
+        return (x, y) -> CordonCorridor.road(topology, x, y);
     }
 
     /** The corridor cell the camp is wanted on: {@link #BEHIND_GAP} behind the gap, or the entry where it is nearer. */

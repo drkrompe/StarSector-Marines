@@ -636,11 +636,17 @@ public final class CordonSetup {
             sequence.attachTown(town.town());
             sequence.attachStaging(town.staging());
             sequence.attachYard(CordonGateYard.of(cordon.map().layout));
-            CordonConvoys convoys = convoys(sim, cordon, town, timetable, logistics);
+            // The safe camp beside the logistics base, with its own road onto the corridor where it has one.
+            List<int[]> campKeepOff = campKeepOff(logistics, sequence.airBase(), pads);
+            CordonCamp.Beside beside = besideBase(sim, cordon, logistics, campKeepOff);
+            CordonConvoys convoys = convoys(sim, cordon, beside != null ? beside.corridor() : cordon.corridor(), town,
+                    timetable, logistics);
             sequence.attachConvoys(convoys);
             sequence.onAbandonTown(convoys::abandonTown);
-            convoys.shelterAt(camp(sim, cordon, convoys, logistics, sequence.airBase(), pads));
-            int[] rally = rally(sim, cordon, convoys.gapIndex());
+            convoys.shelterAt(beside != null
+                    ? CordonCamp.raise(sim, beside.plan(), GARRISON_RISK, new Random(cordon.battleSeed() ^ CAMP_SALT))
+                    : camp(sim, cordon, convoys, campKeepOff));
+            int[] rally = rally(sim, cordon, convoys.corridor(), convoys.gapIndex());
             sequence.attachFallBack(rally[0], rally[1], CordonFront.lineY(cordon.plan()),
                     CordonFront.frontward(cordon.plan()));
             // The pull-out zone at the base's muster yard is where the company falls back to and must hold to finish.
@@ -791,18 +797,10 @@ public final class CordonSetup {
      * The Road's relief convoys on the corridor to the cut-off town's compound at its far end, the town's people
      * waiting there and its militia among the defenders {@code town} seated ({@code cordon-nouns.md}, Convoy).
      */
-    static CordonConvoys convoys(BattleSimulation sim, CordonMap cordon, CordonTownGarrison.Held town,
-                                 CordonSequence.Timetable timetable, CordonLogistics base) {
-        List<int[]> corridor = cordon.corridor();
-        float line = CordonFront.lineY(cordon.plan());
+    static CordonConvoys convoys(BattleSimulation sim, CordonMap cordon, List<int[]> corridor,
+                                 CordonTownGarrison.Held town, CordonSequence.Timetable timetable, CordonLogistics base) {
         int frontward = CordonFront.frontward(cordon.plan());
-        int gapIndex = corridor.size() - 1;
-        for (int i = 0; i < corridor.size(); i++) {
-            if ((corridor.get(i)[1] - line) * frontward >= 0) {
-                gapIndex = i;
-                break;
-            }
-        }
+        int gapIndex = gapIndex(cordon, corridor);
         // The first convoy on the timetable; the rest are called while people are still trapped.
         int firstDepart = Math.round(timetable.convoySeconds().get(0) / BattleSimulation.TICK_DT);
         CordonConvoys convoys = new CordonConvoys(corridor, convoyEntry(corridor, gapIndex, base), gapIndex, firstDepart,
@@ -820,12 +818,10 @@ public final class CordonSetup {
     }
 
     /**
-     * The Road's safe camp behind the line ({@code cordon-nouns.md}, Camp), round where the convoys set out, clear of the
-     * company's pads, the logistics base's berths and door and the air base's stands; {@code null} where the rear has
-     * no ground for it, and the convoys then bring the people back to the entry as before.
+     * What the safe camp keeps clear of: the company's pads, the logistics base's berths, door and muster yard, and the
+     * air base's stands.
      */
-    static CordonCamp camp(BattleSimulation sim, CordonMap cordon, CordonConvoys convoys, CordonLogistics logistics,
-                           CordonAirBase air, List<LandingPad> pads) {
+    static List<int[]> campKeepOff(CordonLogistics logistics, CordonAirBase air, List<LandingPad> pads) {
         List<int[]> keepOff = new ArrayList<>();
         for (LandingPad pad : pads) keepOff.add(new int[]{pad.centerX, pad.centerY});
         if (logistics != null) {
@@ -834,10 +830,45 @@ public final class CordonSetup {
             keepOff.add(new int[]{logistics.musterX(), logistics.musterY()});
         }
         if (air != null) for (FieldAirBase.Stand stand : air.field().stands()) keepOff.add(new int[]{stand.x(), stand.y()});
+        return keepOff;
+    }
+
+    /**
+     * The Road's safe camp beside the logistics base ({@code cordon-nouns.md}, Camp; {@link CordonCamp#beside}): its
+     * plan and the convoys' corridor out of it, or {@code null} where the map has no base or no room and way beside it.
+     */
+    static CordonCamp.Beside besideBase(BattleSimulation sim, CordonMap cordon, CordonLogistics logistics,
+                                        List<int[]> keepOff) {
+        if (logistics == null) return null;
+        Precinct base = null;
+        for (Precinct p : cordon.plan().precincts()) if (p.name().equals(CordonPlan.BASE_PLACE)) base = p;
+        if (base == null) return null;
+        CellTopology topology = sim.getTopology();
+        int[] footprint = CordonCamp.footprint((x, y) -> topology.inBounds(x, y) && topology.getBuildingId(x, y) != 0,
+                base.seedX(), base.seedY());
+        List<int[]> corridor = cordon.corridor();
+        return CordonCamp.beside(sim.getGrid(), CordonCamp.road(topology), corridor, gapIndex(cordon, corridor),
+                CordonFront.frontward(cordon.plan()), footprint, CordonCamp.open(sim), keepOff);
+    }
+
+    /**
+     * The Road's safe camp behind the line where there is none beside the base ({@code cordon-nouns.md}, Camp), round
+     * where the convoys set out, clear of {@code keepOff}; {@code null} where the rear has no ground for it, and the
+     * convoys then bring the people back to the entry as before.
+     */
+    static CordonCamp camp(BattleSimulation sim, CordonMap cordon, CordonConvoys convoys, List<int[]> keepOff) {
         CordonCamp.Plan plan = CordonCamp.plan(convoys.corridor(), convoys.entry(), convoys.gapIndex(),
                 CordonFront.frontward(cordon.plan()), sim.getGrid().getWidth(), sim.getGrid().getHeight(),
                 CordonCamp.open(sim), keepOff);
         return CordonCamp.raise(sim, plan, GARRISON_RISK, new Random(cordon.battleSeed() ^ CAMP_SALT));
+    }
+
+    /** The first cell of {@code corridor} on the line or past it: where it crosses the line (its last where none is). */
+    static int gapIndex(CordonMap cordon, List<int[]> corridor) {
+        float line = CordonFront.lineY(cordon.plan());
+        int frontward = CordonFront.frontward(cordon.plan());
+        for (int i = 0; i < corridor.size(); i++) if ((corridor.get(i)[1] - line) * frontward >= 0) return i;
+        return corridor.size() - 1;
     }
 
     private static final long CAMP_SALT = 0x43414D50L;
@@ -866,8 +897,7 @@ public final class CordonSetup {
      * open cell nearest the corridor a reserve's depth behind where it crosses the line, so the way back is the road
      * the convoys drove.
      */
-    static int[] rally(BattleSimulation sim, CordonMap cordon, int gapIndex) {
-        List<int[]> corridor = cordon.corridor();
+    static int[] rally(BattleSimulation sim, CordonMap cordon, List<int[]> corridor, int gapIndex) {
         int[] crossing = corridor.get(Math.min(gapIndex, corridor.size() - 1));
         int x = crossing[0], y = crossing[1] - CordonFront.frontward(cordon.plan()) * RESERVE_DEPTH;
         for (int r = 0; r < WIDTH; r++) {

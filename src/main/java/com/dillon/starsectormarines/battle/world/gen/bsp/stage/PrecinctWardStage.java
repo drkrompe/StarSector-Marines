@@ -90,12 +90,20 @@ public final class PrecinctWardStage implements GenStage {
             // A gate yard: its gate widened across the glacis and through the wall, laid before the place packs.
             GateYardLayout.Laid yard = square && precinct.isProgrammed() && precinct.fortification().yard() != null
                     ? gateYard(claim, own, road, ownRoad, i, precinct.fortification(), ctx) : null;
+            List<GateYardLayout.Postern> posterns = yard == null ? List.of()
+                    : posterns(claim, own, road, ownRoad, i, precinct.fortification(), yard, ctx);
             PrecinctFill.Masks masks = null;
             FortressInterior.Result result = null;
             if (precinct.isProgrammed()) {
                 masks =
                         PrecinctFill.masks(own, road, i, ctx.width, ctx.height);
                 if (yard != null) reserveYard(masks, own, i, yard);
+                for (GateYardLayout.Postern postern : posterns) {
+                    for (int[] c : postern.way()) {
+                        masks.buildable()[c[0]][c[1]] = false;
+                        masks.circulation()[c[0]][c[1]] = true;
+                    }
+                }
                 AirbaseLot.Facing facing = AirbaseLot.Facing.of(facing(precinct, ctx));
                 // Lots first, buildings second. A lot claimed after packing gets
                 // whatever shape the leftovers had, which is a shallow strip an
@@ -164,6 +172,13 @@ public final class PrecinctWardStage implements GenStage {
                     for (int[] c : yard.apron()) if (ctx.topology.getSurface(c[0], c[1]) == 0) unpaved.add(c);
                     InstallationGround.pave(ctx, unpaved, GroundKind.STREET, Material.ASPHALT);
                     InstallationGround.pave(ctx, yard.staging(), GroundKind.COURTYARD, Material.CONCRETE);
+                    for (GateYardLayout.Postern postern : posterns) {
+                        List<int[]> bare = new ArrayList<>();
+                        for (List<int[]> cells : List.of(postern.apron(), postern.way())) {
+                            for (int[] c : cells) if (ctx.topology.getSurface(c[0], c[1]) == 0) bare.add(c);
+                        }
+                        InstallationGround.pave(ctx, bare, GroundKind.STREET, Material.ASPHALT);
+                    }
                     yards.add(new Laid(GateYardLayout.pieceName(precinct.name()), Laid.Kind.YARD, Laid.Status.LAID,
                             "", false, yard.yard(), List.of(yard.gate(), yard.entry(), yard.turn(), yard.stop()),
                             yard.staging()));
@@ -202,37 +217,70 @@ public final class PrecinctWardStage implements GenStage {
         if (n == 0) return null;
         mx /= n;
         my /= n;
+        // The gates furthest toward the side first; the yard behind the first of them it fits behind.
+        List<PrecinctBoundary.Gate> gates = new ArrayList<>(PrecinctBoundary.openGates(claim, road, who, ctx.width,
+                ctx.height, fortification.gates()));
+        long cx = mx, cy = my;
+        gates.sort((p, q) -> Long.compare(reach(q, cx, cy, spec.side()), reach(p, cx, cy, spec.side())));
         PrecinctBoundary.Gate best = null;
-        long bestReach = Long.MIN_VALUE;
-        for (PrecinctBoundary.Gate gate : PrecinctBoundary.openGates(claim, road, who, ctx.width, ctx.height,
-                fortification.gates())) {
-            int[] c = middle(gate);
-            long reach = (c[0] - mx) * spec.side().dx + (c[1] - my) * spec.side().dy;
-            if (reach > bestReach) {
-                bestReach = reach;
-                best = gate;
+        GateYardLayout.Laid yard = null;
+        int[] at = null;
+        for (PrecinctBoundary.Gate gate : gates) {
+            int[] mid = middle(gate);
+            // The side the gate is in: the way out of the place from its middle cell.
+            Side facing = null;
+            for (Side side : Side.values()) {
+                int ox = mid[0] + side.dx, oy = mid[1] + side.dy;
+                if (ox < 0 || oy < 0 || ox >= ctx.width || oy >= ctx.height || claim[ox][oy] != who) {
+                    facing = side;
+                    break;
+                }
             }
-        }
-        if (best == null) return null;
-        int[] at = middle(best);
-        // The side the gate is in: the way out of the place from its middle cell.
-        Side facing = null;
-        for (Side side : Side.values()) {
-            int ox = at[0] + side.dx, oy = at[1] + side.dy;
-            if (ox < 0 || oy < 0 || ox >= ctx.width || oy >= ctx.height || claim[ox][oy] != who) {
-                facing = side;
+            if (facing == null) continue;
+            yard = GateYardLayout.lay(claim, own, who, ctx.width, ctx.height, spec, facing, mid[0], mid[1]);
+            if (yard != null) {
+                best = gate;
+                at = mid;
                 break;
             }
         }
-        if (facing == null) return null;
-        GateYardLayout.Laid yard = GateYardLayout.lay(claim, own, who, ctx.width, ctx.height, spec, facing,
-                at[0], at[1]);
         if (yard == null) return null;
         int owner = road[at[0]][at[1]];
         for (int[] c : best.cells()) if (owner == GrownTrunkPlan.UNOWNED) owner = road[c[0]][c[1]];
         if (owner == GrownTrunkPlan.UNOWNED) return null;
         for (int[] c : yard.apron()) if (ownRoad[c[0]][c[1]] == GrownTrunkPlan.UNOWNED) ownRoad[c[0]][c[1]] = owner;
         return yard;
+    }
+
+    /**
+     * Opens a yard's posterns ({@link Fortification.GateYard#posterns}): road ownership run across the glacis and
+     * onto the wall's line, as the yard's own gate is, so the wall leaves each open. A postern that would land on the
+     * yard's own gate is left out.
+     */
+    private static List<GateYardLayout.Postern> posterns(int[][] claim, int[][] own, int[][] road, int[][] ownRoad,
+                                                         int who, Fortification fortification,
+                                                         GateYardLayout.Laid yard, GenContext ctx) {
+        Fortification.GateYard spec = fortification.yard();
+        int owner = road[yard.apron().get(0)[0]][yard.apron().get(0)[1]];
+        for (int[] c : yard.apron()) if (owner == GrownTrunkPlan.UNOWNED) owner = ownRoad[c[0]][c[1]];
+        if (owner == GrownTrunkPlan.UNOWNED) return List.of();
+        List<GateYardLayout.Postern> out = new ArrayList<>();
+        for (Side side : spec.posterns()) {
+            GateYardLayout.Postern postern = GateYardLayout.postern(claim, own, who, ctx.width, ctx.height, side,
+                    Fortification.GateYard.POSTERN_WIDTH, Fortification.GateYard.POSTERN_DEPTH);
+            if (postern == null) continue;
+            int[] g = postern.gate(), y = yard.gate();
+            if (Math.max(Math.abs(g[0] - y[0]), Math.abs(g[1] - y[1])) <= spec.gateWidth()) continue;
+            for (int[] c : postern.apron()) if (ownRoad[c[0]][c[1]] == GrownTrunkPlan.UNOWNED) ownRoad[c[0]][c[1]] = owner;
+            out.add(postern);
+        }
+        return out;
+    }
+
+    /** How far toward {@code side} a gate's middle lies from {@code (cx, cy)}. */
+    private static long reach(PrecinctBoundary.Gate gate, long cx, long cy, Side side) {
+        int[] c = middle(gate);
+        return (c[0] - cx) * side.dx + (c[1] - cy) * side.dy;
     }
 
     /** The gate's cell nearest the mean of its cells. */

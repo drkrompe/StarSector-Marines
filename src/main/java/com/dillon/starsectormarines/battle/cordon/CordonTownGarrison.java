@@ -125,11 +125,21 @@ public final class CordonTownGarrison {
                     for (int k = t; k < wallPosts.size(); k += MILITIA_TEAMS) cells.add(wallPosts.get(k));
                     teams.add(cells);
                 }
+                // A guard team just inside each way in the convoys do not use (the swarm's other doors), then one
+                // with each of the largest rooms, then by the staging area.
                 List<int[]> holds = new ArrayList<>();
+                for (int[] g : gates(grid, left, top, right, bottom)) {
+                    if (holds.size() >= GUARD_TEAMS - 1) break;
+                    if (Math.max(Math.abs(g[0] - loading[0]), Math.abs(g[1] - loading[1])) <= g[2]) continue;
+                    holds.add(inside(g, left, top, right, bottom));
+                }
+                for (List<int[]> room : rooms) {
+                    if (holds.size() >= GUARD_TEAMS) break;
+                    holds.add(middle(room));
+                }
+                while (holds.size() < GUARD_TEAMS) holds.add(new int[]{staging.centreX(), staging.centreY()});
                 for (int t = 0; t < GUARD_TEAMS; t++) {
-                    int[] at = t < rooms.size() ? middle(rooms.get(t))
-                            : new int[]{staging.centreX(), staging.centreY()};
-                    holds.add(at);
+                    int[] at = holds.get(t);
                     List<int[]> cells = new ArrayList<>();
                     for (int[] c : CordonGround.clusterNear(sim, at[0], at[1], ColonyMilitia.POST_SIZE * 3)) {
                         if (cells.size() >= ColonyMilitia.POST_SIZE) break;
@@ -246,6 +256,42 @@ public final class CordonTownGarrison {
         for (List<int[]> cells : byBuilding.values()) if (cells.size() >= ROOM_MIN) rooms.add(cells);
         rooms.sort(Comparator.<List<int[]>>comparingInt(List::size).reversed());
         return rooms.size() > ROOMS ? new ArrayList<>(rooms.subList(0, ROOMS)) : rooms;
+    }
+
+    /**
+     * The compound's ways in: runs of open cells on the ring just outside its inside ground
+     * ({@code left..right} by {@code top..bottom}), each as {x, y, width} at its middle, in order round the ring.
+     */
+    public static List<int[]> gates(NavigationGrid grid, int left, int top, int right, int bottom) {
+        List<int[]> ring = new ArrayList<>();
+        int l = left - 1, t = top - 1, r = right + 1, b = bottom + 1;
+        for (int x = l; x <= r; x++) ring.add(new int[]{x, t});
+        for (int y = t + 1; y <= b; y++) ring.add(new int[]{r, y});
+        for (int x = r - 1; x >= l; x--) ring.add(new int[]{x, b});
+        for (int y = b - 1; y > t; y--) ring.add(new int[]{l, y});
+        List<int[]> gates = new ArrayList<>();
+        List<int[]> run = new ArrayList<>();
+        for (int i = 0; i <= ring.size(); i++) {
+            int[] c = i < ring.size() ? ring.get(i) : null;
+            if (c != null && grid.inBounds(c[0], c[1]) && grid.isWalkable(c[0], c[1])) {
+                run.add(c);
+                continue;
+            }
+            if (!run.isEmpty()) {
+                int[] mid = run.get(run.size() / 2);
+                gates.add(new int[]{mid[0], mid[1], run.size()});
+                run.clear();
+            }
+        }
+        return gates;
+    }
+
+    /** A few cells in from a gate on the ring, onto the compound's inside ground. */
+    static int[] inside(int[] gate, int left, int top, int right, int bottom) {
+        int x = Math.max(left, Math.min(right, gate[0])), y = Math.max(top, Math.min(bottom, gate[1]));
+        x += Integer.signum(x - gate[0]) * 2;
+        y += Integer.signum(y - gate[1]) * 2;
+        return new int[]{Math.max(left, Math.min(right, x)), Math.max(top, Math.min(bottom, y))};
     }
 
     /** The cell of a room nearest the mean of its cells. */
