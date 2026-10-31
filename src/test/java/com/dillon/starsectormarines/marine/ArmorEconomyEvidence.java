@@ -183,7 +183,8 @@ class ArmorEconomyEvidence {
                 dps = w.damage * w.burstCount * w.projectilesPerShot / Math.max(0.01f, w.cooldown);
                 if (w.aoeRadius > 0f) note = "turret has splash (radius " + w.aoeRadius + "), DPS understates it";
             }
-            list.add(new Machine(t.name(), true, t.liftClass(), MechPattern.of(t).accessTier(), recipe.cost(),
+            list.add(new Machine(t.name(), true, t.liftClass(), MechPattern.of(t).accessTier(),
+                    MechFabricationCatalog.standardFitCost(t),
                     t.maxStructure, t.maxArmor, t.armorRating, t.maxSpeed, dps, t.capacity, note));
         }
         return list;

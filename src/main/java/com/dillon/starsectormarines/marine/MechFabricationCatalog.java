@@ -19,6 +19,8 @@ public final class MechFabricationCatalog {
 
     /** Each chassis's authored standard-fit bill: what a machine that can fight costs, frame and parts. */
     private static final Map<MechVariant, FabricationCost> STANDARD_FIT = new EnumMap<>(MechVariant.class);
+    /** Each vehicle's authored standard-fit bill: the hull with its stock engine and compartment. */
+    private static final Map<VehicleType, FabricationCost> VEHICLE_STANDARD_FIT = new EnumMap<>(VehicleType.class);
 
     private static final List<Recipe> WEAPONS = List.of(
             weapon(MechWeaponComponent.CHAINGUN, "@gearFabricationStandardIssue"),
@@ -141,6 +143,11 @@ public final class MechFabricationCatalog {
         return STANDARD_FIT.get(variant);
     }
 
+    /** What the hull costs with its stock engine and compartment fitted, as {@link #standardFitCost(MechVariant)}. */
+    public static FabricationCost standardFitCost(VehicleType type) {
+        return VEHICLE_STANDARD_FIT.get(type);
+    }
+
     public static Recipe chassis(MechVariant variant) {
         for (Recipe recipe : CHASSIS) {
             if (recipe.variant() == variant) return recipe;
@@ -180,9 +187,16 @@ public final class MechFabricationCatalog {
     /** A bare frame is never priced below this, however much of its standard fit is removable parts. */
     private static final int MINIMUM_FRAME = 500;
 
+    /**
+     * A vehicle is sold as a bare hull, as a chassis is a bare frame: the authored bill is the standard-fit hull's,
+     * less what its engine and compartment parts cost as parts. Its own gun and factory plating are the hull.
+     */
     private static Recipe vehicle(VehicleType type, String provenance, int credits) {
+        VEHICLE_STANDARD_FIT.put(type, new FabricationCost(credits));
+        int hull = credits - internalCost(MechInternal.INDUSTRIAL_ENGINE).credits();
+        for (MechInternal part : VehicleRack.stockFit(type)) hull -= internalCost(part).credits();
         return new Recipe("recipe.vehicle." + type.name().toLowerCase(Locale.ROOT), null,
-                provenance, null, null, null, type, new FabricationCost(credits));
+                provenance, null, null, null, type, new FabricationCost(Math.max(MINIMUM_FRAME, hull)));
     }
 
     /*
