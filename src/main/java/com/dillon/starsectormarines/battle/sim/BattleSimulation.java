@@ -2656,6 +2656,24 @@ public class BattleSimulation implements BattleControl, AutoCloseable {
     }
 
     /**
+     * Ends an active operation as the company's victory at once: the Debug key's Win, which skips a
+     * mission the player does not want to fight. The story trackers freeze on what they saw, as on retreat.
+     */
+    public boolean forceCompanyVictory() {
+        boolean accepted = completion.finish(Faction.MARINE);
+        if (!accepted) return false;
+        if (openingStory != null) openingStory.observe(this);
+        if (junctionStory != null) junctionStory.observe(this);
+        if (relayNineStory != null) relayNineStory.observe(this);
+        if (thunderRun != null) thunderRun.freeze(this, false);
+        if (lastLiftAttempt != null) {
+            lastLiftAttempt.freeze(this);
+            lastLiftSequence.finish(simTickIndex, "victory");
+        }
+        return true;
+    }
+
+    /**
      * Controls mission terminal evaluation without disabling the simulation.
      * Embedded rooms use a real battle clock and physics but have no winner,
      * so they opt out once during setup.

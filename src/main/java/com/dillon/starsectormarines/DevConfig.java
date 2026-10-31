@@ -1,11 +1,14 @@
 package com.dillon.starsectormarines;
 
 /**
- * Dev-build toggles. Every player-reachable debug surface is gated on
- * {@link #DEV_MODE}, which is off unless the JVM is started with
- * {@code -Dmarines.dev=true} ({@code runStarsector} passes it; a player's
- * install never does). The per-surface flags below are ANDed with it, so a
- * release build needs no edits here.
+ * Dev-build toggles. Debug surfaces are gated on {@link #DEV_MODE}, which is
+ * off unless the JVM is started with {@code -Dmarines.dev=true}
+ * ({@code runStarsector} passes it; a player's install never does). The
+ * per-surface flags below are ANDed with it, so a release build needs no edits
+ * here. The exception is the alpha's cheats: the debug missions, their
+ * briefing pickers and the battle's debug panel with Win also open to a
+ * player who turns on the mission board's Debug key
+ * ({@link com.dillon.starsectormarines.ops.Cheats}), which a dev build starts on.
  *
  * <p>Kept as {@code public static final} booleans so the JIT can dead-code the
  * disabled branches at runtime — no perf cost when off.

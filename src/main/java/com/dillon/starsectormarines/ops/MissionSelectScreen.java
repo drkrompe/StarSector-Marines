@@ -23,6 +23,7 @@ import com.dillon.starsectormarines.ui.retained.markup.MarkupPropertySource;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import com.dillon.starsectormarines.ui.starsector.StarsectorUiInputAdapter;
 import com.fs.starfarer.api.Global;
+import com.fs.starfarer.api.campaign.RepLevel;
 import com.fs.starfarer.api.input.InputEventAPI;
 import com.fs.starfarer.api.ui.PositionAPI;
 
@@ -109,6 +110,7 @@ public final class MissionSelectScreen implements Screen {
         props.put("clientEmpty", clientRows.isEmpty()
                 ? Strings.get("missionSelectNoClientsHaveWorkAtThisMarket") : "");
         putReplayToggle(props, !replayOffers().isEmpty(), CompletedReplays.enabled(), this::toggleReplays);
+        putCheatsToggle(props, Cheats.enabled(), this::toggleCheats);
         props.put("missionHeader", selectedClient != null
                 ? selectedClient.displayName : Strings.get("missionSelectContracts"));
         props.put("missionSummary", missionSummary(selectedClient, missions));
@@ -310,6 +312,12 @@ public final class MissionSelectScreen implements Screen {
     private List<ClientRow> clientRows(Client selected) {
         if (context == null) return List.of();
         List<ClientRow> rows = new ArrayList<>();
+        if (Cheats.enabled() && context.market != null) {
+            Client debug = new Client(MarineOpsContext.DEBUG_CLIENT_FACTION_ID, Strings.get("cheatsClientName"), null,
+                    RepLevel.NEUTRAL, false, null);
+            rows.add(new ClientRow("client-debug", "client-debug-name", "client-debug-rep", null, "client-card",
+                    debug.displayName, Strings.get("cheatsClientRole"), false, () -> selectClient(debug)));
+        }
         for (int i = 0; i < context.clients.size(); i++) {
             Client client = context.clients.get(i);
             String base = "client-" + i;
@@ -525,6 +533,7 @@ public final class MissionSelectScreen implements Screen {
         MissionDialogue.put(props, "detail", null);
         putCompanyNews(props, List.of(), () -> { });
         putReplayToggle(props, false, false, () -> { });
+        putCheatsToggle(props, false, () -> { });
         putBroker(props, null);
         props.put("briefLabel", Strings.get("missionSelectBRIEFDEPLOY"));
         props.put("screenTitle", Strings.get("missionSelectMarineOperations"));
@@ -537,11 +546,23 @@ public final class MissionSelectScreen implements Screen {
     }
 
     static void putReplayToggle(Map<String, Object> props, boolean available, boolean on, Runnable toggle) {
-        props.put("replayToggleClasses", "replay-toggle console-command-rail" + (available ? "" : " hidden"));
         // A lit key, as Brief & Deploy is: the theme lights a command key's lamp on its good surface.
-        props.put("replayKeyClasses", on ? "good-surface" : "");
+        props.put("replayKeyClasses", !available ? "hidden" : on ? "good-surface" : "");
         props.put("replayToggleLabel", Strings.get("replayCompletedToggle"));
         props.put("replayToggleAction", toggle);
+    }
+
+    static void putCheatsToggle(Map<String, Object> props, boolean on, Runnable toggle) {
+        props.put("cheatsKeyClasses", on ? "good-surface" : "");
+        props.put("cheatsLabel", Strings.get("cheatsToggle"));
+        props.put("cheatsAction", toggle);
+    }
+
+    /** The Debug key: lists the debug missions and opens the alpha's cheats. */
+    private void toggleCheats() {
+        if (context == null) return;
+        Cheats.setEnabled(!Cheats.enabled());
+        installDocument();
     }
 
     private List<Mission> replayOffers() {
