@@ -163,7 +163,11 @@ public final class MissionLayoutStage implements GenStage {
                 out.add(Laid.refused(piece.name(), Laid.Kind.SITE, false, "named twice"));
                 continue;
             }
-            if (piece instanceof Structure structure) {
+            if (piece instanceof Paving paving) {
+                out.add(phase == Phase.STRUCTURES ? LayoutPaving.lay(ctx, paving)
+                        : Laid.refused(paving.name(), Laid.Kind.ROAD, paving.required(),
+                        "paving is laid in the structures phase"));
+            } else if (piece instanceof Structure structure) {
                 if (phase != Phase.STRUCTURES) {
                     out.add(Laid.refused(structure.name(), Laid.Kind.STRUCTURE, structure.required(),
                             "a structure is raised in the structures phase"));
