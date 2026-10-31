@@ -1039,9 +1039,9 @@ public class BattleRenderer {
                 r, g, b, alphaMult);
     }
 
-    /** Debug flag — draws Reeds-Shepp docking paths under each docking truck for math iteration. */
+    /** Debug flag — draws Reeds-Shepp docking and turnaround paths under each hull; off until toggled from the battle debug menu. */
     @DebugOnly
-    public static boolean DEBUG_RENDER_DOCKING_PATHS = DevConfig.DEV_MODE;
+    public static boolean DEBUG_RENDER_DOCKING_PATHS = false;
 
     @DebugOnly
     private void renderConvoyDockingPathsDebug(long[] ids, ConvoyService convoy, float alphaMult) {

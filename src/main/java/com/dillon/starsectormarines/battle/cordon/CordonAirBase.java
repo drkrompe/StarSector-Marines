@@ -16,12 +16,8 @@ import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.sim.World;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.unit.UnitRosterService;
-import com.dillon.starsectormarines.battle.decision.TacticalMap;
-import com.dillon.starsectormarines.battle.decision.TacticalNode;
-import com.dillon.starsectormarines.battle.world.gen.Gantry;
-import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import com.dillon.starsectormarines.battle.world.gen.MapResult;
-import com.dillon.starsectormarines.battle.world.gen.Runway;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 import com.fs.starfarer.api.Global;
 import org.apache.log4j.Logger;
 
@@ -115,50 +111,22 @@ public final class CordonAirBase {
 
     private static final Logger LOG = Global.getLogger(CordonAirBase.class);
 
-    /** Cells from the strip's middle a shed stands on the same lot. */
-    static final int LOT_REACH = 40;
-
     /**
-     * Bases the allies' wing on the airbase lot the Cordon's map reserved in the rear ({@code cordon-nouns.md}, Air
-     * base): its fighters in the lot's sheds, rolling off its strip, its bombers on the apron's stands. Where the map laid no lot, the open-ground fallback
-     * ({@link #lay}), and the log says so. {@code null} when there is no wing, or neither finds room.
+     * Bases the allies' wing on the airbase lot the Cordon's map reserved in a rear corner ({@code cordon-nouns.md},
+     * Air base; {@link CordonPlan#airBase}): its sheds, rolling off the lot's strip, and its apron's berths
+     * ({@link AlliedAirWing#baseOnLot}). Where the map laid no lot, the open-ground fallback ({@link #lay}), and the log
+     * says so. {@code null} when there is no wing, or neither finds room.
      */
     public static CordonAirBase base(BattleSimulation sim, MapResult map, int anchorX, int anchorY, int frontward,
                                      List<int[]> corridor, List<int[]> roadLines, List<int[]> keepOff) {
-        List<LandingPad> pads = new ArrayList<>();
-        for (LandingPad pad : map.landingPads) {
-            if (pad.purpose == LandingPad.Purpose.GARRISON_AIRFIELD) pads.add(pad);
-        }
-        Runway strip = map.runways.isEmpty() ? null : map.runways.get(0);
-        List<Gantry> sheds = new ArrayList<>();
-        if (strip != null) {
-            for (Gantry shed : map.shelters) {
-                if (Math.hypot(shed.centerX - strip.centreX(), shed.centerY - strip.centreY()) <= LOT_REACH) sheds.add(shed);
-            }
-        }
-        if (!pads.isEmpty() || !sheds.isEmpty()) {
-            FieldAirBase field = AlliedAirWing.baseOnLot(sim, pads, sheds, strip, AirBody.facingToward(0f, frontward));
+        Laid lot = map.layout == null ? null : map.layout.find(CordonPlan.AIR_BASE_PLACE);
+        if (lot != null && lot.isLaid()) {
+            FieldAirBase field = AlliedAirWing.baseOnLot(sim, map, lot);
             if (field != null) return new CordonAirBase(field, Ground.LOT);
         }
-        LOG.warn("cordon: the map reserved no airbase lot; the wing stands on open ground behind the logistics base");
+        if (sim.airPool() == null || !sim.airPool().hasPool(Faction.ALLY)) return null;
+        LOG.warn("cordon: the map laid no airbase lot; the wing stands on open ground behind the logistics base");
         return lay(sim, anchorX, anchorY, frontward, corridor, roadLines, keepOff);
-    }
-
-    /**
-     * {@code map} less the capture beacon its airbase lot published: the lot is laid as a working garrison field so its
-     * berths and strip are published, and a garrison field is a defender's compound to take; the allies' air base is no
-     * compound for the swarm to hold.
-     */
-    public static MapResult withoutAirbaseNode(MapResult map) {
-        if (map.tacticalMap == null || map.tacticalMap.ofKind(TacticalNode.Kind.AIRBASE).isEmpty()) return map;
-        List<TacticalNode> kept = new ArrayList<>();
-        for (TacticalNode node : map.tacticalMap.all()) if (node.kind != TacticalNode.Kind.AIRBASE) kept.add(node);
-        MapResult out = new MapResult(map.grid, map.topology, map.marineSpawnX, map.marineSpawnY, map.defenderSpawnX,
-                map.defenderSpawnY, map.pointsOfInterest, map.doodads, new TacticalMap(kept), map.buildings,
-                map.defensePosts, map.roadGraph, map.landingPads, map.landingAreas, map.biomeMap, map.gantries,
-                map.fixtureTasks, map.runways, map.shelters, map.vehicleCorridor, map.frontDepth, map.lanes)
-                .withFieldOfFire(map.fieldOfFire).withLayout(map.layout);
-        return map.initialDamage != null ? out.withInitialDamage(map.initialDamage) : out;
     }
 
     /**

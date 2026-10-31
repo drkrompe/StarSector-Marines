@@ -71,6 +71,14 @@ class StorySceneTest {
         assertNull(StoryScene.forMission(Mission.builder(mission).source(MissionSource.GENERATED).build()));
     }
 
+    @ParameterizedTest @EnumSource(value = DebugMissionCatalog.Scenario.class, names = {"RELIEF", "COUNTERATTACK", "JUNCTION",
+            "THUNDER_RUN", "DUST_LEDGER", "BLIND_WATCH", "COLD_ACCOUNT", "SALVAGE_RIGHTS", "COLD_START", "WORKING_PASSAGE"})
+    void aReplayShowsItsChaptersArt(DebugMissionCatalog.Scenario scenario) {
+        var detail = new LinkedHashMap<String, Object>();
+        MissionSelectScreen.putDetail(detail, CompletedReplays.mission(scenario, "Jangala"), () -> {}, () -> {});
+        assertEquals(StoryScene.forMission(campaign(scenario)).image, detail.get("detailImage"));
+    }
+
     @Test void directFreightOfferPreviewsItsDestinationAndUnknownIdsKeepFallback() {
         var route = new BrokenSupplyRouteProgress("jangala", "Jangala", "Corvus");
         String id = route.missionId();

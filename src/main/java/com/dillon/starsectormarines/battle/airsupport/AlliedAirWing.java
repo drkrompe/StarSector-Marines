@@ -1,11 +1,15 @@
 package com.dillon.starsectormarines.battle.airsupport;
 
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.MapResult;
 import com.dillon.starsectormarines.battle.world.gen.Runway;
+import com.dillon.starsectormarines.battle.world.gen.layout.Laid;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -51,28 +55,51 @@ public final class AlliedAirWing {
     }
 
     /**
-     * Bases the wing {@link #install} gave the allies on their airbase lot ({@code cordon-nouns.md}, Air base): its
-     * fighters in the lot's sheds, rolling off {@code strip}, and its bombers on the apron's {@code pads}, lifting off
-     * them; a fighter with no shed (or no strip) takes a pad left over. One berth for each airframe of the wing's
-     * establishment that finds one. From then on the wing takes off from and lands on those berths, its stock is what
-     * stands ready there, and a loss is replaced on its berth after the wing's own regeneration time. Returns the base,
-     * or {@code null} when the battle has no wing or the lot gave it nowhere to stand.
+     * Bases the wing on {@code lot}, an airbase lot laid on {@code map}: the strip, the sheds and the allied apron
+     * berths inside the lot's fence, as {@link #baseOnLot(BattleSimulation, Runway, List, List)} bases it on them.
      */
-    public static FieldAirBase baseOnLot(BattleSimulation sim, List<LandingPad> pads, List<Gantry> sheds, Runway strip,
-                                         float facingDegrees) {
-        AirPoolService pool = sim.airPool();
-        if (pool == null || !pool.hasPool(Faction.ALLY)) return null;
-        FieldAirBase base = new FieldAirBase(Faction.ALLY, sim.getAirfieldService(), WING);
-        int pad = 0, shed = 0;
-        for (int i = 0; i < WING.stock(AirPoolKind.BOMBER).cap() && pad < pads.size(); i++) {
-            base.addPad(pads.get(pad++), AirPoolKind.BOMBER, facingDegrees);
+    public static FieldAirBase baseOnLot(BattleSimulation sim, MapResult map, Laid lot) {
+        int[] lo = lot.cells().get(0), hi = lot.cells().get(1);
+        Runway strip = null;
+        for (Runway r : map.runways) if (inside(lo, hi, Math.round(r.centreX()), Math.round(r.centreY()))) strip = r;
+        List<Gantry> sheds = new ArrayList<>();
+        for (Gantry g : map.shelters) if (inside(lo, hi, g.centerX, g.centerY)) sheds.add(g);
+        List<LandingPad> pads = new ArrayList<>();
+        for (LandingPad p : map.landingPads) {
+            if (p.purpose == LandingPad.Purpose.ALLIED_AIRFIELD && inside(lo, hi, p.centerX, p.centerY)) pads.add(p);
         }
-        for (int i = 0; i < WING.stock(AirPoolKind.FIGHTER).cap(); i++) {
-            if (strip != null && shed < sheds.size()) base.addShed(sheds.get(shed++), AirPoolKind.FIGHTER);
-            else if (pad < pads.size()) base.addPad(pads.get(pad++), AirPoolKind.FIGHTER, facingDegrees);
+        return baseOnLot(sim, strip, sheds, pads);
+    }
+
+    private static boolean inside(int[] lo, int[] hi, int x, int y) {
+        return x >= lo[0] && x <= hi[0] && y >= lo[1] && y <= hi[1];
+    }
+
+    /**
+     * Bases the wing {@link #install} gave the allies on an airbase lot of their own ({@code cordon-nouns.md}, Air base;
+     * {@code heart-nouns.md}, Airbase): {@code strip} installed as the field's runway, then one airframe of the
+     * establishment in each of {@code sheds}, bombers first, rolling out over the strip for every sortie and home to the
+     * shed after; any the sheds cannot hold (or every one, with no strip) stands on the lot's apron {@code pads}, nose
+     * to the pad's approach, lifting off it. From then on the wing takes off from and lands on those berths, its stock
+     * is what stands ready there, and a loss is replaced on its berth after the wing's own regeneration time. Returns
+     * the base, or {@code null} when the battle has no wing or the lot gave it nowhere to stand.
+     */
+    public static FieldAirBase baseOnLot(BattleSimulation sim, Runway strip, List<Gantry> sheds, List<LandingPad> pads) {
+        AirPoolService pool = sim.airPool();
+        if (pool == null || !pool.hasPool(Faction.ALLY) || (sheds.isEmpty() && pads.isEmpty())) return null;
+        FieldAirBase base = new FieldAirBase(Faction.ALLY, sim.getAirfieldService(), WING);
+        if (strip != null) base.installRunway(strip);
+        int shed = 0, pad = 0;
+        for (AirPoolKind kind : AirPoolKind.values()) {
+            for (int i = 0; i < WING.stock(kind).cap(); i++) {
+                if (strip != null && shed < sheds.size()) base.addShed(sheds.get(shed++), kind);
+                else if (pad < pads.size()) {
+                    LandingPad stand = pads.get(pad++);
+                    base.addPad(stand, kind, AirBody.facingToward(stand.approach.dx, stand.approach.dy));
+                }
+            }
         }
         if (base.stands().isEmpty()) return null;
-        if (strip != null) base.installRunway(strip);
         pool.basedAt(Faction.ALLY, base);
         return base;
     }

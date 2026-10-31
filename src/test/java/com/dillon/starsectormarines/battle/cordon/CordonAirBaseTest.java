@@ -6,7 +6,9 @@ import com.dillon.starsectormarines.battle.cordon.CordonAirBase.Candidate;
 import com.dillon.starsectormarines.battle.cordon.CordonAirBase.Pick;
 import com.dillon.starsectormarines.battle.cordon.CordonAirBase.Reason;
 import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
-import com.dillon.starsectormarines.battle.world.gen.precinct.PrecinctBrief;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.layout.Airfield;
+import com.dillon.starsectormarines.battle.world.gen.layout.Site;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -77,12 +79,20 @@ class CordonAirBaseTest {
     }
 
     @Test
-    void theAirBaseIsOneFieldLotWhoseStripFrontsTheFront() {
-        PrecinctBrief south = CordonPlan.airBase(true, true);
-        assertEquals(1, south.program().airfields());
-        assertEquals(AirbaseLot.Size.FIELD, south.program().airfieldSize());
+    void theAirBaseIsAnAlliedFieldLotInTheRearCornerFrontingTheFront() {
         // The rear is the south (low y), so the front lies toward high y: the approach the strip fronts.
-        assertEquals(AirbaseLot.Facing.NORTH, south.program().airfieldFacing());
-        assertEquals(AirbaseLot.Facing.SOUTH, CordonPlan.airBase(false, true).program().airfieldFacing());
+        Airfield south = CordonPlan.airBase(true, true, 560, 336);
+        assertEquals(AirbaseLot.Size.FIELD, south.size());
+        assertEquals(LandingPad.Purpose.ALLIED_AIRFIELD, south.purpose());
+        assertEquals(AirbaseLot.Facing.NORTH, south.facing());
+        Site held = south.reservation();
+        assertEquals(CordonPlan.AIR_BASE_REAR, held.y0());
+        assertEquals(CordonPlan.AIR_BASE_SIDE, held.x0());
+        // The rear to the north, the installation to the west: the far corner, the whole reservation on the map.
+        Airfield north = CordonPlan.airBase(false, false, 560, 336);
+        assertEquals(AirbaseLot.Facing.SOUTH, north.facing());
+        Site far = north.reservation();
+        assertEquals(336 - 1 - CordonPlan.AIR_BASE_REAR, far.y1());
+        assertEquals(560 - 1 - CordonPlan.AIR_BASE_SIDE, far.x1());
     }
 }

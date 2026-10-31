@@ -17,6 +17,7 @@ import java.util.Set;
 
 /** Campaign boundary for the authored route; projection never advances a chapter or starts an attempt. */
 public final class SupplyRouteCampaign {
+    static final int CAPTURE_PAYMENT = 12000, THUNDER_PAYMENT = 18000;
     private SupplyRouteCampaign() { }
 
     public static BrokenSupplyRouteProgress current() {
@@ -95,7 +96,7 @@ public final class SupplyRouteCampaign {
         return Mission.builder().id(p.missionId()).name(name)
                 .source(repeat ? MissionSource.RECURRING : MissionSource.STORY).type(MissionType.ASSAULT)
                 .tier(OperationTier.FIRST_CONTRACT).risk(RiskLevel.LOW)
-                .payout(kind == BrokenSupplyRouteProgress.THUNDER ? 18000 : 12000)
+                .payout(kind == BrokenSupplyRouteProgress.THUNDER ? THUNDER_PAYMENT : CAPTURE_PAYMENT)
                 .flavor(terms).requirements(Strings.get("supplyRouteRequirements"))
                 .requiredDrops(4).employerShuttles(0).marineArrivalPolicy(MarineArrivalPolicy.PAIRED_HALF_SQUAD)
                 .fieldPresencePolicy(FieldPresencePolicy.UNRESTRICTED).targetPlanetName(p.planetName())

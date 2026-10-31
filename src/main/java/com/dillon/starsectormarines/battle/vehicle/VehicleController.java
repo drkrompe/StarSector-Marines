@@ -388,6 +388,14 @@ public final class VehicleController {
     }
 
     /**
+     * How far off the nose of a hull facing {@code facingDeg} a bearing lies, in (-180, 180]: past 90 either way the
+     * carrot is behind and the hull backs toward it. Wrapped for any heading, not only one already in range.
+     */
+    static float offNoseDegrees(float bearingDeg, float facingDeg) {
+        return NeutralPivot.signedDegrees(bearingDeg - facingDeg);
+    }
+
+    /**
      * True when {@code (tx,ty)} lies inside one of the body's two minimum-turn
      * circles — the geometric signature of a carrot no forward arc can reach
      * (the bicycle would orbit it). Both turn-circle centers sit a min-radius to

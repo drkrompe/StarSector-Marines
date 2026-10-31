@@ -850,6 +850,9 @@ public class MarineOpsContext {
             generated = Collections.unmodifiableList(polityDefenceMissions());
         } else if (WellhollowBloomCampaign.CLIENT_FACTION_ID.equals(client.factionId)) {
             generated = WellhollowBloomCampaign.offers(planet);
+        } else if (CompletedReplays.isClient(client)) {
+            MarineRosterScript rosterScript = MarineRosterScript.getInstance();
+            generated = CompletedReplays.offers(rosterScript == null ? null : rosterScript.roster(), planet);
         } else if (DISTRESS_CLIENT_FACTION_ID.equals(client.factionId)) {
             Mission eventMission = localCampaignEventMission();
             generated = eventMission != null

@@ -7,6 +7,7 @@ import com.dillon.starsectormarines.battle.command.ObjectiveAssignment;
 import com.dillon.starsectormarines.battle.command.compound.CompoundService;
 import com.dillon.starsectormarines.battle.command.objective.Objective;
 import com.dillon.starsectormarines.battle.command.objective.ObjectiveFactionPresence;
+import com.dillon.starsectormarines.battle.air.AirBody;
 import com.dillon.starsectormarines.battle.air.ShuttleMission;
 import com.dillon.starsectormarines.battle.power.CommandPower;
 import com.dillon.starsectormarines.battle.power.CommandPowerService;
@@ -100,6 +101,11 @@ import java.util.Set;
  *   watch ID[,ID...] N [every=K]          step N ticks, one line per body every K: position, route cursor and next
  *                                         waypoint, velocity, and for a mech its hips, role and collision escape
  *   speed ID                              a body's move speed now, the ground under it and each speed modifier on it
+ *   dither N [every=K] [label=TEXT] [limit=L]
+ *                                         step N ticks sampling every vehicle and mech every K (default 30): path
+ *                                         walked, net displacement, direction reversals, and each change of order
+ *   vtrace ID N [every=K]                 step N ticks, one line per K: a hull's pose, speed and controller state (plan,
+ *                                         its first and last points, corridor start, failure clocks, recovery rung)
  *   stalls N [limit=K]                    step N ticks: each route stall counted, with the unit, its next waypoint,
  *                                         its order and the bodies within 1.5 cells
  *   beats [since=T] [text=TEXT]           story beats
@@ -152,6 +158,8 @@ public final class BattleProbe {
         commands.put("squads", this::squads);
         commands.put("members", a -> members(a.intAt(0)));
         commands.put("watch", this::watch);
+        commands.put("dither", this::dither);
+        commands.put("vtrace", this::vtrace);
         commands.put("stalls", this::stalls);
         commands.put("topology", this::topology);
         commands.put("vetoes", this::vetoes);
@@ -870,14 +878,31 @@ public final class BattleProbe {
                 long id = Long.parseLong(idWord.trim());
                 World world = sim.world();
                 if (!world.isAlive(id)) continue;
-                int next = sim.movement().nextWaypointIndex(id);
-                int count = sim.movement().waypointCount(id);
                 StringBuilder line = new StringBuilder();
                 line.append(sim.getSimTickIndex()).append(" pos=").append(round(world.x(id))).append(',')
-                        .append(round(world.y(id))).append(" next=").append(next).append('/').append(count);
-                if (next < count) line.append(" wp=").append(round(sim.movement().waypointX(id, next))).append(',')
-                        .append(round(sim.movement().waypointY(id, next)));
-                line.append(" v=").append(round(sim.movement().velX(id))).append(',').append(round(sim.movement().velY(id)));
+                        .append(round(world.y(id)));
+                if (!sim.convoy().isVehicle(id)) {
+                    int next = sim.movement().nextWaypointIndex(id);
+                    int count = sim.movement().waypointCount(id);
+                    line.append(" next=").append(next).append('/').append(count);
+                    if (next < count) line.append(" wp=").append(round(sim.movement().waypointX(id, next))).append(',')
+                            .append(round(sim.movement().waypointY(id, next)));
+                    line.append(" v=").append(round(sim.movement().velX(id))).append(',').append(round(sim.movement().velY(id)));
+                }
+                if (sim.convoy().isVehicle(id)) {
+                    GroundBody body = sim.convoy().body(id);
+                    if (body != null) line.append(" body=").append(round(body.x)).append(',').append(round(body.y))
+                            .append(" facing=").append(round(body.facingDegrees)).append(" speed=").append(round(body.speed));
+                    VehicleMoveOrderService.ActiveOrder order = sim.getVehicleMoveOrderService().activeOrder(id);
+                    if (order != null) line.append(" order=").append(order.requestedX()).append(',').append(order.requestedY())
+                            .append(" pts=").append(order.routeXs().length);
+                    VehicleMoveOrderService.RefusedOrder refused = sim.getVehicleMoveOrderService().refusal(id);
+                    if (refused != null) line.append(" refused=").append(refused.reason());
+                    VehicleControlComponent control = sim.convoy().control(id);
+                    if (control != null) line.append(" recovery=").append(control.recovery).append(" cursor=")
+                            .append(control.waypointIndex()).append(" turnarounds=").append(control.turnaroundsUsed)
+                            .append(" docking=").append(control.dockingPath != null);
+                }
                 if (world.hasMechLoadout(id)) {
                     var loadout = world.mechLoadout(id);
                     line.append(" hip=").append(round(world.mechHipFacingDegrees(id)))
@@ -893,6 +918,129 @@ public final class BattleProbe {
             }
         }
         return new JSONObject().put("tick", sim.getSimTickIndex()).put("rows", rows);
+    }
+
+    /** Steps {@code N} ticks reporting one hull's controller state every {@code every} ticks. */
+    private JSONObject vtrace(Args a) throws Exception {
+        long id = a.longAt(0);
+        int ticks = a.intAt(1);
+        int every = Math.max(1, a.intOr("every", 1));
+        JSONArray rows = new JSONArray();
+        for (int t = 0; t < ticks && !sim.isComplete(); t++) {
+            sim.advance(BattleSimulation.TICK_DT);
+            if (t % every != 0 || !sim.convoy().isVehicle(id)) continue;
+            GroundBody body = sim.convoy().body(id);
+            VehicleControlComponent c = sim.convoy().control(id);
+            if (body == null || c == null) continue;
+            StringBuilder line = new StringBuilder().append(sim.getSimTickIndex()).append(" at=").append(round(body.x))
+                    .append(',').append(round(body.y)).append(" f=").append(round(((body.facingDegrees % 360f) + 360f) % 360f))
+                    .append(" v=").append(round(body.speed));
+            if (c.trajectory != null) {
+                float[] tx = c.trajectory.xs(), ty = c.trajectory.ys();
+                line.append(" plan=").append(tx.length).append(" ").append(round(tx[0])).append(',').append(round(ty[0]))
+                        .append(">").append(round(tx[Math.min(1, tx.length - 1)])).append(',').append(round(ty[Math.min(1, tx.length - 1)]))
+                        .append("..").append(round(tx[tx.length - 1])).append(',').append(round(ty[ty.length - 1]));
+                PurePursuit.Carrot carrot = PurePursuit.pick(body.x, body.y, tx, ty, 1, 1.2f);
+                float bearing = AirBody.facingToward(carrot.x - body.x, carrot.y - body.y);
+                line.append(" carrot=").append(round(carrot.x)).append(',').append(round(carrot.y)).append(" alpha=")
+                        .append(round(((bearing - body.facingDegrees + 540f) % 360f) - 180f));
+            } else line.append(" plan=-");
+            line.append(" cap=").append(round(sim.convoy().mission(id).speedCap));
+            if (c.routeXs != null && c.routeXs.length > 0) {
+                int n = c.routeXs.length;
+                line.append(" route=").append(n).append(' ').append(round(c.routeXs[0])).append(',').append(round(c.routeYs[0]));
+                if (n > 1) line.append(">").append(round(c.routeXs[1])).append(',').append(round(c.routeYs[1]));
+            }
+            line.append(" cur=").append(c.waypointIndex()).append(" fail=").append(round(c.localPlanFailureTime))
+                    .append(c.localPlanFailureRerouteAttempted ? "R" : "").append(" stall=").append(round(c.timeSinceProgress))
+                    .append(" wall=").append(round(c.wallStuckTime)).append(" rec=").append(c.recovery)
+                    .append(" att=").append(c.recoveryAttempts).append(" planless=").append(c.planlessReverses)
+                    .append(c.pivotTracking ? " PIVOT" : "").append(c.brushing ? " BRUSH" : "")
+                    .append(c.dockingPath != null ? (c.dockingIsDeparture ? " TURNAROUND" : " DOCK") : "")
+                    .append(c.pendingRecovery != null ? " PENDING" : "").append(c.arrived ? " ARRIVED" : "");
+            VehicleMoveOrderService.ActiveOrder order = sim.getVehicleMoveOrderService().activeOrder(id);
+            if (order != null) line.append(" order=").append(order.requestedX()).append(',').append(order.requestedY());
+            else if (sim.getVehicleMoveOrderService().refusal(id) != null)
+                line.append(" refused=").append(sim.getVehicleMoveOrderService().refusal(id).reason());
+            rows.put(line.toString());
+        }
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("rows", rows);
+    }
+
+    /**
+     * Steps {@code N} ticks sampling every vehicle and mech every {@code every} ticks, and ranks them by how often they
+     * reversed: a body that walks far but ends near where it began, turning back again and again, is dithering. Each
+     * row carries the hull's order changes (requested cell, tick) so the post that flip-flops shows beside it.
+     */
+    private JSONObject dither(Args a) throws Exception {
+        int ticks = a.intAt(0);
+        int every = Math.max(1, a.intOr("every", 30));
+        int limit = a.intOr("limit", 20);
+        String text = a.option("label", "");
+        World world = sim.world();
+        Map<Long, List<float[]>> samples = new LinkedHashMap<>();
+        Map<Long, List<String>> orders = new LinkedHashMap<>();
+        Map<Long, String> lastOrder = new HashMap<>();
+        int end = sim.getSimTickIndex() + ticks;
+        while (sim.getSimTickIndex() < end && !sim.isComplete()) {
+            sim.advance(BattleSimulation.TICK_DT);
+            if (sim.getSimTickIndex() % every != 0) continue;
+            for (long id : bodies()) {
+                boolean vehicle = sim.convoy().isVehicle(id);
+                if (!vehicle && !world.hasMechLoadout(id)) continue;
+                if (!world.isAlive(id) && !(vehicle && sim.convoy().isTargetable(id))) continue;
+                if (!label(id).contains(text)) continue;
+                float x = vehicle && sim.convoy().body(id) != null ? sim.convoy().body(id).x : world.x(id);
+                float y = vehicle && sim.convoy().body(id) != null ? sim.convoy().body(id).y : world.y(id);
+                samples.computeIfAbsent(id, k -> new ArrayList<>()).add(new float[]{sim.getSimTickIndex(), x, y});
+                if (vehicle) {
+                    VehicleMoveOrderService.ActiveOrder order = sim.getVehicleMoveOrderService().activeOrder(id);
+                    String key = order == null ? "-" : order.requestedX() + "," + order.requestedY();
+                    if (!key.equals(lastOrder.put(id, key))) {
+                        orders.computeIfAbsent(id, k -> new ArrayList<>()).add(sim.getSimTickIndex() + ":" + key);
+                    }
+                }
+            }
+        }
+        List<JSONObject> rows = new ArrayList<>();
+        for (Map.Entry<Long, List<float[]>> e : samples.entrySet()) {
+            List<float[]> s = e.getValue();
+            if (s.size() < 3) continue;
+            double walked = 0;
+            int reversals = 0;
+            double lastDx = 0, lastDy = 0;
+            for (int i = 1; i < s.size(); i++) {
+                double dx = s.get(i)[1] - s.get(i - 1)[1], dy = s.get(i)[2] - s.get(i - 1)[2];
+                double step = Math.hypot(dx, dy);
+                walked += step;
+                if (step < 0.25) continue;
+                if (lastDx * dx + lastDy * dy < 0) reversals++;
+                lastDx = dx;
+                lastDy = dy;
+            }
+            float[] first = s.get(0), last = s.get(s.size() - 1);
+            double net = Math.hypot(last[1] - first[1], last[2] - first[2]);
+            double minX = Double.MAX_VALUE, maxX = -Double.MAX_VALUE, minY = Double.MAX_VALUE, maxY = -Double.MAX_VALUE;
+            for (float[] p : s) {
+                minX = Math.min(minX, p[1]);
+                maxX = Math.max(maxX, p[1]);
+                minY = Math.min(minY, p[2]);
+                maxY = Math.max(maxY, p[2]);
+            }
+            long id = e.getKey();
+            List<String> changes = orders.getOrDefault(id, List.of());
+            JSONObject row = new JSONObject().put("id", id).put("label", label(id)).put("reversals", reversals)
+                    .put("walked", round(walked)).put("net", round(net))
+                    .put("from", round(first[1]) + "," + round(first[2]) + "@" + (int) first[0])
+                    .put("to", round(last[1]) + "," + round(last[2]) + "@" + (int) last[0])
+                    .put("box", round(minX) + ".." + round(maxX) + " x " + round(minY) + ".." + round(maxY))
+                    .put("orderChanges", changes.size())
+                    .put("orders", new JSONArray(changes.size() > 24 ? changes.subList(changes.size() - 24, changes.size()) : changes));
+            rows.add(row);
+        }
+        rows.sort(Comparator.comparingInt((JSONObject r) -> -r.optInt("reversals")));
+        return new JSONObject().put("tick", sim.getSimTickIndex()).put("count", rows.size())
+                .put("bodies", new JSONArray(rows.size() > limit ? rows.subList(0, limit) : rows));
     }
 
     /** Steps {@code N} ticks and lists each tick the grid's topology revision changed, with the new revision. */

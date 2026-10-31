@@ -92,9 +92,11 @@ public final class MarineBarks {
     static final float HURT_THRESHOLD = 1f;
     /** Contact is looked for every this many ticks. */
     static final int CONTACT_EVERY = 6;
-    /** Enemy infantry this close to a squad that was clear is contact; it is clear again past the second. Gunfire range, not claw range. */
-    static final float HOSTILE_CONTACT_CELLS = 14f;
-    static final float HOSTILE_CLEAR_CELLS = 22f;
+    /** Enemy infantry this close to a squad that was clear is contact; it is clear again past the second. Rifle range, not claw range. */
+    static final float HOSTILE_CONTACT_CELLS = 24f;
+    static final float HOSTILE_CLEAR_CELLS = 32f;
+    /** An enemy fighter this close is in the fight: a reload, a death or a kill near it is worth a word. Rifle range. */
+    static final float HOSTILE_NEAR_CELLS = 24f;
     /** Enemy drones this close to a squad that was clear are called; it is clear of them again past the second. */
     static final float DRONE_CONTACT_CELLS = 10f;
     static final float DRONE_CLEAR_CELLS = 16f;
@@ -103,7 +105,7 @@ public final class MarineBarks {
     /** A squad not fired on for this long is taking fire again when the next round lands. */
     static final float QUIET_SECONDS = 8f;
     /** An enemy machine first seen this close to a speaker is warned of. */
-    static final float ARMOR_CELLS = 18f;
+    static final float ARMOR_CELLS = 30f;
     /** A grenade leaving this close to a speaker is theirs to call. */
     static final float THROWER_CELLS = 1.5f;
     /** A speaker this far beyond an enemy grenade's blast is still close enough to shout it. */
@@ -115,26 +117,25 @@ public final class MarineBarks {
      * One kind of bark: its priority (lower first), whether it is a voice (the squad's one channel) or an effort sound,
      * how long a line holds the squad's channel, a marine's own gap after it and its squad's before the same kind
      * again, and how many of it may sound at once. A line's length is its longest takes' less their trailing breath
-     * ({@code marine-barks/levels.json}); the kinds for people and machines are estimated from their words until
-     * their takes are recorded and measured.
+     * ({@code marine-barks/levels.json}).
      */
     enum Bark {
         GRABBED("grabbed", 0, true, 2.4f, 3f, 0f, 2),
         THROWN("thrown", 1, true, 1.9f, 3f, 0f, 2),
-        GRENADE("grenade", 2, true, 1.6f, 3f, 4f, 2),
+        GRENADE("grenade", 2, true, 1.9f, 3f, 4f, 2),
         MATRIARCH("matriarch", 3, true, 2.4f, 6f, 8f, 1),
         BRUTE("brute", 4, true, 2.1f, 6f, 6f, 1),
-        ARMOR("armor", 5, true, 2.2f, 6f, 20f, 1),
+        ARMOR("armor", 5, true, 2.4f, 6f, 20f, 1),
         MAN_DOWN("man_down", 6, true, 1.6f, 6f, 8f, 1),
         // Hurt by fire: the thrown takes, but held for the squad like any voice and spaced, or a firefight is all cries.
-        HIT("thrown", 7, true, 1.9f, 4f, 5f, 1),
+        HIT("thrown", 7, true, 1.9f, 4f, 10f, 1),
         STRAIN("strain", 8, true, 2.0f, 2.5f, 4f, 2),
-        TAKING_FIRE("taking_fire", 9, true, 1.8f, 6f, 15f, 1),
+        TAKING_FIRE("taking_fire", 9, true, 2.1f, 6f, 15f, 1),
         CONTACT("contact", 10, true, 1.8f, 6f, 15f, 2),
-        CONTACT_HOSTILE("contact_hostile", 10, true, 2.0f, 6f, 20f, 2),
+        CONTACT_HOSTILE("contact_hostile", 10, true, 2.3f, 6f, 20f, 2),
         TURRET("turret", 11, true, 2.4f, 6f, 20f, 1),
-        DRONES("drones", 11, true, 2.0f, 6f, 20f, 1),
-        FRAG_OUT("frag_out", 12, true, 1.4f, 4f, 6f, 1),
+        DRONES("drones", 11, true, 2.4f, 6f, 20f, 1),
+        FRAG_OUT("frag_out", 12, true, 1.8f, 4f, 6f, 1),
         BIG_KILL("big_kill", 13, true, 2.4f, 6f, 6f, 1),
         KILL("kill", 14, true, 1.3f, 6f, 7f, 1),
         RELOAD("reload", 15, true, 2.0f, 6f, 10f, 2),
@@ -353,9 +354,9 @@ public final class MarineBarks {
                     int by = field.nearest(x, y, NEAR_CELLS, kill(type), null);
                     if (by >= 0) offers.add(field.spot(kill(type), by));
                 } else if (Field.hostile(sim.identity().faction(body)) && type.combatant) {
-                    int by = field.nearest(x, y, NEAR_CELLS, Bark.KILL, Cast.MARINE);
+                    int by = field.nearest(x, y, HOSTILE_NEAR_CELLS, Bark.KILL, Cast.MARINE);
                     if (by >= 0) offers.add(field.spot(Bark.KILL, by));
-                } else if (Field.cast(sim, body) != null && field.nearestThreat(x, y) <= NEAR_CELLS) {
+                } else if (Field.cast(sim, body) != null && field.inFight(x, y)) {
                     int mate = field.nearestSquadmate(sim, body, x, y, NEAR_CELLS);
                     if (mate >= 0) offers.add(field.spot(Bark.MAN_DOWN, mate));
                 }
@@ -384,7 +385,7 @@ public final class MarineBarks {
                 } else if (hit(prior, hp, enemy)) {
                     offers.add(field.spot(Bark.HIT, i));
                 }
-                if (reloading(priorTimer, timer, Math.min(rav, enemy))) offers.add(field.spot(Bark.RELOAD, i));
+                if (reloading(priorTimer, timer, rav) || reloading(priorTimer, timer, enemy, HOSTILE_NEAR_CELLS)) offers.add(field.spot(Bark.RELOAD, i));
             }
             health.clear();
             health.putAll(seenHealth);
@@ -592,9 +593,9 @@ public final class MarineBarks {
             cast[n] = c;
         }
 
-        /** Cells from {@code (px, py)} to the nearest living Rav or seen enemy fighter, or infinity. */
-        float nearestThreat(float px, float py) {
-            return Math.min(ravs.nearest(px, py), hostiles.nearest(px, py));
+        /** Whether {@code (px, py)} is in the fight: a Rav near it, or a seen enemy fighter in rifle range of it. */
+        boolean inFight(float px, float py) {
+            return ravs.nearest(px, py) <= NEAR_CELLS || hostiles.nearest(px, py) <= HOSTILE_NEAR_CELLS;
         }
 
         /**
@@ -757,7 +758,12 @@ public final class MarineBarks {
 
     /** Whether a marine just began a reload with the enemy near enough to call it. */
     static boolean reloading(float priorTimer, float timer, float nearestRav) {
-        return priorTimer <= 0f && timer > 0f && nearestRav <= NEAR_CELLS;
+        return reloading(priorTimer, timer, nearestRav, NEAR_CELLS);
+    }
+
+    /** Whether a marine just began a reload with the foe nearest it inside {@code range}. */
+    static boolean reloading(float priorTimer, float timer, float nearest, float range) {
+        return priorTimer <= 0f && timer > 0f && nearest <= range;
     }
 
     /** Whether {@code bark} is a cry torn out of a body seized or thrown, which waits on no one. */

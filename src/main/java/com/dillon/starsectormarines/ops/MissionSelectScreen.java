@@ -104,9 +104,11 @@ public final class MissionSelectScreen implements Screen {
             var notice = notices.get(0);
             context.goTo(notice.screen);
         });
-        props.put("clients", clientRows(selectedClient));
-        props.put("clientEmpty", context == null || context.clients.isEmpty()
+        List<ClientRow> clientRows = clientRows(selectedClient);
+        props.put("clients", clientRows);
+        props.put("clientEmpty", clientRows.isEmpty()
                 ? Strings.get("missionSelectNoClientsHaveWorkAtThisMarket") : "");
+        putReplayToggle(props, !replayOffers().isEmpty(), CompletedReplays.enabled(), this::toggleReplays);
         props.put("missionHeader", selectedClient != null
                 ? selectedClient.displayName : Strings.get("missionSelectContracts"));
         props.put("missionSummary", missionSummary(selectedClient, missions));
@@ -323,6 +325,14 @@ public final class MissionSelectScreen implements Screen {
                     client.displayName, status, client.locked,
                     () -> selectClient(client)));
         }
+        if (CompletedReplays.enabled() && !replayOffers().isEmpty()) {
+            Client replays = CompletedReplays.isClient(selected) ? selected : CompletedReplays.client();
+            rows.add(new ClientRow("client-replay", "client-replay-name", "client-replay-rep",
+                    replays.crestPath,
+                    "client-card" + (replays == selected ? " selected" : ""),
+                    replays.displayName, Strings.get("replayCompletedContactRole"), false,
+                    () -> selectClient(replays)));
+        }
         return List.copyOf(rows);
     }
 
@@ -346,7 +356,8 @@ public final class MissionSelectScreen implements Screen {
                             + (isSelected ? " selected" : ""),
                     Character.toString(mission.type.glyph), mission.name,
                     Strings.format("missionSelectRowMeta", mission.source == MissionSource.RECURRING
-                            ? Strings.get("missionSelectRepeatable") : mission.source == MissionSource.STORY
+                            ? Strings.get("missionSelectRepeatable") : mission.source == MissionSource.REPLAY
+                            ? Strings.get("missionSelectReplay") : mission.source == MissionSource.STORY
                             ? Strings.get("missionSelectStory") : tierName(mission.tier), recommended, active),
                     ShepherdRecoveryProgress.workingPassage(mission.id) ? Strings.get("missionSelectPayoutMorrow")
                             : SupplyRouteCampaign.freight(mission) ? Strings.format("missionSelectMaximumCredits", credits.format(payout)) : Strings.format("missionSelectCompactCredits", credits.format(payout)), () -> select.accept(mission)));
@@ -513,6 +524,7 @@ public final class MissionSelectScreen implements Screen {
         Map<String, Object> props = new LinkedHashMap<>();
         MissionDialogue.put(props, "detail", null);
         putCompanyNews(props, List.of(), () -> { });
+        putReplayToggle(props, false, false, () -> { });
         putBroker(props, null);
         props.put("briefLabel", Strings.get("missionSelectBRIEFDEPLOY"));
         props.put("screenTitle", Strings.get("missionSelectMarineOperations"));
@@ -522,6 +534,31 @@ public final class MissionSelectScreen implements Screen {
         props.put("detailImageClasses", "mission-detail-image-wrap surface-dark");
         props.put("detailImage", null);
         return props;
+    }
+
+    static void putReplayToggle(Map<String, Object> props, boolean available, boolean on, Runnable toggle) {
+        props.put("replayToggleClasses", "replay-toggle console-command-rail" + (available ? "" : " hidden"));
+        // A lit key, as Brief & Deploy is: the theme lights a command key's lamp on its good surface.
+        props.put("replayKeyClasses", on ? "good-surface" : "");
+        props.put("replayToggleLabel", Strings.get("replayCompletedToggle"));
+        props.put("replayToggleAction", toggle);
+    }
+
+    private List<Mission> replayOffers() {
+        MarineRosterScript script = Global.getSector() == null ? null : MarineRosterScript.getInstance();
+        return CompletedReplays.offers(script == null ? null : script.roster(), context == null ? null : context.planet);
+    }
+
+    /** Shows or hides the replay contact; hiding it while open returns the board to no selection. */
+    private void toggleReplays() {
+        if (context == null) return;
+        boolean on = !CompletedReplays.enabled();
+        CompletedReplays.setEnabled(on);
+        if (!on && CompletedReplays.isClient(context.getSelectedClient())) {
+            context.setSelectedClient(null);
+            context.setSelectedMission(null);
+        }
+        installDocument();
     }
 
     static void putCompanyNews(Map<String, Object> props, List<CompanyNotices.Notice> notices, Runnable open) {
@@ -564,6 +601,7 @@ public final class MissionSelectScreen implements Screen {
     static String missionSummary(Client client, List<Mission> missions) {
         if (client == null) return Strings.get("missionSelectChooseAClientToInspectCurrentWork");
         if (OpeningBroker.isContact(client)) return Strings.get("missionSelectWaylineTitle");
+        if (CompletedReplays.isClient(client)) return Strings.format("replayCompletedSummary", missions.size());
         if (MarineOpsContext.DEBUG_CLIENT_FACTION_ID.equals(client.factionId)) {
             return Strings.format("missionSelectDebugCount", missions.size());
         }
@@ -591,7 +629,7 @@ public final class MissionSelectScreen implements Screen {
         return Strings.get("missionSelectTier" + tier.name());
     }
 
-    private static String typeClass(MissionType type) {
+    static String typeClass(MissionType type) {
         return "type-" + (type != null ? type.name().toLowerCase(Locale.ROOT) : "unknown");
     }
 

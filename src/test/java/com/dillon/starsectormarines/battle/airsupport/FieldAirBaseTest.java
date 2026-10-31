@@ -95,5 +95,8 @@ class FieldAirBaseTest {
         base.installRunway(new Runway(0f, 10f, 40f, 10f, 4f));
         assertEquals(1, base.ready(AirPoolKind.FIGHTER));
         assertTrue(base.stands().get(0).shed());
+        assertEquals(AirfieldService.Kind.SHELTER, base.stands().get(0).berth().kind);
+        base.stands().get(0).berth().state = BerthState.AWAY;
+        assertEquals(0, base.ready(AirPoolKind.FIGHTER));
     }
 }

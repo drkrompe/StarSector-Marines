@@ -35,6 +35,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonObjectives;
 import com.dillon.starsectormarines.battle.cordon.CordonHouseFronts;
 import com.dillon.starsectormarines.battle.cordon.CordonOuterPicket;
 import com.dillon.starsectormarines.battle.cordon.CordonPosture;
+import com.dillon.starsectormarines.battle.cordon.CordonStagingArea;
 import com.dillon.starsectormarines.battle.cordon.CordonStrikes;
 import com.dillon.starsectormarines.battle.cordon.CordonRefugees;
 import com.dillon.starsectormarines.battle.cordon.CordonConvoys;
@@ -308,7 +309,7 @@ public final class CordonSetup {
         MapResult built = CordonConstructions.build(map, plan, density, battleSeed, mixed, biome.inlandGround());
         // The line's gaps closed with picket nests once the redoubts' guns stand where they will be manned.
         // The allies' airbase lot is laid as a garrison field; it is no compound for the swarm to hold.
-        return CordonAirBase.withoutAirbaseNode(CordonGapNests.lay(built, plan, density, battleSeed));
+        return CordonGapNests.lay(built, plan, density, battleSeed);
     }
 
     /** What this map lacks, or {@code null} when it carries the whole Cordon. */
@@ -563,8 +564,7 @@ public final class CordonSetup {
         List<Doodad> vehicles = BattleSetup.stampVehicles(map, rng, corridorClear(map, cordon.corridor()));
         int shuttles = manifest == null || manifest.isEmpty() ? 4 : manifest.size();
         // The company never comes down on the allies' air base.
-        List<LandingPad> pads = LandingPadSelector.select(map, shuttles, BattleSetup.LZ_MIN_SEPARATION,
-                pad -> pad.purpose != LandingPad.Purpose.GARRISON_AIRFIELD);
+        List<LandingPad> pads = LandingPadSelector.select(map, shuttles, BattleSetup.LZ_MIN_SEPARATION);
         BattleSimulation sim = BattleSetup.buildMap(map, vehicles, Collections.emptyList(),
                 Collections.emptyList(), cordon.battleSeed()).sim();
         sim.setSurface(BattleSetup.surfaceOf(country(cordon.biome())));
@@ -625,6 +625,9 @@ public final class CordonSetup {
         if (logistics != null) sequence.attachLogistics(logistics);
         sequence.attachAirBase(airBase(sim, cordon, logistics, pads));
         if (variant == CordonVariant.ROAD && cordon.corridor() != null) {
+            List<int[]> corridor = cordon.corridor();
+            sequence.attachStaging(CordonStagingArea.at(sim, CordonCorridor.compound(cordon.plan()),
+                    corridor.get(corridor.size() - 1)));
             CordonConvoys convoys = convoys(sim, cordon, timetable, logistics);
             sequence.attachConvoys(convoys);
             armour.escortConvoys(convoys::guardPosts);

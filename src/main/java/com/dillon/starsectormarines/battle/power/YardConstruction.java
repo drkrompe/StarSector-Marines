@@ -51,15 +51,15 @@ public final class YardConstruction extends CommandPower {
         return source.siteOpen(option, x + 0.5f, y + 0.5f, battle.getGrid());
     }
 
-    /** On supply, how many of this build the host can pay for now: the card reads spent at none. */
+    /** On supply, unavailable while the host cannot pay for this build; otherwise unlimited. */
     @Override public int availableCalls() {
-        return source.metered() ? source.stock() / Math.max(1, option.cost()) : -1;
+        return source.metered() && source.stock() < option.cost() ? 0 : -1;
     }
 
-    /** On supply, the card names the build's cost against what the host holds, as {@code 3 of 5/8}. */
+    /** On supply, the card names the build's cost; what the host holds shows once, on Morrow's selected title. */
     @Override public String cardLabel(int chargesRemaining) {
         if (!source.metered()) return displayName;
-        return Strings.format("yardConstructionCard", displayName, option.cost(), source.stock(), source.supplyCap());
+        return Strings.format("yardConstructionCard", displayName, option.cost());
     }
 
     /** A staged build's plot, outlined under the cursor so a cramped spot shows before the click. */

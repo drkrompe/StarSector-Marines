@@ -122,7 +122,7 @@ public final class AirStrikeSystem {
         if (nextStrikeIn > 0f) return;
 
         AirfieldService field = sim.getAirfieldService();
-        // Another side's field is flown by that side (an allied air base flies its own sorties).
+        // Another side's field is not this side's to fly: an allied wing's sheds are its own pool's.
         if (field.owner() != side) {
             nextStrikeIn = LAUNCH_INTERVAL_SEC;
             return;
