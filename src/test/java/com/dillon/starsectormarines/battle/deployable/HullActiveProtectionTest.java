@@ -39,7 +39,7 @@ class HullActiveProtectionTest {
         List<PointDefenseService.EmplacementView> live = sim.pointDefense().activeEmplacements();
         assertEquals(1, live.size(), "only the tank with the kit on its rack carries active protection");
         assertEquals(tank, live.get(0).entityId());
-        assertNull(VehicleKit.activeProtectionStructureId(List.of(VehicleKit.SPALL_LINER)));
+        assertNull(VehicleKit.activeProtectionStructureId(List.of(VehicleKit.SENSOR_PAIR)));
 
         GroundBody body = sim.convoy().body(tank);
         body.teleport(30.5f, 12.5f, 0f);

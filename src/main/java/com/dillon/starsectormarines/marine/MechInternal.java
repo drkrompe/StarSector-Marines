@@ -4,12 +4,14 @@ import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.mech.MissileReplenisherComponent;
 import com.dillon.starsectormarines.i18n.Strings;
 
+import java.util.List;
 import java.util.Map;
 
 /**
- * A non-weapon fitting that changes the frame: engine, plating, capacitor bank, vent array or
- * missile loader. Each internal replaces or adds one part and none is a multiplier on the
- * chassis; the chassis's own band ({@link MechFrameBudget}) bounds what an engine or plating
+ * A non-weapon fitting that changes the machine: engine, plating, capacitor bank, vent array, missile loader, spall
+ * liner or ready rack. One machine, one part catalog: a mech and a vehicle fit the same internals, and whether one goes
+ * on a machine is its own requirements ({@link #unmet}) against what the chassis offers ({@link MachineCapabilities}),
+ * never which kind of machine it is. The chassis's own band ({@link MechFrameBudget}) bounds what an engine or plating
  * can buy back.
  *
  * <p>Higher tiers take more room: a larger footprint, or more mass against the engine's output.
@@ -59,7 +61,17 @@ public enum MechInternal {
     STANDARD_LOADER("internal.loader-standard", "@gearInternalStandardLoader", Role.LOADER,
             EquipmentAccessTier.COMMON, 2, 1, 0f, 0f, 0f, 0f, 0f, 0f),
     ACCELERATED_LOADER("internal.loader-accelerated", "@gearInternalAcceleratedLoader", Role.LOADER,
-            EquipmentAccessTier.ADVANCED, 2, 1, 1f, 0f, 0f, 0f, 0f, 0f);
+            EquipmentAccessTier.ADVANCED, 2, 1, 1f, 0f, 0f, 0f, 0f, 0f),
+
+    /** A fifth more structure: spall lining behind the plate, on a mech's every section or a hull. Once the vehicle's kit. */
+    SPALL_LINER("internal.spall-liner", "@gearInternalSpallLiner", Role.LINER,
+            EquipmentAccessTier.COMMON, 2, 1, 1f, 0f, 0f, 0f, 0f, 0f),
+    /**
+     * Half again the rounds aboard every fed gun: a deeper rack or magazine, a longer belt. Once the vehicle's kit; it
+     * needs a fed weapon to deepen.
+     */
+    READY_RACK("internal.ready-rack", "@gearInternalReadyRack", Role.READY_RACK,
+            EquipmentAccessTier.COMMON, 2, 1, 1f, 0f, 0f, 0f, 0f, 0f);
 
     /** What part of the frame an internal replaces. */
     public enum Role {
@@ -69,7 +81,11 @@ public enum MechInternal {
         /** Optional, and they stack: the stock frame fits none. */
         VENT_ARRAY(SocketId.AUXILIARY),
         /** Optional: a mech without one never refills its racks. */
-        LOADER(SocketId.AUXILIARY);
+        LOADER(SocketId.AUXILIARY),
+        /** Optional: structure behind the plate. */
+        LINER(SocketId.AUXILIARY),
+        /** Optional: deeper magazines, racks and belts. */
+        READY_RACK(SocketId.AUXILIARY);
 
         private final SocketId socket;
 
@@ -89,7 +105,7 @@ public enum MechInternal {
                 case ENGINE -> INDUSTRIAL_ENGINE;
                 case PLATING -> FACTORY_PLATING;
                 case CAPACITOR_BANK -> FACTORY_CAPACITOR_BANK;
-                case VENT_ARRAY -> null;
+                case VENT_ARRAY, LINER, READY_RACK -> null;
                 case LOADER -> STANDARD_LOADER;
             };
         }
@@ -158,6 +174,53 @@ public enum MechInternal {
         return null;
     }
 
+    /** What this part multiplies the machine's structure by: a spall liner's fifth more. */
+    public float structureFactor() {
+        return this == SPALL_LINER ? 1.2f : 1f;
+    }
+
+    /** What this part multiplies every finite magazine, rack and belt by: a ready rack's half again. */
+    public float ammoFactor() {
+        return this == READY_RACK ? 1.5f : 1f;
+    }
+
+    /** Something a part needs of the machine it goes on (mechs-nouns.md, one machine, one part catalog). */
+    public enum Requirement {
+        /** A gun, so a reservoir: a capacitor bank or vent array has nothing to feed on an unarmed hull. */
+        ARMED,
+        /** A gun that draws on ammunition: a ready rack has nothing to deepen otherwise. */
+        FED_WEAPON;
+
+        /** The player-facing reason a part will not fit. */
+        public String reason() {
+            return Strings.get(switch (this) {
+                case ARMED -> "gearRequirementArmed";
+                case FED_WEAPON -> "gearRequirementFedWeapon";
+            });
+        }
+    }
+
+    /** What this part needs of a machine, whatever kind of machine it is. */
+    public List<Requirement> requirements() {
+        return switch (role) {
+            case CAPACITOR_BANK, VENT_ARRAY -> List.of(Requirement.ARMED);
+            case READY_RACK -> List.of(Requirement.FED_WEAPON);
+            case ENGINE, PLATING, LOADER, LINER -> List.of();
+        };
+    }
+
+    /** The first requirement {@code machine} does not meet, or null when the part may go on it. */
+    public Requirement unmet(MachineCapabilities machine) {
+        for (Requirement requirement : requirements()) {
+            boolean met = switch (requirement) {
+                case ARMED -> machine.armed();
+                case FED_WEAPON -> machine.fedWeapons();
+            };
+            if (!met) return requirement;
+        }
+        return null;
+    }
+
     /** A stock part: known by every company and fitted to every new or migrated frame. */
     public boolean stock() { return role.stock() == this; }
 
@@ -178,5 +241,7 @@ public enum MechInternal {
      * {@link #findById}; the bay folds kit stock and kit patterns into the internal's ({@code MechBay}).
      */
     public static final Map<String, MechInternal> RETIRED_KITS = Map.of(
-            "kit.accelerated-loader", ACCELERATED_LOADER);
+            "kit.accelerated-loader", ACCELERATED_LOADER,
+            "kit.spall-liner", SPALL_LINER,
+            "kit.ready-rack", READY_RACK);
 }

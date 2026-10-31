@@ -198,8 +198,8 @@ public final class CampaignVehicle implements Serializable {
      * one is fitted goes in its place, as on a mech.
      */
     public boolean canFitRack(MechInternal part) {
-        if (!VehicleRack.takes(type, part)) return false;
-        return VehicleRack.fits(type, kits(), withRackPart(part));
+        if (!VehicleRack.takes(type, gun(), part)) return false;
+        return VehicleRack.fits(type, gun(), kits(), withRackPart(part));
     }
 
     /** Puts {@code part} on the rack, a bank replacing the bank fitted; false when it would not go. */
@@ -313,8 +313,9 @@ public final class CampaignVehicle implements Serializable {
     /**
      * A save from before the loader was a part: an armed hull had a sealed stock loader, so it now carries the standard
      * loader in its compartment unless a retired accelerated-loader kit already put one there. Where that no longer packs,
-     * kits come off last-fitted first, then vent arrays, as spares in stores (the bay owns what it held), so nothing
-     * owned is lost and the hull keeps the loader it always had.
+     * kits come off last-fitted first, then the compartment's other parts last-fitted first (vent arrays, and the
+     * liner or ready rack a retired kit became), as spares in stores (the bay owns what it held), so nothing owned is
+     * lost and the hull keeps the bank and loader it always had.
      */
     private void fitTheSealedLoader() {
         if (!type.hasTurretWeapon()) return;
@@ -325,9 +326,15 @@ public final class CampaignVehicle implements Serializable {
                 kitIds.remove(kitIds.size() - 1);
                 continue;
             }
-            int vent = rackInternalIds.lastIndexOf(MechInternal.AUXILIARY_VENT_ARRAY.id);
-            if (vent < 0) break;
-            rackInternalIds.remove(vent);
+            int spare = -1;
+            for (int i = rackInternalIds.size() - 1; i >= 0 && spare < 0; i--) {
+                MechInternal part = MechInternal.findById(rackInternalIds.get(i));
+                if (part == null || part.role != MechInternal.Role.LOADER && part.role != MechInternal.Role.CAPACITOR_BANK) {
+                    spare = i;
+                }
+            }
+            if (spare < 0) break;
+            rackInternalIds.remove(spare);
         }
     }
 

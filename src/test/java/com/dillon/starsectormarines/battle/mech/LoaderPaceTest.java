@@ -5,6 +5,7 @@ import com.dillon.starsectormarines.battle.vehicle.VehicleKit;
 import com.dillon.starsectormarines.battle.weapon.LoaderPace;
 import com.dillon.starsectormarines.battle.weapon.RotaryFeedDef;
 import com.dillon.starsectormarines.battle.weapon.WeaponRegistry;
+import com.dillon.starsectormarines.marine.MechCompartment;
 import com.dillon.starsectormarines.marine.MechInternal;
 import com.dillon.starsectormarines.marine.VehicleRack;
 import org.junit.jupiter.api.Test;
@@ -75,7 +76,7 @@ class LoaderPaceTest {
 
     @Test
     void aVehiclesLoaderPacesTheHopperAndItsReadyRackDeepensTheBelt() {
-        VehicleKit.Effect kits = VehicleKit.Effect.of(List.of(VehicleKit.READY_RACK));
+        VehicleKit.Effect kits = VehicleKit.Effect.NONE.with(MechCompartment.systems(List.of(MechInternal.READY_RACK)));
         MissileReplenisherComponent loader = VehicleRack.loader(List.of(MechInternal.ACCELERATED_LOADER));
         RotaryFeed feed = new RotaryFeed(GUN, loader.loaderFactor(), kits.ammoFactor());
         assertEquals(150, feed.beltRounds(), "half again the rounds aboard");

@@ -345,6 +345,8 @@ public record ArmorSide(List<Unit> units) {
             case CAPACITOR_BANK -> "capacitors";
             case VENT_ARRAY -> "vents";
             case LOADER -> "loader";
+            case LINER -> "liner";
+            case READY_RACK -> "ready-rack";
         };
     }
 

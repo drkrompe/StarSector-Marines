@@ -129,6 +129,10 @@ final class MechLabSpecSheets {
                 stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecSheetsGunFeed"),
                         Strings.format("openingMechLabSpecSheetsFeedFactor", number(internal.replenisher().loaderFactor()))));
             }
+            case LINER -> stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecStructure"),
+                    Strings.format("openingMechLabSpecFactor", number(internal.structureFactor()))));
+            case READY_RACK -> stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecRounds"),
+                    Strings.format("openingMechLabSpecFactor", number(internal.ammoFactor()))));
         }
         if (internal.role.compartment()) stats.add(SpecSheet.Stat.of(Strings.get("openingMechLabSpecFootprint"),
                 internal.footprintColumns + "x" + internal.footprintRows));
@@ -138,6 +142,8 @@ final class MechLabSpecSheets {
             case CAPACITOR_BANK -> Strings.get("openingMechLabRoleCapacitorBank");
             case VENT_ARRAY -> Strings.get("openingMechLabRoleVentArray");
             case LOADER -> Strings.get("openingMechLabRoleLoader");
+            case LINER -> Strings.get("openingMechLabRoleLiner");
+            case READY_RACK -> Strings.get("openingMechLabRoleReadyRack");
         };
         String copy = switch (internal.role) {
             case ENGINE -> Strings.get("openingMechLabEngineCopy");
@@ -145,6 +151,8 @@ final class MechLabSpecSheets {
             case CAPACITOR_BANK -> Strings.get("openingMechLabCapacitorBankCopy");
             case VENT_ARRAY -> Strings.get("openingMechLabVentArrayCopy");
             case LOADER -> Strings.get("openingMechLabLoaderCopy");
+            case LINER -> Strings.get("openingMechLabLinerCopy");
+            case READY_RACK -> Strings.get("openingMechLabReadyRackCopy");
         };
         return new SpecSheet(internal.displayName(), role, null, "item", List.copyOf(stats), List.of(copy));
     }

@@ -706,6 +706,7 @@ public final class MechBay implements Serializable {
     public boolean canInstallInternal(String mechId, MechInternal internal) {
         CampaignMech mech = mechById(mechId);
         if (mech == null || internal == null) return false;
+        if (internal.unmet(MachineCapabilities.of(mech)) != null) return false;
         if (internal.role.compartment()) {
             return MechCompartment.fits(mech.variant(),
                     mech.fit().withInternal(internal.role, internal).compartment());

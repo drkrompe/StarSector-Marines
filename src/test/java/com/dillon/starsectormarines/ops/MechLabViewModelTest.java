@@ -1014,20 +1014,20 @@ class MechLabViewModelTest {
         MechBay bay = MechBay.legacyStarterFixture();
         CampaignVehicle tank = new CampaignVehicle("v1", "Breaker", VehicleType.BREAKTHROUGH_TANK);
         assertTrue(bay.addVehicle(MechBay.STARTER_SQUAD_ID, tank));
-        bay.addKit(VehicleKit.SPALL_LINER.id, 1);
+        bay.addKit(VehicleKit.SENSOR_PAIR.id, 1);
         MechLabViewModel viewModel = new MechLabViewModel(new Reactor(), bay, new TestPurse(60_000));
         viewModel.gantryRows().get().get(1).select().run();
         assertEquals(VehicleType.BREAKTHROUGH_TANK, viewModel.selectedVehicleType());
 
         MechLabViewModel.CatalogRow liner = viewModel.catalogRows().get().stream()
-                .filter(row -> row.name().equals(VehicleKit.SPALL_LINER.displayName()))
+                .filter(row -> row.name().equals(VehicleKit.SENSOR_PAIR.displayName()))
                 .findFirst().orElseThrow();
         assertFalse(liner.actionDisabled(), liner.actionHint());
         liner.action().run();
-        assertEquals(List.of(VehicleKit.SPALL_LINER), viewModel.installedKits());
-        assertTrue(viewModel.removeKit(VehicleKit.SPALL_LINER));
+        assertEquals(List.of(VehicleKit.SENSOR_PAIR), viewModel.installedKits());
+        assertTrue(viewModel.removeKit(VehicleKit.SENSOR_PAIR));
         assertTrue(tank.kits().isEmpty());
-        assertEquals(1, bay.availableKit(VehicleKit.SPALL_LINER.id), "the kit is a spare again");
+        assertEquals(1, bay.availableKit(VehicleKit.SENSOR_PAIR.id), "the kit is a spare again");
     }
 
     @Test

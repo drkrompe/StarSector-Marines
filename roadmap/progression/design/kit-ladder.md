@@ -299,8 +299,9 @@ artifact.
 
 ## Open questions
 
-- Vehicle kits (spall liner, ready rack) go on sale at Relief, before any vehicle
-  hull is sold (`carrier`).
+- The spall liner and ready rack (internals since one machine, one part catalog) go on
+  sale at Relief, before any vehicle hull is sold; a mech can fit them now, so they are
+  no longer stranded there (`carrier`).
 - Restricted sheets still need a warrant, so "the equipment wall opens at Working
   Passage" is not yet true for them (`restricted`).
 - The Outlaw Heavy sheet never sells in practice; the Boarding Jack is

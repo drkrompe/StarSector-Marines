@@ -68,12 +68,12 @@ public final class MechFabricationCatalog {
             internal(MechInternal.MILITARY_CAPACITOR_BANK, "@gearFabricationMilitaryPattern"),
             internal(MechInternal.AUXILIARY_VENT_ARRAY, "@gearFabricationStandardIssue"),
             internal(MechInternal.STANDARD_LOADER, "@gearFabricationStandardIssue"),
-            internal(MechInternal.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"));
+            internal(MechInternal.ACCELERATED_LOADER, "@gearFabricationMilitaryPattern"),
+            internal(MechInternal.SPALL_LINER, "@gearFabricationStandardIssue"),
+            internal(MechInternal.READY_RACK, "@gearFabricationStandardIssue"));
 
     /** Bolt-on vehicle kits; bills are derived like a part's. */
     private static final List<Recipe> KITS = List.of(
-            kit(VehicleKit.SPALL_LINER, "@gearFabricationStandardIssue"),
-            kit(VehicleKit.READY_RACK, "@gearFabricationStandardIssue"),
             kit(VehicleKit.SENSOR_PAIR, "@gearFabricationMilitaryPattern"),
             kit(VehicleKit.ACTIVE_PROTECTION, "@gearFabricationMilitaryPattern"));
 
@@ -246,6 +246,8 @@ public final class MechFabricationCatalog {
             case CAPACITOR_BANK, VENT_ARRAY -> 1550f;
             // A loader is a small autoforge: guidance stock and feed mechanism.
             case LOADER -> 1200f;
+            // A liner or a ready rack is a common bolt-on: the price it had as a vehicle kit.
+            case LINER, READY_RACK -> 900f;
         };
         return base * tierMultiplier(internal.tier);
     }
