@@ -165,13 +165,12 @@ def _decode(path, cache):
     return cache[path]
 
 
-def preview(shot_ids, only=None, out=None):
-    """Mix the shipped timelines as the player plays them and mux the sound onto the shipped video.
+def sequence_mix(shot_ids):
+    """The shipped timelines mixed as the player plays them: (float stereo at SR from the first
+    shot's start, unclipped; each shot's start in seconds; the timelines).
 
     One-shots play once from their start; a cue with `until` loops to it with its fades, and its
-    duck follows every caption on the sequence clock (CinematicSequence.volumeAt). `only` keeps the
-    picture to those shots, while cues from earlier shots that carry into them are still heard.
-    Writes build/cinematic/preview/<name>.mp4 and returns its path."""
+    duck follows every caption on the sequence clock (CinematicSequence.volumeAt)."""
     timelines = [json.loads((TIMELINE_DIR / (s + ".json")).read_text(encoding="utf-8")) for s in shot_ids]
     offsets, at = [], 0.0
     for tl in timelines:
@@ -212,7 +211,15 @@ def preview(shot_ids, only=None, out=None):
             if c.get("duck", 1.0) < 1:
                 g *= 1 - (1 - c["duck"]) * speaking[start:end]
             mix[start:end] += body * g[:, None]
-    picked = [i for i, s in enumerate(shot_ids) if not only or s in only]
+    return mix, offsets, timelines
+
+
+def preview(shot_ids, only=None, out=None):
+    """Mix the shipped timelines as the player plays them (sequence_mix) and mux the sound onto the
+    shipped video. `only` keeps the picture to those shots, while cues from earlier shots that carry
+    into them are still heard. Writes build/cinematic/preview/<name>.mp4 and returns its path."""
+    mix, offsets, timelines = sequence_mix(shot_ids)
+    picked =[i for i, s in enumerate(shot_ids) if not only or s in only]
     a = int(round(offsets[picked[0]] * SR))
     b = int(round((offsets[picked[-1]] + timelines[picked[-1]]["duration"]) * SR))
     peak = float(np.abs(mix[a:b]).max()) if b > a else 0.0
