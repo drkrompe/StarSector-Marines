@@ -74,7 +74,7 @@ progress, story completion, awards, campaign marks and debriefs are untouched,
 and a replay does not retry.
 
 **Cheats** are the alpha's Debug key on the mission board, beside Replay Story
-Missions: off by default for players (on in a dev build) and saved with the
+Missions: off by default (in a dev build too) and saved with the
 game. While it is on, the board lists **Debug missions**, every mission with
 sandbox forces, loadouts and settings that never touch the company or the
 campaign; Company HQ shows its debug button; and a battle's debug panel offers

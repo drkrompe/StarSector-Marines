@@ -1,6 +1,5 @@
 package com.dillon.starsectormarines.ops;
 
-import com.dillon.starsectormarines.DevConfig;
 import com.fs.starfarer.api.Global;
 
 import java.util.Map;
@@ -13,7 +12,7 @@ import java.util.Map;
  * Win beside it, which ends any battle as an outright company victory: every story record reports
  * each objective met and nobody lost ({@code BattleSimulation#isForcedVictory}), so the arc settles
  * it as a full success. The battle's diagnostic rows stay behind {@code DevConfig.DEV_MODE}. Saved
- * with the game; a dev build starts with it on.
+ * with the game; off until the player turns it on, in a dev build too.
  */
 public final class Cheats {
     private static final String KEY = "marines_cheats", FREE_LICENSES_KEY = "marines_cheat_free_licenses";
@@ -23,7 +22,7 @@ public final class Cheats {
     public static boolean enabled() {
         Map<String, Object> data = persistentData();
         Object stored = data == null ? null : data.get(KEY);
-        return stored instanceof Boolean on ? on : DevConfig.DEV_MODE;
+        return stored instanceof Boolean on && on;
     }
 
     public static void setEnabled(boolean enabled) {
