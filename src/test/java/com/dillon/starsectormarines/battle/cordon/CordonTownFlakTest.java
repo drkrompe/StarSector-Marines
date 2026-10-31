@@ -33,7 +33,9 @@ class CordonTownFlakTest {
         List<int[]> gates = List.of(new int[]{15, 29, 9}, new int[]{30, 14, 3}, new int[]{15, 0, 3});
         List<int[]> taken = List.of(new int[]{12, 12}, new int[]{20, 8}, new int[]{4, 18});
 
-        List<int[]> sites = CordonTownGarrison.flakSites(open, indoors, LEFT, TOP, RIGHT, BOTTOM, gates, staging,
+        // A paved way across the compound's middle.
+        CordonStagingArea.Open street = (x, y) -> y == 14 || y == 15;
+        List<int[]> sites = CordonTownGarrison.flakSites(open, indoors, street, LEFT, TOP, RIGHT, BOTTOM, gates, staging,
                 yard, new int[]{15, 30}, taken);
 
         assertTrue(sites.size() >= CordonTownGarrison.FLAK_MIN && sites.size() <= CordonTownGarrison.FLAK_MAX,
@@ -44,6 +46,7 @@ class CordonTownFlakTest {
             for (int dy = -1; dy <= 1; dy++) {
                 for (int dx = -1; dx <= 1; dx++) {
                     assertFalse(indoors.at(s[0] + dx, s[1] + dy), "never in or against a room " + at);
+                    assertFalse(street.at(s[0] + dx, s[1] + dy), "never on the way through " + at);
                     assertFalse(yard.contains(s[0] + dx, s[1] + dy), "never where the trucks turn " + at);
                 }
             }
@@ -66,10 +69,10 @@ class CordonTownFlakTest {
         CordonStagingArea.Open open = (x, y) -> x >= -1 && x <= 9 && y >= -1 && y <= 9;
         CordonStagingArea.Open nowhere = (x, y) -> false;
         CordonStagingArea staging = CordonStagingArea.of(nowhere, 0, 0, 8, 8, 4, 9);
-        List<int[]> sites = CordonTownGarrison.flakSites(open, nowhere, 0, 0, 8, 8, List.of(), staging, null, null,
+        List<int[]> sites = CordonTownGarrison.flakSites(open, nowhere, nowhere, 0, 0, 8, 8, List.of(), staging, null, null,
                 List.of());
         assertEquals(CordonTownGarrison.FLAK_MIN, sites.size(), "covered by the first gun, but never one alone");
-        assertTrue(CordonTownGarrison.flakSites(open, (x, y) -> true, 0, 0, 8, 8, List.of(), staging, null, null,
+        assertTrue(CordonTownGarrison.flakSites(open, (x, y) -> true, nowhere, 0, 0, 8, 8, List.of(), staging, null, null,
                 List.of()).isEmpty(), "all rooms: nowhere to stand a gun");
     }
 }
