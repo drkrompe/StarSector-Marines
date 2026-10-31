@@ -906,8 +906,9 @@ mech weapons of its own type and size, so a weapon license teaches a hull the we
 accordion: one section is open at a time, showing its slots, and opening another collapses it.
 The page opens on the first section with stock. Each row counts what the shelf holds there;
 choosing a section shows all of it, choosing a slot narrows it, and an empty category says so. Boat parts are the Boat Deck's learnable technology: the standard fitting of every slot
-and the yard's gun on every hardpoint (`BoatParts.starterIds`) are known to every company and
-never sold; every other fitting and gun is a pattern (`BoatDeck.knowsPart`) that the
+and the yard's gun on every hardpoint (`BoatParts.starterIds`), with the medium and heavy lift
+(the heavy cradle and heavy lift frame, `BoatParts.COMPANY_ISSUE`, owner 2026-10-31, for v0.1), are
+known to every company and never sold; every other fitting and gun is a pattern (`BoatDeck.knowsPart`) that the
 workshop will not build until it is bought here, and the Boat Deck's card says so
 (`NOT_LEARNED`). Parts already in stores or on a boat in a save from before learning are
 counted as learned, so nothing owned is ever locked away. A part's access tier follows the

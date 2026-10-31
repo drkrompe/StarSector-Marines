@@ -72,8 +72,8 @@ class BoatDeckViewModelTest {
         model.selectBoatAction(0).run();
         model.selectSlotAction(BoatFittingSlot.LIFT).run();
 
-        assertFalse(boats.knowsPart(BoatFitting.HEAVY_CRADLE.id()));
-        assertTrue(model.catalogRows().get().stream().noneMatch(row -> BoatFitting.HEAVY_CRADLE.id().equals(row.itemId())));
+        assertFalse(boats.knowsPart(BoatFitting.LIFT_CRADLE.id()));
+        assertTrue(model.catalogRows().get().stream().noneMatch(row -> BoatFitting.LIFT_CRADLE.id().equals(row.itemId())));
         assertTrue(model.catalogRows().get().stream().anyMatch(row -> BoatFitting.STANDARD_LIFT.id().equals(row.itemId())),
                 "what she wears is listed");
     }
