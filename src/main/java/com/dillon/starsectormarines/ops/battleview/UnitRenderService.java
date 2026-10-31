@@ -29,6 +29,7 @@ import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLift;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierLook;
 import com.dillon.starsectormarines.battle.evacuation.flier.HarrierRules;
 import com.dillon.starsectormarines.battle.evacuation.flier.SwarmFliers;
+import com.dillon.starsectormarines.battle.flyby.FighterProfile;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.MissilePodMountGeometry;
 import com.dillon.starsectormarines.battle.infantry.MissilePodSystem;
@@ -1063,10 +1064,12 @@ public final class UnitRenderService implements RenderSystem {
      *
      * <p>A refitted berth's guns are a company boat's, which keep their hull slot's arc in battle
      * ({@code AirArmament.mounts(Airframe, ...)} for a {@code FittedBoat}) and so stand trained
-     * along their own mount's facing: a stern gun parks looking aft, as it lifts.
+     * along their own mount's facing: a stern gun parks looking aft, as it lifts. A fighter has none drawn.
      */
     private void emitParkedGuns(DrawList out, BattleCamera cam, AirfieldService.Berth berth,
                                 float centerCellX, float centerCellY, float cellPx, float alphaMult) {
+        // A fighter flies with its guns built into its hull art, never mounted turrets, so it parks without them.
+        if (berth.airframe instanceof FighterProfile) return;
         String[] kit = berth.doorGuns != null ? berth.doorGuns : berth.airframe.kitFor(TurretRole.A2G);
         String[] pods = berth.doorGuns != null ? berth.doorGunPods : berth.airframe.podKitFor(TurretRole.A2G);
         ParkedGuns guns = parkedGuns.get(berth);
