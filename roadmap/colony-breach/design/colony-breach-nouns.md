@@ -398,7 +398,8 @@ the fields, fight in to the redoubts, bring the survivors back out.
 
 **Rally** (owner, 2026-10-31: the player never moves the people, only says
 whom they follow). A plain click on a walking civilian selects it (a box never
-does) and rings its **group**: everyone following the same squad or vehicle,
+does) and rings its **group** in yellow, a neutral selection apart from the
+company's green and amber, its own ring bolder: everyone following the same squad or vehicle,
 or, for one following nobody, the unattached people within six cells of it. A
 right click on one of the company's squads, mechs or vehicles then hands the
 whole group to it, pulling them off whatever squad or mech they were with. A

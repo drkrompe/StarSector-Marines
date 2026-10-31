@@ -49,6 +49,7 @@ public final class BattleReviewFrameRenderer {
     private float clockSeconds = REVIEW_CLOCK_SECONDS;
     /** What the player has selected while this renderer draws, or null for nothing. */
     private Selection selection;
+    private boolean selectionRings;
     private HighlightOverlay highlights;
     private static final int CAPTION_MARGIN = 12;
     private static final int MAX_CAPTION_POINTS = 14;
@@ -190,6 +191,12 @@ public final class BattleReviewFrameRenderer {
     /** Draws as though the player had {@code selection} selected: the marks the game shows only on a selection. */
     public BattleReviewFrameRenderer selecting(Selection selection) {
         this.selection = selection;
+        return this;
+    }
+
+    /** Draws the selection's rings too, as the game does round what is selected; off for every other look frame. */
+    public BattleReviewFrameRenderer ringingSelection() {
+        this.selectionRings = true;
         return this;
     }
 
@@ -414,6 +421,7 @@ public final class BattleReviewFrameRenderer {
         if (unitShadows) layers.add(RenderLayer.UNIT_SHADOWS);
         if (roofs) layers.add(RenderLayer.ROOFS);
         if (missionMarkers) layers.add(RenderLayer.MISSION_MARKERS);
+        if (selectionRings) layers.add(RenderLayer.HIGHLIGHTS);
         return layers;
     }
 
