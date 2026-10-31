@@ -109,6 +109,46 @@ class MarineBarksTest {
         assertTrue(MarineBarks.Cast.CIVILIAN.barks.contains(Bark.GRABBED));
     }
 
+    @Test void enemyInfantryIsContactAtGunfireRange() {
+        float close = MarineBarks.HOSTILE_CONTACT_CELLS, clear = MarineBarks.HOSTILE_CLEAR_CELLS;
+        assertTrue(MarineBarks.inContact(false, close, close, clear));
+        assertFalse(MarineBarks.inContact(false, close + 1f, close, clear), "not yet close");
+        assertTrue(MarineBarks.inContact(true, clear - 1f, close, clear), "a firefight drifting out stays contact");
+        assertFalse(MarineBarks.inContact(true, clear + 1f, close, clear), "clear again");
+    }
+
+    @Test void takingFireIsCalledAfterAQuietSpellOnly() {
+        assertTrue(MarineBarks.takingFire(Double.NEGATIVE_INFINITY, 3f), "the first round on a squad");
+        assertFalse(MarineBarks.takingFire(10f, 12f), "rounds still landing are the same firefight");
+        assertTrue(MarineBarks.takingFire(10f, 10f + MarineBarks.QUIET_SECONDS), "after a quiet spell it is news again");
+    }
+
+    @Test void aHitByFireNeedsAWoundAndAnEnemyInRange() {
+        assertTrue(MarineBarks.hit(100f, 90f, 20f));
+        assertFalse(MarineBarks.hit(100f, 99.5f, 20f), "a graze");
+        assertFalse(MarineBarks.hit(100f, 0f, 20f), "dead");
+        assertFalse(MarineBarks.hit(100f, 90f, Float.POSITIVE_INFINITY), "no enemy seen: not a hit by fire");
+    }
+
+    @Test void enemiesAreSortedByTheCallTheyDraw() {
+        assertEquals(MarineBarks.Threat.INFANTRY, MarineBarks.threat(UnitType.MARINE));
+        assertEquals(MarineBarks.Threat.ARMOR, MarineBarks.threat(UnitType.HEAVY_MECH));
+        assertEquals(MarineBarks.Threat.ARMOR, MarineBarks.threat(UnitType.MACHINE_FRAME));
+        assertEquals(MarineBarks.Threat.ARMOR, MarineBarks.threat(UnitType.GROUND_VEHICLE));
+        assertEquals(MarineBarks.Threat.DRONE, MarineBarks.threat(UnitType.DRONE));
+        assertEquals(MarineBarks.Threat.OTHER, MarineBarks.threat(UnitType.TURRET), "a turret is called when it fires");
+    }
+
+    @Test void theCallsForPeopleAndMachinesUseTheirOwnTakes() {
+        assertEquals("marines_bark_militia_contact_hostile_a_1",
+                MarineBarks.soundId(MarineBarks.Cast.MILITIA, Bark.CONTACT_HOSTILE, 0, 1));
+        assertEquals("marines_bark_thrown_kestrel_2", MarineBarks.soundId(MarineBarks.Cast.MARINE, Bark.HIT, 0, 2),
+                "a hit by fire borrows the thrown cries");
+        assertFalse(MarineBarks.Cast.CIVILIAN.barks.contains(Bark.TAKING_FIRE), "colonists make no soldier's calls");
+        assertTrue(MarineBarks.Cast.CIVILIAN.barks.contains(Bark.HIT));
+        assertTrue(MarineBarks.Cast.MILITIA.barks.contains(Bark.GRENADE));
+    }
+
     @Test void squadlessPeopleShareAChannelWithTheirCastNearby() {
         long here = MarineBarks.patch(MarineBarks.Cast.CIVILIAN, 10.2f, 10.7f);
         assertEquals(here, MarineBarks.patch(MarineBarks.Cast.CIVILIAN, 11.9f, 2.1f), "the same patch of ground");

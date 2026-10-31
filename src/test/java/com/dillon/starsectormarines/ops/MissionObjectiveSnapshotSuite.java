@@ -117,6 +117,16 @@ public final class MissionObjectiveSnapshotSuite implements SnapshotSuite {
             for (int tick = 0; tick < 2700 && !sim.isComplete(); tick++) sim.advance(BattleSimulation.TICK_DT);
             capture(context, artifacts, "cordon-road-convoy", sim, false);
         }
+        // The Channel Root: the barrage row counting down to the incendiary opening, then a line firing.
+        try (var sim = WellhollowBloomCampaign.fixture(WellhollowBloomProgress.Chapter.THE_BURN,
+                WellhollowBloomCampaign.fixedSeed(WellhollowBloomProgress.Chapter.THE_BURN),
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 4, 6))).build()) {
+            capture(context, artifacts, "channel-root-initial", sim, false);
+            assertEquals("heart-barrage-line", MissionObjectiveProjection.capture(sim).objectives().get(0).focusMarkerId(),
+                    "before the opening shoot the barrage row beacons the first line");
+            for (int tick = 0; tick < 3000 && !sim.isComplete(); tick++) sim.advance(BattleSimulation.TICK_DT);
+            capture(context, artifacts, "channel-root-barrage", sim, false);
+        }
         try (var sim = new RaidBattleFixture(141418L, manifest, false, OperationTier.ESTABLISHED,
                 RiskLevel.LOW, TargetProfile.NEUTRAL, List.of(), List.of(), null).build()) {
             capture(context, artifacts, "raid-initial", sim, false);
