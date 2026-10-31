@@ -176,8 +176,12 @@ public final class CompletedReplays {
 
     /** The chapter {@code m} replays, or null for any other mission. */
     public static Scenario scenario(Mission m) {
-        if (m == null || m.source != MissionSource.REPLAY || m.id == null || !m.id.startsWith(PREFIX)) return null;
-        try { return Scenario.valueOf(m.id.substring(PREFIX.length())); }
+        return m == null ? null : scenario(m.id, m.source);
+    }
+
+    static Scenario scenario(String id, MissionSource source) {
+        if (source != MissionSource.REPLAY || id == null || !id.startsWith(PREFIX)) return null;
+        try { return Scenario.valueOf(id.substring(PREFIX.length())); }
         catch (IllegalArgumentException ignored) { return null; }
     }
 }

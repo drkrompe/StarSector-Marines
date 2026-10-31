@@ -500,15 +500,18 @@ def dagger():
 
 
 def hermes_doll():
-    """The company's first shuttle: a round cockpit, a narrow body between two round engine pods, a broad flared stern."""
+    """The company's first shuttle: a round cockpit, a narrow body between two round pods, two engines astern."""
     d = Doll("air-hermes", width=AIR_W)
     d.panel("HULL", [(-11, 15), (11, 15), (18, 22), (18, 33), (-18, 33), (-18, 22)], AIR_X)
     d.panel("HULL", [(-20, 35), (20, 35), (22, 65), (-22, 65)], AIR_X)
     d.panel("HULL", [(-22, 67), (22, 67), (22, 94), (-22, 94)], AIR_X)
-    d.panel("HULL", [(-26, 96), (26, 96), (44, 118), (44, 138), (28, 155), (-28, 155), (-44, 138), (-44, 118)], AIR_X)
+    # The stern: a short keel between two engines, each a block with its nozzle behind it.
+    d.panel("HULL", [(-18, 96), (18, 96), (18, 132), (11, 140), (-11, 140), (-18, 132)], AIR_X)
     d.pair("HULL", "HULL", octagon(-45, 50, -25, 84, 6), AIR_X)
-    d.detail("HULL", [((-12, 108), (12, 108)), ((-12, 108), (-12, 128)), ((12, 108), (12, 128)),
-                      ((-12, 128), (12, 128))], AIR_X)
+    d.pair("HULL", "HULL", [(-38, 98), (-21, 98), (-21, 136), (-40, 136), (-42, 104)], AIR_X)
+    d.pair("HULL", "HULL", [(-37, 139), (-23, 139), (-19, 156), (-41, 156)], AIR_X)
+    d.detail("HULL", [((-39, 112), (-23, 112)), ((-39, 124), (-23, 124)),
+                      ((23, 112), (39, 112)), ((23, 124), (39, 124))], AIR_X)
     return d
 
 

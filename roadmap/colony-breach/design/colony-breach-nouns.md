@@ -4,6 +4,8 @@ Status: ACTIVE
 
 Written: 2026-10-21
 
+Updated: 2026-10-31 — skitterers share out the haul: a third of a brood at once, their own dead only from near, a body they fled from left a while.
+
 Updated: 2026-10-28 — the evac cordon is the defence force's staging post: its line dug in before landfall, a field HQ, aid station and supply dump with the company's cache inside the ring. Earlier: the evac cordon's line stands in its trench, four teams facing the town and one on the rear. Earlier: a pooled colony's patch may place its lift, bores and holdouts (Asharu's are the owner's). Earlier: the swarm strikes a standing vehicle from its side and claws one that bars its only way; its flow fields go round one where they can. Earlier: the colony plays from a pool of one map per biome. Earlier: holdouts are placed clear of the bores. Earlier: each bore surges into its own hold, a cap per strain stepped by tier (owner's pick). Earlier: feeding ramps slower: a harvested body pays a third of what it did and a recycled Rav under a quarter of that. Earlier: a maw may draw a Bombard, one living per bore; the bloom comes in from the outskirts: the first wave open at landfall either side of the fields, fissures forage into the town, fed bores bud further in, the mother on the deep outskirts five minutes in.
 
 Updated: 2026-10-25 — raids go for survivors in the open: one snatches a colonist and comes home with the raid round the guns.
@@ -1621,7 +1623,13 @@ not read in a soft shadow at play zoom.
        carrier's load does and counts the same (a Runner is recycled, a
        colonist delivered). So Runners stay in the fight and the dead in front
        of a nest still go home; killing haulers starves the bore. A skitterer
-       never seizes a kill (it makes none) and is never a scavenger.
+       never seizes a kill (it makes none) and is never a scavenger. The haul
+       is shared out, because bodies lie where the fighting is and haulers die
+       there: about a third of a bore's brood hauls at once (never none), and
+       the rest go on down this list; the swarm's own dead, worth little, are
+       fetched only from the nearer half of the range; and a body a skitterer
+       fled from is left for fifteen seconds, so a body in the open does not
+       draw the nest in one at a time (`battle.swarm.haulShare`).
     3. **Repair.** A structure of its nest below nine tenths of its structure:
        its bore, a spore colony or outpost of the bore, a ground colony the bore
        grew, or the bore's brood spire. It crawls onto the body and restores

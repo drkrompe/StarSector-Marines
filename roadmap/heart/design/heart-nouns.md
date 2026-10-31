@@ -4,7 +4,7 @@ Status: ACTIVE
 
 Written: 2026-10-22
 
-Updated: 2026-10-31 — The Burn's battlegroups carry observers too, on the wing from an airbase behind the start line
+Updated: 2026-10-31 — The Burn: an airbase lot behind the start line flying the wing, the guns dug in at the bases, and bores growing on the unburnt flanks
 
 The heart is the third and last movement of the Rav Bloom arc
 (`bloom-mission-arc.md`, Mission 3): months into a bloom the world's military
@@ -65,7 +65,7 @@ apart: one reservoir, several mouths. Every mother collapsed is the win.
 **Satellite bore.** An ordinary bore opened at setup and fed to maw, standing
 between the heart and the start line. Broad Front has five, one to each fifth
 of the front, so every lane meets one on its way in; The Burn strings three
-along its one approach. A satellite collapsed is scored, and is a bore whose
+along its one approach, and grows more on its flanks in the battle (Bore growth). A satellite collapsed is scored, and is a bore whose
 surges and creep are gone, but it is never required.
 
 **Heart country.** The map (`HeartCountry`): green country the bloom has held
@@ -202,11 +202,27 @@ calls no more air. Now and then the military also sends a roving observer
 team (`air-nouns.md`, Roving observer) to stand ten cells behind a lane's
 foremost team, on the way back to its foot, the lanes with the most squads in
 contact first, so the team follows the push. The Burn has both too (owner,
-2026-10-31): the military's **airbase** is on station behind the start line,
-so the wing launches over the battery, and each battlegroup carries an observer
-the same way, the first team to step off on its band of the front; the
-battery's crews already standing in their pits never take the radio. The guns
-walk the barrage; the wing hunts the masses the observers see past it.
+2026-10-31): the wing flies off the **Airbase** below, and each battlegroup
+carries an observer the same way, the first team to step off on its band of the
+front; the battery's crews already standing in their pits never take the radio.
+The guns walk the barrage; the wing hunts the masses the observers see past it.
+
+**Airbase** (The Burn). The military's air wing on station behind the start
+line, on an airbase lot of its own (`mapgen-nouns.md`, airbase lot): a
+**station** lying along the rear of the map's far side, the village's side,
+its three sheds backing onto that edge and its apron and strip inland of them,
+fenced (`HeartLayout`, `Airfield`). Turned along the advance rather than across it
+(owner, 2026-10-31), it takes a corner of the rear and leaves the rear's width
+open for the columns to advance across. The lot is held from before the places grow, so no field, wood or
+road takes its ground. Its berths are published as an *allied* field's: no
+company lands on them and no garrison node offers the base to the attacker. The
+wing's two bombers and one fighter are kept in the sheds and taxi out to roll
+down the strip for every sortie, landing and taxiing home after; the second
+fighter stands on an apron berth and lifts off it
+(`AlliedAirWing.baseOnLot`). Turnaround and replacement are the based pool's
+(`air-nouns.md`, A based pool). The swarm can reach the field and burn what
+stands on it. A map whose rear could not hold the lot flies the wing in over the
+start edge as before.
 
 **Ride** (The Burn). A straight strip a forester cuts across a wood to stop a
 fire: bare earth five cells wide across the whole approach, two of them, at
@@ -236,7 +252,11 @@ over it is its bridge; where the settlement's streets cross its line it runs
 under them.
 
 **Battery** (The Burn). The guns that fire the barrage: Locust rocket-artillery
-batteries dug in across the start line, the company's own. Every shell is a
+batteries dug in at the bases behind the start line, the company's own (owner,
+2026-10-31): a gun beside each of the logistics base's two ammunition dumps,
+toward the heart, and two in a gun line outside the airbase's fence past its
+strip, toward the middle of the map; a base
+the map did not lay leaves its guns on the start line. Every shell is a
 round fired from the gun nearest its point, lobbing in on a high, slow arc, so
 the warning is the rounds themselves coming in: a player reads the walk by
 watching where they land. The guns can be killed, and a battery with no gun
@@ -328,6 +348,33 @@ explosive a sixteenth of the approach at a time between them, to a last line
 seven tenths of the way in, some five minutes of shooting; the country is dry and the
 wind blows toward the heart for the whole battle. `WalkingBarrage` is general:
 any battle with a ground to map depth onto may carry one.
+
+**Bore growth** (The Burn). New bores opening during the battle on the
+country the burn has not reached, to keep the pressure up while the guns and
+the company push through the centre (owner's pick "Steady", 2026-10-31): the
+first about two minutes in, then one every seventy-five seconds while fewer
+than four grown bores live (`HeartBoreGrowth`). A grown bore is a satellite,
+numbered on from the setup's satellites, opened through the bores' ordinary
+seam at the smallest tier, a fissure, unfed: it grows, surges, sprouts its
+colonies and spreads its creep as any bore does, is hurt into breakouts as any
+bore is, and dies only to ordinary damage. Its site:
+- past the near ride, short of the heart's own ground (eight tenths in);
+- on the south or north flank band, about a quarter of the front's width in
+  from its edge, the flanks taken in turn, the first from the seed;
+- never on or within a few cells of ground the fire holds against creep:
+  burning, or burnt and still refusing creep (`fire-nouns.md`, burnt ground
+  refuses creep for a while). Burnt ground that has recovered is the bloom's
+  again: refusing every burnt cell refused nearly the whole flank five minutes
+  in, and growth stopped at three bores;
+- never within 28 cells of a body of the company's side or its allies, the
+  battery's guns and crews included;
+- on clear ground the start line reaches on foot, by the setup's own siting
+  rules (`HeartBores`);
+- outside the barrage's firing line and next line, a twentieth of the
+  approach either side;
+- at least 28 cells from every living bore.
+A due bore with no ground anywhere tries again fifteen seconds later. Same seed,
+same growth.
 
 **Burn line** (The Burn). The company's front, which is a firebreak moving:
 the fire the barrage and the company light ahead of it, and the burnt ground it
@@ -497,6 +544,10 @@ replace the scripting when they exist.
    front of the company. The mothers otherwise sleep as on Broad Front, and a
    mother's fall makes the survivors surge on The Burn too. Beat
    `breakout_<bore>` (observer-only, recurring).
+   **Bore growth** runs alongside from two minutes in: a new fissure on an
+   unburnt flank every seventy-five seconds, up to four living at once, each
+   fought down as any satellite (`heart.bore_grown_N`, observer-only; its fall
+   is `bore_collapsed_N`).
 6. **The last line.** The barrage stops at its last line, short of the heart:
    `barrage_ended`. The last stretch is the company's: the mothers are
    collapsed by satchels, heavy weapons and machines, as any bore is.
@@ -521,6 +572,7 @@ instead in The Burn when the lost battle's guns are all dead).
 | `line_lit` | The Burn | the fire line takes |
 | `barrage_line_N`, `barrage_lifted_N` | The Burn | a line opens (after its warning); it lifts |
 | `breakout_<bore>` | The Burn | a hurt bore surges (observer-only, recurring) |
+| `bore_grown_N` | The Burn | bore growth opens satellite N on an unburnt flank (observer-only) |
 | `barrage_ended` | The Burn | the last line lifts; the guns are done |
 | `battery_overrun` | The Burn | the battle is lost with every gun dead |
 

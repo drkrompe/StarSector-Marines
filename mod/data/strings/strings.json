@@ -2858,6 +2858,7 @@
     "battlePowerStatusReady": "READY",
     "yardConstructionCard": "{0} - {1} SUPPLY",
     "yardConstructionStatus": "{0} SUPPLY",
+    "morrowShipName": "Morrow",
     "battleShipSupply": "{0} - SUPPLY {1}/{2} - +1 IN {3}S",
     "battleShipSupplyFull": "{0} - SUPPLY {1}/{2} - FULL",
     "battleShipSupplyFixed": "{0} - SUPPLY {1}",

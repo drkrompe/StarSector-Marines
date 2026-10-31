@@ -1,5 +1,7 @@
 package com.dillon.starsectormarines.battle.world.gen.layout;
 
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -54,5 +56,19 @@ class MissionLayoutTest {
         boolean[][] mask = new MissionLayout(List.of(later, site("a", 2))).keepClear(16, 8);
         assertTrue(mask[2][0] && mask[5][3]);
         assertFalse(mask[6][0] || mask[2][4]);
+    }
+
+    @Test
+    void anAirfieldHoldsItsLotAndClearanceBeforeGrowth() {
+        Airfield field = new Airfield("airbase", 12, 12, AirbaseLot.Facing.WEST, AirbaseLot.Size.STATION,
+                LandingPad.Purpose.ALLIED_AIRFIELD, false);
+        Site held = field.reservation();
+        assertEquals(12 + AirbaseLot.reservedSpanX(AirbaseLot.Size.STATION, AirbaseLot.Facing.WEST) - 1, held.x1());
+        int clear = AirbaseLot.Size.STATION.clearance();
+        assertEquals(12 + clear, field.lot()[0]);
+        assertEquals(held.y1() - clear, field.lot()[3]);
+        boolean[][] mask = new MissionLayout(List.of(field)).keepClear(120, 120);
+        assertTrue(mask[12][12] && mask[held.x1()][held.y1()]);
+        assertFalse(mask[11][12] || mask[held.x1() + 1][held.y1()]);
     }
 }

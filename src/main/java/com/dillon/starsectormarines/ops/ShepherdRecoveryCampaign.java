@@ -165,7 +165,7 @@ public final class ShepherdRecoveryCampaign {
                 public int minimumCrew(){return crew;}
                 public void transfer(){
                     var fleet=Global.getSector().getPlayerFleet();
-                    ship.setShipName("Morrow");
+                    ship.setShipName(Strings.get("morrowShipName"));
                     fleet.getFleetData().addFleetMember(ship);
                     try { fleet.getCargo().addCrew(crew); }
                     catch(RuntimeException failure){fleet.getFleetData().removeFleetMember(ship);throw failure;}

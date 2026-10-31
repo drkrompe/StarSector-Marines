@@ -1,6 +1,9 @@
 package com.dillon.starsectormarines.battle.world.gen.overgrown;
 
 import com.dillon.starsectormarines.battle.world.gen.forest.TreeCanopy;
+import com.dillon.starsectormarines.battle.world.gen.AirbaseLot;
+import com.dillon.starsectormarines.battle.world.gen.LandingPad;
+import com.dillon.starsectormarines.battle.world.gen.layout.Airfield;
 import com.dillon.starsectormarines.battle.world.gen.layout.Block;
 import com.dillon.starsectormarines.battle.world.gen.layout.BlockKind;
 import com.dillon.starsectormarines.battle.world.gen.layout.Deferred;
@@ -81,6 +84,8 @@ public final class HeartLayout {
     public static final String GUN_FLANK = "gun-flank-";
     /** The company's ford over the brook (B4). */
     public static final String COMPANY_FORD = "company-ford";
+    /** The Burn's allied airbase behind the start line (`heart-nouns.md`, Airbase). */
+    public static final String AIRBASE = "airbase";
 
     /** Cells either side of a lane's middle the line leaves open, so a column drives through. */
     static final int LANE_GAP = 6;
@@ -112,6 +117,12 @@ public final class HeartLayout {
     /** The Burn's gun-flank trenches: how deep into the farmland they run and how far in from the map's sides. */
     static final float GUN_FLANK_DEPTH = 0.10f;
     static final int GUN_FLANK_INSET = 4;
+    /**
+     * The Burn's airbase: a station lying along the map's far side, the village's side, its sheds backing onto that
+     * edge and its strip inland of them (owner, 2026-10-31: turned so the columns have the rear's width to advance
+     * across), its reservation this many cells in from the start edge and back from the side's gun-flank trench.
+     */
+    static final int BURN_AIRBASE_REAR = 4, BURN_AIRBASE_TRENCH_GAP = 2;
     /** Cells either side of the ford's middle the ford's site holds. */
     static final int FORD_HALF = 4;
 
@@ -143,6 +154,7 @@ public final class HeartLayout {
             pieces.add(new Deferred(VILLAGE_HOLDOUT, Phase.WORKS,
                     ground -> holdout(ground, form, VILLAGE_HOLDOUT, false, density), false));
             pieces.addAll(gunFlanks(form));
+            pieces.add(airbase(form));
             pieces.add(new Deferred(COMPANY_FORD, Phase.WORKS,
                     ground -> companyFord(form, ground.plan().landscape().brooks().get(0)), false));
         }
@@ -414,6 +426,13 @@ public final class HeartLayout {
         return ground::buildable;
     }
 
+    /** Open country a base's works may stand on: on The Burn, never the airbase's held ground, which the works lay round. */
+    private static LineCourse.CellTest country(LayoutGround ground, Form form) {
+        if (form != Form.THE_BURN) return country(ground);
+        Site held = airbase(form).reservation();
+        return (x, y) -> ground.buildable(x, y) && (x < held.x0() || x > held.x1() || y < held.y0() || y > held.y1());
+    }
+
     /** The logistics base's middle: on the farmland behind the line, beside the company's road. */
     private static int[] baseMiddle(Form form) {
         return form == Form.BROAD_FRONT ? form.cellAt(BROAD_BASE_DEPTH, BROAD_BASE_ACROSS)
@@ -434,7 +453,10 @@ public final class HeartLayout {
             int offset = i == 0 ? -step : step;
             int[] want = form.advancesAlongY() ? new int[]{middle[0] + offset, middle[1]}
                     : new int[]{middle[0], middle[1] + offset};
-            int[] at = StructureFit.nearest(country(ground), around(ground, want, BASE_SEARCH / 2), side, side,
+            int[] at = StructureFit.nearest(country(ground, form), around(ground, want, BASE_SEARCH / 2), side, side,
+                    want[0], want[1], 2);
+            // The Burn's airbase holds ground beside the base, so a dump the near search cannot seat looks further.
+            if (at == null) at = StructureFit.nearest(country(ground, form), around(ground, want, BASE_SEARCH), side, side,
                     want[0], want[1], 2);
             if (at != null) out.add(new Structure(AMMO_DUMP + (i + 1), StructureKind.AMMO_DUMP, at[0], at[1], 0, false));
         }
@@ -445,7 +467,7 @@ public final class HeartLayout {
     static List<Piece> vehiclePark(LayoutGround ground, Form form) {
         int[] middle = baseMiddle(form);
         int w = form.advancesAlongY() ? PARK_ALONG : PARK_DEEP, h = form.advancesAlongY() ? PARK_DEEP : PARK_ALONG;
-        int[] at = StructureFit.nearest(country(ground), around(ground, middle, BASE_SEARCH), w, h,
+        int[] at = StructureFit.nearest(country(ground, form), around(ground, middle, BASE_SEARCH), w, h,
                 middle[0] - w / 2, middle[1] - h / 2, 2);
         if (at == null) return List.of();
         return List.of(new Site(VEHICLE_PARK, at[0], at[1], at[0] + w - 1, at[1] + h - 1, SitePurpose.OPEN, false));
@@ -512,6 +534,25 @@ public final class HeartLayout {
     }
 
     /** Trench and wire along each side of The Burn's battery, facing out, where a breakout would come at the guns. */
+    /**
+     * The military's airbase on station behind The Burn's start line: a station lot lying along the map's far side,
+     * its sheds on that edge and its strip inland, held from before the places grow, its berths and sheds the allied
+     * wing's own.
+     */
+    public static Airfield airbase(Form form) {
+        AirbaseLot.Size size = AirbaseLot.Size.STATION;
+        // The sheds back onto the far side and the strip runs inland of them (owner, 2026-10-31): the lot faces the
+        // map's middle, south of a far side north of an advance along x, west of one east of an advance along y.
+        AirbaseLot.Facing facing = form.advancesAlongY() ? AirbaseLot.Facing.WEST : AirbaseLot.Facing.SOUTH;
+        int side = acrossCells(form) - 1 - GUN_FLANK_INSET - BURN_AIRBASE_TRENCH_GAP;
+        if (form.advancesAlongY()) {
+            int x0 = side - AirbaseLot.reservedSpanX(size, facing) + 1;
+            return new Airfield(AIRBASE, x0, BURN_AIRBASE_REAR, facing, size, LandingPad.Purpose.ALLIED_AIRFIELD, false);
+        }
+        int y0 = side - AirbaseLot.reservedSpanY(size, facing) + 1;
+        return new Airfield(AIRBASE, BURN_AIRBASE_REAR, y0, facing, size, LandingPad.Purpose.ALLIED_AIRFIELD, false);
+    }
+
     static List<Piece> gunFlanks(Form form) {
         int across = acrossCells(form);
         int far = Math.round(GUN_FLANK_DEPTH * ((form.advancesAlongY() ? form.scale.height : form.scale.width) - 1));

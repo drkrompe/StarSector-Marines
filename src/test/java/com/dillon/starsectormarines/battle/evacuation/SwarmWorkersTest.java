@@ -32,6 +32,24 @@ class SwarmWorkersTest {
     }
 
     @Test
+    void aNestAlwaysHaulsButNeverSendsMostOfItsBroodToBodies() {
+        for (int living = 1; living <= 12; living++) {
+            int haulers = SwarmWorkers.haulersFor(living);
+            assertTrue(haulers >= 1, living + " skitterers keep a hauler");
+            assertTrue(living < 3 || haulers * 2 < living, living + " skitterers keep most at home");
+        }
+    }
+
+    @Test
+    void itFetchesPreyFromTheWholeRangeButItsOwnDeadOnlyFromNear() {
+        float range = 20f, near = range * SwarmWorkers.RAV_HAUL_REACH;
+        assertTrue(SwarmWorkers.fetches(false, range, range));
+        assertFalse(SwarmWorkers.fetches(false, range + 0.1f, range));
+        assertTrue(SwarmWorkers.fetches(true, near, range));
+        assertFalse(SwarmWorkers.fetches(true, near + 0.1f, range), "its own dead out in the fight are left");
+    }
+
+    @Test
     void mendingAddsUpPerWorkerAndNeverPassesFull() {
         float one = SwarmWorkers.mended(10f, 1000f, 1, 1f) - 10f;
         assertTrue(one > 0f);

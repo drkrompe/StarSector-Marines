@@ -3,6 +3,7 @@ package com.dillon.starsectormarines.battle.airsupport;
 import com.dillon.starsectormarines.battle.air.AirfieldService;
 import com.dillon.starsectormarines.battle.air.AirfieldService.BerthState;
 import com.dillon.starsectormarines.battle.unit.Faction;
+import com.dillon.starsectormarines.battle.world.gen.Gantry;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -83,5 +84,15 @@ class HardstandAirBaseTest {
         base.stands().get(0).berth().state = BerthState.REFITTING;
         assertEquals(0, pool.available(Faction.ALLY, AirPoolKind.BOMBER));
         assertEquals(1, pool.available(Faction.ALLY, AirPoolKind.FIGHTER));
+    }
+
+    @Test
+    void aShedKeepsItsAirframeAsAShelterReadyLikeAStand() {
+        HardstandAirBase base = new HardstandAirBase(Faction.ALLY, new AirfieldService(), WING);
+        HardstandAirBase.Stand shed = base.addShelter(new Gantry(30, 20, 2, 2, Gantry.Facing.of(-1, 0)), AirPoolKind.BOMBER);
+        assertEquals(AirfieldService.Kind.SHELTER, shed.berth().kind);
+        assertEquals(1, base.ready(AirPoolKind.BOMBER));
+        shed.berth().state = BerthState.AWAY;
+        assertEquals(0, base.ready(AirPoolKind.BOMBER));
     }
 }

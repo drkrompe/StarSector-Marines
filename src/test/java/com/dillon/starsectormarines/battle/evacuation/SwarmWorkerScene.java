@@ -29,6 +29,11 @@ import java.util.function.Consumer;
  * control.
  * <ul>
  *   <li>{@code haul}: a Runner lies dead eight cells out. A skitterer drags it home and the bore is fed.</li>
+ *   <li>{@code share}: four dead Runners round a mother maw's mouth and one far out. No more than its share of the
+ *       brood hauls at once, the far one is left, and the near ones still go home; with
+ *       {@code -Dbattle.swarm.haulShare=false} as the control, more haul and the far one is gone for.</li>
+ *   <li>{@code shun}: a dead Runner lies beside a rifle pair. Skitterers set out for it fewer times than in the
+ *       control, because a body one fled from is left a while.</li>
  *   <li>{@code repair}: a spore colony of the bore is shot down to two fifths. Skitterers mend it past four fifths.</li>
  *   <li>{@code spire}: a maw on old creep with its brood spire, which has just launched. Skitterers carry feeds to
  *       it and its wait shortens.</li>
@@ -56,7 +61,7 @@ public final class SwarmWorkerScene implements BehaviorScene {
 
     @Override
     public List<SceneReport> play(FrameSink frames) throws Exception {
-        return List.of(haul(frames), repair(), spire(), regrow(), strip(), outpost(), flee());
+        return List.of(haul(frames), share(), shun(), repair(), spire(), regrow(), strip(), outpost(), flee());
     }
 
     /** One loop's battle: open ground, one bore grown to {@code tier}, its creep matured when asked, held asleep. */
@@ -89,14 +94,33 @@ public final class SwarmWorkerScene implements BehaviorScene {
 
     /** Plays {@code body} with skitterers switched off, restoring the switch after. */
     private static <T> T control(Callable<T> body) throws Exception {
-        String before = System.getProperty(SwarmWorkers.PROPERTY);
-        System.setProperty(SwarmWorkers.PROPERTY, "false");
+        return switchedOff(SwarmWorkers.PROPERTY, body);
+    }
+
+    /** Plays {@code body} with {@code property} reading {@code false}, restoring it after. */
+    private static <T> T switchedOff(String property, Callable<T> body) throws Exception {
+        String before = System.getProperty(property);
+        System.setProperty(property, "false");
         try {
             return body.call();
         } finally {
-            if (before == null) System.clearProperty(SwarmWorkers.PROPERTY);
-            else System.setProperty(SwarmWorkers.PROPERTY, before);
+            if (before == null) System.clearProperty(property);
+            else System.setProperty(property, before);
         }
+    }
+
+    /** How many of the bore's skitterers are hauling right now. */
+    private static int hauling(BattleSimulation sim) {
+        int n = 0;
+        for (SwarmWorkers.Worker w : sim.swarmWorkers().workers()) if (w.job() == SwarmWorkers.Job.HAUL) n++;
+        return n;
+    }
+
+    /** A dead Runner at ({@code x}, {@code y}). */
+    private static long deadRunner(BattleSimulation sim, String name, int x, int y) {
+        long dead = SwarmStrains.spawn(sim, name, UnitType.SWARM_RUNNER, x, y);
+        sim.applyDamage(dead, 1e6f, 1e6f);
+        return dead;
     }
 
     private SceneReport report(String loop, int ticks, List<Verdict> verdicts, Map<String, Number> metrics) {
@@ -131,6 +155,101 @@ public final class SwarmWorkerScene implements BehaviorScene {
             metrics.put("hauled", sim.swarmHarvest().hauledByWorkers());
             return report("haul", ticks, verdicts, metrics);
         }
+    }
+
+    // ---- share ------------------------------------------------------------------------------------
+
+    static final int SHARE_TICKS = 1800;
+    /** Dead Runners round the mouth, and one out past the near half of a maw's work range. */
+    static final int[][] NEAR_DEAD = {{6, 0}, {-6, 0}, {0, 6}, {0, -6}};
+    static final int FAR_DEAD_DX = 45;
+
+    /** The most skitterers hauling at once, whether the far Runner was ever gone for, bodies hauled, and the brood. */
+    private static int[] shareOut(boolean share) throws Exception {
+        Callable<int[]> body = () -> {
+            SceneWorld world = ground();
+            try (BattleSimulation sim = nest(world, BoreTier.MAW, true, false)) {
+                for (int i = 0; i < NEAR_DEAD.length; i++) {
+                    deadRunner(sim, "Fallen Runner " + i, BORE_X + NEAR_DEAD[i][0], BORE_Y + NEAR_DEAD[i][1]);
+                }
+                long far = deadRunner(sim, "Far Runner", BORE_X + FAR_DEAD_DX, BORE_Y);
+                int brood = sim.swarmWorkers().workers().size();
+                int[] peak = {0}, farClaimed = {0};
+                run(sim, SHARE_TICKS, tick -> {
+                    peak[0] = Math.max(peak[0], hauling(sim));
+                    for (SwarmWorkers.Worker w : sim.swarmWorkers().workers()) {
+                        if (w.job() == SwarmWorkers.Job.HAUL && w.subject == far) farClaimed[0] = 1;
+                    }
+                });
+                return new int[]{peak[0], farClaimed[0], sim.swarmHarvest().hauledByWorkers(), brood};
+            }
+        };
+        return share ? body.call() : switchedOff(SwarmWorkers.HAUL_SHARE_PROPERTY, body);
+    }
+
+    private SceneReport share() throws Exception {
+        int[] with = shareOut(true);
+        int[] without = shareOut(false);
+        int cap = SwarmWorkers.haulersFor(with[3]);
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("a-share-of-the-brood-hauls", with[0] >= 1 && with[0] <= cap,
+                "at most " + with[0] + " of " + with[3] + " hauling at once (cap " + cap + "), " + without[0]
+                        + " in the control"));
+        verdicts.add(Verdict.of("the-cap-bites", without[0] > with[0],
+                without[0] + " hauling at once without the share, " + with[0] + " with it"));
+        verdicts.add(Verdict.of("its-own-dead-far-out-are-left", with[1] == 0 && without[1] == 1,
+                "the far Runner gone for: " + (with[1] == 1) + " with the share, " + (without[1] == 1) + " without"));
+        verdicts.add(Verdict.of("the-near-dead-still-go-home", with[2] >= NEAR_DEAD.length,
+                with[2] + " of " + NEAR_DEAD.length + " near bodies hauled"));
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("peakHaulersWith", with[0]);
+        metrics.put("peakHaulersWithout", without[0]);
+        metrics.put("hauledWith", with[2]);
+        metrics.put("hauledWithout", without[2]);
+        return report("share", SHARE_TICKS, verdicts, metrics);
+    }
+
+    // ---- shun -------------------------------------------------------------------------------------
+
+    static final int SHUN_TICKS = 1200;
+
+    /** How many times a skitterer set out for a body lying under a rifle squad, and how often one fled. */
+    private static int[] underTheGuns(boolean share) throws Exception {
+        Callable<int[]> body = () -> {
+            SceneBuilder builder = SceneBuilder.openGround(W, H).seed(SEED).missionCompletion(false);
+            builder.squad("rifles").faction(Faction.MARINE).size(2).at(BORE_X + 16, BORE_Y)
+                    .primary("weapon.field-rifle").stationary().done();
+            SceneWorld world = builder.build();
+            try (BattleSimulation sim = nest(world, BoreTier.MAW, true, false)) {
+                long dead = deadRunner(sim, "Runner in the open", BORE_X + 10, BORE_Y);
+                Map<Long, Long> going = new LinkedHashMap<>();
+                int[] setOut = {0};
+                run(sim, SHUN_TICKS, tick -> {
+                    for (SwarmWorkers.Worker w : sim.swarmWorkers().workers()) {
+                        long now = w.job() == SwarmWorkers.Job.HAUL ? w.subject : 0L;
+                        Long was = going.put(w.id, now);
+                        if (now == dead && (was == null || was != dead)) setOut[0]++;
+                    }
+                });
+                return new int[]{setOut[0], sim.swarmWorkers().fled()};
+            }
+        };
+        return share ? body.call() : switchedOff(SwarmWorkers.HAUL_SHARE_PROPERTY, body);
+    }
+
+    private SceneReport shun() throws Exception {
+        int[] with = underTheGuns(true);
+        int[] without = underTheGuns(false);
+        List<Verdict> verdicts = new ArrayList<>();
+        verdicts.add(Verdict.of("the-nest-tries-for-it", with[0] >= 1, with[0] + " set out for the body"));
+        verdicts.add(Verdict.of("a-body-fled-from-is-left-a-while", with[0] < without[0],
+                with[0] + " trips toward the guns with the shun, " + without[0] + " without"));
+        Map<String, Number> metrics = new LinkedHashMap<>();
+        metrics.put("setOutWith", with[0]);
+        metrics.put("setOutWithout", without[0]);
+        metrics.put("fledWith", with[1]);
+        metrics.put("fledWithout", without[1]);
+        return report("shun", SHUN_TICKS, verdicts, metrics);
     }
 
     // ---- repair ----------------------------------------------------------------------------------
