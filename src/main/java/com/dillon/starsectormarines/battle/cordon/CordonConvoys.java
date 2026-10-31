@@ -1,5 +1,6 @@
 package com.dillon.starsectormarines.battle.cordon;
 
+import com.dillon.starsectormarines.battle.nav.NavigationGrid;
 import com.dillon.starsectormarines.battle.sim.BattleSimulation;
 import com.dillon.starsectormarines.battle.unit.EntitySpec;
 import com.dillon.starsectormarines.battle.unit.Faction;
@@ -69,6 +70,13 @@ public final class CordonConvoys {
     static final int SPACING = 8;
     /** Corridor cells from the road's end a loading convoy's truck behind the first is at the gate: drawn up behind it. */
     static final int GATE_QUEUE = AT_LEG + SPACING + 2;
+    /**
+     * Cells short of the yard's stop a truck driving into the town's truck yard is at it: it stands there to load,
+     * turned round the yard and facing out (where {@link #AT_LEG} would stop it mid-turn).
+     */
+    static final int YARD_STOP = 1;
+    /** Where the truck behind draws up in the yard: its spacing back round the yard's loop from the one at the stop. */
+    static final int YARD_QUEUE = YARD_STOP + SPACING + 2;
     /** Corridor cells short of the camp's middle a truck coming home stops at. */
     static final int CAMP_STOP = 2;
     /** Corridor cells behind the camp's middle its waiting trucks pull back to, clear of the trucks coming home. */
@@ -199,6 +207,10 @@ public final class CordonConvoys {
     }
 
     private List<int[]> corridor;
+    /** The town's truck yard the convoys drive into, or {@code null}: they then stop at the road's end. */
+    private CordonGateYard yard;
+    /** The corridor's index of the yard's gate, where its loop begins; -1 with no yard. */
+    private int yardFrom = -1;
     /** The corridor cell trucks set out from and come back to. */
     private int entry;
     /** A detour waiting for the road to be empty (beat R5): its cells, gap and entry, or {@code null}. */
@@ -527,6 +539,39 @@ public final class CordonConvoys {
     }
 
     /**
+     * The convoys drive on into the town's truck yard ({@code cordon-nouns.md}, Cut-off town): in through its gate,
+     * round the yard and to its stop beside the staging area, where they load facing out, then forward out of the gate.
+     * The corridor is carried on into the yard ({@link CordonGateYard#extend}); where no truck can reach the gate from
+     * its end it is left as it is and the convoys stop at the road's end. At setup, before the first tick.
+     */
+    public void driveInto(CordonGateYard yard, NavigationGrid grid) {
+        this.yard = yard;
+        intoYard(grid);
+    }
+
+    /** Carries the corridor on into the yard, where there is one and a truck can reach it. */
+    private void intoYard(NavigationGrid grid) {
+        yardFrom = -1;
+        if (yard == null) return;
+        CordonGateYard.Extended extended = yard.extend(corridor, (x, y) -> CordonCorridor.drivable(grid, x, y));
+        if (extended == null) return;
+        corridor = List.copyOf(extended.cells());
+        yardFrom = extended.gateIndex();
+        clearance = null;
+        inward = outward = null;
+    }
+
+    /** Cells short of the corridor's end a truck is at the gate, to load: at the yard's stop where it drives in. */
+    private int arrival() {
+        return yardFrom >= 0 ? YARD_STOP : AT_LEG;
+    }
+
+    /** Cells short of the corridor's end the truck behind the one at the gate draws up. */
+    private int queue() {
+        return yardFrom >= 0 ? YARD_QUEUE : GATE_QUEUE;
+    }
+
+    /**
      * The convoys take another road (beat R5's detour) from the first moment none is on the road: one on it
      * keeps the road it is on, and the next to set out drives the detour.
      */
@@ -541,7 +586,7 @@ public final class CordonConvoys {
 
     private boolean detourApplied;
 
-    private void applyDetour() {
+    private void applyDetour(BattleSimulation sim) {
         if (detour == null) return;
         for (Convoy c : convoys) {
             if (c.phase == Phase.INBOUND || c.phase == Phase.LOADING || c.phase == Phase.OUTBOUND) return;
@@ -553,6 +598,7 @@ public final class CordonConvoys {
         detourApplied = true;
         clearance = null;
         inward = outward = null;
+        intoYard(sim.getGrid());
     }
     /** Every convoy, in departure order, as the mission picture reads it; read-only. */
     public List<Reading> readings(BattleSimulation sim) {
@@ -587,12 +633,25 @@ public final class CordonConvoys {
     /** The town's people at the start: everyone there was to bring out. */
     public int peopleTotal() { return peopleTotal; }
     /**
-     * Townspeople brought out so far: stepped off at the camp (or, with none, driven back to the entry), less any the
-     * swarm has killed there since.
+     * Townspeople brought out so far: stepped off at the camp (or, with none, driven back to the entry). One killed at
+     * the camp afterwards still counts: the company's job was to get them there ({@link #peopleOut(int, int)}).
      */
-    public int peopleOut() { return peopleOut - sheltered.lost(); }
+    public int peopleOut() { return peopleOut(peopleOut, sheltered.lost()); }
+
+    /**
+     * The people out: every one who stepped off at the drop-off, whatever befell them there since (owner: once they
+     * reach the drop-off point they do not count against the company). Pure.
+     */
+    static int peopleOut(int steppedOff, int killedAtCamp) {
+        return steppedOff;
+    }
+
+    /** The people lost: killed before they reached the drop-off, on the road or in the town; never at the camp. Pure. */
+    static int peopleLost(int onTheRoad, int inTheTown, int killedAtCamp) {
+        return onTheRoad + inTheTown;
+    }
     /** Townspeople killed: aboard a destroyed truck, walking from a stranded one, or in the town before they boarded. */
-    public int peopleLost() { return peopleLost + town.lost() + sheltered.lost(); }
+    public int peopleLost() { return peopleLost(peopleLost, town.lost(), sheltered.lost()); }
     /** Townspeople still trapped in the town, alive and not boarded: in the staging area or walking out to a truck. */
     public int town() { return town.left(); }
     /** Townspeople standing on the field in the town, for evidence. */
@@ -652,7 +711,7 @@ public final class CordonConvoys {
 
     /** One tick: brings convoys on, drives them a leg at a time, loads them at the gate, takes them off. */
     public void advance(BattleSimulation sim, int tick, Consumer<String> beat) {
-        applyDetour();
+        applyDetour(sim);
         if (corridor.size() < 2) return;
         boolean review = tick % REVIEW_TICKS == 0;
         List<float[]> swarm = review ? positions(sim, true) : List.of();
@@ -775,7 +834,7 @@ public final class CordonConvoys {
                 c.throughGap = true;
                 beat.accept("convoy_through_gap_" + c.number);
             }
-            if (at >= end - AT_LEG) {
+            if (at >= end - arrival()) {
                 atGate = true;
                 t.atGate = true;
                 t.halted = t.unescorted = false;
@@ -806,7 +865,7 @@ public final class CordonConvoys {
      */
     private void comeToGate(BattleSimulation sim, Convoy c, Truck t, List<float[]> swarm) {
         int at = nearestIndex(sim.convoy().body(t.hull));
-        if (at >= corridor.size() - 1 - GATE_QUEUE) {
+        if (at >= corridor.size() - 1 - queue()) {
             t.atGate = true;
             t.halted = t.unescorted = false;
             sim.convoy().mission(t.hull).authoredRoutePaused = true;
@@ -921,7 +980,7 @@ public final class CordonConvoys {
     }
 
     /** Whether a truck is stopped in the camp letting its people down. */
-    private boolean unloading() {
+    public boolean unloading() {
         for (Convoy c : convoys) for (Truck t : c.trucks) if (!t.gone && t.unloading) return true;
         return false;
     }
@@ -1004,7 +1063,9 @@ public final class CordonConvoys {
         int tick = sim.getSimTickIndex();
         // Stuck is no headway along the road, not standing still: a truck circling a point it cannot
         // turn onto is moving all the time.
-        if (t.bestAt < 0 || t.direction != direction || (at - t.bestAt) * direction > 0) {
+        // Round the yard's loop the way out runs on up the corridor to the stop before the gate: any step is headway.
+        boolean inYard = yardFrom >= 0 && at > yardFrom && at != t.bestAt;
+        if (t.bestAt < 0 || t.direction != direction || (at - t.bestAt) * direction > 0 || inYard) {
             t.bestAt = at;
             t.movedTick = tick;
         }
@@ -1197,8 +1258,38 @@ public final class CordonConvoys {
         clearance = VehicleClearance.erode(sim.getGrid(),
                 VehicleClearance.radiusForWidth(VehicleType.SUPPLY_TRUCK.visualWidthCells));
         cost = TerrainCostField.from(sim.getTopology());
-        inward = lay(sim, entry, corridor.size() - 1);
-        outward = lay(sim, corridor.size() - 1, entry);
+        if (yardFrom < 0 || yardFrom <= entry) {
+            inward = lay(sim, entry, corridor.size() - 1);
+            outward = lay(sim, corridor.size() - 1, entry);
+            return;
+        }
+        // Into the yard: the road to its gate, then round the yard's loop to the stop. Out of it: on round the loop
+        // from wherever a truck stands in it (one at the stop is at the loop's end), forward out of the gate, and down
+        // the road.
+        List<int[]> loop = corridor.subList(yardFrom, corridor.size());
+        inward = join(lay(sim, entry, yardFrom), cells(loop, 1));
+        outward = join(join(cells(loop, 0), cells(yard.wayOut(), 1)), lay(sim, yardFrom, entry));
+    }
+
+    /** The middles of {@code cells} from index {@code from} on, as a path. */
+    private static float[][] cells(List<int[]> cells, int from) {
+        int n = Math.max(0, cells.size() - from);
+        float[][] out = new float[2][n];
+        for (int k = 0; k < n; k++) {
+            out[0][k] = cells.get(from + k)[0] + 0.5f;
+            out[1][k] = cells.get(from + k)[1] + 0.5f;
+        }
+        return out;
+    }
+
+    /** One path then another. */
+    private static float[][] join(float[][] a, float[][] b) {
+        float[][] out = new float[2][a[0].length + b[0].length];
+        for (int i = 0; i < 2; i++) {
+            System.arraycopy(a[i], 0, out[i], 0, a[0].length);
+            System.arraycopy(b[i], 0, out[i], a[0].length, b[0].length);
+        }
+        return out;
     }
 
     /** Hands a truck the rest of the road's route in its direction, from the point of it nearest the truck. */

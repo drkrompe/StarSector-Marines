@@ -12,9 +12,12 @@ public record Laid(String name, Kind kind, Status status, String reason, boolean
 
     /**
      * A line of works, an open site, ground held for authored terrain ({@link SitePurpose}), or a road carved into
-     * the network (its {@code gaps} are its two ends), a structure (its two corners, as a site's) or a block.
+     * the network (its {@code gaps} are its two ends), a structure (its two corners, as a site's) or a block. A
+     * {@link #YARD} is no layout piece: a walled place's gate yard as its ward laid it
+     * ({@code GateYardLayout}), its {@code cells} the yard, its {@code gaps} the gate, entry, turn and stop
+     * cells in that order, and its {@code nests} the staging ground beside it.
      */
-    public enum Kind { LINE, SITE, GROUND, ROAD, STRUCTURE, BLOCK }
+    public enum Kind { LINE, SITE, GROUND, ROAD, STRUCTURE, BLOCK, YARD }
 
     public enum Status {
         /** Laid as asked. */

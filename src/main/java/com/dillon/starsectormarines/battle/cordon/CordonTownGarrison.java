@@ -52,14 +52,22 @@ public final class CordonTownGarrison {
         public CordonStagingArea staging() { return town.staging(); }
     }
 
+    /** As {@link #man(BattleSimulation, Precinct, int[], CordonGateYard, int, RiskLevel, Random)}, with no truck yard. */
+    public static Held man(BattleSimulation sim, Precinct compound, int[] gate, int front, RiskLevel risk, Random rng) {
+        return man(sim, compound, gate, null, front, risk, rng);
+    }
+
     /**
      * Dresses and mans the compound round {@code compound}, its loading gate the one nearest {@code gate} (the
-     * corridor's last cell). Where no wall can be read the defenders stand in the yard past the gate as the militia
+     * corridor's last cell). Where the map laid a truck yard inside that gate the staging area stands beside it and
+     * no defender stands in it. Where no wall can be read the defenders stand in the yard past the gate as the militia
      * did before; never {@code null}.
      *
-     * @param front +1 where the front is high y, -1 where it is low y
+     * @param truckYard the yard the convoys drive into, or {@code null}
+     * @param front     +1 where the front is high y, -1 where it is low y
      */
-    public static Held man(BattleSimulation sim, Precinct compound, int[] gate, int front, RiskLevel risk, Random rng) {
+    public static Held man(BattleSimulation sim, Precinct compound, int[] gate, CordonGateYard truckYard, int front,
+                           RiskLevel risk, Random rng) {
         NavigationGrid grid = sim.getGrid();
         int[] box = compound == null ? null : CordonGarrisons.perimeterBox(sim.getTopology(), compound);
         int teams = MILITIA_TEAMS + GUARD_TEAMS;
@@ -87,11 +95,14 @@ public final class CordonTownGarrison {
                         if (grid.isWalkable(x, y) && !grid.isDoorway(x, y)) open.add(new int[]{x, y});
                     }
                 }
+                // Beside the truck yard where there is one, from where a truck stands to load; never on it.
+                int[] anchor = truckYard != null ? new int[]{truckYard.stopX(), truckYard.stopY()} : loading;
                 CordonStagingArea staging = CordonStagingArea.of(
-                        (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y) && !grid.isDoorway(x, y),
-                        left, top, right, bottom, loading[0], loading[1]);
-                List<int[]> posts = seats(wall != null ? wall.posts() : List.of(), open, staging, gate, frontRow,
-                        centreX, seats);
+                        (x, y) -> grid.inBounds(x, y) && grid.isWalkable(x, y) && !grid.isDoorway(x, y)
+                                && (truckYard == null || !truckYard.contains(x, y)),
+                        left, top, right, bottom, anchor[0], anchor[1]);
+                List<int[]> posts = seats(wall != null ? wall.posts() : List.of(), open, staging, gate, truckYard,
+                        frontRow, centreX, seats);
                 FortifiedWorks.mark(grid, left - 1, top - 1, right + 1, bottom + 1);
                 return seat(sim, posts, left, top, right, bottom, loading, staging, guns, risk, rng);
             }
@@ -159,22 +170,32 @@ public final class CordonTownGarrison {
      */
     static List<int[]> seats(List<int[]> wallPosts, List<int[]> yard, CordonStagingArea staging, int[] corridorEnd,
                              int frontRow, int centreX, int seats) {
+        return seats(wallPosts, yard, staging, corridorEnd, null, frontRow, centreX, seats);
+    }
+
+    /** The same, and never in the truck yard, where a convoy's trucks drive in and turn. Pure. */
+    static List<int[]> seats(List<int[]> wallPosts, List<int[]> yard, CordonStagingArea staging, int[] corridorEnd,
+                             CordonGateYard truckYard, int frontRow, int centreX, int seats) {
         List<int[]> posts = new ArrayList<>();
-        for (int[] p : wallPosts) if (!clear(p, staging, corridorEnd)) posts.add(p);
+        for (int[] p : wallPosts) if (!clear(p, staging, corridorEnd, truckYard)) posts.add(p);
         posts.sort(Comparator.<int[]>comparingInt(c -> Math.abs(c[1] - frontRow))
                 .thenComparingInt(c -> Math.abs(c[0] - centreX)).thenComparingInt(c -> c[1]).thenComparingInt(c -> c[0]));
         if (posts.size() > seats) posts = new ArrayList<>(posts.subList(0, seats));
         for (int[] c : yard) {
             if (posts.size() >= seats) break;
-            if (clear(c, staging, corridorEnd) || taken(posts, c)) continue;
+            if (clear(c, staging, corridorEnd, truckYard) || taken(posts, c)) continue;
             posts.add(c);
         }
         return posts;
     }
 
-    /** Whether a cell is kept clear: the staging area and the ground beside it, or where the trucks pull up. */
-    private static boolean clear(int[] c, CordonStagingArea staging, int[] corridorEnd) {
-        return staging.near(c[0], c[1], STAGING_CLEAR) || corridorEnd != null
+    /**
+     * Whether a cell is kept clear: the staging area and the ground beside it, the truck yard, or where the trucks
+     * pull up.
+     */
+    private static boolean clear(int[] c, CordonStagingArea staging, int[] corridorEnd, CordonGateYard truckYard) {
+        return staging.near(c[0], c[1], STAGING_CLEAR) || truckYard != null && truckYard.contains(c[0], c[1])
+                || corridorEnd != null
                 && Math.max(Math.abs(c[0] - corridorEnd[0]), Math.abs(c[1] - corridorEnd[1])) <= ROAD_CLEAR;
     }
 

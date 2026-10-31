@@ -102,4 +102,10 @@ class CordonConvoysRulesTest {
         assertEquals(10, CordonConvoys.setDown(100, 10, i -> false), "the entry where no cell near it will do");
         assertEquals(99, CordonConvoys.setDown(100, 99, i -> false));
     }
+
+    @Test
+    void aPersonKilledAtTheCampStaysOutAndIsNotLost() {
+        assertEquals(12, CordonConvoys.peopleOut(12, 3), "they reached the drop-off");
+        assertEquals(7, CordonConvoys.peopleLost(5, 2, 3), "only deaths before the drop-off count");
+    }
 }

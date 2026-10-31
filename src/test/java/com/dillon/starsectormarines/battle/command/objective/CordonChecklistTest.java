@@ -39,6 +39,21 @@ class CordonChecklistTest {
         assertFalse(row.blocker().isEmpty());
     }
 
+    @Test void whileATruckLetsPeopleDownAtTheCampTheRowPointsThereAndAnUncalledConvoyHasNoCountdown() {
+        Item row = CordonChecklist.convoys(Outcome.RUNNING, List.of(
+                        new Reading(1, Phase.OUTBOUND, Hold.NONE, 0, 40, 60),
+                        new Reading(2, Phase.WAITING, Hold.NONE, -1, -1, -1)), people(6, 0), GAP, GATE,
+                new CordonChecklist.Camp(30, 8, 6, true), 5000);
+        assertEquals("cordon-camp", row.focusMarkerId());
+        assertTrue(row.markers().stream().anyMatch(m -> m.id().equals("cordon-camp")));
+        Reading uncalled = new Reading(2, Phase.WAITING, Hold.NONE, -1, -1, -1);
+        assertEquals(CordonChecklist.convoyStatus(new Reading(2, Phase.WAITING, Hold.NONE, -1, -1, -1), 5000),
+                CordonChecklist.convoyStatus(uncalled, 99999), "no clock runs for a convoy not yet called");
+        Item driving = CordonChecklist.convoys(Outcome.RUNNING, List.of(new Reading(1, Phase.OUTBOUND, Hold.NONE, 0, 40,
+                60)), people(6, 0), GAP, GATE, new CordonChecklist.Camp(30, 8, 0, false), 5000);
+        assertEquals("cordon-convoy-1", driving.focusMarkerId());
+    }
+
     /** A town of 48, 24 of whom must come out. */
     private static CordonChecklist.People people(int out, int lost) {
         return new CordonChecklist.People(out, lost, 48, 24);
