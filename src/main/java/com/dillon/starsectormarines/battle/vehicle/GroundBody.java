@@ -90,11 +90,21 @@ public abstract class GroundBody {
         visualYawRadians += Math.toRadians(yaw);
     }
 
+    /**
+     * {@code degrees} folded into (-360, 360), the range a hull's heading is kept in, and unchanged when already
+     * there. The {@code (bearing - facing + 540) % 360 - 180} wrap every reader of a heading uses is right only in that
+     * range: with a heading of 607 degrees it read a carrot dead ahead as a full turn off, and the Burn's allied hulls
+     * reversed away from their posts for the rest of the battle.
+     */
+    public static float foldFacing(float degrees) {
+        return degrees > 360f || degrees < -360f ? degrees % 360f : degrees;
+    }
+
     /** Snap pose with zero velocity. Use at spawn / respawn / teleport boundaries. */
     public void teleport(float px, float py, float facingDeg) {
         x = px;
         y = py;
-        facingDegrees = facingDeg;
+        facingDegrees = foldFacing(facingDeg);
         speed = 0f;
         knockVx = knockVy = knockOmega = 0f;
         joltX = joltY = joltVx = joltVy = 0f;
