@@ -22,6 +22,7 @@ class BoatPartLearningTest {
 
         assertTrue(starter.contains(BoatFitting.STANDARD_PLATING.id()));
         assertTrue(starter.stream().anyMatch(id -> BoatGun.findById(id) != null), "the yard guns are starter issue");
+        for (BoatFitting fitting : BoatParts.COMPANY_ISSUE) assertTrue(starter.contains(fitting.id()), fitting.id());
         for (String id : starter) assertTrue(deck.knowsPart(id), id);
         for (String id : BoatParts.offerable()) {
             assertFalse(starter.contains(id), id + " is starter issue and cannot be sold");
