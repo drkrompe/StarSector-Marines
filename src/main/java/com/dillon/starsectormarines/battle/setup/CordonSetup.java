@@ -16,6 +16,7 @@ import com.dillon.starsectormarines.battle.cordon.CordonAlliedTable;
 import com.dillon.starsectormarines.marine.SpecialEquipmentDef;
 import com.dillon.starsectormarines.marine.SpecialEquipmentRegistry;
 import com.dillon.starsectormarines.battle.cordon.CordonArmour;
+import com.dillon.starsectormarines.battle.cordon.CordonBoreEscalation;
 import com.dillon.starsectormarines.battle.cordon.CordonLineCommand;
 import com.dillon.starsectormarines.battle.cordon.CordonLogistics;
 import com.dillon.starsectormarines.battle.cordon.CordonAirBase;
@@ -639,6 +640,9 @@ public final class CordonSetup {
             int[] rally = rally(sim, cordon, convoys.gapIndex());
             sequence.attachFallBack(rally[0], rally[1], CordonFront.lineY(cordon.plan()),
                     CordonFront.frontward(cordon.plan()));
+            // Bores break out along the line as the evacuation goes on, and the swarm surges at the fall-back.
+            sequence.attachEscalation(CordonBoreEscalation.plan(sim, redoubts, convoys, town.town(), timetable,
+                    CordonFront.lineY(cordon.plan()), CordonFront.frontward(cordon.plan()), cordon.battleSeed()));
             armour.escortConvoys(convoys::guardPosts);
             convoys.escortedBy(armour::convoyEscort);
         }

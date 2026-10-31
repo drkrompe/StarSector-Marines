@@ -3,7 +3,7 @@
 Status: DRAFT
 
 Written: 2026-10-22
-Updated: 2026-10-31 — a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
+Updated: 2026-10-31 — on the Road, bores break out along the line as the evacuation goes on and the swarm surges at the fall-back (*Line bores*, *The final surge*); a gun on each corner of every redoubt and its wall teams on its front face; the picket line manned by allied teams; forty-eight trapped and up to five convoys called while any remain; the Road redefined: the win is people brought out; hold Ain Tafrant (the staging area inside the town gate, its compound dressed and defended), and once the town is empty or abandoned fall back behind the line to finish; the townspeople are trapped in the staging area and board the convoys one at a time; the air wing flies off the allies' own airbase lot, a field held in a rear corner. Earlier, 2026-10-25: a shed with no machine door re-rolls; a city's set pieces and its supply roads along the streets
 
 The Cordon is the second movement of the Rav Bloom arc (`bloom-mission-arc.md`,
 Mission 2): a world's military has thrown a line of redoubts across the country
@@ -295,6 +295,45 @@ redoubt, in a seeded order) through the ordinary bore seam, at the smallest
 tier, and grows, surges and spreads creep as any bore does, so the director's
 target rises with it. Tides make the crises; eruptions make the front worse
 between them, so a battle that holds early is not over.
+
+**Line bores (the Road)** (`CordonBoreEscalation`; owner, 2026-10-31). The
+bloom breaking out close in front of the line as the evacuation goes on, so
+the pressure builds along the whole line, not only at the town and the gap.
+Sites are planned at setup, one per **anchor**: each redoubt's front and the
+middle of each stretch of picket line between two, west to east. An anchor's
+site is a seeded open cell eighteen to forty-two cells in front of the front
+wall there (in the guns' reach: ground the line must answer) and within twenty
+across; never within sixteen cells of the convoys' road, twelve of a redoubt's
+wall, sixteen of the safe camp or thirty of the town's wall, never behind the
+line, and sixteen apart from every other site and every bore standing. An
+anchor with no such cell has none. They open furthest from the gap first, the
+far redoubts' fronts and stretches before the gap redoubts', so the pressure
+spreads away from the road; the first four are **scheduled**, the rest kept for
+the surge. A scheduled site is due at its step's time or sooner when the
+evacuation runs ahead of the clock: 3:00 or the first convoy home or a quarter
+of the briefing's number out; 5:30, two convoys or half; 8:30, three or three
+quarters; 11:00, four or the whole number (UNTUNED). Each starts at least
+forty-five seconds after the one before. A due site **stirs** for twenty
+seconds first (ground thrown up at it, a beat, a beacon on the HUD), then opens
+through the ordinary bore seam as a fissure that grows as any bore does. On
+Ain Tafrant (seed 7) the four scheduled sites stand before redoubt 1, before
+redoubt 4, between 1 and 2 and between 3 and 4; the surge's before redoubts 2
+and 3 and between them, beside the gap (`cordon-line-bores` snapshots).
+
+**The final surge (the Road)** (`CordonBoreEscalation.surges`). The swarm
+going at the line once the town no longer needs the company, so the fall-back
+is a fighting retreat. It comes at once when the town is abandoned; otherwise
+once no truck is left loading at the town's gate and either the town is empty,
+or the briefing's number is out and the company is falling back (no Marine
+within twenty cells of the town's wall and half the company on the ground
+behind the line); and at twenty-five minutes whatever the town is doing. It
+calls a tide on every living bore, stirs the sites left (at most four, nearest
+the gap first, five seconds apart, each opening eight seconds after it stirs),
+calls every bore again once they are open, and holds the swarm at the tide's
+strength for two minutes, then at a floor of two fifths (UNTUNED). It changes
+no end rule: it opens bores only in front of the line and off the road, so the
+company can always walk back behind it, and the garrisons, picket teams and
+armour on the line cover it as it comes.
 
 **Timetable.** What the briefing holds the battle to: when the tides come and
 how long each runs, the ordinary and tide pressures, when bores erupt, the
@@ -841,12 +880,14 @@ a gap that closes stops the convoys, which costs people, not the battle.
    gets inside, or half of them are down, the town calls, and as they bleed
    the company has to come up and hold the staging area itself.
 5. **The tide.** As in the Line, at set minutes every bore surges at once; on
-   the Road the tide falls on the gap and the town. The two redoubts either
+   the Road the tide falls on the gap and the town, and between tides bores
+   break out along the line (*Line bores*). The two redoubts either
    side of the gap call; if both fall the gap is closed (`gap_closed`, told,
    not an end: the convoys stop at it).
 6. **The town is finished.** Everyone is out or dead (`town_empty`), or its
    staging area is overrun and the town abandoned (`town_abandoned`, the rest
-   die). The fall-back starts (`fall_back`).
+   die). The fall-back starts (`fall_back`), and once no truck is left at the
+   gate the swarm surges at the line (*The final surge*).
 7. **The end.** The company falls back behind the redoubt line, every Marine
    on the ground four rows or more behind its mean row, to a rally point a
    reserve's depth behind where the corridor crosses it (`company_withdrawn`).
@@ -907,7 +948,11 @@ then one on the road, the gate while one loads, and the gap while the next is
 still to come; complete once enough are out, failed once too few are left
 alive. Once the town is finished the third, **Fall back behind the line**, is
 beaconed at the rally point until the company is behind the line. The Road
-has no row for the line. On the Line the row is the
+has no row for the line itself; from the first line bore stirring it has a
+row **Bores along the line**, beaconed at each stirring site with the time
+until it opens and at each open line bore, its focus the site opening soonest,
+which once the final surge comes says so and asks for the company back behind
+the line. On the Line the row is the
 line: any redoubt calling, the first its focus, the redoubts lost against those
 allowed, and the window's time left. Tides are never foreseen on it, as on the radio. The rolled beats
 follow in the Optional section, in roll order: each beaconed where it is
@@ -954,6 +999,9 @@ with the same keys.
 | `strike_committed_N` | both | OBSERVER_ONLY | The commander sends a strike detachment at bore N; at every commit |
 | `strike_recalled_N` | both | OBSERVER_ONLY | The readiness gate closed and the detachment at bore N is recalled |
 | `eruption_N` | both | PLAYER | The Nth eruption: a new bore opens in front of the line |
+| `line_bore_stirring_N` | the Road | PLAYER | Line bore site N (in opening order) stirs: it opens shortly |
+| `line_bore_N` | the Road | PLAYER | Line bore site N opens |
+| `final_surge` | the Road | PLAYER | The final surge: the town no longer needs the company and the swarm goes at the line |
 | `redoubt_calling_N` | both | PLAYER | Redoubt N calls for relief |
 | `redoubt_relieved_N` | both | PLAYER | A Marine reaches redoubt N's gate while it calls |
 | `redoubt_fell_N` | both | PLAYER | Redoubt N falls |
