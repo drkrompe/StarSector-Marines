@@ -109,6 +109,9 @@ class BroodSpiresTest {
         assertFalse(BroodSpires.raises(false, BoreTier.BORE, fed * 3, false), "fed but not yet maw");
         assertFalse(BroodSpires.raises(true, BoreTier.MAW, fed, false), "a mother's air is her brood");
         assertFalse(BroodSpires.raises(false, BoreTier.MAW, fed, true), "one spire a bore, never regrown");
+        assertTrue(BroodSpires.raises(false, BoreTier.MAW, 0f, true, false), "a bore grown for a spire needs no feeding");
+        assertFalse(BroodSpires.raises(false, BoreTier.BORE, 0f, true, false), "but it must reach maw");
+        assertFalse(BroodSpires.raises(false, BoreTier.MAW, 0f, true, true), "and raises one only");
     }
 
     @Test

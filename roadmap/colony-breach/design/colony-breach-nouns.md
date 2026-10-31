@@ -1175,8 +1175,9 @@ through, made into a thing on the map the company can find and kill.
   for one by the rule below, the spire's root digs out and thickens over ten
   seconds and the spire rises at its end in a burst of creep, as a colony does
   (*Roots grow*). So in a fresh bloom the air comes from the hive feeding, and
-  every colonist kept from it is a spire that never grows. A bore raises one
-  spire in a battle, and one destroyed never grows back. Scene: `fed-spire`;
+  every colonist kept from it is a spire that never grows. The Burn's young
+  bores raise theirs on reaching maw, fed or not (`heart-nouns.md`, Young bore).
+  A bore raises one spire in a battle, and one destroyed never grows back. Scene: `fed-spire`;
   look: `fed-spire-look`.
 - **Where it stands.** One off each living satellite (non-mother) bore at maw,
   in opening order, on open ground inside the bore's creep between sixteen and
