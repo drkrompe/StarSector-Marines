@@ -44,9 +44,6 @@
             <div id="store-selected-name" class="label store-selected-name tone-accent">{selectedName}</div>
             <div id="store-selected-kind" class="label tone-muted">{selectedKind}</div>
           </div>
-          <button id="store-buy" class="{buyClasses}" onclick="{buyAction}">
-            <div id="store-buy-label" class="label heading store-buy-label">{buyLabel}</div>
-          </button>
         </div>
         <div id="store-stage-body" class="store-stage-body">
           <canvas id="store-doll" class="{dollClasses}" width="500" height="566" />
@@ -77,8 +74,11 @@
           </div>
         </div>
         <div id="store-verdict-bar" class="store-verdict-bar console-readout">
-          <div id="store-verdict" class="label heading tone-accent store-verdict">{verdict}</div>
-          <div id="store-price" class="label store-price">{priceLabel}</div>
+          <div id="store-verdict-copy" class="store-verdict-copy">
+            <div id="store-verdict" class="label heading tone-accent store-verdict">{verdict}</div>
+            <div id="store-price" class="label tone-muted store-price">{priceLabel}</div>
+          </div>
+          <button id="store-buy" class="{buyClasses}" onclick="{buyAction}">{buyLabel}</button>
         </div>
       </div>
     </div>
@@ -131,10 +131,8 @@
   .store-selected-heading { flex-direction: row; height: 70px; padding: 8px 10px; gap: 8px; align-items: center; border-width: 2px; }
   .store-selected-copy { flex-direction: column; height: 52px; width: 0px; flex-grow: 1; gap: 6px; }
   .store-selected-name { height: 25px; font-family: title; }
-  .store-buy { width: 254px; height: 42px; padding: 5px; border-width: 3px; border-color: #ffd464; background-color: #343c3e; }
-  .store-buy.current { border-color: #31485f; opacity: 0.6; }
-  .store-buy.unaffordable { border-color: #c44b4b; opacity: 0.55; }
-  .store-buy-label { height: auto; text-align: center; white-space: normal; }
+  .store-buy { width: 320px; height: 46px; border-width: 2px; font-family: heading; text-align: center; }
+  .store-buy.current { opacity: 0.45; }
   .store-spec { flex-direction: column; width: 100%; height: 0px; flex-grow: 1; padding: 12px; gap: 12px; border-width: 2px; overflow: hidden; }
   .store-spec.none { display: none; }
   .store-spec-top { flex-direction: row; width: 100%; gap: 16px; align-items: flex-start; }
@@ -153,8 +151,9 @@
   .store-spec-note { width: 100%; height: auto; white-space: normal; color: #b9c4cf; }
   .store-spec-note.lead { color: #e6d8b4; }
   .store-selected-detail { width: 100%; height: auto; padding: 10px 12px; border-width: 2px; white-space: normal; }
-  .store-verdict-bar { flex-direction: row; height: 66px; padding: 8px 9px; gap: 10px; border-width: 2px; align-items: center; }
-  .store-verdict { width: 54%; flex-grow: 0; height: auto; white-space: normal; }
-  .store-price { width: 0px; height: auto; text-align: left; flex-grow: 1; white-space: normal; }
+  .store-verdict-bar { flex-direction: row; height: 66px; padding: 8px 10px; gap: 16px; border-width: 2px; align-items: center; }
+  .store-verdict-copy { flex-direction: column; width: 0px; flex-grow: 1; gap: 4px; }
+  .store-verdict { width: 100%; height: auto; white-space: normal; }
+  .store-price { width: 100%; height: auto; text-align: left; white-space: normal; }
   .company-service-plate { width: 58px; height: 30px; pointer-events: none; }
 </style>

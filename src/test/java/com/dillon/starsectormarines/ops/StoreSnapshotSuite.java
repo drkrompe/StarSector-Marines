@@ -53,6 +53,9 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
                     new SnapshotArtifact("store-wayline-card.png", frame(context, false, null, false,
                             new LoadoutCard(LoadoutCard.Kind.WEAPON, FirstRefit.Path.STEADY_LINE.weapons).id())),
                     new SnapshotArtifact("store-after-purchase.png", frame(context, true, null, false, null)),
+                    // A purse too thin for the selected offer: the buy key turns red.
+                    new SnapshotArtifact("store-short-of-credits.png",
+                            frame(context, junctionShelf(), null, false, null, 1_200)),
                     new SnapshotArtifact("store-mechs-category.png",
                             frame(context, false, "SECTION:MECHS", false, null)),
                     new SnapshotArtifact("store-vehicle-chassis.png",
@@ -127,19 +130,19 @@ public final class StoreSnapshotSuite implements SnapshotSuite {
                 break;
             }
         }
-        return frame(context, shelf, filter, afterPurchase, extraCard);
+        return frame(context, shelf, filter, afterPurchase, extraCard, afterPurchase ? 20_000 : 9_000);
     }
 
     private static BufferedImage frame(SnapshotContext context, List<EquipmentStore.Offer> shelf, String filter,
                                        boolean afterPurchase) throws Exception {
-        return frame(context, shelf, filter, afterPurchase, null);
+        return frame(context, shelf, filter, afterPurchase, null, 9_000);
     }
 
     private static BufferedImage frame(SnapshotContext context, List<EquipmentStore.Offer> shelf, String filter,
-                                       boolean afterPurchase, String extraCard) throws Exception {
+                                       boolean afterPurchase, String extraCard, long startCredits) throws Exception {
         Reactor reactor = new Reactor();
         MarineArmory armory = new MarineArmory();
-        long[] credits = {afterPurchase ? 20_000 : 9_000};
+        long[] credits = {startCredits};
         FabricationResources purse = new FabricationResources() {
             @Override public long credits() { return credits[0]; }
             @Override public boolean atMarket() { return true; }
