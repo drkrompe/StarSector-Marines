@@ -62,6 +62,7 @@ final class LayoutStructures {
             }
             case OBSERVATION_POST -> ring(ctx, x0, y0, x1, y1, s.turns());
             case BELL_SQUARE -> square(ctx, x0, y0, x1, y1);
+            default -> s.kind().stamp.place(ctx, x0, y0, s.turns());
         }
         return new Laid(s.name(), Laid.Kind.STRUCTURE, Laid.Status.LAID, "", s.required(),
                 List.of(new int[]{x0, y0}, new int[]{x1, y1}), List.of(), List.of());
