@@ -644,8 +644,8 @@ public final class CordonSetup {
             sequence.attachFallBack(rally[0], rally[1], CordonFront.lineY(cordon.plan()),
                     CordonFront.frontward(cordon.plan()));
             // The pull-out zone at the base's muster yard is where the company falls back to and must hold to finish.
-            sequence.attachPullOut(CordonPullOut.place(sim.getGrid(), logistics, rally, CordonFront.lineY(cordon.plan()),
-                    CordonFront.frontward(cordon.plan())));
+            sequence.attachPullOut(CordonPullOut.place(sim.getGrid(), logistics == null ? null : baseFence(cordon), rally,
+                    CordonFront.lineY(cordon.plan()), CordonFront.frontward(cordon.plan())));
             // Bores break out along the line as the evacuation goes on, and the swarm surges at the fall-back.
             sequence.attachEscalation(CordonBoreEscalation.plan(sim, redoubts, convoys, town.town(), timetable,
                     CordonFront.lineY(cordon.plan()), CordonFront.frontward(cordon.plan()), cordon.battleSeed()));
@@ -840,6 +840,14 @@ public final class CordonSetup {
     }
 
     private static final long CAMP_SALT = 0x43414D50L;
+
+    /** The logistics base's fence as the map's layout records it, {@code [minX, minY, maxX, maxY]}, or {@code null}. */
+    static int[] baseFence(CordonMap cordon) {
+        Laid works = cordon.map().layout == null ? null : cordon.map().layout.find(CordonConstructions.BASE_WORKS);
+        if (works == null || works.cells().size() != 2) return null;
+        int[] a = works.cells().get(0), b = works.cells().get(1);
+        return new int[]{Math.min(a[0], b[0]), Math.min(a[1], b[1]), Math.max(a[0], b[0]), Math.max(a[1], b[1])};
+    }
 
     /**
      * The cut-off town held ({@code cordon-nouns.md}, Cut-off town): its compound's wall dressed as a redoubt's, and

@@ -80,6 +80,29 @@ class CordonBoreEscalationTest {
         assertTrue(sites.get(2).between(), "the stretch at the gap is the last");
     }
 
+    @Test void theTownsFarSideBoreIsScheduledMidwayAndItsFlankBoreOpensFirstInTheSurge() {
+        List<Site> line = List.of(
+                new Site(1, 10, 10, 1, 1, false, CordonBoreEscalation.Kind.FRONT),
+                new Site(2, 20, 10, 4, 4, false, CordonBoreEscalation.Kind.FRONT),
+                new Site(3, 30, 10, 1, 2, false, CordonBoreEscalation.Kind.BETWEEN),
+                new Site(4, 40, 10, 3, 4, false, CordonBoreEscalation.Kind.BETWEEN),
+                new Site(5, 50, 10, 2, 2, true, CordonBoreEscalation.Kind.FRONT));
+        List<Site> town = List.of(
+                new Site(6, 60, 5, 0, 0, true, CordonBoreEscalation.Kind.TOWN_BEYOND),
+                new Site(7, 70, 5, 0, 0, true, CordonBoreEscalation.Kind.TOWN_FLANK));
+        List<Site> order = CordonBoreEscalation.order(line, town);
+        assertEquals(7, order.size());
+        Site beyond = order.get(CordonBoreEscalation.TOWN_STEP);
+        assertEquals(CordonBoreEscalation.Kind.TOWN_BEYOND, beyond.kind());
+        assertFalse(beyond.surge(), "scheduled, not kept for the surge");
+        assertEquals(CordonBoreEscalation.TOWN_STEP + 1, beyond.order());
+        assertEquals(30, order.get(3).x(), "the line's own order is kept round it");
+        Site last = order.get(6);
+        assertEquals(CordonBoreEscalation.Kind.TOWN_FLANK, last.kind());
+        assertTrue(last.surge(), "the surge opens from the end, so the flank bore is its first");
+        for (int i = 0; i < order.size(); i++) assertEquals(i + 1, order.get(i).order());
+    }
+
     @Test void anAnchorWithNoOpenGroundHasNoSite() {
         List<Site> sites = CordonBoreEscalation.plan(List.of(new Box(40, 40, 60, 50)), 1, List.of(), 0, List.of(),
                 List.of(), (x, y) -> false, 200, 120, 4, 7L);

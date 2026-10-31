@@ -115,6 +115,8 @@ public final class CordonSequence implements Objective {
     /** The Road's pull-out zone behind the line, or {@code null}; whether pulling out is offered, and ordered. */
     private CordonPullOut pullOut;
     private boolean pullOutOffered, pulledOut;
+    /** Ticks Marines have stood in the pull-out zone without a break while falling back. */
+    private int zoneHeld;
     /** What abandoning the town does to the convoys and townspeople; a seam until {@code CordonConvoys} carries it. */
     private Consumer<BattleSimulation> abandonTown = sim -> { };
     /** The Road's staging area inside the town's gate, or {@code null}. */
@@ -232,6 +234,12 @@ public final class CordonSequence implements Objective {
 
     /** Whether the company has done enough and may pull out: the player is told so, and the order counts. */
     public boolean pullOutOffered() { return pullOutOffered; }
+
+    /** Ticks left of the pull-out zone's hold before the company has withdrawn; the whole hold while nobody holds it. */
+    public int zoneHoldLeft() { return Math.max(0, ticks(CordonPullOut.HOLD_SECONDS) - zoneHeld); }
+
+    /** Whether Marines are holding the pull-out zone now, falling back. */
+    public boolean zoneHolding() { return zoneHeld > 0; }
 
     /** Whether the player ordered the pull-out. */
     public boolean pulledOut() { return pulledOut; }
@@ -434,8 +442,9 @@ public final class CordonSequence implements Objective {
                 emit(tick, "fall_back");
             }
         }
+        zoneHeld = fallingBack() ? CordonPullOut.held(zoneHeld, companyInZone) : 0;
         if (fallingBack() && !withdrawn && (pullOut == null ? companyBehind > 0 && companyAhead == 0
-                : CordonPullOut.withdrawn(companyBehind, companyAhead, companyInZone))) {
+                : CordonPullOut.withdrawn(companyBehind, companyAhead, zoneHeld, ticks(CordonPullOut.HOLD_SECONDS)))) {
             withdrawn = true;
             emit(tick, "company_withdrawn");
         }

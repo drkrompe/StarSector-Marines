@@ -76,7 +76,8 @@ public final class CordonChecklist {
             boolean offered = cordon.pullOutOffered() && !cordon.fallingBack();
             if ((cordon.fallingBack() || offered) && rally != null) {
                 items.add(fallBack(cordon.outcome(), offered, cordon.withdrawn(), rally,
-                        cordon.pullOut() == null ? List.of() : cordon.pullOut().cells()));
+                        cordon.pullOut() == null ? List.of() : cordon.pullOut().cells(),
+                        cordon.zoneHolding() ? cordon.zoneHoldLeft() : -1));
             }
         } else {
             List<Post> posts = new ArrayList<>();
@@ -221,23 +222,25 @@ public final class CordonChecklist {
 
     /** The fall-back row with no pull-out zone and nothing offered. */
     static Item fallBack(CordonSequence.Outcome outcome, boolean withdrawn, int[] rally) {
-        return fallBack(outcome, false, withdrawn, rally, List.of());
+        return fallBack(outcome, false, withdrawn, rally, List.of(), -1);
     }
 
     /**
      * The Road's last row ({@code cordon-nouns.md}, The pull-out), beaconed at the pull-out zone (its cells the beacon's
      * footprint; the rally place where there is none). While pulling out is {@code offered} and not yet ordered it is
      * the warning that the company has done enough and tells the player how to pull out: order a squad to the zone.
-     * Once the company is falling back it asks for every squad behind the line and some in the zone, complete once
-     * they are.
+     * Once the company is falling back it asks for every squad behind the line and Marines holding the zone, counting
+     * down the hold while they do ({@code holdLeft} ticks, -1 while nobody holds it); complete once they have.
      */
     static Item fallBack(CordonSequence.Outcome outcome, boolean offered, boolean withdrawn, int[] rally,
-                         List<int[]> zone) {
+                         List<int[]> zone, int holdLeft) {
         State state = withdrawn || outcome == CordonSequence.Outcome.HELD ? State.COMPLETE
                 : outcome == CordonSequence.Outcome.BROKEN ? State.FAILED : State.ACTIVE;
         String id = "cordon-rally";
         String phase = state != State.ACTIVE ? Strings.get("cordonHudFallBackDone")
-                : Strings.get(offered ? "cordonHudPullOutOffered" : "cordonHudFallBackPhase");
+                : offered ? Strings.get("cordonHudPullOutOffered")
+                : holdLeft >= 0 ? Strings.format("cordonHudPullOutHolding", clock(holdLeft))
+                : Strings.get("cordonHudFallBackPhase");
         List<Cell> footprint = new ArrayList<>();
         for (int[] c : zone) footprint.add(new Cell(c[0], c[1]));
         String name = Strings.get(zone.isEmpty() ? "cordonHudRally" : "cordonHudPullOutZone");
