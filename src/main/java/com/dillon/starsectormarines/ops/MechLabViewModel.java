@@ -386,11 +386,20 @@ public final class MechLabViewModel {
     PreparationGuide.Lesson campaignLesson() {
         int step = bay.labLesson();
         if (step <= 0 || step >= 5 || bay.mechById(WaylineHound.ID) == null) return null;
-        return CampaignLessons.lesson(step - 1, "lessonGantryTitle", "lessonGantry" + step,
+        var lesson = CampaignLessons.lesson(step - 1, "lessonGantryTitle", "lessonGantry" + step,
                 step == 1 ? List.of("mech-overview-gantries", "mech-overview-browse")
                         : List.of("mech-doll-canvas", "mech-slot-rack", "mech-component-catalog"),
                 step == 1 ? "lessonOpenWayward" : step == 4 ? "lessonReady" : null,
                 step == 1 || step == 4 ? this::guideLabLesson : null);
+        if (step == 4) return lesson;
+        return new PreparationGuide.Lesson(lesson.milestone(), lesson.title(), lesson.copy(), lesson.targets(),
+                lesson.actionLabel(), lesson.action(), lesson.height(), this::skipLabLesson,
+                LessonCopy.text("lessonSkip"));
+    }
+
+    void skipLabLesson() {
+        bay.skipLabLesson();
+        revision.update(value -> value + 1);
     }
 
     public void putTutorialProps(Map<String, Object> props) {

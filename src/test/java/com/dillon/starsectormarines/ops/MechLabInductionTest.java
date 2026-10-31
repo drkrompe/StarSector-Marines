@@ -4,9 +4,11 @@ import com.dillon.starsectormarines.battle.mech.*;
 import com.dillon.starsectormarines.battle.mech.MechFittingLayout.SocketId;
 import com.dillon.starsectormarines.battle.story.WaylineHoundRecovery;
 import com.dillon.starsectormarines.marine.*;
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
 import com.dillon.starsectormarines.ui.retained.reactive.Reactor;
 import org.junit.jupiter.api.Test;
 import java.io.*;
+import java.nio.file.Path;
 import static org.junit.jupiter.api.Assertions.*;
 
 class MechLabInductionTest {
@@ -80,6 +82,21 @@ class MechLabInductionTest {
         assertTrue(workshop.fitWeapon(WaylineHound.ID, MechMountSlot.LEFT_SHOULDER,
                 MechWeaponComponent.LRM_5).succeeded());
         assertTrue(MechBay.legacyStarterFixture().canFabricate(MechWeaponComponent.LRM_15));
+    }
+
+    @Test void skippingClosesTheLessonAndKeepsTheSpare() throws Exception {
+        try (var strings = new HeadlessStrings(Path.of("mod"))) {
+            MechBay bay = new MechBay();
+            bay.receiveRecoveredMech(CampaignMech.fromDeployment(WaylineHound.ID, WaylineHound.deployment()));
+            bay.beginLabLesson();
+            var model = new MechLabViewModel(new Reactor(), bay);
+            model.guideLabLesson();
+            model.campaignLesson().later().run();
+            assertEquals(5, bay.labLesson());
+            assertNull(model.campaignLesson());
+            assertFalse(model.labGuideVisible());
+            assertEquals(1, bay.availableWeapon(MechWeaponComponent.SRM_5_FRAG.id));
+        }
     }
 
     @Test void strippingDoesNotCompleteLessonUntilRefitted() {

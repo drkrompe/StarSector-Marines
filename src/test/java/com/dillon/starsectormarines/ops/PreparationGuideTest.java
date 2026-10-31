@@ -1,15 +1,20 @@
 package com.dillon.starsectormarines.ops;
 
+import com.dillon.starsectormarines.testsupport.HeadlessStrings;
+import com.dillon.starsectormarines.ui.BitmapFont;
 import com.dillon.starsectormarines.ui.retained.UiDocument;
 import com.dillon.starsectormarines.ui.retained.UiElement;
 import com.dillon.starsectormarines.ui.retained.UiKey;
 import com.dillon.starsectormarines.ui.retained.UiTag;
 import com.dillon.starsectormarines.ui.retained.markup.MarkupLoader;
+import com.dillon.starsectormarines.ui.retained.style.UiTheme;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -74,6 +79,42 @@ class PreparationGuideTest {
         document.layout(1920, 1080); guide.update();
         assertTrue(guide.calloutBounds().y() >= navigation.box().borderBox().bottom());
         click(document, world); assertEquals(0, worldOrders.get());
+    }
+
+    @Test void calloutShrinksToShortCopyAndCapsLongCopy() throws Exception {
+        try (var strings = new HeadlessStrings(Path.of("mod"))) {
+            var lesson = new PreparationGuide.Lesson[1];
+            var document = PreparationGuide.document(new UiElement("content")).theme(fixedWidthTheme());
+            var guide = new PreparationGuide(document, () -> lesson[0], () -> {},
+                    new MarkupLoader(path -> Files.readString(Path.of("mod").resolve(path)),
+                            List.of("data/ui/components/company/preparation-guide.mlx")));
+            document.layout(1920, 1080);
+            lesson[0] = new PreparationGuide.Lesson(1, "TITLE", "One short line.", List.of(), null, null, 280);
+            guide.update();
+            float oneLine = guide.calloutBounds().height();
+            assertTrue(oneLine < 200, "A one-line lesson leaves no empty card: " + oneLine);
+            lesson[0] = new PreparationGuide.Lesson(1, "TITLE", "One short line. ".repeat(8), List.of(), null, null, 280);
+            guide.update();
+            float wrapped = guide.calloutBounds().height();
+            assertTrue(wrapped > oneLine && wrapped < 280, "Wrapped copy grows the card: " + wrapped);
+            lesson[0] = new PreparationGuide.Lesson(1, "TITLE", "One short line. ".repeat(200), List.of(), "GO", () -> {}, 280);
+            guide.update();
+            assertEquals(280f, guide.calloutBounds().height(), .5f);
+        }
+    }
+
+    /** Ten pixels a glyph, twenty a line: the shared theme fonts keep the game's metrics untouched. */
+    private static UiTheme fixedWidthTheme() {
+        var manifest = new StringBuilder("common lineHeight=20 base=16 scaleW=256 scaleH=256\npage id=0 file=\"test.png\"\n");
+        for (int c = 32; c < 127; c++) manifest.append("char id=").append(c).append(" width=10 height=20 xadvance=10\n");
+        var theme = MarineOpsThemes.standard();
+        Map<String, BitmapFont> fonts = new HashMap<>();
+        for (String family : theme.fonts().keySet()) {
+            var font = new BitmapFont("test.fnt");
+            font.installMetrics(manifest.toString());
+            fonts.put(family, font);
+        }
+        return new UiTheme(theme.sheet(), fonts);
     }
 
     private static UiElement button(String id, int left, Runnable action) {

@@ -18,9 +18,17 @@ import java.util.function.Supplier;
 
 /** The same portrait and real-control spotlight across the preparation rooms. */
 final class PreparationGuide {
-    /** {@code later} is an optional set-aside for guidance that must not hold the player behind work they cannot yet afford. */
+    /**
+     * {@code later} is an optional set-aside for guidance that must not hold the player behind work they cannot yet
+     * afford; {@code laterLabel} names it, "Not now" when null. {@code height} is the most the callout may take: it
+     * shrinks to its words.
+     */
     record Lesson(int milestone, String title, String copy, List<String> targets,
-                  String actionLabel, Runnable action, int height, Runnable later) {
+                  String actionLabel, Runnable action, int height, Runnable later, String laterLabel) {
+        Lesson(int milestone, String title, String copy, List<String> targets,
+               String actionLabel, Runnable action, int height, Runnable later) {
+            this(milestone, title, copy, targets, actionLabel, action, height, later, null);
+        }
         Lesson(int milestone, String title, String copy, List<String> targets, String actionLabel, Runnable action,
                int height) {
             this(milestone, title, copy, targets, actionLabel, action, height, null);
@@ -100,7 +108,7 @@ final class PreparationGuide {
         action.text(current.actionLabel() == null ? LessonCopy.text("lessonContinue") : current.actionLabel());
         action.classed("preparation-hidden", current.action() == null);
         UiElement later = markup.requireElement("preparation-later");
-        later.text(LessonCopy.text("lessonLater"));
+        later.text(current.laterLabel() == null ? LessonCopy.text("lessonLater") : current.laterLabel());
         later.classed("preparation-hidden", current.later() == null);
         // A lesson with nothing to press gives the row's height to its words.
         markup.requireElement("preparation-actions").classed("preparation-hidden",
@@ -121,9 +129,9 @@ final class PreparationGuide {
         Rect view = document.viewport();
         List<Rect> holes = regions().stream().map(r -> UiSpotlight.regionBounds(document, r)).toList();
         Rect anchor = target == null ? Rect.EMPTY : UiSpotlight.visibleBounds(document, target);
-        float height = current.height();
-        Rect place = BarracksGuideCallout.place(anchor, holes, view,
-                Math.min(528, view.width() - 16), Math.min(height, view.height() - 16));
+        float width = Math.min(528, view.width() - 16);
+        float height = fittedHeight(callout, width, Math.min(current.height(), view.height() - 16));
+        Rect place = BarracksGuideCallout.place(anchor, holes, view, width, height);
         UiElement navigation = find(document.root(), "marine-ops-page-nav");
         if (navigation != null) {
             float top = UiSpotlight.visibleBounds(document, navigation).bottom() + 8;
@@ -135,6 +143,24 @@ final class PreparationGuide {
         document.advance(0f);
         spotlight.update();
         document.advance(0f);
+    }
+
+    /**
+     * The callout's border-box height for its words, at most {@code limit}: laid out once with the copy at its
+     * natural height, so a short lesson does not cover the screen with an empty card. Copy that would not fit
+     * scrolls inside the limit instead.
+     */
+    private float fittedHeight(UiElement callout, float width, float limit) {
+        UiElement copy = markup.requireElement("preparation-copy");
+        copy.classed("preparation-copy-fill", false);
+        callout.style(String.format(Locale.ROOT, "left: 0px; top: 0px; width: %.1fpx; height: %.1fpx;",
+                width - 28, limit - 28));
+        document.advance(0f);
+        UiElement actions = markup.requireElement("preparation-actions");
+        UiElement last = actions.displayed() ? actions : copy;
+        float needed = last.box().borderBox().bottom() - callout.box().borderBox().y() + 14;
+        copy.classed("preparation-copy-fill", true);
+        return Math.min(limit, needed);
     }
 
     private List<UiElement> targets() {

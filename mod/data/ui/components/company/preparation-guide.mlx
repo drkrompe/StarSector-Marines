@@ -10,7 +10,7 @@
           <img id="preparation-progress" class="preparation-progress" src="graphics/ui/officers/preparation-step-0.svg" />
         </div>
       </div>
-      <div id="preparation-copy" class="preparation-copy"></div>
+      <div id="preparation-copy" class="preparation-copy preparation-copy-fill"></div>
       <div id="preparation-actions" class="preparation-actions">
         <button id="preparation-continue" class="preparation-button" onclick="{continueAction}"></button>
         <button id="preparation-later" class="preparation-button" onclick="{laterAction}"></button>
@@ -27,7 +27,8 @@
   .preparation-speaker { white-space: normal; min-height: 36px; font-family: heading; color: #dfc588; }
   .preparation-title { min-height: 38px; white-space: normal; font-family: heading; }
   .preparation-progress { width: 180px; height: 20px; }
-  .preparation-copy { height: 0px; flex-grow: 1; white-space: normal; overflow: scroll; }
+  .preparation-copy { white-space: normal; overflow: scroll; }
+  .preparation-copy-fill { height: 0px; flex-grow: 1; }
   .preparation-actions { flex-direction: row; height: 42px; gap: 10px; }
   .preparation-button { text-align: center; white-space: normal; width: 160px; min-height: 40px; border-width: 1px; border-color: #dfc588; background-color: #34463e; font-family: heading; }
   .preparation-hidden { display: none; }
