@@ -740,6 +740,21 @@ through its own squads. The rules, and the allied line command's for its own
 machines: `cordon-allied-command.md`; posture and strikes: Line posture
 above.
 
+### The player's picture
+
+The shared mission picture (`CordonChecklist`) gives the HUD rail, the map's
+beacons and the briefing survey the same rows. On the Road the first is the
+relief convoys: beaconed at the gap, the town's gate and each convoy on the
+road, tallied as convoys out against the briefing's number, and saying which
+convoy is held and why (no escort near its trucks past the gap, or the swarm
+on the road ahead). The second is the gap (on the Line, the line): the gap's
+redoubts and any redoubt calling, the redoubts lost against those allowed, and
+the window's time left. Each row's focus is where the company is wanted now:
+a held convoy, then one on the road, the gate while one loads, and the gap
+while the next is still to come; a calling redoubt before a quiet gap
+redoubt. Tides are never foreseen on it, as on the radio. The optional beats
+are not on the rail yet; they are briefed only.
+
 ### Evidence
 
 `commanderEvidence -Pmission=cordon-line` and `-Pmission=cordon-road` play

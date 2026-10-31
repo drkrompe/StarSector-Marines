@@ -1,6 +1,7 @@
 package com.dillon.starsectormarines.battle.command.objective;
 
 import com.dillon.starsectormarines.battle.command.CommandAuthority;
+import com.dillon.starsectormarines.battle.cordon.CordonSequence;
 import com.dillon.starsectormarines.battle.command.AutonomousMissionCommand;
 import com.dillon.starsectormarines.battle.setup.ColdStartSequence;
 import com.dillon.starsectormarines.battle.setup.MissileAaTestSetup.LaneObjective;
@@ -81,7 +82,8 @@ public final class MissionObjectiveProjection {
                 items.add(MissionObjectiveFamilies.coldStart(repair));
                 for (var post : repair.pickets()) items.add(MissionObjectiveFamilies.coldStartPicket(post));
             }
-            else if (objective instanceof WorkingPassageSequence passage) items.add(MissionObjectiveFamilies.workingPassage(passage));
+            else if (objective instanceof CordonSequence cordon) items.addAll(CordonChecklist.items(sim, cordon));
+            else if (objective instanceof WorkingPassageSequence passage)items.add(MissionObjectiveFamilies.workingPassage(passage));
             else if (objective instanceof DepotHoldSequence depot) items.add(MissionObjectiveFamilies.lettered(MissionObjectiveFamilies.depot(depot), 0));
             else if (objective instanceof ColdAccountIntervention intervention) items.add(MissionObjectiveFamilies.coldAccount(intervention,
                     sim.getObjectives().stream().filter(RaidObjective.class::isInstance)

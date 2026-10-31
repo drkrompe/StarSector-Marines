@@ -93,7 +93,16 @@ public final class CordonConvoys {
      */
     static final int STRAGGLER_TICKS = LOADING_TICKS;
 
-    private enum Phase { WAITING, INBOUND, LOADING, OUTBOUND, OUT, LOST }
+    public enum Phase { WAITING, INBOUND, LOADING, OUTBOUND, OUT, LOST }
+
+    /** What holds a convoy on the road: nothing, the want of an escort past the gap, or the swarm on the road ahead. */
+    public enum Hold { NONE, ESCORT, BLOCKED }
+
+    /**
+     * One convoy as the mission picture reads it: its phase, what holds it, the tick it sets out on, and where its
+     * truck furthest along its way stands ({@code x} and {@code y} are -1 while none is on the road).
+     */
+    public record Reading(int number, Phase phase, Hold hold, int departTick, int x, int y) { }
 
     private static final class Truck {
         long hull;
@@ -297,6 +306,30 @@ public final class CordonConvoys {
         clearance = null;
         inward = outward = null;
     }
+    /** Every convoy, in departure order, as the mission picture reads it; read-only. */
+    public List<Reading> readings(BattleSimulation sim) {
+        List<Reading> out = new ArrayList<>();
+        for (Convoy c : convoys) {
+            Hold hold = Hold.NONE;
+            int x = -1, y = -1, best = Integer.MIN_VALUE;
+            for (Truck t : c.trucks) {
+                if (t.gone || !sim.convoy().isVehicle(t.hull)) continue;
+                if (t.halted) hold = Hold.BLOCKED;
+                else if (t.unescorted && hold == Hold.NONE) hold = Hold.ESCORT;
+                GroundBody body = sim.convoy().body(t.hull);
+                // Furthest along its way: toward the town inbound, toward home outbound.
+                int along = c.phase == Phase.OUTBOUND ? -nearestIndex(body) : nearestIndex(body);
+                if (along > best) {
+                    best = along;
+                    x = (int) body.x;
+                    y = (int) body.y;
+                }
+            }
+            out.add(new Reading(c.number, c.phase, hold, c.departTick, x, y));
+        }
+        return out;
+    }
+
     /** Convoys back out with their people. */
     public int out() { return count(Phase.OUT); }
     /** Convoys whose every truck was destroyed. */

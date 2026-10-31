@@ -2,13 +2,18 @@ package com.dillon.starsectormarines.ops;
 
 import com.dillon.starsectormarines.battle.air.ShuttleAssignment;
 import com.dillon.starsectormarines.campaign.LastLiftProgress;
+import com.dillon.starsectormarines.campaign.WellhollowBloomProgress;
 import com.dillon.starsectormarines.battle.air.ShuttleType;
 import com.dillon.starsectormarines.battle.unit.Faction;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveProjection;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.Item;
 import com.dillon.starsectormarines.battle.command.objective.MissionObjectiveSnapshot.SquadActivity;
+import com.dillon.starsectormarines.battle.cordon.CordonPlan;
+import com.dillon.starsectormarines.battle.cordon.CordonVariant;
 import com.dillon.starsectormarines.battle.fixture.CivilianRescueBattleFixture;
+import com.dillon.starsectormarines.battle.fixture.CordonBattleFixture;
+import com.dillon.starsectormarines.battle.world.gen.SurfacePalette;
 import com.dillon.starsectormarines.battle.fixture.ExtractionBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.RaidBattleFixture;
 import com.dillon.starsectormarines.battle.fixture.SabotageBattleFixture;
@@ -100,6 +105,16 @@ public final class MissionObjectiveSnapshotSuite implements SnapshotSuite {
             record.captureProgress = .5f;
             record.holdTimer = 2f;
             capture(context, artifacts, "junction-control-progress-fixture", sim, false);
+        }
+        // Ain Tafrant: the gap and the town's gate at landing, then a convoy on the road ninety seconds in.
+        try (var sim = new CordonBattleFixture(WellhollowBloomCampaign.fixedSeed(WellhollowBloomProgress.Chapter.CORDON_ROAD),
+                CordonVariant.ROAD, SurfacePalette.ARID, CordonPlan.Density.TOWN,
+                List.of(new ShuttleAssignment(ShuttleType.AEROSHUTTLE, 4, 6))).build()) {
+            capture(context, artifacts, "cordon-road-initial", sim, false);
+            var road = MissionObjectiveProjection.capture(sim).objectives();
+            assertEquals("cordon-gap", road.get(0).focusMarkerId(), "before the first convoy the company is sent to the gap");
+            for (int tick = 0; tick < 2700 && !sim.isComplete(); tick++) sim.advance(BattleSimulation.TICK_DT);
+            capture(context, artifacts, "cordon-road-convoy", sim, false);
         }
         try (var sim = new RaidBattleFixture(141418L, manifest, false, OperationTier.ESTABLISHED,
                 RiskLevel.LOW, TargetProfile.NEUTRAL, List.of(), List.of(), null).build()) {
