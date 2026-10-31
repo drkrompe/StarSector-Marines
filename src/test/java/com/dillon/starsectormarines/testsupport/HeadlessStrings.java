@@ -26,7 +26,7 @@ public final class HeadlessStrings implements AutoCloseable {
     private static volatile Path overlayRoot;
 
     private final SettingsAPI previous = Global.getSettings();
-    /** The layout lint's label for pages drawn under this overlay; null for the shipped strings. */
+    /** The layout lint's label for pages drawn under this overlay; empty for the shipped strings. */
     private final String lintLabel;
     private final Path previousOverlay = overlayRoot;
     public HeadlessStrings(Path modRoot) throws Exception {
@@ -61,9 +61,12 @@ public final class HeadlessStrings implements AutoCloseable {
     }
     private HeadlessStrings(Path modRoot, UnaryOperator<String> translation, String lintLabel, Path overlay)
             throws Exception {
-        // The layout lint counts pages drawn under an overlay apart from the shipped strings.
-        this.lintLabel = lintLabel;
-        if (lintLabel != null) LayoutLint.translated(lintLabel, true);
+        // The layout lint counts pages drawn under an overlay apart from the shipped strings; the shipped strings
+        // opened inside a translation run push an empty label, so their pages count as the shipped ones again.
+        this.lintLabel = lintLabel == null ? "" : lintLabel;
+        LayoutLint.translated(this.lintLabel, true);
+        // Inside a translation run (`-Dsnapshot.translation`), English and expanded copy leave its settings behind too.
+        boolean shadowTranslation = overlay == null && previousOverlay != null;
         JSONObject catalog = readJson(modRoot.resolve("data/strings/strings.json"));
         JSONObject settings = overlay == null ? null : readJson(overlay.resolve("data/config/settings.json"));
         if (overlay != null) {
@@ -90,13 +93,15 @@ public final class HeadlessStrings implements AutoCloseable {
                     if (settings != null && method.getName().equals("getSettingsJSON")) return settings;
                     if (settings != null && method.getName().equals("getBoolean") && settings.has((String) args[0]))
                         return settings.getBoolean((String) args[0]);
+                    if (shadowTranslation && method.getName().equals("getSettingsJSON")) return null;
+                    if (shadowTranslation && method.getName().equals("getBoolean")) return false;
                     if (previous != null) return method.invoke(previous, args);
                     if (method.getReturnType() == float.class) return 1f;
                     if (method.getReturnType() == boolean.class) return false;
                     if (method.getReturnType() == int.class) return 0;
                     return null;
                 }));
-        if (overlay != null) {
+        if (overlay != previousOverlay) {
             overlayRoot = overlay;
             Strings.refreshLocale();
         }
@@ -113,6 +118,6 @@ public final class HeadlessStrings implements AutoCloseable {
             overlayRoot = previousOverlay;
             Strings.refreshLocale();
         }
-        if (lintLabel != null) LayoutLint.translated(lintLabel, false);
+        LayoutLint.translated(lintLabel, false);
     }
 }
