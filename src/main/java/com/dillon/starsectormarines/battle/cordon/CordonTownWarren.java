@@ -16,7 +16,7 @@ import java.util.Set;
 /**
  * The Road's town round its compound ({@code cordon-nouns.md}, Cut-off town): the open ground east of the compound
  * and in front of it built up with small houses, shops and workshops on a staggered grid, the alleys between them
- * {@link #ALLEY} cells wide, so the swarm comes at the compound through streets that break every line of sight and
+ * two or three cells wide ({@link #alley}), so the swarm comes at the compound through streets that break every line of sight and
  * the company has alleys to cover (owner, 2026-10-31). Raised as structures before the map is finished, on open
  * ground only: never on road nor within a cell of one, so the convoys' road stays clear, and never on the compound's
  * claim, so its glacis stays open round the wall.
@@ -29,8 +29,13 @@ final class CordonTownWarren {
     static final int EAST_REACH = 60, FRONT_REACH = 48;
     /** Cells past the compound's claim the warren also takes on its flanks, so its corners are built too. */
     static final int FLANK = 10;
-    /** An alley's width between two buildings. */
-    static final int ALLEY = 2;
+    /** An alley's width between two buildings: two cells, or three where the building's corner draws it. */
+    static final int ALLEY = 2, WIDE_ALLEY = 3;
+    /**
+     * Cells kept clear past the compound's claim (itself three cells past the wall), so a ring six cells deep round
+     * the wall stays open for its gates and posterns.
+     */
+    static final int GLACIS = 3;
     /** Cells kept clear round any road cell. */
     static final int ROAD_CLEAR = 1;
 
@@ -46,7 +51,8 @@ final class CordonTownWarren {
         if (c == null) return List.of();
         // The compound is square, so its claim is its bounds: its glacis is kept open round the wall.
         LineCourse.CellTest free = (x, y) -> ground.buildable(x, y) && !ground.isHeld(x, y)
-                && !(x >= c[0] && x <= c[2] && y >= c[1] && y <= c[3]) && !nearRoad(ground, x, y);
+                && !(x >= c[0] - GLACIS && x <= c[2] + GLACIS && y >= c[1] - GLACIS && y <= c[3] + GLACIS)
+                && !nearRoad(ground, x, y);
         List<Piece> out = new ArrayList<>();
         for (Lot lot : pack(free, regions(c, front), front)) {
             out.add(new Structure(NAME + (out.size() + 1), lot.kind(), lot.x(), lot.y(), lot.turns(), false));
@@ -87,9 +93,9 @@ final class CordonTownWarren {
                     Lot lot = fit(free, taken, r, x, y, front);
                     if (lot == null) continue;
                     out.add(lot);
-                    int w = width(lot), h = height(lot);
-                    for (int cx = lot.x() - ALLEY; cx < lot.x() + w + ALLEY; cx++) {
-                        for (int cy = lot.y() - ALLEY; cy < lot.y() + h + ALLEY; cy++) taken.add(key(cx, cy));
+                    int w = width(lot), h = height(lot), alley = alley(lot);
+                    for (int cx = lot.x() - alley; cx < lot.x() + w + alley; cx++) {
+                        for (int cy = lot.y() - alley; cy < lot.y() + h + alley; cy++) taken.add(key(cx, cy));
                     }
                 }
             }
@@ -118,6 +124,11 @@ final class CordonTownWarren {
             for (int cy = y; cy < y + h; cy++) if (taken.contains(key(cx, cy)) || !free.test(cx, cy)) return false;
         }
         return true;
+    }
+
+    /** The alley kept round a building: {@link #WIDE_ALLEY} for one in three, by its corner, else {@link #ALLEY}. */
+    static int alley(Lot lot) {
+        return Math.floorMod(lot.x() * 7 + lot.y() * 13, 3) == 0 ? WIDE_ALLEY : ALLEY;
     }
 
     static int width(Lot lot) {

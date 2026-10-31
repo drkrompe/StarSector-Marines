@@ -458,8 +458,9 @@ public final class CordonPlan {
         if (variant == CordonVariant.ROAD) {
             pieces.add(new Deferred(CORRIDOR_PIECES, Phase.WORKS, CordonSetPieces::corridorPieces, false));
         }
-        if (variant == CordonVariant.ROAD) {
-            // The town round the compound's east side and front, built up so the swarm comes at it through alleys.
+        if (variant == CordonVariant.ROAD && density == Density.TOWN) {
+            // A town world's town round the compound's east side and front, built up so the swarm comes at it
+            // through alleys; open country and a city keep the ground they grew.
             pieces.add(new Deferred(TOWN_WARREN, Phase.STRUCTURES, ground -> CordonTownWarren.structures(ground, front[1]),
                     false));
         }
